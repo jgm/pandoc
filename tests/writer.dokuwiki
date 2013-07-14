@@ -7,7 +7,7 @@ This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 
 ===== Level 2 with an [[url|embedded link]] =====
 
-==== Level 3 with ''emphasis'' ====
+==== Level 3 with //emphasis// ====
 
 === Level 4 ===
 
@@ -15,7 +15,7 @@ This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 
 ====== Level 1 ======
 
-===== Level 2 with ''emphasis'' =====
+===== Level 2 with //emphasis// =====
 
 ==== Level 3 ====
 
@@ -270,10 +270,10 @@ Loose:
 Multiple blocks with italics:
 
 <dl>
-<dt>''apple''</dt>
+<dt>//apple//</dt>
 <dd><p>red fruit</p>
 <p>contains seeds, crisp, pleasant to taste</p></dd>
-<dt>''orange''</dt>
+<dt>//orange//</dt>
 <dd><p>orange fruit</p>
 <pre>{ orange code block }</pre>
 <blockquote><p>orange block quote</p></blockquote></dd></dl>
@@ -332,10 +332,10 @@ Interpreted markdown in a table:
 <table>
 <tr>
 <td>
-This is ''emphasized''
+This is //emphasized//
 </td>
 <td>
-And this is '''strong'''
+And this is **strong**
 </td>
 </tr>
 </table>
@@ -418,25 +418,25 @@ Hr’s:
 
 ====== Inline Markup ======
 
-This is ''emphasized'', and so ''is this''.
+This is //emphasized//, and so //is this//.
 
-This is '''strong''', and so '''is this'''.
+This is **strong**, and so **is this**.
 
-An ''[[url|emphasized link]]''.
+An //[[url|emphasized link]]//.
 
-'''''This is strong and em.'''''
+**//This is strong and em.//**
 
-So is '''''this''''' word.
+So is **//this//** word.
 
-'''''This is strong and em.'''''
+**//This is strong and em.//**
 
-So is '''''this''''' word.
+So is **//this//** word.
 
 This is code: <code>&gt;</code>, <code>$</code>, <code>\</code>, <code>\$</code>, <code>&lt;html&gt;</code>.
 
-<s>This is ''strikeout''.</s>
+<s>This is //strikeout//.</s>
 
-Superscripts: a<sup>bc</sup>d a<sup>''hello''</sup> a<sup>hello there</sup>.
+Superscripts: a<sup>bc</sup>d a<sup>//hello//</sup> a<sup>hello there</sup>.
 
 Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many of them</sub>O.
 
@@ -480,9 +480,9 @@ Ellipses…and…and….
 These shouldn’t be math:
 
 * To get the famous equation, write <code>$e = mc^2$</code>.
-* $22,000 is a ''lot'' of money. So is $34,000. (It worked if “lot” is emphasized.)
+* $22,000 is a //lot// of money. So is $34,000. (It worked if “lot” is emphasized.)
 * Shoes ($20) and socks ($5).
-* Escaped <code>$</code>: $73 ''this should be emphasized'' 23$.
+* Escaped <code>$</code>: $73 //this should be emphasized// 23$.
 
 Here’s a LaTeX table:
 
@@ -640,7 +640,7 @@ Subsequent blocks are indented to show that they belong to the footnote (as with
 
 <pre>  { &lt;code&gt; }</pre>
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
-</ref> This should ''not'' be a footnote reference, because it contains a space.[^my note] Here is an inline note.<ref>This is ''easier'' to type. Inline notes may contain [http://google.com links] and <code>]</code> verbatim characters, as well as [bracketed text].
+</ref> This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note.<ref>This is //easier// to type. Inline notes may contain [http://google.com links] and <code>]</code> verbatim characters, as well as [bracketed text].
 </ref>
 
 <blockquote>Notes can go in quotes.<ref>In quote.

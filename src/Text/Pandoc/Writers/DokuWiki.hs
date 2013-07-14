@@ -335,11 +335,11 @@ inlineToDokuWiki :: WriterOptions -> Inline -> State WriterState String
 
 inlineToDokuWiki opts (Emph lst) = do
   contents <- inlineListToDokuWiki opts lst
-  return $ "''" ++ contents ++ "''"
+  return $ "//" ++ contents ++ "//"
 
 inlineToDokuWiki opts (Strong lst) = do
   contents <- inlineListToDokuWiki opts lst
-  return $ "'''" ++ contents ++ "'''"
+  return $ "**" ++ contents ++ "**"
 
 inlineToDokuWiki opts (Strikeout lst) = do
   contents <- inlineListToDokuWiki opts lst
