@@ -1,7 +1,7 @@
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.
 
 
------
+----
 
 ====== Headers ======
 
@@ -26,7 +26,7 @@ with no blank line
 with no blank line
 
 
------
+----
 
 ====== Paragraphs ======
 
@@ -39,7 +39,7 @@ Here’s one with a bullet. * criminey.
 There should be a hard line break<br />here.
 
 
------
+----
 
 ====== Block Quotes ======
 
@@ -68,7 +68,7 @@ This should not be a block quote: 2 &gt; 1.
 And a following paragraph.
 
 
------
+----
 
 ====== Code Blocks ======
 
@@ -87,7 +87,7 @@ And:
 
 These should not be escaped:  \$ \\ \&gt; \[ \{</pre>
 
------
+----
 
 ====== Lists ======
 
@@ -236,7 +236,7 @@ M.A. 2007
 B. Williams
 
 
------
+----
 
 ====== Definition Lists ======
 
@@ -414,7 +414,7 @@ Hr’s:
 <hr class="foo" id="bar">
 
 
------
+----
 
 ====== Inline Markup ======
 
@@ -443,7 +443,7 @@ Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many of them</sub>O.
 These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.
 
 
------
+----
 
 ====== Smart quotes, ellipses, dashes ======
 
@@ -464,7 +464,7 @@ Dashes between numbers: 5–7, 255–66, 1987–1999.
 Ellipses…and…and….
 
 
------
+----
 
 ====== LaTeX ======
 
@@ -488,7 +488,7 @@ Here’s a LaTeX table:
 
 
 
------
+----
 
 ====== Special Characters ======
 
@@ -543,7 +543,7 @@ Plus: +
 Minus: -
 
 
------
+----
 
 ====== Links ======
 
@@ -618,7 +618,7 @@ Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code>
 
 <pre>or here: &lt;http://example.com/&gt;</pre>
 
------
+----
 
 ====== Images ======
 
@@ -629,7 +629,7 @@ From “Voyage dans la Lune” by Georges Melies (1902):
 Here is a movie [[Image:movie.jpg|movie]] icon.
 
 
------
+----
 
 ====== Footnotes ======
 

@@ -108,7 +108,7 @@ blockToDokuWiki _ (RawBlock "mediawiki" str) = return str
 blockToDokuWiki _ (RawBlock "html" str) = return str
 blockToDokuWiki _ (RawBlock _ _) = return ""
 
-blockToDokuWiki _ HorizontalRule = return "\n-----\n"
+blockToDokuWiki _ HorizontalRule = return "\n----\n"
 
 blockToDokuWiki opts (Header level _ inlines) = do
   contents <- inlineListToDokuWiki opts inlines
