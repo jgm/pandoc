@@ -489,14 +489,16 @@ paraStyle parent attrs = do
       tight     = if t then [ ("fo:margin-top"          , "0in"    )
                             , ("fo:margin-bottom"       , "0in"    )]
                        else []
-      indent    = when (i /= 0 || b || t) $
-                  selfClosingTag "style:paragraph-properties" $
-                           [ ("fo:margin-left"         , indentVal)
+      indent    = if (i /= 0 || b) 
+                      then [ ("fo:margin-left"         , indentVal)
                            , ("fo:margin-right"        , "0in"    )
                            , ("fo:text-indent"         , "0in"    )
                            , ("style:auto-text-indent" , "false"  )]
-                         ++ tight
-  addParaStyle $ inTags True "style:style" (styleAttr ++ attrs) indent
+                      else []
+      attributes = indent ++ tight
+      paraProps = when (not $ null attributes) $
+                    selfClosingTag "style:paragraph-properties" attributes
+  addParaStyle $ inTags True "style:style" (styleAttr ++ attrs) paraProps
   return pn
 
 paraListStyle :: Int -> State WriterState Int
