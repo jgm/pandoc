@@ -87,14 +87,15 @@ blockToDokuWiki opts (Plain inlines) =
   inlineListToDokuWiki opts inlines
 
 -- title beginning with fig: indicates that the image is a figure
+-- dokuwiki doesn't support captions - so combine together alt and caption into alt
 blockToDokuWiki opts (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   capt <- if null txt
              then return ""
-             else ("|caption " ++) `fmap` inlineListToDokuWiki opts txt
+             else (" " ++) `fmap` inlineListToDokuWiki opts txt
   let opt = if null txt
                then ""
-               else "|alt=" ++ if null tit then capt else tit ++ capt
-  return $ "[[Image:" ++ src ++ "|frame|none" ++ opt ++ "]]\n"
+               else "|" ++ if null tit then capt else tit ++ capt
+  return $ "{{:" ++ src ++ opt ++ "}}\n"
 
 blockToDokuWiki opts (Para inlines) = do
   useTags <- get >>= return . stUseTags
@@ -398,7 +399,7 @@ inlineToDokuWiki opts (Image alt (source, tit)) = do
                        then ""
                        else "|" ++ alt'
                else "|" ++ tit
-  return $ "[[Image:" ++ source ++ txt ++ "]]"
+  return $ "{{:" ++ source ++ txt ++ "}}"
 
 inlineToDokuWiki opts (Note contents) = do
   contents' <- blockListToDokuWiki opts contents
