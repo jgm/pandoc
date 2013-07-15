@@ -77,16 +77,16 @@ function Doc(body, metadata, variables)
   add('<!DOCTYPE html>')
   add('<html>')
   add('<head>')
-  add('<title>' .. metadata.title .. '</title>')
+  add('<title>' .. (metadata['title'] or '') .. '</title>')
   add('</head>')
   add('<body>')
-  if title ~= "" then
-    add('<h1 class="title">' .. metadata.title .. '</h1>')
+  if metadata['title'] and metadata['title'] ~= "" then
+    add('<h1 class="title">' .. metadata['title'] .. '</h1>')
   end
-  for _, author in pairs(metadata.author) do
+  for _, author in pairs(metadata['author'] or {}) do
     add('<h2 class="author">' .. author .. '</h2>')
   end
-  if date ~= "" then
+  if metadata['date'] and metadata['date'] ~= "" then
     add('<h3 class="date">' .. metadata.date .. '</h3>')
   end
   add(body)
