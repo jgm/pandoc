@@ -386,7 +386,7 @@ inlineToDokuWiki opts (Link txt (src, _)) = do
   case txt of
      [Str s] | escapeURI s == src -> return src
      _  -> if isURI src
-              then return $ "[" ++ src ++ " " ++ label ++ "]"
+              then return $ "[[" ++ src ++ "|" ++ label ++ "]]"
               else return $ "[[" ++ src' ++ "|" ++ label ++ "]]"
                      where src' = case src of
                                      '/':xs -> xs  -- with leading / it's a

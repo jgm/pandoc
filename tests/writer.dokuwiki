@@ -455,7 +455,7 @@ These should not be superscripts or subscripts, because of the unescaped spaces:
 
 ‘He said, “I want to go.”’ Were you alive in the 70’s?
 
-Here is some quoted ‘<code>code</code>’ and a “[http://example.com/?foo=1&bar=2 quoted link]”.
+Here is some quoted ‘<code>code</code>’ and a “[[http://example.com/?foo=1&bar=2|quoted link]]”.
 
 Some dashes: one—two — three—four — five.
 
@@ -563,7 +563,7 @@ Just a [[url/|URL]].
 
 [[url/with_underscore|with_underscore]]
 
-[mailto:nobody@nowhere.net Email link]
+[[mailto:nobody@nowhere.net|Email link]]
 
 [[|Empty]].
 
@@ -594,9 +594,9 @@ Foo [[url/|biz]].
 
 ===== With ampersands =====
 
-Here’s a [http://example.com/?foo=1&bar=2 link with an ampersand in the URL].
+Here’s a [[http://example.com/?foo=1&bar=2|link with an ampersand in the URL]].
 
-Here’s a link with an amersand in the link text: [http://att.com/ AT&amp;T].
+Here’s a link with an amersand in the link text: [[http://att.com/|AT&amp;T]].
 
 Here’s an [[script?foo=1&bar=2|inline link]].
 
@@ -610,7 +610,7 @@ With an ampersand: http://example.com/?foo=1&bar=2
 * http://example.com/
 * It should.
 
-An e-mail address: [mailto:nobody@nowhere.net nobody@nowhere.net]
+An e-mail address: [[mailto:nobody@nowhere.net|nobody@nowhere.net]]
 
 <blockquote>Blockquoted: http://example.com/
 </blockquote>
@@ -640,7 +640,7 @@ Subsequent blocks are indented to show that they belong to the footnote (as with
 
 <pre>  { &lt;code&gt; }</pre>
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
-</ref> This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note.<ref>This is //easier// to type. Inline notes may contain [http://google.com links] and <code>]</code> verbatim characters, as well as [bracketed text].
+</ref> This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note.<ref>This is //easier// to type. Inline notes may contain [[http://google.com|links]] and <code>]</code> verbatim characters, as well as [bracketed text].
 </ref>
 
 <blockquote>Notes can go in quotes.<ref>In quote.
