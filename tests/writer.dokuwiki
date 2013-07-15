@@ -95,65 +95,65 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</pre>
 
 Asterisks tight:
 
-* asterisk 1
-* asterisk 2
-* asterisk 3
+  * asterisk 1
+  * asterisk 2
+  * asterisk 3
 
 Asterisks loose:
 
-* asterisk 1
-* asterisk 2
-* asterisk 3
+  * asterisk 1
+  * asterisk 2
+  * asterisk 3
 
 Pluses tight:
 
-* Plus 1
-* Plus 2
-* Plus 3
+  * Plus 1
+  * Plus 2
+  * Plus 3
 
 Pluses loose:
 
-* Plus 1
-* Plus 2
-* Plus 3
+  * Plus 1
+  * Plus 2
+  * Plus 3
 
 Minuses tight:
 
-* Minus 1
-* Minus 2
-* Minus 3
+  * Minus 1
+  * Minus 2
+  * Minus 3
 
 Minuses loose:
 
-* Minus 1
-* Minus 2
-* Minus 3
+  * Minus 1
+  * Minus 2
+  * Minus 3
 
 ===== Ordered =====
 
 Tight:
 
-# First
-# Second
-# Third
+  - First
+  - Second
+  - Third
 
 and:
 
-# One
-# Two
-# Three
+  - One
+  - Two
+  - Three
 
 Loose using tabs:
 
-# First
-# Second
-# Third
+  - First
+  - Second
+  - Third
 
 and using spaces:
 
-# One
-# Two
-# Three
+  - One
+  - Two
+  - Three
 
 Multiple paragraphs:
 
@@ -165,34 +165,34 @@ Multiple paragraphs:
 
 ===== Nested =====
 
-* Tab
-** Tab
-*** Tab
+  * Tab
+    * Tab
+      * Tab
 
 Here’s another:
 
-# First
-# Second:
-#* Fee
-#* Fie
-#* Foe
-# Third
+  - First
+  - Second:
+    * Fee
+    * Fie
+    * Foe
+  - Third
 
 Same thing but with paragraphs:
 
-# First
-# Second:
-#* Fee
-#* Fie
-#* Foe
-# Third
+  - First
+  - Second:
+    * Fee
+    * Fie
+    * Foe
+  - Third
 
 ===== Tabs and spaces =====
 
-* this is a list item indented with tabs
-* this is a list item indented with spaces
-** this is an example list item indented with tabs
-** this is an example list item indented with spaces
+  * this is a list item indented with tabs
+  * this is a list item indented with spaces
+    * this is an example list item indented with tabs
+    * this is an example list item indented with spaces
 
 ===== Fancy list markers =====
 
@@ -225,9 +225,9 @@ Nesting:
 
 Autonumbering:
 
-# Autonumber.
-# More.
-## Nested.
+  - Autonumber.
+  - More.
+    - Nested.
 
 Should not be a list item:
 
