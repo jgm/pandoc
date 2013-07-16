@@ -217,6 +217,7 @@ pTable = try $ do
   TagOpen _ _ <- pSatisfy (~== TagOpen "table" [])
   skipMany pBlank
   caption <- option [] $ pInTags "caption" inline >>~ skipMany pBlank
+  -- TODO actually read these and take width information from them
   skipMany $ (pInTags "col" block >> skipMany pBlank) <|>
              (pInTags "colgroup" block >> skipMany pBlank)
   head' <- option [] $ pOptInTag "thead" $ pInTags "tr" (pCell "th")
@@ -229,10 +230,15 @@ pTable = try $ do
       isSinglePlain [Plain _] = True
       isSinglePlain _         = False
   let isSimple = all isSinglePlain $ concat (head':rows)
-  guard isSimple
-  let cols = maximum $ map length rows
+  let cols = length $ if null head'
+                         then head rows
+                         else head'
+  -- fail if there are colspans or rowspans
+  guard $ all (\r -> length r == cols) rows
   let aligns = replicate cols AlignLeft
-  let widths = replicate cols 0
+  let widths = if isSimple
+                  then replicate cols 0
+                  else replicate cols (1.0 / fromIntegral cols)
   return [Table caption aligns widths head' rows]
 
 pCell :: String -> TagParser [TableCell]
