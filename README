@@ -1794,19 +1794,19 @@ if a title contains a colon, it must be quoted.  The pipe character
 literally, without need for escaping.  This form is necessary
 when the field contains blank lines:
 
-   ---
-   title:  'This is the title: it contains a colon'
-   author:
-   - name: Author One
-     affiliation: University of Somewhere
-   - name: Author Two
-     affiliation: University of Nowhere
-   tags: [nothing, nothingness]
-   abstract: |
-     This is the abstract.
+    ---
+    title:  'This is the title: it contains a colon'
+    author:
+    - name: Author One
+      affiliation: University of Somewhere
+    - name: Author Two
+      affiliation: University of Nowhere
+    tags: [nothing, nothingness]
+    abstract: |
+      This is the abstract.
 
-     It consists of two paragraphs.
-   ...
+      It consists of two paragraphs.
+    ...
 
 Template variables will be set from the metadata.  Thus, for example,
 in writing HTML, the variable `abstract` will be set to the HTML
