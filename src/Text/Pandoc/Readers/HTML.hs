@@ -88,7 +88,7 @@ block = choice
             , pCodeBlock
             , pList
             , pHrule
-            , pSimpleTable
+            , pTable
             , pHead
             , pBody
             , pPlain
@@ -212,8 +212,8 @@ pHrule = do
   pSelfClosing (=="hr") (const True)
   return [HorizontalRule]
 
-pSimpleTable :: TagParser [Block]
-pSimpleTable = try $ do
+pTable :: TagParser [Block]
+pTable = try $ do
   TagOpen _ _ <- pSatisfy (~== TagOpen "table" [])
   skipMany pBlank
   caption <- option [] $ pInTags "caption" inline >>~ skipMany pBlank
@@ -225,6 +225,11 @@ pSimpleTable = try $ do
           $ many1 $ try $ skipMany pBlank >> pInTags "tr" (pCell "td")
   skipMany pBlank
   TagClose _ <- pSatisfy (~== TagClose "table")
+  let isSinglePlain []        = True
+      isSinglePlain [Plain _] = True
+      isSinglePlain _         = False
+  let isSimple = all isSinglePlain $ concat (head':rows)
+  guard isSimple
   let cols = maximum $ map length rows
   let aligns = replicate cols AlignLeft
   let widths = replicate cols 0
@@ -233,7 +238,7 @@ pSimpleTable = try $ do
 pCell :: String -> TagParser [TableCell]
 pCell celltype = try $ do
   skipMany pBlank
-  res <- pInTags celltype pPlain
+  res <- pInTags celltype block
   skipMany pBlank
   return [res]
 
