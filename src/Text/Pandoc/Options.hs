@@ -92,6 +92,7 @@ data Extension =
     | Ext_superscript         -- ^ Superscript using ^this^ syntax
     | Ext_subscript           -- ^ Subscript using ~this~ syntax
     | Ext_hard_line_breaks    -- ^ All newlines become hard line breaks
+    | Ext_ignore_line_breaks  -- ^ Newlines in paragraphs are ignored
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
     | Ext_abbreviations       -- ^ PHP markdown extra abbreviation definitions
     | Ext_auto_identifiers    -- ^ Automatic identifiers for headers

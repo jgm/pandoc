@@ -2416,6 +2416,12 @@ example, `markdown+hard_line_breaks` is markdown with hard line breaks.
 Causes all newlines within a paragraph to be interpreted as hard line
 breaks instead of spaces.
 
+**Extension:  `ignore_line_breaks`**\
+Causes newlines within a paragraph to be ignored, rather than being
+treated as spaces or as hard line breaks.  This option is intended for
+use with East Asian languages where spaces are not used between words,
+but text is divided into lines for readability.
+
 **Extension: `tex_math_single_backslash`**\
 Causes anything between `\(` and `\)` to be interpreted as inline
 TeX math, and anything between `\[` and `\]` to be interpreted

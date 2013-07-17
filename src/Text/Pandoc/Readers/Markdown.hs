@@ -1566,6 +1566,7 @@ endline = try $ do
      notFollowedBy' bulletListStart
      notFollowedBy' anyOrderedListStart
   (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
+    <|> (guardEnabled Ext_ignore_line_breaks >> return mempty)
     <|> (return $ return B.space)
 
 --
