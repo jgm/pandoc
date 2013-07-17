@@ -23,8 +23,9 @@ the [cabal-install] build tool.
 
         cabal install
 
-3.  Make sure the `$CABALDIR/bin` directory is in your path.  You should
-now be able to run `pandoc`:
+3.  Make sure the `$CABALDIR/bin` directory is in your path. ([Not sure where
+$CABALDIR is?]: http://www.haskell.org/haskellwiki/Cabal-Install#The_cabal-install_configuration_file) 
+You should now be able to run `pandoc`:
 
         pandoc --help
 
