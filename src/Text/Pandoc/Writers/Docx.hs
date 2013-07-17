@@ -776,6 +776,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
                              Just Jpeg -> ".jpeg"
                              Just Gif  -> ".gif"
                              Just Pdf  -> ".pdf"
+                             Just Eps  -> ".eps"
                              Nothing   -> takeExtension src
           if null imgext
              then -- without an extension there is no rule for content type
