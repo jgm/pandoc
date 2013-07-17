@@ -47,7 +47,7 @@ import Data.Maybe ( fromMaybe, isJust )
 import Data.List ( intercalate )
 import Data.Char ( isDigit )
 import Control.Monad ( liftM, guard, when, mzero )
-import Control.Applicative ( (<$>), (<$) )
+import Control.Applicative ( (<$>), (<$), (<*) )
 
 isSpace :: Char -> Bool
 isSpace ' '  = True
@@ -218,8 +218,7 @@ pTable = try $ do
   skipMany pBlank
   caption <- option [] $ pInTags "caption" inline >>~ skipMany pBlank
   -- TODO actually read these and take width information from them
-  skipMany $ (pInTags "col" block >> skipMany pBlank) <|>
-             (pInTags "colgroup" block >> skipMany pBlank)
+  widths' <- pColgroup <|> many pCol
   head' <- option [] $ pOptInTag "thead" $ pInTags "tr" (pCell "th")
   skipMany pBlank
   rows <- pOptInTag "tbody"
@@ -236,10 +235,28 @@ pTable = try $ do
   -- fail if there are colspans or rowspans
   guard $ all (\r -> length r == cols) rows
   let aligns = replicate cols AlignLeft
-  let widths = if isSimple
-                  then replicate cols 0
-                  else replicate cols (1.0 / fromIntegral cols)
+  let widths = if null widths'
+                  then if isSimple
+                       then replicate cols 0
+                       else replicate cols (1.0 / fromIntegral cols)
+                  else widths'
   return [Table caption aligns widths head' rows]
+
+pCol :: TagParser Double
+pCol = try $ do
+  TagOpen _ attribs <- pSatisfy (~== TagOpen "col" [])
+  optional $ pSatisfy (~== TagClose "col")
+  skipMany pBlank
+  return $ case lookup "width" attribs of
+           Just x | not (null x) && last x == '%' ->
+             maybe 0.0 id $ safeRead ('0':'.':init x)
+           _ -> 0.0
+
+pColgroup :: TagParser [Double]
+pColgroup = try $ do
+  pSatisfy (~== TagOpen "colgroup" [])
+  skipMany pBlank
+  manyTill pCol (pCloses "colgroup" <|> eof) <* skipMany pBlank
 
 pCell :: String -> TagParser [TableCell]
 pCell celltype = try $ do
