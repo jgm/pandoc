@@ -768,6 +768,9 @@ as `title`, `author`, and `date`) as well as the following:
 :   font size (10pt, 11pt, 12pt) for LaTeX documents
 `documentclass`
 :   document class for LaTeX documents
+`classoption`
+:   option for LaTeX documentclass, e.g. `oneside`; may be repeated
+    for multiple options
 `geometry`
 :   options for LaTeX `geometry` class, e.g. `margin=1in`;
     may be repeated for multiple options
