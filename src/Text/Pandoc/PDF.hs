@@ -38,6 +38,7 @@ import System.Exit (ExitCode (..))
 import System.FilePath
 import System.Directory
 import System.Process
+import System.Environment
 import Control.Exception (evaluate)
 import System.IO (hClose)
 import Control.Concurrent (putMVar, takeMVar, newEmptyMVar, forkIO)
@@ -102,7 +103,12 @@ runTeXProgram program runsLeft tmpDir source = do
     unless exists $ UTF8.writeFile file source
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
          "-output-directory", tmpDir, file]
-    (exit, out, err) <- readCommand program programArgs
+    env' <- getEnvironment
+    let texinputs = maybe (tmpDir ++ ":") ((tmpDir ++ ":") ++)
+          $ lookup "TEXINPUTS" env'
+    let env'' = ("TEXINPUTS", texinputs) :
+                  [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
+    (exit, out, err) <- readCommand (Just env'') program programArgs
     if runsLeft > 1
        then runTeXProgram program (runsLeft - 1) tmpDir source
        else do
@@ -118,12 +124,14 @@ runTeXProgram program runsLeft tmpDir source = do
 -- Run a command and return exitcode, contents of stdout, and
 -- contents of stderr. (Based on
 -- 'readProcessWithExitCode' from 'System.Process'.)
-readCommand :: FilePath                            -- ^ command to run
+readCommand :: Maybe [(String, String)]            -- ^ environment variables
+            -> FilePath                            -- ^ command to run
             -> [String]                            -- ^ any arguments
             -> IO (ExitCode,ByteString,ByteString) -- ^ exit, stdout, stderr
-readCommand cmd args = do
+readCommand mbenv cmd args = do
     (Just inh, Just outh, Just errh, pid) <-
-        createProcess (proc cmd args){ std_in  = CreatePipe,
+        createProcess (proc cmd args){ env     = mbenv,
+                                       std_in  = CreatePipe,
                                        std_out = CreatePipe,
                                        std_err = CreatePipe }
     outMVar <- newEmptyMVar
