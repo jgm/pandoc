@@ -126,7 +126,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let readPicEntry entries (oldsrc, newsrc) = do
         res <- fetchItem sourceDir oldsrc
         case res of
-             Left e        -> do
+             Left _        -> do
               warn $ "Could not find image `" ++ oldsrc ++ "', skipping..."
               return entries
              Right (img,_) -> return $
