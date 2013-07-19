@@ -40,7 +40,7 @@ import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
-import Text.Pandoc.Shared (renderTags', openURL, readDataFile)
+import Text.Pandoc.Shared (renderTags', openURL, readDataFile, err)
 import Text.Pandoc.UTF8 (toString,  fromString)
 import Text.Pandoc.MIME (getMimeType)
 import System.Directory (doesFileExist)
@@ -98,7 +98,7 @@ cssURLs userdata d orig =
 getItem :: Maybe FilePath -> String -> IO (ByteString, Maybe String)
 getItem userdata f =
   if isAbsoluteURI f
-     then openURL f
+     then openURL f >>= either handleErr return
      else do
        -- strip off trailing query or fragment part, if relative URL.
        -- this is needed for things like cmunrm.eot?#iefix,
@@ -110,6 +110,7 @@ getItem userdata f =
        exists <- doesFileExist f'
        cont <- if exists then B.readFile f' else readDataFile userdata f'
        return (cont, mime)
+  where handleErr e = err 61 $ "Failed to retrieve " ++ f ++ "\n" ++ show e
 
 getRaw :: Maybe FilePath -> String -> String -> IO (ByteString, String)
 getRaw userdata mimetype src = do

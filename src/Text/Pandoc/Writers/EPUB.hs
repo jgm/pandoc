@@ -123,10 +123,15 @@ writeEPUB opts doc@(Pandoc meta _) = do
   Pandoc _ blocks <- bottomUpM
        (transformInline opts' sourceDir picsRef) doc
   pics <- readIORef picsRef
-  let readPicEntry (oldsrc, newsrc) = do
-        (img,_) <- fetchItem sourceDir oldsrc
-        return $ toEntry newsrc epochtime $ B.fromChunks . (:[]) $ img
-  picEntries <- mapM readPicEntry pics
+  let readPicEntry entries (oldsrc, newsrc) = do
+        res <- fetchItem sourceDir oldsrc
+        case res of
+             Left e        -> do
+              warn $ "Could not find image `" ++ oldsrc ++ "', skipping..."
+              return entries
+             Right (img,_) -> return $
+              (toEntry newsrc epochtime $ B.fromChunks . (:[]) $ img) : entries
+  picEntries <- foldM readPicEntry [] pics
 
   -- handle fonts
   let mkFontEntry f = mkEntry (takeFileName f) `fmap` B.readFile f

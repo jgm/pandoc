@@ -42,7 +42,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
 import Control.Monad (liftM)
-import Control.Monad.Trans (liftIO)
 import Text.Pandoc.XML
 import Text.Pandoc.Pretty
 import qualified Control.Exception as E
@@ -114,10 +113,10 @@ writeODT opts doc@(Pandoc meta _) = do
 
 transformPic :: FilePath -> IORef [Entry] -> Inline -> IO Inline
 transformPic sourceDir entriesRef (Image lab (src,_)) = do
-  res <- liftIO $ E.try $ fetchItem sourceDir src
+  res <- fetchItem sourceDir src
   case res of
      Left (_ :: E.SomeException) -> do
-       liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
+       warn $ "Could not find image `" ++ src ++ "', skipping..."
        return $ Emph lab
      Right (img, _) -> do
        let size = imageSize img

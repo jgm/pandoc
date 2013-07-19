@@ -726,7 +726,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
     Just (_,_,_,elt,_) -> return [elt]
     Nothing -> do
       let sourceDir = writerSourceDirectory opts
-      res <- liftIO $ E.try $ fetchItem sourceDir src
+      res <- liftIO $ fetchItem sourceDir src
       case res of
         Left (_ :: E.SomeException) -> do
           liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."

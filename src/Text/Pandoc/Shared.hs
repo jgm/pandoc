@@ -95,6 +95,7 @@ import Text.Pandoc.MIME (getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
+import qualified Control.Exception as E
 import Control.Monad (msum, unless)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
@@ -586,12 +587,13 @@ readDataFileUTF8 userDir fname =
 
 -- | Fetch an image or other item from the local filesystem or the net.
 -- Returns raw content and maybe mime type.
-fetchItem :: String -> String -> IO (BS.ByteString, Maybe String)
+fetchItem :: String -> String
+          -> IO (Either E.SomeException (BS.ByteString, Maybe String))
 fetchItem sourceDir s =
   case s of
     _ | isAbsoluteURI s         -> openURL s
       | isAbsoluteURI sourceDir -> openURL $ sourceDir ++ "/" ++ s
-      | otherwise               -> do
+      | otherwise               -> E.try $ do
           let mime = case takeExtension s of
                         ".gz" -> getMimeType $ dropExtension s
                         x     -> getMimeType x
@@ -600,21 +602,21 @@ fetchItem sourceDir s =
           return (cont, mime)
 
 -- | Read from a URL and return raw data and maybe mime type.
-openURL :: String -> IO (BS.ByteString, Maybe String)
+openURL :: String -> IO (Either E.SomeException (BS.ByteString, Maybe String))
 openURL u
   | "data:" `isPrefixOf` u =
     let mime     = takeWhile (/=',') $ drop 5 u
         contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u
-    in  return (contents, Just mime)
+    in  return $ Right (contents, Just mime)
 #ifdef HTTP_CONDUIT
-  | otherwise = do
+  | otherwise = E.try $ do
      req <- parseUrl u
      resp <- withManager $ httpLbs req
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 #else
-  | otherwise = getBodyAndMimeType `fmap` browse
-              (do S.liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
+  | otherwise = E.try $ getBodyAndMimeType `fmap` browse
+              (do UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
                   setOutHandler $ const (return ())
                   setAllowRedirects True
                   request (getRequest' u'))
