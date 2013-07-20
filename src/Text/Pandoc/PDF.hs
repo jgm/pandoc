@@ -28,12 +28,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of LaTeX documents to PDF.
 -}
-module Text.Pandoc.PDF ( tex2pdf ) where
+module Text.Pandoc.PDF ( makePDF ) where
 
 import System.IO.Temp
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as BC
+import qualified Data.ByteString as BS
 import System.Exit (ExitCode (..))
 import System.FilePath
 import System.Directory
@@ -42,9 +43,15 @@ import System.Environment
 import Control.Exception (evaluate)
 import System.IO (hClose)
 import Control.Concurrent (putMVar, takeMVar, newEmptyMVar, forkIO)
-import Text.Pandoc.UTF8 as UTF8
 import Control.Monad (unless)
 import Data.List (isInfixOf)
+import qualified Data.ByteString.Base64 as B64
+import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Definition
+import Text.Pandoc.Generic (bottomUpM)
+import Text.Pandoc.Shared (fetchItem, warn)
+import Text.Pandoc.Options (WriterOptions(..))
+import Text.Pandoc.MIME (extensionFromMimeType)
 
 withTempDir :: String -> (FilePath -> IO a) -> IO a
 withTempDir =
@@ -54,11 +61,44 @@ withTempDir =
   withSystemTempDirectory
 #endif
 
-tex2pdf :: String       -- ^ tex program (pdflatex, lualatex, xelatex)
-        -> String       -- ^ latex source
+makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex)
+        -> (WriterOptions -> Pandoc -> String)  -- ^ writer
+        -> WriterOptions       -- ^ options
+        -> Pandoc              -- ^ document
         -> IO (Either ByteString ByteString)
-tex2pdf program source = withTempDir "tex2pdf." $ \tmpdir ->
+makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
+  doc' <- handleImages (writerSourceDirectory opts) tmpdir doc
+  let source = writer opts doc'
   tex2pdf' tmpdir program source
+
+handleImages :: String        -- ^ source directory/base URL
+             -> FilePath      -- ^ temp dir to store images
+             -> Pandoc        -- ^ document
+             -> IO Pandoc
+handleImages baseURL tmpdir = bottomUpM (handleImage' baseURL tmpdir)
+
+handleImage' :: String
+             -> FilePath
+             -> Inline
+             -> IO Inline
+handleImage' baseURL tmpdir (Image ils (src,tit)) = do
+    exists <- doesFileExist src
+    if exists
+       then return $ Image ils (src,tit)
+       else do
+         res <- fetchItem baseURL src
+         case res of
+              Right (contents, Just mime) -> do
+                let ext = maybe (takeExtension src) id $
+                          extensionFromMimeType mime
+                let basename = UTF8.toString $ B64.encode $ UTF8.fromString src
+                let fname = tmpdir </> basename <.> ext
+                BS.writeFile fname contents
+                return $ Image ils (fname,tit)
+              _ -> do
+                warn $ "Could not find image `" ++ src ++ "', skipping..."
+                return $ Image ils (src,tit)
+handleImage' _ _ x = return x
 
 tex2pdf' :: FilePath                        -- ^ temp directory for output
          -> String                          -- ^ tex program

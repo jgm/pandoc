@@ -31,7 +31,7 @@ writers.
 -}
 module Main where
 import Text.Pandoc
-import Text.Pandoc.PDF (tex2pdf)
+import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, safeRead,
                             headerShift, normalize, err, warn )
@@ -1113,7 +1113,7 @@ main = do
     Right (IOByteStringWriter f) -> f writerOptions doc0 >>= writeBinary
     Right (PureStringWriter f)
       | pdfOutput -> do
-              res <- tex2pdf latexEngine $ f writerOptions doc0
+              res <- makePDF latexEngine f writerOptions doc0
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ UTF8.toStringLazy err'
