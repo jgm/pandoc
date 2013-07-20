@@ -892,7 +892,7 @@ There are two kinds of headers, Setext and atx.
 ### Setext-style headers ###
 
 A setext-style header is a line of text "underlined" with a row of `=` signs
-(for a level one header) of `-` signs (for a level two header):
+(for a level one header) or `-` signs (for a level two header):
 
     A level-one header
     ==================
