@@ -40,7 +40,7 @@ $if(geometry)$
 $endif$
 $if(natbib)$
 \usepackage{natbib}
-\bibliographystyle{plainnat}
+\bibliographystyle{$if(biblio-style)$$biblio-style$$else$plainnat$endif$}
 $endif$
 $if(biblatex)$
 \usepackage{biblatex}
