@@ -28,6 +28,8 @@ now be able to run `pandoc`:
 
         pandoc --help
 
+    [Not sure where `$CABALDIR` is?](http://www.haskell.org/haskellwiki/Cabal-Install#The_cabal-install_configuration_file)
+
 4.  Make sure the `$CABALDIR/share/man/man1` directory is in your `MANPATH`.
 You should now be able to access the `pandoc` man page:
 
