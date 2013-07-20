@@ -790,6 +790,8 @@ as `title`, `author`, and `date`) as well as the following:
 :   color for citation links in LaTeX documents
 `links-as-notes`
 :   causes links to be printed as footnotes in LaTeX documents
+`biblio-style`
+:   bibliography style in LaTeX, when used with `--natbib`
 `section`
 :   section number in man pages
 `header`
