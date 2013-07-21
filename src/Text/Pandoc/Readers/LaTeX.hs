@@ -44,7 +44,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
 import Control.Monad
 import Text.Pandoc.Builder
-import Data.Char (isLetter, isPunctuation, isSpace)
+import Data.Char (isLetter)
 import Control.Applicative
 import Data.Monoid
 import System.Environment (getEnv)
@@ -986,12 +986,8 @@ addPrefix _ _ = []
 
 addSuffix :: [Inline] -> [Citation] -> [Citation]
 addSuffix s ks@(_:_) =
-  let k  = last ks
-      s' = case s of
-                (Str (c:_):_)
-                  | not (isPunctuation c || isSpace c) -> Str "," : Space : s
-                _                                      -> s
-  in  init ks ++ [k {citationSuffix = citationSuffix k ++ s'}]
+  let k = last ks
+  in  init ks ++ [k {citationSuffix = citationSuffix k ++ s}]
 addSuffix _ _ = []
 
 simpleCiteArgs :: LP [Citation]
