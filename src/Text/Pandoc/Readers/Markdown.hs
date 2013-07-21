@@ -1340,17 +1340,15 @@ inline = choice [ whitespace
                 , str
                 , endline
                 , code
-                , fours
-                , strong
-                , emph
+                , strongOrEmph
                 , note
                 , cite
                 , link
                 , image
                 , math
                 , strikeout
-                , superscript
                 , subscript
+                , superscript
                 , inlineNote  -- after superscript because of ^[link](/foo)^
                 , autoLink
                 , rawHtmlInline
@@ -1455,14 +1453,58 @@ mathInlineWith op cl = try $ do
   notFollowedBy digit  -- to prevent capture of $5
   return $ concat words'
 
--- to avoid performance problems, treat 4 or more _ or * or ~ or ^ in a row
--- as a literal rather than attempting to parse for emph/strong/strikeout/super/sub
-fours :: Parser [Char] st (F Inlines)
-fours = try $ do
-  x <- char '*' <|> char '_' <|> char '~' <|> char '^'
-  count 2 $ satisfy (==x)
-  rest <- many1 (satisfy (==x))
-  return $ return $ B.str (x:x:x:rest)
+-- Parses material enclosed in *s, **s, _s, or __s.
+-- Designed to avoid backtracking.
+enclosure :: Char
+          -> MarkdownParser (F Inlines)
+enclosure c = do
+  cs <- many1 (char c)
+  (return (B.str cs) <>) <$> whitespace
+    <|> case length cs of
+             3  -> three c
+             2  -> two   c mempty
+             1  -> one   c mempty
+             _  -> return (return $ B.str cs)
+
+-- Parse inlines til you hit one c or a sequence of two cs.
+-- If one c, emit emph and then parse two.
+-- If two cs, emit strong and then parse one.
+three :: Char -> MarkdownParser (F Inlines)
+three c = do
+  contents <- mconcat <$> many (notFollowedBy (char c) >> inline)
+  (try (string [c,c,c]) >> return ((B.strong . B.emph) <$> contents))
+    <|> (try (string [c,c]) >> one c (B.strong <$> contents))
+    <|> (char c >> two c (B.emph <$> contents))
+    <|> return (return (B.str [c,c,c]) <> contents)
+
+-- Parse inlines til you hit two c's, and emit strong.
+-- If you never do hit two cs, emit ** plus inlines parsed.
+two :: Char -> F Inlines -> MarkdownParser (F Inlines)
+two c prefix' = do
+  let ender = try $ string [c,c]
+  contents <- mconcat <$> many (try $ notFollowedBy ender >> inline)
+  (ender >> return (B.strong <$> (prefix' <> contents)))
+    <|> return (return (B.str [c,c]) <> (prefix' <> contents))
+
+-- Parse inlines til you hit a c, and emit emph.
+-- If you never hit a c, emit * plus inlines parsed.
+one :: Char -> F Inlines -> MarkdownParser (F Inlines)
+one c prefix' = do
+  contents <- mconcat <$> many (  (notFollowedBy (char c) >> inline)
+                           <|> try (string [c,c] >>
+                                    notFollowedBy (char c) >>
+                                    two c prefix') )
+  (char c >> return (B.emph <$> (prefix' <> contents)))
+    <|> return (return (B.str [c]) <> (prefix' <> contents))
+
+strongOrEmph :: MarkdownParser (F Inlines)
+strongOrEmph =  enclosure '*' <|> (checkIntraword >> enclosure '_')
+  where  checkIntraword = do
+           exts <- getOption readerExtensions
+           when (Ext_intraword_underscores `Set.member` exts) $ do
+             pos <- getPosition
+             lastStrPos <- stateLastStrPos <$> getState
+             guard $ lastStrPos /= Just pos
 
 -- | Parses a list of inlines between start and end delimiters.
 inlinesBetween :: (Show b)
@@ -1473,28 +1515,6 @@ inlinesBetween start end =
   (trimInlinesF . mconcat) <$> try (start >> many1Till inner end)
     where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)
           innerSpace = try $ whitespace >>~ notFollowedBy' end
-
-emph :: MarkdownParser (F Inlines)
-emph = fmap B.emph <$> nested
-  (inlinesBetween starStart starEnd <|> inlinesBetween ulStart ulEnd)
-    where starStart = char '*' >> lookAhead nonspaceChar
-          starEnd   = notFollowedBy' (() <$ strong) >> char '*'
-          ulStart   = checkIntraword >> char '_' >> lookAhead nonspaceChar
-          ulEnd     = notFollowedBy' (() <$ strong) >> char '_'
-          checkIntraword = do
-            exts <- getOption readerExtensions
-            when (Ext_intraword_underscores `Set.member` exts) $ do
-              pos <- getPosition
-              lastStrPos <- stateLastStrPos <$> getState
-              guard $ lastStrPos /= Just pos
-
-strong :: MarkdownParser (F Inlines)
-strong = fmap B.strong <$> nested
-  (inlinesBetween starStart starEnd <|> inlinesBetween ulStart ulEnd)
-    where starStart = string "**" >> lookAhead nonspaceChar
-          starEnd   = try $ string "**"
-          ulStart   = string "__" >> lookAhead nonspaceChar
-          ulEnd     = try $ string "__"
 
 strikeout :: MarkdownParser (F Inlines)
 strikeout = fmap B.strikeout <$>
