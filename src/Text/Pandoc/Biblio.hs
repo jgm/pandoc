@@ -119,12 +119,12 @@ toCslCite :: Citation -> CSL.Cite
 toCslCite c
     = let (l, s)  = locatorWords $ citationSuffix c
           (la,lo) = parseLocator l
-          s'      = case (l,s,citationMode c) of
-                         -- treat a bare locator as if it begins with comma
+          s'      = case (l,s) of
+                         -- treat a bare locator as if it begins with space
                          -- so @item1 [blah] is like [@item1, blah]
-                         ("",(x:_),AuthorInText) | not (isPunct x)
-                                                 -> [Str ",",Space] ++ s
-                         _                       -> s
+                         ("",(x:_))
+                           | not (isPunct x) -> [Space] ++ s
+                         _                   -> s
           isPunct (Str (x:_)) = isPunctuation x
           isPunct _           = False
           citMode = case citationMode c of
@@ -173,13 +173,21 @@ pLocator :: Parsec [Inline] st String
 pLocator = try $ do
   optional $ pMatch (== Str ",")
   optional pSpace
-  f  <- many1 (notFollowedBy pSpace >> anyToken)
+  f  <- (guardFollowingDigit >> return [Str "p"]) -- "page" the default
+     <|> many1 (notFollowedBy pSpace >> anyToken)
   gs <- many1 pWordWithDigits
   return $ stringify f ++ (' ' : unwords gs)
 
+guardFollowingDigit :: Parsec [Inline] st ()
+guardFollowingDigit = do
+  t <- lookAhead anyToken
+  case t of
+       Str (d:_) | isDigit d -> return ()
+       _                     -> mzero
+
 pWordWithDigits :: Parsec [Inline] st String
 pWordWithDigits = try $ do
-  pSpace
+  optional pSpace
   r <- many1 (notFollowedBy pSpace >> anyToken)
   let s = stringify r
   guard $ any isDigit s
