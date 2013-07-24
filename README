@@ -259,14 +259,6 @@ Reader options
     require different kinds of images.  Currently this option only affects
     the markdown and LaTeX readers.
 
-`--filter=`*PATH*
-:   Specify an executable to be used as a filter transforming the
-    Pandoc AST after the input is parsed and before the output is
-    written.  The executable should read JSON from stdin and write
-    JSON to stdout.  The JSON must be formatted like  pandoc's own
-    JSON input and output.  Filters may be most easily created in Haskell,
-    using the utility function `toJsonFilter` from `Text.Pandoc`.
-
 `--normalize`
 :   Normalize the document after reading:  merge adjacent
     `Str` or `Emph` elements, for example, and remove repeated `Space`s.
