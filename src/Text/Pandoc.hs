@@ -72,9 +72,11 @@ module Text.Pandoc
                , readOPML
                , readHaddock
                , readNative
+               , readJSON
                -- * Writers: converting /from/ Pandoc format
                , Writer (..)
                , writeNative
+               , writeJSON
                , writeMarkdown
                , writePlain
                , writeRST
@@ -190,9 +192,8 @@ markdown o s = do
 
 -- | Association list of formats and readers.
 readers :: [(String, ReaderOptions -> String -> IO Pandoc)]
-readers = [("native"       , \_ s -> return $ readNative s)
-          ,("json"         , \_ s -> return $ checkJSON
-                                            $ decode $ UTF8.fromStringLazy s)
+readers = [ ("native"       , \_ s -> return $ readNative s)
+           ,("json"         , \o s -> return $ readJSON o s)
            ,("markdown"     , markdown)
            ,("markdown_strict" , markdown)
            ,("markdown_phpextra" , markdown)
@@ -205,8 +206,8 @@ readers = [("native"       , \_ s -> return $ readNative s)
            ,("textile"      , \o s -> return $ readTextile o s) -- TODO : textile+lhs
            ,("html"         , \o s -> return $ readHtml o s)
            ,("latex"        , \o s -> return $ readLaTeX o s)
-          ,("haddock"      , \o s -> return $ readHaddock o s)
-          ]
+           ,("haddock"      , \o s -> return $ readHaddock o s)
+           ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
             | IOStringWriter     (WriterOptions -> Pandoc -> IO String)
@@ -216,12 +217,12 @@ data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
 writers :: [ ( String, Writer ) ]
 writers = [
    ("native"       , PureStringWriter writeNative)
-  ,("json"         , PureStringWriter $ \_ -> UTF8.toStringLazy . encode)
+  ,("json"         , PureStringWriter writeJSON)
   ,("docx"         , IOByteStringWriter writeDocx)
- ,("odt"          , IOByteStringWriter writeODT)
- ,("epub"         , IOByteStringWriter $ \o ->
+  ,("odt"          , IOByteStringWriter writeODT)
+  ,("epub"         , IOByteStringWriter $ \o ->
                       writeEPUB o{ writerEpubVersion = Just EPUB2 })
- ,("epub3"        , IOByteStringWriter $ \o ->
+  ,("epub3"        , IOByteStringWriter $ \o ->
                        writeEPUB o{ writerEpubVersion = Just EPUB3 })
   ,("fb2"          , IOStringWriter writeFB2)
   ,("html"         , PureStringWriter writeHtmlString)
@@ -359,3 +360,10 @@ instance (Data a) => ToJsonFilter (a -> IO [a]) where
 checkJSON :: Maybe a -> a
 checkJSON Nothing  = error "Error parsing JSON"
 checkJSON (Just r) = r
+
+readJSON :: ReaderOptions -> String -> Pandoc
+readJSON _ = checkJSON . decode . UTF8.fromStringLazy
+
+writeJSON :: WriterOptions -> Pandoc -> String
+writeJSON _ = UTF8.toStringLazy . encode
+
