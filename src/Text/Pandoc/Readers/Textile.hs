@@ -57,6 +57,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag, isBlockTag )
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
+import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
 import Text.HTML.TagSoup.Match
 import Data.List ( intercalate )
 import Data.Char ( digitToInt, isUpper )
@@ -152,8 +153,10 @@ codeBlockBc = try $ do
 -- | Code Blocks in Textile are between <pre> and </pre>
 codeBlockPre :: Parser [Char] ParserState Block
 codeBlockPre = try $ do
-  htmlTag (tagOpen (=="pre") null)
-  result' <- manyTill anyChar (try $ htmlTag (tagClose (=="pre")) >> blockBreak)
+  (t@(TagOpen _ attrs),_) <- htmlTag (tagOpen (=="pre") (const True))
+  result' <- (innerText . parseTags) `fmap` -- remove internal tags
+               manyTill anyChar (htmlTag (tagClose (=="pre")))
+  optional blanklines
   -- drop leading newline if any
   let result'' = case result' of
                       '\n':xs -> xs
@@ -162,7 +165,10 @@ codeBlockPre = try $ do
   let result''' = case reverse result'' of
                        '\n':_ -> init result''
                        _      -> result''
-  return $ CodeBlock ("",[],[]) result'''
+  let classes = words $ fromAttrib "class" t
+  let ident = fromAttrib "id" t
+  let kvs = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
+  return $ CodeBlock (ident,classes,kvs) result'''
 
 -- | Header of the form "hN. content" with N in 1..6
 header :: Parser [Char] ParserState Block
@@ -275,7 +281,7 @@ definitionListItem = try $ do
 -- blocks support, we have to lookAhead for a rawHtmlBlock.
 blockBreak :: Parser [Char] ParserState ()
 blockBreak = try (newline >> blanklines >> return ()) <|>
-              (lookAhead rawHtmlBlock >> return ())
+             try (optional spaces >> lookAhead rawHtmlBlock >> return ())
 
 -- raw content
 

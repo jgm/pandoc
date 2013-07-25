@@ -139,7 +139,7 @@ Pandoc (Meta {unMeta = fromList []})
 ,Header 1 ("",[],[]) [Str "Raw",Space,Str "HTML"]
 ,Para [Str "However",Str ",",Space,RawInline "html" "<strong>",Space,Str "raw",Space,Str "HTML",Space,Str "inlines",Space,RawInline "html" "</strong>",Space,Str "are",Space,Str "accepted",Str ",",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str ":"]
 ,RawBlock "html" "<div class=\"foobar\">"
-,Para [Str "any",Space,Strong [Str "Raw",Space,Str "HTML",Space,Str "Block"],Space,Str "with",Space,Str "bold",LineBreak]
+,Para [Str "any",Space,Strong [Str "Raw",Space,Str "HTML",Space,Str "Block"],Space,Str "with",Space,Str "bold"]
 ,RawBlock "html" "</div>"
 ,Para [Str "Html",Space,Str "blocks",Space,Str "can",Space,Str "be"]
 ,RawBlock "html" "<div>"
