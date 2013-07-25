@@ -415,6 +415,7 @@ inlineCommands = M.fromList $
   , (".", option (str ".") $ try $ tok >>= accent dot)
   , ("=", option (str "=") $ try $ tok >>= accent macron)
   , ("c", option (str "c") $ try $ tok >>= accent cedilla)
+  , ("v", option (str "v") $ try $ tok >>= accent hacek)
   , ("i", lit "i")
   , ("\\", linebreak <$ (optional (bracketed inline) *> optional sp))
   , (",", pure mempty)
@@ -670,6 +671,42 @@ cedilla 'C' = 'Ç'
 cedilla 's' = 'ş'
 cedilla 'S' = 'Ş'
 cedilla c = c
+
+hacek :: Char -> Char
+hacek 'A' = 'Ǎ'
+hacek 'a' = 'ǎ'
+hacek 'C' = 'Č'
+hacek 'c' = 'č'
+hacek 'D' = 'Ď'
+hacek 'd' = 'ď'
+hacek 'E' = 'Ě'
+hacek 'e' = 'ě'
+hacek 'G' = 'Ǧ'
+hacek 'g' = 'ǧ'
+hacek 'H' = 'Ȟ'
+hacek 'h' = 'ȟ'
+hacek 'I' = 'Ǐ'
+hacek 'i' = 'ǐ'
+hacek 'j' = 'ǰ'
+hacek 'K' = 'Ǩ'
+hacek 'k' = 'ǩ'
+hacek 'L' = 'Ľ'
+hacek 'l' = 'ľ'
+hacek 'N' = 'Ň'
+hacek 'n' = 'ň'
+hacek 'O' = 'Ǒ'
+hacek 'o' = 'ǒ'
+hacek 'R' = 'Ř'
+hacek 'r' = 'ř'
+hacek 'S' = 'Š'
+hacek 's' = 'š'
+hacek 'T' = 'Ť'
+hacek 't' = 'ť'
+hacek 'U' = 'Ǔ'
+hacek 'u' = 'ǔ'
+hacek 'Z' = 'Ž'
+hacek 'z' = 'ž'
+hacek c   = c
 
 tok :: LP Inlines
 tok = try $ grouped inline <|> inlineCommand <|> str <$> (count 1 $ inlineChar)
