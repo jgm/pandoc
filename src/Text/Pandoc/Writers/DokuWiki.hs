@@ -29,6 +29,21 @@ Conversion of 'Pandoc' documents to DokuWiki markup.
 
 DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 -}
+
+{-
+    [ ] Don't convert & to &amp;
+    [ ] Don't generate <blockquote>...
+    [ ] Don't generate <pre>...
+    [ ] Implement definition lists
+    [ ] Don't generate lists using <ol> and <ul>
+    [ ] Don't generate <div>
+    [ ] Implement conversion of tables
+    [ ] Implement comments
+    [ ] Implement footnotes
+    [ ] Work through the Dokuwiki spec, and check I've not missed anything out
+    [ ] Test the output in Dokuwiki - and compare against the display of another format, e.g. HTML
+-}
+
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
