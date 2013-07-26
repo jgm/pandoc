@@ -202,7 +202,8 @@ stringToLaTeX  ctx (x:xs) = do
                    _       -> '-' : rest
        '~' | not isUrl -> "\\textasciitilde{}" ++ rest
        '^' -> "\\^{}" ++ rest
-       '\\' -> "\\textbackslash{}" ++ rest
+       '\\'| isUrl     -> '/' : rest  -- NB. / works as path sep even on Windows
+           | otherwise -> "\\textbackslash{}" ++ rest
        '|' -> "\\textbar{}" ++ rest
        '<' -> "\\textless{}" ++ rest
        '>' -> "\\textgreater{}" ++ rest
@@ -648,7 +649,8 @@ inlineToLaTeX (Image _ (source, _)) = do
   let source' = if isAbsoluteURI source
                    then source
                    else unEscapeString source
-  return $ "\\includegraphics" <> braces (text source')
+  source'' <- stringToLaTeX URLString source'
+  return $ "\\includegraphics" <> braces (text source'')
 inlineToLaTeX (Note contents) = do
   modify (\s -> s{stInNote = True})
   contents' <- blockListToLaTeX contents
