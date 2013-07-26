@@ -42,6 +42,7 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
     [ ] Implement footnotes
     [ ] Work through the Dokuwiki spec, and check I've not missed anything out
     [ ] Test the output in Dokuwiki - and compare against the display of another format, e.g. HTML
+    [ ] Remove dud/duplicate code
 -}
 
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
