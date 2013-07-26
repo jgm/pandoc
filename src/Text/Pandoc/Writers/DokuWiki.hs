@@ -167,7 +167,7 @@ blockToDokuWiki opts x@(BulletList items) = do
         modify $ \s -> s { stUseTags = oldUseTags }
         return $ "<ul>\n" ++ vcat contents ++ "</ul>\n"
      else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ "*" }
+        modify $ \s -> s { stListLevel = stListLevel s ++ " " }
         contents <- mapM (listItemToDokuWiki opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s) }
         return $ vcat contents ++ if null listLevel then "\n" else ""
@@ -179,15 +179,18 @@ blockToDokuWiki opts x@(OrderedList attribs items) = do
   if useTags
      then do
         modify $ \s -> s { stUseTags = True }
-        contents <- mapM (listItemToDokuWiki opts) items
+        contents <- mapM (orderedListItemToDokuWiki opts) items
         modify $ \s -> s { stUseTags = oldUseTags }
         return $ "<ol" ++ listAttribsToString attribs ++ ">\n" ++ vcat contents ++ "</ol>\n"
      else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ "#" }
-        contents <- mapM (listItemToDokuWiki opts) items
+        modify $ \s -> s { stListLevel = stListLevel s ++ " " }
+        contents <- mapM (orderedListItemToDokuWiki opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s) }
         return $ vcat contents ++ if null listLevel then "\n" else ""
 
+-- TODO Need to decide how to make definition lists work on dokuwiki - I don't think there
+--      is a specific representation of them.
+-- TODO This creates double '; ; ' if there is a bullet or ordered list inside a definition list
 blockToDokuWiki opts x@(DefinitionList items) = do
   oldUseTags <- get >>= return . stUseTags
   listLevel <- get >>= return . stListLevel
@@ -217,7 +220,7 @@ listAttribsToString (startnum, numstyle, _) =
           then " style=\"list-style-type: " ++ numstyle' ++ ";\""
           else "")
 
--- | Convert bullet or ordered list item (list of blocks) to DokuWiki.
+-- | Convert bullet list item (list of blocks) to DokuWiki.
 listItemToDokuWiki :: WriterOptions -> [Block] -> State WriterState String
 listItemToDokuWiki opts items = do
   contents <- blockListToDokuWiki opts items
@@ -226,7 +229,23 @@ listItemToDokuWiki opts items = do
      then return $ "<li>" ++ contents ++ "</li>"
      else do
        marker <- get >>= return . stListLevel
-       return $ marker ++ " " ++ contents
+       -- This marker ++ marker is an awful hack to write 2 spaces per indentation level.
+       -- I couldn't find a cleaner way of doing it.
+       return $ marker ++ marker ++ "* " ++ contents
+
+-- | Convert ordered list item (list of blocks) to DokuWiki.
+-- | TODO Emiminate dreadful duplication of text from listItemToDokuWiki
+orderedListItemToDokuWiki :: WriterOptions -> [Block] -> State WriterState String
+orderedListItemToDokuWiki opts items = do
+  contents <- blockListToDokuWiki opts items
+  useTags <- get >>= return . stUseTags
+  if useTags
+     then return $ "<li>" ++ contents ++ "</li>"
+     else do
+       marker <- get >>= return . stListLevel
+       -- This marker ++ marker is an awful hack to write 2 spaces per indentation level.
+       -- I couldn't find a cleaner way of doing it.
+       return $ marker ++ marker ++ "- " ++ contents
 
 -- | Convert definition list item (label, list of blocks) to DokuWiki.
 definitionListItemToDokuWiki :: WriterOptions

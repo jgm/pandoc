@@ -303,8 +303,8 @@ Blank line after term, indented marker, alternate markers:
 : computer
 ; orange
 : orange fruit
-;# sublist
-;# sublist
+; ; - sublist
+; ; - sublist
 
 ====== HTML Blocks ======
 
@@ -468,21 +468,21 @@ Ellipses…and…and….
 
 ====== LaTeX ======
 
-* 
-* <math>2+2=4</math>
-* <math>x \in y</math>
-* <math>\alpha \wedge \omega</math>
-* <math>223</math>
-* <math>p</math>-Tree
-* Here’s some display math: <math>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
-* Here’s one that has a line break in it: <math>\alpha + \omega \times x^2</math>.
+  * 
+  * <math>2+2=4</math>
+  * <math>x \in y</math>
+  * <math>\alpha \wedge \omega</math>
+  * <math>223</math>
+  * <math>p</math>-Tree
+  * Here’s some display math: <math>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
+  * Here’s one that has a line break in it: <math>\alpha + \omega \times x^2</math>.
 
 These shouldn’t be math:
 
-* To get the famous equation, write <code>$e = mc^2$</code>.
-* $22,000 is a //lot// of money. So is $34,000. (It worked if “lot” is emphasized.)
-* Shoes ($20) and socks ($5).
-* Escaped <code>$</code>: $73 //this should be emphasized// 23$.
+  * To get the famous equation, write <code>$e = mc^2$</code>.
+  * $22,000 is a //lot// of money. So is $34,000. (It worked if “lot” is emphasized.)
+  * Shoes ($20) and socks ($5).
+  * Escaped <code>$</code>: $73 //this should be emphasized// 23$.
 
 Here’s a LaTeX table:
 
@@ -494,11 +494,11 @@ Here’s a LaTeX table:
 
 Here is some unicode:
 
-* I hat: Î
-* o umlaut: ö
-* section: §
-* set membership: ∈
-* copyright: ©
+  * I hat: Î
+  * o umlaut: ö
+  * section: §
+  * set membership: ∈
+  * copyright: ©
 
 AT&amp;T has an ampersand in their name.
 
@@ -606,9 +606,9 @@ Here’s an [[script?foo=1&bar=2|inline link in pointy braces]].
 
 With an ampersand: http://example.com/?foo=1&bar=2
 
-* In a list?
-* http://example.com/
-* It should.
+  * In a list?
+  * http://example.com/
+  * It should.
 
 An e-mail address: [[mailto:nobody@nowhere.net|nobody@nowhere.net]]
 
@@ -646,7 +646,7 @@ If you want, you can indent every line, but you can also be lazy and just indent
 <blockquote>Notes can go in quotes.<ref>In quote.
 </ref>
 </blockquote>
-# And in list items.<ref>In list.</ref>
+  - And in list items.<ref>In list.</ref>
 
 This paragraph should not be part of the note, as it is not indented.
 
