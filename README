@@ -2674,6 +2674,16 @@ using the `-V` option:
 
     pandoc -t beamer habits.txt -V theme:Warsaw -o habits.pdf
 
+Note that header attributes will turn into slide attributes
+(on a `<div>` or `<section>`) in HTML slide formats, allowing you
+to style individual slides.  In Beamer, the only header attribute
+that affects slides is the `allowframebreaks` class, which sets the
+`allowframebreaks` option, causing multiple slides to be created
+if the content overfills the frame.  This is recommended especially for
+bibliographies:
+
+    # References {.allowframebreaks}
+
 Literate Haskell support
 ========================
 

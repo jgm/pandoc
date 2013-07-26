@@ -232,7 +232,7 @@ toSlides bs = do
 
 elementToBeamer :: Int -> Element -> State WriterState [Block]
 elementToBeamer _slideLevel (Blk b) = return [b]
-elementToBeamer slideLevel  (Sec lvl _num (ident,classes,_) tit elts)
+elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
   | lvl >  slideLevel = do
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
       return $ Para ( RawInline "latex" "\\begin{block}{"
@@ -240,7 +240,7 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,_) tit elts)
              : bs ++ [RawBlock "latex" "\\end{block}"]
   | lvl <  slideLevel = do
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
-      return $ (Header lvl (ident,classes,[]) tit) : bs
+      return $ (Header lvl (ident,classes,kvs) tit) : bs
   | otherwise = do -- lvl == slideLevel
       -- note: [fragile] is required or verbatim breaks
       let hasCodeBlock (CodeBlock _ _) = [True]
@@ -248,17 +248,20 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,_) tit elts)
       let hasCode (Code _ _) = [True]
           hasCode _          = []
       opts <- gets stOptions
-      let fragile = if not $ null $ queryWith hasCodeBlock elts ++
+      let fragile = not $ null $ queryWith hasCodeBlock elts ++
                                      if writerListings opts
                                         then queryWith hasCode elts
                                         else []
-                       then "[fragile]"
-                       else ""
-      let slideStart = Para $ RawInline "latex" ("\\begin{frame}" ++ fragile) :
+      let allowframebreaks = "allowframebreaks" `elem` classes
+      let optionslist = ["fragile" | fragile] ++
+                        ["allowframebreaks" | allowframebreaks]
+      let options = if null optionslist
+                       then ""
+                       else "[" ++ intercalate "," optionslist ++ "]"
+      let slideStart = Para $ RawInline "latex" ("\\begin{frame}" ++ options) :
                 if tit == [Str "\0"]  -- marker for hrule
                    then []
-                   else (RawInline "latex" "\\frametitle{") : tit ++
-                        [RawInline "latex" "}"]
+                   else (RawInline "latex" "{") : tit ++ [RawInline "latex" "}"]
       let slideEnd = RawBlock "latex" "\\end{frame}"
       -- now carve up slide into blocks if there are sections inside
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
