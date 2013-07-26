@@ -54,8 +54,8 @@ E-mail style:
 }</pre>
 A list:
 
-# item one
-# item two
+  - item one
+  - item two
 
 Nested block quotes:
 
