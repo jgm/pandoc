@@ -38,7 +38,6 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
     [ ] Don't generate <div>
     [ ] Implement conversion of tables
     [ ] Implement comments
-    [ ] Implement footnotes
     [ ] Work through the Dokuwiki spec, and check I've not missed anything out
     [ ] Test the output in Dokuwiki - and compare against the display of another format, e.g. HTML
     [ ] Remove dud/duplicate code
@@ -77,7 +76,8 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
   body <- blockListToDokuWiki opts blocks
   notesExist <- get >>= return . stNotes
   let notes = if notesExist
-                 then "\n<references />"
+                 then "" -- TODO Was "\n<references />" Check whether I can really remove this:
+                         -- if it is definitely to do with footnotes, can remove this whole bit
                  else ""
   let main = body ++ notes
   let context = defField "body" main
@@ -438,5 +438,5 @@ inlineToDokuWiki opts (Image alt (source, tit)) = do
 inlineToDokuWiki opts (Note contents) = do
   contents' <- blockListToDokuWiki opts contents
   modify (\s -> s { stNotes = True })
-  return $ "<ref>" ++ contents' ++ "</ref>"
+  return $ "((" ++ contents' ++ "))"
   -- note - may not work for notes with multiple blocks
