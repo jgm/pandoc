@@ -31,7 +31,6 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 -}
 
 {-
-    [ ] Don't convert & to &amp;
     [ ] Don't generate <blockquote>...
     [ ] Don't generate <pre>...
     [ ] Implement definition lists
@@ -51,7 +50,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.XML ( escapeStringForXML )
+import Text.Pandoc.XML ( escapeStringForXML ) -- TODO Remove this line
 import Data.List ( intersect, intercalate )
 import Network.URI ( isURI )
 import Control.Monad.State
@@ -89,7 +88,7 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
      else return main
 
 -- | Escape special characters for DokuWiki.
-escapeString :: String -> String
+escapeString :: String -> String -- TODO Remove this
 escapeString =  escapeStringForXML
 
 -- | Convert Pandoc block element to DokuWiki.
@@ -404,7 +403,7 @@ inlineToDokuWiki opts (Cite _  lst) = inlineListToDokuWiki opts lst
 inlineToDokuWiki _ (Code _ str) =
   return $ "<code>" ++ (escapeString str) ++ "</code>"
 
-inlineToDokuWiki _ (Str str) = return $ escapeString str
+inlineToDokuWiki _ (Str str) = return $ str
 
 inlineToDokuWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
                                  -- note:  str should NOT be escaped
