@@ -1342,6 +1342,12 @@ capital letter with a period, by at least two spaces.[^2]
 
         (C\) 2007 Joe Smith
 
+The `fancy_lists` extension also allows '`#`' to be used as an
+ordered list marker in place of a numeral:
+
+    #. one
+    #. two
+
 **Extension: `startnum`**
 
 Pandoc also pays attention to the type of list marker used, and to the
