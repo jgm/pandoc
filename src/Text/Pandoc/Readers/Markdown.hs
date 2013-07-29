@@ -494,7 +494,8 @@ addToHeaderList (ident,classes,kvs) text = do
 atxHeader :: MarkdownParser (F Blocks)
 atxHeader = try $ do
   level <- many1 (char '#') >>= return . length
-  notFollowedBy (char '.' <|> char ')') -- this would be a list
+  notFollowedBy $ guardEnabled Ext_fancy_lists >>
+                  (char '.' <|> char ')') -- this would be a list
   skipSpaces
   text <- trimInlinesF . mconcat <$> many (notFollowedBy atxClosing >> inline)
   attr <- atxClosing
