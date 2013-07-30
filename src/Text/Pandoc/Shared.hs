@@ -104,7 +104,6 @@ import System.IO (stderr)
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
 import qualified Data.ByteString as BS
-import Data.ByteString.Lazy (toChunks)
 import qualified Data.ByteString.Char8 as B8
 
 #ifdef EMBED_DATA_FILES
@@ -114,6 +113,7 @@ import System.FilePath ( joinPath, splitDirectories )
 import Paths_pandoc (getDataFileName)
 #endif
 #ifdef HTTP_CONDUIT
+import Data.ByteString.Lazy (toChunks)
 import Network.HTTP.Conduit (httpLbs, parseUrl, withManager,
                              responseBody, responseHeaders)
 import Network.HTTP.Types.Header ( hContentType)
@@ -616,7 +616,7 @@ openURL u
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 #else
   | otherwise = E.try $ getBodyAndMimeType `fmap` browse
-              (do UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
+              (do S.liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
                   setOutHandler $ const (return ())
                   setAllowRedirects True
                   request (getRequest' u'))
