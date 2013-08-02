@@ -53,7 +53,7 @@ processBiblio (Just style) r p =
                       map (map toCslCite) grps)
       cits_map   = M.fromList $ zip grps (citations result)
       biblioList = map (renderPandoc' style) (bibliography result)
-      Pandoc m b = bottomUp mvPunct . deNote . bottomUp (processCite style cits_map) $ p'
+      Pandoc m b = bottomUp mvPunct . deNote . topDown (processCite style cits_map) $ p'
   in  Pandoc m $ b ++ biblioList
 
 -- | Substitute 'Cite' elements with formatted citations.
@@ -103,7 +103,8 @@ endWithPunct xs@(_:_) = case reverse (stringify [last xs]) of
 
 deNote :: Pandoc -> Pandoc
 deNote = topDown go
-  where go (Note [Para xs]) = Note $ bottomUp go' [Para $ sanitize xs]
+  where go (Cite cs [Note [Para xs]]) =
+            Cite cs [Note $ bottomUp go' [Para $ sanitize xs]]
         go (Note xs) = Note $ bottomUp go' xs
         go x = x
         go' (Note [Para xs]:ys) =
