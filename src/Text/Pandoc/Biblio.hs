@@ -35,6 +35,7 @@ import qualified Data.Map as M
 import Text.CSL hiding ( Cite(..), Citation(..), endWithPunct )
 import qualified Text.CSL as CSL ( Cite(..) )
 import Text.Pandoc.Definition
+import Text.Pandoc.Builder (setMeta, fromList)
 import Text.Pandoc.Generic
 import Text.Pandoc.Shared (stringify)
 import Text.Parsec hiding (State)
@@ -53,8 +54,9 @@ processBiblio (Just style) r p =
                       map (map toCslCite) grps)
       cits_map   = M.fromList $ zip grps (citations result)
       biblioList = map (renderPandoc' style) (bibliography result)
-      Pandoc m b = bottomUp mvPunct . deNote . topDown (processCite style cits_map) $ p'
-  in  Pandoc m $ b ++ biblioList
+  in  setMeta "references" (fromList biblioList)
+      $ bottomUp mvPunct $ deNote
+      $ topDown (processCite style cits_map) $ p'
 
 -- | Substitute 'Cite' elements with formatted citations.
 processCite :: Style -> M.Map [Citation] [FormattedOutput] -> Inline -> Inline
