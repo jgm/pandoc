@@ -32,7 +32,7 @@ module Text.Pandoc.Biblio ( processBiblio ) where
 import Data.List
 import Data.Char ( isDigit, isPunctuation )
 import qualified Data.Map as M
-import Text.CSL hiding ( Cite(..), Citation(..) )
+import Text.CSL hiding ( Cite(..), Citation(..), endWithPunct )
 import qualified Text.CSL as CSL ( Cite(..) )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
@@ -87,6 +87,19 @@ mvPunct xs = xs
 sanitize :: [Inline] -> [Inline]
 sanitize xs | endWithPunct xs = toCapital xs
             | otherwise       = toCapital (xs ++ [Str "."])
+
+
+-- A replacement for citeproc-hs's endWithPunct, which wrongly treats
+-- a sentence ending in '.)' as not ending with punctuation, leading
+-- to an extra period.
+endWithPunct :: [Inline] -> Bool
+endWithPunct [] = True
+endWithPunct xs@(_:_) = case reverse (stringify [last xs]) of
+                              []                       -> True
+                              (')':c:_) | isEndPunct c -> True
+                              (c:_) | isEndPunct c     -> True
+                                    | otherwise        -> False
+  where isEndPunct c = c `elem` ".,;:!?"
 
 deNote :: Pandoc -> Pandoc
 deNote = topDown go
