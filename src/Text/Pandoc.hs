@@ -106,12 +106,13 @@ module Text.Pandoc
                -- * Miscellaneous
                , getReader
                , getWriter
-               , jsonFilter
                , ToJsonFilter(..)
+               , ToJSONFilter(..)
              ) where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
+import Text.Pandoc.JSON
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Readers.RST
@@ -146,13 +147,11 @@ import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, warn)
-import Data.ByteString.Lazy (ByteString)
+import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate, isSuffixOf)
 import Data.Version (showVersion)
-import Data.Aeson.Generic
 import Data.Set (Set)
-import Data.Data
 import qualified Data.Set as Set
 import Text.Parsec
 import Text.Parsec.Error
@@ -211,7 +210,7 @@ readers = [ ("native"       , \_ s -> return $ readNative s)
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
             | IOStringWriter     (WriterOptions -> Pandoc -> IO String)
-            | IOByteStringWriter (WriterOptions -> Pandoc -> IO ByteString)
+            | IOByteStringWriter (WriterOptions -> Pandoc -> IO BL.ByteString)
 
 -- | Association list of formats and writers.
 writers :: [ ( String, Writer ) ]
@@ -304,66 +303,17 @@ getWriter s =
                            \o -> r o{ writerExtensions = setExts $
                                             getDefaultExtensions writerName }
 
-{-# DEPRECATED jsonFilter "Use toJsonFilter instead" #-}
--- | Converts a transformation on the Pandoc AST into a function
--- that reads and writes a JSON-encoded string.  This is useful
--- for writing small scripts.
-jsonFilter :: (Pandoc -> Pandoc) -> String -> String
-jsonFilter f = UTF8.toStringLazy . encode . f . checkJSON . decode . UTF8.fromStringLazy
-
--- | 'toJsonFilter' convert a function into a filter that reads pandoc's json output
--- from stdin, transforms it by walking the AST and applying the specified
--- function, and writes the result as json to stdout.  Usage example:
---
--- > -- capitalize.hs
--- > -- compile with:  ghc --make capitalize
--- > -- run with:      pandoc -t json | ./capitalize | pandoc -f json
--- >
--- > import Text.Pandoc
--- > import Data.Char (toUpper)
--- >
--- > main :: IO ()
--- > main = toJsonFilter capitalizeStrings
--- >
--- > capitalizeStrings :: Inline -> Inline
--- > capitalizeStrings (Str s) = Str $ map toUpper s
--- > capitalizeStrings x       = x
---
--- The function can be any type @(a -> a)@, @(a -> IO a)@, @(a -> [a])@,
--- or @(a -> IO [a])@, where @a@ is an instance of 'Data'.
--- So, for example, @a@ can be 'Pandoc', 'Inline', 'Block', ['Inline'],
--- ['Block'], 'Meta', 'ListNumberStyle', 'Alignment', 'ListNumberDelim',
--- 'QuoteType', etc. See 'Text.Pandoc.Definition'.
-class ToJsonFilter a where
-  toJsonFilter :: a -> IO ()
-
-instance (Data a) => ToJsonFilter (a -> a) where
-  toJsonFilter f = BL.getContents >>=
-    BL.putStr . encode . (bottomUp f :: Pandoc -> Pandoc) . checkJSON . decode
-
-instance (Data a) => ToJsonFilter (a -> IO a) where
-  toJsonFilter f = BL.getContents >>=
-     (bottomUpM f :: Pandoc -> IO Pandoc) . checkJSON . decode >>=
-     BL.putStr . encode
-
-instance (Data a) => ToJsonFilter (a -> [a]) where
-  toJsonFilter f = BL.getContents >>=
-    BL.putStr . encode . (bottomUp (concatMap f) :: Pandoc -> Pandoc) .
-      checkJSON . decode
-
-instance (Data a) => ToJsonFilter (a -> IO [a]) where
-  toJsonFilter f = BL.getContents >>=
-    (bottomUpM (fmap concat . mapM f) :: Pandoc -> IO Pandoc)
-      . checkJSON . decode >>=
-    BL.putStr . encode
-
-checkJSON :: Maybe a -> a
-checkJSON Nothing  = error "Error parsing JSON"
-checkJSON (Just r) = r
+{-# DEPRECATED toJsonFilter "Use toJSONFilter instead" #-}
+class ToJSONFilter a => ToJsonFilter a
+  where toJsonFilter :: a -> IO ()
+        toJsonFilter = toJSONFilter
 
 readJSON :: ReaderOptions -> String -> Pandoc
-readJSON _ = checkJSON . decode . UTF8.fromStringLazy
+readJSON _ = checkJSON . eitherDecode' . UTF8.fromStringLazy
 
 writeJSON :: WriterOptions -> Pandoc -> String
 writeJSON _ = UTF8.toStringLazy . encode
 
+checkJSON :: Either String a -> a
+checkJSON (Right x) = x
+checkJSON (Left e)  = error e
