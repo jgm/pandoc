@@ -421,7 +421,6 @@ uri :: Parser [Char] st (String, String)
 uri = try $ do
   scheme <- uriScheme
   char ':'
-  -- /^[\/\w\u0080-\uffff]+|%[A-Fa-f0-9]+|&#?\w+;|(?:[,]+|[\S])[%&~\w\u0080-\uffff]/
   -- We allow punctuation except at the end, since
   -- we don't want the trailing '.' in 'http://google.com.' We want to allow
   -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
