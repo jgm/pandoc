@@ -36,7 +36,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.XML ( escapeStringForXML )
-import Data.List ( intersect, intercalate )
+import Data.List ( intersect, intercalate, intersperse )
 import Network.URI ( isURI )
 import Control.Monad.State
 
@@ -135,25 +135,17 @@ blockToMediaWiki opts (BlockQuote blocks) = do
   return $ "<blockquote>" ++ contents ++ "</blockquote>"
 
 blockToMediaWiki opts (Table capt aligns widths headers rows') = do
-  let alignStrings = map alignmentToString aligns
-  captionDoc <- if null capt
-                   then return ""
-                   else do
-                      c <- inlineListToMediaWiki opts capt
-                      return $ "<caption>" ++ c ++ "</caption>\n"
-  let percent w = show (truncate (100*w) :: Integer) ++ "%"
-  let coltags = if all (== 0.0) widths
-                   then ""
-                   else unlines $ map
-                         (\w -> "<col width=\"" ++ percent w ++ "\" />") widths
-  head' <- if all null headers
-              then return ""
-              else do
-                 hs <- tableRowToMediaWiki opts alignStrings 0 headers
-                 return $ "<thead>\n" ++ hs ++ "\n</thead>\n"
-  body' <- zipWithM (tableRowToMediaWiki opts alignStrings) [1..] rows'
-  return $ "<table>\n" ++ captionDoc ++ coltags ++ head' ++
-            "<tbody>\n" ++ unlines body' ++ "</tbody>\n</table>\n"
+  caption <- if null capt
+                then return ""
+                else do
+                   c <- inlineListToMediaWiki opts capt
+                   return $ "|+ " ++ trimr c ++ "\n"
+  let headless = all null headers
+  let allrows = if headless then rows' else headers:rows'
+  tableBody <- (concat . intersperse "|-\n") `fmap`
+                mapM (tableRowToMediaWiki opts headless aligns widths)
+                     (zip [1..] allrows)
+  return $ "{|\n" ++ caption ++ tableBody ++ "|}\n"
 
 blockToMediaWiki opts x@(BulletList items) = do
   oldUseTags <- get >>= return . stUseTags
@@ -285,20 +277,34 @@ vcat = intercalate "\n"
 -- Auxiliary functions for tables:
 
 tableRowToMediaWiki :: WriterOptions
-                    -> [String]
-                    -> Int
-                    -> [[Block]]
+                    -> Bool
+                    -> [Alignment]
+                    -> [Double]
+                    -> (Int, [[Block]])
                     -> State WriterState String
-tableRowToMediaWiki opts alignStrings rownum cols' = do
-  let celltype = if rownum == 0 then "th" else "td"
-  let rowclass = case rownum of
-                      0                  -> "header"
-                      x | x `rem` 2 == 1 -> "odd"
-                      _                  -> "even"
-  cols'' <- sequence $ zipWith
-            (\alignment item -> tableItemToMediaWiki opts celltype alignment item)
-            alignStrings cols'
-  return $ "<tr class=\"" ++ rowclass ++ "\">\n" ++ unlines cols'' ++ "</tr>"
+tableRowToMediaWiki opts headless alignments widths (rownum, cells) = do
+  cells' <- mapM (\cellData ->
+          tableCellToMediaWiki opts headless rownum cellData)
+          $ zip3 alignments widths cells
+  return $ unlines cells'
+
+tableCellToMediaWiki :: WriterOptions
+                     -> Bool
+                     -> Int
+                     -> (Alignment, Double, [Block])
+                     -> State WriterState String
+tableCellToMediaWiki opts headless rownum (alignment, width, bs) = do
+  contents <- blockListToMediaWiki opts bs
+  let marker = if rownum == 1 && not headless then "!" else "|"
+  let percent w = show (truncate (100*w) :: Integer) ++ "%"
+  let attrs = ["align=" ++ show (alignmentToString alignment) |
+                 alignment /= AlignDefault && alignment /= AlignLeft] ++
+              ["width=\"" ++ percent width ++ "\"" |
+                 width /= 0.0 && rownum == 1]
+  let attr = if null attrs
+                then ""
+                else unwords attrs ++ "|"
+  return $ marker ++ attr ++ trimr contents
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
@@ -306,17 +312,6 @@ alignmentToString alignment = case alignment of
                                  AlignRight   -> "right"
                                  AlignCenter  -> "center"
                                  AlignDefault -> "left"
-
-tableItemToMediaWiki :: WriterOptions
-                     -> String
-                     -> String
-                     -> [Block]
-                     -> State WriterState String
-tableItemToMediaWiki opts celltype align' item = do
-  let mkcell x = "<" ++ celltype ++ " align=\"" ++ align' ++ "\">" ++
-                    x ++ "</" ++ celltype ++ ">"
-  contents <- blockListToMediaWiki opts item
-  return $ mkcell contents
 
 -- | Convert list of Pandoc block elements to MediaWiki.
 blockListToMediaWiki :: WriterOptions -- ^ Options
