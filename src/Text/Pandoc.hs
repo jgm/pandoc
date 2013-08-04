@@ -107,7 +107,6 @@ module Text.Pandoc
                , getReader
                , getWriter
                , ToJsonFilter(..)
-               , ToJSONFilter(..)
              ) where
 
 import Text.Pandoc.Definition
@@ -303,7 +302,8 @@ getWriter s =
                            \o -> r o{ writerExtensions = setExts $
                                             getDefaultExtensions writerName }
 
-{-# DEPRECATED toJsonFilter "Use toJSONFilter instead" #-}
+{-# DEPRECATED toJsonFilter "Use 'toJSONFilter' from 'Text.Pandoc.JSON' instead" #-}
+-- | Deprecated.  Use @toJSONFilter@ from @Text.Pandoc.JSON@ instead.
 class ToJSONFilter a => ToJsonFilter a
   where toJsonFilter :: a -> IO ()
         toJsonFilter = toJSONFilter
