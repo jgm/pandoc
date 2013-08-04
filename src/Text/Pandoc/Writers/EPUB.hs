@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, CPP #-}
 {-
 Copyright (C) 2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -62,11 +62,7 @@ import Text.Pandoc.MIME (getMimeType)
 import Prelude hiding (catch)
 #endif
 import Control.Exception (catch, SomeException)
-#if MIN_VERSION_blaze_html(0,5,0)
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
-#else
-import Text.Blaze.Renderer.Utf8 (renderHtml)
-#endif
 
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section

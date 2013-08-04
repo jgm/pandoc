@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-
 Copyright (C) 2010 John MacFarlane <jgm@berkeley.edu>
 

@@ -277,7 +277,6 @@ Library
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   Default-Language: Haskell98
-  Default-Extensions: CPP
   Other-Extensions:   PatternGuards, OverloadedStrings,
                       ScopedTypeVariables, GeneralizedNewtypeDeriving,
                       RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
@@ -357,7 +356,6 @@ Executable pandoc
   if os(windows)
     Cpp-options:      -D_WINDOWS
   Default-Language: Haskell98
-  Default-Extensions: CPP
   Other-Extensions: PatternGuards, OverloadedStrings,
                     ScopedTypeVariables, GeneralizedNewtypeDeriving,
                     RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
@@ -377,7 +375,6 @@ Executable make-pandoc-man-pages
                  old-time >= 1.0 && < 1.2,
                  time >= 1.2 && < 1.5
   Default-Language: Haskell98
-  Default-Extensions: CPP
 
 Test-Suite test-pandoc
   Type:           exitcode-stdio-1.0
@@ -415,7 +412,6 @@ Test-Suite test-pandoc
                   Tests.Writers.LaTeX
   Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind
   Default-Language: Haskell98
-  Default-Extensions: CPP
 
 benchmark benchmark-pandoc
   Type:            exitcode-stdio-1.0
