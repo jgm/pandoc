@@ -435,7 +435,7 @@ So is **//this//** word.
 
 This is code: <code>&gt;</code>, <code>$</code>, <code>\</code>, <code>\$</code>, <code>&lt;html&gt;</code>.
 
-<s>This is //strikeout//.</s>
+<del>This is //strikeout//.</del>
 
 Superscripts: a<sup>bc</sup>d a<sup>//hello//</sup> a<sup>hello there</sup>.
 

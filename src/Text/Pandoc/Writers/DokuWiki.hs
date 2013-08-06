@@ -378,7 +378,7 @@ inlineToDokuWiki opts (Strong lst) = do
 
 inlineToDokuWiki opts (Strikeout lst) = do
   contents <- inlineListToDokuWiki opts lst
-  return $ "<s>" ++ contents ++ "</s>"
+  return $ "<del>" ++ contents ++ "</del>"
 
 inlineToDokuWiki opts (Superscript lst) = do
   contents <- inlineListToDokuWiki opts lst
