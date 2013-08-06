@@ -84,11 +84,6 @@ mvPunct (Space : x : ys) | isNote x, startWithPunct ys =
 mvPunct (Space : x : ys) | isNote x = x : ys
 mvPunct xs = xs
 
-sanitize :: [Inline] -> [Inline]
-sanitize xs | endWithPunct xs = toCapital xs
-            | otherwise       = toCapital (xs ++ [Str "."])
-
-
 -- A replacement for citeproc-hs's endWithPunct, which wrongly treats
 -- a sentence ending in '.)' as not ending with punctuation, leading
 -- to an extra period.
@@ -103,8 +98,8 @@ endWithPunct xs@(_:_) = case reverse (stringify [last xs]) of
 
 deNote :: Pandoc -> Pandoc
 deNote = topDown go
-  where go (Cite cs [Note [Para xs]]) =
-            Cite cs [Note $ bottomUp go' [Para $ sanitize xs]]
+  where go (Cite (c:cs) [Note xs]) =
+            Cite (c:cs) [Note $ bottomUp go' $ sanitize c xs]
         go (Note xs) = Note $ bottomUp go' xs
         go x = x
         go' (Note [Para xs]:ys) =
@@ -112,6 +107,14 @@ deNote = topDown go
                 then initInline xs ++ ys
                 else xs ++ ys
         go' xs = xs
+        sanitize :: Citation -> [Block] -> [Block]
+        sanitize Citation{citationPrefix = pref} [Para xs] =
+           case (null pref, endWithPunct xs) of
+                (True, False)  -> [Para $ xs ++ [Str "."]]
+                (True, True)   -> [Para xs]
+                (False, False) -> [Para $ toCapital $ xs ++ [Str "."]]
+                (False, True)  -> [Para $ toCapital xs]
+        sanitize _ bs = bs
 
 isTextualCitation :: [Citation] -> Bool
 isTextualCitation (c:_) = citationMode c == AuthorInText

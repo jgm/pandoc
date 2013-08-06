@@ -76,6 +76,7 @@
     + Don't interfere with Notes that aren't citation notes.
       This fixes a bug in which notes not generated from citations were
       being altered (e.g. first letter capitalized) (#898).
+    + Only capitalize footnote citations when they have a prefix.
     + Changes in suffix parsing.  A suffix beginning with a digit gets 'p'
       inserted before it before passing to citeproc-hs, so that bare numbers
       are treated as page numbers by default.  A suffix not beginning with
