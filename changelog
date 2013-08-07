@@ -407,6 +407,7 @@
     + LaTeX/Beamer: Added `classoption` variable.
       This is intended for class options like `oneside`; it may
       be repeated with different options.  (Thanks to Oliver Matthews.)
+    + Beamer: Added `fonttheme` variable.  (Thanks to Luis Osa.)
     + LaTeX: Added `biblio-style` variable (#920).
     + DZSlides: title attribute on title section.
 
