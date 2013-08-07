@@ -231,7 +231,9 @@ yamlTitleBlock = try $ do
   pos <- getPosition
   string "---"
   blankline
-  rawYaml <- unlines <$> manyTill anyLine stopLine
+  rawYamlLines <- manyTill anyLine stopLine
+  -- by including --- and ..., we allow yaml blocks with just comments:
+  let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
   opts <- stateOptions <$> getState
   case Yaml.decodeEither' $ UTF8.fromString rawYaml of
@@ -241,6 +243,7 @@ yamlTitleBlock = try $ do
                         then f
                         else B.setMeta (T.unpack k) (yamlToMeta opts v) . f)
                   id hashmap
+       Right Yaml.Null -> return $ return id
        Right _ -> do
                    addWarning (Just pos) "YAML header is not an object"
                    return $ return id
