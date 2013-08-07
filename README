@@ -761,7 +761,7 @@ as `title`, `author`, and `date`) as well as the following:
 `revealjs-url`
 :   base URL for reveal.js documents (defaults to `reveal.js`)
 `theme`
-:   reveal.js theme
+:   reveal.js or LaTeX beamer theme
 `transition`
 :   reveal.js transition
 `fontsize`
@@ -777,10 +777,10 @@ as `title`, `author`, and `date`) as well as the following:
 `mainfont`, `sansfont`, `monofont`, `mathfont`
 :   fonts for LaTeX documents (works only with xelatex
     and lualatex)
-`theme`
-:   theme for LaTeX beamer documents
 `colortheme`
 :   colortheme for LaTeX beamer documents
+`fonttheme`
+:   fonttheme for LaTeX beamer documents
 `linkcolor`
 :   color for internal links in LaTeX documents (`red`, `green`,
     `magenta`, `cyan`, `blue`, `black`)
