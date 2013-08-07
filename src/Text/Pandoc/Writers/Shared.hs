@@ -74,6 +74,7 @@ metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = liftM toJSON $
   Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
 metaValueToJSON blockWriter inlineWriter (MetaList xs) = liftM toJSON $
   Traversable.mapM (metaValueToJSON blockWriter inlineWriter) xs
+metaValueToJSON _ _ (MetaBool b) = return $ toJSON b
 metaValueToJSON _ _ (MetaString s) = return $ toJSON s
 metaValueToJSON blockWriter _ (MetaBlocks bs) = liftM toJSON $ blockWriter bs
 metaValueToJSON _ inlineWriter (MetaInlines bs) = liftM toJSON $ inlineWriter bs

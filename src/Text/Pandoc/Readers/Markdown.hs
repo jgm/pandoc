@@ -278,7 +278,7 @@ toMetaValue opts x =
 yamlToMeta :: ReaderOptions -> Yaml.Value -> MetaValue
 yamlToMeta opts (Yaml.String t) = toMetaValue opts t
 yamlToMeta _    (Yaml.Number n) = MetaString $ show n
-yamlToMeta _    (Yaml.Bool b) = MetaString $ map toLower $ show b
+yamlToMeta _    (Yaml.Bool b) = MetaBool b
 yamlToMeta opts (Yaml.Array xs) = B.toMetaValue $ map (yamlToMeta opts)
                                                 $ V.toList xs
 yamlToMeta opts (Yaml.Object o) = MetaMap $ H.foldrWithKey (\k v m ->

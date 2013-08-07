@@ -110,12 +110,14 @@ instance StackValue [Block] where
 instance StackValue MetaValue where
   push l (MetaMap m) = Lua.push l m
   push l (MetaList xs) = Lua.push l xs
+  push l (MetaBool x) = Lua.push l x
   push l (MetaString s) = Lua.push l s
   push l (MetaInlines ils) = Lua.push l ils
   push l (MetaBlocks bs) = Lua.push l bs
   peek _ _ = undefined
   valuetype (MetaMap _) = Lua.TTABLE
   valuetype (MetaList _) = Lua.TTABLE
+  valuetype (MetaBool _) = Lua.TBOOLEAN
   valuetype (MetaString _) = Lua.TSTRING
   valuetype (MetaInlines _) = Lua.TSTRING
   valuetype (MetaBlocks _) = Lua.TSTRING
