@@ -161,7 +161,7 @@ import Data.List ( intercalate, transpose )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
 import Text.TeXMath.Macros (applyMacros, Macro, parseMacroDefinitions)
-import Text.HTML.TagSoup.Entity ( lookupEntity )
+import Text.Pandoc.Compat.TagSoupEntity ( lookupEntity )
 import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader

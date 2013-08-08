@@ -253,7 +253,7 @@ Library
                  citeproc-hs >= 0.3.7 && < 0.4,
                  pandoc-types >= 1.12 && < 1.13,
                  aeson >= 0.6 && < 0.7,
-                 tagsoup >= 0.12.5 && < 0.13,
+                 tagsoup >= 0.12.5 && < 0.14,
                  base64-bytestring >= 0.1 && < 1.1,
                  zlib >= 0.5 && < 0.6,
                  highlighting-kate >= 0.5.5 && < 0.6,
@@ -336,6 +336,7 @@ Library
                    Text.Pandoc.Slides,
                    Text.Pandoc.Highlighting,
                    Text.Pandoc.Compat.Monoid,
+                   Text.Pandoc.Compat.TagSoupEntity,
                    Paths_pandoc
 
   Buildable:       True

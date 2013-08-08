@@ -38,7 +38,7 @@ module Text.Pandoc.XML ( escapeCharForXML,
 
 import Text.Pandoc.Pretty
 import Data.Char (ord, isAscii, isSpace)
-import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.Compat.TagSoupEntity (lookupEntity)
 
 -- | Escape one character as needed for XML.
 escapeCharForXML :: Char -> String

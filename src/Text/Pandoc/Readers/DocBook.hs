@@ -4,7 +4,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder
 import Text.XML.Light
-import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.Compat.TagSoupEntity (lookupEntity)
 import Data.Generics
 import Data.Monoid
 import Data.Char (isSpace)
