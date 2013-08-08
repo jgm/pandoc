@@ -56,6 +56,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag, isBlockTag )
+import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
 import Text.HTML.TagSoup.Match
 import Data.List ( intercalate )
@@ -125,6 +126,7 @@ blockParsers = [ codeBlock
                , commentBlock
                , anyList
                , rawHtmlBlock
+               , rawLaTeXBlock'
                , maybeExplicitBlock "table" table
                , maybeExplicitBlock "p" para
                ]
@@ -290,6 +292,13 @@ rawHtmlBlock = try $ do
   optional blanklines
   return $ RawBlock "html" b
 
+-- | Raw block of LaTeX content
+rawLaTeXBlock' :: Parser [Char] ParserState Block
+rawLaTeXBlock' = do
+  guardEnabled Ext_raw_tex
+  RawBlock "latex" <$> (rawLaTeXBlock <* spaces)
+
+
 -- | In textile, paragraphs are separated by blank lines.
 para :: Parser [Char] ParserState Block
 para = try $ Para . normalizeSpaces <$> manyTill inline blockBreak
@@ -364,6 +373,7 @@ inlineParsers = [ str
                 , escapedInline
                 , htmlSpan
                 , rawHtmlInline
+                , rawLaTeXInline'
                 , note
                 , try $ (char '[' *> inlineMarkup <* char ']')
                 , inlineMarkup
@@ -478,6 +488,12 @@ endline = try $ do
 
 rawHtmlInline :: Parser [Char] ParserState Inline
 rawHtmlInline = RawInline "html" . snd <$> htmlTag isInlineTag
+
+-- | Raw LaTeX Inline
+rawLaTeXInline' :: Parser [Char] ParserState Inline
+rawLaTeXInline' = try $ do
+  guardEnabled Ext_raw_tex
+  rawLaTeXInline
 
 -- | Textile standard link syntax is "label":target. But we
 -- can also have ["label":target].
