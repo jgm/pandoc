@@ -71,7 +71,7 @@ baseCitation = Citation{ citationId      = "item1"
                        }
 
 rt :: String -> Inlines
-rt = rawInline "latex"
+rt s = rawInline [("latex", s)]
 
 natbibCitations :: Test
 natbibCitations = testGroup "natbib"

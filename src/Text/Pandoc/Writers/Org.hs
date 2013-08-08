@@ -39,7 +39,8 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Templates (renderTemplate')
 import Data.List ( intersect, intersperse, transpose )
 import Control.Monad.State
-import Control.Applicative ( (<$>) )
+import Control.Applicative ( (<$>), (<|>) )
+import qualified Data.Map as M
 
 data WriterState =
   WriterState { stNotes     :: [[Block]]
@@ -118,12 +119,13 @@ blockToOrg (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
   return $ contents <> blankline
-blockToOrg (RawBlock "html" str) =
-  return $ blankline $$ "#+BEGIN_HTML" $$
-           nest 2 (text str) $$ "#+END_HTML" $$ blankline
-blockToOrg (RawBlock f str) | f == "org" || f == "latex" || f == "tex" =
-  return $ text str
-blockToOrg (RawBlock _ _) = return empty
+blockToOrg (RawBlock rawmap) = return
+  $ maybe empty text
+    (M.lookup "org" rawmap <|> M.lookup "latex" rawmap)
+  $$
+    maybe empty (\s -> "#+BEGIN_HTML" $$ nest 2 (text s)
+                       $$ "#+END_HTML" $$ blankline)
+     (M.lookup "html" rawmap)
 blockToOrg HorizontalRule = return $ blankline $$ "--------------" $$ blankline
 blockToOrg (Header level _ inlines) = do
   contents <- inlineListToOrg inlines
@@ -259,8 +261,8 @@ inlineToOrg (Math t str) = do
   return $ if t == InlineMath
               then "$" <> text str <> "$"
               else "$$" <> text str <> "$$"
-inlineToOrg (RawInline f str) | f == "tex" || f == "latex" = return $ text str
-inlineToOrg (RawInline _ _) = return empty
+inlineToOrg (RawInline rawmap) = return
+  $ maybe empty text $ M.lookup "org" rawmap <|> M.lookup "latex" rawmap
 inlineToOrg (LineBreak) = return cr -- there's no line break in Org
 inlineToOrg Space = return space
 inlineToOrg (Link txt (src, _)) = do

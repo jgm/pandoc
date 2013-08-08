@@ -35,6 +35,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Generic (queryWith)
 import Text.Printf ( printf )
+import qualified Data.Map as M
 import Data.List ( intercalate, isPrefixOf )
 import Control.Monad.State
 import Text.Pandoc.Pretty
@@ -141,8 +142,8 @@ blockToConTeXt (BlockQuote lst) = do
 blockToConTeXt (CodeBlock _ str) =
   return $ flush ("\\starttyping" <> cr <> text str <> cr <> "\\stoptyping") $$ blankline
   -- blankline because \stoptyping can't have anything after it, inc. '}'
-blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
-blockToConTeXt (RawBlock _ _ ) = return empty
+blockToConTeXt (RawBlock rawmap) = return $ maybe empty (\s -> text s <> blankline)
+  $ M.lookup "context" rawmap
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ ("\\startitemize" <> if isTightList lst
@@ -277,9 +278,8 @@ inlineToConTeXt (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
 inlineToConTeXt (Math DisplayMath str) =
   return $ text "\\startformula "  <> text str <> text " \\stopformula" <> space
-inlineToConTeXt (RawInline "context" str) = return $ text str
-inlineToConTeXt (RawInline "tex" str) = return $ text str
-inlineToConTeXt (RawInline _ _) = return empty
+inlineToConTeXt (RawInline rawmap) = return $ maybe empty text
+  $ M.lookup "context" rawmap
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
 -- autolink
@@ -288,8 +288,8 @@ inlineToConTeXt (Link [Str str] (src, tit))
     then src == escapeURI ("mailto:" ++ str)
     else src == escapeURI str =
   inlineToConTeXt (Link
-    [RawInline "context" "\\hyphenatedurl{", Str str, RawInline "context" "}"]
-    (src, tit))
+    [RawInline (M.singleton "context" "\\hyphenatedurl{"), Str str,
+     RawInline (M.singleton "context" "}")] (src, tit))
 -- Handle HTML-like internal document references to sections
 inlineToConTeXt (Link txt          (('#' : ref), _)) = do
   opts <- gets stOptions

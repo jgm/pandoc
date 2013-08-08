@@ -1038,7 +1038,7 @@ macro = do
                              updateState $ \st ->
                                st { stateMacros = ms ++ stateMacros st }
                              return mempty
-                           else return $ rawBlock "latex" def'
+                           else return $ rawBlock [("latex", def')]
 
 -- | Apply current macros to string.
 applyMacros' :: String -> Parser [Char] ParserState String

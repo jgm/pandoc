@@ -9,6 +9,7 @@ import Control.Monad (liftM, liftM2)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (normalize, escapeURI)
 import Text.Pandoc.Builder
+import qualified Data.Map as M
 
 realString :: Gen String
 realString = resize 8 $ listOf $ frequency [ (9, elements [' '..'\127'])
@@ -41,8 +42,8 @@ arbInline :: Int -> Gen Inline
 arbInline n = frequency $ [ (60, liftM Str realString)
                           , (60, return Space)
                           , (10, liftM2 Code arbAttr realString)
-                          , (5,  elements [ RawInline "html" "<a id=\"eek\">"
-                                          , RawInline "latex" "\\my{command}" ])
+                          , (5,  return $ RawInline $ M.fromList [("html", "<a id=\"eek\">")
+                                                                   ,("latex", "\\my{command}")])
                           ] ++ [ x | x <- nesters, n > 1]
    where nesters = [ (10,  liftM Emph $ arbInlines (n-1))
                    , (10,  liftM Strong $ arbInlines (n-1))
@@ -74,9 +75,9 @@ arbBlock :: Int -> Gen Block
 arbBlock n = frequency $ [ (10, liftM Plain $ arbInlines (n-1))
                          , (15, liftM Para $ arbInlines (n-1))
                          , (5,  liftM2 CodeBlock arbAttr realString)
-                         , (2,  elements [ RawBlock "html"
+                         , (2,  elements [ RawBlock $ M.singleton "html"
                                             "<div>\n*&amp;*\n</div>"
-                                         , RawBlock "latex"
+                                         , RawBlock $ M.singleton "latex"
                                             "\\begin[opt]{env}\nhi\n{\\end{env}"
                                          ])
                          , (5,  do x1 <- choose (1 :: Int, 6)

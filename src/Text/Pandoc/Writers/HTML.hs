@@ -56,6 +56,7 @@ import qualified Text.Blaze.Html5 as H5
 #endif
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
+import qualified Data.Map as M
 import Text.Blaze.Renderer.String (renderHtml)
 import Text.TeXMath
 import Text.XML.Light.Output
@@ -403,12 +404,12 @@ blockToHtml opts (Para [Image txt (s,'f':'i':'g':':':tit)]) = do
 -- . . . indicates a pause in a slideshow
 blockToHtml opts (Para [Str ".",Space,Str ".",Space,Str "."])
   | writerSlideVariant opts == RevealJsSlides =
-  blockToHtml opts (RawBlock "html" "<div class=\"fragment\" />")
+  blockToHtml opts (RawBlock $ M.singleton "html" "<div class=\"fragment\" />")
 blockToHtml opts (Para lst) = do
   contents <- inlineListToHtml opts lst
   return $ H.p contents
-blockToHtml _ (RawBlock "html" str) = return $ preEscapedString str
-blockToHtml _ (RawBlock _ _) = return mempty
+blockToHtml _ (RawBlock rawmap) =
+  return $ maybe mempty preEscapedString $ M.lookup "html" rawmap
 blockToHtml opts (HorizontalRule) = return $ if writerHtml5 opts then H5.hr else H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
   let tolhs = isEnabled Ext_literate_haskell opts &&
@@ -673,12 +674,16 @@ inlineToHtml opts inline =
                                   return  $ case t of
                                              InlineMath  -> m
                                              DisplayMath -> brtag >> m >> brtag )
-    (RawInline "latex" str) -> case writerHTMLMathMethod opts of
-                               LaTeXMathML _ -> do modify (\st -> st {stMath = True})
-                                                   return $ toHtml str
-                               _             -> return mempty
-    (RawInline "html" str) -> return $ preEscapedString str
-    (RawInline _ _) -> return mempty
+    (RawInline rawmap) -> case M.lookup "html" rawmap of
+                               Just str -> return $ preEscapedString str
+                               Nothing  -> case M.lookup "latex" rawmap of
+                                           Just str ->
+                                              case writerHTMLMathMethod opts of
+                                                  LaTeXMathML _ -> do
+                                                     modify (\st -> st {stMath = True})
+                                                     return $ toHtml str
+                                                  _             -> return mempty
+                                           Nothing -> return mempty
     (Link [Str str] (s,_)) | "mailto:" `isPrefixOf` s &&
                              s == escapeURI ("mailto" ++ str) ->
                         -- autolink

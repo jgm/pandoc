@@ -515,7 +515,7 @@ directive' = do
   optional blanklines
   let body' = body ++ "\n\n"
   case label of
-        "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
+        "raw" -> return $ B.rawBlock [(trim top, stripTrailingNewlines body)]
         "role" -> return mempty
         "container" -> parseFromString parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey

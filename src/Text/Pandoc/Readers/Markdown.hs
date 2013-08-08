@@ -922,7 +922,7 @@ htmlBlock = do
   guardEnabled Ext_raw_html
   res <- (guardEnabled Ext_markdown_in_html_blocks >> rawHtmlBlocks)
           <|> htmlBlock'
-  return $ return $ B.rawBlock "html" res
+  return $ return $ B.rawBlock [("html", res)]
 
 htmlBlock' :: MarkdownParser String
 htmlBlock' = try $ do
@@ -945,8 +945,8 @@ rawVerbatimBlock = try $ do
 rawTeXBlock :: MarkdownParser (F Blocks)
 rawTeXBlock = do
   guardEnabled Ext_raw_tex
-  result <- (B.rawBlock "latex" <$> rawLaTeXBlock)
-        <|> (B.rawBlock "context" <$> rawConTeXtEnvironment)
+  result <- ((\x -> B.rawBlock [("latex",x)]) <$> rawLaTeXBlock)
+        <|> ((\x -> B.rawBlock [("context",x)]) <$> rawConTeXtEnvironment)
   spaces
   return $ return result
 
@@ -1735,9 +1735,9 @@ rawLaTeXInline' :: MarkdownParser (F Inlines)
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
   lookAhead $ char '\\' >> notFollowedBy' (string "start") -- context env
-  RawInline _ s <- rawLaTeXInline
-  return $ return $ B.rawInline "tex" s
-  -- "tex" because it might be context or latex
+  s <- rawLaTeXInline
+  return $ return $ B.rawInline [("latex", s),("context",s)]
+  -- it might be context or latex
 
 rawConTeXtEnvironment :: Parser [Char] st String
 rawConTeXtEnvironment = try $ do
@@ -1763,7 +1763,7 @@ rawHtmlInline = do
   (_,result) <- htmlTag $ if mdInHtml
                              then isInlineTag
                              else not . isTextTag
-  return $ return $ B.rawInline "html" result
+  return $ return $ B.rawInline [("html", result)]
 
 -- Citations
 

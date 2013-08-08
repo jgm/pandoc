@@ -235,15 +235,15 @@ ignoreInlines :: String -> (String, LP Inlines)
 ignoreInlines name = (name, doraw <|> (mempty <$ optargs))
   where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
-        doraw = (rawInline "latex" . (contseq ++) . snd) <$>
-                 (getOption readerParseRaw >>= guard >> (withRaw optargs))
+        doraw = getOption readerParseRaw >>= guard >> (withRaw optargs) >>=
+                     \(_,s) -> return (rawInline [("latex", contseq ++ s)])
 
 ignoreBlocks :: String -> (String, LP Blocks)
 ignoreBlocks name = (name, doraw <|> (mempty <$ optargs))
   where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
-        doraw = (rawBlock "latex" . (contseq ++) . snd) <$>
-                 (getOption readerParseRaw >>= guard >> (withRaw optargs))
+        doraw = getOption readerParseRaw >>= guard >> withRaw optargs >>=
+                   \(_,s) -> return (rawBlock [("latex", contseq ++ s)])
 
 blockCommands :: M.Map String (LP Blocks)
 blockCommands = M.fromList $
@@ -337,7 +337,7 @@ inlineCommand = try $ do
         if transformed /= rawcommand
            then parseFromString inlines transformed
            else if parseRaw
-                   then return $ rawInline "latex" rawcommand
+                   then return $ rawInline [("latex", rawcommand)]
                    else return mempty
   case M.lookup name' inlineCommands of
        Just p      -> p <|> raw
@@ -736,8 +736,8 @@ rawEnv name = do
   let addBegin x = "\\begin{" ++ name ++ "}" ++ x
   parseRaw <- getOption readerParseRaw
   if parseRaw
-     then (rawBlock "latex" . addBegin) <$>
-            (withRaw (env name blocks) >>= applyMacros' . snd)
+     then withRaw (env name blocks) >>= applyMacros' . snd >>=
+              \s -> return (rawBlock [("latex", addBegin s)])
      else env name blocks
 
 -- | Replace "include" commands with file contents.
@@ -836,10 +836,10 @@ verbatimEnv = do
 rawLaTeXBlock :: Parser [Char] ParserState String
 rawLaTeXBlock = snd <$> try (withRaw (environment <|> blockCommand))
 
-rawLaTeXInline :: Parser [Char] ParserState Inline
-rawLaTeXInline = do
-  raw <- (snd <$> withRaw inlineCommand) <|> (snd <$> withRaw blockCommand)
-  RawInline "latex" <$> applyMacros' raw
+rawLaTeXInline :: Parser [Char] ParserState String
+rawLaTeXInline =
+  (snd <$> (withRaw inlineCommand) <|> snd <$> (withRaw blockCommand)) >>=
+     applyMacros'
 
 environments :: M.Map String (LP Blocks)
 environments = M.fromList
@@ -1063,7 +1063,7 @@ cites mode multi = try $ do
 citation :: String -> CitationMode -> Bool -> LP Inlines
 citation name mode multi = do
   (c,raw) <- withRaw $ cites mode multi
-  return $ cite c (rawInline "latex" $ "\\" ++ name ++ raw)
+  return $ cite c (rawInline [("latex", "\\" ++ name ++ raw)])
 
 complexNatbibCitation :: CitationMode -> LP Inlines
 complexNatbibCitation mode = try $ do
@@ -1083,7 +1083,7 @@ complexNatbibCitation mode = try $ do
                    return $ addPrefix pref $ addSuffix suff $ cits'
   (c:cits, raw) <- withRaw $ grouped parseOne
   return $ cite (c{ citationMode = mode }:cits)
-           (rawInline "latex" $ "\\citetext" ++ raw)
+           (rawInline [("latex", "\\citetext" ++ raw)])
 
 -- tables
 

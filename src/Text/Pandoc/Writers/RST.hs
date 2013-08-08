@@ -43,6 +43,7 @@ import Text.Pandoc.Pretty
 import Control.Monad.State
 import Control.Applicative ( (<$>) )
 import Data.Char (isSpace)
+import qualified Data.Map as M
 
 type Refs = [([Inline], Target)]
 
@@ -175,9 +176,11 @@ blockToRST (Para inlines)
   | otherwise = do
       contents <- inlineListToRST inlines
       return $ contents <> blankline
-blockToRST (RawBlock f str) =
-  return $ blankline <> ".. raw:: " <> text f $+$
-           (nest 3 $ text str) $$ blankline
+blockToRST (RawBlock rawmap) =
+  return $ blankline <>
+           vcat (map (\(f,s) -> ".. raw:: " <> text f $+$
+                          (nest 3 $ text s) $$ blankline)
+                 $ M.toList rawmap)
 blockToRST HorizontalRule =
   return $ blankline $$ "--------------" $$ blankline
 blockToRST (Header level _ inlines) = do
@@ -287,18 +290,21 @@ blockListToRST :: [Block]       -- ^ List of block elements
                -> State WriterState Doc
 blockListToRST blocks = mapM blockToRST blocks >>= return . vcat
 
+rawRSTInline :: String -> Inline
+rawRSTInline s = RawInline (M.singleton "rst" s)
+
 -- | Convert list of Pandoc inline elements to RST.
 inlineListToRST :: [Inline] -> State WriterState Doc
 inlineListToRST lst = mapM inlineToRST (insertBS lst) >>= return . hcat
   where insertBS :: [Inline] -> [Inline] -- insert '\ ' where needed
         insertBS (x:y:z:zs)
           | isComplex y && surroundComplex x z =
-             x : y : RawInline "rst" "\\ " : insertBS (z:zs)
+             x : y : rawRSTInline "\\ " : insertBS (z:zs)
         insertBS (x:y:zs)
           | isComplex x && not (okAfterComplex y) =
-              x : RawInline "rst" "\\ " : insertBS (y : zs)
+              x : rawRSTInline "\\ " : insertBS (y : zs)
           | isComplex y && not (okBeforeComplex x) =
-              x : RawInline "rst" "\\ " : insertBS (y : zs)
+              x : rawRSTInline "\\ " : insertBS (y : zs)
           | otherwise =
               x : insertBS (y : zs)
         insertBS (x:ys) = x : insertBS ys
@@ -372,8 +378,7 @@ inlineToRST (Math t str) = do
                    then blankline $$ ".. math::" $$
                         blankline $$ nest 3 (text str) $$ blankline
                    else blankline $$ (".. math:: " <> text str) $$ blankline
-inlineToRST (RawInline "rst" x) = return $ text x
-inlineToRST (RawInline _ _) = return empty
+inlineToRST (RawInline rawmap) = return $ maybe empty text $ M.lookup "rst" rawmap
 inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space
 -- autolink

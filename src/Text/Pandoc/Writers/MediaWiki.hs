@@ -38,7 +38,9 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.XML ( escapeStringForXML )
 import Data.List ( intersect, intercalate, intersperse )
 import Network.URI ( isURI )
+import qualified Data.Map as M
 import Control.Monad.State
+import Control.Applicative ((<|>))
 
 data WriterState = WriterState {
     stNotes     :: Bool            -- True if there are notes
@@ -104,9 +106,8 @@ blockToMediaWiki opts (Para inlines) = do
               then  "<p>" ++ contents ++ "</p>"
               else contents ++ if null listLevel then "\n" else ""
 
-blockToMediaWiki _ (RawBlock "mediawiki" str) = return str
-blockToMediaWiki _ (RawBlock "html" str) = return str
-blockToMediaWiki _ (RawBlock _ _) = return ""
+blockToMediaWiki _ (RawBlock rawmap) =
+  return $ maybe "" id $ M.lookup "mediawiki" rawmap <|> M.lookup "html" rawmap
 
 blockToMediaWiki _ HorizontalRule = return "\n-----\n"
 
@@ -368,9 +369,8 @@ inlineToMediaWiki _ (Str str) = return $ escapeString str
 inlineToMediaWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
                                  -- note:  str should NOT be escaped
 
-inlineToMediaWiki _ (RawInline "mediawiki" str) = return str
-inlineToMediaWiki _ (RawInline "html" str) = return str
-inlineToMediaWiki _ (RawInline _ _) = return ""
+inlineToMediaWiki _ (RawInline rawmap) =
+  return $ maybe "" id $ M.lookup "mediawiki" rawmap <|> M.lookup "html" rawmap
 
 inlineToMediaWiki _ (LineBreak) = return "<br />"
 

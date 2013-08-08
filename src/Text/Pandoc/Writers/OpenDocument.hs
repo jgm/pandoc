@@ -37,7 +37,7 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Pretty
 import Text.Printf ( printf )
-import Control.Applicative ( (<$>) )
+import Control.Applicative ( (<$>), (<|>) )
 import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
 import Data.Char (chr, isDigit)
@@ -295,7 +295,7 @@ blockToOpenDocument o bs
     | Table  c a w h r <- bs = setFirstPara >> table c a w h r
     | HorizontalRule   <- bs = setFirstPara >> return (selfClosingTag "text:p"
                                 [ ("text:style-name", "Horizontal_20_Line") ])
-    | RawBlock _     _ <- bs = return empty
+    | RawBlock _       <- bs = return empty
     | Null             <- bs = return empty
     | otherwise              = return empty
     where
@@ -372,9 +372,9 @@ inlineToOpenDocument o ils
     | Code      _ s <- ils = preformatted s
     | Math      _ s <- ils = inlinesToOpenDocument o (readTeXMath s)
     | Cite      _ l <- ils = inlinesToOpenDocument o l
-    | RawInline "opendocument" s <- ils = preformatted s
-    | RawInline "html" s <- ils = preformatted s  -- for backwards compat.
-    | RawInline _ _ <- ils = return empty
+    | RawInline rm  <- ils = maybe (return empty) preformatted
+                                    $ Map.lookup "opendocument" rm
+                                   <|> Map.lookup "html" rm -- backwards compat
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Image _ (s,t) <- ils = return $ mkImg  s t
     | Note        l <- ils = mkNote l

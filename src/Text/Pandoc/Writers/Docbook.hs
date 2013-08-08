@@ -37,6 +37,8 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( isPrefixOf, intercalate, isSuffixOf )
 import Data.Char ( toLower )
+import qualified Data.Map as M
+import Control.Applicative ((<|>))
 import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
 import qualified Text.Pandoc.Builder as B
@@ -51,7 +53,7 @@ authorToDocbook opts name' =
       colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
-  in  B.rawInline "docbook" $ render colwidth $
+  in  B.rawInline [("docbook", render colwidth $
       if ',' `elem` name
          then -- last name first
               let (lastname, rest) = break (==',') name
@@ -66,7 +68,7 @@ authorToDocbook opts name' =
                     1  -> ("", name)
                     n  -> (intercalate " " (take (n-1) namewords), last namewords)
                in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$
-                  inTagsSimple "surname" (text $ escapeStringForXML lastname)
+                  inTagsSimple "surname" (text $ escapeStringForXML lastname))]
 
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: WriterOptions -> Pandoc -> String
@@ -198,10 +200,10 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
   in  inTags True "orderedlist" attribs items
 blockToDocbook opts (DefinitionList lst) =
   inTagsIndented "variablelist" $ deflistItemsToDocbook opts lst
-blockToDocbook _ (RawBlock "docbook" str) = text str -- raw XML block
--- we allow html for compatibility with earlier versions of pandoc
-blockToDocbook _ (RawBlock "html" str) = text str -- raw XML block
-blockToDocbook _ (RawBlock _ _) = empty
+blockToDocbook _ (RawBlock rawmap) =
+  maybe empty text $  M.lookup "docbook" rawmap
+                  <|> M.lookup "html" rawmap
+  -- we allow html for compatibility with earlier versions of pandoc
 blockToDocbook _ HorizontalRule = empty -- not semantic
 blockToDocbook opts (Table caption aligns widths headers rows) =
   let captionDoc   = if null caption
@@ -286,8 +288,9 @@ inlineToDocbook opts (Math t str)
            removeAttr e = e{ Xml.elAttribs = [] }
            fixNS' qname = qname{ Xml.qPrefix = Just "mml" }
            fixNS = everywhere (mkT fixNS')
-inlineToDocbook _ (RawInline f x) | f == "html" || f == "docbook" = text x
-                                  | otherwise                     = empty
+inlineToDocbook _ (RawInline rawmap) =
+  maybe empty text $ M.lookup "docbook" rawmap <|> M.lookup "html" rawmap
+  -- allow raw HTML for compatibility with earlier versions of pandoc
 inlineToDocbook _ LineBreak = flush $ inTagsSimple "literallayout" (text "\n")
 inlineToDocbook _ Space = space
 inlineToDocbook opts (Link txt (src, _)) =

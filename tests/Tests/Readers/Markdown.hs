@@ -202,7 +202,7 @@ tests = [ testGroup "inline code"
                   <>
                   codeBlockWith ("",["sourceCode","haskell"],[]) "b"
                   <>
-                  rawBlock "html" "<div>\n\n"
+                  rawBlock [("html", "<div>\n\n")]
           ]
 -- the round-trip properties frequently fail
 --        , testGroup "round trip"

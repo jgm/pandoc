@@ -37,8 +37,10 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (blankline, char, space)
+import Text.Pandoc.Parsing hiding (blankline, char, space, (<|>))
+import Control.Applicative ((<|>))
 import Data.List ( group, isPrefixOf, find, intersperse, transpose, sortBy )
+import qualified Data.Map as M
 import Data.Char ( isSpace )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
@@ -92,7 +94,7 @@ plainify = bottomUp go
         go (SmallCaps xs) = SmallCaps xs
         go (Code _ s) = Str s
         go (Math _ s) = Str s
-        go (RawInline _ _) = Str ""
+        go (RawInline _) = Str ""
         go (Link xs _) = SmallCaps xs
         go (Image xs _) = SmallCaps $ [Str "["] ++ xs ++ [Str "]"]
         go (Cite _ cits) = SmallCaps cits
@@ -317,20 +319,19 @@ blockToMarkdown opts (Para inlines) = do
                then text "\x200B" -- zero-width space, a hack
                else empty
   return $ esc <> contents <> blankline
-blockToMarkdown opts (RawBlock f str)
-  | f == "html" = do
-    st <- get
-    if stPlain st
-       then return empty
-       else return $ if isEnabled Ext_markdown_attribute opts
-                        then text (addMarkdownAttribute str) <> text "\n"
-                        else text str <> text "\n"
-  | f == "latex" || f == "tex" || f == "markdown" = do
-    st <- get
-    if stPlain st
-       then return empty
-       else return $ text str <> text "\n"
-blockToMarkdown _ (RawBlock _ _) = return empty
+blockToMarkdown opts (RawBlock rawmap) = do
+  st <- get
+  return
+    $ maybe empty (\s -> text s <> cr)
+    $ M.lookup "markdown" rawmap
+    <|> if stPlain st
+           then Nothing
+           else if isEnabled Ext_markdown_attribute opts
+                   then addMarkdownAttribute `fmap` M.lookup "html" rawmap
+                   else M.lookup "html" rawmap
+    <|> if stPlain st
+           then Nothing
+           else M.lookup "latex" rawmap
 blockToMarkdown _ HorizontalRule =
   return $ blankline <> text "* * * * *" <> blankline
 blockToMarkdown opts (Header level attr inlines) = do
@@ -589,7 +590,7 @@ blockListToMarkdown opts blocks =
     where fixBlocks (b : CodeBlock attr x : rest)
             | (not (isEnabled Ext_fenced_code_blocks opts) || attr == nullAttr)
                 && isListBlock b =
-               b : RawBlock "html" "<!-- -->\n" : CodeBlock attr x :
+               b : RawBlock (M.singleton "html" "<!-- -->\n") : CodeBlock attr x :
                    fixBlocks rest
           fixBlocks (x : xs)             = x : fixBlocks xs
           fixBlocks []                   = []
@@ -691,27 +692,32 @@ inlineToMarkdown opts (Math DisplayMath str)
       return $ "\\\\[" <> text str <> "\\\\]"
   | otherwise = (\x -> cr <> x <> cr) `fmap`
         inlineListToMarkdown opts (readTeXMath str)
-inlineToMarkdown opts (RawInline f str)
-  | f == "html" || f == "markdown" ||
-    (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex")) =
-    return $ text str
-inlineToMarkdown _ (RawInline _ _) = return empty
+inlineToMarkdown opts (RawInline rawmap) =
+  return $ maybe empty text
+         $     M.lookup "markdown" rawmap
+           <|> M.lookup "html" rawmap
+           <|> if isEnabled Ext_raw_tex opts
+                  then M.lookup "latex" rawmap
+                  else Nothing
 inlineToMarkdown opts (LineBreak)
   | isEnabled Ext_hard_line_breaks opts    = return cr
   | isEnabled Ext_escaped_line_breaks opts = return $ "\\" <> cr
   | otherwise                              = return $ "  " <> cr
 inlineToMarkdown _ Space = return space
-inlineToMarkdown opts (Cite (c:cs) lst@[RawInline "latex" _])
-  | not (isEnabled Ext_citations opts) = inlineListToMarkdown opts lst
-  | citationMode c == AuthorInText = do
-    suffs <- inlineListToMarkdown opts $ citationSuffix c
-    rest <- mapM convertOne cs
-    let inbr = suffs <+> joincits rest
-        br   = if isEmpty inbr then empty else char '[' <> inbr <> char ']'
-    return $ text ("@" ++ citationId c) <+> br
-  | otherwise = do
-    cits <- mapM convertOne (c:cs)
-    return $ text "[" <> joincits cits <> text "]"
+inlineToMarkdown opts (Cite (c:cs) lst@[RawInline rawmap])
+  | "latex" `elem` M.keys rawmap =
+    if not (isEnabled Ext_citations opts)
+       then inlineListToMarkdown opts lst
+       else if citationMode c == AuthorInText
+               then do
+                    suffs <- inlineListToMarkdown opts $ citationSuffix c
+                    rest <- mapM convertOne cs
+                    let inbr = suffs <+> joincits rest
+                        br   = if isEmpty inbr then empty else char '[' <> inbr <> char ']'
+                    return $ text ("@" ++ citationId c) <+> br
+               else do
+                    cits <- mapM convertOne (c:cs)
+                    return $ text "[" <> joincits cits <> text "]"
   where
         joincits = hcat . intersperse (text "; ") . filter (not . isEmpty)
         convertOne Citation { citationId      = k

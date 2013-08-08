@@ -154,8 +154,8 @@ blockToCustom lua (Para [Image txt (src,tit)]) =
 
 blockToCustom lua (Para inlines) = callfunc lua "Para" inlines
 
-blockToCustom lua (RawBlock format str) =
-  callfunc lua "RawBlock" format (fromString str)
+blockToCustom lua (RawBlock rawmap) =
+  callfunc lua "RawBlock" rawmap
 
 blockToCustom lua HorizontalRule = callfunc lua "HorizontalRule"
 
@@ -227,8 +227,8 @@ inlineToCustom lua (Math DisplayMath str) =
 inlineToCustom lua (Math InlineMath str) =
   callfunc lua "InlineMath" (fromString str)
 
-inlineToCustom lua (RawInline format str) =
-  callfunc lua "RawInline" format (fromString str)
+inlineToCustom lua (RawInline rawmap) =
+  callfunc lua "RawInline" rawmap
 
 inlineToCustom lua (LineBreak) = callfunc lua "LineBreak"
 

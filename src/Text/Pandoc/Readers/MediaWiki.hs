@@ -172,7 +172,7 @@ block =  mempty <$ skipMany1 blankline
      <|> mempty <$ try (spaces *> htmlComment)
      <|> preformatted
      <|> blockTag
-     <|> (B.rawBlock "mediawiki" <$> template)
+     <|> toRawBlocks "mediawiki" <$> template
      <|> para
 
 para :: MWParser Blocks
@@ -299,7 +299,7 @@ blockTag = do
       TagOpen "gallery" _ -> blocksInTags "gallery"
       TagOpen "p" _ -> mempty <$ htmlTag (~== tag)
       TagClose "p"  -> mempty <$ htmlTag (~== tag)
-      _ -> B.rawBlock "html" . snd <$> htmlTag (~== tag)
+      _ -> toRawBlocks "html" . snd <$> htmlTag (~== tag)
 
 trimCode :: String -> String
 trimCode ('\n':xs) = stripTrailingNewlines xs
@@ -465,12 +465,18 @@ inline =  whitespace
       <|> inlineTag
       <|> B.singleton <$> charRef
       <|> inlineHtml
-      <|> (B.rawInline "mediawiki" <$> variable)
-      <|> (B.rawInline "mediawiki" <$> template)
+      <|> toRawInlines "mediawiki" <$> variable
+      <|> toRawInlines "mediawiki" <$> template
       <|> special
 
 str :: MWParser Inlines
 str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
+
+toRawInlines :: String -> String -> Inlines
+toRawInlines format s = B.rawInline [(format, s)]
+
+toRawBlocks :: String -> String -> Blocks
+toRawBlocks format s = B.rawBlock [(format, s)]
 
 variable :: MWParser String
 variable = try $ do
@@ -499,14 +505,14 @@ inlineTag = do
        TagOpen "code" _ -> B.code <$> charsInTags "code"
        TagOpen "tt" _ -> B.code <$> charsInTags "tt"
        TagOpen "hask" _ -> B.codeWith ("",["haskell"],[]) <$> charsInTags "hask"
-       _ -> B.rawInline "html" . snd <$> htmlTag (~== tag)
+       _ -> toRawInlines "html" . snd <$> htmlTag (~== tag)
 
 special :: MWParser Inlines
 special = B.str <$> count 1 (notFollowedBy' (htmlTag isBlockTag') *>
                              oneOf specialChars)
 
 inlineHtml :: MWParser Inlines
-inlineHtml = B.rawInline "html" . snd <$> htmlTag isInlineTag'
+inlineHtml = toRawInlines "html" . snd <$> htmlTag isInlineTag'
 
 whitespace :: MWParser Inlines
 whitespace = B.space <$ (skipMany1 spaceChar <|> endline <|> htmlComment)

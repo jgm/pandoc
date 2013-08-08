@@ -36,6 +36,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.TeXMath
 import Text.Printf ( printf )
+import qualified Data.Map as M
 import Data.List ( isPrefixOf, intersperse, intercalate )
 import Text.Pandoc.Pretty
 import Text.Pandoc.Builder (deleteMeta)
@@ -166,8 +167,8 @@ blockToMan opts (Para inlines) = do
   contents <- liftM vcat $ mapM (inlineListToMan opts) $
     splitSentences inlines
   return $ text ".PP" $$ contents
-blockToMan _ (RawBlock "man" str) = return $ text str
-blockToMan _ (RawBlock _ _) = return empty
+blockToMan _ (RawBlock rawmap) =
+  return $ maybe empty text $ M.lookup "man" rawmap
 blockToMan _ HorizontalRule = return $ text ".PP" $$ text "   *   *   *   *   *"
 blockToMan opts (Header level _ inlines) = do
   contents <- inlineListToMan opts inlines
@@ -331,8 +332,8 @@ inlineToMan opts (Math InlineMath str) = inlineListToMan opts $ readTeXMath str
 inlineToMan opts (Math DisplayMath str) = do
   contents <- inlineListToMan opts $ readTeXMath str
   return $ cr <> text ".RS" $$ contents $$ text ".RE"
-inlineToMan _ (RawInline "man" str) = return $ text str
-inlineToMan _ (RawInline _ _) = return empty
+inlineToMan _ (RawInline rawmap) =
+  return $ maybe empty text $ M.lookup "man" rawmap
 inlineToMan _ (LineBreak) = return $
   cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
 inlineToMan _ Space = return space

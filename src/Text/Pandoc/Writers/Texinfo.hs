@@ -37,6 +37,7 @@ import Text.Printf ( printf )
 import Data.List ( transpose, maximumBy )
 import Data.Ord ( comparing )
 import Data.Char ( chr, ord )
+import qualified Data.Map as M
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import Network.URI ( isAbsoluteURI, unEscapeString )
@@ -150,10 +151,11 @@ blockToTexinfo (CodeBlock _ str) = do
            flush (text str) $$
            text "@end verbatim" <> blankline
 
-blockToTexinfo (RawBlock "texinfo" str) = return $ text str
-blockToTexinfo (RawBlock "latex" str) =
-  return $ text "@tex" $$ text str $$ text "@end tex"
-blockToTexinfo (RawBlock _ _) = return empty
+blockToTexinfo (RawBlock rawmap) =
+  return $ maybe rawlatex text $ M.lookup "texinfo" rawmap
+    where rawlatex = maybe empty
+                (\s -> text "@tex" $$ text s $$ text "@end tex")
+                $ M.lookup "latex" rawmap
 
 blockToTexinfo (BulletList lst) = do
   items <- mapM listItemToTexinfo lst
@@ -413,10 +415,11 @@ inlineToTexinfo (Cite _ lst) =
   inlineListToTexinfo lst
 inlineToTexinfo (Str str) = return $ text (stringToTexinfo str)
 inlineToTexinfo (Math _ str) = return $ inCmd "math" $ text str
-inlineToTexinfo (RawInline f str) | f == "latex" || f == "tex" =
-  return $ text "@tex" $$ text str $$ text "@end tex"
-inlineToTexinfo (RawInline "texinfo" str) = return $ text str
-inlineToTexinfo (RawInline _ _) = return empty
+inlineToTexinfo (RawInline rawmap) =
+  return $ maybe rawlatex text $ M.lookup "texinfo" rawmap
+   where rawlatex = maybe empty
+            (\s -> text "@tex" $$ text s $$ text "@end tex")
+            (M.lookup "latex" rawmap)
 inlineToTexinfo (LineBreak) = return $ text "@*"
 inlineToTexinfo Space = return $ char ' '
 

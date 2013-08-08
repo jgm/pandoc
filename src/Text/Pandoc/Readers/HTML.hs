@@ -44,6 +44,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Data.Maybe ( fromMaybe, isJust )
+import qualified Data.Map as M
 import Data.List ( intercalate )
 import Data.Char ( isDigit )
 import Control.Monad ( liftM, guard, when, mzero )
@@ -182,7 +183,7 @@ pRawHtmlBlock = do
   raw <- pHtmlBlock "script" <|> pHtmlBlock "style" <|> pRawTag
   parseRaw <- getOption readerParseRaw
   if parseRaw && not (null raw)
-     then return [RawBlock "html" raw]
+     then return [RawBlock $ M.fromList [("html", raw)]]
      else return []
 
 pHtmlBlock :: String -> TagParser String
@@ -408,7 +409,7 @@ pRawHtmlInline = do
   result <- pSatisfy (tagComment (const True)) <|> pSatisfy isInlineTag
   parseRaw <- getOption readerParseRaw
   if parseRaw
-     then return [RawInline "html" $ renderTags' [result]]
+     then return [RawInline $ M.fromList [("html", renderTags' [result])]]
      else return []
 
 pInlinesInTags :: String -> ([Inline] -> Inline)

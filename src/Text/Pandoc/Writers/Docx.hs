@@ -458,9 +458,9 @@ blockToOpenXML opts (Para lst) = do
                                      _                    -> False
     contents <- inlinesToOpenXML opts lst
     return [mknode "w:p" [] (paraProps ++ contents)]
-blockToOpenXML _ (RawBlock format str)
-  | format == "openxml" = return [ x | Elem x <- parseXML str ]
-  | otherwise           = return []
+blockToOpenXML _ (RawBlock rawmap) =
+  maybe (return []) (\str -> return [x | Elem x <- parseXML str])
+  $ M.lookup "openxml" rawmap
 blockToOpenXML opts (BlockQuote blocks) =
   withParaProp (pStyle "BlockQuote") $ blocksToOpenXML opts blocks
 blockToOpenXML opts (CodeBlock attrs str) =
@@ -650,9 +650,9 @@ inlineToOpenXML opts (Strikeout lst) =
   withTextProp (mknode "w:strike" [] ())
   $ inlinesToOpenXML opts lst
 inlineToOpenXML _ LineBreak = return [br]
-inlineToOpenXML _ (RawInline f str)
-  | f == "openxml" = return [ x | Elem x <- parseXML str ]
-  | otherwise      = return []
+inlineToOpenXML _ (RawInline rawmap) =
+  maybe (return []) (\str -> return [x | Elem x <- parseXML str])
+  $ M.lookup "openxml" rawmap
 inlineToOpenXML opts (Quoted quoteType lst) =
   inlinesToOpenXML opts $ [Str open] ++ lst ++ [Str close]
     where (open, close) = case quoteType of
@@ -686,7 +686,7 @@ inlineToOpenXML opts (Note bs) = do
   let notemarker = mknode "w:r" []
                    [ mknode "w:rPr" [] (rStyle "FootnoteRef")
                    , mknode "w:footnoteRef" [] () ]
-  let notemarkerXml = RawInline "openxml" $ ppElement notemarker
+  let notemarkerXml = RawInline (M.fromList [("openxml", ppElement notemarker)])
   let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : ils) : xs
       insertNoteRef (Para ils  : xs) = Para  (notemarkerXml : ils) : xs
       insertNoteRef xs               = Para [notemarkerXml] : xs

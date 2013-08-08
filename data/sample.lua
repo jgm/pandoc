@@ -177,6 +177,10 @@ function Note(s)
             '"><sup>' .. num .. '</sup></a>'
 end
 
+function RawInline(rawmap)
+  return rawmap['html'] or ""
+end
+
 function Plain(s)
   return s
 end
@@ -297,6 +301,10 @@ function Table(caption, aligns, widths, headers, rows)
   end
   add('</table')
   return table.concat(buffer,'\n')
+end
+
+function RawBlock(rawmap)
+  return rawmap['html'] or ""
 end
 
 -- The following code will produce runtime warnings when you haven't defined

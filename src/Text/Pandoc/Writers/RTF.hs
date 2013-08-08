@@ -37,6 +37,7 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Generic (bottomUpM)
 import Data.List ( isSuffixOf, intercalate )
 import Data.Char ( ord, chr, isDigit, toLower )
+import qualified Data.Map as M
 import System.FilePath ( takeExtension )
 import qualified Data.ByteString as B
 import Text.Printf ( printf )
@@ -62,7 +63,7 @@ rtfEmbedImage x@(Image _ (src,_)) = do
        let raw = "{\\pict" ++ filetype ++ " " ++ concat bytes ++ "}"
        return $ if B.null imgdata
                    then x
-                   else RawInline "rtf" raw
+                   else RawInline $ M.singleton "rtf" raw
      else return x
 rtfEmbedImage x = return x
 
@@ -216,8 +217,7 @@ blockToRTF indent alignment (BlockQuote lst) =
   concatMap (blockToRTF (indent + indentIncrement) alignment) lst
 blockToRTF indent _ (CodeBlock _ str) =
   rtfPar indent 0 AlignLeft ("\\f1 " ++ (codeStringToRTF str))
-blockToRTF _ _ (RawBlock "rtf" str) = str
-blockToRTF _ _ (RawBlock _ _) = ""
+blockToRTF _ _ (RawBlock rawmap) = maybe "" id $ M.lookup "rtf" rawmap
 blockToRTF indent alignment (BulletList lst) = spaceAtEnd $
   concatMap (listItemToRTF alignment indent (bulletMarker indent)) lst
 blockToRTF indent alignment (OrderedList attribs lst) = spaceAtEnd $ concat $
@@ -322,8 +322,7 @@ inlineToRTF (Code _ str) = "{\\f1 " ++ (codeStringToRTF str) ++ "}"
 inlineToRTF (Str str) = stringToRTF str
 inlineToRTF (Math _ str) = inlineListToRTF $ readTeXMath str
 inlineToRTF (Cite _ lst) = inlineListToRTF lst
-inlineToRTF (RawInline "rtf" str) = str
-inlineToRTF (RawInline _ _) = ""
+inlineToRTF (RawInline rawmap) = maybe "" id $ M.lookup "rtf" rawmap
 inlineToRTF (LineBreak) = "\\line "
 inlineToRTF Space = " "
 inlineToRTF (Link text (src, _)) =

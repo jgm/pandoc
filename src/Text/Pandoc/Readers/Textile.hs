@@ -59,6 +59,7 @@ import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag, isBlockTag )
 import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
 import Text.HTML.TagSoup.Match
 import Data.List ( intercalate )
+import qualified Data.Map as M
 import Data.Char ( digitToInt, isUpper )
 import Control.Monad ( guard, liftM )
 import Control.Applicative ((<$>), (*>), (<*))
@@ -288,7 +289,7 @@ rawHtmlBlock :: Parser [Char] ParserState Block
 rawHtmlBlock = try $ do
   (_,b) <- htmlTag isBlockTag
   optional blanklines
-  return $ RawBlock "html" b
+  return $ RawBlock $ M.fromList [("html", b)]
 
 -- | In textile, paragraphs are separated by blank lines.
 para :: Parser [Char] ParserState Block
@@ -477,7 +478,8 @@ endline = try $ do
   return LineBreak
 
 rawHtmlInline :: Parser [Char] ParserState Inline
-rawHtmlInline = RawInline "html" . snd <$> htmlTag isInlineTag
+rawHtmlInline =
+  (\(_,x) -> RawInline $ M.fromList [("html", x)]) <$> htmlTag isInlineTag
 
 -- | Textile standard link syntax is "label":target. But we
 -- can also have ["label":target].

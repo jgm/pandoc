@@ -44,6 +44,7 @@ import Control.Applicative ((<|>))
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import System.FilePath (dropExtension)
+import qualified Data.Map as M
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock,
@@ -235,9 +236,9 @@ elementToBeamer _slideLevel (Blk b) = return [b]
 elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
   | lvl >  slideLevel = do
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
-      return $ Para ( RawInline "latex" "\\begin{block}{"
-                    : tit ++ [RawInline "latex" "}"] )
-             : bs ++ [RawBlock "latex" "\\end{block}"]
+      return $ Para ( RawInline (M.singleton "latex" "\\begin{block}{")
+                    : tit ++ [RawInline $ M.singleton "latex" "}"] )
+             : bs ++ [RawBlock $ M.singleton "latex" "\\end{block}"]
   | lvl <  slideLevel = do
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
       return $ (Header lvl (ident,classes,kvs) tit) : bs
@@ -258,11 +259,11 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
       let options = if null optionslist
                        then ""
                        else "[" ++ intercalate "," optionslist ++ "]"
-      let slideStart = Para $ RawInline "latex" ("\\begin{frame}" ++ options) :
+      let slideStart = Para $ RawInline (M.singleton "latex" ("\\begin{frame}" ++ options)) :
                 if tit == [Str "\0"]  -- marker for hrule
                    then []
-                   else (RawInline "latex" "{") : tit ++ [RawInline "latex" "}"]
-      let slideEnd = RawBlock "latex" "\\end{frame}"
+                   else (RawInline $ M.singleton "latex" "{") : tit ++ [RawInline $ M.singleton "latex" "}"]
+      let slideEnd = RawBlock $ M.singleton "latex" "\\end{frame}"
       -- now carve up slide into blocks if there are sections inside
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
       return $ slideStart : bs ++ [slideEnd]
@@ -296,7 +297,7 @@ blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- writerBeamer `fmap` gets stOptions
   if beamer
-     then blockToLaTeX (RawBlock "latex" "\\pause")
+     then blockToLaTeX (RawBlock $ M.singleton "latex" "\\pause")
      else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
 blockToLaTeX (Para lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
@@ -355,8 +356,8 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
                   Nothing -> rawCodeBlock
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                              return (flush $ text h)
-blockToLaTeX (RawBlock "latex" x) = return $ text x
-blockToLaTeX (RawBlock _ _) = return empty
+blockToLaTeX (RawBlock rawmap) =
+  return $ maybe empty text $ M.lookup "latex" rawmap
 blockToLaTeX (BulletList []) = return empty  -- otherwise latex error
 blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
@@ -551,7 +552,7 @@ inlineListToLaTeX lst =
        fixLineInitialSpaces (x:xs) = x : fixLineInitialSpaces xs
        fixNbsps s = let (ys,zs) = span (=='\160') s
                     in  replicate (length ys) hspace ++ [Str zs]
-       hspace = RawInline "latex" "\\hspace*{0.333em}"
+       hspace = RawInline $ M.singleton "latex" "\\hspace*{0.333em}"
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
@@ -628,9 +629,8 @@ inlineToLaTeX (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
 inlineToLaTeX (Math DisplayMath str) =
   return $ "\\[" <> text str <> "\\]"
-inlineToLaTeX (RawInline "latex" str) = return $ text str
-inlineToLaTeX (RawInline "tex" str) = return $ text str
-inlineToLaTeX (RawInline _ _) = return empty
+inlineToLaTeX (RawInline rawmap) =
+  return $ maybe empty text $ M.lookup "latex" rawmap
 inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt ('#':ident, _)) = do

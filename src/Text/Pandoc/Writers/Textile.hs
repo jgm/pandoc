@@ -39,6 +39,8 @@ import Text.Pandoc.XML ( escapeStringForXML )
 import Data.List ( intercalate )
 import Control.Monad.State
 import Data.Char ( isSpace )
+import qualified Data.Map as M
+import Control.Applicative ((<|>))
 
 data WriterState = WriterState {
     stNotes     :: [String]        -- Footnotes
@@ -118,10 +120,8 @@ blockToTextile opts (Para inlines) = do
               then "<p>" ++ contents ++ "</p>"
               else contents ++ if null listLevel then "\n" else ""
 
-blockToTextile _ (RawBlock f str) =
-  if f == "html" || f == "textile"
-     then return str
-     else return ""
+blockToTextile _ (RawBlock rawmap) =
+  return $ maybe "" id $ M.lookup "textile" rawmap <|> M.lookup "html" rawmap
 
 blockToTextile _ HorizontalRule = return "<hr />\n"
 
@@ -395,10 +395,8 @@ inlineToTextile _ (Str str) = return $ escapeStringForTextile str
 inlineToTextile _ (Math _ str) =
   return $ "<span class=\"math\">" ++ escapeStringForXML str ++ "</math>"
 
-inlineToTextile _ (RawInline f str) =
-  if f == "html" || f == "textile"
-     then return str
-     else return ""
+inlineToTextile _ (RawInline rawmap) =
+  return $ maybe "" id $ M.lookup "textile" rawmap <|> M.lookup "html" rawmap
 
 inlineToTextile _ (LineBreak) = return "\n"
 

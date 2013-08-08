@@ -132,7 +132,8 @@ blockToAsciiDoc opts (Para inlines) = do
                then text "\\"
                else empty
   return $ esc <> contents <> blankline
-blockToAsciiDoc _ (RawBlock _ _) = return empty
+blockToAsciiDoc _ (RawBlock rawmap) =
+  return $ maybe empty text $ M.lookup "asciidoc" rawmap
 blockToAsciiDoc _ HorizontalRule =
   return $ blankline <> text "'''''" <> blankline
 blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
@@ -346,7 +347,8 @@ inlineToAsciiDoc _ (Math InlineMath str) =
   return $ "latexmath:[$" <> text str <> "$]"
 inlineToAsciiDoc _ (Math DisplayMath str) =
   return $ "latexmath:[\\[" <> text str <> "\\]]"
-inlineToAsciiDoc _ (RawInline _ _) = return empty
+inlineToAsciiDoc _ (RawInline rawmap) =
+  return $ maybe empty text $ M.lookup "asciidoc" rawmap
 inlineToAsciiDoc _ (LineBreak) = return $ " +" <> cr
 inlineToAsciiDoc _ Space = return space
 inlineToAsciiDoc opts (Cite _ lst) = inlineListToAsciiDoc opts lst
