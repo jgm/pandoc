@@ -35,7 +35,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
-import Data.Monoid ((<>))
+import Text.Pandoc.Compat.Monoid ((<>))
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Text.Pandoc.Definition

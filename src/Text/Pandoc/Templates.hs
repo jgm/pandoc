@@ -102,7 +102,7 @@ import Control.Applicative
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
-import Data.Monoid ((<>), Monoid(..))
+import Text.Pandoc.Compat.Monoid ((<>), Monoid(..))
 import Data.List (intersperse, nub)
 import System.FilePath ((</>), (<.>))
 import qualified Data.Map as M

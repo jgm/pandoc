@@ -335,6 +335,7 @@ Library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Slides,
                    Text.Pandoc.Highlighting,
+                   Text.Pandoc.Compat.Monoid,
                    Paths_pandoc
 
   Buildable:       True
