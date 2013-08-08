@@ -37,13 +37,13 @@ import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, safeRead,
                             headerShift, normalize, err, warn )
 import Text.Pandoc.XML ( toEntities, fromEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
+import Text.Pandoc.Process (pipeProcess)
 import Text.Highlighting.Kate ( languages, Style, tango, pygments,
          espresso, zenburn, kate, haddock, monochrome )
 import System.Environment ( getArgs, getProgName )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
-import System.Process (readProcess)
 import Data.Char ( toLower )
 import Data.List ( intercalate, isPrefixOf, sort )
 import System.Directory ( getAppUserDataDirectory, doesFileExist, findExecutable )
@@ -59,6 +59,7 @@ import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import Text.CSL.Reference (Reference(..))
+import Data.Aeson (eitherDecode', encode)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2013 John MacFarlane\n" ++
@@ -88,9 +89,13 @@ wrapWords indent c = wrap' (c - indent) (c - indent)
 isTextFormat :: String -> Bool
 isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub","epub3"]
 
-externalFilter :: FilePath -> Pandoc -> IO Pandoc
-externalFilter f d = E.catch
-  (readJSON def `fmap` readProcess f [] (writeJSON def d))
+externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
+externalFilter f args' d = E.catch
+  (do (exitcode, outbs, errbs) <- pipeProcess Nothing f args' $ encode d
+      case exitcode of
+           ExitSuccess    -> return $ either error id $ eitherDecode' outbs
+           ExitFailure _  -> err 83 $ "Error running filter `" ++ UTF8.toStringLazy outbs ++
+                                          UTF8.toStringLazy errbs ++  "'")
   (\e -> let _ = (e :: E.SomeException)
          in err 83 $ "Error running filter `" ++ f ++ "'")
 
@@ -132,7 +137,7 @@ data Opt = Opt
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
     , optColumns           :: Int     -- ^ Line length in characters
-    , optPlugins           :: [Pandoc -> IO Pandoc] -- ^ Plugins to apply
+    , optPlugins           :: [[String] -> Pandoc -> IO Pandoc] -- ^ Plugins to apply
     , optEmailObfuscation  :: ObfuscationMethod
     , optIdentifierPrefix  :: String
     , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
@@ -1115,7 +1120,7 @@ main = do
            reader readerOpts
 
   let doc0 = foldr ($) doc transforms
-  doc1 <- foldrM ($) doc0 plugins
+  doc1 <- foldrM ($) doc0 $ map ($ [writerName']) plugins
 
   let writeBinary :: B.ByteString -> IO ()
       writeBinary = B.writeFile (UTF8.encodePath outputFile)

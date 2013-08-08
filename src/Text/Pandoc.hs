@@ -309,11 +309,8 @@ class ToJSONFilter a => ToJsonFilter a
         toJsonFilter = toJSONFilter
 
 readJSON :: ReaderOptions -> String -> Pandoc
-readJSON _ = checkJSON . eitherDecode' . UTF8.fromStringLazy
+readJSON _ = either error id . eitherDecode' . UTF8.fromStringLazy
 
 writeJSON :: WriterOptions -> Pandoc -> String
 writeJSON _ = UTF8.toStringLazy . encode
 
-checkJSON :: Either String a -> a
-checkJSON (Right x) = x
-checkJSON (Left e)  = error e
