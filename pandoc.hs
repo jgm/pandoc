@@ -43,6 +43,7 @@ import System.Environment ( getArgs, getProgName )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
+import System.Process (readProcess)
 import Data.Char ( toLower )
 import Data.List ( intercalate, isPrefixOf, sort )
 import System.Directory ( getAppUserDataDirectory, doesFileExist, findExecutable )
@@ -53,6 +54,7 @@ import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.CSL as CSL
 import Control.Monad (when, unless, liftM)
+import Data.Foldable (foldrM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
@@ -85,6 +87,12 @@ wrapWords indent c = wrap' (c - indent) (c - indent)
 
 isTextFormat :: String -> Bool
 isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub","epub3"]
+
+externalFilter :: FilePath -> Pandoc -> IO Pandoc
+externalFilter f d = E.catch
+  (readJSON def `fmap` readProcess f [] (writeJSON def d))
+  (\e -> let _ = (e :: E.SomeException)
+         in err 83 $ "Error running filter `" ++ f ++ "'")
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -271,6 +279,13 @@ options =
                                              map (\c -> if c == ',' then ' ' else c) arg })
                    "STRING")
                   "" -- "Classes (whitespace- or comma-separated) to use for indented code-blocks"
+
+    , Option "" ["filter"]
+                 (ReqArg
+                  (\arg opt -> return opt { optPlugins = externalFilter arg :
+                                               optPlugins opt })
+                  "PROGRAM")
+                 "" -- "External JSON filter"
 
     , Option "" ["normalize"]
                  (NoArg
@@ -876,6 +891,7 @@ main = do
               , optReferenceLinks        = referenceLinks
               , optWrapText              = wrap
               , optColumns               = columns
+              , optPlugins               = plugins
               , optEmailObfuscation      = obfuscationMethod
               , optIdentifierPrefix      = idPrefix
               , optIndentedCodeClasses   = codeBlockClasses
@@ -1099,6 +1115,7 @@ main = do
            reader readerOpts
 
   let doc0 = foldr ($) doc transforms
+  doc1 <- foldrM ($) doc0 plugins
 
   let writeBinary :: B.ByteString -> IO ()
       writeBinary = B.writeFile (UTF8.encodePath outputFile)
@@ -1109,15 +1126,15 @@ main = do
 
   case getWriter writerName' of
     Left e -> err 9 e
-    Right (IOStringWriter f) -> f writerOptions doc0 >>= writerFn outputFile
-    Right (IOByteStringWriter f) -> f writerOptions doc0 >>= writeBinary
+    Right (IOStringWriter f) -> f writerOptions doc1 >>= writerFn outputFile
+    Right (IOByteStringWriter f) -> f writerOptions doc1 >>= writeBinary
     Right (PureStringWriter f)
       | pdfOutput -> do
-              res <- makePDF latexEngine f writerOptions doc0
+              res <- makePDF latexEngine f writerOptions doc1
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ UTF8.toStringLazy err'
-      | otherwise -> selfcontain (f writerOptions doc0 ++
+      | otherwise -> selfcontain (f writerOptions doc1 ++
                                   ['\n' | not standalone'])
                       >>= writerFn outputFile . handleEntities
           where htmlFormat = writerName' `elem`
