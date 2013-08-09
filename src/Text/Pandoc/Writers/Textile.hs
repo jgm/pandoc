@@ -101,6 +101,9 @@ blockToTextile :: WriterOptions -- ^ Options
 
 blockToTextile _ Null = return ""
 
+blockToTextile opts (Div _ bs) =
+  blockListToTextile opts bs
+
 blockToTextile opts (Plain inlines) =
   inlineListToTextile opts inlines
 
@@ -342,6 +345,9 @@ inlineListToTextile opts lst =
 
 -- | Convert Pandoc inline element to Textile.
 inlineToTextile :: WriterOptions -> Inline -> State WriterState String
+
+inlineToTextile opts (Span _ lst) =
+  inlineListToTextile opts lst
 
 inlineToTextile opts (Emph lst) = do
   contents <- inlineListToTextile opts lst

@@ -160,6 +160,7 @@ blockToMan :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc
 blockToMan _ Null = return empty
+blockToMan opts (Div _ bs) = blockListToMan opts bs
 blockToMan opts (Plain inlines) =
   liftM vcat $ mapM (inlineListToMan opts) $ splitSentences inlines
 blockToMan opts (Para inlines) = do
@@ -300,6 +301,7 @@ inlineListToMan opts lst = mapM (inlineToMan opts) lst >>= (return . hcat)
 
 -- | Convert Pandoc inline element to man.
 inlineToMan :: WriterOptions -> Inline -> State WriterState Doc
+inlineToMan opts (Span _ ils) = inlineListToMan opts ils
 inlineToMan opts (Emph lst) = do
   contents <- inlineListToMan opts lst
   return $ text "\\f[I]" <> contents <> text "\\f[]"

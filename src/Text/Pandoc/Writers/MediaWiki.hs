@@ -83,6 +83,9 @@ blockToMediaWiki :: WriterOptions -- ^ Options
 
 blockToMediaWiki _ Null = return ""
 
+blockToMediaWiki opts (Div _ bs) =
+  blockListToMediaWiki opts bs
+
 blockToMediaWiki opts (Plain inlines) =
   inlineListToMediaWiki opts inlines
 
@@ -327,6 +330,9 @@ inlineListToMediaWiki opts lst =
 
 -- | Convert Pandoc inline element to MediaWiki.
 inlineToMediaWiki :: WriterOptions -> Inline -> State WriterState String
+
+inlineToMediaWiki opts (Span _ ils) =
+  inlineListToMediaWiki opts ils
 
 inlineToMediaWiki opts (Emph lst) = do
   contents <- inlineListToMediaWiki opts lst

@@ -106,6 +106,7 @@ escapeString = escapeStringUsing $
 blockToOrg :: Block         -- ^ Block element
            -> State WriterState Doc
 blockToOrg Null = return empty
+blockToOrg (Div _ bs) = blockListToOrg bs
 blockToOrg (Plain inlines) = inlineListToOrg inlines
 -- title beginning with fig: indicates that the image is a figure
 blockToOrg (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
@@ -229,6 +230,8 @@ inlineListToOrg lst = mapM inlineToOrg lst >>= return . hcat
 
 -- | Convert Pandoc inline element to Org.
 inlineToOrg :: Inline -> State WriterState Doc
+inlineToOrg (Span _ lst) =
+  inlineListToOrg lst
 inlineToOrg (Emph lst) = do
   contents <- inlineListToOrg lst
   return $ "/" <> contents <> "/"

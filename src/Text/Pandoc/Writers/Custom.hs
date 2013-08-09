@@ -178,6 +178,9 @@ blockToCustom lua (OrderedList (num,sty,delim) items) =
 blockToCustom lua (DefinitionList items) =
   callfunc lua "DefinitionList" items
 
+blockToCustom lua (Div attr items) =
+  callfunc lua "Div" items (attrToMap attr)
+
 -- | Convert list of Pandoc block elements to Custom.
 blockListToCustom :: LuaState -- ^ Options
                   -> [Block]       -- ^ List of block elements
@@ -240,3 +243,5 @@ inlineToCustom lua (Image alt (src,tit)) =
 
 inlineToCustom lua (Note contents) = callfunc lua "Note" contents
 
+inlineToCustom lua (Span attr items) =
+  callfunc lua "Span" items (attrToMap attr)

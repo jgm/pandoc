@@ -123,6 +123,8 @@ blockToTexinfo :: Block     -- ^ Block to convert
 
 blockToTexinfo Null = return empty
 
+blockToTexinfo (Div _ bs) = blockListToTexinfo bs
+
 blockToTexinfo (Plain lst) =
   inlineListToTexinfo lst
 
@@ -373,6 +375,9 @@ disallowedInNode c = c `elem` ".,:()"
 -- | Convert inline element to Texinfo
 inlineToTexinfo :: Inline    -- ^ Inline to convert
                 -> State WriterState Doc
+
+inlineToTexinfo (Span _ lst) =
+  inlineListToTexinfo lst
 
 inlineToTexinfo (Emph lst) =
   inlineListToTexinfo lst >>= return . inCmd "emph"

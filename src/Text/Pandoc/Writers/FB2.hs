@@ -324,6 +324,7 @@ blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code") . lines $ s
 blockToXml (RawBlock _ s) = return . spaceBeforeAfter .
                             map (el "p" . el "code") . lines $ s
+blockToXml (Div _ bs) = cMapM blockToXml bs
 blockToXml (BlockQuote bs) = liftM (list . el "cite") $ cMapM blockToXml bs
 blockToXml (OrderedList a bss) = do
     state <- get
@@ -425,6 +426,7 @@ indent = indentBlock
 -- | Convert a Pandoc's Inline element to FictionBook XML representation.
 toXml :: Inline -> FBM [Content]
 toXml (Str s) = return [txt s]
+toXml (Span _ ils) = cMapM toXml ils
 toXml (Emph ss) = list `liftM` wrap "emphasis" ss
 toXml (Strong ss) = list `liftM` wrap "strong" ss
 toXml (Strikeout ss) = list `liftM` wrap "strikethrough" ss
@@ -560,6 +562,7 @@ list = (:[])
 plain :: Inline -> String
 plain (Str s) = s
 plain (Emph ss) = concat (map plain ss)
+plain (Span _ ss) = concat (map plain ss)
 plain (Strong ss) = concat (map plain ss)
 plain (Strikeout ss) = concat (map plain ss)
 plain (Superscript ss) = concat (map plain ss)

@@ -148,6 +148,7 @@ listItemToDocbook opts item =
 -- | Convert a Pandoc block element to Docbook.
 blockToDocbook :: WriterOptions -> Block -> Doc
 blockToDocbook _ Null = empty
+blockToDocbook opts (Div _ bs) = blocksToDocbook opts bs
 blockToDocbook _ (Header _ _ _) = empty -- should not occur after hierarchicalize
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst
 -- title beginning with fig: indicates that the image is a figure
@@ -267,6 +268,8 @@ inlineToDocbook opts (Quoted _ lst) =
   inTagsSimple "quote" $ inlinesToDocbook opts lst
 inlineToDocbook opts (Cite _ lst) =
   inlinesToDocbook opts lst
+inlineToDocbook opts (Span _ ils) =
+  inlinesToDocbook opts ils
 inlineToDocbook _ (Code _ str) =
   inTagsSimple "literal" $ text (escapeStringForXML str)
 inlineToDocbook opts (Math t str)

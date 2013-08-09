@@ -285,6 +285,7 @@ blockToOpenDocument :: WriterOptions -> Block -> State WriterState Doc
 blockToOpenDocument o bs
     | Plain          b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
     | Para           b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
+    | Div _ xs         <- bs = blocksToOpenDocument o xs
     | Header     i _ b <- bs = setFirstPara >>
                                (inHeaderTags  i =<< inlinesToOpenDocument o b)
     | BlockQuote     b <- bs = setFirstPara >> mkBlockQuote b
@@ -360,6 +361,7 @@ inlinesToOpenDocument o l = hcat <$> mapM (inlineToOpenDocument o) l
 inlineToOpenDocument :: WriterOptions -> Inline -> State WriterState Doc
 inlineToOpenDocument o ils
     | Space         <- ils = inTextStyle space
+    | Span _ xs     <- ils = inlinesToOpenDocument o xs
     | LineBreak     <- ils = return $ selfClosingTag "text:line-break" []
     | Str         s <- ils = inTextStyle $ handleSpaces $ escapeStringForXML s
     | Emph        l <- ils = withTextStyle Italic $ inlinesToOpenDocument o l

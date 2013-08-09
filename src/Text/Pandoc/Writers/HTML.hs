@@ -407,6 +407,9 @@ blockToHtml opts (Para [Str ".",Space,Str ".",Space,Str "."])
 blockToHtml opts (Para lst) = do
   contents <- inlineListToHtml opts lst
   return $ H.p contents
+blockToHtml opts (Div attr bs) = do
+  contents <- blockListToHtml opts bs
+  return $ addAttrs opts attr $ H.div $ nl opts >> contents >> nl opts
 blockToHtml _ (RawBlock "html" str) = return $ preEscapedString str
 blockToHtml _ (RawBlock _ _) = return mempty
 blockToHtml opts (HorizontalRule) = return $ if writerHtml5 opts then H5.hr else H.hr
@@ -590,6 +593,8 @@ inlineToHtml opts inline =
     (Str str)        -> return $ strToHtml str
     (Space)          -> return $ strToHtml " "
     (LineBreak)      -> return $ if writerHtml5 opts then H5.br else H.br
+    (Span attr ils)  -> inlineListToHtml opts ils >>=
+                           return . addAttrs opts attr . H.span
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
     (Code attr str)  -> case hlCode of

@@ -301,6 +301,7 @@ blockToMarkdown :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc
 blockToMarkdown _ Null = return empty
+blockToMarkdown opts (Div _ bs) = blockListToMarkdown opts bs
 blockToMarkdown opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
   return $ contents <> cr
@@ -628,6 +629,8 @@ escapeSpaces x = x
 
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
+inlineToMarkdown opts (Span _ ils) =
+  inlineListToMarkdown opts ils
 inlineToMarkdown opts (Emph lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "*" <> contents <> "*"

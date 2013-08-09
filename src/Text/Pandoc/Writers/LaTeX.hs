@@ -282,6 +282,7 @@ isLineBreakOrSpace _ = False
 blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
 blockToLaTeX Null = return empty
+blockToLaTeX (Div _ bs) = blockListToLaTeX bs
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
@@ -560,6 +561,7 @@ isQuoted _ = False
 -- | Convert inline element to LaTeX
 inlineToLaTeX :: Inline    -- ^ Inline to convert
               -> State WriterState Doc
+inlineToLaTeX (Span _ ils) = inlineListToLaTeX ils >>= return . braces
 inlineToLaTeX (Emph lst) =
   inlineListToLaTeX lst >>= return . inCmd "emph"
 inlineToLaTeX (Strong lst) =

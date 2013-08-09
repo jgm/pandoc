@@ -246,6 +246,7 @@ blockToAsciiDoc opts (OrderedList (_start, sty, _delim) items) = do
 blockToAsciiDoc opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToAsciiDoc opts) items
   return $ cat contents <> blankline
+blockToAsciiDoc opts (Div _ bs) = blockListToAsciiDoc opts bs
 
 -- | Convert bullet list item (list of blocks) to asciidoc.
 bulletListItemToAsciiDoc :: WriterOptions -> [Block] -> State WriterState Doc
@@ -383,3 +384,4 @@ inlineToAsciiDoc opts (Note [Plain inlines]) = do
   return $ text "footnote:[" <> contents <> "]"
 -- asciidoc can't handle blank lines in notes
 inlineToAsciiDoc _ (Note _) = return "[multiblock footnote omitted]"
+inlineToAsciiDoc opts (Span _ ils) = inlineListToAsciiDoc opts ils

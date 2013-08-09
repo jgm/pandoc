@@ -143,6 +143,7 @@ blockToConTeXt (CodeBlock _ str) =
   -- blankline because \stoptyping can't have anything after it, inc. '}'
 blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
 blockToConTeXt (RawBlock _ _ ) = return empty
+blockToConTeXt (Div _ bs) = blockListToConTeXt bs
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ ("\\startitemize" <> if isTightList lst
@@ -330,6 +331,7 @@ inlineToConTeXt (Note contents) = do
               then text "\\footnote{" <> nest 2 contents' <> char '}'
               else text "\\startbuffer " <> nest 2 contents' <>
                    text "\\stopbuffer\\footnote{\\getbuffer}"
+inlineToConTeXt (Span _ ils) = inlineListToConTeXt ils
 
 -- | Craft the section header, inserting the secton reference, if supplied.
 sectionHeader :: Attr

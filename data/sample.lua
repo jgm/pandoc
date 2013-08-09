@@ -177,6 +177,10 @@ function Note(s)
             '"><sup>' .. num .. '</sup></a>'
 end
 
+function Span(s, attr)
+  return "<span" .. attributes(attr) .. ">" .. s .. "</span>"
+end
+
 function Plain(s)
   return s
 end
@@ -297,6 +301,10 @@ function Table(caption, aligns, widths, headers, rows)
   end
   add('</table')
   return table.concat(buffer,'\n')
+end
+
+function Div(s, attr)
+  return "<div" .. attributes(attr) .. ">\n" .. s .. "</div>"
 end
 
 -- The following code will produce runtime warnings when you haven't defined

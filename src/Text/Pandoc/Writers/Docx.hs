@@ -428,6 +428,7 @@ getUniqueId = liftIO $ (show . (+ 20) . hashUnique) `fmap` newUnique
 -- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: WriterOptions -> Block -> WS [Element]
 blockToOpenXML _ Null = return []
+blockToOpenXML opts (Div _ bs) = blocksToOpenXML opts bs
 blockToOpenXML opts (Header lev (ident,_,_) lst) = do
   contents <- withParaProp (pStyle $ "Heading" ++ show lev) $
                blockToOpenXML opts (Para lst)
@@ -633,6 +634,7 @@ formattedString str = do
 inlineToOpenXML :: WriterOptions -> Inline -> WS [Element]
 inlineToOpenXML _ (Str str) = formattedString str
 inlineToOpenXML opts Space = inlineToOpenXML opts (Str " ")
+inlineToOpenXML opts (Span _ ils) = inlinesToOpenXML opts ils
 inlineToOpenXML opts (Strong lst) =
   withTextProp (mknode "w:b" [] ()) $ inlinesToOpenXML opts lst
 inlineToOpenXML opts (Emph lst) =

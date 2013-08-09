@@ -161,6 +161,7 @@ bordered contents c =
 blockToRST :: Block         -- ^ Block element
            -> State WriterState Doc
 blockToRST Null = return empty
+blockToRST (Div _ bs) = blockListToRST bs
 blockToRST (Plain inlines) = inlineListToRST inlines
 -- title beginning with fig: indicates that the image is a figure
 blockToRST (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
@@ -338,6 +339,7 @@ inlineListToRST lst = mapM inlineToRST (insertBS lst) >>= return . hcat
 
 -- | Convert Pandoc inline element to RST.
 inlineToRST :: Inline -> State WriterState Doc
+inlineToRST (Span _ ils) = inlineListToRST ils
 inlineToRST (Emph lst) = do
   contents <- inlineListToRST lst
   return $ "*" <> contents <> "*"

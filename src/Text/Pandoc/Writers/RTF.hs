@@ -208,6 +208,8 @@ blockToRTF :: Int       -- ^ indent level
            -> Block     -- ^ block to convert
            -> String
 blockToRTF _ _ Null = ""
+blockToRTF indent alignment (Div _ bs) =
+  concatMap (blockToRTF indent alignment) bs
 blockToRTF indent alignment (Plain lst) =
   rtfCompact indent 0 alignment $ inlineListToRTF lst
 blockToRTF indent alignment (Para lst) =
@@ -308,6 +310,7 @@ inlineListToRTF lst = concatMap inlineToRTF lst
 -- | Convert inline item to RTF.
 inlineToRTF :: Inline         -- ^ inline to convert
             -> String
+inlineToRTF (Span _ lst) = inlineListToRTF lst
 inlineToRTF (Emph lst) = "{\\i " ++ (inlineListToRTF lst) ++ "}"
 inlineToRTF (Strong lst) = "{\\b " ++ (inlineListToRTF lst) ++ "}"
 inlineToRTF (Strikeout lst) = "{\\strike " ++ (inlineListToRTF lst) ++ "}"
