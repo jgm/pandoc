@@ -109,8 +109,14 @@ tex2pdf' tmpDir program source = do
   (exit, log', mbPdf) <- runTeXProgram program numruns tmpDir source
   let msg = "Error producing PDF from TeX source."
   case (exit, mbPdf) of
-       (ExitFailure _, _)      -> return $ Left $
-                                     msg <> "\n" <> extractMsg log'
+       (ExitFailure _, _)      -> do
+          let logmsg = extractMsg log'
+          let extramsg =
+                case logmsg of
+                     x | "! Package inputenc Error" `BC.isPrefixOf` x ->
+                           "\nTry running pandoc with --latex-engine=xelatex."
+                     _ -> ""
+          return $ Left $ msg <> "\n" <> extractMsg log' <> extramsg
        (ExitSuccess, Nothing)  -> return $ Left msg
        (ExitSuccess, Just pdf) -> return $ Right pdf
 
