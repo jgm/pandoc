@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -199,10 +200,10 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
   in  inTags True "orderedlist" attribs items
 blockToDocbook opts (DefinitionList lst) =
   inTagsIndented "variablelist" $ deflistItemsToDocbook opts lst
-blockToDocbook _ (RawBlock "docbook" str) = text str -- raw XML block
--- we allow html for compatibility with earlier versions of pandoc
-blockToDocbook _ (RawBlock "html" str) = text str -- raw XML block
-blockToDocbook _ (RawBlock _ _) = empty
+blockToDocbook _ (RawBlock f str)
+  | f == "docbook" = text str -- raw XML block
+  | f == "html"    = text str -- allow html for backwards compatibility
+  | otherwise      = empty
 blockToDocbook _ HorizontalRule = empty -- not semantic
 blockToDocbook opts (Table caption aligns widths headers rows) =
   let captionDoc   = if null caption

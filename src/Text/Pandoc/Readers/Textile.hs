@@ -290,13 +290,13 @@ rawHtmlBlock :: Parser [Char] ParserState Block
 rawHtmlBlock = try $ do
   (_,b) <- htmlTag isBlockTag
   optional blanklines
-  return $ RawBlock "html" b
+  return $ RawBlock (Format "html") b
 
 -- | Raw block of LaTeX content
 rawLaTeXBlock' :: Parser [Char] ParserState Block
 rawLaTeXBlock' = do
   guardEnabled Ext_raw_tex
-  RawBlock "latex" <$> (rawLaTeXBlock <* spaces)
+  RawBlock (Format "latex") <$> (rawLaTeXBlock <* spaces)
 
 
 -- | In textile, paragraphs are separated by blank lines.
@@ -487,7 +487,7 @@ endline = try $ do
   return LineBreak
 
 rawHtmlInline :: Parser [Char] ParserState Inline
-rawHtmlInline = RawInline "html" . snd <$> htmlTag isInlineTag
+rawHtmlInline = RawInline (Format "html") . snd <$> htmlTag isInlineTag
 
 -- | Raw LaTeX Inline
 rawLaTeXInline' :: Parser [Char] ParserState Inline

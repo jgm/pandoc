@@ -356,8 +356,10 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
                   Nothing -> rawCodeBlock
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                              return (flush $ text h)
-blockToLaTeX (RawBlock "latex" x) = return $ text x
-blockToLaTeX (RawBlock _ _) = return empty
+blockToLaTeX (RawBlock f x)
+  | f == Format "latex" || f == Format "tex"
+                        = return $ text x
+  | otherwise           = return empty
 blockToLaTeX (BulletList []) = return empty  -- otherwise latex error
 blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
@@ -630,9 +632,10 @@ inlineToLaTeX (Math InlineMath str) =
   return $ char '$' <> text str <> char '$'
 inlineToLaTeX (Math DisplayMath str) =
   return $ "\\[" <> text str <> "\\]"
-inlineToLaTeX (RawInline "latex" str) = return $ text str
-inlineToLaTeX (RawInline "tex" str) = return $ text str
-inlineToLaTeX (RawInline _ _) = return empty
+inlineToLaTeX (RawInline f str)
+  | f == Format "latex" || f == Format "tex"
+                        = return $ text str
+  | otherwise           = return empty
 inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt ('#':ident, _)) = do

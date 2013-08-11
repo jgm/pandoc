@@ -42,7 +42,7 @@ import Network.URI (isAbsoluteURI)
 import Text.Pandoc.Pretty
 import Control.Monad.State
 import Control.Applicative ( (<$>) )
-import Data.Char (isSpace)
+import Data.Char (isSpace, toLower)
 
 type Refs = [([Inline], Target)]
 
@@ -176,9 +176,11 @@ blockToRST (Para inlines)
   | otherwise = do
       contents <- inlineListToRST inlines
       return $ contents <> blankline
-blockToRST (RawBlock f str) =
-  return $ blankline <> ".. raw:: " <> text f $+$
-           (nest 3 $ text str) $$ blankline
+blockToRST (RawBlock f str)
+  | f == "rst" = return $ text str
+  | otherwise  = return $ blankline <> ".. raw:: " <>
+                    text (map toLower $ unFormat f) $+$
+                    (nest 3 $ text str) $$ blankline
 blockToRST HorizontalRule =
   return $ blankline $$ "--------------" $$ blankline
 blockToRST (Header level _ inlines) = do
@@ -374,8 +376,9 @@ inlineToRST (Math t str) = do
                    then blankline $$ ".. math::" $$
                         blankline $$ nest 3 (text str) $$ blankline
                    else blankline $$ (".. math:: " <> text str) $$ blankline
-inlineToRST (RawInline "rst" x) = return $ text x
-inlineToRST (RawInline _ _) = return empty
+inlineToRST (RawInline f x)
+  | f == "rst" = return $ text x
+  | otherwise  = return empty
 inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space
 -- autolink

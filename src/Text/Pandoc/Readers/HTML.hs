@@ -182,7 +182,7 @@ pRawHtmlBlock = do
   raw <- pHtmlBlock "script" <|> pHtmlBlock "style" <|> pRawTag
   parseRaw <- getOption readerParseRaw
   if parseRaw && not (null raw)
-     then return [RawBlock "html" raw]
+     then return [RawBlock (Format "html") raw]
      else return []
 
 pHtmlBlock :: String -> TagParser String
@@ -408,7 +408,7 @@ pRawHtmlInline = do
   result <- pSatisfy (tagComment (const True)) <|> pSatisfy isInlineTag
   parseRaw <- getOption readerParseRaw
   if parseRaw
-     then return [RawInline "html" $ renderTags' [result]]
+     then return [RawInline (Format "html") $ renderTags' [result]]
      else return []
 
 pInlinesInTags :: String -> ([Inline] -> Inline)

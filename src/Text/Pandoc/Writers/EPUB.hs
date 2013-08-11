@@ -103,7 +103,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                      Just img  -> do
                        let coverImage = "cover-image" ++ takeExtension img
                        let cpContent = renderHtml $ writeHtml opts'
-                               (Pandoc meta [RawBlock "html" $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
+                               (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
                        imgContent <- B.readFile img
                        return ( [mkEntry "cover.xhtml" cpContent]
                               , [mkEntry coverImage imgContent] )
@@ -422,7 +422,7 @@ transformInline opts sourceDir picsRef (Image lab (src,tit))
   | isAbsoluteURI src = do
     raw <- makeSelfContained Nothing
              $ writeHtmlInline opts (Image lab (src,tit))
-    return $ RawInline "html" raw
+    return $ RawInline (Format "html") raw
   | otherwise = do
     let src' = unEscapeString src
     pics <- readIORef picsRef
@@ -438,7 +438,7 @@ transformInline opts sourceDir picsRef (Image lab (src,tit))
 transformInline opts _ _ (x@(Math _ _))
   | WebTeX _ <- writerHTMLMathMethod opts = do
     raw <- makeSelfContained Nothing $ writeHtmlInline opts x
-    return $ RawInline "html" raw
+    return $ RawInline (Format "html") raw
 transformInline _ _ _ x = return x
 
 writeHtmlInline :: WriterOptions -> Inline -> String

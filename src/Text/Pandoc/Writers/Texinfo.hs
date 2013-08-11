@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2008-2010 John MacFarlane and Peter Wang
 
@@ -152,10 +153,11 @@ blockToTexinfo (CodeBlock _ str) = do
            flush (text str) $$
            text "@end verbatim" <> blankline
 
-blockToTexinfo (RawBlock "texinfo" str) = return $ text str
-blockToTexinfo (RawBlock "latex" str) =
-  return $ text "@tex" $$ text str $$ text "@end tex"
-blockToTexinfo (RawBlock _ _) = return empty
+blockToTexinfo (RawBlock f str)
+  | f == "texinfo" = return $ text str
+  | f == "latex" || f == "tex" =
+                      return $ text "@tex" $$ text str $$ text "@end tex"
+  | otherwise      = return empty
 
 blockToTexinfo (BulletList lst) = do
   items <- mapM listItemToTexinfo lst
@@ -418,10 +420,11 @@ inlineToTexinfo (Cite _ lst) =
   inlineListToTexinfo lst
 inlineToTexinfo (Str str) = return $ text (stringToTexinfo str)
 inlineToTexinfo (Math _ str) = return $ inCmd "math" $ text str
-inlineToTexinfo (RawInline f str) | f == "latex" || f == "tex" =
-  return $ text "@tex" $$ text str $$ text "@end tex"
-inlineToTexinfo (RawInline "texinfo" str) = return $ text str
-inlineToTexinfo (RawInline _ _) = return empty
+inlineToTexinfo (RawInline f str)
+  | f == "latex" || f == "tex" =
+                      return $ text "@tex" $$ text str $$ text "@end tex"
+  | f == "texinfo" =  return $ text str
+  | otherwise      =  return empty
 inlineToTexinfo (LineBreak) = return $ text "@*"
 inlineToTexinfo Space = return $ char ' '
 

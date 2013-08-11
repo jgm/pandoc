@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, OverloadedStrings #-}
 {-
 Copyright (C) 2008-2010 Andrea Rossato <andrea.rossato@ing.unitn.it>
 and John MacFarlane.
@@ -296,7 +296,9 @@ blockToOpenDocument o bs
     | Table  c a w h r <- bs = setFirstPara >> table c a w h r
     | HorizontalRule   <- bs = setFirstPara >> return (selfClosingTag "text:p"
                                 [ ("text:style-name", "Horizontal_20_Line") ])
-    | RawBlock _     _ <- bs = return empty
+    | RawBlock f     s <- bs = if f == "opendocument"
+                                  then preformatted s
+                                  else return empty
     | Null             <- bs = return empty
     | otherwise              = return empty
     where
@@ -374,9 +376,9 @@ inlineToOpenDocument o ils
     | Code      _ s <- ils = preformatted s
     | Math      _ s <- ils = inlinesToOpenDocument o (readTeXMath s)
     | Cite      _ l <- ils = inlinesToOpenDocument o l
-    | RawInline "opendocument" s <- ils = preformatted s
-    | RawInline "html" s <- ils = preformatted s  -- for backwards compat.
-    | RawInline _ _ <- ils = return empty
+    | RawInline f s <- ils = if f == "opendocument" || f == "html"
+                                then preformatted s
+                                else return empty
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Image _ (s,t) <- ils = return $ mkImg  s t
     | Note        l <- ils = mkNote l

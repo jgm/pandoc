@@ -410,8 +410,9 @@ blockToHtml opts (Para lst) = do
 blockToHtml opts (Div attr bs) = do
   contents <- blockListToHtml opts bs
   return $ addAttrs opts attr $ H.div $ nl opts >> contents >> nl opts
-blockToHtml _ (RawBlock "html" str) = return $ preEscapedString str
-blockToHtml _ (RawBlock _ _) = return mempty
+blockToHtml _ (RawBlock f str)
+  | f == Format "html" = return $ preEscapedString str
+  | otherwise          = return mempty
 blockToHtml opts (HorizontalRule) = return $ if writerHtml5 opts then H5.hr else H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
   let tolhs = isEnabled Ext_literate_haskell opts &&
@@ -678,12 +679,14 @@ inlineToHtml opts inline =
                                   return  $ case t of
                                              InlineMath  -> m
                                              DisplayMath -> brtag >> m >> brtag )
-    (RawInline "latex" str) -> case writerHTMLMathMethod opts of
+    (RawInline f str)
+      | f == Format "latex" ->
+                          case writerHTMLMathMethod opts of
                                LaTeXMathML _ -> do modify (\st -> st {stMath = True})
                                                    return $ toHtml str
                                _             -> return mempty
-    (RawInline "html" str) -> return $ preEscapedString str
-    (RawInline _ _) -> return mempty
+      | f == Format "html" -> return $ preEscapedString str
+      | otherwise          -> return mempty
     (Link [Str str] (s,_)) | "mailto:" `isPrefixOf` s &&
                              s == escapeURI ("mailto" ++ str) ->
                         -- autolink

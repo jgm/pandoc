@@ -107,9 +107,10 @@ blockToMediaWiki opts (Para inlines) = do
               then  "<p>" ++ contents ++ "</p>"
               else contents ++ if null listLevel then "\n" else ""
 
-blockToMediaWiki _ (RawBlock "mediawiki" str) = return str
-blockToMediaWiki _ (RawBlock "html" str) = return str
-blockToMediaWiki _ (RawBlock _ _) = return ""
+blockToMediaWiki _ (RawBlock f str)
+  | f == Format "mediawiki" = return str
+  | f == Format "html"      = return str
+  | otherwise               = return ""
 
 blockToMediaWiki _ HorizontalRule = return "\n-----\n"
 
@@ -374,9 +375,10 @@ inlineToMediaWiki _ (Str str) = return $ escapeString str
 inlineToMediaWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
                                  -- note:  str should NOT be escaped
 
-inlineToMediaWiki _ (RawInline "mediawiki" str) = return str
-inlineToMediaWiki _ (RawInline "html" str) = return str
-inlineToMediaWiki _ (RawInline _ _) = return ""
+inlineToMediaWiki _ (RawInline f str)
+  | f == Format "mediawiki" = return str
+  | f == Format "html"      = return str
+  | otherwise               = return ""
 
 inlineToMediaWiki _ (LineBreak) = return "<br />"
 

@@ -33,6 +33,7 @@ module Text.Pandoc.Writers.Custom ( writeCustom ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Data.List ( intersperse )
+import Data.Char ( toLower )
 import Scripting.Lua (LuaState, StackValue, callfunc)
 import qualified Scripting.Lua as Lua
 import Text.Pandoc.UTF8 (fromString, toString)
@@ -77,6 +78,11 @@ instance StackValue a => StackValue [a] where
     Lua.pop lua 1
     return (Just lst)
   valuetype _ = Lua.TTABLE
+
+instance StackValue Format where
+  push lua (Format f) = Lua.push lua (map toLower f)
+  peek l n = fmap Format `fmap` Lua.peek l n
+  valuetype _ = Lua.TSTRING
 
 instance (StackValue a, StackValue b) => StackValue (M.Map a b) where
   push lua m = do
