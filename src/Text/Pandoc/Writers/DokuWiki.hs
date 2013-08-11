@@ -150,26 +150,21 @@ blockToDokuWiki opts (BlockQuote blocks) = do
   contents <- blockListToDokuWiki opts blocks
   return $ "<blockquote>" ++ contents ++ "</blockquote>"
 
-blockToDokuWiki opts (Table capt aligns widths headers rows') = do
+blockToDokuWiki opts (Table capt aligns _ headers rows') = do
   let alignStrings = map alignmentToString aligns
   captionDoc <- if null capt
                    then return ""
                    else do
                       c <- inlineListToDokuWiki opts capt
-                      return $ "<caption>" ++ c ++ "</caption>\n"
-  let percent w = show (truncate (100*w) :: Integer) ++ "%"
-  let coltags = if all (== 0.0) widths
-                   then ""
-                   else unlines $ map
-                         (\w -> "<col width=\"" ++ percent w ++ "\" />") widths
+                      return $ "" ++ c ++ "\n"
   head' <- if all null headers
               then return ""
               else do
                  hs <- tableRowToDokuWiki opts alignStrings 0 headers
-                 return $ "<thead>\n" ++ hs ++ "\n</thead>\n"
+                 return $ hs ++ "\n"
   body' <- zipWithM (tableRowToDokuWiki opts alignStrings) [1..] rows'
-  return $ "<table>\n" ++ captionDoc ++ coltags ++ head' ++
-            "<tbody>\n" ++ unlines body' ++ "</tbody>\n</table>\n"
+  return $ captionDoc ++ head' ++
+            unlines body'
 
 blockToDokuWiki opts x@(BulletList items) = do
   oldUseTags <- get >>= return . stUseTags
@@ -325,33 +320,33 @@ tableRowToDokuWiki :: WriterOptions
                     -> [[Block]]
                     -> State WriterState String
 tableRowToDokuWiki opts alignStrings rownum cols' = do
-  let celltype = if rownum == 0 then "th" else "td"
-  let rowclass = case rownum of
-                      0                  -> "header"
-                      x | x `rem` 2 == 1 -> "odd"
-                      _                  -> "even"
+  let celltype = if rownum == 0 then "" else ""
   cols'' <- sequence $ zipWith
             (\alignment item -> tableItemToDokuWiki opts celltype alignment item)
             alignStrings cols'
-  return $ "<tr class=\"" ++ rowclass ++ "\">\n" ++ unlines cols'' ++ "</tr>"
+  return $ "| " ++ "" ++ joinColumns cols'' ++ " |"
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
-                                 AlignLeft    -> "left"
-                                 AlignRight   -> "right"
-                                 AlignCenter  -> "center"
-                                 AlignDefault -> "left"
+                                 AlignLeft    -> ""
+                                 AlignRight   -> ""
+                                 AlignCenter  -> ""
+                                 AlignDefault -> ""
 
 tableItemToDokuWiki :: WriterOptions
                      -> String
                      -> String
                      -> [Block]
                      -> State WriterState String
+-- TODO Fix celltype and align' defined but not used
 tableItemToDokuWiki opts celltype align' item = do
-  let mkcell x = "<" ++ celltype ++ " align=\"" ++ align' ++ "\">" ++
-                    x ++ "</" ++ celltype ++ ">"
+  let mkcell x = "" ++ x ++ ""
   contents <- blockListToDokuWiki opts item
   return $ mkcell contents
+
+-- | Concatenates columns together.
+joinColumns :: [String] -> String
+joinColumns = intercalate " | "
 
 -- | Convert list of Pandoc block elements to DokuWiki.
 blockListToDokuWiki :: WriterOptions -- ^ Options
