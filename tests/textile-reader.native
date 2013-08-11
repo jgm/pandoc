@@ -137,23 +137,23 @@ Pandoc (Meta {unMeta = fromList []})
 ,Header 1 ("",[],[]) [Str "Entities"]
 ,Para [Str "*",LineBreak,Str "&"]
 ,Header 1 ("",[],[]) [Str "Raw",Space,Str "HTML"]
-,Para [Str "However",Str ",",Space,RawInline "html" "<strong>",Space,Str "raw",Space,Str "HTML",Space,Str "inlines",Space,RawInline "html" "</strong>",Space,Str "are",Space,Str "accepted",Str ",",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str ":"]
-,RawBlock "html" "<div class=\"foobar\">"
+,Para [Str "However",Str ",",Space,RawInline (Format {unFormat = "html"}) "<strong>",Space,Str "raw",Space,Str "HTML",Space,Str "inlines",Space,RawInline (Format {unFormat = "html"}) "</strong>",Space,Str "are",Space,Str "accepted",Str ",",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str ":"]
+,RawBlock (Format {unFormat = "html"}) "<div class=\"foobar\">"
 ,Para [Str "any",Space,Strong [Str "Raw",Space,Str "HTML",Space,Str "Block"],Space,Str "with",Space,Str "bold"]
-,RawBlock "html" "</div>"
+,RawBlock (Format {unFormat = "html"}) "</div>"
 ,Para [Str "Html",Space,Str "blocks",Space,Str "can",Space,Str "be"]
-,RawBlock "html" "<div>"
+,RawBlock (Format {unFormat = "html"}) "<div>"
 ,Para [Str "inlined"]
-,RawBlock "html" "</div>"
+,RawBlock (Format {unFormat = "html"}) "</div>"
 ,Para [Str "as",Space,Str "well",Str "."]
 ,BulletList
  [[Plain [Str "this",Space,Str "<",Str "div",Str ">",Space,Str "won",Str "\8217",Str "t",Space,Str "produce",Space,Str "raw",Space,Str "html",Space,Str "blocks",Space,Str "<",Str "/div",Str ">"]]
- ,[Plain [Str "but",Space,Str "this",Space,RawInline "html" "<strong>",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,RawInline "html" "</strong>"]]]
+ ,[Plain [Str "but",Space,Str "this",Space,RawInline (Format {unFormat = "html"}) "<strong>",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,RawInline (Format {unFormat = "html"}) "</strong>"]]]
 ,Para [Str "Can",Space,Str "you",Space,Str "prove",Space,Str "that",Space,Str "2",Space,Str "<",Space,Str "3",Space,Str "?"]
 ,Header 1 ("",[],[]) [Str "Raw",Space,Str "LaTeX"]
 ,Para [Str "This",Space,Str "Textile",Space,Str "reader",Space,Str "also",Space,Str "accepts",Space,Str "raw",Space,Str "LaTeX",Space,Str "for",Space,Str "blocks",Space,Str ":"]
-,RawBlock "latex" "\\begin{itemize}\n  \\item one\n  \\item two\n\\end{itemize}"
-,Para [Str "and",Space,Str "for",Space,RawInline "latex" "\\emph{inlines}",Str "."]
+,RawBlock (Format {unFormat = "latex"}) "\\begin{itemize}\n  \\item one\n  \\item two\n\\end{itemize}"
+,Para [Str "and",Space,Str "for",Space,RawInline (Format {unFormat = "latex"}) "\\emph{inlines}",Str "."]
 ,Header 1 ("",[],[]) [Str "Acronyms",Space,Str "and",Space,Str "marks"]
 ,Para [Str "PBS (Public Broadcasting System)"]
 ,Para [Str "Hi",Str "\8482"]

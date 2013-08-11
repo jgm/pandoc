@@ -228,45 +228,45 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
      ,[Plain [Str "sublist"]]]]])]
 ,Header 1 ("html-blocks",[],[]) [Str "HTML",Space,Str "Blocks"]
 ,Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line:"]
-,RawBlock "html" "<div>"
+,RawBlock (Format {unFormat = "html"}) "<div>"
 ,Plain [Str "foo"]
-,RawBlock "html" "</div>\n"
+,RawBlock (Format {unFormat = "html"}) "</div>\n"
 ,Para [Str "And",Space,Str "nested",Space,Str "without",Space,Str "indentation:"]
-,RawBlock "html" "<div>\n<div>\n<div>"
+,RawBlock (Format {unFormat = "html"}) "<div>\n<div>\n<div>"
 ,Plain [Str "foo"]
-,RawBlock "html" "</div>\n</div>\n<div>"
+,RawBlock (Format {unFormat = "html"}) "</div>\n</div>\n<div>"
 ,Plain [Str "bar"]
-,RawBlock "html" "</div>\n</div>\n"
+,RawBlock (Format {unFormat = "html"}) "</div>\n</div>\n"
 ,Para [Str "Interpreted",Space,Str "markdown",Space,Str "in",Space,Str "a",Space,Str "table:"]
-,RawBlock "html" "<table>\n<tr>\n<td>"
+,RawBlock (Format {unFormat = "html"}) "<table>\n<tr>\n<td>"
 ,Plain [Str "This",Space,Str "is",Space,Emph [Str "emphasized"]]
-,RawBlock "html" "</td>\n<td>"
+,RawBlock (Format {unFormat = "html"}) "</td>\n<td>"
 ,Plain [Str "And",Space,Str "this",Space,Str "is",Space,Strong [Str "strong"]]
-,RawBlock "html" "</td>\n</tr>\n</table>\n\n<script type=\"text/javascript\">document.write('This *should not* be interpreted as markdown');</script>\n"
+,RawBlock (Format {unFormat = "html"}) "</td>\n</tr>\n</table>\n\n<script type=\"text/javascript\">document.write('This *should not* be interpreted as markdown');</script>\n"
 ,Para [Str "Here\8217s",Space,Str "a",Space,Str "simple",Space,Str "block:"]
-,RawBlock "html" "<div>\n    "
+,RawBlock (Format {unFormat = "html"}) "<div>\n    "
 ,Plain [Str "foo"]
-,RawBlock "html" "</div>\n"
+,RawBlock (Format {unFormat = "html"}) "</div>\n"
 ,Para [Str "This",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "code",Space,Str "block,",Space,Str "though:"]
 ,CodeBlock ("",[],[]) "<div>\n    foo\n</div>"
 ,Para [Str "As",Space,Str "should",Space,Str "this:"]
 ,CodeBlock ("",[],[]) "<div>foo</div>"
 ,Para [Str "Now,",Space,Str "nested:"]
-,RawBlock "html" "<div>\n    <div>\n        <div>\n            "
+,RawBlock (Format {unFormat = "html"}) "<div>\n    <div>\n        <div>\n            "
 ,Plain [Str "foo"]
-,RawBlock "html" "</div>\n    </div>\n</div>\n"
+,RawBlock (Format {unFormat = "html"}) "</div>\n    </div>\n</div>\n"
 ,Para [Str "This",Space,Str "should",Space,Str "just",Space,Str "be",Space,Str "an",Space,Str "HTML",Space,Str "comment:"]
-,RawBlock "html" "<!-- Comment -->\n"
+,RawBlock (Format {unFormat = "html"}) "<!-- Comment -->\n"
 ,Para [Str "Multiline:"]
-,RawBlock "html" "<!--\nBlah\nBlah\n-->\n\n<!--\n    This is another comment.\n-->\n"
+,RawBlock (Format {unFormat = "html"}) "<!--\nBlah\nBlah\n-->\n\n<!--\n    This is another comment.\n-->\n"
 ,Para [Str "Code",Space,Str "block:"]
 ,CodeBlock ("",[],[]) "<!-- Comment -->"
 ,Para [Str "Just",Space,Str "plain",Space,Str "comment,",Space,Str "with",Space,Str "trailing",Space,Str "spaces",Space,Str "on",Space,Str "the",Space,Str "line:"]
-,RawBlock "html" "<!-- foo -->   \n"
+,RawBlock (Format {unFormat = "html"}) "<!-- foo -->   \n"
 ,Para [Str "Code:"]
 ,CodeBlock ("",[],[]) "<hr />"
 ,Para [Str "Hr\8217s:"]
-,RawBlock "html" "<hr>\n\n<hr />\n\n<hr />\n\n<hr>   \n\n<hr />  \n\n<hr /> \n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\">\n"
+,RawBlock (Format {unFormat = "html"}) "<hr>\n\n<hr />\n\n<hr />\n\n<hr>   \n\n<hr />  \n\n<hr /> \n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\">\n"
 ,HorizontalRule
 ,Header 1 ("inline-markup",[],[]) [Str "Inline",Space,Str "Markup"]
 ,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str "."]
@@ -294,7 +294,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,HorizontalRule
 ,Header 1 ("latex",[],[]) [Str "LaTeX"]
 ,BulletList
- [[Plain [RawInline "tex" "\\cite[22-23]{smith.1899}"]]
+ [[Plain [RawInline (Format {unFormat = "tex"}) "\\cite[22-23]{smith.1899}"]]
  ,[Plain [Math InlineMath "2+2=4"]]
  ,[Plain [Math InlineMath "x \\in y"]]
  ,[Plain [Math InlineMath "\\alpha \\wedge \\omega"]]
@@ -309,7 +309,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,[Plain [Str "Shoes",Space,Str "($20)",Space,Str "and",Space,Str "socks",Space,Str "($5)."]]
  ,[Plain [Str "Escaped",Space,Code ("",[],[]) "$",Str ":",Space,Str "$73",Space,Emph [Str "this",Space,Str "should",Space,Str "be",Space,Str "emphasized"],Space,Str "23$."]]]
 ,Para [Str "Here\8217s",Space,Str "a",Space,Str "LaTeX",Space,Str "table:"]
-,RawBlock "latex" "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}"
+,RawBlock (Format {unFormat = "latex"}) "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}"
 ,HorizontalRule
 ,Header 1 ("special-characters",[],[]) [Str "Special",Space,Str "Characters"]
 ,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode:"]

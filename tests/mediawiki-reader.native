@@ -51,11 +51,11 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "bud"]
 ,Para [Str "another"]
 ,Header 2 ("",[],[]) [Str "raw",Space,Str "html"]
-,Para [Str "hi",Space,RawInline "html" "<span style=\"color:red\">",Emph [Str "there"],RawInline "html" "</span>",Str "."]
-,Para [RawInline "html" "<ins>",Str "inserted",RawInline "html" "</ins>"]
-,RawBlock "html" "<div class=\"special\">"
+,Para [Str "hi",Space,RawInline (Format {unFormat = "html"}) "<span style=\"color:red\">",Emph [Str "there"],RawInline (Format {unFormat = "html"}) "</span>",Str "."]
+,Para [RawInline (Format {unFormat = "html"}) "<ins>",Str "inserted",RawInline (Format {unFormat = "html"}) "</ins>"]
+,RawBlock (Format {unFormat = "html"}) "<div class=\"special\">"
 ,Para [Str "hi",Space,Emph [Str "there"]]
-,RawBlock "html" "</div>"
+,RawBlock (Format {unFormat = "html"}) "</div>"
 ,Header 2 ("",[],[]) [Str "sup,",Space,Str "sub,",Space,Str "del"]
 ,Para [Str "H",Subscript [Str "2"],Str "O",Space,Str "base",Superscript [Emph [Str "exponent"]],Space,Strikeout [Str "hello"]]
 ,Header 2 ("",[],[]) [Str "inline",Space,Str "code"]
@@ -140,7 +140,7 @@ Pandoc (Meta {unMeta = fromList []})
      ,[Plain [Str "this",Space,Str "looks",Space,Str "like",Space,Str "a",Space,Str "continuation"]]
      ,[Plain [Str "and",Space,Str "is",Space,Str "often",Space,Str "used"]]
      ,[Plain [Str "instead",LineBreak,Str "of",Space,Str "<br/>"]]])]]
- ,[Plain [RawInline "mediawiki" "{{{template\n|author=John\n|title=My Book\n}}}"]
+ ,[Plain [RawInline (Format {unFormat = "mediawiki"}) "{{{template\n|author=John\n|title=My Book\n}}}"]
   ,OrderedList (1,DefaultStyle,DefaultDelim)
    [[Plain [Str "five",Space,Str "sub",Space,Str "1"]
     ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -168,16 +168,16 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Code ("",[],[]) "\160hell\160\160\160\160\160\160yeah"]
 ,Para [Code ("",[],[]) "Start\160with\160a\160space\160in\160the\160first\160column,",LineBreak,Code ("",[],[]) "(before\160the\160<nowiki>).",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "Then\160your\160block\160format\160will\160be",LineBreak,Code ("",[],[]) "\160\160\160\160maintained.",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "This\160is\160good\160for\160copying\160in\160code\160blocks:",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "def\160function():",LineBreak,Code ("",[],[]) "\160\160\160\160\"\"\"documentation\160string\"\"\"",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "\160\160\160\160if\160True:",LineBreak,Code ("",[],[]) "\160\160\160\160\160\160\160\160print\160True",LineBreak,Code ("",[],[]) "\160\160\160\160else:",LineBreak,Code ("",[],[]) "\160\160\160\160\160\160\160\160print\160False"]
 ,Para [Str "Not"]
-,RawBlock "html" "<hr/>"
+,RawBlock (Format {unFormat = "html"}) "<hr/>"
 ,Para [Str "preformatted"]
 ,Para [Str "Don't",Space,Str "need"]
 ,Para [Code ("",[],[]) "a\160blank\160line"]
 ,Para [Str "around",Space,Str "a",Space,Str "preformatted",Space,Str "block."]
 ,Header 2 ("",[],[]) [Str "templates"]
-,RawBlock "mediawiki" "{{Welcome}}"
-,RawBlock "mediawiki" "{{Foo:Bar}}"
-,RawBlock "mediawiki" "{{Thankyou|all your effort|Me}}"
-,Para [Str "Written",Space,RawInline "mediawiki" "{{{date}}}",Space,Str "by",Space,RawInline "mediawiki" "{{{name}}}",Str "."]
+,RawBlock (Format {unFormat = "mediawiki"}) "{{Welcome}}"
+,RawBlock (Format {unFormat = "mediawiki"}) "{{Foo:Bar}}"
+,RawBlock (Format {unFormat = "mediawiki"}) "{{Thankyou|all your effort|Me}}"
+,Para [Str "Written",Space,RawInline (Format {unFormat = "mediawiki"}) "{{{date}}}",Space,Str "by",Space,RawInline (Format {unFormat = "mediawiki"}) "{{{name}}}",Str "."]
 ,Header 2 ("",[],[]) [Str "tables"]
 ,Table [] [AlignDefault,AlignDefault] [0.0,0.0]
  [[]
