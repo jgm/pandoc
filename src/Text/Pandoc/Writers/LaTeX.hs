@@ -30,6 +30,7 @@ Conversion of 'Pandoc' format into LaTeX.
 -}
 module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
 import Text.Pandoc.Definition
+import Text.Pandoc.Walk
 import Text.Pandoc.Generic
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
@@ -86,7 +87,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   -- see if there are internal links
   let isInternalLink (Link _ ('#':xs,_))  = [xs]
       isInternalLink _                    = []
-  modify $ \s -> s{ stInternalLinks = queryWith isInternalLink blocks }
+  modify $ \s -> s{ stInternalLinks = query isInternalLink blocks }
   let template = writerTemplate options
   -- set stBook depending on documentclass
   let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
@@ -248,9 +249,9 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
       let hasCode (Code _ _) = [True]
           hasCode _          = []
       opts <- gets stOptions
-      let fragile = not $ null $ queryWith hasCodeBlock elts ++
+      let fragile = not $ null $ query hasCodeBlock elts ++
                                      if writerListings opts
-                                        then queryWith hasCode elts
+                                        then query hasCode elts
                                         else []
       let allowframebreaks = "allowframebreaks" `elem` classes
       let optionslist = ["fragile" | fragile] ++

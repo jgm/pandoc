@@ -33,7 +33,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
-import Text.Pandoc.Generic (queryWith)
+import Text.Pandoc.Walk (query)
 import Text.Printf ( printf )
 import Data.List ( intercalate, isPrefixOf )
 import Control.Monad.State
@@ -326,7 +326,7 @@ inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   let codeBlock x@(CodeBlock _ _) = [x]
       codeBlock _ = []
-  let codeBlocks = queryWith codeBlock contents
+  let codeBlocks = query codeBlock contents
   return $ if null codeBlocks
               then text "\\footnote{" <> nest 2 contents' <> char '}'
               else text "\\startbuffer " <> nest 2 contents' <>

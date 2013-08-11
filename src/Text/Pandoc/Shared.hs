@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, CPP #-}
+{-# LANGUAGE DeriveDataTypeable, CPP, MultiParamTypeClasses #-}
 {-
 Copyright (C) 2006-2013 John MacFarlane <jgm@berkeley.edu>
 
@@ -79,6 +79,7 @@ module Text.Pandoc.Shared (
                     ) where
 
 import Text.Pandoc.Definition
+import Text.Pandoc.Walk
 import Text.Pandoc.Generic
 import Text.Pandoc.Builder (Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
@@ -105,6 +106,7 @@ import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
+import Text.Pandoc.Compat.Monoid
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -383,7 +385,7 @@ consolidateInlines [] = []
 
 -- | Convert list of inlines to a string with formatting removed.
 stringify :: [Inline] -> String
-stringify = queryWith go
+stringify = query go
   where go :: Inline -> [Char]
         go Space = " "
         go (Str x) = x
@@ -432,6 +434,29 @@ data Element = Blk Block
              | Sec Int [Int] Attr [Inline] [Element]
              --    lvl  num attributes label    contents
              deriving (Eq, Read, Show, Typeable, Data)
+
+instance Walkable Inline Element where
+  walk f (Blk x) = Blk (walk f x)
+  walk f (Sec lev nums attr ils elts) = Sec lev nums attr (walk f ils) (walk f elts)
+  walkM f (Blk x) = Blk `fmap` walkM f x
+  walkM f (Sec lev nums attr ils elts) = do
+    ils' <- walkM f ils
+    elts' <- walkM f elts
+    return $ Sec lev nums attr ils' elts'
+  query f (Blk x) = query f x
+  query f (Sec _ _ _ ils elts) = query f ils <> query f elts
+
+instance Walkable Block Element where
+  walk f (Blk x) = Blk (walk f x)
+  walk f (Sec lev nums attr ils elts) = Sec lev nums attr (walk f ils) (walk f elts)
+  walkM f (Blk x) = Blk `fmap` walkM f x
+  walkM f (Sec lev nums attr ils elts) = do
+    ils' <- walkM f ils
+    elts' <- walkM f elts
+    return $ Sec lev nums attr ils' elts'
+  query f (Blk x) = query f x
+  query f (Sec _ _ _ ils elts) = query f ils <> query f elts
+
 
 -- | Convert Pandoc inline list to plain text identifier.  HTML
 -- identifiers must start with a letter, and may contain only

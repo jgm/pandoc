@@ -36,6 +36,7 @@ import Text.CSL hiding ( Cite(..), Citation(..), endWithPunct )
 import qualified Text.CSL as CSL ( Cite(..) )
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
+import Text.Pandoc.Walk
 import Text.Pandoc.Shared (stringify)
 import Text.Parsec hiding (State)
 import Control.Monad
@@ -48,7 +49,7 @@ processBiblio Nothing _ p = p
 processBiblio _      [] p = p
 processBiblio (Just style) r p =
   let p'         = evalState (bottomUpM setHash p) 1
-      grps       = queryWith getCitation p'
+      grps       = query getCitation p'
       result     = citeproc procOpts style r (setNearNote style $
                       map (map toCslCite) grps)
       cits_map   = M.fromList $ zip grps (citations result)
@@ -121,7 +122,7 @@ isTextualCitation (c:_) = citationMode c == AuthorInText
 isTextualCitation _     = False
 
 -- | Retrieve all citations from a 'Pandoc' docuument. To be used with
--- 'queryWith'.
+-- 'query'.
 getCitation :: Inline -> [[Citation]]
 getCitation i | Cite t _ <- i = [t]
               | otherwise     = []
