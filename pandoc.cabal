@@ -406,6 +406,7 @@ Test-Suite test-pandoc
                   Tests.Helpers
                   Tests.Arbitrary
                   Tests.Shared
+                  Tests.Walk
                   Tests.Readers.LaTeX
                   Tests.Readers.Markdown
                   Tests.Readers.RST

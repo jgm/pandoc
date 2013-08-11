@@ -14,11 +14,13 @@ import qualified Tests.Writers.HTML
 import qualified Tests.Writers.Native
 import qualified Tests.Writers.Markdown
 import qualified Tests.Shared
+import qualified Tests.Walk
 import Text.Pandoc.Shared (inDirectory)
 
 tests :: [Test]
 tests = [ testGroup "Old" Tests.Old.tests
         , testGroup "Shared" Tests.Shared.tests
+        , testGroup "Walk" Tests.Walk.tests
         , testGroup "Writers"
           [ testGroup "Native" Tests.Writers.Native.tests
           , testGroup "ConTeXt" Tests.Writers.ConTeXt.tests
