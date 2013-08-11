@@ -518,7 +518,7 @@ isHeaderBlock _ = False
 
 -- | Shift header levels up or down.
 headerShift :: Int -> Pandoc -> Pandoc
-headerShift n = bottomUp shift
+headerShift n = walk shift
   where shift :: Block -> Block
         shift (Header level attr inner) = Header (level + n) attr inner
         shift x                         = x

@@ -45,7 +45,7 @@ import qualified Text.XML.Light.Cursor as XC
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
 import Text.Pandoc.Shared (orderedListMarkers)
-import Text.Pandoc.Generic (bottomUp)
+import Text.Pandoc.Walk
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
@@ -423,6 +423,10 @@ indent = indentBlock
   indentLines ins = let lns = split isLineBreak ins :: [[Inline]]
                     in  intercalate [LineBreak] $ map ((Str spacer):) lns
 
+capitalize :: Inline -> Inline
+capitalize (Str xs) = Str $ map toUpper xs
+capitalize x = x
+
 -- | Convert a Pandoc's Inline element to FictionBook XML representation.
 toXml :: Inline -> FBM [Content]
 toXml (Str s) = return [txt s]
@@ -432,7 +436,7 @@ toXml (Strong ss) = list `liftM` wrap "strong" ss
 toXml (Strikeout ss) = list `liftM` wrap "strikethrough" ss
 toXml (Superscript ss) = list `liftM` wrap "sup" ss
 toXml (Subscript ss) = list `liftM` wrap "sub" ss
-toXml (SmallCaps ss) = cMapM toXml $ bottomUp (map toUpper) ss
+toXml (SmallCaps ss) = cMapM toXml $ walk capitalize ss
 toXml (Quoted SingleQuote ss) = do  -- FIXME: should be language-specific
   inner <- cMapM toXml ss
   return $ [txt "‘"] ++ inner ++ [txt "’"]

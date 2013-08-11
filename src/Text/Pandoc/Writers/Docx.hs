@@ -45,6 +45,7 @@ import Text.Pandoc.Shared hiding (Element)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlight )
+import Text.Pandoc.Walk
 import Text.Highlighting.Kate.Types ()
 import Text.XML.Light
 import Text.TeXMath
@@ -108,7 +109,7 @@ writeDocx :: WriterOptions  -- ^ Writer options
           -> IO BL.ByteString
 writeDocx opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
-  let doc' = bottomUp (concatMap fixDisplayMath) doc
+  let doc' = walk fixDisplayMath doc
   refArchive <- liftM (toArchive . toLazy) $
        case writerReferenceDocx opts of
              Just f  -> B.readFile f
@@ -810,17 +811,17 @@ stripLeadingTrailingSpace = go . reverse . go . reverse
   where go (Space:xs) = xs
         go xs         = xs
 
-fixDisplayMath :: Block -> [Block]
+fixDisplayMath :: Block -> Block
 fixDisplayMath (Plain lst)
   | any isDisplayMath lst && not (all isDisplayMath lst) =
     -- chop into several paragraphs so each displaymath is its own
-    map (Plain . stripLeadingTrailingSpace) $
+    Div ("",["math"],[]) $ map (Plain . stripLeadingTrailingSpace) $
        groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
                          not (isDisplayMath x || isDisplayMath y)) lst
 fixDisplayMath (Para lst)
   | any isDisplayMath lst && not (all isDisplayMath lst) =
     -- chop into several paragraphs so each displaymath is its own
-    map (Para . stripLeadingTrailingSpace) $
+    Div ("",["math"],[]) $ map (Para . stripLeadingTrailingSpace) $
        groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
                          not (isDisplayMath x || isDisplayMath y)) lst
-fixDisplayMath x = [x]
+fixDisplayMath x = x

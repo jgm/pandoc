@@ -44,7 +44,7 @@ import Data.List (isInfixOf)
 import qualified Data.ByteString.Base64 as B64
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
-import Text.Pandoc.Generic (bottomUpM)
+import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Shared (fetchItem, warn)
 import Text.Pandoc.Options (WriterOptions(..))
 import Text.Pandoc.MIME (extensionFromMimeType)
@@ -73,7 +73,7 @@ handleImages :: String        -- ^ source directory/base URL
              -> FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
              -> IO Pandoc
-handleImages baseURL tmpdir = bottomUpM (handleImage' baseURL tmpdir)
+handleImages baseURL tmpdir = walkM (handleImage' baseURL tmpdir)
 
 handleImage' :: String
              -> FilePath

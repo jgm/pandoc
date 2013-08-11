@@ -48,7 +48,7 @@ import qualified Text.Pandoc.Shared as Shared
 import Text.Pandoc.Builder (fromList, setMeta)
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
-import Text.Pandoc.Generic
+import Text.Pandoc.Walk
 import Control.Monad.State
 import Text.XML.Light hiding (ppTopElement)
 import Text.Pandoc.UUID
@@ -116,7 +116,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   -- handle pictures
   picsRef <- newIORef []
-  Pandoc _ blocks <- bottomUpM
+  Pandoc _ blocks <- walkM
        (transformInline opts' sourceDir picsRef) doc
   pics <- readIORef picsRef
   let readPicEntry entries (oldsrc, newsrc) = do
@@ -520,7 +520,7 @@ correlateRefs chapterHeaderLevel bs =
 -- Replace internal link references using the table produced
 -- by correlateRefs.
 replaceRefs :: [(String,String)] -> [Block] -> [Block]
-replaceRefs refTable = bottomUp replaceOneRef
+replaceRefs refTable = walk replaceOneRef
   where replaceOneRef x@(Link lab ('#':xs,tit)) =
           case lookup xs refTable of
                 Just url -> Link lab (url,tit)

@@ -42,7 +42,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
 import Text.Pandoc.Parsing hiding ( nested )
-import Text.Pandoc.Generic ( bottomUp )
+import Text.Pandoc.Walk ( walk )
 import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead )
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
@@ -342,7 +342,7 @@ preformatted = try $ do
       spacesStr _        = False
   if F.all spacesStr contents
      then return mempty
-     else return $ B.para $ bottomUp strToCode contents
+     else return $ B.para $ walk strToCode contents
 
 header :: MWParser Blocks
 header = try $ do

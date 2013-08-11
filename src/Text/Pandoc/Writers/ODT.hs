@@ -39,7 +39,7 @@ import Text.Pandoc.Shared ( stringify, readDataFile, fetchItem, warn )
 import Text.Pandoc.ImageSize ( imageSize, sizeInPoints )
 import Text.Pandoc.MIME ( getMimeType )
 import Text.Pandoc.Definition
-import Text.Pandoc.Generic
+import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
 import Control.Monad (liftM)
 import Text.Pandoc.XML
@@ -63,7 +63,7 @@ writeODT opts doc@(Pandoc meta _) = do
   -- handle pictures
   picEntriesRef <- newIORef ([] :: [Entry])
   let sourceDir = writerSourceDirectory opts
-  doc' <- bottomUpM (transformPic sourceDir picEntriesRef) doc
+  doc' <- walkM (transformPic sourceDir picEntriesRef) doc
   let newContents = writeOpenDocument opts{writerWrapText = False} doc'
   epochtime <- floor `fmap` getPOSIXTime
   let contentEntry = toEntry "content.xml" epochtime $ fromStringLazy newContents

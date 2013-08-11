@@ -35,7 +35,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                  ) where
 
 import Text.Pandoc.Definition
-import Text.Pandoc.Generic
+import Text.Pandoc.Walk
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Biblio (processBiblio)
@@ -815,7 +815,7 @@ keyvals :: LP [(String, String)]
 keyvals = try $ char '[' *> manyTill keyval (char ']')
 
 alltt :: String -> LP Blocks
-alltt t = bottomUp strToCode <$> parseFromString blocks
+alltt t = walk strToCode <$> parseFromString blocks
   (substitute " " "\\ " $ substitute "%" "\\%" $
    concat $ intersperse "\\\\\n" $ lines t)
   where strToCode (Str s) = Code nullAttr s

@@ -31,7 +31,6 @@ Conversion of 'Pandoc' format into LaTeX.
 module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
-import Text.Pandoc.Generic
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
@@ -498,7 +497,7 @@ sectionHeader unnumbered ref level lst = do
   txt <- inlineListToLaTeX lst
   let noNote (Note _) = Str ""
       noNote x        = x
-  let lstNoNotes = bottomUp noNote lst
+  let lstNoNotes = walk noNote lst
   let star = if unnumbered then text "*" else empty
   -- footnotes in sections don't work unless you specify an optional
   -- argument:  \section[mysec]{mysec\footnote{blah}}

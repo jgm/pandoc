@@ -34,7 +34,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Generic (bottomUpM)
+import Text.Pandoc.Walk
 import Data.List ( isSuffixOf, intercalate )
 import Data.Char ( ord, chr, isDigit, toLower )
 import System.FilePath ( takeExtension )
@@ -70,7 +70,7 @@ rtfEmbedImage x = return x
 -- images embedded as encoded binary data.
 writeRTFWithEmbeddedImages :: WriterOptions -> Pandoc -> IO String
 writeRTFWithEmbeddedImages options doc =
-  writeRTF options `fmap` bottomUpM rtfEmbedImage doc
+  writeRTF options `fmap` walkM rtfEmbedImage doc
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String
