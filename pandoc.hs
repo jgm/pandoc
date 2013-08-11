@@ -1034,13 +1034,15 @@ main = do
                 return $ Just csl { CSL.styleAbbrevs = abbrevs }
               else return Nothing
 
-  let sourceDir = case sources of
-                        []    -> "."
+  let sourceURL = case sources of
+                        []    -> Nothing
                         (x:_) -> case parseURI x of
                                     Just u
                                       | uriScheme u `elem` ["http:","https:"] ->
-                                          show u{ uriPath = "", uriQuery = "", uriFragment = "" }
-                                    _ -> takeDirectory x
+                                          Just $ show u{ uriPath = "",
+                                                         uriQuery = "",
+                                                         uriFragment = "" }
+                                    _ -> Nothing
 
   let readerOpts = def{ readerSmart = smart || (texLigatures &&
                           (laTeXOutput || "context" `isPrefixOf` writerName'))
@@ -1074,7 +1076,7 @@ main = do
                             writerColumns          = columns,
                             writerEmailObfuscation = obfuscationMethod,
                             writerIdentifierPrefix = idPrefix,
-                            writerSourceDirectory  = sourceDir,
+                            writerSourceURL        = sourceURL,
                             writerUserDataDir      = datadir,
                             writerHtml5            = html5,
                             writerHtmlQTags        = htmlQTags,

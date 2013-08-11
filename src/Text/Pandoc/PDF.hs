@@ -65,17 +65,17 @@ makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex)
         -> Pandoc              -- ^ document
         -> IO (Either ByteString ByteString)
 makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
-  doc' <- handleImages (writerSourceDirectory opts) tmpdir doc
+  doc' <- handleImages (writerSourceURL opts) tmpdir doc
   let source = writer opts doc'
   tex2pdf' tmpdir program source
 
-handleImages :: String        -- ^ source directory/base URL
+handleImages :: Maybe String  -- ^ source base URL
              -> FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
              -> IO Pandoc
 handleImages baseURL tmpdir = walkM (handleImage' baseURL tmpdir)
 
-handleImage' :: String
+handleImage' :: Maybe String
              -> FilePath
              -> Inline
              -> IO Inline

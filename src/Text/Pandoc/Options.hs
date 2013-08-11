@@ -286,7 +286,7 @@ data WriterOptions = WriterOptions
   , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
   , writerIdentifierPrefix :: String -- ^ Prefix for section & note ids in HTML
                                      -- and for footnote marks in markdown
-  , writerSourceDirectory  :: FilePath -- ^ Directory path of 1st source file
+  , writerSourceURL        :: Maybe String  -- ^ Absolute URL + directory of 1st source file
   , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
   , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
@@ -329,7 +329,7 @@ instance Default WriterOptions where
                       , writerColumns          = 72
                       , writerEmailObfuscation = JavascriptObfuscation
                       , writerIdentifierPrefix = ""
-                      , writerSourceDirectory  = "."
+                      , writerSourceURL        = Nothing
                       , writerUserDataDir      = Nothing
                       , writerCiteMethod       = Citeproc
                       , writerBiblioFiles      = []

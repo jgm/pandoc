@@ -62,8 +62,7 @@ writeODT opts doc@(Pandoc meta _) = do
                            readDataFile datadir "reference.odt"
   -- handle pictures
   picEntriesRef <- newIORef ([] :: [Entry])
-  let sourceDir = writerSourceDirectory opts
-  doc' <- walkM (transformPic sourceDir picEntriesRef) doc
+  doc' <- walkM (transformPic opts picEntriesRef) doc
   let newContents = writeOpenDocument opts{writerWrapText = False} doc'
   epochtime <- floor `fmap` getPOSIXTime
   let contentEntry = toEntry "content.xml" epochtime $ fromStringLazy newContents
@@ -111,9 +110,9 @@ writeODT opts doc@(Pandoc meta _) = do
   let archive'' = addEntryToArchive metaEntry archive'
   return $ fromArchive archive''
 
-transformPic :: FilePath -> IORef [Entry] -> Inline -> IO Inline
-transformPic sourceDir entriesRef (Image lab (src,_)) = do
-  res <- fetchItem sourceDir src
+transformPic :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline
+transformPic opts entriesRef (Image lab (src,_)) = do
+  res <- fetchItem (writerSourceURL opts) src
   case res of
      Left (_ :: E.SomeException) -> do
        warn $ "Could not find image `" ++ src ++ "', skipping..."

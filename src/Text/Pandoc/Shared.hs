@@ -612,18 +612,18 @@ readDataFileUTF8 userDir fname =
 
 -- | Fetch an image or other item from the local filesystem or the net.
 -- Returns raw content and maybe mime type.
-fetchItem :: String -> String
+fetchItem :: Maybe String -> String
           -> IO (Either E.SomeException (BS.ByteString, Maybe String))
-fetchItem sourceDir s =
-  case s of
-    _ | isAbsoluteURI s         -> openURL s
-      | isAbsoluteURI sourceDir -> openURL $ sourceDir ++ "/" ++ s
-      | otherwise               -> E.try $ do
+fetchItem sourceURL s
+  | isAbsoluteURI s = openURL s
+  | otherwise       = case sourceURL of
+                           Just u  -> openURL (u ++ "/" ++ s)
+                           Nothing -> E.try readLocalFile
+  where readLocalFile = do
           let mime = case takeExtension s of
-                        ".gz" -> getMimeType $ dropExtension s
-                        x     -> getMimeType x
-          let f = sourceDir </> s
-          cont <- BS.readFile f
+                          ".gz" -> getMimeType $ dropExtension s
+                          x     -> getMimeType x
+          cont <- BS.readFile s
           return (cont, mime)
 
 -- | Read from a URL and return raw data and maybe mime type.

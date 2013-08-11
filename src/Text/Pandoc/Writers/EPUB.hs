@@ -55,7 +55,7 @@ import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower )
-import Network.URI ( isAbsoluteURI, unEscapeString )
+import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
 #if MIN_VERSION_base(4,6,0)
 #else
@@ -93,7 +93,6 @@ writeEPUB opts doc@(Pandoc meta _) = do
                           then MathML Nothing
                           else writerHTMLMathMethod opts
                   , writerWrapText = False }
-  let sourceDir = writerSourceDirectory opts'
   let mbCoverImage = lookup "epub-cover-image" vars
 
   -- cover page
@@ -117,10 +116,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
   -- handle pictures
   picsRef <- newIORef []
   Pandoc _ blocks <- walkM
-       (transformInline opts' sourceDir picsRef) doc
+       (transformInline opts' picsRef) doc
   pics <- readIORef picsRef
   let readPicEntry entries (oldsrc, newsrc) = do
-        res <- fetchItem sourceDir oldsrc
+        res <- fetchItem (writerSourceURL opts') oldsrc
         case res of
              Left _        -> do
               warn $ "Could not find image `" ++ oldsrc ++ "', skipping..."
@@ -414,19 +413,13 @@ showDateTimeISO8601 :: UTCTime -> String
 showDateTimeISO8601 = formatTime defaultTimeLocale "%FT%TZ"
 
 transformInline  :: WriterOptions
-                 -> FilePath
                  -> IORef [(FilePath, FilePath)] -- ^ (oldpath, newpath) images
                  -> Inline
                  -> IO Inline
-transformInline opts sourceDir picsRef (Image lab (src,tit))
-  | isAbsoluteURI src = do
-    raw <- makeSelfContained Nothing
-             $ writeHtmlInline opts (Image lab (src,tit))
-    return $ RawInline (Format "html") raw
-  | otherwise = do
+transformInline opts picsRef (Image lab (src,tit)) = do
     let src' = unEscapeString src
     pics <- readIORef picsRef
-    let oldsrc = sourceDir </> src'
+    let oldsrc = maybe src' (</> src) $ writerSourceURL opts
     let ext = takeExtension src'
     newsrc <- case lookup oldsrc pics of
                     Just n  -> return n
@@ -435,11 +428,11 @@ transformInline opts sourceDir picsRef (Image lab (src,tit))
                           modifyIORef picsRef ( (oldsrc, new): )
                           return new
     return $ Image lab (newsrc, tit)
-transformInline opts _ _ (x@(Math _ _))
+transformInline opts _ (x@(Math _ _))
   | WebTeX _ <- writerHTMLMathMethod opts = do
     raw <- makeSelfContained Nothing $ writeHtmlInline opts x
     return $ RawInline (Format "html") raw
-transformInline _ _ _ x = return x
+transformInline _ _ x = return x
 
 writeHtmlInline :: WriterOptions -> Inline -> String
 writeHtmlInline opts z = trimr $

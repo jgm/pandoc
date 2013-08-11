@@ -728,8 +728,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
   case M.lookup src imgs of
     Just (_,_,_,elt,_) -> return [elt]
     Nothing -> do
-      let sourceDir = writerSourceDirectory opts
-      res <- liftIO $ fetchItem sourceDir src
+      res <- liftIO $ fetchItem (writerSourceURL opts) src
       case res of
         Left (_ :: E.SomeException) -> do
           liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
