@@ -11,6 +11,10 @@ import Data.Monoid (mappend, Monoid(..))
 
 #if MIN_VERSION_base(4,5,0)
 #else
+infixr 6 <>
+
+-- | An infix synonym for 'mappend'.
 (<>) :: Monoid m => m -> m -> m
 (<>) = mappend
+{-# INLINE (<>) #-}
 #endif
