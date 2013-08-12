@@ -65,26 +65,30 @@ writeODT opts doc@(Pandoc meta _) = do
   doc' <- walkM (transformPic opts picEntriesRef) doc
   let newContents = writeOpenDocument opts{writerWrapText = False} doc'
   epochtime <- floor `fmap` getPOSIXTime
-  let contentEntry = toEntry "content.xml" epochtime $ fromStringLazy newContents
+  let contentEntry = toEntry "content.xml" epochtime
+                     $ fromStringLazy newContents
   picEntries <- readIORef picEntriesRef
-  let archive = foldr addEntryToArchive refArchive $ contentEntry : picEntries
+  let archive = foldr addEntryToArchive refArchive
+                $ contentEntry : picEntries
   -- construct META-INF/manifest.xml based on archive
   let toFileEntry fp = case getMimeType fp of
                         Nothing  -> empty
                         Just m   -> selfClosingTag "manifest:file-entry"
                                      [("manifest:media-type", m)
                                      ,("manifest:full-path", fp)
+                                     ,("manifest:version", "1.2")
                                      ]
-  let files = [ ent | ent <- filesInArchive archive, not ("META-INF" `isPrefixOf` ent) ]
+  let files = [ ent | ent <- filesInArchive archive,
+                             not ("META-INF" `isPrefixOf` ent) ]
   let manifestEntry = toEntry "META-INF/manifest.xml" epochtime
         $ fromStringLazy $ render Nothing
         $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
         $$
          ( inTags True "manifest:manifest"
-            [("xmlns:manifest","urn:oasis:names:tc:opendocument:xmlns:manifest:1.0")]
+            [("xmlns:manifest","urn:oasis:names:tc:opendocument:xmlns:manifest:1.0")
+            ,("manifest:version","1.2")]
             $ ( selfClosingTag "manifest:file-entry"
                  [("manifest:media-type","application/vnd.oasis.opendocument.text")
-                 ,("manifest:version","1.2")
                  ,("manifest:full-path","/")]
                 $$ vcat ( map toFileEntry $ files )
               )
@@ -107,7 +111,11 @@ writeODT opts doc@(Pandoc meta _) = do
                   )
              )
         )
-  let archive'' = addEntryToArchive metaEntry archive'
+  -- make sure mimetype is first
+  let mimetypeEntry = toEntry "mimetype" epochtime
+                      $ fromStringLazy "application/vnd.oasis.opendocument.text"
+  let archive'' = addEntryToArchive mimetypeEntry
+                  $ addEntryToArchive metaEntry archive'
   return $ fromArchive archive''
 
 transformPic :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline

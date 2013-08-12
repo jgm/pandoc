@@ -461,7 +461,8 @@ tableStyle :: Int -> [(Char,Double)] -> Doc
 tableStyle num wcs =
     let tableId        = "Table" ++ show (num + 1)
         table          = inTags True "style:style"
-                         [("style:name", tableId)] $
+                         [("style:name", tableId)
+                         ,("style:family", "table")] $
                          selfClosingTag "style:table-properties"
                          [("table:align"    , "center")]
         colStyle (c,0) = selfClosingTag "style:style"
