@@ -2,9 +2,13 @@
 from pandoc import walk, toJSONFilter
 from caps import caps
 
-def deemph(k,v,f):
-  if k == 'Emph' and f == 'html':
-    return walk(v,caps,f)
+"""Pandoc filter that causes emphasized text to be displayed
+in ALL CAPS.
+"""
+
+def deemph(key, val, fmt):
+  if key == 'Emph':
+    return walk(val, caps, fmt)
 
 if __name__ == "__main__":
   toJSONFilter(deemph)

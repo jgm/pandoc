@@ -2,9 +2,16 @@
 from pandoc import toJSONFilter
 import re
 
+"""Pandoc filter that causes everything between
+'<!-- BEGIN COMMENT -->' and '<!-- END COMMENT -->'
+to be ignored.  The comment lines must appear on
+lines by themselves, with blank lines surrounding
+them.
+"""
+
 incomment = False
 
-def comment(k,v,format=""):
+def comment(k,v,fmt):
   global incomment
   if k == 'RawBlock':
     f, s = v
