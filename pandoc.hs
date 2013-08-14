@@ -47,7 +47,7 @@ import System.Console.GetOpt
 import Data.Char ( toLower )
 import Data.List ( intercalate, isPrefixOf, sort )
 import System.Directory ( getAppUserDataDirectory, doesFileExist, findExecutable )
-import System.IO ( stdout )
+import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
@@ -93,11 +93,11 @@ isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub","ep
 externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
 externalFilter f args' d = E.handle filterException $
    do (exitcode, outbs, errbs) <- pipeProcess Nothing f args' $ encode d
+      when (not $ B.null errbs) $ B.hPutStr stderr errbs
       case exitcode of
            ExitSuccess    -> return $ either error id $ eitherDecode' outbs
            ExitFailure _  -> err 83 $ "Error running filter " ++ f ++ "\n" ++
-                                          UTF8.toStringLazy outbs ++
-                                          UTF8.toStringLazy errbs
+                                          UTF8.toStringLazy outbs
  where filterException :: E.SomeException -> IO Pandoc
        filterException e = err 83 $ "Error running filter " ++ f ++
                                      "\n" ++ show e
