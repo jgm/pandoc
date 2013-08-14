@@ -14,7 +14,6 @@ def sha1(x):
   return hashlib.sha1(x).hexdigest()
 
 imagedir = "graphviz-images"
-files = []
 
 def graphviz(key, value, format):
   if key == 'CodeBlock':
@@ -32,14 +31,14 @@ def graphviz(key, value, format):
         filetype = "png"
       alt = [{'Str': caption}]
       src = imagedir + '/' + filename + '.' + filetype
-      if not src in files:
+      if not os.path.isfile(src):
         try:
           os.mkdir(imagedir)
-          sys.stderr.write('Created directory ' + imagedir)
+          sys.stderr.write('Created directory ' + imagedir + '\n')
         except OSError:
           pass
         G.draw(src)
-        sys.stderr.write('Created image ' + src)
+        sys.stderr.write('Created image ' + src + '\n')
       tit = ""
       return {'Para': [{'Image': [alt, [src,tit]]}]}
 
