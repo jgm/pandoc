@@ -91,14 +91,16 @@ isTextFormat :: String -> Bool
 isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub","epub3"]
 
 externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
-externalFilter f args' d = E.catch
-  (do (exitcode, outbs, errbs) <- pipeProcess Nothing f args' $ encode d
+externalFilter f args' d = E.handle filterException $
+   do (exitcode, outbs, errbs) <- pipeProcess Nothing f args' $ encode d
       case exitcode of
            ExitSuccess    -> return $ either error id $ eitherDecode' outbs
-           ExitFailure _  -> err 83 $ "Error running filter `" ++ UTF8.toStringLazy outbs ++
-                                          UTF8.toStringLazy errbs ++  "'")
-  (\e -> let _ = (e :: E.SomeException)
-         in err 83 $ "Error running filter `" ++ f ++ "'")
+           ExitFailure _  -> err 83 $ "Error running filter " ++ f ++ "\n" ++
+                                          UTF8.toStringLazy outbs ++
+                                          UTF8.toStringLazy errbs
+ where filterException :: E.SomeException -> IO Pandoc
+       filterException e = err 83 $ "Error running filter " ++ f ++
+                                     "\n" ++ show e
 
 -- | Data structure for command line options.
 data Opt = Opt
