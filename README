@@ -311,9 +311,8 @@ General writer options
 :   Print the default template for an output *FORMAT*. (See `-t`
     for a list of possible *FORMAT*s.)
 
-`--print-sample-lua-writer`
-:   Print a sample lua custom writer (see [Custom writers](#custom-writers),
-    below.
+`--print-default-data-file=`*FILE*
+:   Print a default data file.
 
 `--no-wrap`
 :   Disable text wrapping in output. By default, text is wrapped
@@ -2759,7 +2758,7 @@ Creating a custom writer requires writing a lua function for each
 possible element in a pandoc document.  To get a documented example
 which you can modify according to your needs, do
 
-    pandoc --print-sample-lua-writer
+    pandoc --print-default-data-file sample.lua
 
 Authors
 =======

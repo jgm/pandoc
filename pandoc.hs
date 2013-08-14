@@ -33,8 +33,8 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
-import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, safeRead,
-                            headerShift, normalize, err, warn )
+import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
+                            safeRead, headerShift, normalize, err, warn )
 import Text.Pandoc.XML ( toEntities, fromEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Process (pipeProcess)
@@ -58,6 +58,7 @@ import Data.Foldable (foldrM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString as BS
 import Text.CSL.Reference (Reference(..))
 import Data.Aeson (eitherDecode', encode)
 
@@ -347,13 +348,13 @@ options =
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
 
-    , Option "" ["print-sample-lua-writer"]
-                 (NoArg
-                  (\_ -> do
-                    sample <- readDataFileUTF8 Nothing "sample.lua"
-                    UTF8.hPutStr stdout sample
-                    exitWith ExitSuccess))
-                  "" -- "Print sample lua custom writer"
+    , Option "" ["print-default-data-file"]
+                 (ReqArg
+                  (\arg _ -> do
+                     readDataFile Nothing arg >>= BS.hPutStr stdout
+                     exitWith ExitSuccess)
+                  "FILE")
+                  "" -- "Print default data file"
 
     , Option "" ["no-wrap"]
                  (NoArg
