@@ -18,15 +18,18 @@ def walk(x, action, format = ""):
     array = []
     for item in x:
       if isinstance(item, dict):
-        for k in item:
-          res = action(k, item[k], format)
-          if res is None:
-            array.append(walk(item, action, format))
-          elif isinstance(res, list):
-            for z in res:
-              array.append(walk(z, action, format))
-          else:
-            array.append(walk(res, action, format))
+        if item == {}:
+          array.append(walk(item, action, format))
+        else:
+          for k in item:
+            res = action(k, item[k], format)
+            if res is None:
+              array.append(walk(item, action, format))
+            elif isinstance(res, list):
+              for z in res:
+                array.append(walk(z, action, format))
+            else:
+              array.append(walk(res, action, format))
       else:
         array.append(walk(item, action, format))
     return array
@@ -60,16 +63,6 @@ def toJSONFilter(action):
     format = ""
   altered = walk(doc, action, format)
   json.dump(altered, sys.stdout)
-
-def rawInline(format, s):
-  """Returns a 'RawInline' inline object.
-  """
-  return {"RawInline": [{"unFormat": format}, s]}
-
-def rawBlock(format, s):
-  """Returns a 'RawBlock' inline object.
-  """
-  return {"RawBlock": [{"unFormat": format}, s]}
 
 def attributes(attrs):
   """Returns an attribute list, constructed from the
