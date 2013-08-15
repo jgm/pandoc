@@ -37,7 +37,7 @@ clean:
 	cabal-dev clean
 
 veryclean: clean
-	cabal-dev clean && rm -rf pandoc-types citeproc-hs
+	rm -rf pandoc-types citeproc-hs dist cabal-dev
 
 pandoc-types:
 	git clone https://github.com/jgm/pandoc-types && \
