@@ -22,7 +22,7 @@ def abc2eps(abc, filetype, outfile):
   p.stdin.write(abc)
   p.communicate()
   p.stdin.close()
-  p = call(["convert", outfile + '.eps', outfile + '.' + filetype])
+  call(["convert", outfile + '.eps', outfile + '.' + filetype])
 
 def abc(key, value, format):
   if key == 'CodeBlock':
