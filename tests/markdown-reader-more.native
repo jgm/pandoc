@@ -2,9 +2,9 @@
 ,Header 2 ("blank-line-before-url-in-link-reference",[],[]) [Str "Blank",Space,Str "line",Space,Str "before",Space,Str "URL",Space,Str "in",Space,Str "link",Space,Str "reference"]
 ,Para [Link [Str "foo"] ("/url",""),Space,Str "and",Space,Link [Str "bar"] ("/url","title")]
 ,Header 2 ("raw-context-environments",[],[]) [Str "Raw",Space,Str "ConTeXt",Space,Str "environments"]
-,Plain [RawInline (Format {unFormat = "tex"}) "\\placeformula "]
-,RawBlock (Format {unFormat = "context"}) "\\startformula\n   L_{1} = L_{2}\n   \\stopformula"
-,RawBlock (Format {unFormat = "context"}) "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"
+,Plain [RawInline (Format "tex") "\\placeformula "]
+,RawBlock (Format "context") "\\startformula\n   L_{1} = L_{2}\n   \\stopformula"
+,RawBlock (Format "context") "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"
 ,Header 2 ("urls-with-spaces",[],[]) [Str "URLs",Space,Str "with",Space,Str "spaces"]
 ,Para [Link [Str "foo"] ("/bar%20and%20baz",""),Space,Link [Str "foo"] ("/bar%20and%20baz",""),Space,Link [Str "foo"] ("/bar%20and%20baz",""),Space,Link [Str "foo"] ("bar%20baz","title")]
 ,Para [Link [Str "baz"] ("/foo%20foo",""),Space,Link [Str "bam"] ("/foo%20fee",""),Space,Link [Str "bork"] ("/foo/zee%20zob","title")]
@@ -12,13 +12,13 @@
 ,HorizontalRule
 ,HorizontalRule
 ,Header 2 ("raw-html-before-header",[],[]) [Str "Raw",Space,Str "HTML",Space,Str "before",Space,Str "header"]
-,Para [RawInline (Format {unFormat = "html"}) "<a>",RawInline (Format {unFormat = "html"}) "</a>"]
+,Para [RawInline (Format "html") "<a>",RawInline (Format "html") "</a>"]
 ,Header 3 ("my-header",[],[]) [Str "my",Space,Str "header"]
 ,Header 2 ("in-math",[],[]) [Str "$",Space,Str "in",Space,Str "math"]
 ,Para [Math InlineMath "\\$2 + \\$3"]
 ,Header 2 ("commented-out-list-item",[],[]) [Str "Commented-out",Space,Str "list",Space,Str "item"]
 ,BulletList
- [[Plain [Str "one",Space,RawInline (Format {unFormat = "html"}) "<!--\n- two\n-->"]]
+ [[Plain [Str "one",Space,RawInline (Format "html") "<!--\n- two\n-->"]]
  ,[Plain [Str "three"]]]
 ,Header 2 ("backslash-newline",[],[]) [Str "Backslash",Space,Str "newline"]
 ,Para [Str "hi",LineBreak,Str "there"]

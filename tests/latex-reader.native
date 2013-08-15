@@ -1,5 +1,5 @@
-Pandoc (Meta {unMeta = fromList [("authors",MetaList [MetaInlines [Str "John",Space,Str "MacFarlane"],MetaInlines [Str "Anonymous"]]),("date",MetaInlines [Str "July",Space,Str "17,",Space,Str "2006"]),("title",MetaInlines [Str "Pandoc",Space,Str "Test",Space,Str "Suite"])]})
-[RawBlock (Format {unFormat = "latex"}) "\\maketitle"
+Pandoc (Meta (fromList [("authors",MetaList [MetaInlines [Str "John",Space,Str "MacFarlane"],MetaInlines [Str "Anonymous"]]),("date",MetaInlines [Str "July",Space,Str "17,",Space,Str "2006"]),("title",MetaInlines [Str "Pandoc",Space,Str "Test",Space,Str "Suite"])]))
+[RawBlock (Format "latex") "\\maketitle"
 ,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc.",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber\8217s",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
 ,HorizontalRule
 ,Header 1 ("",[],[]) [Str "Headers"]
@@ -260,8 +260,8 @@ Pandoc (Meta {unMeta = fromList [("authors",MetaList [MetaInlines [Str "John",Sp
 ,HorizontalRule
 ,Header 1 ("",[],[]) [Str "LaTeX"]
 ,BulletList
- [[Para [Cite [Citation {citationId = "smith.1899", citationPrefix = [], citationSuffix = [Str "22-23"], citationMode = AuthorInText, citationNoteNum = 0, citationHash = 0}] [RawInline (Format {unFormat = "latex"}) "\\cite[22-23]{smith.1899}"]]]
- ,[Para [RawInline (Format {unFormat = "latex"}) "\\doublespacing"]]
+ [[Para [Cite [Citation {citationId = "smith.1899", citationPrefix = [], citationSuffix = [Str "22-23"], citationMode = AuthorInText, citationNoteNum = 0, citationHash = 0}] [RawInline (Format "latex") "\\cite[22-23]{smith.1899}"]]]
+ ,[Para [RawInline (Format "latex") "\\doublespacing"]]
  ,[Para [Math InlineMath "2+2=4"]]
  ,[Para [Math InlineMath "x \\in y"]]
  ,[Para [Math InlineMath "\\alpha \\wedge \\omega"]]

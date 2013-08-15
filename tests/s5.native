@@ -1,4 +1,4 @@
-Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Sam",Space,Str "Smith"],MetaInlines [Str "Jen",Space,Str "Jones"]]),("date",MetaInlines [Str "July",Space,Str "15,",Space,Str "2006"]),("title",MetaInlines [Str "My",Space,Str "S5",Space,Str "Document"])]})
+Pandoc (Meta (fromList [("author",MetaList [MetaInlines [Str "Sam",Space,Str "Smith"],MetaInlines [Str "Jen",Space,Str "Jones"]]),("date",MetaInlines [Str "July",Space,Str "15,",Space,Str "2006"]),("title",MetaInlines [Str "My",Space,Str "S5",Space,Str "Document"])]))
 [Header 1 ("first-slide",[],[]) [Str "First",Space,Str "slide"]
 ,BulletList
  [[Plain [Str "first",Space,Str "bullet"]]

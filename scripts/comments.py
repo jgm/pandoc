@@ -15,8 +15,7 @@ incomment = False
 def comment(k,v,fmt):
   global incomment
   if k == 'RawBlock':
-    f, s = v
-    fmt = f['unFormat']
+    fmt, s = v
     if fmt == "html":
       if re.search("<!-- BEGIN COMMENT -->", s):
         incomment = True

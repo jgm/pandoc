@@ -44,7 +44,7 @@ def tikz2image(tikz, filetype, outfile):
 def tikz(key, value, format):
   if key == 'RawBlock':
     [fmt, code] = value
-    if fmt['unFormat'] == "latex" and re.match("\\\\begin{tikzpicture}", code):
+    if fmt == "latex" and re.match("\\\\begin{tikzpicture}", code):
       outfile = imagedir + '/' + sha1(code)
       if format == "html":
         filetype = "png"

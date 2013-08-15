@@ -176,10 +176,10 @@ blockToRST (Para inlines)
   | otherwise = do
       contents <- inlineListToRST inlines
       return $ contents <> blankline
-blockToRST (RawBlock f str)
+blockToRST (RawBlock f@(Format f') str)
   | f == "rst" = return $ text str
   | otherwise  = return $ blankline <> ".. raw:: " <>
-                    text (map toLower $ unFormat f) $+$
+                    text (map toLower f') $+$
                     (nest 3 $ text str) $$ blankline
 blockToRST HorizontalRule =
   return $ blankline $$ "--------------" $$ blankline
