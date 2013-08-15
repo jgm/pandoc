@@ -2,7 +2,8 @@
 from pandoc import walk, toJSONFilter
 from caps import caps
 
-"""Pandoc filter that causes emphasized text to be displayed
+"""
+Pandoc filter that causes emphasized text to be displayed
 in ALL CAPS.
 """
 

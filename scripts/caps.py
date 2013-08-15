@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-"""Pandoc filter to convert all regular text to uppercase.
+"""
+Pandoc filter to convert all regular text to uppercase.
 Code, link URLs, etc. are not affected.
 """
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-"""Pandoc filter to process code blocks with class "graphviz" into
+"""
+Pandoc filter to process code blocks with class "graphviz" into
 graphviz-generated images.
 """
 

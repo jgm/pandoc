@@ -2,7 +2,8 @@
 from pandoc import toJSONFilter
 import re
 
-"""Pandoc filter that causes everything between
+"""
+Pandoc filter that causes everything between
 '<!-- BEGIN COMMENT -->' and '<!-- END COMMENT -->'
 to be ignored.  The comment lines must appear on
 lines by themselves, with blank lines surrounding
