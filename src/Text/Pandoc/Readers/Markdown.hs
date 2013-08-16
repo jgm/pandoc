@@ -446,6 +446,7 @@ block = choice [ mempty <$ blanklines
                , header
                , lhsCodeBlock
                , rawTeXBlock
+               , divHtml
                , htmlBlock
                , table
                , lineBlock
@@ -1355,6 +1356,7 @@ inline = choice [ whitespace
                 , superscript
                 , inlineNote  -- after superscript because of ^[link](/foo)^
                 , autoLink
+                , spanHtml
                 , rawHtmlInline
                 , escapedChar
                 , rawLaTeXInline'
@@ -1754,6 +1756,26 @@ inBrackets parser = do
   contents <- many parser
   char ']'
   return $ "[" ++ contents ++ "]"
+
+spanHtml :: MarkdownParser (F Inlines)
+spanHtml = try $ do
+  guardEnabled Ext_markdown_in_html_blocks
+  (TagOpen _ attrs, _) <- htmlTag (~== TagOpen "span" [])
+  contents <- mconcat <$> manyTill inline (htmlTag (~== TagClose "span"))
+  let ident = maybe "" id $ lookup "id" attrs
+  let classes = maybe [] words $ lookup "class" attrs
+  let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
+  return $ B.spanWith (ident, classes, keyvals) <$> contents
+
+divHtml :: MarkdownParser (F Blocks)
+divHtml = try $ do
+  guardEnabled Ext_markdown_in_html_blocks
+  (TagOpen _ attrs, _) <- htmlTag (~== TagOpen "div" [])
+  contents <- mconcat <$> manyTill block (htmlTag (~== TagClose "div"))
+  let ident = maybe "" id $ lookup "id" attrs
+  let classes = maybe [] words $ lookup "class" attrs
+  let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
+  return $ B.divWith (ident, classes, keyvals) <$> contents
 
 rawHtmlInline :: MarkdownParser (F Inlines)
 rawHtmlInline = do
