@@ -402,6 +402,8 @@ inlineCommands = M.fromList $
   , ("l", lit "ł")
   , ("ae", lit "æ")
   , ("AE", lit "Æ")
+  , ("oe", lit "œ")
+  , ("OE", lit "Œ")
   , ("pounds", lit "£")
   , ("euro", lit "€")
   , ("copyright", lit "©")
