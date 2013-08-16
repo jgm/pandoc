@@ -3,7 +3,10 @@
 These instructions explain how to install pandoc from source.
 Binary packages or ports of pandoc are available for freebsd
 and several linux distributions, so check your package manager.
-There is also a Windows installer.
+There are also binary installers for Windows and Mac OS X.
+
+If you are installing the development version from github, see also:
+https://github.com/jgm/pandoc/wiki/Installing-the-development-version-of-pandoc
 
 Quick install
 -------------
