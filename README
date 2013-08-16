@@ -980,6 +980,7 @@ automatically assigned a unique identifier based on the header text.
 To derive the identifier from the header text,
 
   - Remove all formatting, links, etc.
+  - Remove all footnotes.
   - Remove all punctuation, except underscores, hyphens, and periods.
   - Replace all spaces and newlines with hyphens.
   - Convert all alphabetic characters to lowercase.

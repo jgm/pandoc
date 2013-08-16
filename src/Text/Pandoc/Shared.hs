@@ -384,8 +384,10 @@ consolidateInlines (x : xs) = x : consolidateInlines xs
 consolidateInlines [] = []
 
 -- | Convert list of inlines to a string with formatting removed.
+-- Footnotes are skipped (since we don't want their contents in link
+-- labels).
 stringify :: [Inline] -> String
-stringify = query go
+stringify = query go . walk deNote
   where go :: Inline -> [Char]
         go Space = " "
         go (Str x) = x
@@ -393,6 +395,8 @@ stringify = query go
         go (Math _ x) = x
         go LineBreak = " "
         go _ = ""
+        deNote (Note _) = Str ""
+        deNote x = x
 
 -- | Change final list item from @Para@ to @Plain@ if the list contains
 -- no other @Para@ blocks.
