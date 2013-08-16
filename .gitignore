@@ -1,3 +1,4 @@
+*~
 dist/*
 README.*
 !README.Debian
@@ -10,6 +11,7 @@ man/man?/*.html
 pandoc.cabal.orig
 *.o
 *.hi
+*.pyc
 /COPYING.rtf
 /COPYRIGHT.txt
 /cabal-dev/
