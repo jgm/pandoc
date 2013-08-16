@@ -1,4 +1,4 @@
-Pandoc (Meta (fromList []))
+Pandoc (Meta {unMeta = fromList []})
 [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Space,Str "Textile",Space,Str "Reader",Str ".",Space,Str "Part",Space,Str "of",Space,Str "it",Space,Str "comes",LineBreak,Str "from",Space,Str "John",Space,Str "Gruber",Str "\8217",Str "s",Space,Str "markdown",Space,Str "test",Space,Str "suite",Str "."]
 ,HorizontalRule
 ,Header 1 ("",[],[]) [Str "Headers"]
