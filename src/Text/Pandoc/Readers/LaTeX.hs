@@ -416,6 +416,7 @@ inlineCommands = M.fromList $
   , ("=", option (str "=") $ try $ tok >>= accent macron)
   , ("c", option (str "c") $ try $ tok >>= accent cedilla)
   , ("v", option (str "v") $ try $ tok >>= accent hacek)
+  , ("u", option (str "u") $ try $ tok >>= accent breve)
   , ("i", lit "i")
   , ("\\", linebreak <$ (optional (bracketed inline) *> optional sp))
   , (",", pure mempty)
@@ -707,6 +708,21 @@ hacek 'u' = 'ǔ'
 hacek 'Z' = 'Ž'
 hacek 'z' = 'ž'
 hacek c   = c
+
+breve :: Char -> Char
+breve 'A' = 'Ă'
+breve 'a' = 'ă'
+breve 'E' = 'Ĕ'
+breve 'e' = 'ĕ'
+breve 'G' = 'Ğ'
+breve 'g' = 'ğ'
+breve 'I' = 'Ĭ'
+breve 'i' = 'ĭ'
+breve 'O' = 'Ŏ'
+breve 'o' = 'ŏ'
+breve 'U' = 'Ŭ'
+breve 'u' = 'ŭ'
+breve c   = c
 
 tok :: LP Inlines
 tok = try $ grouped inline <|> inlineCommand <|> str <$> (count 1 $ inlineChar)
