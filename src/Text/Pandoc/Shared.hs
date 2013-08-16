@@ -391,6 +391,7 @@ stringify = query go
         go (Str x) = x
         go (Code _ x) = x
         go (Math _ x) = x
+        go (Note _)  = ""
         go LineBreak = " "
         go _ = ""
 
