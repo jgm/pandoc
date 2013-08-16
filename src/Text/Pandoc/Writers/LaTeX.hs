@@ -498,14 +498,15 @@ sectionHeader unnumbered ref level lst = do
   let noNote (Note _) = Str ""
       noNote x        = x
   let lstNoNotes = walk noNote lst
+  txtNoNotes <- inlineListToLaTeX lstNoNotes
   let star = if unnumbered then text "*" else empty
-  -- footnotes in sections don't work unless you specify an optional
-  -- argument:  \section[mysec]{mysec\footnote{blah}}
-  optional <- if lstNoNotes == lst
+  -- footnotes in sections don't work (except for starred variants)
+  -- unless you specify an optional argument:
+  -- \section[mysec]{mysec\footnote{blah}}
+  optional <- if unnumbered || lstNoNotes == lst
                  then return empty
                  else do
-                   res <- inlineListToLaTeX lstNoNotes
-                   return $ char '[' <> res <> char ']'
+                   return $ brackets txtNoNotes
   let stuffing = star <> optional <> braces txt
   book <- gets stBook
   opts <- gets stOptions
@@ -536,7 +537,7 @@ sectionHeader unnumbered ref level lst = do
                    $$ if unnumbered
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
-                                braces txt
+                                braces txtNoNotes
                          else empty
 
 -- | Convert list of inline elements to LaTeX.

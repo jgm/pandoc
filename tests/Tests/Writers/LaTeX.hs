@@ -36,4 +36,10 @@ tests = [ testGroup "code blocks"
           [ "escape |" =: para (math "\\sigma|_{\\{x\\}}") =?>
             "$\\sigma|_{\\{x\\}}$"
           ]
+        , testGroup "headers"
+          [ "unnumbered header" =:
+            headerWith ("foo",["unnumbered"],[]) 1
+              (text "Header 1" <> note (plain $ text "note")) =?>
+            "\\section*{Header 1\\footnote{note}}\\label{foo}\n\\addcontentsline{toc}{section}{Header 1}\n"
+          ]
         ]
