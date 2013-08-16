@@ -315,12 +315,14 @@ authors = try $ do
   addMeta "authors" (map trimInlines auths)
 
 section :: Attr -> Int -> LP Blocks
-section attr lvl = do
+section (ident, classes, kvs) lvl = do
   hasChapters <- stateHasChapters `fmap` getState
   let lvl' = if hasChapters then lvl + 1 else lvl
   skipopts
   contents <- grouped inline
-  return $ headerWith attr lvl' contents
+  lab <- option ident $ try $ spaces >> controlSeq "label" >>
+           spaces >> braced
+  return $ headerWith (lab, classes, kvs) lvl' contents
 
 inlineCommand :: LP Inlines
 inlineCommand = try $ do
