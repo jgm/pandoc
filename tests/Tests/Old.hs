@@ -124,6 +124,11 @@ tests = [ testGroup "markdown"
           , test "reader" ["-r", "mediawiki", "-w", "native", "-s"]
             "mediawiki-reader.wiki" "mediawiki-reader.native"
           ]
+        , testGroup "dokuwiki"
+          [ testGroup "writer" $ writerTests "dokuwiki"
+          , test "writer-more" ["-r", "native", "-w", "dokuwiki", "-s"]
+            "dokuwiki-writer.native" "dokuwiki-writer.dokuwiki"
+          ]
         , testGroup "opml"
           [ test "basic" ["-r", "native", "-w", "opml", "--columns=78", "-s"]
              "testsuite.native" "writer.opml"
@@ -136,7 +141,7 @@ tests = [ testGroup "markdown"
           ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
           [ "opendocument" , "context" , "texinfo"
-          , "man" , "plain" , "rtf", "org", "asciidoc", "dokuwiki"
+          , "man" , "plain" , "rtf", "org", "asciidoc"
           ]
         ]
 
