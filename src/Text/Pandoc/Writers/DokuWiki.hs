@@ -36,7 +36,7 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
     [ ] Implement definition lists
     [ ] Don't generate lists using <ol> and <ul>
     [ ] Don't generate <div>
-    [ ] Implement conversion of tables
+    [ ] Implement alignment of text in tables
     [ ] Implement comments
     [ ] Work through the Dokuwiki spec, and check I've not missed anything out
     [ ] Test the output in Dokuwiki - and compare against the display of another format, e.g. HTML
@@ -160,7 +160,7 @@ blockToDokuWiki opts (Table capt aligns _ headers rows') = do
   head' <- if all null headers
               then return ""
               else do
-                 hs <- tableRowToDokuWiki opts alignStrings 0 headers
+                 hs <- tableHeaderToDokuWiki opts alignStrings 0 headers
                  return $ hs ++ "\n"
   body' <- zipWithM (tableRowToDokuWiki opts alignStrings) [1..] rows'
   return $ captionDoc ++ head' ++
@@ -314,6 +314,19 @@ vcat = intercalate "\n"
 
 -- Auxiliary functions for tables:
 
+-- TODO Eliminate copy-and-pasted code in tableHeaderToDokuWiki and tableRowToDokuWiki
+tableHeaderToDokuWiki :: WriterOptions
+                    -> [String]
+                    -> Int
+                    -> [[Block]]
+                    -> State WriterState String
+tableHeaderToDokuWiki opts alignStrings rownum cols' = do
+  let celltype = if rownum == 0 then "" else ""
+  cols'' <- sequence $ zipWith
+            (\alignment item -> tableItemToDokuWiki opts celltype alignment item)
+            alignStrings cols'
+  return $ "^ " ++ "" ++ joinHeaders cols'' ++ " ^"
+
 tableRowToDokuWiki :: WriterOptions
                     -> [String]
                     -> Int
@@ -347,6 +360,10 @@ tableItemToDokuWiki opts celltype align' item = do
 -- | Concatenates columns together.
 joinColumns :: [String] -> String
 joinColumns = intercalate " | "
+
+-- | Concatenates headers together.
+joinHeaders :: [String] -> String
+joinHeaders = intercalate " ^ "
 
 -- | Convert list of Pandoc block elements to DokuWiki.
 blockListToDokuWiki :: WriterOptions -- ^ Options
