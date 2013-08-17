@@ -143,7 +143,7 @@ blockToDokuWiki _ (CodeBlock (_,classes,_) str) = do
   let (beg, end) = if null at
                       then ("<code" ++ if null classes then ">" else " class=\"" ++ unwords classes ++ "\">", "</code>")
                       else ("<source lang=\"" ++ head at ++ "\">", "</source>")
-  return $ beg ++ escapeString str ++ end
+  return $ beg ++ str ++ end
 
 blockToDokuWiki opts (BlockQuote blocks) = do
   contents <- blockListToDokuWiki opts blocks

@@ -51,7 +51,7 @@ E-mail style:
 <blockquote>Code in a block quote:
 
 <code>sub status {
-    print &quot;working&quot;;
+    print "working";
 }</code>
 A list:
 
@@ -78,7 +78,7 @@ Code:
 <code>---- (should be four hyphens)
 
 sub status {
-    print &quot;working&quot;;
+    print "working";
 }
 
 this code block is indented by one tab</code>
@@ -86,7 +86,7 @@ And:
 
 <code>    this code block is indented by two tabs
 
-These should not be escaped:  \$ \\ \&gt; \[ \{</code>
+These should not be escaped:  \$ \\ \> \[ \{</code>
 
 ----
 
@@ -352,12 +352,12 @@ foo
 
 This should be a code block, though:
 
-<code>&lt;div&gt;
+<code><div>
     foo
-&lt;/div&gt;</code>
+</div></code>
 As should this:
 
-<code>&lt;div&gt;foo&lt;/div&gt;</code>
+<code><div>foo</div></code>
 Now, nested:
 
 <div>
@@ -386,14 +386,14 @@ Blah
 
 Code block:
 
-<code>&lt;!-- Comment --&gt;</code>
+<code><!-- Comment --></code>
 Just plain comment, with trailing spaces on the line:
 
 <!-- foo -->   
 
 Code:
 
-<code>&lt;hr /&gt;</code>
+<code><hr /></code>
 Hr’s:
 
 <hr>
@@ -617,7 +617,7 @@ An e-mail address: [[mailto:nobody@nowhere.net|nobody@nowhere.net]]
 </blockquote>
 Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code>
 
-<code>or here: &lt;http://example.com/&gt;</code>
+<code>or here: <http://example.com/></code>
 
 ----
 
@@ -639,7 +639,7 @@ Here is a footnote reference,((Here is the footnote. It can go anywhere after th
 
 Subsequent blocks are indented to show that they belong to the footnote (as with list items).
 
-<code>  { &lt;code&gt; }</code>
+<code>  { <code> }</code>
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
 )) This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note.((This is //easier// to type. Inline notes may contain [[http://google.com|links]] and <code>]</code> verbatim characters, as well as [bracketed text].
 ))
