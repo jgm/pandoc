@@ -1,1 +1,2 @@
-[Para [Str "hello",Space,Str "//",Space,Str "world"]]
+[Para [Str "hello",Space,Str "//",Space,Str "world",Space,Str "**",Space,Str "from",Space,Str "__",Space,Str "me"]
+,Para [Code ("",[],[]) "hello // world ** from __ me"]]
