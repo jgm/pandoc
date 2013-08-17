@@ -85,6 +85,11 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
      then return $ renderTemplate' (writerTemplate opts) context
      else return main
 
+-- | Escape special characters for MediaWiki.
+escapeString :: String -> String
+-- The spaces around // are to prevent touching in URLs inside inline code blocks
+escapeString str = substitute " // " " %%//%% " str
+
 -- | Convert Pandoc block element to DokuWiki.
 blockToDokuWiki :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
@@ -407,7 +412,7 @@ inlineToDokuWiki opts (Quoted DoubleQuote lst) = do
 inlineToDokuWiki opts (Cite _  lst) = inlineListToDokuWiki opts lst
 
 inlineToDokuWiki _ (Code _ str) =
-  return $ "''" ++ str++ "''"
+  return $ "''" ++ ( escapeString str ) ++ "''"
 
 inlineToDokuWiki _ (Str str) = return $ str
 
