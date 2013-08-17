@@ -121,6 +121,7 @@ Extra-Source-Files:
                  scripts/deemph.py,
                  scripts/myemph.py,
                  scripts/tikz.py,
+                 scripts/deflists.py,
                  -- tests
                  tests/bodybg.gif,
                  tests/docbook-reader.docbook
