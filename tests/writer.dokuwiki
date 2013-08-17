@@ -50,9 +50,9 @@ E-mail style:
 </blockquote>
 <blockquote>Code in a block quote:
 
-<pre>sub status {
+<code>sub status {
     print &quot;working&quot;;
-}</pre>
+}</code>
 A list:
 
   - item one
@@ -75,18 +75,18 @@ And a following paragraph.
 
 Code:
 
-<pre>---- (should be four hyphens)
+<code>---- (should be four hyphens)
 
 sub status {
     print &quot;working&quot;;
 }
 
-this code block is indented by one tab</pre>
+this code block is indented by one tab</code>
 And:
 
-<pre>    this code block is indented by two tabs
+<code>    this code block is indented by two tabs
 
-These should not be escaped:  \$ \\ \&gt; \[ \{</pre>
+These should not be escaped:  \$ \\ \&gt; \[ \{</code>
 
 ----
 
@@ -276,7 +276,7 @@ Multiple blocks with italics:
 <p>contains seeds, crisp, pleasant to taste</p></dd>
 <dt>//orange//</dt>
 <dd><p>orange fruit</p>
-<pre>{ orange code block }</pre>
+<code>{ orange code block }</code>
 <blockquote><p>orange block quote</p></blockquote></dd></dl>
 
 Multiple definitions, tight:
@@ -352,12 +352,12 @@ foo
 
 This should be a code block, though:
 
-<pre>&lt;div&gt;
+<code>&lt;div&gt;
     foo
-&lt;/div&gt;</pre>
+&lt;/div&gt;</code>
 As should this:
 
-<pre>&lt;div&gt;foo&lt;/div&gt;</pre>
+<code>&lt;div&gt;foo&lt;/div&gt;</code>
 Now, nested:
 
 <div>
@@ -386,14 +386,14 @@ Blah
 
 Code block:
 
-<pre>&lt;!-- Comment --&gt;</pre>
+<code>&lt;!-- Comment --&gt;</code>
 Just plain comment, with trailing spaces on the line:
 
 <!-- foo -->   
 
 Code:
 
-<pre>&lt;hr /&gt;</pre>
+<code>&lt;hr /&gt;</code>
 Hr’s:
 
 <hr>
@@ -588,7 +588,7 @@ Indented [[url|thrice]].
 
 This should [not][] be a link.
 
-<pre>[not]: /url</pre>
+<code>[not]: /url</code>
 Foo [[url/|bar]].
 
 Foo [[url/|biz]].
@@ -617,7 +617,7 @@ An e-mail address: [[mailto:nobody@nowhere.net|nobody@nowhere.net]]
 </blockquote>
 Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code>
 
-<pre>or here: &lt;http://example.com/&gt;</pre>
+<code>or here: &lt;http://example.com/&gt;</code>
 
 ----
 
@@ -639,7 +639,7 @@ Here is a footnote reference,((Here is the footnote. It can go anywhere after th
 
 Subsequent blocks are indented to show that they belong to the footnote (as with list items).
 
-<pre>  { &lt;code&gt; }</pre>
+<code>  { &lt;code&gt; }</code>
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
 )) This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note.((This is //easier// to type. Inline notes may contain [[http://google.com|links]] and <code>]</code> verbatim characters, as well as [bracketed text].
 ))

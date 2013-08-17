@@ -32,7 +32,6 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 
 {-
     [ ] Don't generate <blockquote>...
-    [ ] Don't generate <pre>...
     [ ] Implement definition lists
     [ ] Don't generate lists using <ol> and <ul>
     [ ] Don't generate <div>
@@ -142,7 +141,7 @@ blockToDokuWiki _ (CodeBlock (_,classes,_) str) = do
                        "smalltalk", "smarty", "sql", "tcl", "", "thinbasic", "tsql", "vb", "vbnet", "vhdl",
                        "visualfoxpro", "winbatch", "xml", "xpp", "z80"]
   let (beg, end) = if null at
-                      then ("<pre" ++ if null classes then ">" else " class=\"" ++ unwords classes ++ "\">", "</pre>")
+                      then ("<code" ++ if null classes then ">" else " class=\"" ++ unwords classes ++ "\">", "</code>")
                       else ("<source lang=\"" ++ head at ++ "\">", "</source>")
   return $ beg ++ escapeString str ++ end
 
