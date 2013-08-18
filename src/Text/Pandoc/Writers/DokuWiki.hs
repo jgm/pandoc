@@ -412,7 +412,16 @@ inlineToDokuWiki opts (Quoted DoubleQuote lst) = do
 inlineToDokuWiki opts (Cite _  lst) = inlineListToDokuWiki opts lst
 
 inlineToDokuWiki _ (Code _ str) =
-  return $ "''" ++ ( escapeString str ) ++ "''"
+  -- In dokuwiki, text surrounded by '' is really just a font statement, i.e. <tt>,
+  -- and so other formatting can be present inside.
+  -- However, in pandoc, and markdown, inlined code doesn't contain formatting.
+  -- So I have opted for using %% to disable all formatting inside inline code blocks.
+  -- This gives the best results when converting from other formats to dokuwiki, even if
+  -- the resultand code is a little ugly, for short strings that don't contain formatting
+  -- characters.
+  -- It does mean that if pandoc could ever read dokuwiki, and so round-trip the format,
+  -- any formatting inside inlined code blocks would be lost, or presented incorrectly.
+  return $ "''%%" ++ str ++ "%%''"
 
 inlineToDokuWiki _ (Str str) = return $ str
 
