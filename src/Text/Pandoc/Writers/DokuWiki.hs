@@ -87,8 +87,7 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
 
 -- | Escape special characters for MediaWiki.
 escapeString :: String -> String
--- The spaces around // are to prevent touching in URLs inside inline code blocks
-escapeString str = substitute " // " " %%//%% " str
+escapeString str = substitute "//" "%%//%%" str
 
 -- | Convert Pandoc block element to DokuWiki.
 blockToDokuWiki :: WriterOptions -- ^ Options
@@ -423,7 +422,7 @@ inlineToDokuWiki _ (Code _ str) =
   -- any formatting inside inlined code blocks would be lost, or presented incorrectly.
   return $ "''%%" ++ str ++ "%%''"
 
-inlineToDokuWiki _ (Str str) = return $ str
+inlineToDokuWiki _ (Str str) = return $ escapeString str
 
 inlineToDokuWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
                                  -- note:  str should NOT be escaped
