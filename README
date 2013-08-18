@@ -259,13 +259,30 @@ Reader options
     require different kinds of images.  Currently this option only affects
     the markdown and LaTeX readers.
 
-`--filter=`*PATH*
+`--filter=`*EXECUTABLE*
 :   Specify an executable to be used as a filter transforming the
     Pandoc AST after the input is parsed and before the output is
     written.  The executable should read JSON from stdin and write
     JSON to stdout.  The JSON must be formatted like  pandoc's own
-    JSON input and output.  Filters may be most easily created in Haskell,
-    using the utility function `toJsonFilter` from `Text.Pandoc`.
+    JSON input and output.  The name of the output format will be
+    passed to the filter as the first argument.  Hence,
+
+        pandoc --filter ./caps.py -t latex
+
+    is equivalent to
+
+        pandoc -t json | ./caps.py latex | pandoc -f json -t latex
+
+    The latter form may be useful for debugging filters.
+
+    Filters may be written in any language.  `Text.Pandoc.JSON`
+    exports `toJSONFilter` to facilitate writing filters in Haskell.
+    Those who would prefer to write filters in pandoc can use the
+    module `pandoc.py`:  see <http://github.com/jgm/pandoc-filters-python>
+    for the module and several examples.  Note that the *EXECUTABLE*
+    will be sought in the user's `PATH`, and not in the working directory,
+    if no directory is provided.  If you want to run a script in the
+    working directory, preface the filename with `./`.
 
 `--normalize`
 :   Normalize the document after reading:  merge adjacent
