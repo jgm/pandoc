@@ -112,16 +112,6 @@ Extra-Source-Files:
                  -- generated man pages (produced post-build)
                  man/man1/pandoc.1,
                  man/man5/pandoc_markdown.5,
-                 -- python library and sample python scripts
-                 scripts/abc.py,
-                 scripts/comments.py,
-                 scripts/graphviz.py,
-                 scripts/pandoc.py,
-                 scripts/caps.py,
-                 scripts/deemph.py,
-                 scripts/myemph.py,
-                 scripts/tikz.py,
-                 scripts/deflists.py,
                  -- tests
                  tests/bodybg.gif,
                  tests/docbook-reader.docbook
