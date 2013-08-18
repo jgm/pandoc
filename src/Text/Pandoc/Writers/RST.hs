@@ -161,7 +161,11 @@ bordered contents c =
 blockToRST :: Block         -- ^ Block element
            -> State WriterState Doc
 blockToRST Null = return empty
-blockToRST (Div _ bs) = blockListToRST bs
+blockToRST (Div attr bs) = do
+  contents <- blockListToRST bs
+  let startTag = ".. raw:: html" $+$ nest 3 (tagWithAttrs "div" attr)
+  let endTag = ".. raw:: html" $+$ nest 3 "</div>"
+  return $ blankline <> startTag $+$ contents $+$ endTag $$ blankline
 blockToRST (Plain inlines) = inlineListToRST inlines
 -- title beginning with fig: indicates that the image is a figure
 blockToRST (Para [Image txt (src,'f':'i':'g':':':tit)]) = do

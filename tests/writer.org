@@ -359,7 +359,13 @@ And nested without indentation:
 
 #+BEGIN_HTML
   <div>
+#+END_HTML
+
+#+BEGIN_HTML
   <div>
+#+END_HTML
+
+#+BEGIN_HTML
   <div>
 #+END_HTML
 
@@ -367,7 +373,13 @@ foo
 
 #+BEGIN_HTML
   </div>
+#+END_HTML
+
+#+BEGIN_HTML
   </div>
+#+END_HTML
+
+#+BEGIN_HTML
   <div>
 #+END_HTML
 
@@ -375,6 +387,9 @@ bar
 
 #+BEGIN_HTML
   </div>
+#+END_HTML
+
+#+BEGIN_HTML
   </div>
 #+END_HTML
 
@@ -407,7 +422,6 @@ Here's a simple block:
 
 #+BEGIN_HTML
   <div>
-      
 #+END_HTML
 
 foo
@@ -434,16 +448,27 @@ Now, nested:
 
 #+BEGIN_HTML
   <div>
-      <div>
-          <div>
-              
+#+END_HTML
+
+#+BEGIN_HTML
+  <div>
+#+END_HTML
+
+#+BEGIN_HTML
+  <div>
 #+END_HTML
 
 foo
 
 #+BEGIN_HTML
   </div>
-      </div>
+#+END_HTML
+
+#+BEGIN_HTML
+  </div>
+#+END_HTML
+
+#+BEGIN_HTML
   </div>
 #+END_HTML
 

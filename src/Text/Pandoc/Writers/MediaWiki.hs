@@ -34,6 +34,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
+import Text.Pandoc.Pretty (render)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.XML ( escapeStringForXML )
 import Data.List ( intersect, intercalate, intersperse )
@@ -83,8 +84,10 @@ blockToMediaWiki :: WriterOptions -- ^ Options
 
 blockToMediaWiki _ Null = return ""
 
-blockToMediaWiki opts (Div _ bs) =
-  blockListToMediaWiki opts bs
+blockToMediaWiki opts (Div attrs bs) = do
+  contents <- blockListToMediaWiki opts bs
+  return $ render Nothing (tagWithAttrs "div" attrs) ++ "\n\n" ++
+                     contents ++ "\n\n" ++ "</div>"
 
 blockToMediaWiki opts (Plain inlines) =
   inlineListToMediaWiki opts inlines
@@ -332,8 +335,9 @@ inlineListToMediaWiki opts lst =
 -- | Convert Pandoc inline element to MediaWiki.
 inlineToMediaWiki :: WriterOptions -> Inline -> State WriterState String
 
-inlineToMediaWiki opts (Span _ ils) =
-  inlineListToMediaWiki opts ils
+inlineToMediaWiki opts (Span attrs ils) = do
+  contents <- inlineListToMediaWiki opts ils
+  return $ render Nothing (tagWithAttrs "span" attrs) ++ contents ++ "</span>"
 
 inlineToMediaWiki opts (Emph lst) = do
   contents <- inlineListToMediaWiki opts lst

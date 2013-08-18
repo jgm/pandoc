@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2013 John MacFarlane <jgm@berkeley.edu>
 
@@ -32,9 +33,12 @@ module Text.Pandoc.Writers.Shared (
                      , getField
                      , setField
                      , defField
+                     , tagWithAttrs
                      )
 where
 import Text.Pandoc.Definition
+import Text.Pandoc.Pretty
+import Text.Pandoc.XML (escapeStringForXML)
 import Control.Monad (liftM)
 import Text.Pandoc.Options (WriterOptions(..))
 import qualified Data.HashMap.Strict as H
@@ -120,3 +124,17 @@ defField field val (Object hashmap) =
     where f _newval oldval = oldval
 defField _ _  x = x
 
+-- Produce an HTML tag with the given pandoc attributes.
+tagWithAttrs :: String -> Attr -> Doc
+tagWithAttrs tag (ident,classes,kvs) = hsep
+  ["<" <> text tag
+  ,if null ident
+      then empty
+      else "id=" <> doubleQuotes (text ident)
+  ,if null classes
+      then empty
+      else "class=" <> doubleQuotes (text (unwords classes))
+  ]
+  <> hsep (map (\(k,v) -> text k <> "=" <>
+                doubleQuotes (text (escapeStringForXML v))) kvs)
+  <> ">"

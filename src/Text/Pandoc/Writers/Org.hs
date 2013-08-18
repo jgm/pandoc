@@ -106,7 +106,14 @@ escapeString = escapeStringUsing $
 blockToOrg :: Block         -- ^ Block element
            -> State WriterState Doc
 blockToOrg Null = return empty
-blockToOrg (Div _ bs) = blockListToOrg bs
+blockToOrg (Div attrs bs) = do
+  contents <- blockListToOrg bs
+  let startTag = tagWithAttrs "div" attrs
+  let endTag = text "</div>"
+  return $ blankline $$ "#+BEGIN_HTML" $$
+           nest 2 startTag $$ "#+END_HTML" $$ blankline $$
+           contents $$ blankline $$ "#+BEGIN_HTML" $$
+           nest 2 endTag $$ "#+END_HTML" $$ blankline
 blockToOrg (Plain inlines) = inlineListToOrg inlines
 -- title beginning with fig: indicates that the image is a figure
 blockToOrg (Para [Image txt (src,'f':'i':'g':':':tit)]) = do

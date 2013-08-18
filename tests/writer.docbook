@@ -862,22 +862,18 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Simple block on one line:
   </para>
-  <div>
-  foo
-  </div>
+  <para>
+    foo
+  </para>
   <para>
     And nested without indentation:
   </para>
-  <div>
-  <div>
-  <div>
-  foo
-  </div>
-  </div>
-  <div>
-  bar
-  </div>
-  </div>
+  <para>
+    foo
+  </para>
+  <para>
+    bar
+  </para>
   <para>
     Interpreted markdown in a table:
   </para>
@@ -896,10 +892,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Here’s a simple block:
   </para>
-  <div>
-      
-  foo
-  </div>
+  <para>
+    foo
+  </para>
   <para>
     This should be a code block, though:
   </para>
@@ -917,14 +912,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Now, nested:
   </para>
-  <div>
-      <div>
-          <div>
-              
-  foo
-  </div>
-      </div>
-  </div>
+  <para>
+    foo
+  </para>
   <para>
     This should just be an HTML comment:
   </para>

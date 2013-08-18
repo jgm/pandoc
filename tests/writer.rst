@@ -394,7 +394,13 @@ And nested without indentation:
 .. raw:: html
 
    <div>
+
+.. raw:: html
+
    <div>
+
+.. raw:: html
+
    <div>
 
 foo
@@ -402,7 +408,13 @@ foo
 .. raw:: html
 
    </div>
+
+.. raw:: html
+
    </div>
+
+.. raw:: html
+
    <div>
 
 bar
@@ -410,6 +422,9 @@ bar
 .. raw:: html
 
    </div>
+
+.. raw:: html
+
    </div>
 
 Interpreted markdown in a table:
@@ -442,7 +457,6 @@ Here’s a simple block:
 .. raw:: html
 
    <div>
-       
 
 foo
 
@@ -469,16 +483,27 @@ Now, nested:
 .. raw:: html
 
    <div>
-       <div>
-           <div>
-               
+
+.. raw:: html
+
+   <div>
+
+.. raw:: html
+
+   <div>
 
 foo
 
 .. raw:: html
 
    </div>
-       </div>
+
+.. raw:: html
+
+   </div>
+
+.. raw:: html
+
    </div>
 
 This should just be an HTML comment:

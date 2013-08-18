@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables #-}
 {-
-Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2013 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Markdown
-   Copyright   : Copyright (C) 2006-2010 John MacFarlane
+   Copyright   : Copyright (C) 2006-2013 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -301,7 +301,13 @@ blockToMarkdown :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc
 blockToMarkdown _ Null = return empty
-blockToMarkdown opts (Div _ bs) = blockListToMarkdown opts bs
+blockToMarkdown opts (Div attrs ils) = do
+  isPlain <- gets stPlain
+  contents <- blockListToMarkdown opts ils
+  return $ if isPlain
+              then contents <> blankline
+              else tagWithAttrs "div" attrs <> blankline <>
+                     contents <> blankline <> "</div>" <> blankline
 blockToMarkdown opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
   return $ contents <> cr
@@ -629,8 +635,9 @@ escapeSpaces x = x
 
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
-inlineToMarkdown opts (Span _ ils) =
-  inlineListToMarkdown opts ils
+inlineToMarkdown opts (Span attrs ils) = do
+  contents <- inlineListToMarkdown opts ils
+  return $ tagWithAttrs "span" attrs <> contents <> text "</span>"
 inlineToMarkdown opts (Emph lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "*" <> contents <> "*"
