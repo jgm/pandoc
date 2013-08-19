@@ -203,13 +203,10 @@ dateLine = try $ do
   skipSpaces
   trimInlinesF . mconcat <$> manyTill inline newline
 
-titleBlock :: MarkdownParser (F (Pandoc -> Pandoc))
-titleBlock = pandocTitleBlock
-         <|> yamlTitleBlock
-         <|> mmdTitleBlock
-         <|> return (return id)
+titleBlock :: MarkdownParser ()
+titleBlock = pandocTitleBlock <|> mmdTitleBlock
 
-pandocTitleBlock :: MarkdownParser (F (Pandoc -> Pandoc))
+pandocTitleBlock :: MarkdownParser ()
 pandocTitleBlock = try $ do
   guardEnabled Ext_pandoc_title_block
   lookAhead (char '%')
@@ -217,16 +214,18 @@ pandocTitleBlock = try $ do
   author <- option (return []) authorsLine
   date <- option mempty dateLine
   optional blanklines
-  return $ do
-    title' <- title
-    author' <- author
-    date' <- date
-    return $ if B.isNull title' then id else B.setMeta "title" title'
-           . if null author' then id else B.setMeta "author" author'
-           . if B.isNull date' then id else B.setMeta "date" date'
+  let meta' = do title' <- title
+                 author' <- author
+                 date' <- date
+                 return $
+                   ( if B.isNull title' then id else B.setMeta "title" title'
+                   . if null author' then id else B.setMeta "author" author'
+                   . if B.isNull date' then id else B.setMeta "date" date' )
+                   nullMeta
+  updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
 
-yamlTitleBlock :: MarkdownParser (F (Pandoc -> Pandoc))
-yamlTitleBlock = try $ do
+yamlMetaBlock :: MarkdownParser (F Blocks)
+yamlMetaBlock = try $ do
   guardEnabled Ext_yaml_metadata_block
   pos <- getPosition
   string "---"
@@ -236,33 +235,39 @@ yamlTitleBlock = try $ do
   let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
   opts <- stateOptions <$> getState
-  case Yaml.decodeEither' $ UTF8.fromString rawYaml of
-       Right (Yaml.Object hashmap) -> return $ return $
-                H.foldrWithKey (\k v f ->
-                     if ignorable k
-                        then f
-                        else B.setMeta (T.unpack k) (yamlToMeta opts v) . f)
-                  id hashmap
-       Right Yaml.Null -> return $ return id
-       Right _ -> do
-                   addWarning (Just pos) "YAML header is not an object"
-                   return $ return id
-       Left err' -> do
-                case err' of
-                   InvalidYaml (Just YamlParseException{
-                               yamlProblem = problem
-                             , yamlContext = _ctxt
-                             , yamlProblemMark = Yaml.YamlMark {
-                                   yamlLine = yline
-                                 , yamlColumn = ycol
-                             }}) ->
-                        addWarning (Just $ setSourceLine
-                           (setSourceColumn pos (sourceColumn pos + ycol))
-                           (sourceLine pos + 1 + yline))
-                           $ "Could not parse YAML header: " ++ problem
-                   _ -> addWarning (Just pos)
-                           $ "Could not parse YAML header: " ++ show err'
-                return $ return id
+  meta' <- case Yaml.decodeEither' $ UTF8.fromString rawYaml of
+                Right (Yaml.Object hashmap) -> return $ return $
+                         H.foldrWithKey (\k v m ->
+                              if ignorable k
+                                 then m
+                                 else B.setMeta (T.unpack k)
+                                            (yamlToMeta opts v) m)
+                           nullMeta hashmap
+                Right Yaml.Null -> return $ return nullMeta
+                Right _ -> do
+                            addWarning (Just pos) "YAML header is not an object"
+                            return $ return nullMeta
+                Left err' -> do
+                         case err' of
+                            InvalidYaml (Just YamlParseException{
+                                        yamlProblem = problem
+                                      , yamlContext = _ctxt
+                                      , yamlProblemMark = Yaml.YamlMark {
+                                            yamlLine = yline
+                                          , yamlColumn = ycol
+                                      }}) ->
+                                 addWarning (Just $ setSourceLine
+                                    (setSourceColumn pos
+                                       (sourceColumn pos + ycol))
+                                    (sourceLine pos + 1 + yline))
+                                    $ "Could not parse YAML header: " ++
+                                        problem
+                            _ -> addWarning (Just pos)
+                                    $ "Could not parse YAML header: " ++
+                                        show err'
+                         return $ return nullMeta
+  updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
+  return mempty
 
 -- ignore fields ending with _
 ignorable :: Text -> Bool
@@ -295,13 +300,13 @@ yamlToMeta _ _ = MetaString ""
 stopLine :: MarkdownParser ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
 
-mmdTitleBlock :: MarkdownParser (F (Pandoc -> Pandoc))
+mmdTitleBlock :: MarkdownParser ()
 mmdTitleBlock = try $ do
   guardEnabled Ext_mmd_title_block
   kvPairs <- many1 kvPair
   blanklines
-  return $ return $ \(Pandoc m bs) ->
-             Pandoc (foldl (\m' (k,v) -> addMetaField k v m') m kvPairs) bs
+  updateState $ \st -> st{ stateMeta' = stateMeta' st <>
+                             return (Meta $ M.fromList kvPairs) }
 
 kvPair :: MarkdownParser (String, MetaValue)
 kvPair = try $ do
@@ -318,15 +323,14 @@ parseMarkdown = do
   updateState $ \state -> state { stateOptions =
                 let oldOpts = stateOptions state in
                     oldOpts{ readerParseRaw = True } }
-  titleTrans <- option (return id) titleBlock
+  optional titleBlock
   blocks <- parseBlocks
   st <- getState
+  let meta = runF (stateMeta' st) st
+  let Pandoc _ bs = B.doc $ runF blocks st
   mbsty <- getOption readerCitationStyle
   refs <- getOption readerReferences
-  return $ processBiblio mbsty refs
-         $ runF titleTrans st
-         $ B.doc
-         $ runF blocks st
+  return $ processBiblio mbsty refs $ Pandoc meta bs
 
 addWarning :: Maybe SourcePos -> String -> MarkdownParser ()
 addWarning mbpos msg =
@@ -442,6 +446,7 @@ parseBlocks = mconcat <$> manyTill block eof
 block :: MarkdownParser (F Blocks)
 block = choice [ mempty <$ blanklines
                , codeBlockFenced
+               , yamlMetaBlock
                , guardEnabled Ext_latex_macros *> (macro >>= return . return)
                , header
                , lhsCodeBlock
