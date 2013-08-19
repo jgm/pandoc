@@ -470,9 +470,13 @@ tableRowToLaTeX header aligns widths cols = do
                   AlignRight   -> "\\raggedleft"
                   AlignCenter  -> "\\centering"
                   AlignDefault -> "\\raggedright"
+  -- scale factor compensates for extra space between columns
+  -- so the whole table isn't larger than columnwidth
+  let scaleFactor = 0.97 ** fromIntegral (length aligns)
   let toCell 0 _ c = c
       toCell w a c = "\\begin{minipage}" <> valign <>
-                     braces (text (printf "%.2f\\columnwidth" w)) <>
+                     braces (text (printf "%.2f\\columnwidth"
+                                    (w * scaleFactor))) <>
                      (halign a <> cr <> c <> cr) <> "\\end{minipage}"
   let cells = zipWith3 toCell widths aligns renderedCells
   return $ hsep (intersperse "&" cells) $$ "\\\\\\noalign{\\medskip}"
