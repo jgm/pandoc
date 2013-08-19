@@ -275,8 +275,8 @@ definitionListItemToDokuWiki opts (label, items) = do
 isSimpleList :: Block -> Bool
 isSimpleList x =
   case x of
-       BulletList items                 -> True
-       OrderedList (num, sty, _) items  -> True
+       BulletList _                     -> True
+       OrderedList _ _                  -> True
        DefinitionList items             -> all isSimpleListItem $ concatMap snd items
        _                                -> False
 
