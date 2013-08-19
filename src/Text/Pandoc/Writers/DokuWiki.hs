@@ -431,7 +431,7 @@ inlineToDokuWiki _ (RawInline "mediawiki" str) = return str
 inlineToDokuWiki _ (RawInline "html" str) = return str
 inlineToDokuWiki _ (RawInline _ _) = return ""
 
-inlineToDokuWiki _ (LineBreak) = return "\\\\\n"
+inlineToDokuWiki _ (LineBreak) = return "\\\\ "
 
 inlineToDokuWiki _ Space = return " "
 
