@@ -1,33 +1,35 @@
 Pandoc with citeproc-hs
 =======================
 
--   [@nonexistent]
+-   [^1]
 
--   @nonexistent
+-   [^2]
 
--   John Doe[^1] says blah.
-
--   Doe[^2] says blah.
-
--   Doe[^3] says blah.
+-   John Doe[^3] says blah.
 
 -   Doe[^4] says blah.
 
--   In a note.[^5]
+-   Doe[^5] says blah.
 
--   A citation group.[^6]
+-   Doe[^6] says blah.
 
--   Another one.[^7]
+-   In a note.[^7]
 
--   And another one in a note.[^8]
+-   A citation group.[^8]
 
--   Citation with a suffix and locator.[^9]
+-   Another one.[^9]
 
--   Citation with suffix only.[^10]
+-   And another one in a note.[^10]
 
--   Now some modifiers.[^11]
+-   Citation with a suffix and locator.[^11]
 
--   With some markup.[^12]
+-   Citation with suffix only.[^12]
+
+-   Now some modifiers.[^13]
+
+-   With some markup.[^14]
+
+<div class="references">
 
 References
 ==========
@@ -38,26 +40,34 @@ Doe, John, ‘Article’, *Journal of Generic Studies*, 6 (2006), 33–34.
 
 Doe, John, and Jenny Roe, ‘Why Water Is Wet’, in *Third Book*, ed. by Sam Smith (Oxford: Oxford University Press, 2007).
 
-[^1]: *First Book* (Cambridge: Cambridge University Press, 2005).
+‘Nonexistent Not Found!’.
 
-[^2]: *First Book*, p. 30.
+</div>
 
-[^3]: *First Book*, p. 30, with suffix.
+[^1]: [CSL BIBLIOGRAPHIC DATA ERROR: reference "nonexistent" not found.].
 
-[^4]: *First Book*; ‘Article’, *Journal of Generic Studies*, 6 (2006), 33–34 (p. 30); see also John Doe and Jenny Roe, ‘Why Water Is Wet’, in *Third Book*, ed. by Sam Smith (Oxford: Oxford University Press, 2007).
+[^2]: [CSL STYLE ERROR: reference with no printed form.].
 
-[^5]: Doe and Roe, p. 12 and a citation without locators Doe and Roe.
+[^3]: *First Book* (Cambridge: Cambridge University Press, 2005).
 
-[^6]: See Doe, *First Book*, chap. 3; also Doe and Roe, pp. 34–35.
+[^4]: *First Book*, p. 30.
 
-[^7]: See Doe, *First Book*, pp. 34–35.
+[^5]: *First Book*, p. 30, with suffix.
 
-[^8]: Some citations see Doe, *First Book*, chap. 3; Doe and Roe; Doe, ‘Article’, 33–34.
+[^6]: *First Book*; ‘Article’, *Journal of Generic Studies*, 6 (2006), 33–34 (p. 30); see also John Doe and Jenny Roe, ‘Why Water Is Wet’, in *Third Book*, ed. by Sam Smith (Oxford: Oxford University Press, 2007).
 
-[^9]: Doe, *First Book*, pp. 33, 35–37, and nowhere else.
+[^7]: Doe and Roe, p. 12 and a citation without locators Doe and Roe.
 
-[^10]: Doe, *First Book* and nowhere else.
+[^8]: See Doe, *First Book*, chap. 3; also Doe and Roe, pp. 34–35.
 
-[^11]: Like a citation without author: *First Book*, and now Doe with a locator ‘Article’, 33–34 (p. 44).
+[^9]: See Doe, *First Book*, pp. 34–35.
 
-[^12]: *See* Doe, *First Book*, p. 32.
+[^10]: Some citations see Doe, *First Book*, chap. 3; Doe and Roe; Doe, ‘Article’, 33–34.
+
+[^11]: Doe, *First Book*, pp. 33, 35–37, and nowhere else.
+
+[^12]: Doe, *First Book* and nowhere else.
+
+[^13]: Like a citation without author: *First Book*, and now Doe with a locator ‘Article’, 33–34 (p. 44).
+
+[^14]: *See* Doe, *First Book*, p. 32.

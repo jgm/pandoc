@@ -1,9 +1,9 @@
 Pandoc with citeproc-hs
 =======================
 
--   [@nonexistent]
+-   ([CSL BIBLIOGRAPHIC DATA ERROR: reference "nonexistent" not found.])
 
--   @nonexistent
+-    ([CSL BIBLIOGRAPHIC DATA ERROR: reference "nonexistent" not found.])
 
 -   Doe (2005) says blah.
 
@@ -29,14 +29,20 @@ Pandoc with citeproc-hs
 
 -   With some markup (*see* Doe 2005, 32).
 
+<div class="references">
+
 References
 ==========
+
+“Nonexistent Not Found!”
 
 Doe, John. 2005. *First Book*. Cambridge: Cambridge University Press.
 
 ———. 2006. “Article.” *Journal of Generic Studies* 6: 33–34.
 
 Doe, John, and Jenny Roe. 2007. “Why Water Is Wet.” In *Third Book*, edited by Sam Smith. Oxford: Oxford University Press.
+
+</div>
 
 [^1]: Doe and Roe (2007, 12) and a citation without locators (Doe and Roe 2007).
 

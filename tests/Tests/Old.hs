@@ -196,7 +196,7 @@ markdownCitationTests
      ++ [test "natbib" wopts "markdown-citations.txt"
          "markdown-citations.txt"]
   where
-    ropts             = ["-r", "markdown", "-w", "markdown", "--bibliography",
+    ropts             = ["-r", "markdown", "-w", "markdown-citations", "--bibliography",
                          "biblio.bib", "--no-wrap"]
     wopts             = ["-r", "markdown", "-w", "markdown", "--no-wrap", "--natbib"]
     styleToTest style = test style (ropts ++ ["--csl", style ++ ".csl"])
