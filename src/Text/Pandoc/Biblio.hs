@@ -55,7 +55,10 @@ processBiblio (Just style) r p =
       cits_map   = M.fromList $ zip grps (citations result)
       biblioList = map (renderPandoc' style) (bibliography result)
       Pandoc m b = bottomUp mvPunct . deNote . topDown (processCite style cits_map) $ p'
-  in  Pandoc m $ b ++ biblioList
+      (bs, lastb) = case reverse b of
+                         x@(Header _ _ _) : xs -> (reverse xs, [x])
+                         _                     -> (b,  [])
+  in  Pandoc m $ bs ++ [Div ("",["references"],[]) (lastb ++ biblioList)]
 
 -- | Substitute 'Cite' elements with formatted citations.
 processCite :: Style -> M.Map [Citation] [FormattedOutput] -> Inline -> Inline

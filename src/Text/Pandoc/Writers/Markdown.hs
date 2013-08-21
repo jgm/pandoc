@@ -186,7 +186,12 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let toc = if writerTableOfContents opts
                then tableOfContents opts headerBlocks
                else empty
-  body <- blockListToMarkdown opts blocks
+  -- Strip off final 'references' header if markdown citations enabled
+  let blocks' = case reverse blocks of
+                     (Div (_,["references"],_) _):xs
+                       | isEnabled Ext_citations opts -> reverse xs
+                     _ -> blocks
+  body <- blockListToMarkdown opts blocks'
   st <- get
   notes' <- notesToMarkdown opts (reverse $ stNotes st)
   st' <- get  -- note that the notes may contain refs
@@ -304,10 +309,10 @@ blockToMarkdown _ Null = return empty
 blockToMarkdown opts (Div attrs ils) = do
   isPlain <- gets stPlain
   contents <- blockListToMarkdown opts ils
-  return $ if isPlain
+  return $ if isPlain || not (isEnabled Ext_markdown_in_html_blocks opts)
               then contents <> blankline
               else tagWithAttrs "div" attrs <> blankline <>
-                     contents <> blankline <> "</div>" <> blankline
+                      contents <> blankline <> "</div>" <> blankline
 blockToMarkdown opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
   return $ contents <> cr
@@ -711,17 +716,20 @@ inlineToMarkdown opts (LineBreak)
   | isEnabled Ext_escaped_line_breaks opts = return $ "\\" <> cr
   | otherwise                              = return $ "  " <> cr
 inlineToMarkdown _ Space = return space
-inlineToMarkdown opts (Cite (c:cs) lst@[RawInline "latex" _])
+inlineToMarkdown opts (Cite [] lst) = inlineListToMarkdown opts lst
+inlineToMarkdown opts (Cite (c:cs) lst)
   | not (isEnabled Ext_citations opts) = inlineListToMarkdown opts lst
-  | citationMode c == AuthorInText = do
-    suffs <- inlineListToMarkdown opts $ citationSuffix c
-    rest <- mapM convertOne cs
-    let inbr = suffs <+> joincits rest
-        br   = if isEmpty inbr then empty else char '[' <> inbr <> char ']'
-    return $ text ("@" ++ citationId c) <+> br
-  | otherwise = do
-    cits <- mapM convertOne (c:cs)
-    return $ text "[" <> joincits cits <> text "]"
+  | otherwise =
+      if citationMode c == AuthorInText
+         then do
+           suffs <- inlineListToMarkdown opts $ citationSuffix c
+           rest <- mapM convertOne cs
+           let inbr = suffs <+> joincits rest
+               br   = if isEmpty inbr then empty else char '[' <> inbr <> char ']'
+           return $ text ("@" ++ citationId c) <+> br
+         else do
+           cits <- mapM convertOne (c:cs)
+           return $ text "[" <> joincits cits <> text "]"
   where
         joincits = hcat . intersperse (text "; ") . filter (not . isEmpty)
         convertOne Citation { citationId      = k
@@ -738,7 +746,6 @@ inlineToMarkdown opts (Cite (c:cs) lst@[RawInline "latex" _])
            return $ pdoc <+> r
         modekey SuppressAuthor = "-"
         modekey _              = ""
-inlineToMarkdown opts (Cite _ lst) = inlineListToMarkdown opts lst
 inlineToMarkdown opts (Link txt (src, tit)) = do
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit
