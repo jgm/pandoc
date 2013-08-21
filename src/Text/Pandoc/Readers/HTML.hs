@@ -284,22 +284,31 @@ pPara = do
 
 pCodeBlock :: TagParser [Block]
 pCodeBlock = try $ do
-  TagOpen _ attr <- pSatisfy (~== TagOpen "pre" [])
+  opentag@(TagOpen _ attr) <- pSatisfy (~== TagOpen "pre" [])
   contents <- manyTill pAnyTag (pCloses "pre" <|> eof)
-  let rawText = concatMap fromTagText $ filter isTagText contents
-  -- drop leading newline if any
-  let result' = case rawText of
-                     '\n':xs  -> xs
-                     _        -> rawText
-  -- drop trailing newline if any
-  let result = case reverse result' of
-                    '\n':_   -> init result'
-                    _        -> result'
-  let attribsId = fromMaybe "" $ lookup "id" attr
-  let attribsClasses = words $ fromMaybe "" $ lookup "class" attr
-  let attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
-  let attribs = (attribsId, attribsClasses, attribsKV)
-  return [CodeBlock attribs result]
+  let needsRaw (TagOpen x _) = x /= "code"
+      needsRaw (TagClose x) = x /= "code"
+      needsRaw _ = False
+  parseRaw <- getOption readerParseRaw
+  if any needsRaw contents && parseRaw
+     then return $ -- code block has tags in it, treat as raw HTML
+           [RawBlock (Format "html") $
+            renderTags' (opentag : contents ++ [TagClose "pre"])]
+     else do
+       let rawText = concatMap fromTagText $ filter isTagText contents
+       -- drop leading newline if any
+       let result' = case rawText of
+                          '\n':xs  -> xs
+                          _        -> rawText
+       -- drop trailing newline if any
+       let result = case reverse result' of
+                         '\n':_   -> init result'
+                         _        -> result'
+       let attribsId = fromMaybe "" $ lookup "id" attr
+       let attribsClasses = words $ fromMaybe "" $ lookup "class" attr
+       let attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
+       let attribs = (attribsId, attribsClasses, attribsKV)
+       return [CodeBlock attribs result]
 
 inline :: TagParser [Inline]
 inline = choice
@@ -395,13 +404,22 @@ pImage = do
 
 pCode :: TagParser [Inline]
 pCode = try $ do
-  (TagOpen open attr) <- pSatisfy $ tagOpen (`elem` ["code","tt"]) (const True)
+  opentag@(TagOpen open attr) <- pSatisfy $
+                                 tagOpen (`elem` ["code","tt"]) (const True)
   result <- manyTill pAnyTag (pCloses open)
-  let ident = fromMaybe "" $ lookup "id" attr
-  let classes = words $ fromMaybe [] $ lookup "class" attr
-  let rest = filter (\(x,_) -> x /= "id" && x /= "class") attr
-  return [Code (ident,classes,rest)
-         $ intercalate " " $ lines $ innerText result]
+  let needsRaw (TagOpen _ _) = True
+      needsRaw (TagClose _) = True
+      needsRaw _ = False
+  parseRaw <- getOption readerParseRaw
+  if any needsRaw result && parseRaw
+     then return [RawInline (Format "html") $ renderTags'
+                    (opentag : result ++ [TagClose open])]
+     else do
+       let ident = fromMaybe "" $ lookup "id" attr
+       let classes = words $ fromMaybe [] $ lookup "class" attr
+       let rest = filter (\(x,_) -> x /= "id" && x /= "class") attr
+       return [Code (ident,classes,rest)
+              $ intercalate " " $ lines $ innerText result]
 
 pRawHtmlInline :: TagParser [Inline]
 pRawHtmlInline = do
