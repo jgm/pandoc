@@ -673,6 +673,14 @@ cedilla 'c' = 'ç'
 cedilla 'C' = 'Ç'
 cedilla 's' = 'ş'
 cedilla 'S' = 'Ş'
+cedilla 't' = 'ţ'
+cedilla 'T' = 'Ţ'
+cedilla 'e' = 'ȩ'
+cedilla 'E' = 'Ȩ'
+cedilla 'h' = 'ḩ'
+cedilla 'H' = 'Ḩ'
+cedilla 'o' = 'o̧'
+cedilla 'O' = ''O̧
 cedilla c = c
 
 hacek :: Char -> Char
