@@ -47,6 +47,7 @@ import Text.Pandoc.Builder
 import Data.Char (isLetter)
 import Control.Applicative
 import Data.Monoid
+import Data.Maybe (fromMaybe)
 import System.Environment (getEnv)
 import System.FilePath (replaceExtension, (</>))
 import Data.List (intercalate, intersperse)
@@ -901,7 +902,7 @@ environments = M.fromList
                                       lookup "numbers" options == Just "left" ]
                                  ++ maybe [] (:[]) (lookup "language" options
                                          >>= fromListingsLanguage)
-                      let attr = ("",classes,kvs)
+                      let attr = (fromMaybe "" (lookup "label" options),classes,kvs)
                       codeBlockWith attr <$> (verbEnv "lstlisting"))
   , ("minted",     do options <- option [] keyvals
                       lang <- grouped (many1 $ satisfy (/='}'))
