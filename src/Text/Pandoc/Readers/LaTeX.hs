@@ -681,6 +681,8 @@ cedilla 'e' = 'ȩ'
 cedilla 'E' = 'Ȩ'
 cedilla 'h' = 'ḩ'
 cedilla 'H' = 'Ḩ'
+cedilla 'o' = 'o̧'
+cedilla 'O' = 'O̧'
 cedilla c = c
 
 hacek :: Char -> Char
