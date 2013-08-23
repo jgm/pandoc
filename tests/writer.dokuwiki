@@ -229,69 +229,43 @@ B. Williams
 
 Tight using spaces:
 
-; apple
-: red fruit
-; orange
-: orange fruit
-; banana
-: yellow fruit
+  * **apple** red fruit
+  * **orange** orange fruit
+  * **banana** yellow fruit
 
 Tight using tabs:
 
-; apple
-: red fruit
-; orange
-: orange fruit
-; banana
-: yellow fruit
+  * **apple** red fruit
+  * **orange** orange fruit
+  * **banana** yellow fruit
 
 Loose:
 
-; apple
-: red fruit
-; orange
-: orange fruit
-; banana
-: yellow fruit
+  * **apple** red fruit
+  * **orange** orange fruit
+  * **banana** yellow fruit
 
 Multiple blocks with italics:
 
-<dl>
-<dt>//apple//</dt>
-<dd><p>red fruit</p>
-<p>contains seeds, crisp, pleasant to taste</p></dd>
-<dt>//orange//</dt>
-<dd><p>orange fruit</p>
-<code>{ orange code block }</code>
-<blockquote><p>orange block quote</p></blockquote></dd></dl>
+  * **apple** red fruitcontains seeds, crisp, pleasant to taste
+  * **orange** orange fruit<code>
+{ orange code block }
+</code>orange block quote
 
 Multiple definitions, tight:
 
-; apple
-: red fruit
-: computer
-; orange
-: orange fruit
-: bank
+  * **apple** red fruit computer
+  * **orange** orange fruitbank
 
 Multiple definitions, loose:
 
-; apple
-: red fruit
-: computer
-; orange
-: orange fruit
-: bank
+  * **apple** red fruit computer
+  * **orange** orange fruit bank
 
 Blank line after term, indented marker, alternate markers:
 
-; apple
-: red fruit
-: computer
-; orange
-: orange fruit
-; ; - sublist
-; ; - sublist
+  * **apple** red fruit computer
+  * **orange** orange fruit sublist sublist
 
 ====== HTML Blocks ======
 
