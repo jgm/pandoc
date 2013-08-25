@@ -280,7 +280,7 @@ options =
                    "STRING")
                   "" -- "Classes (whitespace- or comma-separated) to use for indented code-blocks"
 
-    , Option "" ["filter"]
+    , Option "F" ["filter"]
                  (ReqArg
                   (\arg opt -> return opt { optPlugins = externalFilter arg :
                                                optPlugins opt })
