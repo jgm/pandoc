@@ -2,7 +2,6 @@
 cd ..
 rem cabal update
 cabal-dev clean
-cabal-dev install --reinstall --force-reinstall --flags="embed_data_files" citeproc-hs
 if %errorlevel% neq 0 exit /b %errorlevel%
 cabal-dev install --reinstall --force-reinstall --flags="embed_data_files"
 if %errorlevel% neq 0 exit /b %errorlevel%
