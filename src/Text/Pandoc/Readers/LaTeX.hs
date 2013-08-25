@@ -38,7 +38,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
-import Text.Pandoc.Biblio (processBiblio)
 import Text.Pandoc.Parsing hiding ((<|>), many, optional, space)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
@@ -67,9 +66,7 @@ parseLaTeX = do
   eof
   st <- getState
   let meta = stateMeta st
-  refs <- getOption readerReferences
-  mbsty <- getOption readerCitationStyle
-  let (Pandoc _ bs') = processBiblio mbsty refs $ doc bs
+  let (Pandoc _ bs') = doc bs
   return $ Pandoc meta bs'
 
 type LP = Parser [Char] ParserState

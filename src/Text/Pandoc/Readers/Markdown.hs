@@ -54,7 +54,6 @@ import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
                                   isTextTag, isCommentTag )
-import Text.Pandoc.Biblio (processBiblio)
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
@@ -327,9 +326,7 @@ parseMarkdown = do
   st <- getState
   let meta = runF (stateMeta' st) st
   let Pandoc _ bs = B.doc $ runF blocks st
-  mbsty <- getOption readerCitationStyle
-  refs <- getOption readerReferences
-  return $ processBiblio mbsty refs $ Pandoc meta bs
+  return $ Pandoc meta bs
 
 addWarning :: Maybe SourcePos -> String -> MarkdownParser ()
 addWarning mbpos msg =

@@ -598,54 +598,6 @@ Options affecting specific writers
 Citation rendering
 ------------------
 
-`--bibliography=`*FILE*
-:   Specify bibliography database to be used in resolving
-    citations. The database type will be determined from the
-    extension of *FILE*, which may be `.mods` (MODS format),
-    `.bib` (BibLaTeX format, which will normally work for BibTeX
-    files as well), `.bibtex` (BibTeX format),
-    `.ris` (RIS format), `.enl` (EndNote format),
-    `.xml` (EndNote XML format), `.wos` (ISI format),
-    `.medline` (MEDLINE format), `.copac` (Copac format),
-    or `.json` (citeproc JSON).  If you want to use multiple
-    bibliographies, just use this option repeatedly.
-
-`--csl=`*FILE*
-:   Specify [CSL] style to be used in formatting citations and
-    the bibliography. If *FILE* is not found, pandoc will look
-    for it in
-
-        $HOME/.csl
-
-    in unix,
-
-        C:\Documents And Settings\USERNAME\Application Data\csl
-
-    in Windows XP, and
-
-        C:\Users\USERNAME\AppData\Roaming\csl
-
-    in Windows 7. If the `--csl` option is not specified, pandoc
-    will use a default style:  either `default.csl` in the
-    user data directory (see `--data-dir`), or, if that is
-    not present, the Chicago author-date style.
-
-`--citation-abbreviations=`*FILE*
-:   Specify a file containing abbreviations for journal titles and
-    other bibliographic fields (indicated by setting `form="short"`
-    in the CSL node for the field).  The format is described at
-    <http://citationstylist.org/2011/10/19/abbreviations-for-zotero-test-release/>.
-    Here is a short example:
-
-        { "default": {
-            "container-title": {
-                    "Lloyd's Law Reports": "Lloyd's Rep",
-                    "Estates Gazette": "EG",
-                    "Scots Law Times": "SLT"
-            }
-          }
-        }
-
 `--natbib`
 :   Use natbib for citations in LaTeX output.
 
@@ -2378,9 +2330,14 @@ Citations
 
 **Extension: `citations`**
 
-Pandoc can automatically generate citations and a bibliography in a number of
-styles (using Andrea Rossato's `hs-citeproc`). In order to use this feature,
-you will need a bibliographic database in one of the following formats:
+Using an external filter, `pandoc-citeproc`, pandoc can automatically generate
+citations and a bibliography in a number of styles.  Basic usage is
+
+    pandoc --filter pandoc-citeproc myinput.txt
+
+In order to use this feature, you will need to specify a bibliography file
+using the `bibliography` metadata field in a YAML metadata section.
+The bibliography may have any of these formats:
 
   Format            File extension
   ------------      --------------
@@ -2398,18 +2355,40 @@ you will need a bibliographic database in one of the following formats:
 Note that `.bib` can generally be used with both BibTeX and BibLaTeX
 files, but you can use `.bibtex` to force BibTeX.
 
-You will need to specify the bibliography file using the `--bibliography`
-command-line option (which may be repeated if you have several
-bibliographies).
+Alternatively you can use a `references` field in the document's YAML
+metadata.  This should include an array of YAML-encoded references,
+for example:
 
-By default, pandoc will use a Chicago author-date format for citations
-and references.  To use another style, you will need to use the
-`--csl` option to specify a [CSL] 1.0 style file.  A primer on
-creating and modifying CSL styles can be found at
-<http://citationstyles.org/downloads/primer.html>.
-A repository of CSL styles can be found at
-<https://github.com/citation-style-language/styles>.
-See also <http://zotero.org/styles> for easy browsing.
+    ---
+    references:
+    - id: fenner2012a
+      title: One-click science marketing
+      author:
+      - family: Fenner
+        given: Martin
+      container-title: Nature Materials
+      volume: 11
+      URL: 'http://dx.doi.org/10.1038/nmat3283'
+      DOI: 10.1038/nmat3283
+      issue: 4
+      publisher: Nature Publishing Group
+      page: 261-263
+      type: article-journal
+      issued:
+        year: 2012
+        month: 3
+    ...
+
+(The program `mods2yaml`, which comes with `pandoc-citeproc`, can help produce
+these from a MODS reference collection.)
+
+By default, `pandoc-citeproc` will use a Chicago author-date format for
+citations and references.  To use another style, you will need to specify
+a [CSL] 1.0 style file in the `csl` metadata field.  A primer on creating and
+modifying CSL styles can be found at
+<http://citationstyles.org/downloads/primer.html>.  A repository of CSL styles
+can be found at <https://github.com/citation-style-language/styles>.  See also
+<http://zotero.org/styles> for easy browsing.
 
 Citations go inside square brackets and are separated by semicolons.
 Each citation must have a key, composed of '@' + the citation

@@ -48,7 +48,6 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Default
 import Text.Pandoc.Highlighting (Style, pygments)
-import qualified Text.CSL as CSL
 
 -- | Individually selectable syntax extensions.
 data Extension =
@@ -205,8 +204,6 @@ data ReaderOptions = ReaderOptions{
        , readerOldDashes       :: Bool -- ^ Use pandoc <= 1.8.2.1 behavior
                                        --   in parsing dashes; -- is em-dash;
                                        --   - before numerial is en-dash
-       , readerReferences      :: [CSL.Reference]  -- ^ Bibliographic references
-       , readerCitationStyle   :: Maybe CSL.Style -- ^ Citation style
        , readerApplyMacros     :: Bool -- ^ Apply macros to TeX math
        , readerIndentedCodeClasses :: [String] -- ^ Default classes for
                                        -- indented code blocks
@@ -223,8 +220,6 @@ instance Default ReaderOptions
                , readerColumns               = 80
                , readerTabStop               = 4
                , readerOldDashes             = False
-               , readerReferences            = []
-               , readerCitationStyle         = Nothing
                , readerApplyMacros           = True
                , readerIndentedCodeClasses   = []
                , readerDefaultImageExtension = ""
@@ -289,7 +284,6 @@ data WriterOptions = WriterOptions
   , writerSourceURL        :: Maybe String  -- ^ Absolute URL + directory of 1st source file
   , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
-  , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
   , writerHtml5            :: Bool       -- ^ Produce HTML5
   , writerHtmlQTags        :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
   , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
@@ -332,7 +326,6 @@ instance Default WriterOptions where
                       , writerSourceURL        = Nothing
                       , writerUserDataDir      = Nothing
                       , writerCiteMethod       = Citeproc
-                      , writerBiblioFiles      = []
                       , writerHtml5            = False
                       , writerHtmlQTags        = False
                       , writerBeamer           = False
