@@ -55,6 +55,13 @@ tests = [ testGroup "basic"
             "hi % this is a comment\nthere\n" =?> para "hi there"
           ]
 
+        , testGroup "code blocks"
+          [ "identifier" =:
+            "\\begin{lstlisting}[label=test]\\end{lstlisting}" =?> codeBlockWith ("test", [], [("label","test")]) ""
+          , "no identifier" =:
+            "\\begin{lstlisting}\\end{lstlisting}" =?> codeBlock ""
+          ]
+
         , testGroup "citations"
           [ natbibCitations
           , biblatexCitations

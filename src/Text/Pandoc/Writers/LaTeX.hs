@@ -309,7 +309,7 @@ blockToLaTeX (BlockQuote lst) = do
        _ -> do
          contents <- blockListToLaTeX lst
          return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
-blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
+blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
@@ -340,7 +340,11 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
                              [ (if key == "startFrom"
                                    then "firstnumber"
                                    else key) ++ "=" ++ attr |
-                                   (key,attr) <- keyvalAttr ]
+                                   (key,attr) <- keyvalAttr ] ++
+                             (if identifier == ""
+                                   then []
+                                   else [ "label=" ++ identifier ])
+
                         else []
                printParams
                    | null params = empty
