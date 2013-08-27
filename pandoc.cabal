@@ -130,6 +130,7 @@ Extra-Source-Files:
                  tests/markdown-reader-more.txt,
                  tests/markdown-reader-more.native,
                  tests/markdown-citations.txt,
+                 tests/markdown-citations.native,
                  tests/textile-reader.textile,
                  tests/mediawiki-reader.wiki,
                  tests/mediawiki-reader.native,

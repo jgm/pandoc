@@ -63,6 +63,10 @@ tests = [ testGroup "markdown"
               "markdown-reader-more.txt" "markdown-reader-more.native"
             , lhsReaderTest "markdown+lhs"
             ]
+          , testGroup "citations"
+            [ test "citations" ["-r", "markdown", "-w", "native"]
+              "markdown-citations.txt" "markdown-citations.native"
+            ]
           ]
         , testGroup "rst"
           [ testGroup "writer" (writerTests "rst" ++ lhsWriterTests "rst")
