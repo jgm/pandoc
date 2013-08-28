@@ -543,196 +543,196 @@ doLHSverb = codeWith ("",["haskell"],[]) <$> manyTill (satisfy (/='\n')) (char '
 lit :: String -> LP Inlines
 lit = pure . str
 
-accent :: (Char -> Char) -> Inlines -> LP Inlines
+accent :: (Char -> String) -> Inlines -> LP Inlines
 accent f ils =
   case toList ils of
-       (Str (x:xs) : ys) -> return $ fromList $ (Str (f x : xs) : ys)
+       (Str (x:xs) : ys) -> return $ fromList $ (Str (f x ++ xs) : ys)
        []                -> mzero
        _                 -> return ils
 
-grave :: Char -> Char
-grave 'A' = 'À'
-grave 'E' = 'È'
-grave 'I' = 'Ì'
-grave 'O' = 'Ò'
-grave 'U' = 'Ù'
-grave 'a' = 'à'
-grave 'e' = 'è'
-grave 'i' = 'ì'
-grave 'o' = 'ò'
-grave 'u' = 'ù'
-grave c   = c
+grave :: Char -> String
+grave 'A' = "À"
+grave 'E' = "È"
+grave 'I' = "Ì"
+grave 'O' = "Ò"
+grave 'U' = "Ù"
+grave 'a' = "à"
+grave 'e' = "è"
+grave 'i' = "ì"
+grave 'o' = "ò"
+grave 'u' = "ù"
+grave c   = [c]
 
-acute :: Char -> Char
-acute 'A' = 'Á'
-acute 'E' = 'É'
-acute 'I' = 'Í'
-acute 'O' = 'Ó'
-acute 'U' = 'Ú'
-acute 'Y' = 'Ý'
-acute 'a' = 'á'
-acute 'e' = 'é'
-acute 'i' = 'í'
-acute 'o' = 'ó'
-acute 'u' = 'ú'
-acute 'y' = 'ý'
-acute 'C' = 'Ć'
-acute 'c' = 'ć'
-acute 'L' = 'Ĺ'
-acute 'l' = 'ĺ'
-acute 'N' = 'Ń'
-acute 'n' = 'ń'
-acute 'R' = 'Ŕ'
-acute 'r' = 'ŕ'
-acute 'S' = 'Ś'
-acute 's' = 'ś'
-acute 'Z' = 'Ź'
-acute 'z' = 'ź'
-acute c = c
+acute :: Char -> String
+acute 'A' = "Á"
+acute 'E' = "É"
+acute 'I' = "Í"
+acute 'O' = "Ó"
+acute 'U' = "Ú"
+acute 'Y' = "Ý"
+acute 'a' = "á"
+acute 'e' = "é"
+acute 'i' = "í"
+acute 'o' = "ó"
+acute 'u' = "ú"
+acute 'y' = "ý"
+acute 'C' = "Ć"
+acute 'c' = "ć"
+acute 'L' = "Ĺ"
+acute 'l' = "ĺ"
+acute 'N' = "Ń"
+acute 'n' = "ń"
+acute 'R' = "Ŕ"
+acute 'r' = "ŕ"
+acute 'S' = "Ś"
+acute 's' = "ś"
+acute 'Z' = "Ź"
+acute 'z' = "ź"
+acute c   = [c]
 
-circ :: Char -> Char
-circ 'A' = 'Â'
-circ 'E' = 'Ê'
-circ 'I' = 'Î'
-circ 'O' = 'Ô'
-circ 'U' = 'Û'
-circ 'a' = 'â'
-circ 'e' = 'ê'
-circ 'i' = 'î'
-circ 'o' = 'ô'
-circ 'u' = 'û'
-circ 'C' = 'Ĉ'
-circ 'c' = 'ĉ'
-circ 'G' = 'Ĝ'
-circ 'g' = 'ĝ'
-circ 'H' = 'Ĥ'
-circ 'h' = 'ĥ'
-circ 'J' = 'Ĵ'
-circ 'j' = 'ĵ'
-circ 'S' = 'Ŝ'
-circ 's' = 'ŝ'
-circ 'W' = 'Ŵ'
-circ 'w' = 'ŵ'
-circ 'Y' = 'Ŷ'
-circ 'y' = 'ŷ'
-circ c = c
+circ :: Char -> String
+circ 'A' = "Â"
+circ 'E' = "Ê"
+circ 'I' = "Î"
+circ 'O' = "Ô"
+circ 'U' = "Û"
+circ 'a' = "â"
+circ 'e' = "ê"
+circ 'i' = "î"
+circ 'o' = "ô"
+circ 'u' = "û"
+circ 'C' = "Ĉ"
+circ 'c' = "ĉ"
+circ 'G' = "Ĝ"
+circ 'g' = "ĝ"
+circ 'H' = "Ĥ"
+circ 'h' = "ĥ"
+circ 'J' = "Ĵ"
+circ 'j' = "ĵ"
+circ 'S' = "Ŝ"
+circ 's' = "ŝ"
+circ 'W' = "Ŵ"
+circ 'w' = "ŵ"
+circ 'Y' = "Ŷ"
+circ 'y' = "ŷ"
+circ c   = [c]
 
-tilde :: Char -> Char
-tilde 'A' = 'Ã'
-tilde 'a' = 'ã'
-tilde 'O' = 'Õ'
-tilde 'o' = 'õ'
-tilde 'I' = 'Ĩ'
-tilde 'i' = 'ĩ'
-tilde 'U' = 'Ũ'
-tilde 'u' = 'ũ'
-tilde 'N' = 'Ñ'
-tilde 'n' = 'ñ'
-tilde c   = c
+tilde :: Char -> String
+tilde 'A' = "Ã"
+tilde 'a' = "ã"
+tilde 'O' = "Õ"
+tilde 'o' = "õ"
+tilde 'I' = "Ĩ"
+tilde 'i' = "ĩ"
+tilde 'U' = "Ũ"
+tilde 'u' = "ũ"
+tilde 'N' = "Ñ"
+tilde 'n' = "ñ"
+tilde c   = [c]
 
-umlaut :: Char -> Char
-umlaut 'A' = 'Ä'
-umlaut 'E' = 'Ë'
-umlaut 'I' = 'Ï'
-umlaut 'O' = 'Ö'
-umlaut 'U' = 'Ü'
-umlaut 'a' = 'ä'
-umlaut 'e' = 'ë'
-umlaut 'i' = 'ï'
-umlaut 'o' = 'ö'
-umlaut 'u' = 'ü'
-umlaut c = c
+umlaut :: Char -> String
+umlaut 'A' = "Ä"
+umlaut 'E' = "Ë"
+umlaut 'I' = "Ï"
+umlaut 'O' = "Ö"
+umlaut 'U' = "Ü"
+umlaut 'a' = "ä"
+umlaut 'e' = "ë"
+umlaut 'i' = "ï"
+umlaut 'o' = "ö"
+umlaut 'u' = "ü"
+umlaut c   = [c]
 
-dot :: Char -> Char
-dot 'C' = 'Ċ'
-dot 'c' = 'ċ'
-dot 'E' = 'Ė'
-dot 'e' = 'ė'
-dot 'G' = 'Ġ'
-dot 'g' = 'ġ'
-dot 'I' = 'İ'
-dot 'Z' = 'Ż'
-dot 'z' = 'ż'
-dot c = c
+dot :: Char -> String
+dot 'C' = "Ċ"
+dot 'c' = "ċ"
+dot 'E' = "Ė"
+dot 'e' = "ė"
+dot 'G' = "Ġ"
+dot 'g' = "ġ"
+dot 'I' = "İ"
+dot 'Z' = "Ż"
+dot 'z' = "ż"
+dot c   = [c]
 
-macron :: Char -> Char
-macron 'A' = 'Ā'
-macron 'E' = 'Ē'
-macron 'I' = 'Ī'
-macron 'O' = 'Ō'
-macron 'U' = 'Ū'
-macron 'a' = 'ā'
-macron 'e' = 'ē'
-macron 'i' = 'ī'
-macron 'o' = 'ō'
-macron 'u' = 'ū'
-macron c = c
+macron :: Char -> String
+macron 'A' = "Ā"
+macron 'E' = "Ē"
+macron 'I' = "Ī"
+macron 'O' = "Ō"
+macron 'U' = "Ū"
+macron 'a' = "ā"
+macron 'e' = "ē"
+macron 'i' = "ī"
+macron 'o' = "ō"
+macron 'u' = "ū"
+macron c   = [c]
 
-cedilla :: Char -> Char
-cedilla 'c' = 'ç'
-cedilla 'C' = 'Ç'
-cedilla 's' = 'ş'
-cedilla 'S' = 'Ş'
-cedilla 't' = 'ţ'
-cedilla 'T' = 'Ţ'
-cedilla 'e' = 'ȩ'
-cedilla 'E' = 'Ȩ'
-cedilla 'h' = 'ḩ'
-cedilla 'H' = 'Ḩ'
-cedilla 'o' = 'o̧'
-cedilla 'O' = 'O̧'
-cedilla c = c
+cedilla :: Char -> String
+cedilla 'c' = "ç"
+cedilla 'C' = "Ç"
+cedilla 's' = "ş"
+cedilla 'S' = "Ş"
+cedilla 't' = "ţ"
+cedilla 'T' = "Ţ"
+cedilla 'e' = "ȩ"
+cedilla 'E' = "Ȩ"
+cedilla 'h' = "ḩ"
+cedilla 'H' = "Ḩ"
+cedilla 'o' = "o̧"
+cedilla 'O' = "O̧"
+cedilla c   = [c]
 
-hacek :: Char -> Char
-hacek 'A' = 'Ǎ'
-hacek 'a' = 'ǎ'
-hacek 'C' = 'Č'
-hacek 'c' = 'č'
-hacek 'D' = 'Ď'
-hacek 'd' = 'ď'
-hacek 'E' = 'Ě'
-hacek 'e' = 'ě'
-hacek 'G' = 'Ǧ'
-hacek 'g' = 'ǧ'
-hacek 'H' = 'Ȟ'
-hacek 'h' = 'ȟ'
-hacek 'I' = 'Ǐ'
-hacek 'i' = 'ǐ'
-hacek 'j' = 'ǰ'
-hacek 'K' = 'Ǩ'
-hacek 'k' = 'ǩ'
-hacek 'L' = 'Ľ'
-hacek 'l' = 'ľ'
-hacek 'N' = 'Ň'
-hacek 'n' = 'ň'
-hacek 'O' = 'Ǒ'
-hacek 'o' = 'ǒ'
-hacek 'R' = 'Ř'
-hacek 'r' = 'ř'
-hacek 'S' = 'Š'
-hacek 's' = 'š'
-hacek 'T' = 'Ť'
-hacek 't' = 'ť'
-hacek 'U' = 'Ǔ'
-hacek 'u' = 'ǔ'
-hacek 'Z' = 'Ž'
-hacek 'z' = 'ž'
-hacek c   = c
+hacek :: Char -> String
+hacek 'A' = "Ǎ"
+hacek 'a' = "ǎ"
+hacek 'C' = "Č"
+hacek 'c' = "č"
+hacek 'D' = "Ď"
+hacek 'd' = "ď"
+hacek 'E' = "Ě"
+hacek 'e' = "ě"
+hacek 'G' = "Ǧ"
+hacek 'g' = "ǧ"
+hacek 'H' = "Ȟ"
+hacek 'h' = "ȟ"
+hacek 'I' = "Ǐ"
+hacek 'i' = "ǐ"
+hacek 'j' = "ǰ"
+hacek 'K' = "Ǩ"
+hacek 'k' = "ǩ"
+hacek 'L' = "Ľ"
+hacek 'l' = "ľ"
+hacek 'N' = "Ň"
+hacek 'n' = "ň"
+hacek 'O' = "Ǒ"
+hacek 'o' = "ǒ"
+hacek 'R' = "Ř"
+hacek 'r' = "ř"
+hacek 'S' = "Š"
+hacek 's' = "š"
+hacek 'T' = "Ť"
+hacek 't' = "ť"
+hacek 'U' = "Ǔ"
+hacek 'u' = "ǔ"
+hacek 'Z' = "Ž"
+hacek 'z' = "ž"
+hacek c   = [c]
 
-breve :: Char -> Char
-breve 'A' = 'Ă'
-breve 'a' = 'ă'
-breve 'E' = 'Ĕ'
-breve 'e' = 'ĕ'
-breve 'G' = 'Ğ'
-breve 'g' = 'ğ'
-breve 'I' = 'Ĭ'
-breve 'i' = 'ĭ'
-breve 'O' = 'Ŏ'
-breve 'o' = 'ŏ'
-breve 'U' = 'Ŭ'
-breve 'u' = 'ŭ'
-breve c   = c
+breve :: Char -> String
+breve 'A' = "Ă"
+breve 'a' = "ă"
+breve 'E' = "Ĕ"
+breve 'e' = "ĕ"
+breve 'G' = "Ğ"
+breve 'g' = "ğ"
+breve 'I' = "Ĭ"
+breve 'i' = "ĭ"
+breve 'O' = "Ŏ"
+breve 'o' = "ŏ"
+breve 'U' = "Ŭ"
+breve 'u' = "ŭ"
+breve c   = [c]
 
 tok :: LP Inlines
 tok = try $ grouped inline <|> inlineCommand <|> str <$> (count 1 $ inlineChar)
