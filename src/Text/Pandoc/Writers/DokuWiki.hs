@@ -32,7 +32,6 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 
 {-
     [ ] Don't generate <blockquote>...
-    [ ] Implement definition lists
     [ ] Don't generate lists using <ol> and <ul>
     [ ] Don't generate <div>
     [ ] Implement alignment of text in tables
@@ -54,7 +53,7 @@ import Control.Monad.State
 
 data WriterState = WriterState {
     stNotes     :: Bool            -- True if there are notes
-  , stListLevel :: [Char]          -- String at beginning of list items, e.g. "**"
+  , stIndent    :: String          -- Indent after the marker at the beginning of list items
   , stUseTags   :: Bool            -- True if we should use HTML tags because we're in a complex list
   }
 
@@ -62,7 +61,7 @@ data WriterState = WriterState {
 writeDokuWiki :: WriterOptions -> Pandoc -> String
 writeDokuWiki opts document =
   evalState (pandocToDokuWiki opts document)
-            (WriterState { stNotes = False, stListLevel = [], stUseTags = False })
+            (WriterState { stNotes = False, stIndent = "", stUseTags = False })
 
 -- | Return DokuWiki representation of document.
 pandocToDokuWiki :: WriterOptions -> Pandoc -> State WriterState String
@@ -112,11 +111,11 @@ blockToDokuWiki opts (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
 
 blockToDokuWiki opts (Para inlines) = do
   useTags <- get >>= return . stUseTags
-  listLevel <- get >>= return . stListLevel
+  indent <- get >>= return . stIndent
   contents <- inlineListToDokuWiki opts inlines
   return $ if useTags
               then  "<p>" ++ contents ++ "</p>"
-              else contents ++ if null listLevel then "\n" else ""
+              else contents ++ if null indent then "\n" else ""
 
 blockToDokuWiki _ (RawBlock "mediawiki" str) = return str
 blockToDokuWiki _ (RawBlock "html" str) = return str
@@ -166,7 +165,7 @@ blockToDokuWiki opts (Table capt aligns _ headers rows') = do
 
 blockToDokuWiki opts x@(BulletList items) = do
   oldUseTags <- get >>= return . stUseTags
-  listLevel <- get >>= return . stListLevel
+  indent <- get >>= return . stIndent
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
@@ -175,14 +174,14 @@ blockToDokuWiki opts x@(BulletList items) = do
         modify $ \s -> s { stUseTags = oldUseTags }
         return $ "<ul>\n" ++ vcat contents ++ "</ul>\n"
      else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ " " }
+        modify $ \s -> s { stIndent = stIndent s ++ "  " }
         contents <- mapM (listItemToDokuWiki opts) items
-        modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents ++ if null listLevel then "\n" else ""
+        modify $ \s -> s { stIndent = indent }
+        return $ vcat contents ++ if null indent then "\n" else ""
 
 blockToDokuWiki opts x@(OrderedList attribs items) = do
   oldUseTags <- get >>= return . stUseTags
-  listLevel <- get >>= return . stListLevel
+  indent <- get >>= return . stIndent
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
@@ -191,17 +190,17 @@ blockToDokuWiki opts x@(OrderedList attribs items) = do
         modify $ \s -> s { stUseTags = oldUseTags }
         return $ "<ol" ++ listAttribsToString attribs ++ ">\n" ++ vcat contents ++ "</ol>\n"
      else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ " " }
+        modify $ \s -> s { stIndent = stIndent s ++ "  " }
         contents <- mapM (orderedListItemToDokuWiki opts) items
-        modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents ++ if null listLevel then "\n" else ""
+        modify $ \s -> s { stIndent = indent }
+        return $ vcat contents ++ if null indent then "\n" else ""
 
 -- TODO Need to decide how to make definition lists work on dokuwiki - I don't think there
 --      is a specific representation of them.
 -- TODO This creates double '; ; ' if there is a bullet or ordered list inside a definition list
 blockToDokuWiki opts x@(DefinitionList items) = do
   oldUseTags <- get >>= return . stUseTags
-  listLevel <- get >>= return . stListLevel
+  indent <- get >>= return . stIndent
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
@@ -210,10 +209,10 @@ blockToDokuWiki opts x@(DefinitionList items) = do
         modify $ \s -> s { stUseTags = oldUseTags }
         return $ "<dl>\n" ++ vcat contents ++ "</dl>\n"
      else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ ";" }
+        modify $ \s -> s { stIndent = stIndent s ++ "  " }
         contents <- mapM (definitionListItemToDokuWiki opts) items
-        modify $ \s -> s { stListLevel = init (stListLevel s) }
-        return $ vcat contents ++ if null listLevel then "\n" else ""
+        modify $ \s -> s { stIndent = indent }
+        return $ vcat contents ++ if null indent then "\n" else ""
 
 -- Auxiliary functions for lists:
 
@@ -236,10 +235,8 @@ listItemToDokuWiki opts items = do
   if useTags
      then return $ "<li>" ++ contents ++ "</li>"
      else do
-       marker <- get >>= return . stListLevel
-       -- This marker ++ marker is an awful hack to write 2 spaces per indentation level.
-       -- I couldn't find a cleaner way of doing it.
-       return $ marker ++ marker ++ "* " ++ contents
+       indent <- get >>= return . stIndent
+       return $ indent ++ "* " ++ contents
 
 -- | Convert ordered list item (list of blocks) to DokuWiki.
 -- | TODO Emiminate dreadful duplication of text from listItemToDokuWiki
@@ -250,10 +247,8 @@ orderedListItemToDokuWiki opts items = do
   if useTags
      then return $ "<li>" ++ contents ++ "</li>"
      else do
-       marker <- get >>= return . stListLevel
-       -- This marker ++ marker is an awful hack to write 2 spaces per indentation level.
-       -- I couldn't find a cleaner way of doing it.
-       return $ marker ++ marker ++ "- " ++ contents
+       indent <- get >>= return . stIndent
+       return $ indent ++ "- " ++ contents
 
 -- | Convert definition list item (label, list of blocks) to DokuWiki.
 definitionListItemToDokuWiki :: WriterOptions
@@ -267,9 +262,8 @@ definitionListItemToDokuWiki opts (label, items) = do
      then return $ "<dt>" ++ labelText ++ "</dt>\n" ++
            (intercalate "\n" $ map (\d -> "<dd>" ++ d ++ "</dd>") contents)
      else do
-       marker <- get >>= return . stListLevel
-       return $ marker ++ " " ++ labelText ++ "\n" ++
-           (intercalate "\n" $ map (\d -> init marker ++ ": " ++ d) contents)
+       indent <- get >>= return . stIndent
+       return $ indent ++ "* **" ++ labelText ++ "** " ++ concat contents
 
 -- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
 isSimpleList :: Block -> Bool
@@ -277,7 +271,7 @@ isSimpleList x =
   case x of
        BulletList _                     -> True
        OrderedList _ _                  -> True
-       DefinitionList items             -> all isSimpleListItem $ concatMap snd items
+       DefinitionList _                 -> True
        _                                -> False
 
 -- | True if list item can be handled with the simple wiki syntax.  False if
@@ -371,8 +365,7 @@ blockListToDokuWiki opts blocks =
 
 -- | Convert list of Pandoc inline elements to DokuWiki.
 inlineListToDokuWiki :: WriterOptions -> [Inline] -> State WriterState String
-inlineListToDokuWiki opts lst =
-  mapM (inlineToDokuWiki opts) lst >>= return . concat
+inlineListToDokuWiki opts lst = mapM (inlineToDokuWiki opts) lst >>= return . concat
 
 -- | Convert Pandoc inline element to DokuWiki.
 inlineToDokuWiki :: WriterOptions -> Inline -> State WriterState String
