@@ -1116,12 +1116,13 @@ complexNatbibCitation mode = try $ do
 parseAligns :: LP [Alignment]
 parseAligns = try $ do
   char '{'
-  optional $ char '|'
+  let maybeBar = try $ spaces >> optional (char '|')
+  maybeBar
   let cAlign = AlignCenter <$ char 'c'
   let lAlign = AlignLeft <$ char 'l'
   let rAlign = AlignRight <$ char 'r'
   let alignChar = optional sp *> (cAlign <|> lAlign <|> rAlign)
-  aligns' <- sepEndBy alignChar (optional $ char '|')
+  aligns' <- sepEndBy alignChar maybeBar
   spaces
   char '}'
   spaces
