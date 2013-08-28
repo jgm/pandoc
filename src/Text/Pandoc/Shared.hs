@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, CPP, MultiParamTypeClasses #-}
+{-# LANGUAGE DeriveDataTypeable, CPP, MultiParamTypeClasses,
+    FlexibleContexts #-}
 {-
 Copyright (C) 2006-2013 John MacFarlane <jgm@berkeley.edu>
 
@@ -383,10 +384,10 @@ consolidateInlines (Code a1 x : Code a2 y : zs) | a1 == a2 =
 consolidateInlines (x : xs) = x : consolidateInlines xs
 consolidateInlines [] = []
 
--- | Convert list of inlines to a string with formatting removed.
+-- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link
 -- labels).
-stringify :: [Inline] -> String
+stringify :: Walkable Inline a => a -> String
 stringify = query go . walk deNote
   where go :: Inline -> [Char]
         go Space = " "
