@@ -35,7 +35,7 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
                             safeRead, headerShift, normalize, err, warn )
-import Text.Pandoc.XML ( toEntities, fromEntities )
+import Text.Pandoc.XML ( toEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Process (pipeProcess)
 import Text.Highlighting.Kate ( languages, Style, tango, pygments,
@@ -46,20 +46,18 @@ import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
 import Data.List ( intercalate, isPrefixOf, sort )
-import System.Directory ( getAppUserDataDirectory, doesFileExist, findExecutable )
+import System.Directory ( getAppUserDataDirectory, findExecutable )
 import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
-import qualified Text.CSL as CSL
 import Control.Monad (when, unless, liftM)
 import Data.Foldable (foldrM)
 import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString as BS
-import Text.CSL.Reference (Reference(..))
 import Data.Aeson (eitherDecode', encode)
 
 copyrightMessage :: String
@@ -70,7 +68,7 @@ copyrightMessage = "\nCopyright (C) 2006-2013 John MacFarlane\n" ++
 
 compileInfo :: String
 compileInfo =
-  "\nCompiled with citeproc-hs " ++ VERSION_citeproc_hs ++ ", texmath " ++
+  "\nCompiled with texmath " ++
   VERSION_texmath ++ ", highlighting-kate " ++ VERSION_highlighting_kate ++
    ".\nSyntax highlighting is supported for the following languages:\n    " ++
        wrapWords 4 78
@@ -91,14 +89,14 @@ isTextFormat :: String -> Bool
 isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub","epub3"]
 
 externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
-externalFilter f args' d = E.handle filterException $
-   do (exitcode, outbs, errbs) <- pipeProcess Nothing f args' $ encode d
+externalFilter f args' d = do
+      (exitcode, outbs, errbs) <- E.handle filterException $
+                                    pipeProcess Nothing f args' $ encode d
       when (not $ B.null errbs) $ B.hPutStr stderr errbs
       case exitcode of
            ExitSuccess    -> return $ either error id $ eitherDecode' outbs
-           ExitFailure _  -> err 83 $ "Error running filter " ++ f ++ "\n" ++
-                                          UTF8.toStringLazy outbs
- where filterException :: E.SomeException -> IO Pandoc
+           ExitFailure _  -> err 83 $ "Error running filter " ++ f
+ where filterException :: E.SomeException -> IO a
        filterException e = err 83 $ "Error running filter " ++ f ++
                                      "\n" ++ show e
 
@@ -146,9 +144,6 @@ data Opt = Opt
     , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
     , optDataDir           :: Maybe FilePath
     , optCiteMethod        :: CiteMethod -- ^ Method to output cites
-    , optBibliography      :: [String]
-    , optCslFile           :: Maybe FilePath
-    , optAbbrevsFile       :: Maybe FilePath
     , optListings          :: Bool       -- ^ Use listings package for code blocks
     , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
@@ -203,9 +198,6 @@ defaultOpts = Opt
     , optIndentedCodeClasses   = []
     , optDataDir               = Nothing
     , optCiteMethod            = Citeproc
-    , optBibliography          = []
-    , optCslFile               = Nothing
-    , optAbbrevsFile           = Nothing
     , optListings              = False
     , optLaTeXEngine           = "pdflatex"
     , optSlideLevel            = Nothing
@@ -288,7 +280,7 @@ options =
                    "STRING")
                   "" -- "Classes (whitespace- or comma-separated) to use for indented code-blocks"
 
-    , Option "" ["filter"]
+    , Option "F" ["filter"]
                  (ReqArg
                   (\arg opt -> return opt { optPlugins = externalFilter arg :
                                                optPlugins opt })
@@ -650,24 +642,6 @@ options =
                   "PROGRAM")
                  "" -- "Name of latex program to use in generating PDF"
 
-    , Option "" ["bibliography"]
-                 (ReqArg
-                  (\arg opt -> return opt { optBibliography = (optBibliography opt) ++ [arg] })
-                  "FILENAME")
-                 ""
-
-    , Option "" ["csl"]
-                 (ReqArg
-                  (\arg opt -> return opt { optCslFile = Just arg })
-                  "FILENAME")
-                 ""
-
-    , Option "" ["citation-abbreviations"]
-                 (ReqArg
-                  (\arg opt -> return opt { optAbbrevsFile = Just arg })
-                  "FILENAME")
-                 ""
-
     , Option "" ["natbib"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Natbib }))
@@ -904,9 +878,6 @@ main = do
               , optIdentifierPrefix      = idPrefix
               , optIndentedCodeClasses   = codeBlockClasses
               , optDataDir               = mbDataDir
-              , optBibliography          = reffiles
-              , optCslFile               = mbCsl
-              , optAbbrevsFile           = cslabbrevs
               , optCiteMethod            = citeMethod
               , optListings              = listings
               , optLaTeXEngine           = latexEngine
@@ -1007,36 +978,6 @@ main = do
                                              $ lines dztempl
                         return $ ("dzslides-core", dzcore) : variables'
                     else return variables'
-
-  -- unescape reference ids, which may contain XML entities, so
-  -- that we can do lookups with regular string equality
-  let unescapeRefId ref = ref{ refId = fromEntities (refId ref) }
-
-  refs <- mapM (\f -> E.catch (CSL.readBiblioFile f)
-                   (\e -> let _ = (e :: E.SomeException)
-                          in  err 23 $ "Error reading bibliography `" ++ f ++
-                                       "'" ++ "\n" ++ show e))
-          reffiles >>=
-           return . map unescapeRefId . concat
-
-  mbsty <- if citeMethod == Citeproc && not (null refs)
-              then do
-                csl <- CSL.parseCSL =<<
-                        case mbCsl of
-                            Nothing      -> readDataFileUTF8 datadir
-                                              "default.csl"
-                            Just cslfile -> do
-                                  exists <- doesFileExist cslfile
-                                  if exists
-                                     then UTF8.readFile cslfile
-                                     else do
-                                       csldir <- getAppUserDataDirectory "csl"
-                                       readDataFileUTF8 (Just csldir)
-                                           (replaceExtension cslfile "csl")
-                abbrevs <- maybe (return []) CSL.readJsonAbbrevFile cslabbrevs
-                return $ Just csl { CSL.styleAbbrevs = abbrevs }
-              else return Nothing
-
   let sourceURL = case sources of
                         []    -> Nothing
                         (x:_) -> case parseURI x of
@@ -1054,8 +995,6 @@ main = do
                       , readerColumns = columns
                       , readerTabStop = tabStop
                       , readerOldDashes = oldDashes
-                      , readerReferences = refs
-                      , readerCitationStyle = mbsty
                       , readerIndentedCodeClasses = codeBlockClasses
                       , readerApplyMacros = not laTeXOutput
                       , readerDefaultImageExtension = defaultImageExtension
@@ -1069,7 +1008,6 @@ main = do
                             writerHTMLMathMethod   = mathMethod,
                             writerIncremental      = incremental,
                             writerCiteMethod       = citeMethod,
-                            writerBiblioFiles      = reffiles,
                             writerIgnoreNotes      = False,
                             writerNumberSections   = numberSections,
                             writerNumberOffset     = numberFrom,

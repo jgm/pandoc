@@ -99,8 +99,6 @@ Data-Files:
                  data/slideous/slideous.js,
                  -- data for dzslides writer
                  data/dzslides/template.html,
-                 -- data for citeproc
-                 data/default.csl,
                  -- sample lua custom writer
                  data/sample.lua
                  -- documentation
@@ -125,10 +123,6 @@ Extra-Source-Files:
                  tests/insert,
                  tests/lalune.jpg,
                  tests/movie.jpg,
-                 tests/biblio.bib,
-                 tests/chicago-author-date.csl,
-                 tests/ieee.csl,
-                 tests/mhra.csl,
                  tests/latex-reader.latex,
                  tests/latex-reader.native,
                  tests/textile-reader.textile,
@@ -136,9 +130,7 @@ Extra-Source-Files:
                  tests/markdown-reader-more.txt,
                  tests/markdown-reader-more.native,
                  tests/markdown-citations.txt,
-                 tests/markdown-citations.chicago-author-date.txt,
-                 tests/markdown-citations.mhra.txt,
-                 tests/markdown-citations.ieee.txt,
+                 tests/markdown-citations.native,
                  tests/textile-reader.textile,
                  tests/mediawiki-reader.wiki,
                  tests/mediawiki-reader.native,
@@ -246,11 +238,10 @@ Library
                  old-locale >= 1 && < 1.1,
                  time >= 1.2 && < 1.5,
                  HTTP >= 4000.0.5 && < 4000.3,
-                 texmath >= 0.6.3 && < 0.7,
+                 texmath >= 0.6.4 && < 0.7,
                  xml >= 1.3.12 && < 1.4,
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
-                 citeproc-hs >= 0.3.7 && < 0.4,
                  pandoc-types >= 1.12 && < 1.13,
                  aeson >= 0.6 && < 0.7,
                  tagsoup >= 0.12.5 && < 0.14,
@@ -323,7 +314,6 @@ Library
                    Text.Pandoc.UTF8,
                    Text.Pandoc.Templates,
                    Text.Pandoc.XML,
-                   Text.Pandoc.Biblio,
                    Text.Pandoc.SelfContained,
                    Text.Pandoc.Process
   Other-Modules:   Text.Pandoc.Readers.Haddock.Lex,
@@ -353,8 +343,7 @@ Executable pandoc
                  extensible-exceptions >= 0.1 && < 0.2,
                  highlighting-kate >= 0.5.5 && < 0.6,
                  aeson >= 0.6 && < 0.7,
-                 HTTP >= 4000.0.5 && < 4000.3,
-                 citeproc-hs >= 0.3.7 && < 0.4
+                 HTTP >= 4000.0.5 && < 4000.3
   Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -auto-all -caf-all -rtsopts -with-rtsopts=-K16m
   if os(windows)

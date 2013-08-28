@@ -38,7 +38,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
-import Text.Pandoc.Biblio (processBiblio)
 import Text.Pandoc.Parsing hiding ((<|>), many, optional, space)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
@@ -47,6 +46,7 @@ import Text.Pandoc.Builder
 import Data.Char (isLetter)
 import Control.Applicative
 import Data.Monoid
+import Data.Maybe (fromMaybe)
 import System.Environment (getEnv)
 import System.FilePath (replaceExtension, (</>))
 import Data.List (intercalate, intersperse)
@@ -67,9 +67,7 @@ parseLaTeX = do
   eof
   st <- getState
   let meta = stateMeta st
-  refs <- getOption readerReferences
-  mbsty <- getOption readerCitationStyle
-  let (Pandoc _ bs') = processBiblio mbsty refs $ doc bs
+  let (Pandoc _ bs') = doc bs
   return $ Pandoc meta bs'
 
 type LP = Parser [Char] ParserState
@@ -903,7 +901,7 @@ environments = M.fromList
                                       lookup "numbers" options == Just "left" ]
                                  ++ maybe [] (:[]) (lookup "language" options
                                          >>= fromListingsLanguage)
-                      let attr = ("",classes,kvs)
+                      let attr = (fromMaybe "" (lookup "label" options),classes,kvs)
                       codeBlockWith attr <$> (verbEnv "lstlisting"))
   , ("minted",     do options <- option [] keyvals
                       lang <- grouped (many1 $ satisfy (/='}'))

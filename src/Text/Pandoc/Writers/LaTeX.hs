@@ -43,7 +43,6 @@ import Data.Char ( toLower, isPunctuation )
 import Control.Applicative ((<|>))
 import Control.Monad.State
 import Text.Pandoc.Pretty
-import System.FilePath (dropExtension)
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock,
@@ -120,7 +119,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   (biblioTitle :: String) <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
   let main = render colwidth $ vsep body
   st <- get
-  let biblioFiles = intercalate "," $ map dropExtension $  writerBiblioFiles options
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
                                               if writerChapters options
@@ -152,11 +150,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                 $ writerHighlightStyle options )
                       else id) $
                   (case writerCiteMethod options of
-                         Natbib   -> defField "biblio-files" biblioFiles .
-                                     defField "biblio-title" biblioTitle .
+                         Natbib   -> defField "biblio-title" biblioTitle .
                                      defField "natbib" True
-                         Biblatex -> defField "biblio-files" biblioFiles .
-                                     defField "biblio-title" biblioTitle .
+                         Biblatex -> defField "biblio-title" biblioTitle .
                                      defField "biblatex" True
                          _        -> id) $
                   metadata
@@ -313,7 +309,7 @@ blockToLaTeX (BlockQuote lst) = do
        _ -> do
          contents <- blockListToLaTeX lst
          return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
-blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
+blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
@@ -344,7 +340,11 @@ blockToLaTeX (CodeBlock (_,classes,keyvalAttr) str) = do
                              [ (if key == "startFrom"
                                    then "firstnumber"
                                    else key) ++ "=" ++ attr |
-                                   (key,attr) <- keyvalAttr ]
+                                   (key,attr) <- keyvalAttr ] ++
+                             (if identifier == ""
+                                   then []
+                                   else [ "label=" ++ identifier ])
+
                         else []
                printParams
                    | null params = empty

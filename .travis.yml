@@ -2,7 +2,6 @@ language: haskell
 before_install:
   - cabal install cabal-dev
   - 'git clone https://github.com/jgm/pandoc-types && cabal-dev add-source pandoc-types'
-  - 'git clone https://github.com/jgm/citeproc-hs && cabal-dev add-source citeproc-hs'
 install:
   - cabal-dev install-deps --enable-tests
 script:

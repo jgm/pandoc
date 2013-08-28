@@ -16,7 +16,6 @@ mkdir -p $RESOURCES
 
 echo Building pandoc...
 cabal-dev install-deps
-cabal-dev install --reinstall --force-reinstalls --flags="embed_data_files" citeproc-hs
 cabal-dev configure --prefix=/usr/local --datasubdir=$BASE --docdir=/usr/local/doc/$BASE
 cabal-dev build
 cabal-dev copy --destdir=$ROOT

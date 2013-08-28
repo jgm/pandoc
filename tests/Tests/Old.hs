@@ -63,7 +63,10 @@ tests = [ testGroup "markdown"
               "markdown-reader-more.txt" "markdown-reader-more.native"
             , lhsReaderTest "markdown+lhs"
             ]
-          , testGroup "citations" markdownCitationTests
+          , testGroup "citations"
+            [ test "citations" ["-r", "markdown", "-w", "native"]
+              "markdown-citations.txt" "markdown-citations.native"
+            ]
           ]
         , testGroup "rst"
           [ testGroup "writer" (writerTests "rst" ++ lhsWriterTests "rst")
@@ -189,19 +192,6 @@ fb2WriterTest title opts inputfile normfile =
     splitTags ((c,_):rest) = c : splitTags rest
     ignoreBinary = unlines . filter (not . startsWith "<binary ") . lines
     startsWith tag str = all (uncurry (==)) $ zip tag str
-
-markdownCitationTests :: [Test]
-markdownCitationTests
-  =  map styleToTest ["chicago-author-date","ieee","mhra"]
-     ++ [test "natbib" wopts "markdown-citations.txt"
-         "markdown-citations.txt"]
-  where
-    ropts             = ["-r", "markdown", "-w", "markdown-citations", "--bibliography",
-                         "biblio.bib", "--no-wrap"]
-    wopts             = ["-r", "markdown", "-w", "markdown", "--no-wrap", "--natbib"]
-    styleToTest style = test style (ropts ++ ["--csl", style ++ ".csl"])
-                        "markdown-citations.txt"
-                        ("markdown-citations." ++ style ++ ".txt")
 
 -- | Run a test without normalize function, return True if test passed.
 test :: String    -- ^ Title of test
