@@ -53,6 +53,12 @@ Quick install
 
         man pandoc
 
+6.  If you want to process citations with pandoc, you will also need to
+    install a separate package, `pandoc-citeproc`.  This can be installed
+    using cabal:
+
+        cabal install pandoc-citeproc
+
 [GHC]: http://www.haskell.org/ghc/
 [Haskell platform]: http://hackage.haskell.org/platform/
 [cabal-install]: http://hackage.haskell.org/trac/hackage/wiki/CabalInstall
