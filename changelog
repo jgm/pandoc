@@ -1,5 +1,18 @@
 [pending release 1.12]
 
+  * New `--filter/-F` option to make it easier to run "filters"
+    (Pandoc AST transformations that operate on JSON serializations).
+    Filters are always passed the name of the output format, so their
+    behavior can be tailored to it.  The repository
+    <https://github.com/jgm/pandoc-filters-python> contains
+    a python module for writing pandoc filters in python, with
+    a number of examples.
+
+  * Added `--print-default-data-file` option, which allows printing
+    of any of pandoc's data files. (For example,
+    `pandoc --print-default-data-file reference.odt` will print
+    `reference.odt`.)
+
   * `--toc-level` no longer implies `--toc`.
     Reason: EPUB users who don't want a visible TOC may still want
     to set the TOC level for in the book navigation.
@@ -11,6 +24,37 @@
     which URLs it is fetching, but not giving the full header).  In
     addition, there are better error messages when fetching a URL fails.
 
+  * citeproc support has been removed from core pandoc (API changes).
+  
+    + The `--bibliography`, `--csl`, and `--citation-abbreviation` 
+      options have been removed.
+    + Markdown and LaTeX citations as still parsed, but an external
+      filter, `pandoc-citeproc`, is now needed to process
+      them against a bibliography and CSL stylesheet.  The bibliography
+      and stylesheet should be specified in the document's YAML metadata
+      (`bibliography` and `csl` fields), and the filter called with
+      `pandoc --filter pandoc-citeproc`.
+    + The `Text.Pandoc.Biblio` module has been removed, and the Markdown
+      and LaTeX readers no longer process citations.  Users of the
+      pandoc library who want citation support will need to use
+      `Text.CSL.Pandoc` from `pandoc-citations`.
+    + All bibliography-related fields have been removed from
+      `ReaderOptions` and `WriterOptions`: `writerBiblioFiles`,
+      `readerReferences`, `readerCitationStyle`.
+    + Note that a Cite element is now created in parsing markdown whether
+      or not there is a matching reference (indeed, pandoc has no way of
+      knowing, since the `--bibliography` option has been removed).
+      By default citations will print as `???`.
+    + The `pandoc-citeproc` script will put the bibliography at the
+      end of the document, as before.  However, it will be put inside a Div
+      element with class "references", allowing users some control
+      over the styling of references.  A final header, if any, will
+      be included in the Div.
+    * The markdown writer will not print a bibliography if the
+      `citations` extension is enabled.  (If the citations are formatted
+      as markdown citations, it is redundant to have a bibliography,
+      since one will be generated automatically.)
+ 
   * All slide formats: Support incremental slide view for definition lists.
 
   * Added syntax for "pauses" in beamer or reaveljs slide shows.
@@ -42,6 +86,16 @@
     + Variables completely shadow metadata.
       If many variables with the same name are set, a list is created.
 
+  * `Format` is now a newtype, not an alias for String.
+    Equality comparisons are case-insensitive.
+
+  * New generic block container (`Div`) and inline container
+    (`Span`) elements have been added. These can take attributes.
+    They will render in HTML, Textile, MediaWiki, Org, RST and
+    and Markdown (with `markdown_in_html` extension) as HTML `<div>`
+    and `<span>` elements; in other formats they will simply pass through
+    their contents.  But they can be targeted by scripts.
+
   * `Text.Pandoc`
 
     + Make `toJsonFilter` an alias for `toJSONFilter` from `Text.Pandoc.JSON`.
@@ -50,6 +104,36 @@
       pandoc-types instead of pandoc will also produce smaller executables.)
     * Removed the deprecated `jsonFilter` function.
     + Added `readJSON`, `writeJSON` to the API (#817).
+
+  * Most of `Text.Pandoc.Readers.TeXMath` has been moved to the
+    `texmath` module (0.6.4).  (This allows `pandoc-citeproc` to
+    handle simple math in bibliography fields.)
+ 
+  [ TODO - systematic documentation of pandoc-types API changes,
+    including .JSON, .Walk and changes to .Definition, .Builder.
+    Include the new Format newtype, and the new Span and Div
+    elements.]
+
+  * Added `Text.Pandoc.Walk` (in `pandoc-types`), which exports
+    hand-written tree-walking functions that are orders of magnitude
+    faster than the SYB functions from `Text.Pandoc.Generic`.
+    These functions are now used where possible in pandoc's code.
+    Added `Tests.Walk` to verify that `walk` and `query` match
+    the generic traversals `bottomUp` and `queryWith`.
+    (API change.)
+
+  * Added `Text.Pandoc.Process`, exporting `pipeProcess`.
+    This is a souped-up version of `readProcessWithErrorcode` that
+    uses lazy bytestrings instead of strings and allows setting
+    environment variables.  (Used in `Text.Pandoc.PDF`.)
+
+  * Added `Text.Pandoc.Compat.Monoid`.
+    This allows pandoc to compile with `base` < 4.5, where `Data.Monoid`
+    doesn't export `<>`.  Thanks to Dirk Ullirch for the patch.
+
+  * Added `Text.Pandoc.Compat.TagSoupEntity`.
+    This allows pandoc to compile with `tagsoup` 0.13.x.
+    Thanks to Dirk Ullrich for the patch.
 
   * `Text.Pandoc.Shared`
 
@@ -60,11 +144,15 @@
       This fixes bugs in `--self-contained` on pandoc compiled with
       `embed_data_files` (#833).
     + Fixed `readDefaultDataFile` so it works on Windows.
+    + Better error messages for `readDefaultDataFile`.  Instead of
+      listing the last path tried, which can confuse people who are
+      using `--self-contained`, so now we just list the data file name.
     + URL-escape pipe characters.
       Even though these are legal, `Network.URI` doesn't regard them
       as legal in URLs.  So we escape them first (#535).
     + `openURL`:  Print diagnostic output to stderr, not stdout.
     + `openURL`: Properly handle `data:` URIs.
+    + `stringify`:  Generalized type.
 
   * `Text.Pandoc.Biblio`
 
@@ -122,7 +210,7 @@
 
     will load the script sample.lua and use it as a custom writer.
     `data/sample.lua` is provided as an example.  (This can be printed
-    with the new `--print-custom-lua-writer` option.
+    with `pandoc --print-default-data-file sample.lua`.)
 
   * Added OPML reader and writer.
 
@@ -154,13 +242,18 @@
       might speed things up in some cases.)
     + Implemented `Ext_ascii_identifiers` (#807).
     + Allow internal `+` in citation identifiers (#856).
-    + Added support for YAML metadata block at the beginning of document.
+    + Added support for YAML metadata blocks, which can come anywhere
+      in the document (not just at the beginning).  A document can contain
+      multiple YAML metadata blocks.
     + Improved strong/emph parsing, using the strategy of
       <https://github.com/jgm/Markdown>.  The new parsing algorithm requires
       no backtracking, and no keeping track of nesting levels.
       It will give different results in some edge cases, but these should
       not affect normal uses.
     + Allow `.` or `)` after `#` in ATX headers if no `fancy_lists`.
+    + Do not generate blank title, author, or date metadata elements.
+      Leave these out entirely if they aren't present.
+    + HTML span and div tags are parsed as pandoc Span and Div elements.
 
   * RST reader
 
@@ -200,6 +293,9 @@
     + Support `\v{}` for hacek (#926).
     + Don't add spurious ", " to citation suffixes.
       This is added when needed in `Text.Pandoc.Biblio` anyway.
+    + Allow spaces in alignment spec in tables, e.g. `{ l r c }`.
+    + Improved support for accented characters (thanks to Scott Morrison).
+    + Parse label after section command and set id (#951).
 
   * MediaWiki reader
 
@@ -225,6 +321,10 @@
       This caused problems with array environments (#891).
     + Change `\` to `/` in paths.  `/` works even on Windows in LaTeX.
       `\` will cause major problems if unescaped.
+    + Write id for code block to label attribute in LaTeX when listings
+      is used (thanks to Florian Eitel).
+    + Scale LaTeX tables so they don't exceed columnwidth.
+    + Avoid problem with footnotes in unnumbered headers (#940).
 
   * Beamer writer
 
@@ -274,6 +374,10 @@
 
     + Fixing wrong numbered-list indentation in open document format
       (Alexander Kondratskiy) (#369).
+    + `reference.odt`: Added pandoc as "generator" in `meta.xml`.
+    + Minor changes for ODF 1.2 conformance (#939). We leave the
+      nonconforming `contextual-spacing` attribute, which is provided by
+      LibreOffice itself and seems well supported.
 
   * Docx writer
 
@@ -347,6 +451,8 @@
       to find them, either in the directory containing the first source
       file, or at an absolute URL, or at a URL relative to the base URL
       of the first command line argument (#917).
+    + If compiling with `pdflatex` yields an encoding error, offer
+      the suggestion to use `--latex-engine=xelatex`.
 
   * `Text.Pandoc.UTF8`
 
@@ -363,7 +469,7 @@
     + Better error reporting in `readWith`: On error have it print the line
       in which the error occurred, with a caret pointing to the column.
     + In `ParserState`, replace `stateTitle`, `stateAuthors`, `stateDate`
-      with `stateMeta`.
+      with `stateMeta` and `stateMeta'`.
 
   * `Text.Pandoc.XML`
 
@@ -375,6 +481,21 @@
     + Added `Ext_ascii_identifiers`. (API change.)
       This will force `Ext_auto_identifiers` to use ASCII only.
       Set as default for github markdown.
+    + Changed `writerSourceDir` to `writerSourceURL` and changed
+      the type to a `Maybe`.  Previously we used to store the directory
+      of the first input file, even if it was local, and used this as a
+      base directory for finding images in ODT, EPUB, Docx, and PDF.
+      This has been confusing to many users.  It seems better to look for
+      images relative to the current working directory, even if the first
+      file argument is in another directory.  `writerSourceURL` is set
+      to 'Just url' when the first command-line argument is an absolute
+      URL.  (So, relative links will be resolved in relation to the first
+      page.)  Otherwise, 'Nothing'.  The ODT, EPUB, Docx, and PDF
+      writers have been modified accordingly.  Note that this change may
+      break some existing workflows.  If you have been assuming that
+      relative links will be interpreted relative to the directory of
+      the first file argument, you'll need to make that the current
+      directory before running pandoc. API change (#942).
 
   * `Text.Pandoc.Templates`
 
@@ -422,7 +543,7 @@
 
   * Added CONTRIBUTING.md.
 
-  * Use latest `chicago-author-date.csl` as `default.csl`.
+  * Improved INSTALL instructions.
 
   * `make-windows-installer.bat`: Removed explicit paths for executables.
 
