@@ -24,7 +24,7 @@ infix 4 =:
 testBareLink :: (String, Inlines) -> Test
 testBareLink (inp, ils) =
   test (readMarkdown def{ readerExtensions =
-             Set.fromList [Ext_autolink_bare_uris] })
+             Set.fromList [Ext_autolink_bare_uris, Ext_raw_html] })
        inp (inp, doc $ para ils)
 
 autolink :: String -> Inlines
@@ -34,6 +34,9 @@ bareLinkTests :: [(String, Inlines)]
 bareLinkTests =
   [ ("http://google.com is a search engine.",
      autolink "http://google.com" <> " is a search engine.")
+  , ("<a href=\"http://foo.bar.baz\">http://foo.bar.baz</a>",
+     rawInline "html" "<a href=\"http://foo.bar.baz\">" <>
+     "http://foo.bar.baz" <> rawInline "html" "</a>")
   , ("Try this query: http://google.com?search=fish&time=hour.",
      "Try this query: " <> autolink "http://google.com?search=fish&time=hour" <> ".")
   , ("HTTPS://GOOGLE.COM,",
