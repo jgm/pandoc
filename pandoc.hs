@@ -677,7 +677,7 @@ options =
      , Option "" ["citation-abbreviations"]
                  (ReqArg
                   (\arg opt ->
-                     return opt{ optMetadata = ("csl-abbreviations",arg) :
+                     return opt{ optMetadata = ("citation-abbreviations",arg) :
                                  optMetadata opt })
                    "FILE")
                  ""
