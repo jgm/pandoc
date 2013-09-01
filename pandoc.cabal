@@ -334,6 +334,7 @@ Library
 
 Executable pandoc
   Build-Depends: pandoc,
+                 pandoc-types >= 1.12 && < 1.13,
                  base >= 4.2 && <5,
                  directory >= 1 && < 1.3,
                  filepath >= 1.1 && < 1.4,

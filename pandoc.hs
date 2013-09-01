@@ -31,6 +31,7 @@ writers.
 -}
 module Main where
 import Text.Pandoc
+import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
@@ -112,6 +113,7 @@ data Opt = Opt
     , optTransforms        :: [Pandoc -> Pandoc]  -- ^ Doc transforms to apply
     , optTemplate          :: Maybe FilePath  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
+    , optMetadata          :: [(String,String)] -- ^ Metadata fields to set
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optNumberOffset      :: [Int]   -- ^ Starting number for sections
@@ -166,6 +168,7 @@ defaultOpts = Opt
     , optTransforms            = []
     , optTemplate              = Nothing
     , optVariables             = []
+    , optMetadata              = []
     , optOutputFile            = "-"    -- "-" means stdout
     , optNumberSections        = False
     , optNumberOffset          = [0,0,0,0,0,0]
@@ -321,6 +324,16 @@ options =
                   "FILENAME")
                  "" -- "Use custom template"
 
+    , Option "M" ["metadata"]
+                 (ReqArg
+                  (\arg opt -> do
+                     let (key,val) = case break (`elem` ":=") arg of
+                                       (k,_:v) -> (k,v)
+                                       (k,_)   -> (k,"true")
+                     return opt{ optMetadata = (key,val) : optMetadata opt })
+                  "KEY[:VALUE]")
+                 ""
+
     , Option "V" ["variable"]
                  (ReqArg
                   (\arg opt -> do
@@ -329,7 +342,7 @@ options =
                                        (k,_)   -> (k,"true")
                      return opt{ optVariables = (key,val) : optVariables opt })
                   "KEY[:VALUE]")
-                 "" -- "Use custom template"
+                 ""
 
     , Option "D" ["print-default-template"]
                  (ReqArg
@@ -844,6 +857,7 @@ main = do
               , optWriter                = writerName
               , optParseRaw              = parseRaw
               , optVariables             = variables
+              , optMetadata              = metadata
               , optTableOfContents       = toc
               , optTransforms            = transforms
               , optTemplate              = templatePath
@@ -1062,8 +1076,10 @@ main = do
            handleIncludes' . convertTabs . intercalate "\n" >>=
            reader readerOpts
 
-  let doc0 = foldr ($) doc transforms
-  doc1 <- foldrM ($) doc0 $ map ($ [writerName']) plugins
+
+  let doc0 = foldr (\(k,v) -> setMeta k (MetaString v)) doc metadata
+  let doc1 = foldr ($) doc0 transforms
+  doc2 <- foldrM ($) doc1 $ map ($ [writerName']) plugins
 
   let writeBinary :: B.ByteString -> IO ()
       writeBinary = B.writeFile (UTF8.encodePath outputFile)
@@ -1074,15 +1090,15 @@ main = do
 
   case getWriter writerName' of
     Left e -> err 9 e
-    Right (IOStringWriter f) -> f writerOptions doc1 >>= writerFn outputFile
-    Right (IOByteStringWriter f) -> f writerOptions doc1 >>= writeBinary
+    Right (IOStringWriter f) -> f writerOptions doc2 >>= writerFn outputFile
+    Right (IOByteStringWriter f) -> f writerOptions doc2 >>= writeBinary
     Right (PureStringWriter f)
       | pdfOutput -> do
-              res <- makePDF latexEngine f writerOptions doc1
+              res <- makePDF latexEngine f writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> err 43 $ UTF8.toStringLazy err'
-      | otherwise -> selfcontain (f writerOptions doc1 ++
+      | otherwise -> selfcontain (f writerOptions doc2 ++
                                   ['\n' | not standalone'])
                       >>= writerFn outputFile . handleEntities
           where htmlFormat = writerName' `elem`
