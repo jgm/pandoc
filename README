@@ -342,7 +342,7 @@ General writer options
 :   Include an automatically generated table of contents (or, in
     the case of `latex`, `context`, and `rst`, an instruction to create
     one) in the output document. This option has no effect on `man`,
-    `docbook`, `slidy`, `slideous`, or `s5` output.
+    `docbook`, `slidy`, `slideous`, `s5`, `docx`, or `odt` output.
 
 `--toc-depth=`*NUMBER*
 :   Specify the number of section levels to include in the table
