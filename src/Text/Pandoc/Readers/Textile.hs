@@ -52,6 +52,7 @@ TODO : refactor common patterns across readers :
 module Text.Pandoc.Readers.Textile ( readTextile) where
 
 import Text.Pandoc.Definition
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
@@ -179,7 +180,8 @@ header = try $ do
   char '.'
   whitespace
   name <- normalizeSpaces <$> manyTill inline blockBreak
-  return $ Header level attr name
+  attr' <- registerHeader attr (B.fromList name)
+  return $ Header level attr' name
 
 -- | Blockquote of the form "bq. content"
 blockQuote :: Parser [Char] ParserState Block
