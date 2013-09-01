@@ -49,7 +49,6 @@ import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.XML (fromEntities)
-import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
@@ -471,31 +470,6 @@ block = choice [ mempty <$ blanklines
 header :: MarkdownParser (F Blocks)
 header = setextHeader <|> atxHeader <?> "header"
 
---  returns unique identifier
-addToHeaderList :: Attr -> F Inlines -> MarkdownParser Attr
-addToHeaderList (ident,classes,kvs) text = do
-  let header' = runF text defaultParserState
-  exts <- getOption readerExtensions
-  let insert' = M.insertWith (\_new old -> old)
-  if null ident && Ext_auto_identifiers `Set.member` exts
-     then do
-       ids <- stateIdentifiers `fmap` getState
-       let id' = uniqueIdent (B.toList header') ids
-       let id'' = if Ext_ascii_identifiers `Set.member` exts
-                     then catMaybes $ map toAsciiChar id'
-                     else id'
-       updateState $ \st -> st{
-              stateIdentifiers = if id' == id''
-                                    then id' : ids
-                                    else id' : id'' : ids,
-              stateHeaders = insert' header' id' $ stateHeaders st }
-       return (id'',classes,kvs)
-     else do
-        unless (null ident) $
-          updateState $ \st -> st{
-               stateHeaders = insert' header' ident $ stateHeaders st }
-        return (ident,classes,kvs)
-
 atxHeader :: MarkdownParser (F Blocks)
 atxHeader = try $ do
   level <- many1 (char '#') >>= return . length
@@ -504,7 +478,7 @@ atxHeader = try $ do
   skipSpaces
   text <- trimInlinesF . mconcat <$> many (notFollowedBy atxClosing >> inline)
   attr <- atxClosing
-  attr' <- addToHeaderList attr text
+  attr' <- registerHeader attr (runF text defaultParserState)
   return $ B.headerWith attr' level <$> text
 
 atxClosing :: MarkdownParser Attr
@@ -543,7 +517,7 @@ setextHeader = try $ do
   many (char underlineChar)
   blanklines
   let level = (fromMaybe 0 $ findIndex (== underlineChar) setextHChars) + 1
-  attr' <- addToHeaderList attr text
+  attr' <- registerHeader attr (runF text defaultParserState)
   return $ B.headerWith attr' level <$> text
 
 --

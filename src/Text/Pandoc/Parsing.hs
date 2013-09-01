@@ -75,6 +75,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              SubstTable,
                              Key (..),
                              toKey,
+                             registerHeader,
                              smartPunctuation,
                              withQuoteContext,
                              singleQuoteStart,
@@ -151,6 +152,7 @@ where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Builder (Blocks, Inlines, rawBlock, HasMeta(..))
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.XML (fromEntities)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
@@ -162,11 +164,13 @@ import Text.Pandoc.Shared
 import qualified Data.Map as M
 import Text.TeXMath.Macros (applyMacros, Macro, parseMacroDefinitions)
 import Text.Pandoc.Compat.TagSoupEntity ( lookupEntity )
+import Text.Pandoc.Asciify (toAsciiChar)
 import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader
 import Control.Applicative ((*>), (<*), (<$), liftA2)
 import Data.Monoid
+import Data.Maybe (catMaybes)
 
 type Parser t s = Parsec t s
 
@@ -885,6 +889,34 @@ toKey = Key . map toLower . unwords . words
 type KeyTable = M.Map Key Target
 
 type SubstTable = M.Map Key Inlines
+
+--  | Add header to the list of headers in state, together
+--  with its associated identifier.  If the identifier is null
+--  and the auto_identifers extension is set, generate a new
+--  unique identifier, and update the list of identifiers
+--  in state.
+registerHeader :: Attr -> Inlines -> Parser s ParserState Attr
+registerHeader (ident,classes,kvs) header' = do
+  ids <- stateIdentifiers `fmap` getState
+  exts <- getOption readerExtensions
+  let insert' = M.insertWith (\_new old -> old)
+  if null ident && Ext_auto_identifiers `Set.member` exts
+     then do
+       let id' = uniqueIdent (B.toList header') ids
+       let id'' = if Ext_ascii_identifiers `Set.member` exts
+                     then catMaybes $ map toAsciiChar id'
+                     else id'
+       updateState $ \st -> st{
+              stateIdentifiers = if id' == id''
+                                    then id' : ids
+                                    else id' : id'' : ids,
+              stateHeaders = insert' header' id' $ stateHeaders st }
+       return (id'',classes,kvs)
+     else do
+        unless (null ident) $
+          updateState $ \st -> st{
+               stateHeaders = insert' header' ident $ stateHeaders st }
+        return (ident,classes,kvs)
 
 -- | Fail unless we're in "smart typography" mode.
 failUnlessSmart :: Parser [tok] ParserState ()
