@@ -143,7 +143,8 @@ pandocToHtml opts (Pandoc meta blocks) = do
                            MathJax url ->
                               H.script ! A.src (toValue url)
                                        ! A.type_ "text/javascript"
-                                       $ mempty
+                                       $ preEscapedString
+                                         "MathJax.Hub.Queue([\"Typeset\",MathJax.Hub]);"
                            JsMath (Just url) ->
                               H.script ! A.src (toValue url)
                                        ! A.type_ "text/javascript"
