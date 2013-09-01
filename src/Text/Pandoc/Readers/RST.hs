@@ -275,7 +275,8 @@ doubleHeader = try $ do
         Just ind -> (headerTable, ind + 1)
         Nothing -> (headerTable ++ [DoubleHeader c], (length headerTable) + 1)
   setState (state { stateHeaderTable = headerTable' })
-  return $ B.header level txt
+  attr <- registerHeader nullAttr txt
+  return $ B.headerWith attr level txt
 
 -- a header with line on the bottom only
 singleHeader :: RSTParser Blocks
@@ -295,7 +296,8 @@ singleHeader = try $ do
         Just ind -> (headerTable, ind + 1)
         Nothing -> (headerTable ++ [SingleHeader c], (length headerTable) + 1)
   setState (state { stateHeaderTable = headerTable' })
-  return $ B.header level txt
+  attr <- registerHeader nullAttr txt
+  return $ B.headerWith attr level txt
 
 --
 -- hrule block

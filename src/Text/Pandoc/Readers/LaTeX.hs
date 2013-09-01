@@ -318,9 +318,9 @@ section (ident, classes, kvs) lvl = do
   let lvl' = if hasChapters then lvl + 1 else lvl
   skipopts
   contents <- grouped inline
-  lab <- option ident $ try $ spaces >> controlSeq "label" >>
-           spaces >> braced
-  return $ headerWith (lab, classes, kvs) lvl' contents
+  lab <- option ident $ try (spaces >> controlSeq "label" >> spaces >> braced)
+  attr' <- registerHeader (lab, classes, kvs) contents
+  return $ headerWith attr' lvl' contents
 
 inlineCommand :: LP Inlines
 inlineCommand = try $ do

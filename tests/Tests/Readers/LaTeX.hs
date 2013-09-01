@@ -28,17 +28,17 @@ tests = [ testGroup "basic"
 
         , testGroup "headers"
           [ "level 1" =:
-            "\\section{header}" =?> header 1 "header"
+            "\\section{header}" =?> headerWith ("header",[],[]) 1 "header"
           , "level 2" =:
-            "\\subsection{header}" =?> header 2 "header"
+            "\\subsection{header}" =?> headerWith ("header",[],[]) 2 "header"
           , "level 3" =:
-            "\\subsubsection{header}" =?> header 3 "header"
+            "\\subsubsection{header}" =?> headerWith ("header",[],[]) 3 "header"
           , "emph" =:
             "\\section{text \\emph{emph}}" =?>
-             header 1 ("text" <> space <> emph "emph")
+             headerWith ("text-emph",[],[]) 1 ("text" <> space <> emph "emph")
           , "link" =:
             "\\section{text \\href{/url}{link}}" =?>
-              header 1 ("text" <> space <> link "/url" "" "link")
+              headerWith ("text-link",[],[]) 1 ("text" <> space <> link "/url" "" "link")
           ]
 
         , testGroup "math"

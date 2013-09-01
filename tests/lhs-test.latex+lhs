@@ -49,7 +49,7 @@
 
 \begin{document}
 
-\section{lhs test}
+\section{lhs test}\label{lhs-test}
 
 \texttt{unsplit} is an arrow that takes a pair of values and combines them to
 return a single value:

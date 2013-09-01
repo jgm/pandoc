@@ -27,7 +27,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
   </style>
 </head>
 <body>
-<h1>lhs test</h1>
+<h1 id="lhs-test">lhs test</h1>
 <p><code>unsplit</code> is an arrow that takes a pair of values and combines them to return a single value:</p>
 <pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">unsplit ::</span> (<span class="dt">Arrow</span> a) <span class="ot">=&gt;</span> (b <span class="ot">-&gt;</span> c <span class="ot">-&gt;</span> d) <span class="ot">-&gt;</span> a (b, c) d
 unsplit <span class="fu">=</span> arr <span class="fu">.</span> uncurry
