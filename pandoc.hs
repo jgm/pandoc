@@ -113,7 +113,7 @@ data Opt = Opt
     , optTransforms        :: [Pandoc -> Pandoc]  -- ^ Doc transforms to apply
     , optTemplate          :: Maybe FilePath  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
-    , optMetadata          :: [(String,String)] -- ^ Metadata fields to set
+    , optMetadata          :: [(String,MetaValue)] -- ^ Metadata fields to set
     , optOutputFile        :: String  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optNumberOffset      :: [Int]   -- ^ Starting number for sections
@@ -328,8 +328,8 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      let (key,val) = case break (`elem` ":=") arg of
-                                       (k,_:v) -> (k,v)
-                                       (k,_)   -> (k,"true")
+                                       (k,_:v) -> (k, MetaString v)
+                                       (k,_)   -> (k, MetaBool True)
                      return opt{ optMetadata = (key,val) : optMetadata opt })
                   "KEY[:VALUE]")
                  ""
@@ -658,7 +658,7 @@ options =
     , Option "" ["bibliography"]
                  (ReqArg
                   (\arg opt ->
-                     return opt{ optMetadata = ("bibliography",arg) :
+                     return opt{ optMetadata = ("bibliography",MetaString arg) :
                                  optMetadata opt
                                , optPlugins = externalFilter "pandoc-citeproc"
                                    : optPlugins opt
@@ -669,7 +669,7 @@ options =
      , Option "" ["csl"]
                  (ReqArg
                   (\arg opt ->
-                     return opt{ optMetadata = ("csl",arg) :
+                     return opt{ optMetadata = ("csl", MetaString arg) :
                                  optMetadata opt })
                    "FILE")
                  ""
@@ -677,7 +677,8 @@ options =
      , Option "" ["citation-abbreviations"]
                  (ReqArg
                   (\arg opt ->
-                     return opt{ optMetadata = ("citation-abbreviations",arg) :
+                     return opt{ optMetadata = ("citation-abbreviations",
+                                                MetaString arg) :
                                  optMetadata opt })
                    "FILE")
                  ""
@@ -1104,7 +1105,7 @@ main = do
            reader readerOpts
 
 
-  let doc0 = foldr (\(k,v) -> setMeta k (MetaString v)) doc metadata
+  let doc0 = foldr (\(k,v) -> setMeta k v) doc metadata
   let doc1 = foldr ($) doc0 transforms
   doc2 <- foldrM ($) doc1 $ map ($ [writerName']) plugins
 

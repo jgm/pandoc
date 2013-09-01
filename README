@@ -284,6 +284,12 @@ Reader options
     if no directory is provided.  If you want to run a script in the
     working directory, preface the filename with `./`.
 
+`-M` *KEY[=VAL]*, `--metadata=`*KEY[:VAL]*
+:   Set the metadata field *KEY* to the value *VAL* after
+    parsing.  A value specified on the command line overrides a value
+    specified in the document.  Values will be interpreted as raw strings.
+    If no value is specified, the value will be treated as Boolean true.
+
 `--normalize`
 :   Normalize the document after reading:  merge adjacent
     `Str` or `Emph` elements, for example, and remove repeated `Space`s.
