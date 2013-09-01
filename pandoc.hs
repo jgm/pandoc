@@ -655,6 +655,33 @@ options =
                   "PROGRAM")
                  "" -- "Name of latex program to use in generating PDF"
 
+    , Option "" ["bibliography"]
+                 (ReqArg
+                  (\arg opt ->
+                     return opt{ optMetadata = ("bibliography",arg) :
+                                 optMetadata opt
+                               , optPlugins = externalFilter "pandoc-citeproc"
+                                   : optPlugins opt
+                               })
+                   "FILE")
+                 ""
+
+     , Option "" ["csl"]
+                 (ReqArg
+                  (\arg opt ->
+                     return opt{ optMetadata = ("csl",arg) :
+                                 optMetadata opt })
+                   "FILE")
+                 ""
+
+     , Option "" ["citation-abbreviations"]
+                 (ReqArg
+                  (\arg opt ->
+                     return opt{ optMetadata = ("csl-abbreviations",arg) :
+                                 optMetadata opt })
+                   "FILE")
+                 ""
+
     , Option "" ["natbib"]
                  (NoArg
                   (\opt -> return opt { optCiteMethod = Natbib }))
