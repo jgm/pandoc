@@ -1,24 +1,32 @@
 #!/bin/sh -e
 
-DIST=osx_package
+DIST=`pwd`/osx_package
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
 SCRIPTS=osx-resources
 BASE=pandoc-$VERSION
+ICU=/usr/local/Cellar/icu4c/51.1
 ME=jgm
 CODESIGNID="Developer ID Application: John Macfarlane"
-PACKAGEMAKER=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
+PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
 
 echo Removing old files...
 rm -rf $DIST
 mkdir -p $RESOURCES
 
+# echo Updating database
+# cabal update
+
+echo Adding source dirs # (TODO - remove when released)
+cabal-dev add-source /Users/jgm/src/pandoc-types
+cabal-dev add-source /Users/jgm/src/pandoc-citeproc
+
 echo Building pandoc...
-cabal-dev install-deps
-cabal-dev configure --prefix=/usr/local --datasubdir=$BASE --docdir=/usr/local/doc/$BASE
-cabal-dev build
-cabal-dev copy --destdir=$ROOT
+cabal-dev install hsb2hs
+cabal-dev install -v1 --prefix $ROOT/usr/local --libdir /usr/local/lib --datadir /usr/local/share --flags="embed_data_files unicode_collation" --extra-lib-dirs=$ICU/lib --extra-include-dirs=$ICU/include pandoc-citeproc
+cabal-dev install -v1 --prefix $ROOT/usr/local --libdir /usr/local/lib --datadir /usr/local/share --flags="embed_data_files"
+
 # remove library files
 rm -r $ROOT/usr/local/lib
 chown -R $ME:staff $DIST
