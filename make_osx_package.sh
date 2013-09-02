@@ -24,14 +24,17 @@ cabal-dev add-source /Users/jgm/src/pandoc-citeproc
 
 echo Building pandoc...
 cabal-dev install hsb2hs
-cabal-dev install -v1 --prefix $ROOT/usr/local --libdir /usr/local/lib --datadir /usr/local/share --flags="embed_data_files unicode_collation" --extra-lib-dirs=$ICU/lib --extra-include-dirs=$ICU/include pandoc-citeproc
-cabal-dev install -v1 --prefix $ROOT/usr/local --libdir /usr/local/lib --datadir /usr/local/share --flags="embed_data_files"
 
-# remove library files
-rm -r $ROOT/usr/local/lib
+cabal-dev install --reinstall -v1 --prefix $ROOT/tmp  --flags="embed_data_files unicode_collation" --extra-lib-dirs=$ICU/lib --extra-include-dirs=$ICU/include pandoc-citeproc
+cabal-dev install -v1 --prefix $ROOT/tmp --flags="embed_data_files"
+
+mkdir -p $ROOT/usr/local/share
+cp -r $ROOT/tmp/bin $ROOT/usr/local/
+cp -r $ROOT/tmp/share/man $ROOT/usr/local/share/
+rm -rf $ROOT/tmp
+
 chown -R $ME:staff $DIST
-
-gzip $ROOT/usr/local/share/man/man?/*.*
+# gzip $ROOT/usr/local/share/man/man?/*.*
 # cabal gives man pages the wrong permissions
 chmod +r $ROOT/usr/local/share/man/man?/*.*
 
@@ -51,9 +54,10 @@ sudo $PACKAGEMAKER \
     --id net.johnmacfarlane.pandoc \
     --resources $RESOURCES \
     --version $VERSION \
-    --no-relocate \
     --scripts $SCRIPTS \
     --out $BASE.pkg
+
+    # --no-relocate
 
 echo Signing package...
 
