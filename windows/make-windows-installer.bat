@@ -1,9 +1,13 @@
 @echo off
 cd ..
-rem cabal update
+cabal update
 cabal-dev clean
 if %errorlevel% neq 0 exit /b %errorlevel%
-cabal-dev install --reinstall --force-reinstall --flags="embed_data_files"
+cabal-dev add-source ../pandoc-types
+cabal-dev add-source ../pandoc-citeproc
+cabal-dev install hsb2hs
+cabal-dev install --reinstall --flags="embed_data_files unicode_collation" --extra-lib-dirs=../icu/lib --extra-include-dirs=../icu/include pandoc-citeproc
+cabal-dev install --reinstall --flags="embed_data_files"
 if %errorlevel% neq 0 exit /b %errorlevel%
 strip cabal-dev\bin\pandoc.exe
 cabal-dev\bin\pandoc.exe -s --template data\templates\default.html -S README -o README.html
