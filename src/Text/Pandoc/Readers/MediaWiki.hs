@@ -523,7 +523,7 @@ endline = () <$ try (newline <*
 image :: MWParser Inlines
 image = try $ do
   sym "[["
-  sym "File:"
+  sym "File:" <|> sym "Image:"
   fname <- many1 (noneOf "|]")
   _ <- many (try $ char '|' *> imageOption)
   caption <-   (B.str fname <$ sym "]]")
