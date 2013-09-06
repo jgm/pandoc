@@ -6,7 +6,6 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 cabal-dev add-source ../pandoc-types
 cabal-dev add-source ../pandoc-citeproc
 cabal-dev install hsb2hs
-cabal-dev install --reinstall --flags="embed_data_files unicode_collation" --extra-lib-dirs=../icu/lib --extra-include-dirs=../icu/include pandoc-citeproc
 cabal-dev install --reinstall --flags="embed_data_files"
 if %errorlevel% neq 0 exit /b %errorlevel%
 strip cabal-dev\bin\pandoc.exe
