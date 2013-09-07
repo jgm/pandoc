@@ -3,10 +3,8 @@ cd ..
 cabal update
 cabal-dev clean
 if %errorlevel% neq 0 exit /b %errorlevel%
-cabal-dev add-source ../pandoc-types
-cabal-dev add-source ../pandoc-citeproc
 cabal-dev install hsb2hs
-cabal-dev install --force --reinstall --flags="embed_data_files" pandoc-types pandoc-citeproc
+cabal-dev install --only-dependencies --force --reinstall --flags="embed_data_files"
 cabal-dev install --reinstall --flags="embed_data_files"
 if %errorlevel% neq 0 exit /b %errorlevel%
 strip cabal-dev\bin\pandoc.exe
