@@ -18,10 +18,6 @@ mkdir -p $RESOURCES
 # echo Updating database
 # cabal update
 
-echo Adding source dirs # (TODO - remove when released)
-cabal-dev add-source /Users/jgm/src/pandoc-types
-cabal-dev add-source /Users/jgm/src/pandoc-citeproc
-
 echo Building pandoc...
 cabal-dev install hsb2hs
 
