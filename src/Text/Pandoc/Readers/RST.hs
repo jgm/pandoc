@@ -347,14 +347,25 @@ lhsCodeBlock = try $ do
   getPosition >>= guard . (==1) . sourceColumn
   guardEnabled Ext_literate_haskell
   optional codeBlockStart
-  lns <- many1 birdTrackLine
-  -- if (as is normal) there is always a space after >, drop it
-  let lns' = if all (\ln -> null ln || take 1 ln == " ") lns
-                then map (drop 1) lns
-                else lns
+  lns <- latexCodeBlock <|> birdCodeBlock
   blanklines
   return $ B.codeBlockWith ("", ["sourceCode", "literate", "haskell"], [])
-         $ intercalate "\n" lns'
+         $ intercalate "\n" lns
+
+latexCodeBlock :: Parser [Char] st [[Char]]
+latexCodeBlock = try $ do
+  try (latexBlockLine "\\begin{code}")
+  many1Till anyLine (try $ latexBlockLine "\\end{code}")
+ where
+  latexBlockLine s = skipMany spaceChar >> string s >> blankline
+
+birdCodeBlock :: Parser [Char] st [[Char]]
+birdCodeBlock = filterSpace <$> many1 birdTrackLine
+  where filterSpace lns =
+            -- if (as is normal) there is always a space after >, drop it
+            if all (\ln -> null ln || take 1 ln == " ") lns
+               then map (drop 1) lns
+               else lns
 
 birdTrackLine :: Parser [Char] st [Char]
 birdTrackLine = char '>' >> anyLine
