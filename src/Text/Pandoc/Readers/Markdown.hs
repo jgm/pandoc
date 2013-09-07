@@ -1559,6 +1559,7 @@ endline :: MarkdownParser (F Inlines)
 endline = try $ do
   newline
   notFollowedBy blankline
+  guardDisabled Ext_lists_without_preceding_blankline <|> notFollowedBy listStart
   guardEnabled Ext_blank_before_blockquote <|> notFollowedBy emailBlockQuoteStart
   guardEnabled Ext_blank_before_header <|> notFollowedBy (char '#') -- atx header
   -- parse potential list-starts differently if in a list:

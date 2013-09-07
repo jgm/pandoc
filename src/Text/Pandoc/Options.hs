@@ -80,6 +80,7 @@ data Extension =
     | Ext_link_attributes     -- ^ MMD style reference link attributes
     | Ext_autolink_bare_uris  -- ^ Make all absolute URIs into links
     | Ext_fancy_lists         -- ^ Enable fancy list numbers and delimiters
+    | Ext_lists_without_preceding_blankline -- ^ Allow lists without preceding blank
     | Ext_startnum            -- ^ Make start number of ordered list significant
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
     | Ext_example_lists       -- ^ Markdown-style numbered examples
@@ -169,6 +170,7 @@ githubMarkdownExtensions = Set.fromList
   , Ext_intraword_underscores
   , Ext_strikeout
   , Ext_hard_line_breaks
+  , Ext_lists_without_preceding_blankline
   ]
 
 multimarkdownExtensions :: Set Extension

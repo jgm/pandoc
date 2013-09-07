@@ -2454,6 +2454,10 @@ in pandoc, but may be enabled by adding `+EXTENSION` to the format
 name, where `EXTENSION` is the name of the extension.  Thus, for
 example, `markdown+hard_line_breaks` is markdown with hard line breaks.
 
+**Extension:  `lists_without_preceding_blankline`**\
+Allow a list to occur right after a paragraph, with no intervening
+blank space.
+
 **Extension:  `hard_line_breaks`**\
 Causes all newlines within a paragraph to be interpreted as hard line
 breaks instead of spaces.
