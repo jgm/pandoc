@@ -39,7 +39,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, char, space)
 import Data.List ( group, isPrefixOf, find, intersperse, transpose, sortBy )
-import Data.Char ( isSpace )
+import Data.Char ( isSpace, isPunctuation )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
 import Control.Monad.State
@@ -143,7 +143,7 @@ jsonToYaml (Object hashmap) =
                  | otherwise      -> (k' <> ":") $$ x
                (k', Object _, x)  -> (k' <> ":") $$ nest 2 x
                (_, String "", _)  -> empty
-               (k', _, x)         -> k' <> ":" <> space <> x)
+               (k', _, x)         -> k' <> ":" <> space <> hang 2 "" x)
        $ sortBy (comparing fst) $ H.toList hashmap
 jsonToYaml (Array vec) =
   vcat $ map (\v -> hang 2 "- " (jsonToYaml v)) $ V.toList vec
@@ -151,7 +151,7 @@ jsonToYaml (String "") = empty
 jsonToYaml (String s) =
   case T.unpack s of
      x | '\n' `elem` x -> hang 2 ("|" <> cr) $ text x
-       | not (any (`elem` x) "\"'#:[]{}?-") -> text x
+       | not (any isPunctuation x) -> text x
        | otherwise     -> text $ "'" ++ substitute "'" "''" x ++ "'"
 jsonToYaml (Bool b) = text $ show b
 jsonToYaml (Number n) = text $ show n
