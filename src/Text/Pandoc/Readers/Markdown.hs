@@ -872,6 +872,7 @@ para = try $ do
             newline
             (blanklines >> return mempty)
               <|> (guardDisabled Ext_blank_before_blockquote >> lookAhead blockQuote)
+              <|> (guardEnabled Ext_backtick_code_blocks >> lookAhead codeBlockFenced)
               <|> (guardDisabled Ext_blank_before_header >> lookAhead header)
             return $ do
               result' <- result
@@ -1562,6 +1563,8 @@ endline = try $ do
   guardDisabled Ext_lists_without_preceding_blankline <|> notFollowedBy listStart
   guardEnabled Ext_blank_before_blockquote <|> notFollowedBy emailBlockQuoteStart
   guardEnabled Ext_blank_before_header <|> notFollowedBy (char '#') -- atx header
+  guardEnabled Ext_backtick_code_blocks >>
+     notFollowedBy (() <$ (lookAhead (char '`') >> codeBlockFenced))
   -- parse potential list-starts differently if in a list:
   st <- getState
   when (stateParserContext st == ListItemState) $ do
