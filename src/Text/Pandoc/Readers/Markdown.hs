@@ -871,9 +871,11 @@ para = try $ do
     $ try $ do
             newline
             (blanklines >> return mempty)
-              <|> (guardDisabled Ext_blank_before_blockquote >> lookAhead blockQuote)
-              <|> (guardEnabled Ext_backtick_code_blocks >> lookAhead codeBlockFenced)
-              <|> (guardDisabled Ext_blank_before_header >> lookAhead header)
+              <|> (guardDisabled Ext_blank_before_blockquote >> () <$ lookAhead blockQuote)
+              <|> (guardEnabled Ext_backtick_code_blocks >> () <$ lookAhead codeBlockFenced)
+              <|> (guardDisabled Ext_blank_before_header >> () <$ lookAhead header)
+              <|> (guardEnabled Ext_lists_without_preceding_blankline >>
+                       () <$ lookAhead listStart)
             return $ do
               result' <- result
               case B.toList result' of
