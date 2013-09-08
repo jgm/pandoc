@@ -212,7 +212,7 @@ iter var' template sep = Template $ \val -> unTemplate
            Just (Array vec) -> mconcat $ intersperse sep
                                        $ map (setVar template var')
                                        $ toList vec
-           Just x           -> setVar template var' x
+           Just x           -> cond var' (setVar template var' x) mempty
            Nothing          -> mempty) val
 
 setVar :: Template -> Variable -> Value -> Template
