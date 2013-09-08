@@ -368,6 +368,14 @@
         
 	    Closes #975.
 
+    Templates:  more consistent behavior of `$for$`.
+    
+    When `foo` is not a list, `$for(foo)$...$endfor$` should behave like
+    $if(foo)$...$endif$.  So if `foo` resolves to "", no output should
+    be produced.
+    
+    See pandoc-templates#39.
+
 
 ------------------
 
