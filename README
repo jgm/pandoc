@@ -2680,9 +2680,8 @@ a single document.
 Inserting pauses
 ----------------
 
-In reveal.js and beamer slide shows, you can add "pauses" within
-a slide by including a paragraph containing three dots, separated
-by spaces:
+You can add "pauses" within a slide by including a paragraph containing
+three dots, separated by spaces:
 
     # Slide with a pause
 

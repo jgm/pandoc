@@ -413,16 +413,13 @@
       as markdown citations, it is redundant to have a bibliography,
       since one will be generated automatically.)
  
-  * Added syntax for "pauses" in beamer or reaveljs slide shows.
+  * Added syntax for "pauses" in slide shows:
 
         This gives
 
         . . .
 
         a pause.
-
-    [note - no longer seems to work in recente revealjs - perhaps
-    this should be reverted]
 
   * Use new flexible metadata type.
 
