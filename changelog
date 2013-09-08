@@ -364,6 +364,9 @@
     * Made markdown reader sensitive to this.
     * Closes #972.
 
+    Markdown: Allow backtick code blocks not to be preceded by blank line.
+        
+	    Closes #975.
 
 
 ------------------
