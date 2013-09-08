@@ -91,7 +91,7 @@ nested p = do
   return res
 
 specialChars :: [Char]
-specialChars = "'[]<=&*{}|\""
+specialChars = "'[]<=&*{}|\":\\"
 
 spaceChars :: [Char]
 spaceChars = " \n\t"
@@ -380,8 +380,9 @@ defListItem = try $ do
   terms <- mconcat . intersperse B.linebreak <$> many defListTerm
   -- we allow dd with no dt, or dt with no dd
   defs  <- if B.isNull terms
-              then many1 $ listItem ':'
-              else many $ listItem ':'
+              then notFollowedBy (try $ string ":<math>") *>
+                       many1 (listItem ':')
+              else many (listItem ':')
   return (terms, defs)
 
 defListTerm  :: MWParser Inlines
@@ -462,6 +463,7 @@ inline =  whitespace
       <|> image
       <|> internalLink
       <|> externalLink
+      <|> math
       <|> inlineTag
       <|> B.singleton <$> charRef
       <|> inlineHtml
@@ -471,6 +473,16 @@ inline =  whitespace
 
 str :: MWParser Inlines
 str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
+
+math :: MWParser Inlines
+math = (B.displayMath <$> try (char ':' >> charsInTags "math"))
+   <|> (B.math <$> charsInTags "math")
+   <|> (B.displayMath <$> try (dmStart *> manyTill anyChar dmEnd))
+   <|> (B.math <$> try (mStart *> manyTill (satisfy (/='\n')) mEnd))
+ where dmStart = string "\\["
+       dmEnd   = try (string "\\]")
+       mStart  = string "\\("
+       mEnd    = try (string "\\)")
 
 variable :: MWParser String
 variable = try $ do
@@ -495,7 +507,6 @@ inlineTag = do
        TagOpen "del" _ -> B.strikeout <$> inlinesInTags "del"
        TagOpen "sub" _ -> B.subscript <$> inlinesInTags "sub"
        TagOpen "sup" _ -> B.superscript <$> inlinesInTags "sup"
-       TagOpen "math" _ -> B.math <$> charsInTags "math"
        TagOpen "code" _ -> B.code <$> charsInTags "code"
        TagOpen "tt" _ -> B.code <$> charsInTags "tt"
        TagOpen "hask" _ -> B.codeWith ("",["haskell"],[]) <$> charsInTags "hask"
