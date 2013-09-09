@@ -1823,6 +1823,11 @@ normalCite = try $ do
 
 citeKey :: MarkdownParser (Bool, String)
 citeKey = try $ do
+  -- make sure we're not right after an alphanumeric,
+  -- since foo@bar.baz is probably an email address
+  lastStrPos <- stateLastStrPos <$> getState
+  pos <- getPosition
+  guard $ lastStrPos /= Just pos
   suppress_author <- option False (char '-' >> return True)
   char '@'
   first <- letter
