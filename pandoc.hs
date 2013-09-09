@@ -660,8 +660,6 @@ options =
                   (\arg opt ->
                      return opt{ optMetadata = ("bibliography",MetaString arg) :
                                  optMetadata opt
-                               , optPlugins = externalFilter "pandoc-citeproc"
-                                   : optPlugins opt
                                })
                    "FILE")
                  ""

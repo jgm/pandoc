@@ -606,10 +606,8 @@ Citation rendering
 
 `--bibliography=`*FILE*
 :   Set the `bibliography` field in the document's metadata to *FILE*,
-    overriding any value set in the metadata, and tell pandoc to
-    use the `pandoc-citeproc` filter.  (This is equivalent to the
-    combination `--metadata bibliography=FILE --filter pandoc-citeproc`.)
-    Note that an error will result unless `pandoc-citeproc` is installed.
+    overriding any value set in the metadata.  (This is equivalent to
+    `--metadata bibliography=FILE`.)
 
 `--csl=`*FILE*
 :   Set the `csl` field in the document's metadata to *FILE*,
