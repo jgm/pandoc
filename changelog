@@ -72,6 +72,12 @@
     which URLs it is fetching, but not giving the full header).  In
     addition, there are better error messages when fetching a URL fails.
 
+  * Citation support is no longer baked in to core pandoc. Users who
+    need citations will need to install and use a separate filter
+    (`--filter pandoc-citeproc`).  This filter will take `bibliography`,
+    `csl`, and `citation-abbreviations` from the metadata, though it
+    may still be specified on the command line as before.
+
   * Previously we used to store the directory of the first input file,
     even if it was local, and used this as a base directory for finding
     images in ODT, EPUB, Docx, and PDF.  This has been confusing to many
@@ -258,7 +264,7 @@
     + Skip positional options after `\begin{figure}`.
     + Support `\v{}` for hacek (#926).
     + Don't add spurious ", " to citation suffixes.
-      This is added when needed in `Text.Pandoc.Biblio` anyway.
+      This is added when needed in pandoc-citeproc.
     + Allow spaces in alignment spec in tables, e.g. `{ l r c }`.
     + Improved support for accented characters (thanks to Scott Morrison).
     + Parse label after section command and set id (#951).
@@ -506,51 +512,33 @@
 
 ------------------
 
-  TODO - metadata changes
-
-  TODO - json module
-
-  TODO - walk module
-
-  TODO - citation changes
-  removed Biblio
-  removed integrated citation support
-  etc.
-  include pandoc-citeproc changes
-
   * citeproc support has been removed from core pandoc (API changes).
 
-    + The `--bibliography`, `--csl`, and `--citation-abbreviation` options are
-      now implemented as follows:
-      --bibliography FILE => --metadata bibliography=FILE --filter pandoc-citeproc
-      --csl FILE          => --metadata csl=FILE
-      --citation-abbreviations FILE => --metadata csl-abbreviations=FILE
-    + Markdown and LaTeX citations as still parsed, but an external
-      filter, `pandoc-citeproc`, is now needed to process
-      them against a bibliography and CSL stylesheet.  The bibliography
-      and stylesheet should be specified in the document's YAML metadata
-      (`bibliography` and `csl` fields), and the filter called with
-      `pandoc --filter pandoc-citeproc`.
-    + The `Text.Pandoc.Biblio` module has been removed, and the Markdown
+    + The `Text.Pandoc.Biblio` module has been removed (API change),
+    and the Markdown
       and LaTeX readers no longer process citations.  Users of the
       pandoc library who want citation support will need to use
       `Text.CSL.Pandoc` from `pandoc-citations`.
+
     + All bibliography-related fields have been removed from
       `ReaderOptions` and `WriterOptions`: `writerBiblioFiles`,
-      `readerReferences`, `readerCitationStyle`.
+      `readerReferences`, `readerCitationStyle`. (API change)
+
     + Note that a Cite element is now created in parsing markdown whether
       or not there is a matching reference (indeed, pandoc has no way of
       knowing, since the `--bibliography` option has been removed).
-      By default citations will print as `???`.
+      By default citations will print as `???`. (behavior change)
+
     + The `pandoc-citeproc` script will put the bibliography at the
       end of the document, as before.  However, it will be put inside a Div
       element with class "references", allowing users some control
       over the styling of references.  A final header, if any, will
-      be included in the Div.
+      be included in the Div. (behavior change)
+
     * The markdown writer will not print a bibliography if the
       `citations` extension is enabled.  (If the citations are formatted
       as markdown citations, it is redundant to have a bibliography,
-      since one will be generated automatically.)
+      since one will be generated automatically.) (behavior change)
  
   * Use new flexible metadata type.
 
@@ -568,11 +556,6 @@
     and `<span>` elements; in other formats they will simply pass through
     their contents.  But they can be targeted by scripts.
 
-  [ TODO - systematic documentation of pandoc-types API changes,
-    including .JSON, .Walk and changes to .Definition, .Builder.
-    Include the new Format newtype, and the new Span and Div
-    elements.]
-
   * Added `Text.Pandoc.Walk` (in `pandoc-types`), which exports
     hand-written tree-walking functions that are orders of magnitude
     faster than the SYB functions from `Text.Pandoc.Generic`.
@@ -581,15 +564,20 @@
     the generic traversals `bottomUp` and `queryWith`.
     (API change.)
 
- 
-  
-  * `Text.Pandoc.Biblio`
+  * New module `Text.Pandoc.JSON` in pandoc-types.
 
-    + Override citeproc-hs's `endWithPunct`.
-      The new version correctly sees a sentence ending in '.)' as ending
-      with punctuation.  This fixes a bug which led such sentences to receive
-      an extra period at the end: '.).'.  Thanks to Steve Petersen for
-      reporting.
+    + This provides `ToJSON` and `FromJSON` instances for the basic
+      pandoc types.  They use GHC generics and should be faster than the
+      old JSON serialization using `Data.Aeson.Generic`.
+
+  
+  * Citation processing improvements (now part of pandoc-citeproc):
+    (bug fixes)
+
+    + Fixed `endWithPunct` The new version correctly sees a sentence
+      ending in '.)' as ending with punctuation.  This fixes a bug which
+      led such sentences to receive an extra period at the end: '.).'.
+      Thanks to Steve Petersen for reporting.
     + Don't interfere with Notes that aren't citation notes.
       This fixes a bug in which notes not generated from citations were
       being altered (e.g. first letter capitalized) (#898).
@@ -602,12 +590,6 @@
       The result of these changes (and the last commit) is that
       `\citep[23]{item1}` in LaTeX will be interpreted properly,
       with '23' treated as a locator of type 'page'.
-
-  * New module `Text.Pandoc.JSON` in pandoc-types.
-
-    + This provides `ToJSON` and `FromJSON` instances for the basic
-      pandoc types.  They use GHC generics and should be faster than the
-      old JSON serialization using `Data.Aeson.Generic`.
 
 pandoc (1.11.1)
 
