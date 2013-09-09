@@ -72,6 +72,16 @@
     which URLs it is fetching, but not giving the full header).  In
     addition, there are better error messages when fetching a URL fails.
 
+  * Previously we used to store the directory of the first input file,
+    even if it was local, and used this as a base directory for finding
+    images in ODT, EPUB, Docx, and PDF.  This has been confusing to many
+    users.  So we now look for images relative to the current
+    working directory, even if the first file argument is in another
+    directory.   Note that this change may break some existing workflows.
+    If you have been assuming that relative links will be interpreted
+    relative to the directory of the first file argument, you'll need
+    to make that the current directory before running pandoc. (#942)
+
   * Better error reporting in some readers, due to changes in `readWith`:
     the line in which the error occured is printed, with a caret pointing
     to the column.
@@ -91,6 +101,13 @@
 
     pandoc will still parse it into a title, section, header, and
     footer.  But you can also specify these elements explicitly (#885).
+
+  * Markdown reader
+
+    + Added support for YAML metadata blocks, which can come anywhere
+      in the document (not just at the beginning).  A document can contain
+      multiple YAML metadata blocks.
+    + HTML span and div tags are parsed as pandoc Span and Div elements.
 
   * Markdown writer
 
@@ -139,7 +156,26 @@
     + Export `varListToJSON`.
 
   * `Text.Pandoc.PDF` exports `makePDF` instead of `tex2pdf`.
- 
+
+  * `Text.Pandoc`:
+
+    + Made `toJsonFilter` an alias for `toJSONFilter` from `Text.Pandoc.JSON`.
+    + Removed `ToJsonFilter` typeclass.  `ToJSONFilter` from
+      `Text.Pandoc.JSON` should be used instead.  (Compiling against
+      pandoc-types instead of pandoc will also produce smaller executables.)
+    * Removed the deprecated `jsonFilter` function.
+    + Added `readJSON`, `writeJSON` to the API (#817).
+
+  * `Text.Pandoc.Options`:
+
+    + Added `Ext_lists_without_preceding_blankline`,
+      `Ext_ascii_identifiers`, `Ext_ignore_line_breaks`,
+      `Ext_yaml_metadataBlock` to `Extension`.
+    + Changed `writerSourceDir` to `writerSourceURL` and changed the type to
+      a `Maybe`.  `writerSourceURL` is set to 'Just url' when the first
+      command-line argument is an absolute URL.  (So, relative links will be
+      resolved in relation to the first page.)  Otherwise, 'Nothing'.
+
   [bug fixes]
 
   * In markdown, don't autolink a bare URI that is followed by `</a>`
@@ -168,7 +204,11 @@
       temp directory path may contain tildes, which can cause
       problems in LaTeX (#777).
     + Put temporary output directory in `TEXINPUTS` (see #917).
- 
+    + `makePDF` tries to download images that are not found locally,
+      if the first argument is a URL (#917).
+    + If compiling with `pdflatex` yields an encoding error, offer
+      the suggestion to use `--latex-engine=xelatex`.
+
   * Produce automatic header identifiers in parsing textile, RST,
     and LaTeX, unless `auto_identifiers` extension is disabled (#967).
 
@@ -187,6 +227,18 @@
   * Slidy:  Use slidy.js rather than slidy.js.gz.
     Reason:  some browsers have trouble with the gzipped js file,
     at least on the local file system (#795).
+
+  * Markdown reader
+
+    + Properly handle blank line at beginning of input (#882).
+    + Fixed bug in unmatched reference links.  The input
+      `[*infile*] [*outfile*]` was getting improperly parsed:
+      "infile" was emphasized, but "*outfile*" was literal (#883).
+    + Allow internal `+` in citation identifiers (#856).
+    + Allow `.` or `)` after `#` in ATX headers if no `fancy_lists`.
+    + Do not generate blank title, author, or date metadata elements.
+      Leave these out entirely if they aren't present.
+    + Allow backtick code blocks not to be preceded by blank line (#975).
 
   * Textile reader:
 
@@ -409,6 +461,13 @@
   * Added `Text.Pandoc.Asciify` utility module.
     This exports functions to create ASCII-only versions of identifiers.
 
+  * `Text.Pandoc.Parsing`
+
+    + Generalized state type on `readWith` (API change).
+    + Specialize readWith to `String` input. (API change).
+    + In `ParserState`, replace `stateTitle`, `stateAuthors`, `stateDate`
+      with `stateMeta` and `stateMeta'`.
+
   * `Text.Pandoc.UTF8`: use strict bytestrings in reading.  The use of lazy
      bytestrings seemed to cause problems using pandoc on 64-bit Windows
      7/8 (#874).
@@ -446,6 +505,18 @@
 
 
 ------------------
+
+  TODO - metadata changes
+
+  TODO - json module
+
+  TODO - walk module
+
+  TODO - citation changes
+  removed Biblio
+  removed integrated citation support
+  etc.
+  include pandoc-citeproc changes
 
   * citeproc support has been removed from core pandoc (API changes).
 
@@ -497,15 +568,6 @@
     and `<span>` elements; in other formats they will simply pass through
     their contents.  But they can be targeted by scripts.
 
-  * `Text.Pandoc`
-
-    + Make `toJsonFilter` an alias for `toJSONFilter` from `Text.Pandoc.JSON`.
-    + Removed `ToJsonFilter` typeclass.  `ToJSONFilter` from
-      `Text.Pandoc.JSON` should be used instead.  (Compiling against
-      pandoc-types instead of pandoc will also produce smaller executables.)
-    * Removed the deprecated `jsonFilter` function.
-    + Added `readJSON`, `writeJSON` to the API (#817).
-
   [ TODO - systematic documentation of pandoc-types API changes,
     including .JSON, .Walk and changes to .Definition, .Builder.
     Include the new Format newtype, and the new Span and Div
@@ -546,76 +608,6 @@
     + This provides `ToJSON` and `FromJSON` instances for the basic
       pandoc types.  They use GHC generics and should be faster than the
       old JSON serialization using `Data.Aeson.Generic`.
-
-
-  * Markdown reader
-
-    + Properly handle blank line at beginning of input (#882).
-    + Fixed bug in unmatched reference links.  The input
-      `[*infile*] [*outfile*]` was getting improperly parsed:
-      "infile" was emphasized, but "*outfile*" was literal (#883).
-    + Check for blank lines first in blocks.  (And skip them.  This
-      might speed things up in some cases.)
-    + Allow internal `+` in citation identifiers (#856).
-    + Allow `.` or `)` after `#` in ATX headers if no `fancy_lists`.
-    + Do not generate blank title, author, or date metadata elements.
-      Leave these out entirely if they aren't present.
-    + Allow backtick code blocks not to be preceded by blank line (#975).
-
-  * Markdown reader
-
-    + Added support for YAML metadata blocks, which can come anywhere
-      in the document (not just at the beginning).  A document can contain
-      multiple YAML metadata blocks.
-    + HTML span and div tags are parsed as pandoc Span and Div elements.
-
-
- 
- 
- 
-  * `Text.Pandoc.PDF`
-
-    + `makePDF` walks the pandoc AST and checks for the existence of
-      images in the local directory.  If they are not found, it attempts
-      to find them, either in the directory containing the first source
-      file, or at an absolute URL, or at a URL relative to the base URL
-      of the first command line argument (#917).
-    + If compiling with `pdflatex` yields an encoding error, offer
-      the suggestion to use `--latex-engine=xelatex`.
-
- 
-  * `Text.Pandoc.Parsing`
-
-    + Generalized state type on `readWith` (API change).
-    + Specialize readWith to `String` input. (API change).
-    + In `ParserState`, replace `stateTitle`, `stateAuthors`, `stateDate`
-      with `stateMeta` and `stateMeta'`.
-
-  * `Text.Pandoc.Options`
-    * Added `Ext_lists_without_preceding_blankline` to
-      `Extension` in `Options`.  Added this option to
-      `githubMarkdownExtensions`.
-    + Implemented `Ext_ascii_identifiers`.
-    + Ext_ignore_line_breaks.
-    + Added `Ext_yaml_metadata_block`. (API change.)
-    + Added `Ext_ascii_identifiers`. (API change.)
-      This will force `Ext_auto_identifiers` to use ASCII only.
-      Set as default for github markdown.
-    + Changed `writerSourceDir` to `writerSourceURL` and changed
-      the type to a `Maybe`.  Previously we used to store the directory
-      of the first input file, even if it was local, and used this as a
-      base directory for finding images in ODT, EPUB, Docx, and PDF.
-      This has been confusing to many users.  It seems better to look for
-      images relative to the current working directory, even if the first
-      file argument is in another directory.  `writerSourceURL` is set
-      to 'Just url' when the first command-line argument is an absolute
-      URL.  (So, relative links will be resolved in relation to the first
-      page.)  Otherwise, 'Nothing'.  The ODT, EPUB, Docx, and PDF
-      writers have been modified accordingly.  Note that this change may
-      break some existing workflows.  If you have been assuming that
-      relative links will be interpreted relative to the directory of
-      the first file argument, you'll need to make that the current
-      directory before running pandoc. API change (#942).
 
 pandoc (1.11.1)
 
