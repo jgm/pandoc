@@ -4680,7 +4680,7 @@ pandoc (0.46) unstable; urgency=low
       HTML reader now uses rawHtmlBlock', which excludes </html> and </body>,
       since these are handled in parseHtml.  (Resolves Issue #38.)
 
-    + Fixed bug (emph parser was looking for <IT> tag, not <I>).
+    + Fixed bug (emph parser was looking for `<IT>` tag, not `<I>`).
 
     + Don't interpret contents of style tags as markdown.
       (Resolves Issue #40.)
@@ -4765,15 +4765,15 @@ pandoc (0.45) unstable; urgency=low
     + readTeXMath is now used for default HTML output in HTML, S5, RTF,
       and Docbook, if no other method for displaying math in HTML is
       specified.  Enclosing $'s are no longer printed by default.
-    + By default, math is put inside <span class="math">. This way it can be
+    + By default, math is put inside `<span class="math">`. This way it can be
       distinguished from the surrounding text, e.g. put in a different
       font.
 
   * New --gladtex and --mimetex options for display of math in HTML:
 
-    + If --gladtex is specified, math is output between <eq> tags, so
+    + If --gladtex is specified, math is output between `<eq>` tags, so
       it can be processed by gladTeX.
-    + If --mimetex is specified, math is put in <img> tags with a link
+    + If --mimetex is specified, math is put in `<img>` tags with a link
       to the mimetex CGI script (or any other script that takes TeX math
       as input and outputs an image).  The URL of the script may be
       specified, but defaults to /cgi-bin/mimetex.cgi.
@@ -4787,13 +4787,13 @@ pandoc (0.45) unstable; urgency=low
     + Fixed bug: parser for minimized attributes should not swallow
       trailing spaces.
     + Simplified HTML attribute parsing.
-    + Changed parsing of code blocks in HTML reader:  <code> tag is no
-      longer needed. <pre> suffices. All HTML tags in the code block
+    + Changed parsing of code blocks in HTML reader:  `<code>` tag is no
+      longer needed. `<pre>` suffices. All HTML tags in the code block
       (e.g. for syntax highlighting) are skipped, because they are not
-      portable to other output formats. A <code>...</code> block not
-      surrounded by <pre> now counts as inline HTML, not a code block.
+      portable to other output formats. A `<code>...</code>` block not
+      surrounded by `<pre>` now counts as inline HTML, not a code block.
     + Remove just one leading and one trailing newline from contents of
-      <pre>...</pre> in codeBlock parser.
+      `<pre>...</pre>` in codeBlock parser.
 
   * Markdown reader:
 
@@ -5115,8 +5115,8 @@ pandoc (0.43) unstable; urgency=low
       end code block with a nonindented line.)
     + Changed definition of 'emph': italics with '_' must not
       be followed by an alphanumeric character. This is to help
-      prevent interpretation of e.g. [LC_TYPE]: my_type as
-      '[LC<em>TYPE]:my</em>type'.
+      prevent interpretation of e.g. `[LC_TYPE]: my_type` as
+      `[LC<em>TYPE]:my</em>type`.
     + Improved Markdown.pl-compatibility in referenceLink: the two parts
       of a reference-style link may be separated by one space, but not
       more... [a] [link], [not]    [a link].
@@ -5124,7 +5124,7 @@ pandoc (0.43) unstable; urgency=low
       Markdown.pl: the marker for the end of the code section is a clump
       of the same number of `'s with which the section began, followed
       by a non-` character. So, for example,
-         ` h ``` i ` -> <code>h ``` i</code>.
+         ` h ``` i ` -> `<code>h ``` i</code>`.
     + Split 'title' into 'linkTitle' and 'referenceTitle', since the
       rules are slightly different.
     + Rewrote 'para' for greater efficiency.
@@ -5231,7 +5231,7 @@ pandoc (0.41) unstable; urgency=low
   [ John MacFarlane ]
 
   * Fixed bugs in HTML reader:
-    + Skip material at end *only if* </html> is present (previously,
+    + Skip material at end *only if* `</html>` is present (previously,
       only part of the document would be parsed if an error was
       found; now a proper error message is given).
     + Added new constant eitherBlockOrInline with elements that may
@@ -5440,9 +5440,9 @@ pandoc (0.4) unstable; urgency=low
       may cause documents to be parsed differently. Users should take
       care in upgrading.
     + Changed autoLink parsing to conform better to Markdown.pl's
-      behavior. <google.com> is not treated as a link, but
-      <http://google.com>, <ftp://google.com>, and <mailto:google@google.com>
-      are.
+      behavior. `<google.com>` is not treated as a link, but
+      `<http://google.com>`, `<ftp://google.com>`, and
+      `<mailto:google@google.com>` are.
     + Cleaned up handling of embedded quotes in link titles.  Now these are
       stored as a '"' character, not as '&quot;'.
     + Use lookAhead parser for the 'first pass' (looking for reference keys),
@@ -5506,7 +5506,7 @@ pandoc (0.4) unstable; urgency=low
       been removed, since they are written programatically. This change
       introduces a new dependency on the xhtml package.
     + Fixed two bugs in email obfuscation involving improper escaping
-      of '&' in the <noscript> section and in --strict mode. Resolves
+      of '&' in the `<noscript>` section and in `--strict` mode. Resolves
       Issue #9.
     + Fixed another bug in email obfuscation: If the text to be obfuscated
       contains an entity, this needs to be decoded before obfuscation.
@@ -5538,8 +5538,8 @@ pandoc (0.4) unstable; urgency=low
     + Links in markdown output are now printed as inline links by default,
       rather than reference links.  A --reference-links option has been added
       that forces links to be printed as reference links.  Resolves Issue #4.
-    + Use autolinks when possible.  Instead of [site.com](site.com),
-      use <site.com>.
+    + Use autolinks when possible.  Instead of `[site.com](site.com)`,
+      use `<site.com>`.
 
   * LaTeX writer:
 
@@ -5755,7 +5755,7 @@ pandoc (0.3) unstable; urgency=low
       only non-alphanumeric characters can be escaped.  Strict mode
       follows Markdown.pl in only allowing a select group of punctuation
       characters to be escaped.
-    + Modified HTML reader to skip a newline following a <br> tag.
+    + Modified HTML reader to skip a newline following a `<br>` tag.
       Otherwise the newline will be treated as a space at the beginning
       of the next line.
 
@@ -5785,7 +5785,7 @@ pandoc (0.3) unstable; urgency=low
   * Moved handling of "smart typography" from the writers to the Markdown
     and LaTeX readers.  This allows great simplification of the writers
     and more accurate smart quotes, dashes, and ellipses.  DocBook can
-    now use '<quote>'.  The '--smart' option now toggles an option in
+    now use `<quote>`.  The '--smart' option now toggles an option in
     the parser state rather than a writer option.  Several new kinds
     of inline elements have been added: Quoted, Ellipses, Apostrophe,
     EmDash, EnDash.
