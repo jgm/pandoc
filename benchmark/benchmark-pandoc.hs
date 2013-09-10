@@ -31,7 +31,8 @@ main = do
   inp2 <- readFile "tests/testsuite.txt"
   let opts = def{ readerSmart = True }
   let doc = readMarkdown opts $ inp ++ unlines (drop 3 $ lines inp2)
-  let readerBs = map (readerBench doc) readers
+  let readerBs = map (readerBench doc)
+                 $ filter (\(n,_) -> n /="haddock") readers
   let writers' = [(n,w) | (n, PureStringWriter w) <- writers]
   defaultMainWith conf (return ()) $
     map (writerBench doc) writers' ++ readerBs
