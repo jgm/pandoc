@@ -116,9 +116,9 @@ Extra-Source-Files:
                  tests/docbook-reader.native
                  tests/html-reader.html,
                  tests/html-reader.native,
-                 tests/opml-reader.html,
+                 tests/opml-reader.opml,
                  tests/opml-reader.native,
-                 tests/haddock-reader.html,
+                 tests/haddock-reader.haddock,
                  tests/haddock-reader.native,
                  tests/insert,
                  tests/lalune.jpg,
