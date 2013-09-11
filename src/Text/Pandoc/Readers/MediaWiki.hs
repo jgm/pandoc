@@ -43,7 +43,7 @@ import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
 import Text.Pandoc.Parsing hiding ( nested )
 import Text.Pandoc.Walk ( walk )
-import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead )
+import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead, stringify )
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
@@ -539,7 +539,7 @@ image = try $ do
   _ <- many (try $ char '|' *> imageOption)
   caption <-   (B.str fname <$ sym "]]")
            <|> try (char '|' *> (mconcat <$> manyTill inline (sym "]]")))
-  return $ B.image fname "image" caption
+  return $ B.image fname ("fig:" ++ stringify caption) caption
 
 imageOption :: MWParser String
 imageOption =
