@@ -140,7 +140,7 @@ data Opt = Opt
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
     , optColumns           :: Int     -- ^ Line length in characters
-    , optPlugins           :: [[String] -> Pandoc -> IO Pandoc] -- ^ Plugins to apply
+    , optFilters           :: [FilePath] -- ^ Filters to apply
     , optEmailObfuscation  :: ObfuscationMethod
     , optIdentifierPrefix  :: String
     , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
@@ -195,7 +195,7 @@ defaultOpts = Opt
     , optReferenceLinks        = False
     , optWrapText              = True
     , optColumns               = 72
-    , optPlugins               = []
+    , optFilters               = []
     , optEmailObfuscation      = JavascriptObfuscation
     , optIdentifierPrefix      = ""
     , optIndentedCodeClasses   = []
@@ -285,8 +285,7 @@ options =
 
     , Option "F" ["filter"]
                  (ReqArg
-                  (\arg opt -> return opt { optPlugins = externalFilter arg :
-                                               optPlugins opt })
+                  (\arg opt -> return opt { optFilters = arg : optFilters opt })
                   "PROGRAM")
                  "" -- "External JSON filter"
 
@@ -913,7 +912,7 @@ main = do
               , optReferenceLinks        = referenceLinks
               , optWrapText              = wrap
               , optColumns               = columns
-              , optPlugins               = plugins
+              , optFilters               = filters
               , optEmailObfuscation      = obfuscationMethod
               , optIdentifierPrefix      = idPrefix
               , optIndentedCodeClasses   = codeBlockClasses
@@ -932,6 +931,13 @@ main = do
     do UTF8.hPutStrLn stdout outputFile
        mapM_ (\arg -> UTF8.hPutStrLn stdout arg) args
        exitWith ExitSuccess
+
+  -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
+  let filters' = case lookup "bibliography" metadata of
+                       Just _ | "pandoc-citeproc" `notElem` filters ->
+                           "pandoc-citeproc" : filters
+                       _ -> filters
+  let plugins = map externalFilter filters'
 
   let sources = if ignoreArgs then [] else args
 
