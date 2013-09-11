@@ -369,6 +369,7 @@
       rows had attributes, now we ignore them.
     + Ignore attributes on headers.
     + Allow `Image:` for images (#971).
+    + Parse an image with caption in a paragraph by itself as a figure.
 
   * LaTeX writer
 
