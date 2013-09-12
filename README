@@ -278,7 +278,7 @@ Reader options
     Filters may be written in any language.  `Text.Pandoc.JSON`
     exports `toJSONFilter` to facilitate writing filters in Haskell.
     Those who would prefer to write filters in python can use the
-    module `pandoc.py`:  see <http://github.com/jgm/pandoc-filters-python>
+    module `pandoc.py`:  see <http://github.com/jgm/pandocfilters>
     for the module and several examples.  Note that the *EXECUTABLE*
     will be sought in the user's `PATH`, and not in the working directory,
     if no directory is provided.  If you want to run a script in the

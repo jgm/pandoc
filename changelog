@@ -44,7 +44,7 @@
     (Pandoc AST transformations that operate on JSON serializations).
     Filters are always passed the name of the output format, so their
     behavior can be tailored to it.  The repository
-    <https://github.com/jgm/pandoc-filters-python> contains
+    <https://github.com/jgm/pandocfilters> contains
     a python module for writing pandoc filters in python, with
     a number of examples.
 
