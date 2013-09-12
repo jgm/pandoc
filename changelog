@@ -405,6 +405,7 @@
 
     + Fixed `--no-highlight` (Alexander Kondratskiy).
     + Don't convert to lowercase in email obfuscation (#839).
+    + Ensure proper escaping in `<title>` and `<meta>` fields.
 
   * AsciiDoc writer:
 

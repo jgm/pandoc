@@ -39,7 +39,7 @@ import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting ( highlight, styleToCss,
                                   formatHtmlInline, formatHtmlBlock )
-import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.XML (fromEntities, escapeStringForXML)
 import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
@@ -115,8 +115,9 @@ pandocToHtml opts (Pandoc meta blocks) = do
               (fmap renderHtml . blockListToHtml opts)
               (fmap renderHtml . inlineListToHtml opts)
               meta
-  let authsMeta = map stringify $ docAuthors meta
-  let dateMeta  = stringify $ docDate meta
+  let stringifyHTML = escapeStringForXML . stringify
+  let authsMeta = map stringifyHTML $ docAuthors meta
+  let dateMeta  = stringifyHTML $ docDate meta
   let slideLevel = maybe (getSlideLevel blocks) id $ writerSlideLevel opts
   let sects = hierarchicalize $
               if writerSlideVariant opts == NoSlides
@@ -168,7 +169,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   maybe id (defField "toc" . renderHtml) toc $
                   defField "author-meta" authsMeta $
                   maybe id (defField "date-meta") (normalizeDate dateMeta) $
-                  defField "pagetitle" (stringify $ docTitle meta) $
+                  defField "pagetitle" (stringifyHTML $ docTitle meta) $
                   defField "idprefix" (writerIdentifierPrefix opts) $
                   -- these should maybe be set in pandoc.hs
                   defField "slidy-url"
