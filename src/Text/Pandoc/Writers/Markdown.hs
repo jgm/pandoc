@@ -189,7 +189,8 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   -- Strip off final 'references' header if markdown citations enabled
   let blocks' = case reverse blocks of
                      (Div (_,["references"],_) _):xs
-                       | isEnabled Ext_citations opts -> reverse xs
+                       | not isPlain && isEnabled Ext_citations opts
+                       -> reverse xs
                      _ -> blocks
   body <- blockListToMarkdown opts blocks'
   st <- get
