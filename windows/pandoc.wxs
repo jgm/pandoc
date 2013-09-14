@@ -55,7 +55,6 @@
           Guid="0A214839-2E69-4026-8DBB-0F0A9DB75C12">
             <RegistryValue Root="HKMU" Key="Software\John MacFarlane\Pandoc"
             Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes"/>
-            <RemoveFolder Id="APPLICATIONFOLDER" On="uninstall"/>
             <File Id="pandoc_citeprocEXE" Name="pandoc-citeproc.exe"
             Source="..\cabal-dev\bin\pandoc-citeproc.exe" />
             <File Id="biblio2yamlEXE" Name="biblio2yaml.exe"
@@ -112,6 +111,9 @@
       <Feature Id="Manual" Title="Manual">
         <ComponentRef Id="Documentation" />
         <ComponentRef Id="ApplicationShortcut" />
+      </Feature>
+      <Feature Id="Citation" Title="Citation Support" Description="Citation support.">
+        <ComponentRef Id="CitationSupport" />
       </Feature>
     </Feature>
 
