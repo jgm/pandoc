@@ -934,9 +934,9 @@ main = do
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
   let filters' = case lookup "bibliography" metadata of
-                       Just _ | "pandoc-citeproc" `notElem` filters ->
-                           "pandoc-citeproc" : filters
-                       _ -> filters
+                       Just _ | all (\f -> takeBaseName f /= "pandoc-citeproc")
+                                filters -> "pandoc-citeproc" : filters
+                       _                -> filters
   let plugins = map externalFilter filters'
 
   let sources = if ignoreArgs then [] else args
