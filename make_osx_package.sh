@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 DIST=`pwd`/osx_package
-TMP=`pwd`/cabaltmp
+SANDBOX=`pwd`/.cabal-sandbox
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
@@ -22,18 +22,17 @@ cabal update
 
 echo Building pandoc...
 cabal sandbox init
-cabal install -v1 --prefix $TMP --flags="embed_data_files unicode_collation" --extra-lib-dirs=$ICU/lib --extra-include-dirs=$ICU/include pandoc-citeproc
-cabal install -v1 --prefix $TMP --flags="embed_data_files"
+cabal install -v1 --reinstall --flags="embed_data_files unicode_collation" --extra-lib-dirs=$ICU/lib --extra-include-dirs=$ICU/include pandoc-citeproc
+cabal install -v1 --reinstall --flags="embed_data_files"
 
 mkdir -p $ROOT/usr/local/bin
 mkdir -p $ROOT/usr/local/share/man/man1
 mkdir -p $ROOT/usr/local/share/man/man5
 for f in $EXES; do
-  cp $TMP/bin/$f $ROOT/usr/local/bin/;
-  cp $TMP/share/man/man1/$f.1 $ROOT/usr/local/share/man/man1/
+  cp $SANDBOX/bin/$f $ROOT/usr/local/bin/;
+  cp $SANDBOX/share/man/man1/$f.1 $ROOT/usr/local/share/man/man1/
 done
-cp $TMP/share/man/man5/pandoc_markdown.5 $ROOT/usr/local/share/man/man5/
-# rm -rf $TMP
+cp $SANDBOX/share/man/man5/pandoc_markdown.5 $ROOT/usr/local/share/man/man5/
 
 chown -R $ME:staff $DIST
 # gzip $ROOT/usr/local/share/man/man?/*.*
@@ -41,7 +40,7 @@ chown -R $ME:staff $DIST
 chmod +r $ROOT/usr/local/share/man/man?/*.*
 
 echo Copying license...
-$TMP/bin/pandoc --data data -t rtf -s COPYING -o $RESOURCES/License.rtf
+$SANDBOX/bin/pandoc --data data -t rtf -s COPYING -o $RESOURCES/License.rtf
 
 echo Signing pandoc executable...
 
