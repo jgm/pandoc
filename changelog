@@ -500,6 +500,11 @@
       space, as was done before for not-author-in-text citations).
       The result is that `\citep[23]{item1}` in LaTeX will be interpreted
       properly, with '23' treated as a locator of type 'page'.
+    + Many improvements to citation rendering, due to fixes in citeproc-hs
+      (thanks to Andrea Rossato).
+    + Warnings are issued for undefined citations, which are rendered
+      as `???`.
+    + Fixed hanging behavior when locale files cannot be found.
 
   [template changes]
 
