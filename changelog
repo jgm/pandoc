@@ -97,7 +97,7 @@
     may still be specified on the command line as before.
 
   * A `Cite` element is now created in parsing markdown whether or not
-    there is a matching reference.  By default citations will print as `???`.
+    there is a matching reference.
 
   * The `pandoc-citeproc` script will put the bibliography at the
     end of the document, as before.  However, it will be put inside a `Div`
