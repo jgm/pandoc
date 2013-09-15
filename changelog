@@ -242,10 +242,10 @@
     + Added `Ext_lists_without_preceding_blankline`,
       `Ext_ascii_identifiers`, `Ext_ignore_line_breaks`,
       `Ext_yaml_metadataBlock` to `Extension`.
-    + Changed `writerSourceDir` to `writerSourceURL` and changed the type to
-      a `Maybe`.  `writerSourceURL` is set to 'Just url' when the first
-      command-line argument is an absolute URL.  (So, relative links will be
-      resolved in relation to the first page.)  Otherwise, 'Nothing'.
+    + Changed `writerSourceDirectory` to `writerSourceURL` and changed the
+      type to a `Maybe`.  `writerSourceURL` is set to 'Just url' when the
+      first command-line argument is an absolute URL.  (So, relative links
+      will be resolved in relation to the first page.)  Otherwise, 'Nothing'.
     + All bibliography-related fields have been removed from
       `ReaderOptions` and `WriterOptions`: `writerBiblioFiles`,
       `readerReferences`, `readerCitationStyle`.
