@@ -252,7 +252,7 @@ pandoc (1.12)
 
   * The `Text.Pandoc.Biblio` module has been removed.  Users of the
     pandoc library who want citation support will need to use
-    `Text.CSL.Pandoc` from `pandoc-citations`.
+    `Text.CSL.Pandoc` from `pandoc-citeproc`.
  
 
   [bug fixes]
