@@ -257,13 +257,14 @@ Library
                  yaml >= 0.8.3 && < 0.9,
                  vector >= 0.10 && < 0.11,
                  hslua >= 0.3 && < 0.4
+  Build-Tools:   alex, happy
   if flag(http-conduit)
      Build-Depends: http-conduit >= 1.9 && < 1.10,
                     http-types >= 0.8 && < 0.9
      cpp-options:   -DHTTP_CONDUIT
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
-     -- build-tools:   hsb2hs
+     -- Build-Tools:   hsb2hs -- not yet recognized by cabal
      other-modules: Text.Pandoc.Data
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -auto-all -caf-all -rtsopts
