@@ -28,11 +28,13 @@ cabal install -v1 --reinstall --flags="embed_data_files"
 mkdir -p $ROOT/usr/local/bin
 mkdir -p $ROOT/usr/local/share/man/man1
 mkdir -p $ROOT/usr/local/share/man/man5
+mkdir -p $ROOT/usr/local/opt/icu4c/lib
 for f in $EXES; do
   cp $SANDBOX/bin/$f $ROOT/usr/local/bin/;
   cp $SANDBOX/share/man/man1/$f.1 $ROOT/usr/local/share/man/man1/
 done
 cp $SANDBOX/share/man/man5/pandoc_markdown.5 $ROOT/usr/local/share/man/man5/
+cp -av /usr/local/opt/icu4c/lib/*.dylib $ROOT/usr/local/opt/icu4c/lib/
 
 chown -R $ME:staff $DIST
 # gzip $ROOT/usr/local/share/man/man?/*.*
