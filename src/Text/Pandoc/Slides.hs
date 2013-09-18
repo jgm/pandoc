@@ -46,13 +46,18 @@ getSlideLevel = go 6
 
 -- | Prepare a block list to be passed to hierarchicalize.
 prepSlides :: Int -> [Block] -> [Block]
-prepSlides slideLevel = ensureStartWithH . splitHrule
+prepSlides slideLevel = ensureStartWithH . splitHrule . extractRefsHeader
   where splitHrule (HorizontalRule : Header n attr xs : ys)
                        | n == slideLevel = Header slideLevel attr xs : splitHrule ys
         splitHrule (HorizontalRule : xs) = Header slideLevel nullAttr [Str "\0"] :
                                            splitHrule xs
         splitHrule (x : xs)              = x : splitHrule xs
         splitHrule []                    = []
+        extractRefsHeader bs             =
+          case reverse bs of
+               (Div (_,["references"],_) (Header n attrs xs : ys) : zs)
+                 -> reverse zs ++ (Header n attrs xs : ys)
+               _ -> bs
         ensureStartWithH bs@(Header n _ _:_)
                        | n <= slideLevel = bs
         ensureStartWithH bs              = Header slideLevel nullAttr [Str "\0"] : bs
