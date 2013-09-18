@@ -61,6 +61,8 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString as BS
 import Data.Aeson (eitherDecode', encode)
 import qualified Data.Map as M
+import System.IO.Error(ioeGetErrorType)
+import GHC.IO.Exception (IOErrorType(ResourceVanished))
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2013 John MacFarlane\n" ++
@@ -99,8 +101,11 @@ externalFilter f args' d = do
            ExitSuccess    -> return $ either error id $ eitherDecode' outbs
            ExitFailure _  -> err 83 $ "Error running filter " ++ f
  where filterException :: E.SomeException -> IO a
-       filterException e = err 83 $ "Error running filter " ++ f ++
-                                     "\n" ++ show e
+       filterException e = err 83 $ "Error running filter " ++ f ++ "\n" ++
+                                  if ioeGetErrorType `fmap` E.fromException e ==
+                                          Just ResourceVanished
+                                     then f ++ " not found in path"
+                                     else show e
 
 -- | Data structure for command line options.
 data Opt = Opt
