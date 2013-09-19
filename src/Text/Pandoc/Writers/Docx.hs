@@ -257,6 +257,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   docPropsAppEntry <- entryFromArchive "docProps/app.xml"
   themeEntry <- entryFromArchive "word/theme/theme1.xml"
   fontTableEntry <- entryFromArchive "word/fontTable.xml"
+  settingsEntry <- entryFromArchive "word/settings.xml"
   webSettingsEntry <- entryFromArchive "word/webSettings.xml"
 
   -- Create archive
@@ -264,7 +265,8 @@ writeDocx opts doc@(Pandoc meta _) = do
                   contentTypesEntry : relsEntry : contentEntry : relEntry :
                   footnoteRelEntry : numEntry : styleEntry : footnotesEntry :
                   docPropsEntry : docPropsAppEntry : themeEntry :
-                  fontTableEntry : webSettingsEntry : imageEntries
+                  fontTableEntry : settingsEntry : webSettingsEntry :
+                  imageEntries
   return $ fromArchive archive
 
 styleToOpenXml :: Style -> [Element]
