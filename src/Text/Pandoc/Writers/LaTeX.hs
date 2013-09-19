@@ -82,10 +82,17 @@ writeLaTeX options document =
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc meta blocks) = do
+  -- Strip off final 'references' header if --natbib or --biblatex
+  let method = writerCiteMethod options
+  let blocks' = if method == Biblatex || method == Natbib
+                   then case reverse blocks of
+                             (Div (_,["references"],_) _):xs -> reverse xs
+                             _ -> blocks
+                   else blocks
   -- see if there are internal links
   let isInternalLink (Link _ ('#':xs,_))  = [xs]
       isInternalLink _                    = []
-  modify $ \s -> s{ stInternalLinks = query isInternalLink blocks }
+  modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
   let template = writerTemplate options
   -- set stBook depending on documentclass
   let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
@@ -107,15 +114,15 @@ pandocToLaTeX options (Pandoc meta blocks) = do
               (fmap (render colwidth) . blockListToLaTeX)
               (fmap (render colwidth) . inlineListToLaTeX)
               meta
-  let (blocks', lastHeader) = if writerCiteMethod options == Citeproc then
-                                (blocks, [])
-                              else case last blocks of
-                                Header 1 _ il -> (init blocks, il)
-                                _             -> (blocks, [])
-  blocks'' <- if writerBeamer options
-                 then toSlides blocks'
-                 else return blocks'
-  body <- mapM (elementToLaTeX options) $ hierarchicalize blocks''
+  let (blocks'', lastHeader) = if writerCiteMethod options == Citeproc then
+                                 (blocks', [])
+                               else case last blocks' of
+                                 Header 1 _ il -> (init blocks', il)
+                                 _             -> (blocks', [])
+  blocks''' <- if writerBeamer options
+                  then toSlides blocks''
+                  else return blocks''
+  body <- mapM (elementToLaTeX options) $ hierarchicalize blocks'''
   (biblioTitle :: String) <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
   let main = render colwidth $ vsep body
   st <- get
