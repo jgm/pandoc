@@ -187,11 +187,11 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                then tableOfContents opts headerBlocks
                else empty
   -- Strip off final 'references' header if markdown citations enabled
-  let blocks' = case reverse blocks of
-                     (Div (_,["references"],_) _):xs
-                       | not isPlain && isEnabled Ext_citations opts
-                       -> reverse xs
-                     _ -> blocks
+  let blocks' = if not isPlain && isEnabled Ext_citations opts
+                   then case reverse blocks of
+                             (Div (_,["references"],_) _):xs -> reverse xs
+                             _ -> blocks
+                   else blocks
   body <- blockListToMarkdown opts blocks'
   st <- get
   notes' <- notesToMarkdown opts (reverse $ stNotes st)
