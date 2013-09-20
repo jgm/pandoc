@@ -286,10 +286,10 @@ Reader options
     preface the filename with `./`.
 
 `-M` *KEY[=VAL]*, `--metadata=`*KEY[:VAL]*
-:   Set the metadata field *KEY* to the value *VAL* after
-    parsing.  A value specified on the command line overrides a value
-    specified in the document.  Values will be interpreted as raw strings.
-    If no value is specified, the value will be treated as Boolean true.
+:   Set the metadata field *KEY* to the value *VAL*.  A value specified
+    on the command line overrides a value specified in the document.
+    Values will be parsed as YAML boolean or string values. If no value is
+    specified, the value will be treated as Boolean true.
 
 `--normalize`
 :   Normalize the document after reading:  merge adjacent
