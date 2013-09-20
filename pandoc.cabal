@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.12
+Version:         1.12.0.1
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
