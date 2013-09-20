@@ -63,6 +63,9 @@ import Data.Aeson (eitherDecode', encode)
 import qualified Data.Map as M
 import System.IO.Error(ioeGetErrorType)
 import GHC.IO.Exception (IOErrorType(ResourceVanished))
+import Data.Yaml (decode)
+import qualified Data.Yaml as Yaml
+import qualified Data.Text as T
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2013 John MacFarlane\n" ++
@@ -333,7 +336,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      let (key,val) = case break (`elem` ":=") arg of
-                                       (k,_:v) -> (k, MetaString v)
+                                       (k,_:v) -> (k, readMetaValue v)
                                        (k,_)   -> (k, MetaBool True)
                      return opt{ optMetadata = addMetadata key val
                                              $ optMetadata opt })
@@ -664,7 +667,7 @@ options =
     , Option "" ["bibliography"]
                  (ReqArg
                   (\arg opt -> return opt{ optMetadata = addMetadata
-                                             "bibliography" (MetaString arg)
+                                             "bibliography" (readMetaValue arg)
                                              $ optMetadata opt
                                          })
                    "FILE")
@@ -674,7 +677,7 @@ options =
                  (ReqArg
                   (\arg opt ->
                      return opt{ optMetadata = addMetadata "csl"
-                                               (MetaString arg)
+                                               (readMetaValue arg)
                                                $ optMetadata opt })
                    "FILE")
                  ""
@@ -684,7 +687,7 @@ options =
                   (\arg opt ->
                      return opt{ optMetadata = addMetadata
                                                "citation-abbreviations"
-                                               (MetaString arg)
+                                               (readMetaValue arg)
                                                $ optMetadata opt })
                    "FILE")
                  ""
@@ -792,6 +795,12 @@ addMetadata k v m = case M.lookup k m of
                          Just (MetaList xs) -> M.insert k
                                               (MetaList (xs ++ [v])) m
                          Just x -> M.insert k (MetaList [v, x]) m
+
+readMetaValue :: String -> MetaValue
+readMetaValue s = case decode (UTF8.fromString s) of
+                       Just (Yaml.String t) -> MetaString $ T.unpack t
+                       Just (Yaml.Bool b)   -> MetaBool b
+                       _                    -> MetaString s
 
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String

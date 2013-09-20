@@ -345,6 +345,8 @@ Executable pandoc
                  extensible-exceptions >= 0.1 && < 0.2,
                  highlighting-kate >= 0.5.5 && < 0.6,
                  aeson >= 0.6 && < 0.7,
+                 text >= 0.11 && < 0.12,
+                 yaml >= 0.8.3 && < 0.9,
                  containers >= 0.1 && < 0.6,
                  HTTP >= 4000.0.5 && < 4000.3
   Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
