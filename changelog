@@ -1,3 +1,38 @@
+pandoc (1.12.0.1)
+
+  * Allow `--metadata` to be repeated for the same key to form a list.
+    This also has the effect that `--bibliography` can be repeated,
+    as before.
+
+  * Handle boolean values in `--metadata`.  Note that anything not parseable
+    as a YAML boolean or string is treated as a literal string.
+    You can get a string value with "yes", or any of the strings interpretable
+    as booleans, by quoting it:
+
+        -M boolvalue=yes -M stringvalue='"yes"'
+
+  * LaTeX writer: Don't print references if `--natbib` or `--biblatex`
+    option used.
+
+  * DOCX writer: Add `settings.xml` to the zip container.  Fixes a bug
+    in which docx files could not be read by some versions of Word
+    and LibreOffice (#990).
+
+  * Fixed a regression involving slide shows with bibliographies.
+    The Div container around references messed up the procedure for carving
+    a document into slides.  So we now remove the surrounding Div in
+    `prepSlides`.
+
+  * More informative error message when a filter is not found in path.
+
+  * Depend on pandoc-types 1.12.1.  This provide `ToJSONFilter`
+    instances for `Data a => a -> [a]` and `Data a => a -> IO [a]`.
+
+  * Don't use unicode_collation in building OSX package:
+    it adds something like 50MB of dependencies to the package.
+
+  * Declare alex and happy as build-tools (#986).
+
 pandoc (1.12)
 
   [new features]
