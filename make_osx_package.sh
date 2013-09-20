@@ -7,7 +7,6 @@ RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
 SCRIPTS=osx-resources
 BASE=pandoc-$VERSION
-ICU=/usr/local/Cellar/icu4c/51.1
 ME=jgm
 CODESIGNID="Developer ID Application: John Macfarlane"
 PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
@@ -22,8 +21,8 @@ cabal update
 
 echo Building pandoc...
 cabal sandbox init
-cabal install -v1 --reinstall --flags="embed_data_files unicode_collation" --extra-lib-dirs=$ICU/lib --extra-include-dirs=$ICU/include pandoc-citeproc
-cabal install -v1 --reinstall --flags="embed_data_files"
+cabal install --reinstall --flags="embed_data_files" pandoc-citeproc
+cabal install --reinstall --flags="embed_data_files"
 
 mkdir -p $ROOT/usr/local/bin
 mkdir -p $ROOT/usr/local/share/man/man1
@@ -34,7 +33,6 @@ for f in $EXES; do
   cp $SANDBOX/share/man/man1/$f.1 $ROOT/usr/local/share/man/man1/
 done
 cp $SANDBOX/share/man/man5/pandoc_markdown.5 $ROOT/usr/local/share/man/man5/
-cp -av /usr/local/opt/icu4c/lib/*.dylib $ROOT/usr/local/opt/icu4c/lib/
 
 chown -R $ME:staff $DIST
 # gzip $ROOT/usr/local/share/man/man?/*.*
