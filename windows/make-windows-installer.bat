@@ -4,9 +4,9 @@ cabal update
 cabal-dev clean
 cabal install hsb2hs cabal-dev
 if %errorlevel% neq 0 exit /b %errorlevel%
-cabal-dev install -v1 --reinstall --flags="embed_data_files" pandoc-citeproc
+cabal-dev install -v1 --force --reinstall --flags="embed_data_files"
 if %errorlevel% neq 0 exit /b %errorlevel%
-cabal-dev install -v1 --reinstall --flags="embed_data_files"
+cabal-dev install -v1 --reinstall --flags="embed_data_files" pandoc-citeproc
 if %errorlevel% neq 0 exit /b %errorlevel%
 strip cabal-dev\bin\pandoc.exe
 strip cabal-dev\bin\pandoc-citeproc.exe
