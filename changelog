@@ -1,3 +1,7 @@
+pandoc (1.12.0.2)
+
+  * Removed `stringable` dependency.
+
 pandoc (1.12.0.1)
 
   * Allow `--metadata` to be repeated for the same key to form a list.
