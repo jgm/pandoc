@@ -192,8 +192,15 @@ writeOpenDocument opts (Pandoc meta blocks) =
       listStyles  = map listStyle (stListStyles s)
       automaticStyles = inTagsIndented "office:automatic-styles" $ vcat $
                           reverse $ styles ++ listStyles
+      fontFaceDecls = inTagsIndented "office:font-face-decls" $ vcat $
+                      [selfClosingTag "style:font-face" [
+                          ("style:name", "Courier New")
+                          , ("style:font-family-generic", "modern")
+                          , ("style:font-pitch", "fixed")
+                          , ("svg:font-family", "'Courier New'")]]
       context = defField "body" body
               $ defField "automatic-styles" (render' automaticStyles)
+              $ defField "font-face-decls" (render' fontFaceDecls)
               $ metadata
   in  if writerStandalone opts
          then renderTemplate' (writerTemplate opts) context
@@ -373,18 +380,18 @@ inlineToOpenDocument o ils
     | Subscript   l <- ils = withTextStyle Sub    $ inlinesToOpenDocument o l
     | SmallCaps   l <- ils = withTextStyle SmallC $ inlinesToOpenDocument o l
     | Quoted    t l <- ils = inQuotes t <$> inlinesToOpenDocument o l
-    | Code      _ s <- ils = preformatted s
+    | Code      _ s <- ils = withTextStyle Pre $ inTextStyle $ preformatted s
     | Math      _ s <- ils = inlinesToOpenDocument o (readTeXMath s)
     | Cite      _ l <- ils = inlinesToOpenDocument o l
     | RawInline f s <- ils = if f == "opendocument" || f == "html"
-                                then preformatted s
+                                then withTextStyle Pre $ inTextStyle $ preformatted s
                                 else return empty
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Image _ (s,t) <- ils = return $ mkImg  s t
     | Note        l <- ils = mkNote l
     | otherwise            = return empty
     where
-      preformatted = return . inSpanTags "Teletype" . handleSpaces . escapeStringForXML
+      preformatted s = handleSpaces $ escapeStringForXML s
       mkLink   s t = inTags False "text:a" [ ("xlink:type" , "simple")
                                            , ("xlink:href" , s       )
                                            , ("office:name", t       )
@@ -524,7 +531,8 @@ paraTableStyles t s (a:xs)
                      [ ("fo:text-align", x)
                      , ("style:justify-single-word", "false")]
 
-data TextStyle = Italic | Bold | Strike | Sub | Sup | SmallC deriving ( Eq,Ord )
+data TextStyle = Italic | Bold | Strike | Sub | Sup | SmallC | Pre 
+               deriving ( Eq,Ord )
 
 textStyleAttr :: TextStyle -> [(String,String)]
 textStyleAttr s
@@ -538,5 +546,8 @@ textStyleAttr s
     | Sub    <- s = [("style:text-position"          ,"sub 58%"   )]
     | Sup    <- s = [("style:text-position"          ,"super 58%" )]
     | SmallC <- s = [("fo:font-variant"              ,"small-caps")]
+    | Pre    <- s = [("style:font-name"              ,"Courier New")
+                    ,("style:font-name-asian"        ,"Courier New")
+                    ,("style:font-name-complex"      ,"Courier New")]
     | otherwise   = []
 
