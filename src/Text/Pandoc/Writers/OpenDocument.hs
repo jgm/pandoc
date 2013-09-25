@@ -192,15 +192,8 @@ writeOpenDocument opts (Pandoc meta blocks) =
       listStyles  = map listStyle (stListStyles s)
       automaticStyles = inTagsIndented "office:automatic-styles" $ vcat $
                           reverse $ styles ++ listStyles
-      fontFaceDecls = inTagsIndented "office:font-face-decls" $ vcat $
-                      [selfClosingTag "style:font-face" [
-                          ("style:name", "Courier New")
-                          , ("style:font-family-generic", "modern")
-                          , ("style:font-pitch", "fixed")
-                          , ("svg:font-family", "'Courier New'")]]
       context = defField "body" body
               $ defField "automatic-styles" (render' automaticStyles)
-              $ defField "font-face-decls" (render' fontFaceDecls)
               $ metadata
   in  if writerStandalone opts
          then renderTemplate' (writerTemplate opts) context
