@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:chart="urn:oasis:names:tc:opendocument:xmlns:chart:1.0" xmlns:dr3d="urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="urn:oasis:names:tc:opendocument:xmlns:form:1.0" xmlns:script="urn:oasis:names:tc:opendocument:xmlns:script:1.0" xmlns:ooo="http://openoffice.org/2004/office" xmlns:ooow="http://openoffice.org/2004/writer" xmlns:oooc="http://openoffice.org/2004/calc" xmlns:dom="http://www.w3.org/2001/xml-events" xmlns:xforms="http://www.w3.org/2002/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" office:version="1.2">
+  <office:font-face-decls>
+    <style:font-face style:name="Courier New" style:font-family-generic="modern" style:font-pitch="fixed" svg:font-family="'Courier New'" />
+  </office:font-face-decls>
   <office:automatic-styles>
     <text:list-style style:name="L1">
       <text:list-level-style-number text:level="1" text:style-name="Numbering_20_Symbols" style:num-format="1" text:start-value="1" style:num-suffix=".">
@@ -665,37 +668,47 @@
     <style:style style:name="T35" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
     <style:style style:name="T36" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
     <style:style style:name="T37" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
-    <style:style style:name="T38" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
-    <style:style style:name="T39" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
-    <style:style style:name="T40" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
-    <style:style style:name="T41" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
-    <style:style style:name="T42" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" style:text-line-through-style="solid" /></style:style>
+    <style:style style:name="T38" style:family="text"><style:text-properties style:font-name="Courier New" style:font-name-asian="Courier New" style:font-name-complex="Courier New" /></style:style>
+    <style:style style:name="T39" style:family="text"><style:text-properties style:font-name="Courier New" style:font-name-asian="Courier New" style:font-name-complex="Courier New" /></style:style>
+    <style:style style:name="T40" style:family="text"><style:text-properties style:font-name="Courier New" style:font-name-asian="Courier New" style:font-name-complex="Courier New" /></style:style>
+    <style:style style:name="T41" style:family="text"><style:text-properties style:font-name="Courier New" style:font-name-asian="Courier New" style:font-name-complex="Courier New" /></style:style>
+    <style:style style:name="T42" style:family="text"><style:text-properties style:font-name="Courier New" style:font-name-asian="Courier New" style:font-name-complex="Courier New" /></style:style>
     <style:style style:name="T43" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
-    <style:style style:name="T44" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
-    <style:style style:name="T45" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" style:text-position="super 58%" /></style:style>
-    <style:style style:name="T46" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
-    <style:style style:name="T47" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
-    <style:style style:name="T48" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
-    <style:style style:name="T49" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
-    <style:style style:name="T50" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T51" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T52" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T53" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T54" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T55" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T44" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
+    <style:style style:name="T45" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
+    <style:style style:name="T46" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
+    <style:style style:name="T47" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" style:text-line-through-style="solid" /></style:style>
+    <style:style style:name="T48" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
+    <style:style style:name="T49" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
+    <style:style style:name="T50" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" style:text-position="super 58%" /></style:style>
+    <style:style style:name="T51" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
+    <style:style style:name="T52" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
+    <style:style style:name="T53" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
+    <style:style style:name="T54" style:family="text"><style:text-properties style:text-position="sub 58%" /></style:style>
+    <style:style style:name="T55" style:family="text"><style:text-properties style:font-name="Courier New" style:font-name-asian="Courier New" style:font-name-complex="Courier New" /></style:style>
     <style:style style:name="T56" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T57" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T58" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
+    <style:style style:name="T58" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T59" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T60" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T61" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T62" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T63" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T64" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T65" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T64" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
+    <style:style style:name="T65" style:family="text"><style:text-properties style:font-name="Courier New" style:font-name-asian="Courier New" style:font-name-complex="Courier New" /></style:style>
     <style:style style:name="T66" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
-    <style:style style:name="T67" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T67" style:family="text"><style:text-properties style:font-name="Courier New" style:font-name-asian="Courier New" style:font-name-complex="Courier New" /></style:style>
     <style:style style:name="T68" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T69" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T70" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T71" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T72" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T73" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T74" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T75" style:family="text"><style:text-properties style:font-name="Courier New" style:font-name-asian="Courier New" style:font-name-complex="Courier New" /></style:style>
+    <style:style style:name="T76" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T77" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
+    <style:style style:name="T78" style:family="text"><style:text-properties style:font-name="Courier New" style:font-name-asian="Courier New" style:font-name-complex="Courier New" /></style:style>
     <style:style style:name="P1" style:family="paragraph" style:parent-style-name="Quotations">
       <style:paragraph-properties fo:margin-left="0.5in" fo:margin-right="0in" fo:text-indent="0in" style:auto-text-indent="false" />
     </style:style>
@@ -1345,22 +1358,22 @@ Markup</text:h>
 <text:p text:style-name="Text_20_body">So is
 <text:span text:style-name="T37">this</text:span> word.</text:p>
 <text:p text:style-name="Text_20_body">This is code:
-<text:span text:style-name="Teletype">&gt;</text:span>,
-<text:span text:style-name="Teletype">$</text:span>,
-<text:span text:style-name="Teletype">\</text:span>,
-<text:span text:style-name="Teletype">\$</text:span>,
-<text:span text:style-name="Teletype">&lt;html&gt;</text:span>.</text:p>
-<text:p text:style-name="Text_20_body"><text:span text:style-name="T38">This</text:span><text:span text:style-name="T39">
-</text:span><text:span text:style-name="T40">is</text:span><text:span text:style-name="T41">
-</text:span><text:span text:style-name="T42">strikeout</text:span><text:span text:style-name="T43">.</text:span></text:p>
+<text:span text:style-name="T38">&gt;</text:span>,
+<text:span text:style-name="T39">$</text:span>,
+<text:span text:style-name="T40">\</text:span>,
+<text:span text:style-name="T41">\$</text:span>,
+<text:span text:style-name="T42">&lt;html&gt;</text:span>.</text:p>
+<text:p text:style-name="Text_20_body"><text:span text:style-name="T43">This</text:span><text:span text:style-name="T44">
+</text:span><text:span text:style-name="T45">is</text:span><text:span text:style-name="T46">
+</text:span><text:span text:style-name="T47">strikeout</text:span><text:span text:style-name="T48">.</text:span></text:p>
 <text:p text:style-name="Text_20_body">Superscripts:
-a<text:span text:style-name="T44">bc</text:span>d
-a<text:span text:style-name="T45">hello</text:span>
-a<text:span text:style-name="T46">hello there</text:span>.</text:p>
+a<text:span text:style-name="T49">bc</text:span>d
+a<text:span text:style-name="T50">hello</text:span>
+a<text:span text:style-name="T51">hello there</text:span>.</text:p>
 <text:p text:style-name="Text_20_body">Subscripts:
-H<text:span text:style-name="T47">2</text:span>O,
-H<text:span text:style-name="T48">23</text:span>O,
-H<text:span text:style-name="T49">many of them</text:span>O.</text:p>
+H<text:span text:style-name="T52">2</text:span>O,
+H<text:span text:style-name="T53">23</text:span>O,
+H<text:span text:style-name="T54">many of them</text:span>O.</text:p>
 <text:p text:style-name="Text_20_body">These should not be superscripts or
 subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
@@ -1374,7 +1387,7 @@ trees. So is ‘pine.’</text:p>
 <text:p text:style-name="Text_20_body">‘He said, “I want to go.”’ Were you
 alive in the 70’s?</text:p>
 <text:p text:style-name="Text_20_body">Here is some quoted
-‘<text:span text:style-name="Teletype">code</text:span>’ and a
+‘<text:span text:style-name="T55">code</text:span>’ and a
 “<text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">quoted
 link</text:span></text:a>”.</text:p>
 <text:p text:style-name="Text_20_body">Some dashes: one—two — three—four —
@@ -1392,16 +1405,16 @@ five.</text:p>
     <text:p text:style-name="P51">2 + 2 = 4</text:p>
   </text:list-item>
   <text:list-item>
-    <text:p text:style-name="P51"><text:span text:style-name="T50">x</text:span> ∈ <text:span text:style-name="T51">y</text:span></text:p>
+    <text:p text:style-name="P51"><text:span text:style-name="T56">x</text:span> ∈ <text:span text:style-name="T57">y</text:span></text:p>
   </text:list-item>
   <text:list-item>
-    <text:p text:style-name="P51"><text:span text:style-name="T52">α</text:span> ∧ <text:span text:style-name="T53">ω</text:span></text:p>
+    <text:p text:style-name="P51"><text:span text:style-name="T58">α</text:span> ∧ <text:span text:style-name="T59">ω</text:span></text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P51">223</text:p>
   </text:list-item>
   <text:list-item>
-    <text:p text:style-name="P51"><text:span text:style-name="T54">p</text:span>-Tree</text:p>
+    <text:p text:style-name="P51"><text:span text:style-name="T60">p</text:span>-Tree</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P51">Here’s some display math:
@@ -1409,18 +1422,18 @@ five.</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P51">Here’s one that has a line break in it:
-    <text:span text:style-name="T55">α</text:span> + <text:span text:style-name="T56">ω</text:span> × <text:span text:style-name="T57">x</text:span><text:span text:style-name="T58">2</text:span>.</text:p>
+    <text:span text:style-name="T61">α</text:span> + <text:span text:style-name="T62">ω</text:span> × <text:span text:style-name="T63">x</text:span><text:span text:style-name="T64">2</text:span>.</text:p>
   </text:list-item>
 </text:list>
 <text:p text:style-name="First_20_paragraph">These shouldn’t be math:</text:p>
 <text:list text:style-name="L27">
   <text:list-item>
     <text:p text:style-name="P52">To get the famous equation, write
-    <text:span text:style-name="Teletype">$e = mc^2$</text:span>.</text:p>
+    <text:span text:style-name="T65">$e = mc^2$</text:span>.</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P52">$22,000 is a
-    <text:span text:style-name="T59">lot</text:span> of money. So is $34,000.
+    <text:span text:style-name="T66">lot</text:span> of money. So is $34,000.
     (It worked if “lot” is emphasized.)</text:p>
   </text:list-item>
   <text:list-item>
@@ -1428,11 +1441,11 @@ five.</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P52">Escaped
-    <text:span text:style-name="Teletype">$</text:span>: $73
-    <text:span text:style-name="T60">this</text:span><text:span text:style-name="T61">
-    </text:span><text:span text:style-name="T62">should</text:span><text:span text:style-name="T63">
-    </text:span><text:span text:style-name="T64">be</text:span><text:span text:style-name="T65">
-    </text:span><text:span text:style-name="T66">emphasized</text:span>
+    <text:span text:style-name="T67">$</text:span>: $73
+    <text:span text:style-name="T68">this</text:span><text:span text:style-name="T69">
+    </text:span><text:span text:style-name="T70">should</text:span><text:span text:style-name="T71">
+    </text:span><text:span text:style-name="T72">be</text:span><text:span text:style-name="T73">
+    </text:span><text:span text:style-name="T74">emphasized</text:span>
     23$.</text:p>
   </text:list-item>
 </text:list>
@@ -1557,7 +1570,7 @@ link in pointy braces</text:span></text:a>.</text:p>
 <text:p text:style-name="P56">Blockquoted:
 <text:a xlink:type="simple" xlink:href="http://example.com/" office:name=""><text:span text:style-name="Definition">http://example.com/</text:span></text:a></text:p>
 <text:p text:style-name="First_20_paragraph">Auto-links should not occur here:
-<text:span text:style-name="Teletype">&lt;http://example.com/&gt;</text:span></text:p>
+<text:span text:style-name="T75">&lt;http://example.com/&gt;</text:span></text:p>
 <text:p text:style-name="P57">or here: &lt;http://example.com/&gt;</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Images</text:h>
@@ -1581,14 +1594,14 @@ indented to show that they belong to the footnote (as with list
 items).</text:p><text:p text:style-name="P58"><text:s text:c="2" />{ &lt;code&gt; }</text:p><text:p text:style-name="Footnote">If
 you want, you can indent every line, but you can also be lazy and just indent
 the first line of each block.</text:p></text:note-body></text:note> This
-should <text:span text:style-name="T67">not</text:span> be a footnote
+should <text:span text:style-name="T76">not</text:span> be a footnote
 reference, because it contains a space.[^my note] Here is an inline
 note.<text:note text:id="ftn2" text:note-class="footnote"><text:note-citation>3</text:note-citation><text:note-body><text:p text:style-name="Footnote">This
-is <text:span text:style-name="T68">easier</text:span> to type. Inline notes
+is <text:span text:style-name="T77">easier</text:span> to type. Inline notes
 may contain
 <text:a xlink:type="simple" xlink:href="http://google.com" office:name=""><text:span text:style-name="Definition">links</text:span></text:a>
-and <text:span text:style-name="Teletype">]</text:span> verbatim characters,
-as well as [bracketed text].</text:p></text:note-body></text:note></text:p>
+and <text:span text:style-name="T78">]</text:span> verbatim characters, as
+well as [bracketed text].</text:p></text:note-body></text:note></text:p>
 <text:p text:style-name="P59">Notes can go in
 quotes.<text:note text:id="ftn3" text:note-class="footnote"><text:note-citation>4</text:note-citation><text:note-body><text:p text:style-name="Footnote">In
 quote.</text:p></text:note-body></text:note></text:p>
