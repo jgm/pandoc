@@ -962,7 +962,6 @@ main = do
   let filters' = case M.lookup "bibliography" metadata of
                        Just _ | optCiteMethod opts /= Natbib &&
                                 optCiteMethod opts /= Biblatex &&
-                                isNothing (M.lookup "biblatex" metadata) &&
                                 all (\f -> takeBaseName f /= "pandoc-citeproc")
                                 filters -> "pandoc-citeproc" : filters
                        _                -> filters
