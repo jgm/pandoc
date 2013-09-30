@@ -960,7 +960,10 @@ main = do
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
   let filters' = case M.lookup "bibliography" metadata of
-                       Just _ | all (\f -> takeBaseName f /= "pandoc-citeproc")
+                       Just _ | optCiteMethod opts /= Natbib &&
+                                optCiteMethod opts /= Biblatex &&
+                                isNothing (M.lookup "biblatex" metadata) &&
+                                all (\f -> takeBaseName f /= "pandoc-citeproc")
                                 filters -> "pandoc-citeproc" : filters
                        _                -> filters
   let plugins = map externalFilter filters'
