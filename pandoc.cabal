@@ -361,10 +361,12 @@ Executable pandoc
   Main-Is:         pandoc.hs
   Buildable:       True
 
--- NOTE:  A trick in Setup.hs makes sure this won't be installed:
 Executable make-pandoc-man-pages
   Main-Is:       make-pandoc-man-pages.hs
   Hs-Source-Dirs: man
+  Buildable:     False
+  -- Setup.hs will make this look buildable in build phase,
+  -- but it won't be copied/installed
   Build-Depends: pandoc,
                  base >= 4.2 && < 5,
                  directory >= 1 && < 1.3,

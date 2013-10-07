@@ -4,7 +4,7 @@ import Distribution.Simple
 import Distribution.Simple.PreProcess
 import Distribution.Simple.Setup
          (copyDest, copyVerbosity, fromFlag, installVerbosity, BuildFlags(..))
-import Distribution.PackageDescription (PackageDescription(..), Executable(..))
+import Distribution.PackageDescription (PackageDescription(..), Executable(..), BuildInfo(..))
 import Distribution.Simple.LocalBuildInfo
          (LocalBuildInfo(..), absoluteInstallDirs)
 import Distribution.Verbosity ( Verbosity, silent )
@@ -19,18 +19,19 @@ import System.Exit
 main :: IO ()
 main = do
   defaultMainWithHooks $ simpleUserHooks {
-      postBuild = makeManPages
+      buildHook = \pkgdescr ->
+         (buildHook simpleUserHooks) pkgdescr{ executables =
+            [x | x <- executables pkgdescr,
+                 exeName x /= "make-pandoc-man-pages"] ++
+            [x{ buildInfo = (buildInfo x){ buildable = True } }
+               | x <- executables pkgdescr,
+                 exeName x == "make-pandoc-man-pages"] }
+    , postBuild = makeManPages
     , postCopy = \ _ flags pkg lbi ->
          installManpages pkg lbi (fromFlag $ copyVerbosity flags)
               (fromFlag $ copyDest flags)
     , postInst = \ _ flags pkg lbi ->
          installManpages pkg lbi (fromFlag $ installVerbosity flags) NoCopyDest
-    , copyHook = \pkgdescr ->
-         (copyHook simpleUserHooks) pkgdescr{ executables =
-            [x | x <- executables pkgdescr, exeName x /= "make-pandoc-man-pages"] }
-    , instHook = \pkgdescr ->
-         (instHook simpleUserHooks) pkgdescr{ executables =
-            [x | x <- executables pkgdescr, exeName x /= "make-pandoc-man-pages"] }
     , hookedPreProcessors = [ppBlobSuffixHandler]
     }
   exitWith ExitSuccess
