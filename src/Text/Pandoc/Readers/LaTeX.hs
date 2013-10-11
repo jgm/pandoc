@@ -527,9 +527,7 @@ inNote ils =
 
 unescapeURL :: String -> String
 unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
-  where isEscapable '%' = True
-        isEscapable '#' = True
-        isEscapable _   = False
+  where isEscapable c = c `elem` "#$%&~_^\\{}"
 unescapeURL (x:xs) = x:unescapeURL xs
 unescapeURL [] = ""
 
