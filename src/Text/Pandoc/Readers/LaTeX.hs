@@ -1037,14 +1037,14 @@ paragraph = do
 preamble :: LP Blocks
 preamble = mempty <$> manyTill preambleBlock beginDoc
   where beginDoc = lookAhead $ controlSeq "begin" *> string "{document}"
-        preambleBlock =  (mempty <$ comment)
-                     <|> (mempty <$ sp)
-                     <|> (mempty <$ blanklines)
-                     <|> (mempty <$ macro)
-                     <|> blockCommand
-                     <|> (mempty <$ anyControlSeq)
-                     <|> (mempty <$ braced)
-                     <|> (mempty <$ anyChar)
+        preambleBlock =  (void comment)
+                     <|> (void sp)
+                     <|> (void blanklines)
+                     <|> (void macro)
+                     <|> (void blockCommand)
+                     <|> (void anyControlSeq)
+                     <|> (void braced)
+                     <|> (void anyChar)
 
 -------
 
