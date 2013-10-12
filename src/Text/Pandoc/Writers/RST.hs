@@ -296,8 +296,14 @@ blockListToRST blocks = mapM blockToRST blocks >>= return . vcat
 
 -- | Convert list of Pandoc inline elements to RST.
 inlineListToRST :: [Inline] -> State WriterState Doc
-inlineListToRST lst = mapM inlineToRST (insertBS lst) >>= return . hcat
-  where insertBS :: [Inline] -> [Inline] -- insert '\ ' where needed
+inlineListToRST lst =
+  mapM inlineToRST (removeSpaceAfterDisplayMath $ insertBS lst) >>= return . hcat
+  where -- remove spaces after displaymath, as they screw up indentation:
+        removeSpaceAfterDisplayMath (Math DisplayMath x : zs) =
+              Math DisplayMath x : dropWhile (==Space) zs
+        removeSpaceAfterDisplayMath (x:xs) = x : removeSpaceAfterDisplayMath xs
+        removeSpaceAfterDisplayMath [] = []
+        insertBS :: [Inline] -> [Inline] -- insert '\ ' where needed
         insertBS (x:y:z:zs)
           | isComplex y && surroundComplex x z =
              x : y : RawInline "rst" "\\ " : insertBS (z:zs)
