@@ -122,9 +122,7 @@ punctuationBreak c s =
 rawText :: String -> Element
 rawText s = dummyElement $ CData
   {
-    -- This is correct, but Festival doesn't seem to unescape the text.
-    -- cdVerbatim = CDataText,
-    cdVerbatim = CDataRaw,
+    cdVerbatim = CDataText,
     cdData = s,
     cdLine = Nothing
   }
