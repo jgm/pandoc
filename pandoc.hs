@@ -872,6 +872,7 @@ defaultWriterName x =
     ".asciidoc" -> "asciidoc"
     ".pdf"      -> "latex"
     ".fb2"      -> "fb2"
+    ".sable"    -> "sable"
     ".opml"     -> "opml"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
