@@ -17,8 +17,8 @@ another, and a command-line tool that uses this library. It can read
 it can write plain text, [markdown], [reStructuredText], [XHTML], [HTML 5],
 [LaTeX] (including [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
-[EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages, [Emacs
-Org-Mode], [AsciiDoc], and [Slidy], [Slideous], [DZSlides], [reveal.js]
+[EPUB] (v2 or v3), [FictionBook2], [Sable], [Textile], [groff man] pages,
+[Emacs Org-Mode], [AsciiDoc], and [Slidy], [Slideous], [DZSlides], [reveal.js]
 or [S5] HTML slide shows. It can also produce [PDF] output on systems
 where LaTeX is installed.
 
@@ -170,10 +170,11 @@ General options
     `opml` (OPML), `docbook` (DocBook), `opendocument` (OpenDocument), `odt`
     (OpenOffice text document), `docx` (Word docx),
     `rtf` (rich text format), `epub` (EPUB v2 book), `epub3`
-    (EPUB v3), `fb2` (FictionBook2 e-book), `asciidoc` (AsciiDoc), `slidy`
-    (Slidy HTML and javascript slide show), `slideous` (Slideous HTML and
-    javascript slide show), `dzslides` (DZSlides HTML5 + javascript slide
-    show), `revealjs` (reveal.js HTML5 + javascript slide show), `s5`
+    (EPUB v3), `fb2` (FictionBook2 e-book), `sable` (Sable),
+    `asciidoc` (AsciiDoc), `slidy` (Slidy HTML and javascript slide show),
+    `slideous` (Slideous HTML and javascript slide show),
+    `dzslides` (DZSlides HTML5 + javascript slide show),
+    `revealjs` (reveal.js HTML5 + javascript slide show), `s5`
     (S5 HTML and javascript slide show), or the path of a custom
     lua writer (see [Custom writers](#custom-writers), below). Note that
     `odt`, `epub`, and `epub3` output will not be directed to *stdout*; an
@@ -2030,6 +2031,9 @@ FictionBook2
     using Google Charts or other compatible web service, downloaded
     and embedded in the e-book. Otherwise, they will appear verbatim.
 
+Sable
+  ~ It will be rendered verbatim in `<SAYAS MODE="math">` tags.
+
 HTML, Slidy, DZSlides, S5, EPUB
   ~ The way math is rendered in HTML will depend on the
     command-line options selected:
@@ -2807,7 +2811,7 @@ Nathan Gass, Jonathan Daugherty, Jérémy Bobbio, Justin Bogner, qerub,
 Christopher Sawicki, Kelsey Hightower, Masayoshi Takahashi, Antoine
 Latter, Ralf Stephan, Eric Seidel, B. Scott Michel, Gavin Beatty,
 Sergey Astanin, Arlo O'Keeffe, Denis Laxalde, Brent Yorgey, David Lazar,
-Jamie F. Olson.
+Jamie F. Olson, Xyne.
 
 [markdown]: http://daringfireball.net/projects/markdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
@@ -2842,4 +2846,5 @@ Jamie F. Olson.
 [reveal.js]: http://lab.hakim.se/reveal-js/
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
 [lua]: http://www.lua.org
+[Sable]: http://www.bell-labs.com/project/tts/sable.html
 
