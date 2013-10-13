@@ -421,9 +421,16 @@ blockToHtml opts (Para [Image txt (s,'f':'i':'g':':':tit)]) = do
 blockToHtml opts (Para lst) = do
   contents <- inlineListToHtml opts lst
   return $ H.p contents
-blockToHtml opts (Div attr bs) = do
+blockToHtml opts (Div attr@(_,classes,_) bs) = do
   contents <- blockListToHtml opts bs
-  return $ addAttrs opts attr $ H.div $ nl opts >> contents >> nl opts
+  let contents' = nl opts >> contents >> nl opts
+  return $
+     if "notes" `elem` classes
+        then case writerSlideVariant opts of
+                  RevealJsSlides -> addAttrs opts attr $ H5.aside $ contents'
+                  NoSlides       -> addAttrs opts attr $ H.div $ contents'
+                  _              -> mempty
+        else addAttrs opts attr $ H.div $ contents'
 blockToHtml _ (RawBlock f str)
   | f == Format "html" = return $ preEscapedString str
   | otherwise          = return mempty

@@ -285,7 +285,12 @@ isLineBreakOrSpace _ = False
 blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
 blockToLaTeX Null = return empty
-blockToLaTeX (Div _ bs) = blockListToLaTeX bs
+blockToLaTeX (Div (_,classes,_) bs) = do
+  beamer <- writerBeamer `fmap` gets stOptions
+  contents <- blockListToLaTeX bs
+  if beamer && "notes" `elem` classes  -- speaker notes
+     then return $ "\\note" <> braces contents
+     else return contents
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
