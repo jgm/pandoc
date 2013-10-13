@@ -1,0 +1,4057 @@
+<?xml version='1.0' ?>
+<!DOCTYPE SABLE PUBLIC "-//SABLE//DTD SABLE speech mark up//EN" "Sable.v0_2.dtd" []>
+<SABLE>
+  <VOLUME LEVEL="quiet">
+    <DIV>begin document title</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Pandoc Test Suite</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end document title</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin document authors</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>John MacFarlane</DIV>
+  <BREAK LEVEL="Medium" />
+  <DIV>Anonymous</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end document authors</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin document date</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="date" MODETYPE="YMD">
+    <DIV>July 17</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>2006</DIV>
+  </SAYAS>
+  <VOLUME LEVEL="quiet">
+    <DIV>end document date</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>This is a set of tests for pandoc</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>Most of them are adapted from John Gruber’s markdown test suite</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Headers</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Level 2 with an </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>begin link</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>embedded link</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="net" MODETYPE="URL">/url</SAYAS>
+  <VOLUME LEVEL="quiet">
+    <DIV>end link</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">3</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Level 3 with </DIV>
+  <EMPH LEVEL="Moderate">
+    <DIV>emphasis</DIV>
+  </EMPH>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">3</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">4</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Level 4</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">4</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">5</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Level 5</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">5</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Level 1</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Level 2 with </DIV>
+  <EMPH LEVEL="Moderate">
+    <DIV>emphasis</DIV>
+  </EMPH>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">3</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Level 3</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">3</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>with no blank line</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Level 2</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>with no blank line</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Paragraphs</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here’s a regular paragraph</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>In Markdown 1.0.0 and earlier</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>Version 8</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>This line turns into a list item</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>Because a hard-wrapped line in the middle of a paragraph looked like a list item</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here’s one with a bullet</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>* criminey</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>There should be a hard line break</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>line break</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>here</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Block Quotes</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>E-mail style</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>This is a block quote</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>It is pretty short</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>Code in a block quote</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">sub</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">status</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">{</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">print</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&quot;working&quot;;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">}</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>A list</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>item one</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>item two</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Nested block quotes</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>nested</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>nested</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>This should not be a block quote</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>2 &gt; 1</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>And a following paragraph</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Code Blocks</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Code</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">----</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">(should</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">be</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">four</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">hyphens)</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">sub</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">status</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">{</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">print</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&quot;working&quot;;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">}</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">this</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">code</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">block</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">is</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">indented</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">by</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">one</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">tab</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>And</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal"></SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">this</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">code</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">block</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">is</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">indented</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">by</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">two</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">tabs</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">These</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">should</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">not</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">be</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">escaped:</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">\$</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">\\</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">\&gt;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">\[</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">\{</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Lists</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Unordered</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Asterisks tight</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>asterisk 1</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>asterisk 2</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>asterisk 3</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Asterisks loose</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>asterisk 1</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>asterisk 2</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>asterisk 3</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Pluses tight</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Plus 1</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Plus 2</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Plus 3</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Pluses loose</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Plus 1</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Plus 2</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Plus 3</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Minuses tight</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Minus 1</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Minus 2</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Minus 3</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Minuses loose</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Minus 1</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Minus 2</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Minus 3</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Ordered</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Tight</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>First</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Second</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Third</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>and</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>One</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Two</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Three</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Loose using tabs</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>First</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Second</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Third</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>and using spaces</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>One</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Two</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Three</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Multiple paragraphs</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Item 1</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>graf one</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Item 1</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>graf two</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>The quick brown fox jumped over the lazy dog’s back</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Item 2</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Item 3</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Nested</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Tab</DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Tab</DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Tab</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here’s another</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>First</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Second</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Fee</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Fie</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Foe</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Third</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Same thing but with paragraphs</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>First</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Second</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Fee</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Fie</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Foe</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>Third</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Tabs and spaces</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>this is a list item indented with tabs</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>this is a list item indented with spaces</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>this is an example list item indented with tabs</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>this is an example list item indented with spaces</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Fancy list markers</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>begins with 2</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV TYPE="paragraph">
+    <DIV>and now 3</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>with a continuation</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>sublist with roman numerals</DIV>
+  <BREAK LEVEL="Medium" TYPE="," />
+  <DIV>starting with 4</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>more items</DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="literal">&#39;A&#39;</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>a subsublist</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="literal">&#39;B&#39;</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>a subsublist</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Nesting</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="literal">&#39;A&#39;</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Upper Alpha</DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Upper Roman</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Decimal start with 6</DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="literal">&#39;a&#39;</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Lower alpha with paren</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Autonumbering</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Autonumber</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>More</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Nested</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Should not be a list item</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>M.A. 2007</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>B</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>Williams</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Definition Lists</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Tight using spaces</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <EMPH LEVEL="Moderate">
+    <DIV>apple</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>red fruit</DIV>
+  <BREAK LEVEL="Medium" />
+  <EMPH LEVEL="Moderate">
+    <DIV>orange</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>orange fruit</DIV>
+  <BREAK LEVEL="Medium" />
+  <EMPH LEVEL="Moderate">
+    <DIV>banana</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>yellow fruit</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Tight using tabs</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <EMPH LEVEL="Moderate">
+    <DIV>apple</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>red fruit</DIV>
+  <BREAK LEVEL="Medium" />
+  <EMPH LEVEL="Moderate">
+    <DIV>orange</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>orange fruit</DIV>
+  <BREAK LEVEL="Medium" />
+  <EMPH LEVEL="Moderate">
+    <DIV>banana</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>yellow fruit</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Loose</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <EMPH LEVEL="Moderate">
+    <DIV>apple</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>red fruit</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <EMPH LEVEL="Moderate">
+    <DIV>orange</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>orange fruit</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <EMPH LEVEL="Moderate">
+    <DIV>banana</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>yellow fruit</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Multiple blocks with italics</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <EMPH LEVEL="Moderate">
+    <EMPH LEVEL="Moderate">
+      <DIV>apple</DIV>
+    </EMPH>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>red fruit</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>contains seeds</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>crisp</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>pleasant to taste</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <EMPH LEVEL="Moderate">
+    <EMPH LEVEL="Moderate">
+      <DIV>orange</DIV>
+    </EMPH>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>orange fruit</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">{</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">orange</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">code</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">block</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">}</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>orange block quote</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Multiple definitions</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>tight</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <EMPH LEVEL="Moderate">
+    <DIV>apple</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>red fruit</DIV>
+  <BREAK LEVEL="Medium" />
+  <DIV>computer</DIV>
+  <BREAK LEVEL="Medium" />
+  <EMPH LEVEL="Moderate">
+    <DIV>orange</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>orange fruit</DIV>
+  <BREAK LEVEL="Medium" />
+  <DIV>bank</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Multiple definitions</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>loose</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <EMPH LEVEL="Moderate">
+    <DIV>apple</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>red fruit</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <DIV TYPE="paragraph">
+    <DIV>computer</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <EMPH LEVEL="Moderate">
+    <DIV>orange</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>orange fruit</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <DIV TYPE="paragraph">
+    <DIV>bank</DIV>
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Blank line after term</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>indented marker</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>alternate markers</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <EMPH LEVEL="Moderate">
+    <DIV>apple</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>red fruit</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <DIV TYPE="paragraph">
+    <DIV>computer</DIV>
+  </DIV>
+  <BREAK LEVEL="Medium" />
+  <EMPH LEVEL="Moderate">
+    <DIV>orange</DIV>
+  </EMPH>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>orange fruit</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>sublist</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="cardinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>sublist</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end definition list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>HTML Blocks</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Simple block on one line</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV>foo</DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>And nested without indentation</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV>foo</DIV>
+  <BREAK LEVEL="Large" />
+  <DIV>bar</DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Interpreted markdown in a table</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">&lt;table&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;tr&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;td&gt;</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV>This is </DIV>
+  <EMPH LEVEL="Moderate">
+    <DIV>emphasized</DIV>
+  </EMPH>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">&lt;/td&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;td&gt;</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV>And this is </DIV>
+  <EMPH LEVEL="Strong">
+    <DIV>strong</DIV>
+  </EMPH>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">&lt;/td&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;/tr&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;/table&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;script</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">type=&quot;text/javascript&quot;&gt;document.write(&#39;This</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">*should</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">not*</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">be</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">interpreted</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">as</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">markdown&#39;);&lt;/script&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here’s a simple block</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV>foo</DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>This should be a code block</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>though</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">&lt;div&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">foo</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;/div&gt;</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>As should this</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">&lt;div&gt;foo&lt;/div&gt;</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Now</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>nested</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV>foo</DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>This should just be an HTML comment</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">&lt;!--</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">Comment</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">--&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Multiline</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">&lt;!--</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">Blah</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">Blah</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">--&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;!--</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">This</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">is</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">another</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">comment.</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">--&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Code block</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">&lt;!--</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">Comment</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">--&gt;</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Just plain comment</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>with trailing spaces on the line</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">&lt;!--</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">foo</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">--&gt;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Code</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">&lt;hr</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">/&gt;</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Hr’s</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">&lt;hr&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;hr</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">/&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;hr</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">/&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;hr&gt;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;hr</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">/&gt;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;hr</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">/&gt;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;hr</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">class=&quot;foo&quot;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">id=&quot;bar&quot;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">/&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;hr</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">class=&quot;foo&quot;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">id=&quot;bar&quot;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">/&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;hr</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">class=&quot;foo&quot;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">id=&quot;bar&quot;&gt;</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end raw html</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Inline Markup</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>This is </DIV>
+    <EMPH LEVEL="Moderate">
+      <DIV>emphasized</DIV>
+    </EMPH>
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>and so </DIV>
+    <EMPH LEVEL="Moderate">
+      <DIV>is this</DIV>
+    </EMPH>
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>This is </DIV>
+    <EMPH LEVEL="Strong">
+      <DIV>strong</DIV>
+    </EMPH>
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>and so </DIV>
+    <EMPH LEVEL="Strong">
+      <DIV>is this</DIV>
+    </EMPH>
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>An </DIV>
+    <EMPH LEVEL="Moderate">
+      <VOLUME LEVEL="quiet">
+        <DIV>begin link</DIV>
+      </VOLUME>
+      <BREAK LEVEL="Small" TYPE="!" />
+      <DIV>emphasized link</DIV>
+      <BREAK LEVEL="Medium" />
+      <SAYAS MODE="net" MODETYPE="URL">/url</SAYAS>
+      <VOLUME LEVEL="quiet">
+        <DIV>end link</DIV>
+      </VOLUME>
+      <BREAK LEVEL="Small" TYPE="!" />
+    </EMPH>
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <EMPH LEVEL="Strong">
+      <EMPH LEVEL="Moderate">
+        <DIV>This is strong and em</DIV>
+        <BREAK LEVEL="Medium" TYPE="." />
+      </EMPH>
+    </EMPH>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>So is </DIV>
+    <EMPH LEVEL="Strong">
+      <EMPH LEVEL="Moderate">
+        <DIV>this</DIV>
+      </EMPH>
+    </EMPH>
+    <DIV> word</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <EMPH LEVEL="Strong">
+      <EMPH LEVEL="Moderate">
+        <DIV>This is strong and em</DIV>
+        <BREAK LEVEL="Medium" TYPE="." />
+      </EMPH>
+    </EMPH>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>So is </DIV>
+    <EMPH LEVEL="Strong">
+      <EMPH LEVEL="Moderate">
+        <DIV>this</DIV>
+      </EMPH>
+    </EMPH>
+    <DIV> word</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>This is code</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <RATE SPEED="slow">
+      <SAYAS MODE="literal">&gt;</SAYAS>
+    </RATE>
+    <VOLUME LEVEL="quiet">
+      <DIV>end code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <RATE SPEED="slow">
+      <SAYAS MODE="literal">$</SAYAS>
+    </RATE>
+    <VOLUME LEVEL="quiet">
+      <DIV>end code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <RATE SPEED="slow">
+      <SAYAS MODE="literal">\</SAYAS>
+    </RATE>
+    <VOLUME LEVEL="quiet">
+      <DIV>end code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <RATE SPEED="slow">
+      <SAYAS MODE="literal">\$</SAYAS>
+    </RATE>
+    <VOLUME LEVEL="quiet">
+      <DIV>end code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <RATE SPEED="slow">
+      <SAYAS MODE="literal">&lt;html&gt;</SAYAS>
+    </RATE>
+    <VOLUME LEVEL="quiet">
+      <DIV>end code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin strikeout</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>This is </DIV>
+    <EMPH LEVEL="Moderate">
+      <DIV>strikeout</DIV>
+    </EMPH>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <VOLUME LEVEL="quiet">
+      <DIV>end strikeout</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Superscripts</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>a</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin superscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>bc</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end superscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>d a</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin superscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <EMPH LEVEL="Moderate">
+      <DIV>hello</DIV>
+    </EMPH>
+    <VOLUME LEVEL="quiet">
+      <DIV>end superscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> a</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin superscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>hello there</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end superscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Subscripts</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>H</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin subscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>2</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end subscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>O</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>H</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin subscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>23</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end subscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>O</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>H</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin subscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>many of them</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end subscript</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>O</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>These should not be superscripts or subscripts</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>because of the unescaped spaces</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>a^b c^d</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>a~b c~d</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Smart quotes</DIV>
+  <BREAK LEVEL="Medium" TYPE="," />
+  <DIV>ellipses</DIV>
+  <BREAK LEVEL="Medium" TYPE="," />
+  <DIV>dashes</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin double quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>Hello</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <VOLUME LEVEL="quiet">
+      <DIV>end double quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> said the spider</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin double quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <VOLUME LEVEL="quiet">
+      <DIV>begin single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>Shelob</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> is my name</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <VOLUME LEVEL="quiet">
+      <DIV>end double quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>A</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>B</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>and </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>C</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> are letters</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>Oak</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <VOLUME LEVEL="quiet">
+      <DIV>end single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>elm</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <VOLUME LEVEL="quiet">
+      <DIV>end single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> and </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>beech</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> are names of trees</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>So is </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>pine</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <VOLUME LEVEL="quiet">
+      <DIV>end single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>He said</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <VOLUME LEVEL="quiet">
+      <DIV>begin double quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>I want to go</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <VOLUME LEVEL="quiet">
+      <DIV>end double quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <VOLUME LEVEL="quiet">
+      <DIV>end single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> Were you alive in the 70’s</DIV>
+    <BREAK LEVEL="Medium" TYPE="?" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here is some quoted </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <VOLUME LEVEL="quiet">
+      <DIV>begin code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <RATE SPEED="slow">
+      <SAYAS MODE="literal">code</SAYAS>
+    </RATE>
+    <VOLUME LEVEL="quiet">
+      <DIV>end code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <VOLUME LEVEL="quiet">
+      <DIV>end single quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> and a </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin double quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>quoted link</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">http://example.com/?foo=1&amp;bar=2</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <VOLUME LEVEL="quiet">
+      <DIV>end double quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Some dashes</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>one—two — three—four — five</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Dashes between numbers</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>5–7</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>255–66</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>1987–1999</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Ellipses…and…and…</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>LaTeX</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>begin raw tex</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">\cite[22-23]{smith.1899}</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end raw tex</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <SAYAS MODE="math">2+2=4</SAYAS>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <SAYAS MODE="math">x \in y</SAYAS>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">4</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <SAYAS MODE="math">\alpha \wedge \omega</SAYAS>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">5</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <SAYAS MODE="math">223</SAYAS>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">6</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <SAYAS MODE="math">p</SAYAS>
+  <DIV>-Tree</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">7</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Here’s some display math</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <DIV></DIV>
+  <SAYAS MODE="math">\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</SAYAS>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">8</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Here’s one that has a line break in it</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <DIV></DIV>
+  <SAYAS MODE="math">\alpha + \omega \times x^2</SAYAS>
+  <DIV></DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>These shouldn’t be math</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>To get the famous equation</DIV>
+  <BREAK LEVEL="Medium" TYPE="," />
+  <DIV>write </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">$e</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">=</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">mc^2$</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV></DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>$22,000 is a </DIV>
+  <EMPH LEVEL="Moderate">
+    <DIV>lot</DIV>
+  </EMPH>
+  <DIV> of money</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <DIV>So is $34,000</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <DIV>(It worked if </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>begin double quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>lot</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end double quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV> is emphasized.)</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Shoes ($20) and socks ($5)</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">4</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>Escaped </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">$</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV></DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <DIV>$73 </DIV>
+  <EMPH LEVEL="Moderate">
+    <DIV>this should be emphasized</DIV>
+  </EMPH>
+  <DIV> 23$</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here’s a LaTeX table</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin raw latex</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">\begin{tabular}{|l|l|}\hline</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">Animal</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&amp;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">Number</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">\\</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">\hline</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">Dog</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&amp;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">2</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">\\</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">Cat</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&amp;</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">1</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">\\</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">\hline</SAYAS>
+    <DIV> newline </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">\end{tabular}</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end raw latex</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Special Characters</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here is some unicode</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>I hat</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <DIV>Î</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>o umlaut</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <DIV>ö</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>section</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <DIV>§</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">4</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>set membership</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <DIV>∈</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">5</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>copyright</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <DIV>©</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>AT&amp;T has an ampersand in their name</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>AT&amp;T is another way to write it</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>This &amp; that</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>4 &lt; 5</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>6 &gt; 5</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Backslash</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>\</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Backtick</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>`</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Asterisk</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>*</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Underscore</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>_</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Left brace</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>{</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Right brace</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>}</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Left bracket</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>[</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Right bracket</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>]</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Left paren</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>(</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Right paren</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>)</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Greater-than</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>&gt;</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Hash</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>#</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Period</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Bang</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Plus</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>+</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Minus</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV>-</DIV>
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Links</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Explicit</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Just a </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>URL</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>URL and title</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>URL and title</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>URL and title</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>URL and title</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>URL and title</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>with_underscore</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/with_underscore</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>Email link</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">mailto:nobody@nowhere.net</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>Empty</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL"></SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Reference</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Foo </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>bar</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Foo </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>bar</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Foo </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>bar</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>With </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>embedded [brackets]</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>b</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> by itself should be a link</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Indented </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>once</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Indented </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>twice</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Indented </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>thrice</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>This should [not][] be a link</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">[not]:</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">/url</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Foo </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>bar</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Foo </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>biz</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/url/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>With ampersands</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here’s a </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>link with an ampersand in the URL</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">http://example.com/?foo=1&amp;bar=2</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here’s a link with an amersand in the link text</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>AT&amp;T</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">http://att.com/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here’s an </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>inline link</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/script?foo=1&amp;bar=2</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here’s an </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>inline link in pointy braces</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">/script?foo=1&amp;bar=2</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV></DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Autolinks</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">2</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>With an ampersand</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>http://example.com/?foo=1&amp;bar=2</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">http://example.com/?foo=1&amp;bar=2</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="ordinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>In a list</DIV>
+  <BREAK LEVEL="Medium" TYPE="?" />
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">2</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>begin link</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>http://example.com/</DIV>
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="net" MODETYPE="URL">http://example.com/</SAYAS>
+  <VOLUME LEVEL="quiet">
+    <DIV>end link</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Medium" />
+  <SAYAS MODE="ordinal">3</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>It should</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>An e-mail address</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>nobody@nowhere.net</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">mailto:nobody@nowhere.net</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>Blockquoted</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>http://example.com/</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">http://example.com/</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end link</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Auto-links should not occur here</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <DIV></DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <RATE SPEED="slow">
+      <SAYAS MODE="literal">&lt;http://example.com/&gt;</SAYAS>
+    </RATE>
+    <VOLUME LEVEL="quiet">
+      <DIV>end code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <RATE SPEED="slow">
+    <SAYAS MODE="literal">or</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">here:</SAYAS>
+    <DIV> space </DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="literal">&lt;http://example.com/&gt;</SAYAS>
+  </RATE>
+  <VOLUME LEVEL="quiet">
+    <DIV>end code</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Images</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>From </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin double quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>Voyage dans la Lune</DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end double quote</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> by Georges Melies (1902)</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <VOLUME LEVEL="quiet">
+      <DIV>begin image</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>lalune</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">lalune.jpg</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end image</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here is a movie </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>begin image</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV>movie</DIV>
+    <BREAK LEVEL="Medium" />
+    <SAYAS MODE="net" MODETYPE="URL">movie.jpg</SAYAS>
+    <VOLUME LEVEL="quiet">
+      <DIV>end image</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> icon</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>horizontal rule</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV>Footnotes</DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end header level </DIV>
+    <SAYAS MODE="cardinal">1</SAYAS>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>Here is a footnote reference</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <VOLUME LEVEL="quiet">
+      <DIV>begin note</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV TYPE="paragraph">
+      <DIV>Here is the footnote</DIV>
+      <BREAK LEVEL="Medium" TYPE="." />
+      <DIV>It can go anywhere after the footnote reference</DIV>
+      <BREAK LEVEL="Medium" TYPE="." />
+      <DIV>It need not be placed at the end of the document</DIV>
+      <BREAK LEVEL="Medium" TYPE="." />
+    </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end note</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> and another</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <VOLUME LEVEL="quiet">
+      <DIV>begin note</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV TYPE="paragraph">
+      <DIV>Here’s the long note</DIV>
+      <BREAK LEVEL="Medium" TYPE="." />
+      <DIV>This one contains multiple blocks</DIV>
+      <BREAK LEVEL="Medium" TYPE="." />
+    </DIV>
+    <BREAK LEVEL="Large" />
+    <DIV TYPE="paragraph">
+      <DIV>Subsequent blocks are indented to show that they belong to the footnote (as with list items)</DIV>
+      <BREAK LEVEL="Medium" TYPE="." />
+    </DIV>
+    <BREAK LEVEL="Large" />
+    <VOLUME LEVEL="quiet">
+      <DIV>begin code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <RATE SPEED="slow">
+      <SAYAS MODE="literal"></SAYAS>
+      <DIV> space </DIV>
+      <BREAK LEVEL="Medium" />
+      <DIV> space </DIV>
+      <BREAK LEVEL="Medium" />
+      <SAYAS MODE="literal">{</SAYAS>
+      <DIV> space </DIV>
+      <BREAK LEVEL="Medium" />
+      <SAYAS MODE="literal">&lt;code&gt;</SAYAS>
+      <DIV> space </DIV>
+      <BREAK LEVEL="Medium" />
+      <SAYAS MODE="literal">}</SAYAS>
+    </RATE>
+    <VOLUME LEVEL="quiet">
+      <DIV>end code</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <BREAK LEVEL="Large" />
+    <DIV TYPE="paragraph">
+      <DIV>If you want</DIV>
+      <BREAK LEVEL="Medium" TYPE="," />
+      <DIV>you can indent every line</DIV>
+      <BREAK LEVEL="Medium" TYPE="," />
+      <DIV>but you can also be lazy and just indent the first line of each block</DIV>
+      <BREAK LEVEL="Medium" TYPE="." />
+    </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end note</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV> This should </DIV>
+    <EMPH LEVEL="Moderate">
+      <DIV>not</DIV>
+    </EMPH>
+    <DIV> be a footnote reference</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>because it contains a space.[^my note] Here is an inline note</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <VOLUME LEVEL="quiet">
+      <DIV>begin note</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV TYPE="paragraph">
+      <DIV>This is </DIV>
+      <EMPH LEVEL="Moderate">
+        <DIV>easier</DIV>
+      </EMPH>
+      <DIV> to type</DIV>
+      <BREAK LEVEL="Medium" TYPE="." />
+      <DIV>Inline notes may contain </DIV>
+      <VOLUME LEVEL="quiet">
+        <DIV>begin link</DIV>
+      </VOLUME>
+      <BREAK LEVEL="Small" TYPE="!" />
+      <DIV>links</DIV>
+      <BREAK LEVEL="Medium" />
+      <SAYAS MODE="net" MODETYPE="URL">http://google.com</SAYAS>
+      <VOLUME LEVEL="quiet">
+        <DIV>end link</DIV>
+      </VOLUME>
+      <BREAK LEVEL="Small" TYPE="!" />
+      <DIV> and </DIV>
+      <VOLUME LEVEL="quiet">
+        <DIV>begin code</DIV>
+      </VOLUME>
+      <BREAK LEVEL="Small" TYPE="!" />
+      <RATE SPEED="slow">
+        <SAYAS MODE="literal">]</SAYAS>
+      </RATE>
+      <VOLUME LEVEL="quiet">
+        <DIV>end code</DIV>
+      </VOLUME>
+      <BREAK LEVEL="Small" TYPE="!" />
+      <DIV> verbatim characters</DIV>
+      <BREAK LEVEL="Medium" TYPE="," />
+      <DIV>as well as [bracketed text]</DIV>
+      <BREAK LEVEL="Medium" TYPE="." />
+    </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end note</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>Notes can go in quotes</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+    <VOLUME LEVEL="quiet">
+      <DIV>begin note</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+    <DIV TYPE="paragraph">
+      <DIV>In quote</DIV>
+      <BREAK LEVEL="Medium" TYPE="." />
+    </DIV>
+    <VOLUME LEVEL="quiet">
+      <DIV>end note</DIV>
+    </VOLUME>
+    <BREAK LEVEL="Small" TYPE="!" />
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end quote</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <SAYAS MODE="cardinal">1</SAYAS>
+  <BREAK LEVEL="Small" />
+  <DIV>
+</DIV>
+  <DIV>And in list items</DIV>
+  <BREAK LEVEL="Medium" TYPE="." />
+  <VOLUME LEVEL="quiet">
+    <DIV>begin note</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <DIV TYPE="paragraph">
+    <DIV>In list</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+  <VOLUME LEVEL="quiet">
+    <DIV>end note</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <VOLUME LEVEL="quiet">
+    <DIV>end list</DIV>
+  </VOLUME>
+  <BREAK LEVEL="Small" TYPE="!" />
+  <BREAK LEVEL="Large" />
+  <DIV TYPE="paragraph">
+    <DIV>This paragraph should not be part of the note</DIV>
+    <BREAK LEVEL="Medium" TYPE="," />
+    <DIV>as it is not indented</DIV>
+    <BREAK LEVEL="Medium" TYPE="." />
+  </DIV>
+</SABLE>
