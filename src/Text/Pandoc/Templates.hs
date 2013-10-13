@@ -127,6 +127,8 @@ getDefaultTemplate user writer = do
   case format of
        "native" -> return $ Right ""
        "json"   -> return $ Right ""
+       "sable"  -> return $ Right ""
+       "fb2"    -> return $ Right ""
        "docx"   -> return $ Right ""
        "odt"    -> getDefaultTemplate user "opendocument"
        "markdown_strict"   -> getDefaultTemplate user "markdown"
