@@ -21,7 +21,7 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  reStructuredText, HTML, LaTeX, ConTeXt, Docbook, OPML,
                  OpenDocument, ODT, Word docx, RTF, MediaWiki, Textile,
                  groff man pages, plain text, Emacs Org-Mode, AsciiDoc,
-                 EPUB (v2 and v3), FictionBook2, and several kinds of
+                 EPUB (v2 and v3), FictionBook2, Sable, and several kinds of
                  HTML/javascript slide shows (S5, Slidy, Slideous, DZSlides,
                  reveal.js).
                  .
