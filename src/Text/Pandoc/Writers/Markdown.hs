@@ -47,7 +47,7 @@ import qualified Data.Set as Set
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Readers.TeXMath (readTeXMath)
 import Text.HTML.TagSoup (renderTags, parseTags, isTagText, Tag(..))
-import Network.URI (isAbsoluteURI)
+import Network.URI (isURI)
 import Data.Default
 import Data.Yaml (Value(Object,String,Array,Bool,Number))
 import qualified Data.HashMap.Strict as H
@@ -753,7 +753,7 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                      then empty
                      else text $ " \"" ++ tit ++ "\""
   let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
-  let useAuto = isAbsoluteURI src &&
+  let useAuto = isURI src &&
                 case txt of
                       [Str s] | escapeURI s == srcSuffix -> True
                       _                                  -> False

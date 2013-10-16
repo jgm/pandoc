@@ -32,7 +32,7 @@ the HTML using data URIs.
 -}
 module Text.Pandoc.SelfContained ( makeSelfContained ) where
 import Text.HTML.TagSoup
-import Network.URI (isAbsoluteURI, escapeURIString)
+import Network.URI (isURI, escapeURIString)
 import Data.ByteString.Base64
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString (ByteString)
@@ -86,7 +86,7 @@ cssURLs userdata d orig =
                                  "\"" -> B.takeWhile (/='"') $ B.drop 1 u
                                  "'"  -> B.takeWhile (/='\'') $ B.drop 1 u
                                  _    -> u
-                  let url' = if isAbsoluteURI url
+                  let url' = if isURI url
                                 then url
                                 else d </> url
                   (raw, mime) <- getRaw userdata "" url'
@@ -97,7 +97,7 @@ cssURLs userdata d orig =
 
 getItem :: Maybe FilePath -> String -> IO (ByteString, Maybe String)
 getItem userdata f =
-  if isAbsoluteURI f
+  if isURI f
      then openURL f >>= either handleErr return
      else do
        -- strip off trailing query or fragment part, if relative URL.

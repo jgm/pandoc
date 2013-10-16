@@ -36,7 +36,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
-import Network.URI ( isAbsoluteURI, unEscapeString )
+import Network.URI ( isURI, unEscapeString )
 import Data.List ( (\\), isSuffixOf, isInfixOf,
                    isPrefixOf, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation )
@@ -671,7 +671,7 @@ inlineToLaTeX (Link txt (src, _)) =
                          contents <> char '}'
 inlineToLaTeX (Image _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
-  let source' = if isAbsoluteURI source
+  let source' = if isURI source
                    then source
                    else unEscapeString source
   source'' <- stringToLaTeX URLString source'

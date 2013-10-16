@@ -40,7 +40,7 @@ import Data.Ord ( comparing )
 import Data.Char ( chr, ord )
 import Control.Monad.State
 import Text.Pandoc.Pretty
-import Network.URI ( isAbsoluteURI, unEscapeString )
+import Network.URI ( isURI, unEscapeString )
 import System.FilePath
 
 data WriterState =
@@ -448,7 +448,7 @@ inlineToTexinfo (Image alternate (source, _)) = do
   where
     ext     = drop 1 $ takeExtension source'
     base    = dropExtension source'
-    source' = if isAbsoluteURI source
+    source' = if isURI source
                  then source
                  else unEscapeString source
 

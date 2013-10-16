@@ -91,7 +91,7 @@ import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, isPrefixOf, intercalate )
 import qualified Data.Map as M
-import Network.URI ( escapeURIString, isAbsoluteURI, unEscapeString )
+import Network.URI ( escapeURIString, isURI, unEscapeString )
 import System.Directory
 import Text.Pandoc.MIME (getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension )
@@ -624,7 +624,7 @@ readDataFileUTF8 userDir fname =
 fetchItem :: Maybe String -> String
           -> IO (Either E.SomeException (BS.ByteString, Maybe String))
 fetchItem sourceURL s
-  | isAbsoluteURI s = openURL s
+  | isURI s         = openURL s
   | otherwise       = case sourceURL of
                            Just u  -> openURL (u ++ "/" ++ s)
                            Nothing -> E.try readLocalFile
