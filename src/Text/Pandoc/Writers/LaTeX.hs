@@ -329,17 +329,23 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
        | writerListings opts                            -> listingsCodeBlock
        | writerHighlight opts && not (null classes)     -> highlightedCodeBlock
        | otherwise                                      -> rawCodeBlock
-   where lhsCodeBlock = do
+   where ref = text identifier
+         linkAnchor = if null identifier
+                         then empty
+                         else "\\hyperdef{}" <> braces ref <>
+                                   braces ("\\label" <> braces ref)
+         lhsCodeBlock = do
            modify $ \s -> s{ stLHS = True }
-           return $ flush ("\\begin{code}" $$ text str $$ "\\end{code}") $$ cr
+           return $ flush (linkAnchor $$ "\\begin{code}" $$ text str $$
+                               "\\end{code}") $$ cr
          rawCodeBlock = do
            st <- get
            env <- if stInNote st
                      then modify (\s -> s{ stVerbInNote = True }) >>
                           return "Verbatim"
                      else return "verbatim"
-           return $ flush (text ("\\begin{" ++ env ++ "}") $$ text str $$
-                    text ("\\end{" ++ env ++ "}")) <> cr
+           return $ flush (linkAnchor $$ text ("\\begin{" ++ env ++ "}") $$
+                    text str $$ text ("\\end{" ++ env ++ "}")) <> cr
          listingsCodeBlock = do
            st <- get
            let params = if writerListings (stOptions st)
@@ -367,7 +373,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
            case highlight formatLaTeXBlock ("",classes,keyvalAttr) str of
                   Nothing -> rawCodeBlock
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
-                             return (flush $ text h)
+                             return (flush $ linkAnchor $$ text h)
 blockToLaTeX (RawBlock f x)
   | f == Format "latex" || f == Format "tex"
                         = return $ text x
