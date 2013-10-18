@@ -39,7 +39,7 @@ import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
 import Data.List ( (\\), isSuffixOf, isInfixOf,
                    isPrefixOf, intercalate, intersperse )
-import Data.Char ( toLower, isPunctuation )
+import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Control.Applicative ((<|>))
 import Control.Monad.State
 import Text.Pandoc.Pretty
@@ -222,6 +222,13 @@ stringToLaTeX  ctx (x:xs) = do
        '\x2013' | ligatures -> "--" ++ rest
        _        -> x : rest
 
+toLabel :: String -> String
+toLabel [] = ""
+toLabel (x:xs)
+  | (isLetter x || isDigit x) && isAscii x = x:toLabel xs
+  | elem x "-+=:;." = x:toLabel xs
+  | otherwise = "ux" ++ printf "%x" (ord x) ++ toLabel xs
+
 -- | Puts contents into LaTeX command.
 inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '\\' <> text cmd <> braces contents
@@ -329,7 +336,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
        | writerListings opts                            -> listingsCodeBlock
        | writerHighlight opts && not (null classes)     -> highlightedCodeBlock
        | otherwise                                      -> rawCodeBlock
-   where ref = text identifier
+   where ref = text $ toLabel identifier
          linkAnchor = if null identifier
                          then empty
                          else "\\hyperdef{}" <> braces ref <>
@@ -361,7 +368,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                                    (key,attr) <- keyvalAttr ] ++
                              (if identifier == ""
                                    then []
-                                   else [ "label=" ++ identifier ])
+                                   else [ "label=" ++ toLabel identifier ])
 
                         else []
                printParams
@@ -537,13 +544,13 @@ sectionHeader unnumbered ref level lst = do
   let refLabel x = (if ref `elem` internalLinks
                        then text "\\hyperdef"
                                 <> braces empty
-                                <> braces (text ref)
+                                <> braces (text $ toLabel ref)
                                 <> braces x
                        else x)
   let headerWith x y r = refLabel $ text x <> y <>
                              if null r
                                 then empty
-                                else text "\\label" <> braces (text r)
+                                else text "\\label" <> braces (text $ toLabel r)
   let sectionType = case level' of
                           0  | writerBeamer opts -> "part"
                              | otherwise -> "chapter"
@@ -664,7 +671,8 @@ inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt
   ident' <- stringToLaTeX URLString ident
-  return $ text "\\hyperref" <> brackets (text ident') <> braces contents
+  return $ text "\\hyperref" <> brackets (text $ toLabel ident') <>
+              braces contents
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Str x] | x == src ->  -- autolink
