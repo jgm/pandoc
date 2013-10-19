@@ -1,3 +1,48 @@
+pandoc (1.12.0.3)
+
+  * `Text.Pandoc.Definition`:  Changed default JSON serialization format.
+    Instead of `{"Str": "foo"}`, for example, we now have `{"t": "Str",
+    "c": "foo"}`.  This new format is easier to work with outside of Haskell.
+    Incidentally, "t" stands for "tag", "c" for "contents".
+
+  * MediaWiki reader: Trim contents of `<math>` tags, to avoid problems
+    when converting to markdown (#1027).
+
+  * LaTeX reader:
+
+    + Ensure that preamble doesn't contribute to the text of
+      the document.
+    + Fixed character escaping in \url{}.  Previously `\~` wasn't handled
+      properly, among others.
+    + Parse `{groups}` as `Span`.  This is needed for accurate conversion of
+      bibtex titles, since we need to know what was protected from
+      titlecase conversions.
+
+  * LaTeX writer:
+
+    + Specially escape non-ascii characters in labels.
+      Otherwise we can get compile errors and other bugs when
+      compiled with pdflatex (#1007).  Thanks to begemotv2718 for the fix.
+    + Add link anchors for code blocks with identifiers (#1025).
+
+  * Throughout the code, use `isURI` instead of `isAbsoluteURI`.
+    It allows fragments identifiers.
+
+  * Slide formats:  A Div element with class "notes" is treated as speaker
+    notes.  Currently beamer goes to `\note{}`, revealjs to
+    `<aside class="notes">`, and the notes are simply suppressed in
+    other formats  (#925).
+
+  * HTML writer:  Insert command to typeset mathjax only in slideous output
+    (#966, #1012).
+
+  * RST writer:  Skip spaces after display math.  Otherwise we get indentation
+    problems, and part of the next paragraph may be rendered as part of the
+    math.
+
+  * OpenDocument writer:  Fix formatting of strikeout code (#995),
+    thanks to wilx.  don't use `font-face-decls` variable.
+
 pandoc (1.12.0.2)
 
   * Removed `stringable` dependency.
