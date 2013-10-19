@@ -248,6 +248,8 @@ ends the list.
 
 Here is some <math>x=\frac{y^\pi}{z}</math>.
 
+With spaces: <math> x=\frac{y^\pi}{z} </math>.
+
 == preformatted blocks ==
 
  Start each line with a space.

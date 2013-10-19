@@ -43,7 +43,7 @@ import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
 import Text.Pandoc.Parsing hiding ( nested )
 import Text.Pandoc.Walk ( walk )
-import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead, stringify )
+import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead, stringify, trim )
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
@@ -475,10 +475,10 @@ str :: MWParser Inlines
 str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
 
 math :: MWParser Inlines
-math = (B.displayMath <$> try (char ':' >> charsInTags "math"))
-   <|> (B.math <$> charsInTags "math")
-   <|> (B.displayMath <$> try (dmStart *> manyTill anyChar dmEnd))
-   <|> (B.math <$> try (mStart *> manyTill (satisfy (/='\n')) mEnd))
+math = (B.displayMath . trim <$> try (char ':' >> charsInTags "math"))
+   <|> (B.math . trim <$> charsInTags "math")
+   <|> (B.displayMath . trim <$> try (dmStart *> manyTill anyChar dmEnd))
+   <|> (B.math . trim <$> try (mStart *> manyTill (satisfy (/='\n')) mEnd))
  where dmStart = string "\\["
        dmEnd   = try (string "\\]")
        mStart  = string "\\("

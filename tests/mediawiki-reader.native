@@ -163,6 +163,7 @@ Pandoc (Meta {unMeta = fromList []})
  ,[Plain [Str "The",Space,Str "Hague"]]]
 ,Header 2 ("",[],[]) [Str "math"]
 ,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Math InlineMath "x=\\frac{y^\\pi}{z}",Str "."]
+,Para [Str "With",Space,Str "spaces:",Space,Math InlineMath "x=\\frac{y^\\pi}{z}",Str "."]
 ,Header 2 ("",[],[]) [Str "preformatted",Space,Str "blocks"]
 ,Para [Code ("",[],[]) "Start\160each\160line\160with\160a\160space.",LineBreak,Code ("",[],[]) "Text\160is\160",Strong [Code ("",[],[]) "preformatted"],Code ("",[],[]) "\160and",LineBreak,Emph [Code ("",[],[]) "markups"],Code ("",[],[]) "\160",Strong [Emph [Code ("",[],[]) "can"]],Code ("",[],[]) "\160be\160done."]
 ,Para [Code ("",[],[]) "\160hell\160\160\160\160\160\160yeah"]
