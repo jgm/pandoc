@@ -74,29 +74,6 @@ Data-Files:
                  -- data for LaTeXMathML writer
                  data/LaTeXMathML.js,
                  data/MathMLinHTML.js,
-                 -- data for S5 writer
-                 data/s5/default/slides.js,
-                 data/s5/default/s5-core.css,
-                 data/s5/default/framing.css,
-                 data/s5/default/pretty.css,
-                 data/s5/default/opera.css,
-                 data/s5/default/outline.css,
-                 data/s5/default/print.css,
-                 data/s5/default/slides.css,
-                 data/s5/default/iepngfix.htc,
-                 data/s5/default/blank.gif,
-                 data/s5/default/bodybg.gif,
-                 -- data for slidy writer
-                 data/slidy/styles/slidy.css,
-                 data/slidy/scripts/slidy.js,
-                 data/slidy/graphics/fold.gif,
-                 data/slidy/graphics/unfold.gif,
-                 data/slidy/graphics/nofold-dim.gif,
-                 data/slidy/graphics/unfold-dim.gif,
-                 data/slidy/graphics/fold-dim.gif,
-                 -- data for slideous writer
-                 data/slideous/slideous.css,
-                 data/slideous/slideous.js,
                  -- data for dzslides writer
                  data/dzslides/template.html,
                  -- sample lua custom writer
