@@ -1,4 +1,4 @@
-pandoc (1.12.0.3)
+pandoc (1.12.1)
 
   * `Text.Pandoc.Definition`:  Changed default JSON serialization format.
     Instead of `{"Str": "foo"}`, for example, we now have `{"t": "Str",
@@ -28,12 +28,21 @@ pandoc (1.12.0.3)
   * Throughout the code, use `isURI` instead of `isAbsoluteURI`.
     It allows fragments identifiers.
 
-  * Slide formats:  A Div element with class "notes" is treated as speaker
-    notes.  Currently beamer goes to `\note{}`, revealjs to
-    `<aside class="notes">`, and the notes are simply suppressed in
-    other formats  (#925).
+  * Slide formats:
 
-  * HTML writer:  Insert command to typeset mathjax only in slideous output
+    + A Div element with class "notes" is treated as speaker
+      notes.  Currently beamer goes to `\note{}`, revealjs to
+      `<aside class="notes">`, and the notes are simply suppressed in
+      other formats  (#925).
+    + Fixed `. . .` (pause) on HTML slide formats.  Closes #1029.
+      The old version caused a pause to be inserted before the first
+      material on a slide. This has been fixed.
+    + Removed data files for s5, slideous, slidy.
+      Users of s5 and slideous will have to download the needed
+      files, as has been documented for some time in the README.
+      By default, slidy code will be sought on the web, as before.
+
+  * HTML writer: Insert command to typeset mathjax only in slideous output
     (#966, #1012).
 
   * RST writer:  Skip spaces after display math.  Otherwise we get indentation
@@ -42,6 +51,8 @@ pandoc (1.12.0.3)
 
   * OpenDocument writer:  Fix formatting of strikeout code (#995),
     thanks to wilx.  don't use `font-face-decls` variable.
+
+  * Fixed test suite so it works with cabal sandboxes.
 
 pandoc (1.12.0.2)
 
