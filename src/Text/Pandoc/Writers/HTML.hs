@@ -286,9 +286,8 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                         then filter isSec elements
                         else if slide
                                 then case splitBy isPause elements of
-                                          []   -> []
-                                          [x]  -> x
-                                          xs   -> concatMap inDiv xs
+                                          []     -> []
+                                          (x:xs) -> x ++ concatMap inDiv xs
                                 else elements
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
   let classes' = ["titleslide" | titleSlide] ++ ["slide" | slide] ++
