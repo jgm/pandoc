@@ -38,4 +38,7 @@ tests = [ testGroup "Old" Tests.Old.tests
 main :: IO ()
 main = do
   setLocaleEncoding utf8
-  inDirectory "tests" $ defaultMain tests
+  -- we ignore command-line arguments, since we're having cabal pass
+  -- the build directory as first argument, and we don't want test-framework
+  -- to choke on that.
+  inDirectory "tests" $ defaultMainWithArgs tests []

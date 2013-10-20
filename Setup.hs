@@ -3,13 +3,15 @@
 import Distribution.Simple
 import Distribution.Simple.PreProcess
 import Distribution.Simple.Setup
-         (copyDest, copyVerbosity, fromFlag, installVerbosity, BuildFlags(..))
+         (copyDest, copyVerbosity, fromFlag, installVerbosity, BuildFlags(..),
+          TestFlags(..))
 import Distribution.PackageDescription (PackageDescription(..), Executable(..))
 import Distribution.Simple.LocalBuildInfo
          (LocalBuildInfo(..), absoluteInstallDirs)
 import Distribution.Verbosity ( Verbosity, silent )
-import Distribution.Simple.InstallDirs (mandir, CopyDest (NoCopyDest))
+import Distribution.Simple.InstallDirs (mandir, CopyDest (NoCopyDest), toPathTemplate)
 import Distribution.Simple.Utils (installOrdinaryFiles, info)
+import Distribution.Simple.Test (test)
 import Prelude hiding (catch)
 import System.Process ( rawSystem )
 import System.FilePath ( (</>) )
@@ -20,6 +22,10 @@ main :: IO ()
 main = do
   defaultMainWithHooks $ simpleUserHooks {
       postBuild = makeManPages
+    , testHook = \pkg lbi _ flags ->
+         -- pass build directory as first argument to test program
+         test pkg lbi flags{ testOptions =
+               toPathTemplate (buildDir lbi) : testOptions flags }
     , postCopy = \ _ flags pkg lbi ->
          installManpages pkg lbi (fromFlag $ copyVerbosity flags)
               (fromFlag $ copyDest flags)

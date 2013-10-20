@@ -3,7 +3,7 @@ module Tests.Old (tests) where
 import Test.Framework (testGroup, Test )
 import Test.Framework.Providers.HUnit
 import Test.HUnit ( assertBool )
-
+import System.Environment ( getArgs )
 import System.IO ( openTempFile, stderr )
 import System.Process ( runProcess, waitForProcess )
 import System.FilePath ( (</>), (<.>) )
@@ -21,9 +21,6 @@ import Text.Printf
 
 readFileUTF8 :: FilePath -> IO String
 readFileUTF8 f = B.readFile f >>= return . toStringLazy
-
-pandocPath :: FilePath
-pandocPath = ".." </> "dist" </> "build" </> "pandoc" </> "pandoc"
 
 data TestResult = TestPassed
                 | TestError ExitCode
@@ -209,6 +206,11 @@ testWithNormalize  :: (String -> String) -- ^ Normalize function for output
                    -> FilePath  -- ^ Norm (for test results) filepath
                    -> Test
 testWithNormalize normalizer testname opts inp norm = testCase testname $ do
+  args <- getArgs
+  let buildDir = case args of
+                      (x:_) -> ".." </> x
+                      _     -> error "test-pandoc: missing buildDir argument"
+  let pandocPath = buildDir </> "pandoc" </> "pandoc"
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
   let normPath = norm
