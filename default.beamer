@@ -152,12 +152,16 @@ $else$
 \renewcommand\refname{$biblio-title$}
 $endif$
 $endif$
+\begin{frame}[allowframebreaks]{$biblio-title$}
 \bibliography{$biblio-files$}
+\end{frame}
 
 $endif$
 $endif$
 $if(biblatex)$
-\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
+\begin{frame}[allowframebreaks]{$biblio-title$}
+\printbibliography[heading=none]
+\end{frame}
 
 $endif$
 $for(include-after)$
