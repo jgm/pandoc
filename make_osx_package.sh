@@ -22,8 +22,9 @@ cabal update
 
 echo Building pandoc...
 cabal sandbox init
-cabal install --reinstall --flags="embed_data_files" pandoc-citeproc
+cabal clean
 cabal install --reinstall --flags="embed_data_files"
+cabal install --reinstall --flags="embed_data_files" pandoc-citeproc
 
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
