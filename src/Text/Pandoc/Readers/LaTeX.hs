@@ -43,7 +43,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
 import Control.Monad
 import Text.Pandoc.Builder
-import Data.Char (isLetter)
+import Data.Char (isLetter, isAlphaNum)
 import Control.Applicative
 import Data.Monoid
 import Data.Maybe (fromMaybe)
@@ -1065,6 +1065,7 @@ simpleCiteArgs = try $ do
   first  <- optionMaybe $ toList <$> opt
   second <- optionMaybe $ toList <$> opt
   char '{'
+  optional sp
   keys <- manyTill citationLabel (char '}')
   let (pre, suf) = case (first  , second ) of
         (Just s , Nothing) -> (mempty, s )
@@ -1080,18 +1081,24 @@ simpleCiteArgs = try $ do
   return $ addPrefix pre $ addSuffix suf $ map conv keys
 
 citationLabel :: LP String
-citationLabel  = trim <$>
-  (many1 (satisfy $ \c -> c /=',' && c /='}') <* optional (char ',') <* optional sp)
+citationLabel  = optional sp *>
+  (many1 (satisfy isBibtexKeyChar)
+          <* optional sp
+          <* optional (char ',')
+          <* optional sp)
+  where isBibtexKeyChar c = isAlphaNum c || c `elem` ".:;?!`'()/*@_+=-[]*"
 
 cites :: CitationMode -> Bool -> LP [Citation]
 cites mode multi = try $ do
   cits <- if multi
              then many1 simpleCiteArgs
              else count 1 simpleCiteArgs
-  let (c:cs) = concat cits
+  let cs = concat cits
   return $ case mode of
-        AuthorInText   -> c {citationMode = mode} : cs
-        _              -> map (\a -> a {citationMode = mode}) (c:cs)
+        AuthorInText -> case cs of
+                             (c:rest) -> c {citationMode = mode} : rest
+                             []       -> []
+        _            -> map (\a -> a {citationMode = mode}) cs
 
 citation :: String -> CitationMode -> Bool -> LP Inlines
 citation name mode multi = do
