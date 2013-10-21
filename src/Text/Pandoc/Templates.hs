@@ -117,6 +117,7 @@ import Text.Blaze (preEscapedText, Html)
 #endif
 import Data.ByteString.Lazy (ByteString, fromChunks)
 import Text.Pandoc.Shared (readDataFileUTF8)
+import Data.Vector ((!?))
 
 -- | Get default template for the specified writer.
 getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first
@@ -185,7 +186,7 @@ var = Template . resolveVar
 resolveVar :: Variable -> Value -> Text
 resolveVar var' val =
   case multiLookup var' val of
-       Just (Array vec) -> mconcat $ map (resolveVar []) $ toList vec
+       Just (Array vec) -> maybe mempty (resolveVar []) $ vec !? 0
        Just (String t)  -> T.stripEnd t
        Just (Number n)  -> T.pack $ show n
        Just (Bool True) -> "true"
