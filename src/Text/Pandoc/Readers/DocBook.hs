@@ -1,5 +1,6 @@
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
-import Data.Char (toUpper, isDigit)
+import Data.Char (toUpper)
+import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder
@@ -682,10 +683,9 @@ parseBlock (Elem e) =
                                "lowerroman" -> LowerRoman
                                "upperroman" -> UpperRoman
                                _            -> Decimal
-          let start = case attrValue "override" <$>
-                            filterElement (named "listitem") e of
-                              Just x@(_:_) | all isDigit x -> read x
-                              _                            -> 1
+          let start = maybe 1 id $
+                      (attrValue "override" <$> filterElement (named "listitem") e)
+                       >>= safeRead
           orderedListWith (start,listStyle,DefaultDelim)
             <$> listitems
         "variablelist" -> definitionList <$> deflistitems
@@ -801,7 +801,8 @@ parseBlock (Elem e) =
                                                 Just "center" -> AlignCenter
                                                 _             -> AlignDefault
                       let toWidth c = case findAttr (unqual "colwidth") c of
-                                                Just w -> read $ filter (\x ->
+                                                Just w -> maybe 0 id
+                                                   $ safeRead $ '0': filter (\x ->
                                                      (x >= '0' && x <= '9')
                                                       || x == '.') w
                                                 Nothing -> 0 :: Double
