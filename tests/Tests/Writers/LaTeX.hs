@@ -39,6 +39,11 @@ tests = [ testGroup "code blocks"
           , test latexListing "no identifier" $ codeBlock "hi" =?>
             ("\\begin{lstlisting}\nhi\n\\end{lstlisting}" :: String)
           ]
+        , testGroup "definition lists"
+          [ "with internal link" =: definitionList [(link "#go" "" (str "testing"),
+             [plain (text "hi there")])] =?>
+            "\\begin{description}\n\\itemsep1pt\\parskip0pt\\parsep0pt\n\\item[{\\hyperref[go]{testing}}]\nhi there\n\\end{description}"
+          ]
         , testGroup "math"
           [ "escape |" =: para (math "\\sigma|_{\\{x\\}}") =?>
             "$\\sigma|_{\\{x\\}}$"

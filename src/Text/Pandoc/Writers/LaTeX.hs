@@ -513,8 +513,15 @@ listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
 defListItemToLaTeX :: ([Inline], [[Block]]) -> State WriterState Doc
 defListItemToLaTeX (term, defs) = do
     term' <- inlineListToLaTeX term
+    -- put braces around term if it contains an internal link,
+    -- since otherwise we get bad bracket interactions: \item[\hyperref[..]
+    let isInternalLink (Link _ ('#':_,_)) = True
+        isInternalLink _                  = False
+    let term'' = if any isInternalLink term
+                    then braces term'
+                    else term'
     def'  <- liftM vsep $ mapM blockListToLaTeX defs
-    return $ "\\item" <> brackets term' $$ def'
+    return $ "\\item" <> brackets term'' $$ def'
 
 -- | Craft the section header, inserting the secton reference, if supplied.
 sectionHeader :: Bool    -- True for unnumbered
