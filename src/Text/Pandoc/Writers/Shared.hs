@@ -134,7 +134,6 @@ tagWithAttrs tag (ident,classes,kvs) = hsep
   ,if null classes
       then empty
       else "class=" <> doubleQuotes (text (unwords classes))
-  ]
-  <> hsep (map (\(k,v) -> text k <> "=" <>
+  ,hsep (map (\(k,v) -> text k <> "=" <>
                 doubleQuotes (text (escapeStringForXML v))) kvs)
-  <> ">"
+  ] <> ">"
