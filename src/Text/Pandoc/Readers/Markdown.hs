@@ -227,6 +227,7 @@ yamlMetaBlock = try $ do
   pos <- getPosition
   string "---"
   blankline
+  notFollowedBy blankline  -- if --- is followed by a blank it's an HRULE
   rawYamlLines <- manyTill anyLine stopLine
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
