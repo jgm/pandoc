@@ -45,7 +45,7 @@ import Text.Pandoc.Pretty
 import Control.Monad.State
 import qualified Data.Set as Set
 import Text.Pandoc.Writers.HTML (writeHtmlString)
-import Text.Pandoc.Readers.TeXMath (readTeXMath)
+import Text.Pandoc.Readers.TeXMath (readTeXMath')
 import Text.HTML.TagSoup (renderTags, parseTags, isTagText, Tag(..))
 import Network.URI (isURI)
 import Data.Default
@@ -697,7 +697,7 @@ inlineToMarkdown opts (Math InlineMath str)
       return $ "\\(" <> text str <> "\\)"
   | isEnabled Ext_tex_math_double_backslash opts =
       return $ "\\\\(" <> text str <> "\\\\)"
-  | otherwise = inlineListToMarkdown opts $ readTeXMath str
+  | otherwise = inlineListToMarkdown opts $ readTeXMath' InlineMath str
 inlineToMarkdown opts (Math DisplayMath str)
   | isEnabled Ext_tex_math_dollars opts =
       return $ "$$" <> text str <> "$$"
@@ -706,7 +706,7 @@ inlineToMarkdown opts (Math DisplayMath str)
   | isEnabled Ext_tex_math_double_backslash opts =
       return $ "\\\\[" <> text str <> "\\\\]"
   | otherwise = (\x -> cr <> x <> cr) `fmap`
-        inlineListToMarkdown opts (readTeXMath str)
+        inlineListToMarkdown opts (readTeXMath' DisplayMath str)
 inlineToMarkdown opts (RawInline f str)
   | f == "html" || f == "markdown" ||
     (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex")) =

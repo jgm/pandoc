@@ -330,9 +330,10 @@ inlineToMan opts (Cite _ lst) =
 inlineToMan _ (Code _ str) =
   return $ text $ "\\f[C]" ++ escapeCode str ++ "\\f[]"
 inlineToMan _ (Str str) = return $ text $ escapeString str
-inlineToMan opts (Math InlineMath str) = inlineListToMan opts $ readTeXMath str
+inlineToMan opts (Math InlineMath str) =
+  inlineListToMan opts $ readTeXMath' InlineMath str
 inlineToMan opts (Math DisplayMath str) = do
-  contents <- inlineListToMan opts $ readTeXMath str
+  contents <- inlineListToMan opts $ readTeXMath' DisplayMath str
   return $ cr <> text ".RS" $$ contents $$ text ".RE"
 inlineToMan _ (RawInline f str)
   | f == Format "man" = return $ text str

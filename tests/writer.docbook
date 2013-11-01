@@ -1084,7 +1084,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <listitem>
       <para>
         Here’s some display math:
-        $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
+        $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
       </para>
     </listitem>
     <listitem>

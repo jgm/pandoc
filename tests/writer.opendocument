@@ -1418,7 +1418,7 @@ five.</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P51">Here’s some display math:
-    $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$</text:p>
+    $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P51">Here’s one that has a line break in it:
