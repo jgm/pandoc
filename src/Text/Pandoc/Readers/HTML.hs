@@ -92,6 +92,7 @@ block = choice
             , pHead
             , pBody
             , pPlain
+            , pDiv
             , pRawHtmlBlock
             ]
 
@@ -176,6 +177,13 @@ pRawTag = do
   if tagOpen ignorable (const True) tag || tagClose ignorable tag
      then return []
      else return $ renderTags' [tag]
+
+pDiv :: TagParser [Block]
+pDiv = try $ do
+  getOption readerParseRaw >>= guard
+  TagOpen _ attr <- lookAhead $ pSatisfy $ tagOpen (=="div") (const True)
+  contents <- pInTags "div" block
+  return [Div (mkAttr attr) contents]
 
 pRawHtmlBlock :: TagParser [Block]
 pRawHtmlBlock = do
@@ -295,11 +303,7 @@ pCodeBlock = try $ do
   let result = case reverse result' of
                     '\n':_   -> init result'
                     _        -> result'
-  let attribsId = fromMaybe "" $ lookup "id" attr
-  let attribsClasses = words $ fromMaybe "" $ lookup "class" attr
-  let attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
-  let attribs = (attribsId, attribsClasses, attribsKV)
-  return [CodeBlock attribs result]
+  return [CodeBlock (mkAttr attr) result]
 
 inline :: TagParser [Inline]
 inline = choice
@@ -314,6 +318,7 @@ inline = choice
            , pLink
            , pImage
            , pCode
+           , pSpan
            , pRawHtmlInline
            ]
 
@@ -397,11 +402,14 @@ pCode :: TagParser [Inline]
 pCode = try $ do
   (TagOpen open attr) <- pSatisfy $ tagOpen (`elem` ["code","tt"]) (const True)
   result <- manyTill pAnyTag (pCloses open)
-  let ident = fromMaybe "" $ lookup "id" attr
-  let classes = words $ fromMaybe [] $ lookup "class" attr
-  let rest = filter (\(x,_) -> x /= "id" && x /= "class") attr
-  return [Code (ident,classes,rest)
-         $ intercalate " " $ lines $ innerText result]
+  return [Code (mkAttr attr) $ intercalate " " $ lines $ innerText result]
+
+pSpan :: TagParser [Inline]
+pSpan = try $ do
+  getOption readerParseRaw >>= guard
+  TagOpen _ attr <- lookAhead $ pSatisfy $ tagOpen (=="span") (const True)
+  contents <- pInTags "span" inline
+  return [Span (mkAttr attr) contents]
 
 pRawHtmlInline :: TagParser [Inline]
 pRawHtmlInline = do
@@ -648,3 +656,10 @@ htmlTag f = try $ do
        _            -> do
           rendered <- manyTill anyChar (char '>')
           return (next, rendered ++ ">")
+
+mkAttr :: [(String, String)] -> Attr
+mkAttr attr = (attribsId, attribsClasses, attribsKV)
+  where attribsId = fromMaybe "" $ lookup "id" attr
+        attribsClasses = words $ fromMaybe "" $ lookup "class" attr
+        attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
+
