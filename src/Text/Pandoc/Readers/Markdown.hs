@@ -444,6 +444,9 @@ block = choice [ mempty <$ blanklines
                , codeBlockFenced
                , yamlMetaBlock
                , guardEnabled Ext_latex_macros *> (macro >>= return . return)
+               -- note: bulletList needs to be before header because of
+               -- the possibility of empty list items: -
+               , bulletList
                , header
                , lhsCodeBlock
                , rawTeXBlock
@@ -454,7 +457,6 @@ block = choice [ mempty <$ blanklines
                , codeBlockIndented
                , blockQuote
                , hrule
-               , bulletList
                , orderedList
                , definitionList
                , noteBlock
@@ -699,7 +701,7 @@ bulletListStart = try $ do
   skipNonindentSpaces
   notFollowedBy' (() <$ hrule)     -- because hrules start out just like lists
   satisfy isBulletListMarker
-  spaceChar
+  spaceChar <|> lookAhead newline
   skipSpaces
 
 anyOrderedListStart :: MarkdownParser (Int, ListNumberStyle, ListNumberDelim)
@@ -727,7 +729,6 @@ listStart = bulletListStart <|> (anyOrderedListStart >> return ())
 -- parse a line of a list item (start = parser for beginning of list item)
 listLine :: MarkdownParser String
 listLine = try $ do
-  notFollowedBy blankline
   notFollowedBy' (do indentSpaces
                      many (spaceChar)
                      listStart)
@@ -740,7 +741,7 @@ rawListItem :: MarkdownParser a
 rawListItem start = try $ do
   start
   first <- listLine
-  rest <- many (notFollowedBy listStart >> listLine)
+  rest <- many (notFollowedBy listStart >> notFollowedBy blankline >> listLine)
   blanks <- many blankline
   return $ unlines (first:rest) ++ blanks
 
