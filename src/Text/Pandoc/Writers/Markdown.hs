@@ -642,8 +642,11 @@ escapeSpaces x = x
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
 inlineToMarkdown opts (Span attrs ils) = do
+  st <- get
   contents <- inlineListToMarkdown opts ils
-  return $ tagWithAttrs "span" attrs <> contents <> text "</span>"
+  return $ if stPlain st
+              then contents
+              else tagWithAttrs "span" attrs <> contents <> text "</span>"
 inlineToMarkdown opts (Emph lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "*" <> contents <> "*"
