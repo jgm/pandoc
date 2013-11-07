@@ -231,10 +231,11 @@ writeDocx opts doc@(Pandoc meta _) = do
           ,("xmlns:dcmitype","http://purl.org/dc/dcmitype/")
           ,("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")]
           $ mknode "dc:title" [] (stringify $ docTitle meta)
-          : mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")]
-            (maybe "" id $ normalizeDate $ stringify $ docDate meta)
-          : mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] () -- put current time here
-          : map (mknode "dc:creator" [] . stringify) (docAuthors meta)
+          : mknode "dc:creator" [] (intercalate "; " (map stringify $ docAuthors meta))
+          : maybe []
+             (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] $ x
+                    , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] $ x
+                    ]) (normalizeDate $ stringify $ docDate meta)
   let docPropsEntry = toEntry docPropsPath epochtime $ renderXml docProps
 
   let relsPath = "_rels/.rels"
