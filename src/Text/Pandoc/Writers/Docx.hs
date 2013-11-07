@@ -247,7 +247,7 @@ writeDocx opts doc@(Pandoc meta _) = do
           ,("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties")
           ,("Target","docProps/app.xml")]
         , [("Id","rId3")
-          ,("Type","http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties")
+          ,("Type","http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties")
           ,("Target","docProps/core.xml")]
         ]
   let relsEntry = toEntry relsPath epochtime $ renderXml rels
