@@ -557,7 +557,7 @@ blockHtmlTags = ["address", "article", "aside", "blockquote", "body", "button", 
                  "noframes", "noscript", "object", "ol", "output", "p", "pre", "progress",
                  "section", "table", "tbody", "textarea", "thead", "tfoot", "ul", "dd",
                  "dt", "frameset", "li", "tbody", "td", "tfoot",
-                 "th", "thead", "tr", "script", "style", "video"]
+                 "th", "thead", "tr", "script", "style", "svg", "video"]
 
 -- We want to allow raw docbook in markdown documents, so we
 -- include docbook block tags here too.
