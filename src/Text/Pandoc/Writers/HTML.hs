@@ -761,7 +761,7 @@ inlineToHtml opts inline =
                         let link' = case writerEpubVersion opts of
                                          Just EPUB3 -> link ! customAttribute "epub:type" "noteref"
                                          _ -> link
-                        return $ H.sup $ link'
+                        return $ H.sup ! A.class_ "fnlnk" $ link'
     (Cite cits il)-> do contents <- inlineListToHtml opts il
                         let citationIds = unwords $ map citationId cits
                         let result = H.span ! A.class_ "citation" $ contents
