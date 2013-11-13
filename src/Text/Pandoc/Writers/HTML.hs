@@ -757,11 +757,11 @@ inlineToHtml opts inline =
                                          writerIdentifierPrefix opts ++ "fn" ++ ref)
                                        ! A.class_ "footnoteRef"
                                        ! prefixedId opts ("fnref" ++ ref)
+                                       $ H.sup
                                        $ toHtml ref
-                        let link' = case writerEpubVersion opts of
-                                         Just EPUB3 -> link ! customAttribute "epub:type" "noteref"
-                                         _ -> link
-                        return $ H.sup $ link'
+                        return $ case writerEpubVersion opts of
+                                      Just EPUB3 -> link ! customAttribute "epub:type" "noteref"
+                                      _          -> link
     (Cite cits il)-> do contents <- inlineListToHtml opts il
                         let citationIds = unwords $ map citationId cits
                         let result = H.span ! A.class_ "citation" $ contents
