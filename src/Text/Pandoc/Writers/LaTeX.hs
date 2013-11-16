@@ -126,14 +126,16 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   (biblioTitle :: String) <- liftM (render colwidth) $ inlineListToLaTeX lastHeader
   let main = render colwidth $ vsep body
   st <- get
+  titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
+  authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
                                               if writerChapters options
                                                  then 1
                                                  else 0)) $
                   defField "body" main $
-                  defField "title-meta" (stringify $ docTitle meta) $
-                  defField "author-meta" (intercalate "; " $ map stringify $ docAuthors meta) $
+                  defField "title-meta" titleMeta $
+                  defField "author-meta" (intercalate "; " authorsMeta) $
                   defField "documentclass" (if writerBeamer options
                                                then ("beamer" :: String)
                                                else if writerChapters options
