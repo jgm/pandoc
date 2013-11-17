@@ -1,4 +1,5 @@
-{-# LANGUAGE RelaxedPolyRec #-} -- needed for inlinesBetween on GHC < 7
+{-# LANGUAGE RelaxedPolyRec, FlexibleInstances, TypeSynonymInstances #-}
+-- RelaxedPolyRec needed for inlinesBetween on GHC < 7
 {-
   Copyright (C) 2012 John MacFarlane <jgm@berkeley.edu>
 
@@ -51,6 +52,7 @@ import Data.List (intersperse, intercalate, isPrefixOf )
 import Text.HTML.TagSoup
 import Data.Sequence (viewl, ViewL(..), (<|))
 import qualified Data.Foldable as F
+import qualified Data.Map as M
 import Data.Char (isDigit, isSpace)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
@@ -62,6 +64,8 @@ readMediaWiki opts s =
                                        , mwMaxNestingLevel = 4
                                        , mwNextLinkNumber  = 1
                                        , mwCategoryLinks = []
+                                       , mwHeaderMap = M.empty
+                                       , mwIdentifierList = []
                                        }
        "source" (s ++ "\n") of
           Left err'    -> error $ "\nError:\n" ++ show err'
@@ -71,9 +75,22 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwMaxNestingLevel :: Int
                        , mwNextLinkNumber  :: Int
                        , mwCategoryLinks   :: [Inlines]
+                       , mwHeaderMap       :: M.Map Inlines String
+                       , mwIdentifierList  :: [String]
                        }
 
 type MWParser = Parser [Char] MWState
+
+instance HasReaderOptions MWParser where
+  askReaderOption f = (f . mwOptions) `fmap` getState
+
+instance HasHeaderMap MWParser where
+  getHeaderMap      = fmap mwHeaderMap getState
+  putHeaderMap hm   = updateState $ \st -> st{ mwHeaderMap = hm }
+
+instance HasIdentifierList MWParser where
+  getIdentifierList   = fmap mwIdentifierList getState
+  putIdentifierList l = updateState $ \st -> st{ mwIdentifierList = l }
 
 --
 -- auxiliary functions
@@ -351,7 +368,8 @@ header = try $ do
   let lev = length eqs
   guard $ lev <= 6
   contents <- trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
-  return $ B.header lev contents
+  attr <- registerHeader nullAttr contents
+  return $ B.headerWith attr lev contents
 
 bulletList :: MWParser Blocks
 bulletList = B.bulletList <$>
