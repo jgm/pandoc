@@ -1,4 +1,5 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, TypeSynonymInstances,
+    FlexibleInstances#-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -65,6 +66,9 @@ module Text.Pandoc.Parsing ( (>>~),
                              guardEnabled,
                              guardDisabled,
                              ParserState (..),
+                             HasReaderOptions (..),
+                             HasHeaderMap (..),
+                             HasIdentifierList (..),
                              defaultParserState,
                              HeaderType (..),
                              ParserContext (..),
@@ -826,6 +830,34 @@ instance HasMeta ParserState where
   deleteMeta field st =
     st{ stateMeta = deleteMeta field $ stateMeta st }
 
+class Monad m => HasReaderOptions m where
+  askReaderOption :: (ReaderOptions -> b) -> m b
+
+class Monad m => HasHeaderMap m where
+  getHeaderMap    :: m (M.Map Inlines String)
+  putHeaderMap    :: M.Map Inlines String -> m ()
+  modifyHeaderMap :: (M.Map Inlines String -> M.Map Inlines String) -> m ()
+  -- default
+  modifyHeaderMap f = getHeaderMap >>= putHeaderMap . f
+
+class Monad m => HasIdentifierList m where
+  getIdentifierList    :: m [String]
+  putIdentifierList    :: [String] -> m ()
+  modifyIdentifierList :: ([String] -> [String]) -> m ()
+  -- default
+  modifyIdentifierList f = getIdentifierList >>= putIdentifierList . f
+
+instance HasReaderOptions (Parser s ParserState) where
+  askReaderOption = getOption
+
+instance HasHeaderMap (Parser s ParserState) where
+  getHeaderMap      = fmap stateHeaders getState
+  putHeaderMap hm   = updateState $ \st -> st{ stateHeaders = hm }
+
+instance HasIdentifierList (Parser s ParserState) where
+  getIdentifierList   = fmap stateIdentifiers  getState
+  putIdentifierList l = updateState $ \st -> st{ stateIdentifiers = l }
+
 defaultParserState :: ParserState
 defaultParserState =
     ParserState { stateOptions         = def,
@@ -895,10 +927,11 @@ type SubstTable = M.Map Key Inlines
 --  and the auto_identifers extension is set, generate a new
 --  unique identifier, and update the list of identifiers
 --  in state.
-registerHeader :: Attr -> Inlines -> Parser s ParserState Attr
+registerHeader :: (HasReaderOptions m, HasHeaderMap m, HasIdentifierList m)
+               => Attr -> Inlines -> m Attr
 registerHeader (ident,classes,kvs) header' = do
-  ids <- stateIdentifiers `fmap` getState
-  exts <- getOption readerExtensions
+  ids <- getIdentifierList
+  exts <- askReaderOption readerExtensions
   let insert' = M.insertWith (\_new old -> old)
   if null ident && Ext_auto_identifiers `Set.member` exts
      then do
@@ -906,16 +939,13 @@ registerHeader (ident,classes,kvs) header' = do
        let id'' = if Ext_ascii_identifiers `Set.member` exts
                      then catMaybes $ map toAsciiChar id'
                      else id'
-       updateState $ \st -> st{
-              stateIdentifiers = if id' == id''
-                                    then id' : ids
-                                    else id' : id'' : ids,
-              stateHeaders = insert' header' id' $ stateHeaders st }
+       putIdentifierList $ if id' == id''
+                              then id' : ids
+                              else id' : id'' : ids
+       modifyHeaderMap $ insert' header' id'
        return (id'',classes,kvs)
      else do
-        unless (null ident) $
-          updateState $ \st -> st{
-               stateHeaders = insert' header' ident $ stateHeaders st }
+        unless (null ident) $ modifyHeaderMap $ insert' header' ident
         return (ident,classes,kvs)
 
 -- | Fail unless we're in "smart typography" mode.
