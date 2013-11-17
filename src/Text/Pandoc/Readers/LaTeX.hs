@@ -373,6 +373,7 @@ inlineCommands = M.fromList $
   , ("backslash", lit "\\")
   , ("slash", lit "/")
   , ("textbf", strong <$> tok)
+  , ("textnormal", spanWith ("",["nodecor"],[]) <$> tok)
   , ("ldots", lit "…")
   , ("dots", lit "…")
   , ("mdots", lit "…")
