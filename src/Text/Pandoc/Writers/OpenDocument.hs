@@ -376,8 +376,8 @@ inlineToOpenDocument o ils
     | Code      _ s <- ils = withTextStyle Pre $ inTextStyle $ preformatted s
     | Math      t s <- ils = inlinesToOpenDocument o (readTeXMath' t s)
     | Cite      _ l <- ils = inlinesToOpenDocument o l
-    | RawInline f s <- ils = if f == "opendocument" || f == "html"
-                                then withTextStyle Pre $ inTextStyle $ preformatted s
+    | RawInline f s <- ils = if f == "opendocument"
+                                then return $ preformatted s
                                 else return empty
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Image _ (s,t) <- ils = return $ mkImg  s t
