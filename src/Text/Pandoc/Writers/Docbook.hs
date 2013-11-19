@@ -85,8 +85,9 @@ writeDocbook opts (Pandoc meta blocks) =
       auths'   = map (authorToDocbook opts) $ docAuthors meta
       meta'    = B.setMeta "author" auths' meta
       Just metadata = metaToJSON opts
-                 (Just . render colwidth . blocksToDocbook opts)
-                 (Just . render colwidth . inlinesToDocbook opts)
+                 (Just . render colwidth . (vcat .
+                          (map (elementToDocbook opts' startLvl)) . hierarchicalize))
+                 (Just . render colwidth . inlinesToDocbook opts')
                  meta'
       main     = render' $ vcat (map (elementToDocbook opts' startLvl) elements)
       context = defField "body" main
