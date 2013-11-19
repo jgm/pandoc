@@ -108,6 +108,7 @@ import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Compat.Monoid
+import Data.ByteString.Base64 (decodeLenient)
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -641,7 +642,7 @@ openURL u
   | "data:" `isPrefixOf` u =
     let mime     = takeWhile (/=',') $ drop 5 u
         contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u
-    in  return $ Right (contents, Just mime)
+    in  return $ Right (decodeLenient contents, Just mime)
 #ifdef HTTP_CONDUIT
   | otherwise = E.try $ do
      req <- parseUrl u
