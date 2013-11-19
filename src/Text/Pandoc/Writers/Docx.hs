@@ -55,8 +55,8 @@ import Data.Unique (hashUnique, newUnique)
 import System.Random (randomRIO)
 import Text.Printf (printf)
 import qualified Control.Exception as E
-import System.FilePath (takeExtension)
-import Text.Pandoc.MIME (getMimeType)
+import Text.Pandoc.MIME (getMimeType, extensionFromMimeType)
+import Control.Applicative ((<|>))
 
 data WriterState = WriterState{
          stTextProperties :: [Element]
@@ -737,7 +737,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
           liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
           -- emit alt text
           inlinesToOpenXML opts alt
-        Right (img, _) -> do
+        Right (img, mt) -> do
           ident <- ("rId"++) `fmap` getUniqueId
           let size = imageSize img
           let (xpt,ypt) = maybe (120,120) sizeInPoints size
@@ -776,19 +776,21 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
                   , mknode "wp:effectExtent" [("b","0"),("l","0"),("r","0"),("t","0")] ()
                   , mknode "wp:docPr" [("descr",tit),("id","1"),("name","Picture")] ()
                   , graphic ]
-          let imgext = case imageType img of
-                             Just Png  -> ".png"
-                             Just Jpeg -> ".jpeg"
-                             Just Gif  -> ".gif"
-                             Just Pdf  -> ".pdf"
-                             Just Eps  -> ".eps"
-                             Nothing   -> takeExtension src
+          let imgext = case mt >>= extensionFromMimeType of
+                            Just x    -> '.':x
+                            Nothing   -> case imageType img of
+                                              Just Png  -> ".png"
+                                              Just Jpeg -> ".jpeg"
+                                              Just Gif  -> ".gif"
+                                              Just Pdf  -> ".pdf"
+                                              Just Eps  -> ".eps"
+                                              Nothing   -> ""
           if null imgext
              then -- without an extension there is no rule for content type
                inlinesToOpenXML opts alt -- return alt to avoid corrupted docx
              else do
                let imgpath = "media/" ++ ident ++ imgext
-               let mbMimeType = getMimeType imgpath
+               let mbMimeType = mt <|> getMimeType imgpath
                -- insert mime type to use in constructing [Content_Types].xml
                modify $ \st -> st{ stImages =
                    M.insert src (ident, imgpath, mbMimeType, imgElt, img)
