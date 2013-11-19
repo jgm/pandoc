@@ -163,13 +163,23 @@ mathChars = concat <$>
       <|> (\c -> ['\\',c]) <$> (try $ char '\\' *> anyChar)
        )
 
+quoted' :: (Inlines -> Inlines) -> LP String -> LP () -> LP Inlines
+quoted' f starter ender = do
+  startchs <- starter
+  try ((f . mconcat) <$> manyTill inline ender) <|> lit startchs
+
 double_quote :: LP Inlines
-double_quote = (doubleQuoted . mconcat) <$>
-  (try $ string "``" *> manyTill inline (try $ string "''"))
+double_quote =
+  (   quoted' doubleQuoted (try $ string "``") (void $ try $ string "''")
+  <|> quoted' doubleQuoted (string "“")        (void $ char '”')
+  <|> quoted' doubleQuoted (string "\"")       (void $ char '"')
+  )
 
 single_quote :: LP Inlines
-single_quote = (singleQuoted . mconcat) <$>
-  (try $ char '`' *> manyTill inline (try $ char '\'' >> notFollowedBy letter))
+single_quote =
+  (  quoted' singleQuoted (string "`") (try $ char '\'' >> notFollowedBy letter)
+  <|> quoted' singleQuoted (string "‘") (try $ char '’' >> notFollowedBy letter)
+  )
 
 inline :: LP Inlines
 inline = (mempty <$ comment)
@@ -181,10 +191,10 @@ inline = (mempty <$ comment)
            ((char '-') *> option (str "–") (str "—" <$ char '-')))
      <|> double_quote
      <|> single_quote
-     <|> (str "“" <$ try (string "``"))  -- nb. {``} won't be caught by double_quote
      <|> (str "”" <$ try (string "''"))
-     <|> (str "‘" <$ char '`')           -- nb. {`} won't be caught by single_quote
+     <|> (str "”" <$ char '”')
      <|> (str "’" <$ char '\'')
+     <|> (str "’" <$ char '’')
      <|> (str "\160" <$ char '~')
      <|> (mathDisplay $ string "$$" *> mathChars <* string "$$")
      <|> (mathInline  $ char '$' *> mathChars <* char '$')
@@ -755,7 +765,7 @@ inlineText :: LP Inlines
 inlineText = str <$> many1 inlineChar
 
 inlineChar :: LP Char
-inlineChar = noneOf "\\$%^_&~#{}^'`-[] \t\n"
+inlineChar = noneOf "\\$%^_&~#{}^'`\"‘’“”-[] \t\n"
 
 environment :: LP Blocks
 environment = do
