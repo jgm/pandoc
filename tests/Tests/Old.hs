@@ -59,7 +59,7 @@ tests = [ testGroup "markdown"
             , test "more" ["-r", "markdown", "-w", "native", "-S"]
               "markdown-reader-more.txt" "markdown-reader-more.native"
             , test "lazyLinks" ["-r", "markdown+lazy_links", "-w", "native", "-S"]
-              "markdown-lazylinks.txt" "markdown-lazylinks.native"  
+              "markdown-lazylinks.txt" "markdown-lazylinks.native"
             , lhsReaderTest "markdown+lhs"
             ]
           , testGroup "citations"

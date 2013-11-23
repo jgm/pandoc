@@ -3,7 +3,7 @@
 [*]: http://thisshouldbeignored.com "lazy keys must appear after link"
 
 This is my text and [this is my lazy link][*]. Only link identifier `*`
-is recognized as a lazy link. I'll define the url for that link under 
+is recognized as a lazy link. I'll define the url for that link under
 the paragraph.
 
 [*]: https://google.com
@@ -13,7 +13,6 @@ define them in order below it.
 
 [*]: http://johnmacfarlane.net/pandoc/demos.html
 [*]: http://brettterpstra.com/2013/10/19/lazy-markdown-reference-links/
-
 [*]: http://thisshouldbeignored.com "extraneous keys will be ignored"
 
 Lazy link targets can only be defined after [its corresponding link][*]
