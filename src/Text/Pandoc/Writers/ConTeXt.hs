@@ -130,7 +130,7 @@ blockToConTeXt (Plain lst) = inlineListToConTeXt lst
 -- title beginning with fig: indicates that the image is a figure
 blockToConTeXt (Para [Image txt (src,'f':'i':'g':':':_)]) = do
   capt <- inlineListToConTeXt txt
-  return $ blankline $$ "\\placefigure[here,nonumber]" <> braces capt <>
+  return $ blankline $$ "\\placefigure[here]" <> braces capt <>
            braces ("\\externalfigure" <> brackets (text src)) <> blankline
 blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
