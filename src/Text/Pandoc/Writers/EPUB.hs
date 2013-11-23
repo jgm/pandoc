@@ -198,7 +198,12 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let lang = case lookup "lang" (writerVariables opts') of
                      Just x  -> x
                      Nothing -> localeLang
-  uuid <- getRandomUUID
+  let userNodes = onlyElems $ parseXML $ writerEpubMetadata opts'
+  let mbIdent = findElement (QName "identifier" Nothing (Just "dc"))
+                $ unode "dummy" ! [] $ userNodes
+  uuid <- case mbIdent of
+               Just id' -> return $ trim $ strContent id'
+               Nothing  -> fmap show getRandomUUID
   let chapterNode ent = unode "item" !
                            ([("id", takeBaseName $ eRelativePath ent),
                              ("href", eRelativePath ent),
@@ -230,7 +235,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                              EPUB3 -> "3.0")
                           ,("xmlns","http://www.idpf.org/2007/opf")
                           ,("unique-identifier","BookId")] $
-          [ metadataElement version (writerEpubMetadata opts')
+          [ metadataElement version userNodes
               uuid lang plainTitle plainAuthors plainDate currentTime mbCoverImage
           , unode "manifest" $
              [ unode "item" ! [("id","ncx"), ("href","toc.ncx")
@@ -311,7 +316,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                        ,("xmlns","http://www.daisy.org/z3986/2005/ncx/")] $
           [ unode "head" $
              [ unode "meta" ! [("name","dtb:uid")
-                              ,("content", show uuid)] $ ()
+                              ,("content", uuid)] $ ()
              , unode "meta" ! [("name","dtb:depth")
                               ,("content", "1")] $ ()
              , unode "meta" ! [("name","dtb:totalPageCount")
@@ -384,13 +389,12 @@ writeEPUB opts doc@(Pandoc meta _) = do
                   (picEntries ++ cpicEntry ++ cpgEntry ++ chapterEntries ++ fontEntries))
   return $ fromArchive archive
 
-metadataElement :: EPUBVersion -> String -> UUID -> String -> String -> [String]
+metadataElement :: EPUBVersion -> [Element] -> String -> String -> String -> [String]
                 -> String -> UTCTime -> Maybe a -> Element
-metadataElement version metadataXML uuid lang title authors date currentTime mbCoverImage =
-  let userNodes = parseXML metadataXML
-      elt = unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
+metadataElement version userNodes uuid lang title authors date currentTime mbCoverImage =
+  let elt = unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
                                ,("xmlns:opf","http://www.idpf.org/2007/opf")] $
-            filter isMetadataElement $ onlyElems userNodes
+            filter isMetadataElement userNodes
       dublinElements = ["contributor","coverage","creator","date",
             "description","format","identifier","language","publisher",
             "relation","rights","source","subject","title","type"]
@@ -401,7 +405,7 @@ metadataElement version metadataXML uuid lang title authors date currentTime mbC
       contains e n = not (null (findElements (QName n Nothing (Just "dc")) e))
       newNodes = [ unode "dc:title" title | not (elt `contains` "title") ] ++
            [ unode "dc:language" lang | not (elt `contains` "language") ] ++
-           [ unode "dc:identifier" ! [("id","BookId")] $ show uuid |
+           [ unode "dc:identifier" ! [("id","BookId")] $ uuid |
                not (elt `contains` "identifier") ] ++
            [ unode "dc:creator" ! [("opf:role","aut") | version == EPUB2]
                      $ a | a <- authors, not (elt `contains` "creator") ] ++
