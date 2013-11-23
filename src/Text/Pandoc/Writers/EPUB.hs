@@ -267,8 +267,9 @@ writeEPUB opts doc@(Pandoc meta _) = do
           , unode "guide" $
              [ unode "reference" !
                    [("type","toc"),("title",plainTitle),("href","nav.xhtml")] $ ()
-             , unode "reference" !
-                   [("type","cover"),("title","Cover"),("href","cover.xhtml")] $ ()
+             ] ++
+             [ unode "reference" !
+                   [("type","cover"),("title","Cover"),("href","cover.xhtml")] $ () | mbCoverImage /= Nothing
              ]
           ]
   let contentsEntry = mkEntry "content.opf" contentsData
