@@ -638,7 +638,12 @@ formattedString str = do
 inlineToOpenXML :: WriterOptions -> Inline -> WS [Element]
 inlineToOpenXML _ (Str str) = formattedString str
 inlineToOpenXML opts Space = inlineToOpenXML opts (Str " ")
-inlineToOpenXML opts (Span _ ils) = inlinesToOpenXML opts ils
+inlineToOpenXML opts (Span (_,classes,_) ils) = do
+  let off x = withTextProp (mknode x [("w:val","0")] ())
+  ((if "csl-no-emph" `elem` classes then off "w:i" else id) .
+   (if "csl-no-strong" `elem` classes then off "w:b" else id) .
+   (if "csl-no-smallcaps" `elem` classes then off "w:smallCaps" else id))
+   $ inlinesToOpenXML opts ils
 inlineToOpenXML opts (Strong lst) =
   withTextProp (mknode "w:b" [] ()) $ inlinesToOpenXML opts lst
 inlineToOpenXML opts (Emph lst) =
