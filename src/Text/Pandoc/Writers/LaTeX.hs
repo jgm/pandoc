@@ -602,7 +602,16 @@ isQuoted _ = False
 -- | Convert inline element to LaTeX
 inlineToLaTeX :: Inline    -- ^ Inline to convert
               -> State WriterState Doc
-inlineToLaTeX (Span _ ils) = inlineListToLaTeX ils >>= return . braces
+inlineToLaTeX (Span (_,classes,_) ils) = do
+  let noEmph = "csl-no-emph" `elem` classes
+  let noStrong = "csl-no-strong" `elem` classes
+  let noSmallCaps = "csl-no-smallcaps" `elem` classes
+  ((if noEmph then inCmd "textup" else id) .
+   (if noStrong then inCmd "textnormal" else id) .
+   (if noSmallCaps then inCmd "textnormal" else id) .
+   (if not (noEmph || noStrong || noSmallCaps)
+       then braces
+       else id)) `fmap` inlineListToLaTeX ils
 inlineToLaTeX (Emph lst) =
   inlineListToLaTeX lst >>= return . inCmd "emph"
 inlineToLaTeX (Strong lst) =
