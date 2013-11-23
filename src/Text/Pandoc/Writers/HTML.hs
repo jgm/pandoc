@@ -613,8 +613,22 @@ inlineToHtml opts inline =
     (Str str)        -> return $ strToHtml str
     (Space)          -> return $ strToHtml " "
     (LineBreak)      -> return $ if writerHtml5 opts then H5.br else H.br
-    (Span attr ils)  -> inlineListToHtml opts ils >>=
-                           return . addAttrs opts attr . H.span
+    (Span (id',classes,kvs) ils)
+                     -> inlineListToHtml opts ils >>=
+                           return . addAttrs opts attr' . H.span
+                        where attr' = (id',classes',kvs')
+                              classes' = filter (`notElem` ["csl-no-emph",
+                                              "csl-no-strong",
+                                              "csl-no-smallcaps"]) classes
+                              kvs' = if null styles
+                                        then kvs
+                                        else (("style", concat styles) : kvs)
+                              styles = ["font-style:normal;"
+                                         | "csl-no-emph" `elem` classes]
+                                    ++ ["font-weight:normal;"
+                                         | "csl-no-strong" `elem` classes]
+                                    ++ ["font-variant:normal;"
+                                         | "csl-no-smallcaps" `elem` classes]
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
     (Code attr str)  -> case hlCode of
