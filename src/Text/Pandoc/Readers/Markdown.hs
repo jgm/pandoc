@@ -1455,6 +1455,7 @@ enclosure c = do
 -- Parse inlines til you hit one c or a sequence of two cs.
 -- If one c, emit emph and then parse two.
 -- If two cs, emit strong and then parse one.
+-- Otherwise, emit ccc then the results.
 three :: Char -> MarkdownParser (F Inlines)
 three c = do
   contents <- mconcat <$> many (notFollowedBy (char c) >> inline)
@@ -1479,7 +1480,7 @@ one c prefix' = do
   contents <- mconcat <$> many (  (notFollowedBy (char c) >> inline)
                            <|> try (string [c,c] >>
                                     notFollowedBy (char c) >>
-                                    two c prefix') )
+                                    two c mempty) )
   (char c >> return (B.emph <$> (prefix' <> contents)))
     <|> return (return (B.str [c]) <> (prefix' <> contents))
 

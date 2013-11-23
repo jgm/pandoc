@@ -136,6 +136,11 @@ tests = [ testGroup "inline code"
             "`*` {.haskell .special x=\"7\"}"
             =?> para (codeWith ("",["haskell","special"],[("x","7")]) "*")
           ]
+        , testGroup "emph and strong"
+          [ "two strongs in emph" =:
+             "***a**b **c**d*" =?> para (emph (strong (str "a") <> str "b" <> space
+                                         <> strong (str "c") <> str "d"))
+          ]
         , testGroup "raw LaTeX"
           [ "in URL" =:
             "\\begin\n" =?> para (text "\\begin")
