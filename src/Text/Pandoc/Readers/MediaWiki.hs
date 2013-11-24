@@ -549,10 +549,14 @@ endline = () <$ try (newline <*
                      notFollowedBy' header <*
                      notFollowedBy anyListStart)
 
+imageIdentifiers :: [MWParser ()]
+imageIdentifiers = [sym (identifier ++ ":") | identifier <- identifiers]
+    where identifiers = ["File", "Image", "Archivo", "Datei", "Fichier"]
+
 image :: MWParser Inlines
 image = try $ do
   sym "[["
-  sym "File:" <|> sym "Image:"
+  choice imageIdentifiers
   fname <- many1 (noneOf "|]")
   _ <- many (try $ char '|' *> imageOption)
   caption <-   (B.str fname <$ sym "]]")

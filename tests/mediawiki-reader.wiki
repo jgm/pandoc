@@ -173,6 +173,8 @@ http://johnmacfarlane.net/pandoc/
 
 [[File:example.jpg]]
 
+[[Archivo:example_es.jpg]]
+
 == lists ==
 
 * Start each line

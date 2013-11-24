@@ -88,6 +88,7 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Image [Str "the",Space,Emph [Str "caption"],Space,Str "with",Space,Link [Str "external",Space,Str "link"] ("http://google.com","")] ("example.jpg","fig:the caption with external link")]
 ,Para [Image [Str "caption"] ("example.jpg","fig:caption")]
 ,Para [Image [Str "example.jpg"] ("example.jpg","fig:example.jpg")]
+,Para [Image [Str "example_es.jpg"] ("example_es.jpg","fig:example_es.jpg")]
 ,Header 2 ("lists",[],[]) [Str "lists"]
 ,BulletList
  [[Plain [Str "Start",Space,Str "each",Space,Str "line"]]
