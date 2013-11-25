@@ -1,0 +1,29 @@
+## Lazy referenced links
+
+[*]: http://thisshouldbeignored.com "lazy keys must appear after link"
+
+This is my text and [this is my lazy link][*]. Only link identifier `*`
+is recognized as a lazy link. I'll define the url for that link under 
+the paragraph.
+
+[*]: https://google.com
+
+I can use [multiple][*] lazy links in [a paragraph][*], and then just
+define them in order below it.
+
+[*]: http://johnmacfarlane.net/pandoc/demos.html
+[*]: http://brettterpstra.com/2013/10/19/lazy-markdown-reference-links/
+
+[*]: http://thisshouldbeignored.com "extraneous keys will be ignored"
+
+Lazy link targets can only be defined after [its corresponding link][*]
+in the text. The previous url is ignored, while the one below this
+paragraph will be used for the link.
+
+[*]: http://daringfireball.net/linked/2013/10/28/lazy-markdown-links
+
+Implicit reference key does not work for lazy links, so I cannot write
+[*] and expect it to link to a url. This is true only if the `lazy_link`
+extension is enabled, otherwise the key `*` has no special meaning.
+
+[*]: http://thisshouldbeignored.com "lazy links cannot be implicit"
