@@ -358,12 +358,23 @@ referenceKey = try $ do
   blanklines
   let target = (escapeURI $ trimr src,  tit)
   st <- getState
-  let oldkeys = stateKeys st
-  let key = toKey raw
+  lazyLinksEnabled <- option False $ True <$ guardEnabled Ext_lazy_links
+  let isLazyLinkKey = lazyLinksEnabled && (raw == "[*]")
+  let lazyLinkCount = stateLazyLinkCount st
+  let lazyLinkKeyCount = M.size $ stateLazyLinkKeys st
+  key <- return $ if isLazyLinkKey
+               then toKey $ show $ lazyLinkKeyCount + 1
+               else toKey raw
+  let oldkeys = (if isLazyLinkKey then stateLazyLinkKeys else stateKeys) st
   case M.lookup key oldkeys of
     Just _  -> addWarning (Just pos) $ "Duplicate link reference `" ++ raw ++ "'"
     Nothing -> return ()
-  updateState $ \s -> s { stateKeys = M.insert key target oldkeys }
+  let updatedkeys = M.insert key target oldkeys
+  if isLazyLinkKey
+     then if lazyLinkCount > lazyLinkKeyCount -- drop if all lazy link refs are resolved
+             then updateState $ \s -> s { stateLazyLinkKeys = updatedkeys }
+             else return ()
+     else updateState $ \s -> s { stateKeys = updatedkeys }
   return $ return mempty
 
 referenceTitle :: MarkdownParser String
@@ -1641,6 +1652,16 @@ referenceLink constructor (lab, raw) = do
   fallback <- parseFromString (mconcat <$> many inline) $ dropBrackets raw
   implicitHeaderRefs <- option False $
                          True <$ guardEnabled Ext_implicit_header_references
+  lazyLinksEnabled <- option False $ True <$ guardEnabled Ext_lazy_links
+  let isLazyLink = lazyLinksEnabled && (key == toKey "[*]") && not labIsRef
+  key' <- if isLazyLink
+             then do
+                st <- getState
+                let lazyLinkCount = (stateLazyLinkCount st) + 1
+                updateState $ \s -> s { stateLazyLinkCount = lazyLinkCount }
+                return $ toKey $ show lazyLinkCount
+             else return key
+  let refKeyTable = if isLazyLink then stateLazyLinkKeys else stateKeys
   let makeFallback = do
        parsedRaw' <- parsedRaw
        fallback' <- fallback
@@ -1648,8 +1669,8 @@ referenceLink constructor (lab, raw) = do
                 (if sp && not (null raw) then B.space else mempty) <>
                 parsedRaw'
   return $ do
-    keys <- asksF stateKeys
-    case M.lookup key keys of
+    keys <- asksF refKeyTable
+    case M.lookup key' keys of
        Nothing        -> do
          headers <- asksF stateHeaders
          ref' <- if labIsRef then lab else ref

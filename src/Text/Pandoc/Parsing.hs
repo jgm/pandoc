@@ -805,6 +805,8 @@ data ParserState = ParserState
       stateMaxNestingLevel :: Int,           -- ^ Max # of nested Strong/Emph
       stateLastStrPos      :: Maybe SourcePos, -- ^ Position after last str parsed
       stateKeys            :: KeyTable,      -- ^ List of reference keys (with fallbacks)
+      stateLazyLinkCount   :: Int,           -- ^ Number of lazy link references encountered
+      stateLazyLinkKeys    :: KeyTable,      -- ^ Seperate list of ref keys for lazy links
       stateSubstitutions   :: SubstTable,    -- ^ List of substitution references
       stateNotes           :: NoteTable,     -- ^ List of notes (raw bodies)
       stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
@@ -867,6 +869,8 @@ defaultParserState =
                   stateMaxNestingLevel = 6,
                   stateLastStrPos      = Nothing,
                   stateKeys            = M.empty,
+                  stateLazyLinkCount   = 0,
+                  stateLazyLinkKeys    = M.empty,
                   stateSubstitutions   = M.empty,
                   stateNotes           = [],
                   stateNotes'          = [],
