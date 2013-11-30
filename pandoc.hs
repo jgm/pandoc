@@ -982,7 +982,10 @@ main = do
 
   let writerName' = if null writerName
                       then defaultWriterName outputFile
-                      else writerName
+                      else case writerName of
+                                "epub2"   -> "epub"
+                                "html4"   -> "html"
+                                x         -> x
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
