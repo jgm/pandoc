@@ -2780,43 +2780,43 @@ block.  Here is an example:
 
 The following fields are recognized:
 
-identifier
+`identifier`
   ~ Either a string value or an object with fields `text` and
     `scheme`.  Valid values for `scheme` are `ISBN-10`,
     `GTIN-13`, `UPC`, `ISMN-10`, `DOI`, `LCCN`, `GTIN-14`,
     `ISBN-13`, `Legal deposit number`, `URN`, `OCLC`,
     `ISMN-13`, `ISBN-A`, `JP`, `OLCC`.
-title
+`title`
   ~ Either a string value, or an object with fields `file-as` and
     `type`, or a list of such objects.  Valid values for `type` are
     `main`, `subtitle`, `short`, `collection`, `edition`, `extended`.
-creator
+`creator`
   ~ Either a string value, or an object with fields `role`, `file-as`,
     and `text`, or a list of such objects.  Valid values for `role` are
     [marc relators](http://www.loc.gov/marc/relators/relaterm.html), but
     pandoc will attempt to translate the human-readable versions
     (like "author" and "editor") to the appropriate marc relators.
-contributor
+`contributor`
   ~ Same format as `creator`.
-date
+`date`
   ~ A string value in `YYYY-MM-DD` format.  (Only the year is necessary.)
     Pandoc will attempt to convert other common date formats.
-language
+`language`
   ~ A string value in [RFC5646] format.  Pandoc will default to the local
     language if nothing is specified.
-subject
+`subject`
   ~ A string value or a list of such values.
-description
+`description`
   ~ A string value.
-type
+`type`
   ~ A string value.
-format
+`format`
   ~ A string value.
-relation
+`relation`
   ~ A string value.
-coverage
+`coverage`
   ~ A string value.
-rights
+`rights`
   ~ A string value.
 
 Literate Haskell support
