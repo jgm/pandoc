@@ -279,7 +279,8 @@ metadataFromMeta opts meta = EPUBMetadata{
         relation = metaValueToString <$> lookupMeta "relation" meta
         coverage = metaValueToString <$> lookupMeta "coverage" meta
         rights = metaValueToString <$> lookupMeta "rights" meta
-        coverImage = lookup "epub-cover-image" (writerVariables opts)
+        coverImage = lookup "epub-cover-image" (writerVariables opts) `mplus`
+             (metaValueToString <$> lookupMeta "cover-image" meta)
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: WriterOptions  -- ^ Writer options

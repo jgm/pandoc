@@ -542,7 +542,7 @@ Options affecting specific writers
 `--epub-cover-image=`*FILE*
 :   Use the specified image as the EPUB cover.  It is recommended
     that the image be less than 1000px in width and height. Note that
-    in a markdown source document you can also specify `epub-cover-image`
+    in a markdown source document you can also specify `cover-image`
     in a YAML metadata block (see [EPUB Metadata], below).
 
 `--epub-metadata=`*FILE*
@@ -2820,7 +2820,7 @@ The following fields are recognized:
   ~ A string value.
 `rights`
   ~ A string value.
-`epub-cover-image`
+`cover-image`
   ~ A string value (path to cover image).
 
 Literate Haskell support
