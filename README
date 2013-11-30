@@ -560,6 +560,10 @@ Options affecting specific writers
     id="BookId">` (a randomly generated UUID). Any of these may be
     overridden by elements in the metadata file.
 
+    Note: if the source document is markdown, a YAML metadata block
+    in the document can be used instead.  See below under
+    [EPUB Metadata].
+
 `--epub-embed-font=`*FILE*
 :   Embed the specified font in the EPUB. This option can be repeated
     to embed multiple fonts.  To use embedded fonts, you
@@ -2749,6 +2753,72 @@ To show the notes window, press `s` while viewing the presentation.
 Notes are not yet supported for other slide formats, but the notes
 will not appear on the slides themselves.
 
+EPUB Metadata
+=============
+
+EPUB metadata may be specified using the `--epub-metadata` option, but
+if the source document is markdown, it is better to use a YAML metadata
+block.  Here is an example:
+
+    ---
+    title:
+    - type: main
+      text: My Book
+    - type: subtitle
+      text: An investigation of metadata
+    creator:
+    - role: author
+      text: John Smith
+    - role: editor
+      text: Sarah Jones
+    identifier:
+    - scheme: DOI
+      text: doi:10.234234.234/33
+    publisher:  My Press
+    rights:  (c) 2007 John Smith, CC BY-NC
+    ...
+
+The following fields are recognized:
+
+identifier
+  ~ Either a string value or an object with fields `text` and
+    `scheme`.  Valid values for `scheme` are `ISBN-10`,
+    `GTIN-13`, `UPC`, `ISMN-10`, `DOI`, `LCCN`, `GTIN-14`,
+    `ISBN-13`, `Legal deposit number`, `URN`, `OCLC`,
+    `ISMN-13`, `ISBN-A`, `JP`, `OLCC`.
+title
+  ~ Either a string value, or an object with fields `file-as` and
+    `type`, or a list of such objects.  Valid values for `type` are
+    `main`, `subtitle`, `short`, `collection`, `edition`, `extended`.
+creator
+  ~ Either a string value, or an object with fields `role`, `file-as`,
+    and `text`, or a list of such objects.  Valid values for `role` are
+    [marc relators](http://www.loc.gov/marc/relators/relaterm.html), but
+    pandoc will attempt to translate the human-readable versions
+    (like "author" and "editor") to the appropriate marc relators.
+contributor
+  ~ Same format as `creator`.
+date
+  ~ A string value in `YYYY-MM-DD` format.  (Only the year is necessary.)
+    Pandoc will attempt to convert other common date formats.
+language
+  ~ A string value in [RFC5646] format.  Pandoc will default to the local
+    language if nothing is specified.
+subject
+  ~ A string value or a list of such values.
+description
+  ~ A string value.
+type
+  ~ A string value.
+format
+  ~ A string value.
+relation
+  ~ A string value.
+coverage
+  ~ A string value.
+rights
+  ~ A string value.
+
 Literate Haskell support
 ========================
 
@@ -2860,4 +2930,5 @@ Jamie F. Olson.
 [reveal.js]: http://lab.hakim.se/reveal-js/
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
 [lua]: http://www.lua.org
-
+[marc relators]: http://www.loc.gov/marc/relators/relaterm.html
+[RFC5646]: http://tools.ietf.org/html/rfc5646
