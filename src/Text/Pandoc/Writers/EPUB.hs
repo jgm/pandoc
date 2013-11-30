@@ -279,8 +279,7 @@ metadataFromMeta opts meta = EPUBMetadata{
         relation = metaValueToString <$> lookupMeta "relation" meta
         coverage = metaValueToString <$> lookupMeta "coverage" meta
         rights = metaValueToString <$> lookupMeta "rights" meta
-        coverImage = fmap (const "cover-image") $
-                     lookup "epub-cover-image" $ writerVariables opts
+        coverImage = lookup "epub-cover-image" (writerVariables opts)
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: WriterOptions  -- ^ Writer options
@@ -305,11 +304,11 @@ writeEPUB opts doc@(Pandoc meta _) = do
                           then MathML Nothing
                           else writerHTMLMathMethod opts
                   , writerWrapText = False }
-  let mbCoverImage = lookup "epub-cover-image" vars
+  metadata <- getEPUBMetadata opts' meta
 
   -- cover page
   (cpgEntry, cpicEntry) <-
-                case mbCoverImage of
+                case epubCoverImage metadata of
                      Nothing   -> return ([],[])
                      Just img  -> do
                        let coverImage = "cover-image" ++ takeExtension img
@@ -421,7 +420,6 @@ writeEPUB opts doc@(Pandoc meta _) = do
                            [("id", takeBaseName $ eRelativePath ent),
                             ("href", eRelativePath ent),
                             ("media-type", maybe "" id $ getMimeType $ eRelativePath ent)] $ ()
-  metadata <- getEPUBMetadata opts' meta
   let plainTitle = case docTitle meta of
                         [] -> case epubTitle metadata of
                                    []   -> "UNTITLED"
@@ -452,7 +450,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
              map pictureNode (cpicEntry ++ picEntries) ++
              map fontNode fontEntries
           , unode "spine" ! [("toc","ncx")] $
-              case mbCoverImage of
+              case epubCoverImage metadata of
                     Nothing -> []
                     Just _ -> [ unode "itemref" !
                                 [("idref", "cover"),("linear","no")] $ () ]
@@ -471,7 +469,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                     ("href","nav.xhtml")] $ ()
              ] ++
              [ unode "reference" !
-                   [("type","cover"),("title","Cover"),("href","cover.xhtml")] $ () | mbCoverImage /= Nothing
+                   [("type","cover"),("title","Cover"),("href","cover.xhtml")] $ () | epubCoverImage metadata /= Nothing
              ]
           ]
   let contentsEntry = mkEntry "content.opf" contentsData
@@ -526,7 +524,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                               ,("content", "0")] $ ()
              , unode "meta" ! [("name","dtb:maxPageNumber")
                               ,("content", "0")] $ ()
-             ] ++ case mbCoverImage of
+             ] ++ case epubCoverImage metadata of
                         Nothing  -> []
                         Just _   -> [unode "meta" ! [("name","cover"),
                                             ("content","cover-image")] $ ()]
@@ -623,7 +621,8 @@ metadataElement version md currentTime =
         coverageNodes = maybe [] (dcTag' "coverage") $ epubCoverage md
         rightsNodes = maybe [] (dcTag' "rights") $ epubRights md
         coverImageNodes = maybe []
-            (\ci -> [unode "meta" !  [("name","cover"), ("content",ci)] $ ()])
+            (const $ [unode "meta" !  [("name","cover"),
+                                       ("content","cover-image")] $ ()])
             $ epubCoverImage md
         modifiedNodes = [ unode "meta" ! [("property", "dcterms:modified")] $
                (showDateTimeISO8601 currentTime) | version == EPUB3 ]
