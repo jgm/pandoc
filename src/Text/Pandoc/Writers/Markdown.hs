@@ -555,7 +555,14 @@ bulletListItemToMarkdown opts items = do
   contents <- blockListToMarkdown opts items
   let sps = replicate (writerTabStop opts - 2) ' '
   let start = text ('-' : ' ' : sps)
-  return $ hang (writerTabStop opts) start $ contents <> cr
+  -- remove trailing blank line if it is a tight list
+  let contents' = case reverse items of
+                       (BulletList xs:_) | isTightList xs ->
+                            chomp contents <> cr
+                       (OrderedList _ xs:_) | isTightList xs ->
+                            chomp contents <> cr
+                       _ -> contents
+  return $ hang (writerTabStop opts) start $ contents' <> cr
 
 -- | Convert ordered list item (a list of blocks) to markdown.
 orderedListItemToMarkdown :: WriterOptions -- ^ options
