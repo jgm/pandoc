@@ -56,7 +56,7 @@ import Text.XML.Light hiding (ppTopElement)
 import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
-import Data.Char ( toLower )
+import Data.Char ( toLower, isDigit )
 import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
 #if MIN_VERSION_base(4,6,0)
@@ -171,7 +171,8 @@ addMetadataFromXML e@(Element (QName name _ (Just "dc")) attrs _ _) md
                  , titleFileAs = getAttr "file-as"
                  , titleType = getAttr "type"
                  } : epubTitle md }
-  | name == "date" = md{ epubDate = maybe "" id $ normalizeDate $ strContent e }
+  | name == "date" = md{ epubDate = maybe "" id $ normalizeDate'
+                                                $ strContent e }
   | name == "language" = md{ epubLanguage = strContent e }
   | name == "creator" = md{ epubCreator =
               Creator{ creatorText = strContent e
@@ -265,7 +266,7 @@ metadataFromMeta opts meta = EPUBMetadata{
   where identifiers = getIdentifier meta
         titles = getTitle meta
         date = maybe "" id $
-              (metaValueToString <$> lookupMeta "date" meta) >>= normalizeDate
+              (metaValueToString <$> lookupMeta "date" meta) >>= normalizeDate'
         language = maybe "" metaValueToString $
            lookupMeta "language" meta `mplus` lookupMeta "lang" meta
         creators = getCreator "creator" meta
@@ -798,6 +799,16 @@ replaceRefs refTable = walk replaceOneRef
                 Just url -> Link lab (url,tit)
                 Nothing  -> x
         replaceOneRef x = x
+
+-- Variant of normalizeDate that allows partial dates: YYYY, YYYY-MM
+normalizeDate' :: String -> Maybe String
+normalizeDate' xs =
+  let xs' = trim xs in
+  case xs' of
+       [y1,y2,y3,y4] | all isDigit [y1,y2,y3,y4] -> Just xs'     -- YYYY
+       [y1,y2,y3,y4,'-',m1,m2] | all isDigit [y1,y2,y3,y4,m1,m2]  -- YYYY-MM
+                                                 -> Just xs'
+       _                                         -> normalizeDate xs'
 
 toRelator :: String -> Maybe String
 toRelator x
