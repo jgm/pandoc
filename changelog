@@ -1,3 +1,163 @@
+pandoc (1.12.2)
+
+  * Metadata may now be included in YAML blocks in a markdown document.
+    For example,
+
+        ---
+        title:
+        - type: main
+          text: My Book
+        - type: subtitle
+          text: An investigation of metadata
+        creator:
+        - role: author
+          text: John Smith
+        - role: editor
+          text: Sarah Jones
+        identifier:
+        - scheme: DOI
+          text: doi:10.234234.234/33
+        publisher:  My Press
+        rights:  (c) 2007 John Smith, CC BY-NC
+        cover-image: img/mypic.jpg
+        ...
+
+    Metadata may still be provided using `--epub-metadata`; it will
+    be merged with the metadata in YAML blocks.
+
+  * EPUB writer:
+
+    + `meta` tags are now used instead of `opf` attributes for EPUB3.
+    + Insert "svg" property as needed in opf (EPUB 3).
+    + Simplify `imageTypeOf` using `getMimeType`.
+    + Add properties attribute to `cover-image` item for EPUB 3.
+    + Don't include node for `cover.xhtml` if no cover!
+    + Ensure that same identifier is used throughout (#1044).
+      If an identifier is given in metadata, we use that; otherwise
+      we generate a random uuid.
+    + Add cover reference to guide element (EPUB 2) (Shaun Attfield).
+      Fixes an issue with Calibre putting the cover at the end of the book
+      if the spine has `linear="no"`.  Apparently this is best practice
+      for other converters as well:
+      <http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.6>.
+
+  * Markdown writer:  Fix rendering of tight sublists (#1050).
+    Previously a spurious blank line was included after a tight sublist.
+
+  * ODT writer:  Add `draw:name` attribute to `draw:frame` elements (#1069).
+    This is reported to be necessary to avoid an error from recent
+    versions of Libre Office when files contain more than one image
+    Thanks to wmanley for reporting and diagnosing the problem.
+
+  * ConTeXt writer:  Don't hardcode figure/table placement and numbering.
+    Instead, let this be set in the template, using `\setupfloat`.
+    Thanks to on4aa and Aditya Mahajan for the suggestion (#1067).
+
+  * Implemented CSL flipflopping spans in DOCX, LaTeX, and HTML writers.
+
+  * Fixed bug with markdown intraword emphasis.  Closes #1066.
+
+  * Docbook writer:  Hierarchicalize block content in metadata.
+    Previously headers just disappeared from block-level metadata
+    when it was used in templates.  Now we apply the 'hierarchicalize'
+    transformation.  Note that a block headed by a level-2 header will
+    turn into a `<sect1>` element.
+
+  * OpenDocument writer:  Skip raw HTML (#1035).
+    Previously it was erroneously included as verbatim text.
+
+  * HTML/EPUB writer, footnotes:  Put `<sup>` tag inside `<a>` tags.
+    This allows better control of formatting, since the `<a>`
+    tags have a distinguishing class (#1049).
+
+  * Docx writer:
+
+    + Use mime type info returned by fetchItem.
+    + Fixed core metadata (#1046).
+      Don't create empty date nodes if no date given.
+      Don't create multiple `dc:creator` nodes; instead separate by
+      semicolons.
+    + Fix URL for core-properties in `_rels/.rels` (#1046).
+
+  * Plain writer: don't print `<span>` tags.
+
+  * LaTeX writer:
+
+    + Fix definition lists with internal links in terms (#1032).
+      This fix puts braces around a term that contains an internal
+      link, to avoid problems with square brackets.
+    + Properly escape pdftitle, pdfauthor (#1059).
+
+  * Updated beamer template.  Now references should work properly
+    (in a slide) when `--biblatex` or `--natbib` is used.
+
+  * LaTeX reader:
+
+    + Parse contents of curly quotes or matched `"` as quotes.
+    + Support `\textnormal` as span with class `nodecor`.
+      This is needed for pandoc-citeproc.
+    + Improved citation parsing.  This fixes a run-time error that occured
+      with `\citet{}` (empty list of keys).  It also ensures that empty keys
+      don't get produced.
+
+  * MediaWiki reader:  Add automatic header identifiers.
+
+  * HTML reader:
+
+    + Use pandoc `Div` and `Span` for raw `<div>`, `<span>` when
+      `--parse-raw`.
+    + Recognize `svg` tags as block level content (thanks to MinRK).
+
+  * Markdown reader:
+
+    + Yaml block must start immediately after `---`.  If there's a blank
+      line after `---`, we interpreted it as a horizontal rule.
+    + Correctly handle empty bullet list items.
+
+  * Slides:  Preserve `<div class="references">` in references slide.
+
+  * `Text.Pandoc.Writer.Shared`: fixed bug in `tagWithAttrs`.
+    A space was omitted before key-value attributes, leading
+    to invalid HTML.
+
+  * DocBook reader:  Handle numerical attributes starting with decimal.
+    Also use `safeRead` instead of `read`.
+
+  * `Text.Pandoc.Parsing`:  Generalized type of `registerHeader`,
+    using new type classes `HasReadeOptions`, `HasIdentifierList`,
+    `HasHeaderMap`.  These allow certain common functions to be reused
+    even in parsers that use custom state (instead of `ParserState`),
+    such as the MediaWiki reader.
+
+  * `Text.Pandoc.Shared`: Fixed bug in `openURL` with `data:` URIs.
+    Previously the base-64 encoded bytestring was returned.
+    We now decode it so it's a proper image!
+
+  * `Text.Pandoc.Readers.TexMath`: Export `readTeXMath'`, which attends
+    to display/inline.  Deprecate `readTeXMath`, and use `readTeXMath'`
+    in all the writers.  Require `texmath >= 0.6.5.2`.
+
+  * `Text.Pandoc.MIME`:
+
+    + Add entry for `jfif`.
+    + In looking up extensions, drop the encoding info.
+      E.g. for 'image/jpg;base64' we should lookup 'image/jpg'.
+
+  * Templates:  Changed how array variables are resolved.  Previously if
+    `foo` is an array (which might be because multiple values were set on
+    the command line), `$foo$` would resolve to the concatenation of the
+    elements of foo.  This is rarely useful behavior.  It has been changed
+    so that the first value is rendered.  Of course, you can still iterate
+    over the values using `$for(foo)$`.  This has the result that you can
+    override earlier settings using `-V` by putting new values later on the
+    command line, which is useful for many purposes.
+
+  * Allow "epub2" as synonym for "epub", "html4" for "html".
+
+  * Don't look for slidy files in data files with `--self-contained`.
+
+  * Fixed `make_osx_package.sh` so data files embedded in `pandoc-citeproc`.
+
 pandoc (1.12.1)
 
   * `Text.Pandoc.Definition`:  Changed default JSON serialization format.
