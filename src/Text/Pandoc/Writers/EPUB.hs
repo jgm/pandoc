@@ -448,7 +448,12 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                [("properties","nav") | epub3 ]) $ ()
              ] ++
              map chapterNode (cpgEntry ++ (tpEntry : chapterEntries)) ++
-             map pictureNode (cpicEntry ++ picEntries) ++
+             (case cpicEntry of
+                    []    -> []
+                    (x:_) -> [add_attrs
+                              [Attr (unqual "properties") "cover-image" | epub3]
+                              (pictureNode x)]) ++
+             map pictureNode picEntries ++
              map fontNode fontEntries
           , unode "spine" ! [("toc","ncx")] $
               case epubCoverImage metadata of
