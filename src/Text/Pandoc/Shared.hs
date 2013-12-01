@@ -270,7 +270,7 @@ normalizeDate s = fmap (formatTime defaultTimeLocale "%F")
   (msum $ map (\fs -> parsetimeWith fs s) formats :: Maybe Day)
    where parsetimeWith = parseTime defaultTimeLocale
          formats = ["%x","%m/%d/%Y", "%D","%F", "%d %b %Y",
-                    "%d %B %Y", "%b. %d, %Y", "%B %d, %Y"]
+                    "%d %B %Y", "%b. %d, %Y", "%B %d, %Y", "%Y"]
 
 --
 -- Pandoc block and inline list processing
