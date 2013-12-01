@@ -736,15 +736,9 @@ ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . unEntity . 
         unEntity (x:xs) = x : unEntity xs
 
 imageTypeOf :: FilePath -> Maybe String
-imageTypeOf x = case drop 1 (map toLower (takeExtension x)) of
-                     "jpg"       -> Just "image/jpeg"
-                     "jpeg"      -> Just "image/jpeg"
-                     "jfif"      -> Just "image/jpeg"
-                     "png"       -> Just "image/png"
-                     "gif"       -> Just "image/gif"
-                     "svg"       -> Just "image/svg+xml"
-                     _           -> Nothing
-
+imageTypeOf x = case getMimeType x of
+                     Just y@('i':'m':'a':'g':'e':_) -> Just y
+                     _                              -> Nothing
 
 data IdentState = IdentState{
        chapterNumber :: Int,
