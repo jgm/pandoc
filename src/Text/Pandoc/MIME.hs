@@ -220,6 +220,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("jnlp","application/x-java-jnlp-file")
            ,("jpe","image/jpeg")
            ,("jpeg","image/jpeg")
+           ,("jfif","image/jpeg")
            ,("jpg","image/jpeg")
            ,("js","application/x-javascript")
            ,("kar","audio/midi")
