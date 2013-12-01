@@ -64,6 +64,7 @@ data WriterState =
                 , stInDefinition  :: Bool
                 , stTight         :: Bool
                 , stFirstPara     :: Bool
+                , stImageId       :: Int
                 }
 
 defaultWriterState :: WriterState
@@ -78,6 +79,7 @@ defaultWriterState =
                 , stInDefinition  = False
                 , stTight         = False
                 , stFirstPara     = False
+                , stImageId       = 1
                 }
 
 when :: Bool -> Doc -> Doc
@@ -380,7 +382,7 @@ inlineToOpenDocument o ils
                                 then return $ preformatted s
                                 else return empty
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
-    | Image _ (s,t) <- ils = return $ mkImg  s t
+    | Image _ (s,t) <- ils = mkImg  s t
     | Note        l <- ils = mkNote l
     | otherwise            = return empty
     where
@@ -389,7 +391,11 @@ inlineToOpenDocument o ils
                                            , ("xlink:href" , s       )
                                            , ("office:name", t       )
                                            ] . inSpanTags "Definition"
-      mkImg  s t   = inTags False "draw:frame" (attrsFromTitle t) $
+      mkImg  s t   = do
+               id' <- gets stImageId
+               modify (\st -> st{ stImageId = id' + 1 })
+               return $ inTags False "draw:frame"
+                        (("draw:name", "img" ++ show id'):attrsFromTitle t) $
                      selfClosingTag "draw:image" [ ("xlink:href"   , s       )
                                                  , ("xlink:type"   , "simple")
                                                  , ("xlink:show"   , "embed" )
