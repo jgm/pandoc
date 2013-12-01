@@ -401,15 +401,21 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let chapterEntries = zipWith chapToEntry [1..] chapters
 
   -- incredibly inefficient (TODO):
-  let containsMathML ent = "<math" `isInfixOf` (B8.unpack $ fromEntry ent)
+  let containsMathML ent = epub3 &&
+                           "<math" `isInfixOf` (B8.unpack $ fromEntry ent)
+  let containsSVG ent    = epub3 &&
+                           "<svg" `isInfixOf` (B8.unpack $ fromEntry ent)
+  let props ent = ["mathml" | containsMathML ent] ++ ["svg" | containsSVG ent]
 
   -- contents.opf
   let chapterNode ent = unode "item" !
                            ([("id", takeBaseName $ eRelativePath ent),
                              ("href", eRelativePath ent),
                              ("media-type", "application/xhtml+xml")]
-                            ++ [("properties","mathml") | epub3 &&
-                                   containsMathML ent]) $ ()
+                            ++ case props ent of
+                                    []   -> []
+                                    xs   -> [("properties", unwords xs)])
+                        $ ()
   let chapterRefNode ent = unode "itemref" !
                              [("idref", takeBaseName $ eRelativePath ent)] $ ()
   let pictureNode ent = unode "item" !
