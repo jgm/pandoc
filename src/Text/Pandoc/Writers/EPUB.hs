@@ -38,7 +38,7 @@ import Text.Printf (printf)
 import System.FilePath ( (</>), takeBaseName, takeExtension, takeFileName )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
-import Text.Pandoc.UTF8 ( fromStringLazy, toString )
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Codec.Archive.Zip
 import Control.Applicative ((<$>))
@@ -89,7 +89,12 @@ data EPUBMetadata = EPUBMetadata{
   , epubCoverage           :: Maybe String
   , epubRights             :: Maybe String
   , epubCoverImage         :: Maybe String
+  , epubStylesheet         :: Maybe Stylesheet
   } deriving Show
+
+data Stylesheet = StylesheetPath FilePath
+                | StylesheetContents String
+                deriving Show
 
 data Creator = Creator{
     creatorText            :: String
@@ -262,6 +267,7 @@ metadataFromMeta opts meta = EPUBMetadata{
     , epubCoverage           = coverage
     , epubRights             = rights
     , epubCoverImage         = coverImage
+    , epubStylesheet         = stylesheet
     }
   where identifiers = getIdentifier meta
         titles = getTitle meta
@@ -282,6 +288,10 @@ metadataFromMeta opts meta = EPUBMetadata{
         rights = metaValueToString <$> lookupMeta "rights" meta
         coverImage = lookup "epub-cover-image" (writerVariables opts) `mplus`
              (metaValueToString <$> lookupMeta "cover-image" meta)
+        stylesheet = (StylesheetContents <$>
+                       lookup "epub-stylesheet" (writerVariables opts)) `mplus`
+                     ((StylesheetPath . metaValueToString) <$>
+                       lookupMeta "stylesheet" meta)
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: WriterOptions  -- ^ Writer options
@@ -437,7 +447,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                   (x:_) -> identifierText x  -- use first identifier as UUID
                   []    -> error "epubIdentifier is null"  -- shouldn't happen
   currentTime <- getCurrentTime
-  let contentsData = fromStringLazy $ ppTopElement $
+  let contentsData = UTF8.fromStringLazy $ ppTopElement $
         unode "package" ! [("version", case version of
                                              EPUB2 -> "2.0"
                                              EPUB3 -> "3.0")
@@ -525,7 +535,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                   [ unode "navLabel" $ unode "text" (plainify $ docTitle meta)
                   , unode "content" ! [("src","title_page.xhtml")] $ () ]
 
-  let tocData = fromStringLazy $ ppTopElement $
+  let tocData = UTF8.fromStringLazy $ ppTopElement $
         unode "ncx" ! [("version","2005-1")
                        ,("xmlns","http://www.daisy.org/z3986/2005/ncx/")] $
           [ unode "head" $
@@ -557,7 +567,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                                  (_:_) -> [unode "ol" ! [("class","toc")] $ subs]
 
   let navtag = if epub3 then "nav" else "div"
-  let navData = fromStringLazy $ ppTopElement $
+  let navData = UTF8.fromStringLazy $ ppTopElement $
         unode "html" ! [("xmlns","http://www.w3.org/1999/xhtml")
                        ,("xmlns:epub","http://www.idpf.org/2007/ops")] $
           [ unode "head" $
@@ -571,10 +581,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let navEntry = mkEntry "nav.xhtml" navData
 
   -- mimetype
-  let mimetypeEntry = mkEntry "mimetype" $ fromStringLazy "application/epub+zip"
+  let mimetypeEntry = mkEntry "mimetype" $ UTF8.fromStringLazy "application/epub+zip"
 
   -- container.xml
-  let containerData = fromStringLazy $ ppTopElement $
+  let containerData = UTF8.fromStringLazy $ ppTopElement $
        unode "container" ! [("version","1.0")
               ,("xmlns","urn:oasis:names:tc:opendocument:xmlns:container")] $
          unode "rootfiles" $
@@ -583,18 +593,19 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let containerEntry = mkEntry "META-INF/container.xml" containerData
 
   -- com.apple.ibooks.display-options.xml
-  let apple = fromStringLazy $ ppTopElement $
+  let apple = UTF8.fromStringLazy $ ppTopElement $
         unode "display_options" $
           unode "platform" ! [("name","*")] $
             unode "option" ! [("name","specified-fonts")] $ "true"
   let appleEntry = mkEntry "META-INF/com.apple.ibooks.display-options.xml" apple
 
   -- stylesheet
-  stylesheet <- case writerEpubStylesheet opts of
-                   Just s  -> return s
-                   Nothing -> toString `fmap`
+  stylesheet <- case epubStylesheet metadata of
+                   Just (StylesheetPath fp)    -> UTF8.readFile fp
+                   Just (StylesheetContents s) -> return s
+                   Nothing -> UTF8.toString `fmap`
                               readDataFile (writerUserDataDir opts) "epub.css"
-  let stylesheetEntry = mkEntry "stylesheet.css" $ fromStringLazy stylesheet
+  let stylesheetEntry = mkEntry "stylesheet.css" $ UTF8.fromStringLazy stylesheet
 
   -- construct archive
   let archive = foldr addEntryToArchive emptyArchive
