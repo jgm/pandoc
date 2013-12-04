@@ -108,7 +108,7 @@ to PDF:
 Production of a PDF requires that a LaTeX engine be installed (see
 `--latex-engine`, below), and assumes that the following LaTeX packages are
 available: `amssymb`, `amsmath`, `ifxetex`, `ifluatex`, `listings` (if the
-`--listings` option is used), `fancyvrb`, `longtable`, `url`,
+`--listings` option is used), `fancyvrb`, `longtable`, `booktabs`, `url`,
 `graphicx`, `hyperref`, `ulem`, `babel` (if the `lang` variable is set),
 `fontspec` (if `xelatex` or `lualatex` is used as the LaTeX engine), `xltxtra`
 and `xunicode` (if `xelatex` is used).

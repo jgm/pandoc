@@ -453,12 +453,12 @@ blockToLaTeX (Header level (id',classes,_) lst) =
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- if all null heads
                 then return empty
-                else ($$ "\\hline\\noalign{\\medskip}") `fmap`
+                else ($$ "\\midrule\\endhead") `fmap`
                       (tableRowToLaTeX True aligns widths) heads
   captionText <- inlineListToLaTeX caption
   let capt = if isEmpty captionText
                 then empty
-                else text "\\noalign{\\medskip}"
+                else text "\\addlinespace"
                      $$ text "\\caption" <> braces captionText
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concat $ map toColDescriptor aligns
@@ -466,10 +466,10 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   return $ "\\begin{longtable}[c]" <>
               braces ("@{}" <> colDescriptors <> "@{}")
               -- the @{} removes extra space at beginning and end
-         $$ "\\hline\\noalign{\\medskip}"
+         $$ "\\toprule\\addlinespace"
          $$ headers
          $$ vcat rows'
-         $$ "\\hline"
+         $$ "\\bottomrule"
          $$ capt
          $$ "\\end{longtable}"
 
@@ -506,7 +506,7 @@ tableRowToLaTeX header aligns widths cols = do
                                     (w * scaleFactor))) <>
                      (halign a <> cr <> c <> cr) <> "\\end{minipage}"
   let cells = zipWith3 toCell widths aligns renderedCells
-  return $ hsep (intersperse "&" cells) $$ "\\\\\\noalign{\\medskip}"
+  return $ hsep (intersperse "&" cells) $$ "\\\\\\addlinespace"
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
