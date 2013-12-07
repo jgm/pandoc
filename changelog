@@ -40,6 +40,8 @@ pandoc (1.12.2)
       if the spine has `linear="no"`.  Apparently this is best practice
       for other converters as well:
       <http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.6>.
+    + Allow `stylesheet` in metadata.  The value is a path to the stylesheet.
+    + Allow partial dates:  `YYYY`, `YYYY-MM`.
 
   * Markdown writer:  Fix rendering of tight sublists (#1050).
     Previously a spurious blank line was included after a tight sublist.
@@ -87,6 +89,7 @@ pandoc (1.12.2)
       This fix puts braces around a term that contains an internal
       link, to avoid problems with square brackets.
     + Properly escape pdftitle, pdfauthor (#1059).
+    + Use booktabs package for tables (thanks to Jose Luis Duran).
 
   * Updated beamer template.  Now references should work properly
     (in a slide) when `--biblatex` or `--natbib` is used.
@@ -107,31 +110,40 @@ pandoc (1.12.2)
     + Use pandoc `Div` and `Span` for raw `<div>`, `<span>` when
       `--parse-raw`.
     + Recognize `svg` tags as block level content (thanks to MinRK).
+    + Parse LaTeX math if appropriate options are set.
 
   * Markdown reader:
 
     + Yaml block must start immediately after `---`.  If there's a blank
       line after `---`, we interpreted it as a horizontal rule.
     + Correctly handle empty bullet list items.
+    + Stop parsing "list lines" when we hit a block tag.
+      This fixes exponential slowdown in certain input, e.g.
+      a series of lists followed by `</div>`.
 
   * Slides:  Preserve `<div class="references">` in references slide.
 
-  * `Text.Pandoc.Writer.Shared`: fixed bug in `tagWithAttrs`.
-    A space was omitted before key-value attributes, leading
-    to invalid HTML.
+  * `Text.Pandoc.Writer.Shared`:
+  
+    + Fixed bug in `tagWithAttrs`.  A space was omitted before key-value
+      attributes, leading to invalid HTML.
+    + `normalizeDate`: Allow dates with year only (thanks to Shaun Attfield).
+    + Fixed bug in `openURL` with `data:` URIs.  Previously the base-64
+      encoded bytestring was returned.  We now decode it so it's a proper
+      image!
 
   * DocBook reader:  Handle numerical attributes starting with decimal.
     Also use `safeRead` instead of `read`.
 
-  * `Text.Pandoc.Parsing`:  Generalized type of `registerHeader`,
-    using new type classes `HasReadeOptions`, `HasIdentifierList`,
-    `HasHeaderMap`.  These allow certain common functions to be reused
-    even in parsers that use custom state (instead of `ParserState`),
-    such as the MediaWiki reader.
+  * `Text.Pandoc.Parsing`:
 
-  * `Text.Pandoc.Shared`: Fixed bug in `openURL` with `data:` URIs.
-    Previously the base-64 encoded bytestring was returned.
-    We now decode it so it's a proper image!
+    + Generalized type of `registerHeader`, using new type classes
+      `HasReadeOptions`, `HasIdentifierList`, `HasHeaderMap`.
+      These allow certain common functions to be reused
+      even in parsers that use custom state (instead of `ParserState`),
+      such as the MediaWiki reader.
+    + Moved inlineMath, displayMath from Markdown reader to Parsing.
+      Generalize their types and export them from Parsing.  (API change.)
 
   * `Text.Pandoc.Readers.TexMath`: Export `readTeXMath'`, which attends
     to display/inline.  Deprecate `readTeXMath`, and use `readTeXMath'`
@@ -151,10 +163,14 @@ pandoc (1.12.2)
     over the values using `$for(foo)$`.  This has the result that you can
     override earlier settings using `-V` by putting new values later on the
     command line, which is useful for many purposes.
+    
+  * `Text.Pandoc`:  Don't default to `pandocExtensions` for all writers.
 
   * Allow "epub2" as synonym for "epub", "html4" for "html".
 
   * Don't look for slidy files in data files with `--self-contained`.
+
+  * Allow `https:` command line arguments to be downloaded.
 
   * Fixed `make_osx_package.sh` so data files embedded in `pandoc-citeproc`.
 
@@ -3700,7 +3716,7 @@ pandoc (1.5.1.1)
 
   [ John MacFarlane ]
 
- * Fixed uniqueIdent in Shared so that header identifiers work as
+  * Fixed uniqueIdent in Shared so that header identifiers work as
    advertized in the README and are are valid XHTML names.
 
 pandoc (1.5.1)
