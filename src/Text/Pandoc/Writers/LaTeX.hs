@@ -534,6 +534,7 @@ sectionHeader :: Bool    -- True for unnumbered
 sectionHeader unnumbered ref level lst = do
   txt <- inlineListToLaTeX lst
   let noNote (Note _) = Str ""
+      noNote LineBreak = Str " "
       noNote x        = x
   let lstNoNotes = walk noNote lst
   txtNoNotes <- inlineListToLaTeX lstNoNotes
