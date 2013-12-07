@@ -467,7 +467,13 @@ pBlank = try $ do
 
 pTagContents :: Parser [Char] ParserState Inline
 pTagContents =
-  pStr <|> pSpace <|> smartPunctuation pTagContents <|> pSymbol <|> pBad
+      Math InlineMath  `fmap` mathInline
+  <|> Math DisplayMath `fmap` mathDisplay
+  <|> pStr
+  <|> pSpace
+  <|> smartPunctuation pTagContents
+  <|> pSymbol
+  <|> pBad
 
 pStr :: Parser [Char] ParserState Inline
 pStr = do
@@ -482,6 +488,7 @@ isSpecial '"' = True
 isSpecial '\'' = True
 isSpecial '.' = True
 isSpecial '-' = True
+isSpecial '$' = True
 isSpecial '\8216' = True
 isSpecial '\8217' = True
 isSpecial '\8220' = True

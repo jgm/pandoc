@@ -48,6 +48,8 @@ module Text.Pandoc.Parsing ( (>>~),
                              romanNumeral,
                              emailAddress,
                              uri,
+                             mathInline,
+                             mathDisplay,
                              withHorizDisplacement,
                              withRaw,
                              escaped,
@@ -454,6 +456,39 @@ uri = try $ do
   str' <- option str $ char '/' >> return (str ++ "/")
   let uri' = scheme ++ ":" ++ fromEntities str'
   return (uri', escapeURI uri')
+
+mathInlineWith :: String -> String -> Parser [Char] st String
+mathInlineWith op cl = try $ do
+  string op
+  notFollowedBy space
+  words' <- many1Till (count 1 (noneOf "\n\\")
+                   <|> (char '\\' >> anyChar >>= \c -> return ['\\',c])
+                   <|> count 1 newline <* notFollowedBy' blankline
+                       *> return " ")
+              (try $ string cl)
+  notFollowedBy digit  -- to prevent capture of $5
+  return $ concat words'
+
+mathDisplayWith :: String -> String -> Parser [Char] st String
+mathDisplayWith op cl = try $ do
+  string op
+  many1Till (noneOf "\n" <|> (newline >>~ notFollowedBy' blankline)) (try $ string cl)
+
+mathDisplay :: Parser [Char] ParserState String
+mathDisplay =
+      (guardEnabled Ext_tex_math_dollars >> mathDisplayWith "$$" "$$")
+  <|> (guardEnabled Ext_tex_math_single_backslash >>
+       mathDisplayWith "\\[" "\\]")
+  <|> (guardEnabled Ext_tex_math_double_backslash >>
+       mathDisplayWith "\\\\[" "\\\\]")
+
+mathInline :: Parser [Char] ParserState String
+mathInline =
+      (guardEnabled Ext_tex_math_dollars >> mathInlineWith "$" "$")
+  <|> (guardEnabled Ext_tex_math_single_backslash >>
+       mathInlineWith "\\(" "\\)")
+  <|> (guardEnabled Ext_tex_math_double_backslash >>
+       mathInlineWith "\\\\(" "\\\\)")
 
 -- | Applies a parser, returns tuple of its results and its horizontal
 -- displacement (the difference between the source column at the end
