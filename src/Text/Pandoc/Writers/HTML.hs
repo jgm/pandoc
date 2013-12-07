@@ -242,7 +242,9 @@ elementToListItem opts (Sec lev num (id',classes,_) headerText subsecs)
                    then (H.span ! A.class_ "toc-section-number"
                         $ toHtml $ showSecNum num') >> preEscapedString " "
                    else mempty
-  txt <- liftM (sectnum >>) $ inlineListToHtml opts headerText
+  let replaceLineBreak LineBreak = Str " "
+      replaceLineBreak x = x
+  txt <- liftM (sectnum >>) $ inlineListToHtml opts (map replaceLineBreak headerText)
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
   let subList = if null subHeads
                    then mempty
