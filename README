@@ -2565,6 +2565,20 @@ variants are supported:
 `markdown_strict` (Markdown.pl)
 :   `raw_html`
 
+Extensions with formats other than markdown
+-------------------------------------------
+
+Some of the extensions discussed above can be used with formats
+other than markdown:
+
+* `auto_identifiers` can be used with `latex`, `rst`, `mediawiki`,
+  and `textile` input (and is used by default).
+
+* `tex_math_dollars`, `tex_math_single_backslash`, and
+  `tex_math_double_backslash` can be used with `html` input.
+  (This is handy for reading web pages formatted using MathJax,
+  for example.)
+
 Producing slide shows with Pandoc
 =================================
 
