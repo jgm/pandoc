@@ -18,3 +18,5 @@ pandoc.cabal.orig
 /windows/*.msi
 /windows/*.wixpdb
 windows/*.wixobj
+*.sublime-project
+*.sublime-workspace
