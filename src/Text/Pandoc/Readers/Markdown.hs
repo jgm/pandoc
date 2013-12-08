@@ -733,9 +733,11 @@ listLine = try $ do
                      many (spaceChar)
                      listStart)
   notFollowedBy' $ htmlTag (~== TagClose "div")
-  chunks <- manyTill (liftM snd (htmlTag isCommentTag)
-             <|> many1 (satisfy (/='\n'))
-             <|> count 1 anyChar) newline
+  chunks <- manyTill
+              (  many1 (satisfy $ \c -> c /= '\n' && c /= '<')
+             <|> liftM snd (htmlTag isCommentTag)
+             <|> count 1 anyChar
+              ) newline
   return $ concat chunks
 
 -- parse raw text for one list item, excluding start marker and continuations
