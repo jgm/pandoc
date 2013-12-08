@@ -732,8 +732,9 @@ listLine = try $ do
   notFollowedBy' (do indentSpaces
                      many (spaceChar)
                      listStart)
-  chunks <- manyTill (liftM snd (htmlTag isCommentTag) <|> count 1 (satisfy (/='<'))
-                    <|> (notFollowedBy' (htmlTag isBlockTag) >> count 1 anyChar)) newline
+  notFollowedBy' $ htmlTag (~== TagClose "div")
+  chunks <- manyTill (liftM snd (htmlTag isCommentTag) <|> count 1 anyChar)
+               newline
   return $ concat chunks
 
 -- parse raw text for one list item, excluding start marker and continuations
@@ -760,7 +761,7 @@ listContinuationLine :: MarkdownParser String
 listContinuationLine = try $ do
   notFollowedBy blankline
   notFollowedBy' listStart
-  notFollowedBy' $ try $ skipMany spaceChar >> htmlTag (~== TagClose "div")
+  notFollowedBy' $ htmlTag (~== TagClose "div")
   optional indentSpaces
   result <- anyLine
   return $ result ++ "\n"
