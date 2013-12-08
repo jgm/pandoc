@@ -1,3 +1,8 @@
+pandoc (1.12.2.1)
+
+  * Markdown reader:  Fixed regression in list parser, involving
+    continuation lines containing raw HTML (or even verbatim raw HTML).
+
 pandoc (1.12.2)
 
   * Metadata may now be included in YAML blocks in a markdown document.
