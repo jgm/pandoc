@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 DIST=`pwd`/osx_package
 SANDBOX=`pwd`/.cabal-sandbox
@@ -12,6 +12,9 @@ ME=jgm
 CODESIGNID="Developer ID Application: John Macfarlane"
 PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
 EXES="pandoc pandoc-citeproc biblio2yaml"
+
+read -s -p "sudo password: " PASSWORD
+echo $PASSWORD | sudo -S echo "Password valid, continuing."
 
 echo Removing old files...
 rm -rf $DIST
@@ -50,6 +53,8 @@ codesign --force --sign "$CODESIGNID" $DEST/bin/pandoc
 spctl --assess --type execute $DEST/bin/pandoc
 
 echo Creating OSX package...
+# remove old package first
+echo $PASSWORD | sudo -S rm -rf $BASE.pkg $BASE.dmg
 
 sudo $PACKAGEMAKER \
     --root $ROOT \
@@ -67,11 +72,13 @@ sudo codesign --force --sign "$CODESIGNID" $BASE.pkg
 # make sure it's valid...
 spctl --assess --type install $BASE.pkg
 
-echo Creating disk image...
+echo Creating zip...
+zip -9 -r $BASE.pkg.zip $BASE.pkg
 
-sudo hdiutil create "$BASE.dmg" \
-    -format UDZO -ov \
-    -volname "pandoc $VERSION" \
-    -srcfolder $BASE.pkg
-sudo hdiutil internet-enable "$BASE.dmg"
+# echo Creating disk image...
+# sudo hdiutil create "$BASE.dmg" \
+#     -format UDZO -ov \
+#     -volname "pandoc $VERSION" \
+#     -srcfolder $BASE.pkg
+# sudo hdiutil internet-enable "$BASE.dmg"
 
