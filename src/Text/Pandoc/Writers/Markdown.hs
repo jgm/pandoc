@@ -381,13 +381,11 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str)
     isEnabled Ext_literate_haskell opts =
   return $ prefixed "> " (text str) <> blankline
 blockToMarkdown opts (CodeBlock attribs str) = return $
-  case attribs of
-     x | x /= nullAttr && isEnabled Ext_fenced_code_blocks opts ->
-          tildes <> " " <> attrs <> cr <> text str <>
-           cr <> tildes <> blankline
-     (_,(cls:_),_) | isEnabled Ext_backtick_code_blocks opts ->
-          backticks <> " " <> text cls <> cr <> text str <>
-           cr <> backticks <> blankline
+  case attribs == nullAttr of
+     False | isEnabled Ext_backtick_code_blocks opts ->
+          backticks <> attrs <> cr <> text str <> cr <> backticks <> blankline
+           | isEnabled Ext_fenced_code_blocks opts ->
+          tildes <> attrs <> cr <> text str <> cr <> tildes <> blankline
      _ -> nest (writerTabStop opts) (text str) <> blankline
    where tildes    = text $ case [ln | ln <- lines str, all (=='~') ln] of
                                [] -> "~~~~"
@@ -396,8 +394,10 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
                                             | otherwise -> replicate (n+1) '~'
          backticks = text "```"
          attrs  = if isEnabled Ext_fenced_code_attributes opts
-                     then nowrap $ attrsToMarkdown attribs
-                     else empty
+                     then nowrap $ " " <> attrsToMarkdown attribs
+                     else case attribs of
+                                (_,[cls],_) -> " " <> text cls
+                                _           -> empty
 blockToMarkdown opts (BlockQuote blocks) = do
   st <- get
   -- if we're writing literate haskell, put a space before the bird tracks
