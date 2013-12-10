@@ -121,6 +121,7 @@ import Data.ByteString.Lazy (toChunks)
 import Network.HTTP.Conduit (httpLbs, parseUrl, withManager,
                              responseBody, responseHeaders)
 import Network.HTTP.Types.Header ( hContentType)
+import Network (withSocketsDo)
 #else
 import Network.URI (parseURI)
 import Network.HTTP (findHeader, rspBody,
@@ -644,7 +645,7 @@ openURL u
         contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u
     in  return $ Right (decodeLenient contents, Just mime)
 #ifdef HTTP_CONDUIT
-  | otherwise = E.try $ do
+  | otherwise = withSocketsDo $ E.try $ do
      req <- parseUrl u
      resp <- withManager $ httpLbs req
      return (BS.concat $ toChunks $ responseBody resp,
