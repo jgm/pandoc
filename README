@@ -1843,11 +1843,9 @@ equivalent of the markdown in the `abstract` field:
     <p>This is the abstract.</p>
     <p>It consists of two paragraphs.</p>
 
-Note:  The example above will not work with the default templates.
-The `author` variable in the templates expects a simple list or string,
-and there is no `abstract` variable in most templates.  To use these,
-you would need to use a custom template with appropriate variables.
-For example:
+Note: The `author` variable in the default templates expects a simple list or
+string.  To use the structured authors in the example, you would need a
+custom template.  For example:
 
     $for(author)$
     $if(author.name)$
@@ -1857,9 +1855,6 @@ For example:
     $endif$
     $endfor$
 
-    $if(abstract)$
-    Abstract: $abstract$
-    $endif$
 
 Backslash escapes
 -----------------
