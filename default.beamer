@@ -70,7 +70,10 @@ $if(graphics)$
 }
 \makeatother
 \let\Oldincludegraphics\includegraphics
-\renewcommand{\includegraphics}[2][]{\Oldincludegraphics[width=\ScaleIfNeeded]{#2}}
+{%
+ \catcode`\@=11\relax%
+ \gdef\includegraphics{\@ifnextchar[{\Oldincludegraphics}{\Oldincludegraphics[width=\ScaleIfNeeded]}}%
+}%
 $endif$
 
 % Comment these out if you don't want a slide with just the
