@@ -181,6 +181,10 @@ function Span(s, attr)
   return "<span" .. attributes(attr) .. ">" .. s .. "</span>"
 end
 
+function Cite(s)
+  return "<span class=\"cite\">" .. s .. "</span>"
+end
+
 function Plain(s)
   return s
 end
