@@ -288,8 +288,7 @@ metadataFromMeta opts meta = EPUBMetadata{
         rights = metaValueToString <$> lookupMeta "rights" meta
         coverImage = lookup "epub-cover-image" (writerVariables opts) `mplus`
              (metaValueToString <$> lookupMeta "cover-image" meta)
-        stylesheet = (StylesheetContents <$>
-                       lookup "epub-stylesheet" (writerVariables opts)) `mplus`
+        stylesheet = (StylesheetContents <$> writerEpubStylesheet opts) `mplus`
                      ((StylesheetPath . metaValueToString) <$>
                        lookupMeta "stylesheet" meta)
 
