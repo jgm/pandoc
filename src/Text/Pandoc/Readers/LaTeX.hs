@@ -455,6 +455,7 @@ inlineCommands = M.fromList $
   , ("footnote", (note . mconcat) <$> (char '{' *> manyTill block (char '}')))
   , ("verb", doverb)
   , ("lstinline", doverb)
+  , ("Verb", doverb)
   , ("texttt", (code . stringify . toList) <$> tok)
   , ("url", (unescapeURL <$> braced) >>= \url ->
        pure (link url "" (str url)))
