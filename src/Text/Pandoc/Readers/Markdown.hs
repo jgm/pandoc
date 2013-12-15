@@ -902,7 +902,9 @@ plain = fmap B.plain . trimInlinesF . mconcat <$> many1 inline
 --
 
 htmlElement :: MarkdownParser String
-htmlElement = strictHtmlBlock <|> liftM snd (htmlTag isBlockTag)
+htmlElement = rawVerbatimBlock
+          <|> strictHtmlBlock
+          <|> liftM snd (htmlTag isBlockTag)
 
 htmlBlock :: MarkdownParser (F Blocks)
 htmlBlock = do
