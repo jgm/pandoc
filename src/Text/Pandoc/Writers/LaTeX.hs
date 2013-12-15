@@ -245,7 +245,7 @@ elementToLaTeX :: WriterOptions -> Element -> State WriterState Doc
 elementToLaTeX _ (Blk block) = blockToLaTeX block
 elementToLaTeX opts (Sec level _ (id',classes,_) title' elements) = do
   modify $ \s -> s{stInHeading = True}
-  header' <- sectionHeader ("unnumbered" `elem` classes) id' level title'
+  header' <- sectionHeader ("unnumbered" `elem` classes) ("linebreaks" `elem` classes) id' level title'
   modify $ \s -> s{stInHeading = False}
   innerContents <- mapM (elementToLaTeX opts) elements
   return $ vsep (header' : innerContents)
@@ -561,7 +561,7 @@ blockToLaTeX HorizontalRule = return $
   "\\begin{center}\\rule{0.5\\linewidth}{\\linethickness}\\end{center}"
 blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = True}
-  hdr <- sectionHeader ("unnumbered" `elem` classes) id' level lst
+  hdr <- sectionHeader ("unnumbered" `elem` classes) ("linebreaks" `elem` classes) id' level lst
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
@@ -704,15 +704,19 @@ defListItemToLaTeX (term, defs) = do
 
 -- | Craft the section header, inserting the secton reference, if supplied.
 sectionHeader :: Bool    -- True for unnumbered
+              -> Bool    -- True for linebreaks
               -> [Char]
               -> Int
               -> [Inline]
               -> State WriterState Doc
-sectionHeader unnumbered ref level lst = do
+sectionHeader unnumbered linebreaks ref level lst = do
   txt <- inlineListToLaTeX lst
   lab <- text `fmap` toLabel ref
   plain <- stringToLaTeX TextString $ foldl (++) "" $ map stringify lst
   let noNote (Note _) = Str ""
+      noNote LineBreak
+       | linebreaks = LineBreak
+       | otherwise = Str " "
       noNote x        = x
   let lstNoNotes = walk noNote lst
   txtNoNotes <- inlineListToLaTeX lstNoNotes
