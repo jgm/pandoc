@@ -806,7 +806,9 @@ parseBlock (Elem e) =
                                                      (x >= '0' && x <= '9')
                                                       || x == '.') w
                                                 Nothing -> 0 :: Double
-                      let numrows = maximum $ map length bodyrows
+                      let numrows = case bodyrows of
+                                         []   -> 0
+                                         xs   -> maximum $ map length xs
                       let aligns = case colspecs of
                                      []  -> replicate numrows AlignDefault
                                      cs  -> map toAlignment cs
