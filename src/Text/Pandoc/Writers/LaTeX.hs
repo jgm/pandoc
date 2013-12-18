@@ -50,6 +50,8 @@ import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
+              , stInMinipage    :: Bool          -- true if in minipage
+              , stNotes         :: [Doc]         -- notes in a minipage
               , stOLLevel       :: Int           -- level of ordered list nesting
               , stOptions       :: WriterOptions -- writer options, so they don't have to be parameter
               , stVerbInNote    :: Bool          -- true if document has verbatim text in note
@@ -70,7 +72,7 @@ data WriterState =
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document =
   evalState (pandocToLaTeX options document) $
-  WriterState { stInNote = False,
+  WriterState { stInNote = False, stInMinipage = False, stNotes = [],
                 stOLLevel = 1, stOptions = options,
                 stVerbInNote = False,
                 stTable = False, stStrikeout = False,
@@ -501,16 +503,31 @@ tableCellToLaTeX :: Bool -> (Double, Alignment, [Block])
                  -> State WriterState Doc
 tableCellToLaTeX _      (0,     _,     blocks) = blockListToLaTeX blocks
 tableCellToLaTeX header (width, align, blocks) = do
+  modify $ \st -> st{ stInMinipage = True, stNotes = [] }
   cellContents <- blockListToLaTeX blocks
+  notes <- gets stNotes
+  modify $ \st -> st{ stInMinipage = False, stNotes = [] }
   let valign = text $ if header then "[b]" else "[t]"
   let halign = case align of
                AlignLeft    -> "\\raggedright"
                AlignRight   -> "\\raggedleft"
                AlignCenter  -> "\\centering"
                AlignDefault -> "\\raggedright"
-  return $ "\\begin{minipage}" <> valign <>
-           braces (text (printf "%.2f\\columnwidth" width)) <>
-          (halign <> cr <> cellContents <> cr) <> "\\end{minipage}"
+  return $ ("\\begin{minipage}" <> valign <>
+            braces (text (printf "%.2f\\columnwidth" width)) <>
+            (halign <> cr <> cellContents <> cr) <> "\\end{minipage}")
+          $$ case notes of
+                  [] -> empty
+                  ns -> (case length ns of
+                              n | n > 1 -> "\\addtocounter" <>
+                                           braces "footnote" <>
+                                           braces (text $ show $ 1 - n)
+                                | otherwise -> empty)
+                        $$
+                        vcat (intersperse
+                          ("\\addtocounter" <> braces "footnote" <> braces "1")
+                          $ map (\x -> "\\footnotetext" <> braces x)
+                          $ reverse ns)
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
@@ -713,14 +730,20 @@ inlineToLaTeX (Image _ (source, _)) = do
   source'' <- stringToLaTeX URLString source'
   return $ "\\includegraphics" <> braces (text source'')
 inlineToLaTeX (Note contents) = do
+  inMinipage <- gets stInMinipage
   modify (\s -> s{stInNote = True})
   contents' <- blockListToLaTeX contents
   modify (\s -> s {stInNote = False})
   let optnl = case reverse contents of
                    (CodeBlock _ _ : _) -> cr
                    _                   -> empty
-  return $ "\\footnote" <> braces (nest 2 contents' <> optnl)
-     -- note: a \n before } needed when note ends with a Verbatim environment
+  let noteContents = nest 2 contents' <> optnl
+  modify $ \st -> st{ stNotes = noteContents : stNotes st }
+  return $
+    if inMinipage
+       then "\\footnotemark{}"
+       -- note: a \n before } needed when note ends with a Verbatim environment
+       else "\\footnote" <> braces noteContents
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
 citationsToNatbib (one:[])
