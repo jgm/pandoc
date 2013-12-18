@@ -173,6 +173,8 @@ double_quote :: LP Inlines
 double_quote =
   (   quoted' doubleQuoted (try $ string "``") (void $ try $ string "''")
   <|> quoted' doubleQuoted (string "“")        (void $ char '”')
+  -- the following is used by babel for localized quotes:
+  <|> quoted' doubleQuoted (try $ string "\"`") (void $ try $ string "\"'")
   <|> quoted' doubleQuoted (string "\"")       (void $ char '"')
   )
 
