@@ -490,23 +490,27 @@ tableRowToLaTeX :: Bool
                 -> [[Block]]
                 -> State WriterState Doc
 tableRowToLaTeX header aligns widths cols = do
-  renderedCells <- mapM blockListToLaTeX cols
-  let valign = text $ if header then "[b]" else "[t]"
-  let halign x = case x of
-                  AlignLeft    -> "\\raggedright"
-                  AlignRight   -> "\\raggedleft"
-                  AlignCenter  -> "\\centering"
-                  AlignDefault -> "\\raggedright"
   -- scale factor compensates for extra space between columns
   -- so the whole table isn't larger than columnwidth
   let scaleFactor = 0.97 ** fromIntegral (length aligns)
-  let toCell 0 _ c = c
-      toCell w a c = "\\begin{minipage}" <> valign <>
-                     braces (text (printf "%.2f\\columnwidth"
-                                    (w * scaleFactor))) <>
-                     (halign a <> cr <> c <> cr) <> "\\end{minipage}"
-  let cells = zipWith3 toCell widths aligns renderedCells
+  let widths' = map (scaleFactor *) widths
+  cells <- mapM (tableCellToLaTeX header) $ zip3 widths' aligns cols
   return $ hsep (intersperse "&" cells) $$ "\\\\\\addlinespace"
+
+tableCellToLaTeX :: Bool -> (Double, Alignment, [Block])
+                 -> State WriterState Doc
+tableCellToLaTeX _      (0,     _,     blocks) = blockListToLaTeX blocks
+tableCellToLaTeX header (width, align, blocks) = do
+  cellContents <- blockListToLaTeX blocks
+  let valign = text $ if header then "[b]" else "[t]"
+  let halign = case align of
+               AlignLeft    -> "\\raggedright"
+               AlignRight   -> "\\raggedleft"
+               AlignCenter  -> "\\centering"
+               AlignDefault -> "\\raggedright"
+  return $ "\\begin{minipage}" <> valign <>
+           braces (text (printf "%.2f\\columnwidth" width)) <>
+          (halign <> cr <> cellContents <> cr) <> "\\end{minipage}"
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
