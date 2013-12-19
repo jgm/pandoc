@@ -532,7 +532,7 @@ headerShift n = walk shift
 
 -- | Detect if a list is tight.
 isTightList :: [[Block]] -> Bool
-isTightList = and . map firstIsPlain
+isTightList = all firstIsPlain
   where firstIsPlain (Plain _ : _) = True
         firstIsPlain _             = False
 

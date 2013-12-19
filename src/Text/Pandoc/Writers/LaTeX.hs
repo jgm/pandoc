@@ -443,7 +443,7 @@ blockToLaTeX (DefinitionList lst) = do
   incremental <- gets stIncremental
   let inc = if incremental then "[<+->]" else ""
   items <- mapM defListItemToLaTeX lst
-  let spacing = if and $ map isTightList (map snd lst)
+  let spacing = if all isTightList (map snd lst)
                    then text "\\itemsep1pt\\parskip0pt\\parsep0pt"
                    else empty
   return $ text ("\\begin{description}" ++ inc) $$ spacing $$ vcat items $$
@@ -764,9 +764,9 @@ citationsToNatbib cits
   | noPrefix (tail cits) && noSuffix (init cits) && ismode NormalCitation cits
   = citeCommand "citep" p s ks
   where
-     noPrefix  = and . map (null . citationPrefix)
-     noSuffix  = and . map (null . citationSuffix)
-     ismode m  = and . map (((==) m)  . citationMode)
+     noPrefix  = all (null . citationPrefix)
+     noSuffix  = all (null . citationSuffix)
+     ismode m  = all (((==) m)  . citationMode)
      p         = citationPrefix  $ head $ cits
      s         = citationSuffix  $ last $ cits
      ks        = intercalate ", " $ map citationId cits
