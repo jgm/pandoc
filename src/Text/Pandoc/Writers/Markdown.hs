@@ -338,7 +338,7 @@ blockToMarkdown opts (RawBlock f str)
        else return $ if isEnabled Ext_markdown_attribute opts
                         then text (addMarkdownAttribute str) <> text "\n"
                         else text str <> text "\n"
-  | f == "latex" || f == "tex" || f == "markdown" = do
+  | f `elem` ["latex", "tex", "markdown"] = do
     st <- get
     if stPlain st
        then return empty
@@ -628,10 +628,11 @@ getReference label (src, tit) = do
     Nothing       -> do
       let label' = case find ((== label) . fst) (stRefs st) of
                       Just _ -> -- label is used; generate numerical label
-                                 case find (\n -> not (any (== [Str (show n)])
-                                           (map fst (stRefs st)))) [1..(10000 :: Integer)] of
-                                      Just x  -> [Str (show x)]
-                                      Nothing -> error "no unique label"
+                             case find (\n -> notElem [Str (show n)]
+                                                      (map fst (stRefs st)))
+                                       [1..(10000 :: Integer)] of
+                                  Just x  -> [Str (show x)]
+                                  Nothing -> error "no unique label"
                       Nothing -> label
       modify (\s -> s{ stRefs = (label', (src,tit)) : stRefs st })
       return label'

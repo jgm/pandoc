@@ -564,14 +564,10 @@ makeMeta title authors date =
 -- | Render HTML tags.
 renderTags' :: [Tag String] -> String
 renderTags' = renderTagsOptions
-               renderOptions{ optMinimize = \x ->
-                                    let y = map toLower x
-                                    in  y == "hr" || y == "br" ||
-                                        y == "img" || y == "meta" ||
-                                        y == "link"
-                            , optRawTag = \x ->
-                                    let y = map toLower x
-                                    in  y == "script" || y == "style" }
+               renderOptions{ optMinimize = matchTags ["hr", "br", "img",
+                                                       "meta", "link"]
+                            , optRawTag   = matchTags ["script", "style"] }
+              where matchTags = \tags -> flip elem tags . map toLower
 
 --
 -- File handling

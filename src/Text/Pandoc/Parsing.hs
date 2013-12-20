@@ -271,7 +271,7 @@ spaceChar = satisfy $ \c -> c == ' ' || c == '\t'
 
 -- | Parses a nonspace, nonnewline character.
 nonspaceChar :: Parser [Char] st Char
-nonspaceChar = satisfy $ \x -> x /= '\t' && x /= '\n' && x /= ' ' && x /= '\r'
+nonspaceChar = satisfy $ flip notElem ['\t', '\n', ' ', '\r']
 
 -- | Skips zero or more spaces or tabs.
 skipSpaces :: Parser [Char] st ()
@@ -1062,7 +1062,7 @@ doubleQuoteStart :: Parser [Char] ParserState ()
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
   try $ do charOrRef "\"\8220\147"
-           notFollowedBy (satisfy (\c -> c == ' ' || c == '\t' || c == '\n'))
+           notFollowedBy . satisfy $ flip elem [' ', '\t', '\n']
 
 doubleQuoteEnd :: Parser [Char] st ()
 doubleQuoteEnd = do

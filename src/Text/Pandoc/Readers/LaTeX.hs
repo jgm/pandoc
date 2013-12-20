@@ -874,9 +874,8 @@ verbatimEnv = do
   (_,r) <- withRaw $ do
              controlSeq "begin"
              name <- braced
-             guard $ name == "verbatim" || name == "Verbatim" ||
-                     name == "lstlisting" || name == "minted" ||
-                     name == "alltt"
+             guard $ name `elem` ["verbatim", "Verbatim", "lstlisting",
+                                  "minted", "alltt"]
              verbEnv name
   rest <- getInput
   return (r,rest)
