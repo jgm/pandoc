@@ -31,6 +31,7 @@ Conversion of 'Pandoc' documents to ODT.
 module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Data.IORef
 import Data.List ( isPrefixOf )
+import Data.Maybe ( fromMaybe )
 import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
@@ -127,7 +128,7 @@ transformPic opts entriesRef (Image lab (src,_)) = do
        return $ Emph lab
      Right (img, _) -> do
        let size = imageSize img
-       let (w,h) = maybe (0,0) id $ sizeInPoints `fmap` size
+       let (w,h) = fromMaybe (0,0) $ sizeInPoints `fmap` size
        let tit' = show w ++ "x" ++ show h
        entries <- readIORef entriesRef
        let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src

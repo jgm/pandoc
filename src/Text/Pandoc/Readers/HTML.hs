@@ -207,7 +207,7 @@ pHeader = try $ do
   let bodyTitle = TagOpen tagtype attr ~== TagOpen "h1" [("class","title")]
   let level = read (drop 1 tagtype)
   contents <- liftM concat $ manyTill inline (pCloses tagtype <|> eof)
-  let ident = maybe "" id $ lookup "id" attr
+  let ident = fromMaybe "" $ lookup "id" attr
   let classes = maybe [] words $ lookup "class" attr
   let keyvals = [(k,v) | (k,v) <- attr, k /= "class", k /= "id"]
   return $ if bodyTitle
@@ -257,7 +257,7 @@ pCol = try $ do
   skipMany pBlank
   return $ case lookup "width" attribs of
            Just x | not (null x) && last x == '%' ->
-             maybe 0.0 id $ safeRead ('0':'.':init x)
+             fromMaybe 0.0 $ safeRead ('0':'.':init x)
            _ -> 0.0
 
 pColgroup :: TagParser [Double]

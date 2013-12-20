@@ -1722,7 +1722,7 @@ spanHtml = try $ do
   guardEnabled Ext_markdown_in_html_blocks
   (TagOpen _ attrs, _) <- htmlTag (~== TagOpen "span" [])
   contents <- mconcat <$> manyTill inline (htmlTag (~== TagClose "span"))
-  let ident = maybe "" id $ lookup "id" attrs
+  let ident = fromMaybe "" $ lookup "id" attrs
   let classes = maybe [] words $ lookup "class" attrs
   let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
   return $ B.spanWith (ident, classes, keyvals) <$> contents
@@ -1732,7 +1732,7 @@ divHtml = try $ do
   guardEnabled Ext_markdown_in_html_blocks
   (TagOpen _ attrs, _) <- htmlTag (~== TagOpen "div" [])
   contents <- mconcat <$> manyTill block (htmlTag (~== TagClose "div"))
-  let ident = maybe "" id $ lookup "id" attrs
+  let ident = fromMaybe "" $ lookup "id" attrs
   let classes = maybe [] words $ lookup "class" attrs
   let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
   return $ B.divWith (ident, classes, keyvals) <$> contents
