@@ -54,6 +54,7 @@ import Data.Sequence (viewl, ViewL(..), (<|))
 import qualified Data.Foldable as F
 import qualified Data.Map as M
 import Data.Char (isDigit, isSpace)
+import Data.Maybe (fromMaybe)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: ReaderOptions -- ^ Reader options
@@ -204,7 +205,7 @@ table = do
   tableStart
   styles <- option [] parseAttrs <* blankline
   let tableWidth = case lookup "width" styles of
-                         Just w  -> maybe 1.0 id $ parseWidth w
+                         Just w  -> fromMaybe 1.0 $ parseWidth w
                          Nothing -> 1.0
   caption <- option mempty tableCaption
   optional rowsep
@@ -285,7 +286,7 @@ tableCell = try $ do
                     Just "center" -> AlignCenter
                     _             -> AlignDefault
   let width = case lookup "width" attrs of
-                    Just xs -> maybe 0.0 id $ parseWidth xs
+                    Just xs -> fromMaybe 0.0 $ parseWidth xs
                     Nothing -> 0.0
   return ((align, width), bs)
 
@@ -387,7 +388,7 @@ orderedList =
           spaces
           items <- many (listItem '#' <|> li)
           optional (htmlTag (~== TagClose "ol"))
-          let start = maybe 1 id $ safeRead $ fromAttrib "start" tag
+          let start = fromMaybe 1 $ safeRead $ fromAttrib "start" tag
           return $ B.orderedListWith (start, DefaultStyle, DefaultDelim) items
 
 definitionList :: MWParser Blocks

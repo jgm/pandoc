@@ -21,7 +21,7 @@ tests = [ testGroup "basic"
           [ "simple" =:
             "word" =?> para "word"
           , "space" =:
-            "some text" =?> para ("some text")
+            "some text" =?> para "some text"
           , "emphasized" =:
             "\\emph{emphasized}" =?> para (emph "emphasized")
           ]

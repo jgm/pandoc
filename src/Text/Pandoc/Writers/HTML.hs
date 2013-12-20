@@ -45,7 +45,7 @@ import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, intersperse )
 import Data.String ( fromString )
-import Data.Maybe ( catMaybes )
+import Data.Maybe ( catMaybes, fromMaybe )
 import Control.Monad.State
 import Text.Blaze.Html hiding(contents)
 import Text.Blaze.Internal(preEscapedString)
@@ -118,7 +118,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
   let stringifyHTML = escapeStringForXML . stringify
   let authsMeta = map stringifyHTML $ docAuthors meta
   let dateMeta  = stringifyHTML $ docDate meta
-  let slideLevel = maybe (getSlideLevel blocks) id $ writerSlideLevel opts
+  let slideLevel = fromMaybe (getSlideLevel blocks) $ writerSlideLevel opts
   let sects = hierarchicalize $
               if writerSlideVariant opts == NoSlides
                  then blocks
@@ -524,7 +524,7 @@ blockToHtml opts (DefinitionList lst) = do
   contents <- mapM (\(term, defs) ->
                   do term' <- if null term
                                  then return mempty
-                                 else liftM (H.dt) $ inlineListToHtml opts term
+                                 else liftM H.dt $ inlineListToHtml opts term
                      defs' <- mapM ((liftM (\x -> H.dd $ (x >> nl opts))) .
                                     blockListToHtml opts) defs
                      return $ mconcat $ nl opts : term' : nl opts :

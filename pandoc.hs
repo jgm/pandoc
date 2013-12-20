@@ -656,7 +656,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      let b = takeBaseName arg
-                     if (b == "pdflatex" || b == "lualatex" || b == "xelatex")
+                     if b `elem` ["pdflatex", "lualatex", "xelatex"]
                         then return opt { optLaTeXEngine = arg }
                         else err 45 "latex-engine must be pdflatex, lualatex, or xelatex.")
                   "PROGRAM")
@@ -1034,12 +1034,10 @@ main = do
 
   variables' <- case mathMethod of
                       LaTeXMathML Nothing -> do
-                         s <- readDataFileUTF8 datadir
-                                 ("LaTeXMathML.js")
+                         s <- readDataFileUTF8 datadir "LaTeXMathML.js"
                          return $ ("mathml-script", s) : variables
                       MathML Nothing -> do
-                         s <- readDataFileUTF8 datadir
-                                 ("MathMLinHTML.js")
+                         s <- readDataFileUTF8 datadir "MathMLinHTML.js"
                          return $ ("mathml-script", s) : variables
                       _ -> return variables
 

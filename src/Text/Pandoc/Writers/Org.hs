@@ -129,7 +129,7 @@ blockToOrg (Para inlines) = do
 blockToOrg (RawBlock "html" str) =
   return $ blankline $$ "#+BEGIN_HTML" $$
            nest 2 (text str) $$ "#+END_HTML" $$ blankline
-blockToOrg (RawBlock f str) | f == "org" || f == "latex" || f == "tex" =
+blockToOrg (RawBlock f str) | f `elem` ["org", "latex", "tex"] =
   return $ text str
 blockToOrg (RawBlock _ _) = return empty
 blockToOrg HorizontalRule = return $ blankline $$ "--------------" $$ blankline

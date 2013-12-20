@@ -65,8 +65,7 @@ metaToJSON opts blockWriter inlineWriter (Meta metamap)
     renderedMap <- Traversable.mapM
                    (metaValueToJSON blockWriter inlineWriter)
                    metamap
-    return $ M.foldWithKey (\key val obj -> defField key val obj)
-                   baseContext renderedMap
+    return $ M.foldWithKey defField baseContext renderedMap
   | otherwise = return (Object H.empty)
 
 metaValueToJSON :: Monad m

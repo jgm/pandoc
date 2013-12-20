@@ -40,6 +40,7 @@ import Network.URI ( isURI, unEscapeString )
 import Data.List ( (\\), isSuffixOf, isInfixOf,
                    isPrefixOf, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
+import Data.Maybe ( fromMaybe )
 import Control.Applicative ((<|>))
 import Control.Monad.State
 import Text.Pandoc.Pretty
@@ -190,7 +191,7 @@ stringToLaTeX  _     []     = return ""
 stringToLaTeX  ctx (x:xs) = do
   opts <- gets stOptions
   rest <- stringToLaTeX ctx xs
-  let ligatures = writerTeXLigatures opts && not (ctx == CodeString)
+  let ligatures = writerTeXLigatures opts && (ctx /= CodeString)
   let isUrl = ctx == URLString
   when (x == '€') $
      modify $ \st -> st{ stUsesEuro = True }
@@ -240,7 +241,7 @@ inCmd cmd contents = char '\\' <> text cmd <> braces contents
 toSlides :: [Block] -> State WriterState [Block]
 toSlides bs = do
   opts <- gets stOptions
-  let slideLevel = maybe (getSlideLevel bs) id $ writerSlideLevel opts
+  let slideLevel = fromMaybe (getSlideLevel bs) $ writerSlideLevel opts
   let bs' = prepSlides slideLevel bs
   concat `fmap` (mapM (elementToBeamer slideLevel) $ hierarchicalize bs')
 
@@ -443,7 +444,7 @@ blockToLaTeX (DefinitionList lst) = do
   incremental <- gets stIncremental
   let inc = if incremental then "[<+->]" else ""
   items <- mapM defListItemToLaTeX lst
-  let spacing = if and $ map isTightList (map snd lst)
+  let spacing = if all isTightList (map snd lst)
                    then text "\\itemsep1pt\\parskip0pt\\parsep0pt"
                    else empty
   return $ text ("\\begin{description}" ++ inc) $$ spacing $$ vcat items $$
@@ -764,9 +765,9 @@ citationsToNatbib cits
   | noPrefix (tail cits) && noSuffix (init cits) && ismode NormalCitation cits
   = citeCommand "citep" p s ks
   where
-     noPrefix  = and . map (null . citationPrefix)
-     noSuffix  = and . map (null . citationSuffix)
-     ismode m  = and . map (((==) m)  . citationMode)
+     noPrefix  = all (null . citationPrefix)
+     noSuffix  = all (null . citationSuffix)
+     ismode m  = all (((==) m)  . citationMode)
      p         = citationPrefix  $ head $ cits
      s         = citationSuffix  $ last $ cits
      ks        = intercalate ", " $ map citationId cits

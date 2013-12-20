@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
+import Data.Maybe (fromMaybe)
 import Data.List ( intercalate, groupBy )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
@@ -130,7 +131,8 @@ writeDocx opts doc@(Pandoc meta _) = do
   let mkOverrideNode (part', contentType') = mknode "Override"
                [("PartName",part'),("ContentType",contentType')] ()
   let mkImageOverride (_, imgpath, mbMimeType, _, _) =
-             mkOverrideNode ("/word/" ++ imgpath, maybe "application/octet-stream" id mbMimeType)
+             mkOverrideNode ("/word/" ++ imgpath,
+                             fromMaybe "application/octet-stream" mbMimeType)
   let overrides = map mkOverrideNode
                   [("/word/webSettings.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml")
@@ -322,7 +324,7 @@ mkNum markers marker numid =
        NumberMarker _ _ start ->
           map (\lvl -> mknode "w:lvlOverride" [("w:ilvl",show (lvl :: Int))]
               $ mknode "w:startOverride" [("w:val",show start)] ()) [0..6]
-   where absnumid = maybe 0 id $ M.lookup marker markers
+   where absnumid = fromMaybe 0 $ M.lookup marker markers
 
 mkAbstractNum :: (ListMarker,Int) -> IO Element
 mkAbstractNum (marker,numid) = do

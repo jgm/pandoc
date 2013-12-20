@@ -176,8 +176,8 @@ addMetadataFromXML e@(Element (QName name _ (Just "dc")) attrs _ _) md
                  , titleFileAs = getAttr "file-as"
                  , titleType = getAttr "type"
                  } : epubTitle md }
-  | name == "date" = md{ epubDate = maybe "" id $ normalizeDate'
-                                                $ strContent e }
+  | name == "date" = md{ epubDate = fromMaybe "" $ normalizeDate'
+                                                 $ strContent e }
   | name == "language" = md{ epubLanguage = strContent e }
   | name == "creator" = md{ epubCreator =
               Creator{ creatorText = strContent e
@@ -271,7 +271,7 @@ metadataFromMeta opts meta = EPUBMetadata{
     }
   where identifiers = getIdentifier meta
         titles = getTitle meta
-        date = maybe "" id $
+        date = fromMaybe "" $
               (metaValueToString <$> lookupMeta "date" meta) >>= normalizeDate'
         language = maybe "" metaValueToString $
            lookupMeta "language" meta `mplus` lookupMeta "lang" meta
@@ -297,7 +297,7 @@ writeEPUB :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
 writeEPUB opts doc@(Pandoc meta _) = do
-  let version = maybe EPUB2 id (writerEpubVersion opts)
+  let version = fromMaybe EPUB2 (writerEpubVersion opts)
   let epub3 = version == EPUB3
   epochtime <- floor `fmap` getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
@@ -401,7 +401,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
       chapToEntry num (Chapter mbnum bs) = mkEntry (showChapter num)
         $ renderHtml
         $ writeHtml opts'{ writerNumberOffset =
-            maybe [] id mbnum }
+            fromMaybe [] mbnum }
         $ case bs of
               (Header _ _ xs : _) ->
                  Pandoc (setMeta "title" (fromList xs) nullMeta) bs
@@ -436,7 +436,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let fontNode ent = unode "item" !
                            [("id", takeBaseName $ eRelativePath ent),
                             ("href", eRelativePath ent),
-                            ("media-type", maybe "" id $ getMimeType $ eRelativePath ent)] $ ()
+                            ("media-type", fromMaybe "" $ getMimeType $ eRelativePath ent)] $ ()
   let plainTitle = case docTitle meta of
                         [] -> case epubTitle metadata of
                                    []   -> "UNTITLED"
