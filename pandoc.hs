@@ -1034,12 +1034,10 @@ main = do
 
   variables' <- case mathMethod of
                       LaTeXMathML Nothing -> do
-                         s <- readDataFileUTF8 datadir
-                                 ("LaTeXMathML.js")
+                         s <- readDataFileUTF8 datadir "LaTeXMathML.js"
                          return $ ("mathml-script", s) : variables
                       MathML Nothing -> do
-                         s <- readDataFileUTF8 datadir
-                                 ("MathMLinHTML.js")
+                         s <- readDataFileUTF8 datadir "MathMLinHTML.js"
                          return $ ("mathml-script", s) : variables
                       _ -> return variables
 

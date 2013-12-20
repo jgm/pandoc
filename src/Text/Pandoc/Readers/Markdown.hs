@@ -730,7 +730,7 @@ listStart = bulletListStart <|> (anyOrderedListStart >> return ())
 listLine :: MarkdownParser String
 listLine = try $ do
   notFollowedBy' (do indentSpaces
-                     many (spaceChar)
+                     many spaceChar
                      listStart)
   notFollowedBy' $ htmlTag (~== TagClose "div")
   chunks <- manyTill
