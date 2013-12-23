@@ -1277,7 +1277,7 @@ one tab:
         + pears
         + peaches
     * vegetables
-        + brocolli
+        + broccoli
         + chard
 
 As noted above, markdown allows you to write list items "lazily," instead of
@@ -2103,7 +2103,7 @@ Raw HTML
 
 Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
-literally).  (Techncially this is not an extension, since standard
+literally).  (Technically this is not an extension, since standard
 markdown allows it, but it has been made an extension so that it can
 be disabled if desired.)
 
@@ -2855,7 +2855,7 @@ Literate Haskell support
 ========================
 
 If you append `+lhs` (or `+literate_haskell`) to an appropriate input or output
-format (`markdown`, `mardkown_strict`, `rst`, or `latex` for input or output;
+format (`markdown`, `markdown_strict`, `rst`, or `latex` for input or output;
 `beamer`, `html` or `html5` for output only), pandoc will treat the document as
 literate Haskell source. This means that
 
