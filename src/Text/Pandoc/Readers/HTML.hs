@@ -76,9 +76,18 @@ pBody :: TagParser [Block]
 pBody = pInTags "body" block
 
 pHead :: TagParser [Block]
-pHead = pInTags "head" $ pTitle <|> ([] <$ pAnyTag)
+pHead = pInTags "head" $ pTitle <|> pMetaTag <|> ([] <$ pAnyTag)
   where pTitle = pInTags "title" inline >>= setTitle . normalizeSpaces
         setTitle t = [] <$ (updateState $ B.setMeta "title" (B.fromList t))
+        pMetaTag = do
+          mt <- pSatisfy (~== TagOpen "meta" [])
+          let name = fromAttrib "name" mt
+          if null name
+             then return []
+             else do
+               let content = fromAttrib "content" mt
+               updateState $ B.setMeta name (B.text content)
+               return []
 
 block :: TagParser [Block]
 block = choice
