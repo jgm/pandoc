@@ -30,7 +30,7 @@ Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
 import Data.Maybe (fromMaybe)
-import Data.List ( intercalate, groupBy )
+import Data.List ( intercalate, groupBy, isPrefixOf )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -262,6 +262,11 @@ writeDocx opts doc@(Pandoc meta _) = do
   fontTableEntry <- entryFromArchive "word/fontTable.xml"
   settingsEntry <- entryFromArchive "word/settings.xml"
   webSettingsEntry <- entryFromArchive "word/webSettings.xml"
+  let miscRels = [ f | f <- filesInArchive refArchive
+                     , "word/_rels/" `isPrefixOf` f
+                     , f /= "word/_rels/document.xml.rels"
+                     , f /= "word/_rels/footnotes.xml.rels" ]
+  miscRelEntries <- mapM entryFromArchive miscRels
 
   -- Create archive
   let archive = foldr addEntryToArchive emptyArchive $
@@ -269,7 +274,7 @@ writeDocx opts doc@(Pandoc meta _) = do
                   footnoteRelEntry : numEntry : styleEntry : footnotesEntry :
                   docPropsEntry : docPropsAppEntry : themeEntry :
                   fontTableEntry : settingsEntry : webSettingsEntry :
-                  imageEntries
+                  imageEntries ++ miscRelEntries
   return $ fromArchive archive
 
 styleToOpenXml :: Style -> [Element]
