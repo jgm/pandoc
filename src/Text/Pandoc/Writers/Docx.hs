@@ -30,7 +30,7 @@ Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
 import Data.Maybe (fromMaybe)
-import Data.List ( intercalate, groupBy, isPrefixOf )
+import Data.List ( intercalate, isPrefixOf )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -43,6 +43,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Shared hiding (Element)
+import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlight )
@@ -817,27 +818,3 @@ parseXml refArchive relpath =
   case (findEntryByPath relpath refArchive >>= parseXMLDoc . UTF8.toStringLazy . fromEntry) of
        Just d  -> return d
        Nothing -> fail $ relpath ++ " missing in reference docx"
-
-isDisplayMath :: Inline -> Bool
-isDisplayMath (Math DisplayMath _) = True
-isDisplayMath _                    = False
-
-stripLeadingTrailingSpace :: [Inline] -> [Inline]
-stripLeadingTrailingSpace = go . reverse . go . reverse
-  where go (Space:xs) = xs
-        go xs         = xs
-
-fixDisplayMath :: Block -> Block
-fixDisplayMath (Plain lst)
-  | any isDisplayMath lst && not (all isDisplayMath lst) =
-    -- chop into several paragraphs so each displaymath is its own
-    Div ("",["math"],[]) $ map (Plain . stripLeadingTrailingSpace) $
-       groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
-                         not (isDisplayMath x || isDisplayMath y)) lst
-fixDisplayMath (Para lst)
-  | any isDisplayMath lst && not (all isDisplayMath lst) =
-    -- chop into several paragraphs so each displaymath is its own
-    Div ("",["math"],[]) $ map (Para . stripLeadingTrailingSpace) $
-       groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
-                         not (isDisplayMath x || isDisplayMath y)) lst
-fixDisplayMath x = x
