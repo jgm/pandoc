@@ -285,8 +285,12 @@ blocksToOpenDocument o b = vcat <$> mapM (blockToOpenDocument o) b
 -- | Convert a Pandoc block element to OpenDocument.
 blockToOpenDocument :: WriterOptions -> Block -> State WriterState Doc
 blockToOpenDocument o bs
-    | Plain          b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
-    | Para           b <- bs = inParagraphTags =<< inlinesToOpenDocument o b
+    | Plain          b <- bs = if null b
+                                  then return empty
+                                  else inParagraphTags =<< inlinesToOpenDocument o b
+    | Para           b <- bs = if null b
+                                  then return empty
+                                  else inParagraphTags =<< inlinesToOpenDocument o b
     | Div _ xs         <- bs = blocksToOpenDocument o xs
     | Header     i _ b <- bs = setFirstPara >>
                                (inHeaderTags  i =<< inlinesToOpenDocument o b)
@@ -298,8 +302,8 @@ blockToOpenDocument o bs
     | Table  c a w h r <- bs = setFirstPara >> table c a w h r
     | HorizontalRule   <- bs = setFirstPara >> return (selfClosingTag "text:p"
                                 [ ("text:style-name", "Horizontal_20_Line") ])
-    | RawBlock f     s <- bs = if f == "opendocument"
-                                  then preformatted s
+    | RawBlock f     s <- bs = if f == Format "opendocument"
+                                  then return $ text s
                                   else return empty
     | Null             <- bs = return empty
     | otherwise              = return empty
@@ -378,8 +382,8 @@ inlineToOpenDocument o ils
     | Code      _ s <- ils = withTextStyle Pre $ inTextStyle $ preformatted s
     | Math      t s <- ils = inlinesToOpenDocument o (readTeXMath' t s)
     | Cite      _ l <- ils = inlinesToOpenDocument o l
-    | RawInline f s <- ils = if f == "opendocument"
-                                then return $ preformatted s
+    | RawInline f s <- ils = if f == Format "opendocument"
+                                then return $ text s
                                 else return empty
     | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Image _ (s,t) <- ils = mkImg  s t
