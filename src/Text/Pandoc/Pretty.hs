@@ -60,6 +60,7 @@ module Text.Pandoc.Pretty (
      , hsep
      , vcat
      , vsep
+     , nestle
      , chomp
      , inside
      , braces
@@ -72,7 +73,7 @@ module Text.Pandoc.Pretty (
      )
 
 where
-import Data.Sequence (Seq, fromList, (<|), singleton, mapWithIndex)
+import Data.Sequence (Seq, fromList, (<|), singleton, mapWithIndex, viewl, ViewL(..))
 import Data.Foldable (toList)
 import Data.List (intercalate)
 import Data.Monoid
@@ -185,6 +186,14 @@ vcat = foldr ($$) empty
 -- | List version of '$+$'.
 vsep :: [Doc] -> Doc
 vsep = foldr ($+$) empty
+
+-- | Removes leading blank lines from a 'Doc'.
+nestle :: Doc -> Doc
+nestle (Doc d) = Doc $ go d
+  where go x = case viewl x of
+               (BlankLine :< rest) -> go rest
+               (NewLine :< rest)   -> go rest
+               _                   -> x
 
 -- | Chomps trailing blank space off of a 'Doc'.
 chomp :: Doc -> Doc
