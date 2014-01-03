@@ -44,7 +44,7 @@ import qualified Text.XML.Light.Cursor as XC
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
-import Text.Pandoc.Shared (orderedListMarkers)
+import Text.Pandoc.Shared (orderedListMarkers, isHeaderBlock)
 import Text.Pandoc.Walk
 
 -- | Data to be written at the end of the document:
@@ -157,9 +157,7 @@ renderSection level (ttl, body) = do
                else cMapM blockToXml body
     return $ el "section" (title ++ content)
   where
-    hasSubsections = any isHeader
-    isHeader (Header _ _ _) = True
-    isHeader _ = False
+    hasSubsections = any isHeaderBlock
 
 -- | Only <p> and <empty-line> are allowed within <title> in FB2.
 formatTitle :: [Inline] -> [Content]
