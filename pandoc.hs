@@ -667,6 +667,9 @@ options =
                   (\arg opt -> return opt{ optMetadata = addMetadata
                                              "bibliography" (readMetaValue arg)
                                              $ optMetadata opt
+                                         , optVariables =
+                                            ("biblio-files", dropExtension arg) :
+                                            optVariables opt
                                          })
                    "FILE")
                  ""
