@@ -475,28 +475,21 @@ blockToHtml opts (BlockQuote blocks) =
      else do
        contents <- blockListToHtml opts blocks
        return $ H.blockquote $ nl opts >> contents >> nl opts
-blockToHtml opts (Header level (ident,_,_) lst) = do
+blockToHtml opts (Header level (_,_,_) lst) = do
   contents <- inlineListToHtml opts lst
   secnum <- liftM stSecNum get
   let contents' = if writerNumberSections opts && not (null secnum)
                      then (H.span ! A.class_ "header-section-number" $ toHtml
                           $ showSecNum secnum) >> strToHtml " " >> contents
                      else contents
-  let revealSlash = ['/' | writerSlideVariant opts == RevealJsSlides]
-  let contents''  = if writerTableOfContents opts && not (null ident)
-                       then H.a ! A.href (toValue $
-                              '#' : revealSlash ++
-                                    writerIdentifierPrefix opts ++
-                                    ident) $ contents'
-                       else contents'
   return $ case level of
-              1 -> H.h1 contents''
-              2 -> H.h2 contents''
-              3 -> H.h3 contents''
-              4 -> H.h4 contents''
-              5 -> H.h5 contents''
-              6 -> H.h6 contents''
-              _ -> H.p contents''
+              1 -> H.h1 contents'
+              2 -> H.h2 contents'
+              3 -> H.h3 contents'
+              4 -> H.h4 contents'
+              5 -> H.h5 contents'
+              6 -> H.h6 contents'
+              _ -> H.p contents'
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (blockListToHtml opts) lst
   return $ unordList opts contents
