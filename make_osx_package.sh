@@ -11,7 +11,7 @@ BASE=pandoc-$VERSION
 ME=$(whoami)
 CODESIGNID="Developer ID Application: John Macfarlane"
 PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
-EXES="pandoc pandoc-citeproc biblio2yaml"
+EXES="pandoc pandoc-citeproc"
 
 read -s -p "sudo password: " PASSWORD
 echo $PASSWORD | sudo -S echo "Password valid, continuing."

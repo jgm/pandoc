@@ -10,7 +10,6 @@ cabal-dev install -v1 --reinstall --flags="embed_data_files" pandoc-citeproc
 if %errorlevel% neq 0 exit /b %errorlevel%
 strip cabal-dev\bin\pandoc.exe
 strip cabal-dev\bin\pandoc-citeproc.exe
-strip cabal-dev\bin\biblio2yaml.exe
 cabal-dev\bin\pandoc.exe -s --template data\templates\default.html -S README -o README.html
 if %errorlevel% neq 0 exit /b %errorlevel%
 cabal-dev\bin\pandoc.exe -s --template data\templates\default.rtf COPYING -t rtf -S -o COPYING.rtf
