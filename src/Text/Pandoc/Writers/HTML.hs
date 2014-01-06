@@ -749,7 +749,9 @@ inlineToHtml opts inline =
                                             else [A.title $ toValue tit])
                         return $ foldl (!) H5.embed attributes
                         -- note:  null title included, as in Markdown.pl
-    (Note contents)          -> do
+    (Note contents)
+      | writerIgnoreNotes opts -> return mempty
+      | otherwise              -> do
                         st <- get
                         let notes = stNotes st
                         let number = (length notes) + 1
