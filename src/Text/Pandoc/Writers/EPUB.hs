@@ -397,6 +397,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   let chapters = evalState (toChapters blocks'') []
 
+  let removeNote :: Inline -> Inline
+      removeNote (Note _) = Str ""
+      removeNote x        = x
+
   let chapToEntry :: Int -> Chapter -> Entry
       chapToEntry num (Chapter mbnum bs) = mkEntry (showChapter num)
         $ renderHtml
@@ -404,7 +408,9 @@ writeEPUB opts doc@(Pandoc meta _) = do
             fromMaybe [] mbnum }
         $ case bs of
               (Header _ _ xs : _) ->
-                 Pandoc (setMeta "title" (fromList xs) nullMeta) bs
+                 -- remove notes or we get doubled footnotes
+                 Pandoc (setMeta "title" (walk removeNote $ fromList xs)
+                            nullMeta) bs
               _                   ->
                  Pandoc nullMeta bs
 
