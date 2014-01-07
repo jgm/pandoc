@@ -124,7 +124,12 @@ opfName n = QName n Nothing (Just "opf")
 
 plainify :: [Inline] -> String
 plainify t =
-  trimr $ writePlain def{ writerStandalone = False } $ Pandoc nullMeta [Plain t]
+  trimr $ writePlain def{ writerStandalone = False }
+        $ Pandoc nullMeta [Plain $ walk removeNote t]
+
+removeNote :: Inline -> Inline
+removeNote (Note _) = Str ""
+removeNote x        = x
 
 getEPUBMetadata :: WriterOptions -> Meta -> IO EPUBMetadata
 getEPUBMetadata opts meta = do
@@ -396,10 +401,6 @@ writeEPUB opts doc@(Pandoc meta _) = do
         (Chapter Nothing (b:xs) :) `fmap` toChapters ys
 
   let chapters = evalState (toChapters blocks'') []
-
-  let removeNote :: Inline -> Inline
-      removeNote (Note _) = Str ""
-      removeNote x        = x
 
   let chapToEntry :: Int -> Chapter -> Entry
       chapToEntry num (Chapter mbnum bs) = mkEntry (showChapter num)
