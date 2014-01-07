@@ -30,7 +30,7 @@ Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
 import Data.Maybe (fromMaybe)
-import Data.List ( intercalate, isPrefixOf )
+import Data.List ( intercalate, isPrefixOf, isSuffixOf )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -265,6 +265,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   webSettingsEntry <- entryFromArchive "word/webSettings.xml"
   let miscRels = [ f | f <- filesInArchive refArchive
                      , "word/_rels/" `isPrefixOf` f
+                     , ".xml.rels" `isSuffixOf` f
                      , f /= "word/_rels/document.xml.rels"
                      , f /= "word/_rels/footnotes.xml.rels" ]
   miscRelEntries <- mapM entryFromArchive miscRels
@@ -815,6 +816,8 @@ br = mknode "w:r" [] [mknode "w:br" [("w:type","textWrapping")] () ]
 
 parseXml :: Archive -> String -> IO Element
 parseXml refArchive relpath =
-  case (findEntryByPath relpath refArchive >>= parseXMLDoc . UTF8.toStringLazy . fromEntry) of
-       Just d  -> return d
+  case findEntryByPath relpath refArchive of
+       Just e  -> case parseXMLDoc $ UTF8.toStringLazy $ fromEntry e of
+                       Just d  -> return d
+                       Nothing -> fail $ relpath ++ " corrupt in reference docx"
        Nothing -> fail $ relpath ++ " missing in reference docx"
