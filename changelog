@@ -1,3 +1,100 @@
+  * The `--bibliography` option now sets the `biblio-files` variable.
+    So, if you're using `--natbib` or `--biblatex`, you can just use
+    `--bibliography=foo.bib` instead of `-V bibliofiles=foo`.
+
+  * Don't run pandoc-citeproc filter if `--bibliography` is
+    used together with `--natbib` or `--biblatex` (Florian Eitel).
+
+  * Template changes:
+
+    + Updated beamer template to include booktabs.
+    + Added `abstract` variable to LaTeX template.
+    + Put `header-includes` after `title` in LaTeX template (#908).
+    + Allow use of `\includegraphics[size]` in beamer.
+      This just required porting a macro definition from the default
+      LaTeX template to the default beamer template.
+
+  * `reference.docx`:  Include `FootnoteText` style.
+    Otherwise Word ignores the style, even when specified in the `pPr`.
+    (#901)
+
+  * `reference.odt`:  Tidied `styles.xml`.
+
+  * Relaxed version bounds for dependencies.
+
+  * Added `withSocketsDo` around http conduit code in `openURL`,
+    so it works on Windows (#1080).
+
+  * Added `Cite` function to `sample.lua`.
+
+  * Markdown reader:  Fixed regression in title blocks (#1089).
+    If author field was empty, date was being ignored.
+
+  * LaTeX reader:
+
+    + Add support for `Verb` macro (jrnold) (#1090).
+    + Support babel-style quoting: `` "`..."' ``.
+
+  * Properly handle script blocks in strict mode.  (That is,
+    `markdown-markdown_in_html_blocks`.) Previously a spurious
+    `<p>` tag was being added (#1093).
+
+  * Docbook reader: Avoid failure if `tbody` contains no `tr` or `row`
+    elements.
+
+  * LaTeX writer:
+
+    + Factored out function for table cell creation.
+    + Better treatment of footnotes in tables.
+      Notes now appear in the regular sequence, rather than in the
+      table cell.  (This was a regression in 1.10.)
+
+  * HTML reader: Parse name/content pairs from meta tags as metadata.
+    Closes #1106.
+
+  * Moved `fixDisplayMath` from Docx writer to `Writer.Shared`.
+
+  * OpenDocument writer:  Fixed `RawInline`, `RawBlock` so they don't escape.
+
+  * ODT writer:  Use mathml for proper rendering of formulas.
+    Note:  LibreOffice's support for this seems a bit buggy.  But
+    it should be better than what we had before.
+
+  * RST writer: Ensure no blank line after def in definition list (#992).
+
+  * Markdown writer: Don't use tilde code blocks with braced attributes in
+    `markdown_github` output.  A consequence of this change is that the
+    backtick form will be preferred in general if both are enabled.  That
+    is good, as it is much more widespread than the tilde form.  (#1084)
+
+  * Docx writer:  Fixed problem with some modified reference docx files.
+    Include `word/_rels/settings.xml.rels` if it exists, as well as other
+    `rels` files besides the ones pandoc generates explicitly.
+
+  * HTML writer:
+
+    + With `--toc`, headers no longer link to themselves (#1081).
+    + Omit footnotes from TOC entries.  Otherwise we get doubled
+      footnotes when headers have notes!
+
+  * EPUB writer:
+
+    + Avoid duplicate notes when headings contain notes.
+      This arose because the headings are copied into the metadata
+      "title" field, and the note gets rendered twice.  We strip the
+      note now before putting the heading in "title".
+    + Strip out footnotes from toc entries.
+    + Fixed bug with `--epub-stylesheet`.  Now the contents of
+      `writerEpubStylesheet` (set by `--epub-stylesheet`)
+      should again work, and take precedence over a stylesheet specified
+      in the metadata.
+
+  * `Text.Pandoc.Pretty`:  Added `nestle`.  API change.
+
+  * `Text.Pandoc.MIME`: Added `wmf`, `emf`.
+
+  * Removed old `MarkdownTest_1.0.3` directory (#1104).
+  
 pandoc (1.12.2.1)
 
   * Markdown reader:  Fixed regression in list parser, involving
