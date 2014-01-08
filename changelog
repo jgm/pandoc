@@ -27,8 +27,12 @@
 
   * Added `Cite` function to `sample.lua`.
 
-  * Markdown reader:  Fixed regression in title blocks (#1089).
-    If author field was empty, date was being ignored.
+  * Markdown reader:
+  
+    + Fixed regression in title blocks (#1089).
+      If author field was empty, date was being ignored.
+    + Allow backslash-newline hard line breaks in grid and
+      multiline table cells.
 
   * LaTeX reader:
 
