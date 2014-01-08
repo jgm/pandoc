@@ -1126,12 +1126,12 @@ multilineTableHeader headless = try $ do
                      then liftM (map (:[]) . tail .
                               splitStringByIndices (init indices)) $ lookAhead anyLine
                      else return $ transpose $ map
-                           (\ln -> tail $ splitStringByIndices (init indices) ln)
+                           (tail . splitStringByIndices (init indices))
                            rawContent
   let aligns   = zipWith alignType rawHeadsList lengths
   let rawHeads = if headless
                     then replicate (length dashes) ""
-                    else map unwords rawHeadsList
+                    else map (unlines . map trim) rawHeadsList
   heads <- fmap sequence $
            mapM (parseFromString (mconcat <$> many plain)) $
              map trim rawHeads
@@ -1188,7 +1188,7 @@ gridTableHeader headless = try $ do
   -- RST does not have a notion of alignments
   let rawHeads = if headless
                     then replicate (length dashes) ""
-                    else map unwords $ transpose
+                    else map (unlines . map trim) $ transpose
                        $ map (gridTableSplitLine indices) rawContent
   heads <- fmap sequence $ mapM (parseFromString parseBlocks . trim) rawHeads
   return (heads, aligns, indices)
