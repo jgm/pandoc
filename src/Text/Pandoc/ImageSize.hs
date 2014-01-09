@@ -32,9 +32,14 @@ module Text.Pandoc.ImageSize ( ImageType(..), imageType, imageSize,
                     sizeInPixels, sizeInPoints ) where
 import Data.ByteString (ByteString, unpack)
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Lazy as BL
+import Control.Applicative
 import Control.Monad
 import Data.Bits
+import Data.Binary
+import Data.Binary.Get
 import Text.Pandoc.Shared (safeRead)
+import qualified Data.Map as M
 
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
@@ -143,7 +148,7 @@ jpegSize img = do
   guard $ B.length rest >= 14
   case hdr of
        "\xff\xd8\xff\xe0" -> jfifSize rest
-       "\xff\xd8\xff\xe1" -> exifSize rest
+       "\xff\xd8\xff\xe1" -> exifSize $ B.takeWhile (/= '\xff') rest
        _                  -> mzero
 
 jfifSize :: ByteString -> Maybe ImageSize
@@ -177,18 +182,208 @@ findJfifSize bs = do
        Nothing -> fail "Did not find length record"
 
 exifSize :: ByteString -> Maybe ImageSize
-exifSize rest = do
-  let bs' = B.takeWhile (/='\xff') $ B.drop 8 rest  -- exif data
-  let (_,bs'') = B.breakSubstring "\xa0\x02" bs' -- width
-  let rawWidth = B.take 2 $ B.drop 10 bs''
-  let (_,bs''') = B.breakSubstring "\xa0\x03" bs' -- height
-  let rawHeight = B.take 2 $ B.drop 10 bs'''
-  let tonum bs =  case map fromIntegral $ unpack bs of
-                       [x,y]  -> Just $ shift x 8 + y
-                       _      -> Nothing
-  case (tonum rawWidth, tonum rawHeight) of
-       (Just w, Just h) ->
-                 return $ ImageSize { pxX = w, pxY = h, dpiX = 72, dpiY = 72 }
-       _      -> fail "Could not determine exif image size"
-  -- some day, figure out how to parse dpi from exif
+exifSize = -- runGet ((Just <$> exifHeader) `mplus` return Nothing) .
+  runGet (Just <$> exifHeader) .
+           BL.fromChunks . (:[])
 
+exifHeader :: Get ImageSize
+exifHeader = do
+  _app1DataSize <- getWord16be
+  exifHdr <- getWord32be
+  unless (exifHdr == 0x45786966) $ fail "Did not find exif header"
+  zeros <- getWord16be
+  unless (zeros == 0) $ fail "Expected zeros after exif header"
+  -- beginning of tiff header -- we read whole thing to use
+  -- in getting data from offsets:
+  tiffHeader <- lookAhead getRemainingLazyByteString
+  byteAlign <- getWord16be
+  let bigEndian = byteAlign == 0x4d4d
+  let (getWord16, getWord32, getWord64) =
+        if bigEndian
+           then (getWord16be, getWord32be, getWord64be)
+           else (getWord16le, getWord32le, getWord64le)
+  let getRational = do
+        num <- getWord32
+        den <- getWord32
+        return $ fromIntegral num / fromIntegral den
+  tagmark <- getWord16
+  unless (tagmark == 0x002a) $ fail "Failed alignment sanity check"
+  ifdOffset <- getWord32
+  skip (fromIntegral ifdOffset - 8) -- skip to IDF
+  numentries <- getWord16
+  let ifdEntry = do
+       tag <- getWord16 >>= \t ->
+                maybe (fail $ "Unknown tag type " ++ show t) return
+                (M.lookup t tagTypeTable)
+       dataFormat <- getWord16
+       numComponents <- getWord32
+       (fmt, bytesPerComponent) <-
+             case dataFormat of
+                  1  -> return (UnsignedByte . runGet getWord8, 1)
+                  2  -> return (AsciiString, 1)
+                  3  -> return (UnsignedShort . runGet getWord16, 2)
+                  4  -> return (UnsignedLong . runGet getWord32, 4)
+                  5  -> return (UnsignedRational . runGet getRational, 8)
+                  6  -> return (SignedByte . runGet getWord8, 1)
+                  7  -> return (Undefined . runGet getWord8, 1)
+                  8  -> return (SignedShort . runGet getWord16, 2)
+                  9  -> return (SignedLong . runGet getWord32, 4)
+                  10 -> return (SignedRational . runGet getRational, 8)
+                  11 -> return (SingleFloat . runGet getWord32 {- TODO -}, 4)
+                  12 -> return (DoubleFloat . runGet getWord64 {- TODO -}, 8)
+                  _  -> fail $ "Unknown data format " ++ show dataFormat
+       let totalBytes = fromIntegral $ numComponents * bytesPerComponent
+       payload <- if totalBytes <= 4 -- data is right here
+                     then (fmt . BL.fromChunks . (:[])) <$>
+                          (getByteString totalBytes <*
+                          skip (4 - totalBytes))
+                     else do  -- get data from offset
+                          offs <- getWord32
+                          return $ fmt $ BL.take (fromIntegral totalBytes) $
+                                   BL.drop (fromIntegral offs) tiffHeader
+       return (tag, payload)
+  entries <- sequence $ replicate (fromIntegral numentries) ifdEntry
+  subentries <- case lookup ExifOffset entries of
+                      Just (UnsignedLong offset) -> do
+                        pos <- bytesRead
+                        skip (fromIntegral offset - (fromIntegral pos - 8))
+                        numsubentries <- getWord16
+                        sequence $
+                           replicate (fromIntegral numsubentries) ifdEntry
+                      _ -> return []
+  let allentries = entries ++ subentries
+  (width, height) <- case (lookup ExifImageWidth allentries,
+                           lookup ExifImageHeight allentries) of
+                          (Just (UnsignedLong w), Just (UnsignedLong h)) ->
+                            return (fromIntegral w, fromIntegral h)
+                          _ -> fail "Could not determine image width, height"
+  let resfactor = case lookup ResolutionUnit allentries of
+                        Just (UnsignedShort 1) -> (100 / 254)
+                        _ -> 1
+  let xres = maybe 72 (\(UnsignedRational x) -> floor $ x * resfactor)
+             $ lookup XResolution allentries
+  let yres = maybe 72 (\(UnsignedRational x) -> floor $ x * resfactor)
+             $ lookup YResolution allentries
+  return $ ImageSize{
+                    pxX  = width
+                  , pxY  = height
+                  , dpiX = xres
+                  , dpiY = yres }
+
+data DataFormat = UnsignedByte Word8
+                | AsciiString BL.ByteString
+                | UnsignedShort Word16
+                | UnsignedLong Word32
+                | UnsignedRational Rational
+                | SignedByte Word8
+                | Undefined Word8
+                | SignedShort Word16
+                | SignedLong Word32
+                | SignedRational Rational
+                | SingleFloat Word32
+                | DoubleFloat Word64
+                deriving (Show)
+
+data TagType = ImageDescription
+             | Make
+             | Model
+             | Orientation
+             | XResolution
+             | YResolution
+             | ResolutionUnit
+             | Software
+             | DateTime
+             | WhitePoint
+             | PrimaryChromaticities
+             | YCbCrCoefficients
+             | YCbCrPositioning
+             | ReferenceBlackWhite
+             | Copyright
+             | ExifOffset
+             | ExposureTime
+             | FNumber
+             | ExposureProgram
+             | ISOSpeedRatings
+             | ExifVersion
+             | DateTimeOriginal
+             | DateTimeDigitized
+             | ComponentConfiguration
+             | CompressedBitsPerPixel
+             | ShutterSpeedValue
+             | ApertureValue
+             | BrightnessValue
+             | ExposureBiasValue
+             | MaxApertureValue
+             | SubjectDistance
+             | MeteringMode
+             | LightSource
+             | Flash
+             | FocalLength
+             | MakerNote
+             | UserComment
+             | FlashPixVersion
+             | ColorSpace
+             | ExifImageWidth
+             | ExifImageHeight
+             | RelatedSoundFile
+             | ExifInteroperabilityOffset
+             | FocalPlaneXResolution
+             | FocalPlaneYResolution
+             | FocalPlaneResolutionUnit
+             | SensingMethod
+             | FileSource
+             | SceneType
+             deriving (Show, Eq, Ord)
+
+tagTypeTable :: M.Map Word16 TagType
+tagTypeTable = M.fromList
+  [ (0x010e, ImageDescription)
+  , (0x010f, Make)
+  , (0x0110, Model)
+  , (0x0112, Orientation)
+  , (0x011a, XResolution)
+  , (0x011b, YResolution)
+  , (0x0128, ResolutionUnit)
+  , (0x0131, Software)
+  , (0x0132, DateTime)
+  , (0x013e, WhitePoint)
+  , (0x013f, PrimaryChromaticities)
+  , (0x0211, YCbCrCoefficients)
+  , (0x0213, YCbCrPositioning)
+  , (0x0214, ReferenceBlackWhite)
+  , (0x8298, Copyright)
+  , (0x8769, ExifOffset)
+  , (0x829a, ExposureTime)
+  , (0x829d, FNumber)
+  , (0x8822, ExposureProgram)
+  , (0x8827, ISOSpeedRatings)
+  , (0x9000, ExifVersion)
+  , (0x9003, DateTimeOriginal)
+  , (0x9004, DateTimeDigitized)
+  , (0x9101, ComponentConfiguration)
+  , (0x9102, CompressedBitsPerPixel)
+  , (0x9201, ShutterSpeedValue)
+  , (0x9202, ApertureValue)
+  , (0x9203, BrightnessValue)
+  , (0x9204, ExposureBiasValue)
+  , (0x9205, MaxApertureValue)
+  , (0x9206, SubjectDistance)
+  , (0x9207, MeteringMode)
+  , (0x9208, LightSource)
+  , (0x9209, Flash)
+  , (0x920a, FocalLength)
+  , (0x927c, MakerNote)
+  , (0x9286, UserComment)
+  , (0xa000, FlashPixVersion)
+  , (0xa001, ColorSpace)
+  , (0xa002, ExifImageWidth)
+  , (0xa003, ExifImageHeight)
+  , (0xa004, RelatedSoundFile)
+  , (0xa005, ExifInteroperabilityOffset)
+  , (0xa20e, FocalPlaneXResolution)
+  , (0xa20f, FocalPlaneYResolution)
+  , (0xa210, FocalPlaneResolutionUnit)
+  , (0xa217, SensingMethod)
+  , (0xa300, FileSource)
+  , (0xa301, SceneType)
+  ]
