@@ -53,7 +53,8 @@ imageType :: ByteString -> Maybe ImageType
 imageType img = case B.take 4 img of
                      "\x89\x50\x4e\x47" -> return Png
                      "\x47\x49\x46\x38" -> return Gif
-                     "\xff\xd8\xff\xe0" -> return Jpeg
+                     "\xff\xd8\xff\xe0" -> return Jpeg  -- JFIF
+                     "\xff\xd8\xff\xe1" -> return Jpeg  -- Exif
                      "%PDF"             -> return Pdf
                      "%!PS"
                        | (B.take 4 $ B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
@@ -139,8 +140,14 @@ gifSize img = do
 jpegSize :: ByteString -> Maybe ImageSize
 jpegSize img = do
   let (hdr, rest) = B.splitAt 4 img
-  guard $ hdr == "\xff\xd8\xff\xe0"
   guard $ B.length rest >= 14
+  case hdr of
+       "\xff\xd8\xff\xe0" -> jfifSize rest
+       "\xff\xd8\xff\xe1" -> exifSize rest
+       _                  -> mzero
+
+jfifSize :: ByteString -> Maybe ImageSize
+jfifSize rest = do
   let [dpiDensity,dpix1,dpix2,dpiy1,dpiy2] = map fromIntegral
                                            $ unpack $ B.take 5 $ B.drop 9 $ rest
   let factor = case dpiDensity of
@@ -149,11 +156,11 @@ jpegSize img = do
                     _ -> const 72
   let dpix = factor (shift dpix1 8 + dpix2)
   let dpiy = factor (shift dpiy1 8 + dpiy2)
-  (w,h) <- findJpegSize rest
+  (w,h) <- findJfifSize rest
   return $ ImageSize { pxX = w, pxY = h, dpiX = dpix, dpiY = dpiy }
 
-findJpegSize :: ByteString -> Maybe (Integer,Integer)
-findJpegSize bs = do
+findJfifSize :: ByteString -> Maybe (Integer,Integer)
+findJfifSize bs = do
   let bs' = B.dropWhile (=='\xff') $ B.dropWhile (/='\xff') bs
   case B.uncons bs' of
        Just (c,bs'') | c >= '\xc0' && c <= '\xc3' -> do
@@ -165,8 +172,23 @@ findJpegSize bs = do
               [c1,c2] -> do
                 let len = shift c1 8 + c2
                 -- skip variables
-                findJpegSize $ B.drop len bs''
+                findJfifSize $ B.drop len bs''
               _       -> fail "JPEG parse error"
        Nothing -> fail "Did not find length record"
 
+exifSize :: ByteString -> Maybe ImageSize
+exifSize rest = do
+  let bs' = B.takeWhile (/='\xff') $ B.drop 8 rest  -- exif data
+  let (_,bs'') = B.breakSubstring "\xa0\x02" bs' -- width
+  let rawWidth = B.take 2 $ B.drop 10 bs''
+  let (_,bs''') = B.breakSubstring "\xa0\x03" bs' -- height
+  let rawHeight = B.take 2 $ B.drop 10 bs'''
+  let tonum bs =  case map fromIntegral $ unpack bs of
+                       [x,y]  -> Just $ shift x 8 + y
+                       _      -> Nothing
+  case (tonum rawWidth, tonum rawHeight) of
+       (Just w, Just h) ->
+                 return $ ImageSize { pxX = w, pxY = h, dpiX = 72, dpiY = 72 }
+       _      -> fail "Could not determine exif image size"
+  -- some day, figure out how to parse dpi from exif
 
