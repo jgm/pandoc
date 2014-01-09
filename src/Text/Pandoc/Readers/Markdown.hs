@@ -1811,9 +1811,10 @@ citeKey = try $ do
   guard $ lastStrPos /= Just pos
   suppress_author <- option False (char '-' >> return True)
   char '@'
-  first <- letter
-  let internal p = try $ p >>~ lookAhead (letter <|> digit)
-  rest <- many $ letter <|> digit <|> internal (oneOf ":.#$%&-_+?<>~/")
+  first <- letter <|> char '_'
+  let regchar = satisfy (\c -> isAlphaNum c || c == '_')
+  let internal p = try $ p >>~ lookAhead regchar
+  rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/")
   let key = first:rest
   return (suppress_author, key)
 
