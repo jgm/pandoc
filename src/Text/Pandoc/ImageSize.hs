@@ -234,8 +234,8 @@ exifHeader = do
                   _  -> fail $ "Unknown data format " ++ show dataFormat
        let totalBytes = fromIntegral $ numComponents * bytesPerComponent
        payload <- if totalBytes <= 4 -- data is right here
-                     then (fmt . BL.fromChunks . (:[])) <$>
-                          (getByteString totalBytes <*
+                     then fmt <$>
+                          (getLazyByteString (fromIntegral totalBytes) <*
                           skip (4 - totalBytes))
                      else do  -- get data from offset
                           offs <- getWord32
