@@ -1,3 +1,5 @@
+pandoc (1.12.3)
+
   * The `--bibliography` option now sets the `biblio-files` variable.
     So, if you're using `--natbib` or `--biblatex`, you can just use
     `--bibliography=foo.bib` instead of `-V bibliofiles=foo`.
@@ -96,6 +98,13 @@
   * `Text.Pandoc.Pretty`:  Added `nestle`.  API change.
 
   * `Text.Pandoc.MIME`: Added `wmf`, `emf`.
+
+  * `Text.Pandoc.Shared`:  `fetchItem` now handles image URLs beginning
+    with `//`.
+
+  * `Text.Pandoc.ImageSize`:  Parse EXIF format JPEGs.  Previously
+    we could only get size information for JFIF format, which led
+    to squished images in Word documents. Closes #976.
 
   * Removed old `MarkdownTest_1.0.3` directory (#1104).
   
@@ -223,6 +232,8 @@ pandoc (1.12.2)
     + Yaml block must start immediately after `---`.  If there's a blank
       line after `---`, we interpreted it as a horizontal rule.
     + Correctly handle empty bullet list items.
+    + Citation keys may now start with underscores, and may contain
+      underscores adjacent to internal punctuation.
     + Stop parsing "list lines" when we hit a block tag.
       This fixes exponential slowdown in certain input, e.g.
       a series of lists followed by `</div>`.
