@@ -16,9 +16,7 @@ _ Upload to Google Code (googlecode-upload.sh)
 
 _ Go to Google code and deprecate the old versions
 
-- Add release on github (github-upload.sh + manual)
-
-_ Add release on sourceforge
+- Add release on github (and upload files)
 
 _ Upload to HackageDB
 
