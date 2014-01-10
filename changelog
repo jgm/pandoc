@@ -35,6 +35,8 @@ pandoc (1.12.3)
       If author field was empty, date was being ignored.
     + Allow backslash-newline hard line breaks in grid and
       multiline table cells.
+    + Citation keys may now start with underscores, and may contain
+      underscores adjacent to internal punctuation.
 
   * LaTeX reader:
 
@@ -232,8 +234,6 @@ pandoc (1.12.2)
     + Yaml block must start immediately after `---`.  If there's a blank
       line after `---`, we interpreted it as a horizontal rule.
     + Correctly handle empty bullet list items.
-    + Citation keys may now start with underscores, and may contain
-      underscores adjacent to internal punctuation.
     + Stop parsing "list lines" when we hit a block tag.
       This fixes exponential slowdown in certain input, e.g.
       a series of lists followed by `</div>`.
