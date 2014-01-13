@@ -2521,10 +2521,9 @@ the document, for example:
     Comment: This is a sample mmd title block, with
              a field spanning multiple lines.
 
-See the MultiMarkdown documentation for details. Note that only title,
-author, and date are recognized; other fields are simply ignored by
-pandoc. If `pandoc_title_block` or `yaml_metadata_block` is enabled,
-it will take precedence over `mmd_title_block`.
+See the MultiMarkdown documentation for details.  If `pandoc_title_block` or
+`yaml_metadata_block` is enabled, it will take precedence over
+`mmd_title_block`.
 
   [MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
 
