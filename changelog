@@ -1,3 +1,7 @@
+pandoc (1.12.3.1)
+
+  * Relaxed version constraint on binary, allowing the use of binary 0.5.
+
 pandoc (1.12.3)
 
   * The `--bibliography` option now sets the `biblio-files` variable.

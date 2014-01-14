@@ -182,9 +182,12 @@ findJfifSize bs = do
        Nothing -> fail "Did not find length record"
 
 exifSize :: ByteString -> Maybe ImageSize
-exifSize = -- runGet ((Just <$> exifHeader) `mplus` return Nothing) .
-  runGet (Just <$> exifHeader) .
-           BL.fromChunks . (:[])
+exifSize = runGet (Just <$> exifHeader) .  BL.fromChunks . (:[])
+-- NOTE:  It would be nicer to do
+-- runGet ((Just <$> exifHeader) <|> return Nothing)
+-- which would prevent pandoc from raising an error when an exif header can't
+-- be parsed.  But we only get an Alternative instance for Get in binary 0.6,
+-- and binary 0.5 ships with ghc 7.6.
 
 exifHeader :: Get ImageSize
 exifHeader = do
