@@ -149,9 +149,16 @@ inlinesInTags tag = try $ do
 blocksInTags :: String -> MWParser Blocks
 blocksInTags tag = try $ do
   (_,raw) <- htmlTag (~== TagOpen tag [])
+  let closer = if tag == "li"
+                  then htmlTag (~== TagClose "li")
+                     <|> lookAhead (
+                              htmlTag (~== TagOpen "li" [])
+                          <|> htmlTag (~== TagClose "ol")
+                          <|> htmlTag (~== TagClose "ul"))
+                  else htmlTag (~== TagClose tag)
   if '/' `elem` raw   -- self-closing tag
      then return mempty
-     else mconcat <$> manyTill block (htmlTag (~== TagClose tag))
+     else mconcat <$> manyTill block closer
 
 charsInTags :: String -> MWParser [Char]
 charsInTags tag = try $ do
@@ -381,15 +388,13 @@ bulletList = B.bulletList <$>
 orderedList :: MWParser Blocks
 orderedList =
        (B.orderedList <$> many1 (listItem '#'))
-   <|> (B.orderedList <$> (htmlTag (~== TagOpen "ul" []) *> spaces *>
-        many (listItem '#' <|> li) <*
-        optional (htmlTag (~== TagClose "ul"))))
-   <|> do (tag,_) <- htmlTag (~== TagOpen "ol" [])
-          spaces
-          items <- many (listItem '#' <|> li)
-          optional (htmlTag (~== TagClose "ol"))
-          let start = fromMaybe 1 $ safeRead $ fromAttrib "start" tag
-          return $ B.orderedListWith (start, DefaultStyle, DefaultDelim) items
+   <|> try
+       (do (tag,_) <- htmlTag (~== TagOpen "ol" [])
+           spaces
+           items <- many (listItem '#' <|> li)
+           optional (htmlTag (~== TagClose "ol"))
+           let start = fromMaybe 1 $ safeRead $ fromAttrib "start" tag
+           return $ B.orderedListWith (start, DefaultStyle, DefaultDelim) items)
 
 definitionList :: MWParser Blocks
 definitionList = B.definitionList <$> many1 defListItem
