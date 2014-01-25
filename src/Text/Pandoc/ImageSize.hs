@@ -182,15 +182,16 @@ findJfifSize bs = do
        Nothing -> fail "Did not find length record"
 
 exifSize :: ByteString -> Maybe ImageSize
-exifSize = runGet (Just <$> exifHeader) .  BL.fromChunks . (:[])
+exifSize bs = runGet (Just <$> exifHeader bl) bl
+  where bl = BL.fromChunks [bs]
 -- NOTE:  It would be nicer to do
 -- runGet ((Just <$> exifHeader) <|> return Nothing)
 -- which would prevent pandoc from raising an error when an exif header can't
 -- be parsed.  But we only get an Alternative instance for Get in binary 0.6,
 -- and binary 0.5 ships with ghc 7.6.
 
-exifHeader :: Get ImageSize
-exifHeader = do
+exifHeader :: BL.ByteString -> Get ImageSize
+exifHeader hdr = do
   _app1DataSize <- getWord16be
   exifHdr <- getWord32be
   unless (exifHdr == 0x45786966) $ fail "Did not find exif header"
@@ -198,7 +199,7 @@ exifHeader = do
   unless (zeros == 0) $ fail "Expected zeros after exif header"
   -- beginning of tiff header -- we read whole thing to use
   -- in getting data from offsets:
-  tiffHeader <- lookAhead getRemainingLazyByteString
+  let tiffHeader = BL.drop 8 hdr
   byteAlign <- getWord16be
   let bigEndian = byteAlign == 0x4d4d
   let (getWord16, getWord32, getWord64) =
