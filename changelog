@@ -1,3 +1,17 @@
+pandoc (1.12.3.2)
+
+  * Bumped version bounds for blaze-html, blaze-markup.
+
+  * ImageSize:  Avoid use of lookAhead, which is not in binary >= 0.6
+    (#1124).
+
+  * Fixed mediawiki ordered list parsing (#1122).
+
+  * HTML reader:  Fixed bug reading inline math with `$$` (#225).
+
+  * Added support for LaTeX style literate Haskell code blocks in rST
+    (Merijn Verstraaten).
+
 pandoc (1.12.3.1)
 
   * Relaxed version constraint on binary, allowing the use of binary 0.5.
