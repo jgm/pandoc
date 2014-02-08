@@ -81,8 +81,7 @@ import Data.String
 import Control.Monad.State
 import Data.Char (isSpace)
 
-data Monoid a =>
-     RenderState a = RenderState{
+data RenderState a = RenderState{
          output       :: [a]        -- ^ In reverse order
        , prefix       :: String
        , usePrefix    :: Bool
