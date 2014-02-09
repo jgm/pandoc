@@ -30,7 +30,10 @@ Conversion of 'Pandoc' documents to ODT.
 -}
 module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Data.IORef
-import Data.List ( isPrefixOf )
+import Data.List ( isPrefixOf, isSuffixOf )
+import Data.Maybe ( fromMaybe )
+import Text.XML.Light.Output
+import Text.TeXMath
 import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
@@ -40,13 +43,14 @@ import Text.Pandoc.ImageSize ( imageSize, sizeInPoints )
 import Text.Pandoc.MIME ( getMimeType )
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
+import Text.Pandoc.Writers.Shared ( fixDisplayMath )
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
 import Control.Monad (liftM)
 import Text.Pandoc.XML
 import Text.Pandoc.Pretty
 import qualified Control.Exception as E
 import Data.Time.Clock.POSIX ( getPOSIXTime )
-import System.FilePath ( takeExtension )
+import System.FilePath ( takeExtension, takeDirectory )
 
 -- | Produce an ODT file from a Pandoc document.
 writeODT :: WriterOptions  -- ^ Writer options
@@ -60,9 +64,9 @@ writeODT opts doc@(Pandoc meta _) = do
              Just f -> B.readFile f
              Nothing -> (B.fromChunks . (:[])) `fmap`
                            readDataFile datadir "reference.odt"
-  -- handle pictures
+  -- handle formulas and pictures
   picEntriesRef <- newIORef ([] :: [Entry])
-  doc' <- walkM (transformPic opts picEntriesRef) doc
+  doc' <- walkM (transformPicMath opts picEntriesRef) $ walk fixDisplayMath doc
   let newContents = writeOpenDocument opts{writerWrapText = False} doc'
   epochtime <- floor `fmap` getPOSIXTime
   let contentEntry = toEntry "content.xml" epochtime
@@ -72,7 +76,11 @@ writeODT opts doc@(Pandoc meta _) = do
                 $ contentEntry : picEntries
   -- construct META-INF/manifest.xml based on archive
   let toFileEntry fp = case getMimeType fp of
-                        Nothing  -> empty
+                        Nothing  -> if "Formula-" `isPrefixOf` fp && "/" `isSuffixOf` fp
+                                       then selfClosingTag "manifest:file-entry"
+                                             [("manifest:media-type","application/vnd.oasis.opendocument.formula")
+                                             ,("manifest:full-path",fp)]
+                                       else empty
                         Just m   -> selfClosingTag "manifest:file-entry"
                                      [("manifest:media-type", m)
                                      ,("manifest:full-path", fp)
@@ -80,6 +88,8 @@ writeODT opts doc@(Pandoc meta _) = do
                                      ]
   let files = [ ent | ent <- filesInArchive archive,
                              not ("META-INF" `isPrefixOf` ent) ]
+  let formulas = [ takeDirectory ent ++ "/" | ent <- filesInArchive archive,
+                      "Formula-" `isPrefixOf` ent, takeExtension ent == ".xml" ]
   let manifestEntry = toEntry "META-INF/manifest.xml" epochtime
         $ fromStringLazy $ render Nothing
         $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -91,6 +101,7 @@ writeODT opts doc@(Pandoc meta _) = do
                  [("manifest:media-type","application/vnd.oasis.opendocument.text")
                  ,("manifest:full-path","/")]
                 $$ vcat ( map toFileEntry $ files )
+                $$ vcat ( map toFileEntry $ formulas )
               )
          )
   let archive' = addEntryToArchive manifestEntry archive
@@ -118,8 +129,8 @@ writeODT opts doc@(Pandoc meta _) = do
                   $ addEntryToArchive metaEntry archive'
   return $ fromArchive archive''
 
-transformPic :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline
-transformPic opts entriesRef (Image lab (src,_)) = do
+transformPicMath :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline
+transformPicMath opts entriesRef (Image lab (src,_)) = do
   res <- fetchItem (writerSourceURL opts) src
   case res of
      Left (_ :: E.SomeException) -> do
@@ -127,7 +138,7 @@ transformPic opts entriesRef (Image lab (src,_)) = do
        return $ Emph lab
      Right (img, _) -> do
        let size = imageSize img
-       let (w,h) = maybe (0,0) id $ sizeInPoints `fmap` size
+       let (w,h) = fromMaybe (0,0) $ sizeInPoints `fmap` size
        let tit' = show w ++ "x" ++ show h
        entries <- readIORef entriesRef
        let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src
@@ -136,5 +147,29 @@ transformPic opts entriesRef (Image lab (src,_)) = do
        let entry = toEntry newsrc epochtime $ toLazy img
        modifyIORef entriesRef (entry:)
        return $ Image lab (newsrc, tit')
-transformPic _ _ x = return x
+transformPicMath _ entriesRef (Math t math) = do
+  entries <- readIORef entriesRef
+  let dt = if t == InlineMath then DisplayInline else DisplayBlock
+  case texMathToMathML dt math of
+       Left  _ -> return $ Math t math
+       Right r -> do
+         let conf = useShortEmptyTags (const False) defaultConfigPP
+         let mathml = ppcTopElement conf r
+         epochtime <- floor `fmap` getPOSIXTime
+         let dirname = "Formula-" ++ show (length entries) ++ "/"
+         let fname = dirname ++ "content.xml"
+         let entry = toEntry fname epochtime (fromStringLazy mathml)
+         modifyIORef entriesRef (entry:)
+         return $ RawInline (Format "opendocument") $ render Nothing $
+           inTags False "draw:frame" [("text:anchor-type",
+                                       if t == DisplayMath
+                                          then "paragraph"
+                                          else "as-char")
+                                     ,("style:vertical-pos", "middle")
+                                     ,("style:vertical-rel", "text")] $
+             selfClosingTag "draw:object" [("xlink:href", dirname)
+                                        , ("xlink:type", "simple")
+                                        , ("xlink:show", "embed")
+                                        , ("xlink:actuate", "onLoad")]
 
+transformPicMath _ _ x = return x

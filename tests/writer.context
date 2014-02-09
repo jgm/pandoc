@@ -30,6 +30,9 @@
 \setupitemize[autointro]    % prevent orphan list intro
 \setupitemize[indentnext=no]
 
+\setupfloat[figure][default={here,nonumber}]
+\setupfloat[table][default={here,nonumber}]
+
 \setupthinrules[width=15em] % width of horizontal rules
 
 \setupdelimitedtext
@@ -842,7 +845,7 @@ or here: <http://example.com/>
 
 From \quotation{Voyage dans la Lune} by Georges Melies (1902):
 
-\placefigure[here,nonumber]{lalune}{\externalfigure[lalune.jpg]}
+\placefigure{lalune}{\externalfigure[lalune.jpg]}
 
 Here is a movie {\externalfigure[movie.jpg]} icon.
 

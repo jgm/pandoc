@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, CPP #-}
+{-# LANGUAGE PatternGuards, CPP, ScopedTypeVariables #-}
 {-
 Copyright (C) 2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,16 +30,18 @@ Conversion of 'Pandoc' documents to EPUB.
 -}
 module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
 import Data.IORef
-import Data.Maybe ( fromMaybe, isNothing )
+import qualified Data.Map as M
+import Data.Maybe ( fromMaybe )
 import Data.List ( isInfixOf, intercalate )
 import System.Environment ( getEnv )
 import Text.Printf (printf)
 import System.FilePath ( (</>), takeBaseName, takeExtension, takeFileName )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
-import Text.Pandoc.UTF8 ( fromStringLazy, toString )
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Codec.Archive.Zip
+import Control.Applicative ((<$>))
 import Data.Time.Clock.POSIX
 import Data.Time
 import System.Locale
@@ -54,7 +56,7 @@ import Text.XML.Light hiding (ppTopElement)
 import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
-import Data.Char ( toLower )
+import Data.Char ( toLower, isDigit )
 import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
 #if MIN_VERSION_base(4,6,0)
@@ -70,12 +72,237 @@ import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 -- in filenames, chapter0003.xhtml.
 data Chapter = Chapter (Maybe [Int]) [Block]
 
+data EPUBMetadata = EPUBMetadata{
+    epubIdentifier         :: [Identifier]
+  , epubTitle              :: [Title]
+  , epubDate               :: String
+  , epubLanguage           :: String
+  , epubCreator            :: [Creator]
+  , epubContributor        :: [Creator]
+  , epubSubject            :: [String]
+  , epubDescription        :: Maybe String
+  , epubType               :: Maybe String
+  , epubFormat             :: Maybe String
+  , epubPublisher          :: Maybe String
+  , epubSource             :: Maybe String
+  , epubRelation           :: Maybe String
+  , epubCoverage           :: Maybe String
+  , epubRights             :: Maybe String
+  , epubCoverImage         :: Maybe String
+  , epubStylesheet         :: Maybe Stylesheet
+  } deriving Show
+
+data Stylesheet = StylesheetPath FilePath
+                | StylesheetContents String
+                deriving Show
+
+data Creator = Creator{
+    creatorText            :: String
+  , creatorRole            :: Maybe String
+  , creatorFileAs          :: Maybe String
+  } deriving Show
+
+data Identifier = Identifier{
+    identifierText         :: String
+  , identifierScheme       :: Maybe String
+  } deriving Show
+
+data Title = Title{
+    titleText              :: String
+  , titleFileAs            :: Maybe String
+  , titleType              :: Maybe String
+  } deriving Show
+
+dcName :: String -> QName
+dcName n = QName n Nothing (Just "dc")
+
+dcNode :: Node t => String -> t -> Element
+dcNode = node . dcName
+
+opfName :: String -> QName
+opfName n = QName n Nothing (Just "opf")
+
+plainify :: [Inline] -> String
+plainify t =
+  trimr $ writePlain def{ writerStandalone = False }
+        $ Pandoc nullMeta [Plain $ walk removeNote t]
+
+removeNote :: Inline -> Inline
+removeNote (Note _) = Str ""
+removeNote x        = x
+
+getEPUBMetadata :: WriterOptions -> Meta -> IO EPUBMetadata
+getEPUBMetadata opts meta = do
+  let md = metadataFromMeta opts meta
+  let elts = onlyElems $ parseXML $ writerEpubMetadata opts
+  let md' = foldr addMetadataFromXML md elts
+  let addIdentifier m =
+       if null (epubIdentifier m)
+          then do
+            randomId <- fmap show getRandomUUID
+            return $ m{ epubIdentifier = [Identifier randomId Nothing] }
+          else return m
+  let addLanguage m =
+       if null (epubLanguage m)
+          then case lookup "lang" (writerVariables opts) of
+                     Just x  -> return m{ epubLanguage = x }
+                     Nothing -> do
+                       localeLang <- catch (liftM
+                            (map (\c -> if c == '_' then '-' else c) .
+                             takeWhile (/='.')) $ getEnv "LANG")
+                          (\e -> let _ = (e :: SomeException) in return "en-US")
+                       return m{ epubLanguage = localeLang }
+          else return m
+  let fixDate m =
+       if null (epubDate m)
+          then do
+            currentTime <- getCurrentTime
+            return $ m{ epubDate = showDateTimeISO8601 currentTime }
+          else return m
+  let addAuthor m =
+       if any (\c -> creatorRole c == Just "aut") $ epubCreator m
+          then return m
+          else do
+            let authors' = map plainify $ docAuthors meta
+            let toAuthor name = Creator{ creatorText = name
+                                       , creatorRole = Just "aut"
+                                       , creatorFileAs = Nothing }
+            return $ m{ epubCreator = map toAuthor authors' ++ epubCreator m }
+  addIdentifier md' >>= fixDate >>= addAuthor >>= addLanguage
+
+addMetadataFromXML :: Element -> EPUBMetadata -> EPUBMetadata
+addMetadataFromXML e@(Element (QName name _ (Just "dc")) attrs _ _) md
+  | name == "identifier" = md{ epubIdentifier =
+             Identifier{ identifierText = strContent e
+                       , identifierScheme = lookupAttr (opfName "scheme") attrs
+                       } : epubIdentifier md }
+  | name == "title" = md{ epubTitle =
+            Title{ titleText = strContent e
+                 , titleFileAs = getAttr "file-as"
+                 , titleType = getAttr "type"
+                 } : epubTitle md }
+  | name == "date" = md{ epubDate = fromMaybe "" $ normalizeDate'
+                                                 $ strContent e }
+  | name == "language" = md{ epubLanguage = strContent e }
+  | name == "creator" = md{ epubCreator =
+              Creator{ creatorText = strContent e
+                     , creatorRole = getAttr "role"
+                     , creatorFileAs = getAttr "file-as"
+                     } : epubCreator md }
+  | name == "contributor" = md{ epubContributor =
+              Creator  { creatorText = strContent e
+                       , creatorRole = getAttr "role"
+                       , creatorFileAs = getAttr "file-as"
+                       } : epubContributor md }
+  | name == "subject" = md{ epubSubject = strContent e : epubSubject md }
+  | name == "description" = md { epubDescription = Just $ strContent e }
+  | name == "type" = md { epubType = Just $ strContent e }
+  | name == "format" = md { epubFormat = Just $ strContent e }
+  | name == "type" = md { epubType = Just $ strContent e }
+  | name == "publisher" = md { epubPublisher = Just $ strContent e }
+  | name == "source" = md { epubSource = Just $ strContent e }
+  | name == "relation" = md { epubRelation = Just $ strContent e }
+  | name == "coverage" = md { epubCoverage = Just $ strContent e }
+  | name == "rights" = md { epubRights = Just $ strContent e }
+  | otherwise = md
+  where getAttr n = lookupAttr (opfName n) attrs
+addMetadataFromXML _ md = md
+
+metaValueToString :: MetaValue -> String
+metaValueToString (MetaString s) = s
+metaValueToString (MetaInlines ils) = plainify ils
+metaValueToString (MetaBlocks bs) = plainify $ query (:[]) bs
+metaValueToString (MetaBool b) = show b
+metaValueToString _ = ""
+
+getList :: String -> Meta -> (MetaValue -> a) -> [a]
+getList s meta handleMetaValue =
+  case lookupMeta s meta of
+       Just (MetaList xs) -> map handleMetaValue xs
+       Just mv            -> [handleMetaValue mv]
+       Nothing            -> []
+
+getIdentifier :: Meta -> [Identifier]
+getIdentifier meta = getList "identifier" meta handleMetaValue
+  where handleMetaValue (MetaMap m) =
+           Identifier{ identifierText = maybe "" metaValueToString
+                                        $ M.lookup "text" m
+                     , identifierScheme = metaValueToString <$>
+                                          M.lookup "scheme" m }
+        handleMetaValue mv = Identifier (metaValueToString mv) Nothing
+
+getTitle :: Meta -> [Title]
+getTitle meta = getList "title" meta handleMetaValue
+  where handleMetaValue (MetaMap m) =
+           Title{ titleText = maybe "" metaValueToString $ M.lookup "text" m
+                , titleFileAs = metaValueToString <$> M.lookup "file-as" m
+                , titleType = metaValueToString <$> M.lookup "type" m }
+        handleMetaValue mv = Title (metaValueToString mv) Nothing Nothing
+
+getCreator :: String -> Meta -> [Creator]
+getCreator s meta = getList s meta handleMetaValue
+  where handleMetaValue (MetaMap m) =
+           Creator{ creatorText = maybe "" metaValueToString $ M.lookup "text" m
+                  , creatorFileAs = metaValueToString <$> M.lookup "file-as" m
+                  , creatorRole = metaValueToString <$> M.lookup "role" m }
+        handleMetaValue mv = Creator (metaValueToString mv) Nothing Nothing
+
+simpleList :: String -> Meta -> [String]
+simpleList s meta =
+  case lookupMeta s meta of
+       Just (MetaList xs) -> map metaValueToString xs
+       Just x -> [metaValueToString x]
+       Nothing -> []
+
+metadataFromMeta :: WriterOptions -> Meta -> EPUBMetadata
+metadataFromMeta opts meta = EPUBMetadata{
+      epubIdentifier         = identifiers
+    , epubTitle              = titles
+    , epubDate               = date
+    , epubLanguage           = language
+    , epubCreator            = creators
+    , epubContributor        = contributors
+    , epubSubject            = subjects
+    , epubDescription        = description
+    , epubType               = epubtype
+    , epubFormat             = format
+    , epubPublisher          = publisher
+    , epubSource             = source
+    , epubRelation           = relation
+    , epubCoverage           = coverage
+    , epubRights             = rights
+    , epubCoverImage         = coverImage
+    , epubStylesheet         = stylesheet
+    }
+  where identifiers = getIdentifier meta
+        titles = getTitle meta
+        date = fromMaybe "" $
+              (metaValueToString <$> lookupMeta "date" meta) >>= normalizeDate'
+        language = maybe "" metaValueToString $
+           lookupMeta "language" meta `mplus` lookupMeta "lang" meta
+        creators = getCreator "creator" meta
+        contributors = getCreator "contributor" meta
+        subjects = simpleList "subject" meta
+        description = metaValueToString <$> lookupMeta "description" meta
+        epubtype = metaValueToString <$> lookupMeta "type" meta
+        format = metaValueToString <$> lookupMeta "format" meta
+        publisher = metaValueToString <$> lookupMeta "publisher" meta
+        source = metaValueToString <$> lookupMeta "source" meta
+        relation = metaValueToString <$> lookupMeta "relation" meta
+        coverage = metaValueToString <$> lookupMeta "coverage" meta
+        rights = metaValueToString <$> lookupMeta "rights" meta
+        coverImage = lookup "epub-cover-image" (writerVariables opts) `mplus`
+             (metaValueToString <$> lookupMeta "cover-image" meta)
+        stylesheet = (StylesheetContents <$> writerEpubStylesheet opts) `mplus`
+                     ((StylesheetPath . metaValueToString) <$>
+                       lookupMeta "stylesheet" meta)
+
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
 writeEPUB opts doc@(Pandoc meta _) = do
-  let version = maybe EPUB2 id (writerEpubVersion opts)
+  let version = fromMaybe EPUB2 (writerEpubVersion opts)
   let epub3 = version == EPUB3
   epochtime <- floor `fmap` getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
@@ -93,11 +320,11 @@ writeEPUB opts doc@(Pandoc meta _) = do
                           then MathML Nothing
                           else writerHTMLMathMethod opts
                   , writerWrapText = False }
-  let mbCoverImage = lookup "epub-cover-image" vars
+  metadata <- getEPUBMetadata opts' meta
 
   -- cover page
   (cpgEntry, cpicEntry) <-
-                case mbCoverImage of
+                case epubCoverImage metadata of
                      Nothing   -> return ([],[])
                      Just img  -> do
                        let coverImage = "cover-image" ++ takeExtension img
@@ -179,32 +406,33 @@ writeEPUB opts doc@(Pandoc meta _) = do
       chapToEntry num (Chapter mbnum bs) = mkEntry (showChapter num)
         $ renderHtml
         $ writeHtml opts'{ writerNumberOffset =
-            maybe [] id mbnum }
+            fromMaybe [] mbnum }
         $ case bs of
               (Header _ _ xs : _) ->
-                 Pandoc (setMeta "title" (fromList xs) nullMeta) bs
+                 -- remove notes or we get doubled footnotes
+                 Pandoc (setMeta "title" (walk removeNote $ fromList xs)
+                            nullMeta) bs
               _                   ->
                  Pandoc nullMeta bs
 
   let chapterEntries = zipWith chapToEntry [1..] chapters
 
   -- incredibly inefficient (TODO):
-  let containsMathML ent = "<math" `isInfixOf` (B8.unpack $ fromEntry ent)
+  let containsMathML ent = epub3 &&
+                           "<math" `isInfixOf` (B8.unpack $ fromEntry ent)
+  let containsSVG ent    = epub3 &&
+                           "<svg" `isInfixOf` (B8.unpack $ fromEntry ent)
+  let props ent = ["mathml" | containsMathML ent] ++ ["svg" | containsSVG ent]
 
   -- contents.opf
-  localeLang <- catch (liftM (map (\c -> if c == '_' then '-' else c) .
-                       takeWhile (/='.')) $ getEnv "LANG")
-                    (\e -> let _ = (e :: SomeException) in return "en-US")
-  let lang = case lookup "lang" (writerVariables opts') of
-                     Just x  -> x
-                     Nothing -> localeLang
-  uuid <- getRandomUUID
   let chapterNode ent = unode "item" !
                            ([("id", takeBaseName $ eRelativePath ent),
                              ("href", eRelativePath ent),
                              ("media-type", "application/xhtml+xml")]
-                            ++ [("properties","mathml") | epub3 &&
-                                   containsMathML ent]) $ ()
+                            ++ case props ent of
+                                    []   -> []
+                                    xs   -> [("properties", unwords xs)])
+                        $ ()
   let chapterRefNode ent = unode "itemref" !
                              [("idref", takeBaseName $ eRelativePath ent)] $ ()
   let pictureNode ent = unode "item" !
@@ -215,23 +443,23 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let fontNode ent = unode "item" !
                            [("id", takeBaseName $ eRelativePath ent),
                             ("href", eRelativePath ent),
-                            ("media-type", maybe "" id $ getMimeType $ eRelativePath ent)] $ ()
-  let plainify t = trimr $
-                    writePlain opts'{ writerStandalone = False } $
-                    Pandoc meta [Plain t]
-  let plainTitle = plainify $ docTitle meta
-  let plainAuthors = map plainify $ docAuthors meta
+                            ("media-type", fromMaybe "" $ getMimeType $ eRelativePath ent)] $ ()
+  let plainTitle = case docTitle meta of
+                        [] -> case epubTitle metadata of
+                                   []   -> "UNTITLED"
+                                   (x:_) -> titleText x
+                        x  -> plainify x
+  let uuid = case epubIdentifier metadata of
+                  (x:_) -> identifierText x  -- use first identifier as UUID
+                  []    -> error "epubIdentifier is null"  -- shouldn't happen
   currentTime <- getCurrentTime
-  let plainDate = maybe (showDateTimeISO8601 currentTime) id
-                   $ normalizeDate $ stringify $ docDate meta
-  let contentsData = fromStringLazy $ ppTopElement $
+  let contentsData = UTF8.fromStringLazy $ ppTopElement $
         unode "package" ! [("version", case version of
                                              EPUB2 -> "2.0"
                                              EPUB3 -> "3.0")
                           ,("xmlns","http://www.idpf.org/2007/opf")
-                          ,("unique-identifier","BookId")] $
-          [ metadataElement version (writerEpubMetadata opts')
-              uuid lang plainTitle plainAuthors plainDate currentTime mbCoverImage
+                          ,("unique-identifier","epub-id-1")] $
+          [ metadataElement version metadata currentTime
           , unode "manifest" $
              [ unode "item" ! [("id","ncx"), ("href","toc.ncx")
                               ,("media-type","application/x-dtbncx+xml")] $ ()
@@ -243,10 +471,15 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                [("properties","nav") | epub3 ]) $ ()
              ] ++
              map chapterNode (cpgEntry ++ (tpEntry : chapterEntries)) ++
-             map pictureNode (cpicEntry ++ picEntries) ++
+             (case cpicEntry of
+                    []    -> []
+                    (x:_) -> [add_attrs
+                              [Attr (unqual "properties") "cover-image" | epub3]
+                              (pictureNode x)]) ++
+             map pictureNode picEntries ++
              map fontNode fontEntries
           , unode "spine" ! [("toc","ncx")] $
-              case mbCoverImage of
+              case epubCoverImage metadata of
                     Nothing -> []
                     Just _ -> [ unode "itemref" !
                                 [("idref", "cover"),("linear","no")] $ () ]
@@ -260,8 +493,13 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                                     else "no")] $ ()) :
                   map chapterRefNode chapterEntries)
           , unode "guide" $
-              unode "reference" !
-                [("type","toc"),("title",plainTitle),("href","nav.xhtml")] $ ()
+             [ unode "reference" !
+                   [("type","toc"),("title",plainTitle),
+                    ("href","nav.xhtml")] $ ()
+             ] ++
+             [ unode "reference" !
+                   [("type","cover"),("title","Cover"),("href","cover.xhtml")] $ () | epubCoverImage metadata /= Nothing
+             ]
           ]
   let contentsEntry = mkEntry "content.opf" contentsData
 
@@ -303,19 +541,19 @@ writeEPUB opts doc@(Pandoc meta _) = do
                   [ unode "navLabel" $ unode "text" (plainify $ docTitle meta)
                   , unode "content" ! [("src","title_page.xhtml")] $ () ]
 
-  let tocData = fromStringLazy $ ppTopElement $
+  let tocData = UTF8.fromStringLazy $ ppTopElement $
         unode "ncx" ! [("version","2005-1")
                        ,("xmlns","http://www.daisy.org/z3986/2005/ncx/")] $
           [ unode "head" $
              [ unode "meta" ! [("name","dtb:uid")
-                              ,("content", show uuid)] $ ()
+                              ,("content", uuid)] $ ()
              , unode "meta" ! [("name","dtb:depth")
                               ,("content", "1")] $ ()
              , unode "meta" ! [("name","dtb:totalPageCount")
                               ,("content", "0")] $ ()
              , unode "meta" ! [("name","dtb:maxPageNumber")
                               ,("content", "0")] $ ()
-             ] ++ case mbCoverImage of
+             ] ++ case epubCoverImage metadata of
                         Nothing  -> []
                         Just _   -> [unode "meta" ! [("name","cover"),
                                             ("content","cover-image")] $ ()]
@@ -335,7 +573,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                                  (_:_) -> [unode "ol" ! [("class","toc")] $ subs]
 
   let navtag = if epub3 then "nav" else "div"
-  let navData = fromStringLazy $ ppTopElement $
+  let navData = UTF8.fromStringLazy $ ppTopElement $
         unode "html" ! [("xmlns","http://www.w3.org/1999/xhtml")
                        ,("xmlns:epub","http://www.idpf.org/2007/ops")] $
           [ unode "head" $
@@ -349,10 +587,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let navEntry = mkEntry "nav.xhtml" navData
 
   -- mimetype
-  let mimetypeEntry = mkEntry "mimetype" $ fromStringLazy "application/epub+zip"
+  let mimetypeEntry = mkEntry "mimetype" $ UTF8.fromStringLazy "application/epub+zip"
 
   -- container.xml
-  let containerData = fromStringLazy $ ppTopElement $
+  let containerData = UTF8.fromStringLazy $ ppTopElement $
        unode "container" ! [("version","1.0")
               ,("xmlns","urn:oasis:names:tc:opendocument:xmlns:container")] $
          unode "rootfiles" $
@@ -361,18 +599,19 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let containerEntry = mkEntry "META-INF/container.xml" containerData
 
   -- com.apple.ibooks.display-options.xml
-  let apple = fromStringLazy $ ppTopElement $
+  let apple = UTF8.fromStringLazy $ ppTopElement $
         unode "display_options" $
           unode "platform" ! [("name","*")] $
             unode "option" ! [("name","specified-fonts")] $ "true"
   let appleEntry = mkEntry "META-INF/com.apple.ibooks.display-options.xml" apple
 
   -- stylesheet
-  stylesheet <- case writerEpubStylesheet opts of
-                   Just s  -> return s
-                   Nothing -> toString `fmap`
+  stylesheet <- case epubStylesheet metadata of
+                   Just (StylesheetPath fp)    -> UTF8.readFile fp
+                   Just (StylesheetContents s) -> return s
+                   Nothing -> UTF8.toString `fmap`
                               readDataFile (writerUserDataDir opts) "epub.css"
-  let stylesheetEntry = mkEntry "stylesheet.css" $ fromStringLazy stylesheet
+  let stylesheetEntry = mkEntry "stylesheet.css" $ UTF8.fromStringLazy stylesheet
 
   -- construct archive
   let archive = foldr addEntryToArchive emptyArchive
@@ -381,33 +620,97 @@ writeEPUB opts doc@(Pandoc meta _) = do
                   (picEntries ++ cpicEntry ++ cpgEntry ++ chapterEntries ++ fontEntries))
   return $ fromArchive archive
 
-metadataElement :: EPUBVersion -> String -> UUID -> String -> String -> [String]
-                -> String -> UTCTime -> Maybe a -> Element
-metadataElement version metadataXML uuid lang title authors date currentTime mbCoverImage =
-  let userNodes = parseXML metadataXML
-      elt = unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
-                               ,("xmlns:opf","http://www.idpf.org/2007/opf")] $
-            filter isMetadataElement $ onlyElems userNodes
-      dublinElements = ["contributor","coverage","creator","date",
-            "description","format","identifier","language","publisher",
-            "relation","rights","source","subject","title","type"]
-      isMetadataElement e = (qPrefix (elName e) == Just "dc" &&
-                             qName (elName e) `elem` dublinElements) ||
-                            (qPrefix (elName e) == Nothing &&
-                             qName (elName e) `elem` ["link","meta"])
-      contains e n = not (null (findElements (QName n Nothing (Just "dc")) e))
-      newNodes = [ unode "dc:title" title | not (elt `contains` "title") ] ++
-           [ unode "dc:language" lang | not (elt `contains` "language") ] ++
-           [ unode "dc:identifier" ! [("id","BookId")] $ show uuid |
-               not (elt `contains` "identifier") ] ++
-           [ unode "dc:creator" ! [("opf:role","aut") | version == EPUB2]
-                     $ a | a <- authors, not (elt `contains` "creator") ] ++
-           [ unode "dc:date" date | not (elt `contains` "date") ] ++
-           [ unode "meta" ! [("property", "dcterms:modified")] $
-               (showDateTimeISO8601 currentTime) | version == EPUB3] ++
-           [ unode "meta" ! [("name","cover"), ("content","cover-image")] $ () |
-               not (isNothing mbCoverImage) ]
-  in  elt{ elContent = elContent elt ++ map Elem newNodes }
+metadataElement :: EPUBVersion -> EPUBMetadata -> UTCTime -> Element
+metadataElement version md currentTime =
+  unode "metadata" ! [("xmlns:dc","http://purl.org/dc/elements/1.1/")
+                     ,("xmlns:opf","http://www.idpf.org/2007/opf")] $ mdNodes
+  where mdNodes = identifierNodes ++ titleNodes ++ dateNodes ++ languageNodes
+                  ++ creatorNodes ++ contributorNodes ++ subjectNodes
+                  ++ descriptionNodes ++ typeNodes ++ formatNodes
+                  ++ publisherNodes ++ sourceNodes ++ relationNodes
+                  ++ coverageNodes ++ rightsNodes ++ coverImageNodes
+                  ++ modifiedNodes
+        withIds base f = concat . zipWith f (map (\x -> base ++ ('-' : show x))
+                         ([1..] :: [Int]))
+        identifierNodes = withIds "epub-id" toIdentifierNode $
+                          epubIdentifier md
+        titleNodes = withIds "epub-title" toTitleNode $ epubTitle md
+        dateNodes = dcTag' "date" $ epubDate md
+        languageNodes = [dcTag "language" $ epubLanguage md]
+        creatorNodes = withIds "epub-creator" (toCreatorNode "creator") $
+                       epubCreator md
+        contributorNodes = withIds "epub-contributor"
+                           (toCreatorNode "contributor") $ epubContributor md
+        subjectNodes = map (dcTag "subject") $ epubSubject md
+        descriptionNodes = maybe [] (dcTag' "description") $ epubDescription md
+        typeNodes = maybe [] (dcTag' "type") $ epubType md
+        formatNodes = maybe [] (dcTag' "format") $ epubFormat md
+        publisherNodes = maybe [] (dcTag' "publisher") $ epubPublisher md
+        sourceNodes = maybe [] (dcTag' "source") $ epubSource md
+        relationNodes = maybe [] (dcTag' "relation") $ epubRelation md
+        coverageNodes = maybe [] (dcTag' "coverage") $ epubCoverage md
+        rightsNodes = maybe [] (dcTag' "rights") $ epubRights md
+        coverImageNodes = maybe []
+            (const $ [unode "meta" !  [("name","cover"),
+                                       ("content","cover-image")] $ ()])
+            $ epubCoverImage md
+        modifiedNodes = [ unode "meta" ! [("property", "dcterms:modified")] $
+               (showDateTimeISO8601 currentTime) | version == EPUB3 ]
+        dcTag n s = unode ("dc:" ++ n) s
+        dcTag' n s = [dcTag n s]
+        toIdentifierNode id' (Identifier txt scheme)
+          | version == EPUB2 = [dcNode "identifier" !
+              ([("id",id')] ++ maybe [] (\x -> [("opf:scheme", x)]) scheme) $
+              txt]
+          | otherwise = [dcNode "identifier" ! [("id",id')] $ txt] ++
+              maybe [] (\x -> [unode "meta" !
+                  [("refines",'#':id'),("property","identifier-type"),
+                   ("scheme","onix:codelist5")] $ x])
+                (schemeToOnix `fmap` scheme)
+        toCreatorNode s id' creator
+          | version == EPUB2 = [dcNode s !
+             ([("id",id')] ++
+              maybe [] (\x -> [("opf:file-as",x)]) (creatorFileAs creator) ++
+              maybe [] (\x -> [("opf:role",x)])
+               (creatorRole creator >>= toRelator)) $ creatorText creator]
+          | otherwise = [dcNode s ! [("id",id')] $ creatorText creator] ++
+              maybe [] (\x -> [unode "meta" !
+                   [("refines",'#':id'),("property","file-as")] $ x])
+                   (creatorFileAs creator) ++
+              maybe [] (\x -> [unode "meta" !
+                   [("refines",'#':id'),("property","role"),
+                     ("scheme","marc:relators")] $ x])
+                   (creatorRole creator >>= toRelator)
+        toTitleNode id' title
+          | version == EPUB2 = [dcNode "title" !
+             ([("id",id')] ++
+              maybe [] (\x -> [("opf:file-as",x)]) (titleFileAs title) ++
+              maybe [] (\x -> [("opf:title-type",x)]) (titleType title)) $
+              titleText title]
+          | otherwise = [dcNode "title" ! [("id",id')] $ titleText title]
+              ++
+              maybe [] (\x -> [unode "meta" !
+                   [("refines",'#':id'),("property","file-as")] $ x])
+                   (titleFileAs title) ++
+              maybe [] (\x -> [unode "meta" !
+                   [("refines",'#':id'),("property","title-type")] $ x])
+                   (titleType title)
+        schemeToOnix "ISBN-10" = "02"
+        schemeToOnix "GTIN-13" = "03"
+        schemeToOnix "UPC"     = "04"
+        schemeToOnix "ISMN-10" = "05"
+        schemeToOnix "DOI"     = "06"
+        schemeToOnix "LCCN"    = "13"
+        schemeToOnix "GTIN-14" = "14"
+        schemeToOnix "ISBN-13" = "15"
+        schemeToOnix "Legal deposit number" = "17"
+        schemeToOnix "URN"     = "22"
+        schemeToOnix "OCLC"    = "23"
+        schemeToOnix "ISMN-13" = "25"
+        schemeToOnix "ISBN-A"  = "26"
+        schemeToOnix "JP"      = "27"
+        schemeToOnix "OLCC"    = "28"
+        schemeToOnix _         = "01"
 
 showDateTimeISO8601 :: UTCTime -> String
 showDateTimeISO8601 = formatTime defaultTimeLocale "%FT%TZ"
@@ -457,15 +760,9 @@ ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . unEntity . 
         unEntity (x:xs) = x : unEntity xs
 
 imageTypeOf :: FilePath -> Maybe String
-imageTypeOf x = case drop 1 (map toLower (takeExtension x)) of
-                     "jpg"       -> Just "image/jpeg"
-                     "jpeg"      -> Just "image/jpeg"
-                     "jfif"      -> Just "image/jpeg"
-                     "png"       -> Just "image/png"
-                     "gif"       -> Just "image/gif"
-                     "svg"       -> Just "image/svg+xml"
-                     _           -> Nothing
-
+imageTypeOf x = case getMimeType x of
+                     Just y@('i':'m':'a':'g':'e':_) -> Just y
+                     _                              -> Nothing
 
 data IdentState = IdentState{
        chapterNumber :: Int,
@@ -519,3 +816,287 @@ replaceRefs refTable = walk replaceOneRef
                 Just url -> Link lab (url,tit)
                 Nothing  -> x
         replaceOneRef x = x
+
+-- Variant of normalizeDate that allows partial dates: YYYY, YYYY-MM
+normalizeDate' :: String -> Maybe String
+normalizeDate' xs =
+  let xs' = trim xs in
+  case xs' of
+       [y1,y2,y3,y4] | all isDigit [y1,y2,y3,y4] -> Just xs'     -- YYYY
+       [y1,y2,y3,y4,'-',m1,m2] | all isDigit [y1,y2,y3,y4,m1,m2]  -- YYYY-MM
+                                                 -> Just xs'
+       _                                         -> normalizeDate xs'
+
+toRelator :: String -> Maybe String
+toRelator x
+  | x `elem` relators = Just x
+  | otherwise         = lookup (map toLower x) relatorMap
+
+relators :: [String]
+relators = map snd relatorMap
+
+relatorMap :: [(String, String)]
+relatorMap =
+           [("abridger", "abr")
+           ,("actor", "act")
+           ,("adapter", "adp")
+           ,("addressee", "rcp")
+           ,("analyst", "anl")
+           ,("animator", "anm")
+           ,("annotator", "ann")
+           ,("appellant", "apl")
+           ,("appellee", "ape")
+           ,("applicant", "app")
+           ,("architect", "arc")
+           ,("arranger", "arr")
+           ,("art copyist", "acp")
+           ,("art director", "adi")
+           ,("artist", "art")
+           ,("artistic director", "ard")
+           ,("assignee", "asg")
+           ,("associated name", "asn")
+           ,("attributed name", "att")
+           ,("auctioneer", "auc")
+           ,("author", "aut")
+           ,("author in quotations or text abstracts", "aqt")
+           ,("author of afterword, colophon, etc.", "aft")
+           ,("author of dialog", "aud")
+           ,("author of introduction, etc.", "aui")
+           ,("autographer", "ato")
+           ,("bibliographic antecedent", "ant")
+           ,("binder", "bnd")
+           ,("binding designer", "bdd")
+           ,("blurb writer", "blw")
+           ,("book designer", "bkd")
+           ,("book producer", "bkp")
+           ,("bookjacket designer", "bjd")
+           ,("bookplate designer", "bpd")
+           ,("bookseller", "bsl")
+           ,("braille embosser", "brl")
+           ,("broadcaster", "brd")
+           ,("calligrapher", "cll")
+           ,("cartographer", "ctg")
+           ,("caster", "cas")
+           ,("censor", "cns")
+           ,("choreographer", "chr")
+           ,("cinematographer", "cng")
+           ,("client", "cli")
+           ,("collection registrar", "cor")
+           ,("collector", "col")
+           ,("collotyper", "clt")
+           ,("colorist", "clr")
+           ,("commentator", "cmm")
+           ,("commentator for written text", "cwt")
+           ,("compiler", "com")
+           ,("complainant", "cpl")
+           ,("complainant-appellant", "cpt")
+           ,("complainant-appellee", "cpe")
+           ,("composer", "cmp")
+           ,("compositor", "cmt")
+           ,("conceptor", "ccp")
+           ,("conductor", "cnd")
+           ,("conservator", "con")
+           ,("consultant", "csl")
+           ,("consultant to a project", "csp")
+           ,("contestant", "cos")
+           ,("contestant-appellant", "cot")
+           ,("contestant-appellee", "coe")
+           ,("contestee", "cts")
+           ,("contestee-appellant", "ctt")
+           ,("contestee-appellee", "cte")
+           ,("contractor", "ctr")
+           ,("contributor", "ctb")
+           ,("copyright claimant", "cpc")
+           ,("copyright holder", "cph")
+           ,("corrector", "crr")
+           ,("correspondent", "crp")
+           ,("costume designer", "cst")
+           ,("court governed", "cou")
+           ,("court reporter", "crt")
+           ,("cover designer", "cov")
+           ,("creator", "cre")
+           ,("curator", "cur")
+           ,("dancer", "dnc")
+           ,("data contributor", "dtc")
+           ,("data manager", "dtm")
+           ,("dedicatee", "dte")
+           ,("dedicator", "dto")
+           ,("defendant", "dfd")
+           ,("defendant-appellant", "dft")
+           ,("defendant-appellee", "dfe")
+           ,("degree granting institution", "dgg")
+           ,("delineator", "dln")
+           ,("depicted", "dpc")
+           ,("depositor", "dpt")
+           ,("designer", "dsr")
+           ,("director", "drt")
+           ,("dissertant", "dis")
+           ,("distribution place", "dbp")
+           ,("distributor", "dst")
+           ,("donor", "dnr")
+           ,("draftsman", "drm")
+           ,("dubious author", "dub")
+           ,("editor", "edt")
+           ,("editor of compilation", "edc")
+           ,("editor of moving image work", "edm")
+           ,("electrician", "elg")
+           ,("electrotyper", "elt")
+           ,("enacting jurisdiction", "enj")
+           ,("engineer", "eng")
+           ,("engraver", "egr")
+           ,("etcher", "etr")
+           ,("event place", "evp")
+           ,("expert", "exp")
+           ,("facsimilist", "fac")
+           ,("field director", "fld")
+           ,("film director", "fmd")
+           ,("film distributor", "fds")
+           ,("film editor", "flm")
+           ,("film producer", "fmp")
+           ,("filmmaker", "fmk")
+           ,("first party", "fpy")
+           ,("forger", "frg")
+           ,("former owner", "fmo")
+           ,("funder", "fnd")
+           ,("geographic information specialist", "gis")
+           ,("honoree", "hnr")
+           ,("host", "hst")
+           ,("host institution", "his")
+           ,("illuminator", "ilu")
+           ,("illustrator", "ill")
+           ,("inscriber", "ins")
+           ,("instrumentalist", "itr")
+           ,("interviewee", "ive")
+           ,("interviewer", "ivr")
+           ,("inventor", "inv")
+           ,("issuing body", "isb")
+           ,("judge", "jud")
+           ,("jurisdiction governed", "jug")
+           ,("laboratory", "lbr")
+           ,("laboratory director", "ldr")
+           ,("landscape architect", "lsa")
+           ,("lead", "led")
+           ,("lender", "len")
+           ,("libelant", "lil")
+           ,("libelant-appellant", "lit")
+           ,("libelant-appellee", "lie")
+           ,("libelee", "lel")
+           ,("libelee-appellant", "let")
+           ,("libelee-appellee", "lee")
+           ,("librettist", "lbt")
+           ,("licensee", "lse")
+           ,("licensor", "lso")
+           ,("lighting designer", "lgd")
+           ,("lithographer", "ltg")
+           ,("lyricist", "lyr")
+           ,("manufacture place", "mfp")
+           ,("manufacturer", "mfr")
+           ,("marbler", "mrb")
+           ,("markup editor", "mrk")
+           ,("metadata contact", "mdc")
+           ,("metal-engraver", "mte")
+           ,("moderator", "mod")
+           ,("monitor", "mon")
+           ,("music copyist", "mcp")
+           ,("musical director", "msd")
+           ,("musician", "mus")
+           ,("narrator", "nrt")
+           ,("onscreen presenter", "osp")
+           ,("opponent", "opn")
+           ,("organizer of meeting", "orm")
+           ,("originator", "org")
+           ,("other", "oth")
+           ,("owner", "own")
+           ,("panelist", "pan")
+           ,("papermaker", "ppm")
+           ,("patent applicant", "pta")
+           ,("patent holder", "pth")
+           ,("patron", "pat")
+           ,("performer", "prf")
+           ,("permitting agency", "pma")
+           ,("photographer", "pht")
+           ,("plaintiff", "ptf")
+           ,("plaintiff-appellant", "ptt")
+           ,("plaintiff-appellee", "pte")
+           ,("platemaker", "plt")
+           ,("praeses", "pra")
+           ,("presenter", "pre")
+           ,("printer", "prt")
+           ,("printer of plates", "pop")
+           ,("printmaker", "prm")
+           ,("process contact", "prc")
+           ,("producer", "pro")
+           ,("production company", "prn")
+           ,("production designer", "prs")
+           ,("production manager", "pmn")
+           ,("production personnel", "prd")
+           ,("production place", "prp")
+           ,("programmer", "prg")
+           ,("project director", "pdr")
+           ,("proofreader", "pfr")
+           ,("provider", "prv")
+           ,("publication place", "pup")
+           ,("publisher", "pbl")
+           ,("publishing director", "pbd")
+           ,("puppeteer", "ppt")
+           ,("radio director", "rdd")
+           ,("radio producer", "rpc")
+           ,("recording engineer", "rce")
+           ,("recordist", "rcd")
+           ,("redaktor", "red")
+           ,("renderer", "ren")
+           ,("reporter", "rpt")
+           ,("repository", "rps")
+           ,("research team head", "rth")
+           ,("research team member", "rtm")
+           ,("researcher", "res")
+           ,("respondent", "rsp")
+           ,("respondent-appellant", "rst")
+           ,("respondent-appellee", "rse")
+           ,("responsible party", "rpy")
+           ,("restager", "rsg")
+           ,("restorationist", "rsr")
+           ,("reviewer", "rev")
+           ,("rubricator", "rbr")
+           ,("scenarist", "sce")
+           ,("scientific advisor", "sad")
+           ,("screenwriter", "aus")
+           ,("scribe", "scr")
+           ,("sculptor", "scl")
+           ,("second party", "spy")
+           ,("secretary", "sec")
+           ,("seller", "sll")
+           ,("set designer", "std")
+           ,("setting", "stg")
+           ,("signer", "sgn")
+           ,("singer", "sng")
+           ,("sound designer", "sds")
+           ,("speaker", "spk")
+           ,("sponsor", "spn")
+           ,("stage director", "sgd")
+           ,("stage manager", "stm")
+           ,("standards body", "stn")
+           ,("stereotyper", "str")
+           ,("storyteller", "stl")
+           ,("supporting host", "sht")
+           ,("surveyor", "srv")
+           ,("teacher", "tch")
+           ,("technical director", "tcd")
+           ,("television director", "tld")
+           ,("television producer", "tlp")
+           ,("thesis advisor", "ths")
+           ,("transcriber", "trc")
+           ,("translator", "trl")
+           ,("type designer", "tyd")
+           ,("typographer", "tyg")
+           ,("university place", "uvp")
+           ,("videographer", "vdg")
+           ,("witness", "wit")
+           ,("wood engraver", "wde")
+           ,("woodcutter", "wdc")
+           ,("writer of accompanying material", "wam")
+           ,("writer of added commentary", "wac")
+           ,("writer of added lyrics", "wal")
+           ,("writer of added text", "wat")
+           ]
+

@@ -232,11 +232,11 @@ ends the list.
   <li>list item A2</li>
 </ol>
 
-<ul>
+<ol>
 #abc
 #def
 #ghi
-</ul>
+</ol>
 
 <ol start="9">
 <li>Amsterdam</li>

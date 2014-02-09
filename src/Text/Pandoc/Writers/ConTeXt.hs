@@ -130,7 +130,7 @@ blockToConTeXt (Plain lst) = inlineListToConTeXt lst
 -- title beginning with fig: indicates that the image is a figure
 blockToConTeXt (Para [Image txt (src,'f':'i':'g':':':_)]) = do
   capt <- inlineListToConTeXt txt
-  return $ blankline $$ "\\placefigure[here,nonumber]" <> braces capt <>
+  return $ blankline $$ "\\placefigure" <> braces capt <>
            braces ("\\externalfigure" <> brackets (text src)) <> blankline
 blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
@@ -205,9 +205,9 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
                   else liftM ($$ "\\HL") $ tableRowToConTeXt heads
     captionText <- inlineListToConTeXt caption
     rows' <- mapM tableRowToConTeXt rows
-    return $ "\\placetable" <> brackets ("here" <> if null caption
-                                                      then ",none"
-                                                      else "")
+    return $ "\\placetable" <> (if null caption
+                                   then brackets "none"
+                                   else empty)
                             <> braces captionText $$
              "\\starttable" <> brackets (text colDescriptors) $$
              "\\HL" $$ headers $$

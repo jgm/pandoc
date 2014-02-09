@@ -136,6 +136,11 @@ tests = [ testGroup "inline code"
             "`*` {.haskell .special x=\"7\"}"
             =?> para (codeWith ("",["haskell","special"],[("x","7")]) "*")
           ]
+        , testGroup "emph and strong"
+          [ "two strongs in emph" =:
+             "***a**b **c**d*" =?> para (emph (strong (str "a") <> str "b" <> space
+                                         <> strong (str "c") <> str "d"))
+          ]
         , testGroup "raw LaTeX"
           [ "in URL" =:
             "\\begin\n" =?> para (text "\\begin")
@@ -166,13 +171,13 @@ tests = [ testGroup "inline code"
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
             ("'...hi'"
-            =?> para (singleQuoted ("…hi")))
+            =?> para (singleQuoted "…hi"))
           , test markdownSmart "apostrophe before emph"
             ("D'oh! A l'*aide*!"
             =?> para ("D’oh! A l’" <> emph "aide" <> "!"))
           , test markdownSmart "apostrophe in French"
             ("À l'arrivée de la guerre, le thème de l'«impossibilité du socialisme»"
-            =?> para ("À l’arrivée de la guerre, le thème de l’«impossibilité du socialisme»"))
+            =?> para "À l’arrivée de la guerre, le thème de l’«impossibilité du socialisme»")
           ]
         , testGroup "mixed emphasis and strong"
           [ "emph and strong emph alternating" =:

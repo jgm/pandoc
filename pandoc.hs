@@ -35,7 +35,8 @@ import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
-                            safeRead, headerShift, normalize, err, warn )
+                            safeRead, headerShift, normalize, err, warn,
+                            openURL )
 import Text.Pandoc.XML ( toEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Process (pipeProcess)
@@ -55,7 +56,6 @@ import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad (when, unless, liftM)
 import Data.Foldable (foldrM)
-import Network.HTTP (simpleHTTP, mkRequest, getResponseBody, RequestMethod(..))
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString as BS
@@ -656,7 +656,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      let b = takeBaseName arg
-                     if (b == "pdflatex" || b == "lualatex" || b == "xelatex")
+                     if b `elem` ["pdflatex", "lualatex", "xelatex"]
                         then return opt { optLaTeXEngine = arg }
                         else err 45 "latex-engine must be pdflatex, lualatex, or xelatex.")
                   "PROGRAM")
@@ -667,6 +667,9 @@ options =
                   (\arg opt -> return opt{ optMetadata = addMetadata
                                              "bibliography" (readMetaValue arg)
                                              $ optMetadata opt
+                                         , optVariables =
+                                            ("biblio-files", dropExtension arg) :
+                                            optVariables opt
                                          })
                    "FILE")
                  ""
@@ -958,7 +961,9 @@ main = do
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
   let filters' = case M.lookup "bibliography" metadata of
-                       Just _ | all (\f -> takeBaseName f /= "pandoc-citeproc")
+                       Just _ | optCiteMethod opts /= Natbib &&
+                                optCiteMethod opts /= Biblatex &&
+                                all (\f -> takeBaseName f /= "pandoc-citeproc")
                                 filters -> "pandoc-citeproc" : filters
                        _                -> filters
   let plugins = map externalFilter filters'
@@ -982,7 +987,10 @@ main = do
 
   let writerName' = if null writerName
                       then defaultWriterName outputFile
-                      else writerName
+                      else case writerName of
+                                "epub2"   -> "epub"
+                                "html4"   -> "html"
+                                x         -> x
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
@@ -1031,12 +1039,10 @@ main = do
 
   variables' <- case mathMethod of
                       LaTeXMathML Nothing -> do
-                         s <- readDataFileUTF8 datadir
-                                 ("LaTeXMathML.js")
+                         s <- readDataFileUTF8 datadir "LaTeXMathML.js"
                          return $ ("mathml-script", s) : variables
                       MathML Nothing -> do
-                         s <- readDataFileUTF8 datadir
-                                 ("MathMLinHTML.js")
+                         s <- readDataFileUTF8 datadir "MathMLinHTML.js"
                          return $ ("mathml-script", s) : variables
                       _ -> return variables
 
@@ -1117,10 +1123,13 @@ main = do
       readSource "-" = UTF8.getContents
       readSource src = case parseURI src of
                             Just u | uriScheme u `elem` ["http:","https:"] ->
-                                       readURI u
+                                       readURI src
                             _       -> UTF8.readFile src
-      readURI uri = simpleHTTP (mkRequest GET uri) >>= getResponseBody >>=
-                      return . UTF8.toStringLazy  -- treat all as UTF8
+      readURI src = do
+        res <- openURL src
+        case res of
+             Left e        -> throwIO e
+             Right (bs,_)  -> return $ UTF8.toString bs
 
   let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
 

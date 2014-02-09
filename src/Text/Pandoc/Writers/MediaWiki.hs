@@ -51,7 +51,7 @@ data WriterState = WriterState {
 writeMediaWiki :: WriterOptions -> Pandoc -> String
 writeMediaWiki opts document =
   evalState (pandocToMediaWiki opts document)
-            (WriterState { stNotes = False, stListLevel = [], stUseTags = False })
+            WriterState { stNotes = False, stListLevel = [], stUseTags = False }
 
 -- | Return MediaWiki representation of document.
 pandocToMediaWiki :: WriterOptions -> Pandoc -> State WriterState String

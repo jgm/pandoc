@@ -338,7 +338,7 @@ blockToMarkdown opts (RawBlock f str)
        else return $ if isEnabled Ext_markdown_attribute opts
                         then text (addMarkdownAttribute str) <> text "\n"
                         else text str <> text "\n"
-  | f == "latex" || f == "tex" || f == "markdown" = do
+  | f `elem` ["latex", "tex", "markdown"] = do
     st <- get
     if stPlain st
        then return empty
@@ -381,13 +381,11 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str)
     isEnabled Ext_literate_haskell opts =
   return $ prefixed "> " (text str) <> blankline
 blockToMarkdown opts (CodeBlock attribs str) = return $
-  case attribs of
-     x | x /= nullAttr && isEnabled Ext_fenced_code_blocks opts ->
-          tildes <> " " <> attrs <> cr <> text str <>
-           cr <> tildes <> blankline
-     (_,(cls:_),_) | isEnabled Ext_backtick_code_blocks opts ->
-          backticks <> " " <> text cls <> cr <> text str <>
-           cr <> backticks <> blankline
+  case attribs == nullAttr of
+     False | isEnabled Ext_backtick_code_blocks opts ->
+          backticks <> attrs <> cr <> text str <> cr <> backticks <> blankline
+           | isEnabled Ext_fenced_code_blocks opts ->
+          tildes <> attrs <> cr <> text str <> cr <> tildes <> blankline
      _ -> nest (writerTabStop opts) (text str) <> blankline
    where tildes    = text $ case [ln | ln <- lines str, all (=='~') ln] of
                                [] -> "~~~~"
@@ -396,8 +394,10 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
                                             | otherwise -> replicate (n+1) '~'
          backticks = text "```"
          attrs  = if isEnabled Ext_fenced_code_attributes opts
-                     then nowrap $ attrsToMarkdown attribs
-                     else empty
+                     then nowrap $ " " <> attrsToMarkdown attribs
+                     else case attribs of
+                                (_,[cls],_) -> " " <> text cls
+                                _           -> empty
 blockToMarkdown opts (BlockQuote blocks) = do
   st <- get
   -- if we're writing literate haskell, put a space before the bird tracks
@@ -555,7 +555,14 @@ bulletListItemToMarkdown opts items = do
   contents <- blockListToMarkdown opts items
   let sps = replicate (writerTabStop opts - 2) ' '
   let start = text ('-' : ' ' : sps)
-  return $ hang (writerTabStop opts) start $ contents <> cr
+  -- remove trailing blank line if it is a tight list
+  let contents' = case reverse items of
+                       (BulletList xs:_) | isTightList xs ->
+                            chomp contents <> cr
+                       (OrderedList _ xs:_) | isTightList xs ->
+                            chomp contents <> cr
+                       _ -> contents
+  return $ hang (writerTabStop opts) start $ contents' <> cr
 
 -- | Convert ordered list item (a list of blocks) to markdown.
 orderedListItemToMarkdown :: WriterOptions -- ^ options
@@ -621,10 +628,11 @@ getReference label (src, tit) = do
     Nothing       -> do
       let label' = case find ((== label) . fst) (stRefs st) of
                       Just _ -> -- label is used; generate numerical label
-                                 case find (\n -> not (any (== [Str (show n)])
-                                           (map fst (stRefs st)))) [1..(10000 :: Integer)] of
-                                      Just x  -> [Str (show x)]
-                                      Nothing -> error "no unique label"
+                             case find (\n -> notElem [Str (show n)]
+                                                      (map fst (stRefs st)))
+                                       [1..(10000 :: Integer)] of
+                                  Just x  -> [Str (show x)]
+                                  Nothing -> error "no unique label"
                       Nothing -> label
       modify (\s -> s{ stRefs = (label', (src,tit)) : stRefs st })
       return label'

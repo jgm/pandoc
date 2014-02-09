@@ -38,7 +38,8 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding ((<|>), many, optional, space)
+import Text.Pandoc.Parsing hiding ((<|>), many, optional, space,
+                                   mathDisplay, mathInline)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
 import Control.Monad
@@ -163,13 +164,25 @@ mathChars = concat <$>
       <|> (\c -> ['\\',c]) <$> (try $ char '\\' *> anyChar)
        )
 
+quoted' :: (Inlines -> Inlines) -> LP String -> LP () -> LP Inlines
+quoted' f starter ender = do
+  startchs <- starter
+  try ((f . mconcat) <$> manyTill inline ender) <|> lit startchs
+
 double_quote :: LP Inlines
-double_quote = (doubleQuoted . mconcat) <$>
-  (try $ string "``" *> manyTill inline (try $ string "''"))
+double_quote =
+  (   quoted' doubleQuoted (try $ string "``") (void $ try $ string "''")
+  <|> quoted' doubleQuoted (string "“")        (void $ char '”')
+  -- the following is used by babel for localized quotes:
+  <|> quoted' doubleQuoted (try $ string "\"`") (void $ try $ string "\"'")
+  <|> quoted' doubleQuoted (string "\"")       (void $ char '"')
+  )
 
 single_quote :: LP Inlines
-single_quote = (singleQuoted . mconcat) <$>
-  (try $ char '`' *> manyTill inline (try $ char '\'' >> notFollowedBy letter))
+single_quote =
+  (  quoted' singleQuoted (string "`") (try $ char '\'' >> notFollowedBy letter)
+  <|> quoted' singleQuoted (string "‘") (try $ char '’' >> notFollowedBy letter)
+  )
 
 inline :: LP Inlines
 inline = (mempty <$ comment)
@@ -181,10 +194,10 @@ inline = (mempty <$ comment)
            ((char '-') *> option (str "–") (str "—" <$ char '-')))
      <|> double_quote
      <|> single_quote
-     <|> (str "“" <$ try (string "``"))  -- nb. {``} won't be caught by double_quote
      <|> (str "”" <$ try (string "''"))
-     <|> (str "‘" <$ char '`')           -- nb. {`} won't be caught by single_quote
+     <|> (str "”" <$ char '”')
      <|> (str "’" <$ char '\'')
+     <|> (str "’" <$ char '’')
      <|> (str "\160" <$ char '~')
      <|> (mathDisplay $ string "$$" *> mathChars <* string "$$")
      <|> (mathInline  $ char '$' *> mathChars <* char '$')
@@ -373,6 +386,7 @@ inlineCommands = M.fromList $
   , ("backslash", lit "\\")
   , ("slash", lit "/")
   , ("textbf", strong <$> tok)
+  , ("textnormal", spanWith ("",["nodecor"],[]) <$> tok)
   , ("ldots", lit "…")
   , ("dots", lit "…")
   , ("mdots", lit "…")
@@ -443,6 +457,7 @@ inlineCommands = M.fromList $
   , ("footnote", (note . mconcat) <$> (char '{' *> manyTill block (char '}')))
   , ("verb", doverb)
   , ("lstinline", doverb)
+  , ("Verb", doverb)
   , ("texttt", (code . stringify . toList) <$> tok)
   , ("url", (unescapeURL <$> braced) >>= \url ->
        pure (link url "" (str url)))
@@ -754,7 +769,7 @@ inlineText :: LP Inlines
 inlineText = str <$> many1 inlineChar
 
 inlineChar :: LP Char
-inlineChar = noneOf "\\$%^_&~#{}^'`-[] \t\n"
+inlineChar = noneOf "\\$%^_&~#{}^'`\"‘’“”-[] \t\n"
 
 environment :: LP Blocks
 environment = do
@@ -859,9 +874,8 @@ verbatimEnv = do
   (_,r) <- withRaw $ do
              controlSeq "begin"
              name <- braced
-             guard $ name == "verbatim" || name == "Verbatim" ||
-                     name == "lstlisting" || name == "minted" ||
-                     name == "alltt"
+             guard $ name `elem` ["verbatim", "Verbatim", "lstlisting",
+                                  "minted", "alltt"]
              verbEnv name
   rest <- getInput
   return (r,rest)

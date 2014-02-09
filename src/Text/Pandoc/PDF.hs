@@ -41,6 +41,7 @@ import System.Directory
 import System.Environment
 import Control.Monad (unless)
 import Data.List (isInfixOf)
+import Data.Maybe (fromMaybe)
 import qualified Data.ByteString.Base64 as B64
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
@@ -87,7 +88,7 @@ handleImage' baseURL tmpdir (Image ils (src,tit)) = do
          res <- fetchItem baseURL src
          case res of
               Right (contents, Just mime) -> do
-                let ext = maybe (takeExtension src) id $
+                let ext = fromMaybe (takeExtension src) $
                           extensionFromMimeType mime
                 let basename = UTF8.toString $ B64.encode $ UTF8.fromString src
                 let fname = tmpdir </> basename <.> ext

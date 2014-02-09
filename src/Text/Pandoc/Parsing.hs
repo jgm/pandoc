@@ -1,4 +1,5 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, TypeSynonymInstances,
+    FlexibleInstances#-}
 {-
 Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
 
@@ -47,6 +48,8 @@ module Text.Pandoc.Parsing ( (>>~),
                              romanNumeral,
                              emailAddress,
                              uri,
+                             mathInline,
+                             mathDisplay,
                              withHorizDisplacement,
                              withRaw,
                              escaped,
@@ -65,6 +68,9 @@ module Text.Pandoc.Parsing ( (>>~),
                              guardEnabled,
                              guardDisabled,
                              ParserState (..),
+                             HasReaderOptions (..),
+                             HasHeaderMap (..),
+                             HasIdentifierList (..),
                              defaultParserState,
                              HeaderType (..),
                              ParserContext (..),
@@ -265,7 +271,7 @@ spaceChar = satisfy $ \c -> c == ' ' || c == '\t'
 
 -- | Parses a nonspace, nonnewline character.
 nonspaceChar :: Parser [Char] st Char
-nonspaceChar = satisfy $ \x -> x /= '\t' && x /= '\n' && x /= ' ' && x /= '\r'
+nonspaceChar = satisfy $ flip notElem ['\t', '\n', ' ', '\r']
 
 -- | Skips zero or more spaces or tabs.
 skipSpaces :: Parser [Char] st ()
@@ -450,6 +456,39 @@ uri = try $ do
   str' <- option str $ char '/' >> return (str ++ "/")
   let uri' = scheme ++ ":" ++ fromEntities str'
   return (uri', escapeURI uri')
+
+mathInlineWith :: String -> String -> Parser [Char] st String
+mathInlineWith op cl = try $ do
+  string op
+  notFollowedBy space
+  words' <- many1Till (count 1 (noneOf "\n\\")
+                   <|> (char '\\' >> anyChar >>= \c -> return ['\\',c])
+                   <|> count 1 newline <* notFollowedBy' blankline
+                       *> return " ")
+              (try $ string cl)
+  notFollowedBy digit  -- to prevent capture of $5
+  return $ concat words'
+
+mathDisplayWith :: String -> String -> Parser [Char] st String
+mathDisplayWith op cl = try $ do
+  string op
+  many1Till (noneOf "\n" <|> (newline >>~ notFollowedBy' blankline)) (try $ string cl)
+
+mathDisplay :: Parser [Char] ParserState String
+mathDisplay =
+      (guardEnabled Ext_tex_math_dollars >> mathDisplayWith "$$" "$$")
+  <|> (guardEnabled Ext_tex_math_single_backslash >>
+       mathDisplayWith "\\[" "\\]")
+  <|> (guardEnabled Ext_tex_math_double_backslash >>
+       mathDisplayWith "\\\\[" "\\\\]")
+
+mathInline :: Parser [Char] ParserState String
+mathInline =
+      (guardEnabled Ext_tex_math_dollars >> mathInlineWith "$" "$")
+  <|> (guardEnabled Ext_tex_math_single_backslash >>
+       mathInlineWith "\\(" "\\)")
+  <|> (guardEnabled Ext_tex_math_double_backslash >>
+       mathInlineWith "\\\\(" "\\\\)")
 
 -- | Applies a parser, returns tuple of its results and its horizontal
 -- displacement (the difference between the source column at the end
@@ -826,6 +865,34 @@ instance HasMeta ParserState where
   deleteMeta field st =
     st{ stateMeta = deleteMeta field $ stateMeta st }
 
+class Monad m => HasReaderOptions m where
+  askReaderOption :: (ReaderOptions -> b) -> m b
+
+class Monad m => HasHeaderMap m where
+  getHeaderMap    :: m (M.Map Inlines String)
+  putHeaderMap    :: M.Map Inlines String -> m ()
+  modifyHeaderMap :: (M.Map Inlines String -> M.Map Inlines String) -> m ()
+  -- default
+  modifyHeaderMap f = getHeaderMap >>= putHeaderMap . f
+
+class Monad m => HasIdentifierList m where
+  getIdentifierList    :: m [String]
+  putIdentifierList    :: [String] -> m ()
+  modifyIdentifierList :: ([String] -> [String]) -> m ()
+  -- default
+  modifyIdentifierList f = getIdentifierList >>= putIdentifierList . f
+
+instance HasReaderOptions (Parser s ParserState) where
+  askReaderOption = getOption
+
+instance HasHeaderMap (Parser s ParserState) where
+  getHeaderMap      = fmap stateHeaders getState
+  putHeaderMap hm   = updateState $ \st -> st{ stateHeaders = hm }
+
+instance HasIdentifierList (Parser s ParserState) where
+  getIdentifierList   = fmap stateIdentifiers  getState
+  putIdentifierList l = updateState $ \st -> st{ stateIdentifiers = l }
+
 defaultParserState :: ParserState
 defaultParserState =
     ParserState { stateOptions         = def,
@@ -895,10 +962,11 @@ type SubstTable = M.Map Key Inlines
 --  and the auto_identifers extension is set, generate a new
 --  unique identifier, and update the list of identifiers
 --  in state.
-registerHeader :: Attr -> Inlines -> Parser s ParserState Attr
+registerHeader :: (HasReaderOptions m, HasHeaderMap m, HasIdentifierList m)
+               => Attr -> Inlines -> m Attr
 registerHeader (ident,classes,kvs) header' = do
-  ids <- stateIdentifiers `fmap` getState
-  exts <- getOption readerExtensions
+  ids <- getIdentifierList
+  exts <- askReaderOption readerExtensions
   let insert' = M.insertWith (\_new old -> old)
   if null ident && Ext_auto_identifiers `Set.member` exts
      then do
@@ -906,16 +974,13 @@ registerHeader (ident,classes,kvs) header' = do
        let id'' = if Ext_ascii_identifiers `Set.member` exts
                      then catMaybes $ map toAsciiChar id'
                      else id'
-       updateState $ \st -> st{
-              stateIdentifiers = if id' == id''
-                                    then id' : ids
-                                    else id' : id'' : ids,
-              stateHeaders = insert' header' id' $ stateHeaders st }
+       putIdentifierList $ if id' == id''
+                              then id' : ids
+                              else id' : id'' : ids
+       modifyHeaderMap $ insert' header' id'
        return (id'',classes,kvs)
      else do
-        unless (null ident) $
-          updateState $ \st -> st{
-               stateHeaders = insert' header' ident $ stateHeaders st }
+        unless (null ident) $ modifyHeaderMap $ insert' header' ident
         return (ident,classes,kvs)
 
 -- | Fail unless we're in "smart typography" mode.
@@ -997,7 +1062,7 @@ doubleQuoteStart :: Parser [Char] ParserState ()
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
   try $ do charOrRef "\"\8220\147"
-           notFollowedBy (satisfy (\c -> c == ' ' || c == '\t' || c == '\n'))
+           notFollowedBy . satisfy $ flip elem [' ', '\t', '\n']
 
 doubleQuoteEnd :: Parser [Char] st ()
 doubleQuoteEnd = do

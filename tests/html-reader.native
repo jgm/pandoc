@@ -1,4 +1,4 @@
-Pandoc (Meta {unMeta = fromList [("title",MetaInlines [Str "Pandoc",Space,Str "Test",Space,Str "Suite"])]})
+Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("title",MetaInlines [Str "Pandoc",Space,Str "Test",Space,Str "Suite"])]})
 [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Str ".",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber",Str "'",Str "s",Space,Str "markdown",Space,Str "test",Space,Str "suite",Str "."]
 ,HorizontalRule
 ,Header 1 ("",[],[]) [Str "Headers"]
@@ -207,18 +207,18 @@ Pandoc (Meta {unMeta = fromList [("title",MetaInlines [Str "Pandoc",Space,Str "T
 ,BulletList
  [[Plain [Str "\\cite[22",Str "-",Str "23]{smith",Str ".",Str "1899}"]]
  ,[Plain [Str "\\doublespacing"]]
- ,[Plain [Str "$2+2=4$"]]
- ,[Plain [Str "$x",Space,Str "\\in",Space,Str "y$"]]
- ,[Plain [Str "$\\alpha",Space,Str "\\wedge",Space,Str "\\omega$"]]
- ,[Plain [Str "$223$"]]
- ,[Plain [Str "$p$",Str "-",Str "Tree"]]
- ,[Plain [Str "$\\frac{d}{dx}f(x)=\\lim_{h\\to",Space,Str "0}\\frac{f(x+h)",Str "-",Str "f(x)}{h}$"]]
- ,[Plain [Str "Here",Str "'",Str "s",Space,Str "one",Space,Str "that",Space,Str "has",Space,Str "a",Space,Str "line",Space,Str "break",Space,Str "in",Space,Str "it:",Space,Str "$\\alpha",Space,Str "+",Space,Str "\\omega",Space,Str "\\times",Space,Str "x^2$",Str "."]]]
+ ,[Plain [Str "$",Str "2+2=4",Str "$"]]
+ ,[Plain [Str "$",Str "x",Space,Str "\\in",Space,Str "y",Str "$"]]
+ ,[Plain [Str "$",Str "\\alpha",Space,Str "\\wedge",Space,Str "\\omega",Str "$"]]
+ ,[Plain [Str "$",Str "223",Str "$"]]
+ ,[Plain [Str "$",Str "p",Str "$",Str "-",Str "Tree"]]
+ ,[Plain [Str "$",Str "\\frac{d}{dx}f(x)=\\lim_{h\\to",Space,Str "0}\\frac{f(x+h)",Str "-",Str "f(x)}{h}",Str "$"]]
+ ,[Plain [Str "Here",Str "'",Str "s",Space,Str "one",Space,Str "that",Space,Str "has",Space,Str "a",Space,Str "line",Space,Str "break",Space,Str "in",Space,Str "it:",Space,Str "$",Str "\\alpha",Space,Str "+",Space,Str "\\omega",Space,Str "\\times",Space,Str "x^2",Str "$",Str "."]]]
 ,Para [Str "These",Space,Str "shouldn",Str "'",Str "t",Space,Str "be",Space,Str "math:"]
 ,BulletList
  [[Plain [Str "To",Space,Str "get",Space,Str "the",Space,Str "famous",Space,Str "equation,",Space,Str "write",Space,Code ("",[],[]) "$e = mc^2$",Str "."]]
- ,[Plain [Str "$22,000",Space,Str "is",Space,Str "a",Space,Emph [Str "lot"],Space,Str "of",Space,Str "money",Str ".",Space,Str "So",Space,Str "is",Space,Str "$34,000",Str ".",Space,Str "(It",Space,Str "worked",Space,Str "if",Space,Str "\"",Str "lot",Str "\"",Space,Str "is",Space,Str "emphasized",Str ".",Str ")"]]
- ,[Plain [Str "Escaped",Space,Code ("",[],[]) "$",Str ":",Space,Str "$73",Space,Emph [Str "this",Space,Str "should",Space,Str "be",Space,Str "emphasized"],Space,Str "23$",Str "."]]]
+ ,[Plain [Str "$",Str "22,000",Space,Str "is",Space,Str "a",Space,Emph [Str "lot"],Space,Str "of",Space,Str "money",Str ".",Space,Str "So",Space,Str "is",Space,Str "$",Str "34,000",Str ".",Space,Str "(It",Space,Str "worked",Space,Str "if",Space,Str "\"",Str "lot",Str "\"",Space,Str "is",Space,Str "emphasized",Str ".",Str ")"]]
+ ,[Plain [Str "Escaped",Space,Code ("",[],[]) "$",Str ":",Space,Str "$",Str "73",Space,Emph [Str "this",Space,Str "should",Space,Str "be",Space,Str "emphasized"],Space,Str "23",Str "$",Str "."]]]
 ,Para [Str "Here",Str "'",Str "s",Space,Str "a",Space,Str "LaTeX",Space,Str "table:"]
 ,Para [Str "\\begin{tabular}{|l|l|}\\hline",Space,Str "Animal",Space,Str "&",Space,Str "Number",Space,Str "\\\\",Space,Str "\\hline",Space,Str "Dog",Space,Str "&",Space,Str "2",Space,Str "\\\\",Space,Str "Cat",Space,Str "&",Space,Str "1",Space,Str "\\\\",Space,Str "\\hline",Space,Str "\\end{tabular}"]
 ,HorizontalRule

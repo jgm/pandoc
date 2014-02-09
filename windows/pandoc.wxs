@@ -57,8 +57,6 @@
             Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes"/>
             <File Id="pandoc_citeprocEXE" Name="pandoc-citeproc.exe"
             Source="..\cabal-dev\bin\pandoc-citeproc.exe" />
-            <File Id="biblio2yamlEXE" Name="biblio2yaml.exe"
-            Source="..\cabal-dev\bin\biblio2yaml.exe" />
           </Component>
 
           <Component Id="UpdatePathUser"

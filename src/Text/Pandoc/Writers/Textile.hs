@@ -51,7 +51,7 @@ data WriterState = WriterState {
 writeTextile :: WriterOptions -> Pandoc -> String
 writeTextile opts document =
   evalState (pandocToTextile opts document)
-            (WriterState { stNotes = [], stListLevel = [], stUseTags = False })
+            WriterState { stNotes = [], stListLevel = [], stUseTags = False }
 
 -- | Return Textile representation of document.
 pandocToTextile :: WriterOptions -> Pandoc -> State WriterState String

@@ -31,4 +31,8 @@ tests :: [Test]
 tests = [ "indented code after list"
              =: (orderedList [ para "one" <> para "two" ] <> codeBlock "test")
              =?> "1.  one\n\n    two\n\n<!-- -->\n\n    test"
+        , "list with tight sublist"
+             =: bulletList [ plain "foo" <> bulletList [ plain "bar" ],
+                             plain "baz" ]
+             =?> "-   foo\n    -   bar\n-   baz\n"
         ]

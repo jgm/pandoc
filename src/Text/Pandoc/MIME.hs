@@ -40,7 +40,8 @@ getMimeType f = M.lookup (map toLower $ drop 1 $ takeExtension f) mimeTypes
   where mimeTypes = M.fromList mimeTypesList
 
 extensionFromMimeType :: String -> Maybe String
-extensionFromMimeType mimetype = M.lookup mimetype reverseMimeTypes
+extensionFromMimeType mimetype = M.lookup (takeWhile (/=';') mimetype) reverseMimeTypes
+  -- note:  we just look up the basic mime type, dropping the content-encoding etc.
   where reverseMimeTypes = M.fromList $ map (\(k,v) -> (v,k)) mimeTypesList
 
 mimeTypesList :: [(String, String)]
@@ -146,6 +147,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("dxr","application/x-director")
            ,("emb","chemical/x-embl-dl-nucleotide")
            ,("embl","chemical/x-embl-dl-nucleotide")
+           ,("emf","image/x-emf")
            ,("eml","message/rfc822")
            ,("ent","chemical/x-ncbi-asn1-ascii")
            ,("eot","application/vnd.ms-fontobject")
@@ -219,6 +221,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("jnlp","application/x-java-jnlp-file")
            ,("jpe","image/jpeg")
            ,("jpeg","image/jpeg")
+           ,("jfif","image/jpeg")
            ,("jpg","image/jpeg")
            ,("js","application/x-javascript")
            ,("kar","audio/midi")
@@ -463,6 +466,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("wm","video/x-ms-wm")
            ,("wma","audio/x-ms-wma")
            ,("wmd","application/x-ms-wmd")
+           ,("wmf","image/x-wmf")
            ,("wml","text/vnd.wap.wml")
            ,("wmlc","application/vnd.wap.wmlc")
            ,("wmls","text/vnd.wap.wmlscript")

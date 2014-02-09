@@ -12,6 +12,7 @@ import Data.Char (isSpace)
 import Control.Monad.State
 import Control.Applicative ((<$>))
 import Data.List (intersperse)
+import Data.Maybe (fromMaybe)
 
 {-
 
@@ -683,7 +684,7 @@ parseBlock (Elem e) =
                                "lowerroman" -> LowerRoman
                                "upperroman" -> UpperRoman
                                _            -> Decimal
-          let start = maybe 1 id $
+          let start = fromMaybe 1 $
                       (attrValue "override" <$> filterElement (named "listitem") e)
                        >>= safeRead
           orderedListWith (start,listStyle,DefaultDelim)
@@ -779,7 +780,7 @@ parseBlock (Elem e) =
                       caption <- case filterChild isCaption e of
                                        Just t  -> getInlines t
                                        Nothing -> return mempty
-                      let e' = maybe e id $ filterChild (named "tgroup") e
+                      let e' = fromMaybe e $ filterChild (named "tgroup") e
                       let isColspec x = named "colspec" x || named "col" x
                       let colspecs = case filterChild (named "colgroup") e' of
                                            Just c -> filterChildren isColspec c
@@ -801,12 +802,14 @@ parseBlock (Elem e) =
                                                 Just "center" -> AlignCenter
                                                 _             -> AlignDefault
                       let toWidth c = case findAttr (unqual "colwidth") c of
-                                                Just w -> maybe 0 id
+                                                Just w -> fromMaybe 0
                                                    $ safeRead $ '0': filter (\x ->
                                                      (x >= '0' && x <= '9')
                                                       || x == '.') w
                                                 Nothing -> 0 :: Double
-                      let numrows = maximum $ map length bodyrows
+                      let numrows = case bodyrows of
+                                         []   -> 0
+                                         xs   -> maximum $ map length xs
                       let aligns = case colspecs of
                                      []  -> replicate numrows AlignDefault
                                      cs  -> map toAlignment cs

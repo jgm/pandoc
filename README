@@ -108,7 +108,7 @@ to PDF:
 Production of a PDF requires that a LaTeX engine be installed (see
 `--latex-engine`, below), and assumes that the following LaTeX packages are
 available: `amssymb`, `amsmath`, `ifxetex`, `ifluatex`, `listings` (if the
-`--listings` option is used), `fancyvrb`, `longtable`, `url`,
+`--listings` option is used), `fancyvrb`, `longtable`, `booktabs`, `url`,
 `graphicx`, `hyperref`, `ulem`, `babel` (if the `lang` variable is set),
 `fontspec` (if `xelatex` or `lualatex` is used as the LaTeX engine), `xltxtra`
 and `xunicode` (if `xelatex` is used).
@@ -434,8 +434,8 @@ Options affecting specific writers
 `--chapters`
 :   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
     output.  When the LaTeX template uses the report, book, or
-    memoir class, this option is implied.  If `--beamer` is used,
-    top-level headers will become `\part{..}`.
+    memoir class, this option is implied.  If `beamer` is the output
+    format, top-level headers will become `\part{..}`.
 
 `-N`, `--number-sections`
 :   Number section headings in LaTeX, ConTeXt, HTML, or EPUB output.
@@ -541,7 +541,9 @@ Options affecting specific writers
 
 `--epub-cover-image=`*FILE*
 :   Use the specified image as the EPUB cover.  It is recommended
-    that the image be less than 1000px in width and height.
+    that the image be less than 1000px in width and height. Note that
+    in a markdown source document you can also specify `cover-image`
+    in a YAML metadata block (see [EPUB Metadata], below).
 
 `--epub-metadata=`*FILE*
 :   Look in the specified XML file for metadata for the EPUB.
@@ -559,6 +561,10 @@ Options affecting specific writers
     variable, or, if is not set, the locale), and `<dc:identifier
     id="BookId">` (a randomly generated UUID). Any of these may be
     overridden by elements in the metadata file.
+
+    Note: if the source document is markdown, a YAML metadata block
+    in the document can be used instead.  See below under
+    [EPUB Metadata].
 
 `--epub-embed-font=`*FILE*
 :   Embed the specified font in the EPUB. This option can be repeated
@@ -795,6 +801,8 @@ as `title`, `author`, and `date`) as well as the following:
 :   causes links to be printed as footnotes in LaTeX documents
 `biblio-style`
 :   bibliography style in LaTeX, when used with `--natbib`
+`biblio-files`
+:   bibliography files to use in LaTeX, with `--natbib` or `--biblatex`
 `section`
 :   section number in man pages
 `header`
@@ -888,6 +896,9 @@ If you need a hard line break, put two or more spaces at the end of a line.
 **Extension: `escaped_line_breaks`**
 
 A backslash followed by a newline is also a hard line break.
+Note:  in multiline and grid table cells, this is the only way
+to create a hard line break, since trailing spaces in the cells
+are ignored.
 
 Headers
 -------
@@ -1271,7 +1282,7 @@ one tab:
         + pears
         + peaches
     * vegetables
-        + brocolli
+        + broccoli
         + chard
 
 As noted above, markdown allows you to write list items "lazily," instead of
@@ -1837,6 +1848,18 @@ equivalent of the markdown in the `abstract` field:
     <p>This is the abstract.</p>
     <p>It consists of two paragraphs.</p>
 
+Note: The `author` variable in the default templates expects a simple list or
+string.  To use the structured authors in the example, you would need a
+custom template.  For example:
+
+    $for(author)$
+    $if(author.name)$
+    $author.name$$if(author.affiliation)$ ($author.affiliation$)$endif$
+    $else$
+    $author$
+    $endif$
+    $endfor$
+
 
 Backslash escapes
 -----------------
@@ -2085,7 +2108,7 @@ Raw HTML
 
 Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
-literally).  (Techncially this is not an extension, since standard
+literally).  (Technically this is not an extension, since standard
 markdown allows it, but it has been made an extension so that it can
 be disabled if desired.)
 
@@ -2498,10 +2521,9 @@ the document, for example:
     Comment: This is a sample mmd title block, with
              a field spanning multiple lines.
 
-See the MultiMarkdown documentation for details. Note that only title,
-author, and date are recognized; other fields are simply ignored by
-pandoc. If `pandoc_title_block` or `yaml_metadata_block` is enabled,
-it will take precedence over `mmd_title_block`.
+See the MultiMarkdown documentation for details.  If `pandoc_title_block` or
+`yaml_metadata_block` is enabled, it will take precedence over
+`mmd_title_block`.
 
   [MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
 
@@ -2558,6 +2580,20 @@ variants are supported:
 
 `markdown_strict` (Markdown.pl)
 :   `raw_html`
+
+Extensions with formats other than markdown
+-------------------------------------------
+
+Some of the extensions discussed above can be used with formats
+other than markdown:
+
+* `auto_identifiers` can be used with `latex`, `rst`, `mediawiki`,
+  and `textile` input (and is used by default).
+
+* `tex_math_dollars`, `tex_math_single_backslash`, and
+  `tex_math_double_backslash` can be used with `html` input.
+  (This is handy for reading web pages formatted using MathJax,
+  for example.)
 
 Producing slide shows with Pandoc
 =================================
@@ -2749,11 +2785,81 @@ To show the notes window, press `s` while viewing the presentation.
 Notes are not yet supported for other slide formats, but the notes
 will not appear on the slides themselves.
 
+EPUB Metadata
+=============
+
+EPUB metadata may be specified using the `--epub-metadata` option, but
+if the source document is markdown, it is better to use a YAML metadata
+block.  Here is an example:
+
+    ---
+    title:
+    - type: main
+      text: My Book
+    - type: subtitle
+      text: An investigation of metadata
+    creator:
+    - role: author
+      text: John Smith
+    - role: editor
+      text: Sarah Jones
+    identifier:
+    - scheme: DOI
+      text: doi:10.234234.234/33
+    publisher:  My Press
+    rights:  (c) 2007 John Smith, CC BY-NC
+    ...
+
+The following fields are recognized:
+
+`identifier`
+  ~ Either a string value or an object with fields `text` and
+    `scheme`.  Valid values for `scheme` are `ISBN-10`,
+    `GTIN-13`, `UPC`, `ISMN-10`, `DOI`, `LCCN`, `GTIN-14`,
+    `ISBN-13`, `Legal deposit number`, `URN`, `OCLC`,
+    `ISMN-13`, `ISBN-A`, `JP`, `OLCC`.
+`title`
+  ~ Either a string value, or an object with fields `file-as` and
+    `type`, or a list of such objects.  Valid values for `type` are
+    `main`, `subtitle`, `short`, `collection`, `edition`, `extended`.
+`creator`
+  ~ Either a string value, or an object with fields `role`, `file-as`,
+    and `text`, or a list of such objects.  Valid values for `role` are
+    [marc relators](http://www.loc.gov/marc/relators/relaterm.html), but
+    pandoc will attempt to translate the human-readable versions
+    (like "author" and "editor") to the appropriate marc relators.
+`contributor`
+  ~ Same format as `creator`.
+`date`
+  ~ A string value in `YYYY-MM-DD` format.  (Only the year is necessary.)
+    Pandoc will attempt to convert other common date formats.
+`language`
+  ~ A string value in [RFC5646] format.  Pandoc will default to the local
+    language if nothing is specified.
+`subject`
+  ~ A string value or a list of such values.
+`description`
+  ~ A string value.
+`type`
+  ~ A string value.
+`format`
+  ~ A string value.
+`relation`
+  ~ A string value.
+`coverage`
+  ~ A string value.
+`rights`
+  ~ A string value.
+`cover-image`
+  ~ A string value (path to cover image).
+`stylesheet`
+  ~ A string value (path to CSS stylesheet).
+
 Literate Haskell support
 ========================
 
 If you append `+lhs` (or `+literate_haskell`) to an appropriate input or output
-format (`markdown`, `mardkown_strict`, `rst`, or `latex` for input or output;
+format (`markdown`, `markdown_strict`, `rst`, or `latex` for input or output;
 `beamer`, `html` or `html5` for output only), pandoc will treat the document as
 literate Haskell source. This means that
 
@@ -2860,4 +2966,5 @@ Jamie F. Olson.
 [reveal.js]: http://lab.hakim.se/reveal-js/
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
 [lua]: http://www.lua.org
-
+[marc relators]: http://www.loc.gov/marc/relators/relaterm.html
+[RFC5646]: http://tools.ietf.org/html/rfc5646

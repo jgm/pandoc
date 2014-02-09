@@ -287,7 +287,7 @@ definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
   contents <- liftM vcat $ mapM blockListToRST defs
   tabstop <- get >>= (return . writerTabStop . stOptions)
-  return $ label' $$ nest tabstop (contents <> cr)
+  return $ label' $$ nest tabstop (nestle contents <> cr)
 
 -- | Convert list of Pandoc block elements to RST.
 blockListToRST :: [Block]       -- ^ List of block elements

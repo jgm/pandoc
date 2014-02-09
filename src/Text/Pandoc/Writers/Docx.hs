@@ -29,7 +29,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
-import Data.List ( intercalate, groupBy )
+import Data.Maybe (fromMaybe)
+import Data.List ( intercalate, isPrefixOf, isSuffixOf )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -42,6 +43,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Shared hiding (Element)
+import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlight )
@@ -55,8 +57,8 @@ import Data.Unique (hashUnique, newUnique)
 import System.Random (randomRIO)
 import Text.Printf (printf)
 import qualified Control.Exception as E
-import System.FilePath (takeExtension)
-import Text.Pandoc.MIME (getMimeType)
+import Text.Pandoc.MIME (getMimeType, extensionFromMimeType)
+import Control.Applicative ((<|>))
 
 data WriterState = WriterState{
          stTextProperties :: [Element]
@@ -130,7 +132,8 @@ writeDocx opts doc@(Pandoc meta _) = do
   let mkOverrideNode (part', contentType') = mknode "Override"
                [("PartName",part'),("ContentType",contentType')] ()
   let mkImageOverride (_, imgpath, mbMimeType, _, _) =
-             mkOverrideNode ("/word/" ++ imgpath, maybe "application/octet-stream" id mbMimeType)
+             mkOverrideNode ("/word/" ++ imgpath,
+                             fromMaybe "application/octet-stream" mbMimeType)
   let overrides = map mkOverrideNode
                   [("/word/webSettings.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml")
@@ -231,10 +234,11 @@ writeDocx opts doc@(Pandoc meta _) = do
           ,("xmlns:dcmitype","http://purl.org/dc/dcmitype/")
           ,("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")]
           $ mknode "dc:title" [] (stringify $ docTitle meta)
-          : mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")]
-            (maybe "" id $ normalizeDate $ stringify $ docDate meta)
-          : mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] () -- put current time here
-          : map (mknode "dc:creator" [] . stringify) (docAuthors meta)
+          : mknode "dc:creator" [] (intercalate "; " (map stringify $ docAuthors meta))
+          : maybe []
+             (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] $ x
+                    , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] $ x
+                    ]) (normalizeDate $ stringify $ docDate meta)
   let docPropsEntry = toEntry docPropsPath epochtime $ renderXml docProps
 
   let relsPath = "_rels/.rels"
@@ -247,7 +251,7 @@ writeDocx opts doc@(Pandoc meta _) = do
           ,("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties")
           ,("Target","docProps/app.xml")]
         , [("Id","rId3")
-          ,("Type","http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties")
+          ,("Type","http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties")
           ,("Target","docProps/core.xml")]
         ]
   let relsEntry = toEntry relsPath epochtime $ renderXml rels
@@ -259,6 +263,12 @@ writeDocx opts doc@(Pandoc meta _) = do
   fontTableEntry <- entryFromArchive "word/fontTable.xml"
   settingsEntry <- entryFromArchive "word/settings.xml"
   webSettingsEntry <- entryFromArchive "word/webSettings.xml"
+  let miscRels = [ f | f <- filesInArchive refArchive
+                     , "word/_rels/" `isPrefixOf` f
+                     , ".xml.rels" `isSuffixOf` f
+                     , f /= "word/_rels/document.xml.rels"
+                     , f /= "word/_rels/footnotes.xml.rels" ]
+  miscRelEntries <- mapM entryFromArchive miscRels
 
   -- Create archive
   let archive = foldr addEntryToArchive emptyArchive $
@@ -266,7 +276,7 @@ writeDocx opts doc@(Pandoc meta _) = do
                   footnoteRelEntry : numEntry : styleEntry : footnotesEntry :
                   docPropsEntry : docPropsAppEntry : themeEntry :
                   fontTableEntry : settingsEntry : webSettingsEntry :
-                  imageEntries
+                  imageEntries ++ miscRelEntries
   return $ fromArchive archive
 
 styleToOpenXml :: Style -> [Element]
@@ -321,7 +331,7 @@ mkNum markers marker numid =
        NumberMarker _ _ start ->
           map (\lvl -> mknode "w:lvlOverride" [("w:ilvl",show (lvl :: Int))]
               $ mknode "w:startOverride" [("w:val",show start)] ()) [0..6]
-   where absnumid = maybe 0 id $ M.lookup marker markers
+   where absnumid = fromMaybe 0 $ M.lookup marker markers
 
 mkAbstractNum :: (ListMarker,Int) -> IO Element
 mkAbstractNum (marker,numid) = do
@@ -637,7 +647,12 @@ formattedString str = do
 inlineToOpenXML :: WriterOptions -> Inline -> WS [Element]
 inlineToOpenXML _ (Str str) = formattedString str
 inlineToOpenXML opts Space = inlineToOpenXML opts (Str " ")
-inlineToOpenXML opts (Span _ ils) = inlinesToOpenXML opts ils
+inlineToOpenXML opts (Span (_,classes,_) ils) = do
+  let off x = withTextProp (mknode x [("w:val","0")] ())
+  ((if "csl-no-emph" `elem` classes then off "w:i" else id) .
+   (if "csl-no-strong" `elem` classes then off "w:b" else id) .
+   (if "csl-no-smallcaps" `elem` classes then off "w:smallCaps" else id))
+   $ inlinesToOpenXML opts ils
 inlineToOpenXML opts (Strong lst) =
   withTextProp (mknode "w:b" [] ()) $ inlinesToOpenXML opts lst
 inlineToOpenXML opts (Emph lst) =
@@ -736,7 +751,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
           liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
           -- emit alt text
           inlinesToOpenXML opts alt
-        Right (img, _) -> do
+        Right (img, mt) -> do
           ident <- ("rId"++) `fmap` getUniqueId
           let size = imageSize img
           let (xpt,ypt) = maybe (120,120) sizeInPoints size
@@ -775,19 +790,21 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
                   , mknode "wp:effectExtent" [("b","0"),("l","0"),("r","0"),("t","0")] ()
                   , mknode "wp:docPr" [("descr",tit),("id","1"),("name","Picture")] ()
                   , graphic ]
-          let imgext = case imageType img of
-                             Just Png  -> ".png"
-                             Just Jpeg -> ".jpeg"
-                             Just Gif  -> ".gif"
-                             Just Pdf  -> ".pdf"
-                             Just Eps  -> ".eps"
-                             Nothing   -> takeExtension src
+          let imgext = case mt >>= extensionFromMimeType of
+                            Just x    -> '.':x
+                            Nothing   -> case imageType img of
+                                              Just Png  -> ".png"
+                                              Just Jpeg -> ".jpeg"
+                                              Just Gif  -> ".gif"
+                                              Just Pdf  -> ".pdf"
+                                              Just Eps  -> ".eps"
+                                              Nothing   -> ""
           if null imgext
              then -- without an extension there is no rule for content type
                inlinesToOpenXML opts alt -- return alt to avoid corrupted docx
              else do
                let imgpath = "media/" ++ ident ++ imgext
-               let mbMimeType = getMimeType imgpath
+               let mbMimeType = mt <|> getMimeType imgpath
                -- insert mime type to use in constructing [Content_Types].xml
                modify $ \st -> st{ stImages =
                    M.insert src (ident, imgpath, mbMimeType, imgElt, img)
@@ -799,30 +816,8 @@ br = mknode "w:r" [] [mknode "w:br" [("w:type","textWrapping")] () ]
 
 parseXml :: Archive -> String -> IO Element
 parseXml refArchive relpath =
-  case (findEntryByPath relpath refArchive >>= parseXMLDoc . UTF8.toStringLazy . fromEntry) of
-       Just d  -> return d
+  case findEntryByPath relpath refArchive of
+       Just e  -> case parseXMLDoc $ UTF8.toStringLazy $ fromEntry e of
+                       Just d  -> return d
+                       Nothing -> fail $ relpath ++ " corrupt in reference docx"
        Nothing -> fail $ relpath ++ " missing in reference docx"
-
-isDisplayMath :: Inline -> Bool
-isDisplayMath (Math DisplayMath _) = True
-isDisplayMath _                    = False
-
-stripLeadingTrailingSpace :: [Inline] -> [Inline]
-stripLeadingTrailingSpace = go . reverse . go . reverse
-  where go (Space:xs) = xs
-        go xs         = xs
-
-fixDisplayMath :: Block -> Block
-fixDisplayMath (Plain lst)
-  | any isDisplayMath lst && not (all isDisplayMath lst) =
-    -- chop into several paragraphs so each displaymath is its own
-    Div ("",["math"],[]) $ map (Plain . stripLeadingTrailingSpace) $
-       groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
-                         not (isDisplayMath x || isDisplayMath y)) lst
-fixDisplayMath (Para lst)
-  | any isDisplayMath lst && not (all isDisplayMath lst) =
-    -- chop into several paragraphs so each displaymath is its own
-    Div ("",["math"],[]) $ map (Para . stripLeadingTrailingSpace) $
-       groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
-                         not (isDisplayMath x || isDisplayMath y)) lst
-fixDisplayMath x = x

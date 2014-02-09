@@ -293,7 +293,7 @@ blockListToTexinfo (x:xs) = do
   case x of
     Header level _ _ -> do
       -- We need need to insert a menu for this node.
-      let (before, after) = break isHeader xs
+      let (before, after) = break isHeaderBlock xs
       before' <- blockListToTexinfo before
       let menu = if level < 4
                     then collectNodes (level + 1) after
@@ -314,10 +314,6 @@ blockListToTexinfo (x:xs) = do
     _ -> do
       xs' <- blockListToTexinfo xs
       return $ x' $$ xs'
-
-isHeader :: Block -> Bool
-isHeader (Header _ _ _) = True
-isHeader _              = False
 
 collectNodes :: Int -> [Block] -> [Block]
 collectNodes _ [] = []

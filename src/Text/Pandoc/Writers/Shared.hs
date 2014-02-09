@@ -34,6 +34,7 @@ module Text.Pandoc.Writers.Shared (
                      , setField
                      , defField
                      , tagWithAttrs
+                     , fixDisplayMath
                      )
 where
 import Text.Pandoc.Definition
@@ -46,6 +47,7 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Aeson (FromJSON(..), fromJSON, ToJSON (..), Value(Object), Result(..))
 import qualified Data.Traversable as Traversable
+import Data.List ( groupBy )
 
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -65,8 +67,7 @@ metaToJSON opts blockWriter inlineWriter (Meta metamap)
     renderedMap <- Traversable.mapM
                    (metaValueToJSON blockWriter inlineWriter)
                    metamap
-    return $ M.foldWithKey (\key val obj -> defField key val obj)
-                   baseContext renderedMap
+    return $ M.foldWithKey defField baseContext renderedMap
   | otherwise = return (Object H.empty)
 
 metaValueToJSON :: Monad m
@@ -137,3 +138,28 @@ tagWithAttrs tag (ident,classes,kvs) = hsep
   ,hsep (map (\(k,v) -> text k <> "=" <>
                 doubleQuotes (text (escapeStringForXML v))) kvs)
   ] <> ">"
+
+isDisplayMath :: Inline -> Bool
+isDisplayMath (Math DisplayMath _) = True
+isDisplayMath _                    = False
+
+stripLeadingTrailingSpace :: [Inline] -> [Inline]
+stripLeadingTrailingSpace = go . reverse . go . reverse
+  where go (Space:xs) = xs
+        go xs         = xs
+
+-- Put display math in its own block (for ODT/DOCX).
+fixDisplayMath :: Block -> Block
+fixDisplayMath (Plain lst)
+  | any isDisplayMath lst && not (all isDisplayMath lst) =
+    -- chop into several paragraphs so each displaymath is its own
+    Div ("",["math"],[]) $ map (Plain . stripLeadingTrailingSpace) $
+       groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
+                         not (isDisplayMath x || isDisplayMath y)) lst
+fixDisplayMath (Para lst)
+  | any isDisplayMath lst && not (all isDisplayMath lst) =
+    -- chop into several paragraphs so each displaymath is its own
+    Div ("",["math"],[]) $ map (Para . stripLeadingTrailingSpace) $
+       groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
+                         not (isDisplayMath x || isDisplayMath y)) lst
+fixDisplayMath x = x

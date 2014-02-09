@@ -21,11 +21,11 @@ tests = [ testGroup "Walk"
 
 p_walk :: (Typeable a, Walkable a Pandoc)
        => (a -> a) -> Pandoc -> Bool
-p_walk f = (\(d :: Pandoc) -> everywhere (mkT f) d == walk f d)
+p_walk f d = everywhere (mkT f) d == walk f d
 
 p_query :: (Eq a, Typeable a1, Monoid a, Walkable a1 Pandoc)
         => (a1 -> a) -> Pandoc -> Bool
-p_query f = (\(d :: Pandoc) -> everything mappend (mempty `mkQ` f) d == query f d)
+p_query f d = everything mappend (mempty `mkQ` f) d == query f d
 
 inlineTrans :: Inline -> Inline
 inlineTrans (Str xs) = Str $ map toUpper xs

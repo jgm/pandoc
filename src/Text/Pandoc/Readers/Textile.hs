@@ -594,7 +594,7 @@ surrounded border = enclosed (border *> notFollowedBy (oneOf " \t\n\r")) (try bo
 simpleInline :: Parser [Char] ParserState t           -- ^ surrounding parser
                 -> ([Inline] -> Inline)       -- ^ Inline constructor
                 -> Parser [Char] ParserState Inline   -- ^ content parser (to be used repeatedly)
-simpleInline border construct = surrounded border (inlineWithAttribute) >>=
+simpleInline border construct = surrounded border inlineWithAttribute >>=
                                 return . construct . normalizeSpaces
   where inlineWithAttribute = (try $ optional attributes) >> inline
 
