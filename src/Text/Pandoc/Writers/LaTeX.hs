@@ -555,6 +555,7 @@ sectionHeader :: Bool    -- True for unnumbered
               -> State WriterState Doc
 sectionHeader unnumbered ref level lst = do
   txt <- inlineListToLaTeX lst
+  plain <- stringToLaTeX TextString $ foldl (++) "" $ map stringify lst
   let noNote (Note _) = Str ""
       noNote x        = x
   let lstNoNotes = walk noNote lst
@@ -567,7 +568,9 @@ sectionHeader unnumbered ref level lst = do
                  then return empty
                  else do
                    return $ brackets txtNoNotes
-  let stuffing = star <> optional <> braces txt
+  let stuffing = star <> optional <> braces (text "\\texorpdfstring"
+                                             <> braces txt
+                                             <> braces (text plain))
   book <- gets stBook
   opts <- gets stOptions
   let level' = if book || writerChapters opts then level - 1 else level
