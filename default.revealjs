@@ -66,9 +66,7 @@ $endif$
 $body$
     </div>
   </div>
-$for(include-after)$
-$include-after$
-$endfor$
+
 
   <script src="$revealjs-url$/lib/js/head.min.js"></script>
   <script src="$revealjs-url$/js/reveal.min.js"></script>
@@ -94,5 +92,8 @@ $endfor$
 //          { src: '$revealjs-url$/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
 ]});
     </script>
+  $for(include-after)$
+  $include-after$
+  $endfor$
   </body>
 </html>
