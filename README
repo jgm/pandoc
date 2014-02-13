@@ -2473,6 +2473,21 @@ document with an appropriate header:
 
 The bibliography will be inserted after this header.
 
+If you want to include items in the bibliography without actually
+citing them in the body text, you can define a dummy `nocite` metadata
+field and put the citations there:
+
+    ---
+    nocite:
+     | @item1, @item2
+    ...
+
+    @item3
+
+In this example, the document will contain a citation for `item3`
+only, but the bibliography will contain entries for `item1`, `item2`, and
+`item3`.
+
 Non-pandoc extensions
 ---------------------
 
