@@ -36,12 +36,13 @@ import Text.Pandoc.Builder (setMeta, fromList)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
-import Control.Monad ( when, liftM, guard, mzero )
+import Control.Monad ( when, liftM, guard, mzero, mplus )
 import Data.List ( findIndex, intersperse, intercalate,
                    transpose, sort, deleteFirstsBy, isSuffixOf )
+import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 import Text.Printf ( printf )
-import Control.Applicative ((<$>), (<$), (<*), (*>))
+import Control.Applicative ((<$>), (<$), (<*), (*>), (<*>))
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import qualified Text.Pandoc.Builder as B
 import Data.Monoid (mconcat, mempty)
@@ -530,7 +531,7 @@ directive' = do
   let body' = body ++ "\n\n"
   case label of
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
-        "role" -> return mempty
+        "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
         "container" -> parseFromString parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey
                    parseFromString (trimInlines . mconcat <$> many inline)
@@ -591,7 +592,38 @@ directive' = do
                           Nothing -> B.image src "" alt
         _     -> return mempty
 
--- Can contain haracter codes as decimal numbers or
+-- TODO:
+--  - Silently ignores illegal fields
+--  - Silently drops classes
+--  - Only supports :format: fields with a single format for :raw: roles,
+--    change Text.Pandoc.Definition.Format to fix
+addNewRole :: String -> [(String, String)] -> RSTParser Blocks
+addNewRole roleString fields = do
+    (role, parentRole) <- parseFromString inheritedRole roleString
+    customRoles <- stateRstCustomRoles <$> getState
+    baseRole <- case M.lookup parentRole customRoles of
+        Just (base, _, _) -> return base
+        Nothing -> return parentRole
+
+    let fmt = if baseRole == "raw" then lookup "format" fields else Nothing
+        annotate = maybe id addLanguage $
+            if baseRole == "code"
+               then lookup "language" fields
+               else Nothing
+
+    updateState $ \s -> s {
+        stateRstCustomRoles =
+          M.insert role (baseRole, fmt, (,) parentRole . annotate) customRoles
+    }
+
+    return $ B.singleton Null
+  where
+    addLanguage lang (ident, classes, keyValues) =
+        (ident, "sourceCode" : lang : classes, keyValues)
+    inheritedRole =
+        (,) <$> roleNameEndingIn (char '(') <*> roleNameEndingIn (char ')')
+
+-- Can contain character codes as decimal numbers or
 -- hexadecimal numbers, prefixed by 0x, x, \x, U+, u, or \u
 -- or as XML-style hexadecimal character entities, e.g. &#x1a2b;
 -- or text, which is used as-is.  Comments start with ..
@@ -930,17 +962,56 @@ strong = B.strong . trimInlines . mconcat <$>
 -- Note, this doesn't precisely implement the complex rule in
 -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup-recognition-rules
 -- but it should be good enough for most purposes
+--
+-- TODO:
+--  - Classes are silently discarded in addNewRole
+--  - Lacks sensible implementation for title-reference (which is the default)
+--  - Allows direct use of the :raw: role, rST only allows inherited use.
 interpretedRole :: RSTParser Inlines
 interpretedRole = try $ do
   (role, contents) <- roleBefore <|> roleAfter
-  case role of
-       "sup"  -> return $ B.superscript $ B.str contents
-       "sub"  -> return $ B.subscript $ B.str contents
-       "math" -> return $ B.math contents
-       _      -> return $ B.str contents  --unknown
+  renderRole contents Nothing role nullAttr
+
+renderRole :: String -> Maybe String -> String -> Attr -> RSTParser Inlines
+renderRole contents fmt role attr = case role of
+    "sup"  -> return $ B.superscript $ B.str contents
+    "superscript" -> return $ B.superscript $ B.str contents
+    "sub"  -> return $ B.subscript $ B.str contents
+    "subscript"  -> return $ B.subscript $ B.str contents
+    "emphasis" -> return $ B.emph $ B.str contents
+    "strong" -> return $ B.strong $ B.str contents
+    "rfc-reference" -> return $ rfcLink contents
+    "RFC" -> return $ rfcLink contents
+    "pep-reference" -> return $ pepLink contents
+    "PEP" -> return $ pepLink contents
+    "literal" -> return $ B.str contents
+    "math" -> return $ B.math contents
+    "title-reference" -> titleRef contents
+    "title" -> titleRef contents
+    "t" -> titleRef contents
+    "code" -> return $ B.codeWith attr contents
+    "raw" -> return $ B.rawInline (fromMaybe "" fmt) contents
+    custom -> do
+        customRole <- stateRstCustomRoles <$> getState
+        case M.lookup custom customRole of
+            Just (_, newFmt, inherit) -> let
+                fmtStr = fmt `mplus` newFmt
+                (newRole, newAttr) = inherit attr
+                in renderRole contents fmtStr newRole newAttr
+            Nothing -> return $ B.str contents -- Undefined role
+ where
+   titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour
+   rfcLink rfcNo = B.link rfcUrl ("RFC " ++ rfcNo) $ B.str ("RFC " ++ rfcNo)
+     where rfcUrl = "http://www.faqs.org/rfcs/rfc" ++ rfcNo ++ ".html"
+   pepLink pepNo = B.link pepUrl ("PEP " ++ pepNo) $ B.str ("PEP " ++ pepNo)
+     where padNo = replicate (4 - length pepNo) '0' ++ pepNo
+           pepUrl = "http://http://www.python.org/dev/peps/pep-" ++ padNo ++ "/"
+
+roleNameEndingIn :: RSTParser Char -> RSTParser String
+roleNameEndingIn end = many1Till (letter <|> char '-') end
 
 roleMarker :: RSTParser String
-roleMarker = char ':' *> many1Till (letter <|> char '-') (char ':')
+roleMarker = char ':' *> roleNameEndingIn (char ':')
 
 roleBefore :: RSTParser (String,String)
 roleBefore = try $ do
