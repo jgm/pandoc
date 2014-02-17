@@ -475,10 +475,11 @@ blockToHtml opts (BlockQuote blocks) =
      else do
        contents <- blockListToHtml opts blocks
        return $ H.blockquote $ nl opts >> contents >> nl opts
-blockToHtml opts (Header level (_,_,_) lst) = do
+blockToHtml opts (Header level (_,classes,_) lst) = do
   contents <- inlineListToHtml opts lst
   secnum <- liftM stSecNum get
   let contents' = if writerNumberSections opts && not (null secnum)
+                     && "unnumbered" `notElem` classes
                      then (H.span ! A.class_ "header-section-number" $ toHtml
                           $ showSecNum secnum) >> strToHtml " " >> contents
                      else contents
