@@ -206,7 +206,7 @@ stringToLaTeX  ctx (x:xs) = do
        '_' | not isUrl -> "\\_" ++ rest
        '#' -> "\\#" ++ rest
        '-' -> case xs of   -- prevent adjacent hyphens from forming ligatures
-                   ('-':_) -> "-{}" ++ rest
+                   ('-':_) -> "-\\/" ++ rest
                    _       -> '-' : rest
        '~' | not isUrl -> "\\textasciitilde{}" ++ rest
        '^' -> "\\^{}" ++ rest
