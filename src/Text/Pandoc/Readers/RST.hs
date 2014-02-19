@@ -581,7 +581,7 @@ directive' = do
         "figure" -> do
            (caption, legend) <- parseFromString extractCaption body'
            let src = escapeURI $ trim top
-           return $ B.para (B.image src "" caption) <> legend
+           return $ B.para (B.image src "fig:" caption) <> legend
         "image" -> do
            let src = escapeURI $ trim top
            let alt = B.str $ maybe "image" trim $ lookup "alt" fields
