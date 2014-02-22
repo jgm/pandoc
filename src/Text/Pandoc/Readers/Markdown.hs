@@ -354,7 +354,7 @@ referenceKey = try $ do
   tit <- option "" referenceTitle
   -- currently we just ignore MMD-style link/image attributes
   _kvs <- option [] $ guardEnabled Ext_link_attributes
-                      >> many (spnl >> keyValAttr)
+                      >> many (try $ spnl >> keyValAttr)
   blanklines
   let target = (escapeURI $ trimr src,  tit)
   st <- getState
