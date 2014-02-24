@@ -243,6 +243,8 @@ Library
      cpp-options:   -DEMBED_DATA_FILES
      -- Build-Tools:   hsb2hs -- not yet recognized by cabal
      other-modules: Text.Pandoc.Data
+  if os(windows)
+    Cpp-options:      -D_WINDOWS
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   Default-Language: Haskell98

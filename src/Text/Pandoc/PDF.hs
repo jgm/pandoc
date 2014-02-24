@@ -149,7 +149,12 @@ runTeXProgram program runsLeft tmpDir source = do
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
          "-output-directory", tmpDir, file]
     env' <- getEnvironment
-    let texinputs = maybe (tmpDir ++ ":") ((tmpDir ++ ":") ++)
+#ifdef _WINDOWS
+    let sep = ";"
+#else
+    let sep = ":"
+#endif
+    let texinputs = maybe (tmpDir ++ sep) ((tmpDir ++ sep) ++)
           $ lookup "TEXINPUTS" env'
     let env'' = ("TEXINPUTS", texinputs) :
                   [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
