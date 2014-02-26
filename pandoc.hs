@@ -162,6 +162,7 @@ data Opt = Opt
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
     , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
     , optDefaultImageExtension :: String -- ^ Default image extension
+    , optTrace             :: Bool       -- ^ Print debug information
     }
 
 -- | Defaults for command-line options.
@@ -217,6 +218,7 @@ defaultOpts = Opt
     , optAscii                 = False
     , optTeXLigatures          = True
     , optDefaultImageExtension = ""
+    , optTrace                 = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -758,6 +760,11 @@ options =
                   (\opt -> return opt { optHTMLMathMethod = GladTeX }))
                  "" -- "Use gladtex for HTML math"
 
+    , Option "" ["trace"]
+                 (NoArg
+                  (\opt -> return opt { optTrace = True }))
+                 "" -- "Turn on diagnostic tracing in readers."
+
     , Option "" ["dump-args"]
                  (NoArg
                   (\opt -> return opt { optDumpArgs = True }))
@@ -952,6 +959,7 @@ main = do
               , optAscii                 = ascii
               , optTeXLigatures          = texLigatures
               , optDefaultImageExtension = defaultImageExtension
+              , optTrace                 = trace
              } = opts
 
   when dumpArgs $
@@ -1074,6 +1082,7 @@ main = do
                       , readerIndentedCodeClasses = codeBlockClasses
                       , readerApplyMacros = not laTeXOutput
                       , readerDefaultImageExtension = defaultImageExtension
+                      , readerTrace = trace
                       }
 
   let writerOptions = def { writerStandalone       = standalone',

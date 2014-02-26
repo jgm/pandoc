@@ -60,6 +60,8 @@ import System.FilePath (takeExtension, addExtension)
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
 import qualified Data.Set as Set
+import Text.Printf (printf)
+import Debug.Trace (trace)
 
 type MarkdownParser = Parser [Char] ParserState
 
@@ -440,7 +442,10 @@ parseBlocks :: MarkdownParser (F Blocks)
 parseBlocks = mconcat <$> manyTill block eof
 
 block :: MarkdownParser (F Blocks)
-block = choice [ mempty <$ blanklines
+block = do
+  tr <- getOption readerTrace
+  pos <- getPosition
+  res <- choice [ mempty <$ blanklines
                , codeBlockFenced
                , yamlMetaBlock
                , guardEnabled Ext_latex_macros *> (macro >>= return . return)
@@ -465,6 +470,11 @@ block = choice [ mempty <$ blanklines
                , para
                , plain
                ] <?> "block"
+  when tr $ do
+    st <- getState
+    trace (printf "line %d: %s" (sourceLine pos)
+           (take 60 $ show $ B.toList $ runF res st)) (return ())
+  return res
 
 --
 -- header blocks

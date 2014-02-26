@@ -210,6 +210,7 @@ data ReaderOptions = ReaderOptions{
        , readerIndentedCodeClasses :: [String] -- ^ Default classes for
                                        -- indented code blocks
        , readerDefaultImageExtension :: String -- ^ Default extension for images
+       , readerTrace           :: Bool -- ^ Print debugging info
 } deriving (Show, Read)
 
 instance Default ReaderOptions
@@ -225,6 +226,7 @@ instance Default ReaderOptions
                , readerApplyMacros           = True
                , readerIndentedCodeClasses   = []
                , readerDefaultImageExtension = ""
+               , readerTrace                 = False
                }
 
 --
