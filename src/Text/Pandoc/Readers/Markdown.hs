@@ -1738,12 +1738,19 @@ spanHtml = try $ do
 divHtml :: MarkdownParser (F Blocks)
 divHtml = try $ do
   guardEnabled Ext_markdown_in_html_blocks
-  (TagOpen _ attrs, _) <- htmlTag (~== TagOpen "div" [])
-  contents <- mconcat <$> manyTill block (htmlTag (~== TagClose "div"))
-  let ident = fromMaybe "" $ lookup "id" attrs
-  let classes = maybe [] words $ lookup "class" attrs
-  let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
-  return $ B.divWith (ident, classes, keyvals) <$> contents
+  (TagOpen _ attrs, rawtag) <- htmlTag (~== TagOpen "div" [])
+  bls <- option "" (blankline >> option "" blanklines)
+  contents <- mconcat <$>
+              many (notFollowedBy' (htmlTag (~== TagClose "div")) >> block)
+  closed <- option False (True <$ htmlTag (~== TagClose "div"))
+  if closed
+     then do
+       let ident = fromMaybe "" $ lookup "id" attrs
+       let classes = maybe [] words $ lookup "class" attrs
+       let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
+       return $ B.divWith (ident, classes, keyvals) <$> contents
+     else -- avoid backtracing
+       return $ return (B.rawBlock "html" (rawtag <> bls)) <> contents
 
 rawHtmlInline :: MarkdownParser (F Inlines)
 rawHtmlInline = do
