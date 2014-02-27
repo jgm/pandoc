@@ -1384,7 +1384,7 @@ ltSign :: MarkdownParser (F Inlines)
 ltSign = do
   guardDisabled Ext_raw_html
     <|> guardDisabled Ext_markdown_in_html_blocks
-    <|> (notFollowedBy' rawHtmlBlocks >> return ())
+    <|> (notFollowedBy' (htmlTag isBlockTag) >> return ())
   char '<'
   return $ return $ B.str "<"
 
