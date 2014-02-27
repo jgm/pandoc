@@ -954,6 +954,8 @@ rawHtmlBlocks = do
   htmlBlocks <- many1 $ try $ do
                           s <- rawVerbatimBlock <|> try (
                                 do (t,raw) <- htmlTag isBlockTag
+                                   guard $ t ~/= TagOpen "div" [] &&
+                                           t ~/= TagClose "div"
                                    exts <- getOption readerExtensions
                                    -- if open tag, need markdown="1" if
                                    -- markdown_attributes extension is set
