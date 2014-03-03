@@ -263,6 +263,7 @@ Library
                    Text.Pandoc.Readers.Markdown,
                    Text.Pandoc.Readers.MediaWiki,
                    Text.Pandoc.Readers.RST,
+                   Text.Pandoc.Readers.Org,
                    Text.Pandoc.Readers.DocBook,
                    Text.Pandoc.Readers.OPML,
                    Text.Pandoc.Readers.TeXMath,
@@ -381,6 +382,7 @@ Test-Suite test-pandoc
                   Tests.Walk
                   Tests.Readers.LaTeX
                   Tests.Readers.Markdown
+                  Tests.Readers.Org
                   Tests.Readers.RST
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
