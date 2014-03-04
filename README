@@ -13,14 +13,15 @@ Description
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
-[LaTeX], [MediaWiki markup], [Haddock markup], [OPML], and [DocBook]; and
-it can write plain text, [markdown], [reStructuredText], [XHTML], [HTML 5],
-[LaTeX] (including [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
-[OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
-[EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages, [Emacs
-Org-Mode], [AsciiDoc], and [Slidy], [Slideous], [DZSlides], [reveal.js]
-or [S5] HTML slide shows. It can also produce [PDF] output on systems
-where LaTeX is installed.
+[LaTeX], [MediaWiki markup], [Haddock markup], [OPML], [Emacs Org-mode]
+and [DocBook]; and it can write plain text, [markdown],
+[reStructuredText], [XHTML], [HTML 5], [LaTeX] (including [beamer] slide
+shows), [ConTeXt], [RTF], [OPML], [DocBook], [OpenDocument], [ODT],
+[Word docx], [GNU Texinfo], [MediaWiki markup], [EPUB] (v2 or v3),
+[FictionBook2], [Textile], [groff man] pages, [Emacs Org-Mode],
+[AsciiDoc], and [Slidy], [Slideous], [DZSlides], [reveal.js] or [S5]
+HTML slide shows. It can also produce [PDF] output on systems where
+LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, fenced code blocks,
@@ -143,14 +144,14 @@ General options
     `markdown_phpextra` (PHP Markdown Extra extended markdown),
     `markdown_github` (github extended markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
-    `docbook` (DocBook), `opml` (OPML), `mediawiki` (MediaWiki markup),
-    `haddock` (Haddock markup), or `latex` (LaTeX).
-    If `+lhs` is appended to `markdown`, `rst`, `latex`, or `html`,
-    the input will be treated as literate Haskell source:
-    see [Literate Haskell support](#literate-haskell-support), below.
-    Markdown syntax extensions can be individually enabled or disabled
-    by appending `+EXTENSION` or `-EXTENSION` to the format name.
-    So, for example, `markdown_strict+footnotes+definition_lists`
+    `docbook` (DocBook), `opml` (OPML), `org` (Emacs Org-mode),
+    `mediawiki` (MediaWiki markup), `haddock` (Haddock markup), or
+    latex` (LaTeX).  If `+lhs` is appended to `markdown`, `rst`,
+    `latex`, or `html`, the input will be treated as literate Haskell
+    source: see [Literate Haskell support](#literate-haskell-support),
+    below. Markdown syntax extensions can be individually enabled or
+    disabled by appending `+EXTENSION` or `-EXTENSION` to the format
+    name. So, for example, `markdown_strict+footnotes+definition_lists`
     is strict markdown with footnotes and definition lists enabled,
     and `markdown-pipe_tables+hard_line_breaks` is pandoc's markdown
     without pipe tables and with hard line breaks. See [Pandoc's
