@@ -19,9 +19,9 @@ and [DocBook]; and it can write plain text, [markdown],
 shows), [ConTeXt], [RTF], [OPML], [DocBook], [OpenDocument], [ODT],
 [Word docx], [GNU Texinfo], [MediaWiki markup], [EPUB] (v2 or v3),
 [FictionBook2], [Textile], [groff man] pages, [Emacs Org-Mode],
-[AsciiDoc], and [Slidy], [Slideous], [DZSlides], [reveal.js] or [S5]
-HTML slide shows. It can also produce [PDF] output on systems where
-LaTeX is installed.
+[AsciiDoc], [InDesign ICML], and [Slidy], [Slideous], [DZSlides],
+[reveal.js] or [S5] HTML slide shows. It can also produce [PDF] output
+on systems where LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, fenced code blocks,
@@ -171,20 +171,20 @@ General options
     `opml` (OPML), `docbook` (DocBook), `opendocument` (OpenDocument), `odt`
     (OpenOffice text document), `docx` (Word docx),
     `rtf` (rich text format), `epub` (EPUB v2 book), `epub3`
-    (EPUB v3), `fb2` (FictionBook2 e-book), `asciidoc` (AsciiDoc), `slidy`
-    (Slidy HTML and javascript slide show), `slideous` (Slideous HTML and
-    javascript slide show), `dzslides` (DZSlides HTML5 + javascript slide
-    show), `revealjs` (reveal.js HTML5 + javascript slide show), `s5`
-    (S5 HTML and javascript slide show), or the path of a custom
-    lua writer (see [Custom writers](#custom-writers), below). Note that
-    `odt`, `epub`, and `epub3` output will not be directed to *stdout*; an
-    output filename must be specified using the `-o/--output` option. If
-    `+lhs` is appended to `markdown`, `rst`, `latex`, `beamer`, `html`, or
-    `html5`, the output will be rendered as literate Haskell source: see
-    [Literate Haskell support](#literate-haskell-support), below.  Markdown
-    syntax extensions can be individually enabled or disabled by appending
-    `+EXTENSION` or `-EXTENSION` to the format name, as described above
-    under `-f`.
+    (EPUB v3), `fb2` (FictionBook2 e-book), `asciidoc` (AsciiDoc),
+    `icml` (InDesign ICML), `slidy` (Slidy HTML and javascript slide show),
+    `slideous` (Slideous HTML and javascript slide show), `dzslides`
+    (DZSlides HTML5 + javascript slide show), `revealjs` (reveal.js
+    HTML5 + javascript slide show), `s5` (S5 HTML and javascript slide show),
+    or the path of a custom lua writer (see [Custom writers](#custom-writers),
+    below). Note that `odt`, `epub`, and `epub3` output will not be directed
+    to *stdout*; an output filename must be specified using the `-o/--output`
+    option. If `+lhs` is appended to `markdown`, `rst`, `latex`, `beamer`,
+    `html`, or `html5`, the output will be rendered as literate Haskell
+    source: see [Literate Haskell support](#literate-haskell-support), below.
+    Markdown syntax extensions can be individually enabled or disabled by
+    appending `+EXTENSION` or `-EXTENSION` to the format name, as described
+    above under `-f`.
 
 `-o` *FILE*, `--output=`*FILE*
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
@@ -2984,3 +2984,4 @@ Jamie F. Olson.
 [lua]: http://www.lua.org
 [marc relators]: http://www.loc.gov/marc/relators/relaterm.html
 [RFC5646]: http://tools.ietf.org/html/rfc5646
+[InDesign ICML]: https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf
