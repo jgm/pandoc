@@ -190,6 +190,7 @@ resolveVar var' val =
        Just (String t)  -> T.stripEnd t
        Just (Number n)  -> T.pack $ show n
        Just (Bool True) -> "true"
+       Just (Object _)  -> "true"
        Just _           -> mempty
        Nothing          -> mempty
 
