@@ -533,11 +533,16 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
   let percent w = show (truncate (100*w) :: Integer) ++ "%"
   let coltags = if all (== 0.0) widths
                    then mempty
-                   else mconcat $ map (\w ->
-                          if writerHtml5 opts
-                             then H.col ! A.style (toValue $ "width: " ++ percent w)
-                             else H.col ! A.width (toValue $ percent w) >> nl opts)
-                          widths
+                   else do
+                     H.colgroup $ do
+                       nl opts
+                       mapM_ (\w -> do
+                            if writerHtml5 opts
+                               then H.col ! A.style (toValue $ "width: " ++
+                                                      percent w)
+                               else H.col ! A.width (toValue $ percent w)
+                            nl opts) widths
+                     nl opts
   head' <- if all null headers
               then return mempty
               else do
