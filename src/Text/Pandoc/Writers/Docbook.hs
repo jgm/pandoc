@@ -32,12 +32,14 @@ module Text.Pandoc.Writers.Docbook ( writeDocbook) where
 import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Shared
+import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( isPrefixOf, intercalate, isSuffixOf )
 import Data.Char ( toLower )
+import Data.Monoid ( Any(..) )
 import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
 import qualified Text.Pandoc.Builder as B
@@ -165,8 +167,9 @@ blockToDocbook opts (Para [Image txt (src,'f':'i':'g':':':_)]) =
            (inTagsIndented "imageobject"
              (selfClosingTag "imagedata" [("fileref",src)])) $$
            inTagsSimple "textobject" (inTagsSimple "phrase" alt))
-blockToDocbook opts (Para lst) =
-  inTagsIndented "para" $ inlinesToDocbook opts lst
+blockToDocbook opts (Para lst)
+  | hasLineBreaks lst = flush $ nowrap $ inTagsSimple "literallayout" $ inlinesToDocbook opts lst
+  | otherwise         = inTagsIndented "para" $ inlinesToDocbook opts lst
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" $ blocksToDocbook opts blocks
 blockToDocbook _ (CodeBlock (_,classes,_) str) =
@@ -225,6 +228,16 @@ blockToDocbook opts (Table caption aligns widths headers rows) =
   in  inTagsIndented tableType $ captionDoc $$
         (inTags True "tgroup" [("cols", show (length headers))] $
          coltags $$ head' $$ body')
+
+hasLineBreaks :: [Inline] -> Bool
+hasLineBreaks = getAny . query isLineBreak . walk removeNote
+  where
+    removeNote :: Inline -> Inline
+    removeNote (Note _) = Str ""
+    removeNote x = x
+    isLineBreak :: Inline -> Any
+    isLineBreak LineBreak = Any True
+    isLineBreak _ = Any False
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
@@ -293,7 +306,7 @@ inlineToDocbook opts (Math t str)
            fixNS = everywhere (mkT fixNS')
 inlineToDocbook _ (RawInline f x) | f == "html" || f == "docbook" = text x
                                   | otherwise                     = empty
-inlineToDocbook _ LineBreak = flush $ inTagsSimple "literallayout" (text "\n")
+inlineToDocbook _ LineBreak = text "\n"
 inlineToDocbook _ Space = space
 inlineToDocbook opts (Link txt (src, _)) =
   if isPrefixOf "mailto:" src
