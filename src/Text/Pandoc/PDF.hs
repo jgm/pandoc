@@ -91,7 +91,8 @@ handleImage' baseURL tmpdir (Image ils (src,tit)) = do
                 let ext = fromMaybe (takeExtension src) $
                           extensionFromMimeType mime
                 let basename = UTF8.toString $ B64.encode $ UTF8.fromString src
-                let fname = tmpdir </> basename <.> ext
+                -- note:  we want / even on Windows, for TexLive:
+                let fname = tmpdir ++ "/" ++ basename <.> ext
                 BS.writeFile fname contents
                 return $ Image ils (fname,tit)
               _ -> do
@@ -143,7 +144,7 @@ extractMsg log' = do
 runTeXProgram :: String -> Int -> FilePath -> String
               -> IO (ExitCode, ByteString, Maybe ByteString)
 runTeXProgram program runsLeft tmpDir source = do
-    let file = tmpDir </> "input.tex"
+    let file = tmpDir ++ "/input.tex"
     exists <- doesFileExist file
     unless exists $ UTF8.writeFile file source
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
