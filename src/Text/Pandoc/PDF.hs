@@ -51,13 +51,21 @@ import Text.Pandoc.Options (WriterOptions(..))
 import Text.Pandoc.MIME (extensionFromMimeType)
 import Text.Pandoc.Process (pipeProcess)
 import qualified Data.ByteString.Lazy as BL
+#ifdef _WINDOWS
+import Data.List (intercalate)
+#endif
 
 withTempDir :: String -> (FilePath -> IO a) -> IO a
-withTempDir =
+withTempDir f =
 #ifdef _WINDOWS
-  withTempDirectory "."
+  withTempDirectory "." (f . changePathSeparators)
 #else
-  withSystemTempDirectory
+  withSystemTempDirectory f
+#endif
+
+#ifdef _WINDOWS
+changePathSeparators :: FilePath -> FilePath
+changePathSeparators = intercalate "/" . splitDirectories
 #endif
 
 makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex)
