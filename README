@@ -633,10 +633,14 @@ Citation rendering
     `--metadata citation-abbreviations=FILE`.)
 
 `--natbib`
-:   Use natbib for citations in LaTeX output.
+:   Use natbib for citations in LaTeX output. This may not work properly in
+    PDF output. The expected use of this option is to produce a standalone
+    LaTeX file and then to manually use LaTeX to produce a PDF file.
 
 `--biblatex`
-:   Use biblatex for citations in LaTeX output.
+:   Use biblatex for citations in LaTeX output. This may not work properly in
+    PDF output. The expected use of this option is to produce a standalone
+    LaTeX file and then to manually use LaTeX to produce a PDF file.
 
 Math rendering in HTML
 ----------------------
