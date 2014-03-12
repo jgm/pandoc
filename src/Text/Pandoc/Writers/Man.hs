@@ -283,7 +283,7 @@ definitionListItemToMan opts (label, defs) = do
                                   mapM (\item -> blockToMan opts item) rest
                         first' <- blockToMan opts first
                         return $ first' $$ text ".RS" $$ rest' $$ text ".RE"
-  return $ text ".TP" $$ text ".B " <> labelText $$ contents
+  return $ text ".TP" $$ nowrap (text ".B " <> labelText) $$ contents
 
 -- | Convert list of Pandoc block elements to man.
 blockListToMan :: WriterOptions -- ^ Options
