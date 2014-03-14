@@ -721,7 +721,7 @@ transformTag :: WriterOptions
              -> Tag String
              -> IO (Tag String)
 transformTag opts mediaRef tag@(TagOpen name attr)
-  | name == "video" || name == "source" = do
+  | name == "video" || name == "source" || name == "img" = do
   let src = fromAttrib "src" tag
   let poster = fromAttrib "poster" tag
   let oldsrc = maybe src (</> src) $ writerSourceURL opts
