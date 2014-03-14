@@ -135,7 +135,7 @@ tests = [ testGroup "markdown"
             "haddock-reader.haddock" "haddock-reader.native"
           ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
-          [ "opendocument" , "context" , "texinfo"
+          [ "opendocument" , "context" , "texinfo", "icml"
           , "man" , "plain" , "rtf", "org", "asciidoc"
           ]
         ]

@@ -65,6 +65,7 @@ import Prelude hiding (catch)
 #endif
 import Control.Exception (catch, SomeException)
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
+import Text.HTML.TagSoup
 
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section
@@ -341,15 +342,15 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let tpEntry = mkEntry "title_page.xhtml" tpContent
 
   -- handle pictures
-  picsRef <- newIORef []
-  Pandoc _ blocks <- walkM
-       (transformInline opts' picsRef) doc
-  pics <- readIORef picsRef
+  mediaRef <- newIORef []
+  Pandoc _ blocks <- walkM (transformInline opts' mediaRef) doc >>=
+                     walkM (transformBlock opts' mediaRef)
+  pics <- readIORef mediaRef
   let readPicEntry entries (oldsrc, newsrc) = do
         res <- fetchItem (writerSourceURL opts') oldsrc
         case res of
              Left _        -> do
-              warn $ "Could not find image `" ++ oldsrc ++ "', skipping..."
+              warn $ "Could not find media `" ++ oldsrc ++ "', skipping..."
               return entries
              Right (img,_) -> return $
               (toEntry newsrc epochtime $ B.fromChunks . (:[]) $ img) : entries
@@ -439,7 +440,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                            [("id", takeBaseName $ eRelativePath ent),
                             ("href", eRelativePath ent),
                             ("media-type", fromMaybe "application/octet-stream"
-                               $ imageTypeOf $ eRelativePath ent)] $ ()
+                               $ mediaTypeOf $ eRelativePath ent)] $ ()
   let fontNode ent = unode "item" !
                            [("id", takeBaseName $ eRelativePath ent),
                             ("href", eRelativePath ent),
@@ -715,21 +716,55 @@ metadataElement version md currentTime =
 showDateTimeISO8601 :: UTCTime -> String
 showDateTimeISO8601 = formatTime defaultTimeLocale "%FT%TZ"
 
+transformTag :: WriterOptions
+             -> IORef [(FilePath, FilePath)] -- ^ (oldpath, newpath) media
+             -> Tag String
+             -> IO (Tag String)
+transformTag opts mediaRef tag@(TagOpen name attr)
+  | name == "video" || name == "source" || name == "img" = do
+  let src = fromAttrib "src" tag
+  let poster = fromAttrib "poster" tag
+  let oldsrc = maybe src (</> src) $ writerSourceURL opts
+  let oldposter = maybe poster (</> poster) $ writerSourceURL opts
+  newsrc <- modifyMediaRef mediaRef oldsrc
+  newposter <- modifyMediaRef mediaRef oldposter
+  let attr' = filter (\(x,_) -> x /= "src" && x /= "poster") attr ++
+              [("src", newsrc) | not (null newsrc)] ++
+              [("poster", newposter) | not (null newposter)]
+  return $ TagOpen name attr'
+transformTag _ _ tag = return tag
+
+modifyMediaRef :: IORef [(FilePath, FilePath)] -> FilePath -> IO FilePath
+modifyMediaRef _ "" = return ""
+modifyMediaRef mediaRef oldsrc = do
+  media <- readIORef mediaRef
+  case lookup oldsrc media of
+         Just n  -> return n
+         Nothing -> do
+           let new = "media/file" ++ show (length media) ++
+                    takeExtension oldsrc
+           modifyIORef mediaRef ( (oldsrc, new): )
+           return new
+
+transformBlock  :: WriterOptions
+                -> IORef [(FilePath, FilePath)] -- ^ (oldpath, newpath) media
+                -> Block
+                -> IO Block
+transformBlock opts mediaRef (RawBlock fmt raw)
+  | fmt == Format "html" = do
+  let tags = parseTags raw
+  tags' <- mapM (transformTag opts mediaRef)  tags
+  return $ RawBlock fmt (renderTags tags')
+transformBlock _ _ b = return b
+
 transformInline  :: WriterOptions
-                 -> IORef [(FilePath, FilePath)] -- ^ (oldpath, newpath) images
+                 -> IORef [(FilePath, FilePath)] -- ^ (oldpath, newpath) media
                  -> Inline
                  -> IO Inline
-transformInline opts picsRef (Image lab (src,tit)) = do
+transformInline opts mediaRef (Image lab (src,tit)) = do
     let src' = unEscapeString src
-    pics <- readIORef picsRef
     let oldsrc = maybe src' (</> src) $ writerSourceURL opts
-    let ext = takeExtension src'
-    newsrc <- case lookup oldsrc pics of
-                    Just n  -> return n
-                    Nothing -> do
-                          let new = "images/img" ++ show (length pics) ++ ext
-                          modifyIORef picsRef ( (oldsrc, new): )
-                          return new
+    newsrc <- modifyMediaRef mediaRef oldsrc
     return $ Image lab (newsrc, tit)
 transformInline opts _ (x@(Math _ _))
   | WebTeX _ <- writerHTMLMathMethod opts = do
@@ -759,9 +794,11 @@ ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . unEntity . 
                           Nothing  -> '&':'#':unEntity xs
         unEntity (x:xs) = x : unEntity xs
 
-imageTypeOf :: FilePath -> Maybe String
-imageTypeOf x = case getMimeType x of
+mediaTypeOf :: FilePath -> Maybe String
+mediaTypeOf x = case getMimeType x of
                      Just y@('i':'m':'a':'g':'e':_) -> Just y
+                     Just y@('v':'i':'d':'e':'o':_) -> Just y
+                     Just y@('a':'u':'d':'i':'o':_) -> Just y
                      _                              -> Nothing
 
 data IdentState = IdentState{

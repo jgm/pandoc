@@ -65,6 +65,7 @@ module Text.Pandoc
                , readMarkdown
                , readMediaWiki
                , readRST
+               , readOrg
                , readLaTeX
                , readHtml
                , readTextile
@@ -85,6 +86,7 @@ module Text.Pandoc
                , writeTexinfo
                , writeHtml
                , writeHtmlString
+               , writeICML
                , writeDocbook
                , writeOPML
                , writeOpenDocument
@@ -115,6 +117,7 @@ import Text.Pandoc.JSON
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Readers.RST
+import Text.Pandoc.Readers.Org
 import Text.Pandoc.Readers.DocBook
 import Text.Pandoc.Readers.OPML
 import Text.Pandoc.Readers.LaTeX
@@ -133,6 +136,7 @@ import Text.Pandoc.Writers.ODT
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.EPUB
 import Text.Pandoc.Writers.FB2
+import Text.Pandoc.Writers.ICML
 import Text.Pandoc.Writers.Docbook
 import Text.Pandoc.Writers.OPML
 import Text.Pandoc.Writers.OpenDocument
@@ -201,6 +205,7 @@ readers = [ ("native"       , \_ s -> return $ readNative s)
            ,("mediawiki"    , \o s -> return $ readMediaWiki o s)
            ,("docbook"      , \o s -> return $ readDocBook o s)
            ,("opml"         , \o s -> return $ readOPML o s)
+           ,("org"          , \o s -> return $ readOrg o s)
            ,("textile"      , \o s -> return $ readTextile o s) -- TODO : textile+lhs
            ,("html"         , \o s -> return $ readHtml o s)
            ,("latex"        , \o s -> return $ readLaTeX o s)
@@ -226,6 +231,7 @@ writers = [
   ,("html"         , PureStringWriter writeHtmlString)
   ,("html5"        , PureStringWriter $ \o ->
      writeHtmlString o{ writerHtml5 = True })
+  ,("icml"         , PureStringWriter writeICML)
   ,("s5"           , PureStringWriter $ \o ->
      writeHtmlString o{ writerSlideVariant = S5Slides
                       , writerTableOfContents = False })

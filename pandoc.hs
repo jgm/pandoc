@@ -834,6 +834,7 @@ defaultReaderName fallback (x:xs) =
     ".latex"    -> "latex"
     ".ltx"      -> "latex"
     ".rst"      -> "rst"
+    ".org"      -> "org"
     ".lhs"      -> "markdown+lhs"
     ".db"       -> "docbook"
     ".opml"     -> "opml"

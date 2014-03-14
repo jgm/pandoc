@@ -7,6 +7,7 @@ import GHC.IO.Encoding
 import qualified Tests.Old
 import qualified Tests.Readers.LaTeX
 import qualified Tests.Readers.Markdown
+import qualified Tests.Readers.Org
 import qualified Tests.Readers.RST
 import qualified Tests.Writers.ConTeXt
 import qualified Tests.Writers.LaTeX
@@ -31,6 +32,7 @@ tests = [ testGroup "Old" Tests.Old.tests
         , testGroup "Readers"
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests
           , testGroup "Markdown" Tests.Readers.Markdown.tests
+          , testGroup "Org" Tests.Readers.Org.tests
           , testGroup "RST" Tests.Readers.RST.tests
           ]
         ]

@@ -51,6 +51,9 @@ import Text.Pandoc.Options (WriterOptions(..))
 import Text.Pandoc.MIME (extensionFromMimeType)
 import Text.Pandoc.Process (pipeProcess)
 import qualified Data.ByteString.Lazy as BL
+#ifdef _WINDOWS
+import Data.List (intercalate)
+#endif
 
 withTempDir :: String -> (FilePath -> IO a) -> IO a
 withTempDir =
@@ -58,6 +61,11 @@ withTempDir =
   withTempDirectory "."
 #else
   withSystemTempDirectory
+#endif
+
+#ifdef _WINDOWS
+changePathSeparators :: FilePath -> FilePath
+changePathSeparators = intercalate "/" . splitDirectories
 #endif
 
 makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex)
@@ -146,15 +154,19 @@ runTeXProgram program runsLeft tmpDir source = do
     let file = tmpDir </> "input.tex"
     exists <- doesFileExist file
     unless exists $ UTF8.writeFile file source
-    let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
-         "-output-directory", tmpDir, file]
-    env' <- getEnvironment
 #ifdef _WINDOWS
-    let sep = ";"
+    -- note:  we want / even on Windows, for TexLive
+    let tmpDir' = changePathSeparators tmpDir
+    let file' = changePathSeparators file
 #else
-    let sep = ":"
+    let tmpDir' = tmpDir
+    let file' = file
 #endif
-    let texinputs = maybe (tmpDir ++ sep) ((tmpDir ++ sep) ++)
+    let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
+         "-output-directory", tmpDir', file']
+    env' <- getEnvironment
+    let sep = searchPathSeparator:[]
+    let texinputs = maybe (tmpDir' ++ sep) ((tmpDir' ++ sep) ++)
           $ lookup "TEXINPUTS" env'
     let env'' = ("TEXINPUTS", texinputs) :
                   [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]

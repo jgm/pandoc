@@ -17,12 +17,12 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
                  this library. It can read markdown and (subsets of) HTML,
                  reStructuredText, LaTeX, DocBook, MediaWiki markup, Haddock
-                 markup, OPML, and Textile, and it can write markdown,
-                 reStructuredText, HTML, LaTeX, ConTeXt, Docbook, OPML,
+                 markup, OPML, Emacs Org-Mode, and Textile, and it can write
+                 markdown, reStructuredText, HTML, LaTeX, ConTeXt, Docbook, OPML,
                  OpenDocument, ODT, Word docx, RTF, MediaWiki, Textile,
                  groff man pages, plain text, Emacs Org-Mode, AsciiDoc,
-                 EPUB (v2 and v3), FictionBook2, and several kinds of
-                 HTML/javascript slide shows (S5, Slidy, Slideous, DZSlides,
+                 EPUB (v2 and v3), FictionBook2, InDesign ICML, and several kinds
+                 of HTML/javascript slide shows (S5, Slidy, Slideous, DZSlides,
                  reveal.js).
                  .
                  Pandoc extends standard markdown syntax with footnotes,
@@ -263,6 +263,7 @@ Library
                    Text.Pandoc.Readers.Markdown,
                    Text.Pandoc.Readers.MediaWiki,
                    Text.Pandoc.Readers.RST,
+                   Text.Pandoc.Readers.Org,
                    Text.Pandoc.Readers.DocBook,
                    Text.Pandoc.Readers.OPML,
                    Text.Pandoc.Readers.TeXMath,
@@ -273,6 +274,7 @@ Library
                    Text.Pandoc.Writers.Docbook,
                    Text.Pandoc.Writers.OPML,
                    Text.Pandoc.Writers.HTML,
+                   Text.Pandoc.Writers.ICML,
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
                    Text.Pandoc.Writers.OpenDocument,
@@ -381,6 +383,7 @@ Test-Suite test-pandoc
                   Tests.Walk
                   Tests.Readers.LaTeX
                   Tests.Readers.Markdown
+                  Tests.Readers.Org
                   Tests.Readers.RST
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
