@@ -219,11 +219,15 @@ blockToRST (Table caption _ widths headers rows) =  do
                      else blankline <> text "Table: " <> caption'
   headers' <- mapM blockListToRST headers
   rawRows <- mapM (mapM blockListToRST) rows
-  let isSimple = all (==0) widths && all (all (\bs -> length bs <= 1)) rows
+  -- let isSimpleCell [Plain _] = True
+  --     isSimpleCell [Para _]  = True
+  --     isSimpleCell []        = True
+  --     isSimpleCell _         = False
+  -- let isSimple = all (==0) widths && all (all isSimpleCell) rows
   let numChars = maximum . map offset
   opts <- get >>= return . stOptions
   let widthsInChars =
-       if isSimple
+       if all (== 0) widths
           then map ((+2) . numChars) $ transpose (headers' : rawRows)
           else map (floor . (fromIntegral (writerColumns opts) *)) widths
   let hpipeBlocks blocks = hcat [beg, middle, end]
