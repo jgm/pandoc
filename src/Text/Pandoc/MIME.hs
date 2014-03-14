@@ -246,6 +246,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("lzx","application/x-lzx")
            ,("m3u","audio/mpegurl")
            ,("m4a","audio/mpeg")
+           ,("m4v","video/x-m4v")
            ,("maker","application/x-maker")
            ,("man","application/x-troff-man")
            ,("mcif","chemical/x-mmcif")
