@@ -432,7 +432,8 @@ pInlinesInTags :: String -> ([Inline] -> Inline)
                -> TagParser [Inline]
 pInlinesInTags tagtype f = do
   contents <- pInTags tagtype inline
-  return [f $ normalizeSpaces contents]
+  let (leadSpaces, body, trailingSpaces) = splitSpaces contents
+  return (leadSpaces ++ [f $ body] ++  trailingSpaces)
 
 pInTags :: String -> TagParser [a]
         -> TagParser [a]
