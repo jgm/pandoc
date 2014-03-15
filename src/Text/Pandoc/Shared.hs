@@ -321,8 +321,8 @@ splitSpaces is = (singular leadingSpaces, body', singular trailingSpaces)
                (_, (x:xs))  -> cleanup xs (x : Space : bs) [] 
         cleanup ((Str ""):rest) bs ts      = cleanup rest bs ts
         cleanup (x:rest) bs ts             = cleanup rest (x:bs) ts
-        singlular []                       = []
-        singlular xs                       = [Space]
+        singular []                       = []
+        singular xs                       = [Space]
 
 isSpaceOrEmpty :: Inline -> Bool
 isSpaceOrEmpty Space = True
