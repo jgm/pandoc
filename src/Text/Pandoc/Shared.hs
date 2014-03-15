@@ -315,14 +315,14 @@ splitSpaces is = (singular leadingSpaces, body', singular trailingSpaces)
         (leadingSpaces, body)              = span isSpaceOrEmpty is
         (body', trailingSpaces)            = cleanup body [] []
         cleanup [] bs ts                   = (reverse bs,ts)
-        cleanup whole@(Space:_) bs _    = 
+        cleanup whole@(Space:_) bs _       = 
           case span isSpaceOrEmpty whole of
                (ts, [])     -> cleanup [] bs ts
                (_, (x:xs))  -> cleanup xs (x : Space : bs) [] 
         cleanup ((Str ""):rest) bs ts      = cleanup rest bs ts
         cleanup (x:rest) bs ts             = cleanup rest (x:bs) ts
-        singular []                       = []
-        singular xs                       = [Space]
+        singular []                        = []
+        singular _                         = [Space]
 
 isSpaceOrEmpty :: Inline -> Bool
 isSpaceOrEmpty Space = True
