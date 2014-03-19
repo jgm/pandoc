@@ -116,7 +116,6 @@ tex2pdf' tmpDir program source = do
                    then 3  -- to get page numbers
                    else 2  -- 1 run won't give you PDF bookmarks
   (exit, log', mbPdf) <- runTeXProgram program numruns tmpDir source
-  let msg = "Error producing PDF from TeX source.\n"
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do
           let logmsg = extractMsg log'
@@ -125,8 +124,8 @@ tex2pdf' tmpDir program source = do
                      x | "! Package inputenc Error" `BC.isPrefixOf` x ->
                            "\nTry running pandoc with --latex-engine=xelatex."
                      _ -> ""
-          return $ Left $ msg <> logmsg <> extramsg
-       (ExitSuccess, Nothing)  -> return $ Left msg
+          return $ Left $ logmsg <> extramsg
+       (ExitSuccess, Nothing)  -> return $ Left ""
        (ExitSuccess, Just pdf) -> return $ Right pdf
 
 (<>) :: ByteString -> ByteString -> ByteString

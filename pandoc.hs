@@ -1172,7 +1172,10 @@ main = do
               res <- makePDF latexEngine f writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
-                   Left err' -> err 43 $ UTF8.toStringLazy err'
+                   Left err' -> do
+                     B.hPutStr stderr $ err'
+                     B.hPut stderr $ B.pack [10]
+                     err 43 "Error producing PDF from TeX source"
       | otherwise -> selfcontain (f writerOptions doc2 ++
                                   ['\n' | not standalone'])
                       >>= writerFn outputFile . handleEntities
