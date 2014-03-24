@@ -174,13 +174,13 @@ import Text.Pandoc.Asciify (toAsciiChar)
 import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader
-import Control.Applicative ((*>), (<*), (<$), liftA2)
+import Control.Applicative ((*>), (<*), (<$), liftA2, Applicative)
 import Data.Monoid
 import Data.Maybe (catMaybes)
 
 type Parser t s = Parsec t s
 
-newtype F a = F { unF :: Reader ParserState a } deriving (Monad, Functor)
+newtype F a = F { unF :: Reader ParserState a } deriving (Monad, Applicative, Functor)
 
 runF :: F a -> ParserState -> a
 runF = runReader . unF
