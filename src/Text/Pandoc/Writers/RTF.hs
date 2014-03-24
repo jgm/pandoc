@@ -259,7 +259,7 @@ tableRowToRTF header indent aligns sizes' cols =
 tableItemToRTF :: Int -> Alignment -> [Block] -> String
 tableItemToRTF indent alignment item =
   let contents = concatMap (blockToRTF indent alignment) item
-  in  "{\\intbl " ++ contents ++ "\\cell}\n"
+  in  "{" ++ substitute "\\pard" "\\pard\\intbl" contents ++ "\\cell}\n"
 
 -- | Ensure that there's the same amount of space after compact
 -- lists as after regular lists.
