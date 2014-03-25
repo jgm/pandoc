@@ -87,11 +87,11 @@ instance HasReaderOptions MWState where
 
 instance HasHeaderMap MWState where
   extractHeaderMap     = mwHeaderMap
-  updateHeaderMap x st = st{ mwHeaderMap = x }
+  updateHeaderMap f st = st{ mwHeaderMap = f $ mwHeaderMap st }
 
 instance HasIdentifierList MWState where
   extractIdentifierList     = mwIdentifierList
-  updateIdentifierList x st = st{ mwIdentifierList = x }
+  updateIdentifierList f st = st{ mwIdentifierList = f $ mwIdentifierList st }
 
 --
 -- auxiliary functions

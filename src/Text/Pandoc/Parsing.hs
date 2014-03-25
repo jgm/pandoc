@@ -70,6 +70,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              HasReaderOptions (..),
                              HasHeaderMap (..),
                              HasIdentifierList (..),
+                             HasMacros (..),
                              defaultParserState,
                              HeaderType (..),
                              ParserContext (..),
@@ -880,35 +881,28 @@ instance HasReaderOptions ParserState where
 
 class HasHeaderMap st where
   extractHeaderMap  :: st -> M.Map Inlines String
-  updateHeaderMap   :: M.Map Inlines String -> st -> st
-  getHeaderMap      :: Parser s st (M.Map Inlines String)
-  putHeaderMap      :: M.Map Inlines String -> Parser s st ()
-  modifyHeaderMap   :: (M.Map Inlines String -> M.Map Inlines String)
-                       -> Parser s st ()
-  -- default
-  getHeaderMap      = extractHeaderMap `fmap` getState
-  putHeaderMap x    = updateState (updateHeaderMap x)
-  modifyHeaderMap f = getHeaderMap >>= putHeaderMap . f
+  updateHeaderMap   :: (M.Map Inlines String -> M.Map Inlines String) ->
+                       st -> st
 
 instance HasHeaderMap ParserState where
   extractHeaderMap     = stateHeaders
-  updateHeaderMap x st = st{ stateHeaders = x }
+  updateHeaderMap f st = st{ stateHeaders = f $ stateHeaders st }
 
 class HasIdentifierList st where
   extractIdentifierList  :: st -> [String]
-  updateIdentifierList   :: [String] -> st -> st
-  getIdentifierList      :: Parser s st ([String])
-  putIdentifierList      :: [String] -> Parser s st ()
-  modifyIdentifierList   :: ([String] -> [String]) -> Parser s st ()
-  -- default
-  getIdentifierList      = extractIdentifierList `fmap` getState
-  putIdentifierList x    = updateState (updateIdentifierList x)
-  modifyIdentifierList f = getIdentifierList >>= putIdentifierList . f
+  updateIdentifierList   :: ([String] -> [String]) -> st -> st
 
 instance HasIdentifierList ParserState where
   extractIdentifierList     = stateIdentifiers
-  updateIdentifierList x st = st{ stateIdentifiers = x }
+  updateIdentifierList f st = st{ stateIdentifiers = f $ stateIdentifiers st }
 
+class HasMacros st where
+  extractMacros         :: st -> [Macro]
+  updateMacros          :: ([Macro] -> [Macro]) -> st -> st
+
+instance HasMacros ParserState where
+  extractMacros        = stateMacros
+  updateMacros f st    = st{ stateMacros = f $ stateMacros st }
 
 defaultParserState :: ParserState
 defaultParserState =
@@ -980,7 +974,7 @@ type SubstTable = M.Map Key Inlines
 registerHeader :: (HasReaderOptions st, HasHeaderMap st, HasIdentifierList st)
                => Attr -> Inlines -> Parser s st Attr
 registerHeader (ident,classes,kvs) header' = do
-  ids <- getIdentifierList
+  ids <- extractIdentifierList `fmap` getState
   exts <- getOption readerExtensions
   let insert' = M.insertWith (\_new old -> old)
   if null ident && Ext_auto_identifiers `Set.member` exts
@@ -989,13 +983,13 @@ registerHeader (ident,classes,kvs) header' = do
        let id'' = if Ext_ascii_identifiers `Set.member` exts
                      then catMaybes $ map toAsciiChar id'
                      else id'
-       putIdentifierList $ if id' == id''
-                              then id' : ids
-                              else id' : id'' : ids
-       modifyHeaderMap $ insert' header' id'
+       updateState $ updateIdentifierList $
+         if id' == id'' then (id' :) else ([id', id''] ++)
+       updateState $ updateHeaderMap $ insert' header' id'
        return (id'',classes,kvs)
      else do
-        unless (null ident) $ modifyHeaderMap $ insert' header' ident
+        unless (null ident) $
+          updateState $ updateHeaderMap $ insert' header' ident
         return (ident,classes,kvs)
 
 -- | Fail unless we're in "smart typography" mode.
@@ -1140,7 +1134,7 @@ nested p = do
 --
 
 -- | Parse a \newcommand or \renewcommand macro definition.
-macro :: Parser [Char] ParserState Blocks
+macro :: (HasMacros st, HasReaderOptions st) => Parser [Char] st Blocks
 macro = do
   apply <- getOption readerApplyMacros
   inp <- getInput
@@ -1150,7 +1144,7 @@ macro = do
                         if apply
                            then do
                              updateState $ \st ->
-                               st { stateMacros = ms ++ stateMacros st }
+                               updateMacros (ms ++) st
                              return mempty
                            else return $ rawBlock "latex" def'
 
@@ -1159,7 +1153,7 @@ applyMacros' :: String -> Parser [Char] ParserState String
 applyMacros' target = do
   apply <- getOption readerApplyMacros
   if apply
-     then do macros <- liftM stateMacros getState
+     then do macros <- extractMacros `fmap` getState
              return $ applyMacros macros target
      else return target
 
