@@ -894,6 +894,7 @@ environments = M.fromList
   , ("letter", env "letter" letter_contents)
   , ("figure", env "figure" $ skipopts *> blocks)
   , ("center", env "center" blocks)
+  , ("table",  env "table" $ skipopts *> blocks)
   , ("tabular", env "tabular" simpTable)
   , ("quote", blockQuote <$> env "quote" blocks)
   , ("quotation", blockQuote <$> env "quotation" blocks)
