@@ -82,16 +82,16 @@ data MWState = MWState { mwOptions         :: ReaderOptions
 
 type MWParser = Parser [Char] MWState
 
-instance HasReaderOptions MWParser where
-  askReaderOption f = (f . mwOptions) `fmap` getState
+instance HasReaderOptions MWState where
+  extractReaderOptions = mwOptions
 
-instance HasHeaderMap MWParser where
-  getHeaderMap      = fmap mwHeaderMap getState
-  putHeaderMap hm   = updateState $ \st -> st{ mwHeaderMap = hm }
+instance HasHeaderMap MWState where
+  extractHeaderMap     = mwHeaderMap
+  updateHeaderMap x st = st{ mwHeaderMap = x }
 
-instance HasIdentifierList MWParser where
-  getIdentifierList   = fmap mwIdentifierList getState
-  putIdentifierList l = updateState $ \st -> st{ mwIdentifierList = l }
+instance HasIdentifierList MWState where
+  extractIdentifierList     = mwIdentifierList
+  updateIdentifierList x st = st{ mwIdentifierList = x }
 
 --
 -- auxiliary functions

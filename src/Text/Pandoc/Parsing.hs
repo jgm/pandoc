@@ -64,7 +64,6 @@ module Text.Pandoc.Parsing ( (>>~),
                              gridTableWith,
                              readWith,
                              testStringWith,
-                             getOption,
                              guardEnabled,
                              guardDisabled,
                              ParserState (..),
@@ -870,33 +869,45 @@ instance HasMeta ParserState where
   deleteMeta field st =
     st{ stateMeta = deleteMeta field $ stateMeta st }
 
-class Monad m => HasReaderOptions m where
-  askReaderOption :: (ReaderOptions -> b) -> m b
-
-class Monad m => HasHeaderMap m where
-  getHeaderMap    :: m (M.Map Inlines String)
-  putHeaderMap    :: M.Map Inlines String -> m ()
-  modifyHeaderMap :: (M.Map Inlines String -> M.Map Inlines String) -> m ()
+class HasReaderOptions st where
+  extractReaderOptions :: st -> ReaderOptions
+  getOption            :: (ReaderOptions -> b) -> Parser s st b
   -- default
+  getOption  f         = (f . extractReaderOptions) `fmap` getState
+
+instance HasReaderOptions ParserState where
+  extractReaderOptions = stateOptions
+
+class HasHeaderMap st where
+  extractHeaderMap  :: st -> M.Map Inlines String
+  updateHeaderMap   :: M.Map Inlines String -> st -> st
+  getHeaderMap      :: Parser s st (M.Map Inlines String)
+  putHeaderMap      :: M.Map Inlines String -> Parser s st ()
+  modifyHeaderMap   :: (M.Map Inlines String -> M.Map Inlines String)
+                       -> Parser s st ()
+  -- default
+  getHeaderMap      = extractHeaderMap `fmap` getState
+  putHeaderMap x    = updateState (updateHeaderMap x)
   modifyHeaderMap f = getHeaderMap >>= putHeaderMap . f
 
-class Monad m => HasIdentifierList m where
-  getIdentifierList    :: m [String]
-  putIdentifierList    :: [String] -> m ()
-  modifyIdentifierList :: ([String] -> [String]) -> m ()
+instance HasHeaderMap ParserState where
+  extractHeaderMap     = stateHeaders
+  updateHeaderMap x st = st{ stateHeaders = x }
+
+class HasIdentifierList st where
+  extractIdentifierList  :: st -> [String]
+  updateIdentifierList   :: [String] -> st -> st
+  getIdentifierList      :: Parser s st ([String])
+  putIdentifierList      :: [String] -> Parser s st ()
+  modifyIdentifierList   :: ([String] -> [String]) -> Parser s st ()
   -- default
+  getIdentifierList      = extractIdentifierList `fmap` getState
+  putIdentifierList x    = updateState (updateIdentifierList x)
   modifyIdentifierList f = getIdentifierList >>= putIdentifierList . f
 
-instance HasReaderOptions (Parser s ParserState) where
-  askReaderOption = getOption
-
-instance HasHeaderMap (Parser s ParserState) where
-  getHeaderMap      = fmap stateHeaders getState
-  putHeaderMap hm   = updateState $ \st -> st{ stateHeaders = hm }
-
-instance HasIdentifierList (Parser s ParserState) where
-  getIdentifierList   = fmap stateIdentifiers  getState
-  putIdentifierList l = updateState $ \st -> st{ stateIdentifiers = l }
+instance HasIdentifierList ParserState where
+  extractIdentifierList     = stateIdentifiers
+  updateIdentifierList x st = st{ stateIdentifiers = x }
 
 defaultParserState :: ParserState
 defaultParserState =
@@ -923,15 +934,12 @@ defaultParserState =
                   stateRstCustomRoles  = M.empty,
                   stateWarnings        = []}
 
-getOption :: (ReaderOptions -> a) -> Parser s ParserState a
-getOption f = (f . stateOptions) `fmap` getState
-
 -- | Succeed only if the extension is enabled.
-guardEnabled :: Extension -> Parser s ParserState ()
+guardEnabled :: HasReaderOptions st => Extension -> Parser s st ()
 guardEnabled ext = getOption readerExtensions >>= guard . Set.member ext
 
 -- | Succeed only if the extension is disabled.
-guardDisabled :: Extension -> Parser s ParserState ()
+guardDisabled :: HasReaderOptions st => Extension -> Parser s st ()
 guardDisabled ext = getOption readerExtensions >>= guard . not . Set.member ext
 
 data HeaderType
@@ -968,11 +976,11 @@ type SubstTable = M.Map Key Inlines
 --  and the auto_identifers extension is set, generate a new
 --  unique identifier, and update the list of identifiers
 --  in state.
-registerHeader :: (HasReaderOptions m, HasHeaderMap m, HasIdentifierList m)
-               => Attr -> Inlines -> m Attr
+registerHeader :: (HasReaderOptions st, HasHeaderMap st, HasIdentifierList st)
+               => Attr -> Inlines -> Parser s st Attr
 registerHeader (ident,classes,kvs) header' = do
   ids <- getIdentifierList
-  exts <- askReaderOption readerExtensions
+  exts <- getOption readerExtensions
   let insert' = M.insertWith (\_new old -> old)
   if null ident && Ext_auto_identifiers `Set.member` exts
      then do
@@ -990,7 +998,7 @@ registerHeader (ident,classes,kvs) header' = do
         return (ident,classes,kvs)
 
 -- | Fail unless we're in "smart typography" mode.
-failUnlessSmart :: Parser [tok] ParserState ()
+failUnlessSmart :: HasReaderOptions st => Parser s st ()
 failUnlessSmart = getOption readerSmart >>= guard
 
 smartPunctuation :: Parser [Char] ParserState Inline
