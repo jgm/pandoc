@@ -909,6 +909,7 @@ instance HasIdentifierList ParserState where
   extractIdentifierList     = stateIdentifiers
   updateIdentifierList x st = st{ stateIdentifiers = x }
 
+
 defaultParserState :: ParserState
 defaultParserState =
     ParserState { stateOptions         = def,
