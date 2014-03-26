@@ -302,6 +302,7 @@ blockCommands = M.fromList $
   , ("item", skipopts *> loose_item)
   , ("documentclass", skipopts *> braced *> preamble)
   , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
+  , ("caption", tok >>= setCaption)
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
@@ -322,6 +323,14 @@ blockCommands = M.fromList $
 
 addMeta :: ToMetaValue a => String -> a -> LP ()
 addMeta field val = updateState $ setMeta field val
+
+setCaption :: Inlines -> LP Blocks
+setCaption ils = do
+  updateState $ \st -> st{ stateCaption = Just ils }
+  return mempty
+
+resetCaption :: LP ()
+resetCaption = updateState $ \st -> st{ stateCaption = Nothing }
 
 authors :: LP ()
 authors = try $ do
@@ -523,18 +532,12 @@ inlineCommands = M.fromList $
 
 mkImage :: String -> LP Inlines
 mkImage src = do
-   -- try for a caption
-   (alt, tit) <- option (str "image", "") $ try $ do
-                   spaces
-                   controlSeq "caption"
-                   optional (char '*')
-                   ils <- grouped inline
-                   return (ils, "fig:")
+   let alt = str "image"
    case takeExtension src of
         "" -> do
               defaultExt <- getOption readerDefaultImageExtension
-              return $ image (addExtension src defaultExt) tit alt
-        _  -> return $ image src tit alt
+              return $ image (addExtension src defaultExt) "" alt
+        _  -> return $ image src "" alt
 
 inNote :: Inlines -> Inlines
 inNote ils =
@@ -888,13 +891,33 @@ rawLaTeXInline = do
   raw <- (snd <$> withRaw inlineCommand) <|> (snd <$> withRaw blockCommand)
   RawInline "latex" <$> applyMacros' raw
 
+addImageCaption :: Blocks -> LP Blocks
+addImageCaption = walkM go
+  where go (Image alt (src,tit)) = do
+          mbcapt <- stateCaption <$> getState
+          case mbcapt of
+               Just ils -> return (Image (toList ils) (src, "fig:"))
+               Nothing  -> return (Image alt (src,tit))
+        go x = return x
+
+addTableCaption :: Blocks -> LP Blocks
+addTableCaption = walkM go
+  where go (Table c als ws hs rs) = do
+          mbcapt <- stateCaption <$> getState
+          case mbcapt of
+               Just ils -> return (Table (toList ils) als ws hs rs)
+               Nothing  -> return (Table c als ws hs rs)
+        go x = return x
+
 environments :: M.Map String (LP Blocks)
 environments = M.fromList
   [ ("document", env "document" blocks <* skipMany anyChar)
   , ("letter", env "letter" letter_contents)
-  , ("figure", env "figure" $ skipopts *> blocks)
+  , ("figure", env "figure" $
+         resetCaption *> skipopts *> blocks >>= addImageCaption)
   , ("center", env "center" blocks)
-  , ("table",  env "table" $ skipopts *> blocks)
+  , ("table",  env "table" $
+         resetCaption *> skipopts *> blocks >>= addTableCaption)
   , ("tabular", env "tabular" simpTable)
   , ("quote", blockQuote <$> env "quote" blocks)
   , ("quotation", blockQuote <$> env "quotation" blocks)
