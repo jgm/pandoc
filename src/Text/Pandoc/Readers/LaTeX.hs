@@ -43,7 +43,6 @@ import Text.Pandoc.Parsing hiding ((<|>), many, optional, space,
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
 import Control.Monad
-import Data.Default
 import Text.Pandoc.Builder
 import Data.Char (isLetter, isAlphaNum)
 import Control.Applicative
@@ -71,23 +70,6 @@ parseLaTeX = do
   let meta = stateMeta st
   let (Pandoc _ bs') = doc bs
   return $ Pandoc meta bs'
-
-data LPState = LPState{
-    lpMeta           :: Meta
-  , lpOptions        :: ReaderOptions
-  , lpHasChapters    :: Bool
-  , lpParserContext  :: ParserContext
-  , lpQuoteContext   :: QuoteContext
-  } deriving Show
-
-instance Default LPState where
-  def = LPState{
-      lpMeta          = nullMeta
-    , lpOptions       = def
-    , lpHasChapters   = False
-    , lpParserContext = NullState
-    , lpQuoteContext  = NoQuote
-    }
 
 type LP = Parser [Char] ParserState
 
