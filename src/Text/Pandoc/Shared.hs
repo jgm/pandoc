@@ -52,6 +52,7 @@ module Text.Pandoc.Shared (
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
                      normalizeSpaces,
+                     splitSpaces,
                      normalize,
                      stringify,
                      compactify,
@@ -300,17 +301,28 @@ orderedListMarkers (start, numstyle, numdelim) =
                             TwoParens    -> "(" ++ str ++ ")"
   in  map inDelim nums
 
--- | Normalize a list of inline elements: remove leading and trailing
--- @Space@ elements, collapse double @Space@s into singles, and
--- remove empty Str elements.
+-- | Performs the same function as splitSpaces but throws away leading 
+-- and trailing spaces
 normalizeSpaces :: [Inline] -> [Inline]
-normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
- where  cleanup []              = []
-        cleanup (Space:rest)    = case dropWhile isSpaceOrEmpty rest of
-                                        []     -> []
-                                        (x:xs) -> Space : x : cleanup xs
-        cleanup ((Str ""):rest) = cleanup rest
-        cleanup (x:rest)        = x : cleanup rest
+normalizeSpaces is = let (_, normalized, _) = splitSpaces is in normalized
+
+-- | Normalize a list of inline elements:  Collapse double @Space@s into 
+-- singles, and extracts leading and trailing spaces. Also removes empty
+-- Str elements.
+splitSpaces :: [Inline] -> ([Inline], [Inline], [Inline])
+splitSpaces is = (singular leadingSpaces, body', singular trailingSpaces) 
+  where  
+        (leadingSpaces, body)              = span isSpaceOrEmpty is
+        (body', trailingSpaces)            = cleanup body [] []
+        cleanup [] bs ts                   = (reverse bs,ts)
+        cleanup whole@(Space:_) bs _       = 
+          case span isSpaceOrEmpty whole of
+               (ts, [])     -> cleanup [] bs ts
+               (_, (x:xs))  -> cleanup xs (x : Space : bs) [] 
+        cleanup ((Str ""):rest) bs ts      = cleanup rest bs ts
+        cleanup (x:rest) bs ts             = cleanup rest (x:bs) ts
+        singular []                        = []
+        singular _                         = [Space]
 
 isSpaceOrEmpty :: Inline -> Bool
 isSpaceOrEmpty Space = True
