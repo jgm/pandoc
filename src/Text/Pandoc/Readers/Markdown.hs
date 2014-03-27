@@ -1873,7 +1873,7 @@ smart :: MarkdownParser (F Inlines)
 smart = do
   getOption readerSmart >>= guard
   doubleQuoted <|> singleQuoted <|>
-    choice (map (return . B.singleton <$>) [apostrophe, dash, ellipses])
+    choice (map (return <$>) [apostrophe, dash, ellipses])
 
 singleQuoted :: MarkdownParser (F Inlines)
 singleQuoted = try $ do

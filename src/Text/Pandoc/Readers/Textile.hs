@@ -306,9 +306,7 @@ rawLaTeXBlock' = do
 
 -- | In textile, paragraphs are separated by blank lines.
 para :: Parser [Char] ParserState Blocks
-para = do
-    a <- manyTill inline blockBreak 
-    return $ (B.para . trimInlines . mconcat) a
+para = B.para . trimInlines . mconcat <$> manyTill inline blockBreak
 
 -- Tables
 
