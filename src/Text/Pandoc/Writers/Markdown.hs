@@ -392,7 +392,11 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
                                xs -> case maximum $ map length xs of
                                           n | n < 3 -> "~~~~"
                                             | otherwise -> replicate (n+1) '~'
-         backticks = text "```"
+         backticks = text $ case [ln | ln <- lines str, all (=='`') ln] of
+                               [] -> "```"
+                               xs -> case maximum $ map length xs of
+                                          n | n < 3 -> "```"
+                                            | otherwise -> replicate (n+1) '`'
          attrs  = if isEnabled Ext_fenced_code_attributes opts
                      then nowrap $ " " <> attrsToMarkdown attribs
                      else case attribs of
