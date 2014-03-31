@@ -133,7 +133,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
-                                              if writerChapters options
+                                              if stBook st
                                                  then 1
                                                  else 0)) $
                   defField "body" main $
@@ -141,7 +141,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "author-meta" (intercalate "; " authorsMeta) $
                   defField "documentclass" (if writerBeamer options
                                                then ("beamer" :: String)
-                                               else if writerChapters options
+                                               else if stBook st
                                                     then "book"
                                                     else "article") $
                   defField "verbatim-in-note" (stVerbInNote st) $
