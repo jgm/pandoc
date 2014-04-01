@@ -442,13 +442,12 @@ pInlinesInTags :: String -> (Inlines -> Inlines)
 pInlinesInTags tagtype f = do
   contents <- B.unMany <$> pInTags tagtype inline
   let left  = case viewl contents of
-                    EmptyL -> mempty
-                    (a :< _) -> padSpace a
+                    (Space :< _) -> B.space
+                    _            -> mempty
   let right = case viewr contents of
-                    EmptyR   -> mempty
-                    (_ :> a) -> padSpace a
+                    (_ :> Space) -> B.space
+                    _            -> mempty
   return (left <> f (trimInlines . B.Many $ contents) <> right)
-  where padSpace a = if a == Space then B.space else mempty
 
 pInTags :: (Monoid a) => String -> TagParser a
         -> TagParser a
