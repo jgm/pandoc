@@ -997,17 +997,17 @@ registerHeader (ident,classes,kvs) header' = do
 failUnlessSmart :: HasReaderOptions st => Parser s st ()
 failUnlessSmart = getOption readerSmart >>= guard
 
-smartPunctuation :: Parser [Char] ParserState Inline
-                 -> Parser [Char] ParserState Inline
+smartPunctuation :: Parser [Char] ParserState Inlines
+                 -> Parser [Char] ParserState Inlines
 smartPunctuation inlineParser = do
   failUnlessSmart
   choice [ quoted inlineParser, apostrophe, dash, ellipses ]
 
-apostrophe :: Parser [Char] ParserState Inline
-apostrophe = (char '\'' <|> char '\8217') >> return (Str "\x2019")
+apostrophe :: Parser [Char] ParserState Inlines
+apostrophe = (char '\'' <|> char '\8217') >> return (B.str "\x2019")
 
-quoted :: Parser [Char] ParserState Inline
-       -> Parser [Char] ParserState Inline
+quoted :: Parser [Char] ParserState Inlines
+       -> Parser [Char] ParserState Inlines
 quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
 
 withQuoteContext :: QuoteContext
@@ -1022,20 +1022,19 @@ withQuoteContext context parser = do
   setState newState { stateQuoteContext = oldQuoteContext }
   return result
 
-singleQuoted :: Parser [Char] ParserState Inline
-             -> Parser [Char] ParserState Inline
+singleQuoted :: Parser [Char] ParserState Inlines
+             -> Parser [Char] ParserState Inlines
 singleQuoted inlineParser = try $ do
   singleQuoteStart
   withQuoteContext InSingleQuote $ many1Till inlineParser singleQuoteEnd >>=
-    return . Quoted SingleQuote . normalizeSpaces
+    return . B.singleQuoted . mconcat
 
-doubleQuoted :: Parser [Char] ParserState Inline
-             -> Parser [Char] ParserState Inline
+doubleQuoted :: Parser [Char] ParserState Inlines
+             -> Parser [Char] ParserState Inlines
 doubleQuoted inlineParser = try $ do
   doubleQuoteStart
-  withQuoteContext InDoubleQuote $ do
-    contents <- manyTill inlineParser doubleQuoteEnd
-    return . Quoted DoubleQuote . normalizeSpaces $ contents
+  withQuoteContext InDoubleQuote $ manyTill inlineParser doubleQuoteEnd >>=
+    return . B.doubleQuoted . mconcat
 
 failIfInQuoteContext :: QuoteContext -> Parser [tok] ParserState ()
 failIfInQuoteContext context = do
@@ -1079,17 +1078,17 @@ doubleQuoteEnd = do
   charOrRef "\"\8221\148"
   return ()
 
-ellipses :: Parser [Char] st Inline
+ellipses :: Parser [Char] st Inlines
 ellipses = do
   try (charOrRef "\8230\133") <|> try (string "..." >> return '…')
-  return (Str "\8230")
+  return (B.str "\8230")
 
-dash :: Parser [Char] ParserState Inline
+dash :: Parser [Char] ParserState Inlines
 dash = do
   oldDashes <- getOption readerOldDashes
   if oldDashes
      then emDashOld <|> enDashOld
-     else Str `fmap` (hyphenDash <|> emDash <|> enDash)
+     else B.str `fmap` (hyphenDash <|> emDash <|> enDash)
 
 -- Two hyphens = en-dash, three = em-dash
 hyphenDash :: Parser [Char] st String
@@ -1107,16 +1106,16 @@ enDash = do
   try (charOrRef "\8212\151")
   return "\8211"
 
-enDashOld :: Parser [Char] st Inline
+enDashOld :: Parser [Char] st Inlines
 enDashOld = do
   try (charOrRef "\8211\150") <|>
     try (char '-' >> lookAhead (satisfy isDigit) >> return '–')
-  return (Str "\8211")
+  return (B.str "\8211")
 
-emDashOld :: Parser [Char] st Inline
+emDashOld :: Parser [Char] st Inlines
 emDashOld = do
   try (charOrRef "\8212\151") <|> (try $ string "--" >> optional (char '-') >> return '-')
-  return (Str "\8212")
+  return (B.str "\8212")
 
 -- This is used to prevent exponential blowups for things like:
 -- a**a*a**a*a**a*a**a*a**a*a**a*a**
