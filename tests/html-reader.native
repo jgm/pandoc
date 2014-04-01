@@ -186,6 +186,7 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
 ,Header 1 ("",[],[]) [Str "Inline",Space,Str "Markup"]
 ,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str "."]
 ,Para [Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str "."]
+,Para [Str "Empty",Space,Strong [],Space,Str "and",Space,Emph [],Str "."]
 ,Para [Str "An",Space,Emph [Link [Str "emphasized",Space,Str "link"] ("/url","")],Str "."]
 ,Para [Strong [Emph [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em."]]]
 ,Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word."]
