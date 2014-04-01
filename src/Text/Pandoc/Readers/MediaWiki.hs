@@ -438,7 +438,8 @@ listItem c = try $ do
        skipMany spaceChar
        first <- concat <$> manyTill listChunk newline
        rest <- many
-                (try $ string extras *> (concat <$> manyTill listChunk newline))
+                (try $ string extras *> lookAhead listStartChar *>
+                       (concat <$> manyTill listChunk newline))
        contents <- parseFromString (many1 $ listItem' c)
                           (unlines (first : rest))
        case c of

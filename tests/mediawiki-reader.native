@@ -102,6 +102,10 @@ Pandoc (Meta {unMeta = fromList []})
    [[BulletList
      [[Plain [Str "But",Space,Str "jumping",Space,Str "levels",Space,Str "creates",Space,Str "empty",Space,Str "space."]]]]]]]
 ,Para [Str "Any",Space,Str "other",Space,Str "start",Space,Str "ends",Space,Str "the",Space,Str "list."]
+,BulletList
+ [[BulletList
+   [[Plain [Str "two"]]]]
+ ,[Plain [Str "one"]]]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
  [[Plain [Str "Start",Space,Str "each",Space,Str "line"]]
  ,[Plain [Str "with",Space,Str "a",Space,Str "number",Space,Str "sign",Space,Str "(#)."]
