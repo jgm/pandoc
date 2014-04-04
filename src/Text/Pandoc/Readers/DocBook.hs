@@ -45,7 +45,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] audioobject - A wrapper for audio data and its associated meta-information
 [x] author - The name of an individual author
 [ ] authorblurb - A short description or note about an author
-[ ] authorgroup - Wrapper for author information when a document has
+[x] authorgroup - Wrapper for author information when a document has
     multiple authors or collabarators
 [x] authorinitials - The initials or other short identifier for an author
 [o] beginpage - The location of a page break in a print version of the document
@@ -341,7 +341,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] refsectioninfo - Meta-information for a refsection
 [ ] refsynopsisdiv - A syntactic synopsis of the subject of the reference page
 [ ] refsynopsisdivinfo - Meta-information for a RefSynopsisDiv
-[ ] releaseinfo - Information about a particular release of a document
+[x] releaseinfo - Information about a particular release of a document
 [ ] remark - A remark (or comment) intended for presentation in a draft
     manuscript
 [ ] replaceable - Content that may or must be replaced by the user
@@ -564,10 +564,11 @@ acceptingMetadata p = do
   modify (\s -> s { dbAcceptsMeta = False })
   return res 
 
-checkInMeta :: Monoid a => DB a -> DB a 
+checkInMeta :: Monoid a => DB () -> DB a 
 checkInMeta p = do
   accepts <- dbAcceptsMeta <$> get 
-  if accepts then p else return mempty
+  when accepts p 
+  return mempty
   
   
    
@@ -649,9 +650,11 @@ parseBlock (Elem e) =
         "attribution" -> return mempty
         "titleabbrev" -> return mempty
         "authorinitials" -> return mempty
-        "title" ->  checkInMeta getTitle >> return mempty -- handled by getTitle or sect or figure
-        "author" -> checkInMeta getAuthor >> return mempty
-        "date" -> checkInMeta getDate >> return mempty
+        "title" ->  checkInMeta getTitle 
+        "author" -> checkInMeta getAuthor 
+        "authorgroup" -> checkInMeta getAuthorGroup 
+        "releaseinfo" -> checkInMeta (getInlines e >>= addMeta "release")
+        "date" -> checkInMeta getDate
         "bibliography" -> sect 0
         "bibliodiv" -> sect 1
         "biblioentry" -> parseMixed para (elContent e)
@@ -786,7 +789,10 @@ parseBlock (Elem e) =
                                   Nothing -> return mempty
                      addMeta "title" (tit <> subtit)
                      
-         getAuthor = getInlines e >>= addMeta "author"
+         getAuthor = (:[]) <$> getInlines e >>= addMeta "authors"
+         getAuthorGroup = do
+          let terms = filterChildren (named "author") e
+          mapM getInlines terms >>= addMeta "authors" 
          getDate = getInlines e >>= addMeta "date" 
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
@@ -849,7 +855,7 @@ parseBlock (Elem e) =
                      b <- getBlocks e
                      modify $ \st -> st{ dbSectionLevel = n - 1 }
                      return $ header n' headerText <> b
-         metaBlock = acceptingMetadata (getBlocks e)
+         metaBlock = acceptingMetadata (getBlocks e) >> return mempty
 
 getInlines :: Element -> DB Inlines
 getInlines e' = (trimInlines . mconcat) <$> (mapM parseInline $ elContent e')
@@ -913,6 +919,7 @@ parseInline (Elem e) =
                              _        -> emph <$> innerInlines
         "footnote" -> (note . mconcat) <$> (mapM parseBlock $ elContent e)
         "title" -> return mempty
+        "affiliation" -> return mempty
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
                           (mapM parseInline $ elContent e)
