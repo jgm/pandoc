@@ -29,15 +29,16 @@ Conversion of Org-Mode to 'Pandoc' document.
 module Text.Pandoc.Readers.Org ( readOrg ) where
 
 import qualified Text.Pandoc.Builder as B
-import           Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
+import           Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>), HasMeta(..))
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Options
-import           Text.Pandoc.Parsing hiding (orderedListMarker)
+import           Text.Pandoc.Parsing hiding (orderedListMarker, updateLastStrPos)
 import           Text.Pandoc.Shared (compactify')
 
 import           Control.Applicative (pure, (<$>), (<$), (<*>), (<*), (*>), (<**>))
 import           Control.Monad (guard, mzero)
 import           Data.Char (toLower)
+import           Data.Default
 import           Data.List (foldl')
 import           Data.Maybe (listToMaybe, fromMaybe)
 import           Data.Monoid (mconcat, mempty, mappend)
@@ -46,15 +47,48 @@ import           Data.Monoid (mconcat, mempty, mappend)
 readOrg :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
         -> Pandoc
-readOrg opts s = (readWith parseOrg) def{ stateOptions = opts } (s ++ "\n\n")
+readOrg opts s = (readWith parseOrg) def{ orgOptions = opts } (s ++ "\n\n")
 
-type OrgParser = Parser [Char] ParserState
+type OrgParser = Parser [Char] OrgParserState
+
+-- | Org-mode parser state
+data OrgParserState = OrgParserState
+                      { orgOptions          :: ReaderOptions
+                      , orgInlineCharStack  :: [Char]
+                      , orgLastStrPos       :: Maybe SourcePos
+                      , orgMeta             :: Meta
+                      } deriving (Show)
+
+instance HasReaderOptions OrgParserState where
+  extractReaderOptions = orgOptions
+
+instance HasMeta OrgParserState where
+  setMeta field val st =
+    st{ orgMeta = setMeta field val $ orgMeta st }
+  deleteMeta field st =
+    st{ orgMeta = deleteMeta field $ orgMeta st }
+
+instance Default OrgParserState where
+  def = defaultOrgParserState
+
+defaultOrgParserState :: OrgParserState
+defaultOrgParserState = OrgParserState
+                        { orgOptions = def
+                        , orgInlineCharStack = []
+                        , orgLastStrPos = Nothing
+                        , orgMeta = nullMeta
+                        }
+
+updateLastStrPos :: OrgParser ()
+updateLastStrPos = getPosition >>= \p ->
+  updateState $ \s -> s{ orgLastStrPos = Just p }
+
 
 parseOrg:: OrgParser Pandoc
 parseOrg = do
   blocks' <- B.toList <$> parseBlocks
   st <- getState
-  let meta = stateMeta st
+  let meta = orgMeta st
   return $ Pandoc meta $ filter (/= Null) blocks'
 
 --
@@ -177,7 +211,7 @@ commentLineStart = try $ mappend <$> many spaceChar <*> string "# "
 declarationLine :: OrgParser Blocks
 declarationLine = try $ do
   meta' <- B.setMeta <$> metaKey <*> metaValue <*> pure nullMeta
-  updateState $ \st -> st { stateMeta = stateMeta st <> meta' }
+  updateState $ \st -> st { orgMeta  = orgMeta st <> meta' }
   return mempty
 
 metaValue :: OrgParser MetaValue
@@ -522,7 +556,7 @@ atStart :: OrgParser a -> OrgParser a
 atStart p = do
   pos <- getPosition
   st <- getState
-  guard $ stateLastStrPos st /= Just pos
+  guard $ orgLastStrPos st /= Just pos
   p
 
 -- | succeeds only if we're at the end of a word
