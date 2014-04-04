@@ -37,7 +37,6 @@ import Data.Char ( toLower )
 import Scripting.Lua (LuaState, StackValue, callfunc)
 import qualified Scripting.Lua as Lua
 import Text.Pandoc.UTF8 (fromString, toString)
-import qualified Text.Pandoc.UTF8 as UTF8
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C8
 import Data.Monoid
@@ -132,7 +131,7 @@ instance StackValue MetaValue where
 -- | Convert Pandoc to custom markup.
 writeCustom :: FilePath -> WriterOptions -> Pandoc -> IO String
 writeCustom luaFile opts doc = do
-  luaScript <- UTF8.readFile luaFile
+  luaScript <- C8.unpack `fmap` C8.readFile luaFile
   lua <- Lua.newstate
   Lua.openlibs lua
   Lua.loadstring lua luaScript "custom"
