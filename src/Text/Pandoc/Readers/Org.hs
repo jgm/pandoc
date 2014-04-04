@@ -217,13 +217,18 @@ data OrgTableRow = OrgContentRow [Blocks]
                  | OrgHlineRow
  deriving (Eq, Show)
 
-type OrgTableContent = (Int, [Alignment], [Double], [Blocks], [[Blocks]])
+data OrgTable = OrgTable
+  { orgTableColumns    :: Int
+  , orgTableAlignments :: [Alignment]
+  , orgTableHeader     :: [Blocks]
+  , orgTableRows       :: [[Blocks]]
+  } deriving (Eq, Show)
 
 table :: OrgParser Blocks
 table = try $ do
   lookAhead tableStart
-  (_, aligns, widths, heads, lns) <- normalizeTable . tableContent <$> tableRows
-  return $ B.table "" (zip aligns widths) heads lns
+  OrgTable _ aligns heads lns <- normalizeTable . rowsToTable <$> tableRows
+  return $ B.table "" (zip aligns $ repeat 0) heads lns
 
 tableStart :: OrgParser Char
 tableStart = try $ skipSpaces *> char '|'
@@ -237,10 +242,9 @@ tableContentRow = try $
 
 tableContentCell :: OrgParser Blocks
 tableContentCell = try $
-  B.plain . trimInlines . mconcat <$> many1Till inline (try endOfCell)
+  B.plain . trimInlines . mconcat <$> many1Till inline endOfCell
 
 endOfCell :: OrgParser Char
--- endOfCell =  char '|' <|> newline
 endOfCell = try $ char '|' <|> lookAhead newline
 
 tableAlignRow :: OrgParser OrgTableRow
@@ -269,54 +273,53 @@ tableHline :: OrgParser OrgTableRow
 tableHline = try $
   OrgHlineRow <$ (tableStart *> char '-' *> anyLine)
 
-tableContent :: [OrgTableRow]
-             -> OrgTableContent
-tableContent = foldl' (flip rowToContent) (0, mempty, repeat 0, mempty, mempty)
+rowsToTable :: [OrgTableRow]
+            -> OrgTable
+rowsToTable = foldl' (flip rowToContent) zeroTable
+  where zeroTable = OrgTable 0 mempty mempty mempty
 
-normalizeTable :: OrgTableContent
-               -> OrgTableContent
-normalizeTable (cols, aligns, widths, heads, lns) =
+normalizeTable :: OrgTable
+               -> OrgTable
+normalizeTable (OrgTable cols aligns heads lns) =
   let aligns' = fillColumns aligns AlignDefault
-      widths' = fillColumns widths 0.0
       heads'  = if heads == mempty
-                then heads
+                then mempty
                 else fillColumns heads  (B.plain mempty)
       lns'    = map (flip fillColumns (B.plain mempty)) lns
       fillColumns base padding = take cols $ base ++ repeat padding
-  in (cols, aligns', widths', heads', lns')
+  in OrgTable cols aligns' heads' lns'
 
 
 -- One or more horizontal rules after the first content line mark the previous
 -- line as a header.  All other horizontal lines are discarded.
 rowToContent :: OrgTableRow
-             -> OrgTableContent
-             -> OrgTableContent
+             -> OrgTable
+             -> OrgTable
 rowToContent OrgHlineRow        = maybeBodyToHeader
 rowToContent (OrgContentRow rs) = setLongestRow rs . appendToBody rs
 rowToContent (OrgAlignRow as)   = setLongestRow as . setAligns as
 
 setLongestRow :: [a]
-              -> OrgTableContent
-              -> OrgTableContent
-setLongestRow r (cols, aligns, widths, heads, lns) =
-  (max cols (length r), aligns, widths, heads, lns)
+              -> OrgTable
+              -> OrgTable
+setLongestRow rs t = t{ orgTableColumns = max (length rs) (orgTableColumns t) }
 
-maybeBodyToHeader :: OrgTableContent
-                  -> OrgTableContent
-maybeBodyToHeader (cols, aligns, widths, [], b:[]) = (cols, aligns, widths, b, [])
-maybeBodyToHeader content                          = content
+maybeBodyToHeader :: OrgTable
+                  -> OrgTable
+maybeBodyToHeader t = case t of
+  OrgTable{ orgTableHeader = [], orgTableRows = b:[] } ->
+         t{ orgTableHeader = b , orgTableRows = [] }
+  _   -> t
 
 appendToBody :: [Blocks]
-             -> OrgTableContent
-             -> OrgTableContent
-appendToBody r (cols, aligns, widths, heads, lns) =
-  (cols, aligns, widths, heads, lns ++ [r])
+             -> OrgTable
+             -> OrgTable
+appendToBody r t = t{ orgTableRows = orgTableRows t ++ [r] }
 
 setAligns :: [Alignment]
-          -> OrgTableContent
-          -> OrgTableContent
-setAligns aligns (cols, _, widths, heads, lns) =
-   (cols, aligns, widths, heads, lns)
+          -> OrgTable
+          -> OrgTable
+setAligns aligns t = t{ orgTableAlignments = aligns }
 
 -- Paragraphs or Plain text
 paraOrPlain :: OrgParser Blocks
@@ -549,4 +552,3 @@ endsOnThisLine input c doOnOtherLines = do
                         then return ()
                         else endsOnThisLine rest c doOnOtherLines
     _                -> mzero
-
