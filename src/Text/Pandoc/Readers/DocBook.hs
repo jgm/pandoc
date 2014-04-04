@@ -499,24 +499,19 @@ type DB = State DBState
 
 data DBState = DBState{ dbSectionLevel :: Int
                       , dbQuoteType    :: QuoteType
-                      , dbDocTitle     :: Inlines
-                      , dbDocAuthors   :: [Inlines]
-                      , dbDocDate      :: Inlines
+                      , dbMeta         :: Meta
+                      , dbAcceptsMeta  :: Bool
                       , dbBook         :: Bool
                       , dbFigureTitle  :: Inlines
                       } deriving Show
 
 readDocBook :: ReaderOptions -> String -> Pandoc
-readDocBook _ inp  = setTitle (dbDocTitle st')
-                   $ setAuthors (dbDocAuthors st')
-                   $ setDate (dbDocDate st')
-                   $ doc $ mconcat bs
+readDocBook _ inp  = Pandoc (dbMeta st') (toList $ mconcat bs)
   where (bs, st') = runState (mapM parseBlock $ normalizeTree $ parseXML inp)
                              DBState{ dbSectionLevel = 0
                                     , dbQuoteType = DoubleQuote
-                                    , dbDocTitle = mempty
-                                    , dbDocAuthors = []
-                                    , dbDocDate = mempty
+                                    , dbMeta = mempty
+                                    , dbAcceptsMeta = False
                                     , dbBook = False
                                     , dbFigureTitle = mempty
                                     }
@@ -559,6 +554,29 @@ attrValue attr elt =
 -- convenience function
 named :: String -> Element -> Bool
 named s e = qName (elName e) == s
+
+-- 
+
+acceptingMetadata :: DB a -> DB a
+acceptingMetadata p = do
+  modify (\s -> s { dbAcceptsMeta = True } )
+  res <- p
+  modify (\s -> s { dbAcceptsMeta = False })
+  return res 
+
+checkInMeta :: Monoid a => DB a -> DB a 
+checkInMeta p = do
+  accepts <- dbAcceptsMeta <$> get 
+  if accepts then p else return mempty
+  
+  
+   
+addMeta :: ToMetaValue a => String -> a -> DB ()
+addMeta field val = modify (setMeta field val)
+
+instance HasMeta DBState where
+  setMeta str v s =  s {dbMeta = setMeta str v (dbMeta s)}
+
 
 isBlockElement :: Content -> Bool
 isBlockElement (Elem e) = qName (elName e) `elem` blocktags
@@ -606,6 +624,7 @@ getImage e = do
 getBlocks :: Element -> DB Blocks
 getBlocks e =  mconcat <$> (mapM parseBlock $ elContent e)
 
+
 parseBlock :: Content -> DB Blocks
 parseBlock (Text (CData CDataRaw _ _)) = return mempty -- DOCTYPE
 parseBlock (Text (CData _ s _)) = if all isSpace s
@@ -630,7 +649,9 @@ parseBlock (Elem e) =
         "attribution" -> return mempty
         "titleabbrev" -> return mempty
         "authorinitials" -> return mempty
-        "title" -> return mempty -- handled by getTitle or sect or figure
+        "title" ->  checkInMeta getTitle >> return mempty -- handled by getTitle or sect or figure
+        "author" -> checkInMeta getAuthor >> return mempty
+        "date" -> checkInMeta getDate >> return mempty
         "bibliography" -> sect 0
         "bibliodiv" -> sect 1
         "biblioentry" -> parseMixed para (elContent e)
@@ -693,8 +714,8 @@ parseBlock (Elem e) =
         "figure" -> getFigure e
         "mediaobject" -> para <$> getImage e
         "caption" -> return mempty
-        "info" -> getTitle >> getAuthors >> getDate >> return mempty
-        "articleinfo" -> getTitle >> getAuthors >> getDate >> return mempty
+        "info" -> metaBlock 
+        "articleinfo" -> metaBlock
         "sectioninfo" -> return mempty  -- keywords & other metadata
         "refsectioninfo" -> return mempty  -- keywords & other metadata
         "refsect1info" -> return mempty  -- keywords & other metadata
@@ -708,10 +729,10 @@ parseBlock (Elem e) =
         "chapterinfo" -> return mempty  -- keywords & other metadata
         "glossaryinfo" -> return mempty  -- keywords & other metadata
         "appendixinfo" -> return mempty  -- keywords & other metadata
-        "bookinfo" -> getTitle >> getAuthors >> getDate >> return mempty
+        "bookinfo" -> metaBlock
         "article" -> modify (\st -> st{ dbBook = False }) >>
-                          getTitle >> getBlocks e
-        "book" -> modify (\st -> st{ dbBook = True }) >> getTitle >> getBlocks e
+                           getBlocks e
+        "book" -> modify (\st -> st{ dbBook = True }) >>  getBlocks e
         "table" -> parseTable
         "informaltable" -> parseTable
         "literallayout" -> codeBlockWithLang
@@ -757,24 +778,16 @@ parseBlock (Elem e) =
                      terms' <- mapM getInlines terms
                      items' <- mapM getBlocks items
                      return (mconcat $ intersperse (str "; ") terms', items')
-         getTitle = case filterChild (named "title") e of
-                         Just t  -> do
-                            tit <- getInlines t
-                            subtit <-  case filterChild (named "subtitle") e of
-                                            Just s  -> (text ": " <>) <$>
-                                                         getInlines s
-                                            Nothing -> return mempty
-                            modify $ \st -> st{dbDocTitle = tit <> subtit}
-                         Nothing -> return ()
-         getAuthors = do
-                      auths <- mapM getInlines
-                               $ filterChildren (named "author") e
-                      modify $ \st -> st{dbDocAuthors = auths}
-         getDate = case filterChild (named "date") e of
-                         Just t  -> do
-                            dat <- getInlines t
-                            modify $ \st -> st{dbDocDate = dat}
-                         Nothing -> return ()
+         getTitle =  do
+                     tit <- getInlines e
+                     subtit <-  case filterChild (named "subtitle") e of
+                                  Just s  -> (text ": " <>) <$>
+                                              getInlines s
+                                  Nothing -> return mempty
+                     addMeta "title" (tit <> subtit)
+                     
+         getAuthor = getInlines e >>= addMeta "author"
+         getDate = getInlines e >>= addMeta "date" 
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
                       caption <- case filterChild isCaption e of
@@ -836,6 +849,7 @@ parseBlock (Elem e) =
                      b <- getBlocks e
                      modify $ \st -> st{ dbSectionLevel = n - 1 }
                      return $ header n' headerText <> b
+         metaBlock = acceptingMetadata (getBlocks e)
 
 getInlines :: Element -> DB Inlines
 getInlines e' = (trimInlines . mconcat) <$> (mapM parseInline $ elContent e')
