@@ -792,7 +792,7 @@ parseBlock (Elem e) =
          getAuthor = (:[]) <$> getInlines e >>= addMeta "author"
          getAuthorGroup = do
           let terms = filterChildren (named "author") e
-          mapM getInlines terms >>= addMeta "authors"
+          mapM getInlines terms >>= addMeta "author"
          getDate = getInlines e >>= addMeta "date"
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
