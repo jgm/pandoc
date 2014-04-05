@@ -639,10 +639,10 @@ parseBlock (Elem e) =
         "para"  -> parseMixed para (elContent e)
         "formalpara" -> do
            tit <- case filterChild (named "title") e of
-                        Just t  -> (<> str "." <> linebreak) <$> emph
-                                      <$> getInlines t
+                        Just t  -> (para . strong . (<> str ".")) <$>
+                                     getInlines t
                         Nothing -> return mempty
-           addToStart tit <$> parseMixed para (elContent e)
+           (tit <>) <$> parseMixed para (elContent e)
         "simpara"  -> parseMixed para (elContent e)
         "ackno"  -> parseMixed para (elContent e)
         "epigraph" -> parseBlockquote
