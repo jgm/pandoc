@@ -94,14 +94,22 @@ tests =
                        , (strong ("is" <> space <> "not"))
                        , "emph/" ])
 
+      , "Image" =:
+          "[[./sunset.jpg]]" =?>
+          (para $ image "./sunset.jpg" "" "")
+
       , "Explicit link" =:
-          "[[http://zeitlens.com/][pseudo-random nonsense]]" =?>
+          "[[http://zeitlens.com/][pseudo-random /nonsense/]]" =?>
           (para $ link "http://zeitlens.com/" ""
-                       ("pseudo-random" <> space <> "nonsense"))
+                       ("pseudo-random" <> space <> emph "nonsense"))
 
       , "Self-link" =:
           "[[http://zeitlens.com/]]" =?>
           (para $ link "http://zeitlens.com/" "" "http://zeitlens.com/")
+
+      , "Image link" =:
+          "[[sunset.png][dusk.svg]]" =?>
+          (para $ link "sunset.png" "" (image "dusk.svg" "" ""))
       ]
 
   , testGroup "Meta Information" $

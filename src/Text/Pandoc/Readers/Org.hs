@@ -39,7 +39,7 @@ import           Control.Applicative (pure, (<$>), (<$), (<*>), (<*), (*>), (<**
 import           Control.Monad (guard, mzero)
 import           Data.Char (toLower)
 import           Data.Default
-import           Data.List (foldl')
+import           Data.List (foldl', isPrefixOf, isSuffixOf)
 import           Data.Maybe (listToMaybe, fromMaybe)
 import           Data.Monoid (mconcat, mempty, mappend)
 
@@ -484,20 +484,26 @@ endline = try $ do
   return B.space
 
 link :: OrgParser Inlines
-link = explicitLink <|> selfLink <?> "link"
+link = explicitOrImageLink <|> selflinkOrImage <?> "link"
 
-explicitLink :: OrgParser Inlines
-explicitLink = try $ do
+explicitOrImageLink :: OrgParser Inlines
+explicitOrImageLink = try $ do
   char '['
-  src   <- enclosedRaw     (char '[') (char ']')
-  title <- enclosedInlines (char '[') (char ']')
+  src    <- enclosedRaw (char '[') (char ']')
+  title  <- enclosedRaw (char '[') (char ']')
+  title' <- parseFromString (mconcat . butLast <$> many inline) (title++"\n")
   char ']'
-  return $ B.link src "" title
+  return $ if (isImage src) && (isImage title)
+           then B.link src "" (B.image title "" "")
+           else B.link src "" title'
+ where butLast = reverse . tail . reverse
 
-selfLink :: OrgParser Inlines
-selfLink = try $ do
+selflinkOrImage :: OrgParser Inlines
+selflinkOrImage = try $ do
   src <- enclosedRaw (string "[[") (string "]]")
-  return $ B.link src "" (B.str src)
+  return $ if isImage src
+           then B.image src "" ""
+           else B.link src "" (B.str src)
 
 emph      :: OrgParser Inlines
 emph      = B.emph         <$> inlinesEnclosedBy '/'
@@ -606,3 +612,11 @@ endsOnThisLine input c doOnOtherLines = do
                         then return ()
                         else endsOnThisLine rest c doOnOtherLines
     _                -> mzero
+
+isImage filename =
+  any (\x -> ('.':x)  `isSuffixOf` filename) imageExtensions &&
+  any (\x -> (x++":") `isPrefixOf` filename) protocols ||
+  ':' `notElem` filename
+ where
+   imageExtensions = [ "jpeg" , "jpg" , "png" , "gif" , "svg" ]
+   protocols = [ "file", "http", "https" ]
