@@ -576,8 +576,8 @@ addMeta :: ToMetaValue a => String -> a -> DB ()
 addMeta field val = modify (setMeta field val)
 
 instance HasMeta DBState where
-  setMeta str v s =  s {dbMeta = setMeta str v (dbMeta s)}
-
+  setMeta field v s =  s {dbMeta = setMeta field v (dbMeta s)}
+  deleteMeta field s = s {dbMeta = deleteMeta field (dbMeta s)}
 
 isBlockElement :: Content -> Bool
 isBlockElement (Elem e) = qName (elName e) `elem` blocktags
@@ -789,7 +789,7 @@ parseBlock (Elem e) =
                                   Nothing -> return mempty
                      addMeta "title" (tit <> subtit)
                      
-         getAuthor = (:[]) <$> getInlines e >>= addMeta "authors"
+         getAuthor = (:[]) <$> getInlines e >>= addMeta "author"
          getAuthorGroup = do
           let terms = filterChildren (named "author") e
           mapM getInlines terms >>= addMeta "authors" 
