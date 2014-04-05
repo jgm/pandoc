@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, CPP, MultiParamTypeClasses,
-    FlexibleContexts #-}
+    FlexibleContexts, ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2013 John MacFarlane <jgm@berkeley.edu>
 
@@ -120,7 +120,9 @@ import Paths_pandoc (getDataFileName)
 #ifdef HTTP_CONDUIT
 import Data.ByteString.Lazy (toChunks)
 import Network.HTTP.Conduit (httpLbs, parseUrl, withManager,
-                             responseBody, responseHeaders)
+                             responseBody, responseHeaders, addProxy,
+                             Request(port,host))
+import System.Environment (getEnv)
 import Network.HTTP.Types.Header ( hContentType)
 import Network (withSocketsDo)
 #else
@@ -648,7 +650,13 @@ openURL u
 #ifdef HTTP_CONDUIT
   | otherwise = withSocketsDo $ E.try $ do
      req <- parseUrl u
-     resp <- withManager $ httpLbs req
+     (proxy :: Either E.SomeException String) <- E.try $ getEnv "http_proxy"
+     let req' = case proxy of
+                     Left _   -> req
+                     Right pr -> case parseUrl pr of
+                                      Just r  -> addProxy (host r) (port r) req
+                                      Nothing -> req
+     resp <- withManager $ httpLbs req'
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 #else
