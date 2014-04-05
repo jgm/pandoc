@@ -555,23 +555,23 @@ attrValue attr elt =
 named :: String -> Element -> Bool
 named s e = qName (elName e) == s
 
--- 
+--
 
 acceptingMetadata :: DB a -> DB a
 acceptingMetadata p = do
   modify (\s -> s { dbAcceptsMeta = True } )
   res <- p
   modify (\s -> s { dbAcceptsMeta = False })
-  return res 
+  return res
 
-checkInMeta :: Monoid a => DB () -> DB a 
+checkInMeta :: Monoid a => DB () -> DB a
 checkInMeta p = do
-  accepts <- dbAcceptsMeta <$> get 
-  when accepts p 
+  accepts <- dbAcceptsMeta <$> get
+  when accepts p
   return mempty
-  
-  
-   
+
+
+
 addMeta :: ToMetaValue a => String -> a -> DB ()
 addMeta field val = modify (setMeta field val)
 
@@ -650,9 +650,9 @@ parseBlock (Elem e) =
         "attribution" -> return mempty
         "titleabbrev" -> return mempty
         "authorinitials" -> return mempty
-        "title" ->  checkInMeta getTitle 
-        "author" -> checkInMeta getAuthor 
-        "authorgroup" -> checkInMeta getAuthorGroup 
+        "title" ->  checkInMeta getTitle
+        "author" -> checkInMeta getAuthor
+        "authorgroup" -> checkInMeta getAuthorGroup
         "releaseinfo" -> checkInMeta (getInlines e >>= addMeta "release")
         "date" -> checkInMeta getDate
         "bibliography" -> sect 0
@@ -717,7 +717,7 @@ parseBlock (Elem e) =
         "figure" -> getFigure e
         "mediaobject" -> para <$> getImage e
         "caption" -> return mempty
-        "info" -> metaBlock 
+        "info" -> metaBlock
         "articleinfo" -> metaBlock
         "sectioninfo" -> return mempty  -- keywords & other metadata
         "refsectioninfo" -> return mempty  -- keywords & other metadata
@@ -788,12 +788,12 @@ parseBlock (Elem e) =
                                               getInlines s
                                   Nothing -> return mempty
                      addMeta "title" (tit <> subtit)
-                     
+
          getAuthor = (:[]) <$> getInlines e >>= addMeta "author"
          getAuthorGroup = do
           let terms = filterChildren (named "author") e
-          mapM getInlines terms >>= addMeta "authors" 
-         getDate = getInlines e >>= addMeta "date" 
+          mapM getInlines terms >>= addMeta "authors"
+         getDate = getInlines e >>= addMeta "date"
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
                       caption <- case filterChild isCaption e of
