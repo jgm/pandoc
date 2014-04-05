@@ -153,7 +153,14 @@ indentWith num = do
                  , try (char '\t' >> count (num - tabStop) (char ' ')) ]
 
 translateLang :: String -> String
-translateLang "sh" = "bash"
+translateLang "C"          = "c"
+translateLang "C++"        = "cpp"
+translateLang "emacs-lisp" = "commonlisp" -- emacs lisp is not supported
+translateLang "js"         = "javascript"
+translateLang "lisp"       = "commonlisp"
+translateLang "R"          = "r"
+translateLang "sh"         = "bash"
+translateLang "sqlite"     = "sql"
 translateLang cs = cs
 
 commaEscaped :: String -> String
