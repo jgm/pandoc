@@ -9,11 +9,15 @@ $endif$
 <article>
   <articleinfo>
     <title>$title$</title>
+$if(author)$
+    <authorgroup>
 $for(author)$
-    <author>
-      $author$
-    </author>
+      <author>
+        $author$
+      </author>
 $endfor$
+    </authorgroup>
+$endif$
 $if(date)$
     <date>$date$</date>
 $endif$
