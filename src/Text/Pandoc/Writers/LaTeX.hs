@@ -500,9 +500,28 @@ tableRowToLaTeX header aligns widths cols = do
   cells <- mapM (tableCellToLaTeX header) $ zip3 widths' aligns cols
   return $ hsep (intersperse "&" cells) $$ "\\\\\\addlinespace"
 
+-- For simple latex tables (without minipages or parboxes),
+-- we need to go to some lengths to get line breaks working:
+-- as LineBreak bs = \vtop{\hbox{\strut as}\hbox{\strut bs}}.
+fixLineBreaks :: Block -> Block
+fixLineBreaks (Para ils)  = Para $ fixLineBreaks' ils
+fixLineBreaks (Plain ils) = Plain $ fixLineBreaks' ils
+fixLineBreaks x           = x
+
+fixLineBreaks' :: [Inline] -> [Inline]
+fixLineBreaks' ils = case splitBy (== LineBreak) ils of
+                       []     -> []
+                       [xs]   -> xs
+                       chunks -> RawInline "tex" "\\vtop{" :
+                                 concatMap tohbox chunks ++
+                                 [RawInline "tex" "}"]
+  where tohbox ys = RawInline "tex" "\\hbox{\\strut " : ys ++
+                    [RawInline "tex" "}"]
+
 tableCellToLaTeX :: Bool -> (Double, Alignment, [Block])
                  -> State WriterState Doc
-tableCellToLaTeX _      (0,     _,     blocks) = blockListToLaTeX blocks
+tableCellToLaTeX _      (0,     _,     blocks) =
+  blockListToLaTeX $ walk fixLineBreaks blocks
 tableCellToLaTeX header (width, align, blocks) = do
   modify $ \st -> st{ stInMinipage = True, stNotes = [] }
   cellContents <- blockListToLaTeX blocks
