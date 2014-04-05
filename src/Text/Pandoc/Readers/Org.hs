@@ -29,16 +29,17 @@ Conversion of Org-Mode to 'Pandoc' document.
 module Text.Pandoc.Readers.Org ( readOrg ) where
 
 import qualified Text.Pandoc.Builder as B
-import           Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
+import           Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>), HasMeta(..))
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Options
-import           Text.Pandoc.Parsing hiding (orderedListMarker)
+import           Text.Pandoc.Parsing hiding (orderedListMarker, updateLastStrPos)
 import           Text.Pandoc.Shared (compactify')
 
 import           Control.Applicative (pure, (<$>), (<$), (<*>), (<*), (*>), (<**>))
 import           Control.Monad (guard, mzero)
 import           Data.Char (toLower)
-import           Data.List (foldl')
+import           Data.Default
+import           Data.List (foldl', isPrefixOf, isSuffixOf)
 import           Data.Maybe (listToMaybe, fromMaybe)
 import           Data.Monoid (mconcat, mempty, mappend)
 
@@ -46,15 +47,48 @@ import           Data.Monoid (mconcat, mempty, mappend)
 readOrg :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
         -> Pandoc
-readOrg opts s = (readWith parseOrg) def{ stateOptions = opts } (s ++ "\n\n")
+readOrg opts s = (readWith parseOrg) def{ orgOptions = opts } (s ++ "\n\n")
 
-type OrgParser = Parser [Char] ParserState
+type OrgParser = Parser [Char] OrgParserState
+
+-- | Org-mode parser state
+data OrgParserState = OrgParserState
+                      { orgOptions          :: ReaderOptions
+                      , orgInlineCharStack  :: [Char]
+                      , orgLastStrPos       :: Maybe SourcePos
+                      , orgMeta             :: Meta
+                      } deriving (Show)
+
+instance HasReaderOptions OrgParserState where
+  extractReaderOptions = orgOptions
+
+instance HasMeta OrgParserState where
+  setMeta field val st =
+    st{ orgMeta = setMeta field val $ orgMeta st }
+  deleteMeta field st =
+    st{ orgMeta = deleteMeta field $ orgMeta st }
+
+instance Default OrgParserState where
+  def = defaultOrgParserState
+
+defaultOrgParserState :: OrgParserState
+defaultOrgParserState = OrgParserState
+                        { orgOptions = def
+                        , orgInlineCharStack = []
+                        , orgLastStrPos = Nothing
+                        , orgMeta = nullMeta
+                        }
+
+updateLastStrPos :: OrgParser ()
+updateLastStrPos = getPosition >>= \p ->
+  updateState $ \s -> s{ orgLastStrPos = Just p }
+
 
 parseOrg:: OrgParser Pandoc
 parseOrg = do
   blocks' <- B.toList <$> parseBlocks
   st <- getState
-  let meta = stateMeta st
+  let meta = orgMeta st
   return $ Pandoc meta $ filter (/= Null) blocks'
 
 --
@@ -119,7 +153,14 @@ indentWith num = do
                  , try (char '\t' >> count (num - tabStop) (char ' ')) ]
 
 translateLang :: String -> String
-translateLang "sh" = "bash"
+translateLang "C"          = "c"
+translateLang "C++"        = "cpp"
+translateLang "emacs-lisp" = "commonlisp" -- emacs lisp is not supported
+translateLang "js"         = "javascript"
+translateLang "lisp"       = "commonlisp"
+translateLang "R"          = "r"
+translateLang "sh"         = "bash"
+translateLang "sqlite"     = "sql"
 translateLang cs = cs
 
 commaEscaped :: String -> String
@@ -177,7 +218,7 @@ commentLineStart = try $ mappend <$> many spaceChar <*> string "# "
 declarationLine :: OrgParser Blocks
 declarationLine = try $ do
   meta' <- B.setMeta <$> metaKey <*> metaValue <*> pure nullMeta
-  updateState $ \st -> st { stateMeta = stateMeta st <> meta' }
+  updateState $ \st -> st { orgMeta  = orgMeta st <> meta' }
   return mempty
 
 metaValue :: OrgParser MetaValue
@@ -217,13 +258,18 @@ data OrgTableRow = OrgContentRow [Blocks]
                  | OrgHlineRow
  deriving (Eq, Show)
 
-type OrgTableContent = (Int, [Alignment], [Double], [Blocks], [[Blocks]])
+data OrgTable = OrgTable
+  { orgTableColumns    :: Int
+  , orgTableAlignments :: [Alignment]
+  , orgTableHeader     :: [Blocks]
+  , orgTableRows       :: [[Blocks]]
+  } deriving (Eq, Show)
 
 table :: OrgParser Blocks
 table = try $ do
   lookAhead tableStart
-  (_, aligns, widths, heads, lns) <- normalizeTable . tableContent <$> tableRows
-  return $ B.table "" (zip aligns widths) heads lns
+  OrgTable _ aligns heads lns <- normalizeTable . rowsToTable <$> tableRows
+  return $ B.table "" (zip aligns $ repeat 0) heads lns
 
 tableStart :: OrgParser Char
 tableStart = try $ skipSpaces *> char '|'
@@ -237,10 +283,9 @@ tableContentRow = try $
 
 tableContentCell :: OrgParser Blocks
 tableContentCell = try $
-  B.plain . trimInlines . mconcat <$> many1Till inline (try endOfCell)
+  B.plain . trimInlines . mconcat <$> many1Till inline endOfCell
 
 endOfCell :: OrgParser Char
--- endOfCell =  char '|' <|> newline
 endOfCell = try $ char '|' <|> lookAhead newline
 
 tableAlignRow :: OrgParser OrgTableRow
@@ -269,54 +314,53 @@ tableHline :: OrgParser OrgTableRow
 tableHline = try $
   OrgHlineRow <$ (tableStart *> char '-' *> anyLine)
 
-tableContent :: [OrgTableRow]
-             -> OrgTableContent
-tableContent = foldl' (flip rowToContent) (0, mempty, repeat 0, mempty, mempty)
+rowsToTable :: [OrgTableRow]
+            -> OrgTable
+rowsToTable = foldl' (flip rowToContent) zeroTable
+  where zeroTable = OrgTable 0 mempty mempty mempty
 
-normalizeTable :: OrgTableContent
-               -> OrgTableContent
-normalizeTable (cols, aligns, widths, heads, lns) =
+normalizeTable :: OrgTable
+               -> OrgTable
+normalizeTable (OrgTable cols aligns heads lns) =
   let aligns' = fillColumns aligns AlignDefault
-      widths' = fillColumns widths 0.0
       heads'  = if heads == mempty
-                then heads
+                then mempty
                 else fillColumns heads  (B.plain mempty)
       lns'    = map (flip fillColumns (B.plain mempty)) lns
       fillColumns base padding = take cols $ base ++ repeat padding
-  in (cols, aligns', widths', heads', lns')
+  in OrgTable cols aligns' heads' lns'
 
 
 -- One or more horizontal rules after the first content line mark the previous
 -- line as a header.  All other horizontal lines are discarded.
 rowToContent :: OrgTableRow
-             -> OrgTableContent
-             -> OrgTableContent
+             -> OrgTable
+             -> OrgTable
 rowToContent OrgHlineRow        = maybeBodyToHeader
 rowToContent (OrgContentRow rs) = setLongestRow rs . appendToBody rs
 rowToContent (OrgAlignRow as)   = setLongestRow as . setAligns as
 
 setLongestRow :: [a]
-              -> OrgTableContent
-              -> OrgTableContent
-setLongestRow r (cols, aligns, widths, heads, lns) =
-  (max cols (length r), aligns, widths, heads, lns)
+              -> OrgTable
+              -> OrgTable
+setLongestRow rs t = t{ orgTableColumns = max (length rs) (orgTableColumns t) }
 
-maybeBodyToHeader :: OrgTableContent
-                  -> OrgTableContent
-maybeBodyToHeader (cols, aligns, widths, [], b:[]) = (cols, aligns, widths, b, [])
-maybeBodyToHeader content                          = content
+maybeBodyToHeader :: OrgTable
+                  -> OrgTable
+maybeBodyToHeader t = case t of
+  OrgTable{ orgTableHeader = [], orgTableRows = b:[] } ->
+         t{ orgTableHeader = b , orgTableRows = [] }
+  _   -> t
 
 appendToBody :: [Blocks]
-             -> OrgTableContent
-             -> OrgTableContent
-appendToBody r (cols, aligns, widths, heads, lns) =
-  (cols, aligns, widths, heads, lns ++ [r])
+             -> OrgTable
+             -> OrgTable
+appendToBody r t = t{ orgTableRows = orgTableRows t ++ [r] }
 
 setAligns :: [Alignment]
-          -> OrgTableContent
-          -> OrgTableContent
-setAligns aligns (cols, _, widths, heads, lns) =
-   (cols, aligns, widths, heads, lns)
+          -> OrgTable
+          -> OrgTable
+setAligns aligns t = t{ orgTableAlignments = aligns }
 
 -- Paragraphs or Plain text
 paraOrPlain :: OrgParser Blocks
@@ -440,20 +484,26 @@ endline = try $ do
   return B.space
 
 link :: OrgParser Inlines
-link = explicitLink <|> selfLink <?> "link"
+link = explicitOrImageLink <|> selflinkOrImage <?> "link"
 
-explicitLink :: OrgParser Inlines
-explicitLink = try $ do
+explicitOrImageLink :: OrgParser Inlines
+explicitOrImageLink = try $ do
   char '['
-  src   <- enclosedRaw     (char '[') (char ']')
-  title <- enclosedInlines (char '[') (char ']')
+  src    <- enclosedRaw (char '[') (char ']')
+  title  <- enclosedRaw (char '[') (char ']')
+  title' <- parseFromString (mconcat . butLast <$> many inline) (title++"\n")
   char ']'
-  return $ B.link src "" title
+  return $ if (isImage src) && (isImage title)
+           then B.link src "" (B.image title "" "")
+           else B.link src "" title'
+ where butLast = reverse . tail . reverse
 
-selfLink :: OrgParser Inlines
-selfLink = try $ do
+selflinkOrImage :: OrgParser Inlines
+selflinkOrImage = try $ do
   src <- enclosedRaw (string "[[") (string "]]")
-  return $ B.link src "" (B.str src)
+  return $ if isImage src
+           then B.image src "" ""
+           else B.link src "" (B.str src)
 
 emph      :: OrgParser Inlines
 emph      = B.emph         <$> inlinesEnclosedBy '/'
@@ -498,8 +548,15 @@ enclosedInlines start end = try $
 -- FIXME: This is a hack
 inlinesEnclosedBy :: Char
                   -> OrgParser Inlines
-inlinesEnclosedBy c = enclosedInlines (atStart (char c) <* endsOnThisOrNextLine c)
-                                      (atEnd $ char c)
+inlinesEnclosedBy c = try $ do
+  updateState $ \st -> st { orgInlineCharStack = c:(orgInlineCharStack st) }
+  res <- enclosedInlines (atStart (char c) <* endsOnThisOrNextLine c)
+                         (atEnd $ char c)
+  updateState $ \st -> st { orgInlineCharStack = shift . orgInlineCharStack $ st }
+  return res
+ where shift xs
+           | null xs   = []
+           | otherwise = tail xs
 
 enclosedRaw :: OrgParser a
             -> OrgParser b
@@ -519,16 +576,21 @@ atStart :: OrgParser a -> OrgParser a
 atStart p = do
   pos <- getPosition
   st <- getState
-  guard $ stateLastStrPos st /= Just pos
+  guard $ orgLastStrPos st /= Just pos
   p
 
 -- | succeeds only if we're at the end of a word
 atEnd :: OrgParser a -> OrgParser a
-atEnd p = try $ p <* lookingAtEndOfWord
- where lookingAtEndOfWord = lookAhead . oneOf $ postWordChars
+atEnd p = try $ do
+  p <* lookingAtEndOfWord
+ where lookingAtEndOfWord = lookAhead . oneOf =<< postWordChars
 
-postWordChars :: [Char]
-postWordChars = "\t\n\r !\"'),-.:?}"
+postWordChars :: OrgParser [Char]
+postWordChars = do
+  st <- getState
+  return $ "\t\n\r !\"'),-.:?}" ++ (safeSecond . orgInlineCharStack $ st)
+ where safeSecond (_:x2:_) = [x2]
+       safeSecond _        = []
 
 -- FIXME: These functions are hacks and should be replaced
 endsOnThisOrNextLine :: Char
@@ -543,10 +605,18 @@ endsOnThisLine :: [Char]
                -> ([Char] -> OrgParser ())
                -> OrgParser ()
 endsOnThisLine input c doOnOtherLines = do
+  postWordChars' <- postWordChars
   case break (`elem` c:"\n") input of
     (_,'\n':rest)    -> doOnOtherLines rest
-    (_,_:rest@(n:_)) -> if n `elem` postWordChars
+    (_,_:rest@(n:_)) -> if n `elem` postWordChars'
                         then return ()
                         else endsOnThisLine rest c doOnOtherLines
     _                -> mzero
 
+isImage filename =
+  any (\x -> ('.':x)  `isSuffixOf` filename) imageExtensions &&
+  any (\x -> (x++":") `isPrefixOf` filename) protocols ||
+  ':' `notElem` filename
+ where
+   imageExtensions = [ "jpeg" , "jpg" , "png" , "gif" , "svg" ]
+   protocols = [ "file", "http", "https" ]
