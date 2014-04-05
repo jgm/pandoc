@@ -48,7 +48,8 @@ import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
 import Data.List ( intercalate, isPrefixOf, sort )
-import System.Directory ( getAppUserDataDirectory, findExecutable )
+import System.Directory ( getAppUserDataDirectory, findExecutable,
+                          doesFileExist )
 import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
@@ -97,8 +98,23 @@ isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub","ep
 
 externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
 externalFilter f args' d = do
+      mbexe <- findExecutable f
+      (f', args'') <- case mbexe of
+                           Just x  -> return (x, args')
+                           Nothing -> do
+                             exists <- doesFileExist f
+                             if exists
+                                then return $
+                                    case map toLower $ takeExtension f of
+                                         ".py"  -> ("python", f:args')
+                                         ".hs"  -> ("runhaskell", f:args')
+                                         ".pl"  -> ("perl", f:args')
+                                         ".rb"  -> ("ruby", f:args')
+                                         ".php" -> ("php", f:args')
+                                         _      -> (f, args')
+                                else err 85 $ "Filter " ++ f ++ " not found"
       (exitcode, outbs, errbs) <- E.handle filterException $
-                                    pipeProcess Nothing f args' $ encode d
+                                    pipeProcess Nothing f' args'' $ encode d
       when (not $ B.null errbs) $ B.hPutStr stderr errbs
       case exitcode of
            ExitSuccess    -> return $ either error id $ eitherDecode' outbs
