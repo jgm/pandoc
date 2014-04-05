@@ -613,6 +613,7 @@ endsOnThisLine input c doOnOtherLines = do
                         else endsOnThisLine rest c doOnOtherLines
     _                -> mzero
 
+isImage :: String -> Bool
 isImage filename =
   any (\x -> ('.':x)  `isSuffixOf` filename) imageExtensions &&
   any (\x -> (x++":") `isPrefixOf` filename) protocols ||
