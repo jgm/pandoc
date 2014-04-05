@@ -535,8 +535,15 @@ enclosedInlines start end = try $
 -- FIXME: This is a hack
 inlinesEnclosedBy :: Char
                   -> OrgParser Inlines
-inlinesEnclosedBy c = enclosedInlines (atStart (char c) <* endsOnThisOrNextLine c)
-                                      (atEnd $ char c)
+inlinesEnclosedBy c = try $ do
+  updateState $ \st -> st { orgInlineCharStack = c:(orgInlineCharStack st) }
+  res <- enclosedInlines (atStart (char c) <* endsOnThisOrNextLine c)
+                         (atEnd $ char c)
+  updateState $ \st -> st { orgInlineCharStack = shift . orgInlineCharStack $ st }
+  return res
+ where shift xs
+           | null xs   = []
+           | otherwise = tail xs
 
 enclosedRaw :: OrgParser a
             -> OrgParser b
@@ -561,11 +568,16 @@ atStart p = do
 
 -- | succeeds only if we're at the end of a word
 atEnd :: OrgParser a -> OrgParser a
-atEnd p = try $ p <* lookingAtEndOfWord
- where lookingAtEndOfWord = lookAhead . oneOf $ postWordChars
+atEnd p = try $ do
+  p <* lookingAtEndOfWord
+ where lookingAtEndOfWord = lookAhead . oneOf =<< postWordChars
 
-postWordChars :: [Char]
-postWordChars = "\t\n\r !\"'),-.:?}"
+postWordChars :: OrgParser [Char]
+postWordChars = do
+  st <- getState
+  return $ "\t\n\r !\"'),-.:?}" ++ (safeSecond . orgInlineCharStack $ st)
+ where safeSecond (_:x2:_) = [x2]
+       safeSecond _        = []
 
 -- FIXME: These functions are hacks and should be replaced
 endsOnThisOrNextLine :: Char
@@ -580,9 +592,10 @@ endsOnThisLine :: [Char]
                -> ([Char] -> OrgParser ())
                -> OrgParser ()
 endsOnThisLine input c doOnOtherLines = do
+  postWordChars' <- postWordChars
   case break (`elem` c:"\n") input of
     (_,'\n':rest)    -> doOnOtherLines rest
-    (_,_:rest@(n:_)) -> if n `elem` postWordChars
+    (_,_:rest@(n:_)) -> if n `elem` postWordChars'
                         then return ()
                         else endsOnThisLine rest c doOnOtherLines
     _                -> mzero

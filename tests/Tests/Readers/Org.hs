@@ -42,6 +42,10 @@ tests =
           "*Cider*" =?>
           para (strong "Cider")
 
+      , "Strong Emphasis" =:
+        "/*strength*/" =?>
+        para (emph . strong $ "strength")
+
       , "Strikeout" =:
           "+Kill Bill+" =?>
           para (strikeout . spcSep $ [ "Kill", "Bill" ])
