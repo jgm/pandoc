@@ -124,7 +124,7 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax,",Space,Str "like",LineBreak,Str "here",Space,Image [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),LineBreak,Str "and",Space,Str "here",Space,Image [Str ""] ("this_is_an_image.png",""),Str "."]
 ,Header 1 ("attributes",[],[]) [Str "Attributes"]
 ,Header 2 ("ident",["bar","foo"],[("style","color:red"),("lang","en")]) [Str "HTML",Space,Str "and",Space,Str "CSS",Space,Str "attributes",Space,Str "are",Space,Str "parsed",Space,Str "in",Space,Str "headers."]
-,Para [Str "as",Space,Str "well",Space,Str "as",Space,Strong [Str "inline",Space,Str "attributes"],Space,Str "of",Space,Str " all kind"]
+,Para [Str "as",Space,Str "well",Space,Str "as",Space,Strong [Str "inline",Space,Str "attributes"],Space,Str "of",Space,Str "all",Space,Str "kind"]
 ,Para [Str "and",Space,Str "paragraph",Space,Str "attributes,",Space,Str "and",Space,Str "table",Space,Str "attributes."]
 ,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
  []

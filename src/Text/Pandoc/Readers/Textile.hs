@@ -376,7 +376,6 @@ inlineParsers = [ inlineMarkup
                 , endline
                 , code
                 , escapedInline
-                , htmlSpan
                 , rawHtmlInline
                 , rawLaTeXInline'
                 , note
@@ -400,6 +399,7 @@ inlineMarkup = choice [ simpleInline (string "??") (B.cite [])
                       , simpleInline (char '-' <* notFollowedBy (char '-')) B.strikeout
                       , simpleInline (char '^') B.superscript
                       , simpleInline (char '~') B.subscript
+                      , simpleInline (char '%') id
                       ]
 
 -- | Trademark, registered, copyright
@@ -475,10 +475,6 @@ str = do
     return $ concat [baseStr, " (", acro, ")"]
   updateLastStrPos
   return $ B.str fullStr
-
--- | Textile allows HTML span infos, we discard them
-htmlSpan :: Parser [Char] ParserState Inlines
-htmlSpan = try $ B.str <$> ( char '%' *> attributes *> manyTill anyChar (char '%') )
 
 -- | Some number of space chars
 whitespace :: Parser [Char] ParserState Inlines
