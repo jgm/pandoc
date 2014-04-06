@@ -78,8 +78,6 @@ Data-Files:
                  data/dzslides/template.html,
                  -- sample lua custom writer
                  data/sample.lua
-                 -- documentation
-                 README, INSTALL, COPYRIGHT, BUGS, CONTRIBUTING.md, changelog
 Extra-Source-Files:
                  -- code to create pandoc.1 man page
                  man/man1/pandoc.1.template,
@@ -87,6 +85,8 @@ Extra-Source-Files:
                  -- generated man pages (produced post-build)
                  man/man1/pandoc.1,
                  man/man5/pandoc_markdown.5,
+                 -- documentation
+                 README, INSTALL, COPYRIGHT, BUGS, CONTRIBUTING.md, changelog
                  -- tests
                  tests/bodybg.gif,
                  tests/docbook-reader.docbook
