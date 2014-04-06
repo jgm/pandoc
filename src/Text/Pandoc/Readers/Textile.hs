@@ -604,15 +604,18 @@ ungroupedSimpleInline border construct = try $ do
   guard $ (stateQuoteContext st /= NoQuote)
        || (sourceColumn pos == 1)
        || isWhitespace
-  body <- surrounded border inlineWithAttribute
-  lookAhead (notFollowedBy alphaNum)
-  let result = construct $ mconcat body
-  return $ if isWhitespace then B.space <> result
-                           else result
-  where
-    inlineWithAttribute = (try $ optional attributes) >> notFollowedBy (string "\n\n")
-        >> (withQuoteContext InSingleQuote inline)
-
+  border *> notFollowedBy (oneOf " \t\n\r")
+  attr <- attributes
+  body <- trimInlines . mconcat <$>
+          withQuoteContext InSingleQuote
+            (manyTill inline (try border <* notFollowedBy alphaNum))
+  let result = construct $
+        if attr == nullAttr
+           then body
+           else B.spanWith attr body
+  return $ if isWhitespace
+              then B.space <> result
+              else result
 
 groupedSimpleInline :: Parser [Char] ParserState t
                   -> (Inlines -> Inlines)
