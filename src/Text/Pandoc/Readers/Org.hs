@@ -268,8 +268,12 @@ data OrgTable = OrgTable
 table :: OrgParser Blocks
 table = try $ do
   lookAhead tableStart
-  OrgTable _ aligns heads lns <- normalizeTable . rowsToTable <$> tableRows
-  return $ B.table "" (zip aligns $ repeat 0) heads lns
+  orgToPandocTable . normalizeTable . rowsToTable <$> tableRows
+
+orgToPandocTable :: OrgTable
+                 -> Blocks
+orgToPandocTable (OrgTable _ aligns heads lns) =
+  B.table "" (zip aligns $ repeat 0) heads lns
 
 tableStart :: OrgParser Char
 tableStart = try $ skipSpaces *> char '|'
@@ -403,20 +407,14 @@ orderedListStart = genericListStart orderedListMarker
   -- Ordered list markers allowed in org-mode
   where orderedListMarker = mappend <$> many1 digit <*> (pure <$> oneOf ".)")
 
+-- parse raw text for one list item, excluding start marker and continuations
 listItem :: OrgParser Int
          -> OrgParser Blocks
 listItem start = try $ do
-  (markerLength, first) <- try (start >>= rawListItem)
-  rest <- many (listContinuation markerLength)
-  parseFromString parseBlocks $ concat (first:rest)
-
--- parse raw text for one list item, excluding start marker and continuations
-rawListItem :: Int
-            -> OrgParser (Int, String)
-rawListItem markerLength = try $ do
-  firstLine <- anyLine
-  restLines <- many (listLine markerLength)
-  return (markerLength, (firstLine ++ "\n" ++ (concat restLines)))
+  markerLength <- try start
+  firstLine <- anyLineNewline
+  rest <- concat <$> many (listContinuation markerLength)
+  parseFromString parseBlocks $ firstLine ++ rest
 
 -- continuation of a list item - indented and separated by blankline or endline.
 -- Note: nested lists are parsed as continuations.
@@ -424,14 +422,11 @@ listContinuation :: Int
                  -> OrgParser String
 listContinuation markerLength = try $
   mappend <$> many blankline
-          <*> (concat <$> many1 (listLine markerLength))
+          <*> (concat <$> many1 listLine)
+ where listLine = try $ indentWith markerLength *> anyLineNewline
 
--- parse a line of a list item
-listLine :: Int
-         -> OrgParser String
-listLine markerLength = try $
-  indentWith markerLength *> anyLine
-    <**> pure (++ "\n")
+anyLineNewline :: OrgParser String
+anyLineNewline = (++ "\n") <$> anyLine
 
 
 --
@@ -491,12 +486,11 @@ explicitOrImageLink = try $ do
   char '['
   src    <- enclosedRaw (char '[') (char ']')
   title  <- enclosedRaw (char '[') (char ']')
-  title' <- parseFromString (mconcat . butLast <$> many inline) (title++"\n")
+  title' <- parseFromString (mconcat <$> many inline) title
   char ']'
   return $ if (isImage src) && (isImage title)
            then B.link src "" (B.image title "" "")
            else B.link src "" title'
- where butLast = reverse . tail . reverse
 
 selflinkOrImage :: OrgParser Inlines
 selflinkOrImage = try $ do
@@ -552,11 +546,8 @@ inlinesEnclosedBy c = try $ do
   updateState $ \st -> st { orgInlineCharStack = c:(orgInlineCharStack st) }
   res <- enclosedInlines (atStart (char c) <* endsOnThisOrNextLine c)
                          (atEnd $ char c)
-  updateState $ \st -> st { orgInlineCharStack = shift . orgInlineCharStack $ st }
+  updateState $ \st -> st { orgInlineCharStack = drop 1 . orgInlineCharStack $ st }
   return res
- where shift xs
-           | null xs   = []
-           | otherwise = tail xs
 
 enclosedRaw :: OrgParser a
             -> OrgParser b
@@ -583,14 +574,13 @@ atStart p = do
 atEnd :: OrgParser a -> OrgParser a
 atEnd p = try $ do
   p <* lookingAtEndOfWord
- where lookingAtEndOfWord = lookAhead . oneOf =<< postWordChars
+ where lookingAtEndOfWord =
+           eof <|> const (return ()) =<< lookAhead . oneOf =<< postWordChars
 
 postWordChars :: OrgParser [Char]
 postWordChars = do
   st <- getState
-  return $ "\t\n\r !\"'),-.:?}" ++ (safeSecond . orgInlineCharStack $ st)
- where safeSecond (_:x2:_) = [x2]
-       safeSecond _        = []
+  return $ "\t\n\r !\"'),-.:?}" ++ (take 1 . drop 1 . orgInlineCharStack $ st)
 
 -- FIXME: These functions are hacks and should be replaced
 endsOnThisOrNextLine :: Char
@@ -608,6 +598,7 @@ endsOnThisLine input c doOnOtherLines = do
   postWordChars' <- postWordChars
   case break (`elem` c:"\n") input of
     (_,'\n':rest)    -> doOnOtherLines rest
+    (_,_:[])         -> return ()
     (_,_:rest@(n:_)) -> if n `elem` postWordChars'
                         then return ()
                         else endsOnThisLine rest c doOnOtherLines
