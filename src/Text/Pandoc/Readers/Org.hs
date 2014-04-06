@@ -383,7 +383,10 @@ restOfLine = mconcat <$> manyTill inline newline
 --
 
 list :: OrgParser Blocks
-list = choice [ bulletList, orderedList ] <?> "list"
+list = choice [ definitionList, bulletList, orderedList ] <?> "list"
+
+definitionList :: OrgParser Blocks
+definitionList = B.definitionList <$> many1 (definitionListItem bulletListStart)
 
 bulletList :: OrgParser Blocks
 bulletList = B.bulletList . compactify' <$> many1 (listItem bulletListStart)
@@ -406,6 +409,18 @@ orderedListStart :: OrgParser Int
 orderedListStart = genericListStart orderedListMarker
   -- Ordered list markers allowed in org-mode
   where orderedListMarker = mappend <$> many1 digit <*> (pure <$> oneOf ".)")
+
+definitionListItem :: OrgParser Int
+                   -> OrgParser (Inlines, [Blocks])
+definitionListItem parseMarkerGetLength = try $ do
+  markerLength <- parseMarkerGetLength
+  term <- manyTill (noneOf "\n\r") (try $ string "::")
+  first <- anyLineNewline
+  cont <- concat <$> many (listContinuation markerLength)
+  term' <- parseFromString inline term
+  contents' <- parseFromString parseBlocks $ first ++ cont
+  return (term', [contents'])
+
 
 -- parse raw text for one list item, excluding start marker and continuations
 listItem :: OrgParser Int

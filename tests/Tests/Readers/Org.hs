@@ -43,8 +43,8 @@ tests =
           para (strong "Cider")
 
       , "Strong Emphasis" =:
-        "/*strength*/" =?>
-        para (emph . strong $ "strength")
+          "/*strength*/" =?>
+          para (emph . strong $ "strength")
 
       , "Strikeout" =:
           "+Kill Bill+" =?>
@@ -428,7 +428,27 @@ tests =
       , "Bullet List in Ordered List" =:
           ("1. GNU\n" ++
            "   - Freedom\n") =?>
-            orderedList [ (para "GNU") <> bulletList [ (plain "Freedom") ] ]
+          orderedList [ (para "GNU") <> bulletList [ (plain "Freedom") ] ]
+
+      , "Definition List" =:
+          unlines [ "- PLL :: phase-locked loop"
+                  , "- TTL ::"
+                  , "  transistor-transistor logic"
+                  , "- PSK::phase-shift keying"
+                  , ""
+                  , "  a digital modulation scheme"
+                  ] =?>
+          definitionList [ ("PLL", [ plain $ "phase-locked" <> space <> "loop" ])
+                         , ("TTL", [ plain $ "transistor-transistor" <> space <>
+                                               "logic" ])
+                         , ("PSK", [ mconcat
+                                     [ para  $ "phase-shift" <> space <> "keying"
+                                     , plain $ spcSep [ "a", "digital"
+                                                      , "modulation", "scheme" ]
+                                     ]
+                                   ]
+                                   )
+                         ]
       ]
 
   , testGroup "Tables"
