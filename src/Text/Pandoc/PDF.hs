@@ -176,7 +176,10 @@ runTeXProgram program runsLeft tmpDir source = do
          let pdfFile = replaceDirectory (replaceExtension file ".pdf") tmpDir
          pdfExists <- doesFileExist pdfFile
          pdf <- if pdfExists
-                   then Just `fmap` B.readFile pdfFile
+                   -- We read PDF as a strict bytestring to make sure that the
+                   -- temp directory is removed on Windows.
+                   -- See https://github.com/jgm/pandoc/issues/1192.
+                   then (Just . B.fromChunks . (:[])) `fmap` BS.readFile pdfFile
                    else return Nothing
          return (exit, out <> err, pdf)
 
