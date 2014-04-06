@@ -1022,17 +1022,15 @@ main = do
   let laTeXOutput = "latex" `isPrefixOf` writerName' ||
                     "beamer" `isPrefixOf` writerName'
 
-  when pdfOutput $ do
-    -- make sure writer is latex or beamer
-    unless laTeXOutput $
-      err 47 $ "cannot produce pdf output with " ++ writerName' ++ " writer"
-    -- check for latex program
-    mbLatex <- findExecutable latexEngine
-    case mbLatex of
-         Nothing  -> err 41 $
-           latexEngine ++ " not found. " ++
-           latexEngine ++ " is needed for pdf output."
-         Just _   -> return ()
+  writer <- case getWriter writerName' of
+                  Left e  -> err 9 $
+                    if writerName' == "pdf"
+                       then e ++ "\nTo create a pdf with pandoc, use the " ++
+                        "latex or beamer writer and specify\n" ++
+                        "an output file with .pdf extension " ++
+                        "(pandoc -t latex -o filename.pdf)."
+                       else e
+                  Right w -> return w
 
   reader <- case getReader readerName' of
      Right r  -> return r
@@ -1179,12 +1177,22 @@ main = do
       writerFn "-" = UTF8.putStr
       writerFn f   = UTF8.writeFile f
 
-  case getWriter writerName' of
-    Left e -> err 9 e
-    Right (IOStringWriter f) -> f writerOptions doc2 >>= writerFn outputFile
-    Right (IOByteStringWriter f) -> f writerOptions doc2 >>= writeBinary
-    Right (PureStringWriter f)
+  case writer of
+    IOStringWriter f -> f writerOptions doc2 >>= writerFn outputFile
+    IOByteStringWriter f -> f writerOptions doc2 >>= writeBinary
+    PureStringWriter f
       | pdfOutput -> do
+              -- make sure writer is latex or beamer
+              unless laTeXOutput $
+                err 47 $ "cannot produce pdf output with " ++ writerName' ++
+                         " writer"
+
+              -- check for latex program
+              mbLatex <- findExecutable latexEngine
+              when (mbLatex == Nothing) $
+                   err 41 $ latexEngine ++ " not found. " ++
+                     latexEngine ++ " is needed for pdf output."
+
               res <- makePDF latexEngine f writerOptions doc2
               case res of
                    Right pdf -> writeBinary pdf
