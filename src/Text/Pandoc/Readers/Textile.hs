@@ -54,7 +54,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing 
+import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isInlineTag, isBlockTag )
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
@@ -225,7 +225,7 @@ bulletListAtDepth depth = try $ B.bulletList  <$> many1 (bulletListItemAtDepth d
 
 -- | Bullet List Item of given depth, depth being the number of
 -- leading '*'
-bulletListItemAtDepth :: Int -> Parser [Char] ParserState Blocks 
+bulletListItemAtDepth :: Int -> Parser [Char] ParserState Blocks
 bulletListItemAtDepth = genericListItemAtDepth '*'
 
 -- | Ordered List of given depth, depth being the number of
@@ -237,7 +237,7 @@ orderedListAtDepth depth = try $ do
 
 -- | Ordered List Item of given depth, depth being the number of
 -- leading '#'
-orderedListItemAtDepth :: Int -> Parser [Char] ParserState Blocks 
+orderedListItemAtDepth :: Int -> Parser [Char] ParserState Blocks
 orderedListItemAtDepth = genericListItemAtDepth '#'
 
 -- | Common implementation of list items
@@ -274,7 +274,7 @@ definitionListItem = try $ do
   where inlineDef :: Parser [Char] ParserState [Blocks]
         inlineDef = liftM (\d -> [B.plain d])
                     $ optional whitespace >> (trimInlines . mconcat <$> many listInline) <* newline
-        multilineDef :: Parser [Char] ParserState [Blocks] 
+        multilineDef :: Parser [Char] ParserState [Blocks]
         multilineDef = try $ do
           optional whitespace >> newline
           s <- many1Till anyChar (try (string "=:" >> newline))
@@ -596,7 +596,7 @@ surrounded border = enclosed (border *> notFollowedBy (oneOf " \t\n\r")) (try bo
 simpleInline :: Parser [Char] ParserState t           -- ^ surrounding parser
                 -> (Inlines -> Inlines)       -- ^ Inline constructor
                 -> Parser [Char] ParserState Inlines   -- ^ content parser (to be used repeatedly)
-simpleInline border construct = groupedSimpleInline border construct <|> ungroupedSimpleInline border construct 
+simpleInline border construct = groupedSimpleInline border construct <|> ungroupedSimpleInline border construct
 
 ungroupedSimpleInline :: Parser [Char] ParserState t           -- ^ surrounding parser
                 -> (Inlines -> Inlines)       -- ^ Inline constructor
@@ -605,27 +605,27 @@ ungroupedSimpleInline border construct = try $ do
   st <- getState
   pos <- getPosition
   isWhitespace <- option False (whitespace >> return True)
-  guard $ (stateQuoteContext st /= NoQuote) 
-       || (sourceColumn pos == 1) 
+  guard $ (stateQuoteContext st /= NoQuote)
+       || (sourceColumn pos == 1)
        || isWhitespace
   body <- surrounded border inlineWithAttribute
   lookAhead (notFollowedBy alphaNum)
-  let result = construct $ mconcat body 
-  return $ if isWhitespace then B.space <> result 
+  let result = construct $ mconcat body
+  return $ if isWhitespace then B.space <> result
                            else result
-  where 
-    inlineWithAttribute = (try $ optional attributes) >> notFollowedBy (string "\n\n") 
+  where
+    inlineWithAttribute = (try $ optional attributes) >> notFollowedBy (string "\n\n")
         >> (withQuoteContext InSingleQuote inline)
 
 
-groupedSimpleInline :: Parser [Char] ParserState t 
+groupedSimpleInline :: Parser [Char] ParserState t
                   -> (Inlines -> Inlines)
-                  -> Parser [Char] ParserState Inlines 
+                  -> Parser [Char] ParserState Inlines
 groupedSimpleInline border construct = try $ do
-    char '['  
+    char '['
     withQuoteContext InSingleQuote (simpleInline border construct) >>~ char ']'
 
-    
+
 
 
 -- | Create a singleton list
