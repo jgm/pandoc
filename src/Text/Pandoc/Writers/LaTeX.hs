@@ -51,6 +51,7 @@ import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
+              , stInQuote       :: Bool          -- true if in a blockquote
               , stInMinipage    :: Bool          -- true if in minipage
               , stNotes         :: [Doc]         -- notes in a minipage
               , stOLLevel       :: Int           -- level of ordered list nesting
@@ -73,7 +74,8 @@ data WriterState =
 writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document =
   evalState (pandocToLaTeX options document) $
-  WriterState { stInNote = False, stInMinipage = False, stNotes = [],
+  WriterState { stInNote = False, stInQuote = False,
+                stInMinipage = False, stNotes = [],
                 stOLLevel = 1, stOptions = options,
                 stVerbInNote = False,
                 stTable = False, stStrikeout = False,
@@ -331,7 +333,10 @@ blockToLaTeX (BlockQuote lst) = do
          modify $ \s -> s{ stIncremental = oldIncremental }
          return result
        _ -> do
+         oldInQuote <- gets stInQuote
+         modify (\s -> s{stInQuote = True})
          contents <- blockListToLaTeX lst
+         modify (\s -> s{stInQuote = oldInQuote})
          return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
 blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
@@ -610,9 +615,16 @@ sectionHeader unnumbered ref level lst = do
                           4  -> "paragraph"
                           5  -> "subparagraph"
                           _  -> ""
+  inQuote <- gets stInQuote
+  let prefix = if inQuote && level' >= 4
+                  then text "\\mbox{}%"
+                  -- needed for \paragraph, \subparagraph in quote environment
+                  -- see http://tex.stackexchange.com/questions/169830/
+                  else empty
   return $ if level' > 5
               then txt
-              else headerWith ('\\':sectionType) stuffing ref
+              else prefix $$
+                   headerWith ('\\':sectionType) stuffing ref
                    $$ if unnumbered
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
