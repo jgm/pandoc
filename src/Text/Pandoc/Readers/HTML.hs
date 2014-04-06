@@ -469,7 +469,7 @@ pCloses :: String -> TagParser ()
 pCloses tagtype = try $ do
   t <- lookAhead $ pSatisfy $ \tag -> isTagClose tag || isTagOpen tag
   case t of
-       (TagClose t')  | t' == tagtype -> pAnyTag >> return ()
+       (TagClose t') | t' == tagtype -> pAnyTag >> return ()
        (TagOpen t' _) | t' `closes` tagtype -> return ()
        (TagClose "ul") | tagtype == "li" -> return ()
        (TagClose "ol") | tagtype == "li" -> return ()
@@ -627,7 +627,7 @@ isCommentTag :: Tag String -> Bool
 isCommentTag = tagComment (const True)
 
 -- taken from HXT and extended
-
+-- See http://www.w3.org/TR/html5/syntax.html sec 8.1.2.4 optional tags
 closes :: String -> String -> Bool
 _ `closes` "body" = False
 _ `closes` "html" = False
@@ -635,11 +635,18 @@ _ `closes` "html" = False
 "li" `closes` "li" = True
 "th" `closes` t | t `elem` ["th","td"] = True
 "tr" `closes` t | t `elem` ["th","td","tr"] = True
+"dd" `closes` t | t `elem` ["dt", "dd"] = True
 "dt" `closes` t | t `elem` ["dt","dd"] = True
-"hr" `closes` "p" = True
-"p" `closes` "p" = True
+"rt" `closes` t | t `elem` ["rb", "rt", "rtc"] = True
+"optgroup" `closes` "optgroup" = True
+"optgroup" `closes` "option" = True
+"option" `closes` "option" = True
+-- http://www.w3.org/TR/html-markup/p.html
+x `closes` "p" | x `elem` ["address", "article", "aside", "blockquote",
+   "dir", "div", "dl", "fieldset", "footer", "form", "h1", "h2", "h3", "h4",
+   "h5", "h6", "header", "hr", "menu", "nav", "ol", "p", "pre", "section",
+   "table", "ul"] = True
 "meta" `closes` "meta" = True
-"colgroup" `closes` "colgroup" = True
 "form" `closes` "form" = True
 "label" `closes` "label" = True
 "map" `closes` "map" = True
