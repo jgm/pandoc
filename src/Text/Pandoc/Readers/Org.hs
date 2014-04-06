@@ -44,7 +44,7 @@ import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>), (<**>) )
 import           Control.Arrow ((***))
 import           Control.Monad (foldM, guard, liftM, liftM2, when)
-import           Control.Monad.Reader (Reader, runReader)
+import           Control.Monad.Reader (Reader, runReader, ask, asks)
 import           Data.Char (toLower)
 import           Data.Default
 import           Data.List (isPrefixOf, isSuffixOf)
@@ -59,7 +59,7 @@ readOrg opts s = readWith parseOrg def{ orgStateOptions = opts } (s ++ "\n\n")
 
 type OrgParser = Parser [Char] OrgParserState
 
-parseOrg:: OrgParser Pandoc
+parseOrg :: OrgParser Pandoc
 parseOrg = do
   blocks' <- parseBlocks
   st <- getState
@@ -69,6 +69,9 @@ parseOrg = do
 --
 -- Parser State for Org
 --
+
+type OrgNoteRecord = (String, F Blocks)
+type OrgNoteTable = [OrgNoteRecord]
 
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
@@ -80,6 +83,7 @@ data OrgParserState = OrgParserState
                       , orgStateLastStrPos           :: Maybe SourcePos
                       , orgStateMeta                 :: Meta
                       , orgStateMeta'                :: F Meta
+                      , orgStateNotes'               :: OrgNoteTable
                       }
 
 instance HasReaderOptions OrgParserState where
@@ -104,6 +108,7 @@ defaultOrgParserState = OrgParserState
                         , orgStateLastStrPos = Nothing
                         , orgStateMeta = nullMeta
                         , orgStateMeta' = return nullMeta
+                        , orgStateNotes' = []
                         }
 
 updateLastStrPos :: OrgParser ()
@@ -146,6 +151,11 @@ resetEmphasisNewlines :: OrgParser ()
 resetEmphasisNewlines = updateState $ \s ->
   s{ orgStateEmphasisNewlines = Nothing }
 
+addToNotesTable :: OrgNoteRecord -> OrgParser ()
+addToNotesTable note = do
+  oldnotes <- orgStateNotes' <$> getState
+  updateState $ \s -> s{ orgStateNotes' = note:oldnotes }
+
 
 --
 -- Adaptions and specializations of parsing utilities
@@ -156,6 +166,12 @@ newtype F a = F { unF :: Reader OrgParserState a
 
 runF :: F a -> OrgParserState -> a
 runF = runReader . unF
+
+askF :: F OrgParserState
+askF = F ask
+
+asksF :: (OrgParserState -> a) -> F a
+asksF f = F $ asks f
 
 instance Monoid a => Monoid (F a) where
   mempty = return mempty
@@ -191,6 +207,7 @@ block = choice [ mempty <$ blanklines
                , return <$> hline
                , list
                , table
+               , noteBlock
                , paraOrPlain
                ] <?> "block"
 
@@ -500,6 +517,16 @@ setAligns :: [Alignment]
           -> F OrgTable
 setAligns aligns t = return $ t{ orgTableAlignments = aligns }
 
+--
+-- Footnote defintions
+--
+noteBlock :: OrgParser (F Blocks)
+noteBlock = try $ do
+  ref <- noteMarker
+  content <- skipSpaces *> paraOrPlain
+  addToNotesTable (ref, content)
+  return mempty
+
 -- Paragraphs or Plain text
 paraOrPlain :: OrgParser (F Blocks)
 paraOrPlain = try $
@@ -587,6 +614,7 @@ inline :: OrgParser (F Inlines)
 inline =
   choice [ whitespace
          , linebreak
+         , footnote
          , linkOrImage
          , str
          , endline
@@ -632,6 +660,7 @@ endline = try $ do
   notFollowedBy blankline
   notFollowedBy' exampleLine
   notFollowedBy' hline
+  notFollowedBy' noteMarker
   notFollowedBy' tableStart
   notFollowedBy' drawerStart
   notFollowedBy' headerStart
@@ -643,6 +672,39 @@ endline = try $ do
   guard =<< newlinesCountWithinLimits
   updateLastPreCharPos
   return . return $ B.space
+
+footnote :: OrgParser (F Inlines)
+footnote = try $ inlineNote <|> referencedNote
+
+inlineNote :: OrgParser (F Inlines)
+inlineNote = try $ do
+  string "[fn:"
+  ref <- many alphaNum
+  char ':'
+  note <- fmap B.para . trimInlinesF . mconcat <$> many1Till inline (char ']')
+  when (not $ null ref) $
+       addToNotesTable ("fn:" ++ ref, note)
+  return $ B.note <$> note
+
+referencedNote :: OrgParser (F Inlines)
+referencedNote = try $ do
+  ref <- noteMarker
+  return $ do
+    notes <- asksF orgStateNotes'
+    case lookup ref notes of
+      Nothing   -> return $ B.str $ "[" ++ ref ++ "]"
+      Just contents  -> do
+        st <- askF
+        let contents' = runF contents st{ orgStateNotes' = [] }
+        return $ B.note contents'
+
+noteMarker :: OrgParser String
+noteMarker = try $ do
+  char '['
+  choice [ many1Till digit (char ']')
+         , (++) <$> string "fn:"
+                <*> many1Till (noneOf "\n\r\t ") (char ']')
+         ]
 
 linkOrImage :: OrgParser (F Inlines)
 linkOrImage = explicitOrImageLink <|> selflinkOrImage <?> "link or image"

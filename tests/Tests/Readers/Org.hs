@@ -98,6 +98,10 @@ tests =
           "line \\\\ \nbreak" =?>
           para ("line" <> linebreak <> "break")
 
+      , "Inline note" =:
+          "[fn::Schreib mir eine E-Mail]" =?>
+          para (note $ para "Schreib mir eine E-Mail")
+
       , "Markup-chars not occuring on word break are symbols" =:
           unlines [ "this+that+ +so+on"
                   , "seven*eight* nine*"
