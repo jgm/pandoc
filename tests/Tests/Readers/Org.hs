@@ -54,6 +54,10 @@ tests =
           "=Robot.rock()=" =?>
           para (code "Robot.rock()")
 
+      , "Math" =:
+          "$E=mc^2$" =?>
+           para (math "E=mc^2")
+
       , "Verbatim" =:
           "~word for word~" =?>
           para (rawInline "" "word for word")

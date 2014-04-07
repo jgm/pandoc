@@ -459,6 +459,7 @@ inline = choice inlineParsers <?> "inline"
                         , strikeout
                         , underline
                         , code
+                        , math
                         , verbatim
                         , subscript
                         , superscript
@@ -530,10 +531,13 @@ underline = B.strong       <$> inlinesEnclosedBy '_'
 code      :: OrgParser Inlines
 code      = B.code         <$> rawEnclosedBy '='
 
-verbatim  ::  OrgParser Inlines
+math      :: OrgParser Inlines
+math      = B.math         <$> rawEnclosedBy '$'
+
+verbatim  :: OrgParser Inlines
 verbatim  = B.rawInline "" <$> rawEnclosedBy '~'
 
-subscript ::  OrgParser Inlines
+subscript :: OrgParser Inlines
 subscript = B.subscript    <$> (try $ char '_' *> maybeGroupedByBraces)
 
 superscript ::  OrgParser Inlines
@@ -580,17 +584,23 @@ rawEnclosedBy c = enclosedRaw (atStart $ char c) (atEnd $ char c)
 -- succeeds only if we're not right after a str (ie. in middle of word)
 atStart :: OrgParser a -> OrgParser a
 atStart p = do
-  pos <- getPosition
-  st <- getState
-  guard $ orgLastStrPos st /= Just pos
+  guard =<< not <$> isRightAfterString
   p
 
 -- | succeeds only if we're at the end of a word
 atEnd :: OrgParser a -> OrgParser a
 atEnd p = try $ do
-  p <* lookingAtEndOfWord
+ p <* lookingAtEndOfWord
  where lookingAtEndOfWord =
            eof <|> const (return ()) =<< lookAhead . oneOf =<< postWordChars
+
+isRightAfterString :: OrgParser Bool
+isRightAfterString = do
+  pos <- getPosition
+  st <- getState
+  -- the position `Nothing` isn't after a String, either, hence the double
+  -- negation
+  return $ not $ orgLastStrPos st /= Just pos
 
 postWordChars :: OrgParser [Char]
 postWordChars = do
