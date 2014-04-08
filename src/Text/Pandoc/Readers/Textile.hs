@@ -62,7 +62,7 @@ import Text.HTML.TagSoup.Match
 import Data.List ( intercalate )
 import Data.Char ( digitToInt, isUpper)
 import Control.Monad ( guard, liftM )
-import Control.Applicative ((<$>), (*>), (<*))
+import Control.Applicative ((<$>), (*>), (<*), (<$))
 import Data.Monoid
 
 -- | Parse a Textile text and return a Pandoc document.
@@ -498,25 +498,21 @@ rawLaTeXInline' = try $ do
 -- | Textile standard link syntax is "label":target. But we
 -- can also have ["label":target].
 link :: Parser [Char] ParserState Inlines
-link = linkB <|> linkNoB
-
-linkNoB :: Parser [Char] ParserState Inlines
-linkNoB = try $ do
-  name <- mconcat <$> surrounded (char '"') (withQuoteContext InDoubleQuote inline)
-  char ':'
-  let stopChars = "!.,;:"
-  url <- manyTill nonspaceChar (lookAhead $ space <|> try (oneOf stopChars >> (space <|> newline)))
+link = try $ do
+  bracketed <- (True <$ char '[') <|> return False
+  char '"' *> notFollowedBy (oneOf " \t\n\r")
+  attr <- attributes
+  name <- trimInlines . mconcat <$>
+          withQuoteContext InSingleQuote (manyTill inline (try (string "\":")))
+  let stop = if bracketed
+                then char ']'
+                else lookAhead $ space <|>
+                       try (oneOf "!.,;:" *> (space <|> newline))
+  url <- manyTill nonspaceChar stop
   let name' = if B.toList name == [Str "$"] then B.str url else name
-  return $ B.link url "" name'
-
-linkB :: Parser [Char] ParserState Inlines
-linkB = try $ do
-  char '['
-  name <- mconcat <$> surrounded (char '"') inline
-  char ':'
-  url <- manyTill nonspaceChar (char ']')
-  let name' = if B.toList name == [Str "$"] then B.str url else name
-  return $ B.link url "" name'
+  return $ if attr == nullAttr
+              then B.link url "" name'
+              else B.spanWith attr $ B.link url "" name'
 
 -- | image embedding
 image :: Parser [Char] ParserState Inlines
