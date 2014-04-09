@@ -22,6 +22,7 @@ install:
      $CABAL install happy alex
      export PATH=$HOME/.cabal/bin:$PATH
    fi
+ - cabal-1.18 install hsb2hs
  - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
  - cabal-1.18 install --only-dependencies --enable-tests
 
