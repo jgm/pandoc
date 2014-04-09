@@ -12,16 +12,16 @@ env:
 before_install:
  - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
  - travis_retry sudo apt-get update
- - travis_retry sudo apt-get install cabal-install-1.18 ghc-$GHCVER happy
+ - travis_retry sudo apt-get install cabal-install-1.18 ghc-$GHCVER alex happy
  - export PATH=/opt/ghc/$GHCVER/bin:$PATH
+
+install:
+ - cabal-1.18 update
  - |
    if [ $GHCVER = "head" ] || [ $GHCVER = "7.8.1" ]; then
      $CABAL install happy alex
      export PATH=$HOME/.cabal/bin:$PATH
    fi
-
-install:
- - cabal-1.18 update
  - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
  - cabal-1.18 install --only-dependencies --enable-tests
 
