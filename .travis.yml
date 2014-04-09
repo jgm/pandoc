@@ -14,7 +14,6 @@ before_install:
  - travis_retry sudo apt-get update
  - travis_retry sudo apt-get install cabal-install-1.18 ghc-$GHCVER happy
  - export PATH=/opt/ghc/$GHCVER/bin:$PATH
- - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && $CABAL install && cd ..
  - |
    if [ $GHCVER = "head" ] || [ $GHCVER = "7.8.1" ]; then
      $CABAL install happy alex
@@ -23,6 +22,7 @@ before_install:
 
 install:
  - cabal-1.18 update
+ - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
  - cabal-1.18 install --only-dependencies --enable-tests
 
 # Here starts the actual work to be performed for the package under test; any command which exits with a non-zero exit code causes the build to fail.
