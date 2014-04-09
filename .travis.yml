@@ -22,7 +22,6 @@ install:
      $CABAL install happy alex
      export PATH=$HOME/.cabal/bin:$PATH
    fi
- - cabal-1.18 install hsb2hs
  - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
  - cabal-1.18 install --only-dependencies --enable-tests -v2
 
@@ -38,6 +37,7 @@ script:
  - export SRC_TGZ=$(cabal-1.18 info . | awk '{print $2 ".tar.gz";exit}') ;
    cd dist/;
    if [ -f "$SRC_TGZ" ]; then
+      cabal-1.18 install hsb2hs;
       cabal-1.18 install "$SRC_TGZ";
    else
       echo "expected '$SRC_TGZ' not found";
