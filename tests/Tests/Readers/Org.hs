@@ -86,16 +86,37 @@ tests =
           unlines [ "this+that+ +so+on"
                   , "seven*eight* nine*"
                   , "+not+funny+"
+                  , "this == self"
                   ] =?>
           para (spcSep [ "this+that+", "+so+on"
                        , "seven*eight*", "nine*"
                        , strikeout "not+funny"
+                       , "this" <> space <> "==" <> space <> "self"
                        ])
 
+      , "Adherence to Org's rules for markup borders" =:
+          "/t/& a/ / ./r/ (*l*) /e/! /b/." =?>
+          para (spcSep [ emph $ "t/&" <> space <> "a"
+                       , "/"
+                       , "./r/"
+                       , "(" <> (strong "l") <> ")"
+                       , (emph "e") <> "!"
+                       , (emph "b") <> "."
+                       ])
+
+      , "Inline math must stay within three lines" =:
+          unlines [ "$a", "b", "c$", "$d", "e", "f", "g$" ] =?>
+          para ((math "a\nb\nc") <> space <>
+                spcSep [ "$d", "e", "f", "g$" ])
+
       , "Markup may not span more than two lines" =:
-          unlines [ "/this *is", "not*", "emph/" ] =?>
+          unlines [ "/this *is +totally", "nice+ not*", "emph/" ] =?>
           para (spcSep [ "/this"
-                       , (strong ("is" <> space <> "not"))
+                       , (strong (spcSep
+                                  [ "is"
+                                  , (strikeout ("totally" <> space <> "nice"))
+                                  , "not"
+                                  ]))
                        , "emph/" ])
 
       , "Image" =:

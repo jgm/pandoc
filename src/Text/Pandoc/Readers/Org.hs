@@ -32,11 +32,12 @@ import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>), HasMeta(..))
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Options
-import           Text.Pandoc.Parsing hiding (orderedListMarker, updateLastStrPos)
+import qualified Text.Pandoc.Parsing as P
+import           Text.Pandoc.Parsing hiding (newline, orderedListMarker, updateLastStrPos)
 import           Text.Pandoc.Shared (compactify')
 
 import           Control.Applicative (pure, (<$>), (<$), (<*>), (<*), (*>), (<**>))
-import           Control.Monad (guard, mzero)
+import           Control.Monad (guard, when)
 import           Data.Char (toLower)
 import           Data.Default
 import           Data.List (foldl', isPrefixOf, isSuffixOf)
@@ -47,49 +48,100 @@ import           Data.Monoid (mconcat, mempty, mappend)
 readOrg :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
         -> Pandoc
-readOrg opts s = (readWith parseOrg) def{ orgOptions = opts } (s ++ "\n\n")
+readOrg opts s = (readWith parseOrg) def{ orgStateOptions = opts } (s ++ "\n\n")
 
 type OrgParser = Parser [Char] OrgParserState
 
+parseOrg:: OrgParser Pandoc
+parseOrg = do
+  blocks' <- B.toList <$> parseBlocks
+  st <- getState
+  let meta = orgStateMeta st
+  return $ Pandoc meta $ filter (/= Null) blocks'
+
+--
+-- Parser State for Org
+--
+
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
-                      { orgOptions          :: ReaderOptions
-                      , orgInlineCharStack  :: [Char]
-                      , orgLastStrPos       :: Maybe SourcePos
-                      , orgMeta             :: Meta
+                      { orgStateOptions              :: ReaderOptions
+                      , orgStateEmphasisCharStack    :: [Char]
+                      , orgStateEmphasisNewlines     :: Maybe Int
+                      , orgStateLastForbiddenCharPos :: Maybe SourcePos
+                      , orgStateLastPreCharPos       :: Maybe SourcePos
+                      , orgStateLastStrPos           :: Maybe SourcePos
+                      , orgStateMeta                 :: Meta
                       } deriving (Show)
 
 instance HasReaderOptions OrgParserState where
-  extractReaderOptions = orgOptions
+  extractReaderOptions = orgStateOptions
 
 instance HasMeta OrgParserState where
   setMeta field val st =
-    st{ orgMeta = setMeta field val $ orgMeta st }
+    st{ orgStateMeta = setMeta field val $ orgStateMeta st }
   deleteMeta field st =
-    st{ orgMeta = deleteMeta field $ orgMeta st }
+    st{ orgStateMeta = deleteMeta field $ orgStateMeta st }
 
 instance Default OrgParserState where
   def = defaultOrgParserState
 
 defaultOrgParserState :: OrgParserState
 defaultOrgParserState = OrgParserState
-                        { orgOptions = def
-                        , orgInlineCharStack = []
-                        , orgLastStrPos = Nothing
-                        , orgMeta = nullMeta
+                        { orgStateOptions = def
+                        , orgStateEmphasisCharStack = []
+                        , orgStateEmphasisNewlines = Nothing
+                        , orgStateLastForbiddenCharPos = Nothing
+                        , orgStateLastPreCharPos = Nothing
+                        , orgStateLastStrPos = Nothing
+                        , orgStateMeta = nullMeta
                         }
 
 updateLastStrPos :: OrgParser ()
 updateLastStrPos = getPosition >>= \p ->
-  updateState $ \s -> s{ orgLastStrPos = Just p }
+  updateState $ \s -> s{ orgStateLastStrPos = Just p }
 
+updateLastForbiddenCharPos :: OrgParser ()
+updateLastForbiddenCharPos = getPosition >>= \p ->
+  updateState $ \s -> s{ orgStateLastForbiddenCharPos = Just p}
 
-parseOrg:: OrgParser Pandoc
-parseOrg = do
-  blocks' <- B.toList <$> parseBlocks
+updateLastPreCharPos :: OrgParser ()
+updateLastPreCharPos = getPosition >>= \p ->
+  updateState $ \s -> s{ orgStateLastPreCharPos = Just p}
+
+pushToInlineCharStack :: Char -> OrgParser ()
+pushToInlineCharStack c = updateState $ \st ->
+  st { orgStateEmphasisCharStack = c:(orgStateEmphasisCharStack st) }
+
+popInlineCharStack :: OrgParser ()
+popInlineCharStack = updateState $ \st ->
+  st { orgStateEmphasisCharStack = drop 1 . orgStateEmphasisCharStack $ st }
+
+surroundingEmphasisChar :: OrgParser [Char]
+surroundingEmphasisChar = take 1 . drop 1 . orgStateEmphasisCharStack <$> getState
+
+startEmphasisNewlinesCounting :: Int -> OrgParser ()
+startEmphasisNewlinesCounting maxNewlines = updateState $ \s ->
+  s { orgStateEmphasisNewlines = Just maxNewlines }
+
+decEmphasisNewlinesCount :: OrgParser ()
+decEmphasisNewlinesCount = updateState $ \s ->
+      s{ orgStateEmphasisNewlines = (\n -> n - 1) <$> orgStateEmphasisNewlines s }
+
+newlinesCountWithinLimits :: OrgParser Bool
+newlinesCountWithinLimits = do
   st <- getState
-  let meta = orgMeta st
-  return $ Pandoc meta $ filter (/= Null) blocks'
+  return $ ((< 0) <$> orgStateEmphasisNewlines st) /= Just True
+
+resetEmphasisNewlines :: OrgParser ()
+resetEmphasisNewlines = updateState $ \s ->
+  s{ orgStateEmphasisNewlines = Nothing }
+
+newline :: OrgParser Char
+newline =
+  P.newline
+       <* updateLastPreCharPos
+       <* updateLastForbiddenCharPos
 
 --
 -- parsing blocks
@@ -218,7 +270,7 @@ commentLineStart = try $ mappend <$> many spaceChar <*> string "# "
 declarationLine :: OrgParser Blocks
 declarationLine = try $ do
   meta' <- B.setMeta <$> metaKey <*> metaValue <*> pure nullMeta
-  updateState $ \st -> st { orgMeta  = orgMeta st <> meta' }
+  updateState $ \st -> st { orgStateMeta  = orgStateMeta st <> meta' }
   return mempty
 
 metaValue :: OrgParser MetaValue
@@ -449,22 +501,24 @@ anyLineNewline = (++ "\n") <$> anyLine
 --
 
 inline :: OrgParser Inlines
-inline = choice inlineParsers <?> "inline"
-  where inlineParsers = [ whitespace
-                        , link
-                        , str
-                        , endline
-                        , emph
-                        , strong
-                        , strikeout
-                        , underline
-                        , code
-                        , math
-                        , verbatim
-                        , subscript
-                        , superscript
-                        , symbol
-                        ]
+inline =
+  choice [ whitespace
+         , link
+         , str
+         , endline
+         , emph
+         , strong
+         , strikeout
+         , underline
+         , code
+         , math
+         , verbatim
+         , subscript
+         , superscript
+         , symbol
+         ] <* (guard =<< newlinesCountWithinLimits)
+  <?> "inline"
+
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
@@ -472,7 +526,10 @@ specialChars = "\"$'()*+-./:<=>[\\]^_{|}~"
 
 
 whitespace :: OrgParser Inlines
-whitespace = B.space <$ skipMany1 spaceChar <?> "whitespace"
+whitespace = B.space <$ skipMany1 spaceChar
+                     <* updateLastPreCharPos
+                     <* updateLastForbiddenCharPos
+             <?> "whitespace"
 
 str :: OrgParser Inlines
 str = B.str <$> many1 (noneOf $ specialChars ++ "\n\r ")
@@ -492,6 +549,9 @@ endline = try $ do
   notFollowedBy' commentLineStart
   notFollowedBy' bulletListStart
   notFollowedBy' orderedListStart
+  decEmphasisNewlinesCount
+  guard =<< newlinesCountWithinLimits
+  updateLastPreCharPos
   return B.space
 
 link :: OrgParser Inlines
@@ -500,42 +560,54 @@ link = explicitOrImageLink <|> selflinkOrImage <?> "link"
 explicitOrImageLink :: OrgParser Inlines
 explicitOrImageLink = try $ do
   char '['
-  src    <- enclosedRaw (char '[') (char ']')
+  src    <- linkTarget
   title  <- enclosedRaw (char '[') (char ']')
   title' <- parseFromString (mconcat <$> many inline) title
   char ']'
-  return $ if (isImage src) && (isImage title)
+  return $ if (isImageFilename src) && (isImageFilename title)
            then B.link src "" (B.image title "" "")
            else B.link src "" title'
 
 selflinkOrImage :: OrgParser Inlines
 selflinkOrImage = try $ do
-  src <- enclosedRaw (string "[[") (string "]]")
-  return $ if isImage src
+  src <- (char '[') *> linkTarget <* char ']'
+  return $ if isImageFilename src
            then B.image src "" ""
            else B.link src "" (B.str src)
 
+linkTarget :: OrgParser String
+linkTarget = enclosed (char '[') (char ']') (noneOf "\n\r]")
+
+isImageFilename :: String -> Bool
+isImageFilename filename =
+  any (\x -> ('.':x)  `isSuffixOf` filename) imageExtensions &&
+  any (\x -> (x++":") `isPrefixOf` filename) protocols ||
+  ':' `notElem` filename
+ where
+   imageExtensions = [ "jpeg" , "jpg" , "png" , "gif" , "svg" ]
+   protocols = [ "file", "http", "https" ]
+
 emph      :: OrgParser Inlines
-emph      = B.emph         <$> inlinesEnclosedBy '/'
+emph      = B.emph         <$> emphasisBetween '/'
 
 strong    :: OrgParser Inlines
-strong    = B.strong       <$> inlinesEnclosedBy '*'
+strong    = B.strong       <$> emphasisBetween '*'
 
 strikeout :: OrgParser Inlines
-strikeout = B.strikeout    <$> inlinesEnclosedBy '+'
+strikeout = B.strikeout    <$> emphasisBetween '+'
 
 -- There is no underline, so we use strong instead.
 underline :: OrgParser Inlines
-underline = B.strong       <$> inlinesEnclosedBy '_'
+underline = B.strong       <$> emphasisBetween '_'
 
 code      :: OrgParser Inlines
-code      = B.code         <$> rawEnclosedBy '='
-
-math      :: OrgParser Inlines
-math      = B.math         <$> rawEnclosedBy '$'
+code      = B.code         <$> verbatimBetween '='
 
 verbatim  :: OrgParser Inlines
-verbatim  = B.rawInline "" <$> rawEnclosedBy '~'
+verbatim  = B.rawInline "" <$> verbatimBetween '~'
+
+math      :: OrgParser Inlines
+math      = B.math         <$> mathStringBetween '$'
 
 subscript :: OrgParser Inlines
 subscript = B.subscript    <$> (try $ char '_' *> maybeGroupedByBraces)
@@ -550,23 +622,78 @@ maybeGroupedByBraces = try $
          ]
 
 symbol :: OrgParser Inlines
-symbol = B.str . (: "") <$> oneOf specialChars
+symbol = B.str . (: "") <$> (oneOf specialChars >>= updatePositions)
+ where updatePositions c
+           | c `elem` emphasisPreChars = c <$ updateLastPreCharPos
+           | c `elem` emphasisForbiddenBorderChars = c <$ updateLastForbiddenCharPos
+           | otherwise = return c
+
+emphasisBetween :: Char
+                -> OrgParser Inlines
+emphasisBetween c = try $ do
+  startEmphasisNewlinesCounting emphasisAllowedNewlines
+  res <- enclosedInlines (emphasisStart c) (emphasisEnd c)
+  isTopLevelEmphasis <- null . orgStateEmphasisCharStack <$> getState
+  when isTopLevelEmphasis
+       resetEmphasisNewlines
+  return res
+
+verbatimBetween :: Char
+                -> OrgParser String
+verbatimBetween c = try $
+  emphasisStart c *>
+  many1TillNOrLessNewlines 1 (noneOf "\n\r") (emphasisEnd c)
+
+-- | Parses a raw string delimited by @c@ using Org's math rules
+mathStringBetween :: Char
+                  -> OrgParser String
+mathStringBetween c = try $ do
+  mathStart c
+  body <- many1TillNOrLessNewlines mathAllowedNewlines
+                                   (noneOf (c:"\n\r"))
+                                   (lookAhead $ mathEnd c)
+  final <- mathEnd c
+  return $ body ++ [final]
+
+-- | Parses the start (opening character) of emphasis
+emphasisStart :: Char -> OrgParser Char
+emphasisStart c = try $ do
+  guard =<< afterEmphasisPreChar
+  guard =<< notAfterString
+  char c
+  lookAhead (noneOf emphasisForbiddenBorderChars)
+  pushToInlineCharStack c
+  return c
+
+-- | Parses the closing character of emphasis
+emphasisEnd :: Char -> OrgParser Char
+emphasisEnd c = try $ do
+  guard =<< notAfterForbiddenBorderChar
+  char c
+  eof <|> lookAhead (surroundingEmphasisChar >>= \x ->
+                         oneOf (x ++ emphasisPostChars))
+          *> return ()
+  updateLastStrPos
+  popInlineCharStack
+  return c
+
+mathStart :: Char -> OrgParser Char
+mathStart c = try $ do
+  char c <* notFollowedBy' (oneOf (c:mathForbiddenBorderChars))
+
+mathEnd :: Char -> OrgParser Char
+mathEnd c = try $ do
+  res <- noneOf (c:mathForbiddenBorderChars)
+  char c
+  eof <|> (lookAhead $ oneOf mathPostChars *> pure ())
+  return res
+
 
 enclosedInlines :: OrgParser a
                 -> OrgParser b
                 -> OrgParser Inlines
 enclosedInlines start end = try $
   trimInlines . mconcat <$> enclosed start end inline
-
--- FIXME: This is a hack
-inlinesEnclosedBy :: Char
-                  -> OrgParser Inlines
-inlinesEnclosedBy c = try $ do
-  updateState $ \st -> st { orgInlineCharStack = c:(orgInlineCharStack st) }
-  res <- enclosedInlines (atStart (char c) <* endsOnThisOrNextLine c)
-                         (atEnd $ char c)
-  updateState $ \st -> st { orgInlineCharStack = drop 1 . orgInlineCharStack $ st }
-  return res
 
 enclosedRaw :: OrgParser a
             -> OrgParser b
@@ -577,63 +704,76 @@ enclosedRaw start end = try $
        spanningTwoLines = try $
          anyLine >>= \f -> mappend (f <> " ") <$> onSingleLine
 
-rawEnclosedBy :: Char
-              -> OrgParser String
-rawEnclosedBy c = enclosedRaw (atStart $ char c) (atEnd $ char c)
-
--- succeeds only if we're not right after a str (ie. in middle of word)
-atStart :: OrgParser a -> OrgParser a
-atStart p = do
-  guard =<< not <$> isRightAfterString
-  p
-
--- | succeeds only if we're at the end of a word
-atEnd :: OrgParser a -> OrgParser a
-atEnd p = try $ do
- p <* lookingAtEndOfWord
- where lookingAtEndOfWord =
-           eof <|> const (return ()) =<< lookAhead . oneOf =<< postWordChars
-
-isRightAfterString :: OrgParser Bool
-isRightAfterString = do
-  pos <- getPosition
-  st <- getState
-  -- the position `Nothing` isn't after a String, either, hence the double
-  -- negation
-  return $ not $ orgLastStrPos st /= Just pos
-
-postWordChars :: OrgParser [Char]
-postWordChars = do
-  st <- getState
-  return $ "\t\n\r !\"'),-.:?}" ++ (take 1 . drop 1 . orgInlineCharStack $ st)
-
--- FIXME: These functions are hacks and should be replaced
-endsOnThisOrNextLine :: Char
-                     -> OrgParser ()
-endsOnThisOrNextLine c = do
-  inp <- getInput
-  let doOtherwise = \rest -> endsOnThisLine rest c (const mzero)
-  endsOnThisLine inp c doOtherwise
-
-endsOnThisLine :: [Char]
-               -> Char
-               -> ([Char] -> OrgParser ())
-               -> OrgParser ()
-endsOnThisLine input c doOnOtherLines = do
-  postWordChars' <- postWordChars
-  case break (`elem` c:"\n") input of
-    (_,'\n':rest)    -> doOnOtherLines rest
-    (_,_:[])         -> return ()
-    (_,_:rest@(n:_)) -> if n `elem` postWordChars'
-                        then return ()
-                        else endsOnThisLine rest c doOnOtherLines
-    _                -> mzero
-
-isImage :: String -> Bool
-isImage filename =
-  any (\x -> ('.':x)  `isSuffixOf` filename) imageExtensions &&
-  any (\x -> (x++":") `isPrefixOf` filename) protocols ||
-  ':' `notElem` filename
+-- | Like many1Till, but parses at most @n+1@ lines.  @p@ must not consume
+--   newlines.
+many1TillNOrLessNewlines :: Int
+                         -> OrgParser Char
+                         -> OrgParser a
+                         -> OrgParser String
+many1TillNOrLessNewlines n p end = try $
+  nMoreLines (Just n) mempty >>= oneOrMore
  where
-   imageExtensions = [ "jpeg" , "jpg" , "png" , "gif" , "svg" ]
-   protocols = [ "file", "http", "https" ]
+   nMoreLines Nothing  cs = return cs
+   nMoreLines (Just 0) cs = try $ (cs ++) <$> finalLine
+   nMoreLines k        cs = try $ (final k cs <|> rest k cs)
+                                  >>= uncurry nMoreLines
+   final _ cs = (\x -> (Nothing,      cs ++ x)) <$> (try finalLine)
+   rest  m cs = (\x -> (minus1 <$> m, cs ++ x ++ "\n")) <$> (try $ manyTill p P.newline)
+   finalLine = try $ manyTill p end
+   minus1 k = k - 1
+   oneOrMore cs = guard (not $ null cs) *> return cs
+
+-- Org allows customization of the way it reads emphasis.  We use the defaults
+-- here (see, e.g., the Emacs Lisp variable `org-emphasis-regexp-components`
+-- for details).
+
+-- | Chars allowed to occur before emphasis (spaces and newlines are ok, too)
+emphasisPreChars :: [Char]
+emphasisPreChars = "\t \"'({"
+
+-- | Chars allowed at after emphasis
+emphasisPostChars :: [Char]
+emphasisPostChars = "\t\n !\"'),-.:;?\\}"
+
+-- | Chars not allowed at the (inner) border of emphasis
+emphasisForbiddenBorderChars :: [Char]
+emphasisForbiddenBorderChars = "\t\n\r \"',"
+
+-- | The maximum number of newlines within
+emphasisAllowedNewlines :: Int
+emphasisAllowedNewlines = 1
+
+-- LaTeX-style math: see `org-latex-regexps` for details
+
+-- | Chars allowed after an inline ($...$) math statement
+mathPostChars :: [Char]
+mathPostChars = "\t\n \"',-.:;?"
+
+-- | Chars not allowed at the (inner) border of math
+mathForbiddenBorderChars :: [Char]
+mathForbiddenBorderChars = "\t\n\r ,;.$"
+
+-- | Maximum number of newlines in an inline math statement
+mathAllowedNewlines :: Int
+mathAllowedNewlines = 2
+
+-- | Whether we are right behind a char allowed before emphasis
+afterEmphasisPreChar :: OrgParser Bool
+afterEmphasisPreChar = do
+  pos <- getPosition
+  lastPrePos <- orgStateLastPreCharPos <$> getState
+  return $ lastPrePos == Nothing || lastPrePos == Just pos
+
+-- | Whether we are right after the end of a string
+notAfterString :: OrgParser Bool
+notAfterString = do
+  pos <- getPosition
+  lastStrPos <- orgStateLastStrPos <$> getState
+  return $ lastStrPos /= Just pos
+
+-- | Whether the parser is right after a forbidden border char
+notAfterForbiddenBorderChar :: OrgParser Bool
+notAfterForbiddenBorderChar = do
+  pos <- getPosition
+  lastFBCPos <- orgStateLastForbiddenCharPos <$> getState
+  return $ lastFBCPos /= Just pos
