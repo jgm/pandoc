@@ -5,4 +5,4 @@ before_install:
 install:
   - cabal-dev install-deps --enable-tests
 script:
-  - 'cabal-dev configure --enable-tests && cabal-dev build && cabal-dev test'
+  - 'cabal-dev configure --enable-tests && cabal-dev build --ghc-options=-Werror && cabal-dev test'
