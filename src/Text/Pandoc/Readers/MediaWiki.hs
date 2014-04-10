@@ -227,6 +227,7 @@ table = do
   let widths' = map (\w -> if w == 0 then defaultwidth else w) widths
   let cellspecs = zip (map fst cellspecs') widths'
   rows' <- many $ try $ rowsep *> (map snd <$> tableRow)
+  optional blanklines
   tableEnd
   let cols = length hdr
   let (headers,rows) = if hasheader
@@ -275,7 +276,7 @@ tableCaption = try $ do
   (trimInlines . mconcat) <$> many (notFollowedBy (cellsep <|> rowsep) *> inline)
 
 tableRow :: MWParser [((Alignment, Double), Blocks)]
-tableRow = try $ many tableCell
+tableRow = try $ skipMany htmlComment *> many tableCell
 
 tableCell :: MWParser ((Alignment, Double), Blocks)
 tableCell = try $ do
