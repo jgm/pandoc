@@ -44,11 +44,14 @@ import           Data.List (foldl', isPrefixOf, isSuffixOf)
 import           Data.Maybe (listToMaybe, fromMaybe)
 import           Data.Monoid (mconcat, mempty, mappend)
 
+-- Ignore HLint warnings to use String instead of [Char]
+{-# ANN module ("HLint: ignore Use String" :: String) #-}
+
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
         -> Pandoc
-readOrg opts s = (readWith parseOrg) def{ orgStateOptions = opts } (s ++ "\n\n")
+readOrg opts s = readWith parseOrg def{ orgStateOptions = opts } (s ++ "\n\n")
 
 type OrgParser = Parser [Char] OrgParserState
 
@@ -111,7 +114,7 @@ updateLastPreCharPos = getPosition >>= \p ->
 
 pushToInlineCharStack :: Char -> OrgParser ()
 pushToInlineCharStack c = updateState $ \st ->
-  st { orgStateEmphasisCharStack = c:(orgStateEmphasisCharStack st) }
+  st { orgStateEmphasisCharStack = c:orgStateEmphasisCharStack st }
 
 popInlineCharStack :: OrgParser ()
 popInlineCharStack = updateState $ \st ->
@@ -176,7 +179,7 @@ orgBlock = try $ do
     "comment" -> return mempty
     "src"     -> return $ B.codeBlockWith ("", classArgs, []) blockStr
     _         -> B.divWith ("", [blockType], [])
-                            <$> (parseFromString parseBlocks blockStr)
+                 <$> parseFromString parseBlocks blockStr
 
 blockHeader :: OrgParser (Int, String, [String])
 blockHeader = (,,) <$> blockIndent
@@ -199,7 +202,7 @@ rawBlockContent indent blockType =
 indentWith :: Int -> OrgParser String
 indentWith num = do
   tabStop <- getOption readerTabStop
-  if (num < tabStop)
+  if num < tabStop
      then count num (char ' ')
      else choice [ try (count num (char ' '))
                  , try (char '\t' >> count (num - tabStop) (char ' ')) ]
@@ -242,7 +245,7 @@ drawerStart = try $
                           <|> stringAnyCase "LOGBOOK"
 
 drawerLine :: OrgParser String
-drawerLine = try $ anyLine
+drawerLine = try anyLine
 
 drawerEnd :: OrgParser String
 drawerEnd = try $
@@ -276,7 +279,7 @@ declarationLine = try $ do
 metaValue :: OrgParser MetaValue
 metaValue = MetaInlines . B.toList . trimInlines <$> restOfLine
 
-metaKey :: OrgParser [Char]
+metaKey :: OrgParser String
 metaKey = map toLower <$> many1 (noneOf ": \n\r")
                       <*  char ':'
                       <*  skipSpaces
@@ -350,7 +353,7 @@ tableAlignRow = try $
 
 tableAlignCell :: OrgParser Alignment
 tableAlignCell =
-  choice [ try $ emptyCell *> return (AlignDefault)
+  choice [ try $ emptyCell *> return AlignDefault
          , try $ skipSpaces
                    *> char '<'
                    *> tableAlignFromChar
@@ -381,8 +384,8 @@ normalizeTable (OrgTable cols aligns heads lns) =
   let aligns' = fillColumns aligns AlignDefault
       heads'  = if heads == mempty
                 then mempty
-                else fillColumns heads  (B.plain mempty)
-      lns'    = map (flip fillColumns (B.plain mempty)) lns
+                else fillColumns heads (B.plain mempty)
+      lns'    = map (`fillColumns` B.plain mempty) lns
       fillColumns base padding = take cols $ base ++ repeat padding
   in OrgTable cols aligns' heads' lns'
 
@@ -512,6 +515,7 @@ inline =
          , underline
          , code
          , math
+         , displayMath
          , verbatim
          , subscript
          , superscript
@@ -564,13 +568,14 @@ explicitOrImageLink = try $ do
   title  <- enclosedRaw (char '[') (char ']')
   title' <- parseFromString (mconcat <$> many inline) title
   char ']'
-  return $ if (isImageFilename src) && (isImageFilename title)
-           then B.link src "" (B.image title "" "")
-           else B.link src "" title'
+  return . B.link src ""
+         $ if isImageFilename src && isImageFilename title
+           then B.image title "" ""
+           else title'
 
 selflinkOrImage :: OrgParser Inlines
 selflinkOrImage = try $ do
-  src <- (char '[') *> linkTarget <* char ']'
+  src <- char '[' *> linkTarget <* char ']'
   return $ if isImageFilename src
            then B.image src "" ""
            else B.link src "" (B.str src)
@@ -607,13 +612,21 @@ verbatim  :: OrgParser Inlines
 verbatim  = B.rawInline "" <$> verbatimBetween '~'
 
 math      :: OrgParser Inlines
-math      = B.math         <$> mathStringBetween '$'
+math      = B.math         <$> choice [ math1CharBetween '$'
+                                      , mathStringBetween '$'
+                                      , rawMathBetween "\\(" "\\)"
+                                      ]
+
+displayMath :: OrgParser Inlines
+displayMath = B.displayMath <$> choice [ rawMathBetween "\\[" "\\]"
+                                       , rawMathBetween "$$"  "$$"
+                                       ]
 
 subscript :: OrgParser Inlines
-subscript = B.subscript    <$> (try $ char '_' *> maybeGroupedByBraces)
+subscript = B.subscript    <$> try (char '_' *> maybeGroupedByBraces)
 
 superscript ::  OrgParser Inlines
-superscript = B.superscript <$> (try $ char '^' *> maybeGroupedByBraces)
+superscript = B.superscript <$> try (char '^' *> maybeGroupedByBraces)
 
 maybeGroupedByBraces :: OrgParser Inlines
 maybeGroupedByBraces = try $
@@ -655,6 +668,21 @@ mathStringBetween c = try $ do
   final <- mathEnd c
   return $ body ++ [final]
 
+-- | Parse a single character between @c@ using math rules
+math1CharBetween :: Char
+                -> OrgParser String
+math1CharBetween c = try $ do
+  char c
+  res <- noneOf $ c:mathForbiddenBorderChars
+  char c
+  eof <|> lookAhead (oneOf mathPostChars) *> return ()
+  return [res]
+
+rawMathBetween :: String
+               -> String
+               -> OrgParser String
+rawMathBetween s e = try $ string s *> manyTill anyChar (try $ string e)
+
 -- | Parses the start (opening character) of emphasis
 emphasisStart :: Char -> OrgParser Char
 emphasisStart c = try $ do
@@ -678,14 +706,14 @@ emphasisEnd c = try $ do
   return c
 
 mathStart :: Char -> OrgParser Char
-mathStart c = try $ do
+mathStart c = try $
   char c <* notFollowedBy' (oneOf (c:mathForbiddenBorderChars))
 
 mathEnd :: Char -> OrgParser Char
 mathEnd c = try $ do
   res <- noneOf (c:mathForbiddenBorderChars)
   char c
-  eof <|> (lookAhead $ oneOf mathPostChars *> pure ())
+  eof <|> lookAhead (oneOf mathPostChars *> pure ())
   return res
 
 
@@ -717,8 +745,8 @@ many1TillNOrLessNewlines n p end = try $
    nMoreLines (Just 0) cs = try $ (cs ++) <$> finalLine
    nMoreLines k        cs = try $ (final k cs <|> rest k cs)
                                   >>= uncurry nMoreLines
-   final _ cs = (\x -> (Nothing,      cs ++ x)) <$> (try finalLine)
-   rest  m cs = (\x -> (minus1 <$> m, cs ++ x ++ "\n")) <$> (try $ manyTill p P.newline)
+   final _ cs = (\x -> (Nothing,      cs ++ x)) <$> try finalLine
+   rest  m cs = (\x -> (minus1 <$> m, cs ++ x ++ "\n")) <$> try (manyTill p P.newline)
    finalLine = try $ manyTill p end
    minus1 k = k - 1
    oneOrMore cs = guard (not $ null cs) *> return cs
@@ -747,7 +775,7 @@ emphasisAllowedNewlines = 1
 
 -- | Chars allowed after an inline ($...$) math statement
 mathPostChars :: [Char]
-mathPostChars = "\t\n \"',-.:;?"
+mathPostChars = "\t\n \"'),-.:;?"
 
 -- | Chars not allowed at the (inner) border of math
 mathForbiddenBorderChars :: [Char]
@@ -762,7 +790,7 @@ afterEmphasisPreChar :: OrgParser Bool
 afterEmphasisPreChar = do
   pos <- getPosition
   lastPrePos <- orgStateLastPreCharPos <$> getState
-  return $ lastPrePos == Nothing || lastPrePos == Just pos
+  return . fromMaybe True $ (== pos) <$> lastPrePos
 
 -- | Whether we are right after the end of a string
 notAfterString :: OrgParser Bool

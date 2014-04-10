@@ -54,13 +54,25 @@ tests =
           "=Robot.rock()=" =?>
           para (code "Robot.rock()")
 
-      , "Math" =:
-          "$E=mc^2$" =?>
-           para (math "E=mc^2")
-
       , "Verbatim" =:
           "~word for word~" =?>
           para (rawInline "" "word for word")
+
+      , "Math $..$" =:
+          "$E=mc^2$" =?>
+           para (math "E=mc^2")
+
+      , "Math $$..$$" =:
+          "$$E=mc^2$$" =?>
+          para (displayMath "E=mc^2")
+
+      , "Math \\[..\\]" =:
+          "\\[E=ℎν\\]" =?>
+          para (displayMath "E=ℎν")
+
+      , "Math \\(..\\)" =:
+          "\\(σ_x σ_p ≥ \\frac{ℏ}{2}\\)" =?>
+          para (math "σ_x σ_p ≥ \\frac{ℏ}{2}")
 
       , "Symbol" =:
           "A * symbol" =?>
@@ -86,13 +98,18 @@ tests =
           unlines [ "this+that+ +so+on"
                   , "seven*eight* nine*"
                   , "+not+funny+"
-                  , "this == self"
                   ] =?>
           para (spcSep [ "this+that+", "+so+on"
                        , "seven*eight*", "nine*"
                        , strikeout "not+funny"
-                       , "this" <> space <> "==" <> space <> "self"
                        ])
+
+      , "No empty markup" =:
+          -- FIXME: __ is erroneously parsed as subscript "_"
+          -- "// ** __ ++ == ~~ $$" =?>
+          -- para (spcSep [ "//", "**", "__", "++", "==", "~~", "$$" ])
+          "// ** ++ == ~~ $$" =?>
+          para (spcSep [ "//", "**", "++", "==", "~~", "$$" ])
 
       , "Adherence to Org's rules for markup borders" =:
           "/t/& a/ / ./r/ (*l*) /e/! /b/." =?>
@@ -108,6 +125,13 @@ tests =
           unlines [ "$a", "b", "c$", "$d", "e", "f", "g$" ] =?>
           para ((math "a\nb\nc") <> space <>
                 spcSep [ "$d", "e", "f", "g$" ])
+
+      , "Single-character math" =:
+          "$a$ $b$! $c$?" =?>
+          para (spcSep [ math "a"
+                       , "$b$!"
+                       , (math "c") <> "?"
+                       ])
 
       , "Markup may not span more than two lines" =:
           unlines [ "/this *is +totally", "nice+ not*", "emph/" ] =?>
