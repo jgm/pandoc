@@ -512,6 +512,7 @@ inline =
          , underline
          , code
          , math
+         , displayMath
          , verbatim
          , subscript
          , superscript
@@ -607,7 +608,15 @@ verbatim  :: OrgParser Inlines
 verbatim  = B.rawInline "" <$> verbatimBetween '~'
 
 math      :: OrgParser Inlines
-math      = B.math         <$> mathStringBetween '$'
+math      = B.math         <$> choice [ math1CharBetween '$'
+                                      , mathStringBetween '$'
+                                      , rawMathBetween "\\(" "\\)"
+                                      ]
+
+displayMath :: OrgParser Inlines
+displayMath = B.displayMath <$> choice [ rawMathBetween "\\[" "\\]"
+                                       , rawMathBetween "$$"  "$$"
+                                       ]
 
 subscript :: OrgParser Inlines
 subscript = B.subscript    <$> (try $ char '_' *> maybeGroupedByBraces)
@@ -654,6 +663,21 @@ mathStringBetween c = try $ do
                                    (lookAhead $ mathEnd c)
   final <- mathEnd c
   return $ body ++ [final]
+
+-- | Parse a single character between @c@ using math rules
+math1CharBetween :: Char
+                -> OrgParser String
+math1CharBetween c = try $ do
+  char c
+  res <- noneOf $ c:mathForbiddenBorderChars
+  char c
+  eof <|> lookAhead (oneOf mathPostChars) *> return ()
+  return [res]
+
+rawMathBetween :: String
+               -> String
+               -> OrgParser String
+rawMathBetween s e = try $ string s *> manyTill anyChar (try $ string e)
 
 -- | Parses the start (opening character) of emphasis
 emphasisStart :: Char -> OrgParser Char
@@ -747,7 +771,7 @@ emphasisAllowedNewlines = 1
 
 -- | Chars allowed after an inline ($...$) math statement
 mathPostChars :: [Char]
-mathPostChars = "\t\n \"',-.:;?"
+mathPostChars = "\t\n \"'),-.:;?"
 
 -- | Chars not allowed at the (inner) border of math
 mathForbiddenBorderChars :: [Char]
