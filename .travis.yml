@@ -22,8 +22,8 @@ install:
      $CABAL install happy alex
      export PATH=$HOME/.cabal/bin:$PATH
    fi
- - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
- - cabal-1.18 install --only-dependencies --enable-tests -v2
+# - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
+ - cabal-1.18 install --only-dependencies --enable-tests
 
 # Here starts the actual work to be performed for the package under test; any command which exits with a non-zero exit code causes the build to fail.
 script:
@@ -31,4 +31,3 @@ script:
  - cabal-1.18 build --ghc-options=-Werror  # this builds all libraries and executables (including tests/benchmarks)
  - cabal-1.18 test
  - cabal-1.18 check
- - cabal-1.18 sdist   # tests that a source-distribution can be generated
