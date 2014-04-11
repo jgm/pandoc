@@ -622,17 +622,11 @@ displayMath = B.displayMath <$> choice [ rawMathBetween "\\[" "\\]"
                                        , rawMathBetween "$$"  "$$"
                                        ]
 
-subscript :: OrgParser Inlines
-subscript = B.subscript    <$> try (char '_' *> maybeGroupedByBraces)
+subscript   :: OrgParser Inlines
+subscript   = B.subscript   <$> try (char '_' *> subOrSuperExpr)
 
-superscript ::  OrgParser Inlines
-superscript = B.superscript <$> try (char '^' *> maybeGroupedByBraces)
-
-maybeGroupedByBraces :: OrgParser Inlines
-maybeGroupedByBraces = try $
-  choice [ try $ enclosedInlines (char '{') (char '}')
-         , B.str . (:"") <$> anyChar
-         ]
+superscript :: OrgParser Inlines
+superscript = B.superscript <$> try (char '^' *> subOrSuperExpr)
 
 symbol :: OrgParser Inlines
 symbol = B.str . (: "") <$> (oneOf specialChars >>= updatePositions)
@@ -805,3 +799,36 @@ notAfterForbiddenBorderChar = do
   pos <- getPosition
   lastFBCPos <- orgStateLastForbiddenCharPos <$> getState
   return $ lastFBCPos /= Just pos
+
+-- | Read a sub- or superscript expression
+subOrSuperExpr :: OrgParser Inlines
+subOrSuperExpr = try $ do
+  choice [ balancedSexp '{' '}'
+         , balancedSexp '(' ')' >>= return . enclosing ('(', ')')
+         , simpleSubOrSuperString
+         ] >>= parseFromString (mconcat <$> many inline)
+
+-- | Read a balanced sexp
+balancedSexp :: Char
+             -> Char
+             -> OrgParser String
+balancedSexp l r = try $ do
+  char l
+  res <- concat <$> many (  many1 (noneOf ([l, r] ++ "\n\r"))
+                        <|> try (string [l, r])
+                        <|> enclosing (l, r) <$> balancedSexp l r
+                         )
+  char r
+  return res
+
+simpleSubOrSuperString :: OrgParser String
+simpleSubOrSuperString = try $
+  choice [ string "*"
+         , mappend <$> option [] ((:[]) <$> oneOf "+-")
+                   <*> many1 alphaNum
+         ]
+
+enclosing :: (a, a)
+          -> [a]
+          -> [a]
+enclosing (left, right) s = left : s ++ [right]

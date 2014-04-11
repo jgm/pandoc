@@ -78,15 +78,15 @@ tests =
           "A * symbol" =?>
           para (str "A" <> space <> str "*" <> space <> "symbol")
 
-      , "Superscript single char" =:
-          "2^n" =?>
-          para (str "2" <> superscript "n")
+      , "Superscript simple expression" =:
+          "2^-λ" =?>
+          para (str "2" <> superscript "-λ")
 
       , "Superscript multi char" =:
           "2^{n-1}" =?>
           para (str "2" <> superscript "n-1")
 
-      , "Subscript single char" =:
+      , "Subscript simple expression" =:
           "a_n" =?>
           para (str "a" <> subscript "n")
 
@@ -105,11 +105,8 @@ tests =
                        ])
 
       , "No empty markup" =:
-          -- FIXME: __ is erroneously parsed as subscript "_"
-          -- "// ** __ ++ == ~~ $$" =?>
-          -- para (spcSep [ "//", "**", "__", "++", "==", "~~", "$$" ])
-          "// ** ++ == ~~ $$" =?>
-          para (spcSep [ "//", "**", "++", "==", "~~", "$$" ])
+          "// ** __ ++ == ~~ $$" =?>
+          para (spcSep [ "//", "**", "__", "++", "==", "~~", "$$" ])
 
       , "Adherence to Org's rules for markup borders" =:
           "/t/& a/ / ./r/ (*l*) /e/! /b/." =?>
@@ -142,6 +139,30 @@ tests =
                                   , "not"
                                   ]))
                        , "emph/" ])
+
+      , "Sub- and superscript expressions" =:
+         unlines [ "a_(a(b)(c)d)"
+                 , "e^(f(g)h)"
+                 , "i_(jk)l)"
+                 , "m^()n"
+                 , "o_{p{q{}r}}"
+                 , "s^{t{u}v}"
+                 , "w_{xy}z}"
+                 , "1^{}2"
+                 , "3_{{}}"
+                 , "4^(a(*b(c*)d))"
+                 ] =?>
+         para (spcSep [ "a" <> subscript "(a(b)(c)d)"
+                      , "e" <> superscript "(f(g)h)"
+                      , "i" <> (subscript "(jk)") <> "l)"
+                      , "m" <> (superscript "()") <> "n"
+                      , "o" <> subscript "p{q{}r}"
+                      , "s" <> superscript "t{u}v"
+                      , "w" <> (subscript "xy") <> "z}"
+                      , "1" <> (superscript "") <> "2"
+                      , "3" <> subscript "{}"
+                      , "4" <> superscript ("(a(" <> strong "b(c" <> ")d))")
+                      ])
 
       , "Image" =:
           "[[./sunset.jpg]]" =?>
