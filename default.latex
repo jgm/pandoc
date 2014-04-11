@@ -47,6 +47,9 @@ $if(biblatex)$
 $if(biblio-files)$
 \bibliography{$biblio-files$}
 $endif$
+$if(bibliography)$
+\bibliography{$bibliography$}
+$endif$
 $endif$
 $if(listings)$
 \usepackage{listings}
@@ -166,7 +169,6 @@ $endif$
 $body$
 
 $if(natbib)$
-$if(biblio-files)$
 $if(biblio-title)$
 $if(book-class)$
 \renewcommand\bibname{$biblio-title$}
@@ -174,8 +176,11 @@ $else$
 \renewcommand\refname{$biblio-title$}
 $endif$
 $endif$
+$if(biblio-files)$
 \bibliography{$biblio-files$}
-
+$endif$
+$if(bibliography)$
+\bibliography($bibliography$}
 $endif$
 $endif$
 $if(biblatex)$
