@@ -610,15 +610,19 @@ blockTags :: [String]
 blockTags = blockHtmlTags ++ blockDocBookTags
 
 isInlineTag :: Tag String -> Bool
-isInlineTag t = tagOpen (`notElem` blockTags) (const True) t ||
-                tagClose (`notElem` blockTags) t ||
+isInlineTag t = tagOpen isInlineTagName (const True) t ||
+                tagClose isInlineTagName t ||
                 tagComment (const True) t
+                 where isInlineTagName x = x `notElem` blockTags
 
 isBlockTag :: Tag String -> Bool
-isBlockTag t = tagOpen (`elem` blocktags) (const True) t ||
-               tagClose (`elem` blocktags) t ||
+isBlockTag t = tagOpen isBlockTagName (const True) t ||
+               tagClose isBlockTagName t ||
                tagComment (const True) t
-                 where blocktags = blockTags ++ eitherBlockOrInline
+                 where isBlockTagName ('?':_) = True
+                       isBlockTagName ('!':_) = True
+                       isBlockTagName x       = x `elem` blockTags
+                                             || x `elem` eitherBlockOrInline
 
 isTextTag :: Tag String -> Bool
 isTextTag = tagText (const True)
