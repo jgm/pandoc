@@ -377,6 +377,27 @@ tests =
               code' = "main = putStrLn greeting\n" ++
                        "  where greeting = \"moin\"\n"
           in codeBlockWith attr' code'
+
+      , "Figure" =:
+          unlines [ "#+caption: A very courageous man."
+                  , "#+name: goodguy"
+                  , "[[edward.jpg]]"
+                  ] =?>
+          para (image "edward.jpg" "fig:goodguy" "A very courageous man.")
+
+      , "Unnamed figure" =:
+          unlines [ "#+caption: A great whistleblower."
+                  , "[[snowden.png]]"
+                  ] =?>
+          para (image "snowden.png" "" "A great whistleblower.")
+
+      , "Figure with `fig:` prefix in name" =:
+          unlines [ "#+caption: Used as a metapher in evolutionary biology."
+                  , "#+name: fig:redqueen"
+                  , "[[the-red-queen.jpg]]"
+                  ] =?>
+          para (image "the-red-queen.jpg" "fig:redqueen"
+                      "Used as a metapher in evolutionary biology.")
       ]
 
   , testGroup "Lists" $
