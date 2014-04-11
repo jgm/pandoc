@@ -271,7 +271,7 @@ inlineToOrg (Math t str) = do
               else "$$" <> text str <> "$$"
 inlineToOrg (RawInline f str) | f == "tex" || f == "latex" = return $ text str
 inlineToOrg (RawInline _ _) = return empty
-inlineToOrg (LineBreak) = return cr -- there's no line break in Org
+inlineToOrg (LineBreak) = return (text "\\\\" <> cr)
 inlineToOrg Space = return space
 inlineToOrg (Link txt (src, _)) = do
   case txt of
