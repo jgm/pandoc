@@ -506,6 +506,7 @@ anyLineNewline = (++ "\n") <$> anyLine
 inline :: OrgParser Inlines
 inline =
   choice [ whitespace
+         , linebreak
          , link
          , str
          , endline
@@ -534,6 +535,9 @@ whitespace = B.space <$ skipMany1 spaceChar
                      <* updateLastPreCharPos
                      <* updateLastForbiddenCharPos
              <?> "whitespace"
+
+linebreak :: OrgParser Inlines
+linebreak = try $ B.linebreak <$ string "\\\\" <* skipSpaces <* newline
 
 str :: OrgParser Inlines
 str = B.str <$> many1 (noneOf $ specialChars ++ "\n\r ")
