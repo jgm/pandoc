@@ -94,6 +94,10 @@ tests =
           "a_{n+1}" =?>
           para (str "a" <> subscript "n+1")
 
+      , "Linebreak" =:
+          "line \\\\ \nbreak" =?>
+          para ("line" <> linebreak <> "break")
+
       , "Markup-chars not occuring on word break are symbols" =:
           unlines [ "this+that+ +so+on"
                   , "seven*eight* nine*"
