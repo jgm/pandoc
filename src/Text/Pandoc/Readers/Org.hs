@@ -37,6 +37,7 @@ import           Text.Pandoc.Parsing hiding (newline, orderedListMarker, updateL
 import           Text.Pandoc.Shared (compactify')
 
 import           Control.Applicative (pure, (<$>), (<$), (<*>), (<*), (*>), (<**>))
+import           Control.Arrow ((***))
 import           Control.Monad (guard, when)
 import           Data.Char (toLower)
 import           Data.Default
@@ -155,6 +156,7 @@ block = choice [ mempty <$ blanklines
                , orgBlock
                , example
                , drawer
+               , figure
                , specialLine
                , header
                , hline
@@ -249,6 +251,43 @@ drawerEnd = try $
   skipSpaces *> stringAnyCase ":END:" <* skipSpaces <* newline
 
 
+--
+-- Figures
+--
+
+-- Figures (Image on a line by itself, preceded by name and/or caption)
+figure :: OrgParser Blocks
+figure = try $ do
+  (tit, cap) <- (maybe mempty withFigPrefix *** fromMaybe mempty)
+                <$> nameAndOrCaption
+  src <- skipSpaces *> selfTarget <* skipSpaces <* newline
+  guard (isImageFilename src)
+  return . B.para $ B.image src tit cap
+ where withFigPrefix cs = if "fig:" `isPrefixOf` cs
+                          then cs
+                          else "fig:" ++ cs
+
+nameAndOrCaption :: OrgParser (Maybe String, Maybe Inlines)
+nameAndOrCaption = try $ nameFirst <|> captionFirst
+ where
+   nameFirst = try $ do
+                 n <- name
+                 c <- optionMaybe caption
+                 return (Just n, c)
+   captionFirst = try $ do
+                 c <- caption
+                 n <- optionMaybe name
+                 return (n, Just c)
+
+caption :: OrgParser Inlines
+caption = try $ annotation "CAPTION" *> inlinesTillNewline
+
+name :: OrgParser String
+name = try $ annotation "NAME" *> skipSpaces *> manyTill anyChar newline
+
+annotation :: String -> OrgParser String
+annotation ann = try $ metaLineStart *> stringAnyCase ann <* char ':'
+
 -- Comments, Options and Metadata
 specialLine :: OrgParser Blocks
 specialLine = try $ metaLine <|> commentLine
@@ -274,7 +313,7 @@ declarationLine = try $ do
   return mempty
 
 metaValue :: OrgParser MetaValue
-metaValue = MetaInlines . B.toList . trimInlines <$> restOfLine
+metaValue = MetaInlines . B.toList <$> inlinesTillNewline
 
 metaKey :: OrgParser String
 metaKey = map toLower <$> many1 (noneOf ": \n\r")
@@ -285,7 +324,7 @@ metaKey = map toLower <$> many1 (noneOf ": \n\r")
 header :: OrgParser Blocks
 header = try $
   B.header <$> headerStart
-           <*> (trimInlines <$> restOfLine)
+           <*> inlinesTillNewline
 
 headerStart :: OrgParser Int
 headerStart = try $
@@ -421,13 +460,10 @@ setAligns aligns t = t{ orgTableAlignments = aligns }
 -- Paragraphs or Plain text
 paraOrPlain :: OrgParser Blocks
 paraOrPlain = try $
-  trimInlines . mconcat
-    <$> many1 inline
-    <**> option B.plain
-                (try $ newline *> pure B.para)
+  parseInlines <**> option B.plain (try $ newline *> pure B.para)
 
-restOfLine :: OrgParser Inlines
-restOfLine = mconcat <$> manyTill inline newline
+inlinesTillNewline :: OrgParser Inlines
+inlinesTillNewline = trimInlines . mconcat <$> manyTill inline newline
 
 
 --
@@ -520,6 +556,8 @@ inline =
          ] <* (guard =<< newlinesCountWithinLimits)
   <?> "inline"
 
+parseInlines :: OrgParser Inlines
+parseInlines = trimInlines . mconcat <$> many1 inline
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
@@ -576,6 +614,9 @@ selflinkOrImage = try $ do
   return $ if isImageFilename src
            then B.image src "" ""
            else B.link src "" (B.str src)
+
+selfTarget :: OrgParser String
+selfTarget = try $ char '[' *> linkTarget <* char ']'
 
 linkTarget :: OrgParser String
 linkTarget = enclosed (char '[') (char ']') (noneOf "\n\r]")
