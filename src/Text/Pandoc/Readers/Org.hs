@@ -44,9 +44,6 @@ import           Data.List (foldl', isPrefixOf, isSuffixOf)
 import           Data.Maybe (listToMaybe, fromMaybe)
 import           Data.Monoid (mconcat, mempty, mappend)
 
--- Ignore HLint warnings to use String instead of [Char]
-{-# ANN module ("HLint: ignore Use String" :: String) #-}
-
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
