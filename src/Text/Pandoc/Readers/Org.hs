@@ -844,24 +844,12 @@ notAfterForbiddenBorderChar = do
 
 -- | Read a sub- or superscript expression
 subOrSuperExpr :: OrgParser Inlines
-subOrSuperExpr = try $ do
-  choice [ balancedSexp '{' '}'
-         , balancedSexp '(' ')' >>= return . enclosing ('(', ')')
+subOrSuperExpr = try $
+  choice [ id                   <$> charsInBalanced '{' '}' (noneOf "\n\r")
+         , enclosing ('(', ')') <$> charsInBalanced '(' ')' (noneOf "\n\r")
          , simpleSubOrSuperString
          ] >>= parseFromString (mconcat <$> many inline)
-
--- | Read a balanced sexp
-balancedSexp :: Char
-             -> Char
-             -> OrgParser String
-balancedSexp l r = try $ do
-  char l
-  res <- concat <$> many (  many1 (noneOf ([l, r] ++ "\n\r"))
-                        <|> try (string [l, r])
-                        <|> enclosing (l, r) <$> balancedSexp l r
-                         )
-  char r
-  return res
+ where enclosing (left, right) s = left : s ++ [right]
 
 simpleSubOrSuperString :: OrgParser String
 simpleSubOrSuperString = try $
@@ -869,8 +857,3 @@ simpleSubOrSuperString = try $
          , mappend <$> option [] ((:[]) <$> oneOf "+-")
                    <*> many1 alphaNum
          ]
-
-enclosing :: (a, a)
-          -> [a]
-          -> [a]
-enclosing (left, right) s = left : s ++ [right]
