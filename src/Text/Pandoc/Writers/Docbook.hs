@@ -185,10 +185,13 @@ blockToDocbook _ (CodeBlock (_,classes,_) str) =
                            else languagesByExtension . map toLower $ s
           langs       = concatMap langsFrom classes
 blockToDocbook opts (BulletList lst) =
-  inTagsIndented "itemizedlist" $ listItemsToDocbook opts lst
+  let attribs = case lst of
+                      ((Plain _:_):_) -> [("spacing", "compact")]
+                      _               -> []
+  in  inTags True "itemizedlist" attribs $ listItemsToDocbook opts lst
 blockToDocbook _ (OrderedList _ []) = empty
 blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
-  let attribs  = case numstyle of
+  let numeration = case numstyle of
                        DefaultStyle -> []
                        Decimal      -> [("numeration", "arabic")]
                        Example      -> [("numeration", "arabic")]
@@ -196,14 +199,21 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
                        LowerAlpha   -> [("numeration", "loweralpha")]
                        UpperRoman   -> [("numeration", "upperroman")]
                        LowerRoman   -> [("numeration", "lowerroman")]
-      items    = if start == 1
-                    then listItemsToDocbook opts (first:rest)
-                    else (inTags True "listitem" [("override",show start)]
-                         (blocksToDocbook opts $ map plainToPara first)) $$
-                         listItemsToDocbook opts rest
+      spacing    = case first of
+                       (Plain _:_)  -> [("spacing", "compact")]
+                       _            -> []
+      attribs    = numeration ++ spacing
+      items      = if start == 1
+                      then listItemsToDocbook opts (first:rest)
+                      else (inTags True "listitem" [("override",show start)]
+                           (blocksToDocbook opts $ map plainToPara first)) $$
+                           listItemsToDocbook opts rest
   in  inTags True "orderedlist" attribs items
 blockToDocbook opts (DefinitionList lst) =
-  inTagsIndented "variablelist" $ deflistItemsToDocbook opts lst
+  let attribs = case lst of
+                  ((_, (Plain _:_):_):_) -> [("spacing", "compact")]
+                  _                      -> []
+  in  inTags True "variablelist" attribs $ deflistItemsToDocbook opts lst
 blockToDocbook _ (RawBlock f str)
   | f == "docbook" = text str -- raw XML block
   | f == "html"    = text str -- allow html for backwards compatibility
