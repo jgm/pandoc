@@ -232,7 +232,7 @@ Library
                  blaze-html >= 0.5 && < 0.8,
                  blaze-markup >= 0.5.1 && < 0.7,
                  attoparsec >= 0.10 && < 0.12,
-                 yaml >= 0.8.3 && < 0.9,
+                 yaml >= 0.8.8.2 && < 0.9,
                  vector >= 0.10 && < 0.11,
                  hslua >= 0.3 && < 0.4,
                  binary >= 0.5 && < 0.8
@@ -328,7 +328,7 @@ Executable pandoc
                  extensible-exceptions >= 0.1 && < 0.2,
                  highlighting-kate >= 0.5.6 && < 0.6,
                  aeson >= 0.6 && < 0.8,
-                 yaml >= 0.8.3 && < 0.9,
+                 yaml >= 0.8.8.2 && < 0.9,
                  containers >= 0.1 && < 0.6,
                  HTTP >= 4000.0.5 && < 4000.3
   Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
