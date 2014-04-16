@@ -20,42 +20,42 @@
   This is a set of tests for pandoc. Most of them are adapted from John
   Gruber’s markdown test suite.
 </para>
-<sect1 id="headers">
+<section id="headers">
   <title>Headers</title>
-  <sect2 id="level-2-with-an-embedded-link">
+  <section id="level-2-with-an-embedded-link">
     <title>Level 2 with an <ulink url="/url">embedded link</ulink></title>
-    <sect3 id="level-3-with-emphasis">
+    <section id="level-3-with-emphasis">
       <title>Level 3 with <emphasis>emphasis</emphasis></title>
-      <sect4 id="level-4">
+      <section id="level-4">
         <title>Level 4</title>
-        <sect5 id="level-5">
+        <section id="level-5">
           <title>Level 5</title>
           <para>
           </para>
-        </sect5>
-      </sect4>
-    </sect3>
-  </sect2>
-</sect1>
-<sect1 id="level-1">
+        </section>
+      </section>
+    </section>
+  </section>
+</section>
+<section id="level-1">
   <title>Level 1</title>
-  <sect2 id="level-2-with-emphasis">
+  <section id="level-2-with-emphasis">
     <title>Level 2 with <emphasis>emphasis</emphasis></title>
-    <sect3 id="level-3">
+    <section id="level-3">
       <title>Level 3</title>
       <para>
         with no blank line
       </para>
-    </sect3>
-  </sect2>
-  <sect2 id="level-2">
+    </section>
+  </section>
+  <section id="level-2">
     <title>Level 2</title>
     <para>
       with no blank line
     </para>
-  </sect2>
-</sect1>
-<sect1 id="paragraphs">
+  </section>
+</section>
+<section id="paragraphs">
   <title>Paragraphs</title>
   <para>
     Here’s a regular paragraph.
@@ -70,8 +70,8 @@
   </para>
 <literallayout>There should be a hard line break
 here.</literallayout>
-</sect1>
-<sect1 id="block-quotes">
+</section>
+<section id="block-quotes">
   <title>Block Quotes</title>
   <para>
     E-mail style:
@@ -125,8 +125,8 @@ sub status {
   <para>
     And a following paragraph.
   </para>
-</sect1>
-<sect1 id="code-blocks">
+</section>
+<section id="code-blocks">
   <title>Code Blocks</title>
   <para>
     Code:
@@ -148,10 +148,10 @@ this code block is indented by one tab
 
 These should not be escaped:  \$ \\ \&gt; \[ \{
 </programlisting>
-</sect1>
-<sect1 id="lists">
+</section>
+<section id="lists">
   <title>Lists</title>
-  <sect2 id="unordered">
+  <section id="unordered">
     <title>Unordered</title>
     <para>
       Asterisks tight:
@@ -273,8 +273,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         </para>
       </listitem>
     </itemizedlist>
-  </sect2>
-  <sect2 id="ordered">
+  </section>
+  <section id="ordered">
     <title>Ordered</title>
     <para>
       Tight:
@@ -380,8 +380,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         </para>
       </listitem>
     </orderedlist>
-  </sect2>
-  <sect2 id="nested">
+  </section>
+  <section id="nested">
     <title>Nested</title>
     <itemizedlist spacing="compact">
       <listitem>
@@ -478,8 +478,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         </para>
       </listitem>
     </orderedlist>
-  </sect2>
-  <sect2 id="tabs-and-spaces">
+  </section>
+  <section id="tabs-and-spaces">
     <title>Tabs and spaces</title>
     <itemizedlist>
       <listitem>
@@ -505,8 +505,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         </itemizedlist>
       </listitem>
     </itemizedlist>
-  </sect2>
-  <sect2 id="fancy-list-markers">
+  </section>
+  <section id="fancy-list-markers">
     <title>Fancy list markers</title>
     <orderedlist numeration="arabic" spacing="compact">
       <listitem override="2">
@@ -609,9 +609,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       B. Williams
     </para>
-  </sect2>
-</sect1>
-<sect1 id="definition-lists">
+  </section>
+</section>
+<section id="definition-lists">
   <title>Definition Lists</title>
   <para>
     Tight using spaces:
@@ -856,8 +856,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
     </varlistentry>
   </variablelist>
-</sect1>
-<sect1 id="html-blocks">
+</section>
+<section id="html-blocks">
   <title>HTML Blocks</title>
   <para>
     Simple block on one line:
@@ -966,8 +966,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <hr class="foo" id="bar" />
 
   <hr class="foo" id="bar">
-</sect1>
-<sect1 id="inline-markup">
+</section>
+<section id="inline-markup">
   <title>Inline Markup</title>
   <para>
     This is <emphasis>emphasized</emphasis>, and so <emphasis>is
@@ -1016,8 +1016,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     These should not be superscripts or subscripts, because of the unescaped
     spaces: a^b c^d, a~b c~d.
   </para>
-</sect1>
-<sect1 id="smart-quotes-ellipses-dashes">
+</section>
+<section id="smart-quotes-ellipses-dashes">
   <title>Smart quotes, ellipses, dashes</title>
   <para>
     <quote>Hello,</quote> said the spider. <quote><quote>Shelob</quote> is my
@@ -1048,8 +1048,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Ellipses…and…and….
   </para>
-</sect1>
-<sect1 id="latex">
+</section>
+<section id="latex">
   <title>LaTeX</title>
   <itemizedlist spacing="compact">
     <listitem>
@@ -1124,8 +1124,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Here’s a LaTeX table:
   </para>
-</sect1>
-<sect1 id="special-characters">
+</section>
+<section id="special-characters">
   <title>Special Characters</title>
   <para>
     Here is some unicode:
@@ -1220,10 +1220,10 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Minus: -
   </para>
-</sect1>
-<sect1 id="links">
+</section>
+<section id="links">
   <title>Links</title>
-  <sect2 id="explicit">
+  <section id="explicit">
     <title>Explicit</title>
     <para>
       Just a <ulink url="/url/">URL</ulink>.
@@ -1252,8 +1252,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       <ulink url="">Empty</ulink>.
     </para>
-  </sect2>
-  <sect2 id="reference">
+  </section>
+  <section id="reference">
     <title>Reference</title>
     <para>
       Foo <ulink url="/url/">bar</ulink>.
@@ -1291,8 +1291,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       Foo <ulink url="/url/">biz</ulink>.
     </para>
-  </sect2>
-  <sect2 id="with-ampersands">
+  </section>
+  <section id="with-ampersands">
     <title>With ampersands</title>
     <para>
       Here’s a <ulink url="http://example.com/?foo=1&amp;bar=2">link with an
@@ -1309,8 +1309,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       Here’s an <ulink url="/script?foo=1&amp;bar=2">inline link in pointy
       braces</ulink>.
     </para>
-  </sect2>
-  <sect2 id="autolinks">
+  </section>
+  <section id="autolinks">
     <title>Autolinks</title>
     <para>
       With an ampersand:
@@ -1349,9 +1349,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <programlisting>
 or here: &lt;http://example.com/&gt;
 </programlisting>
-  </sect2>
-</sect1>
-<sect1 id="images">
+  </section>
+</section>
+<section id="images">
   <title>Images</title>
   <para>
     From <quote>Voyage dans la Lune</quote> by Georges Melies (1902):
@@ -1372,8 +1372,8 @@ or here: &lt;http://example.com/&gt;
       </imageobject>
     </inlinemediaobject> icon.
   </para>
-</sect1>
-<sect1 id="footnotes">
+</section>
+<section id="footnotes">
   <title>Footnotes</title>
   <para>
     Here is a footnote reference,<footnote>
@@ -1428,5 +1428,5 @@ or here: &lt;http://example.com/&gt;
   <para>
     This paragraph should not be part of the note, as it is not indented.
   </para>
-</sect1>
+</section>
 </article>

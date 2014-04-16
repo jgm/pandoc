@@ -231,17 +231,17 @@ tests = [ testGroup "line blocks"
                               header 2 "Heading 2" <>
                               para "More text"
                                 =?> unlines
-                                      [ "<sect1 id=\"\">"
+                                      [ "<section id=\"\">"
                                       , "  <title>Heading 1</title>"
                                       , "  <para>"
                                       , "    Some text"
                                       , "  </para>"
-                                      , "  <sect2 id=\"\">"
+                                      , "  <section id=\"\">"
                                       , "    <title>Heading 2</title>"
                                       , "    <para>"
                                       , "      More text"
                                       , "    </para>"
-                                      , "  </sect2>"
-                                      , "</sect1>"
+                                      , "  </section>"
+                                      , "</section>"
                                       ]
         ]
