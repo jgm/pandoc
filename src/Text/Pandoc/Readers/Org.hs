@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
 Copyright (C) 2014 Albert Krewinkel <tarleb@moltkeplatz.de>
 
@@ -29,21 +30,26 @@ Conversion of org-mode formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Org ( readOrg ) where
 
 import qualified Text.Pandoc.Builder as B
-import           Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>), HasMeta(..))
+import           Text.Pandoc.Builder ( Inlines, Blocks, HasMeta(..), (<>)
+                                     , trimInlines )
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Options
 import qualified Text.Pandoc.Parsing as P
-import           Text.Pandoc.Parsing hiding (newline, orderedListMarker, updateLastStrPos)
+import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
+                                            , newline, orderedListMarker
+                                            , updateLastStrPos )
 import           Text.Pandoc.Shared (compactify')
 
-import           Control.Applicative (pure, (<$>), (<$), (<*>), (<*), (*>), (<**>))
+import           Control.Applicative ( Applicative, pure
+                                     , (<$>), (<$), (<*>), (<*), (*>), (<**>) )
 import           Control.Arrow ((***))
-import           Control.Monad (guard, when)
+import           Control.Monad (foldM, guard, liftM, liftM2, when)
+import           Control.Monad.Reader (Reader, runReader)
 import           Data.Char (toLower)
 import           Data.Default
-import           Data.List (foldl', isPrefixOf, isSuffixOf)
+import           Data.List (isPrefixOf, isSuffixOf)
 import           Data.Maybe (listToMaybe, fromMaybe)
-import           Data.Monoid (mconcat, mempty, mappend)
+import           Data.Monoid (Monoid, mconcat, mempty, mappend)
 
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: ReaderOptions -- ^ Reader options
@@ -55,10 +61,10 @@ type OrgParser = Parser [Char] OrgParserState
 
 parseOrg:: OrgParser Pandoc
 parseOrg = do
-  blocks' <- B.toList <$> parseBlocks
+  blocks' <- parseBlocks
   st <- getState
-  let meta = orgStateMeta st
-  return $ Pandoc meta $ filter (/= Null) blocks'
+  let meta = runF (orgStateMeta' st) st
+  return $ Pandoc meta $ filter (/= Null) (B.toList $ runF blocks' st)
 
 --
 -- Parser State for Org
@@ -73,7 +79,8 @@ data OrgParserState = OrgParserState
                       , orgStateLastPreCharPos       :: Maybe SourcePos
                       , orgStateLastStrPos           :: Maybe SourcePos
                       , orgStateMeta                 :: Meta
-                      } deriving (Show)
+                      , orgStateMeta'                :: F Meta
+                      }
 
 instance HasReaderOptions OrgParserState where
   extractReaderOptions = orgStateOptions
@@ -96,6 +103,7 @@ defaultOrgParserState = OrgParserState
                         , orgStateLastPreCharPos = Nothing
                         , orgStateLastStrPos = Nothing
                         , orgStateMeta = nullMeta
+                        , orgStateMeta' = return nullMeta
                         }
 
 updateLastStrPos :: OrgParser ()
@@ -138,6 +146,27 @@ resetEmphasisNewlines :: OrgParser ()
 resetEmphasisNewlines = updateState $ \s ->
   s{ orgStateEmphasisNewlines = Nothing }
 
+
+--
+-- Adaptions and specializations of parsing utilities
+--
+
+newtype F a = F { unF :: Reader OrgParserState a
+                } deriving (Monad, Applicative, Functor)
+
+runF :: F a -> OrgParserState -> a
+runF = runReader . unF
+
+instance Monoid a => Monoid (F a) where
+  mempty = return mempty
+  mappend = liftM2 mappend
+  mconcat = fmap mconcat . sequence
+
+trimInlinesF :: F Inlines -> F Inlines
+trimInlinesF = liftM trimInlines
+
+
+-- | Like @Text.Parsec.Char.newline@, but causes additional state changes.
 newline :: OrgParser Char
 newline =
   P.newline
@@ -148,10 +177,10 @@ newline =
 -- parsing blocks
 --
 
-parseBlocks :: OrgParser Blocks
+parseBlocks :: OrgParser (F Blocks)
 parseBlocks = mconcat <$> manyTill block eof
 
-block :: OrgParser Blocks
+block :: OrgParser (F Blocks)
 block = choice [ mempty <$ blanklines
                , orgBlock
                , example
@@ -159,7 +188,7 @@ block = choice [ mempty <$ blanklines
                , figure
                , specialLine
                , header
-               , hline
+               , return <$> hline
                , list
                , table
                , paraOrPlain
@@ -169,15 +198,15 @@ block = choice [ mempty <$ blanklines
 -- Org Blocks (#+BEGIN_... / #+END_...)
 --
 
-orgBlock :: OrgParser Blocks
+orgBlock :: OrgParser (F Blocks)
 orgBlock = try $ do
   (indent, blockType, args) <- blockHeader
   blockStr <- rawBlockContent indent blockType
   let classArgs = [ translateLang . fromMaybe [] $ listToMaybe args ]
   case blockType of
     "comment" -> return mempty
-    "src"     -> return $ B.codeBlockWith ("", classArgs, []) blockStr
-    _         -> B.divWith ("", [blockType], [])
+    "src"     -> return . return $ B.codeBlockWith ("", classArgs, []) blockStr
+    _         -> fmap (B.divWith ("", [blockType], []))
                  <$> parseFromString parseBlocks blockStr
 
 blockHeader :: OrgParser (Int, String, [String])
@@ -222,15 +251,16 @@ commaEscaped (',':cs@('*':_))     = cs
 commaEscaped (',':cs@('#':'+':_)) = cs
 commaEscaped cs                   = cs
 
-example :: OrgParser Blocks
-example = try $
-  B.codeBlockWith ("", ["example"], []) . unlines <$> many1 exampleLine
+example :: OrgParser (F Blocks)
+example = try $ do
+  body <- unlines <$> many1 exampleLine
+  return . return $ B.codeBlockWith ("", ["example"], []) body
 
 exampleLine :: OrgParser String
 exampleLine = try $ string ": " *> anyLine
 
 -- Drawers for properties or a logbook
-drawer :: OrgParser Blocks
+drawer :: OrgParser (F Blocks)
 drawer = try $ do
   drawerStart
   manyTill drawerLine (try drawerEnd)
@@ -256,18 +286,20 @@ drawerEnd = try $
 --
 
 -- Figures (Image on a line by itself, preceded by name and/or caption)
-figure :: OrgParser Blocks
+figure :: OrgParser (F Blocks)
 figure = try $ do
   (tit, cap) <- (maybe mempty withFigPrefix *** fromMaybe mempty)
                 <$> nameAndOrCaption
   src <- skipSpaces *> selfTarget <* skipSpaces <* newline
   guard (isImageFilename src)
-  return . B.para $ B.image src tit cap
+  return $ do
+    cap' <- cap
+    return $ B.para $ B.image src tit cap'
  where withFigPrefix cs = if "fig:" `isPrefixOf` cs
                           then cs
                           else "fig:" ++ cs
 
-nameAndOrCaption :: OrgParser (Maybe String, Maybe Inlines)
+nameAndOrCaption :: OrgParser (Maybe String, Maybe (F Inlines))
 nameAndOrCaption = try $ nameFirst <|> captionFirst
  where
    nameFirst = try $ do
@@ -279,7 +311,7 @@ nameAndOrCaption = try $ nameFirst <|> captionFirst
                  n <- optionMaybe name
                  return (n, Just c)
 
-caption :: OrgParser Inlines
+caption :: OrgParser (F Inlines)
 caption = try $ annotation "CAPTION" *> inlinesTillNewline
 
 name :: OrgParser String
@@ -289,8 +321,8 @@ annotation :: String -> OrgParser String
 annotation ann = try $ metaLineStart *> stringAnyCase ann <* char ':'
 
 -- Comments, Options and Metadata
-specialLine :: OrgParser Blocks
-specialLine = try $ metaLine <|> commentLine
+specialLine :: OrgParser (F Blocks)
+specialLine = fmap return . try $ metaLine <|> commentLine
 
 metaLine :: OrgParser Blocks
 metaLine = try $ metaLineStart *> declarationLine
@@ -308,12 +340,15 @@ commentLineStart = try $ mappend <$> many spaceChar <*> string "# "
 
 declarationLine :: OrgParser Blocks
 declarationLine = try $ do
-  meta' <- B.setMeta <$> metaKey <*> metaValue <*> pure nullMeta
-  updateState $ \st -> st { orgStateMeta  = orgStateMeta st <> meta' }
+  key <- metaKey
+  inlinesF <- metaInlines
+  updateState $ \st ->
+    let meta' = B.setMeta <$> pure key <*> inlinesF <*> pure nullMeta
+    in st { orgStateMeta' = orgStateMeta' st <> meta' }
   return mempty
 
-metaValue :: OrgParser MetaValue
-metaValue = MetaInlines . B.toList <$> inlinesTillNewline
+metaInlines :: OrgParser (F MetaValue)
+metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
 
 metaKey :: OrgParser String
 metaKey = map toLower <$> many1 (noneOf ": \n\r")
@@ -321,16 +356,20 @@ metaKey = map toLower <$> many1 (noneOf ": \n\r")
                       <*  skipSpaces
 
 -- | Headers
-header :: OrgParser Blocks
-header = try $
-  B.header <$> headerStart
-           <*> inlinesTillNewline
+header :: OrgParser (F Blocks)
+header = try $ do
+  level <- headerStart
+  title <- inlinesTillNewline
+  return $ B.header level <$> title
 
 headerStart :: OrgParser Int
 headerStart = try $
   (length <$> many1 (char '*')) <* many1 (char ' ')
 
--- Horizontal Line (five dashes or more)
+-- Don't use (or need) the reader wrapper here, we want hline to be
+-- @show@able.  Otherwise we can't use it with @notFollowedBy'@.
+
+-- | Horizontal Line (five -- dashes or more)
 hline :: OrgParser Blocks
 hline = try $ do
   skipSpaces
@@ -344,22 +383,23 @@ hline = try $ do
 -- Tables
 --
 
-data OrgTableRow = OrgContentRow [Blocks]
+data OrgTableRow = OrgContentRow (F [Blocks])
                  | OrgAlignRow [Alignment]
                  | OrgHlineRow
- deriving (Eq, Show)
 
 data OrgTable = OrgTable
   { orgTableColumns    :: Int
   , orgTableAlignments :: [Alignment]
   , orgTableHeader     :: [Blocks]
   , orgTableRows       :: [[Blocks]]
-  } deriving (Eq, Show)
+  }
 
-table :: OrgParser Blocks
+table :: OrgParser (F Blocks)
 table = try $ do
   lookAhead tableStart
-  orgToPandocTable . normalizeTable . rowsToTable <$> tableRows
+  do
+    rows <- tableRows
+    return $ return . orgToPandocTable . normalizeTable =<< rowsToTable rows
 
 orgToPandocTable :: OrgTable
                  -> Blocks
@@ -374,11 +414,11 @@ tableRows = try $ many (tableAlignRow <|> tableHline <|> tableContentRow)
 
 tableContentRow :: OrgParser OrgTableRow
 tableContentRow = try $
-  OrgContentRow <$> (tableStart *> manyTill tableContentCell newline)
+  OrgContentRow . sequence <$> (tableStart *> manyTill tableContentCell newline)
 
-tableContentCell :: OrgParser Blocks
+tableContentCell :: OrgParser (F Blocks)
 tableContentCell = try $
-  B.plain . trimInlines . mconcat <$> many1Till inline endOfCell
+  fmap B.plain . trimInlinesF . mconcat <$> many1Till inline endOfCell
 
 endOfCell :: OrgParser Char
 endOfCell = try $ char '|' <|> lookAhead newline
@@ -410,8 +450,8 @@ tableHline = try $
   OrgHlineRow <$ (tableStart *> char '-' *> anyLine)
 
 rowsToTable :: [OrgTableRow]
-            -> OrgTable
-rowsToTable = foldl' (flip rowToContent) zeroTable
+            -> F OrgTable
+rowsToTable = foldM (flip rowToContent) zeroTable
   where zeroTable = OrgTable 0 mempty mempty mempty
 
 normalizeTable :: OrgTable
@@ -430,57 +470,64 @@ normalizeTable (OrgTable cols aligns heads lns) =
 -- line as a header.  All other horizontal lines are discarded.
 rowToContent :: OrgTableRow
              -> OrgTable
-             -> OrgTable
-rowToContent OrgHlineRow        = maybeBodyToHeader
-rowToContent (OrgContentRow rs) = setLongestRow rs . appendToBody rs
-rowToContent (OrgAlignRow as)   = setLongestRow as . setAligns as
+             -> F OrgTable
+rowToContent OrgHlineRow        t = maybeBodyToHeader t
+rowToContent (OrgAlignRow as)   t = setLongestRow as =<< setAligns as t
+rowToContent (OrgContentRow rf) t = do
+  rs <- rf
+  setLongestRow rs =<< appendToBody rs t
 
 setLongestRow :: [a]
               -> OrgTable
-              -> OrgTable
-setLongestRow rs t = t{ orgTableColumns = max (length rs) (orgTableColumns t) }
+              -> F OrgTable
+setLongestRow rs t =
+  return t{ orgTableColumns = max (length rs) (orgTableColumns t) }
 
 maybeBodyToHeader :: OrgTable
-                  -> OrgTable
+                  -> F OrgTable
 maybeBodyToHeader t = case t of
   OrgTable{ orgTableHeader = [], orgTableRows = b:[] } ->
-         t{ orgTableHeader = b , orgTableRows = [] }
-  _   -> t
+         return t{ orgTableHeader = b , orgTableRows = [] }
+  _   -> return t
 
 appendToBody :: [Blocks]
              -> OrgTable
-             -> OrgTable
-appendToBody r t = t{ orgTableRows = orgTableRows t ++ [r] }
+             -> F OrgTable
+appendToBody r t = return t{ orgTableRows = orgTableRows t ++ [r] }
 
 setAligns :: [Alignment]
           -> OrgTable
-          -> OrgTable
-setAligns aligns t = t{ orgTableAlignments = aligns }
+          -> F OrgTable
+setAligns aligns t = return $ t{ orgTableAlignments = aligns }
 
 -- Paragraphs or Plain text
-paraOrPlain :: OrgParser Blocks
+paraOrPlain :: OrgParser (F Blocks)
 paraOrPlain = try $
-  parseInlines <**> option B.plain (try $ newline *> pure B.para)
+  parseInlines <**> (fmap <$> option B.plain (try $ newline *> pure B.para))
 
-inlinesTillNewline :: OrgParser Inlines
-inlinesTillNewline = trimInlines . mconcat <$> manyTill inline newline
+inlinesTillNewline :: OrgParser (F Inlines)
+inlinesTillNewline = trimInlinesF . mconcat <$> manyTill inline newline
 
 
 --
 -- list blocks
 --
 
-list :: OrgParser Blocks
+list :: OrgParser (F Blocks)
 list = choice [ definitionList, bulletList, orderedList ] <?> "list"
 
-definitionList :: OrgParser Blocks
-definitionList = B.definitionList <$> many1 (definitionListItem bulletListStart)
+definitionList :: OrgParser (F Blocks)
+definitionList = fmap B.definitionList . sequence
+                 <$> many1 (definitionListItem bulletListStart)
 
-bulletList :: OrgParser Blocks
-bulletList = B.bulletList . compactify' <$> many1 (listItem bulletListStart)
+bulletList :: OrgParser (F Blocks)
+bulletList = fmap B.bulletList . fmap compactify' . sequence
+             <$> many1 (listItem bulletListStart)
 
-orderedList :: OrgParser Blocks
-orderedList = B.orderedList . compactify' <$> many1 (listItem orderedListStart)
+orderedList :: OrgParser (F Blocks)
+-- orderedList = B.orderedList . compactify' <$> many1 (listItem orderedListStart)
+orderedList = fmap B.orderedList . fmap compactify' . sequence
+              <$> many1 (listItem orderedListStart)
 
 genericListStart :: OrgParser String
                  -> OrgParser Int
@@ -499,7 +546,7 @@ orderedListStart = genericListStart orderedListMarker
   where orderedListMarker = mappend <$> many1 digit <*> (pure <$> oneOf ".)")
 
 definitionListItem :: OrgParser Int
-                   -> OrgParser (Inlines, [Blocks])
+                   -> OrgParser (F (Inlines, [Blocks]))
 definitionListItem parseMarkerGetLength = try $ do
   markerLength <- parseMarkerGetLength
   term <- manyTill (noneOf "\n\r") (try $ string "::")
@@ -507,12 +554,12 @@ definitionListItem parseMarkerGetLength = try $ do
   cont <- concat <$> many (listContinuation markerLength)
   term' <- parseFromString inline term
   contents' <- parseFromString parseBlocks $ first ++ cont
-  return (term', [contents'])
+  return $ (,) <$> term' <*> fmap (:[]) contents'
 
 
 -- parse raw text for one list item, excluding start marker and continuations
 listItem :: OrgParser Int
-         -> OrgParser Blocks
+         -> OrgParser (F Blocks)
 listItem start = try $ do
   markerLength <- try start
   firstLine <- anyLineNewline
@@ -536,11 +583,11 @@ anyLineNewline = (++ "\n") <$> anyLine
 -- inline
 --
 
-inline :: OrgParser Inlines
+inline :: OrgParser (F Inlines)
 inline =
   choice [ whitespace
          , linebreak
-         , link
+         , linkOrImage
          , str
          , endline
          , emph
@@ -557,29 +604,29 @@ inline =
          ] <* (guard =<< newlinesCountWithinLimits)
   <?> "inline"
 
-parseInlines :: OrgParser Inlines
-parseInlines = trimInlines . mconcat <$> many1 inline
+parseInlines :: OrgParser (F Inlines)
+parseInlines = trimInlinesF . mconcat <$> many1 inline
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
 specialChars = "\"$'()*+-./:<=>[\\]^_{|}~"
 
 
-whitespace :: OrgParser Inlines
-whitespace = B.space <$ skipMany1 spaceChar
-                     <* updateLastPreCharPos
-                     <* updateLastForbiddenCharPos
+whitespace :: OrgParser (F Inlines)
+whitespace = pure B.space <$ skipMany1 spaceChar
+                          <* updateLastPreCharPos
+                          <* updateLastForbiddenCharPos
              <?> "whitespace"
 
-linebreak :: OrgParser Inlines
-linebreak = try $ B.linebreak <$ string "\\\\" <* skipSpaces <* newline
+linebreak :: OrgParser (F Inlines)
+linebreak = try $ pure B.linebreak <$ string "\\\\" <* skipSpaces <* newline
 
-str :: OrgParser Inlines
-str = B.str <$> many1 (noneOf $ specialChars ++ "\n\r ")
-            <* updateLastStrPos
+str :: OrgParser (F Inlines)
+str = return . B.str <$> many1 (noneOf $ specialChars ++ "\n\r ")
+      <* updateLastStrPos
 
 -- an endline character that can be treated as a space, not a structural break
-endline :: OrgParser Inlines
+endline :: OrgParser (F Inlines)
 endline = try $ do
   newline
   notFollowedBy blankline
@@ -595,29 +642,29 @@ endline = try $ do
   decEmphasisNewlinesCount
   guard =<< newlinesCountWithinLimits
   updateLastPreCharPos
-  return B.space
+  return . return $ B.space
 
-link :: OrgParser Inlines
-link = explicitOrImageLink <|> selflinkOrImage <?> "link"
+linkOrImage :: OrgParser (F Inlines)
+linkOrImage = explicitOrImageLink <|> selflinkOrImage <?> "link or image"
 
-explicitOrImageLink :: OrgParser Inlines
+explicitOrImageLink :: OrgParser (F Inlines)
 explicitOrImageLink = try $ do
   char '['
   src    <- linkTarget
   title  <- enclosedRaw (char '[') (char ']')
   title' <- parseFromString (mconcat <$> many inline) title
   char ']'
-  return . B.link src ""
-         $ if isImageFilename src && isImageFilename title
-           then B.image title "" ""
-           else title'
+  return $ B.link src ""  <$>
+         if isImageFilename src && isImageFilename title
+            then return $ B.image title mempty mempty
+            else title'
 
-selflinkOrImage :: OrgParser Inlines
+selflinkOrImage :: OrgParser (F Inlines)
 selflinkOrImage = try $ do
   src <- char '[' *> linkTarget <* char ']'
-  return $ if isImageFilename src
-           then B.image src "" ""
-           else B.link src "" (B.str src)
+  return . return $ if isImageFilename src
+                    then B.image src "" ""
+                    else B.link src "" (B.str src)
 
 selfTarget :: OrgParser String
 selfTarget = try $ char '[' *> linkTarget <* char ']'
@@ -634,51 +681,50 @@ isImageFilename filename =
    imageExtensions = [ "jpeg" , "jpg" , "png" , "gif" , "svg" ]
    protocols = [ "file", "http", "https" ]
 
-emph      :: OrgParser Inlines
-emph      = B.emph         <$> emphasisBetween '/'
+emph      :: OrgParser (F Inlines)
+emph      = fmap B.emph         <$> emphasisBetween '/'
 
-strong    :: OrgParser Inlines
-strong    = B.strong       <$> emphasisBetween '*'
+strong    :: OrgParser (F Inlines)
+strong    = fmap B.strong       <$> emphasisBetween '*'
 
-strikeout :: OrgParser Inlines
-strikeout = B.strikeout    <$> emphasisBetween '+'
+strikeout :: OrgParser (F Inlines)
+strikeout = fmap B.strikeout    <$> emphasisBetween '+'
 
 -- There is no underline, so we use strong instead.
-underline :: OrgParser Inlines
-underline = B.strong       <$> emphasisBetween '_'
+underline :: OrgParser (F Inlines)
+underline = fmap B.strong       <$> emphasisBetween '_'
 
-code      :: OrgParser Inlines
-code      = B.code         <$> verbatimBetween '='
+code      :: OrgParser (F Inlines)
+code      = return . B.code         <$> verbatimBetween '='
 
-verbatim  :: OrgParser Inlines
-verbatim  = B.rawInline "" <$> verbatimBetween '~'
+verbatim  :: OrgParser (F Inlines)
+verbatim  = return . B.rawInline "" <$> verbatimBetween '~'
 
-math      :: OrgParser Inlines
-math      = B.math         <$> choice [ math1CharBetween '$'
-                                      , mathStringBetween '$'
-                                      , rawMathBetween "\\(" "\\)"
-                                      ]
+subscript   :: OrgParser (F Inlines)
+subscript   = fmap B.subscript   <$> try (char '_' *> subOrSuperExpr)
 
-displayMath :: OrgParser Inlines
-displayMath = B.displayMath <$> choice [ rawMathBetween "\\[" "\\]"
-                                       , rawMathBetween "$$"  "$$"
-                                       ]
+superscript :: OrgParser (F Inlines)
+superscript = fmap B.superscript <$> try (char '^' *> subOrSuperExpr)
 
-subscript   :: OrgParser Inlines
-subscript   = B.subscript   <$> try (char '_' *> subOrSuperExpr)
+math      :: OrgParser (F Inlines)
+math      = return . B.math      <$> choice [ math1CharBetween '$'
+                                            , mathStringBetween '$'
+                                            , rawMathBetween "\\(" "\\)"
+                                            ]
 
-superscript :: OrgParser Inlines
-superscript = B.superscript <$> try (char '^' *> subOrSuperExpr)
-
-symbol :: OrgParser Inlines
-symbol = B.str . (: "") <$> (oneOf specialChars >>= updatePositions)
+displayMath :: OrgParser (F Inlines)
+displayMath = return . B.displayMath <$> choice [ rawMathBetween "\\[" "\\]"
+                                                , rawMathBetween "$$"  "$$"
+                                                ]
+symbol :: OrgParser (F Inlines)
+symbol = return . B.str . (: "") <$> (oneOf specialChars >>= updatePositions)
  where updatePositions c
            | c `elem` emphasisPreChars = c <$ updateLastPreCharPos
            | c `elem` emphasisForbiddenBorderChars = c <$ updateLastForbiddenCharPos
            | otherwise = return c
 
 emphasisBetween :: Char
-                -> OrgParser Inlines
+                -> OrgParser (F Inlines)
 emphasisBetween c = try $ do
   startEmphasisNewlinesCounting emphasisAllowedNewlines
   res <- enclosedInlines (emphasisStart c) (emphasisEnd c)
@@ -755,9 +801,9 @@ mathEnd c = try $ do
 
 enclosedInlines :: OrgParser a
                 -> OrgParser b
-                -> OrgParser Inlines
+                -> OrgParser (F Inlines)
 enclosedInlines start end = try $
-  trimInlines . mconcat <$> enclosed start end inline
+  trimInlinesF . mconcat <$> enclosed start end inline
 
 enclosedRaw :: OrgParser a
             -> OrgParser b
@@ -843,7 +889,7 @@ notAfterForbiddenBorderChar = do
   return $ lastFBCPos /= Just pos
 
 -- | Read a sub- or superscript expression
-subOrSuperExpr :: OrgParser Inlines
+subOrSuperExpr :: OrgParser (F Inlines)
 subOrSuperExpr = try $
   choice [ id                   <$> charsInBalanced '{' '}' (noneOf "\n\r")
          , enclosing ('(', ')') <$> charsInBalanced '(' ')' (noneOf "\n\r")
