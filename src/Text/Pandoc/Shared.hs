@@ -234,9 +234,9 @@ toRomanNumeral x =
               _ | x >= 50   -> "L"  ++ toRomanNumeral (x - 50)
               _ | x >= 40   -> "XL" ++ toRomanNumeral (x - 40)
               _ | x >= 10   -> "X" ++ toRomanNumeral (x - 10)
-              _ | x >= 9    -> "IX" ++ toRomanNumeral (x - 5)
+              _ | x == 9    -> "IX"
               _ | x >= 5    -> "V" ++ toRomanNumeral (x - 5)
-              _ | x >= 4    -> "IV" ++ toRomanNumeral (x - 4)
+              _ | x == 4    -> "IV"
               _ | x >= 1    -> "I" ++ toRomanNumeral (x - 1)
               _             -> ""
 
