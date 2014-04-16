@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
    Maintainer  : Albert Krewinkel <tarleb@moltkeplatz.de>
 
-Conversion of Org-Mode to 'Pandoc' document.
+Conversion of org-mode formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Org ( readOrg ) where
 
@@ -711,7 +711,7 @@ math1CharBetween c = try $ do
   char c
   res <- noneOf $ c:mathForbiddenBorderChars
   char c
-  eof <|> lookAhead (oneOf mathPostChars) *> return ()
+  eof <|> () <$ lookAhead (oneOf mathPostChars)
   return [res]
 
 rawMathBetween :: String
@@ -734,12 +734,12 @@ emphasisEnd :: Char -> OrgParser Char
 emphasisEnd c = try $ do
   guard =<< notAfterForbiddenBorderChar
   char c
-  eof <|> lookAhead (surroundingEmphasisChar >>= \x ->
-                         oneOf (x ++ emphasisPostChars))
-          *> return ()
+  eof <|> () <$ lookAhead acceptablePostChars
   updateLastStrPos
   popInlineCharStack
   return c
+ where acceptablePostChars =
+           surroundingEmphasisChar >>= \x -> oneOf (x ++ emphasisPostChars)
 
 mathStart :: Char -> OrgParser Char
 mathStart c = try $
@@ -749,7 +749,7 @@ mathEnd :: Char -> OrgParser Char
 mathEnd c = try $ do
   res <- noneOf (c:mathForbiddenBorderChars)
   char c
-  eof <|> lookAhead (oneOf mathPostChars *> pure ())
+  eof <|> () <$ lookAhead (oneOf mathPostChars)
   return res
 
 
