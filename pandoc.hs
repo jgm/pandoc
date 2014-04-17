@@ -443,6 +443,17 @@ options =
                  "STYLE")
                  "" -- "Style for highlighted code"
 
+    , Option "E" ["include-early"]
+                 (ReqArg
+                  (\arg opt -> do
+                     text <- UTF8.readFile arg
+                     -- add new ones to end, so they're included in order specified
+                     let newvars = optVariables opt ++ [("early-includes",text)]
+                     return opt { optVariables = newvars,
+                                  optStandalone = True })
+                  "FILENAME")
+                 "" -- "File to include early in header (implies -s)"
+
     , Option "H" ["include-in-header"]
                  (ReqArg
                   (\arg opt -> do

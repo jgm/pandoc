@@ -752,6 +752,9 @@ Some variables are set automatically by pandoc.  These vary somewhat
 depending on the output format, but include metadata fields (such
 as `title`, `author`, and `date`) as well as the following:
 
+`early-includes`
+:   contents specified by `-E/--include-early` (may have multiple
+    values)
 `header-includes`
 :   contents specified by `-H/--include-in-header` (may have multiple
     values)
