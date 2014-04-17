@@ -37,6 +37,7 @@ import           Text.Pandoc.Options
 import qualified Text.Pandoc.Parsing as P
 import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
                                             , newline, orderedListMarker
+                                            , parseFromString
                                             , updateLastStrPos )
 import           Text.Pandoc.Shared (compactify')
 
@@ -47,7 +48,7 @@ import           Control.Monad (foldM, guard, liftM, liftM2, when)
 import           Control.Monad.Reader (Reader, runReader, ask, asks)
 import           Data.Char (toLower)
 import           Data.Default
-import           Data.List (isPrefixOf, isSuffixOf)
+import           Data.List (intersperse, isPrefixOf, isSuffixOf)
 import           Data.Maybe (listToMaybe, fromMaybe)
 import           Data.Monoid (Monoid, mconcat, mempty, mappend)
 
@@ -156,6 +157,16 @@ addToNotesTable note = do
   oldnotes <- orgStateNotes' <$> getState
   updateState $ \s -> s{ orgStateNotes' = note:oldnotes }
 
+-- The version Text.Pandoc.Parsing cannot be used, as we need additional parts
+-- of the state saved and restored.
+parseFromString :: OrgParser a -> String -> OrgParser a
+parseFromString parser str' = do
+  oldLastPreCharPos <- orgStateLastPreCharPos <$> getState
+  updateState $ \s -> s{ orgStateLastPreCharPos = Nothing }
+  result <- P.parseFromString parser str'
+  updateState $ \s -> s{ orgStateLastPreCharPos = oldLastPreCharPos }
+  return result
+
 
 --
 -- Adaptions and specializations of parsing utilities
@@ -218,13 +229,27 @@ block = choice [ mempty <$ blanklines
 orgBlock :: OrgParser (F Blocks)
 orgBlock = try $ do
   (indent, blockType, args) <- blockHeader
-  blockStr <- rawBlockContent indent blockType
+  content <- rawBlockContent indent blockType
+  contentBlocks <- parseFromString parseBlocks (content ++ "\n")
   let classArgs = [ translateLang . fromMaybe [] $ listToMaybe args ]
   case blockType of
     "comment" -> return mempty
-    "src"     -> return . return $ B.codeBlockWith ("", classArgs, []) blockStr
-    _         -> fmap (B.divWith ("", [blockType], []))
-                 <$> parseFromString parseBlocks blockStr
+    "src"     -> returnF $ B.codeBlockWith ("", classArgs, []) content
+    "html"    -> returnF $ B.rawBlock "html" content
+    "latex"   -> returnF $ B.rawBlock "latex" content
+    "ascii"   -> returnF $ B.rawBlock "ascii" content
+    "example" -> returnF $ exampleCode content
+    "quote"   -> return  $ B.blockQuote <$> contentBlocks
+    "verse"   -> parseVerse content
+    _         -> return  $ B.divWith ("", [blockType], []) <$> contentBlocks
+ where
+   returnF :: a -> OrgParser (F a)
+   returnF = return . return
+
+   parseVerse :: String -> OrgParser (F Blocks)
+   parseVerse cs =
+       fmap B.para . mconcat . intersperse (pure B.linebreak)
+       <$> mapM (parseFromString parseInlines) (lines cs)
 
 blockHeader :: OrgParser (Int, String, [String])
 blockHeader = (,,) <$> blockIndent
@@ -270,8 +295,10 @@ commaEscaped cs                   = cs
 
 example :: OrgParser (F Blocks)
 example = try $ do
-  body <- unlines <$> many1 exampleLine
-  return . return $ B.codeBlockWith ("", ["example"], []) body
+  return . return . exampleCode =<< unlines <$> many1 exampleLine
+
+exampleCode :: String -> Blocks
+exampleCode = B.codeBlockWith ("", ["example"], [])
 
 exampleLine :: OrgParser String
 exampleLine = try $ string ": " *> anyLine

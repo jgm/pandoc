@@ -363,29 +363,6 @@ tests =
                   , "#+END_COMMENT"] =?>
           (mempty::Blocks)
 
-      , "Source Block in Text" =:
-          unlines [ "Low German greeting"
-                  , "  #+BEGIN_SRC haskell"
-                  , "  main = putStrLn greeting"
-                  , "    where greeting = \"moin\""
-                  , "  #+END_SRC" ] =?>
-          let attr' = ("", ["haskell"], [])
-              code' = "main = putStrLn greeting\n" ++
-                       "  where greeting = \"moin\"\n"
-          in mconcat [ para $ spcSep [ "Low", "German", "greeting"  ]
-                     , codeBlockWith attr' code'
-                     ]
-
-      , "Source Block" =:
-          unlines [ "  #+BEGIN_SRC haskell"
-                  , "  main = putStrLn greeting"
-                  , "    where greeting = \"moin\""
-                  , "  #+END_SRC" ] =?>
-          let attr' = ("", ["haskell"], [])
-              code' = "main = putStrLn greeting\n" ++
-                       "  where greeting = \"moin\"\n"
-          in codeBlockWith attr' code'
-
       , "Figure" =:
           unlines [ "#+caption: A very courageous man."
                   , "#+name: goodguy"
@@ -660,5 +637,79 @@ tests =
                 [ [ plain "1"      , plain "One"  , plain "foo"  ]
                 , [ plain "2"      , plain mempty , plain mempty  ]
                 ]
+      ]
+
+    , testGroup "Blocks"
+      [ "Source block" =:
+           unlines [ "  #+BEGIN_SRC haskell"
+                   , "  main = putStrLn greeting"
+                   , "    where greeting = \"moin\""
+                   , "  #+END_SRC" ] =?>
+           let attr' = ("", ["haskell"], [])
+               code' = "main = putStrLn greeting\n" ++
+                       "  where greeting = \"moin\"\n"
+           in codeBlockWith attr' code'
+
+      , "Source block between paragraphs" =:
+           unlines [ "Low German greeting"
+                   , "  #+BEGIN_SRC haskell"
+                   , "  main = putStrLn greeting"
+                   , "    where greeting = \"Moin!\""
+                   , "  #+END_SRC" ] =?>
+           let attr' = ("", ["haskell"], [])
+               code' = "main = putStrLn greeting\n" ++
+                        "  where greeting = \"Moin!\"\n"
+           in mconcat [ para $ spcSep [ "Low", "German", "greeting"  ]
+                      , codeBlockWith attr' code'
+                      ]
+
+      , "Example block" =:
+           unlines [ "#+begin_example"
+                   , "A chosen representation of"
+                   , "a rule."
+                   , "#+eND_exAMPle"
+                   ] =?>
+           codeBlockWith ("", ["example"], [])
+                         "A chosen representation of\na rule.\n"
+
+      , "HTML block" =:
+           unlines [ "#+BEGIN_HTML"
+                   , "<aside>HTML5 is pretty nice.</aside>"
+                   , "#+END_HTML"
+                   ] =?>
+           rawBlock "html" "<aside>HTML5 is pretty nice.</aside>\n"
+
+      , "Quote block" =:
+           unlines [ "#+BEGIN_QUOTE"
+                   , "/Niemand/ hat die Absicht, eine Mauer zu errichten!"
+                   , "#+END_QUOTE"
+                   ] =?>
+           blockQuote (para (spcSep [ emph "Niemand", "hat", "die", "Absicht,"
+                                    , "eine", "Mauer", "zu", "errichten!"
+                                    ]))
+
+      , "Verse block" =:
+          unlines [ "The first lines of Goethe's /Faust/:"
+                  , "#+begin_verse"
+                  , "Habe nun, ach! Philosophie,"
+                  , "Juristerei und Medizin,"
+                  , "Und leider auch Theologie!"
+                  , "Durchaus studiert, mit heißem Bemühn."
+                  , "#+end_verse"
+                  ] =?>
+          mconcat
+          [ para $ spcSep [ "The", "first", "lines", "of"
+                          , "Goethe's", emph "Faust" <> ":"]
+          , para $ mconcat
+              [ spcSep [ "Habe", "nun,", "ach!", "Philosophie," ]
+              , linebreak
+              , spcSep [ "Juristerei", "und", "Medizin," ]
+              , linebreak
+              , spcSep [ "Und", "leider", "auch", "Theologie!" ]
+              , linebreak
+              , spcSep [ "Durchaus", "studiert,", "mit", "heißem", "Bemühn." ]
+              ]
+          ]
+
       ]
   ]
