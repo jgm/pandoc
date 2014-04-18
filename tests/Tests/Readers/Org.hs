@@ -8,7 +8,7 @@ import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Data.List (intersperse)
-import Data.Monoid (mempty, mconcat)
+import Data.Monoid (mempty, mappend, mconcat)
 
 org :: String -> Pandoc
 org = readOrg def
@@ -648,6 +648,18 @@ tests =
                 [ [ plain "1"      , plain "One"  , plain "foo"  ]
                 , [ plain "2"      , plain mempty , plain mempty  ]
                 ]
+
+      , "Table with caption" =:
+          unlines [ "#+CAPTION: Hitchhiker's Multiplication Table"
+                  , "| x |  6 |"
+                  , "| 9 | 42 |"
+                  ] =?>
+          table "Hitchhiker's Multiplication Table"
+                [(AlignDefault, 0), (AlignDefault, 0)]
+                []
+                [ [ plain "x", plain "6" ]
+                , [ plain "9", plain "42" ]
+                ]
       ]
 
     , testGroup "Blocks and fragments"
@@ -740,5 +752,22 @@ tests =
                             , "\\end{equation}"
                             ])
 
+      , "Code block with caption" =:
+          unlines [ "#+CAPTION: Functor laws in Haskell"
+                  , "#+NAME: functor-laws"
+                  , "#+BEGIN_SRC haskell"
+                  , "fmap id = id"
+                  , "fmap (p . q) = (fmap p) . (fmap q)"
+                  , "#+END_SRC"
+                  ] =?>
+          divWith
+             nullAttr
+             (mappend
+              (plain $ spanWith ("", ["label"], [])
+                                (spcSep [ "Functor", "laws", "in", "Haskell" ]))
+              (codeBlockWith ("functor-laws", ["haskell"], [])
+                             (unlines [ "fmap id = id"
+                                      , "fmap (p . q) = (fmap p) . (fmap q)"
+                                      ])))
       ]
   ]

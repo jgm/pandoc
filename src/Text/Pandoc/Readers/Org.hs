@@ -43,13 +43,13 @@ import           Text.Pandoc.Shared (compactify')
 
 import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>), (<**>) )
-import           Control.Arrow ((***))
 import           Control.Monad (foldM, guard, liftM, liftM2, when)
 import           Control.Monad.Reader (Reader, runReader, ask, asks)
 import           Data.Char (toLower)
 import           Data.Default
 import           Data.List (intersperse, isPrefixOf, isSuffixOf)
-import           Data.Maybe (listToMaybe, fromMaybe)
+import qualified Data.Map as M
+import           Data.Maybe (listToMaybe, fromMaybe, isJust)
 import           Data.Monoid (Monoid, mconcat, mempty, mappend)
 
 -- | Parse org-mode string and return a Pandoc document.
@@ -74,9 +74,12 @@ parseOrg = do
 type OrgNoteRecord = (String, F Blocks)
 type OrgNoteTable = [OrgNoteRecord]
 
+type OrgBlockAttributes = M.Map String String
+
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
                       { orgStateOptions              :: ReaderOptions
+                      , orgStateBlockAttributes      :: OrgBlockAttributes
                       , orgStateEmphasisCharStack    :: [Char]
                       , orgStateEmphasisNewlines     :: Maybe Int
                       , orgStateLastForbiddenCharPos :: Maybe SourcePos
@@ -102,6 +105,7 @@ instance Default OrgParserState where
 defaultOrgParserState :: OrgParserState
 defaultOrgParserState = OrgParserState
                         { orgStateOptions = def
+                        , orgStateBlockAttributes = M.empty
                         , orgStateEmphasisCharStack = []
                         , orgStateEmphasisNewlines = Nothing
                         , orgStateLastForbiddenCharPos = Nothing
@@ -111,6 +115,19 @@ defaultOrgParserState = OrgParserState
                         , orgStateMeta' = return nullMeta
                         , orgStateNotes' = []
                         }
+
+addBlockAttribute :: String -> String -> OrgParser ()
+addBlockAttribute key val = updateState $ \s ->
+  let attrs = orgStateBlockAttributes s
+  in s{ orgStateBlockAttributes = M.insert key val attrs }
+
+lookupBlockAttribute :: String -> OrgParser (Maybe String)
+lookupBlockAttribute key =
+  M.lookup key . orgStateBlockAttributes <$> getState
+
+resetBlockAttributes :: OrgParser ()
+resetBlockAttributes = updateState $ \s ->
+  s{ orgStateBlockAttributes = orgStateBlockAttributes def }
 
 updateLastStrPos :: OrgParser ()
 updateLastStrPos = getPosition >>= \p ->
@@ -125,19 +142,19 @@ updateLastPreCharPos = getPosition >>= \p ->
   updateState $ \s -> s{ orgStateLastPreCharPos = Just p}
 
 pushToInlineCharStack :: Char -> OrgParser ()
-pushToInlineCharStack c = updateState $ \st ->
-  st { orgStateEmphasisCharStack = c:orgStateEmphasisCharStack st }
+pushToInlineCharStack c = updateState $ \s ->
+  s{ orgStateEmphasisCharStack = c:orgStateEmphasisCharStack s }
 
 popInlineCharStack :: OrgParser ()
-popInlineCharStack = updateState $ \st ->
-  st { orgStateEmphasisCharStack = drop 1 . orgStateEmphasisCharStack $ st }
+popInlineCharStack = updateState $ \s ->
+  s{ orgStateEmphasisCharStack = drop 1 . orgStateEmphasisCharStack $ s }
 
 surroundingEmphasisChar :: OrgParser [Char]
 surroundingEmphasisChar = take 1 . drop 1 . orgStateEmphasisCharStack <$> getState
 
 startEmphasisNewlinesCounting :: Int -> OrgParser ()
 startEmphasisNewlinesCounting maxNewlines = updateState $ \s ->
-  s { orgStateEmphasisNewlines = Just maxNewlines }
+  s{ orgStateEmphasisNewlines = Just maxNewlines }
 
 decEmphasisNewlinesCount :: OrgParser ()
 decEmphasisNewlinesCount = updateState $ \s ->
@@ -209,19 +226,49 @@ parseBlocks = mconcat <$> manyTill block eof
 
 block :: OrgParser (F Blocks)
 block = choice [ mempty <$ blanklines
-               , orgBlock
+               , optionalAttributes $ choice
+                 [ orgBlock
+                 , figure
+                 , table
+                 ]
                , example
                , drawer
-               , figure
                , specialLine
                , header
                , return <$> hline
                , list
-               , table
                , latexFragment
                , noteBlock
                , paraOrPlain
                ] <?> "block"
+
+optionalAttributes :: OrgParser (F Blocks) -> OrgParser (F Blocks)
+optionalAttributes parser = try $
+  resetBlockAttributes *> parseBlockAttributes *> parser
+
+parseBlockAttributes :: OrgParser ()
+parseBlockAttributes = do
+  attrs <- many attribute
+  () <$ mapM (uncurry parseAndAddAttribute) attrs
+ where
+   attribute :: OrgParser (String, String)
+   attribute = try $ do
+         key <- metaLineStart *> many1Till (noneOf "\n\r") (char ':')
+         val <- skipSpaces *> anyLine
+         return (map toLower key, val)
+
+parseAndAddAttribute :: String -> String -> OrgParser ()
+parseAndAddAttribute key value = do
+  let key' = map toLower key
+  () <$ addBlockAttribute key' value
+
+lookupInlinesAttr :: String -> OrgParser (Maybe (F Inlines))
+lookupInlinesAttr attr = try $ do
+  val <- lookupBlockAttribute attr
+  maybe (return Nothing)
+        (fmap Just . parseFromString parseInlines)
+        val
+
 
 --
 -- Org Blocks (#+BEGIN_... / #+END_...)
@@ -235,13 +282,13 @@ orgBlock = try $ do
   let classArgs = [ translateLang . fromMaybe [] $ listToMaybe args ]
   case blockType of
     "comment" -> return mempty
-    "src"     -> returnF $ B.codeBlockWith ("", classArgs, []) content
     "html"    -> returnF $ B.rawBlock "html" content
     "latex"   -> returnF $ B.rawBlock "latex" content
     "ascii"   -> returnF $ B.rawBlock "ascii" content
     "example" -> returnF $ exampleCode content
     "quote"   -> return  $ B.blockQuote <$> contentBlocks
     "verse"   -> parseVerse content
+    "src"     -> codeBlockWithAttr classArgs content
     _         -> return  $ B.divWith ("", [blockType], []) <$> contentBlocks
  where
    returnF :: a -> OrgParser (F a)
@@ -259,6 +306,18 @@ blockHeader = (,,) <$> blockIndent
  where blockIndent = length <$> many spaceChar
        blockType = map toLower <$> (stringAnyCase "#+begin_" *> many letter)
        blockArgs = manyTill (many nonspaceChar <* skipSpaces) newline
+
+codeBlockWithAttr :: [String] -> String -> OrgParser (F Blocks)
+codeBlockWithAttr classArgs content = do
+  identifier <- fromMaybe "" <$> lookupBlockAttribute "name"
+  caption <- lookupInlinesAttr "caption"
+  let codeBlck = B.codeBlockWith (identifier, classArgs, []) content
+  return $ maybe (pure codeBlck) (labelDiv codeBlck) caption
+ where
+   labelDiv blk value =
+       B.divWith nullAttr <$> (mappend <$> labelledBlock value
+                                       <*> pure blk)
+   labelledBlock = fmap (B.plain . B.spanWith ("", ["label"], []))
 
 rawBlockContent :: Int -> String -> OrgParser String
 rawBlockContent indent blockType =
@@ -333,38 +392,26 @@ drawerEnd = try $
 -- Figures (Image on a line by itself, preceded by name and/or caption)
 figure :: OrgParser (F Blocks)
 figure = try $ do
-  (tit, cap) <- (maybe mempty withFigPrefix *** fromMaybe mempty)
-                <$> nameAndOrCaption
+  (cap, nam) <- nameAndCaption
   src <- skipSpaces *> selfTarget <* skipSpaces <* newline
   guard (isImageFilename src)
   return $ do
     cap' <- cap
-    return $ B.para $ B.image src tit cap'
- where withFigPrefix cs = if "fig:" `isPrefixOf` cs
-                          then cs
-                          else "fig:" ++ cs
-
-nameAndOrCaption :: OrgParser (Maybe String, Maybe (F Inlines))
-nameAndOrCaption = try $ nameFirst <|> captionFirst
+    return $ B.para $ B.image src nam cap'
  where
-   nameFirst = try $ do
-                 n <- name
-                 c <- optionMaybe caption
-                 return (Just n, c)
-   captionFirst = try $ do
-                 c <- caption
-                 n <- optionMaybe name
-                 return (n, Just c)
+   nameAndCaption =
+       do
+         maybeCap <- lookupInlinesAttr "caption"
+         maybeNam <- lookupBlockAttribute "name"
+         guard $ isJust maybeCap || isJust maybeNam
+         return ( fromMaybe mempty maybeCap
+                , maybe mempty withFigPrefix maybeNam )
+   withFigPrefix cs =
+       if "fig:" `isPrefixOf` cs
+       then cs
+       else "fig:" ++ cs
 
-caption :: OrgParser (F Inlines)
-caption = try $ annotation "CAPTION" *> inlinesTillNewline
-
-name :: OrgParser String
-name = try $ annotation "NAME" *> skipSpaces *> manyTill anyChar newline
-
-annotation :: String -> OrgParser String
-annotation ann = try $ metaLineStart *> stringAnyCase ann <* char ':'
-
+--
 -- Comments, Options and Metadata
 specialLine :: OrgParser (F Blocks)
 specialLine = fmap return . try $ metaLine <|> commentLine
@@ -400,6 +447,10 @@ metaKey = map toLower <$> many1 (noneOf ": \n\r")
                       <*  char ':'
                       <*  skipSpaces
 
+--
+-- Headers
+--
+
 -- | Headers
 header :: OrgParser (F Blocks)
 header = try $ do
@@ -410,6 +461,7 @@ header = try $ do
 headerStart :: OrgParser Int
 headerStart = try $
   (length <$> many1 (char '*')) <* many1 (char ' ')
+
 
 -- Don't use (or need) the reader wrapper here, we want hline to be
 -- @show@able.  Otherwise we can't use it with @notFollowedBy'@.
@@ -444,12 +496,14 @@ table = try $ do
   lookAhead tableStart
   do
     rows <- tableRows
-    return $ return . orgToPandocTable . normalizeTable =<< rowsToTable rows
+    cptn <- fromMaybe (pure "") <$> lookupInlinesAttr "caption"
+    return $ (<$> cptn) . orgToPandocTable . normalizeTable =<< rowsToTable rows
 
 orgToPandocTable :: OrgTable
+                 -> Inlines
                  -> Blocks
-orgToPandocTable (OrgTable _ aligns heads lns) =
-  B.table "" (zip aligns $ repeat 0) heads lns
+orgToPandocTable (OrgTable _ aligns heads lns) caption =
+  B.table caption (zip aligns $ repeat 0) heads lns
 
 tableStart :: OrgParser Char
 tableStart = try $ skipSpaces *> char '|'
