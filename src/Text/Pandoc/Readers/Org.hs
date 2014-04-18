@@ -605,9 +605,10 @@ definitionListItem parseMarkerGetLength = try $ do
   markerLength <- parseMarkerGetLength
   term <- manyTill (noneOf "\n\r") (try $ string "::")
   first <- anyLineNewline
+  blank <- option "" ("\n" <$ blankline)
   cont <- concat <$> many (listContinuation markerLength)
   term' <- parseFromString inline term
-  contents' <- parseFromString parseBlocks $ first ++ cont
+  contents' <- parseFromString parseBlocks $ first ++ blank ++ cont
   return $ (,) <$> term' <*> fmap (:[]) contents'
 
 
@@ -617,16 +618,18 @@ listItem :: OrgParser Int
 listItem start = try $ do
   markerLength <- try start
   firstLine <- anyLineNewline
+  blank <- option "" ("\n" <$ blankline)
   rest <- concat <$> many (listContinuation markerLength)
-  parseFromString parseBlocks $ firstLine ++ rest
+  parseFromString parseBlocks $ firstLine ++ blank ++ rest
 
 -- continuation of a list item - indented and separated by blankline or endline.
 -- Note: nested lists are parsed as continuations.
 listContinuation :: Int
                  -> OrgParser String
 listContinuation markerLength = try $
-  mappend <$> many blankline
-          <*> (concat <$> many1 listLine)
+  notFollowedBy' blankline
+  *> (mappend <$> (concat <$> many1 listLine)
+              <*> many blankline)
  where listLine = try $ indentWith markerLength *> anyLineNewline
 
 anyLineNewline :: OrgParser String

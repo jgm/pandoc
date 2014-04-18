@@ -518,13 +518,24 @@ tests =
                          , ("TTL", [ plain $ "transistor-transistor" <> space <>
                                                "logic" ])
                          , ("PSK", [ mconcat
-                                     [ para  $ "phase-shift" <> space <> "keying"
-                                     , plain $ spcSep [ "a", "digital"
-                                                      , "modulation", "scheme" ]
+                                     [ para $ "phase-shift" <> space <> "keying"
+                                     , para $ spcSep [ "a", "digital"
+                                                     , "modulation", "scheme" ]
                                      ]
-                                   ]
-                                   )
+                                   ])
                          ]
+
+      , "Loose bullet list" =:
+          unlines [ "- apple"
+                  , ""
+                  , "- orange"
+                  , ""
+                  , "- peach"
+                  ] =?>
+          bulletList [ para "apple"
+                     , para "orange"
+                     , para "peach"
+                     ]
       ]
 
   , testGroup "Tables"
