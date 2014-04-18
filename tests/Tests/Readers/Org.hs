@@ -650,7 +650,7 @@ tests =
                 ]
       ]
 
-    , testGroup "Blocks"
+    , testGroup "Blocks and fragments"
       [ "Source block" =:
            unlines [ "  #+BEGIN_SRC haskell"
                    , "  main = putStrLn greeting"
@@ -721,6 +721,24 @@ tests =
               , spcSep [ "Durchaus", "studiert,", "mit", "heißem", "Bemühn." ]
               ]
           ]
+
+      , "LaTeX fragment" =:
+          unlines [ "\\begin{equation}"
+                  , "X_i = \\begin{cases}"
+                  , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) = \\alpha(i)\\\\"
+                  , "      C_{\\alpha(i)} & \\text{otherwise}"
+                  , "      \\end{cases}"
+                  , "\\end{equation}"
+                  ] =?>
+          rawBlock "latex"
+                   (unlines [ "\\begin{equation}"
+                            , "X_i = \\begin{cases}"
+                            , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) =" ++
+                              " \\alpha(i)\\\\"
+                            , "      C_{\\alpha(i)} & \\text{otherwise}"
+                            , "      \\end{cases}"
+                            , "\\end{equation}"
+                            ])
 
       ]
   ]

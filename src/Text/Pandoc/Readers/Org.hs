@@ -218,6 +218,7 @@ block = choice [ mempty <$ blanklines
                , return <$> hline
                , list
                , table
+               , latexFragment
                , noteBlock
                , paraOrPlain
                ] <?> "block"
@@ -544,6 +545,41 @@ setAligns :: [Alignment]
           -> F OrgTable
 setAligns aligns t = return $ t{ orgTableAlignments = aligns }
 
+
+--
+-- LaTeX fragments
+--
+latexFragment :: OrgParser (F Blocks)
+latexFragment = try $ do
+  envName <- latexEnvStart
+  content <- mconcat <$> manyTill anyLineNewline (latexEnd envName)
+  return . return $ B.rawBlock "latex" (content `inLatexEnv` envName)
+ where
+   c `inLatexEnv` e = mconcat [ "\\begin{", e, "}\n"
+                              , c
+                              , "\\end{", e, "}\n"
+                              ]
+
+latexEnvStart :: OrgParser String
+latexEnvStart = try $ do
+  skipSpaces *> string "\\begin{"
+             *> latexEnvName
+             <* string "}"
+             <* blankline
+
+latexEnd :: String -> OrgParser ()
+latexEnd envName = try $
+  () <$ skipSpaces
+     <* string ("\\end{" ++ envName ++ "}")
+     <* blankline
+
+-- | Parses a LaTeX environment name.
+latexEnvName :: OrgParser String
+latexEnvName = try $ do
+  mappend <$> many1 alphaNum
+          <*> option "" (string "*")
+
+
 --
 -- Footnote defintions
 --
@@ -683,7 +719,9 @@ str :: OrgParser (F Inlines)
 str = return . B.str <$> many1 (noneOf $ specialChars ++ "\n\r ")
       <* updateLastStrPos
 
--- an endline character that can be treated as a space, not a structural break
+-- | An endline character that can be treated as a space, not a structural
+-- break.  This should reflect the values of the Emacs variable
+-- @org-element-pagaraph-separate@.
 endline :: OrgParser (F Inlines)
 endline = try $ do
   newline
@@ -695,6 +733,7 @@ endline = try $ do
   notFollowedBy' drawerStart
   notFollowedBy' headerStart
   notFollowedBy' metaLineStart
+  notFollowedBy' latexEnvStart
   notFollowedBy' commentLineStart
   notFollowedBy' bulletListStart
   notFollowedBy' orderedListStart
