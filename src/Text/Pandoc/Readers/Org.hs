@@ -860,8 +860,8 @@ linkTarget = enclosed (char '[') (char ']') (noneOf "\n\r]")
 isImageFilename :: String -> Bool
 isImageFilename filename =
   any (\x -> ('.':x)  `isSuffixOf` filename) imageExtensions &&
-  any (\x -> (x++":") `isPrefixOf` filename) protocols ||
-  ':' `notElem` filename
+  (any (\x -> (x++":") `isPrefixOf` filename) protocols ||
+   ':' `notElem` filename)
  where
    imageExtensions = [ "jpeg" , "jpg" , "png" , "gif" , "svg" ]
    protocols = [ "file", "http", "https" ]
