@@ -383,6 +383,48 @@ tests =
                   ] =?>
           para (image "the-red-queen.jpg" "fig:redqueen"
                       "Used as a metapher in evolutionary biology.")
+
+      , "Footnote" =:
+          unlines [ "A footnote[1]"
+                  , ""
+                  , "[1] First paragraph"
+                  , ""
+                  , "second paragraph"
+                  ] =?>
+          para (mconcat
+                [ "A", space, "footnote"
+                , note $ mconcat [ para ("First" <> space <> "paragraph")
+                                 , para ("second" <> space <> "paragraph")
+                                 ]
+                ])
+
+      , "Two footnotes" =:
+          unlines [ "Footnotes[fn:1][fn:2]"
+                  , ""
+                  , "[fn:1] First note."
+                  , ""
+                  , "[fn:2] Second note."
+                  ] =?>
+          para (mconcat
+                [ "Footnotes"
+                , note $ para ("First" <> space <> "note.")
+                , note $ para ("Second" <> space <> "note.")
+                ])
+
+      , "Footnote followed by header" =:
+          unlines [ "Another note[fn:yay]"
+                  , ""
+                  , "[fn:yay] This is great!"
+                  , ""
+                  , "** Headline"
+                  ] =?>
+          mconcat
+          [ para (mconcat
+                  [ "Another", space, "note"
+                  , note $ para ("This" <> space <> "is" <> space <> "great!")
+                  ])
+          , header 2 "Headline"
+          ]
       ]
 
   , testGroup "Lists" $

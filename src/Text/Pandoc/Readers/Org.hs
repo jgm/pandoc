@@ -639,10 +639,14 @@ latexEnvName = try $ do
 --
 noteBlock :: OrgParser (F Blocks)
 noteBlock = try $ do
-  ref <- noteMarker
-  content <- skipSpaces *> paraOrPlain
+  ref <- noteMarker <* skipSpaces
+  content <- mconcat <$> blocksTillHeaderOrNote
   addToNotesTable (ref, content)
   return mempty
+ where
+   blocksTillHeaderOrNote =
+     many1Till block (eof <|> () <$ lookAhead noteMarker
+                          <|> () <$ lookAhead headerStart)
 
 -- Paragraphs or Plain text
 paraOrPlain :: OrgParser (F Blocks)
