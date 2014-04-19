@@ -56,6 +56,7 @@ module Text.Pandoc.Shared (
                      stringify,
                      compactify,
                      compactify',
+                     compactify'DL,
                      Element (..),
                      hierarchicalize,
                      uniqueIdent,
@@ -82,7 +83,7 @@ module Text.Pandoc.Shared (
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Generic
-import Text.Pandoc.Builder (Blocks, ToMetaValue(..))
+import Text.Pandoc.Builder (Inlines, Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.Environment (getProgName)
@@ -435,6 +436,21 @@ compactify' items =
                             _   -> items
            _      -> items
 
+-- | Like @compactify'@, but akts on items of definition lists.
+compactify'DL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
+compactify'DL items =
+  let defs = concatMap snd items
+      defBlocks = reverse $ concatMap B.toList defs
+  in  case defBlocks of
+           (Para x:_) -> if not $ any isPara (drop 1 defBlocks)
+                            then let (t,ds) = last items
+                                     lastDef = B.toList $ last ds
+                                     ds' = init ds ++
+                                          [B.fromList $ init lastDef ++ [Plain x]]
+                                  in init items ++ [(t, ds')]
+                            else items
+           _          -> items
+
 isPara :: Block -> Bool
 isPara (Para _) = True
 isPara _        = False
@@ -698,5 +714,3 @@ safeRead s = case reads s of
                   (d,x):_
                     | all isSpace x -> return d
                   _                 -> fail $ "Could not read `" ++ s ++ "'"
-
-
