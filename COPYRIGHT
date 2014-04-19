@@ -56,6 +56,13 @@ Copyright (C) 2010 Paul Rivier
 Released under the GPL.
 
 ----------------------------------------------------------------------
+src/Text/Pandoc/Readers/Org.hs
+tests/Tests/Readers/Org.hs
+Copyright (C) 2014 Albert Krewinkel
+
+Released under the GPL.
+
+----------------------------------------------------------------------
 src/Text/Pandoc/Biblio.hs
 Copyright (C) 2008-2010 Andrea Rossato
 
