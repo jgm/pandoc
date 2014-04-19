@@ -39,7 +39,7 @@ import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
                                             , newline, orderedListMarker
                                             , parseFromString
                                             , updateLastStrPos )
-import           Text.Pandoc.Shared (compactify')
+import           Text.Pandoc.Shared (compactify', compactify'DL)
 
 import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>), (<**>) )
@@ -665,7 +665,7 @@ list :: OrgParser (F Blocks)
 list = choice [ definitionList, bulletList, orderedList ] <?> "list"
 
 definitionList :: OrgParser (F Blocks)
-definitionList = fmap B.definitionList . sequence
+definitionList = fmap B.definitionList . fmap compactify'DL . sequence
                  <$> many1 (definitionListItem bulletListStart)
 
 bulletList :: OrgParser (F Blocks)

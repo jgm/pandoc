@@ -567,6 +567,18 @@ tests =
                                    ])
                          ]
 
+      , "Compact definition list" =:
+          unlines [ "- ATP :: adenosine 5' triphosphate"
+                  , "- DNA :: deoxyribonucleic acid"
+                  , "- PCR :: polymerase chain reaction"
+                  , ""
+                  ] =?>
+          definitionList
+          [ ("ATP", [ plain $ spcSep [ "adenosine", "5'", "triphosphate" ] ])
+          , ("DNA", [ plain $ spcSep [ "deoxyribonucleic", "acid" ] ])
+          , ("PCR", [ plain $ spcSep [ "polymerase", "chain", "reaction" ] ])
+          ]
+
       , "Loose bullet list" =:
           unlines [ "- apple"
                   , ""
