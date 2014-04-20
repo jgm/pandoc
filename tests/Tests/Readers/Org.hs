@@ -8,7 +8,7 @@ import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Data.List (intersperse)
-import Data.Monoid (mempty, mconcat)
+import Data.Monoid (mempty, mappend, mconcat)
 
 org :: String -> Pandoc
 org = readOrg def
@@ -97,6 +97,10 @@ tests =
       , "Linebreak" =:
           "line \\\\ \nbreak" =?>
           para ("line" <> linebreak <> "break")
+
+      , "Inline note" =:
+          "[fn::Schreib mir eine E-Mail]" =?>
+          para (note $ para "Schreib mir eine E-Mail")
 
       , "Markup-chars not occuring on word break are symbols" =:
           unlines [ "this+that+ +so+on"
@@ -359,29 +363,6 @@ tests =
                   , "#+END_COMMENT"] =?>
           (mempty::Blocks)
 
-      , "Source Block in Text" =:
-          unlines [ "Low German greeting"
-                  , "  #+BEGIN_SRC haskell"
-                  , "  main = putStrLn greeting"
-                  , "    where greeting = \"moin\""
-                  , "  #+END_SRC" ] =?>
-          let attr' = ("", ["haskell"], [])
-              code' = "main = putStrLn greeting\n" ++
-                       "  where greeting = \"moin\"\n"
-          in mconcat [ para $ spcSep [ "Low", "German", "greeting"  ]
-                     , codeBlockWith attr' code'
-                     ]
-
-      , "Source Block" =:
-          unlines [ "  #+BEGIN_SRC haskell"
-                  , "  main = putStrLn greeting"
-                  , "    where greeting = \"moin\""
-                  , "  #+END_SRC" ] =?>
-          let attr' = ("", ["haskell"], [])
-              code' = "main = putStrLn greeting\n" ++
-                       "  where greeting = \"moin\"\n"
-          in codeBlockWith attr' code'
-
       , "Figure" =:
           unlines [ "#+caption: A very courageous man."
                   , "#+name: goodguy"
@@ -402,6 +383,48 @@ tests =
                   ] =?>
           para (image "the-red-queen.jpg" "fig:redqueen"
                       "Used as a metapher in evolutionary biology.")
+
+      , "Footnote" =:
+          unlines [ "A footnote[1]"
+                  , ""
+                  , "[1] First paragraph"
+                  , ""
+                  , "second paragraph"
+                  ] =?>
+          para (mconcat
+                [ "A", space, "footnote"
+                , note $ mconcat [ para ("First" <> space <> "paragraph")
+                                 , para ("second" <> space <> "paragraph")
+                                 ]
+                ])
+
+      , "Two footnotes" =:
+          unlines [ "Footnotes[fn:1][fn:2]"
+                  , ""
+                  , "[fn:1] First note."
+                  , ""
+                  , "[fn:2] Second note."
+                  ] =?>
+          para (mconcat
+                [ "Footnotes"
+                , note $ para ("First" <> space <> "note.")
+                , note $ para ("Second" <> space <> "note.")
+                ])
+
+      , "Footnote followed by header" =:
+          unlines [ "Another note[fn:yay]"
+                  , ""
+                  , "[fn:yay] This is great!"
+                  , ""
+                  , "** Headline"
+                  ] =?>
+          mconcat
+          [ para (mconcat
+                  [ "Another", space, "note"
+                  , note $ para ("This" <> space <> "is" <> space <> "great!")
+                  ])
+          , header 2 "Headline"
+          ]
       ]
 
   , testGroup "Lists" $
@@ -537,13 +560,36 @@ tests =
                          , ("TTL", [ plain $ "transistor-transistor" <> space <>
                                                "logic" ])
                          , ("PSK", [ mconcat
-                                     [ para  $ "phase-shift" <> space <> "keying"
-                                     , plain $ spcSep [ "a", "digital"
-                                                      , "modulation", "scheme" ]
+                                     [ para $ "phase-shift" <> space <> "keying"
+                                     , para $ spcSep [ "a", "digital"
+                                                     , "modulation", "scheme" ]
                                      ]
-                                   ]
-                                   )
+                                   ])
                          ]
+
+      , "Compact definition list" =:
+          unlines [ "- ATP :: adenosine 5' triphosphate"
+                  , "- DNA :: deoxyribonucleic acid"
+                  , "- PCR :: polymerase chain reaction"
+                  , ""
+                  ] =?>
+          definitionList
+          [ ("ATP", [ plain $ spcSep [ "adenosine", "5'", "triphosphate" ] ])
+          , ("DNA", [ plain $ spcSep [ "deoxyribonucleic", "acid" ] ])
+          , ("PCR", [ plain $ spcSep [ "polymerase", "chain", "reaction" ] ])
+          ]
+
+      , "Loose bullet list" =:
+          unlines [ "- apple"
+                  , ""
+                  , "- orange"
+                  , ""
+                  , "- peach"
+                  ] =?>
+          bulletList [ para "apple"
+                     , para "orange"
+                     , para "peach"
+                     ]
       ]
 
   , testGroup "Tables"
@@ -656,5 +702,126 @@ tests =
                 [ [ plain "1"      , plain "One"  , plain "foo"  ]
                 , [ plain "2"      , plain mempty , plain mempty  ]
                 ]
+
+      , "Table with caption" =:
+          unlines [ "#+CAPTION: Hitchhiker's Multiplication Table"
+                  , "| x |  6 |"
+                  , "| 9 | 42 |"
+                  ] =?>
+          table "Hitchhiker's Multiplication Table"
+                [(AlignDefault, 0), (AlignDefault, 0)]
+                []
+                [ [ plain "x", plain "6" ]
+                , [ plain "9", plain "42" ]
+                ]
+      ]
+
+    , testGroup "Blocks and fragments"
+      [ "Source block" =:
+           unlines [ "  #+BEGIN_SRC haskell"
+                   , "  main = putStrLn greeting"
+                   , "    where greeting = \"moin\""
+                   , "  #+END_SRC" ] =?>
+           let attr' = ("", ["haskell"], [])
+               code' = "main = putStrLn greeting\n" ++
+                       "  where greeting = \"moin\"\n"
+           in codeBlockWith attr' code'
+
+      , "Source block between paragraphs" =:
+           unlines [ "Low German greeting"
+                   , "  #+BEGIN_SRC haskell"
+                   , "  main = putStrLn greeting"
+                   , "    where greeting = \"Moin!\""
+                   , "  #+END_SRC" ] =?>
+           let attr' = ("", ["haskell"], [])
+               code' = "main = putStrLn greeting\n" ++
+                        "  where greeting = \"Moin!\"\n"
+           in mconcat [ para $ spcSep [ "Low", "German", "greeting"  ]
+                      , codeBlockWith attr' code'
+                      ]
+
+      , "Example block" =:
+           unlines [ "#+begin_example"
+                   , "A chosen representation of"
+                   , "a rule."
+                   , "#+eND_exAMPle"
+                   ] =?>
+           codeBlockWith ("", ["example"], [])
+                         "A chosen representation of\na rule.\n"
+
+      , "HTML block" =:
+           unlines [ "#+BEGIN_HTML"
+                   , "<aside>HTML5 is pretty nice.</aside>"
+                   , "#+END_HTML"
+                   ] =?>
+           rawBlock "html" "<aside>HTML5 is pretty nice.</aside>\n"
+
+      , "Quote block" =:
+           unlines [ "#+BEGIN_QUOTE"
+                   , "/Niemand/ hat die Absicht, eine Mauer zu errichten!"
+                   , "#+END_QUOTE"
+                   ] =?>
+           blockQuote (para (spcSep [ emph "Niemand", "hat", "die", "Absicht,"
+                                    , "eine", "Mauer", "zu", "errichten!"
+                                    ]))
+
+      , "Verse block" =:
+          unlines [ "The first lines of Goethe's /Faust/:"
+                  , "#+begin_verse"
+                  , "Habe nun, ach! Philosophie,"
+                  , "Juristerei und Medizin,"
+                  , "Und leider auch Theologie!"
+                  , "Durchaus studiert, mit heißem Bemühn."
+                  , "#+end_verse"
+                  ] =?>
+          mconcat
+          [ para $ spcSep [ "The", "first", "lines", "of"
+                          , "Goethe's", emph "Faust" <> ":"]
+          , para $ mconcat
+              [ spcSep [ "Habe", "nun,", "ach!", "Philosophie," ]
+              , linebreak
+              , spcSep [ "Juristerei", "und", "Medizin," ]
+              , linebreak
+              , spcSep [ "Und", "leider", "auch", "Theologie!" ]
+              , linebreak
+              , spcSep [ "Durchaus", "studiert,", "mit", "heißem", "Bemühn." ]
+              ]
+          ]
+
+      , "LaTeX fragment" =:
+          unlines [ "\\begin{equation}"
+                  , "X_i = \\begin{cases}"
+                  , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) = \\alpha(i)\\\\"
+                  , "      C_{\\alpha(i)} & \\text{otherwise}"
+                  , "      \\end{cases}"
+                  , "\\end{equation}"
+                  ] =?>
+          rawBlock "latex"
+                   (unlines [ "\\begin{equation}"
+                            , "X_i = \\begin{cases}"
+                            , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) =" ++
+                              " \\alpha(i)\\\\"
+                            , "      C_{\\alpha(i)} & \\text{otherwise}"
+                            , "      \\end{cases}"
+                            , "\\end{equation}"
+                            ])
+
+      , "Code block with caption" =:
+          unlines [ "#+CAPTION: Functor laws in Haskell"
+                  , "#+NAME: functor-laws"
+                  , "#+BEGIN_SRC haskell"
+                  , "fmap id = id"
+                  , "fmap (p . q) = (fmap p) . (fmap q)"
+                  , "#+END_SRC"
+                  ] =?>
+          divWith
+             nullAttr
+             (mappend
+              (plain $ spanWith ("", ["label"], [])
+                                (spcSep [ "Functor", "laws", "in", "Haskell" ]))
+              (codeBlockWith ("functor-laws", ["haskell"], [])
+                             (unlines [ "fmap id = id"
+                                      , "fmap (p . q) = (fmap p) . (fmap q)"
+                                      ])))
       ]
   ]
