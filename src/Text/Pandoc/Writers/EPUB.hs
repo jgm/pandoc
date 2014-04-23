@@ -35,7 +35,7 @@ import Data.Maybe ( fromMaybe )
 import Data.List ( isInfixOf, intercalate )
 import System.Environment ( getEnv )
 import Text.Printf (printf)
-import System.FilePath ( (</>), takeBaseName, takeExtension, takeFileName )
+import System.FilePath ( (</>), takeExtension, takeFileName )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -56,7 +56,7 @@ import Text.XML.Light hiding (ppTopElement)
 import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.Markdown ( writePlain )
-import Data.Char ( toLower, isDigit )
+import Data.Char ( toLower, isDigit, isAlphaNum )
 import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
 #if MIN_VERSION_base(4,6,0)
@@ -131,6 +131,11 @@ plainify t =
 removeNote :: Inline -> Inline
 removeNote (Note _) = Str ""
 removeNote x        = x
+
+toId :: FilePath -> String
+toId = map (\x -> if isAlphaNum x || x == '-' || x == '_'
+                     then x
+                     else '_') . takeFileName
 
 getEPUBMetadata :: WriterOptions -> Meta -> IO EPUBMetadata
 getEPUBMetadata opts meta = do
@@ -427,7 +432,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   -- contents.opf
   let chapterNode ent = unode "item" !
-                           ([("id", takeBaseName $ eRelativePath ent),
+                           ([("id", toId $ eRelativePath ent),
                              ("href", eRelativePath ent),
                              ("media-type", "application/xhtml+xml")]
                             ++ case props ent of
@@ -435,14 +440,14 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                     xs   -> [("properties", unwords xs)])
                         $ ()
   let chapterRefNode ent = unode "itemref" !
-                             [("idref", takeBaseName $ eRelativePath ent)] $ ()
+                             [("idref", takeFileName $ eRelativePath ent)] $ ()
   let pictureNode ent = unode "item" !
-                           [("id", takeBaseName $ eRelativePath ent),
+                           [("id", toId $ eRelativePath ent),
                             ("href", eRelativePath ent),
                             ("media-type", fromMaybe "application/octet-stream"
                                $ mediaTypeOf $ eRelativePath ent)] $ ()
   let fontNode ent = unode "item" !
-                           [("id", takeBaseName $ eRelativePath ent),
+                           [("id", toId $ eRelativePath ent),
                             ("href", eRelativePath ent),
                             ("media-type", fromMaybe "" $ getMimeType $ eRelativePath ent)] $ ()
   let plainTitle = case docTitle meta of
