@@ -316,20 +316,25 @@ blockToMarkdown opts (Div attrs ils) = do
                       contents <> blankline <> "</div>" <> blankline
 blockToMarkdown opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
-  return $ contents <> cr
+  -- escape if para starts with ordered list marker
+  st <- get
+  let colwidth = if writerWrapText opts
+                    then Just $ writerColumns opts
+                    else Nothing
+  let rendered = render colwidth contents
+  let escapeDelimiter (x:xs) | x `elem` ".()" = '\\':x:xs
+                             | otherwise      = x : escapeDelimiter xs
+      escapeDelimiter []                      = []
+  let contents' = if isEnabled Ext_all_symbols_escapable opts &&
+                     not (stPlain st) && beginsWithOrderedListMarker rendered
+                     then text $ escapeDelimiter rendered
+                     else contents
+  return $ contents' <> cr
 -- title beginning with fig: indicates figure
 blockToMarkdown opts (Para [Image alt (src,'f':'i':'g':':':tit)]) =
   blockToMarkdown opts (Para [Image alt (src,tit)])
-blockToMarkdown opts (Para inlines) = do
-  contents <- inlineListToMarkdown opts inlines
-  -- escape if para starts with ordered list marker
-  st <- get
-  let esc = if isEnabled Ext_all_symbols_escapable opts &&
-               not (stPlain st) &&
-               beginsWithOrderedListMarker (render Nothing contents)
-               then text "\x200B" -- zero-width space, a hack
-               else empty
-  return $ esc <> contents <> blankline
+blockToMarkdown opts (Para inlines) =
+  (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
 blockToMarkdown opts (RawBlock f str)
   | f == "html" = do
     st <- get
