@@ -740,6 +740,7 @@ inline =
          , linebreak
          , footnote
          , linkOrImage
+         , anchor
          , str
          , endline
          , emph
@@ -885,6 +886,30 @@ isImageFilename filename =
  where
    imageExtensions = [ "jpeg" , "jpg" , "png" , "gif" , "svg" ]
    protocols = [ "file", "http", "https" ]
+
+-- | Parse an anchor like @<<anchor-id>>@ and return an empty span with
+-- @anchor-id@ set as id.  Legal anchors in org-mode are defined through
+-- @org-target-regexp@, which is fairly liberal.  Since no link is created if
+-- @anchor-id@ contains spaces, we are more restrictive in what is accepted as
+-- an anchor.
+
+anchor :: OrgParser (F Inlines)
+anchor =  try $ pure <$> (B.spanWith <$> attributes <*> pure mempty)
+ where
+       name = string "<<"
+              *> many1 (noneOf "\t\n\r<>\"' ")
+              <* string ">>"
+       attributes = name >>= \n -> return (solidify n, [], [])
+
+-- | Replace every char but [a-zA-Z0-9_.-:] with a hypen '-'.  This mirrors
+-- the org function @org-export-solidify-link-text@.
+
+solidify :: String -> String
+solidify = map replaceSpecialChar
+ where replaceSpecialChar c
+           | isAlphaNum c    = c
+           | c `elem` "_.-:" = c
+           | otherwise       = '-'
 
 emph      :: OrgParser (F Inlines)
 emph      = fmap B.emph         <$> emphasisBetween '/'
