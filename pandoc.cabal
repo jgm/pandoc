@@ -233,6 +233,7 @@ Library
                  blaze-markup >= 0.5.1 && < 0.7,
                  attoparsec >= 0.10 && < 0.12,
                  yaml >= 0.8.8.2 && < 0.9,
+                 scientific >= 0.2 && < 0.3,
                  vector >= 0.10 && < 0.11,
                  hslua >= 0.3 && < 0.4,
                  binary >= 0.5 && < 0.8

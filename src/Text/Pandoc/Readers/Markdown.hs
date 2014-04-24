@@ -33,6 +33,7 @@ module Text.Pandoc.Readers.Markdown ( readMarkdown,
 
 import Data.List ( transpose, sortBy, findIndex, intersperse, intercalate )
 import qualified Data.Map as M
+import Data.Scientific (coefficient, base10Exponent)
 import Data.Ord ( comparing )
 import Data.Char ( isAlphaNum, toLower )
 import Data.Maybe
@@ -285,7 +286,11 @@ toMetaValue opts x =
 
 yamlToMeta :: ReaderOptions -> Yaml.Value -> MetaValue
 yamlToMeta opts (Yaml.String t) = toMetaValue opts t
-yamlToMeta _    (Yaml.Number n) = MetaString $ show n
+yamlToMeta _    (Yaml.Number n)
+  -- avoid decimal points for numbers that don't need them:
+  | base10Exponent n >= 0     = MetaString $ show
+                                $ coefficient n * (10 ^ base10Exponent n)
+  | otherwise                 = MetaString $ show n
 yamlToMeta _    (Yaml.Bool b) = MetaBool b
 yamlToMeta opts (Yaml.Array xs) = B.toMetaValue $ map (yamlToMeta opts)
                                                 $ V.toList xs
