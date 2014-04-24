@@ -45,7 +45,7 @@ import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>), (<**>) )
 import           Control.Monad (foldM, guard, liftM, liftM2, when)
 import           Control.Monad.Reader (Reader, runReader, ask, asks)
-import           Data.Char (toLower)
+import           Data.Char (isAlphaNum, toLower)
 import           Data.Default
 import           Data.List (intersperse, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
@@ -209,6 +209,9 @@ instance Monoid a => Monoid (F a) where
 trimInlinesF :: F Inlines -> F Inlines
 trimInlinesF = liftM trimInlines
 
+returnF :: a -> OrgParser (F a)
+returnF = return . return
+
 
 -- | Like @Text.Parsec.Char.newline@, but causes additional state changes.
 newline :: OrgParser Char
@@ -291,9 +294,6 @@ orgBlock = try $ do
     "src"     -> codeBlockWithAttr classArgs content
     _         -> return  $ B.divWith ("", [blockType], []) <$> contentBlocks
  where
-   returnF :: a -> OrgParser (F a)
-   returnF = return . return
-
    parseVerse :: String -> OrgParser (F Blocks)
    parseVerse cs =
        fmap B.para . mconcat . intersperse (pure B.linebreak)
@@ -834,7 +834,11 @@ noteMarker = try $ do
          ]
 
 linkOrImage :: OrgParser (F Inlines)
-linkOrImage = explicitOrImageLink <|> selflinkOrImage <?> "link or image"
+linkOrImage = explicitOrImageLink
+              <|> selflinkOrImage
+              <|> angleLink
+              <|> plainLink
+              <?> "link or image"
 
 explicitOrImageLink :: OrgParser (F Inlines)
 explicitOrImageLink = try $ do
@@ -851,15 +855,27 @@ explicitOrImageLink = try $ do
 selflinkOrImage :: OrgParser (F Inlines)
 selflinkOrImage = try $ do
   src <- char '[' *> linkTarget <* char ']'
-  return . return $ if isImageFilename src
-                    then B.image src "" ""
-                    else B.link src "" (B.str src)
+  returnF $ if isImageFilename src
+            then B.image src "" ""
+            else B.link src "" (B.str src)
+
+plainLink :: OrgParser (F Inlines)
+plainLink = try $ do
+  (orig, src) <- uri
+  returnF $ B.link src "" (B.str orig)
+
+angleLink :: OrgParser (F Inlines)
+angleLink = try $ do
+  char '<'
+  link <- plainLink
+  char '>'
+  return link
 
 selfTarget :: OrgParser String
 selfTarget = try $ char '[' *> linkTarget <* char ']'
 
 linkTarget :: OrgParser String
-linkTarget = enclosed (char '[') (char ']') (noneOf "\n\r]")
+linkTarget = enclosed (char '[') (char ']') (noneOf "\n\r[]")
 
 isImageFilename :: String -> Bool
 isImageFilename filename =
