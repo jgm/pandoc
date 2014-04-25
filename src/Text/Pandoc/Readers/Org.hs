@@ -45,7 +45,7 @@ import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>), (<**>) )
 import           Control.Monad (foldM, guard, liftM, liftM2, when)
 import           Control.Monad.Reader (Reader, runReader, ask, asks)
-import           Data.Char (toLower)
+import           Data.Char (isAlphaNum, toLower)
 import           Data.Default
 import           Data.List (intersperse, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
@@ -79,6 +79,7 @@ type OrgBlockAttributes = M.Map String String
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
                       { orgStateOptions              :: ReaderOptions
+                      , orgStateAnchorIds            :: [String]
                       , orgStateBlockAttributes      :: OrgBlockAttributes
                       , orgStateEmphasisCharStack    :: [Char]
                       , orgStateEmphasisNewlines     :: Maybe Int
@@ -105,6 +106,7 @@ instance Default OrgParserState where
 defaultOrgParserState :: OrgParserState
 defaultOrgParserState = OrgParserState
                         { orgStateOptions = def
+                        , orgStateAnchorIds = []
                         , orgStateBlockAttributes = M.empty
                         , orgStateEmphasisCharStack = []
                         , orgStateEmphasisNewlines = Nothing
@@ -115,6 +117,10 @@ defaultOrgParserState = OrgParserState
                         , orgStateMeta' = return nullMeta
                         , orgStateNotes' = []
                         }
+
+recordAnchorId :: String -> OrgParser ()
+recordAnchorId i = updateState $ \s ->
+  s{ orgStateAnchorIds = i : (orgStateAnchorIds s) }
 
 addBlockAttribute :: String -> String -> OrgParser ()
 addBlockAttribute key val = updateState $ \s ->
@@ -209,6 +215,9 @@ instance Monoid a => Monoid (F a) where
 trimInlinesF :: F Inlines -> F Inlines
 trimInlinesF = liftM trimInlines
 
+returnF :: a -> OrgParser (F a)
+returnF = return . return
+
 
 -- | Like @Text.Parsec.Char.newline@, but causes additional state changes.
 newline :: OrgParser Char
@@ -291,9 +300,6 @@ orgBlock = try $ do
     "src"     -> codeBlockWithAttr classArgs content
     _         -> return  $ B.divWith ("", [blockType], []) <$> contentBlocks
  where
-   returnF :: a -> OrgParser (F a)
-   returnF = return . return
-
    parseVerse :: String -> OrgParser (F Blocks)
    parseVerse cs =
        fmap B.para . mconcat . intersperse (pure B.linebreak)
@@ -740,6 +746,7 @@ inline =
          , linebreak
          , footnote
          , linkOrImage
+         , anchor
          , str
          , endline
          , emph
@@ -834,7 +841,11 @@ noteMarker = try $ do
          ]
 
 linkOrImage :: OrgParser (F Inlines)
-linkOrImage = explicitOrImageLink <|> selflinkOrImage <?> "link or image"
+linkOrImage = explicitOrImageLink
+              <|> selflinkOrImage
+              <|> angleLink
+              <|> plainLink
+              <?> "link or image"
 
 explicitOrImageLink :: OrgParser (F Inlines)
 explicitOrImageLink = try $ do
@@ -843,23 +854,52 @@ explicitOrImageLink = try $ do
   title  <- enclosedRaw (char '[') (char ']')
   title' <- parseFromString (mconcat <$> many inline) title
   char ']'
-  return $ B.link src ""  <$>
-         if isImageFilename src && isImageFilename title
-            then return $ B.image title mempty mempty
-            else title'
+  return $ if isImageFilename src && isImageFilename title
+           then pure $ B.link src "" $ B.image title mempty mempty
+           else linkToInlinesF src =<< title'
 
 selflinkOrImage :: OrgParser (F Inlines)
 selflinkOrImage = try $ do
   src <- char '[' *> linkTarget <* char ']'
-  return . return $ if isImageFilename src
-                    then B.image src "" ""
-                    else B.link src "" (B.str src)
+  return $ linkToInlinesF src (B.str src)
+
+plainLink :: OrgParser (F Inlines)
+plainLink = try $ do
+  (orig, src) <- uri
+  returnF $ B.link src "" (B.str orig)
+
+angleLink :: OrgParser (F Inlines)
+angleLink = try $ do
+  char '<'
+  link <- plainLink
+  char '>'
+  return link
 
 selfTarget :: OrgParser String
 selfTarget = try $ char '[' *> linkTarget <* char ']'
 
 linkTarget :: OrgParser String
-linkTarget = enclosed (char '[') (char ']') (noneOf "\n\r]")
+linkTarget = enclosed (char '[') (char ']') (noneOf "\n\r[]")
+
+linkToInlinesF :: String -> Inlines -> F Inlines
+linkToInlinesF s@('#':_) = pure . B.link s ""
+linkToInlinesF s
+    | isImageFilename s = const . pure $ B.image s "" ""
+    | isUri s           = pure . B.link s ""
+    | isRelativeUrl s   = pure . B.link s ""
+linkToInlinesF s = \title -> do
+  anchorB <- (s `elem`) <$> asksF orgStateAnchorIds
+  if anchorB
+    then pure $ B.link ('#':s) "" title
+    else pure $ B.emph title
+
+isRelativeUrl :: String -> Bool
+isRelativeUrl s = (':' `notElem` s) && ("./" `isPrefixOf` s)
+
+isUri :: String -> Bool
+isUri s = let (scheme, path) = break (== ':') s
+          in all (\c -> isAlphaNum c || c `elem` ".-") scheme
+             && not (null path)
 
 isImageFilename :: String -> Bool
 isImageFilename filename =
@@ -869,6 +909,33 @@ isImageFilename filename =
  where
    imageExtensions = [ "jpeg" , "jpg" , "png" , "gif" , "svg" ]
    protocols = [ "file", "http", "https" ]
+
+-- | Parse an anchor like @<<anchor-id>>@ and return an empty span with
+-- @anchor-id@ set as id.  Legal anchors in org-mode are defined through
+-- @org-target-regexp@, which is fairly liberal.  Since no link is created if
+-- @anchor-id@ contains spaces, we are more restrictive in what is accepted as
+-- an anchor.
+
+anchor :: OrgParser (F Inlines)
+anchor =  try $ do
+  anchorId <- parseAnchor
+  recordAnchorId anchorId
+  returnF $ B.spanWith (solidify anchorId, [], []) mempty
+ where
+       parseAnchor = string "<<"
+                     *> many1 (noneOf "\t\n\r<>\"' ")
+                     <* string ">>"
+                     <* skipSpaces
+
+-- | Replace every char but [a-zA-Z0-9_.-:] with a hypen '-'.  This mirrors
+-- the org function @org-export-solidify-link-text@.
+
+solidify :: String -> String
+solidify = map replaceSpecialChar
+ where replaceSpecialChar c
+           | isAlphaNum c    = c
+           | c `elem` "_.-:" = c
+           | otherwise       = '-'
 
 emph      :: OrgParser (F Inlines)
 emph      = fmap B.emph         <$> emphasisBetween '/'

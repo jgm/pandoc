@@ -188,6 +188,25 @@ tests =
       , "Image link" =:
           "[[sunset.png][dusk.svg]]" =?>
           (para $ link "sunset.png" "" (image "dusk.svg" "" ""))
+
+      , "Plain link" =:
+          "Posts on http://zeitlens.com/ can be funny at times." =?>
+          (para $ spcSep [ "Posts", "on"
+                         , link "http://zeitlens.com/" "" "http://zeitlens.com/"
+                         , "can", "be", "funny", "at", "times."
+                         ])
+
+      , "Angle link" =:
+          "Look at <http://moltkeplatz.de> for fnords." =?>
+          (para $ spcSep [ "Look", "at"
+                         , link "http://moltkeplatz.de" "" "http://moltkeplatz.de"
+                         , "for", "fnords."
+                         ])
+
+      , "Anchor" =:
+          "<<anchor>> Link here later." =?>
+          (para $ spanWith ("anchor", [], []) mempty <>
+                  "Link" <> space <> "here" <> space <> "later.")
       ]
 
   , testGroup "Meta Information" $
@@ -265,6 +284,26 @@ tests =
                   , ":END:"
                   ] =?>
           para (":FOO:" <> space <> ":END:")
+
+      , "Anchor reference" =:
+          unlines [ "<<link-here>> Target."
+                  , ""
+                  , "[[link-here][See here!]]"
+                  ] =?>
+          (para (spanWith ("link-here", [], []) mempty <> "Target.") <>
+           para (link "#link-here" "" ("See" <> space <> "here!")))
+
+      , "Search links are read as emph" =:
+          "[[Wally][Where's Wally?]]" =?>
+          (para (emph $ "Where's" <> space <> "Wally?"))
+
+      , "Link to nonexistent anchor" =:
+          unlines [ "<<link-here>> Target."
+                  , ""
+                  , "[[link$here][See here!]]"
+                  ] =?>
+          (para (spanWith ("link-here", [], []) mempty <> "Target.") <>
+           para (emph ("See" <> space <> "here!")))
       ]
 
   , testGroup "Basic Blocks" $

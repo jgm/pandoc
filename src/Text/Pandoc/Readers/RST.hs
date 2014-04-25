@@ -1005,7 +1005,7 @@ renderRole contents fmt role attr = case role of
      where rfcUrl = "http://www.faqs.org/rfcs/rfc" ++ rfcNo ++ ".html"
    pepLink pepNo = B.link pepUrl ("PEP " ++ pepNo) $ B.str ("PEP " ++ pepNo)
      where padNo = replicate (4 - length pepNo) '0' ++ pepNo
-           pepUrl = "http://http://www.python.org/dev/peps/pep-" ++ padNo ++ "/"
+           pepUrl = "http://www.python.org/dev/peps/pep-" ++ padNo ++ "/"
 
 roleNameEndingIn :: RSTParser Char -> RSTParser String
 roleNameEndingIn end = many1Till (letter <|> char '-') end
