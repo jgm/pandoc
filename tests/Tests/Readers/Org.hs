@@ -202,6 +202,11 @@ tests =
                          , link "http://moltkeplatz.de" "" "http://moltkeplatz.de"
                          , "for", "fnords."
                          ])
+
+      , "Anchor" =:
+          "<<anchor>> Link here later." =?>
+          (para $ spanWith ("anchor", [], []) mempty <>
+                  "Link" <> space <> "here" <> space <> "later.")
       ]
 
   , testGroup "Meta Information" $
@@ -279,6 +284,26 @@ tests =
                   , ":END:"
                   ] =?>
           para (":FOO:" <> space <> ":END:")
+
+      , "Anchor reference" =:
+          unlines [ "<<link-here>> Target."
+                  , ""
+                  , "[[link-here][See here!]]"
+                  ] =?>
+          (para (spanWith ("link-here", [], []) mempty <> "Target.") <>
+           para (link "#link-here" "" ("See" <> space <> "here!")))
+
+      , "Search links are read as emph" =:
+          "[[Wally][Where's Wally?]]" =?>
+          (para (emph $ "Where's" <> space <> "Wally?"))
+
+      , "Link to nonexistent anchor" =:
+          unlines [ "<<link-here>> Target."
+                  , ""
+                  , "[[link$here][See here!]]"
+                  ] =?>
+          (para (spanWith ("link-here", [], []) mempty <> "Target.") <>
+           para (emph ("See" <> space <> "here!")))
       ]
 
   , testGroup "Basic Blocks" $

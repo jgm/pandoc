@@ -79,6 +79,7 @@ type OrgBlockAttributes = M.Map String String
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
                       { orgStateOptions              :: ReaderOptions
+                      , orgStateAnchorIds            :: [String]
                       , orgStateBlockAttributes      :: OrgBlockAttributes
                       , orgStateEmphasisCharStack    :: [Char]
                       , orgStateEmphasisNewlines     :: Maybe Int
@@ -105,6 +106,7 @@ instance Default OrgParserState where
 defaultOrgParserState :: OrgParserState
 defaultOrgParserState = OrgParserState
                         { orgStateOptions = def
+                        , orgStateAnchorIds = []
                         , orgStateBlockAttributes = M.empty
                         , orgStateEmphasisCharStack = []
                         , orgStateEmphasisNewlines = Nothing
@@ -115,6 +117,10 @@ defaultOrgParserState = OrgParserState
                         , orgStateMeta' = return nullMeta
                         , orgStateNotes' = []
                         }
+
+recordAnchorId :: String -> OrgParser ()
+recordAnchorId i = updateState $ \s ->
+  s{ orgStateAnchorIds = i : (orgStateAnchorIds s) }
 
 addBlockAttribute :: String -> String -> OrgParser ()
 addBlockAttribute key val = updateState $ \s ->
@@ -848,17 +854,14 @@ explicitOrImageLink = try $ do
   title  <- enclosedRaw (char '[') (char ']')
   title' <- parseFromString (mconcat <$> many inline) title
   char ']'
-  return $ B.link src ""  <$>
-         if isImageFilename src && isImageFilename title
-            then return $ B.image title mempty mempty
-            else title'
+  return $ if isImageFilename src && isImageFilename title
+           then pure $ B.link src "" $ B.image title mempty mempty
+           else linkToInlinesF src =<< title'
 
 selflinkOrImage :: OrgParser (F Inlines)
 selflinkOrImage = try $ do
   src <- char '[' *> linkTarget <* char ']'
-  returnF $ if isImageFilename src
-            then B.image src "" ""
-            else B.link src "" (B.str src)
+  return $ linkToInlinesF src (B.str src)
 
 plainLink :: OrgParser (F Inlines)
 plainLink = try $ do
@@ -878,6 +881,26 @@ selfTarget = try $ char '[' *> linkTarget <* char ']'
 linkTarget :: OrgParser String
 linkTarget = enclosed (char '[') (char ']') (noneOf "\n\r[]")
 
+linkToInlinesF :: String -> Inlines -> F Inlines
+linkToInlinesF s@('#':_) = pure . B.link s ""
+linkToInlinesF s
+    | isImageFilename s = const . pure $ B.image s "" ""
+    | isUri s           = pure . B.link s ""
+    | isRelativeUrl s   = pure . B.link s ""
+linkToInlinesF s = \title -> do
+  anchorB <- (s `elem`) <$> asksF orgStateAnchorIds
+  if anchorB
+    then pure $ B.link ('#':s) "" title
+    else pure $ B.emph title
+
+isRelativeUrl :: String -> Bool
+isRelativeUrl s = (':' `notElem` s) && ("./" `isPrefixOf` s)
+
+isUri :: String -> Bool
+isUri s = let (scheme, path) = break (== ':') s
+          in all (\c -> isAlphaNum c || c `elem` ".-") scheme
+             && not (null path)
+
 isImageFilename :: String -> Bool
 isImageFilename filename =
   any (\x -> ('.':x)  `isSuffixOf` filename) imageExtensions &&
@@ -894,12 +917,15 @@ isImageFilename filename =
 -- an anchor.
 
 anchor :: OrgParser (F Inlines)
-anchor =  try $ pure <$> (B.spanWith <$> attributes <*> pure mempty)
+anchor =  try $ do
+  anchorId <- parseAnchor
+  recordAnchorId anchorId
+  returnF $ B.spanWith (solidify anchorId, [], []) mempty
  where
-       name = string "<<"
-              *> many1 (noneOf "\t\n\r<>\"' ")
-              <* string ">>"
-       attributes = name >>= \n -> return (solidify n, [], [])
+       parseAnchor = string "<<"
+                     *> many1 (noneOf "\t\n\r<>\"' ")
+                     <* string ">>"
+                     <* skipSpaces
 
 -- | Replace every char but [a-zA-Z0-9_.-:] with a hypen '-'.  This mirrors
 -- the org function @org-export-solidify-link-text@.
