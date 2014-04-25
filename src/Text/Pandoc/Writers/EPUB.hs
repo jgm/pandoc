@@ -440,7 +440,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                     xs   -> [("properties", unwords xs)])
                         $ ()
   let chapterRefNode ent = unode "itemref" !
-                             [("idref", takeFileName $ eRelativePath ent)] $ ()
+                             [("idref", toId $ eRelativePath ent)] $ ()
   let pictureNode ent = unode "item" !
                            [("id", toId $ eRelativePath ent),
                             ("href", eRelativePath ent),
@@ -488,8 +488,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
               case epubCoverImage metadata of
                     Nothing -> []
                     Just _ -> [ unode "itemref" !
-                                [("idref", "cover"),("linear","no")] $ () ]
-              ++ ((unode "itemref" ! [("idref", "title_page")
+                                [("idref", "cover_xhtml"),("linear","no")] $ () ]
+              ++ ((unode "itemref" ! [("idref", "title_page_xhtml")
                                      ,("linear", if null (docTitle meta)
                                                     then "no"
                                                     else "yes")] $ ()) :
