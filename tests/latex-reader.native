@@ -1,4 +1,4 @@
-Pandoc (Meta {unMeta = fromList [("authors",MetaList [MetaInlines [Str "John",Space,Str "MacFarlane"],MetaInlines [Str "Anonymous"]]),("date",MetaInlines [Str "July",Space,Str "17,",Space,Str "2006"]),("title",MetaInlines [Str "Pandoc",Space,Str "Test",Space,Str "Suite"])]})
+Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Space,Str "MacFarlane"],MetaInlines [Str "Anonymous"]]),("date",MetaInlines [Str "July",Space,Str "17,",Space,Str "2006"]),("title",MetaInlines [Str "Pandoc",Space,Str "Test",Space,Str "Suite"])]})
 [RawBlock (Format "latex") "\\maketitle"
 ,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc.",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber\8217s",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
 ,HorizontalRule
