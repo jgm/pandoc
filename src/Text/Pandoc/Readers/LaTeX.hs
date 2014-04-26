@@ -322,7 +322,8 @@ blockCommands = M.fromList $
   ]
 
 addMeta :: ToMetaValue a => String -> a -> LP ()
-addMeta field val = updateState $ setMeta field val
+addMeta field val = updateState $ \st ->
+  st{ stateMeta = addMetaField field val $ stateMeta st }
 
 setCaption :: Inlines -> LP Blocks
 setCaption ils = do
@@ -341,7 +342,7 @@ authors = try $ do
                -- skip e.g. \vspace{10pt}
   auths <- sepBy oneAuthor (controlSeq "and")
   char '}'
-  addMeta "authors" (map trimInlines auths)
+  addMeta "author" (map trimInlines auths)
 
 section :: Attr -> Int -> LP Blocks
 section (ident, classes, kvs) lvl = do
@@ -525,10 +526,12 @@ inlineCommands = M.fromList $
   , ("citeauthor", (try (tok *> optional sp *> controlSeq "citetext") *>
                         complexNatbibCitation AuthorInText)
                    <|> citation "citeauthor" AuthorInText False)
+  , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
+                          addMeta "nocite"))
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
-  [ "noindent", "index", "nocite" ]
+  [ "noindent", "index" ]
 
 mkImage :: String -> LP Inlines
 mkImage src = do
