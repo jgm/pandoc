@@ -40,6 +40,7 @@ import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting ( highlight, styleToCss,
                                   formatHtmlInline, formatHtmlBlock )
 import Text.Pandoc.XML (fromEntities, escapeStringForXML)
+import Network.URI ( parseURIReference, URI(..) )
 import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
@@ -396,7 +397,10 @@ imageExts = [ "art", "bmp", "cdr", "cdt", "cpt", "cr2", "crw", "djvu", "erf",
 
 treatAsImage :: FilePath -> Bool
 treatAsImage fp =
-  let ext = map toLower $ drop 1 $ takeExtension fp
+  let path = case uriPath `fmap` parseURIReference fp of
+                  Nothing -> fp
+                  Just up -> up
+      ext  = map toLower $ drop 1 $ takeExtension path
   in  null ext || ext `elem` imageExts
 
 -- | Convert Pandoc block element to HTML.
