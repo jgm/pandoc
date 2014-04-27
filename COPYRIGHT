@@ -63,12 +63,6 @@ Copyright (C) 2014 Albert Krewinkel
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
-src/Text/Pandoc/Biblio.hs
-Copyright (C) 2008-2010 Andrea Rossato
-
-Released under the GNU General Public License version 2 or later.
-
-----------------------------------------------------------------------
 data/LaTeXMathML.js
 Adapted by Jeff Knisely and Douglas Woodall from
 ASCIIMathML.js v. 1.4.7
@@ -79,37 +73,6 @@ Released under the GNU General Public License version 2 or later.
 ----------------------------------------------------------------------
 data/MathMLinHTML.js
 Copyright (C) 2004 Peter Jipsen http://www.chapman.edu/~jipsen
-
-Released under the GNU General Public License version 2 or later.
-
-----------------------------------------------------------------------
-s5/default
-S5 slides.js and css files
-by Eric A. Meyer
-<http://meyerweb.com/eric/tools/s5
-
-Released under an explicit Public Domain License
-
-----------------------------------------------------------------------
-slidy/default
-Slidy javascript and CSS
-by Dave Raggett
-http://www.w3.org/Talks/Tools/Slidy2
-
-Released under W3C document and software licenses
-
-----------------------------------------------------------------------
-slideous/default
-Slideous javascript and CSS
-by Stefan Gössner
-http://goessner.net/
-
-Released under Creative Commons GNU LGPL License
-
-------------------------------------------------------------------------
-windows/modpath.iss
-Copyright (c) 2007 Jared Breland
-http://legroom.net/software
 
 Released under the GNU General Public License version 2 or later.
 
