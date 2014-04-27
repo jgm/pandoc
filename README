@@ -507,7 +507,7 @@ Options affecting specific writers
 
 `-c` *URL*, `--css=`*URL*
 :   Link to a CSS style sheet. This option can be be used repeatedly to
-    include multiple files. They will be included in the order specified. 
+    include multiple files. They will be included in the order specified.
 
 `--reference-odt=`*FILE*
 :   Use the specified file as a style reference in producing an ODT.
@@ -771,9 +771,9 @@ as `title`, `author`, and `date`) as well as the following:
 :   base URL for Slidy documents (defaults to
     `http://www.w3.org/Talks/Tools/Slidy2`)
 `slideous-url`
-:   base URL for Slideous documents (defaults to `default`)
+:   base URL for Slideous documents (defaults to `slideous`)
 `s5-url`
-:   base URL for S5 documents (defaults to `ui/default`)
+:   base URL for S5 documents (defaults to `s5/default`)
 `revealjs-url`
 :   base URL for reveal.js documents (defaults to `reveal.js`)
 `theme`
