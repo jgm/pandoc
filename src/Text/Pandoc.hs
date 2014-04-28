@@ -152,7 +152,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, warn)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
-import Data.List (intercalate, isSuffixOf)
+import Data.List (intercalate)
 import Data.Version (showVersion)
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -292,24 +292,21 @@ getReader s =
 
 -- | Retrieve writer based on formatSpec (format+extensions).
 getWriter :: String -> Either String Writer
-getWriter s =
-  case parseFormatSpec s of
-       Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
-       Right (writerName, setExts) ->
-           case lookup writerName writers of
-                   Nothing
-                     | ".lua" `isSuffixOf` s ->
-                       Right $ IOStringWriter $ writeCustom s
-                     | otherwise -> Left $ "Unknown writer: " ++ writerName
-                   Just (PureStringWriter r) -> Right $ PureStringWriter $
-                           \o -> r o{ writerExtensions = setExts $
-                                            getDefaultExtensions writerName }
-                   Just (IOStringWriter r) -> Right $ IOStringWriter $
-                           \o -> r o{ writerExtensions = setExts $
-                                            getDefaultExtensions writerName }
-                   Just (IOByteStringWriter r) -> Right $ IOByteStringWriter $
-                           \o -> r o{ writerExtensions = setExts $
-                                            getDefaultExtensions writerName }
+getWriter s
+  = case parseFormatSpec s of
+         Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
+         Right (writerName, setExts) ->
+             case lookup writerName writers of
+                     Nothing -> Left $ "Unknown writer: " ++ writerName
+                     Just (PureStringWriter r) -> Right $ PureStringWriter $
+                             \o -> r o{ writerExtensions = setExts $
+                                              getDefaultExtensions writerName }
+                     Just (IOStringWriter r) -> Right $ IOStringWriter $
+                             \o -> r o{ writerExtensions = setExts $
+                                              getDefaultExtensions writerName }
+                     Just (IOByteStringWriter r) -> Right $ IOByteStringWriter $
+                             \o -> r o{ writerExtensions = setExts $
+                                              getDefaultExtensions writerName }
 
 {-# DEPRECATED toJsonFilter "Use 'toJSONFilter' from 'Text.Pandoc.JSON' instead" #-}
 -- | Deprecated.  Use @toJSONFilter@ from @Text.Pandoc.JSON@ instead.
