@@ -243,13 +243,13 @@ options :: [OptDescr (Opt -> IO Opt)]
 options =
     [ Option "fr" ["from","read"]
                  (ReqArg
-                  (\arg opt -> return opt { optReader = map toLower arg })
+                  (\arg opt -> return opt { optReader = arg })
                   "FORMAT")
                  ""
 
     , Option "tw" ["to","write"]
                  (ReqArg
-                  (\arg opt -> return opt { optWriter = map toLower arg })
+                  (\arg opt -> return opt { optWriter = arg })
                   "FORMAT")
                  ""
 
@@ -1008,14 +1008,13 @@ main = do
                                              then "html"
                                              else "markdown"
                            in  defaultReaderName fallback sources
-                      else readerName
+                      else map toLower readerName
 
-  let writerName' = if null writerName
-                      then defaultWriterName outputFile
-                      else case writerName of
-                                "epub2"   -> "epub"
-                                "html4"   -> "html"
-                                x         -> x
+  let writerName' = case map toLower writerName of
+                          []        -> defaultWriterName outputFile
+                          "epub2"   -> "epub"
+                          "html4"   -> "html"
+                          x         -> x
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
