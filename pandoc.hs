@@ -1003,12 +1003,13 @@ main = do
                   Just _    -> return mbDataDir
 
   -- assign reader and writer based on options and filenames
-  let readerName' = if null readerName
-                      then let fallback = if any isURI sources
-                                             then "html"
-                                             else "markdown"
-                           in  defaultReaderName fallback sources
-                      else map toLower readerName
+  let readerName' = case map toLower readerName of
+                          []       -> defaultReaderName
+                                      (if any isURI sources
+                                          then "html"
+                                          else "markdown") sources
+                          "html4"  -> "html"
+                          x        -> x
 
   let writerName' = case map toLower writerName of
                           []        -> defaultWriterName outputFile
