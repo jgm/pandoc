@@ -43,7 +43,7 @@ import           Text.Pandoc.Shared (compactify', compactify'DL)
 
 import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>), (<**>) )
-import           Control.Monad (foldM, guard, liftM, liftM2, when)
+import           Control.Monad (foldM, guard, liftM, liftM2, mzero, when)
 import           Control.Monad.Reader (Reader, runReader, ask, asks)
 import           Data.Char (isAlphaNum, toLower)
 import           Data.Default
@@ -51,6 +51,7 @@ import           Data.List (intersperse, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
 import           Data.Maybe (listToMaybe, fromMaybe, isJust)
 import           Data.Monoid (Monoid, mconcat, mempty, mappend)
+import           Network.HTTP (urlEncode)
 
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: ReaderOptions -- ^ Reader options
@@ -76,6 +77,8 @@ type OrgNoteTable = [OrgNoteRecord]
 
 type OrgBlockAttributes = M.Map String String
 
+type OrgLinkFormatters = M.Map String (String -> String)
+
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
                       { orgStateOptions              :: ReaderOptions
@@ -86,6 +89,7 @@ data OrgParserState = OrgParserState
                       , orgStateLastForbiddenCharPos :: Maybe SourcePos
                       , orgStateLastPreCharPos       :: Maybe SourcePos
                       , orgStateLastStrPos           :: Maybe SourcePos
+                      , orgStateLinkFormatters       :: OrgLinkFormatters
                       , orgStateMeta                 :: Meta
                       , orgStateMeta'                :: F Meta
                       , orgStateNotes'               :: OrgNoteTable
@@ -113,6 +117,7 @@ defaultOrgParserState = OrgParserState
                         , orgStateLastForbiddenCharPos = Nothing
                         , orgStateLastPreCharPos = Nothing
                         , orgStateLastStrPos = Nothing
+                        , orgStateLinkFormatters = M.empty
                         , orgStateMeta = nullMeta
                         , orgStateMeta' = return nullMeta
                         , orgStateNotes' = []
@@ -174,6 +179,13 @@ newlinesCountWithinLimits = do
 resetEmphasisNewlines :: OrgParser ()
 resetEmphasisNewlines = updateState $ \s ->
   s{ orgStateEmphasisNewlines = Nothing }
+
+addLinkFormat :: String
+              -> (String -> String)
+              -> OrgParser ()
+addLinkFormat key formatter = updateState $ \s ->
+  let fs = orgStateLinkFormatters s
+  in s{ orgStateLinkFormatters = M.insert key formatter fs }
 
 addToNotesTable :: OrgNoteRecord -> OrgParser ()
 addToNotesTable note = do
@@ -423,7 +435,8 @@ specialLine :: OrgParser (F Blocks)
 specialLine = fmap return . try $ metaLine <|> commentLine
 
 metaLine :: OrgParser Blocks
-metaLine = try $ metaLineStart *> declarationLine
+metaLine = try $ mempty
+              <$ (metaLineStart *> (optionLine <|> declarationLine))
 
 commentLine :: OrgParser Blocks
 commentLine = try $ commentLineStart *> anyLine *> pure mempty
@@ -436,14 +449,14 @@ metaLineStart = try $ mappend <$> many spaceChar <*> string "#+"
 commentLineStart :: OrgParser String
 commentLineStart = try $ mappend <$> many spaceChar <*> string "# "
 
-declarationLine :: OrgParser Blocks
+declarationLine :: OrgParser ()
 declarationLine = try $ do
   key <- metaKey
   inlinesF <- metaInlines
   updateState $ \st ->
     let meta' = B.setMeta <$> pure key <*> inlinesF <*> pure nullMeta
     in st { orgStateMeta' = orgStateMeta' st <> meta' }
-  return mempty
+  return ()
 
 metaInlines :: OrgParser (F MetaValue)
 metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
@@ -452,6 +465,35 @@ metaKey :: OrgParser String
 metaKey = map toLower <$> many1 (noneOf ": \n\r")
                       <*  char ':'
                       <*  skipSpaces
+
+optionLine :: OrgParser ()
+optionLine = try $ do
+  key <- metaKey
+  case key of
+    "link" -> parseLinkFormat >>= uncurry addLinkFormat
+    _      -> mzero
+
+parseLinkFormat :: OrgParser ((String, String -> String))
+parseLinkFormat = try $ do
+  linkType <- (:) <$> letter <*> many (alphaNum <|> oneOf "-_") <* skipSpaces
+  linkSubst <- parseFormat
+  return (linkType, linkSubst)
+
+-- | An ad-hoc, single-argument-only implementation of a printf-style format
+-- parser.
+parseFormat :: OrgParser (String -> String)
+parseFormat = try $ do
+  replacePlain <|> replaceUrl <|> justAppend
+ where
+   -- inefficient, but who cares
+   replacePlain = try $ (\x -> concat . flip intersperse x)
+                     <$> sequence [tillSpecifier 's', rest]
+   replaceUrl   = try $ (\x -> concat . flip intersperse x . urlEncode)
+                     <$> sequence [tillSpecifier 'h', rest]
+   justAppend   = try $ (++) <$> rest
+
+   rest            = manyTill anyChar         (eof <|> () <$ oneOf "\n\r")
+   tillSpecifier c = manyTill (noneOf "\n\r") (try $ string ('%':c:""))
 
 --
 -- Headers
@@ -850,13 +892,15 @@ linkOrImage = explicitOrImageLink
 explicitOrImageLink :: OrgParser (F Inlines)
 explicitOrImageLink = try $ do
   char '['
-  src    <- linkTarget
+  srcF   <- applyCustomLinkFormat =<< linkTarget
   title  <- enclosedRaw (char '[') (char ']')
   title' <- parseFromString (mconcat <$> many inline) title
   char ']'
-  return $ if isImageFilename src && isImageFilename title
-           then pure $ B.link src "" $ B.image title mempty mempty
-           else linkToInlinesF src =<< title'
+  return $ do
+    src <- srcF
+    if isImageFilename src && isImageFilename title
+      then pure $ B.link src "" $ B.image title mempty mempty
+      else linkToInlinesF src =<< title'
 
 selflinkOrImage :: OrgParser (F Inlines)
 selflinkOrImage = try $ do
@@ -880,6 +924,14 @@ selfTarget = try $ char '[' *> linkTarget <* char ']'
 
 linkTarget :: OrgParser String
 linkTarget = enclosed (char '[') (char ']') (noneOf "\n\r[]")
+
+applyCustomLinkFormat :: String -> OrgParser (F String)
+applyCustomLinkFormat link = do
+  let (linkType, rest) = break (== ':') link
+  return $ do
+    formatter <- M.lookup linkType <$> asksF orgStateLinkFormatters
+    return $ maybe link ($ drop 1 rest) formatter
+
 
 linkToInlinesF :: String -> Inlines -> F Inlines
 linkToInlinesF s@('#':_) = pure . B.link s ""
