@@ -49,7 +49,7 @@ arbInline n = frequency $ [ (60, liftM Str realString)
                    , (10,  liftM Strikeout $ arbInlines (n-1))
                    , (10,  liftM Superscript $ arbInlines (n-1))
                    , (10,  liftM Subscript $ arbInlines (n-1))
---                   , (10,  liftM SmallCaps $ arbInlines (n-1))
+                   , (10,  liftM SmallCaps $ arbInlines (n-1))
                    , (10,  do x1 <- arbitrary
                               x2 <- arbInlines (n-1)
                               return $ Quoted x1 x2)
