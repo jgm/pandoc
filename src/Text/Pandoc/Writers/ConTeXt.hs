@@ -35,7 +35,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Walk (query)
 import Text.Printf ( printf )
-import Data.List ( intercalate, isPrefixOf )
+import Data.List ( intercalate )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import Text.Pandoc.Templates ( renderTemplate' )
@@ -283,14 +283,6 @@ inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
--- autolink
-inlineToConTeXt (Link [Str str] (src, tit))
-  | if "mailto:" `isPrefixOf` src
-    then src == escapeURI ("mailto:" ++ str)
-    else src == escapeURI str =
-  inlineToConTeXt (Link
-    [RawInline "context" "\\hyphenatedurl{", Str str, RawInline "context" "}"]
-    (src, tit))
 -- Handle HTML-like internal document references to sections
 inlineToConTeXt (Link txt          (('#' : ref), _)) = do
   opts <- gets stOptions
@@ -305,6 +297,7 @@ inlineToConTeXt (Link txt          (('#' : ref), _)) = do
            <> brackets (text ref)
 
 inlineToConTeXt (Link txt          (src, _))      = do
+  let isAutolink = txt == [Str src]
   st <- get
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
@@ -313,8 +306,9 @@ inlineToConTeXt (Link txt          (src, _))      = do
   return $ "\\useURL"
            <> brackets (text ref)
            <> brackets (text $ escapeStringUsing [('#',"\\#"),('%',"\\%")] src)
-           <> brackets empty
-           <> brackets label
+           <> (if isAutolink
+                  then empty
+                  else brackets empty <> brackets label)
            <> "\\from"
            <> brackets (text ref)
 inlineToConTeXt (Image _ (src, _)) = do

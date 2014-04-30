@@ -813,24 +813,22 @@ braces]\from[url26].
 
 \subsection[autolinks]{Autolinks}
 
-With an ampersand:
-\useURL[url27][http://example.com/?foo=1&bar=2][][\hyphenatedurl{http://example.com/?foo=1&bar=2}]\from[url27]
+With an ampersand: \useURL[url27][http://example.com/?foo=1&bar=2]\from[url27]
 
 \startitemize[packed]
 \item
   In a list?
 \item
-  \useURL[url28][http://example.com/][][\hyphenatedurl{http://example.com/}]\from[url28]
+  \useURL[url28][http://example.com/]\from[url28]
 \item
   It should.
 \stopitemize
 
 An e-mail address:
-\useURL[url29][mailto:nobody@nowhere.net][][\hyphenatedurl{nobody@nowhere.net}]\from[url29]
+\useURL[url29][mailto:nobody@nowhere.net][][nobody@nowhere.net]\from[url29]
 
 \startblockquote
-Blockquoted:
-\useURL[url30][http://example.com/][][\hyphenatedurl{http://example.com/}]\from[url30]
+Blockquoted: \useURL[url30][http://example.com/]\from[url30]
 \stopblockquote
 
 Auto-links should not occur here: \type{<http://example.com/>}
