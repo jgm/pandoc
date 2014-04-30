@@ -185,22 +185,22 @@ block = choice [ codeBlock
 -- field list
 --
 
-rawFieldListItem :: String -> RSTParser (String, String)
-rawFieldListItem indent = try $ do
-  string indent
+rawFieldListItem :: Int -> RSTParser (String, String)
+rawFieldListItem minIndent = try $ do
+  indent <- length <$> many (char ' ')
+  guard $ indent >= minIndent
   char ':'
   name <- many1Till (noneOf "\n") (char ':')
   (() <$ lookAhead newline) <|> skipMany1 spaceChar
   first <- anyLine
-  rest <- option "" $ try $ do lookAhead (string indent >> spaceChar)
+  rest <- option "" $ try $ do lookAhead (count indent (char ' ') >> spaceChar)
                                indentedBlock
   let raw = (if null first then "" else (first ++ "\n")) ++ rest ++ "\n"
-  return (name, raw)
+  return (name, trimr raw)
 
-fieldListItem :: String
-              -> RSTParser (Inlines, [Blocks])
-fieldListItem indent = try $ do
-  (name, raw) <- rawFieldListItem indent
+fieldListItem :: Int -> RSTParser (Inlines, [Blocks])
+fieldListItem minIndent = try $ do
+  (name, raw) <- rawFieldListItem minIndent
   let term = B.str name
   contents <- parseFromString parseBlocks raw
   optional blanklines
@@ -208,7 +208,7 @@ fieldListItem indent = try $ do
 
 fieldList :: RSTParser Blocks
 fieldList = try $ do
-  indent <- lookAhead $ many spaceChar
+  indent <- length <$> lookAhead (many spaceChar)
   items <- many1 $ fieldListItem indent
   case items of
      []     -> return mempty
@@ -521,11 +521,11 @@ directive' = do
   skipMany spaceChar
   top <- many $ satisfy (/='\n')
              <|> try (char '\n' <*
-                      notFollowedBy' (rawFieldListItem "   ") <*
+                      notFollowedBy' (rawFieldListItem 3) <*
                       count 3 (char ' ') <*
                       notFollowedBy blankline)
   newline
-  fields <- many $ rawFieldListItem "   "
+  fields <- many $ rawFieldListItem 3
   body <- option "" $ try $ blanklines >> indentedBlock
   optional blanklines
   let body' = body ++ "\n\n"
@@ -576,6 +576,9 @@ directive' = do
                                      role -> role })
         "code" -> codeblock (lookup "number-lines" fields) (trim top) body
         "code-block" -> codeblock (lookup "number-lines" fields) (trim top) body
+        "aafig" -> do
+          let attribs = ("", ["aafig"], fields)
+          return $ B.codeBlockWith attribs $ stripTrailingNewlines body
         "math" -> return $ B.para $ mconcat $ map B.displayMath
                          $ toChunks $ top ++ "\n\n" ++ body
         "figure" -> do
