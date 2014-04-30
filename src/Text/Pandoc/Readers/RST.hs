@@ -113,15 +113,16 @@ titleTransform (bs, meta) =
 metaFromDefList :: [([Inline], [[Block]])] -> Meta -> Meta
 metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
  where f (k,v) = setMeta (map toLower $ stringify k) (mconcat $ map fromList v)
-       adjustAuthors (Meta metamap) = Meta $ M.adjust toPlain "author"
+       adjustAuthors (Meta metamap) = Meta $ M.adjust splitAuthors "author"
                                            $ M.adjust toPlain "date"
                                            $ M.adjust toPlain "title"
-                                           $ M.adjust splitAuthors "authors"
+                                           $ M.mapKeys (\k -> if k == "authors" then "author" else k)
                                            $ metamap
        toPlain (MetaBlocks [Para xs]) = MetaInlines xs
        toPlain x                      = x
-       splitAuthors (MetaBlocks [Para xs]) = MetaList $ map MetaInlines
-                                                      $ splitAuthors' xs
+       splitAuthors (MetaBlocks [Para xs])
+                                      = MetaList $ map MetaInlines
+                                                 $ splitAuthors' xs
        splitAuthors x                 = x
        splitAuthors'                  = map normalizeSpaces .
                                          splitOnSemi . concatMap factorSemi
@@ -196,7 +197,7 @@ rawFieldListItem minIndent = try $ do
   rest <- option "" $ try $ do lookAhead (count indent (char ' ') >> spaceChar)
                                indentedBlock
   let raw = (if null first then "" else (first ++ "\n")) ++ rest ++ "\n"
-  return (name, trimr raw)
+  return (name, raw)
 
 fieldListItem :: Int -> RSTParser (Inlines, [Blocks])
 fieldListItem minIndent = try $ do
@@ -577,7 +578,7 @@ directive' = do
         "code" -> codeblock (lookup "number-lines" fields) (trim top) body
         "code-block" -> codeblock (lookup "number-lines" fields) (trim top) body
         "aafig" -> do
-          let attribs = ("", ["aafig"], fields)
+          let attribs = ("", ["aafig"], map (\(k,v) -> (k, trimr v)) fields)
           return $ B.codeBlockWith attribs $ stripTrailingNewlines body
         "math" -> return $ B.para $ mconcat $ map B.displayMath
                          $ toChunks $ top ++ "\n\n" ++ body
