@@ -4,11 +4,13 @@ README.*
 !README.Debian
 INSTALL.*
 .configure-stamp
+.cabal-sandbox
+cabal.sandbox.config
+pandoc.cabal.orig
 man/man?/*.1
 man/man?/*.5
 man/man?/*.html
 *.diff
-pandoc.cabal.orig
 *.o
 *.hi
 *.pyc

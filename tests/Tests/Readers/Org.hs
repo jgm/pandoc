@@ -304,6 +304,32 @@ tests =
                   ] =?>
           (para (spanWith ("link-here", [], []) mempty <> "Target.") <>
            para (emph ("See" <> space <> "here!")))
+
+      , "Link abbreviation" =:
+          unlines [ "#+LINK: wp https://en.wikipedia.org/wiki/%s"
+                  , "[[wp:Org_mode][Wikipedia on Org-mode]]"
+                  ] =?>
+          (para (link "https://en.wikipedia.org/wiki/Org_mode" ""
+                      ("Wikipedia" <> space <> "on" <> space <> "Org-mode")))
+
+      , "Link abbreviation, defined after first use" =:
+          unlines [ "[[zl:non-sense][Non-sense articles]]"
+                  , "#+LINK: zl http://zeitlens.com/tags/%s.html"
+                  ] =?>
+          (para (link "http://zeitlens.com/tags/non-sense.html" ""
+                      ("Non-sense" <> space <> "articles")))
+
+      , "Link abbreviation, URL encoded arguments" =:
+          unlines [ "#+link: expl http://example.com/%h/foo"
+                  , "[[expl:Hello, World!][Moin!]]"
+                  ] =?>
+          (para (link "http://example.com/Hello%2C%20World%21/foo" "" "Moin!"))
+
+      , "Link abbreviation, append arguments" =:
+          unlines [ "#+link: expl http://example.com/"
+                  , "[[expl:foo][bar]]"
+                  ] =?>
+          (para (link "http://example.com/foo" "" "bar"))
       ]
 
   , testGroup "Basic Blocks" $
