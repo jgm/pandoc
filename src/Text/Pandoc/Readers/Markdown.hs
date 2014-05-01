@@ -1221,11 +1221,20 @@ removeOneLeadingSpace xs =
 gridTableFooter :: MarkdownParser [Char]
 gridTableFooter = blanklines
 
+pipeBreak :: MarkdownParser [Alignment]
+pipeBreak = try $ do
+  nonindentSpaces
+  openPipe <- (True <$ char '|') <|> return False
+  first <- pipeTableHeaderPart
+  rest <- many $ sepPipe *> pipeTableHeaderPart
+  -- surrounding pipes needed for a one-column table:
+  guard $ not (null rest && not openPipe)
+  optional (char '|')
+  blankline
+  return (first:rest)
+
 pipeTable :: MarkdownParser ([Alignment], [Double], F [Blocks], F [[Blocks]])
 pipeTable = try $ do
-  let pipeBreak = nonindentSpaces *> optional (char '|') *>
-                      pipeTableHeaderPart `sepBy1` sepPipe <*
-                      optional (char '|') <* blankline
   (heads,aligns) <- try ( pipeBreak >>= \als ->
                      return (return $ replicate (length als) mempty, als))
                   <|> ( pipeTableRow >>= \row -> pipeBreak >>= \als ->
@@ -1244,12 +1253,13 @@ sepPipe = try $ do
 pipeTableRow :: MarkdownParser (F [Blocks])
 pipeTableRow = do
   nonindentSpaces
-  optional (char '|')
+  openPipe <- (True <$ char '|') <|> return False
   let cell = mconcat <$>
                  many (notFollowedBy (blankline <|> char '|') >> inline)
   first <- cell
-  sepPipe
-  rest <- cell `sepBy1` sepPipe
+  rest <- many $ sepPipe *> cell
+  -- surrounding pipes needed for a one-column table:
+  guard $ not (null rest && not openPipe)
   optional (char '|')
   blankline
   let cells  = sequence (first:rest)
