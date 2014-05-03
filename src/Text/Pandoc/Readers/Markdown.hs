@@ -349,10 +349,8 @@ referenceKey = try $ do
   char ':'
   skipSpaces >> optional newline >> skipSpaces >> notFollowedBy (char '[')
   let sourceURL = liftM unwords $ many $ try $ do
+                    skipMany spaceChar
                     notFollowedBy' referenceTitle
-                    skipMany spaceChar
-                    optional $ newline >> notFollowedBy blankline
-                    skipMany spaceChar
                     notFollowedBy' (() <$ reference)
                     many1 $ notFollowedBy space >> litChar
   let betweenAngles = try $ char '<' >>

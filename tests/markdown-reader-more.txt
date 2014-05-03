@@ -235,3 +235,11 @@ Empty cells
 ## Reference link fallbacks
 
 [*not a link*] [*nope*]...
+
+## Empty reference links
+
+[foo2]:
+
+bar
+
+[foo2]
