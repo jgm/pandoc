@@ -504,7 +504,7 @@ withHorizDisplacement parser = do
 
 -- | Applies a parser and returns the raw string that was parsed,
 -- along with the value produced by the parser.
-withRaw :: Parser [Char] st a -> Parser [Char] st (a, [Char])
+withRaw :: Monad m => ParsecT [Char] st m a -> ParsecT [Char] st m (a, [Char])
 withRaw parser = do
   pos1 <- getPosition
   inp <- getInput

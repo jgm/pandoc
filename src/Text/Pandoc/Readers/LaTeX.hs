@@ -40,8 +40,10 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding ((<|>), many, optional, space,
                                    mathDisplay, mathInline)
+import Text.Parsec.Prim (ParsecT, runParserT)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord )
+import Control.Monad.Trans (lift)
 import Control.Monad
 import Text.Pandoc.Builder
 import Data.Char (isLetter, isAlphaNum)
@@ -303,6 +305,8 @@ blockCommands = M.fromList $
   , ("documentclass", skipopts *> braced *> preamble)
   , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
   , ("caption", tok >>= setCaption)
+  , ("PandocStartInclude", startInclude)
+  , ("PandocEndInclude", endInclude)
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
@@ -794,31 +798,107 @@ rawEnv name = do
             (withRaw (env name blocks) >>= applyMacros' . snd)
      else env name blocks
 
+----
+
+type IncludeParser = ParsecT [Char] [String] IO String
+
 -- | Replace "include" commands with file contents.
 handleIncludes :: String -> IO String
-handleIncludes = handleIncludes' []
+handleIncludes s = do
+  res <- runParserT includeParser' [] "input" s
+  case res of
+       Right s'    -> return s'
+       Left e      -> error $ show e
 
--- parents parameter prevents infinite include loops
-handleIncludes' :: [FilePath] -> String -> IO String
-handleIncludes' _ [] = return []
-handleIncludes' parents ('\\':'%':xs) =
-  ("\\%"++) `fmap` handleIncludes' parents xs
-handleIncludes' parents ('%':xs) = handleIncludes' parents
-  $ drop 1 $ dropWhile (/='\n') xs
-handleIncludes' parents ('\\':xs) =
-  case runParser include defaultParserState "input" ('\\':xs) of
-       Right (fs, rest) -> do yss <- mapM (\f -> if f `elem` parents
-                                                    then "" <$ warn ("Include file loop in '"
-                                                                      ++ f ++ "'.")
-                                                    else readTeXFile f >>=
-                                                           handleIncludes' (f:parents)) fs
-                              rest' <- handleIncludes' parents rest
-                              return $ intercalate "\n" yss ++ rest'
-       _  -> case runParser (verbCmd <|> verbatimEnv) defaultParserState
-                  "input" ('\\':xs) of
-                   Right (r, rest) -> (r ++) `fmap` handleIncludes' parents rest
-                   _               -> ('\\':) `fmap` handleIncludes' parents xs
-handleIncludes' parents (x:xs) = (x:) `fmap` handleIncludes' parents xs
+includeParser' :: IncludeParser
+includeParser' =
+  concat <$> many (comment' <|> escaped' <|> blob' <|> include'
+                   <|> startMarker' <|> endMarker'
+                   <|> verbCmd' <|> verbatimEnv' <|> backslash')
+
+comment' :: IncludeParser
+comment' = do
+  char '%'
+  xs <- manyTill anyChar newline
+  return ('%':xs ++ "\n")
+
+escaped' :: IncludeParser
+escaped' = try $ string "\\%" <|> string "\\\\"
+
+verbCmd' :: IncludeParser
+verbCmd' = fmap snd <$>
+  withRaw $ try $ do
+             string "\\verb"
+             c <- anyChar
+             manyTill anyChar (char c)
+
+verbatimEnv' :: IncludeParser
+verbatimEnv' = fmap snd <$>
+  withRaw $ try $ do
+             string "\\begin"
+             name <- braced'
+             guard $ name `elem` ["verbatim", "Verbatim", "lstlisting",
+                                  "minted", "alltt"]
+             manyTill anyChar (try $ string $ "\\end{" ++ name ++ "}")
+
+blob' :: IncludeParser
+blob' = try $ many1 (noneOf "\\%")
+
+backslash' :: IncludeParser
+backslash' = string "\\"
+
+braced' :: IncludeParser
+braced' = try $ char '{' *> manyTill (satisfy (/='}')) (char '}')
+
+include' :: IncludeParser
+include' = do
+  name <- try $ do
+              char '\\'
+              try (string "include")
+               <|> try (string "input")
+               <|> string "usepackage"
+   -- skip options
+  skipMany $ try $ char '[' *> (manyTill anyChar (char ']'))
+  fs <- (map trim . splitBy (==',')) <$> braced'
+  pos <- getPosition
+  let fs' = if name == "usepackage"
+               then map (flip replaceExtension ".sty") fs
+               else map (flip replaceExtension ".tex") fs
+  containers <- getState
+  let fn = case containers of
+                (f':_) -> f'
+                []     -> "input"
+  -- now process each include file in order...
+  rest <- getInput
+  results' <- forM fs' (\f -> do
+    when (f `elem` containers) $
+      fail "Include file loop!"
+    contents <- lift $ readTeXFile f
+    return $ "\\PandocStartInclude{" ++ f ++ "}" ++
+             contents ++ "\\PandocEndInclude{" ++
+             fn ++ "}{" ++ show (sourceLine pos) ++ "}{"
+             ++ show (sourceColumn pos) ++ "}")
+  setInput $ concat results' ++ rest
+  return ""
+
+startMarker' :: IncludeParser
+startMarker' = try $ do
+  string "\\PandocStartInclude"
+  fn <- braced'
+  updateState (fn:)
+  setPosition $ newPos fn 1 1
+  return $ "\\PandocStartInclude{" ++ fn ++ "}"
+
+endMarker' :: IncludeParser
+endMarker' = try $ do
+  string "\\PandocEndInclude"
+  fn <- braced'
+  ln <- braced'
+  co <- braced'
+  updateState tail
+  setPosition $ newPos fn (fromMaybe 1 $ safeRead ln) (fromMaybe 1 $ safeRead co)
+  return $ "\\PandocEndInclude{" ++ fn ++ "}{" ++ ln ++ "}{" ++
+               co ++ "}"
 
 readTeXFile :: FilePath -> IO String
 readTeXFile f = do
@@ -833,27 +913,7 @@ readFileFromDirs (d:ds) f =
   E.catch (UTF8.readFile $ d </> f) $ \(_ :: E.SomeException) ->
     readFileFromDirs ds f
 
-include :: LP ([FilePath], String)
-include = do
-  name <- controlSeq "include"
-      <|> controlSeq "input"
-      <|> controlSeq "usepackage"
-  skipopts
-  fs <- (splitBy (==',')) <$> braced
-  rest <- getInput
-  let fs' = if name == "usepackage"
-               then map (flip replaceExtension ".sty") fs
-               else map (flip replaceExtension ".tex") fs
-  return (fs', rest)
-
-verbCmd :: LP (String, String)
-verbCmd = do
-  (_,r) <- withRaw $ do
-             controlSeq "verb"
-             c <- anyChar
-             manyTill anyChar (char c)
-  rest <- getInput
-  return (r, rest)
+----
 
 keyval :: LP (String, String)
 keyval = try $ do
@@ -874,17 +934,6 @@ alltt t = walk strToCode <$> parseFromString blocks
    concat $ intersperse "\\\\\n" $ lines t)
   where strToCode (Str s) = Code nullAttr s
         strToCode x       = x
-
-verbatimEnv :: LP (String, String)
-verbatimEnv = do
-  (_,r) <- withRaw $ do
-             controlSeq "begin"
-             name <- braced
-             guard $ name `elem` ["verbatim", "Verbatim", "lstlisting",
-                                  "minted", "alltt"]
-             verbEnv name
-  rest <- getInput
-  return (r,rest)
 
 rawLaTeXBlock :: Parser [Char] ParserState String
 rawLaTeXBlock = snd <$> try (withRaw (environment <|> blockCommand))
@@ -1218,3 +1267,16 @@ simpTable = try $ do
   lookAhead $ controlSeq "end" -- make sure we're at end
   return $ table mempty (zip aligns (repeat 0)) header'' rows
 
+startInclude :: LP Blocks
+startInclude = do
+  fn <- braced
+  setPosition $ newPos fn 1 1
+  return mempty
+
+endInclude :: LP Blocks
+endInclude = do
+  fn <- braced
+  ln <- braced
+  co <- braced
+  setPosition $ newPos fn (fromMaybe 1 $ safeRead ln) (fromMaybe 1 $ safeRead co)
+  return mempty
