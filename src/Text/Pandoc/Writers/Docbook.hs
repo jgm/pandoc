@@ -185,9 +185,7 @@ blockToDocbook _ (CodeBlock (_,classes,_) str) =
                            else languagesByExtension . map toLower $ s
           langs       = concatMap langsFrom classes
 blockToDocbook opts (BulletList lst) =
-  let attribs = case lst of
-                      ((Plain _:_):_) -> [("spacing", "compact")]
-                      _               -> []
+  let attribs = [("spacing", "compact") | isTightList lst]
   in  inTags True "itemizedlist" attribs $ listItemsToDocbook opts lst
 blockToDocbook _ (OrderedList _ []) = empty
 blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
@@ -199,9 +197,7 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
                        LowerAlpha   -> [("numeration", "loweralpha")]
                        UpperRoman   -> [("numeration", "upperroman")]
                        LowerRoman   -> [("numeration", "lowerroman")]
-      spacing    = case first of
-                       (Plain _:_)  -> [("spacing", "compact")]
-                       _            -> []
+      spacing    = [("spacing", "compact") | isTightList (first:rest)]
       attribs    = numeration ++ spacing
       items      = if start == 1
                       then listItemsToDocbook opts (first:rest)
@@ -210,9 +206,7 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
                            listItemsToDocbook opts rest
   in  inTags True "orderedlist" attribs items
 blockToDocbook opts (DefinitionList lst) =
-  let attribs = case lst of
-                  ((_, (Plain _:_):_):_) -> [("spacing", "compact")]
-                  _                      -> []
+  let attribs = [("spacing", "compact") | isTightList $ concatMap snd lst]
   in  inTags True "variablelist" attribs $ deflistItemsToDocbook opts lst
 blockToDocbook _ (RawBlock f str)
   | f == "docbook" = text str -- raw XML block

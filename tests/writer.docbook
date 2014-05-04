@@ -508,7 +508,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   </sect2>
   <sect2 id="fancy-list-markers">
     <title>Fancy list markers</title>
-    <orderedlist numeration="arabic" spacing="compact">
+    <orderedlist numeration="arabic">
       <listitem override="2">
         <para>
           begins with 2
