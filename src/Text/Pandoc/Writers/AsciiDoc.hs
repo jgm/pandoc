@@ -218,7 +218,8 @@ blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
                               return $ text "|" <> chomp d
       makeCell [Para x]  = makeCell [Plain x]
       makeCell []        = return $ text "|"
-      makeCell _         = return $ text "|" <> "[multiblock cell omitted]"
+      makeCell bs        = do d <- blockListToAsciiDoc opts bs
+                              return $ text "a|" $$ d
   let makeRow cells = hsep `fmap` mapM makeCell cells
   rows' <- mapM makeRow rows
   head' <- makeRow headers
