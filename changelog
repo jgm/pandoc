@@ -21,11 +21,17 @@ pandoc (1.12.4)
 
   * LaTeX reader:
 
+    + Give better location information on errors, pointing to line
+      numbers within included files (#1274).
     + LaTeX reader:  Better handling of `table` environment (#1204).
       Positioning options no longer rendered verbatim.
     + Better handling of figure and table with caption (#1204).
     + Handle `@{}` and `p{length}` in tabular.  The length is not actually
       recorded, but at least we get a table (#1180).
+    + Properly handle `\nocite`.  It now adds a `nocite` metadata
+      field.  Citations there will appear in the bibliography but not
+      in the text (unless you explicitly put a `$nocite$` variable
+      in your template).
 
   * Markdown reader:
 
@@ -38,6 +44,10 @@ pandoc (1.12.4)
       would be missed if it came right after other block-level tags.
     + Avoid backtracking when closing `</div>` not found.
     + Fixed bug in reference link parsing in `markdown_mmd`.
+    + Fixed a bug in list parsing (#1154).  When reading a raw list
+      item, we now strip off up to 4 spaces.
+    + Fixed parsing of empty reference link definitions (#1186).
+    + Made one-column pipe tables work (#1218).
 
   * Textile reader:
 
@@ -82,6 +92,11 @@ pandoc (1.12.4)
     + Enhanced Pandoc's support for rST roles (Merijn Verstaaten).
       rST parser now supports: all built-in rST roles, new role definition,
       role inheritance, though with some limitations.
+    + Use `author` rather than `authors` in metadata.
+    + Better handling of directives.  We now correctly handle field
+      lists that are indented more than three spaces.  We treat an
+      `aafig` directive as a code block with attributes, so it can be
+      processed in a filter (#1212).
 
   * LaTeX writer:
 
@@ -95,6 +110,9 @@ pandoc (1.12.4)
     + Use `\/` to avoid en-dash ligature instead of `-{}-` (Vaclav Zeman).
       This is to fix LuaLaTeX output. The `-{}-` sequence does not avoid the
       ligature with LuaLaTeX but `\/` does.
+    + Fixed string escaping in `hyperref` and `hyperdef` (#1130).
+
+  * ConTeXt writer:  Improved autolinks (#1270).
 
   * DocBook writer:
 
@@ -103,6 +121,13 @@ pandoc (1.12.4)
       just for the newline character.
     + Don't let line breaks inside footnotes influence the enclosing
       paragraph (Neil Mayhew).
+    + Distinguish tight and loose lists in DocBook output, using
+      `spacing="compact"` (Neil Mayhew, #1250).
+
+  * Docx writer:  When needed files are not present in the user's
+    `reference.docx`, fall back on the versions in the `reference.docx`
+    in pandoc's data files. This fixes a bug that occurs when a
+    `reference.docx` saved by LibreOffice is used. (#1185)
 
   * EPUB writer:
 
@@ -120,6 +145,9 @@ pandoc (1.12.4)
     + Add colgroup around col tags (#877).  Also affects EPUB writer.
     + Fixed bug with unnumbered section headings.  Unnumbered section
       headings (with class `unnumbered`) were getting numbers.
+    + Improved detection of image links. Previously image links with
+      queries were not recognized, causing `<embed>` to be used instead
+      of `<img>`.
 
   * Man writer:  Ensure that terms in definition lists aren't line wrapped
     (#1195).
@@ -138,7 +166,16 @@ pandoc (1.12.4)
 
   * RTF writer:  Fixed table cells containing paragraphs.
 
-  * Custom writer:  Correctly handle UTF-8 in custom lua scripts (#1189).
+  * Custom writer:
+
+    + Correctly handle UTF-8 in custom lua scripts (#1189).
+    + Fix bugs with lua scripts with mixed-case filenames and
+      paths containing `+` or `-` (#1267).  Note that `getWriter`
+      in `Text.Pandoc` no longer returns a custom writer on input
+      `foo.lua`.
+
+  * AsciiDoc writer:  Handle multiblock and empty table cells
+    (#1245, #1246).  Added tests.
 
   * `Text.Pandoc.Options`: Added `readerTrace` to `ReaderOptions`
 
@@ -202,8 +239,9 @@ pandoc (1.12.4)
     + LaTeX template: use `fontenc` package only with `pdflatex` (#1164).
     + Beamer template: Consistent styles for figure and table captions
       (aaronwolen).
-    + Beamer template:  Adjust widths correctly for oversized images
-      (Garrick Aden-Buie).
+    + LaTeX and beamer template:  Adjust widths correctly for oversized
+      images.  Use `\setkeys{Gin}{}` to set appropriate defaults for
+      `\includegraphics` (Yihui Xie, Garrick Aden-Buie).
     + Beamer template: Added caption package (#1200).
     + Beamer template:  changes for better unicode handling (KarolS).
     + DocBook template:  use `authorgroup` if there are authors.
@@ -227,6 +265,11 @@ pandoc (1.12.4)
 
   * Give more useful error message if '-t pdf' is specified (#1155).
 
+  * Added `Cite`, `SmallCaps` to `Arbitrary` instance (#1269).
+
+  * Allow `html4` as a synonym of `html` as a reader (it already works
+    as a writer).
+
   * README:
 
     + Added an explanation of how to use YAML metadata to
@@ -234,6 +277,12 @@ pandoc (1.12.4)
       the text (like LaTeX `\nocite`).
     + Added note to `--bibtex/--natbib`: not for use in making PDF
       (#1194, thanks to nahoj).
+    + Added explanatory notes about `--natbib` and `--biblatex`.
+    + Added specification of legal syntax for citation keys.
+    + Fixed variable defaults documentation (Albert Krewinkel).
+
+  * Removed copyright statements for files that have been removed
+    (Albert Krewinkel).
 
   * Moved some doc files from `data-files` to `extra-source-files` (#1123).
     They aren't needed at runtime.  We keep README and COPYRIGHT in data
