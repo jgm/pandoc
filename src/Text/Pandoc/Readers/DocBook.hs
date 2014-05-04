@@ -599,14 +599,6 @@ trimNl = reverse . go . reverse . go
   where go ('\n':xs) = xs
         go xs        = xs
 
--- meld text into beginning of first paragraph of Blocks.
--- assumes Blocks start with a Para; if not, does nothing.
-addToStart :: Inlines -> Blocks -> Blocks
-addToStart toadd bs =
-  case toList bs of
-    (Para xs : rest) -> para (toadd <> fromList xs) <> fromList rest
-    _                -> bs
-
 -- function that is used by both mediaobject (in parseBlock)
 -- and inlinemediaobject (in parseInline)
 getImage :: Element -> DB Inlines
@@ -639,7 +631,7 @@ parseBlock (Elem e) =
         "para"  -> parseMixed para (elContent e)
         "formalpara" -> do
            tit <- case filterChild (named "title") e of
-                        Just t  -> (para . strong . (<> str ".")) <$>
+                        Just t  -> (header 4 . (<> str ".")) <$>
                                      getInlines t
                         Nothing -> return mempty
            (tit <>) <$> parseMixed para (elContent e)
@@ -682,22 +674,17 @@ parseBlock (Elem e) =
         "refsect2" -> sect 2
         "refsect3" -> sect 3
         "refsection" -> gets dbSectionLevel >>= sect . (+1)
-        "important" -> blockQuote . (para (strong $ str "Important") <>)
-                        <$> getBlocks e
-        "caution" -> blockQuote . (para (strong $ str "Caution") <>)
-                        <$> getBlocks e
-        "note" -> blockQuote . (para (strong $ str "Note") <>)
-                        <$> getBlocks e
-        "tip" -> blockQuote . (para (strong $ str "Tip") <>)
-                        <$> getBlocks e
-        "warning" -> blockQuote . (para (strong $ str "Warning") <>)
-                        <$> getBlocks e
+        "important" -> divWith ("",["important"],[]) <$> getBlocks e
+        "caution" -> divWith ("",["caution"],[]) <$> getBlocks e
+        "note" -> divWith ("",["note"],[]) <$> getBlocks e
+        "tip" -> divWith ("",["tip"],[]) <$> getBlocks e
+        "warning" -> divWith ("",["warning"],[]) <$> getBlocks e
         "area" -> return mempty
         "areaset" -> return mempty
         "areaspec" -> return mempty
         "qandadiv" -> gets dbSectionLevel >>= sect . (+1)
-        "question" -> addToStart (strong (str "Q:") <> str " ") <$> getBlocks e
-        "answer" -> addToStart (strong (str "A:") <> str " ") <$> getBlocks e
+        "question" -> divWith ("",["question"],[]) <$> getBlocks e
+        "answer" -> divWith ("",["answer"],[]) <$> getBlocks e
         "abstract" -> blockQuote <$> getBlocks e
         "itemizedlist" -> bulletList <$> listitems
         "orderedlist" -> do
