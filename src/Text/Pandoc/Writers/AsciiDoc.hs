@@ -217,6 +217,7 @@ blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
   let makeCell [Plain x] = do d <- blockListToAsciiDoc opts [Plain x]
                               return $ text "|" <> chomp d
       makeCell [Para x]  = makeCell [Plain x]
+      makeCell []        = return $ text "|"
       makeCell _         = return $ text "|" <> "[multiblock cell omitted]"
   let makeRow cells = hsep `fmap` mapM makeCell cells
   rows' <- mapM makeRow rows
@@ -227,7 +228,7 @@ blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
                     else 100000
   let maxwidth = maximum $ map offset (head':rows')
   let body = if maxwidth > colwidth then vsep rows' else vcat rows'
-  let border = text $ "|" ++ replicate ((min maxwidth colwidth) - 1) '='
+  let border = text $ "|" ++ replicate (max 5 (min maxwidth colwidth) - 1) '='
   return $
     caption'' $$ tablespec $$ border $$ head'' $$ body $$ border $$ blankline
 blockToAsciiDoc opts (BulletList items) = do
