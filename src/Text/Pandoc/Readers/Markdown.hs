@@ -746,7 +746,7 @@ listLine = try $ do
                      many spaceChar
                      listStart)
   notFollowedBy' $ htmlTag (~== TagClose "div")
-  nonindentSpaces
+  optional (() <$ indentSpaces)
   chunks <- manyTill
               (  many1 (satisfy $ \c -> c /= '\n' && c /= '<')
              <|> liftM snd (htmlTag isCommentTag)
