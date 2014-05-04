@@ -116,6 +116,7 @@ writeDocx opts doc@(Pandoc meta _) = do
        case writerReferenceDocx opts of
              Just f  -> B.readFile f
              Nothing -> readDataFile datadir "reference.docx"
+  distArchive <- liftM (toArchive . toLazy) $ readDataFile Nothing "reference.docx"
 
   ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc')
                        defaultWriterState
@@ -217,7 +218,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- styles
   let newstyles = styleToOpenXml $ writerHighlightStyle opts
   let stylepath = "word/styles.xml"
-  styledoc <- parseXml refArchive stylepath Nothing
+  styledoc <- parseXml refArchive distArchive stylepath
   let styledoc' = styledoc{ elContent = elContent styledoc ++
                   [Elem x | x <- newstyles, writerHighlight opts] }
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
@@ -256,20 +257,20 @@ writeDocx opts doc@(Pandoc meta _) = do
         ]
   let relsEntry = toEntry relsPath epochtime $ renderXml rels
 
-  let entryFromArchive path fallback =
+  let entryFromArchive path =
          (toEntry path epochtime . renderXml) `fmap`
-           parseXml refArchive path fallback
-  docPropsAppEntry <- entryFromArchive "docProps/app.xml" Nothing
-  themeEntry <- entryFromArchive "word/theme/theme1.xml" Nothing
-  fontTableEntry <- entryFromArchive "word/fontTable.xml" Nothing
-  settingsEntry <- entryFromArchive "word/settings.xml" Nothing
-  webSettingsEntry <- entryFromArchive "word/webSettings.xml" Nothing
+           parseXml refArchive distArchive path
+  docPropsAppEntry <- entryFromArchive "docProps/app.xml"
+  themeEntry <- entryFromArchive "word/theme/theme1.xml"
+  fontTableEntry <- entryFromArchive "word/fontTable.xml"
+  settingsEntry <- entryFromArchive "word/settings.xml"
+  webSettingsEntry <- entryFromArchive "word/webSettings.xml"
   let miscRels = [ f | f <- filesInArchive refArchive
                      , "word/_rels/" `isPrefixOf` f
                      , ".xml.rels" `isSuffixOf` f
                      , f /= "word/_rels/document.xml.rels"
                      , f /= "word/_rels/footnotes.xml.rels" ]
-  miscRelEntries <- mapM (\f -> entryFromArchive f Nothing) miscRels
+  miscRelEntries <- mapM entryFromArchive miscRels
 
   -- Create archive
   let archive = foldr addEntryToArchive emptyArchive $
@@ -815,10 +816,10 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
 br :: Element
 br = mknode "w:r" [] [mknode "w:br" [("w:type","textWrapping")] () ]
 
-parseXml :: Archive -> String -> Maybe String -> IO Element
-parseXml refArchive relpath fallback =
-  case (findEntryByPath relpath refArchive
-         >>= parseXMLDoc . UTF8.toStringLazy . fromEntry) `mplus`
-       (fallback >>= parseXMLDoc) of
+parseXml :: Archive -> Archive -> String -> IO Element
+parseXml refArchive distArchive relpath =
+  case ((findEntryByPath relpath refArchive `mplus`
+         findEntryByPath relpath distArchive)
+         >>= parseXMLDoc . UTF8.toStringLazy . fromEntry) of
             Just d  -> return d
             Nothing -> fail $ relpath ++ " corrupt or missing in reference docx"
