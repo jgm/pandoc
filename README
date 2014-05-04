@@ -634,15 +634,15 @@ Citation rendering
 
 `--natbib`
 :   Use natbib for citations in LaTeX output.  This option is not for use
-    with PDF output, since pandoc will not automatically run bibtex in
-    producing the PDF.  It is intended for use in producing a LaTeX file
-    that can be processed with pdflatex and bibtex.
+    with the `pandoc-citeproc` filter or with PDF output.  It is intended for
+    use in producing a LaTeX file that can be processed with pdflatex and
+    bibtex.
 
 `--biblatex`
 :   Use biblatex for citations in LaTeX output.  This option is not for use
-    with PDF output, since pandoc will not automatically run bibtex in
-    producing the PDF.  It is intended for use in producing a LaTeX file
-    that can be processed with pdflatex and bibtex or biber.
+    with the `pandoc-citeproc` filter or with PDF output. It is intended for
+    use in producing a LaTeX file that can be processed with pdflatex and
+    bibtex or biber.
 
 Math rendering in HTML
 ----------------------
