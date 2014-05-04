@@ -217,7 +217,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- styles
   let newstyles = styleToOpenXml $ writerHighlightStyle opts
   let stylepath = "word/styles.xml"
-  styledoc <- parseXml refArchive stylepath
+  styledoc <- parseXml refArchive stylepath Nothing
   let styledoc' = styledoc{ elContent = elContent styledoc ++
                   [Elem x | x <- newstyles, writerHighlight opts] }
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
@@ -256,19 +256,20 @@ writeDocx opts doc@(Pandoc meta _) = do
         ]
   let relsEntry = toEntry relsPath epochtime $ renderXml rels
 
-  let entryFromArchive path = (toEntry path epochtime . renderXml) `fmap`
-                                parseXml refArchive path
-  docPropsAppEntry <- entryFromArchive "docProps/app.xml"
-  themeEntry <- entryFromArchive "word/theme/theme1.xml"
-  fontTableEntry <- entryFromArchive "word/fontTable.xml"
-  settingsEntry <- entryFromArchive "word/settings.xml"
-  webSettingsEntry <- entryFromArchive "word/webSettings.xml"
+  let entryFromArchive path fallback =
+         (toEntry path epochtime . renderXml) `fmap`
+           parseXml refArchive path fallback
+  docPropsAppEntry <- entryFromArchive "docProps/app.xml" Nothing
+  themeEntry <- entryFromArchive "word/theme/theme1.xml" Nothing
+  fontTableEntry <- entryFromArchive "word/fontTable.xml" Nothing
+  settingsEntry <- entryFromArchive "word/settings.xml" Nothing
+  webSettingsEntry <- entryFromArchive "word/webSettings.xml" Nothing
   let miscRels = [ f | f <- filesInArchive refArchive
                      , "word/_rels/" `isPrefixOf` f
                      , ".xml.rels" `isSuffixOf` f
                      , f /= "word/_rels/document.xml.rels"
                      , f /= "word/_rels/footnotes.xml.rels" ]
-  miscRelEntries <- mapM entryFromArchive miscRels
+  miscRelEntries <- mapM (\f -> entryFromArchive f Nothing) miscRels
 
   -- Create archive
   let archive = foldr addEntryToArchive emptyArchive $
@@ -814,10 +815,10 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
 br :: Element
 br = mknode "w:r" [] [mknode "w:br" [("w:type","textWrapping")] () ]
 
-parseXml :: Archive -> String -> IO Element
-parseXml refArchive relpath =
-  case findEntryByPath relpath refArchive of
-       Just e  -> case parseXMLDoc $ UTF8.toStringLazy $ fromEntry e of
-                       Just d  -> return d
-                       Nothing -> fail $ relpath ++ " corrupt in reference docx"
-       Nothing -> fail $ relpath ++ " missing in reference docx"
+parseXml :: Archive -> String -> Maybe String -> IO Element
+parseXml refArchive relpath fallback =
+  case (findEntryByPath relpath refArchive
+         >>= parseXMLDoc . UTF8.toStringLazy . fromEntry) `mplus`
+       (fallback >>= parseXMLDoc) of
+            Just d  -> return d
+            Nothing -> fail $ relpath ++ " corrupt or missing in reference docx"
