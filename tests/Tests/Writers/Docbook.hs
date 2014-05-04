@@ -31,22 +31,217 @@ lineblock :: Blocks
 lineblock = para ("some text" <> linebreak <>
                   "and more lines" <> linebreak <>
                   "and again")
-lineblock_out :: String
-lineblock_out =   "<literallayout>some text\n" ++
-                  "and more lines\n" ++
-                  "and again</literallayout>"
+lineblock_out :: [String]
+lineblock_out = [ "<literallayout>some text"
+                , "and more lines"
+                , "and again</literallayout>"
+                ]
 
 tests :: [Test]
 tests = [ testGroup "line blocks"
           [ "none"       =: para "This is a test"
-                              =?> "<para>\n  This is a test\n</para>"
+                              =?> unlines
+                                    [ "<para>"
+                                    , "  This is a test"
+                                    , "</para>"
+                                    ]
           , "basic"      =: lineblock
-                              =?> lineblock_out
+                              =?> unlines lineblock_out
           , "blockquote" =: blockQuote lineblock
-                              =?> ("<blockquote>\n" ++ lineblock_out ++ "\n</blockquote>")
-          , "footnote"   =: para ("This is a test" <> note lineblock <> " of footnotes")
-                              =?> ("<para>\n  This is a test<footnote>\n" ++
-                                   lineblock_out ++
-                                   "\n  </footnote> of footnotes\n</para>")
+                              =?> unlines
+                                    ( [ "<blockquote>" ] ++
+                                      lineblock_out ++
+                                      [ "</blockquote>" ]
+                                    )
+          , "footnote"   =: para ("This is a test" <>
+                                  note lineblock <>
+                                  " of footnotes")
+                              =?> unlines
+                                    ( [ "<para>"
+                                      , "  This is a test<footnote>" ] ++
+                                      lineblock_out ++
+                                      [ "  </footnote> of footnotes"
+                                      , "</para>" ]
+                                    )
           ]
+        , testGroup "compact lists"
+          [ testGroup "bullet"
+            [ "compact"    =: bulletList [plain "a", plain "b", plain "c"]
+                                =?> unlines
+                                      [ "<itemizedlist spacing=\"compact\">"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      a"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      b"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      c"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "</itemizedlist>"
+                                      ]
+            , "loose"      =: bulletList [para "a", para "b", para "c"]
+                                =?> unlines
+                                      [ "<itemizedlist>"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      a"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      b"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      c"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "</itemizedlist>"
+                                      ]
+            ]
+          , testGroup "ordered"
+            [ "compact"    =: orderedList [plain "a", plain "b", plain "c"]
+                                =?> unlines
+                                      [ "<orderedlist spacing=\"compact\">"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      a"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      b"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      c"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "</orderedlist>"
+                                      ]
+            , "loose"      =: orderedList [para "a", para "b", para "c"]
+                                =?> unlines
+                                      [ "<orderedlist>"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      a"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      b"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "  <listitem>"
+                                      , "    <para>"
+                                      , "      c"
+                                      , "    </para>"
+                                      , "  </listitem>"
+                                      , "</orderedlist>"
+                                      ]
+            ]
+          , testGroup "definition"
+            [ "compact"    =: definitionList [ ("an", [plain "apple" ])
+                                             , ("a",  [plain "banana"])
+                                             , ("an", [plain "orange"])]
+                                =?> unlines
+                                      [ "<variablelist spacing=\"compact\">"
+                                      , "  <varlistentry>"
+                                      , "    <term>"
+                                      , "      an"
+                                      , "    </term>"
+                                      , "    <listitem>"
+                                      , "      <para>"
+                                      , "        apple"
+                                      , "      </para>"
+                                      , "    </listitem>"
+                                      , "  </varlistentry>"
+                                      , "  <varlistentry>"
+                                      , "    <term>"
+                                      , "      a"
+                                      , "    </term>"
+                                      , "    <listitem>"
+                                      , "      <para>"
+                                      , "        banana"
+                                      , "      </para>"
+                                      , "    </listitem>"
+                                      , "  </varlistentry>"
+                                      , "  <varlistentry>"
+                                      , "    <term>"
+                                      , "      an"
+                                      , "    </term>"
+                                      , "    <listitem>"
+                                      , "      <para>"
+                                      , "        orange"
+                                      , "      </para>"
+                                      , "    </listitem>"
+                                      , "  </varlistentry>"
+                                      , "</variablelist>"
+                                      ]
+            , "loose"      =: definitionList [ ("an", [para "apple" ])
+                                             , ("a",  [para "banana"])
+                                             , ("an", [para "orange"])]
+                                =?> unlines
+                                      [ "<variablelist>"
+                                      , "  <varlistentry>"
+                                      , "    <term>"
+                                      , "      an"
+                                      , "    </term>"
+                                      , "    <listitem>"
+                                      , "      <para>"
+                                      , "        apple"
+                                      , "      </para>"
+                                      , "    </listitem>"
+                                      , "  </varlistentry>"
+                                      , "  <varlistentry>"
+                                      , "    <term>"
+                                      , "      a"
+                                      , "    </term>"
+                                      , "    <listitem>"
+                                      , "      <para>"
+                                      , "        banana"
+                                      , "      </para>"
+                                      , "    </listitem>"
+                                      , "  </varlistentry>"
+                                      , "  <varlistentry>"
+                                      , "    <term>"
+                                      , "      an"
+                                      , "    </term>"
+                                      , "    <listitem>"
+                                      , "      <para>"
+                                      , "        orange"
+                                      , "      </para>"
+                                      , "    </listitem>"
+                                      , "  </varlistentry>"
+                                      , "</variablelist>"
+                                      ]
+            ]
+          ]
+          , "headers"      =: header 1 "Heading 1" <>
+                              para "Some text" <>
+                              header 2 "Heading 2" <>
+                              para "More text"
+                                =?> unlines
+                                      [ "<section id=\"\">"
+                                      , "  <title>Heading 1</title>"
+                                      , "  <para>"
+                                      , "    Some text"
+                                      , "  </para>"
+                                      , "  <section id=\"\">"
+                                      , "    <title>Heading 2</title>"
+                                      , "    <para>"
+                                      , "      More text"
+                                      , "    </para>"
+                                      , "  </section>"
+                                      , "</section>"
+                                      ]
         ]
