@@ -852,18 +852,18 @@ braced' = try $ char '{' *> manyTill (satisfy (/='}')) (char '}')
 
 include' :: IncludeParser
 include' = do
-  name <- try $ do
+  fs' <- try $ do
               char '\\'
-              try (string "include")
-               <|> try (string "input")
-               <|> string "usepackage"
-   -- skip options
-  skipMany $ try $ char '[' *> (manyTill anyChar (char ']'))
-  fs <- (map trim . splitBy (==',')) <$> braced'
+              name <- try (string "include")
+                  <|> try (string "input")
+                  <|> string "usepackage"
+              -- skip options
+              skipMany $ try $ char '[' *> (manyTill anyChar (char ']'))
+              fs <- (map trim . splitBy (==',')) <$> braced'
+              return $ if name == "usepackage"
+                          then map (flip replaceExtension ".sty") fs
+                          else map (flip replaceExtension ".tex") fs
   pos <- getPosition
-  let fs' = if name == "usepackage"
-               then map (flip replaceExtension ".sty") fs
-               else map (flip replaceExtension ".tex") fs
   containers <- getState
   let fn = case containers of
                 (f':_) -> f'
