@@ -2478,7 +2478,9 @@ document with an appropriate header:
 
     # References
 
-The bibliography will be inserted after this header.
+The bibliography will be inserted after this header.  Note that
+the `unnumbered` class will be added to this header, so that the
+section will not be numbered.
 
 If you want to include items in the bibliography without actually
 citing them in the body text, you can define a dummy `nocite` metadata
