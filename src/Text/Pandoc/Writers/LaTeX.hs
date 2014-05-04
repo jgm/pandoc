@@ -193,7 +193,7 @@ stringToLaTeX  _     []     = return ""
 stringToLaTeX  ctx (x:xs) = do
   opts <- gets stOptions
   rest <- stringToLaTeX ctx xs
-  let ligatures = writerTeXLigatures opts && (ctx /= CodeString)
+  let ligatures = writerTeXLigatures opts && ctx == TextString
   let isUrl = ctx == URLString
   when (x == '€') $
      modify $ \st -> st{ stUsesEuro = True }
@@ -207,7 +207,8 @@ stringToLaTeX  ctx (x:xs) = do
        '&' -> "\\&" ++ rest
        '_' | not isUrl -> "\\_" ++ rest
        '#' -> "\\#" ++ rest
-       '-' -> case xs of   -- prevent adjacent hyphens from forming ligatures
+       '-' | not isUrl -> case xs of
+                   -- prevent adjacent hyphens from forming ligatures
                    ('-':_) -> "-\\/" ++ rest
                    _       -> '-' : rest
        '~' | not isUrl -> "\\textasciitilde{}" ++ rest
@@ -229,12 +230,13 @@ stringToLaTeX  ctx (x:xs) = do
        '\x2013' | ligatures -> "--" ++ rest
        _        -> x : rest
 
-toLabel :: String -> String
-toLabel [] = ""
-toLabel (x:xs)
-  | (isLetter x || isDigit x) && isAscii x = x:toLabel xs
-  | elem x "-+=:;." = x:toLabel xs
-  | otherwise = "ux" ++ printf "%x" (ord x) ++ toLabel xs
+toLabel :: String -> State WriterState String
+toLabel z = go `fmap` stringToLaTeX URLString z
+ where go [] = ""
+       go (x:xs)
+         | (isLetter x || isDigit x) && isAscii x = x:go xs
+         | elem x "-+=:;." = x:go xs
+         | otherwise = "ux" ++ printf "%x" (ord x) ++ go xs
 
 -- | Puts contents into LaTeX command.
 inCmd :: String -> Doc -> Doc
@@ -340,57 +342,57 @@ blockToLaTeX (BlockQuote lst) = do
          return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
 blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
+  ref <- toLabel identifier
+  let linkAnchor = if null identifier
+                      then empty
+                      else "\\hyperdef{}" <> braces (text ref) <>
+                                braces ("\\label" <> braces (text ref))
+  let lhsCodeBlock = do
+        modify $ \s -> s{ stLHS = True }
+        return $ flush (linkAnchor $$ "\\begin{code}" $$ text str $$
+                            "\\end{code}") $$ cr
+  let rawCodeBlock = do
+        st <- get
+        env <- if stInNote st
+                  then modify (\s -> s{ stVerbInNote = True }) >>
+                       return "Verbatim"
+                  else return "verbatim"
+        return $ flush (linkAnchor $$ text ("\\begin{" ++ env ++ "}") $$
+                 text str $$ text ("\\end{" ++ env ++ "}")) <> cr
+  let listingsCodeBlock = do
+        st <- get
+        let params = if writerListings (stOptions st)
+                     then (case getListingsLanguage classes of
+                                Just l  -> [ "language=" ++ l ]
+                                Nothing -> []) ++
+                          [ "numbers=left" | "numberLines" `elem` classes
+                             || "number" `elem` classes
+                             || "number-lines" `elem` classes ] ++
+                          [ (if key == "startFrom"
+                                then "firstnumber"
+                                else key) ++ "=" ++ attr |
+                                (key,attr) <- keyvalAttr ] ++
+                          (if identifier == ""
+                                then []
+                                else [ "label=" ++ ref ])
+
+                     else []
+            printParams
+                | null params = empty
+                | otherwise   = brackets $ hcat (intersperse ", " (map text params))
+        return $ flush ("\\begin{lstlisting}" <> printParams $$ text str $$
+                 "\\end{lstlisting}") $$ cr
+  let highlightedCodeBlock =
+        case highlight formatLaTeXBlock ("",classes,keyvalAttr) str of
+               Nothing -> rawCodeBlock
+               Just  h -> modify (\st -> st{ stHighlighting = True }) >>
+                          return (flush $ linkAnchor $$ text h)
   case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
          "literate" `elem` classes                      -> lhsCodeBlock
        | writerListings opts                            -> listingsCodeBlock
        | writerHighlight opts && not (null classes)     -> highlightedCodeBlock
        | otherwise                                      -> rawCodeBlock
-   where ref = text $ toLabel identifier
-         linkAnchor = if null identifier
-                         then empty
-                         else "\\hyperdef{}" <> braces ref <>
-                                   braces ("\\label" <> braces ref)
-         lhsCodeBlock = do
-           modify $ \s -> s{ stLHS = True }
-           return $ flush (linkAnchor $$ "\\begin{code}" $$ text str $$
-                               "\\end{code}") $$ cr
-         rawCodeBlock = do
-           st <- get
-           env <- if stInNote st
-                     then modify (\s -> s{ stVerbInNote = True }) >>
-                          return "Verbatim"
-                     else return "verbatim"
-           return $ flush (linkAnchor $$ text ("\\begin{" ++ env ++ "}") $$
-                    text str $$ text ("\\end{" ++ env ++ "}")) <> cr
-         listingsCodeBlock = do
-           st <- get
-           let params = if writerListings (stOptions st)
-                        then (case getListingsLanguage classes of
-                                   Just l  -> [ "language=" ++ l ]
-                                   Nothing -> []) ++
-                             [ "numbers=left" | "numberLines" `elem` classes
-                                || "number" `elem` classes
-                                || "number-lines" `elem` classes ] ++
-                             [ (if key == "startFrom"
-                                   then "firstnumber"
-                                   else key) ++ "=" ++ attr |
-                                   (key,attr) <- keyvalAttr ] ++
-                             (if identifier == ""
-                                   then []
-                                   else [ "label=" ++ toLabel identifier ])
-
-                        else []
-               printParams
-                   | null params = empty
-                   | otherwise   = brackets $ hcat (intersperse ", " (map text params))
-           return $ flush ("\\begin{lstlisting}" <> printParams $$ text str $$
-                    "\\end{lstlisting}") $$ cr
-         highlightedCodeBlock =
-           case highlight formatLaTeXBlock ("",classes,keyvalAttr) str of
-                  Nothing -> rawCodeBlock
-                  Just  h -> modify (\st -> st{ stHighlighting = True }) >>
-                             return (flush $ linkAnchor $$ text h)
 blockToLaTeX (RawBlock f x)
   | f == Format "latex" || f == Format "tex"
                         = return $ text x
@@ -579,6 +581,7 @@ sectionHeader :: Bool    -- True for unnumbered
               -> State WriterState Doc
 sectionHeader unnumbered ref level lst = do
   txt <- inlineListToLaTeX lst
+  lab <- text `fmap` toLabel ref
   let noNote (Note _) = Str ""
       noNote x        = x
   let lstNoNotes = walk noNote lst
@@ -599,13 +602,13 @@ sectionHeader unnumbered ref level lst = do
   let refLabel x = (if ref `elem` internalLinks
                        then text "\\hyperdef"
                                 <> braces empty
-                                <> braces (text $ toLabel ref)
+                                <> braces lab
                                 <> braces x
                        else x)
-  let headerWith x y r = refLabel $ text x <> y <>
-                             if null r
+  let headerWith x y = refLabel $ text x <> y <>
+                             if null ref
                                 then empty
-                                else text "\\label" <> braces (text $ toLabel r)
+                                else text "\\label" <> braces lab
   let sectionType = case level' of
                           0  | writerBeamer opts -> "part"
                              | otherwise -> "chapter"
@@ -624,7 +627,7 @@ sectionHeader unnumbered ref level lst = do
   return $ if level' > 5
               then txt
               else prefix $$
-                   headerWith ('\\':sectionType) stuffing ref
+                   headerWith ('\\':sectionType) stuffing
                    $$ if unnumbered
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
@@ -659,9 +662,10 @@ inlineToLaTeX (Span (id',classes,_) ils) = do
   let noEmph = "csl-no-emph" `elem` classes
   let noStrong = "csl-no-strong" `elem` classes
   let noSmallCaps = "csl-no-smallcaps" `elem` classes
-  let label' = if (null id')
-               then empty
-               else text "\\label" <> braces (text $ toLabel id')
+  label' <- if null id'
+               then return empty
+               else toLabel id' >>= \x ->
+                      return (text "\\label" <> braces (text x))
   fmap (label' <>)
     ((if noEmph then inCmd "textup" else id) .
      (if noStrong then inCmd "textnormal" else id) .
@@ -745,9 +749,8 @@ inlineToLaTeX (LineBreak) = return "\\\\"
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt
-  ident' <- stringToLaTeX URLString ident
-  return $ text "\\hyperref" <> brackets (text $ toLabel ident') <>
-              braces contents
+  lab <- toLabel ident
+  return $ text "\\hyperref" <> brackets (text lab) <> braces contents
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Str x] | x == src ->  -- autolink
