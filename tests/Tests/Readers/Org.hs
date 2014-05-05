@@ -207,6 +207,24 @@ tests =
           "<<anchor>> Link here later." =?>
           (para $ spanWith ("anchor", [], []) mempty <>
                   "Link" <> space <> "here" <> space <> "later.")
+
+      , "Inline code block" =:
+          "src_emacs-lisp{(message \"Hello\")}" =?>
+          (para $ codeWith ( ""
+                           , [ "commonlisp", "rundoc-block" ]
+                           , [ ("rundoc-language", "emacs-lisp") ])
+                           "(message \"Hello\")")
+
+      , "Inline code block with arguments" =:
+          "src_sh[:export both :results output]{echo 'Hello, World'}" =?>
+          (para $ codeWith ( ""
+                           , [ "bash", "rundoc-block" ]
+                           , [ ("rundoc-language", "sh")
+                             , ("rundoc-export", "both")
+                             , ("rundoc-results", "output")
+                             ]
+                           )
+                           "echo 'Hello, World'")
       ]
 
   , testGroup "Meta Information" $

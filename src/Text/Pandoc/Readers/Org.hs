@@ -43,6 +43,7 @@ import           Text.Pandoc.Shared (compactify', compactify'DL)
 
 import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>), (<**>) )
+import           Control.Arrow (first)
 import           Control.Monad (foldM, guard, liftM, liftM2, mzero, when)
 import           Control.Monad.Reader (Reader, runReader, ask, asks)
 import           Data.Char (isAlphaNum, toLower)
@@ -721,7 +722,6 @@ bulletList = fmap B.bulletList . fmap compactify' . sequence
              <$> many1 (listItem bulletListStart)
 
 orderedList :: OrgParser (F Blocks)
--- orderedList = B.orderedList . compactify' <$> many1 (listItem orderedListStart)
 orderedList = fmap B.orderedList . fmap compactify' . sequence
               <$> many1 (listItem orderedListStart)
 
@@ -746,11 +746,11 @@ definitionListItem :: OrgParser Int
 definitionListItem parseMarkerGetLength = try $ do
   markerLength <- parseMarkerGetLength
   term <- manyTill (noneOf "\n\r") (try $ string "::")
-  first <- anyLineNewline
+  line1 <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
   cont <- concat <$> many (listContinuation markerLength)
   term' <- parseFromString inline term
-  contents' <- parseFromString parseBlocks $ first ++ blank ++ cont
+  contents' <- parseFromString parseBlocks $ line1 ++ blank ++ cont
   return $ (,) <$> term' <*> fmap (:[]) contents'
 
 
@@ -789,6 +789,7 @@ inline =
          , footnote
          , linkOrImage
          , anchor
+         , inlineCodeBlock
          , str
          , endline
          , emph
@@ -988,6 +989,42 @@ solidify = map replaceSpecialChar
            | isAlphaNum c    = c
            | c `elem` "_.-:" = c
            | otherwise       = '-'
+
+-- | Parses an inline code block and marks it as an babel block.
+inlineCodeBlock :: OrgParser (F Inlines)
+inlineCodeBlock = try $ do
+  string "src_"
+  lang <- many1 orgArgWordChar
+  opts <- option [] $ enclosedByPair '[' ']' blockOption
+  inlineCode <- enclosedByPair '{' '}' (noneOf "\n\r")
+  let attrClasses = [translateLang lang, rundocBlockClass]
+  let attrKeyVal  = map toRundocAttrib (("language", lang) : opts)
+  returnF $ B.codeWith ("", attrClasses, attrKeyVal) inlineCode
+ where enclosedByPair s e p = char s *> many1Till p (char e)
+
+-- | The class-name used to mark rundoc blocks.
+rundocBlockClass :: String
+rundocBlockClass = "rundoc-block"
+
+blockOption :: OrgParser (String, String)
+blockOption = try $ (,) <$> orgArgKey <*> orgArgValue
+
+orgArgKey :: OrgParser String
+orgArgKey = try $
+  skipSpaces *> char ':'
+             *> many1 orgArgWordChar
+             <* many1 spaceChar
+
+orgArgValue :: OrgParser String
+orgArgValue = try $
+  skipSpaces *> many1 orgArgWordChar
+             <* skipSpaces
+
+orgArgWordChar :: OrgParser Char
+orgArgWordChar = alphaNum <|> oneOf "-_"
+
+toRundocAttrib :: (String, String) -> (String, String)
+toRundocAttrib = first ("rundoc-" ++)
 
 emph      :: OrgParser (F Inlines)
 emph      = fmap B.emph         <$> emphasisBetween '/'
