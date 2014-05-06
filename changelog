@@ -241,7 +241,8 @@ pandoc (1.12.4)
       (aaronwolen).
     + LaTeX and beamer template:  Adjust widths correctly for oversized
       images.  Use `\setkeys{Gin}{}` to set appropriate defaults for
-      `\includegraphics` (Yihui Xie, Garrick Aden-Buie).
+      `\includegraphics` (Yihui Xie, Garrick Aden-Buie).  Load
+      `upquote` only after `fontenc` (Yihui Xie).
     + Beamer template: Added caption package (#1200).
     + Beamer template:  changes for better unicode handling (KarolS).
     + DocBook template:  use `authorgroup` if there are authors.
@@ -288,6 +289,8 @@ pandoc (1.12.4)
     They aren't needed at runtime.  We keep README and COPYRIGHT in data
     to ensure that they'll be available on all systems on which pandoc
     is installed.
+
+  * Use cabal sandboxes in Windows build script.
 
 pandoc (1.12.3.3)
 
