@@ -4,6 +4,10 @@ $if(fontfamily)$
 $else$
 \usepackage{lmodern}
 $endif$
+$if(linestretch)$
+\usepackage{setspace}
+\setstretch{$linestretch$}
+$endif$
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \usepackage{fixltx2e} % provides \textsubscript
