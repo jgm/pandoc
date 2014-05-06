@@ -14,7 +14,6 @@ $endif$
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \usepackage{fixltx2e} % provides \textsubscript
-\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \usepackage{lmodern}
 \ifxetex
   \usepackage{fontspec,xltxtra,xunicode}
@@ -33,6 +32,7 @@ $endif$
     $endif$
   \fi
 \fi
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 % use microtype if available
 \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 $if(natbib)$
