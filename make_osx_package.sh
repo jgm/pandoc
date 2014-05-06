@@ -27,7 +27,7 @@ echo Building pandoc...
 cabal sandbox init
 cabal clean
 # Use cpphs to avoid problems with clang cpp on ghc 7.8 osx:
-which cpphs || cabal install cpphs
+cabal install cpphs alex happy hsb2hs
 cabal install --reinstall --flags="embed_data_files" --ghc-options '-pgmPcpphs -optP--cpp'
 cabal install --reinstall --flags="embed_data_files" pandoc-citeproc --ghc-options '-pgmPcpphs -optP--cpp'
 
