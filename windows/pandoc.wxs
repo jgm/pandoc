@@ -44,7 +44,7 @@
             Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes"/>
             <RemoveFolder Id="APPLICATIONFOLDER" On="uninstall"/>
             <File Id="pandocEXE" Name="pandoc.exe"
-            Source="..\cabal-dev\bin\pandoc.exe" />
+            Source="..\.cabal-sandbox\bin\pandoc.exe" />
             <File Id="pandocCOPYRIGHT" Name="COPYRIGHT.txt"
             Source="..\COPYRIGHT.txt" />
             <File Id="pandocCOPYING" Name="COPYING.rtf"
@@ -56,7 +56,7 @@
             <RegistryValue Root="HKMU" Key="Software\John MacFarlane\Pandoc"
             Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes"/>
             <File Id="pandoc_citeprocEXE" Name="pandoc-citeproc.exe"
-            Source="..\cabal-dev\bin\pandoc-citeproc.exe" />
+            Source="..\.cabal-sandbox\bin\pandoc-citeproc.exe" />
           </Component>
 
           <Component Id="UpdatePathUser"
