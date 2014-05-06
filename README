@@ -790,8 +790,15 @@ as `title`, `author`, and `date`) as well as the following:
 `geometry`
 :   options for LaTeX `geometry` class, e.g. `margin=1in`;
     may be repeated for multiple options
+`linestretch`
+:   adjusts line spacing (requires the `setspace` package)
 `fontfamily`
-:   font package to use for LaTeX documents (with pdflatex)
+:   font package to use for LaTeX documents (with pdflatex):
+    TeXLive has `bookman` (Bookman), `utopia` or `fourier` (Utopia),
+    `fouriernc` (New Century Schoolbook), `times` or `txfonts` (Times),
+    `mathpazo` or `pxfonts` or `mathpple` (Palatino),
+    `libertine` (Linux Libertine), `arev` (Arev Sans),
+    and the default `lmodern`, among others.
 `mainfont`, `sansfont`, `monofont`, `mathfont`
 :   fonts for LaTeX documents (works only with xelatex
     and lualatex)
