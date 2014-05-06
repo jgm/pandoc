@@ -3,7 +3,7 @@ cd ..
 cabal update
 cabal sandbox init
 cabal clean
-cabal install hsb2hs
+cabal install hsb2hs alex happy
 if %errorlevel% neq 0 exit /b %errorlevel%
 cabal install -v1 --force --reinstall --flags="embed_data_files"
 if %errorlevel% neq 0 exit /b %errorlevel%
