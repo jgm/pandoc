@@ -380,17 +380,16 @@ inline = do
 
 -- | Inline parsers tried in order
 inlineParsers :: [Parser [Char] ParserState Inlines]
-inlineParsers = [ inlineMarkup
-                , groupedInlineMarkup
-                , str
+inlineParsers = [ str
                 , whitespace
                 , endline
                 , code
                 , escapedInline
+                , inlineMarkup
+                , groupedInlineMarkup
                 , rawHtmlInline
                 , rawLaTeXInline'
                 , note
-                , try $ (char '[' *> inlineMarkup <* char ']')
                 , link
                 , image
                 , mark
