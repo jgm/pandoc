@@ -513,7 +513,7 @@ link = try $ do
   char '"' *> notFollowedBy (oneOf " \t\n\r")
   attr <- attributes
   name <- trimInlines . mconcat <$>
-          withQuoteContext InDoubleQuote (many1Till inline (try (char '"')))
+          withQuoteContext InDoubleQuote (many1Till inline (char '"'))
   char ':'
   let stop = if bracketed
                 then char ']'
