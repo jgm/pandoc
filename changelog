@@ -236,7 +236,9 @@ pandoc (1.12.4)
 
   * Template changes:
 
-    + LaTeX template: use `fontenc` package only with `pdflatex` (#1164).
+    + LaTeX template: Use `fontenc` package only with `pdflatex` (#1164).
+    + LaTeX template:  Add `linestretch` and `fontfamily` variables.
+    + LaTeX template:  Conditionalize author and date commands.
     + Beamer template: Consistent styles for figure and table captions
       (aaronwolen).
     + LaTeX and beamer template:  Adjust widths correctly for oversized
