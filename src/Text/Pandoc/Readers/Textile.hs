@@ -61,9 +61,11 @@ import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
 import Text.HTML.TagSoup.Match
 import Data.List ( intercalate )
 import Data.Char ( digitToInt, isUpper)
-import Control.Monad ( guard, liftM )
+import Control.Monad ( guard, liftM, when )
+import Text.Printf
 import Control.Applicative ((<$>), (*>), (<*), (<$))
 import Data.Monoid
+import Debug.Trace (trace)
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: ReaderOptions -- ^ Reader options
@@ -135,9 +137,17 @@ blockParsers = [ codeBlock
 
 endBlock :: Parser [Char] ParserState Blocks
 endBlock = string "\n\n" >> return mempty
+
 -- | Any block in the order of definition of blockParsers
 block :: Parser [Char] ParserState Blocks
-block = choice blockParsers <?> "block"
+block = do
+  res <- choice blockParsers <?> "block"
+  pos <- getPosition
+  tr <- getOption readerTrace
+  when tr $
+    trace (printf "line %d: %s" (sourceLine pos)
+           (take 60 $ show $ B.toList res)) (return ())
+  return res
 
 commentBlock :: Parser [Char] ParserState Blocks
 commentBlock = try $ do
