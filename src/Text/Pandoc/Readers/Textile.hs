@@ -481,7 +481,7 @@ str = do
   -- followed by parens, parens content is unconditionally word acronym
   fullStr <- option baseStr $ try $ do
     guard $ all isUpper baseStr
-    acro <- enclosed (char '(') (char ')') anyChar
+    acro <- enclosed (char '(') (char ')') anyChar'
     return $ concat [baseStr, " (", acro, ")"]
   updateLastStrPos
   return $ B.str fullStr
@@ -528,8 +528,8 @@ link = try $ do
 image :: Parser [Char] ParserState Inlines
 image = try $ do
   char '!' >> notFollowedBy space
-  src <- manyTill anyChar (lookAhead $ oneOf "!(")
-  alt <- option "" (try $ (char '(' >> manyTill anyChar (char ')')))
+  src <- manyTill anyChar' (lookAhead $ oneOf "!(")
+  alt <- option "" (try $ (char '(' >> manyTill anyChar' (char ')')))
   char '!'
   return $ B.image src alt (B.str alt)
 
@@ -537,12 +537,14 @@ escapedInline :: Parser [Char] ParserState Inlines
 escapedInline = escapedEqs <|> escapedTag
 
 escapedEqs :: Parser [Char] ParserState Inlines
-escapedEqs = B.str <$> (try $ string "==" *> manyTill anyChar (try $ string "=="))
+escapedEqs = B.str <$>
+  (try $ string "==" *> manyTill anyChar' (try $ string "=="))
 
 -- | literal text escaped btw <notextile> tags
 escapedTag :: Parser [Char] ParserState Inlines
 escapedTag = B.str <$>
-  (try $ string "<notextile>" *> manyTill anyChar (try $ string "</notextile>"))
+  (try $ string "<notextile>" *>
+         manyTill anyChar' (try $ string "</notextile>"))
 
 -- | Any special symbol defined in wordBoundaries
 symbol :: Parser [Char] ParserState Inlines
@@ -552,13 +554,18 @@ symbol = B.str . singleton <$> (oneOf wordBoundaries <|> oneOf markupChars)
 code :: Parser [Char] ParserState Inlines
 code = code1 <|> code2
 
+-- any character except a newline before a blank line
+anyChar' :: Parser [Char] ParserState Char
+anyChar' =
+  satisfy (/='\n') <|> (try $ char '\n' <* notFollowedBy blankline)
+
 code1 :: Parser [Char] ParserState Inlines
-code1 = B.code <$> surrounded (char '@') anyChar
+code1 = B.code <$> surrounded (char '@') anyChar'
 
 code2 :: Parser [Char] ParserState Inlines
 code2 = do
   htmlTag (tagOpen (=="tt") null)
-  B.code <$> manyTill anyChar (try $ htmlTag $ tagClose (=="tt"))
+  B.code <$> manyTill anyChar' (try $ htmlTag $ tagClose (=="tt"))
 
 -- | Html / CSS attributes
 attributes :: Parser [Char] ParserState Attr
@@ -570,7 +577,7 @@ attribute = classIdAttr <|> styleAttr <|> langAttr
 classIdAttr :: Parser [Char] ParserState (Attr -> Attr)
 classIdAttr = try $ do -- (class class #id)
   char '('
-  ws <- words `fmap` manyTill anyChar (char ')')
+  ws <- words `fmap` manyTill anyChar' (char ')')
   case reverse ws of
        []                      -> return $ \(_,_,keyvals) -> ("",[],keyvals)
        (('#':ident'):classes') -> return $ \(_,_,keyvals) ->
@@ -580,7 +587,7 @@ classIdAttr = try $ do -- (class class #id)
 
 styleAttr :: Parser [Char] ParserState (Attr -> Attr)
 styleAttr = do
-  style <- try $ enclosed (char '{') (char '}') anyChar
+  style <- try $ enclosed (char '{') (char '}') anyChar'
   return $ \(id',classes,keyvals) -> (id',classes,("style",style):keyvals)
 
 langAttr :: Parser [Char] ParserState (Attr -> Attr)
@@ -592,13 +599,15 @@ langAttr = do
 surrounded :: Parser [Char] st t   -- ^ surrounding parser
 	    -> Parser [Char] st a    -- ^ content parser (to be used repeatedly)
 	    -> Parser [Char] st [a]
-surrounded border = enclosed (border *> notFollowedBy (oneOf " \t\n\r")) (try border)
+surrounded border =
+  enclosed (border *> notFollowedBy (oneOf " \t\n\r")) (try border)
 
 
 simpleInline :: Parser [Char] ParserState t           -- ^ surrounding parser
                 -> (Inlines -> Inlines)       -- ^ Inline constructor
                 -> Parser [Char] ParserState Inlines   -- ^ content parser (to be used repeatedly)
-simpleInline border construct = groupedSimpleInline border construct <|> ungroupedSimpleInline border construct
+simpleInline border construct = groupedSimpleInline border construct
+                            <|> ungroupedSimpleInline border construct
 
 ungroupedSimpleInline :: Parser [Char] ParserState t           -- ^ surrounding parser
                 -> (Inlines -> Inlines)       -- ^ Inline constructor
