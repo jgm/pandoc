@@ -596,32 +596,28 @@ ungroupedSimpleInline :: Parser [Char] ParserState t           -- ^ surrounding 
 ungroupedSimpleInline border construct = try $ do
   st <- getState
   pos <- getPosition
-  isWhitespace <- option False (whitespace >> return True)
-  guard $ (stateQuoteContext st /= NoQuote)
-       || (sourceColumn pos == 1)
-       || isWhitespace
+  let afterString = stateLastStrPos st == Just pos
+  guard $ not afterString
   border *> notFollowedBy (oneOf " \t\n\r")
   attr <- attributes
   body <- trimInlines . mconcat <$>
           withQuoteContext InSingleQuote
             (manyTill inline (try border <* notFollowedBy alphaNum))
-  let result = construct $
+  return $ construct $
         if attr == nullAttr
            then body
            else B.spanWith attr body
-  return $ if isWhitespace
-              then B.space <> result
-              else result
 
 groupedSimpleInline :: Parser [Char] ParserState t
                   -> (Inlines -> Inlines)
                   -> Parser [Char] ParserState Inlines
 groupedSimpleInline border construct = try $ do
     char '['
-    withQuoteContext InSingleQuote (simpleInline border construct) >>~ char ']'
-
-
-
+    sp1 <- option mempty $ B.space <$ whitespace
+    result <- withQuoteContext InSingleQuote (simpleInline border construct)
+    sp2 <- option mempty $ B.space <$ whitespace
+    char ']'
+    return $ sp1 <> result <> sp2
 
 -- | Create a singleton list
 singleton :: a -> [a]
