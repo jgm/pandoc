@@ -381,6 +381,7 @@ inline = do
 -- | Inline parsers tried in order
 inlineParsers :: [Parser [Char] ParserState Inlines]
 inlineParsers = [ inlineMarkup
+                , groupedInlineMarkup
                 , str
                 , whitespace
                 , endline
@@ -602,17 +603,10 @@ surrounded :: Parser [Char] st t   -- ^ surrounding parser
 surrounded border =
   enclosed (border *> notFollowedBy (oneOf " \t\n\r")) (try border)
 
-
 simpleInline :: Parser [Char] ParserState t           -- ^ surrounding parser
-                -> (Inlines -> Inlines)       -- ^ Inline constructor
-                -> Parser [Char] ParserState Inlines   -- ^ content parser (to be used repeatedly)
-simpleInline border construct = groupedSimpleInline border construct
-                            <|> ungroupedSimpleInline border construct
-
-ungroupedSimpleInline :: Parser [Char] ParserState t           -- ^ surrounding parser
-                -> (Inlines -> Inlines)       -- ^ Inline constructor
-                -> Parser [Char] ParserState Inlines   -- ^ content parser (to be used repeatedly)
-ungroupedSimpleInline border construct = try $ do
+             -> (Inlines -> Inlines)       -- ^ Inline constructor
+             -> Parser [Char] ParserState Inlines   -- ^ content parser (to be used repeatedly)
+simpleInline border construct = try $ do
   st <- getState
   pos <- getPosition
   let afterString = stateLastStrPos st == Just pos
@@ -627,13 +621,11 @@ ungroupedSimpleInline border construct = try $ do
            then body
            else B.spanWith attr body
 
-groupedSimpleInline :: Parser [Char] ParserState t
-                  -> (Inlines -> Inlines)
-                  -> Parser [Char] ParserState Inlines
-groupedSimpleInline border construct = try $ do
+groupedInlineMarkup :: Parser [Char] ParserState Inlines
+groupedInlineMarkup = try $ do
     char '['
     sp1 <- option mempty $ B.space <$ whitespace
-    result <- withQuoteContext InSingleQuote (simpleInline border construct)
+    result <- withQuoteContext InSingleQuote inlineMarkup
     sp2 <- option mempty $ B.space <$ whitespace
     char ']'
     return $ sp1 <> result <> sp2
