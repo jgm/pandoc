@@ -20,11 +20,11 @@ echo Removing old files...
 rm -rf $DIST
 mkdir -p $RESOURCES
 
+cabal sandbox init
 echo Updating database
 cabal update
 
 echo Building pandoc...
-cabal sandbox init
 cabal clean
 # Use cpphs to avoid problems with clang cpp on ghc 7.8 osx:
 cabal install cpphs alex happy hsb2hs
