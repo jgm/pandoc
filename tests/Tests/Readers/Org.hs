@@ -920,5 +920,14 @@ tests =
                              (unlines [ "fmap id = id"
                                       , "fmap (p . q) = (fmap p) . (fmap q)"
                                       ])))
+
+      , "Convert blank lines in blocks to single newlines" =:
+          unlines [ "#+begin_html"
+                  , ""
+                  , "<span>boring</span>"
+                  , ""
+                  , "#+end_html"
+                  ] =?>
+          rawBlock "html" "\n<span>boring</span>\n\n"
       ]
   ]

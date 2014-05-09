@@ -357,12 +357,8 @@ rawBlockContent :: BlockProperties -> OrgParser String
 rawBlockContent (indent, blockType) = try $
   unlines . map commaEscaped <$> manyTill indentedLine blockEnder
  where
-   indentedLine = try $
-     choice [ blankline         *> pure "\n"
-            , indentWith indent *> anyLine
-            ]
-   blockEnder = try $
-     indentWith indent *> stringAnyCase ("#+end_" <> blockType)
+   indentedLine = try $ ("" <$ blankline) <|> (indentWith indent *> anyLine)
+   blockEnder = try $ indentWith indent *> stringAnyCase ("#+end_" <> blockType)
 
 parsedBlockContent :: BlockProperties -> OrgParser (F Blocks)
 parsedBlockContent blkProps = try $ do
