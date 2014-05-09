@@ -276,7 +276,7 @@ parseBlockAttributes = do
  where
    attribute :: OrgParser (String, String)
    attribute = try $ do
-         key <- metaLineStart *> many1Till (noneOf "\n\r") (char ':')
+         key <- metaLineStart *> many1Till nonspaceChar (char ':')
          val <- skipSpaces *> anyLine
          return (map toLower key, val)
 
@@ -342,16 +342,11 @@ verseBlock blkProp = try $ do
 codeBlock :: BlockProperties -> OrgParser (F Blocks)
 codeBlock blkProp = do
   skipSpaces
-  language      <- optionMaybe orgArgWord
-  (classes, kv) <- codeHeaderArgs
+  (classes, kv) <- codeHeaderArgs <|> (mempty <$ ignHeaders)
   id'           <- fromMaybe "" <$> lookupBlockAttribute "name"
-  caption       <- lookupInlinesAttr "caption"
   content       <- rawBlockContent blkProp
-  let attr      = ( id'
-                  , maybe id (\l -> (l:)) language $ classes
-                  , kv )
-  let codeBlck  = B.codeBlockWith attr content
-  return $ maybe (pure codeBlck) (labelDiv codeBlck) caption
+  let codeBlck  = B.codeBlockWith ( id', classes, kv ) content
+  maybe (pure codeBlck) (labelDiv codeBlck) <$> lookupInlinesAttr "caption"
  where
    labelDiv blk value =
        B.divWith nullAttr <$> (mappend <$> labelledBlock value
@@ -383,12 +378,33 @@ indentWith num = do
      else choice [ try (count num (char ' '))
                  , try (char '\t' >> count (num - tabStop) (char ' ')) ]
 
+type SwitchOption = (Char, Maybe String)
+
 orgArgWord :: OrgParser String
 orgArgWord = many1 orgArgWordChar
 
+-- | Parse code block arguments
+-- TODO: We currently don't handle switches.
 codeHeaderArgs :: OrgParser ([String], [(String, String)])
-codeHeaderArgs =
-  (\x -> (x, [])) <$> manyTill (many nonspaceChar <* skipSpaces) newline
+codeHeaderArgs = try $ do
+  language   <- skipSpaces *> orgArgWord
+  _          <- skipSpaces *> (try $ switch `sepBy` (many1 spaceChar))
+  parameters <- manyTill blockOption newline
+  let pandocLang = translateLang language
+  return $
+    if hasRundocParameters parameters
+    then ( [ pandocLang, rundocBlockClass ]
+         , map toRundocAttrib (("language", language) : parameters)
+         )
+    else ([ pandocLang ], parameters)
+ where hasRundocParameters = not . null
+
+switch :: OrgParser SwitchOption
+switch = try $ simpleSwitch <|> lineNumbersSwitch
+ where
+   simpleSwitch = (\c -> (c, Nothing)) <$> (oneOf "-+" *> letter)
+   lineNumbersSwitch = (\ls -> ('l', Just ls)) <$>
+                       (string "-l \"" *> many1Till nonspaceChar (char '"'))
 
 translateLang :: String -> String
 translateLang "C"          = "c"
@@ -400,6 +416,32 @@ translateLang "R"          = "r"
 translateLang "sh"         = "bash"
 translateLang "sqlite"     = "sql"
 translateLang cs = cs
+
+-- | Prefix used for Rundoc classes and arguments.
+rundocPrefix :: String
+rundocPrefix = "rundoc-"
+
+-- | The class-name used to mark rundoc blocks.
+rundocBlockClass :: String
+rundocBlockClass = rundocPrefix ++ "block"
+
+blockOption :: OrgParser (String, String)
+blockOption = try $ (,) <$> orgArgKey <*> orgArgValue
+
+orgArgKey :: OrgParser String
+orgArgKey = try $
+  skipSpaces *> char ':'
+             *> many1 orgArgWordChar
+
+orgArgValue :: OrgParser String
+orgArgValue = try $
+  skipSpaces *> many1 orgArgWordChar <* skipSpaces
+
+orgArgWordChar :: OrgParser Char
+orgArgWordChar = alphaNum <|> oneOf "-_"
+
+toRundocAttrib :: (String, String) -> (String, String)
+toRundocAttrib = first ("rundoc-" ++)
 
 commaEscaped :: String -> String
 commaEscaped (',':cs@('*':_))     = cs
@@ -425,7 +467,7 @@ drawer = try $ do
 
 drawerStart :: OrgParser String
 drawerStart = try $
-  skipSpaces *> drawerName <* skipSpaces <* newline
+  skipSpaces *> drawerName <* skipSpaces <* P.newline
  where drawerName = try $  char ':' *> validDrawerName <* char ':'
        validDrawerName =  stringAnyCase "PROPERTIES"
                           <|> stringAnyCase "LOGBOOK"
@@ -435,7 +477,7 @@ drawerLine = try anyLine
 
 drawerEnd :: OrgParser String
 drawerEnd = try $
-  skipSpaces *> stringAnyCase ":END:" <* skipSpaces <* newline
+  skipSpaces *> stringAnyCase ":END:" <* skipSpaces <* P.newline
 
 
 --
@@ -446,7 +488,7 @@ drawerEnd = try $
 figure :: OrgParser (F Blocks)
 figure = try $ do
   (cap, nam) <- nameAndCaption
-  src <- skipSpaces *> selfTarget <* skipSpaces <* newline
+  src <- skipSpaces *> selfTarget <* skipSpaces <* P.newline
   guard (isImageFilename src)
   return $ do
     cap' <- cap
@@ -1035,34 +1077,6 @@ inlineCodeBlock = try $ do
   let attrKeyVal  = map toRundocAttrib (("language", lang) : opts)
   returnF $ B.codeWith ("", attrClasses, attrKeyVal) inlineCode
  where enclosedByPair s e p = char s *> many1Till p (char e)
-
--- | Prefix used for Rundoc classes and arguments.
-rundocPrefix :: String
-rundocPrefix = "rundoc-"
-
--- | The class-name used to mark rundoc blocks.
-rundocBlockClass :: String
-rundocBlockClass = rundocPrefix ++ "block"
-
-blockOption :: OrgParser (String, String)
-blockOption = try $ (,) <$> orgArgKey <*> orgArgValue
-
-orgArgKey :: OrgParser String
-orgArgKey = try $
-  skipSpaces *> char ':'
-             *> many1 orgArgWordChar
-             <* many1 spaceChar
-
-orgArgValue :: OrgParser String
-orgArgValue = try $
-  skipSpaces *> many1 orgArgWordChar
-             <* skipSpaces
-
-orgArgWordChar :: OrgParser Char
-orgArgWordChar = alphaNum <|> oneOf "-_"
-
-toRundocAttrib :: (String, String) -> (String, String)
-toRundocAttrib = first ("rundoc-" ++)
 
 emph      :: OrgParser (F Inlines)
 emph      = fmap B.emph         <$> emphasisBetween '/'

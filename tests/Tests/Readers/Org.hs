@@ -822,6 +822,20 @@ tests =
            in mconcat [ para $ spcSep [ "Low", "German", "greeting"  ]
                       , codeBlockWith attr' code'
                       ]
+      , "Source block with rundoc/babel arguments" =:
+           unlines [ "#+BEGIN_SRC emacs-lisp :exports both"
+                   , "(progn (message \"Hello, World!\")"
+                   , "       (+ 23 42))"
+                   , "#+END_SRC" ] =?>
+           let classes = [ "commonlisp"  -- as kate doesn't know emacs-lisp syntax
+                         , "rundoc-block"
+                         ]
+               params = [ ("rundoc-language", "emacs-lisp")
+                        , ("rundoc-exports", "both")
+                        ]
+               code' = unlines [ "(progn (message \"Hello, World!\")"
+                               , "       (+ 23 42))" ]
+           in codeBlockWith ("", classes, params) code'
 
       , "Example block" =:
            unlines [ "#+begin_example"
