@@ -50,7 +50,7 @@ import           Data.Char (isAlphaNum, toLower)
 import           Data.Default
 import           Data.List (intersperse, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
-import           Data.Maybe (listToMaybe, fromMaybe, isJust)
+import           Data.Maybe (fromMaybe, isJust)
 import           Data.Monoid (Monoid, mconcat, mempty, mappend)
 import           Network.HTTP (urlEncode)
 
@@ -162,7 +162,8 @@ popInlineCharStack = updateState $ \s ->
   s{ orgStateEmphasisCharStack = drop 1 . orgStateEmphasisCharStack $ s }
 
 surroundingEmphasisChar :: OrgParser [Char]
-surroundingEmphasisChar = take 1 . drop 1 . orgStateEmphasisCharStack <$> getState
+surroundingEmphasisChar =
+  take 1 . drop 1 . orgStateEmphasisCharStack <$> getState
 
 startEmphasisNewlinesCounting :: Int -> OrgParser ()
 startEmphasisNewlinesCounting maxNewlines = updateState $ \s ->
@@ -170,7 +171,7 @@ startEmphasisNewlinesCounting maxNewlines = updateState $ \s ->
 
 decEmphasisNewlinesCount :: OrgParser ()
 decEmphasisNewlinesCount = updateState $ \s ->
-      s{ orgStateEmphasisNewlines = (\n -> n - 1) <$> orgStateEmphasisNewlines s }
+  s{ orgStateEmphasisNewlines = (\n -> n - 1) <$> orgStateEmphasisNewlines s }
 
 newlinesCountWithinLimits :: OrgParser Bool
 newlinesCountWithinLimits = do
@@ -275,7 +276,7 @@ parseBlockAttributes = do
  where
    attribute :: OrgParser (String, String)
    attribute = try $ do
-         key <- metaLineStart *> many1Till (noneOf "\n\r") (char ':')
+         key <- metaLineStart *> many1Till nonspaceChar (char ':')
          val <- skipSpaces *> anyLine
          return (map toLower key, val)
 
@@ -296,56 +297,73 @@ lookupInlinesAttr attr = try $ do
 -- Org Blocks (#+BEGIN_... / #+END_...)
 --
 
+type BlockProperties = (Int, String)  -- (Indentation, Block-Type)
+
 orgBlock :: OrgParser (F Blocks)
 orgBlock = try $ do
-  (indent, blockType, args) <- blockHeader
-  content <- rawBlockContent indent blockType
-  contentBlocks <- parseFromString parseBlocks (content ++ "\n")
-  let classArgs = [ translateLang . fromMaybe [] $ listToMaybe args ]
-  case blockType of
-    "comment" -> return mempty
-    "html"    -> returnF $ B.rawBlock "html" content
-    "latex"   -> returnF $ B.rawBlock "latex" content
-    "ascii"   -> returnF $ B.rawBlock "ascii" content
-    "example" -> returnF $ exampleCode content
-    "quote"   -> return  $ B.blockQuote <$> contentBlocks
-    "verse"   -> parseVerse content
-    "src"     -> codeBlockWithAttr classArgs content
-    _         -> return  $ B.divWith ("", [blockType], []) <$> contentBlocks
+  blockProp@(_, blkType) <- blockHeaderStart
+  ($ blockProp) $
+    case blkType of
+      "comment" -> withRaw'   (const mempty)
+      "html"    -> withRaw'   (return . (B.rawBlock blkType))
+      "latex"   -> withRaw'   (return . (B.rawBlock blkType))
+      "ascii"   -> withRaw'   (return . (B.rawBlock blkType))
+      "example" -> withRaw'   (return . exampleCode)
+      "quote"   -> withParsed (fmap B.blockQuote)
+      "verse"   -> verseBlock
+      "src"     -> codeBlock
+      _         -> withParsed (fmap $ divWithClass blkType)
+
+blockHeaderStart :: OrgParser (Int, String)
+blockHeaderStart = try $ (,) <$> indent <*> blockType
  where
-   parseVerse :: String -> OrgParser (F Blocks)
-   parseVerse cs =
-       fmap B.para . mconcat . intersperse (pure B.linebreak)
-       <$> mapM (parseFromString parseInlines) (lines cs)
+  indent    = length      <$> many spaceChar
+  blockType = map toLower <$> (stringAnyCase "#+begin_" *> many orgArgWordChar)
 
-blockHeader :: OrgParser (Int, String, [String])
-blockHeader = (,,) <$> blockIndent
-                   <*> blockType
-                   <*> (skipSpaces *> blockArgs)
- where blockIndent = length <$> many spaceChar
-       blockType = map toLower <$> (stringAnyCase "#+begin_" *> many letter)
-       blockArgs = manyTill (many nonspaceChar <* skipSpaces) newline
+withRaw'   :: (String   -> F Blocks) -> BlockProperties -> OrgParser (F Blocks)
+withRaw'   f blockProp = (ignHeaders *> (f <$> rawBlockContent blockProp))
 
-codeBlockWithAttr :: [String] -> String -> OrgParser (F Blocks)
-codeBlockWithAttr classArgs content = do
-  identifier <- fromMaybe "" <$> lookupBlockAttribute "name"
-  caption <- lookupInlinesAttr "caption"
-  let codeBlck = B.codeBlockWith (identifier, classArgs, []) content
-  return $ maybe (pure codeBlck) (labelDiv codeBlck) caption
+withParsed :: (F Blocks -> F Blocks) -> BlockProperties -> OrgParser (F Blocks)
+withParsed f blockProp = (ignHeaders *> (f <$> parsedBlockContent blockProp))
+
+ignHeaders :: OrgParser ()
+ignHeaders = (() <$ newline) <|> (() <$ anyLine)
+
+divWithClass :: String -> Blocks -> Blocks
+divWithClass cls = B.divWith ("", [cls], [])
+
+verseBlock :: BlockProperties -> OrgParser (F Blocks)
+verseBlock blkProp = try $ do
+  ignHeaders
+  content <- rawBlockContent blkProp
+  fmap B.para . mconcat . intersperse (pure B.linebreak)
+    <$> mapM (parseFromString parseInlines) (lines content)
+
+codeBlock :: BlockProperties -> OrgParser (F Blocks)
+codeBlock blkProp = do
+  skipSpaces
+  (classes, kv) <- codeHeaderArgs <|> (mempty <$ ignHeaders)
+  id'           <- fromMaybe "" <$> lookupBlockAttribute "name"
+  content       <- rawBlockContent blkProp
+  let codeBlck  = B.codeBlockWith ( id', classes, kv ) content
+  maybe (pure codeBlck) (labelDiv codeBlck) <$> lookupInlinesAttr "caption"
  where
    labelDiv blk value =
        B.divWith nullAttr <$> (mappend <$> labelledBlock value
                                        <*> pure blk)
    labelledBlock = fmap (B.plain . B.spanWith ("", ["label"], []))
 
-rawBlockContent :: Int -> String -> OrgParser String
-rawBlockContent indent blockType =
+rawBlockContent :: BlockProperties -> OrgParser String
+rawBlockContent (indent, blockType) = try $
   unlines . map commaEscaped <$> manyTill indentedLine blockEnder
  where
-   indentedLine = try $ choice [ blankline         *> pure "\n"
-                               , indentWith indent *> anyLine
-                               ]
+   indentedLine = try $ ("" <$ blankline) <|> (indentWith indent *> anyLine)
    blockEnder = try $ indentWith indent *> stringAnyCase ("#+end_" <> blockType)
+
+parsedBlockContent :: BlockProperties -> OrgParser (F Blocks)
+parsedBlockContent blkProps = try $ do
+  raw <- rawBlockContent blkProps
+  parseFromString parseBlocks (raw ++ "\n")
 
 -- indent by specified number of spaces (or equiv. tabs)
 indentWith :: Int -> OrgParser String
@@ -355,6 +373,34 @@ indentWith num = do
      then count num (char ' ')
      else choice [ try (count num (char ' '))
                  , try (char '\t' >> count (num - tabStop) (char ' ')) ]
+
+type SwitchOption = (Char, Maybe String)
+
+orgArgWord :: OrgParser String
+orgArgWord = many1 orgArgWordChar
+
+-- | Parse code block arguments
+-- TODO: We currently don't handle switches.
+codeHeaderArgs :: OrgParser ([String], [(String, String)])
+codeHeaderArgs = try $ do
+  language   <- skipSpaces *> orgArgWord
+  _          <- skipSpaces *> (try $ switch `sepBy` (many1 spaceChar))
+  parameters <- manyTill blockOption newline
+  let pandocLang = translateLang language
+  return $
+    if hasRundocParameters parameters
+    then ( [ pandocLang, rundocBlockClass ]
+         , map toRundocAttrib (("language", language) : parameters)
+         )
+    else ([ pandocLang ], parameters)
+ where hasRundocParameters = not . null
+
+switch :: OrgParser SwitchOption
+switch = try $ simpleSwitch <|> lineNumbersSwitch
+ where
+   simpleSwitch = (\c -> (c, Nothing)) <$> (oneOf "-+" *> letter)
+   lineNumbersSwitch = (\ls -> ('l', Just ls)) <$>
+                       (string "-l \"" *> many1Till nonspaceChar (char '"'))
 
 translateLang :: String -> String
 translateLang "C"          = "c"
@@ -366,6 +412,32 @@ translateLang "R"          = "r"
 translateLang "sh"         = "bash"
 translateLang "sqlite"     = "sql"
 translateLang cs = cs
+
+-- | Prefix used for Rundoc classes and arguments.
+rundocPrefix :: String
+rundocPrefix = "rundoc-"
+
+-- | The class-name used to mark rundoc blocks.
+rundocBlockClass :: String
+rundocBlockClass = rundocPrefix ++ "block"
+
+blockOption :: OrgParser (String, String)
+blockOption = try $ (,) <$> orgArgKey <*> orgArgValue
+
+orgArgKey :: OrgParser String
+orgArgKey = try $
+  skipSpaces *> char ':'
+             *> many1 orgArgWordChar
+
+orgArgValue :: OrgParser String
+orgArgValue = try $
+  skipSpaces *> many1 orgArgWordChar <* skipSpaces
+
+orgArgWordChar :: OrgParser Char
+orgArgWordChar = alphaNum <|> oneOf "-_"
+
+toRundocAttrib :: (String, String) -> (String, String)
+toRundocAttrib = first ("rundoc-" ++)
 
 commaEscaped :: String -> String
 commaEscaped (',':cs@('*':_))     = cs
@@ -391,7 +463,7 @@ drawer = try $ do
 
 drawerStart :: OrgParser String
 drawerStart = try $
-  skipSpaces *> drawerName <* skipSpaces <* newline
+  skipSpaces *> drawerName <* skipSpaces <* P.newline
  where drawerName = try $  char ':' *> validDrawerName <* char ':'
        validDrawerName =  stringAnyCase "PROPERTIES"
                           <|> stringAnyCase "LOGBOOK"
@@ -401,7 +473,7 @@ drawerLine = try anyLine
 
 drawerEnd :: OrgParser String
 drawerEnd = try $
-  skipSpaces *> stringAnyCase ":END:" <* skipSpaces <* newline
+  skipSpaces *> stringAnyCase ":END:" <* skipSpaces <* P.newline
 
 
 --
@@ -412,7 +484,7 @@ drawerEnd = try $
 figure :: OrgParser (F Blocks)
 figure = try $ do
   (cap, nam) <- nameAndCaption
-  src <- skipSpaces *> selfTarget <* skipSpaces <* newline
+  src <- skipSpaces *> selfTarget <* skipSpaces <* P.newline
   guard (isImageFilename src)
   return $ do
     cap' <- cap
@@ -1001,30 +1073,6 @@ inlineCodeBlock = try $ do
   let attrKeyVal  = map toRundocAttrib (("language", lang) : opts)
   returnF $ B.codeWith ("", attrClasses, attrKeyVal) inlineCode
  where enclosedByPair s e p = char s *> many1Till p (char e)
-
--- | The class-name used to mark rundoc blocks.
-rundocBlockClass :: String
-rundocBlockClass = "rundoc-block"
-
-blockOption :: OrgParser (String, String)
-blockOption = try $ (,) <$> orgArgKey <*> orgArgValue
-
-orgArgKey :: OrgParser String
-orgArgKey = try $
-  skipSpaces *> char ':'
-             *> many1 orgArgWordChar
-             <* many1 spaceChar
-
-orgArgValue :: OrgParser String
-orgArgValue = try $
-  skipSpaces *> many1 orgArgWordChar
-             <* skipSpaces
-
-orgArgWordChar :: OrgParser Char
-orgArgWordChar = alphaNum <|> oneOf "-_"
-
-toRundocAttrib :: (String, String) -> (String, String)
-toRundocAttrib = first ("rundoc-" ++)
 
 emph      :: OrgParser (F Inlines)
 emph      = fmap B.emph         <$> emphasisBetween '/'
