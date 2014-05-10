@@ -318,7 +318,7 @@ blockHeaderStart :: OrgParser (Int, String)
 blockHeaderStart = try $ (,) <$> indent <*> blockType
  where
   indent    = length      <$> many spaceChar
-  blockType = map toLower <$> (stringAnyCase "#+begin_" *> many orgArgWordChar)
+  blockType = map toLower <$> (stringAnyCase "#+begin_" *> orgArgWord)
 
 withRaw'   :: (String   -> F Blocks) -> BlockProperties -> OrgParser (F Blocks)
 withRaw'   f blockProp = (ignHeaders *> (f <$> rawBlockContent blockProp))
@@ -422,16 +422,23 @@ rundocBlockClass :: String
 rundocBlockClass = rundocPrefix ++ "block"
 
 blockOption :: OrgParser (String, String)
-blockOption = try $ (,) <$> orgArgKey <*> orgArgValue
+blockOption = try $ (,) <$> orgArgKey <*> orgParamValue
+
+inlineBlockOption :: OrgParser (String, String)
+inlineBlockOption = try $ (,) <$> orgArgKey <*> orgInlineParamValue
 
 orgArgKey :: OrgParser String
 orgArgKey = try $
   skipSpaces *> char ':'
              *> many1 orgArgWordChar
 
-orgArgValue :: OrgParser String
-orgArgValue = try $
-  skipSpaces *> many1 orgArgWordChar <* skipSpaces
+orgParamValue :: OrgParser String
+orgParamValue = try $
+  skipSpaces *> many1 (noneOf "\t\n\r ") <* skipSpaces
+
+orgInlineParamValue :: OrgParser String
+orgInlineParamValue = try $
+  skipSpaces *> many1 (noneOf "\t\n\r ]") <* skipSpaces
 
 orgArgWordChar :: OrgParser Char
 orgArgWordChar = alphaNum <|> oneOf "-_"
@@ -1067,7 +1074,7 @@ inlineCodeBlock :: OrgParser (F Inlines)
 inlineCodeBlock = try $ do
   string "src_"
   lang <- many1 orgArgWordChar
-  opts <- option [] $ enclosedByPair '[' ']' blockOption
+  opts <- option [] $ enclosedByPair '[' ']' inlineBlockOption
   inlineCode <- enclosedByPair '{' '}' (noneOf "\n\r")
   let attrClasses = [translateLang lang, rundocBlockClass]
   let attrKeyVal  = map toRundocAttrib (("language", lang) : opts)

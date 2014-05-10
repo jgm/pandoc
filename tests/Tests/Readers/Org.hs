@@ -929,5 +929,17 @@ tests =
                   , "#+end_html"
                   ] =?>
           rawBlock "html" "\n<span>boring</span>\n\n"
+
+      , "Non-letter chars in source block parameters" =:
+          unlines [ "#+BEGIN_SRC C :tangle xxxx.c :city Zürich"
+                  , "code body"
+                  , "#+END_SRC"
+                  ] =?>
+          let classes = [ "c", "rundoc-block" ]
+              params  = [ ("rundoc-language", "C")
+                        , ("rundoc-tangle", "xxxx.c")
+                        , ("rundoc-city", "Zürich")
+                        ]
+          in codeBlockWith ( "", classes, params) "code body\n"
       ]
   ]
