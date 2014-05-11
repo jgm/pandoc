@@ -125,7 +125,7 @@ comment :: LP ()
 comment = do
   char '%'
   skipMany (satisfy (/='\n'))
-  newline
+  optional newline
   return ()
 
 bgroup :: LP ()
