@@ -2,9 +2,14 @@ pandoc (1.12.4.1)
 
   * Require highlighting-kate >= 0.5.8.  Fixes a performance regression.
 
+  * Shared:  `addMetaValue` now behaves slightly differently:
+    if both the new and old values are lists, it concatenates their
+    contents to form a new list.
+
   * LaTeX reader:
 
-    + Set `bibliography` in metadata from `\bibliography` command.
+    + Set `bibliography` in metadata from `\bibliography` or
+      `\addbibresource` command.
     + Don't error on `%foo` with no trailing newline.
 
   * Org reader:
