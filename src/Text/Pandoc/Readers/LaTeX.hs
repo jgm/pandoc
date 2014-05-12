@@ -309,6 +309,8 @@ blockCommands = M.fromList $
   , ("PandocEndInclude", endInclude)
   , ("bibliography", mempty <$ (skipopts *> braced >>=
                                 addMeta "bibliography" . splitBibs))
+  , ("addbibresource", mempty <$ (skipopts *> braced >>=
+                                addMeta "bibliography" . splitBibs))
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
