@@ -14,8 +14,7 @@ pandoc (1.12.4.1)
 
   * Updated copyright notices (Albert Krewinkel).
 
-  * Fixed templates.  The previous release did not include up-to-date
-    templates, due to a packaging error.
+  * Added default.icml to data files so it installs with the package.
 
 pandoc (1.12.4)
 

@@ -45,6 +45,7 @@ Data-Files:
                  data/templates/default.docbook,
                  data/templates/default.beamer,
                  data/templates/default.opendocument,
+                 data/templates/default.icml,
                  data/templates/default.opml,
                  data/templates/default.latex,
                  data/templates/default.context,
