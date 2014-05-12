@@ -307,6 +307,8 @@ blockCommands = M.fromList $
   , ("caption", tok >>= setCaption)
   , ("PandocStartInclude", startInclude)
   , ("PandocEndInclude", endInclude)
+  , ("bibliography", mempty <$ (skipopts *> braced >>=
+                                addMeta "bibliography" . splitBibs))
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
@@ -314,7 +316,7 @@ blockCommands = M.fromList $
     -- newcommand, etc. should be parsed by macro, but we need this
     -- here so these aren't parsed as inline commands to ignore
   , "special", "pdfannot", "pdfstringdef"
-  , "bibliography", "bibliographystyle"
+  , "bibliographystyle"
   , "maketitle", "makeindex", "makeglossary"
   , "addcontentsline", "addtocontents", "addtocounter"
      -- \ignore{} is used conventionally in literate haskell for definitions
@@ -328,6 +330,9 @@ blockCommands = M.fromList $
 addMeta :: ToMetaValue a => String -> a -> LP ()
 addMeta field val = updateState $ \st ->
   st{ stateMeta = addMetaField field val $ stateMeta st }
+
+splitBibs :: String -> [Inlines]
+splitBibs = map (str . flip replaceExtension "bib" . trim) . splitBy (==',')
 
 setCaption :: Inlines -> LP Blocks
 setCaption ils = do
