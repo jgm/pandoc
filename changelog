@@ -1,3 +1,22 @@
+pandoc (1.12.4.1)
+
+  * Require highlighting-kate >= 0.5.8.  Fixes a performance regression.
+
+  * LaTeX reader:
+
+    + Set `bibliography` in metadata from `\bibliography` command.
+    + Don't error on `%foo` with no trailing newline.
+
+  * Org reader:
+
+    + Support code block headers (`#+BEGIN_SRC ...`) (Albert Krewinkel).
+    + Fix parsing of blank lines within blocks (Albert Krewinkel).
+
+  * Updated copyright notices (Albert Krewinkel).
+
+  * Fixed templates.  The previous release did not include up-to-date
+    templates, due to a packaging error.
+
 pandoc (1.12.4)
 
   * Made it possible to run filters that aren't executable (#1096).
