@@ -564,8 +564,10 @@ addMetaField :: ToMetaValue a
              -> Meta
 addMetaField key val (Meta meta) =
   Meta $ M.insertWith combine key (toMetaValue val) meta
-  where combine newval (MetaList xs) = MetaList (xs ++ [newval])
+  where combine newval (MetaList xs) = MetaList (xs ++ tolist newval)
         combine newval x             = MetaList [x, newval]
+        tolist (MetaList ys)         = ys
+        tolist y                     = [y]
 
 -- | Create 'Meta' from old-style title, authors, date.  This is
 -- provided to ease the transition from the old API.
