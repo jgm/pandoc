@@ -12,8 +12,6 @@ use File::Spec;
 # The main info: this is the list of files to remove and the pkg_id.
 my $pkg_id    = 'net.johnmacfarlane.pandoc';
 
-my @pkg_info;
-
 # Find which, if any, volume Pandoc is installed on.
 my $volume;
 
@@ -39,12 +37,11 @@ if ( $cur_test =~ m/$pkg_id/ ) {
 
 die "Pandoc not installed.\n" if !( defined($volume) );
 
-my @pkg_files = ();
-my $f;
-for $f (split '\n', `pkgutil --volume '$volume' --only-files --files $pkg_id`) {
-    push @pkg_files, File::Spec->rel2abs($f, $volume);
-};
+# Get the list of files to remove.
+my @pkg_files = `pkgutil --volume '$volume' --only-files --files '$pkg_id'`;
+@pkg_files = map { chomp; File::Spec->rel2abs($_, $volume) } @pkg_files;
 
+# Confirm uninistall with the user.
 print "The following files will be deleted:\n\n";
 print join("\n", @pkg_files);
 print "\n\n";
@@ -54,28 +51,29 @@ my $input = <STDIN>;
 if ($input =~ m/^[Yy]/) {
 
     # Actually remove the files.
-    foreach $f (@pkg_files) {
-        if (system("sudo rm $f") == 0) {
-            warn "Deleted $f\n";
-        } else {
-            warn "Unable to delete $f: $!\n";
-            warn "Aborting uninstall.\n";
-            exit 1;
+    foreach my $file (@pkg_files) {
+        if ( -e $file ) {
+            if ( system( 'sudo', 'rm', $file ) == 0 ) {
+                warn "Deleted $file\n";
+            } else {
+                warn "Unable to delete $file: $?\n";
+                die "Aborting Uninstall.\n";
+            }
+        }  else {
+            warn "File $file does not exist.  Skipping.\n";
         }
     }
 
     # Clean up the install.
-    if (system("sudo pkgutil --forget $pkg_id --volume '$volume'") != 0) {
-        warn "Unable to clean up install: $!\n";
-        exit 1;
+    if (system('sudo', 'pkgutil', '--forget', $pkg_id, '--volume', $volume) != 0) {
+        die "Unable to clean up install: $?\n";
     }
 
 } else {
 
    print "OK, aborting uninstall.\n";
-   exit 0;
-
+   exit;
 }
 
 print "Pandoc has been successfully uninstalled.\n";
-exit 0;
+exit;
