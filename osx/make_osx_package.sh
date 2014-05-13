@@ -39,6 +39,7 @@ for f in $EXES; do
   cp $SANDBOX/share/man/man1/$f.1 $DEST/share/man/man1/
 done
 cp $SANDBOX/share/man/man5/pandoc_markdown.5 $DEST/share/man/man5/
+cp $SCRIPTS/uninstall-pandoc.pl $DEST/bin/
 
 chown -R $ME:staff $DIST
 # gzip $DEST/share/man/man?/*.*
