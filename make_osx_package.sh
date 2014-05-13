@@ -6,7 +6,8 @@ VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
 DEST=$ROOT/usr/local
-SCRIPTS=osx-resources
+OSX=osx
+SCRIPTS=$OSX/osx-resources
 BASE=pandoc-$VERSION
 ME=$(whoami)
 CODESIGNID="Developer ID Application: John Macfarlane"
@@ -39,7 +40,7 @@ for f in $EXES; do
   cp $SANDBOX/share/man/man1/$f.1 $DEST/share/man/man1/
 done
 cp $SANDBOX/share/man/man5/pandoc_markdown.5 $DEST/share/man/man5/
-cp $SCRIPTS/uninstall-pandoc.pl $DEST/bin/
+cp $OSX/uninstall-pandoc.pl $DEST/bin/
 
 chown -R $ME:staff $DIST
 # gzip $DEST/share/man/man?/*.*
