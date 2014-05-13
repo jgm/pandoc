@@ -21,6 +21,9 @@ pandoc (1.12.4.1)
 
   * Added default.icml to data files so it installs with the package.
 
+  * Moved OSX package materials to osx directory.  Added uninstall
+    script (thanks to Daniel T. Staal).
+
 pandoc (1.12.4)
 
   * Made it possible to run filters that aren't executable (#1096).
