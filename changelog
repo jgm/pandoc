@@ -1,4 +1,4 @@
-pandoc (1.12.4.1)
+pandoc (1.12.4.2)
 
   * Require highlighting-kate >= 0.5.8.  Fixes a performance regression.
 
@@ -16,13 +16,31 @@ pandoc (1.12.4.1)
 
     + Support code block headers (`#+BEGIN_SRC ...`) (Albert Krewinkel).
     + Fix parsing of blank lines within blocks (Albert Krewinkel).
+    + Support pandoc citation extension (Albert Krewinkel).  This can
+      be turned off by specifying `org-citation` as the input format.
+
+  * Markdown reader:
+
+    + `citeKey` moved to `Text.Pandoc.Parsing` so it can be used by
+      other readers (Albert Krewinkel).
+
+  * `Text.Pandoc.Parsing`:
+
+    + Added `citeKey` (see above).
+    + Added `HasLastStrPosition` type class and `updateLastStrPos`
+      and `notAfterString` functions.
 
   * Updated copyright notices (Albert Krewinkel).
 
   * Added default.icml to data files so it installs with the package.
 
-  * Moved OSX package materials to osx directory.  Added uninstall
-    script (thanks to Daniel T. Staal).
+  * OSX package:
+
+    + The binary is now built with options to ensure that it can be
+      used with OSX 10.6+.
+    + Moved OSX package materials to osx directory.
+    + Added OSX package uninstall script, included in the zip container
+      (thanks to Daniel T. Staal).
 
 pandoc (1.12.4)
 
