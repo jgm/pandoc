@@ -140,6 +140,7 @@ data Opt = Opt
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optMetadata          :: M.Map String MetaValue -- ^ Metadata fields to set
     , optOutputFile        :: String  -- ^ Name of output file
+    , optNumberFigures     :: Bool    -- ^ Number figures in LaTeX and HTML output
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX and HTML output
     , optNumberOffset      :: [Int]   -- ^ Starting number for sections
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
@@ -196,6 +197,7 @@ defaultOpts = Opt
     , optVariables             = []
     , optMetadata              = M.empty
     , optOutputFile            = "-"    -- "-" means stdout
+    , optNumberFigures         = False
     , optNumberSections        = False
     , optNumberOffset          = [0,0,0,0,0,0]
     , optSectionDivs           = False
@@ -523,6 +525,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optChapters = True }))
                  "" -- "Use chapter for top-level sections in LaTeX, DocBook"
+
+    , Option ""  ["number-figures"]
+                 (NoArg
+                  (\opt -> return opt { optNumberFigures = True }))
+                 "" -- "Number figures in LaTeX and HTML"
 
     , Option "N" ["number-sections"]
                  (NoArg
@@ -938,6 +945,7 @@ main = do
               , optTransforms            = transforms
               , optTemplate              = templatePath
               , optOutputFile            = outputFile
+              , optNumberFigures         = numberFigures
               , optNumberSections        = numberSections
               , optNumberOffset          = numberFrom
               , optSectionDivs           = sectionDivs
@@ -1112,6 +1120,7 @@ main = do
                             writerIncremental      = incremental,
                             writerCiteMethod       = citeMethod,
                             writerIgnoreNotes      = False,
+                            writerNumberFigures    = numberFigures,
                             writerNumberSections   = numberSections,
                             writerNumberOffset     = numberFrom,
                             writerSectionDivs      = sectionDivs,

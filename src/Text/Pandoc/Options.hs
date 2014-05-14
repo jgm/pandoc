@@ -275,7 +275,8 @@ data WriterOptions = WriterOptions
   , writerIncremental      :: Bool   -- ^ True if lists should be incremental
   , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
   , writerIgnoreNotes      :: Bool   -- ^ Ignore footnotes (used in making toc)
-  , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
+  , writerNumberFigures    :: Bool   -- ^ Number figures in LaTeX and HTML
+  , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX and HTML
   , writerNumberOffset     :: [Int]  -- ^ Starting number for section, subsection, ...
   , writerSectionDivs      :: Bool   -- ^ Put sections in div tags in HTML
   , writerExtensions       :: Set Extension -- ^ Markdown extensions that can be used
@@ -318,6 +319,7 @@ instance Default WriterOptions where
                       , writerIncremental      = False
                       , writerHTMLMathMethod   = PlainMath
                       , writerIgnoreNotes      = False
+                      , writerNumberFigures    = False
                       , writerNumberSections   = False
                       , writerNumberOffset     = [0,0,0,0,0,0]
                       , writerSectionDivs      = False
