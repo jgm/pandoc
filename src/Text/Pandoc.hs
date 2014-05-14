@@ -275,6 +275,7 @@ getDefaultExtensions "markdown_mmd" = multimarkdownExtensions
 getDefaultExtensions "markdown_github" = githubMarkdownExtensions
 getDefaultExtensions "markdown"        = pandocExtensions
 getDefaultExtensions "plain"           = pandocExtensions
+getDefaultExtensions "org"             = Set.fromList [Ext_citations]
 getDefaultExtensions "textile"         = Set.fromList [Ext_auto_identifiers, Ext_raw_tex]
 getDefaultExtensions _                 = Set.fromList [Ext_auto_identifiers]
 
@@ -319,4 +320,3 @@ readJSON _ = either error id . eitherDecode' . UTF8.fromStringLazy
 
 writeJSON :: WriterOptions -> Pandoc -> String
 writeJSON _ = UTF8.toStringLazy . encode
-

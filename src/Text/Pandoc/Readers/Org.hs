@@ -869,6 +869,7 @@ inline :: OrgParser (F Inlines)
 inline =
   choice [ whitespace
          , linebreak
+         , cite
          , footnote
          , linkOrImage
          , anchor
@@ -932,6 +933,51 @@ endline = try $ do
   guard =<< newlinesCountWithinLimits
   updateLastPreCharPos
   return . return $ B.space
+
+cite :: OrgParser (F Inlines)
+cite = try $ do
+  guardEnabled Ext_citations
+  (cs, raw) <- withRaw normalCite
+  return $ (flip B.cite (B.text raw)) <$> cs
+
+normalCite :: OrgParser (F [Citation])
+normalCite = try $  char '['
+                 *> skipSpaces
+                 *> citeList
+                 <* skipSpaces
+                 <* char ']'
+
+citeList :: OrgParser (F [Citation])
+citeList = sequence <$> sepBy1 citation (try $ char ';' *> skipSpaces)
+
+citation :: OrgParser (F Citation)
+citation = try $ do
+  pref <- prefix
+  (suppress_author, key) <- citeKey
+  suff <- suffix
+  return $ do
+    x <- pref
+    y <- suff
+    return $ Citation{ citationId      = key
+                     , citationPrefix  = B.toList x
+                     , citationSuffix  = B.toList y
+                     , citationMode    = if suppress_author
+                                            then SuppressAuthor
+                                            else NormalCitation
+                     , citationNoteNum = 0
+                     , citationHash    = 0
+                     }
+ where
+   prefix = trimInlinesF . mconcat <$>
+            manyTill inline (char ']' <|> (']' <$ lookAhead citeKey))
+   suffix = try $ do
+     hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
+     skipSpaces
+     rest <- trimInlinesF . mconcat <$>
+             many (notFollowedBy (oneOf ";]") *> inline)
+     return $ if hasSpace
+              then (B.space <>) <$> rest
+              else rest
 
 footnote :: OrgParser (F Inlines)
 footnote = try $ inlineNote <|> referencedNote
@@ -1007,7 +1053,7 @@ selfTarget :: OrgParser String
 selfTarget = try $ char '[' *> linkTarget <* char ']'
 
 linkTarget :: OrgParser String
-linkTarget = enclosed (char '[') (char ']') (noneOf "\n\r[]")
+linkTarget = enclosedByPair '[' ']' (noneOf "\n\r[]")
 
 applyCustomLinkFormat :: String -> OrgParser (F String)
 applyCustomLinkFormat link = do
@@ -1083,7 +1129,12 @@ inlineCodeBlock = try $ do
   let attrClasses = [translateLang lang, rundocBlockClass]
   let attrKeyVal  = map toRundocAttrib (("language", lang) : opts)
   returnF $ B.codeWith ("", attrClasses, attrKeyVal) inlineCode
- where enclosedByPair s e p = char s *> many1Till p (char e)
+
+enclosedByPair :: Char          -- ^ opening char
+               -> Char          -- ^ closing char
+               -> OrgParser a   -- ^ parser
+               -> OrgParser [a]
+enclosedByPair s e p = char s *> many1Till p (char e)
 
 emph      :: OrgParser (F Inlines)
 emph      = fmap B.emph         <$> emphasisBetween '/'
