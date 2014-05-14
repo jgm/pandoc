@@ -1814,20 +1814,6 @@ normalCite = try $ do
   char ']'
   return citations
 
-citeKey :: MarkdownParser (Bool, String)
-citeKey = try $ do
-  -- make sure we're not right after an alphanumeric,
-  -- since foo@bar.baz is probably an email address
-  guard =<< notAfterString
-  suppress_author <- option False (char '-' >> return True)
-  char '@'
-  first <- letter <|> char '_'
-  let regchar = satisfy (\c -> isAlphaNum c || c == '_')
-  let internal p = try $ p >>~ lookAhead regchar
-  rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/")
-  let key = first:rest
-  return (suppress_author, key)
-
 suffix :: MarkdownParser (F Inlines)
 suffix = try $ do
   hasSpace <- option False (notFollowedBy nonspaceChar >> return True)

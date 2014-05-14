@@ -94,6 +94,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              apostrophe,
                              dash,
                              nested,
+                             citeKey,
                              macro,
                              applyMacros',
                              Parser,
@@ -1143,6 +1144,18 @@ nested p = do
   res <- p
   updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
   return res
+
+citeKey :: HasLastStrPosition st => Parser [Char] st (Bool, String)
+citeKey = try $ do
+  guard =<< notAfterString
+  suppress_author <- option False (char '-' *> return True)
+  char '@'
+  firstChar <- letter <|> char '_'
+  let regchar = satisfy (\c -> isAlphaNum c || c == '_')
+  let internal p = try $ p <* lookAhead regchar
+  rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/")
+  let key = firstChar:rest
+  return (suppress_author, key)
 
 --
 -- Macros
