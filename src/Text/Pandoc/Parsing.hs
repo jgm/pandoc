@@ -54,7 +54,6 @@ module Text.Pandoc.Parsing ( (>>~),
                              withRaw,
                              escaped,
                              characterReference,
-                             updateLastStrPos,
                              anyOrderedListMarker,
                              orderedListMarker,
                              charRef,
@@ -66,11 +65,14 @@ module Text.Pandoc.Parsing ( (>>~),
                              testStringWith,
                              guardEnabled,
                              guardDisabled,
+                             updateLastStrPos,
+                             notAfterString,
                              ParserState (..),
                              HasReaderOptions (..),
                              HasHeaderMap (..),
                              HasIdentifierList (..),
                              HasMacros (..),
+                             HasLastStrPosition (..),
                              defaultParserState,
                              HeaderType (..),
                              ParserContext (..),
@@ -904,6 +906,14 @@ instance HasMacros ParserState where
   extractMacros        = stateMacros
   updateMacros f st    = st{ stateMacros = f $ stateMacros st }
 
+class HasLastStrPosition st where
+  setLastStrPos  :: SourcePos -> st -> st
+  getLastStrPos  :: st -> Maybe SourcePos
+
+instance HasLastStrPosition ParserState where
+  setLastStrPos pos st = st{ stateLastStrPos = Just pos }
+  getLastStrPos st     = stateLastStrPos st
+
 defaultParserState :: ParserState
 defaultParserState =
     ParserState { stateOptions         = def,
@@ -937,6 +947,17 @@ guardEnabled ext = getOption readerExtensions >>= guard . Set.member ext
 -- | Succeed only if the extension is disabled.
 guardDisabled :: HasReaderOptions st => Extension -> Parser s st ()
 guardDisabled ext = getOption readerExtensions >>= guard . not . Set.member ext
+
+-- | Update the position on which the last string ended.
+updateLastStrPos :: HasLastStrPosition st => Parser s st ()
+updateLastStrPos = getPosition >>= updateState . setLastStrPos
+
+-- | Whether we are right after the end of a string.
+notAfterString :: HasLastStrPosition st => Parser s st Bool
+notAfterString = do
+  pos <- getPosition
+  st  <- getState
+  return $ getLastStrPos st /= Just pos
 
 data HeaderType
     = SingleHeader Char  -- ^ Single line of characters underneath
@@ -1049,17 +1070,11 @@ charOrRef cs =
                        guard (c `elem` cs)
                        return c)
 
-updateLastStrPos :: Parser [Char] ParserState ()
-updateLastStrPos = getPosition >>= \p ->
-  updateState $ \s -> s{ stateLastStrPos = Just p }
-
 singleQuoteStart :: Parser [Char] ParserState ()
 singleQuoteStart = do
   failIfInQuoteContext InSingleQuote
-  pos <- getPosition
-  st <- getState
   -- single quote start can't be right after str
-  guard $ stateLastStrPos st /= Just pos
+  guard =<< notAfterString
   () <$ charOrRef "'\8216\145"
 
 singleQuoteEnd :: Parser [Char] st ()
@@ -1156,4 +1171,3 @@ applyMacros' target = do
      then do macros <- extractMacros `fmap` getState
              return $ applyMacros macros target
      else return target
-

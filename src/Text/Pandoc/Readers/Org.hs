@@ -105,6 +105,10 @@ instance HasMeta OrgParserState where
   deleteMeta field st =
     st{ orgStateMeta = deleteMeta field $ orgStateMeta st }
 
+instance HasLastStrPosition OrgParserState where
+  getLastStrPos = orgStateLastStrPos
+  setLastStrPos pos st = st{ orgStateLastStrPos = Just pos }
+
 instance Default OrgParserState where
   def = defaultOrgParserState
 
@@ -1273,13 +1277,6 @@ afterEmphasisPreChar = do
   pos <- getPosition
   lastPrePos <- orgStateLastPreCharPos <$> getState
   return . fromMaybe True $ (== pos) <$> lastPrePos
-
--- | Whether we are right after the end of a string
-notAfterString :: OrgParser Bool
-notAfterString = do
-  pos <- getPosition
-  lastStrPos <- orgStateLastStrPos <$> getState
-  return $ lastStrPos /= Just pos
 
 -- | Whether the parser is right after a forbidden border char
 notAfterForbiddenBorderChar :: OrgParser Bool
