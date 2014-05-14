@@ -47,7 +47,7 @@ terminates, and then returns the 'ExitCode' of the process,
 the standard output, and the standard error.
 
 If an asynchronous exception is thrown to the thread executing
-@readProcessWithExitCode@. The forked process will be terminated and
+@readProcessWithExitCode@, the forked process will be terminated and
 @readProcessWithExitCode@ will wait (block) until the process has been
 terminated.
 -}
@@ -102,4 +102,3 @@ forkWait a = do
   res <- newEmptyMVar
   _ <- mask $ \restore -> forkIO $ try (restore a) >>= putMVar res
   return (takeMVar res >>= either (\ex -> throwIO (ex :: SomeException)) return)
-
