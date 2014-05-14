@@ -70,11 +70,12 @@ data WriterState = WriterState
     , stQuotes           :: Bool    -- ^ <q> tag is used
     , stHighlighting     :: Bool    -- ^ Syntax highlighting is used
     , stSecNum           :: [Int]   -- ^ Number of current section
+    , stFigNum           :: Int     -- ^ Number of current figure
     }
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
-                                  stHighlighting = False, stSecNum = []}
+                                  stHighlighting = False, stSecNum = [], stFigNum = 1}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -410,12 +411,18 @@ blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 -- title beginning with fig: indicates that the image is a figure
 blockToHtml opts (Para [Image txt (s,'f':'i':'g':':':tit)]) = do
   img <- inlineToHtml opts (Image txt (s,tit))
+  num <- stFigNum `liftM` get
+  modify $ \st -> st{stFigNum = num+1}  -- update figure number
+  let label = if writerNumberFigures opts
+                 then H.span ! A.class_ "figure-number" $ (toHtml $ "Figure "++show num)
+                 else mempty
   let tocapt = if writerHtml5 opts
                   then H5.figcaption
                   else H.p ! A.class_ "caption"
-  capt <- if null txt
-             then return mempty
-             else tocapt `fmap` inlineListToHtml opts txt
+  capt <- case () of
+            _ | writerNumberFigures opts -> (tocapt . (label >>)) `fmap` (inlineListToHtml opts txt)
+            _ | null txt   -> return mempty
+            _ | otherwise  -> tocapt `fmap` (inlineListToHtml opts txt)
   return $ if writerHtml5 opts
               then H5.figure $ mconcat
                     [nl opts, img, capt, nl opts]
