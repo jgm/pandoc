@@ -225,6 +225,28 @@ tests =
                              ]
                            )
                            "echo 'Hello, World'")
+
+      , "Citation" =:
+          "[@nonexistent]" =?>
+          let citation = Citation
+                         { citationId = "nonexistent"
+                         , citationPrefix = []
+                         , citationSuffix = []
+                         , citationMode = NormalCitation
+                         , citationNoteNum = 0
+                         , citationHash = 0}
+          in (para $ cite [citation] "[@nonexistent]")
+
+      , "Citation containing text" =:
+          "[see @item1 p. 34-35]" =?>
+          let citation = Citation
+                         { citationId = "item1"
+                         , citationPrefix = [Str "see"]
+                         , citationSuffix = [Space ,Str "p.",Space,Str "34-35"]
+                         , citationMode = NormalCitation
+                         , citationNoteNum = 0
+                         , citationHash = 0}
+          in (para $ cite [citation] "[see @item1 p. 34-35]")
       ]
 
   , testGroup "Meta Information" $

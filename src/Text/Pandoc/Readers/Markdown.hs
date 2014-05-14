@@ -1474,9 +1474,7 @@ strongOrEmph =  enclosure '*' <|> (checkIntraword >> enclosure '_')
   where  checkIntraword = do
            exts <- getOption readerExtensions
            when (Ext_intraword_underscores `Set.member` exts) $ do
-             pos <- getPosition
-             lastStrPos <- stateLastStrPos <$> getState
-             guard $ lastStrPos /= Just pos
+             guard =<< notAfterString
 
 -- | Parses a list of inlines between start and end delimiters.
 inlinesBetween :: (Show b)
@@ -1518,8 +1516,7 @@ nonEndline = satisfy (/='\n')
 str :: MarkdownParser (F Inlines)
 str = do
   result <- many1 alphaNum
-  pos <- getPosition
-  updateState $ \s -> s{ stateLastStrPos = Just pos }
+  updateLastStrPos
   let spacesToNbr = map (\c -> if c == ' ' then '\160' else c)
   isSmart <- getOption readerSmart
   if isSmart
@@ -1816,22 +1813,6 @@ normalCite = try $ do
   spnl
   char ']'
   return citations
-
-citeKey :: MarkdownParser (Bool, String)
-citeKey = try $ do
-  -- make sure we're not right after an alphanumeric,
-  -- since foo@bar.baz is probably an email address
-  lastStrPos <- stateLastStrPos <$> getState
-  pos <- getPosition
-  guard $ lastStrPos /= Just pos
-  suppress_author <- option False (char '-' >> return True)
-  char '@'
-  first <- letter <|> char '_'
-  let regchar = satisfy (\c -> isAlphaNum c || c == '_')
-  let internal p = try $ p >>~ lookAhead regchar
-  rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/")
-  let key = first:rest
-  return (suppress_author, key)
 
 suffix :: MarkdownParser (F Inlines)
 suffix = try $ do
