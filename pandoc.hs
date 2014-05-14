@@ -140,7 +140,7 @@ data Opt = Opt
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optMetadata          :: M.Map String MetaValue -- ^ Metadata fields to set
     , optOutputFile        :: String  -- ^ Name of output file
-    , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
+    , optNumberSections    :: Bool    -- ^ Number sections in LaTeX and HTML output
     , optNumberOffset      :: [Int]   -- ^ Starting number for sections
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
@@ -527,7 +527,7 @@ options =
     , Option "N" ["number-sections"]
                  (NoArg
                   (\opt -> return opt { optNumberSections = True }))
-                 "" -- "Number sections in LaTeX"
+                 "" -- "Number sections in LaTeX and HTML"
 
     , Option "" ["number-offset"]
                  (ReqArg
