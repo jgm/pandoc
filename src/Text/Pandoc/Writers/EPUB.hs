@@ -333,7 +333,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                 case epubCoverImage metadata of
                      Nothing   -> return ([],[])
                      Just img  -> do
-                       let coverImage = "cover-image" ++ takeExtension img
+                       let coverImage = "media/" ++ takeFileName img
                        let cpContent = renderHtml $ writeHtml opts'
                                (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
                        imgContent <- B.readFile img
@@ -561,8 +561,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
                               ,("content", "0")] $ ()
              ] ++ case epubCoverImage metadata of
                         Nothing  -> []
-                        Just _   -> [unode "meta" ! [("name","cover"),
-                                            ("content","cover-image")] $ ()]
+                        Just img -> [unode "meta" ! [("name","cover"),
+                                            ("content", toId img)] $ ()]
           , unode "docTitle" $ unode "text" $ plainTitle
           , unode "navMap" $
               tpNode : evalState (mapM (navPointNode navMapFormatter) secs) 1
@@ -657,8 +657,8 @@ metadataElement version md currentTime =
         coverageNodes = maybe [] (dcTag' "coverage") $ epubCoverage md
         rightsNodes = maybe [] (dcTag' "rights") $ epubRights md
         coverImageNodes = maybe []
-            (const $ [unode "meta" !  [("name","cover"),
-                                       ("content","cover-image")] $ ()])
+            (\img -> [unode "meta" !  [("name","cover"),
+                                       ("content",toId img)] $ ()])
             $ epubCoverImage md
         modifiedNodes = [ unode "meta" ! [("property", "dcterms:modified")] $
                (showDateTimeISO8601 currentTime) | version == EPUB3 ]
