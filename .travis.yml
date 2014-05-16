@@ -18,7 +18,7 @@ before_install:
 install:
  - cabal-1.18 update
  - |
-   if [ $GHCVER = "head" ] || [ $GHCVER = "7.8.1" ]; then
+   if [ $GHCVER = "head" ] || [ $GHCVER = "7.8.2" ]; then
      cabal-1.18 install happy alex
      export PATH=$HOME/.cabal/bin:$PATH
    fi
