@@ -30,7 +30,7 @@ cd windows
 echo Creating msi...
 candle -dVERSION=%VERSION% pandoc.wxs
 if %errorlevel% neq 0 exit /b %errorlevel%
-light  -sw1076 -ext WixUIExtension -out pandoc-%VERSION%.msi pandoc.wixobj
+light  -sw1076 -ext WixUIExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo Starting kSign: sign, then quit kSign to complete the build...
 kSign
