@@ -76,8 +76,8 @@ sudo codesign --force --sign "$CODESIGNID" $BASE.pkg
 spctl --assess --type install $BASE.pkg
 
 echo Creating zip...
-zip -9 -r $BASE.pkg.zip $BASE.pkg
-zip -9 -j -r $BASE.pkg.zip $OSX/uninstall-pandoc.pl
+zip -9 -r $BASE-osx.zip $BASE.pkg
+zip -9 -j -r $BASE-osx.zip $OSX/uninstall-pandoc.pl
 
 # echo Creating disk image...
 # sudo hdiutil create "$BASE.dmg" \
