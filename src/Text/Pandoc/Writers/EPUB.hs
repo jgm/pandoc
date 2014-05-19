@@ -59,11 +59,7 @@ import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower, isDigit, isAlphaNum )
 import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
-#if MIN_VERSION_base(4,6,0)
-#else
-import Prelude hiding (catch)
-#endif
-import Control.Exception (catch, SomeException)
+import qualified Control.Exception as E
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.HTML.TagSoup
 
@@ -153,10 +149,10 @@ getEPUBMetadata opts meta = do
           then case lookup "lang" (writerVariables opts) of
                      Just x  -> return m{ epubLanguage = x }
                      Nothing -> do
-                       localeLang <- catch (liftM
+                       localeLang <- E.catch (liftM
                             (map (\c -> if c == '_' then '-' else c) .
                              takeWhile (/='.')) $ getEnv "LANG")
-                          (\e -> let _ = (e :: SomeException) in return "en-US")
+                          (\e -> let _ = (e :: E.SomeException) in return "en-US")
                        return m{ epubLanguage = localeLang }
           else return m
   let fixDate m =

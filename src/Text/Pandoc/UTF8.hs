@@ -51,8 +51,7 @@ import System.IO hiding (readFile, writeFile, getContents,
 #if MIN_VERSION_base(4,6,0)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
 #else
-import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn,
-                       catch)
+import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
 #endif
 import qualified System.IO as IO
 import qualified Data.ByteString.Char8 as B
