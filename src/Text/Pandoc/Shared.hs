@@ -118,11 +118,13 @@ import System.FilePath ( joinPath, splitDirectories )
 #else
 import Paths_pandoc (getDataFileName)
 #endif
-#ifdef HTTP_CONDUIT
+#ifdef HTTP_CLIENT
 import Data.ByteString.Lazy (toChunks)
-import Network.HTTP.Conduit (httpLbs, parseUrl, withManager,
-                             responseBody, responseHeaders, addProxy,
-                             Request(port,host))
+import Network.HTTP.Client (httpLbs, parseUrl, withManager,
+                            responseBody, responseHeaders,
+                            Request(port,host))
+import Network.HTTP.Client.Internal (addProxy)
+import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
 import Network.HTTP.Types.Header ( hContentType)
 import Network (withSocketsDo)
@@ -665,7 +667,7 @@ openURL u
     let mime     = takeWhile (/=',') $ drop 5 u
         contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u
     in  return $ Right (decodeLenient contents, Just mime)
-#ifdef HTTP_CONDUIT
+#ifdef HTTP_CLIENT
   | otherwise = withSocketsDo $ E.try $ do
      req <- parseUrl u
      (proxy :: Either E.SomeException String) <- E.try $ getEnv "http_proxy"
@@ -674,7 +676,7 @@ openURL u
                      Right pr -> case parseUrl pr of
                                       Just r  -> addProxy (host r) (port r) req
                                       Nothing -> req
-     resp <- withManager $ httpLbs req'
+     resp <- withManager tlsManagerSettings $ httpLbs req'
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 #else

@@ -116,9 +116,8 @@ assume that the pandoc source directory is your working directory.
 
           cabal install hsb2hs
 
-    - `http-conduit`:  use the `http-conduit` library to fetch external
-      resources (default yes -- without this, pandoc cannot make SSL
-      connections)
+    - `https`:  enable support for downloading resources over https
+      (using the `http-client` and `http-client-tls` libraries).
 
 3.  Build:
 

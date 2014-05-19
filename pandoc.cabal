@@ -196,8 +196,8 @@ Flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
 
-Flag http-conduit
-  Description:   Enable downloading of resources over https.
+Flag https
+  Description:   Enable support for downloading of resources over https.
   Default:       True
 
 Library
@@ -239,10 +239,11 @@ Library
                  hslua >= 0.3 && < 0.4,
                  binary >= 0.5 && < 0.8
   Build-Tools:   alex, happy
-  if flag(http-conduit)
-     Build-Depends: http-conduit >= 1.9 && < 2.2,
+  if flag(https)
+     Build-Depends: http-client >= 0.3.2 && < 0.4,
+                    http-client-tls >= 0.2 && < 0.3,
                     http-types >= 0.8 && < 0.9
-     cpp-options:   -DHTTP_CONDUIT
+     cpp-options:   -DHTTP_CLIENT
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      -- Build-Tools:   hsb2hs -- not yet recognized by cabal
