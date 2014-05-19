@@ -72,7 +72,7 @@ data Chapter = Chapter (Maybe [Int]) [Block]
 data EPUBMetadata = EPUBMetadata{
     epubIdentifier         :: [Identifier]
   , epubTitle              :: [Title]
-  , epubDate               :: String
+  , epubDate               :: [Date]
   , epubLanguage           :: String
   , epubCreator            :: [Creator]
   , epubContributor        :: [Creator]
@@ -92,6 +92,11 @@ data EPUBMetadata = EPUBMetadata{
 data Stylesheet = StylesheetPath FilePath
                 | StylesheetContents String
                 deriving Show
+
+data Date = Date{
+    dateText               :: String
+  , dateEvent              :: Maybe String
+  } deriving Show
 
 data Creator = Creator{
     creatorText            :: String
@@ -159,7 +164,9 @@ getEPUBMetadata opts meta = do
        if null (epubDate m)
           then do
             currentTime <- getCurrentTime
-            return $ m{ epubDate = showDateTimeISO8601 currentTime }
+            return $ m{ epubDate = [ Date{
+                             dateText = showDateTimeISO8601 currentTime
+                           , dateEvent = Nothing } ] }
           else return m
   let addAuthor m =
        if any (\c -> creatorRole c == Just "aut") $ epubCreator m
@@ -183,8 +190,10 @@ addMetadataFromXML e@(Element (QName name _ (Just "dc")) attrs _ _) md
                  , titleFileAs = getAttr "file-as"
                  , titleType = getAttr "type"
                  } : epubTitle md }
-  | name == "date" = md{ epubDate = fromMaybe "" $ normalizeDate'
-                                                 $ strContent e }
+  | name == "date" = md{ epubDate =
+             Date{ dateText = fromMaybe "" $ normalizeDate' $ strContent e
+                 , dateEvent = getAttr "event"
+                 } : epubDate md }
   | name == "language" = md{ epubLanguage = strContent e }
   | name == "creator" = md{ epubCreator =
               Creator{ creatorText = strContent e
@@ -249,6 +258,16 @@ getCreator s meta = getList s meta handleMetaValue
                   , creatorRole = metaValueToString <$> M.lookup "role" m }
         handleMetaValue mv = Creator (metaValueToString mv) Nothing Nothing
 
+getDate :: String -> Meta -> [Date]
+getDate s meta = getList s meta handleMetaValue
+  where handleMetaValue (MetaMap m) =
+           Date{ dateText = maybe "" id $
+                   M.lookup "text" m >>= normalizeDate' . metaValueToString
+               , dateEvent = metaValueToString <$> M.lookup "event" m }
+        handleMetaValue mv = Date { dateText = maybe ""
+                                      id $ normalizeDate' $ metaValueToString mv
+                                  , dateEvent = Nothing }
+
 simpleList :: String -> Meta -> [String]
 simpleList s meta =
   case lookupMeta s meta of
@@ -278,8 +297,7 @@ metadataFromMeta opts meta = EPUBMetadata{
     }
   where identifiers = getIdentifier meta
         titles = getTitle meta
-        date = fromMaybe "" $
-              (metaValueToString <$> lookupMeta "date" meta) >>= normalizeDate'
+        date = getDate "date" meta
         language = maybe "" metaValueToString $
            lookupMeta "language" meta `mplus` lookupMeta "lang" meta
         creators = getCreator "creator" meta
@@ -637,7 +655,14 @@ metadataElement version md currentTime =
         identifierNodes = withIds "epub-id" toIdentifierNode $
                           epubIdentifier md
         titleNodes = withIds "epub-title" toTitleNode $ epubTitle md
-        dateNodes = dcTag' "date" $ epubDate md
+        dateNodes = if version == EPUB2
+                       then withIds "epub-date" toDateNode $ epubDate md
+                       else -- epub3 allows only one dc:date
+                            -- http://www.idpf.org/epub/30/spec/epub30-publications.html#sec-opf-dcdate
+                            case epubDate md of
+                                 [] -> []
+                                 (x:_) -> [dcNode "date" ! [("id","epub-date")]
+                                            $ dateText x]
         languageNodes = [dcTag "language" $ epubLanguage md]
         creatorNodes = withIds "epub-creator" (toCreatorNode "creator") $
                        epubCreator md
@@ -671,7 +696,7 @@ metadataElement version md currentTime =
                 (schemeToOnix `fmap` scheme)
         toCreatorNode s id' creator
           | version == EPUB2 = [dcNode s !
-             ([("id",id')] ++
+             (("id",id') :
               maybe [] (\x -> [("opf:file-as",x)]) (creatorFileAs creator) ++
               maybe [] (\x -> [("opf:role",x)])
                (creatorRole creator >>= toRelator)) $ creatorText creator]
@@ -685,7 +710,7 @@ metadataElement version md currentTime =
                    (creatorRole creator >>= toRelator)
         toTitleNode id' title
           | version == EPUB2 = [dcNode "title" !
-             ([("id",id')] ++
+             (("id",id') :
               maybe [] (\x -> [("opf:file-as",x)]) (titleFileAs title) ++
               maybe [] (\x -> [("opf:title-type",x)]) (titleType title)) $
               titleText title]
@@ -697,6 +722,10 @@ metadataElement version md currentTime =
               maybe [] (\x -> [unode "meta" !
                    [("refines",'#':id'),("property","title-type")] $ x])
                    (titleType title)
+        toDateNode id' date = [dcNode "date" !
+             (("id",id') :
+                maybe [] (\x -> [("opf:event",x)]) (dateEvent date)) $
+                 dateText date]
         schemeToOnix "ISBN-10" = "02"
         schemeToOnix "GTIN-13" = "03"
         schemeToOnix "UPC"     = "04"
