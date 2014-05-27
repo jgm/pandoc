@@ -618,11 +618,18 @@ codeBlockFenced = try $ do
   skipMany spaceChar
   attr <- option ([],[],[]) $
             try (guardEnabled Ext_fenced_code_attributes >> attributes)
-           <|> ((\x -> ("",[x],[])) <$> identifier)
+           <|> ((\x -> ("",[toLanguageId x],[])) <$> many1 nonspaceChar)
   blankline
   contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
   blanklines
   return $ return $ B.codeBlockWith attr $ intercalate "\n" contents
+
+-- correctly handle github language identifiers
+toLanguageId :: String -> String
+toLanguageId = map toLower . go
+  where go "c++" = "cpp"
+        go "objective-c" = "objectivec"
+        go x = x
 
 codeBlockIndented :: MarkdownParser (F Blocks)
 codeBlockIndented = do
