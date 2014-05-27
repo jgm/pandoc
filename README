@@ -971,10 +971,8 @@ of the line containing the header text:
 
     {#identifier .class .class key=value key=value}
 
-Although this syntax allows assignment of classes and key/value attributes,
-only identifiers currently have any affect in the writers (and only in some
-writers: HTML, LaTeX, ConTeXt, Textile, AsciiDoc).  Thus, for example,
-the following headers will all be assigned the identifier `foo`:
+Thus, for example, the following headers will all be assigned the identifier
+`foo`:
 
     # My header {#foo}
 
@@ -984,6 +982,12 @@ the following headers will all be assigned the identifier `foo`:
     ---------------
 
 (This syntax is compatible with [PHP Markdown Extra].)
+
+Note that although this syntax allows assignment of classes and key/value
+attributes, writers generally don't use all of this information.  Identifiers,
+classes, and key/value attributes are used in HTML and HTML-based formats such
+as EPUB and slidy.  Identifiers are used for labels and link anchors in the
+LaTeX, ConTeXt, Textile, and AsciiDoc writers.
 
 Headers with the class `unnumbered` will not be numbered, even if
 `--number-sections` is specified.  A single hyphen (`-`) in an attribute
