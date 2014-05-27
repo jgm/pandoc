@@ -58,6 +58,10 @@
 
 $\$2 + \$3$
 
+This should not be math:
+
+$PATH 90 $PATH
+
 ## Commented-out list item
 
 - one

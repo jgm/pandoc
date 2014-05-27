@@ -464,11 +464,13 @@ mathInlineWith :: String -> String -> Parser [Char] st String
 mathInlineWith op cl = try $ do
   string op
   notFollowedBy space
-  words' <- many1Till (count 1 (noneOf "\n\\")
+  words' <- many1Till (count 1 (noneOf " \t\n\\")
                    <|> (char '\\' >> anyChar >>= \c -> return ['\\',c])
-                   <|> count 1 newline <* notFollowedBy' blankline
-                       *> return " ")
-              (try $ string cl)
+                   <|> do (blankline <* notFollowedBy' blankline) <|>
+                             (oneOf " \t" <* skipMany (oneOf " \t"))
+                          notFollowedBy (char '$')
+                          return " "
+                    ) (try $ string cl)
   notFollowedBy digit  -- to prevent capture of $5
   return $ concat words'
 
