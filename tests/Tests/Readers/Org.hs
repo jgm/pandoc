@@ -247,6 +247,33 @@ tests =
                          , citationNoteNum = 0
                          , citationHash = 0}
           in (para $ cite [citation] "[see @item1 p. 34-35]")
+
+      , "Inline LaTeX symbol" =:
+          "\\dots" =?>
+          para "…"
+
+      , "Inline LaTeX command" =:
+          "\\textit{Emphasised}" =?>
+          para (emph "Emphasised")
+
+      , "Inline LaTeX math symbol" =:
+          "\\tau" =?>
+          para (emph "τ")
+
+      , "Unknown inline LaTeX command" =:
+          "\\notacommand{foo}" =?>
+          para (rawInline "latex" "\\notacommand{foo}")
+
+      , "LaTeX citation" =:
+          "\\cite{Coffee}" =?>
+          let citation = Citation
+                         { citationId = "Coffee"
+                         , citationPrefix = []
+                         , citationSuffix = []
+                         , citationMode = AuthorInText
+                         , citationNoteNum = 0
+                         , citationHash = 0}
+          in (para . cite [citation] $ rawInline "latex" "\\cite{Coffee}")
       ]
 
   , testGroup "Meta Information" $

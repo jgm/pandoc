@@ -39,12 +39,15 @@ import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
                                             , newline, orderedListMarker
                                             , parseFromString
                                             , updateLastStrPos )
+import           Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import           Text.Pandoc.Shared (compactify', compactify'DL)
+import           Text.Parsec.Pos (updatePosString)
+import           Text.TeXMath (texMathToPandoc, DisplayType(..))
 
 import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>), (<**>) )
 import           Control.Arrow (first)
-import           Control.Monad (foldM, guard, liftM, liftM2, mzero, when)
+import           Control.Monad (foldM, guard, liftM, liftM2, mplus, mzero, when)
 import           Control.Monad.Reader (Reader, runReader, ask, asks)
 import           Data.Char (isAlphaNum, toLower)
 import           Data.Default
@@ -886,6 +889,7 @@ inline =
          , verbatim
          , subscript
          , superscript
+         , inlineLaTeX
          , symbol
          ] <* (guard =<< newlinesCountWithinLimits)
   <?> "inline"
@@ -1351,3 +1355,29 @@ simpleSubOrSuperString = try $
          , mappend <$> option [] ((:[]) <$> oneOf "+-")
                    <*> many1 alphaNum
          ]
+
+inlineLaTeX :: OrgParser (F Inlines)
+inlineLaTeX = try $ do
+  cmd <- inlineLaTeXCommand
+  maybe mzero returnF $ parseAsMath cmd `mplus` parseAsInlineLaTeX cmd
+ where
+   parseAsMath :: String -> Maybe Inlines
+   parseAsMath cs = maybeRight $ B.fromList <$> texMathToPandoc DisplayInline cs
+
+   parseAsInlineLaTeX :: String -> Maybe Inlines
+   parseAsInlineLaTeX cs = maybeRight $ runParser inlineCommand state "" cs
+
+   state :: ParserState
+   state = def{ stateOptions = def{ readerParseRaw = True }}
+
+maybeRight :: Either a b -> Maybe b
+maybeRight = either (const Nothing) Just
+
+inlineLaTeXCommand :: OrgParser String
+inlineLaTeXCommand = try $ do
+  rest <- getInput
+  pos <- getPosition
+  case runParser rawLaTeXInline def "source" rest of
+    Right (RawInline _ cs) -> cs <$ (setInput $ drop (length cs) rest)
+                                 <* (setPosition $ updatePosString pos cs)
+    _ -> mzero

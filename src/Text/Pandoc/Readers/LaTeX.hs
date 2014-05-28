@@ -31,6 +31,7 @@ Conversion of LaTeX to 'Pandoc' document.
 module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
+                                   inlineCommand,
                                    handleIncludes
                                  ) where
 
