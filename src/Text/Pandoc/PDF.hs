@@ -38,11 +38,11 @@ import qualified Data.ByteString as BS
 import System.Exit (ExitCode (..))
 import System.FilePath
 import System.Directory
+import Data.Digest.Pure.SHA (showDigest, sha1)
 import System.Environment
 import Control.Monad (unless)
 import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe)
-import qualified Data.ByteString.Base64 as B64
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walkM)
@@ -98,7 +98,7 @@ handleImage' baseURL tmpdir (Image ils (src,tit)) = do
               Right (contents, Just mime) -> do
                 let ext = fromMaybe (takeExtension src) $
                           extensionFromMimeType mime
-                let basename = UTF8.toString $ B64.encode $ UTF8.fromString src
+                let basename = showDigest $ sha1 $ BL.fromChunks [contents]
                 let fname = tmpdir </> basename <.> ext
                 BS.writeFile fname contents
                 return $ Image ils (fname,tit)
