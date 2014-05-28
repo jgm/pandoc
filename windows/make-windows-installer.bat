@@ -5,9 +5,7 @@ cabal sandbox init
 cabal clean
 cabal install hsb2hs alex happy
 if %errorlevel% neq 0 exit /b %errorlevel%
-cabal install -v1 --force --reinstall --flags="embed_data_files"
-if %errorlevel% neq 0 exit /b %errorlevel%
-cabal install -v1 --force --reinstall --flags="embed_data_files" pandoc-citeproc
+cabal install -v1 --force --reinstall --flags="embed_data_files" . pandoc-citeproc
 if %errorlevel% neq 0 exit /b %errorlevel%
 strip .\.cabal-sandbox\bin\pandoc.exe
 strip .\.cabal-sandbox\bin\pandoc-citeproc.exe
