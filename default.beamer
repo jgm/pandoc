@@ -130,9 +130,7 @@ $endif$
 $if(author)$
 \author{$for(author)$$author$$sep$ \and $endfor$}
 $endif$
-$if(date)$
 \date{$date$}
-$endif$
 
 \begin{document}
 $if(title)$
