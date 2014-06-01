@@ -60,6 +60,11 @@ import qualified Control.Exception as E
 import Text.Pandoc.MIME (getMimeType, extensionFromMimeType)
 import Control.Applicative ((<|>))
 
+data ListMarker = NoMarker
+                | BulletMarker
+                | NumberMarker ListNumberStyle ListNumberDelim Int
+                deriving (Show, Read, Eq, Ord)
+
 data WriterState = WriterState{
          stTextProperties :: [Element]
        , stParaProperties :: [Element]
@@ -72,11 +77,6 @@ data WriterState = WriterState{
        , stNumStyles      :: M.Map ListMarker Int
        , stLists          :: [ListMarker]
        }
-
-data ListMarker = NoMarker
-                | BulletMarker
-                | NumberMarker ListNumberStyle ListNumberDelim Int
-                deriving (Show, Read, Eq, Ord)
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{
