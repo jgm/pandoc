@@ -204,11 +204,35 @@ writeDocx opts doc@(Pandoc meta _) = do
   let toImageEntry (_,path,_,_,img) = toEntry ("word/" ++ path) epochtime $ toLazy img
   let imageEntries = map toImageEntry imgs
 
+  -- adjust contents to add sectPr from reference.docx
+  let docpath = "word/document.xml"
+  parsedDoc <- parseXml refArchive distArchive docpath
+  let sectprs = filterElementsName (\qn -> qPrefix qn == Just "w" &&
+                                           qName qn == "sectPr")
+                   parsedDoc
+
+  let stdAttributes =
+            [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")
+            ,("xmlns:m","http://schemas.openxmlformats.org/officeDocument/2006/math")
+            ,("xmlns:r","http://schemas.openxmlformats.org/officeDocument/2006/relationships")
+            ,("xmlns:o","urn:schemas-microsoft-com:office:office")
+            ,("xmlns:v","urn:schemas-microsoft-com:vml")
+            ,("xmlns:w10","urn:schemas-microsoft-com:office:word")
+            ,("xmlns:a","http://schemas.openxmlformats.org/drawingml/2006/main")
+            ,("xmlns:pic","http://schemas.openxmlformats.org/drawingml/2006/picture")
+            ,("xmlns:wp","http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing")]
+
+  let contents' = contents ++ sectprs
+  let docContents = mknode "w:document" stdAttributes
+                    $ mknode "w:body" [] $ contents'
+
   -- word/document.xml
-  let contentEntry = toEntry "word/document.xml" epochtime $ renderXml contents
+  let contentEntry = toEntry "word/document.xml" epochtime
+                     $ renderXml docContents
 
   -- footnotes
-  let footnotesEntry = toEntry "word/footnotes.xml" epochtime $ renderXml footnotes
+  let notes = mknode "w:footnotes" stdAttributes footnotes
+  let footnotesEntry = toEntry "word/footnotes.xml" epochtime $ renderXml notes
 
   -- footnote rels
   let footnoteRelEntry = toEntry "word/_rels/footnotes.xml.rels" epochtime
@@ -392,8 +416,9 @@ mkLvl marker lvl =
 getNumId :: WS Int
 getNumId = length `fmap` gets stLists
 
--- | Convert Pandoc document to two OpenXML elements (the main document and footnotes).
-writeOpenXML :: WriterOptions -> Pandoc -> WS (Element, Element)
+-- | Convert Pandoc document to two lists of
+-- OpenXML elements (the main document and footnotes).
+writeOpenXML :: WriterOptions -> Pandoc -> WS ([Element], [Element])
 writeOpenXML opts (Pandoc meta blocks) = do
   let tit = docTitle meta ++ case lookupMeta "subtitle" meta of
                                   Just (MetaBlocks [Plain xs]) -> LineBreak : xs
@@ -411,19 +436,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
   doc' <- blocksToOpenXML opts blocks'
   notes' <- reverse `fmap` gets stFootnotes
   let meta' = title ++ authors ++ date
-  let stdAttributes =
-            [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")
-            ,("xmlns:m","http://schemas.openxmlformats.org/officeDocument/2006/math")
-            ,("xmlns:r","http://schemas.openxmlformats.org/officeDocument/2006/relationships")
-            ,("xmlns:o","urn:schemas-microsoft-com:office:office")
-            ,("xmlns:v","urn:schemas-microsoft-com:vml")
-            ,("xmlns:w10","urn:schemas-microsoft-com:office:word")
-            ,("xmlns:a","http://schemas.openxmlformats.org/drawingml/2006/main")
-            ,("xmlns:pic","http://schemas.openxmlformats.org/drawingml/2006/picture")
-            ,("xmlns:wp","http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing")]
-  let doc = mknode "w:document" stdAttributes $ mknode "w:body" [] (meta' ++ doc')
-  let notes = mknode "w:footnotes" stdAttributes notes'
-  return (doc, notes)
+  return (meta' ++ doc', notes')
 
 -- | Convert a list of Pandoc blocks to OpenXML.
 blocksToOpenXML :: WriterOptions -> [Block] -> WS [Element]
