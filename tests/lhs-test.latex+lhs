@@ -44,6 +44,7 @@
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
 \setcounter{secnumdepth}{0}
 
+\date{}
 
 \begin{document}
 
