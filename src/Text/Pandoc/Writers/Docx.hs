@@ -59,6 +59,7 @@ import Text.Printf (printf)
 import qualified Control.Exception as E
 import Text.Pandoc.MIME (getMimeType, extensionFromMimeType)
 import Control.Applicative ((<|>))
+import Data.Maybe (mapMaybe)
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -123,6 +124,40 @@ writeDocx opts doc@(Pandoc meta _) = do
   epochtime <- floor `fmap` getPOSIXTime
   let imgs = M.elems $ stImages st
 
+  -- create entries for images in word/media/...
+  let toImageEntry (_,path,_,_,img) = toEntry ("word/" ++ path) epochtime $ toLazy img
+  let imageEntries = map toImageEntry imgs
+
+  -- adjust contents to add sectPr from reference.docx
+  parsedDoc <- parseXml refArchive distArchive "word/document.xml"
+  let wname f qn = qPrefix qn == Just "w" && f (qName qn)
+  let mbsectpr = filterElementName (wname (=="sectPr")) parsedDoc
+
+  let sectpr = maybe (mknode "w:sectPr" [] $ ()) id mbsectpr
+
+  let stdAttributes =
+            [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")
+            ,("xmlns:m","http://schemas.openxmlformats.org/officeDocument/2006/math")
+            ,("xmlns:r","http://schemas.openxmlformats.org/officeDocument/2006/relationships")
+            ,("xmlns:o","urn:schemas-microsoft-com:office:office")
+            ,("xmlns:v","urn:schemas-microsoft-com:vml")
+            ,("xmlns:w10","urn:schemas-microsoft-com:office:word")
+            ,("xmlns:a","http://schemas.openxmlformats.org/drawingml/2006/main")
+            ,("xmlns:pic","http://schemas.openxmlformats.org/drawingml/2006/picture")
+            ,("xmlns:wp","http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing")]
+
+  let contents' = contents ++ [sectpr]
+  let docContents = mknode "w:document" stdAttributes
+                    $ mknode "w:body" [] $ contents'
+
+  parsedRels <- parseXml refArchive distArchive "word/_rels/document.xml.rels"
+  let isHeaderNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
+  let isFooterNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer"
+  let headers = filterElements isHeaderNode parsedRels
+  let footers = filterElements isFooterNode parsedRels
+
+  let extractTarget e = findAttr (QName "Target" Nothing Nothing) e
+
   -- we create [Content_Types].xml and word/_rels/document.xml.rels
   -- from scratch rather than reading from reference.docx,
   -- because Word sometimes changes these files when a reference.docx is modified,
@@ -135,7 +170,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   let mkImageOverride (_, imgpath, mbMimeType, _, _) =
              mkOverrideNode ("/word/" ++ imgpath,
                              fromMaybe "application/octet-stream" mbMimeType)
-  let overrides = map mkOverrideNode
+  let overrides = map mkOverrideNode (
                   [("/word/webSettings.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml")
                   ,("/word/numbering.xml",
@@ -155,11 +190,13 @@ writeDocx opts doc@(Pandoc meta _) = do
                   ,("/word/document.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
                   ,("/word/footnotes.xml",
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml"),
-                   ("/word/header1.xml",
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"),
-                   ("/word/footer1.xml",
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml") ] ++ map mkImageOverride imgs
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml")
+                  ] ++
+                  map (\x -> (maybe "" ("/word/" ++) $ extractTarget x,
+                       "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml")) headers ++
+                  map (\x -> (maybe "" ("/word/" ++) $ extractTarget x,
+                       "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml")) footers) ++
+                    map mkImageOverride imgs
   let defaultnodes = [mknode "Default"
               [("Extension","xml"),("ContentType","application/xml")] (),
              mknode "Default"
@@ -195,13 +232,8 @@ writeDocx opts doc@(Pandoc meta _) = do
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes",
                       "rId7",
                       "footnotes.xml")
-                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/header",
-                      "rId8",
-                      "header1.xml")
-                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer",
-                      "rId9",
-                      "footer1.xml")
-                    ]
+                    ] ++
+                    headers ++ footers
   let toImgRel (ident,path,_,_,_) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"),("Id",ident),("Target",path)] ()
   let imgrels = map toImgRel imgs
   let toLinkRel (src,ident) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"),("Id",ident),("Target",src),("TargetMode","External") ] ()
@@ -210,38 +242,6 @@ writeDocx opts doc@(Pandoc meta _) = do
   let relEntry = toEntry "word/_rels/document.xml.rels" epochtime
         $ renderXml reldoc
 
-  -- create entries for images in word/media/...
-  let toImageEntry (_,path,_,_,img) = toEntry ("word/" ++ path) epochtime $ toLazy img
-  let imageEntries = map toImageEntry imgs
-
-  -- adjust contents to add sectPr from reference.docx
-  let docpath = "word/document.xml"
-  parsedDoc <- parseXml refArchive distArchive docpath
-  let mbsectpr = filterElementName (\qn -> qPrefix qn == Just "w" &&
-                                           qName qn == "sectPr") parsedDoc
-  let sectPrProps = case mbsectpr of
-                         Nothing   -> []
-                         Just e    -> filterElementsName (\qn ->
-                                         qPrefix qn == Just "w" &&
-                                         qName qn `notElem` ["headerReference","footerReference","sectPr"]) e
-  let headerPr = mknode "w:headerReference" [("w:type","default"),("r:id","rId8")] $ ()
-  let footerPr = mknode "w:footerReference" [("w:type","default"),("r:id","rId9")] $ ()
-  let sectpr = mknode "w:sectPr" [] $ [headerPr, footerPr] ++ sectPrProps
-
-  let stdAttributes =
-            [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")
-            ,("xmlns:m","http://schemas.openxmlformats.org/officeDocument/2006/math")
-            ,("xmlns:r","http://schemas.openxmlformats.org/officeDocument/2006/relationships")
-            ,("xmlns:o","urn:schemas-microsoft-com:office:office")
-            ,("xmlns:v","urn:schemas-microsoft-com:vml")
-            ,("xmlns:w10","urn:schemas-microsoft-com:office:word")
-            ,("xmlns:a","http://schemas.openxmlformats.org/drawingml/2006/main")
-            ,("xmlns:pic","http://schemas.openxmlformats.org/drawingml/2006/picture")
-            ,("xmlns:wp","http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing")]
-
-  let contents' = contents ++ [sectpr]
-  let docContents = mknode "w:document" stdAttributes
-                    $ mknode "w:body" [] $ contents'
 
   -- word/document.xml
   let contentEntry = toEntry "word/document.xml" epochtime
@@ -304,13 +304,13 @@ writeDocx opts doc@(Pandoc meta _) = do
   docPropsAppEntry <- entryFromArchive refArchive "docProps/app.xml"
   themeEntry <- entryFromArchive refArchive "word/theme/theme1.xml"
   fontTableEntry <- entryFromArchive refArchive "word/fontTable.xml"
-  -- we take settings.xml from dist archive because the ref archive
-  -- sometimes references special footnotes and endnotes that may
-  -- not be defined in footnotes.xml or endnotes.xml.
+  -- we use dist archive for settings.xml, because Word sometimes
+  -- adds references to footnotes or endnotes we don't have...
   settingsEntry <- entryFromArchive distArchive "word/settings.xml"
-  webSettingsEntry <- entryFromArchive distArchive "word/webSettings.xml"
-  headerEntry <- entryFromArchive refArchive "word/header1.xml"
-  footerEntry <- entryFromArchive refArchive "word/footer1.xml"
+  webSettingsEntry <- entryFromArchive refArchive "word/webSettings.xml"
+  headerFooterEntries <- mapM (entryFromArchive refArchive) $
+                     mapMaybe (\e -> fmap ("word/" ++) $ extractTarget e)
+                     (headers ++ footers)
   let miscRels = [ f | f <- filesInArchive refArchive
                      , "word/_rels/" `isPrefixOf` f
                      , ".xml.rels" `isSuffixOf` f
@@ -324,7 +324,8 @@ writeDocx opts doc@(Pandoc meta _) = do
                   footnoteRelEntry : numEntry : styleEntry : footnotesEntry :
                   docPropsEntry : docPropsAppEntry : themeEntry :
                   fontTableEntry : settingsEntry : webSettingsEntry :
-                  headerEntry : footerEntry : imageEntries ++ miscRelEntries
+                  imageEntries ++ headerFooterEntries ++
+                  miscRelEntries
   return $ fromArchive archive
 
 styleToOpenXml :: Style -> [Element]
