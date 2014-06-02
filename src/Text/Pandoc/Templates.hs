@@ -96,8 +96,8 @@ module Text.Pandoc.Templates ( renderTemplate
 import Data.Char (isAlphaNum)
 import Control.Monad (guard, when)
 import Data.Aeson (ToJSON(..), Value(..))
-import qualified Data.Attoparsec.Text as A
-import Data.Attoparsec.Text (Parser)
+import qualified Text.Parsec as P
+import Text.Parsec.Text (Parser)
 import Control.Applicative
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -172,7 +172,10 @@ renderTemplate :: (ToJSON a, TemplateTarget b) => Template -> a -> b
 renderTemplate (Template f) context = toTarget $ f $ toJSON context
 
 compileTemplate :: Text -> Either String Template
-compileTemplate template = A.parseOnly pTemplate template
+compileTemplate template =
+  case P.parse (pTemplate <* P.eof) "template" template of
+       Left e   -> Left (show e)
+       Right x  -> Right x
 
 -- | Like 'renderTemplate', but compiles the template first,
 -- raising an error if compilation fails.
@@ -230,7 +233,7 @@ replaceVar _ _ old = old
 
 pTemplate :: Parser Template
 pTemplate = do
-  sp <- A.option mempty pInitialSpace
+  sp <- P.option mempty pInitialSpace
   rest <- mconcat <$> many (pConditional <|>
                             pFor <|>
                             pNewline <|>
@@ -239,40 +242,43 @@ pTemplate = do
                             pEscapedDollar)
   return $ sp <> rest
 
+takeWhile1 :: (Char -> Bool) -> Parser Text
+takeWhile1 f = T.pack <$> P.many1 (P.satisfy f)
+
 pLit :: Parser Template
-pLit = lit <$> A.takeWhile1 (\x -> x /='$' && x /= '\n')
+pLit = lit <$> takeWhile1 (\x -> x /='$' && x /= '\n')
 
 pNewline :: Parser Template
 pNewline = do
-  A.char '\n'
-  sp <- A.option mempty pInitialSpace
+  P.char '\n'
+  sp <- P.option mempty pInitialSpace
   return $ lit "\n" <> sp
 
 pInitialSpace :: Parser Template
 pInitialSpace = do
-  sps <- A.takeWhile1 (==' ')
+  sps <- takeWhile1 (==' ')
   let indentVar = if T.null sps
                      then id
                      else indent (T.length sps)
-  v <- A.option mempty $ indentVar <$> pVar
+  v <- P.option mempty $ indentVar <$> pVar
   return $ lit sps <> v
 
 pEscapedDollar :: Parser Template
-pEscapedDollar = lit "$" <$ A.string "$$"
+pEscapedDollar = lit "$" <$ P.try (P.string "$$")
 
 pVar :: Parser Template
-pVar = var <$> (A.char '$' *> pIdent <* A.char '$')
+pVar = var <$> (P.try $ P.char '$' *> pIdent <* P.char '$')
 
 pIdent :: Parser [Text]
 pIdent = do
   first <- pIdentPart
-  rest <- many (A.char '.' *> pIdentPart)
+  rest <- many (P.char '.' *> pIdentPart)
   return (first:rest)
 
 pIdentPart :: Parser Text
-pIdentPart = do
-  first <- A.letter
-  rest <- A.takeWhile (\c -> isAlphaNum c || c == '_' || c == '-')
+pIdentPart = P.try $ do
+  first <- P.letter
+  rest <- T.pack <$> P.many (P.satisfy (\c -> isAlphaNum c || c == '_' || c == '-'))
   let id' = T.singleton first <> rest
   guard $ id' `notElem` reservedWords
   return id'
@@ -281,38 +287,38 @@ reservedWords :: [Text]
 reservedWords = ["else","endif","for","endfor","sep"]
 
 skipEndline :: Parser ()
-skipEndline = A.skipWhile (`elem` " \t") >> A.char '\n' >> return ()
+skipEndline = P.try $ P.skipMany (P.satisfy (`elem` " \t")) >> P.char '\n' >> return ()
 
 pConditional :: Parser Template
 pConditional = do
-  A.string "$if("
+  P.try $ P.string "$if("
   id' <- pIdent
-  A.string ")$"
+  P.string ")$"
   -- if newline after the "if", then a newline after "endif" will be swallowed
-  multiline <- A.option False (True <$ skipEndline)
+  multiline <- P.option False (True <$ skipEndline)
   ifContents <- pTemplate
-  elseContents <- A.option mempty $
-                      do A.string "$else$"
-                         when multiline $ A.option () skipEndline
+  elseContents <- P.option mempty $ P.try $
+                      do P.string "$else$"
+                         when multiline $ P.option () skipEndline
                          pTemplate
-  A.string "$endif$"
-  when multiline $ A.option () skipEndline
+  P.string "$endif$"
+  when multiline $ P.option () skipEndline
   return $ cond id' ifContents elseContents
 
 pFor :: Parser Template
 pFor = do
-  A.string "$for("
+  P.try $ P.string "$for("
   id' <- pIdent
-  A.string ")$"
+  P.string ")$"
   -- if newline after the "for", then a newline after "endfor" will be swallowed
-  multiline <- A.option False $ skipEndline >> return True
+  multiline <- P.option False $ skipEndline >> return True
   contents <- pTemplate
-  sep <- A.option mempty $
-           do A.string "$sep$"
-              when multiline $ A.option () skipEndline
+  sep <- P.option mempty $
+           do P.try $ P.string "$sep$"
+              when multiline $ P.option () skipEndline
               pTemplate
-  A.string "$endfor$"
-  when multiline $ A.option () skipEndline
+  P.string "$endfor$"
+  when multiline $ P.option () skipEndline
   return $ iter id' contents sep
 
 indent :: Int -> Template -> Template
