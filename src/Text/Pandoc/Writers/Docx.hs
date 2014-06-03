@@ -310,8 +310,9 @@ writeDocx opts doc@(Pandoc meta _) = do
   let relsEntry = toEntry relsPath epochtime $ renderXml rels
 
   let entryFromArchive arch path =
-         (toEntry path epochtime . renderXml) `fmap`
-           parseXml arch distArchive path
+         maybe (fail $ path ++ " corrupt or missing in reference docx")
+               return
+               (findEntryByPath path arch `mplus` findEntryByPath path distArchive)
   docPropsAppEntry <- entryFromArchive refArchive "docProps/app.xml"
   themeEntry <- entryFromArchive refArchive "word/theme/theme1.xml"
   fontTableEntry <- entryFromArchive refArchive "word/fontTable.xml"
