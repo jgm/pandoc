@@ -197,10 +197,21 @@ writeDocx opts doc@(Pandoc meta _) = do
                   map (\x -> (maybe "" ("/word/" ++) $ extractTarget x,
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml")) footers) ++
                     map mkImageOverride imgs
+  let imageDefaults = map (\(x,y) -> mknode "Default"
+                             [("Extension",x),("ContentType",y)] ())
+                       [("jpg","image/jpeg")
+                       ,("jpeg","image/jpeg")
+                       ,("png","image/png")
+                       ,("svg","image/svg+xml")
+                       ,("tif","image/tiff")
+                       ,("tiff","image/tiff")
+                       ,("bmp","image/x-ms-bmp")
+                       ,("gif","image/gif")
+                       ]
   let defaultnodes = [mknode "Default"
               [("Extension","xml"),("ContentType","application/xml")] (),
              mknode "Default"
-              [("Extension","rels"),("ContentType","application/vnd.openxmlformats-package.relationships+xml")] ()]
+              [("Extension","rels"),("ContentType","application/vnd.openxmlformats-package.relationships+xml")] ()] ++ imageDefaults
   let contentTypesDoc = mknode "Types" [("xmlns","http://schemas.openxmlformats.org/package/2006/content-types")] $ defaultnodes ++ overrides
   let contentTypesEntry = toEntry "[Content_Types].xml" epochtime
         $ renderXml contentTypesDoc
@@ -311,12 +322,13 @@ writeDocx opts doc@(Pandoc meta _) = do
   headerFooterEntries <- mapM (entryFromArchive refArchive) $
                      mapMaybe (\e -> fmap ("word/" ++) $ extractTarget e)
                      (headers ++ footers)
-  let miscRels = [ f | f <- filesInArchive refArchive
-                     , "word/_rels/" `isPrefixOf` f
-                     , ".xml.rels" `isSuffixOf` f
-                     , f /= "word/_rels/document.xml.rels"
-                     , f /= "word/_rels/footnotes.xml.rels" ]
-  miscRelEntries <- mapM (entryFromArchive refArchive) miscRels
+  let miscRelEntries = [ e | e <- zEntries refArchive
+                       , "word/_rels/" `isPrefixOf` (eRelativePath e)
+                       , ".xml.rels" `isSuffixOf` (eRelativePath e)
+                       , eRelativePath e /= "word/_rels/document.xml.rels"
+                       , eRelativePath e /= "word/_rels/footnotes.xml.rels" ]
+  let otherMediaEntries = [ e | e <- zEntries refArchive
+                          , "word/media/" `isPrefixOf` eRelativePath e ]
 
   -- Create archive
   let archive = foldr addEntryToArchive emptyArchive $
@@ -325,7 +337,7 @@ writeDocx opts doc@(Pandoc meta _) = do
                   docPropsEntry : docPropsAppEntry : themeEntry :
                   fontTableEntry : settingsEntry : webSettingsEntry :
                   imageEntries ++ headerFooterEntries ++
-                  miscRelEntries
+                  miscRelEntries ++ otherMediaEntries
   return $ fromArchive archive
 
 styleToOpenXml :: Style -> [Element]
