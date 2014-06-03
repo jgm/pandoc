@@ -170,6 +170,9 @@ writeDocx opts doc@(Pandoc meta _) = do
   let mkImageOverride (_, imgpath, mbMimeType, _, _) =
              mkOverrideNode ("/word/" ++ imgpath,
                              fromMaybe "application/octet-stream" mbMimeType)
+  let mkMediaOverride imgpath = mkOverrideNode ('/':imgpath,
+                                 fromMaybe "application/octet-stream"
+                                   $ getMimeType imgpath)
   let overrides = map mkOverrideNode (
                   [("/word/webSettings.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml")
@@ -196,22 +199,14 @@ writeDocx opts doc@(Pandoc meta _) = do
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml")) headers ++
                   map (\x -> (maybe "" ("/word/" ++) $ extractTarget x,
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml")) footers) ++
-                    map mkImageOverride imgs
-  let imageDefaults = map (\(x,y) -> mknode "Default"
-                             [("Extension",x),("ContentType",y)] ())
-                       [("jpg","image/jpeg")
-                       ,("jpeg","image/jpeg")
-                       ,("png","image/png")
-                       ,("svg","image/svg+xml")
-                       ,("tif","image/tiff")
-                       ,("tiff","image/tiff")
-                       ,("bmp","image/x-ms-bmp")
-                       ,("gif","image/gif")
-                       ]
+                    map mkImageOverride imgs ++
+                    map mkMediaOverride [ eRelativePath e | e <- zEntries refArchive
+                                        , "word/media/" `isPrefixOf` eRelativePath e ]
+
   let defaultnodes = [mknode "Default"
               [("Extension","xml"),("ContentType","application/xml")] (),
              mknode "Default"
-              [("Extension","rels"),("ContentType","application/vnd.openxmlformats-package.relationships+xml")] ()] ++ imageDefaults
+              [("Extension","rels"),("ContentType","application/vnd.openxmlformats-package.relationships+xml")] ()]
   let contentTypesDoc = mknode "Types" [("xmlns","http://schemas.openxmlformats.org/package/2006/content-types")] $ defaultnodes ++ overrides
   let contentTypesEntry = toEntry "[Content_Types].xml" epochtime
         $ renderXml contentTypesDoc
