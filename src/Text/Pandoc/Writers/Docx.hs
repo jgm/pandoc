@@ -291,8 +291,13 @@ writeDocx opts doc@(Pandoc meta _) = do
   let numpath = "word/numbering.xml"
   numbering <- parseXml refArchive distArchive numpath
   newNumElts <- mkNumbering (stLists st)
+  let allElts = onlyElems (elContent numbering) ++ newNumElts
   let numEntry = toEntry numpath epochtime $ renderXml numbering{ elContent =
-                       elContent numbering ++ map Elem newNumElts }
+                       -- we want all the abstractNums first, then the nums,
+                       -- otherwise things break:
+                       [Elem e | e <- allElts
+                               , qName (elName e) == "abstractNum" ] ++
+                       [Elem e | e <- allElts, qName (elName e) == "num" ] }
   let docPropsPath = "docProps/core.xml"
   let docProps = mknode "cp:coreProperties"
           [("xmlns:cp","http://schemas.openxmlformats.org/package/2006/metadata/core-properties")
