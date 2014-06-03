@@ -289,8 +289,10 @@ writeDocx opts doc@(Pandoc meta _) = do
 
   -- construct word/numbering.xml
   let numpath = "word/numbering.xml"
-  numEntry <- (toEntry numpath epochtime . renderXml)
-                 `fmap` mkNumbering (stLists st)
+  numbering <- parseXml refArchive distArchive numpath
+  newNumElts <- mkNumbering (stLists st)
+  let numEntry = toEntry numpath epochtime $ renderXml numbering{ elContent =
+                       elContent numbering ++ map Elem newNumElts }
   let docPropsPath = "docProps/core.xml"
   let docProps = mknode "cp:coreProperties"
           [("xmlns:cp","http://schemas.openxmlformats.org/package/2006/metadata/core-properties")
@@ -392,12 +394,10 @@ styleToOpenXml style = parStyle : map toStyle alltoktypes
 baseListId :: Int
 baseListId = 1000
 
-mkNumbering :: [ListMarker] -> IO Element
+mkNumbering :: [ListMarker] -> IO [Element]
 mkNumbering lists = do
   elts <- mapM mkAbstractNum (ordNub lists)
-  return $ mknode "w:numbering"
-     [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")]
-     $ elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
+  return $ elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
 
 mkNum :: ListMarker -> Int -> Element
 mkNum marker numid =
