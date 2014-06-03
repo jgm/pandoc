@@ -66,6 +66,25 @@ data ListMarker = NoMarker
                 | NumberMarker ListNumberStyle ListNumberDelim Int
                 deriving (Show, Read, Eq, Ord)
 
+listMarkerToId :: ListMarker -> String
+listMarkerToId NoMarker = "0"
+listMarkerToId BulletMarker = "1"
+listMarkerToId (NumberMarker sty delim n) =
+  styNum : delimNum : show n
+  where styNum = case sty of
+                      DefaultStyle   -> '2'
+                      Example        -> '3'
+                      Decimal        -> '4'
+                      LowerRoman     -> '5'
+                      UpperRoman     -> '6'
+                      LowerAlpha     -> '7'
+                      UpperAlpha     -> '8'
+        delimNum = case delim of
+                      DefaultDelim   -> '0'
+                      Period         -> '1'
+                      OneParen       -> '2'
+                      TwoParens      -> '3'
+
 data WriterState = WriterState{
          stTextProperties :: [Element]
        , stParaProperties :: [Element]
@@ -75,7 +94,6 @@ data WriterState = WriterState{
        , stImages         :: M.Map FilePath (String, String, Maybe String, Element, B.ByteString)
        , stListLevel      :: Int
        , stListNumId      :: Int
-       , stNumStyles      :: M.Map ListMarker Int
        , stLists          :: [ListMarker]
        }
 
@@ -89,7 +107,6 @@ defaultWriterState = WriterState{
       , stImages         = M.empty
       , stListLevel      = -1
       , stListNumId      = 1
-      , stNumStyles      = M.fromList [(NoMarker, 0)]
       , stLists          = [NoMarker]
       }
 
@@ -273,7 +290,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- construct word/numbering.xml
   let numpath = "word/numbering.xml"
   numEntry <- (toEntry numpath epochtime . renderXml)
-                 `fmap` mkNumbering (stNumStyles st) (stLists st)
+                 `fmap` mkNumbering (stLists st)
   let docPropsPath = "docProps/core.xml"
   let docProps = mknode "cp:coreProperties"
           [("xmlns:cp","http://schemas.openxmlformats.org/package/2006/metadata/core-properties")
@@ -371,29 +388,28 @@ styleToOpenXml style = parStyle : map toStyle alltoktypes
                                  $ backgroundColor style )
                              ]
 
-mkNumbering :: M.Map ListMarker Int -> [ListMarker] -> IO Element
-mkNumbering markers lists = do
-  elts <- mapM mkAbstractNum (M.toList markers)
+mkNumbering :: [ListMarker] -> IO Element
+mkNumbering lists = do
+  elts <- mapM mkAbstractNum (ordNub lists)
   return $ mknode "w:numbering"
      [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")]
-     $ elts ++ zipWith (mkNum markers) lists [1..(length lists)]
+     $ elts ++ zipWith mkNum lists [1..(length lists)]
 
-mkNum :: M.Map ListMarker Int -> ListMarker -> Int -> Element
-mkNum markers marker numid =
+mkNum :: ListMarker -> Int -> Element
+mkNum marker numid =
   mknode "w:num" [("w:numId",show numid)]
-   $ mknode "w:abstractNumId" [("w:val",show absnumid)] ()
+   $ mknode "w:abstractNumId" [("w:val",listMarkerToId marker)] ()
    : case marker of
        NoMarker     -> []
        BulletMarker -> []
        NumberMarker _ _ start ->
           map (\lvl -> mknode "w:lvlOverride" [("w:ilvl",show (lvl :: Int))]
               $ mknode "w:startOverride" [("w:val",show start)] ()) [0..6]
-   where absnumid = fromMaybe 0 $ M.lookup marker markers
 
-mkAbstractNum :: (ListMarker,Int) -> IO Element
-mkAbstractNum (marker,numid) = do
+mkAbstractNum :: ListMarker -> IO Element
+mkAbstractNum marker = do
   nsid <- randomRIO (0x10000000 :: Integer, 0xFFFFFFFF :: Integer)
-  return $ mknode "w:abstractNum" [("w:abstractNumId",show numid)]
+  return $ mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
     $ mknode "w:nsid" [("w:val", printf "%8x" nsid)] ()
     : mknode "w:multiLevelType" [("w:val","multilevel")] ()
     : map (mkLvl marker) [0..6]
@@ -594,11 +610,6 @@ addList :: ListMarker -> WS ()
 addList marker = do
   lists <- gets stLists
   modify $ \st -> st{ stLists = lists ++ [marker] }
-  numStyles <- gets stNumStyles
-  case M.lookup marker numStyles of
-           Just _  -> return ()
-           Nothing -> modify $ \st ->
-                 st{ stNumStyles = M.insert marker (M.size numStyles + 1) numStyles }
 
 listItemToOpenXML :: WriterOptions -> Int -> [Block] -> WS [Element]
 listItemToOpenXML _ _ []                   = return []
