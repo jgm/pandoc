@@ -103,7 +103,7 @@ import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 import Text.Pandoc.Compat.Monoid ((<>), Monoid(..))
-import Data.List (intersperse, nub)
+import Data.List (intersperse)
 import System.FilePath ((</>), (<.>))
 import qualified Data.Map as M
 import qualified Data.HashMap.Strict as H
@@ -116,7 +116,7 @@ import Text.Blaze.Internal (preEscapedText)
 import Text.Blaze (preEscapedText, Html)
 #endif
 import Data.ByteString.Lazy (ByteString, fromChunks)
-import Text.Pandoc.Shared (readDataFileUTF8)
+import Text.Pandoc.Shared (readDataFileUTF8, ordNub)
 import Data.Vector ((!?))
 
 -- | Get default template for the specified writer.
@@ -163,7 +163,7 @@ varListToJSON assoc = toJSON $ M.fromList assoc'
   where assoc' = [(T.pack k, toVal [T.pack z | (y,z) <- assoc,
                                                 not (null z),
                                                 y == k])
-                        | k <- nub $ map fst assoc ]
+                        | k <- ordNub $ map fst assoc ]
         toVal [x] = toJSON x
         toVal []  = Null
         toVal xs  = toJSON xs
