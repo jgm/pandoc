@@ -388,12 +388,16 @@ styleToOpenXml style = parStyle : map toStyle alltoktypes
                                  $ backgroundColor style )
                              ]
 
+-- this is the lowest number used for a list numId
+baseListId :: Int
+baseListId = 1000
+
 mkNumbering :: [ListMarker] -> IO Element
 mkNumbering lists = do
   elts <- mapM mkAbstractNum (ordNub lists)
   return $ mknode "w:numbering"
      [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")]
-     $ elts ++ zipWith mkNum lists [1..(length lists)]
+     $ elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
 
 mkNum :: ListMarker -> Int -> Element
 mkNum marker numid =
@@ -461,7 +465,7 @@ mkLvl marker lvl =
           patternFor _ s = s ++ "."
 
 getNumId :: WS Int
-getNumId = length `fmap` gets stLists
+getNumId = ((999 +) . length) `fmap` gets stLists
 
 -- | Convert Pandoc document to two lists of
 -- OpenXML elements (the main document and footnotes).
@@ -615,7 +619,8 @@ listItemToOpenXML :: WriterOptions -> Int -> [Block] -> WS [Element]
 listItemToOpenXML _ _ []                   = return []
 listItemToOpenXML opts numid (first:rest) = do
   first' <- withNumId numid $ blockToOpenXML opts first
-  rest'  <- withNumId 1      $ blocksToOpenXML opts rest
+  -- baseListId is the code for no list marker:
+  rest'  <- withNumId baseListId $ blocksToOpenXML opts rest
   return $ first' ++ rest'
 
 alignmentToString :: Alignment -> [Char]
