@@ -67,10 +67,10 @@ data ListMarker = NoMarker
                 deriving (Show, Read, Eq, Ord)
 
 listMarkerToId :: ListMarker -> String
-listMarkerToId NoMarker = "0"
-listMarkerToId BulletMarker = "1"
+listMarkerToId NoMarker = "990"
+listMarkerToId BulletMarker = "991"
 listMarkerToId (NumberMarker sty delim n) =
-  styNum : delimNum : show n
+  '9' : '9' : styNum : delimNum : show n
   where styNum = case sty of
                       DefaultStyle   -> '2'
                       Example        -> '3'
