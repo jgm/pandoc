@@ -35,6 +35,7 @@ module Text.Pandoc.Shared (
                      splitByIndices,
                      splitStringByIndices,
                      substitute,
+                     ordNub,
                      -- * Text processing
                      backslashEscapes,
                      escapeStringUsing,
@@ -94,6 +95,7 @@ import Data.List ( find, isPrefixOf, intercalate )
 import qualified Data.Map as M
 import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
                      unEscapeString, parseURIReference )
+import qualified Data.Set as Set
 import System.Directory
 import Text.Pandoc.MIME (getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension )
@@ -173,6 +175,13 @@ substitute target replacement lst@(x:xs) =
     if target `isPrefixOf` lst
        then replacement ++ substitute target replacement (drop (length target) lst)
        else x : substitute target replacement xs
+
+ordNub :: (Ord a) => [a] -> [a]
+ordNub l = go Set.empty l
+  where
+    go _ [] = []
+    go s (x:xs) = if x `Set.member` s then go s xs
+                                      else x : go (Set.insert x s) xs
 
 --
 -- Text processing
