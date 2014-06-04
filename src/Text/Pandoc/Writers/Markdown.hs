@@ -478,16 +478,24 @@ addMarkdownAttribute s =
 
 pipeTable :: Bool -> [Alignment] -> [Doc] -> [[Doc]] -> State WriterState Doc
 pipeTable headless aligns rawHeaders rawRows = do
+  let sp = text " "
+  let blockFor AlignLeft   x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
+      blockFor AlignCenter x y = cblock (x + 2) (sp <> y) <> lblock 0 empty
+      blockFor AlignRight  x y = rblock (x + 2) (sp <> y) <> lblock 0 empty
+      blockFor _           x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
+  let widths = map (max 3 . maximum . map offset) $ transpose (rawHeaders : rawRows)
   let torow cs = nowrap $ text "|" <>
-                 hcat (intersperse (text "|") $ map chomp cs) <> text "|"
-  let toborder (a, h) = let wid = max (offset h) 3
-                        in  text $ case a of
-                             AlignLeft    -> ':':replicate (wid - 1) '-'
-                             AlignCenter  -> ':':replicate (wid - 2) '-' ++ ":"
-                             AlignRight   -> replicate (wid - 1) '-' ++ ":"
-                             AlignDefault -> replicate wid '-'
+                    hcat (intersperse (text "|") $
+                          zipWith3 blockFor aligns widths (map chomp cs))
+                    <> text "|"
+  let toborder (a, w) = text $ case a of
+                             AlignLeft    -> ':':replicate (w + 1) '-'
+                             AlignCenter  -> ':':replicate w '-' ++ ":"
+                             AlignRight   -> replicate (w + 1) '-' ++ ":"
+                             AlignDefault -> replicate (w + 2) '-'
   let header = if headless then empty else torow rawHeaders
-  let border = torow $ map toborder $ zip aligns rawHeaders
+  let border = nowrap $ text "|" <> hcat (intersperse (text "|") $
+                        map toborder $ zip aligns widths) <> text "|"
   let body   = vcat $ map torow rawRows
   return $ header $$ border $$ body
 
