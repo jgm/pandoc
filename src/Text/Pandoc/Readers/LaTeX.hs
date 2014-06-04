@@ -1269,6 +1269,7 @@ simpTable = try $ do
   header' <- option [] $ try (parseTableRow cols <* lbreak <* hline)
   rows <- sepEndBy (parseTableRow cols) (lbreak <* optional hline)
   spaces
+  skipMany (comment *> spaces)
   let header'' = if null header'
                     then replicate cols mempty
                     else header'
