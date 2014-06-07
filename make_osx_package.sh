@@ -22,8 +22,8 @@ rm -rf $DIST
 mkdir -p $RESOURCES
 
 cabal sandbox init
-echo Updating database
-cabal update
+# echo Updating database
+# cabal update
 
 echo Building pandoc...
 cabal clean
