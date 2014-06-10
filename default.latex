@@ -129,10 +129,8 @@ $if(lang)$
 $endif$
 
 $if(title)$
-\title{$title$}
-$endif$
-$if(subtitle)$
-\subtitle{$subtitle$}
+$if(title)$
+\title{$title$$if(subtitle)$\\\vspace{1em}{\large $subtitle$}$endif$}
 $endif$
 $if(author)$
 \author{$for(author)$$author$$sep$ \and $endfor$}
