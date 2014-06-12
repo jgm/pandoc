@@ -179,6 +179,7 @@ data Opt = Opt
     , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
     , optDefaultImageExtension :: String -- ^ Default image extension
     , optTrace             :: Bool       -- ^ Print debug information
+    , optEmbedArchiveData  :: Bool       -- ^ Embed data from DocX or EPUB archive in output
     }
 
 -- | Defaults for command-line options.
@@ -235,6 +236,7 @@ defaultOpts = Opt
     , optTeXLigatures          = True
     , optDefaultImageExtension = ""
     , optTrace                 = False
+    , optEmbedArchiveData      = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -781,6 +783,11 @@ options =
                   (\opt -> return opt { optTrace = True }))
                  "" -- "Turn on diagnostic tracing in readers."
 
+    , Option "" ["embed-archive-data"]
+                 (NoArg
+                  (\opt -> return opt { optEmbedArchiveData = True}))
+                 "" -- "Embed data from DocX or EPUB in output"
+
     , Option "" ["dump-args"]
                  (NoArg
                   (\opt -> return opt { optDumpArgs = True }))
@@ -977,6 +984,7 @@ main = do
               , optTeXLigatures          = texLigatures
               , optDefaultImageExtension = defaultImageExtension
               , optTrace                 = trace
+              , optEmbedArchiveData      = embedArchiveData
              } = opts
 
   when dumpArgs $
@@ -1101,6 +1109,7 @@ main = do
                       , readerApplyMacros = not laTeXOutput
                       , readerDefaultImageExtension = defaultImageExtension
                       , readerTrace = trace
+                      , readerEmbedArchiveData = embedArchiveData
                       }
 
   let writerOptions = def { writerStandalone       = standalone',
