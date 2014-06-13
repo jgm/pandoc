@@ -305,7 +305,7 @@ blockCommands = M.fromList $
   , ("item", skipopts *> loose_item)
   , ("documentclass", skipopts *> braced *> preamble)
   , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
-  , ("caption", tok >>= setCaption)
+  , ("caption", skipopts *> tok >>= setCaption)
   , ("PandocStartInclude", startInclude)
   , ("PandocEndInclude", endInclude)
   , ("bibliography", mempty <$ (skipopts *> braced >>=
