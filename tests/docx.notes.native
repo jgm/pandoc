@@ -1,0 +1,2 @@
+[Header 2 ("",[],[]) [Str "A",Space,Str "footnote"]
+,Para [Str "Test",Space,Str "footnote.",Note [Para [Space,Str "My",Space,Str "note."]],Space,Str "Test",Space,Str "endnote.",Note [Para [Space,Str "This",Space,Str "is",Space,Str "an",Space,Str "endnote",Space,Str "at",Space,Str "the",Space,Str "end",Space,Str "of",Space,Str "the",Space,Str "document."]]]]
