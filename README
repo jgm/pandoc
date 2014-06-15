@@ -13,15 +13,15 @@ Description
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
-[LaTeX], [MediaWiki markup], [Haddock markup], [OPML], [Emacs Org-mode]
-and [DocBook]; and it can write plain text, [markdown],
-[reStructuredText], [XHTML], [HTML 5], [LaTeX] (including [beamer] slide
-shows), [ConTeXt], [RTF], [OPML], [DocBook], [OpenDocument], [ODT],
-[Word docx], [GNU Texinfo], [MediaWiki markup], [EPUB] (v2 or v3),
-[FictionBook2], [Textile], [groff man] pages, [Emacs Org-Mode],
-[AsciiDoc], [InDesign ICML], and [Slidy], [Slideous], [DZSlides],
-[reveal.js] or [S5] HTML slide shows. It can also produce [PDF] output
-on systems where LaTeX is installed.
+[LaTeX], [MediaWiki markup], [Haddock markup], [OPML], [Emacs
+Org-mode], [DocBook], and [Word docx]; and it can write plain text,
+[markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX] (including
+[beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
+[OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
+[EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages,
+[Emacs Org-Mode], [AsciiDoc], [InDesign ICML], and [Slidy],
+[Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows. It can
+also produce [PDF] output on systems where LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, fenced code blocks,
