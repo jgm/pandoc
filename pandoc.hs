@@ -858,6 +858,7 @@ defaultReaderName fallback (x:xs) =
     ".textile"  -> "textile"
     ".native"   -> "native"
     ".json"     -> "json"
+    ".docx"     -> "docx"
     _           -> defaultReaderName fallback xs
 
 -- Returns True if extension of first source is .lhs
@@ -1158,15 +1159,21 @@ main = do
              Left e        -> throwIO e
              Right (bs,_)  -> return $ UTF8.toString bs
 
+  let readFiles [] = error "Cannot read archive from stdin"
+      readFiles (x:_) = B.readFile x
+
   let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
 
   let handleIncludes' = if readerName' == "latex" || readerName' == "latex+lhs"
                            then handleIncludes
                            else return
 
-  doc <- readSources sources >>=
-           handleIncludes' . convertTabs . intercalate "\n" >>=
-           reader readerOpts
+  doc <- case reader of
+          StringReader r-> 
+            readSources sources >>=
+              handleIncludes' . convertTabs . intercalate "\n" >>=
+              r readerOpts
+          ByteStringReader r -> readFiles sources >>= r readerOpts 
 
 
   let doc0 = M.foldWithKey setMeta doc metadata
