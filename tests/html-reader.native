@@ -310,7 +310,7 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
 ,Para [Str "text",Space,Emph [Str "Leading",Space,Str "spaces"]]
 ,Para [Emph [Str "Trailing",Space,Str "spaces"],Space,Str "text"]
 ,Header 1 ("",[],[]) [Str "Tables"]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.3333333333333333,0.3333333333333333,0.3333333333333333]
+,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
  [[Plain [Str "X"]]
  ,[Plain [Str "Y"]]
  ,[Plain [Str "Z"]]]
