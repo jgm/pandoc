@@ -53,6 +53,7 @@ module Text.Pandoc.Shared (
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
                      normalizeSpaces,
+                     extractSpaces,
                      normalize,
                      stringify,
                      compactify,
@@ -113,6 +114,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Compat.Monoid
 import Data.ByteString.Base64 (decodeLenient)
+import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -330,6 +332,20 @@ isSpaceOrEmpty :: Inline -> Bool
 isSpaceOrEmpty Space = True
 isSpaceOrEmpty (Str "") = True
 isSpaceOrEmpty _ = False
+
+-- | Extract the leading and trailing spaces from inside an inline element
+-- and place them outside the element. 
+
+extractSpaces :: (Inlines -> Inlines) -> Inlines -> Inlines
+extractSpaces f is = 
+  let contents = B.unMany is
+      left  = case viewl contents of
+                    (Space :< _) -> B.space
+                    _            -> mempty
+      right = case viewr contents of
+                    (_ :> Space) -> B.space
+                    _            -> mempty in
+  (left <> f (B.trimInlines . B.Many $ contents) <> right)
 
 -- | Normalize @Pandoc@ document, consolidating doubled 'Space's,
 -- combining adjacent 'Str's and 'Emph's, remove 'Null's and

@@ -50,7 +50,6 @@ import Data.Char ( isDigit )
 import Control.Monad ( liftM, guard, when, mzero )
 import Control.Applicative ( (<$>), (<$), (<*) )
 import Data.Monoid
-import Data.Sequence (ViewL(..), ViewR(..), viewr, viewl)
 
 isSpace :: Char -> Bool
 isSpace ' '  = True
@@ -369,9 +368,9 @@ pQ = do
                              then InSingleQuote
                              else InDoubleQuote
   let constructor = case quoteType of
-                            SingleQuote -> B.singleQuoted 
+                            SingleQuote -> B.singleQuoted
                             DoubleQuote -> B.doubleQuoted
-  withQuoteContext innerQuoteContext $ 
+  withQuoteContext innerQuoteContext $
     pInlinesInTags "q" constructor
 
 pEmph :: TagParser Inlines
@@ -406,7 +405,7 @@ pLink = try $ do
   let url = fromAttrib "href" tag
   let title = fromAttrib "title" tag
   lab <- trimInlines . mconcat <$> manyTill inline (pCloses "a")
-  return $ B.link (escapeURI url) title lab 
+  return $ B.link (escapeURI url) title lab
 
 pImage :: TagParser Inlines
 pImage = do
@@ -439,15 +438,7 @@ pRawHtmlInline = do
 
 pInlinesInTags :: String -> (Inlines -> Inlines)
                -> TagParser Inlines
-pInlinesInTags tagtype f = do
-  contents <- B.unMany <$> pInTags tagtype inline
-  let left  = case viewl contents of
-                    (Space :< _) -> B.space
-                    _            -> mempty
-  let right = case viewr contents of
-                    (_ :> Space) -> B.space
-                    _            -> mempty
-  return (left <> f (trimInlines . B.Many $ contents) <> right)
+pInlinesInTags tagtype f = extractSpaces f <$> pInTags tagtype inline
 
 pInTags :: (Monoid a) => String -> TagParser a
         -> TagParser a
