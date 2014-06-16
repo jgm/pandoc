@@ -17,7 +17,7 @@ pandoc (1.12.4.2)
     + Support code block headers (`#+BEGIN_SRC ...`) (Albert Krewinkel).
     + Fix parsing of blank lines within blocks (Albert Krewinkel).
     + Support pandoc citation extension (Albert Krewinkel).  This can
-      be turned off by specifying `org-citation` as the input format.
+      be turned off by specifying `org-citations` as the input format.
 
   * Markdown reader:
 
