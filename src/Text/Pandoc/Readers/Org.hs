@@ -38,10 +38,9 @@ import qualified Text.Pandoc.Parsing as P
 import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
                                             , newline, orderedListMarker
                                             , parseFromString
-                                            , updateLastStrPos )
+                                            )
 import           Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import           Text.Pandoc.Shared (compactify', compactify'DL)
-import           Text.Parsec.Pos (updatePosString)
 import           Text.TeXMath (texMathToPandoc, DisplayType(..))
 
 import           Control.Applicative ( Applicative, pure
@@ -147,10 +146,6 @@ lookupBlockAttribute key =
 resetBlockAttributes :: OrgParser ()
 resetBlockAttributes = updateState $ \s ->
   s{ orgStateBlockAttributes = orgStateBlockAttributes def }
-
-updateLastStrPos :: OrgParser ()
-updateLastStrPos = getPosition >>= \p ->
-  updateState $ \s -> s{ orgStateLastStrPos = Just p }
 
 updateLastForbiddenCharPos :: OrgParser ()
 updateLastForbiddenCharPos = getPosition >>= \p ->
@@ -1376,8 +1371,9 @@ maybeRight = either (const Nothing) Just
 inlineLaTeXCommand :: OrgParser String
 inlineLaTeXCommand = try $ do
   rest <- getInput
-  pos <- getPosition
   case runParser rawLaTeXInline def "source" rest of
-    Right (RawInline _ cs) -> cs <$ (setInput $ drop (length cs) rest)
-                                 <* (setPosition $ updatePosString pos cs)
+    Right (RawInline _ cs) -> do
+      let len = length cs
+      count len anyChar
+      return cs
     _ -> mzero
