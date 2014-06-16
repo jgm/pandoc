@@ -238,30 +238,26 @@ pTable = try $ do
   caption <- option mempty $ pInTags "caption" inline >>~ skipMany pBlank
   -- TODO actually read these and take width information from them
   widths' <- pColgroup <|> many pCol
-  head' <- option mempty $ pOptInTag "thead" $ pInTags "tr" (pCell "th")
+  head' <- option [] $ pOptInTag "thead" $ pInTags "tr" (pCell "th")
   skipMany pBlank
   rows <- pOptInTag "tbody"
           $ many1 $ try $ skipMany pBlank >> pInTags "tr" (pCell "td")
   skipMany pBlank
   TagClose _ <- pSatisfy (~== TagClose "table")
-  let isSinglePlain []        = True
-      isSinglePlain [Plain _] = True
-      isSinglePlain _         = False
-  let lHead = B.toList head'
-  let lRows = map B.toList rows
-  let isSimple = all isSinglePlain (lHead:lRows)
-  let cols = length $ if null lHead
-                         then head lRows
-                         else lHead
+  let isSinglePlain x = case B.toList x of
+                             [Plain _] -> True
+                             _         -> False
+  let isSimple = all isSinglePlain $ concat (head':rows)
+  let cols = length $ if null head' then head rows else head'
   -- fail if there are colspans or rowspans
-  guard $ all (\r -> length r == cols) lRows
-  let aligns = replicate cols AlignLeft
+  guard $ all (\r -> length r == cols) rows
+  let aligns = replicate cols AlignDefault
   let widths = if null widths'
                   then if isSimple
                        then replicate cols 0
                        else replicate cols (1.0 / fromIntegral cols)
                   else widths'
-  return $ B.table caption (zip aligns widths) [head'] [rows]
+  return $ B.table caption (zip aligns widths) head' rows
 
 pCol :: TagParser Double
 pCol = try $ do
@@ -279,12 +275,12 @@ pColgroup = try $ do
   skipMany pBlank
   manyTill pCol (pCloses "colgroup" <|> eof) <* skipMany pBlank
 
-pCell :: String -> TagParser Blocks
+pCell :: String -> TagParser [Blocks]
 pCell celltype = try $ do
   skipMany pBlank
   res <- pInTags celltype block
   skipMany pBlank
-  return res
+  return [res]
 
 pBlockQuote :: TagParser Blocks
 pBlockQuote = do
