@@ -1121,10 +1121,7 @@ multilineTableHeader headless = try $ do
      tableSep >> notFollowedBy blankline
   rawContent  <- if headless
                     then return $ repeat ""
-                    else many1 $ do
-                          notFollowedBy blankline
-                          notFollowedBy tableSep
-                          anyLine
+                    else many1 $ notFollowedBy tableSep >> anyLine
   initSp      <- nonindentSpaces
   dashes      <- many1 (dashedLine '-')
   newline
