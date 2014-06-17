@@ -216,7 +216,7 @@ parPartsToInlines opts docx parparts =
   -- We're going to skip data-uri's for now. It should be an option,
   -- not mandatory.
   --
-  (if False -- TODO depend on option
+  (if (readerSelfContained opts)
       then bottomUp (makeImagesSelfContained docx)
       else id) $
   bottomUp spanCorrect $
