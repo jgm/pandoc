@@ -211,6 +211,7 @@ data ReaderOptions = ReaderOptions{
                                        -- indented code blocks
        , readerDefaultImageExtension :: String -- ^ Default extension for images
        , readerTrace           :: Bool -- ^ Print debugging info
+       , readerEmbedArchiveData :: Bool -- ^ Embed data from DocX or EPUB archive in output
 } deriving (Show, Read)
 
 instance Default ReaderOptions
@@ -227,6 +228,7 @@ instance Default ReaderOptions
                , readerIndentedCodeClasses   = []
                , readerDefaultImageExtension = ""
                , readerTrace                 = False
+               , readerEmbedArchiveData      = False
                }
 
 --
