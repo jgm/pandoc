@@ -1117,13 +1117,14 @@ multilineTable headless =
 multilineTableHeader :: Bool -- ^ Headerless table
                      -> MarkdownParser (F [Blocks], [Alignment], [Int])
 multilineTableHeader headless = try $ do
-  if headless
-     then return '\n'
-     else tableSep >>~ notFollowedBy blankline
+  unless headless $
+     tableSep >> notFollowedBy blankline
   rawContent  <- if headless
                     then return $ repeat ""
-                    else many1
-                         (notFollowedBy tableSep >> many1Till anyChar newline)
+                    else many1 $ do
+                          notFollowedBy blankline
+                          notFollowedBy tableSep
+                          anyLine
   initSp      <- nonindentSpaces
   dashes      <- many1 (dashedLine '-')
   newline
