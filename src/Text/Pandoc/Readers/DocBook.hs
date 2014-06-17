@@ -492,7 +492,7 @@ List of all DocBook tags, with [x] indicating implemented,
     anything else
 [ ] xref - A cross reference to another part of the document
 [ ] year - The year of publication of a document
-
+[x] ?asciidoc-br? - line break from asciidoc docbook output
 -}
 
 type DB = State DBState
@@ -507,7 +507,7 @@ data DBState = DBState{ dbSectionLevel :: Int
 
 readDocBook :: ReaderOptions -> String -> Pandoc
 readDocBook _ inp  = Pandoc (dbMeta st') (toList $ mconcat bs)
-  where (bs, st') = runState (mapM parseBlock $ normalizeTree $ parseXML inp)
+  where (bs, st') = runState (mapM parseBlock $ normalizeTree $ parseXML inp')
                              DBState{ dbSectionLevel = 0
                                     , dbQuoteType = DoubleQuote
                                     , dbMeta = mempty
@@ -515,6 +515,17 @@ readDocBook _ inp  = Pandoc (dbMeta st') (toList $ mconcat bs)
                                     , dbBook = False
                                     , dbFigureTitle = mempty
                                     }
+        inp' = handleInstructions inp
+
+-- We treat <?asciidoc-br?> specially (issue #1236), converting it
+-- to <br/>, since xml-light doesn't parse the instruction correctly.
+-- Other xml instructions are simply removed from the input stream.
+handleInstructions :: String -> String
+handleInstructions ('<':'?':'a':'s':'c':'i':'i':'d':'o':'c':'-':'b':'r':'?':'>':xs) = '<':'b':'r':'/':'>': handleInstructions xs
+handleInstructions xs = case break (=='<') xs of
+                             (ys, [])     -> ys
+                             ([], '<':zs) -> '<' : handleInstructions zs
+                             (ys, zs) -> ys ++ handleInstructions zs
 
 getFigure :: Element -> DB Blocks
 getFigure e = do
@@ -920,6 +931,10 @@ parseInline (Elem e) =
         "footnote" -> (note . mconcat) <$> (mapM parseBlock $ elContent e)
         "title" -> return mempty
         "affiliation" -> return mempty
+        -- Note: this isn't a real docbook tag; it's what we convert
+        -- <?asciidor-br?> to in handleInstructions, above.  A kludge to
+        -- work around xml-light's inability to parse an instruction.
+        "br" -> return linebreak
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
                           (mapM parseInline $ elContent e)
