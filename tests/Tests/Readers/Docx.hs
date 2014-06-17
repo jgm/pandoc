@@ -1,4 +1,4 @@
-module Tests.Readers.DocX (tests) where
+module Tests.Readers.Docx (tests) where
 
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Native
@@ -6,13 +6,13 @@ import Text.Pandoc.Definition
 import Tests.Helpers
 import Test.Framework
 import qualified Data.ByteString.Lazy as B
-import Text.Pandoc.Readers.DocX
+import Text.Pandoc.Readers.Docx
 
 compareOutput :: FilePath -> FilePath -> IO (Pandoc, Pandoc)
 compareOutput docxFile nativeFile = do
   df <- B.readFile docxFile
   nf <- Prelude.readFile nativeFile
-  return $ (readDocX def df, readNative nf)
+  return $ (readDocx def df, readNative nf)
 
 testCompare' :: String -> FilePath -> FilePath -> IO Test
 testCompare' name docxFile nativeFile = do

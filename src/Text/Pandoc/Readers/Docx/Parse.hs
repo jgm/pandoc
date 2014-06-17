@@ -17,7 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.DocX.Parse
+   Module      : Text.Pandoc.Readers.Docx.Parse
    Copyright   : Copyright (C) 2014 Jesse Rosenthal
    License     : GNU GPL, version 2 or above
 
@@ -25,11 +25,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Conversion of DocX archive into DocX haskell type
+Conversion of docx archive into Docx haskell type
 -}
 
 
-module Text.Pandoc.Readers.DocX.Parse (  DocX(..)
+module Text.Pandoc.Readers.Docx.Parse (  Docx(..)
                                        , Document(..)
                                        , Body(..)
                                        , BodyPart(..)
@@ -49,7 +49,7 @@ module Text.Pandoc.Readers.DocX.Parse (  DocX(..)
                                        , getEndNote
                                        , lookupLevel
                                        , lookupRelationship
-                                       , archiveToDocX
+                                       , archiveToDocx
                                        ) where
 import Codec.Archive.Zip
 import Text.XML.Light
@@ -67,17 +67,17 @@ attrToNSPair _ = Nothing
 
 type NameSpaces = [(String, String)]
 
-data DocX = DocX Document Notes Numbering [Relationship] Media
+data Docx = Docx Document Notes Numbering [Relationship] Media
           deriving Show
 
-archiveToDocX :: Archive -> Maybe DocX
-archiveToDocX archive = do
+archiveToDocx :: Archive -> Maybe Docx
+archiveToDocx archive = do
   let notes = archiveToNotes archive
       rels = archiveToRelationships archive
       media = archiveToMedia archive
   doc <- archiveToDocument archive
   numbering <- archiveToNumbering archive
-  return $ DocX doc notes numbering rels media
+  return $ Docx doc notes numbering rels media
 
 data Document = Document NameSpaces Body 
           deriving Show

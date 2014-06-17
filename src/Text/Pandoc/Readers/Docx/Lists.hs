@@ -17,7 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.Readers.DocX.Lists
+   Module      : Text.Pandoc.Readers.Docx.Lists
    Copyright   : Copyright (C) 2014 Jesse Rosenthal
    License     : GNU GPL, version 2 or above
 
@@ -25,10 +25,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Functions for converting flat DocX paragraphs into nested lists.
+Functions for converting flat docx paragraphs into nested lists.
 -}
 
-module Text.Pandoc.Readers.DocX.Lists ( blocksToBullets
+module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
                                       , blocksToDefinitions) where
 
 import Text.Pandoc.JSON

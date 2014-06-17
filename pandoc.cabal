@@ -293,7 +293,7 @@ Library
                    Text.Pandoc.Readers.Textile,
                    Text.Pandoc.Readers.Native,
                    Text.Pandoc.Readers.Haddock,
-                   Text.Pandoc.Readers.DocX,
+                   Text.Pandoc.Readers.Docx,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
                    Text.Pandoc.Writers.OPML,
@@ -324,8 +324,8 @@ Library
                    Text.Pandoc.Process
   Other-Modules:   Text.Pandoc.Readers.Haddock.Lex,
                    Text.Pandoc.Readers.Haddock.Parse,
-                   Text.Pandoc.Readers.DocX.Lists,
-                   Text.Pandoc.Readers.DocX.Parse,
+                   Text.Pandoc.Readers.Docx.Lists,
+                   Text.Pandoc.Readers.Docx.Parse,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Asciify,
                    Text.Pandoc.MIME,
@@ -411,7 +411,7 @@ Test-Suite test-pandoc
                   Tests.Readers.Markdown
                   Tests.Readers.Org
                   Tests.Readers.RST
-                  Tests.Readers.DocX
+                  Tests.Readers.Docx
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
                   Tests.Writers.HTML
