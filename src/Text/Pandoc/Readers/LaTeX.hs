@@ -1255,10 +1255,14 @@ parseTableRow :: Int  -- ^ number of columns
 parseTableRow cols = try $ do
   let tableCellInline = notFollowedBy (amp <|> lbreak) >> inline
   let tableCell = (plain . trimInlines . mconcat) <$> many tableCellInline
-  cells' <- sepBy tableCell amp
-  guard $ length cells' == cols
+  cells' <- sepBy1 tableCell amp
+  let numcells = length cells'
+  guard $ numcells <= cols && numcells >= 1
+  guard $ cells' /= [mempty]
+  -- note:  a & b in a three-column table leaves an empty 3rd cell:
+  let cells'' = cells' ++ replicate (cols - numcells) mempty
   spaces
-  return cells'
+  return cells''
 
 simpTable :: LP Blocks
 simpTable = try $ do
