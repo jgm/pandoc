@@ -50,13 +50,13 @@ tests =
           "+Kill Bill+" =?>
           para (strikeout . spcSep $ [ "Kill", "Bill" ])
 
-      , "Code" =:
+      , "Verbatim" =:
           "=Robot.rock()=" =?>
           para (code "Robot.rock()")
 
-      , "Verbatim" =:
+      , "Code" =:
           "~word for word~" =?>
-          para (rawInline "" "word for word")
+          para (code "word for word")
 
       , "Math $..$" =:
           "$E=mc^2$" =?>

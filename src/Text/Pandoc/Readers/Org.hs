@@ -1148,11 +1148,11 @@ strikeout = fmap B.strikeout    <$> emphasisBetween '+'
 underline :: OrgParser (F Inlines)
 underline = fmap B.strong       <$> emphasisBetween '_'
 
-code      :: OrgParser (F Inlines)
-code      = return . B.code         <$> verbatimBetween '='
-
 verbatim  :: OrgParser (F Inlines)
-verbatim  = return . B.rawInline "" <$> verbatimBetween '~'
+verbatim  = return . B.code     <$> verbatimBetween '='
+
+code      :: OrgParser (F Inlines)
+code      = return . B.code     <$> verbatimBetween '~'
 
 subscript   :: OrgParser (F Inlines)
 subscript   = fmap B.subscript   <$> try (char '_' *> subOrSuperExpr)
