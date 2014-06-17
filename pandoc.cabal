@@ -184,7 +184,25 @@ Extra-Source-Files:
                  tests/fb2.math.markdown,
                  tests/fb2.math.fb2,
                  tests/fb2.test-small.png,
-                 tests/fb2.test.jpg
+                 tests/fb2.test.jpg,
+                 tests/docx.block_quotes.docx,
+                 tests/docx.block_quotes_parse_indent.native,
+                 tests/docx.headers.docx,
+                 tests/docx.headers.native,
+                 tests/docx.image.docx,
+                 tests/docx.image_no_embed.native,
+                 tests/docx.inline_formatting.docx,
+                 tests/docx.inline_formatting.native,
+                 tests/docx.links.docx,
+                 tests/docx.links.native,
+                 tests/docx.lists.docx,
+                 tests/docx.lists.native,
+                 tests/docx.notes.docx,
+                 tests/docx.notes.native,
+                 tests/docx.tables.docx,
+                 tests/docx.tables.native,
+                 tests/docx.unicode.docx,
+                 tests/docx.unicode.native
 Extra-Tmp-Files: man/man1/pandoc.1,
                  man/man5/pandoc_markdown.5
 
@@ -275,6 +293,7 @@ Library
                    Text.Pandoc.Readers.Textile,
                    Text.Pandoc.Readers.Native,
                    Text.Pandoc.Readers.Haddock,
+                   Text.Pandoc.Readers.DocX,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
                    Text.Pandoc.Writers.OPML,
@@ -305,6 +324,8 @@ Library
                    Text.Pandoc.Process
   Other-Modules:   Text.Pandoc.Readers.Haddock.Lex,
                    Text.Pandoc.Readers.Haddock.Parse,
+                   Text.Pandoc.Readers.DocX.Lists,
+                   Text.Pandoc.Readers.DocX.Parse,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Asciify,
                    Text.Pandoc.MIME,
@@ -390,6 +411,7 @@ Test-Suite test-pandoc
                   Tests.Readers.Markdown
                   Tests.Readers.Org
                   Tests.Readers.RST
+                  Tests.Readers.DocX
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
                   Tests.Writers.HTML

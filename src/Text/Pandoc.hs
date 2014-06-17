@@ -62,6 +62,8 @@ module Text.Pandoc
                , readers
                , writers
                -- * Readers: converting /to/ Pandoc format
+               , Reader (..)
+               , readDocX
                , readMarkdown
                , readMediaWiki
                , readRST
@@ -125,6 +127,7 @@ import Text.Pandoc.Readers.HTML
 import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Haddock
+import Text.Pandoc.Readers.DocX
 import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.RST
@@ -192,24 +195,34 @@ markdown o s = do
   mapM_ warn warnings
   return doc
 
+data Reader = StringReader (ReaderOptions -> String -> IO Pandoc)
+              | ByteStringReader (ReaderOptions -> BL.ByteString -> IO Pandoc)
+
+mkStringReader :: (ReaderOptions -> String -> Pandoc) -> Reader
+mkStringReader r = StringReader (\o s -> return $ r o s)
+
+mkBSReader :: (ReaderOptions -> BL.ByteString -> Pandoc) -> Reader
+mkBSReader r = ByteStringReader (\o s -> return $ r o s)
+
 -- | Association list of formats and readers.
-readers :: [(String, ReaderOptions -> String -> IO Pandoc)]
-readers = [ ("native"       , \_ s -> return $ readNative s)
-           ,("json"         , \o s -> return $ readJSON o s)
-           ,("markdown"     , markdown)
-           ,("markdown_strict" , markdown)
-           ,("markdown_phpextra" , markdown)
-           ,("markdown_github" , markdown)
-           ,("markdown_mmd",  markdown)
-           ,("rst"          , \o s -> return $ readRST o s)
-           ,("mediawiki"    , \o s -> return $ readMediaWiki o s)
-           ,("docbook"      , \o s -> return $ readDocBook o s)
-           ,("opml"         , \o s -> return $ readOPML o s)
-           ,("org"          , \o s -> return $ readOrg o s)
-           ,("textile"      , \o s -> return $ readTextile o s) -- TODO : textile+lhs
-           ,("html"         , \o s -> return $ readHtml o s)
-           ,("latex"        , \o s -> return $ readLaTeX o s)
-           ,("haddock"      , \o s -> return $ readHaddock o s)
+readers :: [(String, Reader)]
+readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
+           ,("json"         , mkStringReader readJSON )
+           ,("markdown"     , StringReader  markdown)
+           ,("markdown_strict" , StringReader markdown)
+           ,("markdown_phpextra" , StringReader markdown)
+           ,("markdown_github" , StringReader markdown)
+           ,("markdown_mmd",  StringReader markdown)
+           ,("rst"          , mkStringReader readRST )
+           ,("mediawiki"    , mkStringReader readMediaWiki)
+           ,("docbook"      , mkStringReader readDocBook)
+           ,("opml"         , mkStringReader readOPML)
+           ,("org"          , mkStringReader readOrg)
+           ,("textile"      , mkStringReader readTextile) -- TODO : textile+lhs
+           ,("html"         , mkStringReader readHtml)
+           ,("latex"        , mkStringReader readLaTeX)
+           ,("haddock"      , mkStringReader readHaddock)
+           ,("docx"         , mkBSReader readDocX)
            ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
@@ -280,14 +293,17 @@ getDefaultExtensions "textile"         = Set.fromList [Ext_auto_identifiers, Ext
 getDefaultExtensions _                 = Set.fromList [Ext_auto_identifiers]
 
 -- | Retrieve reader based on formatSpec (format+extensions).
-getReader :: String -> Either String (ReaderOptions -> String -> IO Pandoc)
+getReader :: String -> Either String Reader
 getReader s =
   case parseFormatSpec s of
        Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
-       Right (readerName, setExts) ->
+       Right (readerName, setExts) -> 
            case lookup readerName readers of
                    Nothing  -> Left $ "Unknown reader: " ++ readerName
-                   Just  r  -> Right $ \o ->
+                   Just  (StringReader r)  -> Right $ StringReader $ \o ->
+                                  r o{ readerExtensions = setExts $
+                                            getDefaultExtensions readerName }
+                   Just (ByteStringReader r) -> Right $ ByteStringReader $ \o ->
                                   r o{ readerExtensions = setExts $
                                             getDefaultExtensions readerName }
 
