@@ -74,7 +74,12 @@ highlight formatter (_, classes, keyvals) rawCode =
                         ["number","numberLines", "number-lines"]) classes }
       lcclasses = map (map toLower) classes
   in  case find (`elem` lcLanguages) lcclasses of
-            Nothing        -> Nothing
+            Nothing
+              | numberLines fmtOpts -> Just
+                              $ formatter fmtOpts{ codeClasses = [],
+                                                   containerClasses = classes }
+                              $ map (\ln -> [(NormalTok, ln)]) $ lines rawCode
+              | otherwise  -> Nothing
             Just language  -> Just
                               $ formatter fmtOpts{ codeClasses = [language],
                                                    containerClasses = classes }
