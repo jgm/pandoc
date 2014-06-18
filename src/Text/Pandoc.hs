@@ -102,6 +102,7 @@ module Text.Pandoc
                , writeFB2
                , writeOrg
                , writeAsciiDoc
+               , writeHaddock
                , writeCustom
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates
@@ -149,6 +150,7 @@ import Text.Pandoc.Writers.MediaWiki
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.AsciiDoc
+import Text.Pandoc.Writers.Haddock
 import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
@@ -279,6 +281,7 @@ writers = [
   ,("rtf"          , IOStringWriter writeRTFWithEmbeddedImages)
   ,("org"          , PureStringWriter writeOrg)
   ,("asciidoc"     , PureStringWriter writeAsciiDoc)
+  ,("haddock"      , PureStringWriter writeHaddock)
   ]
 
 getDefaultExtensions :: String -> Set Extension

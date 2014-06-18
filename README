@@ -18,10 +18,10 @@ Org-mode], [DocBook], and [Word docx]; and it can write plain text,
 [markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX] (including
 [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
-[EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages,
-[Emacs Org-Mode], [AsciiDoc], [InDesign ICML], and [Slidy],
-[Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows. It can
-also produce [PDF] output on systems where LaTeX is installed.
+[Haddock markup], [EPUB] (v2 or v3), [FictionBook2], [Textile],
+[groff man] pages, [Emacs Org-Mode], [AsciiDoc], [InDesign ICML],
+and [Slidy], [Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows.
+It can also produce [PDF] output on systems where LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, fenced code blocks,
@@ -169,8 +169,8 @@ General options
     `context` (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup),
     `textile` (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo),
     `opml` (OPML), `docbook` (DocBook), `opendocument` (OpenDocument), `odt`
-    (OpenOffice text document), `docx` (Word docx),
-    `rtf` (rich text format), `epub` (EPUB v2 book), `epub3`
+    (OpenOffice text document), `docx` (Word docx), `haddock` (Haddock
+    markup), `rtf` (rich text format), `epub` (EPUB v2 book), `epub3`
     (EPUB v3), `fb2` (FictionBook2 e-book), `asciidoc` (AsciiDoc),
     `icml` (InDesign ICML), `slidy` (Slidy HTML and javascript slide show),
     `slideous` (Slideous HTML and javascript slide show), `dzslides`

@@ -23,19 +23,28 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Documentation.Haddock.Parser
 import Documentation.Haddock.Types
+import Debug.Trace (trace)
 
 -- | Parse Haddock markup and return a 'Pandoc' document.
 readHaddock :: ReaderOptions -- ^ Reader options
             -> String        -- ^ String to parse
             -> Pandoc
-readHaddock _ = B.doc . docHToBlocks . parseParas
+readHaddock opts = B.doc . docHToBlocks . trace' . parseParas
+  where trace' x = if readerTrace opts
+                      then trace (show x) x
+                      else x
 
 docHToBlocks :: DocH String Identifier -> Blocks
 docHToBlocks d' =
   case d' of
     DocEmpty -> mempty
+    DocAppend (DocParagraph (DocHeader h)) (DocParagraph (DocAName ident)) ->
+         B.headerWith (ident,[],[]) (headerLevel h)
+            (docHToInlines False $ headerTitle h)
     DocAppend d1 d2 -> mappend (docHToBlocks d1) (docHToBlocks d2)
     DocString _ -> inlineFallback
+    DocParagraph (DocHeader h) -> docHToBlocks (DocHeader h)
+    DocParagraph (DocAName h) -> B.plain $ docHToInlines False $ DocAName h
     DocParagraph ils -> B.para $ docHToInlines False ils
     DocIdentifier _ -> inlineFallback
     DocIdentifierUnchecked _ -> inlineFallback
@@ -64,7 +73,7 @@ docHToBlocks d' =
         consolidatePlains = B.fromList . consolidatePlains' . B.toList
         consolidatePlains' zs@(Plain _ : _) =
           let (xs, ys) = span isPlain zs in
-          Plain (concatMap extractContents xs) : consolidatePlains' ys
+          Para (concatMap extractContents xs) : consolidatePlains' ys
         consolidatePlains' (x : xs) = x : consolidatePlains' xs
         consolidatePlains' [] = []
         isPlain (Plain _) = True
