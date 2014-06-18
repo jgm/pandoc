@@ -12,11 +12,7 @@ Quick install
 -------------
 
 1.  Install the [Haskell platform].  This will give you [GHC] and
-    the [cabal-install] build tool, as well as `alex` and `happy`.
-    If you do not use the Haskell platform, you'll need to install
-    `alex` and `happy` separately:
-
-        cabal install alex happy
+    the [cabal-install] build tool.
 
 2.  Update your package database:
 

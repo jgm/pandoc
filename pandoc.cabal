@@ -255,8 +255,8 @@ Library
                  vector >= 0.10 && < 0.11,
                  hslua >= 0.3 && < 0.4,
                  binary >= 0.5 && < 0.8,
-                 SHA >= 1.6 && < 1.7
-  Build-Tools:   alex, happy
+                 SHA >= 1.6 && < 1.7,
+                 haddock-library >= 1.0 && < 1.1
   if flag(https)
      Build-Depends: http-client >= 0.3.2 && < 0.4,
                     http-client-tls >= 0.2 && < 0.3,
@@ -322,9 +322,7 @@ Library
                    Text.Pandoc.XML,
                    Text.Pandoc.SelfContained,
                    Text.Pandoc.Process
-  Other-Modules:   Text.Pandoc.Readers.Haddock.Lex,
-                   Text.Pandoc.Readers.Haddock.Parse,
-                   Text.Pandoc.Readers.Docx.Lists,
+  Other-Modules:   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Parse,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Asciify,

@@ -3,7 +3,8 @@
    Copyright   : Copyright (C) 2013 David Lazar
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : David Lazar <lazar6@illinois.edu>
+   Maintainer  : David Lazar <lazar6@illinois.edu>,
+                 John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
 
 Conversion of Haddock markup to 'Pandoc' document.
@@ -12,22 +13,31 @@ module Text.Pandoc.Readers.Haddock
     ( readHaddock
     ) where
 
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder (Blocks, Inlines)
+import qualified Text.Pandoc.Builder as B
+import Data.Monoid
+import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Readers.Haddock.Lex
-import Text.Pandoc.Readers.Haddock.Parse
+import Documentation.Haddock.Parser (parseParas, Identifier)
+import Documentation.Haddock.Types
 
 -- | Parse Haddock markup and return a 'Pandoc' document.
 readHaddock :: ReaderOptions -- ^ Reader options
             -> String        -- ^ String to parse
             -> Pandoc
-readHaddock _ s = Pandoc nullMeta blocks
-  where
-    blocks = case parseParas (tokenise s (0,0)) of
-        Left [] -> error "parse failure"
-        Left (tok:_) -> error $ "parse failure " ++ pos (tokenPos tok)
-          where pos (l, c) = "(line " ++ show l ++ ", column " ++ show c ++ ")"
-        Right x -> mergeLists (toList x)
+readHaddock _ = B.doc . docHToBlocks . parseParas
+
+docHToBlocks :: DocH mod Identifier -> Blocks
+docHToBlocks d =
+  case d of
+    DocAppend d1 d2 -> mappend (docHToBlocks d1) (docHToBlocks d2)
+    DocParagraph ils -> B.para $ docHToInlines ils
+
+docHToInlines :: DocH mod Identifier -> Inlines
+docHToInlines d =
+  case d of
+    DocAppend d1 d2 -> mappend (docHToInlines d1) (docHToInlines d2)
+    DocString s -> B.text s
 
 -- similar to 'docAppend' in Haddock.Doc
 mergeLists :: [Block] -> [Block]
