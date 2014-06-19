@@ -134,10 +134,12 @@ codeDivs = ["SourceCode"]
 runElemToInlines :: RunElem -> [Inline]
 runElemToInlines (TextRun s) = strToInlines s
 runElemToInlines (LnBrk) = [LineBreak]
+runElemToInlines (Tab) = [Space]
 
 runElemToString :: RunElem -> String
 runElemToString (TextRun s) = s
 runElemToString (LnBrk) = ['\n']
+runElemToString (Tab) = ['\t']
 
 runElemsToString :: [RunElem] -> String
 runElemsToString = concatMap runElemToString
