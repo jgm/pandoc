@@ -80,22 +80,11 @@ pandocToHaddock opts (Pandoc meta blocks) = do
 -- | Return haddock representation of notes.
 notesToHaddock :: WriterOptions -> [[Block]] -> State WriterState Doc
 notesToHaddock opts notes =
-  mapM (\(num, note) -> noteToHaddock opts num note) (zip [1..] notes) >>=
-  return . vsep
-
--- | Return haddock representation of a note.
-noteToHaddock :: WriterOptions -> Int -> [Block] -> State WriterState Doc
-noteToHaddock opts num blocks = do
-  contents  <- blockListToHaddock opts blocks
-  let num' = text $ writerIdentifierPrefix opts ++ show num
-  let marker = text "[" <> num' <> text "]"
-  let markerSize = 4 + offset num'
-  let spacer = case writerTabStop opts - markerSize of
-                     n | n > 0  -> text $ replicate n ' '
-                     _          -> text " "
-  return $ if isEnabled Ext_footnotes opts
-              then hang (writerTabStop opts) (marker <> spacer) contents
-              else marker <> spacer <> contents
+  if null notes
+     then return empty
+     else do
+       contents <- blockToHaddock opts $ OrderedList (1,DefaultStyle,DefaultDelim) notes
+       return $ text "#notes#" <> blankline <> contents
 
 -- | Escape special characters for Haddock.
 escapeString :: String -> String
@@ -354,4 +343,4 @@ inlineToHaddock opts (Note contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
   let ref = text $ writerIdentifierPrefix opts ++ show (length $ stNotes st)
-  return $ "[" <> ref <> "]"
+  return $ "<#notes [" <> ref <> "]>"

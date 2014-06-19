@@ -45,7 +45,9 @@ docHToBlocks d' =
     DocString _ -> inlineFallback
     DocParagraph (DocHeader h) -> docHToBlocks (DocHeader h)
     DocParagraph (DocAName h) -> B.plain $ docHToInlines False $ DocAName h
-    DocParagraph ils -> B.para $ docHToInlines False ils
+    DocParagraph x -> let (ils, rest) = getInlines x
+                       in (B.para $ docHToInlines False ils)
+                          <> docHToBlocks rest
     DocIdentifier _ -> inlineFallback
     DocIdentifierUnchecked _ -> inlineFallback
     DocModule s -> B.plain $ docHToInlines False $ DocModule s
@@ -60,7 +62,7 @@ docHToBlocks d' =
     DocDefList items -> B.definitionList (map (\(d,t) ->
                                (docHToInlines False d,
                                 [consolidatePlains $ docHToBlocks t])) items)
-    DocCodeBlock (DocString s) -> B.codeBlockWith ("",["haskell"],[]) s
+    DocCodeBlock (DocString s) -> B.codeBlockWith ("",[],[]) s
     DocCodeBlock d -> B.para $ docHToInlines True d
     DocHyperlink _ -> inlineFallback
     DocPic _ -> inlineFallback
@@ -92,9 +94,9 @@ docHToInlines isCode d' =
                               $ map B.code $ splitBy (=='\n') s
       | otherwise  -> B.text s
     DocParagraph _ -> mempty
-    DocIdentifier (_,s,_) -> B.codeWith ("",["haskell"],[]) s
-    DocIdentifierUnchecked s -> B.codeWith ("",["haskell"],[]) s
-    DocModule s -> B.codeWith ("",["haskell"],[]) s
+    DocIdentifier (_,s,_) -> B.codeWith ("",["haskell","identifier"],[]) s
+    DocIdentifierUnchecked s -> B.codeWith ("",["haskell","identifier"],[]) s
+    DocModule s -> B.codeWith ("",["haskell","module"],[]) s
     DocWarning _ -> mempty -- TODO
     DocEmphasis d -> B.emph (docHToInlines isCode d)
     DocMonospaced (DocString s) -> B.code s
@@ -112,6 +114,40 @@ docHToInlines isCode d' =
     DocAName s -> B.spanWith (s,["anchor"],[]) mempty
     DocProperty _ -> mempty
     DocExamples _ -> mempty
+
+getInlines :: DocH String Identifier -> (DocH String Identifier, DocH String Identifier)
+getInlines (DocAppend x y) = if isInline x
+                                then let (a, b) = getInlines y
+                                     in  (DocAppend x a, b)
+                                else (DocEmpty, DocAppend x y)
+getInlines x = if isInline x
+                  then (x, DocEmpty)
+                  else (DocEmpty, x)
+
+isInline :: DocH String Identifier -> Bool
+isInline d' =
+  case d' of
+    DocEmpty -> True
+    DocAppend d1 _ -> isInline d1
+    DocString _ -> True
+    DocParagraph _ -> False
+    DocIdentifier _ -> True
+    DocIdentifierUnchecked _ -> True
+    DocModule _ -> True
+    DocWarning _ -> True
+    DocEmphasis _ -> True
+    DocMonospaced _ -> True
+    DocBold _ -> True
+    DocHeader _ -> False
+    DocUnorderedList _ -> False
+    DocOrderedList _ -> False
+    DocDefList _ -> False
+    DocCodeBlock _ -> False
+    DocHyperlink _ -> True
+    DocPic _ -> True
+    DocAName _ -> True
+    DocProperty _ -> False
+    DocExamples _ -> False
 
 -- | Create an 'Example', stripping superfluous characters as appropriate
 makeExample :: String -> String -> [String] -> Blocks
