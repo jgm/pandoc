@@ -129,7 +129,7 @@ blockToHaddock opts (BlockQuote blocks) =
 -- Haddock doesn't have tables.  Use haddock tables in code.
 blockToHaddock opts (Table caption aligns widths headers rows) = do
   caption' <- inlineListToHaddock opts caption
-  let caption'' = if null caption || not (isEnabled Ext_table_captions opts)
+  let caption'' = if null caption
                      then empty
                      else blankline <> caption' <> blankline
   rawHeaders <- mapM (blockListToHaddock opts) headers
@@ -148,7 +148,7 @@ blockToHaddock opts (Table caption aligns widths headers rows) = do
                   | otherwise -> fmap (id,) $
                          gridTable opts (all null headers) aligns widths
                              rawHeaders rawRows
-  return $ prefixed "> " $ nst $ tbl $$ blankline $$ caption'' $$ blankline
+  return $ (prefixed "> " $ nst $ tbl $$ blankline $$ caption'') $$ blankline
 blockToHaddock opts (BulletList items) = do
   contents <- mapM (bulletListItemToHaddock opts) items
   return $ cat contents <> blankline

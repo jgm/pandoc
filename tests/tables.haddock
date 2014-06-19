@@ -6,6 +6,8 @@ Simple table with caption:
 >       123 123      123    123
 >         1 1         1     1
 >
+>   Demonstration of simple table syntax.
+
 Simple table without caption:
 
 >     Right Left    Center  Default
@@ -13,7 +15,7 @@ Simple table without caption:
 >        12 12        12    12
 >       123 123      123    123
 >         1 1         1     1
->
+
 Simple table indented two spaces:
 
 >     Right Left    Center  Default
@@ -22,6 +24,8 @@ Simple table indented two spaces:
 >       123 123      123    123
 >         1 1         1     1
 >
+>   Demonstration of simple table syntax.
+
 Multiline table with caption:
 
 >   --------------------------------------------------------------
@@ -36,6 +40,8 @@ Multiline table with caption:
 >                                       rows.
 >   --------------------------------------------------------------
 >
+>   Here\'s the caption. It may span multiple lines.
+
 Multiline table without caption:
 
 >   --------------------------------------------------------------
@@ -49,7 +55,7 @@ Multiline table without caption:
 >                                       the blank line between
 >                                       rows.
 >   --------------------------------------------------------------
->
+
 Table without column headers:
 
 >   ----- ----- ----- -----
@@ -57,7 +63,7 @@ Table without column headers:
 >     123 123    123    123
 >       1 1       1       1
 >   ----- ----- ----- -----
->
+
 Multiline table without column headers:
 
 >   ----------- ---------- ------------ --------------------------
@@ -68,5 +74,4 @@ Multiline table without column headers:
 >                                       the blank line between
 >                                       rows.
 >   ----------- ---------- ------------ --------------------------
->
 
