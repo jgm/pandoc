@@ -217,7 +217,7 @@ exifHeader hdr = do
   numentries <- getWord16
   let ifdEntry = do
        tag <- getWord16 >>= \t ->
-                maybe (fail $ "Unknown tag type " ++ show t) return
+                maybe (return UnknownTagType) return
                 (M.lookup t tagTypeTable)
        dataFormat <- getWord16
        numComponents <- getWord32
@@ -337,6 +337,7 @@ data TagType = ImageDescription
              | SensingMethod
              | FileSource
              | SceneType
+             | UnknownTagType
              deriving (Show, Eq, Ord)
 
 tagTypeTable :: M.Map Word16 TagType
