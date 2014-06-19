@@ -1102,6 +1102,7 @@ main = do
                       , readerApplyMacros = not laTeXOutput
                       , readerDefaultImageExtension = defaultImageExtension
                       , readerTrace = trace
+                      , readerSelfContained = selfContained
                       }
 
   let writerOptions = def { writerStandalone       = standalone',

@@ -8,20 +8,23 @@ import Test.Framework
 import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.Readers.Docx
 
-compareOutput :: FilePath -> FilePath -> IO (Pandoc, Pandoc)
-compareOutput docxFile nativeFile = do
+compareOutput :: ReaderOptions -> FilePath -> FilePath -> IO (Pandoc, Pandoc)
+compareOutput opts docxFile nativeFile = do
   df <- B.readFile docxFile
   nf <- Prelude.readFile nativeFile
-  return $ (readDocx def df, readNative nf)
+  return $ (readDocx opts df, readNative nf)
 
-testCompare' :: String -> FilePath -> FilePath -> IO Test
-testCompare' name docxFile nativeFile = do
-  (dp, np) <- compareOutput docxFile nativeFile
+testCompareWithOpts' :: ReaderOptions -> String -> FilePath -> FilePath -> IO Test
+testCompareWithOpts' opts name docxFile nativeFile = do
+  (dp, np) <- compareOutput opts docxFile nativeFile
   return $ test id name (dp, np)
 
+testCompareWithOpts :: ReaderOptions -> String -> FilePath -> FilePath -> Test
+testCompareWithOpts opts name docxFile nativeFile =
+  buildTest $ testCompareWithOpts' opts name docxFile nativeFile
+
 testCompare :: String -> FilePath -> FilePath -> Test
-testCompare name docxFile nativeFile =
-  buildTest $ testCompare' name docxFile nativeFile
+testCompare = testCompareWithOpts def
 
 
 tests :: [Test]
@@ -38,6 +41,11 @@ tests = [ testGroup "inlines"
             "inline image with reference output"
             "docx.image.docx"
             "docx.image_no_embed.native"
+          , testCompareWithOpts
+            def {readerSelfContained = True}
+            "inline image with embedded"
+            "docx.image.docx"
+            "docx.image_embed.native"
           , testCompare
             "handling unicode input"
             "docx.unicode.docx"
