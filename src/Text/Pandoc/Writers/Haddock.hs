@@ -152,8 +152,8 @@ blockToHaddock opts (Table caption aligns widths headers rows) = do
 blockToHaddock opts (BulletList items) = do
   contents <- mapM (bulletListItemToHaddock opts) items
   return $ cat contents <> blankline
-blockToHaddock opts (OrderedList (start,sty,delim) items) = do
-  let attribs = (start, sty, delim)
+blockToHaddock opts (OrderedList (start,_,delim) items) = do
+  let attribs = (start, Decimal, delim)
   let markers  = orderedListMarkers attribs
   let markers' = map (\m -> if length m < 3
                                then m ++ replicate (3 - length m) ' '
