@@ -62,6 +62,7 @@ Data-Files:
                  data/templates/default.revealjs,
                  data/templates/default.dzslides,
                  data/templates/default.asciidoc,
+                 data/templates/default.haddock,
                  data/templates/default.textile,
                  data/templates/default.org,
                  data/templates/default.epub,
