@@ -1,7 +1,7 @@
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 markdown test suite.
 
---------------
+______________________________________________________________________________
 
 = Headers
 #headers#
@@ -34,7 +34,7 @@ with no blank line
 
 with no blank line
 
---------------
+______________________________________________________________________________
 
 = Paragraphs
 #paragraphs#
@@ -50,7 +50,7 @@ Here’s one with a bullet. * criminey.
 There should be a hard line break
 here.
 
---------------
+______________________________________________________________________________
 
 = Block Quotes
 #block-quotes#
@@ -80,7 +80,7 @@ This should not be a block quote: 2 > 1.
 
 And a following paragraph.
 
---------------
+______________________________________________________________________________
 
 = Code Blocks
 #code-blocks#
@@ -101,7 +101,7 @@ And:
 >
 > These should not be escaped:  \$ \\ \> \[ \{
 
---------------
+______________________________________________________________________________
 
 = Lists
 #lists#
@@ -264,7 +264,7 @@ M.A. 2007
 
 B. Williams
 
---------------
+______________________________________________________________________________
 
 = Definition Lists
 #definition-lists#
@@ -397,7 +397,7 @@ Code:
 
 Hr’s:
 
---------------
+______________________________________________________________________________
 
 = Inline Markup
 #inline-markup#
@@ -427,7 +427,7 @@ Subscripts: H2O, H23O, Hmany of themO.
 These should not be superscripts or subscripts, because of the unescaped
 spaces: a^b c^d, a~b c~d.
 
---------------
+______________________________________________________________________________
 
 = Smart quotes, ellipses, dashes
 #smart-quotes-ellipses-dashes#
@@ -449,7 +449,7 @@ Dashes between numbers: 5–7, 255–66, 1987–1999.
 
 Ellipses…and…and….
 
---------------
+______________________________________________________________________________
 
 = LaTeX
 #latex#
@@ -474,7 +474,7 @@ These shouldn’t be math:
 
 Here’s a LaTeX table:
 
---------------
+______________________________________________________________________________
 
 = Special Characters
 #special-characters#
@@ -529,7 +529,7 @@ Plus: +
 
 Minus: -
 
---------------
+______________________________________________________________________________
 
 = Links
 #links#
@@ -610,7 +610,7 @@ Auto-links should not occur here: @\<http:\/\/example.com\/>@
 
 > or here: <http://example.com/>
 
---------------
+______________________________________________________________________________
 
 = Images
 #images#
@@ -621,7 +621,7 @@ From “Voyage dans la Lune” by Georges Melies (1902):
 
 Here is a movie <<movie.jpg movie>> icon.
 
---------------
+______________________________________________________________________________
 
 = Footnotes
 #footnotes#

@@ -112,8 +112,8 @@ blockToHaddock _ (RawBlock f str)
   | f == "haddock" = do
       return $ text str <> text "\n"
   | otherwise = return empty
-blockToHaddock _ HorizontalRule =
-  return $ blankline <> text "--------------" <> blankline
+blockToHaddock opts HorizontalRule =
+  return $ blankline <> text (replicate (writerColumns opts) '_') <> blankline
 blockToHaddock opts (Header level (ident,_,_) inlines) = do
   contents <- inlineListToHaddock opts inlines
   let attr' = if null ident
