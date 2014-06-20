@@ -161,6 +161,8 @@ blockNormalize (Header n attr ils) =
   Header n attr $ strNormalize $ stripSpaces ils
 blockNormalize (Table ils align width hdr cells) =
   Table (strNormalize $ stripSpaces ils) align width hdr cells
+blockNormalize (DefinitionList pairs) =
+  DefinitionList $ map (\(ils, blklsts) -> (strNormalize (stripSpaces ils), blklsts)) pairs
 blockNormalize blk = blk
 
 runToInlines :: ReaderOptions -> Docx -> Run -> [Inline]
