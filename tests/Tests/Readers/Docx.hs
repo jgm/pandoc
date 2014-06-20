@@ -7,12 +7,37 @@ import Tests.Helpers
 import Test.Framework
 import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.Readers.Docx
+import Text.Pandoc.Writers.Native (writeNative)
+import qualified Data.Map as M
 
-compareOutput :: ReaderOptions -> FilePath -> FilePath -> IO (Pandoc, Pandoc)
+-- We define a wrapper around pandoc that doesn't normalize in the
+-- tests. Since we do our own normalization, we want to make sure
+-- we're doing it right.
+
+data NoNormPandoc = NoNormPandoc {unNoNorm :: Pandoc}
+                 deriving Show
+
+noNorm :: Pandoc -> NoNormPandoc
+noNorm = NoNormPandoc
+
+instance ToString NoNormPandoc where
+  toString d = writeNative def{ writerStandalone = s } $ toPandoc d
+   where s = case d of
+                  NoNormPandoc (Pandoc (Meta m) _)
+                    | M.null m  -> False
+                    | otherwise -> True
+
+instance ToPandoc NoNormPandoc where
+  toPandoc = unNoNorm
+
+compareOutput :: ReaderOptions
+                 -> FilePath
+                 -> FilePath
+                 -> IO (NoNormPandoc, NoNormPandoc)
 compareOutput opts docxFile nativeFile = do
   df <- B.readFile docxFile
   nf <- Prelude.readFile nativeFile
-  return $ (readDocx opts df, readNative nf)
+  return $ (noNorm (readDocx opts df), noNorm (readNative nf))
 
 testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO Test
 testCompareWithOptsIO opts name docxFile nativeFile = do
