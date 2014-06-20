@@ -571,10 +571,12 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
                     [ mknode "w:tcBorders" []
                       $ mknode "w:bottom" [("w:val","single")] ()
                     , mknode "w:vAlign" [("w:val","bottom")] () ]
+  let emptyCell = [mknode "w:p" [] [mknode "w:pPr" [] $
+                    [mknode "w:pStyle" [("w:val","Compact")] ()]]]
   let mkcell border contents = mknode "w:tc" []
                             $ [ borderProps | border ] ++
                             if null contents
-                               then [mknode "w:p" [] ()]
+                               then emptyCell
                                else contents
   let mkrow border cells = mknode "w:tr" [] $ map (mkcell border) cells
   let textwidth = 7920  -- 5.5 in in twips, 1/20 pt
