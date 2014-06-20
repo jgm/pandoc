@@ -144,6 +144,10 @@ runElemToString (Tab) = ['\t']
 runElemsToString :: [RunElem] -> String
 runElemsToString = concatMap runElemToString
 
+--- We use this instead of the more general
+--- Text.Pandoc.Shared.normalize for reasons of efficiency. For
+--- whatever reason, `normalize` makes a run take almost twice as
+--- long. (It does more, but this does what we need)
 strNormalize :: [Inline] -> [Inline]
 strNormalize [] = []
 strNormalize (Str "" : ils) = strNormalize ils
