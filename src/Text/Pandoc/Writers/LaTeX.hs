@@ -311,12 +311,14 @@ blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
 blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
-  capt <- if null txt
-             then return empty
-             else (\c -> "\\caption" <> braces c) `fmap` inlineListToLaTeX txt
+  inNote <- gets stInNote
+  capt <- inlineListToLaTeX txt
   img <- inlineToLaTeX (Image txt (src,tit))
-  return $ "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
-           capt $$ "\\end{figure}"
+  return $ if inNote
+              -- can't have figures in notes
+              then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
+              else "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
+                      ("\\caption" <> braces capt) $$ "\\end{figure}"
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- writerBeamer `fmap` gets stOptions
