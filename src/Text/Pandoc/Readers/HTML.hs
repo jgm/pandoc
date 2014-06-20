@@ -471,6 +471,8 @@ pCloses tagtype = try $ do
        (TagClose "ul") | tagtype == "li" -> return ()
        (TagClose "ol") | tagtype == "li" -> return ()
        (TagClose "dl") | tagtype == "li" -> return ()
+       (TagClose "table") | tagtype == "td" -> return ()
+       (TagClose "table") | tagtype == "tr" -> return ()
        _ -> mzero
 
 pTagText :: TagParser Inlines
