@@ -76,6 +76,9 @@ imageSize img = do
        Eps  -> epsSize img
        Pdf  -> Nothing  -- TODO
 
+defaultSize :: (Integer, Integer)
+defaultSize = (72, 72)
+
 sizeInPixels :: ImageSize -> (Integer, Integer)
 sizeInPixels s = (pxX s, pxY s)
 
@@ -260,7 +263,9 @@ exifHeader hdr = do
                            lookup ExifImageHeight allentries) of
                           (Just (UnsignedLong w), Just (UnsignedLong h)) ->
                             return (fromIntegral w, fromIntegral h)
-                          _ -> fail "Could not determine image width, height"
+                          _ -> return defaultSize
+                               -- we return a default width and height when
+                               -- the exif header doesn't contain these
   let resfactor = case lookup ResolutionUnit allentries of
                         Just (UnsignedShort 1) -> (100 / 254)
                         _ -> 1
