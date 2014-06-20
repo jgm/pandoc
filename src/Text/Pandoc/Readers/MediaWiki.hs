@@ -317,6 +317,7 @@ template :: MWParser String
 template = try $ do
   string "{{"
   notFollowedBy (char '{')
+  lookAhead $ letter <|> digit <|> char ':'
   let chunk = template <|> variable <|> many1 (noneOf "{}") <|> count 1 anyChar
   contents <- manyTill chunk (try $ string "}}")
   return $ "{{" ++ concat contents ++ "}}"
