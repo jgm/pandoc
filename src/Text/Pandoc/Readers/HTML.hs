@@ -50,6 +50,8 @@ import Data.Char ( isDigit )
 import Control.Monad ( liftM, guard, when, mzero )
 import Control.Applicative ( (<$>), (<$), (<*) )
 import Data.Monoid
+import Text.Printf (printf)
+import Debug.Trace (trace)
 
 isSpace :: Char -> Bool
 isSpace ' '  = True
@@ -92,7 +94,10 @@ pHead = pInTags "head" $ pTitle <|> pMetaTag <|> (mempty <$ pAnyTag)
                return mempty
 
 block :: TagParser Blocks
-block = choice
+block = do
+  tr <- getOption readerTrace
+  pos <- getPosition
+  res <- choice
             [ pPara
             , pHeader
             , pBlockQuote
@@ -106,6 +111,10 @@ block = choice
             , pDiv
             , pRawHtmlBlock
             ]
+  when tr $ trace (printf "line %d: %s" (sourceLine pos)
+             (take 60 $ show $ B.toList res)) (return ())
+  return res
+
 
 pList :: TagParser Blocks
 pList = pBulletList <|> pOrderedList <|> pDefinitionList
