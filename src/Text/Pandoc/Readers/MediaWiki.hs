@@ -55,6 +55,8 @@ import qualified Data.Foldable as F
 import qualified Data.Map as M
 import Data.Char (isDigit, isSpace)
 import Data.Maybe (fromMaybe)
+import Text.Printf (printf)
+import Debug.Trace (trace)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: ReaderOptions -- ^ Reader options
@@ -187,7 +189,10 @@ parseMediaWiki = do
 --
 
 block :: MWParser Blocks
-block =  mempty <$ skipMany1 blankline
+block = do
+  tr <- getOption readerTrace
+  pos <- getPosition
+  res <- mempty <$ skipMany1 blankline
      <|> table
      <|> header
      <|> hrule
@@ -199,6 +204,10 @@ block =  mempty <$ skipMany1 blankline
      <|> blockTag
      <|> (B.rawBlock "mediawiki" <$> template)
      <|> para
+  when tr $
+    trace (printf "line %d: %s" (sourceLine pos)
+           (take 60 $ show $ B.toList res)) (return ())
+  return res
 
 para :: MWParser Blocks
 para = do
