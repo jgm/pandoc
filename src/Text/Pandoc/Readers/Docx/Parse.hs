@@ -466,7 +466,7 @@ data Run = Run RunStyle [RunElem]
          | Endnote String
            deriving Show
 
-data RunElem = TextRun String | LnBrk
+data RunElem = TextRun String | LnBrk | Tab
              deriving Show
 
 data RunStyle = RunStyle { isBold :: Bool
@@ -545,6 +545,9 @@ elemToRunElem ns element
   | qName (elName element) == "br" &&
     qURI (elName element) == (lookup "w" ns) =
       Just $ LnBrk
+  | qName (elName element) == "tab" &&
+    qURI (elName element) == (lookup "w" ns) =
+      Just $ Tab
   | otherwise = Nothing
 
 

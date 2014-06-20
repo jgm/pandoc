@@ -1,0 +1,2 @@
+[Para [Str "Some",Space,Str "text",Space,Str "separated",Space,Str "by",Space,Str "a",Space,Str "tab."]
+,Para [Str "Tab-indented",Space,Str "text."]]

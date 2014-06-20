@@ -44,7 +44,12 @@ tests = [ testGroup "inlines"
           , testCompare
             "handling unicode input"
             "docx.unicode.docx"
-            "docx.unicode.native"]
+            "docx.unicode.native"
+          , testCompare
+            "literal tabs"
+            "docx.tabs.docx"
+            "docx.tabs.native"
+          ]
         , testGroup "blocks"
           [ testCompare
             "headers"

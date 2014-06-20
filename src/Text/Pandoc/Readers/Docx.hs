@@ -134,10 +134,12 @@ codeDivs = ["SourceCode"]
 runElemToInlines :: RunElem -> [Inline]
 runElemToInlines (TextRun s) = strToInlines s
 runElemToInlines (LnBrk) = [LineBreak]
+runElemToInlines (Tab) = [Space]
 
 runElemToString :: RunElem -> String
 runElemToString (TextRun s) = s
 runElemToString (LnBrk) = ['\n']
+runElemToString (Tab) = ['\t']
 
 runElemsToString :: [RunElem] -> String
 runElemsToString = concatMap runElemToString
@@ -147,6 +149,19 @@ strNormalize [] = []
 strNormalize (Str "" : ils) = strNormalize ils
 strNormalize ((Str s) : (Str s') : l) = strNormalize ((Str (s++s')) : l)
 strNormalize (il:ils) = il : (strNormalize ils)
+
+blockNormalize :: Block -> Block
+blockNormalize (Plain (Space : ils)) = blockNormalize (Plain ils)
+blockNormalize (Plain ils) = Plain $ strNormalize ils
+blockNormalize (Para (Space : ils)) = blockNormalize (Para ils)
+blockNormalize (Para ils) = Para $ strNormalize ils
+blockNormalize (Header n attr (Space : ils)) =
+  blockNormalize $ Header n attr ils
+blockNormalize (Table (Space : ils) align width hdr cells) =
+  blockNormalize $ Table ils align width hdr cells
+blockNormalize (Table ils align width hdr cells) =
+  Table (strNormalize ils) align width hdr cells
+blockNormalize blk = blk
 
 runToInlines :: ReaderOptions -> Docx -> Run -> [Inline]
 runToInlines _ _ (Run rs runElems)
@@ -294,7 +309,7 @@ makeImagesSelfContained _ inline = inline
 bodyToBlocks :: ReaderOptions -> Docx -> Body -> [Block]
 bodyToBlocks opts docx (Body bps) =
   bottomUp removeEmptyPars $
-  bottomUp strNormalize $
+  bottomUp blockNormalize $
   bottomUp spanRemove $
   bottomUp divRemove $
   map (makeHeaderAnchors) $
