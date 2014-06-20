@@ -159,14 +159,14 @@ stripSpaces ils =
   reverse $ dropWhile (Space ==) $ reverse $ dropWhile (Space ==) ils
 
 blockNormalize :: Block -> Block
-blockNormalize (Plain ils) = Plain $ strNormalize $ stripSpaces ils
-blockNormalize (Para ils) = Para $ strNormalize $ stripSpaces ils
+blockNormalize (Plain ils) = Plain $ bottomUp strNormalize $ stripSpaces ils
+blockNormalize (Para ils) = Para $ bottomUp strNormalize $ stripSpaces ils
 blockNormalize (Header n attr ils) =
-  Header n attr $ strNormalize $ stripSpaces ils
+  Header n attr $ bottomUp strNormalize $ stripSpaces ils
 blockNormalize (Table ils align width hdr cells) =
-  Table (strNormalize $ stripSpaces ils) align width hdr cells
+  Table (bottomUp strNormalize $ stripSpaces ils) align width hdr cells
 blockNormalize (DefinitionList pairs) =
-  DefinitionList $ map (\(ils, blklsts) -> (strNormalize (stripSpaces ils), blklsts)) pairs
+  DefinitionList $ map (\(ils, blklsts) -> (bottomUp strNormalize (stripSpaces ils), blklsts)) pairs
 blockNormalize blk = blk
 
 runToInlines :: ReaderOptions -> Docx -> Run -> [Inline]
