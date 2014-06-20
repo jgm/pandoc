@@ -157,6 +157,8 @@ blockNormalize (Para (Space : ils)) = blockNormalize (Para ils)
 blockNormalize (Para ils) = Para $ strNormalize ils
 blockNormalize (Header n attr (Space : ils)) =
   blockNormalize $ Header n attr ils
+blockNormalize (Header n attr ils) =
+  Header n attr $ strNormalize ils
 blockNormalize (Table (Space : ils) align width hdr cells) =
   blockNormalize $ Table ils align width hdr cells
 blockNormalize (Table ils align width hdr cells) =
