@@ -8,7 +8,7 @@ import Tests.Helpers
 import Tests.Arbitrary()
 
 latex :: (ToString a, ToPandoc a) => a -> String
-latex = writeLaTeX def . toPandoc
+latex = writeLaTeX def{ writerHighlight = True } . toPandoc
 
 latexListing :: (ToString a, ToPandoc a) => a -> String
 latexListing = writeLaTeX def{ writerListings = True } . toPandoc
@@ -53,5 +53,15 @@ tests = [ testGroup "code blocks"
             headerWith ("foo",["unnumbered"],[]) 1
               (text "Header 1" <> note (plain $ text "note")) =?>
             "\\section*{Header 1\\footnote{note}}\\label{foo}\n\\addcontentsline{toc}{section}{Header 1}\n"
+          ]
+        , testGroup "inline code"
+          [ "struck out and highlighted" =:
+            strikeout (codeWith ("",["haskell"],[]) "foo" <> space
+              <> str "bar") =?>
+            "\\sout{\\mbox{\\VERB|\\NormalTok{foo}|} bar}"
+          , "struck out and not highlighted" =:
+            strikeout (code "foo" <> space
+              <> str "bar") =?>
+            "\\sout{\\texttt{foo} bar}"
           ]
         ]

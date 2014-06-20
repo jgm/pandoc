@@ -678,7 +678,9 @@ inlineToLaTeX (Emph lst) =
 inlineToLaTeX (Strong lst) =
   inlineListToLaTeX lst >>= return . inCmd "textbf"
 inlineToLaTeX (Strikeout lst) = do
-  contents <- inlineListToLaTeX lst
+  -- we need to protect VERB in an mbox or we get an error
+  -- see #1294
+  contents <- inlineListToLaTeX $ protectCode lst
   modify $ \s -> s{ stStrikeout = True }
   return $ inCmd "sout" contents
 inlineToLaTeX (Superscript lst) =
@@ -783,6 +785,13 @@ inlineToLaTeX (Note contents) = do
        then "\\footnotemark{}"
        -- note: a \n before } needed when note ends with a Verbatim environment
        else "\\footnote" <> braces noteContents
+
+protectCode :: [Inline] -> [Inline]
+protectCode [] = []
+protectCode (x@(Code ("",[],[]) _) : xs) = x : protectCode xs
+protectCode (x@(Code _ _) : xs) = ltx "\\mbox{" : x : ltx "}" : xs
+  where ltx = RawInline (Format "latex")
+protectCode (x : xs) = x : protectCode xs
 
 citationsToNatbib :: [Citation] -> State WriterState Doc
 citationsToNatbib (one:[])
