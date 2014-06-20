@@ -262,6 +262,7 @@ pTable = try $ do
 pCol :: TagParser Double
 pCol = try $ do
   TagOpen _ attribs <- pSatisfy (~== TagOpen "col" [])
+  skipMany pBlank
   optional $ pSatisfy (~== TagClose "col")
   skipMany pBlank
   return $ case lookup "width" attribs of
