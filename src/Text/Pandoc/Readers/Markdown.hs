@@ -1736,7 +1736,12 @@ spanHtml = try $ do
   let ident = fromMaybe "" $ lookup "id" attrs
   let classes = maybe [] words $ lookup "class" attrs
   let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
-  return $ B.spanWith (ident, classes, keyvals) <$> contents
+  case lookup "style" keyvals of
+       Just s | null ident && null classes &&
+            map toLower (filter (`notElem` " \t;") s) ==
+                 "font-variant:small-caps"
+         -> return $ B.smallcaps <$> contents
+       _ -> return $ B.spanWith (ident, classes, keyvals) <$> contents
 
 divHtml :: MarkdownParser (F Blocks)
 divHtml = try $ do
