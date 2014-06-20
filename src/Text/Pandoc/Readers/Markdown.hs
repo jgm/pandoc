@@ -1560,7 +1560,8 @@ endline = try $ do
   guardEnabled Ext_blank_before_header <|> notFollowedBy (char '#') -- atx header
   guardDisabled Ext_backtick_code_blocks <|>
      notFollowedBy (() <$ (lookAhead (char '`') >> codeBlockFenced))
-  (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
+  (eof >> return mempty)
+    <|> (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
     <|> (guardEnabled Ext_ignore_line_breaks >> return mempty)
     <|> (return $ return B.space)
 
