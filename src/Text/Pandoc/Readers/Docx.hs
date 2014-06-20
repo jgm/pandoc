@@ -150,19 +150,17 @@ strNormalize (Str "" : ils) = strNormalize ils
 strNormalize ((Str s) : (Str s') : l) = strNormalize ((Str (s++s')) : l)
 strNormalize (il:ils) = il : (strNormalize ils)
 
+stripSpaces :: [Inline] -> [Inline]
+stripSpaces ils =
+  reverse $ dropWhile (Space ==) $ reverse $ dropWhile (Space ==) ils
+
 blockNormalize :: Block -> Block
-blockNormalize (Plain (Space : ils)) = blockNormalize (Plain ils)
-blockNormalize (Plain ils) = Plain $ strNormalize ils
-blockNormalize (Para (Space : ils)) = blockNormalize (Para ils)
-blockNormalize (Para ils) = Para $ strNormalize ils
-blockNormalize (Header n attr (Space : ils)) =
-  blockNormalize $ Header n attr ils
+blockNormalize (Plain ils) = Plain $ strNormalize $ stripSpaces ils
+blockNormalize (Para ils) = Para $ strNormalize $ stripSpaces ils
 blockNormalize (Header n attr ils) =
-  Header n attr $ strNormalize ils
-blockNormalize (Table (Space : ils) align width hdr cells) =
-  blockNormalize $ Table ils align width hdr cells
+  Header n attr $ strNormalize $ stripSpaces ils
 blockNormalize (Table ils align width hdr cells) =
-  Table (strNormalize ils) align width hdr cells
+  Table (strNormalize $ stripSpaces ils) align width hdr cells
 blockNormalize blk = blk
 
 runToInlines :: ReaderOptions -> Docx -> Run -> [Inline]
