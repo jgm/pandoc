@@ -121,10 +121,7 @@ externalFilter f args' d = do
            ExitFailure _  -> err 83 $ "Error running filter " ++ f
  where filterException :: E.SomeException -> IO a
        filterException e = err 83 $ "Error running filter " ++ f ++ "\n" ++
-                                  if ioeGetErrorType `fmap` E.fromException e ==
-                                          Just ResourceVanished
-                                     then f ++ " not found in path"
-                                     else show e
+                                       show e
 
 -- | Data structure for command line options.
 data Opt = Opt
