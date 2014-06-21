@@ -62,8 +62,6 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString as BS
 import Data.Aeson (eitherDecode', encode)
 import qualified Data.Map as M
-import System.IO.Error(ioeGetErrorType)
-import GHC.IO.Exception (IOErrorType(ResourceVanished))
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import qualified Data.Text as T
