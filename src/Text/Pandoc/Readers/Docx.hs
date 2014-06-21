@@ -148,25 +148,71 @@ runElemsToString = concatMap runElemToString
 --- Text.Pandoc.Shared.normalize for reasons of efficiency. For
 --- whatever reason, `normalize` makes a run take almost twice as
 --- long. (It does more, but this does what we need)
-strNormalize :: [Inline] -> [Inline]
-strNormalize [] = []
-strNormalize (Str "" : ils) = strNormalize ils
-strNormalize ((Str s) : (Str s') : l) = strNormalize ((Str (s++s')) : l)
-strNormalize (il:ils) = il : (strNormalize ils)
+inlineNormalize :: [Inline] -> [Inline]
+inlineNormalize [] = []
+inlineNormalize (Str "" : ils) = inlineNormalize ils
+inlineNormalize ((Str s) : (Str s') : l) =
+  inlineNormalize (Str (s++s') : l)
+inlineNormalize ((Emph ils) : (Emph ils') : l) =
+  inlineNormalize $ (Emph $ inlineNormalize (ils ++ ils')) : l
+inlineNormalize ((Emph ils) : l) =
+  Emph (inlineNormalize ils) : (inlineNormalize l)
+inlineNormalize ((Strong ils) : (Strong ils') : l) = 
+  inlineNormalize $ (Strong $ inlineNormalize (ils ++ ils')) : l
+inlineNormalize ((Strong ils) : l) =
+  Strong (inlineNormalize ils) : (inlineNormalize l)
+inlineNormalize ((Strikeout ils) : (Strikeout ils') : l) = 
+  inlineNormalize $ (Strikeout $ inlineNormalize (ils ++ ils')) : l
+inlineNormalize ((Strikeout ils) : l) =
+  Strikeout (inlineNormalize ils) : (inlineNormalize l)
+inlineNormalize ((Superscript ils) : (Superscript ils') : l) = 
+  inlineNormalize $ (Superscript $ inlineNormalize (ils ++ ils')) : l
+inlineNormalize ((Superscript ils) : l) =
+  Superscript (inlineNormalize ils) : (inlineNormalize l)
+inlineNormalize ((Subscript ils) : (Subscript ils') : l) = 
+  inlineNormalize $ (Subscript $ inlineNormalize (ils ++ ils')) : l
+inlineNormalize ((Subscript ils) : l) =
+  Subscript (inlineNormalize ils) : (inlineNormalize l)
+inlineNormalize ((Space : Space : l)) =
+  inlineNormalize $ (Space : l)
+inlineNormalize ((Quoted qt ils) : l) =
+  Quoted qt (inlineNormalize ils) : inlineNormalize l
+inlineNormalize ((Cite cits ils) : l) =
+  let
+    f :: Citation -> Citation
+    f (Citation s pref suff mode num hash) =
+      Citation s (inlineNormalize pref) (inlineNormalize suff) mode num hash
+  in
+   Cite (map f cits) (inlineNormalize ils) : (inlineNormalize l)
+inlineNormalize ((Link ils s) : l) =
+  Link (inlineNormalize ils) s : (inlineNormalize l)
+inlineNormalize ((Image ils s) : l) =
+  Image (inlineNormalize ils) s : (inlineNormalize l)
+inlineNormalize ((Note blks) : l) =
+  Note (map blockNormalize blks) : (inlineNormalize l)
+inlineNormalize ((Span attr ils) : l) =
+  Span attr (inlineNormalize ils) : (inlineNormalize l)
+inlineNormalize (il : l) = il : (inlineNormalize l)
 
 stripSpaces :: [Inline] -> [Inline]
 stripSpaces ils =
   reverse $ dropWhile (Space ==) $ reverse $ dropWhile (Space ==) ils
 
 blockNormalize :: Block -> Block
-blockNormalize (Plain ils) = Plain $ bottomUp strNormalize $ stripSpaces ils
-blockNormalize (Para ils) = Para $ bottomUp strNormalize $ stripSpaces ils
+blockNormalize (Plain ils) = Plain $ stripSpaces $ inlineNormalize ils
+blockNormalize (Para ils) = Para $ stripSpaces $ inlineNormalize ils
 blockNormalize (Header n attr ils) =
-  Header n attr $ bottomUp strNormalize $ stripSpaces ils
+  Header n attr $ stripSpaces $ inlineNormalize ils
 blockNormalize (Table ils align width hdr cells) =
-  Table (bottomUp strNormalize $ stripSpaces ils) align width hdr cells
+  Table (stripSpaces $ inlineNormalize ils) align width hdr cells
 blockNormalize (DefinitionList pairs) =
-  DefinitionList $ map (\(ils, blklsts) -> (bottomUp strNormalize (stripSpaces ils), blklsts)) pairs
+  DefinitionList $ map (\(ils, blklsts) -> (stripSpaces (inlineNormalize ils), (map (map blockNormalize) blklsts))) pairs
+blockNormalize (BlockQuote blks) = BlockQuote (map blockNormalize blks)
+blockNormalize (OrderedList attr blkslst) =
+  OrderedList attr $ map (\blks -> map blockNormalize blks) blkslst
+blockNormalize (BulletList blkslst) =
+  BulletList $ map (\blks -> map blockNormalize blks) blkslst
+blockNormalize (Div attr blks) = Div attr (map blockNormalize blks)
 blockNormalize blk = blk
 
 runToInlines :: ReaderOptions -> Docx -> Run -> [Inline]
@@ -315,7 +361,7 @@ makeImagesSelfContained _ inline = inline
 bodyToBlocks :: ReaderOptions -> Docx -> Body -> [Block]
 bodyToBlocks opts docx (Body bps) =
   bottomUp removeEmptyPars $
-  bottomUp blockNormalize $
+  map blockNormalize $
   bottomUp spanRemove $
   bottomUp divRemove $
   map (makeHeaderAnchors) $
