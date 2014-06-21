@@ -74,6 +74,10 @@ tests = [ testGroup "inlines"
             "literal tabs"
             "docx.tabs.docx"
             "docx.tabs.native"
+          , testCompare
+            "normalizing inlines"
+            "docx.normalize.docx"
+            "docx.normalize.native"
           ]
         , testGroup "blocks"
           [ testCompare
