@@ -78,6 +78,10 @@ tests = [ testGroup "inlines"
             "normalizing inlines"
             "docx.normalize.docx"
             "docx.normalize.native"
+          , testCompare
+            "normalizing inlines deep inside blocks"
+            "docx.deep_normalize.docx"
+            "docx.deep_normalize.native"
           ]
         , testGroup "blocks"
           [ testCompare
