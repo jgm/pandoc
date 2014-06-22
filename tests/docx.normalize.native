@@ -1,0 +1,2 @@
+[Para [Str "These",Space,Str "are",Space,Str "different",Space,Str "fonts."]
+,Para [Strong [Str "These",Space,Emph [Str "are",Space,Strikeout [Str "different"]],Space,Str "fonts."]]]
