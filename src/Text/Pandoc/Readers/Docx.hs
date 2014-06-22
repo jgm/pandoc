@@ -286,8 +286,8 @@ parPartsToInlines opts docx parparts =
   (if False -- TODO depend on option
       then bottomUp (makeImagesSelfContained docx)
       else id) $
-  bottomUp spanCorrect $
   bottomUp spanTrim $
+  bottomUp spanCorrect $
   bottomUp spanReduce $
   concatMap (parPartToInlines opts docx) parparts
 
