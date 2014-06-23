@@ -79,8 +79,10 @@ import Text.Pandoc.Builder (text, toList)
 import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.UTF8 (toString)
+import Text.Pandoc.Walk
 import Text.Pandoc.Readers.Docx.Parse
 import Text.Pandoc.Readers.Docx.Lists
+import Text.Pandoc.Readers.Docx.Reducible
 import Data.Maybe (mapMaybe, isJust, fromJust)
 import Data.List (delete, isPrefixOf, (\\), intersect)
 import qualified Data.ByteString as BS
@@ -96,28 +98,65 @@ readDocx opts bytes =
     Just docx -> Pandoc nullMeta (docxToBlocks opts docx)
     Nothing   -> error $ "couldn't parse docx file"
 
-runStyleToSpanAttr :: RunStyle -> (String, [String], [(String, String)])
-runStyleToSpanAttr rPr = ("",
-                          mapMaybe id [
-                            if isBold rPr then (Just "strong") else Nothing,
-                            if isItalic rPr then (Just "emph") else Nothing,
-                            if isSmallCaps rPr then (Just "smallcaps") else Nothing,
-                            if isStrike rPr then (Just "strike") else Nothing,
-                            if isSuperScript rPr then (Just "superscript") else Nothing,
-                            if isSubScript rPr then (Just "subscript") else Nothing,
-                            rStyle rPr],
-                          case underline rPr of
-                            Just fmt -> [("underline", fmt)]
-                            _        -> []
-                         )
+spansToKeep :: [String]
+spansToKeep = ["list-item", "Definition", "DefinitionTerm"] ++ codeSpans
 
-parStyleToDivAttr :: ParagraphStyle -> (String, [String], [(String, String)])
-parStyleToDivAttr pPr = ("",
-                          pStyle pPr,
-                          case indent pPr of
-                            Just n  -> [("indent", (show n))]
-                            Nothing -> []
-                         )
+
+-- This is empty, but we put it in for future-proofing.
+divsToKeep :: [String]
+divsToKeep = []
+
+runStyleToContainers :: RunStyle -> [Container Inline]
+runStyleToContainers rPr =
+  let formatters = mapMaybe id
+                 [ if isBold rPr then (Just Strong) else Nothing
+                 , if isItalic rPr then (Just Emph) else Nothing
+                 , if isSmallCaps rPr then (Just SmallCaps) else Nothing
+                 , if isStrike rPr then (Just Strikeout) else Nothing
+                 , if isSuperScript rPr then (Just Superscript) else Nothing
+                 , if isSubScript rPr then (Just Subscript) else Nothing
+                 , rStyle rPr >>=
+                   (\s -> if s `elem` spansToKeep then Just s else Nothing) >>=
+                   (\s -> Just $ Span ("", [s], []))
+                 , underline rPr >>= (\f -> Just $ Span ("", [], [("underline", f)]))
+                 ]
+  in
+   map Container formatters
+
+
+divAttrToContainers :: [String] -> [(String, String)] -> [Container Block]
+divAttrToContainers [] [] = []
+divAttrToContainers (c:cs) _ | isJust (isHeaderClass c) =
+  let n = fromJust (isHeaderClass c)
+  in
+   [(Container $ \blks ->
+      Header n ("", delete ("Heading" ++ show n) cs, []) (blksToInlines blks))]
+divAttrToContainers (c:_) _ | c `elem` codeDivs =
+  [Container $ \blks -> CodeBlock ("", [], []) (concatMap blkToCode blks)]
+divAttrToContainers (c:cs) kvs | c `elem` listParagraphDivs =
+  let kvs' = filter (\(k,_) -> k /= "indent") kvs
+  in
+   (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs')
+divAttrToContainers (c:cs) kvs | c `elem` blockQuoteDivs =
+  (Container BlockQuote) : (divAttrToContainers (cs \\ blockQuoteDivs) kvs)
+divAttrToContainers (c:cs) kvs | c `elem` divsToKeep =
+  (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs)
+divAttrToContainers (_:cs) kvs = divAttrToContainers cs kvs
+divAttrToContainers [] (kv:kvs) | fst kv == "indent" =
+  (Container BlockQuote) : divAttrToContainers [] kvs
+divAttrToContainers [] (_:kvs) =
+  divAttrToContainers [] kvs
+
+
+parStyleToContainers :: ParagraphStyle -> [Container Block]
+parStyleToContainers pPr =
+  let classes = pStyle pPr
+      kvs = case indent pPr of
+        Just n -> [("indent", show n)]
+        Nothing -> []
+  in
+   divAttrToContainers classes kvs
+  
 
 strToInlines :: String -> [Inline]
 strToInlines = toList . text
@@ -144,103 +183,42 @@ runElemToString (Tab) = ['\t']
 runElemsToString :: [RunElem] -> String
 runElemsToString = concatMap runElemToString
 
---- We use this instead of the more general
---- Text.Pandoc.Shared.normalize for reasons of efficiency. For
---- whatever reason, `normalize` makes a run take almost twice as
---- long. (It does more, but this does what we need)
-inlineNormalize :: [Inline] -> [Inline]
-inlineNormalize [] = []
-inlineNormalize (Str "" : ils) = inlineNormalize ils
-inlineNormalize ((Str s) : (Str s') : l) =
-  inlineNormalize (Str (s++s') : l)
-inlineNormalize ((Emph ils) : (Emph ils') : l) =
-  inlineNormalize $ (Emph $ inlineNormalize (ils ++ ils')) : l
-inlineNormalize ((Emph ils) : l) =
-  Emph (inlineNormalize ils) : (inlineNormalize l)
-inlineNormalize ((Strong ils) : (Strong ils') : l) = 
-  inlineNormalize $ (Strong $ inlineNormalize (ils ++ ils')) : l
-inlineNormalize ((Strong ils) : l) =
-  Strong (inlineNormalize ils) : (inlineNormalize l)
-inlineNormalize ((Strikeout ils) : (Strikeout ils') : l) = 
-  inlineNormalize $ (Strikeout $ inlineNormalize (ils ++ ils')) : l
-inlineNormalize ((Strikeout ils) : l) =
-  Strikeout (inlineNormalize ils) : (inlineNormalize l)
-inlineNormalize ((Superscript ils) : (Superscript ils') : l) = 
-  inlineNormalize $ (Superscript $ inlineNormalize (ils ++ ils')) : l
-inlineNormalize ((Superscript ils) : l) =
-  Superscript (inlineNormalize ils) : (inlineNormalize l)
-inlineNormalize ((Subscript ils) : (Subscript ils') : l) = 
-  inlineNormalize $ (Subscript $ inlineNormalize (ils ++ ils')) : l
-inlineNormalize ((Subscript ils) : l) =
-  Subscript (inlineNormalize ils) : (inlineNormalize l)
-inlineNormalize ((Space : Space : l)) =
-  inlineNormalize $ (Space : l)
-inlineNormalize ((Quoted qt ils) : l) =
-  Quoted qt (inlineNormalize ils) : inlineNormalize l
-inlineNormalize ((Cite cits ils) : l) =
-  let
-    f :: Citation -> Citation
-    f (Citation s pref suff mode num hash) =
-      Citation s (inlineNormalize pref) (inlineNormalize suff) mode num hash
-  in
-   Cite (map f cits) (inlineNormalize ils) : (inlineNormalize l)
-inlineNormalize ((Link ils s) : l) =
-  Link (inlineNormalize ils) s : (inlineNormalize l)
-inlineNormalize ((Image ils s) : l) =
-  Image (inlineNormalize ils) s : (inlineNormalize l)
-inlineNormalize ((Note blks) : l) =
-  Note (map blockNormalize blks) : (inlineNormalize l)
-inlineNormalize ((Span attr ils) : l) =
-  Span attr (inlineNormalize ils) : (inlineNormalize l)
-inlineNormalize (il : l) = il : (inlineNormalize l)
 
-stripSpaces :: [Inline] -> [Inline]
-stripSpaces ils =
-  reverse $ dropWhile (Space ==) $ reverse $ dropWhile (Space ==) ils
+inlineCodeContainer :: Container Inline -> Bool
+inlineCodeContainer (Container f) = case f [] of
+  Span (_, classes, _) _ -> (not . null) (classes `intersect` codeSpans)
+  _         -> False
+inlineCodeContainer _ = False
 
-blockNormalize :: Block -> Block
-blockNormalize (Plain ils) = Plain $ stripSpaces $ inlineNormalize ils
-blockNormalize (Para ils) = Para $ stripSpaces $ inlineNormalize ils
-blockNormalize (Header n attr ils) =
-  Header n attr $ stripSpaces $ inlineNormalize ils
-blockNormalize (Table ils align width hdr cells) =
-  Table (stripSpaces $ inlineNormalize ils) align width hdr cells
-blockNormalize (DefinitionList pairs) =
-  DefinitionList $ map (\(ils, blklsts) -> (stripSpaces (inlineNormalize ils), (map (map blockNormalize) blklsts))) pairs
-blockNormalize (BlockQuote blks) = BlockQuote (map blockNormalize blks)
-blockNormalize (OrderedList attr blkslst) =
-  OrderedList attr $ map (\blks -> map blockNormalize blks) blkslst
-blockNormalize (BulletList blkslst) =
-  BulletList $ map (\blks -> map blockNormalize blks) blkslst
-blockNormalize (Div attr blks) = Div attr (map blockNormalize blks)
-blockNormalize blk = blk
+-- blockCodeContainer :: Container Block -> Bool
+-- blockCodeContainer (Container f) = case f [] of
+--   Div (ident, classes, kvs) _ -> (not . null) (classes `intersect` codeDivs)
+--   _         -> False
+-- blockCodeContainer _ = False
 
 runToInlines :: ReaderOptions -> Docx -> Run -> [Inline]
 runToInlines _ _ (Run rs runElems)
-  | isJust (rStyle rs) && (fromJust (rStyle rs)) `elem` codeSpans =
-    case runStyleToSpanAttr rs == ("", [], []) of
-      True -> [Str (runElemsToString runElems)]
-      False -> [Span (runStyleToSpanAttr rs) [Str (runElemsToString runElems)]]
-  | otherwise = case runStyleToSpanAttr rs == ("", [], []) of
-      True -> concatMap runElemToInlines runElems
-      False -> [Span (runStyleToSpanAttr rs) (concatMap runElemToInlines runElems)]
+  | any inlineCodeContainer (runStyleToContainers rs) =
+      rebuild (runStyleToContainers rs) $ [Str $ runElemsToString runElems]
+  | otherwise =
+      rebuild (runStyleToContainers rs) (concatMap runElemToInlines runElems)
 runToInlines opts docx@(Docx _ notes _ _ _ ) (Footnote fnId) =
   case (getFootNote fnId notes) of
     Just bodyParts ->
-      [Note [Div ("", ["footnote"], []) (map (bodyPartToBlock opts docx) bodyParts)]]
+      [Note (concatMap (bodyPartToBlocks opts docx) bodyParts)]
     Nothing        ->
-      [Note [Div ("", ["footnote"], []) []]]
+      [Note []]
 runToInlines opts docx@(Docx _ notes _ _ _) (Endnote fnId) =
   case (getEndNote fnId notes) of
     Just bodyParts ->
-      [Note [Div ("", ["endnote"], []) (map (bodyPartToBlock opts docx) bodyParts)]]
+      [Note (concatMap (bodyPartToBlocks opts docx) bodyParts)]
     Nothing        ->
-      [Note [Div ("", ["endnote"], []) []]]
+      [Note []]
 
 parPartToInlines :: ReaderOptions -> Docx -> ParPart -> [Inline]
 parPartToInlines opts docx (PlainRun r) = runToInlines opts docx r
-parPartToInlines _ _ (BookMark _ anchor) =
-  [Span (anchor, ["anchor"], []) []]
+parPartToInlines _ _ (BookMark _ anchor) | anchor `elem` dummyAnchors = []
+parPartToInlines _ _ (BookMark _ anchor) = [Span (anchor, ["anchor"], []) []]
 parPartToInlines _ (Docx _ _ _ rels _) (Drawing relid) =
   case lookupRelationship relid rels of
     Just target -> [Image [] (combine "word" target, "")]
@@ -276,7 +254,6 @@ makeHeaderAnchors h@(Header n (_, classes, kvs) ils) =
     _ -> h
 makeHeaderAnchors blk = blk
 
-
 parPartsToInlines :: ReaderOptions -> Docx -> [ParPart] -> [Inline]
 parPartsToInlines opts docx parparts =
   --
@@ -284,23 +261,32 @@ parPartsToInlines opts docx parparts =
   -- not mandatory.
   --
   (if False -- TODO depend on option
-      then bottomUp (makeImagesSelfContained docx)
+      then walk (makeImagesSelfContained docx)
       else id) $
-  bottomUp spanTrim $
-  bottomUp spanCorrect $
-  bottomUp spanReduce $
-  concatMap (parPartToInlines opts docx) parparts
+  -- bottomUp spanTrim $
+  -- bottomUp spanCorrect $
+  -- bottomUp spanReduce $
+  reduceList $ concatMap (parPartToInlines opts docx) parparts
 
 cellToBlocks :: ReaderOptions -> Docx -> Cell -> [Block]
-cellToBlocks opts docx (Cell bps) = map (bodyPartToBlock opts docx) bps
+cellToBlocks opts docx (Cell bps) = concatMap (bodyPartToBlocks opts docx) bps
 
 rowToBlocksList :: ReaderOptions -> Docx -> Row -> [[Block]]
 rowToBlocksList opts docx (Row cells) = map (cellToBlocks opts docx) cells
 
-bodyPartToBlock :: ReaderOptions -> Docx -> BodyPart -> Block
-bodyPartToBlock opts docx (Paragraph pPr parparts) =
-  Div (parStyleToDivAttr pPr) [Para (parPartsToInlines opts docx parparts)]
-bodyPartToBlock opts docx@(Docx _ _ numbering _ _) (ListItem pPr numId lvl parparts) =
+bodyPartToBlocks :: ReaderOptions -> Docx -> BodyPart -> [Block]
+bodyPartToBlocks opts docx (Paragraph pPr parparts) =
+  case parPartsToInlines opts docx parparts of
+    [] ->
+      []
+    _ ->
+      let parContents = parPartsToInlines opts docx parparts
+          trimmedContents = reverse $ dropWhile (Space ==) $ reverse $ dropWhile (Space ==) parContents
+      in
+       rebuild
+       (parStyleToContainers pPr)
+       [Para trimmedContents]
+bodyPartToBlocks opts docx@(Docx _ _ numbering _ _) (ListItem pPr numId lvl parparts) =
   let
     kvs = case lookupLevel numId lvl numbering of
       Just (_, fmt, txt, Just start) -> [ ("level", lvl)
@@ -317,12 +303,12 @@ bodyPartToBlock opts docx@(Docx _ _ numbering _ _) (ListItem pPr numId lvl parpa
                                         ]
       Nothing                        -> []
   in
-   Div
-   ("", ["list-item"], kvs)
-   [bodyPartToBlock opts docx (Paragraph pPr parparts)]
-bodyPartToBlock _ _ (Tbl _ _ _ []) =
-  Para []
-bodyPartToBlock opts docx (Tbl cap _ look (r:rs)) =
+   [Div
+    ("", ["list-item"], kvs)
+    (bodyPartToBlocks opts docx (Paragraph pPr parparts))]
+bodyPartToBlocks _ _ (Tbl _ _ _ []) =
+  [Para []]
+bodyPartToBlocks opts docx (Tbl cap _ look (r:rs)) =
   let caption = strToInlines cap
       (hdr, rows) = case firstRowFormatting look of
         True -> (Just r, rs)
@@ -344,7 +330,8 @@ bodyPartToBlock opts docx (Tbl cap _ look (r:rs)) =
       alignments = take size (repeat AlignDefault)
       widths = take size (repeat 0) :: [Double]
   in
-   Table caption alignments widths hdrCells cells
+   [Table caption alignments widths hdrCells cells]
+
 
 makeImagesSelfContained :: Docx -> Inline -> Inline
 makeImagesSelfContained (Docx _ _ _ _ media) i@(Image alt (uri, title)) =
@@ -360,127 +347,19 @@ makeImagesSelfContained _ inline = inline
 
 bodyToBlocks :: ReaderOptions -> Docx -> Body -> [Block]
 bodyToBlocks opts docx (Body bps) =
-  bottomUp removeEmptyPars $
-  map blockNormalize $
-  bottomUp spanRemove $
-  bottomUp divRemove $
   map (makeHeaderAnchors) $
-  bottomUp divCorrect $
-  bottomUp divReduce $
-  bottomUp divCorrectPreReduce $
   bottomUp blocksToDefinitions $
   blocksToBullets $
-  map (bodyPartToBlock opts docx) bps
+  concatMap (bodyPartToBlocks opts docx) bps
 
 docxToBlocks :: ReaderOptions -> Docx -> [Block]
 docxToBlocks opts d@(Docx (Document _ body) _ _ _ _) = bodyToBlocks opts d body
 
-spanReduce :: [Inline] -> [Inline]
-spanReduce [] = []
-spanReduce ((Span (id1, classes1, kvs1) ils1) : ils)
-  | (id1, classes1, kvs1) == ("", [], []) = ils1 ++ (spanReduce ils)
-spanReduce (s1@(Span (id1, classes1, kvs1) ils1) :
-            s2@(Span (id2, classes2, kvs2) ils2) :
-            ils) =
-  let classes'  = classes1 `intersect` classes2
-      kvs'      = kvs1 `intersect` kvs2
-      classes1' = classes1 \\ classes'
-      kvs1'     = kvs1 \\ kvs'
-      classes2' = classes2 \\ classes'
-      kvs2'     = kvs2 \\ kvs'
-  in
-   case null classes' && null kvs' of
-     True -> s1 : (spanReduce (s2 : ils))
-     False -> let attr'  = ("", classes', kvs')
-                  attr1' = (id1, classes1', kvs1')
-                  attr2' = (id2, classes2', kvs2')
-              in
-               spanReduce (Span attr' [(Span attr1' ils1), (Span attr2' ils2)] :
-                           ils)
-spanReduce (il:ils) = il : (spanReduce ils)
 
 ilToCode :: Inline -> String
 ilToCode (Str s) = s
 ilToCode _ = ""
 
-spanRemove' :: Inline -> [Inline]
-spanRemove' s@(Span (ident, classes, _) [])
-  -- "_GoBack" is automatically inserted. We don't want to keep it.
-  | classes == ["anchor"] && not (ident `elem` dummyAnchors) = [s]
-spanRemove' (Span (_, _, kvs) ils) =
-  case lookup "underline" kvs of
-    Just val -> [Span ("", [], [("underline", val)]) ils]
-    Nothing  -> ils
-spanRemove' il = [il]
-
-spanRemove :: [Inline] -> [Inline]
-spanRemove = concatMap spanRemove'
-
-spanTrim' :: Inline -> [Inline]
-spanTrim' il@(Span _ []) = [il]
-spanTrim' il@(Span attr (il':[]))
-  | il' == Space = [Span attr [], Space]
-  | otherwise = [il]
-spanTrim' (Span attr ils)
-  | head ils == Space && last ils == Space =
-    [Space, Span attr (init $ tail ils), Space]
-  | head ils == Space = [Space, Span attr (tail ils)]
-  | last ils == Space = [Span attr (init ils), Space]
-spanTrim' il = [il]
-
-spanTrim :: [Inline] -> [Inline]
-spanTrim = concatMap spanTrim'
-
-spanCorrect' :: Inline -> [Inline]
-spanCorrect' (Span ("", [], []) ils) = ils
-spanCorrect' (Span (ident, classes, kvs) ils)
-  | "emph" `elem` classes =
-    [Emph $ spanCorrect' $ Span (ident, (delete "emph" classes), kvs) ils]
-  | "strong" `elem` classes =
-      [Strong $ spanCorrect' $ Span (ident, (delete "strong" classes), kvs) ils]
-  | "smallcaps" `elem` classes =
-      [SmallCaps $ spanCorrect' $ Span (ident, (delete "smallcaps" classes), kvs) ils]
-  | "strike" `elem` classes =
-      [Strikeout $ spanCorrect' $ Span (ident, (delete "strike" classes), kvs) ils]
-  | "superscript" `elem` classes =
-      [Superscript $ spanCorrect' $ Span (ident, (delete "superscript" classes), kvs) ils]
-  | "subscript" `elem` classes =
-      [Subscript $ spanCorrect' $ Span (ident, (delete "subscript" classes), kvs) ils]
-  | (not . null) (codeSpans `intersect` classes) =
-         [Code (ident, (classes \\ codeSpans), kvs) (init $ unlines $ map ilToCode ils)]
-  | otherwise =
-      [Span (ident, classes, kvs) ils]
-spanCorrect' il = [il]
-
-spanCorrect :: [Inline] -> [Inline]
-spanCorrect = concatMap spanCorrect'
-
-removeEmptyPars :: [Block] -> [Block]
-removeEmptyPars blks = filter (\b -> b /= (Para [])) blks
-
-divReduce :: [Block] -> [Block]
-divReduce [] = []
-divReduce ((Div (id1, classes1, kvs1) blks1) : blks)
-  | (id1, classes1, kvs1) == ("", [], []) = blks1 ++ (divReduce blks)
-divReduce (d1@(Div (id1, classes1, kvs1) blks1) :
-           d2@(Div (id2, classes2, kvs2) blks2) :
-            blks) =
-  let classes'  = classes1 `intersect` classes2
-      kvs'      = kvs1 `intersect` kvs2
-      classes1' = classes1 \\ classes'
-      kvs1'     = kvs1 \\ kvs'
-      classes2' = classes2 \\ classes'
-      kvs2'     = kvs2 \\ kvs'
-  in
-   case null classes' && null kvs' of
-     True -> d1 : (divReduce (d2 : blks))
-     False -> let attr'  = ("", classes', kvs')
-                  attr1' = (id1, classes1', kvs1')
-                  attr2' = (id2, classes2', kvs2')
-              in
-               divReduce (Div attr' [(Div attr1' blks1), (Div attr2' blks2)] :
-                           blks)
-divReduce (blk:blks) = blk : (divReduce blks)
 
 isHeaderClass :: String -> Maybe Int
 isHeaderClass s | "Heading" `isPrefixOf` s =
@@ -490,27 +369,12 @@ isHeaderClass s | "Heading" `isPrefixOf` s =
     _       -> Nothing
 isHeaderClass _ = Nothing
 
-findHeaderClass :: [String] -> Maybe Int
-findHeaderClass ss = case mapMaybe id $ map isHeaderClass ss of
-  [] -> Nothing
-  n : _ -> Just n
 
 blksToInlines :: [Block] -> [Inline]
 blksToInlines (Para ils : _) = ils
 blksToInlines (Plain ils : _) = ils
 blksToInlines _ = []
 
-divCorrectPreReduce' :: Block -> [Block]
-divCorrectPreReduce' (Div (ident, classes, kvs) blks)
-  | isJust $ findHeaderClass classes =
-    let n = fromJust $ findHeaderClass classes
-    in
-    [Header n (ident, delete ("Heading" ++ (show n)) classes, kvs) (blksToInlines blks)]
-  | otherwise = [Div (ident, classes, kvs) blks]
-divCorrectPreReduce' blk = [blk]
-
-divCorrectPreReduce :: [Block] -> [Block]
-divCorrectPreReduce = concatMap divCorrectPreReduce'
 
 blkToCode :: Block -> String
 blkToCode (Para []) = ""
@@ -520,29 +384,3 @@ blkToCode (Para ((Span (_, classes, _) ils'): ils))
     (init $ unlines $ map ilToCode ils') ++ (blkToCode (Para ils))
 blkToCode _ = ""
 
-divRemove' :: Block -> [Block]
-divRemove' (Div (_, _, kvs) blks) =
-  case lookup "indent" kvs of
-    Just val -> [Div ("", [], [("indent", val)]) blks]
-    Nothing  -> blks
-divRemove' blk = [blk]
-
-divRemove :: [Block] -> [Block]
-divRemove = concatMap divRemove'
-
-divCorrect' :: Block -> [Block]
-divCorrect' b@(Div (ident, classes, kvs) blks)
-  | (not . null) (blockQuoteDivs `intersect` classes) =
-    [BlockQuote [Div (ident, classes \\ blockQuoteDivs, kvs) blks]]
-  | (not . null) (codeDivs `intersect` classes) =
-    [CodeBlock (ident, (classes \\ codeDivs), kvs) (init $ unlines $ map blkToCode blks)]
-  | otherwise =
-      case lookup "indent" kvs of
-        Just "0" -> [Div (ident, classes, filter (\kv -> fst kv /= "indent") kvs) blks]
-        Just _   ->
-          [BlockQuote [Div (ident, classes, filter (\kv -> fst kv /= "indent") kvs) blks]]
-        Nothing  -> [b]
-divCorrect' blk = [blk]
-
-divCorrect :: [Block] -> [Block]
-divCorrect = concatMap divCorrect'
