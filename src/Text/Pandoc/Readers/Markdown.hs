@@ -939,8 +939,10 @@ rawVerbatimBlock = try $ do
 rawTeXBlock :: MarkdownParser (F Blocks)
 rawTeXBlock = do
   guardEnabled Ext_raw_tex
-  result <- (B.rawBlock "latex" <$> rawLaTeXBlock)
-        <|> (B.rawBlock "context" <$> rawConTeXtEnvironment)
+  result <- (B.rawBlock "latex" . concat <$>
+                  rawLaTeXBlock `sepEndBy1` blankline)
+        <|> (B.rawBlock "context" . concat <$>
+                  rawConTeXtEnvironment `sepEndBy1` blankline)
   spaces
   return $ return result
 
