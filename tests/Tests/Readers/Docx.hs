@@ -82,6 +82,10 @@ tests = [ testGroup "inlines"
             "normalizing inlines deep inside blocks"
             "docx.deep_normalize.docx"
             "docx.deep_normalize.native"
+          , testCompare
+            "move trailing spaces outside of formatting"
+            "docx.trailing_spaces_in_formatting.docx"
+            "docx.trailing_spaces_in_formatting.native"
           ]
         , testGroup "blocks"
           [ testCompare
