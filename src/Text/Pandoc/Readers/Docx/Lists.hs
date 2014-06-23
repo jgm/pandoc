@@ -29,9 +29,12 @@ Functions for converting flat docx paragraphs into nested lists.
 -}
 
 module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
-                                      , blocksToDefinitions) where
+                                      , blocksToDefinitions
+                                      , listParagraphDivs
+                                      ) where
 
 import Text.Pandoc.JSON
+import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.Shared (trim)
 import Control.Monad
 import Data.List
@@ -159,9 +162,8 @@ flatToBullets elems = flatToBullets' (-1) elems
 
 blocksToBullets :: [Block] -> [Block]
 blocksToBullets blks =
-  -- bottomUp removeListItemDivs $ 
+  bottomUp removeListDivs $ 
   flatToBullets $ (handleListParagraphs blks)
-
 
 plainParaInlines :: Block -> [Inline]
 plainParaInlines (Plain ils) = ils
@@ -198,6 +200,23 @@ blocksToDefinitions' [] acc (b:blks) =
   blocksToDefinitions' [] (b:acc) blks
 blocksToDefinitions' defAcc acc (b:blks) =
   blocksToDefinitions' [] (b : (DefinitionList (reverse defAcc)) : acc) blks
+
+removeListDivs' :: Block -> [Block]
+removeListDivs' (Div (ident, classes, kvs) blks)
+  | "list-item" `elem` classes =
+    case delete "list-item" classes of
+      [] -> blks
+      classes' -> [Div (ident, classes', kvs) $ blks]
+removeListDivs' (Div (ident, classes, kvs) blks)
+  | not $ null $ listParagraphDivs `intersect` classes =
+    case classes \\ listParagraphDivs of
+      [] -> blks
+      classes' -> [Div (ident, classes', kvs) blks]
+removeListDivs' blk = [blk]
+
+removeListDivs :: [Block] -> [Block]
+removeListDivs = concatMap removeListDivs'
+  
 
 
 blocksToDefinitions :: [Block] -> [Block]
