@@ -825,7 +825,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
           let size = imageSize img
           let (xpt,ypt) = maybe (120,120) sizeInPoints size
           -- 12700 emu = 1 pt
-          let (xemu,yemu) = (xpt * 12700, ypt * 12700)
+          let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700)
           let cNvPicPr = mknode "pic:cNvPicPr" [] $
                            mknode "a:picLocks" [("noChangeArrowheads","1"),("noChangeAspect","1")] ()
           let nvPicPr  = mknode "pic:nvPicPr" []
@@ -890,3 +890,11 @@ parseXml refArchive distArchive relpath =
          >>= parseXMLDoc . UTF8.toStringLazy . fromEntry) of
             Just d  -> return d
             Nothing -> fail $ relpath ++ " corrupt or missing in reference docx"
+
+-- | Scales the image to fit the page
+fitToPage :: (Integer, Integer) -> (Integer, Integer)
+fitToPage (x, y)
+  --5440680 is the emu width size of a letter page in portrait, minus the margins
+  | x > 5440680 = 
+    (5440680, round $ (5440680 / ((fromIntegral :: Integer -> Double) x)) * (fromIntegral y))
+  | otherwise = (x, y)
