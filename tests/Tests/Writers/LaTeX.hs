@@ -63,5 +63,7 @@ tests = [ testGroup "code blocks"
             strikeout (code "foo" <> space
               <> str "bar") =?>
             "\\sout{\\texttt{foo} bar}"
+          , "single quotes" =:
+              code "dog's" =?> "\\texttt{dog\\textquotesingle{}s}"
           ]
         ]

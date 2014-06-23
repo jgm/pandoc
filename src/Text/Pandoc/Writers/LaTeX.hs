@@ -220,6 +220,7 @@ stringToLaTeX  ctx (x:xs) = do
        '>' -> "\\textgreater{}" ++ rest
        '[' -> "{[}" ++ rest  -- to avoid interpretation as
        ']' -> "{]}" ++ rest  -- optional arguments
+       '\'' | ctx == CodeString -> "\\textquotesingle{}" ++ rest
        '\160' -> "~" ++ rest
        '\x2026' -> "\\ldots{}" ++ rest
        '\x2018' | ligatures -> "`" ++ rest
