@@ -101,6 +101,10 @@ tests = [ testGroup "inlines"
             "docx.lists.docx"
             "docx.lists.native"
           , testCompare
+            "definition lists"
+            "docx.definition_list.docx"
+            "docx.definition_list.native"
+          , testCompare
             "footnotes and endnotes"
             "docx.notes.docx"
             "docx.notes.native"
