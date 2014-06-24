@@ -99,12 +99,12 @@ readDocx opts bytes =
     Nothing   -> error $ "couldn't parse docx file"
 
 spansToKeep :: [String]
-spansToKeep = ["list-item", "Definition", "DefinitionTerm"]
+spansToKeep = []
 
 
 -- This is empty, but we put it in for future-proofing.
 divsToKeep :: [String]
-divsToKeep = []
+divsToKeep = ["list-item", "Definition", "DefinitionTerm"]
 
 runStyleToContainers :: RunStyle -> [Container Inline]
 runStyleToContainers rPr =
@@ -139,18 +139,18 @@ divAttrToContainers (c:cs) _ | isJust (isHeaderClass c) =
   in
    [(Container $ \blks ->
       Header n ("", delete ("Heading" ++ show n) cs, []) (blksToInlines blks))]
-divAttrToContainers (c:_) _ | c `elem` codeDivs =
+divAttrToContainers (c:cs) kvs | c `elem` divsToKeep =
+  (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs)
+divAttrToContainers (c:cs) kvs | c `elem` codeDivs =
   -- This is a bit of a cludge. We make the codeblock from the raw
   -- parparts in bodyPartToBlocks. But we need something to match against.
-  [Container $ \_ -> CodeBlock ("", [], []) ""]
+  (Container $ \_ -> CodeBlock ("", [], []) "") : (divAttrToContainers cs kvs)
 divAttrToContainers (c:cs) kvs | c `elem` listParagraphDivs =
   let kvs' = filter (\(k,_) -> k /= "indent") kvs
   in
    (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs')
 divAttrToContainers (c:cs) kvs | c `elem` blockQuoteDivs =
   (Container BlockQuote) : (divAttrToContainers (cs \\ blockQuoteDivs) kvs)
-divAttrToContainers (c:cs) kvs | c `elem` divsToKeep =
-  (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs)
 divAttrToContainers (_:cs) kvs = divAttrToContainers cs kvs
 divAttrToContainers [] (kv:kvs) | fst kv == "indent" =
   (Container BlockQuote) : divAttrToContainers [] kvs
@@ -298,7 +298,12 @@ blockCodeContainer _ = False
 bodyPartToBlocks :: ReaderOptions -> Docx -> BodyPart -> [Block]
 bodyPartToBlocks _ _ (Paragraph pPr parparts)
   | any blockCodeContainer (parStyleToContainers pPr) =
-    [CodeBlock ("", [], []) (concatMap parPartToString parparts)]
+    let
+      otherConts = filter (not . blockCodeContainer) (parStyleToContainers pPr)
+    in
+     rebuild
+     otherConts
+     [CodeBlock ("", [], []) (concatMap parPartToString parparts)]
 bodyPartToBlocks opts docx (Paragraph pPr parparts) =
   case parPartsToInlines opts docx parparts of
     [] ->
@@ -372,7 +377,7 @@ makeImagesSelfContained _ inline = inline
 bodyToBlocks :: ReaderOptions -> Docx -> Body -> [Block]
 bodyToBlocks opts docx (Body bps) =
   map (makeHeaderAnchors) $
-  bottomUp blocksToDefinitions $
+  blocksToDefinitions $
   blocksToBullets $
   concatMap (bodyPartToBlocks opts docx) bps
 
