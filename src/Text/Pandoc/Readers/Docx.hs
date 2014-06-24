@@ -132,7 +132,6 @@ runStyleToContainers rPr =
 
 
 divAttrToContainers :: [String] -> [(String, String)] -> [Container Block]
-divAttrToContainers [] [] = []
 divAttrToContainers (c:cs) _ | isJust (isHeaderClass c) =
   let n = fromJust (isHeaderClass c)
   in
@@ -151,10 +150,14 @@ divAttrToContainers (c:cs) kvs | c `elem` listParagraphDivs =
 divAttrToContainers (c:cs) kvs | c `elem` blockQuoteDivs =
   (Container BlockQuote) : (divAttrToContainers (cs \\ blockQuoteDivs) kvs)
 divAttrToContainers (_:cs) kvs = divAttrToContainers cs kvs
-divAttrToContainers [] (kv:kvs) | fst kv == "indent" =
-  (Container BlockQuote) : divAttrToContainers [] kvs
-divAttrToContainers [] (_:kvs) =
-  divAttrToContainers [] kvs
+divAttrToContainers [] kvs | isJust (lookup "indent" kvs) =
+  let kvs' = filter (\(k,_) -> k /= "indent") kvs
+  in
+   case fromJust (lookup "indent" kvs) of
+     "0"       -> divAttrToContainers [] kvs'
+     ('-' : _) -> divAttrToContainers [] kvs'
+     _         -> (Container BlockQuote) : divAttrToContainers [] kvs'
+divAttrToContainers _ _ = []
 
 
 parStyleToContainers :: ParagraphStyle -> [Container Block]
