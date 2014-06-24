@@ -76,7 +76,6 @@ import Codec.Archive.Zip
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Builder (text, toList)
-import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.UTF8 (toString)
 import Text.Pandoc.Walk
