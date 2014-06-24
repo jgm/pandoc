@@ -86,6 +86,10 @@ tests = [ testGroup "inlines"
             "move trailing spaces outside of formatting"
             "docx.trailing_spaces_in_formatting.docx"
             "docx.trailing_spaces_in_formatting.native"
+          , testCompare
+            "inline code (with VerbatimChar style)"
+            "docx.inline_code.docx"
+            "docx.inline_code.native"
           ]
         , testGroup "blocks"
           [ testCompare
@@ -108,6 +112,11 @@ tests = [ testGroup "inlines"
             "tables"
             "docx.tables.docx"
             "docx.tables.native"
+          , testCompare
+            "code block"
+            "docx.codeblock.docx"
+            "docx.codeblock.native"
+
           ]
         ]
 
