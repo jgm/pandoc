@@ -1,0 +1,7 @@
+[DefinitionList
+ [([Str "Term",Space,Str "1"],
+   [[Para [Str "Definition",Space,Str "1"]]])
+ ,([Str "Term",Space,Str "2",Space,Str "with",Space,Emph [Str "inline",Space,Str "markup"]],
+   [[Para [Str "Definition",Space,Str "2"]
+    ,CodeBlock ("",[],[]) "{ some code, part of Definition 2 }"
+    ,Para [Str "Third",Space,Str "paragraph",Space,Str "of",Space,Str "definition",Space,Str "2."]]])]]

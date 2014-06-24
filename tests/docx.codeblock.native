@@ -1,0 +1,3 @@
+[Para [Str "This",Space,Str "is",Space,Str "some",Space,Str "code:"]
+,CodeBlock ("",[],[]) "readDocx :: ReaderOptions\n         -> B.ByteString\n         -> Pandoc"
+,Para [Str "from",Space,Str "the",Space,Str "beginning",Space,Str "of",Space,Str "the",Space,Str "docx",Space,Str "reader."]]

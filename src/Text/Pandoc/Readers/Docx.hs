@@ -76,7 +76,6 @@ import Codec.Archive.Zip
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Builder (text, toList)
-import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.UTF8 (toString)
 import Text.Pandoc.Walk
@@ -84,7 +83,7 @@ import Text.Pandoc.Readers.Docx.Parse
 import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Reducible
 import Data.Maybe (mapMaybe, isJust, fromJust)
-import Data.List (delete, isPrefixOf, (\\), intersect)
+import Data.List (delete, isPrefixOf, (\\))
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Base64 (encode)
@@ -99,29 +98,37 @@ readDocx opts bytes =
     Nothing   -> error $ "couldn't parse docx file"
 
 spansToKeep :: [String]
-spansToKeep = ["list-item", "Definition", "DefinitionTerm"] ++ codeSpans
+spansToKeep = []
 
 
 -- This is empty, but we put it in for future-proofing.
 divsToKeep :: [String]
-divsToKeep = []
+divsToKeep = ["list-item", "Definition", "DefinitionTerm"]
 
 runStyleToContainers :: RunStyle -> [Container Inline]
 runStyleToContainers rPr =
-  let formatters = mapMaybe id
-                 [ if isBold rPr then (Just Strong) else Nothing
-                 , if isItalic rPr then (Just Emph) else Nothing
-                 , if isSmallCaps rPr then (Just SmallCaps) else Nothing
-                 , if isStrike rPr then (Just Strikeout) else Nothing
-                 , if isSuperScript rPr then (Just Superscript) else Nothing
-                 , if isSubScript rPr then (Just Subscript) else Nothing
-                 , rStyle rPr >>=
-                   (\s -> if s `elem` spansToKeep then Just s else Nothing) >>=
-                   (\s -> Just $ Span ("", [s], []))
-                 , underline rPr >>= (\f -> Just $ Span ("", [], [("underline", f)]))
+  let spanClassToContainers :: String -> [Container Inline]
+      spanClassToContainers s | s `elem` codeSpans =
+        [Container $ (\ils -> Code ("", [], []) (concatMap ilToCode ils))]
+      spanClassToContainers s | s `elem` spansToKeep =
+        [Container $ Span ("", [s], [])]
+      spanClassToContainers _ = []
+
+      classContainers = case rStyle rPr of
+        Nothing -> []
+        Just s  -> spanClassToContainers s
+      
+      formatters = map Container $ mapMaybe id
+                   [ if isBold rPr then (Just Strong) else Nothing
+                   , if isItalic rPr then (Just Emph) else Nothing
+                   , if isSmallCaps rPr then (Just SmallCaps) else Nothing
+                   , if isStrike rPr then (Just Strikeout) else Nothing
+                   , if isSuperScript rPr then (Just Superscript) else Nothing
+                   , if isSubScript rPr then (Just Subscript) else Nothing
+                   , underline rPr >>= (\f -> Just $ Span ("", [], [("underline", f)]))
                  ]
   in
-   map Container formatters
+   classContainers ++ formatters
 
 
 divAttrToContainers :: [String] -> [(String, String)] -> [Container Block]
@@ -131,16 +138,18 @@ divAttrToContainers (c:cs) _ | isJust (isHeaderClass c) =
   in
    [(Container $ \blks ->
       Header n ("", delete ("Heading" ++ show n) cs, []) (blksToInlines blks))]
-divAttrToContainers (c:_) _ | c `elem` codeDivs =
-  [Container $ \blks -> CodeBlock ("", [], []) (concatMap blkToCode blks)]
+divAttrToContainers (c:cs) kvs | c `elem` divsToKeep =
+  (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs)
+divAttrToContainers (c:cs) kvs | c `elem` codeDivs =
+  -- This is a bit of a cludge. We make the codeblock from the raw
+  -- parparts in bodyPartToBlocks. But we need something to match against.
+  (Container $ \_ -> CodeBlock ("", [], []) "") : (divAttrToContainers cs kvs)
 divAttrToContainers (c:cs) kvs | c `elem` listParagraphDivs =
   let kvs' = filter (\(k,_) -> k /= "indent") kvs
   in
    (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs')
 divAttrToContainers (c:cs) kvs | c `elem` blockQuoteDivs =
   (Container BlockQuote) : (divAttrToContainers (cs \\ blockQuoteDivs) kvs)
-divAttrToContainers (c:cs) kvs | c `elem` divsToKeep =
-  (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs)
 divAttrToContainers (_:cs) kvs = divAttrToContainers cs kvs
 divAttrToContainers [] (kv:kvs) | fst kv == "indent" =
   (Container BlockQuote) : divAttrToContainers [] kvs
@@ -183,18 +192,23 @@ runElemToString (Tab) = ['\t']
 runElemsToString :: [RunElem] -> String
 runElemsToString = concatMap runElemToString
 
+runToString :: Run -> String
+runToString (Run _ runElems) = runElemsToString runElems
+runToString _ = ""
+
+parPartToString :: ParPart -> String
+parPartToString (PlainRun run) = runToString run
+parPartToString (InternalHyperLink _ runs) = concatMap runToString runs
+parPartToString (ExternalHyperLink _ runs) = concatMap runToString runs
+parPartToString _ = ""
+
 
 inlineCodeContainer :: Container Inline -> Bool
 inlineCodeContainer (Container f) = case f [] of
-  Span (_, classes, _) _ -> (not . null) (classes `intersect` codeSpans)
+  Code _ "" -> True
   _         -> False
 inlineCodeContainer _ = False
 
--- blockCodeContainer :: Container Block -> Bool
--- blockCodeContainer (Container f) = case f [] of
---   Div (ident, classes, kvs) _ -> (not . null) (classes `intersect` codeDivs)
---   _         -> False
--- blockCodeContainer _ = False
 
 runToInlines :: ReaderOptions -> Docx -> Run -> [Inline]
 runToInlines _ _ (Run rs runElems)
@@ -274,7 +288,21 @@ cellToBlocks opts docx (Cell bps) = concatMap (bodyPartToBlocks opts docx) bps
 rowToBlocksList :: ReaderOptions -> Docx -> Row -> [[Block]]
 rowToBlocksList opts docx (Row cells) = map (cellToBlocks opts docx) cells
 
+blockCodeContainer :: Container Block -> Bool
+blockCodeContainer (Container f) = case f [] of
+  CodeBlock _ _ -> True
+  _             -> False
+blockCodeContainer _ = False
+
 bodyPartToBlocks :: ReaderOptions -> Docx -> BodyPart -> [Block]
+bodyPartToBlocks _ _ (Paragraph pPr parparts)
+  | any blockCodeContainer (parStyleToContainers pPr) =
+    let
+      otherConts = filter (not . blockCodeContainer) (parStyleToContainers pPr)
+    in
+     rebuild
+     otherConts
+     [CodeBlock ("", [], []) (concatMap parPartToString parparts)]
 bodyPartToBlocks opts docx (Paragraph pPr parparts) =
   case parPartsToInlines opts docx parparts of
     [] ->
@@ -348,7 +376,7 @@ makeImagesSelfContained _ inline = inline
 bodyToBlocks :: ReaderOptions -> Docx -> Body -> [Block]
 bodyToBlocks opts docx (Body bps) =
   map (makeHeaderAnchors) $
-  bottomUp blocksToDefinitions $
+  blocksToDefinitions $
   blocksToBullets $
   concatMap (bodyPartToBlocks opts docx) bps
 
@@ -358,7 +386,8 @@ docxToBlocks opts d@(Docx (Document _ body) _ _ _ _) = bodyToBlocks opts d body
 
 ilToCode :: Inline -> String
 ilToCode (Str s) = s
-ilToCode _ = ""
+ilToCode Space = " "
+ilToCode _     = ""
 
 
 isHeaderClass :: String -> Maybe Int
@@ -369,18 +398,7 @@ isHeaderClass s | "Heading" `isPrefixOf` s =
     _       -> Nothing
 isHeaderClass _ = Nothing
 
-
 blksToInlines :: [Block] -> [Inline]
 blksToInlines (Para ils : _) = ils
 blksToInlines (Plain ils : _) = ils
 blksToInlines _ = []
-
-
-blkToCode :: Block -> String
-blkToCode (Para []) = ""
-blkToCode (Para ((Code _ s):ils)) = s ++ (blkToCode (Para ils))
-blkToCode (Para ((Span (_, classes, _) ils'): ils))
-  | (not . null) (codeSpans `intersect` classes) =
-    (init $ unlines $ map ilToCode ils') ++ (blkToCode (Para ils))
-blkToCode _ = ""
-
