@@ -122,5 +122,15 @@ tests = [ testGroup "inlines"
             "docx.codeblock.native"
 
           ]
+        , testGroup "track changes"
+          [ testCompare
+            "insert insertion (insertions only)"
+            "docx.track_changes_insertion.docx"
+            "docx.track_changes_insertion_only_ins.native"
+          , testCompare
+            "skip deletion (insertions only)"
+            "docx.track_changes_deletion.docx"
+            "docx.track_changes_deletion_only_ins.native"
+          ]
         ]
 
