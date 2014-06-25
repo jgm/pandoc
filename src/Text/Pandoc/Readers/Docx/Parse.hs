@@ -281,10 +281,6 @@ elemToBody ns element | qName (elName element) == "body" && qURI (elName element
   $ map (elemToBodyPart ns) $ filterChildrenName (isParOrTbl ns) element
 elemToBody _ _ = Nothing
 
-isRunOrLinkOrBookmark :: NameSpaces -> QName ->  Bool
-isRunOrLinkOrBookmark ns q = qName q `elem` ["r", "hyperlink", "bookmarkStart"] &&
-                   qURI q == (lookup "w" ns)
-
 elemToNumInfo :: NameSpaces -> Element -> Maybe (String, String)
 elemToNumInfo ns element
   | qName (elName element) == "p" &&
@@ -319,9 +315,8 @@ elemToBodyPart ns element
   | qName (elName element) == "p" &&
     qURI (elName element) == (lookup "w" ns) =
       let parstyle = elemToParagraphStyle ns element
-          parparts = mapMaybe id
-                     $ map (elemToParPart ns)
-                     $ filterChildrenName (isRunOrLinkOrBookmark ns) element
+          parparts = mapMaybe (elemToParPart ns)
+                     $ elChildren element
       in
        case elemToNumInfo ns element of
          Just (numId, lvl) -> Just $ ListItem parstyle numId lvl parparts
