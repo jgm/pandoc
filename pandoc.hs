@@ -174,6 +174,7 @@ data Opt = Opt
     , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
     , optDefaultImageExtension :: String -- ^ Default image extension
     , optTrace             :: Bool       -- ^ Print debug information
+    , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes. 
     }
 
 -- | Defaults for command-line options.
@@ -230,6 +231,7 @@ defaultOpts = Opt
     , optTeXLigatures          = True
     , optDefaultImageExtension = ""
     , optTrace                 = False
+    , optTrackChanges          = AcceptChanges
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -776,6 +778,19 @@ options =
                   (\opt -> return opt { optTrace = True }))
                  "" -- "Turn on diagnostic tracing in readers."
 
+    , Option "" ["track-changes"]
+                 (ReqArg
+                  (\arg opt -> do
+                     action <- case arg of
+                            "accept" -> return AcceptChanges
+                            "reject" -> return RejectChanges
+                            "all"    -> return AllChanges
+                            _        -> err 6
+                               ("Unknown option for track-changes: " ++ arg)
+                     return opt { optTrackChanges = action })
+                  "accept|reject|all")
+                 "" -- "Accepting or reject MS Word track-changes.""
+
     , Option "" ["dump-args"]
                  (NoArg
                   (\opt -> return opt { optDumpArgs = True }))
@@ -973,6 +988,7 @@ main = do
               , optTeXLigatures          = texLigatures
               , optDefaultImageExtension = defaultImageExtension
               , optTrace                 = trace
+              , optTrackChanges          = trackChanges
              } = opts
 
   when dumpArgs $
@@ -1097,6 +1113,7 @@ main = do
                       , readerApplyMacros = not laTeXOutput
                       , readerDefaultImageExtension = defaultImageExtension
                       , readerTrace = trace
+                      , readerTrackChanges = trackChanges
                       }
 
   let writerOptions = def { writerStandalone       = standalone',
