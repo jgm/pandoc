@@ -455,6 +455,8 @@ elemToCell ns element
 elemToCell _ _ = Nothing
 
 data ParPart = PlainRun Run
+             | Insertion ChangeId Author ChangeDate [Run]
+             | Deletion ChangeId Author ChangeDate [Run]
              | BookMark BookMarkId Anchor
              | InternalHyperLink Anchor [Run]
              | ExternalHyperLink RelId [Run]
@@ -604,4 +606,6 @@ type Target = String
 type Anchor = String
 type BookMarkId = String
 type RelId = String
-               
+type ChangeId = String
+type Author = String
+type ChangeDate = String               
