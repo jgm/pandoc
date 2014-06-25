@@ -41,6 +41,7 @@ module Text.Pandoc.Options ( Extension(..)
                            , HTMLSlideVariant (..)
                            , EPUBVersion (..)
                            , WriterOptions (..)
+                           , TrackChanges (..)
                            , def
                            , isEnabled
                            ) where
