@@ -281,10 +281,6 @@ elemToBody ns element | qName (elName element) == "body" && qURI (elName element
   $ map (elemToBodyPart ns) $ filterChildrenName (isParOrTbl ns) element
 elemToBody _ _ = Nothing
 
-isRunOrLinkOrBookmark :: NameSpaces -> QName ->  Bool
-isRunOrLinkOrBookmark ns q = qName q `elem` ["r", "hyperlink", "bookmarkStart"] &&
-                   qURI q == (lookup "w" ns)
-
 elemToNumInfo :: NameSpaces -> Element -> Maybe (String, String)
 elemToNumInfo ns element
   | qName (elName element) == "p" &&
@@ -319,9 +315,8 @@ elemToBodyPart ns element
   | qName (elName element) == "p" &&
     qURI (elName element) == (lookup "w" ns) =
       let parstyle = elemToParagraphStyle ns element
-          parparts = mapMaybe id
-                     $ map (elemToParPart ns)
-                     $ filterChildrenName (isRunOrLinkOrBookmark ns) element
+          parparts = mapMaybe (elemToParPart ns)
+                     $ elChildren element
       in
        case elemToNumInfo ns element of
          Just (numId, lvl) -> Just $ ListItem parstyle numId lvl parparts
@@ -455,6 +450,8 @@ elemToCell ns element
 elemToCell _ _ = Nothing
 
 data ParPart = PlainRun Run
+             | Insertion ChangeId Author ChangeDate [Run]
+             | Deletion ChangeId Author ChangeDate [Run]
              | BookMark BookMarkId Anchor
              | InternalHyperLink Anchor [Run]
              | ExternalHyperLink RelId [Run]
@@ -539,7 +536,7 @@ elemToRun _ _ = Nothing
 
 elemToRunElem :: NameSpaces -> Element -> Maybe RunElem
 elemToRunElem ns element
-  | qName (elName element) == "t" &&
+  | (qName (elName element) == "t" || qName (elName element) == "delText") &&
     qURI (elName element) == (lookup "w" ns) =
       Just $ TextRun (strContent element)
   | qName (elName element) == "br" &&
@@ -580,6 +577,22 @@ elemToParPart ns element
           r <- elemToRun ns element
           return $ PlainRun r
 elemToParPart ns element
+  | qName (elName element) == "ins" &&
+    qURI (elName element) == (lookup "w" ns) = do
+      cId <- findAttr (QName "id" (lookup "w" ns) (Just "w")) element
+      cAuthor <- findAttr (QName "author" (lookup "w" ns) (Just "w")) element
+      cDate <- findAttr (QName "date" (lookup "w" ns) (Just "w")) element
+      let runs = mapMaybe (elemToRun ns) (elChildren element)
+      return $ Insertion cId cAuthor cDate runs
+elemToParPart ns element
+  | qName (elName element) == "del" &&
+    qURI (elName element) == (lookup "w" ns) = do
+      cId <- findAttr (QName "id" (lookup "w" ns) (Just "w")) element
+      cAuthor <- findAttr (QName "author" (lookup "w" ns) (Just "w")) element
+      cDate <- findAttr (QName "date" (lookup "w" ns) (Just "w")) element
+      let runs = mapMaybe (elemToRun ns) (elChildren element)
+      return $ Deletion cId cAuthor cDate runs
+elemToParPart ns element
   | qName (elName element) == "bookmarkStart" &&
     qURI (elName element) == (lookup "w" ns) = do
       bmId <- findAttr (QName "id" (lookup "w" ns) (Just "w")) element
@@ -604,4 +617,6 @@ type Target = String
 type Anchor = String
 type BookMarkId = String
 type RelId = String
-               
+type ChangeId = String
+type Author = String
+type ChangeDate = String               

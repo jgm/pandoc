@@ -234,6 +234,9 @@ runToInlines opts docx@(Docx _ notes _ _ _) (Endnote fnId) =
 
 parPartToInlines :: ReaderOptions -> Docx -> ParPart -> [Inline]
 parPartToInlines opts docx (PlainRun r) = runToInlines opts docx r
+parPartToInlines opts docx (Insertion _ _ _ runs) =
+  concatMap (runToInlines opts docx) runs
+parPartToInlines _ _ (Deletion _ _ _ _) = []
 parPartToInlines _ _ (BookMark _ anchor) | anchor `elem` dummyAnchors = []
 parPartToInlines _ _ (BookMark _ anchor) = [Span (anchor, ["anchor"], []) []]
 parPartToInlines _ (Docx _ _ _ rels _) (Drawing relid) =
