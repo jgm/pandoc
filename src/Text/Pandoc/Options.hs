@@ -264,6 +264,12 @@ data HTMLSlideVariant = S5Slides
                       | NoSlides
                       deriving (Show, Read, Eq)
 
+-- | Options for accepting or rejecting MS Word track-changes.
+data TrackChanges = AcceptChanges
+                  | RejectChanges
+                  | AllChanges
+                  deriving (Show, Read, Eq)
+
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerStandalone       :: Bool   -- ^ Include header and footer
