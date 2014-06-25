@@ -148,7 +148,7 @@ absNumElemToAbsNum ns element |
     let levelElems = findChildren
                  (QName "lvl" (lookup "w" ns) (Just "w"))
                  element
-        levels = mapMaybe id $ map (levelElemToLevel ns) levelElems
+        levels = mapMaybe (levelElemToLevel ns) levelElems
     return $ AbstractNumb absNumId levels
 absNumElemToAbsNum _ _ = Nothing
 
@@ -180,8 +180,8 @@ archiveToNumbering zf =
           absNumElems = findChildren
                         (QName "abstractNum" (lookup "w" namespaces) (Just "w"))
                         numberingElem
-          nums = mapMaybe id $ map (numElemToNum namespaces) numElems
-          absNums = mapMaybe id $ map (absNumElemToAbsNum namespaces) absNumElems
+          nums = mapMaybe (numElemToNum namespaces) numElems
+          absNums = mapMaybe (absNumElemToAbsNum namespaces) absNumElems
       return $ Numbering namespaces nums absNums
 
 data Notes = Notes NameSpaces (Maybe [(String, [BodyPart])]) (Maybe [(String, [BodyPart])])
@@ -193,10 +193,8 @@ noteElemToNote ns element
     qURI (elName element) == (lookup "w" ns) =
       do
         noteId <- findAttr (QName "id" (lookup "w" ns) (Just "w")) element
-        let bps = map fromJust
-                  $ filter isJust
-                  $ map (elemToBodyPart ns)
-                  $ filterChildrenName (isParOrTbl ns) element
+        let bps = mapMaybe  (elemToBodyPart ns)
+                  $ elChildren element
         return $ (noteId, bps)
 noteElemToNote _ _ = Nothing
 
@@ -210,9 +208,7 @@ elemToNotes :: NameSpaces -> String -> Element -> Maybe [(String, [BodyPart])]
 elemToNotes ns notetype element
   | qName (elName element) == (notetype ++ "s") &&
     qURI (elName element) == (lookup "w" ns) =
-      Just $ map fromJust
-      $ filter isJust
-      $ map (noteElemToNote ns)
+      Just $ mapMaybe (noteElemToNote ns)
       $ findChildren (QName notetype (lookup "w" ns) (Just "w")) element
 elemToNotes _ _ _ = Nothing
 
@@ -260,25 +256,19 @@ relElemToRelationship _ = Nothing
 archiveToRelationships :: Archive -> [Relationship]
 archiveToRelationships archive = 
   let relPaths = filter filePathIsRel (filesInArchive archive)
-      entries  = map fromJust $ filter isJust $ map (\f -> findEntryByPath f archive) relPaths
-      relElems = map fromJust $ filter isJust $ map (parseXMLDoc . UTF8.toStringLazy . fromEntry) entries
-      rels = map fromJust $ filter isJust $ map relElemToRelationship $ concatMap elChildren relElems
+      entries  = mapMaybe (\f -> findEntryByPath f archive) relPaths
+      relElems = mapMaybe (parseXMLDoc . UTF8.toStringLazy . fromEntry) entries
+      rels =     mapMaybe relElemToRelationship $ concatMap elChildren relElems
   in
    rels
    
 data Body = Body [BodyPart]
           deriving Show
 
-isParOrTbl :: NameSpaces -> QName -> Bool
-isParOrTbl ns q = qName q `elem` ["p", "tbl"] &&
-                  qURI q == (lookup "w" ns)
-
 elemToBody :: NameSpaces -> Element ->  Maybe Body
 elemToBody ns element | qName (elName element) == "body" && qURI (elName element) == (lookup "w" ns) =
   Just $ Body
-  $ map fromJust
-  $ filter isJust
-  $ map (elemToBodyPart ns) $ filterChildrenName (isParOrTbl ns) element
+  $ mapMaybe (elemToBodyPart ns) $ elChildren element
 elemToBody _ _ = Nothing
 
 elemToNumInfo :: NameSpaces -> Element -> Maybe (String, String)
@@ -294,21 +284,6 @@ elemToNumInfo ns element
                  findAttr (QName "val" (lookup "w" ns) (Just "w"))
         return (numId, lvl)
 elemToNumInfo _ _ = Nothing
-
--- isBookMarkTag :: NameSpaces -> QName -> Bool
--- isBookMarkTag ns q = qName q `elem` ["bookmarkStart", "bookmarkEnd"] &&
---                      qURI q == (lookup "w" ns)
-
--- parChildrenToBookmark :: NameSpaces -> [Element] -> BookMark
--- parChildrenToBookmark ns (bms : bme : _)
---   | qName (elName bms) == "bookmarkStart" &&
---     qURI (elName bms) == (lookup "w" ns) &&
---     qName (elName bme) == "bookmarkEnd" &&
---     qURI (elName bme) == (lookup "w" ns) = do
---       bmId <- findAttr (QName "id" (lookup "w" ns) (Just "w")) bms
---       bmName <- findAttr (QName "name" (lookup "w" ns) (Just "w")) bms
---       return $ (bmId, bmName)
--- parChildrenToBookmark _ _ = Nothing
 
 elemToBodyPart :: NameSpaces -> Element ->  Maybe BodyPart
 elemToBodyPart ns element
@@ -382,8 +357,7 @@ elemToParagraphStyle ns element =
     Just pPr ->
       ParagraphStyle
       {pStyle =
-          mapMaybe id $
-          map
+          mapMaybe
           (findAttr (QName "val" (lookup "w" ns) (Just "w")))
           (findChildren (QName "pStyle" (lookup "w" ns) (Just "w")) pPr)
       , indent =
@@ -601,7 +575,7 @@ elemToParPart ns element
 elemToParPart ns element
   | qName (elName element) == "hyperlink" &&
     qURI (elName element) == (lookup "w" ns) =
-      let runs = map fromJust $ filter isJust $ map (elemToRun ns)
+      let runs = mapMaybe (elemToRun ns)
                  $ findChildren (QName "r" (lookup "w" ns) (Just "w")) element
       in
        case findAttr (QName "anchor" (lookup "w" ns) (Just "w")) element of
