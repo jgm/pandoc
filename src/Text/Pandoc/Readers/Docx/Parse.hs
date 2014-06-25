@@ -541,7 +541,7 @@ elemToRun _ _ = Nothing
 
 elemToRunElem :: NameSpaces -> Element -> Maybe RunElem
 elemToRunElem ns element
-  | qName (elName element) == "t" &&
+  | (qName (elName element) == "t" || qName (elName element) == "delText") &&
     qURI (elName element) == (lookup "w" ns) =
       Just $ TextRun (strContent element)
   | qName (elName element) == "br" &&
@@ -581,6 +581,22 @@ elemToParPart ns element
         Nothing -> do
           r <- elemToRun ns element
           return $ PlainRun r
+elemToParPart ns element
+  | qName (elName element) == "ins" &&
+    qURI (elName element) == (lookup "w" ns) = do
+      cId <- findAttr (QName "id" (lookup "w" ns) (Just "w")) element
+      cAuthor <- findAttr (QName "author" (lookup "w" ns) (Just "w")) element
+      cDate <- findAttr (QName "date" (lookup "w" ns) (Just "w")) element
+      let runs = mapMaybe (elemToRun ns) (elChildren element)
+      return $ Insertion cId cAuthor cDate runs
+elemToParPart ns element
+  | qName (elName element) == "del" &&
+    qURI (elName element) == (lookup "w" ns) = do
+      cId <- findAttr (QName "id" (lookup "w" ns) (Just "w")) element
+      cAuthor <- findAttr (QName "author" (lookup "w" ns) (Just "w")) element
+      cDate <- findAttr (QName "date" (lookup "w" ns) (Just "w")) element
+      let runs = mapMaybe (elemToRun ns) (elChildren element)
+      return $ Deletion cId cAuthor cDate runs
 elemToParPart ns element
   | qName (elName element) == "bookmarkStart" &&
     qURI (elName element) == (lookup "w" ns) = do
