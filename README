@@ -308,6 +308,17 @@ Reader options
 `--tab-stop=`*NUMBER*
 :   Specify the number of spaces per tab (default is 4).
 
+`--track-changes=`*accept|reject|all*
+:   Specifies what to do with insertions and deltions produced by the MS
+    Word "track-changes" feature.  *accept* (the default), inserts all
+    insertions, and ignores all deletions. *reject* inserts all
+    deletions and ignores insertions. *all* puts in both insertions
+    and deletions, wrapped in spans with `insertion` and `deletion`
+    classes, respectively. The author and time of change is
+    specified. *all* is useful for scripting: only accepting changes
+    from a certain reviewer, say, or before a certain date. This
+    option only affects the Docx reader.
+
 General writer options
 ----------------------
 
