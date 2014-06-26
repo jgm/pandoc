@@ -1,0 +1,1 @@
+[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "text",Space,Str "with",Space,Span ("",["insertion"],[("author","eng-dept"),("date","2014-06-25T10:40:00Z")]) [Str "two",Space,Str "exciting"],Space,Str "insertions."]]

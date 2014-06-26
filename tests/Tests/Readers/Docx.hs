@@ -124,13 +124,37 @@ tests = [ testGroup "inlines"
           ]
         , testGroup "track changes"
           [ testCompare
-            "insert insertion (insertions only)"
+            "insertion (default)"
             "docx.track_changes_insertion.docx"
-            "docx.track_changes_insertion_only_ins.native"
+            "docx.track_changes_insertion_accept.native"
+          , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
+            "insert insertion (accept)"
+            "docx.track_changes_insertion.docx"
+            "docx.track_changes_insertion_accept.native"
+          , testCompareWithOpts def{readerTrackChanges=RejectChanges}
+            "remove insertion (reject)"
+            "docx.track_changes_insertion.docx"
+            "docx.track_changes_insertion_reject.native"
           , testCompare
-            "skip deletion (insertions only)"
+            "deletion (default)"
             "docx.track_changes_deletion.docx"
-            "docx.track_changes_deletion_only_ins.native"
+            "docx.track_changes_deletion_accept.native"
+          , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
+            "remove deletion (accept)"
+            "docx.track_changes_deletion.docx"
+            "docx.track_changes_deletion_accept.native"
+          , testCompareWithOpts def{readerTrackChanges=RejectChanges}
+            "insert deletion (reject)"
+            "docx.track_changes_deletion.docx"
+            "docx.track_changes_deletion_reject.native"
+          , testCompareWithOpts def{readerTrackChanges=AllChanges}
+            "keep insertion (all)"
+            "docx.track_changes_deletion.docx"
+            "docx.track_changes_deletion_all.native"
+          , testCompareWithOpts def{readerTrackChanges=AllChanges}
+            "keep deletion (all)"
+            "docx.track_changes_deletion.docx"
+            "docx.track_changes_deletion_all.native"
           ]
         ]
 

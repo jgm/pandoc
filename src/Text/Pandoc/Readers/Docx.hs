@@ -234,9 +234,22 @@ runToInlines opts docx@(Docx _ notes _ _ _) (Endnote fnId) =
 
 parPartToInlines :: ReaderOptions -> Docx -> ParPart -> [Inline]
 parPartToInlines opts docx (PlainRun r) = runToInlines opts docx r
-parPartToInlines opts docx (Insertion _ _ _ runs) =
-  concatMap (runToInlines opts docx) runs
-parPartToInlines _ _ (Deletion _ _ _ _) = []
+parPartToInlines opts docx (Insertion _ author date runs) =
+  case readerTrackChanges opts of
+    AcceptChanges -> concatMap (runToInlines opts docx) runs
+    RejectChanges -> []
+    AllChanges    ->
+      [Span
+       ("", ["insertion"], [("author", author), ("date", date)])
+       (concatMap (runToInlines opts docx) runs)]
+parPartToInlines opts docx (Deletion _ author date runs) =
+  case readerTrackChanges opts of
+    AcceptChanges -> []
+    RejectChanges -> concatMap (runToInlines opts docx) runs
+    AllChanges    ->
+      [Span
+       ("", ["deletion"], [("author", author), ("date", date)])
+       (concatMap (runToInlines opts docx) runs)]
 parPartToInlines _ _ (BookMark _ anchor) | anchor `elem` dummyAnchors = []
 parPartToInlines _ _ (BookMark _ anchor) = [Span (anchor, ["anchor"], []) []]
 parPartToInlines _ (Docx _ _ _ rels _) (Drawing relid) =
