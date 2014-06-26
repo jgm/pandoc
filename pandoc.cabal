@@ -259,7 +259,7 @@ Library
                  hslua >= 0.3 && < 0.4,
                  binary >= 0.5 && < 0.8,
                  SHA >= 1.6 && < 1.7,
-                 haddock-library >= 1.0 && < 1.1
+                 haddock-library >= 1.1 && < 1.2
   if flag(https)
      Build-Depends: http-client >= 0.3.2 && < 0.4,
                     http-client-tls >= 0.2 && < 0.3,
