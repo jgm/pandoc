@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternGuards #-}
+
 {-
 Copyright (C) 2014 Jesse Rosenthal <jrosenthal@jhu.edu>
 
@@ -82,7 +84,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Readers.Docx.Parse
 import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Reducible
-import Data.Maybe (mapMaybe, isJust, fromJust)
+import Data.Maybe (mapMaybe)
 import Data.List (delete, isPrefixOf, (\\))
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
@@ -148,12 +150,10 @@ runStyleToContainers rPr =
 
 
 divAttrToContainers :: [String] -> [(String, String)] -> [Container Block]
-divAttrToContainers (c:cs) _ | isJust (isHeaderClass c) =
-  let n = fromJust (isHeaderClass c)
-  in
-   [(Container $ \blks ->
-      makeHeaderAnchor $
-      Header n ("", delete ("Heading" ++ show n) cs, []) (blksToInlines blks))]
+divAttrToContainers (c:cs) _ | Just n <- isHeaderClass c =
+  [(Container $ \blks ->
+     makeHeaderAnchor $
+     Header n ("", delete ("Heading" ++ show n) cs, []) (blksToInlines blks))]
 divAttrToContainers (c:cs) kvs | c `elem` divsToKeep =
   (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs)
 divAttrToContainers (c:cs) kvs | c `elem` codeDivs =
@@ -167,10 +167,10 @@ divAttrToContainers (c:cs) kvs | c `elem` listParagraphDivs =
 divAttrToContainers (c:cs) kvs | c `elem` blockQuoteDivs =
   (Container BlockQuote) : (divAttrToContainers (cs \\ blockQuoteDivs) kvs)
 divAttrToContainers (_:cs) kvs = divAttrToContainers cs kvs
-divAttrToContainers [] kvs | isJust (lookup "indent" kvs) =
+divAttrToContainers [] kvs | Just numString <- lookup "indent" kvs =
   let kvs' = filter (\(k,_) -> k /= "indent") kvs
   in
-   case fromJust (lookup "indent" kvs) of
+   case numString of
      "0"       -> divAttrToContainers [] kvs'
      ('-' : _) -> divAttrToContainers [] kvs'
      _         -> (Container BlockQuote) : divAttrToContainers [] kvs'
