@@ -306,14 +306,11 @@ dummyAnchors :: [String]
 dummyAnchors = ["_GoBack"]
 
 makeHeaderAnchor :: Block -> Block
-makeHeaderAnchor h@(Header n (_, classes, kvs) ils) =
-  case filter isAnchorSpan ils of
-    []   -> h
-    (x@(Span (ident, _, _) _) : xs) ->
-      case ident `elem` dummyAnchors of
-        True -> h
-        False -> Header n (ident, classes, kvs) (ils \\ (x:xs))
-    _ -> h
+makeHeaderAnchor (Header n (_, classes, kvs) ils)
+  | (x : xs) <- filter isAnchorSpan ils
+  , (Span (ident, _, _) _) <- x
+  , notElem ident dummyAnchors =
+   Header n (ident, classes, kvs) (ils \\ (x:xs))
 makeHeaderAnchor blk = blk
 
 parPartsToInlines :: [ParPart] -> DocxContext [Inline]
