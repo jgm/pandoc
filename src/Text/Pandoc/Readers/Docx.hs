@@ -152,6 +152,7 @@ divAttrToContainers (c:cs) _ | isJust (isHeaderClass c) =
   let n = fromJust (isHeaderClass c)
   in
    [(Container $ \blks ->
+      makeHeaderAnchor $
       Header n ("", delete ("Heading" ++ show n) cs, []) (blksToInlines blks))]
 divAttrToContainers (c:cs) kvs | c `elem` divsToKeep =
   (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs)
@@ -304,8 +305,8 @@ isAnchorSpan _ = False
 dummyAnchors :: [String]
 dummyAnchors = ["_GoBack"]
 
-makeHeaderAnchors :: Block -> Block
-makeHeaderAnchors h@(Header n (_, classes, kvs) ils) =
+makeHeaderAnchor :: Block -> Block
+makeHeaderAnchor h@(Header n (_, classes, kvs) ils) =
   case filter isAnchorSpan ils of
     []   -> h
     (x@(Span (ident, _, _) _) : xs) ->
@@ -313,7 +314,7 @@ makeHeaderAnchors h@(Header n (_, classes, kvs) ils) =
         True -> h
         False -> Header n (ident, classes, kvs) (ils \\ (x:xs))
     _ -> h
-makeHeaderAnchors blk = blk
+makeHeaderAnchor blk = blk
 
 parPartsToInlines :: [ParPart] -> DocxContext [Inline]
 parPartsToInlines parparts = do
@@ -424,7 +425,6 @@ bodyToBlocks :: Body -> DocxContext [Block]
 bodyToBlocks (Body bps) = do
   blks <- concatMapM bodyPartToBlocks bps
   return $
-    map (makeHeaderAnchors) $
     blocksToDefinitions $
     blocksToBullets $ blks
 
