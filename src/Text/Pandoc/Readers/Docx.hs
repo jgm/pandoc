@@ -104,7 +104,7 @@ readDocx opts bytes =
     Nothing   -> error $ "couldn't parse docx file"
 
 
-data DState = DState { docxHeaderAnchors :: M.Map String String }
+data DState = DState { docxAnchorMap :: M.Map String String }
 
 data DEnv = DEnv { docxOptions  :: ReaderOptions
                  , docxDocument :: Docx}
@@ -276,7 +276,22 @@ parPartToInlines (Deletion _ author date runs) = do
               ("", ["deletion"], [("author", author), ("date", date)])
               ils]
 parPartToInlines (BookMark _ anchor) | anchor `elem` dummyAnchors = return []
-parPartToInlines (BookMark _ anchor) = return [Span (anchor, ["anchor"], []) []]
+parPartToInlines (BookMark _ anchor) =
+  -- We record these, so we can make sure not to overwrite
+  -- user-defined anchor links with header auto ids.
+  do
+    -- Get the anchor map.
+    anchorMap <- gets docxAnchorMap
+    -- Check to see if the id is already in there. Rewrite if
+    -- necessary. This will have the possible effect of rewriting
+    -- user-defined anchor links. However, since these are not defined
+    -- in pandoc, it seems like a necessary evil to avoid an extra
+    -- pass.
+    let newAnchor = case anchor `elem` (M.elems anchorMap) of
+          True -> uniqueIdent [Str anchor] (M.elems anchorMap)
+          False -> anchor
+    put DState{ docxAnchorMap = M.insert anchor newAnchor anchorMap}
+    return [Span (anchor, ["anchor"], []) []]
 parPartToInlines (Drawing relid) = do
   (Docx _ _ _ rels _) <- asks docxDocument
   return $ case lookupRelationship relid rels of
@@ -311,9 +326,9 @@ makeHeaderAnchor (Header n (_, classes, kvs) ils)
   , (Span (ident, _, _) _) <- x
   , notElem ident dummyAnchors =
     do
-      hdrIDMap <- gets docxHeaderAnchors
+      hdrIDMap <- gets docxAnchorMap
       let newIdent = uniqueIdent ils (M.elems hdrIDMap)
-      put DState{docxHeaderAnchors = M.insert ident newIdent hdrIDMap}
+      put DState{docxAnchorMap = M.insert ident newIdent hdrIDMap}
       return $ Header n (newIdent, classes, kvs) (ils \\ (x:xs))
 makeHeaderAnchor blk = return blk
 
@@ -411,6 +426,14 @@ bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
 
   return [Table caption alignments widths hdrCells cells]
 
+-- replace targets with generated anchors.
+rewriteLink :: Inline -> DocxContext Inline
+rewriteLink l@(Link ils ('#':target, title)) = do
+  anchorMap <- gets docxAnchorMap
+  return $ case M.lookup target anchorMap of
+    Just newTarget -> (Link ils ('#':newTarget, title))
+    Nothing        -> l
+rewriteLink il = return il
 
 makeImagesSelfContained :: Inline -> DocxContext Inline
 makeImagesSelfContained i@(Image alt (uri, title)) = do
@@ -429,14 +452,15 @@ makeImagesSelfContained inline = return inline
 
 bodyToBlocks :: Body -> DocxContext [Block]
 bodyToBlocks (Body bps) = do
-  blks <- concatMapM bodyPartToBlocks bps
+  blks <- concatMapM bodyPartToBlocks bps >>=
+          walkM rewriteLink
   return $
     blocksToDefinitions $
     blocksToBullets $ blks
 
 docxToBlocks :: ReaderOptions -> Docx -> [Block]
 docxToBlocks opts d@(Docx (Document _ body) _ _ _ _) =
-  let dState = DState { docxHeaderAnchors = M.empty }
+  let dState = DState { docxAnchorMap = M.empty }
       dEnv   = DEnv { docxOptions  = opts
                     , docxDocument = d}
   in
@@ -446,7 +470,6 @@ ilToCode :: Inline -> String
 ilToCode (Str s) = s
 ilToCode Space = " "
 ilToCode _     = ""
-
 
 isHeaderClass :: String -> Maybe Int
 isHeaderClass s | "Heading" `isPrefixOf` s =
