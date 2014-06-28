@@ -104,7 +104,7 @@ readDocx opts bytes =
     Nothing   -> error $ "couldn't parse docx file"
 
 
-data DState = DState { docxHdrLinks :: M.Map String String }
+data DState = DState { docxHeaderAnchors :: M.Map String String }
 
 data DEnv = DEnv { docxOptions  :: ReaderOptions
                  , docxDocument :: Docx}
@@ -310,7 +310,11 @@ makeHeaderAnchor (Header n (_, classes, kvs) ils)
   | (x : xs) <- filter isAnchorSpan ils
   , (Span (ident, _, _) _) <- x
   , notElem ident dummyAnchors =
-   return $ Header n (ident, classes, kvs) (ils \\ (x:xs))
+    do
+      hdrIDMap <- gets docxHeaderAnchors
+      let newIdent = uniqueIdent ils (M.elems hdrIDMap)
+      put DState{docxHeaderAnchors = M.insert ident newIdent hdrIDMap}
+      return $ Header n (newIdent, classes, kvs) (ils \\ (x:xs))
 makeHeaderAnchor blk = return blk
 
 
@@ -432,7 +436,7 @@ bodyToBlocks (Body bps) = do
 
 docxToBlocks :: ReaderOptions -> Docx -> [Block]
 docxToBlocks opts d@(Docx (Document _ body) _ _ _ _) =
-  let dState = DState { docxHdrLinks = M.empty }
+  let dState = DState { docxHeaderAnchors = M.empty }
       dEnv   = DEnv { docxOptions  = opts
                     , docxDocument = d}
   in
