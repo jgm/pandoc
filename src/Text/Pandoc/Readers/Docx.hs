@@ -84,6 +84,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Readers.Docx.Parse
 import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Reducible
+import Text.Pandoc.Shared
 import Data.Maybe (mapMaybe)
 import Data.List (delete, isPrefixOf, (\\))
 import qualified Data.ByteString as BS
@@ -151,9 +152,8 @@ runStyleToContainers rPr =
 
 divAttrToContainers :: [String] -> [(String, String)] -> [Container Block]
 divAttrToContainers (c:cs) _ | Just n <- isHeaderClass c =
-  [(Container $ \blks ->
-     makeHeaderAnchor $
-     Header n ("", delete ("Heading" ++ show n) cs, []) (blksToInlines blks))]
+  [Container $ \_ ->
+     Header n ("", delete ("Heading" ++ show n) cs, []) []]
 divAttrToContainers (c:cs) kvs | c `elem` divsToKeep =
   (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs)
 divAttrToContainers (c:cs) kvs | c `elem` codeDivs =
@@ -305,13 +305,14 @@ isAnchorSpan _ = False
 dummyAnchors :: [String]
 dummyAnchors = ["_GoBack"]
 
-makeHeaderAnchor :: Block -> Block
+makeHeaderAnchor :: Block -> DocxContext Block
 makeHeaderAnchor (Header n (_, classes, kvs) ils)
   | (x : xs) <- filter isAnchorSpan ils
   , (Span (ident, _, _) _) <- x
   , notElem ident dummyAnchors =
-   Header n (ident, classes, kvs) (ils \\ (x:xs))
-makeHeaderAnchor blk = blk
+   return $ Header n (ident, classes, kvs) (ils \\ (x:xs))
+makeHeaderAnchor blk = return blk
+
 
 parPartsToInlines :: [ParPart] -> DocxContext [Inline]
 parPartsToInlines parparts = do
@@ -326,36 +327,40 @@ cellToBlocks (Cell bps) = concatMapM bodyPartToBlocks bps
 rowToBlocksList :: Row -> DocxContext [[Block]]
 rowToBlocksList (Row cells) = mapM cellToBlocks cells
 
-blockCodeContainer :: Container Block -> Bool
-blockCodeContainer (Container f) = case f [] of
-  CodeBlock _ _ -> True
-  _             -> False
-blockCodeContainer _ = False
+isBlockCodeContainer :: Container Block -> Bool
+isBlockCodeContainer (Container f) | CodeBlock _ _ <- f [] = True
+isBlockCodeContainer _ = False
+
+isHeaderContainer :: Container Block -> Bool
+isHeaderContainer (Container f) | Header _ _ _ <- f [] = True
+isHeaderContainer _ = False
 
 bodyPartToBlocks :: BodyPart -> DocxContext [Block]
 bodyPartToBlocks (Paragraph pPr parparts)
-  | any blockCodeContainer (parStyleToContainers pPr) =
+  | any isBlockCodeContainer (parStyleToContainers pPr) =
     let
-      otherConts = filter (not . blockCodeContainer) (parStyleToContainers pPr)
+      otherConts = filter (not . isBlockCodeContainer) (parStyleToContainers pPr)
     in
      return $ 
      rebuild
      otherConts
      [CodeBlock ("", [], []) (concatMap parPartToString parparts)]
+bodyPartToBlocks (Paragraph pPr parparts)
+  | any isHeaderContainer (parStyleToContainers pPr) = do
+    ils <- parPartsToInlines parparts >>= (return . normalizeSpaces)
+    let (Container hdrFun) = head $ filter isHeaderContainer (parStyleToContainers pPr)
+        Header n attr _ = hdrFun []
+    hdr <- makeHeaderAnchor $ Header n attr ils
+    return [hdr]
 bodyPartToBlocks (Paragraph pPr parparts) = do
-  ils <- parPartsToInlines parparts
+  ils <- parPartsToInlines parparts >>= (return . normalizeSpaces)
   case ils of
     [] -> return []
     _ -> do
-      parContents <- parPartsToInlines parparts
-      let trimmedContents = reverse $
-                            dropWhile (Space ==) $
-                            reverse $
-                            dropWhile (Space ==) parContents
       return $
        rebuild
        (parStyleToContainers pPr)
-       [Para trimmedContents]
+       [Para ils]
 bodyPartToBlocks (ListItem pPr numId lvl parparts) = do
   (Docx _ _ numbering _ _) <- asks docxDocument
   let
@@ -446,8 +451,3 @@ isHeaderClass s | "Heading" `isPrefixOf` s =
     ((n, "") : []) -> Just n
     _       -> Nothing
 isHeaderClass _ = Nothing
-
-blksToInlines :: [Block] -> [Inline]
-blksToInlines (Para ils : _) = ils
-blksToInlines (Plain ils : _) = ils
-blksToInlines _ = []
