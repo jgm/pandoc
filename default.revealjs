@@ -27,10 +27,19 @@ $endfor$
 $else$
     <link rel="stylesheet" href="$revealjs-url$/css/theme/simple.css" id="theme">
 $endif$
-  <link rel="stylesheet" media="print" href="$revealjs-url$/css/print/pdf.css" />
-  <!--[if lt IE 9]>
-  <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
-  <![endif]-->
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+      if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = '$revealjs-url$/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+      }
+    </script>
+    <!--[if lt IE 9]>
+    <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
+    <![endif]-->
 $if(math)$
     $math$
 $endif$
@@ -66,9 +75,7 @@ $endif$
 $body$
     </div>
   </div>
-$for(include-after)$
-$include-after$
-$endfor$
+
 
   <script src="$revealjs-url$/lib/js/head.min.js"></script>
   <script src="$revealjs-url$/js/reveal.min.js"></script>
@@ -94,5 +101,8 @@ $endfor$
 //          { src: '$revealjs-url$/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
 ]});
     </script>
+  $for(include-after)$
+  $include-after$
+  $endfor$
   </body>
 </html>

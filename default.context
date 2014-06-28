@@ -36,6 +36,9 @@ $endif$
 \setupitemize[autointro]    % prevent orphan list intro
 \setupitemize[indentnext=no]
 
+\setupfloat[figure][default={here,nonumber}]
+\setupfloat[table][default={here,nonumber}]
+
 \setupthinrules[width=15em] % width of horizontal rules
 
 \setupdelimitedtext

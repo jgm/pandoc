@@ -1,12 +1,18 @@
-\documentclass[$if(fontsize)$$fontsize$,$endif$$if(lang)$$lang$,$endif$$if(papersize)$$papersize$,$endif$]{$documentclass$}
-\usepackage[T1]{fontenc}
+\documentclass[$if(fontsize)$$fontsize$,$endif$$if(lang)$$lang$,$endif$$if(papersize)$$papersize$,$endif$$for(classoption)$$classoption$$sep$,$endfor$]{$documentclass$}
+$if(fontfamily)$
+\usepackage{$fontfamily$}
+$else$
 \usepackage{lmodern}
+$endif$
+$if(linestretch)$
+\usepackage{setspace}
+\setstretch{$linestretch$}
+$endif$
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \usepackage{fixltx2e} % provides \textsubscript
-% use upquote if available, for straight quotes in verbatim environments
-\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
 $if(euro)$
   \usepackage{eurosym}
@@ -33,6 +39,8 @@ $if(mathfont)$
     \setmathfont(Digits,Latin,Greek){$mathfont$}
 $endif$
 \fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 % use microtype if available
 \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 $if(geometry)$
@@ -40,7 +48,7 @@ $if(geometry)$
 $endif$
 $if(natbib)$
 \usepackage{natbib}
-\bibliographystyle{plainnat}
+\bibliographystyle{$if(biblio-style)$$biblio-style$$else$plainnat$endif$}
 $endif$
 $if(biblatex)$
 \usepackage{biblatex}
@@ -61,28 +69,18 @@ $if(verbatim-in-note)$
 \usepackage{fancyvrb}
 $endif$
 $if(tables)$
-\usepackage{longtable}
+\usepackage{longtable,booktabs}
 $endif$
 $if(graphics)$
 \usepackage{graphicx}
-% Redefine \includegraphics so that, unless explicit options are
-% given, the image width will not exceed the width of the page.
-% Images get their normal width if they fit onto the page, but
-% are scaled down if they would overflow the margins.
 \makeatletter
-\def\ScaleIfNeeded{%
-  \ifdim\Gin@nat@width>\linewidth
-    \linewidth
-  \else
-    \Gin@nat@width
-  \fi
-}
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
 \makeatother
-\let\Oldincludegraphics\includegraphics
-{%
- \catcode`\@=11\relax%
- \gdef\includegraphics{\@ifnextchar[{\Oldincludegraphics}{\Oldincludegraphics[width=\ScaleIfNeeded]}}%
-}%
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
 $endif$
 \ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
@@ -129,22 +127,26 @@ $if(lang)$
   \usepackage[$lang$]{babel}
 \fi
 $endif$
+
+$if(title)$
+\title{$title$$if(subtitle)$\\\vspace{0.5em}{\large $subtitle$}$endif$}
+$endif$
+$if(author)$
+\author{$for(author)$$author$$sep$ \and $endfor$}
+$endif$
+\date{$date$}
 $for(header-includes)$
 $header-includes$
 $endfor$
 
-$if(title)$
-\title{$title$}
-$endif$
-$if(subtitle)$
-\subtitle{$subtitle$}
-$endif$
-\author{$for(author)$$author$$sep$ \and $endfor$}
-\date{$date$}
-
 \begin{document}
 $if(title)$
 \maketitle
+$endif$
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
 $endif$
 
 $for(include-before)$
