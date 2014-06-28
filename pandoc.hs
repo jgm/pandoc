@@ -96,7 +96,9 @@ isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub","ep
 
 externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
 externalFilter f args' d = do
-      mbexe <- findExecutable f
+      mbexe <- if '/' `elem` f -- don't check PATH if filter name it has a path
+                  then return Nothing
+                  else findExecutable f
       (f', args'') <- case mbexe of
                            Just x  -> return (x, args')
                            Nothing -> do
