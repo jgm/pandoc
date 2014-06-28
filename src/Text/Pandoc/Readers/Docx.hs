@@ -103,7 +103,6 @@ readDocx opts bytes =
     Just docx -> Pandoc nullMeta (docxToBlocks opts docx)
     Nothing   -> error $ "couldn't parse docx file"
 
-
 data DState = DState { docxAnchorMap :: M.Map String String }
 
 data DEnv = DEnv { docxOptions  :: ReaderOptions
@@ -321,6 +320,8 @@ dummyAnchors :: [String]
 dummyAnchors = ["_GoBack"]
 
 makeHeaderAnchor :: Block -> DocxContext Block
+-- If there is an anchor already there (an anchor span in the header,
+-- to be exact), we rename and associate the new id with the old one.
 makeHeaderAnchor (Header n (_, classes, kvs) ils)
   | (x : xs) <- filter isAnchorSpan ils
   , (Span (ident, _, _) _) <- x
@@ -330,6 +331,14 @@ makeHeaderAnchor (Header n (_, classes, kvs) ils)
       let newIdent = uniqueIdent ils (M.elems hdrIDMap)
       put DState{docxAnchorMap = M.insert ident newIdent hdrIDMap}
       return $ Header n (newIdent, classes, kvs) (ils \\ (x:xs))
+-- Otherwise we just give it a name, and register that name (associate
+-- it with itself.)
+makeHeaderAnchor (Header n (_, classes, kvs) ils) =
+  do
+    hdrIDMap <- gets docxAnchorMap
+    let newIdent = uniqueIdent ils (M.elems hdrIDMap)
+    put DState{docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
+    return $ Header n (newIdent, classes, kvs) ils
 makeHeaderAnchor blk = return blk
 
 
