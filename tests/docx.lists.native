@@ -1,4 +1,4 @@
-[Header 2 ("",[],[]) [Str "Some",Space,Str "nested",Space,Str "lists"]
+[Header 2 ("some-nested-lists",[],[]) [Str "Some",Space,Str "nested",Space,Str "lists"]
 ,OrderedList (1,Decimal,Period)
  [[Para [Str "one"]]
  ,[Para [Str "two"]
