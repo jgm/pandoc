@@ -514,8 +514,11 @@ blockToOpenXML :: WriterOptions -> Block -> WS [Element]
 blockToOpenXML _ Null = return []
 blockToOpenXML opts (Div _ bs) = blocksToOpenXML opts bs
 blockToOpenXML opts (Header lev (ident,_,_) lst) = do
-  contents <- withParaProp (pStyle $ "Heading" ++ show lev) $
-               blockToOpenXML opts (Para lst)
+
+  paraProps <- withParaProp (pStyle $ "Heading" ++ show lev) $
+               getParaProps False
+  contents <- inlinesToOpenXML opts lst
+
   usedIdents <- gets stSectionIds
   let bookmarkName = if null ident
                         then uniqueIdent lst usedIdents
@@ -525,7 +528,7 @@ blockToOpenXML opts (Header lev (ident,_,_) lst) = do
   let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
                                                ,("w:name",bookmarkName)] ()
   let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
-  return $ [bookmarkStart] ++ contents ++ [bookmarkEnd]
+  return [mknode "w:p" [] (paraProps ++ [bookmarkStart, bookmarkEnd] ++ contents)]
 blockToOpenXML opts (Plain lst) = withParaProp (pStyle "Compact")
   $ blockToOpenXML opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure
