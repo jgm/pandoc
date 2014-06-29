@@ -31,6 +31,7 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 -}
 
 {-
+    [ ] Correct handling of Span
     [ ] Don't generate <blockquote>...
     [ ] Don't generate lists using <ol> and <ul>
     [ ] Don't generate <div>
@@ -46,6 +47,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
+import Text.Pandoc.Pretty (render)
 import Text.Pandoc.Templates (renderTemplate')
 import Data.List ( intersect, intercalate )
 import Network.URI ( isURI )
@@ -95,6 +97,11 @@ blockToDokuWiki :: WriterOptions -- ^ Options
 
 blockToDokuWiki _ Null = return ""
 
+blockToDokuWiki opts (Div attrs bs) = do
+  contents <- blockListToDokuWiki opts bs
+  return $ render Nothing (tagWithAttrs "div" attrs) ++ "\n" ++
+                     contents ++ "\n" ++ "</div>"
+
 blockToDokuWiki opts (Plain inlines) =
   inlineListToDokuWiki opts inlines
 
@@ -117,9 +124,10 @@ blockToDokuWiki opts (Para inlines) = do
               then  "<p>" ++ contents ++ "</p>"
               else contents ++ if null indent then "\n" else ""
 
-blockToDokuWiki _ (RawBlock "mediawiki" str) = return str
-blockToDokuWiki _ (RawBlock "html" str) = return str
-blockToDokuWiki _ (RawBlock _ _) = return ""
+blockToDokuWiki _ (RawBlock f str)
+  | f == Format "mediawiki" = return str
+  | f == Format "html"      = return str
+  | otherwise               = return ""
 
 blockToDokuWiki _ HorizontalRule = return "\n----\n"
 
@@ -370,6 +378,13 @@ inlineListToDokuWiki opts lst = mapM (inlineToDokuWiki opts) lst >>= return . co
 -- | Convert Pandoc inline element to DokuWiki.
 inlineToDokuWiki :: WriterOptions -> Inline -> State WriterState String
 
+inlineToDokuWiki opts (Span attrs ils) = do
+  return ""
+  {-
+  contents <- inlineListToDokuWiki opts ils
+  return $ render Nothing (tagWithAttrs "span" attrs) ++ contents ++ "</span>"
+  -}
+
 inlineToDokuWiki opts (Emph lst) = do
   contents <- inlineListToDokuWiki opts lst
   return $ "//" ++ contents ++ "//"
@@ -419,9 +434,10 @@ inlineToDokuWiki _ (Str str) = return $ escapeString str
 inlineToDokuWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
                                  -- note:  str should NOT be escaped
 
-inlineToDokuWiki _ (RawInline "mediawiki" str) = return str
-inlineToDokuWiki _ (RawInline "html" str) = return str
-inlineToDokuWiki _ (RawInline _ _) = return ""
+inlineToDokuWiki _ (RawInline f str)
+  | f == Format "mediawiki" = return str
+  | f == Format "html"      = return str
+  | otherwise               = return ""
 
 inlineToDokuWiki _ (LineBreak) = return "\\\\ "
 
