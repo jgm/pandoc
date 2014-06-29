@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2012 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Options
-   Copyright   : Copyright (C) 2012 John MacFarlane
+   Copyright   : Copyright (C) 2012-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -41,6 +41,7 @@ module Text.Pandoc.Options ( Extension(..)
                            , HTMLSlideVariant (..)
                            , EPUBVersion (..)
                            , WriterOptions (..)
+                           , TrackChanges (..)
                            , def
                            , isEnabled
                            ) where
@@ -48,7 +49,6 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Default
 import Text.Pandoc.Highlighting (Style, pygments)
-import qualified Text.CSL as CSL
 
 -- | Individually selectable syntax extensions.
 data Extension =
@@ -81,6 +81,7 @@ data Extension =
     | Ext_link_attributes     -- ^ MMD style reference link attributes
     | Ext_autolink_bare_uris  -- ^ Make all absolute URIs into links
     | Ext_fancy_lists         -- ^ Enable fancy list numbers and delimiters
+    | Ext_lists_without_preceding_blankline -- ^ Allow lists without preceding blank
     | Ext_startnum            -- ^ Make start number of ordered list significant
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
     | Ext_example_lists       -- ^ Markdown-style numbered examples
@@ -92,6 +93,7 @@ data Extension =
     | Ext_superscript         -- ^ Superscript using ^this^ syntax
     | Ext_subscript           -- ^ Subscript using ~this~ syntax
     | Ext_hard_line_breaks    -- ^ All newlines become hard line breaks
+    | Ext_ignore_line_breaks  -- ^ Newlines in paragraphs are ignored
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
     | Ext_abbreviations       -- ^ PHP markdown extra abbreviation definitions
     | Ext_auto_identifiers    -- ^ Automatic identifiers for headers
@@ -169,6 +171,7 @@ githubMarkdownExtensions = Set.fromList
   , Ext_intraword_underscores
   , Ext_strikeout
   , Ext_hard_line_breaks
+  , Ext_lists_without_preceding_blankline
   ]
 
 multimarkdownExtensions :: Set Extension
@@ -204,12 +207,12 @@ data ReaderOptions = ReaderOptions{
        , readerOldDashes       :: Bool -- ^ Use pandoc <= 1.8.2.1 behavior
                                        --   in parsing dashes; -- is em-dash;
                                        --   - before numerial is en-dash
-       , readerReferences      :: [CSL.Reference]  -- ^ Bibliographic references
-       , readerCitationStyle   :: Maybe CSL.Style -- ^ Citation style
        , readerApplyMacros     :: Bool -- ^ Apply macros to TeX math
        , readerIndentedCodeClasses :: [String] -- ^ Default classes for
                                        -- indented code blocks
        , readerDefaultImageExtension :: String -- ^ Default extension for images
+       , readerTrace           :: Bool -- ^ Print debugging info
+       , readerTrackChanges    :: TrackChanges
 } deriving (Show, Read)
 
 instance Default ReaderOptions
@@ -222,11 +225,11 @@ instance Default ReaderOptions
                , readerColumns               = 80
                , readerTabStop               = 4
                , readerOldDashes             = False
-               , readerReferences            = []
-               , readerCitationStyle         = Nothing
                , readerApplyMacros           = True
                , readerIndentedCodeClasses   = []
                , readerDefaultImageExtension = ""
+               , readerTrace                 = False
+               , readerTrackChanges          = AcceptChanges
                }
 
 --
@@ -264,6 +267,12 @@ data HTMLSlideVariant = S5Slides
                       | NoSlides
                       deriving (Show, Read, Eq)
 
+-- | Options for accepting or rejecting MS Word track-changes.
+data TrackChanges = AcceptChanges
+                  | RejectChanges
+                  | AllChanges
+                  deriving (Show, Read, Eq)
+
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerStandalone       :: Bool   -- ^ Include header and footer
@@ -285,10 +294,9 @@ data WriterOptions = WriterOptions
   , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
   , writerIdentifierPrefix :: String -- ^ Prefix for section & note ids in HTML
                                      -- and for footnote marks in markdown
-  , writerSourceDirectory  :: FilePath -- ^ Directory path of 1st source file
+  , writerSourceURL        :: Maybe String  -- ^ Absolute URL + directory of 1st source file
   , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
-  , writerBiblioFiles      :: [FilePath] -- ^ Biblio files to use for citations
   , writerHtml5            :: Bool       -- ^ Produce HTML5
   , writerHtmlQTags        :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
   , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
@@ -328,10 +336,9 @@ instance Default WriterOptions where
                       , writerColumns          = 72
                       , writerEmailObfuscation = JavascriptObfuscation
                       , writerIdentifierPrefix = ""
-                      , writerSourceDirectory  = "."
+                      , writerSourceURL        = Nothing
                       , writerUserDataDir      = Nothing
                       , writerCiteMethod       = Citeproc
-                      , writerBiblioFiles      = []
                       , writerHtml5            = False
                       , writerHtmlQTags        = False
                       , writerBeamer           = False

@@ -1,5 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Docbook
-   Copyright   : Copyright (C) 2006-2010 John MacFarlane
+   Copyright   : Copyright (C) 2006-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -31,12 +32,14 @@ module Text.Pandoc.Writers.Docbook ( writeDocbook) where
 import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Shared
+import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( isPrefixOf, intercalate, isSuffixOf )
 import Data.Char ( toLower )
+import Data.Monoid ( Any(..) )
 import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
 import qualified Text.Pandoc.Builder as B
@@ -84,8 +87,9 @@ writeDocbook opts (Pandoc meta blocks) =
       auths'   = map (authorToDocbook opts) $ docAuthors meta
       meta'    = B.setMeta "author" auths' meta
       Just metadata = metaToJSON opts
-                 (Just . render colwidth . blocksToDocbook opts)
-                 (Just . render colwidth . inlinesToDocbook opts)
+                 (Just . render colwidth . (vcat .
+                          (map (elementToDocbook opts' startLvl)) . hierarchicalize))
+                 (Just . render colwidth . inlinesToDocbook opts')
                  meta'
       main     = render' $ vcat (map (elementToDocbook opts' startLvl) elements)
       context = defField "body" main
@@ -148,6 +152,7 @@ listItemToDocbook opts item =
 -- | Convert a Pandoc block element to Docbook.
 blockToDocbook :: WriterOptions -> Block -> Doc
 blockToDocbook _ Null = empty
+blockToDocbook opts (Div _ bs) = blocksToDocbook opts $ map plainToPara bs
 blockToDocbook _ (Header _ _ _) = empty -- should not occur after hierarchicalize
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst
 -- title beginning with fig: indicates that the image is a figure
@@ -162,8 +167,9 @@ blockToDocbook opts (Para [Image txt (src,'f':'i':'g':':':_)]) =
            (inTagsIndented "imageobject"
              (selfClosingTag "imagedata" [("fileref",src)])) $$
            inTagsSimple "textobject" (inTagsSimple "phrase" alt))
-blockToDocbook opts (Para lst) =
-  inTagsIndented "para" $ inlinesToDocbook opts lst
+blockToDocbook opts (Para lst)
+  | hasLineBreaks lst = flush $ nowrap $ inTagsSimple "literallayout" $ inlinesToDocbook opts lst
+  | otherwise         = inTagsIndented "para" $ inlinesToDocbook opts lst
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" $ blocksToDocbook opts blocks
 blockToDocbook _ (CodeBlock (_,classes,_) str) =
@@ -179,10 +185,11 @@ blockToDocbook _ (CodeBlock (_,classes,_) str) =
                            else languagesByExtension . map toLower $ s
           langs       = concatMap langsFrom classes
 blockToDocbook opts (BulletList lst) =
-  inTagsIndented "itemizedlist" $ listItemsToDocbook opts lst
+  let attribs = [("spacing", "compact") | isTightList lst]
+  in  inTags True "itemizedlist" attribs $ listItemsToDocbook opts lst
 blockToDocbook _ (OrderedList _ []) = empty
 blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
-  let attribs  = case numstyle of
+  let numeration = case numstyle of
                        DefaultStyle -> []
                        Decimal      -> [("numeration", "arabic")]
                        Example      -> [("numeration", "arabic")]
@@ -190,18 +197,21 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
                        LowerAlpha   -> [("numeration", "loweralpha")]
                        UpperRoman   -> [("numeration", "upperroman")]
                        LowerRoman   -> [("numeration", "lowerroman")]
-      items    = if start == 1
-                    then listItemsToDocbook opts (first:rest)
-                    else (inTags True "listitem" [("override",show start)]
-                         (blocksToDocbook opts $ map plainToPara first)) $$
-                         listItemsToDocbook opts rest
+      spacing    = [("spacing", "compact") | isTightList (first:rest)]
+      attribs    = numeration ++ spacing
+      items      = if start == 1
+                      then listItemsToDocbook opts (first:rest)
+                      else (inTags True "listitem" [("override",show start)]
+                           (blocksToDocbook opts $ map plainToPara first)) $$
+                           listItemsToDocbook opts rest
   in  inTags True "orderedlist" attribs items
 blockToDocbook opts (DefinitionList lst) =
-  inTagsIndented "variablelist" $ deflistItemsToDocbook opts lst
-blockToDocbook _ (RawBlock "docbook" str) = text str -- raw XML block
--- we allow html for compatibility with earlier versions of pandoc
-blockToDocbook _ (RawBlock "html" str) = text str -- raw XML block
-blockToDocbook _ (RawBlock _ _) = empty
+  let attribs = [("spacing", "compact") | isTightList $ concatMap snd lst]
+  in  inTags True "variablelist" attribs $ deflistItemsToDocbook opts lst
+blockToDocbook _ (RawBlock f str)
+  | f == "docbook" = text str -- raw XML block
+  | f == "html"    = text str -- allow html for backwards compatibility
+  | otherwise      = empty
 blockToDocbook _ HorizontalRule = empty -- not semantic
 blockToDocbook opts (Table caption aligns widths headers rows) =
   let captionDoc   = if null caption
@@ -222,6 +232,16 @@ blockToDocbook opts (Table caption aligns widths headers rows) =
   in  inTagsIndented tableType $ captionDoc $$
         (inTags True "tgroup" [("cols", show (length headers))] $
          coltags $$ head' $$ body')
+
+hasLineBreaks :: [Inline] -> Bool
+hasLineBreaks = getAny . query isLineBreak . walk removeNote
+  where
+    removeNote :: Inline -> Inline
+    removeNote (Note _) = Str ""
+    removeNote x = x
+    isLineBreak :: Inline -> Any
+    isLineBreak LineBreak = Any True
+    isLineBreak _ = Any False
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
@@ -267,6 +287,8 @@ inlineToDocbook opts (Quoted _ lst) =
   inTagsSimple "quote" $ inlinesToDocbook opts lst
 inlineToDocbook opts (Cite _ lst) =
   inlinesToDocbook opts lst
+inlineToDocbook opts (Span _ ils) =
+  inlinesToDocbook opts ils
 inlineToDocbook _ (Code _ str) =
   inTagsSimple "literal" $ text (escapeStringForXML str)
 inlineToDocbook opts (Math t str)
@@ -277,8 +299,8 @@ inlineToDocbook opts (Math t str)
                  $ fixNS
                  $ removeAttr r
       Left  _ -> inlinesToDocbook opts
-                 $ readTeXMath str
-  | otherwise = inlinesToDocbook opts $ readTeXMath str
+                 $ readTeXMath' t str
+  | otherwise = inlinesToDocbook opts $ readTeXMath' t str
      where (dt, tagtype) = case t of
                             InlineMath  -> (DisplayInline,"inlineequation")
                             DisplayMath -> (DisplayBlock,"informalequation")
@@ -288,7 +310,7 @@ inlineToDocbook opts (Math t str)
            fixNS = everywhere (mkT fixNS')
 inlineToDocbook _ (RawInline f x) | f == "html" || f == "docbook" = text x
                                   | otherwise                     = empty
-inlineToDocbook _ LineBreak = flush $ inTagsSimple "literallayout" (text "\n")
+inlineToDocbook _ LineBreak = text "\n"
 inlineToDocbook _ Space = space
 inlineToDocbook opts (Link txt (src, _)) =
   if isPrefixOf "mailto:" src

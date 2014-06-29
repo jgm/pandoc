@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2012 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Slides
-   Copyright   : Copyright (C) 2012 John MacFarlane
+   Copyright   : Copyright (C) 2012-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -46,13 +46,18 @@ getSlideLevel = go 6
 
 -- | Prepare a block list to be passed to hierarchicalize.
 prepSlides :: Int -> [Block] -> [Block]
-prepSlides slideLevel = ensureStartWithH . splitHrule
+prepSlides slideLevel = ensureStartWithH . splitHrule . extractRefsHeader
   where splitHrule (HorizontalRule : Header n attr xs : ys)
                        | n == slideLevel = Header slideLevel attr xs : splitHrule ys
         splitHrule (HorizontalRule : xs) = Header slideLevel nullAttr [Str "\0"] :
                                            splitHrule xs
         splitHrule (x : xs)              = x : splitHrule xs
         splitHrule []                    = []
+        extractRefsHeader bs             =
+          case reverse bs of
+               (Div ("",["references"],[]) (Header n attrs xs : ys) : zs)
+                 -> reverse zs ++ (Header n attrs xs : [Div ("",["references"],[]) ys])
+               _ -> bs
         ensureStartWithH bs@(Header n _ _:_)
                        | n <= slideLevel = bs
         ensureStartWithH bs              = Header slideLevel nullAttr [Str "\0"] : bs

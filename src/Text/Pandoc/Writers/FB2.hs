@@ -44,8 +44,8 @@ import qualified Text.XML.Light.Cursor as XC
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
-import Text.Pandoc.Shared (orderedListMarkers)
-import Text.Pandoc.Generic (bottomUp)
+import Text.Pandoc.Shared (orderedListMarkers, isHeaderBlock)
+import Text.Pandoc.Walk
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
@@ -157,9 +157,7 @@ renderSection level (ttl, body) = do
                else cMapM blockToXml body
     return $ el "section" (title ++ content)
   where
-    hasSubsections = any isHeader
-    isHeader (Header _ _ _) = True
-    isHeader _ = False
+    hasSubsections = any isHeaderBlock
 
 -- | Only <p> and <empty-line> are allowed within <title> in FB2.
 formatTitle :: [Inline] -> [Content]
@@ -324,6 +322,7 @@ blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code") . lines $ s
 blockToXml (RawBlock _ s) = return . spaceBeforeAfter .
                             map (el "p" . el "code") . lines $ s
+blockToXml (Div _ bs) = cMapM blockToXml bs
 blockToXml (BlockQuote bs) = liftM (list . el "cite") $ cMapM blockToXml bs
 blockToXml (OrderedList a bss) = do
     state <- get
@@ -422,15 +421,20 @@ indent = indentBlock
   indentLines ins = let lns = split isLineBreak ins :: [[Inline]]
                     in  intercalate [LineBreak] $ map ((Str spacer):) lns
 
+capitalize :: Inline -> Inline
+capitalize (Str xs) = Str $ map toUpper xs
+capitalize x = x
+
 -- | Convert a Pandoc's Inline element to FictionBook XML representation.
 toXml :: Inline -> FBM [Content]
 toXml (Str s) = return [txt s]
+toXml (Span _ ils) = cMapM toXml ils
 toXml (Emph ss) = list `liftM` wrap "emphasis" ss
 toXml (Strong ss) = list `liftM` wrap "strong" ss
 toXml (Strikeout ss) = list `liftM` wrap "strikethrough" ss
 toXml (Superscript ss) = list `liftM` wrap "sup" ss
 toXml (Subscript ss) = list `liftM` wrap "sub" ss
-toXml (SmallCaps ss) = cMapM toXml $ bottomUp (map toUpper) ss
+toXml (SmallCaps ss) = cMapM toXml $ walk capitalize ss
 toXml (Quoted SingleQuote ss) = do  -- FIXME: should be language-specific
   inner <- cMapM toXml ss
   return $ [txt "‘"] ++ inner ++ [txt "’"]
@@ -560,6 +564,7 @@ list = (:[])
 plain :: Inline -> String
 plain (Str s) = s
 plain (Emph ss) = concat (map plain ss)
+plain (Span _ ss) = concat (map plain ss)
 plain (Strong ss) = concat (map plain ss)
 plain (Strikeout ss) = concat (map plain ss)
 plain (Superscript ss) = concat (map plain ss)

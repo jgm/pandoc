@@ -1,5 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2008-2010 John MacFarlane and Peter Wang
+Copyright (C) 2008-2014 John MacFarlane and Peter Wang
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Texinfo
-   Copyright   : Copyright (C) 2008-2010 John MacFarlane and Peter Wang
+   Copyright   : Copyright (C) 2008-2014 John MacFarlane and Peter Wang
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -39,7 +40,7 @@ import Data.Ord ( comparing )
 import Data.Char ( chr, ord )
 import Control.Monad.State
 import Text.Pandoc.Pretty
-import Network.URI ( isAbsoluteURI, unEscapeString )
+import Network.URI ( isURI, unEscapeString )
 import System.FilePath
 
 data WriterState =
@@ -123,6 +124,8 @@ blockToTexinfo :: Block     -- ^ Block to convert
 
 blockToTexinfo Null = return empty
 
+blockToTexinfo (Div _ bs) = blockListToTexinfo bs
+
 blockToTexinfo (Plain lst) =
   inlineListToTexinfo lst
 
@@ -150,10 +153,11 @@ blockToTexinfo (CodeBlock _ str) = do
            flush (text str) $$
            text "@end verbatim" <> blankline
 
-blockToTexinfo (RawBlock "texinfo" str) = return $ text str
-blockToTexinfo (RawBlock "latex" str) =
-  return $ text "@tex" $$ text str $$ text "@end tex"
-blockToTexinfo (RawBlock _ _) = return empty
+blockToTexinfo (RawBlock f str)
+  | f == "texinfo" = return $ text str
+  | f == "latex" || f == "tex" =
+                      return $ text "@tex" $$ text str $$ text "@end tex"
+  | otherwise      = return empty
 
 blockToTexinfo (BulletList lst) = do
   items <- mapM listItemToTexinfo lst
@@ -289,7 +293,7 @@ blockListToTexinfo (x:xs) = do
   case x of
     Header level _ _ -> do
       -- We need need to insert a menu for this node.
-      let (before, after) = break isHeader xs
+      let (before, after) = break isHeaderBlock xs
       before' <- blockListToTexinfo before
       let menu = if level < 4
                     then collectNodes (level + 1) after
@@ -310,10 +314,6 @@ blockListToTexinfo (x:xs) = do
     _ -> do
       xs' <- blockListToTexinfo xs
       return $ x' $$ xs'
-
-isHeader :: Block -> Bool
-isHeader (Header _ _ _) = True
-isHeader _              = False
 
 collectNodes :: Int -> [Block] -> [Block]
 collectNodes _ [] = []
@@ -374,6 +374,9 @@ disallowedInNode c = c `elem` ".,:()"
 inlineToTexinfo :: Inline    -- ^ Inline to convert
                 -> State WriterState Doc
 
+inlineToTexinfo (Span _ lst) =
+  inlineListToTexinfo lst
+
 inlineToTexinfo (Emph lst) =
   inlineListToTexinfo lst >>= return . inCmd "emph"
 
@@ -413,10 +416,11 @@ inlineToTexinfo (Cite _ lst) =
   inlineListToTexinfo lst
 inlineToTexinfo (Str str) = return $ text (stringToTexinfo str)
 inlineToTexinfo (Math _ str) = return $ inCmd "math" $ text str
-inlineToTexinfo (RawInline f str) | f == "latex" || f == "tex" =
-  return $ text "@tex" $$ text str $$ text "@end tex"
-inlineToTexinfo (RawInline "texinfo" str) = return $ text str
-inlineToTexinfo (RawInline _ _) = return empty
+inlineToTexinfo (RawInline f str)
+  | f == "latex" || f == "tex" =
+                      return $ text "@tex" $$ text str $$ text "@end tex"
+  | f == "texinfo" =  return $ text str
+  | otherwise      =  return empty
 inlineToTexinfo (LineBreak) = return $ text "@*"
 inlineToTexinfo Space = return $ char ' '
 
@@ -440,7 +444,7 @@ inlineToTexinfo (Image alternate (source, _)) = do
   where
     ext     = drop 1 $ takeExtension source'
     base    = dropExtension source'
-    source' = if isAbsoluteURI source
+    source' = if isURI source
                  then source
                  else unEscapeString source
 

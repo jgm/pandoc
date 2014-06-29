@@ -324,7 +324,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</code></pre>
 <div>
 foo
 </div>
-
 <p>And nested without indentation:</p>
 <div>
 <div>
@@ -336,7 +335,6 @@ foo
 bar
 </div>
 </div>
-
 <p>Interpreted markdown in a table:</p>
 <table>
 <tr>
@@ -353,10 +351,8 @@ And this is <strong>strong</strong>
 
 <p>Here’s a simple block:</p>
 <div>
-    
 foo
 </div>
-
 <p>This should be a code block, though:</p>
 <pre><code>&lt;div&gt;
     foo
@@ -365,14 +361,12 @@ foo
 <pre><code>&lt;div&gt;foo&lt;/div&gt;</code></pre>
 <p>Now, nested:</p>
 <div>
-    <div>
-        <div>
-            
+<div>
+<div>
 foo
 </div>
-    </div>
 </div>
-
+</div>
 <p>This should just be an HTML comment:</p>
 <!-- Comment -->
 
@@ -445,7 +439,7 @@ Blah
 <li><span class="math"><em>α</em> ∧ <em>ω</em></span></li>
 <li><span class="math">223</span></li>
 <li><span class="math"><em>p</em></span>-Tree</li>
-<li>Here’s some display math: <br /><span class="math">$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$</span><br /></li>
+<li>Here’s some display math: <br /><span class="math">$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$</span><br /></li>
 <li>Here’s one that has a line break in it: <span class="math"><em>α</em> + <em>ω</em> × <em>x</em><sup>2</sup></span>.</li>
 </ul>
 <p>These shouldn’t be math:</p>
@@ -550,12 +544,12 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
 <p>Here is a movie <img src="movie.jpg" alt="movie" /> icon.</p>
 <hr />
 <h1 id="footnotes">Footnotes</h1>
-<p>Here is a footnote reference,<sup><a href="#fn1" class="footnoteRef" id="fnref1">1</a></sup> and another.<sup><a href="#fn2" class="footnoteRef" id="fnref2">2</a></sup> This should <em>not</em> be a footnote reference, because it contains a space.[^my note] Here is an inline note.<sup><a href="#fn3" class="footnoteRef" id="fnref3">3</a></sup></p>
+<p>Here is a footnote reference,<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> and another.<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> This should <em>not</em> be a footnote reference, because it contains a space.[^my note] Here is an inline note.<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a></p>
 <blockquote>
-<p>Notes can go in quotes.<sup><a href="#fn4" class="footnoteRef" id="fnref4">4</a></sup></p>
+<p>Notes can go in quotes.<a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a></p>
 </blockquote>
 <ol style="list-style-type: decimal">
-<li>And in list items.<sup><a href="#fn5" class="footnoteRef" id="fnref5">5</a></sup></li>
+<li>And in list items.<a href="#fn5" class="footnoteRef" id="fnref5"><sup>5</sup></a></li>
 </ol>
 <p>This paragraph should not be part of the note, as it is not indented.</p>
 <div class="footnotes">

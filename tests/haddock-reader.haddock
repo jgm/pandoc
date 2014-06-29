@@ -18,10 +18,10 @@ This is a code block:
 This is another code block:
 
 @
-    f x = x + x.
-    The \@...\@ code block /interprets markup normally/.
-    "Module.Foo"
-    \"Hello World\"
+f x = x + x.
+The \@...\@ code block /interprets markup normally/.
+"Module.Foo"
+\"Hello World\"
 @
 
 Haddock supports REPL examples:
@@ -42,21 +42,21 @@ This is a reference to the "Foo" module.
 
 This is a bulleted list:
 
-    * first item
+  * first item
 
-    * second item
+  * second item
 
 This is an enumerated list:
 
-    (1) first item
+  (1) first item
 
-    2. second item
+  2. second item
 
 This is a definition list:
 
-    [@foo@] The description of @foo@.
+  [@foo@] The description of @foo@.
 
-    [@bar@] The description of @bar@.
+  [@bar@] The description of @bar@.
 
 Here is a link: <http://haskell.org>
 

@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2008-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.MediaWiki
-   Copyright   : Copyright (C) 2008-2010 John MacFarlane
+   Copyright   : Copyright (C) 2008-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -34,9 +34,10 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
+import Text.Pandoc.Pretty (render)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.XML ( escapeStringForXML )
-import Data.List ( intersect, intercalate )
+import Data.List ( intersect, intercalate, intersperse )
 import Network.URI ( isURI )
 import Control.Monad.State
 
@@ -50,7 +51,7 @@ data WriterState = WriterState {
 writeMediaWiki :: WriterOptions -> Pandoc -> String
 writeMediaWiki opts document =
   evalState (pandocToMediaWiki opts document)
-            (WriterState { stNotes = False, stListLevel = [], stUseTags = False })
+            WriterState { stNotes = False, stListLevel = [], stUseTags = False }
 
 -- | Return MediaWiki representation of document.
 pandocToMediaWiki :: WriterOptions -> Pandoc -> State WriterState String
@@ -83,6 +84,11 @@ blockToMediaWiki :: WriterOptions -- ^ Options
 
 blockToMediaWiki _ Null = return ""
 
+blockToMediaWiki opts (Div attrs bs) = do
+  contents <- blockListToMediaWiki opts bs
+  return $ render Nothing (tagWithAttrs "div" attrs) ++ "\n\n" ++
+                     contents ++ "\n\n" ++ "</div>"
+
 blockToMediaWiki opts (Plain inlines) =
   inlineListToMediaWiki opts inlines
 
@@ -104,9 +110,10 @@ blockToMediaWiki opts (Para inlines) = do
               then  "<p>" ++ contents ++ "</p>"
               else contents ++ if null listLevel then "\n" else ""
 
-blockToMediaWiki _ (RawBlock "mediawiki" str) = return str
-blockToMediaWiki _ (RawBlock "html" str) = return str
-blockToMediaWiki _ (RawBlock _ _) = return ""
+blockToMediaWiki _ (RawBlock f str)
+  | f == Format "mediawiki" = return str
+  | f == Format "html"      = return str
+  | otherwise               = return ""
 
 blockToMediaWiki _ HorizontalRule = return "\n-----\n"
 
@@ -135,25 +142,17 @@ blockToMediaWiki opts (BlockQuote blocks) = do
   return $ "<blockquote>" ++ contents ++ "</blockquote>"
 
 blockToMediaWiki opts (Table capt aligns widths headers rows') = do
-  let alignStrings = map alignmentToString aligns
-  captionDoc <- if null capt
-                   then return ""
-                   else do
-                      c <- inlineListToMediaWiki opts capt
-                      return $ "<caption>" ++ c ++ "</caption>\n"
-  let percent w = show (truncate (100*w) :: Integer) ++ "%"
-  let coltags = if all (== 0.0) widths
-                   then ""
-                   else unlines $ map
-                         (\w -> "<col width=\"" ++ percent w ++ "\" />") widths
-  head' <- if all null headers
-              then return ""
-              else do
-                 hs <- tableRowToMediaWiki opts alignStrings 0 headers
-                 return $ "<thead>\n" ++ hs ++ "\n</thead>\n"
-  body' <- zipWithM (tableRowToMediaWiki opts alignStrings) [1..] rows'
-  return $ "<table>\n" ++ captionDoc ++ coltags ++ head' ++
-            "<tbody>\n" ++ unlines body' ++ "</tbody>\n</table>\n"
+  caption <- if null capt
+                then return ""
+                else do
+                   c <- inlineListToMediaWiki opts capt
+                   return $ "|+ " ++ trimr c ++ "\n"
+  let headless = all null headers
+  let allrows = if headless then rows' else headers:rows'
+  tableBody <- (concat . intersperse "|-\n") `fmap`
+                mapM (tableRowToMediaWiki opts headless aligns widths)
+                     (zip [1..] allrows)
+  return $ "{|\n" ++ caption ++ tableBody ++ "|}\n"
 
 blockToMediaWiki opts x@(BulletList items) = do
   oldUseTags <- get >>= return . stUseTags
@@ -285,20 +284,34 @@ vcat = intercalate "\n"
 -- Auxiliary functions for tables:
 
 tableRowToMediaWiki :: WriterOptions
-                    -> [String]
-                    -> Int
-                    -> [[Block]]
+                    -> Bool
+                    -> [Alignment]
+                    -> [Double]
+                    -> (Int, [[Block]])
                     -> State WriterState String
-tableRowToMediaWiki opts alignStrings rownum cols' = do
-  let celltype = if rownum == 0 then "th" else "td"
-  let rowclass = case rownum of
-                      0                  -> "header"
-                      x | x `rem` 2 == 1 -> "odd"
-                      _                  -> "even"
-  cols'' <- sequence $ zipWith
-            (\alignment item -> tableItemToMediaWiki opts celltype alignment item)
-            alignStrings cols'
-  return $ "<tr class=\"" ++ rowclass ++ "\">\n" ++ unlines cols'' ++ "</tr>"
+tableRowToMediaWiki opts headless alignments widths (rownum, cells) = do
+  cells' <- mapM (\cellData ->
+          tableCellToMediaWiki opts headless rownum cellData)
+          $ zip3 alignments widths cells
+  return $ unlines cells'
+
+tableCellToMediaWiki :: WriterOptions
+                     -> Bool
+                     -> Int
+                     -> (Alignment, Double, [Block])
+                     -> State WriterState String
+tableCellToMediaWiki opts headless rownum (alignment, width, bs) = do
+  contents <- blockListToMediaWiki opts bs
+  let marker = if rownum == 1 && not headless then "!" else "|"
+  let percent w = show (truncate (100*w) :: Integer) ++ "%"
+  let attrs = ["align=" ++ show (alignmentToString alignment) |
+                 alignment /= AlignDefault && alignment /= AlignLeft] ++
+              ["width=\"" ++ percent width ++ "\"" |
+                 width /= 0.0 && rownum == 1]
+  let attr = if null attrs
+                then ""
+                else unwords attrs ++ "|"
+  return $ marker ++ attr ++ trimr contents
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
@@ -306,17 +319,6 @@ alignmentToString alignment = case alignment of
                                  AlignRight   -> "right"
                                  AlignCenter  -> "center"
                                  AlignDefault -> "left"
-
-tableItemToMediaWiki :: WriterOptions
-                     -> String
-                     -> String
-                     -> [Block]
-                     -> State WriterState String
-tableItemToMediaWiki opts celltype align' item = do
-  let mkcell x = "<" ++ celltype ++ " align=\"" ++ align' ++ "\">" ++
-                    x ++ "</" ++ celltype ++ ">"
-  contents <- blockListToMediaWiki opts item
-  return $ mkcell contents
 
 -- | Convert list of Pandoc block elements to MediaWiki.
 blockListToMediaWiki :: WriterOptions -- ^ Options
@@ -332,6 +334,10 @@ inlineListToMediaWiki opts lst =
 
 -- | Convert Pandoc inline element to MediaWiki.
 inlineToMediaWiki :: WriterOptions -> Inline -> State WriterState String
+
+inlineToMediaWiki opts (Span attrs ils) = do
+  contents <- inlineListToMediaWiki opts ils
+  return $ render Nothing (tagWithAttrs "span" attrs) ++ contents ++ "</span>"
 
 inlineToMediaWiki opts (Emph lst) = do
   contents <- inlineListToMediaWiki opts lst
@@ -373,9 +379,10 @@ inlineToMediaWiki _ (Str str) = return $ escapeString str
 inlineToMediaWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
                                  -- note:  str should NOT be escaped
 
-inlineToMediaWiki _ (RawInline "mediawiki" str) = return str
-inlineToMediaWiki _ (RawInline "html" str) = return str
-inlineToMediaWiki _ (RawInline _ _) = return ""
+inlineToMediaWiki _ (RawInline f str)
+  | f == Format "mediawiki" = return str
+  | f == Format "html"      = return str
+  | otherwise               = return ""
 
 inlineToMediaWiki _ (LineBreak) = return "<br />"
 

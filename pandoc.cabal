@@ -1,29 +1,29 @@
 Name:            pandoc
-Version:         1.12
+Version:         1.13
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
 License-File:    COPYING
-Copyright:       (c) 2006-2013 John MacFarlane
+Copyright:       (c) 2006-2014 John MacFarlane
 Author:          John MacFarlane <jgm@berkeley.edu>
 Maintainer:      John MacFarlane <jgm@berkeley.edu>
 Bug-Reports:     https://github.com/jgm/pandoc/issues
 Stability:       alpha
 Homepage:        http://johnmacfarlane.net/pandoc
 Category:        Text
-Tested-With:     GHC == 7.4.2, GHC == 7.6.1
+Tested-With:     GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.2
 Synopsis:        Conversion between markup formats
 Description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
                  this library. It can read markdown and (subsets of) HTML,
                  reStructuredText, LaTeX, DocBook, MediaWiki markup, Haddock
-                 markup, OPML, and Textile, and it can write markdown,
-                 reStructuredText, HTML, LaTeX, ConTeXt, Docbook, OPML,
+                 markup, OPML, Emacs Org-Mode, and Textile, and it can write
+                 markdown, reStructuredText, HTML, LaTeX, ConTeXt, Docbook, OPML,
                  OpenDocument, ODT, Word docx, RTF, MediaWiki, DokuWiki, Textile,
                  groff man pages, plain text, Emacs Org-Mode, AsciiDoc,
-                 EPUB (v2 and v3), FictionBook2, and several kinds of
-                 HTML/javascript slide shows (S5, Slidy, Slideous, DZSlides,
-                 reveal.js).
+                 Haddock markup, EPUB (v2 and v3), FictionBook2,
+                 InDesign ICML, and several kinds of HTML/javascript
+                 slide shows (S5, Slidy, Slideous, DZSlides, reveal.js).
                  .
                  Pandoc extends standard markdown syntax with footnotes,
                  embedded LaTeX, definition lists, tables, and other
@@ -45,12 +45,13 @@ Data-Files:
                  data/templates/default.docbook,
                  data/templates/default.beamer,
                  data/templates/default.opendocument,
+                 data/templates/default.icml,
                  data/templates/default.opml,
-		 data/templates/default.latex,
+                 data/templates/default.latex,
                  data/templates/default.context,
-		 data/templates/default.texinfo,
+                 data/templates/default.texinfo,
                  data/templates/default.man,
-		 data/templates/default.markdown,
+                 data/templates/default.markdown,
                  data/templates/default.rst,
                  data/templates/default.plain,
                  data/templates/default.mediawiki,
@@ -60,7 +61,8 @@ Data-Files:
                  data/templates/default.slideous,
                  data/templates/default.revealjs,
                  data/templates/default.dzslides,
-		 data/templates/default.asciidoc,
+                 data/templates/default.asciidoc,
+                 data/templates/default.haddock,
                  data/templates/default.textile,
                  data/templates/default.org,
                  data/templates/default.epub,
@@ -74,38 +76,15 @@ Data-Files:
                  -- data for LaTeXMathML writer
                  data/LaTeXMathML.js,
                  data/MathMLinHTML.js,
-                 -- data for S5 writer
-                 data/s5/default/slides.js,
-                 data/s5/default/s5-core.css,
-                 data/s5/default/framing.css,
-                 data/s5/default/pretty.css,
-                 data/s5/default/opera.css,
-                 data/s5/default/outline.css,
-                 data/s5/default/print.css,
-                 data/s5/default/slides.css,
-                 data/s5/default/iepngfix.htc,
-                 data/s5/default/blank.gif,
-                 data/s5/default/bodybg.gif,
-                 -- data for slidy writer
-                 data/slidy/styles/slidy.css,
-                 data/slidy/scripts/slidy.js,
-                 data/slidy/graphics/fold.gif,
-                 data/slidy/graphics/unfold.gif,
-                 data/slidy/graphics/nofold-dim.gif,
-                 data/slidy/graphics/unfold-dim.gif,
-                 data/slidy/graphics/fold-dim.gif,
-                 -- data for slideous writer
-                 data/slideous/slideous.css,
-                 data/slideous/slideous.js,
                  -- data for dzslides writer
                  data/dzslides/template.html,
-                 -- data for citeproc
-                 data/default.csl,
                  -- sample lua custom writer
                  data/sample.lua
                  -- documentation
-                 README, INSTALL, COPYRIGHT, BUGS, CONTRIBUTING.md, changelog
+                 README, COPYRIGHT
 Extra-Source-Files:
+                 -- documentation
+                 INSTALL, BUGS, CONTRIBUTING.md, changelog
                  -- code to create pandoc.1 man page
                  man/man1/pandoc.1.template,
                  man/man5/pandoc_markdown.5.template,
@@ -118,17 +97,13 @@ Extra-Source-Files:
                  tests/docbook-reader.native
                  tests/html-reader.html,
                  tests/html-reader.native,
-                 tests/opml-reader.html,
+                 tests/opml-reader.opml,
                  tests/opml-reader.native,
-                 tests/haddock-reader.html,
+                 tests/haddock-reader.haddock,
                  tests/haddock-reader.native,
                  tests/insert,
                  tests/lalune.jpg,
                  tests/movie.jpg,
-                 tests/biblio.bib,
-                 tests/chicago-author-date.csl,
-                 tests/ieee.csl,
-                 tests/mhra.csl,
                  tests/latex-reader.latex,
                  tests/latex-reader.native,
                  tests/textile-reader.textile,
@@ -136,9 +111,7 @@ Extra-Source-Files:
                  tests/markdown-reader-more.txt,
                  tests/markdown-reader-more.native,
                  tests/markdown-citations.txt,
-                 tests/markdown-citations.chicago-author-date.txt,
-                 tests/markdown-citations.mhra.txt,
-                 tests/markdown-citations.ieee.txt,
+                 tests/markdown-citations.native,
                  tests/textile-reader.textile,
                  tests/mediawiki-reader.wiki,
                  tests/mediawiki-reader.native,
@@ -162,6 +135,7 @@ Extra-Source-Files:
                  tests/tables.opendocument,
                  tests/tables.org,
                  tests/tables.asciidoc,
+                 tests/tables.haddock,
                  tests/tables.texinfo,
                  tests/tables.rst,
                  tests/tables.rtf,
@@ -183,6 +157,7 @@ Extra-Source-Files:
                  tests/writer.opendocument,
                  tests/writer.org,
                  tests/writer.asciidoc,
+                 tests/writer.haddock,
                  tests/writer.rst,
                  tests/writer.rtf,
                  tests/writer.texinfo,
@@ -212,7 +187,25 @@ Extra-Source-Files:
                  tests/fb2.math.markdown,
                  tests/fb2.math.fb2,
                  tests/fb2.test-small.png,
-                 tests/fb2.test.jpg
+                 tests/fb2.test.jpg,
+                 tests/docx.block_quotes.docx,
+                 tests/docx.block_quotes_parse_indent.native,
+                 tests/docx.headers.docx,
+                 tests/docx.headers.native,
+                 tests/docx.image.docx,
+                 tests/docx.image_no_embed.native,
+                 tests/docx.inline_formatting.docx,
+                 tests/docx.inline_formatting.native,
+                 tests/docx.links.docx,
+                 tests/docx.links.native,
+                 tests/docx.lists.docx,
+                 tests/docx.lists.native,
+                 tests/docx.notes.docx,
+                 tests/docx.notes.native,
+                 tests/docx.tables.docx,
+                 tests/docx.tables.native,
+                 tests/docx.unicode.docx,
+                 tests/docx.unicode.native
 Extra-Tmp-Files: man/man1/pandoc.1,
                  man/man5/pandoc_markdown.5
 
@@ -224,8 +217,8 @@ Flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
 
-Flag http-conduit
-  Description:   Enable downloading of resources over https.
+Flag https
+  Description:   Enable support for downloading of resources over https.
   Default:       True
 
 Library
@@ -233,60 +226,54 @@ Library
                  syb >= 0.1 && < 0.5,
                  containers >= 0.1 && < 0.6,
                  unordered-containers >= 0.2 && < 0.3,
-                 array >= 0.3 && < 0.5,
+                 array >= 0.3 && < 0.6,
                  parsec >= 3.1 && < 3.2,
-                 mtl >= 1.1 && < 2.2,
-                 network >= 2 && < 2.5,
+                 mtl >= 1.1 && < 2.3,
+                 network >= 2 && < 2.6,
                  filepath >= 1.1 && < 1.4,
-                 process >= 1 && < 1.2,
+                 process >= 1 && < 1.3,
                  directory >= 1 && < 1.3,
                  bytestring >= 0.9 && < 0.11,
-                 text >= 0.11 && < 0.12,
-                 zip-archive >= 0.1.3.3 && < 0.2,
+                 text >= 0.11 && < 1.2,
+                 zip-archive >= 0.2.3.2 && < 0.3,
                  old-locale >= 1 && < 1.1,
                  time >= 1.2 && < 1.5,
                  HTTP >= 4000.0.5 && < 4000.3,
-                 texmath >= 0.6.1.5 && < 0.7,
+                 texmath >= 0.6.6.3 && < 0.7,
                  xml >= 1.3.12 && < 1.4,
                  random >= 1 && < 1.1,
                  extensible-exceptions >= 0.1 && < 0.2,
-                 citeproc-hs >= 0.3.7 && < 0.4,
-                 pandoc-types >= 1.12 && < 1.13,
-                 aeson >= 0.6 && < 0.7,
-                 tagsoup >= 0.12.5 && < 0.13,
+                 pandoc-types >= 1.12.3.3 && < 1.13,
+                 aeson >= 0.7 && < 0.8,
+                 tagsoup >= 0.13.1 && < 0.14,
                  base64-bytestring >= 0.1 && < 1.1,
                  zlib >= 0.5 && < 0.6,
-                 highlighting-kate >= 0.5.4 && < 0.6,
+                 highlighting-kate >= 0.5.8.3 && < 0.6,
                  data-default >= 0.4 && < 0.6,
-                 temporary >= 1.1 && < 1.2,
-                 blaze-html >= 0.5 && < 0.7,
-                 blaze-markup >= 0.5.1 && < 0.6,
-                 attoparsec >= 0.10 && < 0.11,
-                 stringable >= 0.1 && < 0.2,
-                 yaml >= 0.8.3 && < 0.9,
+                 temporary >= 1.1 && < 1.3,
+                 blaze-html >= 0.5 && < 0.8,
+                 blaze-markup >= 0.5.1 && < 0.7,
+                 yaml >= 0.8.8.2 && < 0.9,
+                 scientific >= 0.2 && < 0.4,
                  vector >= 0.10 && < 0.11,
-                 hslua >= 0.3 && < 0.4
-  if flag(http-conduit)
-     Build-Depends: http-conduit >= 1.9 && < 1.10,
+                 hslua >= 0.3 && < 0.4,
+                 binary >= 0.5 && < 0.8,
+                 SHA >= 1.6 && < 1.7,
+                 haddock-library >= 1.1 && < 1.2
+  if flag(https)
+     Build-Depends: http-client >= 0.3.2 && < 0.4,
+                    http-client-tls >= 0.2 && < 0.3,
                     http-types >= 0.8 && < 0.9
-     cpp-options:   -DHTTP_CONDUIT
+     cpp-options:   -DHTTP_CLIENT
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
-     -- build-tools:   hsb2hs
+     -- Build-Tools:   hsb2hs -- not yet recognized by cabal
      other-modules: Text.Pandoc.Data
-  if impl(ghc >= 7.0.1)
-    Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
-  else
-    if impl(ghc >= 6.12)
-      Ghc-Options:   -Wall -fno-warn-unused-do-bind
-    else
-      Ghc-Options:   -Wall
-  if impl(ghc >= 7.0.1)
-    Ghc-Prof-Options: -auto-all -caf-all -rtsopts
-  else
-    Ghc-Prof-Options: -auto-all -caf-all
+  if os(windows)
+    Cpp-options:      -D_WINDOWS
+  Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
+  Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   Default-Language: Haskell98
-  Default-Extensions: CPP
   Other-Extensions:   PatternGuards, OverloadedStrings,
                       ScopedTypeVariables, GeneralizedNewtypeDeriving,
                       RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
@@ -302,22 +289,26 @@ Library
                    Text.Pandoc.Readers.Markdown,
                    Text.Pandoc.Readers.MediaWiki,
                    Text.Pandoc.Readers.RST,
+                   Text.Pandoc.Readers.Org,
                    Text.Pandoc.Readers.DocBook,
                    Text.Pandoc.Readers.OPML,
                    Text.Pandoc.Readers.TeXMath,
                    Text.Pandoc.Readers.Textile,
                    Text.Pandoc.Readers.Native,
                    Text.Pandoc.Readers.Haddock,
+                   Text.Pandoc.Readers.Docx,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
                    Text.Pandoc.Writers.OPML,
                    Text.Pandoc.Writers.HTML,
+                   Text.Pandoc.Writers.ICML,
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
                    Text.Pandoc.Writers.OpenDocument,
                    Text.Pandoc.Writers.Texinfo,
                    Text.Pandoc.Writers.Man,
                    Text.Pandoc.Writers.Markdown,
+                   Text.Pandoc.Writers.Haddock,
                    Text.Pandoc.Writers.RST,
                    Text.Pandoc.Writers.Org,
                    Text.Pandoc.Writers.AsciiDoc,
@@ -334,10 +325,11 @@ Library
                    Text.Pandoc.UTF8,
                    Text.Pandoc.Templates,
                    Text.Pandoc.XML,
-                   Text.Pandoc.Biblio,
-                   Text.Pandoc.SelfContained
-  Other-Modules:   Text.Pandoc.Readers.Haddock.Lex,
-                   Text.Pandoc.Readers.Haddock.Parse,
+                   Text.Pandoc.SelfContained,
+                   Text.Pandoc.Process
+  Other-Modules:   Text.Pandoc.Readers.Docx.Lists,
+                   Text.Pandoc.Readers.Docx.Reducible,
+                   Text.Pandoc.Readers.Docx.Parse,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Asciify,
                    Text.Pandoc.MIME,
@@ -346,37 +338,32 @@ Library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Slides,
                    Text.Pandoc.Highlighting,
+                   Text.Pandoc.Compat.Monoid,
+                   Text.Pandoc.Compat.TagSoupEntity,
                    Paths_pandoc
 
   Buildable:       True
 
 Executable pandoc
   Build-Depends: pandoc,
+                 pandoc-types >= 1.12.3.3 && < 1.13,
                  base >= 4.2 && <5,
                  directory >= 1 && < 1.3,
                  filepath >= 1.1 && < 1.4,
-                 network >= 2 && < 2.5,
-                 text >= 0.11 && < 0.12,
+                 network >= 2 && < 2.6,
+                 text >= 0.11 && < 1.2,
                  bytestring >= 0.9 && < 0.11,
                  extensible-exceptions >= 0.1 && < 0.2,
-                 highlighting-kate >= 0.5.4 && < 0.6,
-                 HTTP >= 4000.0.5 && < 4000.3,
-                 citeproc-hs >= 0.3.7 && < 0.4
-  if impl(ghc >= 7.0.1)
-    Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
-  else
-    if impl(ghc >= 6.12)
-      Ghc-Options:  -Wall -fno-warn-unused-do-bind
-    else
-      Ghc-Options:  -Wall
-  if impl(ghc >= 7.0.1)
-    Ghc-Prof-Options: -auto-all -caf-all -rtsopts -with-rtsopts=-K16m
-  else
-    Ghc-Prof-Options: -auto-all -caf-all
+                 highlighting-kate >= 0.5.8.3 && < 0.6,
+                 aeson >= 0.7.0.5 && < 0.8,
+                 yaml >= 0.8.8.2 && < 0.9,
+                 containers >= 0.1 && < 0.6,
+                 HTTP >= 4000.0.5 && < 4000.3
+  Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
+  Ghc-Prof-Options: -auto-all -caf-all -rtsopts -with-rtsopts=-K16m
   if os(windows)
     Cpp-options:      -D_WINDOWS
   Default-Language: Haskell98
-  Default-Extensions: CPP
   Other-Extensions: PatternGuards, OverloadedStrings,
                     ScopedTypeVariables, GeneralizedNewtypeDeriving,
                     RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
@@ -396,7 +383,6 @@ Executable make-pandoc-man-pages
                  old-time >= 1.0 && < 1.2,
                  time >= 1.2 && < 1.5
   Default-Language: Haskell98
-  Default-Extensions: CPP
 
 Test-Suite test-pandoc
   Type:           exitcode-stdio-1.0
@@ -405,18 +391,18 @@ Test-Suite test-pandoc
   Build-Depends:  base >= 4.2 && < 5,
                   syb >= 0.1 && < 0.5,
                   pandoc,
-                  pandoc-types >= 1.12 && < 1.13,
+                  pandoc-types >= 1.12.3.3 && < 1.13,
                   bytestring >= 0.9 && < 0.11,
-                  text >= 0.11 && < 0.12,
+                  text >= 0.11 && < 1.2,
                   directory >= 1 && < 1.3,
                   filepath >= 1.1 && < 1.4,
-                  process >= 1 && < 1.2,
-                 highlighting-kate >= 0.5.4 && < 0.6,
+                  process >= 1 && < 1.3,
+                  highlighting-kate >= 0.5.8.3 && < 0.6,
                   Diff >= 0.2 && < 0.4,
                   test-framework >= 0.3 && < 0.9,
                   test-framework-hunit >= 0.2 && < 0.4,
                   test-framework-quickcheck2 >= 0.2.9 && < 0.4,
-                  QuickCheck >= 2.4 && < 2.7,
+                  QuickCheck >= 2.4 && < 2.8,
                   HUnit >= 1.2 && < 1.3,
                   containers >= 0.1 && < 0.6,
                   ansi-terminal >= 0.5 && < 0.7
@@ -424,27 +410,20 @@ Test-Suite test-pandoc
                   Tests.Helpers
                   Tests.Arbitrary
                   Tests.Shared
+                  Tests.Walk
                   Tests.Readers.LaTeX
                   Tests.Readers.Markdown
+                  Tests.Readers.Org
                   Tests.Readers.RST
+                  Tests.Readers.Docx
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
                   Tests.Writers.HTML
                   Tests.Writers.Markdown
+                  Tests.Writers.AsciiDoc
                   Tests.Writers.LaTeX
-  if impl(ghc >= 7.0.1)
-    Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind
-  else
-    if impl(ghc >= 6.12)
-      Ghc-Options: -Wall -fno-warn-unused-do-bind
-    else
-      Ghc-Options: -Wall
-  if impl(ghc >= 7)
-    cpp-options:   -D_LIT=lit
-  else
-    cpp-options:   -D_LIT=$lit
+  Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind
   Default-Language: Haskell98
-  Default-Extensions: CPP
 
 benchmark benchmark-pandoc
   Type:            exitcode-stdio-1.0
@@ -454,11 +433,5 @@ benchmark benchmark-pandoc
                    base >= 4.2 && < 5,
                    syb >= 0.1 && < 0.5,
                    criterion >= 0.5 && < 0.9
-  if impl(ghc >= 7.0.1)
-    Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
-  else
-    if impl(ghc >= 6.12)
-      Ghc-Options:   -Wall -fno-warn-unused-do-bind
-    else
-      Ghc-Options:   -Wall
+  Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Default-Language: Haskell98

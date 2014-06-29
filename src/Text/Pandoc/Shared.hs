@@ -1,6 +1,7 @@
-{-# LANGUAGE DeriveDataTypeable, CPP #-}
+{-# LANGUAGE DeriveDataTypeable, CPP, MultiParamTypeClasses,
+    FlexibleContexts, ScopedTypeVariables #-}
 {-
-Copyright (C) 2006-2013 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Shared
-   Copyright   : Copyright (C) 2006-2013 John MacFarlane
+   Copyright   : Copyright (C) 2006-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -34,6 +35,7 @@ module Text.Pandoc.Shared (
                      splitByIndices,
                      splitStringByIndices,
                      substitute,
+                     ordNub,
                      -- * Text processing
                      backslashEscapes,
                      escapeStringUsing,
@@ -51,10 +53,12 @@ module Text.Pandoc.Shared (
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
                      normalizeSpaces,
+                     extractSpaces,
                      normalize,
                      stringify,
                      compactify,
                      compactify',
+                     compactify'DL,
                      Element (..),
                      hierarchicalize,
                      uniqueIdent,
@@ -79,8 +83,9 @@ module Text.Pandoc.Shared (
                     ) where
 
 import Text.Pandoc.Definition
+import Text.Pandoc.Walk
 import Text.Pandoc.Generic
-import Text.Pandoc.Builder (Blocks, ToMetaValue(..))
+import Text.Pandoc.Builder (Inlines, Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.Environment (getProgName)
@@ -89,12 +94,15 @@ import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, isPrefixOf, intercalate )
 import qualified Data.Map as M
-import Network.URI ( escapeURIString, isAbsoluteURI, unEscapeString )
+import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
+                     unEscapeString, parseURIReference )
+import qualified Data.Set as Set
 import System.Directory
 import Text.Pandoc.MIME (getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
+import qualified Control.Exception as E
 import Control.Monad (msum, unless)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
@@ -103,8 +111,10 @@ import System.IO (stderr)
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
 import qualified Data.ByteString as BS
-import Data.ByteString.Lazy (toChunks)
 import qualified Data.ByteString.Char8 as B8
+import Text.Pandoc.Compat.Monoid
+import Data.ByteString.Base64 (decodeLenient)
+import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -112,10 +122,16 @@ import System.FilePath ( joinPath, splitDirectories )
 #else
 import Paths_pandoc (getDataFileName)
 #endif
-#ifdef HTTP_CONDUIT
-import Network.HTTP.Conduit (httpLbs, parseUrl, withManager,
-                             responseBody, responseHeaders)
+#ifdef HTTP_CLIENT
+import Data.ByteString.Lazy (toChunks)
+import Network.HTTP.Client (httpLbs, parseUrl, withManager,
+                            responseBody, responseHeaders,
+                            Request(port,host))
+import Network.HTTP.Client.Internal (addProxy)
+import Network.HTTP.Client.TLS (tlsManagerSettings)
+import System.Environment (getEnv)
 import Network.HTTP.Types.Header ( hContentType)
+import Network (withSocketsDo)
 #else
 import Network.URI (parseURI)
 import Network.HTTP (findHeader, rspBody,
@@ -161,6 +177,13 @@ substitute target replacement lst@(x:xs) =
     if target `isPrefixOf` lst
        then replacement ++ substitute target replacement (drop (length target) lst)
        else x : substitute target replacement xs
+
+ordNub :: (Ord a) => [a] -> [a]
+ordNub l = go Set.empty l
+  where
+    go _ [] = []
+    go s (x:xs) = if x `Set.member` s then go s xs
+                                      else x : go (Set.insert x s) xs
 
 --
 -- Text processing
@@ -225,9 +248,9 @@ toRomanNumeral x =
               _ | x >= 50   -> "L"  ++ toRomanNumeral (x - 50)
               _ | x >= 40   -> "XL" ++ toRomanNumeral (x - 40)
               _ | x >= 10   -> "X" ++ toRomanNumeral (x - 10)
-              _ | x >= 9    -> "IX" ++ toRomanNumeral (x - 5)
+              _ | x == 9    -> "IX"
               _ | x >= 5    -> "V" ++ toRomanNumeral (x - 5)
-              _ | x >= 4    -> "IV" ++ toRomanNumeral (x - 4)
+              _ | x == 4    -> "IV"
               _ | x >= 1    -> "I" ++ toRomanNumeral (x - 1)
               _             -> ""
 
@@ -265,7 +288,7 @@ normalizeDate s = fmap (formatTime defaultTimeLocale "%F")
   (msum $ map (\fs -> parsetimeWith fs s) formats :: Maybe Day)
    where parsetimeWith = parseTime defaultTimeLocale
          formats = ["%x","%m/%d/%Y", "%D","%F", "%d %b %Y",
-                    "%d %B %Y", "%b. %d, %Y", "%B %d, %Y"]
+                    "%d %B %Y", "%b. %d, %Y", "%B %d, %Y", "%Y"]
 
 --
 -- Pandoc block and inline list processing
@@ -309,6 +332,20 @@ isSpaceOrEmpty :: Inline -> Bool
 isSpaceOrEmpty Space = True
 isSpaceOrEmpty (Str "") = True
 isSpaceOrEmpty _ = False
+
+-- | Extract the leading and trailing spaces from inside an inline element
+-- and place them outside the element. 
+
+extractSpaces :: (Inlines -> Inlines) -> Inlines -> Inlines
+extractSpaces f is = 
+  let contents = B.unMany is
+      left  = case viewl contents of
+                    (Space :< _) -> B.space
+                    _            -> mempty
+      right = case viewr contents of
+                    (_ :> Space) -> B.space
+                    _            -> mempty in
+  (left <> f (B.trimInlines . B.Many $ contents) <> right)
 
 -- | Normalize @Pandoc@ document, consolidating doubled 'Space's,
 -- combining adjacent 'Str's and 'Emph's, remove 'Null's and
@@ -380,9 +417,11 @@ consolidateInlines (Code a1 x : Code a2 y : zs) | a1 == a2 =
 consolidateInlines (x : xs) = x : consolidateInlines xs
 consolidateInlines [] = []
 
--- | Convert list of inlines to a string with formatting removed.
-stringify :: [Inline] -> String
-stringify = queryWith go
+-- | Convert pandoc structure to a string with formatting removed.
+-- Footnotes are skipped (since we don't want their contents in link
+-- labels).
+stringify :: Walkable Inline a => a -> String
+stringify = query go . walk deNote
   where go :: Inline -> [Char]
         go Space = " "
         go (Str x) = x
@@ -390,6 +429,8 @@ stringify = queryWith go
         go (Math _ x) = x
         go LineBreak = " "
         go _ = ""
+        deNote (Note _) = Str ""
+        deNote x = x
 
 -- | Change final list item from @Para@ to @Plain@ if the list contains
 -- no other @Para@ blocks.
@@ -422,6 +463,21 @@ compactify' items =
                             _   -> items
            _      -> items
 
+-- | Like @compactify'@, but akts on items of definition lists.
+compactify'DL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
+compactify'DL items =
+  let defs = concatMap snd items
+      defBlocks = reverse $ concatMap B.toList defs
+  in  case defBlocks of
+           (Para x:_) -> if not $ any isPara (drop 1 defBlocks)
+                            then let (t,ds) = last items
+                                     lastDef = B.toList $ last ds
+                                     ds' = init ds ++
+                                          [B.fromList $ init lastDef ++ [Plain x]]
+                                  in init items ++ [(t, ds')]
+                            else items
+           _          -> items
+
 isPara :: Block -> Bool
 isPara (Para _) = True
 isPara _        = False
@@ -431,6 +487,29 @@ data Element = Blk Block
              | Sec Int [Int] Attr [Inline] [Element]
              --    lvl  num attributes label    contents
              deriving (Eq, Read, Show, Typeable, Data)
+
+instance Walkable Inline Element where
+  walk f (Blk x) = Blk (walk f x)
+  walk f (Sec lev nums attr ils elts) = Sec lev nums attr (walk f ils) (walk f elts)
+  walkM f (Blk x) = Blk `fmap` walkM f x
+  walkM f (Sec lev nums attr ils elts) = do
+    ils' <- walkM f ils
+    elts' <- walkM f elts
+    return $ Sec lev nums attr ils' elts'
+  query f (Blk x) = query f x
+  query f (Sec _ _ _ ils elts) = query f ils <> query f elts
+
+instance Walkable Block Element where
+  walk f (Blk x) = Blk (walk f x)
+  walk f (Sec lev nums attr ils elts) = Sec lev nums attr (walk f ils) (walk f elts)
+  walkM f (Blk x) = Blk `fmap` walkM f x
+  walkM f (Sec lev nums attr ils elts) = do
+    ils' <- walkM f ils
+    elts' <- walkM f elts
+    return $ Sec lev nums attr ils' elts'
+  query f (Blk x) = query f x
+  query f (Sec _ _ _ ils elts) = query f ils <> query f elts
+
 
 -- | Convert Pandoc inline list to plain text identifier.  HTML
 -- identifiers must start with a letter, and may contain only
@@ -492,14 +571,14 @@ isHeaderBlock _ = False
 
 -- | Shift header levels up or down.
 headerShift :: Int -> Pandoc -> Pandoc
-headerShift n = bottomUp shift
+headerShift n = walk shift
   where shift :: Block -> Block
         shift (Header level attr inner) = Header (level + n) attr inner
         shift x                         = x
 
 -- | Detect if a list is tight.
 isTightList :: [[Block]] -> Bool
-isTightList = and . map firstIsPlain
+isTightList = all firstIsPlain
   where firstIsPlain (Plain _ : _) = True
         firstIsPlain _             = False
 
@@ -512,8 +591,10 @@ addMetaField :: ToMetaValue a
              -> Meta
 addMetaField key val (Meta meta) =
   Meta $ M.insertWith combine key (toMetaValue val) meta
-  where combine newval (MetaList xs) = MetaList (xs ++ [newval])
+  where combine newval (MetaList xs) = MetaList (xs ++ tolist newval)
         combine newval x             = MetaList [x, newval]
+        tolist (MetaList ys)         = ys
+        tolist y                     = [y]
 
 -- | Create 'Meta' from old-style title, authors, date.  This is
 -- provided to ease the transition from the old API.
@@ -531,14 +612,10 @@ makeMeta title authors date =
 -- | Render HTML tags.
 renderTags' :: [Tag String] -> String
 renderTags' = renderTagsOptions
-               renderOptions{ optMinimize = \x ->
-                                    let y = map toLower x
-                                    in  y == "hr" || y == "br" ||
-                                        y == "img" || y == "meta" ||
-                                        y == "link"
-                            , optRawTag = \x ->
-                                    let y = map toLower x
-                                    in  y == "script" || y == "style" }
+               renderOptions{ optMinimize = matchTags ["hr", "br", "img",
+                                                       "meta", "link"]
+                            , optRawTag   = matchTags ["script", "style"] }
+              where matchTags = \tags -> flip elem tags . map toLower
 
 --
 -- File handling
@@ -557,8 +634,7 @@ readDefaultDataFile :: FilePath -> IO BS.ByteString
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
   case lookup (makeCanonical fname) dataFiles of
-    Nothing       -> ioError $ userError
-                             $ "Data file `" ++ fname ++ "' does not exist"
+    Nothing       -> err 97 $ "Could not find data file " ++ fname
     Just contents -> return contents
   where makeCanonical = joinPath . transformPathParts . splitDirectories
         transformPathParts = reverse . foldl go []
@@ -566,7 +642,12 @@ readDefaultDataFile fname =
         go (_:as) ".." = as
         go as     x    = x : as
 #else
-  getDataFileName ("data" </> fname) >>= BS.readFile
+  getDataFileName ("data" </> fname) >>= checkExistence >>= BS.readFile
+   where checkExistence fn = do
+           exists <- doesFileExist fn
+           if exists
+              then return fn
+              else err 97 ("Could not find data file " ++ fname)
 #endif
 
 -- | Read file from specified user data directory or, if not found there, from
@@ -586,34 +667,45 @@ readDataFileUTF8 userDir fname =
 
 -- | Fetch an image or other item from the local filesystem or the net.
 -- Returns raw content and maybe mime type.
-fetchItem :: String -> String -> IO (BS.ByteString, Maybe String)
-fetchItem sourceDir s =
-  case s of
-    _ | isAbsoluteURI s         -> openURL s
-      | isAbsoluteURI sourceDir -> openURL $ sourceDir ++ "/" ++ s
-      | otherwise               -> do
+fetchItem :: Maybe String -> String
+          -> IO (Either E.SomeException (BS.ByteString, Maybe String))
+fetchItem sourceURL s
+  | isURI s         = openURL s
+  | otherwise       =
+      case sourceURL >>= parseURIReference of
+           Just u  -> case parseURIReference s of
+                           Just s' -> openURL $ show $
+                                        s' `nonStrictRelativeTo` u
+                           Nothing -> openURL $ show u ++ "/" ++ s
+           Nothing -> E.try readLocalFile
+  where readLocalFile = do
           let mime = case takeExtension s of
-                        ".gz" -> getMimeType $ dropExtension s
-                        x     -> getMimeType x
-          let f = sourceDir </> s
-          cont <- BS.readFile f
+                          ".gz" -> getMimeType $ dropExtension s
+                          x     -> getMimeType x
+          cont <- BS.readFile s
           return (cont, mime)
 
 -- | Read from a URL and return raw data and maybe mime type.
-openURL :: String -> IO (BS.ByteString, Maybe String)
+openURL :: String -> IO (Either E.SomeException (BS.ByteString, Maybe String))
 openURL u
   | "data:" `isPrefixOf` u =
     let mime     = takeWhile (/=',') $ drop 5 u
         contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u
-    in  return (contents, Just mime)
-#ifdef HTTP_CONDUIT
-  | otherwise = do
+    in  return $ Right (decodeLenient contents, Just mime)
+#ifdef HTTP_CLIENT
+  | otherwise = withSocketsDo $ E.try $ do
      req <- parseUrl u
-     resp <- withManager $ httpLbs req
+     (proxy :: Either E.SomeException String) <- E.try $ getEnv "http_proxy"
+     let req' = case proxy of
+                     Left _   -> req
+                     Right pr -> case parseUrl pr of
+                                      Just r  -> addProxy (host r) (port r) req
+                                      Nothing -> req
+     resp <- withManager tlsManagerSettings $ httpLbs req'
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 #else
-  | otherwise = getBodyAndMimeType `fmap` browse
+  | otherwise = E.try $ getBodyAndMimeType `fmap` browse
               (do S.liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
                   setOutHandler $ const (return ())
                   setAllowRedirects True
@@ -651,5 +743,3 @@ safeRead s = case reads s of
                   (d,x):_
                     | all isSpace x -> return d
                   _                 -> fail $ "Could not read `" ++ s ++ "'"
-
-

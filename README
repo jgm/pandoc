@@ -1,6 +1,6 @@
 % Pandoc User's Guide
 % John MacFarlane
-% January 19, 2013
+% May 16, 2014
 
 Synopsis
 ========
@@ -13,14 +13,15 @@ Description
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
-[LaTeX], [MediaWiki markup], [Haddock markup], [OPML], and [DocBook]; and
-it can write plain text, [markdown], [reStructuredText], [XHTML], [HTML 5],
-[LaTeX] (including [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
+[LaTeX], [MediaWiki markup], [Haddock markup], [OPML], [Emacs
+Org-mode], [DocBook], and [Word docx]; and it can write plain text,
+[markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX] (including
+[beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
-[EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages, [Emacs
-Org-Mode], [AsciiDoc], and [Slidy], [Slideous], [DZSlides], [reveal.js]
-or [S5] HTML slide shows. It can also produce [PDF] output on systems
-where LaTeX is installed.
+[Haddock markup], [EPUB] (v2 or v3), [FictionBook2], [Textile],
+[groff man] pages, [Emacs Org-Mode], [AsciiDoc], [InDesign ICML],
+and [Slidy], [Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows.
+It can also produce [PDF] output on systems where LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, fenced code blocks,
@@ -108,7 +109,7 @@ to PDF:
 Production of a PDF requires that a LaTeX engine be installed (see
 `--latex-engine`, below), and assumes that the following LaTeX packages are
 available: `amssymb`, `amsmath`, `ifxetex`, `ifluatex`, `listings` (if the
-`--listings` option is used), `fancyvrb`, `longtable`, `url`,
+`--listings` option is used), `fancyvrb`, `longtable`, `booktabs`, `url`,
 `graphicx`, `hyperref`, `ulem`, `babel` (if the `lang` variable is set),
 `fontspec` (if `xelatex` or `lualatex` is used as the LaTeX engine), `xltxtra`
 and `xunicode` (if `xelatex` is used).
@@ -143,14 +144,14 @@ General options
     `markdown_phpextra` (PHP Markdown Extra extended markdown),
     `markdown_github` (github extended markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
-    `docbook` (DocBook), `opml` (OPML), `mediawiki` (MediaWiki markup),
-    `haddock` (Haddock markup), or `latex` (LaTeX).
-    If `+lhs` is appended to `markdown`, `rst`, `latex`, or `html`,
-    the input will be treated as literate Haskell source:
-    see [Literate Haskell support](#literate-haskell-support), below.
-    Markdown syntax extensions can be individually enabled or disabled
-    by appending `+EXTENSION` or `-EXTENSION` to the format name.
-    So, for example, `markdown_strict+footnotes+definition_lists`
+    `docbook` (DocBook), `opml` (OPML), `org` (Emacs Org-mode),
+    `mediawiki` (MediaWiki markup), `haddock` (Haddock markup), or
+    `latex` (LaTeX).  If `+lhs` is appended to `markdown`, `rst`,
+    `latex`, or `html`, the input will be treated as literate Haskell
+    source: see [Literate Haskell support](#literate-haskell-support),
+    below. Markdown syntax extensions can be individually enabled or
+    disabled by appending `+EXTENSION` or `-EXTENSION` to the format
+    name. So, for example, `markdown_strict+footnotes+definition_lists`
     is strict markdown with footnotes and definition lists enabled,
     and `markdown-pipe_tables+hard_line_breaks` is pandoc's markdown
     without pipe tables and with hard line breaks. See [Pandoc's
@@ -168,22 +169,22 @@ General options
     `context` (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup),
     `textile` (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo),
     `opml` (OPML), `docbook` (DocBook), `opendocument` (OpenDocument), `odt`
-    (OpenOffice text document), `docx` (Word docx),
-    `rtf` (rich text format), `epub` (EPUB v2 book), `epub3`
-    (EPUB v3), `fb2` (FictionBook2 e-book), `asciidoc` (AsciiDoc), `slidy`
-    (Slidy HTML and javascript slide show), `slideous` (Slideous HTML and
-    javascript slide show), `dzslides` (DZSlides HTML5 + javascript slide
-    show), `revealjs` (reveal.js HTML5 + javascript slide show), `s5`
-    (S5 HTML and javascript slide show), or the path of a custom
-    lua writer (see [Custom writers](#custom-writers), below). Note that
-    `odt`, `epub`, and `epub3` output will not be directed to *stdout*; an
-    output filename must be specified using the `-o/--output` option. If
-    `+lhs` is appended to `markdown`, `rst`, `latex`, `beamer`, `html`, or
-    `html5`, the output will be rendered as literate Haskell source: see
-    [Literate Haskell support](#literate-haskell-support), below.  Markdown
-    syntax extensions can be individually enabled or disabled by appending
-    `+EXTENSION` or `-EXTENSION` to the format name, as described above
-    under `-f`.
+    (OpenOffice text document), `docx` (Word docx), `haddock` (Haddock
+    markup), `rtf` (rich text format), `epub` (EPUB v2 book), `epub3`
+    (EPUB v3), `fb2` (FictionBook2 e-book), `asciidoc` (AsciiDoc),
+    `icml` (InDesign ICML), `slidy` (Slidy HTML and javascript slide show),
+    `slideous` (Slideous HTML and javascript slide show), `dzslides`
+    (DZSlides HTML5 + javascript slide show), `revealjs` (reveal.js
+    HTML5 + javascript slide show), `s5` (S5 HTML and javascript slide show),
+    or the path of a custom lua writer (see [Custom writers](#custom-writers),
+    below). Note that `odt`, `epub`, and `epub3` output will not be directed
+    to *stdout*; an output filename must be specified using the `-o/--output`
+    option. If `+lhs` is appended to `markdown`, `rst`, `latex`, `beamer`,
+    `html`, or `html5`, the output will be rendered as literate Haskell
+    source: see [Literate Haskell support](#literate-haskell-support), below.
+    Markdown syntax extensions can be individually enabled or disabled by
+    appending `+EXTENSION` or `-EXTENSION` to the format name, as described
+    above under `-f`.
 
 `-o` *FILE*, `--output=`*FILE*
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
@@ -259,6 +260,42 @@ Reader options
     require different kinds of images.  Currently this option only affects
     the markdown and LaTeX readers.
 
+`--filter=`*EXECUTABLE*
+:   Specify an executable to be used as a filter transforming the
+    Pandoc AST after the input is parsed and before the output is
+    written.  The executable should read JSON from stdin and write
+    JSON to stdout.  The JSON must be formatted like  pandoc's own
+    JSON input and output.  The name of the output format will be
+    passed to the filter as the first argument.  Hence,
+
+        pandoc --filter ./caps.py -t latex
+
+    is equivalent to
+
+        pandoc -t json | ./caps.py latex | pandoc -f json -t latex
+
+    The latter form may be useful for debugging filters.
+
+    Filters may be written in any language.  `Text.Pandoc.JSON`
+    exports `toJSONFilter` to facilitate writing filters in Haskell.
+    Those who would prefer to write filters in python can use the
+    module `pandocfilters`, installable from PyPI. See
+    <http://github.com/jgm/pandocfilters> for the module and several
+    examples.  Note that the *EXECUTABLE* will be sought in the user's
+    `PATH`, and not in the working directory, if no directory is
+    provided.  If you want to run a script in the working directory,
+    preface the filename with `./`.
+
+`-M` *KEY[=VAL]*, `--metadata=`*KEY[:VAL]*
+:   Set the metadata field *KEY* to the value *VAL*.  A value specified
+    on the command line overrides a value specified in the document.
+    Values will be parsed as YAML boolean or string values. If no value is
+    specified, the value will be treated as Boolean true.  Like
+    `--variable`, `--metadata` causes template variables to be set.
+    But unlike `--variable`, `--metadata` affects the metadata of the
+    underlying document (which is accessible from filters and may be
+    printed in some output formats).
+
 `--normalize`
 :   Normalize the document after reading:  merge adjacent
     `Str` or `Emph` elements, for example, and remove repeated `Space`s.
@@ -270,6 +307,17 @@ Reader options
 
 `--tab-stop=`*NUMBER*
 :   Specify the number of spaces per tab (default is 4).
+
+`--track-changes=`*accept|reject|all*
+:   Specifies what to do with insertions and deletions produced by the MS
+    Word "track-changes" feature.  *accept* (the default), inserts all
+    insertions, and ignores all deletions. *reject* inserts all
+    deletions and ignores insertions. *all* puts in both insertions
+    and deletions, wrapped in spans with `insertion` and `deletion`
+    classes, respectively. The author and time of change is
+    included. *all* is useful for scripting: only accepting changes
+    from a certain reviewer, say, or before a certain date. This
+    option only affects the Docx reader.
 
 General writer options
 ----------------------
@@ -303,9 +351,8 @@ General writer options
 :   Print the default template for an output *FORMAT*. (See `-t`
     for a list of possible *FORMAT*s.)
 
-`--print-sample-lua-writer`
-:   Print a sample lua custom writer (see [Custom writers](#custom-writers),
-    below.
+`--print-default-data-file=`*FILE*
+:   Print a default data file.
 
 `--no-wrap`
 :   Disable text wrapping in output. By default, text is wrapped
@@ -318,7 +365,7 @@ General writer options
 :   Include an automatically generated table of contents (or, in
     the case of `latex`, `context`, and `rst`, an instruction to create
     one) in the output document. This option has no effect on `man`,
-    `docbook`, `slidy`, `slideous`, or `s5` output.
+    `docbook`, `slidy`, `slideous`, `s5`, `docx`, or `odt` output.
 
 `--toc-depth=`*NUMBER*
 :   Specify the number of section levels to include in the table
@@ -399,8 +446,8 @@ Options affecting specific writers
 `--chapters`
 :   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
     output.  When the LaTeX template uses the report, book, or
-    memoir class, this option is implied.  If `--beamer` is used,
-    top-level headers will become `\part{..}`.
+    memoir class, this option is implied.  If `beamer` is the output
+    format, top-level headers will become `\part{..}`.
 
 `-N`, `--number-sections`
 :   Number section headings in LaTeX, ConTeXt, HTML, or EPUB output.
@@ -471,7 +518,7 @@ Options affecting specific writers
 
 `-c` *URL*, `--css=`*URL*
 :   Link to a CSS style sheet. This option can be be used repeatedly to
-    include multiple files. They will be included in the order specified. 
+    include multiple files. They will be included in the order specified.
 
 `--reference-odt=`*FILE*
 :   Use the specified file as a style reference in producing an ODT.
@@ -487,7 +534,8 @@ Options affecting specific writers
 :   Use the specified file as a style reference in producing a docx file.
     For best results, the reference docx should be a modified version
     of a docx file produced using pandoc.  The contents of the reference docx
-    are ignored, but its stylesheets are used in the new docx. If no
+    are ignored, but its stylesheets and document properties (including
+    margins, page size, header, and footer) are used in the new docx. If no
     reference docx is specified on the command line, pandoc will look
     for a file `reference.docx` in the user data directory (see
     `--data-dir`). If this is not found either, sensible defaults will be
@@ -506,7 +554,9 @@ Options affecting specific writers
 
 `--epub-cover-image=`*FILE*
 :   Use the specified image as the EPUB cover.  It is recommended
-    that the image be less than 1000px in width and height.
+    that the image be less than 1000px in width and height. Note that
+    in a markdown source document you can also specify `cover-image`
+    in a YAML metadata block (see [EPUB Metadata], below).
 
 `--epub-metadata=`*FILE*
 :   Look in the specified XML file for metadata for the EPUB.
@@ -524,6 +574,10 @@ Options affecting specific writers
     variable, or, if is not set, the locale), and `<dc:identifier
     id="BookId">` (a randomly generated UUID). Any of these may be
     overridden by elements in the metadata file.
+
+    Note: if the source document is markdown, a YAML metadata block
+    in the document can be used instead.  See below under
+    [EPUB Metadata].
 
 `--epub-embed-font=`*FILE*
 :   Embed the specified font in the EPUB. This option can be repeated
@@ -575,58 +629,32 @@ Citation rendering
 ------------------
 
 `--bibliography=`*FILE*
-:   Specify bibliography database to be used in resolving
-    citations. The database type will be determined from the
-    extension of *FILE*, which may be `.mods` (MODS format),
-    `.bib` (BibLaTeX format, which will normally work for BibTeX
-    files as well), `.bibtex` (BibTeX format),
-    `.ris` (RIS format), `.enl` (EndNote format),
-    `.xml` (EndNote XML format), `.wos` (ISI format),
-    `.medline` (MEDLINE format), `.copac` (Copac format),
-    or `.json` (citeproc JSON).  If you want to use multiple
-    bibliographies, just use this option repeatedly.
+:   Set the `bibliography` field in the document's metadata to *FILE*,
+    overriding any value set in the metadata, and process citations
+    using `pandoc-citeproc`. (This is equivalent to
+    `--metadata bibliography=FILE --filter pandoc-citeproc`.)
 
 `--csl=`*FILE*
-:   Specify [CSL] style to be used in formatting citations and
-    the bibliography. If *FILE* is not found, pandoc will look
-    for it in
-
-        $HOME/.csl
-
-    in unix,
-
-        C:\Documents And Settings\USERNAME\Application Data\csl
-
-    in Windows XP, and
-
-        C:\Users\USERNAME\AppData\Roaming\csl
-
-    in Windows 7. If the `--csl` option is not specified, pandoc
-    will use a default style:  either `default.csl` in the
-    user data directory (see `--data-dir`), or, if that is
-    not present, the Chicago author-date style.
+:   Set the `csl` field in the document's metadata to *FILE*,
+    overriding any value set in the metadata.  (This is equivalent to
+    `--metadata csl=FILE`.)
 
 `--citation-abbreviations=`*FILE*
-:   Specify a file containing abbreviations for journal titles and
-    other bibliographic fields (indicated by setting `form="short"`
-    in the CSL node for the field).  The format is described at
-    <http://citationstylist.org/2011/10/19/abbreviations-for-zotero-test-release/>.
-    Here is a short example:
-
-        { "default": {
-            "container-title": {
-                    "Lloyd's Law Reports": "Lloyd's Rep",
-                    "Estates Gazette": "EG",
-                    "Scots Law Times": "SLT"
-            }
-          }
-        }
+:   Set the `citation-abbreviations` field in the document's metadata to
+    *FILE*, overriding any value set in the metadata.  (This is equivalent to
+    `--metadata citation-abbreviations=FILE`.)
 
 `--natbib`
-:   Use natbib for citations in LaTeX output.
+:   Use natbib for citations in LaTeX output.  This option is not for use
+    with the `pandoc-citeproc` filter or with PDF output.  It is intended for
+    use in producing a LaTeX file that can be processed with pdflatex and
+    bibtex.
 
 `--biblatex`
-:   Use biblatex for citations in LaTeX output.
+:   Use biblatex for citations in LaTeX output.  This option is not for use
+    with the `pandoc-citeproc` filter or with PDF output. It is intended for
+    use in producing a LaTeX file that can be processed with pdflatex and
+    bibtex or biber.
 
 Math rendering in HTML
 ----------------------
@@ -755,29 +783,41 @@ as `title`, `author`, and `date`) as well as the following:
 :   base URL for Slidy documents (defaults to
     `http://www.w3.org/Talks/Tools/Slidy2`)
 `slideous-url`
-:   base URL for Slideous documents (defaults to `default`)
+:   base URL for Slideous documents (defaults to `slideous`)
 `s5-url`
-:   base URL for S5 documents (defaults to `ui/default`)
+:   base URL for S5 documents (defaults to `s5/default`)
 `revealjs-url`
 :   base URL for reveal.js documents (defaults to `reveal.js`)
 `theme`
-:   reveal.js theme
+:   reveal.js or LaTeX beamer theme
 `transition`
 :   reveal.js transition
 `fontsize`
 :   font size (10pt, 11pt, 12pt) for LaTeX documents
 `documentclass`
 :   document class for LaTeX documents
+`classoption`
+:   option for LaTeX documentclass, e.g. `oneside`; may be repeated
+    for multiple options
 `geometry`
 :   options for LaTeX `geometry` class, e.g. `margin=1in`;
     may be repeated for multiple options
+`linestretch`
+:   adjusts line spacing (requires the `setspace` package)
+`fontfamily`
+:   font package to use for LaTeX documents (with pdflatex):
+    TeXLive has `bookman` (Bookman), `utopia` or `fourier` (Utopia),
+    `fouriernc` (New Century Schoolbook), `times` or `txfonts` (Times),
+    `mathpazo` or `pxfonts` or `mathpple` (Palatino),
+    `libertine` (Linux Libertine), `arev` (Arev Sans),
+    and the default `lmodern`, among others.
 `mainfont`, `sansfont`, `monofont`, `mathfont`
 :   fonts for LaTeX documents (works only with xelatex
     and lualatex)
-`theme`
-:   theme for LaTeX beamer documents
 `colortheme`
 :   colortheme for LaTeX beamer documents
+`fonttheme`
+:   fonttheme for LaTeX beamer documents
 `linkcolor`
 :   color for internal links in LaTeX documents (`red`, `green`,
     `magenta`, `cyan`, `blue`, `black`)
@@ -787,6 +827,10 @@ as `title`, `author`, and `date`) as well as the following:
 :   color for citation links in LaTeX documents
 `links-as-notes`
 :   causes links to be printed as footnotes in LaTeX documents
+`biblio-style`
+:   bibliography style in LaTeX, when used with `--natbib`
+`biblio-files`
+:   bibliography files to use in LaTeX, with `--natbib` or `--biblatex`
 `section`
 :   section number in man pages
 `header`
@@ -880,6 +924,9 @@ If you need a hard line break, put two or more spaces at the end of a line.
 **Extension: `escaped_line_breaks`**
 
 A backslash followed by a newline is also a hard line break.
+Note:  in multiline and grid table cells, this is the only way
+to create a hard line break, since trailing spaces in the cells
+are ignored.
 
 Headers
 -------
@@ -889,7 +936,7 @@ There are two kinds of headers, Setext and atx.
 ### Setext-style headers ###
 
 A setext-style header is a line of text "underlined" with a row of `=` signs
-(for a level one header) of `-` signs (for a level two header):
+(for a level one header) or `-` signs (for a level two header):
 
     A level-one header
     ==================
@@ -936,10 +983,8 @@ of the line containing the header text:
 
     {#identifier .class .class key=value key=value}
 
-Although this syntax allows assignment of classes and key/value attributes,
-only identifiers currently have any affect in the writers (and only in some
-writers: HTML, LaTeX, ConTeXt, Textile, AsciiDoc).  Thus, for example,
-the following headers will all be assigned the identifier `foo`:
+Thus, for example, the following headers will all be assigned the identifier
+`foo`:
 
     # My header {#foo}
 
@@ -949,6 +994,12 @@ the following headers will all be assigned the identifier `foo`:
     ---------------
 
 (This syntax is compatible with [PHP Markdown Extra].)
+
+Note that although this syntax allows assignment of classes and key/value
+attributes, writers generally don't use all of this information.  Identifiers,
+classes, and key/value attributes are used in HTML and HTML-based formats such
+as EPUB and slidy.  Identifiers are used for labels and link anchors in the
+LaTeX, ConTeXt, Textile, and AsciiDoc writers.
 
 Headers with the class `unnumbered` will not be numbered, even if
 `--number-sections` is specified.  A single hyphen (`-`) in an attribute
@@ -968,6 +1019,7 @@ automatically assigned a unique identifier based on the header text.
 To derive the identifier from the header text,
 
   - Remove all formatting, links, etc.
+  - Remove all footnotes.
   - Remove all punctuation, except underscores, hyphens, and periods.
   - Replace all spaces and newlines with hyphens.
   - Convert all alphabetic characters to lowercase.
@@ -1262,7 +1314,7 @@ one tab:
         + pears
         + peaches
     * vegetables
-        + brocolli
+        + broccoli
         + chard
 
 As noted above, markdown allows you to write list items "lazily," instead of
@@ -1336,6 +1388,12 @@ capital letter with a period, by at least two spaces.[^2]
     escape can be used:
 
         (C\) 2007 Joe Smith
+
+The `fancy_lists` extension also allows '`#`' to be used as an
+ordered list marker in place of a numeral:
+
+    #. one
+    #. two
 
 **Extension: `startnum`**
 
@@ -1779,14 +1837,21 @@ YAML metadata block
 
 **Extension: `yaml_metadata_block`**
 
-If the file begins with a YAML object, delimited by a line of three
-hyphens (`---`) at the top and a line of three hyphens (`---`) or three
-dots (`...`) at the bottom, metadata will be taken from the fields
-of the YAML object.  Metadata can contain lists and objects (nested
-arbitrarily), but all string scalars will be interpreted as markdown.
+A YAML metadata block is a valid YAML object, delimited by a line of three
+hyphens (`---`) at the top and a line of three hyphens (`---`) or three dots
+(`...`) at the bottom.  A YAML metadata block may occur anywhere in the
+document, but if it is not at the beginning, it must be preceded by a blank
+line.
 
-Fields with names ending in an underscore will be ignored by
-pandoc.  (They may be given a role by external processors.)
+Metadata will be taken from the fields of the YAML object and added to any
+existing document metadata.  Metadata can contain lists and objects (nested
+arbitrarily), but all string scalars will be interpreted as markdown.  Fields
+with names ending in an underscore will be ignored by pandoc.  (They may be
+given a role by external processors.)
+
+A document may contain multiple metadata blocks.  The metadata fields will
+be combined through a *left-biased union*:  if two metadata blocks attempt
+to set the same field, the value from the first block will be taken.
 
 Note that YAML escaping rules must be followed. Thus, for example,
 if a title contains a colon, it must be quoted.  The pipe character
@@ -1794,26 +1859,38 @@ if a title contains a colon, it must be quoted.  The pipe character
 literally, without need for escaping.  This form is necessary
 when the field contains blank lines:
 
-   ---
-   title:  'This is the title: it contains a colon'
-   author:
-   - name: Author One
-     affiliation: University of Somewhere
-   - name: Author Two
-     affiliation: University of Nowhere
-   tags: [nothing, nothingness]
-   abstract: |
-     This is the abstract.
+    ---
+    title:  'This is the title: it contains a colon'
+    author:
+    - name: Author One
+      affiliation: University of Somewhere
+    - name: Author Two
+      affiliation: University of Nowhere
+    tags: [nothing, nothingness]
+    abstract: |
+      This is the abstract.
 
-     It consists of two paragraphs.
-   ...
+      It consists of two paragraphs.
+    ...
 
-Template variables will be set from the metadata.  Thus, for example,
-in writing HTML, the variable `abstract` will be set to the HTML
+Template variables will be set automatically from the metadata.  Thus, for
+example, in writing HTML, the variable `abstract` will be set to the HTML
 equivalent of the markdown in the `abstract` field:
 
     <p>This is the abstract.</p>
     <p>It consists of two paragraphs.</p>
+
+Note: The `author` variable in the default templates expects a simple list or
+string.  To use the structured authors in the example, you would need a
+custom template.  For example:
+
+    $for(author)$
+    $if(author.name)$
+    $author.name$$if(author.affiliation)$ ($author.affiliation$)$endif$
+    $else$
+    $author$
+    $endif$
+    $endfor$
 
 
 Backslash escapes
@@ -1954,6 +2031,14 @@ Attributes can be attached to verbatim text, just as with
 
     `<$>`{.haskell}
 
+### Small caps ###
+
+To write small caps, you can use an HTML span tag:
+
+    <span style="font-variant:small-caps;">Small caps</span>
+
+This will work in all output formats that support small caps.
+
 Math
 ----
 
@@ -2063,7 +2148,7 @@ Raw HTML
 
 Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
-literally).  (Techncially this is not an extension, since standard
+literally).  (Technically this is not an extension, since standard
 markdown allows it, but it has been made an extension so that it can
 be disabled if desired.)
 
@@ -2335,9 +2420,14 @@ Citations
 
 **Extension: `citations`**
 
-Pandoc can automatically generate citations and a bibliography in a number of
-styles (using Andrea Rossato's `hs-citeproc`). In order to use this feature,
-you will need a bibliographic database in one of the following formats:
+Using an external filter, `pandoc-citeproc`, pandoc can automatically generate
+citations and a bibliography in a number of styles.  Basic usage is
+
+    pandoc --filter pandoc-citeproc myinput.txt
+
+In order to use this feature, you will need to specify a bibliography file
+using the `bibliography` metadata field in a YAML metadata section.
+The bibliography may have any of these formats:
 
   Format            File extension
   ------------      --------------
@@ -2355,23 +2445,47 @@ you will need a bibliographic database in one of the following formats:
 Note that `.bib` can generally be used with both BibTeX and BibLaTeX
 files, but you can use `.bibtex` to force BibTeX.
 
-You will need to specify the bibliography file using the `--bibliography`
-command-line option (which may be repeated if you have several
-bibliographies).
+Alternatively you can use a `references` field in the document's YAML
+metadata.  This should include an array of YAML-encoded references,
+for example:
 
-By default, pandoc will use a Chicago author-date format for citations
-and references.  To use another style, you will need to use the
-`--csl` option to specify a [CSL] 1.0 style file.  A primer on
-creating and modifying CSL styles can be found at
-<http://citationstyles.org/downloads/primer.html>.
-A repository of CSL styles can be found at
-<https://github.com/citation-style-language/styles>.
-See also <http://zotero.org/styles> for easy browsing.
+    ---
+    references:
+    - id: fenner2012a
+      title: One-click science marketing
+      author:
+      - family: Fenner
+        given: Martin
+      container-title: Nature Materials
+      volume: 11
+      URL: 'http://dx.doi.org/10.1038/nmat3283'
+      DOI: 10.1038/nmat3283
+      issue: 4
+      publisher: Nature Publishing Group
+      page: 261-263
+      type: article-journal
+      issued:
+        year: 2012
+        month: 3
+    ...
+
+(The program `mods2yaml`, which comes with `pandoc-citeproc`, can help produce
+these from a MODS reference collection.)
+
+By default, `pandoc-citeproc` will use a Chicago author-date format for
+citations and references.  To use another style, you will need to specify
+a [CSL] 1.0 style file in the `csl` metadata field.  A primer on creating and
+modifying CSL styles can be found at
+<http://citationstyles.org/downloads/primer.html>.  A repository of CSL styles
+can be found at <https://github.com/citation-style-language/styles>.  See also
+<http://zotero.org/styles> for easy browsing.
 
 Citations go inside square brackets and are separated by semicolons.
 Each citation must have a key, composed of '@' + the citation
 identifier from the database, and may optionally have a prefix,
-a locator, and a suffix.  Here are some examples:
+a locator, and a suffix.  The citation key must begin with a letter
+or `_`, and may contain alphanumerics, `_`, and internal punctuation
+characters (`:.#$%&-+?<>~/`).  Here are some examples:
 
     Blah blah [see @doe99, pp. 33-35; also @smith04, ch. 1].
 
@@ -2399,7 +2513,24 @@ document with an appropriate header:
 
     # References
 
-The bibliography will be inserted after this header.
+The bibliography will be inserted after this header.  Note that
+the `unnumbered` class will be added to this header, so that the
+section will not be numbered.
+
+If you want to include items in the bibliography without actually
+citing them in the body text, you can define a dummy `nocite` metadata
+field and put the citations there:
+
+    ---
+    nocite: |
+      @item1, @item2
+    ...
+
+    @item3
+
+In this example, the document will contain a citation for `item3`
+only, but the bibliography will contain entries for `item1`, `item2`, and
+`item3`.
 
 Non-pandoc extensions
 ---------------------
@@ -2409,9 +2540,19 @@ in pandoc, but may be enabled by adding `+EXTENSION` to the format
 name, where `EXTENSION` is the name of the extension.  Thus, for
 example, `markdown+hard_line_breaks` is markdown with hard line breaks.
 
+**Extension:  `lists_without_preceding_blankline`**\
+Allow a list to occur right after a paragraph, with no intervening
+blank space.
+
 **Extension:  `hard_line_breaks`**\
 Causes all newlines within a paragraph to be interpreted as hard line
 breaks instead of spaces.
+
+**Extension:  `ignore_line_breaks`**\
+Causes newlines within a paragraph to be ignored, rather than being
+treated as spaces or as hard line breaks.  This option is intended for
+use with East Asian languages where spaces are not used between words,
+but text is divided into lines for readability.
 
 **Extension: `tex_math_single_backslash`**\
 Causes anything between `\(` and `\)` to be interpreted as inline
@@ -2439,10 +2580,9 @@ the document, for example:
     Comment: This is a sample mmd title block, with
              a field spanning multiple lines.
 
-See the MultiMarkdown documentation for details. Note that only title,
-author, and date are recognized; other fields are simply ignored by
-pandoc. If `pandoc_title_block` or `yaml_metadata_block` is enabled,
-it will take precedence over `mmd_title_block`.
+See the MultiMarkdown documentation for details.  If `pandoc_title_block` or
+`yaml_metadata_block` is enabled, it will take precedence over
+`mmd_title_block`.
 
   [MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
 
@@ -2499,6 +2639,20 @@ variants are supported:
 
 `markdown_strict` (Markdown.pl)
 :   `raw_html`
+
+Extensions with formats other than markdown
+-------------------------------------------
+
+Some of the extensions discussed above can be used with formats
+other than markdown:
+
+* `auto_identifiers` can be used with `latex`, `rst`, `mediawiki`,
+  and `textile` input (and is used by default).
+
+* `tex_math_dollars`, `tex_math_single_backslash`, and
+  `tex_math_double_backslash` can be used with `html` input.
+  (This is handy for reading web pages formatted using MathJax,
+  for example.)
 
 Producing slide shows with Pandoc
 =================================
@@ -2625,9 +2779,8 @@ a single document.
 Inserting pauses
 ----------------
 
-In reveal.js and beamer slide shows, you can add "pauses" within
-a slide by including a paragraph containing three dots, separated
-by spaces:
+You can add "pauses" within a slide by including a paragraph containing
+three dots, separated by spaces:
 
     # Slide with a pause
 
@@ -2663,11 +2816,109 @@ using the `-V` option:
 
     pandoc -t beamer habits.txt -V theme:Warsaw -o habits.pdf
 
+Note that header attributes will turn into slide attributes
+(on a `<div>` or `<section>`) in HTML slide formats, allowing you
+to style individual slides.  In Beamer, the only header attribute
+that affects slides is the `allowframebreaks` class, which sets the
+`allowframebreaks` option, causing multiple slides to be created
+if the content overfills the frame.  This is recommended especially for
+bibliographies:
+
+    # References {.allowframebreaks}
+
+Speaker notes
+-------------
+
+reveal.js has good support for speaker notes.  You can add notes to your
+markdown document thus:
+
+    <div class="notes">
+    This is my note.
+
+    - It can contain markdown
+    - like this list
+
+    </div>
+
+To show the notes window, press `s` while viewing the presentation.
+Notes are not yet supported for other slide formats, but the notes
+will not appear on the slides themselves.
+
+EPUB Metadata
+=============
+
+EPUB metadata may be specified using the `--epub-metadata` option, but
+if the source document is markdown, it is better to use a YAML metadata
+block.  Here is an example:
+
+    ---
+    title:
+    - type: main
+      text: My Book
+    - type: subtitle
+      text: An investigation of metadata
+    creator:
+    - role: author
+      text: John Smith
+    - role: editor
+      text: Sarah Jones
+    identifier:
+    - scheme: DOI
+      text: doi:10.234234.234/33
+    publisher:  My Press
+    rights:  (c) 2007 John Smith, CC BY-NC
+    ...
+
+The following fields are recognized:
+
+`identifier`
+  ~ Either a string value or an object with fields `text` and
+    `scheme`.  Valid values for `scheme` are `ISBN-10`,
+    `GTIN-13`, `UPC`, `ISMN-10`, `DOI`, `LCCN`, `GTIN-14`,
+    `ISBN-13`, `Legal deposit number`, `URN`, `OCLC`,
+    `ISMN-13`, `ISBN-A`, `JP`, `OLCC`.
+`title`
+  ~ Either a string value, or an object with fields `file-as` and
+    `type`, or a list of such objects.  Valid values for `type` are
+    `main`, `subtitle`, `short`, `collection`, `edition`, `extended`.
+`creator`
+  ~ Either a string value, or an object with fields `role`, `file-as`,
+    and `text`, or a list of such objects.  Valid values for `role` are
+    [marc relators](http://www.loc.gov/marc/relators/relaterm.html), but
+    pandoc will attempt to translate the human-readable versions
+    (like "author" and "editor") to the appropriate marc relators.
+`contributor`
+  ~ Same format as `creator`.
+`date`
+  ~ A string value in `YYYY-MM-DD` format.  (Only the year is necessary.)
+    Pandoc will attempt to convert other common date formats.
+`language`
+  ~ A string value in [RFC5646] format.  Pandoc will default to the local
+    language if nothing is specified.
+`subject`
+  ~ A string value or a list of such values.
+`description`
+  ~ A string value.
+`type`
+  ~ A string value.
+`format`
+  ~ A string value.
+`relation`
+  ~ A string value.
+`coverage`
+  ~ A string value.
+`rights`
+  ~ A string value.
+`cover-image`
+  ~ A string value (path to cover image).
+`stylesheet`
+  ~ A string value (path to CSS stylesheet).
+
 Literate Haskell support
 ========================
 
 If you append `+lhs` (or `+literate_haskell`) to an appropriate input or output
-format (`markdown`, `mardkown_strict`, `rst`, or `latex` for input or output;
+format (`markdown`, `markdown_strict`, `rst`, or `latex` for input or output;
 `beamer`, `html` or `html5` for output only), pandoc will treat the document as
 literate Haskell source. This means that
 
@@ -2724,7 +2975,7 @@ Creating a custom writer requires writing a lua function for each
 possible element in a pandoc document.  To get a documented example
 which you can modify according to your needs, do
 
-    pandoc --print-sample-lua-writer
+    pandoc --print-default-data-file sample.lua
 
 Authors
 =======
@@ -2738,7 +2989,9 @@ Puneeth Chaganti, Paul Rivier, rodja.trappe, Bradley Kuhn, thsutton,
 Nathan Gass, Jonathan Daugherty, Jérémy Bobbio, Justin Bogner, qerub,
 Christopher Sawicki, Kelsey Hightower, Masayoshi Takahashi, Antoine
 Latter, Ralf Stephan, Eric Seidel, B. Scott Michel, Gavin Beatty,
-Sergey Astanin, Arlo O'Keeffe, Denis Laxalde, Brent Yorgey.
+Sergey Astanin, Arlo O'Keeffe, Denis Laxalde, Brent Yorgey, David Lazar,
+Jamie F. Olson, Matthew Pickering, Albert Krewinkel, mb21, Jesse
+Rosenthal.
 
 [markdown]: http://daringfireball.net/projects/markdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
@@ -2772,5 +3025,7 @@ Sergey Astanin, Arlo O'Keeffe, Denis Laxalde, Brent Yorgey.
 [PDF]: http://www.adobe.com/pdf/
 [reveal.js]: http://lab.hakim.se/reveal-js/
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
-[lua]: TODO
-
+[lua]: http://www.lua.org
+[marc relators]: http://www.loc.gov/marc/relators/relaterm.html
+[RFC5646]: http://tools.ietf.org/html/rfc5646
+[InDesign ICML]: https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- Create pandoc.1 man and pandoc_markdown.5 man pages from README
 import Text.Pandoc
 import qualified Text.Pandoc.UTF8 as UTF8

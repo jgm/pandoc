@@ -1,6 +1,6 @@
 {-# LANGUAGE OverlappingInstances, FlexibleInstances, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{- Copyright (C) 2012 John MacFarlane <jgm@berkeley.edu>
+{- Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Custom
-   Copyright   : Copyright (C) 2012 John MacFarlane
+   Copyright   : Copyright (C) 2012-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -33,6 +33,7 @@ module Text.Pandoc.Writers.Custom ( writeCustom ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Data.List ( intersperse )
+import Data.Char ( toLower )
 import Scripting.Lua (LuaState, StackValue, callfunc)
 import qualified Scripting.Lua as Lua
 import Text.Pandoc.UTF8 (fromString, toString)
@@ -78,6 +79,11 @@ instance StackValue a => StackValue [a] where
     return (Just lst)
   valuetype _ = Lua.TTABLE
 
+instance StackValue Format where
+  push lua (Format f) = Lua.push lua (map toLower f)
+  peek l n = fmap Format `fmap` Lua.peek l n
+  valuetype _ = Lua.TSTRING
+
 instance (StackValue a, StackValue b) => StackValue (M.Map a b) where
   push lua m = do
     let xs = M.toList m
@@ -110,12 +116,14 @@ instance StackValue [Block] where
 instance StackValue MetaValue where
   push l (MetaMap m) = Lua.push l m
   push l (MetaList xs) = Lua.push l xs
+  push l (MetaBool x) = Lua.push l x
   push l (MetaString s) = Lua.push l s
   push l (MetaInlines ils) = Lua.push l ils
   push l (MetaBlocks bs) = Lua.push l bs
   peek _ _ = undefined
   valuetype (MetaMap _) = Lua.TTABLE
   valuetype (MetaList _) = Lua.TTABLE
+  valuetype (MetaBool _) = Lua.TBOOLEAN
   valuetype (MetaString _) = Lua.TSTRING
   valuetype (MetaInlines _) = Lua.TSTRING
   valuetype (MetaBlocks _) = Lua.TSTRING
@@ -123,7 +131,7 @@ instance StackValue MetaValue where
 -- | Convert Pandoc to custom markup.
 writeCustom :: FilePath -> WriterOptions -> Pandoc -> IO String
 writeCustom luaFile opts doc = do
-  luaScript <- readFile luaFile
+  luaScript <- C8.unpack `fmap` C8.readFile luaFile
   lua <- Lua.newstate
   Lua.openlibs lua
   Lua.loadstring lua luaScript "custom"
@@ -175,6 +183,9 @@ blockToCustom lua (OrderedList (num,sty,delim) items) =
 
 blockToCustom lua (DefinitionList items) =
   callfunc lua "DefinitionList" items
+
+blockToCustom lua (Div attr items) =
+  callfunc lua "Div" items (attrToMap attr)
 
 -- | Convert list of Pandoc block elements to Custom.
 blockListToCustom :: LuaState -- ^ Options
@@ -238,3 +249,5 @@ inlineToCustom lua (Image alt (src,tit)) =
 
 inlineToCustom lua (Note contents) = callfunc lua "Note" contents
 
+inlineToCustom lua (Span attr items) =
+  callfunc lua "Span" items (attrToMap attr)

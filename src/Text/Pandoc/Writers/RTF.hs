@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.RTF
-   Copyright   : Copyright (C) 2006-2010 John MacFarlane
+   Copyright   : Copyright (C) 2006-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -34,13 +34,13 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Generic (bottomUpM)
+import Text.Pandoc.Walk
 import Data.List ( isSuffixOf, intercalate )
 import Data.Char ( ord, chr, isDigit, toLower )
 import System.FilePath ( takeExtension )
 import qualified Data.ByteString as B
 import Text.Printf ( printf )
-import Network.URI ( isAbsoluteURI, unEscapeString )
+import Network.URI ( isURI, unEscapeString )
 import qualified Control.Exception as E
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file.
@@ -48,7 +48,7 @@ import qualified Control.Exception as E
 rtfEmbedImage :: Inline -> IO Inline
 rtfEmbedImage x@(Image _ (src,_)) = do
   let ext = map toLower (takeExtension src)
-  if ext `elem` [".jpg",".jpeg",".png"] && not (isAbsoluteURI src)
+  if ext `elem` [".jpg",".jpeg",".png"] && not (isURI src)
      then do
        let src' = unEscapeString src
        imgdata <- E.catch (B.readFile src')
@@ -62,7 +62,7 @@ rtfEmbedImage x@(Image _ (src,_)) = do
        let raw = "{\\pict" ++ filetype ++ " " ++ concat bytes ++ "}"
        return $ if B.null imgdata
                    then x
-                   else RawInline "rtf" raw
+                   else RawInline (Format "rtf") raw
      else return x
 rtfEmbedImage x = return x
 
@@ -70,7 +70,7 @@ rtfEmbedImage x = return x
 -- images embedded as encoded binary data.
 writeRTFWithEmbeddedImages :: WriterOptions -> Pandoc -> IO String
 writeRTFWithEmbeddedImages options doc =
-  writeRTF options `fmap` bottomUpM rtfEmbedImage doc
+  writeRTF options `fmap` walkM rtfEmbedImage doc
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String
@@ -208,6 +208,8 @@ blockToRTF :: Int       -- ^ indent level
            -> Block     -- ^ block to convert
            -> String
 blockToRTF _ _ Null = ""
+blockToRTF indent alignment (Div _ bs) =
+  concatMap (blockToRTF indent alignment) bs
 blockToRTF indent alignment (Plain lst) =
   rtfCompact indent 0 alignment $ inlineListToRTF lst
 blockToRTF indent alignment (Para lst) =
@@ -216,8 +218,9 @@ blockToRTF indent alignment (BlockQuote lst) =
   concatMap (blockToRTF (indent + indentIncrement) alignment) lst
 blockToRTF indent _ (CodeBlock _ str) =
   rtfPar indent 0 AlignLeft ("\\f1 " ++ (codeStringToRTF str))
-blockToRTF _ _ (RawBlock "rtf" str) = str
-blockToRTF _ _ (RawBlock _ _) = ""
+blockToRTF _ _ (RawBlock f str)
+  | f == Format "rtf" = str
+  | otherwise         = ""
 blockToRTF indent alignment (BulletList lst) = spaceAtEnd $
   concatMap (listItemToRTF alignment indent (bulletMarker indent)) lst
 blockToRTF indent alignment (OrderedList attribs lst) = spaceAtEnd $ concat $
@@ -256,7 +259,7 @@ tableRowToRTF header indent aligns sizes' cols =
 tableItemToRTF :: Int -> Alignment -> [Block] -> String
 tableItemToRTF indent alignment item =
   let contents = concatMap (blockToRTF indent alignment) item
-  in  "{\\intbl " ++ contents ++ "\\cell}\n"
+  in  "{" ++ substitute "\\pard" "\\pard\\intbl" contents ++ "\\cell}\n"
 
 -- | Ensure that there's the same amount of space after compact
 -- lists as after regular lists.
@@ -308,6 +311,7 @@ inlineListToRTF lst = concatMap inlineToRTF lst
 -- | Convert inline item to RTF.
 inlineToRTF :: Inline         -- ^ inline to convert
             -> String
+inlineToRTF (Span _ lst) = inlineListToRTF lst
 inlineToRTF (Emph lst) = "{\\i " ++ (inlineListToRTF lst) ++ "}"
 inlineToRTF (Strong lst) = "{\\b " ++ (inlineListToRTF lst) ++ "}"
 inlineToRTF (Strikeout lst) = "{\\strike " ++ (inlineListToRTF lst) ++ "}"
@@ -320,10 +324,11 @@ inlineToRTF (Quoted DoubleQuote lst) =
   "\\u8220\"" ++ (inlineListToRTF lst) ++ "\\u8221\""
 inlineToRTF (Code _ str) = "{\\f1 " ++ (codeStringToRTF str) ++ "}"
 inlineToRTF (Str str) = stringToRTF str
-inlineToRTF (Math _ str) = inlineListToRTF $ readTeXMath str
+inlineToRTF (Math t str) = inlineListToRTF $ readTeXMath' t str
 inlineToRTF (Cite _ lst) = inlineListToRTF lst
-inlineToRTF (RawInline "rtf" str) = str
-inlineToRTF (RawInline _ _) = ""
+inlineToRTF (RawInline f str)
+  | f == Format "rtf" = str
+  | otherwise         = ""
 inlineToRTF (LineBreak) = "\\line "
 inlineToRTF Space = " "
 inlineToRTF (Link text (src, _)) =

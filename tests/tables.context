@@ -1,6 +1,6 @@
 Simple table with caption:
 
-\placetable[here]{Demonstration of simple table syntax.}
+\placetable{Demonstration of simple table syntax.}
 \starttable[|r|l|c|l|]
 \HL
 \NC Right
@@ -29,7 +29,7 @@ Simple table with caption:
 
 Simple table without caption:
 
-\placetable[here,none]{}
+\placetable[none]{}
 \starttable[|r|l|c|l|]
 \HL
 \NC Right
@@ -58,7 +58,7 @@ Simple table without caption:
 
 Simple table indented two spaces:
 
-\placetable[here]{Demonstration of simple table syntax.}
+\placetable{Demonstration of simple table syntax.}
 \starttable[|r|l|c|l|]
 \HL
 \NC Right
@@ -87,7 +87,7 @@ Simple table indented two spaces:
 
 Multiline table with caption:
 
-\placetable[here]{Here's the caption. It may span multiple lines.}
+\placetable{Here's the caption. It may span multiple lines.}
 \starttable[|cp(0.15\textwidth)|lp(0.14\textwidth)|rp(0.16\textwidth)|lp(0.34\textwidth)|]
 \HL
 \NC Centered Header
@@ -111,7 +111,7 @@ Multiline table with caption:
 
 Multiline table without caption:
 
-\placetable[here,none]{}
+\placetable[none]{}
 \starttable[|cp(0.15\textwidth)|lp(0.14\textwidth)|rp(0.16\textwidth)|lp(0.34\textwidth)|]
 \HL
 \NC Centered Header
@@ -135,7 +135,7 @@ Multiline table without caption:
 
 Table without column headers:
 
-\placetable[here,none]{}
+\placetable[none]{}
 \starttable[|r|l|c|r|]
 \HL
 \NC 12
@@ -158,7 +158,7 @@ Table without column headers:
 
 Multiline table without column headers:
 
-\placetable[here,none]{}
+\placetable[none]{}
 \starttable[|cp(0.15\textwidth)|lp(0.14\textwidth)|rp(0.16\textwidth)|lp(0.34\textwidth)|]
 \HL
 \NC First

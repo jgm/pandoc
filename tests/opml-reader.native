@@ -19,7 +19,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Dave",Spa
 ,Header 3 ("",[],[]) [Str "North",Space,Str "Dakota"]
 ,Header 3 ("",[],[]) [Str "Oklahoma"]
 ,Header 3 ("",[],[]) [Str "South",Space,Str "Dakota"]
-,Header 2 ("",[],[]) [Str "Mid",Str "-",Str "Atlantic"]
+,Header 2 ("",[],[]) [Str "Mid-Atlantic"]
 ,Header 3 ("",[],[]) [Str "Delaware"]
 ,Header 3 ("",[],[]) [Str "Maryland"]
 ,Header 3 ("",[],[]) [Str "New",Space,Str "Jersey"]

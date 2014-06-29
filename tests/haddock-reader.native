@@ -4,14 +4,14 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "*",Space,Str "This",Space,Str "is",Space,Str "a",Space,Str "paragraph,",Space,Str "not",Space,Str "a",Space,Str "list",Space,Str "item.",Space,Str ">",Space,Str "This",Space,Str "sentence",Space,Str "is",Space,Str "not",Space,Str "code.",Space,Str ">>>",Space,Str "This",Space,Str "is",Space,Str "not",Space,Str "an",Space,Str "example."]
 ,Para [Str "The",Space,Str "references",Space,Str "\955,",Space,Str "\955",Space,Str "and",Space,Str "\955",Space,Str "all",Space,Str "represent",Space,Str "the",Space,Str "lower-case",Space,Str "letter",Space,Str "lambda."]
 ,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "code",Space,Str "block:"]
-,CodeBlock ("",["haskell"],[]) " map :: (a -> b) -> [a] -> [b]\n map _ []     = []\n map f (x:xs) = f x : map f xs\n"
+,CodeBlock ("",[],[]) "map :: (a -> b) -> [a] -> [b]\nmap _ []     = []\nmap f (x:xs) = f x : map f xs"
 ,Para [Str "This",Space,Str "is",Space,Str "another",Space,Str "code",Space,Str "block:"]
-,Para [Code ("",[],[]) "f",Space,Code ("",[],[]) "x",Space,Code ("",[],[]) "=",Space,Code ("",[],[]) "x",Space,Code ("",[],[]) "+",Space,Code ("",[],[]) "x.",Space,Code ("",[],[]) "The",Space,Code ("",[],[]) "@...@",Space,Code ("",[],[]) "code",Space,Code ("",[],[]) "block",Space,Emph [Code ("",[],[]) "interprets markup normally"],Code ("",[],[]) ".",Space,Code ("",["haskell"],[]) "Module.Foo",Space,Code ("",[],[]) "\"Hello",Space,Code ("",[],[]) "World\""]
+,Para [Code ("",[],[]) "f x = x + x.",LineBreak,Code ("",[],[]) "The @...@ code block ",Emph [Code ("",[],[]) "interprets markup normally"],Code ("",[],[]) ".",Code ("",["haskell","module"],[]) "Module.Foo",Code ("",[],[]) "",LineBreak,Code ("",[],[]) "\"Hello World\""]
 ,Para [Str "Haddock",Space,Str "supports",Space,Str "REPL",Space,Str "examples:"]
-,Para [Code ("",["haskell","expr"],[]) "fib 10",LineBreak,Code ("",["result"],[]) "55"]
-,Para [Code ("",["haskell","expr"],[]) "putStrLn \"foo\\nbar\"",LineBreak,Code ("",["result"],[]) "foo",LineBreak,Code ("",["result"],[]) "bar"]
-,Para [Str "That",Space,Str "was",Space,Emph [Str "really cool"],Str "!",Space,Str "I",Space,Str "had",Space,Str "no",Space,Str "idea",Space,Code ("",[],[]) "fib",Space,Code ("",[],[]) "10",Space,Code ("",[],[]) "=",Space,Code ("",[],[]) "55",Str "."]
-,Para [Str "This",Space,Str "module",Space,Str "defines",Space,Str "the",Space,Str "type",Space,Code ("",["haskell"],[]) "T",Str ".",Space,Str "The",Space,Str "identifier",Space,Code ("",["haskell"],[]) "M.T",Space,Str "is",Space,Str "not",Space,Str "in",Space,Str "scope",Space,Str "I",Space,Str "don't",Space,Str "have",Space,Str "to",Space,Str "escape",Space,Str "my",Space,Str "apostrophes;",Space,Str "great,",Space,Str "isn't",Space,Str "it?",Space,Str "This",Space,Str "is",Space,Str "a",Space,Str "reference",Space,Str "to",Space,Str "the",Space,Code ("",["haskell"],[]) "Foo",Space,Str "module."]
+,Para [Code ("",["prompt"],[]) ">>>",Space,Code ("",["haskell","expr"],[]) "fib 10",LineBreak,Code ("",["result"],[]) "55"]
+,Para [Code ("",["prompt"],[]) ">>>",Space,Code ("",["haskell","expr"],[]) "putStrLn \"foo\\nbar\"",LineBreak,Code ("",["result"],[]) "foo",LineBreak,Code ("",["result"],[]) "bar"]
+,Para [Str "That",Space,Str "was",Space,Emph [Str "really",Space,Str "cool"],Str "!",Space,Str "I",Space,Str "had",Space,Str "no",Space,Str "idea",Space,Code ("",[],[]) "fib 10 = 55",Str "."]
+,Para [Str "This",Space,Str "module",Space,Str "defines",Space,Str "the",Space,Str "type",Space,Code ("",["haskell","identifier"],[]) "T",Str ".",Space,Str "The",Space,Str "identifier",Space,Code ("",["haskell","identifier"],[]) "M.T",Space,Str "is",Space,Str "not",Space,Str "in",Space,Str "scope",Space,Str "I",Space,Str "don't",Space,Str "have",Space,Str "to",Space,Str "escape",Space,Str "my",Space,Str "apostrophes;",Space,Str "great,",Space,Str "isn't",Space,Str "it?",Space,Str "This",Space,Str "is",Space,Str "a",Space,Str "reference",Space,Str "to",Space,Str "the",Space,Code ("",["haskell","module"],[]) "Foo",Space,Str "module."]
 ,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "bulleted",Space,Str "list:"]
 ,BulletList
  [[Para [Str "first",Space,Str "item"]]
@@ -23,9 +23,9 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "definition",Space,Str "list:"]
 ,DefinitionList
  [([Code ("",[],[]) "foo"],
-   [[Plain [Str "The",Space,Str "description",Space,Str "of",Space,Code ("",[],[]) "foo",Str "."]]])
+   [[Para [Str "The",Space,Str "description",Space,Str "of",Space,Code ("",[],[]) "foo",Str "."]]])
  ,([Code ("",[],[]) "bar"],
-   [[Plain [Str "The",Space,Str "description",Space,Str "of",Space,Code ("",[],[]) "bar",Str "."]]])]
+   [[Para [Str "The",Space,Str "description",Space,Str "of",Space,Code ("",[],[]) "bar",Str "."]]])]
 ,Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "link:",Space,Link [Str "http://haskell.org"] ("http://haskell.org","http://haskell.org")]
 ,Para [Link [Str "Haskell"] ("http://haskell.org","http://haskell.org"),Space,Str "is",Space,Str "a",Space,Str "fun",Space,Str "language!"]
 ,Para [Link [Str "Click",Space,Str "Here!"] ("http://example.com","http://example.com")]]

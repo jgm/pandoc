@@ -173,6 +173,8 @@ http://johnmacfarlane.net/pandoc/
 
 [[File:example.jpg]]
 
+[[Archivo:example_es.jpg]]
+
 == lists ==
 
 * Start each line
@@ -182,6 +184,9 @@ http://johnmacfarlane.net/pandoc/
 * Line breaks<br/>don't break levels.
 *** But jumping levels creates empty space.
 Any other start ends the list.
+
+** two
+* one
 
 # Start each line
 # with a number sign (#).
@@ -232,11 +237,11 @@ ends the list.
   <li>list item A2</li>
 </ol>
 
-<ul>
+<ol>
 #abc
 #def
 #ghi
-</ul>
+</ol>
 
 <ol start="9">
 <li>Amsterdam</li>
@@ -247,6 +252,8 @@ ends the list.
 == math ==
 
 Here is some <math>x=\frac{y^\pi}{z}</math>.
+
+With spaces: <math> x=\frac{y^\pi}{z} </math>.
 
 == preformatted blocks ==
 

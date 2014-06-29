@@ -58,6 +58,10 @@
 
 $\$2 + \$3$
 
+This should not be math:
+
+$PATH 90 $PATH
+
 ## Commented-out list item
 
 - one
@@ -235,3 +239,11 @@ Empty cells
 ## Reference link fallbacks
 
 [*not a link*] [*nope*]...
+
+## Empty reference links
+
+[foo2]:
+
+bar
+
+[foo2]

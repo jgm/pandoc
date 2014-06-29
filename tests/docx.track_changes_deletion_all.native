@@ -1,0 +1,1 @@
+[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "text",Space,Str "with",Space,Str "a",Span ("",["deletion"],[("author","eng-dept"),("date","2014-06-25T10:42:00Z")]) [Str "n",Space,Str "excessively",Space,Str "modified"],Space,Str "deletion."]]

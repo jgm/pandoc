@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.RST
-   Copyright   : Copyright (C) 2006-2010 John MacFarlane
+   Copyright   : Copyright (C) 2006-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -38,11 +38,11 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Builder (deleteMeta)
 import Data.List ( isPrefixOf, intersperse, transpose )
-import Network.URI (isAbsoluteURI)
+import Network.URI (isURI)
 import Text.Pandoc.Pretty
 import Control.Monad.State
 import Control.Applicative ( (<$>) )
-import Data.Char (isSpace)
+import Data.Char (isSpace, toLower)
 
 type Refs = [([Inline], Target)]
 
@@ -161,6 +161,11 @@ bordered contents c =
 blockToRST :: Block         -- ^ Block element
            -> State WriterState Doc
 blockToRST Null = return empty
+blockToRST (Div attr bs) = do
+  contents <- blockListToRST bs
+  let startTag = ".. raw:: html" $+$ nest 3 (tagWithAttrs "div" attr)
+  let endTag = ".. raw:: html" $+$ nest 3 "</div>"
+  return $ blankline <> startTag $+$ contents $+$ endTag $$ blankline
 blockToRST (Plain inlines) = inlineListToRST inlines
 -- title beginning with fig: indicates that the image is a figure
 blockToRST (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
@@ -175,9 +180,11 @@ blockToRST (Para inlines)
   | otherwise = do
       contents <- inlineListToRST inlines
       return $ contents <> blankline
-blockToRST (RawBlock f str) =
-  return $ blankline <> ".. raw:: " <> text f $+$
-           (nest 3 $ text str) $$ blankline
+blockToRST (RawBlock f@(Format f') str)
+  | f == "rst" = return $ text str
+  | otherwise  = return $ blankline <> ".. raw:: " <>
+                    text (map toLower f') $+$
+                    (nest 3 $ text str) $$ blankline
 blockToRST HorizontalRule =
   return $ blankline $$ "--------------" $$ blankline
 blockToRST (Header level _ inlines) = do
@@ -212,11 +219,15 @@ blockToRST (Table caption _ widths headers rows) =  do
                      else blankline <> text "Table: " <> caption'
   headers' <- mapM blockListToRST headers
   rawRows <- mapM (mapM blockListToRST) rows
-  let isSimple = all (==0) widths && all (all (\bs -> length bs <= 1)) rows
+  -- let isSimpleCell [Plain _] = True
+  --     isSimpleCell [Para _]  = True
+  --     isSimpleCell []        = True
+  --     isSimpleCell _         = False
+  -- let isSimple = all (==0) widths && all (all isSimpleCell) rows
   let numChars = maximum . map offset
   opts <- get >>= return . stOptions
   let widthsInChars =
-       if isSimple
+       if all (== 0) widths
           then map ((+2) . numChars) $ transpose (headers' : rawRows)
           else map (floor . (fromIntegral (writerColumns opts) *)) widths
   let hpipeBlocks blocks = hcat [beg, middle, end]
@@ -280,7 +291,7 @@ definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
   contents <- liftM vcat $ mapM blockListToRST defs
   tabstop <- get >>= (return . writerTabStop . stOptions)
-  return $ label' $$ nest tabstop (contents <> cr)
+  return $ label' $$ nest tabstop (nestle contents <> cr)
 
 -- | Convert list of Pandoc block elements to RST.
 blockListToRST :: [Block]       -- ^ List of block elements
@@ -289,8 +300,14 @@ blockListToRST blocks = mapM blockToRST blocks >>= return . vcat
 
 -- | Convert list of Pandoc inline elements to RST.
 inlineListToRST :: [Inline] -> State WriterState Doc
-inlineListToRST lst = mapM inlineToRST (insertBS lst) >>= return . hcat
-  where insertBS :: [Inline] -> [Inline] -- insert '\ ' where needed
+inlineListToRST lst =
+  mapM inlineToRST (removeSpaceAfterDisplayMath $ insertBS lst) >>= return . hcat
+  where -- remove spaces after displaymath, as they screw up indentation:
+        removeSpaceAfterDisplayMath (Math DisplayMath x : zs) =
+              Math DisplayMath x : dropWhile (==Space) zs
+        removeSpaceAfterDisplayMath (x:xs) = x : removeSpaceAfterDisplayMath xs
+        removeSpaceAfterDisplayMath [] = []
+        insertBS :: [Inline] -> [Inline] -- insert '\ ' where needed
         insertBS (x:y:z:zs)
           | isComplex y && surroundComplex x z =
              x : y : RawInline "rst" "\\ " : insertBS (z:zs)
@@ -338,6 +355,7 @@ inlineListToRST lst = mapM inlineToRST (insertBS lst) >>= return . hcat
 
 -- | Convert Pandoc inline element to RST.
 inlineToRST :: Inline -> State WriterState Doc
+inlineToRST (Span _ ils) = inlineListToRST ils
 inlineToRST (Emph lst) = do
   contents <- inlineListToRST lst
   return $ "*" <> contents <> "*"
@@ -372,13 +390,14 @@ inlineToRST (Math t str) = do
                    then blankline $$ ".. math::" $$
                         blankline $$ nest 3 (text str) $$ blankline
                    else blankline $$ (".. math:: " <> text str) $$ blankline
-inlineToRST (RawInline "rst" x) = return $ text x
-inlineToRST (RawInline _ _) = return empty
+inlineToRST (RawInline f x)
+  | f == "rst" = return $ text x
+  | otherwise  = return empty
 inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space
 -- autolink
 inlineToRST (Link [Str str] (src, _))
-  | isAbsoluteURI src &&
+  | isURI src &&
     if "mailto:" `isPrefixOf` src
        then src == escapeURI ("mailto:" ++ str)
        else src == escapeURI str = do

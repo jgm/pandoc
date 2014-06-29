@@ -1,0 +1,8 @@
+[Header 2 ("some-block-quotes-in-different-ways",[],[]) [Str "Some",Space,Str "block",Space,Str "quotes,",Space,Str "in",Space,Str "different",Space,Str "ways"]
+,Para [Str "This",Space,Str "is",Space,Str "the",Space,Str "proper",Space,Str "way,",Space,Str "with",Space,Str "a",Space,Str "style"]
+,BlockQuote
+ [Para [Str "I",Space,Str "don\8217t",Space,Str "know",Space,Str "why",Space,Str "this",Space,Str "would",Space,Str "be",Space,Str "in",Space,Str "italics,",Space,Str "but",Space,Str "so",Space,Str "it",Space,Str "appears",Space,Str "to",Space,Str "be",Space,Str "on",Space,Str "my",Space,Str "screen."]]
+,Para [Str "And",Space,Str "this",Space,Str "is",Space,Str "the",Space,Str "way",Space,Str "that",Space,Str "most",Space,Str "people",Space,Str "do",Space,Str "it:"]
+,BlockQuote
+ [Para [Str "I",Space,Str "just",Space,Str "indented",Space,Str "this,",Space,Str "so",Space,Str "it",Space,Str "looks",Space,Str "like",Space,Str "a",Space,Str "block",Space,Str "quote.",Space,Str "I",Space,Str "think",Space,Str "this",Space,Str "is",Space,Str "how",Space,Str "most",Space,Str "people",Space,Str "do",Space,Str "block",Space,Str "quotes",Space,Str "in",Space,Str "their",Space,Str "documents."]]
+,Para [Str "And",Space,Str "back",Space,Str "to",Space,Str "the",Space,Str "normal",Space,Str "style."]]

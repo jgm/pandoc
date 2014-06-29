@@ -377,7 +377,7 @@ Interpreted markdown in a table:
 Here's a simple block:
 
 <div>
-	foo
+foo
 </div>
 
 This should be a code block, though:
@@ -393,11 +393,11 @@ As should this:
 Now, nested:
 
 <div>
-	<div>
-		<div>
-			foo
-		</div>
-	</div>
+ <div>
+  <div>
+  foo
+  </div>
+ </div>
 </div>
 
 This should just be an HTML comment:

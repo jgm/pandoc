@@ -40,3 +40,13 @@ apple |    5
 orange|   17
 pear  |  302
 
+One-column:
+
+|hi|
+|--|
+|lo|
+
+Header-less one-column:
+
+|:-:|
+|hi|

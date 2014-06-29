@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2007-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2007-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.ConTeXt
-   Copyright   : Copyright (C) 2007-2010 John MacFarlane
+   Copyright   : Copyright (C) 2007-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -33,9 +33,9 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
-import Text.Pandoc.Generic (queryWith)
+import Text.Pandoc.Walk (query)
 import Text.Printf ( printf )
-import Data.List ( intercalate, isPrefixOf )
+import Data.List ( intercalate )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import Text.Pandoc.Templates ( renderTemplate' )
@@ -130,7 +130,7 @@ blockToConTeXt (Plain lst) = inlineListToConTeXt lst
 -- title beginning with fig: indicates that the image is a figure
 blockToConTeXt (Para [Image txt (src,'f':'i':'g':':':_)]) = do
   capt <- inlineListToConTeXt txt
-  return $ blankline $$ "\\placefigure[here,nonumber]" <> braces capt <>
+  return $ blankline $$ "\\placefigure" <> braces capt <>
            braces ("\\externalfigure" <> brackets (text src)) <> blankline
 blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
@@ -143,6 +143,7 @@ blockToConTeXt (CodeBlock _ str) =
   -- blankline because \stoptyping can't have anything after it, inc. '}'
 blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
 blockToConTeXt (RawBlock _ _ ) = return empty
+blockToConTeXt (Div _ bs) = blockListToConTeXt bs
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ ("\\startitemize" <> if isTightList lst
@@ -204,9 +205,9 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
                   else liftM ($$ "\\HL") $ tableRowToConTeXt heads
     captionText <- inlineListToConTeXt caption
     rows' <- mapM tableRowToConTeXt rows
-    return $ "\\placetable" <> brackets ("here" <> if null caption
-                                                      then ",none"
-                                                      else "")
+    return $ "\\placetable" <> (if null caption
+                                   then brackets "none"
+                                   else empty)
                             <> braces captionText $$
              "\\starttable" <> brackets (text colDescriptors) $$
              "\\HL" $$ headers $$
@@ -282,14 +283,6 @@ inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
--- autolink
-inlineToConTeXt (Link [Str str] (src, tit))
-  | if "mailto:" `isPrefixOf` src
-    then src == escapeURI ("mailto:" ++ str)
-    else src == escapeURI str =
-  inlineToConTeXt (Link
-    [RawInline "context" "\\hyphenatedurl{", Str str, RawInline "context" "}"]
-    (src, tit))
 -- Handle HTML-like internal document references to sections
 inlineToConTeXt (Link txt          (('#' : ref), _)) = do
   opts <- gets stOptions
@@ -304,6 +297,7 @@ inlineToConTeXt (Link txt          (('#' : ref), _)) = do
            <> brackets (text ref)
 
 inlineToConTeXt (Link txt          (src, _))      = do
+  let isAutolink = txt == [Str src]
   st <- get
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
@@ -312,8 +306,9 @@ inlineToConTeXt (Link txt          (src, _))      = do
   return $ "\\useURL"
            <> brackets (text ref)
            <> brackets (text $ escapeStringUsing [('#',"\\#"),('%',"\\%")] src)
-           <> brackets empty
-           <> brackets label
+           <> (if isAutolink
+                  then empty
+                  else brackets empty <> brackets label)
            <> "\\from"
            <> brackets (text ref)
 inlineToConTeXt (Image _ (src, _)) = do
@@ -325,11 +320,12 @@ inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   let codeBlock x@(CodeBlock _ _) = [x]
       codeBlock _ = []
-  let codeBlocks = queryWith codeBlock contents
+  let codeBlocks = query codeBlock contents
   return $ if null codeBlocks
               then text "\\footnote{" <> nest 2 contents' <> char '}'
               else text "\\startbuffer " <> nest 2 contents' <>
                    text "\\stopbuffer\\footnote{\\getbuffer}"
+inlineToConTeXt (Span _ ils) = inlineListToConTeXt ils
 
 -- | Craft the section header, inserting the secton reference, if supplied.
 sectionHeader :: Attr

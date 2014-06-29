@@ -1,6 +1,7 @@
-{-# LANGUAGE RelaxedPolyRec #-} -- needed for inlinesBetween on GHC < 7
+{-# LANGUAGE RelaxedPolyRec, FlexibleInstances, TypeSynonymInstances #-}
+-- RelaxedPolyRec needed for inlinesBetween on GHC < 7
 {-
-  Copyright (C) 2012 John MacFarlane <jgm@berkeley.edu>
+  Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.MediaWiki
-   Copyright   : Copyright (C) 2012 John MacFarlane
+   Copyright   : Copyright (C) 2012-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -42,8 +43,8 @@ import Text.Pandoc.Options
 import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
 import Text.Pandoc.Parsing hiding ( nested )
-import Text.Pandoc.Generic ( bottomUp )
-import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead )
+import Text.Pandoc.Walk ( walk )
+import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead, stringify, trim )
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
@@ -51,7 +52,11 @@ import Data.List (intersperse, intercalate, isPrefixOf )
 import Text.HTML.TagSoup
 import Data.Sequence (viewl, ViewL(..), (<|))
 import qualified Data.Foldable as F
+import qualified Data.Map as M
 import Data.Char (isDigit, isSpace)
+import Data.Maybe (fromMaybe)
+import Text.Printf (printf)
+import Debug.Trace (trace)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: ReaderOptions -- ^ Reader options
@@ -62,6 +67,8 @@ readMediaWiki opts s =
                                        , mwMaxNestingLevel = 4
                                        , mwNextLinkNumber  = 1
                                        , mwCategoryLinks = []
+                                       , mwHeaderMap = M.empty
+                                       , mwIdentifierList = []
                                        }
        "source" (s ++ "\n") of
           Left err'    -> error $ "\nError:\n" ++ show err'
@@ -71,9 +78,22 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwMaxNestingLevel :: Int
                        , mwNextLinkNumber  :: Int
                        , mwCategoryLinks   :: [Inlines]
+                       , mwHeaderMap       :: M.Map Inlines String
+                       , mwIdentifierList  :: [String]
                        }
 
 type MWParser = Parser [Char] MWState
+
+instance HasReaderOptions MWState where
+  extractReaderOptions = mwOptions
+
+instance HasHeaderMap MWState where
+  extractHeaderMap     = mwHeaderMap
+  updateHeaderMap f st = st{ mwHeaderMap = f $ mwHeaderMap st }
+
+instance HasIdentifierList MWState where
+  extractIdentifierList     = mwIdentifierList
+  updateIdentifierList f st = st{ mwIdentifierList = f $ mwIdentifierList st }
 
 --
 -- auxiliary functions
@@ -91,7 +111,7 @@ nested p = do
   return res
 
 specialChars :: [Char]
-specialChars = "'[]<=&*{}|\""
+specialChars = "'[]<=&*{}|\":\\"
 
 spaceChars :: [Char]
 spaceChars = " \n\t"
@@ -131,9 +151,16 @@ inlinesInTags tag = try $ do
 blocksInTags :: String -> MWParser Blocks
 blocksInTags tag = try $ do
   (_,raw) <- htmlTag (~== TagOpen tag [])
+  let closer = if tag == "li"
+                  then htmlTag (~== TagClose "li")
+                     <|> lookAhead (
+                              htmlTag (~== TagOpen "li" [])
+                          <|> htmlTag (~== TagClose "ol")
+                          <|> htmlTag (~== TagClose "ul"))
+                  else htmlTag (~== TagClose tag)
   if '/' `elem` raw   -- self-closing tag
      then return mempty
-     else mconcat <$> manyTill block (htmlTag (~== TagClose tag))
+     else mconcat <$> manyTill block closer
 
 charsInTags :: String -> MWParser [Char]
 charsInTags tag = try $ do
@@ -162,7 +189,10 @@ parseMediaWiki = do
 --
 
 block :: MWParser Blocks
-block =  mempty <$ skipMany1 blankline
+block = do
+  tr <- getOption readerTrace
+  pos <- getPosition
+  res <- mempty <$ skipMany1 blankline
      <|> table
      <|> header
      <|> hrule
@@ -174,6 +204,10 @@ block =  mempty <$ skipMany1 blankline
      <|> blockTag
      <|> (B.rawBlock "mediawiki" <$> template)
      <|> para
+  when tr $
+    trace (printf "line %d: %s" (sourceLine pos)
+           (take 60 $ show $ B.toList res)) (return ())
+  return res
 
 para :: MWParser Blocks
 para = do
@@ -187,7 +221,7 @@ table = do
   tableStart
   styles <- option [] parseAttrs <* blankline
   let tableWidth = case lookup "width" styles of
-                         Just w  -> maybe 1.0 id $ parseWidth w
+                         Just w  -> fromMaybe 1.0 $ parseWidth w
                          Nothing -> 1.0
   caption <- option mempty tableCaption
   optional rowsep
@@ -202,6 +236,7 @@ table = do
   let widths' = map (\w -> if w == 0 then defaultwidth else w) widths
   let cellspecs = zip (map fst cellspecs') widths'
   rows' <- many $ try $ rowsep *> (map snd <$> tableRow)
+  optional blanklines
   tableEnd
   let cols = length hdr
   let (headers,rows) = if hasheader
@@ -250,7 +285,7 @@ tableCaption = try $ do
   (trimInlines . mconcat) <$> many (notFollowedBy (cellsep <|> rowsep) *> inline)
 
 tableRow :: MWParser [((Alignment, Double), Blocks)]
-tableRow = try $ many tableCell
+tableRow = try $ skipMany htmlComment *> many tableCell
 
 tableCell :: MWParser ((Alignment, Double), Blocks)
 tableCell = try $ do
@@ -268,7 +303,7 @@ tableCell = try $ do
                     Just "center" -> AlignCenter
                     _             -> AlignDefault
   let width = case lookup "width" attrs of
-                    Just xs -> maybe 0.0 id $ parseWidth xs
+                    Just xs -> fromMaybe 0.0 $ parseWidth xs
                     Nothing -> 0.0
   return ((align, width), bs)
 
@@ -282,6 +317,7 @@ template :: MWParser String
 template = try $ do
   string "{{"
   notFollowedBy (char '{')
+  lookAhead $ letter <|> digit <|> char ':'
   let chunk = template <|> variable <|> many1 (noneOf "{}") <|> count 1 anyChar
   contents <- manyTill chunk (try $ string "}}")
   return $ "{{" ++ concat contents ++ "}}"
@@ -342,7 +378,7 @@ preformatted = try $ do
       spacesStr _        = False
   if F.all spacesStr contents
      then return mempty
-     else return $ B.para $ bottomUp strToCode contents
+     else return $ B.para $ walk strToCode contents
 
 header :: MWParser Blocks
 header = try $ do
@@ -351,7 +387,8 @@ header = try $ do
   let lev = length eqs
   guard $ lev <= 6
   contents <- trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
-  return $ B.header lev contents
+  attr <- registerHeader nullAttr contents
+  return $ B.headerWith attr lev contents
 
 bulletList :: MWParser Blocks
 bulletList = B.bulletList <$>
@@ -362,15 +399,13 @@ bulletList = B.bulletList <$>
 orderedList :: MWParser Blocks
 orderedList =
        (B.orderedList <$> many1 (listItem '#'))
-   <|> (B.orderedList <$> (htmlTag (~== TagOpen "ul" []) *> spaces *>
-        many (listItem '#' <|> li) <*
-        optional (htmlTag (~== TagClose "ul"))))
-   <|> do (tag,_) <- htmlTag (~== TagOpen "ol" [])
-          spaces
-          items <- many (listItem '#' <|> li)
-          optional (htmlTag (~== TagClose "ol"))
-          let start = maybe 1 id $ safeRead $ fromAttrib "start" tag
-          return $ B.orderedListWith (start, DefaultStyle, DefaultDelim) items
+   <|> try
+       (do (tag,_) <- htmlTag (~== TagOpen "ol" [])
+           spaces
+           items <- many (listItem '#' <|> li)
+           optional (htmlTag (~== TagClose "ol"))
+           let start = fromMaybe 1 $ safeRead $ fromAttrib "start" tag
+           return $ B.orderedListWith (start, DefaultStyle, DefaultDelim) items)
 
 definitionList :: MWParser Blocks
 definitionList = B.definitionList <$> many1 defListItem
@@ -380,8 +415,9 @@ defListItem = try $ do
   terms <- mconcat . intersperse B.linebreak <$> many defListTerm
   -- we allow dd with no dt, or dt with no dd
   defs  <- if B.isNull terms
-              then many1 $ listItem ':'
-              else many $ listItem ':'
+              then notFollowedBy (try $ string ":<math>") *>
+                       many1 (listItem ':')
+              else many (listItem ':')
   return (terms, defs)
 
 defListTerm  :: MWParser Inlines
@@ -413,7 +449,8 @@ listItem c = try $ do
        skipMany spaceChar
        first <- concat <$> manyTill listChunk newline
        rest <- many
-                (try $ string extras *> (concat <$> manyTill listChunk newline))
+                (try $ string extras *> lookAhead listStartChar *>
+                       (concat <$> manyTill listChunk newline))
        contents <- parseFromString (many1 $ listItem' c)
                           (unlines (first : rest))
        case c of
@@ -462,6 +499,7 @@ inline =  whitespace
       <|> image
       <|> internalLink
       <|> externalLink
+      <|> math
       <|> inlineTag
       <|> B.singleton <$> charRef
       <|> inlineHtml
@@ -471,6 +509,16 @@ inline =  whitespace
 
 str :: MWParser Inlines
 str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
+
+math :: MWParser Inlines
+math = (B.displayMath . trim <$> try (char ':' >> charsInTags "math"))
+   <|> (B.math . trim <$> charsInTags "math")
+   <|> (B.displayMath . trim <$> try (dmStart *> manyTill anyChar dmEnd))
+   <|> (B.math . trim <$> try (mStart *> manyTill (satisfy (/='\n')) mEnd))
+ where dmStart = string "\\["
+       dmEnd   = try (string "\\]")
+       mStart  = string "\\("
+       mEnd    = try (string "\\)")
 
 variable :: MWParser String
 variable = try $ do
@@ -495,7 +543,6 @@ inlineTag = do
        TagOpen "del" _ -> B.strikeout <$> inlinesInTags "del"
        TagOpen "sub" _ -> B.subscript <$> inlinesInTags "sub"
        TagOpen "sup" _ -> B.superscript <$> inlinesInTags "sup"
-       TagOpen "math" _ -> B.math <$> charsInTags "math"
        TagOpen "code" _ -> B.code <$> charsInTags "code"
        TagOpen "tt" _ -> B.code <$> charsInTags "tt"
        TagOpen "hask" _ -> B.codeWith ("",["haskell"],[]) <$> charsInTags "hask"
@@ -520,15 +567,19 @@ endline = () <$ try (newline <*
                      notFollowedBy' header <*
                      notFollowedBy anyListStart)
 
+imageIdentifiers :: [MWParser ()]
+imageIdentifiers = [sym (identifier ++ ":") | identifier <- identifiers]
+    where identifiers = ["File", "Image", "Archivo", "Datei", "Fichier"]
+
 image :: MWParser Inlines
 image = try $ do
   sym "[["
-  sym "File:"
+  choice imageIdentifiers
   fname <- many1 (noneOf "|]")
   _ <- many (try $ char '|' *> imageOption)
   caption <-   (B.str fname <$ sym "]]")
            <|> try (char '|' *> (mconcat <$> manyTill inline (sym "]]")))
-  return $ B.image fname "image" caption
+  return $ B.image fname ("fig:" ++ stringify caption) caption
 
 imageOption :: MWParser String
 imageOption =

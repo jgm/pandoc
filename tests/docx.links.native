@@ -1,0 +1,6 @@
+[Header 2 ("an-internal-link-and-an-external-link",[],[]) [Str "An",Space,Str "internal",Space,Str "link",Space,Str "and",Space,Str "an",Space,Str "external",Space,Str "link"]
+,Para [Str "An",Space,Link [Str "external",Space,Str "link"] ("http://google.com",""),Space,Str "to",Space,Str "a",Space,Str "popular",Space,Str "website."]
+,Para [Str "An",Space,Link [Str "internal",Space,Str "link"] ("#a-section-for-testing-link-targets",""),Space,Str "to",Space,Str "a",Space,Str "section",Space,Str "header."]
+,Para [Str "An",Space,Link [Str "internal",Space,Str "link"] ("#my_bookmark",""),Space,Str "to",Space,Str "a",Space,Str "bookmark."]
+,Header 2 ("a-section-for-testing-link-targets",[],[]) [Str "A",Space,Str "section",Space,Str "for",Space,Str "testing",Space,Str "link",Space,Str "targets"]
+,Para [Str "A",Space,Str "bookmark",Space,Str "right",Space,Span ("my_bookmark",["anchor"],[]) [],Str "here"]]

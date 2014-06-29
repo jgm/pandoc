@@ -6,7 +6,6 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 import Tests.Helpers
 import Tests.Arbitrary()
-import Text.Highlighting.Kate (languages) -- null if no hl support
 
 html :: (ToString a, ToPandoc a) => a -> String
 html = writeHtmlString def{ writerWrapText = False } . toPandoc
@@ -32,9 +31,7 @@ tests :: [Test]
 tests = [ testGroup "inline code"
           [ "basic" =: code "@&" =?> "<code>@&amp;</code>"
           , "haskell" =: codeWith ("",["haskell"],[]) ">>="
-            =?> if null languages
-                   then "<code class=\"haskell\">&gt;&gt;=</code>"
-                   else "<code class=\"sourceCode haskell\"><span class=\"fu\">&gt;&gt;=</span></code>"
+            =?> "<code class=\"haskell\">&gt;&gt;=</code>"
           , "nolanguage" =: codeWith ("",["nolanguage"],[]) ">>="
             =?> "<code class=\"nolanguage\">&gt;&gt;=</code>"
           ]

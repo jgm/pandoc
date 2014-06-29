@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.AsciiDoc
-   Copyright   : Copyright (C) 2006-2010 John MacFarlane
+   Copyright   : Copyright (C) 2006-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -132,7 +132,9 @@ blockToAsciiDoc opts (Para inlines) = do
                then text "\\"
                else empty
   return $ esc <> contents <> blankline
-blockToAsciiDoc _ (RawBlock _ _) = return empty
+blockToAsciiDoc _ (RawBlock f s)
+  | f == "asciidoc" = return $ text s
+  | otherwise       = return empty
 blockToAsciiDoc _ HorizontalRule =
   return $ blankline <> text "'''''" <> blankline
 blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
@@ -215,7 +217,9 @@ blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
   let makeCell [Plain x] = do d <- blockListToAsciiDoc opts [Plain x]
                               return $ text "|" <> chomp d
       makeCell [Para x]  = makeCell [Plain x]
-      makeCell _         = return $ text "|" <> "[multiblock cell omitted]"
+      makeCell []        = return $ text "|"
+      makeCell bs        = do d <- blockListToAsciiDoc opts bs
+                              return $ text "a|" $$ d
   let makeRow cells = hsep `fmap` mapM makeCell cells
   rows' <- mapM makeRow rows
   head' <- makeRow headers
@@ -225,7 +229,7 @@ blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
                     else 100000
   let maxwidth = maximum $ map offset (head':rows')
   let body = if maxwidth > colwidth then vsep rows' else vcat rows'
-  let border = text $ "|" ++ replicate ((min maxwidth colwidth) - 1) '='
+  let border = text $ "|" ++ replicate (max 5 (min maxwidth colwidth) - 1) '='
   return $
     caption'' $$ tablespec $$ border $$ head'' $$ body $$ border $$ blankline
 blockToAsciiDoc opts (BulletList items) = do
@@ -246,6 +250,7 @@ blockToAsciiDoc opts (OrderedList (_start, sty, _delim) items) = do
 blockToAsciiDoc opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToAsciiDoc opts) items
   return $ cat contents <> blankline
+blockToAsciiDoc opts (Div _ bs) = blockListToAsciiDoc opts bs
 
 -- | Convert bullet list item (list of blocks) to asciidoc.
 bulletListItemToAsciiDoc :: WriterOptions -> [Block] -> State WriterState Doc
@@ -346,7 +351,9 @@ inlineToAsciiDoc _ (Math InlineMath str) =
   return $ "latexmath:[$" <> text str <> "$]"
 inlineToAsciiDoc _ (Math DisplayMath str) =
   return $ "latexmath:[\\[" <> text str <> "\\]]"
-inlineToAsciiDoc _ (RawInline _ _) = return empty
+inlineToAsciiDoc _ (RawInline f s)
+  | f == "asciidoc" = return $ text s
+  | otherwise       = return empty
 inlineToAsciiDoc _ (LineBreak) = return $ " +" <> cr
 inlineToAsciiDoc _ Space = return space
 inlineToAsciiDoc opts (Cite _ lst) = inlineListToAsciiDoc opts lst
@@ -383,3 +390,4 @@ inlineToAsciiDoc opts (Note [Plain inlines]) = do
   return $ text "footnote:[" <> contents <> "]"
 -- asciidoc can't handle blank lines in notes
 inlineToAsciiDoc _ (Note _) = return "[multiblock footnote omitted]"
+inlineToAsciiDoc opts (Span _ ils) = inlineListToAsciiDoc opts ils

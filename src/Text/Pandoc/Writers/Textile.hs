@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2010-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Textile
-   Copyright   : Copyright (C) 2010 John MacFarlane
+   Copyright   : Copyright (C) 2010-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -33,6 +33,7 @@ module Text.Pandoc.Writers.Textile ( writeTextile ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
+import Text.Pandoc.Pretty (render)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.XML ( escapeStringForXML )
@@ -50,7 +51,7 @@ data WriterState = WriterState {
 writeTextile :: WriterOptions -> Pandoc -> String
 writeTextile opts document =
   evalState (pandocToTextile opts document)
-            (WriterState { stNotes = [], stListLevel = [], stUseTags = False })
+            WriterState { stNotes = [], stListLevel = [], stUseTags = False }
 
 -- | Return Textile representation of document.
 pandocToTextile :: WriterOptions -> Pandoc -> State WriterState String
@@ -101,6 +102,12 @@ blockToTextile :: WriterOptions -- ^ Options
 
 blockToTextile _ Null = return ""
 
+blockToTextile opts (Div attr bs) = do
+  let startTag = render Nothing $ tagWithAttrs "div" attr
+  let endTag = "</div>"
+  contents <- blockListToTextile opts bs
+  return $ startTag ++ "\n\n" ++ contents ++ "\n\n" ++ endTag ++ "\n"
+
 blockToTextile opts (Plain inlines) =
   inlineListToTextile opts inlines
 
@@ -118,10 +125,9 @@ blockToTextile opts (Para inlines) = do
               then "<p>" ++ contents ++ "</p>"
               else contents ++ if null listLevel then "\n" else ""
 
-blockToTextile _ (RawBlock f str) =
-  if f == "html" || f == "textile"
-     then return str
-     else return ""
+blockToTextile _ (RawBlock f str)
+  | f == Format "html" || f == Format "textile" = return str
+  | otherwise                                   = return ""
 
 blockToTextile _ HorizontalRule = return "<hr />\n"
 
@@ -343,6 +349,9 @@ inlineListToTextile opts lst =
 -- | Convert Pandoc inline element to Textile.
 inlineToTextile :: WriterOptions -> Inline -> State WriterState String
 
+inlineToTextile opts (Span _ lst) =
+  inlineListToTextile opts lst
+
 inlineToTextile opts (Emph lst) = do
   contents <- inlineListToTextile opts lst
   return $ if '_' `elem` contents
@@ -395,10 +404,9 @@ inlineToTextile _ (Str str) = return $ escapeStringForTextile str
 inlineToTextile _ (Math _ str) =
   return $ "<span class=\"math\">" ++ escapeStringForXML str ++ "</math>"
 
-inlineToTextile _ (RawInline f str) =
-  if f == "html" || f == "textile"
-     then return str
-     else return ""
+inlineToTextile _ (RawInline f str)
+  | f == Format "html" || f == Format "textile" = return str
+  | otherwise                                   = return ""
 
 inlineToTextile _ (LineBreak) = return "\n"
 

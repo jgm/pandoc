@@ -24,7 +24,7 @@ infix 4 =:
 testBareLink :: (String, Inlines) -> Test
 testBareLink (inp, ils) =
   test (readMarkdown def{ readerExtensions =
-             Set.fromList [Ext_autolink_bare_uris] })
+             Set.fromList [Ext_autolink_bare_uris, Ext_raw_html] })
        inp (inp, doc $ para ils)
 
 autolink :: String -> Inlines
@@ -34,6 +34,9 @@ bareLinkTests :: [(String, Inlines)]
 bareLinkTests =
   [ ("http://google.com is a search engine.",
      autolink "http://google.com" <> " is a search engine.")
+  , ("<a href=\"http://foo.bar.baz\">http://foo.bar.baz</a>",
+     rawInline "html" "<a href=\"http://foo.bar.baz\">" <>
+     "http://foo.bar.baz" <> rawInline "html" "</a>")
   , ("Try this query: http://google.com?search=fish&time=hour.",
      "Try this query: " <> autolink "http://google.com?search=fish&time=hour" <> ".")
   , ("HTTPS://GOOGLE.COM,",
@@ -133,6 +136,11 @@ tests = [ testGroup "inline code"
             "`*` {.haskell .special x=\"7\"}"
             =?> para (codeWith ("",["haskell","special"],[("x","7")]) "*")
           ]
+        , testGroup "emph and strong"
+          [ "two strongs in emph" =:
+             "***a**b **c**d*" =?> para (emph (strong (str "a") <> str "b" <> space
+                                         <> strong (str "c") <> str "d"))
+          ]
         , testGroup "raw LaTeX"
           [ "in URL" =:
             "\\begin\n" =?> para (text "\\begin")
@@ -163,13 +171,13 @@ tests = [ testGroup "inline code"
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
             ("'...hi'"
-            =?> para (singleQuoted ("…hi")))
+            =?> para (singleQuoted "…hi"))
           , test markdownSmart "apostrophe before emph"
             ("D'oh! A l'*aide*!"
             =?> para ("D’oh! A l’" <> emph "aide" <> "!"))
           , test markdownSmart "apostrophe in French"
             ("À l'arrivée de la guerre, le thème de l'«impossibilité du socialisme»"
-            =?> para ("À l’arrivée de la guerre, le thème de l’«impossibilité du socialisme»"))
+            =?> para "À l’arrivée de la guerre, le thème de l’«impossibilité du socialisme»")
           ]
         , testGroup "mixed emphasis and strong"
           [ "emph and strong emph alternating" =:
@@ -208,4 +216,13 @@ tests = [ testGroup "inline code"
 --        , testGroup "round trip"
 --          [ property "p_markdown_round_trip" p_markdown_round_trip
 --          ]
+        , testGroup "lists"
+          [ "issue #1154" =:
+              " -  <div>\n    first div breaks\n    </div>\n\n    <button>if this button exists</button>\n\n    <div>\n    with this div too.\n    </div>\n"
+              =?> bulletList [divWith nullAttr (plain $ text "first div breaks") <>
+                              rawBlock "html" "<button>" <>
+                              plain (text "if this button exists") <>
+                              rawBlock "html" "</button>\n" <>
+                              divWith nullAttr (plain $ text "with this div too.")]
+          ]
         ]

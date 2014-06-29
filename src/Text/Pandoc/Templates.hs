@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, CPP,
     OverloadedStrings, GeneralizedNewtypeDeriving #-}
 {-
-Copyright (C) 2009-2013 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2009-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Templates
-   Copyright   : Copyright (C) 2009-2013 John MacFarlane
+   Copyright   : Copyright (C) 2009-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -96,14 +96,14 @@ module Text.Pandoc.Templates ( renderTemplate
 import Data.Char (isAlphaNum)
 import Control.Monad (guard, when)
 import Data.Aeson (ToJSON(..), Value(..))
-import qualified Data.Attoparsec.Text as A
-import Data.Attoparsec.Text (Parser)
+import qualified Text.Parsec as P
+import Text.Parsec.Text (Parser)
 import Control.Applicative
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
-import Data.Monoid ((<>), Monoid(..))
-import Data.List (intersperse, nub)
+import Text.Pandoc.Compat.Monoid ((<>), Monoid(..))
+import Data.List (intersperse)
 import System.FilePath ((</>), (<.>))
 import qualified Data.Map as M
 import qualified Data.HashMap.Strict as H
@@ -116,7 +116,8 @@ import Text.Blaze.Internal (preEscapedText)
 import Text.Blaze (preEscapedText, Html)
 #endif
 import Data.ByteString.Lazy (ByteString, fromChunks)
-import Text.Pandoc.Shared (readDataFileUTF8)
+import Text.Pandoc.Shared (readDataFileUTF8, ordNub)
+import Data.Vector ((!?))
 
 -- | Get default template for the specified writer.
 getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first
@@ -162,7 +163,7 @@ varListToJSON assoc = toJSON $ M.fromList assoc'
   where assoc' = [(T.pack k, toVal [T.pack z | (y,z) <- assoc,
                                                 not (null z),
                                                 y == k])
-                        | k <- nub $ map fst assoc ]
+                        | k <- ordNub $ map fst assoc ]
         toVal [x] = toJSON x
         toVal []  = Null
         toVal xs  = toJSON xs
@@ -171,7 +172,10 @@ renderTemplate :: (ToJSON a, TemplateTarget b) => Template -> a -> b
 renderTemplate (Template f) context = toTarget $ f $ toJSON context
 
 compileTemplate :: Text -> Either String Template
-compileTemplate template = A.parseOnly pTemplate template
+compileTemplate template =
+  case P.parse (pTemplate <* P.eof) "template" template of
+       Left e   -> Left (show e)
+       Right x  -> Right x
 
 -- | Like 'renderTemplate', but compiles the template first,
 -- raising an error if compilation fails.
@@ -185,10 +189,11 @@ var = Template . resolveVar
 resolveVar :: Variable -> Value -> Text
 resolveVar var' val =
   case multiLookup var' val of
-       Just (Array vec) -> mconcat $ map (resolveVar []) $ toList vec
+       Just (Array vec) -> maybe mempty (resolveVar []) $ vec !? 0
        Just (String t)  -> T.stripEnd t
        Just (Number n)  -> T.pack $ show n
        Just (Bool True) -> "true"
+       Just (Object _)  -> "true"
        Just _           -> mempty
        Nothing          -> mempty
 
@@ -212,7 +217,7 @@ iter var' template sep = Template $ \val -> unTemplate
            Just (Array vec) -> mconcat $ intersperse sep
                                        $ map (setVar template var')
                                        $ toList vec
-           Just x           -> setVar template var' x
+           Just x           -> cond var' (setVar template var' x) mempty
            Nothing          -> mempty) val
 
 setVar :: Template -> Variable -> Value -> Template
@@ -228,7 +233,7 @@ replaceVar _ _ old = old
 
 pTemplate :: Parser Template
 pTemplate = do
-  sp <- A.option mempty pInitialSpace
+  sp <- P.option mempty pInitialSpace
   rest <- mconcat <$> many (pConditional <|>
                             pFor <|>
                             pNewline <|>
@@ -237,40 +242,43 @@ pTemplate = do
                             pEscapedDollar)
   return $ sp <> rest
 
+takeWhile1 :: (Char -> Bool) -> Parser Text
+takeWhile1 f = T.pack <$> P.many1 (P.satisfy f)
+
 pLit :: Parser Template
-pLit = lit <$> A.takeWhile1 (\x -> x /='$' && x /= '\n')
+pLit = lit <$> takeWhile1 (\x -> x /='$' && x /= '\n')
 
 pNewline :: Parser Template
 pNewline = do
-  A.char '\n'
-  sp <- A.option mempty pInitialSpace
+  P.char '\n'
+  sp <- P.option mempty pInitialSpace
   return $ lit "\n" <> sp
 
 pInitialSpace :: Parser Template
 pInitialSpace = do
-  sps <- A.takeWhile1 (==' ')
+  sps <- takeWhile1 (==' ')
   let indentVar = if T.null sps
                      then id
                      else indent (T.length sps)
-  v <- A.option mempty $ indentVar <$> pVar
+  v <- P.option mempty $ indentVar <$> pVar
   return $ lit sps <> v
 
 pEscapedDollar :: Parser Template
-pEscapedDollar = lit "$" <$ A.string "$$"
+pEscapedDollar = lit "$" <$ P.try (P.string "$$")
 
 pVar :: Parser Template
-pVar = var <$> (A.char '$' *> pIdent <* A.char '$')
+pVar = var <$> (P.try $ P.char '$' *> pIdent <* P.char '$')
 
 pIdent :: Parser [Text]
 pIdent = do
   first <- pIdentPart
-  rest <- many (A.char '.' *> pIdentPart)
+  rest <- many (P.char '.' *> pIdentPart)
   return (first:rest)
 
 pIdentPart :: Parser Text
-pIdentPart = do
-  first <- A.letter
-  rest <- A.takeWhile (\c -> isAlphaNum c || c == '_' || c == '-')
+pIdentPart = P.try $ do
+  first <- P.letter
+  rest <- T.pack <$> P.many (P.satisfy (\c -> isAlphaNum c || c == '_' || c == '-'))
   let id' = T.singleton first <> rest
   guard $ id' `notElem` reservedWords
   return id'
@@ -279,38 +287,38 @@ reservedWords :: [Text]
 reservedWords = ["else","endif","for","endfor","sep"]
 
 skipEndline :: Parser ()
-skipEndline = A.skipWhile (`elem` " \t") >> A.char '\n' >> return ()
+skipEndline = P.try $ P.skipMany (P.satisfy (`elem` " \t")) >> P.char '\n' >> return ()
 
 pConditional :: Parser Template
 pConditional = do
-  A.string "$if("
+  P.try $ P.string "$if("
   id' <- pIdent
-  A.string ")$"
+  P.string ")$"
   -- if newline after the "if", then a newline after "endif" will be swallowed
-  multiline <- A.option False (True <$ skipEndline)
+  multiline <- P.option False (True <$ skipEndline)
   ifContents <- pTemplate
-  elseContents <- A.option mempty $
-                      do A.string "$else$"
-                         when multiline $ A.option () skipEndline
+  elseContents <- P.option mempty $ P.try $
+                      do P.string "$else$"
+                         when multiline $ P.option () skipEndline
                          pTemplate
-  A.string "$endif$"
-  when multiline $ A.option () skipEndline
+  P.string "$endif$"
+  when multiline $ P.option () skipEndline
   return $ cond id' ifContents elseContents
 
 pFor :: Parser Template
 pFor = do
-  A.string "$for("
+  P.try $ P.string "$for("
   id' <- pIdent
-  A.string ")$"
+  P.string ")$"
   -- if newline after the "for", then a newline after "endfor" will be swallowed
-  multiline <- A.option False $ skipEndline >> return True
+  multiline <- P.option False $ skipEndline >> return True
   contents <- pTemplate
-  sep <- A.option mempty $
-           do A.string "$sep$"
-              when multiline $ A.option () skipEndline
+  sep <- P.option mempty $
+           do P.try $ P.string "$sep$"
+              when multiline $ P.option () skipEndline
               pTemplate
-  A.string "$endfor$"
-  when multiline $ A.option () skipEndline
+  P.string "$endfor$"
+  when multiline $ P.option () skipEndline
   return $ iter id' contents sep
 
 indent :: Int -> Template -> Template

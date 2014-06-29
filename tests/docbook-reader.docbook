@@ -4,14 +4,16 @@
 <article>
   <articleinfo>
     <title>Pandoc Test Suite</title>
-    <author>
-      <firstname>John</firstname>
-      <surname>MacFarlane</surname>
-    </author>
-    <author>
-      <firstname></firstname>
-      <surname>Anonymous</surname>
-    </author>
+    <authorgroup>
+      <author>
+        <firstname>John</firstname>
+        <surname>MacFarlane</surname>
+      </author>
+      <author>
+        <firstname></firstname>
+        <surname>Anonymous</surname>
+      </author>
+    </authorgroup>
     <date>July 17, 2006</date>
   </articleinfo>
 <para>

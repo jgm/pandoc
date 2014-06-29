@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
 {-
-Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc
-   Copyright   : Copyright (C) 2006-2010 John MacFarlane
+   Copyright   : Copyright (C) 2006-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -62,9 +62,12 @@ module Text.Pandoc
                , readers
                , writers
                -- * Readers: converting /to/ Pandoc format
+               , Reader (..)
+               , readDocx
                , readMarkdown
                , readMediaWiki
                , readRST
+               , readOrg
                , readLaTeX
                , readHtml
                , readTextile
@@ -72,9 +75,11 @@ module Text.Pandoc
                , readOPML
                , readHaddock
                , readNative
+               , readJSON
                -- * Writers: converting /from/ Pandoc format
                , Writer (..)
                , writeNative
+               , writeJSON
                , writeMarkdown
                , writePlain
                , writeRST
@@ -83,6 +88,7 @@ module Text.Pandoc
                , writeTexinfo
                , writeHtml
                , writeHtmlString
+               , writeICML
                , writeDocbook
                , writeOPML
                , writeOpenDocument
@@ -97,6 +103,7 @@ module Text.Pandoc
                , writeFB2
                , writeOrg
                , writeAsciiDoc
+               , writeHaddock
                , writeCustom
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates
@@ -105,15 +112,16 @@ module Text.Pandoc
                -- * Miscellaneous
                , getReader
                , getWriter
-               , jsonFilter
                , ToJsonFilter(..)
              ) where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
+import Text.Pandoc.JSON
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Readers.RST
+import Text.Pandoc.Readers.Org
 import Text.Pandoc.Readers.DocBook
 import Text.Pandoc.Readers.OPML
 import Text.Pandoc.Readers.LaTeX
@@ -121,6 +129,7 @@ import Text.Pandoc.Readers.HTML
 import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Haddock
+import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.RST
@@ -132,6 +141,7 @@ import Text.Pandoc.Writers.ODT
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.EPUB
 import Text.Pandoc.Writers.FB2
+import Text.Pandoc.Writers.ICML
 import Text.Pandoc.Writers.Docbook
 import Text.Pandoc.Writers.OPML
 import Text.Pandoc.Writers.OpenDocument
@@ -142,17 +152,16 @@ import Text.Pandoc.Writers.DokuWiki
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.AsciiDoc
+import Text.Pandoc.Writers.Haddock
 import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, warn)
-import Data.ByteString.Lazy (ByteString)
+import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
-import Data.List (intercalate, isSuffixOf)
+import Data.List (intercalate)
 import Data.Version (showVersion)
-import Data.Aeson.Generic
 import Data.Set (Set)
-import Data.Data
 import qualified Data.Set as Set
 import Text.Parsec
 import Text.Parsec.Error
@@ -190,45 +199,56 @@ markdown o s = do
   mapM_ warn warnings
   return doc
 
+data Reader = StringReader (ReaderOptions -> String -> IO Pandoc)
+              | ByteStringReader (ReaderOptions -> BL.ByteString -> IO Pandoc)
+
+mkStringReader :: (ReaderOptions -> String -> Pandoc) -> Reader
+mkStringReader r = StringReader (\o s -> return $ r o s)
+
+mkBSReader :: (ReaderOptions -> BL.ByteString -> Pandoc) -> Reader
+mkBSReader r = ByteStringReader (\o s -> return $ r o s)
+
 -- | Association list of formats and readers.
-readers :: [(String, ReaderOptions -> String -> IO Pandoc)]
-readers = [("native"       , \_ s -> return $ readNative s)
-          ,("json"         , \_ s -> return $ checkJSON
-                                            $ decode $ UTF8.fromStringLazy s)
-           ,("markdown"     , markdown)
-           ,("markdown_strict" , markdown)
-           ,("markdown_phpextra" , markdown)
-           ,("markdown_github" , markdown)
-           ,("markdown_mmd",  markdown)
-           ,("rst"          , \o s -> return $ readRST o s)
-           ,("mediawiki"    , \o s -> return $ readMediaWiki o s)
-           ,("docbook"      , \o s -> return $ readDocBook o s)
-           ,("opml"         , \o s -> return $ readOPML o s)
-           ,("textile"      , \o s -> return $ readTextile o s) -- TODO : textile+lhs
-           ,("html"         , \o s -> return $ readHtml o s)
-           ,("latex"        , \o s -> return $ readLaTeX o s)
-          ,("haddock"      , \o s -> return $ readHaddock o s)
-          ]
+readers :: [(String, Reader)]
+readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
+           ,("json"         , mkStringReader readJSON )
+           ,("markdown"     , StringReader  markdown)
+           ,("markdown_strict" , StringReader markdown)
+           ,("markdown_phpextra" , StringReader markdown)
+           ,("markdown_github" , StringReader markdown)
+           ,("markdown_mmd",  StringReader markdown)
+           ,("rst"          , mkStringReader readRST )
+           ,("mediawiki"    , mkStringReader readMediaWiki)
+           ,("docbook"      , mkStringReader readDocBook)
+           ,("opml"         , mkStringReader readOPML)
+           ,("org"          , mkStringReader readOrg)
+           ,("textile"      , mkStringReader readTextile) -- TODO : textile+lhs
+           ,("html"         , mkStringReader readHtml)
+           ,("latex"        , mkStringReader readLaTeX)
+           ,("haddock"      , mkStringReader readHaddock)
+           ,("docx"         , mkBSReader readDocx)
+           ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
             | IOStringWriter     (WriterOptions -> Pandoc -> IO String)
-            | IOByteStringWriter (WriterOptions -> Pandoc -> IO ByteString)
+            | IOByteStringWriter (WriterOptions -> Pandoc -> IO BL.ByteString)
 
 -- | Association list of formats and writers.
 writers :: [ ( String, Writer ) ]
 writers = [
    ("native"       , PureStringWriter writeNative)
-  ,("json"         , PureStringWriter $ \_ -> UTF8.toStringLazy . encode)
+  ,("json"         , PureStringWriter writeJSON)
   ,("docx"         , IOByteStringWriter writeDocx)
- ,("odt"          , IOByteStringWriter writeODT)
- ,("epub"         , IOByteStringWriter $ \o ->
+  ,("odt"          , IOByteStringWriter writeODT)
+  ,("epub"         , IOByteStringWriter $ \o ->
                       writeEPUB o{ writerEpubVersion = Just EPUB2 })
- ,("epub3"        , IOByteStringWriter $ \o ->
+  ,("epub3"        , IOByteStringWriter $ \o ->
                        writeEPUB o{ writerEpubVersion = Just EPUB3 })
   ,("fb2"          , IOStringWriter writeFB2)
   ,("html"         , PureStringWriter writeHtmlString)
   ,("html5"        , PureStringWriter $ \o ->
      writeHtmlString o{ writerHtml5 = True })
+  ,("icml"         , PureStringWriter writeICML)
   ,("s5"           , PureStringWriter $ \o ->
      writeHtmlString o{ writerSlideVariant = S5Slides
                       , writerTableOfContents = False })
@@ -264,6 +284,7 @@ writers = [
   ,("rtf"          , IOStringWriter writeRTFWithEmbeddedImages)
   ,("org"          , PureStringWriter writeOrg)
   ,("asciidoc"     , PureStringWriter writeAsciiDoc)
+  ,("haddock"      , PureStringWriter writeHaddock)
   ]
 
 getDefaultExtensions :: String -> Set Extension
@@ -271,94 +292,53 @@ getDefaultExtensions "markdown_strict" = strictExtensions
 getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
 getDefaultExtensions "markdown_mmd" = multimarkdownExtensions
 getDefaultExtensions "markdown_github" = githubMarkdownExtensions
-getDefaultExtensions _        = pandocExtensions
+getDefaultExtensions "markdown"        = pandocExtensions
+getDefaultExtensions "plain"           = pandocExtensions
+getDefaultExtensions "org"             = Set.fromList [Ext_citations]
+getDefaultExtensions "textile"         = Set.fromList [Ext_auto_identifiers, Ext_raw_tex]
+getDefaultExtensions _                 = Set.fromList [Ext_auto_identifiers]
 
 -- | Retrieve reader based on formatSpec (format+extensions).
-getReader :: String -> Either String (ReaderOptions -> String -> IO Pandoc)
+getReader :: String -> Either String Reader
 getReader s =
   case parseFormatSpec s of
        Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
-       Right (readerName, setExts) ->
+       Right (readerName, setExts) -> 
            case lookup readerName readers of
                    Nothing  -> Left $ "Unknown reader: " ++ readerName
-                   Just  r  -> Right $ \o ->
+                   Just  (StringReader r)  -> Right $ StringReader $ \o ->
+                                  r o{ readerExtensions = setExts $
+                                            getDefaultExtensions readerName }
+                   Just (ByteStringReader r) -> Right $ ByteStringReader $ \o ->
                                   r o{ readerExtensions = setExts $
                                             getDefaultExtensions readerName }
 
 -- | Retrieve writer based on formatSpec (format+extensions).
 getWriter :: String -> Either String Writer
-getWriter s =
-  case parseFormatSpec s of
-       Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
-       Right (writerName, setExts) ->
-           case lookup writerName writers of
-                   Nothing
-                     | ".lua" `isSuffixOf` s ->
-                       Right $ IOStringWriter $ writeCustom s
-                     | otherwise -> Left $ "Unknown writer: " ++ writerName
-                   Just (PureStringWriter r) -> Right $ PureStringWriter $
-                           \o -> r o{ writerExtensions = setExts $
-                                            getDefaultExtensions writerName }
-                   Just (IOStringWriter r) -> Right $ IOStringWriter $
-                           \o -> r o{ writerExtensions = setExts $
-                                            getDefaultExtensions writerName }
-                   Just (IOByteStringWriter r) -> Right $ IOByteStringWriter $
-                           \o -> r o{ writerExtensions = setExts $
-                                            getDefaultExtensions writerName }
+getWriter s
+  = case parseFormatSpec s of
+         Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
+         Right (writerName, setExts) ->
+             case lookup writerName writers of
+                     Nothing -> Left $ "Unknown writer: " ++ writerName
+                     Just (PureStringWriter r) -> Right $ PureStringWriter $
+                             \o -> r o{ writerExtensions = setExts $
+                                              getDefaultExtensions writerName }
+                     Just (IOStringWriter r) -> Right $ IOStringWriter $
+                             \o -> r o{ writerExtensions = setExts $
+                                              getDefaultExtensions writerName }
+                     Just (IOByteStringWriter r) -> Right $ IOByteStringWriter $
+                             \o -> r o{ writerExtensions = setExts $
+                                              getDefaultExtensions writerName }
 
-{-# DEPRECATED jsonFilter "Use toJsonFilter instead" #-}
--- | Converts a transformation on the Pandoc AST into a function
--- that reads and writes a JSON-encoded string.  This is useful
--- for writing small scripts.
-jsonFilter :: (Pandoc -> Pandoc) -> String -> String
-jsonFilter f = UTF8.toStringLazy . encode . f . checkJSON . decode . UTF8.fromStringLazy
+{-# DEPRECATED toJsonFilter "Use 'toJSONFilter' from 'Text.Pandoc.JSON' instead" #-}
+-- | Deprecated.  Use @toJSONFilter@ from @Text.Pandoc.JSON@ instead.
+class ToJSONFilter a => ToJsonFilter a
+  where toJsonFilter :: a -> IO ()
+        toJsonFilter = toJSONFilter
 
--- | 'toJsonFilter' convert a function into a filter that reads pandoc's json output
--- from stdin, transforms it by walking the AST and applying the specified
--- function, and writes the result as json to stdout.  Usage example:
---
--- > -- capitalize.hs
--- > -- compile with:  ghc --make capitalize
--- > -- run with:      pandoc -t json | ./capitalize | pandoc -f json
--- >
--- > import Text.Pandoc
--- > import Data.Char (toUpper)
--- >
--- > main :: IO ()
--- > main = toJsonFilter capitalizeStrings
--- >
--- > capitalizeStrings :: Inline -> Inline
--- > capitalizeStrings (Str s) = Str $ map toUpper s
--- > capitalizeStrings x       = x
---
--- The function can be any type @(a -> a)@, @(a -> IO a)@, @(a -> [a])@,
--- or @(a -> IO [a])@, where @a@ is an instance of 'Data'.
--- So, for example, @a@ can be 'Pandoc', 'Inline', 'Block', ['Inline'],
--- ['Block'], 'Meta', 'ListNumberStyle', 'Alignment', 'ListNumberDelim',
--- 'QuoteType', etc. See 'Text.Pandoc.Definition'.
-class ToJsonFilter a where
-  toJsonFilter :: a -> IO ()
+readJSON :: ReaderOptions -> String -> Pandoc
+readJSON _ = either error id . eitherDecode' . UTF8.fromStringLazy
 
-instance (Data a) => ToJsonFilter (a -> a) where
-  toJsonFilter f = BL.getContents >>=
-    BL.putStr . encode . (bottomUp f :: Pandoc -> Pandoc) . checkJSON . decode
-
-instance (Data a) => ToJsonFilter (a -> IO a) where
-  toJsonFilter f = BL.getContents >>=
-     (bottomUpM f :: Pandoc -> IO Pandoc) . checkJSON . decode >>=
-     BL.putStr . encode
-
-instance (Data a) => ToJsonFilter (a -> [a]) where
-  toJsonFilter f = BL.getContents >>=
-    BL.putStr . encode . (bottomUp (concatMap f) :: Pandoc -> Pandoc) .
-      checkJSON . decode
-
-instance (Data a) => ToJsonFilter (a -> IO [a]) where
-  toJsonFilter f = BL.getContents >>=
-    (bottomUpM (fmap concat . mapM f) :: Pandoc -> IO Pandoc)
-      . checkJSON . decode >>=
-    BL.putStr . encode
-
-checkJSON :: Maybe a -> a
-checkJSON Nothing  = error "Error parsing JSON"
-checkJSON (Just r) = r
+writeJSON :: WriterOptions -> Pandoc -> String
+writeJSON _ = UTF8.toStringLazy . encode

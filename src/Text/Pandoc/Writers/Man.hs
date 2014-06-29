@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2007-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2007-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Man
-   Copyright   : Copyright (C) 2007-2010 John MacFarlane
+   Copyright   : Copyright (C) 2007-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -160,14 +160,16 @@ blockToMan :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> State WriterState Doc
 blockToMan _ Null = return empty
+blockToMan opts (Div _ bs) = blockListToMan opts bs
 blockToMan opts (Plain inlines) =
   liftM vcat $ mapM (inlineListToMan opts) $ splitSentences inlines
 blockToMan opts (Para inlines) = do
   contents <- liftM vcat $ mapM (inlineListToMan opts) $
     splitSentences inlines
   return $ text ".PP" $$ contents
-blockToMan _ (RawBlock "man" str) = return $ text str
-blockToMan _ (RawBlock _ _) = return empty
+blockToMan _ (RawBlock f str)
+  | f == Format "man" = return $ text str
+  | otherwise         = return empty
 blockToMan _ HorizontalRule = return $ text ".PP" $$ text "   *   *   *   *   *"
 blockToMan opts (Header level _ inlines) = do
   contents <- inlineListToMan opts inlines
@@ -281,7 +283,7 @@ definitionListItemToMan opts (label, defs) = do
                                   mapM (\item -> blockToMan opts item) rest
                         first' <- blockToMan opts first
                         return $ first' $$ text ".RS" $$ rest' $$ text ".RE"
-  return $ text ".TP" $$ text ".B " <> labelText $$ contents
+  return $ text ".TP" $$ nowrap (text ".B " <> labelText) $$ contents
 
 -- | Convert list of Pandoc block elements to man.
 blockListToMan :: WriterOptions -- ^ Options
@@ -300,6 +302,7 @@ inlineListToMan opts lst = mapM (inlineToMan opts) lst >>= (return . hcat)
 
 -- | Convert Pandoc inline element to man.
 inlineToMan :: WriterOptions -> Inline -> State WriterState Doc
+inlineToMan opts (Span _ ils) = inlineListToMan opts ils
 inlineToMan opts (Emph lst) = do
   contents <- inlineListToMan opts lst
   return $ text "\\f[I]" <> contents <> text "\\f[]"
@@ -327,12 +330,14 @@ inlineToMan opts (Cite _ lst) =
 inlineToMan _ (Code _ str) =
   return $ text $ "\\f[C]" ++ escapeCode str ++ "\\f[]"
 inlineToMan _ (Str str) = return $ text $ escapeString str
-inlineToMan opts (Math InlineMath str) = inlineListToMan opts $ readTeXMath str
+inlineToMan opts (Math InlineMath str) =
+  inlineListToMan opts $ readTeXMath' InlineMath str
 inlineToMan opts (Math DisplayMath str) = do
-  contents <- inlineListToMan opts $ readTeXMath str
+  contents <- inlineListToMan opts $ readTeXMath' DisplayMath str
   return $ cr <> text ".RS" $$ contents $$ text ".RE"
-inlineToMan _ (RawInline "man" str) = return $ text str
-inlineToMan _ (RawInline _ _) = return empty
+inlineToMan _ (RawInline f str)
+  | f == Format "man" = return $ text str
+  | otherwise         = return empty
 inlineToMan _ (LineBreak) = return $
   cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
 inlineToMan _ Space = return space

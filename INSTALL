@@ -3,15 +3,22 @@
 These instructions explain how to install pandoc from source.
 Binary packages or ports of pandoc are available for freebsd
 and several linux distributions, so check your package manager.
-There is also a Windows installer.
+There are also binary installers for Windows and Mac OS X.
+
+If you are installing the development version from github, see also:
+https://github.com/jgm/pandoc/wiki/Installing-the-development-version-of-pandoc
 
 Quick install
 -------------
 
 1.  Install the [Haskell platform].  This will give you [GHC] and
-the [cabal-install] build tool.
+    the [cabal-install] build tool.
 
-2.  Use `cabal` to install pandoc and its dependencies:
+2.  Update your package database:
+
+        cabal update
+
+3.  Use `cabal` to install pandoc and its dependencies:
 
         cabal install pandoc
 
@@ -23,15 +30,46 @@ the [cabal-install] build tool.
 
         cabal install
 
-3.  Make sure the `$CABALDIR/bin` directory is in your path.  You should
-now be able to run `pandoc`:
+    Note: If you obtained the source from the git repository (rather
+    than a release tarball), you'll need to do
+
+        git submodule update --init
+
+    to fetch the contents of `data/templates` before `cabal install`.
+
+4.  Make sure the `$CABALDIR/bin` directory is in your path.  You should
+    now be able to run `pandoc`:
 
         pandoc --help
 
-4.  Make sure the `$CABALDIR/share/man/man1` directory is in your `MANPATH`.
-You should now be able to access the `pandoc` man page:
+    [Not sure where `$CABALDIR` is?](http://www.haskell.org/haskellwiki/Cabal-Install#The_cabal-install_configuration_file)
+
+5.  Make sure the `$CABALDIR/share/man/man1` directory is in your `MANPATH`.
+    You should now be able to access the `pandoc` man page:
 
         man pandoc
+
+6.  If you want to process citations with pandoc, you will also need to
+    install a separate package, `pandoc-citeproc`.  This can be installed
+    using cabal:
+
+        cabal install pandoc-citeproc
+
+    By default `pandoc-citeproc` uses the "i;unicode-casemap" method
+    to sort bibliography entries (RFC 5051).  If you would like to
+    use the locale-sensitive unicode collation algorithm instead,
+    specify the `unicode_collation` flag:
+
+       cabal install pandoc-citeproc -funicode_collation
+
+    Note that this requires the `text-icu` library, which in turn
+    depends on the C library `icu4c`.  Installation directions
+    vary by platform.  Here is how it might work on OSX with homebrew:
+
+       brew install icu4c
+       cabal install --extra-lib-dirs=/usr/local/Cellar/icu4c/51.1/lib \
+         --extra-include-dirs=/usr/local/Cellar/icu4c/51.1/include \
+         -funicode_collation text-icu pandoc-citeproc
 
 [GHC]: http://www.haskell.org/ghc/
 [Haskell platform]: http://hackage.haskell.org/platform/
@@ -43,14 +81,19 @@ Custom install
 This is a step-by-step procedure that offers maximal control
 over the build and installation.  Most users should use the
 quick install, but this information may be of use to packagers.
-For more details, see the [Cabal User's Guide].
+For more details, see the [Cabal User's Guide].  These instructions
+assume that the pandoc source directory is your working directory.
 
 1.  Install dependencies:  in addition to the [Haskell platform],
-you will need [zip-archive], [blaze-html], and [highlighting-kate].
+    you will need a number of additional libraries.  You can install
+    them all with
+
+        cabal update
+        cabal install --only-dependencies
 
 2.  Configure:
 
-        runghc Setup.hs configure --prefix=DIR --bindir=DIR --libdir=DIR \
+        cabal configure --prefix=DIR --bindir=DIR --libdir=DIR \
           --datadir=DIR --libsubdir=DIR --datasubdir=DIR --docdir=DIR \
           --htmldir=DIR --program-prefix=PREFIX --program-suffix=SUFFIX \
           --mandir=DIR --flags=FLAGSPEC
@@ -62,26 +105,33 @@ you will need [zip-archive], [blaze-html], and [highlighting-kate].
     preceded by a `-` (to force the flag to `false`), and separated
     by spaces.  Pandoc's flags include:
 
-    - `blaze_html_0_5`: Use blaze-html >= 0.5 (default yes)
-    - `embed_data_files`: embed all data files into the binary (default no)
+    - `embed_data_files`: embed all data files into the binary (default no).
+      This is helpful if you want to create a relocatable binary.
+      Note:  if this option is selected, you need to install the
+      `hsb2hs` preprocessor:
+
+          cabal install hsb2hs
+
+    - `https`:  enable support for downloading resources over https
+      (using the `http-client` and `http-client-tls` libraries).
 
 3.  Build:
 
-        runghc Setup.hs build
+        cabal build
 
 4.  Build API documentation:
 
-        runghc Setup.hs haddock --html-location=URL --hyperlink-source
+        cabal haddock --html-location=URL --hyperlink-source
 
 5.  Copy the files:
 
-        runghc Setup.hs copy --destdir=PATH
+        cabal copy --destdir=PATH
 
     The default destdir is `/`.
 
 6.  Register pandoc as a GHC package:
 
-        runghc Setup.hs register
+        cabal register
 
     Package managers may want to use the `--gen-script` option to
     generate a script that can be run to register the package at
@@ -107,7 +157,6 @@ you please.
 [blaze-html]: http://hackage.haskell.org/package/blaze-html
 [Cabal User's Guide]: http://www.haskell.org/cabal/release/latest/doc/users-guide/builders.html#setup-configure-paths
 
-
 Running tests
 -------------
 
@@ -115,13 +164,6 @@ Pandoc comes with an automated test suite integrated to cabal.
 To build the tests:
 
     cabal configure --enable-tests && cabal build
-
-Note: If you obtained the source via git, you should first do
-
-    git submodule update --init data/templates
-
-to populate the templates subdirectory.  (You can skip this step
-if you obtained the source from a release tarball.)
 
 To run the tests:
 

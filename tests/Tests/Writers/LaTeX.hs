@@ -8,7 +8,10 @@ import Tests.Helpers
 import Tests.Arbitrary()
 
 latex :: (ToString a, ToPandoc a) => a -> String
-latex = writeLaTeX def . toPandoc
+latex = writeLaTeX def{ writerHighlight = True } . toPandoc
+
+latexListing :: (ToString a, ToPandoc a) => a -> String
+latexListing = writeLaTeX def{ writerListings = True } . toPandoc
 
 {-
   "my test" =: X =?> Y
@@ -31,9 +34,36 @@ tests :: [Test]
 tests = [ testGroup "code blocks"
           [ "in footnotes" =: note (para "hi" <> codeBlock "hi") =?>
             "\\footnote{hi\n\n\\begin{Verbatim}\nhi\n\\end{Verbatim}\n}"
+          , test latexListing "identifier" $ codeBlockWith ("id",[],[]) "hi" =?>
+            ("\\begin{lstlisting}[label=id]\nhi\n\\end{lstlisting}" :: String)
+          , test latexListing "no identifier" $ codeBlock "hi" =?>
+            ("\\begin{lstlisting}\nhi\n\\end{lstlisting}" :: String)
+          ]
+        , testGroup "definition lists"
+          [ "with internal link" =: definitionList [(link "#go" "" (str "testing"),
+             [plain (text "hi there")])] =?>
+            "\\begin{description}\n\\itemsep1pt\\parskip0pt\\parsep0pt\n\\item[{\\hyperref[go]{testing}}]\nhi there\n\\end{description}"
           ]
         , testGroup "math"
           [ "escape |" =: para (math "\\sigma|_{\\{x\\}}") =?>
             "$\\sigma|_{\\{x\\}}$"
+          ]
+        , testGroup "headers"
+          [ "unnumbered header" =:
+            headerWith ("foo",["unnumbered"],[]) 1
+              (text "Header 1" <> note (plain $ text "note")) =?>
+            "\\section*{Header 1\\footnote{note}}\\label{foo}\n\\addcontentsline{toc}{section}{Header 1}\n"
+          ]
+        , testGroup "inline code"
+          [ "struck out and highlighted" =:
+            strikeout (codeWith ("",["haskell"],[]) "foo" <> space
+              <> str "bar") =?>
+            "\\sout{\\mbox{\\VERB|\\NormalTok{foo}|} bar}"
+          , "struck out and not highlighted" =:
+            strikeout (code "foo" <> space
+              <> str "bar") =?>
+            "\\sout{\\texttt{foo} bar}"
+          , "single quotes" =:
+              code "dog's" =?> "\\texttt{dog\\textquotesingle{}s}"
           ]
         ]

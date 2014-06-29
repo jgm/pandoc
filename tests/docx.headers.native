@@ -1,0 +1,5 @@
+[Header 1 ("a-test-of-headers",[],[]) [Str "A",Space,Str "Test",Space,Str "of",Space,Str "Headers"]
+,Header 2 ("second-level",[],[]) [Str "Second",Space,Str "Level"]
+,Para [Str "Some",Space,Str "plain",Space,Str "text."]
+,Header 3 ("third-level",[],[]) [Str "Third",Space,Str "level"]
+,Para [Str "Some",Space,Str "more",Space,Str "plain",Space,Str "text."]]

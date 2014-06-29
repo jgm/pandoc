@@ -9,6 +9,10 @@
 
 -- You must have first done a 'cabal configure' or 'cabal install'
 
+-- Note:  Interact.hs doesn't work with Cabal >= 1.18.  I recommend
+-- using cabal sandboxes and the new 'cabal repl' command if you are
+-- using a recent version.
+
 import System.Process
 import Distribution.Simple.LocalBuildInfo
 import Distribution.Package

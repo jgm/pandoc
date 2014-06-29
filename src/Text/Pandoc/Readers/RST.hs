@@ -1,5 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2006-2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.RST
-   Copyright   : Copyright (C) 2006-2010 John MacFarlane
+   Copyright   : Copyright (C) 2006-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -35,12 +36,13 @@ import Text.Pandoc.Builder (setMeta, fromList)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
-import Control.Monad ( when, liftM, guard, mzero )
+import Control.Monad ( when, liftM, guard, mzero, mplus )
 import Data.List ( findIndex, intersperse, intercalate,
                    transpose, sort, deleteFirstsBy, isSuffixOf )
+import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 import Text.Printf ( printf )
-import Control.Applicative ((<$>), (<$), (<*), (*>))
+import Control.Applicative ((<$>), (<$), (<*), (*>), (<*>))
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import qualified Text.Pandoc.Builder as B
 import Data.Monoid (mconcat, mempty)
@@ -111,15 +113,16 @@ titleTransform (bs, meta) =
 metaFromDefList :: [([Inline], [[Block]])] -> Meta -> Meta
 metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
  where f (k,v) = setMeta (map toLower $ stringify k) (mconcat $ map fromList v)
-       adjustAuthors (Meta metamap) = Meta $ M.adjust toPlain "author"
+       adjustAuthors (Meta metamap) = Meta $ M.adjust splitAuthors "author"
                                            $ M.adjust toPlain "date"
                                            $ M.adjust toPlain "title"
-                                           $ M.adjust splitAuthors "authors"
+                                           $ M.mapKeys (\k -> if k == "authors" then "author" else k)
                                            $ metamap
        toPlain (MetaBlocks [Para xs]) = MetaInlines xs
        toPlain x                      = x
-       splitAuthors (MetaBlocks [Para xs]) = MetaList $ map MetaInlines
-                                                      $ splitAuthors' xs
+       splitAuthors (MetaBlocks [Para xs])
+                                      = MetaList $ map MetaInlines
+                                                 $ splitAuthors' xs
        splitAuthors x                 = x
        splitAuthors'                  = map normalizeSpaces .
                                          splitOnSemi . concatMap factorSemi
@@ -183,22 +186,22 @@ block = choice [ codeBlock
 -- field list
 --
 
-rawFieldListItem :: String -> RSTParser (String, String)
-rawFieldListItem indent = try $ do
-  string indent
+rawFieldListItem :: Int -> RSTParser (String, String)
+rawFieldListItem minIndent = try $ do
+  indent <- length <$> many (char ' ')
+  guard $ indent >= minIndent
   char ':'
   name <- many1Till (noneOf "\n") (char ':')
   (() <$ lookAhead newline) <|> skipMany1 spaceChar
   first <- anyLine
-  rest <- option "" $ try $ do lookAhead (string indent >> spaceChar)
+  rest <- option "" $ try $ do lookAhead (count indent (char ' ') >> spaceChar)
                                indentedBlock
   let raw = (if null first then "" else (first ++ "\n")) ++ rest ++ "\n"
   return (name, raw)
 
-fieldListItem :: String
-              -> RSTParser (Inlines, [Blocks])
-fieldListItem indent = try $ do
-  (name, raw) <- rawFieldListItem indent
+fieldListItem :: Int -> RSTParser (Inlines, [Blocks])
+fieldListItem minIndent = try $ do
+  (name, raw) <- rawFieldListItem minIndent
   let term = B.str name
   contents <- parseFromString parseBlocks raw
   optional blanklines
@@ -206,7 +209,7 @@ fieldListItem indent = try $ do
 
 fieldList :: RSTParser Blocks
 fieldList = try $ do
-  indent <- lookAhead $ many spaceChar
+  indent <- length <$> lookAhead (many spaceChar)
   items <- many1 $ fieldListItem indent
   case items of
      []     -> return mempty
@@ -274,7 +277,8 @@ doubleHeader = try $ do
         Just ind -> (headerTable, ind + 1)
         Nothing -> (headerTable ++ [DoubleHeader c], (length headerTable) + 1)
   setState (state { stateHeaderTable = headerTable' })
-  return $ B.header level txt
+  attr <- registerHeader nullAttr txt
+  return $ B.headerWith attr level txt
 
 -- a header with line on the bottom only
 singleHeader :: RSTParser Blocks
@@ -294,7 +298,8 @@ singleHeader = try $ do
         Just ind -> (headerTable, ind + 1)
         Nothing -> (headerTable ++ [SingleHeader c], (length headerTable) + 1)
   setState (state { stateHeaderTable = headerTable' })
-  return $ B.header level txt
+  attr <- registerHeader nullAttr txt
+  return $ B.headerWith attr level txt
 
 --
 -- hrule block
@@ -344,14 +349,25 @@ lhsCodeBlock = try $ do
   getPosition >>= guard . (==1) . sourceColumn
   guardEnabled Ext_literate_haskell
   optional codeBlockStart
-  lns <- many1 birdTrackLine
-  -- if (as is normal) there is always a space after >, drop it
-  let lns' = if all (\ln -> null ln || take 1 ln == " ") lns
-                then map (drop 1) lns
-                else lns
+  lns <- latexCodeBlock <|> birdCodeBlock
   blanklines
   return $ B.codeBlockWith ("", ["sourceCode", "literate", "haskell"], [])
-         $ intercalate "\n" lns'
+         $ intercalate "\n" lns
+
+latexCodeBlock :: Parser [Char] st [[Char]]
+latexCodeBlock = try $ do
+  try (latexBlockLine "\\begin{code}")
+  many1Till anyLine (try $ latexBlockLine "\\end{code}")
+ where
+  latexBlockLine s = skipMany spaceChar >> string s >> blankline
+
+birdCodeBlock :: Parser [Char] st [[Char]]
+birdCodeBlock = filterSpace <$> many1 birdTrackLine
+  where filterSpace lns =
+            -- if (as is normal) there is always a space after >, drop it
+            if all (\ln -> null ln || take 1 ln == " ") lns
+               then map (drop 1) lns
+               else lns
 
 birdTrackLine :: Parser [Char] st [Char]
 birdTrackLine = char '>' >> anyLine
@@ -506,17 +522,17 @@ directive' = do
   skipMany spaceChar
   top <- many $ satisfy (/='\n')
              <|> try (char '\n' <*
-                      notFollowedBy' (rawFieldListItem "   ") <*
+                      notFollowedBy' (rawFieldListItem 3) <*
                       count 3 (char ' ') <*
                       notFollowedBy blankline)
   newline
-  fields <- many $ rawFieldListItem "   "
+  fields <- many $ rawFieldListItem 3
   body <- option "" $ try $ blanklines >> indentedBlock
   optional blanklines
   let body' = body ++ "\n\n"
   case label of
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
-        "role" -> return mempty
+        "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
         "container" -> parseFromString parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey
                    parseFromString (trimInlines . mconcat <$> many inline)
@@ -561,12 +577,15 @@ directive' = do
                                      role -> role })
         "code" -> codeblock (lookup "number-lines" fields) (trim top) body
         "code-block" -> codeblock (lookup "number-lines" fields) (trim top) body
+        "aafig" -> do
+          let attribs = ("", ["aafig"], map (\(k,v) -> (k, trimr v)) fields)
+          return $ B.codeBlockWith attribs $ stripTrailingNewlines body
         "math" -> return $ B.para $ mconcat $ map B.displayMath
                          $ toChunks $ top ++ "\n\n" ++ body
         "figure" -> do
            (caption, legend) <- parseFromString extractCaption body'
            let src = escapeURI $ trim top
-           return $ B.para (B.image src "" caption) <> legend
+           return $ B.para (B.image src "fig:" caption) <> legend
         "image" -> do
            let src = escapeURI $ trim top
            let alt = B.str $ maybe "image" trim $ lookup "alt" fields
@@ -577,7 +596,38 @@ directive' = do
                           Nothing -> B.image src "" alt
         _     -> return mempty
 
--- Can contain haracter codes as decimal numbers or
+-- TODO:
+--  - Silently ignores illegal fields
+--  - Silently drops classes
+--  - Only supports :format: fields with a single format for :raw: roles,
+--    change Text.Pandoc.Definition.Format to fix
+addNewRole :: String -> [(String, String)] -> RSTParser Blocks
+addNewRole roleString fields = do
+    (role, parentRole) <- parseFromString inheritedRole roleString
+    customRoles <- stateRstCustomRoles <$> getState
+    baseRole <- case M.lookup parentRole customRoles of
+        Just (base, _, _) -> return base
+        Nothing -> return parentRole
+
+    let fmt = if baseRole == "raw" then lookup "format" fields else Nothing
+        annotate = maybe id addLanguage $
+            if baseRole == "code"
+               then lookup "language" fields
+               else Nothing
+
+    updateState $ \s -> s {
+        stateRstCustomRoles =
+          M.insert role (baseRole, fmt, (,) parentRole . annotate) customRoles
+    }
+
+    return $ B.singleton Null
+  where
+    addLanguage lang (ident, classes, keyValues) =
+        (ident, "sourceCode" : lang : classes, keyValues)
+    inheritedRole =
+        (,) <$> roleNameEndingIn (char '(') <*> roleNameEndingIn (char ')')
+
+-- Can contain character codes as decimal numbers or
 -- hexadecimal numbers, prefixed by 0x, x, \x, U+, u, or \u
 -- or as XML-style hexadecimal character entities, e.g. &#x1a2b;
 -- or text, which is used as-is.  Comments start with ..
@@ -916,17 +966,56 @@ strong = B.strong . trimInlines . mconcat <$>
 -- Note, this doesn't precisely implement the complex rule in
 -- http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#inline-markup-recognition-rules
 -- but it should be good enough for most purposes
+--
+-- TODO:
+--  - Classes are silently discarded in addNewRole
+--  - Lacks sensible implementation for title-reference (which is the default)
+--  - Allows direct use of the :raw: role, rST only allows inherited use.
 interpretedRole :: RSTParser Inlines
 interpretedRole = try $ do
   (role, contents) <- roleBefore <|> roleAfter
-  case role of
-       "sup"  -> return $ B.superscript $ B.str contents
-       "sub"  -> return $ B.subscript $ B.str contents
-       "math" -> return $ B.math contents
-       _      -> return $ B.str contents  --unknown
+  renderRole contents Nothing role nullAttr
+
+renderRole :: String -> Maybe String -> String -> Attr -> RSTParser Inlines
+renderRole contents fmt role attr = case role of
+    "sup"  -> return $ B.superscript $ B.str contents
+    "superscript" -> return $ B.superscript $ B.str contents
+    "sub"  -> return $ B.subscript $ B.str contents
+    "subscript"  -> return $ B.subscript $ B.str contents
+    "emphasis" -> return $ B.emph $ B.str contents
+    "strong" -> return $ B.strong $ B.str contents
+    "rfc-reference" -> return $ rfcLink contents
+    "RFC" -> return $ rfcLink contents
+    "pep-reference" -> return $ pepLink contents
+    "PEP" -> return $ pepLink contents
+    "literal" -> return $ B.str contents
+    "math" -> return $ B.math contents
+    "title-reference" -> titleRef contents
+    "title" -> titleRef contents
+    "t" -> titleRef contents
+    "code" -> return $ B.codeWith attr contents
+    "raw" -> return $ B.rawInline (fromMaybe "" fmt) contents
+    custom -> do
+        customRole <- stateRstCustomRoles <$> getState
+        case M.lookup custom customRole of
+            Just (_, newFmt, inherit) -> let
+                fmtStr = fmt `mplus` newFmt
+                (newRole, newAttr) = inherit attr
+                in renderRole contents fmtStr newRole newAttr
+            Nothing -> return $ B.str contents -- Undefined role
+ where
+   titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour
+   rfcLink rfcNo = B.link rfcUrl ("RFC " ++ rfcNo) $ B.str ("RFC " ++ rfcNo)
+     where rfcUrl = "http://www.faqs.org/rfcs/rfc" ++ rfcNo ++ ".html"
+   pepLink pepNo = B.link pepUrl ("PEP " ++ pepNo) $ B.str ("PEP " ++ pepNo)
+     where padNo = replicate (4 - length pepNo) '0' ++ pepNo
+           pepUrl = "http://www.python.org/dev/peps/pep-" ++ padNo ++ "/"
+
+roleNameEndingIn :: RSTParser Char -> RSTParser String
+roleNameEndingIn end = many1Till (letter <|> char '-') end
 
 roleMarker :: RSTParser String
-roleMarker = char ':' *> many1Till (letter <|> char '-') (char ':')
+roleMarker = char ':' *> roleNameEndingIn (char ':')
 
 roleBefore :: RSTParser (String,String)
 roleBefore = try $ do
@@ -1055,7 +1144,7 @@ smart :: RSTParser Inlines
 smart = do
   getOption readerSmart >>= guard
   doubleQuoted <|> singleQuoted <|>
-    choice (map (B.singleton <$>) [apostrophe, dash, ellipses])
+    choice [apostrophe, dash, ellipses]
 
 singleQuoted :: RSTParser Inlines
 singleQuoted = try $ do

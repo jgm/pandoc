@@ -3,7 +3,7 @@ module Tests.Old (tests) where
 import Test.Framework (testGroup, Test )
 import Test.Framework.Providers.HUnit
 import Test.HUnit ( assertBool )
-
+import System.Environment ( getArgs )
 import System.IO ( openTempFile, stderr )
 import System.Process ( runProcess, waitForProcess )
 import System.FilePath ( (</>), (<.>) )
@@ -21,9 +21,6 @@ import Text.Printf
 
 readFileUTF8 :: FilePath -> IO String
 readFileUTF8 f = B.readFile f >>= return . toStringLazy
-
-pandocPath :: FilePath
-pandocPath = ".." </> "dist" </> "build" </> "pandoc" </> "pandoc"
 
 data TestResult = TestPassed
                 | TestError ExitCode
@@ -63,7 +60,10 @@ tests = [ testGroup "markdown"
               "markdown-reader-more.txt" "markdown-reader-more.native"
             , lhsReaderTest "markdown+lhs"
             ]
-          , testGroup "citations" markdownCitationTests
+          , testGroup "citations"
+            [ test "citations" ["-r", "markdown", "-w", "native"]
+              "markdown-citations.txt" "markdown-citations.native"
+            ]
           ]
         , testGroup "rst"
           [ testGroup "writer" (writerTests "rst" ++ lhsWriterTests "rst")
@@ -136,11 +136,12 @@ tests = [ testGroup "markdown"
             "opml-reader.opml" "opml-reader.native"
           ]
         , testGroup "haddock"
-          [ test "reader" ["-r", "haddock", "-w", "native", "-s"]
+          [ testGroup "writer" $ writerTests "haddock"
+          , test "reader" ["-r", "haddock", "-w", "native", "-s"]
             "haddock-reader.haddock" "haddock-reader.native"
           ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
-          [ "opendocument" , "context" , "texinfo"
+          [ "opendocument" , "context" , "texinfo", "icml"
           , "man" , "plain" , "rtf", "org", "asciidoc"
           ]
         ]
@@ -195,19 +196,6 @@ fb2WriterTest title opts inputfile normfile =
     ignoreBinary = unlines . filter (not . startsWith "<binary ") . lines
     startsWith tag str = all (uncurry (==)) $ zip tag str
 
-markdownCitationTests :: [Test]
-markdownCitationTests
-  =  map styleToTest ["chicago-author-date","ieee","mhra"]
-     ++ [test "natbib" wopts "markdown-citations.txt"
-         "markdown-citations.txt"]
-  where
-    ropts             = ["-r", "markdown", "-w", "markdown", "--bibliography",
-                         "biblio.bib", "--no-wrap"]
-    wopts             = ["-r", "markdown", "-w", "markdown", "--no-wrap", "--natbib"]
-    styleToTest style = test style (ropts ++ ["--csl", style ++ ".csl"])
-                        "markdown-citations.txt"
-                        ("markdown-citations." ++ style ++ ".txt")
-
 -- | Run a test without normalize function, return True if test passed.
 test :: String    -- ^ Title of test
      -> [String]  -- ^ Options to pass to pandoc
@@ -224,6 +212,11 @@ testWithNormalize  :: (String -> String) -- ^ Normalize function for output
                    -> FilePath  -- ^ Norm (for test results) filepath
                    -> Test
 testWithNormalize normalizer testname opts inp norm = testCase testname $ do
+  args <- getArgs
+  let buildDir = case args of
+                      (x:_) -> ".." </> x
+                      _     -> error "test-pandoc: missing buildDir argument"
+  let pandocPath = buildDir </> "pandoc" </> "pandoc"
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
   let normPath = norm

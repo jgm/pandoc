@@ -6,7 +6,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
 import Text.XML.Light
-import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.Compat.TagSoupEntity (lookupEntity)
 import Data.Generics
 import Data.Monoid
 import Control.Monad.State

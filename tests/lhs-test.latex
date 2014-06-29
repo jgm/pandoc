@@ -1,12 +1,10 @@
 \documentclass[]{article}
-\usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \usepackage{fixltx2e} % provides \textsubscript
-% use upquote if available, for straight quotes in verbatim environments
-\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
 \else % if luatex or xelatex
   \ifxetex
@@ -18,6 +16,8 @@
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \newcommand{\euro}{€}
 \fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 % use microtype if available
 \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 \usepackage{color}
@@ -63,12 +63,11 @@
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
 \setcounter{secnumdepth}{0}
 
-\author{}
 \date{}
 
 \begin{document}
 
-\section{lhs test}
+\section{lhs test}\label{lhs-test}
 
 \texttt{unsplit} is an arrow that takes a pair of values and combines them to
 return a single value:
@@ -76,7 +75,7 @@ return a single value:
 \begin{Shaded}
 \begin{Highlighting}[]
 \OtherTok{unsplit ::} \NormalTok{(}\DataTypeTok{Arrow} \NormalTok{a) }\OtherTok{=>} \NormalTok{(b }\OtherTok{->} \NormalTok{c }\OtherTok{->} \NormalTok{d) }\OtherTok{->} \NormalTok{a (b, c) d}
-\NormalTok{unsplit }\FunctionTok{=} \NormalTok{arr }\FunctionTok{.} \FunctionTok{uncurry}
+\NormalTok{unsplit }\FunctionTok{=} \NormalTok{arr }\FunctionTok{.} \NormalTok{uncurry}
           \CommentTok{-- arr (\textbackslash{}op (x,y) -> x `op` y)}
 \end{Highlighting}
 \end{Shaded}

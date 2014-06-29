@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2011 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2011-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.SelfContained
-   Copyright   : Copyright (C) 2011 John MacFarlane
+   Copyright   : Copyright (C) 2011-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -32,7 +32,7 @@ the HTML using data URIs.
 -}
 module Text.Pandoc.SelfContained ( makeSelfContained ) where
 import Text.HTML.TagSoup
-import Network.URI (isAbsoluteURI, escapeURIString)
+import Network.URI (isURI, escapeURIString)
 import Data.ByteString.Base64
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString (ByteString)
@@ -40,7 +40,7 @@ import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
-import Text.Pandoc.Shared (renderTags', openURL, readDataFile)
+import Text.Pandoc.Shared (renderTags', openURL, readDataFile, err)
 import Text.Pandoc.UTF8 (toString,  fromString)
 import Text.Pandoc.MIME (getMimeType)
 import System.Directory (doesFileExist)
@@ -50,14 +50,16 @@ isOk c = isAscii c && isAlphaNum c
 
 convertTag :: Maybe FilePath -> Tag String -> IO (Tag String)
 convertTag userdata t@(TagOpen tagname as)
-  | tagname `elem` ["img", "embed", "video", "input", "audio", "source"] =
-       case fromAttrib "src" t of
-         []   -> return t
-         src  -> do
-           (raw, mime) <- getRaw userdata (fromAttrib "type" t) src
-           let enc = "data:" ++ mime ++ ";base64," ++ toString (encode raw)
-           return $ TagOpen tagname
-                    (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
+  | tagname `elem` ["img", "embed", "video", "input", "audio", "source"] = do
+       as' <- mapM processAttribute as
+       return $ TagOpen tagname as'
+  where processAttribute (x,y) =
+           if x == "src" || x == "href" || x == "poster"
+              then do
+                (raw, mime) <- getRaw userdata (fromAttrib "type" t) y
+                let enc = "data:" ++ mime ++ ";base64," ++ toString (encode raw)
+                return (x, enc)
+              else return (x,y)
 convertTag userdata t@(TagOpen "script" as) =
   case fromAttrib "src" t of
        []     -> return t
@@ -86,7 +88,7 @@ cssURLs userdata d orig =
                                  "\"" -> B.takeWhile (/='"') $ B.drop 1 u
                                  "'"  -> B.takeWhile (/='\'') $ B.drop 1 u
                                  _    -> u
-                  let url' = if isAbsoluteURI url
+                  let url' = if isURI url
                                 then url
                                 else d </> url
                   (raw, mime) <- getRaw userdata "" url'
@@ -97,8 +99,8 @@ cssURLs userdata d orig =
 
 getItem :: Maybe FilePath -> String -> IO (ByteString, Maybe String)
 getItem userdata f =
-  if isAbsoluteURI f
-     then openURL f
+  if isURI f
+     then openURL f >>= either handleErr return
      else do
        -- strip off trailing query or fragment part, if relative URL.
        -- this is needed for things like cmunrm.eot?#iefix,
@@ -110,6 +112,7 @@ getItem userdata f =
        exists <- doesFileExist f'
        cont <- if exists then B.readFile f' else readDataFile userdata f'
        return (cont, mime)
+  where handleErr e = err 61 $ "Failed to retrieve " ++ f ++ "\n" ++ show e
 
 getRaw :: Maybe FilePath -> String -> String -> IO (ByteString, String)
 getRaw userdata mimetype src = do

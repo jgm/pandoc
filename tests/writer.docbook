@@ -4,14 +4,16 @@
 <article>
   <articleinfo>
     <title>Pandoc Test Suite</title>
-    <author>
-      <firstname>John</firstname>
-      <surname>MacFarlane</surname>
-    </author>
-    <author>
-      <firstname></firstname>
-      <surname>Anonymous</surname>
-    </author>
+    <authorgroup>
+      <author>
+        <firstname>John</firstname>
+        <surname>MacFarlane</surname>
+      </author>
+      <author>
+        <firstname></firstname>
+        <surname>Anonymous</surname>
+      </author>
+    </authorgroup>
     <date>July 17, 2006</date>
   </articleinfo>
 <para>
@@ -66,10 +68,8 @@
   <para>
     Here’s one with a bullet. * criminey.
   </para>
-  <para>
-    There should be a hard line break<literallayout>
-</literallayout>here.
-  </para>
+<literallayout>There should be a hard line break
+here.</literallayout>
 </sect1>
 <sect1 id="block-quotes">
   <title>Block Quotes</title>
@@ -93,7 +93,7 @@ sub status {
     <para>
       A list:
     </para>
-    <orderedlist numeration="arabic">
+    <orderedlist numeration="arabic" spacing="compact">
       <listitem>
         <para>
           item one
@@ -156,7 +156,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       Asterisks tight:
     </para>
-    <itemizedlist>
+    <itemizedlist spacing="compact">
       <listitem>
         <para>
           asterisk 1
@@ -196,7 +196,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       Pluses tight:
     </para>
-    <itemizedlist>
+    <itemizedlist spacing="compact">
       <listitem>
         <para>
           Plus 1
@@ -236,7 +236,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       Minuses tight:
     </para>
-    <itemizedlist>
+    <itemizedlist spacing="compact">
       <listitem>
         <para>
           Minus 1
@@ -279,7 +279,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       Tight:
     </para>
-    <orderedlist numeration="arabic">
+    <orderedlist numeration="arabic" spacing="compact">
       <listitem>
         <para>
           First
@@ -299,7 +299,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       and:
     </para>
-    <orderedlist numeration="arabic">
+    <orderedlist numeration="arabic" spacing="compact">
       <listitem>
         <para>
           One
@@ -383,17 +383,17 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   </sect2>
   <sect2 id="nested">
     <title>Nested</title>
-    <itemizedlist>
+    <itemizedlist spacing="compact">
       <listitem>
         <para>
           Tab
         </para>
-        <itemizedlist>
+        <itemizedlist spacing="compact">
           <listitem>
             <para>
               Tab
             </para>
-            <itemizedlist>
+            <itemizedlist spacing="compact">
               <listitem>
                 <para>
                   Tab
@@ -407,7 +407,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       Here’s another:
     </para>
-    <orderedlist numeration="arabic">
+    <orderedlist numeration="arabic" spacing="compact">
       <listitem>
         <para>
           First
@@ -417,7 +417,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         <para>
           Second:
         </para>
-        <itemizedlist>
+        <itemizedlist spacing="compact">
           <listitem>
             <para>
               Fee
@@ -454,7 +454,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         <para>
           Second:
         </para>
-        <itemizedlist>
+        <itemizedlist spacing="compact">
           <listitem>
             <para>
               Fee
@@ -521,7 +521,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         <para>
           with a continuation
         </para>
-        <orderedlist numeration="lowerroman">
+        <orderedlist numeration="lowerroman" spacing="compact">
           <listitem override="4">
             <para>
               sublist with roman numerals, starting with 4
@@ -531,7 +531,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
             <para>
               more items
             </para>
-            <orderedlist numeration="upperalpha">
+            <orderedlist numeration="upperalpha" spacing="compact">
               <listitem>
                 <para>
                   a subsublist
@@ -550,22 +550,22 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       Nesting:
     </para>
-    <orderedlist numeration="upperalpha">
+    <orderedlist numeration="upperalpha" spacing="compact">
       <listitem>
         <para>
           Upper Alpha
         </para>
-        <orderedlist numeration="upperroman">
+        <orderedlist numeration="upperroman" spacing="compact">
           <listitem>
             <para>
               Upper Roman.
             </para>
-            <orderedlist numeration="arabic">
+            <orderedlist numeration="arabic" spacing="compact">
               <listitem override="6">
                 <para>
                   Decimal start with 6
                 </para>
-                <orderedlist numeration="loweralpha">
+                <orderedlist numeration="loweralpha" spacing="compact">
                   <listitem override="3">
                     <para>
                       Lower alpha with paren
@@ -581,7 +581,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <para>
       Autonumbering:
     </para>
-    <orderedlist>
+    <orderedlist spacing="compact">
       <listitem>
         <para>
           Autonumber.
@@ -591,7 +591,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         <para>
           More.
         </para>
-        <orderedlist>
+        <orderedlist spacing="compact">
           <listitem>
             <para>
               Nested.
@@ -616,7 +616,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Tight using spaces:
   </para>
-  <variablelist>
+  <variablelist spacing="compact">
     <varlistentry>
       <term>
         apple
@@ -651,7 +651,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Tight using tabs:
   </para>
-  <variablelist>
+  <variablelist spacing="compact">
     <varlistentry>
       <term>
         apple
@@ -757,7 +757,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Multiple definitions, tight:
   </para>
-  <variablelist>
+  <variablelist spacing="compact">
     <varlistentry>
       <term>
         apple
@@ -841,7 +841,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         <para>
           orange fruit
         </para>
-        <orderedlist numeration="arabic">
+        <orderedlist numeration="arabic" spacing="compact">
           <listitem>
             <para>
               sublist
@@ -862,22 +862,18 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Simple block on one line:
   </para>
-  <div>
-  foo
-  </div>
+  <para>
+    foo
+  </para>
   <para>
     And nested without indentation:
   </para>
-  <div>
-  <div>
-  <div>
-  foo
-  </div>
-  </div>
-  <div>
-  bar
-  </div>
-  </div>
+  <para>
+    foo
+  </para>
+  <para>
+    bar
+  </para>
   <para>
     Interpreted markdown in a table:
   </para>
@@ -896,10 +892,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Here’s a simple block:
   </para>
-  <div>
-      
-  foo
-  </div>
+  <para>
+    foo
+  </para>
   <para>
     This should be a code block, though:
   </para>
@@ -917,14 +912,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Now, nested:
   </para>
-  <div>
-      <div>
-          <div>
-              
-  foo
-  </div>
-      </div>
-  </div>
+  <para>
+    foo
+  </para>
   <para>
     This should just be an HTML comment:
   </para>
@@ -1061,7 +1051,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 </sect1>
 <sect1 id="latex">
   <title>LaTeX</title>
-  <itemizedlist>
+  <itemizedlist spacing="compact">
     <listitem>
       <para>
       </para>
@@ -1094,7 +1084,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <listitem>
       <para>
         Here’s some display math:
-        $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
+        $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
       </para>
     </listitem>
     <listitem>
@@ -1107,7 +1097,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     These shouldn’t be math:
   </para>
-  <itemizedlist>
+  <itemizedlist spacing="compact">
     <listitem>
       <para>
         To get the famous equation, write <literal>$e = mc^2$</literal>.
@@ -1140,7 +1130,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Here is some unicode:
   </para>
-  <itemizedlist>
+  <itemizedlist spacing="compact">
     <listitem>
       <para>
         I hat: Î
@@ -1326,7 +1316,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       With an ampersand:
       <ulink url="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</ulink>
     </para>
-    <itemizedlist>
+    <itemizedlist spacing="compact">
       <listitem>
         <para>
           In a list?
@@ -1424,7 +1414,7 @@ or here: &lt;http://example.com/&gt;
       </footnote>
     </para>
   </blockquote>
-  <orderedlist numeration="arabic">
+  <orderedlist numeration="arabic" spacing="compact">
     <listitem>
       <para>
         And in list items.<footnote>

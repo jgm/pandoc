@@ -2,9 +2,9 @@
 ,Header 2 ("blank-line-before-url-in-link-reference",[],[]) [Str "Blank",Space,Str "line",Space,Str "before",Space,Str "URL",Space,Str "in",Space,Str "link",Space,Str "reference"]
 ,Para [Link [Str "foo"] ("/url",""),Space,Str "and",Space,Link [Str "bar"] ("/url","title")]
 ,Header 2 ("raw-context-environments",[],[]) [Str "Raw",Space,Str "ConTeXt",Space,Str "environments"]
-,Plain [RawInline "tex" "\\placeformula "]
-,RawBlock "context" "\\startformula\n   L_{1} = L_{2}\n   \\stopformula"
-,RawBlock "context" "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"
+,Plain [RawInline (Format "tex") "\\placeformula "]
+,RawBlock (Format "context") "\\startformula\n   L_{1} = L_{2}\n   \\stopformula"
+,RawBlock (Format "context") "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"
 ,Header 2 ("urls-with-spaces",[],[]) [Str "URLs",Space,Str "with",Space,Str "spaces"]
 ,Para [Link [Str "foo"] ("/bar%20and%20baz",""),Space,Link [Str "foo"] ("/bar%20and%20baz",""),Space,Link [Str "foo"] ("/bar%20and%20baz",""),Space,Link [Str "foo"] ("bar%20baz","title")]
 ,Para [Link [Str "baz"] ("/foo%20foo",""),Space,Link [Str "bam"] ("/foo%20fee",""),Space,Link [Str "bork"] ("/foo/zee%20zob","title")]
@@ -12,13 +12,15 @@
 ,HorizontalRule
 ,HorizontalRule
 ,Header 2 ("raw-html-before-header",[],[]) [Str "Raw",Space,Str "HTML",Space,Str "before",Space,Str "header"]
-,Para [RawInline "html" "<a>",RawInline "html" "</a>"]
+,Para [RawInline (Format "html") "<a>",RawInline (Format "html") "</a>"]
 ,Header 3 ("my-header",[],[]) [Str "my",Space,Str "header"]
 ,Header 2 ("in-math",[],[]) [Str "$",Space,Str "in",Space,Str "math"]
 ,Para [Math InlineMath "\\$2 + \\$3"]
+,Para [Str "This",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "math:"]
+,Para [Str "$PATH",Space,Str "90",Space,Str "$PATH"]
 ,Header 2 ("commented-out-list-item",[],[]) [Str "Commented-out",Space,Str "list",Space,Str "item"]
 ,BulletList
- [[Plain [Str "one",Space,RawInline "html" "<!--\n- two\n-->"]]
+ [[Plain [Str "one",Space,RawInline (Format "html") "<!--\n- two\n-->"]]
  ,[Plain [Str "three"]]]
 ,Header 2 ("backslash-newline",[],[]) [Str "Backslash",Space,Str "newline"]
 ,Para [Str "hi",LineBreak,Str "there"]
@@ -40,7 +42,7 @@
 ,OrderedList (3,Example,TwoParens)
  [[Plain [Str "Third",Space,Str "example."]]]
 ,Header 2 ("macros",[],[]) [Str "Macros"]
-,Para [Math InlineMath "\\langle x,y \\rangle"]
+,Para [Math InlineMath "{\\langle x,y \\rangle}"]
 ,Header 2 ("case-insensitive-references",[],[]) [Str "Case-insensitive",Space,Str "references"]
 ,Para [Link [Str "Fum"] ("/fum","")]
 ,Para [Link [Str "FUM"] ("/fum","")]
@@ -136,4 +138,7 @@
 ,Para [Link [Str "link"] ("/hithere)","")]
 ,Para [Link [Str "linky"] ("hi_(there_(nested))","")]
 ,Header 2 ("reference-link-fallbacks",[],[]) [Str "Reference",Space,Str "link",Space,Str "fallbacks"]
-,Para [Str "[",Emph [Str "not",Space,Str "a",Space,Str "link"],Str "]",Space,Str "[",Emph [Str "nope"],Str "]\8230"]]
+,Para [Str "[",Emph [Str "not",Space,Str "a",Space,Str "link"],Str "]",Space,Str "[",Emph [Str "nope"],Str "]\8230"]
+,Header 2 ("empty-reference-links",[],[]) [Str "Empty",Space,Str "reference",Space,Str "links"]
+,Para [Str "bar"]
+,Para [Link [Str "foo2"] ("","")]]

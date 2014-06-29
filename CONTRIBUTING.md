@@ -60,6 +60,8 @@ Please follow these guidelines:
 3.  Follow the stylistic conventions you find in the existing
     pandoc code.  Use spaces, not tabs, and wrap code to 80 columns.
     Always include type signatures for top-level functions.
+    Consider installing [EditorConfig], this will help you to follow the
+    coding style prevalent in pandoc.
 
 4.  Your code should compile without warnings (`-Wall` clean).
 
@@ -177,5 +179,6 @@ The library is structured as follows:
 [issue tracker]: https://github.com/jgm/pandoc/issues
 [User's Guide]: http://johnmacfarlane.net/pandoc/README.html
 [FAQs]:  http://johnmacfarlane.net/pandoc/faqs.html
+[EditorConfig]: http://editorconfig.org/
 [Haskell platform]: http://www.haskell.org/platform/
 [hsb2hs]: http://hackage.haskell.org/package/hsb2hs

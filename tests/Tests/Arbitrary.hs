@@ -41,15 +41,15 @@ arbInline :: Int -> Gen Inline
 arbInline n = frequency $ [ (60, liftM Str realString)
                           , (60, return Space)
                           , (10, liftM2 Code arbAttr realString)
-                          , (5,  elements [ RawInline "html" "<a id=\"eek\">"
-                                          , RawInline "latex" "\\my{command}" ])
+                          , (5,  elements [ RawInline (Format "html") "<a id=\"eek\">"
+                                          , RawInline (Format "latex") "\\my{command}" ])
                           ] ++ [ x | x <- nesters, n > 1]
    where nesters = [ (10,  liftM Emph $ arbInlines (n-1))
                    , (10,  liftM Strong $ arbInlines (n-1))
                    , (10,  liftM Strikeout $ arbInlines (n-1))
                    , (10,  liftM Superscript $ arbInlines (n-1))
                    , (10,  liftM Subscript $ arbInlines (n-1))
---                   , (10,  liftM SmallCaps $ arbInlines (n-1))
+                   , (10,  liftM SmallCaps $ arbInlines (n-1))
                    , (10,  do x1 <- arbitrary
                               x2 <- arbInlines (n-1)
                               return $ Quoted x1 x2)
@@ -64,6 +64,7 @@ arbInline n = frequency $ [ (60, liftM Str realString)
                               x3 <- realString
                               x2 <- liftM escapeURI realString
                               return $ Image x1 (x2,x3))
+                   , (2,  liftM2 Cite arbitrary (arbInlines 1))
                    , (2,  liftM Note $ resize 3 $ listOf1 $ arbBlock (n-1))
                    ]
 
@@ -74,9 +75,9 @@ arbBlock :: Int -> Gen Block
 arbBlock n = frequency $ [ (10, liftM Plain $ arbInlines (n-1))
                          , (15, liftM Para $ arbInlines (n-1))
                          , (5,  liftM2 CodeBlock arbAttr realString)
-                         , (2,  elements [ RawBlock "html"
+                         , (2,  elements [ RawBlock (Format "html")
                                             "<div>\n*&amp;*\n</div>"
-                                         , RawBlock "latex"
+                                         , RawBlock (Format "latex")
                                             "\\begin[opt]{env}\nhi\n{\\end{env}"
                                          ])
                          , (5,  do x1 <- choose (1 :: Int, 6)
@@ -111,7 +112,6 @@ instance Arbitrary Pandoc where
         arbitrary = resize 8 $ liftM normalize
                              $ liftM2 Pandoc arbitrary arbitrary
 
-{-
 instance Arbitrary CitationMode where
         arbitrary
           = do x <- choose (0 :: Int, 2)
@@ -123,14 +123,13 @@ instance Arbitrary CitationMode where
 
 instance Arbitrary Citation where
         arbitrary
-          = do x1 <- liftM (filter (`notElem` ",;]@ \t\n")) arbitrary
-               x2 <- arbitrary
-               x3 <- arbitrary
+          = do x1 <- listOf $ elements $ ['a'..'z'] ++ ['0'..'9'] ++ ['_']
+               x2 <- arbInlines 1
+               x3 <- arbInlines 1
                x4 <- arbitrary
                x5 <- arbitrary
                x6 <- arbitrary
                return (Citation x1 x2 x3 x4 x5 x6)
--}
 
 instance Arbitrary MathType where
         arbitrary

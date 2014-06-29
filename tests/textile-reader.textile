@@ -139,8 +139,8 @@ _*This is strong and em.*_
 So is *_this_* word and __**that one**__.
 -This is strikeout and *strong*-
 
-Superscripts: a[^bc^]d a^*hello*^ a[^hello there^].
-Subscripts: ~here~ H[~2~]O, H[~23~]O, H[~many of them~]O.
+Superscripts: a[^bc^]d a ^*hello*^ a[^hello there^].
+Subscripts: ~here~ H[ ~2~]O, H[ ~23~]O, H[ ~many of them~]O.
 
 Dashes : How cool -- automatic dashes.
 
@@ -187,7 +187,7 @@ h2. With headers
 
 h1. Images
 
-Textile inline image syntax, like 
+Textile inline image syntax, like
 here !this_is_an_image.png(this is the alt text)!
 and here !this_is_an_image.png!.
 

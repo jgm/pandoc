@@ -1,5 +1,6 @@
+{-# LANGUAGE CPP #-}
 {-
-Copyright (C) 2010 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2010-2014 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.UTF8
-   Copyright   : Copyright (C) 2010 John MacFarlane
+   Copyright   : Copyright (C) 2010-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -50,8 +51,7 @@ import System.IO hiding (readFile, writeFile, getContents,
 #if MIN_VERSION_base(4,6,0)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
 #else
-import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn,
-                       catch)
+import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
 #endif
 import qualified System.IO as IO
 import qualified Data.ByteString.Char8 as B

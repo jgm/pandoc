@@ -1,0 +1,6 @@
+[OrderedList (1,Decimal,OneParen)
+ [[Para [Str "This",Space,Str "is",Space,Str "at",Space,Str "the",Space,Str "first",Space,Str "level"]
+  ,OrderedList (1,LowerAlpha,DefaultDelim)
+   [[Para [Str "This",Space,Str "is",Space,Str "at",Space,Str "the",Space,Str "second",Space,Str "level"]
+    ,OrderedList (1,LowerRoman,DefaultDelim)
+     [[Para [Str "This",Space,Str "is",Space,Emph [Str "at",Space,Strong [Str "the",Space,Str "third",Space,Str "level"],Str ",",Space,Str "and",Space,Str "I",Space,Str "want",Space,Str "to"],Space,Str "test",Space,Str "normalization",Space,Str "here."]]]]]]]]
