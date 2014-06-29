@@ -110,6 +110,11 @@ data DEnv = DEnv { docxOptions  :: ReaderOptions
 
 type DocxContext = ReaderT DEnv (State DState)
 
+updateDState :: (DState -> DState) -> DocxContext ()
+updateDState f = do
+  st <- get
+  put $ f st
+
 evalDocxContext :: DocxContext a -> DEnv -> DState -> a
 evalDocxContext ctx env st = evalState (runReaderT ctx env) st
 
@@ -289,7 +294,7 @@ parPartToInlines (BookMark _ anchor) =
     let newAnchor = case anchor `elem` (M.elems anchorMap) of
           True -> uniqueIdent [Str anchor] (M.elems anchorMap)
           False -> anchor
-    put DState{ docxAnchorMap = M.insert anchor newAnchor anchorMap}
+    updateDState $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap}
     return [Span (anchor, ["anchor"], []) []]
 parPartToInlines (Drawing relid) = do
   (Docx _ _ _ rels _) <- asks docxDocument
@@ -329,7 +334,7 @@ makeHeaderAnchor (Header n (_, classes, kvs) ils)
     do
       hdrIDMap <- gets docxAnchorMap
       let newIdent = uniqueIdent ils (M.elems hdrIDMap)
-      put DState{docxAnchorMap = M.insert ident newIdent hdrIDMap}
+      updateDState $ \s -> s {docxAnchorMap = M.insert ident newIdent hdrIDMap}
       return $ Header n (newIdent, classes, kvs) (ils \\ (x:xs))
 -- Otherwise we just give it a name, and register that name (associate
 -- it with itself.)
@@ -337,7 +342,7 @@ makeHeaderAnchor (Header n (_, classes, kvs) ils) =
   do
     hdrIDMap <- gets docxAnchorMap
     let newIdent = uniqueIdent ils (M.elems hdrIDMap)
-    put DState{docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
+    updateDState $ \s -> s {docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
     return $ Header n (newIdent, classes, kvs) ils
 makeHeaderAnchor blk = return blk
 
