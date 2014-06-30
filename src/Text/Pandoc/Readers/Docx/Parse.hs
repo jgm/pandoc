@@ -361,10 +361,16 @@ elemToParagraphStyle ns element =
           (findAttr (QName "val" (lookup "w" ns) (Just "w")))
           (findChildren (QName "pStyle" (lookup "w" ns) (Just "w")) pPr)
       , indent =
-        findChild (QName "ind" (lookup "w" ns) (Just "w")) pPr >>=
-        findAttr (QName "left" (lookup "w" ns) (Just "w")) >>=
-        stringToInteger
-        }
+          case 
+            findChild (QName "ind" (lookup "w" ns) (Just "w")) pPr >>= 
+            findAttr (QName "hanging" (lookup "w" ns) (Just "w")) 
+          of
+            Just _ -> Nothing
+            Nothing ->
+              findChild (QName "ind" (lookup "w" ns) (Just "w")) pPr >>=    
+              findAttr (QName "left" (lookup "w" ns) (Just "w")) >>= 
+              stringToInteger
+      }
     Nothing -> defaultParagraphStyle
 
 
