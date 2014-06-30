@@ -16,11 +16,13 @@ tests = [ testGroup "normalize"
         ]
 
 p_normalize_blocks_rt :: [Block] -> Bool
-p_normalize_blocks_rt bs = normalize bs == normalize (normalize bs)
+p_normalize_blocks_rt bs =
+  normalizeBlocks bs == normalizeBlocks (normalizeBlocks bs)
 
 p_normalize_inlines_rt :: [Inline] -> Bool
-p_normalize_inlines_rt ils = normalize ils == normalize (normalize ils)
+p_normalize_inlines_rt ils =
+  normalizeInlines ils == normalizeInlines (normalizeInlines ils)
 
 p_normalize_no_trailing_spaces :: [Inline] -> Bool
 p_normalize_no_trailing_spaces ils = null ils' || last ils' /= Space
-  where ils' = normalize $ ils ++ [Space]
+  where ils' = normalizeInlines $ ils ++ [Space]
