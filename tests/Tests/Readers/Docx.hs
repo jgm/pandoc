@@ -113,6 +113,10 @@ tests = [ testGroup "inlines"
             "docx.block_quotes.docx"
             "docx.block_quotes_parse_indent.native"
           , testCompare
+            "hanging indents"
+            "docx.hanging_indent.docx"
+            "docx.hanging_indent.native"
+          , testCompare
             "tables"
             "docx.tables.docx"
             "docx.tables.native"

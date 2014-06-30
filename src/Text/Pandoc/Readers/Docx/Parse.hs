@@ -42,6 +42,7 @@ module Text.Pandoc.Readers.Docx.Parse (  Docx(..)
                                        , Relationship
                                        , Media
                                        , RunStyle(..)
+                                       , ParIndentation(..)
                                        , ParagraphStyle(..)
                                        , Row(..)
                                        , Cell(..)
@@ -341,15 +342,36 @@ testBitMask bitMaskS n =
     []            -> False
     ((n', _) : _) -> ((n' .|. n) /= 0)
 
+data ParIndentation = ParIndentation { leftParIndent :: Maybe Integer
+                                     , rightParIndent :: Maybe Integer
+                                     , hangingParIndent :: Maybe Integer}
+                      deriving Show
+
 data ParagraphStyle = ParagraphStyle { pStyle :: [String]
-                                     , indent :: Maybe Integer
+                                     , indentation :: Maybe ParIndentation
                                      }
                       deriving Show
 
 defaultParagraphStyle :: ParagraphStyle
 defaultParagraphStyle = ParagraphStyle { pStyle = []
-                                       , indent = Nothing
+                                       , indentation = Nothing
                                        }
+
+elemToParIndentation :: NameSpaces -> Element -> Maybe ParIndentation
+elemToParIndentation ns element
+  | qName (elName element) == "ind" &&
+    qURI (elName element) == (lookup "w" ns) =
+      Just $ ParIndentation {
+        leftParIndent =
+           findAttr (QName "left" (lookup "w" ns) (Just "w")) element >>=
+           stringToInteger
+        , rightParIndent = 
+          findAttr (QName "right" (lookup "w" ns) (Just "w")) element >>=
+          stringToInteger
+        , hangingParIndent = 
+          findAttr (QName "hanging" (lookup "w" ns) (Just "w")) element >>=
+          stringToInteger}
+elemToParIndentation _ _ = Nothing
 
 elemToParagraphStyle :: NameSpaces -> Element -> ParagraphStyle
 elemToParagraphStyle ns element =
@@ -360,10 +382,9 @@ elemToParagraphStyle ns element =
           mapMaybe
           (findAttr (QName "val" (lookup "w" ns) (Just "w")))
           (findChildren (QName "pStyle" (lookup "w" ns) (Just "w")) pPr)
-      , indent =
+      , indentation =
         findChild (QName "ind" (lookup "w" ns) (Just "w")) pPr >>=
-        findAttr (QName "left" (lookup "w" ns) (Just "w")) >>=
-        stringToInteger
+        elemToParIndentation ns
         }
     Nothing -> defaultParagraphStyle
 

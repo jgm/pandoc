@@ -94,6 +94,7 @@ import System.FilePath (combine)
 import qualified Data.Map as M
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Applicative (liftA2)
 
 readDocx :: ReaderOptions
          -> B.ByteString
@@ -153,7 +154,6 @@ runStyleToContainers rPr =
   in
    classContainers ++ formatters
 
-
 divAttrToContainers :: [String] -> [(String, String)] -> [Container Block]
 divAttrToContainers (c:cs) _ | Just n <- isHeaderClass c =
   [Container $ \_ ->
@@ -171,22 +171,37 @@ divAttrToContainers (c:cs) kvs | c `elem` listParagraphDivs =
 divAttrToContainers (c:cs) kvs | c `elem` blockQuoteDivs =
   (Container BlockQuote) : (divAttrToContainers (cs \\ blockQuoteDivs) kvs)
 divAttrToContainers (_:cs) kvs = divAttrToContainers cs kvs
-divAttrToContainers [] kvs | Just numString <- lookup "indent" kvs =
-  let kvs' = filter (\(k,_) -> k /= "indent") kvs
+divAttrToContainers [] kvs | Just _ <- lookup "indent" kvs
+                           , Just flInd <- lookup "first-line-indent" kvs =
+  let
+    kvs' = filter (\(k,_) -> notElem k ["indent", "first-line-indent"]) kvs
   in
-   case numString of
-     "0"       -> divAttrToContainers [] kvs'
-     ('-' : _) -> divAttrToContainers [] kvs'
-     _         -> (Container BlockQuote) : divAttrToContainers [] kvs'
+   case flInd of
+     "0" -> divAttrToContainers [] kvs'
+     ('-':_) -> divAttrToContainers [] kvs'
+     _       -> (Container BlockQuote) : divAttrToContainers [] kvs'
+divAttrToContainers [] kvs | Just ind <- lookup "indent" kvs =
+  let
+    kvs' = filter (\(k,_) -> notElem k ["indent"]) kvs
+  in
+   case ind of
+     "0" -> divAttrToContainers [] kvs'
+     ('-':_) -> divAttrToContainers [] kvs'
+     _       -> (Container BlockQuote) : divAttrToContainers [] kvs'
+
 divAttrToContainers _ _ = []
 
 
 parStyleToContainers :: ParagraphStyle -> [Container Block]
 parStyleToContainers pPr =
   let classes = pStyle pPr
-      kvs = case indent pPr of
-        Just n -> [("indent", show n)]
-        Nothing -> []
+      indent = indentation pPr >>= leftParIndent
+      hanging = indentation pPr >>= hangingParIndent
+      firstLineIndent = liftA2 (-) indent hanging
+      kvs = mapMaybe id
+            [ indent >>= (\n -> Just ("indent", show n)),
+              firstLineIndent >>= (\n -> Just ("first-line-indent", show n))
+              ]
   in
    divAttrToContainers classes kvs
   
