@@ -351,7 +351,7 @@ tableItemToDokuWiki :: WriterOptions
                      -> [Block]
                      -> State WriterState String
 -- TODO Fix celltype and align' defined but not used
-tableItemToDokuWiki opts celltype align' item = do
+tableItemToDokuWiki opts _celltype _align' item = do
   let mkcell x = "" ++ x ++ ""
   contents <- blockListToDokuWiki opts item
   return $ mkcell contents
@@ -378,7 +378,7 @@ inlineListToDokuWiki opts lst = mapM (inlineToDokuWiki opts) lst >>= return . co
 -- | Convert Pandoc inline element to DokuWiki.
 inlineToDokuWiki :: WriterOptions -> Inline -> State WriterState String
 
-inlineToDokuWiki opts (Span attrs ils) = do
+inlineToDokuWiki _opts (Span _attrs _ils) = do
   return ""
   {-
   contents <- inlineListToDokuWiki opts ils
