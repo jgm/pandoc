@@ -274,21 +274,16 @@ Blank line after term, indented marker, alternate markers:
 
 Simple block on one line:
 
-<div>
 foo
-</div>
+
 And nested without indentation:
 
-<div>
-<div>
-<div>
 foo
-</div>
-</div>
-<div>
+
+
 bar
-</div>
-</div>
+
+
 Interpreted markdown in a table:
 
 <html>
@@ -309,9 +304,8 @@ And this is **strong**
 </html>
 Here’s a simple block:
 
-<div>
 foo
-</div>
+
 This should be a code block, though:
 
 <code><div>
@@ -322,13 +316,10 @@ As should this:
 <code><div>foo</div></code>
 Now, nested:
 
-<div>
-<div>
-<div>
 foo
-</div>
-</div>
-</div>
+
+
+
 This should just be an HTML comment:
 
 <html>

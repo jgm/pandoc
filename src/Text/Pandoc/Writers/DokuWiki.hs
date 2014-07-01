@@ -34,7 +34,6 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
     [ ] Correct handling of Span
     [ ] Don't generate <blockquote>...
     [ ] Don't generate lists using <ol> and <ul>
-    [ ] Don't generate <div>
     [ ] Implement alignment of text in tables
     [ ] Implement comments
     [ ] Work through the Dokuwiki spec, and check I've not missed anything out
@@ -47,7 +46,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Pretty (render)
 import Text.Pandoc.Templates (renderTemplate')
 import Data.List ( intersect, intercalate )
 import Network.URI ( isURI )
@@ -97,10 +95,9 @@ blockToDokuWiki :: WriterOptions -- ^ Options
 
 blockToDokuWiki _ Null = return ""
 
-blockToDokuWiki opts (Div attrs bs) = do
+blockToDokuWiki opts (Div _attrs bs) = do
   contents <- blockListToDokuWiki opts bs
-  return $ render Nothing (tagWithAttrs "div" attrs) ++ "\n" ++
-                     contents ++ "\n" ++ "</div>"
+  return $ contents ++ "\n"
 
 blockToDokuWiki opts (Plain inlines) =
   inlineListToDokuWiki opts inlines
