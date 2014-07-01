@@ -55,6 +55,8 @@ module Text.Pandoc.Shared (
                      normalizeSpaces,
                      extractSpaces,
                      normalize,
+                     normalizeInlines,
+                     normalizeBlocks,
                      stringify,
                      compactify,
                      compactify',
@@ -84,7 +86,6 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
-import Text.Pandoc.Generic
 import Text.Pandoc.Builder (Inlines, Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -350,72 +351,142 @@ extractSpaces f is =
 -- | Normalize @Pandoc@ document, consolidating doubled 'Space's,
 -- combining adjacent 'Str's and 'Emph's, remove 'Null's and
 -- empty elements, etc.
-normalize :: (Eq a, Data a) => a -> a
-normalize = topDown removeEmptyBlocks .
-            topDown consolidateInlines .
-            bottomUp (removeEmptyInlines . removeTrailingInlineSpaces)
+normalize :: Pandoc -> Pandoc
+normalize (Pandoc (Meta meta) blocks) =
+  Pandoc (Meta $ M.map go meta) (normalizeBlocks blocks)
+  where go (MetaInlines xs) = MetaInlines $ normalizeInlines xs
+        go (MetaBlocks xs)  = MetaBlocks  $ normalizeBlocks xs
+        go (MetaList ms)    = MetaList $ map go ms
+        go (MetaMap m)      = MetaMap $ M.map go m
+        go x                = x
 
-removeEmptyBlocks :: [Block] -> [Block]
-removeEmptyBlocks (Null : xs) = removeEmptyBlocks xs
-removeEmptyBlocks (BulletList [] : xs) = removeEmptyBlocks xs
-removeEmptyBlocks (OrderedList _ [] : xs) = removeEmptyBlocks xs
-removeEmptyBlocks (DefinitionList [] : xs) = removeEmptyBlocks xs
-removeEmptyBlocks (RawBlock _ [] : xs) = removeEmptyBlocks xs
-removeEmptyBlocks (x:xs) = x : removeEmptyBlocks xs
-removeEmptyBlocks [] = []
+normalizeBlocks :: [Block] -> [Block]
+normalizeBlocks (Null : xs) = normalizeBlocks xs
+normalizeBlocks (Div attr bs : xs) =
+  Div attr (normalizeBlocks bs) : normalizeBlocks xs
+normalizeBlocks (BlockQuote bs : xs) =
+  case normalizeBlocks bs of
+       []    -> normalizeBlocks xs
+       bs'   -> BlockQuote bs' : normalizeBlocks xs
+normalizeBlocks (BulletList [] : xs) = normalizeBlocks xs
+normalizeBlocks (BulletList items : xs) =
+  BulletList (map normalizeBlocks items) : normalizeBlocks xs
+normalizeBlocks (OrderedList _ [] : xs) = normalizeBlocks xs
+normalizeBlocks (OrderedList attr items : xs) =
+  OrderedList attr (map normalizeBlocks items) : normalizeBlocks xs
+normalizeBlocks (DefinitionList [] : xs) = normalizeBlocks xs
+normalizeBlocks (DefinitionList items : xs) =
+  DefinitionList (map go items) : normalizeBlocks xs
+  where go (ils, bs) = (normalizeInlines ils, map normalizeBlocks bs)
+normalizeBlocks (RawBlock _ "" : xs) = normalizeBlocks xs
+normalizeBlocks (Para ils : xs) =
+  case normalizeInlines ils of
+       []   -> normalizeBlocks xs
+       ils' -> Para ils' : normalizeBlocks xs
+normalizeBlocks (Plain ils : xs) =
+  case normalizeInlines ils of
+       []   -> normalizeBlocks xs
+       ils' -> Plain ils' : normalizeBlocks xs
+normalizeBlocks (Header lev attr ils : xs) =
+  Header lev attr (normalizeInlines ils) : normalizeBlocks xs
+normalizeBlocks (Table capt aligns widths hdrs rows : xs) =
+  Table (normalizeInlines capt) aligns widths
+    (map normalizeBlocks hdrs) (map (map normalizeBlocks) rows)
+  : normalizeBlocks xs
+normalizeBlocks (x:xs) = x : normalizeBlocks xs
+normalizeBlocks [] = []
 
-removeEmptyInlines :: [Inline] -> [Inline]
-removeEmptyInlines (Emph [] : zs) = removeEmptyInlines zs
-removeEmptyInlines (Strong [] : zs) = removeEmptyInlines zs
-removeEmptyInlines (Subscript [] : zs) = removeEmptyInlines zs
-removeEmptyInlines (Superscript [] : zs) = removeEmptyInlines zs
-removeEmptyInlines (SmallCaps [] : zs) = removeEmptyInlines zs
-removeEmptyInlines (Strikeout [] : zs) = removeEmptyInlines zs
-removeEmptyInlines (RawInline _ [] : zs) = removeEmptyInlines zs
-removeEmptyInlines (Code _ [] : zs) = removeEmptyInlines zs
-removeEmptyInlines (Str "" : zs) = removeEmptyInlines zs
-removeEmptyInlines (x : xs) = x : removeEmptyInlines xs
-removeEmptyInlines [] = []
-
-removeTrailingInlineSpaces :: [Inline] -> [Inline]
-removeTrailingInlineSpaces = reverse . removeLeadingInlineSpaces . reverse
-
-removeLeadingInlineSpaces :: [Inline] -> [Inline]
-removeLeadingInlineSpaces = dropWhile isSpaceOrEmpty
-
-consolidateInlines :: [Inline] -> [Inline]
-consolidateInlines (Str x : ys) =
+normalizeInlines :: [Inline] -> [Inline]
+normalizeInlines (Str x : ys) =
   case concat (x : map fromStr strs) of
-        ""     -> consolidateInlines rest
-        n      -> Str n : consolidateInlines rest
+        ""     -> rest
+        n      -> Str n : rest
    where
-     (strs, rest)  = span isStr ys
+     (strs, rest)  = span isStr $ normalizeInlines ys
      isStr (Str _) = True
      isStr _       = False
      fromStr (Str z) = z
-     fromStr _       = error "consolidateInlines - fromStr - not a Str"
-consolidateInlines (Space : ys) = Space : rest
+     fromStr _       = error "normalizeInlines - fromStr - not a Str"
+normalizeInlines (Space : ys) =
+  if null rest
+     then []
+     else Space : rest
    where isSp Space = True
          isSp _     = False
-         rest       = consolidateInlines $ dropWhile isSp ys
-consolidateInlines (Emph xs : Emph ys : zs) = consolidateInlines $
-  Emph (xs ++ ys) : zs
-consolidateInlines (Strong xs : Strong ys : zs) = consolidateInlines $
-  Strong (xs ++ ys) : zs
-consolidateInlines (Subscript xs : Subscript ys : zs) = consolidateInlines $
-  Subscript (xs ++ ys) : zs
-consolidateInlines (Superscript xs : Superscript ys : zs) = consolidateInlines $
-  Superscript (xs ++ ys) : zs
-consolidateInlines (SmallCaps xs : SmallCaps ys : zs) = consolidateInlines $
-  SmallCaps (xs ++ ys) : zs
-consolidateInlines (Strikeout xs : Strikeout ys : zs) = consolidateInlines $
-  Strikeout (xs ++ ys) : zs
-consolidateInlines (RawInline f x : RawInline f' y : zs) | f == f' =
-  consolidateInlines $ RawInline f (x ++ y) : zs
-consolidateInlines (Code a1 x : Code a2 y : zs) | a1 == a2 =
-  consolidateInlines $ Code a1 (x ++ y) : zs
-consolidateInlines (x : xs) = x : consolidateInlines xs
-consolidateInlines [] = []
+         rest       = dropWhile isSp $ normalizeInlines ys
+normalizeInlines (Emph xs : zs) =
+  case normalizeInlines zs of
+       (Emph ys : rest) -> normalizeInlines $
+         Emph (normalizeInlines $ xs ++ ys) : rest
+       rest -> case normalizeInlines xs of
+                    []  -> rest
+                    xs' -> Emph xs' : rest
+normalizeInlines (Strong xs : zs) =
+  case normalizeInlines zs of
+       (Strong ys : rest) -> normalizeInlines $
+         Strong (normalizeInlines $ xs ++ ys) : rest
+       rest -> case normalizeInlines xs of
+                    []  -> rest
+                    xs' -> Strong xs' : rest
+normalizeInlines (Subscript xs : zs) =
+  case normalizeInlines zs of
+       (Subscript ys : rest) -> normalizeInlines $
+         Subscript (normalizeInlines $ xs ++ ys) : rest
+       rest -> case normalizeInlines xs of
+                    []  -> rest
+                    xs' -> Subscript xs' : rest
+normalizeInlines (Superscript xs : zs) =
+  case normalizeInlines zs of
+       (Superscript ys : rest) -> normalizeInlines $
+         Superscript (normalizeInlines $ xs ++ ys) : rest
+       rest -> case normalizeInlines xs of
+                    []  -> rest
+                    xs' -> Superscript xs' : rest
+normalizeInlines (SmallCaps xs : zs) =
+  case normalizeInlines zs of
+       (SmallCaps ys : rest) -> normalizeInlines $
+         SmallCaps (normalizeInlines $ xs ++ ys) : rest
+       rest -> case normalizeInlines xs of
+                    []  -> rest
+                    xs' -> SmallCaps xs' : rest
+normalizeInlines (Strikeout xs : zs) =
+  case normalizeInlines zs of
+       (Strikeout ys : rest) -> normalizeInlines $
+         Strikeout (normalizeInlines $ xs ++ ys) : rest
+       rest -> case normalizeInlines xs of
+                    []  -> rest
+                    xs' -> Strikeout xs' : rest
+normalizeInlines (RawInline _ [] : ys) = normalizeInlines ys
+normalizeInlines (RawInline f xs : zs) =
+  case normalizeInlines zs of
+       (RawInline f' ys : rest) | f == f' -> normalizeInlines $
+         RawInline f (xs ++ ys) : rest
+       rest -> RawInline f xs : rest
+normalizeInlines (Code _ "" : ys) = normalizeInlines ys
+normalizeInlines (Code attr xs : zs) =
+  case normalizeInlines zs of
+       (Code attr' ys : rest) | attr == attr' -> normalizeInlines $
+         Code attr (xs ++ ys) : rest
+       rest -> Code attr xs : rest
+-- allow empty spans, they may carry identifiers etc.
+-- normalizeInlines (Span _ [] : ys) = normalizeInlines ys
+normalizeInlines (Span attr xs : zs) =
+  case normalizeInlines zs of
+       (Span attr' ys : rest) | attr == attr' -> normalizeInlines $
+         Span attr (normalizeInlines $ xs ++ ys) : rest
+       rest -> Span attr (normalizeInlines xs) : rest
+normalizeInlines (Note bs : ys) = Note (normalizeBlocks bs) :
+  normalizeInlines ys
+normalizeInlines (Quoted qt ils : ys) =
+  Quoted qt (normalizeInlines ils) : normalizeInlines ys
+normalizeInlines (Link ils t : ys) =
+  Link (normalizeInlines ils) t : normalizeInlines ys
+normalizeInlines (Image ils t : ys) =
+  Image (normalizeInlines ils) t : normalizeInlines ys
+normalizeInlines (Cite cs ils : ys) =
+  Cite cs (normalizeInlines ils) : normalizeInlines ys
+normalizeInlines (x : xs) = x : normalizeInlines xs
+normalizeInlines [] = []
 
 -- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link

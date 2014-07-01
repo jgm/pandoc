@@ -110,6 +110,11 @@ data DEnv = DEnv { docxOptions  :: ReaderOptions
 
 type DocxContext = ReaderT DEnv (State DState)
 
+updateDState :: (DState -> DState) -> DocxContext ()
+updateDState f = do
+  st <- get
+  put $ f st
+
 evalDocxContext :: DocxContext a -> DEnv -> DState -> a
 evalDocxContext ctx env st = evalState (runReaderT ctx env) st
 
@@ -148,42 +153,48 @@ runStyleToContainers rPr =
   in
    classContainers ++ formatters
 
-
-divAttrToContainers :: [String] -> [(String, String)] -> [Container Block]
-divAttrToContainers (c:cs) _ | Just n <- isHeaderClass c =
-  [Container $ \_ ->
-     Header n ("", delete ("Heading" ++ show n) cs, []) []]
-divAttrToContainers (c:cs) kvs | c `elem` divsToKeep =
-  (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs)
-divAttrToContainers (c:cs) kvs | c `elem` codeDivs =
+parStyleToContainers :: ParagraphStyle -> [Container Block]
+parStyleToContainers pPr | (c:cs) <- pStyle pPr, Just n <- isHeaderClass c =
+  [Container $ \_ -> Header n ("", delete ("Heading" ++ show n) cs, []) []]
+parStyleToContainers pPr | (c:cs) <- pStyle pPr, c `elem` divsToKeep =
+  let pPr' = pPr { pStyle = cs }
+  in
+   (Container $ Div ("", [c], [])) : (parStyleToContainers pPr')
+parStyleToContainers pPr | (c:cs) <- pStyle pPr, c `elem` codeDivs =
   -- This is a bit of a cludge. We make the codeblock from the raw
   -- parparts in bodyPartToBlocks. But we need something to match against.
-  (Container $ \_ -> CodeBlock ("", [], []) "") : (divAttrToContainers cs kvs)
-divAttrToContainers (c:cs) kvs | c `elem` listParagraphDivs =
-  let kvs' = filter (\(k,_) -> k /= "indent") kvs
+  let pPr' = pPr { pStyle = cs }
   in
-   (Container $ Div ("", [c], [])) : (divAttrToContainers cs kvs')
-divAttrToContainers (c:cs) kvs | c `elem` blockQuoteDivs =
-  (Container BlockQuote) : (divAttrToContainers (cs \\ blockQuoteDivs) kvs)
-divAttrToContainers (_:cs) kvs = divAttrToContainers cs kvs
-divAttrToContainers [] kvs | Just numString <- lookup "indent" kvs =
-  let kvs' = filter (\(k,_) -> k /= "indent") kvs
+   (Container $ \_ -> CodeBlock ("", [], []) "") : (parStyleToContainers pPr')
+parStyleToContainers pPr | (c:cs) <- pStyle pPr,  c `elem` listParagraphDivs =
+  let pPr' = pPr { pStyle = cs, indentation = Nothing}
   in
-   case numString of
-     "0"       -> divAttrToContainers [] kvs'
-     ('-' : _) -> divAttrToContainers [] kvs'
-     _         -> (Container BlockQuote) : divAttrToContainers [] kvs'
-divAttrToContainers _ _ = []
+   (Container $ Div ("", [c], [])) : (parStyleToContainers pPr')
 
-
-parStyleToContainers :: ParagraphStyle -> [Container Block]
-parStyleToContainers pPr =
-  let classes = pStyle pPr
-      kvs = case indent pPr of
-        Just n -> [("indent", show n)]
-        Nothing -> []
+parStyleToContainers pPr | (c:cs) <- pStyle pPr, c `elem` blockQuoteDivs =
+  let pPr' = pPr { pStyle = cs \\ blockQuoteDivs }
   in
-   divAttrToContainers classes kvs
+   (Container BlockQuote) : (parStyleToContainers pPr')
+parStyleToContainers pPr | (_:cs) <- pStyle pPr =
+  let pPr' = pPr { pStyle = cs}
+  in
+    parStyleToContainers pPr'                                 
+parStyleToContainers pPr | null (pStyle pPr),
+                          Just left <- indentation pPr >>= leftParIndent,
+                          Just hang <- indentation pPr >>= hangingParIndent =
+  let pPr' = pPr { indentation = Nothing }
+  in
+   case (left - hang) > 0 of
+     True -> (Container BlockQuote) : (parStyleToContainers pPr')
+     False -> parStyleToContainers pPr'
+parStyleToContainers pPr | null (pStyle pPr),
+                          Just left <- indentation pPr >>= leftParIndent =
+  let pPr' = pPr { indentation = Nothing }
+  in
+   case left > 0 of
+     True -> (Container BlockQuote) : (parStyleToContainers pPr')
+     False -> parStyleToContainers pPr'
+parStyleToContainers _ = []
   
 
 strToInlines :: String -> [Inline]
@@ -289,7 +300,7 @@ parPartToInlines (BookMark _ anchor) =
     let newAnchor = case anchor `elem` (M.elems anchorMap) of
           True -> uniqueIdent [Str anchor] (M.elems anchorMap)
           False -> anchor
-    put DState{ docxAnchorMap = M.insert anchor newAnchor anchorMap}
+    updateDState $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap}
     return [Span (anchor, ["anchor"], []) []]
 parPartToInlines (Drawing relid) = do
   (Docx _ _ _ rels _) <- asks docxDocument
@@ -329,7 +340,7 @@ makeHeaderAnchor (Header n (_, classes, kvs) ils)
     do
       hdrIDMap <- gets docxAnchorMap
       let newIdent = uniqueIdent ils (M.elems hdrIDMap)
-      put DState{docxAnchorMap = M.insert ident newIdent hdrIDMap}
+      updateDState $ \s -> s {docxAnchorMap = M.insert ident newIdent hdrIDMap}
       return $ Header n (newIdent, classes, kvs) (ils \\ (x:xs))
 -- Otherwise we just give it a name, and register that name (associate
 -- it with itself.)
@@ -337,7 +348,7 @@ makeHeaderAnchor (Header n (_, classes, kvs) ils) =
   do
     hdrIDMap <- gets docxAnchorMap
     let newIdent = uniqueIdent ils (M.elems hdrIDMap)
-    put DState{docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
+    updateDState $ \s -> s {docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
     return $ Header n (newIdent, classes, kvs) ils
 makeHeaderAnchor blk = return blk
 

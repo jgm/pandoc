@@ -49,7 +49,7 @@ import System.Console.GetOpt
 import Data.Char ( toLower )
 import Data.List ( intercalate, isPrefixOf, isSuffixOf, sort )
 import System.Directory ( getAppUserDataDirectory, findExecutable,
-                          doesFileExist )
+                          doesFileExist, Permissions(..), getPermissions )
 import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
@@ -104,8 +104,12 @@ externalFilter f args' d = do
                            Nothing -> do
                              exists <- doesFileExist f
                              if exists
-                                then return $
+                                then do
+                                  isExecutable <- executable `fmap`
+                                                    getPermissions f
+                                  return $
                                     case map toLower $ takeExtension f of
+                                         _ | isExecutable -> (f, args')
                                          ".py"  -> ("python", f:args')
                                          ".hs"  -> ("runhaskell", f:args')
                                          ".pl"  -> ("perl", f:args')
