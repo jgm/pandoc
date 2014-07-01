@@ -126,7 +126,7 @@ blockToDokuWiki opts (Para inlines) = do
 
 blockToDokuWiki _ (RawBlock f str)
   | f == Format "mediawiki" = return str
-  | f == Format "html"      = return str
+  | f == Format "html"      = return $ "<html>\n" ++ str ++ "</html>"
   | otherwise               = return ""
 
 blockToDokuWiki _ HorizontalRule = return "\n----\n"
