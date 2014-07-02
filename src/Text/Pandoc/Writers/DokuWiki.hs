@@ -33,11 +33,9 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 {-
     [ ] Correct handling of Span
     [ ] Implement nested blockquotes (currently only ever does one level)
-    [ ] Don't generate lists using <ol> and <ul>
     [ ] Implement alignment of text in tables
     [ ] Implement comments
     [ ] Work through the Dokuwiki spec, and check I've not missed anything out
-    [ ] Test the output in Dokuwiki - and compare against the display of another format, e.g. HTML
     [ ] Remove dud/duplicate code
 -}
 
