@@ -31,7 +31,6 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 -}
 
 {-
-    [ ] Correct handling of Span
     [ ] Implement nested blockquotes (currently only ever does one level)
     [ ] Implement alignment of text in tables
     [ ] Implement comments
@@ -348,12 +347,9 @@ inlineListToDokuWiki opts lst = mapM (inlineToDokuWiki opts) lst >>= return . co
 -- | Convert Pandoc inline element to DokuWiki.
 inlineToDokuWiki :: WriterOptions -> Inline -> State WriterState String
 
-inlineToDokuWiki _opts (Span _attrs _ils) = do
-  return ""
-  {-
+inlineToDokuWiki opts (Span _attrs ils) = do
   contents <- inlineListToDokuWiki opts ils
-  return $ render Nothing (tagWithAttrs "span" attrs) ++ contents ++ "</span>"
-  -}
+  return contents
 
 inlineToDokuWiki opts (Emph lst) = do
   contents <- inlineListToDokuWiki opts lst
