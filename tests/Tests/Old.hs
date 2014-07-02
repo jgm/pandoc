@@ -128,6 +128,8 @@ tests = [ testGroup "markdown"
           [ testGroup "writer" $ writerTests "dokuwiki"
           , test "writer-more" ["-r", "native", "-w", "dokuwiki", "-s"]
             "dokuwiki-writer.native" "dokuwiki-writer.dokuwiki"
+          , test "writer-inline_formatting" ["-r", "native", "-w", "dokuwiki", "-s"]
+            "dokuwiki.inline_formatting.native" "dokuwiki.inline_formatting.dokuwiki"
           ]
         , testGroup "opml"
           [ test "basic" ["-r", "native", "-w", "opml", "--columns=78", "-s"]
