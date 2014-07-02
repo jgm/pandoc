@@ -45,9 +45,9 @@ There should be a hard line break\\ here.
 
 E-mail style:
 
-<blockquote>This is a block quote. It is pretty short.
-</blockquote>
-<blockquote>Code in a block quote:
+> This is a block quote. It is pretty short.
+
+> Code in a block quote:
 
 <code>sub status {
     print "working";
@@ -59,10 +59,10 @@ A list:
 
 Nested block quotes:
 
-<blockquote>nested
-</blockquote>
-<blockquote>nested
-</blockquote></blockquote>
+> nested
+
+> nested
+
 This should not be a block quote: 2 > 1.
 
 And a following paragraph.
@@ -251,7 +251,7 @@ Multiple blocks with italics:
 contains seeds, crisp, pleasant to taste
   * **//orange//** orange fruit
 <code>{ orange code block }</code>
-<blockquote>orange block quote</blockquote>
+> orange block quote
 
 Multiple definitions, tight:
 
@@ -568,8 +568,8 @@ With an ampersand: http://example.com/?foo=1&bar=2
 
 An e-mail address: [[mailto:nobody@nowhere.net|nobody@nowhere.net]]
 
-<blockquote>Blockquoted: http://example.com/
-</blockquote>
+> Blockquoted: http://example.com/
+
 Auto-links should not occur here: ''%%<http://example.com/>%%''
 
 <code>or here: <http://example.com/></code>
@@ -599,9 +599,9 @@ If you want, you can indent every line, but you can also be lazy and just indent
 )) This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note.((This is //easier// to type. Inline notes may contain [[http://google.com|links]] and ''%%]%%'' verbatim characters, as well as [bracketed text].
 ))
 
-<blockquote>Notes can go in quotes.((In quote.
+> Notes can go in quotes.((In quote.
 ))
-</blockquote>
+
   - And in list items.((In list.))
 
 This paragraph should not be part of the note, as it is not indented.

@@ -32,7 +32,7 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 
 {-
     [ ] Correct handling of Span
-    [ ] Don't generate <blockquote>...
+    [ ] Implement nested blockquotes (currently only ever does one level)
     [ ] Don't generate lists using <ol> and <ul>
     [ ] Implement alignment of text in tables
     [ ] Implement comments
@@ -150,7 +150,7 @@ blockToDokuWiki _ (CodeBlock (_,classes,_) str) = do
 
 blockToDokuWiki opts (BlockQuote blocks) = do
   contents <- blockListToDokuWiki opts blocks
-  return $ "<blockquote>" ++ contents ++ "</blockquote>"
+  return $ "> " ++ contents
 
 blockToDokuWiki opts (Table capt aligns _ headers rows') = do
   let alignStrings = map alignmentToString aligns
