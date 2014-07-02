@@ -279,31 +279,6 @@ isSimpleList x =
        DefinitionList _                 -> True
        _                                -> False
 
--- | True if list item can be handled with the simple wiki syntax.  False if
---   HTML tags will be needed.
-isSimpleListItem :: [Block] -> Bool
-isSimpleListItem []  = True
-isSimpleListItem [x] =
-  case x of
-       Plain _           -> True
-       Para  _           -> True
-       BulletList _      -> isSimpleList x
-       OrderedList _ _   -> isSimpleList x
-       DefinitionList _  -> isSimpleList x
-       _                 -> False
-isSimpleListItem [x, y] | isPlainOrPara x =
-  case y of
-       BulletList _      -> isSimpleList y
-       OrderedList _ _   -> isSimpleList y
-       DefinitionList _  -> isSimpleList y
-       _                 -> False
-isSimpleListItem _ = False
-
-isPlainOrPara :: Block -> Bool
-isPlainOrPara (Plain _) = True
-isPlainOrPara (Para  _) = True
-isPlainOrPara _         = False
-
 -- | Concatenates strings with line breaks between them.
 vcat :: [String] -> String
 vcat = intercalate "\n"
