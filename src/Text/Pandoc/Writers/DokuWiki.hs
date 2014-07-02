@@ -124,7 +124,7 @@ blockToDokuWiki opts (Para inlines) = do
 blockToDokuWiki _ (RawBlock f str)
   | f == Format "mediawiki" = return str
   | f == Format "html"      = return $ "<html>\n" ++ str ++ "</html>"
-  | otherwise               = return ""
+  | otherwise               = return str
 
 blockToDokuWiki _ HorizontalRule = return "\n----\n"
 
@@ -409,7 +409,7 @@ inlineToDokuWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
 inlineToDokuWiki _ (RawInline f str)
   | f == Format "mediawiki" = return str
   | f == Format "html"      = return str
-  | otherwise               = return ""
+  | otherwise               = return str
 
 inlineToDokuWiki _ (LineBreak) = return "\\\\ "
 
