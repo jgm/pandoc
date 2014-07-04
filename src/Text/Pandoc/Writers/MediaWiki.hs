@@ -44,22 +44,27 @@ import Control.Monad.State
 
 data WriterState = WriterState {
     stNotes     :: Bool            -- True if there are notes
-  , stListLevel :: String          -- String at beginning of list items, e.g. "**"
-  , stUseTags   :: Bool            -- True if we should use HTML tags because we're in a complex list
   }
 
-type MediaWikiWriter = ReaderT WriterOptions (State WriterState)
+data WriterReader = WriterReader {
+    options     :: WriterOptions -- Writer options
+  , stListLevel :: String        -- String at beginning of list items, e.g. "**"
+  , stUseTags   :: Bool          -- True if we should use HTML tags because we're in a complex list
+  }
+
+type MediaWikiWriter = ReaderT WriterReader (State WriterState)
 
 -- | Convert Pandoc to MediaWiki.
 writeMediaWiki :: WriterOptions -> Pandoc -> String
 writeMediaWiki opts document =
-  evalState (runReaderT (pandocToMediaWiki document) opts)
-            WriterState { stNotes = False, stListLevel = [], stUseTags = False }
+  let initialState = WriterState { stNotes = False }
+      env = WriterReader { options = opts, stListLevel = [], stUseTags = False }
+  in  evalState (runReaderT (pandocToMediaWiki document) env) initialState
 
 -- | Return MediaWiki representation of document.
 pandocToMediaWiki :: Pandoc -> MediaWikiWriter String
 pandocToMediaWiki (Pandoc meta blocks) = do
-  opts <- ask
+  opts <- asks options
   metadata <- metaToJSON opts
               (fmap trimr . blockListToMediaWiki)
               inlineListToMediaWiki
@@ -105,8 +110,8 @@ blockToMediaWiki (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   return $ "[[Image:" ++ src ++ "|frame|none" ++ opt ++ "]]\n"
 
 blockToMediaWiki (Para inlines) = do
-  useTags <- gets stUseTags
-  listLevel <- gets stListLevel
+  useTags <- asks stUseTags
+  listLevel <- asks stListLevel
   contents <- inlineListToMediaWiki inlines
   return $ if useTags
               then  "<p>" ++ contents ++ "</p>"
@@ -157,51 +162,39 @@ blockToMediaWiki (Table capt aligns widths headers rows') = do
   return $ "{|\n" ++ caption ++ tableBody ++ "|}\n"
 
 blockToMediaWiki x@(BulletList items) = do
-  oldUseTags <- gets stUseTags
-  listLevel <- gets stListLevel
+  oldUseTags <- asks stUseTags
+  listLevel <- asks stListLevel
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
-        modify $ \s -> s { stUseTags = True }
-        contents <- mapM listItemToMediaWiki items
-        modify $ \s -> s { stUseTags = oldUseTags }
+        contents <- local (\ s -> s { stUseTags = True }) $ mapM listItemToMediaWiki items
         return $ "<ul>\n" ++ vcat contents ++ "</ul>\n"
      else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ "*" }
-        contents <- mapM listItemToMediaWiki items
-        modify $ \s -> s { stListLevel = init (stListLevel s) }
+        contents <- local (\s -> s { stListLevel = stListLevel s ++ "*" }) $ mapM listItemToMediaWiki items
         return $ vcat contents ++ if null listLevel then "\n" else ""
 
 blockToMediaWiki x@(OrderedList attribs items) = do
-  oldUseTags <- gets stUseTags
-  listLevel <- gets stListLevel
+  oldUseTags <- asks stUseTags
+  listLevel <- asks stListLevel
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
-        modify $ \s -> s { stUseTags = True }
-        contents <- mapM listItemToMediaWiki items
-        modify $ \s -> s { stUseTags = oldUseTags }
+        contents <- local (\s -> s { stUseTags = True }) $ mapM listItemToMediaWiki items
         return $ "<ol" ++ listAttribsToString attribs ++ ">\n" ++ vcat contents ++ "</ol>\n"
      else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ "#" }
-        contents <- mapM listItemToMediaWiki items
-        modify $ \s -> s { stListLevel = init (stListLevel s) }
+        contents <- local (\s -> s { stListLevel = stListLevel s ++ "#" }) $ mapM listItemToMediaWiki items
         return $ vcat contents ++ if null listLevel then "\n" else ""
 
 blockToMediaWiki x@(DefinitionList items) = do
-  oldUseTags <- gets stUseTags
-  listLevel <- gets stListLevel
+  oldUseTags <- asks stUseTags
+  listLevel <- asks stListLevel
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
-        modify $ \s -> s { stUseTags = True }
-        contents <- mapM definitionListItemToMediaWiki items
-        modify $ \s -> s { stUseTags = oldUseTags }
+        contents <- local (\s -> s { stUseTags = True }) $ mapM definitionListItemToMediaWiki items
         return $ "<dl>\n" ++ vcat contents ++ "</dl>\n"
      else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ ";" }
-        contents <- mapM definitionListItemToMediaWiki items
-        modify $ \s -> s { stListLevel = init (stListLevel s) }
+        contents <- local (\s -> s { stListLevel = stListLevel s ++ ";" }) $ mapM definitionListItemToMediaWiki items
         return $ vcat contents ++ if null listLevel then "\n" else ""
 
 -- Auxiliary functions for lists:
@@ -221,11 +214,11 @@ listAttribsToString (startnum, numstyle, _) =
 listItemToMediaWiki :: [Block] -> MediaWikiWriter String
 listItemToMediaWiki items = do
   contents <- blockListToMediaWiki items
-  useTags <- gets stUseTags
+  useTags <- asks stUseTags
   if useTags
      then return $ "<li>" ++ contents ++ "</li>"
      else do
-       marker <- gets stListLevel
+       marker <- asks stListLevel
        return $ marker ++ " " ++ contents
 
 -- | Convert definition list item (label, list of blocks) to MediaWiki.
@@ -234,12 +227,12 @@ definitionListItemToMediaWiki :: ([Inline],[[Block]])
 definitionListItemToMediaWiki (label, items) = do
   labelText <- inlineListToMediaWiki label
   contents <- mapM blockListToMediaWiki items
-  useTags <- gets stUseTags
+  useTags <- asks stUseTags
   if useTags
      then return $ "<dt>" ++ labelText ++ "</dt>\n" ++
            intercalate "\n" (map (\d -> "<dd>" ++ d ++ "</dd>") contents)
      else do
-       marker <- gets stListLevel
+       marker <- asks stListLevel
        return $ marker ++ " " ++ labelText ++ "\n" ++
            intercalate "\n" (map (\d -> init marker ++ ": " ++ d) contents)
 
