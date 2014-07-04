@@ -162,38 +162,35 @@ blockToMediaWiki (Table capt aligns widths headers rows') = do
   return $ "{|\n" ++ caption ++ tableBody ++ "|}\n"
 
 blockToMediaWiki x@(BulletList items) = do
-  oldUseTags <- asks stUseTags
-  listLevel <- asks stListLevel
-  let useTags = oldUseTags || not (isSimpleList x)
+  useTags <- fmap (|| not (isSimpleList x)) $ asks stUseTags
   if useTags
      then do
         contents <- local (\ s -> s { stUseTags = True }) $ mapM listItemToMediaWiki items
         return $ "<ul>\n" ++ vcat contents ++ "</ul>\n"
      else do
+        listLevel <- asks stListLevel
         contents <- local (\s -> s { stListLevel = stListLevel s ++ "*" }) $ mapM listItemToMediaWiki items
         return $ vcat contents ++ if null listLevel then "\n" else ""
 
 blockToMediaWiki x@(OrderedList attribs items) = do
-  oldUseTags <- asks stUseTags
-  listLevel <- asks stListLevel
-  let useTags = oldUseTags || not (isSimpleList x)
+  useTags <- fmap (|| not (isSimpleList x)) $ asks stUseTags
   if useTags
      then do
         contents <- local (\s -> s { stUseTags = True }) $ mapM listItemToMediaWiki items
         return $ "<ol" ++ listAttribsToString attribs ++ ">\n" ++ vcat contents ++ "</ol>\n"
      else do
+        listLevel <- asks stListLevel
         contents <- local (\s -> s { stListLevel = stListLevel s ++ "#" }) $ mapM listItemToMediaWiki items
         return $ vcat contents ++ if null listLevel then "\n" else ""
 
 blockToMediaWiki x@(DefinitionList items) = do
-  oldUseTags <- asks stUseTags
-  listLevel <- asks stListLevel
-  let useTags = oldUseTags || not (isSimpleList x)
+  useTags <- fmap (|| not (isSimpleList x)) $ asks stUseTags
   if useTags
      then do
         contents <- local (\s -> s { stUseTags = True }) $ mapM definitionListItemToMediaWiki items
         return $ "<dl>\n" ++ vcat contents ++ "</dl>\n"
      else do
+        listLevel <- asks stListLevel
         contents <- local (\s -> s { stListLevel = stListLevel s ++ ";" }) $ mapM definitionListItemToMediaWiki items
         return $ vcat contents ++ if null listLevel then "\n" else ""
 
