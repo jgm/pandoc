@@ -48,8 +48,8 @@ data WriterState = WriterState {
 
 data WriterReader = WriterReader {
     options     :: WriterOptions -- Writer options
-  , stListLevel :: String        -- String at beginning of list items, e.g. "**"
-  , stUseTags   :: Bool          -- True if we should use HTML tags because we're in a complex list
+  , listLevel   :: String        -- String at beginning of list items, e.g. "**"
+  , useTags     :: Bool          -- True if we should use HTML tags because we're in a complex list
   }
 
 type MediaWikiWriter = ReaderT WriterReader (State WriterState)
@@ -58,7 +58,7 @@ type MediaWikiWriter = ReaderT WriterReader (State WriterState)
 writeMediaWiki :: WriterOptions -> Pandoc -> String
 writeMediaWiki opts document =
   let initialState = WriterState { stNotes = False }
-      env = WriterReader { options = opts, stListLevel = [], stUseTags = False }
+      env = WriterReader { options = opts, listLevel = [], useTags = False }
   in  evalState (runReaderT (pandocToMediaWiki document) env) initialState
 
 -- | Return MediaWiki representation of document.
@@ -110,12 +110,12 @@ blockToMediaWiki (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   return $ "[[Image:" ++ src ++ "|frame|none" ++ opt ++ "]]\n"
 
 blockToMediaWiki (Para inlines) = do
-  useTags <- asks stUseTags
-  listLevel <- asks stListLevel
+  tags <- asks useTags
+  lev <- asks listLevel
   contents <- inlineListToMediaWiki inlines
-  return $ if useTags
+  return $ if tags
               then  "<p>" ++ contents ++ "</p>"
-              else contents ++ if null listLevel then "\n" else ""
+              else contents ++ if null lev then "\n" else ""
 
 blockToMediaWiki (RawBlock f str)
   | f == Format "mediawiki" = return str
@@ -162,37 +162,37 @@ blockToMediaWiki (Table capt aligns widths headers rows') = do
   return $ "{|\n" ++ caption ++ tableBody ++ "|}\n"
 
 blockToMediaWiki x@(BulletList items) = do
-  useTags <- fmap (|| not (isSimpleList x)) $ asks stUseTags
-  if useTags
+  tags <- fmap (|| not (isSimpleList x)) $ asks useTags
+  if tags
      then do
-        contents <- local (\ s -> s { stUseTags = True }) $ mapM listItemToMediaWiki items
+        contents <- local (\ s -> s { useTags = True }) $ mapM listItemToMediaWiki items
         return $ "<ul>\n" ++ vcat contents ++ "</ul>\n"
      else do
-        listLevel <- asks stListLevel
-        contents <- local (\s -> s { stListLevel = stListLevel s ++ "*" }) $ mapM listItemToMediaWiki items
-        return $ vcat contents ++ if null listLevel then "\n" else ""
+        lev <- asks listLevel
+        contents <- local (\s -> s { listLevel = listLevel s ++ "*" }) $ mapM listItemToMediaWiki items
+        return $ vcat contents ++ if null lev then "\n" else ""
 
 blockToMediaWiki x@(OrderedList attribs items) = do
-  useTags <- fmap (|| not (isSimpleList x)) $ asks stUseTags
-  if useTags
+  tags <- fmap (|| not (isSimpleList x)) $ asks useTags
+  if tags
      then do
-        contents <- local (\s -> s { stUseTags = True }) $ mapM listItemToMediaWiki items
+        contents <- local (\s -> s { useTags = True }) $ mapM listItemToMediaWiki items
         return $ "<ol" ++ listAttribsToString attribs ++ ">\n" ++ vcat contents ++ "</ol>\n"
      else do
-        listLevel <- asks stListLevel
-        contents <- local (\s -> s { stListLevel = stListLevel s ++ "#" }) $ mapM listItemToMediaWiki items
-        return $ vcat contents ++ if null listLevel then "\n" else ""
+        lev <- asks listLevel
+        contents <- local (\s -> s { listLevel = listLevel s ++ "#" }) $ mapM listItemToMediaWiki items
+        return $ vcat contents ++ if null lev then "\n" else ""
 
 blockToMediaWiki x@(DefinitionList items) = do
-  useTags <- fmap (|| not (isSimpleList x)) $ asks stUseTags
-  if useTags
+  tags <- fmap (|| not (isSimpleList x)) $ asks useTags
+  if tags
      then do
-        contents <- local (\s -> s { stUseTags = True }) $ mapM definitionListItemToMediaWiki items
+        contents <- local (\s -> s { useTags = True }) $ mapM definitionListItemToMediaWiki items
         return $ "<dl>\n" ++ vcat contents ++ "</dl>\n"
      else do
-        listLevel <- asks stListLevel
-        contents <- local (\s -> s { stListLevel = stListLevel s ++ ";" }) $ mapM definitionListItemToMediaWiki items
-        return $ vcat contents ++ if null listLevel then "\n" else ""
+        lev <- asks listLevel
+        contents <- local (\s -> s { listLevel = listLevel s ++ ";" }) $ mapM definitionListItemToMediaWiki items
+        return $ vcat contents ++ if null lev then "\n" else ""
 
 -- Auxiliary functions for lists:
 
@@ -211,11 +211,11 @@ listAttribsToString (startnum, numstyle, _) =
 listItemToMediaWiki :: [Block] -> MediaWikiWriter String
 listItemToMediaWiki items = do
   contents <- blockListToMediaWiki items
-  useTags <- asks stUseTags
-  if useTags
+  tags <- asks useTags
+  if tags
      then return $ "<li>" ++ contents ++ "</li>"
      else do
-       marker <- asks stListLevel
+       marker <- asks listLevel
        return $ marker ++ " " ++ contents
 
 -- | Convert definition list item (label, list of blocks) to MediaWiki.
@@ -224,12 +224,12 @@ definitionListItemToMediaWiki :: ([Inline],[[Block]])
 definitionListItemToMediaWiki (label, items) = do
   labelText <- inlineListToMediaWiki label
   contents <- mapM blockListToMediaWiki items
-  useTags <- asks stUseTags
-  if useTags
+  tags <- asks useTags
+  if tags
      then return $ "<dt>" ++ labelText ++ "</dt>\n" ++
            intercalate "\n" (map (\d -> "<dd>" ++ d ++ "</dd>") contents)
      else do
-       marker <- asks stListLevel
+       marker <- asks listLevel
        return $ marker ++ " " ++ labelText ++ "\n" ++
            intercalate "\n" (map (\d -> init marker ++ ": " ++ d) contents)
 
