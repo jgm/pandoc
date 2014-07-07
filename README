@@ -18,8 +18,8 @@ Org-mode], [DocBook], and [Word docx]; and it can write plain text,
 [markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX] (including
 [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
-[Haddock markup], [EPUB] (v2 or v3), [FictionBook2], [Textile],
-[groff man] pages, [Emacs Org-Mode], [AsciiDoc], [InDesign ICML],
+[DocuWiki markup], [Haddock markup], [EPUB] (v2 or v3), [FictionBook2],
+[Textile], [groff man] pages, [Emacs Org-Mode], [AsciiDoc], [InDesign ICML],
 and [Slidy], [Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows.
 It can also produce [PDF] output on systems where LaTeX is installed.
 
@@ -167,6 +167,7 @@ General options
     `rst` (reStructuredText), `html` (XHTML 1), `html5` (HTML 5),
     `latex` (LaTeX), `beamer` (LaTeX beamer slide show),
     `context` (ConTeXt), `man` (groff man), `mediawiki` (MediaWiki markup),
+    `dokuwiki` (DokuWiki markup),
     `textile` (Textile), `org` (Emacs Org-Mode), `texinfo` (GNU Texinfo),
     `opml` (OPML), `docbook` (DocBook), `opendocument` (OpenDocument), `odt`
     (OpenOffice text document), `docx` (Word docx), `haddock` (Haddock
@@ -2070,7 +2071,7 @@ Texinfo
 groff man
   ~ It will be rendered verbatim without `$`'s.
 
-MediaWiki
+MediaWiki, DokuWiki
   ~ It will be rendered inside `<math>` tags.
 
 Textile
@@ -3011,6 +3012,7 @@ Rosenthal.
 [ODT]: http://en.wikipedia.org/wiki/OpenDocument
 [Textile]: http://redcloth.org/textile
 [MediaWiki markup]: http://www.mediawiki.org/wiki/Help:Formatting
+[DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
 [Haddock markup]: http://www.haskell.org/haddock/doc/html/ch03s08.html
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
 [Haskell]:  http://www.haskell.org/
