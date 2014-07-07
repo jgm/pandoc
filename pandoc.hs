@@ -871,6 +871,7 @@ defaultReaderName fallback (x:xs) =
     ".db"       -> "docbook"
     ".opml"     -> "opml"
     ".wiki"     -> "mediawiki"
+    ".dokuwiki" -> "dokuwiki"
     ".textile"  -> "textile"
     ".native"   -> "native"
     ".json"     -> "json"

@@ -124,6 +124,13 @@ tests = [ testGroup "markdown"
           , test "reader" ["-r", "mediawiki", "-w", "native", "-s"]
             "mediawiki-reader.wiki" "mediawiki-reader.native"
           ]
+        , testGroup "dokuwiki"
+          [ testGroup "writer" $ writerTests "dokuwiki"
+          , test "writer-more" ["-r", "native", "-w", "dokuwiki", "-s"]
+            "dokuwiki-writer.native" "dokuwiki-writer.dokuwiki"
+          , test "writer-inline_formatting" ["-r", "native", "-w", "dokuwiki", "-s"]
+            "dokuwiki.inline_formatting.native" "dokuwiki.inline_formatting.dokuwiki"
+          ]
         , testGroup "opml"
           [ test "basic" ["-r", "native", "-w", "opml", "--columns=78", "-s"]
              "testsuite.native" "writer.opml"
