@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternGuards #-}
+
 {-
 Copyright (C) 2014 Jesse Rosenthal <jrosenthal@jhu.edu>
 
@@ -35,6 +37,15 @@ module Text.Pandoc.Readers.Docx.Parse (  Docx(..)
                                        , BodyPart(..)
                                        , TblLook(..)
                                        , ParPart(..)
+                                       , OMath(..)
+                                       , OMathElem(..)
+                                       , Base(..)
+                                       , TopBottom(..)
+                                       , AccentStyle(..)
+                                       , BarStyle(..)
+                                       , NAryStyle(..)
+                                       , DelimStyle(..)
+                                       , GroupStyle(..)
                                        , Run(..)
                                        , RunElem(..)
                                        , Notes
@@ -289,14 +300,29 @@ elemToNumInfo _ _ = Nothing
 elemToBodyPart :: NameSpaces -> Element ->  Maybe BodyPart
 elemToBodyPart ns element
   | qName (elName element) == "p" &&
+    qURI (elName element) == (lookup "w" ns)
+  , (c:_) <- findChildren (QName "oMathPara" (lookup "m" ns) (Just "m")) element =
+      let style = []  -- placeholder
+          maths = mapMaybe (elemToMath ns)
+                  $ findChildren
+                  (QName "oMath" (lookup "m" ns) (Just "m")) c
+      in
+       Just $ OMathPara style maths
+  | qName (elName element) == "p" &&
+    qURI (elName element) == (lookup "w" ns)
+  , Just (numId, lvl) <- elemToNumInfo ns element =
+      let parstyle = elemToParagraphStyle ns element
+          parparts = mapMaybe (elemToParPart ns)
+                     $ elChildren element
+      in
+       Just $ ListItem parstyle numId lvl parparts
+  | qName (elName element) == "p" &&
     qURI (elName element) == (lookup "w" ns) =
       let parstyle = elemToParagraphStyle ns element
           parparts = mapMaybe (elemToParPart ns)
                      $ elChildren element
       in
-       case elemToNumInfo ns element of
-         Just (numId, lvl) -> Just $ ListItem parstyle numId lvl parparts
-         Nothing -> Just $ Paragraph parstyle parparts
+       Just $ Paragraph parstyle parparts
   | qName (elName element) == "tbl" &&
     qURI (elName element) == (lookup "w" ns) =
       let
@@ -392,7 +418,7 @@ elemToParagraphStyle ns element =
 data BodyPart = Paragraph ParagraphStyle [ParPart]
               | ListItem ParagraphStyle String String [ParPart]
               | Tbl String TblGrid TblLook [Row]
-
+              | OMathPara OMathParaStyle [OMath]
               deriving Show
 
 type TblGrid = [Integer]
@@ -451,12 +477,82 @@ data ParPart = PlainRun Run
              | InternalHyperLink Anchor [Run]
              | ExternalHyperLink RelId [Run]
              | Drawing String
+             | PlainOMath OMath
              deriving Show
 
 data Run = Run RunStyle [RunElem]
          | Footnote String 
          | Endnote String
            deriving Show
+
+data OMath = OMath [OMathElem]
+          deriving Show
+
+data OMathElem = Accent AccentStyle Base
+              | Bar BarStyle Base
+              | Box Base
+              | BorderBox Base
+              | Delimiter DelimStyle [Base]
+              | EquationArray [Base]
+              | Fraction [OMathElem] [OMathElem]
+              | Function [OMathElem] Base
+              | Group GroupStyle Base
+              | LowerLimit Base [OMathElem]
+              | UpperLimit Base [OMathElem]
+              | Matrix [[Base]]
+              | NAry NAryStyle [OMathElem] [OMathElem] Base
+              | Phantom Base
+              | Radical [OMathElem] Base
+              | PreSubSuper [OMathElem] [OMathElem] Base
+              | Sub Base [OMathElem]
+              | SubSuper Base [OMathElem] [OMathElem]
+              | Super Base [OMathElem]
+              | OMathRun OMathRunStyle Run
+              deriving Show
+
+data Base = Base [OMathElem]
+          deriving Show
+
+-- placeholders
+type OMathParaStyle = [String]
+
+data TopBottom = Top | Bottom
+               deriving Show
+
+data AccentStyle = AccentStyle { accentChar :: Maybe Char }
+                 deriving Show
+
+data BarStyle = BarStyle { barPos :: TopBottom}
+              deriving Show
+
+data NAryStyle = NAryStyle { nAryChar :: Maybe Char
+                           , nAryLimLoc :: LimLoc}
+               deriving Show
+
+defaultNAryStyle :: NAryStyle
+defaultNAryStyle = NAryStyle { nAryChar = Nothing -- integral, in practice
+                             , nAryLimLoc = SubSup }
+
+data LimLoc = SubSup | UnderOver deriving Show
+
+data DelimStyle = DelimStyle { delimBegChar :: Maybe Char
+                             , delimSepChar :: Maybe Char
+                             , delimEndChar :: Maybe Char}
+                  deriving Show
+
+defaultDelimStyle :: DelimStyle
+defaultDelimStyle = DelimStyle { delimBegChar = Nothing
+                               , delimSepChar = Nothing
+                               , delimEndChar = Nothing }
+
+data GroupStyle = GroupStyle { groupChr :: Maybe Char
+                             , groupPos :: Maybe TopBottom }
+                  deriving Show
+
+defaultGroupStyle :: GroupStyle
+defaultGroupStyle = GroupStyle {groupChr = Nothing, groupPos = Nothing}
+
+type OMathRunStyle = [String]
 
 data RunElem = TextRun String | LnBrk | Tab
              deriving Show
@@ -532,13 +628,13 @@ elemToRun _ _ = Nothing
 elemToRunElem :: NameSpaces -> Element -> Maybe RunElem
 elemToRunElem ns element
   | (qName (elName element) == "t" || qName (elName element) == "delText") &&
-    qURI (elName element) == (lookup "w" ns) =
+    qURI (elName element) `elem` [(lookup "w" ns), (lookup "m" ns)] =
       Just $ TextRun (strContent element)
   | qName (elName element) == "br" &&
-    qURI (elName element) == (lookup "w" ns) =
+    qURI (elName element) `elem` [(lookup "w" ns), (lookup "m" ns)] =
       Just $ LnBrk
   | qName (elName element) == "tab" &&
-    qURI (elName element) == (lookup "w" ns) =
+    qURI (elName element) `elem` [(lookup "w" ns), (lookup "m" ns)] =
       Just $ Tab
   | otherwise = Nothing
 
@@ -546,7 +642,7 @@ elemToRunElem ns element
 elemToRunElems :: NameSpaces -> Element -> [RunElem]
 elemToRunElems ns element
   | qName (elName element) == "r" &&
-    qURI (elName element) == (lookup "w" ns) =
+    qURI (elName element) `elem` [(lookup "w" ns), (lookup "m" ns)] =
       mapMaybe (elemToRunElem ns) (elChildren element)
   | otherwise = []
 
@@ -561,7 +657,233 @@ elemToDrawing ns element
        >>= (\s -> Just $ Drawing s)
 elemToDrawing _ _ = Nothing
 
+elemToMath :: NameSpaces -> Element -> Maybe OMath
+elemToMath ns element 
+  | qName (elName element) == "oMath" &&
+    qURI (elName element) == (lookup "m" ns) =
+      Just $ OMath $ mapMaybe (elemToMathElem ns) (elChildren element)
+elemToMath _ _ = Nothing
 
+
+
+elemToBase :: NameSpaces -> Element -> Maybe Base
+elemToBase ns element 
+  | qName (elName element) == "e" &&
+    qURI (elName element) == (lookup "m" ns) =
+      Just $ Base $ mapMaybe (elemToMathElem ns) (elChildren element)
+elemToBase _ _ = Nothing
+
+elemToNAryStyle :: NameSpaces -> Element -> NAryStyle
+elemToNAryStyle ns element
+  | Just narypr <- findChild (QName "naryPr" (lookup "m" ns) (Just "m")) element =
+  let
+    chr = findChild (QName "chr" (lookup "m" ns) (Just "m")) narypr >>=
+          findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+          Just . head
+    limLoc = findChild (QName "limLoc" (lookup "m" ns) (Just "m")) narypr >>=
+             findAttr (QName "val" (lookup "m" ns) (Just "m"))
+    limLoc' = case limLoc of
+      Just "undOver" -> UnderOver
+      Just "subSup"  -> SubSup
+      _              -> SubSup
+  in
+   NAryStyle { nAryChar = chr, nAryLimLoc = limLoc'}
+elemToNAryStyle _ _ = defaultNAryStyle
+
+elemToDelimStyle :: NameSpaces -> Element -> DelimStyle
+elemToDelimStyle ns element
+  | Just dPr <- findChild (QName "dPr" (lookup "m" ns) (Just "m")) element =
+    let begChr = findChild (QName "begChr" (lookup "m" ns) (Just "m")) dPr >>=
+                 findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+                 (\c -> if null c then Nothing else (Just $ head c))
+        sepChr = findChild (QName "sepChr" (lookup "m" ns) (Just "m")) dPr >>=
+                 findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+                 (\c -> if null c then Nothing else (Just $ head c))
+        endChr = findChild (QName "endChr" (lookup "m" ns) (Just "m")) dPr >>=
+                 findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+                 (\c -> if null c then Nothing else (Just $ head c))
+    in
+     DelimStyle { delimBegChar = begChr
+                , delimSepChar = sepChr
+                , delimEndChar = endChr}
+elemToDelimStyle _ _ = defaultDelimStyle
+
+elemToGroupStyle :: NameSpaces -> Element -> GroupStyle
+elemToGroupStyle ns element
+  | Just gPr <- findChild (QName "groupChrPr" (lookup "m" ns) (Just "m")) element =
+    let chr = findChild (QName "chr" (lookup "m" ns) (Just "m")) gPr >>=
+              findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+              Just . head
+        pos = findChild (QName "pos" (lookup "m" ns) (Just "m")) gPr >>=
+              findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+              (\s -> Just $ if s == "top" then Top else Bottom)
+    in
+     GroupStyle { groupChr = chr, groupPos = pos }
+elemToGroupStyle _ _ = defaultGroupStyle
+
+elemToMathElem :: NameSpaces -> Element -> Maybe OMathElem
+elemToMathElem ns element
+  | qName (elName element) == "acc" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      let accChar =
+            findChild (QName "accPr" (lookup "m" ns) (Just "m")) element >>=
+            findChild (QName "chr" (lookup "m" ns) (Just "m")) >>=
+            findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+            Just . head
+          accPr = AccentStyle { accentChar = accChar}
+      base <-findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+             elemToBase ns
+      return $ Accent accPr base
+elemToMathElem ns element
+  | qName (elName element) == "bar" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      barPr <- findChild (QName "barPr" (lookup "m" ns) (Just "m")) element >>=
+               findChild (QName "pos" (lookup "m" ns) (Just "m")) >>=
+               findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+               (\s ->
+                 Just $ BarStyle {
+                   barPos = (if s == "bot" then Bottom else Top)
+                   })
+      base <-findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+             elemToBase ns
+      return $ Bar barPr base
+elemToMathElem ns element
+  | qName (elName element) == "box" &&
+    qURI (elName element) == (lookup "m" ns) =
+      findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+      elemToBase ns >>=
+      (\b -> Just $ Box b)
+elemToMathElem ns element
+  | qName (elName element) == "borderBox" &&
+    qURI (elName element) == (lookup "m" ns) =
+      findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+      elemToBase ns >>=
+      (\b -> Just $ BorderBox b)
+elemToMathElem ns element
+  | qName (elName element) == "d" &&
+    qURI (elName element) == (lookup "m" ns) =
+      let style = elemToDelimStyle ns element
+      in
+       Just $ Delimiter style $ mapMaybe (elemToBase ns) (elChildren element)
+elemToMathElem ns element
+  | qName (elName element) == "eqArr" &&
+    qURI (elName element) == (lookup "m" ns) =
+       Just $ EquationArray
+       $ mapMaybe (elemToBase ns) (elChildren element)
+elemToMathElem ns element
+  | qName (elName element) == "f" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      num <- findChild (QName "num" (lookup "m" ns) (Just "m")) element 
+      den <- findChild (QName "den" (lookup "m" ns) (Just "m")) element 
+      let numElems = mapMaybe (elemToMathElem ns) (elChildren num)
+          denElems = mapMaybe (elemToMathElem ns) (elChildren den)
+      return $ Fraction numElems denElems
+elemToMathElem ns element
+  | qName (elName element) == "func" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      fName <- findChild (QName "fName" (lookup "m" ns) (Just "m")) element
+      base <- findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+           elemToBase ns
+      let fnElems = mapMaybe (elemToMathElem ns) (elChildren fName)
+      return $ Function fnElems base
+elemToMathElem ns element
+  | qName (elName element) == "groupChr" &&
+    qURI (elName element) == (lookup "m" ns) =
+      let style = elemToGroupStyle ns element
+      in
+       findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+       elemToBase ns >>=
+       (\b -> Just $ Group style b)
+elemToMathElem ns element
+  | qName (elName element) == "limLow" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      base <- findChild (QName "e" (lookup "m" ns) (Just "m")) element
+              >>= elemToBase ns
+      lim <- findChild (QName "lim" (lookup "m" ns) (Just "m")) element
+      return $ LowerLimit base (mapMaybe (elemToMathElem ns) (elChildren lim))
+elemToMathElem ns element
+  | qName (elName element) == "limUpp" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      base <- findChild (QName "e" (lookup "m" ns) (Just "m")) element
+              >>= elemToBase ns
+      lim <- findChild (QName "lim" (lookup "m" ns) (Just "m")) element
+      return $ UpperLimit base (mapMaybe (elemToMathElem ns) (elChildren lim))
+elemToMathElem ns element
+  | qName (elName element) == "m" &&
+    qURI (elName element) == (lookup "m" ns) =
+      let rows = findChildren (QName "mr" (lookup "m" ns) (Just "m")) element
+          bases = map (\mr -> mapMaybe (elemToBase ns) (elChildren mr)) rows
+      in
+       Just $ Matrix bases
+elemToMathElem ns element
+  | qName (elName element) == "nary" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      let style = elemToNAryStyle ns element
+      sub <- findChild (QName "sub" (lookup "m" ns) (Just "m")) element >>=
+             (\e -> Just $ mapMaybe (elemToMathElem ns) (elChildren e))
+      sup <- findChild (QName "sup" (lookup "m" ns) (Just "m")) element >>=
+             (\e -> Just $ mapMaybe (elemToMathElem ns) (elChildren e))
+      base <- findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+              elemToBase ns
+      return $ NAry style sub sup base
+elemToMathElem ns element
+  | qName (elName element) == "rad" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      deg <- findChild (QName "deg" (lookup "m" ns) (Just "m")) element >>=
+             (\e -> Just $ mapMaybe (elemToMathElem ns) (elChildren e))
+      base <- findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+              elemToBase ns
+      return $ Radical deg base
+-- skipping for now:
+-- phant
+elemToMathElem ns element
+  | qName (elName element) == "sPre" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      sub <- findChild (QName "sub" (lookup "m" ns) (Just "m")) element >>=
+             (\e -> Just $ mapMaybe (elemToMathElem ns) (elChildren e))
+      sup <- findChild (QName "sup" (lookup "m" ns) (Just "m")) element >>=
+             (\e -> Just $ mapMaybe (elemToMathElem ns) (elChildren e))
+      base <- findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+              elemToBase ns
+      return $ PreSubSuper sub sup base
+elemToMathElem ns element
+  | qName (elName element) == "sSub" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      base <- findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+              elemToBase ns
+      sub <- findChild (QName "sub" (lookup "m" ns) (Just "m")) element >>=
+             (\e -> Just $ mapMaybe (elemToMathElem ns) (elChildren e))
+      return $ Sub base sub
+elemToMathElem ns element
+  | qName (elName element) == "sSubSup" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      base <- findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+              elemToBase ns
+      sub <- findChild (QName "sub" (lookup "m" ns) (Just "m")) element >>=
+             (\e -> Just $ mapMaybe (elemToMathElem ns) (elChildren e))
+      sup <- findChild (QName "sup" (lookup "m" ns) (Just "m")) element >>=
+             (\e -> Just $ mapMaybe (elemToMathElem ns) (elChildren e))
+      return $ SubSuper base sub sup
+elemToMathElem ns element
+  | qName (elName element) == "sSup" &&
+    qURI (elName element) == (lookup "m" ns) = do
+      base <- findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
+              elemToBase ns
+      sup <- findChild (QName "sup" (lookup "m" ns) (Just "m")) element >>=
+             (\e -> Just $ mapMaybe (elemToMathElem ns) (elChildren e))
+      return $ Super base sup
+elemToMathElem ns element
+  | qName (elName element) == "r" &&
+    qURI (elName element) == (lookup "m" ns) = 
+      let style = []            -- placeholder
+          rstyle = elemToRunStyle ns element
+          relems = elemToRunElems ns element
+      in
+       Just $ OMathRun style $ Run rstyle relems
+elemToMathElem _ _ = Nothing
+
+
+          
 elemToParPart :: NameSpaces -> Element -> Maybe ParPart
 elemToParPart ns element
   | qName (elName element) == "r" &&
@@ -606,7 +928,13 @@ elemToParPart ns element
            case findAttr (QName "id" (lookup "r" ns) (Just "r")) element of
              Just relId -> Just $ ExternalHyperLink relId runs
              Nothing    -> Nothing
+elemToParPart ns element
+  | qName (elName element) == "oMath" &&
+    qURI (elName element) == (lookup "m" ns) =
+      elemToMath ns element >>=
+      (\m -> Just $ PlainOMath m)
 elemToParPart _ _ = Nothing
+
 
 type Target = String
 type Anchor = String
