@@ -566,8 +566,10 @@ pSpace = many1 (satisfy isSpace) >> return B.space
 --
 
 eitherBlockOrInline :: [String]
-eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
-                  "map", "area", "object"]
+eitherBlockOrInline = ["audio", "applet", "button", "iframe",
+                       "del", "ins",
+                       "progress", "map", "area", "noscript", "script",
+                       "object", "svg", "video", "source"]
 
 {-
 inlineHtmlTags :: [[Char]]
@@ -579,15 +581,17 @@ inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
 -}
 
 blockHtmlTags :: [String]
-blockHtmlTags = ["address", "article", "aside", "blockquote", "body", "button", "canvas",
+blockHtmlTags = ["address", "article", "aside",
+                 "blockquote", "body", "button", "canvas",
                  "caption", "center", "col", "colgroup", "dd", "dir", "div",
-                 "dl", "dt", "embed", "fieldset", "figcaption", "figure", "footer",
-                 "form", "h1", "h2", "h3", "h4",
-                 "h5", "h6", "head", "header", "hgroup", "hr", "html", "isindex", "map", "menu",
-                 "noframes", "noscript", "object", "ol", "output", "p", "pre", "progress",
-                 "section", "table", "tbody", "textarea", "thead", "tfoot", "ul", "dd",
+                 "dl", "dt", "embed", "fieldset", "figcaption", "figure",
+                 "footer", "form", "h1", "h2", "h3", "h4",
+                 "h5", "h6", "head", "header", "hgroup", "hr", "html",
+                 "isindex", "menu", "noframes", "ol", "output", "p", "pre",
+                 "section", "table", "tbody", "textarea",
+                 "thead", "tfoot", "ul", "dd",
                  "dt", "frameset", "li", "tbody", "td", "tfoot",
-                 "th", "thead", "tr", "script", "style", "svg", "video"]
+                 "th", "thead", "tr", "script", "style"]
 
 -- We want to allow raw docbook in markdown documents, so we
 -- include docbook block tags here too.
