@@ -287,21 +287,25 @@ bar
 Interpreted markdown in a table:
 
 <html>
-<table>
-<tr>
+<table></html>
+<html>
+<tr></html>
+<html>
 <td></html>
 This is //emphasized//
 <html>
-</td>
+</td></html>
+<html>
 <td></html>
 And this is **strong**
 <html>
-</td>
-</tr>
-</table>
-
-<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
-</html>
+</td></html>
+<html>
+</tr></html>
+<html>
+</table></html>
+<html>
+<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script></html>
 Here’s a simple block:
 
 foo
@@ -323,52 +327,48 @@ foo
 This should just be an HTML comment:
 
 <html>
-<!-- Comment -->
-</html>
+<!-- Comment --></html>
 Multiline:
 
 <html>
 <!--
 Blah
 Blah
--->
-
+--></html>
+<html>
 <!--
     This is another comment.
--->
-</html>
+--></html>
 Code block:
 
 <code><!-- Comment --></code>
 Just plain comment, with trailing spaces on the line:
 
 <html>
-<!-- foo -->   
-</html>
+<!-- foo --></html>
 Code:
 
 <code><hr /></code>
 Hr’s:
 
 <html>
-<hr>
-
-<hr />
-
-<hr />
-
-<hr>   
-
-<hr />  
-
-<hr /> 
-
-<hr class="foo" id="bar" />
-
-<hr class="foo" id="bar" />
-
-<hr class="foo" id="bar">
-</html>
+<hr></html>
+<html>
+<hr /></html>
+<html>
+<hr /></html>
+<html>
+<hr></html>
+<html>
+<hr /></html>
+<html>
+<hr /></html>
+<html>
+<hr class="foo" id="bar" /></html>
+<html>
+<hr class="foo" id="bar" /></html>
+<html>
+<hr class="foo" id="bar"></html>
 
 ----
 
