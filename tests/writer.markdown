@@ -395,9 +395,7 @@ And this is **strong**
 </td>
 </tr>
 </table>
-
 <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
-
 Here’s a simple block:
 
 <div>
@@ -435,26 +433,22 @@ foo
 This should just be an HTML comment:
 
 <!-- Comment -->
-
 Multiline:
 
 <!--
 Blah
 Blah
 -->
-
 <!--
     This is another comment.
 -->
-
 Code block:
 
     <!-- Comment -->
 
 Just plain comment, with trailing spaces on the line:
 
-<!-- foo -->   
-
+<!-- foo -->
 Code:
 
     <hr />
@@ -462,21 +456,13 @@ Code:
 Hr’s:
 
 <hr>
-
 <hr />
-
 <hr />
-
-<hr>   
-
-<hr />  
-
-<hr /> 
-
+<hr>
+<hr />
+<hr />
 <hr class="foo" id="bar" />
-
 <hr class="foo" id="bar" />
-
 <hr class="foo" id="bar">
 
 * * * * *

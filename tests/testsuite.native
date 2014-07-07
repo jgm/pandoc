@@ -232,11 +232,17 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "And",Space,Str "nested",Space,Str "without",Space,Str "indentation:"]
 ,Div ("",[],[]) [Div ("",[],[]) [Div ("",[],[]) [Plain [Str "foo"]]],Div ("",[],[]) [Plain [Str "bar"]]]
 ,Para [Str "Interpreted",Space,Str "markdown",Space,Str "in",Space,Str "a",Space,Str "table:"]
-,RawBlock (Format "html") "<table>\n<tr>\n<td>"
+,RawBlock (Format "html") "<table>"
+,RawBlock (Format "html") "<tr>"
+,RawBlock (Format "html") "<td>"
 ,Plain [Str "This",Space,Str "is",Space,Emph [Str "emphasized"]]
-,RawBlock (Format "html") "</td>\n<td>"
+,RawBlock (Format "html") "</td>"
+,RawBlock (Format "html") "<td>"
 ,Plain [Str "And",Space,Str "this",Space,Str "is",Space,Strong [Str "strong"]]
-,RawBlock (Format "html") "</td>\n</tr>\n</table>\n\n<script type=\"text/javascript\">document.write('This *should not* be interpreted as markdown');</script>\n"
+,RawBlock (Format "html") "</td>"
+,RawBlock (Format "html") "</tr>"
+,RawBlock (Format "html") "</table>"
+,RawBlock (Format "html") "<script type=\"text/javascript\">document.write('This *should not* be interpreted as markdown');</script>"
 ,Para [Str "Here\8217s",Space,Str "a",Space,Str "simple",Space,Str "block:"]
 ,Div ("",[],[]) [Plain [Str "foo"]]
 ,Para [Str "This",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "code",Space,Str "block,",Space,Str "though:"]
@@ -246,17 +252,26 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Now,",Space,Str "nested:"]
 ,Div ("",[],[]) [Div ("",[],[]) [Div ("",[],[]) [Plain [Str "foo"]]]]
 ,Para [Str "This",Space,Str "should",Space,Str "just",Space,Str "be",Space,Str "an",Space,Str "HTML",Space,Str "comment:"]
-,RawBlock (Format "html") "<!-- Comment -->\n"
+,RawBlock (Format "html") "<!-- Comment -->"
 ,Para [Str "Multiline:"]
-,RawBlock (Format "html") "<!--\nBlah\nBlah\n-->\n\n<!--\n    This is another comment.\n-->\n"
+,RawBlock (Format "html") "<!--\nBlah\nBlah\n-->"
+,RawBlock (Format "html") "<!--\n    This is another comment.\n-->"
 ,Para [Str "Code",Space,Str "block:"]
 ,CodeBlock ("",[],[]) "<!-- Comment -->"
 ,Para [Str "Just",Space,Str "plain",Space,Str "comment,",Space,Str "with",Space,Str "trailing",Space,Str "spaces",Space,Str "on",Space,Str "the",Space,Str "line:"]
-,RawBlock (Format "html") "<!-- foo -->   \n"
+,RawBlock (Format "html") "<!-- foo -->"
 ,Para [Str "Code:"]
 ,CodeBlock ("",[],[]) "<hr />"
 ,Para [Str "Hr\8217s:"]
-,RawBlock (Format "html") "<hr>\n\n<hr />\n\n<hr />\n\n<hr>   \n\n<hr />  \n\n<hr /> \n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\" />\n\n<hr class=\"foo\" id=\"bar\">\n"
+,RawBlock (Format "html") "<hr>"
+,RawBlock (Format "html") "<hr />"
+,RawBlock (Format "html") "<hr />"
+,RawBlock (Format "html") "<hr>"
+,RawBlock (Format "html") "<hr />"
+,RawBlock (Format "html") "<hr />"
+,RawBlock (Format "html") "<hr class=\"foo\" id=\"bar\" />"
+,RawBlock (Format "html") "<hr class=\"foo\" id=\"bar\" />"
+,RawBlock (Format "html") "<hr class=\"foo\" id=\"bar\">"
 ,HorizontalRule
 ,Header 1 ("inline-markup",[],[]) [Str "Inline",Space,Str "Markup"]
 ,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str "."]

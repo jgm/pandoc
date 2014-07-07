@@ -887,7 +887,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   </td>
   </tr>
   </table>
-
   <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
   <para>
     Here’s a simple block:
@@ -926,7 +925,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   Blah
   Blah
   -->
-
   <!--
       This is another comment.
   -->
@@ -939,7 +937,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <para>
     Just plain comment, with trailing spaces on the line:
   </para>
-  <!-- foo -->   
+  <!-- foo -->
   <para>
     Code:
   </para>
@@ -950,21 +948,13 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     Hr’s:
   </para>
   <hr>
-
   <hr />
-
   <hr />
-
-  <hr>   
-
-  <hr />  
-
-  <hr /> 
-
+  <hr>
+  <hr />
+  <hr />
   <hr class="foo" id="bar" />
-
   <hr class="foo" id="bar" />
-
   <hr class="foo" id="bar">
 </sect1>
 <sect1 id="inline-markup">

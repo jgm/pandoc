@@ -222,7 +222,7 @@ tests = [ testGroup "inline code"
               =?> bulletList [divWith nullAttr (plain $ text "first div breaks") <>
                               rawBlock "html" "<button>" <>
                               plain (text "if this button exists") <>
-                              rawBlock "html" "</button>\n" <>
+                              rawBlock "html" "</button>" <>
                               divWith nullAttr (plain $ text "with this div too.")]
           ]
         ]

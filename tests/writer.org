@@ -397,7 +397,13 @@ Interpreted markdown in a table:
 
 #+BEGIN_HTML
   <table>
+#+END_HTML
+
+#+BEGIN_HTML
   <tr>
+#+END_HTML
+
+#+BEGIN_HTML
   <td>
 #+END_HTML
 
@@ -405,6 +411,9 @@ This is /emphasized/
 
 #+BEGIN_HTML
   </td>
+#+END_HTML
+
+#+BEGIN_HTML
   <td>
 #+END_HTML
 
@@ -412,9 +421,17 @@ And this is *strong*
 
 #+BEGIN_HTML
   </td>
-  </tr>
-  </table>
+#+END_HTML
 
+#+BEGIN_HTML
+  </tr>
+#+END_HTML
+
+#+BEGIN_HTML
+  </table>
+#+END_HTML
+
+#+BEGIN_HTML
   <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
 #+END_HTML
 
@@ -485,7 +502,9 @@ Multiline:
   Blah
   Blah
   -->
+#+END_HTML
 
+#+BEGIN_HTML
   <!--
       This is another comment.
   -->
@@ -500,7 +519,7 @@ Code block:
 Just plain comment, with trailing spaces on the line:
 
 #+BEGIN_HTML
-  <!-- foo -->   
+  <!-- foo -->
 #+END_HTML
 
 Code:
@@ -513,21 +532,37 @@ Hr's:
 
 #+BEGIN_HTML
   <hr>
+#+END_HTML
 
+#+BEGIN_HTML
   <hr />
+#+END_HTML
 
+#+BEGIN_HTML
   <hr />
+#+END_HTML
 
-  <hr>   
+#+BEGIN_HTML
+  <hr>
+#+END_HTML
 
-  <hr />  
+#+BEGIN_HTML
+  <hr />
+#+END_HTML
 
-  <hr /> 
+#+BEGIN_HTML
+  <hr />
+#+END_HTML
 
+#+BEGIN_HTML
   <hr class="foo" id="bar" />
+#+END_HTML
 
+#+BEGIN_HTML
   <hr class="foo" id="bar" />
+#+END_HTML
 
+#+BEGIN_HTML
   <hr class="foo" id="bar">
 #+END_HTML
 

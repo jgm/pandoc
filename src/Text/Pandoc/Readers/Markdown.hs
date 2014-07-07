@@ -752,7 +752,7 @@ listLine = try $ do
   notFollowedBy' (do indentSpaces
                      many spaceChar
                      listStart)
-  notFollowedBy' $ htmlTag (~== TagClose "div")
+  notFollowedByHtmlCloser
   optional (() <$ indentSpaces)
   chunks <- manyTill
               (  many1 (satisfy $ \c -> c /= '\n' && c /= '<')
@@ -781,11 +781,18 @@ listContinuation = try $ do
   blanks <- many blankline
   return $ concat result ++ blanks
 
+notFollowedByHtmlCloser :: MarkdownParser ()
+notFollowedByHtmlCloser = do
+  inHtmlBlock <- stateInHtmlBlock <$> getState
+  case inHtmlBlock of
+        Just t  -> notFollowedBy' $ htmlTag (~== TagClose t)
+        Nothing -> return ()
+
 listContinuationLine :: MarkdownParser String
 listContinuationLine = try $ do
   notFollowedBy blankline
   notFollowedBy' listStart
-  notFollowedBy' $ htmlTag (~== TagClose "div")
+  notFollowedByHtmlCloser
   optional indentSpaces
   result <- anyLine
   return $ result ++ "\n"
@@ -914,16 +921,23 @@ htmlElement = rawVerbatimBlock
 htmlBlock :: MarkdownParser (F Blocks)
 htmlBlock = do
   guardEnabled Ext_raw_html
-  res <- (guardEnabled Ext_markdown_in_html_blocks >> rawHtmlBlocks)
-          <|> htmlBlock'
-  return $ return $ B.rawBlock "html" res
+  try (do
+      (TagOpen t attrs) <- lookAhead $ fst <$> htmlTag isBlockTag
+      (guard (t `elem` ["pre","style","script"]) >>
+          (return . B.rawBlock "html") <$> rawVerbatimBlock)
+        <|> (guardEnabled Ext_markdown_attribute >>
+               case lookup "markdown" attrs of
+                    Just "1" -> rawHtmlBlocks
+                    _        -> htmlBlock')
+        <|> (guardEnabled Ext_markdown_in_html_blocks >> rawHtmlBlocks))
+    <|> htmlBlock'
 
-htmlBlock' :: MarkdownParser String
+htmlBlock' :: MarkdownParser (F Blocks)
 htmlBlock' = try $ do
     first <- htmlElement
-    finalSpace <- many spaceChar
-    finalNewlines <- many newline
-    return $ first ++ finalSpace ++ finalNewlines
+    skipMany spaceChar
+    optional blanklines
+    return $ return $ B.rawBlock "html" first
 
 strictHtmlBlock :: MarkdownParser String
 strictHtmlBlock = htmlInBalanced (not . isInlineTag)
@@ -946,38 +960,24 @@ rawTeXBlock = do
   spaces
   return $ return result
 
-rawHtmlBlocks :: MarkdownParser String
+rawHtmlBlocks :: MarkdownParser (F Blocks)
 rawHtmlBlocks = do
-  htmlBlocks <- many1 $ try $ do
-                          s <- rawVerbatimBlock <|> try (
-                                do (t,raw) <- htmlTag isBlockTag
-                                   guard $ t ~/= TagOpen "div" [] &&
-                                           t ~/= TagClose "div"
-                                   exts <- getOption readerExtensions
-                                   -- if open tag, need markdown="1" if
-                                   -- markdown_attributes extension is set
-                                   case t of
-                                        TagOpen _ as
-                                          | Ext_markdown_attribute `Set.member`
-                                              exts ->
-                                                if "markdown" `notElem`
-                                                   map fst as
-                                                   then mzero
-                                                   else return $
-                                                     stripMarkdownAttribute raw
-                                          | otherwise -> return raw
-                                        _ -> return raw )
-                          sps <- do sp1 <- many spaceChar
-                                    sp2 <- option "" (blankline >> return "\n")
-                                    sp3 <- many spaceChar
-                                    sp4 <- option "" blanklines
-                                    return $ sp1 ++ sp2 ++ sp3 ++ sp4
-                          -- note: we want raw html to be able to
-                          -- precede a code block, when separated
-                          -- by a blank line
-                          return $ s ++ sps
-  let combined = concat htmlBlocks
-  return $ if last combined == '\n' then init combined else combined
+  (TagOpen tagtype _, raw) <- htmlTag isBlockTag
+  -- try to find closing tag
+  -- we set stateInHtmlBlock so that closing tags that can be either block or
+  -- inline will not be parsed as inline tags
+  oldInHtmlBlock <- stateInHtmlBlock <$> getState
+  updateState $ \st -> st{ stateInHtmlBlock = Just tagtype }
+  let closer = htmlTag (\x -> x ~== TagClose tagtype)
+  contents <- mconcat <$> many (notFollowedBy' closer >> block)
+  result <-
+    (closer >>= \(_, rawcloser) -> return (
+                return (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
+                contents <>
+                return (B.rawBlock "html" rawcloser)))
+      <|> return (return (B.rawBlock "html" raw) <> contents)
+  updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
+  return result
 
 -- remove markdown="1" attribute
 stripMarkdownAttribute :: String -> String
@@ -1765,10 +1765,15 @@ divHtml = try $ do
 rawHtmlInline :: MarkdownParser (F Inlines)
 rawHtmlInline = do
   guardEnabled Ext_raw_html
+  inHtmlBlock <- stateInHtmlBlock <$> getState
+  let isCloseBlockTag t = case inHtmlBlock of
+                               Just t' -> t ~== TagClose t'
+                               Nothing -> False
   mdInHtml <- option False $
                 guardEnabled Ext_markdown_in_html_blocks >> return True
   (_,result) <- htmlTag $ if mdInHtml
-                             then isInlineTag
+                             then (\x -> isInlineTag x &&
+                                         not (isCloseBlockTag x))
                              else not . isTextTag
   return $ return $ B.rawInline "html" result
 
