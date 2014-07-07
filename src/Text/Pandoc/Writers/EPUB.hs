@@ -751,7 +751,7 @@ transformTag :: WriterOptions
              -> Tag String
              -> IO (Tag String)
 transformTag opts mediaRef tag@(TagOpen name attr)
-  | name == "video" || name == "source" || name == "img" = do
+  | name `elem` ["video", "source", "img", "audio"] = do
   let src = fromAttrib "src" tag
   let poster = fromAttrib "poster" tag
   let oldsrc = maybe src (</> src) $ writerSourceURL opts
@@ -800,6 +800,11 @@ transformInline opts _ (x@(Math _ _))
   | WebTeX _ <- writerHTMLMathMethod opts = do
     raw <- makeSelfContained Nothing $ writeHtmlInline opts x
     return $ RawInline (Format "html") raw
+transformInline opts mediaRef  (RawInline fmt raw)
+  | fmt == Format "html" = do
+  let tags = parseTags raw
+  tags' <- mapM (transformTag opts mediaRef) tags
+  return $ RawInline fmt (renderTags tags')
 transformInline _ _ x = return x
 
 writeHtmlInline :: WriterOptions -> Inline -> String
