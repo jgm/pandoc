@@ -379,6 +379,11 @@ normalizeBlocks (DefinitionList items : xs) =
   DefinitionList (map go items) : normalizeBlocks xs
   where go (ils, bs) = (normalizeInlines ils, map normalizeBlocks bs)
 normalizeBlocks (RawBlock _ "" : xs) = normalizeBlocks xs
+normalizeBlocks (RawBlock f x : xs) =
+   case normalizeBlocks xs of
+        (RawBlock f' x' : rest) | f' == f ->
+          RawBlock f (x ++ ('\n':x')) : rest
+        rest -> RawBlock f x : rest
 normalizeBlocks (Para ils : xs) =
   case normalizeInlines ils of
        []   -> normalizeBlocks xs
