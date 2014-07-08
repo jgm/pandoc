@@ -154,6 +154,12 @@ tests = [ testGroup "inline code"
           [ "in URL" =:
             "\\begin\n" =?> para (text "\\begin")
           ]
+        , testGroup "raw HTML"
+          [ "nesting (issue #1330)" =:
+            "<del>test</del>" =?>
+            rawBlock "html" "<del>" <> plain (str "test") <>
+            rawBlock "html" "</del>"
+          ]
         , "unbalanced brackets" =:
             "[[[[[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[[[[[hi")
         , testGroup "backslash escapes"
