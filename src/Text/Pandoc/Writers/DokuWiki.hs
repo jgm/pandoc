@@ -44,6 +44,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Walk (query)
 import Data.List ( intersect, intercalate )
 import Network.URI ( isURI )
 import Control.Monad.State
@@ -84,6 +85,15 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
 -- | Escape special characters for MediaWiki.
 escapeString :: String -> String
 escapeString str = substitute "__" "%%__%%" ( substitute "**" "%%**%%" ( substitute "//" "%%//%%" str ) )
+
+-- | Remove unsupported formatting from headings
+unfancy :: [Inline] -> [Inline]
+unfancy = query plainContent
+
+plainContent :: Inline -> [Inline]
+plainContent (Str x) = [Str x]
+plainContent Space = [Space]
+plainContent _ = []
 
 -- | Convert Pandoc block element to DokuWiki.
 blockToDokuWiki :: WriterOptions -- ^ Options
@@ -126,7 +136,7 @@ blockToDokuWiki _ (RawBlock f str)
 blockToDokuWiki _ HorizontalRule = return "\n----\n"
 
 blockToDokuWiki opts (Header level _ inlines) = do
-  contents <- inlineListToDokuWiki opts inlines
+  contents <- inlineListToDokuWiki opts ( unfancy inlines )
   let eqs = replicate ( 7 - level ) '='
   return $ eqs ++ " " ++ contents ++ " " ++ eqs ++ "\n"
 
