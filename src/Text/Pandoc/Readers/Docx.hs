@@ -91,7 +91,6 @@ import Data.List (delete, isPrefixOf, (\\), intercalate)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Base64 (encode)
-import System.FilePath (combine)
 import qualified Data.Map as M
 import Control.Monad.Reader
 import Control.Monad.State
@@ -102,8 +101,8 @@ readDocx :: ReaderOptions
          -> Pandoc
 readDocx opts bytes =
   case archiveToDocx (toArchive bytes) of
-    Just docx -> Pandoc nullMeta (docxToBlocks opts docx)
-    Nothing   -> error $ "couldn't parse docx file"
+    Right docx -> Pandoc nullMeta (docxToBlocks opts docx)
+    Left _   -> error $ "couldn't parse docx file"
 
 data DState = DState { docxAnchorMap :: M.Map String String
                      , docxInTexSubscript :: Bool }
@@ -159,7 +158,7 @@ runStyleToContainers rPr =
                    , if isStrike rPr then (Just Strikeout) else Nothing
                    , if isSuperScript rPr then (Just Superscript) else Nothing
                    , if isSubScript rPr then (Just Subscript) else Nothing
-                   , underline rPr >>= (\f -> Just $ Span ("", [], [("underline", f)]))
+                   , rUnderline rPr >>= (\f -> Just $ Span ("", [], [("underline", f)]))
                  ]
   in
    classContainers ++ formatters
@@ -259,20 +258,17 @@ runToInlines (Run rs runElems)
   | otherwise =
       return $
       rebuild (runStyleToContainers rs) (concatMap runElemToInlines runElems)
-runToInlines (Footnote fnId) = do
-  (Docx _ notes _ _ _ ) <- asks docxDocument
-  case (getFootNote fnId notes) of
-    Just bodyParts -> do
-      blks <- concatMapM bodyPartToBlocks bodyParts
-      return $ [Note blks]
-    Nothing        -> return [Note []]
-runToInlines (Endnote fnId) = do
-  (Docx _ notes _ _ _ ) <- asks docxDocument
-  case (getEndNote fnId notes) of
-    Just bodyParts -> do
-      blks <- concatMapM bodyPartToBlocks bodyParts
-      return $ [Note blks]
-    Nothing        -> return [Note []]
+runToInlines (Footnote bps) = 
+  concatMapM bodyPartToBlocks bps >>= (\blks -> return [Note blks])
+runToInlines (Endnote bps) = 
+  concatMapM bodyPartToBlocks bps >>= (\blks -> return [Note blks])
+
+makeDataUrl :: String -> B.ByteString -> Maybe String
+makeDataUrl fp bs =
+  case getMimeType fp of
+    Just mime -> Just $ "data:" ++ mime ++ ";base64," ++
+                 toString (encode $ BS.concat $ B.toChunks bs)
+    Nothing   -> Nothing
 
 parPartToInlines :: ParPart -> DocxContext [Inline]
 parPartToInlines (PlainRun r) = runToInlines r
@@ -313,22 +309,18 @@ parPartToInlines (BookMark _ anchor) =
           False -> anchor
     updateDState $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap}
     return [Span (anchor, ["anchor"], []) []]
-parPartToInlines (Drawing relid) = do
-  (Docx _ _ _ rels _) <- asks docxDocument
-  return $ case lookupRelationship relid rels of
-    Just target -> [Image [] (combine "word" target, "")]
-    Nothing     -> [Image [] ("", "")]
+parPartToInlines (Drawing fp bs) = do
+  return $ case True of                  -- TODO: add self-contained images
+    True -> [Image [] (fp, "")]
+    False -> case makeDataUrl fp bs of
+      Just d -> [Image [] (d, "")]
+      Nothing -> [Image [] ("", "")]
 parPartToInlines (InternalHyperLink anchor runs) = do
   ils <- concatMapM runToInlines runs
   return [Link ils ('#' : anchor, "")]
-parPartToInlines (ExternalHyperLink relid runs) = do
-  (Docx _ _ _ rels _) <- asks docxDocument
-  rs <- concatMapM runToInlines runs
-  return $ case lookupRelationship relid rels of
-    Just target ->
-      [Link rs (target, "")]
-    Nothing ->
-      [Link rs ("", "")]
+parPartToInlines (ExternalHyperLink target runs) = do
+  ils <- concatMapM runToInlines runs
+  return [Link ils (target, "")]
 parPartToInlines (PlainOMath omath) = do
   s <- oMathToTexString omath
   return [Math InlineMath s]
@@ -450,6 +442,9 @@ oMathElemToTexString (NAry _ sub sup base) = do
   baseString <- baseToTexString base
   return $ printf "\\int_{%s}^{%s}{%s}"
     subString supString baseString
+oMathElemToTexString (Phantom base) = do
+  baseString <- baseToTexString base
+  return $ printf "\\phantom{%s}" baseString
 oMathElemToTexString (Radical degree base) = do
   degString  <- concatMapM oMathElemToTexString degree
   baseString <- baseToTexString base
@@ -475,7 +470,6 @@ oMathElemToTexString (Super base sup) = do
   supString  <- concatMapM oMathElemToTexString sup
   return $ printf "%s^{%s}" baseString supString
 oMathElemToTexString (OMathRun _ run) = return $ stringToTex $ runToString run
-oMathElemToTexString _ = return "[NOT IMPLEMENTED]"
 
 baseToTexString :: Base -> DocxContext String
 baseToTexString (Base mathElems) =
@@ -518,9 +512,7 @@ makeHeaderAnchor blk = return blk
 
 parPartsToInlines :: [ParPart] -> DocxContext [Inline]
 parPartsToInlines parparts = do
-  ils <- concatMapM parPartToInlines parparts >>=
-         --  TODO: Option for self-containted images
-         (if False then (walkM makeImagesSelfContained) else return)
+  ils <- concatMapM parPartToInlines parparts
   return $ reduceList $ ils
 
 cellToBlocks :: Cell -> DocxContext [Block]
@@ -563,23 +555,21 @@ bodyPartToBlocks (Paragraph pPr parparts) = do
        rebuild
        (parStyleToContainers pPr)
        [Para ils]
-bodyPartToBlocks (ListItem pPr numId lvl parparts) = do
-  (Docx _ _ numbering _ _) <- asks docxDocument
+bodyPartToBlocks (ListItem pPr numId lvl levelInfo parparts) = do
   let
-    kvs = case lookupLevel numId lvl numbering of
-      Just (_, fmt, txt, Just start) -> [ ("level", lvl)
-                                        , ("num-id", numId)
-                                        , ("format", fmt)
-                                        , ("text", txt)
-                                        , ("start", (show start))
-                                        ]
+    kvs = case levelInfo of
+      (_, fmt, txt, Just start) -> [ ("level", lvl)
+                                   , ("num-id", numId)
+                                   , ("format", fmt)
+                                   , ("text", txt)
+                                   , ("start", (show start))
+                                   ]
 
-      Just (_, fmt, txt, Nothing)    -> [ ("level", lvl)
-                                        , ("num-id", numId)
-                                        , ("format", fmt)
-                                        , ("text", txt)
-                                        ]
-      Nothing                        -> []
+      (_, fmt, txt, Nothing)    -> [ ("level", lvl)
+                                   , ("num-id", numId)
+                                   , ("format", fmt)
+                                   , ("text", txt)
+                                   ]
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
   return $ [Div ("", ["list-item"], kvs) blks]
 bodyPartToBlocks (Tbl _ _ _ []) =
@@ -622,20 +612,6 @@ rewriteLink l@(Link ils ('#':target, title)) = do
     Nothing        -> l
 rewriteLink il = return il
 
-makeImagesSelfContained :: Inline -> DocxContext Inline
-makeImagesSelfContained i@(Image alt (uri, title)) = do
-  (Docx _ _ _ _ media) <- asks docxDocument
-  return $ case lookup uri media of
-    Just bs ->
-      case getMimeType uri of
-        Just mime ->
-          let data_uri = "data:" ++ mime ++ ";base64," ++
-                         toString (encode $ BS.concat $ B.toChunks bs)
-          in
-           Image alt (data_uri, title)
-        Nothing  -> i
-    Nothing -> i
-makeImagesSelfContained inline = return inline
 
 bodyToBlocks :: Body -> DocxContext [Block]
 bodyToBlocks (Body bps) = do
@@ -646,7 +622,7 @@ bodyToBlocks (Body bps) = do
     blocksToBullets $ blks
 
 docxToBlocks :: ReaderOptions -> Docx -> [Block]
-docxToBlocks opts d@(Docx (Document _ body) _ _ _ _) =
+docxToBlocks opts d@(Docx (Document _ body)) =
   let dState = DState { docxAnchorMap = M.empty
                       , docxInTexSubscript = False}
       dEnv   = DEnv { docxOptions  = opts
