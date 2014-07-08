@@ -140,6 +140,15 @@ tests = [ testGroup "inline code"
           [ "two strongs in emph" =:
              "***a**b **c**d*" =?> para (emph (strong (str "a") <> str "b" <> space
                                          <> strong (str "c") <> str "d"))
+          , "emph and strong emph alternating" =:
+            "*xxx* ***xxx*** xxx\n*xxx* ***xxx*** xxx"
+            =?> para (emph "xxx" <> space <> strong (emph "xxx") <>
+                      space <> "xxx" <> space <>
+                      emph "xxx" <> space <> strong (emph "xxx") <>
+                      space <> "xxx")
+          , "emph with spaced strong" =:
+            "*x **xx** x*"
+            =?> para (emph ("x" <> space <> strong "xx" <> space <> "x"))
           ]
         , testGroup "raw LaTeX"
           [ "in URL" =:
@@ -178,17 +187,6 @@ tests = [ testGroup "inline code"
           , test markdownSmart "apostrophe in French"
             ("À l'arrivée de la guerre, le thème de l'«impossibilité du socialisme»"
             =?> para "À l’arrivée de la guerre, le thème de l’«impossibilité du socialisme»")
-          ]
-        , testGroup "mixed emphasis and strong"
-          [ "emph and strong emph alternating" =:
-            "*xxx* ***xxx*** xxx\n*xxx* ***xxx*** xxx"
-            =?> para (emph "xxx" <> space <> strong (emph "xxx") <>
-                      space <> "xxx" <> space <>
-                      emph "xxx" <> space <> strong (emph "xxx") <>
-                      space <> "xxx")
-          , "emph with spaced strong" =:
-            "*x **xx** x*"
-            =?> para (emph ("x" <> space <> strong "xx" <> space <> "x"))
           ]
         , testGroup "footnotes"
           [ "indent followed by newline and flush-left text" =:
