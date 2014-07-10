@@ -1842,7 +1842,14 @@ A YAML metadata block is a valid YAML object, delimited by a line of three
 hyphens (`---`) at the top and a line of three hyphens (`---`) or three dots
 (`...`) at the bottom.  A YAML metadata block may occur anywhere in the
 document, but if it is not at the beginning, it must be preceded by a blank
-line.
+line.  (Note that, because of the way pandoc concatenates input files when
+several are provided, you may also keep the metadata in a separate YAML file
+and pass it to pandoc as an argument, along with your markdown files:
+
+    pandoc chap1.md chap2.md chap3.md metadata.yaml -s -o book.html
+
+Just be sure that the YAML file begins with `---` and ends with `---` or
+`...`.)
 
 Metadata will be taken from the fields of the YAML object and added to any
 existing document metadata.  Metadata can contain lists and objects (nested
