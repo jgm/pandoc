@@ -429,9 +429,11 @@ blockToHtml opts (Div attr@(_,classes,_) bs) = do
   let contents' = nl opts >> contents >> nl opts
   return $
      if "notes" `elem` classes
-        then case writerSlideVariant opts of
-                  RevealJsSlides -> addAttrs opts attr $ H5.aside $ contents'
-                  NoSlides       -> addAttrs opts attr $ H.div $ contents'
+        then let opts' = opts{ writerIncremental = False } in
+             -- we don't want incremental output inside speaker notes
+             case writerSlideVariant opts of
+                  RevealJsSlides -> addAttrs opts' attr $ H5.aside $ contents'
+                  NoSlides       -> addAttrs opts' attr $ H.div $ contents'
                   _              -> mempty
         else addAttrs opts attr $ H.div $ contents'
 blockToHtml _ (RawBlock f str)
