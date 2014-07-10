@@ -1,6 +1,7 @@
 Simple table with caption:
 
 \begin{longtable}[c]{@{}rlcl@{}}
+\caption{Demonstration of simple table syntax.}\\
 \toprule\addlinespace
 Right & Left & Center & Default
 \\\addlinespace
@@ -12,8 +13,6 @@ Right & Left & Center & Default
 1 & 1 & 1 & 1
 \\\addlinespace
 \bottomrule
-\addlinespace
-\caption{Demonstration of simple table syntax.}
 \end{longtable}
 
 Simple table without caption:
@@ -35,6 +34,7 @@ Right & Left & Center & Default
 Simple table indented two spaces:
 
 \begin{longtable}[c]{@{}rlcl@{}}
+\caption{Demonstration of simple table syntax.}\\
 \toprule\addlinespace
 Right & Left & Center & Default
 \\\addlinespace
@@ -46,13 +46,12 @@ Right & Left & Center & Default
 1 & 1 & 1 & 1
 \\\addlinespace
 \bottomrule
-\addlinespace
-\caption{Demonstration of simple table syntax.}
 \end{longtable}
 
 Multiline table with caption:
 
 \begin{longtable}[c]{@{}clrl@{}}
+\caption{Here's the caption. It may span multiple lines.}\\
 \toprule\addlinespace
 \begin{minipage}[b]{0.13\columnwidth}\centering
 Centered Header
@@ -86,8 +85,6 @@ Here's another one. Note the blank line between rows.
 \end{minipage}
 \\\addlinespace
 \bottomrule
-\addlinespace
-\caption{Here's the caption. It may span multiple lines.}
 \end{longtable}
 
 Multiline table without caption:

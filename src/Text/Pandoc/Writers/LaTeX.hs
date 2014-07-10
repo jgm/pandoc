@@ -471,19 +471,18 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   captionText <- inlineListToLaTeX caption
   let capt = if isEmpty captionText
                 then empty
-                else text "\\addlinespace"
-                     $$ text "\\caption" <> braces captionText
+                else text "\\caption" <> braces captionText <> "\\\\"
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concat $ map toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
   return $ "\\begin{longtable}[c]" <>
               braces ("@{}" <> colDescriptors <> "@{}")
               -- the @{} removes extra space at beginning and end
+         $$ capt
          $$ "\\toprule\\addlinespace"
          $$ headers
          $$ vcat rows'
          $$ "\\bottomrule"
-         $$ capt
          $$ "\\end{longtable}"
 
 toColDescriptor :: Alignment -> String
