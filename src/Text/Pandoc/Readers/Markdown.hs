@@ -1436,9 +1436,15 @@ math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
 enclosure :: Char
           -> MarkdownParser (F Inlines)
 enclosure c = do
+  -- we can't start an enclosure with _ if after a string and
+  -- the intraword_underscores extension is enabled:
+  guardDisabled Ext_intraword_underscores
+    <|> guard (c == '*')
+    <|> (guard =<< notAfterString)
   cs <- many1 (char c)
   (return (B.str cs) <>) <$> whitespace
-    <|> case length cs of
+    <|> do
+        case length cs of
              3  -> three c
              2  -> two   c mempty
              1  -> one   c mempty
@@ -1477,11 +1483,7 @@ one c prefix' = do
     <|> return (return (B.str [c]) <> (prefix' <> contents))
 
 strongOrEmph :: MarkdownParser (F Inlines)
-strongOrEmph =  enclosure '*' <|> (checkIntraword >> enclosure '_')
-  where  checkIntraword = do
-           exts <- getOption readerExtensions
-           when (Ext_intraword_underscores `Set.member` exts) $ do
-             guard =<< notAfterString
+strongOrEmph =  enclosure '*' <|> enclosure '_'
 
 -- | Parses a list of inlines between start and end delimiters.
 inlinesBetween :: (Show b)
