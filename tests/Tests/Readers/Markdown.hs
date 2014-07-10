@@ -149,6 +149,8 @@ tests = [ testGroup "inline code"
           , "emph with spaced strong" =:
             "*x **xx** x*"
             =?> para (emph ("x" <> space <> strong "xx" <> space <> "x"))
+          , "intraword underscore with opening underscore (#1121)" =:
+            "_foot_ball_" =?> para (emph (text "foot_ball"))
           ]
         , testGroup "raw LaTeX"
           [ "in URL" =:
