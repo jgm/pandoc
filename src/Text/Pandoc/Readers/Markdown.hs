@@ -1757,12 +1757,17 @@ divHtml :: MarkdownParser (F Blocks)
 divHtml = try $ do
   guardEnabled Ext_markdown_in_html_blocks
   (TagOpen _ attrs, rawtag) <- htmlTag (~== TagOpen "div" [])
+  -- we set stateInHtmlBlock so that closing tags that can be either block or
+  -- inline will not be parsed as inline tags
+  oldInHtmlBlock <- stateInHtmlBlock <$> getState
+  updateState $ \st -> st{ stateInHtmlBlock = Just "div" }
   bls <- option "" (blankline >> option "" blanklines)
   contents <- mconcat <$>
               many (notFollowedBy' (htmlTag (~== TagClose "div")) >> block)
   closed <- option False (True <$ htmlTag (~== TagClose "div"))
   if closed
      then do
+       updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
        let ident = fromMaybe "" $ lookup "id" attrs
        let classes = maybe [] words $ lookup "class" attrs
        let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
