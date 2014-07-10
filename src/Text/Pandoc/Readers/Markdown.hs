@@ -1450,36 +1450,42 @@ enclosure c = do
              1  -> one   c mempty
              _  -> return (return $ B.str cs)
 
+ender :: Char -> Int -> MarkdownParser ()
+ender c n = try $ do
+  count n (char c)
+  guard (c == '*')
+    <|> guardDisabled Ext_intraword_underscores
+    <|> notFollowedBy alphaNum
+
 -- Parse inlines til you hit one c or a sequence of two cs.
 -- If one c, emit emph and then parse two.
 -- If two cs, emit strong and then parse one.
 -- Otherwise, emit ccc then the results.
 three :: Char -> MarkdownParser (F Inlines)
 three c = do
-  contents <- mconcat <$> many (notFollowedBy (char c) >> inline)
-  (try (string [c,c,c]) >> return ((B.strong . B.emph) <$> contents))
-    <|> (try (string [c,c]) >> one c (B.strong <$> contents))
-    <|> (char c >> two c (B.emph <$> contents))
+  contents <- mconcat <$> many (notFollowedBy (ender c 1) >> inline)
+  (ender c 3 >> return ((B.strong . B.emph) <$> contents))
+    <|> (ender c 2 >> one c (B.strong <$> contents))
+    <|> (ender c 1 >> two c (B.emph <$> contents))
     <|> return (return (B.str [c,c,c]) <> contents)
 
 -- Parse inlines til you hit two c's, and emit strong.
 -- If you never do hit two cs, emit ** plus inlines parsed.
 two :: Char -> F Inlines -> MarkdownParser (F Inlines)
 two c prefix' = do
-  let ender = try $ string [c,c]
-  contents <- mconcat <$> many (try $ notFollowedBy ender >> inline)
-  (ender >> return (B.strong <$> (prefix' <> contents)))
+  contents <- mconcat <$> many (try $ notFollowedBy (ender c 2) >> inline)
+  (ender c 2 >> return (B.strong <$> (prefix' <> contents)))
     <|> return (return (B.str [c,c]) <> (prefix' <> contents))
 
 -- Parse inlines til you hit a c, and emit emph.
 -- If you never hit a c, emit * plus inlines parsed.
 one :: Char -> F Inlines -> MarkdownParser (F Inlines)
 one c prefix' = do
-  contents <- mconcat <$> many (  (notFollowedBy (char c) >> inline)
+  contents <- mconcat <$> many (  (notFollowedBy (ender c 1) >> inline)
                            <|> try (string [c,c] >>
-                                    notFollowedBy (char c) >>
+                                    notFollowedBy (ender c 1) >>
                                     two c mempty) )
-  (char c >> return (B.emph <$> (prefix' <> contents)))
+  (ender c 1 >> return (B.emph <$> (prefix' <> contents)))
     <|> return (return (B.str [c]) <> (prefix' <> contents))
 
 strongOrEmph :: MarkdownParser (F Inlines)
