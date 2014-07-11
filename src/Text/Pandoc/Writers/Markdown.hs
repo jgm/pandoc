@@ -405,8 +405,8 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
          attrs  = if isEnabled Ext_fenced_code_attributes opts
                      then nowrap $ " " <> attrsToMarkdown attribs
                      else case attribs of
-                                (_,[cls],_) -> " " <> text cls
-                                _           -> empty
+                                (_,(cls:_),_) -> " " <> text cls
+                                _             -> empty
 blockToMarkdown opts (BlockQuote blocks) = do
   st <- get
   -- if we're writing literate haskell, put a space before the bird tracks

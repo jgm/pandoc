@@ -163,7 +163,6 @@ githubMarkdownExtensions = Set.fromList
   , Ext_raw_html
   , Ext_tex_math_single_backslash
   , Ext_fenced_code_blocks
-  , Ext_fenced_code_attributes
   , Ext_auto_identifiers
   , Ext_ascii_identifiers
   , Ext_backtick_code_blocks
