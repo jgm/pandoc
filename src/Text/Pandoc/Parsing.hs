@@ -248,7 +248,7 @@ oneOfStrings' matches strs = try $ do
   let strs' = [xs | (x:xs) <- strs, x `matches` c]
   case strs' of
        []  -> fail "not found"
-       _   -> (c:) `fmap` oneOfStrings' matches strs'
+       _   -> (c:) <$> oneOfStrings' matches strs'
                <|> if "" `elem` strs'
                       then return [c]
                       else fail "not found"
@@ -389,8 +389,8 @@ emailAddress :: Stream s m Char => ParserT s st m (String, String)
 emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
  where toResult mbox dom = let full = fromEntities $ mbox ++ '@':dom
                            in  (full, escapeURI $ "mailto:" ++ full)
-       mailbox           = intercalate "." `fmap` (emailWord `sepby1` dot)
-       domain            = intercalate "." `fmap` (subdomain `sepby1` dot)
+       mailbox           = intercalate "." <$> (emailWord `sepby1` dot)
+       domain            = intercalate "." <$> (subdomain `sepby1` dot)
        dot               = char '.'
        subdomain         = many1 $ alphaNum <|> innerPunct
        innerPunct        = try (satisfy (\c -> isEmailPunct c || c == '@') <*
@@ -453,7 +453,7 @@ uri = try $ do
               <|> entity
               <|> (try $ punct >>
                     lookAhead (void (satisfy isWordChar) <|> percentEscaped))
-  str <- snd `fmap` withRaw (skipMany1 ( () <$
+  str <- snd <$> withRaw (skipMany1 ( () <$
                                          (enclosed (char '(') (char ')') uriChunk
                                          <|> enclosed (char '{') (char '}') uriChunk
                                          <|> enclosed (char '[') (char ']') uriChunk)
@@ -895,7 +895,7 @@ class HasReaderOptions st where
   extractReaderOptions :: st -> ReaderOptions
   getOption            :: (Stream s m t) => (ReaderOptions -> b) -> ParserT s st m b
   -- default
-  getOption  f         = (f . extractReaderOptions) `fmap` getState
+  getOption  f         = (f . extractReaderOptions) <$> getState
 
 instance HasReaderOptions ParserState where
   extractReaderOptions = stateOptions
@@ -1016,7 +1016,7 @@ type SubstTable = M.Map Key Inlines
 registerHeader :: (Stream s m a, HasReaderOptions st, HasHeaderMap st, HasIdentifierList st)
                => Attr -> Inlines -> ParserT s st m Attr
 registerHeader (ident,classes,kvs) header' = do
-  ids <- extractIdentifierList `fmap` getState
+  ids <- extractIdentifierList <$> getState
   exts <- getOption readerExtensions
   let insert' = M.insertWith (\_new old -> old)
   if null ident && Ext_auto_identifiers `Set.member` exts
@@ -1173,7 +1173,7 @@ nested :: Stream s m a
        => ParserT s ParserState m a
        -> ParserT s ParserState m a
 nested p = do
-  nestlevel <- stateMaxNestingLevel `fmap` getState
+  nestlevel <- stateMaxNestingLevel <$>  getState
   guard $ nestlevel > 0
   updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
   res <- p
@@ -1220,6 +1220,6 @@ applyMacros' :: Stream [Char] m Char
 applyMacros' target = do
   apply <- getOption readerApplyMacros
   if apply
-     then do macros <- extractMacros `fmap` getState
+     then do macros <- extractMacros <$> getState
              return $ applyMacros macros target
      else return target
