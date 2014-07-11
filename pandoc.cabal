@@ -328,7 +328,8 @@ Library
                    Text.Pandoc.Templates,
                    Text.Pandoc.XML,
                    Text.Pandoc.SelfContained,
-                   Text.Pandoc.Process
+                   Text.Pandoc.Process,
+                   Text.Pandoc.Readers.Txt2Tags
   Other-Modules:   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Reducible,
                    Text.Pandoc.Readers.Docx.Parse,
