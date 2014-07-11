@@ -571,7 +571,7 @@ attributes :: MarkdownParser Attr
 attributes = try $ do
   char '{'
   spnl
-  attrs <- many (attribute >>~ spnl)
+  attrs <- many (attribute <* spnl)
   char '}'
   return $ foldl (\x f -> f x) nullAttr attrs
 
@@ -688,7 +688,7 @@ birdTrackLine c = try $ do
 --
 
 emailBlockQuoteStart :: MarkdownParser Char
-emailBlockQuoteStart = try $ skipNonindentSpaces >> char '>' >>~ optional (char ' ')
+emailBlockQuoteStart = try $ skipNonindentSpaces >> char '>' <* optional (char ' ')
 
 emailBlockQuote :: MarkdownParser [String]
 emailBlockQuote = try $ do
@@ -1165,7 +1165,7 @@ gridPart ch = do
   return (length dashes, length dashes + 1)
 
 gridDashedLines :: Char -> Parser [Char] st [(Int,Int)]
-gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) >>~ blankline
+gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
 
 removeFinalBar :: String -> String
 removeFinalBar =
@@ -1499,7 +1499,7 @@ inlinesBetween :: (Show b)
 inlinesBetween start end =
   (trimInlinesF . mconcat) <$> try (start >> many1Till inner end)
     where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)
-          innerSpace = try $ whitespace >>~ notFollowedBy' end
+          innerSpace = try $ whitespace <* notFollowedBy' end
 
 strikeout :: MarkdownParser (F Inlines)
 strikeout = fmap B.strikeout <$>

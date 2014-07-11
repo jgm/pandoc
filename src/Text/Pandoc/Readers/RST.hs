@@ -460,7 +460,7 @@ listItem :: RSTParser Int
 listItem start = try $ do
   (markerLength, first) <- rawListItem start
   rest <- many (listContinuation markerLength)
-  blanks <- choice [ try (many blankline >>~ lookAhead start),
+  blanks <- choice [ try (many blankline <* lookAhead start),
                      many1 blankline ]  -- whole list must end with blank.
   -- parsing with ListItemState forces markers at beginning of lines to
   -- count as list item markers, even if not separated by blank space.
@@ -480,7 +480,7 @@ listItem start = try $ do
 
 orderedList :: RSTParser Blocks
 orderedList = try $ do
-  (start, style, delim) <- lookAhead (anyOrderedListMarker >>~ spaceChar)
+  (start, style, delim) <- lookAhead (anyOrderedListMarker <* spaceChar)
   items <- many1 (listItem (orderedListStart style delim))
   let items' = compactify' items
   return $ B.orderedListWith (start, style, delim) items'
@@ -747,7 +747,7 @@ simpleReferenceName = do
 
 referenceName :: RSTParser Inlines
 referenceName = quotedReferenceName <|>
-                (try $ simpleReferenceName >>~ lookAhead (char ':')) <|>
+                (try $ simpleReferenceName <* lookAhead (char ':')) <|>
                 unquotedReferenceName
 
 referenceKey :: RSTParser [Char]
@@ -1076,7 +1076,7 @@ explicitLink = try $ do
 
 referenceLink :: RSTParser Inlines
 referenceLink = try $ do
-  (label',ref) <- withRaw (quotedReferenceName <|> simpleReferenceName) >>~
+  (label',ref) <- withRaw (quotedReferenceName <|> simpleReferenceName) <*
                    char '_'
   state <- getState
   let keyTable = stateKeys state

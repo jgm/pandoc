@@ -32,8 +32,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 A utility library with parsers used in pandoc readers.
 -}
-module Text.Pandoc.Parsing ( (>>~),
-                             anyLine,
+module Text.Pandoc.Parsing ( anyLine,
                              many1Till,
                              notFollowedBy',
                              oneOfStrings,
@@ -101,6 +100,7 @@ module Text.Pandoc.Parsing ( (>>~),
                              macro,
                              applyMacros',
                              Parser,
+                             ParserT, 
                              F(..),
                              runF,
                              askF,
@@ -204,11 +204,6 @@ instance Monoid a => Monoid (F a) where
   mempty = return mempty
   mappend = liftM2 mappend
   mconcat = liftM mconcat . sequence
-
--- | Like >>, but returns the operation on the left.
--- (Suggested by Tillmann Rendel on Haskell-cafe list.)
-(>>~) :: (Applicative m) => m a -> m b -> m a
-a >>~ b = a <* b 
 
 -- | Parse any line of text
 anyLine :: Stream [Char] m Char => ParserT [Char] st m [Char]
@@ -484,7 +479,7 @@ mathInlineWith op cl = try $ do
 mathDisplayWith :: Stream s m Char => String -> String -> ParserT s st m String
 mathDisplayWith op cl = try $ do
   string op
-  many1Till (noneOf "\n" <|> (newline >>~ notFollowedBy' blankline)) (try $ string cl)
+  many1Till (noneOf "\n" <|> (newline <* notFollowedBy' blankline)) (try $ string cl)
 
 mathDisplay :: Stream s m Char => ParserT s ParserState m String
 mathDisplay =
@@ -759,7 +754,7 @@ gridPart ch = do
   return (length dashes, length dashes + 1)
 
 gridDashedLines :: Stream s m Char => Char -> ParserT s st m [(Int,Int)]
-gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) >>~ blankline
+gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
 
 removeFinalBar :: String -> String
 removeFinalBar =

@@ -128,7 +128,7 @@ pBulletList = try $ do
   -- note: if they have an <ol> or <ul> not in scope of a <li>,
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
-  items <- manyTill (pInTags "li" block >>~ skipMany nonItem) (pCloses "ul")
+  items <- manyTill (pInTags "li" block <* skipMany nonItem) (pCloses "ul")
   return $ B.bulletList $ map (fixPlains True) items
 
 pOrderedList :: TagParser Blocks
@@ -156,7 +156,7 @@ pOrderedList = try $ do
   -- note: if they have an <ol> or <ul> not in scope of a <li>,
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
-  items <- manyTill (pInTags "li" block >>~ skipMany nonItem) (pCloses "ol")
+  items <- manyTill (pInTags "li" block <* skipMany nonItem) (pCloses "ol")
   return $ B.orderedListWith (start, style, DefaultDelim) $ map (fixPlains True) items
 
 pDefinitionList :: TagParser Blocks
@@ -244,7 +244,7 @@ pTable :: TagParser Blocks
 pTable = try $ do
   TagOpen _ _ <- pSatisfy (~== TagOpen "table" [])
   skipMany pBlank
-  caption <- option mempty $ pInTags "caption" inline >>~ skipMany pBlank
+  caption <- option mempty $ pInTags "caption" inline <* skipMany pBlank
   -- TODO actually read these and take width information from them
   widths' <- pColgroup <|> many pCol
   head' <- option [] $ pOptInTag "thead" $ pInTags "tr" (pCell "th")

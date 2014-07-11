@@ -104,7 +104,7 @@ dimenarg = try $ do
 
 sp :: LP ()
 sp = skipMany1 $ satisfy (\c -> c == ' ' || c == '\t')
-        <|> (try $ newline >>~ lookAhead anyChar >>~ notFollowedBy blankline)
+        <|> (try $ newline <* lookAhead anyChar <* notFollowedBy blankline)
 
 isLowerHex :: Char -> Bool
 isLowerHex x = x >= '0' && x <= '9' || x >= 'a' && x <= 'f'
