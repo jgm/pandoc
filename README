@@ -1181,6 +1181,8 @@ row of tildes or backticks at the start and end:
     ~~~~~~~~~~
     ~~~~~~~~~~~~~~~~
 
+**Extension: `fenced_code_attributes`**
+
 Optionally, you may attach attributes to the code block using
 this syntax:
 
@@ -1216,6 +1218,11 @@ This is equivalent to:
     ``` {.haskell}
     qsort [] = []
     ```
+
+If the `fenced_code_attributes` extension is disabled, but
+input contains class attribute(s) for the codeblock, the first
+class attribute will be printed after the opening fence as a bare
+word.
 
 To prevent all highlighting, use the `--no-highlight` flag.
 To set the highlighting style, use `--highlight-style`.
