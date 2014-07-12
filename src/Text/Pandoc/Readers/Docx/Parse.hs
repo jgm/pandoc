@@ -69,7 +69,7 @@ import qualified Data.ByteString.Lazy as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad.Reader
 import qualified Data.Map as M
-import Control.Monad.Error
+import Text.Pandoc.Compat.Except
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envNumbering     :: Numbering
@@ -84,10 +84,10 @@ data DocxError = DocxError | WrongElem
 instance Error DocxError where
   noMsg = WrongElem
 
-type D = ErrorT DocxError (Reader ReaderEnv)
+type D = ExceptT DocxError (Reader ReaderEnv)
 
 runD :: D a -> ReaderEnv -> Either DocxError a
-runD dx re = runReader (runErrorT dx ) re
+runD dx re = runReader (runExceptT dx ) re
 
 maybeToD :: Maybe a -> D a
 maybeToD (Just a) = return a
