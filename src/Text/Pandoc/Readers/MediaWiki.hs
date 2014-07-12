@@ -634,7 +634,7 @@ inlinesBetween :: (Show b) => MWParser a -> MWParser b -> MWParser Inlines
 inlinesBetween start end =
   (trimInlines . mconcat) <$> try (start >> many1Till inner end)
     where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)
-          innerSpace = try $ whitespace >>~ notFollowedBy' end
+          innerSpace = try $ whitespace <* notFollowedBy' end
 
 emph :: MWParser Inlines
 emph = B.emph <$> nested (inlinesBetween start end)
