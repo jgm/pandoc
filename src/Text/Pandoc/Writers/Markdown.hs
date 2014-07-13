@@ -84,18 +84,19 @@ writePlain opts document =
 plainify :: Pandoc -> Pandoc
 plainify = walk go
   where go :: Inline -> Inline
-        go (Emph xs) = SmallCaps xs
-        go (Strong xs) = SmallCaps xs
-        go (Strikeout xs) = SmallCaps xs
-        go (Superscript xs) = SmallCaps xs
-        go (Subscript xs) = SmallCaps xs
-        go (SmallCaps xs) = SmallCaps xs
+        go (Emph xs) = Span ("",[],[]) xs
+        go (Strong xs) = Span ("",[],[]) xs
+        go (Strikeout xs) = Span ("",[],[]) xs
+        go (Superscript xs) = Span ("",[],[]) xs
+        go (Subscript xs) = Span ("",[],[]) xs
+        go (SmallCaps xs) = Span ("",[],[]) xs
+        go (Span _ xs) = Span ("",[],[]) xs
         go (Code _ s) = Str s
         go (Math _ s) = Str s
         go (RawInline _ _) = Str ""
-        go (Link xs _) = SmallCaps xs
-        go (Image xs _) = SmallCaps $ [Str "["] ++ xs ++ [Str "]"]
-        go (Cite _ cits) = SmallCaps cits
+        go (Link xs _) = Span ("",[],[]) xs
+        go (Image xs _) = Span ("",[],[]) $ [Str "["] ++ xs ++ [Str "]"]
+        go (Cite _ cits) = Span ("",[],[]) cits
         go x = x
 
 pandocTitleBlock :: Doc -> [Doc] -> Doc -> Doc
