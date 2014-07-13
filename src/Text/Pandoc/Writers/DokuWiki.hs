@@ -44,7 +44,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
-import Data.List ( intersect, intercalate )
+import Data.List ( intersect, intercalate, isPrefixOf )
 import Network.URI ( isURI )
 import Control.Monad.State
 
@@ -418,9 +418,8 @@ inlineToDokuWiki _ Space = return " "
 inlineToDokuWiki opts (Link txt (src, _)) = do
   label <- inlineListToDokuWiki opts txt
   case txt of
-     [Str s] | escapeURI s == src -> return src
-             | "mailto:" ++ escapeURI s == src -> return $
-                   "<" ++ s ++ ">"
+     [Str s] | "mailto:" `isPrefixOf` src -> return $ "<" ++ s ++ ">"
+             | escapeURI s == src -> return src
      _  -> if isURI src
               then return $ "[[" ++ src ++ "|" ++ label ++ "]]"
               else return $ "[[" ++ src' ++ "|" ++ label ++ "]]"
