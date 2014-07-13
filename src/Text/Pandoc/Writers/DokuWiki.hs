@@ -57,7 +57,7 @@ data WriterState = WriterState {
 -- | Convert Pandoc to DokuWiki.
 writeDokuWiki :: WriterOptions -> Pandoc -> String
 writeDokuWiki opts document =
-  evalState (pandocToDokuWiki opts document)
+  evalState (pandocToDokuWiki opts $ normalize document)
             (WriterState { stNotes = False, stIndent = "", stUseTags = False })
 
 -- | Return DokuWiki representation of document.

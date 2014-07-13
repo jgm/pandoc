@@ -288,31 +288,19 @@ Interpreted markdown in a table:
 
 <HTML>
 <table>
-</HTML>
-<HTML>
 <tr>
-</HTML>
-<HTML>
 <td>
 </HTML>
 This is //emphasized//
 <HTML>
 </td>
-</HTML>
-<HTML>
 <td>
 </HTML>
 And this is **strong**
 <HTML>
 </td>
-</HTML>
-<HTML>
 </tr>
-</HTML>
-<HTML>
 </table>
-</HTML>
-<HTML>
 <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
 </HTML>
 Here’s a simple block:
@@ -345,8 +333,6 @@ Multiline:
 Blah
 Blah
 -->
-</HTML>
-<HTML>
 <!--
     This is another comment.
 -->
@@ -366,29 +352,13 @@ Hr’s:
 
 <HTML>
 <hr>
-</HTML>
-<HTML>
 <hr />
-</HTML>
-<HTML>
 <hr />
-</HTML>
-<HTML>
 <hr>
-</HTML>
-<HTML>
 <hr />
-</HTML>
-<HTML>
 <hr />
-</HTML>
-<HTML>
 <hr class="foo" id="bar" />
-</HTML>
-<HTML>
 <hr class="foo" id="bar" />
-</HTML>
-<HTML>
 <hr class="foo" id="bar">
 </HTML>
 
