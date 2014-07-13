@@ -784,7 +784,7 @@ transformBlock opts mediaRef (RawBlock fmt raw)
   | fmt == Format "html" = do
   let tags = parseTags raw
   tags' <- mapM (transformTag opts mediaRef)  tags
-  return $ RawBlock fmt (renderTags tags')
+  return $ RawBlock fmt (renderTags' tags')
 transformBlock _ _ b = return b
 
 transformInline  :: WriterOptions
@@ -804,7 +804,7 @@ transformInline opts mediaRef  (RawInline fmt raw)
   | fmt == Format "html" = do
   let tags = parseTags raw
   tags' <- mapM (transformTag opts mediaRef) tags
-  return $ RawInline fmt (renderTags tags')
+  return $ RawInline fmt (renderTags' tags')
 transformInline _ _ x = return x
 
 writeHtmlInline :: WriterOptions -> Inline -> String

@@ -46,7 +46,7 @@ import Control.Monad.State
 import qualified Data.Set as Set
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Readers.TeXMath (readTeXMath')
-import Text.HTML.TagSoup (renderTags, parseTags, isTagText, Tag(..))
+import Text.HTML.TagSoup (parseTags, isTagText, Tag(..))
 import Network.URI (isURI)
 import Data.Default
 import Data.Yaml (Value(Object,String,Array,Bool,Number))
@@ -471,7 +471,7 @@ addMarkdownAttribute :: String -> String
 addMarkdownAttribute s =
   case span isTagText $ reverse $ parseTags s of
        (xs,(TagOpen t attrs:rest)) ->
-            renderTags $ reverse rest ++ (TagOpen t attrs' : reverse xs)
+            renderTags' $ reverse rest ++ (TagOpen t attrs' : reverse xs)
               where attrs' = ("markdown","1"):[(x,y) | (x,y) <- attrs,
                                  x /= "markdown"]
        _ -> s

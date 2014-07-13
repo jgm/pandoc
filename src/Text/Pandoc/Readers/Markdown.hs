@@ -948,7 +948,7 @@ rawVerbatimBlock = try $ do
                                                   ["pre", "style", "script"])
                               (const True))
   contents <- manyTill anyChar (htmlTag (~== TagClose tag))
-  return $ open ++ contents ++ renderTags [TagClose tag]
+  return $ open ++ contents ++ renderTags' [TagClose tag]
 
 rawTeXBlock :: MarkdownParser (F Blocks)
 rawTeXBlock = do
