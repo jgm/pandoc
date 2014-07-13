@@ -55,7 +55,6 @@ import Control.Monad.State
 import Text.XML.Light hiding (ppTopElement)
 import Text.Pandoc.UUID
 import Text.Pandoc.Writers.HTML
-import Text.Pandoc.Writers.Markdown ( writePlain )
 import Data.Char ( toLower, isDigit, isAlphaNum )
 import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
@@ -124,19 +123,14 @@ dcNode = node . dcName
 opfName :: String -> QName
 opfName n = QName n Nothing (Just "opf")
 
-plainify :: [Inline] -> String
-plainify t =
-  trimr $ writePlain def{ writerStandalone = False }
-        $ Pandoc nullMeta [Plain $ walk removeNote t]
-
-removeNote :: Inline -> Inline
-removeNote (Note _) = Str ""
-removeNote x        = x
-
 toId :: FilePath -> String
 toId = map (\x -> if isAlphaNum x || x == '-' || x == '_'
                      then x
                      else '_') . takeFileName
+
+removeNote :: Inline -> Inline
+removeNote (Note _) = Str ""
+removeNote x        = x
 
 getEPUBMetadata :: WriterOptions -> Meta -> IO EPUBMetadata
 getEPUBMetadata opts meta = do
@@ -172,7 +166,7 @@ getEPUBMetadata opts meta = do
        if any (\c -> creatorRole c == Just "aut") $ epubCreator m
           then return m
           else do
-            let authors' = map plainify $ docAuthors meta
+            let authors' = map stringify $ docAuthors meta
             let toAuthor name = Creator{ creatorText = name
                                        , creatorRole = Just "aut"
                                        , creatorFileAs = Nothing }
@@ -221,8 +215,8 @@ addMetadataFromXML _ md = md
 
 metaValueToString :: MetaValue -> String
 metaValueToString (MetaString s) = s
-metaValueToString (MetaInlines ils) = plainify ils
-metaValueToString (MetaBlocks bs) = plainify $ query (:[]) bs
+metaValueToString (MetaInlines ils) = stringify ils
+metaValueToString (MetaBlocks bs) = stringify bs
 metaValueToString (MetaBool b) = show b
 metaValueToString _ = ""
 
@@ -468,7 +462,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                         [] -> case epubTitle metadata of
                                    []   -> "UNTITLED"
                                    (x:_) -> titleText x
-                        x  -> plainify x
+                        x  -> stringify x
   let uuid = case epubIdentifier metadata of
                   (x:_) -> identifierText x  -- use first identifier as UUID
                   []    -> error "epubIdentifier is null"  -- shouldn't happen
@@ -535,7 +529,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
         modify (+1)
         let showNums :: [Int] -> String
             showNums = intercalate "." . map show
-        let tit' = plainify ils
+        let tit' = stringify ils
         let tit = if writerNumberSections opts && not (null nums)
                      then showNums nums ++ " " ++ tit'
                      else tit'
@@ -558,7 +552,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                   ] ++ subs
 
   let tpNode = unode "navPoint" !  [("id", "navPoint-0")] $
-                  [ unode "navLabel" $ unode "text" (plainify $ docTitle meta)
+                  [ unode "navLabel" $ unode "text" (stringify $ docTitle meta)
                   , unode "content" ! [("src","title_page.xhtml")] $ () ]
 
   let tocData = UTF8.fromStringLazy $ ppTopElement $
