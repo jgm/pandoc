@@ -47,7 +47,8 @@ E-mail style:
 
 > This is a block quote. It is pretty short.
 
-> Code in a block quote:
+<HTML><blockquote>
+Code in a block quote:
 
 <code>sub status {
     print "working";
@@ -62,7 +63,7 @@ Nested block quotes:
 > nested
 
 > nested
-
+</blockquote></HTML>
 This should not be a block quote: 2 > 1.
 
 And a following paragraph.
