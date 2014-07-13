@@ -169,7 +169,7 @@ import Text.Pandoc.XML (fromEntities)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec
 import Text.Parsec.Pos (newPos)
-import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum, isDigit,
+import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
                    isHexDigit, isSpace )
 import Data.List ( intercalate, transpose )
 import Text.Pandoc.Shared
@@ -1124,48 +1124,21 @@ doubleQuoteEnd = void (charOrRef "\"\8221\148")
 
 ellipses :: Stream s m Char
          => ParserT s st m Inlines
-ellipses = do
-  try (charOrRef "\8230\133") <|> try (string "..." >> return '…')
-  return (B.str "\8230")
+ellipses = try (string "..." >> return (B.str "\8230"))
 
-dash :: Stream s m Char => ParserT s ParserState m Inlines
-dash = do
+dash :: (HasReaderOptions st, Stream s m Char)
+     => ParserT s st m Inlines
+dash = try $ do
   oldDashes <- getOption readerOldDashes
   if oldDashes
-     then emDashOld <|> enDashOld
-     else B.str <$> (hyphenDash <|> emDash <|> enDash)
-
--- Two hyphens = en-dash, three = em-dash
-hyphenDash :: Stream s m Char
-           => ParserT s st m String
-hyphenDash = do
-  try $ string "--"
-  option "\8211" (char '-' >> return "\8212")
-
-emDash :: Stream s m Char
-       => ParserT s st m String
-emDash = do
-  try (charOrRef "\8212\151")
-  return "\8212"
-
-enDash :: Stream s m Char
-       => ParserT s st m String
-enDash = do
-  try (charOrRef "\8212\151")
-  return "\8211"
-
-enDashOld :: Stream s m Char
-          => ParserT s st m Inlines
-enDashOld = do
-  try (charOrRef "\8211\150") <|>
-    try (char '-' >> lookAhead (satisfy isDigit) >> return '–')
-  return (B.str "\8211")
-
-emDashOld :: Stream s m Char
-          => ParserT s st m Inlines
-emDashOld = do
-  try (charOrRef "\8212\151") <|> (try $ string "--" >> optional (char '-') >> return '-')
-  return (B.str "\8212")
+     then do
+       char '-'
+       (char '-' >> return (B.str "\8212"))
+         <|> (lookAhead digit >> return (B.str "\8211"))
+     else do
+       string "--"
+       (char '-' >> return (B.str "\8212"))
+         <|> return (B.str "\8211")
 
 -- This is used to prevent exponential blowups for things like:
 -- a**a*a**a*a**a*a**a*a**a*a**a*a**
