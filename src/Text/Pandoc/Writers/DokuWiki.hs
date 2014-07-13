@@ -81,9 +81,11 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
      then return $ renderTemplate' (writerTemplate opts) context
      else return main
 
--- | Escape special characters for MediaWiki.
+-- | Escape special characters for DokuWiki.
 escapeString :: String -> String
-escapeString str = substitute "__" "%%__%%" ( substitute "**" "%%**%%" ( substitute "//" "%%//%%" str ) )
+escapeString = substitute "__" "%%__%%" .
+               substitute "**" "%%**%%" .
+               substitute "//" "%%//%%"
 
 -- | Convert Pandoc block element to DokuWiki.
 blockToDokuWiki :: WriterOptions -- ^ Options
