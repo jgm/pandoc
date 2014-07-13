@@ -2052,7 +2052,8 @@ To write small caps, you can use an HTML span tag:
 
     <span style="font-variant:small-caps;">Small caps</span>
 
-This will work in all output formats that support small caps.
+(The semicolon is optional and there may be space after the
+colon.) This will work in all output formats that support small caps.
 
 Math
 ----
