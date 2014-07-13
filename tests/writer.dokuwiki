@@ -286,26 +286,35 @@ bar
 
 Interpreted markdown in a table:
 
-<html>
-<table></html>
-<html>
-<tr></html>
-<html>
-<td></html>
+<HTML>
+<table>
+</HTML>
+<HTML>
+<tr>
+</HTML>
+<HTML>
+<td>
+</HTML>
 This is //emphasized//
-<html>
-</td></html>
-<html>
-<td></html>
+<HTML>
+</td>
+</HTML>
+<HTML>
+<td>
+</HTML>
 And this is **strong**
-<html>
-</td></html>
-<html>
-</tr></html>
-<html>
-</table></html>
-<html>
-<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script></html>
+<HTML>
+</td>
+</HTML>
+<HTML>
+</tr>
+</HTML>
+<HTML>
+</table>
+</HTML>
+<HTML>
+<script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
+</HTML>
 Here’s a simple block:
 
 foo
@@ -326,49 +335,62 @@ foo
 
 This should just be an HTML comment:
 
-<html>
-<!-- Comment --></html>
+<HTML>
+<!-- Comment -->
+</HTML>
 Multiline:
 
-<html>
+<HTML>
 <!--
 Blah
 Blah
---></html>
-<html>
+-->
+</HTML>
+<HTML>
 <!--
     This is another comment.
---></html>
+-->
+</HTML>
 Code block:
 
 <code><!-- Comment --></code>
 Just plain comment, with trailing spaces on the line:
 
-<html>
-<!-- foo --></html>
+<HTML>
+<!-- foo -->
+</HTML>
 Code:
 
 <code><hr /></code>
 Hr’s:
 
-<html>
-<hr></html>
-<html>
-<hr /></html>
-<html>
-<hr /></html>
-<html>
-<hr></html>
-<html>
-<hr /></html>
-<html>
-<hr /></html>
-<html>
-<hr class="foo" id="bar" /></html>
-<html>
-<hr class="foo" id="bar" /></html>
-<html>
-<hr class="foo" id="bar"></html>
+<HTML>
+<hr>
+</HTML>
+<HTML>
+<hr />
+</HTML>
+<HTML>
+<hr />
+</HTML>
+<HTML>
+<hr>
+</HTML>
+<HTML>
+<hr />
+</HTML>
+<HTML>
+<hr />
+</HTML>
+<HTML>
+<hr class="foo" id="bar" />
+</HTML>
+<HTML>
+<hr class="foo" id="bar" />
+</HTML>
+<HTML>
+<hr class="foo" id="bar">
+</HTML>
 
 ----
 
@@ -424,7 +446,7 @@ Ellipses…and…and….
 
 ====== LaTeX ======
 
-  * \cite[22-23]{smith.1899}
+  * 
   * <math>2+2=4</math>
   * <math>x \in y</math>
   * <math>\alpha \wedge \omega</math>
@@ -442,11 +464,7 @@ These shouldn’t be math:
 
 Here’s a LaTeX table:
 
-\begin{tabular}{|l|l|}\hline
-Animal & Number \\ \hline
-Dog    & 2      \\
-Cat    & 1      \\ \hline
-\end{tabular}
+
 
 ----
 
@@ -570,7 +588,7 @@ With an ampersand: http://example.com/?foo=1&bar=2
   * http://example.com/
   * It should.
 
-An e-mail address: [[mailto:nobody@nowhere.net|nobody@nowhere.net]]
+An e-mail address: <nobody@nowhere.net>
 
 > Blockquoted: http://example.com/
 
