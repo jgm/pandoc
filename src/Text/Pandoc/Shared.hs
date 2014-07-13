@@ -495,7 +495,7 @@ normalizeInlines (x : xs) = x : normalizeInlines xs
 normalizeInlines [] = []
 
 -- | Remove inline formatting from a list of inlines.
-removeFormatting :: [Inline] -> [Inline]
+removeFormatting :: Walkable Inline a => a -> [Inline]
 removeFormatting = query go . walk deNote
   where go :: Inline -> [Inline]
         go (Str xs)     = [Str xs]
