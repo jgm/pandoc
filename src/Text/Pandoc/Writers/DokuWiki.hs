@@ -119,9 +119,9 @@ blockToDokuWiki opts (Para inlines) = do
               else contents ++ if null indent then "\n" else ""
 
 blockToDokuWiki _ (RawBlock f str)
-  | f == Format "mediawiki" = return str
-  | f == Format "html"      = return $ "<html>\n" ++ str ++ "</html>"
-  | otherwise               = return str
+  | f == Format "dokuwiki" = return str
+  | f == Format "html"     = return $ "<html>\n" ++ str ++ "</html>"
+  | otherwise              = return ""
 
 blockToDokuWiki _ HorizontalRule = return "\n----\n"
 
@@ -403,9 +403,9 @@ inlineToDokuWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
                                  -- note:  str should NOT be escaped
 
 inlineToDokuWiki _ (RawInline f str)
-  | f == Format "mediawiki" = return str
-  | f == Format "html"      = return str
-  | otherwise               = return str
+  | f == Format "dokuwiki" = return str
+  | f == Format "html"     = return str
+  | otherwise              = return ""
 
 inlineToDokuWiki _ (LineBreak) = return "\\\\ "
 
