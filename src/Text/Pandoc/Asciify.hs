@@ -17,7 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 {- |
-   Module      : Text.Pandoc.SelfContained
+   Module      : Text.Pandoc.Asciify
    Copyright   : Copyright (C) 2013-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
