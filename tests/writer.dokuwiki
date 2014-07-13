@@ -157,10 +157,11 @@ and using spaces:
 
 Multiple paragraphs:
 
-  - Item 1, graf one.
-Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
-  - Item 2.
-  - Item 3.
+<HTML><ol style="list-style-type: decimal;"></HTML>
+<HTML><li></HTML><HTML><p></HTML>Item 1, graf one.<HTML></p></HTML>
+<HTML><p></HTML>Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.<HTML></p></HTML><HTML></li></HTML>
+<HTML><li></HTML><HTML><p></HTML>Item 2.<HTML></p></HTML><HTML></li></HTML>
+<HTML><li></HTML><HTML><p></HTML>Item 3.<HTML></p></HTML><HTML></li></HTML><HTML></ol></HTML>
 
 ===== Nested =====
 
@@ -195,20 +196,32 @@ Same thing but with paragraphs:
 
 ===== Fancy list markers =====
 
-  - begins with 2
-  - and now 3
-with a continuation
-    - sublist with roman numerals, starting with 4
-    - more items
-      - a subsublist
-      - a subsublist
+<HTML><ol start="2" style="list-style-type: decimal;"></HTML>
+<HTML><li></HTML>begins with 2<HTML></li></HTML>
+<HTML><li></HTML><HTML><p></HTML>and now 3<HTML></p></HTML>
+<HTML><p></HTML>with a continuation<HTML></p></HTML>
+<HTML><ol start="4" style="list-style-type: lower-roman;"></HTML>
+<HTML><li></HTML>sublist with roman numerals, starting with 4<HTML></li></HTML>
+<HTML><li></HTML>more items
+<HTML><ol style="list-style-type: upper-alpha;"></HTML>
+<HTML><li></HTML>a subsublist<HTML></li></HTML>
+<HTML><li></HTML>a subsublist<HTML></li></HTML><HTML></ol></HTML>
+<HTML></li></HTML><HTML></ol></HTML>
+<HTML></li></HTML><HTML></ol></HTML>
 
 Nesting:
 
-  - Upper Alpha
-    - Upper Roman.
-      - Decimal start with 6
-        - Lower alpha with paren
+<HTML><ol style="list-style-type: upper-alpha;"></HTML>
+<HTML><li></HTML>Upper Alpha
+<HTML><ol style="list-style-type: upper-roman;"></HTML>
+<HTML><li></HTML>Upper Roman.
+<HTML><ol start="6" style="list-style-type: decimal;"></HTML>
+<HTML><li></HTML>Decimal start with 6
+<HTML><ol start="3" style="list-style-type: lower-alpha;"></HTML>
+<HTML><li></HTML>Lower alpha with paren<HTML></li></HTML><HTML></ol></HTML>
+<HTML></li></HTML><HTML></ol></HTML>
+<HTML></li></HTML><HTML></ol></HTML>
+<HTML></li></HTML><HTML></ol></HTML>
 
 Autonumbering:
 
@@ -247,11 +260,14 @@ Loose:
 
 Multiple blocks with italics:
 
-  * **//apple//** red fruit
-contains seeds, crisp, pleasant to taste
-  * **//orange//** orange fruit
+<HTML><dl></HTML>
+<HTML><dt></HTML>//apple//<HTML></dt></HTML>
+<HTML><dd></HTML><HTML><p></HTML>red fruit<HTML></p></HTML>
+<HTML><p></HTML>contains seeds, crisp, pleasant to taste<HTML></p></HTML><HTML></dd></HTML>
+<HTML><dt></HTML>//orange//<HTML></dt></HTML>
+<HTML><dd></HTML><HTML><p></HTML>orange fruit<HTML></p></HTML>
 <code>{ orange code block }</code>
-> orange block quote
+> <HTML><p></HTML>orange block quote<HTML></p></HTML><HTML></dd></HTML><HTML></dl></HTML>
 
 Multiple definitions, tight:
 

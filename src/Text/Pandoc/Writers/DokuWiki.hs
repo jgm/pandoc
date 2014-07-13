@@ -113,11 +113,11 @@ blockToDokuWiki opts (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   return $ "{{:" ++ src ++ opt ++ "}}\n"
 
 blockToDokuWiki opts (Para inlines) = do
-  useTags <- get >>= return . stUseTags
-  indent <- get >>= return . stIndent
+  indent <- gets stIndent
+  useTags <- gets stUseTags
   contents <- inlineListToDokuWiki opts inlines
   return $ if useTags
-              then  "<p>" ++ contents ++ "</p>"
+              then "<HTML><p></HTML>" ++ contents ++ "<HTML></p></HTML>"
               else contents ++ if null indent then "\n" else ""
 
 blockToDokuWiki _ (RawBlock f str)
@@ -180,7 +180,7 @@ blockToDokuWiki opts x@(BulletList items) = do
         modify $ \s -> s { stUseTags = True }
         contents <- mapM (listItemToDokuWiki opts) items
         modify $ \s -> s { stUseTags = oldUseTags }
-        return $ "<ul>\n" ++ vcat contents ++ "</ul>\n"
+        return $ "<HTML><ul></HTML>\n" ++ vcat contents ++ "<HTML></ul></HTML>\n"
      else do
         modify $ \s -> s { stIndent = stIndent s ++ "  " }
         contents <- mapM (listItemToDokuWiki opts) items
@@ -196,7 +196,7 @@ blockToDokuWiki opts x@(OrderedList attribs items) = do
         modify $ \s -> s { stUseTags = True }
         contents <- mapM (orderedListItemToDokuWiki opts) items
         modify $ \s -> s { stUseTags = oldUseTags }
-        return $ "<ol" ++ listAttribsToString attribs ++ ">\n" ++ vcat contents ++ "</ol>\n"
+        return $ "<HTML><ol" ++ listAttribsToString attribs ++ "></HTML>\n" ++ vcat contents ++ "<HTML></ol></HTML>\n"
      else do
         modify $ \s -> s { stIndent = stIndent s ++ "  " }
         contents <- mapM (orderedListItemToDokuWiki opts) items
@@ -215,7 +215,7 @@ blockToDokuWiki opts x@(DefinitionList items) = do
         modify $ \s -> s { stUseTags = True }
         contents <- mapM (definitionListItemToDokuWiki opts) items
         modify $ \s -> s { stUseTags = oldUseTags }
-        return $ "<dl>\n" ++ vcat contents ++ "</dl>\n"
+        return $ "<HTML><dl></HTML>\n" ++ vcat contents ++ "<HTML></dl></HTML>\n"
      else do
         modify $ \s -> s { stIndent = stIndent s ++ "  " }
         contents <- mapM (definitionListItemToDokuWiki opts) items
@@ -241,7 +241,7 @@ listItemToDokuWiki opts items = do
   contents <- blockListToDokuWiki opts items
   useTags <- get >>= return . stUseTags
   if useTags
-     then return $ "<li>" ++ contents ++ "</li>"
+     then return $ "<HTML><li></HTML>" ++ contents ++ "<HTML></li></HTML>"
      else do
        indent <- get >>= return . stIndent
        return $ indent ++ "* " ++ contents
@@ -253,7 +253,7 @@ orderedListItemToDokuWiki opts items = do
   contents <- blockListToDokuWiki opts items
   useTags <- get >>= return . stUseTags
   if useTags
-     then return $ "<li>" ++ contents ++ "</li>"
+     then return $ "<HTML><li></HTML>" ++ contents ++ "<HTML></li></HTML>"
      else do
        indent <- get >>= return . stIndent
        return $ indent ++ "- " ++ contents
@@ -267,8 +267,8 @@ definitionListItemToDokuWiki opts (label, items) = do
   contents <- mapM (blockListToDokuWiki opts) items
   useTags <- get >>= return . stUseTags
   if useTags
-     then return $ "<dt>" ++ labelText ++ "</dt>\n" ++
-           (intercalate "\n" $ map (\d -> "<dd>" ++ d ++ "</dd>") contents)
+     then return $ "<HTML><dt></HTML>" ++ labelText ++ "<HTML></dt></HTML>\n" ++
+           (intercalate "\n" $ map (\d -> "<HTML><dd></HTML>" ++ d ++ "<HTML></dd></HTML>") contents)
      else do
        indent <- get >>= return . stIndent
        return $ indent ++ "* **" ++ labelText ++ "** " ++ concat contents
@@ -277,10 +277,37 @@ definitionListItemToDokuWiki opts (label, items) = do
 isSimpleList :: Block -> Bool
 isSimpleList x =
   case x of
-       BulletList _                     -> True
-       OrderedList _ _                  -> True
-       DefinitionList _                 -> True
+       BulletList items                 -> all isSimpleListItem items
+       OrderedList (num, sty, _) items  -> all isSimpleListItem items &&
+                                            num == 1 && sty `elem` [DefaultStyle, Decimal]
+       DefinitionList items             -> all isSimpleListItem $ concatMap snd items
        _                                -> False
+
+-- | True if list item can be handled with the simple wiki syntax.  False if
+--   HTML tags will be needed.
+isSimpleListItem :: [Block] -> Bool
+isSimpleListItem []  = True
+isSimpleListItem [x] =
+  case x of
+       Plain _           -> True
+       Para  _           -> True
+       BulletList _      -> isSimpleList x
+       OrderedList _ _   -> isSimpleList x
+       DefinitionList _  -> isSimpleList x
+       _                 -> False
+isSimpleListItem [x, y] | isPlainOrPara x =
+  case y of
+       BulletList _      -> isSimpleList y
+       OrderedList _ _   -> isSimpleList y
+       DefinitionList _  -> isSimpleList y
+       _                 -> False
+isSimpleListItem _ = False
+
+isPlainOrPara :: Block -> Bool
+isPlainOrPara (Plain _) = True
+isPlainOrPara (Para  _) = True
+isPlainOrPara _         = False
+
 
 -- | Concatenates strings with line breaks between them.
 vcat :: [String] -> String
