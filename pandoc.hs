@@ -876,6 +876,7 @@ defaultReaderName fallback (x:xs) =
     ".native"   -> "native"
     ".json"     -> "json"
     ".docx"     -> "docx"
+    ".t2t"      -> "t2t"
     _           -> defaultReaderName fallback xs
 
 -- Returns True if extension of first source is .lhs
@@ -1181,7 +1182,7 @@ main = do
   let readFiles [] = error "Cannot read archive from stdin"
       readFiles (x:_) = B.readFile x
 
-  let convertTabs = tabFilter (if preserveTabs then 0 else tabStop)
+  let convertTabs = tabFilter (if (preserveTabs || readerName' == "t2t") then 0 else tabStop)
 
   let handleIncludes' = if readerName' == "latex" || readerName' == "latex+lhs"
                            then handleIncludes
