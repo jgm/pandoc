@@ -120,7 +120,9 @@ blockToDokuWiki opts (Para inlines) = do
 
 blockToDokuWiki _ (RawBlock f str)
   | f == Format "dokuwiki" = return str
-  | f == Format "html"     = return $ "<html>\n" ++ str ++ "</html>"
+  -- See https://www.dokuwiki.org/wiki:syntax
+  -- use uppercase HTML tag for block-level content:
+  | f == Format "html"     = return $ "<HTML>\n" ++ str ++ "\n</HTML>"
   | otherwise              = return ""
 
 blockToDokuWiki _ HorizontalRule = return "\n----\n"
@@ -404,7 +406,7 @@ inlineToDokuWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
 
 inlineToDokuWiki _ (RawInline f str)
   | f == Format "dokuwiki" = return str
-  | f == Format "html"     = return str
+  | f == Format "html"     = return $ "<html>" ++ str ++ "</html>"
   | otherwise              = return ""
 
 inlineToDokuWiki _ (LineBreak) = return "\\\\ "
