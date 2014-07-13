@@ -42,7 +42,7 @@ type WS a = State WriterState a
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{
-    blockStyles  = Set.empty 
+    blockStyles  = Set.empty
   , inlineStyles = Set.empty
   , links        = []
   , listDepth    = 1
@@ -267,7 +267,7 @@ hyperlinksToDoc (x:xs) = hyp x $$ hyperlinksToDoc xs
                   $ inTags False "BorderColor" [("type","enumeration")] (text "Black")
                   $$ (inTags False "Destination" [("type","object")]
                   $ text $ "HyperlinkURLDestination/"++(escapeStringForXML url))
-  
+
 
 -- | Convert a list of Pandoc blocks to ICML.
 blocksToICML :: WriterOptions -> Style -> [Block] -> WS Doc
@@ -352,7 +352,7 @@ listItemsToICML opts listType style attribs (first:rest) = do
 -- | Convert a list of blocks to ICML list items.
 listItemToICML :: WriterOptions -> Style -> Bool-> Maybe ListAttributes -> [Block] -> WS Doc
 listItemToICML opts style isFirst attribs item =
-  let makeNumbStart (Just (beginsWith, numbStl, _)) = 
+  let makeNumbStart (Just (beginsWith, numbStl, _)) =
         let doN DefaultStyle = []
             doN LowerRoman = [lowerRomanName]
             doN UpperRoman = [upperRomanName]
@@ -467,7 +467,7 @@ parStyle opts style lst =
 
 -- | Wrap a Doc in an ICML Character Style.
 charStyle :: Style -> Doc -> WS Doc
-charStyle style content = 
+charStyle style content =
   let (stlStr, attrs) = styleToStrAttr style
       doc = inTags True "CharacterStyleRange" attrs $ inTagsSimple "Content" $ flush content
   in  do

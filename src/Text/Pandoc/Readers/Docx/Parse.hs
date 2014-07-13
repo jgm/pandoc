@@ -106,7 +106,7 @@ type NameSpaces = [(String, String)]
 data Docx = Docx Document
           deriving Show
 
-data Document = Document NameSpaces Body 
+data Document = Document NameSpaces Body
           deriving Show
 
 data Body = Body [BodyPart]
@@ -276,7 +276,7 @@ defaultRunStyle = RunStyle { isBold = False
                            , isSubScript = False
                            , rUnderline = Nothing
                            , rStyle = Nothing
-                           } 
+                           }
 
 
 type Target = String
@@ -286,7 +286,7 @@ type BookMarkId = String
 type RelId = String
 type ChangeId = String
 type Author = String
-type ChangeDate = String               
+type ChangeDate = String
 
 attrToNSPair :: Attr -> Maybe (String, String)
 attrToNSPair (Attr (QName s _ (Just "xmlns")) val) = Just (s, val)
@@ -301,18 +301,18 @@ archiveToDocx archive = do
       rEnv = ReaderEnv notes numbering rels media
   doc <- runD (archiveToDocument archive) rEnv
   return $ Docx doc
-    
+
 
 archiveToDocument :: Archive -> D Document
 archiveToDocument zf = do
   entry <- maybeToD $ findEntryByPath "word/document.xml" zf
   docElem <- maybeToD $ (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
-  let namespaces = mapMaybe attrToNSPair (elAttribs docElem) 
+  let namespaces = mapMaybe attrToNSPair (elAttribs docElem)
   bodyElem <- maybeToD $ findChild (elemName namespaces "w" "body") docElem
   body <- elemToBody namespaces bodyElem
   return $ Document namespaces body
 
-elemToBody :: NameSpaces -> Element -> D Body 
+elemToBody :: NameSpaces -> Element -> D Body
 elemToBody ns element | isElem ns "w" "body" element =
   mapD (elemToBodyPart ns) (elChildren element) >>=
   (\bps -> return $ Body bps)
@@ -349,10 +349,10 @@ relElemToRelationship element | qName (elName element) == "Relationship" =
     target <- findAttr (QName "Target" Nothing Nothing) element
     return $ Relationship (relId, target)
 relElemToRelationship _ = Nothing
-  
+
 
 archiveToRelationships :: Archive -> [Relationship]
-archiveToRelationships archive = 
+archiveToRelationships archive =
   let relPaths = filter filePathIsRel (filesInArchive archive)
       entries  = mapMaybe (\f -> findEntryByPath f archive) relPaths
       relElems = mapMaybe (parseXMLDoc . UTF8.toStringLazy . fromEntry) entries
@@ -445,7 +445,7 @@ archiveToNumbering archive =
 
 elemToNotes :: NameSpaces -> String -> Element -> Maybe (M.Map String Element)
 elemToNotes ns notetype element
-  | isElem ns "w" (notetype ++ "s") element = 
+  | isElem ns "w" (notetype ++ "s") element =
       let pairs = mapMaybe
                   (\e -> findAttr (elemName ns "w" "id") e >>=
                          (\a -> Just (a, e)))
@@ -478,7 +478,7 @@ elemToTblLook :: NameSpaces -> Element -> D TblLook
 elemToTblLook ns element | isElem ns "w" "tblLook" element =
   let firstRow = findAttr (elemName ns "w" "firstRow") element
       val = findAttr (elemName ns "w" "val") element
-      firstRowFmt = 
+      firstRowFmt =
         case firstRow of
           Just "1" -> True
           Just  _  -> False
@@ -505,15 +505,15 @@ elemToCell ns element | isElem ns "w" "tc" element =
 elemToCell _ _ = throwError WrongElem
 
 elemToParIndentation :: NameSpaces -> Element -> Maybe ParIndentation
-elemToParIndentation ns element | isElem ns "w" "ind" element = 
+elemToParIndentation ns element | isElem ns "w" "ind" element =
   Just $ ParIndentation {
     leftParIndent =
        findAttr (QName "left" (lookup "w" ns) (Just "w")) element >>=
        stringToInteger
-    , rightParIndent = 
+    , rightParIndent =
       findAttr (QName "right" (lookup "w" ns) (Just "w")) element >>=
       stringToInteger
-    , hangingParIndent = 
+    , hangingParIndent =
       findAttr (QName "hanging" (lookup "w" ns) (Just "w")) element >>=
       stringToInteger}
 elemToParIndentation _ _ = Nothing
@@ -558,7 +558,7 @@ elemToBodyPart ns element
     case lookupLevel numId lvl num of
       Just levelInfo -> return $ ListItem parstyle numId lvl levelInfo parparts
       Nothing         -> throwError WrongElem
-elemToBodyPart ns element 
+elemToBodyPart ns element
   | isElem ns "w" "p" element = do
     let parstyle = elemToParagraphStyle ns element
     parparts <- mapD (elemToParPart ns) (elChildren element)
@@ -667,15 +667,15 @@ elemToMathElem ns element | isElem ns "m" "bar" element = do
   base <-maybeToD (findChild (QName "e" (lookup "m" ns) (Just "m")) element) >>=
          elemToBase ns
   return $ Bar barPr base
-elemToMathElem ns element | isElem ns "m" "box" element = 
+elemToMathElem ns element | isElem ns "m" "box" element =
   maybeToD (findChild (elemName ns "m" "e") element) >>=
   elemToBase ns >>=
   (\b -> return $ Box b)
-elemToMathElem ns element | isElem ns "m" "borderBox" element = 
+elemToMathElem ns element | isElem ns "m" "borderBox" element =
   maybeToD (findChild (elemName ns "m" "e") element) >>=
   elemToBase ns >>=
   (\b -> return $ BorderBox b)
-elemToMathElem ns element | isElem ns "m" "d" element = 
+elemToMathElem ns element | isElem ns "m" "d" element =
   let style = elemToDelimStyle ns element
   in
    mapD (elemToBase ns) (elChildren element) >>=
@@ -684,8 +684,8 @@ elemToMathElem ns element | isElem ns "m" "eqArr" element =
   mapD (elemToBase ns) (elChildren element) >>=
   (\es -> return $ EquationArray es)
 elemToMathElem ns element | isElem ns "m" "f" element = do
-  num <- maybeToD $ findChild (elemName ns "m" "num") element 
-  den <- maybeToD $ findChild (elemName ns "m" "den") element 
+  num <- maybeToD $ findChild (elemName ns "m" "num") element
+  den <- maybeToD $ findChild (elemName ns "m" "den") element
   numElems <- mapD (elemToMathElem ns) (elChildren num)
   denElems <- mapD (elemToMathElem ns) (elChildren den)
   return $ Fraction numElems denElems
@@ -695,7 +695,7 @@ elemToMathElem ns element | isElem ns "m" "func" element = do
           elemToBase ns
   fnElems <- mapD (elemToMathElem ns) (elChildren fName)
   return $ Function fnElems base
-elemToMathElem ns element | isElem ns "m" "groupChr" element = 
+elemToMathElem ns element | isElem ns "m" "groupChr" element =
   let style = elemToGroupStyle ns element
   in
    maybeToD (findChild (elemName ns "m" "e") element) >>=
@@ -920,11 +920,11 @@ elemToRunElems ns element
 elemToRunElems _ _ = throwError WrongElem
 
 
-     
-    
 
 
 
 
-  
-  
+
+
+
+

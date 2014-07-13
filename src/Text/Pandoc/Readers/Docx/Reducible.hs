@@ -90,7 +90,7 @@ combineReducibles r s =
        True -> case (not . null) rs && isSpace (last rs) of
          True -> rebuild conts (init rs) ++ [last rs, s]
          False -> [r,s]
-       False -> rebuild 
+       False -> rebuild
                 shared $
                 reduceList $
                 (rebuild remaining rs) ++ (rebuild remaining' ss)
@@ -145,7 +145,7 @@ instance Reducible Inline where
   isSpace _     = False
 
 instance Reducible Block where
-  (Div (ident, classes, kvs) blks) <++> blk | "list-item" `elem` classes = 
+  (Div (ident, classes, kvs) blks) <++> blk | "list-item" `elem` classes =
     [Div (ident, classes, kvs) (reduceList blks), blk]
 
   blk <++> blk' = combineReducibles blk blk'
@@ -177,5 +177,5 @@ rebuild :: [Container a] -> [a] -> [a]
 rebuild [] xs = xs
 rebuild ((Container f) : cs) xs = rebuild cs $ [f xs]
 rebuild (NullContainer : cs) xs = rebuild cs $ xs
-  
-  
+
+

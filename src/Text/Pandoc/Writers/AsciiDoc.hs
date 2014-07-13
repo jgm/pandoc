@@ -142,10 +142,10 @@ blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
   let len = offset contents
   -- ident seem to be empty most of the time and asciidoc will generate them automatically
   -- so lets make them not show up when null
-  let identifier = if (null ident) then empty else ("[[" <> text ident <> "]]") 
+  let identifier = if (null ident) then empty else ("[[" <> text ident <> "]]")
   let setext = writerSetextHeaders opts
-  return $ 
-         (if setext 
+  return $
+         (if setext
             then
               identifier $$ contents $$
               (case level of
@@ -155,7 +155,7 @@ blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
                4  -> text $ replicate len '+'
                _  -> empty) <> blankline
             else
-              identifier $$ text (replicate level '=') <> space <> contents <> blankline) 
+              identifier $$ text (replicate level '=') <> space <> contents <> blankline)
 blockToAsciiDoc _ (CodeBlock (_,classes,_) str) = return $
   flush (attrs <> dashes <> space <> attrs <> cr <> text str <>
            cr <> dashes) <> blankline

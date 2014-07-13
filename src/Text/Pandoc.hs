@@ -303,7 +303,7 @@ getReader :: String -> Either String Reader
 getReader s =
   case parseFormatSpec s of
        Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
-       Right (readerName, setExts) -> 
+       Right (readerName, setExts) ->
            case lookup readerName readers of
                    Nothing  -> Left $ "Unknown reader: " ++ readerName
                    Just  (StringReader r)  -> Right $ StringReader $ \o ->

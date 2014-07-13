@@ -150,7 +150,7 @@ runStyleToContainers rPr =
       classContainers = case rStyle rPr of
         Nothing -> []
         Just s  -> spanClassToContainers s
-      
+
       formatters = map Container $ mapMaybe id
                    [ if isBold rPr then (Just Strong) else Nothing
                    , if isItalic rPr then (Just Emph) else Nothing
@@ -188,7 +188,7 @@ parStyleToContainers pPr | (c:cs) <- pStyle pPr, c `elem` blockQuoteDivs =
 parStyleToContainers pPr | (_:cs) <- pStyle pPr =
   let pPr' = pPr { pStyle = cs}
   in
-    parStyleToContainers pPr'                                 
+    parStyleToContainers pPr'
 parStyleToContainers pPr | null (pStyle pPr),
                           Just left <- indentation pPr >>= leftParIndent,
                           Just hang <- indentation pPr >>= hangingParIndent =
@@ -205,7 +205,7 @@ parStyleToContainers pPr | null (pStyle pPr),
      True -> (Container BlockQuote) : (parStyleToContainers pPr')
      False -> parStyleToContainers pPr'
 parStyleToContainers _ = []
-  
+
 
 strToInlines :: String -> [Inline]
 strToInlines = toList . text
@@ -258,9 +258,9 @@ runToInlines (Run rs runElems)
   | otherwise =
       return $
       rebuild (runStyleToContainers rs) (concatMap runElemToInlines runElems)
-runToInlines (Footnote bps) = 
+runToInlines (Footnote bps) =
   concatMapM bodyPartToBlocks bps >>= (\blks -> return [Note blks])
-runToInlines (Endnote bps) = 
+runToInlines (Endnote bps) =
   concatMapM bodyPartToBlocks bps >>= (\blks -> return [Note blks])
 
 makeDataUrl :: String -> B.ByteString -> Maybe String
@@ -343,7 +343,7 @@ oMathElemToTexString (Bar style base) = do
     Top    -> printf "\\overline{%s}" baseString
     Bottom -> printf "\\underline{%s}" baseString
 oMathElemToTexString (Box base) = baseToTexString base
-oMathElemToTexString (BorderBox base) = 
+oMathElemToTexString (BorderBox base) =
   baseToTexString base >>= (\s -> return $ printf "\\boxed{%s}" s)
 oMathElemToTexString (Delimiter dPr bases) = do
   let beg = fromMaybe '(' (delimBegChar dPr)
@@ -474,7 +474,7 @@ oMathElemToTexString (OMathRun _ run) = return $ stringToTex $ runToString run
 baseToTexString :: Base -> DocxContext String
 baseToTexString (Base mathElems) =
   concatMapM oMathElemToTexString mathElems
-  
+
 
 isAnchorSpan :: Inline -> Bool
 isAnchorSpan (Span (ident, classes, kvs) ils) =
@@ -535,7 +535,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
     let
       otherConts = filter (not . isBlockCodeContainer) (parStyleToContainers pPr)
     in
-     return $ 
+     return $
      rebuild
      otherConts
      [CodeBlock ("", [], []) (concatMap parPartToString parparts)]
@@ -582,7 +582,7 @@ bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
   hdrCells <- case hdr of
     Just r' -> rowToBlocksList r'
     Nothing -> return []
-        
+
   cells <- mapM rowToBlocksList rows
 
   let size = case null hdrCells of

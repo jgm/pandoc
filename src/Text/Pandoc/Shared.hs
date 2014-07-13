@@ -335,10 +335,10 @@ isSpaceOrEmpty (Str "") = True
 isSpaceOrEmpty _ = False
 
 -- | Extract the leading and trailing spaces from inside an inline element
--- and place them outside the element. 
+-- and place them outside the element.
 
 extractSpaces :: (Inlines -> Inlines) -> Inlines -> Inlines
-extractSpaces f is = 
+extractSpaces f is =
   let contents = B.unMany is
       left  = case viewl contents of
                     (Space :< _) -> B.space

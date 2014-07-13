@@ -174,7 +174,7 @@ blockToRST (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   let alt = ":alt: " <> if null tit then capt else text tit
   return $ hang 3 ".. " $ fig $$ alt $+$ capt $$ blankline
 blockToRST (Para inlines)
-  | LineBreak `elem` inlines = do -- use line block if LineBreaks 
+  | LineBreak `elem` inlines = do -- use line block if LineBreaks
       lns <- mapM inlineListToRST $ splitBy (==LineBreak) inlines
       return $ (vcat $ map (text "| " <>) lns) <> blankline
   | otherwise = do

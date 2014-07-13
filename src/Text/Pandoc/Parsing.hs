@@ -1,4 +1,4 @@
-{-# LANGUAGE 
+{-# LANGUAGE
   FlexibleContexts
 , GeneralizedNewtypeDeriving
 , TypeSynonymInstances
@@ -100,7 +100,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              macro,
                              applyMacros',
                              Parser,
-                             ParserT, 
+                             ParserT,
                              F(..),
                              runF,
                              askF,
@@ -222,7 +222,7 @@ anyLine = do
        _ -> mzero
 
 -- | Like @manyTill@, but reads at least one item.
-many1Till :: Stream s m t 
+many1Till :: Stream s m t
           => ParserT s st m a
           -> ParserT s st m end
           -> ParserT s st m [a]
@@ -501,7 +501,7 @@ mathInline =
 -- displacement (the difference between the source column at the end
 -- and the source column at the beginning). Vertical displacement
 -- (source row) is ignored.
-withHorizDisplacement :: Stream s m Char 
+withHorizDisplacement :: Stream s m Char
                       => ParserT s st m a  -- ^ Parser to apply
                       -> ParserT s st m (a, Int) -- ^ (result, displacement)
 withHorizDisplacement parser = do
@@ -528,7 +528,7 @@ withRaw parser = do
   return (result, raw)
 
 -- | Parses backslash, then applies character parser.
-escaped :: Stream s m Char 
+escaped :: Stream s m Char
         => ParserT s st m Char  -- ^ Parser for character to escape
         -> ParserT s st m Char
 escaped parser = try $ char '\\' >> parser
@@ -564,7 +564,7 @@ decimal = do
 -- returns (DefaultStyle, [next example number]).  The next
 -- example number is incremented in parser state, and the label
 -- (if present) is added to the label table.
-exampleNum :: Stream s m Char 
+exampleNum :: Stream s m Char
            => ParserT s ParserState m (ListNumberStyle, Int)
 exampleNum = do
   char '@'
@@ -609,7 +609,7 @@ anyOrderedListMarker = choice $
                            lowerAlpha, lowerRoman, upperAlpha, upperRoman]]
 
 -- | Parses a list number (num) followed by a period, returns list attributes.
-inPeriod :: Stream s m Char 
+inPeriod :: Stream s m Char
          => ParserT s st m (ListNumberStyle, Int)
          -> ParserT s st m ListAttributes
 inPeriod num = try $ do
@@ -621,7 +621,7 @@ inPeriod num = try $ do
   return (start, style, delim)
 
 -- | Parses a list number (num) followed by a paren, returns list attributes.
-inOneParen :: Stream s m Char 
+inOneParen :: Stream s m Char
            => ParserT s st m (ListNumberStyle, Int)
            -> ParserT s st m ListAttributes
 inOneParen num = try $ do
@@ -630,7 +630,7 @@ inOneParen num = try $ do
   return (start, style, OneParen)
 
 -- | Parses a list number (num) enclosed in parens, returns list attributes.
-inTwoParens :: Stream s m Char 
+inTwoParens :: Stream s m Char
             => ParserT s st m (ListNumberStyle, Int)
             -> ParserT s st m ListAttributes
 inTwoParens num = try $ do
@@ -641,7 +641,7 @@ inTwoParens num = try $ do
 
 -- | Parses an ordered list marker with a given style and delimiter,
 -- returns number.
-orderedListMarker :: Stream s m Char 
+orderedListMarker :: Stream s m Char
                   => ListNumberStyle
                   -> ListNumberDelim
                   -> ParserT s ParserState m Int
@@ -688,7 +688,7 @@ lineBlockLines = try $ do
 
 -- | Parse a table using 'headerParser', 'rowParser',
 -- 'lineParser', and 'footerParser'.
-tableWith :: Stream s m Char 
+tableWith :: Stream s m Char
           => ParserT s ParserState m ([[Block]], [Alignment], [Int])
           -> ([Int] -> ParserT s ParserState m [[Block]])
           -> ParserT s ParserState m sep
@@ -735,7 +735,7 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: Stream [Char] m Char 
+gridTableWith :: Stream [Char] m Char
               => ParserT [Char] ParserState m [Block]   -- ^ Block list parser
               -> Bool                                -- ^ Headerless table
               -> ParserT [Char] ParserState m Block
@@ -765,7 +765,7 @@ gridTableSep :: Stream s m Char => Char -> ParserT s ParserState m Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
-gridTableHeader :: Stream [Char] m Char 
+gridTableHeader :: Stream [Char] m Char
                 => Bool -- ^ Headerless table
                 -> ParserT [Char] ParserState m [Block]
                 -> ParserT [Char] ParserState m ([[Block]], [Alignment], [Int])
@@ -798,7 +798,7 @@ gridTableRawLine indices = do
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: Stream [Char]  m Char 
+gridTableRow :: Stream [Char]  m Char
              => ParserT [Char] ParserState m [Block]
              -> [Int]
              -> ParserT [Char] ParserState m [[Block]]
@@ -826,7 +826,7 @@ gridTableFooter = blanklines
 ---
 
 -- | Parse a string with a given parser and state.
-readWith :: (Show s, Stream s Identity Char) 
+readWith :: (Show s, Stream s Identity Char)
          => ParserT s st Identity a       -- ^ parser
          -> st                       -- ^ initial state
          -> s                   -- ^ input
@@ -844,7 +844,7 @@ readWith parser state input =
       Right result -> result
 
 -- | Parse a string with @parser@ (for testing).
-testStringWith :: (Show s, Show a, Stream s Identity Char) 
+testStringWith :: (Show s, Show a, Stream s Identity Char)
                => ParserT s ParserState Identity a
                -> s
                -> IO ()
@@ -1038,7 +1038,7 @@ registerHeader (ident,classes,kvs) header' = do
 failUnlessSmart :: (Stream s m a, HasReaderOptions st) => ParserT s st m ()
 failUnlessSmart = getOption readerSmart >>= guard
 
-smartPunctuation :: Stream s m Char 
+smartPunctuation :: Stream s m Char
                  => ParserT s ParserState m Inlines
                  -> ParserT s ParserState m Inlines
 smartPunctuation inlineParser = do
@@ -1048,12 +1048,12 @@ smartPunctuation inlineParser = do
 apostrophe :: Stream s m Char => ParserT s st m Inlines
 apostrophe = (char '\'' <|> char '\8217') >> return (B.str "\x2019")
 
-quoted :: Stream s m Char 
+quoted :: Stream s m Char
        => ParserT s  ParserState m Inlines
        -> ParserT s  ParserState m Inlines
 quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
 
-withQuoteContext :: Stream s m t 
+withQuoteContext :: Stream s m t
                  => QuoteContext
                  -> ParserT s ParserState m a
                  -> ParserT s ParserState m a
@@ -1066,7 +1066,7 @@ withQuoteContext context parser = do
   setState newState { stateQuoteContext = oldQuoteContext }
   return result
 
-singleQuoted :: Stream s m Char 
+singleQuoted :: Stream s m Char
              => ParserT s ParserState m Inlines
              -> ParserT s ParserState m Inlines
 singleQuoted inlineParser = try $ do
@@ -1074,7 +1074,7 @@ singleQuoted inlineParser = try $ do
   withQuoteContext InSingleQuote $ many1Till inlineParser singleQuoteEnd >>=
     return . B.singleQuoted . mconcat
 
-doubleQuoted :: Stream s m Char 
+doubleQuoted :: Stream s m Char
              => ParserT s ParserState m Inlines
              -> ParserT s ParserState m Inlines
 doubleQuoted inlineParser = try $ do
@@ -1082,8 +1082,8 @@ doubleQuoted inlineParser = try $ do
   withQuoteContext InDoubleQuote $ manyTill inlineParser doubleQuoteEnd >>=
     return . B.doubleQuoted . mconcat
 
-failIfInQuoteContext :: Stream s m t 
-                     => QuoteContext 
+failIfInQuoteContext :: Stream s m t
+                     => QuoteContext
                      -> ParserT s ParserState m ()
 failIfInQuoteContext context = do
   st <- getState
@@ -1097,7 +1097,7 @@ charOrRef cs =
                        guard (c `elem` cs)
                        return c)
 
-singleQuoteStart :: Stream s m Char 
+singleQuoteStart :: Stream s m Char
                  => ParserT s ParserState m ()
 singleQuoteStart = do
   failIfInQuoteContext InSingleQuote
@@ -1105,24 +1105,24 @@ singleQuoteStart = do
   guard =<< notAfterString
   () <$ charOrRef "'\8216\145"
 
-singleQuoteEnd :: Stream s m Char 
+singleQuoteEnd :: Stream s m Char
                => ParserT s st m ()
 singleQuoteEnd = try $ do
   charOrRef "'\8217\146"
   notFollowedBy alphaNum
 
-doubleQuoteStart :: Stream s m Char 
+doubleQuoteStart :: Stream s m Char
                  => ParserT s ParserState m ()
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
   try $ do charOrRef "\"\8220\147"
            notFollowedBy . satisfy $ flip elem [' ', '\t', '\n']
 
-doubleQuoteEnd :: Stream s m Char 
+doubleQuoteEnd :: Stream s m Char
                => ParserT s st m ()
 doubleQuoteEnd = void (charOrRef "\"\8221\148")
 
-ellipses :: Stream s m Char 
+ellipses :: Stream s m Char
          => ParserT s st m Inlines
 ellipses = do
   try (charOrRef "\8230\133") <|> try (string "..." >> return '…')
@@ -1136,32 +1136,32 @@ dash = do
      else B.str <$> (hyphenDash <|> emDash <|> enDash)
 
 -- Two hyphens = en-dash, three = em-dash
-hyphenDash :: Stream s m Char 
+hyphenDash :: Stream s m Char
            => ParserT s st m String
 hyphenDash = do
   try $ string "--"
   option "\8211" (char '-' >> return "\8212")
 
-emDash :: Stream s m Char 
+emDash :: Stream s m Char
        => ParserT s st m String
 emDash = do
   try (charOrRef "\8212\151")
   return "\8212"
 
-enDash :: Stream s m Char 
+enDash :: Stream s m Char
        => ParserT s st m String
 enDash = do
   try (charOrRef "\8212\151")
   return "\8211"
 
-enDashOld :: Stream s m Char 
+enDashOld :: Stream s m Char
           => ParserT s st m Inlines
 enDashOld = do
   try (charOrRef "\8211\150") <|>
     try (char '-' >> lookAhead (satisfy isDigit) >> return '–')
   return (B.str "\8211")
 
-emDashOld :: Stream s m Char 
+emDashOld :: Stream s m Char
           => ParserT s st m Inlines
 emDashOld = do
   try (charOrRef "\8212\151") <|> (try $ string "--" >> optional (char '-') >> return '-')
@@ -1169,7 +1169,7 @@ emDashOld = do
 
 -- This is used to prevent exponential blowups for things like:
 -- a**a*a**a*a**a*a**a*a**a*a**a*a**
-nested :: Stream s m a 
+nested :: Stream s m a
        => ParserT s ParserState m a
        -> ParserT s ParserState m a
 nested p = do
@@ -1198,7 +1198,7 @@ citeKey = try $ do
 --
 
 -- | Parse a \newcommand or \renewcommand macro definition.
-macro :: (Stream [Char] m Char, HasMacros st, HasReaderOptions st) 
+macro :: (Stream [Char] m Char, HasMacros st, HasReaderOptions st)
       => ParserT [Char] st m Blocks
 macro = do
   apply <- getOption readerApplyMacros
@@ -1214,8 +1214,8 @@ macro = do
                            else return $ rawBlock "latex" def'
 
 -- | Apply current macros to string.
-applyMacros' :: Stream [Char] m Char 
-             => String 
+applyMacros' :: Stream [Char] m Char
+             => String
              -> ParserT [Char] ParserState m String
 applyMacros' target = do
   apply <- getOption readerApplyMacros
