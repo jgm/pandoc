@@ -39,6 +39,7 @@ import Data.List ( isSuffixOf, intercalate )
 import Data.Char ( ord, chr, isDigit, toLower )
 import System.FilePath ( takeExtension )
 import qualified Data.ByteString as B
+import qualified Data.Map as M
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
 import qualified Control.Exception as E
@@ -74,12 +75,19 @@ writeRTFWithEmbeddedImages options doc =
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String
-writeRTF options (Pandoc meta blocks) =
+writeRTF options (Pandoc meta@(Meta metamap) blocks) =
   let spacer = not $ all null $ docTitle meta : docDate meta : docAuthors meta
+      toPlain (MetaBlocks [Para ils]) = MetaInlines ils
+      toPlain x = x
+      -- adjust title, author, date so we don't get para inside para
+      meta'  = Meta $ M.adjust toPlain "title"
+                    . M.adjust toPlain "author"
+                    . M.adjust toPlain "date"
+                    $ metamap
       Just metadata = metaToJSON options
               (Just . concatMap (blockToRTF 0 AlignDefault))
               (Just . inlineListToRTF)
-              meta
+              meta'
       body = concatMap (blockToRTF 0 AlignDefault) blocks
       isTOCHeader (Header lev _ _) = lev <= writerTOCDepth options
       isTOCHeader _ = False
