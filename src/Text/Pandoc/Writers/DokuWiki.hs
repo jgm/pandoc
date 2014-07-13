@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Copyright   : Copyright (C) 2008-2014 John MacFarlane
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : John MacFarlane <jgm@berkeley.edu>
+   Maintainer  : Clare Macrae <clare.macrae@googlemail.com>
    Stability   : alpha
    Portability : portable
 
@@ -126,7 +126,9 @@ blockToDokuWiki _ (RawBlock f str)
 blockToDokuWiki _ HorizontalRule = return "\n----\n"
 
 blockToDokuWiki opts (Header level _ inlines) = do
-  contents <- inlineListToDokuWiki opts inlines
+  -- emphasis, links etc. not allowed in headers, apparently,
+  -- so we remove formatting:
+  contents <- inlineListToDokuWiki opts $ removeFormatting inlines
   let eqs = replicate ( 7 - level ) '='
   return $ eqs ++ " " ++ contents ++ " " ++ eqs ++ "\n"
 
