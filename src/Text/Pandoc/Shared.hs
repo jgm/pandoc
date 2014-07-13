@@ -57,6 +57,7 @@ module Text.Pandoc.Shared (
                      normalize,
                      normalizeInlines,
                      normalizeBlocks,
+                     removeFormatting,
                      stringify,
                      compactify,
                      compactify',
@@ -492,6 +493,19 @@ normalizeInlines (Cite cs ils : ys) =
   Cite cs (normalizeInlines ils) : normalizeInlines ys
 normalizeInlines (x : xs) = x : normalizeInlines xs
 normalizeInlines [] = []
+
+-- | Remove inline formatting from a list of inlines.
+removeFormatting :: [Inline] -> [Inline]
+removeFormatting = query go . walk deNote
+  where go :: Inline -> [Inline]
+        go (Str xs)     = [Str xs]
+        go Space        = [Space]
+        go (Code _ x)   = [Str x]
+        go (Math _ x)   = [Str x]
+        go LineBreak    = [Space]
+        go _            = []
+        deNote (Note _) = Str ""
+        deNote x        = x
 
 -- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link
