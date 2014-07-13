@@ -494,7 +494,7 @@ normalizeInlines (Cite cs ils : ys) =
 normalizeInlines (x : xs) = x : normalizeInlines xs
 normalizeInlines [] = []
 
--- | Remove inline formatting from a list of inlines.
+-- | Extract inlines, removing formatting.
 removeFormatting :: Walkable Inline a => a -> [Inline]
 removeFormatting = query go . walk deNote
   where go :: Inline -> [Inline]
