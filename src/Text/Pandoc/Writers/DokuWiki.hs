@@ -419,6 +419,8 @@ inlineToDokuWiki opts (Link txt (src, _)) = do
   label <- inlineListToDokuWiki opts txt
   case txt of
      [Str s] | escapeURI s == src -> return src
+             | "mailto:" ++ escapeURI s == src -> return $
+                   "<" ++ s ++ ">"
      _  -> if isURI src
               then return $ "[[" ++ src ++ "|" ++ label ++ "]]"
               else return $ "[[" ++ src' ++ "|" ++ label ++ "]]"
