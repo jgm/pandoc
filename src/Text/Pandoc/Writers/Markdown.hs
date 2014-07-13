@@ -696,7 +696,14 @@ inlineToMarkdown opts (Subscript lst) = do
   return $ if isEnabled Ext_subscript opts
               then "~" <> contents <> "~"
               else "<sub>" <> contents <> "</sub>"
-inlineToMarkdown opts (SmallCaps lst) = inlineListToMarkdown opts lst
+inlineToMarkdown opts (SmallCaps lst) = do
+  contents <- inlineListToMarkdown opts lst
+  st <- get
+  return $ if stPlain st
+              then contents
+              else tagWithAttrs "span"
+                     ("",[],[("style","font-variant:small-caps;")])
+                     <> contents <> text "</span>"
 inlineToMarkdown opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "‘" <> contents <> "’"
