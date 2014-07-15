@@ -188,6 +188,8 @@ Extra-Source-Files:
                  tests/fb2.math.fb2,
                  tests/fb2.test-small.png,
                  tests/fb2.test.jpg,
+                 tests/docx.already_auto_ident.native,
+                 tests/docx.already_auto_ident.docx,
                  tests/docx.block_quotes.docx,
                  tests/docx.block_quotes_parse_indent.native,
                  tests/docx.headers.docx,
