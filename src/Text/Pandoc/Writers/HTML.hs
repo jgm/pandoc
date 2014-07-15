@@ -725,10 +725,6 @@ inlineToHtml opts inline =
                                _             -> return mempty
       | f == Format "html" -> return $ preEscapedString str
       | otherwise          -> return mempty
-    (Link [Str str] (s,_)) | "mailto:" `isPrefixOf` s &&
-                             s == escapeURI ("mailto" ++ str) ->
-                        -- autolink
-                        return $ obfuscateLink opts str s
     (Link txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
                         return $ obfuscateLink opts (renderHtml linkText) s
