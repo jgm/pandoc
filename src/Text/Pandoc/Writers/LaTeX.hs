@@ -757,10 +757,17 @@ inlineToLaTeX (Link txt ('#':ident, _)) = do
   return $ text "\\hyperref" <> brackets (text lab) <> braces contents
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
-        [Str x] | x == src ->  -- autolink
+        [Str x] | escapeURI x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
-                src' <- stringToLaTeX URLString x
+                src' <- stringToLaTeX URLString src
                 return $ text $ "\\url{" ++ src' ++ "}"
+        [Str x] | "mailto:" `isPrefixOf` src &&
+                  escapeURI x == drop 7 src -> -- email autolink
+             do modify $ \s -> s{ stUrl = True }
+                src' <- stringToLaTeX URLString src
+                contents <- inlineListToLaTeX txt
+                return $ "\\href" <> braces (text src') <>
+                   braces ("\\nolinkurl" <> braces contents)
         _ -> do contents <- inlineListToLaTeX txt
                 src' <- stringToLaTeX URLString src
                 return $ text ("\\href{" ++ src' ++ "}{") <>
