@@ -333,7 +333,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                        if epub3
                           then MathML Nothing
                           else writerHTMLMathMethod opts
-                  , writerWrapText = False }
+                  , writerWrapText = True }
   metadata <- getEPUBMetadata opts' meta
 
   -- cover page
