@@ -886,6 +886,66 @@ tests =
                                , "       (+ 23 42))" ]
            in codeBlockWith ("", classes, params) code'
 
+      , "Source block with results and :exports both" =:
+           unlines [ "#+BEGIN_SRC emacs-lisp :exports both"
+                   , "(progn (message \"Hello, World!\")"
+                   , "       (+ 23 42))"
+                   , "#+END_SRC"
+                   , ""
+                   , "#+RESULTS:"
+                   , ": 65"] =?>
+           let classes = [ "commonlisp"  -- as kate doesn't know emacs-lisp syntax
+                         , "rundoc-block"
+                         ]
+               params = [ ("rundoc-language", "emacs-lisp")
+                        , ("rundoc-exports", "both")
+                        ]
+               code' = unlines [ "(progn (message \"Hello, World!\")"
+                               , "       (+ 23 42))" ]
+               results' = "65\n"
+           in codeBlockWith ("", classes, params) code'
+              <>
+              codeBlockWith ("", ["example"], []) results'
+
+      , "Source block with results and :exports code" =:
+           unlines [ "#+BEGIN_SRC emacs-lisp :exports code"
+                   , "(progn (message \"Hello, World!\")"
+                   , "       (+ 23 42))"
+                   , "#+END_SRC"
+                   , ""
+                   , "#+RESULTS:"
+                   , ": 65" ] =?>
+           let classes = [ "commonlisp"  -- as kate doesn't know emacs-lisp syntax
+                         , "rundoc-block"
+                         ]
+               params = [ ("rundoc-language", "emacs-lisp")
+                        , ("rundoc-exports", "code")
+                        ]
+               code' = unlines [ "(progn (message \"Hello, World!\")"
+                               , "       (+ 23 42))" ]
+           in codeBlockWith ("", classes, params) code'
+
+      , "Source block with results and :exports results" =:
+           unlines [ "#+BEGIN_SRC emacs-lisp :exports results"
+                   , "(progn (message \"Hello, World!\")"
+                   , "       (+ 23 42))"
+                   , "#+END_SRC"
+                   , ""
+                   , "#+RESULTS:"
+                   , ": 65" ] =?>
+           let results' = "65\n"
+           in codeBlockWith ("", ["example"], []) results'
+
+      , "Source block with results and :exports none" =:
+           unlines [ "#+BEGIN_SRC emacs-lisp :exports none"
+                   , "(progn (message \"Hello, World!\")"
+                   , "       (+ 23 42))"
+                   , "#+END_SRC"
+                   , ""
+                   , "#+RESULTS:"
+                   , ": 65" ] =?>
+           rawBlock "html" ""   
+
       , "Example block" =:
            unlines [ "#+begin_example"
                    , "A chosen representation of"
