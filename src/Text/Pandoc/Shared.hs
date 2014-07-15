@@ -772,7 +772,7 @@ fetchItem sourceURL s
           let mime = case takeExtension s of
                           ".gz" -> getMimeType $ dropExtension s
                           x     -> getMimeType x
-          cont <- BS.readFile s
+          cont <- BS.readFile $ unEscapeString s
           return (cont, mime)
 
 -- | Read from a URL and return raw data and maybe mime type.
