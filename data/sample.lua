@@ -181,8 +181,13 @@ function Span(s, attr)
   return "<span" .. attributes(attr) .. ">" .. s .. "</span>"
 end
 
-function Cite(s)
-  return "<span class=\"cite\">" .. s .. "</span>"
+function Cite(s, cs)
+  local ids = {}
+  for _,cit in ipairs(cs) do
+    table.insert(ids, cit.citationId)
+  end
+  return "<span class=\"cite\" data-citation-ids=\"" .. table.concat(ids, ",") ..
+    "\">" .. s .. "</span>"
 end
 
 function Plain(s)

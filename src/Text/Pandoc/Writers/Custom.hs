@@ -1,4 +1,5 @@
-{-# LANGUAGE OverlappingInstances, FlexibleInstances, OverloadedStrings #-}
+{-# LANGUAGE OverlappingInstances, FlexibleInstances, OverloadedStrings,
+    ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -128,6 +129,20 @@ instance StackValue MetaValue where
   valuetype (MetaInlines _) = Lua.TSTRING
   valuetype (MetaBlocks _) = Lua.TSTRING
 
+instance StackValue Citation where
+  push lua cit = do
+    Lua.createtable lua 6 0
+    let addValue ((k :: String), v) = Lua.push lua k >> Lua.push lua v >>
+                          Lua.rawset lua (-3)
+    addValue ("citationId", citationId cit)
+    addValue ("citationPrefix", citationPrefix cit)
+    addValue ("citationSuffix", citationSuffix cit)
+    addValue ("citationMode", show (citationMode cit))
+    addValue ("citationNoteNum", citationNoteNum cit)
+    addValue ("citationHash", citationHash cit)
+  peek = undefined
+  valuetype _ = Lua.TTABLE
+
 -- | Convert Pandoc to custom markup.
 writeCustom :: FilePath -> WriterOptions -> Pandoc -> IO String
 writeCustom luaFile opts doc = do
@@ -225,7 +240,7 @@ inlineToCustom lua (Quoted SingleQuote lst) = callfunc lua "SingleQuoted" lst
 
 inlineToCustom lua (Quoted DoubleQuote lst) = callfunc lua "DoubleQuoted" lst
 
-inlineToCustom lua (Cite _  lst) = callfunc lua "Cite" lst
+inlineToCustom lua (Cite cs lst) = callfunc lua "Cite" lst cs
 
 inlineToCustom lua (Code attr str) =
   callfunc lua "Code" (fromString str) (attrToMap attr)
