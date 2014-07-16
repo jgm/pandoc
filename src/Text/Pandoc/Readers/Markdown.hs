@@ -353,8 +353,7 @@ referenceKey = try $ do
                     notFollowedBy' referenceTitle
                     notFollowedBy' (() <$ reference)
                     many1 $ notFollowedBy space >> litChar
-  let betweenAngles = try $ char '<' >>
-                       manyTill (escapedChar' <|> litChar) (char '>')
+  let betweenAngles = try $ char '<' >> manyTill litChar (char '>')
   src <- try betweenAngles <|> sourceURL
   tit <- option "" referenceTitle
   -- currently we just ignore MMD-style link/image attributes
