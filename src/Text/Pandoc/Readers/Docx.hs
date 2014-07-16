@@ -105,6 +105,7 @@ readDocx opts bytes =
     Left _   -> error $ "couldn't parse docx file"
 
 data DState = DState { docxAnchorMap :: M.Map String String
+                     , docxInHeaderBlock :: Bool
                      , docxInTexSubscript :: Bool }
 
 data DEnv = DEnv { docxOptions  :: ReaderOptions
@@ -112,18 +113,13 @@ data DEnv = DEnv { docxOptions  :: ReaderOptions
 
 type DocxContext = ReaderT DEnv (State DState)
 
-updateDState :: (DState -> DState) -> DocxContext ()
-updateDState f = do
-  st <- get
-  put $ f st
-
-withDState :: DState -> DocxContext a -> DocxContext a
-withDState ds dctx = do
-  ds' <- get
-  updateDState (\_ -> ds)
-  dctx' <- dctx
-  put ds'
-  return dctx'
+withDState :: (DState -> DState) -> DocxContext a -> DocxContext a
+withDState f dctx = do
+  ds <- get
+  modify f
+  ctx' <- dctx
+  put ds
+  return ctx'
 
 evalDocxContext :: DocxContext a -> DEnv -> DState -> a
 evalDocxContext ctx env st = evalState (runReaderT ctx env) st
@@ -297,18 +293,24 @@ parPartToInlines (BookMark _ anchor) =
   -- We record these, so we can make sure not to overwrite
   -- user-defined anchor links with header auto ids.
   do
+    -- get whether we're in a header.
+    inHdrBool <- gets docxInHeaderBlock
     -- Get the anchor map.
     anchorMap <- gets docxAnchorMap
-    -- Check to see if the id is already in there. Rewrite if
-    -- necessary. This will have the possible effect of rewriting
-    -- user-defined anchor links. However, since these are not defined
-    -- in pandoc, it seems like a necessary evil to avoid an extra
-    -- pass.
-    let newAnchor = case anchor `elem` (M.elems anchorMap) of
-          True -> uniqueIdent [Str anchor] (M.elems anchorMap)
-          False -> anchor
-    updateDState $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap}
-    return [Span (anchor, ["anchor"], []) []]
+    -- We don't want to rewrite if we're in a header, since we'll take
+    -- care of that later, when we make the header anchor. If the
+    -- bookmark were already in uniqueIdent form, this would lead to a
+    -- duplication. Otherwise, we check to see if the id is already in
+    -- there. Rewrite if necessary. This will have the possible effect
+    -- of rewriting user-defined anchor links. However, since these
+    -- are not defined in pandoc, it seems like a necessary evil to
+    -- avoid an extra pass.
+    let newAnchor =
+          if not inHdrBool && anchor `elem` (M.elems anchorMap)
+          then uniqueIdent [Str anchor] (M.elems anchorMap)
+          else anchor
+    modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap}
+    return [Span (newAnchor, ["anchor"], []) []]
 parPartToInlines (Drawing fp bs) = do
   return $ case True of                  -- TODO: add self-contained images
     True -> [Image [] (fp, "")]
@@ -427,8 +429,8 @@ oMathElemToTexString (Matrix bases) = do
   s <- liftM (intercalate " \\\\\n")(mapM rowString bases)
   return $ printf "\\begin{matrix}\n%s\n\\end{matrix}" s
 oMathElemToTexString (NAry style sub sup base) | Just c <- nAryChar style = do
-  ds <- gets (\s -> s{docxInTexSubscript = True})
-  subString  <- withDState ds $ concatMapM oMathElemToTexString sub
+  subString  <- withDState (\s -> s{docxInTexSubscript = True}) $
+                concatMapM oMathElemToTexString sub
   supString  <- concatMapM oMathElemToTexString sup
   baseString <- baseToTexString base
   return $ case M.lookup c uniconvMap of
@@ -497,7 +499,7 @@ makeHeaderAnchor (Header n (_, classes, kvs) ils)
     do
       hdrIDMap <- gets docxAnchorMap
       let newIdent = uniqueIdent ils (M.elems hdrIDMap)
-      updateDState $ \s -> s {docxAnchorMap = M.insert ident newIdent hdrIDMap}
+      modify $ \s -> s {docxAnchorMap = M.insert ident newIdent hdrIDMap}
       return $ Header n (newIdent, classes, kvs) (ils \\ (x:xs))
 -- Otherwise we just give it a name, and register that name (associate
 -- it with itself.)
@@ -505,7 +507,7 @@ makeHeaderAnchor (Header n (_, classes, kvs) ils) =
   do
     hdrIDMap <- gets docxAnchorMap
     let newIdent = uniqueIdent ils (M.elems hdrIDMap)
-    updateDState $ \s -> s {docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
+    modify $ \s -> s {docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
     return $ Header n (newIdent, classes, kvs) ils
 makeHeaderAnchor blk = return blk
 
@@ -541,7 +543,8 @@ bodyPartToBlocks (Paragraph pPr parparts)
      [CodeBlock ("", [], []) (concatMap parPartToString parparts)]
 bodyPartToBlocks (Paragraph pPr parparts)
   | any isHeaderContainer (parStyleToContainers pPr) = do
-    ils <- parPartsToInlines parparts >>= (return . normalizeSpaces)
+    ils <-withDState (\s -> s{docxInHeaderBlock = True}) $
+          parPartsToInlines parparts >>= (return . normalizeSpaces)
     let (Container hdrFun) = head $ filter isHeaderContainer (parStyleToContainers pPr)
         Header n attr _ = hdrFun []
     hdr <- makeHeaderAnchor $ Header n attr ils
@@ -624,6 +627,7 @@ bodyToBlocks (Body bps) = do
 docxToBlocks :: ReaderOptions -> Docx -> [Block]
 docxToBlocks opts d@(Docx (Document _ body)) =
   let dState = DState { docxAnchorMap = M.empty
+                      , docxInHeaderBlock = False
                       , docxInTexSubscript = False}
       dEnv   = DEnv { docxOptions  = opts
                     , docxDocument = d}

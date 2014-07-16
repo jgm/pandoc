@@ -97,6 +97,10 @@ tests = [ testGroup "inlines"
             "docx.headers.docx"
             "docx.headers.native"
           , testCompare
+            "headers already having auto identifiers"
+            "docx.already_auto_ident.docx"
+            "docx.already_auto_ident.native"
+          , testCompare
             "lists"
             "docx.lists.docx"
             "docx.lists.native"
