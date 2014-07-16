@@ -112,18 +112,13 @@ data DEnv = DEnv { docxOptions  :: ReaderOptions
 
 type DocxContext = ReaderT DEnv (State DState)
 
-updateDState :: (DState -> DState) -> DocxContext ()
-updateDState f = do
-  st <- get
-  put $ f st
-
-withDState :: DState -> DocxContext a -> DocxContext a
-withDState ds dctx = do
-  ds' <- get
-  updateDState (\_ -> ds)
-  dctx' <- dctx
-  put ds'
-  return dctx'
+withDState :: (DState -> DState) -> DocxContext a -> DocxContext a
+withDState f dctx = do
+  ds <- get
+  modify f
+  ctx' <- dctx
+  put ds
+  return ctx'
 
 evalDocxContext :: DocxContext a -> DEnv -> DState -> a
 evalDocxContext ctx env st = evalState (runReaderT ctx env) st
@@ -307,8 +302,9 @@ parPartToInlines (BookMark _ anchor) =
     let newAnchor = case anchor `elem` (M.elems anchorMap) of
           True -> uniqueIdent [Str anchor] (M.elems anchorMap)
           False -> anchor
-    updateDState $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap}
     return [Span (anchor, ["anchor"], []) []]
+    modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap}
+    return [Span (newAnchor, ["anchor"], []) []]
 parPartToInlines (Drawing fp bs) = do
   return $ case True of                  -- TODO: add self-contained images
     True -> [Image [] (fp, "")]
@@ -427,8 +423,8 @@ oMathElemToTexString (Matrix bases) = do
   s <- liftM (intercalate " \\\\\n")(mapM rowString bases)
   return $ printf "\\begin{matrix}\n%s\n\\end{matrix}" s
 oMathElemToTexString (NAry style sub sup base) | Just c <- nAryChar style = do
-  ds <- gets (\s -> s{docxInTexSubscript = True})
-  subString  <- withDState ds $ concatMapM oMathElemToTexString sub
+  subString  <- withDState (\s -> s{docxInTexSubscript = True}) $
+                concatMapM oMathElemToTexString sub
   supString  <- concatMapM oMathElemToTexString sup
   baseString <- baseToTexString base
   return $ case M.lookup c uniconvMap of
@@ -505,7 +501,7 @@ makeHeaderAnchor (Header n (_, classes, kvs) ils) =
   do
     hdrIDMap <- gets docxAnchorMap
     let newIdent = uniqueIdent ils (M.elems hdrIDMap)
-    updateDState $ \s -> s {docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
+    modify $ \s -> s {docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
     return $ Header n (newIdent, classes, kvs) ils
 makeHeaderAnchor blk = return blk
 
