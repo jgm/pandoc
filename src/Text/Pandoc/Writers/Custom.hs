@@ -36,12 +36,15 @@ import Text.Pandoc.Options
 import Data.List ( intersperse )
 import Data.Char ( toLower )
 import Scripting.Lua (LuaState, StackValue, callfunc)
+import Text.Pandoc.Writers.Shared
 import qualified Scripting.Lua as Lua
 import Text.Pandoc.UTF8 (fromString, toString)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C8
 import Data.Monoid
 import qualified Data.Map as M
+import Text.Pandoc.Templates
+import Data.IORef
 
 attrToMap :: Attr -> M.Map ByteString ByteString
 attrToMap (id',classes,keyvals) = M.fromList
@@ -145,7 +148,7 @@ instance StackValue Citation where
 
 -- | Convert Pandoc to custom markup.
 writeCustom :: FilePath -> WriterOptions -> Pandoc -> IO String
-writeCustom luaFile opts doc = do
+writeCustom luaFile opts doc@(Pandoc meta _) = do
   luaScript <- C8.unpack `fmap` C8.readFile luaFile
   lua <- Lua.newstate
   Lua.openlibs lua
@@ -153,8 +156,17 @@ writeCustom luaFile opts doc = do
   Lua.call lua 0 0
   -- TODO - call hierarchicalize, so we have that info
   rendered <- docToCustom lua opts doc
+  context <- metaToJSON opts
+             (fmap toString . blockListToCustom lua)
+             (fmap toString . inlineListToCustom lua)
+             meta
   Lua.close lua
-  return $ toString rendered
+  let body = toString rendered
+  if writerStandalone opts
+     then do
+       let context' = setField "body" body context
+       return $ renderTemplate' (writerTemplate opts) context'
+     else return body
 
 docToCustom :: LuaState -> WriterOptions -> Pandoc -> IO ByteString
 docToCustom lua opts (Pandoc (Meta metamap) blocks) = do
