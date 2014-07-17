@@ -341,14 +341,36 @@ verseBlock blkProp = try $ do
   fmap B.para . mconcat . intersperse (pure B.linebreak)
     <$> mapM (parseFromString parseInlines) (lines content)
 
+exportsCode :: [(String, String)] -> Bool
+exportsCode attrs = not (("rundoc-exports", "none") `elem` attrs
+                         || ("rundoc-exports", "results") `elem` attrs)
+
+exportsResults :: [(String, String)] -> Bool
+exportsResults attrs = ("rundoc-exports", "results") `elem` attrs
+                       || ("rundoc-exports", "both") `elem` attrs
+
+followingResultsBlock :: OrgParser (Maybe String)
+followingResultsBlock =
+       optionMaybe (try $ blanklines *> stringAnyCase "#+RESULTS:"
+                                     *> blankline
+                                     *> (unlines <$> many1 exampleLine))
+
 codeBlock :: BlockProperties -> OrgParser (F Blocks)
 codeBlock blkProp = do
   skipSpaces
-  (classes, kv) <- codeHeaderArgs <|> (mempty <$ ignHeaders)
-  id'           <- fromMaybe "" <$> lookupBlockAttribute "name"
-  content       <- rawBlockContent blkProp
-  let codeBlck  = B.codeBlockWith ( id', classes, kv ) content
-  maybe (pure codeBlck) (labelDiv codeBlck) <$> lookupInlinesAttr "caption"
+  (classes, kv)     <- codeHeaderArgs <|> (mempty <$ ignHeaders)
+  id'               <- fromMaybe "" <$> lookupBlockAttribute "name"
+  content           <- rawBlockContent blkProp
+  resultsContent    <- followingResultsBlock
+  let includeCode    = exportsCode kv
+  let includeResults = exportsResults kv
+  let codeBlck       = B.codeBlockWith ( id', classes, kv ) content
+  labelledBlck      <- maybe (pure codeBlck)
+                             (labelDiv codeBlck)
+                             <$> lookupInlinesAttr "caption"
+  let resultBlck     = pure $ maybe mempty (exampleCode) resultsContent
+  return $ (if includeCode then labelledBlck else mempty)
+           <> (if includeResults then resultBlck else mempty)
  where
    labelDiv blk value =
        B.divWith nullAttr <$> (mappend <$> labelledBlock value
