@@ -44,7 +44,6 @@ import qualified Data.ByteString.Char8 as C8
 import Data.Monoid
 import qualified Data.Map as M
 import Text.Pandoc.Templates
-import Data.IORef
 
 attrToMap :: Attr -> M.Map ByteString ByteString
 attrToMap (id',classes,keyvals) = M.fromList
