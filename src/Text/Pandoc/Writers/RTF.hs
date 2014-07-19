@@ -332,7 +332,7 @@ inlineToRTF (Quoted DoubleQuote lst) =
   "\\u8220\"" ++ (inlineListToRTF lst) ++ "\\u8221\""
 inlineToRTF (Code _ str) = "{\\f1 " ++ (codeStringToRTF str) ++ "}"
 inlineToRTF (Str str) = stringToRTF str
-inlineToRTF (Math t str) = inlineListToRTF $ readTeXMath' t str
+inlineToRTF (Math t str) = inlineListToRTF $ texMathToInlines t str
 inlineToRTF (Cite _ lst) = inlineListToRTF lst
 inlineToRTF (RawInline f str)
   | f == Format "rtf" = str

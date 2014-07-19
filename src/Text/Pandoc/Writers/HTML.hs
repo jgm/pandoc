@@ -704,14 +704,14 @@ inlineToHtml opts inline =
                                         Right r -> return $ preEscapedString $
                                                     ppcElement conf r
                                         Left  _ -> inlineListToHtml opts
-                                                   (readTeXMath' t str) >>= return .
+                                                   (texMathToInlines t str) >>= return .
                                                      (H.span ! A.class_ "math")
                                MathJax _ -> return $ H.span ! A.class_ "math" $ toHtml $
                                   case t of
                                     InlineMath  -> "\\(" ++ str ++ "\\)"
                                     DisplayMath -> "\\[" ++ str ++ "\\]"
                                PlainMath -> do
-                                  x <- inlineListToHtml opts (readTeXMath' t str)
+                                  x <- inlineListToHtml opts (texMathToInlines t str)
                                   let m = H.span ! A.class_ "math" $ x
                                   let brtag = if writerHtml5 opts then H5.br else H.br
                                   return  $ case t of
