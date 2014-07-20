@@ -593,7 +593,7 @@ tests =
            "  + Technologic\n" ++
            "  + Robot Rock\n") =?>
           bulletList [ mconcat
-                       [ para "Discovery"
+                       [ plain "Discovery"
                        , bulletList [ plain ("One" <> space <>
                                              "More" <> space <>
                                              "Time")
@@ -604,14 +604,14 @@ tests =
                                     ]
                        ]
                      , mconcat
-                       [ para "Homework"
+                       [ plain "Homework"
                        , bulletList [ plain ("Around" <> space <>
                                              "the" <> space <>
                                              "World")
                                     ]
                        ]
                      , mconcat
-                       [ para ("Human" <> space <> "After" <> space <> "All")
+                       [ plain ("Human" <> space <> "After" <> space <> "All")
                        , bulletList [ plain "Technologic"
                                     , plain ("Robot" <> space <> "Rock")
                                     ]
@@ -654,13 +654,13 @@ tests =
            "   2. Two-Two\n") =?>
           let listStyle = (1, DefaultStyle, DefaultDelim)
               listStructure = [ mconcat
-                                [ para "One"
+                                [ plain "One"
                                 , orderedList [ plain "One-One"
                                               , plain "One-Two"
                                               ]
                                 ]
                               , mconcat
-                                [ para "Two"
+                                [ plain "Two"
                                 , orderedList [ plain "Two-One"
                                               , plain "Two-Two"
                                               ]
@@ -671,14 +671,14 @@ tests =
       , "Ordered List in Bullet List" =:
           ("- Emacs\n" ++
            "  1. Org\n") =?>
-          bulletList [ (para "Emacs") <>
+          bulletList [ (plain "Emacs") <>
                        (orderedList [ plain "Org"])
                      ]
 
       , "Bullet List in Ordered List" =:
           ("1. GNU\n" ++
            "   - Freedom\n") =?>
-          orderedList [ (para "GNU") <> bulletList [ (plain "Freedom") ] ]
+          orderedList [ (plain "GNU") <> bulletList [ (plain "Freedom") ] ]
 
       , "Definition List" =:
           unlines [ "- PLL :: phase-locked loop"
