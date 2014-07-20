@@ -846,37 +846,52 @@ defListMarker = do
      else mzero
   return ()
 
-definitionListItem :: MarkdownParser (F (Inlines, [Blocks]))
-definitionListItem = try $ do
-  -- first, see if this has any chance of being a definition list:
-  lookAhead (anyLine >> optional blankline >> defListMarker)
-  term <- trimInlinesF . mconcat <$> manyTill inline newline
-  optional blankline
-  raw <- many1 defRawBlock
-  state <- getState
-  let oldContext = stateParserContext state
-  -- parse the extracted block, which may contain various block elements:
+definitionListItem :: Bool -> MarkdownParser (F (Inlines, [Blocks]))
+definitionListItem compact = try $ do
+  rawLine' <- anyLine
+  raw <- many1 $ defRawBlock compact
+  term <- parseFromString (trimInlinesF . mconcat <$> many inline) rawLine'
   contents <- mapM (parseFromString parseBlocks) raw
-  updateState (\st -> st {stateParserContext = oldContext})
+  optional blanklines
   return $ liftM2 (,) term (sequence contents)
 
-defRawBlock :: MarkdownParser String
-defRawBlock = try $ do
+defRawBlock :: Bool -> MarkdownParser String
+defRawBlock compact = try $ do
+  hasBlank <- option False $ blankline >> return True
   defListMarker
   firstline <- anyLine
-  rawlines <- many (notFollowedBy blankline >> indentSpaces >> anyLine)
-  trailing <- option "" blanklines
-  cont <- liftM concat $ many $ do
-            lns <- many1 $ notFollowedBy blankline >> indentSpaces >> anyLine
-            trl <- option "" blanklines
-            return $ unlines lns ++ trl
-  return $ firstline ++ "\n" ++ unlines rawlines ++ trailing ++ cont
+  let dline = try
+               ( do notFollowedBy blankline
+                    if compact -- laziness not compatible with compact
+                       then () <$ indentSpaces
+                       else (() <$ indentSpaces)
+                             <|> notFollowedBy defListMarker
+                    anyLine )
+  rawlines <- many dline
+  cont <- liftM concat $ many $ try $ do
+            trailing <- option "" blanklines
+            ln <- indentSpaces >> notFollowedBy blankline >> anyLine
+            lns <- many dline
+            return $ trailing ++ unlines (ln:lns)
+  return $ trimr (firstline ++ "\n" ++ unlines rawlines ++ cont) ++
+            if hasBlank || not (null cont) then "\n\n" else ""
 
 definitionList :: MarkdownParser (F Blocks)
-definitionList = do
-  guardEnabled Ext_definition_lists
-  items <- fmap sequence $ many1 definitionListItem
+definitionList = try $ do
+  lookAhead (anyLine >> optional blankline >> defListMarker)
+  compactDefinitionList <|> normalDefinitionList
+
+compactDefinitionList :: MarkdownParser (F Blocks)
+compactDefinitionList = do
+  guardEnabled Ext_compact_definition_lists
+  items <- fmap sequence $ many1 $ definitionListItem True
   return $ B.definitionList <$> fmap compactify'DL items
+
+normalDefinitionList :: MarkdownParser (F Blocks)
+normalDefinitionList = do
+  guardEnabled Ext_definition_lists
+  items <- fmap sequence $ many1 $ definitionListItem False
+  return $ B.definitionList <$> items
 
 --
 -- paragraph block

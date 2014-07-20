@@ -1437,8 +1437,8 @@ If default list markers are desired, use `#.`:
 
 **Extension: `definition_lists`**
 
-Pandoc supports definition lists, using a syntax inspired by
-[PHP Markdown Extra] and [reStructuredText]:[^3]
+Pandoc supports definition lists, using the syntax of
+[PHP Markdown Extra] with some extensions.[^3]
 
     Term 1
 
@@ -1455,25 +1455,41 @@ Pandoc supports definition lists, using a syntax inspired by
 Each term must fit on one line, which may optionally be followed by
 a blank line, and must be followed by one or more definitions.
 A definition begins with a colon or tilde, which may be indented one
-or two spaces. The body of the definition (including the first line,
-aside from the colon or tilde) should be indented four spaces. A term may have
-multiple definitions, and each definition may consist of one or more block
-elements (paragraph, code block, list, etc.), each indented four spaces or one
-tab stop.
+or two spaces.
 
-If you leave space after the definition (as in the example above),
-the blocks of the definitions will be considered paragraphs. In some
+A term may have multiple definitions, and each definition may consist of one or
+more block elements (paragraph, code block, list, etc.), each indented four
+spaces or one tab stop.  The body of the definition (including the first line,
+aside from the colon or tilde) should be indented four spaces. However,
+as with other markdown lists, you can "lazily" omit indentation except
+at the beginning of a paragraph or other block element:
+
+    Term 1
+
+    :   Definition
+    with lazy continuation.
+
+        Second paragraph of the definition.
+
+If you leave space before the definition (as in the example above),
+the text of the definition will be treated as a paragraph.  In some
 output formats, this will mean greater spacing between term/definition
-pairs. For a compact definition list, do not leave space between the
-definition and the next term:
+pairs. For a more compact definition list, omit the space before the
+definition:
 
     Term 1
       ~ Definition 1
+
     Term 2
       ~ Definition 2a
       ~ Definition 2b
 
-[^3]:  I have also been influenced by the suggestions of [David Wheeler](http://www.justatheory.com/computers/markup/modest-markdown-proposal.html).
+Note that space between items in a definition list is required.
+(A variant that loosens this requirement, but disallows "lazy"
+hard wrapping, can be activated with `compact_definition_lists`: see
+[Non-pandoc extensions](#non-pandoc-extensions), below.)
+
+[^3]:  I have been influenced by the suggestions of [David Wheeler](http://www.justatheory.com/computers/markup/modest-markdown-proposal.html).
 
 [PHP Markdown Extra]: http://www.michelf.com/projects/php-markdown/extra/
 
@@ -2628,6 +2644,32 @@ these, so they are presently just ignored.
 **Extension: `mmd_header_identifiers`**\
 Parses multimarkdown style header identifiers (in square brackets,
 after the header but before any trailing `#`s in an ATX header).
+
+**Extension: `compact_definition_lists`**\
+Activates the definition list syntax of pandoc 1.12.x and earlier.
+This syntax differs from the one described [above](#definition-lists)
+in several respects:
+
+  - No blank line is required between consecutive items of the
+    definition list.
+  - To get a "tight" or "compact" list, omit space between consecutive
+    items; the space between a term and its definition does not affect
+    anything.
+  - Lazy wrapping of paragraphs is not allowed:  the entire definition must
+    be indented four spaces.[^6]
+
+[^6]:  To see why laziness is incompatible with relaxing the requirement
+    of a blank line between items, consider the following example:
+
+        bar
+        :    definition
+        foo
+        :    definition
+
+    Is this a single list item with two definitions of "bar," the first of
+    which is lazily wrapped, or two list items?  To remove the ambiguity
+    we must either disallow lazy wrapping or require a blank line between
+    list items.
 
 Markdown variants
 -----------------

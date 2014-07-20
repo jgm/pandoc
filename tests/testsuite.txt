@@ -270,8 +270,10 @@ Tight using spaces:
 
 apple
 :   red fruit
+
 orange
 :   orange fruit
+
 banana
 :   yellow fruit
 
@@ -279,31 +281,38 @@ Tight using tabs:
 
 apple
 :	red fruit
+
 orange
 :	orange fruit
+
 banana
 :	yellow fruit
 
 Loose:
 
 apple
+
 :   red fruit
 
 orange
+
 :   orange fruit
 
 banana
+
 :   yellow fruit
 
 Multiple blocks with italics:
 
 *apple*
+
 :   red fruit
 
     contains seeds,
     crisp, pleasant to taste
 
 *orange*
+
 :   orange fruit
 
         { orange code block }
@@ -315,6 +324,7 @@ Multiple definitions, tight:
 apple
 :   red fruit
 :   computer
+
 orange
 :   orange fruit
 :   bank
@@ -322,11 +332,13 @@ orange
 Multiple definitions, loose:
 
 apple
+
 :   red fruit
 
 :   computer
 
 orange
+
 :   orange fruit
 
 :   bank

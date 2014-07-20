@@ -84,6 +84,8 @@ data Extension =
     | Ext_lists_without_preceding_blankline -- ^ Allow lists without preceding blank
     | Ext_startnum            -- ^ Make start number of ordered list significant
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
+    | Ext_compact_definition_lists  -- ^ Definition lists without
+                               -- space between items, and disallow laziness
     | Ext_example_lists       -- ^ Markdown-style numbered examples
     | Ext_all_symbols_escapable  -- ^ Make all non-alphanumerics escapable
     | Ext_intraword_underscores  -- ^ Treat underscore inside word as literal

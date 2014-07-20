@@ -16,6 +16,10 @@ markdown = readMarkdown def
 markdownSmart :: String -> Pandoc
 markdownSmart = readMarkdown def { readerSmart = True }
 
+markdownCDL :: String -> Pandoc
+markdownCDL = readMarkdown def { readerExtensions = Set.insert
+                 Ext_compact_definition_lists $ readerExtensions def }
+
 infix 4 =:
 (=:) :: ToString c
      => String -> (String, c) -> Test
@@ -222,6 +226,43 @@ tests = [ testGroup "inline code"
 --        , testGroup "round trip"
 --          [ property "p_markdown_round_trip" p_markdown_round_trip
 --          ]
+        , testGroup "definition lists"
+          [ "no blank space" =:
+            "foo1\n  :  bar\n\nfoo2\n  : bar2\n  : bar3\n" =?>
+            definitionList [ (text "foo1", [plain (text "bar")])
+                           , (text "foo2", [plain (text "bar2"),
+                                            plain (text "bar3")])
+                           ]
+          , "blank space before first def" =:
+            "foo1\n\n  :  bar\n\nfoo2\n\n  : bar2\n  : bar3\n" =?>
+            definitionList [ (text "foo1", [para (text "bar")])
+                           , (text "foo2", [para (text "bar2"),
+                                            plain (text "bar3")])
+                           ]
+          , "blank space before second def" =:
+            "foo1\n  :  bar\n\nfoo2\n  : bar2\n\n  : bar3\n" =?>
+            definitionList [ (text "foo1", [plain (text "bar")])
+                           , (text "foo2", [plain (text "bar2"),
+                                            para (text "bar3")])
+                           ]
+          , "laziness" =:
+            "foo1\n  :  bar\nbaz\n  : bar2\n" =?>
+            definitionList [ (text "foo1", [plain (text "bar baz"),
+                                            plain (text "bar2")])
+                           ]
+          , "no blank space before first of two paragraphs" =:
+            "foo1\n  : bar\n\n    baz\n" =?>
+            definitionList [ (text "foo1", [para (text "bar") <>
+                                            para (text "baz")])
+                           ]
+          ]
+        , testGroup "+compact_definition_lists"
+          [ test markdownCDL "basic compact list" $
+            "foo1\n:   bar\n    baz\nfoo2\n:   bar2\n" =?>
+            definitionList [ (text "foo1", [plain (text "bar baz")])
+                           , (text "foo2", [plain (text "bar2")])
+                           ]
+          ]
         , testGroup "lists"
           [ "issue #1154" =:
               " -  <div>\n    first div breaks\n    </div>\n\n    <button>if this button exists</button>\n\n    <div>\n    with this div too.\n    </div>\n"
