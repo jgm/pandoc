@@ -826,10 +826,10 @@ gridTableFooter = blanklines
 ---
 
 -- | Parse a string with a given parser and state.
-readWith :: (Show s, Stream s Identity Char)
-         => ParserT s st Identity a       -- ^ parser
-         -> st                       -- ^ initial state
-         -> s                   -- ^ input
+readWith :: (Stream [Char] Identity Char)
+         => ParserT [Char] st Identity a   -- ^ parser
+         -> st                             -- ^ initial state
+         -> [Char]                         -- ^ input
          -> a
 readWith parser state input =
     case runParser parser state "source" input of
@@ -837,16 +837,16 @@ readWith parser state input =
         let errPos = errorPos err'
             errLine = sourceLine errPos
             errColumn = sourceColumn errPos
-            theline = (lines (show input) ++ [""]) !! (errLine - 1)
+            theline = (lines input ++ [""]) !! (errLine - 1)
         in  error $ "\nError at " ++ show  err' ++ "\n" ++
                 theline ++ "\n" ++ replicate (errColumn - 1) ' ' ++
                 "^"
       Right result -> result
 
 -- | Parse a string with @parser@ (for testing).
-testStringWith :: (Show s, Show a, Stream s Identity Char)
-               => ParserT s ParserState Identity a
-               -> s
+testStringWith :: (Show a, Stream [Char] Identity Char)
+               => ParserT [Char] ParserState Identity a
+               -> [Char]
                -> IO ()
 testStringWith parser str = UTF8.putStrLn $ show $
                             readWith parser defaultParserState str
