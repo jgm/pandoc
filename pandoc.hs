@@ -65,6 +65,9 @@ import qualified Data.Map as M
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import qualified Data.Text as T
+import Control.Applicative ((<$>))
+import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
+import Data.List (intersperse)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2014 John MacFarlane\n" ++
@@ -180,7 +183,7 @@ data Opt = Opt
     , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
     , optDefaultImageExtension :: String -- ^ Default image extension
     , optTrace             :: Bool       -- ^ Print debug information
-    , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes. 
+    , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes.
     }
 
 -- | Defaults for command-line options.
@@ -1055,9 +1058,14 @@ main = do
                               else e
                          Right w -> return w
 
-  reader <- case getReader readerName' of
-     Right r  -> return r
-     Left e   -> err 7 e
+  let concatInput = concat (intersperse ", " sources)
+  reader <- if "t2t" == readerName'
+              then (mkStringReader .
+                    readTxt2Tags) <$>
+                      (getT2TMeta concatInput outputFile)
+              else case getReader readerName' of
+                Right r  -> return r
+                Left e   -> err 7 e
 
   let standalone' = standalone || not (isTextFormat writerName') || pdfOutput
 
@@ -1189,11 +1197,11 @@ main = do
                            else return
 
   doc <- case reader of
-          StringReader r-> 
+          StringReader r->
             readSources sources >>=
               handleIncludes' . convertTabs . intercalate "\n" >>=
               r readerOpts
-          ByteStringReader r -> readFiles sources >>= r readerOpts 
+          ByteStringReader r -> readFiles sources >>= r readerOpts
 
 
   let doc0 = M.foldWithKey setMeta doc metadata

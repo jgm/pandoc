@@ -12,7 +12,7 @@ import Text.Pandoc.Builder ( Inlines, Blocks, (<>)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (escapeURI,compactify', compactify'DL)
-import Text.Pandoc.Parsing hiding (space, spaces, uri)
+import Text.Pandoc.Parsing hiding (space, spaces, uri, macro)
 import Control.Applicative ((<$>), (<$), (<*>), (<*), (*>))
 import Data.Char (toLower)
 import Data.List (transpose, intersperse, intercalate)
@@ -23,11 +23,13 @@ import Control.Monad (void, guard, when)
 import Data.Default
 import Control.Monad.Reader (Reader, runReader, asks)
 
-type T2T = Parser String ParserState
-
+import Data.Time.LocalTime (getZonedTime)
+import System.Directory (getModificationTime)
+import Data.Time.Format (formatTime)
+import System.Locale (defaultTimeLocale)
+import System.IO.Error (catchIOError)
 
 type T2T = ParserT String ParserState (Reader T2TMeta)
-
 
 -- | An object for the T2T macros meta information
 -- the contents of each field is simply substituted verbatim into the file
@@ -295,6 +297,7 @@ blockMarkupLine p f s = try (f <$> (string s *> space *> p))
 comment :: Monoid a => T2T a
 comment = try $ do
   atStart
+  notFollowedBy macro
   mempty <$ (char '%' *> anyLine)
 
 -- Inline
@@ -306,6 +309,7 @@ inline :: T2T Inlines
 inline = do
   choice
     [ endline
+    , macro
     , commentLine
     , whitespace
     , url
@@ -404,6 +408,16 @@ imageLink = try $ do
   many1 space
   l <- manyTill (noneOf "\n\r ") (char ']')
   return (B.link l "" body)
+
+macro :: T2T Inlines
+macro = try $ do
+  name <- string "%%" *> oneOfStringsCI (map fst commands)
+  optional (try $ enclosed (char '(') (char ')') anyChar)
+  lookAhead (spaceChar <|> oneOf specialChars <|> newline)
+  maybe (return mempty) (\f -> B.str <$> asks f) (lookup name commands)
+  where
+    commands = [ ("date", date), ("mtime", mtime)
+               , ("infile", infile), ("outfile", outfile)]
 
 -- raw URLs in text are automatically linked
 url :: T2T Inlines
