@@ -49,10 +49,12 @@ import Control.Monad.State
 import qualified Data.Map as M
 import Data.Aeson (Value(String), fromJSON, toJSON, Result(..))
 import qualified Data.Text as T
+import Control.Applicative ((<*), (*>))
 
 data WriterState = WriterState { defListMarker :: String
                                , orderedListLevel :: Int
                                , bulletListLevel  :: Int
+                               , intraword        :: Bool
                                }
 
 -- | Convert Pandoc to AsciiDoc.
@@ -62,6 +64,7 @@ writeAsciiDoc opts document =
       defListMarker = "::"
     , orderedListLevel = 1
     , bulletListLevel = 1
+    , intraword = False
     }
 
 -- | Return asciidoc representation of document.
@@ -123,7 +126,7 @@ blockToAsciiDoc _ Null = return empty
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   return $ contents <> cr
-blockToAsciiDoc opts (Para [Image alt (src,'f':'i':'g':':':tit)]) =
+blockToAsciiDoc opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
   blockToAsciiDoc opts (Para [Image alt (src,tit)])
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
@@ -317,17 +320,51 @@ blockListToAsciiDoc opts blocks = cat `fmap` mapM (blockToAsciiDoc opts) blocks
 
 -- | Convert list of Pandoc inline elements to asciidoc.
 inlineListToAsciiDoc :: WriterOptions -> [Inline] -> State WriterState Doc
-inlineListToAsciiDoc opts lst =
-  mapM (inlineToAsciiDoc opts) lst >>= return . cat
+inlineListToAsciiDoc opts lst = do
+  oldIntraword <- gets intraword
+  setIntraword False
+  result <- go lst
+  setIntraword oldIntraword
+  return result
+ where go [] = return empty
+       go (y:x:xs)
+         | not (isSpacy y) = do
+           y' <- if isSpacy x
+                    then inlineToAsciiDoc opts y
+                    else withIntraword $ inlineToAsciiDoc opts y
+           x' <- withIntraword $ inlineToAsciiDoc opts x
+           xs' <- go xs
+           return (y' <> x' <> xs')
+         | x /= Space && x /= LineBreak = do
+           y' <- withIntraword $ inlineToAsciiDoc opts y
+           xs' <- go (x:xs)
+           return (y' <> xs')
+       go (x:xs) = do
+           x' <- inlineToAsciiDoc opts x
+           xs' <- go xs
+           return (x' <> xs')
+       isSpacy Space = True
+       isSpacy LineBreak = True
+       isSpacy _ = False
+
+setIntraword :: Bool -> State WriterState ()
+setIntraword b = modify $ \st -> st{ intraword = b }
+
+withIntraword :: State WriterState a -> State WriterState a
+withIntraword p = setIntraword True *> p <* setIntraword False
 
 -- | Convert Pandoc inline element to asciidoc.
 inlineToAsciiDoc :: WriterOptions -> Inline -> State WriterState Doc
 inlineToAsciiDoc opts (Emph lst) = do
   contents <- inlineListToAsciiDoc opts lst
-  return $ "_" <> contents <> "_"
+  isIntraword <- gets intraword
+  let marker = if isIntraword then "__" else "_"
+  return $ marker <> contents <> marker
 inlineToAsciiDoc opts (Strong lst) = do
   contents <- inlineListToAsciiDoc opts lst
-  return $ "*" <> contents <> "*"
+  isIntraword <- gets intraword
+  let marker = if isIntraword then "**" else "*"
+  return $ marker <> contents <> marker
 inlineToAsciiDoc opts (Strikeout lst) = do
   contents <- inlineListToAsciiDoc opts lst
   return $ "[line-through]*" <> contents <> "*"
@@ -338,12 +375,10 @@ inlineToAsciiDoc opts (Subscript lst) = do
   contents <- inlineListToAsciiDoc opts lst
   return $ "~" <> contents <> "~"
 inlineToAsciiDoc opts (SmallCaps lst) = inlineListToAsciiDoc opts lst
-inlineToAsciiDoc opts (Quoted SingleQuote lst) = do
-  contents <- inlineListToAsciiDoc opts lst
-  return $ "`" <> contents <> "'"
-inlineToAsciiDoc opts (Quoted DoubleQuote lst) = do
-  contents <- inlineListToAsciiDoc opts lst
-  return $ "``" <> contents <> "''"
+inlineToAsciiDoc opts (Quoted SingleQuote lst) =
+  inlineListToAsciiDoc opts (Str "`" : lst ++ [Str "'"])
+inlineToAsciiDoc opts (Quoted DoubleQuote lst) =
+  inlineListToAsciiDoc opts (Str "``" : lst ++ [Str "''"])
 inlineToAsciiDoc _ (Code _ str) = return $
   text "`" <> text (escapeStringUsing (backslashEscapes "`") str) <> "`"
 inlineToAsciiDoc _ (Str str) = return $ text $ escapeString str

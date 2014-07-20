@@ -429,11 +429,11 @@ Hr’s:
 Inline Markup
 -------------
 
-This is _emphasized_, and so _is this_.
+This is __emphasized__, and so __is this__.
 
-This is *strong*, and so *is this*.
+This is **strong**, and so **is this**.
 
-An _link:/url[emphasized link]_.
+An __link:/url[emphasized link]__.
 
 *_This is strong and em._*
 
@@ -445,7 +445,7 @@ So is *_this_* word.
 
 This is code: `>`, `$`, `\`, `\$`, `<html>`.
 
-[line-through]*This is _strikeout_.*
+[line-through]*This is __strikeout__.*
 
 Superscripts: a^bc^d a^_hello_^ a^hello there^.
 
