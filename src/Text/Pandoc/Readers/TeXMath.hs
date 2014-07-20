@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of TeX math to a list of 'Pandoc' inline elements.
 -}
-module Text.Pandoc.Readers.TeXMath ( readTeXMath, readTeXMath' ) where
+module Text.Pandoc.Readers.TeXMath ( texMathToInlines ) where
 
 import Text.Pandoc.Definition
 import Text.TeXMath
@@ -35,22 +35,13 @@ import Text.TeXMath
 -- | Converts a raw TeX math formula to a list of 'Pandoc' inlines.
 -- Defaults to raw formula between @$@ or @$$@ characters if entire formula
 -- can't be converted.
-readTeXMath' :: MathType
+texMathToInlines :: MathType
              -> String    -- ^ String to parse (assumes @'\n'@ line endings)
              -> [Inline]
-readTeXMath' mt inp = case texMathToPandoc dt inp of
+texMathToInlines mt inp = case texMathToPandoc dt inp of
                            Left _    -> [Str (delim ++ inp ++ delim)]
                            Right res -> res
     where (dt, delim) = case mt of
                              DisplayMath -> (DisplayBlock, "$$")
                              InlineMath  -> (DisplayInline, "$")
 
-{-# DEPRECATED readTeXMath "Use readTeXMath' from Text.Pandoc.JSON instead" #-}
--- | Converts a raw TeX math formula to a list of 'Pandoc' inlines.
--- Defaults to raw formula between @$@ characters if entire formula
--- can't be converted.  (This is provided for backwards compatibility;
--- it is better to use @readTeXMath'@, which properly distinguishes
--- between display and inline math.)
-readTeXMath :: String    -- ^ String to parse (assumes @'\n'@ line endings)
-            -> [Inline]
-readTeXMath = readTeXMath' InlineMath

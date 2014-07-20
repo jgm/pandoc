@@ -39,7 +39,7 @@ import Text.Pandoc.Options
 import Data.List ( intersperse, transpose )
 import Text.Pandoc.Pretty
 import Control.Monad.State
-import Text.Pandoc.Readers.TeXMath (readTeXMath')
+import Text.Pandoc.Readers.TeXMath (texMathToInlines)
 import Network.URI (isURI)
 import Data.Default
 
@@ -319,7 +319,7 @@ inlineToHaddock opts (Math mt str) = do
   let adjust x = case mt of
                       DisplayMath -> cr <> x <> cr
                       InlineMath  -> x
-  adjust `fmap` (inlineListToHaddock opts $ readTeXMath' mt str)
+  adjust `fmap` (inlineListToHaddock opts $ texMathToInlines mt str)
 inlineToHaddock _ (RawInline f str)
   | f == "haddock" = return $ text str
   | otherwise = return empty

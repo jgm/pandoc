@@ -299,8 +299,8 @@ inlineToDocbook opts (Math t str)
                  $ fixNS
                  $ removeAttr r
       Left  _ -> inlinesToDocbook opts
-                 $ readTeXMath' t str
-  | otherwise = inlinesToDocbook opts $ readTeXMath' t str
+                 $ texMathToInlines t str
+  | otherwise = inlinesToDocbook opts $ texMathToInlines t str
      where (dt, tagtype) = case t of
                             InlineMath  -> (DisplayInline,"inlineequation")
                             DisplayMath -> (DisplayBlock,"informalequation")

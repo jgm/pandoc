@@ -756,7 +756,7 @@ inlineToOpenXML opts (Math mathType str) = do
                        else DisplayInline
   case texMathToOMML displayType str of
         Right r -> return [r]
-        Left  _ -> inlinesToOpenXML opts (readTeXMath' mathType str)
+        Left  _ -> inlinesToOpenXML opts (texMathToInlines mathType str)
 inlineToOpenXML opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML opts (Code attrs str) =
   withTextProp (rStyle "VerbatimChar")
