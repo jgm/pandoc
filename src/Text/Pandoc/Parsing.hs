@@ -109,6 +109,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              askF,
                              asksF,
                              token,
+                             generalize,
                              -- * Re-exports from Text.Pandoc.Parsec
                              Stream,
                              runParser,
@@ -1264,3 +1265,6 @@ addWarning mbpos msg =
   updateState $ \st -> st{
     stateWarnings = (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) :
                      stateWarnings st }
+
+generalize :: (Monad m) => Parser s st a -> ParserT s st m a
+generalize m = mkPT (\ s -> (return $ (return . runIdentity) <$> runIdentity (runParsecT m s)))
