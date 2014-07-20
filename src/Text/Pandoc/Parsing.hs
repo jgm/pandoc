@@ -64,6 +64,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              widthsFromIndices,
                              gridTableWith,
                              readWith,
+                             readWithM,
                              testStringWith,
                              guardEnabled,
                              guardDisabled,
@@ -825,15 +826,16 @@ gridTableFooter = blanklines
 
 ---
 
--- | Parse a string with a given parser and state.
-readWith :: (Stream [Char] Identity Char)
-         => ParserT [Char] st Identity a   -- ^ parser
-         -> st                             -- ^ initial state
-         -> [Char]                         -- ^ input
-         -> a
-readWith parser state input =
-    case runParser parser state "source" input of
-      Left err'    ->
+-- | Removes the ParsecT layer from the monad transformer stack
+readWithM :: (Monad m, Functor m)
+          => ParserT [Char] st m a       -- ^ parser
+          -> st                       -- ^ initial state
+          -> String                   -- ^ input
+          -> m a
+readWithM parser state input =
+    handleError <$> (runParserT parser state "source" input)
+    where
+      handleError (Left err') =
         let errPos = errorPos err'
             errLine = sourceLine errPos
             errColumn = sourceColumn errPos
@@ -841,7 +843,14 @@ readWith parser state input =
         in  error $ "\nError at " ++ show  err' ++ "\n" ++
                 theline ++ "\n" ++ replicate (errColumn - 1) ' ' ++
                 "^"
-      Right result -> result
+      handleError (Right result) = result
+
+-- | Parse a string with a given parser and state
+readWith :: Parser [Char] st a
+         -> st
+         -> String
+         -> a
+readWith p t inp = runIdentity $ readWithM p t inp
 
 -- | Parse a string with @parser@ (for testing).
 testStringWith :: (Show a, Stream [Char] Identity Char)
