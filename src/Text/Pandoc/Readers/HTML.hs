@@ -201,7 +201,6 @@ pRawTag = do
 
 pDiv :: TagParser Blocks
 pDiv = try $ do
-  getOption readerParseRaw >>= guard
   TagOpen _ attr <- lookAhead $ pSatisfy $ tagOpen (=="div") (const True)
   contents <- pInTags "div" block
   return $ B.divWith (mkAttr attr) contents
@@ -429,7 +428,6 @@ pCode = try $ do
 
 pSpan :: TagParser Inlines
 pSpan = try $ do
-  getOption readerParseRaw >>= guard
   TagOpen _ attr <- lookAhead $ pSatisfy $ tagOpen (=="span") (const True)
   contents <- pInTags "span" inline
   return $ B.spanWith (mkAttr attr) contents
