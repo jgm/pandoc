@@ -25,6 +25,24 @@ pandoc (1.13)
       github-style fenced blocks (#1318).
     + Inline math must have nonspace before final `$` (#1313).
 
+  * Revised markdown definition list syntax (#1429).
+
+    + This change brings pandoc's definition list syntax into alignment
+      with that used in PHP markdown extra and multimarkdown (with the
+      exception that pandoc is more flexible about the definition markers,
+      allowing tildes as well as colons).
+    + Lazily wrapped definitions are now allowed.
+    + Blank space is required between list items.
+    + The space before a definition is used to determine whether it is
+      a paragraph or a "plain" element.
+    + For backwards compatibility, a new extension,
+      `compact_definition_lists`, has been added that restores the behavior
+      of pandoc 1.12.x, allowing tight definition lists with no blank space
+      between items, and disallowing lazy wrapping.
+   +  WARNING: THIS CHANGE MAY BREAK EXISTING DOCUMENTS!  Either check your
+      documents for definition lists without blank space between items,
+      or use `markdown+compact_definition_lists` for the old behavior.
+
   * LaTeX reader:
 
     + Handle comments at the end of tables.  This resolves the issue
@@ -83,6 +101,11 @@ pandoc (1.13)
       org-mode reader.  Both math symbols (like `\tau`) and LaTeX commands (like
       `\cite{Coffee}`), can be used without any further escaping (Albert
       Krewinkel).
+    + Respect `:exports` header argument in code blocks (Craig Bosma).
+    + Fixed tight lists with sublists (#1437).
+
+  * `Text.Pandoc.Readers.TexMath`: Removed deperated `readTeXMath`.
+    Renamed `readTeXMath'` to `texMathToInlines`. (API change.)
 
   * `Text.Pandoc`:
 
@@ -136,6 +159,11 @@ pandoc (1.13)
 
     + Minor renaming of `st` prefixed names.
 
+  * AsciiDoc writer:
+
+    + Double up emphasis and strong emphasis markers in intraword
+      contexts, as required by asciidoc (#1441).
+
   * Markdown writer:
 
     + Use span with style for `SmallCaps` (#1360).
@@ -170,6 +198,12 @@ pandoc (1.13)
     + Simplified `abstractNumId` numbering.  Instead of sequential numbering,
       we assign numbers based on the list marker styles.
 
+  * Custom lua writers:
+
+    + Custom writers now work with `--template`.
+    + Removed HTML header scaffolding from `sample.lua`.
+    + Made citation information availabel in lua writers.
+
   * `Text.Pandoc.ImageSize`:
 
     + Use default instead of failing if image size not found
@@ -203,6 +237,7 @@ pandoc (1.13)
 
     + Removed `Ext_fenced_code_attributes` from `markdown_github`
       extensions.
+    + Added `Ext_compact_definition_lists`.
 
   * `Text.Pandoc.Parsing`
 
@@ -259,7 +294,7 @@ pandoc (1.13)
     and `http-client-tls` instead of `http-conduit`.  (Note:  pandoc still
     depends on `conduit` via `yaml`.)
 
-  * Require `highlighting-kate >= 0.5.8.4` (#1271, #1317).
+  * Require `highlighting-kate >= 0.5.8.5` (#1271, #1317, Debian #753299).
     This change to highlighting-kate means that PHP fragments no longer need
     to start with `<?php`.  It also fixes a serious bug causing failures with
     ocaml and fsharp.
