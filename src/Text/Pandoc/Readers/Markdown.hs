@@ -939,10 +939,21 @@ htmlBlock = do
       (TagOpen t attrs) <- lookAhead $ fst <$> htmlTag isBlockTag
       (guard (t `elem` ["pre","style","script"]) >>
           (return . B.rawBlock "html") <$> rawVerbatimBlock)
-        <|> (guardEnabled Ext_markdown_attribute >>
-               case lookup "markdown" attrs of
-                    Just "1" -> rawHtmlBlocks
-                    _        -> htmlBlock')
+        <|> (do guardEnabled Ext_markdown_attribute
+                oldMarkdownAttribute <- stateMarkdownAttribute <$> getState
+                markdownAttribute <-
+                   case lookup "markdown" attrs of
+                        Just "0" -> False <$ updateState (\st -> st{
+                                       stateMarkdownAttribute = False })
+                        Just _   -> True <$ updateState (\st -> st{
+                                       stateMarkdownAttribute = True })
+                        Nothing  -> return oldMarkdownAttribute
+                res <- if markdownAttribute
+                          then rawHtmlBlocks
+                          else htmlBlock'
+                updateState $ \st -> st{ stateMarkdownAttribute =
+                                         oldMarkdownAttribute }
+                return res)
         <|> (guardEnabled Ext_markdown_in_html_blocks >> rawHtmlBlocks))
     <|> htmlBlock'
 
