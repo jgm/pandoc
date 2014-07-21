@@ -84,17 +84,17 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Readers.Docx.Parse
 import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Reducible
-import Text.Pandoc.Readers.Docx.TexChar
 import Text.Pandoc.Shared
+import Text.TeXMath (toTeXMath)
+import qualified Text.TeXMath.Types as TM
 import Data.Maybe (mapMaybe, fromMaybe)
-import Data.List (delete, isPrefixOf, (\\), intercalate)
+import Data.List (delete, isPrefixOf, (\\), intersperse)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Base64 (encode)
 import qualified Data.Map as M
 import Control.Monad.Reader
 import Control.Monad.State
-import Text.Printf (printf)
 
 readDocx :: ReaderOptions
          -> B.ByteString
@@ -324,159 +324,121 @@ parPartToInlines (ExternalHyperLink target runs) = do
   ils <- concatMapM runToInlines runs
   return [Link ils (target, "")]
 parPartToInlines (PlainOMath omath) = do
-  s <- oMathToTexString omath
-  return [Math InlineMath s]
+  e <- oMathToExps omath
+  return [Math InlineMath (toTeXMath TM.DisplayInline e)]
 
-oMathToTexString :: OMath -> DocxContext String
-oMathToTexString (OMath omathElems) = do
-  ss <- mapM oMathElemToTexString omathElems
-  return $ intercalate " " ss
-oMathElemToTexString :: OMathElem -> DocxContext String
-oMathElemToTexString (Accent style base) | Just c <- accentChar style = do
-  baseString <- baseToTexString base
-  return $ case lookupTexChar c of
-    s@('\\' : _) -> printf "%s{%s}" s baseString
-    _            -> printf "\\acute{%s}" baseString -- we default.
-oMathElemToTexString (Accent _ base) =
-    baseToTexString base >>= (\s -> return $ printf "\\acute{%s}" s)
-oMathElemToTexString (Bar style base) = do
-  baseString <- baseToTexString base
+oMathToExps :: OMath -> DocxContext [TM.Exp]
+oMathToExps (OMath oMathElems) = concatMapM oMathElemToExps oMathElems
+  
+oMathElemToExps :: OMathElem -> DocxContext [TM.Exp]
+oMathElemToExps (Accent style base)
+  | Just c <- accentChar style = do
+    baseExp <- baseToExp base
+    return [TM.EOver baseExp (TM.ESymbol TM.Accent [c])]
+  | otherwise = 
+    -- we default to acute
+    (\e -> return [TM.EUnary "\\acute" e]) =<< baseToExp base
+oMathElemToExps(Bar style base) = do
+  baseExp <- baseToExp base
   return $ case barPos style of
-    Top    -> printf "\\overline{%s}" baseString
-    Bottom -> printf "\\underline{%s}" baseString
-oMathElemToTexString (Box base) = baseToTexString base
-oMathElemToTexString (BorderBox base) =
-  baseToTexString base >>= (\s -> return $ printf "\\boxed{%s}" s)
-oMathElemToTexString (Delimiter dPr bases) = do
+    Top    -> [TM.EOver baseExp (TM.ESymbol TM.Accent "\175")]
+    Bottom -> [TM.EUnder baseExp (TM.ESymbol TM.Accent "\818")]
+oMathElemToExps (Box base) =
+  (\e -> return [e]) =<< baseToExp base
+oMathElemToExps (BorderBox base) =
+  (\e -> return [TM.EUnary "\\boxed" e]) =<< baseToExp base
+oMathElemToExps (Delimiter dPr bases) = do
+  baseExps <- mapM baseToExp bases
   let beg = fromMaybe '(' (delimBegChar dPr)
       end = fromMaybe ')' (delimEndChar dPr)
       sep = fromMaybe '|' (delimSepChar dPr)
-      left = "\\left" ++ lookupTexChar beg
-      right = "\\right" ++ lookupTexChar end
-      mid  = "\\middle" ++ lookupTexChar sep
-  baseStrings <- mapM baseToTexString bases
-  return $ printf "%s %s %s"
-    left
-    (intercalate (" " ++ mid ++ " ") baseStrings)
-    right
-oMathElemToTexString (EquationArray bases) = do
-  baseStrings <- mapM baseToTexString bases
-  inSub <- gets docxInTexSubscript
-  return $
-    if inSub
-    then
-      printf "\\substack{%s}" (intercalate "\\\\ " baseStrings)
-    else
-      printf
-      "\\begin{aligned}\n%s\n\\end{aligned}"
-      (intercalate "\\\\\n" baseStrings)
-oMathElemToTexString (Fraction num denom) = do
-  numString  <- concatMapM oMathElemToTexString num
-  denString  <- concatMapM oMathElemToTexString denom
-  return $ printf "\\frac{%s}{%s}" numString denString
-oMathElemToTexString (Function fname base) = do
-  fnameString <- concatMapM oMathElemToTexString fname
-  baseString  <- baseToTexString base
-  return $ printf "%s %s" fnameString baseString
-oMathElemToTexString (Group style base)
-  | Just c <- groupChr style
-  , grouper <- lookupTexChar c
-  , notElem grouper ["\\overbrace", "\\underbrace"]
-    = do
-      baseString <- baseToTexString base
-      return $ case groupPos style of
-        Just Top -> printf "\\overset{%s}{%s}" grouper baseString
-        _        -> printf "\\underset{%s}{%s}" grouper baseString
-oMathElemToTexString (Group style base) = do
-  baseString <- baseToTexString base
-  return $ case groupPos style of
-    Just Top -> printf "\\overbrace{%s}" baseString
-    _        -> printf "\\underbrace{%s}" baseString
-oMathElemToTexString (LowerLimit base limElems) = do
-  baseString <- baseToTexString base
-  lim <- concatMapM oMathElemToTexString limElems
-    --  we want to make sure to replace the `\rightarrow` with `\to`
-  let arrowToTo :: String -> String
-      arrowToTo "" = ""
-      arrowToTo s | "\\rightarrow" `isPrefixOf` s =
-        "\\to" ++ (arrowToTo $ drop (length "\\rightarrow") s)
-      arrowToTo (c:cs) = c : arrowToTo cs
-      lim' = arrowToTo lim
-  return $ case baseString of
-    "lim" -> printf "\\lim_{%s}" lim'
-    "max" -> printf "\\max_{%s}" lim'
-    "min" -> printf "\\min_{%s}" lim'
-    _     -> printf "\\operatorname*{%s}_{%s}" baseString lim'
-oMathElemToTexString (UpperLimit base limElems) = do
-  baseString <- baseToTexString base
-  lim <- concatMapM oMathElemToTexString limElems
-    --  we want to make sure to replace the `\rightarrow` with `\to`
-  let arrowToTo :: String -> String
-      arrowToTo "" = ""
-      arrowToTo s | "\\rightarrow" `isPrefixOf` s =
-        "\\to" ++ (arrowToTo $ drop (length "\\rightarrow") s)
-      arrowToTo (c:cs) = c : arrowToTo cs
-      lim' = arrowToTo lim
-  return $ case baseString of
-    "lim" -> printf "\\lim^{%s}" lim'
-    "max" -> printf "\\max^{%s}" lim'
-    "min" -> printf "\\min^{%s}" lim'
-    _     -> printf "\\operatorname*{%s}^{%s}" baseString lim'
-oMathElemToTexString (Matrix bases) = do
-  let rowString :: [Base] -> DocxContext String
-      rowString bs = liftM (intercalate " & ") (mapM baseToTexString bs)
+      exps = intersperse (TM.ESymbol TM.Pun [sep]) baseExps
+  return [TM.EDelimited [beg] [end] exps]
+oMathElemToExps (EquationArray bases) = do
+  baseExps <- mapM baseToExp bases
+  return [TM.EArray [TM.AlignRight, TM.AlignLeft] [[baseExps]]]
+oMathElemToExps (Fraction num denom) = do
+  numExp  <- concatMapM oMathElemToExps num >>= (return . TM.EGrouped)
+  denExp  <- concatMapM oMathElemToExps denom >>= (return . TM.EGrouped)
+  return [TM.EBinary  "\\frac" numExp denExp]
+oMathElemToExps (Function fname base) = do
+  -- We need a string for the fname, but omml gives it to us as a
+  -- series of oMath elems. We're going to filter out the oMathRuns,
+  -- which should work for us most of the time.
+  let f :: OMathElem -> String
+      f (OMathRun _ run) = runToString run
+      f _                  = ""
+      fnameString = concatMap f fname
+  baseExp  <- baseToExp base
+  return [TM.EMathOperator fnameString, baseExp]
+oMathElemToExps (Group style base)
+  | Just c <- groupChr style = do
+    baseExp <- baseToExp base
+    return $ case groupPos style of
+      Just Top    -> [TM.EOver baseExp (TM.ESymbol TM.Accent [c])]
+      _ -> [TM.EUnder baseExp (TM.ESymbol TM.Accent [c])]
+  | otherwise =    -- We default to braces
+    do baseExp <- baseToExp base
+       return $ case groupPos style of
+         Just Top    -> [TM.EUnary "\\overbrace" baseExp]
+         _ -> [TM.EUnary "\\underbrace" baseExp]
+oMathElemToExps (LowerLimit base limElems) = do
+  baseExp <- baseToExp base
+  lim <- concatMapM oMathElemToExps limElems >>= (return . TM.EGrouped)
+  return [TM.EDown lim baseExp]
+oMathElemToExps (UpperLimit base limElems) = do
+  baseExp <- baseToExp base
+  lim <- concatMapM oMathElemToExps limElems >>= (return . TM.EGrouped)
+  return [TM.EUp lim baseExp]
+oMathElemToExps (Matrix bases) = do
+  let unGroup :: TM.Exp -> [TM.Exp]
+      unGroup (TM.EGrouped exps) = exps
+      unGroup e = [e]
+  rows <- mapM (mapM (\b -> baseToExp b >>= (return . unGroup))) bases
+  return [TM.EArray [TM.AlignCenter] rows]
+oMathElemToExps (NAry style sub sup base) = do
+  subExps  <- concatMapM oMathElemToExps sub
+  supExps  <- concatMapM oMathElemToExps sup
+  baseExp <-  baseToExp base
+  let opChar = case nAryChar style of
+        Just c -> [c]
+        -- default to integral
+        Nothing -> "\8747"
+  return [ TM.ESubsup
+           (TM.ESymbol TM.Op opChar) (TM.EGrouped subExps) (TM.EGrouped supExps)
+         , baseExp]
+oMathElemToExps (Phantom base) =
+  (\e -> return [TM.EUnary "\\phantom" e]) =<< baseToExp base
+oMathElemToExps (Radical degree base) = do
+  degExp  <- concatMapM oMathElemToExps degree >>= (return . TM.EGrouped)
+  baseExp <- baseToExp base
+  return [TM.EBinary "\\int" degExp baseExp]
+oMathElemToExps (PreSubSuper sub sup base) = do
+  subExps  <- concatMapM oMathElemToExps sub
+  supExps  <- concatMapM oMathElemToExps sup
+  baseExp <- baseToExp base
+  return [ TM.ESubsup
+          (TM.EIdentifier "") (TM.EGrouped subExps) (TM.EGrouped supExps)
+         , baseExp]
+oMathElemToExps (Sub base sub) = do
+  baseExp <- baseToExp base
+  subExps  <- concatMapM oMathElemToExps sub
+  return [TM.ESub baseExp (TM.EGrouped subExps)]
+oMathElemToExps (SubSuper base sub sup) = do
+  baseExp <- baseToExp base
+  subExps  <- concatMapM oMathElemToExps sub
+  supExps  <- concatMapM oMathElemToExps sup
+  return [TM.ESubsup baseExp (TM.EGrouped subExps) (TM.EGrouped supExps)]
+oMathElemToExps (Super base sup) = do
+  baseExp <- baseToExp base
+  supExps  <- concatMapM oMathElemToExps sup
+  return [TM.ESuper baseExp (TM.EGrouped supExps)]
+oMathElemToExps (OMathRun _ run) =
+  return [TM.EText TM.TextNormal (runToString run)]
 
-  s <- liftM (intercalate " \\\\\n")(mapM rowString bases)
-  return $ printf "\\begin{matrix}\n%s\n\\end{matrix}" s
-oMathElemToTexString (NAry style sub sup base) | Just c <- nAryChar style = do
-  subString  <- withDState (\s -> s{docxInTexSubscript = True}) $
-                concatMapM oMathElemToTexString sub
-  supString  <- concatMapM oMathElemToTexString sup
-  baseString <- baseToTexString base
-  return $ case M.lookup c uniconvMap of
-    Just s@('\\':_) -> printf "%s_{%s}^{%s}{%s}"
-                       s subString supString baseString
-    _               -> printf "\\operatorname*{%s}_{%s}^{%s}{%s}"
-                       [c] subString supString baseString
-oMathElemToTexString (NAry _ sub sup base) = do
-  subString  <- concatMapM oMathElemToTexString sub
-  supString  <- concatMapM oMathElemToTexString sup
-  baseString <- baseToTexString base
-  return $ printf "\\int_{%s}^{%s}{%s}"
-    subString supString baseString
-oMathElemToTexString (Phantom base) = do
-  baseString <- baseToTexString base
-  return $ printf "\\phantom{%s}" baseString
-oMathElemToTexString (Radical degree base) = do
-  degString  <- concatMapM oMathElemToTexString degree
-  baseString <- baseToTexString base
-  return $ case trim degString of
-    "" -> printf "\\sqrt{%s}" baseString
-    _  -> printf "\\sqrt[%s]{%s}" degString baseString
-oMathElemToTexString (PreSubSuper sub sup base) = do
-  subString  <- concatMapM oMathElemToTexString sub
-  supString  <- concatMapM oMathElemToTexString sup
-  baseString <- baseToTexString base
-  return $ printf "_{%s}^{%s}%s" subString supString baseString
-oMathElemToTexString (Sub base sub) = do
-  baseString <- baseToTexString base
-  subString  <- concatMapM oMathElemToTexString sub
-  return $ printf "%s_{%s}" baseString subString
-oMathElemToTexString (SubSuper base sub sup) = do
-  baseString <- baseToTexString base
-  subString  <- concatMapM oMathElemToTexString sub
-  supString  <- concatMapM oMathElemToTexString sup
-  return $ printf "%s_{%s}^{%s}" baseString subString supString
-oMathElemToTexString (Super base sup) = do
-  baseString <- baseToTexString base
-  supString  <- concatMapM oMathElemToTexString sup
-  return $ printf "%s^{%s}" baseString supString
-oMathElemToTexString (OMathRun _ run) = return $ stringToTex $ runToString run
-
-baseToTexString :: Base -> DocxContext String
-baseToTexString (Base mathElems) =
-  concatMapM oMathElemToTexString mathElems
-
+baseToExp :: Base -> DocxContext TM.Exp
+baseToExp (Base mathElems) =
+  concatMapM oMathElemToExps mathElems >>= (return . TM.EGrouped)
 
 isAnchorSpan :: Inline -> Bool
 isAnchorSpan (Span (ident, classes, kvs) ils) =
@@ -602,9 +564,10 @@ bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
 
   return [Table caption alignments widths hdrCells cells]
 bodyPartToBlocks (OMathPara _ maths) = do
-  omaths <- mapM oMathToTexString maths
-  return [Para $ map (\s -> Math DisplayMath s) omaths]
-
+  omaths <- mapM oMathToExps maths
+  return [Para $
+          map (\m -> Math DisplayMath (toTeXMath TM.DisplayBlock m))
+          omaths]
 
 -- replace targets with generated anchors.
 rewriteLink :: Inline -> DocxContext Inline
