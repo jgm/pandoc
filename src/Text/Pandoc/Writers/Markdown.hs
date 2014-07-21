@@ -658,7 +658,11 @@ getReference label (src, tit) = do
 -- | Convert list of Pandoc inline elements to markdown.
 inlineListToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
 inlineListToMarkdown opts lst =
-  mapM (inlineToMarkdown opts) lst >>= return . cat
+  mapM (inlineToMarkdown opts) (avoidBadWraps lst) >>= return . cat
+  where avoidBadWraps [] = []
+        avoidBadWraps (Space:Str (c:cs):xs)
+          | c `elem` "-*+>" = Str (' ':c:cs) : avoidBadWraps xs
+        avoidBadWraps (x:xs) = x : avoidBadWraps xs
 
 escapeSpaces :: Inline -> Inline
 escapeSpaces (Str s) = Str $ substitute " " "\\ " s
