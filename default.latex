@@ -160,6 +160,12 @@ $if(toc)$
 \tableofcontents
 }
 $endif$
+$if(lot)$
+\listoftables
+$endif$
+$if(lof)$
+\listoffigures
+$endif$
 $body$
 
 $if(natbib)$
