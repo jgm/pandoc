@@ -581,7 +581,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
       navXhtmlFormatter n tit src subs = unode "li" !
                                        [("id", "toc-li-" ++ show n)] $
                                             (unode "a" ! [("href",src)]
-                                             $ (unode "span" tit))
+                                             $ tit)
                                             : case subs of
                                                  []    -> []
                                                  (_:_) -> [unode "ol" ! [("class","toc")] $ subs]
