@@ -1404,8 +1404,7 @@ escapedChar = do
 ltSign :: MarkdownParser (F Inlines)
 ltSign = do
   guardDisabled Ext_raw_html
-    <|> guardDisabled Ext_markdown_in_html_blocks
-    <|> (notFollowedBy' (htmlTag isBlockTag) >> return ())
+    <|> (notFollowedByHtmlCloser >> notFollowedBy' (htmlTag isBlockTag))
   char '<'
   return $ return $ B.str "<"
 
@@ -1797,7 +1796,9 @@ rawHtmlInline = do
                                Just t' -> t ~== TagClose t'
                                Nothing -> False
   mdInHtml <- option False $
-                guardEnabled Ext_markdown_in_html_blocks >> return True
+                (    guardEnabled Ext_markdown_in_html_blocks
+                 <|> guardEnabled Ext_markdown_attribute
+                ) >> return True
   (_,result) <- htmlTag $ if mdInHtml
                              then (\x -> isInlineTag x &&
                                          not (isCloseBlockTag x))
