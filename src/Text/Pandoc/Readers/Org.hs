@@ -41,7 +41,8 @@ import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
                                             )
 import           Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import           Text.Pandoc.Shared (compactify', compactify'DL)
-import           Text.TeXMath (texMathToPandoc, DisplayType(..))
+import           Text.TeXMath (DisplayType(..))
+import           Text.Pandoc.Readers.TeXMath (texMathToPandoc)
 
 import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>) )

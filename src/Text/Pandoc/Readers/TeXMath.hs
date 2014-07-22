@@ -27,10 +27,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of TeX math to a list of 'Pandoc' inline elements.
 -}
-module Text.Pandoc.Readers.TeXMath ( texMathToInlines ) where
+module Text.Pandoc.Readers.TeXMath ( texMathToInlines, texMathToPandoc ) where
 
 import Text.Pandoc.Definition
 import Text.TeXMath
+import Data.Maybe (fromMaybe)
+import Control.Applicative ((<$>))
 
 -- | Converts a raw TeX math formula to a list of 'Pandoc' inlines.
 -- Defaults to raw formula between @$@ or @$$@ characters if entire formula
@@ -45,3 +47,11 @@ texMathToInlines mt inp = case texMathToPandoc dt inp of
                              DisplayMath -> (DisplayBlock, "$$")
                              InlineMath  -> (DisplayInline, "$")
 
+
+-- | Convert texMath to Pandoc inlines
+texMathToPandoc :: DisplayType -> String -> Either String [Inline]
+texMathToPandoc dt inp =
+  fromMaybe fallback . writePandoc dt <$> readTeX inp
+  where fallback = [Str $ delim ++ inp ++ delim]
+        delim    = case dt of { DisplayInline -> "$";
+                                DisplayBlock  -> "$$" }

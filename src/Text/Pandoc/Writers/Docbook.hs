@@ -46,6 +46,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.TeXMath
 import qualified Text.XML.Light as Xml
 import Data.Generics (everywhere, mkT)
+import Control.Applicative ((<$>))
 
 -- | Convert list of authors to a docbook <author> section
 authorToDocbook :: WriterOptions -> [Inline] -> B.Inlines
@@ -265,6 +266,9 @@ tableItemToDocbook opts item =
 -- | Convert a list of inline elements to Docbook.
 inlinesToDocbook :: WriterOptions -> [Inline] -> Doc
 inlinesToDocbook opts lst = hcat $ map (inlineToDocbook opts) lst
+
+texMathToMathML :: DisplayType -> String -> Either String Xml.Element
+texMathToMathML dt inp = writeMathML dt <$> readTeX inp
 
 -- | Convert an inline element to Docbook.
 inlineToDocbook :: WriterOptions -> Inline -> Doc

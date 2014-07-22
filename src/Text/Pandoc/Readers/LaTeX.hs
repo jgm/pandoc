@@ -42,21 +42,21 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding ((<|>), many, optional, space,
                                    mathDisplay, mathInline)
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Highlighting (fromListingsLanguage)
+import Text.Pandoc.Builder
 import Data.Char ( chr, ord )
 import Control.Monad.Trans (lift)
 import Control.Monad
-import Text.Pandoc.Builder
-import Data.Char (isLetter, isAlphaNum)
 import Control.Applicative
+import Data.Char (isLetter, isAlphaNum)
 import Data.Monoid
 import Data.Maybe (fromMaybe)
+import Data.List (intercalate, intersperse)
 import System.Environment (getEnv)
 import System.FilePath (replaceExtension, (</>))
-import Data.List (intercalate, intersperse)
+import System.FilePath (takeExtension, addExtension)
 import qualified Data.Map as M
 import qualified Control.Exception as E
-import System.FilePath (takeExtension, addExtension)
-import Text.Pandoc.Highlighting (fromListingsLanguage)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ReaderOptions -- ^ Reader options
