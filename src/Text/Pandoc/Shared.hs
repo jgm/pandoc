@@ -105,7 +105,7 @@ import System.FilePath ( (</>), takeExtension, dropExtension )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import qualified Control.Exception as E
-import Control.Monad (msum)
+import Control.Monad (msum, unless)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
@@ -615,32 +615,25 @@ inlineListToIdentifier =
 
 -- | Convert list of Pandoc blocks into (hierarchical) list of Elements
 hierarchicalize :: [Block] -> [Element]
-hierarchicalize blocks = S.evalState (hierarchicalizeWithIds True blocks) []
+hierarchicalize blocks = S.evalState (hierarchicalizeWithIds blocks) []
 
-hierarchicalizeWithIds :: Bool -> [Block] -> S.State [Int] [Element]
-hierarchicalizeWithIds _ [] = return []
-hierarchicalizeWithIds number ((Header level attr@(_,classes,_) title'):xs) = do
-  let number' = number && "unnumbered" `notElem` classes
-  newnum <- if number'
-               then do
-                 lastnum <- S.get
-                 let lastnum' = take level lastnum
-                 let n = case length lastnum' of
-                               x | x >= level -> init lastnum' ++
-                                         [last lastnum' + 1]
-                                 | otherwise -> lastnum ++
-                                      replicate (level -
-                                        length lastnum - 1) 0 ++ [1]
-                 S.put n
-                 return n
-               else return []
+hierarchicalizeWithIds :: [Block] -> S.State [Int] [Element]
+hierarchicalizeWithIds [] = return []
+hierarchicalizeWithIds ((Header level attr@(_,classes,_) title'):xs) = do
+  lastnum <- S.get
+  let lastnum' = take level lastnum
+  let newnum = case length lastnum' of
+                    x | "unnumbered" `elem` classes -> []
+                      | x >= level -> init lastnum' ++ [last lastnum' + 1]
+                      | otherwise -> lastnum ++
+                           replicate (level - length lastnum - 1) 0 ++ [1]
+  unless (null newnum) $ S.put newnum
   let (sectionContents, rest) = break (headerLtEq level) xs
-  -- ensure that subsections of an unnumbered section aren't numbered
-  sectionContents' <- hierarchicalizeWithIds number' sectionContents
-  rest' <- hierarchicalizeWithIds number rest
+  sectionContents' <- hierarchicalizeWithIds sectionContents
+  rest' <- hierarchicalizeWithIds rest
   return $ Sec level newnum attr title' sectionContents' : rest'
-hierarchicalizeWithIds number (x:rest) = do
-  rest' <- hierarchicalizeWithIds number rest
+hierarchicalizeWithIds (x:rest) = do
+  rest' <- hierarchicalizeWithIds rest
   return $ (Blk x) : rest'
 
 headerLtEq :: Int -> Block -> Bool
