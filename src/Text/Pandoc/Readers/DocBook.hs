@@ -769,7 +769,12 @@ parseBlock (Elem e) =
                                 ""   -> []
                                 x    -> [x]
            return $ codeBlockWith (attrValue "id" e, classes', [])
-                  $ trimNl $ strContent e
+                  $ trimNl $ strContentRecursive e
+         strContentRecursive = strContent . (\e' -> e'{ elContent =
+                                               map elementToStr $ elContent e' })
+         elementToStr :: Content -> Content
+         elementToStr (Elem e') = Text $ CData CDataText (strContentRecursive e') Nothing
+         elementToStr x = x
          parseBlockquote = do
             attrib <- case filterChild (named "attribution") e of
                              Nothing  -> return mempty

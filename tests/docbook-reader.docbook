@@ -89,6 +89,9 @@ sub status {
     print &quot;working&quot;;
 }
 </programlisting>
+    <screen>
+% <command>ls</command>
+</screen>
     <para>
       A list:
     </para>

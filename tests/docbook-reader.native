@@ -23,6 +23,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,BlockQuote
  [Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote:"]
  ,CodeBlock ("",[],[]) "sub status {\n    print \"working\";\n}"
+ ,CodeBlock ("",[],[]) "% ls"
  ,Para [Str "A",Space,Str "list:"]
  ,OrderedList (1,Decimal,DefaultDelim)
   [[Para [Str "item",Space,Str "one"]]
