@@ -105,14 +105,12 @@ readDocx opts bytes =
 
 data DState = DState { docxAnchorMap :: M.Map String String
                      , docxMediaBag      :: MediaBag
-                     , docxInHeaderBlock :: Bool
-                     , docxInTexSubscript :: Bool }
+                     , docxInHeaderBlock :: Bool}
 
 defaultDState :: DState
 defaultDState = DState { docxAnchorMap = M.empty
                        , docxMediaBag  = mempty
-                       , docxInHeaderBlock = False
-                       , docxInTexSubscript = False}
+                       , docxInHeaderBlock = False}
 
 data DEnv = DEnv { docxOptions  :: ReaderOptions
                  , docxDocument :: Docx}
