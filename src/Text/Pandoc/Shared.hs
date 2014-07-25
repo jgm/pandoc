@@ -553,20 +553,22 @@ compactify' items =
                             _   -> items
            _      -> items
 
--- | Like @compactify'@, but akts on items of definition lists.
+-- | Like @compactify'@, but acts on items of definition lists.
 compactify'DL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
 compactify'DL items =
   let defs = concatMap snd items
-      defBlocks = reverse $ concatMap B.toList defs
-  in  case defBlocks of
-           (Para x:_) -> if not $ any isPara (drop 1 defBlocks)
-                            then let (t,ds) = last items
-                                     lastDef = B.toList $ last ds
-                                     ds' = init ds ++
-                                          [B.fromList $ init lastDef ++ [Plain x]]
-                                  in init items ++ [(t, ds')]
-                            else items
-           _          -> items
+  in  case reverse (concatMap B.toList defs) of
+           (Para x:xs)
+             | not (any isPara xs) ->
+                   let (t,ds) = last items
+                       lastDef = B.toList $ last ds
+                       ds' = init ds ++
+                             if null lastDef
+                                then [B.fromList lastDef]
+                                else [B.fromList $ init lastDef ++ [Plain x]]
+                    in init items ++ [(t, ds')]
+             | otherwise           -> items
+           _                       -> items
 
 isPara :: Block -> Bool
 isPara (Para _) = True

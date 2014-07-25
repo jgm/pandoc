@@ -5,6 +5,10 @@ import Text.Pandoc.Shared
 import Test.Framework
 import Tests.Helpers
 import Tests.Arbitrary()
+import Test.Framework.Providers.HUnit
+import Test.HUnit ( assertBool )
+import Text.Pandoc.Builder
+import Data.Monoid
 
 tests :: [Test]
 tests = [ testGroup "normalize"
@@ -12,6 +16,12 @@ tests = [ testGroup "normalize"
           , property "p_normalize_inlines_rt" p_normalize_inlines_rt
           , property "p_normalize_no_trailing_spaces"
               p_normalize_no_trailing_spaces
+          ]
+        , testGroup "compactify'DL"
+          [ testCase "compactify'DL with empty def" $
+              assertBool "compactify'DL"
+              (let x = [(str "word", [para (str "def"), mempty])]
+               in  compactify'DL x == x)
           ]
         ]
 
