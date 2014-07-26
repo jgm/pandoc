@@ -50,7 +50,7 @@ import Data.Default
 import Control.Monad.Reader (Reader, runReader, asks)
 
 import Data.Time.LocalTime (getZonedTime)
-import System.Directory (getModificationTime)
+import Text.Pandoc.Compat.Directory(getModificationTime)
 import Data.Time.Format (formatTime)
 import System.Locale (defaultTimeLocale)
 import System.IO.Error (catchIOError)
