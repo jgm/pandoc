@@ -484,7 +484,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
   let abstract' = case lookupMeta "abstract" meta of
                        Just (MetaBlocks bs) -> bs
                        Just (MetaInlines ils) -> [Plain ils]
-                       Nothing -> []
+                       _ -> []
   title <- withParaProp (pStyle "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
   authors <- withParaProp (pStyle "Authors") $ blocksToOpenXML opts
                  [Para (intercalate [LineBreak] auths) | not (null auths)]
