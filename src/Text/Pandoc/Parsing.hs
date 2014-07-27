@@ -408,7 +408,7 @@ emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
 
 
 -- Schemes from http://www.iana.org/assignments/uri-schemes.html plus
--- the unofficial schemes coap, doi, javascript.
+-- the unofficial schemes coap, doi, javascript, isbn, pmid
 schemes :: [String]
 schemes = ["coap","doi","javascript","aaa","aaas","about","acap","cap","cid",
            "crid","data","dav","dict","dns","file","ftp","geo","go","gopher",
@@ -430,7 +430,7 @@ schemes = ["coap","doi","javascript","aaa","aaas","about","acap","cap","cid",
            "rtmp","secondlife","sftp","sgn","skype","smb","soldat","spotify",
            "ssh","steam","svn","teamspeak","things","udp","unreal","ut2004",
            "ventrilo","view-source","webcal","wtai","wyciwyg","xfire","xri",
-           "ymsgr"]
+           "ymsgr", "isbn", "pmid"]
 
 uriScheme :: Stream s m Char => ParserT s st m String
 uriScheme = oneOfStringsCI schemes
