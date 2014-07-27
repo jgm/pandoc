@@ -1,0 +1,7 @@
+Pandoc (Meta {unMeta = fromList [("abstract",MetaInlines [Str "This",Space,Str "is",Space,Str "a",Space,Str "test",Space,Str "of",Space,Str "how",Space,Str "this",Space,Str "all",Space,Str "works.",Space,Str "I\8217ve",Space,Str "skipped",Space,Str "lines",Space,Str "here,",Space,Str "which",Space,Str "pandoc",Space,Str "doesn\8217t",Space,Str "do,",Space,Str "but",Space,Str "which",Space,Str "shouldn\8217t",Space,Str "make",Space,Str "a",Space,Str "difference."]),("author",MetaList [MetaInlines [Str "Mary",Space,Str "Ann",Space,Str "Evans"],MetaInlines [Str "Aurore",Space,Str "Dupin"]]),("date",MetaInlines [Str "July",Space,Str "28,",Space,Str "2014"]),("title",MetaInlines [Str "This",Space,Str "Is",Space,Str "the",Space,Str "Title"])]})
+[Para [Str "And",Space,Str "now",Space,Str "this",Space,Str "is",Space,Str "normal",Space,Str "text."]
+,Para [Str "This",Space,Str "Is",Space,Str "the",Space,Str "Title"]
+,Para [Str "Mary",Space,Str "Ann",Space,Str "Evans"]
+,Para [Str "Aurore",Space,Str "Dupin"]
+,Para [Str "July",Space,Str "28,",Space,Str "2014"]
+,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "test",Space,Str "of",Space,Str "how",Space,Str "this",Space,Str "all",Space,Str "works.",Space,Str "I\8217ve",Space,Str "skipped",Space,Str "lines",Space,Str "here,",Space,Str "which",Space,Str "pandoc",Space,Str "doesn\8217t",Space,Str "do,",Space,Str "but",Space,Str "which",Space,Str "shouldn\8217t",Space,Str "make",Space,Str "a",Space,Str "difference."]]
