@@ -481,17 +481,24 @@ writeOpenXML opts (Pandoc meta blocks) = do
                                   _ -> []
   let auths = docAuthors meta
   let dat = docDate meta
+  let abstract' = case lookupMeta "abstract" meta of
+                       Just (MetaBlocks bs) -> bs
+                       Just (MetaInlines ils) -> [Plain ils]
+                       Nothing -> []
   title <- withParaProp (pStyle "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
   authors <- withParaProp (pStyle "Authors") $ blocksToOpenXML opts
                  [Para (intercalate [LineBreak] auths) | not (null auths)]
   date <- withParaProp (pStyle "Date") $ blocksToOpenXML opts [Para dat | not (null dat)]
+  abstract <- if null abstract'
+                 then return []
+                 else withParaProp (pStyle "Abstract") $ blocksToOpenXML opts abstract'
   let convertSpace (Str x : Space : Str y : xs) = Str (x ++ " " ++ y) : xs
       convertSpace (Str x : Str y : xs) = Str (x ++ y) : xs
       convertSpace xs = xs
   let blocks' = bottomUp convertSpace $ blocks
   doc' <- blocksToOpenXML opts blocks'
   notes' <- reverse `fmap` gets stFootnotes
-  let meta' = title ++ authors ++ date
+  let meta' = title ++ authors ++ date ++ abstract
   return (meta' ++ doc', notes')
 
 -- | Convert a list of Pandoc blocks to OpenXML.
