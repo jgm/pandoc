@@ -35,6 +35,7 @@ module Text.Pandoc.Pretty (
      , render
      , cr
      , blankline
+     , blanklines
      , space
      , text
      , char
@@ -100,7 +101,7 @@ data D = Text Int String
        | BreakingSpace
        | CarriageReturn
        | NewLine
-       | BlankLine
+       | BlankLines Int  -- number of blank lines
        deriving (Show)
 
 newtype Doc = Doc { unDoc :: Seq D }
@@ -113,7 +114,7 @@ isBlank :: D -> Bool
 isBlank BreakingSpace  = True
 isBlank CarriageReturn = True
 isBlank NewLine        = True
-isBlank BlankLine      = True
+isBlank (BlankLines _) = True
 isBlank (Text _ (c:_)) = isSpace c
 isBlank _              = False
 
@@ -190,7 +191,7 @@ vsep = foldr ($+$) empty
 nestle :: Doc -> Doc
 nestle (Doc d) = Doc $ go d
   where go x = case viewl x of
-               (BlankLine :< rest) -> go rest
+               (BlankLines _ :< rest) -> go rest
                (NewLine :< rest)   -> go rest
                _                   -> x
 
@@ -203,7 +204,7 @@ chomp d = Doc (fromList dl')
         go (BreakingSpace : xs) = go xs
         go (CarriageReturn : xs) = go xs
         go (NewLine : xs) = go xs
-        go (BlankLine : xs) = go xs
+        go (BlankLines _ : xs) = go xs
         go (Prefixed s d' : xs) = Prefixed s (chomp d') : xs
         go xs = xs
 
@@ -216,9 +217,10 @@ outp off s | off < 0 = do  -- offset < 0 means newline characters
     let pref = reverse $ dropWhile isSpace $ reverse rawpref
     modify $ \st -> st{ output = fromString pref : output st
                       , column = column st + realLength pref }
+  let numnewlines = length $ takeWhile (=='\n') $ reverse s
   modify $ \st -> st { output = fromString s : output st
                      , column = 0
-                     , newlines = newlines st + 1 }
+                     , newlines = newlines st + numnewlines }
 outp off s = do           -- offset >= 0 (0 might be combining char)
   st' <- get
   let pref = prefix st'
@@ -277,15 +279,11 @@ renderList (BeforeNonBlank d : xs) =
           | otherwise -> renderDoc d >> renderList xs
     []                -> renderList xs
 
-renderList (BlankLine : xs) = do
+renderList (BlankLines num : xs) = do
   st <- get
   case output st of
-     _ | newlines st > 1 || null xs -> return ()
-     _ | column st == 0 -> do
-       outp (-1) "\n"
-     _         -> do
-       outp (-1) "\n"
-       outp (-1) "\n"
+     _ | newlines st > num || null xs -> return ()
+       | otherwise -> replicateM_ (1 + num - newlines st) (outp (-1) "\n")
   renderList xs
 
 renderList (CarriageReturn : xs) = do
@@ -302,7 +300,7 @@ renderList (NewLine : xs) = do
 
 renderList (BreakingSpace : CarriageReturn : xs) = renderList (CarriageReturn:xs)
 renderList (BreakingSpace : NewLine : xs) = renderList (NewLine:xs)
-renderList (BreakingSpace : BlankLine : xs) = renderList (BlankLine:xs)
+renderList (BreakingSpace : BlankLines n : xs) = renderList (BlankLines n:xs)
 renderList (BreakingSpace : BreakingSpace : xs) = renderList (BreakingSpace:xs)
 renderList (BreakingSpace : xs) = do
   let isText (Text _ _)       = True
@@ -383,9 +381,13 @@ cr = Doc $ singleton CarriageReturn
 
 -- | Inserts a blank line unless one exists already.
 -- (@blankline <> blankline@ has the same effect as @blankline@.
--- If you want multiple blank lines, use @text "\\n\\n"@.
 blankline :: Doc
-blankline = Doc $ singleton BlankLine
+blankline = Doc $ singleton (BlankLines 1)
+
+-- | Inserts a blank lines unless they exists already.
+-- (@blanklines m <> blanklines n@ has the same effect as @blankline (max m n)@.
+blanklines :: Int -> Doc
+blanklines n = Doc $ singleton (BlankLines n)
 
 -- | Uses the specified string as a prefix for every line of
 -- the inside document (except the first, if not at the beginning
