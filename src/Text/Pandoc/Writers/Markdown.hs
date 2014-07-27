@@ -610,8 +610,19 @@ definitionListItemToMarkdown opts (label, defs) = do
        let sps = case writerTabStop opts - 3 of
                       n | n > 0   -> text $ replicate n ' '
                       _           -> text " "
-       let contents = vcat $ map (\d -> hang tabStop (leader <> sps) $ vcat d <> cr) defs'
-       return $ nowrap labelText <> cr <> contents <> cr
+       if isEnabled Ext_compact_definition_lists opts
+          then do
+            let contents = vcat $ map (\d -> hang tabStop (leader <> sps)
+                                $ vcat d <> cr) defs'
+            return $ nowrap labelText <> cr <> contents <> cr
+          else do
+            let contents = vcat $ map (\d -> hang tabStop (leader <> sps)
+                                $ vcat d <> cr) defs'
+            let isTight = case defs of
+                               ((Plain _ : _): _) -> True
+                               _ -> False
+            return $ blankline <> nowrap labelText <>
+                     (if isTight then cr else blankline) <> contents <> blankline
      else do
        return $ nowrap labelText <> text "  " <> cr <>
                 vsep (map vsep defs') <> blankline
