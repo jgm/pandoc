@@ -101,7 +101,8 @@ readDocx :: ReaderOptions
          -> Pandoc
 readDocx opts bytes =
   case archiveToDocx (toArchive bytes) of
-    Right docx -> Pandoc nullMeta (docxToBlocks opts docx)
+    Right docx -> Pandoc meta blks where
+      (meta, blks) = (docxToMetaAndBlocks opts docx)
     Left _   -> error $ "couldn't parse docx file"
 
 data DState = DState { docxAnchorMap :: M.Map String String
@@ -133,6 +134,40 @@ spansToKeep = []
 
 divsToKeep :: [String]
 divsToKeep = ["list-item", "Definition", "DefinitionTerm"]
+
+metaStyles :: M.Map String String
+metaStyles = M.fromList [ ("Title", "title")
+                        , ("Authors", "author")
+                        , ("Date", "date")
+                        , ("Abstract", "abstract")]
+
+sepBodyParts :: [BodyPart] -> ([BodyPart], [BodyPart])
+sepBodyParts bps = span f bps
+  where f (Paragraph pPr _) = case pStyle pPr of
+          [] -> False
+          (c:_) -> M.member c metaStyles
+        f _ = False
+
+bodyPartsToMeta' :: [BodyPart] -> DocxContext (M.Map String MetaValue)
+bodyPartsToMeta' [] = return M.empty
+bodyPartsToMeta' (bp : bps)
+  | (Paragraph pPr parParts) <- bp
+  , (c:_) <- pStyle pPr
+  , (Just metaField) <- M.lookup c metaStyles = do
+    inlines <- parPartsToInlines parParts
+    remaining <- bodyPartsToMeta' bps
+    let  
+      f (MetaInlines ils) (MetaInlines ils') = MetaBlocks [Para ils, Para ils']
+      f (MetaInlines ils) (MetaBlocks blks) = MetaBlocks ((Para ils) : blks)
+      f m (MetaList mv) = MetaList (m : mv)
+      f m n             = MetaList [m, n]
+    return $ M.insertWith f metaField (MetaInlines inlines) remaining
+bodyPartsToMeta' (_ : bps) = bodyPartsToMeta' bps
+
+bodyPartsToMeta :: [BodyPart] -> DocxContext Meta
+bodyPartsToMeta bps = do
+  mp <- bodyPartsToMeta' bps
+  return $ Meta mp
 
 runStyleToContainers :: RunStyle -> [Container Inline]
 runStyleToContainers rPr =
@@ -615,24 +650,26 @@ rewriteLink l@(Link ils ('#':target, title)) = do
     Nothing        -> l
 rewriteLink il = return il
 
-
-bodyToBlocks :: Body -> DocxContext [Block]
-bodyToBlocks (Body bps) = do
-  blks <- concatMapM bodyPartToBlocks bps >>=
+bodyToMetaAndBlocks :: Body -> DocxContext (Meta, [Block])
+bodyToMetaAndBlocks (Body bps) = do
+  let (metabps, blkbps) = sepBodyParts bps
+  meta <- bodyPartsToMeta metabps
+  blks <- concatMapM bodyPartToBlocks blkbps >>=
           walkM rewriteLink
   return $
-    blocksToDefinitions $
-    blocksToBullets $ blks
+    (meta,
+     blocksToDefinitions $
+     blocksToBullets $ blks)
 
-docxToBlocks :: ReaderOptions -> Docx -> [Block]
-docxToBlocks opts d@(Docx (Document _ body)) =
+docxToMetaAndBlocks :: ReaderOptions -> Docx -> (Meta, [Block])
+docxToMetaAndBlocks opts d@(Docx (Document _ body)) =
   let dState = DState { docxAnchorMap = M.empty
                       , docxInHeaderBlock = False
                       , docxInTexSubscript = False}
       dEnv   = DEnv { docxOptions  = opts
                     , docxDocument = d}
   in
-   evalDocxContext (bodyToBlocks body) dEnv dState
+   evalDocxContext (bodyToMetaAndBlocks body) dEnv dState
 
 ilToCode :: Inline -> String
 ilToCode (Str s) = s
