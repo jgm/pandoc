@@ -37,7 +37,7 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (blankline, char, space)
+import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Data.List ( group, isPrefixOf, find, intersperse, transpose, sortBy )
 import Data.Char ( isSpace, isPunctuation, toUpper )
 import Data.Ord ( comparing )
@@ -79,6 +79,9 @@ writePlain opts document =
                  writerExtensions = Set.delete Ext_escaped_line_breaks $
                                     Set.delete Ext_pipe_tables $
                                     Set.delete Ext_raw_html $
+                                    Set.delete Ext_footnotes $
+                                    Set.delete Ext_tex_math_dollars $
+                                    Set.delete Ext_citations $
                                     writerExtensions opts }
               document) def{ stPlain = True }
 
@@ -171,7 +174,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                then tableOfContents opts headerBlocks
                else empty
   -- Strip off final 'references' header if markdown citations enabled
-  let blocks' = if not isPlain && isEnabled Ext_citations opts
+  let blocks' = if isEnabled Ext_citations opts
                    then case reverse blocks of
                              (Div (_,["references"],_) _):xs -> reverse xs
                              _ -> blocks
@@ -355,11 +358,11 @@ blockToMarkdown opts (Header level attr inlines) = do
   let setext = writerSetextHeaders opts
   return $ nowrap
          $ case level of
-            1 | plain -> blankline <> text "\n\n" <> contents <> blankline <> text "\n"
+            1 | plain -> blanklines 3 <> contents <> blanklines 2
               | setext ->
                   contents <> attr' <> cr <> text (replicate (offset contents) '=') <>
                   blankline
-            2 | plain -> blankline <> text "\n" <> contents <> blankline
+            2 | plain -> blanklines 2 <> contents <> blankline
               | setext ->
                   contents <> attr' <> cr <> text (replicate (offset contents) '-') <>
                   blankline
@@ -695,23 +698,15 @@ inlineToMarkdown opts (Strikeout lst) = do
               then "~~" <> contents <> "~~"
               else "<s>" <> contents <> "</s>"
 inlineToMarkdown opts (Superscript lst) = do
-  plain <- gets stPlain
-  if plain
-     then inlineListToMarkdown opts lst
-     else do
-       contents <- inlineListToMarkdown opts $ walk escapeSpaces lst
-       return $ if isEnabled Ext_superscript opts
-                   then "^" <> contents <> "^"
-                   else "<sup>" <> contents <> "</sup>"
+  contents <- inlineListToMarkdown opts $ walk escapeSpaces lst
+  return $ if isEnabled Ext_superscript opts
+              then "^" <> contents <> "^"
+              else "<sup>" <> contents <> "</sup>"
 inlineToMarkdown opts (Subscript lst) = do
-  plain <- gets stPlain
-  if plain
-     then inlineListToMarkdown opts lst
-     else do
-       contents <- inlineListToMarkdown opts $ walk escapeSpaces lst
-       return $ if isEnabled Ext_subscript opts
-                   then "~" <> contents <> "~"
-                   else "<sub>" <> contents <> "</sub>"
+  contents <- inlineListToMarkdown opts $ walk escapeSpaces lst
+  return $ if isEnabled Ext_subscript opts
+              then "~" <> contents <> "~"
+              else "<sub>" <> contents <> "</sub>"
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- gets stPlain
   if plain
@@ -753,7 +748,11 @@ inlineToMarkdown opts (Math InlineMath str)
       return $ "\\(" <> text str <> "\\)"
   | isEnabled Ext_tex_math_double_backslash opts =
       return $ "\\\\(" <> text str <> "\\\\)"
-  | otherwise = inlineListToMarkdown opts $ texMathToInlines InlineMath str
+  | otherwise = do
+    plain <- gets stPlain
+    inlineListToMarkdown opts $
+      (if plain then makeMathPlainer else id) $
+      texMathToInlines InlineMath str
 inlineToMarkdown opts (Math DisplayMath str)
   | isEnabled Ext_tex_math_dollars opts =
       return $ "$$" <> text str <> "$$"
@@ -853,3 +852,9 @@ inlineToMarkdown opts (Note contents) = do
   if isEnabled Ext_footnotes opts
      then return $ "[^" <> ref <> "]"
      else return $ "[" <> ref <> "]"
+
+makeMathPlainer :: [Inline] -> [Inline]
+makeMathPlainer = walk go
+  where
+  go (Emph xs) = Span nullAttr xs
+  go x = x
