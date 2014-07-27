@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
 {-
 Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -40,7 +41,7 @@ import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import Text.Pandoc.Builder (HasMeta (..), Blocks, Inlines, trimInlines)
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
@@ -52,6 +53,8 @@ import Control.Applicative ( (<$>), (<$), (<*) )
 import Data.Monoid
 import Text.Printf (printf)
 import Debug.Trace (trace)
+import Data.Default (Default (..))
+import Control.Monad.Reader (Reader, runReader, asks, local, ask)
 
 isSpace :: Char -> Bool
 isSpace ' '  = True
@@ -64,17 +67,26 @@ readHtml :: ReaderOptions -- ^ Reader options
          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
          -> Pandoc
 readHtml opts inp =
-  case runParser parseDoc def{ stateOptions = opts } "source" tags of
+  case flip runReader def $ runParserT parseDoc (HTMLState def{ stateOptions = opts } )  "source" tags of
           Left err'    -> error $ "\nError at " ++ show  err'
           Right result -> result
     where tags = canonicalizeTags $
                    parseTagsOptions parseOptions{ optTagPosition = True } inp
           parseDoc = do
              blocks <- (fixPlains False) . mconcat <$> manyTill block eof
-             meta <- stateMeta <$> getState
+             meta <- stateMeta . parserState <$> getState
              return $ Pandoc meta (B.toList blocks)
 
-type TagParser = Parser [Tag String] ParserState
+data HTMLState =
+  HTMLState
+  {  parserState :: ParserState
+  }
+
+data HTMLLocal = HTMLLocal { quoteContext :: QuoteContext }
+
+type HTMLParser s = ParserT s HTMLState (Reader HTMLLocal)
+
+type TagParser = HTMLParser [Tag String]
 
 pBody :: TagParser Blocks
 pBody = pInTags "body" block
@@ -114,7 +126,6 @@ block = do
   when tr $ trace (printf "line %d: %s" (sourceLine pos)
              (take 60 $ show $ B.toList res)) (return ())
   return res
-
 
 pList :: TagParser Blocks
 pList = pBulletList <|> pOrderedList <|> pDefinitionList
@@ -365,8 +376,8 @@ pSelfClosing f g = do
 
 pQ :: TagParser Inlines
 pQ = do
-  quoteContext <- stateQuoteContext `fmap` getState
-  let quoteType = case quoteContext of
+  context <- asks quoteContext
+  let quoteType = case context of
                        InDoubleQuote -> SingleQuote
                        _             -> DoubleQuote
   let innerQuoteContext = if quoteType == SingleQuote
@@ -477,7 +488,8 @@ pTagText :: TagParser Inlines
 pTagText = try $ do
   (TagText str) <- pSatisfy isTagText
   st <- getState
-  case runParser (many pTagContents) st "text" str of
+  qu <- ask
+  case flip runReader qu $ runParserT (many pTagContents) st "text" str of
        Left _        -> fail $ "Could not parse `" ++ str ++ "'"
        Right result  -> return $ mconcat result
 
@@ -486,7 +498,9 @@ pBlank = try $ do
   (TagText str) <- pSatisfy isTagText
   guard $ all isSpace str
 
-pTagContents :: Parser [Char] ParserState Inlines
+type InlinesParser = HTMLParser String
+
+pTagContents :: InlinesParser Inlines
 pTagContents =
       B.displayMath <$> mathDisplay
   <|> B.math        <$> mathInline
@@ -496,12 +510,11 @@ pTagContents =
   <|> pSymbol
   <|> pBad
 
-pStr :: Parser [Char] ParserState Inlines
+pStr :: InlinesParser Inlines
 pStr = do
   result <- many1 $ satisfy $ \c ->
                      not (isSpace c) && not (isSpecial c) && not (isBad c)
-  pos <- getPosition
-  updateState $ \s -> s{ stateLastStrPos = Just pos }
+  updateLastStrPos
   return $ B.str result
 
 isSpecial :: Char -> Bool
@@ -516,13 +529,13 @@ isSpecial '\8220' = True
 isSpecial '\8221' = True
 isSpecial _ = False
 
-pSymbol :: Parser [Char] ParserState Inlines
+pSymbol :: InlinesParser Inlines
 pSymbol = satisfy isSpecial >>= return . B.str . (:[])
 
 isBad :: Char -> Bool
 isBad c = c >= '\128' && c <= '\159' -- not allowed in HTML
 
-pBad :: Parser [Char] ParserState Inlines
+pBad :: InlinesParser Inlines
 pBad = do
   c <- satisfy isBad
   let c' = case c of
@@ -556,7 +569,7 @@ pBad = do
                 _      -> '?'
   return $ B.str [c']
 
-pSpace :: Parser [Char] ParserState Inlines
+pSpace :: InlinesParser Inlines
 pSpace = many1 (satisfy isSpace) >> return B.space
 
 --
@@ -672,19 +685,23 @@ _ `closes` _ = False
 --- parsers for use in markdown, textile readers
 
 -- | Matches a stretch of HTML in balanced tags.
-htmlInBalanced :: (Tag String -> Bool) -> Parser [Char] ParserState String
+htmlInBalanced :: (Monad m)
+               => (Tag String -> Bool)
+               -> ParserT String st m String
 htmlInBalanced f = try $ do
   (TagOpen t _, tag) <- htmlTag f
   guard $ '/' `notElem` tag      -- not a self-closing tag
   let stopper = htmlTag (~== TagClose t)
-  let anytag = liftM snd $ htmlTag (const True)
+  let anytag = snd <$> htmlTag (const True)
   contents <- many $ notFollowedBy' stopper >>
                      (htmlInBalanced f <|> anytag <|> count 1 anyChar)
   endtag <- liftM snd stopper
   return $ tag ++ concat contents ++ endtag
 
 -- | Matches a tag meeting a certain condition.
-htmlTag :: (Tag String -> Bool) -> Parser [Char] st (Tag String, String)
+htmlTag :: Monad m
+        => (Tag String -> Bool)
+        -> ParserT [Char] st m (Tag String, String)
 htmlTag f = try $ do
   lookAhead $ char '<' >> (oneOf "/!?" <|> letter)
   (next : _) <- getInput >>= return . canonicalizeTags . parseTags
@@ -705,5 +722,31 @@ mkAttr attr = (attribsId, attribsClasses, attribsKV)
   where attribsId = fromMaybe "" $ lookup "id" attr
         attribsClasses = words $ fromMaybe "" $ lookup "class" attr
         attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
+
+
+-- Instances
+
+-- This signature should be more general
+-- MonadReader HTMLLocal m => HasQuoteContext st m
+instance HasQuoteContext st (Reader HTMLLocal) where
+  getQuoteContext = asks quoteContext
+  withQuoteContext q = local (\s -> s{quoteContext = q})
+
+instance HasReaderOptions HTMLState where
+    extractReaderOptions = extractReaderOptions . parserState
+
+instance Default HTMLState where
+  def = HTMLState def
+
+instance HasMeta HTMLState where
+  setMeta s b st = st {parserState = setMeta s b $ parserState st}
+  deleteMeta s st = st {parserState = deleteMeta s $ parserState st}
+
+instance Default HTMLLocal where
+  def = HTMLLocal NoQuote
+
+instance HasLastStrPosition HTMLState where
+  setLastStrPos s st = st {parserState = setLastStrPos s (parserState st)}
+  getLastStrPos = getLastStrPos . parserState
 
 
