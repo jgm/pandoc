@@ -623,15 +623,21 @@ blockListToMarkdown opts blocks =
     -- code block will be treated as a list continuation paragraph
     where fixBlocks (b : CodeBlock attr x : rest)
             | (not (isEnabled Ext_fenced_code_blocks opts) || attr == nullAttr)
-                && isListBlock b =
-               b : RawBlock "html" "<!-- -->\n" : CodeBlock attr x :
-                   fixBlocks rest
+                && isListBlock b = b : commentSep : CodeBlock attr x :
+                                   fixBlocks rest
+          fixBlocks (b1@(BulletList _) : b2@(BulletList _) : bs) =
+               b1 : commentSep : fixBlocks (b2:bs)
+          fixBlocks (b1@(OrderedList _ _) : b2@(OrderedList _ _) : bs) =
+               b1 : commentSep : fixBlocks (b2:bs)
+          fixBlocks (b1@(DefinitionList _) : b2@(DefinitionList _) : bs) =
+               b1 : commentSep : fixBlocks (b2:bs)
           fixBlocks (x : xs)             = x : fixBlocks xs
           fixBlocks []                   = []
           isListBlock (BulletList _)     = True
           isListBlock (OrderedList _ _)  = True
           isListBlock (DefinitionList _) = True
           isListBlock _                  = False
+          commentSep                     = RawBlock "html" "<!-- -->\n"
 
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
