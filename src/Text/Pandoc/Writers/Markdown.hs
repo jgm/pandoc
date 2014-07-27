@@ -39,7 +39,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, char, space)
 import Data.List ( group, isPrefixOf, find, intersperse, transpose, sortBy )
-import Data.Char ( isSpace, isPunctuation )
+import Data.Char ( isSpace, isPunctuation, toUpper )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
 import Control.Monad.State
@@ -77,27 +77,10 @@ writePlain :: WriterOptions -> Pandoc -> String
 writePlain opts document =
   evalState (pandocToMarkdown opts{
                  writerExtensions = Set.delete Ext_escaped_line_breaks $
+                                    Set.delete Ext_pipe_tables $
+                                    Set.delete Ext_raw_html $
                                     writerExtensions opts }
-              document') def{ stPlain = True }
-    where document' = plainify document
-
-plainify :: Pandoc -> Pandoc
-plainify = walk go
-  where go :: Inline -> Inline
-        go (Emph xs) = Span ("",[],[]) xs
-        go (Strong xs) = Span ("",[],[]) xs
-        go (Strikeout xs) = Span ("",[],[]) xs
-        go (Superscript xs) = Span ("",[],[]) xs
-        go (Subscript xs) = Span ("",[],[]) xs
-        go (SmallCaps xs) = Span ("",[],[]) xs
-        go (Span _ xs) = Span ("",[],[]) xs
-        go (Code _ s) = Str s
-        go (Math _ s) = Str s
-        go (RawInline _ _) = Str ""
-        go (Link xs _) = Span ("",[],[]) xs
-        go (Image xs _) = Span ("",[],[]) $ [Str "["] ++ xs ++ [Str "]"]
-        go (Cite _ cits) = Span ("",[],[]) cits
-        go x = x
+              document) def{ stPlain = True }
 
 pandocTitleBlock :: Doc -> [Doc] -> Doc -> Doc
 pandocTitleBlock tit auths dat =
@@ -309,9 +292,9 @@ blockToMarkdown :: WriterOptions -- ^ Options
                 -> State WriterState Doc
 blockToMarkdown _ Null = return empty
 blockToMarkdown opts (Div attrs ils) = do
-  isPlain <- gets stPlain
+  plain <- gets stPlain
   contents <- blockListToMarkdown opts ils
-  return $ if isPlain || not (isEnabled Ext_markdown_in_html_blocks opts)
+  return $ if plain || not (isEnabled Ext_markdown_in_html_blocks opts)
               then contents <> blankline
               else tagWithAttrs "div" attrs <> blankline <>
                       contents <> blankline <> "</div>" <> blankline
@@ -338,21 +321,22 @@ blockToMarkdown opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
 blockToMarkdown opts (RawBlock f str)
   | f == "html" = do
-    st <- get
-    if stPlain st
-       then return empty
-       else return $ if isEnabled Ext_markdown_attribute opts
+    plain <- gets stPlain
+    return $ if plain
+                then empty
+                else if isEnabled Ext_markdown_attribute opts
                         then text (addMarkdownAttribute str) <> text "\n"
                         else text str <> text "\n"
   | f `elem` ["latex", "tex", "markdown"] = do
-    st <- get
-    if stPlain st
-       then return empty
-       else return $ text str <> text "\n"
+    plain <- gets stPlain
+    return $ if plain
+                then empty
+                else text str <> text "\n"
 blockToMarkdown _ (RawBlock _ _) = return empty
-blockToMarkdown _ HorizontalRule =
-  return $ blankline <> text "* * * * *" <> blankline
+blockToMarkdown opts HorizontalRule = do
+  return $ blankline <> text (replicate (writerColumns opts) '-') <> blankline
 blockToMarkdown opts (Header level attr inlines) = do
+  plain <- gets stPlain
   -- we calculate the id that would be used by auto_identifiers
   -- so we know whether to print an explicit identifier
   ids <- gets stIds
@@ -368,18 +352,19 @@ blockToMarkdown opts (Header level attr inlines) = do
                                     space <> attrsToMarkdown attr
                      | otherwise -> empty
   contents <- inlineListToMarkdown opts inlines
-  st <- get
   let setext = writerSetextHeaders opts
   return $ nowrap
          $ case level of
-            1 | setext ->
+            1 | plain -> blankline <> text "\n\n" <> contents <> blankline <> text "\n"
+              | setext ->
                   contents <> attr' <> cr <> text (replicate (offset contents) '=') <>
                   blankline
-            2 | setext ->
+            2 | plain -> blankline <> text "\n" <> contents <> blankline
+              | setext ->
                   contents <> attr' <> cr <> text (replicate (offset contents) '-') <>
                   blankline
             -- ghc interprets '#' characters in column 1 as linenum specifiers.
-            _ | stPlain st || isEnabled Ext_literate_haskell opts ->
+            _ | plain || isEnabled Ext_literate_haskell opts ->
                 contents <> blankline
             _ -> text (replicate level '#') <> space <> contents <> attr' <> blankline
 blockToMarkdown opts (CodeBlock (_,classes,_) str)
@@ -409,14 +394,12 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
                                 (_,(cls:_),_) -> " " <> text cls
                                 _             -> empty
 blockToMarkdown opts (BlockQuote blocks) = do
-  st <- get
+  plain <- gets stPlain
   -- if we're writing literate haskell, put a space before the bird tracks
   -- so they won't be interpreted as lhs...
   let leader = if isEnabled Ext_literate_haskell opts
                   then " > "
-                  else if stPlain st
-                          then "  "
-                          else "> "
+                  else if plain then "  " else "> "
   contents <- blockListToMarkdown opts blocks
   return $ (prefixed leader contents) <> blankline
 blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
@@ -680,62 +663,84 @@ escapeSpaces (Str s) = Str $ substitute " " "\\ " s
 escapeSpaces Space = Str "\\ "
 escapeSpaces x = x
 
+toCaps :: Inline -> Inline
+toCaps (Str s) = Str (map toUpper s)
+toCaps x       = x
+
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
 inlineToMarkdown opts (Span attrs ils) = do
-  st <- get
+  plain <- gets stPlain
   contents <- inlineListToMarkdown opts ils
-  return $ if stPlain st
+  return $ if plain
               then contents
               else tagWithAttrs "span" attrs <> contents <> text "</span>"
 inlineToMarkdown opts (Emph lst) = do
+  plain <- gets stPlain
   contents <- inlineListToMarkdown opts lst
-  return $ "*" <> contents <> "*"
+  return $ if plain
+              then "_" <> contents <> "_"
+              else "*" <> contents <> "*"
 inlineToMarkdown opts (Strong lst) = do
-  contents <- inlineListToMarkdown opts lst
-  return $ "**" <> contents <> "**"
+  plain <- gets stPlain
+  if plain
+     then inlineListToMarkdown opts $ walk toCaps lst
+     else do
+       contents <- inlineListToMarkdown opts lst
+       return $ "**" <> contents <> "**"
 inlineToMarkdown opts (Strikeout lst) = do
   contents <- inlineListToMarkdown opts lst
-  return $ if isEnabled Ext_strikeout opts
+  plain <- gets stPlain
+  return $ if plain || isEnabled Ext_strikeout opts
               then "~~" <> contents <> "~~"
               else "<s>" <> contents <> "</s>"
 inlineToMarkdown opts (Superscript lst) = do
-  let lst' = walk escapeSpaces lst
-  contents <- inlineListToMarkdown opts lst'
-  return $ if isEnabled Ext_superscript opts
-              then "^" <> contents <> "^"
-              else "<sup>" <> contents <> "</sup>"
+  plain <- gets stPlain
+  if plain
+     then inlineListToMarkdown opts lst
+     else do
+       contents <- inlineListToMarkdown opts $ walk escapeSpaces lst
+       return $ if isEnabled Ext_superscript opts
+                   then "^" <> contents <> "^"
+                   else "<sup>" <> contents <> "</sup>"
 inlineToMarkdown opts (Subscript lst) = do
-  let lst' = walk escapeSpaces lst
-  contents <- inlineListToMarkdown opts lst'
-  return $ if isEnabled Ext_subscript opts
-              then "~" <> contents <> "~"
-              else "<sub>" <> contents <> "</sub>"
+  plain <- gets stPlain
+  if plain
+     then inlineListToMarkdown opts lst
+     else do
+       contents <- inlineListToMarkdown opts $ walk escapeSpaces lst
+       return $ if isEnabled Ext_subscript opts
+                   then "~" <> contents <> "~"
+                   else "<sub>" <> contents <> "</sub>"
 inlineToMarkdown opts (SmallCaps lst) = do
-  contents <- inlineListToMarkdown opts lst
-  st <- get
-  return $ if stPlain st
-              then contents
-              else tagWithAttrs "span"
-                     ("",[],[("style","font-variant:small-caps;")])
-                     <> contents <> text "</span>"
+  plain <- gets stPlain
+  if plain
+     then inlineListToMarkdown opts $ walk toCaps lst
+     else do
+       contents <- inlineListToMarkdown opts lst
+       return $ tagWithAttrs "span"
+            ("",[],[("style","font-variant:small-caps;")])
+             <> contents <> text "</span>"
 inlineToMarkdown opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "‘" <> contents <> "’"
 inlineToMarkdown opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "“" <> contents <> "”"
-inlineToMarkdown opts (Code attr str) =
+inlineToMarkdown opts (Code attr str) = do
   let tickGroups = filter (\s -> '`' `elem` s) $ group str
-      longest    = if null tickGroups
+  let longest    = if null tickGroups
                      then 0
                      else maximum $ map length tickGroups
-      marker     = replicate (longest + 1) '`'
-      spacer     = if (longest == 0) then "" else " "
-      attrs      = if isEnabled Ext_inline_code_attributes opts && attr /= nullAttr
+  let marker     = replicate (longest + 1) '`'
+  let spacer     = if (longest == 0) then "" else " "
+  let attrs      = if isEnabled Ext_inline_code_attributes opts && attr /= nullAttr
                       then attrsToMarkdown attr
                       else empty
-  in  return $ text (marker ++ spacer ++ str ++ spacer ++ marker) <> attrs
+  plain <- gets stPlain
+  if plain
+     then return $ text str
+     else return $ text (marker ++ spacer ++ str ++ spacer ++ marker) <> attrs
 inlineToMarkdown _ (Str str) = do
   st <- get
   if stPlain st
@@ -758,15 +763,20 @@ inlineToMarkdown opts (Math DisplayMath str)
       return $ "\\\\[" <> text str <> "\\\\]"
   | otherwise = (\x -> cr <> x <> cr) `fmap`
         inlineListToMarkdown opts (texMathToInlines DisplayMath str)
-inlineToMarkdown opts (RawInline f str)
-  | f == "html" || f == "markdown" ||
-    (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex")) =
-    return $ text str
-inlineToMarkdown _ (RawInline _ _) = return empty
-inlineToMarkdown opts (LineBreak)
-  | isEnabled Ext_hard_line_breaks opts    = return cr
-  | isEnabled Ext_escaped_line_breaks opts = return $ "\\" <> cr
-  | otherwise                              = return $ "  " <> cr
+inlineToMarkdown opts (RawInline f str) = do
+  plain <- gets stPlain
+  if not plain && f == "html" || f == "markdown" ||
+    (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex"))
+    then return $ text str
+    else return empty
+inlineToMarkdown opts (LineBreak) = do
+  plain <- gets stPlain
+  if plain || isEnabled Ext_hard_line_breaks opts
+     then return cr
+     else return $
+          if isEnabled Ext_escaped_line_breaks opts
+             then "\\" <> cr
+             else "  " <> cr
 inlineToMarkdown _ Space = return space
 inlineToMarkdown opts (Cite [] lst) = inlineListToMarkdown opts lst
 inlineToMarkdown opts (Cite (c:cs) lst)
@@ -799,6 +809,7 @@ inlineToMarkdown opts (Cite (c:cs) lst)
         modekey SuppressAuthor = "-"
         modekey _              = ""
 inlineToMarkdown opts (Link txt (src, tit)) = do
+  plain <- gets stPlain
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit
                      then empty
@@ -812,22 +823,29 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
   ref <- if useRefLinks then getReference txt (src, tit) else return []
   reftext <- inlineListToMarkdown opts ref
   return $ if useAuto
-              then "<" <> text srcSuffix <> ">"
+              then if plain
+                      then text srcSuffix
+                      else "<" <> text srcSuffix <> ">"
               else if useRefLinks
                       then let first  = "[" <> linktext <> "]"
                                second = if txt == ref
                                            then "[]"
                                            else "[" <> reftext <> "]"
                            in  first <> second
-                      else "[" <> linktext <> "](" <>
-                           text src <> linktitle <> ")"
+                      else if plain
+                              then linktext
+                              else "[" <> linktext <> "](" <>
+                                   text src <> linktitle <> ")"
 inlineToMarkdown opts (Image alternate (source, tit)) = do
+  plain <- gets stPlain
   let txt = if null alternate || alternate == [Str source]
                                  -- to prevent autolinks
                then [Str ""]
                else alternate
   linkPart <- inlineToMarkdown opts (Link txt (source, tit))
-  return $ "!" <> linkPart
+  return $ if plain
+              then "[" <> linkPart <> "]"
+              else "!" <> linkPart
 inlineToMarkdown opts (Note contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
