@@ -14,7 +14,7 @@ Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
 [LaTeX], [MediaWiki markup], [Haddock markup], [OPML], [Emacs
-Org-mode], [DocBook], and [Word docx]; and it can write plain text,
+Org-mode], [DocBook], [txt2tags] and [Word docx]; and it can write plain text,
 [markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX] (including
 [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
@@ -3096,3 +3096,4 @@ Rosenthal.
 [marc relators]: http://www.loc.gov/marc/relators/relaterm.html
 [RFC5646]: http://tools.ietf.org/html/rfc5646
 [InDesign ICML]: https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf
+[txt2tags]: http://txt2tags.org/

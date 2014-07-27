@@ -63,6 +63,7 @@ module Text.Pandoc
                , writers
                -- * Readers: converting /to/ Pandoc format
                , Reader (..)
+               , mkStringReader
                , readDocx
                , readMarkdown
                , readMediaWiki
@@ -76,6 +77,8 @@ module Text.Pandoc
                , readHaddock
                , readNative
                , readJSON
+               , readTxt2Tags
+               , readTxt2TagsNoMacros
                -- * Writers: converting /from/ Pandoc format
                , Writer (..)
                , writeNative
@@ -130,6 +133,7 @@ import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Haddock
 import Text.Pandoc.Readers.Docx
+import Text.Pandoc.Readers.Txt2Tags
 import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.RST
@@ -227,6 +231,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("latex"        , mkStringReader readLaTeX)
            ,("haddock"      , mkStringReader readHaddock)
            ,("docx"         , mkBSReader readDocx)
+           ,("t2t"          , mkStringReader readTxt2TagsNoMacros)
            ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
