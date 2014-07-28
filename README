@@ -1610,9 +1610,14 @@ Four kinds of tables may be used. The first three kinds presuppose the use of
 a fixed-width font, such as Courier. The fourth kind can be used with
 proportionally spaced fonts, as it does not require lining up columns.
 
-### Simple tables ###
+### Extension: `table_captions` ###
 
-#### Extension: `simple_tables`, `table_captions` ####
+A caption may optionally be provided with all 4 kinds of tables (as 
+illustrated in the examples below). A caption is a paragraph beginning
+with the string `Table:` (or just `:`), which will be stripped off.
+It may appear either before or after the table.
+
+### Extension: `simple_tables` ###
 
 Simple tables look like this:
 
@@ -1641,10 +1646,7 @@ to the dashed line below it:[^4]
        [Markdown discussion list](http://six.pairlist.net/pipermail/markdown-discuss/2005-March/001097.html).
 
 The table must end with a blank line, or a line of dashes followed by
-a blank line.  A caption may optionally be provided (as illustrated in
-the example above). A caption is a paragraph beginning with the string
-`Table:` (or just `:`), which will be stripped off. It may appear either
-before or after the table.
+a blank line.
 
 The column headers may be omitted, provided a dashed line is used
 to end the table. For example:
@@ -1659,9 +1661,7 @@ When headers are omitted, column alignments are determined on the basis
 of the first line of the table body. So, in the tables above, the columns
 would be right, left, center, and right aligned, respectively.
 
-### Multiline tables ###
-
-#### Extension: `multiline_tables`, `table_captions` ####
+### Extension: `multiline_tables` ###
 
 Multiline tables allow headers and table rows to span multiple lines
 of text (but cells that span multiple columns or rows of the table are
@@ -1711,9 +1711,7 @@ It is possible for a multiline table to have just one row, but the row
 should be followed by a blank line (and then the row of dashes that ends
 the table), or the table may be interpreted as a simple table.
 
-### Grid tables ###
-
-#### Extension: `grid_tables`, `table_captions` ####
+### Extension: `grid_tables` ###
 
 Grid tables look like this:
 
@@ -1737,9 +1735,7 @@ columns or rows. Grid tables can be created easily using [Emacs table mode].
 
   [Emacs table mode]: http://table.sourceforge.net/
 
-### Pipe tables ###
-
-#### Extension: `pipe_tables`, `table_captions` ####
+### Extension: `pipe_tables` ###
 
 Pipe tables look like this:
 
@@ -1749,7 +1745,7 @@ Pipe tables look like this:
     |  123  |  123 |   123   |   123  |
     |    1  |    1 |     1   |     1  |
 
-      : Demonstration of simple table syntax.
+      : Demonstration of pipe table syntax.
 
 The syntax is [the same as in PHP markdown extra].  The beginning and
 ending pipe characters are optional, but pipes are required between all
@@ -1785,8 +1781,8 @@ The difference is that `+` is used instead of `|`. Other orgtbl features
 are not supported. In particular, to get non-default column alignment,
 you'll need to add colons as above.
 
-Title block
------------
+Metadata blocks
+---------------
 
 ### Extension: `pandoc_title_block` ###
 
@@ -1863,9 +1859,6 @@ will also have "Pandoc User Manuals" in the footer.
     % PANDOC(1) Pandoc User Manuals | Version 4.0
 
 will also have "Version 4.0" in the header.
-
-YAML metadata block
--------------------
 
 ### Extension: `yaml_metadata_block` ###
 
@@ -2386,9 +2379,7 @@ The link text will be used as the image's alt text:
 
     [movie reel]: movie.gif
 
-### Pictures with captions ###
-
-#### Extension: `implicit_figures` ####
+### Extension: `implicit_figures` ###
 
 An image occurring by itself in a paragraph will be rendered as
 a figure with a caption.[^5] (In LaTeX, a figure environment will be
