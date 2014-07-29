@@ -170,10 +170,6 @@ tests = [ testGroup "inlines"
             "docx.metadata.docx"
             "docx.metadata.native"
           , testCompareWithOpts def{readerStandalone=True}
-            "linebreak between authors"
-            "docx.metadata_author_linebreak.docx"
-            "docx.metadata_author_linebreak.native"
-          , testCompareWithOpts def{readerStandalone=True}
             "stop recording metadata with normal text"
             "docx.metadata_after_normal.docx"
             "docx.metadata_after_normal.native"
