@@ -79,6 +79,7 @@ module Text.Pandoc
                , readJSON
                , readTxt2Tags
                , readTxt2TagsNoMacros
+               , readEPUB
                -- * Writers: converting /from/ Pandoc format
                , Writer (..)
                , writeNative
@@ -134,6 +135,7 @@ import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Haddock
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Readers.Txt2Tags
+import Text.Pandoc.Readers.EPUB
 import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.RST
@@ -233,6 +235,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("haddock"      , mkStringReader readHaddock)
            ,("docx"         , mkBSReader readDocx)
            ,("t2t"          , mkStringReader readTxt2TagsNoMacros)
+           ,("epub"         , mkBSReader readEPUB)
            ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
