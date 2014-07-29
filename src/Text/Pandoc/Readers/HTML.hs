@@ -217,8 +217,14 @@ pBulletList = try $ do
   -- note: if they have an <ol> or <ul> not in scope of a <li>,
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
-  items <- manyTill (pInTags "li" block <* skipMany nonItem) (pCloses "ul")
+  items <- manyTill (pListItem nonItem) (pCloses "ul")
   return $ B.bulletList $ map (fixPlains True) items
+
+pListItem :: TagParser a -> TagParser Blocks
+pListItem nonItem = do
+  TagOpen _ attr <- lookAhead $ pSatisfy (~== TagOpen "li" [])
+  let liDiv = maybe mempty (\x -> B.divWith (x, [], []) mempty) (lookup "id" attr)
+  (liDiv <>) <$> pInTags "li" block <* skipMany nonItem
 
 pOrderedList :: TagParser Blocks
 pOrderedList = try $ do
@@ -245,7 +251,7 @@ pOrderedList = try $ do
   -- note: if they have an <ol> or <ul> not in scope of a <li>,
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
-  items <- manyTill (pInTags "li" block <* skipMany nonItem) (pCloses "ol")
+  items <- manyTill (pListItem nonItem) (pCloses "ol")
   return $ B.orderedListWith (start, style, DefaultDelim) $ map (fixPlains True) items
 
 pDefinitionList :: TagParser Blocks
@@ -518,12 +524,24 @@ pLineBreak = do
   return B.linebreak
 
 pLink :: TagParser Inlines
-pLink = try $ do
+pLink = pRelLink <|> pAnchor
+
+pAnchor :: TagParser Inlines
+pAnchor = try $ do
+  tag <- pSatisfy (tagOpenLit "a" (isJust . lookup "id"))
+  return $ B.spanWith (fromAttrib "id" tag , [], []) mempty
+
+pRelLink :: TagParser Inlines
+pRelLink = try $ do
   tag <- pSatisfy (tagOpenLit "a" (isJust . lookup "href"))
   let url = fromAttrib "href" tag
   let title = fromAttrib "title" tag
+  let uid = fromAttrib "id" tag
+  let spanC = case uid of
+              [] -> id
+              s  -> B.spanWith (s, [], [])
   lab <- trimInlines . mconcat <$> manyTill inline (pCloses "a")
-  return $ B.link (escapeURI url) title lab
+  return $ spanC $ B.link (escapeURI url) title lab
 
 pImage :: TagParser Inlines
 pImage = do
