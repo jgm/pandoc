@@ -41,48 +41,64 @@ import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Builder (HasMeta (..), Blocks, Inlines, trimInlines)
-import Text.Pandoc.Shared
-import Text.Pandoc.Options
-import Text.Pandoc.Parsing
-import Data.Maybe ( fromMaybe, isJust )
-import Data.List ( intercalate )
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
+import Text.Pandoc.Shared ( extractSpaces, renderTags'
+                          , escapeURI, safeRead )
+import Text.Pandoc.Options (ReaderOptions(readerParseRaw, readerTrace)
+                           , Extension (Ext_epub_html_exts))
+import Text.Pandoc.Parsing hiding ((<|>))
+import Text.Pandoc.Walk
+import Data.Maybe ( fromMaybe, isJust)
+import Data.List ( intercalate, isInfixOf )
 import Data.Char ( isDigit )
-import Control.Monad ( liftM, guard, when, mzero )
-import Control.Applicative ( (<$>), (<$), (<*) )
-import Data.Monoid
+import Control.Monad ( liftM, guard, when, mzero, void, unless )
+import Control.Arrow ((***))
+import Control.Applicative ( (<$>), (<$), (<*), (*>), (<|>))
+import Data.Monoid (mconcat, Monoid, mempty, (<>), First (..))
 import Text.Printf (printf)
 import Debug.Trace (trace)
-import Data.Default (Default (..))
-import Control.Monad.Reader (Reader, runReader, asks, local, ask)
+import Text.TeXMath (readMathML, writeTeXMath)
+import Data.Default (Default (..), def)
+import Control.Monad.Reader (Reader,ask, asks, local, runReader)
 
-isSpace :: Char -> Bool
-isSpace ' '  = True
-isSpace '\t' = True
-isSpace '\n' = True
-isSpace _    = False
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ReaderOptions -- ^ Reader options
          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
          -> Pandoc
 readHtml opts inp =
-  case flip runReader def $ runParserT parseDoc (HTMLState def{ stateOptions = opts } )  "source" tags of
+  case flip runReader def $ runParserT parseDoc (HTMLState def{ stateOptions = opts } [])  "source" tags of
           Left err'    -> error $ "\nError at " ++ show  err'
           Right result -> result
-    where tags = canonicalizeTags $
+    where tags = stripPrefixes . canonicalizeTags $
                    parseTagsOptions parseOptions{ optTagPosition = True } inp
           parseDoc = do
              blocks <- (fixPlains False) . mconcat <$> manyTill block eof
              meta <- stateMeta . parserState <$> getState
-             return $ Pandoc meta (B.toList blocks)
+             bs' <- replaceNotes (B.toList blocks)
+             return $ Pandoc meta bs'
+
+replaceNotes :: [Block] -> TagParser [Block]
+replaceNotes = walkM replaceNotes'
+
+replaceNotes' :: Inline -> TagParser Inline
+replaceNotes' (RawInline (Format "noteref") ref) = maybe (Str "") (Note . B.toList) . lookup ref <$> getNotes
+  where
+    getNotes = noteTable <$> getState
+replaceNotes' x = return x
 
 data HTMLState =
   HTMLState
-  {  parserState :: ParserState
+  {  parserState :: ParserState,
+     noteTable :: [(String, Blocks)]
   }
 
-data HTMLLocal = HTMLLocal { quoteContext :: QuoteContext }
+data HTMLLocal = HTMLLocal { quoteContext :: QuoteContext
+                           , inChapter :: Bool -- ^ Set if in chapter section
+                           }
+
+setInChapter :: HTMLParser s a -> HTMLParser s a
+setInChapter = local (\s -> s {inChapter = True})
 
 type HTMLParser s = ParserT s HTMLState (Reader HTMLLocal)
 
@@ -110,7 +126,11 @@ block = do
   tr <- getOption readerTrace
   pos <- getPosition
   res <- choice
-            [ pPara
+            [ eSwitch
+            , eSection
+            , mempty <$ eFootnote
+            , mempty <$ eTOC
+            , pPara
             , pHeader
             , pBlockQuote
             , pCodeBlock
@@ -126,6 +146,64 @@ block = do
   when tr $ trace (printf "line %d: %s" (sourceLine pos)
              (take 60 $ show $ B.toList res)) (return ())
   return res
+
+namespaces :: [(String, TagParser Blocks)]
+namespaces = [(mathMLNamespace, B.para <$> pMath True)]
+
+mathMLNamespace :: String
+mathMLNamespace = "http://www.w3.org/1998/Math/MathML"
+
+eSwitch :: TagParser Blocks
+eSwitch = try $ do
+  guardEnabled Ext_epub_html_exts
+  pSatisfy (~== TagOpen "switch" [])
+  cases <- getFirst . mconcat <$>
+            manyTill (First <$> (eCase <* skipMany pBlank) )
+              (lookAhead $ try $ pSatisfy (~== TagOpen "default" []))
+  skipMany pBlank
+  fallback <- pInTags "default" ( skipMany pBlank *> block <* skipMany pBlank )
+  skipMany pBlank
+  pSatisfy (~== TagClose "switch")
+  return (fromMaybe fallback cases)
+
+eCase :: TagParser (Maybe Blocks)
+eCase = do
+  skipMany pBlank
+  TagOpen _ attr <- lookAhead $ pSatisfy $ (~== TagOpen "case" [])
+  case (flip lookup namespaces) =<< lookup "required-namespace" attr of
+    Just p -> Just <$> (pInTags "case" (skipMany pBlank *> p <* skipMany pBlank))
+    Nothing -> Nothing <$ manyTill pAnyTag (pSatisfy (~== TagClose "case"))
+
+eFootnote :: TagParser ()
+eFootnote = try $ do
+  let notes = ["footnote", "rearnote"]
+  guardEnabled Ext_epub_html_exts
+  (TagOpen tag attr) <- lookAhead $ pAnyTag
+  guard (maybe False (flip elem notes) (lookup "type" attr))
+  let ident = fromMaybe "" (lookup "id" attr)
+  content <- pInTags tag block
+  addNote ident content
+
+addNote :: String -> Blocks -> TagParser ()
+addNote uid cont = updateState (\s -> s {noteTable = (uid, cont) : (noteTable s)})
+
+eNoteref :: TagParser Inlines
+eNoteref = try $ do
+  guardEnabled Ext_epub_html_exts
+  TagOpen tag attr <- lookAhead $ pAnyTag
+  guard (maybe False (== "noteref") (lookup "type" attr))
+  let ident = maybe "" (dropWhile (== '#')) (lookup "href" attr)
+  guard (not (null ident))
+  pInTags tag block
+  return $ B.rawInline "noteref" ident
+
+-- Strip TOC if there is one, better to generate again
+eTOC :: TagParser ()
+eTOC = try $ do
+  guardEnabled Ext_epub_html_exts
+  (TagOpen tag attr) <- lookAhead $ pAnyTag
+  guard (maybe False (== "toc") (lookup "type" attr))
+  void (pInTags tag block)
 
 pList :: TagParser Blocks
 pList = pBulletList <|> pOrderedList <|> pDefinitionList
@@ -230,13 +308,35 @@ pHtmlBlock t = try $ do
   contents <- manyTill pAnyTag (pSatisfy (~== TagClose t))
   return $ renderTags' $ [open] ++ contents ++ [TagClose t]
 
+-- Sets chapter context
+eSection :: TagParser Blocks
+eSection = try $ do
+  let matchChapter as = maybe False (isInfixOf "chapter") (lookup "type" as)
+  let sectTag = tagOpen (`elem` sectioningContent) matchChapter
+  TagOpen tag _ <- lookAhead $ pSatisfy sectTag
+  setInChapter (pInTags tag block)
+
+headerLevel :: String -> TagParser Int
+headerLevel tagtype = do
+  let level = read (drop 1 tagtype)
+  (try $ do
+    guardEnabled Ext_epub_html_exts
+    asks inChapter >>= guard
+    return (level - 1))
+    <|>
+      return level
+
+
+
+
+
 pHeader :: TagParser Blocks
 pHeader = try $ do
   TagOpen tagtype attr <- pSatisfy $
                            tagOpen (`elem` ["h1","h2","h3","h4","h5","h6"])
                            (const True)
   let bodyTitle = TagOpen tagtype attr ~== TagOpen "h1" [("class","title")]
-  let level = read (drop 1 tagtype)
+  level <- headerLevel tagtype
   contents <- trimInlines . mconcat <$> manyTill inline (pCloses tagtype <|> eof)
   let ident = fromMaybe "" $ lookup "id" attr
   let classes = maybe [] words $ lookup "class" attr
@@ -336,7 +436,8 @@ pCodeBlock = try $ do
 
 inline :: TagParser Inlines
 inline = choice
-           [ pTagText
+           [ eNoteref
+           , pTagText
            , pQ
            , pEmph
            , pStrong
@@ -348,6 +449,7 @@ inline = choice
            , pImage
            , pCode
            , pSpan
+           , pMath False
            , pRawHtmlInline
            ]
 
@@ -620,8 +722,11 @@ blockDocBookTags = ["calloutlist", "bibliolist", "glosslist", "itemizedlist",
                     "classsynopsis", "blockquote", "epigraph", "msgset",
                     "sidebar", "title"]
 
+epubTags :: [String]
+epubTags = ["case", "switch", "default"]
+
 blockTags :: [String]
-blockTags = blockHtmlTags ++ blockDocBookTags
+blockTags = blockHtmlTags ++ blockDocBookTags ++ epubTags
 
 isInlineTag :: Tag String -> Bool
 isInlineTag t = tagOpen isInlineTagName (const True) t ||
@@ -720,9 +825,32 @@ htmlTag f = try $ do
 mkAttr :: [(String, String)] -> Attr
 mkAttr attr = (attribsId, attribsClasses, attribsKV)
   where attribsId = fromMaybe "" $ lookup "id" attr
-        attribsClasses = words $ fromMaybe "" $ lookup "class" attr
+        attribsClasses = (words $ fromMaybe "" $ lookup "class" attr) ++ epubTypes
         attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
+        epubTypes = words $ fromMaybe "" $ lookup "epub:type" attr
 
+-- Strip namespace prefixes
+stripPrefixes :: [Tag String] -> [Tag String]
+stripPrefixes = map stripPrefix
+
+stripPrefix :: Tag String -> Tag String
+stripPrefix (TagOpen s as) =
+    TagOpen (stripPrefix' s) (map (stripPrefix' *** id) as)
+stripPrefix (TagClose s) = TagClose (stripPrefix' s)
+stripPrefix x = x
+
+stripPrefix' :: String -> String
+stripPrefix' s =
+  case span (/= ':') s of
+    (_, "") -> s
+    (_, (_:ts)) -> ts
+
+isSpace :: Char -> Bool
+isSpace ' '  = True
+isSpace '\t' = True
+isSpace '\n' = True
+isSpace '\r' = True
+isSpace _    = False
 
 -- Instances
 
@@ -736,17 +864,39 @@ instance HasReaderOptions HTMLState where
     extractReaderOptions = extractReaderOptions . parserState
 
 instance Default HTMLState where
-  def = HTMLState def
+  def = HTMLState def []
 
 instance HasMeta HTMLState where
   setMeta s b st = st {parserState = setMeta s b $ parserState st}
   deleteMeta s st = st {parserState = deleteMeta s $ parserState st}
 
 instance Default HTMLLocal where
-  def = HTMLLocal NoQuote
+  def = HTMLLocal NoQuote False
 
 instance HasLastStrPosition HTMLState where
   setLastStrPos s st = st {parserState = setLastStrPos s (parserState st)}
   getLastStrPos = getLastStrPos . parserState
 
 
+-- EPUB Specific
+--
+--
+sectioningContent :: [String]
+sectioningContent = ["article", "aside", "nav", "section"]
+
+{-
+groupingContent :: [String]
+groupingContent = ["p", "hr", "pre", "blockquote", "ol"
+                  , "ul", "li", "dl", "dt", "dt", "dd"
+                  , "figure", "figcaption", "div", "main"]
+
+
+
+types :: [(String, ([String], Int))]
+types =  -- Document divisions
+   map (\s -> (s, (["section", "body"], 0)))
+    ["volume", "part", "chapter", "division"]
+  ++ -- Document section and components
+  [
+    ("abstract",  ([], 0))]
+-}
