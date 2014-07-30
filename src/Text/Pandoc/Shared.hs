@@ -79,6 +79,7 @@ module Text.Pandoc.Shared (
                      readDataFile,
                      readDataFileUTF8,
                      fetchItem,
+                     fetchItem',
                      openURL,
                      -- * Error handling
                      err,
@@ -790,6 +791,19 @@ fetchItem sourceURL s
                           x     -> getMimeType x
           cont <- BS.readFile $ unEscapeString s
           return (cont, mime)
+
+-- | Like 'fetchItem', but also looks for items in a 'MediaBag'.
+fetchItem' :: Maybe MediaBag -> Maybe String -> String
+           -> IO (Either E.SomeException (BS.ByteString, Maybe String))
+fetchItem' Nothing sourceURL s = fetchItem sourceURL s
+fetchItem' (Just media) sourceURL s = do
+  case M.lookup s media of
+       Nothing -> fetchItem sourceURL s
+       Just bs -> do
+          let mime = case takeExtension s of
+                          ".gz" -> getMimeType $ dropExtension s
+                          x     -> getMimeType x
+          return $ Right (BS.concat $ toChunks bs, mime)
 
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (Either E.SomeException (BS.ByteString, Maybe String))
