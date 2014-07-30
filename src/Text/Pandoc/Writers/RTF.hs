@@ -36,42 +36,37 @@ import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Walk
 import Data.List ( isSuffixOf, intercalate )
-import Data.Char ( ord, chr, isDigit, toLower )
-import System.FilePath ( takeExtension )
+import Data.Char ( ord, chr, isDigit )
 import qualified Data.ByteString as B
 import qualified Data.Map as M
 import Text.Printf ( printf )
-import Network.URI ( isURI, unEscapeString )
-import qualified Control.Exception as E
 
--- | Convert Image inlines into a raw RTF embedded image, read from a file.
+-- | Convert Image inlines into a raw RTF embedded image, read from a file,
+-- or a MediaBag, or the internet.
 -- If file not found or filetype not jpeg or png, leave the inline unchanged.
-rtfEmbedImage :: Inline -> IO Inline
-rtfEmbedImage x@(Image _ (src,_)) = do
-  let ext = map toLower (takeExtension src)
-  if ext `elem` [".jpg",".jpeg",".png"] && not (isURI src)
-     then do
-       let src' = unEscapeString src
-       imgdata <- E.catch (B.readFile src')
-                    (\e -> let _ = (e :: E.SomeException) in return B.empty)
-       let bytes = map (printf "%02x") $ B.unpack imgdata
-       let filetype = case ext of
-                           ".jpg" -> "\\jpegblip"
-                           ".jpeg" -> "\\jpegblip"
-                           ".png"  -> "\\pngblip"
-                           _      -> error "Unknown file type"
-       let raw = "{\\pict" ++ filetype ++ " " ++ concat bytes ++ "}"
-       return $ if B.null imgdata
-                   then x
-                   else RawInline (Format "rtf") raw
-     else return x
-rtfEmbedImage x = return x
+rtfEmbedImage :: WriterOptions -> Inline -> IO Inline
+rtfEmbedImage opts x@(Image _ (src,_)) = do
+  result <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
+  case result of
+       Right (imgdata, Just mime)
+         | mime == "image/jpeg" || mime == "image/png" -> do
+         let bytes = map (printf "%02x") $ B.unpack imgdata
+         let filetype = case mime of
+                             "image/jpeg" -> "\\jpegblip"
+                             "image/png"  -> "\\pngblip"
+                             _            -> error "Unknown file type"
+         let raw = "{\\pict" ++ filetype ++ " " ++ concat bytes ++ "}"
+         return $ if B.null imgdata
+                     then x
+                     else RawInline (Format "rtf") raw
+       _ -> return x
+rtfEmbedImage _ x = return x
 
 -- | Convert Pandoc to a string in rich text format, with
 -- images embedded as encoded binary data.
 writeRTFWithEmbeddedImages :: WriterOptions -> Pandoc -> IO String
 writeRTFWithEmbeddedImages options doc =
-  writeRTF options `fmap` walkM rtfEmbedImage doc
+  writeRTF options `fmap` walkM (rtfEmbedImage options) doc
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: WriterOptions -> Pandoc -> String
