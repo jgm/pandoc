@@ -42,6 +42,7 @@ module Text.Pandoc.Options ( Extension(..)
                            , EPUBVersion (..)
                            , WriterOptions (..)
                            , TrackChanges (..)
+                           , MediaBag
                            , def
                            , isEnabled
                            ) where
@@ -49,6 +50,8 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Default
 import Text.Pandoc.Highlighting (Style, pygments)
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Map as M
 
 -- | Individually selectable syntax extensions.
 data Extension =
@@ -273,6 +276,9 @@ data TrackChanges = AcceptChanges
                   | RejectChanges
                   | AllChanges
                   deriving (Show, Read, Eq)
+
+-- | A map of media paths to their binary representations.
+type MediaBag = M.Map String BL.ByteString
 
 -- | Options for writers
 data WriterOptions = WriterOptions
