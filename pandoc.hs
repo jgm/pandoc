@@ -33,6 +33,7 @@ module Main where
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.PDF (makePDF)
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
                             safeRead, headerShift, normalize, err, warn,
@@ -49,7 +50,8 @@ import System.Console.GetOpt
 import Data.Char ( toLower )
 import Data.List ( intercalate, isPrefixOf, isSuffixOf, sort )
 import System.Directory ( getAppUserDataDirectory, findExecutable,
-                          doesFileExist, Permissions(..), getPermissions )
+                          doesFileExist, Permissions(..), getPermissions,
+                          createDirectoryIfMissing )
 import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
@@ -182,6 +184,7 @@ data Opt = Opt
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
     , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
     , optDefaultImageExtension :: String -- ^ Default image extension
+    , optExtractMedia      :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrace             :: Bool       -- ^ Print debug information
     , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes.
     }
@@ -239,6 +242,7 @@ defaultOpts = Opt
     , optAscii                 = False
     , optTeXLigatures          = True
     , optDefaultImageExtension = ""
+    , optExtractMedia          = Nothing
     , optTrace                 = False
     , optTrackChanges          = AcceptChanges
     }
@@ -342,6 +346,26 @@ options =
                                           "tab-stop must be a number greater than 0")
                   "NUMBER")
                  "" -- "Tab stop (default 4)"
+
+    , Option "" ["track-changes"]
+                 (ReqArg
+                  (\arg opt -> do
+                     action <- case arg of
+                            "accept" -> return AcceptChanges
+                            "reject" -> return RejectChanges
+                            "all"    -> return AllChanges
+                            _        -> err 6
+                               ("Unknown option for track-changes: " ++ arg)
+                     return opt { optTrackChanges = action })
+                  "accept|reject|all")
+                 "" -- "Accepting or reject MS Word track-changes.""
+
+    , Option "" ["extract-media"]
+                 (ReqArg
+                  (\arg opt -> do
+                    return opt { optExtractMedia = Just arg })
+                  "PATH")
+                 "" -- "Directory to which to extract embedded media"
 
     , Option "s" ["standalone"]
                  (NoArg
@@ -787,19 +811,6 @@ options =
                   (\opt -> return opt { optTrace = True }))
                  "" -- "Turn on diagnostic tracing in readers."
 
-    , Option "" ["track-changes"]
-                 (ReqArg
-                  (\arg opt -> do
-                     action <- case arg of
-                            "accept" -> return AcceptChanges
-                            "reject" -> return RejectChanges
-                            "all"    -> return AllChanges
-                            _        -> err 6
-                               ("Unknown option for track-changes: " ++ arg)
-                     return opt { optTrackChanges = action })
-                  "accept|reject|all")
-                 "" -- "Accepting or reject MS Word track-changes.""
-
     , Option "" ["dump-args"]
                  (NoArg
                   (\opt -> return opt { optDumpArgs = True }))
@@ -998,6 +1009,7 @@ main = do
               , optAscii                 = ascii
               , optTeXLigatures          = texLigatures
               , optDefaultImageExtension = defaultImageExtension
+              , optExtractMedia          = mbExtractMedia
               , optTrace                 = trace
               , optTrackChanges          = trackChanges
              } = opts
@@ -1196,13 +1208,32 @@ main = do
                            then handleIncludes
                            else return
 
+  let writeMedia :: FilePath -> (FilePath, B.ByteString) -> IO ()
+      writeMedia dir (subpath, bs) = do
+        -- we join and split to convert a/b/c to a\b\c on Windows;
+        -- in zip containers all paths use /
+        let fullpath = dir </> joinPath (splitPath subpath)
+        createDirectoryIfMissing True $ takeDirectory fullpath
+        warn $ "extracting " ++ fullpath
+        B.writeFile fullpath bs
+
+  let adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
+      adjustImagePath dir paths (Image lab (src, tit))
+         | src `elem` paths = Image lab (dir ++ "/" ++ src, tit)
+      adjustImagePath _ _ x = x
+
   doc <- case reader of
           StringReader r->
             readSources sources >>=
               handleIncludes' . convertTabs . intercalate "\n" >>=
               r readerOpts
-          ByteStringReader r -> readFiles sources >>= r readerOpts >>=
-                                (return . fst)
+          ByteStringReader r -> do
+              (d, media) <- readFiles sources >>= r readerOpts
+              case mbExtractMedia of
+                   Just dir | not (M.null media) -> do
+                     mapM_ (writeMedia dir) $ M.toList media
+                     return $ walk (adjustImagePath dir (M.keys media)) d
+                   _  -> return d
 
 
   let doc0 = M.foldWithKey setMeta doc metadata

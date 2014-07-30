@@ -318,7 +318,13 @@ Reader options
     classes, respectively. The author and time of change is
     included. *all* is useful for scripting: only accepting changes
     from a certain reviewer, say, or before a certain date. This
-    option only affects the Docx reader.
+    option only affects the docx reader.
+
+`--extract-media=`*DIR*
+:   Extract images and other media contained in a docx or epub container
+    to the path *DIR*, creating it if necessary, and adjust the images
+    references in the document so they point to the extracted files.
+    This option only affects the docx and epub readers.
 
 General writer options
 ----------------------
