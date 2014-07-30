@@ -1222,21 +1222,23 @@ main = do
          | src `elem` paths = Image lab (dir ++ "/" ++ src, tit)
       adjustImagePath _ _ x = x
 
-  (doc, writerOptions') <-
+  (doc, media) <-
      case reader of
           StringReader r-> do
             inp <- readSources sources >>=
                        handleIncludes' . convertTabs . intercalate "\n"
             d <- r readerOpts inp
-            return (d, writerOptions)
+            return (d, M.empty)
           ByteStringReader r -> do
               (d, media) <- readFiles sources >>= r readerOpts
-              case mbExtractMedia of
-                   Just dir | not (M.null media) -> do
-                     mapM_ (writeMedia dir) $ M.toList media
-                     let d' = walk (adjustImagePath dir (M.keys media)) d
-                     return (d', writerOptions{ writerMediaBag = media })
-                   _  -> return (d, writerOptions)
+              d' <- case mbExtractMedia of
+                       Just dir | not (M.null media) -> do
+                         mapM_ (writeMedia dir) $ M.toList media
+                         return $ walk (adjustImagePath dir (M.keys media)) d
+                       _  -> return d
+              return (d', media)
+
+  let writerOptions' = writerOptions{ writerMediaBag = media }
 
   let doc0 = M.foldWithKey setMeta doc metadata
   let doc1 = foldr ($) doc0 transforms

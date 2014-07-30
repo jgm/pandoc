@@ -793,10 +793,9 @@ fetchItem sourceURL s
           return (cont, mime)
 
 -- | Like 'fetchItem', but also looks for items in a 'MediaBag'.
-fetchItem' :: Maybe MediaBag -> Maybe String -> String
+fetchItem' :: MediaBag -> Maybe String -> String
            -> IO (Either E.SomeException (BS.ByteString, Maybe String))
-fetchItem' Nothing sourceURL s = fetchItem sourceURL s
-fetchItem' (Just media) sourceURL s = do
+fetchItem' media sourceURL s = do
   case M.lookup s media of
        Nothing -> fetchItem sourceURL s
        Just bs -> do

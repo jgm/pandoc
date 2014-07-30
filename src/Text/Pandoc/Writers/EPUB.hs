@@ -360,7 +360,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
                      walkM (transformBlock opts' mediaRef)
   pics <- readIORef mediaRef
   let readPicEntry entries (oldsrc, newsrc) = do
-        res <- fetchItem (writerSourceURL opts') oldsrc
+        res <- fetchItem' (writerMediaBag opts')
+                  (writerSourceURL opts') oldsrc
         case res of
              Left _        -> do
               warn $ "Could not find media `" ++ oldsrc ++ "', skipping..."

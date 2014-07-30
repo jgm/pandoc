@@ -38,7 +38,7 @@ import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Text.Pandoc.Options ( WriterOptions(..) )
-import Text.Pandoc.Shared ( stringify, readDataFile, fetchItem, warn )
+import Text.Pandoc.Shared ( stringify, readDataFile, fetchItem', warn )
 import Text.Pandoc.ImageSize ( imageSize, sizeInPoints )
 import Text.Pandoc.MIME ( getMimeType )
 import Text.Pandoc.Definition
@@ -131,7 +131,7 @@ writeODT opts doc@(Pandoc meta _) = do
 
 transformPicMath :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline
 transformPicMath opts entriesRef (Image lab (src,_)) = do
-  res <- fetchItem (writerSourceURL opts) src
+  res <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case res of
      Left (_ :: E.SomeException) -> do
        warn $ "Could not find image `" ++ src ++ "', skipping..."

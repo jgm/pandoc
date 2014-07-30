@@ -830,7 +830,8 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
   case M.lookup src imgs of
     Just (_,_,_,elt,_) -> return [elt]
     Nothing -> do
-      res <- liftIO $ fetchItem (writerSourceURL opts) src
+      res <- liftIO $
+               fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
       case res of
         Left (_ :: E.SomeException) -> do
           liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."

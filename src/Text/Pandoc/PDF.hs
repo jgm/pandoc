@@ -45,7 +45,7 @@ import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walkM)
-import Text.Pandoc.Shared (fetchItem, warn, withTempDir)
+import Text.Pandoc.Shared (fetchItem', warn, withTempDir)
 import Text.Pandoc.Options (WriterOptions(..))
 import Text.Pandoc.MIME (extensionFromMimeType)
 import Text.Pandoc.Process (pipeProcess)
@@ -65,26 +65,26 @@ makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex)
         -> Pandoc              -- ^ document
         -> IO (Either ByteString ByteString)
 makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
-  doc' <- handleImages (writerSourceURL opts) tmpdir doc
+  doc' <- handleImages opts tmpdir doc
   let source = writer opts doc'
   tex2pdf' tmpdir program source
 
-handleImages :: Maybe String  -- ^ source base URL
+handleImages :: WriterOptions
              -> FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
              -> IO Pandoc
-handleImages baseURL tmpdir = walkM (handleImage' baseURL tmpdir)
+handleImages opts tmpdir = walkM (handleImage' opts tmpdir)
 
-handleImage' :: Maybe String
+handleImage' :: WriterOptions
              -> FilePath
              -> Inline
              -> IO Inline
-handleImage' baseURL tmpdir (Image ils (src,tit)) = do
+handleImage' opts tmpdir (Image ils (src,tit)) = do
     exists <- doesFileExist src
     if exists
        then return $ Image ils (src,tit)
        else do
-         res <- fetchItem baseURL src
+         res <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
          case res of
               Right (contents, Just mime) -> do
                 let ext = fromMaybe (takeExtension src) $
