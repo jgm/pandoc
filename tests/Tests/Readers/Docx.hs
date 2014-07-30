@@ -37,7 +37,8 @@ compareOutput :: ReaderOptions
 compareOutput opts docxFile nativeFile = do
   df <- B.readFile docxFile
   nf <- Prelude.readFile nativeFile
-  return $ (noNorm (readDocx opts df), noNorm (readNative nf))
+  let (p, _) = readDocx opts df
+  return $ (noNorm p, noNorm (readNative nf))
 
 testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO Test
 testCompareWithOptsIO opts name docxFile nativeFile = do
