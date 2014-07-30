@@ -48,6 +48,8 @@ module Text.Pandoc.Shared (
                      toRomanNumeral,
                      escapeURI,
                      tabFilter,
+                     -- * Media Handling
+                     MediaBag,
                      -- * Date/time
                      normalizeDate,
                      -- * Pandoc block and inline list processing
@@ -114,6 +116,7 @@ import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
+import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Compat.Monoid
 import Data.ByteString.Base64 (decodeLenient)
 import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
@@ -279,6 +282,14 @@ tabFilter tabStop =
       go spsToNextStop (x:xs) =
         x : go (spsToNextStop - 1) xs
   in  go tabStop
+
+---
+--- Media handling
+---
+
+-- | A map of media paths to their binary representations.
+
+type MediaBag = M.Map String BL.ByteString
 
 --
 -- Date/time
