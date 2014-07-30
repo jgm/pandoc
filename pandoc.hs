@@ -1281,7 +1281,9 @@ main = do
                                ["html","html+lhs","html5","html5+lhs",
                                "s5","slidy","slideous","dzslides","revealjs"]
                 selfcontain = if selfContained && htmlFormat
-                                 then makeSelfContained datadir
+                                 then makeSelfContained
+                                      (writerMediaBag writerOptions')
+                                      (writerUserDataDir writerOptions')
                                  else return
                 handleEntities = if htmlFormat && ascii
                                     then toEntities
