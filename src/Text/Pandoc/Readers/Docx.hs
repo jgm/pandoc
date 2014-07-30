@@ -78,8 +78,6 @@ import Codec.Archive.Zip
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Builder (text, toList)
-import Text.Pandoc.MIME (getMimeType)
-import Text.Pandoc.UTF8 (toString)
 import Text.Pandoc.Walk
 import Text.Pandoc.Readers.Docx.Parse
 import Text.Pandoc.Readers.Docx.Lists
@@ -88,9 +86,7 @@ import Text.Pandoc.Readers.Docx.TexChar
 import Text.Pandoc.Shared
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.List (delete, isPrefixOf, (\\), intercalate, intersect)
-import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
-import Data.ByteString.Base64 (encode)
 import qualified Data.Map as M
 import Control.Monad.Reader
 import Control.Monad.State
@@ -98,16 +94,23 @@ import Text.Printf (printf)
 
 readDocx :: ReaderOptions
          -> B.ByteString
-         -> Pandoc
+         -> (Pandoc, MediaBag)
 readDocx opts bytes =
   case archiveToDocx (toArchive bytes) of
-    Right docx -> Pandoc meta blks where
-      (meta, blks) = (docxToMetaAndBlocks opts docx)
+    Right docx -> (Pandoc meta blks, mediaBag) where
+      (meta, blks, mediaBag) = (docxToOutput opts docx)
     Left _   -> error $ "couldn't parse docx file"
 
 data DState = DState { docxAnchorMap :: M.Map String String
+                     , docxMediaBag      :: MediaBag
                      , docxInHeaderBlock :: Bool
                      , docxInTexSubscript :: Bool }
+
+defaultDState :: DState
+defaultDState = DState { docxAnchorMap = M.empty
+                       , docxMediaBag  = M.empty
+                       , docxInHeaderBlock = False
+                       , docxInTexSubscript = False}
 
 data DEnv = DEnv { docxOptions  :: ReaderOptions
                  , docxDocument :: Docx}
@@ -319,13 +322,6 @@ runToInlines (Footnote bps) =
 runToInlines (Endnote bps) =
   concatMapM bodyPartToBlocks bps >>= (\blks -> return [Note blks])
 
-makeDataUrl :: String -> B.ByteString -> Maybe String
-makeDataUrl fp bs =
-  case getMimeType fp of
-    Just mime -> Just $ "data:" ++ mime ++ ";base64," ++
-                 toString (encode $ BS.concat $ B.toChunks bs)
-    Nothing   -> Nothing
-
 parPartToInlines :: ParPart -> DocxContext [Inline]
 parPartToInlines (PlainRun r) = runToInlines r
 parPartToInlines (Insertion _ author date runs) = do
@@ -372,11 +368,9 @@ parPartToInlines (BookMark _ anchor) =
     modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap}
     return [Span (newAnchor, ["anchor"], []) []]
 parPartToInlines (Drawing fp bs) = do
-  return $ case True of                  -- TODO: add self-contained images
-    True -> [Image [] (fp, "")]
-    False -> case makeDataUrl fp bs of
-      Just d -> [Image [] (d, "")]
-      Nothing -> [Image [] ("", "")]
+  mediaBag <- gets docxMediaBag
+  modify $ \s -> s { docxMediaBag = M.insert fp bs mediaBag}
+  return [Image [] (fp, "")]
 parPartToInlines (InternalHyperLink anchor runs) = do
   ils <- concatMapM runToInlines runs
   return [Link ils ('#' : anchor, "")]
@@ -675,26 +669,25 @@ rewriteLink l@(Link ils ('#':target, title)) = do
     Nothing        -> l
 rewriteLink il = return il
 
-bodyToMetaAndBlocks :: Body -> DocxContext (Meta, [Block])
-bodyToMetaAndBlocks (Body bps) = do
+bodyToOutput :: Body -> DocxContext (Meta, [Block], MediaBag)
+bodyToOutput (Body bps) = do
   let (metabps, blkbps) = sepBodyParts bps
   meta <- bodyPartsToMeta metabps
   blks <- concatMapM bodyPartToBlocks blkbps >>=
           walkM rewriteLink
-  return $
-    (meta,
-     blocksToDefinitions $
-     blocksToBullets $ blks)
+  mediaBag <- gets docxMediaBag
+  return $ (meta,
+            blocksToDefinitions $ blocksToBullets $ blks,
+            mediaBag)
 
-docxToMetaAndBlocks :: ReaderOptions -> Docx -> (Meta, [Block])
-docxToMetaAndBlocks opts d@(Docx (Document _ body)) =
-  let dState = DState { docxAnchorMap = M.empty
-                      , docxInHeaderBlock = False
-                      , docxInTexSubscript = False}
+docxToOutput :: ReaderOptions -> Docx -> (Meta, [Block], MediaBag)
+docxToOutput opts d@(Docx (Document _ body)) =
+  let dState = defaultDState
       dEnv   = DEnv { docxOptions  = opts
                     , docxDocument = d}
   in
-   evalDocxContext (bodyToMetaAndBlocks body) dEnv dState
+   evalDocxContext (bodyToOutput body) dEnv dState
+
 
 ilToCode :: Inline -> String
 ilToCode (Str s) = s

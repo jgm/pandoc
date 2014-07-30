@@ -779,11 +779,11 @@ expandDrawingId :: String -> D ParPart
 expandDrawingId s = do
   target <- asks (lookupRelationship s . envRelationships)
   case target of
-    Just t -> do let filepath = combine "word" t
-                 bytes <- asks (lookup filepath . envMedia)
-                 case bytes of
-                   Just bs -> return $ Drawing filepath bs
-                   Nothing -> throwError DocxError
+    Just filepath -> do
+      bytes <- asks (lookup (combine "word" filepath) . envMedia)
+      case bytes of
+        Just bs -> return $ Drawing filepath bs
+        Nothing -> throwError DocxError
     Nothing -> throwError DocxError
 
 elemToParPart :: NameSpaces -> Element -> D ParPart
