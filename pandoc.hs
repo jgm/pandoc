@@ -1222,19 +1222,21 @@ main = do
          | src `elem` paths = Image lab (dir ++ "/" ++ src, tit)
       adjustImagePath _ _ x = x
 
-  doc <- case reader of
-          StringReader r->
-            readSources sources >>=
-              handleIncludes' . convertTabs . intercalate "\n" >>=
-              r readerOpts
+  (doc, writerOptions') <-
+     case reader of
+          StringReader r-> do
+            inp <- readSources sources >>=
+                       handleIncludes' . convertTabs . intercalate "\n"
+            d <- r readerOpts inp
+            return (d, writerOptions)
           ByteStringReader r -> do
               (d, media) <- readFiles sources >>= r readerOpts
               case mbExtractMedia of
                    Just dir | not (M.null media) -> do
                      mapM_ (writeMedia dir) $ M.toList media
-                     return $ walk (adjustImagePath dir (M.keys media)) d
-                   _  -> return d
-
+                     let d' = walk (adjustImagePath dir (M.keys media)) d
+                     return (d', writerOptions{ writerMediaBag = media })
+                   _  -> return (d, writerOptions)
 
   let doc0 = M.foldWithKey setMeta doc metadata
   let doc1 = foldr ($) doc0 transforms
@@ -1248,8 +1250,8 @@ main = do
       writerFn f   = UTF8.writeFile f
 
   case writer of
-    IOStringWriter f -> f writerOptions doc2 >>= writerFn outputFile
-    IOByteStringWriter f -> f writerOptions doc2 >>= writeBinary
+    IOStringWriter f -> f writerOptions' doc2 >>= writerFn outputFile
+    IOByteStringWriter f -> f writerOptions' doc2 >>= writeBinary
     PureStringWriter f
       | pdfOutput -> do
               -- make sure writer is latex or beamer
@@ -1263,14 +1265,14 @@ main = do
                    err 41 $ latexEngine ++ " not found. " ++
                      latexEngine ++ " is needed for pdf output."
 
-              res <- makePDF latexEngine f writerOptions doc2
+              res <- makePDF latexEngine f writerOptions' doc2
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> do
                      B.hPutStr stderr $ err'
                      B.hPut stderr $ B.pack [10]
                      err 43 "Error producing PDF from TeX source"
-      | otherwise -> selfcontain (f writerOptions doc2 ++
+      | otherwise -> selfcontain (f writerOptions' doc2 ++
                                   ['\n' | not standalone'])
                       >>= writerFn outputFile . handleEntities
           where htmlFormat = writerName' `elem`
