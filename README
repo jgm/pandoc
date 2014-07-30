@@ -14,7 +14,7 @@ Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
 [LaTeX], [MediaWiki markup], [Haddock markup], [OPML], [Emacs
-Org-mode], [DocBook], [txt2tags] and [Word docx]; and it can write plain text,
+Org-mode], [DocBook], [txt2tags], [EPUB] and [Word docx]; and it can write plain text,
 [markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX] (including
 [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
@@ -56,7 +56,8 @@ pandoc will fetch the content using HTTP:
     pandoc -f html -t markdown http://www.fsf.org
 
 If multiple input files are given, `pandoc` will concatenate them all (with
-blank lines between them) before parsing.
+blank lines between them) before parsing. This feature is disabled for
+ binary input formats such as `EPUB` and `docx`.
 
 The format of the input and output can be specified explicitly using
 command-line options.  The input format can be specified using the
@@ -144,9 +145,10 @@ General options
     `markdown_phpextra` (PHP Markdown Extra extended markdown),
     `markdown_github` (github extended markdown),
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
-    `docbook` (DocBook), `t2t` (txt2tags), `opml` (OPML), `org` (Emacs
-    Org-mode), `mediawiki` (MediaWiki markup), `haddock` (Haddock markup),
-    or `latex` (LaTeX).  If `+lhs` is appended to `markdown`, `rst`,
+    `docbook` (DocBook), `t2t` (txt2tags), `docx` (docx), `epub` (EPUB),
+    `opml` (OPML), `org` (Emacs Org-mode), `mediawiki` (MediaWiki markup),
+    `haddock` (Haddock markup), or `latex` (LaTeX).  If `+lhs` is appended
+    to `markdown`, `rst`,
     `latex`, or `html`, the input will be treated as literate Haskell
     source: see [Literate Haskell support](#literate-haskell-support),
     below. Markdown syntax extensions can be individually enabled or
@@ -3106,3 +3108,4 @@ Rosenthal.
 [RFC5646]: http://tools.ietf.org/html/rfc5646
 [InDesign ICML]: https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf
 [txt2tags]: http://txt2tags.org/
+[EPUB]: http://idpf.org/epub
