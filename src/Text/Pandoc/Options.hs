@@ -321,7 +321,8 @@ data WriterOptions = WriterOptions
   , writerEpubChapterLevel :: Int            -- ^ Header level for chapters (separate files)
   , writerTOCDepth         :: Int            -- ^ Number of levels to include in TOC
   , writerReferenceODT     :: Maybe FilePath -- ^ Path to reference ODT if specified
-  , writerReferenceDocx    :: Maybe FilePath -- ^ Ptah to reference DOCX if specified
+  , writerReferenceDocx    :: Maybe FilePath -- ^ Path to reference DOCX if specified
+  , writerMediaBag         :: MediaBag       -- ^ Media collected by docx or epub reader
   } deriving Show
 
 instance Default WriterOptions where
@@ -364,6 +365,7 @@ instance Default WriterOptions where
                       , writerTOCDepth         = 3
                       , writerReferenceODT     = Nothing
                       , writerReferenceDocx    = Nothing
+                      , writerMediaBag         = M.empty
                       }
 
 -- | Returns True if the given extension is enabled.
