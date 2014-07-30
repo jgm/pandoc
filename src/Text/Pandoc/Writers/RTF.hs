@@ -40,6 +40,7 @@ import Data.Char ( ord, chr, isDigit )
 import qualified Data.ByteString as B
 import qualified Data.Map as M
 import Text.Printf ( printf )
+import Text.Pandoc.ImageSize
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file,
 -- or a MediaBag, or the internet.
@@ -55,7 +56,17 @@ rtfEmbedImage opts x@(Image _ (src,_)) = do
                              "image/jpeg" -> "\\jpegblip"
                              "image/png"  -> "\\pngblip"
                              _            -> error "Unknown file type"
-         let raw = "{\\pict" ++ filetype ++ " " ++ concat bytes ++ "}"
+         let sizeSpec = case imageSize imgdata of
+                             Nothing -> ""
+                             Just sz -> "\\picw" ++ show xpx ++
+                                        "\\pich" ++ show ypx ++
+                                        "\\picwgoal" ++ show (xpt * 20)
+                                        ++ "\\pichgoal" ++ show (ypt * 20)
+                                -- twip = 1/1440in = 1/20pt
+                                where (xpx, ypx) = sizeInPixels sz
+                                      (xpt, ypt) = sizeInPoints sz
+         let raw = "{\\pict" ++ filetype ++ sizeSpec ++ " " ++
+                    concat bytes ++ "}"
          return $ if B.null imgdata
                      then x
                      else RawInline (Format "rtf") raw
