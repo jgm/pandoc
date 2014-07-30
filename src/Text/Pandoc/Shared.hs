@@ -84,7 +84,9 @@ module Text.Pandoc.Shared (
                      err,
                      warn,
                      -- * Safe read
-                     safeRead
+                     safeRead,
+                     -- * Temp directory
+                     withTempDir
                     ) where
 
 import Text.Pandoc.Definition
@@ -112,6 +114,7 @@ import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
 import System.IO (stderr)
+import System.IO.Temp
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
 import qualified Data.ByteString as BS
@@ -846,3 +849,15 @@ safeRead s = case reads s of
                   (d,x):_
                     | all isSpace x -> return d
                   _                 -> fail $ "Could not read `" ++ s ++ "'"
+
+--
+-- Temp directory
+--
+
+withTempDir :: String -> (FilePath -> IO a) -> IO a
+withTempDir =
+#ifdef _WINDOWS
+  withTempDirectory "."
+#else
+  withSystemTempDirectory
+#endif

@@ -30,7 +30,6 @@ Conversion of LaTeX documents to PDF.
 -}
 module Text.Pandoc.PDF ( makePDF ) where
 
-import System.IO.Temp
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as BC
@@ -46,21 +45,13 @@ import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walkM)
-import Text.Pandoc.Shared (fetchItem, warn)
+import Text.Pandoc.Shared (fetchItem, warn, withTempDir)
 import Text.Pandoc.Options (WriterOptions(..))
 import Text.Pandoc.MIME (extensionFromMimeType)
 import Text.Pandoc.Process (pipeProcess)
 import qualified Data.ByteString.Lazy as BL
 #ifdef _WINDOWS
 import Data.List (intercalate)
-#endif
-
-withTempDir :: String -> (FilePath -> IO a) -> IO a
-withTempDir =
-#ifdef _WINDOWS
-  withTempDirectory "."
-#else
-  withSystemTempDirectory
 #endif
 
 #ifdef _WINDOWS
