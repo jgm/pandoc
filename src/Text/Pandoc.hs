@@ -160,7 +160,7 @@ import Text.Pandoc.Writers.Haddock
 import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (safeRead, warn)
+import Text.Pandoc.Shared (safeRead, warn, MediaBag)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
@@ -204,12 +204,12 @@ markdown o s = do
   return doc
 
 data Reader = StringReader (ReaderOptions -> String -> IO Pandoc)
-              | ByteStringReader (ReaderOptions -> BL.ByteString -> IO Pandoc)
+              | ByteStringReader (ReaderOptions -> BL.ByteString -> IO (Pandoc, MediaBag))
 
 mkStringReader :: (ReaderOptions -> String -> Pandoc) -> Reader
 mkStringReader r = StringReader (\o s -> return $ r o s)
 
-mkBSReader :: (ReaderOptions -> BL.ByteString -> Pandoc) -> Reader
+mkBSReader :: (ReaderOptions -> BL.ByteString -> (Pandoc, MediaBag)) -> Reader
 mkBSReader r = ByteStringReader (\o s -> return $ r o s)
 
 -- | Association list of formats and readers.

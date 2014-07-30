@@ -1201,7 +1201,8 @@ main = do
             readSources sources >>=
               handleIncludes' . convertTabs . intercalate "\n" >>=
               r readerOpts
-          ByteStringReader r -> readFiles sources >>= r readerOpts
+          ByteStringReader r -> readFiles sources >>= r readerOpts >>=
+                                (return . fst)
 
 
   let doc0 = M.foldWithKey setMeta doc metadata
