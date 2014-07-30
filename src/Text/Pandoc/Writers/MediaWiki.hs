@@ -139,10 +139,14 @@ blockToMediaWiki (CodeBlock (_,classes,_) str) = do
                        "python", "qbasic", "rails", "reg", "robots", "ruby", "sas", "scheme", "sdlbasic",
                        "smalltalk", "smarty", "sql", "tcl", "", "thinbasic", "tsql", "vb", "vbnet", "vhdl",
                        "visualfoxpro", "winbatch", "xml", "xpp", "z80"]
-  let (beg, end) = if null at
-                      then ("<pre" ++ if null classes then ">" else " class=\"" ++ unwords classes ++ "\">", "</pre>")
-                      else ("<source lang=\"" ++ head at ++ "\">", "</source>")
-  return $ beg ++ escapeString str ++ end
+  return $
+    if null at
+       then "<pre" ++ (if null classes
+                          then ">"
+                          else " class=\"" ++ unwords classes ++ "\">") ++
+            escapeString str ++ "</pre>"
+       else "<source lang=\"" ++ head at ++ "\">" ++ str ++ "</source>"
+            -- note:  no escape!
 
 blockToMediaWiki (BlockQuote blocks) = do
   contents <- blockListToMediaWiki blocks
