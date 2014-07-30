@@ -709,20 +709,20 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 \item
   \cite[22-23]{smith.1899}
 \item
-  $2+2=4$
+  \(2+2=4\)
 \item
-  $x \in y$
+  \(x \in y\)
 \item
-  $\alpha \wedge \omega$
+  \(\alpha \wedge \omega\)
 \item
-  $223$
+  \(223\)
 \item
-  $p$-Tree
+  \(p\)-Tree
 \item
   Here's some display math:
   \[\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}\]
 \item
-  Here's one that has a line break in it: $\alpha + \omega \times x^2$.
+  Here's one that has a line break in it: \(\alpha + \omega \times x^2\).
 \end{itemize}
 
 These shouldn't be math:

@@ -46,7 +46,7 @@ tests = [ testGroup "code blocks"
           ]
         , testGroup "math"
           [ "escape |" =: para (math "\\sigma|_{\\{x\\}}") =?>
-            "$\\sigma|_{\\{x\\}}$"
+            "\\(\\sigma|_{\\{x\\}}\\)"
           ]
         , testGroup "headers"
           [ "unnumbered header" =:

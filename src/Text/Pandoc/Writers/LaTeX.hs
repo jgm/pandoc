@@ -742,7 +742,7 @@ inlineToLaTeX (Quoted qt lst) = do
                       else char '\x2018' <> inner <> char '\x2019'
 inlineToLaTeX (Str str) = liftM text $ stringToLaTeX TextString str
 inlineToLaTeX (Math InlineMath str) =
-  return $ char '$' <> text str <> char '$'
+  return $ "\\(" <> text str <> "\\)"
 inlineToLaTeX (Math DisplayMath str) =
   return $ "\\[" <> text str <> "\\]"
 inlineToLaTeX (RawInline f str)
