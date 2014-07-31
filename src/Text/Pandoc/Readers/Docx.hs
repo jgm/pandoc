@@ -108,7 +108,7 @@ data DState = DState { docxAnchorMap :: M.Map String String
 
 defaultDState :: DState
 defaultDState = DState { docxAnchorMap = M.empty
-                       , docxMediaBag  = M.empty
+                       , docxMediaBag  = emptyMediaBag
                        , docxInHeaderBlock = False
                        , docxInTexSubscript = False}
 
@@ -369,7 +369,7 @@ parPartToInlines (BookMark _ anchor) =
     return [Span (newAnchor, ["anchor"], []) []]
 parPartToInlines (Drawing fp bs) = do
   mediaBag <- gets docxMediaBag
-  modify $ \s -> s { docxMediaBag = M.insert fp bs mediaBag}
+  modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
   return [Image [] (fp, "")]
 parPartToInlines (InternalHyperLink anchor runs) = do
   ils <- concatMapM runToInlines runs

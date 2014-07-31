@@ -12,6 +12,7 @@ import qualified Data.ByteString.Base64 as B64
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
+import Text.Pandoc.Shared (lookupMedia)
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure
@@ -60,8 +61,8 @@ testCompareMediaIO name docxFile mediaPath mediaFile = do
     df <- B.readFile docxFile
     mf <- B.readFile mediaFile
     let (_, mb) = readDocx def df
-        dBytes = case M.lookup mediaPath mb of
-          Just bs -> bs
+        dBytes = case lookupMedia mediaPath mb of
+          Just (_,bs) -> bs
           Nothing -> error "Media file not found"
         d64 = B8.unpack $ B64.encode $ BS.concat $ B.toChunks dBytes
         m64 = B8.unpack $ B64.encode $ BS.concat $ B.toChunks mf

@@ -37,7 +37,8 @@ import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
                             safeRead, headerShift, normalize, err, warn,
-                            openURL )
+                            openURL, mediaDirectory, extractMediaBag,
+                            emptyMediaBag )
 import Text.Pandoc.XML ( toEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Process (pipeProcess)
@@ -50,8 +51,7 @@ import System.Console.GetOpt
 import Data.Char ( toLower )
 import Data.List ( intercalate, isPrefixOf, isSuffixOf, sort )
 import System.Directory ( getAppUserDataDirectory, findExecutable,
-                          doesFileExist, Permissions(..), getPermissions,
-                          createDirectoryIfMissing )
+                          doesFileExist, Permissions(..), getPermissions )
 import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
@@ -1206,15 +1206,6 @@ main = do
                            then handleIncludes
                            else return
 
-  let writeMedia :: FilePath -> (FilePath, B.ByteString) -> IO ()
-      writeMedia dir (subpath, bs) = do
-        -- we join and split to convert a/b/c to a\b\c on Windows;
-        -- in zip containers all paths use /
-        let fullpath = dir </> joinPath (splitPath subpath)
-        createDirectoryIfMissing True $ takeDirectory fullpath
-        warn $ "extracting " ++ fullpath
-        B.writeFile fullpath bs
-
   let adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
       adjustImagePath dir paths (Image lab (src, tit))
          | src `elem` paths = Image lab (dir ++ "/" ++ src, tit)
@@ -1226,13 +1217,16 @@ main = do
             inp <- readSources sources >>=
                        handleIncludes' . convertTabs . intercalate "\n"
             d <- r readerOpts inp
-            return (d, M.empty)
+            return (d, emptyMediaBag)
           ByteStringReader r -> do
               (d, media) <- readFiles sources >>= r readerOpts
               d' <- case mbExtractMedia of
-                       Just dir | not (M.null media) -> do
-                         mapM_ (writeMedia dir) $ M.toList media
-                         return $ walk (adjustImagePath dir (M.keys media)) d
+                       Just dir -> do
+                         case [fp | (fp, _, _) <- mediaDirectory media] of
+                               []  -> return d
+                               fps -> do
+                                 extractMediaBag True dir media
+                                 return $ walk (adjustImagePath dir fps) d
                        _  -> return d
               return (d', media)
 

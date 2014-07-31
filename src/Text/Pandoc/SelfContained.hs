@@ -41,11 +41,11 @@ import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
-import Text.Pandoc.Shared (renderTags', openURL, readDataFile, err, MediaBag)
+import Text.Pandoc.Shared (renderTags', openURL, readDataFile, err,
+                           MediaBag, lookupMedia)
 import Text.Pandoc.UTF8 (toString,  fromString)
 import Text.Pandoc.MIME (getMimeType)
 import System.Directory (doesFileExist)
-import qualified Data.Map as M
 
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c
@@ -110,16 +110,20 @@ getItem media userdata f =
        -- this is needed for things like cmunrm.eot?#iefix,
        -- which is used to get old versions of IE to work with web fonts.
        let f' = takeWhile (\c -> c /= '?' && c /= '#') f
-       let mime = case takeExtension f' of
-                       ".gz" -> getMimeType $ dropExtension f'
-                       x     -> getMimeType x
+       let mbMime = case takeExtension f' of
+                         ".gz" -> getMimeType $ dropExtension f'
+                         x     -> getMimeType x
        exists <- doesFileExist f'
-       cont <- if exists
-                  then B.readFile f'
-                  else case M.lookup f media of
-                            Just bs  -> return $ BS.concat $ L.toChunks bs
-                            Nothing  -> readDataFile userdata f'
-       return (cont, mime)
+       if exists
+          then do
+            cont <- B.readFile f'
+            return (cont, mbMime)
+          else case lookupMedia f media of
+                    Just (mime,bs) -> return (BS.concat $ L.toChunks bs,
+                                              Just mime)
+                    Nothing        -> do
+                      cont <- readDataFile userdata f'
+                      return (cont, mbMime)
   where handleErr e = err 61 $ "Failed to retrieve " ++ f ++ "\n" ++ show e
 
 getRaw :: MediaBag -> Maybe FilePath -> String -> String

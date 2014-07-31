@@ -793,7 +793,7 @@ transformInline opts mediaRef (Image lab (src,tit)) = do
     return $ Image lab (newsrc, tit)
 transformInline opts _ (x@(Math _ _))
   | WebTeX _ <- writerHTMLMathMethod opts = do
-    raw <- makeSelfContained M.empty Nothing $ writeHtmlInline opts x
+    raw <- makeSelfContained emptyMediaBag Nothing $ writeHtmlInline opts x
     return $ RawInline (Format "html") raw
 transformInline opts mediaRef  (RawInline fmt raw)
   | fmt == Format "html" = do

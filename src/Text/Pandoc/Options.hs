@@ -49,8 +49,7 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Default
 import Text.Pandoc.Highlighting (Style, pygments)
-import Text.Pandoc.Shared (MediaBag)
-import qualified Data.Map as M
+import Text.Pandoc.Shared (MediaBag, emptyMediaBag)
 
 -- | Individually selectable syntax extensions.
 data Extension =
@@ -359,7 +358,7 @@ instance Default WriterOptions where
                       , writerTOCDepth         = 3
                       , writerReferenceODT     = Nothing
                       , writerReferenceDocx    = Nothing
-                      , writerMediaBag         = M.empty
+                      , writerMediaBag         = emptyMediaBag
                       }
 
 -- | Returns True if the given extension is enabled.
