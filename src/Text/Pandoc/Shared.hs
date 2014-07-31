@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, CPP, MultiParamTypeClasses,
-    FlexibleContexts, ScopedTypeVariables, GeneralizedNewtypeDeriving #-}
+    FlexibleContexts, ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -48,13 +48,6 @@ module Text.Pandoc.Shared (
                      toRomanNumeral,
                      escapeURI,
                      tabFilter,
-                     -- * Media Handling
-                     MediaBag,
-                     emptyMediaBag,
-                     lookupMedia,
-                     insertMedia,
-                     mediaDirectory,
-                     extractMediaBag,
                      -- * Date/time
                      normalizeDate,
                      -- * Pandoc block and inline list processing
@@ -97,6 +90,7 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
+import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
 import Text.Pandoc.Builder (Inlines, Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -106,18 +100,16 @@ import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, isPrefixOf, intercalate )
 import qualified Data.Map as M
-import Data.Maybe ( fromMaybe )
 import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
                      unEscapeString, parseURIReference )
 import qualified Data.Set as Set
 import System.Directory
 import Text.Pandoc.MIME (getMimeType)
-import System.FilePath ( (</>), takeExtension, dropExtension, takeDirectory,
-                         splitPath, joinPath )
+import System.FilePath ( (</>), takeExtension, dropExtension)
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import qualified Control.Exception as E
-import Control.Monad (msum, unless, MonadPlus(..), when)
+import Control.Monad (msum, unless)
 import Text.Pandoc.Pretty (charWidth)
 import System.Locale (defaultTimeLocale)
 import Data.Time
@@ -127,7 +119,6 @@ import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
-import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Compat.Monoid
 import Data.ByteString.Base64 (decodeLenient)
 import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
@@ -293,68 +284,6 @@ tabFilter tabStop =
       go spsToNextStop (x:xs) =
         x : go (spsToNextStop - 1) xs
   in  go tabStop
-
----
---- Media handling
----
-
--- | A container for a collection of binary resources, with names and
--- mime types.
-newtype MediaBag = MediaBag (M.Map String (String, BL.ByteString))
-        deriving (Monoid)
-
-instance Show MediaBag where
-  show bag = "MediaBag " ++ show (mediaDirectory bag)
-
-emptyMediaBag :: MediaBag
-emptyMediaBag = MediaBag M.empty
-
--- | Insert a media item into a 'MediaBag', replacing any existing
--- value with the same name.
-insertMedia :: FilePath      -- ^ relative path and canonical name of resource
-            -> Maybe String  -- ^ mime type (Nothing = determine from extension)
-            -> BL.ByteString -- ^ contents of resource
-            -> MediaBag
-            -> MediaBag
-insertMedia fp mbMime contents (MediaBag mediamap) =
-  MediaBag (M.insert fp (mime, contents) mediamap)
-  where mime = fromMaybe "application/octet-stream" (mbMime `mplus` fallback)
-        fallback = case takeExtension fp of
-                        ".gz"   -> getMimeType $ dropExtension fp
-                        _       -> getMimeType fp
-
--- | Lookup a media item in a 'MediaBag', returning mime type and contents.
-lookupMedia :: FilePath
-            -> MediaBag
-            -> Maybe (String, BL.ByteString)
-lookupMedia fp (MediaBag mediamap) = M.lookup fp mediamap
-
--- | Get a list of the file paths stored in a 'MediaBag', with
--- their corresponding mime types and the lengths in bytes of the contents.
-mediaDirectory :: MediaBag -> [(String, String, Int)]
-mediaDirectory (MediaBag mediamap) =
-  M.foldWithKey (\fp (mime,contents) ->
-      ((fp, mime, fromIntegral $ BL.length contents):)) [] mediamap
-
--- | Extract contents of MediaBag to a given directory.  Print informational
--- messages if 'verbose' is true.
-extractMediaBag :: Bool
-                -> FilePath
-                -> MediaBag
-                -> IO ()
-extractMediaBag verbose dir (MediaBag mediamap) = do
-  sequence_ $ M.foldWithKey
-     (\fp (_ ,contents) ->
-        ((writeMedia verbose dir (fp, contents)):)) [] mediamap
-
-writeMedia :: Bool -> FilePath -> (FilePath, BL.ByteString) -> IO ()
-writeMedia verbose dir (subpath, bs) = do
-  -- we join and split to convert a/b/c to a\b\c on Windows;
-  -- in zip containers all paths use /
-  let fullpath = dir </> joinPath (splitPath subpath)
-  createDirectoryIfMissing True $ takeDirectory fullpath
-  when verbose $ warn $ "extracting " ++ fullpath
-  BL.writeFile fullpath bs
 
 --
 -- Date/time

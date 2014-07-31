@@ -84,8 +84,10 @@ import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Reducible
 import Text.Pandoc.Readers.Docx.TexChar
 import Text.Pandoc.Shared
+import Text.Pandoc.MediaBag (insertMedia, MediaBag)
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.List (delete, isPrefixOf, (\\), intercalate, intersect)
+import Data.Monoid
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import Control.Monad.Reader
@@ -108,7 +110,7 @@ data DState = DState { docxAnchorMap :: M.Map String String
 
 defaultDState :: DState
 defaultDState = DState { docxAnchorMap = M.empty
-                       , docxMediaBag  = emptyMediaBag
+                       , docxMediaBag  = mempty
                        , docxInHeaderBlock = False
                        , docxInTexSubscript = False}
 

@@ -12,7 +12,7 @@ import qualified Data.ByteString.Base64 as B64
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
-import Text.Pandoc.Shared (lookupMedia)
+import Text.Pandoc.MediaBag (lookupMedia)
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure

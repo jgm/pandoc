@@ -37,8 +37,8 @@ import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
                             safeRead, headerShift, normalize, err, warn,
-                            openURL, mediaDirectory, extractMediaBag,
-                            emptyMediaBag )
+                            openURL )
+import Text.Pandoc.MediaBag ( mediaDirectory, extractMediaBag )
 import Text.Pandoc.XML ( toEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Process (pipeProcess)
@@ -69,6 +69,7 @@ import qualified Data.Yaml as Yaml
 import qualified Data.Text as T
 import Control.Applicative ((<$>))
 import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
+import Data.Monoid
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2014 John MacFarlane\n" ++
@@ -1217,7 +1218,7 @@ main = do
             inp <- readSources sources >>=
                        handleIncludes' . convertTabs . intercalate "\n"
             d <- r readerOpts inp
-            return (d, emptyMediaBag)
+            return (d, mempty)
           ByteStringReader r -> do
               (d, media) <- readFiles sources >>= r readerOpts
               d' <- case mbExtractMedia of

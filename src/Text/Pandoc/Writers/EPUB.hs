@@ -61,6 +61,7 @@ import Text.Pandoc.MIME (getMimeType)
 import qualified Control.Exception as E
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.HTML.TagSoup
+import Data.Monoid
 
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section
@@ -793,7 +794,7 @@ transformInline opts mediaRef (Image lab (src,tit)) = do
     return $ Image lab (newsrc, tit)
 transformInline opts _ (x@(Math _ _))
   | WebTeX _ <- writerHTMLMathMethod opts = do
-    raw <- makeSelfContained emptyMediaBag Nothing $ writeHtmlInline opts x
+    raw <- makeSelfContained mempty Nothing $ writeHtmlInline opts x
     return $ RawInline (Format "html") raw
 transformInline opts mediaRef  (RawInline fmt raw)
   | fmt == Format "html" = do

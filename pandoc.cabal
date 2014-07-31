@@ -273,6 +273,7 @@ Library
                    Text.Pandoc.Options,
                    Text.Pandoc.Pretty,
                    Text.Pandoc.Shared,
+                   Text.Pandoc.MediaBag,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,

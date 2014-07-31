@@ -41,8 +41,8 @@ import System.FilePath (takeExtension, dropExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
-import Text.Pandoc.Shared (renderTags', openURL, readDataFile, err,
-                           MediaBag, lookupMedia)
+import Text.Pandoc.Shared (renderTags', openURL, readDataFile, err)
+import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
 import Text.Pandoc.UTF8 (toString,  fromString)
 import Text.Pandoc.MIME (getMimeType)
 import System.Directory (doesFileExist)
