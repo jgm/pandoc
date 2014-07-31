@@ -184,6 +184,13 @@ tests = [ testGroup "inlines"
             "docx.track_changes_deletion.docx"
             "docx.track_changes_deletion_all.native"
           ]
+        , testGroup "media"
+          [ testCompareMedia
+            "image extraction"
+            "docx.image.docx"
+            "media/image1.jpeg"
+            "docx.image1.jpeg"
+          ]
         , testGroup "metadata"
           [ testCompareWithOpts def{readerStandalone=True}
             "metadata fields"
