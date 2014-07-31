@@ -50,6 +50,7 @@ module Text.Pandoc.Shared (
                      tabFilter,
                      -- * Media Handling
                      MediaBag,
+                     insertMedia,
                      -- * Date/time
                      normalizeDate,
                      -- * Pandoc block and inline list processing
@@ -292,8 +293,14 @@ tabFilter tabStop =
 ---
 
 -- | A map of media paths to their binary representations.
-
 type MediaBag = M.Map String BL.ByteString
+
+-- | Insert a media item into a `MediaBag`
+insertMedia :: FilePath
+            -> BL.ByteString
+            -> MediaBag
+            -> MediaBag
+insertMedia = M.insert
 
 --
 -- Date/time
