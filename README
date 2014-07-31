@@ -1774,7 +1774,10 @@ legal (though ugly) pipe table:
     orange|3.09
 
 The cells of pipe tables cannot contain block elements like paragraphs
-and lists, and cannot span multiple lines.
+and lists, and cannot span multiple lines.  Note also that in LaTeX/PDF
+output, the cells produced by pipe tables will not wrap, since there
+is no information available about relative widths.  If you want content
+to wrap within cells, use multiline or grid tables.
 
   [the same as in PHP markdown extra]:
     http://michelf.ca/projects/php-markdown/extra/#table
