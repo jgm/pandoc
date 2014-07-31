@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, TupleSections #-}
 {-
 Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -57,7 +57,7 @@ import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
-import Control.Monad (when, unless, liftM)
+import Control.Monad (when, unless, liftM, (>=>))
 import Data.Foldable (foldrM)
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
@@ -1214,28 +1214,34 @@ main = do
 
   (doc, media) <-
      case reader of
-          StringReader r-> do
-            inp <- readSources sources >>=
-                       handleIncludes' . convertTabs . intercalate "\n"
-            d <- r readerOpts inp
-            return (d, mempty)
-          ByteStringReader r -> do
-              (d, media) <- readFiles sources >>= r readerOpts
-              d' <- case mbExtractMedia of
-                       Just dir -> do
-                         case [fp | (fp, _, _) <- mediaDirectory media] of
-                               []  -> return d
-                               fps -> do
-                                 extractMediaBag True dir media
-                                 return $ walk (adjustImagePath dir fps) d
-                       _  -> return d
-              return (d', media)
+          StringReader r-> (, mempty) <$>
+            (  readSources >=>
+               handleIncludes' . convertTabs . intercalate "\n" >=>
+               r readerOpts ) sources
+          ByteStringReader r -> readFiles sources >>= r readerOpts
 
   let writerOptions' = writerOptions{ writerMediaBag = media }
 
-  let doc0 = M.foldWithKey setMeta doc metadata
-  let doc1 = foldr ($) doc0 transforms
-  doc2 <- foldrM ($) doc1 $ map ($ [writerName']) plugins
+  let extractMedia d = do
+        case mbExtractMedia of
+             Just dir -> do
+               case [fp | (fp, _, _) <- mediaDirectory media] of
+                     []  -> return d
+                     fps -> do
+                       extractMediaBag True dir media
+                       return $ walk (adjustImagePath dir fps) d
+             _  -> return d
+
+  let adjustMetadata d = return $ M.foldWithKey setMeta d metadata
+
+  let applyTransforms d = return $ foldr ($) d transforms
+
+  let applyPlugins d = foldrM ($) d $ map ($ [writerName']) plugins
+
+  doc' <- (extractMedia >=>
+           adjustMetadata >=>
+           applyTransforms >=>
+           applyPlugins) doc
 
   let writeBinary :: B.ByteString -> IO ()
       writeBinary = B.writeFile (UTF8.encodePath outputFile)
@@ -1245,8 +1251,8 @@ main = do
       writerFn f   = UTF8.writeFile f
 
   case writer of
-    IOStringWriter f -> f writerOptions' doc2 >>= writerFn outputFile
-    IOByteStringWriter f -> f writerOptions' doc2 >>= writeBinary
+    IOStringWriter f -> f writerOptions' doc' >>= writerFn outputFile
+    IOByteStringWriter f -> f writerOptions' doc' >>= writeBinary
     PureStringWriter f
       | pdfOutput -> do
               -- make sure writer is latex or beamer
@@ -1260,14 +1266,14 @@ main = do
                    err 41 $ latexEngine ++ " not found. " ++
                      latexEngine ++ " is needed for pdf output."
 
-              res <- makePDF latexEngine f writerOptions' doc2
+              res <- makePDF latexEngine f writerOptions' doc'
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> do
                      B.hPutStr stderr $ err'
                      B.hPut stderr $ B.pack [10]
                      err 43 "Error producing PDF from TeX source"
-      | otherwise -> selfcontain (f writerOptions' doc2 ++
+      | otherwise -> selfcontain (f writerOptions' doc' ++
                                   ['\n' | not standalone'])
                       >>= writerFn outputFile . handleEntities
           where htmlFormat = writerName' `elem`
