@@ -38,13 +38,13 @@ import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
                             safeRead, headerShift, normalize, err, warn,
                             openURL )
-import Text.Pandoc.MediaBag ( mediaDirectory, extractMediaBag )
+import Text.Pandoc.MediaBag ( mediaDirectory, extractMediaBag, MediaBag )
 import Text.Pandoc.XML ( toEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Process (pipeProcess)
 import Text.Highlighting.Kate ( languages, Style, tango, pygments,
          espresso, zenburn, kate, haddock, monochrome )
-import System.Environment ( getArgs, getProgName )
+import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
@@ -70,6 +70,8 @@ import qualified Data.Text as T
 import Control.Applicative ((<$>))
 import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
 import Data.Monoid
+
+type Transform = Pandoc -> Pandoc
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2014 John MacFarlane\n" ++
@@ -101,7 +103,10 @@ isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub","ep
 
 externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
 externalFilter f args' d = do
-      mbexe <- if '/' `elem` f -- don't check PATH if filter name it has a path
+      mbPath <- lookup "PATH" <$> getEnvironment
+      mbexe <- if '/' `elem` f || mbPath == Nothing
+                  -- don't check PATH if filter name has a path, or
+                  -- if the PATH is not set
                   then return Nothing
                   else findExecutable f
       (f', args'') <- case mbexe of
@@ -141,7 +146,7 @@ data Opt = Opt
     , optWriter            :: String  -- ^ Writer format
     , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
     , optTableOfContents   :: Bool    -- ^ Include table of contents
-    , optTransforms        :: [Pandoc -> Pandoc]  -- ^ Doc transforms to apply
+    , optTransforms        :: [Transform]  -- ^ Doc transforms to apply
     , optTemplate          :: Maybe FilePath  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optMetadata          :: M.Map String MetaValue -- ^ Metadata fields to set
@@ -934,6 +939,31 @@ defaultWriterName x =
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _          -> "html"
 
+-- Transformations of a Pandoc document post-parsing:
+
+extractMedia :: MediaBag -> FilePath -> Pandoc -> IO Pandoc
+extractMedia media dir d =
+  case [fp | (fp, _, _) <- mediaDirectory media] of
+        []  -> return d
+        fps -> do
+          extractMediaBag True dir media
+          return $ walk (adjustImagePath dir fps) d
+
+adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
+adjustImagePath dir paths (Image lab (src, tit))
+   | src `elem` paths = Image lab (dir ++ "/" ++ src, tit)
+adjustImagePath _ _ x = x
+
+adjustMetadata :: M.Map String MetaValue -> Pandoc -> IO Pandoc
+adjustMetadata metadata d = return $ M.foldWithKey setMeta d metadata
+
+applyTransforms :: [Transform] -> Pandoc -> IO Pandoc
+applyTransforms transforms d = return $ foldr ($) d transforms
+
+applyFilters :: [FilePath] -> [String] -> Pandoc -> IO Pandoc
+applyFilters filters args d =
+  foldrM ($) d $ map (flip externalFilter args) filters
+
 main :: IO ()
 main = do
 
@@ -1026,7 +1056,6 @@ main = do
                                 all (\f -> takeBaseName f /= "pandoc-citeproc")
                                 filters -> "pandoc-citeproc" : filters
                        _                -> filters
-  let plugins = map externalFilter filters'
 
   let sources = if ignoreArgs then [] else args
 
@@ -1143,6 +1172,40 @@ main = do
                       , readerTrackChanges = trackChanges
                       }
 
+  when (not (isTextFormat writerName') && outputFile == "-") $
+    err 5 $ "Cannot write " ++ writerName' ++ " output to stdout.\n" ++
+            "Specify an output file using the -o option."
+
+  let readSources [] = mapM readSource ["-"]
+      readSources srcs = mapM readSource srcs
+      readSource "-" = UTF8.getContents
+      readSource src = case parseURI src of
+                            Just u | uriScheme u `elem` ["http:","https:"] ->
+                                       readURI src
+                            _       -> UTF8.readFile src
+      readURI src = do
+        res <- openURL src
+        case res of
+             Left e        -> throwIO e
+             Right (bs,_)  -> return $ UTF8.toString bs
+
+  let readFiles [] = error "Cannot read archive from stdin"
+      readFiles (x:_) = B.readFile x
+
+  let convertTabs = tabFilter (if (preserveTabs || readerName' == "t2t") then 0 else tabStop)
+
+  let handleIncludes' = if readerName' == "latex" || readerName' == "latex+lhs"
+                           then handleIncludes
+                           else return
+
+  (doc, media) <-
+     case reader of
+          StringReader r-> (, mempty) <$>
+            (  readSources >=>
+               handleIncludes' . convertTabs . intercalate "\n" >=>
+               r readerOpts ) sources
+          ByteStringReader r -> readFiles sources >>= r readerOpts
+
   let writerOptions = def { writerStandalone       = standalone',
                             writerTemplate         = templ,
                             writerVariables        = variables'',
@@ -1178,70 +1241,15 @@ main = do
                             writerEpubChapterLevel = epubChapterLevel,
                             writerTOCDepth         = epubTOCDepth,
                             writerReferenceODT     = referenceODT,
-                            writerReferenceDocx    = referenceDocx
+                            writerReferenceDocx    = referenceDocx,
+                            writerMediaBag         = media
                           }
 
-  when (not (isTextFormat writerName') && outputFile == "-") $
-    err 5 $ "Cannot write " ++ writerName' ++ " output to stdout.\n" ++
-            "Specify an output file using the -o option."
 
-  let readSources [] = mapM readSource ["-"]
-      readSources srcs = mapM readSource srcs
-      readSource "-" = UTF8.getContents
-      readSource src = case parseURI src of
-                            Just u | uriScheme u `elem` ["http:","https:"] ->
-                                       readURI src
-                            _       -> UTF8.readFile src
-      readURI src = do
-        res <- openURL src
-        case res of
-             Left e        -> throwIO e
-             Right (bs,_)  -> return $ UTF8.toString bs
-
-  let readFiles [] = error "Cannot read archive from stdin"
-      readFiles (x:_) = B.readFile x
-
-  let convertTabs = tabFilter (if (preserveTabs || readerName' == "t2t") then 0 else tabStop)
-
-  let handleIncludes' = if readerName' == "latex" || readerName' == "latex+lhs"
-                           then handleIncludes
-                           else return
-
-  let adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
-      adjustImagePath dir paths (Image lab (src, tit))
-         | src `elem` paths = Image lab (dir ++ "/" ++ src, tit)
-      adjustImagePath _ _ x = x
-
-  (doc, media) <-
-     case reader of
-          StringReader r-> (, mempty) <$>
-            (  readSources >=>
-               handleIncludes' . convertTabs . intercalate "\n" >=>
-               r readerOpts ) sources
-          ByteStringReader r -> readFiles sources >>= r readerOpts
-
-  let writerOptions' = writerOptions{ writerMediaBag = media }
-
-  let extractMedia d = do
-        case mbExtractMedia of
-             Just dir -> do
-               case [fp | (fp, _, _) <- mediaDirectory media] of
-                     []  -> return d
-                     fps -> do
-                       extractMediaBag True dir media
-                       return $ walk (adjustImagePath dir fps) d
-             _  -> return d
-
-  let adjustMetadata d = return $ M.foldWithKey setMeta d metadata
-
-  let applyTransforms d = return $ foldr ($) d transforms
-
-  let applyPlugins d = foldrM ($) d $ map ($ [writerName']) plugins
-
-  doc' <- (extractMedia >=>
-           adjustMetadata >=>
-           applyTransforms >=>
-           applyPlugins) doc
+  doc' <- (maybe return (extractMedia media) mbExtractMedia >=>
+           adjustMetadata metadata >=>
+           applyTransforms transforms >=>
+           applyFilters filters' [writerName']) doc
 
   let writeBinary :: B.ByteString -> IO ()
       writeBinary = B.writeFile (UTF8.encodePath outputFile)
@@ -1251,8 +1259,8 @@ main = do
       writerFn f   = UTF8.writeFile f
 
   case writer of
-    IOStringWriter f -> f writerOptions' doc' >>= writerFn outputFile
-    IOByteStringWriter f -> f writerOptions' doc' >>= writeBinary
+    IOStringWriter f -> f writerOptions doc' >>= writerFn outputFile
+    IOByteStringWriter f -> f writerOptions doc' >>= writeBinary
     PureStringWriter f
       | pdfOutput -> do
               -- make sure writer is latex or beamer
@@ -1266,14 +1274,14 @@ main = do
                    err 41 $ latexEngine ++ " not found. " ++
                      latexEngine ++ " is needed for pdf output."
 
-              res <- makePDF latexEngine f writerOptions' doc'
+              res <- makePDF latexEngine f writerOptions doc'
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> do
                      B.hPutStr stderr $ err'
                      B.hPut stderr $ B.pack [10]
                      err 43 "Error producing PDF from TeX source"
-      | otherwise -> selfcontain (f writerOptions' doc' ++
+      | otherwise -> selfcontain (f writerOptions doc' ++
                                   ['\n' | not standalone'])
                       >>= writerFn outputFile . handleEntities
           where htmlFormat = writerName' `elem`
@@ -1281,8 +1289,8 @@ main = do
                                "s5","slidy","slideous","dzslides","revealjs"]
                 selfcontain = if selfContained && htmlFormat
                                  then makeSelfContained
-                                      (writerMediaBag writerOptions')
-                                      (writerUserDataDir writerOptions')
+                                      (writerMediaBag writerOptions)
+                                      (writerUserDataDir writerOptions)
                                  else return
                 handleEntities = if htmlFormat && ascii
                                     then toEntities
