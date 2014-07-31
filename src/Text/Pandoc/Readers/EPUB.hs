@@ -1,6 +1,7 @@
 {-# LANGUAGE
    ViewPatterns
  , StandaloneDeriving
+ , TupleSections
  , FlexibleContexts  #-}
 
 module Text.Pandoc.Readers.EPUB
@@ -9,32 +10,36 @@ module Text.Pandoc.Readers.EPUB
 
 import Text.XML.Light
 import Text.Pandoc.Definition hiding (Attr)
-import Text.Pandoc.Walk (walk)
+import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Generic(bottomUp)
 import Text.Pandoc.Readers.HTML (readHtml)
-import Text.Pandoc.Options (ReaderOptions(..), readerExtensions, Extension(..) )
+import Text.Pandoc.Options ( ReaderOptions(..), readerExtensions, Extension(..)
+                           , readerTrace)
 import Text.Pandoc.Shared (escapeURI)
+import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Compat.Except (MonadError, throwError, runExcept, Except)
 import qualified Text.Pandoc.Builder as B
 import Codec.Archive.Zip ( Archive (..), toArchive, fromEntry
                          , findEntryByPath, Entry)
 import qualified Data.ByteString.Lazy as BL (ByteString)
-import System.FilePath (takeFileName, (</>), dropFileName)
+import System.FilePath (takeFileName, (</>), dropFileName, normalise)
 import qualified Text.Pandoc.UTF8 as UTF8 (toStringLazy)
 import Control.Applicative ((<$>))
-import Control.Monad (guard, liftM)
+import Control.Monad (guard, liftM, when)
 import Data.Monoid (mempty, (<>))
 import Data.List (isPrefixOf, isInfixOf)
 import Data.Maybe (mapMaybe, fromMaybe)
-import qualified Data.Map as M (Map, lookup, fromList)
+import qualified Data.Map as M (Map, lookup, fromList, elems)
 import qualified Data.Set as S (insert)
 import Control.DeepSeq.Generics (deepseq, NFData)
+
+import Debug.Trace (trace)
 
 type MIME = String
 
 type Items = M.Map String (FilePath, MIME)
 
-readEPUB :: ReaderOptions -> BL.ByteString -> Pandoc
+readEPUB :: ReaderOptions -> BL.ByteString -> (Pandoc, MediaBag)
 readEPUB opts bytes = runEPUB (archiveToEPUB opts $ toArchive bytes)
 
 runEPUB :: Except String a -> a
@@ -44,27 +49,28 @@ runEPUB = either error id . runExcept
 -- are of the form "filename#id"
 --
 -- For now all paths are stripped from images
-archiveToEPUB :: (MonadError String m) => ReaderOptions -> Archive -> m Pandoc
+archiveToEPUB :: (MonadError String m) => ReaderOptions -> Archive -> m (Pandoc, MediaBag)
 archiveToEPUB os archive = do
   (root, content) <- getManifest archive
   meta  <- parseMeta content
   (cover, items) <- parseManifest content
-  let coverDoc = fromMaybe mempty (imageToPandoc . takeFileName<$> cover)
+  let coverDoc = fromMaybe mempty (imageToPandoc . takeFileName <$> cover)
   spine <- parseSpine items content
   let escapedSpine = map (escapeURI . takeFileName . fst) spine
-  --traceShow escapedSpine (return ())
   Pandoc _ bs <-
       foldM' (\a b -> ((a <>) . bottomUp (prependHash escapedSpine))
         `liftM` parseSpineElem root b) mempty spine
-  return $ coverDoc <> (Pandoc meta bs)
+  let ast = coverDoc <> (Pandoc meta bs)
+  let mediaBag = fetchImages (M.elems items) root archive ast
+  return $ (ast, mediaBag)
   where
     rs = readerExtensions os
     os' = os {readerExtensions = foldr S.insert rs [Ext_epub_html_exts, Ext_raw_html]}
     os'' = os' {readerParseRaw = True}
     parseSpineElem :: MonadError String m => FilePath -> (FilePath, MIME) -> m Pandoc
     parseSpineElem r (path, mime) = do
-      --traceShow path (return ())
-      doc <- mimeToReader mime (if r /= "./" then r </> path else path)
+      when (readerTrace os) (traceM path)
+      doc <- mimeToReader mime (normalise (r </> path))
       let docSpan = B.doc $ B.para $ B.spanWith (takeFileName path, [], []) mempty
       return $ docSpan <> fixInternalReferences (takeFileName path) doc
     mimeToReader :: MonadError String m => MIME -> FilePath -> m Pandoc
@@ -74,6 +80,23 @@ archiveToEPUB os archive = do
     mimeToReader s path
       | s `elem` imageMimes = return $ imageToPandoc path
       | otherwise = return $ mempty
+
+fetchImages :: [(FilePath, MIME)]
+            -> FilePath
+            -> Archive
+            -> Pandoc
+            -> MediaBag
+fetchImages mimes root a (query iq -> links) =
+    foldr (uncurry3 insertMedia) mempty
+      (mapMaybe getEntry links)
+  where
+    getEntry l = let mediaPos = normalise (root </> l) in
+                  (l , lookup mediaPos mimes, ) . fromEntry
+                    <$> findEntryByPath mediaPos a
+
+iq :: Inline -> [FilePath]
+iq (Image _ (url, _)) = [url]
+iq _ = []
 
 
 imageToPandoc :: FilePath -> Pandoc
@@ -147,7 +170,7 @@ getManifest archive = do
 
 fixInternalReferences :: String -> Pandoc -> Pandoc
 fixInternalReferences s =
-  (walk normalisePath) . (walk stripImage) . (walk $ fixBlockIRs s') . (walk $ fixInlineIRs s')
+  (walk normalisePath) . (walk $ fixBlockIRs s') . (walk $ fixInlineIRs s')
   where
     s' = escapeURI s
 
@@ -195,13 +218,7 @@ removeEPUBAttrs kvs = filter (not . isEPUBAttr) kvs
 isEPUBAttr :: (String, String) -> Bool
 isEPUBAttr (k, _) = "epub:" `isPrefixOf` k
 
--- Remove relative paths
-stripImage :: Inline -> Inline
-stripImage (Image alt (url, tit)) = Image alt (takeFileName url, tit)
-stripImage i = i
-
-
--- Utility
+-- Library
 
 -- Strict version of foldM
 foldM' :: (Monad m, NFData a) => (a -> b -> m a) -> a -> [b] -> m a
@@ -209,6 +226,14 @@ foldM' _ z [] = return z
 foldM' f z (x:xs) = do
   z' <- f z x
   z' `deepseq` foldM' f z' xs
+
+traceM :: Monad m => String -> m ()
+traceM = flip trace (return ())
+
+uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
+uncurry3 f (a, b, c) = f a b c
+
+-- Utility
 
 stripNamespace :: QName -> String
 stripNamespace (QName v _ _) = v
