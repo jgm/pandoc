@@ -5,7 +5,10 @@ import Text.Pandoc.Readers.Native
 import Text.Pandoc.Definition
 import Tests.Helpers
 import Test.Framework
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Char8 as B8
+import qualified Data.ByteString.Base64 as B64
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
@@ -51,6 +54,22 @@ testCompareWithOpts opts name docxFile nativeFile =
 
 testCompare :: String -> FilePath -> FilePath -> Test
 testCompare = testCompareWithOpts def
+
+testCompareMediaIO :: String -> FilePath -> FilePath -> FilePath -> IO Test
+testCompareMediaIO name docxFile mediaPath mediaFile = do
+    df <- B.readFile docxFile
+    mf <- B.readFile mediaFile
+    let (_, mb) = readDocx def df
+        dBytes = case M.lookup mediaPath mb of
+          Just bs -> bs
+          Nothing -> error "Media file not found"
+        d64 = B8.unpack $ B64.encode $ BS.concat $ B.toChunks dBytes
+        m64 = B8.unpack $ B64.encode $ BS.concat $ B.toChunks mf
+    return $ test id name (d64, m64)
+
+testCompareMedia :: String -> FilePath -> FilePath -> FilePath -> Test
+testCompareMedia name docxFile mediaPath mediaFile =
+  buildTest $ testCompareMediaIO name docxFile mediaPath mediaFile
 
 
 tests :: [Test]
