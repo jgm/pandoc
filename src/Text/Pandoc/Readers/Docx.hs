@@ -219,7 +219,8 @@ runStyleToContainers rPr =
                    , if isStrike rPr then (Just Strikeout) else Nothing
                    , if isSuperScript rPr then (Just Superscript) else Nothing
                    , if isSubScript rPr then (Just Subscript) else Nothing
-                   , rUnderline rPr >>= (\f -> Just $ Span ("", [], [("underline", f)]))
+                   , rUnderline rPr >>=
+                     (\f -> if f == "single" then (Just Emph) else Nothing)
                  ]
   in
    classContainers ++ formatters
