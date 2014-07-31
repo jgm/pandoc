@@ -2572,36 +2572,43 @@ name, where `EXTENSION` is the name of the extension.  Thus, for
 example, `markdown+hard_line_breaks` is markdown with hard line breaks.
 
 ### Extension:  `lists_without_preceding_blankline` ###
+
 Allow a list to occur right after a paragraph, with no intervening
 blank space.
 
 ### Extension:  `hard_line_breaks` ###
+
 Causes all newlines within a paragraph to be interpreted as hard line
 breaks instead of spaces.
 
 ### Extension:  `ignore_line_breaks` ###
+
 Causes newlines within a paragraph to be ignored, rather than being
 treated as spaces or as hard line breaks.  This option is intended for
 use with East Asian languages where spaces are not used between words,
 but text is divided into lines for readability.
 
 ### Extension: `tex_math_single_backslash` ###
+
 Causes anything between `\(` and `\)` to be interpreted as inline
 TeX math, and anything between `\[` and `\]` to be interpreted
 as display TeX math.  Note: a drawback of this extension is that
 it precludes escaping `(` and `[`.
 
 ### Extension: `tex_math_double_backslash` ###
+
 Causes anything between `\\(` and `\\)` to be interpreted as inline
 TeX math, and anything between `\\[` and `\\]` to be interpreted
 as display TeX math.
 
 ### Extension: `markdown_attribute` ###
+
 By default, pandoc interprets material inside block-level tags as markdown.
 This extension changes the behavior so that markdown is only parsed
 inside block-level tags if the tags have the attribute `markdown=1`.
 
 ### Extension: `mmd_title_block` ###
+
 Enables a [MultiMarkdown] style title block at the top of
 the document, for example:
 
@@ -2618,6 +2625,7 @@ See the MultiMarkdown documentation for details.  If `pandoc_title_block` or
   [MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
 
 ### Extension: `abbreviations` ###
+
 Parses PHP Markdown Extra abbreviation keys, like
 
     *[HTML]: Hyper Text Markup Language
@@ -2627,24 +2635,29 @@ abbreviations, so if this extension is enabled, abbreviation keys are
 simply skipped (as opposed to being parsed as paragraphs).
 
 ### Extension: `autolink_bare_uris` ###
+
 Makes all absolute URIs into links, even when not surrounded by
 pointy braces `<...>`.
 
 ### Extension: `ascii_identifiers` ###
+
 Causes the identifiers produced by `auto_identifiers` to be pure ASCII.
 Accents are stripped off of accented latin letters, and non-latin
 letters are omitted.
 
 ### Extension: `link_attributes` ###
+
 Parses multimarkdown style key-value attributes on link and image references.
 Note that pandoc's internal document model provides nowhere to put
 these, so they are presently just ignored.
 
 ### Extension: `mmd_header_identifiers` ###
+
 Parses multimarkdown style header identifiers (in square brackets,
 after the header but before any trailing `#`s in an ATX header).
 
 ### Extension: `compact_definition_lists` ###
+
 Activates the definition list syntax of pandoc 1.12.x and earlier.
 This syntax differs from the one described [above](#definition-lists)
 in several respects:
