@@ -5,14 +5,15 @@ import Text.Pandoc.Readers.Native
 import Text.Pandoc.Definition
 import Tests.Helpers
 import Test.Framework
-import qualified Data.ByteString as BS
+import Test.HUnit (assertBool)
+import Test.Framework.Providers.HUnit
 import qualified Data.ByteString.Lazy as B
-import qualified Data.ByteString.Char8 as B8
-import qualified Data.ByteString.Base64 as B64
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
-import Text.Pandoc.MediaBag (lookupMedia)
+import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
+import Codec.Archive.Zip
+import System.FilePath (combine)
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure
@@ -56,22 +57,44 @@ testCompareWithOpts opts name docxFile nativeFile =
 testCompare :: String -> FilePath -> FilePath -> Test
 testCompare = testCompareWithOpts def
 
-testCompareMediaIO :: String -> FilePath -> FilePath -> FilePath -> IO Test
-testCompareMediaIO name docxFile mediaPath mediaFile = do
+getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
+getMedia archivePath mediaPath = do
+  zf <- B.readFile archivePath >>= return . toArchive
+  return $ findEntryByPath (combine "word" mediaPath) zf >>= (Just . fromEntry)
+
+compareMediaPathIO :: FilePath -> MediaBag -> FilePath -> IO Bool
+compareMediaPathIO mediaPath mediaBag docxPath = do
+  docxMedia <- getMedia docxPath mediaPath
+  let mbBS   = case lookupMedia mediaPath mediaBag of
+                 Just (_, bs) -> bs
+                 Nothing      -> error ("couldn't find " ++
+                                        mediaPath ++
+                                        " in media bag")
+      docxBS = case docxMedia of
+                 Just bs -> bs
+                 Nothing -> error ("couldn't find " ++
+                                   mediaPath ++
+                                   " in media bag")
+  return $ mbBS == docxBS
+
+compareMediaBagIO :: FilePath -> IO Bool
+compareMediaBagIO docxFile = do
     df <- B.readFile docxFile
-    mf <- B.readFile mediaFile
     let (_, mb) = readDocx def df
-        dBytes = case lookupMedia mediaPath mb of
-          Just (_,bs) -> bs
-          Nothing -> error "Media file not found"
-        d64 = B8.unpack $ B64.encode $ BS.concat $ B.toChunks dBytes
-        m64 = B8.unpack $ B64.encode $ BS.concat $ B.toChunks mf
-    return $ test id name (d64, m64)
+    bools <- mapM
+             (\(fp, _, _) -> compareMediaPathIO fp mb docxFile) 
+             (mediaDirectory mb)
+    return $ and bools
 
-testCompareMedia :: String -> FilePath -> FilePath -> FilePath -> Test
-testCompareMedia name docxFile mediaPath mediaFile =
-  buildTest $ testCompareMediaIO name docxFile mediaPath mediaFile
+testMediaBagIO :: String -> FilePath -> IO Test
+testMediaBagIO name docxFile = do
+  outcome <- compareMediaBagIO docxFile
+  return $ testCase name (assertBool 
+                          ("Media didn't match media bag in file " ++ docxFile)
+                          outcome)
 
+testMediaBag :: String -> FilePath -> Test
+testMediaBag name docxFile = buildTest $ testMediaBagIO name docxFile
 
 tests :: [Test]
 tests = [ testGroup "inlines"
@@ -186,11 +209,9 @@ tests = [ testGroup "inlines"
             "docx.track_changes_deletion_all.native"
           ]
         , testGroup "media"
-          [ testCompareMedia
+          [ testMediaBag
             "image extraction"
             "docx.image.docx"
-            "media/image1.jpeg"
-            "docx.image1.jpeg"
           ]
         , testGroup "metadata"
           [ testCompareWithOpts def{readerStandalone=True}
