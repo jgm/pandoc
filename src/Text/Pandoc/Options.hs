@@ -202,7 +202,6 @@ strictExtensions = Set.fromList
 data ReaderOptions = ReaderOptions{
          readerExtensions      :: Set Extension  -- ^ Syntax extensions
        , readerSmart           :: Bool -- ^ Smart punctuation
-       , readerStrict          :: Bool -- ^ FOR TRANSITION ONLY
        , readerStandalone      :: Bool -- ^ Standalone document with header
        , readerParseRaw        :: Bool -- ^ Parse raw HTML, LaTeX
        , readerColumns         :: Int  -- ^ Number of columns in terminal
@@ -222,7 +221,6 @@ instance Default ReaderOptions
   where def = ReaderOptions{
                  readerExtensions            = pandocExtensions
                , readerSmart                 = False
-               , readerStrict                = False
                , readerStandalone            = False
                , readerParseRaw              = False
                , readerColumns               = 80
