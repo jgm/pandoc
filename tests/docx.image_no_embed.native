@@ -1,2 +1,2 @@
-[Header 2 ("an-image",[],[]) [Str "An",Space,Str "image"]
-,Para [Image [] ("media/image1.jpeg","")]]
+[Para [Str "An",Space,Str "image:"]
+,Para [Image [] ("media/image1.jpg","")]]
