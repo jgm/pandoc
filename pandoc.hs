@@ -69,7 +69,6 @@ import qualified Data.Yaml as Yaml
 import qualified Data.Text as T
 import Control.Applicative ((<$>))
 import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
-import Data.List (intersperse)
 
 copyrightMessage :: String
 copyrightMessage = "\nCopyright (C) 2006-2014 John MacFarlane\n" ++
@@ -1070,11 +1069,10 @@ main = do
                               else e
                          Right w -> return w
 
-  let concatInput = concat (intersperse ", " sources)
   reader <- if "t2t" == readerName'
               then (mkStringReader .
                     readTxt2Tags) <$>
-                      (getT2TMeta concatInput outputFile)
+                      (getT2TMeta sources outputFile)
               else case getReader readerName' of
                 Right r  -> return r
                 Left e   -> err 7 e

@@ -70,14 +70,15 @@ instance Default T2TMeta where
     def = T2TMeta "" "" "" ""
 
 -- | Get the meta information required by Txt2Tags macros
-getT2TMeta :: FilePath -> FilePath -> IO T2TMeta
-getT2TMeta inp out = do
+getT2TMeta :: [FilePath] -> FilePath -> IO T2TMeta
+getT2TMeta inps out = do
     curDate <- formatTime defaultTimeLocale "%F" <$> getZonedTime
-    let getModTime = formatTime defaultTimeLocale "%F"
-                      <$> getModificationTime inp
-    curMtime <- catchIOError getModTime (const (return ""))
-
-    return $ T2TMeta curDate curMtime inp out
+    let getModTime = fmap (formatTime defaultTimeLocale "%F") .
+                       getModificationTime
+    curMtime <- catchIOError
+                (maximum <$> mapM getModTime inps)
+                (const (return ""))
+    return $ T2TMeta curDate curMtime (intercalate ", " inps) out
 
 -- | Read Txt2Tags from an input string returning a Pandoc document
 readTxt2Tags :: T2TMeta -> ReaderOptions -> String -> Pandoc
