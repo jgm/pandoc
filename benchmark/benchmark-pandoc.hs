@@ -29,9 +29,7 @@ readerBench :: Pandoc
 readerBench doc (name, reader) = case lookup name writers of
   Just (PureStringWriter writer) ->
     let inp = writer def{ writerWrapText = True} doc
-        -- we compute the length to force full evaluation
-        getLength (Pandoc (Meta _) d) = length d
-    in return $ bench (name ++ " reader") $ whnfIO $ getLength `fmap`
+    in return $ bench (name ++ " reader") $ nfIO $
                  (reader def{ readerSmart = True }) inp
   _ -> trace ("\nCould not find writer for " ++ name ++ "\n") Nothing
 
