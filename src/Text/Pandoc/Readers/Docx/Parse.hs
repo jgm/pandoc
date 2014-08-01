@@ -857,8 +857,8 @@ elemToRun ns element
     notes <- asks envNotes
     case lookupEndnote enId notes of
       Just e -> do bps <- mapD (elemToBodyPart ns) (elChildren e)
-                   return $ Footnote bps
-      Nothing  -> return $ Footnote []
+                   return $ Endnote bps
+      Nothing  -> return $ Endnote []
 elemToRun ns element
   | isElem ns "w" "r" element = do
     runElems <- elemToRunElems ns element
