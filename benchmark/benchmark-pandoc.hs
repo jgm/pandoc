@@ -44,10 +44,9 @@ main = do
   args <- getArgs
   (conf,_) <- parseArgs defaultConfig{ cfgSamples = Last $ Just 20 }
                         defaultOptions args
-  inp <- readFile "README"
-  inp2 <- readFile "tests/testsuite.txt"
+  inp <- readFile "tests/testsuite.txt"
   let opts = def{ readerSmart = True }
-  let doc = readMarkdown opts $ inp ++ unlines (drop 3 $ lines inp2)
+  let doc = readMarkdown opts inp
   let readers' = [(n,r) | (n, StringReader r) <- readers]
   let readerBs = mapMaybe (readerBench doc)
                  $ filter (\(n,_) -> n /="haddock") readers'
