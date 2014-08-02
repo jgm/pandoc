@@ -101,7 +101,7 @@ import Data.Char ( toLower, isLower, isUpper, isAlpha,
 import Data.List ( find, isPrefixOf, intercalate )
 import qualified Data.Map as M
 import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
-                     unEscapeString, parseURIReference )
+                     unEscapeString, parseURIReference, isAllowedInURI )
 import qualified Data.Set as Set
 import System.Directory
 import Text.Pandoc.MIME (getMimeType)
@@ -766,21 +766,22 @@ readDataFileUTF8 userDir fname =
 -- Returns raw content and maybe mime type.
 fetchItem :: Maybe String -> String
           -> IO (Either E.SomeException (BS.ByteString, Maybe String))
-fetchItem sourceURL s
-  | isURI s         = openURL s
-  | otherwise       =
-      case sourceURL >>= parseURIReference of
-           Just u  -> case parseURIReference s of
-                           Just s' -> openURL $ show $
-                                        s' `nonStrictRelativeTo` u
-                           Nothing -> openURL $ show u ++ "/" ++ s
-           Nothing -> E.try readLocalFile
+fetchItem sourceURL s =
+  case (sourceURL >>= parseURIReference . ensureEscaped, ensureEscaped s) of
+       (_, s') | isURI s'  -> openURL s'
+       (Just u, s') -> -- try fetching from relative path at source
+          case parseURIReference s' of
+               Just u' -> openURL $ show $ u' `nonStrictRelativeTo` u
+               Nothing -> openURL s' -- will throw error
+       (Nothing, _) -> E.try readLocalFile -- get from local file system
   where readLocalFile = do
           let mime = case takeExtension s of
                           ".gz" -> getMimeType $ dropExtension s
                           x     -> getMimeType x
-          cont <- BS.readFile $ unEscapeString s
+          cont <- BS.readFile $ unEscapeString $ dropFragmentAndQuery s
           return (cont, mime)
+        dropFragmentAndQuery = takeWhile (\c -> c /= '?' && c /= '#')
+        ensureEscaped = escapeURIString isAllowedInURI
 
 -- | Like 'fetchItem', but also looks for items in a 'MediaBag'.
 fetchItem' :: MediaBag -> Maybe String -> String
