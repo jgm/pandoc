@@ -32,7 +32,7 @@ the HTML using data URIs.
 -}
 module Text.Pandoc.SelfContained ( makeSelfContained ) where
 import Text.HTML.TagSoup
-import Network.URI (isURI, escapeURIString)
+import Network.URI (isURI, escapeURIString, URI(..), parseURI)
 import Data.ByteString.Base64
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString (ByteString)
@@ -116,8 +116,15 @@ getRaw media sourceURL mimetype src = do
                          $ "Could not determine mime type for `" ++ src ++ "'"
                   (x, Nothing) -> x
                   (_, Just x ) -> x
+  let cssSourceURL = case parseURI src of
+                          Just u
+                            | uriScheme u `elem` ["http:","https:"] ->
+                                Just $ show u{ uriPath = "",
+                                               uriQuery = "",
+                                               uriFragment = "" }
+                          _ -> Nothing
   result <- if mime == "text/css"
-               then cssURLs media (Just src) (takeDirectory src) raw'
+               then cssURLs media cssSourceURL (takeDirectory src) raw'
                else return raw'
   return (result, mime)
 
