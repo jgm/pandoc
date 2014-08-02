@@ -775,12 +775,13 @@ fetchItem sourceURL s =
                Nothing -> openURL s' -- will throw error
        (Nothing, _) -> E.try readLocalFile -- get from local file system
   where readLocalFile = do
-          let mime = case takeExtension s of
-                          ".gz" -> getMimeType $ dropExtension s
-                          x     -> getMimeType x
-          cont <- BS.readFile $ unEscapeString $ dropFragmentAndQuery s
+          cont <- BS.readFile fp
           return (cont, mime)
         dropFragmentAndQuery = takeWhile (\c -> c /= '?' && c /= '#')
+        fp = unEscapeString $ dropFragmentAndQuery s
+        mime = case takeExtension fp of
+                    ".gz" -> getMimeType $ dropExtension fp
+                    x     -> getMimeType x
         ensureEscaped = escapeURIString isAllowedInURI
 
 -- | Like 'fetchItem', but also looks for items in a 'MediaBag'.
