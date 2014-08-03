@@ -936,7 +936,7 @@ A paragraph is one or more lines of text followed by one or more blank line.
 Newlines are treated as spaces, so you can reflow your paragraphs as you like.
 If you need a hard line break, put two or more spaces at the end of a line.
 
-**Extension: `escaped_line_breaks`**
+#### Extension: `escaped_line_breaks` ####
 
 A backslash followed by a newline is also a hard line break.
 Note:  in multiline and grid table cells, this is the only way
@@ -977,7 +977,7 @@ As with setext-style headers, the header text can contain formatting:
 
     # A level-one header with a [link](/url) and *emphasis*
 
-**Extension: `blank_before_header`**
+#### Extension: `blank_before_header` ####
 
 Standard markdown syntax does not require a blank line before a header.
 Pandoc does require this (except, of course, at the beginning of the
@@ -991,7 +991,7 @@ wrapping). Consider, for example:
 
 ### Header identifiers in HTML, LaTeX, and ConTeXt ###
 
-**Extension: `header_attributes`**
+#### Extension: `header_attributes` ####
 
 Headers can be assigned attributes using this syntax at the end
 of the line containing the header text:
@@ -1027,7 +1027,7 @@ is just the same as
 
     # My header {.unnumbered}
 
-**Extension: `auto_identifiers`**
+#### Extension: `auto_identifiers` ####
 
 A header without an explicitly specified identifier will be
 automatically assigned a unique identifier based on the header text.
@@ -1076,7 +1076,7 @@ and the identifier will be attached to the enclosing `<div>`
 sections to be manipulated using javascript or treated differently in
 CSS.
 
-**Extension: `implicit_header_references`**
+#### Extension: `implicit_header_references` ####
 
 Pandoc behaves as if reference links have been defined for each header.
 So, instead of
@@ -1135,7 +1135,7 @@ other block quotes. That is, block quotes can be nested:
     >
     > > A block quote within a block quote.
 
-**Extension: `blank_before_blockquote`**
+#### Extension: `blank_before_blockquote` ####
 
 Standard markdown syntax does not require a blank line before a block
 quote.  Pandoc does require this (except, of course, at the beginning of the
@@ -1169,7 +1169,7 @@ Note: blank lines in the verbatim text need not begin with four spaces.
 
 ### Fenced code blocks ###
 
-**Extension: `fenced_code_blocks`**
+#### Extension: `fenced_code_blocks` ####
 
 In addition to standard indented code blocks, Pandoc supports
 *fenced* code blocks.  These begin with a row of three or more
@@ -1195,7 +1195,7 @@ row of tildes or backticks at the start and end:
     ~~~~~~~~~~
     ~~~~~~~~~~~~~~~~
 
-**Extension: `fenced_code_attributes`**
+#### Extension: `fenced_code_attributes` ####
 
 Optionally, you may attach attributes to the code block using
 this syntax:
@@ -1244,7 +1244,7 @@ To set the highlighting style, use `--highlight-style`.
 Line blocks
 -----------
 
-**Extension: `line_blocks`**
+#### Extension: `line_blocks` ####
 
 A line block is a sequence of lines beginning with a vertical bar (`|`)
 followed by a space.  The division into lines will be preserved in
@@ -1386,7 +1386,7 @@ and this one:
     7.  two
     1.  three
 
-**Extension: `fancy_lists`**
+#### Extension: `fancy_lists` ####
 
 Unlike standard markdown, Pandoc allows ordered list items to be marked
 with uppercase and lowercase letters and roman numerals, in addition to
@@ -1417,7 +1417,7 @@ ordered list marker in place of a numeral:
     #. one
     #. two
 
-**Extension: `startnum`**
+#### Extension: `startnum` ####
 
 Pandoc also pays attention to the type of list marker used, and to the
 starting number, and both of these are preserved where possible in the
@@ -1449,7 +1449,7 @@ If default list markers are desired, use `#.`:
 
 ### Definition lists ###
 
-**Extension: `definition_lists`**
+#### Extension: `definition_lists` ####
 
 Pandoc supports definition lists, using the syntax of
 [PHP Markdown Extra] with some extensions.[^3]
@@ -1510,7 +1510,7 @@ hard wrapping, can be activated with `compact_definition_lists`: see
 
 ### Numbered example lists ###
 
-**Extension: `example_lists`**
+#### Extension: `example_lists` ####
 
 The special list marker `@` can be used for sequentially numbered
 examples. The first list item with a `@` marker will be numbered '1',
@@ -1616,9 +1616,14 @@ Four kinds of tables may be used. The first three kinds presuppose the use of
 a fixed-width font, such as Courier. The fourth kind can be used with
 proportionally spaced fonts, as it does not require lining up columns.
 
-### Simple tables
+#### Extension: `table_captions` ####
 
-**Extension: `simple_tables`, `table_captions`**
+A caption may optionally be provided with all 4 kinds of tables (as 
+illustrated in the examples below). A caption is a paragraph beginning
+with the string `Table:` (or just `:`), which will be stripped off.
+It may appear either before or after the table.
+
+#### Extension: `simple_tables` ####
 
 Simple tables look like this:
 
@@ -1647,10 +1652,7 @@ to the dashed line below it:[^4]
        [Markdown discussion list](http://six.pairlist.net/pipermail/markdown-discuss/2005-March/001097.html).
 
 The table must end with a blank line, or a line of dashes followed by
-a blank line.  A caption may optionally be provided (as illustrated in
-the example above). A caption is a paragraph beginning with the string
-`Table:` (or just `:`), which will be stripped off. It may appear either
-before or after the table.
+a blank line.
 
 The column headers may be omitted, provided a dashed line is used
 to end the table. For example:
@@ -1665,9 +1667,7 @@ When headers are omitted, column alignments are determined on the basis
 of the first line of the table body. So, in the tables above, the columns
 would be right, left, center, and right aligned, respectively.
 
-### Multiline tables
-
-**Extension: `multiline_tables`, `table_captions`**
+#### Extension: `multiline_tables` ####
 
 Multiline tables allow headers and table rows to span multiple lines
 of text (but cells that span multiple columns or rows of the table are
@@ -1717,9 +1717,7 @@ It is possible for a multiline table to have just one row, but the row
 should be followed by a blank line (and then the row of dashes that ends
 the table), or the table may be interpreted as a simple table.
 
-### Grid tables
-
-**Extension: `grid_tables`, `table_captions`**
+#### Extension: `grid_tables` ####
 
 Grid tables look like this:
 
@@ -1743,9 +1741,7 @@ columns or rows. Grid tables can be created easily using [Emacs table mode].
 
   [Emacs table mode]: http://table.sourceforge.net/
 
-### Pipe tables
-
-**Extension: `pipe_tables`, `table_captions`**
+#### Extension: `pipe_tables` ####
 
 Pipe tables look like this:
 
@@ -1755,7 +1751,7 @@ Pipe tables look like this:
     |  123  |  123 |   123   |   123  |
     |    1  |    1 |     1   |     1  |
 
-      : Demonstration of simple table syntax.
+      : Demonstration of pipe table syntax.
 
 The syntax is [the same as in PHP markdown extra].  The beginning and
 ending pipe characters are optional, but pipes are required between all
@@ -1794,10 +1790,10 @@ The difference is that `+` is used instead of `|`. Other orgtbl features
 are not supported. In particular, to get non-default column alignment,
 you'll need to add colons as above.
 
-Title block
------------
+Metadata blocks
+---------------
 
-**Extension: `pandoc_title_block`**
+#### Extension: `pandoc_title_block` ####
 
 If the file begins with a title block
 
@@ -1873,10 +1869,7 @@ will also have "Pandoc User Manuals" in the footer.
 
 will also have "Version 4.0" in the header.
 
-YAML metadata block
--------------------
-
-**Extension: `yaml_metadata_block`**
+#### Extension: `yaml_metadata_block` ####
 
 A YAML metadata block is a valid YAML object, delimited by a line of three
 hyphens (`---`) at the top and a line of three hyphens (`---`) or three dots
@@ -1944,7 +1937,7 @@ custom template.  For example:
 Backslash escapes
 -----------------
 
-**Extension: `all_symbols_escapable`**
+#### Extension: `all_symbols_escapable` ####
 
 Except inside a code block or inline code, any punctuation or space
 character preceded by a backslash will be treated literally, even if it
@@ -1983,7 +1976,7 @@ Backslash escapes do not work in verbatim contexts.
 Smart punctuation
 -----------------
 
-**Extension**
+#### Extension ####
 
 If the `--smart` option is specified, pandoc will produce typographically
 correct output, converting straight quotes to curly quotes, `---` to
@@ -2012,7 +2005,7 @@ will not trigger emphasis:
 
     This is * not emphasized *, and \*neither is this\*.
 
-**Extension: `intraword_underscores`**
+#### Extension: `intraword_underscores` ####
 
 Because `_` is sometimes used inside words and identifiers,
 pandoc does not interpret a `_` surrounded by alphanumeric
@@ -2024,7 +2017,7 @@ just part of a word, use `*`:
 
 ### Strikeout ###
 
-**Extension:  `strikeout`**
+#### Extension: `strikeout` ####
 
 To strikeout a section of text with a horizontal line, begin and end it
 with `~~`. Thus, for example,
@@ -2034,7 +2027,7 @@ with `~~`. Thus, for example,
 
 ### Superscripts and subscripts ###
 
-**Extension: `superscript`, `subscript`**
+#### Extension: `superscript`, `subscript` ####
 
 Superscripts may be written by surrounding the superscripted text by `^`
 characters; subscripts may be written by surrounding the subscripted
@@ -2072,7 +2065,7 @@ work in verbatim contexts:
 
     This is a backslash followed by an asterisk: `\*`.
 
-**Extension: `inline_code_attributes`**
+#### Extension: `inline_code_attributes` ####
 
 Attributes can be attached to verbatim text, just as with
 [fenced code blocks](#fenced-code-blocks):
@@ -2091,7 +2084,7 @@ colon.) This will work in all output formats that support small caps.
 Math
 ----
 
-**Extension: `tex_math_dollars`**
+#### Extension: `tex_math_dollars` ####
 
 Anything between two `$` characters will be treated as TeX math.  The
 opening `$` must have a character immediately to its right, while the
@@ -2193,7 +2186,7 @@ HTML, Slidy, DZSlides, S5, EPUB
 Raw HTML
 --------
 
-**Extension: `raw_html`**
+#### Extension: `raw_html` ####
 
 Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
@@ -2205,7 +2198,7 @@ The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
 DZSlides, EPUB, Markdown, and Textile output, and suppressed in other
 formats.
 
-**Extension: `markdown_in_html_blocks`**
+#### Extension: `markdown_in_html_blocks` ####
 
 Standard markdown allows you to include HTML "blocks":  blocks
 of HTML between balanced tags that are separated from the surrounding text
@@ -2246,7 +2239,7 @@ from being interpreted as markdown.
 Raw TeX
 -------
 
-**Extension: `raw_tex`**
+#### Extension: `raw_tex` ####
 
 In addition to raw HTML, pandoc allows raw LaTeX, TeX, and ConTeXt to be
 included in a document. Inline TeX commands will be preserved and passed
@@ -2273,7 +2266,7 @@ and ConTeXt.
 LaTeX macros
 ------------
 
-**Extension: `latex_macros`**
+#### Extension: `latex_macros` ####
 
 For output formats other than LaTeX, pandoc will parse LaTeX `\newcommand` and
 `\renewcommand` definitions and apply the resulting macros to all LaTeX
@@ -2365,7 +2358,7 @@ not in most other implementations:
     >
     > [quote]: /foo
 
-### Internal links
+### Internal links ###
 
 To link to another section of the same document, use the automatically
 generated identifier (see [Header identifiers in HTML, LaTeX, and
@@ -2395,9 +2388,7 @@ The link text will be used as the image's alt text:
 
     [movie reel]: movie.gif
 
-### Pictures with captions ###
-
-**Extension: `implicit_figures`**
+#### Extension: `implicit_figures` ####
 
 An image occurring by itself in a paragraph will be rendered as
 a figure with a caption.[^5] (In LaTeX, a figure environment will be
@@ -2421,7 +2412,7 @@ nonbreaking space after the image:
 Footnotes
 ---------
 
-**Extension: `footnotes`**
+#### Extension: `footnotes` ####
 
 Pandoc's markdown allows footnotes, using the following syntax:
 
@@ -2452,7 +2443,7 @@ The footnotes themselves need not be placed at the end of the
 document.  They may appear anywhere except inside other block elements
 (lists, block quotes, tables, etc.).
 
-**Extension: `inline_notes`**
+#### Extension: `inline_notes` ####
 
 Inline footnotes are also allowed (though, unlike regular notes,
 they cannot contain multiple paragraphs).  The syntax is as follows:
@@ -2467,7 +2458,7 @@ Inline and regular footnotes may be mixed freely.
 Citations
 ---------
 
-**Extension: `citations`**
+#### Extension: `citations` ####
 
 Using an external filter, `pandoc-citeproc`, pandoc can automatically generate
 citations and a bibliography in a number of styles.  Basic usage is
@@ -2589,37 +2580,44 @@ in pandoc, but may be enabled by adding `+EXTENSION` to the format
 name, where `EXTENSION` is the name of the extension.  Thus, for
 example, `markdown+hard_line_breaks` is markdown with hard line breaks.
 
-**Extension:  `lists_without_preceding_blankline`**\
+#### Extension: `lists_without_preceding_blankline` ####
+
 Allow a list to occur right after a paragraph, with no intervening
 blank space.
 
-**Extension:  `hard_line_breaks`**\
+#### Extension: `hard_line_breaks` ####
+
 Causes all newlines within a paragraph to be interpreted as hard line
 breaks instead of spaces.
 
-**Extension:  `ignore_line_breaks`**\
+#### Extension: `ignore_line_breaks` ####
+
 Causes newlines within a paragraph to be ignored, rather than being
 treated as spaces or as hard line breaks.  This option is intended for
 use with East Asian languages where spaces are not used between words,
 but text is divided into lines for readability.
 
-**Extension: `tex_math_single_backslash`**\
+#### Extension: `tex_math_single_backslash` ####
+
 Causes anything between `\(` and `\)` to be interpreted as inline
 TeX math, and anything between `\[` and `\]` to be interpreted
 as display TeX math.  Note: a drawback of this extension is that
 it precludes escaping `(` and `[`.
 
-**Extension: `tex_math_double_backslash`**\
+#### Extension: `tex_math_double_backslash` ####
+
 Causes anything between `\\(` and `\\)` to be interpreted as inline
 TeX math, and anything between `\\[` and `\\]` to be interpreted
 as display TeX math.
 
-**Extension: `markdown_attribute`**\
+#### Extension: `markdown_attribute` ####
+
 By default, pandoc interprets material inside block-level tags as markdown.
 This extension changes the behavior so that markdown is only parsed
 inside block-level tags if the tags have the attribute `markdown=1`.
 
-**Extension: `mmd_title_block`**\
+#### Extension: `mmd_title_block` ####
+
 Enables a [MultiMarkdown] style title block at the top of
 the document, for example:
 
@@ -2635,7 +2633,8 @@ See the MultiMarkdown documentation for details.  If `pandoc_title_block` or
 
   [MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
 
-**Extension: `abbreviations`**\
+#### Extension: `abbreviations` ####
+
 Parses PHP Markdown Extra abbreviation keys, like
 
     *[HTML]: Hyper Text Markup Language
@@ -2644,25 +2643,30 @@ Note that the pandoc document model does not support
 abbreviations, so if this extension is enabled, abbreviation keys are
 simply skipped (as opposed to being parsed as paragraphs).
 
-**Extension: `autolink_bare_uris`**\
+#### Extension: `autolink_bare_uris` ####
+
 Makes all absolute URIs into links, even when not surrounded by
 pointy braces `<...>`.
 
-**Extension: `ascii_identifiers`**\
+#### Extension: `ascii_identifiers` ####
+
 Causes the identifiers produced by `auto_identifiers` to be pure ASCII.
 Accents are stripped off of accented latin letters, and non-latin
 letters are omitted.
 
-**Extension: `link_attributes`**\
+#### Extension: `link_attributes` ####
+
 Parses multimarkdown style key-value attributes on link and image references.
 Note that pandoc's internal document model provides nowhere to put
 these, so they are presently just ignored.
 
-**Extension: `mmd_header_identifiers`**\
+#### Extension: `mmd_header_identifiers` ####
+
 Parses multimarkdown style header identifiers (in square brackets,
 after the header but before any trailing `#`s in an ATX header).
 
-**Extension: `compact_definition_lists`**\
+#### Extension: `compact_definition_lists` ####
+
 Activates the definition list syntax of pandoc 1.12.x and earlier.
 This syntax differs from the one described [above](#definition-lists)
 in several respects:
