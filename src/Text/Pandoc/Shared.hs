@@ -59,6 +59,7 @@ module Text.Pandoc.Shared (
                      normalizeBlocks,
                      removeFormatting,
                      stringify,
+                     capitalize,
                      compactify,
                      compactify',
                      compactify'DL,
@@ -122,6 +123,7 @@ import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Compat.Monoid
 import Data.ByteString.Base64 (decodeLenient)
 import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
+import qualified Data.Text as T (toUpper, pack, unpack)
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -526,6 +528,17 @@ stringify = query go . walk deNote
         go _ = ""
         deNote (Note _) = Str ""
         deNote x = x
+
+-- | Bring all regular text in a pandoc structure to uppercase.
+-- 
+-- This function correctly handles cases where a lowercase character doesn't
+-- match to a single uppercase character – e.g. “Straße” would be converted
+-- to “STRASSE”, not “STRAßE”.
+capitalize :: Walkable Inline a => a -> a
+capitalize = walk go
+  where go :: Inline -> Inline
+        go (Str s) = Str (T.unpack $ T.toUpper $ T.pack s)
+        go x       = x
 
 -- | Change final list item from @Para@ to @Plain@ if the list contains
 -- no other @Para@ blocks.

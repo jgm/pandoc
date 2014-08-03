@@ -39,7 +39,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Data.List ( group, isPrefixOf, find, intersperse, transpose, sortBy )
-import Data.Char ( isSpace, isPunctuation, toUpper )
+import Data.Char ( isSpace, isPunctuation )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
 import Control.Monad.State
@@ -672,10 +672,6 @@ escapeSpaces (Str s) = Str $ substitute " " "\\ " s
 escapeSpaces Space = Str "\\ "
 escapeSpaces x = x
 
-toCaps :: Inline -> Inline
-toCaps (Str s) = Str (map toUpper s)
-toCaps x       = x
-
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
 inlineToMarkdown opts (Span attrs ils) = do
@@ -693,7 +689,7 @@ inlineToMarkdown opts (Emph lst) = do
 inlineToMarkdown opts (Strong lst) = do
   plain <- gets stPlain
   if plain
-     then inlineListToMarkdown opts $ walk toCaps lst
+     then inlineListToMarkdown opts $ capitalize lst
      else do
        contents <- inlineListToMarkdown opts lst
        return $ "**" <> contents <> "**"
@@ -716,7 +712,7 @@ inlineToMarkdown opts (Subscript lst) = do
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- gets stPlain
   if plain
-     then inlineListToMarkdown opts $ walk toCaps lst
+     then inlineListToMarkdown opts $ capitalize lst
      else do
        contents <- inlineListToMarkdown opts lst
        return $ tagWithAttrs "span"
