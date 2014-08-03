@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternGuards #-}
+
 {-
 Copyright (c) 2011-2012, Sergey Astanin
 All rights reserved.
