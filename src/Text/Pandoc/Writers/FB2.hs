@@ -294,7 +294,6 @@ fetchURL url = do
      let content_type = lookupHeader HdrContentType (getHeaders r)
      content <- liftM (Just . toStr . encode . toBS) . getResponseBody $ Right r
      return $ liftM2 (,) content_type content
-  where
 
 toBS :: String -> B.ByteString
 toBS = B.pack . map (toEnum . fromEnum)
