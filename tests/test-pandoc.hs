@@ -17,6 +17,7 @@ import qualified Tests.Writers.HTML
 import qualified Tests.Writers.Docbook
 import qualified Tests.Writers.Native
 import qualified Tests.Writers.Markdown
+import qualified Tests.Writers.Plain
 import qualified Tests.Writers.AsciiDoc
 import qualified Tests.Shared
 import qualified Tests.Walk
@@ -33,6 +34,7 @@ tests = [ testGroup "Old" Tests.Old.tests
           , testGroup "HTML" Tests.Writers.HTML.tests
           , testGroup "Docbook" Tests.Writers.Docbook.tests
           , testGroup "Markdown" Tests.Writers.Markdown.tests
+          , testGroup "Plain" Tests.Writers.Plain.tests
           , testGroup "AsciiDoc" Tests.Writers.AsciiDoc.tests
           ]
         , testGroup "Readers"
