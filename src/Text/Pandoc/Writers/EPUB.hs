@@ -32,7 +32,7 @@ module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
 import Data.IORef
 import qualified Data.Map as M
 import Data.Maybe ( fromMaybe )
-import Data.List ( isInfixOf, intercalate )
+import Data.List ( isPrefixOf, isInfixOf, intercalate )
 import System.Environment ( getEnv )
 import Text.Printf (printf)
 import System.FilePath ( (</>), takeExtension, takeFileName )
@@ -825,11 +825,11 @@ ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . unEntity . 
         unEntity (x:xs) = x : unEntity xs
 
 mediaTypeOf :: FilePath -> Maybe String
-mediaTypeOf x = case getMimeType x of
-                     Just y@('i':'m':'a':'g':'e':_) -> Just y
-                     Just y@('v':'i':'d':'e':'o':_) -> Just y
-                     Just y@('a':'u':'d':'i':'o':_) -> Just y
-                     _                              -> Nothing
+mediaTypeOf x =
+  let mediaPrefixes = ["image", "video", "audio"] in
+  case getMimeType x of
+    Just y | any (`isPrefixOf` y) mediaPrefixes -> Just y
+    _                                           -> Nothing
 
 data IdentState = IdentState{
        chapterNumber :: Int,
