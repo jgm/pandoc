@@ -38,7 +38,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
-import Data.List ( group, isPrefixOf, find, intersperse, transpose, sortBy )
+import Data.Maybe (fromMaybe)
+import Data.List ( group, stripPrefix, find, intersperse, transpose, sortBy )
 import Data.Char ( isSpace, isPunctuation )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
@@ -815,7 +816,7 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
   let linktitle = if null tit
                      then empty
                      else text $ " \"" ++ tit ++ "\""
-  let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
+  let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
   let useAuto = isURI src &&
                 case txt of
                       [Str s] | escapeURI s == srcSuffix -> True

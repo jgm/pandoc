@@ -86,7 +86,7 @@ import Text.Pandoc.Readers.Docx.TexChar
 import Text.Pandoc.Shared
 import Text.Pandoc.MediaBag (insertMedia, MediaBag)
 import Data.Maybe (mapMaybe, fromMaybe)
-import Data.List (delete, isPrefixOf, (\\), intercalate, intersect)
+import Data.List (delete, stripPrefix, (\\), intercalate, intersect)
 import Data.Monoid
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
@@ -455,8 +455,8 @@ oMathElemToTexString (LowerLimit base limElems) = do
     --  we want to make sure to replace the `\rightarrow` with `\to`
   let arrowToTo :: String -> String
       arrowToTo "" = ""
-      arrowToTo s | "\\rightarrow" `isPrefixOf` s =
-        "\\to" ++ (arrowToTo $ drop (length "\\rightarrow") s)
+      arrowToTo s | Just s' <- stripPrefix "\\rightarrow" s =
+        "\\to" ++ arrowToTo s'
       arrowToTo (c:cs) = c : arrowToTo cs
       lim' = arrowToTo lim
   return $ case baseString of
@@ -470,8 +470,8 @@ oMathElemToTexString (UpperLimit base limElems) = do
     --  we want to make sure to replace the `\rightarrow` with `\to`
   let arrowToTo :: String -> String
       arrowToTo "" = ""
-      arrowToTo s | "\\rightarrow" `isPrefixOf` s =
-        "\\to" ++ (arrowToTo $ drop (length "\\rightarrow") s)
+      arrowToTo s | Just s' <- stripPrefix "\\rightarrow" s =
+        "\\to" ++ arrowToTo s'
       arrowToTo (c:cs) = c : arrowToTo cs
       lim' = arrowToTo lim
   return $ case baseString of
@@ -698,8 +698,8 @@ ilToCode Space = " "
 ilToCode _     = ""
 
 isHeaderClass :: String -> Maybe Int
-isHeaderClass s | "Heading" `isPrefixOf` s =
-  case reads (drop (length "Heading") s) :: [(Int, String)] of
+isHeaderClass s | Just s' <- stripPrefix "Heading" s =
+  case reads s' :: [(Int, String)] of
     [] -> Nothing
     ((n, "") : []) -> Just n
     _       -> Nothing

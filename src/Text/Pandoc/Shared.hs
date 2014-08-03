@@ -99,7 +99,7 @@ import System.Environment (getProgName)
 import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
-import Data.List ( find, isPrefixOf, intercalate )
+import Data.List ( find, stripPrefix, intercalate )
 import qualified Data.Map as M
 import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI )
@@ -183,9 +183,9 @@ substitute :: (Eq a) => [a] -> [a] -> [a] -> [a]
 substitute _ _ [] = []
 substitute [] _ xs = xs
 substitute target replacement lst@(x:xs) =
-    if target `isPrefixOf` lst
-       then replacement ++ substitute target replacement (drop (length target) lst)
-       else x : substitute target replacement xs
+    case stripPrefix target lst of
+      Just lst' -> replacement ++ substitute target replacement lst'
+      Nothing   -> x : substitute target replacement xs
 
 ordNub :: (Ord a) => [a] -> [a]
 ordNub l = go Set.empty l
@@ -808,9 +808,9 @@ fetchItem' media sourceURL s = do
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (Either E.SomeException (BS.ByteString, Maybe String))
 openURL u
-  | "data:" `isPrefixOf` u =
-    let mime     = takeWhile (/=',') $ drop 5 u
-        contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u
+  | Just u' <- stripPrefix "data:" u =
+    let mime     = takeWhile (/=',') u'
+        contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u'
     in  return $ Right (decodeLenient contents, Just mime)
 #ifdef HTTP_CLIENT
   | otherwise = withSocketsDo $ E.try $ do
