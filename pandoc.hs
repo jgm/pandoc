@@ -896,6 +896,7 @@ defaultReaderName fallback (x:xs) =
     ".json"     -> "json"
     ".docx"     -> "docx"
     ".t2t"      -> "t2t"
+    ".epub"     -> "epub"
     _           -> defaultReaderName fallback xs
 
 -- Returns True if extension of first source is .lhs
