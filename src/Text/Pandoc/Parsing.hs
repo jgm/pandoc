@@ -178,7 +178,8 @@ import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
 import Data.List ( intercalate, transpose )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
-import Text.TeXMath.Macros (applyMacros, Macro, parseMacroDefinitions)
+import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro,
+                                        parseMacroDefinitions)
 import Text.Pandoc.Compat.TagSoupEntity ( lookupEntity )
 import Text.Pandoc.Asciify (toAsciiChar)
 import Data.Default

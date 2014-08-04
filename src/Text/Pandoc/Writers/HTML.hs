@@ -63,6 +63,7 @@ import Text.XML.Light.Output
 import System.FilePath (takeExtension)
 import Data.Monoid
 import Data.Aeson (Value)
+import Control.Applicative ((<$>))
 
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
@@ -700,12 +701,12 @@ inlineToHtml opts inline =
                                               else DisplayBlock
                                   let conf = useShortEmptyTags (const False)
                                                defaultConfigPP
-                                  case texMathToMathML dt str of
-                                        Right r -> return $ preEscapedString $
-                                                    ppcElement conf r
-                                        Left  _ -> inlineListToHtml opts
-                                                   (texMathToInlines t str) >>= return .
-                                                     (H.span ! A.class_ "math")
+                                  case writeMathML dt <$> readTeX str of
+                                        Right r  -> return $ preEscapedString $
+                                            ppcElement conf r
+                                        Left _   -> inlineListToHtml opts
+                                            (texMathToInlines t str) >>=
+                                            return .  (H.span ! A.class_ "math")
                                MathJax _ -> return $ H.span ! A.class_ "math" $ toHtml $
                                   case t of
                                     InlineMath  -> "\\(" ++ str ++ "\\)"

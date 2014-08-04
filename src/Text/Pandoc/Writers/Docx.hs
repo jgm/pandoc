@@ -58,7 +58,7 @@ import System.Random (randomRIO)
 import Text.Printf (printf)
 import qualified Control.Exception as E
 import Text.Pandoc.MIME (getMimeType, extensionFromMimeType)
-import Control.Applicative ((<|>))
+import Control.Applicative ((<|>), (<$>))
 import Data.Maybe (mapMaybe)
 
 data ListMarker = NoMarker
@@ -767,7 +767,7 @@ inlineToOpenXML opts (Math mathType str) = do
   let displayType = if mathType == DisplayMath
                        then DisplayBlock
                        else DisplayInline
-  case texMathToOMML displayType str of
+  case writeOMML displayType <$> readTeX str of
         Right r -> return [r]
         Left  _ -> inlinesToOpenXML opts (texMathToInlines mathType str)
 inlineToOpenXML opts (Cite _ lst) = inlinesToOpenXML opts lst

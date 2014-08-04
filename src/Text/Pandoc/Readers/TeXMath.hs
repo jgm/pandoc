@@ -38,9 +38,10 @@ import Text.TeXMath
 texMathToInlines :: MathType
              -> String    -- ^ String to parse (assumes @'\n'@ line endings)
              -> [Inline]
-texMathToInlines mt inp = case texMathToPandoc dt inp of
-                           Left _    -> [Str (delim ++ inp ++ delim)]
-                           Right res -> res
+texMathToInlines mt inp =
+  case writePandoc dt `fmap` readTeX inp of
+       Right (Just ils)  -> ils
+       _                 -> [Str (delim ++ inp ++ delim)]
     where (dt, delim) = case mt of
                              DisplayMath -> (DisplayBlock, "$$")
                              InlineMath  -> (DisplayInline, "$")

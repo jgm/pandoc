@@ -37,6 +37,7 @@ import Text.TeXMath
 import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
+import Control.Applicative ((<$>))
 import Text.Pandoc.Options ( WriterOptions(..) )
 import Text.Pandoc.Shared ( stringify, readDataFile, fetchItem', warn )
 import Text.Pandoc.ImageSize ( imageSize, sizeInPoints )
@@ -150,7 +151,7 @@ transformPicMath opts entriesRef (Image lab (src,_)) = do
 transformPicMath _ entriesRef (Math t math) = do
   entries <- readIORef entriesRef
   let dt = if t == InlineMath then DisplayInline else DisplayBlock
-  case texMathToMathML dt math of
+  case writeMathML dt <$> readTeX math of
        Left  _ -> return $ Math t math
        Right r -> do
          let conf = useShortEmptyTags (const False) defaultConfigPP

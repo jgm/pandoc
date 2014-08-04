@@ -57,7 +57,7 @@ import Control.Applicative ( (<$>), (<$), (<*), (*>), (<|>))
 import Data.Monoid (mconcat, Monoid, mempty, (<>), First (..))
 import Text.Printf (printf)
 import Debug.Trace (trace)
-import Text.TeXMath (readMathML, writeTeXMath)
+import Text.TeXMath (readMathML, writeTeX)
 import Data.Default (Default (..), def)
 import Control.Monad.Reader (Reader,ask, asks, local, runReader)
 
@@ -572,7 +572,7 @@ pRawHtmlInline = do
      else return mempty
 
 mathMLToTeXMath :: String -> Either String String
-mathMLToTeXMath s = writeTeXMath <$> readMathML s
+mathMLToTeXMath s = writeTeX <$> readMathML s
 
 pMath :: Bool -> TagParser Inlines
 pMath inCase = try $ do

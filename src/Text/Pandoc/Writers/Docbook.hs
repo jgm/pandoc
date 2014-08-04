@@ -39,6 +39,7 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( isPrefixOf, intercalate, isSuffixOf )
 import Data.Char ( toLower )
+import Control.Applicative ((<$>))
 import Data.Monoid ( Any(..) )
 import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
@@ -293,13 +294,13 @@ inlineToDocbook _ (Code _ str) =
   inTagsSimple "literal" $ text (escapeStringForXML str)
 inlineToDocbook opts (Math t str)
   | isMathML (writerHTMLMathMethod opts) =
-    case texMathToMathML dt str of
-      Right r -> inTagsSimple tagtype
-                 $ text $ Xml.ppcElement conf
-                 $ fixNS
-                 $ removeAttr r
-      Left  _ -> inlinesToDocbook opts
-                 $ texMathToInlines t str
+    case writeMathML dt <$> readTeX str of
+      Right r  -> inTagsSimple tagtype
+                  $ text $ Xml.ppcElement conf
+                  $ fixNS
+                  $ removeAttr r
+      Left _   -> inlinesToDocbook opts
+                  $ texMathToInlines t str
   | otherwise = inlinesToDocbook opts $ texMathToInlines t str
      where (dt, tagtype) = case t of
                             InlineMath  -> (DisplayInline,"inlineequation")

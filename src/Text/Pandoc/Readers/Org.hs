@@ -41,7 +41,7 @@ import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
                                             )
 import           Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import           Text.Pandoc.Shared (compactify', compactify'DL)
-import           Text.TeXMath (texMathToPandoc, DisplayType(..))
+import           Text.TeXMath (readTeX, writePandoc, DisplayType(..))
 
 import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>) )
@@ -1383,13 +1383,16 @@ inlineLaTeX = try $ do
   maybe mzero returnF $ parseAsMath cmd `mplus` parseAsInlineLaTeX cmd
  where
    parseAsMath :: String -> Maybe Inlines
-   parseAsMath cs = maybeRight $ B.fromList <$> texMathToPandoc DisplayInline cs
+   parseAsMath cs = B.fromList <$> texMathToPandoc cs
 
    parseAsInlineLaTeX :: String -> Maybe Inlines
    parseAsInlineLaTeX cs = maybeRight $ runParser inlineCommand state "" cs
 
    state :: ParserState
    state = def{ stateOptions = def{ readerParseRaw = True }}
+
+   texMathToPandoc inp = (maybeRight $ readTeX inp) >>=
+                         writePandoc DisplayInline
 
 maybeRight :: Either a b -> Maybe b
 maybeRight = either (const Nothing) Just
