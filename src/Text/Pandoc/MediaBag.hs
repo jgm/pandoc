@@ -99,7 +99,7 @@ writeMedia :: Bool -> FilePath -> (FilePath, BL.ByteString) -> IO ()
 writeMedia verbose dir (subpath, bs) = do
   -- we join and split to convert a/b/c to a\b\c on Windows;
   -- in zip containers all paths use /
-  let fullpath = dir </> joinPath (splitPath subpath)
+  let fullpath = dir </> normalise subpath
   createDirectoryIfMissing True $ takeDirectory fullpath
   when verbose $ UTF8.hPutStrLn stderr $ "pandoc: extracting " ++ fullpath
   BL.writeFile fullpath bs
