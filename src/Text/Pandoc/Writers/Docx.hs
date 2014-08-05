@@ -60,6 +60,7 @@ import qualified Control.Exception as E
 import Text.Pandoc.MIME (getMimeType, extensionFromMimeType)
 import Control.Applicative ((<|>))
 import Data.Maybe (mapMaybe)
+import Control.Applicative ((<$>))
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -727,6 +728,9 @@ formattedString str = do
   return [ mknode "w:r" [] $
              props ++
              [ mknode "w:t" [("xml:space","preserve")] str ] ]
+
+texMathToOMML :: DisplayType -> String -> Either String Element
+texMathToOMML dt inp = writeOMML dt <$> readTeX inp
 
 -- | Convert an inline element to OpenXML.
 inlineToOpenXML :: WriterOptions -> Inline -> WS [Element]

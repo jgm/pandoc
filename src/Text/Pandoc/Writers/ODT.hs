@@ -51,6 +51,8 @@ import Text.Pandoc.Pretty
 import qualified Control.Exception as E
 import Data.Time.Clock.POSIX ( getPOSIXTime )
 import System.FilePath ( takeExtension, takeDirectory )
+import qualified Text.XML.Light as XML (Element)
+import Control.Applicative ((<$>))
 
 -- | Produce an ODT file from a Pandoc document.
 writeODT :: WriterOptions  -- ^ Writer options
@@ -128,6 +130,9 @@ writeODT opts doc@(Pandoc meta _) = do
   let archive'' = addEntryToArchive mimetypeEntry
                   $ addEntryToArchive metaEntry archive'
   return $ fromArchive archive''
+
+texMathToMathML :: DisplayType -> String -> Either String XML.Element
+texMathToMathML dt inp = writeMathML dt <$> readTeX inp
 
 transformPicMath :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline
 transformPicMath opts entriesRef (Image lab (src,_)) = do

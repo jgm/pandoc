@@ -40,6 +40,7 @@ import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting ( highlight, styleToCss,
                                   formatHtmlInline, formatHtmlBlock )
 import Text.Pandoc.XML (fromEntities, escapeStringForXML)
+import qualified Text.XML.Light as XML (Element)
 import Network.URI ( parseURIReference, URI(..) )
 import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
@@ -47,6 +48,7 @@ import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, intersperse )
 import Data.String ( fromString )
 import Data.Maybe ( catMaybes, fromMaybe )
+import Control.Applicative ((<$>))
 import Control.Monad.State
 import Text.Blaze.Html hiding(contents)
 import Text.Blaze.Internal(preEscapedString)
@@ -610,6 +612,9 @@ blockListToHtml opts lst =
 inlineListToHtml :: WriterOptions -> [Inline] -> State WriterState Html
 inlineListToHtml opts lst =
   mapM (inlineToHtml opts) lst >>= return . mconcat
+
+texMathToMathML :: DisplayType -> String -> Either String XML.Element
+texMathToMathML dt inp = writeMathML dt <$> readTeX inp
 
 -- | Convert Pandoc inline element to HTML.
 inlineToHtml :: WriterOptions -> Inline -> State WriterState Html
