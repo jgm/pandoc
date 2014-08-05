@@ -569,7 +569,8 @@ endline = () <$ try (newline <*
 
 imageIdentifiers :: [MWParser ()]
 imageIdentifiers = [sym (identifier ++ ":") | identifier <- identifiers]
-    where identifiers = ["File", "Image", "Archivo", "Datei", "Fichier"]
+    where identifiers = ["File", "Image", "Archivo", "Datei", "Fichier",
+                         "Bild"]
 
 image :: MWParser Inlines
 image = try $ do
