@@ -274,7 +274,7 @@ optionalAttributes parser = try $
 parseBlockAttributes :: OrgParser ()
 parseBlockAttributes = do
   attrs <- many attribute
-  () <$ mapM (uncurry parseAndAddAttribute) attrs
+  mapM_ (uncurry parseAndAddAttribute) attrs
  where
    attribute :: OrgParser (String, String)
    attribute = try $ do

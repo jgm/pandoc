@@ -37,7 +37,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Builder (deleteMeta)
-import Data.List ( isPrefixOf, intersperse, transpose )
+import Data.Maybe (fromMaybe)
+import Data.List ( isPrefixOf, stripPrefix, intersperse, transpose )
 import Network.URI (isURI)
 import Text.Pandoc.Pretty
 import Control.Monad.State
@@ -401,7 +402,7 @@ inlineToRST (Link [Str str] (src, _))
     if "mailto:" `isPrefixOf` src
        then src == escapeURI ("mailto:" ++ str)
        else src == escapeURI str = do
-  let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
+  let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
   return $ text srcSuffix
 inlineToRST (Link [Image alt (imgsrc,imgtit)] (src, _tit)) = do
   label <- registerImage alt (imgsrc,imgtit) (Just src)

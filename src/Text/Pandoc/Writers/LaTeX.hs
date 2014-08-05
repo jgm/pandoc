@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables,
+             PatternGuards #-}
 {-
 Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -37,7 +38,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
-import Data.List ( (\\), isSuffixOf, isInfixOf,
+import Data.List ( (\\), isSuffixOf, isInfixOf, stripPrefix,
                    isPrefixOf, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Data.Maybe ( fromMaybe )
@@ -761,8 +762,8 @@ inlineToLaTeX (Link txt (src, _)) =
              do modify $ \s -> s{ stUrl = True }
                 src' <- stringToLaTeX URLString src
                 return $ text $ "\\url{" ++ src' ++ "}"
-        [Str x] | "mailto:" `isPrefixOf` src &&
-                  escapeURI x == drop 7 src -> -- email autolink
+        [Str x] | Just rest <- stripPrefix "mailto:" src,
+                  escapeURI x == rest -> -- email autolink
              do modify $ \s -> s{ stUrl = True }
                 src' <- stringToLaTeX URLString src
                 contents <- inlineListToLaTeX txt

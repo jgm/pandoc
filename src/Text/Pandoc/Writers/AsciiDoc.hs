@@ -43,7 +43,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, space)
-import Data.List ( isPrefixOf, intersperse, intercalate )
+import Data.Maybe (fromMaybe)
+import Data.List ( stripPrefix, intersperse, intercalate )
 import Text.Pandoc.Pretty
 import Control.Monad.State
 import qualified Data.Map as M
@@ -401,7 +402,7 @@ inlineToAsciiDoc opts (Link txt (src, _tit)) = do
   let prefix = if isRelative
                   then text "link:"
                   else empty
-  let srcSuffix = if isPrefixOf "mailto:" src then drop 7 src else src
+  let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
   let useAuto = case txt of
                       [Str s] | escapeURI s == srcSuffix -> True
                       _                                  -> False

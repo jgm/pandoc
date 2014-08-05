@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternGuards #-}
+
 {-
 Copyright (c) 2011-2012, Sergey Astanin
 All rights reserved.
@@ -29,7 +31,7 @@ import Control.Monad.State (StateT, evalStateT, get, modify)
 import Control.Monad.State (liftM, liftM2, liftIO)
 import Data.ByteString.Base64 (encode)
 import Data.Char (toLower, isSpace, isAscii, isControl)
-import Data.List (intersperse, intercalate, isPrefixOf)
+import Data.List (intersperse, intercalate, isPrefixOf, stripPrefix)
 import Data.Either (lefts, rights)
 import Network.Browser (browse, request, setAllowRedirects, setOutHandler)
 import Network.HTTP (catchIO_, getRequest, getHeaders, getResponseBody)
@@ -252,22 +254,21 @@ readDataURI :: String -- ^ URI
             -> Maybe (String,String,Bool,String)
                -- ^ Maybe (mime,charset,isBase64,data)
 readDataURI uri =
-    let prefix = "data:"
-    in  if not (prefix `isPrefixOf` uri)
-        then Nothing
-        else
-            let rest = drop (length prefix) uri
-                meta = takeWhile (/= ',') rest  -- without trailing ','
-                uridata = drop (length meta + 1) rest
-                parts = split (== ';') meta
-                (mime,cs,enc)=foldr upd ("text/plain","US-ASCII",False) parts
-            in  Just (mime,cs,enc,uridata)
+  case stripPrefix "data:" uri of
+    Nothing   -> Nothing
+    Just rest ->
+      let meta = takeWhile (/= ',') rest  -- without trailing ','
+          uridata = drop (length meta + 1) rest
+          parts = split (== ';') meta
+          (mime,cs,enc)=foldr upd ("text/plain","US-ASCII",False) parts
+      in  Just (mime,cs,enc,uridata)
+
  where
    upd str m@(mime,cs,enc)
-       | isMimeType str               = (str,cs,enc)
-       | "charset=" `isPrefixOf` str  = (mime,drop (length "charset=") str,enc)
-       | str ==  "base64"             = (mime,cs,True)
-       | otherwise                    = m
+       | isMimeType str                          = (str,cs,enc)
+       | Just str' <- stripPrefix "charset=" str = (mime,str',enc)
+       | str ==  "base64"                        = (mime,cs,True)
+       | otherwise                               = m
 
 -- Without parameters like ;charset=...; see RFC 2045, 5.1
 isMimeType :: String -> Bool
@@ -295,7 +296,6 @@ fetchURL url = do
      let content_type = lookupHeader HdrContentType (getHeaders r)
      content <- liftM (Just . toStr . encode . toBS) . getResponseBody $ Right r
      return $ liftM2 (,) content_type content
-  where
 
 toBS :: String -> B.ByteString
 toBS = B.pack . map (toEnum . fromEnum)

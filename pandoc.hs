@@ -57,7 +57,8 @@ import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
-import Control.Monad (when, unless, liftM, (>=>))
+import Control.Monad (when, unless, (>=>))
+import Data.Maybe (isJust)
 import Data.Foldable (foldrM)
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
@@ -74,10 +75,13 @@ import Data.Monoid
 type Transform = Pandoc -> Pandoc
 
 copyrightMessage :: String
-copyrightMessage = "\nCopyright (C) 2006-2014 John MacFarlane\n" ++
-                    "Web:  http://johnmacfarlane.net/pandoc\n" ++
-                    "This is free software; see the source for copying conditions.  There is no\n" ++
-                    "warranty, not even for merchantability or fitness for a particular purpose."
+copyrightMessage = unlines [
+  "",
+  "Copyright (C) 2006-2014 John MacFarlane",
+  "Web:  http://johnmacfarlane.net/pandoc",
+  "This is free software; see the source for copying conditions.",
+  "There is no warranty, not even for merchantability or fitness",
+  "for a particular purpose." ]
 
 compileInfo :: String
 compileInfo =
@@ -91,15 +95,21 @@ compileInfo =
 -- comma separated words in lines with a maximum line length.
 wrapWords :: Int -> Int -> [String] -> String
 wrapWords indent c = wrap' (c - indent) (c - indent)
-        where wrap' _    _         []     = ""
-              wrap' cols remaining (x:xs) = if remaining == cols
-                                               then x ++ wrap' cols (remaining - length x) xs
-                                               else if (length x + 1) > remaining
-                                                       then ",\n" ++ replicate indent ' ' ++ x ++ wrap' cols (cols - length x) xs
-                                                       else ", "  ++ x ++ wrap' cols (remaining - (length x + 2)) xs
+  where
+    wrap'   _       _      []   = ""
+    wrap' cols remaining (x:xs)
+      | remaining == cols =
+            x ++ wrap' cols (remaining - length x) xs
+      | (length x + 1) > remaining =
+            ",\n" ++ replicate indent ' ' ++ x ++
+            wrap' cols (cols - length x) xs
+      | otherwise =
+            ", "  ++ x ++
+            wrap' cols (remaining - length x - 2) xs
 
 isTextFormat :: String -> Bool
-isTextFormat s = takeWhile (`notElem` "+-") s `notElem` ["odt","docx","epub","epub3"]
+isTextFormat s = takeWhile (`notElem` "+-") s `notElem` binaries
+  where binaries = ["odt","docx","epub","epub3"]
 
 externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
 externalFilter f args' d = do
@@ -938,7 +948,7 @@ defaultWriterName x =
     ".fb2"      -> "fb2"
     ".opml"     -> "opml"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
-    _          -> "html"
+    _           -> "html"
 
 -- Transformations of a Pandoc document post-parsing:
 
@@ -968,7 +978,7 @@ applyFilters filters args d =
 main :: IO ()
 main = do
 
-  rawArgs <- liftM (map UTF8.decodeArg) getArgs
+  rawArgs <- map UTF8.decodeArg <$> getArgs
   prg <- getProgName
   let compatMode = (prg == "hsmarkdown")
 
@@ -1003,7 +1013,7 @@ main = do
               , optTemplate              = templatePath
               , optOutputFile            = outputFile
               , optNumberSections        = numberSections
-              , optNumberOffset            = numberFrom
+              , optNumberOffset          = numberFrom
               , optSectionDivs           = sectionDivs
               , optIncremental           = incremental
               , optSelfContained         = selfContained
@@ -1051,18 +1061,17 @@ main = do
        exitWith ExitSuccess
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
-  let filters' = case M.lookup "bibliography" metadata of
-                       Just _ | optCiteMethod opts /= Natbib &&
-                                optCiteMethod opts /= Biblatex &&
-                                all (\f -> takeBaseName f /= "pandoc-citeproc")
-                                filters -> "pandoc-citeproc" : filters
-                       _                -> filters
+  let needsCiteproc = isJust (M.lookup "bibliography" metadata) &&
+                      optCiteMethod opts `notElem` [Natbib, Biblatex] &&
+                      "pandoc-citeproc" `notElem` map takeBaseName filters
+  let filters' = if needsCiteproc then "pandoc-citeproc" : filters
+                                  else filters
 
   let sources = if ignoreArgs then [] else args
 
   datadir <- case mbDataDir of
                   Nothing   -> E.catch
-                                 (liftM Just $ getAppUserDataDirectory "pandoc")
+                                 (Just <$> getAppUserDataDirectory "pandoc")
                                  (\e -> let _ = (e :: E.SomeException)
                                         in  return Nothing)
                   Just _    -> return mbDataDir
@@ -1093,7 +1102,8 @@ main = do
                else case getWriter writerName' of
                          Left e  -> err 9 $
                            if writerName' == "pdf"
-                              then e ++ "\nTo create a pdf with pandoc, use " ++
+                              then e ++
+                               "\nTo create a pdf with pandoc, use " ++
                                "the latex or beamer writer and specify\n" ++
                                "an output file with .pdf extension " ++
                                "(pandoc -t latex -o filename.pdf)."
@@ -1145,20 +1155,22 @@ main = do
                     then do
                         dztempl <- readDataFileUTF8 datadir
                                      ("dzslides" </> "template.html")
-                        let dzcore = unlines $ dropWhile (not . isPrefixOf "<!-- {{{{ dzslides core")
-                                             $ lines dztempl
+                        let dzline = "<!-- {{{{ dzslides core"
+                        let dzcore = unlines
+                                   $ dropWhile (not . (dzline `isPrefixOf`))
+                                   $ lines dztempl
                         return $ ("dzslides-core", dzcore) : variables'
                     else return variables'
 
   let sourceURL = case sources of
-                        []    -> Nothing
-                        (x:_) -> case parseURI x of
-                                    Just u
-                                      | uriScheme u `elem` ["http:","https:"] ->
-                                          Just $ show u{ uriPath = "",
-                                                         uriQuery = "",
-                                                         uriFragment = "" }
-                                    _ -> Nothing
+                    []    -> Nothing
+                    (x:_) -> case parseURI x of
+                                Just u
+                                  | uriScheme u `elem` ["http:","https:"] ->
+                                      Just $ show u{ uriPath = "",
+                                                     uriQuery = "",
+                                                     uriFragment = "" }
+                                _ -> Nothing
 
   let readerOpts = def{ readerSmart = smart || (texLigatures &&
                           (laTeXOutput || "context" `isPrefixOf` writerName'))
@@ -1194,11 +1206,14 @@ main = do
   let readFiles [] = error "Cannot read archive from stdin"
       readFiles (x:_) = B.readFile x
 
-  let convertTabs = tabFilter (if (preserveTabs || readerName' == "t2t") then 0 else tabStop)
+  let convertTabs = tabFilter (if preserveTabs || readerName' == "t2t"
+                                 then 0
+                                 else tabStop)
 
-  let handleIncludes' = if readerName' == "latex" || readerName' == "latex+lhs"
-                           then handleIncludes
-                           else return
+  let handleIncludes' = if readerName' == "latex" ||
+                           readerName' == "latex+lhs"
+                               then handleIncludes
+                               else return
 
   (doc, media) <-
      case reader of

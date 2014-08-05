@@ -47,7 +47,7 @@ import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import qualified Text.Pandoc.Builder as B
 import Data.Monoid (mconcat, mempty)
 import Data.Sequence (viewr, ViewR(..))
-import Data.Char (toLower)
+import Data.Char (toLower, isHexDigit)
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ReaderOptions -- ^ Reader options
@@ -655,9 +655,6 @@ extractUnicodeChar :: String -> Maybe (Char, String)
 extractUnicodeChar s = maybe Nothing (\c -> Just (c,rest)) mbc
   where (ds,rest) = span isHexDigit s
         mbc = safeRead ('\'':'\\':'x':ds ++ "'")
-
-isHexDigit :: Char -> Bool
-isHexDigit c = c `elem` "0123456789ABCDEFabcdef"
 
 extractCaption :: RSTParser (Inlines, Blocks)
 extractCaption = do
