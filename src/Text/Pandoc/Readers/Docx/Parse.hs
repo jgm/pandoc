@@ -100,6 +100,9 @@ maybeToD Nothing = throwError DocxError
 concatMapM        :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
 concatMapM f xs   =  liftM concat (mapM f xs)
 
+
+-- This is similar to `mapMaybe`: it maps a function returning the D
+-- monad over a list, and only keeps the non-erroring return values.
 mapD :: (a -> D b) -> [a] -> D [b]
 mapD f xs =
   let handler x = (f x >>= (\y-> return [y])) `catchError` (\_ -> return [])
