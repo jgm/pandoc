@@ -45,6 +45,10 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , NAryStyle(..)
                                       , DelimStyle(..)
                                       , GroupStyle(..)
+                                      , OMathRunStyle(..)
+                                      , OMathRunTextStyle(..)
+                                      , OMathTextScript(..)
+                                      , OMathTextStyle(..)
                                       , Run(..)
                                       , RunElem(..)
                                       , Notes
@@ -93,13 +97,17 @@ maybeToD :: Maybe a -> D a
 maybeToD (Just a) = return a
 maybeToD Nothing = throwError DocxError
 
-mapD :: (a -> D b) -> [a] -> D [b]
-mapD _ [] = return []
-mapD f (x:xs) = do
-  y <- (f x >>= (\z -> return [z])) `catchError` (\_ -> return [])
-  ys <- mapD f xs
-  return $ y ++ ys
+concatMapM        :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
+concatMapM f xs   =  liftM concat (mapM f xs)
 
+
+-- This is similar to `mapMaybe`: it maps a function returning the D
+-- monad over a list, and only keeps the non-erroring return values.
+mapD :: (a -> D b) -> [a] -> D [b]
+mapD f xs =
+  let handler x = (f x >>= (\y-> return [y])) `catchError` (\_ -> return [])
+  in
+   concatMapM handler xs
 
 type NameSpaces = [(String, String)]
 
@@ -128,6 +136,7 @@ type Level = (String, String, String, Maybe Integer)
 
 data Relationship = Relationship (RelId, Target)
                   deriving Show
+
 data Notes = Notes NameSpaces
              (Maybe (M.Map String Element))
              (Maybe (M.Map String Element))
@@ -223,6 +232,30 @@ data NAryStyle = NAryStyle { nAryChar :: Maybe Char
                            , nAryLimLoc :: LimLoc}
                deriving Show
 
+data OMathRunStyle = OMathRunStyle { oMathLit :: Bool
+                                   , oMathRunTextStyle :: OMathRunTextStyle }
+                   deriving Show
+
+data OMathRunTextStyle = NoStyle
+                       | Normal
+                       | Styled { oMathScript :: Maybe OMathTextScript
+                                , oMathStyle  :: Maybe OMathTextStyle }
+                       deriving Show
+
+data OMathTextScript = ORoman
+                     | OScript
+                     | OFraktur
+                     | ODoubleStruck
+                     | OSansSerif
+                     | OMonospace
+                     deriving (Show, Eq)
+
+data OMathTextStyle = OPlain
+                    | OBold
+                    | OItalic
+                    | OBoldItalic
+                    deriving (Show, Eq)
+
 defaultNAryStyle :: NAryStyle
 defaultNAryStyle = NAryStyle { nAryChar = Nothing -- integral, in practice
                              , nAryLimLoc = SubSup }
@@ -245,9 +278,6 @@ data GroupStyle = GroupStyle { groupChr :: Maybe Char
 
 defaultGroupStyle :: GroupStyle
 defaultGroupStyle = GroupStyle {groupChr = Nothing, groupPos = Nothing}
-
-type OMathRunStyle = [String]
-
 
 data Run = Run RunStyle [RunElem]
          | Footnote [BodyPart]
@@ -596,6 +626,75 @@ elemToBase ns element | isElem ns "m" "e" element =
   (\es -> return $ Base es)
 elemToBase _ _ = throwError WrongElem
 
+-- TODO: The right way to do this is to use the ampersand to break the
+-- text lines into multiple columns. That's tricky, though, and this
+-- will get us most of the way for the time being.
+filterAmpersand :: OMathElem -> OMathElem
+filterAmpersand (OMathRun mrPr (Run wrPr elems)) =
+  let f (TextRun s) = TextRun $ filter ('&' /=) s
+      f re          = re
+  in
+   OMathRun mrPr $ Run wrPr (map f elems)
+filterAmpersand e = e
+
+elemToBaseNoAmpersand :: NameSpaces -> Element -> D Base
+elemToBaseNoAmpersand ns element | isElem ns "m" "e" element =
+  mapD
+  (\e -> (elemToMathElem ns e >>= (return . filterAmpersand)))
+  (elChildren element) >>=
+  (\es -> return $ Base es)
+elemToBaseNoAmpersand _ _ = throwError WrongElem
+
+
+elemToOMathRunStyle :: NameSpaces -> Element -> OMathRunStyle
+elemToOMathRunStyle ns element =
+  let lit =
+        case
+          findChild (elemName ns "m" "lit") element >>=
+          findAttr (elemName ns "m" "val")
+        of
+          Just "on" -> True
+          _         -> False
+  in
+   OMathRunStyle { oMathLit = lit
+                 , oMathRunTextStyle = (elemToOMathRunTextStyle ns element)
+                 }
+
+elemToOMathRunTextStyle :: NameSpaces -> Element -> OMathRunTextStyle
+elemToOMathRunTextStyle ns element
+  | Just mrPr <- findChild (elemName ns "m" "rPr") element
+  , Just _    <- findChild (elemName ns "m" "nor") mrPr =
+    Normal
+  | Just mrPr <- findChild (elemName ns "m" "rPr") element =
+    let scr =
+          case
+            findChild (elemName ns "m" "scr") mrPr >>=
+            findAttr (elemName ns "m" "val") 
+          of
+            Just "roman"         -> Just ORoman
+            Just "script"        -> Just OScript
+            Just "fraktur"       -> Just OFraktur
+            Just "double-struck" -> Just ODoubleStruck
+            Just "sans-serif"    -> Just OSansSerif
+            Just "monospace"     -> Just OMonospace
+            _                    -> Nothing
+
+        sty =
+          case
+            findChild (elemName ns "m" "sty") mrPr >>=
+            findAttr (elemName ns "m" "val")
+          of
+            Just "p"             -> Just OPlain
+            Just "b"             -> Just OBold
+            Just "i"             -> Just OItalic
+            Just "bi"            -> Just OBoldItalic
+            _                    -> Nothing
+    in
+     Styled { oMathScript = scr, oMathStyle = sty }
+  | otherwise = NoStyle
+
+
+
 elemToNAryStyle :: NameSpaces -> Element -> NAryStyle
 elemToNAryStyle ns element
   | Just narypr <- findChild (QName "naryPr" (lookup "m" ns) (Just "m")) element =
@@ -618,13 +717,13 @@ elemToDelimStyle ns element
   | Just dPr <- findChild (QName "dPr" (lookup "m" ns) (Just "m")) element =
     let begChr = findChild (QName "begChr" (lookup "m" ns) (Just "m")) dPr >>=
                  findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
-                 (\c -> if null c then Nothing else (Just $ head c))
+                 (\c -> if null c then (Just ' ') else (Just $ head c))
         sepChr = findChild (QName "sepChr" (lookup "m" ns) (Just "m")) dPr >>=
                  findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
-                 (\c -> if null c then Nothing else (Just $ head c))
+                 (\c -> if null c then (Just ' ') else (Just $ head c))
         endChr = findChild (QName "endChr" (lookup "m" ns) (Just "m")) dPr >>=
                  findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
-                 (\c -> if null c then Nothing else (Just $ head c))
+                 (\c -> if null c then (Just ' ') else (Just $ head c))
     in
      DelimStyle { delimBegChar = begChr
                 , delimSepChar = sepChr
@@ -647,9 +746,9 @@ elemToGroupStyle _ _ = defaultGroupStyle
 elemToMathElem :: NameSpaces -> Element -> D OMathElem
 elemToMathElem ns element | isElem ns "m" "acc" element = do
   let accChar =
-        findChild (QName "accPr" (lookup "m" ns) (Just "m")) element >>=
-        findChild (QName "chr" (lookup "m" ns) (Just "m")) >>=
-        findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+        findChild (elemName ns "m" "accPr") element >>=
+        findChild (elemName ns "m" "chr") >>=
+        findAttr (elemName ns "m" "val") >>=
         Just . head
       accPr = AccentStyle { accentChar = accChar}
   base <-(maybeToD $ findChild (elemName ns "m" "e") element) >>=
@@ -681,7 +780,7 @@ elemToMathElem ns element | isElem ns "m" "d" element =
    mapD (elemToBase ns) (elChildren element) >>=
    (\es -> return $ Delimiter style es)
 elemToMathElem ns element | isElem ns "m" "eqArr" element =
-  mapD (elemToBase ns) (elChildren element) >>=
+  mapD (elemToBaseNoAmpersand ns) (elChildren element) >>=
   (\es -> return $ EquationArray es)
 elemToMathElem ns element | isElem ns "m" "f" element = do
   num <- maybeToD $ findChild (elemName ns "m" "num") element
@@ -763,12 +862,12 @@ elemToMathElem ns element | isElem ns "m" "sSup" element = do
           elemToBase ns
   sup <- maybeToD (findChild (elemName ns "m" "sup") element) >>=
          (\e -> mapD (elemToMathElem ns) (elChildren e))
-  return $ Sub base sup
+  return $ Super base sup
 elemToMathElem ns element | isElem ns "m" "r" element = do
-  let style = []            -- placeholder
-      rstyle = elemToRunStyle ns element
+  let mrPr = elemToOMathRunStyle ns element
+      wrPr = elemToRunStyle ns element
   relems <- elemToRunElems ns element
-  return $ OMathRun style $ Run rstyle relems
+  return $ OMathRun mrPr $ Run wrPr relems
 elemToMathElem _ _ = throwError WrongElem
 
 lookupRelationship :: RelId -> [Relationship] -> Maybe Target
@@ -832,6 +931,9 @@ elemToParPart ns element
     return $ case lookupRelationship relId rels of
       Just target -> ExternalHyperLink target runs
       Nothing     -> ExternalHyperLink "" runs
+elemToParPart ns element
+  | isElem ns "m" "oMath" element = 
+    elemToMath ns element >>= (return . PlainOMath)
 elemToParPart _ _ = throwError WrongElem
 
 lookupFootnote :: String -> Notes -> Maybe Element
@@ -908,7 +1010,9 @@ elemToRunStyle _ _ = defaultRunStyle
 
 elemToRunElem :: NameSpaces -> Element -> D RunElem
 elemToRunElem ns element
-  | isElem ns "w" "t" element || isElem ns "w" "delText" element =
+  | isElem ns "w" "t" element
+    || isElem ns "w" "delText" element
+    || isElem ns "m" "t" element =
     return $ TextRun $ strContent element
   | isElem ns "w" "br" element = return LnBrk
   | isElem ns "w" "tab" element = return Tab
@@ -916,7 +1020,9 @@ elemToRunElem ns element
 
 elemToRunElems :: NameSpaces -> Element -> D [RunElem]
 elemToRunElems ns element
-  |  isElem ns "w" "r" element = mapD (elemToRunElem ns) (elChildren element)
+  |  isElem ns "w" "r" element
+     || isElem ns "m" "r" element =
+       mapD (elemToRunElem ns) (elChildren element)
 elemToRunElems _ _ = throwError WrongElem
 
 
