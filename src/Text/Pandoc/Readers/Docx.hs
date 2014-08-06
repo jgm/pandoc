@@ -89,10 +89,12 @@ import Data.List (delete, stripPrefix, (\\), intersperse, intersect)
 import Data.Monoid
 import Text.TeXMath (writeTeX)
 import qualified Text.TeXMath.Types as TM
+import Data.Default (Default)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Applicative ((<$>))
 
 readDocx :: ReaderOptions
          -> B.ByteString
@@ -104,25 +106,19 @@ readDocx opts bytes =
     Left _   -> error $ "couldn't parse docx file"
 
 data DState = DState { docxAnchorMap :: M.Map String String
-                     , docxMediaBag      :: MediaBag
-                     , docxInHeaderBlock :: Bool}
+                     , docxMediaBag      :: MediaBag }
 
-defaultDState :: DState
-defaultDState = DState { docxAnchorMap = M.empty
-                       , docxMediaBag  = mempty
-                       , docxInHeaderBlock = False}
+instance Default DState where
+  def = DState { docxAnchorMap = M.empty
+               , docxMediaBag  = mempty }
 
-data DEnv = DEnv { docxOptions  :: ReaderOptions}
+data DEnv = DEnv { docxOptions  :: ReaderOptions
+                 , docxInHeaderBlock :: Bool }
+
+instance Default DEnv where
+  def = DEnv def False
 
 type DocxContext = ReaderT DEnv (State DState)
-
-withDState :: (DState -> DState) -> DocxContext a -> DocxContext a
-withDState f dctx = do
-  ds <- get
-  modify f
-  ctx' <- dctx
-  put ds
-  return ctx'
 
 evalDocxContext :: DocxContext a -> DEnv -> DState -> a
 evalDocxContext ctx env st = evalState (runReaderT ctx env) st
@@ -161,7 +157,7 @@ isEmptyPar (Paragraph _ parParts) =
     isEmptyElem (TextRun s) = trim s == ""
     isEmptyElem _           = True
 isEmptyPar _ = False
-  
+
 bodyPartsToMeta' :: [BodyPart] -> DocxContext (M.Map String MetaValue)
 bodyPartsToMeta' [] = return M.empty
 bodyPartsToMeta' (bp : bps)
@@ -170,7 +166,7 @@ bodyPartsToMeta' (bp : bps)
   , (Just metaField) <- M.lookup c metaStyles = do
     inlines <- parPartsToInlines parParts
     remaining <- bodyPartsToMeta' bps
-    let  
+    let
       f (MetaInlines ils) (MetaInlines ils') = MetaBlocks [Para ils, Para ils']
       f (MetaInlines ils) (MetaBlocks blks) = MetaBlocks ((Para ils) : blks)
       f m (MetaList mv) = MetaList (m : mv)
@@ -350,7 +346,7 @@ parPartToInlines (BookMark _ anchor) =
   -- user-defined anchor links with header auto ids.
   do
     -- get whether we're in a header.
-    inHdrBool <- gets docxInHeaderBlock
+    inHdrBool <- asks docxInHeaderBlock
     -- Get the anchor map.
     anchorMap <- gets docxAnchorMap
     -- We don't want to rewrite if we're in a header, since we'll take
@@ -365,7 +361,8 @@ parPartToInlines (BookMark _ anchor) =
           if not inHdrBool && anchor `elem` (M.elems anchorMap)
           then uniqueIdent [Str anchor] (M.elems anchorMap)
           else anchor
-    modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap}
+    unless inHdrBool
+      (modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap})
     return [Span (newAnchor, ["anchor"], []) []]
 parPartToInlines (Drawing fp bs) = do
   mediaBag <- gets docxMediaBag
@@ -509,7 +506,7 @@ oMathRunStyleToTextType mrPr
   | Normal <- oMathRunTextStyle mrPr =
     Just $ TM.TextNormal
   | Styled scr sty  <- oMathRunTextStyle mrPr
-    ,Just OBold <- sty 
+    ,Just OBold <- sty
   , Just OSansSerif <- scr =
     Just $ TM.TextSansSerifBold
   | Styled scr sty  <- oMathRunTextStyle mrPr
@@ -555,7 +552,7 @@ oMathRunStyleToTextType mrPr
   | otherwise = Nothing
 
 
-    
+
 baseToExp :: Base -> DocxContext TM.Exp
 baseToExp (Base mathElems) =
   concatMapM oMathElemToExps mathElems >>= (return . TM.EGrouped)
@@ -563,7 +560,7 @@ baseToExp (Base mathElems) =
 -- an ungrouped version of baseToExp
 baseToExp' :: Base -> DocxContext [TM.Exp]
 baseToExp' (Base mathElems) =
-  concatMapM oMathElemToExps mathElems 
+  concatMapM oMathElemToExps mathElems
 
 
 isAnchorSpan :: Inline -> Bool
@@ -631,8 +628,8 @@ bodyPartToBlocks (Paragraph pPr parparts)
      [CodeBlock ("", [], []) (concatMap parPartToString parparts)]
 bodyPartToBlocks (Paragraph pPr parparts)
   | any isHeaderContainer (parStyleToContainers pPr) = do
-    ils <-withDState (\s -> s{docxInHeaderBlock = True}) $
-          parPartsToInlines parparts >>= (return . normalizeSpaces)
+    ils <- normalizeSpaces <$> local (\s -> s{docxInHeaderBlock = True})
+                                (parPartsToInlines parparts)
     let (Container hdrFun) = head $ filter isHeaderContainer (parStyleToContainers pPr)
         Header n attr _ = hdrFun []
     hdr <- makeHeaderAnchor $ Header n attr ils
@@ -717,10 +714,8 @@ bodyToOutput (Body bps) = do
 
 docxToOutput :: ReaderOptions -> Docx -> (Meta, [Block], MediaBag)
 docxToOutput opts (Docx (Document _ body)) =
-  let dState = defaultDState
-      dEnv   = DEnv { docxOptions  = opts }
-  in
-   evalDocxContext (bodyToOutput body) dEnv dState
+  let dEnv   = def { docxOptions  = opts} in
+   evalDocxContext (bodyToOutput body) dEnv def
 
 
 ilToCode :: Inline -> String
