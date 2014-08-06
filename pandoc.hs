@@ -1167,8 +1167,7 @@ main = do
                     (x:_) -> case parseURI x of
                                 Just u
                                   | uriScheme u `elem` ["http:","https:"] ->
-                                      Just $ show u{ uriPath = "",
-                                                     uriQuery = "",
+                                      Just $ show u{ uriQuery = "",
                                                      uriFragment = "" }
                                 _ -> Nothing
 
