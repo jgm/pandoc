@@ -112,8 +112,7 @@ defaultDState = DState { docxAnchorMap = M.empty
                        , docxMediaBag  = mempty
                        , docxInHeaderBlock = False}
 
-data DEnv = DEnv { docxOptions  :: ReaderOptions
-                 , docxDocument :: Docx}
+data DEnv = DEnv { docxOptions  :: ReaderOptions}
 
 type DocxContext = ReaderT DEnv (State DState)
 
@@ -717,10 +716,9 @@ bodyToOutput (Body bps) = do
             mediaBag)
 
 docxToOutput :: ReaderOptions -> Docx -> (Meta, [Block], MediaBag)
-docxToOutput opts d@(Docx (Document _ body)) =
+docxToOutput opts (Docx (Document _ body)) =
   let dState = defaultDState
-      dEnv   = DEnv { docxOptions  = opts
-                    , docxDocument = d}
+      dEnv   = DEnv { docxOptions  = opts }
   in
    evalDocxContext (bodyToOutput body) dEnv dState
 
