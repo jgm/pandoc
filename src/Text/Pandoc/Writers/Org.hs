@@ -238,6 +238,8 @@ inlineListToOrg lst = mapM inlineToOrg lst >>= return . hcat
 
 -- | Convert Pandoc inline element to Org.
 inlineToOrg :: Inline -> State WriterState Doc
+inlineToOrg (Span (uid, [], []) []) =
+  return $ "<<" <> text uid <> ">>"
 inlineToOrg (Span _ lst) =
   inlineListToOrg lst
 inlineToOrg (Emph lst) = do
