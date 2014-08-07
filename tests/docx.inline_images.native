@@ -1,0 +1,2 @@
+[Para [Str "This",Space,Str "picture",Space,Image [] ("media/image1.jpg",""),Space,Str "is",Space,Str "an",Space,Str "identicon."]
+,Para [Str "Here",Space,Str "is",Space,Link [Str "one",Space,Image [] ("media/image2.jpg",""),Space,Str "that"] ("http://www.google.com",""),Space,Str "links."]]

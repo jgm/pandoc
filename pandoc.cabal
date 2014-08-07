@@ -178,6 +178,7 @@ Extra-Source-Files:
                  tests/docx.hanging_indent.docx,
                  tests/docx.headers.docx,
                  tests/docx.image.docx,
+                 tests/docx.inline_images.docx,
                  tests/docx.inline_code.docx,
                  tests/docx.inline_formatting.docx,
                  tests/docx.links.docx,
