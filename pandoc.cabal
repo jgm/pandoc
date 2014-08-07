@@ -323,6 +323,7 @@ Library
   Other-Modules:   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Reducible,
                    Text.Pandoc.Readers.Docx.Parse,
+                   Text.Pandoc.Readers.Docx.OMath,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Asciify,
                    Text.Pandoc.MIME,

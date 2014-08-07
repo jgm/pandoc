@@ -84,11 +84,10 @@ import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Reducible
 import Text.Pandoc.Shared
 import Text.Pandoc.MediaBag (insertMedia, MediaBag)
-import Data.Maybe (mapMaybe, fromMaybe)
-import Data.List (delete, stripPrefix, (\\), intersperse, intersect)
+import Data.Maybe (mapMaybe)
+import Data.List (delete, stripPrefix, (\\), intersect)
 import Data.Monoid
 import Text.TeXMath (writeTeX)
-import qualified Text.TeXMath.Types as TM
 import Data.Default (Default)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
@@ -374,193 +373,8 @@ parPartToInlines (InternalHyperLink anchor runs) = do
 parPartToInlines (ExternalHyperLink target runs) = do
   ils <- concatMapM runToInlines runs
   return [Link ils (target, "")]
-parPartToInlines (PlainOMath omath) = do
-  e <- oMathToExps omath
-  return [Math InlineMath (writeTeX e)]
-
-oMathToExps :: OMath -> DocxContext [TM.Exp]
-oMathToExps (OMath oMathElems) = concatMapM oMathElemToExps oMathElems
-
-oMathElemToExps :: OMathElem -> DocxContext [TM.Exp]
-oMathElemToExps (Accent style base) = do
-  baseExp <- baseToExp base
-  let chr = case accentChar style of
-        Just c -> c
-        Nothing -> '\180'       -- default to acute.
-  return [TM.EOver False baseExp (TM.ESymbol TM.Accent [chr])]
-oMathElemToExps(Bar style base) = do
-  baseExp <- baseToExp base
-  return $ case barPos style of
-    Top    -> [TM.EOver False baseExp (TM.ESymbol TM.Accent "\175")]
-    Bottom -> [TM.EUnder False baseExp (TM.ESymbol TM.Accent "\818")]
-oMathElemToExps (Box base) =
-  (\e -> return [e]) =<< baseToExp base
-oMathElemToExps (BorderBox base) =
-  -- TODO: This should be "\\boxed" somehow
-  (\e -> return [e]) =<< baseToExp base
-oMathElemToExps (Delimiter dPr bases) = do
-  baseExps <- mapM baseToExp bases
-  let inDelimExps = map Right baseExps
-      beg = fromMaybe '(' (delimBegChar dPr)
-      end = fromMaybe ')' (delimEndChar dPr)
-      sep = fromMaybe '|' (delimSepChar dPr)
-      exps = intersperse (Left [sep]) inDelimExps
-  return [TM.EDelimited [beg] [end] exps]
-oMathElemToExps (EquationArray bases) = do
-  let f b = do bs <- baseToExp' b
-               return [bs]
-  baseExps <- mapM f bases
-  return [TM.EArray [] baseExps]
-oMathElemToExps (Fraction num denom) = do
-  numExp  <- concatMapM oMathElemToExps num >>= (return . TM.EGrouped)
-  denExp  <- concatMapM oMathElemToExps denom >>= (return . TM.EGrouped)
-  return [TM.EFraction TM.NormalFrac numExp denExp]
-oMathElemToExps (Function fname base) = do
-  -- We need a string for the fname, but omml gives it to us as a
-  -- series of oMath elems. We're going to filter out the oMathRuns,
-  -- which should work for us most of the time.
-  let f :: OMathElem -> String
-      f (OMathRun _ run) = runToString run
-      f _                  = ""
-      fnameString = concatMap f fname
-  baseExp  <- baseToExp base
-  return [TM.EMathOperator fnameString, baseExp]
-oMathElemToExps (Group style base)
-  | Just Top <- groupPos style = do
-    baseExp <- baseToExp base
-    let chr = case groupChr style of
-          Just c -> c
-          Nothing -> '\65079'   -- default to overbrace
-    return [TM.EOver False baseExp (TM.ESymbol TM.Accent [chr])]
-  | otherwise = do
-    baseExp <- baseToExp base
-    let chr = case groupChr style of
-          Just c -> c
-          Nothing -> '\65080'   -- default to underbrace
-    return [TM.EUnder False baseExp (TM.ESymbol TM.Accent [chr])]
-oMathElemToExps (LowerLimit base limElems) = do
-  baseExp <- baseToExp base
-  lim <- concatMapM oMathElemToExps limElems >>= (return . TM.EGrouped)
-  return [TM.EUnder True lim baseExp]
-oMathElemToExps (UpperLimit base limElems) = do
-  baseExp <- baseToExp base
-  lim <- concatMapM oMathElemToExps limElems >>= (return . TM.EGrouped)
-  return [TM.EOver True lim baseExp]
-oMathElemToExps (Matrix bases) = do
-  rows <- mapM (mapM (\b -> baseToExp' b)) bases
-  return [TM.EArray [TM.AlignCenter] rows]
-oMathElemToExps (NAry style sub sup base) = do
-  subExps  <- concatMapM oMathElemToExps sub
-  supExps  <- concatMapM oMathElemToExps sup
-  baseExp <-  baseToExp base
-  let opChar = case nAryChar style of
-        Just c -> c
-        -- default to integral
-        Nothing -> '\8747'
-  return [ TM.ESubsup
-           (TM.ESymbol TM.Op [opChar])
-           (TM.EGrouped subExps)
-           (TM.EGrouped supExps)
-         , baseExp]
-oMathElemToExps (Phantom base) =
-  (\e -> return [TM.EPhantom e]) =<< baseToExp base
-oMathElemToExps (Radical degree base) = do
-  degExps  <- concatMapM oMathElemToExps degree
-  baseExp <- baseToExp base
-  return $ case degExps of
-    [] -> [TM.ESqrt baseExp]
-    ds -> [TM.ERoot (TM.EGrouped ds) baseExp]
-oMathElemToExps (PreSubSuper sub sup base) = do
-  subExps  <- concatMapM oMathElemToExps sub
-  supExps  <- concatMapM oMathElemToExps sup
-  baseExp <- baseToExp base
-  return [ TM.ESubsup
-          (TM.EIdentifier "") (TM.EGrouped subExps) (TM.EGrouped supExps)
-         , baseExp]
-oMathElemToExps (Sub base sub) = do
-  baseExp <- baseToExp base
-  subExps  <- concatMapM oMathElemToExps sub
-  return [TM.ESub baseExp (TM.EGrouped subExps)]
-oMathElemToExps (SubSuper base sub sup) = do
-  baseExp <- baseToExp base
-  subExps  <- concatMapM oMathElemToExps sub
-  supExps  <- concatMapM oMathElemToExps sup
-  return [TM.ESubsup baseExp (TM.EGrouped subExps) (TM.EGrouped supExps)]
-oMathElemToExps (Super base sup) = do
-  baseExp <- baseToExp base
-  supExps  <- concatMapM oMathElemToExps sup
-  return [TM.ESuper baseExp (TM.EGrouped supExps)]
-oMathElemToExps (OMathRun sty run@(Run _ _))
-  | NoStyle <- oMathRunTextStyle sty =
-    return $ [TM.EIdentifier $ runToString run]
-  | Nothing <- oMathRunStyleToTextType sty =
-    return $ [TM.EIdentifier $ runToString run]
-  | Just textType <-  oMathRunStyleToTextType sty =
-      return $ if oMathLit sty
-               then [TM.EText textType  (runToString run)]
-               else [TM.EStyled textType [TM.EIdentifier $ runToString run]]
-oMathElemToExps (OMathRun _ _) = return []
-
-oMathRunStyleToTextType :: OMathRunStyle -> Maybe TM.TextType
-oMathRunStyleToTextType mrPr
-  | Normal <- oMathRunTextStyle mrPr =
-    Just $ TM.TextNormal
-  | Styled scr sty  <- oMathRunTextStyle mrPr
-    ,Just OBold <- sty
-  , Just OSansSerif <- scr =
-    Just $ TM.TextSansSerifBold
-  | Styled scr sty  <- oMathRunTextStyle mrPr
-  , Just OBoldItalic <- sty
-  , Just OSansSerif <- scr =
-    Just $ TM.TextSansSerifBoldItalic
-  | Styled scr sty  <- oMathRunTextStyle mrPr
-  , Just OBold <- sty
-  , Just OScript <- scr =
-    Just $ TM.TextBoldScript
-  | Styled scr sty  <- oMathRunTextStyle mrPr
-  , Just OBold <- sty
-  , Just OFraktur <- scr =
-    Just $ TM.TextBoldFraktur
-  | Styled scr sty  <- oMathRunTextStyle mrPr
-  , Just OItalic <- sty
-  , Just OSansSerif <- scr =
-    Just $ TM.TextSansSerifItalic
-  | Styled _ sty  <- oMathRunTextStyle mrPr
-  , Just OBold <- sty =
-    Just $ TM.TextBold
-  | Styled _ sty  <- oMathRunTextStyle mrPr
-  , Just OItalic <- sty =
-    Just $ TM.TextItalic
-  | Styled scr _  <- oMathRunTextStyle mrPr
-  , Just OMonospace <- scr =
-    Just $ TM.TextMonospace
-  | Styled scr _  <- oMathRunTextStyle mrPr
-  , Just OSansSerif <- scr =
-    Just $ TM.TextSansSerif
-  | Styled scr _  <- oMathRunTextStyle mrPr
-  , Just ODoubleStruck <- scr =
-    Just $ TM.TextDoubleStruck
-  | Styled scr _  <- oMathRunTextStyle mrPr
-  , Just OScript <- scr =
-    Just $ TM.TextDoubleStruck
-  | Styled scr _  <- oMathRunTextStyle mrPr
-  , Just OFraktur <- scr =
-    Just $ TM.TextFraktur
-  | Styled _ sty  <- oMathRunTextStyle mrPr
-  , Just OBoldItalic <- sty =
-    Just $ TM.TextBoldItalic
-  | otherwise = Nothing
-
-
-
-baseToExp :: Base -> DocxContext TM.Exp
-baseToExp (Base mathElems) =
-  concatMapM oMathElemToExps mathElems >>= (return . TM.EGrouped)
-
--- an ungrouped version of baseToExp
-baseToExp' :: Base -> DocxContext [TM.Exp]
-baseToExp' (Base mathElems) =
-  concatMapM oMathElemToExps mathElems
+parPartToInlines (PlainOMath exps) = do
+  return [Math InlineMath (writeTeX exps)]
 
 
 isAnchorSpan :: Inline -> Bool
@@ -686,11 +500,10 @@ bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
       widths = replicate size 0 :: [Double]
 
   return [Table caption alignments widths hdrCells cells]
-bodyPartToBlocks (OMathPara _ maths) = do
-  omaths <- mapM oMathToExps maths
+bodyPartToBlocks (OMathPara exps) = do
   return [Para $
-          map (\m -> Math DisplayMath (writeTeX m))
-          omaths]
+          map (\e -> Math DisplayMath (writeTeX e))
+          exps]
 
 -- replace targets with generated anchors.
 rewriteLink :: Inline -> DocxContext Inline
