@@ -282,6 +282,7 @@ defaultGroupStyle = GroupStyle {groupChr = Nothing, groupPos = Nothing}
 data Run = Run RunStyle [RunElem]
          | Footnote [BodyPart]
          | Endnote [BodyPart]
+         | InlineDrawing FilePath B.ByteString
            deriving Show
 
 data RunElem = TextRun String | LnBrk | Tab
@@ -874,14 +875,14 @@ lookupRelationship :: RelId -> [Relationship] -> Maybe Target
 lookupRelationship relid rels =
   lookup relid (map (\(Relationship pair) -> pair) rels)
 
-expandDrawingId :: String -> D ParPart
+expandDrawingId :: String -> D (FilePath, B.ByteString)
 expandDrawingId s = do
   target <- asks (lookupRelationship s . envRelationships)
   case target of
     Just filepath -> do
       bytes <- asks (lookup (combine "word" filepath) . envMedia)
       case bytes of
-        Just bs -> return $ Drawing filepath bs
+        Just bs -> return (filepath, bs)
         Nothing -> throwError DocxError
     Nothing -> throwError DocxError
 
@@ -894,7 +895,7 @@ elemToParPart ns element
                   >>= findAttr (QName "embed" (lookup "r" ns) (Just "r"))
     in
      case drawing of
-       Just s -> expandDrawingId s
+       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp bs)
        Nothing -> throwError WrongElem
 elemToParPart ns element
   | isElem ns "w" "r" element =
@@ -943,6 +944,17 @@ lookupEndnote :: String -> Notes -> Maybe Element
 lookupEndnote s (Notes _ _ ens) = ens >>= (M.lookup s)
 
 elemToRun :: NameSpaces -> Element -> D Run
+elemToRun ns element
+  | isElem ns "w" "r" element
+  , Just drawingElem <- findChild (elemName ns "w" "drawing") element =
+    let a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
+        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) drawingElem
+                  >>= findAttr (QName "embed" (lookup "r" ns) (Just "r"))
+    in
+     case drawing of
+       Just s -> expandDrawingId s >>=
+                 (\(fp, bs) -> return $ InlineDrawing fp bs)
+       Nothing -> throwError WrongElem
 elemToRun ns element
   | isElem ns "w" "r" element
   , Just ref <- findChild (elemName ns "w" "footnoteReference") element

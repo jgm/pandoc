@@ -321,6 +321,13 @@ runToInlines (Footnote bps) =
   concatMapM bodyPartToBlocks bps >>= (\blks -> return [Note blks])
 runToInlines (Endnote bps) =
   concatMapM bodyPartToBlocks bps >>= (\blks -> return [Note blks])
+runToInlines (InlineDrawing fp bs) = do
+  mediaBag <- gets docxMediaBag
+  modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
+  return [Image [] (fp, "")]
+
+  
+
 
 parPartToInlines :: ParPart -> DocxContext [Inline]
 parPartToInlines (PlainRun r) = runToInlines r
