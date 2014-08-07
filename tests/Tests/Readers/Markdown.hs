@@ -272,4 +272,42 @@ tests = [ testGroup "inline code"
                               rawBlock "html" "</button>" <>
                               divWith nullAttr (plain $ text "with this div too.")]
           ]
+        , lineBlockTests
         ]
+
+lineBlockTests = testGroup "line blocks" [
+  -- Formatting elements in line blocks don't have to start and end on the
+  -- same line.
+  "emphasis across lines" =:
+      unlines [ "| blah *A"
+              , "| **B"
+              , "| C***" ]
+      =?>
+      para ("blah" <> space <> emph ("A" <> linebreak <>
+            strong ("B" <> linebreak <>
+            "C")))
+  ,
+  -- When a multiline code element is encountered, it should be broken into
+  -- several elements separated by line breaks.
+  "code across lines" =:
+      unlines [ "| `code"
+              , "| more code"
+              , "| end of code`" ]
+      =?>
+      para (code "code" <> linebreak <>
+            code "more code" <> linebreak <>
+            code "end of code")
+  ,
+  -- Blockquotes should work inside line blocks.
+  "blockquote" =:
+      unlines [ "| A"
+              , "|"
+              , "| > X"
+              , "| > Y"
+              , "|"
+              , "| B" ]
+      =?>
+      para "A" <>
+      blockQuote (para ("X" <> linebreak <> "Y")) <>
+      para "B"
+  ]
