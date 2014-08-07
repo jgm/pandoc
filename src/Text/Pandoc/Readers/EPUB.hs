@@ -13,7 +13,8 @@ import Text.Pandoc.Definition hiding (Attr)
 import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Generic(bottomUp)
 import Text.Pandoc.Readers.HTML (readHtml)
-import Text.Pandoc.Options ( ReaderOptions(..), readerExtensions, Extension(..)
+import Text.Pandoc.Options ( ReaderOptions(..)
+                           , Extension (Ext_epub_html_exts)
                            , readerTrace)
 import Text.Pandoc.Shared (escapeURI)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
@@ -31,8 +32,8 @@ import Control.Monad (guard, liftM, when)
 import Data.Monoid (mempty, (<>))
 import Data.List (isPrefixOf, isInfixOf)
 import Data.Maybe (mapMaybe, fromMaybe)
+import qualified Data.Set as S
 import qualified Data.Map as M (Map, lookup, fromList, elems)
-import qualified Data.Set as S (insert)
 import Control.DeepSeq.Generics (deepseq, NFData)
 
 import Debug.Trace (trace)
@@ -66,8 +67,7 @@ archiveToEPUB os archive = do
   return $ (ast, mediaBag)
   where
     rs = readerExtensions os
-    os' = os {readerExtensions = foldr S.insert rs [Ext_epub_html_exts, Ext_raw_html]}
-    os'' = os' {readerParseRaw = True}
+    os' = os {readerExtensions = foldr S.insert rs [Ext_epub_html_exts]}
     parseSpineElem :: MonadError String m => FilePath -> (FilePath, MIME) -> m Pandoc
     parseSpineElem (normalise -> r) (normalise -> path, mime) = do
       when (readerTrace os) (traceM path)
@@ -78,7 +78,7 @@ archiveToEPUB os archive = do
     mimeToReader "application/xhtml+xml" r path = do
       fname <- findEntryByPathE (r </> path) archive
       return $ fixInternalReferences (r </> path) .
-                readHtml os'' .
+                readHtml os' .
                   UTF8.toStringLazy $
                     fromEntry fname
     mimeToReader s _ path
