@@ -107,9 +107,13 @@ tests = [ testGroup "inlines"
             "docx.links.docx"
             "docx.links.native"
           , testCompare
-            "inline image with reference output"
+            "inline image"
             "docx.image.docx"
             "docx.image_no_embed.native"
+          , testCompare
+            "inline image in links"
+            "docx.inline_images.docx"
+            "docx.inline_images.native"
           , testCompare
             "handling unicode input"
             "docx.unicode.docx"
