@@ -475,7 +475,7 @@ elemToBodyPart ns element
   | isElem ns "w" "p" element
   , (c:_) <- findChildren (elemName ns "m" "oMathPara") element =
       do
-        expsLst <- mapD (\e -> (maybeToD $ elemToExps ns e)) (elChildren c)
+        expsLst <- mapD (\e -> (maybeToD $ elemToExps e)) (elChildren c)
         return $ OMathPara expsLst
 elemToBodyPart ns element
   | isElem ns "w" "p" element
@@ -575,7 +575,7 @@ elemToParPart ns element
       Nothing     -> ExternalHyperLink "" runs
 elemToParPart ns element
   | isElem ns "m" "oMath" element = 
-    (maybeToD $ elemToExps ns element) >>= (return . PlainOMath)
+    (maybeToD $ elemToExps element) >>= (return . PlainOMath)
 elemToParPart _ _ = throwError WrongElem
 
 lookupFootnote :: String -> Notes -> Maybe Element

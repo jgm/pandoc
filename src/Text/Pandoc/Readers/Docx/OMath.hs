@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 Types and functions for conversion of OMML into TeXMath.
 -}
 
-module Text.Pandoc.Readers.Docx.OMath  ( elemToExps 
+module Text.Pandoc.Readers.Docx.OMath  ( elemToExps
                                        ) where
 
 import Text.XML.Light
@@ -39,16 +39,19 @@ import Data.List (intersperse)
 import qualified Text.TeXMath.Types as TM
 import Control.Applicative ((<$>))
 
-type NameSpaces = [(String, String)]
+isElem :: String -> String -> Element -> Bool
+isElem prefix name element =
+  let qp = fromMaybe "" (qPrefix (elName element))
+  in
+   qName (elName element) == name &&
+   qp == prefix
 
-elemName :: NameSpaces -> String -> String -> QName
-elemName ns prefix name = (QName name (lookup prefix ns) (Just prefix))
-
-isElem :: NameSpaces -> String -> String -> Element -> Bool
-isElem ns prefix name element =
-  qName (elName element) == name &&
-  qURI (elName element) == (lookup prefix ns)
-
+hasElemName:: String -> String -> QName -> Bool
+hasElemName prefix name qn =
+  let qp = fromMaybe "" (qPrefix qn)
+  in
+   qName qn == name &&
+   qp       == prefix
 
 data OMath = OMath [OMathElem]
           deriving Show
@@ -143,15 +146,15 @@ data GroupStyle = GroupStyle { groupChr :: Maybe Char
 defaultGroupStyle :: GroupStyle
 defaultGroupStyle = GroupStyle {groupChr = Nothing, groupPos = Nothing}
 
-elemToMath :: NameSpaces -> Element -> Maybe OMath
-elemToMath ns element  | isElem ns "m" "oMath" element =
-  Just $ OMath $ mapMaybe (elemToMathElem ns) (elChildren element)
-elemToMath _ _ = Nothing
+elemToMath :: Element -> Maybe OMath
+elemToMath element  | isElem "m" "oMath" element =
+  Just $ OMath $ mapMaybe (elemToMathElem) (elChildren element)
+elemToMath _ = Nothing
 
-elemToBase :: NameSpaces -> Element -> Maybe Base
-elemToBase ns element | isElem ns "m" "e" element =
-  Just $ Base $ mapMaybe (elemToMathElem ns) (elChildren element)
-elemToBase _ _ = Nothing
+elemToBase :: Element -> Maybe Base
+elemToBase element | isElem "m" "e" element =
+  Just $ Base $ mapMaybe (elemToMathElem) (elChildren element)
+elemToBase _ = Nothing
 
 -- TODO: The right way to do this is to use the ampersand to break the
 -- text lines into multiple columns. That's tricky, though, and this
@@ -164,38 +167,38 @@ filterAmpersand (OMathRun mrPr elems) =
    OMathRun mrPr (map f elems)
 filterAmpersand e = e
 
-elemToBaseNoAmpersand :: NameSpaces -> Element -> Maybe Base
-elemToBaseNoAmpersand ns element | isElem ns "m" "e" element =
+elemToBaseNoAmpersand :: Element -> Maybe Base
+elemToBaseNoAmpersand element | isElem "m" "e" element =
   return $ Base $ 
   mapMaybe
-  (\e -> (elemToMathElem ns e >>= (return . filterAmpersand)))
+  (\e -> (elemToMathElem e >>= (return . filterAmpersand)))
   (elChildren element)
-elemToBaseNoAmpersand _ _ = Nothing
+elemToBaseNoAmpersand _ = Nothing
 
-elemToOMathRunStyle :: NameSpaces -> Element -> OMathRunStyle
-elemToOMathRunStyle ns element =
+elemToOMathRunStyle :: Element -> OMathRunStyle
+elemToOMathRunStyle element =
   let lit =
         case
-          findChild (elemName ns "m" "lit") element >>=
-          findAttr (elemName ns "m" "val")
+          filterChildName (hasElemName"m" "lit") element >>=
+          findAttrBy (hasElemName"m" "val")
         of
           Just "on" -> True
           _         -> False
   in
    OMathRunStyle { oMathLit = lit
-                 , oMathRunTextStyle = (elemToOMathRunTextStyle ns element)
+                 , oMathRunTextStyle = (elemToOMathRunTextStyle element)
                  }
 
-elemToOMathRunTextStyle :: NameSpaces -> Element -> OMathRunTextStyle
-elemToOMathRunTextStyle ns element
-  | Just mrPr <- findChild (elemName ns "m" "rPr") element
-  , Just _    <- findChild (elemName ns "m" "nor") mrPr =
+elemToOMathRunTextStyle :: Element -> OMathRunTextStyle
+elemToOMathRunTextStyle element
+  | Just mrPr <- filterChildName (hasElemName"m" "rPr") element
+  , Just _    <- filterChildName (hasElemName"m" "nor") mrPr =
     Normal
-  | Just mrPr <- findChild (elemName ns "m" "rPr") element =
+  | Just mrPr <- filterChildName (hasElemName"m" "rPr") element =
     let scr =
           case
-            findChild (elemName ns "m" "scr") mrPr >>=
-            findAttr (elemName ns "m" "val") 
+            filterChildName (hasElemName"m" "scr") mrPr >>=
+            findAttrBy (hasElemName"m" "val") 
           of
             Just "roman"         -> Just ORoman
             Just "script"        -> Just OScript
@@ -207,8 +210,8 @@ elemToOMathRunTextStyle ns element
 
         sty =
           case
-            findChild (elemName ns "m" "sty") mrPr >>=
-            findAttr (elemName ns "m" "val")
+            filterChildName (hasElemName"m" "sty") mrPr >>=
+            findAttrBy (hasElemName"m" "val")
           of
             Just "p"             -> Just OPlain
             Just "b"             -> Just OBold
@@ -221,192 +224,192 @@ elemToOMathRunTextStyle ns element
 
 
 
-elemToNAryStyle :: NameSpaces -> Element -> NAryStyle
-elemToNAryStyle ns element
-  | Just narypr <- findChild (QName "naryPr" (lookup "m" ns) (Just "m")) element =
+elemToNAryStyle :: Element -> NAryStyle
+elemToNAryStyle element
+  | Just narypr <- filterChildName (hasElemName"m" "naryPr") element =
   let
-    chr = findChild (QName "chr" (lookup "m" ns) (Just "m")) narypr >>=
-          findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+    chr = filterChildName (hasElemName"m" "chr") narypr >>=
+          findAttrBy (hasElemName"m" "val") >>=
           Just . head
-    limLoc = findChild (QName "limLoc" (lookup "m" ns) (Just "m")) narypr >>=
-             findAttr (QName "val" (lookup "m" ns) (Just "m"))
+    limLoc = filterChildName (hasElemName"m" "limLoc") narypr >>=
+             findAttrBy (hasElemName"m" "val")
     limLoc' = case limLoc of
       Just "undOver" -> UnderOver
       Just "subSup"  -> SubSup
       _              -> SubSup
   in
    NAryStyle { nAryChar = chr, nAryLimLoc = limLoc'}
-elemToNAryStyle _ _ = defaultNAryStyle
+elemToNAryStyle _ = defaultNAryStyle
 
-elemToDelimStyle :: NameSpaces -> Element -> DelimStyle
-elemToDelimStyle ns element
-  | Just dPr <- findChild (QName "dPr" (lookup "m" ns) (Just "m")) element =
-    let begChr = findChild (QName "begChr" (lookup "m" ns) (Just "m")) dPr >>=
-                 findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+elemToDelimStyle :: Element -> DelimStyle
+elemToDelimStyle element
+  | Just dPr <- filterChildName (hasElemName"m" "dPr") element =
+    let begChr = filterChildName (hasElemName"m" "begChr") dPr >>=
+                 findAttrBy (hasElemName"m" "val") >>=
                  (\c -> if null c then (Just ' ') else (Just $ head c))
-        sepChr = findChild (QName "sepChr" (lookup "m" ns) (Just "m")) dPr >>=
-                 findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+        sepChr = filterChildName (hasElemName"m" "sepChr") dPr >>=
+                 findAttrBy (hasElemName"m" "val") >>=
                  (\c -> if null c then (Just ' ') else (Just $ head c))
-        endChr = findChild (QName "endChr" (lookup "m" ns) (Just "m")) dPr >>=
-                 findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+        endChr = filterChildName (hasElemName"m" "endChr") dPr >>=
+                 findAttrBy (hasElemName"m" "val") >>=
                  (\c -> if null c then (Just ' ') else (Just $ head c))
     in
      DelimStyle { delimBegChar = begChr
                 , delimSepChar = sepChr
                 , delimEndChar = endChr}
-elemToDelimStyle _ _ = defaultDelimStyle
+elemToDelimStyle _ = defaultDelimStyle
 
-elemToGroupStyle :: NameSpaces -> Element -> GroupStyle
-elemToGroupStyle ns element
-  | Just gPr <- findChild (QName "groupChrPr" (lookup "m" ns) (Just "m")) element =
-    let chr = findChild (QName "chr" (lookup "m" ns) (Just "m")) gPr >>=
-              findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+elemToGroupStyle :: Element -> GroupStyle
+elemToGroupStyle element
+  | Just gPr <- filterChildName (hasElemName"m" "groupChrPr") element =
+    let chr = filterChildName (hasElemName"m" "chr") gPr >>=
+              findAttrBy (hasElemName"m" "val") >>=
               Just . head
-        pos = findChild (QName "pos" (lookup "m" ns) (Just "m")) gPr >>=
-              findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+        pos = filterChildName (hasElemName"m" "pos") gPr >>=
+              findAttrBy (hasElemName"m" "val") >>=
               (\s -> Just $ if s == "top" then Top else Bottom)
     in
      GroupStyle { groupChr = chr, groupPos = pos }
-elemToGroupStyle _ _ = defaultGroupStyle
+elemToGroupStyle _ = defaultGroupStyle
 
-elemToMathElem :: NameSpaces -> Element -> Maybe OMathElem
-elemToMathElem ns element | isElem ns "m" "acc" element = do
+elemToMathElem :: Element -> Maybe OMathElem
+elemToMathElem element | isElem "m" "acc" element = do
   let accChar =
-        findChild (elemName ns "m" "accPr") element >>=
-        findChild (elemName ns "m" "chr") >>=
-        findAttr (elemName ns "m" "val") >>=
+        filterChildName (hasElemName"m" "accPr") element >>=
+        filterChildName (hasElemName"m" "chr") >>=
+        findAttrBy (hasElemName"m" "val") >>=
         Just . head
       accPr = AccentStyle { accentChar = accChar}
-  base <- findChild (elemName ns "m" "e") element >>=
-         elemToBase ns
+  base <- filterChildName (hasElemName"m" "e") element >>=
+         elemToBase
   return $ Accent accPr base
-elemToMathElem ns element | isElem ns "m" "bar" element = do
-  barPr <- findChild (QName "barPr" (lookup "m" ns) (Just "m")) element >>=
-           findChild (QName "pos" (lookup "m" ns) (Just "m")) >>=
-           findAttr (QName "val" (lookup "m" ns) (Just "m")) >>=
+elemToMathElem element | isElem "m" "bar" element = do
+  barPr <- filterChildName (hasElemName"m" "barPr") element >>=
+           filterChildName (hasElemName"m" "pos") >>=
+           findAttrBy (hasElemName"m" "val") >>=
            (\s ->
              Just $ BarStyle {
                barPos = (if s == "bot" then Bottom else Top)
                })
-  base <- findChild (QName "e" (lookup "m" ns) (Just "m")) element >>=
-          elemToBase ns
+  base <- filterChildName (hasElemName"m" "e") element >>=
+          elemToBase
   return $ Bar barPr base
-elemToMathElem ns element | isElem ns "m" "box" element =
-  findChild (elemName ns "m" "e") element >>=
-  elemToBase ns >>=
+elemToMathElem element | isElem "m" "box" element =
+  filterChildName (hasElemName"m" "e") element >>=
+  elemToBase >>=
   (\b -> return $ Box b)
-elemToMathElem ns element | isElem ns "m" "borderBox" element =
-  findChild (elemName ns "m" "e") element >>=
-  elemToBase ns >>=
+elemToMathElem element | isElem "m" "borderBox" element =
+  filterChildName (hasElemName"m" "e") element >>=
+  elemToBase >>=
   (\b -> return $ BorderBox b)
-elemToMathElem ns element | isElem ns "m" "d" element =
-  let style = elemToDelimStyle ns element
+elemToMathElem element | isElem "m" "d" element =
+  let style = elemToDelimStyle element
   in
-   return $ Delimiter style $ mapMaybe (elemToBase ns) (elChildren element)
-elemToMathElem ns element | isElem ns "m" "eqArr" element =
-  return $ EquationArray $ mapMaybe (elemToBaseNoAmpersand ns) (elChildren element) 
-elemToMathElem ns element | isElem ns "m" "f" element = do
-  num <- findChild (elemName ns "m" "num") element
-  den <- findChild (elemName ns "m" "den") element
-  let numElems = mapMaybe (elemToMathElem ns) (elChildren num)
-      denElems = mapMaybe (elemToMathElem ns) (elChildren den)
+   return $ Delimiter style $ mapMaybe (elemToBase) (elChildren element)
+elemToMathElem element | isElem "m" "eqArr" element =
+  return $ EquationArray $ mapMaybe (elemToBaseNoAmpersand) (elChildren element) 
+elemToMathElem element | isElem "m" "f" element = do
+  num <- filterChildName (hasElemName"m" "num") element
+  den <- filterChildName (hasElemName"m" "den") element
+  let numElems = mapMaybe (elemToMathElem) (elChildren num)
+      denElems = mapMaybe (elemToMathElem) (elChildren den)
   return $ Fraction numElems denElems
-elemToMathElem ns element | isElem ns "m" "func" element = do
-  fName <- findChild (elemName ns "m" "fName") element
-  base <- findChild (elemName ns "m" "e") element >>=
-          elemToBase ns
-  let fnElems = mapMaybe (elemToMathElem ns) (elChildren fName)
+elemToMathElem element | isElem "m" "func" element = do
+  fName <- filterChildName (hasElemName"m" "fName") element
+  base <- filterChildName (hasElemName"m" "e") element >>=
+          elemToBase
+  let fnElems = mapMaybe (elemToMathElem) (elChildren fName)
   return $ Function fnElems base
-elemToMathElem ns element | isElem ns "m" "groupChr" element =
-  let style = elemToGroupStyle ns element
+elemToMathElem element | isElem "m" "groupChr" element =
+  let style = elemToGroupStyle element
   in
-   findChild (elemName ns "m" "e") element >>=
-   elemToBase ns >>=
+   filterChildName (hasElemName"m" "e") element >>=
+   elemToBase >>=
    (\b -> return $ Group style b)
-elemToMathElem ns element | isElem ns "m" "limLow" element = do
-  base <- findChild (elemName ns "m" "e") element
-          >>= elemToBase ns
-  lim <- findChild (elemName ns "m" "lim") element
-  let limElems = mapMaybe (elemToMathElem ns) (elChildren lim)
+elemToMathElem element | isElem "m" "limLow" element = do
+  base <- filterChildName (hasElemName"m" "e") element
+          >>= elemToBase
+  lim <- filterChildName (hasElemName"m" "lim") element
+  let limElems = mapMaybe (elemToMathElem) (elChildren lim)
   return $ LowerLimit base limElems
-elemToMathElem ns element | isElem ns "m" "limUpp" element = do
-  base <- findChild (elemName ns "m" "e") element
-          >>= elemToBase ns
-  lim <- findChild (elemName ns "m" "lim") element
-  let limElems = mapMaybe (elemToMathElem ns) (elChildren lim)
+elemToMathElem element | isElem "m" "limUpp" element = do
+  base <- filterChildName (hasElemName"m" "e") element
+          >>= elemToBase
+  lim <- filterChildName (hasElemName"m" "lim") element
+  let limElems = mapMaybe (elemToMathElem) (elChildren lim)
   return $ UpperLimit base limElems
-elemToMathElem ns element | isElem ns "m" "m" element = do
-  let rows = findChildren (elemName ns "m" "mr") element
-  let bases = mapMaybe (\mr -> mapM (elemToBase ns) (elChildren mr)) rows
+elemToMathElem element | isElem "m" "m" element = do
+  let rows = filterChildrenName (hasElemName"m" "mr") element
+  let bases = mapMaybe (\mr -> mapM (elemToBase) (elChildren mr)) rows
   return $ Matrix bases
-elemToMathElem ns element | isElem ns "m" "nary" element = do
-  let style = elemToNAryStyle ns element
-  sub <- findChild (elemName ns "m" "sub") element >>=
-         (\e -> return $ mapMaybe (elemToMathElem ns) (elChildren e))
-  sup <- findChild (elemName ns "m" "sup") element >>=
-         (\e -> return $ mapMaybe (elemToMathElem ns) (elChildren e))
-  base <- findChild (elemName ns "m" "e") element >>=
-          elemToBase ns
+elemToMathElem element | isElem "m" "nary" element = do
+  let style = elemToNAryStyle element
+  sub <- filterChildName (hasElemName"m" "sub") element >>=
+         (\e -> return $ mapMaybe (elemToMathElem) (elChildren e))
+  sup <- filterChildName (hasElemName"m" "sup") element >>=
+         (\e -> return $ mapMaybe (elemToMathElem) (elChildren e))
+  base <- filterChildName (hasElemName"m" "e") element >>=
+          elemToBase
   return $ NAry style sub sup base
-elemToMathElem ns element | isElem ns "m" "rad" element = do
-  deg <- findChild (elemName ns "m" "deg") element >>=
-         (\e -> return $ mapMaybe (elemToMathElem ns) (elChildren e))
-  base <- findChild (elemName ns "m" "e") element >>=
-          elemToBase ns
+elemToMathElem element | isElem "m" "rad" element = do
+  deg <- filterChildName (hasElemName"m" "deg") element >>=
+         (\e -> return $ mapMaybe (elemToMathElem) (elChildren e))
+  base <- filterChildName (hasElemName"m" "e") element >>=
+          elemToBase
   return $ Radical deg base
-elemToMathElem ns element | isElem ns "m" "phant" element = do
-  base <- findChild (elemName ns "m" "e") element >>=
-          elemToBase ns
+elemToMathElem element | isElem "m" "phant" element = do
+  base <- filterChildName (hasElemName"m" "e") element >>=
+          elemToBase
   return $ Phantom base
-elemToMathElem ns element | isElem ns "m" "sPre" element = do
-  sub <- findChild (elemName ns "m" "sub") element >>=
-         (\e -> return $ mapMaybe (elemToMathElem ns) (elChildren e))
-  sup <- findChild (elemName ns "m" "sup") element >>=
-         (\e -> return $ mapMaybe (elemToMathElem ns) (elChildren e))
-  base <- findChild (elemName ns "m" "e") element >>=
-          elemToBase ns
+elemToMathElem element | isElem "m" "sPre" element = do
+  sub <- filterChildName (hasElemName"m" "sub") element >>=
+         (\e -> return $ mapMaybe (elemToMathElem) (elChildren e))
+  sup <- filterChildName (hasElemName"m" "sup") element >>=
+         (\e -> return $ mapMaybe (elemToMathElem) (elChildren e))
+  base <- filterChildName (hasElemName"m" "e") element >>=
+          elemToBase
   return $ PreSubSuper sub sup base
-elemToMathElem ns element | isElem ns "m" "sSub" element = do
-  base <- findChild (elemName ns "m" "e") element >>=
-          elemToBase ns
-  sub <- findChild (elemName ns "m" "sub") element >>=
-         (\e -> return $ mapMaybe (elemToMathElem ns) (elChildren e))
+elemToMathElem element | isElem "m" "sSub" element = do
+  base <- filterChildName (hasElemName"m" "e") element >>=
+          elemToBase
+  sub <- filterChildName (hasElemName"m" "sub") element >>=
+         (\e -> return $ mapMaybe (elemToMathElem) (elChildren e))
   return $ Sub base sub
-elemToMathElem ns element | isElem ns "m" "sSubSup" element = do
-  base <- findChild (elemName ns "m" "e") element >>=
-          elemToBase ns
-  sub <- findChild (elemName ns "m" "sub") element >>=
-         (\e -> return $ mapMaybe (elemToMathElem ns) (elChildren e))
-  sup <- findChild (elemName ns "m" "sup") element >>=
-         (\e -> return $ mapMaybe (elemToMathElem ns) (elChildren e))
+elemToMathElem element | isElem "m" "sSubSup" element = do
+  base <- filterChildName (hasElemName"m" "e") element >>=
+          elemToBase
+  sub <- filterChildName (hasElemName"m" "sub") element >>=
+         (\e -> return $ mapMaybe (elemToMathElem) (elChildren e))
+  sup <- filterChildName (hasElemName"m" "sup") element >>=
+         (\e -> return $ mapMaybe (elemToMathElem) (elChildren e))
   return $ SubSuper base sub sup
-elemToMathElem ns element | isElem ns "m" "sSup" element = do
-  base <- findChild (elemName ns "m" "e") element >>=
-          elemToBase ns
-  sup <- findChild (elemName ns "m" "sup") element >>=
-         (\e -> return $ mapMaybe (elemToMathElem ns) (elChildren e))
+elemToMathElem element | isElem "m" "sSup" element = do
+  base <- filterChildName (hasElemName"m" "e") element >>=
+          elemToBase
+  sup <- filterChildName (hasElemName"m" "sup") element >>=
+         (\e -> return $ mapMaybe (elemToMathElem) (elChildren e))
   return $ Super base sup
-elemToMathElem ns element | isElem ns "m" "r" element = do
-  let mrPr = elemToOMathRunStyle ns element
-  mrElems <- elemToOMathRunElems ns element
+elemToMathElem element | isElem "m" "r" element = do
+  let mrPr = elemToOMathRunStyle element
+  mrElems <- elemToOMathRunElems element
   return $ OMathRun mrPr mrElems
-elemToMathElem _ _ = Nothing
+elemToMathElem _ = Nothing
 
-elemToOMathRunElem :: NameSpaces -> Element -> Maybe OMathRunElem
-elemToOMathRunElem ns element
-  | isElem ns "w" "t" element
-    || isElem ns "m" "t" element 
-    || isElem ns "w" "delText" element = Just $ TextRun $ strContent element
-  | isElem ns "w" "br" element = Just LnBrk
-  | isElem ns "w" "tab" element = Just Tab
+elemToOMathRunElem :: Element -> Maybe OMathRunElem
+elemToOMathRunElem element
+  | isElem "w" "t" element
+    || isElem "m" "t" element 
+    || isElem "w" "delText" element = Just $ TextRun $ strContent element
+  | isElem "w" "br" element = Just LnBrk
+  | isElem "w" "tab" element = Just Tab
   | otherwise = Nothing
 
-elemToOMathRunElems :: NameSpaces -> Element -> Maybe [OMathRunElem]
-elemToOMathRunElems ns element
-  | isElem ns "w" "r" element
-    || isElem ns "m" "r" element =
-      Just $ mapMaybe (elemToOMathRunElem ns) (elChildren element)
-elemToOMathRunElems _ _ = Nothing
+elemToOMathRunElems :: Element -> Maybe [OMathRunElem]
+elemToOMathRunElems element
+  | isElem "w" "r" element
+    || isElem "m" "r" element =
+      Just $ mapMaybe (elemToOMathRunElem) (elChildren element)
+elemToOMathRunElems _ = Nothing
 
 ----- And now the TeXMath Creation
 
@@ -655,62 +658,62 @@ baseToExp' :: Base -> [TM.Exp]
 baseToExp' (Base mathElems) =
   concatMap oMathElemToExps mathElems
 
-elemToExps :: NameSpaces -> Element -> Maybe [TM.Exp]
-elemToExps ns element = oMathToExps <$> (elemToMath ns element)
+elemToExps :: Element -> Maybe [TM.Exp]
+elemToExps element = oMathToExps <$> (elemToMath element)
 
 
-elemToExps' :: NameSpaces -> Element -> Maybe [TM.Exp]
-elemToExps' ns element | isElem ns "m" "acc" element = do
-  let chr = findChild (elemName ns "m" "accPr") element >>=
-            findChild (elemName ns "m" "chr") >>=
-            findAttr (elemName ns "m" "val") >>=
+elemToExps' :: Element -> Maybe [TM.Exp]
+elemToExps' element | isElem "m" "acc" element = do
+  let chr = filterChildName (hasElemName "m" "accPr") element >>=
+            filterChildName (hasElemName "m" "chr") >>=
+            findAttrBy (hasElemName "m" "val") >>=
             Just . head
       chr' = case chr of
         Just c -> c
         Nothing -> '\180'       -- default to acute.
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
   return $ [TM.EOver False baseExp (TM.ESymbol TM.Accent [chr'])]
-elemToExps' ns element | isElem ns "m" "bar" element = do
-  pos <- findChild (elemName ns "m" "barPr") element >>=
-            findChild (elemName ns "m" "pos") >>=
-            findAttr (elemName ns "m" "val") 
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+elemToExps' element | isElem "m" "bar" element = do
+  pos <- filterChildName (hasElemName "m" "barPr") element >>=
+            filterChildName (hasElemName "m" "pos") >>=
+            findAttrBy (hasElemName "m" "val") 
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
   case pos of
     "top" -> Just [TM.EOver False baseExp (TM.ESymbol TM.Accent "\175")]
     "bot" -> Just [TM.EUnder False baseExp (TM.ESymbol TM.Accent "\818")]
     _     -> Nothing
-elemToExps' ns element | isElem ns "m" "box" element = do
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+elemToExps' element | isElem "m" "box" element = do
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
   return [baseExp]
-elemToExps' ns element | isElem ns "m" "borderBox" element = do
+elemToExps' element | isElem "m" "borderBox" element = do
   -- TODO: This needs to be "\\boxed" somehow.
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
   return [baseExp]
-elemToExps' ns element | isElem ns "m" "d" element = 
+elemToExps' element | isElem "m" "d" element = 
   let baseExps  = mapMaybe
-               (\e -> (elemToBase ns e >>= (return . baseToExp)))
+               (\e -> (elemToBase e >>= (return . baseToExp)))
                (elChildren element)
       inDelimExps = map Right baseExps
-      dPr = findChild (elemName ns "m" "dPr") element
+      dPr = filterChildName (hasElemName "m" "dPr") element
       begChr = dPr >>=
-               findChild (elemName ns "m" "begChr") >>=
-               findAttr (elemName ns "m" "val") >>=
+               filterChildName (hasElemName "m" "begChr") >>=
+               findAttrBy (hasElemName "m" "val") >>=
                (\c -> if null c then (Just ' ') else (Just $ head c))
       sepChr = dPr >>=
-               findChild (elemName ns "m" "sepChr") >>=
-               findAttr (elemName ns "m" "val") >>=
+               filterChildName (hasElemName "m" "sepChr") >>=
+               findAttrBy (hasElemName "m" "val") >>=
                (\c -> if null c then (Just ' ') else (Just $ head c))
       endChr = dPr >>=
-               findChild (elemName ns "m" "endChr") >>=
-               findAttr (elemName ns "m" "val") >>=
+               filterChildName (hasElemName "m" "endChr") >>=
+               findAttrBy (hasElemName "m" "val") >>=
                (\c -> if null c then (Just ' ') else (Just $ head c))
       beg = fromMaybe '(' begChr
       end = fromMaybe ')' endChr
@@ -718,38 +721,38 @@ elemToExps' ns element | isElem ns "m" "d" element =
       exps = intersperse (Left [sep]) inDelimExps
   in
    Just [TM.EDelimited [beg] [end] exps]
-elemToExps' ns element | isElem ns "m" "eqArr" element =
-  let bases = mapMaybe (elemToBaseNoAmpersand ns) (elChildren element)
+elemToExps' element | isElem "m" "eqArr" element =
+  let bases = mapMaybe (elemToBaseNoAmpersand) (elChildren element)
       baseExps = map (\b -> [baseToExp' b]) bases
   in
    return [TM.EArray [] baseExps]
-elemToExps' ns element | isElem ns "m" "f" element = do
-  num <- findChild (elemName ns "m" "num") element
-  den <- findChild (elemName ns "m" "den") element
-  let numExp = TM.EGrouped $ concat $ mapMaybe (elemToExps' ns) (elChildren num)
-      denExp = TM.EGrouped $ concat $ mapMaybe (elemToExps' ns) (elChildren den)
+elemToExps' element | isElem "m" "f" element = do
+  num <- filterChildName (hasElemName "m" "num") element
+  den <- filterChildName (hasElemName "m" "den") element
+  let numExp = TM.EGrouped $ concat $ mapMaybe (elemToExps') (elChildren num)
+      denExp = TM.EGrouped $ concat $ mapMaybe (elemToExps') (elChildren den)
   return $ [TM.EFraction TM.NormalFrac numExp denExp]
-elemToExps' ns element | isElem ns "m" "func" element = do
-  fName <- findChild (elemName ns "m" "fName") element
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-          elemToBase ns >>=
+elemToExps' element | isElem "m" "func" element = do
+  fName <- filterChildName (hasElemName "m" "fName") element
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+          elemToBase >>=
           (return . baseToExp)
   -- We need a string for the fname, but omml gives it to us as a
   -- series of oMath elems. We're going to filter out the oMathRuns,
   -- which should work for us most of the time.
   let fnameString = concatMap expToString $
-                    concat $ mapMaybe (elemToExps' ns) (elChildren fName)
+                    concat $ mapMaybe (elemToExps') (elChildren fName)
   return [TM.EMathOperator fnameString, baseExp]
-elemToExps' ns element | isElem ns "m" "groupChr" element = do
-  let gPr = findChild (elemName ns "m" "groupChrPr") element
+elemToExps' element | isElem "m" "groupChr" element = do
+  let gPr = filterChildName (hasElemName "m" "groupChrPr") element
       chr = gPr >>=
-            findChild (elemName ns "m" "chr") >>=
-            findAttr (elemName ns "m" "val")
+            filterChildName (hasElemName "m" "chr") >>=
+            findAttrBy (hasElemName "m" "val")
       pos = gPr >>=
-            findChild (elemName ns "m" "pos") >>=
-            findAttr (elemName ns "m" "val")
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+            filterChildName (hasElemName "m" "pos") >>=
+            findAttrBy (hasElemName "m" "val")
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
   case pos of
     Just "top" ->
@@ -765,48 +768,48 @@ elemToExps' ns element | isElem ns "m" "groupChr" element = do
       in
        return [TM.EUnder False baseExp (TM.ESymbol TM.Accent [chr'])]
     _          -> Nothing
-elemToExps' ns element | isElem ns "m" "limLow" element = do
-  baseExp <- findChild (elemName ns "m" "e") element
-          >>= elemToBase ns
+elemToExps' element | isElem "m" "limLow" element = do
+  baseExp <- filterChildName (hasElemName "m" "e") element
+          >>= elemToBase
           >>= (return . baseToExp)
-  limExp <- findChild (elemName ns "m" "lim") element
-            >>= (\e -> Just $ concat $ mapMaybe (elemToExps' ns) (elChildren e))
+  limExp <- filterChildName (hasElemName "m" "lim") element
+            >>= (\e -> Just $ concat $ mapMaybe (elemToExps') (elChildren e))
             >>= (return . TM.EGrouped)
   return [TM.EUnder True limExp baseExp]
-elemToExps' ns element | isElem ns "m" "limUpp" element = do
-  baseExp <- findChild (elemName ns "m" "e") element
-          >>= elemToBase ns
+elemToExps' element | isElem "m" "limUpp" element = do
+  baseExp <- filterChildName (hasElemName "m" "e") element
+          >>= elemToBase
           >>= (return . baseToExp)
-  limExp <- findChild (elemName ns "m" "lim") element
-            >>= (\e -> Just $ concat $ mapMaybe (elemToExps' ns) (elChildren e))
+  limExp <- filterChildName (hasElemName "m" "lim") element
+            >>= (\e -> Just $ concat $ mapMaybe (elemToExps') (elChildren e))
             >>= (return . TM.EGrouped)
   return [TM.EOver True limExp baseExp]
-elemToExps' ns element | isElem ns "m" "m" element = 
-  let rows = findChildren (elemName ns "m" "mr") element
+elemToExps' element | isElem "m" "m" element = 
+  let rows = filterChildrenName (hasElemName "m" "mr") element
       rowExps = map
                 (\mr -> mapMaybe
-                        (\e -> (elemToBase ns e >>= return . baseToExp'))
+                        (\e -> (elemToBase e >>= return . baseToExp'))
                         (elChildren mr))
                 rows
   in
    return [TM.EArray [TM.AlignCenter] rowExps]
-elemToExps' ns element | isElem ns "m" "nary" element = do
-  let naryPr = findChild (elemName ns "m" "naryPr") element
+elemToExps' element | isElem "m" "nary" element = do
+  let naryPr = filterChildName (hasElemName "m" "naryPr") element
       naryChr = naryPr >>=
-                findChild (elemName ns "m" "chr") >>=
-                findAttr (elemName ns "m" "val")
+                filterChildName (hasElemName "m" "chr") >>=
+                findAttrBy (hasElemName "m" "val")
       opChr = case naryChr of
         Just (c:_) -> c
         _          -> '\8747'   -- default to integral
       limLoc = naryPr >>=
-               findChild (elemName ns "m" "limLoc") >>=
-               findAttr (elemName ns "m" "val")
-  subExps <- findChild (elemName ns "m" "sub") element >>=
-         (\e -> return $ concat $ mapMaybe (elemToExps' ns) (elChildren e))
-  supExps <- findChild (elemName ns "m" "sup") element >>=
-         (\e -> return $ concat $ mapMaybe (elemToExps' ns) (elChildren e))
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+               filterChildName (hasElemName "m" "limLoc") >>=
+               findAttrBy (hasElemName "m" "val")
+  subExps <- filterChildName (hasElemName "m" "sub") element >>=
+         (\e -> return $ concat $ mapMaybe (elemToExps') (elChildren e))
+  supExps <- filterChildName (hasElemName "m" "sup") element >>=
+         (\e -> return $ concat $ mapMaybe (elemToExps') (elChildren e))
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
   case limLoc of
     Just "undOvr" -> return [TM.EUnderover True
@@ -820,63 +823,63 @@ elemToExps' ns element | isElem ns "m" "nary" element = do
                               (TM.EGrouped supExps)
                             , baseExp]
 
-elemToExps' ns element | isElem ns "m" "phant" element = do
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+elemToExps' element | isElem "m" "phant" element = do
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
   return [TM.EPhantom baseExp]
-elemToExps' ns element | isElem ns "m" "rad" element = do
-  degExps <- findChild (elemName ns "m" "deg") element >>=
-              (\e -> return $ concat $ mapMaybe (elemToExps' ns) (elChildren e))
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+elemToExps' element | isElem "m" "rad" element = do
+  degExps <- filterChildName (hasElemName "m" "deg") element >>=
+              (\e -> return $ concat $ mapMaybe (elemToExps') (elChildren e))
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
   return $ case degExps of
     [] -> [TM.ESqrt baseExp]
     ds -> [TM.ERoot (TM.EGrouped ds) baseExp]
-elemToExps' ns element | isElem ns "m" "sPre" element = do
-  subExps <- findChild (elemName ns "m" "sub") element >>=
-            (\e -> return $ concat $ mapMaybe (elemToExps' ns) (elChildren e))
-  supExps <- findChild (elemName ns "m" "sup") element >>=
-            (\e -> return $ concat $ mapMaybe (elemToExps' ns) (elChildren e))
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+elemToExps' element | isElem "m" "sPre" element = do
+  subExps <- filterChildName (hasElemName "m" "sub") element >>=
+            (\e -> return $ concat $ mapMaybe (elemToExps') (elChildren e))
+  supExps <- filterChildName (hasElemName "m" "sup") element >>=
+            (\e -> return $ concat $ mapMaybe (elemToExps') (elChildren e))
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
   return [TM.ESubsup
           (TM.EIdentifier "")
           (TM.EGrouped subExps)
           (TM.EGrouped supExps)
          , baseExp]
-elemToExps' ns element | isElem ns "m" "sSub" element = do
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+elemToExps' element | isElem "m" "sSub" element = do
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
-  subExps <- findChild (elemName ns "m" "sub") element >>=
-            (\e -> return $ concat $ mapMaybe (elemToExps' ns) (elChildren e))
+  subExps <- filterChildName (hasElemName "m" "sub") element >>=
+            (\e -> return $ concat $ mapMaybe (elemToExps') (elChildren e))
   return [TM.ESub baseExp (TM.EGrouped subExps)]
-elemToExps' ns element | isElem ns "m" "sSubSup" element = do
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+elemToExps' element | isElem "m" "sSubSup" element = do
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
-  subExps <- findChild (elemName ns "m" "sub") element >>=
-             (\e -> return $ concat $ mapMaybe (elemToExps' ns) (elChildren e))
-  supExps <- findChild (elemName ns "m" "sup") element >>=
-             (\e -> return $ concat $ mapMaybe (elemToExps' ns) (elChildren e))
+  subExps <- filterChildName (hasElemName "m" "sub") element >>=
+             (\e -> return $ concat $ mapMaybe (elemToExps') (elChildren e))
+  supExps <- filterChildName (hasElemName "m" "sup") element >>=
+             (\e -> return $ concat $ mapMaybe (elemToExps') (elChildren e))
   return [TM.ESubsup baseExp (TM.EGrouped subExps) (TM.EGrouped supExps)]
-elemToExps' ns element | isElem ns "m" "sSup" element = do
-  baseExp <- findChild (elemName ns "m" "e") element >>=
-             elemToBase ns >>=
+elemToExps' element | isElem "m" "sSup" element = do
+  baseExp <- filterChildName (hasElemName "m" "e") element >>=
+             elemToBase >>=
              (return . baseToExp)
-  supExps <- findChild (elemName ns "m" "sup") element >>=
-            (\e -> return $ concat $ mapMaybe (elemToExps' ns) (elChildren e))
+  supExps <- filterChildName (hasElemName "m" "sup") element >>=
+            (\e -> return $ concat $ mapMaybe (elemToExps') (elChildren e))
   return [TM.ESuper baseExp (TM.EGrouped supExps)]
-elemToExps' ns element | isElem ns "m" "r" element = do
-  let mrPr = findChild (elemName ns "m" "rPr") element
+elemToExps' element | isElem "m" "r" element = do
+  let mrPr = filterChildName (hasElemName "m" "rPr") element
       lit = mrPr >>=
-            findChild (elemName ns "m" "lit") >>=
-            findAttr (elemName ns "m" "val")
-      txtSty = elemToOMathRunTextStyle ns element
-  mrElems <- elemToOMathRunElems ns element
+            filterChildName (hasElemName "m" "lit") >>=
+            findAttrBy (hasElemName "m" "val")
+      txtSty = elemToOMathRunTextStyle element
+  mrElems <- elemToOMathRunElems element
   return $ case oMathRunTextStyleToTextType txtSty of
     Nothing -> [TM.EIdentifier $ oMathRunElemsToString mrElems]
     Just textType ->
@@ -885,7 +888,7 @@ elemToExps' ns element | isElem ns "m" "r" element = do
           [TM.EText textType (oMathRunElemsToString mrElems)]
         _         ->
           [TM.EStyled textType [TM.EIdentifier $ oMathRunElemsToString mrElems]]
-elemToExps' _ _ = Nothing
+elemToExps' _ = Nothing
 
 expToString :: TM.Exp -> String
 expToString (TM.ENumber s) = s
