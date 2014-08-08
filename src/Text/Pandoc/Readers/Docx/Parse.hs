@@ -61,7 +61,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad.Reader
 import qualified Data.Map as M
 import Text.Pandoc.Compat.Except
-import Text.Pandoc.Readers.Docx.OMath (elemToExps)
+import Text.Pandoc.Readers.Docx.OMath (readOMML)
 import Text.TeXMath (Exp)
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
@@ -475,7 +475,7 @@ elemToBodyPart ns element
   | isElem ns "w" "p" element
   , (c:_) <- findChildren (elemName ns "m" "oMathPara") element =
       do
-        expsLst <- mapD (\e -> (maybeToD $ elemToExps e)) (elChildren c)
+        expsLst <- mapD (\e -> (maybeToD $ readOMML e)) (elChildren c)
         return $ OMathPara expsLst
 elemToBodyPart ns element
   | isElem ns "w" "p" element
@@ -574,8 +574,8 @@ elemToParPart ns element
       Just target -> ExternalHyperLink target runs
       Nothing     -> ExternalHyperLink "" runs
 elemToParPart ns element
-  | isElem ns "m" "oMath" element = 
-    (maybeToD $ elemToExps element) >>= (return . PlainOMath)
+  | isElem ns "m" "oMath" element =
+    (maybeToD $ readOMML element) >>= (return . PlainOMath)
 elemToParPart _ _ = throwError WrongElem
 
 lookupFootnote :: String -> Notes -> Maybe Element
@@ -677,13 +677,3 @@ elemToRunElems ns element
      || isElem ns "m" "r" element =
        mapD (elemToRunElem ns) (elChildren element)
 elemToRunElems _ _ = throwError WrongElem
-
-
-
-
-
-
-
-
-
-
