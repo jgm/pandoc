@@ -607,10 +607,10 @@ oMathRunStyleToTextType mrPr
     Just $ TM.TextBoldItalic
   | otherwise = Nothing
 
-
-
 baseToExp :: Base -> TM.Exp
-baseToExp b = TM.EGrouped $ baseToExp' b
+baseToExp b = case baseToExp' b of
+  (e : []) -> e
+  exps     -> TM.EGrouped exps
 
 -- an ungrouped version of baseToExp
 baseToExp' :: Base -> [TM.Exp]
