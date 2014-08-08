@@ -616,7 +616,8 @@ simpleInline border construct = try $ do
   attr <- attributes
   body <- trimInlines . mconcat <$>
           withQuoteContext InSingleQuote
-            (manyTill inline (try border <* notFollowedBy alphaNum))
+            (manyTill (notFollowedBy newline >> inline)
+             (try border <* notFollowedBy alphaNum))
   return $ construct $
         if attr == nullAttr
            then body
