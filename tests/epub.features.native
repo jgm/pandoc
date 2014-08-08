@@ -1,20 +1,14 @@
 [Para [Span ("front.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section>"
 ,Header 1 ("",[],[]) [Str "Reflowable",Space,Str "EPUB",Space,Str "3",Space,Str "Conformance",Space,Str "Test",Space,Str "Document:",Space,Str "0100"]
-,RawBlock (Format "html") "<section>"
 ,Header 2 ("",[],[]) [Str "Status",Space,Str "of",Space,Str "this",Space,Str "Document"]
 ,Para [Str "This",Space,Str "publication",Space,Str "is",Space,Str "currently",Space,Str "considered",Space,Span ("",["status"],[]) [Str "[UNDER",Space,Str "DEVELOPMENT]"],Space,Str "by",Space,Str "the",Space,Str "IDPF."]
-,Para [Str "This",Space,Str "publication",Space,Str "is",Space,Str "part",Space,Str "of",Space,Str "version",Space,Span ("",["version"],[]) [Str "X.X"],Space,Str "of",Space,Str "the",Space,Str "EPUB",Space,Str "3.0",Space,Str "Compliance",Space,Str "Test",Space,Str "Suite",Space,Str "released",Space,Str "on",Space,RawInline (Format "html") "<time class=\"release\">",Str "TBD",RawInline (Format "html") "</time>",Str "."]
+,Para [Str "This",Space,Str "publication",Space,Str "is",Space,Str "part",Space,Str "of",Space,Str "version",Space,Span ("",["version"],[]) [Str "X.X"],Space,Str "of",Space,Str "the",Space,Str "EPUB",Space,Str "3.0",Space,Str "Compliance",Space,Str "Test",Space,Str "Suite",Space,Str "released",Space,Str "on",Space,Str "TBD."]
 ,Para [Str "Before",Space,Str "using",Space,Str "this",Space,Str "publication",Space,Str "to",Space,Str "evaluate",Space,Str "reading",Space,Str "systems,",Space,Str "testers",Space,Str "are",Space,Str "strongly",Space,Str "encouraged",Space,Str "to",Space,Str "verify",Space,Str "that",Space,Str "they",Space,Str "have",Space,Str "the",Space,Str "latest",Space,Str "release",Space,Str "by",Space,Str "checking",Space,Str "the",Space,Str "current",Space,Str "release",Space,Str "version",Space,Str "and",Space,Str "date",Space,Str "of",Space,Str "the",Space,Str "test",Space,Str "suite",Space,Str "at",Space,Link [Str "TBD"] ("","")]
 ,Para [Str "This",Space,Str "publication",Space,Str "is",Space,Str "one",Space,Str "of",Space,Str "several",Space,Str "that",Space,Str "currently",Space,Str "comprise",Space,Str "the",Space,Str "EPUB",Space,Str "3",Space,Str "conformance",Space,Str "test",Space,Str "suite",Space,Str "for",Space,Str "reflowable",Space,Str "content.",Space,Str "The",Space,Str "complete",Space,Str "test",Space,Str "suite",Space,Str "includes",Space,Str "all",Space,Str "of",Space,Str "the",Space,Str "following",Space,Str "publications:"]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
  [[Plain [Str "."]]]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section>"
 ,Header 2 ("",[],[]) [Str "About",Space,Str "this",Space,Str "Document"]
 ,Para [Str "This",Space,Str "document",Space,Str "focuses",Space,Str "on",Space,Str "human-evaluated",Space,Str "binary",Space,Str "(pass/fail)",Space,Str "tests",Space,Str "in",Space,Str "a",Space,Str "reflowable",Space,Str "context.",Space,Str "Tests",Space,Str "for",Space,Str "fixed-layout",Space,Str "content",Space,Str "and",Space,Str "other",Space,Str "individual",Space,Str "tests",Space,Str "that",Space,Str "require",Space,Str "a",Space,Str "dedicated",Space,Str "epub",Space,Str "file",Space,Str "are",Space,Str "available",Space,Str "in",Space,Str "additional",Space,Str "sibling",Space,Str "documents;",Space,Str "refer",Space,Str "to",Space,Str "the",Space,Link [Str "test",Space,Str "suite",Space,Str "wiki"] ("Overview",""),Space,Str "(",Code ("",[],[]) "https://github.com/mgylling/epub-testsuite/wiki/Overview",Str ")",Space,Str "for",Space,Str "additional",Space,Str "information."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section>"
 ,Header 2 ("",[],[]) [Str "Conventions"]
 ,Para [Str "The",Space,Str "following",Space,Str "conventions",Space,Str "are",Space,Str "used",Space,Str "throughout",Space,Str "the",Space,Str "document:"]
 ,DefinitionList
@@ -25,438 +19,270 @@
    [[Plain [Str "Each",Space,Str "test",Space,Str "includes",Space,Str "a",Space,Str "description",Space,Str "of",Space,Str "its",Space,Str "purpose",Space,Str "followed",Space,Str "by",Space,Str "the",Space,Str "actual",Space,Strong [Str "test",Space,Str "statement,",Space,Str "which",Space,Str "can",Space,Str "always",Space,Str "be",Space,Str "evaluated",Space,Str "to",Space,Str "true",Space,Str "or",Space,Str "false"],Str ".",Space,Str "These",Space,Str "statements",Space,Str "typically",Space,Str "have",Space,Str "the",Space,Str "form:",Space,Str "\"If",Space,Str "[some",Space,Str "condition],",Space,Str "the",Space,Str "test",Space,Str "passes\"."]]])
  ,([Str "3.",Space,Str "Scoring",Space,Str "in",Space,Str "the",Space,Str "results",Space,Str "form"],
    [[Plain [Str "@@@TODO",Space,Str "provide",Space,Str "info",Space,Str "on",Space,Str "where",Space,Str "to",Space,Str "get",Space,Str "the",Space,Str "results",Space,Str "form"]]])]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-xhtml-001.xhtml",[],[]) []]
 ,Header 1 ("",[],[]) [Str "Content",Space,Str "Documents:",Space,Str "XHTML"]
 ,Para [Str "This",Space,Str "section",Space,Str "contains",Space,Str "tests",Space,Str "for",Space,Str "static",Space,Str "XHTML",Space,Str "content."]
 ,Para [Span ("content-xhtml-002.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"iframe-010\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "iframe-010"],Space,Str "Inline",Space,Str "Frames"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "embedding",Space,Str "content",Space,Str "via",Space,Str "an",Space,Code ("",[],[]) "iframe",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<iframe src=\"content-xhtml-002-inset.xhtml\" width=\"300\" height=\"45\">",RawInline (Format "html") "</iframe>"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"PASS\",",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-images-001.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section>"
 ,Header 2 ("content-images-001.xhtml#multimedia",[],[]) [Str "Multimedia"]
-,RawBlock (Format "html") "<section>"
 ,Header 3 ("content-images-001.xhtml#images",[],[]) [Str "Images"]
-,RawBlock (Format "html") "<section id=\"img-010\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "img-010"],Space,Str "GIF"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "GIF",Space,Str "image",Space,Str "format",Space,Str "is",Space,Str "supported."]
 ,Para [Image [Str "gif",Space,Str "test"] ("EPUB/img/check.gif","")]
 ,Para [Str "If",Space,Str "a",Space,Str "checkmark",Space,Str "precedes",Space,Str "this",Space,Str "paragaph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"img-020\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "img-020"],Space,Str "PNG"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "PNG",Space,Str "image",Space,Str "format",Space,Str "is",Space,Str "supported."]
 ,Para [Image [Str "png",Space,Str "test"] ("EPUB/img/check.png","")]
 ,Para [Str "If",Space,Str "a",Space,Str "checkmark",Space,Str "precedes",Space,Str "this",Space,Str "paragaph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"img-030\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "img-030"],Space,Str "JPEG"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "JPEG",Space,Str "image",Space,Str "format",Space,Str "is",Space,Str "supported."]
 ,Para [Image [Str "jpeg",Space,Str "test"] ("EPUB/img/check.jpg","")]
 ,Para [Str "If",Space,Str "a",Space,Str "checkmark",Space,Str "precedes",Space,Str "this",Space,Str "paragaph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-multimedia-001.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section>"
-,RawBlock (Format "html") "<section>"
 ,Header 3 ("content-multimedia-001.xhtml#audio",[],[]) [Str "Audio"]
-,RawBlock (Format "html") "<section id=\"audio-010\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "audio-010"],Space,Str "The",Space,Code ("",[],[]) "audio",Space,Str "element:",Space,Str "MP3"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "HTML5",Space,Code ("",[],[]) "audio",Space,Str "element",Space,Str "is",Space,Str "supported",Space,Str "using",Space,Code ("",[],[]) "MP3",Space,Str "audio."]
-,Para [RawInline (Format "html") "<audio controls src=\"../audio/allison64.mp3\">",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</audio>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "audio",Space,Str "clip",Space,Str "can",Space,Str "be",Space,Str "played",Space,Str "(a",Space,Str "woman's",Space,Str "voice",Space,Str "will",Space,Str "be",Space,Str "heard,",Space,Str "beginning",Space,Str "\"a",Space,Str "crime",Space,Str "to",Space,Str "sink",Space,Str "your",Space,Str "teeth",Space,Str "into\"),",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"audio-020\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "audio-020"],Space,Str "The",Space,Code ("",[],[]) "audio",Space,Str "element:",Space,Str "MP4",Space,Str "AAC",Space,Str "LC"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "HTML5",Space,Code ("",[],[]) "audio",Space,Str "element",Space,Str "is",Space,Str "supported",Space,Str "using",Space,Code ("",[],[]) "AAC LC",Space,Str "audio",Space,Str "in",Space,Str "an",Space,Code ("",[],[]) "MP4",Space,Str "container."]
-,Para [RawInline (Format "html") "<audio controls src=\"../audio/allison64.mp4\">",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</audio>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "audio",Space,Str "clip",Space,Str "can",Space,Str "be",Space,Str "played",Space,Str "(a",Space,Str "woman's",Space,Str "voice",Space,Str "will",Space,Str "be",Space,Str "heard,",Space,Str "beginning",Space,Str "\"a",Space,Str "crime",Space,Str "to",Space,Str "sink",Space,Str "your",Space,Str "teeth",Space,Str "into\"),",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"audio-030\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "audio-030"],Space,Str "The",Space,Code ("",[],[]) "audio",Space,Str "element:",Space,Code ("",[],[]) "source",Space,Str "elements"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "media",Space,Str "specified",Space,Str "via",Space,Code ("",[],[]) "source",Space,Str "elements",Space,Str "is",Space,Str "recognized:"]
-,Para [RawInline (Format "html") "<audio controls>",Space,RawInline (Format "html") "<source src=\"../audio/allison64.mp4\" type=\"audio/mp4\">",RawInline (Format "html") "</source>",Space,RawInline (Format "html") "<source src=\"../audio/allison64.mp3\" type=\"audio/mp3\">",RawInline (Format "html") "</source>",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</audio>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "audio",Space,Str "clip",Space,Str "can",Space,Str "be",Space,Str "played",Space,Str "(a",Space,Str "woman's",Space,Str "voice",Space,Str "will",Space,Str "be",Space,Str "heard,",Space,Str "beginning",Space,Str "\"a",Space,Str "crime",Space,Str "to",Space,Str "sink",Space,Str "your",Space,Str "teeth",Space,Str "into\"),",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-multimedia-002.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section>"
 ,Header 3 ("content-multimedia-002.xhtml#video",[],[]) [Str "Video"]
-,RawBlock (Format "html") "<section id=\"video-010\" class=\"otest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "video-010"],Space,Str "The",Space,Code ("",[],[]) "video",Space,Str "element:",Space,Str "VP8"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "HTML5",Space,Code ("",[],[]) "video",Space,Str "element",Space,Str "is",Space,Str "supported",Space,Str "using",Space,Code ("",[],[]) "WebM",Space,Str "video",Space,Str "(VP8",Space,Str "video",Space,Str "with",Space,Str "Vorbis",Space,Str "audio)."]
-,Para [RawInline (Format "html") "<video controls src=\"../video/screencast.webm\" width=\"278\" height=\"240\">",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</video>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "video",Space,Str "clip",Space,Str "can",Space,Str "be",Space,Str "played",Space,Str "(a",Space,Str "man's",Space,Str "voice",Space,Str "will",Space,Str "be",Space,Str "heard,",Space,Str "beginning",Space,Str "\"Hi",Space,Str "there,",Space,Str "I",Space,Str "quickly",Space,Str "want",Space,Str "to",Space,Str "show",Space,Str "you\"),",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"video-020\" class=\"otest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "video-020"],Space,Str "The",Space,Code ("",[],[]) "video",Space,Str "element:",Space,Str "H.264"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "HTML5",Space,Code ("",[],[]) "video",Space,Str "element",Space,Str "is",Space,Str "supported",Space,Str "using",Space,Code ("",[],[]) "MP4",Space,Str "video",Space,Str "(H.264",Space,Str "video",Space,Str "with",Space,Str "AAC-LC",Space,Str "audio)."]
-,Para [RawInline (Format "html") "<video controls src=\"../video/screencast.mp4\" width=\"278\" height=\"240\">",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</video>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "video",Space,Str "clip",Space,Str "can",Space,Str "be",Space,Str "played",Space,Str "(a",Space,Str "man's",Space,Str "voice",Space,Str "will",Space,Str "be",Space,Str "heard,",Space,Str "beginning",Space,Str "\"Hi",Space,Str "there,",Space,Str "I",Space,Str "quickly",Space,Str "want",Space,Str "to",Space,Str "show",Space,Str "you\"),",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"video-030\" class=\"otest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "video-030"],Space,Str "The",Space,Code ("",[],[]) "video",Space,Str "element:",Space,Code ("",[],[]) "source",Space,Str "elements"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "media",Space,Str "specified",Space,Str "via",Space,Code ("",[],[]) "source",Space,Str "elements",Space,Str "is",Space,Str "recognized:"]
-,Para [RawInline (Format "html") "<video controls width=\"278\" height=\"240\" poster=\"../img/Skype_logo.png\">",Space,RawInline (Format "html") "<source src=\"../video/screencast.mp4\" type=\"video/mp4\">",RawInline (Format "html") "</source>",Space,RawInline (Format "html") "<source src=\"../video/screencast.webm\" type=\"video/webm\">",RawInline (Format "html") "</source>",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</video>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "video",Space,Str "clip",Space,Str "can",Space,Str "be",Space,Str "played",Space,Str "(a",Space,Str "man's",Space,Str "voice",Space,Str "will",Space,Str "be",Space,Str "heard,",Space,Str "beginning",Space,Str "\"Hi",Space,Str "there,",Space,Str "I",Space,Str "quickly",Space,Str "want",Space,Str "to",Space,Str "show",Space,Str "you\"),",Space,Str "the",Space,Str "test",Space,Str "passes."]
 ,Para [Str "This",Space,Str "test",Space,Str "will",Space,Str "fail",Space,Str "if",Space,Str "neither",Space,Str "H.264",Space,Str "nor",Space,Str "VP8",Space,Str "are",Space,Str "supported,",Space,Str "regardless",Space,Str "of",Space,Str "support",Space,Str "for",Space,Str "the",Space,Code ("",[],[]) "source",Space,Str "element.",Space,Str "Other",Space,Str "codecs",Space,Str "must",Space,Str "be",Space,Str "tested",Space,Str "manually."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"video-040\" class=\"otest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "video-040"],Space,Str "The",Space,Code ("",[],[]) "video",Space,Str "element:",Space,Str "Poster",Space,Str "Images"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "poster",Space,Str "images",Space,Str "are",Space,Str "supported",Space,Str "the",Space,Str "HTML5",Space,Code ("",[],[]) "video",Space,Str "element:"]
-,Para [RawInline (Format "html") "<video controls width=\"278\" height=\"240\" poster=\"../img/Skype_logo.png\">",Space,RawInline (Format "html") "<source src=\"../video/screencast.mp4\" type=\"video/mp4\">",RawInline (Format "html") "</source>",Space,RawInline (Format "html") "<source src=\"../video/screencast.webm\" type=\"video/webm\">",RawInline (Format "html") "</source>",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</video>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Para [Str "If",Space,Str "the",Space,Str "Skype",Space,Str "logo",Space,Str "appears",Space,Str "in",Space,Str "the",Space,Str "video",Space,Str "area,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"video-050\" class=\"otest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "video-050"],Space,Str "The",Space,Code ("",[],[]) "video",Space,Str "element:",Space,Str "Captions",Space,Str "(WebVTT)"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "WebVTT",Space,Str "captions",Space,Str "are",Space,Str "supported",Space,Str "in",Space,Str "the",Space,Str "HTML5",Space,Code ("",[],[]) "video",Space,Str "element:"]
-,Para [RawInline (Format "html") "<video controls width=\"278\" height=\"240\">",Space,RawInline (Format "html") "<source src=\"../video/screencast.mp4\" type=\"video/mp4\">",RawInline (Format "html") "</source>",Space,RawInline (Format "html") "<source src=\"../video/screencast.webm\" type=\"video/webm\">",RawInline (Format "html") "</source>",Space,RawInline (Format "html") "<track kind=\"captions\" src=\"../video/tracks/screencast.vtt\" srclang=\"en\" label=\"English\" default=\"default\">",RawInline (Format "html") "</track>",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</video>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Para [Str "If",Space,Str "captions",Space,Str "appear",Space,Str "during",Space,Str "the",Space,Str "first",Space,Str "10s",Space,Str "of",Space,Str "video",Space,Str "playback,",Space,Str "or",Space,Str "can",Space,Str "be",Space,Str "turned",Space,Str "on",Space,Str "from",Space,Str "the",Space,Str "player",Space,Str "interface,",Space,Str "then",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"video-060\" class=\"otest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "video-060"],Space,Str "The",Space,Code ("",[],[]) "video",Space,Str "element:",Space,Str "Captions",Space,Str "(TTML)"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "TTML",Space,Str "captions",Space,Str "are",Space,Str "supported",Space,Str "in",Space,Str "the",Space,Str "HTML5",Space,Code ("",[],[]) "video",Space,Str "element:"]
-,Para [RawInline (Format "html") "<video controls width=\"278\" height=\"240\">",Space,RawInline (Format "html") "<source src=\"../video/screencast.mp4\" type=\"video/mp4\">",RawInline (Format "html") "</source>",Space,RawInline (Format "html") "<source src=\"../video/screencast.webm\" type=\"video/webm\">",RawInline (Format "html") "</source>",Space,RawInline (Format "html") "<track kind=\"captions\" src=\"../video/tracks/screencast.ttml\" srclang=\"en\" label=\"English\" default=\"default\">",RawInline (Format "html") "</track>",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</video>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Para [Str "If",Space,Str "captions",Space,Str "appear",Space,Str "during",Space,Str "the",Space,Str "first",Space,Str "10s",Space,Str "of",Space,Str "video",Space,Str "playback,",Space,Str "or",Space,Str "can",Space,Str "be",Space,Str "turned",Space,Str "on",Space,Str "from",Space,Str "the",Space,Str "player",Space,Str "interface,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"video-070\" class=\"otest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "video-070"],Space,Str "The",Space,Code ("",[],[]) "video",Space,Str "element:",Space,Str "Subtitles",Space,Str "(WebVTT)"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "WebVTT",Space,Str "subtitles",Space,Str "are",Space,Str "supported",Space,Str "in",Space,Str "the",Space,Str "HTML5",Space,Code ("",[],[]) "video",Space,Str "element:"]
-,Para [RawInline (Format "html") "<video controls width=\"278\" height=\"240\">",Space,RawInline (Format "html") "<source src=\"../video/screencast.mp4\" type=\"video/mp4\">",RawInline (Format "html") "</source>",Space,RawInline (Format "html") "<source src=\"../video/screencast.webm\" type=\"video/webm\">",RawInline (Format "html") "</source>",Space,RawInline (Format "html") "<track kind=\"subtitles\" src=\"../video/tracks/screencast.vtt\" srclang=\"en\" label=\"English\" default=\"default\">",RawInline (Format "html") "</track>",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</video>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Para [Str "If",Space,Str "subtitles",Space,Str "appear",Space,Str "during",Space,Str "the",Space,Str "first",Space,Str "10s",Space,Str "of",Space,Str "video",Space,Str "playback,",Space,Str "or",Space,Str "can",Space,Str "be",Space,Str "turned",Space,Str "on",Space,Str "from",Space,Str "the",Space,Str "player",Space,Str "interface,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"video-080\" class=\"otest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "video-080"],Space,Str "The",Space,Code ("",[],[]) "video",Space,Str "element:",Space,Str "Subtitles",Space,Str "(TTML)"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "TTML",Space,Str "subtitles",Space,Str "are",Space,Str "supported",Space,Str "in",Space,Str "the",Space,Str "HTML5",Space,Code ("",[],[]) "video",Space,Str "element:"]
-,Para [RawInline (Format "html") "<video controls width=\"278\" height=\"240\">",Space,RawInline (Format "html") "<source src=\"../video/screencast.mp4\" type=\"video/mp4\">",RawInline (Format "html") "</source>",Space,RawInline (Format "html") "<source src=\"../video/screencast.webm\" type=\"video/webm\">",RawInline (Format "html") "</source>",Space,RawInline (Format "html") "<track kind=\"subtitles\" src=\"../video/tracks/screencast.ttml\" srclang=\"en\" label=\"English\" default=\"default\">",RawInline (Format "html") "</track>",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</video>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "video",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Para [Str "If",Space,Str "subtitles",Space,Str "appear",Space,Str "during",Space,Str "the",Space,Str "first",Space,Str "10s",Space,Str "of",Space,Str "video",Space,Str "playback,",Space,Str "or",Space,Str "can",Space,Str "be",Space,Str "turned",Space,Str "on",Space,Str "from",Space,Str "the",Space,Str "player",Space,Str "interface,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-multimedia-003.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section>"
 ,Header 3 ("content-multimedia-003.xhtml#trigger",[],[]) [Code ("",[],[]) "epub:trigger"]
-,RawBlock (Format "html") "<section id=\"trigger-010\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "trigger-010"],Space,Str "The",Space,Code ("",[],[]) "trigger",Space,Str "element:",Space,Str "play"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "playback",Space,Str "of",Space,Str "multimedia",Space,Str "content",Space,Str "by",Space,Code ("",[],[]) "epub:trigger",Space,Str "elements",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<audio controls src=\"../audio/allison64.mp3\" id=\"audio01\">",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</audio>",Space,RawInline (Format "html") "<trigger observer=\"play-button\" event=\"click\" action=\"play\" ref=\"audio01\">",RawInline (Format "html") "</trigger>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Div ("",["trigger-ctrl"],[]) [Plain [Span ("content-multimedia-003.xhtml#play-button",[],[("aria-controls","audio01"),("role","button"),("tabindex","0")]) [Str "play"],LineBreak]]
 ,Para [Str "If",Space,Str "the",Space,Str "\"play\"",Space,Str "button",Space,Str "initiates",Space,Str "playback",Space,Str "of",Space,Str "the",Space,Str "audio",Space,Str "clip",Space,Str "from",Space,Str "00:00:00,",Space,Str "including",Space,Str "when",Space,Str "pressed",Space,Str "during",Space,Str "playback",Space,Str "or",Space,Str "after",Space,Str "pausing,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"trigger-020\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "trigger-020"],Space,Str "The",Space,Code ("",[],[]) "trigger",Space,Str "element:",Space,Str "pause/resume"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "pausing",Space,Str "and",Space,Str "resumption",Space,Str "of",Space,Str "multimedia",Space,Str "content",Space,Str "by",Space,Code ("",[],[]) "epub:trigger",Space,Str "elements",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<audio controls src=\"../audio/allison64.mp3\" id=\"audio02\">",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</audio>",Space,RawInline (Format "html") "<trigger observer=\"pause-button\" event=\"click\" action=\"pause\" ref=\"audio02\">",RawInline (Format "html") "</trigger>",Space,RawInline (Format "html") "<trigger observer=\"resume-button\" event=\"click\" action=\"resume\" ref=\"audio02\">",RawInline (Format "html") "</trigger>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Div ("",["trigger-ctrl"],[]) [Plain [Span ("content-multimedia-003.xhtml#resume-button",[],[("aria-controls","audio02"),("role","button"),("tabindex","0")]) [Str "resume"],Space,Span ("content-multimedia-003.xhtml#pause-button",[],[("aria-controls","audio02"),("role","button"),("tabindex","0")]) [Str "pause"],LineBreak]]
 ,Para [Str "If",Space,Str "the",Space,Str "\"resume\"",Space,Str "button",Space,Str "(re)starts",Space,Str "playback",Space,Str "of",Space,Str "the",Space,Str "audio",Space,Str "clip",Space,Str "and",Space,Str "the",Space,Str "\"pause\"",Space,Str "button",Space,Str "halts",Space,Str "it,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"trigger-030\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "trigger-030"],Space,Str "The",Space,Code ("",[],[]) "trigger",Space,Str "element:",Space,Str "mute/unmute"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "muting",Space,Str "and",Space,Str "unmuting",Space,Str "of",Space,Str "multimedia",Space,Str "content",Space,Str "by",Space,Code ("",[],[]) "epub:trigger",Space,Str "elements",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<audio controls src=\"../audio/allison64.mp3\" id=\"audio03\">",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</audio>",Space,RawInline (Format "html") "<trigger observer=\"mute-button\" event=\"click\" action=\"mute\" ref=\"audio03\">",RawInline (Format "html") "</trigger>",Space,RawInline (Format "html") "<trigger observer=\"unmute-button\" event=\"click\" action=\"unmute\" ref=\"audio03\">",RawInline (Format "html") "</trigger>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Div ("",["trigger-ctrl"],[]) [Plain [Span ("content-multimedia-003.xhtml#mute-button",[],[("aria-controls","audio03"),("role","button"),("tabindex","0")]) [Str "mute"],Space,Span ("content-multimedia-003.xhtml#unmute-button",[],[("aria-controls","audio03"),("role","button"),("tabindex","0")]) [Str "unmute"],LineBreak]]
 ,Para [Str "After",Space,Str "initiating",Space,Str "playback",Space,Str "of",Space,Str "the",Space,Str "audio",Space,Str "clip,",Space,Str "if",Space,Str "the",Space,Str "\"mute\"",Space,Str "button",Space,Str "silences",Space,Str "the",Space,Str "audio",Space,Str "track",Space,Str "and",Space,Str "\"unmute\"",Space,Str "re-enables",Space,Str "it",Space,Str "(at",Space,Str "the",Space,Str "same",Space,Str "volume",Space,Str "as",Space,Str "before),",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"trigger-040\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "trigger-040"],Space,Str "The",Space,Code ("",[],[]) "trigger",Space,Str "element:",Space,Str "hide/show"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "content",Space,Str "can",Space,Str "be",Space,Str "hidden",Space,Str "and",Space,Str "revealed",Space,Str "by",Space,Code ("",[],[]) "epub:trigger",Space,Str "elements."]
-,Para [RawInline (Format "html") "<audio controls src=\"../audio/allison64.mp3\" id=\"audio04\">",Space,Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails.",Space,RawInline (Format "html") "</audio>",Space,RawInline (Format "html") "<trigger observer=\"hide-button\" event=\"click\" action=\"hide\" ref=\"audio04\">",RawInline (Format "html") "</trigger>",Space,RawInline (Format "html") "<trigger observer=\"show-button\" event=\"click\" action=\"show\" ref=\"audio04\">",RawInline (Format "html") "</trigger>"]
+,Para [Str "If",Space,Str "this",Space,Str "text",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "audio",Space,Str "element",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "and",Space,Str "the",Space,Str "test",Space,Str "fails."]
 ,Div ("",["trigger-ctrl"],[]) [Plain [Span ("content-multimedia-003.xhtml#hide-button",[],[("aria-controls","audio04"),("role","button"),("tabindex","0")]) [Str "hide"],Space,Span ("content-multimedia-003.xhtml#show-button",[],[("aria-controls","audio04"),("role","button"),("tabindex","0")]) [Str "show"],LineBreak]]
 ,Para [Str "If",Space,Str "the",Space,Str "\"hide\"",Space,Str "button",Space,Str "hides",Space,Str "the",Space,Str "audio",Space,Str "player",Space,Str "and",Space,Str "the",Space,Str "\"show\"",Space,Str "button",Space,Str "reveals",Space,Str "it,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-ns-001.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section>"
 ,Header 2 ("content-ns-001.xhtml#ns",[],[]) [Str "Namespace",Space,Str "Support"]
-,RawBlock (Format "html") "<section id=\"namespace-010\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "namespace-010"],Space,Str "Prefixes"]
 ,Para [Str "Tests",Space,Str "that",Space,Str "namespace",Space,Str "prefix",Space,Str "support",Space,Str "is",Space,Str "not",Space,Str "hard-coded",Space,Str "into",Space,Str "the",Space,Str "application."]
-,Para [RawInline (Format "html") "<svg width=\"100\" height=\"100\" version=\"1.1\">",Space,RawInline (Format "html") "<circle cx=\"50\" cy=\"50\" r=\"40\" style=\"fill:#000\">",RawInline (Format "html") "</circle>",Space,RawInline (Format "html") "</svg>"]
 ,Para [Str "If",Space,Str "a",Space,Str "black",Space,Str "circle",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
 ,Para [Str "If",Space,Str "SVG",Space,Str "is",Space,Str "not",Space,Str "supported,",Space,Str "this",Space,Str "test",Space,Str "will",Space,Str "fail",Space,Str "regardless",Space,Str "of",Space,Str "actual",Space,Str "namespace",Space,Str "prefix",Space,Str "support.",Space,Str "Prefix",Space,Str "support",Space,Str "will",Space,Str "need",Space,Str "to",Space,Str "be",Space,Str "manually",Space,Str "tested",Space,Str "against",Space,Str "a",Space,Str "supported",Space,Str "namespace."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-mathml-001.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section>"
 ,Header 2 ("content-mathml-001.xhtml#mathml",[],[]) [Str "MathML"]
-,RawBlock (Format "html") "<section id=\"mathml-010\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "mathml-010"],Space,Str "Rendering"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "MathML",Space,Str "equation",Space,Str "rendering",Space,Str "is",Space,Str "supported."]
 ,Para [Math DisplayMath "\\int_{- \\infty}^{\\infty}e^{- x^{2}}\\, dx = \\sqrt{\\pi}",Space,Math DisplayMath "\\sum\\limits_{n = 1}^{\\infty}\\frac{1}{n^{2}} = \\frac{\\pi^{2}}{6}",Space,Math DisplayMath "x = \\frac{- b \\pm \\sqrt{b^{2} - 4ac}}{2a}"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "equations",Space,Str "are",Space,Str "not",Space,Str "presented",Space,Str "as",Space,Str "linear",Space,Str "text",Space,Str "(e.g.,",Space,Str "x=-b\177b2-4ac2a),",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"mathml-020\" class=\"otest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "mathml-020"],Space,Str "CSS",Space,Str "Styling",Space,Str "of",Space,Str "the",Space,Code ("",[],[]) "math",Space,Str "element"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "basic",Space,Str "CSS",Space,Str "styling",Space,Str "of",Space,Str "MathML",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "the",Space,Code ("",[],[]) "math",Space,Str "element."]
 ,Para [Math InlineMath "{2x}{+ y - z}"]
 ,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "equation",Space,Str "has",Space,Str "a",Space,Str "yellow",Space,Str "background",Space,Str "and",Space,Str "a",Space,Str "dashed",Space,Str "border."]
 ,Para [Str "If",Space,Str "the",Space,Str "reading",Space,Str "system",Space,Str "does",Space,Str "not",Space,Str "have",Space,Str "a",Space,Str "viewport,",Space,Str "or",Space,Str "does",Space,Str "not",Space,Str "support",Space,Str "CSS",Space,Str "styles,",Space,Str "this",Space,Str "test",Space,Str "should",Space,Str "be",Space,Str "marked",Space,Code ("",[],[]) "Not Supported",Str "."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"mathml-021\" class=\"otest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "mathml-021"],Space,Str "CSS",Space,Str "Styling",Space,Str "of",Space,Str "the",Space,Code ("",[],[]) "mo",Space,Str "element"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "basic",Space,Str "CSS",Space,Str "styling",Space,Str "of",Space,Str "MathML",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "the",Space,Code ("",[],[]) "mo",Space,Str "element."]
 ,Para [Math InlineMath "{2x}{+ y - z}"]
 ,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "operators",Space,Str "are",Space,Str "enlarged",Space,Str "relative",Space,Str "to",Space,Str "the",Space,Str "other",Space,Str "symbols",Space,Str "and",Space,Str "numbers."]
 ,Para [Str "If",Space,Str "the",Space,Str "reading",Space,Str "system",Space,Str "does",Space,Str "not",Space,Str "have",Space,Str "a",Space,Str "viewport,",Space,Str "or",Space,Str "does",Space,Str "not",Space,Str "support",Space,Str "CSS",Space,Str "styles,",Space,Str "this",Space,Str "test",Space,Str "should",Space,Str "be",Space,Str "marked",Space,Code ("",[],[]) "Not Supported",Str "."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"mathml-022\" class=\"otest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "mathml-022"],Space,Str "CSS",Space,Str "Styling",Space,Str "of",Space,Str "the",Space,Code ("",[],[]) "mi",Space,Str "element"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "basic",Space,Str "CSS",Space,Str "styling",Space,Str "of",Space,Str "MathML",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "the",Space,Code ("",[],[]) "mi",Space,Str "element."]
 ,Para [Math InlineMath "{2x}{+ y - z}"]
 ,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "identifiers",Space,Str "are",Space,Str "bolded",Space,Str "and",Space,Str "blue."]
 ,Para [Str "If",Space,Str "the",Space,Str "reading",Space,Str "system",Space,Str "does",Space,Str "not",Space,Str "have",Space,Str "a",Space,Str "viewport,",Space,Str "or",Space,Str "does",Space,Str "not",Space,Str "support",Space,Str "CSS",Space,Str "styles,",Space,Str "this",Space,Str "test",Space,Str "should",Space,Str "be",Space,Str "marked",Space,Code ("",[],[]) "Not Supported",Str "."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"mathml-023\" class=\"otest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "mathml-023"],Space,Str "CSS",Space,Str "Styling",Space,Str "of",Space,Str "the",Space,Code ("",[],[]) "mn",Space,Str "element"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "basic",Space,Str "CSS",Space,Str "styling",Space,Str "of",Space,Str "MathML",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "the",Space,Code ("",[],[]) "mn",Space,Str "element."]
 ,Para [Math InlineMath "{2x}{+ y - z}"]
 ,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "number",Space,Str "2",Space,Str "is",Space,Str "italicized",Space,Str "and",Space,Str "blue."]
 ,Para [Str "If",Space,Str "the",Space,Str "reading",Space,Str "system",Space,Str "does",Space,Str "not",Space,Str "have",Space,Str "a",Space,Str "viewport,",Space,Str "or",Space,Str "does",Space,Str "not",Space,Str "support",Space,Str "CSS",Space,Str "styles,",Space,Str "this",Space,Str "test",Space,Str "should",Space,Str "be",Space,Str "marked",Space,Code ("",[],[]) "Not Supported",Str "."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"mathml-024\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "mathml-024"],Str "Horizontal",Space,Str "stretch,",Space,Code ("",[],[]) "mover",Str ",",Space,Code ("",[],[]) "munder",Str ",",Space,Str "and",Space,Code ("",[],[]) "mspace",Space,Str "elements"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "horizontal",Space,Str "stretch,",Space,Code ("",[],[]) "mover",Str ",",Space,Code ("",[],[]) "munder",Str ",",Space,Code ("",[],[]) "mspace",Space,Str "elements",Space,Str "are",Space,Str "supported."]
 ,Para [Math DisplayMath "c = \\overset{\\text{complex\\ number}}{\\overbrace{\\underset{\\text{real}}{\\underbrace{\\qquad a\\qquad}} + \\underset{\\text{imaginary}}{\\underbrace{\\quad b{\\mathbb{i}}\\quad}}}}"]
 ,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Image [Str "description",Space,Str "of",Space,Str "imaginary",Space,Str "number:",Space,Str "c",Space,Str "=",Space,Str "a",Space,Str "+bi",Space,Str "with",Space,Str "an",Space,Str "overbrace",Space,Str "reading",Space,Str "'complex",Space,Str "number'",Space,Str "and",Space,Str "underbraces",Space,Str "below",Space,Str "'a'",Space,Str "and",Space,Str "'b",Space,Str "i'",Space,Str "reading",Space,Str "'real'",Space,Str "and",Space,Str "'imaginary'",Space,Str "respectively."] ("EPUB/img/complex_number.png",""),Str "."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"mathml-025\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "mathml-025"],Str "Testing",Space,Code ("",[],[]) "mtable",Space,Str "with",Space,Code ("",[],[]) "colspan",Space,Str "and",Space,Code ("",[],[]) "rowspan",Space,Str "attributes,",Space,Str "Hebrew",Space,Str "and",Space,Str "Script",Space,Str "fonts"]
 ,Para [Str "Tests",Space,Str "whether",Space,Code ("",[],[]) "mtable",Space,Str "with",Space,Code ("",[],[]) "colspan",Space,Str "and",Space,Code ("",[],[]) "mspace",Space,Str "attributes",Space,Str "(colum",Space,Str "and",Space,Str "row",Space,Str "spanning)",Space,Str "are",Space,Str "supported;",Space,Str "uses",Space,Str "Hebrew",Space,Str "and",Space,Str "Script",Space,Str "alphabets."]
 ,Para [Math DisplayMath "\\begin{array}{llllllllll}\n & {\\operatorname{cov}\\left( \\mathcal{L} \\right)} & \\longrightarrow & {\\operatorname{non}\\left( \\mathcal{K} \\right)} & \\longrightarrow & {\\operatorname{cof}\\left( \\mathcal{K} \\right)} & \\longrightarrow & {\\operatorname{cof}\\left( \\mathcal{L} \\right)} & \\longrightarrow & 2^{\\aleph_{0}} \\\\\n & \\uparrow & & \\uparrow & & \\uparrow & & \\uparrow & & \\\\\n & {\\mathfrak{b}} & \\longrightarrow & {\\mathfrak{d}} & & & & & & \\\\\n & \\uparrow & & \\uparrow & & & & & & \\\\\n\\aleph_{1} & \\longrightarrow & {\\operatorname{add}\\left( \\mathcal{L} \\right)} & \\longrightarrow & {\\operatorname{add}\\left( \\mathcal{K} \\right)} & \\longrightarrow & {\\operatorname{cov}\\left( \\mathcal{K} \\right)} & \\longrightarrow & {\\operatorname{non}\\left( \\mathcal{L} \\right)} & \\\\\n\\end{array}"]
 ,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Link [Str "Cicho\324's",Space,Str "Diagram"] ("Cicho%C5%84's_diagram",""),Str ":",Space,Image [Str "rendering",Space,Str "of",Space,Str "Cicho\324's",Space,Str "diagram."] ("EPUB/img/cichons_diagram.png",""),Str "."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"mathml-026\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "mathml-026"],Str "BiDi,",Space,Str "RTL",Space,Str "and",Space,Str "Arabic",Space,Str "alphabets"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "right-to-left",Space,Str "and",Space,Str "Arabic",Space,Str "alphabets",Space,Str "are",Space,Str "supported."]
 ,Para [Math DisplayMath "{d\\left( s \\right)} = \\begin{cases}\n{\\sum\\limits_{{\\lbrack?\\rbrack} = 1}^{S}s^{\\lbrack?\\rbrack}} & {\\text{\1573\1584\1575\1603\1575\1606}s > 0} \\\\\n{\\int_{1}^{S}{s^{\\lbrack?\\rbrack}s}} & {\\text{\1573\1584\1575\1603\1575\1606}s \\in m} \\\\\n{T\\pi} & {\\text{\1594\1610\1585\1584\1604\1603}\\left( \\text{\1605\1593}\\pi \\simeq 3,141 \\right)} \\\\\n\\end{cases}"]
 ,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Str "the",Space,Str "following",Space,Str "image:",Space,Image [Str "a",Space,Str "piecewise",Space,Str "defined",Space,Str "function",Space,Str "in",Space,Str "Maghreb-style",Space,Str "notation"] ("EPUB/img/Maghreb1.png",""),Str "."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"mathml-027\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "mathml-027"],Str "Elementary",Space,Str "math:",Space,Str "long",Space,Str "division",Space,Str "notation"]
 ,Para [Str "Tests",Space,Str "whether",Space,Code ("",[],[]) "mlongdiv",Space,Str "elements",Space,Str "(from",Space,Str "elementary",Space,Str "math)",Space,Str "are",Space,Str "supported."]
 ,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Str "the",Space,Str "following",Space,Str "image:",Space,Image [Str "A",Space,Str "long",Space,Str "division",Space,Str "dividing",Space,Str "1306",Space,Str "by",Space,Str "3,",Space,Str "presented",Space,Str "in",Space,Str "'lefttop'",Space,Str "(US)",Space,Str "notation"] ("EPUB/img/ElementaryMathExample.png",""),Str "."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"mathml-028\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "mathml-028"],Str "Multiscripts,",Space,Str "Greek",Space,Str "and",Space,Str "Gothic",Space,Str "alphabets"]
 ,Para [Str "Tests",Space,Str "whether",Space,Code ("",[],[]) "mmultiscript",Space,Str "elements",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str "Greek",Space,Str "and",Space,Str "Gothic",Space,Str "alphabets",Space,Str "are",Space,Str "supported."]
 ,Para [Math DisplayMath "\\underset{}{\\overset{}{}}"]
 ,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Str "the",Space,Str "following",Space,Str "image:",Space,Image [Str "a",Space,Str "large",Space,Str "capital",Space,Str "Pi",Space,Str "with",Space,Str "Gothic",Space,Str "characters",Space,Str "as",Space,Str "multiscripts",Space,Str "which",Space,Str "in",Space,Str "turn",Space,Str "have",Space,Str "Greek",Space,Str "multiscripts"] ("EPUB/img/multiscripts_and_greek_alphabet.png",""),Str "."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-svg-001.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"svg\">"
 ,Header 2 ("",[],[]) [Str "SVG"]
-,RawBlock (Format "html") "<section id=\"svg-shapes\">"
 ,Header 3 ("",[],[]) [Str "Shapes"]
-,RawBlock (Format "html") "<section id=\"svg-010\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-010"],Space,Str "Circle"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "simple",Space,Str "vector",Space,Str "shapes",Space,Str "are",Space,Str "supported",Space,Str "by",Space,Str "drawing",Space,Str "a",Space,Str "circle."]
-,Para [RawInline (Format "html") "<svg width=\"100\" height=\"100\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">",Space,RawInline (Format "html") "<circle cx=\"50\" cy=\"50\" r=\"40\" style=\"fill:#000\">",RawInline (Format "html") "</circle>",Space,RawInline (Format "html") "</svg>"]
 ,Para [Str "If",Space,Str "a",Space,Str "black",Space,Str "circle",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-020\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-020"],Space,Str "Transformation"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "simple",Space,Str "vector",Space,Str "shape",Space,Str "transformations",Space,Str "are",Space,Str "supported",Space,Str "by",Space,Str "transforming",Space,Str "a",Space,Str "square",Space,Str "into",Space,Str "a",Space,Str "diamond."]
-,Para [RawInline (Format "html") "<svg width=\"100\" height=\"100\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">",Space,RawInline (Format "html") "<rect x=\"25\" y=\"25\" width=\"50\" height=\"50\" transform=\"translate(50 12.5) scale(1 0.5) rotate(45)\">",RawInline (Format "html") "</rect>",Space,RawInline (Format "html") "</svg>"]
 ,Para [Str "If",Space,Str "a",Space,Str "black",Space,Str "diamond",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-svg-002.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"svg-text\">"
 ,Header 3 ("",[],[]) [Str "Text",Space,Str "content"]
-,RawBlock (Format "html") "<section id=\"svg-text-styling\">"
 ,Header 4 ("",[],[]) [Str "Styling"]
-,RawBlock (Format "html") "<section id=\"svg-110\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-110"],Space,Code ("",[],[]) "letter-spacing"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "letter-spacing",Space,Str "attribute",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"100\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">",Space,RawInline (Format "html") "<g>",Space,RawInline (Format "html") "<text x=\"3\" y=\"20\" letter-spacing=\"-1\">",Str "letter-spacing",Space,Str "set",Space,Str "to",Space,Str "-1",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"3\" y=\"50\">",Str "default",Space,Str "letter-spacing",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"3\" y=\"80\" letter-spacing=\"3\">",Str "letter-spacing",Space,Str "set",Space,Str "to",Space,Str "3",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</g>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "letter-spacing",Space,Str "set",Space,Str "to",Space,Str "-1",Space,Str "default",Space,Str "letter-spacing",Space,Str "letter-spacing",Space,Str "set",Space,Str "to",Space,Str "3"]
 ,Para [Str "If",Space,Str "the",Space,Str "space",Space,Str "between",Space,Str "letters",Space,Str "is",Space,Str "different",Space,Str "for",Space,Str "each",Space,Str "line,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-120\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-120"],Space,Code ("",[],[]) "word-spacing"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "word-spacing",Space,Str "attribute",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"100\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">",Space,RawInline (Format "html") "<g>",Space,RawInline (Format "html") "<text x=\"3\" y=\"20\" word-spacing=\"-3\">",Str "word-spacing",Space,Str "set",Space,Str "to",Space,Str "-3",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"3\" y=\"50\">",Str "default",Space,Str "word-spacing",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"3\" y=\"80\" word-spacing=\"8\">",Str "word-spacing",Space,Str "set",Space,Str "to",Space,Str "8",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</g>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "word-spacing",Space,Str "set",Space,Str "to",Space,Str "-3",Space,Str "default",Space,Str "word-spacing",Space,Str "word-spacing",Space,Str "set",Space,Str "to",Space,Str "8"]
 ,Para [Str "If",Space,Str "the",Space,Str "space",Space,Str "between",Space,Str "words",Space,Str "is",Space,Str "different",Space,Str "for",Space,Str "each",Space,Str "line,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-130\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-130"],Space,Code ("",[],[]) "font-size"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "font-size",Space,Str "attribute",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"100\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">",Space,RawInline (Format "html") "<g>",Space,RawInline (Format "html") "<text x=\"3\" y=\"20\">",Str "default",Space,Str "font-size",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"3\" y=\"50\" font-size=\"30\">",Str "font-size",Space,Str "set",Space,Str "to",Space,Str "30",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"3\" y=\"80\" font-size=\"200%\">",Str "The",Space,Str "size",Space,Str "set",Space,Str "to",Space,Str "200%",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</g>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "default",Space,Str "font-size",Space,Str "font-size",Space,Str "set",Space,Str "to",Space,Str "30",Space,Str "The",Space,Str "size",Space,Str "set",Space,Str "to",Space,Str "200%"]
 ,Para [Str "If",Space,Str "the",Space,Str "size",Space,Str "of",Space,Str "the",Space,Str "two",Space,Str "last",Space,Str "lines",Space,Str "is",Space,Str "different",Space,Str "than",Space,Str "the",Space,Str "first",Space,Str "line,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-140\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-140"],Space,Code ("",[],[]) "font-weight"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "font-weight",Space,Str "attribute",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"70\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">",Space,RawInline (Format "html") "<g>",Space,RawInline (Format "html") "<text x=\"3\" y=\"20\">",Str "default",Space,Str "font-weight",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"3\" y=\"50\" font-weight=\"bold\">",Str "font-weight",Space,Str "set",Space,Str "to",Space,Str "bold",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</g>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "default",Space,Str "font-weight",Space,Str "font-weight",Space,Str "set",Space,Str "to",Space,Str "bold"]
 ,Para [Str "If",Space,Str "the",Space,Str "weight",Space,Str "of",Space,Str "the",Space,Str "second",Space,Str "line",Space,Str "is",Space,Str "different",Space,Str "than",Space,Str "the",Space,Str "first",Space,Str "line,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-150\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-150"],Space,Code ("",[],[]) "font-style"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "font-style",Space,Str "attribute",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"70\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">",Space,RawInline (Format "html") "<g>",Space,RawInline (Format "html") "<text x=\"3\" y=\"20\">",Str "default",Space,Str "font-style",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"3\" y=\"50\" font-style=\"italic\">",Str "font-style",Space,Str "set",Space,Str "to",Space,Str "italic",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</g>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "default",Space,Str "font-style",Space,Str "font-style",Space,Str "set",Space,Str "to",Space,Str "italic"]
 ,Para [Str "If",Space,Str "the",Space,Str "font-style",Space,Str "of",Space,Str "the",Space,Str "second",Space,Str "line",Space,Str "is",Space,Str "different",Space,Str "than",Space,Str "the",Space,Str "first",Space,Str "line,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-160\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-160"],Space,Code ("",[],[]) "text-decoration",Space,Str "attribute"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "text-decoration",Space,Str "attribute",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"100\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">",Space,RawInline (Format "html") "<g>",Space,RawInline (Format "html") "<text x=\"3\" y=\"20\">",Str "default",Space,Str "text-decoration",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"3\" y=\"50\" text-decoration=\"underline\">",Str "text-decoration",Space,Str "set",Space,Str "to",Space,Str "underline",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"3\" y=\"80\" text-decoration=\"line-through\">",Str "text-decoration",Space,Str "set",Space,Str "to",Space,Str "line-through",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</g>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "default",Space,Str "text-decoration",Space,Str "text-decoration",Space,Str "set",Space,Str "to",Space,Str "underline",Space,Str "text-decoration",Space,Str "set",Space,Str "to",Space,Str "line-through"]
 ,Para [Str "If",Space,Str "the",Space,Str "second",Space,Str "line",Space,Str "is",Space,Str "underlined",Space,Str "and",Space,Str "the",Space,Str "third",Space,Str "has",Space,Str "a",Space,Str "line",Space,Str "through",Space,Str "the",Space,Str "text,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-text-pos\">"
 ,Header 4 ("",[],[]) [Str "Positioning"]
-,RawBlock (Format "html") "<section id=\"svg-210\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-210"],Space,Str "Lines"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "x",Space,Str "and",Space,Code ("",[],[]) "y",Space,Str "attributes",Space,Str "on",Space,Code ("",[],[]) "text",Space,Str "elements",Space,Str "for",Space,Str "positioning",Space,Str "lines",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"250\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">",Space,RawInline (Format "html") "<text x=\"2\" y=\"20\">",Str "First",Space,Str "text",Space,Str "line",Space,Str "using",Space,Str "SVG",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"30\" y=\"100\">",Str "Second",Space,Str "text",Space,Str "line",Space,Str "using",Space,Str "SVG",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text x=\"80\" y=\"200\">",Str "Third",Space,Str "and",Space,Str "last",Space,Str "text",Space,Str "line",Space,Str "using",Space,Str "SVG",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "First",Space,Str "text",Space,Str "line",Space,Str "using",Space,Str "SVG",Space,Str "Second",Space,Str "text",Space,Str "line",Space,Str "using",Space,Str "SVG",Space,Str "Third",Space,Str "and",Space,Str "last",Space,Str "text",Space,Str "line",Space,Str "using",Space,Str "SVG"]
 ,Para [Str "If",Space,Str "the",Space,Str "vertical",Space,Str "alignment",Space,Str "of",Space,Str "the",Space,Str "three",Space,Str "lines",Space,Str "is",Space,Str "different,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-220\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-220"],Space,Str "Words",Space,Str "and",Space,Str "Characters"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "SVG",Space,Str "code",Space,Str "for",Space,Str "positioning",Space,Str "words",Space,Str "or",Space,Str "characters",Space,Str "is",Space,Str "supported",Space,Str "using",Space,Str "the",Space,Code ("",[],[]) "text",Space,Str "and",Space,Code ("",[],[]) "tspan",Space,Str "elements."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"100\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">",Space,RawInline (Format "html") "<text x=\"100\" y=\"80\">",Str "This",Space,RawInline (Format "html") "<tspan dy=\"-2\">",Str "i",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"-3\">",Str "s",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"-4\">",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"-5\">",Str "a",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"-6\">",Space,RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"-8\">",Str "v",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"-9\">",Str "e",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"-8\">",Str "e",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"-7\">",Str "e",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<!-- -59 -->",Space,RawInline (Format "html") "<tspan dy=\"9\">",Str "r",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"10\">",Str "y",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"9\">",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"8\">",Str "b",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"7\">",Str "i",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"6\">",Str "i",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"5\">",Str "i",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"3\">",Str "g",RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<tspan dy=\"2\">",Space,RawInline (Format "html") "</tspan>",Space,RawInline (Format "html") "<!-- +59 -->",Space,Str "wave.",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "This",Space,Str "i",Space,Str "s",Space,Str "a",Space,Str "v",Space,Str "e",Space,Str "e",Space,Str "e",Space,Str "r",Space,Str "y",Space,Str "b",Space,Str "i",Space,Str "i",Space,Str "i",Space,Str "g",Space,Str "wave."]
 ,Para [Str "If",Space,Str "the",Space,Str "text",Space,Str "\"This",Space,Str "is",Space,Str "a",Space,Str "veeery",Space,Str "biiig",Space,Str "wave\"",Space,Str "rises",Space,Str "and",Space,Str "falls",Space,Str "in",Space,Str "an",Space,Str "arc",Space,Str "like",Space,Str "a",Space,Str "wave,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-230\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-230"],Space,Str "Text:",Space,Code ("",[],[]) "path",Space,Str "element"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "positioning",Space,Str "text",Space,Str "on",Space,Str "a",Space,Str "path",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"120\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xlink=\"http://www.w3.org/1999/xlink\">",Space,RawInline (Format "html") "<g>",Space,RawInline (Format "html") "<defs>",Space,RawInline (Format "html") "<path id=\"Path1\" fill=\"none\" stroke=\"black\" d=\"M199 89.3 C206.6 66.6 235.8 13.2 270 30.3 286.6 38.6 298.9 59.4 310 73.3 321.7 87.9 338.6      99 356 103.3 387.3 111.1 396.6 90.4 418 74.3\">",RawInline (Format "html") "</path>",Space,RawInline (Format "html") "</defs>",Space,RawInline (Format "html") "<g id=\"text-on-path-01\">",Space,RawInline (Format "html") "<use href=\"#Path1\">",RawInline (Format "html") "</use>",Space,RawInline (Format "html") "<text>",Space,RawInline (Format "html") "<textpath href=\"#Path1\">",Str "The",Space,Str "text",Space,Str "follows",Space,Str "its",Space,Str "own",Space,Str "path.",Space,Str "Can",Space,Str "you",Space,Str "see",Space,Str "it?",RawInline (Format "html") "</textpath>",Space,RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</g>",Space,RawInline (Format "html") "</g>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "The",Space,Str "text",Space,Str "follows",Space,Str "its",Space,Str "own",Space,Str "path.",Space,Str "Can",Space,Str "you",Space,Str "see",Space,Str "it?"]
 ,Para [Str "If",Space,Str "the",Space,Str "text",Space,Str "follows",Space,Str "a",Space,Str "parabolic",Space,Str "path,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-240\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-240"],Space,Str "Text:",Space,Code ("",[],[]) "text",Space,Str "element",Space,Str "with",Space,Str "multiple",Space,Code ("",[],[]) "x",Space,Str "and",Space,Code ("",[],[]) "y",Space,Str "values"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "multiple",Space,Str "values",Space,Str "of",Space,Str "the",Space,Code ("",[],[]) "x",Space,Str "and",Space,Code ("",[],[]) "y",Space,Str "attributes",Space,Str "are",Space,Str "supported."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"250\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xlink=\"http://www.w3.org/1999/xlink\">",Space,RawInline (Format "html") "<g>",Space,RawInline (Format "html") "<text x=\"160 180 200 220 240 260 280 300 320 340 360\" y=\"30 50 70 90 110 130 150 170 190 210 230\">",Str "Multiple",Space,Str "x",Space,Str "y",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</g>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "Multiple",Space,Str "x",Space,Str "y"]
 ,Para [Str "If",Space,Str "the",Space,Str "text",Space,Str "goes",Space,Str "down,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-text-rotate\">"
 ,Header 4 ("",[],[]) [Str "Rotating"]
-,RawBlock (Format "html") "<section id=\"svg-310\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-310"],Space,Code ("",[],[]) "rotate"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "rotate",Space,Str "attribute",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"100\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xlink=\"http://www.w3.org/1999/xlink\">",Space,RawInline (Format "html") "<g>",Space,RawInline (Format "html") "<text x=\"10\" y=\"50\" rotate=\"0 10 40\">",Str "This",Space,Str "text",Space,Str "is",Space,Str "rotated",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</g>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "This",Space,Str "text",Space,Str "is",Space,Str "rotated"]
 ,Para [Str "If",Space,Str "the",Space,Str "characters",Space,Str "in",Space,Str "the",Space,Str "preceding",Space,Str "sentence",Space,Str "are",Space,Str "rotated,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-320\" class=\"ctest\">"
 ,Header 5 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-320"],Space,Code ("",[],[]) "transform"]
 ,Para [Str "Tests",Space,Str "whether",Space,Code ("",[],[]) "transform",Space,Str "attribute",Space,Str "(translate",Space,Str "and",Space,Str "rotate",Space,Str "values)",Space,Str "are",Space,Str "supported."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"250\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xlink=\"http://www.w3.org/1999/xlink\">",Space,RawInline (Format "html") "<g>",Space,RawInline (Format "html") "<text transform=\"rotate(90) translate(120 -100)\">",Str "90",Space,Str "degrees",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text transform=\"rotate(-90) translate(-120 100)\">",Str "-90",Space,Str "degrees",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "<text transform=\"rotate(180) translate(-120 -200)\">",Str "180",Space,Str "degrees",RawInline (Format "html") "</text>",Space,RawInline (Format "html") "</g>",Space,RawInline (Format "html") "</svg>"]
+,Para [Str "90",Space,Str "degrees",Space,Str "-90",Space,Str "degrees",Space,Str "180",Space,Str "degrees"]
 ,Para [Str "If",Space,Str "each",Space,Str "line",Space,Str "of",Space,Str "text",Space,Str "is",Space,Str "rotated",Space,Str "by",Space,Str "the",Space,Str "degree",Space,Str "it",Space,Str "indicates,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-svg-003.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"svg-xhtml-support\">"
 ,Header 3 ("",[],[]) [Str "XHTML",Space,Str "Support"]
-,RawBlock (Format "html") "<section id=\"svg-410\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-410"],Space,Code ("",[],[]) "img"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "SVG",Space,Str "is",Space,Str "supported",Space,Str "in",Space,Code ("",[],[]) "img",Space,Str "elements."]
 ,Para [Image [Str "a",Space,Str "grey",Space,Str "circle"] ("EPUB/svg/circle.svg","")]
 ,Para [Str "If",Space,Str "a",Space,Str "grey",Space,Str "circle",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-420\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-420"],Space,Code ("",[],[]) "object"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "SVG",Space,Str "is",Space,Str "supported",Space,Str "in",Space,Code ("",[],[]) "object",Space,Str "elements."]
-,Para [RawInline (Format "html") "<object type=\"image/svg+xml\" data=\"../svg/circle.svg\">"]
 ,Para [Str "FAIL"]
-,Para [RawInline (Format "html") "</object>"]
 ,Para [Str "If",Space,Str "a",Space,Str "circle",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"svg-430\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-430"],Space,Code ("",[],[]) "background-image",Space,Str "(CSS)"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "SVG",Space,Str "is",Space,Str "supported",Space,Str "when",Space,Str "set",Space,Str "using",Space,Str "the",Space,Str "CSS",Space,Code ("",[],[]) "background-image",Space,Str "property."]
 ,Para [Str "If",Space,Str "a",Space,Str "grey",Space,Str "circle",Space,Str "is",Space,Str "rendered",Space,Str "at",Space,Str "the",Space,Str "right",Space,Str "bottom",Space,Str "of",Space,Str "this",Space,Str "section,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-svg-004.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"svg-image-embed\">"
 ,Header 3 ("",[],[]) [Str "Image",Space,Str "Embedding"]
-,RawBlock (Format "html") "<section id=\"svg-510\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "svg-510"],Space,Str "Bitmaps"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "bitmap",Space,Str "images",Space,Str "can",Space,Str "be",Space,Str "embedded",Space,Str "in",Space,Str "an",Space,Str "SVG",Space,Str "image."]
-,Para [RawInline (Format "html") "<svg width=\"100%\" height=\"200\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xlink=\"http://www.w3.org/1999/xlink\">",Space,RawInline (Format "html") "<image x=\"20\" y=\"20\" width=\"182px\" height=\"185px\" href=\"../img/circle.jpg\">",RawInline (Format "html") "</image>",Space,RawInline (Format "html") "</svg>"]
 ,Para [Str "If",Space,Str "a",Space,Str "black",Space,Str "circle",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-fallbacks.xhtml",[],[]) []]
 ,Header 1 ("",[],[]) [Str "Fallbacks"]
 ,Para [Str "This",Space,Str "section",Space,Str "contains",Space,Str "tests",Space,Str "for",Space,Str "Fallbacks."]
 ,Para [Span ("content-bindings-001.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"bindings\">"
 ,Header 3 ("",[],[]) [Str "Bindings"]
-,RawBlock (Format "html") "<section id=\"bindings-010\" class=\"otest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "bindings-010"],Space,Code ("",[],[]) "bindings"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "bindings",Space,Str "on",Space,Code ("",[],[]) "object",Str "s",Space,Str "are",Space,Str "supported."]
-,Para [RawInline (Format "html") "<object data=\"../bindings/slideshow.xml\" type=\"application/x-demo-slideshow\">",Space,RawInline (Format "html") "<param name=\"success\" value=\"PASS\">",RawInline (Format "html") "</param>"]
 ,Para [Str "FAIL"]
 ,Para [Str "The",Space,Str "slideshow",Space,Str "binding",Space,Str "was",Space,Str "not",Space,Str "called"]
-,Para [RawInline (Format "html") "</object>"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"PASS\",",Space,Str "the",Space,Str "test",Space,Str "passes.",Space,Str "Other",Space,Str "messages",Space,Str "may",Space,Str "indicate",Space,Str "partial",Space,Str "support."]
 ,Para [Str "If",Space,Str "the",Space,Str "reading",Space,Str "system",Space,Str "does",Space,Str "not",Space,Str "support",Space,Str "scripting,",Space,Str "this",Space,Str "test",Space,Str "should",Space,Str "be",Space,Str "marked",Space,Code ("",[],[]) "Not Supported",Str "."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-fallbacks-001.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"fallbacks\">"
 ,Header 2 ("",[],[]) [Str "Fallbacks"]
-,RawBlock (Format "html") "<section id=\"fallbacks-manifest\">"
 ,Header 3 ("",[],[]) [Str "Manifest"]
-,RawBlock (Format "html") "<section id=\"fallback-010\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "fallback-010"],Space,Str "Image",Space,Str "fallbacks"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "manifest",Space,Str "fallbacks",Space,Str "for",Space,Str "non-core",Space,Str "image",Space,Str "media",Space,Str "types",Space,Str "are",Space,Str "supported."]
 ,Para [Image [Str "test"] ("EPUB/img/nonimage.xyz","")]
 ,Para [Str "If",Space,Str "an",Space,Str "image",Space,Str "of",Space,Str "a",Space,Str "checkmark",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"fallback-020\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "fallback-020"],Space,Str "Inline",Space,Str "frame",Space,Str "fallbacks"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "manifest",Space,Str "fallbacks",Space,Str "for",Space,Str "non-core",Space,Str "media",Space,Str "types",Space,Str "used",Space,Str "in",Space,Code ("",[],[]) "iframe",Str "s",Space,Str "are",Space,Str "supported."]
-,Para [RawInline (Format "html") "<iframe src=\"../img/nonimage.xyz\">",RawInline (Format "html") "</iframe>"]
 ,Para [Str "If",Space,Str "an",Space,Str "image",Space,Str "of",Space,Str "a",Space,Str "checkmark",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"fallback-030\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "fallback-030"],Space,Str "Embed",Space,Str "fallbacks"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "manifest",Space,Str "fallbacks",Space,Str "for",Space,Str "non-core",Space,Str "media",Space,Str "types",Space,Str "used",Space,Str "in",Space,Code ("",[],[]) "embed",Str "s",Space,Str "are",Space,Str "supported."]
-,RawBlock (Format "html") "<embed src=\"../img/nonimage.xyz\" type=\"image/xyz\">"
-,RawBlock (Format "html") "</embed>"
 ,Para [Str "If",Space,Str "an",Space,Str "image",Space,Str "of",Space,Str "a",Space,Str "checkmark",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"fallbacks-intrinsic\">"
 ,Header 3 ("",[],[]) [Str "Intrinsic"]
-,RawBlock (Format "html") "<section id=\"fallback-040\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "fallback-040"],Space,Str "Object",Space,Str "fallbacks"]
 ,Para [Str "Tests",Space,Str "whether",Space,Code ("",[],[]) "object",Str "'s",Space,Str "intrinsic",Space,Str "fallback",Space,Str "mechanism",Space,Str "for",Space,Str "non-core",Space,Str "media",Space,Str "types",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<object data=\"../img/nonimage.xyz\" type=\"image/xyz\">",Space,RawInline (Format "html") "<object data=\"../img/nonimage.xyz\" type=\"image/xyz\">"]
 ,Para [Str "PASS"]
-,Para [RawInline (Format "html") "</object>",Space,RawInline (Format "html") "</object>"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"PASS\",",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-switch-001.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"epub-switch\">"
 ,Header 3 ("",[],[]) [Code ("",[],[]) "epub:switch"]
-,RawBlock (Format "html") "<section id=\"switch-010\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "switch-010"],Space,Str "Support"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "epub:switch",Space,Str "element",Space,Str "is",Space,Str "supported."]
 ,Para [Str "PASS"]
 ,Para [Str "If",Space,Str "only",Space,Str "the",Space,Str "word",Space,Str "\"PASS\"",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes.",Space,Str "If",Space,Str "both",Space,Str "\"PASS\"",Space,Str "and",Space,Str "\"FAIL\"",Space,Str "are",Space,Str "rendered,",Space,Str "or",Space,Str "neither",Space,Str "\"PASS\"",Space,Str "nor",Space,Str "\"FAIL\"",Space,Str "is",Space,Str "rendered,",Space,Str "the",Space,Str "test",Space,Str "fails."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"switch-020\" class=\"otest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[OPTIONAL]"],Space,Span ("",["test-id"],[]) [Str "switch-020"],Space,Str "MathML",Space,Str "Embedding"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "MathML",Space,Str "namespace",Space,Str "is",Space,Str "recognized",Space,Str "when",Space,Str "used",Space,Str "in",Space,Str "an",Space,Code ("",[],[]) "epub:case",Space,Str "element."]
 ,Para [Math InlineMath "{2x}{+ y - z}"]
 ,Para [Str "If",Space,Str "a",Space,Str "MathML",Space,Str "equation",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
 ,Para [Str "If",Space,Str "test",Space,Code ("",[],[]) "switch-010",Space,Str "did",Space,Str "not",Space,Str "pass,",Space,Str "this",Space,Str "test",Space,Str "should",Space,Str "be",Space,Str "marked",Space,Code ("",[],[]) "Not Supported",Str "."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("svg-doc-001.xhtml",[],[]) []]
 ,Header 1 ("",[],[]) [Str "Content",Space,Str "Documents:",Space,Str "SVG"]
 ,Para [Str "This",Space,Str "section",Space,Str "contains",Space,Str "tests",Space,Str "for",Space,Str "static",Space,Str "SVG",Space,Str "content."]
