@@ -63,6 +63,10 @@ Pandoc (Meta {unMeta = fromList []})
     ,BulletList
      [[Plain [Str "ui",Space,Str "2.1.1"]]
      ,[Plain [Str "ui",Space,Str "2.1.2"]]]]]]]
+,Header 2 ("issue-1500",[],[]) [Str "Issue",Space,Str "#1500"]
+,BulletList
+ [[Plain [Str "one"]]
+ ,[Plain [Str "two",LineBreak,Str "->",Space,Str "and",Space,Str "more"]]]
 ,Header 2 ("definition-list",[],[]) [Str "Definition",Space,Str "List"]
 ,DefinitionList
  [([Str "coffee"],

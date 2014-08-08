@@ -265,8 +265,20 @@ definitionList :: Parser [Char] ParserState Blocks
 definitionList = try $ B.definitionList <$> many1 definitionListItem
 
 -- | List start character.
-listStart :: Parser [Char] st Char
-listStart = oneOf "*#-"
+listStart :: Parser [Char] ParserState ()
+listStart = genericListStart '*'
+        <|> () <$ genericListStart '#'
+        <|> () <$ definitionListStart
+
+genericListStart :: Char -> Parser [Char] st ()
+genericListStart c = () <$ try (many1 (char c) >> whitespace)
+
+definitionListStart :: Parser [Char] ParserState Inlines
+definitionListStart = try $ do
+  char '-'
+  whitespace
+  trimInlines . mconcat <$>
+    many1Till inline (try (string ":=")) <* optional whitespace
 
 listInline :: Parser [Char] ParserState Inlines
 listInline = try (notFollowedBy newline >> inline)
@@ -278,8 +290,7 @@ listInline = try (notFollowedBy newline >> inline)
 -- break.
 definitionListItem :: Parser [Char] ParserState (Inlines, [Blocks])
 definitionListItem = try $ do
-  string "- "
-  term <- mconcat <$> many1Till inline (try (whitespace >> string ":="))
+  term <- definitionListStart
   def' <- multilineDef <|> inlineDef
   return (term, def')
   where inlineDef :: Parser [Char] ParserState [Blocks]
@@ -488,7 +499,7 @@ str = do
   return $ B.str fullStr
 
 -- | Some number of space chars
-whitespace :: Parser [Char] ParserState Inlines
+whitespace :: Parser [Char] st Inlines
 whitespace = many1 spaceChar >> return B.space <?> "whitespace"
 
 -- | In Textile, an isolated endline character is a line break
