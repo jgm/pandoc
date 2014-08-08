@@ -80,6 +80,8 @@ writePlain opts document =
                  writerExtensions = Set.delete Ext_escaped_line_breaks $
                                     Set.delete Ext_pipe_tables $
                                     Set.delete Ext_raw_html $
+                                    Set.delete Ext_markdown_in_html_blocks $
+                                    Set.delete Ext_raw_tex $
                                     Set.delete Ext_footnotes $
                                     Set.delete Ext_tex_math_dollars $
                                     Set.delete Ext_citations $
@@ -296,12 +298,12 @@ blockToMarkdown :: WriterOptions -- ^ Options
                 -> State WriterState Doc
 blockToMarkdown _ Null = return empty
 blockToMarkdown opts (Div attrs ils) = do
-  plain <- gets stPlain
   contents <- blockListToMarkdown opts ils
-  return $ if plain || not (isEnabled Ext_markdown_in_html_blocks opts)
-              then contents <> blankline
-              else tagWithAttrs "div" attrs <> blankline <>
+  return $ if isEnabled Ext_raw_html opts &&
+                isEnabled Ext_markdown_in_html_blocks opts
+              then tagWithAttrs "div" attrs <> blankline <>
                       contents <> blankline <> "</div>" <> blankline
+              else contents <> blankline
 blockToMarkdown opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
   -- escape if para starts with ordered list marker
@@ -676,11 +678,10 @@ escapeSpaces x = x
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
 inlineToMarkdown opts (Span attrs ils) = do
-  plain <- gets stPlain
   contents <- inlineListToMarkdown opts ils
-  return $ if plain
-              then contents
-              else tagWithAttrs "span" attrs <> contents <> text "</span>"
+  return $ if isEnabled Ext_raw_html opts
+              then tagWithAttrs "span" attrs <> contents <> text "</span>"
+              else contents
 inlineToMarkdown opts (Emph lst) = do
   plain <- gets stPlain
   contents <- inlineListToMarkdown opts lst
@@ -696,8 +697,7 @@ inlineToMarkdown opts (Strong lst) = do
        return $ "**" <> contents <> "**"
 inlineToMarkdown opts (Strikeout lst) = do
   contents <- inlineListToMarkdown opts lst
-  plain <- gets stPlain
-  return $ if plain || isEnabled Ext_strikeout opts
+  return $ if isEnabled Ext_strikeout opts
               then "~~" <> contents <> "~~"
               else "<s>" <> contents <> "</s>"
 inlineToMarkdown opts (Superscript lst) = do
@@ -767,8 +767,10 @@ inlineToMarkdown opts (Math DisplayMath str)
         inlineListToMarkdown opts (texMathToInlines DisplayMath str)
 inlineToMarkdown opts (RawInline f str) = do
   plain <- gets stPlain
-  if not plain && f == "html" || f == "markdown" ||
-    (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex"))
+  if not plain &&
+     ( f == "markdown" ||
+       (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex")) ||
+       (isEnabled Ext_raw_html opts && f == "html") )
     then return $ text str
     else return empty
 inlineToMarkdown opts (LineBreak) = do
