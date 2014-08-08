@@ -52,10 +52,12 @@ runEPUB = either error id . runExcept
 --
 archiveToEPUB :: (MonadError String m) => ReaderOptions -> Archive -> m (Pandoc, MediaBag)
 archiveToEPUB (setEPUBOptions -> os) archive = do
+  -- root is path to folder with manifest file in
   (root, content) <- getManifest archive
   meta  <- parseMeta content
   (cover, items) <- parseManifest content
-  let coverDoc = fromMaybe mempty (imageToPandoc <$> cover)
+  -- No need to collapse here as the image path is from the manifest file
+  let coverDoc = fromMaybe mempty (imageToPandoc . (root </>) <$> cover)
   spine <- parseSpine items content
   let escapedSpine = map (escapeURI . takeFileName . fst) spine
   Pandoc _ bs <-
@@ -68,17 +70,17 @@ archiveToEPUB (setEPUBOptions -> os) archive = do
     parseSpineElem :: MonadError String m => FilePath -> (FilePath, MIME) -> m Pandoc
     parseSpineElem (normalise -> r) (normalise -> path, mime) = do
       when (readerTrace os) (traceM path)
-      doc <- mimeToReader mime r path
+      doc <- mimeToReader mime (r </> path)
       let docSpan = B.doc $ B.para $ B.spanWith (takeFileName path, [], []) mempty
       return $ docSpan <> doc
-    mimeToReader :: MonadError String m => MIME -> FilePath -> FilePath ->  m Pandoc
-    mimeToReader "application/xhtml+xml" r path = do
-      fname <- findEntryByPathE (r </> path) archive
-      return $ fixInternalReferences (r </> path) .
+    mimeToReader :: MonadError String m => MIME -> FilePath ->  m Pandoc
+    mimeToReader "application/xhtml+xml" (normalise -> path) = do
+      fname <- findEntryByPathE path archive
+      return $ fixInternalReferences path .
                 readHtml os .
                   UTF8.toStringLazy $
                     fromEntry fname
-    mimeToReader s _ path
+    mimeToReader s path
       | s `elem` imageMimes = return $ imageToPandoc path
       | otherwise = return $ mempty
 
