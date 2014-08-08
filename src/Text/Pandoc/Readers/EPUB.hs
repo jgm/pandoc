@@ -51,7 +51,7 @@ runEPUB = either error id . runExcept
 -- are of the form "filename#id"
 --
 archiveToEPUB :: (MonadError String m) => ReaderOptions -> Archive -> m (Pandoc, MediaBag)
-archiveToEPUB os archive = do
+archiveToEPUB (setEPUBOptions -> os) archive = do
   (root, content) <- getManifest archive
   meta  <- parseMeta content
   (cover, items) <- parseManifest content
@@ -65,9 +65,6 @@ archiveToEPUB os archive = do
   let mediaBag = fetchImages (M.elems items) root archive ast
   return $ (ast, mediaBag)
   where
-    rs = readerExtensions os
-    os' = os {readerExtensions = foldr S.insert rs [Ext_epub_html_exts, Ext_raw_html]}
-    os'' = os' {readerParseRaw = True}
     parseSpineElem :: MonadError String m => FilePath -> (FilePath, MIME) -> m Pandoc
     parseSpineElem (normalise -> r) (normalise -> path, mime) = do
       when (readerTrace os) (traceM path)
@@ -78,12 +75,19 @@ archiveToEPUB os archive = do
     mimeToReader "application/xhtml+xml" r path = do
       fname <- findEntryByPathE (r </> path) archive
       return $ fixInternalReferences (r </> path) .
-                readHtml os'' .
+                readHtml os .
                   UTF8.toStringLazy $
                     fromEntry fname
     mimeToReader s _ path
       | s `elem` imageMimes = return $ imageToPandoc path
       | otherwise = return $ mempty
+
+setEPUBOptions :: ReaderOptions -> ReaderOptions
+setEPUBOptions os = os''
+  where
+    rs   = readerExtensions os
+    os'  = os {readerExtensions = foldr S.insert rs [Ext_epub_html_exts]}
+    os'' = os' {readerParseRaw = True}
 
 fetchImages :: [(FilePath, MIME)]
             -> FilePath
