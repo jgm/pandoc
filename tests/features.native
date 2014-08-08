@@ -1,5 +1,4 @@
 [Para [Span ("front.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"utf-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section>"
 ,Header 1 ("",[],[]) [Str "Reflowable",Space,Str "EPUB",Space,Str "3",Space,Str "Conformance",Space,Str "Test",Space,Str "Document:",Space,Str "0100"]
 ,RawBlock (Format "html") "<section>"
@@ -29,11 +28,9 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-xhtml-001.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"utf-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,Header 1 ("",[],[]) [Str "Content",Space,Str "Documents:",Space,Str "XHTML"]
 ,Para [Str "This",Space,Str "section",Space,Str "contains",Space,Str "tests",Space,Str "for",Space,Str "static",Space,Str "XHTML",Space,Str "content."]
 ,Para [Span ("content-xhtml-002.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"iframe-010\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "iframe-010"],Space,Str "Inline",Space,Str "Frames"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "embedding",Space,Str "content",Space,Str "via",Space,Str "an",Space,Code ("",[],[]) "iframe",Space,Str "is",Space,Str "supported."]
@@ -41,7 +38,6 @@
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"PASS\",",Space,Str "the",Space,Str "test",Space,Str "passes."]
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-images-001.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section>"
 ,Header 2 ("content-images-001.xhtml#multimedia",[],[]) [Str "Multimedia"]
 ,RawBlock (Format "html") "<section>"
@@ -67,7 +63,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-multimedia-001.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section>"
 ,RawBlock (Format "html") "<section>"
 ,Header 3 ("content-multimedia-001.xhtml#audio",[],[]) [Str "Audio"]
@@ -92,7 +87,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-multimedia-002.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section>"
 ,Header 3 ("content-multimedia-002.xhtml#video",[],[]) [Str "Video"]
 ,RawBlock (Format "html") "<section id=\"video-010\" class=\"otest\">"
@@ -146,7 +140,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-multimedia-003.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section>"
 ,Header 3 ("content-multimedia-003.xhtml#trigger",[],[]) [Code ("",[],[]) "epub:trigger"]
 ,RawBlock (Format "html") "<section id=\"trigger-010\" class=\"ctest\">"
@@ -179,7 +172,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-ns-001.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section>"
 ,Header 2 ("content-ns-001.xhtml#ns",[],[]) [Str "Namespace",Space,Str "Support"]
 ,RawBlock (Format "html") "<section id=\"namespace-010\" class=\"ctest\">"
@@ -191,7 +183,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-mathml-001.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"utf-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section>"
 ,Header 2 ("content-mathml-001.xhtml#mathml",[],[]) [Str "MathML"]
 ,RawBlock (Format "html") "<section id=\"mathml-010\" class=\"ctest\">"
@@ -259,7 +250,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-svg-001.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"svg\">"
 ,Header 2 ("",[],[]) [Str "SVG"]
 ,RawBlock (Format "html") "<section id=\"svg-shapes\">"
@@ -279,7 +269,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-svg-002.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"svg-text\">"
 ,Header 3 ("",[],[]) [Str "Text",Space,Str "content"]
 ,RawBlock (Format "html") "<section id=\"svg-text-styling\">"
@@ -365,7 +354,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-svg-003.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"svg-xhtml-support\">"
 ,Header 3 ("",[],[]) [Str "XHTML",Space,Str "Support"]
 ,RawBlock (Format "html") "<section id=\"svg-410\" class=\"ctest\">"
@@ -389,7 +377,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-svg-004.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"svg-image-embed\">"
 ,Header 3 ("",[],[]) [Str "Image",Space,Str "Embedding"]
 ,RawBlock (Format "html") "<section id=\"svg-510\" class=\"ctest\">"
@@ -400,11 +387,9 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-fallbacks.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"utf-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,Header 1 ("",[],[]) [Str "Fallbacks"]
 ,Para [Str "This",Space,Str "section",Space,Str "contains",Space,Str "tests",Space,Str "for",Space,Str "Fallbacks."]
 ,Para [Span ("content-bindings-001.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"utf-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"bindings\">"
 ,Header 3 ("",[],[]) [Str "Bindings"]
 ,RawBlock (Format "html") "<section id=\"bindings-010\" class=\"otest\">"
@@ -419,7 +404,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-fallbacks-001.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"fallbacks\">"
 ,Header 2 ("",[],[]) [Str "Fallbacks"]
 ,RawBlock (Format "html") "<section id=\"fallbacks-manifest\">"
@@ -457,7 +441,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-switch-001.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"epub-switch\">"
 ,Header 3 ("",[],[]) [Code ("",[],[]) "epub:switch"]
 ,RawBlock (Format "html") "<section id=\"switch-010\" class=\"ctest\">"
@@ -475,7 +458,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("svg-doc-001.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"utf-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,Header 1 ("",[],[]) [Str "Content",Space,Str "Documents:",Space,Str "SVG"]
 ,Para [Str "This",Space,Str "section",Space,Str "contains",Space,Str "tests",Space,Str "for",Space,Str "static",Space,Str "SVG",Space,Str "content."]
 ,Para [Str "Note",Space,Str "that",Space,Str "if",Space,Str "no",Space,Str "SVG",Space,Str "tests",Space,Str "appear",Space,Str "after",Space,Str "this",Space,Str "document,",Space,Str "SVG",Space,Str "is",Space,Str "not",Space,Str "supported",Space,Str "in",Space,Str "the",Space,Str "spine",Space,Str "and",Space,Str "all",Space,Str "tests",Space,Str "in",Space,Str "this",Space,Str "section",Space,Str "should",Space,Str "be",Space,Str "marked",Space,Code ("",[],[]) "Not Supported",Str "."]

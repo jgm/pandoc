@@ -289,7 +289,7 @@ fixPlains inList bs = if any isParaish bs'
 pRawTag :: TagParser String
 pRawTag = do
   tag <- pAnyTag
-  let ignorable x = x `elem` ["html","head","body","DOCTYPE","?xml"]
+  let ignorable x = x `elem` ["html","head","body","!DOCTYPE","?xml"]
   if tagOpen ignorable (const True) tag || tagClose ignorable tag
      then return []
      else return $ renderTags' [tag]
@@ -728,7 +728,7 @@ inlineHtmlTags = ["a", "abbr", "acronym", "b", "basefont", "bdo", "big",
 -}
 
 blockHtmlTags :: [String]
-blockHtmlTags = ["address", "article", "aside",
+blockHtmlTags = ["?xml", "!DOCTYPE", "address", "article", "aside",
                  "blockquote", "body", "button", "canvas",
                  "caption", "center", "col", "colgroup", "dd", "dir", "div",
                  "dl", "dt", "embed", "fieldset", "figcaption", "figure",

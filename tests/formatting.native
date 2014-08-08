@@ -1,5 +1,4 @@
 [Para [Span ("front.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"utf-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section>"
 ,Header 1 ("",[],[]) [Str "EPUB",Space,Str "3",Space,Str "Styling",Space,Str "Test",Space,Str "Document:",Space,Str "0101"]
 ,RawBlock (Format "html") "<section>"
@@ -29,13 +28,11 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-001.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"utf-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"epub-css\">"
 ,Header 1 ("",[],[]) [Str "EPUB",Space,Str "Style",Space,Str "Sheets"]
 ,Para [Str "This",Space,Str "section",Space,Str "contains",Space,Str "tests",Space,Str "for",Space,Str "styling",Space,Str "and",Space,Str "layout."]
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-003.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"style-110\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-110"],Space,Str "Multi-Column",Space,Str "Layouts"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "CSS Multi-Column Layout",Space,Str "properties",Space,Str "are",Space,Str "supported."]
@@ -43,7 +40,6 @@
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "text",Space,Str "is",Space,Str "rendered",Space,Str "in",Space,Str "three",Space,Str "columns,",Space,Str "the",Space,Str "test",Space,Str "passes."]
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-002.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"style-lists\">"
 ,Header 2 ("",[],[]) [Str "Lists"]
 ,RawBlock (Format "html") "<section id=\"style-list-style-type\">"
@@ -342,7 +338,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-004.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"style-media-rules\">"
 ,Header 2 ("",[],[]) [Code ("",[],[]) "@media",Space,Str "Rules"]
 ,RawBlock (Format "html") "<section id=\"style-210\" class=\"ctest\">"
@@ -407,7 +402,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-005.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"style-text-xform\">"
 ,Header 2 ("",[],[]) [Str "The",Space,Code ("",[],[]) "text-transform",Space,Str "property"]
 ,RawBlock (Format "html") "<section id=\"style-310\" class=\"ctest\">"
@@ -430,7 +424,6 @@
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-006.xhtml",[],[]) []]
-,Para [RawInline (Format "html") "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",Space,RawInline (Format "html") "<!DOCTYPE html>"]
 ,RawBlock (Format "html") "<section id=\"style-ruby\">"
 ,Header 2 ("",[],[]) [Str "The",Space,Code ("",[],[]) "epub-ruby-position",Space,Str "property"]
 ,RawBlock (Format "html") "<section id=\"style-410\" class=\"ctest\">"
