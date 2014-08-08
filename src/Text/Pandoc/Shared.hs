@@ -80,6 +80,7 @@ module Text.Pandoc.Shared (
                      fetchItem,
                      fetchItem',
                      openURL,
+                     collapseFilePath,
                      -- * Error handling
                      err,
                      warn,
@@ -105,6 +106,7 @@ import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI )
 import qualified Data.Set as Set
 import System.Directory
+import System.FilePath (joinPath, splitDirectories)
 import Text.Pandoc.MIME (getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension)
 import Data.Generics (Typeable, Data)
@@ -530,7 +532,7 @@ stringify = query go . walk deNote
         deNote x = x
 
 -- | Bring all regular text in a pandoc structure to uppercase.
--- 
+--
 -- This function correctly handles cases where a lowercase character doesn't
 -- match to a single uppercase character – e.g. “Straße” would be converted
 -- to “STRASSE”, not “STRAßE”.
@@ -853,6 +855,29 @@ warn :: String -> IO ()
 warn msg = do
   name <- getProgName
   UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+
+-- | Remove intermediate "." and ".." directories from a path.
+--
+-- @
+--  collapseFilePath "./foo" == "foo"
+--  collapseFilePath "/bar/../baz" == "/baz"
+--  collapseFilePath "/../baz" == "/../baz"
+--  collapseFilePath "parent/foo/baz/../bar" ==  "parent/foo/bar"
+--  collapseFilePath "parent/foo/baz/../../bar" ==  "parent/bar"
+--  collapseFilePath "parent/foo/.." ==  "parent"
+--  collapseFilePath "/parent/foo/../../bar" ==  "/bar"
+--  @
+collapseFilePath :: FilePath -> FilePath
+collapseFilePath = joinPath . reverse . foldl go [] . splitDirectories
+  where
+    go rs "." = rs
+    go r@(p:rs) ".." = case p of
+                            ".." -> ("..":r)
+                            "/" -> ("..":r)
+                            _ -> rs
+    go _ "/" = ["/"]
+    go rs x = x:rs
+
 
 --
 -- Safe read
