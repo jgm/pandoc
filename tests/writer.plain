@@ -9,7 +9,7 @@ markdown test suite.
 
 
 
-Headers
+HEADERS
 
 
 Level 2 with an embedded link
@@ -22,7 +22,7 @@ Level 5
 
 
 
-Level 1
+LEVEL 1
 
 
 Level 2 with _emphasis_
@@ -40,7 +40,7 @@ with no blank line
 
 
 
-Paragraphs
+PARAGRAPHS
 
 
 Here’s a regular paragraph.
@@ -58,7 +58,7 @@ here.
 
 
 
-Block Quotes
+BLOCK QUOTES
 
 
 E-mail style:
@@ -90,7 +90,7 @@ And a following paragraph.
 
 
 
-Code Blocks
+CODE BLOCKS
 
 
 Code:
@@ -113,7 +113,7 @@ And:
 
 
 
-Lists
+LISTS
 
 
 Unordered
@@ -277,7 +277,7 @@ B. Williams
 
 
 
-Definition Lists
+DEFINITION LISTS
 
 
 Tight using spaces:
@@ -373,7 +373,7 @@ orange
 
 
 
-HTML Blocks
+HTML BLOCKS
 
 
 Simple block on one line:
@@ -428,7 +428,7 @@ Hr’s:
 
 
 
-Inline Markup
+INLINE MARKUP
 
 
 This is _emphasized_, and so _is this_.
@@ -460,7 +460,7 @@ spaces: a^b c^d, a~b c~d.
 
 
 
-Smart quotes, ellipses, dashes
+SMART QUOTES, ELLIPSES, DASHES
 
 
 “Hello,” said the spider. “‘Shelob’ is my name.”
@@ -483,7 +483,7 @@ Ellipses…and…and….
 
 
 
-LaTeX
+LATEX
 
 
 -   
@@ -510,7 +510,7 @@ Here’s a LaTeX table:
 
 
 
-Special Characters
+SPECIAL CHARACTERS
 
 
 Here is some unicode:
@@ -567,7 +567,7 @@ Minus: -
 
 
 
-Links
+LINKS
 
 
 Explicit
@@ -649,7 +649,7 @@ Auto-links should not occur here: <http://example.com/>
 
 
 
-Images
+IMAGES
 
 
 From “Voyage dans la Lune” by Georges Melies (1902):
@@ -662,7 +662,7 @@ Here is a movie [movie] icon.
 
 
 
-Footnotes
+FOOTNOTES
 
 
 Here is a footnote reference,[1] and another.[2] This should _not_ be a

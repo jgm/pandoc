@@ -357,7 +357,10 @@ blockToMarkdown opts (Header level attr inlines) = do
                    _ | isEnabled Ext_header_attributes opts ->
                                     space <> attrsToMarkdown attr
                      | otherwise -> empty
-  contents <- inlineListToMarkdown opts inlines
+  contents <- inlineListToMarkdown opts $
+                 if level == 1 && plain
+                    then capitalize inlines
+                    else inlines
   let setext = writerSetextHeaders opts
   return $ nowrap
          $ case level of
