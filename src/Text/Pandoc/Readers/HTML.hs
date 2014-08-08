@@ -126,8 +126,8 @@ block = do
   tr <- getOption readerTrace
   pos <- getPosition
   res <- choice
-            [ eSwitch
-            , eSection
+            [ eSection
+            , eSwitch B.para block
             , mempty <$ eFootnote
             , mempty <$ eTOC
             , pPara
@@ -147,26 +147,26 @@ block = do
              (take 60 $ show $ B.toList res)) (return ())
   return res
 
-namespaces :: [(String, TagParser Blocks)]
-namespaces = [(mathMLNamespace, B.para <$> pMath True)]
+namespaces :: [(String, TagParser Inlines)]
+namespaces = [(mathMLNamespace, pMath True)]
 
 mathMLNamespace :: String
 mathMLNamespace = "http://www.w3.org/1998/Math/MathML"
 
-eSwitch :: TagParser Blocks
-eSwitch = try $ do
+eSwitch :: Monoid a => (Inlines -> a) -> TagParser a -> TagParser a
+eSwitch constructor parser = try $ do
   guardEnabled Ext_epub_html_exts
   pSatisfy (~== TagOpen "switch" [])
   cases <- getFirst . mconcat <$>
             manyTill (First <$> (eCase <* skipMany pBlank) )
               (lookAhead $ try $ pSatisfy (~== TagOpen "default" []))
   skipMany pBlank
-  fallback <- pInTags "default" ( skipMany pBlank *> block <* skipMany pBlank )
+  fallback <- pInTags "default" (skipMany pBlank *> parser <* skipMany pBlank)
   skipMany pBlank
   pSatisfy (~== TagClose "switch")
-  return (fromMaybe fallback cases)
+  return $ maybe fallback constructor cases
 
-eCase :: TagParser (Maybe Blocks)
+eCase :: TagParser (Maybe Inlines)
 eCase = do
   skipMany pBlank
   TagOpen _ attr <- lookAhead $ pSatisfy $ (~== TagOpen "case" [])
@@ -443,6 +443,7 @@ pCodeBlock = try $ do
 inline :: TagParser Inlines
 inline = choice
            [ eNoteref
+           , eSwitch id inline
            , pTagText
            , pQ
            , pEmph

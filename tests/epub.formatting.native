@@ -1,20 +1,14 @@
 [Para [Span ("front.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section>"
 ,Header 1 ("",[],[]) [Str "EPUB",Space,Str "3",Space,Str "Styling",Space,Str "Test",Space,Str "Document:",Space,Str "0101"]
-,RawBlock (Format "html") "<section>"
 ,Header 2 ("",[],[]) [Str "Status",Space,Str "of",Space,Str "this",Space,Str "Document"]
 ,Para [Str "This",Space,Str "publication",Space,Str "is",Space,Str "currently",Space,Str "considered",Space,Span ("",["status"],[]) [Str "[UNDER",Space,Str "DEVELOPMENT]"],Space,Str "by",Space,Str "the",Space,Str "IDPF."]
-,Para [Str "This",Space,Str "publication",Space,Str "is",Space,Str "part",Space,Str "of",Space,Str "version",Space,Span ("",["version"],[]) [Str "X.X"],Space,Str "of",Space,Str "the",Space,Str "EPUB",Space,Str "3.0",Space,Str "Compliance",Space,Str "Test",Space,Str "Suite",Space,Str "released",Space,Str "on",Space,RawInline (Format "html") "<time class=\"release\">",Str "TBD",RawInline (Format "html") "</time>",Str "."]
+,Para [Str "This",Space,Str "publication",Space,Str "is",Space,Str "part",Space,Str "of",Space,Str "version",Space,Span ("",["version"],[]) [Str "X.X"],Space,Str "of",Space,Str "the",Space,Str "EPUB",Space,Str "3.0",Space,Str "Compliance",Space,Str "Test",Space,Str "Suite",Space,Str "released",Space,Str "on",Space,Str "TBD."]
 ,Para [Str "Before",Space,Str "using",Space,Str "this",Space,Str "publication",Space,Str "to",Space,Str "evaluate",Space,Str "reading",Space,Str "systems,",Space,Str "testers",Space,Str "are",Space,Str "strongly",Space,Str "encouraged",Space,Str "to",Space,Str "verify",Space,Str "that",Space,Str "they",Space,Str "have",Space,Str "the",Space,Str "latest",Space,Str "release",Space,Str "by",Space,Str "checking",Space,Str "the",Space,Str "current",Space,Str "release",Space,Str "version",Space,Str "and",Space,Str "date",Space,Str "of",Space,Str "the",Space,Str "test",Space,Str "suite",Space,Str "at",Space,Link [Str "TBD"] ("","")]
 ,Para [Str "This",Space,Str "publication",Space,Str "is",Space,Str "one",Space,Str "of",Space,Str "several",Space,Str "that",Space,Str "currently",Space,Str "comprise",Space,Str "the",Space,Str "EPUB",Space,Str "3",Space,Str "conformance",Space,Str "test",Space,Str "suite",Space,Str "for",Space,Str "reflowable",Space,Str "content.",Space,Str "The",Space,Str "complete",Space,Str "test",Space,Str "suite",Space,Str "includes",Space,Str "all",Space,Str "of",Space,Str "the",Space,Str "following",Space,Str "publications:"]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
  [[Plain [Str "."]]]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section>"
 ,Header 2 ("",[],[]) [Str "About",Space,Str "this",Space,Str "Document"]
 ,Para [Str "This",Space,Str "document",Space,Str "focuses",Space,Str "on",Space,Str "human-evaluated",Space,Str "binary",Space,Str "(pass/fail)",Space,Str "tests",Space,Str "in",Space,Str "a",Space,Str "reflowable",Space,Str "context.",Space,Str "Tests",Space,Str "for",Space,Str "fixed-layout",Space,Str "content",Space,Str "and",Space,Str "other",Space,Str "individual",Space,Str "tests",Space,Str "that",Space,Str "require",Space,Str "a",Space,Str "dedicated",Space,Str "epub",Space,Str "file",Space,Str "are",Space,Str "available",Space,Str "in",Space,Str "additional",Space,Str "sibling",Space,Str "documents;",Space,Str "refer",Space,Str "to",Space,Str "the",Space,Link [Str "test",Space,Str "suite",Space,Str "wiki"] ("Overview",""),Space,Str "(",Code ("",[],[]) "https://github.com/mgylling/epub-testsuite/wiki/Overview",Str ")",Space,Str "for",Space,Str "additional",Space,Str "information."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section>"
 ,Header 2 ("",[],[]) [Str "Conventions"]
 ,Para [Str "The",Space,Str "following",Space,Str "conventions",Space,Str "are",Space,Str "used",Space,Str "throughout",Space,Str "the",Space,Str "document:"]
 ,DefinitionList
@@ -25,26 +19,17 @@
    [[Plain [Str "Each",Space,Str "test",Space,Str "includes",Space,Str "a",Space,Str "description",Space,Str "of",Space,Str "its",Space,Str "purpose",Space,Str "followed",Space,Str "by",Space,Str "the",Space,Str "actual",Space,Strong [Str "test",Space,Str "statement,",Space,Str "which",Space,Str "can",Space,Str "always",Space,Str "be",Space,Str "evaluated",Space,Str "to",Space,Str "true",Space,Str "or",Space,Str "false"],Str ".",Space,Str "These",Space,Str "statements",Space,Str "typically",Space,Str "have",Space,Str "the",Space,Str "form:",Space,Str "\"If",Space,Str "[some",Space,Str "condition],",Space,Str "the",Space,Str "test",Space,Str "passes\"."]]])
  ,([Str "3.",Space,Str "Scoring",Space,Str "in",Space,Str "the",Space,Str "results",Space,Str "form"],
    [[Plain [Str "@@@TODO",Space,Str "provide",Space,Str "info",Space,Str "on",Space,Str "where",Space,Str "to",Space,Str "get",Space,Str "the",Space,Str "results",Space,Str "form"]]])]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-001.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"epub-css\">"
 ,Header 1 ("",[],[]) [Str "EPUB",Space,Str "Style",Space,Str "Sheets"]
 ,Para [Str "This",Space,Str "section",Space,Str "contains",Space,Str "tests",Space,Str "for",Space,Str "styling",Space,Str "and",Space,Str "layout."]
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-003.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"style-110\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-110"],Space,Str "Multi-Column",Space,Str "Layouts"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "CSS Multi-Column Layout",Space,Str "properties",Space,Str "are",Space,Str "supported."]
 ,Div ("",["multicol"],[]) [Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."],Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."],Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."],Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."],Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."],Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."],Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."],Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."],Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "text",Space,Str "is",Space,Str "rendered",Space,Str "in",Space,Str "three",Space,Str "columns,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-002.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"style-lists\">"
 ,Header 2 ("",[],[]) [Str "Lists"]
-,RawBlock (Format "html") "<section id=\"style-list-style-type\">"
 ,Header 3 ("",[],[]) [Str "The",Space,Code ("",[],[]) "list-style-type",Space,Str "property"]
-,RawBlock (Format "html") "<section id=\"style-009\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-009"],Space,Code ("",[],[]) "decimal"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "decimal",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -54,8 +39,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "decimal",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-010\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-010"],Space,Code ("",[],[]) "circle"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "circle",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ul",Space,Str "element."]
 ,BulletList
@@ -65,8 +48,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "circle",Space,Str "markers,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-011\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-011"],Space,Code ("",[],[]) "square"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "square",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ul",Space,Str "element."]
 ,BulletList
@@ -76,8 +57,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "square",Space,Str "markers,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-012\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-012"],Space,Code ("",[],[]) "disc"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "disc",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ul",Space,Str "element."]
 ,BulletList
@@ -87,8 +66,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "disc",Space,Str "markers,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-013\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-013"],Space,Code ("",[],[]) "lower-latin"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "lower-latin",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -98,8 +75,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "lower-latin",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-014\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-014"],Space,Code ("",[],[]) "lower-roman"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "lower-roman",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -109,8 +84,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "lower-roman",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-015\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-015"],Space,Code ("",[],[]) "upper-alpha"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "upper-alpha",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -120,8 +93,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "upper-alpha",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-016\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-016"],Space,Code ("",[],[]) "hiragana"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "hiragana",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -131,8 +102,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "hiragana",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-017\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-017"],Space,Code ("",[],[]) "hiragana-iroha"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "hiragana-iroha",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -142,8 +111,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "hiragana-iroha",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-018\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-018"],Space,Code ("",[],[]) "katakana"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "katakana",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -153,8 +120,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "katakana",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-019\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-019"],Space,Code ("",[],[]) "katakana-iroha"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "katakana-iroha",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -164,8 +129,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "katakana-iroha",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-020\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-020"],Space,Code ("",[],[]) "upper-roman"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "upper-roman",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -175,8 +138,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "upper-roman",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-021\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-021"],Space,Code ("",[],[]) "upper-latin"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "upper-latin",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -186,8 +147,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "upper-latin",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-022\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-022"],Space,Code ("",[],[]) "lower-alpha"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "lower-alpha",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -197,8 +156,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "lower-alpha",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-023\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-023"],Space,Code ("",[],[]) "lower-greek"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "lower-greek",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -208,8 +165,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "lower-greek",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-024\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-024"],Space,Code ("",[],[]) "armenian"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "armenian",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -219,8 +174,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "armenian",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-025\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-025"],Space,Code ("",[],[]) "cjk-ideographic"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "cjk-ideographic",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -230,8 +183,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "cjk-ideographic",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-026\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-026"],Space,Code ("",[],[]) "decimal-leading-zero"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "decimal-leading-zero",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -241,8 +192,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "decimal-leading-zero",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-027\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-027"],Space,Code ("",[],[]) "georgian"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "georgian",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -252,8 +201,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "georgian",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-028\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-028"],Space,Code ("",[],[]) "hebrew"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "hebrew",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -263,8 +210,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "hebrew",Space,Str "markers",Space,Str "in",Space,Str "ascending",Space,Str "order,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-029\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-029"],Space,Code ("",[],[]) "none"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-type",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "none",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element."]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
@@ -274,11 +219,7 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "no",Space,Str "markers,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-list-style\">"
 ,Header 3 ("",[],[]) [Str "The",Space,Code ("",[],[]) "list-style",Space,Str "property"]
-,RawBlock (Format "html") "<section id=\"style-030\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-030"],Space,Str "images"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style",Space,Str "shorthand",Space,Str "property",Space,Str "is",Space,Str "supported",Space,Str "using",Space,Str "a",Space,Str "gif",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ul",Space,Str "element."]
 ,BulletList
@@ -288,11 +229,7 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "the",Space,Str "purple",Space,Str "and",Space,Str "aqua",Space,Str "square",Space,Str "bullet",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-list-style-position\">"
 ,Header 3 ("",[],[]) [Str "The",Space,Code ("",[],[]) "list-style-position",Space,Str "property"]
-,RawBlock (Format "html") "<section id=\"style-040\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-040"],Space,Str "The",Space,Code ("",[],[]) "list-style-position",Space,Str "property:",Space,Code ("",[],[]) "inside"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-position",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "inside",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ul",Space,Str "element."]
 ,BulletList
@@ -300,8 +237,6 @@
  ,[Plain [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat."]]
  ,[Plain [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat."]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "markers",Space,Str "inside",Space,Str "the",Space,Str "indentation,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-041\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-041"],Space,Str "The",Space,Code ("",[],[]) "list-style-position",Space,Str "property:",Space,Code ("",[],[]) "outside"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "list-style-position",Space,Str "property",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "outside",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ul",Space,Str "element."]
 ,BulletList
@@ -309,11 +244,7 @@
  ,[Plain [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat."]]
  ,[Plain [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat."]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "has",Space,Str "the",Space,Str "default",Space,Str "setting",Space,Str "(marker",Space,Str "outside",Space,Str "the",Space,Str "indentation),",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-list-start\">"
 ,Header 3 ("",[],[]) [Str "The",Space,Str "HTML",Space,Code ("",[],[]) "start",Space,Str "attribute"]
-,RawBlock (Format "html") "<section id=\"style-050\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-050"],Space,Str "Without",Space,Code ("",[],[]) "list-style-type",Space,Str "set"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "start",Space,Str "attribute",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element",Space,Str "with",Space,Str "no",Space,Code ("",[],[]) "list-style-type",Space,Str "property."]
 ,OrderedList (25,DefaultStyle,DefaultDelim)
@@ -323,8 +254,6 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "starts",Space,Str "at",Space,Str "25,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-051\" class=\"ctest\">"
 ,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-051"],Space,Str "With",Space,Code ("",[],[]) "list-style-type",Space,Str "set"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "start",Space,Str "attribute",Space,Str "is",Space,Str "supported",Space,Str "on",Space,Str "a",Space,Code ("",[],[]) "ol",Space,Str "element",Space,Str "with",Space,Str "a",Space,Code ("",[],[]) "list-style-type",Space,Str "property."]
 ,OrderedList (50,DefaultStyle,DefaultDelim)
@@ -334,114 +263,73 @@
  ,[Plain [Str "Sit"]]
  ,[Plain [Str "Amet"]]]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "list",Space,Str "starts",Space,Str "at",Space,Str "'L'",Space,Str "(50),",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-004.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"style-media-rules\">"
 ,Header 2 ("",[],[]) [Code ("",[],[]) "@media",Space,Str "Rules"]
-,RawBlock (Format "html") "<section id=\"style-210\" class=\"ctest\">"
 ,Header 3 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-210"],Space,Code ("",[],[]) "all"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "@media",Space,Str "rule",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "all",Space,Str "is",Space,Str "supported."]
 ,Para [Str "FAIL"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"FAIL\",",Space,Str "the",Space,Str "test",Space,Str "fails."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-211\" class=\"ctest\">"
 ,Header 3 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-211"],Space,Code ("",[],[]) "screen"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "@media",Space,Str "rule",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "screen",Space,Str "is",Space,Str "supported."]
 ,Para [Str "FAIL"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"FAIL\",",Space,Str "the",Space,Str "test",Space,Str "fails."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-212\" class=\"ctest\">"
 ,Header 3 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-212"],Space,Code ("",[],[]) "handheld"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "@media",Space,Str "rule",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "handheld",Space,Str "is",Space,Str "supported."]
 ,Para [Str "FAIL"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"FAIL\",",Space,Str "the",Space,Str "test",Space,Str "fails."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-213\" class=\"ctest\">"
 ,Header 3 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-213"],Space,Code ("",[],[]) "tv"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "@media",Space,Str "rule",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "tv",Space,Str "is",Space,Str "supported."]
 ,Para [Str "FAIL"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"FAIL\",",Space,Str "the",Space,Str "test",Space,Str "fails."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-220\" class=\"ctest\">"
 ,Header 3 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-220"],Space,Code ("",[],[]) "orientation:landscape"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "@media",Space,Str "rule",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "orientation:landscape",Space,Str "is",Space,Str "supported."]
 ,Para [Str "FAIL"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"FAIL\"",Space,Str "when",Space,Str "the",Space,Str "device",Space,Str "is",Space,Str "held",Space,Str "in",Space,Str "landscape",Space,Str "mode,",Space,Str "and",Space,Str "the",Space,Str "device",Space,Str "supports",Space,Str "multiple",Space,Str "orientations,",Space,Str "the",Space,Str "test",Space,Str "fails."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-221\" class=\"ctest\">"
 ,Header 3 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-221"],Space,Code ("",[],[]) "orientation:portrait"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "@media",Space,Str "rule",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "orientation:portrait",Space,Str "is",Space,Str "supported."]
 ,Para [Str "FAIL"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"FAIL\"",Space,Str "when",Space,Str "the",Space,Str "device",Space,Str "is",Space,Str "held",Space,Str "in",Space,Str "portrait",Space,Str "mode,",Space,Str "and",Space,Str "the",Space,Str "device",Space,Str "supports",Space,Str "multiple",Space,Str "orientations,",Space,Str "the",Space,Str "test",Space,Str "fails."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-230\" class=\"ctest\">"
 ,Header 3 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-230"],Space,Code ("",[],[]) "min-width"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "@media",Space,Str "rule",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "min-width:200px",Space,Str "is",Space,Str "supported."]
 ,Para [Str "FAIL"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"FAIL\",",Space,Str "the",Space,Str "test",Space,Str "fails."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-231\" class=\"ctest\">"
 ,Header 3 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-231"],Space,Code ("",[],[]) "max-width"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "@media",Space,Str "rule",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "max-width:2000px",Space,Str "is",Space,Str "supported."]
 ,Para [Str "FAIL"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"FAIL\",",Space,Str "the",Space,Str "test",Space,Str "fails."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-240\" class=\"ctest\">"
 ,Header 3 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-240"],Space,Code ("",[],[]) "min-device-width"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "@media",Space,Str "rule",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "min-device-width:200px",Space,Str "is",Space,Str "supported."]
 ,Para [Str "FAIL"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"FAIL\",",Space,Str "the",Space,Str "test",Space,Str "fails."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-241\" class=\"ctest\">"
 ,Header 3 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-241"],Space,Code ("",[],[]) "max-device-width"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "@media",Space,Str "rule",Space,Str "set",Space,Str "to",Space,Code ("",[],[]) "max-device-width:2000px",Space,Str "is",Space,Str "supported."]
 ,Para [Str "FAIL"]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "reads",Space,Str "\"FAIL\",",Space,Str "the",Space,Str "test",Space,Str "fails."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-005.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"style-text-xform\">"
 ,Header 2 ("",[],[]) [Str "The",Space,Code ("",[],[]) "text-transform",Space,Str "property"]
-,RawBlock (Format "html") "<section id=\"style-310\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-310"],Space,Code ("",[],[]) "uppercase"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "text-transform",Space,Str "property",Space,Str "set",Space,Str "to",Space,Str "uppercase",Space,Str "is",Space,Str "supported."]
 ,Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "is",Space,Str "in",Space,Str "upper",Space,Str "case,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-311\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-311"],Space,Code ("",[],[]) "capitalize"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "text-transform",Space,Str "property",Space,Str "set",Space,Str "to",Space,Str "capitalize",Space,Str "is",Space,Str "supported."]
 ,Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."]
 ,Para [Str "If",Space,Str "each",Space,Str "first",Space,Str "letter",Space,Str "of",Space,Str "each",Space,Str "word",Space,Str "in",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "is",Space,Str "in",Space,Str "upper",Space,Str "case,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-312\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-312"],Space,Code ("",[],[]) "lowercase"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "text-transform",Space,Str "property",Space,Str "set",Space,Str "to",Space,Str "lowercase",Space,Str "is",Space,Str "supported."]
 ,Para [Str "Lorem",Space,Str "ipsum",Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipisicing",Space,Str "elit,",Space,Str "sed",Space,Str "do",Space,Str "eiusmod",Space,Str "tempor",Space,Str "incididunt",Space,Str "ut",Space,Str "labore",Space,Str "et",Space,Str "dolore",Space,Str "magna",Space,Str "aliqua.",Space,Str "Ut",Space,Str "enim",Space,Str "ad",Space,Str "minim",Space,Str "veniam,",Space,Str "quis",Space,Str "nostrud",Space,Str "exercitation",Space,Str "ullamco",Space,Str "laboris",Space,Str "nisi",Space,Str "ut",Space,Str "aliquip",Space,Str "ex",Space,Str "ea",Space,Str "commodo",Space,Str "consequat.",Space,Str "Duis",Space,Str "aute",Space,Str "irure",Space,Str "dolor",Space,Str "in",Space,Str "reprehenderit",Space,Str "in",Space,Str "voluptate",Space,Str "velit",Space,Str "esse",Space,Str "cillum",Space,Str "dolore",Space,Str "eu",Space,Str "fugiat",Space,Str "nulla",Space,Str "pariatur.",Space,Str "Excepteur",Space,Str "sint",Space,Str "occaecat",Space,Str "cupidatat",Space,Str "non",Space,Str "proident,",Space,Str "sunt",Space,Str "in",Space,Str "culpa",Space,Str "qui",Space,Str "officia",Space,Str "deserunt",Space,Str "mollit",Space,Str "anim",Space,Str "id",Space,Str "est",Space,Str "laborum."]
 ,Para [Str "If",Space,Str "the",Space,Str "preceding",Space,Str "paragraph",Space,Str "is",Space,Str "in",Space,Str "lower",Space,Str "case,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
 ,Para [Span ("styling-xhtml-006.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section id=\"style-ruby\">"
 ,Header 2 ("",[],[]) [Str "The",Space,Code ("",[],[]) "epub-ruby-position",Space,Str "property"]
-,RawBlock (Format "html") "<section id=\"style-410\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-410"],Space,Code ("",[],[]) "over"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "-epub-ruby-position",Space,Str "property",Space,Str "set",Space,Str "to",Space,Str "over",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<ruby class=\"ruby-over\">",Strong [Str "Lorem",Space,Str "Ipsum"],Space,RawInline (Format "html") "<rp>",Str "(",RawInline (Format "html") "</rp>",RawInline (Format "html") "<rt>",Str "Lorem",Space,Str "Ipsum",RawInline (Format "html") "</rt>",RawInline (Format "html") "<rp>",Str ")",RawInline (Format "html") "</rp>",RawInline (Format "html") "</ruby>"]
+,Para [Strong [Str "Lorem",Space,Str "Ipsum"],Space,Str "(Lorem",Space,Str "Ipsum)"]
 ,Para [Str "If",Space,Str "the",Space,Str "Ruby",Space,Str "text",Space,Str "is",Space,Str "positioned",Space,Str "on",Space,Str "the",Space,Link [Str "over"] ("#over",""),Space,Str "side",Space,Str "of",Space,Str "the",Space,Str "ruby",Space,Str "base,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-411\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-411"],Space,Code ("",[],[]) "under"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "-epub-ruby-position",Space,Str "property",Space,Str "set",Space,Str "to",Space,Str "under",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<ruby class=\"ruby-under\">",Strong [Str "Lorem",Space,Str "Ipsum"],Space,RawInline (Format "html") "<rp>",Str "(",RawInline (Format "html") "</rp>",RawInline (Format "html") "<rt>",Str "Lorem",Space,Str "Ipsum",RawInline (Format "html") "</rt>",RawInline (Format "html") "<rp>",Str ")",RawInline (Format "html") "</rp>",RawInline (Format "html") "</ruby>"]
+,Para [Strong [Str "Lorem",Space,Str "Ipsum"],Space,Str "(Lorem",Space,Str "Ipsum)"]
 ,Para [Str "If",Space,Str "the",Space,Str "Ruby",Space,Str "text",Space,Str "is",Space,Str "positioned",Space,Str "on",Space,Str "the",Space,Link [Str "under"] ("#under",""),Space,Str "side",Space,Str "of",Space,Str "the",Space,Str "ruby",Space,Str "base,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"style-412\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "style-412"],Space,Code ("",[],[]) "inter-character"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Code ("",[],[]) "-epub-ruby-position",Space,Str "property",Space,Str "set",Space,Str "to",Space,Str "inter-caracter",Space,Str "is",Space,Str "supported."]
-,Para [RawInline (Format "html") "<ruby class=\"ruby-inter-character\">",Strong [Str "Lorem",Space,Str "Ipsum"],Space,RawInline (Format "html") "<rp>",Str "(",RawInline (Format "html") "</rp>",RawInline (Format "html") "<rt>",Str "Lorem",Space,Str "Ipsum",RawInline (Format "html") "</rt>",RawInline (Format "html") "<rp>",Str ")",RawInline (Format "html") "</rp>",RawInline (Format "html") "</ruby>"]
-,Para [Str "If",Space,Str "the",Space,Str "Ruby",Space,Str "text",Space,Str "is",Space,Str "positioned",Space,Str "on",Space,Str "the",Space,Str "right",Space,Str "side",Space,Str "of",Space,Str "the",Space,Str "base",Space,Str "text,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"]
+,Para [Strong [Str "Lorem",Space,Str "Ipsum"],Space,Str "(Lorem",Space,Str "Ipsum)"]
+,Para [Str "If",Space,Str "the",Space,Str "Ruby",Space,Str "text",Space,Str "is",Space,Str "positioned",Space,Str "on",Space,Str "the",Space,Str "right",Space,Str "side",Space,Str "of",Space,Str "the",Space,Str "base",Space,Str "text,",Space,Str "the",Space,Str "test",Space,Str "passes."]]
