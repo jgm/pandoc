@@ -321,7 +321,7 @@ runToInlines (InlineDrawing fp bs) = do
   modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
   return [Image [] (fp, "")]
 
-  
+
 
 
 parPartToInlines :: ParPart -> DocxContext [Inline]
@@ -507,10 +507,9 @@ bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
       widths = replicate size 0 :: [Double]
 
   return [Table caption alignments widths hdrCells cells]
-bodyPartToBlocks (OMathPara exps) = do
-  return [Para $
-          map (\e -> Math DisplayMath (writeTeX e))
-          exps]
+bodyPartToBlocks (OMathPara e) = do
+  return [Para [Math DisplayMath (writeTeX e)]]
+
 
 -- replace targets with generated anchors.
 rewriteLink :: Inline -> DocxContext Inline

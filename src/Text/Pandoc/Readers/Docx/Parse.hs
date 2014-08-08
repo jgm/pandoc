@@ -86,6 +86,10 @@ maybeToD :: Maybe a -> D a
 maybeToD (Just a) = return a
 maybeToD Nothing = throwError DocxError
 
+eitherToD :: Either a b -> D b
+eitherToD (Right b) = return b
+eitherToD (Left _)  = throwError DocxError
+
 concatMapM        :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
 concatMapM f xs   =  liftM concat (mapM f xs)
 
@@ -150,7 +154,7 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
 data BodyPart = Paragraph ParagraphStyle [ParPart]
               | ListItem ParagraphStyle String String Level [ParPart]
               | Tbl String TblGrid TblLook [Row]
-              | OMathPara [[Exp]]
+              | OMathPara [Exp]
               deriving Show
 
 type TblGrid = [Integer]
@@ -475,7 +479,7 @@ elemToBodyPart ns element
   | isElem ns "w" "p" element
   , (c:_) <- findChildren (elemName ns "m" "oMathPara") element =
       do
-        expsLst <- mapD (\e -> (maybeToD $ readOMML e)) (elChildren c)
+        expsLst <- eitherToD $ readOMML $ showElement c
         return $ OMathPara expsLst
 elemToBodyPart ns element
   | isElem ns "w" "p" element
@@ -575,7 +579,7 @@ elemToParPart ns element
       Nothing     -> ExternalHyperLink "" runs
 elemToParPart ns element
   | isElem ns "m" "oMath" element =
-    (maybeToD $ readOMML element) >>= (return . PlainOMath)
+    (eitherToD $ readOMML $ showElement element) >>= (return . PlainOMath)
 elemToParPart _ _ = throwError WrongElem
 
 lookupFootnote :: String -> Notes -> Maybe Element

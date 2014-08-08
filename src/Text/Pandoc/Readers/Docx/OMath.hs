@@ -38,11 +38,20 @@ import Data.Maybe (mapMaybe, fromMaybe)
 import Data.List (intersperse)
 import qualified Text.TeXMath.Types as TM
 
-readOMML :: Element -> Maybe [TM.Exp]
-readOMML element  | isElem "m" "oMath" element =
-  Just $ concat $ mapMaybe (elemToExps') (elChildren element)
-readOMML _ = Nothing
+readOMML :: String -> Either String [TM.Exp]
+readOMML s | Just e <- parseXMLDoc s =
+  case elemToOMML e of
+    Just exs -> Right exs
+    Nothing   -> Left "xml file was not an <m:oMathPara> or <m:oMath> element."
+readOMML _ = Left "Couldn't parse OMML file"
 
+elemToOMML :: Element -> Maybe [TM.Exp]
+elemToOMML element  | isElem "m" "oMathPara" element = do
+  let expList = mapMaybe elemToOMML (elChildren element)
+  return $ map (\l -> if length l == 1 then (head l) else TM.EGrouped l) expList
+elemToOMML element  | isElem "m" "oMath" element =
+  Just $ concat $ mapMaybe (elemToExps') (elChildren element)
+elemToOMML _ = Nothing
 
 isElem :: String -> String -> Element -> Bool
 isElem prefix name element =
