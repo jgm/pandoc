@@ -22,7 +22,9 @@ import qualified Text.Pandoc.Builder as B
 import Codec.Archive.Zip ( Archive (..), toArchive, fromEntry
                          , findEntryByPath, Entry)
 import qualified Data.ByteString.Lazy as BL (ByteString)
-import System.FilePath (takeFileName, (</>), dropFileName, normalise)
+import System.FilePath ( takeFileName, (</>), dropFileName, normalise
+                       , joinPath, dropFileName, splitDirectories
+                       , splitFileName )
 import qualified Text.Pandoc.UTF8 as UTF8 (toStringLazy)
 import Control.Applicative ((<$>))
 import Control.Monad (guard, liftM, when)
@@ -48,13 +50,12 @@ runEPUB = either error id . runExcept
 -- Note that internal reference are aggresively normalised so that all ids
 -- are of the form "filename#id"
 --
--- For now all paths are stripped from images
 archiveToEPUB :: (MonadError String m) => ReaderOptions -> Archive -> m (Pandoc, MediaBag)
 archiveToEPUB os archive = do
   (root, content) <- getManifest archive
   meta  <- parseMeta content
   (cover, items) <- parseManifest content
-  let coverDoc = fromMaybe mempty (imageToPandoc . takeFileName <$> cover)
+  let coverDoc = fromMaybe mempty (imageToPandoc <$> cover)
   spine <- parseSpine items content
   let escapedSpine = map (escapeURI . takeFileName . fst) spine
   Pandoc _ bs <-
@@ -68,16 +69,19 @@ archiveToEPUB os archive = do
     os' = os {readerExtensions = foldr S.insert rs [Ext_epub_html_exts, Ext_raw_html]}
     os'' = os' {readerParseRaw = True}
     parseSpineElem :: MonadError String m => FilePath -> (FilePath, MIME) -> m Pandoc
-    parseSpineElem r (path, mime) = do
+    parseSpineElem (normalise -> r) (normalise -> path, mime) = do
       when (readerTrace os) (traceM path)
-      doc <- mimeToReader mime (normalise (r </> path))
+      doc <- mimeToReader mime r path
       let docSpan = B.doc $ B.para $ B.spanWith (takeFileName path, [], []) mempty
-      return $ docSpan <> fixInternalReferences (takeFileName path) doc
-    mimeToReader :: MonadError String m => MIME -> FilePath -> m Pandoc
-    mimeToReader "application/xhtml+xml" path = do
-      fname <- findEntryByPathE path archive
-      return $ readHtml os'' . UTF8.toStringLazy $ fromEntry fname
-    mimeToReader s path
+      return $ docSpan <> doc
+    mimeToReader :: MonadError String m => MIME -> FilePath -> FilePath ->  m Pandoc
+    mimeToReader "application/xhtml+xml" r path = do
+      fname <- findEntryByPathE (r </> path) archive
+      return $ fixInternalReferences (r </> path) .
+                readHtml os'' .
+                  UTF8.toStringLazy $
+                    fromEntry fname
+    mimeToReader s _ path
       | s `elem` imageMimes = return $ imageToPandoc path
       | otherwise = return $ mempty
 
@@ -86,18 +90,34 @@ fetchImages :: [(FilePath, MIME)]
             -> Archive
             -> Pandoc
             -> MediaBag
-fetchImages mimes root a (query iq -> links) =
+fetchImages mimes root arc (query iq -> links) =
     foldr (uncurry3 insertMedia) mempty
       (mapMaybe getEntry links)
   where
-    getEntry l = let mediaPos = normalise (root </> l) in
-                  (l , lookup mediaPos mimes, ) . fromEntry
-                    <$> findEntryByPath mediaPos a
+    getEntry (normalise -> l) =
+      let mediaPos = normalise (root </> l) in
+        (l , lookup mediaPos mimes, ) . fromEntry
+          <$> findEntryByPath mediaPos arc
 
 iq :: Inline -> [FilePath]
 iq (Image _ (url, _)) = [url]
 iq _ = []
 
+-- Remove relative paths
+renameImages :: FilePath -> Inline -> Inline
+renameImages root (Image a (url, b)) = Image a (collapse (root </> url), b)
+renameImages _ x = x
+
+collapse :: FilePath -> FilePath
+collapse = joinPath . reverse . foldl go [] . splitDirectories
+  where
+    go rs "." = rs
+    go r@(p:rs) ".." = case p of
+                            ".." -> ("..":r)
+                            "/" -> ("..":r)
+                            _ -> rs
+    go _ "/" = ["/"]
+    go rs x = x:rs
 
 imageToPandoc :: FilePath -> Pandoc
 imageToPandoc s = B.doc . B.para $ B.image s "" mempty
@@ -168,11 +188,14 @@ getManifest archive = do
 
 -- Fixup
 
-fixInternalReferences :: String -> Pandoc -> Pandoc
-fixInternalReferences s =
-  (walk normalisePath) . (walk $ fixBlockIRs s') . (walk $ fixInlineIRs s')
+fixInternalReferences :: FilePath -> Pandoc -> Pandoc
+fixInternalReferences pathToFile =
+  (walk $ renameImages root)
+  . (walk normalisePath)
+  . (walk $ fixBlockIRs filename)
+  . (walk $ fixInlineIRs filename)
   where
-    s' = escapeURI s
+    (root, escapeURI -> filename) = splitFileName pathToFile
 
 fixInlineIRs :: String -> Inline -> Inline
 fixInlineIRs s (Span as v) =
@@ -227,11 +250,11 @@ foldM' f z (x:xs) = do
   z' <- f z x
   z' `deepseq` foldM' f z' xs
 
-traceM :: Monad m => String -> m ()
-traceM = flip trace (return ())
-
 uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (a, b, c) = f a b c
+
+traceM :: Monad m => String -> m ()
+traceM = flip trace (return ())
 
 -- Utility
 
@@ -270,4 +293,3 @@ findElementE e x = mkE ("Unable to find element: " ++ show e) $ findElement e x
 
 mkE :: MonadError String m => String -> Maybe a -> m a
 mkE s = maybe (throwError s) return
-
