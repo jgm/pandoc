@@ -15,7 +15,7 @@ import Text.Pandoc.Generic(bottomUp)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Options ( ReaderOptions(..), readerExtensions, Extension(..)
                            , readerTrace)
-import Text.Pandoc.Shared (escapeURI)
+import Text.Pandoc.Shared (escapeURI, collapseFilePath)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Compat.Except (MonadError, throwError, runExcept, Except)
 import qualified Text.Pandoc.Builder as B
@@ -23,7 +23,7 @@ import Codec.Archive.Zip ( Archive (..), toArchive, fromEntry
                          , findEntryByPath, Entry)
 import qualified Data.ByteString.Lazy as BL (ByteString)
 import System.FilePath ( takeFileName, (</>), dropFileName, normalise
-                       , joinPath, dropFileName, splitDirectories
+                       , dropFileName
                        , splitFileName )
 import qualified Text.Pandoc.UTF8 as UTF8 (toStringLazy)
 import Control.Applicative ((<$>))
@@ -109,19 +109,8 @@ iq _ = []
 
 -- Remove relative paths
 renameImages :: FilePath -> Inline -> Inline
-renameImages root (Image a (url, b)) = Image a (collapse (root </> url), b)
+renameImages root (Image a (url, b)) = Image a (collapseFilePath (root </> url), b)
 renameImages _ x = x
-
-collapse :: FilePath -> FilePath
-collapse = joinPath . reverse . foldl go [] . splitDirectories
-  where
-    go rs "." = rs
-    go r@(p:rs) ".." = case p of
-                            ".." -> ("..":r)
-                            "/" -> ("..":r)
-                            _ -> rs
-    go _ "/" = ["/"]
-    go rs x = x:rs
 
 imageToPandoc :: FilePath -> Pandoc
 imageToPandoc s = B.doc . B.para $ B.image s "" mempty
