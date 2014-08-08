@@ -147,9 +147,9 @@ tests = [ testGroup "markdown"
               "txt2tags.t2t" "txt2tags.native" ]
         , testGroup "epub" [
             test "features" ["-r", "epub", "-w", "native"]
-              "features.epub" "features.native"
+              "epub.features.epub" "epub.features.native"
           , test "formatting" ["-r", "epub", "-w", "native"]
-              "formatting.epub" "formatting.native"
+              "epub.formatting.epub" "epub.formatting.native"
           ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
           [ "opendocument" , "context" , "texinfo", "icml"
