@@ -14,7 +14,7 @@ import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Generic(bottomUp)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Options ( ReaderOptions(..), readerTrace)
-import Text.Pandoc.Shared (escapeURI)
+import Text.Pandoc.Shared (escapeURI, collapseFilePath)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Compat.Except (MonadError, throwError, runExcept, Except)
 import qualified Text.Pandoc.Builder as B
@@ -22,7 +22,7 @@ import Codec.Archive.Zip ( Archive (..), toArchive, fromEntry
                          , findEntryByPath, Entry)
 import qualified Data.ByteString.Lazy as BL (ByteString)
 import System.FilePath ( takeFileName, (</>), dropFileName, normalise
-                       , joinPath, dropFileName, splitDirectories
+                       , dropFileName
                        , splitFileName )
 import qualified Text.Pandoc.UTF8 as UTF8 (toStringLazy)
 import Control.Applicative ((<$>))
@@ -50,50 +50,52 @@ runEPUB = either error id . runExcept
 --
 archiveToEPUB :: (MonadError String m) => ReaderOptions -> Archive -> m (Pandoc, MediaBag)
 archiveToEPUB os archive = do
+  -- root is path to folder with manifest file in
   (root, content) <- getManifest archive
   meta  <- parseMeta content
   (cover, items) <- parseManifest content
-  let coverDoc = fromMaybe mempty (imageToPandoc <$> cover)
+  -- No need to collapse here as the image path is from the manifest file
+  let coverDoc = fromMaybe mempty (imageToPandoc . (root </>) <$> cover)
   spine <- parseSpine items content
   let escapedSpine = map (escapeURI . takeFileName . fst) spine
   Pandoc _ bs <-
       foldM' (\a b -> ((a <>) . bottomUp (prependHash escapedSpine))
         `liftM` parseSpineElem root b) mempty spine
   let ast = coverDoc <> (Pandoc meta bs)
-  let mediaBag = fetchImages (M.elems items) root archive ast
+  let mediaBag = fetchImages (M.elems items) archive ast
   return $ (ast, mediaBag)
   where
     os' = os {readerParseRaw = True}
     parseSpineElem :: MonadError String m => FilePath -> (FilePath, MIME) -> m Pandoc
     parseSpineElem (normalise -> r) (normalise -> path, mime) = do
       when (readerTrace os) (traceM path)
-      doc <- mimeToReader mime r path
+      doc <- mimeToReader mime (r </> path)
       let docSpan = B.doc $ B.para $ B.spanWith (takeFileName path, [], []) mempty
       return $ docSpan <> doc
-    mimeToReader :: MonadError String m => MIME -> FilePath -> FilePath ->  m Pandoc
-    mimeToReader "application/xhtml+xml" r path = do
-      fname <- findEntryByPathE (r </> path) archive
-      return $ fixInternalReferences (r </> path) .
+    mimeToReader :: MonadError String m => MIME -> FilePath ->  m Pandoc
+    mimeToReader "application/xhtml+xml" (normalise -> path) = do
+      fname <- findEntryByPathE path archive
+      return $ fixInternalReferences path .
                 readHtml os' .
                   UTF8.toStringLazy $
                     fromEntry fname
-    mimeToReader s _ path
+    mimeToReader s path
       | s `elem` imageMimes = return $ imageToPandoc path
       | otherwise = return $ mempty
 
+-- paths should be absolute when this function is called
+-- renameImages should do this
 fetchImages :: [(FilePath, MIME)]
-            -> FilePath
             -> Archive
             -> Pandoc
             -> MediaBag
-fetchImages mimes root arc (query iq -> links) =
+fetchImages mimes arc (query iq -> links) =
     foldr (uncurry3 insertMedia) mempty
       (mapMaybe getEntry links)
   where
-    getEntry (normalise -> l) =
-      let mediaPos = normalise (root </> l) in
-        (l , lookup mediaPos mimes, ) . fromEntry
-          <$> findEntryByPath mediaPos arc
+    getEntry link =
+        (link , lookup link mimes, ) . fromEntry
+          <$> findEntryByPath link arc
 
 iq :: Inline -> [FilePath]
 iq (Image _ (url, _)) = [url]
@@ -101,19 +103,8 @@ iq _ = []
 
 -- Remove relative paths
 renameImages :: FilePath -> Inline -> Inline
-renameImages root (Image a (url, b)) = Image a (collapse (root </> url), b)
+renameImages root (Image a (url, b)) = Image a (collapseFilePath (root </> url), b)
 renameImages _ x = x
-
-collapse :: FilePath -> FilePath
-collapse = joinPath . reverse . foldl go [] . splitDirectories
-  where
-    go rs "." = rs
-    go r@(p:rs) ".." = case p of
-                            ".." -> ("..":r)
-                            "/" -> ("..":r)
-                            _ -> rs
-    go _ "/" = ["/"]
-    go rs x = x:rs
 
 imageToPandoc :: FilePath -> Pandoc
 imageToPandoc s = B.doc . B.para $ B.image s "" mempty
