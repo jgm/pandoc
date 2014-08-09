@@ -236,6 +236,9 @@ showSecNum = concat . intersperse "." . map show
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
 elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
+-- Don't include the empty headers created in slide shows
+-- shows when an hrule is used to separate slides without a new title:
+elementToListItem _ (Sec _ _ _ [Str "\0"] _) = return Nothing
 elementToListItem opts (Sec lev num (id',classes,_) headerText subsecs)
   | lev <= writerTOCDepth opts = do
   let num' = zipWith (+) num (writerNumberOffset opts ++ repeat 0)
