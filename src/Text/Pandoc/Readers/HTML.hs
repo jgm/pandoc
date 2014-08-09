@@ -45,7 +45,8 @@ import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
 import Text.Pandoc.Shared ( extractSpaces, renderTags'
                           , escapeURI, safeRead )
 import Text.Pandoc.Options (ReaderOptions(readerParseRaw, readerTrace)
-                           , Extension (Ext_epub_html_exts))
+                           , Extension (Ext_epub_html_exts,
+                               Ext_native_divs, Ext_native_spans))
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
 import Data.Maybe ( fromMaybe, isJust)
@@ -296,6 +297,7 @@ pRawTag = do
 
 pDiv :: TagParser Blocks
 pDiv = try $ do
+  guardEnabled Ext_native_divs
   TagOpen _ attr <- lookAhead $ pSatisfy $ tagOpen (=="div") (const True)
   contents <- pInTags "div" block
   return $ B.divWith (mkAttr attr) contents
@@ -560,6 +562,7 @@ pCode = try $ do
 
 pSpan :: TagParser Inlines
 pSpan = try $ do
+  guardEnabled Ext_native_spans
   TagOpen _ attr <- lookAhead $ pSatisfy $ tagOpen (=="span") (const True)
   contents <- pInTags "span" inline
   return $ B.spanWith (mkAttr attr) contents

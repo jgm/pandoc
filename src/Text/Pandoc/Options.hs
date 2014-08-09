@@ -77,6 +77,8 @@ data Extension =
     | Ext_backtick_code_blocks    -- ^ Github style ``` code blocks
     | Ext_inline_code_attributes  -- ^ Allow attributes on inline code
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
+    | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
+    | Ext_native_spans            -- ^ Use Span inlines for contents of <span>
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown
                                   --   iff container has attribute 'markdown'
     | Ext_escaped_line_breaks     -- ^ Treat a backslash at EOL as linebreak
@@ -131,6 +133,8 @@ pandocExtensions = Set.fromList
   , Ext_backtick_code_blocks
   , Ext_inline_code_attributes
   , Ext_markdown_in_html_blocks
+  , Ext_native_divs
+  , Ext_native_spans
   , Ext_escaped_line_breaks
   , Ext_fancy_lists
   , Ext_startnum

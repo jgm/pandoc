@@ -2238,6 +2238,20 @@ markdown with HTML block elements.  For example, one can surround
 a block of markdown text with `<div>` tags without preventing it
 from being interpreted as markdown.
 
+#### Extension: `native_divs` ####
+
+Use native pandoc `Div` blocks for content inside `<div>` tags.
+For the most part this should give the same output as
+`markdown_in_html_blocks`, but it makes it easier to write pandoc
+filters to manipulate groups of blocks.
+
+#### Extension: `native_spans` ####
+
+Use native pandoc `Span` blocks for content inside `<span>` tags.
+For the most part this should give the same output as `raw_html`,
+but it makes it easier to write pandoc filters to manipulate groups
+of inlines.
+
 Raw TeX
 -------
 

@@ -1764,7 +1764,7 @@ inBrackets parser = do
 
 spanHtml :: MarkdownParser (F Inlines)
 spanHtml = try $ do
-  guardEnabled Ext_markdown_in_html_blocks
+  guardEnabled Ext_native_spans
   (TagOpen _ attrs, _) <- htmlTag (~== TagOpen "span" [])
   contents <- mconcat <$> manyTill inline (htmlTag (~== TagClose "span"))
   let ident = fromMaybe "" $ lookup "id" attrs
@@ -1779,7 +1779,7 @@ spanHtml = try $ do
 
 divHtml :: MarkdownParser (F Blocks)
 divHtml = try $ do
-  guardEnabled Ext_markdown_in_html_blocks
+  guardEnabled Ext_native_divs
   (TagOpen _ attrs, rawtag) <- htmlTag (~== TagOpen "div" [])
   -- we set stateInHtmlBlock so that closing tags that can be either block or
   -- inline will not be parsed as inline tags

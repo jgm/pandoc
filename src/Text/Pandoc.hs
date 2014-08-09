@@ -304,7 +304,17 @@ getDefaultExtensions "markdown_github" = githubMarkdownExtensions
 getDefaultExtensions "markdown"        = pandocExtensions
 getDefaultExtensions "plain"           = pandocExtensions
 getDefaultExtensions "org"             = Set.fromList [Ext_citations]
-getDefaultExtensions "textile"         = Set.fromList [Ext_auto_identifiers, Ext_raw_tex]
+getDefaultExtensions "textile"         = Set.fromList [Ext_auto_identifiers,
+                                                       Ext_raw_tex]
+getDefaultExtensions "html"            = Set.fromList [Ext_auto_identifiers,
+                                                       Ext_native_divs,
+                                                       Ext_native_spans]
+getDefaultExtensions "html5"           = getDefaultExtensions "html"
+getDefaultExtensions "epub"            = Set.fromList [Ext_auto_identifiers,
+                                                       Ext_raw_html,
+                                                       Ext_native_divs,
+                                                       Ext_native_spans,
+                                                       Ext_epub_html_exts]
 getDefaultExtensions _                 = Set.fromList [Ext_auto_identifiers]
 
 -- | Retrieve reader based on formatSpec (format+extensions).
