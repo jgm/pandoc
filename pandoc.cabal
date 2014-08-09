@@ -327,6 +327,7 @@ Library
                    Text.Pandoc.Readers.Docx.Reducible,
                    Text.Pandoc.Readers.Docx.Parse,
                    Text.Pandoc.Readers.Docx.OMath,
+                   Text.Pandoc.Readers.Docx.Fonts
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Asciify,
                    Text.Pandoc.MIME,
