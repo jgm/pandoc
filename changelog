@@ -299,6 +299,8 @@ pandoc (1.13)
 
   * `Text.Pandoc.Shared`:
 
+    + Added `collapseFilePath`, which removes intermediate `.` and
+      `..` from a path (Matthew Pickering).
     + Added `fetchItem'`, which works like `fetchItem` but searches
       a `MediaBag` before looking on the net or file system.
     + Added `withTempDir` (API change).
@@ -338,6 +340,10 @@ pandoc (1.13)
       extensions (API change)`.
     + Added `Ext_compact_definition_lists` (API change).
     + Added `Ext_epub_html_exts` (API change).
+    + Added `Ext_native_divs` and `Ext_native_spans` (API change).
+      This allows users to turn off the default pandoc behavior of
+      parsing contents of div and span tags in markdown and HTML
+      as native pandoc Div blocks and Span inlines.
 
   * `Text.Pandoc.Parsing`
 
