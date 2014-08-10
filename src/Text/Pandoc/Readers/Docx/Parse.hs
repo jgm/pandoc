@@ -59,10 +59,13 @@ import Data.Bits ((.|.))
 import qualified Data.ByteString.Lazy as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad.Reader
+import Control.Applicative ((<$>))
 import qualified Data.Map as M
 import Text.Pandoc.Compat.Except
 import Text.Pandoc.Readers.Docx.OMath (readOMML)
+import Text.Pandoc.Readers.Docx.Fonts (getUnicode, Font(..))
 import Text.TeXMath (Exp)
+import Data.Char (readLitChar)
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envNumbering     :: Numbering
@@ -673,7 +676,26 @@ elemToRunElem ns element
     return $ TextRun $ strContent element
   | isElem ns "w" "br" element = return LnBrk
   | isElem ns "w" "tab" element = return Tab
+  | isElem ns "w" "sym" element = return (getSymChar ns element)
   | otherwise = throwError WrongElem
+
+-- The char attribute is a hex string
+getSymChar :: NameSpaces -> Element -> RunElem
+getSymChar ns element
+  | Just s <- lowerFromPrivate <$> getCodepoint
+  , Just font <- getFont =
+  let [(char, _)] = readLitChar ("\\x" ++ s) in
+    TextRun . maybe "" (:[]) $ getUnicode font char
+  where
+    getCodepoint = findAttr (elemName ns "w" "char") element
+    getFont = stringToFont =<< findAttr (elemName ns "w" "font") element
+    lowerFromPrivate ('F':xs) = '0':xs
+    lowerFromPrivate xs = xs
+getSymChar _ _ = TextRun ""
+
+stringToFont :: String -> Maybe Font
+stringToFont "Symbol" = Just Symbol
+stringToFont _ = Nothing
 
 elemToRunElems :: NameSpaces -> Element -> D [RunElem]
 elemToRunElems ns element
