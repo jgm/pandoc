@@ -87,13 +87,16 @@ combineReducibles r s =
       remaining' = conts' \\ shared
   in
    case null shared of
-       True -> case (not . null) rs && isSpace (last rs) of
-         True -> rebuild conts (init rs) ++ [last rs, s]
-         False -> [r,s]
-       False -> rebuild
-                shared $
-                reduceList $
-                (rebuild remaining rs) ++ (rebuild remaining' ss)
+     True -> case () of
+       _ | (not . null) rs && isSpace (last rs) ->
+         rebuild conts (init rs) ++ [last rs, s]
+       _ | (not . null) ss && isSpace (head ss) ->
+         [r, head ss] ++ rebuild conts' (tail ss)
+       _ -> [r,s]
+     False -> rebuild
+              shared $
+              reduceList $
+              (rebuild remaining rs) ++ (rebuild remaining' ss)
 
 instance Reducible Inline where
   s1@(Span (id1, classes1, kvs1) ils1) <++> s2@(Span (id2, classes2, kvs2) ils2) =
@@ -177,5 +180,3 @@ rebuild :: [Container a] -> [a] -> [a]
 rebuild [] xs = xs
 rebuild ((Container f) : cs) xs = rebuild cs $ [f xs]
 rebuild (NullContainer : cs) xs = rebuild cs $ xs
-
-
