@@ -62,7 +62,7 @@ archiveToEPUB os archive = do
       foldM' (\a b -> ((a <>) . bottomUp (prependHash escapedSpine))
         `liftM` parseSpineElem root b) mempty spine
   let ast = coverDoc <> (Pandoc meta bs)
-  let mediaBag = fetchImages (M.elems items) archive ast
+  let mediaBag = fetchImages (M.elems items) root archive ast
   return $ (ast, mediaBag)
   where
     os' = os {readerParseRaw = True}
@@ -86,16 +86,18 @@ archiveToEPUB os archive = do
 -- paths should be absolute when this function is called
 -- renameImages should do this
 fetchImages :: [(FilePath, MIME)]
+            -> FilePath -- ^ Root
             -> Archive
             -> Pandoc
             -> MediaBag
-fetchImages mimes arc (query iq -> links) =
+fetchImages mimes root arc (query iq -> links) =
     foldr (uncurry3 insertMedia) mempty
       (mapMaybe getEntry links)
   where
     getEntry link =
+        let abslink = root </> link in
         (link , lookup link mimes, ) . fromEntry
-          <$> findEntryByPath link arc
+          <$> findEntryByPath abslink arc
 
 iq :: Inline -> [FilePath]
 iq (Image _ (url, _)) = [url]
