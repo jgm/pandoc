@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, PatternGuards #-}
 
 {-
 Copyright (C) 2014 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -87,12 +87,13 @@ combineReducibles r s =
       remaining' = conts' \\ shared
   in
    case null shared of
-     True -> case () of
-       _ | (not . null) rs && isSpace (last rs) ->
-         rebuild conts (init rs) ++ [last rs, s]
-       _ | (not . null) ss && isSpace (head ss) ->
-         [r, head ss] ++ rebuild conts' (tail ss)
-       _ -> [r,s]
+     True | (x : xs) <- reverse rs
+          , isSpace x ->
+             rebuild conts (reverse xs) ++ [x, s]
+          | (x : xs) <- ss
+          , isSpace x ->
+             [r, x] ++ rebuild conts' (xs)
+     True  -> [r,s]
      False -> rebuild
               shared $
               reduceList $
