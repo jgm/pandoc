@@ -417,6 +417,7 @@ Test-Suite test-pandoc
                   Tests.Readers.RST
                   Tests.Readers.Docx
                   Tests.Readers.Txt2Tags
+                  Tests.Readers.EPUB
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
                   Tests.Writers.HTML
