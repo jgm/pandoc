@@ -62,7 +62,7 @@ import Control.Monad.Reader
 import Control.Applicative ((<$>))
 import qualified Data.Map as M
 import Text.Pandoc.Compat.Except
-import Text.Pandoc.Readers.Docx.OMath (readOMML)
+import Text.TeXMath.Readers.OMML (readOMML)
 import Text.Pandoc.Readers.Docx.Fonts (getUnicode, Font(..))
 import Text.TeXMath (Exp)
 import Data.Char (readLitChar)
