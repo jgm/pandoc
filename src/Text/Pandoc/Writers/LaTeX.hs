@@ -303,12 +303,17 @@ isLineBreakOrSpace _ = False
 blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
 blockToLaTeX Null = return empty
-blockToLaTeX (Div (_,classes,_) bs) = do
+blockToLaTeX (Div (identifier,classes,_) bs) = do
   beamer <- writerBeamer `fmap` gets stOptions
+  ref <- toLabel identifier
+  let linkAnchor = if null identifier
+                      then empty
+                      else "\\hyperdef{}" <> braces (text ref) <>
+                                braces ("\\label" <> braces (text ref))
   contents <- blockListToLaTeX bs
   if beamer && "notes" `elem` classes  -- speaker notes
      then return $ "\\note" <> braces contents
-     else return contents
+     else return (linkAnchor <> contents)
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure

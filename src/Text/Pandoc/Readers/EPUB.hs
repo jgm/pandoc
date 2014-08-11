@@ -95,7 +95,7 @@ fetchImages mimes root arc (query iq -> links) =
       (mapMaybe getEntry links)
   where
     getEntry link =
-        let abslink = root </> link in
+        let abslink = normalise (root </> link) in
         (link , lookup link mimes, ) . fromEntry
           <$> findEntryByPath abslink arc
 
