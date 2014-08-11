@@ -11,7 +11,6 @@ module Text.Pandoc.Readers.EPUB
 import Text.XML.Light
 import Text.Pandoc.Definition hiding (Attr)
 import Text.Pandoc.Walk (walk, query)
-import Text.Pandoc.Generic(bottomUp)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Options ( ReaderOptions(..), readerTrace)
 import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
@@ -59,7 +58,7 @@ archiveToEPUB os archive = do
   spine <- parseSpine items content
   let escapedSpine = map (escapeURI . takeFileName . fst) spine
   Pandoc _ bs <-
-      foldM' (\a b -> ((a <>) . bottomUp (prependHash escapedSpine))
+      foldM' (\a b -> ((a <>) . walk (prependHash escapedSpine))
         `liftM` parseSpineElem root b) mempty spine
   let ast = coverDoc <> (Pandoc meta bs)
   let mediaBag = fetchImages (M.elems items) root archive ast
