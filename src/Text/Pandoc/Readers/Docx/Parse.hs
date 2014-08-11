@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, ViewPatterns #-}
 
 {-
 Copyright (C) 2014 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -59,18 +59,19 @@ import Data.Bits ((.|.))
 import qualified Data.ByteString.Lazy as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad.Reader
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<|>))
 import qualified Data.Map as M
 import Text.Pandoc.Compat.Except
 import Text.TeXMath.Readers.OMML (readOMML)
 import Text.Pandoc.Readers.Docx.Fonts (getUnicode, Font(..))
 import Text.TeXMath (Exp)
-import Data.Char (readLitChar)
+import Data.Char (readLitChar, ord, chr)
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envNumbering     :: Numbering
                            , envRelationships :: [Relationship]
                            , envMedia         :: Media
+                           , envFont          :: Maybe Font
                            }
                deriving Show
 
@@ -234,7 +235,7 @@ archiveToDocx archive = do
       numbering = archiveToNumbering archive
       rels      = archiveToRelationships archive
       media     = archiveToMedia archive
-      rEnv = ReaderEnv notes numbering rels media
+      rEnv = ReaderEnv notes numbering rels media Nothing
   doc <- runD (archiveToDocument archive) rEnv
   return $ Docx doc
 
@@ -672,12 +673,21 @@ elemToRunElem :: NameSpaces -> Element -> D RunElem
 elemToRunElem ns element
   | isElem ns "w" "t" element
     || isElem ns "w" "delText" element
-    || isElem ns "m" "t" element =
-    return $ TextRun $ strContent element
+    || isElem ns "m" "t" element = do
+    let str = strContent element
+    font <- asks envFont
+    case font of
+      Nothing -> return $ TextRun str
+      Just f  -> return . TextRun $
+                  map (\x -> fromMaybe x . getUnicode f . lowerFromPrivate $ x) str
   | isElem ns "w" "br" element = return LnBrk
   | isElem ns "w" "tab" element = return Tab
   | isElem ns "w" "sym" element = return (getSymChar ns element)
   | otherwise = throwError WrongElem
+  where
+    lowerFromPrivate (ord -> c)
+      | c >= ord '\xF000' = chr $ c - ord '\xF000'
+      | otherwise = chr c
 
 -- The char attribute is a hex string
 getSymChar :: NameSpaces -> Element -> RunElem
@@ -700,6 +710,15 @@ stringToFont _ = Nothing
 elemToRunElems :: NameSpaces -> Element -> D [RunElem]
 elemToRunElems ns element
   |  isElem ns "w" "r" element
-     || isElem ns "m" "r" element =
-       mapD (elemToRunElem ns) (elChildren element)
+     || isElem ns "m" "r" element = do
+       let qualName = elemName ns "w"
+       let font = do
+                    fontElem <- findElement (qualName "rFonts") element
+                    stringToFont =<<
+                      (foldr (<|>) Nothing $
+                        map (flip findAttr fontElem . qualName) ["ascii", "hAnsi"])
+       local (setFont font) (mapD (elemToRunElem ns) (elChildren element))
 elemToRunElems _ _ = throwError WrongElem
+
+setFont :: Maybe Font -> ReaderEnv -> ReaderEnv
+setFont f s = s{envFont = f}

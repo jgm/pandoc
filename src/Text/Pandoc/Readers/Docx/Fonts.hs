@@ -32,6 +32,7 @@ module Text.Pandoc.Readers.Docx.Fonts (getUnicode, Font(..)) where
 
 -- | Enumeration of recognised fonts
 data Font = Symbol -- ^ <http://en.wikipedia.org/wiki/Symbol_(typeface) Adobe Symbol>
+          deriving (Show, Eq)
 
 -- | Given a font and codepoint, returns the corresponding unicode
 -- character
