@@ -169,10 +169,10 @@ getManifest archive = do
   ns <- mkE "xmlns not in namespaces" (lookup "xmlns" namespaces)
   as <- liftM ((map attrToPair) . elAttribs)
     (findElementE (QName "rootfile" (Just ns) Nothing) docElem)
-  root <- mkE "Root not found" (lookup "full-path" as)
-  let rootdir = dropFileName root
+  manifestFile <- mkE "Root not found" (lookup "full-path" as)
+  let rootdir = dropFileName manifestFile
   --mime <- lookup "media-type" as
-  manifest <- findEntryByPathE root archive
+  manifest <- findEntryByPathE manifestFile archive
   liftM ((,) rootdir) (parseXMLDocE . UTF8.toStringLazy . fromEntry $ manifest)
 
 -- Fixup
@@ -272,7 +272,8 @@ findAttrE :: MonadError String m => QName -> Element -> m String
 findAttrE q e = mkE "findAttr" $ findAttr q e
 
 findEntryByPathE :: MonadError String m => FilePath -> Archive -> m Entry
-findEntryByPathE path a = mkE ("No entry on path: " ++ path) $ findEntryByPath path a
+findEntryByPathE (normalise -> path) a =
+  mkE ("No entry on path: " ++ path) $ findEntryByPath path a
 
 parseXMLDocE :: MonadError String m => String -> m Element
 parseXMLDocE doc = mkE "Unable to parse XML doc" $ parseXMLDoc doc
