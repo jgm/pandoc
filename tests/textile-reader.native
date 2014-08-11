@@ -67,6 +67,11 @@ Pandoc (Meta {unMeta = fromList []})
 ,BulletList
  [[Plain [Str "one"]]
  ,[Plain [Str "two",LineBreak,Str "->",Space,Str "and",Space,Str "more"]]]
+,Header 2 ("issue-1513",[],[]) [Str "Issue",Space,Str "#1513"]
+,Para [Str "List:"]
+,BulletList
+ [[Plain [Str "one"]]
+ ,[Plain [Str "two"]]]
 ,Header 2 ("definition-list",[],[]) [Str "Definition",Space,Str "List"]
 ,DefinitionList
  [([Str "coffee"],
@@ -145,13 +150,9 @@ Pandoc (Meta {unMeta = fromList []})
 ,RawBlock (Format "html") "<div class=\"foobar\">"
 ,Para [Str "any",Space,Strong [Str "Raw",Space,Str "HTML",Space,Str "Block"],Space,Str "with",Space,Str "bold"]
 ,RawBlock (Format "html") "</div>"
-,Para [Str "Html",Space,Str "blocks",Space,Str "can",Space,Str "be"]
-,RawBlock (Format "html") "<div>"
-,Para [Str "inlined"]
-,RawBlock (Format "html") "</div>"
-,Para [Str "as",Space,Str "well."]
+,Para [Str "Html",Space,Str "blocks",Space,Str "can",Space,Str "be",Space,RawInline (Format "html") "<div>",Str "inlined",RawInline (Format "html") "</div>",Space,Str "as",Space,Str "well."]
 ,BulletList
- [[Plain [Str "this",Space,Str "<div>",Space,Str "won\8217t",Space,Str "produce",Space,Str "raw",Space,Str "html",Space,Str "blocks",Space,Str "</div>"]]
+ [[Plain [Str "this",Space,RawInline (Format "html") "<div>",Space,Str "won\8217t",Space,Str "produce",Space,Str "raw",Space,Str "html",Space,Str "blocks",Space,RawInline (Format "html") "</div>"]]
  ,[Plain [Str "but",Space,Str "this",Space,RawInline (Format "html") "<strong>",Space,Str "will",Space,Str "produce",Space,Str "inline",Space,Str "html",Space,RawInline (Format "html") "</strong>"]]]
 ,Para [Str "Can",Space,Str "you",Space,Str "prove",Space,Str "that",Space,Str "2",Space,Str "<",Space,Str "3",Space,Str "?"]
 ,Header 1 ("raw-latex",[],[]) [Str "Raw",Space,Str "LaTeX"]

@@ -123,6 +123,12 @@ h2. Issue #1500
 * two
 -> and more
 
+h2.  Issue #1513
+
+List:
+* one
+* two
+
 h2. Definition List
 
 - coffee := Hot and black
