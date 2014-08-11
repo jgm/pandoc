@@ -14,7 +14,7 @@ import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Generic(bottomUp)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Options ( ReaderOptions(..), readerTrace)
-import Text.Pandoc.Shared (escapeURI, collapseFilePath)
+import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Compat.Except (MonadError, throwError, runExcept, Except)
 import qualified Text.Pandoc.Builder as B
@@ -155,7 +155,7 @@ parseMeta content = do
 -- http://www.idpf.org/epub/30/spec/epub30-publications.html#sec-metadata-elem
 parseMetaItem :: Element -> Meta -> Meta
 parseMetaItem e@(stripNamespace . elName -> field) meta =
-  B.setMeta (renameMeta field) (B.str $ strContent e) meta
+  addMetaField (renameMeta field) (B.str $ strContent e) meta
 
 renameMeta :: String -> String
 renameMeta "creator" = "author"
