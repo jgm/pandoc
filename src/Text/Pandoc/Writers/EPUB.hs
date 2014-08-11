@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to EPUB.
 -}
 module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
-import Data.IORef
+import Data.IORef ( IORef, newIORef, readIORef, modifyIORef )
 import qualified Data.Map as M
 import Data.Maybe ( fromMaybe )
 import Data.List ( isPrefixOf, isInfixOf, intercalate )
@@ -40,27 +40,35 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.SelfContained ( makeSelfContained )
-import Codec.Archive.Zip
+import Codec.Archive.Zip ( emptyArchive, addEntryToArchive, eRelativePath, fromEntry                         , Entry, toEntry, fromArchive)
 import Control.Applicative ((<$>))
-import Data.Time.Clock.POSIX
-import Data.Time
-import System.Locale
-import Text.Pandoc.Shared hiding ( Element )
-import qualified Text.Pandoc.Shared as Shared
+import Data.Time.Clock.POSIX ( getPOSIXTime )
+import Data.Time (getCurrentTime,UTCTime, formatTime)
+import System.Locale ( defaultTimeLocale )
+import Text.Pandoc.Shared ( trimr, renderTags', safeRead, uniqueIdent, trim
+                          , normalizeDate, readDataFile, stringify, warn
+                          , hierarchicalize, fetchItem' )
+import qualified Text.Pandoc.Shared as S (Element(..))
 import Text.Pandoc.Builder (fromList, setMeta)
-import Text.Pandoc.Options
+import Text.Pandoc.Options ( WriterOptions(..)
+                           , HTMLMathMethod(..)
+                           , EPUBVersion(..)
+                           , ObfuscationMethod(NoObfuscation) )
 import Text.Pandoc.Definition
-import Text.Pandoc.Walk
-import Control.Monad.State
-import Text.XML.Light hiding (ppTopElement)
-import Text.Pandoc.UUID
-import Text.Pandoc.Writers.HTML
+import Text.Pandoc.Walk (walk, walkM)
+import Control.Monad.State (modify, get, execState, State, put, evalState)
+import Control.Monad (foldM, when, mplus, liftM)
+import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
+                      , strContent, lookupAttr, Node(..), QName(..), parseXML
+                      , onlyElems, node, ppElement)
+import Text.Pandoc.UUID (getRandomUUID)
+import Text.Pandoc.Writers.HTML (writeHtmlString, writeHtml)
 import Data.Char ( toLower, isDigit, isAlphaNum )
 import Network.URI ( unEscapeString )
 import Text.Pandoc.MIME (getMimeType)
 import qualified Control.Exception as E
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
-import Text.HTML.TagSoup
+import Text.HTML.TagSoup (Tag(TagOpen), fromAttrib, parseTags)
 
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section
@@ -524,8 +532,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let tocLevel = writerTOCDepth opts
 
   let navPointNode :: (Int -> String -> String -> [Element] -> Element)
-                   -> Shared.Element -> State Int Element
-      navPointNode formatter (Sec _ nums (ident,_,_) ils children) = do
+                   -> S.Element -> State Int Element
+      navPointNode formatter (S.Sec _ nums (ident,_,_) ils children) = do
         n <- get
         modify (+1)
         let showNums :: [Int] -> String
@@ -537,12 +545,12 @@ writeEPUB opts doc@(Pandoc meta _) = do
         let src = case lookup ident reftable of
                        Just x  -> x
                        Nothing -> error (ident ++ " not found in reftable")
-        let isSec (Sec lev _ _ _ _) = lev <= tocLevel
+        let isSec (S.Sec lev _ _ _ _) = lev <= tocLevel
             isSec _                 = False
         let subsecs = filter isSec children
         subs <- mapM (navPointNode formatter) subsecs
         return $ formatter n tit src subs
-      navPointNode _ (Blk _) = error "navPointNode encountered Blk"
+      navPointNode _ (S.Blk _) = error "navPointNode encountered Blk"
 
   let navMapFormatter :: Int -> String -> String -> [Element] -> Element
       navMapFormatter n tit src subs = unode "navPoint" !
