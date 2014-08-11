@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, CPP, ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards, CPP, ScopedTypeVariables, ViewPatterns #-}
 {-
 Copyright (C) 2010-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -94,6 +94,7 @@ data EPUBMetadata = EPUBMetadata{
   , epubRights             :: Maybe String
   , epubCoverImage         :: Maybe String
   , epubStylesheet         :: Maybe Stylesheet
+  , epubPageDirection      :: ProgressionDirection
   } deriving Show
 
 data Stylesheet = StylesheetPath FilePath
@@ -121,6 +122,8 @@ data Title = Title{
   , titleFileAs            :: Maybe String
   , titleType              :: Maybe String
   } deriving Show
+
+data ProgressionDirection = LTR | RTL | Default deriving Show
 
 dcName :: String -> QName
 dcName n = QName n Nothing (Just "dc")
@@ -296,6 +299,7 @@ metadataFromMeta opts meta = EPUBMetadata{
     , epubRights             = rights
     , epubCoverImage         = coverImage
     , epubStylesheet         = stylesheet
+    , epubPageDirection      = pageDirection
     }
   where identifiers = getIdentifier meta
         titles = getTitle meta
@@ -318,6 +322,14 @@ metadataFromMeta opts meta = EPUBMetadata{
         stylesheet = (StylesheetContents <$> writerEpubStylesheet opts) `mplus`
                      ((StylesheetPath . metaValueToString) <$>
                        lookupMeta "stylesheet" meta)
+        pageDirection = maybe Default stringToPageDirection
+                          (lookupMeta "page-progression-direction" meta)
+        stringToPageDirection (metaValueToString -> s) =
+          case s of
+            "ltr" -> LTR
+            "rtl" -> RTL
+            _ -> Default
+
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: WriterOptions  -- ^ Writer options
@@ -381,6 +393,12 @@ writeEPUB opts doc@(Pandoc meta _) = do
   -- handle fonts
   let mkFontEntry f = mkEntry (takeFileName f) `fmap` B.readFile f
   fontEntries <- mapM mkFontEntry $ writerEpubFonts opts'
+
+  -- set page progression direction
+  let progressionDirection = case epubPageDirection metadata of
+                              LTR -> "ltr"
+                              RTL -> "rtl"
+                              Default -> "default"
 
   -- body pages
 
@@ -501,7 +519,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
                               (pictureNode x)]) ++
              map pictureNode picEntries ++
              map fontNode fontEntries
-          , unode "spine" ! [("toc","ncx")] $
+          , unode "spine" ! [("toc","ncx")
+                            ,("page-progression-direction", progressionDirection)] $
               case epubCoverImage metadata of
                     Nothing -> []
                     Just _ -> [ unode "itemref" !
