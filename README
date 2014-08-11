@@ -2972,42 +2972,59 @@ The following fields are recognized:
     `GTIN-13`, `UPC`, `ISMN-10`, `DOI`, `LCCN`, `GTIN-14`,
     `ISBN-13`, `Legal deposit number`, `URN`, `OCLC`,
     `ISMN-13`, `ISBN-A`, `JP`, `OLCC`.
+
 `title`
   ~ Either a string value, or an object with fields `file-as` and
     `type`, or a list of such objects.  Valid values for `type` are
     `main`, `subtitle`, `short`, `collection`, `edition`, `extended`.
+
 `creator`
   ~ Either a string value, or an object with fields `role`, `file-as`,
     and `text`, or a list of such objects.  Valid values for `role` are
     [marc relators](http://www.loc.gov/marc/relators/relaterm.html), but
     pandoc will attempt to translate the human-readable versions
     (like "author" and "editor") to the appropriate marc relators.
+
 `contributor`
   ~ Same format as `creator`.
+
 `date`
   ~ A string value in `YYYY-MM-DD` format.  (Only the year is necessary.)
     Pandoc will attempt to convert other common date formats.
+
 `language`
   ~ A string value in [RFC5646] format.  Pandoc will default to the local
     language if nothing is specified.
+
 `subject`
   ~ A string value or a list of such values.
+
 `description`
   ~ A string value.
+
 `type`
   ~ A string value.
+
 `format`
   ~ A string value.
+
 `relation`
   ~ A string value.
+
 `coverage`
   ~ A string value.
+
 `rights`
   ~ A string value.
+
 `cover-image`
   ~ A string value (path to cover image).
+
 `stylesheet`
   ~ A string value (path to CSS stylesheet).
+
+`page-progression-direction`
+  ~ Either `ltr` or `rtl`. Specifies the synonymous spine [attribute][EPUBspine].
 
 Literate Haskell support
 ========================
@@ -3126,3 +3143,4 @@ Rosenthal.
 [InDesign ICML]: https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf
 [txt2tags]: http://txt2tags.org/
 [EPUB]: http://idpf.org/epub
+[EPUBspine]: http://www.idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem
