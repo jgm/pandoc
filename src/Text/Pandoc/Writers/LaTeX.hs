@@ -308,12 +308,11 @@ blockToLaTeX (Div (identifier,classes,_) bs) = do
   ref <- toLabel identifier
   let linkAnchor = if null identifier
                       then empty
-                      else "\\hyperdef{}" <> braces (text ref) <>
-                                braces ("\\label" <> braces (text ref))
+                      else "\\hyperdef{}" <> braces (text ref)
   contents <- blockListToLaTeX bs
   if beamer && "notes" `elem` classes  -- speaker notes
      then return $ "\\note" <> braces contents
-     else return (linkAnchor <> contents)
+     else return (linkAnchor $$ contents)
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
@@ -670,11 +669,11 @@ inlineToLaTeX (Span (id',classes,_) ils) = do
   let noEmph = "csl-no-emph" `elem` classes
   let noStrong = "csl-no-strong" `elem` classes
   let noSmallCaps = "csl-no-smallcaps" `elem` classes
-  label' <- if null id'
-               then return empty
-               else toLabel id' >>= \x ->
-                      return (text "\\label" <> braces (text x))
-  fmap (label' <>)
+  ref <- toLabel id'
+  let linkAnchor = if null id'
+                      then empty
+                      else "\\hyperdef{}" <> braces (text ref)
+  fmap (linkAnchor <>)
     ((if noEmph then inCmd "textup" else id) .
      (if noStrong then inCmd "textnormal" else id) .
      (if noSmallCaps then inCmd "textnormal" else id) .
