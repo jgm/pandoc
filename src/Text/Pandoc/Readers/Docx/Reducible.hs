@@ -88,11 +88,13 @@ combineReducibles r s =
   in
    case null shared of
      True | (x : xs) <- reverse rs
-          , isSpace x ->
-             rebuild conts (reverse xs) ++ [x, s]
+          , isSpace x -> case xs of
+                          [] -> [x, s]
+                          _  -> rebuild conts (reverse xs) ++ [x, s]
           | (x : xs) <- ss
-          , isSpace x ->
-             [r, x] ++ rebuild conts' (xs)
+          , isSpace x -> case xs of
+                          [] -> [r, x]
+                          _  -> [r, x] ++ rebuild conts' (xs)
      True  -> [r,s]
      False -> rebuild
               shared $
@@ -121,7 +123,6 @@ instance Reducible Inline where
                       False -> [Span attr2' ils2]
                 in
                  [Span attr' $ reduceList $ s1' ++ s2']
-
   (Str x) <++> (Str y) = [Str (x++y)]
   il <++> il' = combineReducibles il il'
 
