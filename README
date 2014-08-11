@@ -776,43 +776,60 @@ as `title`, `author`, and `date`) as well as the following:
 `header-includes`
 :   contents specified by `-H/--include-in-header` (may have multiple
     values)
+
 `toc`
 :   non-null value if `--toc/--table-of-contents` was specified
+
 `include-before`
 :   contents specified by `-B/--include-before-body` (may have
     multiple values)
+
 `include-after`
 :   contents specified by `-A/--include-after-body` (may have
     multiple values)
+
 `body`
 :   body of document
+
 `lang`
 :   language code for HTML or LaTeX documents
+
 `slidy-url`
 :   base URL for Slidy documents (defaults to
     `http://www.w3.org/Talks/Tools/Slidy2`)
+
 `slideous-url`
 :   base URL for Slideous documents (defaults to `slideous`)
+
 `s5-url`
 :   base URL for S5 documents (defaults to `s5/default`)
+
 `revealjs-url`
 :   base URL for reveal.js documents (defaults to `reveal.js`)
+
 `theme`
 :   reveal.js or LaTeX beamer theme
+
 `transition`
 :   reveal.js transition
+
 `fontsize`
 :   font size (10pt, 11pt, 12pt) for LaTeX documents
+
 `documentclass`
 :   document class for LaTeX documents
+
 `classoption`
 :   option for LaTeX documentclass, e.g. `oneside`; may be repeated
     for multiple options
+
 `geometry`
 :   options for LaTeX `geometry` class, e.g. `margin=1in`;
     may be repeated for multiple options
+
 `linestretch`
 :   adjusts line spacing (requires the `setspace` package)
+
 `fontfamily`
 :   font package to use for LaTeX documents (with pdflatex):
     TeXLive has `bookman` (Bookman), `utopia` or `fourier` (Utopia),
@@ -820,38 +837,54 @@ as `title`, `author`, and `date`) as well as the following:
     `mathpazo` or `pxfonts` or `mathpple` (Palatino),
     `libertine` (Linux Libertine), `arev` (Arev Sans),
     and the default `lmodern`, among others.
+
 `mainfont`, `sansfont`, `monofont`, `mathfont`
 :   fonts for LaTeX documents (works only with xelatex
     and lualatex)
+
 `colortheme`
 :   colortheme for LaTeX beamer documents
+
 `fonttheme`
 :   fonttheme for LaTeX beamer documents
+
 `linkcolor`
 :   color for internal links in LaTeX documents (`red`, `green`,
     `magenta`, `cyan`, `blue`, `black`)
+
 `urlcolor`
 :   color for external links in LaTeX documents
+
 `citecolor`
 :   color for citation links in LaTeX documents
+
 `links-as-notes`
 :   causes links to be printed as footnotes in LaTeX documents
+
 `toc`
 :   include table of contents in LaTeX documents
+
 `toc-depth`
 :   level of section to include in table of contents in LaTeX documents
+
 `lof`
 :   include list of figures in LaTeX documents
+
 `lot`
 :   include list of tables in LaTeX documents
+
 `biblio-style`
 :   bibliography style in LaTeX, when used with `--natbib`
+
 `biblio-files`
 :   bibliography files to use in LaTeX, with `--natbib` or `--biblatex`
+
 `section`
 :   section number in man pages
+
 `header`
 :   header in man pages
+
 `footer`
 :   footer in man pages
 
