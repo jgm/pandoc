@@ -6,6 +6,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Builder
 import Text.XML.Light
 import Text.Pandoc.Compat.TagSoupEntity (lookupEntity)
+import Data.Either (rights)
 import Data.Generics
 import Data.Monoid
 import Data.Char (isSpace)
@@ -13,6 +14,7 @@ import Control.Monad.State
 import Control.Applicative ((<$>))
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
+import Text.TeXMath (readMathML, writeTeX)
 
 {-
 
@@ -126,7 +128,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] envar - A software environment variable
 [x] epigraph - A short inscription at the beginning of a document or component
     note:  also handle embedded attribution tag
-[ ] equation - A displayed mathematical equation
+[x] equation - A displayed mathematical equation
 [ ] errorcode - An error code
 [ ] errorname - An error name
 [ ] errortext - An error message.
@@ -185,12 +187,12 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] indexinfo - Meta-information for an Index
 [x] indexterm - A wrapper for terms to be indexed
 [x] info - A wrapper for information about a component or other block. (DocBook v5)
-[ ] informalequation - A displayed mathematical equation without a title
+[x] informalequation - A displayed mathematical equation without a title
 [ ] informalexample - A displayed example without a title
 [ ] informalfigure - A untitled figure
 [ ] informaltable - A table without a title
 [ ] initializer - The initializer for a FieldSynopsis
-[ ] inlineequation - A mathematical equation or expression occurring inline
+[x] inlineequation - A mathematical equation or expression occurring inline
 [ ] inlinegraphic - An object containing or pointing to graphical data
     that will be rendered inline
 [x] inlinemediaobject - An inline media object (video, audio, image, and so on)
@@ -239,7 +241,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] methodname - The name of a method
 [ ] methodparam - Parameters to a method
 [ ] methodsynopsis - A syntax summary for a method
-[ ] mml:math - A MathML equation
+[x] mml:math - A MathML equation
 [ ] modespec - Application-specific information necessary for the
     completion of an OLink
 [ ] modifier - Modifiers in a synopsis
@@ -882,6 +884,9 @@ parseInline (CRef ref) =
   return $ maybe (text $ map toUpper ref) (text . (:[])) $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
+        "equation" -> equation displayMath
+        "informalequation" -> equation displayMath
+        "inlineequation" -> equation math
         "subscript" -> subscript <$> innerInlines
         "superscript" -> superscript <$> innerInlines
         "inlinemediaobject" -> getImage e
@@ -943,6 +948,13 @@ parseInline (Elem e) =
         _          -> innerInlines
    where innerInlines = (trimInlines . mconcat) <$>
                           (mapM parseInline $ elContent e)
+         equation constructor = return $ mconcat $
+           map (constructor . writeTeX)
+           $ rights
+           $ map (readMathML . showElement . everywhere (mkT removePrefix))
+           $ filterChildren (\x -> qName (elName x) == "math" &&
+                                   qPrefix (elName x) == Just "mml") e
+         removePrefix elname = elname { qPrefix = Nothing }
          codeWithLang = do
            let classes' = case attrValue "language" e of
                                "" -> []
