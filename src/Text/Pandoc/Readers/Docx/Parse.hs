@@ -146,12 +146,14 @@ data ParIndentation = ParIndentation { leftParIndent :: Maybe Integer
 
 data ParagraphStyle = ParagraphStyle { pStyle :: [String]
                                      , indentation :: Maybe ParIndentation
+                                     , dropCap     :: Bool
                                      }
                       deriving Show
 
 defaultParagraphStyle :: ParagraphStyle
 defaultParagraphStyle = ParagraphStyle { pStyle = []
                                        , indentation = Nothing
+                                       , dropCap     = False
                                        }
 
 
@@ -637,8 +639,16 @@ elemToParagraphStyle ns element
           (findAttr (elemName ns "w" "val"))
           (findChildren (elemName ns "w" "pStyle") pPr)
       , indentation =
-            findChild (elemName ns "w" "ind") pPr >>=
-            elemToParIndentation ns
+          findChild (elemName ns "w" "ind") pPr >>=
+          elemToParIndentation ns
+      , dropCap =
+          case
+            findChild (elemName ns "w" "framePr") pPr >>=
+            findAttr (elemName ns "w" "dropCap")
+          of
+            Just "none" -> False
+            Just _      -> True
+            Nothing     -> False
       }
 elemToParagraphStyle _ _ =  defaultParagraphStyle
 
