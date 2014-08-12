@@ -793,12 +793,17 @@ inlineToLaTeX (Note contents) = do
                    (CodeBlock _ _ : _) -> cr
                    _                   -> empty
   let noteContents = nest 2 contents' <> optnl
+  opts <- gets stOptions
+  -- in beamer slides, display footnote from current overlay forward
+  let beamerMark = if writerBeamer opts
+                      then text "<.->"
+                      else empty
   modify $ \st -> st{ stNotes = noteContents : stNotes st }
   return $
     if inMinipage
        then "\\footnotemark{}"
        -- note: a \n before } needed when note ends with a Verbatim environment
-       else "\\footnote" <> braces noteContents
+       else "\\footnote" <> beamerMark <> braces noteContents
 
 protectCode :: [Inline] -> [Inline]
 protectCode [] = []
