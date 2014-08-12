@@ -177,6 +177,7 @@ Extra-Source-Files:
                  tests/docx.codeblock.docx,
                  tests/docx.deep_normalize.docx,
                  tests/docx.definition_list.docx,
+                 tests/docx.drop_cap.docx,
                  tests/docx.hanging_indent.docx,
                  tests/docx.headers.docx,
                  tests/docx.image.docx,
