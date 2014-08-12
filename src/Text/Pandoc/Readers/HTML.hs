@@ -131,6 +131,7 @@ block = do
             , eSwitch B.para block
             , mempty <$ eFootnote
             , mempty <$ eTOC
+            , mempty <$ eTitlePage
             , pPara
             , pHeader
             , pBlockQuote
@@ -334,9 +335,13 @@ headerLevel tagtype = do
     <|>
       return level
 
-
-
-
+eTitlePage :: TagParser ()
+eTitlePage = try $ do
+  let isTitlePage as = maybe False (isInfixOf "titlepage") (lookup "type" as)
+  let groupTag = tagOpen (\x -> x `elem` groupingContent || x == "section")
+                          isTitlePage
+  TagOpen tag _ <- lookAhead $ pSatisfy groupTag
+  () <$ pInTags tag block
 
 pHeader :: TagParser Blocks
 pHeader = try $ do
@@ -922,13 +927,14 @@ instance HasLastStrPosition HTMLState where
 sectioningContent :: [String]
 sectioningContent = ["article", "aside", "nav", "section"]
 
-{-
+
 groupingContent :: [String]
 groupingContent = ["p", "hr", "pre", "blockquote", "ol"
                   , "ul", "li", "dl", "dt", "dt", "dd"
                   , "figure", "figcaption", "div", "main"]
 
 
+{-
 
 types :: [(String, ([String], Int))]
 types =  -- Document divisions
