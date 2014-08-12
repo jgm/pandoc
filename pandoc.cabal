@@ -252,7 +252,8 @@ Library
                  SHA >= 1.6 && < 1.7,
                  haddock-library >= 1.1 && < 1.2,
                  old-time,
-                 deepseq-generics >= 0.1 && < 0.2
+                 deepseq-generics >= 0.1 && < 0.2,
+                 JuicyPixels >= 3.1.6.1 && < 3.2
   if flag(https)
      Build-Depends: http-client >= 0.3.2 && < 0.4,
                     http-client-tls >= 0.2 && < 0.3,
