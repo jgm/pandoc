@@ -239,7 +239,6 @@ pandoc (1.13)
     + Added `blanklines`, which guarantees a certain number of blank lines
       (and no more).
 
-
   [bug fixes]
 
   * Markdown reader:
@@ -438,7 +437,6 @@ pandoc (1.13)
     + Added `isbn` and `pmid` to list of recognized schemes (Matthew
       Pickering).
 
-
   [template changes]
 
   * Added haddock template.
@@ -524,10 +522,9 @@ pandoc (1.13)
     will extract it into a folder named `SOMETHING.pkg`, which it
     will interpret as a defective package (#1308).
 
+  * `README`:
 
-  [documentation improvements]
-
-    + README: made headers for all extensions so they have IDs and can be
+    + Made headers for all extensions so they have IDs and can be
       linked to (Beni Cherniavsky-Paskin).
     + Fixed typos (Phillip Alday).
     + Fixed documentation of attributes (#1315).
