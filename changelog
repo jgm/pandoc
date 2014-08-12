@@ -125,6 +125,11 @@ pandoc (1.13)
       using `\urlstyle{tt}`.  Thanks to Ulrike Fischer for the solution.
     + Use `\textquotesingle` for `'` in inline code.  Otherwise we get
       curly quotes in the PDF output (#1364).
+    + Use `\footnote<.>{..}` for notes in beamer, so that footnotes
+      do not appear before the overlays in which their markers appear
+      (#1525).
+    + Don't produce a `\label{..}` for a Div or Span element.  Do produce
+      a `\hyperdef{..}` (#1519).
 
   * Org reader:
 
@@ -239,6 +244,10 @@ pandoc (1.13)
 
   * Markdown reader:
 
+    + Fixed parsing of indented code in list items.  Indented code
+      at the beginning of a list item must be indented eight spaces
+      from the margin (or edge of the container), or four spaces
+      from the list marker, whichever is greater.
     + Fixed small bug in HTML parsing with `markdown_attribute`, which
       caused incorrect tag nesting for input like
       `<aside markdown="1">*hi*</aside>`.
@@ -305,6 +314,13 @@ pandoc (1.13)
       we preserve the text (#1449).
     + Support `<?asciidoc-br?>` (#1236).
 
+  * Textile reader:
+
+    + Fixed list parsing. Lists can now start without an intervening
+      blank line (#1513).
+    + HTML block-level tags that do not start a line are parsed as
+      inline HTML and do not interrupt paragraphs (as in RedCloth).
+
   * Org reader:
 
     + Make tildes create inline code (#1345).  Also relabeled `code` and
@@ -347,6 +363,9 @@ pandoc (1.13)
   * HTML writer:
 
     + Deactivate "incremental" inside slide speaker notes (#1394).
+    + Don't include empty items in the table of contents for
+      slide shows.  (These would result from creating a slide
+      using a horizontal rule.)
 
   * MediaWiki writer:
 
