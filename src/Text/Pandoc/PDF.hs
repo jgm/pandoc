@@ -39,7 +39,8 @@ import System.FilePath
 import System.Directory
 import Data.Digest.Pure.SHA (showDigest, sha1)
 import System.Environment
-import Control.Monad (unless)
+import Control.Monad (unless, (<=<))
+import Control.Applicative ((<$>), (<$))
 import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -47,9 +48,10 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Shared (fetchItem', warn, withTempDir)
 import Text.Pandoc.Options (WriterOptions(..))
-import Text.Pandoc.MIME (extensionFromMimeType)
+import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Process (pipeProcess)
 import qualified Data.ByteString.Lazy as BL
+import qualified Codec.Picture as JP
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
@@ -73,7 +75,7 @@ handleImages :: WriterOptions
              -> FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
              -> IO Pandoc
-handleImages opts tmpdir = walkM (handleImage' opts tmpdir)
+handleImages opts tmpdir = walkM (convertImages tmpdir) <=< walkM (handleImage' opts tmpdir)
 
 handleImage' :: WriterOptions
              -> FilePath
@@ -97,6 +99,30 @@ handleImage' opts tmpdir (Image ils (src,tit)) = do
                 warn $ "Could not find image `" ++ src ++ "', skipping..."
                 return $ Image ils (src,tit)
 handleImage' _ _ x = return x
+
+convertImages :: FilePath -> Inline -> IO Inline
+convertImages tmpdir (Image ils (src, tit)) = do
+  img <- convertImage tmpdir src
+  newPath <-
+    case img of
+      Left _ -> src <$ (warn $ "Unable to convert image `" ++ src ++ "'")
+      Right (fp, action) -> fp <$ action
+  return (Image ils (newPath, tit))
+convertImages _ x = return x
+
+-- Convert formats which do not work well in pdf to png
+convertImage :: FilePath -> FilePath -> IO (Either String ((FilePath, IO ())))
+convertImage tmpdir fname =
+  case mime of
+    Just "image/png" -> doNothing
+    Just "image/jpeg" -> doNothing
+    Just "application/pdf" -> doNothing
+    _ -> savePng <$> JP.readImage fname
+  where
+    fileOut = replaceDirectory (replaceExtension fname (".png")) tmpdir
+    savePng = fmap (\x -> (fileOut, JP.savePngImage fileOut x))
+    mime = getMimeType fname
+    doNothing = return (Right $ (fname, return ()))
 
 tex2pdf' :: FilePath                        -- ^ temp directory for output
          -> String                          -- ^ tex program
