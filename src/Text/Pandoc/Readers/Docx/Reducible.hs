@@ -39,6 +39,7 @@ module Text.Pandoc.Readers.Docx.Reducible ((<++>),
                                            innards,
                                            reduceList,
                                            reduceListB,
+                                           concatR,
                                            rebuild)
        where
 
@@ -77,6 +78,15 @@ reduceList' as (x:xs) = reduceList' (init as ++ (last as <++> x) ) xs
 
 reduceList :: (Reducible a) => [a] -> [a]
 reduceList = reduceList' []
+
+concatR :: (Reducible a) => [a] -> [a] -> [a]
+concatR [] [] = []
+concatR [] ss = ss
+concatR rs [] = rs
+concatR rs ss = let (x:xs) = reverse rs
+                    (y:ys) = ss
+                in
+                 reverse xs ++ ( x <++> y ) ++ ys
 
 combineReducibles :: (Reducible a, Eq a) => a -> a -> [a]
 combineReducibles r s =
