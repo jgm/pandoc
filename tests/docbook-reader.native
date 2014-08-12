@@ -190,6 +190,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Some",Space,Str "dashes:",Space,Str "one\8212two",Space,Str "\8212",Space,Str "three\8212four",Space,Str "\8212",Space,Str "five."]
 ,Para [Str "Dashes",Space,Str "between",Space,Str "numbers:",Space,Str "5\8211\&7,",Space,Str "255\8211\&66,",Space,Str "1987\8211\&1999."]
 ,Para [Str "Ellipses\8230and\8230and\8230."]
+,Header 1 ("",[],[]) []
+,Para [Math DisplayMath "e = mc^{2}",Math DisplayMath "1",Space,Math InlineMath "e = mc^{2}",Space,Math DisplayMath "e = mc^{2}"]
 ,Header 1 ("",[],[]) [Str "Special",Space,Str "Characters"]
 ,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode:"]
 ,BulletList

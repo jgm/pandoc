@@ -731,6 +731,54 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     Ellipses…and…and….
   </para>
 </sect1>
+<sect1 id="math">
+  <para>
+    <equation>
+      <mml:math>
+        <mml:mrow>
+          <mml:mi>e</mml:mi>
+          <mml:mo>=</mml:mo>
+          <mml:mi>m</mml:mi>
+          <mml:msup>
+            <mml:mi>c</mml:mi>
+            <mml:mn>2</mml:mn>
+          </mml:msup>
+        </mml:mrow>
+      </mml:math>
+      <mml:math>
+        <mrow>
+          <mn>1</mn>
+        </mrow>
+      </mml:math>
+    </equation>
+    <inlineequation>
+      <mml:math>
+        <mml:mrow>
+          <mml:mi>e</mml:mi>
+          <mml:mo>=</mml:mo>
+          <mml:mi>m</mml:mi>
+          <mml:msup>
+            <mml:mi>c</mml:mi>
+            <mml:mn>2</mml:mn>
+          </mml:msup>
+        </mml:mrow>
+      </mml:math>
+    </inlineequation>
+    <informalequation>
+      <mml:math>
+        <mml:mrow>
+          <mml:mi>e</mml:mi>
+          <mml:mo>=</mml:mo>
+          <mml:mi>m</mml:mi>
+          <mml:msup>
+            <mml:mi>c</mml:mi>
+            <mml:mn>2</mml:mn>
+          </mml:msup>
+        </mml:mrow>
+      </mml:math>
+    </informalequation>
+  </para>
+</sect1>
 <sect1 id="special-characters">
   <title>Special Characters</title>
   <para>
