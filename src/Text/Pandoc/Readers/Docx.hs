@@ -105,11 +105,15 @@ readDocx opts bytes =
     Left _   -> error $ "couldn't parse docx file"
 
 data DState = DState { docxAnchorMap :: M.Map String String
-                     , docxMediaBag      :: MediaBag }
+                     , docxMediaBag      :: MediaBag
+                     , docxDropCap       :: [Inline]
+                     }
 
 instance Default DState where
   def = DState { docxAnchorMap = M.empty
-               , docxMediaBag  = mempty }
+               , docxMediaBag  = mempty
+               , docxDropCap   = []
+               }
 
 data DEnv = DEnv { docxOptions  :: ReaderOptions
                  , docxInHeaderBlock :: Bool }
@@ -457,13 +461,17 @@ bodyPartToBlocks (Paragraph pPr parparts)
     return [hdr]
 bodyPartToBlocks (Paragraph pPr parparts) = do
   ils <- parPartsToInlines parparts >>= (return . normalizeSpaces)
-  case ils of
-    [] -> return []
-    _ -> do
-      return $
-       rebuild
-       (parStyleToContainers pPr)
-       [Para ils]
+  dropIls <- gets docxDropCap
+  let ils' = dropIls ++ ils
+  if dropCap pPr
+    then do modify $ \s -> s { docxDropCap = ils' }
+            return []
+    else do modify $ \s -> s { docxDropCap = [] }
+            return $ case ils' of
+              [] -> []
+              _ -> rebuild
+                   (parStyleToContainers pPr)
+                   [Para $ ils']
 bodyPartToBlocks (ListItem pPr numId lvl levelInfo parparts) = do
   let
     kvs = case levelInfo of
