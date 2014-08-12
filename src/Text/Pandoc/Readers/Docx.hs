@@ -462,7 +462,9 @@ bodyPartToBlocks (Paragraph pPr parparts)
 bodyPartToBlocks (Paragraph pPr parparts) = do
   ils <- parPartsToInlines parparts >>= (return . normalizeSpaces)
   dropIls <- gets docxDropCap
-  let ils' = reduceList $ dropIls ++ ils
+  let ils' = case ils of
+        (x:xs) -> reduceList (dropIls ++ [x]) ++ xs
+        []     -> dropIls
   if dropCap pPr
     then do modify $ \s -> s { docxDropCap = ils' }
             return []
