@@ -40,7 +40,7 @@ import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting ( highlight, styleToCss,
                                   formatHtmlInline, formatHtmlBlock )
 import Text.Pandoc.XML (fromEntities, escapeStringForXML)
-import Network.URI ( parseURIReference, URI(..) )
+import Network.URI ( parseURIReference, URI(..), unEscapeString )
 import Network.HTTP ( urlEncode )
 import Numeric ( showHex )
 import Data.Char ( ord, toLower )
@@ -361,13 +361,13 @@ obfuscateLink opts txt s =
                 ReferenceObfuscation ->
                      -- need to use preEscapedString or &'s are escaped to &amp; in URL
                      preEscapedString $ "<a href=\"" ++ (obfuscateString s')
-                     ++ "\">" ++ (obfuscateString txt) ++ "</a>"
+                     ++ "\" class=\"email\">" ++ (obfuscateString txt) ++ "</a>"
                 JavascriptObfuscation ->
                      (H.script ! A.type_ "text/javascript" $
                      preEscapedString ("\n<!--\nh='" ++
                      obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++
                      obfuscateString name' ++ "';e=n+a+h;\n" ++
-                     "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\">'+" ++
+                     "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\" clas'+'s=\"em' + 'ail\">'+" ++
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) >>
                      H.noscript (preEscapedString $ obfuscateString altText)
                 _ -> error $ "Unknown obfuscation method: " ++ show meth
@@ -739,9 +739,12 @@ inlineToHtml opts inline =
                                             RevealJsSlides -> '#':'/':xs
                                       _ -> s
                         let link = H.a ! A.href (toValue s') $ linkText
+                        let link' = if txt == [Str (unEscapeString s)]
+                                       then link ! A.class_ "uri"
+                                       else link
                         return $ if null tit
-                                    then link
-                                    else link ! A.title (toValue tit)
+                                    then link'
+                                    else link' ! A.title (toValue tit)
     (Image txt (s,tit)) | treatAsImage s -> do
                         let alternate' = stringify txt
                         let attributes = [A.src $ toValue s] ++
