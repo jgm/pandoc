@@ -148,6 +148,8 @@ tests = [ testGroup "markdown"
         , testGroup "epub" [
             test "features" ["-r", "epub", "-w", "native"]
               "epub.features.epub" "epub.features.native"
+          , test "wasteland" ["-r", "epub", "-w", "native"]
+              "epub.wasteland.epub" "epub.wasteland.native"
           , test "formatting" ["-r", "epub", "-w", "native"]
               "epub.formatting.epub" "epub.formatting.native"
           ]
