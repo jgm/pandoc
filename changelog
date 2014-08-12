@@ -72,6 +72,29 @@ pandoc (1.13)
       Previously pandoc would say that a filter was not found,
       even in a case where the filter had a syntax error.
 
+  * HTML reader:
+
+    + Parse `div` and `span` elements even without `--parse-raw`,
+      provided `native_divs` and `native_spans` extensions are set.
+      Motivation:  these now generate native pandoc Div and Span
+      elements, not raw HTML.
+    + Parse EPUB-specific elements if the `epub_html_exts`
+      extension is enabled.  These include `switch`, `footnote`,
+      `rearnote`, `noteref`.
+
+  * Org reader:
+
+    + Support for inline LaTeX.  Inline LaTeX is now accepted and parsed by the
+      org-mode reader.  Both math symbols (like `\tau`) and LaTeX commands (like
+      `\cite{Coffee}`), can be used without any further escaping (Albert
+      Krewinkel).
+
+  * DocBook reader:
+
+    + Support `equation`, `informalequation`, `inlineequation` elements with
+      `mml:math` content.  This is converted into LaTeX and put into a Pandoc
+      Math inline.
+
   * Revised `plain` output, largely following the style of Project
     Gutenberg:
 
@@ -106,16 +129,6 @@ pandoc (1.13)
     + Write empty span elements with an id attribute as org anchors.
       For example `Span ("uid",[],[]) []` becomes `<<uid>>`.
 
-  * HTML reader:
-
-    + Parse `div` and `span` elements even without `--parse-raw`,
-      provided `native_divs` and `native_spans` extensions are set.
-      Motivation:  these now generate native pandoc Div and Span
-      elements, not raw HTML.
-    + Parse EPUB-specific elements if the `epub_html_exts`
-      extension is enabled.  These include `switch`, `footnote`,
-      `rearnote`, `noteref`.
-
   * LaTeX writer:
 
     + Put table captions above tables, to match the conventional
@@ -130,13 +143,6 @@ pandoc (1.13)
       (#1525).
     + Don't produce a `\label{..}` for a Div or Span element.  Do produce
       a `\hyperdef{..}` (#1519).
-
-  * Org reader:
-
-    + Support for inline LaTeX.  Inline LaTeX is now accepted and parsed by the
-      org-mode reader.  Both math symbols (like `\tau`) and LaTeX commands (like
-      `\cite{Coffee}`), can be used without any further escaping (Albert
-      Krewinkel).
 
   * Custom lua writers:
 
