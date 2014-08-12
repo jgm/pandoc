@@ -297,7 +297,7 @@ inlineToConTeXt (Link txt          (('#' : ref), _)) = do
            <> brackets (text ref)
 
 inlineToConTeXt (Link txt          (src, _))      = do
-  let isAutolink = txt == [Str src]
+  let isAutolink = txt == [Str (unEscapeString src)]
   st <- get
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
