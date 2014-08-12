@@ -141,14 +141,16 @@ nonindentSpaces = do
      then return sps
      else unexpected "indented line"
 
-skipNonindentSpaces :: MarkdownParser ()
+-- returns number of spaces parsed
+skipNonindentSpaces :: MarkdownParser Int
 skipNonindentSpaces = do
   tabStop <- getOption readerTabStop
-  atMostSpaces (tabStop - 1)
+  atMostSpaces (tabStop - 1) <* notFollowedBy (char ' ')
 
-atMostSpaces :: Int -> MarkdownParser ()
-atMostSpaces 0 = notFollowedBy (char ' ')
-atMostSpaces n = (char ' ' >> atMostSpaces (n-1)) <|> return ()
+atMostSpaces :: Int -> MarkdownParser Int
+atMostSpaces n
+  | n > 0     = (char ' ' >> (+1) <$> atMostSpaces (n-1)) <|> return 0
+  | otherwise = return 0
 
 litChar :: MarkdownParser Char
 litChar = escapedChar'
@@ -717,35 +719,42 @@ blockQuote = do
 bulletListStart :: MarkdownParser ()
 bulletListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
+  startpos <- sourceColumn <$> getPosition
   skipNonindentSpaces
   notFollowedBy' (() <$ hrule)     -- because hrules start out just like lists
   satisfy isBulletListMarker
-  spaceChar <|> lookAhead newline
-  skipSpaces
+  endpos <- sourceColumn <$> getPosition
+  tabStop <- getOption readerTabStop
+  lookAhead (newline <|> spaceChar)
+  () <$ atMostSpaces (tabStop - (endpos - startpos))
 
 anyOrderedListStart :: MarkdownParser (Int, ListNumberStyle, ListNumberDelim)
 anyOrderedListStart = try $ do
   optional newline -- if preceded by a Plain block in a list context
+  startpos <- sourceColumn <$> getPosition
   skipNonindentSpaces
   notFollowedBy $ string "p." >> spaceChar >> digit  -- page number
-  (guardDisabled Ext_fancy_lists >>
-       do many1 digit
-          char '.'
-          spaceChar
-          return (1, DefaultStyle, DefaultDelim))
-   <|> do (num, style, delim) <- anyOrderedListMarker
-          -- if it could be an abbreviated first name, insist on more than one space
-          if delim == Period && (style == UpperAlpha || (style == UpperRoman &&
-             num `elem` [1, 5, 10, 50, 100, 500, 1000]))
-             then char '\t' <|> (try $ char ' ' >> spaceChar)
-             else spaceChar
-          skipSpaces
-          return (num, style, delim)
+  res <- do guardDisabled Ext_fancy_lists
+            many1 digit
+            char '.'
+            return (1, DefaultStyle, DefaultDelim)
+     <|> do (num, style, delim) <- anyOrderedListMarker
+            -- if it could be an abbreviated first name,
+            -- insist on more than one space
+            when (delim == Period && (style == UpperAlpha ||
+                 (style == UpperRoman &&
+                  num `elem` [1, 5, 10, 50, 100, 500, 1000]))) $
+               () <$ spaceChar
+            return (num, style, delim)
+  endpos <- sourceColumn <$> getPosition
+  tabStop <- getOption readerTabStop
+  lookAhead (newline <|> spaceChar)
+  atMostSpaces (tabStop - (endpos - startpos))
+  return res
 
 listStart :: MarkdownParser ()
 listStart = bulletListStart <|> (anyOrderedListStart >> return ())
 
--- parse a line of a list item (start = parser for beginning of list item)
 listLine :: MarkdownParser String
 listLine = try $ do
   notFollowedBy' (do indentSpaces
@@ -753,19 +762,21 @@ listLine = try $ do
                      listStart)
   notFollowedByHtmlCloser
   optional (() <$ indentSpaces)
-  chunks <- manyTill
+  listLineCommon
+
+listLineCommon :: MarkdownParser String
+listLineCommon = concat <$> manyTill
               (  many1 (satisfy $ \c -> c /= '\n' && c /= '<')
              <|> liftM snd (htmlTag isCommentTag)
              <|> count 1 anyChar
               ) newline
-  return $ concat chunks
 
 -- parse raw text for one list item, excluding start marker and continuations
 rawListItem :: MarkdownParser a
             -> MarkdownParser String
 rawListItem start = try $ do
   start
-  first <- listLine
+  first <- listLineCommon
   rest <- many (notFollowedBy listStart >> notFollowedBy blankline >> listLine)
   blanks <- many blankline
   return $ unlines (first:rest) ++ blanks
@@ -823,8 +834,14 @@ orderedList = try $ do
   items <- fmap sequence $ many1 $ listItem
                  ( try $ do
                      optional newline -- if preceded by Plain block in a list
+                     startpos <- sourceColumn <$> getPosition
                      skipNonindentSpaces
-                     orderedListMarker style delim )
+                     res <- orderedListMarker style delim
+                     endpos <- sourceColumn <$> getPosition
+                     tabStop <- getOption readerTabStop
+                     lookAhead (newline <|> spaceChar)
+                     atMostSpaces (tabStop - (endpos - startpos))
+                     return res )
   start' <- option 1 $ guardEnabled Ext_startnum >> return start
   return $ B.orderedListWith (start', style, delim) <$> fmap compactify' items
 

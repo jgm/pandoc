@@ -70,6 +70,22 @@ $PATH 90 $PATH
 -->
 - three
 
+## Indented code at beginning of list
+
+-       code
+        code
+
+  1.    code
+        code
+
+  12345678.    code
+        code
+
+  -     code
+        code
+
+  -    no code
+
 ## Backslash newline
 
 hi\
