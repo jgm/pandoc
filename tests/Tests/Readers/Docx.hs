@@ -82,14 +82,14 @@ compareMediaBagIO docxFile = do
     df <- B.readFile docxFile
     let (_, mb) = readDocx def df
     bools <- mapM
-             (\(fp, _, _) -> compareMediaPathIO fp mb docxFile) 
+             (\(fp, _, _) -> compareMediaPathIO fp mb docxFile)
              (mediaDirectory mb)
     return $ and bools
 
 testMediaBagIO :: String -> FilePath -> IO Test
 testMediaBagIO name docxFile = do
   outcome <- compareMediaBagIO docxFile
-  return $ testCase name (assertBool 
+  return $ testCase name (assertBool
                           ("Media didn't match media bag in file " ++ docxFile)
                           outcome)
 
@@ -176,7 +176,10 @@ tests = [ testGroup "inlines"
             "code block"
             "docx.codeblock.docx"
             "docx.codeblock.native"
-
+          , testCompare
+            "dropcap paragraphs"
+            "docx.drop_cap.docx"
+            "docx.drop_cap.native"
           ]
         , testGroup "track changes"
           [ testCompare
@@ -229,4 +232,3 @@ tests = [ testGroup "inlines"
           ]
 
         ]
-

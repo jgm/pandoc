@@ -1,0 +1,4 @@
+[Para [Str "Drop",Space,Str "cap."]
+,Para [Str "Next",Space,Str "paragraph."]
+,Para [Str "Drop",Space,Str "cap",Space,Str "in",Space,Str "margin."]
+,Para [Str "Drop",Space,Str "cap",Space,Str "(not",Space,Str "really)."]]
