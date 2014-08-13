@@ -857,15 +857,13 @@ warn msg = do
 
 -- | Remove intermediate "." and ".." directories from a path.
 --
--- @
---  collapseFilePath "./foo" == "foo"
---  collapseFilePath "/bar/../baz" == "/baz"
---  collapseFilePath "/../baz" == "/../baz"
---  collapseFilePath "parent/foo/baz/../bar" ==  "parent/foo/bar"
---  collapseFilePath "parent/foo/baz/../../bar" ==  "parent/bar"
---  collapseFilePath "parent/foo/.." ==  "parent"
---  collapseFilePath "/parent/foo/../../bar" ==  "/bar"
---  @
+-- > collapseFilePath "./foo" == "foo"
+-- > collapseFilePath "/bar/../baz" == "/baz"
+-- > collapseFilePath "/../baz" == "/../baz"
+-- > collapseFilePath "parent/foo/baz/../bar" ==  "parent/foo/bar"
+-- > collapseFilePath "parent/foo/baz/../../bar" ==  "parent/bar"
+-- > collapseFilePath "parent/foo/.." ==  "parent"
+-- > collapseFilePath "/parent/foo/../../bar" ==  "/bar"
 collapseFilePath :: FilePath -> FilePath
 collapseFilePath = joinPath . reverse . foldl go [] . splitDirectories
   where
