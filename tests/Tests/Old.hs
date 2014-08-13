@@ -3,10 +3,10 @@ module Tests.Old (tests) where
 import Test.Framework (testGroup, Test )
 import Test.Framework.Providers.HUnit
 import Test.HUnit ( assertBool )
-import System.Environment ( getArgs )
+import System.Environment.Executable (getExecutablePath)
 import System.IO ( openTempFile, stderr )
 import System.Process ( runProcess, waitForProcess )
-import System.FilePath ( (</>), (<.>) )
+import System.FilePath ( (</>), (<.>), takeDirectory )
 import System.Directory
 import System.Exit
 import Data.Algorithm.Diff
@@ -225,11 +225,16 @@ testWithNormalize  :: (String -> String) -- ^ Normalize function for output
                    -> FilePath  -- ^ Norm (for test results) filepath
                    -> Test
 testWithNormalize normalizer testname opts inp norm = testCase testname $ do
-  args <- getArgs
-  let buildDir = case args of
-                      (x:_) -> ".." </> x
-                      _     -> error "test-pandoc: missing buildDir argument"
-  let pandocPath = buildDir </> "pandoc" </> "pandoc"
+  -- find pandoc executable relative to test-pandoc
+  -- First, try in same directory (e.g. if both in ~/.cabal/bin)
+  -- Second, try ../pandoc (e.g. if in dist/XXX/build/test-pandoc)
+  pandocPath <- do
+    testExePath <- getExecutablePath
+    let testExeDir = takeDirectory testExePath
+    found <- doesFileExist (testExeDir </> "pandoc")
+    return $ if found
+                then testExeDir </> "pandoc"
+                else testExeDir </> ".." </> "pandoc" </> "pandoc"
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
   let normPath = norm

@@ -38,10 +38,6 @@ main :: IO ()
 main = do
   defaultMainWithHooks $ simpleUserHooks {
       postBuild = makeManPages
-    , testHook = \pkg lbi _ flags ->
-         -- pass build directory as first argument to test program
-         test pkg lbi flags{ testOptions =
-               toPathTemplate (buildDir lbi) : testOptions flags }
     , postCopy = \ _ flags pkg lbi ->
          installManpages pkg lbi (fromFlag $ copyVerbosity flags)
               (fromFlag $ copyDest flags)
