@@ -48,11 +48,7 @@ where
 
 import System.IO hiding (readFile, writeFile, getContents,
                           putStr, putStrLn, hPutStr, hPutStrLn, hGetContents)
-#if MIN_VERSION_base(4,6,0)
 import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
-#else
-import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
-#endif
 import qualified System.IO as IO
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
