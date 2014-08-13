@@ -402,7 +402,7 @@ parPartToInlines (PlainOMath exps) = do
 
 
 isAnchorSpan :: Inline -> Bool
-isAnchorSpan (Span (ident, classes, kvs) ils) =
+isAnchorSpan (Span (_, classes, kvs) ils) =
   classes == ["anchor"] &&
   null kvs &&
   null ils
@@ -415,14 +415,16 @@ makeHeaderAnchor :: Block -> DocxContext Block
 -- If there is an anchor already there (an anchor span in the header,
 -- to be exact), we rename and associate the new id with the old one.
 makeHeaderAnchor (Header n (_, classes, kvs) ils)
-  | (x : xs) <- filter isAnchorSpan ils
-  , (Span (ident, _, _) _) <- x
-  , notElem ident dummyAnchors =
+  | xs <- filter isAnchorSpan ils
+  , idents <- filter (\i -> notElem i dummyAnchors) $
+              map (\(Span (ident, _, _) _) -> ident) xs
+  , not $ null idents =
     do
       hdrIDMap <- gets docxAnchorMap
       let newIdent = uniqueIdent ils (M.elems hdrIDMap)
-      modify $ \s -> s {docxAnchorMap = M.insert ident newIdent hdrIDMap}
-      return $ Header n (newIdent, classes, kvs) (ils \\ (x:xs))
+          newMap   = M.fromList $ map (\i -> (i, newIdent)) idents
+      modify $ \s -> s {docxAnchorMap = M.union newMap hdrIDMap}
+      return $ Header n (newIdent, classes, kvs) (ils \\ xs)
 -- Otherwise we just give it a name, and register that name (associate
 -- it with itself.)
 makeHeaderAnchor (Header n (_, classes, kvs) ils) =
