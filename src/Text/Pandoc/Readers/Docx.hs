@@ -202,17 +202,30 @@ runStyleToContainers rPr =
         [Container $ (\ils -> Code ("", [], []) (concatMap ilToCode ils))]
       spanClassToContainers s | s `elem` spansToKeep =
         [Container $ Span ("", [s], [])]
-      spanClassToContainers _ = []
+      spanClassToContainers  _     = []
 
       classContainers = case rStyle rPr of
         Nothing -> []
         Just s  -> spanClassToContainers s
 
+      resolveFmt :: Bool -> Maybe Bool -> Bool
+      resolveFmt _ (Just True) = True
+      resolveFmt _ (Just False) = False
+      resolveFmt bool Nothing   = bool
+
       formatters = map Container $ mapMaybe id
-                   [ if isBold rPr then (Just Strong) else Nothing
-                   , if isItalic rPr then (Just Emph) else Nothing
-                   , if isSmallCaps rPr then (Just SmallCaps) else Nothing
-                   , if isStrike rPr then (Just Strikeout) else Nothing
+                   [ if resolveFmt (rStyle rPr == Just "Bold") (isBold rPr)
+                     then (Just Strong)
+                     else Nothing
+                   , if resolveFmt (rStyle rPr == Just "Italic") (isItalic rPr)
+                     then (Just Emph)
+                     else Nothing
+                   , if resolveFmt False (isSmallCaps rPr)
+                     then (Just SmallCaps)
+                     else Nothing
+                   , if resolveFmt False (isStrike rPr)
+                     then (Just Strikeout)
+                     else Nothing
                    , if isSuperScript rPr then (Just Superscript) else Nothing
                    , if isSubScript rPr then (Just Subscript) else Nothing
                    , rUnderline rPr >>=
@@ -272,7 +285,7 @@ codeSpans :: [String]
 codeSpans = ["VerbatimChar"]
 
 blockQuoteDivs :: [String]
-blockQuoteDivs = ["Quote", "BlockQuote"]
+blockQuoteDivs = ["Quote", "BlockQuote", "BlockQuotation"]
 
 codeDivs :: [String]
 codeDivs = ["SourceCode"]
@@ -389,8 +402,7 @@ parPartToInlines (PlainOMath exps) = do
 
 
 isAnchorSpan :: Inline -> Bool
-isAnchorSpan (Span (ident, classes, kvs) ils) =
-  (not . null) ident &&
+isAnchorSpan (Span (_, classes, kvs) ils) =
   classes == ["anchor"] &&
   null kvs &&
   null ils
@@ -403,14 +415,16 @@ makeHeaderAnchor :: Block -> DocxContext Block
 -- If there is an anchor already there (an anchor span in the header,
 -- to be exact), we rename and associate the new id with the old one.
 makeHeaderAnchor (Header n (_, classes, kvs) ils)
-  | (x : xs) <- filter isAnchorSpan ils
-  , (Span (ident, _, _) _) <- x
-  , notElem ident dummyAnchors =
+  | xs <- filter isAnchorSpan ils
+  , idents <- filter (\i -> notElem i dummyAnchors) $
+              map (\(Span (ident, _, _) _) -> ident) xs
+  , not $ null idents =
     do
       hdrIDMap <- gets docxAnchorMap
       let newIdent = uniqueIdent ils (M.elems hdrIDMap)
-      modify $ \s -> s {docxAnchorMap = M.insert ident newIdent hdrIDMap}
-      return $ Header n (newIdent, classes, kvs) (ils \\ (x:xs))
+          newMap   = M.fromList $ map (\i -> (i, newIdent)) idents
+      modify $ \s -> s {docxAnchorMap = M.union newMap hdrIDMap}
+      return $ Header n (newIdent, classes, kvs) (ils \\ xs)
 -- Otherwise we just give it a name, and register that name (associate
 -- it with itself.)
 makeHeaderAnchor (Header n (_, classes, kvs) ils) =
@@ -441,6 +455,13 @@ isHeaderContainer :: Container Block -> Bool
 isHeaderContainer (Container f) | Header _ _ _ <- f [] = True
 isHeaderContainer _ = False
 
+trimLineBreaks :: [Inline] -> [Inline]
+trimLineBreaks [] = []
+trimLineBreaks (LineBreak : ils) = trimLineBreaks ils
+trimLineBreaks ils
+  | (LineBreak : ils') <- reverse ils = trimLineBreaks (reverse ils')
+trimLineBreaks ils = ils
+
 bodyPartToBlocks :: BodyPart -> DocxContext [Block]
 bodyPartToBlocks (Paragraph pPr parparts)
   | any isBlockCodeContainer (parStyleToContainers pPr) =
@@ -453,8 +474,9 @@ bodyPartToBlocks (Paragraph pPr parparts)
      [CodeBlock ("", [], []) (concatMap parPartToString parparts)]
 bodyPartToBlocks (Paragraph pPr parparts)
   | any isHeaderContainer (parStyleToContainers pPr) = do
-    ils <- normalizeSpaces <$> local (\s -> s{docxInHeaderBlock = True})
-                                (parPartsToInlines parparts)
+    ils <- (trimLineBreaks . normalizeSpaces) <$>
+           local (\s -> s{docxInHeaderBlock = True})
+           (parPartsToInlines parparts)
     let (Container hdrFun) = head $ filter isHeaderContainer (parStyleToContainers pPr)
         Header n attr _ = hdrFun []
     hdr <- makeHeaderAnchor $ Header n attr ils

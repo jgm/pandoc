@@ -196,10 +196,10 @@ data Run = Run RunStyle [RunElem]
 data RunElem = TextRun String | LnBrk | Tab
              deriving Show
 
-data RunStyle = RunStyle { isBold :: Bool
-                         , isItalic :: Bool
-                         , isSmallCaps :: Bool
-                         , isStrike :: Bool
+data RunStyle = RunStyle { isBold :: Maybe Bool
+                         , isItalic :: Maybe Bool
+                         , isSmallCaps :: Maybe Bool
+                         , isStrike :: Maybe Bool
                          , isSuperScript :: Bool
                          , isSubScript :: Bool
                          , rUnderline :: Maybe String
@@ -207,10 +207,10 @@ data RunStyle = RunStyle { isBold :: Bool
                 deriving Show
 
 defaultRunStyle :: RunStyle
-defaultRunStyle = RunStyle { isBold = False
-                           , isItalic = False
-                           , isSmallCaps = False
-                           , isStrike = False
+defaultRunStyle = RunStyle { isBold = Nothing
+                           , isItalic = Nothing
+                           , isSmallCaps = Nothing
+                           , isStrike = Nothing
                            , isSuperScript = False
                            , isSubScript = False
                            , rUnderline = Nothing
@@ -652,30 +652,45 @@ elemToParagraphStyle ns element
       }
 elemToParagraphStyle _ _ =  defaultParagraphStyle
 
+checkOnOff :: NameSpaces -> Element -> QName -> Maybe Bool
+checkOnOff ns rPr tag
+  | Just t <-  findChild tag rPr
+  , Just val <- findAttr (elemName ns "w" "val") t =
+    Just $ case val of
+      "true"  -> True
+      "false" -> False
+      "on"    -> True
+      "off"   -> False
+      "1"     -> True
+      "0"     -> False
+      _       -> False
+  | Just _ <- findChild tag rPr = Just True
+checkOnOff _ _ _ = Nothing
+
 
 elemToRunStyle :: NameSpaces -> Element -> RunStyle
 elemToRunStyle ns element
   | Just rPr <- findChild (elemName ns "w" "rPr") element =
     RunStyle
       {
-        isBold = isJust $ findChild (QName "b" (lookup "w" ns) (Just "w")) rPr
-      , isItalic = isJust $ findChild (QName "i" (lookup "w" ns) (Just "w")) rPr
-      , isSmallCaps = isJust $ findChild (QName "smallCaps" (lookup "w" ns) (Just "w")) rPr
-      , isStrike = isJust $ findChild (QName "strike" (lookup "w" ns) (Just "w")) rPr
+        isBold = checkOnOff ns rPr (elemName ns "w" "b")
+      , isItalic = checkOnOff ns rPr (elemName ns "w" "i")
+      , isSmallCaps = checkOnOff ns rPr (elemName ns "w" "smallCaps")
+      , isStrike = checkOnOff ns rPr (elemName ns "w" "strike")
       , isSuperScript =
         (Just "superscript" ==
-        (findChild (QName "vertAlign" (lookup "w" ns) (Just "w")) rPr >>=
-         findAttr (QName "val" (lookup "w" ns) (Just "w"))))
+         (findChild (elemName ns "w" "vertAlign") rPr >>=
+          findAttr (elemName ns "w" "val")))
       , isSubScript =
         (Just "subscript" ==
-        (findChild (QName "vertAlign" (lookup "w" ns) (Just "w")) rPr >>=
-         findAttr (QName "val" (lookup "w" ns) (Just "w"))))
+         (findChild (elemName ns "w" "vertAlign") rPr >>=
+          findAttr (elemName ns "w" "val")))
       , rUnderline =
-        findChild (QName "u" (lookup "w" ns) (Just "w")) rPr >>=
-        findAttr (QName "val" (lookup "w" ns) (Just "w"))
+          findChild (elemName ns "w" "u") rPr >>=
+          findAttr (elemName ns "w" "val")
       , rStyle =
-        findChild (QName "rStyle" (lookup "w" ns) (Just "w")) rPr >>=
-        findAttr (QName "val" (lookup "w" ns) (Just "w"))
+          findChild (elemName ns "w" "rStyle") rPr >>=
+          findAttr (elemName ns "w" "val")
         }
 elemToRunStyle _ _ = defaultRunStyle
 
