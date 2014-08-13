@@ -138,6 +138,7 @@ instance Reducible Inline where
 
   container (Emph _) = Container Emph
   container (Strong _) = Container Strong
+  container (SmallCaps _) = Container SmallCaps
   container (Strikeout _) = Container Strikeout
   container (Subscript _) = Container Subscript
   container (Superscript _) = Container Superscript
@@ -147,6 +148,7 @@ instance Reducible Inline where
   container _ = NullContainer
 
   innards (Emph ils) = ils
+  innards (SmallCaps ils) = ils
   innards (Strong ils) = ils
   innards (Strikeout ils) = ils
   innards (Subscript ils) = ils
