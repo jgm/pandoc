@@ -86,6 +86,7 @@ Extra-Source-Files:
                  -- documentation
                  INSTALL, BUGS, CONTRIBUTING.md, changelog
                  -- code to create pandoc.1 man page
+                 Makefile
                  man/man1/pandoc.1.template
                  man/man5/pandoc_markdown.5.template
                  -- generated man pages (produced post-build)
@@ -173,8 +174,6 @@ Extra-Source-Files:
                  tests/epub/*.epub
                  tests/epub/*.native
                  tests/txt2tags.t2t
-Extra-Tmp-Files: man/man1/pandoc.1
-                 man/man5/pandoc_markdown.5
 
 Source-repository head
   type:          git
