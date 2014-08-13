@@ -21,16 +21,18 @@ $endfor$
 </head>
 <body>
 $if(titlepage)$
-  <h1 class="title">$title$</h1>
+  <section epub:type="titlepage">
+    <h1 class="title">$title$</h1>
 $if(subtitle)$
-  <h1 class="subtitle">$subtitle$</h1>
+    <h1 class="subtitle">$subtitle$</h1>
 $endif$
 $for(author)$
-  <h2 class="author">$author$</h2>
+    <h2 class="author">$author$</h2>
 $endfor$
 $if(date)$
-  <h3 class="date">$date$</h3>
+    <h3 class="date">$date$</h3>
 $endif$
+  </section>
 $else$
 $body$
 $endif$
