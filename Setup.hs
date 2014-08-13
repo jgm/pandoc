@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import Distribution.Simple
 import Distribution.Simple.PreProcess
+import Distribution.PackageDescription (PackageDescription(..), Executable(..))
 import System.Process ( rawSystem )
 import System.FilePath ( (</>) )
 import System.Directory ( findExecutable )
@@ -25,7 +26,16 @@ import Distribution.Simple.Utils (info)
 
 main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
-    hookedPreProcessors = [ppBlobSuffixHandler] }
+      -- enable hsb2hs preprocessor for .hsb files
+      hookedPreProcessors = [ppBlobSuffixHandler]
+      -- ensure that make-pandoc-man-pages doesn't get installed to bindir
+    , copyHook = \pkgdescr ->
+         (copyHook simpleUserHooks) pkgdescr{ executables =
+            [x | x <- executables pkgdescr, exeName x /= "make-pandoc-man-pages"] }
+    , instHook = \pkgdescr ->
+         (instHook simpleUserHooks) pkgdescr{ executables =
+            [x | x <- executables pkgdescr, exeName x /= "make-pandoc-man-pages"] }
+    }
 
 ppBlobSuffixHandler :: PPSuffixHandler
 ppBlobSuffixHandler = ("hsb", \_ _ ->
