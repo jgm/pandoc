@@ -28,6 +28,6 @@ tests :: [Test]
 tests =
   [ testGroup "EPUB Mediabag"
     [ testCase "features bag"
-      (testMediaBag "epub.features.epub" featuresBag)
+      (testMediaBag "epub/features.epub" featuresBag)
     ]
   ]

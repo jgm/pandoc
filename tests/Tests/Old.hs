@@ -111,12 +111,12 @@ tests = [ testGroup "markdown"
             "testsuite.native" "testsuite.native"
           ]
         , testGroup "fb2"
-          [ fb2WriterTest "basic" [] "fb2.basic.markdown" "fb2.basic.fb2"
-          , fb2WriterTest "titles" [] "fb2.titles.markdown" "fb2.titles.fb2"
-          , fb2WriterTest "images" [] "fb2.images.markdown" "fb2.images.fb2"
-          , fb2WriterTest "images-embedded" [] "fb2.images-embedded.html" "fb2.images-embedded.fb2"
+          [ fb2WriterTest "basic" [] "fb2/basic.markdown" "fb2/basic.fb2"
+          , fb2WriterTest "titles" [] "fb2/titles.markdown" "fb2/titles.fb2"
+          , fb2WriterTest "images" [] "fb2/images.markdown" "fb2/images.fb2"
+          , fb2WriterTest "images-embedded" [] "fb2/images-embedded.html" "fb2/images-embedded.fb2"
+          , fb2WriterTest "math" [] "fb2/math.markdown" "fb2/math.fb2"
           , fb2WriterTest "tables" [] "tables.native" "tables.fb2"
-          , fb2WriterTest "math" [] "fb2.math.markdown" "fb2.math.fb2"
           , fb2WriterTest "testsuite" [] "testsuite.native" "writer.fb2"
           ]
         , testGroup "mediawiki"
@@ -126,10 +126,8 @@ tests = [ testGroup "markdown"
           ]
         , testGroup "dokuwiki"
           [ testGroup "writer" $ writerTests "dokuwiki"
-          , test "writer-more" ["-r", "native", "-w", "dokuwiki", "-s"]
-            "dokuwiki-writer.native" "dokuwiki-writer.dokuwiki"
-          , test "writer-inline_formatting" ["-r", "native", "-w", "dokuwiki", "-s"]
-            "dokuwiki.inline_formatting.native" "dokuwiki.inline_formatting.dokuwiki"
+          , test "inline_formatting" ["-r", "native", "-w", "dokuwiki", "-s"]
+            "dokuwiki_inline_formatting.native" "dokuwiki_inline_formatting.dokuwiki"
           ]
         , testGroup "opml"
           [ test "basic" ["-r", "native", "-w", "opml", "--columns=78", "-s"]
@@ -147,11 +145,11 @@ tests = [ testGroup "markdown"
               "txt2tags.t2t" "txt2tags.native" ]
         , testGroup "epub" [
             test "features" ["-r", "epub", "-w", "native"]
-              "epub.features.epub" "epub.features.native"
+              "epub/features.epub" "epub/features.native"
           , test "wasteland" ["-r", "epub", "-w", "native"]
-              "epub.wasteland.epub" "epub.wasteland.native"
+              "epub/wasteland.epub" "epub/wasteland.native"
           , test "formatting" ["-r", "epub", "-w", "native"]
-              "epub.formatting.epub" "epub.formatting.native"
+              "epub/formatting.epub" "epub/formatting.native"
           ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
           [ "opendocument" , "context" , "texinfo", "icml"
@@ -194,7 +192,7 @@ s5WriterTest :: String -> [String] -> String -> Test
 s5WriterTest modifier opts format
   = test (format ++ " writer (" ++ modifier ++ ")")
     (["-r", "native", "-w", format] ++ opts)
-    "s5.native"  ("s5." ++ modifier <.> "html")
+    "s5.native"  ("s5-" ++ modifier <.> "html")
 
 fb2WriterTest :: String -> [String] -> String -> String -> Test
 fb2WriterTest title opts inputfile normfile =

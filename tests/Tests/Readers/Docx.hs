@@ -100,135 +100,135 @@ tests :: [Test]
 tests = [ testGroup "inlines"
           [ testCompare
             "font formatting"
-            "docx.inline_formatting.docx"
-            "docx.inline_formatting.native"
+            "docx/inline_formatting.docx"
+            "docx/inline_formatting.native"
           , testCompare
             "hyperlinks"
-            "docx.links.docx"
-            "docx.links.native"
+            "docx/links.docx"
+            "docx/links.native"
           , testCompare
             "inline image"
-            "docx.image.docx"
-            "docx.image_no_embed.native"
+            "docx/image.docx"
+            "docx/image_no_embed.native"
           , testCompare
             "inline image in links"
-            "docx.inline_images.docx"
-            "docx.inline_images.native"
+            "docx/inline_images.docx"
+            "docx/inline_images.native"
           , testCompare
             "handling unicode input"
-            "docx.unicode.docx"
-            "docx.unicode.native"
+            "docx/unicode.docx"
+            "docx/unicode.native"
           , testCompare
             "literal tabs"
-            "docx.tabs.docx"
-            "docx.tabs.native"
+            "docx/tabs.docx"
+            "docx/tabs.native"
           , testCompare
             "normalizing inlines"
-            "docx.normalize.docx"
-            "docx.normalize.native"
+            "docx/normalize.docx"
+            "docx/normalize.native"
           , testCompare
             "normalizing inlines deep inside blocks"
-            "docx.deep_normalize.docx"
-            "docx.deep_normalize.native"
+            "docx/deep_normalize.docx"
+            "docx/deep_normalize.native"
           , testCompare
             "move trailing spaces outside of formatting"
-            "docx.trailing_spaces_in_formatting.docx"
-            "docx.trailing_spaces_in_formatting.native"
+            "docx/trailing_spaces_in_formatting.docx"
+            "docx/trailing_spaces_in_formatting.native"
           , testCompare
             "inline code (with VerbatimChar style)"
-            "docx.inline_code.docx"
-            "docx.inline_code.native"
+            "docx/inline_code.docx"
+            "docx/inline_code.native"
           ]
         , testGroup "blocks"
           [ testCompare
             "headers"
-            "docx.headers.docx"
-            "docx.headers.native"
+            "docx/headers.docx"
+            "docx/headers.native"
           , testCompare
             "headers already having auto identifiers"
-            "docx.already_auto_ident.docx"
-            "docx.already_auto_ident.native"
+            "docx/already_auto_ident.docx"
+            "docx/already_auto_ident.native"
           , testCompare
             "lists"
-            "docx.lists.docx"
-            "docx.lists.native"
+            "docx/lists.docx"
+            "docx/lists.native"
           , testCompare
             "definition lists"
-            "docx.definition_list.docx"
-            "docx.definition_list.native"
+            "docx/definition_list.docx"
+            "docx/definition_list.native"
           , testCompare
             "footnotes and endnotes"
-            "docx.notes.docx"
-            "docx.notes.native"
+            "docx/notes.docx"
+            "docx/notes.native"
           , testCompare
             "blockquotes (parsing indent as blockquote)"
-            "docx.block_quotes.docx"
-            "docx.block_quotes_parse_indent.native"
+            "docx/block_quotes.docx"
+            "docx/block_quotes_parse_indent.native"
           , testCompare
             "hanging indents"
-            "docx.hanging_indent.docx"
-            "docx.hanging_indent.native"
+            "docx/hanging_indent.docx"
+            "docx/hanging_indent.native"
           , testCompare
             "tables"
-            "docx.tables.docx"
-            "docx.tables.native"
+            "docx/tables.docx"
+            "docx/tables.native"
           , testCompare
             "code block"
-            "docx.codeblock.docx"
-            "docx.codeblock.native"
+            "docx/codeblock.docx"
+            "docx/codeblock.native"
           , testCompare
             "dropcap paragraphs"
-            "docx.drop_cap.docx"
-            "docx.drop_cap.native"
+            "docx/drop_cap.docx"
+            "docx/drop_cap.native"
           ]
         , testGroup "track changes"
           [ testCompare
             "insertion (default)"
-            "docx.track_changes_insertion.docx"
-            "docx.track_changes_insertion_accept.native"
+            "docx/track_changes_insertion.docx"
+            "docx/track_changes_insertion_accept.native"
           , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
             "insert insertion (accept)"
-            "docx.track_changes_insertion.docx"
-            "docx.track_changes_insertion_accept.native"
+            "docx/track_changes_insertion.docx"
+            "docx/track_changes_insertion_accept.native"
           , testCompareWithOpts def{readerTrackChanges=RejectChanges}
             "remove insertion (reject)"
-            "docx.track_changes_insertion.docx"
-            "docx.track_changes_insertion_reject.native"
+            "docx/track_changes_insertion.docx"
+            "docx/track_changes_insertion_reject.native"
           , testCompare
             "deletion (default)"
-            "docx.track_changes_deletion.docx"
-            "docx.track_changes_deletion_accept.native"
+            "docx/track_changes_deletion.docx"
+            "docx/track_changes_deletion_accept.native"
           , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
             "remove deletion (accept)"
-            "docx.track_changes_deletion.docx"
-            "docx.track_changes_deletion_accept.native"
+            "docx/track_changes_deletion.docx"
+            "docx/track_changes_deletion_accept.native"
           , testCompareWithOpts def{readerTrackChanges=RejectChanges}
             "insert deletion (reject)"
-            "docx.track_changes_deletion.docx"
-            "docx.track_changes_deletion_reject.native"
+            "docx/track_changes_deletion.docx"
+            "docx/track_changes_deletion_reject.native"
           , testCompareWithOpts def{readerTrackChanges=AllChanges}
             "keep insertion (all)"
-            "docx.track_changes_deletion.docx"
-            "docx.track_changes_deletion_all.native"
+            "docx/track_changes_deletion.docx"
+            "docx/track_changes_deletion_all.native"
           , testCompareWithOpts def{readerTrackChanges=AllChanges}
             "keep deletion (all)"
-            "docx.track_changes_deletion.docx"
-            "docx.track_changes_deletion_all.native"
+            "docx/track_changes_deletion.docx"
+            "docx/track_changes_deletion_all.native"
           ]
         , testGroup "media"
           [ testMediaBag
             "image extraction"
-            "docx.image.docx"
+            "docx/image.docx"
           ]
         , testGroup "metadata"
           [ testCompareWithOpts def{readerStandalone=True}
             "metadata fields"
-            "docx.metadata.docx"
-            "docx.metadata.native"
+            "docx/metadata.docx"
+            "docx/metadata.native"
           , testCompareWithOpts def{readerStandalone=True}
             "stop recording metadata with normal text"
-            "docx.metadata_after_normal.docx"
-            "docx.metadata_after_normal.native"
+            "docx/metadata_after_normal.docx"
+            "docx/metadata_after_normal.native"
           ]
 
         ]
