@@ -403,7 +403,6 @@ parPartToInlines (PlainOMath exps) = do
 
 isAnchorSpan :: Inline -> Bool
 isAnchorSpan (Span (ident, classes, kvs) ils) =
-  (not . null) ident &&
   classes == ["anchor"] &&
   null kvs &&
   null ils
