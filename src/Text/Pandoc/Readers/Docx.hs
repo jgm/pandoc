@@ -272,7 +272,7 @@ codeSpans :: [String]
 codeSpans = ["VerbatimChar"]
 
 blockQuoteDivs :: [String]
-blockQuoteDivs = ["Quote", "BlockQuote"]
+blockQuoteDivs = ["Quote", "BlockQuote", "BlockQuotation"]
 
 codeDivs :: [String]
 codeDivs = ["SourceCode"]
