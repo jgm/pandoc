@@ -55,6 +55,7 @@ Data-Files:
                  data/templates/default.rst
                  data/templates/default.plain
                  data/templates/default.mediawiki
+                 data/templates/default.dokuwiki
                  data/templates/default.rtf
                  data/templates/default.s5
                  data/templates/default.slidy
