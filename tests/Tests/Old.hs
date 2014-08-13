@@ -6,7 +6,7 @@ import Test.HUnit ( assertBool )
 import System.Environment.Executable (getExecutablePath)
 import System.IO ( openTempFile, stderr )
 import System.Process ( runProcess, waitForProcess )
-import System.FilePath ( (</>), (<.>), takeDirectory )
+import System.FilePath ( (</>), (<.>), takeDirectory, splitDirectories, joinPath )
 import System.Directory
 import System.Exit
 import Data.Algorithm.Diff
@@ -232,7 +232,9 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
     found <- doesFileExist (testExeDir </> "pandoc")
     return $ if found
                 then testExeDir </> "pandoc"
-                else testExeDir </> ".." </> "pandoc" </> "pandoc"
+                else case splitDirectories testExeDir of
+                           [] -> error "test-pandoc: empty testExeDir"
+                           xs -> joinPath (init xs) </> "pandoc" </> "pandoc"
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
   let normPath = norm
