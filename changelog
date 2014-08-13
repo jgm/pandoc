@@ -457,6 +457,7 @@ pandoc (1.13)
   * Added haddock template.
   * EPUB3:  Added `type` attribute to `link` tags.  They are supposed to
     be "advisory" in HTML5, but kindlegen seems to require them.
+  * EPUB3:  Put title page in section with `epub:type="titlepage"`.
   * LaTeX: Made `\subtitle` work properly (#1327).
   * LaTeX/Beamer: remove conditional around date (#1321).
   * LaTeX:  Added `lot` and `lof` variables, which can be set to
