@@ -455,6 +455,13 @@ isHeaderContainer :: Container Block -> Bool
 isHeaderContainer (Container f) | Header _ _ _ <- f [] = True
 isHeaderContainer _ = False
 
+trimLineBreaks :: [Inline] -> [Inline]
+trimLineBreaks [] = []
+trimLineBreaks (LineBreak : ils) = trimLineBreaks ils
+trimLineBreaks ils
+  | (LineBreak : ils') <- reverse ils = trimLineBreaks (reverse ils')
+trimLineBreaks ils = ils
+
 bodyPartToBlocks :: BodyPart -> DocxContext [Block]
 bodyPartToBlocks (Paragraph pPr parparts)
   | any isBlockCodeContainer (parStyleToContainers pPr) =
@@ -467,8 +474,9 @@ bodyPartToBlocks (Paragraph pPr parparts)
      [CodeBlock ("", [], []) (concatMap parPartToString parparts)]
 bodyPartToBlocks (Paragraph pPr parparts)
   | any isHeaderContainer (parStyleToContainers pPr) = do
-    ils <- normalizeSpaces <$> local (\s -> s{docxInHeaderBlock = True})
-                                (parPartsToInlines parparts)
+    ils <- (trimLineBreaks . normalizeSpaces) <$>
+           local (\s -> s{docxInHeaderBlock = True})
+           (parPartsToInlines parparts)
     let (Container hdrFun) = head $ filter isHeaderContainer (parStyleToContainers pPr)
         Header n attr _ = hdrFun []
     hdr <- makeHeaderAnchor $ Header n attr ils
