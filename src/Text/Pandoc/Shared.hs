@@ -129,7 +129,6 @@ import qualified Data.Text as T (toUpper, pack, unpack)
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
-import System.FilePath ( joinPath, splitDirectories )
 #else
 import Paths_pandoc (getDataFileName)
 #endif
