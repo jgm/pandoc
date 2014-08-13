@@ -202,17 +202,30 @@ runStyleToContainers rPr =
         [Container $ (\ils -> Code ("", [], []) (concatMap ilToCode ils))]
       spanClassToContainers s | s `elem` spansToKeep =
         [Container $ Span ("", [s], [])]
-      spanClassToContainers _ = []
+      spanClassToContainers  _     = []
 
       classContainers = case rStyle rPr of
         Nothing -> []
         Just s  -> spanClassToContainers s
 
+      resolveFmt :: Bool -> Maybe Bool -> Bool
+      resolveFmt _ (Just True) = True
+      resolveFmt _ (Just False) = False
+      resolveFmt bool Nothing   = bool
+
       formatters = map Container $ mapMaybe id
-                   [ if isBold rPr then (Just Strong) else Nothing
-                   , if isItalic rPr then (Just Emph) else Nothing
-                   , if isSmallCaps rPr then (Just SmallCaps) else Nothing
-                   , if isStrike rPr then (Just Strikeout) else Nothing
+                   [ if resolveFmt (rStyle rPr == Just "Bold") (isBold rPr)
+                     then (Just Strong)
+                     else Nothing
+                   , if resolveFmt (rStyle rPr == Just "Italic") (isItalic rPr)
+                     then (Just Emph)
+                     else Nothing
+                   , if resolveFmt False (isSmallCaps rPr)
+                     then (Just SmallCaps)
+                     else Nothing
+                   , if resolveFmt False (isStrike rPr)
+                     then (Just Strikeout)
+                     else Nothing
                    , if isSuperScript rPr then (Just Superscript) else Nothing
                    , if isSubScript rPr then (Just Subscript) else Nothing
                    , rUnderline rPr >>=
