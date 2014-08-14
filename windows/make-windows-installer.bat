@@ -3,7 +3,7 @@ cd ..
 cabal update
 cabal sandbox init
 cabal clean
-cabal install hsb2hs alex happy
+cabal install hsb2hs
 if %errorlevel% neq 0 exit /b %errorlevel%
 cabal install -v1 --force --reinstall --flags="embed_data_files" . pandoc-citeproc
 if %errorlevel% neq 0 exit /b %errorlevel%
