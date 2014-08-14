@@ -154,6 +154,12 @@ pandoc (1.13)
     + Don't produce a `\label{..}` for a Div or Span element.  Do produce
       a `\hyperdef{..}` (#1519).
 
+  * EPUB writer:
+
+    + If the metadata includes `page-progression-direction` (which can be
+      `ltr` or `rtl`, the `page-progression-direction` attribute will
+      be set in the EPUB spine (#1455).
+
   * Custom lua writers:
 
     + Custom writers now work with `--template`.
