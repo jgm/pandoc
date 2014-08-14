@@ -6,15 +6,11 @@ _ Tag release in git
 
 _ Tag templates
 
-_ 'make sdist' to generate tarball
+_ 'make dist' to generate tarball
 
 _ Generate Windows package and copy to directory.
 
 _ Generate Mac OSX package.
-
-_ Upload to Google Code (googlecode-upload.sh)
-
-_ Go to Google code and deprecate the old versions
 
 - Add release on github (and upload files)
 
