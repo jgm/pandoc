@@ -273,6 +273,7 @@ pandoc (1.13)
       caused incorrect tag nesting for input like
       `<aside markdown="1">*hi*</aside>`.
     + Fixed regression with intraword underscores (#1121).
+    + Improved parsing of inline links containing quote characters (#1534).
     + Slight rewrite of `enclosure`/`emphOrStrong` code.
     + Revamped raw HTML block parsing in markdown (#1330).
       We no longer include trailing spaces and newlines in the
