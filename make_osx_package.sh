@@ -10,7 +10,7 @@ OSX=osx
 SCRIPTS=$OSX/osx-resources
 BASE=pandoc-$VERSION
 ME=$(whoami)
-CODESIGNID="Developer ID Application: John Macfarlane"
+CODESIGNID="3rd Party Mac Developer Application: John Macfarlane"
 PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
 EXES="pandoc pandoc-citeproc"
 
