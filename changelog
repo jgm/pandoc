@@ -89,6 +89,11 @@ pandoc (1.13)
       `\cite{Coffee}`), can be used without any further escaping (Albert
       Krewinkel).
 
+  * Textile reader and writer:
+
+    + The `raw_tex` extension is no longer set by default.  You can
+      enable it with `textile+raw_tex`.
+
   * DocBook reader:
 
     + Support `equation`, `informalequation`, `inlineequation` elements with

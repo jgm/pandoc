@@ -404,8 +404,10 @@ inlineToTextile _ (Str str) = return $ escapeStringForTextile str
 inlineToTextile _ (Math _ str) =
   return $ "<span class=\"math\">" ++ escapeStringForXML str ++ "</math>"
 
-inlineToTextile _ (RawInline f str)
+inlineToTextile opts (RawInline f str)
   | f == Format "html" || f == Format "textile" = return str
+  | (f == Format "latex" || f == Format "tex") &&
+     isEnabled Ext_raw_tex opts                 = return str
   | otherwise                                   = return ""
 
 inlineToTextile _ (LineBreak) = return "\n"

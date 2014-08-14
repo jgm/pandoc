@@ -304,8 +304,7 @@ getDefaultExtensions "markdown_github" = githubMarkdownExtensions
 getDefaultExtensions "markdown"        = pandocExtensions
 getDefaultExtensions "plain"           = pandocExtensions
 getDefaultExtensions "org"             = Set.fromList [Ext_citations]
-getDefaultExtensions "textile"         = Set.fromList [Ext_auto_identifiers,
-                                                       Ext_raw_tex]
+getDefaultExtensions "textile"         = Set.fromList [Ext_auto_identifiers]
 getDefaultExtensions "html"            = Set.fromList [Ext_auto_identifiers,
                                                        Ext_native_divs,
                                                        Ext_native_spans]
