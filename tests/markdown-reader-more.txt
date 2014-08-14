@@ -28,7 +28,7 @@
 \stop[a2]
 \stop[a2]
 
-## URLs with spaces
+## URLs with spaces and punctuation
 
 [foo](/bar and baz)
 [foo](/bar
@@ -41,6 +41,8 @@
 [baz]: /foo foo
 [bam]:  /foo fee   
 [bork]:  /foo/zee zob   (title)
+
+[Ward's method.](http://en.wikipedia.org/wiki/Ward's_method)
 
 ## Horizontal rules with spaces at end
 
