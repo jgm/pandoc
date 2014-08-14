@@ -214,10 +214,14 @@ runStyleToContainers rPr =
       resolveFmt bool Nothing   = bool
 
       formatters = map Container $ mapMaybe id
-                   [ if resolveFmt (rStyle rPr == Just "Bold") (isBold rPr)
+                   [ if resolveFmt
+                        (rStyle rPr `elem` [Just "Strong", Just "Bold"])
+                        (isBold rPr)
                      then (Just Strong)
                      else Nothing
-                   , if resolveFmt (rStyle rPr == Just "Italic") (isItalic rPr)
+                   , if resolveFmt
+                        (rStyle rPr `elem` [Just"Emphasis", Just "Italic"])
+                        (isItalic rPr)
                      then (Just Emph)
                      else Nothing
                    , if resolveFmt False (isSmallCaps rPr)
