@@ -380,13 +380,12 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str)
   | "haskell" `elem` classes && "literate" `elem` classes &&
     isEnabled Ext_literate_haskell opts =
   return $ prefixed "> " (text str) <> blankline
-blockToMarkdown opts (CodeBlock attribs str) = return $
-  case attribs == nullAttr of
-     False | isEnabled Ext_backtick_code_blocks opts ->
-          backticks <> attrs <> cr <> text str <> cr <> backticks <> blankline
-           | isEnabled Ext_fenced_code_blocks opts ->
-          tildes <> attrs <> cr <> text str <> cr <> tildes <> blankline
-     _ -> nest (writerTabStop opts) (text str) <> blankline
+blockToMarkdown opts (CodeBlock attribs str)
+  | isEnabled Ext_backtick_code_blocks opts =
+  return $ backticks <> attrs <> cr <> text str <> cr <> backticks <> blankline
+  | isEnabled Ext_fenced_code_blocks opts =
+  return $ tildes <> attrs <> cr <> text str <> cr <> tildes <> blankline
+  | otherwise = return $ nest (writerTabStop opts) (text str) <> blankline
    where tildes    = text $ case [ln | ln <- lines str, all (=='~') ln] of
                                [] -> "~~~~"
                                xs -> case maximum $ map length xs of
@@ -397,7 +396,7 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
                                xs -> case maximum $ map length xs of
                                           n | n < 3 -> "```"
                                             | otherwise -> replicate (n+1) '`'
-         attrs  = if isEnabled Ext_fenced_code_attributes opts
+         attrs  = if isEnabled Ext_fenced_code_attributes opts && attribs /= nullAttr
                      then nowrap $ " " <> attrsToMarkdown attribs
                      else case attribs of
                                 (_,(cls:_),_) -> " " <> text cls
