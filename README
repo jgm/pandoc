@@ -3057,7 +3057,8 @@ The following fields are recognized:
   ~ A string value (path to CSS stylesheet).
 
 `page-progression-direction`
-  ~ Either `ltr` or `rtl`. Specifies the synonymous spine [attribute][EPUBspine].
+  ~ Either `ltr` or `rtl`. Specifies the `page-progression-direction`
+    spine [attribute][EPUBspine].
 
 Literate Haskell support
 ========================
