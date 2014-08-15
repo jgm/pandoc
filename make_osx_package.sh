@@ -60,10 +60,10 @@ echo Creating OSX package...
 rm -rf $BASE.pkg
 
 pkgbuild --root $DIST/pandoc --identifier net.johnmacfarlane.pandoc --version 1.13 --ownership recommended $DIST/pandoc.pkg
-productbuild --distribution osx/distribution.xml --resources $DIST/Resources --package-path $DIST --version 1.13 --sign "Developer ID Installer: John Macfarlane" $BASE.pkg
+productbuild --distribution osx/distribution.xml --resources $DIST/Resources --package-path $DIST --version 1.13 --sign "Developer ID Installer: John Macfarlane" $BASE-osx.pkg
 
 # verify signature
-spctl --assess --type install $BASE.pkg
+spctl --assess --type install $BASE-osx.pkg
 
 # cleanup
 rm -r $DIST
