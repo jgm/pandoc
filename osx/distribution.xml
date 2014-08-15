@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+    <title>pandoc</title>
+    <organization>net.johnmacfarlane.pandoc</organization>
+    <domains enable_localSystem="true"/>
+    <options customize="never" require-scripts="true" rootVolumeOnly="true" />
+    <!-- Define documents displayed at various steps -->
+    <!-- <welcome    file="welcome.html"    mime-type="text/html" /> -->
+    <license    file="license.html"    mime-type="text/html" />
+    <!-- <conclusion file="conclusion.html" mime-type="text/html" /> -->
+    <options hostArchitectures="x86_64" />
+    <!-- List all component packages -->
+    <pkg-ref id="net.johnmacfarlane.pandoc"
+             version="1.13"
+             auth="root">pandoc.pkg</pkg-ref>
+    <!-- List them again here. They can now be organized
+         as a hierarchy if you want. -->
+    <choices-outline>
+        <line choice="net.johnmacfarlane.pandoc"/>
+    </choices-outline>
+    <!-- Define each choice above -->
+    <choice
+        id="net.johnmacfarlane.pandoc"
+        visible="false"
+        title="pandoc"
+        description="pandoc - universal text converter"
+        start_selected="true">
+      <pkg-ref id="net.johnmacfarlane.pandoc"/>
+    </choice>
+</installer-gui-script>
