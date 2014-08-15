@@ -5,6 +5,7 @@ SANDBOX=`pwd`/.cabal-sandbox
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
+MANDIR=`pwd`/man
 DEST=$ROOT/usr/local
 OSX=osx
 SCRIPTS=$OSX/osx-resources
@@ -38,14 +39,11 @@ mkdir -p $DEST/share/man/man1
 mkdir -p $DEST/share/man/man5
 for f in $EXES; do
   cp $SANDBOX/bin/$f $DEST/bin/;
-  cp $SANDBOX/share/man/man1/$f.1 $DEST/share/man/man1/
+  cp $MANDIR/man1/$f.1 $DEST/share/man/man1/
 done
-cp $SANDBOX/share/man/man5/pandoc_markdown.5 $DEST/share/man/man5/
+cp $MANDIR/man5/pandoc_markdown.5 $DEST/share/man/man5/
 
 chown -R $ME:staff $DIST
-# gzip $DEST/share/man/man?/*.*
-# cabal gives man pages the wrong permissions
-chmod +r $DEST/share/man/man?/*.*
 
 echo Copying license...
 $SANDBOX/bin/pandoc --data data -t rtf -s COPYING -o $RESOURCES/License.rtf
