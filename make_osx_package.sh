@@ -13,6 +13,7 @@ ME=$(whoami)
 CODESIGNID="3rd Party Mac Developer Application: John Macfarlane"
 PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
 EXES="pandoc pandoc-citeproc"
+CPPHS=$SANDBOX/bin/cpphs
 
 read -s -p "sudo password: " PASSWORD
 echo $PASSWORD | sudo -S echo "Password valid, continuing."
@@ -29,8 +30,8 @@ echo Building pandoc...
 cabal clean
 # Use cpphs to avoid problems with clang cpp on ghc 7.8 osx:
 cabal install cpphs hsb2hs
-cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files" --ghc-options '-pgmPcpphs -optP--cpp'
-cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files" pandoc-citeproc --ghc-options '-pgmPcpphs -optP--cpp'
+cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files" --ghc-options "-pgmP$CPPHS -optP--cpp"
+cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files" pandoc-citeproc --ghc-options "-pgmP$CPPHS -optP--cpp"
 
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
