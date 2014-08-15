@@ -171,7 +171,7 @@ pandoc (1.13)
 
   [API changes]
 
-  * Added `Text.Pandoc.Readers.Docx`, exporting `readDocx` (Jesse Rosnthal).
+  * Added `Text.Pandoc.Readers.Docx`, exporting `readDocx` (Jesse Rosenthal).
 
   * Added `Text.Pandoc.Readers.EPUB`, exporting `readEPUB` (Matthew
     Pickering).
