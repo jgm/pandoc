@@ -165,7 +165,7 @@ bodyPartsToMeta' (bp : bps)
   | (Paragraph pPr parParts) <- bp
   , (c : _)<- intersect (pStyle pPr) (M.keys metaStyles)
   , (Just metaField) <- M.lookup c metaStyles = do
-    inlines <- parPartsToInlines parParts
+    inlines <- concatReduce <$> mapM parPartToInlines parParts
     remaining <- bodyPartsToMeta' bps
     let
       f (MetaInlines ils) (MetaInlines ils') = MetaBlocks [Para ils, Para ils']
@@ -218,11 +218,8 @@ runElemToString (TextRun s) = s
 runElemToString (LnBrk) = ['\n']
 runElemToString (Tab) = ['\t']
 
-runElemsToString :: [RunElem] -> String
-runElemsToString = concatMap runElemToString
-
 runToString :: Run -> String
-runToString (Run _ runElems) = runElemsToString runElems
+runToString (Run _ runElems) = concatMap runElemToString runElems
 runToString _ = ""
 
 parPartToString :: ParPart -> String
@@ -272,7 +269,7 @@ runToInlines :: Run -> DocxContext Inlines
 runToInlines (Run rs runElems)
   | Just s <- rStyle rs
   , s `elem` codeStyles =
-    return $ code $ runElemsToString runElems
+    return $ code $ concatMap runElemToString runElems
   | otherwise = do
     let ils = concatReduce (map runElemToInlines runElems)
     return $ (runStyleToTransform rs) ils
@@ -383,9 +380,6 @@ makeHeaderAnchor' (Header n (_, classes, kvs) ils) =
     return $ Header n (newIdent, classes, kvs) ils
 makeHeaderAnchor' blk = return blk
 
-parPartsToInlines :: [ParPart] -> DocxContext Inlines
-parPartsToInlines parparts = concatReduce <$> mapM parPartToInlines parparts
-
 cellToBlocks :: Cell -> DocxContext Blocks
 cellToBlocks (Cell bps) = concatReduce <$> mapM bodyPartToBlocks bps
 
@@ -447,12 +441,12 @@ bodyPartToBlocks (Paragraph pPr parparts)
   | (c : cs) <- filter (isJust . isHeaderClass) $ pStyle pPr
   , Just n <- isHeaderClass c = do
     ils <- local (\s-> s{docxInHeaderBlock=True}) $
-           (parPartsToInlines parparts)
+           (concatReduce <$> mapM parPartToInlines parparts)
 
     makeHeaderAnchor $
       headerWith ("", delete ("Heading" ++ show n) cs, []) n ils
   | otherwise = do
-    ils <- parPartsToInlines parparts >>=
+    ils <- concatReduce <$> mapM parPartToInlines parparts >>=
            (return . fromList . trimLineBreaks . normalizeSpaces . toList)
     dropIls <- gets docxDropCap
     let ils' = dropIls <> ils
