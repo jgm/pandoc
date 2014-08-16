@@ -1,0 +1,4 @@
+[Para [Emph [Str "This",Space,Str "is",Space,Str "all",Space,Str "in",Space,Str "an"],Space,Emph [Strong [Str "italic",Space,Str "style"],Str "."]]
+,Para [Emph [Str "This",Space,Str "is",Space,Str "an",Space,Str "italic"],Space,Str "style",Space,Emph [Str "with",Space,Str "some"],Space,Str "words",Space,Emph [Str "unitalicized."]]
+,Para [Strong [Str "This",Space,Str "is",Space,Str "all",Space,Str "in",Space,Str "a",Space,Emph [Str "strong",Space,Str "style"],Str "."]]
+,Para [Strong [Str "This",Space,Str "is",Space,Str "a",Space,Str "strong"],Space,Str "style",Space,Strong [Str "with",Space,Str "some"],Space,Str "words",Space,Strong [Str "ubolded."]]]
