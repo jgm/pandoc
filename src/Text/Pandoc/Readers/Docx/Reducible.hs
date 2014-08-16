@@ -1,196 +1,182 @@
-{-# LANGUAGE OverloadedStrings, PatternGuards #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances,
+    PatternGuards #-}
 
-{-
-Copyright (C) 2014 Jesse Rosenthal <jrosenthal@jhu.edu>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
--}
-
-{- |
-   Module      : Text.Pandoc.Readers.Docx.Reducible
-   Copyright   : Copyright (C) 2014 Jesse Rosenthal
-   License     : GNU GPL, version 2 or above
-
-   Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>
-   Stability   : alpha
-   Portability : portable
-
-Typeclass for combining adjacent blocks and inlines correctly.
--}
-
-
-module Text.Pandoc.Readers.Docx.Reducible ((<++>),
-                                           (<+++>),
-                                           Reducible,
-                                           Container(..),
-                                           container,
-                                           innards,
-                                           reduceList,
-                                           reduceListB,
-                                           concatR,
-                                           rebuild)
+module Text.Pandoc.Readers.Docx.Reducible ( concatReduce
+                                          , (<+>)
+                                          )
        where
 
+
 import Text.Pandoc.Builder
-import Data.List ((\\), intersect)
+import Data.Monoid
+import Data.List
+import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
+import qualified Data.Sequence as Seq (null)
 
-data Container a = Container ([a] -> a) | NullContainer
+data Modifier a = Modifier (a -> a)
+                | AttrModifier (Attr -> a -> a) Attr
+                | NullModifier
 
-instance (Eq a) => Eq (Container a) where
-  (Container x) == (Container y) = ((x []) == (y []))
-  NullContainer == NullContainer = True
+class (Eq a) => Modifiable a where
+  modifier :: a -> Modifier a
+  innards :: a -> a
+  getL    :: a -> (a, a)
+  getR    :: a -> (a, a)
+  spaceOut :: a -> (a, a, a)
+
+spaceOutL :: (Monoid a, Modifiable a) => a -> (a, a)
+spaceOutL ms = (l, stack fs (m' <> r))
+  where (l, m, r) = spaceOut ms
+        (fs, m')  = unstack m
+
+spaceOutR :: (Monoid a, Modifiable a) => a -> (a, a)
+spaceOutR ms = (stack fs (l <> m'), r)
+  where (l, m, r) = spaceOut ms
+        (fs, m')  = unstack m
+
+instance (Monoid a, Show a) => Show (Modifier a) where
+  show (Modifier f) = show $ f mempty
+  show (AttrModifier f attr) = show $ f attr mempty
+  show (NullModifier) = "NullModifier"
+
+instance (Monoid a, Eq a) => Eq (Modifier a) where
+  (Modifier f) == (Modifier g) = (f mempty == g mempty)
+  (AttrModifier f attr) == (AttrModifier g attr') = (f attr mempty == g attr' mempty)
+  (NullModifier) == (NullModifier) = True
   _ == _ = False
 
-instance (Show a) => Show (Container a) where
-  show (Container x) = "Container {" ++
-                       (reverse $ drop 3 $ reverse $ show $ x []) ++
-                       "}"
-  show (NullContainer) = "NullContainer"
+instance Modifiable Inlines where
+  modifier ils = case viewl (unMany ils) of
+    (x :< xs) | Seq.null xs -> case x of
+      (Emph _)        -> Modifier emph
+      (Strong _)      -> Modifier strong
+      (SmallCaps _)   -> Modifier smallcaps
+      (Strikeout _)   -> Modifier strikeout
+      (Superscript _) -> Modifier superscript
+      (Subscript _)   -> Modifier subscript
+      (Span attr _)   -> AttrModifier spanWith attr
+      _               -> NullModifier
+    _ -> NullModifier
 
-class Reducible a where
-  (<++>) :: a -> a -> [a]
-  container :: a -> Container a
-  innards :: a -> [a]
-  isSpace :: a -> Bool
+  innards ils = case viewl (unMany ils) of
+    (x :< xs) | Seq.null xs -> case x of
+      (Emph lst)        -> fromList lst
+      (Strong lst)      -> fromList lst
+      (SmallCaps lst)   -> fromList lst
+      (Strikeout lst)   -> fromList lst
+      (Superscript lst) -> fromList lst
+      (Subscript lst)   -> fromList lst
+      (Span _ lst)      -> fromList lst
+      _        -> ils
+    _          -> ils
 
-(<+++>) :: (Reducible a) => Many a -> Many a -> Many a
-mr <+++> ms = fromList $ reduceList $ toList mr ++ toList ms
+  getL ils = case viewl $ unMany ils of
+    (s :< sq) -> (singleton s, Many sq)
+    _          -> (mempty, ils)
 
-reduceListB :: (Reducible a) => Many a -> Many a
-reduceListB = fromList . reduceList . toList
+  getR ils = case viewr $ unMany ils of
+    (sq :> s) -> (Many sq, singleton s)
+    _          -> (ils, mempty)
 
-reduceList' :: (Reducible a) => [a] -> [a] -> [a]
-reduceList' acc [] = acc
-reduceList' [] (x:xs) = reduceList' [x] xs
-reduceList' as (x:xs) = reduceList' (init as ++ (last as <++> x) ) xs
+  spaceOut ils =
+    let (fs, ils') = unstack ils
+        contents = unMany ils'
+        left  = case viewl contents of
+          (Space :< _) -> space
+          _            -> mempty
+        right = case viewr contents of
+          (_ :> Space) -> space
+          _            -> mempty in
+    (left, (stack fs $ trimInlines .Many $ contents), right)
 
-reduceList :: (Reducible a) => [a] -> [a]
-reduceList = reduceList' []
+instance Modifiable Blocks where
+  modifier blks = case viewl (unMany blks) of
+    (x :< xs) | Seq.null xs -> case x of
+      (BlockQuote _) -> Modifier blockQuote
+      -- (Div attr _)   -> AttrModifier divWith attr
+      _               -> NullModifier
+    _ -> NullModifier
 
-concatR :: (Reducible a) => [a] -> [a] -> [a]
-concatR [] [] = []
-concatR [] ss = ss
-concatR rs [] = rs
-concatR rs ss = let (x:xs) = reverse rs
-                    (y:ys) = ss
-                in
-                 reverse xs ++ ( x <++> y ) ++ ys
+  innards blks = case viewl (unMany blks) of
+    (x :< xs) | Seq.null xs -> case x of
+      (BlockQuote lst) -> fromList lst
+      -- (Div attr lst)   -> fromList lst
+      _        -> blks
+    _          -> blks
 
-combineReducibles :: (Reducible a, Eq a) => a -> a -> [a]
-combineReducibles r s =
-  let (conts, rs) = topLevelContainers r
-      (conts', ss) = topLevelContainers s
-      shared = conts `intersect` conts'
-      remaining = conts \\ shared
-      remaining' = conts' \\ shared
+  spaceOut blks = (mempty, blks, mempty)
+
+  getL ils = case viewl $ unMany ils of
+    (s :< sq) -> (singleton s, Many sq)
+    _          -> (mempty, ils)
+
+  getR ils = case viewr $ unMany ils of
+    (sq :> s) -> (Many sq, singleton s)
+    _          -> (ils, mempty)
+
+
+unstack :: (Modifiable a) => a -> ([Modifier a], a)
+unstack ms = case modifier ms of
+  NullModifier -> ([], ms)
+  _            -> (f : fs, ms') where
+    f = modifier ms
+    (fs, ms') = unstack $ innards ms
+
+stack :: (Monoid a, Modifiable a) => [Modifier a] -> a -> a
+stack [] ms = ms
+stack (NullModifier : fs) ms = stack fs ms
+stack ((Modifier f) : fs) ms =
+  if isEmpty ms
+  then stack fs ms
+  else f $ stack fs ms
+stack ((AttrModifier f attr) : fs) ms = f attr $ stack fs ms
+
+isEmpty :: (Monoid a, Eq a) => a -> Bool
+isEmpty x = x == mempty
+
+
+combine :: (Monoid a, Modifiable a, Eq a) => a -> a -> a
+combine x y =
+  let (xs', x') = getR x
+      (y', ys') = getL y
+  in
+   xs' <> (combineSingleton x' y') <> ys'
+
+isAttrModifier :: Modifier a -> Bool
+isAttrModifier (AttrModifier _ _) = True
+isAttrModifier _                  = False
+
+combineSingleton :: (Monoid a, Modifiable a, Eq a) => a -> a -> a
+combineSingleton x y =
+  let (xfs, xs) = unstack x
+      (yfs, ys) = unstack y
+      shared = xfs `intersect` yfs
+      x_remaining = xfs \\ shared
+      y_remaining = yfs \\ shared
+      x_rem_attr = filter isAttrModifier x_remaining
+      y_rem_attr = filter isAttrModifier y_remaining
   in
    case null shared of
-     True | (x : xs) <- reverse rs
-          , isSpace x -> case xs of
-                          [] -> [x, s]
-                          _  -> rebuild conts (reverse xs) ++ [x, s]
-          | (x : xs) <- ss
-          , isSpace x -> case xs of
-                          [] -> [r, x]
-                          _  -> [r, x] ++ rebuild conts' (xs)
-     True  -> [r,s]
-     False -> rebuild
-              shared $
-              reduceList $
-              (rebuild remaining rs) ++ (rebuild remaining' ss)
+     True | isEmpty xs && isEmpty ys ->
+            stack (x_rem_attr ++ y_rem_attr) mempty
+          | isEmpty xs ->
+            let (sp, y') = spaceOutL y in
+            (stack x_rem_attr mempty) <> sp <> y'
+          | isEmpty ys ->
+            let (x', sp) = spaceOutR x in
+            x' <> sp <> (stack y_rem_attr mempty)
+          | otherwise ->
+              let (x', xsp) = spaceOutR x
+                  (ysp, y') = spaceOutL y
+              in
+               x' <> xsp <> ysp <> y'
+     False -> stack shared $
+              combine
+              (stack x_remaining xs)
+              (stack y_remaining ys)
 
-instance Reducible Inline where
-  s1@(Span (id1, classes1, kvs1) ils1) <++> s2@(Span (id2, classes2, kvs2) ils2) =
-    let classes'  = classes1 `intersect` classes2
-        kvs'      = kvs1 `intersect` kvs2
-        classes1' = classes1 \\ classes'
-        kvs1'     = kvs1 \\ kvs'
-        classes2' = classes2 \\ classes'
-        kvs2'     = kvs2 \\ kvs'
-    in
-     case null classes' && null kvs' of
-       True -> [s1,s2]
-       False -> let attr'  = ("", classes', kvs')
-                    attr1' = (id1, classes1', kvs1')
-                    attr2' = (id2, classes2', kvs2')
-                    s1' = case null classes1' && null kvs1' of
-                      True -> ils1
-                      False -> [Span attr1' ils1]
-                    s2' = case null classes2' && null kvs2' of
-                      True -> ils2
-                      False -> [Span attr2' ils2]
-                in
-                 [Span attr' $ reduceList $ s1' ++ s2']
-  (Str x) <++> (Str y) = [Str (x++y)]
-  il <++> il' = combineReducibles il il'
+(<+>) :: (Monoid a, Modifiable a, Eq a) => a -> a -> a
+x <+> y = combine x y
 
-  container (Emph _) = Container Emph
-  container (Strong _) = Container Strong
-  container (SmallCaps _) = Container SmallCaps
-  container (Strikeout _) = Container Strikeout
-  container (Subscript _) = Container Subscript
-  container (Superscript _) = Container Superscript
-  container (Quoted qt _) = Container $ Quoted qt
-  container (Cite cs _) = Container $ Cite cs
-  container (Span attr _) = Container $ Span attr
-  container _ = NullContainer
-
-  innards (Emph ils) = ils
-  innards (SmallCaps ils) = ils
-  innards (Strong ils) = ils
-  innards (Strikeout ils) = ils
-  innards (Subscript ils) = ils
-  innards (Superscript ils) = ils
-  innards (Quoted _ ils) = ils
-  innards (Cite _ ils) = ils
-  innards (Span _ ils) = ils
-  innards _ = []
-
-  isSpace Space = True
-  isSpace _     = False
-
-instance Reducible Block where
-  (Div (ident, classes, kvs) blks) <++> blk | "list-item" `elem` classes =
-    [Div (ident, classes, kvs) (reduceList blks), blk]
-
-  blk <++> blk' = combineReducibles blk blk'
-
-  container (BlockQuote _) = Container BlockQuote
-  container (Div attr _) = Container $ Div attr
-  container _            = NullContainer
-
-  innards (BlockQuote bs) = bs
-  innards (Div _ bs) = bs
-  innards _          = []
-
-  isSpace _          = False
-
-
-topLevelContainers' :: (Reducible a) => [a] -> ([Container a], [a])
-topLevelContainers' (r : []) = case container r of
-  NullContainer -> ([], [r])
-  _             ->
-    let (conts, inns) = topLevelContainers' (innards r)
-    in
-    ((container r) : conts, inns)
-topLevelContainers' rs = ([], rs)
-
-topLevelContainers :: (Reducible a) => a -> ([Container a], [a])
-topLevelContainers il = topLevelContainers' [il]
-
-rebuild :: [Container a] -> [a] -> [a]
-rebuild [] xs = xs
-rebuild ((Container f) : cs) xs = rebuild cs $ [f xs]
-rebuild (NullContainer : cs) xs = rebuild cs $ xs
+concatReduce :: (Monoid a, Modifiable a) => [a] -> a
+concatReduce xs = foldl combine mempty xs

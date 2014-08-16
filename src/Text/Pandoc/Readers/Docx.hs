@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, OverloadedStrings #-}
 
 {-
 Copyright (C) 2014 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -77,14 +77,14 @@ module Text.Pandoc.Readers.Docx
 import Codec.Archive.Zip
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Builder (text, toList)
+import Text.Pandoc.Builder
 import Text.Pandoc.Walk
 import Text.Pandoc.Readers.Docx.Parse
 import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Reducible
 import Text.Pandoc.Shared
 import Text.Pandoc.MediaBag (insertMedia, MediaBag)
-import Data.Maybe (mapMaybe)
+import Data.Maybe (isJust)
 import Data.List (delete, stripPrefix, (\\), intersect)
 import Data.Monoid
 import Text.TeXMath (writeTeX)
@@ -94,6 +94,7 @@ import qualified Data.Map as M
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Applicative ((<$>))
+import Data.Sequence (ViewL(..), viewl)
 
 readDocx :: ReaderOptions
          -> B.ByteString
@@ -106,13 +107,13 @@ readDocx opts bytes =
 
 data DState = DState { docxAnchorMap :: M.Map String String
                      , docxMediaBag      :: MediaBag
-                     , docxDropCap       :: [Inline]
+                     , docxDropCap       :: Inlines
                      }
 
 instance Default DState where
   def = DState { docxAnchorMap = M.empty
                , docxMediaBag  = mempty
-               , docxDropCap   = []
+               , docxDropCap   = mempty
                }
 
 data DEnv = DEnv { docxOptions  :: ReaderOptions
@@ -125,9 +126,6 @@ type DocxContext = ReaderT DEnv (State DState)
 
 evalDocxContext :: DocxContext a -> DEnv -> DState -> a
 evalDocxContext ctx env st = evalState (runReaderT ctx env) st
-
-concatMapM        :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
-concatMapM f xs   =  liftM concat (mapM f xs)
 
 -- This is empty, but we put it in for future-proofing.
 spansToKeep :: [String]
@@ -174,7 +172,7 @@ bodyPartsToMeta' (bp : bps)
       f (MetaInlines ils) (MetaBlocks blks) = MetaBlocks ((Para ils) : blks)
       f m (MetaList mv) = MetaList (m : mv)
       f m n             = MetaList [m, n]
-    return $ M.insertWith f metaField (MetaInlines inlines) remaining
+    return $ M.insertWith f metaField (MetaInlines (toList inlines)) remaining
 bodyPartsToMeta' (_ : bps) = bodyPartsToMeta' bps
 
 bodyPartsToMeta :: [BodyPart] -> DocxContext Meta
@@ -195,98 +193,14 @@ fixAuthors (MetaBlocks blks) =
           g _          = MetaInlines []
 fixAuthors mv = mv
 
-runStyleToContainers :: RunStyle -> [Container Inline]
-runStyleToContainers rPr =
-  let spanClassToContainers :: String -> [Container Inline]
-      spanClassToContainers s | s `elem` codeSpans =
-        [Container $ (\ils -> Code ("", [], []) (concatMap ilToCode ils))]
-      spanClassToContainers s | s `elem` spansToKeep =
-        [Container $ Span ("", [s], [])]
-      spanClassToContainers  _     = []
+codeStyles :: [String]
+codeStyles = ["VerbatimChar"]
 
-      classContainers = case rStyle rPr of
-        Nothing -> []
-        Just s  -> spanClassToContainers s
+strongStyles :: [String]
+strongStyles = ["Strong", "Bold"]
 
-      resolveFmt :: Bool -> Maybe Bool -> Bool
-      resolveFmt _ (Just True) = True
-      resolveFmt _ (Just False) = False
-      resolveFmt bool Nothing   = bool
-
-      formatters = map Container $ mapMaybe id
-                   [ if resolveFmt
-                        (rStyle rPr `elem` [Just "Strong", Just "Bold"])
-                        (isBold rPr)
-                     then (Just Strong)
-                     else Nothing
-                   , if resolveFmt
-                        (rStyle rPr `elem` [Just"Emphasis", Just "Italic"])
-                        (isItalic rPr)
-                     then (Just Emph)
-                     else Nothing
-                   , if resolveFmt False (isSmallCaps rPr)
-                     then (Just SmallCaps)
-                     else Nothing
-                   , if resolveFmt False (isStrike rPr)
-                     then (Just Strikeout)
-                     else Nothing
-                   , if isSuperScript rPr then (Just Superscript) else Nothing
-                   , if isSubScript rPr then (Just Subscript) else Nothing
-                   , rUnderline rPr >>=
-                     (\f -> if f == "single" then (Just Emph) else Nothing)
-                 ]
-  in
-   classContainers ++ formatters
-
-parStyleToContainers :: ParagraphStyle -> [Container Block]
-parStyleToContainers pPr | (c:cs) <- pStyle pPr, Just n <- isHeaderClass c =
-  [Container $ \_ -> Header n ("", delete ("Heading" ++ show n) cs, []) []]
-parStyleToContainers pPr | (c:cs) <- pStyle pPr, c `elem` divsToKeep =
-  let pPr' = pPr { pStyle = cs }
-  in
-   (Container $ Div ("", [c], [])) : (parStyleToContainers pPr')
-parStyleToContainers pPr | (c:cs) <- pStyle pPr, c `elem` codeDivs =
-  -- This is a bit of a cludge. We make the codeblock from the raw
-  -- parparts in bodyPartToBlocks. But we need something to match against.
-  let pPr' = pPr { pStyle = cs }
-  in
-   (Container $ \_ -> CodeBlock ("", [], []) "") : (parStyleToContainers pPr')
-parStyleToContainers pPr | (c:cs) <- pStyle pPr,  c `elem` listParagraphDivs =
-  let pPr' = pPr { pStyle = cs, indentation = Nothing}
-  in
-   (Container $ Div ("", [c], [])) : (parStyleToContainers pPr')
-
-parStyleToContainers pPr | (c:cs) <- pStyle pPr, c `elem` blockQuoteDivs =
-  let pPr' = pPr { pStyle = cs \\ blockQuoteDivs }
-  in
-   (Container BlockQuote) : (parStyleToContainers pPr')
-parStyleToContainers pPr | (_:cs) <- pStyle pPr =
-  let pPr' = pPr { pStyle = cs}
-  in
-    parStyleToContainers pPr'
-parStyleToContainers pPr | null (pStyle pPr),
-                          Just left <- indentation pPr >>= leftParIndent,
-                          Just hang <- indentation pPr >>= hangingParIndent =
-  let pPr' = pPr { indentation = Nothing }
-  in
-   case (left - hang) > 0 of
-     True -> (Container BlockQuote) : (parStyleToContainers pPr')
-     False -> parStyleToContainers pPr'
-parStyleToContainers pPr | null (pStyle pPr),
-                          Just left <- indentation pPr >>= leftParIndent =
-  let pPr' = pPr { indentation = Nothing }
-  in
-   case left > 0 of
-     True -> (Container BlockQuote) : (parStyleToContainers pPr')
-     False -> parStyleToContainers pPr'
-parStyleToContainers _ = []
-
-
-strToInlines :: String -> [Inline]
-strToInlines = toList . text
-
-codeSpans :: [String]
-codeSpans = ["VerbatimChar"]
+emphStyles :: [String]
+emphStyles = ["Emphasis", "Italic"]
 
 blockQuoteDivs :: [String]
 blockQuoteDivs = ["Quote", "BlockQuote", "BlockQuotation"]
@@ -294,10 +208,10 @@ blockQuoteDivs = ["Quote", "BlockQuote", "BlockQuotation"]
 codeDivs :: [String]
 codeDivs = ["SourceCode"]
 
-runElemToInlines :: RunElem -> [Inline]
-runElemToInlines (TextRun s) = strToInlines s
-runElemToInlines (LnBrk) = [LineBreak]
-runElemToInlines (Tab) = [Space]
+runElemToInlines :: RunElem -> Inlines
+runElemToInlines (TextRun s) = text s
+runElemToInlines (LnBrk) = linebreak
+runElemToInlines (Tab) = space
 
 runElemToString :: RunElem -> String
 runElemToString (TextRun s) = s
@@ -317,57 +231,84 @@ parPartToString (InternalHyperLink _ runs) = concatMap runToString runs
 parPartToString (ExternalHyperLink _ runs) = concatMap runToString runs
 parPartToString _ = ""
 
+runStyleToTransform :: RunStyle -> (Inlines -> Inlines)
+runStyleToTransform rPr
+  | Just s <- rStyle rPr
+  , s `elem` spansToKeep =
+    let rPr' = rPr{rStyle = Nothing}
+    in
+     (spanWith ("", [s], [])) . (runStyleToTransform rPr')
+  | Just s <- rStyle rPr
+  , s `elem` emphStyles =
+    let rPr' = rPr{rStyle = Nothing, isItalic = Nothing}
+    in
+     case isItalic rPr' of
+       Just False -> runStyleToTransform rPr'
+       _          -> emph . (runStyleToTransform rPr')
+  | Just s <- rStyle rPr
+  , s `elem` strongStyles =
+    let rPr' = rPr{rStyle = Nothing, isBold = Nothing}
+    in
+     case isItalic rPr' of
+       Just False -> runStyleToTransform rPr'
+       _          -> strong . (runStyleToTransform rPr')
+  | Just True <- isItalic rPr =
+      emph . (runStyleToTransform rPr {isItalic = Nothing})
+  | Just True <- isBold rPr =
+      strong . (runStyleToTransform rPr {isBold = Nothing})
+  | Just True <- isSmallCaps rPr =
+      smallcaps . (runStyleToTransform rPr {isSmallCaps = Nothing})
+  | Just True <- isStrike rPr =
+      strikeout . (runStyleToTransform rPr {isStrike = Nothing})
+  | isSuperScript rPr =
+      superscript . (runStyleToTransform rPr {isSuperScript = False})
+  | isSubScript rPr =
+      subscript . (runStyleToTransform rPr {isSubScript = False})
+  | Just "single" <- rUnderline rPr =
+      emph . (runStyleToTransform rPr {rUnderline = Nothing})
+  | otherwise = id
 
-inlineCodeContainer :: Container Inline -> Bool
-inlineCodeContainer (Container f) = case f [] of
-  Code _ "" -> True
-  _         -> False
-inlineCodeContainer _ = False
-
-
-runToInlines :: Run -> DocxContext [Inline]
+runToInlines :: Run -> DocxContext Inlines
 runToInlines (Run rs runElems)
-  | any inlineCodeContainer (runStyleToContainers rs) =
-      return $
-      rebuild (runStyleToContainers rs) $ [Str $ runElemsToString runElems]
-  | otherwise =
-      return $
-      rebuild (runStyleToContainers rs) (concatMap runElemToInlines runElems)
-runToInlines (Footnote bps) =
-  concatMapM bodyPartToBlocks bps >>= (\blks -> return [Note blks])
-runToInlines (Endnote bps) =
-  concatMapM bodyPartToBlocks bps >>= (\blks -> return [Note blks])
+  | Just s <- rStyle rs
+  , s `elem` codeStyles =
+    return $ code $ runElemsToString runElems
+  | otherwise = do
+    let ils = concatReduce (map runElemToInlines runElems)
+    return $ (runStyleToTransform rs) ils
+runToInlines (Footnote bps) = do
+  blksList <- concatReduce <$> (mapM bodyPartToBlocks bps)
+  return $ note blksList
+runToInlines (Endnote bps) = do
+  blksList <- concatReduce <$> (mapM bodyPartToBlocks bps)
+  return $ note blksList
 runToInlines (InlineDrawing fp bs) = do
   mediaBag <- gets docxMediaBag
   modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
-  return [Image [] (fp, "")]
+  return $ image fp "" ""
 
-
-
-
-parPartToInlines :: ParPart -> DocxContext [Inline]
+parPartToInlines :: ParPart -> DocxContext Inlines
 parPartToInlines (PlainRun r) = runToInlines r
 parPartToInlines (Insertion _ author date runs) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
-    AcceptChanges -> concatMapM runToInlines runs >>= return
-    RejectChanges -> return []
+    AcceptChanges -> concatReduce <$> mapM runToInlines runs
+    RejectChanges -> return mempty
     AllChanges    -> do
-      ils <- (concatMapM runToInlines runs)
-      return [Span
-              ("", ["insertion"], [("author", author), ("date", date)])
-              ils]
+      ils <- concatReduce <$> mapM runToInlines runs
+      let attr = ("", ["insertion"], [("author", author), ("date", date)])
+      return $ spanWith attr ils
 parPartToInlines (Deletion _ author date runs) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
-    AcceptChanges -> return []
-    RejectChanges -> concatMapM runToInlines runs >>= return
+    AcceptChanges -> return mempty
+    RejectChanges -> concatReduce <$> mapM runToInlines runs
     AllChanges    -> do
-      ils <- concatMapM runToInlines runs
-      return [Span
-              ("", ["deletion"], [("author", author), ("date", date)])
-              ils]
-parPartToInlines (BookMark _ anchor) | anchor `elem` dummyAnchors = return []
+      ils <- concatReduce <$> mapM runToInlines runs
+      let attr = ("", ["deletion"], [("author", author), ("date", date)])
+      return $ spanWith attr ils
+parPartToInlines (BookMark _ anchor) | anchor `elem` dummyAnchors =
+  return mempty
 parPartToInlines (BookMark _ anchor) =
   -- We record these, so we can make sure not to overwrite
   -- user-defined anchor links with header auto ids.
@@ -390,20 +331,19 @@ parPartToInlines (BookMark _ anchor) =
           else anchor
     unless inHdrBool
       (modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap})
-    return [Span (newAnchor, ["anchor"], []) []]
+    return $ spanWith (newAnchor, ["anchor"], []) mempty
 parPartToInlines (Drawing fp bs) = do
   mediaBag <- gets docxMediaBag
   modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
-  return [Image [] (fp, "")]
+  return $ image fp "" ""
 parPartToInlines (InternalHyperLink anchor runs) = do
-  ils <- concatMapM runToInlines runs
-  return [Link ils ('#' : anchor, "")]
+  ils <- concatReduce <$> mapM runToInlines runs
+  return $ link ('#' : anchor) "" ils
 parPartToInlines (ExternalHyperLink target runs) = do
-  ils <- concatMapM runToInlines runs
-  return [Link ils (target, "")]
+  ils <- concatReduce <$> mapM runToInlines runs
+  return $ link target "" ils
 parPartToInlines (PlainOMath exps) = do
-  return [Math InlineMath (writeTeX exps)]
-
+  return $ math $ writeTeX exps
 
 isAnchorSpan :: Inline -> Bool
 isAnchorSpan (Span (_, classes, kvs) ils) =
@@ -415,49 +355,42 @@ isAnchorSpan _ = False
 dummyAnchors :: [String]
 dummyAnchors = ["_GoBack"]
 
-makeHeaderAnchor :: Block -> DocxContext Block
+makeHeaderAnchor :: Blocks -> DocxContext Blocks
+makeHeaderAnchor bs = case viewl $ unMany bs of
+  (x :< xs) -> do
+    x' <- (makeHeaderAnchor' x)
+    xs' <- (makeHeaderAnchor $ Many xs)
+    return $ (singleton x') <> xs'
+  EmptyL    -> return mempty
+
+makeHeaderAnchor' :: Block -> DocxContext Block
 -- If there is an anchor already there (an anchor span in the header,
 -- to be exact), we rename and associate the new id with the old one.
-makeHeaderAnchor (Header n (_, classes, kvs) ils)
-  | xs <- filter isAnchorSpan ils
-  , idents <- filter (\i -> notElem i dummyAnchors) $
-              map (\(Span (ident, _, _) _) -> ident) xs
-  , not $ null idents =
-    do
-      hdrIDMap <- gets docxAnchorMap
-      let newIdent = uniqueIdent ils (M.elems hdrIDMap)
-          newMap   = M.fromList $ map (\i -> (i, newIdent)) idents
-      modify $ \s -> s {docxAnchorMap = M.union newMap hdrIDMap}
-      return $ Header n (newIdent, classes, kvs) (ils \\ xs)
+makeHeaderAnchor' (Header n (_, classes, kvs) ils)
+  | (c:cs) <- filter isAnchorSpan ils
+  , (Span (ident, ["anchor"], _) _) <- c = do
+    hdrIDMap <- gets docxAnchorMap
+    let newIdent = uniqueIdent ils (M.elems hdrIDMap)
+    modify $ \s -> s {docxAnchorMap = M.insert ident newIdent hdrIDMap}
+    return $ Header n (newIdent, classes, kvs) (ils \\ (c:cs))
 -- Otherwise we just give it a name, and register that name (associate
 -- it with itself.)
-makeHeaderAnchor (Header n (_, classes, kvs) ils) =
+makeHeaderAnchor' (Header n (_, classes, kvs) ils) =
   do
     hdrIDMap <- gets docxAnchorMap
     let newIdent = uniqueIdent ils (M.elems hdrIDMap)
     modify $ \s -> s {docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
     return $ Header n (newIdent, classes, kvs) ils
-makeHeaderAnchor blk = return blk
+makeHeaderAnchor' blk = return blk
 
+parPartsToInlines :: [ParPart] -> DocxContext Inlines
+parPartsToInlines parparts = concatReduce <$> mapM parPartToInlines parparts
 
-parPartsToInlines :: [ParPart] -> DocxContext [Inline]
-parPartsToInlines parparts = do
-  ils <- concatMapM parPartToInlines parparts
-  return $ reduceList $ ils
+cellToBlocks :: Cell -> DocxContext Blocks
+cellToBlocks (Cell bps) = concatReduce <$> mapM bodyPartToBlocks bps
 
-cellToBlocks :: Cell -> DocxContext [Block]
-cellToBlocks (Cell bps) = concatMapM bodyPartToBlocks bps
-
-rowToBlocksList :: Row -> DocxContext [[Block]]
+rowToBlocksList :: Row -> DocxContext [Blocks]
 rowToBlocksList (Row cells) = mapM cellToBlocks cells
-
-isBlockCodeContainer :: Container Block -> Bool
-isBlockCodeContainer (Container f) | CodeBlock _ _ <- f [] = True
-isBlockCodeContainer _ = False
-
-isHeaderContainer :: Container Block -> Bool
-isHeaderContainer (Container f) | Header _ _ _ <- f [] = True
-isHeaderContainer _ = False
 
 trimLineBreaks :: [Inline] -> [Inline]
 trimLineBreaks [] = []
@@ -466,38 +399,70 @@ trimLineBreaks ils
   | (LineBreak : ils') <- reverse ils = trimLineBreaks (reverse ils')
 trimLineBreaks ils = ils
 
-bodyPartToBlocks :: BodyPart -> DocxContext [Block]
-bodyPartToBlocks (Paragraph pPr parparts)
-  | any isBlockCodeContainer (parStyleToContainers pPr) =
-    let
-      otherConts = filter (not . isBlockCodeContainer) (parStyleToContainers pPr)
+parStyleToTransform :: ParagraphStyle -> (Blocks -> Blocks)
+parStyleToTransform pPr
+  | (c:cs) <- pStyle pPr
+  , c `elem` divsToKeep =
+    let pPr' = pPr { pStyle = cs }
     in
-     return $
-     rebuild
-     otherConts
-     [CodeBlock ("", [], []) (concatMap parPartToString parparts)]
+     (divWith ("", [c], [])) . (parStyleToTransform pPr')
+  | (c:cs) <- pStyle pPr,
+    c `elem` listParagraphDivs =
+      let pPr' = pPr { pStyle = cs, indentation = Nothing}
+      in
+       (divWith ("", [c], [])) . (parStyleToTransform pPr')
+  | (c:cs) <- pStyle pPr
+  , c `elem` blockQuoteDivs =
+    let pPr' = pPr { pStyle = cs \\ blockQuoteDivs }
+    in
+     blockQuote . (parStyleToTransform pPr')
+  | (_:cs) <- pStyle pPr =
+      let pPr' = pPr { pStyle = cs}
+      in
+       parStyleToTransform pPr'
+  | null (pStyle pPr)
+  , Just left <- indentation pPr >>= leftParIndent
+  , Just hang <- indentation pPr >>= hangingParIndent =
+    let pPr' = pPr { indentation = Nothing }
+    in
+     case (left - hang) > 0 of
+       True -> blockQuote . (parStyleToTransform pPr')
+       False -> parStyleToTransform pPr'
+  | null (pStyle pPr),
+    Just left <- indentation pPr >>= leftParIndent =
+      let pPr' = pPr { indentation = Nothing }
+      in
+       case left > 0 of
+         True -> blockQuote . (parStyleToTransform pPr')
+         False -> parStyleToTransform pPr'
+parStyleToTransform _ = id
+
+bodyPartToBlocks :: BodyPart -> DocxContext Blocks
 bodyPartToBlocks (Paragraph pPr parparts)
-  | any isHeaderContainer (parStyleToContainers pPr) = do
-    ils <- (trimLineBreaks . normalizeSpaces) <$>
-           local (\s -> s{docxInHeaderBlock = True})
+  | not $ null $ codeDivs `intersect` (pStyle pPr) =
+    return
+    $ parStyleToTransform pPr
+    $ codeBlock
+    $ concatMap parPartToString parparts
+  | (c : cs) <- filter (isJust . isHeaderClass) $ pStyle pPr
+  , Just n <- isHeaderClass c = do
+    ils <- local (\s-> s{docxInHeaderBlock=True}) $
            (parPartsToInlines parparts)
-    let (Container hdrFun) = head $ filter isHeaderContainer (parStyleToContainers pPr)
-        Header n attr _ = hdrFun []
-    hdr <- makeHeaderAnchor $ Header n attr ils
-    return [hdr]
-bodyPartToBlocks (Paragraph pPr parparts) = do
-  ils <- parPartsToInlines parparts >>= (return . normalizeSpaces)
-  dropIls <- gets docxDropCap
-  let ils' = concatR dropIls ils
-  if dropCap pPr
-    then do modify $ \s -> s { docxDropCap = ils' }
-            return []
-    else do modify $ \s -> s { docxDropCap = [] }
-            return $ case ils' of
-              [] -> []
-              _ -> rebuild
-                   (parStyleToContainers pPr)
-                   [Para $ ils']
+
+    makeHeaderAnchor $
+      headerWith ("", delete ("Heading" ++ show n) cs, []) n ils
+  | otherwise = do
+    ils <- parPartsToInlines parparts >>=
+           (return . fromList . trimLineBreaks . normalizeSpaces . toList)
+    dropIls <- gets docxDropCap
+    let ils' = dropIls <> ils
+    if dropCap pPr
+      then do modify $ \s -> s { docxDropCap = ils' }
+              return mempty
+      else do modify $ \s -> s { docxDropCap = mempty }
+              return $ case isNull ils' of
+                True -> mempty
+                _ -> parStyleToTransform pPr $ para ils'
 bodyPartToBlocks (ListItem pPr numId lvl levelInfo parparts) = do
   let
     kvs = case levelInfo of
@@ -514,11 +479,11 @@ bodyPartToBlocks (ListItem pPr numId lvl levelInfo parparts) = do
                                    , ("text", txt)
                                    ]
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
-  return $ [Div ("", ["list-item"], kvs) blks]
+  return $ divWith ("", ["list-item"], kvs) blks
 bodyPartToBlocks (Tbl _ _ _ []) =
-  return [Para []]
+  return $ para mempty
 bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
-  let caption = strToInlines cap
+  let caption = text cap
       (hdr, rows) = case firstRowFormatting look of
         True -> (Just r, rs)
         False -> (Nothing, r:rs)
@@ -540,41 +505,43 @@ bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
       alignments = replicate size AlignDefault
       widths = replicate size 0 :: [Double]
 
-  return [Table caption alignments widths hdrCells cells]
+  return $ table caption (zip alignments widths) hdrCells cells
 bodyPartToBlocks (OMathPara e) = do
-  return [Para [Math DisplayMath (writeTeX e)]]
+  return $ para $ displayMath (writeTeX e)
 
 
 -- replace targets with generated anchors.
-rewriteLink :: Inline -> DocxContext Inline
-rewriteLink l@(Link ils ('#':target, title)) = do
+rewriteLink' :: Inline -> DocxContext Inline
+rewriteLink' l@(Link ils ('#':target, title)) = do
   anchorMap <- gets docxAnchorMap
   return $ case M.lookup target anchorMap of
     Just newTarget -> (Link ils ('#':newTarget, title))
     Nothing        -> l
-rewriteLink il = return il
+rewriteLink' il = return il
+
+rewriteLink :: Blocks -> DocxContext Blocks
+rewriteLink ils = case viewl $ unMany ils of
+  (x :< xs) -> do
+    x' <- walkM rewriteLink' x
+    xs' <- rewriteLink $ Many xs
+    return $ (singleton x') <> xs'
+  EmptyL -> return ils
 
 bodyToOutput :: Body -> DocxContext (Meta, [Block], MediaBag)
 bodyToOutput (Body bps) = do
   let (metabps, blkbps) = sepBodyParts bps
   meta <- bodyPartsToMeta metabps
-  blks <- concatMapM bodyPartToBlocks blkbps >>=
-          walkM rewriteLink
+  blks <- concatReduce <$> mapM bodyPartToBlocks blkbps
+  blks' <- rewriteLink blks
   mediaBag <- gets docxMediaBag
   return $ (meta,
-            blocksToDefinitions $ blocksToBullets $ blks,
+            blocksToDefinitions $ blocksToBullets $ toList blks',
             mediaBag)
 
 docxToOutput :: ReaderOptions -> Docx -> (Meta, [Block], MediaBag)
 docxToOutput opts (Docx (Document _ body)) =
   let dEnv   = def { docxOptions  = opts} in
    evalDocxContext (bodyToOutput body) dEnv def
-
-
-ilToCode :: Inline -> String
-ilToCode (Str s) = s
-ilToCode Space = " "
-ilToCode _     = ""
 
 isHeaderClass :: String -> Maybe Int
 isHeaderClass s | Just s' <- stripPrefix "Heading" s =
