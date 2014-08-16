@@ -242,14 +242,14 @@ runStyleToTransform rPr
   , s `elem` emphStyles =
     let rPr' = rPr{rStyle = Nothing, isItalic = Nothing}
     in
-     case isItalic rPr' of
+     case isItalic rPr of
        Just False -> runStyleToTransform rPr'
        _          -> emph . (runStyleToTransform rPr')
   | Just s <- rStyle rPr
   , s `elem` strongStyles =
     let rPr' = rPr{rStyle = Nothing, isBold = Nothing}
     in
-     case isItalic rPr' of
+     case isBold rPr of
        Just False -> runStyleToTransform rPr'
        _          -> strong . (runStyleToTransform rPr')
   | Just True <- isItalic rPr =
