@@ -103,6 +103,10 @@ tests = [ testGroup "inlines"
             "docx/inline_formatting.docx"
             "docx/inline_formatting.native"
           , testCompare
+            "font formatting with character styles"
+            "docx/char_styles.docx"
+            "docx/char_styles.native"
+          , testCompare
             "hyperlinks"
             "docx/links.docx"
             "docx/links.native"
