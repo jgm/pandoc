@@ -570,7 +570,12 @@ pSpan = try $ do
   guardEnabled Ext_native_spans
   TagOpen _ attr <- lookAhead $ pSatisfy $ tagOpen (=="span") (const True)
   contents <- pInTags "span" inline
-  return $ B.spanWith (mkAttr attr) contents
+  let attr' = mkAttr attr
+  return $ case attr' of
+                ("",[],[("style",s)])
+                  | filter (`notElem` " \t;") s == "font-variant:small-caps" ->
+                     B.smallcaps contents
+                _ -> B.spanWith (mkAttr attr) contents
 
 pRawHtmlInline :: TagParser Inlines
 pRawHtmlInline = do

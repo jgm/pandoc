@@ -193,6 +193,7 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
 ,Para [Strong [Emph [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em."]]]
 ,Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word."]
 ,Para [Str "This",Space,Str "is",Space,Str "code:",Space,Code ("",[],[]) ">",Str ",",Space,Code ("",[],[]) "$",Str ",",Space,Code ("",[],[]) "\\",Str ",",Space,Code ("",[],[]) "\\$",Str ",",Space,Code ("",[],[]) "<html>",Str "."]
+,Para [Str "This",Space,Str "is",Space,SmallCaps [Str "small",Space,Str "caps"],Str "."]
 ,HorizontalRule
 ,Header 1 ("",[],[]) [Str "Smart",Space,Str "quotes,",Space,Str "ellipses,",Space,Str "dashes"]
 ,Para [Str "\"Hello,\"",Space,Str "said",Space,Str "the",Space,Str "spider.",Space,Str "\"'Shelob'",Space,Str "is",Space,Str "my",Space,Str "name.\""]
