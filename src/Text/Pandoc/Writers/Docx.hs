@@ -596,8 +596,8 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
                                else contents
   let mkrow border cells = mknode "w:tr" [] $ map (mkcell border) cells
   let textwidth = 7920  -- 5.5 in in twips, 1/20 pt
-  let fullrow = 5000
-  let rowwidth = sum $ map (fullrow *) widths
+  let fullrow = 5000 -- 100% specified in pct
+  let rowwidth = fullrow * sum widths
   let mkgridcol w = mknode "w:gridCol"
                        [("w:w", show $ (floor (textwidth * w) :: Integer))] ()
   return $
