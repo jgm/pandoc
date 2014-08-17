@@ -72,7 +72,7 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envRelationships :: [Relationship]
                            , envMedia         :: Media
                            , envFont          :: Maybe Font
-                           , envCharStyles    :: CharStyles
+                           , envCharStyles    :: CharStyleMap
                            }
                deriving Show
 
@@ -120,7 +120,9 @@ data Body = Body [BodyPart]
 
 type Media = [(FilePath, B.ByteString)]
 
-type CharStyles = M.Map String RunStyle
+type CharStyle = (String, RunStyle)
+
+type CharStyleMap = M.Map String RunStyle
 
 data Numbering = Numbering NameSpaces [Numb] [AbstractNumb]
                  deriving Show
@@ -208,7 +210,7 @@ data RunStyle = RunStyle { isBold :: Maybe Bool
                          , isStrike :: Maybe Bool
                          , rVertAlign :: Maybe VertAlign
                          , rUnderline :: Maybe String
-                         , rStyle :: Maybe (String, Maybe RunStyle)}
+                         , rStyle :: Maybe CharStyle}
                 deriving Show
 
 defaultRunStyle :: RunStyle
@@ -261,7 +263,7 @@ elemToBody ns element | isElem ns "w" "body" element =
   (\bps -> return $ Body bps)
 elemToBody _ _ = throwError WrongElem
 
-archiveToStyles :: Archive -> CharStyles
+archiveToStyles :: Archive -> CharStyleMap
 archiveToStyles zf =
   let stylesElem = findEntryByPath "word/styles.xml" zf >>=
                    (parseXMLDoc . UTF8.toStringLazy . fromEntry)
@@ -273,7 +275,7 @@ archiveToStyles zf =
        in
         M.fromList $ mapMaybe (elemToCharStyle namespaces) (elChildren styElem)
 
-elemToCharStyle :: NameSpaces -> Element -> Maybe (String, RunStyle)
+elemToCharStyle :: NameSpaces -> Element -> Maybe CharStyle
 elemToCharStyle ns element
   | isElem ns "w" "style" element
   , Just "character" <- findAttr (elemName ns "w" "type") element
@@ -702,12 +704,13 @@ elemToRunStyleD ns element
           findChild (elemName ns "w" "rStyle") rPr >>=
           findAttr (elemName ns "w" "val")
           of
-            Just styName -> Just $ (styName, M.lookup styName charStyles)
+            Just styName | Just style <- M.lookup styName charStyles ->
+              Just (styName, style)
             _            -> Nothing
     return $ elemToRunStyle ns element parentSty
 elemToRunStyleD _ _ = return defaultRunStyle
 
-elemToRunStyle :: NameSpaces -> Element -> Maybe (String, Maybe RunStyle) -> RunStyle
+elemToRunStyle :: NameSpaces -> Element -> Maybe CharStyle -> RunStyle
 elemToRunStyle ns element parentStyle
   | Just rPr <- findChild (elemName ns "w" "rPr") element =
     RunStyle
