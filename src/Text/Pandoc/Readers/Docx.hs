@@ -256,8 +256,8 @@ resolveDependentRunStyle rPr
                 , rUnderline = case rUnderline rPr of
                      Just ulstyle -> Just ulstyle
                      Nothing      -> rUnderline rPr'
-                , rStyle = Nothing }
-  | otherwise = rPr{rStyle = Nothing}
+                , rStyle = rStyle rPr }
+  | otherwise = rPr
 
 runStyleToTransform :: RunStyle -> (Inlines -> Inlines)
 runStyleToTransform rPr
@@ -266,34 +266,20 @@ runStyleToTransform rPr
     let rPr' = rPr{rStyle = Nothing}
     in
      (spanWith ("", [s], [])) . (runStyleToTransform rPr')
-  | Just (s, _) <- rStyle rPr
-  , s `elem` emphStyles =
-    let rPr' = rPr{rStyle = Nothing, isItalic = Nothing}
-    in
-     case isItalic rPr of
-       Just False -> runStyleToTransform rPr'
-       _          -> emph . (runStyleToTransform rPr')
-  | Just (s, _) <- rStyle rPr
-  , s `elem` strongStyles =
-    let rPr' = rPr{rStyle = Nothing, isBold = Nothing}
-    in
-     case isBold rPr of
-       Just False -> runStyleToTransform rPr'
-       _          -> strong . (runStyleToTransform rPr')
   | Just True <- isItalic rPr =
       emph . (runStyleToTransform rPr {isItalic = Nothing})
   | Just True <- isBold rPr =
-      strong . (runStyleToTransform rPr {isBold = Nothing})
+        strong . (runStyleToTransform rPr {isBold = Nothing})
   | Just True <- isSmallCaps rPr =
-      smallcaps . (runStyleToTransform rPr {isSmallCaps = Nothing})
+          smallcaps . (runStyleToTransform rPr {isSmallCaps = Nothing})
   | Just True <- isStrike rPr =
-      strikeout . (runStyleToTransform rPr {isStrike = Nothing})
+            strikeout . (runStyleToTransform rPr {isStrike = Nothing})
   | Just SupScrpt <- rVertAlign rPr =
-      superscript . (runStyleToTransform rPr {rVertAlign = Nothing})
+              superscript . (runStyleToTransform rPr {rVertAlign = Nothing})
   | Just SubScrpt <- rVertAlign rPr =
-      subscript . (runStyleToTransform rPr {rVertAlign = Nothing})
+                subscript . (runStyleToTransform rPr {rVertAlign = Nothing})
   | Just "single" <- rUnderline rPr =
-      emph . (runStyleToTransform rPr {rUnderline = Nothing})
+                  emph . (runStyleToTransform rPr {rUnderline = Nothing})
   | otherwise = id
 
 runToInlines :: Run -> DocxContext Inlines
@@ -303,7 +289,7 @@ runToInlines (Run rs runElems)
     return $ code $ concatMap runElemToString runElems
   | otherwise = do
     let ils = concatReduce (map runElemToInlines runElems)
-    return $ (runStyleToTransform rs) ils
+    return $ (runStyleToTransform $ resolveDependentRunStyle rs) ils
 runToInlines (Footnote bps) = do
   blksList <- concatReduce <$> (mapM bodyPartToBlocks bps)
   return $ note blksList
