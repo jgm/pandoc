@@ -44,6 +44,9 @@ dist: sdist
 
 man: ${MANPAGES}
 
+osxpkg:
+	./make_osx_package.sh
+
 %.1: %.1.template
 	${makemanpages}
 
@@ -53,4 +56,4 @@ man: ${MANPAGES}
 clean:
 	-rm ${MANPAGES}
 
-.PHONY: all man clean test build bench haddock sdist
+.PHONY: all man clean test build bench haddock sdist osxpkg
