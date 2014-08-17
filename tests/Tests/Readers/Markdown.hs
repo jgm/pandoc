@@ -275,6 +275,7 @@ tests = [ testGroup "inline code"
         , lineBlockTests
         ]
 
+lineBlockTests :: Test
 lineBlockTests = testGroup "line blocks" [
   -- Formatting elements in line blocks don't have to start and end on the
   -- same line.
