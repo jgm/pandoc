@@ -228,6 +228,37 @@ parPartToString (InternalHyperLink _ runs) = concatMap runToString runs
 parPartToString (ExternalHyperLink _ runs) = concatMap runToString runs
 parPartToString _ = ""
 
+blacklistedCharStyles :: [String]
+blacklistedCharStyles = []
+
+resolveDependentRunStyle :: RunStyle -> RunStyle
+resolveDependentRunStyle rPr
+  | Just (s, _)  <- rStyle rPr, s `elem` blacklistedCharStyles =
+    rPr{rStyle = Nothing}
+  | Just (_, cs) <- rStyle rPr =
+      let rPr' = resolveDependentRunStyle cs
+      in
+       RunStyle { isBold = case isBold rPr of
+                     Just bool -> Just bool
+                     Nothing   -> isBold rPr'
+                , isItalic = case isItalic rPr of
+                     Just bool -> Just bool
+                     Nothing   -> isItalic rPr'
+                , isSmallCaps = case isSmallCaps rPr of
+                     Just bool -> Just bool
+                     Nothing   -> isSmallCaps rPr'
+                , isStrike = case isStrike rPr of
+                     Just bool -> Just bool
+                     Nothing   -> isStrike rPr'
+                , rVertAlign = case rVertAlign rPr of
+                     Just valign -> Just valign
+                     Nothing     -> rVertAlign rPr'
+                , rUnderline = case rUnderline rPr of
+                     Just ulstyle -> Just ulstyle
+                     Nothing      -> rUnderline rPr'
+                , rStyle = Nothing }
+  | otherwise = rPr{rStyle = Nothing}
+
 runStyleToTransform :: RunStyle -> (Inlines -> Inlines)
 runStyleToTransform rPr
   | Just (s, _) <- rStyle rPr
