@@ -5,7 +5,7 @@ ifeq "${makemanpages}" ""
 endif
 setup=dist/setup/setup
 MANPAGES=man/man1/pandoc.1 man/man5/pandoc_markdown.5
-CABALARGS=-fmake-pandoc-man-pages --enable-tests --enable-benchmarks
+CABALARGS=-fmake-pandoc-man-pages -ftrypandoc --enable-tests --enable-benchmarks
 
 all: build test
 
