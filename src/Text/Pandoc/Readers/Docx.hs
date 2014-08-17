@@ -257,10 +257,10 @@ runStyleToTransform rPr
       smallcaps . (runStyleToTransform rPr {isSmallCaps = Nothing})
   | Just True <- isStrike rPr =
       strikeout . (runStyleToTransform rPr {isStrike = Nothing})
-  | isSuperScript rPr =
-      superscript . (runStyleToTransform rPr {isSuperScript = False})
-  | isSubScript rPr =
-      subscript . (runStyleToTransform rPr {isSubScript = False})
+  | Just SupScrpt <- rVertAlign rPr =
+      superscript . (runStyleToTransform rPr {rVertAlign = Nothing})
+  | Just SubScrpt <- rVertAlign rPr =
+      subscript . (runStyleToTransform rPr {rVertAlign = Nothing})
   | Just "single" <- rUnderline rPr =
       emph . (runStyleToTransform rPr {rUnderline = Nothing})
   | otherwise = id

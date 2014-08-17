@@ -43,6 +43,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , Relationship
                                       , Media
                                       , RunStyle(..)
+                                      , VertAlign(..)
                                       , ParIndentation(..)
                                       , ParagraphStyle(..)
                                       , Row(..)
@@ -196,12 +197,14 @@ data Run = Run RunStyle [RunElem]
 data RunElem = TextRun String | LnBrk | Tab
              deriving Show
 
+data VertAlign = BaseLn | SupScrpt | SubScrpt
+               deriving Show
+
 data RunStyle = RunStyle { isBold :: Maybe Bool
                          , isItalic :: Maybe Bool
                          , isSmallCaps :: Maybe Bool
                          , isStrike :: Maybe Bool
-                         , isSuperScript :: Bool
-                         , isSubScript :: Bool
+                         , rVertAlign :: Maybe VertAlign
                          , rUnderline :: Maybe String
                          , rStyle :: Maybe String }
                 deriving Show
@@ -211,8 +214,7 @@ defaultRunStyle = RunStyle { isBold = Nothing
                            , isItalic = Nothing
                            , isSmallCaps = Nothing
                            , isStrike = Nothing
-                           , isSuperScript = False
-                           , isSubScript = False
+                           , rVertAlign = Nothing
                            , rUnderline = Nothing
                            , rStyle = Nothing
                            }
@@ -677,14 +679,13 @@ elemToRunStyle ns element
       , isItalic = checkOnOff ns rPr (elemName ns "w" "i")
       , isSmallCaps = checkOnOff ns rPr (elemName ns "w" "smallCaps")
       , isStrike = checkOnOff ns rPr (elemName ns "w" "strike")
-      , isSuperScript =
-        (Just "superscript" ==
-         (findChild (elemName ns "w" "vertAlign") rPr >>=
-          findAttr (elemName ns "w" "val")))
-      , isSubScript =
-        (Just "subscript" ==
-         (findChild (elemName ns "w" "vertAlign") rPr >>=
-          findAttr (elemName ns "w" "val")))
+      , rVertAlign =
+           findChild (elemName ns "w" "vertAlign") rPr >>=
+           findAttr (elemName ns "w" "val") >>=
+           \v -> Just $ case v of
+             "superscript" -> SupScrpt
+             "subscript"   -> SubScrpt
+             _             -> BaseLn
       , rUnderline =
           findChild (elemName ns "w" "u") rPr >>=
           findAttr (elemName ns "w" "val")
