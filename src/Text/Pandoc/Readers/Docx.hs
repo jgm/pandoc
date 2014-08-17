@@ -196,12 +196,6 @@ fixAuthors mv = mv
 codeStyles :: [String]
 codeStyles = ["VerbatimChar"]
 
-strongStyles :: [String]
-strongStyles = ["Strong", "Bold"]
-
-emphStyles :: [String]
-emphStyles = ["Emphasis", "Italic"]
-
 blockQuoteDivs :: [String]
 blockQuoteDivs = ["Quote", "BlockQuote", "BlockQuotation"]
 
