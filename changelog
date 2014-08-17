@@ -1,3 +1,32 @@
+pandoc (1.13.0.1)
+
+  * Docx writer:
+
+    + Fixed regression which bungled list numbering (#1544), causing
+      all lists to appear as basic ordered lists.
+    + Include row width in table rows (Christoffer Ackelman, Viktor Kronvall).
+      Added a property to all table rows where the sum of column widths
+      is specified in pct (fraction of 5000).  This helps persuade Word
+      to lay out the table with the widths we specify.
+
+  * Fixed a bug in Windows 8 which caused pandoc not to find the
+    `pandoc-citeproc` filter (#1542).
+
+  * Docx reader: miscellaneous under-the-hood improvements (Jesse Rosenthal).
+    Most significantly, the reader now uses Builder, leading to some
+    performance improvements.
+
+  * HTML reader:  Parse appropriately styled span as SmallCaps.
+
+  * Markdown writer: don't escape `$`, `^`, `~` when `tex_math_dollars`,
+    `superscript`, and `subscript` extensions, respectively, are
+    deactivated (#1127).
+
+  * Makefile:  Added 'quick' target.
+
+  * Updated README in templates to indicate templates license.
+    The templates are dual-licensed, BSD3 and GPL2+.
+
 pandoc (1.13)
 
   [new features]
