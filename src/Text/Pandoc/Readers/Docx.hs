@@ -230,19 +230,19 @@ parPartToString _ = ""
 
 runStyleToTransform :: RunStyle -> (Inlines -> Inlines)
 runStyleToTransform rPr
-  | Just s <- rStyle rPr
+  | Just (s, _) <- rStyle rPr
   , s `elem` spansToKeep =
     let rPr' = rPr{rStyle = Nothing}
     in
      (spanWith ("", [s], [])) . (runStyleToTransform rPr')
-  | Just s <- rStyle rPr
+  | Just (s, _) <- rStyle rPr
   , s `elem` emphStyles =
     let rPr' = rPr{rStyle = Nothing, isItalic = Nothing}
     in
      case isItalic rPr of
        Just False -> runStyleToTransform rPr'
        _          -> emph . (runStyleToTransform rPr')
-  | Just s <- rStyle rPr
+  | Just (s, _) <- rStyle rPr
   , s `elem` strongStyles =
     let rPr' = rPr{rStyle = Nothing, isBold = Nothing}
     in
@@ -267,7 +267,7 @@ runStyleToTransform rPr
 
 runToInlines :: Run -> DocxContext Inlines
 runToInlines (Run rs runElems)
-  | Just s <- rStyle rs
+  | Just (s, _) <- rStyle rs
   , s `elem` codeStyles =
     return $ code $ concatMap runElemToString runElems
   | otherwise = do
