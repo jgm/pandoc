@@ -50,7 +50,6 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , Cell(..)
                                       , archiveToDocx
                                       ) where
-
 import Codec.Archive.Zip
 import Text.XML.Light
 import Data.Maybe
@@ -73,6 +72,7 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envRelationships :: [Relationship]
                            , envMedia         :: Media
                            , envFont          :: Maybe Font
+                           , envCharStyles    :: CharStyles
                            }
                deriving Show
 
@@ -119,6 +119,8 @@ data Body = Body [BodyPart]
           deriving Show
 
 type Media = [(FilePath, B.ByteString)]
+
+type CharStyles = M.Map String RunStyle
 
 data Numbering = Numbering NameSpaces [Numb] [AbstractNumb]
                  deriving Show
@@ -206,7 +208,7 @@ data RunStyle = RunStyle { isBold :: Maybe Bool
                          , isStrike :: Maybe Bool
                          , rVertAlign :: Maybe VertAlign
                          , rUnderline :: Maybe String
-                         , rStyle :: Maybe String }
+                         , rStyle :: Maybe (String, Maybe RunStyle)}
                 deriving Show
 
 defaultRunStyle :: RunStyle
@@ -216,8 +218,7 @@ defaultRunStyle = RunStyle { isBold = Nothing
                            , isStrike = Nothing
                            , rVertAlign = Nothing
                            , rUnderline = Nothing
-                           , rStyle = Nothing
-                           }
+                           , rStyle = Nothing}
 
 
 type Target = String
@@ -239,7 +240,8 @@ archiveToDocx archive = do
       numbering = archiveToNumbering archive
       rels      = archiveToRelationships archive
       media     = archiveToMedia archive
-      rEnv = ReaderEnv notes numbering rels media Nothing
+      styles    = archiveToStyles archive
+      rEnv = ReaderEnv notes numbering rels media Nothing styles
   doc <- runD (archiveToDocument archive) rEnv
   return $ Docx doc
 
@@ -258,6 +260,28 @@ elemToBody ns element | isElem ns "w" "body" element =
   mapD (elemToBodyPart ns) (elChildren element) >>=
   (\bps -> return $ Body bps)
 elemToBody _ _ = throwError WrongElem
+
+archiveToStyles :: Archive -> CharStyles
+archiveToStyles zf =
+  let stylesElem = findEntryByPath "word/styles.xml" zf >>=
+                   (parseXMLDoc . UTF8.toStringLazy . fromEntry)
+  in
+   case stylesElem of
+     Nothing -> M.empty
+     Just styElem ->
+       let namespaces = mapMaybe attrToNSPair (elAttribs styElem)
+       in
+        M.fromList $ mapMaybe (elemToCharStyle namespaces) (elChildren styElem)
+
+elemToCharStyle :: NameSpaces -> Element -> Maybe (String, RunStyle)
+elemToCharStyle ns element
+  | isElem ns "w" "style" element
+  , Just "character" <- findAttr (elemName ns "w" "type") element
+  , Just styleId <- findAttr (elemName ns "w" "styleId") element
+  , isJust $ findChild (elemName ns "w" "rPr") element =
+    Just (styleId, elemToRunStyle ns element M.empty)
+  | otherwise = Nothing
+
 
 archiveToNotes :: Archive -> Notes
 archiveToNotes zf =
@@ -629,7 +653,8 @@ elemToRun ns element
 elemToRun ns element
   | isElem ns "w" "r" element = do
     runElems <- elemToRunElems ns element
-    return $ Run (elemToRunStyle ns element) runElems
+    runStyle <- elemToRunStyleD ns element
+    return $ Run runStyle runElems
 elemToRun _ _ = throwError WrongElem
 
 elemToParagraphStyle :: NameSpaces -> Element -> ParagraphStyle
@@ -669,9 +694,13 @@ checkOnOff ns rPr tag
   | Just _ <- findChild tag rPr = Just True
 checkOnOff _ _ _ = Nothing
 
+elemToRunStyleD :: NameSpaces -> Element -> D RunStyle
+elemToRunStyleD ns element = do
+  charStyles <- asks envCharStyles
+  return $ elemToRunStyle ns element charStyles
 
-elemToRunStyle :: NameSpaces -> Element -> RunStyle
-elemToRunStyle ns element
+elemToRunStyle :: NameSpaces -> Element -> CharStyles -> RunStyle
+elemToRunStyle ns element charStyles
   | Just rPr <- findChild (elemName ns "w" "rPr") element =
     RunStyle
       {
@@ -690,10 +719,14 @@ elemToRunStyle ns element
           findChild (elemName ns "w" "u") rPr >>=
           findAttr (elemName ns "w" "val")
       , rStyle =
-          findChild (elemName ns "w" "rStyle") rPr >>=
-          findAttr (elemName ns "w" "val")
+            case 
+              findChild (elemName ns "w" "rStyle") rPr >>=
+              findAttr (elemName ns "w" "val")
+            of
+              Just styName -> Just $ (styName, M.lookup styName charStyles)
+              _            -> Nothing
         }
-elemToRunStyle _ _ = defaultRunStyle
+elemToRunStyle _ _ _ = defaultRunStyle
 
 elemToRunElem :: NameSpaces -> Element -> D RunElem
 elemToRunElem ns element
