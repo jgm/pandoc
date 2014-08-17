@@ -31,7 +31,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Markdown ( readMarkdown,
                                       readMarkdownWithWarnings ) where
 
-import Data.List ( transpose, sortBy, findIndex, intercalate )
+import Data.List ( transpose, sortBy, findIndex, intersperse, intercalate )
 import qualified Data.Map as M
 import Data.Scientific (coefficient, base10Exponent)
 import Data.Ord ( comparing )
@@ -1463,13 +1463,23 @@ code :: MarkdownParser (F Inlines)
 code = try $ do
   starts <- many1 (char '`')
   skipSpaces
-  result <- many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
-                       (char '\n' >> notFollowedBy' blankline >> return " "))
-                      (try (skipSpaces >> count (length starts) (char '`') >>
-                      notFollowedBy (char '`')))
+  let codePiece = choice
+          [ many1 (noneOf "`\n")
+          , many1 (char '`')
+          , char '\n' >> notFollowedBy' blankline >> return "\n" ]
+      codeEnd = try $ do
+          skipSpaces
+          count (length starts) (char '`')
+          notFollowedBy (char '`')
+  result <- trim . concat <$> codePiece `many1Till` codeEnd
+  hardBreaks <- stateHardBreaks <$> getState
+  let results = if hardBreaks
+                  then lines result
+                  else [map (\x -> if x == '\n' then ' ' else x) result]
   attr <- option ([],[],[]) (try $ guardEnabled Ext_inline_code_attributes >>
                                    optional whitespace >> attributes)
-  return $ return $ B.codeWith attr $ trim $ concat result
+  return $ return $ mconcat $
+    intersperse B.linebreak $ map (B.codeWith attr) results
 
 math :: MarkdownParser (F Inlines)
 math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
