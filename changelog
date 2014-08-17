@@ -22,7 +22,10 @@ pandoc (1.13.0.1)
     `superscript`, and `subscript` extensions, respectively, are
     deactivated (#1127).
 
-  * Makefile:  Added 'quick' target.
+  * Added `trypandoc` flag to build CGI executable used in the online
+    demo.
+
+  * Makefile:  Added 'quick', 'osxpkg' targets.
 
   * Updated README in templates to indicate templates license.
     The templates are dual-licensed, BSD3 and GPL2+.
