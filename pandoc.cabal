@@ -119,6 +119,8 @@ Extra-Source-Files:
                  tests/s5-inserts.html
                  tests/tables.context
                  tests/tables.docbook
+                 tests/tables.dokuwiki
+                 tests/tables.icml
                  tests/tables.html
                  tests/tables.latex
                  tests/tables.man
