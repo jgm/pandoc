@@ -229,12 +229,12 @@ parPartToString (ExternalHyperLink _ runs) = concatMap runToString runs
 parPartToString _ = ""
 
 blacklistedCharStyles :: [String]
-blacklistedCharStyles = []
+blacklistedCharStyles = ["Hyperlink"]
 
 resolveDependentRunStyle :: RunStyle -> RunStyle
 resolveDependentRunStyle rPr
   | Just (s, _)  <- rStyle rPr, s `elem` blacklistedCharStyles =
-    rPr{rStyle = Nothing}
+    rPr
   | Just (_, cs) <- rStyle rPr =
       let rPr' = resolveDependentRunStyle cs
       in
