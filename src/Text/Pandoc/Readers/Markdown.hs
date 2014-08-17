@@ -330,6 +330,8 @@ parseMarkdown = do
   updateState $ \state -> state { stateOptions =
                 let oldOpts = stateOptions state in
                     oldOpts{ readerParseRaw = True } }
+  optional $ guardEnabled Ext_hard_line_breaks *>
+    updateState (\s -> s {stateHardBreaks = True})
   optional titleBlock
   blocks <- parseBlocks
   st <- getState
@@ -1627,7 +1629,6 @@ endline = try $ do
   hardBreaks <- stateHardBreaks <$> getState
   (eof >> return mempty)
     <|> (guard hardBreaks >> return (return B.linebreak))
-    <|> (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
     <|> (guardEnabled Ext_ignore_line_breaks >> return mempty)
     <|> (return $ return B.space)
 
