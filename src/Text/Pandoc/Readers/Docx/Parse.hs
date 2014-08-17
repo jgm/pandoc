@@ -279,7 +279,7 @@ elemToCharStyle ns element
   , Just "character" <- findAttr (elemName ns "w" "type") element
   , Just styleId <- findAttr (elemName ns "w" "styleId") element
   , isJust $ findChild (elemName ns "w" "rPr") element =
-    Just (styleId, elemToRunStyle ns element M.empty)
+    Just (styleId, elemToRunStyle ns element Nothing)
   | otherwise = Nothing
 
 
@@ -695,12 +695,20 @@ checkOnOff ns rPr tag
 checkOnOff _ _ _ = Nothing
 
 elemToRunStyleD :: NameSpaces -> Element -> D RunStyle
-elemToRunStyleD ns element = do
-  charStyles <- asks envCharStyles
-  return $ elemToRunStyle ns element charStyles
+elemToRunStyleD ns element
+  | Just rPr <- findChild (elemName ns "w" "rPr") element = do
+    charStyles <- asks envCharStyles
+    let parentSty = case
+          findChild (elemName ns "w" "rStyle") rPr >>=
+          findAttr (elemName ns "w" "val")
+          of
+            Just styName -> Just $ (styName, M.lookup styName charStyles)
+            _            -> Nothing
+    return $ elemToRunStyle ns element parentSty
+elemToRunStyleD _ _ = return defaultRunStyle
 
-elemToRunStyle :: NameSpaces -> Element -> CharStyles -> RunStyle
-elemToRunStyle ns element charStyles
+elemToRunStyle :: NameSpaces -> Element -> Maybe (String, Maybe RunStyle) -> RunStyle
+elemToRunStyle ns element parentStyle
   | Just rPr <- findChild (elemName ns "w" "rPr") element =
     RunStyle
       {
@@ -718,13 +726,7 @@ elemToRunStyle ns element charStyles
       , rUnderline =
           findChild (elemName ns "w" "u") rPr >>=
           findAttr (elemName ns "w" "val")
-      , rStyle =
-            case 
-              findChild (elemName ns "w" "rStyle") rPr >>=
-              findAttr (elemName ns "w" "val")
-            of
-              Just styName -> Just $ (styName, M.lookup styName charStyles)
-              _            -> Nothing
+      , rStyle = parentStyle
         }
 elemToRunStyle _ _ _ = defaultRunStyle
 
