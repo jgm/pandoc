@@ -31,7 +31,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Markdown ( readMarkdown,
                                       readMarkdownWithWarnings ) where
 
-import Data.List ( transpose, sortBy, findIndex, intersperse, intercalate )
+import Data.List ( transpose, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
 import Data.Scientific (coefficient, base10Exponent)
 import Data.Ord ( comparing )
@@ -1035,9 +1035,12 @@ stripMarkdownAttribute s = renderTags' $ map filterAttrib $ parseTags s
 lineBlock :: MarkdownParser (F Blocks)
 lineBlock = try $ do
   guardEnabled Ext_line_blocks
-  lines' <- lineBlockLines >>=
-            mapM (parseFromString (trimInlinesF . mconcat <$> many inline))
-  return $ B.para <$> (mconcat $ intersperse (return B.linebreak) lines')
+  oldHardBreaks <- stateHardBreaks <$> getState
+  updateState $ \s -> s {stateHardBreaks = True}
+  blocks <- parseFromString parseBlocks . (++ "\n") . unlines =<<
+              lineBlockLines
+  updateState $ \s -> s {stateHardBreaks = oldHardBreaks}
+  return blocks
 
 --
 -- Tables
@@ -1611,7 +1614,9 @@ endline = try $ do
   guardEnabled Ext_blank_before_header <|> notFollowedBy (char '#') -- atx header
   guardDisabled Ext_backtick_code_blocks <|>
      notFollowedBy (() <$ (lookAhead (char '`') >> codeBlockFenced))
+  hardBreaks <- stateHardBreaks <$> getState
   (eof >> return mempty)
+    <|> (guard hardBreaks >> return (return B.linebreak))
     <|> (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
     <|> (guardEnabled Ext_ignore_line_breaks >> return mempty)
     <|> (return $ return B.space)
