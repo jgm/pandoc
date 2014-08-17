@@ -273,17 +273,42 @@ archiveToStyles zf =
      Just styElem ->
        let namespaces = mapMaybe attrToNSPair (elAttribs styElem)
        in
-        M.fromList $ mapMaybe (elemToCharStyle namespaces) (elChildren styElem)
+        M.fromList $ buildBasedOnList namespaces styElem Nothing
 
-elemToCharStyle :: NameSpaces -> Element -> Maybe CharStyle
-elemToCharStyle ns element
+isBasedOnStyle :: NameSpaces -> Element -> Maybe CharStyle -> Bool
+isBasedOnStyle ns element parentStyle
   | isElem ns "w" "style" element
   , Just "character" <- findAttr (elemName ns "w" "type") element
-  , Just styleId <- findAttr (elemName ns "w" "styleId") element
-  , isJust $ findChild (elemName ns "w" "rPr") element =
-    Just (styleId, elemToRunStyle ns element Nothing)
+  , Just basedOnVal <- findChild (elemName ns "w" "basedOn") element >>=
+                       findAttr (elemName ns "w" "val")
+  , Just (parentId, _) <- parentStyle = (basedOnVal == parentId)
+  | isElem ns "w" "style" element
+  , Just "character" <- findAttr (elemName ns "w" "type") element
+  , Nothing <- findChild (elemName ns "w" "basedOn") element
+  , Nothing <- parentStyle = True
+  | otherwise = False
+
+elemToCharStyle :: NameSpaces -> Element -> Maybe CharStyle -> Maybe CharStyle
+elemToCharStyle ns element parentStyle
+  | isElem ns "w" "style" element
+  , Just "character" <- findAttr (elemName ns "w" "type") element
+  , Just styleId <- findAttr (elemName ns "w" "styleId") element =
+    Just (styleId, elemToRunStyle ns element parentStyle)
   | otherwise = Nothing
 
+getStyleChildren :: NameSpaces -> Element -> Maybe CharStyle -> [CharStyle]
+getStyleChildren ns element parentStyle
+  | isElem ns "w" "styles" element =
+    mapMaybe (\e -> elemToCharStyle ns e parentStyle) $
+    filterChildren (\e' -> isBasedOnStyle ns e' parentStyle) element
+  | otherwise = []
+
+buildBasedOnList :: NameSpaces -> Element -> Maybe CharStyle -> [CharStyle]
+buildBasedOnList ns element rootStyle =
+  case (getStyleChildren ns element rootStyle) of
+    [] -> []
+    stys -> stys ++
+            (concatMap (\s -> buildBasedOnList ns element (Just s)) stys)
 
 archiveToNotes :: Archive -> Notes
 archiveToNotes zf =
