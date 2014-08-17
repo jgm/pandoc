@@ -9,6 +9,10 @@ CABALARGS=-fmake-pandoc-man-pages --enable-tests --enable-benchmarks
 
 all: build test
 
+quick:
+	cabal configure --enable-tests --disable-optimization
+	cabal build
+
 deps:
 	cabal install ${OPTIONS} ${CABALARGS} --only-dependencies
 
