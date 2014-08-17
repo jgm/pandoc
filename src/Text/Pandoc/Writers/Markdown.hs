@@ -241,9 +241,20 @@ noteToMarkdown opts num blocks = do
               else marker <> spacer <> contents
 
 -- | Escape special characters for Markdown.
-escapeString :: String -> String
-escapeString = escapeStringUsing markdownEscapes
-  where markdownEscapes = backslashEscapes "\\`*_$<>#~^"
+escapeString :: WriterOptions -> String -> String
+escapeString opts = escapeStringUsing markdownEscapes
+  where markdownEscapes = backslashEscapes specialChars
+        specialChars =
+                (if isEnabled Ext_superscript opts
+                    then ('^':)
+                    else id) .
+                (if isEnabled Ext_subscript opts
+                    then ('~':)
+                    else id) .
+                (if isEnabled Ext_tex_math_dollars opts
+                    then ('$':)
+                    else id) $
+                "\\`*_<>#"
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: WriterOptions -> [Block] -> Doc
@@ -742,11 +753,11 @@ inlineToMarkdown opts (Code attr str) = do
   if plain
      then return $ text str
      else return $ text (marker ++ spacer ++ str ++ spacer ++ marker) <> attrs
-inlineToMarkdown _ (Str str) = do
+inlineToMarkdown opts (Str str) = do
   st <- get
   if stPlain st
      then return $ text str
-     else return $ text $ escapeString str
+     else return $ text $ escapeString opts str
 inlineToMarkdown opts (Math InlineMath str)
   | isEnabled Ext_tex_math_dollars opts =
       return $ "$" <> text str <> "$"
