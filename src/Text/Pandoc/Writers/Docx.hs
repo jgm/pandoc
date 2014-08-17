@@ -114,7 +114,13 @@ type WS a = StateT WriterState IO a
 
 mknode :: Node t => String -> [(String,String)] -> t -> Element
 mknode s attrs =
-  add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) . node (unqual s)
+  add_attrs (map (\(k,v) -> Attr (nodename k) v) attrs) .  node (nodename s)
+
+nodename :: String -> QName
+nodename s = QName{ qName = name, qURI = Nothing, qPrefix = prefix }
+ where (name, prefix) = case break (==':') s of
+                             (xs,[])     -> (xs, Nothing)
+                             (ys,(_:zs)) -> (zs, Just ys)
 
 toLazy :: B.ByteString -> BL.ByteString
 toLazy = BL.fromChunks . (:[])
@@ -297,7 +303,8 @@ writeDocx opts doc@(Pandoc meta _) = do
                        -- otherwise things break:
                        [Elem e | e <- allElts
                                , qName (elName e) == "abstractNum" ] ++
-                       [Elem e | e <- allElts, qName (elName e) == "num" ] }
+                       [Elem e | e <- allElts
+                               , qName (elName e) == "num" ] }
   let docPropsPath = "docProps/core.xml"
   let docProps = mknode "cp:coreProperties"
           [("xmlns:cp","http://schemas.openxmlformats.org/package/2006/metadata/core-properties")
@@ -470,7 +477,7 @@ mkLvl marker lvl =
           patternFor _ s = s ++ "."
 
 getNumId :: WS Int
-getNumId = ((999 +) . length) `fmap` gets stLists
+getNumId = (((baseListId - 1) +) . length) `fmap` gets stLists
 
 -- | Convert Pandoc document to two lists of
 -- OpenXML elements (the main document and footnotes).
