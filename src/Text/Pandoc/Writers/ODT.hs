@@ -30,7 +30,7 @@ Conversion of 'Pandoc' documents to ODT.
 -}
 module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Data.IORef
-import Data.List ( isPrefixOf, isSuffixOf )
+import Data.List ( isPrefixOf )
 import Data.Maybe ( fromMaybe )
 import Text.XML.Light.Output
 import Text.TeXMath
@@ -77,11 +77,7 @@ writeODT opts doc@(Pandoc meta _) = do
                 $ contentEntry : picEntries
   -- construct META-INF/manifest.xml based on archive
   let toFileEntry fp = case getMimeType fp of
-                        Nothing  -> if "Formula-" `isPrefixOf` fp && "/" `isSuffixOf` fp
-                                       then selfClosingTag "manifest:file-entry"
-                                             [("manifest:media-type","application/vnd.oasis.opendocument.formula")
-                                             ,("manifest:full-path",fp)]
-                                       else empty
+                        Nothing  -> empty
                         Just m   -> selfClosingTag "manifest:file-entry"
                                      [("manifest:media-type", m)
                                      ,("manifest:full-path", fp)

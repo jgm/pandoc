@@ -57,8 +57,9 @@ import Data.Unique (hashUnique, newUnique)
 import System.Random (randomRIO)
 import Text.Printf (printf)
 import qualified Control.Exception as E
-import Text.Pandoc.MIME (getMimeType, extensionFromMimeType)
-import Control.Applicative ((<|>), (<$>))
+import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
+                         extensionFromMimeType)
+import Control.Applicative ((<$>), (<|>))
 import Data.Maybe (mapMaybe)
 
 data ListMarker = NoMarker
@@ -91,7 +92,7 @@ data WriterState = WriterState{
        , stFootnotes      :: [Element]
        , stSectionIds     :: [String]
        , stExternalLinks  :: M.Map String String
-       , stImages         :: M.Map FilePath (String, String, Maybe String, Element, B.ByteString)
+       , stImages         :: M.Map FilePath (String, String, Maybe MimeType, Element, B.ByteString)
        , stListLevel      :: Int
        , stListNumId      :: Int
        , stLists          :: [ListMarker]
@@ -185,11 +186,10 @@ writeDocx opts doc@(Pandoc meta _) = do
   let mkOverrideNode (part', contentType') = mknode "Override"
                [("PartName",part'),("ContentType",contentType')] ()
   let mkImageOverride (_, imgpath, mbMimeType, _, _) =
-             mkOverrideNode ("/word/" ++ imgpath,
-                             fromMaybe "application/octet-stream" mbMimeType)
-  let mkMediaOverride imgpath = mkOverrideNode ('/':imgpath,
-                                 fromMaybe "application/octet-stream"
-                                   $ getMimeType imgpath)
+          mkOverrideNode ("/word/" ++ imgpath,
+                          fromMaybe "application/octet-stream" mbMimeType)
+  let mkMediaOverride imgpath =
+          mkOverrideNode ('/':imgpath, getMimeTypeDef imgpath)
   let overrides = map mkOverrideNode (
                   [("/word/webSettings.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml")

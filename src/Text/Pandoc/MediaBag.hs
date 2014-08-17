@@ -42,7 +42,7 @@ import qualified Data.Map as M
 import qualified Data.ByteString.Lazy as BL
 import Data.Monoid (Monoid)
 import Control.Monad (when, MonadPlus(..))
-import Text.Pandoc.MIME (getMimeType)
+import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Maybe (fromMaybe)
 import System.IO (stderr)
@@ -51,7 +51,7 @@ import System.IO (stderr)
 -- mime types.  Note that a 'MediaBag' is a Monoid, so 'mempty'
 -- can be used for an empty 'MediaBag', and '<>' can be used to append
 -- two 'MediaBag's.
-newtype MediaBag = MediaBag (M.Map String (String, BL.ByteString))
+newtype MediaBag = MediaBag (M.Map String (MimeType, BL.ByteString))
         deriving (Monoid)
 
 instance Show MediaBag where
@@ -59,27 +59,27 @@ instance Show MediaBag where
 
 -- | Insert a media item into a 'MediaBag', replacing any existing
 -- value with the same name.
-insertMedia :: FilePath      -- ^ relative path and canonical name of resource
-            -> Maybe String  -- ^ mime type (Nothing = determine from extension)
-            -> BL.ByteString -- ^ contents of resource
+insertMedia :: FilePath       -- ^ relative path and canonical name of resource
+            -> Maybe MimeType -- ^ mime type (Nothing = determine from extension)
+            -> BL.ByteString  -- ^ contents of resource
             -> MediaBag
             -> MediaBag
 insertMedia fp mbMime contents (MediaBag mediamap) =
   MediaBag (M.insert fp (mime, contents) mediamap)
-  where mime = fromMaybe "application/octet-stream" (mbMime `mplus` fallback)
+  where mime = fromMaybe fallback mbMime
         fallback = case takeExtension fp of
-                        ".gz"   -> getMimeType $ dropExtension fp
-                        _       -> getMimeType fp
+                        ".gz"   -> getMimeTypeDef $ dropExtension fp
+                        _       -> getMimeTypeDef fp
 
 -- | Lookup a media item in a 'MediaBag', returning mime type and contents.
 lookupMedia :: FilePath
             -> MediaBag
-            -> Maybe (String, BL.ByteString)
+            -> Maybe (MimeType, BL.ByteString)
 lookupMedia fp (MediaBag mediamap) = M.lookup fp mediamap
 
 -- | Get a list of the file paths stored in a 'MediaBag', with
 -- their corresponding mime types and the lengths in bytes of the contents.
-mediaDirectory :: MediaBag -> [(String, String, Int)]
+mediaDirectory :: MediaBag -> [(String, MimeType, Int)]
 mediaDirectory (MediaBag mediamap) =
   M.foldWithKey (\fp (mime,contents) ->
       ((fp, mime, fromIntegral $ BL.length contents):)) [] mediamap

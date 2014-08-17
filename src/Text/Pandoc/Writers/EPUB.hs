@@ -65,7 +65,7 @@ import Text.Pandoc.UUID (getRandomUUID)
 import Text.Pandoc.Writers.HTML (writeHtmlString, writeHtml)
 import Data.Char ( toLower, isDigit, isAlphaNum )
 import Network.URI ( unEscapeString )
-import Text.Pandoc.MIME (getMimeType)
+import Text.Pandoc.MIME (MimeType, getMimeType)
 import qualified Control.Exception as E
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.HTML.TagSoup (Tag(TagOpen), fromAttrib, parseTags)
@@ -851,7 +851,7 @@ ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . unEntity . 
                           Nothing  -> '&':'#':unEntity xs
         unEntity (x:xs) = x : unEntity xs
 
-mediaTypeOf :: FilePath -> Maybe String
+mediaTypeOf :: FilePath -> Maybe MimeType
 mediaTypeOf x =
   let mediaPrefixes = ["image", "video", "audio"] in
   case getMimeType x of
