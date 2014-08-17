@@ -20,7 +20,8 @@ _ Update website, including short description of changes
 
 _ Announce on pandoc-announce, pandoc-discuss
 
-_ recompile trypandoc
+_ on server, 'cabal install --enable-tests -ftrypandoc'
+  and then 'cd trypandoc; sudo make install'
 
 _ recompile gitit
 
