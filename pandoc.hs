@@ -44,7 +44,7 @@ import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Process (pipeProcess)
 import Text.Highlighting.Kate ( languages, Style, tango, pygments,
          espresso, zenburn, kate, haddock, monochrome )
-import System.Environment ( getArgs, getProgName, getEnvironment )
+import System.Environment ( getArgs, getProgName )
 import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
@@ -113,12 +113,15 @@ isTextFormat s = takeWhile (`notElem` "+-") s `notElem` binaries
 
 externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
 externalFilter f args' d = do
-      mbPath <- lookup "PATH" <$> getEnvironment
-      mbexe <- if '/' `elem` f || mbPath == Nothing
-                  -- don't check PATH if filter name has a path, or
-                  -- if the PATH is not set
+      mbexe <- if '/' `elem` f
+                  -- don't check PATH if filter name has a path
                   then return Nothing
-                  else findExecutable f
+                  -- we catch isDoesNotExistError because this will
+                  -- be triggered if PATH not set:
+                  else E.catch (findExecutable f)
+                                 (\e -> if isDoesNotExistError e
+                                           then return Nothing
+                                           else throwIO e)
       (f', args'') <- case mbexe of
                            Just x  -> return (x, args')
                            Nothing -> do
