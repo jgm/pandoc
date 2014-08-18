@@ -12,7 +12,6 @@ SCRIPTS=$OSX/osx-resources
 BASE=pandoc-$VERSION
 ME=$(whoami)
 PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
-EXES="pandoc pandoc-citeproc"
 CPPHS=$SANDBOX/bin/cpphs
 
 # echo Removing old files...
@@ -27,8 +26,7 @@ echo Building pandoc...
 cabal clean
 # Use cpphs to avoid problems with clang cpp on ghc 7.8 osx:
 cabal install cpphs hsb2hs
-cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files make-pandoc-man-pages" --ghc-options "-pgmP$CPPHS -optP--cpp"
-cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files" pandoc-citeproc --ghc-options "-pgmP$CPPHS -optP--cpp"
+cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files make-pandoc-man-pages" --ghc-options "-pgmP$CPPHS -optP--cpp" . pandoc-citeproc
 
 make man
 # get pandoc-citeproc man page:
@@ -38,7 +36,7 @@ cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $MANDIR/man1/
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
 mkdir -p $DEST/share/man/man5
-for f in $EXES; do
+for f in pandoc pandoc-citeproc; do
   cp $SANDBOX/bin/$f $DEST/bin/;
   cp $MANDIR/man1/$f.1 $DEST/share/man/man1/
 done
