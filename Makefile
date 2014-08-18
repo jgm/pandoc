@@ -56,4 +56,4 @@ osxpkg:
 clean:
 	-rm ${MANPAGES}
 
-.PHONY: all man clean test build bench haddock sdist osxpkg
+.PHONY: install all man clean test build bench haddock sdist osxpkg
