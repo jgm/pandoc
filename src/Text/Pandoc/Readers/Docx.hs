@@ -263,17 +263,17 @@ runStyleToTransform rPr
   | Just True <- isItalic rPr =
       emph . (runStyleToTransform rPr {isItalic = Nothing})
   | Just True <- isBold rPr =
-        strong . (runStyleToTransform rPr {isBold = Nothing})
+      strong . (runStyleToTransform rPr {isBold = Nothing})
   | Just True <- isSmallCaps rPr =
-          smallcaps . (runStyleToTransform rPr {isSmallCaps = Nothing})
+      smallcaps . (runStyleToTransform rPr {isSmallCaps = Nothing})
   | Just True <- isStrike rPr =
-            strikeout . (runStyleToTransform rPr {isStrike = Nothing})
+      strikeout . (runStyleToTransform rPr {isStrike = Nothing})
   | Just SupScrpt <- rVertAlign rPr =
-              superscript . (runStyleToTransform rPr {rVertAlign = Nothing})
+      superscript . (runStyleToTransform rPr {rVertAlign = Nothing})
   | Just SubScrpt <- rVertAlign rPr =
-                subscript . (runStyleToTransform rPr {rVertAlign = Nothing})
+      subscript . (runStyleToTransform rPr {rVertAlign = Nothing})
   | Just "single" <- rUnderline rPr =
-                  emph . (runStyleToTransform rPr {rUnderline = Nothing})
+      emph . (runStyleToTransform rPr {rUnderline = Nothing})
   | otherwise = id
 
 runToInlines :: Run -> DocxContext Inlines
