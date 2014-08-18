@@ -50,7 +50,6 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , Cell(..)
                                       , archiveToDocx
                                       ) where
-
 import Codec.Archive.Zip
 import Text.XML.Light
 import Data.Maybe
@@ -73,6 +72,7 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envRelationships :: [Relationship]
                            , envMedia         :: Media
                            , envFont          :: Maybe Font
+                           , envCharStyles    :: CharStyleMap
                            }
                deriving Show
 
@@ -119,6 +119,10 @@ data Body = Body [BodyPart]
           deriving Show
 
 type Media = [(FilePath, B.ByteString)]
+
+type CharStyle = (String, RunStyle)
+
+type CharStyleMap = M.Map String RunStyle
 
 data Numbering = Numbering NameSpaces [Numb] [AbstractNumb]
                  deriving Show
@@ -206,7 +210,7 @@ data RunStyle = RunStyle { isBold :: Maybe Bool
                          , isStrike :: Maybe Bool
                          , rVertAlign :: Maybe VertAlign
                          , rUnderline :: Maybe String
-                         , rStyle :: Maybe String }
+                         , rStyle :: Maybe CharStyle}
                 deriving Show
 
 defaultRunStyle :: RunStyle
@@ -216,8 +220,7 @@ defaultRunStyle = RunStyle { isBold = Nothing
                            , isStrike = Nothing
                            , rVertAlign = Nothing
                            , rUnderline = Nothing
-                           , rStyle = Nothing
-                           }
+                           , rStyle = Nothing}
 
 
 type Target = String
@@ -239,7 +242,8 @@ archiveToDocx archive = do
       numbering = archiveToNumbering archive
       rels      = archiveToRelationships archive
       media     = archiveToMedia archive
-      rEnv = ReaderEnv notes numbering rels media Nothing
+      styles    = archiveToStyles archive
+      rEnv = ReaderEnv notes numbering rels media Nothing styles
   doc <- runD (archiveToDocument archive) rEnv
   return $ Docx doc
 
@@ -258,6 +262,53 @@ elemToBody ns element | isElem ns "w" "body" element =
   mapD (elemToBodyPart ns) (elChildren element) >>=
   (\bps -> return $ Body bps)
 elemToBody _ _ = throwError WrongElem
+
+archiveToStyles :: Archive -> CharStyleMap
+archiveToStyles zf =
+  let stylesElem = findEntryByPath "word/styles.xml" zf >>=
+                   (parseXMLDoc . UTF8.toStringLazy . fromEntry)
+  in
+   case stylesElem of
+     Nothing -> M.empty
+     Just styElem ->
+       let namespaces = mapMaybe attrToNSPair (elAttribs styElem)
+       in
+        M.fromList $ buildBasedOnList namespaces styElem Nothing
+
+isBasedOnStyle :: NameSpaces -> Element -> Maybe CharStyle -> Bool
+isBasedOnStyle ns element parentStyle
+  | isElem ns "w" "style" element
+  , Just "character" <- findAttr (elemName ns "w" "type") element
+  , Just basedOnVal <- findChild (elemName ns "w" "basedOn") element >>=
+                       findAttr (elemName ns "w" "val")
+  , Just (parentId, _) <- parentStyle = (basedOnVal == parentId)
+  | isElem ns "w" "style" element
+  , Just "character" <- findAttr (elemName ns "w" "type") element
+  , Nothing <- findChild (elemName ns "w" "basedOn") element
+  , Nothing <- parentStyle = True
+  | otherwise = False
+
+elemToCharStyle :: NameSpaces -> Element -> Maybe CharStyle -> Maybe CharStyle
+elemToCharStyle ns element parentStyle
+  | isElem ns "w" "style" element
+  , Just "character" <- findAttr (elemName ns "w" "type") element
+  , Just styleId <- findAttr (elemName ns "w" "styleId") element =
+    Just (styleId, elemToRunStyle ns element parentStyle)
+  | otherwise = Nothing
+
+getStyleChildren :: NameSpaces -> Element -> Maybe CharStyle -> [CharStyle]
+getStyleChildren ns element parentStyle
+  | isElem ns "w" "styles" element =
+    mapMaybe (\e -> elemToCharStyle ns e parentStyle) $
+    filterChildren (\e' -> isBasedOnStyle ns e' parentStyle) element
+  | otherwise = []
+
+buildBasedOnList :: NameSpaces -> Element -> Maybe CharStyle -> [CharStyle]
+buildBasedOnList ns element rootStyle =
+  case (getStyleChildren ns element rootStyle) of
+    [] -> []
+    stys -> stys ++
+            (concatMap (\s -> buildBasedOnList ns element (Just s)) stys)
 
 archiveToNotes :: Archive -> Notes
 archiveToNotes zf =
@@ -629,7 +680,8 @@ elemToRun ns element
 elemToRun ns element
   | isElem ns "w" "r" element = do
     runElems <- elemToRunElems ns element
-    return $ Run (elemToRunStyle ns element) runElems
+    runStyle <- elemToRunStyleD ns element
+    return $ Run runStyle runElems
 elemToRun _ _ = throwError WrongElem
 
 elemToParagraphStyle :: NameSpaces -> Element -> ParagraphStyle
@@ -669,9 +721,22 @@ checkOnOff ns rPr tag
   | Just _ <- findChild tag rPr = Just True
 checkOnOff _ _ _ = Nothing
 
+elemToRunStyleD :: NameSpaces -> Element -> D RunStyle
+elemToRunStyleD ns element
+  | Just rPr <- findChild (elemName ns "w" "rPr") element = do
+    charStyles <- asks envCharStyles
+    let parentSty = case
+          findChild (elemName ns "w" "rStyle") rPr >>=
+          findAttr (elemName ns "w" "val")
+          of
+            Just styName | Just style <- M.lookup styName charStyles ->
+              Just (styName, style)
+            _            -> Nothing
+    return $ elemToRunStyle ns element parentSty
+elemToRunStyleD _ _ = return defaultRunStyle
 
-elemToRunStyle :: NameSpaces -> Element -> RunStyle
-elemToRunStyle ns element
+elemToRunStyle :: NameSpaces -> Element -> Maybe CharStyle -> RunStyle
+elemToRunStyle ns element parentStyle
   | Just rPr <- findChild (elemName ns "w" "rPr") element =
     RunStyle
       {
@@ -689,11 +754,9 @@ elemToRunStyle ns element
       , rUnderline =
           findChild (elemName ns "w" "u") rPr >>=
           findAttr (elemName ns "w" "val")
-      , rStyle =
-          findChild (elemName ns "w" "rStyle") rPr >>=
-          findAttr (elemName ns "w" "val")
+      , rStyle = parentStyle
         }
-elemToRunStyle _ _ = defaultRunStyle
+elemToRunStyle _ _ _ = defaultRunStyle
 
 elemToRunElem :: NameSpaces -> Element -> D RunElem
 elemToRunElem ns element

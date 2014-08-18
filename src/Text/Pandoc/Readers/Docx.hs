@@ -196,12 +196,6 @@ fixAuthors mv = mv
 codeStyles :: [String]
 codeStyles = ["VerbatimChar"]
 
-strongStyles :: [String]
-strongStyles = ["Strong", "Bold"]
-
-emphStyles :: [String]
-emphStyles = ["Emphasis", "Italic"]
-
 blockQuoteDivs :: [String]
 blockQuoteDivs = ["Quote", "BlockQuote", "BlockQuotation"]
 
@@ -228,27 +222,44 @@ parPartToString (InternalHyperLink _ runs) = concatMap runToString runs
 parPartToString (ExternalHyperLink _ runs) = concatMap runToString runs
 parPartToString _ = ""
 
+blacklistedCharStyles :: [String]
+blacklistedCharStyles = ["Hyperlink"]
+
+resolveDependentRunStyle :: RunStyle -> RunStyle
+resolveDependentRunStyle rPr
+  | Just (s, _)  <- rStyle rPr, s `elem` blacklistedCharStyles =
+    rPr
+  | Just (_, cs) <- rStyle rPr =
+      let rPr' = resolveDependentRunStyle cs
+      in
+       RunStyle { isBold = case isBold rPr of
+                     Just bool -> Just bool
+                     Nothing   -> isBold rPr'
+                , isItalic = case isItalic rPr of
+                     Just bool -> Just bool
+                     Nothing   -> isItalic rPr'
+                , isSmallCaps = case isSmallCaps rPr of
+                     Just bool -> Just bool
+                     Nothing   -> isSmallCaps rPr'
+                , isStrike = case isStrike rPr of
+                     Just bool -> Just bool
+                     Nothing   -> isStrike rPr'
+                , rVertAlign = case rVertAlign rPr of
+                     Just valign -> Just valign
+                     Nothing     -> rVertAlign rPr'
+                , rUnderline = case rUnderline rPr of
+                     Just ulstyle -> Just ulstyle
+                     Nothing      -> rUnderline rPr'
+                , rStyle = rStyle rPr }
+  | otherwise = rPr
+
 runStyleToTransform :: RunStyle -> (Inlines -> Inlines)
 runStyleToTransform rPr
-  | Just s <- rStyle rPr
+  | Just (s, _) <- rStyle rPr
   , s `elem` spansToKeep =
     let rPr' = rPr{rStyle = Nothing}
     in
      (spanWith ("", [s], [])) . (runStyleToTransform rPr')
-  | Just s <- rStyle rPr
-  , s `elem` emphStyles =
-    let rPr' = rPr{rStyle = Nothing, isItalic = Nothing}
-    in
-     case isItalic rPr of
-       Just False -> runStyleToTransform rPr'
-       _          -> emph . (runStyleToTransform rPr')
-  | Just s <- rStyle rPr
-  , s `elem` strongStyles =
-    let rPr' = rPr{rStyle = Nothing, isBold = Nothing}
-    in
-     case isBold rPr of
-       Just False -> runStyleToTransform rPr'
-       _          -> strong . (runStyleToTransform rPr')
   | Just True <- isItalic rPr =
       emph . (runStyleToTransform rPr {isItalic = Nothing})
   | Just True <- isBold rPr =
@@ -267,12 +278,12 @@ runStyleToTransform rPr
 
 runToInlines :: Run -> DocxContext Inlines
 runToInlines (Run rs runElems)
-  | Just s <- rStyle rs
+  | Just (s, _) <- rStyle rs
   , s `elem` codeStyles =
     return $ code $ concatMap runElemToString runElems
   | otherwise = do
     let ils = concatReduce (map runElemToInlines runElems)
-    return $ (runStyleToTransform rs) ils
+    return $ (runStyleToTransform $ resolveDependentRunStyle rs) ils
 runToInlines (Footnote bps) = do
   blksList <- concatReduce <$> (mapM bodyPartToBlocks bps)
   return $ note blksList
