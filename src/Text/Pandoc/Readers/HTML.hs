@@ -91,15 +91,19 @@ replaceNotes' x = return x
 data HTMLState =
   HTMLState
   {  parserState :: ParserState,
-     noteTable :: [(String, Blocks)]
+     noteTable   :: [(String, Blocks)]
   }
 
 data HTMLLocal = HTMLLocal { quoteContext :: QuoteContext
                            , inChapter :: Bool -- ^ Set if in chapter section
+                           , inPlain :: Bool -- ^ Set if in pPlain
                            }
 
 setInChapter :: HTMLParser s a -> HTMLParser s a
 setInChapter = local (\s -> s {inChapter = True})
+
+setInPlain :: HTMLParser s a -> HTMLParser s a
+setInPlain = local (\s -> s {inPlain = True})
 
 type HTMLParser s = ParserT s HTMLState (Reader HTMLLocal)
 
@@ -141,8 +145,8 @@ block = do
             , pTable
             , pHead
             , pBody
-            , pPlain
             , pDiv
+            , pPlain
             , pRawHtmlBlock
             ]
   when tr $ trace (printf "line %d: %s" (sourceLine pos)
@@ -422,7 +426,7 @@ pBlockQuote = do
 
 pPlain :: TagParser Blocks
 pPlain = do
-  contents <- trimInlines . mconcat <$> many1 inline
+  contents <- setInPlain $ trimInlines . mconcat <$> many1 inline
   if B.isNull contents
      then return mempty
      else return $ B.plain contents
@@ -579,7 +583,11 @@ pSpan = try $ do
 
 pRawHtmlInline :: TagParser Inlines
 pRawHtmlInline = do
-  result <- pSatisfy (tagComment (const True)) <|> pSatisfy isInlineTag
+  inplain <- asks inPlain
+  result <- pSatisfy (tagComment (const True))
+            <|> if inplain
+                   then pSatisfy (not . isBlockTag)
+                   else pSatisfy isInlineTag
   parseRaw <- getOption readerParseRaw
   if parseRaw
      then return $ B.rawInline "html" $ renderTags' [result]
@@ -919,7 +927,7 @@ instance HasMeta HTMLState where
   deleteMeta s st = st {parserState = deleteMeta s $ parserState st}
 
 instance Default HTMLLocal where
-  def = HTMLLocal NoQuote False
+  def = HTMLLocal NoQuote False False
 
 instance HasLastStrPosition HTMLState where
   setLastStrPos s st = st {parserState = setLastStrPos s (parserState st)}
