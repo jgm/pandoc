@@ -5,19 +5,21 @@ ifeq "${makemanpages}" ""
 endif
 setup=dist/setup/setup
 MANPAGES=man/man1/pandoc.1 man/man5/pandoc_markdown.5
-CABALARGS=-fmake-pandoc-man-pages -ftrypandoc --enable-tests --enable-benchmarks
-
-all: build test
 
 quick:
+	cabal install --only-dependencies --enable-tests
 	cabal configure --enable-tests --disable-optimization
 	cabal build
 
-deps:
-	cabal install ${OPTIONS} ${CABALARGS} --only-dependencies
+full:
+	cabal install --only-dependencies --enable-tests -ftrypandoc -fmake-pandoc-man-pages -fembed_data_files --enable-benchmarks
+	cabal configure --enable-tests --enable-optimization -ftrypandoc -fmake-pandoc-man-pages -fembed_data_files --enable-benchmarks
+	cabal build
+	cabal haddock
 
-build:
-	cabal configure ${OPTIONS} ${CABALARGS}
+prof:
+	cabal install --only-dependencies --enable-tests
+	cabal configure --enable-library-profiling --enable-executable-profiling --enable-optimization --enable-tests
 	cabal build
 
 test:
@@ -26,11 +28,8 @@ test:
 bench:
 	cabal bench
 
-install:
+install: full
 	cabal install
-
-haddock:
-	cabal haddock
 
 sdist: man
 	# note: cabal sdist doesn't work well with preprocessors for some cabal versions
@@ -54,6 +53,7 @@ osxpkg:
 	${makemanpages}
 
 clean:
+	cabal clean
 	-rm ${MANPAGES}
 
-.PHONY: install all man clean test build bench haddock sdist osxpkg
+.PHONY: quick full install man clean test bench haddock sdist osxpkg dist prof
