@@ -94,7 +94,7 @@ data EPUBMetadata = EPUBMetadata{
   , epubRights             :: Maybe String
   , epubCoverImage         :: Maybe String
   , epubStylesheet         :: Maybe Stylesheet
-  , epubPageDirection      :: ProgressionDirection
+  , epubPageDirection      :: Maybe ProgressionDirection
   } deriving Show
 
 data Stylesheet = StylesheetPath FilePath
@@ -123,7 +123,7 @@ data Title = Title{
   , titleType              :: Maybe String
   } deriving Show
 
-data ProgressionDirection = LTR | RTL | Default deriving Show
+data ProgressionDirection = LTR | RTL deriving Show
 
 dcName :: String -> QName
 dcName n = QName n Nothing (Just "dc")
@@ -322,14 +322,11 @@ metadataFromMeta opts meta = EPUBMetadata{
         stylesheet = (StylesheetContents <$> writerEpubStylesheet opts) `mplus`
                      ((StylesheetPath . metaValueToString) <$>
                        lookupMeta "stylesheet" meta)
-        pageDirection = maybe Default stringToPageDirection
-                          (lookupMeta "page-progression-direction" meta)
-        stringToPageDirection (metaValueToString -> s) =
-          case s of
-            "ltr" -> LTR
-            "rtl" -> RTL
-            _ -> Default
-
+        pageDirection = case map toLower . metaValueToString <$>
+                             lookupMeta "page-progression-direction" meta of
+                              Just "ltr" -> Just LTR
+                              Just "rtl" -> Just RTL
+                              _          -> Nothing
 
 -- | Produce an EPUB file from a Pandoc document.
 writeEPUB :: WriterOptions  -- ^ Writer options
@@ -394,11 +391,13 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let mkFontEntry f = mkEntry (takeFileName f) `fmap` B.readFile f
   fontEntries <- mapM mkFontEntry $ writerEpubFonts opts'
 
-  -- set page progression direction
+  -- set page progression direction attribution
   let progressionDirection = case epubPageDirection metadata of
-                              LTR -> "ltr"
-                              RTL -> "rtl"
-                              Default -> "default"
+                                  Just LTR | epub3 ->
+                                    [("page-progression-direction", "ltr")]
+                                  Just RTL | epub3 ->
+                                    [("page-progression-direction", "rtl")]
+                                  _  -> []
 
   -- body pages
 
@@ -519,8 +518,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                               (pictureNode x)]) ++
              map pictureNode picEntries ++
              map fontNode fontEntries
-          , unode "spine" ! [("toc","ncx")
-                            ,("page-progression-direction", progressionDirection)] $
+          , unode "spine" ! ([("toc","ncx")] ++ progressionDirection) $
               case epubCoverImage metadata of
                     Nothing -> []
                     Just _ -> [ unode "itemref" !
