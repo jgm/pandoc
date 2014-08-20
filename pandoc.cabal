@@ -201,6 +201,10 @@ Flag make-pandoc-man-pages
   Description:   Build program to regenerate pandoc man pages from README.
   Default:       False
 
+Flag network-uri
+  Description: Get Network.URI from the network-uri package
+  Default: True
+
 Library
   Build-Depends: base >= 4.2 && <5,
                  syb >= 0.1 && < 0.5,
@@ -209,7 +213,6 @@ Library
                  array >= 0.3 && < 0.6,
                  parsec >= 3.1 && < 3.2,
                  mtl >= 1.1 && < 2.3,
-                 network >= 2 && < 2.6,
                  filepath >= 1.1 && < 1.4,
                  process >= 1 && < 1.3,
                  directory >= 1 && < 1.3,
@@ -243,6 +246,10 @@ Library
                  old-time,
                  deepseq-generics >= 0.1 && < 0.2,
                  JuicyPixels >= 3.1.6.1 && < 3.2
+  if flag(network-uri)
+     Build-Depends: network-uri >= 2.6 && < 2.7, network >= 2.6
+  else
+     Build-Depends: network >= 2 && < 2.6
   if flag(https)
      Build-Depends: http-client >= 0.3.2 && < 0.4,
                     http-client-tls >= 0.2 && < 0.3,
@@ -339,7 +346,6 @@ Executable pandoc
                  base >= 4.2 && <5,
                  directory >= 1 && < 1.3,
                  filepath >= 1.1 && < 1.4,
-                 network >= 2 && < 2.6,
                  text >= 0.11 && < 1.2,
                  bytestring >= 0.9 && < 0.11,
                  extensible-exceptions >= 0.1 && < 0.2,
@@ -348,6 +354,10 @@ Executable pandoc
                  yaml >= 0.8.8.2 && < 0.9,
                  containers >= 0.1 && < 0.6,
                  HTTP >= 4000.0.5 && < 4000.3
+  if flag(network-uri)
+     Build-Depends: network-uri >= 2.6 && < 2.7
+  else
+     Build-Depends: network >= 2 && < 2.6
   Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -auto-all -caf-all -rtsopts -with-rtsopts=-K16m
   if os(windows)
