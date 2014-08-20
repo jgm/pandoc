@@ -91,7 +91,10 @@ readTxt2TagsNoMacros = readTxt2Tags def
 
 parseT2T :: T2T Pandoc
 parseT2T = do
-  _ <- (Nothing <$ try blankline) <|> (Just <$> (count 3 anyLine))
+  -- Parse header if standalone flag is set
+  optional ((readerStandalone . stateOptions <$> getState) 
+            >>= guard 
+            >> (() <$ (try blankline) <|> () <$ (count 3 anyLine)))
   config <- manyTill setting (notFollowedBy setting)
   -- TODO: Handle settings better
   let settings = foldr (\(k,v) -> B.setMeta k (MetaString v)) nullMeta config

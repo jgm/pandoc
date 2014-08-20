@@ -141,7 +141,7 @@ tests = [ testGroup "markdown"
             "haddock-reader.haddock" "haddock-reader.native"
           ]
         , testGroup "txt2tags"
-          [ test "reader" ["-r", "t2t", "-w", "native"]
+          [ test "reader" ["-r", "t2t", "-w", "native", "-s"]
               "txt2tags.t2t" "txt2tags.native" ]
         , testGroup "epub" [
             test "features" ["-r", "epub", "-w", "native"]
