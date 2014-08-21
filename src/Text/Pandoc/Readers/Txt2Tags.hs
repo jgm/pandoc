@@ -92,15 +92,41 @@ readTxt2TagsNoMacros = readTxt2Tags def
 parseT2T :: T2T Pandoc
 parseT2T = do
   -- Parse header if standalone flag is set
-  optional ((readerStandalone . stateOptions <$> getState) 
-            >>= guard 
-            >> (() <$ (try blankline) <|> () <$ (count 3 anyLine)))
+  standalone <- getOption readerStandalone
+  when standalone parseHeader
+  body <- mconcat <$>  manyTill block eof
+  meta' <- stateMeta <$> getState
+  return $ Pandoc meta' (B.toList body)
+
+parseHeader :: T2T ()
+parseHeader = do
+  () <$ try blankline <|> header
+  meta <- stateMeta <$> getState
+  optional blanklines
   config <- manyTill setting (notFollowedBy setting)
   -- TODO: Handle settings better
-  let settings = foldr (\(k,v) -> B.setMeta k (MetaString v)) nullMeta config
-  updateState (\s -> s {stateMeta = settings})
-  body <- mconcat <$>  manyTill block eof
-  return $ Pandoc mempty (B.toList body)
+  let settings = foldr (\(k,v) -> B.setMeta k (MetaString v)) meta config
+  updateState (\s -> s {stateMeta = settings}) <* optional blanklines
+
+header :: T2T ()
+header = titleline >> authorline >> dateline
+
+headerline :: B.ToMetaValue a => String -> T2T a -> T2T ()
+headerline field p = (() <$ try blankline)
+                        <|> (p >>= updateState . B.setMeta field)
+
+titleline :: T2T ()
+titleline =
+  headerline "title" (trimInlines . mconcat <$> manyTill inline newline)
+
+authorline :: T2T ()
+authorline =
+  headerline "author" (sepBy author (char ';') <* newline)
+  where
+    author = trimInlines . mconcat <$> many (notFollowedBy (char ';' <|> newline) >> inline)
+
+dateline :: T2T ()
+dateline = headerline "date" (trimInlines . mconcat <$> manyTill inline newline)
 
 type Keyword = String
 type Value = String
@@ -245,7 +271,7 @@ indentWith n = count n space
 
 table :: T2T Blocks
 table = try $ do
-  header <- fmap snd <$> option mempty (try headerRow)
+  tableHeader <- fmap snd <$> option mempty (try headerRow)
   rows <- many1 (many commentLine *> tableRow)
   let columns = transpose rows
   let ncolumns = length columns
@@ -253,7 +279,7 @@ table = try $ do
   let rows' = map (map snd) rows
   let size = maximum (map length rows')
   let rowsPadded = map (pad size) rows'
-  let headerPadded = if (not (null header)) then pad size header else mempty
+  let headerPadded = if (not (null tableHeader)) then pad size tableHeader else mempty
   return $ B.table mempty
                     (zip aligns (replicate ncolumns 0.0))
                       headerPadded rowsPadded
@@ -500,7 +526,7 @@ image =  try $ do
 
 -- Characters used in markup
 specialChars :: String
-specialChars = "%*-_/|:+"
+specialChars = "%*-_/|:+;"
 
 tab :: T2T Char
 tab = char '\t'
