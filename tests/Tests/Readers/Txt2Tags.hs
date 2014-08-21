@@ -12,7 +12,7 @@ import Data.Monoid (mempty, mconcat)
 import Text.Pandoc.Readers.Txt2Tags
 
 t2t :: String -> Pandoc
-t2t s = readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def ('\n' : s)
+t2t s = readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def s
 
 infix 4 =:
 (=:) :: ToString c
