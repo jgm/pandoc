@@ -73,7 +73,7 @@ instance Default T2TMeta where
 getT2TMeta :: [FilePath] -> FilePath -> IO T2TMeta
 getT2TMeta inps out = do
     curDate <- formatTime defaultTimeLocale "%F" <$> getZonedTime
-    let getModTime = fmap (formatTime defaultTimeLocale "%F") .
+    let getModTime = fmap (formatTime defaultTimeLocale "%T") .
                        getModificationTime
     curMtime <- catchIOError
                 (maximum <$> mapM getModTime inps)
