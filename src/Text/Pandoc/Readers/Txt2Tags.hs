@@ -75,9 +75,11 @@ getT2TMeta inps out = do
     curDate <- formatTime defaultTimeLocale "%F" <$> getZonedTime
     let getModTime = fmap (formatTime defaultTimeLocale "%T") .
                        getModificationTime
-    curMtime <- catchIOError
-                (maximum <$> mapM getModTime inps)
-                (const (return ""))
+    curMtime <- case inps of
+                  [] -> formatTime defaultTimeLocale "%T" <$> getZonedTime
+                  _ -> catchIOError
+                        (maximum <$> mapM getModTime inps)
+                        (const (return ""))
     return $ T2TMeta curDate curMtime (intercalate ", " inps) out
 
 -- | Read Txt2Tags from an input string returning a Pandoc document
