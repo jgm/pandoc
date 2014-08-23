@@ -796,7 +796,8 @@ fetchItem sourceURL s =
         mime = case takeExtension fp of
                     ".gz" -> getMimeType $ dropExtension fp
                     x     -> getMimeType x
-        ensureEscaped = escapeURIString isAllowedInURI
+        ensureEscaped x@(_:':':'\\':_) = x -- likely windows path
+        ensureEscaped x = escapeURIString isAllowedInURI x
 
 -- | Like 'fetchItem', but also looks for items in a 'MediaBag'.
 fetchItem' :: MediaBag -> Maybe String -> String
