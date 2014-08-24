@@ -29,7 +29,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
-import Data.Maybe (fromMaybe)
 import Data.List ( intercalate, isPrefixOf, isSuffixOf )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
@@ -59,7 +58,7 @@ import Text.Printf (printf)
 import qualified Control.Exception as E
 import Text.Pandoc.MIME (getMimeType, extensionFromMimeType)
 import Control.Applicative ((<|>), (<$>))
-import Data.Maybe (mapMaybe)
+import Data.Maybe (fromMaybe, mapMaybe)
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -119,8 +118,8 @@ mknode s attrs =
 nodename :: String -> QName
 nodename s = QName{ qName = name, qURI = Nothing, qPrefix = prefix }
  where (name, prefix) = case break (==':') s of
-                             (xs,[])     -> (xs, Nothing)
-                             (ys,(_:zs)) -> (zs, Just ys)
+                             (xs,[])    -> (xs, Nothing)
+                             (ys, _:zs) -> (zs, Just ys)
 
 toLazy :: B.ByteString -> BL.ByteString
 toLazy = BL.fromChunks . (:[])
@@ -156,7 +155,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   let wname f qn = qPrefix qn == Just "w" && f (qName qn)
   let mbsectpr = filterElementName (wname (=="sectPr")) parsedDoc
 
-  let sectpr = maybe (mknode "w:sectPr" [] $ ()) id mbsectpr
+  let sectpr = fromMaybe (mknode "w:sectPr" [] ()) mbsectpr
 
   let stdAttributes =
             [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")
@@ -171,7 +170,7 @@ writeDocx opts doc@(Pandoc meta _) = do
 
   let contents' = contents ++ [sectpr]
   let docContents = mknode "w:document" stdAttributes
-                    $ mknode "w:body" [] $ contents'
+                    $ mknode "w:body" [] contents'
 
   parsedRels <- parseXml refArchive distArchive "word/_rels/document.xml.rels"
   let isHeaderNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
@@ -179,7 +178,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   let headers = filterElements isHeaderNode parsedRels
   let footers = filterElements isFooterNode parsedRels
 
-  let extractTarget e = findAttr (QName "Target" Nothing Nothing) e
+  let extractTarget = findAttr (QName "Target" Nothing Nothing)
 
   -- we create [Content_Types].xml and word/_rels/document.xml.rels
   -- from scratch rather than reading from reference.docx,
@@ -283,7 +282,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- footnote rels
   let footnoteRelEntry = toEntry "word/_rels/footnotes.xml.rels" epochtime
         $ renderXml $ mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
-        $ linkrels
+        linkrels
 
   -- styles
   let newstyles = styleToOpenXml $ writerHighlightStyle opts
@@ -315,8 +314,8 @@ writeDocx opts doc@(Pandoc meta _) = do
           $ mknode "dc:title" [] (stringify $ docTitle meta)
           : mknode "dc:creator" [] (intercalate "; " (map stringify $ docAuthors meta))
           : maybe []
-             (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] $ x
-                    , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] $ x
+             (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
+                    , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
                     ]) (normalizeDate $ stringify $ docDate meta)
   let docPropsEntry = toEntry docPropsPath epochtime $ renderXml docProps
 
@@ -347,7 +346,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   settingsEntry <- entryFromArchive distArchive "word/settings.xml"
   webSettingsEntry <- entryFromArchive refArchive "word/webSettings.xml"
   headerFooterEntries <- mapM (entryFromArchive refArchive) $
-                     mapMaybe (\e -> fmap ("word/" ++) $ extractTarget e)
+                     mapMaybe (fmap ("word/" ++) . extractTarget)
                      (headers ++ footers)
   let miscRelEntries = [ e | e <- zEntries refArchive
                        , "word/_rels/" `isPrefixOf` (eRelativePath e)
@@ -508,7 +507,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
   let convertSpace (Str x : Space : Str y : xs) = Str (x ++ " " ++ y) : xs
       convertSpace (Str x : Str y : xs) = Str (x ++ y) : xs
       convertSpace xs = xs
-  let blocks' = bottomUp convertSpace $ blocks
+  let blocks' = bottomUp convertSpace blocks
   doc' <- blocksToOpenXML opts blocks'
   notes' <- reverse `fmap` gets stFootnotes
   let meta' = title ++ subtitle ++ authors ++ date ++ abstract
@@ -592,13 +591,12 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
   let cellToOpenXML (al, cell) = withParaProp (alignmentFor al)
                                     $ blocksToOpenXML opts cell
   headers' <- mapM cellToOpenXML $ zip aligns headers
-  rows' <- mapM (\cells -> mapM cellToOpenXML $ zip aligns cells)
-           $ rows
+  rows' <- mapM (mapM cellToOpenXML . zip aligns) rows
   let borderProps = mknode "w:tcPr" []
                     [ mknode "w:tcBorders" []
                       $ mknode "w:bottom" [("w:val","single")] ()
                     , mknode "w:vAlign" [("w:val","bottom")] () ]
-  let emptyCell = [mknode "w:p" [] [mknode "w:pPr" [] $
+  let emptyCell = [mknode "w:p" [] [mknode "w:pPr" []
                     [mknode "w:pStyle" [("w:val","Compact")] ()]]]
   let mkcell border contents = mknode "w:tc" []
                             $ [ borderProps | border ] ++
@@ -610,12 +608,12 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
   let fullrow = 5000 -- 100% specified in pct
   let rowwidth = fullrow * sum widths
   let mkgridcol w = mknode "w:gridCol"
-                       [("w:w", show $ (floor (textwidth * w) :: Integer))] ()
+                       [("w:w", show (floor (textwidth * w) :: Integer))] ()
   return $
-    [ mknode "w:tbl" []
+    mknode "w:tbl" []
       ( mknode "w:tblPr" []
-        ( [ mknode "w:tblStyle" [("w:val","TableNormal")] () ] ++
-          [ mknode "w:tblW" [("w:type", "pct"), ("w:w", (show rowwidth))] () ] ++
+        (   mknode "w:tblStyle" [("w:val","TableNormal")] () :
+            mknode "w:tblW" [("w:type", "pct"), ("w:w", show rowwidth)] () :
           [ mknode "w:tblCaption" [("w:val", captionStr)] ()
           | not (null caption) ] )
       : mknode "w:tblGrid" []
@@ -624,8 +622,7 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
             else map mkgridcol widths)
       : [ mkrow True headers' | not (all null headers) ] ++
       map (mkrow False) rows'
-      )
-    ] ++ caption'
+      ) : caption'
 blockToOpenXML opts (BulletList lst) = do
   let marker = BulletMarker
   addList marker
@@ -692,7 +689,7 @@ getTextProps = do
   props <- gets stTextProperties
   return $ if null props
               then []
-              else [mknode "w:rPr" [] $ props]
+              else [mknode "w:rPr" [] props]
 
 pushTextProp :: Element -> WS ()
 pushTextProp d = modify $ \s -> s{ stTextProperties = d : stTextProperties s }
