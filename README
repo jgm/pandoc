@@ -551,9 +551,9 @@ Options affecting specific writers
     used. The following styles are used by pandoc: [paragraph]
     Normal, Compact, Title, Subtitle, Authors, Date, Abstract, Heading 1,
     Heading 2, Heading 3, Heading 4, Heading 5, Block Quote, Definition Term,
-    Definition, Body Text, Table Caption, Image Caption; [character] Default
-    Paragraph Font, Body Text Char, Verbatim Char, Footnote Ref,
-    Link.
+    Definition, Bibliography, Body Text, Table Caption, Image Caption;
+    [character] Default Paragraph Font, Body Text Char, Verbatim Char,
+    Footnote Ref, Link.
 
 `--epub-stylesheet=`*FILE*
 :   Use the specified CSS file to style the EPUB.  If no stylesheet

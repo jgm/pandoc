@@ -532,13 +532,17 @@ getUniqueId = liftIO $ (show . (+ 20) . hashUnique) `fmap` newUnique
 -- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: WriterOptions -> Block -> WS [Element]
 blockToOpenXML _ Null = return []
+blockToOpenXML opts (Div (_,["references"],_) bs) = do
+  let (hs, bs') = span isHeaderBlock bs
+  header <- blocksToOpenXML opts hs
+  -- We put the Bibliography style on paragraphs after the header
+  rest <- withParaProp (pStyle "Bibliography") $ blocksToOpenXML opts bs'
+  return (header ++ rest)
 blockToOpenXML opts (Div _ bs) = blocksToOpenXML opts bs
 blockToOpenXML opts (Header lev (ident,_,_) lst) = do
-
   paraProps <- withParaProp (pStyle $ "Heading" ++ show lev) $
                getParaProps False
   contents <- inlinesToOpenXML opts lst
-
   usedIdents <- gets stSectionIds
   let bookmarkName = if null ident
                         then uniqueIdent lst usedIdents
