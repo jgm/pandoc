@@ -374,10 +374,10 @@ Executable pandoc
 Executable trypandoc
   Main-Is:         trypandoc.hs
   Hs-Source-Dirs:  trypandoc
-  build-depends:   base, aeson, pandoc, highlighting-kate,
-                   text, wai-extra, wai >= 0.3, http-types
   default-language: Haskell2010
   if flag(trypandoc)
+    build-depends: base, aeson, pandoc, highlighting-kate,
+                   text, wai-extra, wai >= 0.3, http-types
     Buildable:     True
   else
     Buildable:     False
