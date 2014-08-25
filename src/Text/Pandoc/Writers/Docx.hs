@@ -38,6 +38,10 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Compat.Monoid ((<>))
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
+import Data.Time.Clock
+import Data.Time.Format
+import System.Environment
+import System.Locale
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.ImageSize
@@ -97,6 +101,8 @@ data WriterState = WriterState{
        , stInsId          :: Int
        , stDelId          :: Int
        , stInDel          :: Bool
+       , stChangesAuthor  :: String
+       , stChangesDate    :: String
        }
 
 defaultWriterState :: WriterState
@@ -113,6 +119,8 @@ defaultWriterState = WriterState{
       , stInsId          = 1
       , stDelId          = 1
       , stInDel          = False
+      , stChangesAuthor  = "unknown"
+      , stChangesDate    = "1969-12-31T19:00:00Z"
       }
 
 type WS a = StateT WriterState IO a
@@ -141,6 +149,8 @@ writeDocx :: WriterOptions  -- ^ Writer options
 writeDocx opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let doc' = walk fixDisplayMath doc
+  username <- lookupEnv "USERNAME"
+  utctime <- getCurrentTime
   refArchive <- liftM (toArchive . toLazy) $
        case writerReferenceDocx opts of
              Just f  -> B.readFile f
@@ -148,8 +158,9 @@ writeDocx opts doc@(Pandoc meta _) = do
   distArchive <- liftM (toArchive . toLazy) $ readDataFile Nothing "reference.docx"
 
   ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc')
-                       defaultWriterState
-  epochtime <- floor `fmap` getPOSIXTime
+                       defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
+                                         , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime}
+  let epochtime = floor $ utcTimeToPOSIXSeconds utctime
   let imgs = M.elems $ stImages st
 
   -- create entries for images in word/media/...
@@ -753,8 +764,10 @@ inlineToOpenXML _ (Str str) = formattedString str
 inlineToOpenXML opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML opts (Span (_,classes,kvs) ils)
   | "insertion" `elem` classes = do
-    let author = fromMaybe "unknown" (lookup "author" kvs)
-        date   = fromMaybe "1969-12-31T19:00:00Z" (lookup "date" kvs)
+    defaultAuthor <- gets stChangesAuthor
+    defaultDate <- gets stChangesDate
+    let author = fromMaybe defaultAuthor (lookup "author" kvs)
+        date   = fromMaybe defaultDate (lookup "date" kvs)
     insId <- gets stInsId
     modify $ \s -> s{stInsId = (insId + 1)}
     x <- inlinesToOpenXML opts ils
@@ -763,8 +776,10 @@ inlineToOpenXML opts (Span (_,classes,kvs) ils)
                              ("w:date", date)]
              x ]
   | "deletion" `elem` classes = do
-    let author = fromMaybe "unknown" (lookup "author" kvs)
-        date   = fromMaybe "1969-12-31T19:00:00Z" (lookup "date" kvs)
+    defaultAuthor <- gets stChangesAuthor
+    defaultDate <- gets stChangesDate
+    let author = fromMaybe defaultAuthor (lookup "author" kvs)
+        date   = fromMaybe defaultDate (lookup "date" kvs)
     delId <- gets stDelId
     modify $ \s -> s{stDelId = (delId + 1)}
     modify $ \s -> s{stInDel = True}
