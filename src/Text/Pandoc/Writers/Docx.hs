@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
 {-
 Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -94,6 +94,9 @@ data WriterState = WriterState{
        , stListLevel      :: Int
        , stListNumId      :: Int
        , stLists          :: [ListMarker]
+       , stInsId          :: Int
+       , stDelId          :: Int
+       , stInDel          :: Bool
        }
 
 defaultWriterState :: WriterState
@@ -107,6 +110,9 @@ defaultWriterState = WriterState{
       , stListLevel      = -1
       , stListNumId      = 1
       , stLists          = [NoMarker]
+      , stInsId          = 1
+      , stDelId          = 1
+      , stInDel          = False
       }
 
 type WS a = StateT WriterState IO a
@@ -735,20 +741,45 @@ withParaProp d p = do
 formattedString :: String -> WS [Element]
 formattedString str = do
   props <- getTextProps
+  inDel <- gets stInDel
   return [ mknode "w:r" [] $
              props ++
-             [ mknode "w:t" [("xml:space","preserve")] str ] ]
+             [ mknode (if inDel then "w:delText" else "w:t")
+               [("xml:space","preserve")] str ] ]
 
 -- | Convert an inline element to OpenXML.
 inlineToOpenXML :: WriterOptions -> Inline -> WS [Element]
 inlineToOpenXML _ (Str str) = formattedString str
 inlineToOpenXML opts Space = inlineToOpenXML opts (Str " ")
-inlineToOpenXML opts (Span (_,classes,_) ils) = do
-  let off x = withTextProp (mknode x [("w:val","0")] ())
-  ((if "csl-no-emph" `elem` classes then off "w:i" else id) .
-   (if "csl-no-strong" `elem` classes then off "w:b" else id) .
-   (if "csl-no-smallcaps" `elem` classes then off "w:smallCaps" else id))
-   $ inlinesToOpenXML opts ils
+inlineToOpenXML opts (Span (_,classes,kvs) ils)
+  | "insertion" `elem` classes = do
+    let author = fromMaybe "unknown" (lookup "author" kvs)
+        date   = fromMaybe "1969-12-31T19:00:00Z" (lookup "date" kvs)
+    insId <- gets stInsId
+    modify $ \s -> s{stInsId = (insId + 1)}
+    x <- inlinesToOpenXML opts ils
+    return [ mknode "w:ins" [("w:id", (show insId)),
+                             ("w:author", author),
+                             ("w:date", date)]
+             x ]
+  | "deletion" `elem` classes = do
+    let author = fromMaybe "unknown" (lookup "author" kvs)
+        date   = fromMaybe "1969-12-31T19:00:00Z" (lookup "date" kvs)
+    delId <- gets stDelId
+    modify $ \s -> s{stDelId = (delId + 1)}
+    modify $ \s -> s{stInDel = True}
+    x <- inlinesToOpenXML opts ils
+    modify $ \s -> s{stInDel = False}
+    return [ mknode "w:del" [("w:id", (show delId)),
+                             ("w:author", author),
+                             ("w:date", date)]
+             x ]
+  | otherwise = do
+    let off x = withTextProp (mknode x [("w:val","0")] ())
+    ((if "csl-no-emph" `elem` classes then off "w:i" else id) .
+     (if "csl-no-strong" `elem` classes then off "w:b" else id) .
+     (if "csl-no-smallcaps" `elem` classes then off "w:smallCaps" else id))
+      $ inlinesToOpenXML opts ils
 inlineToOpenXML opts (Strong lst) =
   withTextProp (mknode "w:b" [] ()) $ inlinesToOpenXML opts lst
 inlineToOpenXML opts (Emph lst) =
@@ -923,6 +954,6 @@ parseXml refArchive distArchive relpath =
 fitToPage :: (Integer, Integer) -> (Integer, Integer)
 fitToPage (x, y)
   --5440680 is the emu width size of a letter page in portrait, minus the margins
-  | x > 5440680 = 
+  | x > 5440680 =
     (5440680, round $ (5440680 / ((fromIntegral :: Integer -> Double) x)) * (fromIntegral y))
   | otherwise = (x, y)
