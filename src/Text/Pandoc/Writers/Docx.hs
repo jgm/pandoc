@@ -149,7 +149,7 @@ writeDocx :: WriterOptions  -- ^ Writer options
 writeDocx opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let doc' = walk fixDisplayMath doc
-  username <- lookupEnv "USERNAME"
+  username <- lookup "USERNAME" <$> getEnvironment
   utctime <- getCurrentTime
   refArchive <- liftM (toArchive . toLazy) $
        case writerReferenceDocx opts of
