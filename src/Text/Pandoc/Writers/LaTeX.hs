@@ -714,9 +714,7 @@ sectionHeader unnumbered linebreaks ref level lst = do
   lab <- text `fmap` toLabel ref
   plain <- stringToLaTeX TextString $ foldl (++) "" $ map stringify lst
   let noNote (Note _) = Str ""
-      noNote LineBreak
-       | linebreaks = LineBreak
-       | otherwise = Str " "
+      noNote LineBreak = if linebreaks then LineBreak else Str ""
       noNote x        = x
   let lstNoNotes = walk noNote lst
   txtNoNotes <- inlineListToLaTeX lstNoNotes
