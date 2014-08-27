@@ -40,13 +40,18 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Options ( WriterOptions(
+                                writerTableOfContents
+                              , writerStandalone
+                              , writerTemplate) )
+import Text.Pandoc.Shared ( escapeURI, removeFormatting, camelCaseToHyphenated
+                          , trimr, normalize, substitute  )
+import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
+import Text.Pandoc.Templates ( renderTemplate' )
 import Data.List ( intersect, intercalate, isPrefixOf )
 import Network.URI ( isURI )
-import Control.Monad.State
+import Control.Monad ( zipWithM )
+import Control.Monad.State ( modify, State, get, gets, evalState )
 
 data WriterState = WriterState {
     stNotes     :: Bool            -- True if there are notes
