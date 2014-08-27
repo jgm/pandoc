@@ -49,25 +49,40 @@ import Text.Pandoc.Shared ( escapeURI, removeFormatting, camelCaseToHyphenated
 import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
 import Text.Pandoc.Templates ( renderTemplate' )
 import Data.List ( intersect, intercalate, isPrefixOf )
+import Data.Default (Default(..))
 import Network.URI ( isURI )
 import Control.Monad ( zipWithM )
-import Control.Monad.State ( modify, State, get, gets, evalState )
+import Control.Monad.State ( modify, State, get, evalState )
+import Control.Monad.Reader ( ReaderT, runReaderT, ask, local )
 import Control.Applicative ( (<$>) )
 
 data WriterState = WriterState {
     stNotes     :: Bool            -- True if there are notes
-  , stIndent    :: String          -- Indent after the marker at the beginning of list items
+  }
+
+data WriterEnvironment = WriterEnvironment {
+    stIndent    :: String          -- Indent after the marker at the beginning of list items
   , stUseTags   :: Bool            -- True if we should use HTML tags because we're in a complex list
   }
+
+instance Default WriterState where
+  def = WriterState { stNotes = False }
+
+instance Default WriterEnvironment where
+  def = WriterEnvironment { stIndent = "", stUseTags = False }
+
+type DokuWiki = ReaderT WriterEnvironment (State WriterState)
 
 -- | Convert Pandoc to DokuWiki.
 writeDokuWiki :: WriterOptions -> Pandoc -> String
 writeDokuWiki opts document =
-  evalState (pandocToDokuWiki opts $ normalize document)
-            (WriterState { stNotes = False, stIndent = "", stUseTags = False })
+  runDokuWiki (pandocToDokuWiki opts $ normalize document)
+
+runDokuWiki :: DokuWiki a -> a
+runDokuWiki = flip evalState def . flip runReaderT def
 
 -- | Return DokuWiki representation of document.
-pandocToDokuWiki :: WriterOptions -> Pandoc -> State WriterState String
+pandocToDokuWiki :: WriterOptions -> Pandoc -> DokuWiki String
 pandocToDokuWiki opts (Pandoc meta blocks) = do
   metadata <- metaToJSON opts
               (fmap trimr . blockListToDokuWiki opts)
@@ -96,7 +111,7 @@ escapeString = substitute "__" "%%__%%" .
 -- | Convert Pandoc block element to DokuWiki.
 blockToDokuWiki :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
-                -> State WriterState String
+                -> DokuWiki String
 
 blockToDokuWiki _ Null = return ""
 
@@ -119,8 +134,8 @@ blockToDokuWiki opts (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   return $ "{{:" ++ src ++ opt ++ "}}\n"
 
 blockToDokuWiki opts (Para inlines) = do
-  indent <- gets stIndent
-  useTags <- gets stUseTags
+  indent <- stIndent <$> ask
+  useTags <- stUseTags <$> ask
   contents <- inlineListToDokuWiki opts inlines
   return $ if useTags
               then "<HTML><p></HTML>" ++ contents ++ "<HTML></p></HTML>"
@@ -180,54 +195,48 @@ blockToDokuWiki opts (Table capt aligns _ headers rows') = do
             unlines body'
 
 blockToDokuWiki opts x@(BulletList items) = do
-  oldUseTags <- stUseTags <$> get
-  indent <- stIndent <$> get
+  oldUseTags <- stUseTags <$> ask
+  indent <- stIndent <$> ask
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
-        modify $ \s -> s { stUseTags = True }
-        contents <- mapM (listItemToDokuWiki opts) items
-        modify $ \s -> s { stUseTags = oldUseTags }
+        contents <- local (\s -> s { stUseTags = True })
+                      (mapM (listItemToDokuWiki opts) items)
         return $ "<HTML><ul></HTML>\n" ++ vcat contents ++ "<HTML></ul></HTML>\n"
      else do
-        modify $ \s -> s { stIndent = stIndent s ++ "  " }
-        contents <- mapM (listItemToDokuWiki opts) items
-        modify $ \s -> s { stIndent = indent }
+        contents <- local (\s -> s { stIndent = stIndent s ++ "  " })
+                      (mapM (listItemToDokuWiki opts) items)
         return $ vcat contents ++ if null indent then "\n" else ""
 
 blockToDokuWiki opts x@(OrderedList attribs items) = do
-  oldUseTags <- stUseTags <$> get
-  indent <- stIndent <$> get
+  oldUseTags <- stUseTags <$> ask
+  indent <- stIndent <$> ask
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
-        modify $ \s -> s { stUseTags = True }
-        contents <- mapM (orderedListItemToDokuWiki opts) items
-        modify $ \s -> s { stUseTags = oldUseTags }
+        contents <- local (\s -> s { stUseTags = True })
+                      (mapM (orderedListItemToDokuWiki opts) items)
         return $ "<HTML><ol" ++ listAttribsToString attribs ++ "></HTML>\n" ++ vcat contents ++ "<HTML></ol></HTML>\n"
      else do
-        modify $ \s -> s { stIndent = stIndent s ++ "  " }
-        contents <- mapM (orderedListItemToDokuWiki opts) items
-        modify $ \s -> s { stIndent = indent }
+        contents <- local (\s -> s { stIndent = stIndent s ++ "  " })
+                      (mapM (orderedListItemToDokuWiki opts) items)
         return $ vcat contents ++ if null indent then "\n" else ""
 
 -- TODO Need to decide how to make definition lists work on dokuwiki - I don't think there
 --      is a specific representation of them.
 -- TODO This creates double '; ; ' if there is a bullet or ordered list inside a definition list
 blockToDokuWiki opts x@(DefinitionList items) = do
-  oldUseTags <- stUseTags <$> get
-  indent <- stIndent <$> get
+  oldUseTags <- stUseTags <$> ask
+  indent <- stIndent <$> ask
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
-        modify $ \s -> s { stUseTags = True }
-        contents <- mapM (definitionListItemToDokuWiki opts) items
-        modify $ \s -> s { stUseTags = oldUseTags }
+        contents <- local (\s -> s { stUseTags = True })
+                      (mapM (definitionListItemToDokuWiki opts) items)
         return $ "<HTML><dl></HTML>\n" ++ vcat contents ++ "<HTML></dl></HTML>\n"
      else do
-        modify $ \s -> s { stIndent = stIndent s ++ "  " }
-        contents <- mapM (definitionListItemToDokuWiki opts) items
-        modify $ \s -> s { stIndent = indent }
+        contents <- local (\s -> s { stIndent = stIndent s ++ "  " })
+                      (mapM (definitionListItemToDokuWiki opts) items)
         return $ vcat contents ++ if null indent then "\n" else ""
 
 -- Auxiliary functions for lists:
@@ -244,41 +253,41 @@ listAttribsToString (startnum, numstyle, _) =
           else "")
 
 -- | Convert bullet list item (list of blocks) to DokuWiki.
-listItemToDokuWiki :: WriterOptions -> [Block] -> State WriterState String
+listItemToDokuWiki :: WriterOptions -> [Block] -> DokuWiki String
 listItemToDokuWiki opts items = do
   contents <- blockListToDokuWiki opts items
-  useTags <- stUseTags <$> get
+  useTags <- stUseTags <$> ask
   if useTags
      then return $ "<HTML><li></HTML>" ++ contents ++ "<HTML></li></HTML>"
      else do
-       indent <- stIndent <$> get
+       indent <- stIndent <$> ask
        return $ indent ++ "* " ++ contents
 
 -- | Convert ordered list item (list of blocks) to DokuWiki.
 -- | TODO Emiminate dreadful duplication of text from listItemToDokuWiki
-orderedListItemToDokuWiki :: WriterOptions -> [Block] -> State WriterState String
+orderedListItemToDokuWiki :: WriterOptions -> [Block] -> DokuWiki String
 orderedListItemToDokuWiki opts items = do
   contents <- blockListToDokuWiki opts items
-  useTags <- stUseTags <$> get
+  useTags <- stUseTags <$> ask
   if useTags
      then return $ "<HTML><li></HTML>" ++ contents ++ "<HTML></li></HTML>"
      else do
-       indent <- stIndent <$> get
+       indent <- stIndent <$> ask
        return $ indent ++ "- " ++ contents
 
 -- | Convert definition list item (label, list of blocks) to DokuWiki.
 definitionListItemToDokuWiki :: WriterOptions
                              -> ([Inline],[[Block]])
-                             -> State WriterState String
+                             -> DokuWiki String
 definitionListItemToDokuWiki opts (label, items) = do
   labelText <- inlineListToDokuWiki opts label
   contents <- mapM (blockListToDokuWiki opts) items
-  useTags <- stUseTags <$> get
+  useTags <- stUseTags <$> ask
   if useTags
      then return $ "<HTML><dt></HTML>" ++ labelText ++ "<HTML></dt></HTML>\n" ++
            (intercalate "\n" $ map (\d -> "<HTML><dd></HTML>" ++ d ++ "<HTML></dd></HTML>") contents)
      else do
-       indent <- stIndent <$> get
+       indent <- stIndent <$> ask
        return $ indent ++ "* **" ++ labelText ++ "** " ++ concat contents
 
 -- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
@@ -332,7 +341,7 @@ tableHeaderToDokuWiki :: WriterOptions
                     -> [String]
                     -> Int
                     -> [[Block]]
-                    -> State WriterState String
+                    -> DokuWiki String
 tableHeaderToDokuWiki opts alignStrings rownum cols' = do
   let celltype = if rownum == 0 then "" else ""
   cols'' <- zipWithM
@@ -344,7 +353,7 @@ tableRowToDokuWiki :: WriterOptions
                     -> [String]
                     -> Int
                     -> [[Block]]
-                    -> State WriterState String
+                    -> DokuWiki String
 tableRowToDokuWiki opts alignStrings rownum cols' = do
   let celltype = if rownum == 0 then "" else ""
   cols'' <- zipWithM
@@ -363,7 +372,7 @@ tableItemToDokuWiki :: WriterOptions
                      -> String
                      -> String
                      -> [Block]
-                     -> State WriterState String
+                     -> DokuWiki String
 -- TODO Fix celltype and align' defined but not used
 tableItemToDokuWiki opts _celltype _align' item = do
   let mkcell x = "" ++ x ++ ""
@@ -381,17 +390,17 @@ joinHeaders = intercalate " ^ "
 -- | Convert list of Pandoc block elements to DokuWiki.
 blockListToDokuWiki :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
-                    -> State WriterState String
+                    -> DokuWiki String
 blockListToDokuWiki opts blocks =
   vcat <$> mapM (blockToDokuWiki opts) blocks
 
 -- | Convert list of Pandoc inline elements to DokuWiki.
-inlineListToDokuWiki :: WriterOptions -> [Inline] -> State WriterState String
+inlineListToDokuWiki :: WriterOptions -> [Inline] -> DokuWiki String
 inlineListToDokuWiki opts lst =
   concat <$> (mapM (inlineToDokuWiki opts) lst)
 
 -- | Convert Pandoc inline element to DokuWiki.
-inlineToDokuWiki :: WriterOptions -> Inline -> State WriterState String
+inlineToDokuWiki :: WriterOptions -> Inline -> DokuWiki String
 
 inlineToDokuWiki opts (Span _attrs ils) =
   inlineListToDokuWiki opts ils
