@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
 {-
 Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -38,6 +38,10 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Compat.Monoid ((<>))
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
+import Data.Time.Clock
+import Data.Time.Format
+import System.Environment
+import System.Locale
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.ImageSize
@@ -94,6 +98,11 @@ data WriterState = WriterState{
        , stListLevel      :: Int
        , stListNumId      :: Int
        , stLists          :: [ListMarker]
+       , stInsId          :: Int
+       , stDelId          :: Int
+       , stInDel          :: Bool
+       , stChangesAuthor  :: String
+       , stChangesDate    :: String
        }
 
 defaultWriterState :: WriterState
@@ -107,6 +116,11 @@ defaultWriterState = WriterState{
       , stListLevel      = -1
       , stListNumId      = 1
       , stLists          = [NoMarker]
+      , stInsId          = 1
+      , stDelId          = 1
+      , stInDel          = False
+      , stChangesAuthor  = "unknown"
+      , stChangesDate    = "1969-12-31T19:00:00Z"
       }
 
 type WS a = StateT WriterState IO a
@@ -135,6 +149,8 @@ writeDocx :: WriterOptions  -- ^ Writer options
 writeDocx opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let doc' = walk fixDisplayMath doc
+  username <- lookup "USERNAME" <$> getEnvironment
+  utctime <- getCurrentTime
   refArchive <- liftM (toArchive . toLazy) $
        case writerReferenceDocx opts of
              Just f  -> B.readFile f
@@ -142,8 +158,9 @@ writeDocx opts doc@(Pandoc meta _) = do
   distArchive <- liftM (toArchive . toLazy) $ readDataFile Nothing "reference.docx"
 
   ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc')
-                       defaultWriterState
-  epochtime <- floor `fmap` getPOSIXTime
+                       defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
+                                         , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime}
+  let epochtime = floor $ utcTimeToPOSIXSeconds utctime
   let imgs = M.elems $ stImages st
 
   -- create entries for images in word/media/...
@@ -735,20 +752,49 @@ withParaProp d p = do
 formattedString :: String -> WS [Element]
 formattedString str = do
   props <- getTextProps
+  inDel <- gets stInDel
   return [ mknode "w:r" [] $
              props ++
-             [ mknode "w:t" [("xml:space","preserve")] str ] ]
+             [ mknode (if inDel then "w:delText" else "w:t")
+               [("xml:space","preserve")] str ] ]
 
 -- | Convert an inline element to OpenXML.
 inlineToOpenXML :: WriterOptions -> Inline -> WS [Element]
 inlineToOpenXML _ (Str str) = formattedString str
 inlineToOpenXML opts Space = inlineToOpenXML opts (Str " ")
-inlineToOpenXML opts (Span (_,classes,_) ils) = do
-  let off x = withTextProp (mknode x [("w:val","0")] ())
-  ((if "csl-no-emph" `elem` classes then off "w:i" else id) .
-   (if "csl-no-strong" `elem` classes then off "w:b" else id) .
-   (if "csl-no-smallcaps" `elem` classes then off "w:smallCaps" else id))
-   $ inlinesToOpenXML opts ils
+inlineToOpenXML opts (Span (_,classes,kvs) ils)
+  | "insertion" `elem` classes = do
+    defaultAuthor <- gets stChangesAuthor
+    defaultDate <- gets stChangesDate
+    let author = fromMaybe defaultAuthor (lookup "author" kvs)
+        date   = fromMaybe defaultDate (lookup "date" kvs)
+    insId <- gets stInsId
+    modify $ \s -> s{stInsId = (insId + 1)}
+    x <- inlinesToOpenXML opts ils
+    return [ mknode "w:ins" [("w:id", (show insId)),
+                             ("w:author", author),
+                             ("w:date", date)]
+             x ]
+  | "deletion" `elem` classes = do
+    defaultAuthor <- gets stChangesAuthor
+    defaultDate <- gets stChangesDate
+    let author = fromMaybe defaultAuthor (lookup "author" kvs)
+        date   = fromMaybe defaultDate (lookup "date" kvs)
+    delId <- gets stDelId
+    modify $ \s -> s{stDelId = (delId + 1)}
+    modify $ \s -> s{stInDel = True}
+    x <- inlinesToOpenXML opts ils
+    modify $ \s -> s{stInDel = False}
+    return [ mknode "w:del" [("w:id", (show delId)),
+                             ("w:author", author),
+                             ("w:date", date)]
+             x ]
+  | otherwise = do
+    let off x = withTextProp (mknode x [("w:val","0")] ())
+    ((if "csl-no-emph" `elem` classes then off "w:i" else id) .
+     (if "csl-no-strong" `elem` classes then off "w:b" else id) .
+     (if "csl-no-smallcaps" `elem` classes then off "w:smallCaps" else id))
+      $ inlinesToOpenXML opts ils
 inlineToOpenXML opts (Strong lst) =
   withTextProp (mknode "w:b" [] ()) $ inlinesToOpenXML opts lst
 inlineToOpenXML opts (Emph lst) =
@@ -923,6 +969,6 @@ parseXml refArchive distArchive relpath =
 fitToPage :: (Integer, Integer) -> (Integer, Integer)
 fitToPage (x, y)
   --5440680 is the emu width size of a letter page in portrait, minus the margins
-  | x > 5440680 = 
+  | x > 5440680 =
     (5440680, round $ (5440680 / ((fromIntegral :: Integer -> Double) x)) * (fromIntegral y))
   | otherwise = (x, y)
