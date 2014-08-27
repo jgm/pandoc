@@ -483,7 +483,7 @@ exampleCode :: String -> Blocks
 exampleCode = B.codeBlockWith ("", ["example"], [])
 
 exampleLine :: OrgParser String
-exampleLine = try $ string ": " *> anyLine
+exampleLine = try $ skipSpaces *> string ": " *> anyLine
 
 -- Drawers for properties or a logbook
 drawer :: OrgParser (F Blocks)
