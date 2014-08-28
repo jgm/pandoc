@@ -471,12 +471,18 @@ blockToLaTeX (Header level (id',classes,_) lst) =
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- if all null heads
                 then return empty
-                else ($$ "\\midrule\\endhead") `fmap`
+                else ($$ "\\midrule\n") `fmap`
                       (tableRowToLaTeX True aligns widths) heads
+  let endhead = if all null heads
+                   then empty
+                   else text "\\endhead"
   captionText <- inlineListToLaTeX caption
   let capt = if isEmpty captionText
                 then empty
-                else text "\\caption" <> braces captionText <> "\\\\"
+                else text "\\caption" <> braces captionText
+                         <> "\\tabularnewline\n\\toprule\n"
+                         <> headers
+                         <> "\\endfirsthead"
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concat $ map toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
@@ -484,8 +490,9 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
               braces ("@{}" <> colDescriptors <> "@{}")
               -- the @{} removes extra space at beginning and end
          $$ capt
-         $$ "\\toprule\\addlinespace"
+         $$ "\\toprule"
          $$ headers
+         $$ endhead
          $$ vcat rows'
          $$ "\\bottomrule"
          $$ "\\end{longtable}"
@@ -512,7 +519,7 @@ tableRowToLaTeX header aligns widths cols = do
   let scaleFactor = 0.97 ** fromIntegral (length aligns)
   let widths' = map (scaleFactor *) widths
   cells <- mapM (tableCellToLaTeX header) $ zip3 widths' aligns cols
-  return $ hsep (intersperse "&" cells) $$ "\\\\\\addlinespace"
+  return $ hsep (intersperse "&" cells) <> "\\tabularnewline"
 
 -- For simple latex tables (without minipages or parboxes),
 -- we need to go to some lengths to get line breaks working:
