@@ -95,6 +95,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Applicative ((<$>))
 import Data.Sequence (ViewL(..), viewl)
+import qualified Data.Sequence as Seq (null)
 
 readDocx :: ReaderOptions
          -> B.ByteString
@@ -391,11 +392,21 @@ makeHeaderAnchor' (Header n (_, classes, kvs) ils) =
     return $ Header n (newIdent, classes, kvs) ils
 makeHeaderAnchor' blk = return blk
 
+-- Rewrite a standalone paragraph block as a plain
+singleParaToPlain :: Blocks -> Blocks
+singleParaToPlain blks
+  | (Para (ils) :< seeq) <- viewl $ unMany blks
+  , Seq.null seeq =
+      singleton $ Plain ils
+singleParaToPlain blks = blks
+
 cellToBlocks :: Cell -> DocxContext Blocks
 cellToBlocks (Cell bps) = concatReduce <$> mapM bodyPartToBlocks bps
 
 rowToBlocksList :: Row -> DocxContext [Blocks]
-rowToBlocksList (Row cells) = mapM cellToBlocks cells
+rowToBlocksList (Row cells) = do
+  blksList <- mapM cellToBlocks cells
+  return $ map singleParaToPlain blksList
 
 trimLineBreaks :: [Inline] -> [Inline]
 trimLineBreaks [] = []
