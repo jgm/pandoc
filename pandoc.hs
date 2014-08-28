@@ -176,6 +176,7 @@ data Opt = Opt
     , optHighlight         :: Bool    -- ^ Highlight source code
     , optHighlightStyle    :: Style   -- ^ Style to use for highlighted code
     , optChapters          :: Bool    -- ^ Use chapter for top-level sects
+    , optParts             :: Bool    -- ^ Use parts for top-level sects in latex
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optReferenceDocx     :: Maybe FilePath -- ^ Path of reference.docx
@@ -234,6 +235,7 @@ defaultOpts = Opt
     , optHighlight             = True
     , optHighlightStyle        = pygments
     , optChapters              = False
+    , optParts                 = False
     , optHTMLMathMethod        = PlainMath
     , optReferenceODT          = Nothing
     , optReferenceDocx         = Nothing
@@ -571,6 +573,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optChapters = True }))
                  "" -- "Use chapter for top-level sections in LaTeX, DocBook"
+
+    , Option "" ["parts"]
+                 (NoArg
+                  (\opt -> return opt { optParts = True }))
+                 "" -- "Use part for top-level sections in LaTeX"
 
     , Option "N" ["number-sections"]
                  (NoArg
@@ -1027,6 +1034,7 @@ main = do
               , optHighlight             = highlight
               , optHighlightStyle        = highlightStyle
               , optChapters              = chapters
+              , optParts                 = parts
               , optHTMLMathMethod        = mathMethod
               , optReferenceODT          = referenceODT
               , optReferenceDocx         = referenceDocx
@@ -1247,6 +1255,7 @@ main = do
                             writerHtml5            = html5,
                             writerHtmlQTags        = htmlQTags,
                             writerChapters         = chapters,
+                            writerParts            = parts,
                             writerListings         = listings,
                             writerBeamer           = False,
                             writerSlideLevel       = slideLevel,

@@ -455,8 +455,12 @@ Options affecting specific writers
 `--chapters`
 :   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
     output.  When the LaTeX template uses the report, book, or
-    memoir class, this option is implied.  If `beamer` is the output
-    format, top-level headers will become `\part{..}`.
+    memoir class, or if `--parts` is used then this option is implied.
+    If `beamer` is the output format, top-level headers will become `\part{..}`.
+
+`--parts`
+:   Treat top-level headers as parts in LaTeX output. The second level
+    headers will be chapters. This does not effect the `beamer` output format.
 
 `-N`, `--number-sections`
 :   Number section headings in LaTeX, ConTeXt, HTML, or EPUB output.
@@ -1578,9 +1582,9 @@ cases" involving lists.  Consider this source:
 
     +   First
     +   Second:
-    	-   Fee
-    	-   Fie
-    	-   Foe
+      -   Fee
+      -   Fie
+      -   Foe
 
     +   Third
 
@@ -2246,19 +2250,19 @@ by default, pandoc interprets material between HTML block tags as markdown.
 Thus, for example, Pandoc will turn
 
     <table>
-    	<tr>
-    		<td>*one*</td>
-    		<td>[a link](http://google.com)</td>
-    	</tr>
+      <tr>
+        <td>*one*</td>
+        <td>[a link](http://google.com)</td>
+      </tr>
     </table>
 
 into
 
     <table>
-    	<tr>
-    		<td><em>one</em></td>
-    		<td><a href="http://google.com">a link</a></td>
-    	</tr>
+      <tr>
+        <td><em>one</em></td>
+        <td><a href="http://google.com">a link</a></td>
+      </tr>
     </table>
 
 whereas `Markdown.pl` will preserve it as is.

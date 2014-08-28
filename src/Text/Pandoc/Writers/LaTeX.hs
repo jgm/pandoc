@@ -69,6 +69,7 @@ data WriterState =
               , stIncremental   :: Bool          -- true if beamer lists should be displayed bit by bit
               , stInternalLinks :: [String]      -- list of internal link targets
               , stUsesEuro      :: Bool          -- true if euro symbol used
+              , stParts         :: Bool          -- true if document has parts
               }
 
 -- | Convert Pandoc to LaTeX.
@@ -84,7 +85,8 @@ writeLaTeX options document =
                 stLHS = False, stBook = writerChapters options,
                 stCsquotes = False, stHighlighting = False,
                 stIncremental = writerIncremental options,
-                stInternalLinks = [], stUsesEuro = False }
+                stInternalLinks = [], stUsesEuro = False,
+                stParts = writerParts options}
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc meta blocks) = do
@@ -603,8 +605,24 @@ sectionHeader unnumbered ref level lst = do
                    return $ brackets txtNoNotes
   let stuffing = star <> optional <> braces txt
   book <- gets stBook
+  parts <- gets stParts
   opts <- gets stOptions
-  let level' = if book || writerChapters opts then level - 1 else level
+  let level' = (if parts || writerParts opts
+                  then level - 1
+                  else if book || writerChapters opts
+                    then level
+                    else level + 1)
+
+  let level'' = (if writerBeamer opts 
+                   then if parts || writerParts opts
+                     then if level' > 0
+                       then level' + 1
+                       else level'
+                     else if level'==1
+                       then 0
+                       else level'
+                   else level')
+
   internalLinks <- gets stInternalLinks
   let refLabel x = (if ref `elem` internalLinks
                        then text "\\hyperdef"
@@ -616,22 +634,22 @@ sectionHeader unnumbered ref level lst = do
                              if null ref
                                 then empty
                                 else text "\\label" <> braces lab
-  let sectionType = case level' of
-                          0  | writerBeamer opts -> "part"
-                             | otherwise -> "chapter"
-                          1  -> "section"
-                          2  -> "subsection"
-                          3  -> "subsubsection"
-                          4  -> "paragraph"
-                          5  -> "subparagraph"
+  let sectionType = case level'' of
+                          0  -> "part"
+                          1  -> "chapter"
+                          2  -> "section"
+                          3  -> "subsection"
+                          4  -> "subsubsection"
+                          5  -> "paragraph"
+                          6  -> "subparagraph"
                           _  -> ""
   inQuote <- gets stInQuote
-  let prefix = if inQuote && level' >= 4
+  let prefix = if inQuote && level' >= 5
                   then text "\\mbox{}%"
                   -- needed for \paragraph, \subparagraph in quote environment
                   -- see http://tex.stackexchange.com/questions/169830/
                   else empty
-  return $ if level' > 5
+  return $ if level' > 6
               then txt
               else prefix $$
                    headerWith ('\\':sectionType) stuffing
