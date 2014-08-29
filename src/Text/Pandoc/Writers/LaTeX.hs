@@ -556,7 +556,8 @@ tableCellToLaTeX header (width, align, blocks) = do
                AlignDefault -> "\\raggedright"
   return $ ("\\begin{minipage}" <> valign <>
             braces (text (printf "%.2f\\columnwidth" width)) <>
-            (halign <> cr <> cellContents <> cr) <> "\\end{minipage}")
+            (halign <> "\\strut" <> cr <> cellContents <> cr) <>
+            "\\strut\\end{minipage}")
           $$ case notes of
                   [] -> empty
                   ns -> (case length ns of

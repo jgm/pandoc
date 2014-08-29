@@ -52,47 +52,47 @@ Multiline table with caption:
 \begin{longtable}[c]{@{}clrl@{}}
 \caption{Here's the caption. It may span multiple lines.}\tabularnewline
 \toprule
-\begin{minipage}[b]{0.13\columnwidth}\centering
+\begin{minipage}[b]{0.13\columnwidth}\centering\strut
 Centered Header
-\end{minipage} & \begin{minipage}[b]{0.12\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[b]{0.12\columnwidth}\raggedright\strut
 Left Aligned
-\end{minipage} & \begin{minipage}[b]{0.14\columnwidth}\raggedleft
+\strut\end{minipage} & \begin{minipage}[b]{0.14\columnwidth}\raggedleft\strut
 Right Aligned
-\end{minipage} & \begin{minipage}[b]{0.30\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[b]{0.30\columnwidth}\raggedright\strut
 Default aligned
-\end{minipage}\tabularnewline
+\strut\end{minipage}\tabularnewline
 \midrule
 \endfirsthead
 \toprule
-\begin{minipage}[b]{0.13\columnwidth}\centering
+\begin{minipage}[b]{0.13\columnwidth}\centering\strut
 Centered Header
-\end{minipage} & \begin{minipage}[b]{0.12\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[b]{0.12\columnwidth}\raggedright\strut
 Left Aligned
-\end{minipage} & \begin{minipage}[b]{0.14\columnwidth}\raggedleft
+\strut\end{minipage} & \begin{minipage}[b]{0.14\columnwidth}\raggedleft\strut
 Right Aligned
-\end{minipage} & \begin{minipage}[b]{0.30\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[b]{0.30\columnwidth}\raggedright\strut
 Default aligned
-\end{minipage}\tabularnewline
+\strut\end{minipage}\tabularnewline
 \midrule
 \endhead
-\begin{minipage}[t]{0.13\columnwidth}\centering
+\begin{minipage}[t]{0.13\columnwidth}\centering\strut
 First
-\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright\strut
 row
-\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
+\strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft\strut
 12.0
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright\strut
 Example of a row that spans multiple lines.
-\end{minipage}\tabularnewline
-\begin{minipage}[t]{0.13\columnwidth}\centering
+\strut\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.13\columnwidth}\centering\strut
 Second
-\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright\strut
 row
-\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
+\strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft\strut
 5.0
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright\strut
 Here's another one. Note the blank line between rows.
-\end{minipage}\tabularnewline
+\strut\end{minipage}\tabularnewline
 \bottomrule
 \end{longtable}
 
@@ -100,35 +100,35 @@ Multiline table without caption:
 
 \begin{longtable}[c]{@{}clrl@{}}
 \toprule
-\begin{minipage}[b]{0.13\columnwidth}\centering
+\begin{minipage}[b]{0.13\columnwidth}\centering\strut
 Centered Header
-\end{minipage} & \begin{minipage}[b]{0.12\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[b]{0.12\columnwidth}\raggedright\strut
 Left Aligned
-\end{minipage} & \begin{minipage}[b]{0.14\columnwidth}\raggedleft
+\strut\end{minipage} & \begin{minipage}[b]{0.14\columnwidth}\raggedleft\strut
 Right Aligned
-\end{minipage} & \begin{minipage}[b]{0.30\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[b]{0.30\columnwidth}\raggedright\strut
 Default aligned
-\end{minipage}\tabularnewline
+\strut\end{minipage}\tabularnewline
 \midrule
 \endhead
-\begin{minipage}[t]{0.13\columnwidth}\centering
+\begin{minipage}[t]{0.13\columnwidth}\centering\strut
 First
-\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright\strut
 row
-\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
+\strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft\strut
 12.0
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright\strut
 Example of a row that spans multiple lines.
-\end{minipage}\tabularnewline
-\begin{minipage}[t]{0.13\columnwidth}\centering
+\strut\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.13\columnwidth}\centering\strut
 Second
-\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright\strut
 row
-\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
+\strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft\strut
 5.0
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright\strut
 Here's another one. Note the blank line between rows.
-\end{minipage}\tabularnewline
+\strut\end{minipage}\tabularnewline
 \bottomrule
 \end{longtable}
 
@@ -146,23 +146,23 @@ Multiline table without column headers:
 
 \begin{longtable}[c]{@{}clrl@{}}
 \toprule
-\begin{minipage}[t]{0.13\columnwidth}\centering
+\begin{minipage}[t]{0.13\columnwidth}\centering\strut
 First
-\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright\strut
 row
-\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
+\strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft\strut
 12.0
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright\strut
 Example of a row that spans multiple lines.
-\end{minipage}\tabularnewline
-\begin{minipage}[t]{0.13\columnwidth}\centering
+\strut\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.13\columnwidth}\centering\strut
 Second
-\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright\strut
 row
-\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft
+\strut\end{minipage} & \begin{minipage}[t]{0.14\columnwidth}\raggedleft\strut
 5.0
-\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\strut\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright\strut
 Here's another one. Note the blank line between rows.
-\end{minipage}\tabularnewline
+\strut\end{minipage}\tabularnewline
 \bottomrule
 \end{longtable}
