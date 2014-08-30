@@ -51,7 +51,11 @@ pandoc (XXX)
   * Org writer: Accept example lines with indentation at the beginning
     (Calvin Beck).
 
-  * DokuWiki writer:  Refactor to use Reader monad (Matthew Pickering).
+  * DokuWiki writer:
+
+    + Refactor to use Reader monad (Matthew Pickering).
+    + Avoid using raw HTML in table cells; instead, use `\\`
+      instead of newlines (Jesse Rosenthal).
 
   * Docx writer:
 
@@ -82,6 +86,9 @@ pandoc (XXX)
 
   * Fix build dependencies for the `trypandoc` flag, so that they are
     ignored if `trypandoc` flag is set to False (Gabor Pali).
+
+  * Updated README to remove outdated claim that `--self-contained`
+    looks in the user data directory for missing files.
 
 pandoc (1.13.0.1)
 
