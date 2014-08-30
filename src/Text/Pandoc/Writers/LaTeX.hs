@@ -465,7 +465,7 @@ blockToLaTeX (DefinitionList lst) = do
   return $ text ("\\begin{description}" ++ inc) $$ spacing $$ vcat items $$
                "\\end{description}"
 blockToLaTeX HorizontalRule = return $
-  "\\begin{center}\\rule{3in}{0.4pt}\\end{center}"
+  "\\begin{center}\\rule{0.5\\linewidth}{\\linethickness}\\end{center}"
 blockToLaTeX (Header level (id',classes,_) lst) =
   sectionHeader ("unnumbered" `elem` classes) id' level lst
 blockToLaTeX (Table caption aligns widths heads rows) = do
