@@ -1,7 +1,7 @@
 $if(has-tables)$
 .\"t
 $endif$
-.TH PANDOC_MARKDOWN 5 "$date$" "$title$"
+.TH PANDOC_MARKDOWN 5 "$date$" "$version$"
 .SH NAME
 pandoc_markdown - markdown syntax for pandoc(1)
 .SH DESCRIPTION

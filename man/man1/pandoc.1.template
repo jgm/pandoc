@@ -1,7 +1,7 @@
 $if(has-tables)$
 .\"t
 $endif$
-.TH PANDOC 1 "$date$" "$title$"
+.TH PANDOC 1 "$date$" "$version$"
 .SH NAME
 pandoc - general markup converter
 $body$
