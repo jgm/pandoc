@@ -424,10 +424,9 @@ Options affecting specific writers
     formats, including `html`, `html5`, `html+lhs`, `html5+lhs`, `s5`,
     `slidy`, `slideous`, `dzslides`, and `revealjs`. Scripts, images, and
     stylesheets at absolute URLs will be downloaded; those at relative URLs
-    will be sought first relative to the working directory, then relative to
-    the user data directory (see `--data-dir`), and finally relative to
-    pandoc's default data directory.  `--self-contained` does not
-    work with `--mathjax`.
+    will be sought relative to the working directory (if the first source
+    file is local) or relative to the base URL (if the first source
+    file is remote).  `--self-contained` does not work with `--mathjax`.
 
 `--offline`
 :   Deprecated synonym for `--self-contained`.
