@@ -29,7 +29,8 @@ bench:
 	cabal bench
 
 install: full
-	cabal install
+	cabal copy
+	cabal register
 
 sdist: man
 	# note: cabal sdist doesn't work well with preprocessors for some cabal versions
