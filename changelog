@@ -1,3 +1,88 @@
+pandoc (XXX)
+
+  * Fixed `--self-contained` with Windows paths (#1558).
+    Previously `C:\foo.js` was being wrongly interpreted as a URI.
+
+  * HTML reader:  improved handling of tags that can be block or inline.
+    Previously a section like this would be enclosed in a paragraph,
+    with RawInline for the video tags (since video is a tag that can
+    be either block or inline):
+
+        <video controls="controls">
+           <source src="../videos/test.mp4" type="video/mp4" />
+           <source src="../videos/test.webm" type="video/webm" />
+           <p>
+              The videos can not be played back on your system.<br/>
+              Try viewing on Youtube (requires Internet connection):
+              <a href="http://youtu.be/etE5urBps_w">Relative Velocity on
+        Youtube</a>.
+           </p>
+        </video>
+
+    This change will cause the video and source tags to be parsed
+    as RawBlock instead, giving better output.
+    The general change is this:  when we're parsing a "plain" sequence
+    of inlines, we don't parse anything that COULD be a block-level tag.
+
+  * Docx reader:
+
+    + Be sensitive to user styles.  Note that "Hyperlink" is
+      "blacklisted," as we don't want the default underline styling to be
+      inherited by all links by default (Jesse Rosenthal).
+    + Read single paragraph in table cell as `Plain` (Jesse Rosenthal).
+      This makes to docx reader's native output fit with the way the markdown
+      reader understands its markdown output.
+
+  * Txt2Tags reader:
+
+    + Header is now parsed only if standalone flag is set (Matthew Pickering).
+    + The header is now parsed as meta information. The first line is the
+      `title`, the second is the `author` and third line is the `date`
+      (Matthew Pickering).
+    + Corrected formatting of `%%mtime` macro (Matthew Pickering).
+    + Fixed crash when reading from stdin.
+
+  * EPUB writer:  Don't use page-progression-direction in EPUB2, which
+    doesn't support it.  Also, if page-progression-direction not specified
+    in metadata, don't include the attribute even in EPUB3; not including it
+    is the same as including it with the value "default", as we did before.
+    (#1550)
+
+  * Org writer: Accept example lines with indentation at the beginning
+    (Calvin Beck).
+
+  * DokuWiki writer:  Refactor to use Reader monad (Matthew Pickering).
+
+  * Docx writer:
+
+    + Bibliography entries get `Bibliography` style (#1559).
+    + Implement change tracking (Jesse Rosenthal).
+
+  * LaTeX writer:
+
+    + Fixed a bug that caused a table caption to repeat across all pages
+      (Jose Luis Duran).
+    + Improved vertical spacing in tables and made it customizable using
+      standard lengths set by booktab.  See
+      <https://groups.google.com/forum/#!msg/pandoc-discuss/qMu6_5lYy0o/ZAU7lzAIKw0J>
+      (Jose Luis Duran).
+    + Added `\strut` to fix spacing in multiline tables (Jose Luis Duran).
+    + Use `\tabularnewline` instead of `\\` in table cells (Jose Luis Duran).
+    + Made horizontal rules more flexible (Jose Luis Duran).
+
+  * Templates:
+
+    + LaTeX template: disable microtype protrusion for typewriter font (#1549,
+      thanks lemzwerg).
+
+  * Improved OSX build procedure.
+
+  * Added `network-uri` flag, to deal with split of `network-uri` from
+    `network`.
+
+  * Fix build dependencies for the `trypandoc` flag, so that they are
+    ignored if `trypandoc` flag is set to False (Gabor Pali).
+
 pandoc (1.13.0.1)
 
   * Docx writer:
