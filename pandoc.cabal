@@ -185,6 +185,10 @@ Source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
+Flag static
+  Description:   Statically link in libgmp and libc.
+  Default:       False
+
 Flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
@@ -262,6 +266,8 @@ Library
   if os(windows)
     Cpp-options:      -D_WINDOWS
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
+  if flag(static)
+    ld-options:       -static -pthread
   Ghc-Prof-Options: -auto-all -caf-all -rtsopts
   Default-Language: Haskell98
   Other-Extensions:   PatternGuards, OverloadedStrings,
@@ -359,6 +365,8 @@ Executable pandoc
   else
      Build-Depends: network >= 2 && < 2.6
   Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
+  if flag(static)
+    ld-options:     -static -pthread
   Ghc-Prof-Options: -auto-all -caf-all -rtsopts -with-rtsopts=-K16m
   if os(windows)
     Cpp-options:      -D_WINDOWS
@@ -443,6 +451,8 @@ Test-Suite test-pandoc
                   Tests.Writers.AsciiDoc
                   Tests.Writers.LaTeX
   Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind
+  if flag(static)
+    ld-options:       -static -pthread
   Default-Language: Haskell98
 
 benchmark benchmark-pandoc
@@ -454,4 +464,6 @@ benchmark benchmark-pandoc
                    syb >= 0.1 && < 0.5,
                    criterion >= 0.5 && < 0.9
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
+  if flag(static)
+    ld-options:       -static -pthread
   Default-Language: Haskell98

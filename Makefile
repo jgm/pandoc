@@ -1,5 +1,7 @@
 version=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
 makemanpages=$(shell find dist -type f -name make-pandoc-man-pages)
+debpkgver?=1
+debpkg=pandoc-${version}-${debpkgver}
 ifeq "${makemanpages}" ""
 	makemanpages=@echo "You need to 'cabal configure -fmake-pandoc-man-pages && cabal build'" && exit 1
 endif
@@ -31,8 +33,8 @@ bench:
 install: full
 	cabal install
 
+# note: cabal sdist doesn't work well with preprocessors for some cabal versions
 sdist: man
-	# note: cabal sdist doesn't work well with preprocessors for some cabal versions
 	${setup} sdist
 
 dist: sdist
@@ -46,6 +48,19 @@ man: ${MANPAGES}
 osxpkg:
 	./make_osx_package.sh
 
+static:
+	cabal configure --enable-optimization -fmake-pandoc-man-pages -fstatic --prefix=/usr/local
+	cabal build
+
+deb: static ${MANPAGES}
+	rm -r ${debpkg}
+	cabal copy --destdir=${debpkg}
+	rm -r ${debpkg}/usr/local/lib
+	for i in ${MANPAGES}; do install -D $$i ${debpkg}/usr/local/share/$$i; gzip ${debpkg}/usr/local/share/$$i; done
+	mkdir ${debpkg}/DEBIAN
+	perl -pe 's/VERSION/${version}-${debpkgver}/' deb/control.in > ${debpkg}/DEBIAN/control
+	dpkg-deb --build ${debpkg}
+
 %.1: %.1.template
 	${makemanpages}
 
@@ -56,4 +71,4 @@ clean:
 	cabal clean
 	-rm ${MANPAGES}
 
-.PHONY: deps quick full install man clean test bench haddock sdist osxpkg dist prof
+.PHONY: deps quick full install man clean test bench haddock sdist osxpkg dist prof deb
