@@ -74,6 +74,11 @@ pandoc (XXX)
     + Use `\tabularnewline` instead of `\\` in table cells (Jose Luis Duran).
     + Made horizontal rules more flexible (Jose Luis Duran).
 
+  * Text.Pandoc.MIME:
+
+    + Added `MimeType` (type synonym for `String`) and `getMimeTypeDef`.
+      Code cleanups (Artyom Kazak).
+
   * Templates:
 
     + LaTeX template: disable microtype protrusion for typewriter font (#1549,
