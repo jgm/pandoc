@@ -47,10 +47,10 @@ man: ${MANPAGES}
 osxpkg:
 	./make_osx_package.sh
 
-%.1: %.1.template
+%.1: %.1.template README
 	${makemanpages}
 
-%.5: %.5.template
+%.5: %.5.template README
 	${makemanpages}
 
 clean:
