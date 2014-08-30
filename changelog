@@ -1,4 +1,4 @@
-pandoc (XXX)
+pandoc (1.13.1)
 
   * Fixed `--self-contained` with Windows paths (#1558).
     Previously `C:\foo.js` was being wrongly interpreted as a URI.
