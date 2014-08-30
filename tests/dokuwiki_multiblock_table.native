@@ -1,0 +1,13 @@
+[Table [Str "Sample",Space,Str "grid",Space,Str "table."] [AlignDefault,AlignDefault,AlignDefault] [0.2222222222222222,0.2222222222222222,0.2916666666666667]
+ [[Plain [Str "Fruit"]]
+ ,[Plain [Str "Price"]]
+ ,[Plain [Str "Advantages"]]]
+ [[[Para [Str "Bananas"]]
+  ,[Para [Str "$1.34"]]
+  ,[Para [Str "built-in",Space,Str "wrapper"]
+   ,Para [Str "potassium"]]]
+ ,[[Para [Str "Oranges"]]
+  ,[Para [Str "$2.10"]]
+  ,[BulletList
+    [[Plain [Str "cures",Space,Str "scurvy"]]
+    ,[Plain [Str "tasty"]]]]]]]
