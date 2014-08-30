@@ -56,7 +56,7 @@ import Text.Pandoc.XML
 import Text.TeXMath
 import Text.XML.Light
 
-data ODTState = ODTState { stEntries :: [Entry]
+newtype ODTState = ODTState { stEntries :: [Entry]
                          }
 
 type O m = StateT ODTState m
@@ -224,17 +224,39 @@ transformPicMath _ (Math t math) = do
          let dirname = "Formula-" ++ show (length entries) ++ "/"
          let fname = dirname ++ "content.xml"
          let entry = toEntry fname epochtime (fromStringLazy mathml)
-         modify $ \st -> st{ stEntries = entry : entries }
+         let fname' = dirname ++ "settings.xml"
+         let entry' = toEntry fname' epochtime $ documentSettings (t == InlineMath)
+         modify $ \st -> st{ stEntries = entry' : (entry : entries) }
          return $ RawInline (Format "opendocument") $ render Nothing $
-           inTags False "draw:frame" [("text:anchor-type",
-                                       if t == DisplayMath
-                                          then "paragraph"
-                                          else "as-char")
-                                     ,("style:vertical-pos", "middle")
-                                     ,("style:vertical-rel", "text")] $
+           inTags False "draw:frame" (if t == DisplayMath
+                                      then [("draw:style-name","fr2")
+                                           -- `draw:frame` does not support either
+                                           -- `style:vertical-pos` or `style:vertical-rel`,
+                                           -- therefore those attributes must go into the
+                                           -- `style:style` element
+                                           ,("text:anchor-type","paragraph")]
+                                      else [("draw:style-name","fr1")
+                                           ,("text:anchor-type","as-char")]) $
              selfClosingTag "draw:object" [("xlink:href", dirname)
                                         , ("xlink:type", "simple")
                                         , ("xlink:show", "embed")
                                         , ("xlink:actuate", "onLoad")]
 
 transformPicMath _ x = return x
+
+documentSettings :: Bool -> B.ByteString
+documentSettings isTextMode = fromStringLazy $ render Nothing
+    $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+    $$
+    (inTags True "office:document-settings"
+      [("xmlns:office","urn:oasis:names:tc:opendocument:xmlns:office:1.0")
+      ,("xmlns:xlink","http://www.w3.org/1999/xlink")
+      ,("xmlns:config","urn:oasis:names:tc:opendocument:xmlns:config:1.0")
+      ,("xmlns:ooo","http://openoffice.org/2004/office")
+      ,("office:version","1.2")] $
+       inTagsSimple "office:settings" $
+         inTags False "config:config-item-set"
+           [("config:name", "ooo:configuration-settings")] $
+           inTags False "config:config-item" [("config:name", "IsTextMode")
+                                             ,("config:type", "boolean")] $
+                                              text $ if isTextMode then "true" else "false")
