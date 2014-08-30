@@ -75,7 +75,7 @@ import Data.Monoid
 type Transform = Pandoc -> Pandoc
 
 copyrightMessage :: String
-copyrightMessage = unlines [
+copyrightMessage = intercalate "\n" [
   "",
   "Copyright (C) 2006-2014 John MacFarlane",
   "Web:  http://johnmacfarlane.net/pandoc",
