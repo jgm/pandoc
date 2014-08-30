@@ -16,6 +16,7 @@ import Text.Pandoc.Options ( ReaderOptions(..), readerTrace)
 import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Compat.Except (MonadError, throwError, runExcept, Except)
+import Text.Pandoc.MIME (MimeType)
 import qualified Text.Pandoc.Builder as B
 import Codec.Archive.Zip ( Archive (..), toArchive, fromEntry
                          , findEntryByPath, Entry)
@@ -34,9 +35,7 @@ import Control.DeepSeq.Generics (deepseq, NFData)
 
 import Debug.Trace (trace)
 
-type MIME = String
-
-type Items = M.Map String (FilePath, MIME)
+type Items = M.Map String (FilePath, MimeType)
 
 readEPUB :: ReaderOptions -> BL.ByteString -> (Pandoc, MediaBag)
 readEPUB opts bytes = runEPUB (archiveToEPUB opts $ toArchive bytes)
@@ -65,13 +64,13 @@ archiveToEPUB os archive = do
   return $ (ast, mediaBag)
   where
     os' = os {readerParseRaw = True}
-    parseSpineElem :: MonadError String m => FilePath -> (FilePath, MIME) -> m Pandoc
+    parseSpineElem :: MonadError String m => FilePath -> (FilePath, MimeType) -> m Pandoc
     parseSpineElem (normalise -> r) (normalise -> path, mime) = do
       when (readerTrace os) (traceM path)
       doc <- mimeToReader mime r path
       let docSpan = B.doc $ B.para $ B.spanWith (takeFileName path, [], []) mempty
       return $ docSpan <> doc
-    mimeToReader :: MonadError String m => MIME -> FilePath -> FilePath ->  m Pandoc
+    mimeToReader :: MonadError String m => MimeType -> FilePath -> FilePath -> m Pandoc
     mimeToReader "application/xhtml+xml" (normalise -> root) (normalise -> path) = do
       fname <- findEntryByPathE (root </> path) archive
       return $ fixInternalReferences path .
@@ -84,7 +83,7 @@ archiveToEPUB os archive = do
 
 -- paths should be absolute when this function is called
 -- renameImages should do this
-fetchImages :: [(FilePath, MIME)]
+fetchImages :: [(FilePath, MimeType)]
             -> FilePath -- ^ Root
             -> Archive
             -> Pandoc
@@ -110,7 +109,7 @@ renameImages _ x = x
 imageToPandoc :: FilePath -> Pandoc
 imageToPandoc s = B.doc . B.para $ B.image s "" mempty
 
-imageMimes :: [String]
+imageMimes :: [MimeType]
 imageMimes = ["image/gif", "image/jpeg", "image/png"]
 
 type CoverImage = FilePath
@@ -131,7 +130,7 @@ parseManifest content = do
       mime <- findAttrE (emptyName "media-type") e
       return (uid, (href, mime))
 
-parseSpine :: MonadError String m => Items -> Element -> m [(FilePath, MIME)]
+parseSpine :: MonadError String m => Items -> Element -> m [(FilePath, MimeType)]
 parseSpine is e = do
   spine <- findElementE (dfName "spine") e
   let itemRefs = findChildren (dfName "itemref") spine

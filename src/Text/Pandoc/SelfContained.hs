@@ -42,6 +42,7 @@ import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
 import Text.Pandoc.Shared (renderTags', err, fetchItem')
 import Text.Pandoc.MediaBag (MediaBag)
+import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.UTF8 (toString,  fromString)
 import Text.Pandoc.Options (WriterOptions(..))
 
@@ -98,8 +99,8 @@ cssURLs media sourceURL d orig =
                                ";base64," `B.append` (encode raw)
                   return $ x `B.append` "url(" `B.append` enc `B.append` rest
 
-getRaw :: MediaBag -> Maybe String -> String -> String
-       -> IO (ByteString, String)
+getRaw :: MediaBag -> Maybe String -> MimeType -> String
+       -> IO (ByteString, MimeType)
 getRaw media sourceURL mimetype src = do
   let ext = map toLower $ takeExtension src
   fetchResult <- fetchItem' media sourceURL src

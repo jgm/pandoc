@@ -107,7 +107,7 @@ import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
 import qualified Data.Set as Set
 import System.Directory
 import System.FilePath (joinPath, splitDirectories)
-import Text.Pandoc.MIME (getMimeType)
+import Text.Pandoc.MIME (MimeType, getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension)
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
@@ -779,7 +779,7 @@ readDataFileUTF8 userDir fname =
 -- | Fetch an image or other item from the local filesystem or the net.
 -- Returns raw content and maybe mime type.
 fetchItem :: Maybe String -> String
-          -> IO (Either E.SomeException (BS.ByteString, Maybe String))
+          -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
 fetchItem sourceURL s =
   case (sourceURL >>= parseURIReference . ensureEscaped, ensureEscaped s) of
        (_, s') | isURI s'  -> openURL s'
@@ -801,14 +801,14 @@ fetchItem sourceURL s =
 
 -- | Like 'fetchItem', but also looks for items in a 'MediaBag'.
 fetchItem' :: MediaBag -> Maybe String -> String
-           -> IO (Either E.SomeException (BS.ByteString, Maybe String))
+           -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
 fetchItem' media sourceURL s = do
   case lookupMedia s media of
        Nothing -> fetchItem sourceURL s
        Just (mime, bs) -> return $ Right (BS.concat $ toChunks bs, Just mime)
 
 -- | Read from a URL and return raw data and maybe mime type.
-openURL :: String -> IO (Either E.SomeException (BS.ByteString, Maybe String))
+openURL :: String -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
 openURL u
   | Just u' <- stripPrefix "data:" u =
     let mime     = takeWhile (/=',') u'
