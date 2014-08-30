@@ -1302,7 +1302,9 @@ line must begin with a space.
     | 200 Main St.
     | Berkeley, CA 94718
 
-This syntax is borrowed from [reStructuredText].
+This syntax is borrowed from [reStructuredText]. However, unlike most
+reStructuredText implementations, Pandoc permits emphasised text, links,
+etc. to span across several lines in a line block.
 
 Lists
 -----

@@ -37,7 +37,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
 import Control.Monad ( when, liftM, guard, mzero, mplus )
-import Data.List ( findIndex, intersperse, intercalate,
+import Data.List ( findIndex, intercalate,
                    transpose, sort, deleteFirstsBy, isSuffixOf )
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
@@ -221,10 +221,12 @@ fieldList = try $ do
 
 lineBlock :: RSTParser Blocks
 lineBlock = try $ do
-  lines' <- lineBlockLines
-  lines'' <- mapM (parseFromString
-                   (trimInlines . mconcat <$> many inline)) lines'
-  return $ B.para (mconcat $ intersperse B.linebreak lines'')
+  oldHardBreaks <- stateHardBreaks <$> getState
+  updateState $ \s -> s {stateHardBreaks = True}
+  blocks <- parseFromString parseBlocks . (++ "\n") . unlines =<<
+              lineBlockLines
+  updateState $ \s -> s {stateHardBreaks = oldHardBreaks}
+  return blocks
 
 --
 -- paragraph block
@@ -1050,7 +1052,9 @@ endline = try $ do
      then notFollowedBy (anyOrderedListMarker >> spaceChar) >>
           notFollowedBy' bulletListStart
      else return ()
-  return B.space
+  hardBreaks <- stateHardBreaks <$> getState
+  (guard hardBreaks >> return B.linebreak)
+    <|> return B.space
 
 --
 -- links

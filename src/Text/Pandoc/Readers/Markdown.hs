@@ -330,6 +330,8 @@ parseMarkdown = do
   updateState $ \state -> state { stateOptions =
                 let oldOpts = stateOptions state in
                     oldOpts{ readerParseRaw = True } }
+  optional $ guardEnabled Ext_hard_line_breaks *>
+    updateState (\s -> s {stateHardBreaks = True})
   optional titleBlock
   blocks <- parseBlocks
   st <- getState
@@ -1035,9 +1037,12 @@ stripMarkdownAttribute s = renderTags' $ map filterAttrib $ parseTags s
 lineBlock :: MarkdownParser (F Blocks)
 lineBlock = try $ do
   guardEnabled Ext_line_blocks
-  lines' <- lineBlockLines >>=
-            mapM (parseFromString (trimInlinesF . mconcat <$> many inline))
-  return $ B.para <$> (mconcat $ intersperse (return B.linebreak) lines')
+  oldHardBreaks <- stateHardBreaks <$> getState
+  updateState $ \s -> s {stateHardBreaks = True}
+  blocks <- parseFromString parseBlocks . (++ "\n") . unlines =<<
+              lineBlockLines
+  updateState $ \s -> s {stateHardBreaks = oldHardBreaks}
+  return blocks
 
 --
 -- Tables
@@ -1460,13 +1465,23 @@ code :: MarkdownParser (F Inlines)
 code = try $ do
   starts <- many1 (char '`')
   skipSpaces
-  result <- many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
-                       (char '\n' >> notFollowedBy' blankline >> return " "))
-                      (try (skipSpaces >> count (length starts) (char '`') >>
-                      notFollowedBy (char '`')))
+  let codePiece = choice
+          [ many1 (noneOf "`\n")
+          , many1 (char '`')
+          , char '\n' >> notFollowedBy' blankline >> return "\n" ]
+      codeEnd = try $ do
+          skipSpaces
+          count (length starts) (char '`')
+          notFollowedBy (char '`')
+  result <- trim . concat <$> codePiece `many1Till` codeEnd
+  hardBreaks <- stateHardBreaks <$> getState
+  let results = if hardBreaks
+                  then lines result
+                  else [map (\x -> if x == '\n' then ' ' else x) result]
   attr <- option ([],[],[]) (try $ guardEnabled Ext_inline_code_attributes >>
                                    optional whitespace >> attributes)
-  return $ return $ B.codeWith attr $ trim $ concat result
+  return $ return $ mconcat $
+    intersperse B.linebreak $ map (B.codeWith attr) results
 
 math :: MarkdownParser (F Inlines)
 math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
@@ -1611,8 +1626,9 @@ endline = try $ do
   guardEnabled Ext_blank_before_header <|> notFollowedBy (char '#') -- atx header
   guardDisabled Ext_backtick_code_blocks <|>
      notFollowedBy (() <$ (lookAhead (char '`') >> codeBlockFenced))
+  hardBreaks <- stateHardBreaks <$> getState
   (eof >> return mempty)
-    <|> (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
+    <|> (guard hardBreaks >> return (return B.linebreak))
     <|> (guardEnabled Ext_ignore_line_breaks >> return mempty)
     <|> (return $ return B.space)
 
