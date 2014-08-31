@@ -1374,7 +1374,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
     <Content>And nested without indentation:</Content>
   </CharacterStyleRange><Br />
 </ParagraphStyleRange>
-<ParagraphStyleRange AppliedParagraphStyle="">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>foo</Content>
   </CharacterStyleRange><Br />
@@ -1455,7 +1455,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
     <Content>Here’s a simple block:</Content>
   </CharacterStyleRange><Br />
 </ParagraphStyleRange>
-<ParagraphStyleRange AppliedParagraphStyle="">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>foo</Content>
   </CharacterStyleRange><Br />

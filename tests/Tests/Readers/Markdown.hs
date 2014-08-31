@@ -266,10 +266,10 @@ tests = [ testGroup "inline code"
         , testGroup "lists"
           [ "issue #1154" =:
               " -  <div>\n    first div breaks\n    </div>\n\n    <button>if this button exists</button>\n\n    <div>\n    with this div too.\n    </div>\n"
-              =?> bulletList [divWith nullAttr (plain $ text "first div breaks") <>
+              =?> bulletList [divWith nullAttr (para $ text "first div breaks") <>
                               rawBlock "html" "<button>" <>
                               plain (text "if this button exists") <>
                               rawBlock "html" "</button>" <>
-                              divWith nullAttr (plain $ text "with this div too.")]
+                              divWith nullAttr (para $ text "with this div too.")]
           ]
         ]

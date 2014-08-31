@@ -927,6 +927,12 @@ para = try $ do
               <|> (guardDisabled Ext_blank_before_header >> () <$ lookAhead header)
               <|> (guardEnabled Ext_lists_without_preceding_blankline >>
                        () <$ lookAhead listStart)
+              <|> do guardEnabled Ext_native_divs
+                     inHtmlBlock <- stateInHtmlBlock <$> getState
+                     case inHtmlBlock of
+                          Just "div" -> () <$
+                                       lookAhead (htmlTag (~== TagClose "div"))
+                          _          -> mzero
             return $ do
               result' <- result
               case B.toList result' of
@@ -1611,6 +1617,7 @@ endline = try $ do
   guardEnabled Ext_blank_before_header <|> notFollowedBy (char '#') -- atx header
   guardDisabled Ext_backtick_code_blocks <|>
      notFollowedBy (() <$ (lookAhead (char '`') >> codeBlockFenced))
+  notFollowedByHtmlCloser
   (eof >> return mempty)
     <|> (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
     <|> (guardEnabled Ext_ignore_line_breaks >> return mempty)

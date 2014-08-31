@@ -450,6 +450,7 @@ Simple block on one line:
 foo
 .PP
 And nested without indentation:
+.PP
 foo
 bar
 .PP
@@ -458,6 +459,7 @@ This is \f[I]emphasized\f[]
 And this is \f[B]strong\f[]
 .PP
 Here's a simple block:
+.PP
 foo
 .PP
 This should be a code block, though:

@@ -325,6 +325,7 @@ And nested without indentation:
 
 foo
 
+
 </div>
 
 </div>
@@ -353,6 +354,7 @@ Here’s a simple block:
 <div>
 
 foo
+
 
 </div>
 This should be a code block, though:

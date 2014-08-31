@@ -230,7 +230,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Simple",Space,Str "block",Space,Str "on",Space,Str "one",Space,Str "line:"]
 ,Div ("",[],[]) [Plain [Str "foo"]]
 ,Para [Str "And",Space,Str "nested",Space,Str "without",Space,Str "indentation:"]
-,Div ("",[],[]) [Div ("",[],[]) [Div ("",[],[]) [Plain [Str "foo"]]],Div ("",[],[]) [Plain [Str "bar"]]]
+,Div ("",[],[]) [Div ("",[],[]) [Div ("",[],[]) [Para [Str "foo"]]],Div ("",[],[]) [Plain [Str "bar"]]]
 ,Para [Str "Interpreted",Space,Str "markdown",Space,Str "in",Space,Str "a",Space,Str "table:"]
 ,RawBlock (Format "html") "<table>"
 ,RawBlock (Format "html") "<tr>"
@@ -244,7 +244,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,RawBlock (Format "html") "</table>"
 ,RawBlock (Format "html") "<script type=\"text/javascript\">document.write('This *should not* be interpreted as markdown');</script>"
 ,Para [Str "Here\8217s",Space,Str "a",Space,Str "simple",Space,Str "block:"]
-,Div ("",[],[]) [Plain [Str "foo"]]
+,Div ("",[],[]) [Para [Str "foo"]]
 ,Para [Str "This",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "code",Space,Str "block,",Space,Str "though:"]
 ,CodeBlock ("",[],[]) "<div>\n    foo\n</div>"
 ,Para [Str "As",Space,Str "should",Space,Str "this:"]

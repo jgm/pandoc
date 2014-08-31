@@ -548,6 +548,7 @@ foo
 And nested without indentation:
 
 foo
+
 bar
 Interpreted markdown in a table:
 
@@ -556,6 +557,7 @@ And this is {\bf strong}
 Here's a simple block:
 
 foo
+
 This should be a code block, though:
 
 \starttyping
