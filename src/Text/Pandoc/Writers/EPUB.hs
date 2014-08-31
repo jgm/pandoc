@@ -406,7 +406,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                 $ case blocks of
                       (Header 1 _ _ : _) -> blocks
                       _                  -> Header 1 ("",["unnumbered"],[])
-                                                 (docTitle meta) : blocks
+                                                 (docTitle' meta) : blocks
 
   let chapterHeaderLevel = writerEpubChapterLevel opts
   -- internal reference IDs change when we chunk the file,
@@ -484,7 +484,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                            [("id", toId $ eRelativePath ent),
                             ("href", eRelativePath ent),
                             ("media-type", fromMaybe "" $ getMimeType $ eRelativePath ent)] $ ()
-  let plainTitle = case docTitle meta of
+  let plainTitle = case docTitle' meta of
                         [] -> case epubTitle metadata of
                                    []   -> "UNTITLED"
                                    (x:_) -> titleText x
@@ -524,9 +524,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
                     Just _ -> [ unode "itemref" !
                                 [("idref", "cover_xhtml"),("linear","no")] $ () ]
               ++ ((unode "itemref" ! [("idref", "title_page_xhtml")
-                                     ,("linear", if null (docTitle meta)
-                                                    then "no"
-                                                    else "yes")] $ ()) :
+                                     ,("linear",
+                                         case lookupMeta "title" meta of
+                                               Just _  -> "yes"
+                                               Nothing -> "no")] $ ()) :
                   (unode "itemref" ! [("idref", "nav")
                                      ,("linear", if writerTableOfContents opts
                                                     then "yes"
@@ -578,7 +579,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                   ] ++ subs
 
   let tpNode = unode "navPoint" !  [("id", "navPoint-0")] $
-                  [ unode "navLabel" $ unode "text" (stringify $ docTitle meta)
+                  [ unode "navLabel" $ unode "text" (stringify $ docTitle' meta)
                   , unode "content" ! [("src","title_page.xhtml")] $ () ]
 
   let tocData = UTF8.fromStringLazy $ ppTopElement $
@@ -597,7 +598,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                         Nothing  -> []
                         Just img -> [unode "meta" ! [("name","cover"),
                                             ("content", toId img)] $ ()]
-          , unode "docTitle" $ unode "text" $ plainTitle
+          , unode "docTitle'" $ unode "text" $ plainTitle
           , unode "navMap" $
               tpNode : evalState (mapM (navPointNode navMapFormatter) secs) 1
           ]
@@ -1192,3 +1193,16 @@ relatorMap =
            ,("writer of added text", "wat")
            ]
 
+docTitle' :: Meta -> [Inline]
+docTitle' meta = fromMaybe [] $ go <$> lookupMeta "title" meta
+  where go (MetaString s) = [Str s]
+        go (MetaInlines xs) = xs
+        go (MetaBlocks [Para xs]) = xs
+        go (MetaBlocks [Plain xs]) = xs
+        go (MetaMap m) =
+              case M.lookup "type" m of
+                   Just x | stringify x == "main" ->
+                              maybe [] go $ M.lookup "text" m
+                   _ -> []
+        go (MetaList xs) = concatMap go xs
+        go _ = []
