@@ -2993,7 +2993,7 @@ block.  Here is an example:
     - scheme: DOI
       text: doi:10.234234.234/33
     publisher:  My Press
-    rights:  \(c) 2007 John Smith, CC BY-NC
+    rights: © 2007 John Smith, CC BY-NC
     ...
 
 The following fields are recognized:
