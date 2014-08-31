@@ -48,7 +48,7 @@ import Text.Pandoc.Shared ( escapeURI, removeFormatting, camelCaseToHyphenated
                           , trimr, normalize, substitute  )
 import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
 import Text.Pandoc.Templates ( renderTemplate' )
-import Data.List ( intersect, intercalate, isPrefixOf )
+import Data.List ( intersect, intercalate, isPrefixOf, transpose )
 import Data.Default (Default(..))
 import Network.URI ( isURI )
 import Control.Monad ( zipWithM )
@@ -181,20 +181,32 @@ blockToDokuWiki opts (BlockQuote blocks) = do
      then return $ "> " ++ contents
      else return $ "<HTML><blockquote>\n" ++ contents ++ "</blockquote></HTML>"
 
-blockToDokuWiki opts (Table capt aligns _ headers rows') = do
+blockToDokuWiki opts (Table capt aligns _ headers rows) = do
   captionDoc <- if null capt
                    then return ""
                    else do
                       c <- inlineListToDokuWiki opts capt
                       return $ "" ++ c ++ "\n"
-  head' <- if all null headers
-              then return ""
-              else do
-                 hs <- tableHeaderToDokuWiki opts aligns headers
-                 return $ hs ++ "\n"
-  body' <- mapM (tableRowToDokuWiki opts aligns) rows'
-  return $ captionDoc ++ head' ++
-            unlines body'
+  headers' <- if all null headers
+                 then return []
+                 else zipWithM (tableItemToDokuWiki opts) aligns headers
+  rows' <- mapM (zipWithM (tableItemToDokuWiki opts) aligns) rows
+  let widths = map (maximum . map length) $ transpose (headers':rows')
+  let padTo (width, al) s =
+          case (width - length s) of
+               x | x > 0 ->
+                 if al == AlignLeft || al == AlignDefault
+                    then s ++ replicate x ' '
+                    else if al == AlignRight
+                            then replicate x ' ' ++ s
+                            else replicate (x `div` 2) ' ' ++
+                                 s ++ replicate (x - x `div` 2) ' '
+                 | otherwise -> s
+  let renderRow sep cells = sep ++
+          intercalate sep (zipWith padTo (zip widths aligns) cells) ++ sep
+  return $ captionDoc ++
+           (if null headers' then "" else renderRow "^" headers' ++ "\n") ++
+           unlines (map (renderRow "|") rows')
 
 blockToDokuWiki opts x@(BulletList items) = do
   oldUseTags <- stUseTags <$> ask
@@ -357,32 +369,10 @@ backSlashLineBreaks cs = reverse $ g $ reverse $ concatMap f cs
 
 -- Auxiliary functions for tables:
 
--- TODO Eliminate copy-and-pasted code in tableHeaderToDokuWiki and tableRowToDokuWiki
-tableHeaderToDokuWiki :: WriterOptions
-                    -> [Alignment]
-                    -> [[Block]]
-                    -> DokuWiki String
-tableHeaderToDokuWiki opts aligns cols' = do
-  cols'' <- zipWithM
-            (tableItemToDokuWiki opts)
-            aligns cols'
-  return $ "^ " ++ joinHeaders cols'' ++ " ^"
-
-tableRowToDokuWiki :: WriterOptions
-                    -> [Alignment]
-                    -> [[Block]]
-                    -> DokuWiki String
-tableRowToDokuWiki opts alignStrings cols' = do
-  cols'' <- zipWithM
-            (tableItemToDokuWiki opts)
-            alignStrings cols'
-  return $ "| " ++ "" ++ joinColumns cols'' ++ " |"
-
 tableItemToDokuWiki :: WriterOptions
                      -> Alignment
                      -> [Block]
                      -> DokuWiki String
--- TODO Fix celltype and align' defined but not used
 tableItemToDokuWiki opts align' item = do
   let mkcell x = (if align' == AlignRight || align' == AlignCenter
                      then "  "
@@ -393,14 +383,6 @@ tableItemToDokuWiki opts align' item = do
   contents <- local (\s -> s { stBackSlashLB = True }) $
               blockListToDokuWiki opts item
   return $ mkcell contents
-
--- | Concatenates columns together.
-joinColumns :: [String] -> String
-joinColumns = intercalate " | "
-
--- | Concatenates headers together.
-joinHeaders :: [String] -> String
-joinHeaders = intercalate " ^ "
 
 -- | Convert list of Pandoc block elements to DokuWiki.
 blockListToDokuWiki :: WriterOptions -- ^ Options

@@ -60,6 +60,8 @@ pandoc (1.13.1)
     + Refactor to use Reader monad (Matthew Pickering).
     + Avoid using raw HTML in table cells; instead, use `\\`
       instead of newlines (Jesse Rosenthal).
+    + Properly handle HTML table cell alignments, and use spacing
+      to make the tables look prettier (#1566).
 
   * Docx writer:
 
