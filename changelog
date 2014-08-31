@@ -33,6 +33,10 @@ pandoc (1.13.1)
       This makes to docx reader's native output fit with the way the markdown
       reader understands its markdown output.
 
+  * Textile writer:  Extended the range of cases where native textile
+    tables will be used (as opposed to raw HTML):  we now handle any
+    alignment type, but only for simple tables with no captions.
+
   * Txt2Tags reader:
 
     + Header is now parsed only if standalone flag is set (Matthew Pickering).
