@@ -32,11 +32,8 @@ install: full
 	cabal copy
 	cabal register
 
-sdist: man
-	# note: cabal sdist doesn't work well with preprocessors for some cabal versions
-	${setup} sdist
-
-dist: sdist
+dist: man
+	cabal sdist
 	rm -rf "pandoc-${version}"
 	tar xvzf dist/pandoc-${version}.tar.gz
 	cd pandoc-${version}
@@ -57,4 +54,4 @@ clean:
 	cabal clean
 	-rm ${MANPAGES}
 
-.PHONY: deps quick full install man clean test bench haddock sdist osxpkg dist prof
+.PHONY: deps quick full install man clean test bench haddock osxpkg dist prof
