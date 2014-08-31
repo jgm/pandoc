@@ -731,8 +731,8 @@ metadataElement version md currentTime =
         toTitleNode id' title
           | version == EPUB2 = [dcNode "title" !
              (("id",id') :
-              maybe [] (\x -> [("opf:file-as",x)]) (titleFileAs title) ++
-              maybe [] (\x -> [("opf:title-type",x)]) (titleType title)) $
+              -- note: EPUB2 doesn't accept opf:title-type
+              maybe [] (\x -> [("opf:file-as",x)]) (titleFileAs title)) $
               titleText title]
           | otherwise = [dcNode "title" ! [("id",id')] $ titleText title]
               ++
