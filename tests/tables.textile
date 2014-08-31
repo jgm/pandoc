@@ -34,36 +34,10 @@ Simple table with caption:
 
 Simple table without caption:
 
-<table>
-<thead>
-<tr class="header">
-<th align="right">Right</th>
-<th align="left">Left</th>
-<th align="center">Center</th>
-<th align="left">Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">12</td>
-<td align="left">12</td>
-<td align="center">12</td>
-<td align="left">12</td>
-</tr>
-<tr class="even">
-<td align="right">123</td>
-<td align="left">123</td>
-<td align="center">123</td>
-<td align="left">123</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">1</td>
-<td align="center">1</td>
-<td align="left">1</td>
-</tr>
-</tbody>
-</table>
+|_. Right|_. Left|_. Center|_. Default|
+|>. 12|<. 12|=. 12|12|
+|>. 123|<. 123|=. 123|123|
+|>. 1|<. 1|=. 1|1|
 
 Simple table indented two spaces:
 
@@ -164,28 +138,9 @@ Multiline table without caption:
 
 Table without column headers:
 
-<table>
-<tbody>
-<tr class="odd">
-<td align="right">12</td>
-<td align="left">12</td>
-<td align="center">12</td>
-<td align="right">12</td>
-</tr>
-<tr class="even">
-<td align="right">123</td>
-<td align="left">123</td>
-<td align="center">123</td>
-<td align="right">123</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">1</td>
-<td align="center">1</td>
-<td align="right">1</td>
-</tr>
-</tbody>
-</table>
+|>. 12|<. 12|=. 12|>. 12|
+|>. 123|<. 123|=. 123|>. 123|
+|>. 1|<. 1|=. 1|>. 1|
 
 Multiline table without column headers:
 
