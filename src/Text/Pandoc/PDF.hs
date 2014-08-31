@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, CPP #-}
+{-# LANGUAGE OverloadedStrings, CPP, ScopedTypeVariables #-}
 {-
 Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -40,7 +40,8 @@ import System.Directory
 import Data.Digest.Pure.SHA (showDigest, sha1)
 import System.Environment
 import Control.Monad (unless, (<=<))
-import Control.Applicative ((<$>), (<$))
+import qualified Control.Exception as E
+import Control.Applicative ((<$))
 import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -105,24 +106,29 @@ convertImages tmpdir (Image ils (src, tit)) = do
   img <- convertImage tmpdir src
   newPath <-
     case img of
-      Left _ -> src <$ (warn $ "Unable to convert image `" ++ src ++ "'")
-      Right (fp, action) -> fp <$ action
+      Left e -> src <$
+                 warn ("Unable to convert image `" ++ src ++ "':\n" ++ e)
+      Right fp -> return fp
   return (Image ils (newPath, tit))
 convertImages _ x = return x
 
 -- Convert formats which do not work well in pdf to png
-convertImage :: FilePath -> FilePath -> IO (Either String ((FilePath, IO ())))
+convertImage :: FilePath -> FilePath -> IO (Either String FilePath)
 convertImage tmpdir fname =
   case mime of
     Just "image/png" -> doNothing
     Just "image/jpeg" -> doNothing
     Just "application/pdf" -> doNothing
-    _ -> savePng <$> JP.readImage fname
+    _ -> JP.readImage fname >>= \res ->
+          case res of
+               Left msg  -> return $ Left msg
+               Right img ->
+                 E.catch (Right fileOut <$ JP.savePngImage fileOut img) $
+                     \(e :: E.SomeException) -> return (Left (show e))
   where
     fileOut = replaceDirectory (replaceExtension fname (".png")) tmpdir
-    savePng = fmap (\x -> (fileOut, JP.savePngImage fileOut x))
     mime = getMimeType fname
-    doNothing = return (Right $ (fname, return ()))
+    doNothing = return (Right fname)
 
 tex2pdf' :: FilePath                        -- ^ temp directory for output
          -> String                          -- ^ tex program
