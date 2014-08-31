@@ -32,7 +32,7 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 
 {-
     [ ] Implement nested blockquotes (currently only ever does one level)
-    [ ] Implement alignment of text in tables
+    [x] Implement alignment of text in tables
     [ ] Implement comments
     [ ] Work through the Dokuwiki spec, and check I've not missed anything out
     [ ] Remove dud/duplicate code
@@ -182,7 +182,6 @@ blockToDokuWiki opts (BlockQuote blocks) = do
      else return $ "<HTML><blockquote>\n" ++ contents ++ "</blockquote></HTML>"
 
 blockToDokuWiki opts (Table capt aligns _ headers rows') = do
-  let alignStrings = map alignmentToString aligns
   captionDoc <- if null capt
                    then return ""
                    else do
@@ -191,9 +190,9 @@ blockToDokuWiki opts (Table capt aligns _ headers rows') = do
   head' <- if all null headers
               then return ""
               else do
-                 hs <- tableHeaderToDokuWiki opts alignStrings 0 headers
+                 hs <- tableHeaderToDokuWiki opts aligns headers
                  return $ hs ++ "\n"
-  body' <- zipWithM (tableRowToDokuWiki opts alignStrings) [1..] rows'
+  body' <- mapM (tableRowToDokuWiki opts aligns) rows'
   return $ captionDoc ++ head' ++
             unlines body'
 
@@ -360,44 +359,37 @@ backSlashLineBreaks cs = reverse $ g $ reverse $ concatMap f cs
 
 -- TODO Eliminate copy-and-pasted code in tableHeaderToDokuWiki and tableRowToDokuWiki
 tableHeaderToDokuWiki :: WriterOptions
-                    -> [String]
-                    -> Int
+                    -> [Alignment]
                     -> [[Block]]
                     -> DokuWiki String
-tableHeaderToDokuWiki opts alignStrings rownum cols' = do
-  let celltype = if rownum == 0 then "" else ""
+tableHeaderToDokuWiki opts aligns cols' = do
   cols'' <- zipWithM
-            (tableItemToDokuWiki opts celltype)
-            alignStrings cols'
-  return $ "^ " ++ "" ++ joinHeaders cols'' ++ " ^"
+            (tableItemToDokuWiki opts)
+            aligns cols'
+  return $ "^ " ++ joinHeaders cols'' ++ " ^"
 
 tableRowToDokuWiki :: WriterOptions
-                    -> [String]
-                    -> Int
+                    -> [Alignment]
                     -> [[Block]]
                     -> DokuWiki String
-tableRowToDokuWiki opts alignStrings rownum cols' = do
-  let celltype = if rownum == 0 then "" else ""
+tableRowToDokuWiki opts alignStrings cols' = do
   cols'' <- zipWithM
-            (tableItemToDokuWiki opts celltype)
+            (tableItemToDokuWiki opts)
             alignStrings cols'
   return $ "| " ++ "" ++ joinColumns cols'' ++ " |"
 
-alignmentToString :: Alignment -> [Char]
-alignmentToString alignment = case alignment of
-                                 AlignLeft    -> ""
-                                 AlignRight   -> ""
-                                 AlignCenter  -> ""
-                                 AlignDefault -> ""
-
 tableItemToDokuWiki :: WriterOptions
-                     -> String
-                     -> String
+                     -> Alignment
                      -> [Block]
                      -> DokuWiki String
 -- TODO Fix celltype and align' defined but not used
-tableItemToDokuWiki opts _celltype _align' item = do
-  let mkcell x = "" ++ x ++ ""
+tableItemToDokuWiki opts align' item = do
+  let mkcell x = (if align' == AlignRight || align' == AlignCenter
+                     then "  "
+                     else "") ++ x ++
+                 (if align' == AlignLeft || align' == AlignCenter
+                     then "  "
+                     else "")
   contents <- local (\s -> s { stBackSlashLB = True }) $
               blockListToDokuWiki opts item
   return $ mkcell contents
