@@ -126,6 +126,7 @@ import Text.Pandoc.Compat.Monoid
 import Data.ByteString.Base64 (decodeLenient)
 import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
 import qualified Data.Text as T (toUpper, pack, unpack)
+import Data.ByteString.Lazy (toChunks)
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -133,7 +134,6 @@ import Text.Pandoc.Data (dataFiles)
 import Paths_pandoc (getDataFileName)
 #endif
 #ifdef HTTP_CLIENT
-import Data.ByteString.Lazy (toChunks)
 import Network.HTTP.Client (httpLbs, parseUrl, withManager,
                             responseBody, responseHeaders,
                             Request(port,host))
