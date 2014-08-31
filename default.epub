@@ -17,15 +17,30 @@ $endfor$
 </head>
 <body>
 $if(titlepage)$
+$for(title)$
+$if(title.text)$
+  <h1 class="$title.type$">$title.text$</h1>
+$else$
   <h1 class="title">$title$</h1>
+$endif$
+$endfor$
 $if(subtitle)$
   <h1 class="subtitle">$subtitle$</h1>
 $endif$
 $for(author)$
   <h2 class="author">$author$</h2>
 $endfor$
+$for(creator)$
+  <h2 class="$creator.type$">$creator.text$</h2>
+$endfor$
+$if(publisher)$
+  <p class="publisher">$publisher$</p>
+$endif$
 $if(date)$
-  <h3 class="date">$date$</h3>
+  <p class="date">$date$</p>
+$endif$
+$if(rights)$
+  <p class="rights">$rights$</p>
 $endif$
 $else$
 $body$
