@@ -598,7 +598,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                         Nothing  -> []
                         Just img -> [unode "meta" ! [("name","cover"),
                                             ("content", toId img)] $ ()]
-          , unode "docTitle'" $ unode "text" $ plainTitle
+          , unode "docTitle" $ unode "text" $ plainTitle
           , unode "navMap" $
               tpNode : evalState (mapM (navPointNode navMapFormatter) secs) 1
           ]
