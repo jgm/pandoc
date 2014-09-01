@@ -572,7 +572,13 @@ tableCellToLaTeX header (width, align, blocks) = do
                           $ reverse ns)
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
-listItemToLaTeX lst = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
+listItemToLaTeX lst
+  -- we need to put some text before a header if it's the first
+  -- element in an item. This will look ugly in LaTeX regardless, but
+  -- this will keep the typesetter from throwing an error.
+  | ((Header _ _ _) :_) <- lst =
+    blockListToLaTeX lst >>= return . (text "\\item ~" $$) . (nest 2)
+  | otherwise = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
                       (nest 2)
 
 defListItemToLaTeX :: ([Inline], [[Block]]) -> State WriterState Doc
@@ -586,7 +592,11 @@ defListItemToLaTeX (term, defs) = do
                     then braces term'
                     else term'
     def'  <- liftM vsep $ mapM blockListToLaTeX defs
-    return $ "\\item" <> brackets term'' $$ def'
+    return $ case defs of
+     (((Header _ _ _) : _) : _) ->
+       "\\item" <> brackets term'' <> " ~ " $$ def'
+     _                          ->
+       "\\item" <> brackets term'' $$ def'
 
 -- | Craft the section header, inserting the secton reference, if supplied.
 sectionHeader :: Bool    -- True for unnumbered
