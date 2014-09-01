@@ -731,7 +731,9 @@ inlineToLaTeX (Code (_,classes,_) str) = do
    where listingsCode = do
            inNote <- gets stInNote
            when inNote $ modify $ \s -> s{ stVerbInNote = True }
-           let chr = ((enumFromTo '!' '~') \\ str) !! 0
+           let chr = case "!\"&'()*,-./:;?@_" \\ str of
+                          (c:_) -> c
+                          []    -> '!'
            return $ text $ "\\lstinline" ++ [chr] ++ str ++ [chr]
          highlightCode = do
            case highlight formatLaTeXInline ("",classes,[]) str of
