@@ -528,10 +528,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                          case lookupMeta "title" meta of
                                                Just _  -> "yes"
                                                Nothing -> "no")] $ ()) :
-                  (unode "itemref" ! [("idref", "nav")
-                                     ,("linear", if writerTableOfContents opts
-                                                    then "yes"
-                                                    else "no")] $ ()) :
+                  [unode "itemref" ! [("idref", "nav")] $ ()
+                         | writerTableOfContents opts ] ++
                   map chapterRefNode chapterEntries)
           , unode "guide" $
              [ unode "reference" !
