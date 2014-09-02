@@ -584,7 +584,7 @@ expandDrawingId s = do
   target <- asks (lookupRelationship s . envRelationships)
   case target of
     Just filepath -> do
-      bytes <- asks (lookup (combine "word" filepath) . envMedia)
+      bytes <- asks (lookup ("word/" ++ filepath) . envMedia)
       case bytes of
         Just bs -> return (filepath, bs)
         Nothing -> throwError DocxError
