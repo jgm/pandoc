@@ -535,23 +535,18 @@ rewriteLink' l@(Link ils ('#':target, title)) = do
     Nothing        -> l
 rewriteLink' il = return il
 
-rewriteLink :: Blocks -> DocxContext Blocks
-rewriteLink ils = case viewl $ unMany ils of
-  (x :< xs) -> do
-    x' <- walkM rewriteLink' x
-    xs' <- rewriteLink $ Many xs
-    return $ (singleton x') <> xs'
-  EmptyL -> return ils
+rewriteLinks :: [Block] -> DocxContext [Block]
+rewriteLinks = mapM (walkM rewriteLink')
 
 bodyToOutput :: Body -> DocxContext (Meta, [Block], MediaBag)
 bodyToOutput (Body bps) = do
   let (metabps, blkbps) = sepBodyParts bps
   meta <- bodyPartsToMeta metabps
   blks <- concatReduce <$> mapM bodyPartToBlocks blkbps
-  blks' <- rewriteLink blks
+  blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ toList blks
   mediaBag <- gets docxMediaBag
   return $ (meta,
-            blocksToDefinitions $ blocksToBullets $ toList blks',
+            blks',
             mediaBag)
 
 docxToOutput :: ReaderOptions -> Docx -> (Meta, [Block], MediaBag)
