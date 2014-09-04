@@ -160,8 +160,14 @@ flatToBullets' num xs@(b : elems)
 flatToBullets :: [Block] -> [Block]
 flatToBullets elems = flatToBullets' (-1) elems
 
+singleItemHeaderToHeader :: Block -> Block
+singleItemHeaderToHeader (OrderedList _ [[h@(Header _ _ _)]]) = h
+singleItemHeaderToHeader blk = blk
+
+
 blocksToBullets :: [Block] -> [Block]
 blocksToBullets blks =
+  map singleItemHeaderToHeader $
   bottomUp removeListDivs $
   flatToBullets $ (handleListParagraphs blks)
 
@@ -221,7 +227,3 @@ removeListDivs = concatMap removeListDivs'
 
 blocksToDefinitions :: [Block] -> [Block]
 blocksToDefinitions = blocksToDefinitions' [] []
-
-
-
-
