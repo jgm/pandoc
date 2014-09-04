@@ -37,7 +37,7 @@ import           Text.Pandoc.Options
 import qualified Text.Pandoc.Parsing as P
 import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
                                             , newline, orderedListMarker
-                                            , parseFromString
+                                            , parseFromString, blanklines
                                             )
 import           Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import           Text.Pandoc.Shared (compactify', compactify'DL)
@@ -239,6 +239,13 @@ returnF = return . return
 newline :: OrgParser Char
 newline =
   P.newline
+       <* updateLastPreCharPos
+       <* updateLastForbiddenCharPos
+
+-- | Like @Text.Parsec.Char.blanklines@, but causes additional state changes.
+blanklines :: OrgParser [Char]
+blanklines =
+  P.blanklines
        <* updateLastPreCharPos
        <* updateLastForbiddenCharPos
 
