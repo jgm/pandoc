@@ -153,6 +153,10 @@ tests = [ testGroup "inlines"
             "docx/already_auto_ident.docx"
             "docx/already_auto_ident.native"
           , testCompare
+            "numbered headers automatically made into list"
+            "docx/numbered_header.docx"
+            "docx/numbered_header.native"
+          , testCompare
             "lists"
             "docx/lists.docx"
             "docx/lists.native"
