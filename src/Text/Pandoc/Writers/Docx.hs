@@ -52,7 +52,7 @@ import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlight )
 import Text.Pandoc.Walk
 import Text.Highlighting.Kate.Types ()
-import Text.XML.Light
+import Text.XML.Light as XML
 import Text.TeXMath
 import Control.Monad.State
 import Text.Highlighting.Kate
@@ -143,6 +143,31 @@ renderXml :: Element -> BL.ByteString
 renderXml elt = BL8.pack "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" <>
   UTF8.fromStringLazy (showElement elt)
 
+renumIdMap :: Int -> [Element] -> M.Map String String
+renumIdMap _ [] = M.empty
+renumIdMap n (e:es)
+  | Just oldId <- findAttr (QName "Id" Nothing Nothing) e =
+      M.insert oldId ("rId" ++ (show n)) (renumIdMap (n+1) es)
+  | otherwise = renumIdMap n es
+
+replaceAttr :: (QName -> Bool) -> String -> [XML.Attr] -> [XML.Attr]
+replaceAttr _ _ [] = []
+replaceAttr f val (a:as) | f (attrKey a) =
+                             (XML.Attr (attrKey a) val) : (replaceAttr f val as)
+                         | otherwise = a : (replaceAttr f val as)
+
+renumId :: (QName -> Bool) -> (M.Map String String) -> Element -> Element
+renumId f renumMap e
+  | Just oldId <- findAttrBy f e
+  , Just newId <- M.lookup oldId renumMap =
+    let attrs' = replaceAttr f newId (elAttribs e)
+    in
+     e { elAttribs = attrs' }
+  | otherwise = e
+
+renumIds :: (QName -> Bool) -> (M.Map String String) -> [Element] -> [Element]
+renumIds f renumMap = map (renumId f renumMap)
+
 -- | Produce an Docx file from a Pandoc document.
 writeDocx :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
@@ -168,12 +193,8 @@ writeDocx opts doc@(Pandoc meta _) = do
   let toImageEntry (_,path,_,_,img) = toEntry ("word/" ++ path) epochtime $ toLazy img
   let imageEntries = map toImageEntry imgs
 
-  -- adjust contents to add sectPr from reference.docx
-  parsedDoc <- parseXml refArchive distArchive "word/document.xml"
-  let wname f qn = qPrefix qn == Just "w" && f (qName qn)
-  let mbsectpr = filterElementName (wname (=="sectPr")) parsedDoc
 
-  let sectpr = fromMaybe (mknode "w:sectPr" [] ()) mbsectpr
+
 
   let stdAttributes =
             [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")
@@ -186,9 +207,6 @@ writeDocx opts doc@(Pandoc meta _) = do
             ,("xmlns:pic","http://schemas.openxmlformats.org/drawingml/2006/picture")
             ,("xmlns:wp","http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing")]
 
-  let contents' = contents ++ [sectpr]
-  let docContents = mknode "w:document" stdAttributes
-                    $ mknode "w:body" [] contents'
 
   parsedRels <- parseXml refArchive distArchive "word/_rels/document.xml.rels"
   let isHeaderNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
@@ -255,7 +273,7 @@ writeDocx opts doc@(Pandoc meta _) = do
                                           [("Type",url')
                                           ,("Id",id')
                                           ,("Target",target')] ()
-  let baserels = map toBaseRel
+  let baserels' = map toBaseRel
                     [("http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering",
                       "rId1",
                       "numbering.xml")
@@ -277,8 +295,12 @@ writeDocx opts doc@(Pandoc meta _) = do
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes",
                       "rId7",
                       "footnotes.xml")
-                    ] ++
-                    headers ++ footers
+                    ]
+
+  let idMap = renumIdMap (length baserels' + 1) (headers ++ footers)
+  let renumHeaders = renumIds (\q -> qName q == "Id") idMap headers
+  let renumFooters = renumIds (\q -> qName q == "Id") idMap footers
+  let baserels = baserels' ++ renumHeaders ++ renumFooters
   let toImgRel (ident,path,_,_,_) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"),("Id",ident),("Target",path)] ()
   let imgrels = map toImgRel imgs
   let toLinkRel (src,ident) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"),("Id",ident),("Target",src),("TargetMode","External") ] ()
@@ -286,6 +308,28 @@ writeDocx opts doc@(Pandoc meta _) = do
   let reldoc = mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")] $ baserels ++ imgrels ++ linkrels
   let relEntry = toEntry "word/_rels/document.xml.rels" epochtime
         $ renderXml reldoc
+
+
+    -- adjust contents to add sectPr from reference.docx
+  parsedDoc <- parseXml refArchive distArchive "word/document.xml"
+  let wname f qn = qPrefix qn == Just "w" && f (qName qn)
+  let mbsectpr = filterElementName (wname (=="sectPr")) parsedDoc
+  let sectpr = case mbsectpr of
+        Just sectpr' -> let cs = renumIds
+                                 (\q -> qName q == "id" && qPrefix q == Just "r")
+                                 idMap
+                                 (elChildren sectpr')
+                        in
+                         add_attrs (elAttribs sectpr') $ mknode "w:sectPr" [] cs
+        Nothing      -> (mknode "w:sectPr" [] ())
+
+
+
+  -- let sectpr = fromMaybe (mknode "w:sectPr" [] ()) mbsectpr'
+  let contents' = contents ++ [sectpr]
+  let docContents = mknode "w:document" stdAttributes
+                    $ mknode "w:body" [] contents'
+
 
 
   -- word/document.xml
