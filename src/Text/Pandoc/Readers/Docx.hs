@@ -203,6 +203,13 @@ blockQuoteDivs = ["Quote", "BlockQuote", "BlockQuotation"]
 codeDivs :: [String]
 codeDivs = ["SourceCode"]
 
+
+-- For the moment, we have English, Danish, German, and French. This
+-- is fairly ad-hoc, and there might be a more systematic way to do
+-- it, but it's better than nothing.
+headerPrefixes :: [String]
+headerPrefixes = ["Heading", "Overskrift", "berschrift", "Titre"]
+
 runElemToInlines :: RunElem -> Inlines
 runElemToInlines (TextRun s) = text s
 runElemToInlines (LnBrk) = linebreak
