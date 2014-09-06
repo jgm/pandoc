@@ -468,11 +468,11 @@ bodyPartToBlocks (Paragraph pPr parparts)
     $ codeBlock
     $ concatMap parPartToString parparts
   | (c : cs) <- filter (isJust . isHeaderClass) $ pStyle pPr
-  , Just n <- isHeaderClass c = do
+  , Just (prefix, n) <- isHeaderClass c = do
     ils <- local (\s-> s{docxInHeaderBlock=True}) $
            (concatReduce <$> mapM parPartToInlines parparts)
     makeHeaderAnchor $
-      headerWith ("", delete ("Heading" ++ show n) cs, []) n ils
+      headerWith ("", delete (prefix ++ show n) cs, []) n ils
   | otherwise = do
     ils <- concatReduce <$> mapM parPartToInlines parparts >>=
            (return . fromList . trimLineBreaks . normalizeSpaces . toList)
@@ -560,11 +560,11 @@ docxToOutput opts (Docx (Document _ body)) =
   let dEnv   = def { docxOptions  = opts} in
    evalDocxContext (bodyToOutput body) dEnv def
 
-isHeaderClass :: String -> Maybe Int
+isHeaderClass :: String -> Maybe (String, Int)
 isHeaderClass s | (pref:_) <- filter (\h -> isPrefixOf h s) headerPrefixes
                 , Just s' <- stripPrefix pref s =
                   case reads s' :: [(Int, String)] of
                    [] -> Nothing
-                   ((n, "") : []) -> Just n
+                   ((n, "") : []) -> Just (pref, n)
                    _       -> Nothing
 isHeaderClass _ = Nothing
