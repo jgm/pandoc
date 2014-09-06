@@ -85,7 +85,7 @@ import Text.Pandoc.Readers.Docx.Reducible
 import Text.Pandoc.Shared
 import Text.Pandoc.MediaBag (insertMedia, MediaBag)
 import Data.Maybe (isJust)
-import Data.List (delete, stripPrefix, (\\), intersect)
+import Data.List (delete, stripPrefix, (\\), intersect, isPrefixOf)
 import Data.Monoid
 import Text.TeXMath (writeTeX)
 import Data.Default (Default)
@@ -471,7 +471,6 @@ bodyPartToBlocks (Paragraph pPr parparts)
   , Just n <- isHeaderClass c = do
     ils <- local (\s-> s{docxInHeaderBlock=True}) $
            (concatReduce <$> mapM parPartToInlines parparts)
-
     makeHeaderAnchor $
       headerWith ("", delete ("Heading" ++ show n) cs, []) n ils
   | otherwise = do
@@ -562,9 +561,10 @@ docxToOutput opts (Docx (Document _ body)) =
    evalDocxContext (bodyToOutput body) dEnv def
 
 isHeaderClass :: String -> Maybe Int
-isHeaderClass s | Just s' <- stripPrefix "Heading" s =
-  case reads s' :: [(Int, String)] of
-    [] -> Nothing
-    ((n, "") : []) -> Just n
-    _       -> Nothing
+isHeaderClass s | (pref:_) <- filter (\h -> isPrefixOf h s) headerPrefixes
+                , Just s' <- stripPrefix pref s =
+                  case reads s' :: [(Int, String)] of
+                   [] -> Nothing
+                   ((n, "") : []) -> Just n
+                   _       -> Nothing
 isHeaderClass _ = Nothing
