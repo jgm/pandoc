@@ -60,6 +60,9 @@ tests = [ testGroup "code blocks"
             definitionList [(text "foo", [header 2 (text "bar"),
                                           para $ text "baz"])] =?>
             "\\begin{description}\n\\item[foo] ~ \n\\subsection{bar}\n\nbaz\n\\end{description}"
+          , "containing image" =:
+            header 1 (image "imgs/foo.jpg" "" (text "Alt text")) =?>
+            "\\section{\\protect\\includegraphics{imgs/foo.jpg}}"
           ]
         , testGroup "inline code"
           [ "struck out and highlighted" =:
