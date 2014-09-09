@@ -54,6 +54,7 @@ data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
               , stInQuote       :: Bool          -- true if in a blockquote
               , stInMinipage    :: Bool          -- true if in minipage
+              , stInHeading     :: Bool          -- true if in a section heading
               , stNotes         :: [Doc]         -- notes in a minipage
               , stOLLevel       :: Int           -- level of ordered list nesting
               , stOptions       :: WriterOptions -- writer options, so they don't have to be parameter
@@ -76,9 +77,9 @@ writeLaTeX :: WriterOptions -> Pandoc -> String
 writeLaTeX options document =
   evalState (pandocToLaTeX options document) $
   WriterState { stInNote = False, stInQuote = False,
-                stInMinipage = False, stNotes = [],
-                stOLLevel = 1, stOptions = options,
-                stVerbInNote = False,
+                stInMinipage = False, stInHeading = False,
+                stNotes = [], stOLLevel = 1,
+                stOptions = options, stVerbInNote = False,
                 stTable = False, stStrikeout = False,
                 stUrl = False, stGraphics = False,
                 stLHS = False, stBook = writerChapters options,
@@ -179,7 +180,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
 elementToLaTeX :: WriterOptions -> Element -> State WriterState Doc
 elementToLaTeX _ (Blk block) = blockToLaTeX block
 elementToLaTeX opts (Sec level _ (id',classes,_) title' elements) = do
+  modify $ \s -> s{stInHeading = True}
   header' <- sectionHeader ("unnumbered" `elem` classes) id' level title'
+  modify $ \s -> s{stInHeading = False}
   innerContents <- mapM (elementToLaTeX opts) elements
   return $ vsep (header' : innerContents)
 
@@ -466,8 +469,11 @@ blockToLaTeX (DefinitionList lst) = do
                "\\end{description}"
 blockToLaTeX HorizontalRule = return $
   "\\begin{center}\\rule{0.5\\linewidth}{\\linethickness}\\end{center}"
-blockToLaTeX (Header level (id',classes,_) lst) =
-  sectionHeader ("unnumbered" `elem` classes) id' level lst
+blockToLaTeX (Header level (id',classes,_) lst) = do
+  modify $ \s -> s{stInHeading = True}
+  hdr <- sectionHeader ("unnumbered" `elem` classes) id' level lst
+  modify $ \s -> s{stInHeading = False}
+  return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- if all null heads
                 then return empty
@@ -803,7 +809,10 @@ inlineToLaTeX (Image _ (source, _)) = do
                    then source
                    else unEscapeString source
   source'' <- stringToLaTeX URLString source'
-  return $ "\\includegraphics" <> braces (text source'')
+  inHeading <- gets stInHeading
+  return $
+    (if inHeading then "\\protect\\includegraphics" else "\\includegraphics")
+    <> braces (text source'')
 inlineToLaTeX (Note contents) = do
   inMinipage <- gets stInMinipage
   modify (\s -> s{stInNote = True})
