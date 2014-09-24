@@ -52,7 +52,6 @@ $endif$
 $if(lang)$
 \ifxetex
   \usepackage{polyglossia}
-  \setdefaultlanguage{$lang$}
   \setmainlanguage{$mainlang$}
 \else
   \usepackage[$lang$]{babel}
