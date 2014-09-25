@@ -710,6 +710,16 @@ Math rendering in HTML
     formulas to images. The formula will be concatenated with the URL
     provided. If *URL* is not specified, the Google Chart API will be used.
 
+`--katex`[=*URL*]
+:  Use [KaTeX] to display embedded TeX math in HTML output.
+   The *URL* should point to the `katex.js` load script. If a *URL* is
+   not provided, a link to the KaTeX CDN will be inserted.
+
+`--katex-stylesheet=*URL*`
+:  The *URL* should point to the `katex.css` stylesheet. If this option is
+   not specified, a link to the KaTeX CDN will be inserted. Note that this
+   option does not imply `--katex`.
+
 Options for wrapper scripts
 ---------------------------
 
@@ -1652,7 +1662,7 @@ proportionally spaced fonts, as it does not require lining up columns.
 
 #### Extension: `table_captions` ####
 
-A caption may optionally be provided with all 4 kinds of tables (as 
+A caption may optionally be provided with all 4 kinds of tables (as
 illustrated in the examples below). A caption is a paragraph beginning
 with the string `Table:` (or just `:`), which will be stripped off.
 It may appear either before or after the table.
@@ -3177,3 +3187,4 @@ Rosenthal.
 [txt2tags]: http://txt2tags.org/
 [EPUB]: http://idpf.org/epub
 [EPUBspine]: http://www.idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem
+[KaTeX]: https://github.com/Khan/KaTeX
