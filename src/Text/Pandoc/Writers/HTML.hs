@@ -60,6 +60,8 @@ import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
 import Text.Blaze.Renderer.String (renderHtml)
 import Text.TeXMath
 import Text.XML.Light.Output
+import Text.XML.Light (unode, elChildren, add_attr, unqual)
+import qualified Text.XML.Light as XML
 import System.FilePath (takeExtension)
 import Data.Monoid
 import Data.Aeson (Value)
@@ -615,6 +617,18 @@ inlineListToHtml :: WriterOptions -> [Inline] -> State WriterState Html
 inlineListToHtml opts lst =
   mapM (inlineToHtml opts) lst >>= return . mconcat
 
+-- | Annotates a MathML expression with the tex source
+annotateMML :: XML.Element -> String -> XML.Element
+annotateMML e tex = math (unode "semantics" [cs, unode "annotation" (annotAttrs, tex)])
+  where
+    cs = case elChildren e of
+          [] -> unode "mrow" ()
+          [x] -> x
+          xs -> unode "mrow" xs
+    math = add_attr (XML.Attr (unqual "xmlns") "http://www.w3.org/1998/Math/MathML") . unode "math"
+    annotAttrs = [XML.Attr (unqual "encoding") "application/x-tex"]
+
+
 -- | Convert Pandoc inline element to HTML.
 inlineToHtml :: WriterOptions -> Inline -> State WriterState Html
 inlineToHtml opts inline =
@@ -706,7 +720,7 @@ inlineToHtml opts inline =
                                                defaultConfigPP
                                   case writeMathML dt <$> readTeX str of
                                         Right r  -> return $ preEscapedString $
-                                            ppcElement conf r
+                                            ppcElement conf (annotateMML r str)
                                         Left _   -> inlineListToHtml opts
                                             (texMathToInlines t str) >>=
                                             return .  (H.span ! A.class_ "math")
