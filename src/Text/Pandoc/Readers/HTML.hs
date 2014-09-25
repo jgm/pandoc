@@ -440,7 +440,7 @@ pCodeBlock :: TagParser Blocks
 pCodeBlock = try $ do
   TagOpen _ attr <- pSatisfy (~== TagOpen "pre" [])
   contents <- manyTill pAnyTag (pCloses "pre" <|> eof)
-  let rawText = concatMap fromTagText $ filter isTagText contents
+  let rawText = concatMap tagToString contents
   -- drop leading newline if any
   let result' = case rawText of
                      '\n':xs  -> xs
@@ -450,6 +450,11 @@ pCodeBlock = try $ do
                     '\n':_   -> init result'
                     _        -> result'
   return $ B.codeBlockWith (mkAttr attr) result
+
+tagToString :: Tag String -> String
+tagToString (TagText s) = s
+tagToString (TagOpen "br" _) = "\n"
+tagToString _ = ""
 
 inline :: TagParser Inlines
 inline = choice
