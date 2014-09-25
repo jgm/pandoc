@@ -58,7 +58,7 @@ import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad (when, unless, (>=>))
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, fromMaybe)
 import Data.Foldable (foldrM)
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
@@ -68,7 +68,7 @@ import qualified Data.Map as M
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import qualified Data.Text as T
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<|>))
 import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
 import Data.Monoid
 
@@ -205,6 +205,8 @@ data Opt = Opt
     , optExtractMedia      :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrace             :: Bool       -- ^ Print debug information
     , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes.
+    , optKaTeXStylesheet   :: Maybe String     -- ^ Path to stylesheet for KaTeX
+    , optKaTeXJS           :: Maybe String     -- ^ Path to js file for KaTeX
     }
 
 -- | Defaults for command-line options.
@@ -263,6 +265,8 @@ defaultOpts = Opt
     , optExtractMedia          = Nothing
     , optTrace                 = False
     , optTrackChanges          = AcceptChanges
+    , optKaTeXStylesheet       = Nothing
+    , optKaTeXJS               = Nothing
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -818,6 +822,21 @@ options =
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
+    , Option "" ["katex"]
+                 (OptArg
+                  (\arg opt ->
+                      return opt
+                        { optKaTeXJS =
+                           arg <|> Just "http://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.1.0/katex.min.js"})
+                  "URL")
+                  "" -- Use KaTeX for HTML Math
+
+    , Option "" ["katex-stylesheet"]
+                 (ReqArg
+                  (\arg opt ->
+                      return opt { optKaTeXStylesheet = Just arg })
+                 "URL")
+                 "" -- Set the KaTeX Stylesheet location
 
     , Option "" ["gladtex"]
                  (NoArg
@@ -859,6 +878,7 @@ options =
                  "" -- "Show help"
 
     ]
+
 
 addMetadata :: String -> MetaValue -> M.Map String MetaValue
             -> M.Map String MetaValue
@@ -1027,7 +1047,7 @@ main = do
               , optHighlight             = highlight
               , optHighlightStyle        = highlightStyle
               , optChapters              = chapters
-              , optHTMLMathMethod        = mathMethod
+              , optHTMLMathMethod        = mathMethod'
               , optReferenceODT          = referenceODT
               , optReferenceDocx         = referenceDocx
               , optEpubStylesheet        = epubStylesheet
@@ -1056,12 +1076,21 @@ main = do
               , optExtractMedia          = mbExtractMedia
               , optTrace                 = trace
               , optTrackChanges          = trackChanges
+              , optKaTeXStylesheet       = katexStylesheet
+              , optKaTeXJS               = katexJS
              } = opts
 
   when dumpArgs $
     do UTF8.hPutStrLn stdout outputFile
        mapM_ (\arg -> UTF8.hPutStrLn stdout arg) args
        exitWith ExitSuccess
+
+  let csscdn = "http://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.1.0/katex.min.css"
+  let mathMethod =
+        case (katexJS, katexStylesheet) of
+            (Nothing, _) -> mathMethod'
+            (Just js, ss) -> KaTeX js (fromMaybe csscdn ss)
+
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
   let needsCiteproc = isJust (M.lookup "bibliography" metadata) &&
