@@ -9,6 +9,7 @@ import Test.Framework.Providers.HUnit
 import Test.HUnit ( assertBool, (@?=) )
 import Text.Pandoc.Builder
 import Data.Monoid
+import System.FilePath (joinPath)
 
 tests :: [Test]
 tests = [ testGroup "normalize"
@@ -40,21 +41,21 @@ p_normalize_no_trailing_spaces ils = null ils' || last ils' /= Space
 
 testCollapse :: [Test]
 testCollapse = map (testCase "collapse")
- [  (collapseFilePath "" @?= "")
- ,  (collapseFilePath "./foo" @?= "foo")
- ,  (collapseFilePath "././../foo" @?= "../foo")
- ,  (collapseFilePath "../foo" @?= "../foo")
- ,  (collapseFilePath "/bar/../baz" @?= "/baz")
- ,  (collapseFilePath "/../baz" @?= "/../baz")
- ,  (collapseFilePath  "./foo/.././bar/../././baz" @?= "baz")
- ,  (collapseFilePath "./" @?=  "")
- ,  (collapseFilePath "././" @?=  "")
- ,  (collapseFilePath "../" @?=  "..")
- ,  (collapseFilePath ".././" @?=  "..")
- ,  (collapseFilePath "./../" @?=  "..")
- ,  (collapseFilePath "../../" @?=  "../..")
- ,  (collapseFilePath "parent/foo/baz/../bar" @?=  "parent/foo/bar")
- ,  (collapseFilePath "parent/foo/baz/../../bar" @?=  "parent/bar")
- ,  (collapseFilePath "parent/foo/.." @?=  "parent")
- ,  (collapseFilePath "/parent/foo/../../bar" @?=  "/bar")
- ,  (collapseFilePath "/./parent/foo" @?=  "/parent/foo")]
+ [  (collapseFilePath (joinPath [ ""]) @?= (joinPath [ ""]))
+ ,  (collapseFilePath (joinPath [ ".","foo"]) @?= (joinPath [ "foo"]))
+ ,  (collapseFilePath (joinPath [ ".",".","..","foo"]) @?= (joinPath [ joinPath ["..", "foo"]]))
+ ,  (collapseFilePath (joinPath [ "..","foo"]) @?= (joinPath [ "..","foo"]))
+ ,  (collapseFilePath (joinPath [ "","bar","..","baz"]) @?= (joinPath [ "","baz"]))
+ ,  (collapseFilePath (joinPath [ "","..","baz"]) @?= (joinPath [ "","..","baz"]))
+ ,  (collapseFilePath (joinPath [ ".","foo","..",".","bar","..",".",".","baz"]) @?= (joinPath [ "baz"]))
+ ,  (collapseFilePath (joinPath [ ".",""]) @?= (joinPath [ ""]))
+ ,  (collapseFilePath (joinPath [ ".",".",""]) @?= (joinPath [ ""]))
+ ,  (collapseFilePath (joinPath [ "..",""]) @?= (joinPath [ ".."]))
+ ,  (collapseFilePath (joinPath [ "..",".",""]) @?= (joinPath [ ".."]))
+ ,  (collapseFilePath (joinPath [ ".","..",""]) @?= (joinPath [ ".."]))
+ ,  (collapseFilePath (joinPath [ "..","..",""]) @?= (joinPath [ "..",".."]))
+ ,  (collapseFilePath (joinPath [ "parent","foo","baz","..","bar"]) @?= (joinPath [ "parent","foo","bar"]))
+ ,  (collapseFilePath (joinPath [ "parent","foo","baz","..","..","bar"]) @?= (joinPath [ "parent","bar"]))
+ ,  (collapseFilePath (joinPath [ "parent","foo",".."]) @?= (joinPath [ "parent"]))
+ ,  (collapseFilePath (joinPath [ "","parent","foo","..","..","bar"]) @?= (joinPath [ "","bar"]))
+ ,  (collapseFilePath (joinPath [ "",".","parent","foo"]) @?= (joinPath [ "","parent","foo"]))]

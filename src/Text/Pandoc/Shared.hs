@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, CPP, MultiParamTypeClasses,
-    FlexibleContexts, ScopedTypeVariables, PatternGuards #-}
+    FlexibleContexts, ScopedTypeVariables, PatternGuards,
+    ViewPatterns #-}
 {-
 Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -106,7 +107,7 @@ import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI )
 import qualified Data.Set as Set
 import System.Directory
-import System.FilePath (joinPath, splitDirectories)
+import System.FilePath (joinPath, splitDirectories, pathSeparator, isPathSeparator)
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension)
 import Data.Generics (Typeable, Data)
@@ -871,11 +872,14 @@ collapseFilePath = joinPath . reverse . foldl go [] . splitDirectories
     go rs "." = rs
     go r@(p:rs) ".." = case p of
                             ".." -> ("..":r)
-                            "/" -> ("..":r)
+                            (checkPathSeperator -> Just True) -> ("..":r)
                             _ -> rs
-    go _ "/" = ["/"]
+    go _ (checkPathSeperator -> Just True) = [[pathSeparator]]
     go rs x = x:rs
-
+    isSingleton [] = Nothing
+    isSingleton [x] = Just x
+    isSingleton _ = Nothing
+    checkPathSeperator = fmap isPathSeparator . isSingleton
 
 --
 -- Safe read
