@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, CPP #-}
+{-# LANGUAGE OverloadedStrings, CPP, ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-
 Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
@@ -348,10 +348,10 @@ parseMailto s = do
        _ -> fail "not a mailto: URL"
 
 -- | Obfuscate a "mailto:" link.
-obfuscateLink :: WriterOptions -> String -> String -> Html
+obfuscateLink :: WriterOptions -> Html -> String -> Html
 obfuscateLink opts txt s | writerEmailObfuscation opts == NoObfuscation =
-  H.a ! A.href (toValue s) $ toHtml txt
-obfuscateLink opts txt s =
+  H.a ! A.href (toValue s) $ txt
+obfuscateLink opts (renderHtml -> txt) s =
   let meth = writerEmailObfuscation opts
       s' = map toLower (take 7 s) ++ drop 7 s
   in  case parseMailto s' of
@@ -753,7 +753,7 @@ inlineToHtml opts inline =
       | otherwise          -> return mempty
     (Link txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
-                        return $ obfuscateLink opts (renderHtml linkText) s
+                        return $ obfuscateLink opts linkText s
     (Link txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
                         let s' = case s of
