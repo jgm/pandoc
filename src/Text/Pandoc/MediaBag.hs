@@ -51,7 +51,7 @@ import System.IO (stderr)
 -- mime types.  Note that a 'MediaBag' is a Monoid, so 'mempty'
 -- can be used for an empty 'MediaBag', and '<>' can be used to append
 -- two 'MediaBag's.
-newtype MediaBag = MediaBag (M.Map String (MimeType, BL.ByteString))
+newtype MediaBag = MediaBag (M.Map [String] (MimeType, BL.ByteString))
         deriving (Monoid)
 
 instance Show MediaBag where
@@ -65,7 +65,7 @@ insertMedia :: FilePath       -- ^ relative path and canonical name of resource
             -> MediaBag
             -> MediaBag
 insertMedia fp mbMime contents (MediaBag mediamap) =
-  MediaBag (M.insert fp (mime, contents) mediamap)
+  MediaBag (M.insert (splitPath fp) (mime, contents) mediamap)
   where mime = fromMaybe fallback mbMime
         fallback = case takeExtension fp of
                         ".gz"   -> getMimeTypeDef $ dropExtension fp
@@ -75,14 +75,14 @@ insertMedia fp mbMime contents (MediaBag mediamap) =
 lookupMedia :: FilePath
             -> MediaBag
             -> Maybe (MimeType, BL.ByteString)
-lookupMedia fp (MediaBag mediamap) = M.lookup fp mediamap
+lookupMedia fp (MediaBag mediamap) = M.lookup (splitPath fp) mediamap
 
 -- | Get a list of the file paths stored in a 'MediaBag', with
 -- their corresponding mime types and the lengths in bytes of the contents.
 mediaDirectory :: MediaBag -> [(String, MimeType, Int)]
 mediaDirectory (MediaBag mediamap) =
   M.foldWithKey (\fp (mime,contents) ->
-      ((fp, mime, fromIntegral $ BL.length contents):)) [] mediamap
+      (((joinPath fp), mime, fromIntegral $ BL.length contents):)) [] mediamap
 
 -- | Extract contents of MediaBag to a given directory.  Print informational
 -- messages if 'verbose' is true.
@@ -93,7 +93,7 @@ extractMediaBag :: Bool
 extractMediaBag verbose dir (MediaBag mediamap) = do
   sequence_ $ M.foldWithKey
      (\fp (_ ,contents) ->
-        ((writeMedia verbose dir (fp, contents)):)) [] mediamap
+        ((writeMedia verbose dir (joinPath fp, contents)):)) [] mediamap
 
 writeMedia :: Bool -> FilePath -> (FilePath, BL.ByteString) -> IO ()
 writeMedia verbose dir (subpath, bs) = do
