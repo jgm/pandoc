@@ -1,5 +1,4 @@
-[Para [Image [] ("img/multiscripts_and_greek_alphabet.png","")]
-,Para [Span ("front.xhtml",[],[]) []]
+[Para [Span ("front.xhtml",[],[]) []]
 ,RawBlock (Format "html") "<section>"
 ,Header 1 ("",[],[]) [Str "Reflowable",Space,Str "EPUB",Space,Str "3",Space,Str "Conformance",Space,Str "Test",Space,Str "Document:",Space,Str "0100"]
 ,RawBlock (Format "html") "<section>"
@@ -26,31 +25,6 @@
    [[Plain [Str "Each",Space,Str "test",Space,Str "includes",Space,Str "a",Space,Str "description",Space,Str "of",Space,Str "its",Space,Str "purpose",Space,Str "followed",Space,Str "by",Space,Str "the",Space,Str "actual",Space,Strong [Str "test",Space,Str "statement,",Space,Str "which",Space,Str "can",Space,Str "always",Space,Str "be",Space,Str "evaluated",Space,Str "to",Space,Str "true",Space,Str "or",Space,Str "false"],Str ".",Space,Str "These",Space,Str "statements",Space,Str "typically",Space,Str "have",Space,Str "the",Space,Str "form:",Space,Str "\"If",Space,Str "[some",Space,Str "condition],",Space,Str "the",Space,Str "test",Space,Str "passes\"."]]])
  ,([Str "3.",Space,Str "Scoring",Space,Str "in",Space,Str "the",Space,Str "results",Space,Str "form"],
    [[Plain [Str "@@@TODO",Space,Str "provide",Space,Str "info",Space,Str "on",Space,Str "where",Space,Str "to",Space,Str "get",Space,Str "the",Space,Str "results",Space,Str "form"]]])]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,Para [Span ("content-images-001.xhtml",[],[]) []]
-,RawBlock (Format "html") "<section>"
-,Header 2 ("content-images-001.xhtml#multimedia",[],[]) [Str "Multimedia"]
-,RawBlock (Format "html") "<section>"
-,Header 3 ("content-images-001.xhtml#images",[],[]) [Str "Images"]
-,RawBlock (Format "html") "<section id=\"img-010\" class=\"ctest\">"
-,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "img-010"],Space,Str "GIF"]
-,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "GIF",Space,Str "image",Space,Str "format",Space,Str "is",Space,Str "supported."]
-,Para [Image [Str "gif",Space,Str "test"] ("img/check.gif","")]
-,Para [Str "If",Space,Str "a",Space,Str "checkmark",Space,Str "precedes",Space,Str "this",Space,Str "paragaph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"img-020\" class=\"ctest\">"
-,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "img-020"],Space,Str "PNG"]
-,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "PNG",Space,Str "image",Space,Str "format",Space,Str "is",Space,Str "supported."]
-,Para [Image [Str "png",Space,Str "test"] ("img/check.png","")]
-,Para [Str "If",Space,Str "a",Space,Str "checkmark",Space,Str "precedes",Space,Str "this",Space,Str "paragaph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "<section id=\"img-030\" class=\"ctest\">"
-,Header 4 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "img-030"],Space,Str "JPEG"]
-,Para [Str "Tests",Space,Str "whether",Space,Str "the",Space,Str "JPEG",Space,Str "image",Space,Str "format",Space,Str "is",Space,Str "supported."]
-,Para [Image [Str "jpeg",Space,Str "test"] ("img/check.jpg","")]
-,Para [Str "If",Space,Str "a",Space,Str "checkmark",Space,Str "precedes",Space,Str "this",Space,Str "paragaph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
-,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-mathml-001.xhtml",[],[]) []]
@@ -94,13 +68,13 @@
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "mathml-024"],Str "Horizontal",Space,Str "stretch,",Space,Code ("",[],[]) "mover",Str ",",Space,Code ("",[],[]) "munder",Str ",",Space,Str "and",Space,Code ("",[],[]) "mspace",Space,Str "elements"]
 ,Para [Str "Tests",Space,Str "whether",Space,Str "horizontal",Space,Str "stretch,",Space,Code ("",[],[]) "mover",Str ",",Space,Code ("",[],[]) "munder",Str ",",Space,Code ("",[],[]) "mspace",Space,Str "elements",Space,Str "are",Space,Str "supported."]
 ,Para [Math DisplayMath "c = \\overset{\\text{complex\\ number}}{\\overbrace{\\underset{\\text{real}}{\\underbrace{\\mspace{20mu} a\\mspace{20mu}}} + \\underset{\\text{imaginary}}{\\underbrace{\\quad b{\\mathbb{i}}\\quad}}}}"]
-,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Image [Str "description",Space,Str "of",Space,Str "imaginary",Space,Str "number:",Space,Str "c",Space,Str "=",Space,Str "a",Space,Str "+bi",Space,Str "with",Space,Str "an",Space,Str "overbrace",Space,Str "reading",Space,Str "'complex",Space,Str "number'",Space,Str "and",Space,Str "underbraces",Space,Str "below",Space,Str "'a'",Space,Str "and",Space,Str "'b",Space,Str "i'",Space,Str "reading",Space,Str "'real'",Space,Str "and",Space,Str "'imaginary'",Space,Str "respectively."] ("img/complex_number.png",""),Str "."]
+,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Str "."]
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "<section id=\"mathml-025\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "mathml-025"],Str "Testing",Space,Code ("",[],[]) "mtable",Space,Str "with",Space,Code ("",[],[]) "colspan",Space,Str "and",Space,Code ("",[],[]) "rowspan",Space,Str "attributes,",Space,Str "Hebrew",Space,Str "and",Space,Str "Script",Space,Str "fonts"]
 ,Para [Str "Tests",Space,Str "whether",Space,Code ("",[],[]) "mtable",Space,Str "with",Space,Code ("",[],[]) "colspan",Space,Str "and",Space,Code ("",[],[]) "mspace",Space,Str "attributes",Space,Str "(colum",Space,Str "and",Space,Str "row",Space,Str "spanning)",Space,Str "are",Space,Str "supported;",Space,Str "uses",Space,Str "Hebrew",Space,Str "and",Space,Str "Script",Space,Str "alphabets."]
 ,Para [Math DisplayMath "\\begin{array}{llllllllll}\n & {\\operatorname{cov}\\left( \\mathcal{L} \\right)} & \\longrightarrow & {\\operatorname{non}\\left( \\mathcal{K} \\right)} & \\longrightarrow & {\\operatorname{cof}\\left( \\mathcal{K} \\right)} & \\longrightarrow & {\\operatorname{cof}\\left( \\mathcal{L} \\right)} & \\longrightarrow & 2^{\\aleph_{0}} \\\\\n & \\uparrow & & \\uparrow & & \\uparrow & & \\uparrow & & \\\\\n & {\\mathfrak{b}} & \\longrightarrow & {\\mathfrak{d}} & & & & & & \\\\\n & \\uparrow & & \\uparrow & & & & & & \\\\\n\\aleph_{1} & \\longrightarrow & {\\operatorname{add}\\left( \\mathcal{L} \\right)} & \\longrightarrow & {\\operatorname{add}\\left( \\mathcal{K} \\right)} & \\longrightarrow & {\\operatorname{cov}\\left( \\mathcal{K} \\right)} & \\longrightarrow & {\\operatorname{non}\\left( \\mathcal{L} \\right)} & \\\\\n\\end{array}"]
-,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Link [Str "Cicho\324's",Space,Str "Diagram"] ("Cicho%C5%84's_diagram",""),Str ":",Space,Image [Str "rendering",Space,Str "of",Space,Str "Cicho\324's",Space,Str "diagram."] ("img/cichons_diagram.png",""),Str "."]
+,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Link [Str "Cicho\324's",Space,Str "Diagram"] ("Cicho%C5%84's_diagram",""),Str ":",Space,Str "."]
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "<section id=\"mathml-026\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "mathml-026"],Str "BiDi,",Space,Str "RTL",Space,Str "and",Space,Str "Arabic",Space,Str "alphabets"]
@@ -111,7 +85,7 @@
 ,RawBlock (Format "html") "<section id=\"mathml-027\" class=\"ctest\">"
 ,Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],Space,Span ("",["test-id"],[]) [Str "mathml-027"],Str "Elementary",Space,Str "math:",Space,Str "long",Space,Str "division",Space,Str "notation"]
 ,Para [Str "Tests",Space,Str "whether",Space,Code ("",[],[]) "mlongdiv",Space,Str "elements",Space,Str "(from",Space,Str "elementary",Space,Str "math)",Space,Str "are",Space,Str "supported."]
-,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Str "the",Space,Str "following",Space,Str "image:",Space,Image [Str "A",Space,Str "long",Space,Str "division",Space,Str "dividing",Space,Str "1306",Space,Str "by",Space,Str "3,",Space,Str "presented",Space,Str "in",Space,Str "'lefttop'",Space,Str "(US)",Space,Str "notation"] ("img/ElementaryMathExample.png",""),Str "."]
+,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Str "the",Space,Str "following",Space,Str "image:",Space,Str "."]
 ,RawBlock (Format "html") "</section>"
 ,RawBlock (Format "html") "</section>"
 ,Para [Span ("content-switch-001.xhtml",[],[]) []]
@@ -130,6 +104,4 @@
 ,Para [Str "If",Space,Str "a",Space,Str "MathML",Space,Str "equation",Space,Str "is",Space,Str "rendered",Space,Str "before",Space,Str "this",Space,Str "paragraph,",Space,Str "the",Space,Str "test",Space,Str "passes."]
 ,Para [Str "If",Space,Str "test",Space,Code ("",[],[]) "switch-010",Space,Str "did",Space,Str "not",Space,Str "pass,",Space,Str "this",Space,Str "test",Space,Str "should",Space,Str "be",Space,Str "marked",Space,Code ("",[],[]) "Not Supported",Str "."]
 ,RawBlock (Format "html") "</section>"
-,RawBlock (Format "html") "</section>"
-,Para [Span ("Maghreb1.png",[],[]) []]
-,Para [Image [] ("img/Maghreb1.png","")]]
+,RawBlock (Format "html") "</section>"]
