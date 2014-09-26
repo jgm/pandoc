@@ -2354,6 +2354,10 @@ be followed by a link title, in quotes.)
 There can be no space between the bracketed part and the parenthesized part.
 The link text can contain formatting (such as emphasis), but the title cannot.
 
+Email addresses in inline links are not autodetected, so they have to be
+prefixed with `mailto`:
+
+    [Write me!](mailto:sam@green.eggs.ham)
 
 ### Reference links ###
 
