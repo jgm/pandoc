@@ -36,6 +36,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Walk (query)
 import Text.Printf ( printf )
 import Data.List ( intercalate )
+import Data.Char ( ord )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import Text.Pandoc.Templates ( renderTemplate' )
@@ -113,6 +114,13 @@ escapeCharForConTeXt opts ch =
 -- | Escape string for ConTeXt
 stringToConTeXt :: WriterOptions -> String -> String
 stringToConTeXt opts = concatMap (escapeCharForConTeXt opts)
+
+-- | Sanitize labels
+toLabel :: String -> String
+toLabel z = concatMap go z
+ where go x
+         | elem x "\\#[]\",{}%()|=" = "ux" ++ printf "%x" (ord x)
+         | otherwise = [x]
 
 -- | Convert Elements to ConTeXt
 elementToConTeXt :: WriterOptions -> Element -> State WriterState Doc
@@ -286,15 +294,16 @@ inlineToConTeXt Space = return space
 -- Handle HTML-like internal document references to sections
 inlineToConTeXt (Link txt          (('#' : ref), _)) = do
   opts <- gets stOptions
-  label <-  inlineListToConTeXt txt
+  contents <-  inlineListToConTeXt txt
+  let ref' = toLabel $ stringToConTeXt opts ref
   return $ text "\\in"
            <> braces (if writerNumberSections opts
-                         then label <+> text "(\\S"
-                         else label)  -- prefix
+                         then contents <+> text "(\\S"
+                         else contents)  -- prefix
            <> braces (if writerNumberSections opts
                          then text ")"
                          else empty)  -- suffix
-           <> brackets (text ref)
+           <> brackets (text ref')
 
 inlineToConTeXt (Link txt          (src, _))      = do
   let isAutolink = txt == [Str (unEscapeString src)]
@@ -302,13 +311,13 @@ inlineToConTeXt (Link txt          (src, _))      = do
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
   let ref = "url" ++ show next
-  label <-  inlineListToConTeXt txt
+  contents <-  inlineListToConTeXt txt
   return $ "\\useURL"
            <> brackets (text ref)
            <> brackets (text $ escapeStringUsing [('#',"\\#"),('%',"\\%")] src)
            <> (if isAutolink
                   then empty
-                  else brackets empty <> brackets label)
+                  else brackets empty <> brackets contents)
            <> "\\from"
            <> brackets (text ref)
 inlineToConTeXt (Image _ (src, _)) = do
@@ -337,6 +346,7 @@ sectionHeader (ident,classes,_) hdrLevel lst = do
   st <- get
   let opts = stOptions st
   let level' = if writerChapters opts then hdrLevel - 1 else hdrLevel
+  let ident' = toLabel ident
   let (section, chapter) = if "unnumbered" `elem` classes
                               then (text "subject", text "title")
                               else (text "section", text "chapter")
@@ -344,7 +354,7 @@ sectionHeader (ident,classes,_) hdrLevel lst = do
                then char '\\'
                     <> text (concat (replicate (level' - 1) "sub"))
                     <> section
-                    <> (if (not . null) ident then brackets (text ident) else empty)
+                    <> (if (not . null) ident' then brackets (text ident') else empty)
                     <> braces contents
                     <> blankline
                else if level' == 0
