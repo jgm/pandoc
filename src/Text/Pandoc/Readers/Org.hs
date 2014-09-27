@@ -863,7 +863,7 @@ definitionListItem parseMarkerGetLength = try $ do
   line1 <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
   cont <- concat <$> many (listContinuation markerLength)
-  term' <- parseFromString inline term
+  term' <- parseFromString parseInlines term
   contents' <- parseFromString parseBlocks $ line1 ++ blank ++ cont
   return $ (,) <$> term' <*> fmap (:[]) contents'
 
