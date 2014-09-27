@@ -13,7 +13,6 @@ import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Codec.Archive.Zip
-import System.FilePath (combine)
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure
@@ -60,7 +59,7 @@ testCompare = testCompareWithOpts def
 getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
 getMedia archivePath mediaPath = do
   zf <- B.readFile archivePath >>= return . toArchive
-  return $ findEntryByPath (combine "word" mediaPath) zf >>= (Just . fromEntry)
+  return $ findEntryByPath ("word/" ++ mediaPath) zf >>= (Just . fromEntry)
 
 compareMediaPathIO :: FilePath -> MediaBag -> FilePath -> IO Bool
 compareMediaPathIO mediaPath mediaBag docxPath = do
