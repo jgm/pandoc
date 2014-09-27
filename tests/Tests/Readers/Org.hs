@@ -702,7 +702,9 @@ tests =
                                      ]
                                    ])
                          ]
-
+      , "Definition list with multi-word term" =:
+        " - Elijah Wood :: He plays Frodo" =?>
+         definitionList [ ("Elijah" <> space <> "Wood", [plain $ "He" <> space <> "plays" <> space <> "Frodo"])]
       , "Compact definition list" =:
           unlines [ "- ATP :: adenosine 5' triphosphate"
                   , "- DNA :: deoxyribonucleic acid"

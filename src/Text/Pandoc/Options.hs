@@ -251,6 +251,7 @@ data HTMLMathMethod = PlainMath
                     | WebTeX String               -- url of TeX->image script.
                     | MathML (Maybe String)       -- url of MathMLinHTML.js
                     | MathJax String              -- url of MathJax.js
+                    | KaTeX String String -- url of stylesheet and katex.js
                     deriving (Show, Read, Eq)
 
 data CiteMethod = Citeproc                        -- use citeproc to render them

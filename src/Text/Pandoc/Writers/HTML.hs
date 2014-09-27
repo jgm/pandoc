@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, CPP #-}
+{-# LANGUAGE OverloadedStrings, CPP, ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-
 Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
@@ -60,6 +60,8 @@ import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
 import Text.Blaze.Renderer.String (renderHtml)
 import Text.TeXMath
 import Text.XML.Light.Output
+import Text.XML.Light (unode, elChildren, add_attr, unqual)
+import qualified Text.XML.Light as XML
 import System.FilePath (takeExtension)
 import Data.Monoid
 import Data.Aeson (Value)
@@ -155,6 +157,10 @@ pandocToHtml opts (Pandoc meta blocks) = do
                               H.script ! A.src (toValue url)
                                        ! A.type_ "text/javascript"
                                        $ mempty
+                           KaTeX js css ->
+                              (H.script ! A.src (toValue js) $ mempty) <>
+                              (H.link ! A.rel "stylesheet" ! A.href (toValue css)) <>
+                              (H.script ! A.type_ "text/javascript" $ toHtml renderKaTeX)
                            _ -> case lookup "mathml-script" (writerVariables opts) of
                                       Just s | not (writerHtml5 opts) ->
                                         H.script ! A.type_ "text/javascript"
@@ -342,10 +348,10 @@ parseMailto s = do
        _ -> fail "not a mailto: URL"
 
 -- | Obfuscate a "mailto:" link.
-obfuscateLink :: WriterOptions -> String -> String -> Html
+obfuscateLink :: WriterOptions -> Html -> String -> Html
 obfuscateLink opts txt s | writerEmailObfuscation opts == NoObfuscation =
-  H.a ! A.href (toValue s) $ toHtml txt
-obfuscateLink opts txt s =
+  H.a ! A.href (toValue s) $ txt
+obfuscateLink opts (renderHtml -> txt) s =
   let meth = writerEmailObfuscation opts
       s' = map toLower (take 7 s) ++ drop 7 s
   in  case parseMailto s' of
@@ -615,6 +621,18 @@ inlineListToHtml :: WriterOptions -> [Inline] -> State WriterState Html
 inlineListToHtml opts lst =
   mapM (inlineToHtml opts) lst >>= return . mconcat
 
+-- | Annotates a MathML expression with the tex source
+annotateMML :: XML.Element -> String -> XML.Element
+annotateMML e tex = math (unode "semantics" [cs, unode "annotation" (annotAttrs, tex)])
+  where
+    cs = case elChildren e of
+          [] -> unode "mrow" ()
+          [x] -> x
+          xs -> unode "mrow" xs
+    math = add_attr (XML.Attr (unqual "xmlns") "http://www.w3.org/1998/Math/MathML") . unode "math"
+    annotAttrs = [XML.Attr (unqual "encoding") "application/x-tex"]
+
+
 -- | Convert Pandoc inline element to HTML.
 inlineToHtml :: WriterOptions -> Inline -> State WriterState Html
 inlineToHtml opts inline =
@@ -706,7 +724,7 @@ inlineToHtml opts inline =
                                                defaultConfigPP
                                   case writeMathML dt <$> readTeX str of
                                         Right r  -> return $ preEscapedString $
-                                            ppcElement conf r
+                                            ppcElement conf (annotateMML r str)
                                         Left _   -> inlineListToHtml opts
                                             (texMathToInlines t str) >>=
                                             return .  (H.span ! A.class_ "math")
@@ -714,6 +732,10 @@ inlineToHtml opts inline =
                                   case t of
                                     InlineMath  -> "\\(" ++ str ++ "\\)"
                                     DisplayMath -> "\\[" ++ str ++ "\\]"
+                               KaTeX _ _ -> return $ H.span ! A.class_ "math" $
+                                  toHtml (case t of
+                                            InlineMath -> str
+                                            DisplayMath -> "\\displaystyle " ++ str)
                                PlainMath -> do
                                   x <- inlineListToHtml opts (texMathToInlines t str)
                                   let m = H.span ! A.class_ "math" $ x
@@ -731,7 +753,7 @@ inlineToHtml opts inline =
       | otherwise          -> return mempty
     (Link txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
-                        return $ obfuscateLink opts (renderHtml linkText) s
+                        return $ obfuscateLink opts linkText s
     (Link txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
                         let s' = case s of
@@ -815,3 +837,14 @@ blockListToNote opts ref blocks =
                               Just EPUB3 -> noteItem ! customAttribute "epub:type" "footnote"
                               _          -> noteItem
          return $ nl opts >> noteItem'
+
+-- Javascript snippet to render all KaTeX elements
+renderKaTeX :: String
+renderKaTeX = unlines [
+    "window.onload = function(){var mathElements = document.getElementsByClassName(\"math\");"
+  , "for (var i=0; i < mathElements.length; i++)"
+  , "{"
+  , " var texText = mathElements[i].firstChild"
+  , " katex.render(texText.data, mathElements[i])"
+  , "}}"
+  ]
