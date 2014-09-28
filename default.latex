@@ -54,7 +54,7 @@ $if(lang)$
   \usepackage{polyglossia}
   \setmainlanguage{$mainlang$}
 \else
-  \usepackage[$lang$]{babel}
+  \usepackage[shorthands=off,$lang$]{babel}
 \fi
 $endif$
 $if(natbib)$
