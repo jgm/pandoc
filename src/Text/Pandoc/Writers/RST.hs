@@ -177,7 +177,7 @@ blockToRST (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
 blockToRST (Para inlines)
   | LineBreak `elem` inlines = do -- use line block if LineBreaks
       lns <- mapM inlineListToRST $ splitBy (==LineBreak) inlines
-      return $ (vcat $ map (nowrap . (text "| " <>)) lns) <> blankline
+      return $ (vcat $ map (hang 2 (text "| ")) lns) <> blankline
   | otherwise = do
       contents <- inlineListToRST inlines
       return $ contents <> blankline
