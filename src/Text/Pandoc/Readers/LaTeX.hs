@@ -414,6 +414,8 @@ inlineCommands = M.fromList $
   , ("sim", lit "~")
   , ("label", unlessParseRaw >> (inBrackets <$> tok))
   , ("ref", unlessParseRaw >> (inBrackets <$> tok))
+  , ("sep", lit ",")
+  , ("cref", unlessParseRaw >> (inBrackets <$> tok))
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline $ braced)
