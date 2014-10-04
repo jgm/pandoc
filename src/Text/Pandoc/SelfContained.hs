@@ -51,7 +51,8 @@ isOk c = isAscii c && isAlphaNum c
 
 convertTag :: MediaBag -> Maybe String -> Tag String -> IO (Tag String)
 convertTag media sourceURL t@(TagOpen tagname as)
-  | tagname `elem` ["img", "embed", "video", "input", "audio", "source"] = do
+  | tagname `elem`
+     ["img", "embed", "video", "input", "audio", "source", "track"] = do
        as' <- mapM processAttribute as
        return $ TagOpen tagname as'
   where processAttribute (x,y) =
