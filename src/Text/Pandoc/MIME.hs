@@ -477,6 +477,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("vrml","model/vrml")
            ,("vs","text/plain")
            ,("vsd","application/vnd.visio")
+           ,("vtt","text/vtt")
            ,("wad","application/x-doom")
            ,("wav","audio/x-wav")
            ,("wax","audio/x-ms-wax")
