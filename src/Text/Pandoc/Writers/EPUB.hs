@@ -35,7 +35,7 @@ import Data.Maybe ( fromMaybe )
 import Data.List ( isPrefixOf, isInfixOf, intercalate )
 import System.Environment ( getEnv )
 import Text.Printf (printf)
-import System.FilePath ( (</>), takeExtension, takeFileName )
+import System.FilePath ( takeExtension, takeFileName )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -64,7 +64,8 @@ import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
 import Text.Pandoc.UUID (getRandomUUID)
 import Text.Pandoc.Writers.HTML (writeHtmlString, writeHtml)
 import Data.Char ( toLower, isDigit, isAlphaNum )
-import Network.URI ( unEscapeString, isURI )
+import Network.URI ( unEscapeString, nonStrictRelativeTo,
+                     escapeURIString, isAllowedInURI, parseURIReference )
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import qualified Control.Exception as E
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
@@ -773,12 +774,8 @@ transformTag opts mediaRef tag@(TagOpen name attr)
   | name `elem` ["video", "source", "img", "audio"] = do
   let src = fromAttrib "src" tag
   let poster = fromAttrib "poster" tag
-  let oldsrc = case writerSourceURL opts of
-                    Just u | not (isURI src) -> u </> src
-                    _ -> src
-  let oldposter = case writerSourceURL opts of
-                    Just u | not (isURI src) -> u </> poster
-                    _ -> poster
+  let oldsrc = src `relativeTo` writerSourceURL opts
+  let oldposter = poster `relativeTo` writerSourceURL opts
   newsrc <- modifyMediaRef mediaRef oldsrc
   newposter <- modifyMediaRef mediaRef oldposter
   let attr' = filter (\(x,_) -> x /= "src" && x /= "poster") attr ++
@@ -815,9 +812,7 @@ transformInline  :: WriterOptions
                  -> Inline
                  -> IO Inline
 transformInline opts mediaRef (Image lab (src,tit)) = do
-    let oldsrc = case (unEscapeString src, writerSourceURL opts) of
-                      (s, Just u) | not (isURI src) -> u </> s
-                      (s, _)                        -> s
+    let oldsrc = src `relativeTo` writerSourceURL opts
     newsrc <- modifyMediaRef mediaRef oldsrc
     return $ Image lab (newsrc, tit)
 transformInline opts _ (x@(Math _ _))
@@ -1209,3 +1204,11 @@ docTitle' meta = fromMaybe [] $ go <$> lookupMeta "title" meta
                    _ -> []
         go (MetaList xs) = concatMap go xs
         go _ = []
+
+relativeTo :: String -> Maybe String -> String
+relativeTo src mbbase =
+  case (parseURIReference (ensureEscaped src),
+        mbbase >>= parseURIReference . ensureEscaped) of
+        (Just src', Just base') -> show (src' `nonStrictRelativeTo` base')
+        _                       -> unEscapeString src
+  where ensureEscaped  = escapeURIString isAllowedInURI
