@@ -64,7 +64,7 @@ import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
 import Text.Pandoc.UUID (getRandomUUID)
 import Text.Pandoc.Writers.HTML (writeHtmlString, writeHtml)
 import Data.Char ( toLower, isDigit, isAlphaNum )
-import Network.URI ( unEscapeString )
+import Network.URI ( unEscapeString, isURI )
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import qualified Control.Exception as E
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
@@ -773,8 +773,12 @@ transformTag opts mediaRef tag@(TagOpen name attr)
   | name `elem` ["video", "source", "img", "audio"] = do
   let src = fromAttrib "src" tag
   let poster = fromAttrib "poster" tag
-  let oldsrc = maybe src (</> src) $ writerSourceURL opts
-  let oldposter = maybe poster (</> poster) $ writerSourceURL opts
+  let oldsrc = case writerSourceURL opts of
+                    Just u | not (isURI src) -> u </> src
+                    _ -> src
+  let oldposter = case writerSourceURL opts of
+                    Just u | not (isURI src) -> u </> poster
+                    _ -> poster
   newsrc <- modifyMediaRef mediaRef oldsrc
   newposter <- modifyMediaRef mediaRef oldposter
   let attr' = filter (\(x,_) -> x /= "src" && x /= "poster") attr ++
@@ -811,8 +815,9 @@ transformInline  :: WriterOptions
                  -> Inline
                  -> IO Inline
 transformInline opts mediaRef (Image lab (src,tit)) = do
-    let src' = unEscapeString src
-    let oldsrc = maybe src' (</> src) $ writerSourceURL opts
+    let oldsrc = case (unEscapeString src, writerSourceURL opts) of
+                      (s, Just u) | not (isURI s) -> u </> s
+                      (s, _)                      -> s
     newsrc <- modifyMediaRef mediaRef oldsrc
     return $ Image lab (newsrc, tit)
 transformInline opts _ (x@(Math _ _))
