@@ -735,12 +735,10 @@ renderTags' = renderTagsOptions
 
 -- | Perform an IO action in a directory, returning to starting directory.
 inDirectory :: FilePath -> IO a -> IO a
-inDirectory path action = do
-  oldDir <- getCurrentDirectory
-  setCurrentDirectory path
-  result <- action
-  setCurrentDirectory oldDir
-  return result
+inDirectory path action = E.bracket
+                             getCurrentDirectory
+                             setCurrentDirectory
+                             (const $ setCurrentDirectory path >> action)
 
 readDefaultDataFile :: FilePath -> IO BS.ByteString
 readDefaultDataFile fname =
