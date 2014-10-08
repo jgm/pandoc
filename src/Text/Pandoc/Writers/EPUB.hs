@@ -816,8 +816,8 @@ transformInline  :: WriterOptions
                  -> IO Inline
 transformInline opts mediaRef (Image lab (src,tit)) = do
     let oldsrc = case (unEscapeString src, writerSourceURL opts) of
-                      (s, Just u) | not (isURI s) -> u </> s
-                      (s, _)                      -> s
+                      (s, Just u) | not (isURI src) -> u </> s
+                      (s, _)                        -> s
     newsrc <- modifyMediaRef mediaRef oldsrc
     return $ Image lab (newsrc, tit)
 transformInline opts _ (x@(Math _ _))
