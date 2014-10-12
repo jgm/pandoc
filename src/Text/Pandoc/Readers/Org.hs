@@ -832,8 +832,9 @@ definitionList = fmap B.definitionList . fmap compactify'DL . sequence
                  <$> many1 (definitionListItem bulletListStart)
 
 bulletList :: OrgParser (F Blocks)
-bulletList = fmap B.bulletList . fmap compactify' . sequence
-             <$> many1 (listItem bulletListStart)
+bulletList = try $ do n <- lookAhead bulletListStart
+                      fmap B.bulletList . fmap compactify' . sequence
+                        <$> many1 (listItem (bulletListCont n))
 
 orderedList :: OrgParser (F Blocks)
 orderedList = fmap B.orderedList . fmap compactify' . sequence
@@ -849,6 +850,13 @@ genericListStart listMarker = try $
 bulletListStart :: OrgParser Int
 bulletListStart = genericListStart bulletListMarker
   where bulletListMarker = pure <$> oneOf "*-+"
+
+-- parses bullet list marker at a known indent level
+bulletListCont :: Int -> OrgParser Int
+bulletListCont n
+  -- Unindented lists are legal, but they can't use '*' bullets
+  | n <= 1 = oneOf "+-" >> return n
+  | otherwise = count (n-1) spaceChar >> oneOf "+-*" >> return n
 
 orderedListStart :: OrgParser Int
 orderedListStart = genericListStart orderedListMarker

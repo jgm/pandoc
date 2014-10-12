@@ -622,6 +622,33 @@ tests =
                        ]
                      ]
 
+      , "Bullet List with Decreasing Indent" =:
+           ("  - Discovery\n\
+            \ - Human After All\n") =?>
+           mconcat [ bulletList [ plain "Discovery" ]
+                   , bulletList [ plain ("Human" <> space <> "After" <> space <> "All")]
+                   ]
+
+      , "Header follows Bullet List" =:
+          ("  - Discovery\n\
+           \  - Human After All\n\
+           \* Homework") =?>
+          mconcat [ bulletList [ plain "Discovery"
+                               , plain ("Human" <> space <> "After" <> space <> "All")
+                               ]
+                  , header 1 "Homework"
+                  ]
+
+      , "Bullet List Unindented with trailing Header" =:
+          ("- Discovery\n\
+           \- Homework\n\
+           \* NotValidListItem") =?>
+          mconcat [ bulletList [ plain "Discovery"
+                               , plain "Homework"
+                               ]
+                  , header 1 "NotValidListItem"
+                  ]
+
       , "Simple Ordered List" =:
           ("1. Item1\n" ++
            "2. Item2\n") =?>
