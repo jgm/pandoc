@@ -3080,7 +3080,8 @@ literate Haskell source. This means that
 
   - In markdown input, "bird track" sections will be parsed as Haskell
     code rather than block quotations.  Text between `\begin{code}`
-    and `\end{code}` will also be treated as Haskell code.
+    and `\end{code}` will also be treated as Haskell code.  For
+    atx-style headers the character '=' will be used instead of '#'.
 
   - In markdown output, code blocks with classes `haskell` and `literate`
     will be rendered using bird tracks, and block quotations will be
