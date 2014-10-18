@@ -69,7 +69,32 @@ parseOrg = do
   blocks' <- parseBlocks
   st <- getState
   let meta = runF (orgStateMeta' st) st
-  return $ Pandoc meta $ filter (/= Null) (B.toList $ runF blocks' st)
+  let removeUnwantedBlocks = dropCommentTrees . filter (/= Null)
+  return $ Pandoc meta $ removeUnwantedBlocks (B.toList $ runF blocks' st)
+
+-- | Drop COMMENT headers and the document tree below those headers.
+dropCommentTrees :: [Block] -> [Block]
+dropCommentTrees [] = []
+dropCommentTrees blks@(b:bs) =
+  maybe blks (flip dropUntilHeaderAboveLevel bs) $ commentHeaderLevel b
+
+-- | Return the level of a header starting a comment tree and Nothing
+-- otherwise.
+commentHeaderLevel :: Block -> Maybe Int
+commentHeaderLevel blk =
+   case blk of
+     (Header level _ ((Str "COMMENT"):_)) -> Just level
+     _                                    -> Nothing
+
+-- | Drop blocks until a header on or above the given level is seen
+dropUntilHeaderAboveLevel :: Int -> [Block] -> [Block]
+dropUntilHeaderAboveLevel n = dropWhile (not . isHeaderLevelLowerEq n)
+
+isHeaderLevelLowerEq :: Int -> Block -> Bool
+isHeaderLevelLowerEq n blk =
+  case blk of
+    (Header level _ _) -> n >= level
+    _                  -> False
 
 --
 -- Parser State for Org
