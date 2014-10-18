@@ -450,6 +450,18 @@ tests =
                   , header 2 ("walk" <> space <> "dog")
                   ]
 
+      , "Comment Trees" =:
+          unlines [ "* COMMENT A comment tree"
+                  , "  Not much going on here"
+                  , "** This will be dropped"
+                  , "* Comment tree above"
+                  ] =?>
+          header 1 "Comment tree above"
+
+      , "Nothing but a COMMENT header" =:
+          "* COMMENT Test" =?>
+          (mempty::Blocks)
+
       , "Paragraph starting with an asterisk" =:
           "*five" =?>
           para "*five"
