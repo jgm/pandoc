@@ -126,6 +126,14 @@ tests =
                        , (emph "b") <> "."
                        ])
 
+      , "Quotes are forbidden border chars" =:
+          "/'nope/ *nope\"*" =?>
+          para ("/'nope/" <> space <> "*nope\"*")
+
+      , "Commata are forbidden border chars" =:
+          "/nada,/" =?>
+          para "/nada,/"
+
       , "Markup should work properly after a blank line" =:
         unlines ["foo", "", "/bar/"] =?>
         (para $ text "foo") <> (para $ emph $ text "bar")

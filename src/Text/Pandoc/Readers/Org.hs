@@ -927,7 +927,7 @@ parseInlines = trimInlinesF . mconcat <$> many1 inline
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\"$'()*+-./:<=>[\\]^_{|}~"
+specialChars = "\"$'()*+-,./:<=>[\\]^_{|}~"
 
 
 whitespace :: OrgParser (F Inlines)
@@ -1205,10 +1205,10 @@ displayMath = return . B.displayMath <$> choice [ rawMathBetween "\\[" "\\]"
                                                 ]
 symbol :: OrgParser (F Inlines)
 symbol = return . B.str . (: "") <$> (oneOf specialChars >>= updatePositions)
- where updatePositions c
-           | c `elem` emphasisPreChars = c <$ updateLastPreCharPos
-           | c `elem` emphasisForbiddenBorderChars = c <$ updateLastForbiddenCharPos
-           | otherwise = return c
+ where updatePositions c = do
+         when (c `elem` emphasisPreChars) updateLastPreCharPos
+         when (c `elem` emphasisForbiddenBorderChars) updateLastForbiddenCharPos
+         return c
 
 emphasisBetween :: Char
                 -> OrgParser (F Inlines)
