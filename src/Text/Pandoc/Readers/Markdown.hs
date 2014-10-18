@@ -735,9 +735,9 @@ anyOrderedListStart = try $ do
   skipNonindentSpaces
   notFollowedBy $ string "p." >> spaceChar >> digit  -- page number
   res <- do guardDisabled Ext_fancy_lists
-            many1 digit
+            start <- many1 digit >>= safeRead
             char '.'
-            return (1, DefaultStyle, DefaultDelim)
+            return (start, DefaultStyle, DefaultDelim)
      <|> do (num, style, delim) <- anyOrderedListMarker
             -- if it could be an abbreviated first name,
             -- insist on more than one space
