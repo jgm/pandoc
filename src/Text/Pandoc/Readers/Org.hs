@@ -828,13 +828,14 @@ list :: OrgParser (F Blocks)
 list = choice [ definitionList, bulletList, orderedList ] <?> "list"
 
 definitionList :: OrgParser (F Blocks)
-definitionList = fmap B.definitionList . fmap compactify'DL . sequence
-                 <$> many1 (definitionListItem bulletListStart)
+definitionList = try $ do n <- lookAhead (bulletListStart' Nothing)
+                          fmap B.definitionList . fmap compactify'DL . sequence
+                            <$> many1 (definitionListItem $ bulletListStart' (Just n))
 
 bulletList :: OrgParser (F Blocks)
-bulletList = try $ do n <- lookAhead bulletListStart
+bulletList = try $ do n <- lookAhead (bulletListStart' Nothing)
                       fmap B.bulletList . fmap compactify' . sequence
-                        <$> many1 (listItem (bulletListCont n))
+                        <$> many1 (listItem (bulletListStart' $ Just n))
 
 orderedList :: OrgParser (F Blocks)
 orderedList = fmap B.orderedList . fmap compactify' . sequence
@@ -846,17 +847,27 @@ genericListStart listMarker = try $
   (+) <$> (length <$> many spaceChar)
       <*> (length <$> listMarker <* many1 spaceChar)
 
--- parses bullet list start and returns its length (excl. following whitespace)
+-- parses bullet list marker. maybe we know the indent level
 bulletListStart :: OrgParser Int
-bulletListStart = genericListStart bulletListMarker
-  where bulletListMarker = pure <$> oneOf "*-+"
+bulletListStart = bulletListStart' Nothing
 
--- parses bullet list marker at a known indent level
-bulletListCont :: Int -> OrgParser Int
-bulletListCont n
-  -- Unindented lists are legal, but they can't use '*' bullets
-  | n <= 1 = oneOf "+-" >> return n
-  | otherwise = count (n-1) spaceChar >> oneOf "+-*" >> return n
+bulletListStart' :: Maybe Int -> OrgParser Int
+-- returns length of bulletList prefix, inclusive of marker
+bulletListStart' Nothing  = do ind <- many spaceChar
+                               oneOf bullets
+                               many1 spaceChar
+                               return $ length ind + 1
+ -- Unindented lists are legal, but they can't use '*' bullets
+ -- We return n to maintain compatibility with the generic listItem
+bulletListStart' (Just n) = do count (n-1) spaceChar
+                               oneOf validBullets
+                               many1 spaceChar
+                               return n
+  where validBullets = if n == 1 then noAsterisks else bullets
+        noAsterisks  = filter (/= '*') bullets
+
+bullets :: String
+bullets = "*+-"
 
 orderedListStart :: OrgParser Int
 orderedListStart = genericListStart orderedListMarker

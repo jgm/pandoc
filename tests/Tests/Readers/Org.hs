@@ -744,6 +744,16 @@ tests =
           , ("PCR", [ plain $ spcSep [ "polymerase", "chain", "reaction" ] ])
           ]
 
+      , "Definition List With Trailing Header" =:
+          "- definition :: list\n\
+          \- cool :: defs\n\
+          \* header" =?>
+          mconcat [ definitionList [ ("definition", [plain "list"])
+                                   , ("cool", [plain "defs"])
+                                   ]
+                  , header 1 "header"
+                  ]
+
       , "Loose bullet list" =:
           unlines [ "- apple"
                   , ""
