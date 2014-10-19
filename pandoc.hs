@@ -930,6 +930,9 @@ defaultReaderName fallback (x:xs) =
     ".docx"     -> "docx"
     ".t2t"      -> "t2t"
     ".epub"     -> "epub"
+    ".odt"      -> "odt"  -- so we get an "unknown reader" error
+    ".pdf"      -> "pdf"  -- so we get an "unknown reader" error
+    ".doc"      -> "doc"  -- so we get an "unknown reader" error
     _           -> defaultReaderName fallback xs
 
 -- Returns True if extension of first source is .lhs
@@ -1148,7 +1151,15 @@ main = do
                       (getT2TMeta sources outputFile)
               else case getReader readerName' of
                 Right r  -> return r
-                Left e   -> err 7 e
+                Left e   -> err 7 e'
+                  where e' = case readerName' of
+                                  "odt" -> e ++
+                                    "\nPandoc can convert to ODT, but not from ODT.\nTry using LibreOffice to export as HTML, and convert that with pandoc."
+                                  "pdf" -> e ++
+                                     "\nPandoc can convert to PDF, but not from PDF."
+                                  "doc" -> e ++
+                                     "\nPandoc can convert from DOCX, but not from DOC.\nTry using Word to save your DOC file as DOCX, and convert that with pandoc."
+                                  _ -> e
 
   let standalone' = standalone || not (isTextFormat writerName') || pdfOutput
 
