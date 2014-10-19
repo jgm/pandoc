@@ -17,6 +17,7 @@
 ,Header 3 ("my-header",[],[]) [Str "my",Space,Str "header"]
 ,Header 2 ("in-math",[],[]) [Str "$",Space,Str "in",Space,Str "math"]
 ,Para [Math InlineMath "\\$2 + \\$3"]
+,Para [Math InlineMath "x = \\text{the $n$th root of $y$}"]
 ,Para [Str "This",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "math:"]
 ,Para [Str "$PATH",Space,Str "90",Space,Str "$PATH"]
 ,Header 2 ("commented-out-list-item",[],[]) [Str "Commented-out",Space,Str "list",Space,Str "item"]

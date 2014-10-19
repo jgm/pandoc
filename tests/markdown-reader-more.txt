@@ -60,6 +60,8 @@
 
 $\$2 + \$3$
 
+$x = \text{the $n$th root of $y$}$
+
 This should not be math:
 
 $PATH 90 $PATH
