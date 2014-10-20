@@ -973,6 +973,7 @@ defaultWriterName x =
     ".pdf"      -> "latex"
     ".fb2"      -> "fb2"
     ".opml"     -> "opml"
+    ".icml"     -> "icml"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _           -> "html"
 
