@@ -62,7 +62,7 @@ import Text.Printf (printf)
 import qualified Control.Exception as E
 import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
                          extensionFromMimeType)
-import Control.Applicative ((<$>), (<|>))
+import Control.Applicative ((<$>), (<|>), (<*>))
 import Data.Maybe (fromMaybe, mapMaybe)
 
 data ListMarker = NoMarker
@@ -104,6 +104,7 @@ data WriterState = WriterState{
        , stInDel          :: Bool
        , stChangesAuthor  :: String
        , stChangesDate    :: String
+       , stPrintWidth     :: Integer
        }
 
 defaultWriterState :: WriterState
@@ -122,6 +123,7 @@ defaultWriterState = WriterState{
       , stInDel          = False
       , stChangesAuthor  = "unknown"
       , stChangesDate    = "1969-12-31T19:00:00Z"
+      , stPrintWidth     = 1
       }
 
 type WS a = StateT WriterState IO a
@@ -183,18 +185,37 @@ writeDocx opts doc@(Pandoc meta _) = do
              Nothing -> readDataFile datadir "reference.docx"
   distArchive <- liftM (toArchive . toLazy) $ readDataFile Nothing "reference.docx"
 
+  parsedDoc <- parseXml refArchive distArchive "word/document.xml"
+  let wname f qn = qPrefix qn == Just "w" && f (qName qn)
+  let mbsectpr = filterElementName (wname (=="sectPr")) parsedDoc
+
+  -- Gets the template size
+  let mbpgsz = mbsectpr >>= (filterElementName (wname (=="pgSz")))
+  let mbAttrSzWidth = (elAttribs <$> mbpgsz) >>= (lookupAttrBy ((=="w") . qName))
+
+  let mbpgmar = mbsectpr >>= (filterElementName (wname (=="pgMar")))
+  let mbAttrMarLeft = (elAttribs <$> mbpgmar) >>= (lookupAttrBy ((=="left") . qName))
+  let mbAttrMarRight = (elAttribs <$> mbpgmar) >>= (lookupAttrBy ((=="right") . qName))
+
+  -- Get the avaible area (converting the size and the margins to int and
+  -- doing the difference
+  let pgContentWidth = (-) <$> (read <$> mbAttrSzWidth ::Maybe Integer)
+                       <*> (
+                         (+) <$> (read <$> mbAttrMarRight ::Maybe Integer)
+                         <*> (read <$> mbAttrMarLeft ::Maybe Integer)
+                       )
+
   ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc')
                        defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
-                                         , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime}
+                                         , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
+                                         , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth) }
+
   let epochtime = floor $ utcTimeToPOSIXSeconds utctime
   let imgs = M.elems $ stImages st
 
   -- create entries for images in word/media/...
   let toImageEntry (_,path,_,_,img) = toEntry ("word/" ++ path) epochtime $ toLazy img
   let imageEntries = map toImageEntry imgs
-
-
-
 
   let stdAttributes =
             [("xmlns:w","http://schemas.openxmlformats.org/wordprocessingml/2006/main")
@@ -310,10 +331,7 @@ writeDocx opts doc@(Pandoc meta _) = do
         $ renderXml reldoc
 
 
-    -- adjust contents to add sectPr from reference.docx
-  parsedDoc <- parseXml refArchive distArchive "word/document.xml"
-  let wname f qn = qPrefix qn == Just "w" && f (qName qn)
-  let mbsectpr = filterElementName (wname (=="sectPr")) parsedDoc
+  -- adjust contents to add sectPr from reference.docx
   let sectpr = case mbsectpr of
         Just sectpr' -> let cs = renumIds
                                  (\q -> qName q == "id" && qPrefix q == Just "r")
@@ -322,8 +340,6 @@ writeDocx opts doc@(Pandoc meta _) = do
                         in
                          add_attrs (elAttribs sectpr') $ mknode "w:sectPr" [] cs
         Nothing      -> (mknode "w:sectPr" [] ())
-
-
 
   -- let sectpr = fromMaybe (mknode "w:sectPr" [] ()) mbsectpr'
   let contents' = contents ++ [sectpr]
@@ -927,6 +943,7 @@ inlineToOpenXML opts (Link txt (src,_)) = do
   return [ mknode "w:hyperlink" [("r:id",id')] contents ]
 inlineToOpenXML opts (Image alt (src, tit)) = do
   -- first, check to see if we've already done this image
+  pageWidth <- gets stPrintWidth
   imgs <- gets stImages
   case M.lookup src imgs of
     Just (_,_,_,elt,_) -> return [elt]
@@ -943,7 +960,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
           let size = imageSize img
           let (xpt,ypt) = maybe (120,120) sizeInPoints size
           -- 12700 emu = 1 pt
-          let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700)
+          let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) (pageWidth * 12700)
           let cNvPicPr = mknode "pic:cNvPicPr" [] $
                            mknode "a:picLocks" [("noChangeArrowheads","1"),("noChangeAspect","1")] ()
           let nvPicPr  = mknode "pic:nvPicPr" []
@@ -1010,9 +1027,11 @@ parseXml refArchive distArchive relpath =
             Nothing -> fail $ relpath ++ " corrupt or missing in reference docx"
 
 -- | Scales the image to fit the page
-fitToPage :: (Integer, Integer) -> (Integer, Integer)
-fitToPage (x, y)
-  --5440680 is the emu width size of a letter page in portrait, minus the margins
-  | x > 5440680 =
-    (5440680, round $ (5440680 / ((fromIntegral :: Integer -> Double) x)) * (fromIntegral y))
+-- sizes are passed in emu
+fitToPage :: (Integer, Integer) -> Integer -> (Integer, Integer)
+fitToPage (x, y) pageWidth
+  -- Fixes width to the page width and scales the height
+  | x > pageWidth = 
+    (pageWidth, round $ 
+      ((fromIntegral pageWidth) / ((fromIntegral :: Integer -> Double) x)) * (fromIntegral y))
   | otherwise = (x, y)
