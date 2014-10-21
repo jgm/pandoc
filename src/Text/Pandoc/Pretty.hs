@@ -286,6 +286,9 @@ renderList (BlankLines num : xs) = do
        | otherwise -> replicateM_ (1 + num - newlines st) (outp (-1) "\n")
   renderList xs
 
+renderList (CarriageReturn : BlankLines m : xs) =
+  renderList (BlankLines m : xs)
+
 renderList (CarriageReturn : xs) = do
   st <- get
   if newlines st > 0 || null xs
