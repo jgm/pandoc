@@ -276,6 +276,18 @@ tests =
           "\\notacommand{foo}" =?>
           para (rawInline "latex" "\\notacommand{foo}")
 
+      , "MathML symbol in LaTeX-style" =:
+          "There is a hackerspace in Lübeck, Germany, called nbsp (unicode symbol: '\\nbsp')." =?>
+          para ("There is a hackerspace in Lübeck, Germany, called nbsp (unicode symbol: ' ').")
+
+      , "MathML symbol in LaTeX-style, including braces" =:
+          "\\Aacute{}stor" =?>
+          para "Ástor"
+
+      , "MathML copy sign" =:
+          "\\copy" =?>
+          para "©"
+
       , "LaTeX citation" =:
           "\\cite{Coffee}" =?>
           let citation = Citation

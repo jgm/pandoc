@@ -42,6 +42,7 @@ import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
 import           Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import           Text.Pandoc.Shared (compactify', compactify'DL)
 import           Text.TeXMath (readTeX, writePandoc, DisplayType(..))
+import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
 import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>) )
@@ -1431,13 +1432,19 @@ simpleSubOrSuperString = try $
 inlineLaTeX :: OrgParser (F Inlines)
 inlineLaTeX = try $ do
   cmd <- inlineLaTeXCommand
-  maybe mzero returnF $ parseAsMath cmd `mplus` parseAsInlineLaTeX cmd
+  maybe mzero returnF $
+     parseAsMath cmd `mplus` parseAsMathMLSym cmd `mplus` parseAsInlineLaTeX cmd
  where
    parseAsMath :: String -> Maybe Inlines
    parseAsMath cs = B.fromList <$> texMathToPandoc cs
 
    parseAsInlineLaTeX :: String -> Maybe Inlines
    parseAsInlineLaTeX cs = maybeRight $ runParser inlineCommand state "" cs
+
+   parseAsMathMLSym :: String -> Maybe Inlines
+   parseAsMathMLSym cs = B.str <$> MathMLEntityMap.getUnicode (clean cs)
+    -- dropWhileEnd would be nice here, but it's not available before base 4.5
+    where clean = reverse . dropWhile (`elem` "{}") . reverse . drop 1
 
    state :: ParserState
    state = def{ stateOptions = def{ readerParseRaw = True }}
