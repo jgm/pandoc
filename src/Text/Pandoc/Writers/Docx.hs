@@ -183,7 +183,7 @@ writeDocx opts doc@(Pandoc meta _) = do
        case writerReferenceDocx opts of
              Just f  -> B.readFile f
              Nothing -> readDataFile datadir "reference.docx"
-  distArchive <- liftM (toArchive . toLazy) $ readDataFile Nothing "reference.docx"
+  distArchive <- liftM (toArchive . toLazy) $ readDataFile datadir "reference.docx"
 
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
   let wname f qn = qPrefix qn == Just "w" && f (qName qn)
