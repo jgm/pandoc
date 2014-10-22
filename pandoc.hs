@@ -164,7 +164,8 @@ data Opt = Opt
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optMetadata          :: M.Map String MetaValue -- ^ Metadata fields to set
     , optOutputFile        :: String  -- ^ Name of output file
-    , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
+    , optNumberFigures     :: Bool    -- ^ Number figures in LaTeX and HTML output
+    , optNumberSections    :: Bool    -- ^ Number sections in LaTeX and HTML output
     , optNumberOffset      :: [Int]   -- ^ Starting number for sections
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
@@ -224,6 +225,7 @@ defaultOpts = Opt
     , optVariables             = []
     , optMetadata              = M.empty
     , optOutputFile            = "-"    -- "-" means stdout
+    , optNumberFigures         = False
     , optNumberSections        = False
     , optNumberOffset          = [0,0,0,0,0,0]
     , optSectionDivs           = False
@@ -576,10 +578,15 @@ options =
                   (\opt -> return opt { optChapters = True }))
                  "" -- "Use chapter for top-level sections in LaTeX, DocBook"
 
+    , Option ""  ["number-figures"]
+                 (NoArg
+                  (\opt -> return opt { optNumberFigures = True }))
+                 "" -- "Number figures in LaTeX and HTML"
+
     , Option "N" ["number-sections"]
                  (NoArg
                   (\opt -> return opt { optNumberSections = True }))
-                 "" -- "Number sections in LaTeX"
+                 "" -- "Number sections in LaTeX and HTML"
 
     , Option "" ["number-offset"]
                  (ReqArg
@@ -1039,6 +1046,7 @@ main = do
               , optTransforms            = transforms
               , optTemplate              = templatePath
               , optOutputFile            = outputFile
+              , optNumberFigures         = numberFigures
               , optNumberSections        = numberSections
               , optNumberOffset          = numberFrom
               , optSectionDivs           = sectionDivs
@@ -1275,6 +1283,7 @@ main = do
                             writerIncremental      = incremental,
                             writerCiteMethod       = citeMethod,
                             writerIgnoreNotes      = False,
+                            writerNumberFigures    = numberFigures,
                             writerNumberSections   = numberSections,
                             writerNumberOffset     = numberFrom,
                             writerSectionDivs      = sectionDivs,
