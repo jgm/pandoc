@@ -1977,6 +1977,8 @@ custom template.  For example:
     $endif$
     $endfor$
 
+YAML metadata blocks are only included in markdown output format when when the
+`-s/--standalone` option is used.
 
 Backslash escapes
 -----------------
