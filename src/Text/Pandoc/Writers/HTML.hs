@@ -73,11 +73,13 @@ data WriterState = WriterState
     , stQuotes           :: Bool    -- ^ <q> tag is used
     , stHighlighting     :: Bool    -- ^ Syntax highlighting is used
     , stSecNum           :: [Int]   -- ^ Number of current section
+    , stElement          :: Bool    -- ^ Processing an Element
     }
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
-                                  stHighlighting = False, stSecNum = []}
+                                  stHighlighting = False, stSecNum = [],
+                                  stElement = False}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -280,7 +282,13 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
   let titleSlide = slide && level < slideLevel
   header' <- if title' == [Str "\0"]  -- marker for hrule
                 then return mempty
-                else blockToHtml opts (Header level' (id',classes,keyvals) title')
+                else do
+                  modify (\st -> st{ stElement = True})
+                  res <- blockToHtml opts
+                           (Header level' (id',classes,keyvals) title')
+                  modify (\st -> st{ stElement = False})
+                  return res
+
   let isSec (Sec _ _ _ _ _) = True
       isSec (Blk _)         = False
   let isPause (Blk x) = x == Para [Str ".",Space,Str ".",Space,Str "."]
@@ -491,7 +499,7 @@ blockToHtml opts (BlockQuote blocks) =
      else do
        contents <- blockListToHtml opts blocks
        return $ H.blockquote $ nl opts >> contents >> nl opts
-blockToHtml opts (Header level (_,classes,_) lst) = do
+blockToHtml opts (Header level attr@(_,classes,_) lst) = do
   contents <- inlineListToHtml opts lst
   secnum <- liftM stSecNum get
   let contents' = if writerNumberSections opts && not (null secnum)
@@ -499,7 +507,9 @@ blockToHtml opts (Header level (_,classes,_) lst) = do
                      then (H.span ! A.class_ "header-section-number" $ toHtml
                           $ showSecNum secnum) >> strToHtml " " >> contents
                      else contents
-  return $ case level of
+  inElement <- gets stElement
+  return $ (if inElement then id else addAttrs opts attr)
+         $ case level of
               1 -> H.h1 contents'
               2 -> H.h2 contents'
               3 -> H.h3 contents'
