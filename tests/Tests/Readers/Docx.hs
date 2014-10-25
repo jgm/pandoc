@@ -160,6 +160,10 @@ tests = [ testGroup "inlines"
             "docx/danish_headers.docx"
             "docx/danish_headers.native"
           , testCompare
+            "i18n blocks (headers and blockquotes)"
+            "docx/i18n_blocks.docx"
+            "docx/i18n_blocks.native"
+          , testCompare
             "lists"
             "docx/lists.docx"
             "docx/lists.native"
