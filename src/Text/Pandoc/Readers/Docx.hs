@@ -84,8 +84,7 @@ import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Reducible
 import Text.Pandoc.Shared
 import Text.Pandoc.MediaBag (insertMedia, MediaBag)
-import Data.Maybe (isJust)
-import Data.List (delete, stripPrefix, (\\), intersect, isPrefixOf)
+import Data.List (delete, (\\), intersect)
 import Data.Monoid
 import Text.TeXMath (writeTeX)
 import Data.Default (Default)
@@ -197,18 +196,8 @@ fixAuthors mv = mv
 codeStyles :: [String]
 codeStyles = ["VerbatimChar"]
 
-blockQuoteDivs :: [String]
-blockQuoteDivs = ["Quote", "BlockQuote", "BlockQuotation"]
-
 codeDivs :: [String]
 codeDivs = ["SourceCode"]
-
-
--- For the moment, we have English, Danish, German, and French. This
--- is fairly ad-hoc, and there might be a more systematic way to do
--- it, but it's better than nothing.
-headerPrefixes :: [String]
-headerPrefixes = ["Heading", "Overskrift", "berschrift", "Titre"]
 
 runElemToInlines :: RunElem -> Inlines
 runElemToInlines (TextRun s) = text s
@@ -434,9 +423,9 @@ parStyleToTransform pPr
       let pPr' = pPr { pStyle = cs, indentation = Nothing}
       in
        (divWith ("", [c], [])) . (parStyleToTransform pPr')
-  | (c:cs) <- pStyle pPr
-  , c `elem` blockQuoteDivs =
-    let pPr' = pPr { pStyle = cs \\ blockQuoteDivs }
+  | (_:cs) <- pStyle pPr
+  , Just True <- pBlockQuote pPr =
+    let pPr' = pPr { pStyle = cs }
     in
      blockQuote . (parStyleToTransform pPr')
   | (_:cs) <- pStyle pPr =
@@ -467,12 +456,11 @@ bodyPartToBlocks (Paragraph pPr parparts)
     $ parStyleToTransform pPr
     $ codeBlock
     $ concatMap parPartToString parparts
-  | (c : cs) <- filter (isJust . isHeaderClass) $ pStyle pPr
-  , Just (prefix, n) <- isHeaderClass c = do
+  | Just (style, n) <- pHeading pPr = do
     ils <- local (\s-> s{docxInHeaderBlock=True}) $
            (concatReduce <$> mapM parPartToInlines parparts)
     makeHeaderAnchor $
-      headerWith ("", delete (prefix ++ show n) cs, []) n ils
+      headerWith ("", delete style (pStyle pPr), []) n ils
   | otherwise = do
     ils <- concatReduce <$> mapM parPartToInlines parparts >>=
            (return . fromList . trimLineBreaks . normalizeSpaces . toList)
@@ -559,12 +547,3 @@ docxToOutput :: ReaderOptions -> Docx -> (Meta, [Block], MediaBag)
 docxToOutput opts (Docx (Document _ body)) =
   let dEnv   = def { docxOptions  = opts} in
    evalDocxContext (bodyToOutput body) dEnv def
-
-isHeaderClass :: String -> Maybe (String, Int)
-isHeaderClass s | (pref:_) <- filter (\h -> isPrefixOf h s) headerPrefixes
-                , Just s' <- stripPrefix pref s =
-                  case reads s' :: [(Int, String)] of
-                   [] -> Nothing
-                   ((n, "") : []) -> Just (pref, n)
-                   _       -> Nothing
-isHeaderClass _ = Nothing
