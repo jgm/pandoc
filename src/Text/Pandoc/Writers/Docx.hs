@@ -715,7 +715,8 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
   let mkgridcol w = mknode "w:gridCol"
                        [("w:w", show (floor (textwidth * w) :: Integer))] ()
   return $
-    mknode "w:tbl" []
+    caption' ++
+    [mknode "w:tbl" []
       ( mknode "w:tblPr" []
         (   mknode "w:tblStyle" [("w:val","TableNormal")] () :
             mknode "w:tblW" [("w:type", "pct"), ("w:w", show rowwidth)] () :
@@ -727,7 +728,7 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
             else map mkgridcol widths)
       : [ mkrow True headers' | not (all null headers) ] ++
       map (mkrow False) rows'
-      ) : caption'
+      )]
 blockToOpenXML opts (BulletList lst) = do
   let marker = BulletMarker
   addList marker
