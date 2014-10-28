@@ -50,6 +50,15 @@ default (though output to *stdout* is disabled for the `odt`, `docx`,
 
     pandoc -o output.html input.txt
 
+By default, pandoc produces a document fragment, not a standalone
+document with a proper header and footer.  To produce a standalone
+document, use the `-s` or `--standalone` flag:
+
+    pandoc -s -o output.html input.txt
+
+For more information on how standalone documents are produced, see
+[Templates](#templates), below.
+
 Instead of a file, an absolute URI may be given.  In this case
 pandoc will fetch the content using HTTP:
 
@@ -94,6 +103,11 @@ If your local character encoding is not UTF-8, you
 should pipe input and output through `iconv`:
 
     iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
+
+Note that in some output formats (such as HTML, LaTeX, ConTeXt,
+RTF, OPML, DocBook, and Texinfo), information about
+the character encoding is included in the document header, which
+will only be included if you use the `-s/--standalone` option.
 
 Creating a PDF
 --------------
