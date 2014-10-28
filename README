@@ -95,6 +95,12 @@ should pipe input and output through `iconv`:
 
     iconv -t utf-8 input.txt | pandoc | iconv -f utf-8
 
+Pandoc by default outputs a snippet of the requested output format,
+not a full document. In some cases, especially HTML, the snippet may
+be interpreted with a wrong character set by a consuming (downstream)
+program. If you intend to generate a complete document, use the
+`--standalone` command-line option.
+
 Creating a PDF
 --------------
 
@@ -335,7 +341,9 @@ General writer options
 :   Produce output with an appropriate header and footer (e.g. a
     standalone HTML, LaTeX, or RTF file, not a fragment).  This option
     is set automatically for `pdf`, `epub`, `epub3`, `fb2`, `docx`, and `odt`
-    output.
+    output.  This also had the important effect of providing character set
+    information in the output document, in particular for `HTML 5`, `LaTeX`,
+    `ConTeXt`, `RTF`, `OPML`, `DocBook`, `GNU Texinfo`, `Slidy`.
 
 `--template=`*FILE*
 :   Use *FILE* as a custom template for the generated document. Implies
