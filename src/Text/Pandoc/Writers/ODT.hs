@@ -138,7 +138,8 @@ transformPicMath opts entriesRef (Image lab (src,_)) = do
        let (w,h) = fromMaybe (0,0) $ sizeInPoints `fmap` size
        let tit' = show w ++ "x" ++ show h
        entries <- readIORef entriesRef
-       let newsrc = "Pictures/" ++ show (length entries) ++ takeExtension src
+       let extension = takeExtension $ takeWhile (/='?') src
+       let newsrc = "Pictures/" ++ show (length entries) ++ extension
        let toLazy = B.fromChunks . (:[])
        epochtime <- floor `fmap` getPOSIXTime
        let entry = toEntry newsrc epochtime $ toLazy img
