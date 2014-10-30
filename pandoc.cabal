@@ -182,6 +182,7 @@ Extra-Source-Files:
                  tests/epub/*.epub
                  tests/epub/*.native
                  tests/txt2tags.t2t
+                 tests/twiki-reader.twiki
 
 Source-repository head
   type:          git
