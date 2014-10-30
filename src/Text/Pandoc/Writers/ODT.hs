@@ -41,7 +41,7 @@ import Control.Applicative ((<$>))
 import Text.Pandoc.Options ( WriterOptions(..) )
 import Text.Pandoc.Shared ( stringify, readDataFile, fetchItem', warn )
 import Text.Pandoc.ImageSize ( imageSize, sizeInPoints )
-import Text.Pandoc.MIME ( getMimeType )
+import Text.Pandoc.MIME ( getMimeType, extensionFromMimeType )
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared ( fixDisplayMath )
@@ -51,7 +51,7 @@ import Text.Pandoc.XML
 import Text.Pandoc.Pretty
 import qualified Control.Exception as E
 import Data.Time.Clock.POSIX ( getPOSIXTime )
-import System.FilePath ( takeExtension, takeDirectory )
+import System.FilePath ( takeExtension, takeDirectory, (<.>))
 
 -- | Produce an ODT file from a Pandoc document.
 writeODT :: WriterOptions  -- ^ Writer options
@@ -133,13 +133,14 @@ transformPicMath opts entriesRef (Image lab (src,_)) = do
      Left (_ :: E.SomeException) -> do
        warn $ "Could not find image `" ++ src ++ "', skipping..."
        return $ Emph lab
-     Right (img, _) -> do
+     Right (img, mbMimeType) -> do
        let size = imageSize img
        let (w,h) = fromMaybe (0,0) $ sizeInPoints `fmap` size
        let tit' = show w ++ "x" ++ show h
        entries <- readIORef entriesRef
-       let extension = takeExtension $ takeWhile (/='?') src
-       let newsrc = "Pictures/" ++ show (length entries) ++ extension
+       let extension = fromMaybe (takeExtension $ takeWhile (/='?') src)
+                           (mbMimeType >>= extensionFromMimeType)
+       let newsrc = "Pictures/" ++ show (length entries) <.> extension
        let toLazy = B.fromChunks . (:[])
        epochtime <- floor `fmap` getPOSIXTime
        let entry = toEntry newsrc epochtime $ toLazy img
