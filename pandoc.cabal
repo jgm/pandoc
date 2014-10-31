@@ -20,8 +20,8 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  markup, OPML, Emacs Org-Mode, txt2tags and Textile, and it can write
                  markdown, reStructuredText, HTML, LaTeX, ConTeXt, Docbook,
                  OPML, OpenDocument, ODT, Word docx, RTF, MediaWiki, DokuWiki,
-                 Textile, groff man pages, plain text, Emacs Org-Mode, AsciiDoc,
-                 Haddock markup, EPUB (v2 and v3), FictionBook2,
+                 TWiki, Textile, groff man pages, plain text, Emacs Org-Mode,
+                 AsciiDoc, Haddock markup, EPUB (v2 and v3), FictionBook2,
                  InDesign ICML, and several kinds of HTML/javascript
                  slide shows (S5, Slidy, Slideous, DZSlides, reveal.js).
                  .
@@ -182,6 +182,7 @@ Extra-Source-Files:
                  tests/epub/*.epub
                  tests/epub/*.native
                  tests/txt2tags.t2t
+                 tests/twiki-reader.twiki
 
 Source-repository head
   type:          git
@@ -289,6 +290,7 @@ Library
                    Text.Pandoc.Readers.Textile,
                    Text.Pandoc.Readers.Native,
                    Text.Pandoc.Readers.Haddock,
+                   Text.Pandoc.Readers.TWiki,
                    Text.Pandoc.Readers.Docx,
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Writers.Native,
