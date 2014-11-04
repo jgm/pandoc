@@ -268,7 +268,8 @@ Multiple blocks with italics:
 <HTML><dt></HTML>//orange//<HTML></dt></HTML>
 <HTML><dd></HTML><HTML><p></HTML>orange fruit<HTML></p></HTML>
 <code>{ orange code block }</code>
-> <HTML><p></HTML>orange block quote<HTML></p></HTML><HTML></dd></HTML><HTML></dl></HTML>
+> <HTML><p></HTML>orange block quote<HTML></p></HTML>
+<HTML></dd></HTML><HTML></dl></HTML>
 
 Multiple definitions, tight:
 
@@ -611,7 +612,7 @@ If you want, you can indent every line, but you can also be lazy and just indent
 ))
 
 > Notes can go in quotes.((In quote.
-))
+> ))
 
   - And in list items.((In list.))
 

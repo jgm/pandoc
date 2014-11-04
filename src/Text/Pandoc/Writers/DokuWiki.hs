@@ -178,7 +178,7 @@ blockToDokuWiki _ (CodeBlock (_,classes,_) str) = do
 blockToDokuWiki opts (BlockQuote blocks) = do
   contents <- blockListToDokuWiki opts blocks
   if isSimpleBlockQuote blocks
-     then return $ "> " ++ contents
+     then return $ unlines $ map ("> " ++) $ lines contents
      else return $ "<HTML><blockquote>\n" ++ contents ++ "</blockquote></HTML>"
 
 blockToDokuWiki opts (Table capt aligns _ headers rows) = do
@@ -352,9 +352,7 @@ isPlainOrPara (Para  _) = True
 isPlainOrPara _         = False
 
 isSimpleBlockQuote :: [Block] -> Bool
-isSimpleBlockQuote [BlockQuote bs] = isSimpleBlockQuote bs
-isSimpleBlockQuote [b] = isPlainOrPara b
-isSimpleBlockQuote _   = False
+isSimpleBlockQuote bs  = all isPlainOrPara bs
 
 -- | Concatenates strings with line breaks between them.
 vcat :: [String] -> String
