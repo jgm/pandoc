@@ -1139,26 +1139,31 @@ applyCustomLinkFormat link = do
     formatter <- M.lookup linkType <$> asksF orgStateLinkFormatters
     return $ maybe link ($ drop 1 rest) formatter
 
-
 linkToInlinesF :: String -> Inlines -> F Inlines
-linkToInlinesF s@('#':_) = pure . B.link s ""
-linkToInlinesF s
-    | isImageFilename s = const . pure $ B.image s "" ""
-    | isUri s           = pure . B.link s ""
-    | isRelativeUrl s   = pure . B.link s ""
-linkToInlinesF s = \title -> do
-  anchorB <- (s `elem`) <$> asksF orgStateAnchorIds
-  if anchorB
-    then pure $ B.link ('#':s) "" title
-    else pure $ B.emph title
+linkToInlinesF s =
+  case s of
+    ('#':_) -> pure . B.link s ""
+    _ | isImageFilename s     -> const . pure $ B.image s "" ""
+    _ | isUri s               -> pure . B.link s ""
+    _ | isRelativeFilePath s  -> pure . B.link s ""
+    _ | isAbsoluteFilePath s  -> pure . B.link ("file://" ++ s) ""
+    _ -> \title -> do
+           anchorB <- (s `elem`) <$> asksF orgStateAnchorIds
+           if anchorB
+             then pure $ B.link ('#':s) "" title
+             else pure $ B.emph title
 
-isRelativeUrl :: String -> Bool
-isRelativeUrl s = (':' `notElem` s) && ("./" `isPrefixOf` s)
+isRelativeFilePath :: String -> Bool
+isRelativeFilePath s = (("./" `isPrefixOf` s) || ("../" `isPrefixOf` s)) &&
+                       (':' `notElem` s)
 
 isUri :: String -> Bool
 isUri s = let (scheme, path) = break (== ':') s
           in all (\c -> isAlphaNum c || c `elem` ".-") scheme
              && not (null path)
+
+isAbsoluteFilePath :: String -> Bool
+isAbsoluteFilePath = ('/' ==) . head
 
 isImageFilename :: String -> Bool
 isImageFilename filename =

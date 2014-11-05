@@ -197,6 +197,14 @@ tests =
           "[[http://zeitlens.com/]]" =?>
           (para $ link "http://zeitlens.com/" "" "http://zeitlens.com/")
 
+      , "Absolute file link" =:
+          "[[/url][hi]]" =?>
+          (para $ link "file:///url" "" "hi")
+
+      , "Link to file in parent directory" =:
+          "[[../file.txt][moin]]" =?>
+          (para $ link "../file.txt" "" "moin")
+
       , "Image link" =:
           "[[sunset.png][dusk.svg]]" =?>
           (para $ link "sunset.png" "" (image "dusk.svg" "" ""))
