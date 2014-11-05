@@ -205,6 +205,10 @@ tests =
           "[[../file.txt][moin]]" =?>
           (para $ link "../file.txt" "" "moin")
 
+      , "Empty link (for gitit interop)" =:
+          "[[][New Link]]" =?>
+          (para $ link "" "" "New Link")
+
       , "Image link" =:
           "[[sunset.png][dusk.svg]]" =?>
           (para $ link "sunset.png" "" (image "dusk.svg" "" ""))

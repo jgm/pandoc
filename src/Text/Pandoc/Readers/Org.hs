@@ -1099,7 +1099,7 @@ linkOrImage = explicitOrImageLink
 explicitOrImageLink :: OrgParser (F Inlines)
 explicitOrImageLink = try $ do
   char '['
-  srcF   <- applyCustomLinkFormat =<< linkTarget
+  srcF   <- applyCustomLinkFormat =<< possiblyEmptyLinkTarget
   title  <- enclosedRaw (char '[') (char ']')
   title' <- parseFromString (mconcat <$> many inline) title
   char ']'
@@ -1132,6 +1132,9 @@ selfTarget = try $ char '[' *> linkTarget <* char ']'
 linkTarget :: OrgParser String
 linkTarget = enclosedByPair '[' ']' (noneOf "\n\r[]")
 
+possiblyEmptyLinkTarget :: OrgParser String
+possiblyEmptyLinkTarget = try linkTarget <|> ("" <$ string "[]")
+
 applyCustomLinkFormat :: String -> OrgParser (F String)
 applyCustomLinkFormat link = do
   let (linkType, rest) = break (== ':') link
@@ -1142,6 +1145,7 @@ applyCustomLinkFormat link = do
 linkToInlinesF :: String -> Inlines -> F Inlines
 linkToInlinesF s =
   case s of
+    ""      -> pure . B.link "" ""
     ('#':_) -> pure . B.link s ""
     _ | isImageFilename s     -> const . pure $ B.image s "" ""
     _ | isUri s               -> pure . B.link s ""
