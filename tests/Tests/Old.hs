@@ -130,6 +130,8 @@ tests = [ testGroup "markdown"
             "dokuwiki_inline_formatting.native" "dokuwiki_inline_formatting.dokuwiki"
           , test "multiblock table" ["-r", "native", "-w", "dokuwiki", "-s"]
             "dokuwiki_multiblock_table.native" "dokuwiki_multiblock_table.dokuwiki"
+          , test "external images" ["-r", "native", "-w", "dokuwiki", "-s"]
+            "dokuwiki_external_images.native" "dokuwiki_external_images.dokuwiki"
           ]
         , testGroup "opml"
           [ test "basic" ["-r", "native", "-w", "opml", "--columns=78", "-s"]

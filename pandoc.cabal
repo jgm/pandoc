@@ -170,6 +170,8 @@ Extra-Source-Files:
                  tests/lhs-test.html+lhs
                  tests/lhs-test.fragment.html+lhs
                  tests/pipe-tables.txt
+		 tests/dokuwiki_external_images.dokuwiki
+		 tests/dokuwiki_external_images.native
                  tests/dokuwiki_multiblock_table.dokuwiki
                  tests/dokuwiki_multiblock_table.native
                  tests/fb2/*.markdown
