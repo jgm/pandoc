@@ -134,7 +134,9 @@ blockToDokuWiki opts (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   let opt = if null txt
                then ""
                else "|" ++ if null tit then capt else tit ++ capt
-  return $ "{{:" ++ src ++ opt ++ "}}\n"
+      -- Relative links fail isURI and receive a colon
+      prefix = if isURI src then "" else ":"
+  return $ "{{" ++ prefix ++ src ++ opt ++ "}}\n"
 
 blockToDokuWiki opts (Para inlines) = do
   indent <- stIndent <$> ask
@@ -478,7 +480,9 @@ inlineToDokuWiki opts (Image alt (source, tit)) = do
               ("", []) -> ""
               ("", _ ) -> "|" ++ alt'
               (_ , _ ) -> "|" ++ tit
-  return $ "{{:" ++ source ++ txt ++ "}}"
+      -- Relative links fail isURI and receive a colon
+      prefix = if isURI source then "" else ":"
+  return $ "{{" ++ prefix ++ source ++ txt ++ "}}"
 
 inlineToDokuWiki opts (Note contents) = do
   contents' <- blockListToDokuWiki opts contents
