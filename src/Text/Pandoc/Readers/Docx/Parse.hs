@@ -663,17 +663,20 @@ elemToParPart ns element
     return $ BookMark bmId bmName
 elemToParPart ns element
   | isElem ns "w" "hyperlink" element
-  , Just anchor <- findAttr (elemName ns "w" "anchor") element = do
-    runs <- mapD (elemToRun ns) (elChildren element)
-    return $ InternalHyperLink anchor runs
-elemToParPart ns element
-  | isElem ns "w" "hyperlink" element
   , Just relId <- findAttr (elemName ns "r" "id") element = do
     runs <- mapD (elemToRun ns) (elChildren element)
     rels <- asks envRelationships
-    return $ case lookupRelationship relId rels of
-      Just target -> ExternalHyperLink target runs
-      Nothing     -> ExternalHyperLink "" runs
+    case lookupRelationship relId rels of
+      Just target -> do
+         case findAttr (elemName ns "w" "anchor") element of
+             Just anchor -> return $ ExternalHyperLink (target ++ '#':anchor) runs
+             Nothing -> return $ ExternalHyperLink target runs
+      Nothing     -> return $ ExternalHyperLink "" runs
+elemToParPart ns element
+  | isElem ns "w" "hyperlink" element
+  , Just anchor <- findAttr (elemName ns "w" "anchor") element = do
+    runs <- mapD (elemToRun ns) (elChildren element)
+    return $ InternalHyperLink anchor runs
 elemToParPart ns element
   | isElem ns "m" "oMath" element =
     (eitherToD $ readOMML $ showElement element) >>= (return . PlainOMath)
