@@ -20,6 +20,9 @@ markdownCDL :: String -> Pandoc
 markdownCDL = readMarkdown def { readerExtensions = Set.insert
                  Ext_compact_definition_lists $ readerExtensions def }
 
+markdownGH :: String -> Pandoc
+markdownGH = readMarkdown def { readerExtensions = githubMarkdownExtensions }
+
 infix 4 =:
 (=:) :: ToString c
      => String -> (String, c) -> Test
@@ -271,5 +274,14 @@ tests = [ testGroup "inline code"
                               plain (text "if this button exists") <>
                               rawBlock "html" "</button>" <>
                               divWith nullAttr (para $ text "with this div too.")]
+          , test markdownGH "issue #1636" $
+              unlines [ "* a"
+                      , "* b"
+                      , "* c"
+                      , "    * d" ]
+              =?>
+              bulletList [ plain "a"
+                         , plain "b"
+                         , plain "c" <> bulletList [plain "d"] ]
           ]
         ]
