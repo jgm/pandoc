@@ -622,6 +622,13 @@ tests =
                      , plain "Item2"
                      ]
 
+      , "Unindented *" =:
+          ("- Item1\n" ++
+           "* Item2\n") =?>
+          bulletList [ plain "Item1"
+                     ] <>
+          header 1 "Item2"
+
       , "Multi-line Bullet Lists" =:
           ("- *Fat\n" ++
            "  Tony*\n" ++

@@ -879,18 +879,18 @@ bulletListStart = bulletListStart' Nothing
 
 bulletListStart' :: Maybe Int -> OrgParser Int
 -- returns length of bulletList prefix, inclusive of marker
-bulletListStart' Nothing  = do ind <- many spaceChar
+bulletListStart' Nothing  = do ind <- length <$> many spaceChar
+                               when (ind == 0) $ notFollowedBy (char '*')
                                oneOf bullets
                                many1 spaceChar
-                               return $ length ind + 1
+                               return (ind + 1)
  -- Unindented lists are legal, but they can't use '*' bullets
  -- We return n to maintain compatibility with the generic listItem
 bulletListStart' (Just n) = do count (n-1) spaceChar
-                               oneOf validBullets
+                               when (n == 1) $ notFollowedBy (char '*')
+                               oneOf bullets
                                many1 spaceChar
                                return n
-  where validBullets = if n == 1 then noAsterisks else bullets
-        noAsterisks  = filter (/= '*') bullets
 
 bullets :: String
 bullets = "*+-"
