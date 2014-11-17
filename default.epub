@@ -15,8 +15,8 @@ $for(css)$
   <link rel="stylesheet" type="text/css" href="$css$" />
 $endfor$
 </head>
-<body>
 $if(titlepage)$
+<body id="cover">
 $for(title)$
 $if(title.text)$
   <h1 class="$title.type$">$title.text$</h1>
@@ -42,8 +42,11 @@ $endif$
 $if(rights)$
   <p class="rights">$rights$</p>
 $endif$
+</body>
 $else$
+<body>
 $body$
+</body>
 $endif$
 </body>
 </html>
