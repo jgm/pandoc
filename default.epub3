@@ -19,7 +19,7 @@ $for(css)$
   <link rel="stylesheet" type="text/css" href="$css$" />
 $endfor$
 </head>
-<body>
+<body$if(coverpage)$ id="cover"$endif$>
 $if(titlepage)$
 <section epub:type="titlepage">
 $for(title)$
