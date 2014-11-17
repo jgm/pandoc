@@ -740,7 +740,7 @@ pSpace = many1 (satisfy isSpace) >> return B.space
 --
 
 eitherBlockOrInline :: [String]
-eitherBlockOrInline = ["audio", "applet", "button", "iframe",
+eitherBlockOrInline = ["audio", "applet", "button", "iframe", "embed",
                        "del", "ins",
                        "progress", "map", "area", "noscript", "script",
                        "object", "svg", "video", "source"]
@@ -758,7 +758,7 @@ blockHtmlTags :: [String]
 blockHtmlTags = ["?xml", "!DOCTYPE", "address", "article", "aside",
                  "blockquote", "body", "button", "canvas",
                  "caption", "center", "col", "colgroup", "dd", "dir", "div",
-                 "dl", "dt", "embed", "fieldset", "figcaption", "figure",
+                 "dl", "dt", "fieldset", "figcaption", "figure",
                  "footer", "form", "h1", "h2", "h3", "h4",
                  "h5", "h6", "head", "header", "hgroup", "hr", "html",
                  "isindex", "menu", "noframes", "ol", "output", "p", "pre",
