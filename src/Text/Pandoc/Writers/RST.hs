@@ -239,8 +239,7 @@ blockToRST (Table caption _ widths headers rows) =  do
               middle = hcat $ intersperse sep' blocks
   let makeRow = hpipeBlocks . zipWith lblock widthsInChars
   let head' = makeRow headers'
-  rows' <- mapM (\row -> do cols <- mapM blockListToRST row
-                            return $ makeRow cols) rows
+  let rows' = map makeRow rawRows
   let border ch = char '+' <> char ch <>
                   (hcat $ intersperse (char ch <> char '+' <> char ch) $
                           map (\l -> text $ replicate l ch) widthsInChars) <>
@@ -427,7 +426,7 @@ inlineToRST (Image alternate (source, tit)) = do
   return $ "|" <> label <> "|"
 inlineToRST (Note contents) = do
   -- add to notes in state
-  notes <- get >>= return . stNotes
+  notes <- gets stNotes
   modify $ \st -> st { stNotes = contents:notes }
   let ref = show $ (length notes) + 1
   return $ " [" <> text ref <> "]_"
