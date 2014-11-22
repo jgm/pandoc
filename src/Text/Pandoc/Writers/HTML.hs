@@ -308,6 +308,11 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                                           []     -> []
                                           (x:xs) -> x ++ concatMap inDiv xs
                                 else elements
+  titleSlideContents <- mapM (elementToHtml slideLevel opts)
+                        $ if (writerRevealjsTitleContent opts &&
+                              writerSlideVariant opts == RevealJsSlides)
+                          then filter (not . isSec) elements
+                          else []
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
   let classes' = ["titleslide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
@@ -322,7 +327,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
               then (if writerSlideVariant opts == RevealJsSlides
                        then H5.section
                        else id) $ mconcat $
-                       (addAttrs opts attr $ secttag $ header') : innerContents
+                       (addAttrs opts attr $ secttag $ (mconcat $ header' : titleSlideContents)) : innerContents
               else if writerSectionDivs opts || slide
                    then addAttrs opts attr
                         $ secttag $ inNl $ header' : innerContents
