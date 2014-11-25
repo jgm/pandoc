@@ -274,7 +274,7 @@ blockToRST (DefinitionList items) = do
 bulletListItemToRST :: [Block] -> State WriterState Doc
 bulletListItemToRST items = do
   contents <- blockListToRST items
-  return $ hang 3 "-  " $ contents <> cr
+  return $ hang 3 "-  " contents
 
 -- | Convert ordered list item (a list of blocks) to RST.
 orderedListItemToRST :: String   -- ^ marker for list item
@@ -283,7 +283,7 @@ orderedListItemToRST :: String   -- ^ marker for list item
 orderedListItemToRST marker items = do
   contents <- blockListToRST items
   let marker' = marker ++ " "
-  return $ hang (length marker') (text marker') $ contents <> cr
+  return $ hang (length marker') (text marker') contents
 
 -- | Convert defintion list item (label, list of blocks) to RST.
 definitionListItemToRST :: ([Inline], [[Block]]) -> State WriterState Doc
@@ -291,7 +291,7 @@ definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
   contents <- liftM vcat $ mapM blockListToRST defs
   tabstop <- get >>= (return . writerTabStop . stOptions)
-  return $ label' $$ nest tabstop (nestle contents <> cr)
+  return $ label' $$ nest tabstop (nestle contents)
 
 -- | Convert list of Pandoc block elements to RST.
 blockListToRST :: [Block]       -- ^ List of block elements

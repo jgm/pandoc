@@ -136,9 +136,7 @@ Asterisks tight:
 Asterisks loose:
 
 -  asterisk 1
-
 -  asterisk 2
-
 -  asterisk 3
 
 Pluses tight:
@@ -150,9 +148,7 @@ Pluses tight:
 Pluses loose:
 
 -  Plus 1
-
 -  Plus 2
-
 -  Plus 3
 
 Minuses tight:
@@ -164,9 +160,7 @@ Minuses tight:
 Minuses loose:
 
 -  Minus 1
-
 -  Minus 2
-
 -  Minus 3
 
 Ordered
@@ -187,17 +181,13 @@ and:
 Loose using tabs:
 
 1. First
-
 2. Second
-
 3. Third
 
 and using spaces:
 
 1. One
-
 2. Two
-
 3. Three
 
 Multiple paragraphs:
@@ -205,9 +195,7 @@ Multiple paragraphs:
 1. Item 1, graf one.
 
    Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
-
 2. Item 2.
-
 3. Item 3.
 
 Nested
@@ -227,30 +215,25 @@ Here’s another:
    -  Fee
    -  Fie
    -  Foe
-
 3. Third
 
 Same thing but with paragraphs:
 
 1. First
-
 2. Second:
 
    -  Fee
    -  Fie
    -  Foe
-
 3. Third
 
 Tabs and spaces
 ---------------
 
 -  this is a list item indented with tabs
-
 -  this is a list item indented with spaces
 
    -  this is an example list item indented with tabs
-
    -  this is an example list item indented with spaces
 
 Fancy list markers
@@ -317,10 +300,8 @@ Loose:
 
 apple
     red fruit
-
 orange
     orange fruit
-
 banana
     yellow fruit
 
@@ -330,7 +311,6 @@ Multiple blocks with italics:
     red fruit
 
     contains seeds, crisp, pleasant to taste
-
 *orange*
     orange fruit
 
@@ -355,7 +335,6 @@ apple
     red fruit
 
     computer
-
 orange
     orange fruit
 
@@ -367,7 +346,6 @@ apple
     red fruit
 
     computer
-
 orange
     orange fruit
 
@@ -666,7 +644,6 @@ LaTeX
 -  Here’s some display math:
 
    .. math:: \frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}
-
 -  Here’s one that has a line break in it: :math:`\alpha + \omega \times x^2`.
 
 These shouldn’t be math:
@@ -839,6 +816,7 @@ From “Voyage dans la Lune” by Georges Melies (1902):
    :alt: Voyage dans la Lune
 
    lalune
+
 Here is a movie |movie| icon.
 
 --------------
