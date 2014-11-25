@@ -252,7 +252,7 @@ blockToRST (Table caption _ widths headers rows) =  do
 blockToRST (BulletList items) = do
   contents <- mapM bulletListItemToRST items
   -- ensure that sublists have preceding blank line
-  return $ blankline $$ vcat contents $$ blankline
+  return $ blankline $$ chomp (vcat contents) $$ blankline
 blockToRST (OrderedList (start, style', delim) items) = do
   let markers = if start == 1 && style' == DefaultStyle && delim == DefaultDelim
                    then take (length items) $ repeat "#."
@@ -264,17 +264,17 @@ blockToRST (OrderedList (start, style', delim) items) = do
   contents <- mapM (\(item, num) -> orderedListItemToRST item num) $
               zip markers' items
   -- ensure that sublists have preceding blank line
-  return $ blankline $$ vcat contents $$ blankline
+  return $ blankline $$ chomp (vcat contents) $$ blankline
 blockToRST (DefinitionList items) = do
   contents <- mapM definitionListItemToRST items
   -- ensure that sublists have preceding blank line
-  return $ blankline $$ vcat contents $$ blankline
+  return $ blankline $$ chomp (vcat contents) $$ blankline
 
 -- | Convert bullet list item (list of blocks) to RST.
 bulletListItemToRST :: [Block] -> State WriterState Doc
 bulletListItemToRST items = do
   contents <- blockListToRST items
-  return $ hang 3 "-  " contents
+  return $ hang 3 "-  " $ contents <> cr
 
 -- | Convert ordered list item (a list of blocks) to RST.
 orderedListItemToRST :: String   -- ^ marker for list item
@@ -283,7 +283,7 @@ orderedListItemToRST :: String   -- ^ marker for list item
 orderedListItemToRST marker items = do
   contents <- blockListToRST items
   let marker' = marker ++ " "
-  return $ hang (length marker') (text marker') contents
+  return $ hang (length marker') (text marker') $ contents <> cr
 
 -- | Convert defintion list item (label, list of blocks) to RST.
 definitionListItemToRST :: ([Inline], [[Block]]) -> State WriterState Doc
@@ -291,7 +291,7 @@ definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
   contents <- liftM vcat $ mapM blockListToRST defs
   tabstop <- get >>= (return . writerTabStop . stOptions)
-  return $ label' $$ nest tabstop (nestle contents)
+  return $ label' $$ nest tabstop (nestle contents <> cr)
 
 -- | Convert list of Pandoc block elements to RST.
 blockListToRST :: [Block]       -- ^ List of block elements
