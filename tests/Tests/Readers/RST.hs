@@ -67,5 +67,20 @@ tests = [ "line block with blank line" =:
                 link "http://foo.bar.baz" "" "http://foo.bar.baz" <> ". " <>
                 link "http://foo.bar/baz_(bam)" "" "http://foo.bar/baz_(bam)"
                 <> " (" <> link "http://foo.bar" "" "http://foo.bar" <> ")")
+        , "indented literal block" =: unlines
+          [ "::"
+          , ""
+          , "  block quotes"
+          , ""
+          , "  can go on for many lines"
+          , "but must stop here"]
+          =?> (doc $
+           codeBlock "block quotes\n\ncan go on for many lines" <>
+           para "but must stop here")
+        , "line block with 3 lines" =: "| a\n| b\n| c"
+          =?> para ("a" <> linebreak <>  "b" <> linebreak <> "c")
+          , "quoted literal block using >" =: "::\n\n> quoted\n> block\n\nOrdinary paragraph"
+            =?> codeBlock "> quoted\n> block" <> para "Ordinary paragraph"
+          , "quoted literal block using | (not  a line block)" =: "::\n\n| quoted\n| block\n\nOrdinary paragraph"
+            =?> codeBlock "| quoted\n| block" <> para "Ordinary paragraph"
         ]
-

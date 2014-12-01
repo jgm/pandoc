@@ -335,6 +335,13 @@ indentedBlock = try $ do
   optional blanklines
   return $ unlines lns
 
+quotedBlock :: Parser [Char] st [Char]
+quotedBlock = try $ do
+    quote <- lookAhead $ oneOf "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+    lns <- many1 $ lookAhead (char quote) >> anyLine
+    optional blanklines
+    return $ unlines lns
+
 codeBlockStart :: Parser [Char] st Char
 codeBlockStart = string "::" >> blankline >> blankline
 
@@ -342,7 +349,8 @@ codeBlock :: Parser [Char] st Blocks
 codeBlock = try $ codeBlockStart >> codeBlockBody
 
 codeBlockBody :: Parser [Char] st Blocks
-codeBlockBody = try $ B.codeBlock . stripTrailingNewlines <$> indentedBlock
+codeBlockBody = try $ B.codeBlock . stripTrailingNewlines <$>
+                (indentedBlock <|> quotedBlock)
 
 lhsCodeBlock :: RSTParser Blocks
 lhsCodeBlock = try $ do
