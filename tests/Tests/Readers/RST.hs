@@ -83,4 +83,10 @@ tests = [ "line block with blank line" =:
             =?> codeBlock "> quoted\n> block" <> para "Ordinary paragraph"
           , "quoted literal block using | (not  a line block)" =: "::\n\n| quoted\n| block\n\nOrdinary paragraph"
             =?> codeBlock "| quoted\n| block" <> para "Ordinary paragraph"
+            , "class directive with single paragraph" =: ".. class:: special\n\nThis is a \"special\" paragraph."
+              =?> divWith ("", ["special"], []) (para "This is a \"special\" paragraph.")
+            , "class directive with two paragraphs" =: ".. class:: exceptional remarkable\n\n    First paragraph.\n\n    Second paragraph."
+              =?> divWith ("", ["exceptional", "remarkable"], []) (para "First paragraph." <> para "Second paragraph.")
+            , "class directive around literal block" =: ".. class:: classy\n\n::\n\n    a\n    b"
+              =?> divWith ("", ["classy"], []) (codeBlock "a\nb")
         ]

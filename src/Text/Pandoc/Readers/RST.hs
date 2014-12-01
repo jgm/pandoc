@@ -47,7 +47,7 @@ import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import qualified Text.Pandoc.Builder as B
 import Data.Monoid (mconcat, mempty)
 import Data.Sequence (viewr, ViewR(..))
-import Data.Char (toLower, isHexDigit)
+import Data.Char (toLower, isHexDigit, isSpace)
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ReaderOptions -- ^ Reader options
@@ -521,7 +521,6 @@ directive = try $ do
 -- TODO: line-block, parsed-literal, table, csv-table, list-table
 -- date
 -- include
--- class
 -- title
 directive' :: RSTParser Blocks
 directive' = do
@@ -602,6 +601,13 @@ directive' = do
                           Just t  -> B.link (escapeURI $ trim t) ""
                                      $ B.image src "" alt
                           Nothing -> B.image src "" alt
+        "class" -> do
+            let attrs = ("", (splitBy isSpace $ trim top), map (\(k,v) -> (k, trimr v)) fields)
+            --  directive content or the first immediately following element
+            children <- case body of
+                "" -> block
+                _ -> parseFromString parseBlocks  body'
+            return $ B.divWith attrs children
         _     -> return mempty
 
 -- TODO:
