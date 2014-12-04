@@ -392,8 +392,8 @@ blockToMarkdown opts (CodeBlock (_,classes,_) str)
     isEnabled Ext_literate_haskell opts =
   return $ prefixed "> " (text str) <> blankline
 blockToMarkdown opts (CodeBlock attribs str) = return $
-  case attribs == nullAttr of
-     False | isEnabled Ext_backtick_code_blocks opts ->
+  case attribs /= nullAttr of
+     True | isEnabled Ext_backtick_code_blocks opts ->
           backticks <> attrs <> cr <> text str <> cr <> backticks <> blankline
            | isEnabled Ext_fenced_code_blocks opts ->
           tildes <> attrs <> cr <> text str <> cr <> tildes <> blankline
