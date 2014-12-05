@@ -29,7 +29,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST (
-                                readRST
+                                readRST,
+                                readRSTWithWarnings
                                ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (setMeta, fromList)
@@ -54,6 +55,9 @@ readRST :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
         -> Pandoc
 readRST opts s = (readWith parseRST) def{ stateOptions = opts } (s ++ "\n\n")
+
+readRSTWithWarnings :: ReaderOptions -> String -> (Pandoc, [String])
+readRSTWithWarnings opts s = (readWithWarnings parseRST) def{ stateOptions = opts } (s ++ "\n\n")
 
 type RSTParser = Parser [Char] ParserState
 
@@ -1016,7 +1020,10 @@ renderRole contents fmt role attr = case role of
                 fmtStr = fmt `mplus` newFmt
                 (newRole, newAttr) = inherit attr
                 in renderRole contents fmtStr newRole newAttr
-            Nothing -> return $ B.str contents -- Undefined role
+            Nothing -> do
+                pos <- getPosition
+                addWarning (Just pos) $ "ignoring unknown role :" ++ custom ++ ": in "
+                return $ B.str contents -- Undefined role
  where
    titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour
    rfcLink rfcNo = B.link rfcUrl ("RFC " ++ rfcNo) $ B.str ("RFC " ++ rfcNo)

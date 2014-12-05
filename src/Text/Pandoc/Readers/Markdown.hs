@@ -79,11 +79,7 @@ readMarkdownWithWarnings :: ReaderOptions -- ^ Reader options
                          -> String        -- ^ String to parse (assuming @'\n'@ line endings)
                          -> (Pandoc, [String])
 readMarkdownWithWarnings opts s =
-  (readWith parseMarkdownWithWarnings) def{ stateOptions = opts } (s ++ "\n\n")
- where parseMarkdownWithWarnings = do
-         doc <- parseMarkdown
-         warnings <- stateWarnings <$> getState
-         return (doc, warnings)
+    (readWithWarnings parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
 
 trimInlinesF :: F Inlines -> F Inlines
 trimInlinesF = liftM trimInlines

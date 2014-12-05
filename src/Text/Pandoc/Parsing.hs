@@ -65,6 +65,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              widthsFromIndices,
                              gridTableWith,
                              readWith,
+                             readWithWarnings,
                              readWithM,
                              testStringWith,
                              guardEnabled,
@@ -880,6 +881,15 @@ readWith :: Parser [Char] st a
          -> String
          -> a
 readWith p t inp = runIdentity $ readWithM p t inp
+
+readWithWarnings :: Parser [Char] ParserState a
+                    -> ParserState
+                    -> String
+                    -> (a, [String])
+readWithWarnings p = readWith $ do
+         doc <- p
+         warnings <- stateWarnings <$> getState
+         return (doc, warnings)
 
 -- | Parse a string with @parser@ (for testing).
 testStringWith :: (Show a, Stream [Char] Identity Char)
