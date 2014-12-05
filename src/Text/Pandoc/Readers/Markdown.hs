@@ -343,12 +343,6 @@ parseMarkdown = do
   let Pandoc _ bs = B.doc $ runF blocks st
   return $ Pandoc meta bs
 
-addWarning :: Maybe SourcePos -> String -> MarkdownParser ()
-addWarning mbpos msg =
-  updateState $ \st -> st{
-    stateWarnings = (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) :
-                     stateWarnings st }
-
 referenceKey :: MarkdownParser (F Blocks)
 referenceKey = try $ do
   pos <- getPosition

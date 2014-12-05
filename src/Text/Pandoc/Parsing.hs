@@ -162,6 +162,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              setSourceColumn,
                              setSourceLine,
                              newPos,
+                             addWarning
                              )
 where
 
@@ -1245,3 +1246,10 @@ applyMacros' target = do
      then do macros <- extractMacros <$> getState
              return $ applyMacros macros target
      else return target
+
+-- | Append a warning to the log.
+addWarning :: Maybe SourcePos -> String -> Parser [Char] ParserState ()
+addWarning mbpos msg =
+  updateState $ \st -> st{
+    stateWarnings = (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) :
+                     stateWarnings st }

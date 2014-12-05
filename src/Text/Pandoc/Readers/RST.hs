@@ -608,7 +608,10 @@ directive' = do
                 "" -> block
                 _ -> parseFromString parseBlocks  body'
             return $ B.divWith attrs children
-        _     -> return mempty
+        other     -> do
+            pos <- getPosition
+            addWarning (Just pos) $ "ignoring unknown directive: " ++ other
+            return mempty
 
 -- TODO:
 --  - Silently ignores illegal fields
