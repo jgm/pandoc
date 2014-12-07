@@ -126,7 +126,7 @@ inList = do
 isNull :: F Inlines -> Bool
 isNull ils = B.isNull $ runF ils def
 
-spnl :: Parser [Char] st ()
+spnl :: Monad m => ParserT [Char] st m ()
 spnl = try $ do
   skipSpaces
   optional newline
@@ -547,7 +547,7 @@ setextHeader = try $ do
 -- hrule block
 --
 
-hrule :: Parser [Char] st (F Blocks)
+hrule :: Monad m => ParserT [Char] st m (F Blocks)
 hrule = try $ do
   skipSpaces
   start <- satisfy isHruleChar
@@ -564,9 +564,10 @@ hrule = try $ do
 indentedLine :: MarkdownParser String
 indentedLine = indentSpaces >> anyLine >>= return . (++ "\n")
 
-blockDelimiter :: (Char -> Bool)
+blockDelimiter :: Monad m
+               => (Char -> Bool)
                -> Maybe Int
-               -> Parser [Char] st Int
+               -> ParserT [Char] st m Int
 blockDelimiter f len = try $ do
   c <- lookAhead (satisfy f)
   case len of
@@ -683,7 +684,7 @@ lhsCodeBlockBirdWith c = try $ do
   blanklines
   return $ intercalate "\n" lns'
 
-birdTrackLine :: Char -> Parser [Char] st String
+birdTrackLine :: Monad m => Char -> ParserT [Char] st m String
 birdTrackLine c = try $ do
   char c
   -- allow html tags on left margin:
@@ -1010,7 +1011,7 @@ rawTeXBlock :: MarkdownParser (F Blocks)
 rawTeXBlock = do
   guardEnabled Ext_raw_tex
   result <- (B.rawBlock "latex" . concat <$>
-                  rawLaTeXBlock `sepEndBy1` blankline)
+                  (hoist rawLaTeXBlock) `sepEndBy1` blankline)
         <|> (B.rawBlock "context" . concat <$>
                   rawConTeXtEnvironment `sepEndBy1` blankline)
   spaces
@@ -1059,8 +1060,8 @@ lineBlock = try $ do
 
 -- Parse a dashed line with optional trailing spaces; return its length
 -- and the length including trailing space.
-dashedLine :: Char
-           -> Parser [Char] st (Int, Int)
+dashedLine :: Monad m => Char
+           -> ParserT [Char] st m (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many spaceChar
@@ -1214,13 +1215,13 @@ gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
   splitStringByIndices (init indices) $ trimr line
 
-gridPart :: Char -> Parser [Char] st (Int, Int)
+gridPart :: Monad m => Char -> ParserT [Char] st m (Int, Int)
 gridPart ch = do
   dashes <- many1 (char ch)
   char '+'
   return (length dashes, length dashes + 1)
 
-gridDashedLines :: Char -> Parser [Char] st [(Int,Int)]
+gridDashedLines :: Monad m => Char -> ParserT [Char] st m [(Int,Int)]
 gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
 
 removeFinalBar :: String -> String
@@ -1333,7 +1334,7 @@ pipeTableRow = do
                  ils' | B.isNull ils' -> mempty
                       | otherwise   -> B.plain $ ils') cells'
 
-pipeTableHeaderPart :: Parser [Char] st Alignment
+pipeTableHeaderPart :: Monad m => ParserT [Char] st m Alignment
 pipeTableHeaderPart = try $ do
   skipMany spaceChar
   left <- optionMaybe (char ':')
@@ -1348,7 +1349,7 @@ pipeTableHeaderPart = try $ do
       (Just _,Just _)   -> AlignCenter
 
 -- Succeed only if current line contains a pipe.
-scanForPipe :: Parser [Char] st ()
+scanForPipe :: Monad m => ParserT [Char] st m ()
 scanForPipe = do
   inp <- getInput
   case break (\c -> c == '\n' || c == '|') inp of
@@ -1580,7 +1581,7 @@ whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"
   where lb = spaceChar >> skipMany spaceChar >> option B.space (endline >> return B.linebreak)
         regsp = skipMany spaceChar >> return B.space
 
-nonEndline :: Parser [Char] st Char
+nonEndline :: Monad m => ParserT [Char] st m Char
 nonEndline = satisfy (/='\n')
 
 str :: MarkdownParser (F Inlines)
@@ -1775,11 +1776,11 @@ rawLaTeXInline' :: MarkdownParser (F Inlines)
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
   lookAhead $ char '\\' >> notFollowedBy' (string "start") -- context env
-  RawInline _ s <- rawLaTeXInline
+  RawInline _ s <- (hoist rawLaTeXInline)
   return $ return $ B.rawInline "tex" s
   -- "tex" because it might be context or latex
 
-rawConTeXtEnvironment :: Parser [Char] st String
+rawConTeXtEnvironment :: Monad m => ParserT [Char] st m String
 rawConTeXtEnvironment = try $ do
   string "\\start"
   completion <- inBrackets (letter <|> digit <|> spaceChar)
@@ -1788,7 +1789,7 @@ rawConTeXtEnvironment = try $ do
                        (try $ string "\\stop" >> string completion)
   return $ "\\start" ++ completion ++ concat contents ++ "\\stop" ++ completion
 
-inBrackets :: (Parser [Char] st Char) -> Parser [Char] st String
+inBrackets :: Monad m => (ParserT [Char] st m Char) -> ParserT [Char] st m String
 inBrackets parser = do
   char '['
   contents <- many parser
