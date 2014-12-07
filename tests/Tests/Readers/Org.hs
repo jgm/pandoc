@@ -197,6 +197,18 @@ tests =
           "[[http://zeitlens.com/]]" =?>
           (para $ link "http://zeitlens.com/" "" "http://zeitlens.com/")
 
+      , "Absolute file link" =:
+          "[[/url][hi]]" =?>
+          (para $ link "file:///url" "" "hi")
+
+      , "Link to file in parent directory" =:
+          "[[../file.txt][moin]]" =?>
+          (para $ link "../file.txt" "" "moin")
+
+      , "Empty link (for gitit interop)" =:
+          "[[][New Link]]" =?>
+          (para $ link "" "" "New Link")
+
       , "Image link" =:
           "[[sunset.png][dusk.svg]]" =?>
           (para $ link "sunset.png" "" (image "dusk.svg" "" ""))
@@ -609,6 +621,13 @@ tests =
           bulletList [ plain "Item1"
                      , plain "Item2"
                      ]
+
+      , "Unindented *" =:
+          ("- Item1\n" ++
+           "* Item2\n") =?>
+          bulletList [ plain "Item1"
+                     ] <>
+          header 1 "Item2"
 
       , "Multi-line Bullet Lists" =:
           ("- *Fat\n" ++

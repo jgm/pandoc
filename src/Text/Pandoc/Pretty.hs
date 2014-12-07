@@ -534,4 +534,4 @@ charWidth c =
 -- | Get real length of string, taking into account combining and double-wide
 -- characters.
 realLength :: String -> Int
-realLength = sum . map charWidth
+realLength = foldr (\a b -> charWidth a + b) 0

@@ -173,7 +173,7 @@ blockToRST (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   capt <- inlineListToRST txt
   let fig = "figure:: " <> text src
   let alt = ":alt: " <> if null tit then capt else text tit
-  return $ hang 3 ".. " $ fig $$ alt $+$ capt $$ blankline
+  return $ hang 3 ".. " (fig $$ alt $+$ capt) $$ blankline
 blockToRST (Para inlines)
   | LineBreak `elem` inlines = do -- use line block if LineBreaks
       lns <- mapM inlineListToRST $ splitBy (==LineBreak) inlines
@@ -239,8 +239,7 @@ blockToRST (Table caption _ widths headers rows) =  do
               middle = hcat $ intersperse sep' blocks
   let makeRow = hpipeBlocks . zipWith lblock widthsInChars
   let head' = makeRow headers'
-  rows' <- mapM (\row -> do cols <- mapM blockListToRST row
-                            return $ makeRow cols) rows
+  let rows' = map makeRow rawRows
   let border ch = char '+' <> char ch <>
                   (hcat $ intersperse (char ch <> char '+' <> char ch) $
                           map (\l -> text $ replicate l ch) widthsInChars) <>
@@ -253,7 +252,7 @@ blockToRST (Table caption _ widths headers rows) =  do
 blockToRST (BulletList items) = do
   contents <- mapM bulletListItemToRST items
   -- ensure that sublists have preceding blank line
-  return $ blankline $$ vcat contents $$ blankline
+  return $ blankline $$ chomp (vcat contents) $$ blankline
 blockToRST (OrderedList (start, style', delim) items) = do
   let markers = if start == 1 && style' == DefaultStyle && delim == DefaultDelim
                    then take (length items) $ repeat "#."
@@ -265,11 +264,11 @@ blockToRST (OrderedList (start, style', delim) items) = do
   contents <- mapM (\(item, num) -> orderedListItemToRST item num) $
               zip markers' items
   -- ensure that sublists have preceding blank line
-  return $ blankline $$ vcat contents $$ blankline
+  return $ blankline $$ chomp (vcat contents) $$ blankline
 blockToRST (DefinitionList items) = do
   contents <- mapM definitionListItemToRST items
   -- ensure that sublists have preceding blank line
-  return $ blankline $$ vcat contents $$ blankline
+  return $ blankline $$ chomp (vcat contents) $$ blankline
 
 -- | Convert bullet list item (list of blocks) to RST.
 bulletListItemToRST :: [Block] -> State WriterState Doc
@@ -427,7 +426,7 @@ inlineToRST (Image alternate (source, tit)) = do
   return $ "|" <> label <> "|"
 inlineToRST (Note contents) = do
   -- add to notes in state
-  notes <- get >>= return . stNotes
+  notes <- gets stNotes
   modify $ \st -> st { stNotes = contents:notes }
   let ref = show $ (length notes) + 1
   return $ " [" <> text ref <> "]_"

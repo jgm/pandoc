@@ -328,7 +328,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("oth","application/vnd.oasis.opendocument.text-web")
            ,("otp","application/vnd.oasis.opendocument.presentation-template")
            ,("ots","application/vnd.oasis.opendocument.spreadsheet-template")
-           ,("otf","application/x-font-opentype")
+           ,("otf","application/vnd.ms-opentype")
            ,("ott","application/vnd.oasis.opendocument.text-template")
            ,("oza","application/x-oz-application")
            ,("p","text/x-pascal")

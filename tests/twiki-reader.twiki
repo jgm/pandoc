@@ -1,0 +1,221 @@
+---+ header
+
+---++ header level two
+
+---+++ header level 3
+
+---++++ header _level_ four
+
+---+++++ header level 5
+
+---++++++ header level 6
+
+---+++++++ not a header
+
+ --++ not a header
+
+---+ emph and strong
+
+_emph_ *strong*
+
+__strong and emph__
+
+*<i>emph inside</i> strong*
+
+*strong with <i>emph</i>*
+
+_<b>strong inside</b> emph_
+
+---+ horizontal rule
+
+top
+---
+bottom
+
+---
+
+---+ nop
+
+<nop>_not emph_
+
+---+ entities
+
+hi & low
+
+hi &amp; low
+
+G&ouml;del
+
+&#777;&#xAAA;
+
+---+ comments
+
+inline <!-- secret --> comment
+
+<!-- secret -->
+
+between blocks
+
+ <!-- secret -->
+
+---+ linebreaks
+
+hi%BR%there
+
+hi%BR%
+there
+
+---+ inline code
+
+<code>*→*</code> =typed= <code class="haskell">>>=</code>
+
+---+ code blocks
+
+<verbatim>
+case xs of
+     (_:_) -> reverse xs
+     []    -> ['*']
+</verbatim>
+
+<verbatim class="haskell">
+case xs of
+     (_:_) -> reverse xs
+     []    -> ['*']
+</verbatim>
+
+---+ block quotes
+
+Regular paragraph
+<blockquote>
+This is a block quote.
+
+With two paragraphs.
+</blockquote>
+Nother paragraph.
+
+---+ external links
+
+[[http://google.com][<i>Google</i> search engine]]
+
+http://johnmacfarlane.net/pandoc/
+
+[[http://google.com]] [[http://yahoo.com]]
+
+[[mailto:info@example.org][email me]]
+
+!http://google.com
+
+<nop>http://google.com
+
+<noautolink>
+http://google.com
+</noautolink>
+
+!info@example.org
+
+<nop>info@example.org
+
+<noautolink>
+info@example.org
+</noautolink>
+
+---+ lists
+
+   * Start each line
+   * with an asterisk (*).
+      * More asterisks gives deeper
+         * and deeper levels.
+   * Line breaks%BR%don't break levels.
+   * Continuations
+     are also possible
+      * and do not break the list flow
+   * Level one
+Any other start ends the list.
+
+   1. Start each line
+   1. with a number (1.).
+      1. More number signs gives deeper
+         1. and deeper
+         1. levels.
+   1. Line breaks%BR%don't break levels.
+   1. Blank lines
+
+   1. end the list and start another.
+Any other start also
+ends the list.
+
+   $ item 1: definition 1
+   $ item 2: definition 2-1
+      definition 2-2
+   $ item _3_: definition _3_
+
+   1. one
+   1. two
+      * two point one
+      * two point two
+   1. three
+      $ three item one: three def one
+   1. four
+      $ four def one: this
+         is a continuation
+   1. five
+      1. five sub 1
+         1. five sub 1 sub 1
+      1. five sub 2
+
+   1. other
+      I. list
+      I. styles
+   1. are
+      i. also
+      i. possible
+   1. all
+      a. the
+      a. different
+      a. styles
+   1. are
+      A. implemented
+      A. and
+      A. supported
+
+---+ tables
+
+|Orange|Apple|
+|Bread|Pie|
+|Butter|Ice cream|
+
+|*Orange*|*Apple*|
+|Bread|Pie|
+|*Butter*|Ice cream|
+
+|*Orange*|*Apple*|
+|Bread%BR%%BR%and cheese|Pie%BR%%BR%*apple* and <i>carrot</i>|
+
+| Orange | Apple     | more     |
+| Bread  | Pie       | more     |
+| Butter | Ice cream | and more |
+
+---+ macros
+
+%TEST%
+
+%TEST{}%
+
+%TEST{content with spaces}%
+
+%TEST{"content with spaces"}%
+
+%TEST{"content with spaces" ARG1="test"}%
+
+%TEST{content with spaces ARG1=test}%
+
+%TEST{ARG1=test content with spaces}%
+
+%TEST{ARG1=test ARG2=test2}%
+
+%TEST{ARG1="test" ARG2="test2"}%
+
+%TEST{ARG1="test"
+ARG2="test2"
+multiline
+does also work}%

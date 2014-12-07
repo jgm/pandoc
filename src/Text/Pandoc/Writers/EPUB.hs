@@ -358,8 +358,9 @@ writeEPUB opts doc@(Pandoc meta _) = do
                      Nothing   -> return ([],[])
                      Just img  -> do
                        let coverImage = "media/" ++ takeFileName img
-                       let cpContent = renderHtml $ writeHtml opts'
-                               (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
+                       let cpContent = renderHtml $ writeHtml
+                            opts'{ writerVariables = ("coverpage","true"):vars }
+                            (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
                        imgContent <- B.readFile img
                        return ( [mkEntry "cover.xhtml" cpContent]
                               , [mkEntry coverImage imgContent] )
@@ -611,17 +612,14 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                                  (_:_) -> [unode "ol" ! [("class","toc")] $ subs]
 
   let navtag = if epub3 then "nav" else "div"
-  let navData = UTF8.fromStringLazy $ ppTopElement $
-        unode "html" ! [("xmlns","http://www.w3.org/1999/xhtml")
-                       ,("xmlns:epub","http://www.idpf.org/2007/ops")] $
-          [ unode "head" $
-            [ unode "title" plainTitle
-            , unode "link" ! [("rel","stylesheet"),("type","text/css"),("href","stylesheet.css")] $ () ]
-          , unode "body" $
-              unode navtag ! [("epub:type","toc") | epub3] $
-                [ unode "h1" ! [("id","toc-title")] $ plainTitle
-                , unode "ol" ! [("class","toc")] $ evalState (mapM (navPointNode navXhtmlFormatter) secs) 1]
-          ]
+  let navBlocks = [RawBlock (Format "html") $ ppElement $
+                   unode navtag ! [("epub:type","toc") | epub3] $
+                    [ unode "h1" ! [("id","toc-title")] $ plainTitle
+                    , unode "ol" ! [("class","toc")] $ evalState (mapM (navPointNode navXhtmlFormatter) secs) 1]]
+  let navData = renderHtml $ writeHtml opts'
+            (Pandoc (setMeta "title"
+                     (walk removeNote $ fromList $ docTitle' meta) nullMeta)
+               navBlocks)
   let navEntry = mkEntry "nav.xhtml" navData
 
   -- mimetype

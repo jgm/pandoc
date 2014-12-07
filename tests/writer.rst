@@ -839,6 +839,7 @@ From “Voyage dans la Lune” by Georges Melies (1902):
    :alt: Voyage dans la Lune
 
    lalune
+
 Here is a movie |movie| icon.
 
 --------------

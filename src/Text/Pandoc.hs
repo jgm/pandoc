@@ -77,6 +77,7 @@ module Text.Pandoc
                , readHaddock
                , readNative
                , readJSON
+               , readTWiki
                , readTxt2Tags
                , readTxt2TagsNoMacros
                , readEPUB
@@ -133,6 +134,7 @@ import Text.Pandoc.Readers.HTML
 import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Haddock
+import Text.Pandoc.Readers.TWiki
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Readers.Txt2Tags
 import Text.Pandoc.Readers.EPUB
@@ -233,6 +235,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("html"         , mkStringReader readHtml)
            ,("latex"        , mkStringReader readLaTeX)
            ,("haddock"      , mkStringReader readHaddock)
+           ,("twiki"        , mkStringReader readTWiki)
            ,("docx"         , mkBSReader readDocx)
            ,("t2t"          , mkStringReader readTxt2TagsNoMacros)
            ,("epub"         , mkBSReader readEPUB)

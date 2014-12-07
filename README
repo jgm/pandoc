@@ -13,15 +13,16 @@ Description
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [markdown] and (subsets of) [Textile], [reStructuredText], [HTML],
-[LaTeX], [MediaWiki markup], [Haddock markup], [OPML], [Emacs
-Org-mode], [DocBook], [txt2tags], [EPUB] and [Word docx]; and it can write plain text,
-[markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX] (including
-[beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
-[OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
-[DokuWiki markup], [Haddock markup], [EPUB] (v2 or v3), [FictionBook2],
-[Textile], [groff man] pages, [Emacs Org-Mode], [AsciiDoc], [InDesign ICML],
-and [Slidy], [Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows.
-It can also produce [PDF] output on systems where LaTeX is installed.
+[LaTeX], [MediaWiki markup], [TWiki markup], [Haddock markup], [OPML],
+[Emacs Org-mode], [DocBook], [txt2tags], [EPUB] and [Word docx]; and
+it can write plain text, [markdown], [reStructuredText], [XHTML],
+[HTML 5], [LaTeX] (including [beamer] slide shows), [ConTeXt], [RTF],
+[OPML], [DocBook], [OpenDocument], [ODT], [Word docx], [GNU Texinfo],
+[MediaWiki markup], [DokuWiki markup], [Haddock markup], [EPUB] (v2 or v3),
+[FictionBook2], [Textile], [groff man] pages, [Emacs Org-Mode], [AsciiDoc],
+[InDesign ICML], and [Slidy], [Slideous], [DZSlides], [reveal.js] or
+[S5] HTML slide shows. It can also produce [PDF] output on systems where
+LaTeX is installed.
 
 Pandoc's enhanced version of markdown includes syntax for footnotes,
 tables, flexible ordered lists, definition lists, fenced code blocks,
@@ -161,8 +162,8 @@ General options
     `textile` (Textile), `rst` (reStructuredText), `html` (HTML),
     `docbook` (DocBook), `t2t` (txt2tags), `docx` (docx), `epub` (EPUB),
     `opml` (OPML), `org` (Emacs Org-mode), `mediawiki` (MediaWiki markup),
-    `haddock` (Haddock markup), or `latex` (LaTeX).  If `+lhs` is appended
-    to `markdown`, `rst`,
+    `twiki` (TWiki markup), `haddock` (Haddock markup), or `latex` (LaTeX).
+    If `+lhs` is appended to `markdown`, `rst`,
     `latex`, or `html`, the input will be treated as literate Haskell
     source: see [Literate Haskell support](#literate-haskell-support),
     below. Markdown syntax extensions can be individually enabled or
@@ -253,8 +254,8 @@ Reader options
     to curly quotes, `---` to em-dashes, `--` to en-dashes, and
     `...` to ellipses. Nonbreaking spaces are inserted after certain
     abbreviations, such as "Mr." (Note: This option is significant only when
-    the input format is `markdown`, `markdown_strict`, or `textile`. It
-    is selected automatically when the input format is `textile` or the
+    the input format is `markdown`, `markdown_strict`, `textile` or `twiki`.
+    It is selected automatically when the input format is `textile` or the
     output format is `latex` or `context`, unless `--no-tex-ligatures`
     is used.)
 
@@ -3182,6 +3183,7 @@ Rosenthal.
 [Textile]: http://redcloth.org/textile
 [MediaWiki markup]: http://www.mediawiki.org/wiki/Help:Formatting
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
+[TWiki markup]: http://twiki.org/cgi-bin/view/TWiki/TextFormattingRules
 [Haddock markup]: http://www.haskell.org/haddock/doc/html/ch03s08.html
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
 [Haskell]:  http://www.haskell.org/

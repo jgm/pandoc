@@ -879,18 +879,18 @@ bulletListStart = bulletListStart' Nothing
 
 bulletListStart' :: Maybe Int -> OrgParser Int
 -- returns length of bulletList prefix, inclusive of marker
-bulletListStart' Nothing  = do ind <- many spaceChar
+bulletListStart' Nothing  = do ind <- length <$> many spaceChar
+                               when (ind == 0) $ notFollowedBy (char '*')
                                oneOf bullets
                                many1 spaceChar
-                               return $ length ind + 1
+                               return (ind + 1)
  -- Unindented lists are legal, but they can't use '*' bullets
  -- We return n to maintain compatibility with the generic listItem
 bulletListStart' (Just n) = do count (n-1) spaceChar
-                               oneOf validBullets
+                               when (n == 1) $ notFollowedBy (char '*')
+                               oneOf bullets
                                many1 spaceChar
                                return n
-  where validBullets = if n == 1 then noAsterisks else bullets
-        noAsterisks  = filter (/= '*') bullets
 
 bullets :: String
 bullets = "*+-"
@@ -1099,7 +1099,7 @@ linkOrImage = explicitOrImageLink
 explicitOrImageLink :: OrgParser (F Inlines)
 explicitOrImageLink = try $ do
   char '['
-  srcF   <- applyCustomLinkFormat =<< linkTarget
+  srcF   <- applyCustomLinkFormat =<< possiblyEmptyLinkTarget
   title  <- enclosedRaw (char '[') (char ']')
   title' <- parseFromString (mconcat <$> many inline) title
   char ']'
@@ -1132,6 +1132,9 @@ selfTarget = try $ char '[' *> linkTarget <* char ']'
 linkTarget :: OrgParser String
 linkTarget = enclosedByPair '[' ']' (noneOf "\n\r[]")
 
+possiblyEmptyLinkTarget :: OrgParser String
+possiblyEmptyLinkTarget = try linkTarget <|> ("" <$ string "[]")
+
 applyCustomLinkFormat :: String -> OrgParser (F String)
 applyCustomLinkFormat link = do
   let (linkType, rest) = break (== ':') link
@@ -1139,26 +1142,32 @@ applyCustomLinkFormat link = do
     formatter <- M.lookup linkType <$> asksF orgStateLinkFormatters
     return $ maybe link ($ drop 1 rest) formatter
 
-
 linkToInlinesF :: String -> Inlines -> F Inlines
-linkToInlinesF s@('#':_) = pure . B.link s ""
-linkToInlinesF s
-    | isImageFilename s = const . pure $ B.image s "" ""
-    | isUri s           = pure . B.link s ""
-    | isRelativeUrl s   = pure . B.link s ""
-linkToInlinesF s = \title -> do
-  anchorB <- (s `elem`) <$> asksF orgStateAnchorIds
-  if anchorB
-    then pure $ B.link ('#':s) "" title
-    else pure $ B.emph title
+linkToInlinesF s =
+  case s of
+    ""      -> pure . B.link "" ""
+    ('#':_) -> pure . B.link s ""
+    _ | isImageFilename s     -> const . pure $ B.image s "" ""
+    _ | isUri s               -> pure . B.link s ""
+    _ | isRelativeFilePath s  -> pure . B.link s ""
+    _ | isAbsoluteFilePath s  -> pure . B.link ("file://" ++ s) ""
+    _ -> \title -> do
+           anchorB <- (s `elem`) <$> asksF orgStateAnchorIds
+           if anchorB
+             then pure $ B.link ('#':s) "" title
+             else pure $ B.emph title
 
-isRelativeUrl :: String -> Bool
-isRelativeUrl s = (':' `notElem` s) && ("./" `isPrefixOf` s)
+isRelativeFilePath :: String -> Bool
+isRelativeFilePath s = (("./" `isPrefixOf` s) || ("../" `isPrefixOf` s)) &&
+                       (':' `notElem` s)
 
 isUri :: String -> Bool
 isUri s = let (scheme, path) = break (== ':') s
           in all (\c -> isAlphaNum c || c `elem` ".-") scheme
              && not (null path)
+
+isAbsoluteFilePath :: String -> Bool
+isAbsoluteFilePath = ('/' ==) . head
 
 isImageFilename :: String -> Bool
 isImageFilename filename =
