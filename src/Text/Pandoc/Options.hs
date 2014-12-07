@@ -109,6 +109,7 @@ data Extension =
     | Ext_implicit_header_references -- ^ Implicit reference links for headers
     | Ext_line_blocks         -- ^ RST style line blocks
     | Ext_epub_html_exts      -- ^ Recognise the EPUB extended version of HTML
+    | Ext_fenced_divs         -- ^ Enable div blocks surrounded by ~
     deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
 pandocExtensions :: Set Extension
@@ -151,6 +152,7 @@ pandocExtensions = Set.fromList
   , Ext_header_attributes
   , Ext_implicit_header_references
   , Ext_line_blocks
+  , Ext_fenced_divs
   ]
 
 phpMarkdownExtraExtensions :: Set Extension

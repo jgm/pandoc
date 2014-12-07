@@ -57,21 +57,32 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockT
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
+import Control.Monad.Reader
 import System.FilePath (takeExtension, addExtension)
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
 import qualified Data.Set as Set
 import Text.Printf (printf)
 import Debug.Trace (trace)
+import Data.Default
 
-type MarkdownParser = Parser [Char] ParserState
+
+type MarkdownParser = ParserT [Char] ParserState (Reader MarkdownLocal)
+
+data MarkdownLocal = MarkdownLocal { stInDivBlock :: Bool }
+
+enterDivBlock :: MarkdownLocal -> MarkdownLocal
+enterDivBlock st = st {stInDivBlock = True}
+
+instance Default MarkdownLocal where
+  def = MarkdownLocal False
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ReaderOptions -- ^ Reader options
              -> String        -- ^ String to parse (assuming @'\n'@ line endings)
              -> Pandoc
 readMarkdown opts s =
-  (readWith parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
+  flip runReader def $ (readWithM parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
 
 -- | Read markdown from an input string and return a pair of a Pandoc document
 -- and a list of warnings.
@@ -79,7 +90,7 @@ readMarkdownWithWarnings :: ReaderOptions -- ^ Reader options
                          -> String        -- ^ String to parse (assuming @'\n'@ line endings)
                          -> (Pandoc, [String])
 readMarkdownWithWarnings opts s =
-  (readWith parseMarkdownWithWarnings) def{ stateOptions = opts } (s ++ "\n\n")
+  flip runReader def $ (readWithM parseMarkdownWithWarnings) def{ stateOptions = opts } (s ++ "\n\n")
  where parseMarkdownWithWarnings = do
          doc <- parseMarkdown
          warnings <- stateWarnings <$> getState
@@ -456,6 +467,7 @@ block = do
   tr <- getOption readerTrace
   pos <- getPosition
   res <- choice [ mempty <$ blanklines
+               , divFenced
                , codeBlockFenced
                , yamlMetaBlock
                , guardEnabled Ext_latex_macros *> (macro >>= return . return)
@@ -1402,7 +1414,8 @@ table = try $ do
 --
 
 inline :: MarkdownParser (F Inlines)
-inline = choice [ whitespace
+inline = notFollowedBy blockDivider >>
+         choice [ whitespace
                 , bareURL
                 , str
                 , endline
@@ -1429,11 +1442,14 @@ inline = choice [ whitespace
                 , ltSign
                 ] <?> "inline"
 
+blockDivider :: MarkdownParser ()
+blockDivider = (asks stInDivBlock >>= guard) <* atStart <* string "^^^"
+
 escapedChar' :: MarkdownParser Char
 escapedChar' = try $ do
   char '\\'
   (guardEnabled Ext_all_symbols_escapable >> satisfy (not . isAlphaNum))
-     <|> oneOf "\\`*_{}[]()>#+-.!~\""
+     <|> oneOf "\\`*_{}[]()>#+-.!~\"^"
 
 escapedChar :: MarkdownParser (F Inlines)
 escapedChar = do
@@ -1833,6 +1849,17 @@ divHtml = try $ do
      else -- avoid backtracing
        return $ return (B.rawBlock "html" (rawtag <> bls)) <> contents
 
+divFenced :: MarkdownParser (F Blocks)
+divFenced = try $ do
+  guardEnabled Ext_fenced_divs
+  size <- blockDelimiter (== '^') Nothing
+  skipMany spaceChar
+  attr <- option nullAttr $
+            try attributes <|> (\x -> ("", [x], [])) <$> many1 nonspaceChar
+  blankline
+  contents <- manyTill (local enterDivBlock block) (blockDelimiter (== '^') (Just size))
+  return $ B.divWith attr <$> (mconcat contents)
+
 rawHtmlInline :: MarkdownParser (F Inlines)
 rawHtmlInline = do
   guardEnabled Ext_raw_html
@@ -1962,3 +1989,9 @@ doubleQuoted = try $ do
   (withQuoteContext InDoubleQuote $ doubleQuoteEnd >> return
        (fmap B.doubleQuoted . trimInlinesF $ contents))
    <|> (return $ return (B.str "\8220") <> contents)
+
+
+atStart :: MarkdownParser ()
+atStart = (sourceColumn <$> getPosition) >>= guard . (== 1)
+
+
