@@ -103,6 +103,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              applyMacros',
                              Parser,
                              ParserT,
+                             hoist,
                              F(..),
                              runF,
                              askF,
@@ -193,6 +194,9 @@ import Data.Maybe (catMaybes)
 type Parser t s = Parsec t s
 
 type ParserT = ParsecT
+
+hoist :: Monad m => Parsec stream st a -> ParsecT stream st m a
+hoist p = mkPT (\s -> return . fmap (return . runIdentity) . runIdentity $ runParsecT p s)
 
 newtype F a = F { unF :: Reader ParserState a } deriving (Monad, Applicative, Functor)
 
