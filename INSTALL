@@ -44,12 +44,7 @@ Quick install
 
     [Not sure where `$CABALDIR` is?](http://www.haskell.org/haskellwiki/Cabal-Install#The_cabal-install_configuration_file)
 
-5.  Make sure the `$CABALDIR/share/man/man1` directory is in your `MANPATH`.
-    You should now be able to access the `pandoc` man page:
-
-        man pandoc
-
-6.  If you want to process citations with pandoc, you will also need to
+5.  If you want to process citations with pandoc, you will also need to
     install a separate package, `pandoc-citeproc`.  This can be installed
     using cabal:
 
@@ -70,6 +65,20 @@ Quick install
        cabal install --extra-lib-dirs=/usr/local/Cellar/icu4c/51.1/lib \
          --extra-include-dirs=/usr/local/Cellar/icu4c/51.1/include \
          -funicode_collation text-icu pandoc-citeproc
+
+The cabal installation procedure does not generate man pages.
+To build the `pandoc` man pages, build pandoc with the
+`make-pandoc-man-pages` flag, and then use the command
+`make-pandoc-man-pages` from the pandoc source directory.
+This will create the man pages in `man/man1` and `man/man5`.
+
+To build the `pandoc-citeproc` man pages, go to the pandoc-citeproc
+build directory, and
+
+    cd man
+    make
+
+The man page will be created in the `man1` subdirectory.
 
 [GHC]: http://www.haskell.org/ghc/
 [Haskell platform]: http://hackage.haskell.org/platform/
