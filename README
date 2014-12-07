@@ -2303,6 +2303,16 @@ For the most part this should give the same output as
 `markdown_in_html_blocks`, but it makes it easier to write pandoc
 filters to manipulate groups of blocks.
 
+#### Extension: `fenced_divs` ####
+
+In addition to supporting using native HTML, it is often clearer to use a
+*fenced* div block. These begin with a row of three or more `^`, contain any
+kind of block level content and end with a row of an equal number of `^`.
+
+Attributes can be specified in exactly the same way as for
+[fenced code blocks]{#fenced-code-blocks}.
+
+
 #### Extension: `native_spans` ####
 
 Use native pandoc `Span` blocks for content inside `<span>` tags.
