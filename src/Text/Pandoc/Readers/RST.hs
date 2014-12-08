@@ -1006,12 +1006,12 @@ renderRole contents fmt role attr = case role of
     "RFC" -> return $ rfcLink contents
     "pep-reference" -> return $ pepLink contents
     "PEP" -> return $ pepLink contents
-    "literal" -> return $ B.str contents
+    "literal" -> return $ B.codeWith attr contents
     "math" -> return $ B.math contents
     "title-reference" -> titleRef contents
     "title" -> titleRef contents
     "t" -> titleRef contents
-    "code" -> return $ B.codeWith attr contents
+    "code" -> return $ B.codeWith (union attr ["code"]) contents
     "raw" -> return $ B.rawInline (fromMaybe "" fmt) contents
     custom -> do
         customRole <- stateRstCustomRoles <$> getState
