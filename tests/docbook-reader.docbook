@@ -509,6 +509,25 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       B. Williams
     </para>
   </sect2>
+  <sect2 id="callout">
+    <title>Callout</title>
+    <para>Simple.</para>
+      <calloutlist>
+	<callout arearefs="loop1-letrec-co" id="loop1-letrec">
+	  <para id="x_QA1">A <code>__letrec</code> is equivalent to a normal
+	    Haskell &let;.</para>
+	</callout>
+	<callout arearefs="loop1-def-co" id="loop1-def">
+	  <para id="x_RA1">&GHC; compiled the body of our list comprehension into
+	    a loop named <function>go_s1YC</function>.</para>
+	</callout>
+	<callout arearefs="loop1-pat-empty-co" id="loop1-pat-empty">
+	  <para id="x_SA1">If our &case; expression matches the empty list, we
+	    return the empty list.  This is reassuringly
+	    familiar.</para>
+	</callout>
+      </calloutlist>
+  </sect2>
 </sect1>
 <sect1 id="definition-lists">
   <title>Definition Lists</title>
