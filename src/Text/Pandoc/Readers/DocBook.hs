@@ -70,8 +70,8 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] book - A book
 [x] bookinfo - Meta-information for a Book
 [x] bridgehead - A free-floating heading
-[ ] callout - A “called out” description of a marked Area
-[ ] calloutlist - A list of Callouts
+[x] callout - A “called out” description of a marked Area
+[x] calloutlist - A list of Callouts
 [x] caption - A caption
 [x] caution - A note of caution
 [x] chapter - A chapter, as of a book
@@ -603,7 +603,7 @@ isBlockElement (Elem e) = qName (elName e) `elem` blocktags
            "important","caution","note","tip","warning","qandadiv",
            "question","answer","abstract","itemizedlist","orderedlist",
            "variablelist","article","book","table","informaltable",
-           "screen","programlisting","example"]
+           "screen","programlisting","example","calloutlist"]
 isBlockElement _ = False
 
 -- Trim leading and trailing newline characters
@@ -712,6 +712,7 @@ parseBlock (Elem e) =
         "question" -> addToStart (strong (str "Q:") <> str " ") <$> getBlocks e
         "answer" -> addToStart (strong (str "A:") <> str " ") <$> getBlocks e
         "abstract" -> blockQuote <$> getBlocks e
+        "calloutlist" -> bulletList <$> callouts
         "itemizedlist" -> bulletList <$> listitems
         "orderedlist" -> do
           let listStyle = case attrValue "numeration" e of
@@ -785,6 +786,7 @@ parseBlock (Elem e) =
             contents <- getBlocks e
             return $ blockQuote (contents <> attrib)
          listitems = mapM getBlocks $ filterChildren (named "listitem") e
+         callouts = mapM getBlocks $ filterChildren (named "callout") e
          deflistitems = mapM parseVarListEntry $ filterChildren
                      (named "varlistentry") e
          parseVarListEntry e' = do

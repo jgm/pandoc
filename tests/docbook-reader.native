@@ -134,6 +134,12 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Should",Space,Str "not",Space,Str "be",Space,Str "a",Space,Str "list",Space,Str "item:"]
 ,Para [Str "M.A.\160\&2007"]
 ,Para [Str "B.",Space,Str "Williams"]
+,Header 2 ("",[],[]) [Str "Callout"]
+,Para [Str "Simple."]
+,BulletList
+ [[Para [Str "A",Space,Code ("",[],[]) "__letrec",Space,Str "is",Space,Str "equivalent",Space,Str "to",Space,Str "a",Space,Str "normal",Space,Str "Haskell",Space,Str "LET."]]
+ ,[Para [Str "GHC",Space,Str "compiled",Space,Str "the",Space,Str "body",Space,Str "of",Space,Str "our",Space,Str "list",Space,Str "comprehension",Space,Str "into",Space,Str "a",Space,Str "loop",Space,Str "named",Space,Code ("",[],[]) "go_s1YC",Str "."]]
+ ,[Para [Str "If",Space,Str "our",Space,Str "CASE",Space,Str "expression",Space,Str "matches",Space,Str "the",Space,Str "empty",Space,Str "list,",Space,Str "we",Space,Str "return",Space,Str "the",Space,Str "empty",Space,Str "list.",Space,Str "This",Space,Str "is",Space,Str "reassuringly",Space,Str "familiar."]]]
 ,Header 1 ("",[],[]) [Str "Definition",Space,Str "Lists"]
 ,DefinitionList
  [([Str "apple"],
