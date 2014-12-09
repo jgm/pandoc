@@ -471,7 +471,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] token - A unit of information
 [x] tr - A row in an HTML table
 [ ] trademark - A trademark
-[ ] type - The classification of a value
+[x] type - The classification of a value
 [x] ulink - A link that addresses its target by means of a URL
     (Uniform Resource Locator)
 [x] uri - A Uniform Resource Identifier
