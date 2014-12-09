@@ -81,7 +81,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] citerefentry - A citation to a reference page
 [ ] citetitle - The title of a cited work
 [ ] city - The name of a city in an address
-[ ] classname - The name of a class, in the object-oriented programming sense
+[x] classname - The name of a class, in the object-oriented programming sense
 [ ] classsynopsis - The syntax summary for a class definition
 [ ] classsynopsisinfo - Information supplementing the contents of
     a ClassSynopsis
@@ -903,6 +903,7 @@ parseInline (Elem e) =
                         else doubleQuoted contents
         "simplelist" -> simpleList
         "segmentedlist" -> segmentedList
+        "classname" -> codeWithLang
         "code" -> codeWithLang
         "filename" -> codeWithLang
         "literal" -> codeWithLang
