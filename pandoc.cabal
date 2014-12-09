@@ -449,7 +449,7 @@ Test-Suite test-pandoc
                   Tests.Writers.Plain
                   Tests.Writers.AsciiDoc
                   Tests.Writers.LaTeX
-  Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind
+  Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   Default-Language: Haskell98
 
 benchmark benchmark-pandoc
