@@ -710,6 +710,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <literal>&lt;html&gt;</literal>.
   </para>
   <para>
+    More code: <classname>Class</classname> and <type>Type</type>
+  </para>
+  <para>
     <emphasis role="strikethrough">This is
     <emphasis>strikeout</emphasis>.</emphasis>
   </para>
