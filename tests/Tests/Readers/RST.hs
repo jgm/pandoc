@@ -99,7 +99,7 @@ tests = [ "line block with blank line" =:
             =?> para (codeWith ("", ["codeLike", "sourceCode"], []) "a")
           , "custom code role with language field"
             =: ".. role:: lhs(code)\n    :language: haskell\n\n:lhs:`a`"
-            =?> para (codeWith ("", ["sourceCode", "haskell", "lhs"], []) "a")
+            =?> para (codeWith ("", ["lhs", "haskell","sourceCode"], []) "a")
           , "custom role with unspecified parent role"
             =: ".. role:: classy\n\n:classy:`text`"
             =?> para (spanWith ("", ["classy"], []) "text")

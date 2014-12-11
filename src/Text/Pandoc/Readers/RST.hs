@@ -625,25 +625,27 @@ addNewRole :: String -> [(String, String)] -> RSTParser Blocks
 addNewRole roleString fields = do
     (role, parentRole) <- parseFromString inheritedRole roleString
     customRoles <- stateRstCustomRoles <$> getState
-    baseRole <- case M.lookup parentRole customRoles of
-        Just (base, _, _) -> return base
-        Nothing -> return parentRole
+    let (baseRole, baseFmt, baseAttr) =
+            maybe (parentRole, Nothing, nullAttr) id $
+              M.lookup parentRole customRoles
 
-    let fmt = if baseRole == "raw" then lookup "format" fields else Nothing
-        annotate = maybe (addClass role) (addLanguage role) $
+    let fmt = if parentRole == "raw" then lookup "format" fields else baseFmt
+        -- nub in case role name & language class are the same
+        annotate :: [String] -> [String]
+        annotate = maybe id (:) $
             if baseRole == "code"
                then lookup "language" fields
                else Nothing
+        attr = let (ident, classes, keyValues) = baseAttr
+               in (ident, nub . (role :) . annotate $ classes, keyValues)
 
     updateState $ \s -> s {
         stateRstCustomRoles =
-          M.insert role (baseRole, fmt, (,) parentRole . annotate) customRoles
+          M.insert role (baseRole, fmt, attr) customRoles
     }
 
     return $ B.singleton Null
   where
-    addLanguage role lang (ident, classes, keyValues) =
-        (ident, nub ("sourceCode" : lang : role : classes), keyValues)
     inheritedRole =
         (,) <$> roleName <*> ((char '(' *> roleName <* char ')') <|> pure "span")
 
@@ -1014,12 +1016,10 @@ renderRole contents fmt role attr = case role of
     "span" -> return $ B.spanWith attr $ B.str contents
     "raw" -> return $ B.rawInline (fromMaybe "" fmt) contents
     custom -> do
-        customRole <- stateRstCustomRoles <$> getState
-        case M.lookup custom customRole of
-            Just (_, newFmt, inherit) -> let
-                fmtStr = fmt `mplus` newFmt
-                (newRole, newAttr) = inherit attr
-                in renderRole contents fmtStr newRole newAttr
+        customRoles <- stateRstCustomRoles <$> getState
+        case M.lookup custom customRoles of
+            Just (newRole, newFmt, newAttr) ->
+                renderRole contents newFmt newRole newAttr
             Nothing -> do
                 pos <- getPosition
                 addWarning (Just pos) $ "ignoring unknown role :" ++ custom ++ ": in "
