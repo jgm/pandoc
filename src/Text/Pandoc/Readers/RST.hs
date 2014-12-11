@@ -37,7 +37,7 @@ import Text.Pandoc.Builder (setMeta, fromList)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
-import Control.Monad ( when, liftM, guard, mzero, mplus )
+import Control.Monad ( when, liftM, guard, mzero )
 import Data.List ( findIndex, intersperse, intercalate,
                    transpose, sort, deleteFirstsBy, isSuffixOf , nub, union)
 import Data.Maybe (fromMaybe)
@@ -628,16 +628,34 @@ addNewRole roleString fields = do
     let (baseRole, baseFmt, baseAttr) =
             maybe (parentRole, Nothing, nullAttr) id $
               M.lookup parentRole customRoles
-
-    let fmt = if parentRole == "raw" then lookup "format" fields else baseFmt
-        -- nub in case role name & language class are the same
+        fmt = if parentRole == "raw" then lookup "format" fields else baseFmt
         annotate :: [String] -> [String]
         annotate = maybe id (:) $
-            if baseRole == "code"
+            if parentRole == "code"
                then lookup "language" fields
                else Nothing
         attr = let (ident, classes, keyValues) = baseAttr
+        -- nub in case role name & language class are the same
                in (ident, nub . (role :) . annotate $ classes, keyValues)
+
+    -- warn about syntax we ignore
+    flip mapM_ fields $ \(key, _) -> case key of
+        "language" -> when (parentRole /= "code") $ addWarning Nothing $
+            "ignoring :language: field because the parent of role :" ++
+            role ++ ": is :" ++ parentRole ++ ": not :code:"
+        "format" -> when (parentRole /= "raw") $ addWarning Nothing $
+            "ignoring :format: field because the parent of role :" ++
+            role ++ ": is :" ++ parentRole ++ ": not :raw:"
+        _ -> addWarning Nothing $ "ignoring unknown field :" ++ key ++
+             ": in definition of role :" ++ role ++ ": in"
+    when (parentRole == "raw" && countKeys "format" > 1) $
+        addWarning Nothing $
+        "ignoring :format: fields after the first in the definition of role :"
+        ++ role ++": in"
+    when (parentRole == "code" && countKeys "language" > 1) $
+        addWarning Nothing $
+        "ignoring :language: fields after the first in the definition of role :"
+        ++ role ++": in"
 
     updateState $ \s -> s {
         stateRstCustomRoles =
@@ -646,8 +664,10 @@ addNewRole roleString fields = do
 
     return $ B.singleton Null
   where
+    countKeys k = length . filter (== k) . map fst $ fields
     inheritedRole =
         (,) <$> roleName <*> ((char '(' *> roleName <* char ')') <|> pure "span")
+
 
 -- Can contain character codes as decimal numbers or
 -- hexadecimal numbers, prefixed by 0x, x, \x, U+, u, or \u
@@ -1022,7 +1042,7 @@ renderRole contents fmt role attr = case role of
                 renderRole contents newFmt newRole newAttr
             Nothing -> do
                 pos <- getPosition
-                addWarning (Just pos) $ "ignoring unknown role :" ++ custom ++ ": in "
+                addWarning (Just pos) $ "ignoring unknown role :" ++ custom ++ ": in"
                 return $ B.str contents -- Undefined role
  where
    titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour
