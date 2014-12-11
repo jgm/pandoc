@@ -39,11 +39,11 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Options
 import Control.Monad ( when, liftM, guard, mzero, mplus )
 import Data.List ( findIndex, intersperse, intercalate,
-                   transpose, sort, deleteFirstsBy, isSuffixOf )
+                   transpose, sort, deleteFirstsBy, isSuffixOf , nub, union)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 import Text.Printf ( printf )
-import Control.Applicative ((<$>), (<$), (<*), (*>), (<*>))
+import Control.Applicative ((<$>), (<$), (<*), (*>), (<*>), pure)
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import qualified Text.Pandoc.Builder as B
 import Data.Monoid (mconcat, mempty)
@@ -619,7 +619,6 @@ directive' = do
 
 -- TODO:
 --  - Silently ignores illegal fields
---  - Silently drops classes
 --  - Only supports :format: fields with a single format for :raw: roles,
 --    change Text.Pandoc.Definition.Format to fix
 addNewRole :: String -> [(String, String)] -> RSTParser Blocks
@@ -631,7 +630,7 @@ addNewRole roleString fields = do
         Nothing -> return parentRole
 
     let fmt = if baseRole == "raw" then lookup "format" fields else Nothing
-        annotate = maybe id addLanguage $
+        annotate = maybe (addClass role) (addLanguage role) $
             if baseRole == "code"
                then lookup "language" fields
                else Nothing
@@ -643,10 +642,10 @@ addNewRole roleString fields = do
 
     return $ B.singleton Null
   where
-    addLanguage lang (ident, classes, keyValues) =
-        (ident, "sourceCode" : lang : classes, keyValues)
+    addLanguage role lang (ident, classes, keyValues) =
+        (ident, nub ("sourceCode" : lang : role : classes), keyValues)
     inheritedRole =
-        (,) <$> roleNameEndingIn (char '(') <*> roleNameEndingIn (char ')')
+        (,) <$> roleName <*> ((char '(' *> roleName <* char ')') <|> pure "span")
 
 -- Can contain character codes as decimal numbers or
 -- hexadecimal numbers, prefixed by 0x, x, \x, U+, u, or \u
@@ -1011,7 +1010,8 @@ renderRole contents fmt role attr = case role of
     "title-reference" -> titleRef contents
     "title" -> titleRef contents
     "t" -> titleRef contents
-    "code" -> return $ B.codeWith (union attr ["code"]) contents
+    "code" -> return $ B.codeWith (addClass "sourceCode" attr) contents
+    "span" -> return $ B.spanWith attr $ B.str contents
     "raw" -> return $ B.rawInline (fromMaybe "" fmt) contents
     custom -> do
         customRole <- stateRstCustomRoles <$> getState
@@ -1032,11 +1032,14 @@ renderRole contents fmt role attr = case role of
      where padNo = replicate (4 - length pepNo) '0' ++ pepNo
            pepUrl = "http://www.python.org/dev/peps/pep-" ++ padNo ++ "/"
 
-roleNameEndingIn :: RSTParser Char -> RSTParser String
-roleNameEndingIn end = many1Till (letter <|> char '-') end
+addClass :: String -> Attr -> Attr
+addClass c (ident, classes, keyValues) = (ident, union classes [c], keyValues)
+
+roleName :: RSTParser String
+roleName = many1 (letter <|> char '-')
 
 roleMarker :: RSTParser String
-roleMarker = char ':' *> roleNameEndingIn (char ':')
+roleMarker = char ':' *> roleName <* char ':'
 
 roleBefore :: RSTParser (String,String)
 roleBefore = try $ do
