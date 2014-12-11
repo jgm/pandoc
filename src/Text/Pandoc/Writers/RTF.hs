@@ -106,7 +106,9 @@ writeRTF options (Pandoc meta@(Meta metamap) blocks) =
               $ metadata
   in  if writerStandalone options
          then renderTemplate' (writerTemplate options) context
-         else body
+         else case reverse body of
+                ('\n':_) -> body
+                _        -> body ++ "\n"
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: [Block] -> String
