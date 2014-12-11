@@ -162,6 +162,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              setSourceColumn,
                              setSourceLine,
                              newPos,
+                             extractIdClass
                              )
 where
 
@@ -1058,7 +1059,7 @@ newtype Key = Key String deriving (Show, Read, Eq, Ord)
 toKey :: String -> Key
 toKey = Key . map toLower . unwords . words
 
-type KeyTable = M.Map Key Target
+type KeyTable = M.Map Key (Target, Attr)
 
 type SubstTable = M.Map Key Inlines
 
@@ -1245,3 +1246,14 @@ applyMacros' target = do
      then do macros <- extractMacros <$> getState
              return $ applyMacros macros target
      else return target
+
+extractIdClass :: Attr -> Attr
+extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
+  where
+    ident' = case (lookup "id" kvs) of
+               Just v  -> v
+               Nothing -> ident
+    cls'   = case (lookup "class" kvs) of
+               Just cl -> words cl
+               Nothing -> cls
+    kvs'  = filter (\(k,_) -> k /= "id" || k /= "class") kvs

@@ -314,8 +314,8 @@ blockToXml :: Block -> FBM [Content]
 blockToXml (Plain ss) = cMapM toXml ss  -- FIXME: can lead to malformed FB2
 blockToXml (Para [Math DisplayMath formula]) = insertMath NormalImage formula
 -- title beginning with fig: indicates that the image is a figure
-blockToXml (Para [Image alt (src,'f':'i':'g':':':tit)]) =
-  insertImage NormalImage (Image alt (src,tit))
+blockToXml (Para [Image atr alt (src,'f':'i':'g':':':tit)]) =
+  insertImage NormalImage (Image atr alt (src,tit))
 blockToXml (Para ss) = liftM (list . el "p") $ cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code") . lines $ s
@@ -459,7 +459,7 @@ toXml (Link text (url,ttl)) = do
                   ( [ attr ("l","href") ('#':ln_id)
                     , uattr "type" "note" ]
                   , ln_ref) ]
-toXml img@(Image _ _) = insertImage InlineImage img
+toXml img@(Image _ _ _) = insertImage InlineImage img
 toXml (Note bs) = do
   fns <- footnotes `liftM` get
   let n = 1 + length fns
@@ -478,12 +478,12 @@ insertMath immode formula = do
     WebTeX url -> do
        let alt = [Code nullAttr formula]
        let imgurl = url ++ urlEncode formula
-       let img = Image alt (imgurl, "")
+       let img = Image nullAttr alt (imgurl, "")
        insertImage immode img
     _ -> return [el "code" formula]
 
 insertImage :: ImageMode -> Inline -> FBM [Content]
-insertImage immode (Image alt (url,ttl)) = do
+insertImage immode (Image _ alt (url,ttl)) = do
   images <- imagesToFetch `liftM` get
   let n = 1 + length images
   let fname = "image" ++ show n
@@ -573,7 +573,7 @@ plain LineBreak = "\n"
 plain (Math _ s) = s
 plain (RawInline _ s) = s
 plain (Link text (url,_)) = concat (map plain text ++ [" <", url, ">"])
-plain (Image alt _) = concat (map plain alt)
+plain (Image _ alt _) = concat (map plain alt)
 plain (Note _) = ""  -- FIXME
 
 -- | Create an XML element.

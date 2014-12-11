@@ -181,7 +181,7 @@ blockToCustom _ Null = return ""
 
 blockToCustom lua (Plain inlines) = callfunc lua "Plain" inlines
 
-blockToCustom lua (Para [Image txt (src,tit)]) =
+blockToCustom lua (Para [Image _ txt (src,tit)]) =
   callfunc lua "CaptionedImage" src tit txt
 
 blockToCustom lua (Para inlines) = callfunc lua "Para" inlines
@@ -270,7 +270,7 @@ inlineToCustom lua (LineBreak) = callfunc lua "LineBreak"
 inlineToCustom lua (Link txt (src,tit)) =
   callfunc lua "Link" txt (fromString src) (fromString tit)
 
-inlineToCustom lua (Image alt (src,tit)) =
+inlineToCustom lua (Image _ alt (src,tit)) =
   callfunc lua "Image" alt (fromString src) (fromString tit)
 
 inlineToCustom lua (Note contents) = callfunc lua "Note" contents

@@ -632,9 +632,9 @@ blockToOpenXML opts (Header lev (ident,_,_) lst) = do
 blockToOpenXML opts (Plain lst) = withParaProp (pStyle "Compact")
   $ blockToOpenXML opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure
-blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
+blockToOpenXML opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
   paraProps <- getParaProps False
-  contents <- inlinesToOpenXML opts [Image alt (src,tit)]
+  contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
   captionNode <- withParaProp (pStyle "ImageCaption")
                  $ blockToOpenXML opts (Para alt)
   return $ mknode "w:p" [] (paraProps ++ contents) : captionNode
@@ -941,7 +941,7 @@ inlineToOpenXML opts (Link txt (src,_)) = do
                         M.insert src i extlinks }
               return i
   return [ mknode "w:hyperlink" [("r:id",id')] contents ]
-inlineToOpenXML opts (Image alt (src, tit)) = do
+inlineToOpenXML opts (Image _ alt (src, tit)) = do
   -- first, check to see if we've already done this image
   pageWidth <- gets stPrintWidth
   imgs <- gets stImages

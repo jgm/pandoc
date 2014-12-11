@@ -419,7 +419,7 @@ inlineToICML opts style (Link lst (url, title)) = do
                 cont  = inTags True "HyperlinkTextSource"
                          [("Self","htss-"++show ident), ("Name",title), ("Hidden","false")] content
             in  (cont, newst)
-inlineToICML opts style (Image alt target) = imageICML opts style alt target
+inlineToICML opts style (Image attr alt target) = imageICML opts style attr alt target
 inlineToICML opts style (Note lst) = footnoteToICML opts style lst
 inlineToICML opts style (Span _ lst) = inlinesToICML opts style lst
 
@@ -492,19 +492,31 @@ styleToStrAttr style =
   in  (stlStr, attrs)
 
 -- | Assemble an ICML Image.
-imageICML :: WriterOptions -> Style -> [Inline] -> Target -> WS Doc
-imageICML opts style _ (src, _) = do
+imageICML :: WriterOptions -> Style -> Attr -> [Inline] -> Target -> WS Doc
+imageICML opts style attr _ (src, _) = do
   res <- liftIO $ fetchItem (writerSourceURL opts) src
-  (imgWidth, imgHeight) <- --target dimensions in points
-    case res of
-         Left (_) -> do
-           liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
-           return (300, 200)
-         Right (img, _) -> do
-           return $ maybe (300, 200) sizeInPoints $ imageSize img
-  let src' = "file://." ++ pathSeparator : src
-      hw = show $ imgWidth  `div` 2
-      hh = show $ imgHeight `div` 2
+  (ow, oh) <- case res of --original dims of image in points
+                Left (_) -> do
+                  liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
+                  return (300, 200)
+                Right (img, _) -> do
+                  let conv (x, y) = (fromIntegral x, fromIntegral y)
+                  return $ maybe (300, 200) (conv . sizeInPoints) $ imageSize img
+  let getDim dir = case (dimension dir attr) of
+                     Just (Percent _) -> Nothing
+                     Just dim         -> Just $ (inPoints opts dim)
+                     Nothing          -> Nothing
+      ratio = ow / oh
+      (imgWidth, imgHeight) =
+        case (getDim Width, getDim Height) of
+          (Just w, Just h)   -> (w, h)
+          (Just w, Nothing)  -> (w, w / ratio)
+          (Nothing, Just h)  -> (h * ratio, h)
+          (Nothing, Nothing) -> (ow, oh)
+      hw = showFl $ ow / 2
+      hh = showFl $ oh / 2
+      scale = showFl (imgWidth  / ow) ++ " 0 0 " ++ showFl (imgHeight / oh)
+      src' = "file://." ++ pathSeparator : src
       (stlStr, attrs) = styleToStrAttr style
       props  = inTags True "Properties" [] $ inTags True "PathGeometry" []
                  $ inTags True "GeometryPathType" [("PathOpen","false")]
@@ -520,13 +532,13 @@ imageICML opts style _ (src, _) = do
                        ("LeftDirection", hw++" -"++hh), ("RightDirection", hw++" -"++hh)]
                    ]
       image  = inTags True "Image"
-                   [("Self","ue6"), ("ItemTransform", "1 0 0 1 -"++hw++" -"++hh)]
+                   [("Self","ue6"), ("ItemTransform", scale++" -"++hw++" -"++hh)]
                  $ vcat [
                      inTags True "Properties" [] $ inTags True "Profile" [("type","string")] $ text "$ID/Embedded"
-                       $$ selfClosingTag "GraphicBounds" [("Left","0"), ("Top","0"), ("Right", hw), ("Bottom", hh)]
                    , selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", src')]
                    ]
       doc    = inTags True "CharacterStyleRange" attrs
-                 $ inTags True "Rectangle" [("Self","uec"), ("ItemTransform", "1 0 0 1 "++hw++" -"++hh)]
+                 $ inTags True "Rectangle" [("Self","uec"), ("StrokeWeight", "0"),
+                     ("ItemTransform", scale++" "++hw++" -"++hh)]
                  $ (props $$ image)
   state $ \st -> (doc, st{ inlineStyles = Set.insert stlStr $ inlineStyles st } )

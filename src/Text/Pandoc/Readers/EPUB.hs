@@ -98,12 +98,12 @@ fetchImages mimes root arc (query iq -> links) =
           <$> findEntryByPath abslink arc
 
 iq :: Inline -> [FilePath]
-iq (Image _ (url, _)) = [url]
+iq (Image _ _ (url, _)) = [url]
 iq _ = []
 
 -- Remove relative paths
 renameImages :: FilePath -> Inline -> Inline
-renameImages root (Image a (url, b)) = Image a (collapseFilePath (root </> url), b)
+renameImages root (Image attr a (url, b)) = Image attr a (collapseFilePath (root </> url), b)
 renameImages _ x = x
 
 imageToPandoc :: FilePath -> Pandoc

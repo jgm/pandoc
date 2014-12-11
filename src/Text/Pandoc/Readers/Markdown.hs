@@ -364,18 +364,20 @@ referenceKey = try $ do
   let betweenAngles = try $ char '<' >> manyTill litChar (char '>')
   src <- try betweenAngles <|> sourceURL
   tit <- option "" referenceTitle
-  -- currently we just ignore MMD-style link/image attributes
-  _kvs <- option [] $ guardEnabled Ext_link_attributes
-                      >> many (try $ spnl >> keyValAttr)
+  attr   <- option nullAttr $ try $
+              guardEnabled Ext_common_link_attributes >> skipSpaces >> attributes
+  addKvs <- option [] $ guardEnabled Ext_link_attributes
+                          >> many (try $ spnl >> keyValAttr)
   blanklines
-  let target = (escapeURI $ trimr src,  tit)
+  let attr'  = extractIdClass $ foldl (\x f -> f x) attr addKvs
+      target = (escapeURI $ trimr src, tit)
   st <- getState
   let oldkeys = stateKeys st
   let key = toKey raw
   case M.lookup key oldkeys of
     Just _  -> addWarning (Just pos) $ "Duplicate link reference `" ++ raw ++ "'"
     Nothing -> return ()
-  updateState $ \s -> s { stateKeys = M.insert key target oldkeys }
+  updateState $ \s -> s { stateKeys = M.insert key (target, attr') oldkeys }
   return $ return mempty
 
 referenceTitle :: MarkdownParser String
@@ -944,11 +946,11 @@ para = try $ do
             return $ do
               result' <- result
               case B.toList result' of
-                   [Image alt (src,tit)]
+                   [Image attr alt (src,tit)]
                      | Ext_implicit_figures `Set.member` exts ->
                         -- the fig: at beginning of title indicates a figure
                         return $ B.para $ B.singleton
-                               $ Image alt (src,'f':'i':'g':':':tit)
+                               $ Image attr alt (src,'f':'i':'g':':':tit)
                    _ -> return $ B.para result'
 
 plain :: MarkdownParser (F Blocks)
@@ -1672,16 +1674,17 @@ link = try $ do
   setState $ st{ stateAllowLinks = False }
   (lab,raw) <- reference
   setState $ st{ stateAllowLinks = True }
-  regLink B.link lab <|> referenceLink B.link (lab,raw)
+  regLink B.linkWith lab <|> referenceLink B.linkWith (lab,raw)
 
-regLink :: (String -> String -> Inlines -> Inlines)
+regLink :: (String -> String -> Attr -> Inlines -> Inlines)
         -> F Inlines -> MarkdownParser (F Inlines)
 regLink constructor lab = try $ do
   (src, tit) <- source
-  return $ constructor src tit <$> lab
+  attr <- option nullAttr $ guardEnabled Ext_common_link_attributes >> attributes
+  return $ constructor src tit attr <$> lab
 
 -- a link like [this][ref] or [this][] or [this]
-referenceLink :: (String -> String -> Inlines -> Inlines)
+referenceLink :: (String -> String -> Attr -> Inlines -> Inlines)
               -> (F Inlines, String) -> MarkdownParser (F Inlines)
 referenceLink constructor (lab, raw) = do
   sp <- (True <$ lookAhead (char ' ')) <|> return False
@@ -1691,7 +1694,7 @@ referenceLink constructor (lab, raw) = do
   let labIsRef = raw' == "" || raw' == "[]"
   let key = toKey $ if labIsRef then raw else raw'
   parsedRaw <- parseFromString (mconcat <$> many inline) raw'
-  fallback <- parseFromString (mconcat <$> many inline) $ dropBrackets raw
+  fallback  <- parseFromString (mconcat <$> many inline) $ dropBrackets raw
   implicitHeaderRefs <- option False $
                          True <$ guardEnabled Ext_implicit_header_references
   let makeFallback = do
@@ -1708,10 +1711,10 @@ referenceLink constructor (lab, raw) = do
          ref' <- if labIsRef then lab else ref
          if implicitHeaderRefs
             then case M.lookup ref' headers of
-                   Just ident -> constructor ('#':ident) "" <$> lab
+                   Just ident -> constructor ('#':ident) "" nullAttr <$> lab
                    Nothing    -> makeFallback
             else makeFallback
-       Just (src,tit) -> constructor src tit <$> lab
+       Just ((src,tit), attr) -> constructor src tit attr <$> lab
 
 dropBrackets :: String -> String
 dropBrackets = reverse . dropRB . reverse . dropLB
@@ -1744,8 +1747,8 @@ image = try $ do
   (lab,raw) <- reference
   defaultExt <- getOption readerDefaultImageExtension
   let constructor src = case takeExtension src of
-                              "" -> B.image (addExtension src defaultExt)
-                              _  -> B.image src
+                              "" -> B.imageWith (addExtension src defaultExt)
+                              _  -> B.imageWith src
   regLink constructor lab <|> referenceLink constructor (lab,raw)
 
 note :: MarkdownParser (F Inlines)

@@ -82,10 +82,10 @@ handleImage' :: WriterOptions
              -> FilePath
              -> Inline
              -> IO Inline
-handleImage' opts tmpdir (Image ils (src,tit)) = do
+handleImage' opts tmpdir (Image attr ils (src,tit)) = do
     exists <- doesFileExist src
     if exists
-       then return $ Image ils (src,tit)
+       then return $ Image attr ils (src,tit)
        else do
          res <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
          case res of
@@ -95,21 +95,21 @@ handleImage' opts tmpdir (Image ils (src,tit)) = do
                 let basename = showDigest $ sha1 $ BL.fromChunks [contents]
                 let fname = tmpdir </> basename <.> ext
                 BS.writeFile fname contents
-                return $ Image ils (fname,tit)
+                return $ Image attr ils (fname,tit)
               _ -> do
                 warn $ "Could not find image `" ++ src ++ "', skipping..."
-                return $ Image ils (src,tit)
+                return $ Image attr ils (src,tit)
 handleImage' _ _ x = return x
 
 convertImages :: FilePath -> Inline -> IO Inline
-convertImages tmpdir (Image ils (src, tit)) = do
+convertImages tmpdir (Image attr ils (src, tit)) = do
   img <- convertImage tmpdir src
   newPath <-
     case img of
       Left e -> src <$
                  warn ("Unable to convert image `" ++ src ++ "':\n" ++ e)
       Right fp -> return fp
-  return (Image ils (newPath, tit))
+  return (Image attr ils (newPath, tit))
 convertImages _ x = return x
 
 -- Convert formats which do not work well in pdf to png

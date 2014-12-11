@@ -45,6 +45,7 @@ import Data.Maybe ( fromMaybe )
 import Control.Applicative ((<|>))
 import Control.Monad.State
 import Text.Pandoc.Pretty
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock,
@@ -319,15 +320,20 @@ blockToLaTeX (Div (identifier,classes,_) bs) = do
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
-blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
+blockToLaTeX (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   inNote <- gets stInNote
   capt <- inlineListToLaTeX txt
-  img <- inlineToLaTeX (Image txt (src,tit))
+  img <- inlineToLaTeX (Image attr txt (src,tit))
+  let (ident, _, _) = attr
+  idn <- toLabel ident
+  let label = if null ident
+                 then empty
+                 else "\\label" <> braces (text idn)
   return $ if inNote
               -- can't have figures in notes
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
               else "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
-                      ("\\caption" <> braces capt) $$ "\\end{figure}"
+                      ("\\caption" <> braces capt) $$ label $$ "\\end{figure}"
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- writerBeamer `fmap` gets stOptions
@@ -803,16 +809,27 @@ inlineToLaTeX (Link txt (src, _)) =
                 src' <- stringToLaTeX URLString src
                 return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
-inlineToLaTeX (Image _ (source, _)) = do
+inlineToLaTeX (Image attr _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
-  let source' = if isURI source
+  opts <- gets stOptions
+  let showDim dir = let d = textDir dir <> "="
+                    in case (dimension dir attr) of
+                         Just (Pixel a)   -> [d <> textInInch opts (Pixel a) <> "in"]
+                         Just (Percent a) -> [d <> textFl (a / 100) <> "\\textwidth"]
+                         Just dim         -> [d <> textDim dim]
+                         Nothing          -> []
+      dimList = showDim Width ++ showDim Height
+      dims = if null dimList
+                then empty
+                else brackets $ cat (intersperse "," dimList)
+      source' = if isURI source
                    then source
                    else unEscapeString source
   source'' <- stringToLaTeX URLString source'
   inHeading <- gets stInHeading
   return $
-    (if inHeading then "\\protect\\includegraphics" else "\\includegraphics")
-    <> braces (text source'')
+    (if inHeading then "\\protect\\includegraphics" else "\\includegraphics") <>
+    dims <> braces (text source'')
 inlineToLaTeX (Note contents) = do
   inMinipage <- gets stInMinipage
   modify (\s -> s{stInNote = True})

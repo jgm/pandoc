@@ -103,8 +103,8 @@ blockToHaddock opts (Plain inlines) = do
   contents <- inlineListToHaddock opts inlines
   return $ contents <> cr
 -- title beginning with fig: indicates figure
-blockToHaddock opts (Para [Image alt (src,'f':'i':'g':':':tit)]) =
-  blockToHaddock opts (Para [Image alt (src,tit)])
+blockToHaddock opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
+  blockToHaddock opts (Para [Image attr alt (src,tit)])
 blockToHaddock opts (Para inlines) =
   -- TODO:  if it contains linebreaks, we need to use a @...@ block
   (<> blankline) `fmap` blockToHaddock opts (Plain inlines)
@@ -335,7 +335,7 @@ inlineToHaddock opts (Link txt (src, _)) = do
                       _                            -> False
   return $ nowrap $ "<" <> text src <>
            (if useAuto then empty else space <> linktext) <> ">"
-inlineToHaddock opts (Image alternate (source, tit)) = do
+inlineToHaddock opts (Image _ alternate (source, tit)) = do
   linkhaddock <- inlineToHaddock opts (Link alternate (source, tit))
   return $ "<" <> linkhaddock <> ">"
 -- haddock doesn't have notes, but we can fake it:

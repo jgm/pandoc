@@ -34,6 +34,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Templates
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Slides
@@ -401,11 +402,33 @@ obfuscateString = concatMap obfuscateChar . fromEntities
 addAttrs :: WriterOptions -> Attr -> Html -> Html
 addAttrs opts attr h = foldl (!) h (attrsToHtml opts attr)
 
+toAttrs :: [(String, String)] -> [Attribute]
+toAttrs kvs = map (\(x,y) -> customAttribute (fromString x) (toValue y)) kvs
+
 attrsToHtml :: WriterOptions -> Attr -> [Attribute]
 attrsToHtml opts (id',classes',keyvals) =
   [prefixedId opts id' | not (null id')] ++
-  [A.class_ (toValue $ unwords classes') | not (null classes')] ++
-  map (\(x,y) -> customAttribute (fromString x) (toValue y)) keyvals
+  [A.class_ (toValue $ unwords classes') | not (null classes')] ++ toAttrs keyvals
+
+imgAttrsToHtml :: WriterOptions -> Attr -> [Attribute]
+imgAttrsToHtml opts attr =
+    attrsToHtml opts (ident,cls,kvs') ++
+    toAttrs (dimensionsToAttrList opts attr)
+  where
+    (ident,cls,kvs) = attr
+    kvs' = filter isNotDim kvs
+    isNotDim ("width", _)  = False
+    isNotDim ("height", _) = False
+    isNotDim _ = True
+
+dimensionsToAttrList :: WriterOptions -> Attr -> [(String, String)]
+dimensionsToAttrList opts attr = (go Width) ++ (go Height)
+  where
+    go dir = case (dimension dir attr) of
+               (Just (Percent a)) -> [("style", show dir ++ ":" ++ show (Percent a))]
+               (Just dim)         -> [(show dir, showInPixel opts dim)]
+               _ -> []
+
 
 imageExts :: [String]
 imageExts = [ "art", "bmp", "cdr", "cdt", "cpt", "cr2", "crw", "djvu", "erf",
@@ -426,8 +449,8 @@ blockToHtml :: WriterOptions -> Block -> State WriterState Html
 blockToHtml _ Null = return mempty
 blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 -- title beginning with fig: indicates that the image is a figure
-blockToHtml opts (Para [Image txt (s,'f':'i':'g':':':tit)]) = do
-  img <- inlineToHtml opts (Image txt (s,tit))
+blockToHtml opts (Para [Image attr txt (s,'f':'i':'g':':':tit)]) = do
+  img <- inlineToHtml opts (Image attr txt (s,tit))
   let tocapt = if writerHtml5 opts
                   then H5.figcaption
                   else H.p ! A.class_ "caption"
@@ -777,23 +800,25 @@ inlineToHtml opts inline =
                         return $ if null tit
                                     then link'
                                     else link' ! A.title (toValue tit)
-    (Image txt (s,tit)) | treatAsImage s -> do
+    (Image attr txt (s,tit)) | treatAsImage s -> do
                         let alternate' = stringify txt
                         let attributes = [A.src $ toValue s] ++
                                          (if null tit
                                             then []
                                             else [A.title $ toValue tit]) ++
-                                         if null txt
+                                         (if null txt
                                             then []
-                                            else [A.alt $ toValue alternate']
+                                            else [A.alt $ toValue alternate']) ++
+                                         imgAttrsToHtml opts attr
                         let tag = if writerHtml5 opts then H5.img else H.img
                         return $ foldl (!) tag attributes
                         -- note:  null title included, as in Markdown.pl
-    (Image _ (s,tit)) -> do
+    (Image attr _ (s,tit)) -> do
                         let attributes = [A.src $ toValue s] ++
                                          (if null tit
                                             then []
-                                            else [A.title $ toValue tit])
+                                            else [A.title $ toValue tit]) ++
+                                         imgAttrsToHtml opts attr
                         return $ foldl (!) H5.embed attributes
                         -- note:  null title included, as in Markdown.pl
     (Note contents)
