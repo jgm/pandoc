@@ -4,7 +4,6 @@ module Tests.Readers.Org (tests) where
 import Text.Pandoc.Definition
 import Test.Framework
 import Tests.Helpers
-import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Data.List (intersperse)
@@ -226,6 +225,14 @@ tests =
                          , link "http://moltkeplatz.de" "" "http://moltkeplatz.de"
                          , "for", "fnords."
                          ])
+
+      , "Absolute file link" =:
+          "[[file:///etc/passwd][passwd]]" =?>
+          (para $ link "file:///etc/passwd" "" "passwd")
+
+      , "File link" =:
+          "[[file:target][title]]" =?>
+          (para $ link "target" "" "title")
 
       , "Anchor" =:
           "<<anchor>> Link here later." =?>
