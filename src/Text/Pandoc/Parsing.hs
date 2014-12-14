@@ -452,7 +452,7 @@ uri = try $ do
   let percentEscaped = try $ char '%' >> skipMany1 (satisfy isHexDigit)
   let entity = () <$ characterReference
   let punct = skipMany1 (char ',')
-          <|> () <$ (satisfy (\c -> not (isSpace c) && c /= '<'))
+          <|> () <$ (satisfy (\c -> not (isSpace c) && c /= '<' && c /= '>'))
   let uriChunk =  skipMany1 wordChar
               <|> percentEscaped
               <|> entity

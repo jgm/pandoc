@@ -187,6 +187,11 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "bare URIs"
           (map testBareLink bareLinkTests)
+        , testGroup "autolinks"
+          [ "with unicode dash following" =:
+            "<http://foo.bar>\8212" =?> para (autolink "http://foo.bar" <>
+                                         str "\8212")
+          ]
         , testGroup "Headers"
           [ "blank line before header" =:
             "\n# Header\n"
