@@ -140,7 +140,11 @@ blockToConTeXt (Plain lst) = inlineListToConTeXt lst
 blockToConTeXt (Para [Image attr txt (src,'f':'i':'g':':':_)]) = do
   capt <- inlineListToConTeXt txt
   img  <- inlineToConTeXt (Image attr txt (src, ""))
-  return $ blankline $$ "\\placefigure" <> braces capt <> img <> blankline
+  let (ident, _, _) = attr
+      label = if null ident
+                 then empty
+                 else "[]" <> brackets (text $ toLabel ident)
+  return $ blankline $$ "\\placefigure" <> label <> braces capt <> img <> blankline
 blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
   return $ contents <> blankline
@@ -336,7 +340,7 @@ inlineToConTeXt (Image attr _ (src, _)) = do
                 else brackets $ cat (intersperse "," dimList)
       clas = if null cls
                 then empty
-                else brackets $ text $ filter (\c -> c /= ']' && c /= '[') $ head cls
+                else brackets $ text $ toLabel $ head cls
       src' = if isURI src
                 then src
                 else unEscapeString src
