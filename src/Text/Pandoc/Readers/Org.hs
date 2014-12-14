@@ -1142,20 +1142,25 @@ applyCustomLinkFormat link = do
     formatter <- M.lookup linkType <$> asksF orgStateLinkFormatters
     return $ maybe link ($ drop 1 rest) formatter
 
+-- TODO: might be a lot smarter/cleaner to use parsec and ADTs for this kind
+-- of parsing.
 linkToInlinesF :: String -> Inlines -> F Inlines
 linkToInlinesF s =
   case s of
     ""      -> pure . B.link "" ""
     ('#':_) -> pure . B.link s ""
     _ | isImageFilename s     -> const . pure $ B.image s "" ""
+    _ | isFileLink s          -> pure . B.link (dropLinkType s) ""
     _ | isUri s               -> pure . B.link s ""
-    _ | isRelativeFilePath s  -> pure . B.link s ""
     _ | isAbsoluteFilePath s  -> pure . B.link ("file://" ++ s) ""
-    _ -> \title -> do
-           anchorB <- (s `elem`) <$> asksF orgStateAnchorIds
-           if anchorB
-             then pure $ B.link ('#':s) "" title
-             else pure $ B.emph title
+    _ | isRelativeFilePath s  -> pure . B.link s ""
+    _                         -> internalLink s
+
+isFileLink :: String -> Bool
+isFileLink s = ("file:" `isPrefixOf` s) && not ("file://" `isPrefixOf` s)
+
+dropLinkType :: String -> String
+dropLinkType = tail . snd . break (== ':')
 
 isRelativeFilePath :: String -> Bool
 isRelativeFilePath s = (("./" `isPrefixOf` s) || ("../" `isPrefixOf` s)) &&
@@ -1177,6 +1182,13 @@ isImageFilename filename =
  where
    imageExtensions = [ "jpeg" , "jpg" , "png" , "gif" , "svg" ]
    protocols = [ "file", "http", "https" ]
+
+internalLink :: String -> Inlines -> F Inlines
+internalLink link title = do
+  anchorB <- (link `elem`) <$> asksF orgStateAnchorIds
+  if anchorB
+    then return $ B.link ('#':link) "" title
+    else return $ B.emph title
 
 -- | Parse an anchor like @<<anchor-id>>@ and return an empty span with
 -- @anchor-id@ set as id.  Legal anchors in org-mode are defined through
