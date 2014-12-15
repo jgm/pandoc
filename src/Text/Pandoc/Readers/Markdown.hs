@@ -79,11 +79,7 @@ readMarkdownWithWarnings :: ReaderOptions -- ^ Reader options
                          -> String        -- ^ String to parse (assuming @'\n'@ line endings)
                          -> (Pandoc, [String])
 readMarkdownWithWarnings opts s =
-  (readWith parseMarkdownWithWarnings) def{ stateOptions = opts } (s ++ "\n\n")
- where parseMarkdownWithWarnings = do
-         doc <- parseMarkdown
-         warnings <- stateWarnings <$> getState
-         return (doc, warnings)
+    (readWithWarnings parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
 
 trimInlinesF :: F Inlines -> F Inlines
 trimInlinesF = liftM trimInlines
@@ -342,12 +338,6 @@ parseMarkdown = do
   let meta = runF (stateMeta' st) st
   let Pandoc _ bs = B.doc $ runF blocks st
   return $ Pandoc meta bs
-
-addWarning :: Maybe SourcePos -> String -> MarkdownParser ()
-addWarning mbpos msg =
-  updateState $ \st -> st{
-    stateWarnings = (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) :
-                     stateWarnings st }
 
 referenceKey :: MarkdownParser (F Blocks)
 referenceKey = try $ do

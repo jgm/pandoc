@@ -65,6 +65,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              widthsFromIndices,
                              gridTableWith,
                              readWith,
+                             readWithWarnings,
                              readWithM,
                              testStringWith,
                              guardEnabled,
@@ -162,6 +163,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              setSourceColumn,
                              setSourceLine,
                              newPos,
+                             addWarning
                              )
 where
 
@@ -880,6 +882,15 @@ readWith :: Parser [Char] st a
          -> a
 readWith p t inp = runIdentity $ readWithM p t inp
 
+readWithWarnings :: Parser [Char] ParserState a
+                    -> ParserState
+                    -> String
+                    -> (a, [String])
+readWithWarnings p = readWith $ do
+         doc <- p
+         warnings <- stateWarnings <$> getState
+         return (doc, warnings)
+
 -- | Parse a string with @parser@ (for testing).
 testStringWith :: (Show a, Stream [Char] Identity Char)
                => ParserT [Char] ParserState Identity a
@@ -910,10 +921,9 @@ data ParserState = ParserState
       stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
       stateMacros          :: [Macro],       -- ^ List of macros defined so far
       stateRstDefaultRole  :: String,        -- ^ Current rST default interpreted text role
-      stateRstCustomRoles  :: M.Map String (String, Maybe String, Attr -> (String, Attr)), -- ^ Current rST custom text roles
+      stateRstCustomRoles  :: M.Map String (String, Maybe String, Attr), -- ^ Current rST custom text roles
       -- Triple represents: 1) Base role, 2) Optional format (only for :raw:
-      -- roles), 3) Source language annotation for code (could be used to
-      -- annotate role classes too).
+      -- roles), 3) Additional classes (rest of Attr is unused)).
       stateCaption         :: Maybe Inlines, -- ^ Caption in current environment
       stateInHtmlBlock     :: Maybe String,  -- ^ Tag type of HTML block being parsed
       stateMarkdownAttribute :: Bool,        -- ^ True if in markdown=1 context
@@ -1245,3 +1255,10 @@ applyMacros' target = do
      then do macros <- extractMacros <$> getState
              return $ applyMacros macros target
      else return target
+
+-- | Append a warning to the log.
+addWarning :: Maybe SourcePos -> String -> Parser [Char] ParserState ()
+addWarning mbpos msg =
+  updateState $ \st -> st{
+    stateWarnings = (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) :
+                     stateWarnings st }

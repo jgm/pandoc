@@ -67,26 +67,45 @@ tests = [ "line block with blank line" =:
                 link "http://foo.bar.baz" "" "http://foo.bar.baz" <> ". " <>
                 link "http://foo.bar/baz_(bam)" "" "http://foo.bar/baz_(bam)"
                 <> " (" <> link "http://foo.bar" "" "http://foo.bar" <> ")")
-        , "indented literal block" =: unlines
-          [ "::"
-          , ""
-          , "  block quotes"
-          , ""
-          , "  can go on for many lines"
-          , "but must stop here"]
-          =?> (doc $
-           codeBlock "block quotes\n\ncan go on for many lines" <>
-           para "but must stop here")
-        , "line block with 3 lines" =: "| a\n| b\n| c"
-          =?> para ("a" <> linebreak <>  "b" <> linebreak <> "c")
+        , testGroup "literal / line / code blocks"
+          [ "indented literal block" =: unlines
+            [ "::"
+            , ""
+            , "  block quotes"
+            , ""
+            , "  can go on for many lines"
+            , "but must stop here"]
+            =?> (doc $
+                 codeBlock "block quotes\n\ncan go on for many lines" <>
+                 para "but must stop here")
+          , "line block with 3 lines" =: "| a\n| b\n| c"
+            =?> para ("a" <> linebreak <>  "b" <> linebreak <> "c")
           , "quoted literal block using >" =: "::\n\n> quoted\n> block\n\nOrdinary paragraph"
             =?> codeBlock "> quoted\n> block" <> para "Ordinary paragraph"
           , "quoted literal block using | (not  a line block)" =: "::\n\n| quoted\n| block\n\nOrdinary paragraph"
             =?> codeBlock "| quoted\n| block" <> para "Ordinary paragraph"
-            , "class directive with single paragraph" =: ".. class:: special\n\nThis is a \"special\" paragraph."
-              =?> divWith ("", ["special"], []) (para "This is a \"special\" paragraph.")
-            , "class directive with two paragraphs" =: ".. class:: exceptional remarkable\n\n    First paragraph.\n\n    Second paragraph."
-              =?> divWith ("", ["exceptional", "remarkable"], []) (para "First paragraph." <> para "Second paragraph.")
-            , "class directive around literal block" =: ".. class:: classy\n\n::\n\n    a\n    b"
-              =?> divWith ("", ["classy"], []) (codeBlock "a\nb")
+          , "class directive with single paragraph" =: ".. class:: special\n\nThis is a \"special\" paragraph."
+            =?> divWith ("", ["special"], []) (para "This is a \"special\" paragraph.")
+          , "class directive with two paragraphs" =: ".. class:: exceptional remarkable\n\n    First paragraph.\n\n    Second paragraph."
+            =?> divWith ("", ["exceptional", "remarkable"], []) (para "First paragraph." <> para "Second paragraph.")
+          , "class directive around literal block" =: ".. class:: classy\n\n::\n\n    a\n    b"
+            =?> divWith ("", ["classy"], []) (codeBlock "a\nb")]
+        , testGroup "interpreted text roles"
+          [ "literal role prefix" =: ":literal:`a`" =?> para (code "a")
+          , "literal role postfix" =: "`a`:literal:" =?> para (code "a")
+          , "literal text" =: "``text``" =?> para (code "text")
+          , "code role" =: ":code:`a`" =?> para (codeWith ("", ["sourceCode"], []) "a")
+          , "inherited code role" =: ".. role:: codeLike(code)\n\n:codeLike:`a`"
+            =?> para (codeWith ("", ["codeLike", "sourceCode"], []) "a")
+          , "custom code role with language field"
+            =: ".. role:: lhs(code)\n    :language: haskell\n\n:lhs:`a`"
+            =?> para (codeWith ("", ["lhs", "haskell","sourceCode"], []) "a")
+          , "custom role with unspecified parent role"
+            =: ".. role:: classy\n\n:classy:`text`"
+            =?> para (spanWith ("", ["classy"], []) "text")
+          , "role with recursive inheritance"
+            =: ".. role:: haskell(code)\n.. role:: lhs(haskell)\n\n:lhs:`text`"
+            =?> para (codeWith ("", ["lhs", "haskell", "sourceCode"], []) "text")
+          , "unknown role" =: ":unknown:`text`" =?> para (str "text")
+          ]
         ]

@@ -29,20 +29,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST (
-                                readRST
+                                readRST,
+                                readRSTWithWarnings
                                ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (setMeta, fromList)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
-import Control.Monad ( when, liftM, guard, mzero, mplus )
+import Control.Monad ( when, liftM, guard, mzero )
 import Data.List ( findIndex, intersperse, intercalate,
-                   transpose, sort, deleteFirstsBy, isSuffixOf )
+                   transpose, sort, deleteFirstsBy, isSuffixOf , nub, union)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 import Text.Printf ( printf )
-import Control.Applicative ((<$>), (<$), (<*), (*>), (<*>))
+import Control.Applicative ((<$>), (<$), (<*), (*>), (<*>), pure)
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
 import qualified Text.Pandoc.Builder as B
 import Data.Monoid (mconcat, mempty)
@@ -54,6 +55,9 @@ readRST :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
         -> Pandoc
 readRST opts s = (readWith parseRST) def{ stateOptions = opts } (s ++ "\n\n")
+
+readRSTWithWarnings :: ReaderOptions -> String -> (Pandoc, [String])
+readRSTWithWarnings opts s = (readWithWarnings parseRST) def{ stateOptions = opts } (s ++ "\n\n")
 
 type RSTParser = Parser [Char] ParserState
 
@@ -608,38 +612,62 @@ directive' = do
                 "" -> block
                 _ -> parseFromString parseBlocks  body'
             return $ B.divWith attrs children
-        _     -> return mempty
+        other     -> do
+            pos <- getPosition
+            addWarning (Just pos) $ "ignoring unknown directive: " ++ other
+            return mempty
 
 -- TODO:
 --  - Silently ignores illegal fields
---  - Silently drops classes
 --  - Only supports :format: fields with a single format for :raw: roles,
 --    change Text.Pandoc.Definition.Format to fix
 addNewRole :: String -> [(String, String)] -> RSTParser Blocks
 addNewRole roleString fields = do
     (role, parentRole) <- parseFromString inheritedRole roleString
     customRoles <- stateRstCustomRoles <$> getState
-    baseRole <- case M.lookup parentRole customRoles of
-        Just (base, _, _) -> return base
-        Nothing -> return parentRole
-
-    let fmt = if baseRole == "raw" then lookup "format" fields else Nothing
-        annotate = maybe id addLanguage $
-            if baseRole == "code"
+    let (baseRole, baseFmt, baseAttr) =
+            maybe (parentRole, Nothing, nullAttr) id $
+              M.lookup parentRole customRoles
+        fmt = if parentRole == "raw" then lookup "format" fields else baseFmt
+        annotate :: [String] -> [String]
+        annotate = maybe id (:) $
+            if parentRole == "code"
                then lookup "language" fields
                else Nothing
+        attr = let (ident, classes, keyValues) = baseAttr
+        -- nub in case role name & language class are the same
+               in (ident, nub . (role :) . annotate $ classes, keyValues)
+
+    -- warn about syntax we ignore
+    flip mapM_ fields $ \(key, _) -> case key of
+        "language" -> when (parentRole /= "code") $ addWarning Nothing $
+            "ignoring :language: field because the parent of role :" ++
+            role ++ ": is :" ++ parentRole ++ ": not :code:"
+        "format" -> when (parentRole /= "raw") $ addWarning Nothing $
+            "ignoring :format: field because the parent of role :" ++
+            role ++ ": is :" ++ parentRole ++ ": not :raw:"
+        _ -> addWarning Nothing $ "ignoring unknown field :" ++ key ++
+             ": in definition of role :" ++ role ++ ": in"
+    when (parentRole == "raw" && countKeys "format" > 1) $
+        addWarning Nothing $
+        "ignoring :format: fields after the first in the definition of role :"
+        ++ role ++": in"
+    when (parentRole == "code" && countKeys "language" > 1) $
+        addWarning Nothing $
+        "ignoring :language: fields after the first in the definition of role :"
+        ++ role ++": in"
 
     updateState $ \s -> s {
         stateRstCustomRoles =
-          M.insert role (baseRole, fmt, (,) parentRole . annotate) customRoles
+          M.insert role (baseRole, fmt, attr) customRoles
     }
 
     return $ B.singleton Null
   where
-    addLanguage lang (ident, classes, keyValues) =
-        (ident, "sourceCode" : lang : classes, keyValues)
+    countKeys k = length . filter (== k) . map fst $ fields
     inheritedRole =
-        (,) <$> roleNameEndingIn (char '(') <*> roleNameEndingIn (char ')')
+        (,) <$> roleName <*> ((char '(' *> roleName <* char ')') <|> pure "span")
+
 
 -- Can contain character codes as decimal numbers or
 -- hexadecimal numbers, prefixed by 0x, x, \x, U+, u, or \u
@@ -999,21 +1027,23 @@ renderRole contents fmt role attr = case role of
     "RFC" -> return $ rfcLink contents
     "pep-reference" -> return $ pepLink contents
     "PEP" -> return $ pepLink contents
-    "literal" -> return $ B.str contents
+    "literal" -> return $ B.codeWith attr contents
     "math" -> return $ B.math contents
     "title-reference" -> titleRef contents
     "title" -> titleRef contents
     "t" -> titleRef contents
-    "code" -> return $ B.codeWith attr contents
+    "code" -> return $ B.codeWith (addClass "sourceCode" attr) contents
+    "span" -> return $ B.spanWith attr $ B.str contents
     "raw" -> return $ B.rawInline (fromMaybe "" fmt) contents
     custom -> do
-        customRole <- stateRstCustomRoles <$> getState
-        case M.lookup custom customRole of
-            Just (_, newFmt, inherit) -> let
-                fmtStr = fmt `mplus` newFmt
-                (newRole, newAttr) = inherit attr
-                in renderRole contents fmtStr newRole newAttr
-            Nothing -> return $ B.str contents -- Undefined role
+        customRoles <- stateRstCustomRoles <$> getState
+        case M.lookup custom customRoles of
+            Just (newRole, newFmt, newAttr) ->
+                renderRole contents newFmt newRole newAttr
+            Nothing -> do
+                pos <- getPosition
+                addWarning (Just pos) $ "ignoring unknown role :" ++ custom ++ ": in"
+                return $ B.str contents -- Undefined role
  where
    titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour
    rfcLink rfcNo = B.link rfcUrl ("RFC " ++ rfcNo) $ B.str ("RFC " ++ rfcNo)
@@ -1022,11 +1052,14 @@ renderRole contents fmt role attr = case role of
      where padNo = replicate (4 - length pepNo) '0' ++ pepNo
            pepUrl = "http://www.python.org/dev/peps/pep-" ++ padNo ++ "/"
 
-roleNameEndingIn :: RSTParser Char -> RSTParser String
-roleNameEndingIn end = many1Till (letter <|> char '-') end
+addClass :: String -> Attr -> Attr
+addClass c (ident, classes, keyValues) = (ident, union classes [c], keyValues)
+
+roleName :: RSTParser String
+roleName = many1 (letter <|> char '-')
 
 roleMarker :: RSTParser String
-roleMarker = char ':' *> roleNameEndingIn (char ':')
+roleMarker = char ':' *> roleName <* char ':'
 
 roleBefore :: RSTParser (String,String)
 roleBefore = try $ do
