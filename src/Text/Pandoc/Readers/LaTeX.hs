@@ -414,6 +414,8 @@ inlineCommands = M.fromList $
   , ("sim", lit "~")
   , ("label", unlessParseRaw >> (inBrackets <$> tok))
   , ("ref", unlessParseRaw >> (inBrackets <$> tok))
+  , ("noindent", unlessParseRaw >> return mempty)
+  , ("textgreek", tok)
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline $ braced)
@@ -545,7 +547,7 @@ inlineCommands = M.fromList $
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
-  [ "noindent", "index" ]
+  [ "index" ]
 
 mkImage :: String -> LP Inlines
 mkImage src = do
