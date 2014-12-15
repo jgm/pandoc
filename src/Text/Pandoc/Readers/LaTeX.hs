@@ -417,6 +417,7 @@ inlineCommands = M.fromList $
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline $ braced)
+  , ("texorpdfstring", (\_ x -> x) <$> tok <*> tok)
   , ("P", lit "¶")
   , ("S", lit "§")
   , ("$", lit "$")

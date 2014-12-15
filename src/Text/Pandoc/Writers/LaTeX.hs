@@ -626,9 +626,12 @@ sectionHeader unnumbered ref level lst = do
                  then return empty
                  else do
                    return $ brackets txtNoNotes
-  let stuffing = star <> optional <> braces (text "\\texorpdfstring"
-                                             <> braces txt
-                                             <> braces (text plain))
+  let contents = if render Nothing txt == plain
+                    then braces txt
+                    else braces (text "\\texorpdfstring"
+                         <> braces txt
+                         <> braces (text plain))
+  let stuffing = star <> optional <> contents
   book <- gets stBook
   opts <- gets stOptions
   let level' = if book || writerChapters opts then level - 1 else level
