@@ -868,8 +868,9 @@ parseBlock (Elem e) =
                                       Nothing -> return mempty
                      modify $ \st -> st{ dbSectionLevel = n }
                      b <- getBlocks e
+                     let ident = attrValue "id" e
                      modify $ \st -> st{ dbSectionLevel = n - 1 }
-                     return $ header n' headerText <> b
+                     return $ headerWith (ident,[],[]) n' headerText <> b
          metaBlock = acceptingMetadata (getBlocks e) >> return mempty
 
 getInlines :: Element -> DB Inlines
