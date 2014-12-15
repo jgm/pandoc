@@ -773,11 +773,6 @@ parseBlock (Elem e) =
                                 x    -> [x]
            return $ codeBlockWith (attrValue "id" e, classes', [])
                   $ trimNl $ strContentRecursive e
-         strContentRecursive = strContent . (\e' -> e'{ elContent =
-                                               map elementToStr $ elContent e' })
-         elementToStr :: Content -> Content
-         elementToStr (Elem e') = Text $ CData CDataText (strContentRecursive e') Nothing
-         elementToStr x = x
          parseBlockquote = do
             attrib <- case filterChild (named "attribution") e of
                              Nothing  -> return mempty
@@ -880,6 +875,14 @@ parseBlock (Elem e) =
 getInlines :: Element -> DB Inlines
 getInlines e' = (trimInlines . mconcat) <$> (mapM parseInline $ elContent e')
 
+strContentRecursive :: Element -> String
+strContentRecursive = strContent .
+  (\e' -> e'{ elContent = map elementToStr $ elContent e' })
+
+elementToStr :: Content -> Content
+elementToStr (Elem e') = Text $ CData CDataText (strContentRecursive e') Nothing
+elementToStr x = x
+
 parseInline :: Content -> DB Inlines
 parseInline (Text (CData _ s _)) = return $ text s
 parseInline (CRef ref) =
@@ -964,7 +967,7 @@ parseInline (Elem e) =
            let classes' = case attrValue "language" e of
                                "" -> []
                                l  -> [l]
-           return $ codeWith (attrValue "id" e,classes',[]) $ strContent e
+           return $ codeWith (attrValue "id" e,classes',[]) $ strContentRecursive e
          simpleList = (mconcat . intersperse (str "," <> space)) <$> mapM getInlines
                          (filterChildren (named "member") e)
          segmentedList = do
