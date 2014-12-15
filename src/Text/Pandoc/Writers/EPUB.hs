@@ -570,8 +570,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   let navMapFormatter :: Int -> String -> String -> [Element] -> Element
       navMapFormatter n tit src subs = unode "navPoint" !
-               [("id", "navPoint-" ++ show n)
-               ,("playOrder", show n)] $
+               [("id", "navPoint-" ++ show n)] $
                   [ unode "navLabel" $ unode "text" tit
                   , unode "content" ! [("src", src)] $ ()
                   ] ++ subs
