@@ -1675,9 +1675,10 @@ referenceLink :: (String -> String -> Inlines -> Inlines)
               -> (F Inlines, String) -> MarkdownParser (F Inlines)
 referenceLink constructor (lab, raw) = do
   sp <- (True <$ lookAhead (char ' ')) <|> return False
-  (ref,raw') <- try
-           (skipSpaces >> optional (newline >> skipSpaces) >> reference)
-           <|> return (mempty, "")
+  (ref,raw') <- option (mempty, "") $
+      lookAhead (try (spnl >> normalCite >> return (mempty, "")))
+      <|>
+      try (spnl >> reference)
   let labIsRef = raw' == "" || raw' == "[]"
   let key = toKey $ if labIsRef then raw else raw'
   parsedRaw <- parseFromString (mconcat <$> many inline) raw'

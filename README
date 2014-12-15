@@ -2400,7 +2400,9 @@ The link consists of link text in square brackets, followed by a label in
 square brackets. (There can be space between the two.) The link definition
 consists of the bracketed label, followed by a colon and a space, followed by
 the URL, and optionally (after a space) a link title either in quotes or in
-parentheses.
+parentheses.  The label must not be parseable as a citation (assuming
+the `citations` extension is enabled):  citations take precedence over
+link labels.
 
 Here are some examples:
 

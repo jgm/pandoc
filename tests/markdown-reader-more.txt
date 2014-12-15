@@ -262,6 +262,13 @@ Empty cells
 
 [*not a link*] [*nope*]...
 
+## Reference link followed by a citation
+
+MapReduce is a paradigm popularized by [Google] [@mapreduce] as its
+most vocal proponent.
+
+[Google]: http://google.com
+
 ## Empty reference links
 
 [foo2]:
