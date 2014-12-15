@@ -169,9 +169,9 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] guibutton - The text on a button in a GUI
 [ ] guiicon - Graphic and/or text appearing as a icon in a GUI
 [ ] guilabel - The text of a label in a GUI
-[ ] guimenu - The name of a menu in a GUI
-[ ] guimenuitem - The name of a terminal menu item in a GUI
-[ ] guisubmenu - The name of a submenu in a GUI
+[x] guimenu - The name of a menu in a GUI
+[x] guimenuitem - The name of a terminal menu item in a GUI
+[x] guisubmenu - The name of a submenu in a GUI
 [ ] hardware - A physical part of a computer system
 [ ] highlights - A summary of the main points of the discussed component
 [ ] holder - The name of the individual or organization that holds a copyright
@@ -237,7 +237,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] mediaobject - A displayed media object (video, audio, image, etc.)
 [ ] mediaobjectco - A media object that contains callouts
 [x] member - An element of a simple list
-[ ] menuchoice - A selection or series of selections from a menu
+[x] menuchoice - A selection or series of selections from a menu
 [ ] methodname - The name of a method
 [ ] methodparam - Parameters to a method
 [ ] methodsynopsis - A syntax summary for a method
@@ -928,6 +928,8 @@ parseInline (Elem e) =
         "varargs" -> return $ code "(...)"
         "keycap" -> return (str $ strContent e)
         "keycombo" -> keycombo <$> (mapM parseInline $ elContent e)
+        "menuchoice" -> menuchoice <$> (mapM parseInline $
+                                        filter isGuiMenu $ elContent e)
         "xref" -> return $ str "?" -- so at least you know something is there
         "email" -> return $ link ("mailto:" ++ strContent e) ""
                           $ str $ strContent e
@@ -984,3 +986,8 @@ parseInline (Elem e) =
            return $ linebreak <> tit' <> segs
          keycombo = spanWith ("",["keycombo"],[]) .
                     mconcat . intersperse (str "+")
+         menuchoice = spanWith ("",["menuchoice"],[]) .
+                    mconcat . intersperse (text " > ")
+         isGuiMenu (Elem x) = named "guimenu" x || named "guisubmenu" x ||
+                              named "guimenuitem" x
+         isGuiMenu _        = False
