@@ -1953,6 +1953,11 @@ A document may contain multiple metadata blocks.  The metadata fields will
 be combined through a *left-biased union*:  if two metadata blocks attempt
 to set the same field, the value from the first block will be taken.
 
+When pandoc is used with `-t markdown` to create a markdown document,
+a YAML metadata block will be produced only if the `-s/--standalone`
+option is used.  All of the metadata will appear in a single block
+at the beginning of the document.
+
 Note that YAML escaping rules must be followed. Thus, for example,
 if a title contains a colon, it must be quoted.  The pipe character
 (`|`) can be used to begin an indented block that will be interpreted
