@@ -206,10 +206,10 @@ List of all DocBook tags, with [x] indicating implemented,
     other dingbat
 [ ] itermset - A set of index terms in the meta-information of a document
 [ ] jobtitle - The title of an individual in an organization
-[ ] keycap - The text printed on a key on a keyboard
+[x] keycap - The text printed on a key on a keyboard
 [ ] keycode - The internal, frequently numeric, identifier for a key
     on a keyboard
-[ ] keycombo - A combination of input actions
+[x] keycombo - A combination of input actions
 [ ] keysym - The symbolic name of a key on a keyboard
 [ ] keyword - One of a set of keywords describing the content of a document
 [ ] keywordset - A set of keywords describing the content of a document
@@ -923,6 +923,8 @@ parseInline (Elem e) =
         "constant" -> codeWithLang
         "userinput" -> codeWithLang
         "varargs" -> return $ code "(...)"
+        "keycap" -> return (str $ strContent e)
+        "keycombo" -> keycombo <$> (mapM parseInline $ elContent e)
         "xref" -> return $ str "?" -- so at least you know something is there
         "email" -> return $ link ("mailto:" ++ strContent e) ""
                           $ str $ strContent e
@@ -977,3 +979,5 @@ parseInline (Elem e) =
                          then mempty
                          else strong tit <> linebreak
            return $ linebreak <> tit' <> segs
+         keycombo = spanWith ("",["keycombo"],[]) .
+                    mconcat . intersperse (str "+")
