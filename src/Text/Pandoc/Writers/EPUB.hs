@@ -343,7 +343,6 @@ writeEPUB opts doc@(Pandoc meta _) = do
                   , writerStandalone = True
                   , writerSectionDivs = True
                   , writerHtml5 = epub3
-                  , writerTableOfContents = False -- we always have one in epub
                   , writerVariables = vars
                   , writerHTMLMathMethod =
                        if epub3
@@ -612,13 +611,34 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   let navtag = if epub3 then "nav" else "div"
   let navBlocks = [RawBlock (Format "html") $ ppElement $
-                   unode navtag ! [("epub:type","toc") | epub3] $
+                   unode navtag ! ([("epub:type","toc") | epub3] ++
+                                   [("id","toc")]) $
                     [ unode "h1" ! [("id","toc-title")] $ plainTitle
                     , unode "ol" ! [("class","toc")] $ evalState (mapM (navPointNode navXhtmlFormatter) secs) 1]]
+  let landmarks = if epub3
+                     then [RawBlock (Format "html") $ ppElement $
+                            unode "nav" ! [("epub:type","landmarks")
+                                          ,("hidden","hidden")] $
+                            [ unode "ol" $
+                              [ unode "li"
+                                [ unode "a" ! [("href", "cover.xhtml")
+                                              ,("epub:type", "cover")] $
+                                  "Cover"] |
+                                  epubCoverImage metadata /= Nothing
+                              ] ++
+                              [ unode "li"
+                                [ unode "a" ! [("href", "#toc")
+                                              ,("epub:type", "toc")] $
+                                    "Table of contents"
+                                ] | writerTableOfContents opts
+                              ]
+                            ]
+                          ]
+                     else []
   let navData = renderHtml $ writeHtml opts'
             (Pandoc (setMeta "title"
                      (walk removeNote $ fromList $ docTitle' meta) nullMeta)
-               navBlocks)
+               (navBlocks ++ landmarks))
   let navEntry = mkEntry "nav.xhtml" navData
 
   -- mimetype
