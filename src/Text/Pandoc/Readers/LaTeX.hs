@@ -416,6 +416,8 @@ inlineCommands = M.fromList $
   , ("ref", unlessParseRaw >> (inBrackets <$> tok))
   , ("noindent", unlessParseRaw >> return mempty)
   , ("textgreek", tok)
+  , ("sep", lit ",")
+  , ("cref", unlessParseRaw >> (inBrackets <$> tok))  -- from cleveref.sty
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline $ braced)
