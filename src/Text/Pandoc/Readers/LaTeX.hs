@@ -304,7 +304,7 @@ blockCommands = M.fromList $
   , ("item", skipopts *> loose_item)
   , ("documentclass", skipopts *> braced *> preamble)
   , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
-  , ("caption", skipopts *> tok >>= setCaption)
+  , ("caption", skipopts *> setCaption)
   , ("PandocStartInclude", startInclude)
   , ("PandocEndInclude", endInclude)
   , ("bibliography", mempty <$ (skipopts *> braced >>=
@@ -336,9 +336,16 @@ addMeta field val = updateState $ \st ->
 splitBibs :: String -> [Inlines]
 splitBibs = map (str . flip replaceExtension "bib" . trim) . splitBy (==',')
 
-setCaption :: Inlines -> LP Blocks
-setCaption ils = do
-  updateState $ \st -> st{ stateCaption = Just ils }
+setCaption :: LP Blocks
+setCaption = do
+  ils <- tok
+  mblabel <- option Nothing $
+               try $ spaces >> controlSeq "label" >> (Just <$> tok)
+  let ils' = case mblabel of
+                  Just lab -> ils <> spanWith
+                                ("",[],[("data-label", stringify lab)]) mempty
+                  Nothing  -> ils
+  updateState $ \st -> st{ stateCaption = Just ils' }
   return mempty
 
 resetCaption :: LP ()
