@@ -2570,9 +2570,10 @@ The bibliography may have any of these formats:
 Note that `.bib` can generally be used with both BibTeX and BibLaTeX
 files, but you can use `.bibtex` to force BibTeX.
 
-Alternatively you can use a `references` field in the document's YAML
-metadata.  This should include an array of YAML-encoded references,
-for example:
+As an alternative to specifying a bibliography file, you can include
+the citation data directly in the `references` field of the
+document's YAML metadata. The field should contain an array of
+YAML-encoded references, for example:
 
     ---
     references:
