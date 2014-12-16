@@ -85,7 +85,7 @@ writeFB2 opts (Pandoc meta blocks) = flip evalStateT newFB $ do
      (imgs,missing) <- liftM imagesToFetch get >>= \s -> liftIO (fetchImages s)
      let body' = replaceImagesWithAlt missing body
      let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body'] ++ notes ++ imgs)
-     return $ xml_head ++ (showContent fb2_xml)
+     return $ xml_head ++ (showContent fb2_xml) ++ "\n"
   where
   xml_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
   fb2_attrs =
