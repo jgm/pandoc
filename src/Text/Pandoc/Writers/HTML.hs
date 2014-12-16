@@ -438,7 +438,7 @@ blockToHtml opts (Para [Image txt (s,'f':'i':'g':':':tit)]) = do
               then H5.figure $ mconcat
                     [nl opts, img, capt, nl opts]
               else H.div ! A.class_ "figure" $ mconcat
-                    [nl opts, img, capt, nl opts]
+                    [nl opts, img, nl opts, capt, nl opts]
 blockToHtml opts (Para lst) = do
   contents <- inlineListToHtml opts lst
   return $ H.p contents
