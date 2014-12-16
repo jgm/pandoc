@@ -681,7 +681,7 @@ sectionHeader unnumbered ref level lst = do
 inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
                   -> State WriterState Doc
 inlineListToLaTeX lst =
-  mapM inlineToLaTeX (fixLineInitialSpaces lst)
+  mapM inlineToLaTeX (fixBreaks $ fixLineInitialSpaces lst)
     >>= return . hcat
     -- nonbreaking spaces (~) in LaTeX don't work after line breaks,
     -- so we turn nbsps after hard breaks to \hspace commands.
@@ -693,7 +693,15 @@ inlineListToLaTeX lst =
        fixNbsps s = let (ys,zs) = span (=='\160') s
                     in  replicate (length ys) hspace ++ [Str zs]
        hspace = RawInline "latex" "\\hspace*{0.333em}"
-
+       -- linebreaks after blank lines cause problems:
+       fixBreaks [] = []
+       fixBreaks ys@(LineBreak : LineBreak : _) =
+         case span (== LineBreak) ys of
+               (lbs, rest) -> RawInline "latex"
+                               ("\\\\[" ++ show (length lbs) ++
+                                "\\baselineskip]") : fixBreaks rest
+       fixBreaks (y:ys) = y : fixBreaks ys
+ 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
 isQuoted _ = False
