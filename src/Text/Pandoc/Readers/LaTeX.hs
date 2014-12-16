@@ -191,6 +191,7 @@ inline = (mempty <$ comment)
      <|> (space  <$ sp)
      <|> inlineText
      <|> inlineCommand
+     <|> inlineEnvironment
      <|> inlineGroup
      <|> (char '-' *> option (str "-")
            ((char '-') *> option (str "–") (str "—" <$ char '-')))
@@ -400,6 +401,24 @@ unlessParseRaw = getOption readerParseRaw >>= guard . not
 
 isBlockCommand :: String -> Bool
 isBlockCommand s = maybe False (const True) $ M.lookup s blockCommands
+
+
+inlineEnvironments :: M.Map String (LP Inlines)
+inlineEnvironments = M.fromList
+  [ ("displaymath", mathEnv id Nothing "displaymath")
+  , ("equation", mathEnv id Nothing "equation")
+  , ("equation*", mathEnv id Nothing "equation*")
+  , ("gather", mathEnv id (Just "gathered") "gather")
+  , ("gather*", mathEnv id (Just "gathered") "gather*")
+  , ("multline", mathEnv id (Just "gathered") "multline")
+  , ("multline*", mathEnv id (Just "gathered") "multline*")
+  , ("eqnarray", mathEnv id (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnv id (Just "aligned") "eqnarray*")
+  , ("align", mathEnv id (Just "aligned") "align")
+  , ("align*", mathEnv id (Just "aligned") "align*")
+  , ("alignat", mathEnv id (Just "aligned") "alignat")
+  , ("alignat*", mathEnv id (Just "aligned") "alignat*")
+  ]
 
 inlineCommands :: M.Map String (LP Inlines)
 inlineCommands = M.fromList $
@@ -810,6 +829,14 @@ environment = do
        Just p      -> p <|> rawEnv name
        Nothing     -> rawEnv name
 
+inlineEnvironment :: LP Inlines
+inlineEnvironment = try $ do
+  controlSeq "begin"
+  name <- braced
+  case M.lookup name inlineEnvironments of
+       Just p      -> p
+       Nothing     -> mzero
+
 rawEnv :: String -> LP Blocks
 rawEnv name = do
   let addBegin x = "\\begin{" ++ name ++ "}" ++ x
@@ -1034,19 +1061,19 @@ environments = M.fromList
   , ("obeylines", parseFromString
                   (para . trimInlines . mconcat <$> many inline) =<<
                   intercalate "\\\\\n" . lines <$> verbEnv "obeylines")
-  , ("displaymath", mathEnv Nothing "displaymath")
-  , ("equation", mathEnv Nothing "equation")
-  , ("equation*", mathEnv Nothing "equation*")
-  , ("gather", mathEnv (Just "gathered") "gather")
-  , ("gather*", mathEnv (Just "gathered") "gather*")
-  , ("multline", mathEnv (Just "gathered") "multline")
-  , ("multline*", mathEnv (Just "gathered") "multline*")
-  , ("eqnarray", mathEnv (Just "aligned") "eqnarray")
-  , ("eqnarray*", mathEnv (Just "aligned") "eqnarray*")
-  , ("align", mathEnv (Just "aligned") "align")
-  , ("align*", mathEnv (Just "aligned") "align*")
-  , ("alignat", mathEnv (Just "aligned") "alignat")
-  , ("alignat*", mathEnv (Just "aligned") "alignat*")
+  , ("displaymath", mathEnv para Nothing "displaymath")
+  , ("equation", mathEnv para Nothing "equation")
+  , ("equation*", mathEnv para Nothing "equation*")
+  , ("gather", mathEnv para (Just "gathered") "gather")
+  , ("gather*", mathEnv para (Just "gathered") "gather*")
+  , ("multline", mathEnv para (Just "gathered") "multline")
+  , ("multline*", mathEnv para (Just "gathered") "multline*")
+  , ("eqnarray", mathEnv para (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnv para (Just "aligned") "eqnarray*")
+  , ("align", mathEnv para (Just "aligned") "align")
+  , ("align*", mathEnv para (Just "aligned") "align*")
+  , ("alignat", mathEnv para (Just "aligned") "alignat")
+  , ("alignat*", mathEnv para (Just "aligned") "alignat*")
   ]
 
 letter_contents :: LP Blocks
@@ -1106,8 +1133,8 @@ listenv name p = try $ do
   updateState $ \st -> st{ stateParserContext = oldCtx }
   return res
 
-mathEnv :: Maybe String -> String -> LP Blocks
-mathEnv innerEnv name = para <$> mathDisplay (inner <$> verbEnv name)
+mathEnv :: (Inlines -> a) -> Maybe String -> String -> LP a
+mathEnv f innerEnv name = f <$> mathDisplay (inner <$> verbEnv name)
    where inner x = case innerEnv of
                       Nothing -> x
                       Just y  -> "\\begin{" ++ y ++ "}\n" ++ x ++
