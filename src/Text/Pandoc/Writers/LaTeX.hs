@@ -545,10 +545,16 @@ fixLineBreaks' ils = case splitBy (== LineBreak) ils of
   where tohbox ys = RawInline "tex" "\\hbox{\\strut " : ys ++
                     [RawInline "tex" "}"]
 
+-- We also change display math to inline math, since display
+-- math breaks in simple tables.
+displayMathToInline :: Inline -> Inline
+displayMathToInline (Math DisplayMath x) = Math InlineMath x
+displayMathToInline x = x
+
 tableCellToLaTeX :: Bool -> (Double, Alignment, [Block])
                  -> State WriterState Doc
 tableCellToLaTeX _      (0,     _,     blocks) =
-  blockListToLaTeX $ walk fixLineBreaks blocks
+  blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
 tableCellToLaTeX header (width, align, blocks) = do
   modify $ \st -> st{ stInMinipage = True, stNotes = [] }
   cellContents <- blockListToLaTeX blocks
