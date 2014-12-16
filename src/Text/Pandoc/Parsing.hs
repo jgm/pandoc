@@ -314,12 +314,14 @@ stringAnyCase (x:xs) = do
   return (firstChar:rest)
 
 -- | Parse contents of 'str' using 'parser' and return result.
-parseFromString :: Stream s m t => ParserT s st m a -> s -> ParserT s st m a
+parseFromString :: Monad m => ParserT String st m a -> String -> ParserT String st m a
 parseFromString parser str = do
   oldPos <- getPosition
   oldInput <- getInput
   setInput str
   result <- parser
+  spaces
+  eof
   setInput oldInput
   setPosition oldPos
   return result

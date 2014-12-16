@@ -60,7 +60,7 @@ import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
 import Text.Blaze.Renderer.String (renderHtml)
 import Text.TeXMath
 import Text.XML.Light.Output
-import Text.XML.Light (unode, elChildren, add_attr, unqual)
+import Text.XML.Light (unode, elChildren, unqual)
 import qualified Text.XML.Light as XML
 import System.FilePath (takeExtension)
 import Data.Monoid
@@ -639,7 +639,9 @@ annotateMML e tex = math (unode "semantics" [cs, unode "annotation" (annotAttrs,
           [] -> unode "mrow" ()
           [x] -> x
           xs -> unode "mrow" xs
-    math = add_attr (XML.Attr (unqual "xmlns") "http://www.w3.org/1998/Math/MathML") . unode "math"
+    math childs = XML.Element q as [XML.Elem childs] l
+      where
+        (XML.Element q as _ l) = e
     annotAttrs = [XML.Attr (unqual "encoding") "application/x-tex"]
 
 
