@@ -2166,7 +2166,7 @@ Markdown, LaTeX, Org-Mode, ConTeXt
 
 reStructuredText
   ~ It will be rendered using an interpreted text role `:math:`, as described
-    [here](http://www.american.edu/econ/itex2mml/mathhack.rst).
+    [here](http://docutils.sourceforge.net/docs/ref/rst/roles.html#math)
 
 AsciiDoc
   ~ It will be rendered as `latexmath:[...]`.
