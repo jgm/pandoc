@@ -2,10 +2,11 @@
 
 SANDBOX=`pwd`/.cabal-sandbox
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
-BASE=pandoc-$VERSION-$(uname -s)-$(uname -m)
+DEBPKGVER ?= 1
+BASE=pandoc-$VERSION-$DEBPKGVER
 DIST=`pwd`/$BASE
 MANDIR=`pwd`/man
-DEST=$DIST
+DEST=$DIST/usr/local
 ME=$(whoami)
 
 # echo Removing old files...
@@ -36,14 +37,9 @@ install $MANDIR/man5/pandoc_markdown.5 $DEST/share/man/man5/
 install $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 install COPYING $DEST/share/doc/pandoc/COPYING
 install $PANDOC_CITEPROC_PATH/LICENSE $DEST/share/doc/pandoc-citeproc/LICENSE
-
 rm -rf $PANDOC_CITEPROC_PATH
 
-echo Creating tarball...
-# remove old package first
-rm -rf $BASE.tar.gz
+mkdir $DIST/DEBIAN
+perl -pe 's/VERSION/${VERSION}-${DEBPKGVER}/' deb/control.in > $DIST/DEBIAN/control
 
-tar cvzf $BASE.tar.gz $BASE
-# cleanup
-rm -r $DIST
-echo "Created $BASE.tar.gz"
+dpkg-deb --build $DIST
