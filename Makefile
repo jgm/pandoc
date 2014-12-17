@@ -67,6 +67,6 @@ osxpkg:
 clean:
 	cabal clean
 	-rm $(MANPAGES)
-  -rm -rf $(BINDIST) $(BINDIST).tar.gz
+	-rm -rf $(BINDIST) $(BINDIST).tar.gz
 
 .PHONY: deps quick full install man clean test bench haddock osxpkg dist bindist prof
