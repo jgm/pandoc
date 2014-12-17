@@ -2,7 +2,7 @@
 
 SANDBOX=`pwd`/.cabal-sandbox
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
-DEBPKGVER ?= 1
+DEBPKGVER=?1
 BASE=pandoc-$VERSION-$DEBPKGVER
 DIST=`pwd`/$BASE
 MANDIR=`pwd`/man

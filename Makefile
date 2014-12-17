@@ -40,8 +40,8 @@ dist: man
 	cd pandoc-${version}
 	cabal configure ${CABALARGS} && cabal build && cabal test && cd .. && rm -rf "pandoc-${version}"
 
-bindist:
-	./make_binary_package.sh
+debpkg:
+	./make_deb.sh
 
 man: $(MANPAGES)
 
