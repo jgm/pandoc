@@ -2,12 +2,15 @@
 
 SANDBOX=`pwd`/.cabal-sandbox
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
-DEBPKGVER=?1
-BASE=pandoc-$VERSION-$DEBPKGVER
+DEBPKGVER=1
+DEBVER=$VERSION-$DEBPKGVER
+BASE=pandoc-$DEBVER
 DIST=`pwd`/$BASE
 MANDIR=`pwd`/man
 DEST=$DIST/usr/local
 ME=$(whoami)
+
+echo "DEBVER = $DEBVER"
 
 # echo Removing old files...
 rm -rf $DIST
@@ -16,6 +19,8 @@ cabal sandbox init
 echo Updating database
 cabal update
 
+export PATH=`pwd`/.cabal-sandbox/bin:$PATH
+which hsb2hs || cabal install hsb2hs
 echo Building pandoc...
 cabal clean
 cabal install --reinstall --flags="embed_data_files make-pandoc-man-pages" . pandoc-citeproc
@@ -37,9 +42,10 @@ install $MANDIR/man5/pandoc_markdown.5 $DEST/share/man/man5/
 install $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 install COPYING $DEST/share/doc/pandoc/COPYING
 install $PANDOC_CITEPROC_PATH/LICENSE $DEST/share/doc/pandoc-citeproc/LICENSE
-rm -rf $PANDOC_CITEPROC_PATH
+rm -rf make_binary_package.tmp.$$
 
 mkdir $DIST/DEBIAN
-perl -pe 's/VERSION/${VERSION}-${DEBPKGVER}/' deb/control.in > $DIST/DEBIAN/control
+perl -pe "s/VERSION/$DEBVER/" deb/control.in > $DIST/DEBIAN/control
 
 dpkg-deb --build $DIST
+rm -rf $DIST
