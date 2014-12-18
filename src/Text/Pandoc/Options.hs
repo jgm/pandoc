@@ -312,6 +312,7 @@ data WriterOptions = WriterOptions
   , writerListings         :: Bool       -- ^ Use listings package for code
   , writerHighlight        :: Bool       -- ^ Highlight source code
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
+  , writerBulletListMarker :: Char       -- ^ Bullet list marker in markdown
   , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
   , writerTeXLigatures     :: Bool       -- ^ Use tex ligatures quotes, dashes in latex
   , writerEpubVersion      :: Maybe EPUBVersion -- ^ Nothing or EPUB version
@@ -355,6 +356,7 @@ instance Default WriterOptions where
                       , writerListings         = False
                       , writerHighlight        = False
                       , writerHighlightStyle   = pygments
+                      , writerBulletListMarker = '-'
                       , writerSetextHeaders    = True
                       , writerTeXLigatures     = True
                       , writerEpubVersion      = Nothing

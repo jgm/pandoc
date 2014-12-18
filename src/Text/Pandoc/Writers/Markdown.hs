@@ -575,7 +575,7 @@ bulletListItemToMarkdown :: WriterOptions -> [Block] -> State WriterState Doc
 bulletListItemToMarkdown opts items = do
   contents <- blockListToMarkdown opts items
   let sps = replicate (writerTabStop opts - 2) ' '
-  let start = text ('-' : ' ' : sps)
+  let start = text (writerBulletListMarker opts : ' ' : sps)
   -- remove trailing blank line if it is a tight list
   let contents' = case reverse items of
                        (BulletList xs:_) | isTightList xs ->
