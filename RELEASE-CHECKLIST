@@ -12,6 +12,8 @@ _ Generate Windows package and copy to directory.
 
 _ Generate Mac OSX package.
 
+_ Generate Ubuntu/Debian deb package.
+
 - Add release on github (and upload files)
 
 _ Upload to HackageDB
