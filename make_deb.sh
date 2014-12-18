@@ -1,16 +1,23 @@
 #!/bin/bash -e
 
+MACHINE=$(uname -m)
+if [ "$MACHINE" = "x86_64" ]; then
+  ARCHITECTURE=amd64
+elif [ "$MACHINE" = "i686" ]; then
+  ARCHICTECTURE=i386
+elif [ "$MACHINE" = "i386" ]; then
+  ARCHICTECTURE=i386
+fi
+
 SANDBOX=`pwd`/.cabal-sandbox
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 DEBPKGVER=1
 DEBVER=$VERSION-$DEBPKGVER
-BASE=pandoc-$DEBVER
+BASE=pandoc-$DEBVER-$ARCHITECTURE
 DIST=`pwd`/$BASE
 MANDIR=`pwd`/man
 DEST=$DIST/usr/local
 ME=$(whoami)
-
-echo "DEBVER = $DEBVER"
 
 # echo Removing old files...
 rm -rf $DIST
@@ -45,7 +52,8 @@ install $PANDOC_CITEPROC_PATH/LICENSE $DEST/share/doc/pandoc-citeproc/LICENSE
 rm -rf make_binary_package.tmp.$$
 
 mkdir $DIST/DEBIAN
-perl -pe "s/VERSION/$DEBVER/" deb/control.in > $DIST/DEBIAN/control
+perl -pe "s/VERSION/$DEBVER/" deb/control.in | \
+  perl -pe "s/ARCHITECTURE/$ARCHITECTURE/" > $DIST/DEBIAN/control
 
 dpkg-deb --build $DIST
 rm -rf $DIST
