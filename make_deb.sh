@@ -16,7 +16,7 @@ DEBVER=$VERSION-$DEBPKGVER
 BASE=pandoc-$DEBVER-$ARCHITECTURE
 DIST=`pwd`/$BASE
 MANDIR=`pwd`/man
-DEST=$DIST/usr/local
+DEST=$DIST/usr
 ME=$(whoami)
 
 # echo Removing old files...
@@ -37,23 +37,27 @@ make man
 PANDOC_CITEPROC_PATH=`cabal unpack -d make_binary_package.tmp.$$ pandoc-citeproc | awk '{print $3;}'`
 strip $SANDBOX/bin/pandoc
 strip $SANDBOX/bin/pandoc-citeproc
-install -d $DEST/bin
-install -d $DEST/share/man/man1
-install -d $DEST/share/man/man5
-install -d $DEST/share/doc/pandoc
-install -d $DEST/share/doc/pandoc-citeproc
-install $SANDBOX/bin/pandoc $DEST/bin/
-install $SANDBOX/bin/pandoc-citeproc $DEST/bin/
-install $MANDIR/man1/pandoc.1 $DEST/share/man/man1/
-install $MANDIR/man5/pandoc_markdown.5 $DEST/share/man/man5/
-install $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
-install COPYING $DEST/share/doc/pandoc/COPYING
-install $PANDOC_CITEPROC_PATH/LICENSE $DEST/share/doc/pandoc-citeproc/LICENSE
+mkdir -p $DEST/bin
+mkdir -p $DEST/share/man/man1
+mkdir -p $DEST/share/man/man5
+mkdir -p $DEST/share/doc/pandoc
+mkdir -p $DEST/share/doc/pandoc-citeproc
+find $DIST -type d | xargs chmod 755
+cp $SANDBOX/bin/pandoc $DEST/bin/
+cp $SANDBOX/bin/pandoc-citeproc $DEST/bin/
+cp $MANDIR/man1/pandoc.1 $DEST/share/man/man1/
+cp $MANDIR/man5/pandoc_markdown.5 $DEST/share/man/man5/
+cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
+cp COPYING $DEST/share/doc/pandoc/COPYING
+cp COPYRIGHT $DEST/share/doc/pandoc/copyright
+cp README $DEST/share/doc/pandoc/README
+cp changelog $DEST/share/doc/pandoc/changelog
+cp $PANDOC_CITEPROC_PATH/LICENSE $DEST/share/doc/pandoc-citeproc/LICENSE
 rm -rf make_binary_package.tmp.$$
 
 mkdir $DIST/DEBIAN
 perl -pe "s/VERSION/$DEBVER/" deb/control.in | \
   perl -pe "s/ARCHITECTURE/$ARCHITECTURE/" > $DIST/DEBIAN/control
 
-dpkg-deb --build $DIST
+fakeroot dpkg-deb --build $DIST
 rm -rf $DIST
