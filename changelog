@@ -35,17 +35,17 @@ pandoc (1.13.2)
 
         - Added `sourceCode` to classes for `:code:` role, and anything
           inheriting from it.
-        - Add the name of the custom role to classes if the Inline constructor
-          supports Attr.
-        - If the custom role directive does not specify a parent role, inherit
-          from the `:span:` role.
+        - Add the name of the custom role to classes if the Inline
+          constructor supports Attr.
+        - If the custom role directive does not specify a parent role,
+          inherit from the `:span:` role.
 
-      This differs somewhat from the `rst2xml.py` behavior.  If a custom role
-      inherits from another custom role, Pandoc will attach both roles' names
-      as classes.  `rst2xml.py` will only use the class of the directly invoked
-      role (though in the case of inheriting from a `:code:` role with a
-      `:language:` defined, it will also provide the inherited language as a
-      class).
+      This differs somewhat from the `rst2xml.py` behavior.  If a custom
+      role inherits from another custom role, Pandoc will attach both
+      roles' names as classes.  `rst2xml.py` will only use the class of
+      the directly invoked role (though in the case of inheriting from a
+      `:code:` role with a `:language:` defined, it will also provide the
+      inherited language as a class).
     + Warn about ignored fields in role directives.
 
   * LaTeX reader:
@@ -88,9 +88,9 @@ pandoc (1.13.2)
       There could be new top-level headers after making lists, so we have to
       rewrite links after that.
     + Use polyglot header list (Jesse Rosenthal).
-      We're just keeping a list of header formats that different languages use
-      as their default styles. At the moment, we have English, German, Danish,
-      and French. We can continue to add to this.
+      We're just keeping a list of header formats that different languages
+      use as their default styles. At the moment, we have English, German,
+      Danish, and French. We can continue to add to this.
       This is simpler than parsing the styles file, and perhaps less
       error-prone, since there seems to be some variations, even within a
       language, of how a style file will define headers.
@@ -167,6 +167,11 @@ pandoc (1.13.2)
       We convert display math to inline math in simple tables,
       since LaTeX can't deal with display math in simple tables.
     + Escape spaces in code (#1694, Bjorn Buckwalter).
+
+  * MediaWiki writer:
+
+    + Fixed links with URL = text. Previously these were rendered as bare
+      words, even if the URL was not an absolute URL (#1825).
 
   * ICML writer:
 
