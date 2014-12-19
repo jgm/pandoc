@@ -1,3 +1,339 @@
+pandoc (1.13.2)
+
+  * TWiki Reader: add new new twiki reader (API chaneg, Alexander Sulfrian).
+
+  * Markdown reader:
+
+    + Better handling of paragraph in div (#1591).
+      Previously text that ended a div would be parsed as Plain
+      unless there was a blank line before the closing div tag.
+    + Don't treat a citation as a reference link label (#1763).
+    + Fix autolinks with following punctuation (#1811).
+      The price of this is that autolinked bare URIs can no longer
+      contain `>` characters, but this is not a big issue.
+    + Fix `Ext_lists_without_preceding_blankline` bug (#1636, Artyom).
+    + Allow `startnum` to work without `fancy_lists`. Formerly
+      `pandoc -f markdown-fancy_lists+startnum` did not work properly.
+
+  * RST reader (all Daniel Bergey):
+
+    + Parse quoted literal blocks (#65).  RST quoted literal blocks are
+      the same as indented literal blocks (which pandoc already supports)
+      except that the quote character is preserved in each line.
+    + Parse RST class directives. The class directive accepts one or more
+      class names, and creates a Div value with those classes.  If the
+      directive has an indented body, the body is parsed as the children of
+      the Div.  If not, the first block folowing the directive is made a
+      child of the Div. This differs from the behavior of rst2xml, which
+      does not create a Div element.  Instead, the specified classes are
+      applied to each child of the directive.  However, most Pandoc Block
+      constructors to not take an Attr argument, so we can't duplicate this
+      behavior.
+    + Warn about skipped directives.
+    + Literal role now produces Code. Code role should have "code" class.
+    + Improved support for custom roles
+
+        - Added `sourceCode` to classes for `:code:` role, and anything
+          inheriting from it.
+        - Add the name of the custom role to classes if the Inline constructor
+          supports Attr.
+        - If the custom role directive does not specify a parent role, inherit
+          from the `:span:` role.
+
+      This differs somewhat from the `rst2xml.py` behavior.  If a custom role
+      inherits from another custom role, Pandoc will attach both roles' names
+      as classes.  `rst2xml.py` will only use the class of the directly invoked
+      role (though in the case of inheriting from a `:code:` role with a
+      `:language:` defined, it will also provide the inherited language as a
+      class).
+    + Warn about ignored fields in role directives.
+
+  * LaTeX reader:
+
+    + Parse label after caption into a span instead of
+     inserting an additional paragraph of bracketed text (#1747).
+    + Parse math environments as inline when possible (#1821).
+    + Better handling of `\noindent` and `\greektext` (#1783).
+    + Handle `\texorpdfstring` more gracefully.
+    + Handle `\cref` and `\sep` (Wikiwide).
+    + Support `\smartcite` and `\Smartcite` from biblatex.
+
+  * HTML reader:
+
+    + Retain display type of MathML output (#1719, Matthew Pickering).
+    + Recognise `<br>` tags inside `<pre>` blocks (#1620, Matthew Pickering).
+    + Make `embed` tag either block or inline (#1756).
+
+  * DocBook reader:
+
+    + Handle `keycombo`, `keycap` (#1815).
+    + Get string content in inner tags for literal elements (#1816).
+    + Handle `menuchoice` elements better, with a `>` between (#1817).
+    + Include `id` on section headers (#1818).
+    + Document/test "type" as implemented (Brian O'Sullivan).
+    + Add support for calloutlist and callout (Brian O'Sullivan).
+      We treat a calloutlist as a bulleted list. This works well in practice.
+    + Add support for `classname` (Bryan O'Sullivan).
+
+  * Docx reader:
+
+    + Fix window path for image lookup (Jesse Rosenthal).
+      Don't use os-sensitive "combine", since we always want the paths in our
+      zip-archive to use forward-slashes.
+    + Single-item headers in ordered lists are headers (Jesse Rosenthal).
+      When users number their headers, Word understands that as a single item
+      enumerated list. We make the assumption that such a list is, in fact,
+      a header.
+    + Rewrite rewriteLink to work with new headers (Jesse Rosenthal).
+      There could be new top-level headers after making lists, so we have to
+      rewrite links after that.
+    + Use polyglot header list (Jesse Rosenthal).
+      We're just keeping a list of header formats that different languages use
+      as their default styles. At the moment, we have English, German, Danish,
+      and French. We can continue to add to this.
+      This is simpler than parsing the styles file, and perhaps less
+      error-prone, since there seems to be some variations, even within a
+      language, of how a style file will define headers.
+    + Remove header class properly in other langs (Jesse Rosenthal).
+      When we encounter one of the polyglot header styles, we want to remove
+      that from the par styles after we convert to a header. To do that, we
+      have to keep track of the style name, and remove it appropriately.
+    + Account for external link URLs with anchors. Previously, if a URL
+      had an anchor, the reader would incorrectly identify it as an
+      internal link and return only the anchor as URL. (Caleb McDaniel)
+    + Fix for Issue #1692 (i18n styles) (Nikolay Yakimov).
+
+  * Org reader:
+
+    + Added state changing blanklines (Jesse Rosenthal).
+      This allows us to emphasize at the beginning of a new paragraph (or, in
+      general, after blank lines).
+    + Fixed bug with bulleted lists:
+
+        - a
+        - b
+        * c
+
+      was being parsed as a list, even though an unindented `*`
+      should make a heading.  See
+      <http://orgmode.org/manual/Plain-lists.html#fn-1>.
+    + Org reader: absolute, relative paths in link (#1741, Albert
+      Krewinkel). The org reader was too restrictive when parsing links;
+      some relative links and links to files given as absolute paths
+      were not recognized correctly.
+    + Org reader:  allow empty links (jgm/gitit#471, Albert Krewinkel).
+      This is important for use in gitit, which uses empty links
+      for wikilinks.
+    + Respect indent when parsing Org bullet lists (#1650, Timothy
+      Humphries).  Fixes issue with top-level bullet list parsing.
+    + Fix indent issue for definition lists (Timothy Humphries,
+      see #1650, #1698, #1680).
+    + Parse multi-inline terms correctly in definition list (#1649,
+      Matthew Pickering).
+    + Fix rules for emphasis recognition (Albert Krewinkel).
+      Things like `/hello,/` or `/hi'/` were falsy recognized as emphasised
+      strings.  This is wrong, as `,` and `'` are forbidden border chars and
+      may not occur on the inner border of emphasized text.
+    + Drop COMMENT document trees (Albert Krewinkel).
+      Document trees under a header starting with the word `COMMENT` are
+      comment trees and should not be exported.  Those trees are dropped
+      silently (#1678).
+    + Properly handle links to `file:target` (Albert Krewinkel).
+      Org links like `[[file:target][title]]` were not handled correctly,
+      parsing the link target verbatim.  The org reader is changed such that
+      the leading `file:` is dropped from the link target (see #756, #1812).
+    + Parse LaTeX-style MathML entities (#1657, Albert Krewinkel).
+      Org supports special symbols which can be included using LaTeX syntax,
+      but are actually MathML entities.  Examples for this are
+      `\nbsp` (non-breaking space), `\Aacute` (the letter A with accent acute)
+      or `\copy` (the copyright sign ©)
+
+  * EPUB reader:
+
+    + URI handling improvements. Now we outsource most of the work to
+      `fetchItem'`. Also, do not include queries in file extensions (#1671).
+
+  * LaTeX writer:
+
+    + Use `\texorpdfstring` for section captions when needed (Vaclav Zeman).
+    + Handle consecutive linebreaks (#1733).
+    + Protect graphics in headers (Jesse Rosenthal).
+      Graphics in `\section`/`\subsection` etc titles need to be `\protect`ed.
+    + Put `~` before header in list item text (Jesse Rosenthal).
+      Because of the built-in line skip, LaTeX can't handle a section header
+      as the first element in a list item.
+    + Avoid using reserved characters as `\lstinline` delimiters (#1595).
+    + Better handling of display math in simple tables (#1754).
+      We convert display math to inline math in simple tables,
+      since LaTeX can't deal with display math in simple tables.
+    + Escape spaces in code (#1694, Bjorn Buckwalter).
+
+  * ICML writer:
+
+    + Don't force all citations into footnotes.
+
+  * RTF writer:
+
+    + Add blankline at end of output (#1732, Matthew Pickering).
+
+  * RST writer:
+
+    + Ensure blank line after figure.
+    + Avoid exces whitespace after last list item (#1777).
+    + Wrap line blocks with spaces before continuations (#1656).
+    + Fixed double-rendering of footnotes in RST tables (#1769).
+
+  * DokuWiki writer:
+
+    + Better handling of block quotes. This change ensures that
+      multiple paragraph blockquotes are rendered using native `>`
+      rather than as HTML (#1738).
+    + Fix external images (#1739). Preface relative links with ":",
+      absolute URIs without. (Timothy Humphries)
+
+  * HTML writer:
+
+    + Use protocol-relative URL for mathjax.
+    + Put newline btw img and caption paragraph.
+    + MathML now outputted with tex annotation (#1635, Matthew Pickering).
+    + Add support for KaTeX HTML math (#1626, Matthew Pickering).
+      This adds `KaTeX` to `HTMLMathMethod` (API change).
+    + Don't double render when `email-obfuscation=none` (#1625, Matthew
+      Pickering).
+    + Make header attributes work outside top level (#1711).
+      Previously they only appeared on top level header elements.
+      Now they work e.g. in blockquotes.
+
+  * ODT writer:
+
+    + Correctly handle images without extensions (#1729).
+    + Strip querystring in ODT write (#1682, Todd Sifleet).
+
+  * FB2 writer:
+
+    + Add newline to output.
+
+  * EPUB writer:
+
+    + Don't add `sourceURL` to absolute URIs (#1669).
+    + Don't use unsupported `opf:title-type` for epub2.
+    + Include "landmarks" section in nav document for epub3 (#1757).
+    + Removed playOrder from navpoint elements in ncx file (#1760).
+      These aren't required, and they make manual modification of epubs
+      difficult.
+    + Extract title even from structured title.
+    + Don't include nav node in spine unless `--toc` was requested.
+      Previously we included it in the spine with `linear="no"`, leading
+      to odd results in some readers (#1593).
+    + Fixed absolute URI detection (#1672).
+    + Correctly resolve relative URIs (#1671).
+    + Use regular page template for `nav.xhtml`, including doctype (#1759).
+
+  * Docx writer:
+
+    + Put docx table captions above tables (#1641, Nikolay Yakimov).
+    + Get the page width from the reference docx file, and use
+      it to scale images that are too large to fit (Grégory Bataille).
+    + Partial fix for #1607 (Nikolay Yakimov). International heading styles
+      are inferred based on `<w:name val="heading #">` fallback, if there
+      are no en-US "Heading#" styles
+    + Look in user data dir for archive `reference.docx`.
+    + Renumber header and footer relationships to avoid collisions (Jesse
+      Rosenthal). We previously took the old relationship names of the
+      headers and footer in secptr. That led to collisions. We now make
+      a map of availabl names in the relationships file, and then rename
+     in secptr.
+
+  * ConTeXt writer:
+
+    + Add function toLabel (Mark Szepieniec).
+      This function can be used to sanitize reference labels so that
+      they do not contain any of the illegal characters \#[]",{}%()|= .
+      Currently only Links have their labels sanitized, because they
+      are the only Elements that use passed labels.
+
+  * `Text.Pandoc.Shared`:
+
+    + Moved import of `toChunks` outside of CPP conditional (#1590).
+    + Fix `inDirectory` to reset to the original directory in case
+      an exception occurs (Freiric Barral).
+
+  * Templates:
+
+    + LaTeX template: load polyglossia before bibtex (jgm/pandoc-templates#70).
+      Thanks to bluebirch.
+    + LaTeX template: Added `\VerbatimFootnotes` if there is verbatim in notes
+      (#1616).
+    + LaTeX template:  Add shorthands=off to babel options (#1648).
+    + EPUB, EPUB3 templates: Added `id="cover"` to body of cover page.
+      This aids styling, making it possible for example to set 0 margins
+      on the title page (#1758).
+    + EPUB, EPUB3 templates:  Handle structured metadata on titlepage.
+      Previously we just expected 'title', 'subtitle', 'author', 'date'.
+      Now we still support those, but also support the format recommended
+      for epub metadata in the pandoc README:
+
+        ---
+        title:
+        - type: main
+          text: My Book
+        - type: subtitle
+          text: An investigation of metadata
+        creator:
+        - role: author
+          text: John Smith
+        - role: editor
+          text: Sarah Jones
+        identifier:
+        - scheme: DOI
+          text: doi:10.234234.234/33
+        publisher:  My Press
+        rights:  (c) 2007 John Smith, CC BY-NC
+        ...
+
+  * `Text.Pandoc.Templates.getDefaultTemplate`:
+    don't fail when called with "fb2" (#1660).
+
+  * `Text.Pandoc.Parsing`:
+
+    + Fixed `inlineMath` so it handles `\text{..}` containing `$`.
+      For example: `$x = \text{the $n$th root of $y$}` (#1677).
+    + Change `parseFromString` to fail if not all input is consumed.
+      (Matthew Pickering)
+    + Moved `addWarning` from Markdown reader to `Parsing`, so it can be
+      used by more readers (API change, Daniel Bergey).
+
+  * `Text.Pandoc.Pretty`:
+
+    +  Improve performance of `realLength` (Matthew Pickering).
+    +  Make CR + BLANKLINE = BLANKLINE. This fixes an extra blank line we
+       were getting at the end of markdown fragments (as well as rst, org,
+       etc.) (#1705).
+
+  * `Text.Pandoc.MIME`:
+
+    + Add mime type for WebVTT (Jason Ronallo).
+    + Changed mime type for `otf` to `application/vnd.ms-opentype` (#1761).
+      This is needed for epub3 validation.
+
+  * `Text.Pandoc.MediaBag`:
+
+    + Fix Windows specific path problems (#1597).
+
+  * `Text.Pandoc.Shared`:
+
+    + Make `collapseFilePath` OS-agnostic (Matthew Pickering).
+
+  * Link the test suite using `-threaded`.
+    This allows the test suite to be run using `+RTS -N`.
+
+  * Added `network` dependency under `network-uri` flag in test section.
+
+  * Give better error messages when someone tries to convert from
+    pdf, doc, odt (#1683).
+
+  * Added `track` to list of tags treated by `--self-contained` (#1664).
+
 pandoc (1.13.1)
 
   * Fixed `--self-contained` with Windows paths (#1558).
