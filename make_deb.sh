@@ -48,7 +48,7 @@ cp $SANDBOX/bin/pandoc-citeproc $DEST/bin/
 cp $MANDIR/man1/pandoc.1 $DEST/share/man/man1/
 gzip -9 $DEST/share/man/man1/pandoc.1
 cp $MANDIR/man5/pandoc_markdown.5 $DEST/share/man/man5/
-gzip -9 $DEST/share/man/man5/pandoc.5
+gzip -9 $DEST/share/man/man5/pandoc_markdown.5
 cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
 cp COPYING $DEST/share/doc/pandoc/COPYING
