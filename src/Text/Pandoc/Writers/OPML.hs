@@ -38,7 +38,7 @@ import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import Text.Pandoc.Pretty
 import Data.Time
-import System.Locale (defaultTimeLocale)
+import Text.Pandoc.Compat.Locale (defaultTimeLocale)
 import qualified Text.Pandoc.Builder as B
 
 -- | Convert Pandoc document to string in OPML format.
@@ -87,4 +87,3 @@ elementToOPML opts (Sec _ _num _ title elements) =
                 | not (null blocks)]
   in  inTags True "outline" attrs $
       vcat (map (elementToOPML opts) rest)
-

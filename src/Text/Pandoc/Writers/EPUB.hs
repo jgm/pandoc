@@ -44,7 +44,7 @@ import Codec.Archive.Zip ( emptyArchive, addEntryToArchive, eRelativePath, fromE
 import Control.Applicative ((<$>))
 import Data.Time.Clock.POSIX ( getPOSIXTime )
 import Data.Time (getCurrentTime,UTCTime, formatTime)
-import System.Locale ( defaultTimeLocale )
+import Text.Pandoc.Compat.Locale ( defaultTimeLocale )
 import Text.Pandoc.Shared ( trimr, renderTags', safeRead, uniqueIdent, trim
                           , normalizeDate, readDataFile, stringify, warn
                           , hierarchicalize, fetchItem' )
@@ -1215,4 +1215,3 @@ docTitle' meta = fromMaybe [] $ go <$> lookupMeta "title" meta
                    _ -> []
         go (MetaList xs) = concatMap go xs
         go _ = []
-

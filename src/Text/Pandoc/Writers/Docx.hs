@@ -41,7 +41,7 @@ import Data.Time.Clock.POSIX
 import Data.Time.Clock
 import Data.Time.Format
 import System.Environment
-import System.Locale
+import Text.Pandoc.Compat.Locale (defaultTimeLocale)
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.ImageSize
@@ -1060,7 +1060,7 @@ parseXml refArchive distArchive relpath =
 fitToPage :: (Integer, Integer) -> Integer -> (Integer, Integer)
 fitToPage (x, y) pageWidth
   -- Fixes width to the page width and scales the height
-  | x > pageWidth = 
-    (pageWidth, round $ 
+  | x > pageWidth =
+    (pageWidth, round $
       ((fromIntegral pageWidth) / ((fromIntegral :: Integer -> Double) x)) * (fromIntegral y))
   | otherwise = (x, y)

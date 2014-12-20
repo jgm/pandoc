@@ -52,7 +52,7 @@ import Control.Monad.Reader (Reader, runReader, asks)
 import Data.Time.LocalTime (getZonedTime)
 import Text.Pandoc.Compat.Directory(getModificationTime)
 import Data.Time.Format (formatTime)
-import System.Locale (defaultTimeLocale)
+import Text.Pandoc.Compat.Locale (defaultTimeLocale)
 import System.IO.Error (catchIOError)
 
 type T2T = ParserT String ParserState (Reader T2TMeta)
@@ -576,4 +576,3 @@ atStart = (sourceColumn <$> getPosition) >>= guard . (== 1)
 
 ignoreSpacesCap :: T2T String -> T2T String
 ignoreSpacesCap p = map toLower <$> (spaces *> p <* spaces)
-

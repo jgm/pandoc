@@ -115,7 +115,7 @@ import qualified Control.Monad.State as S
 import qualified Control.Exception as E
 import Control.Monad (msum, unless)
 import Text.Pandoc.Pretty (charWidth)
-import System.Locale (defaultTimeLocale)
+import Text.Pandoc.Compat.Locale (defaultTimeLocale)
 import Data.Time
 import System.IO (stderr)
 import System.IO.Temp
