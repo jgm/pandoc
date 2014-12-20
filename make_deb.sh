@@ -31,7 +31,7 @@ export PATH=`pwd`/.cabal-sandbox/bin:$PATH
 which hsb2hs || cabal install hsb2hs
 echo Building pandoc...
 cabal clean
-cabal install --reinstall --flags="embed_data_files make-pandoc-man-pages" . pandoc-citeproc
+cabal install --force --reinstall --flags="embed_data_files make-pandoc-man-pages" . pandoc-citeproc
 
 make man
 # get pandoc-citeproc man page:
