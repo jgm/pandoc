@@ -1,13 +1,11 @@
 #!/bin/bash -e
 
 MACHINE=$(uname -m)
-if [ "$MACHINE" = "x86_64" ]; then
-  ARCHITECTURE=amd64
-elif [ "$MACHINE" = "i686" ]; then
-  ARCHICTECTURE=i386
-elif [ "$MACHINE" = "i386" ]; then
-  ARCHICTECTURE=i386
-fi
+case "$MACHINE" in
+  x86_64) ARCHITECTURE=amd64;;
+  i686)   ARCHITECTURE=i386;;
+  i386)   ARCHITECTURE=i386;;
+esac
 
 SANDBOX=`pwd`/.cabal-sandbox
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
