@@ -18,6 +18,7 @@ DIST=`pwd`/$BASE
 MANDIR=`pwd`/man
 DEST=$DIST/usr
 ME=$(whoami)
+COPYRIGHT=$DEST/share/doc/pandoc/copyright
 
 # echo Removing old files...
 rm -rf $DIST
@@ -51,10 +52,10 @@ cp $MANDIR/man5/pandoc_markdown.5 $DEST/share/man/man5/
 gzip -9 $DEST/share/man/man5/pandoc_markdown.5
 cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
-cp COPYING $DEST/share/doc/pandoc/COPYING
-cp COPYRIGHT $DEST/share/doc/pandoc/copyright
-echo "\npandoc-citeproc" >> $DEST/share/doc/pandoc/copyright
-cat $PANDOC_CITEPROC_PATH/LICENSE >> $DEST/share/doc/pandoc/copyright
+cp COPYRIGHT $COPYRIGHT
+echo "" >> $COPYRIGHT
+echo "pandoc-citeproc" >> $COPYRIGHT
+cat $PANDOC_CITEPROC_PATH/LICENSE >> $COPYRIGHT
 rm -rf make_binary_package.tmp.$$
 
 mkdir $DIST/DEBIAN
