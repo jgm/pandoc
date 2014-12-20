@@ -46,13 +46,15 @@ find $DIST -type d | xargs chmod 755
 cp $SANDBOX/bin/pandoc $DEST/bin/
 cp $SANDBOX/bin/pandoc-citeproc $DEST/bin/
 cp $MANDIR/man1/pandoc.1 $DEST/share/man/man1/
+gzip -9 $DEST/share/man/man1/pandoc.1
 cp $MANDIR/man5/pandoc_markdown.5 $DEST/share/man/man5/
+gzip -9 $DEST/share/man/man5/pandoc.5
 cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
+gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
 cp COPYING $DEST/share/doc/pandoc/COPYING
 cp COPYRIGHT $DEST/share/doc/pandoc/copyright
-cp README $DEST/share/doc/pandoc/README
-cp changelog $DEST/share/doc/pandoc/changelog
-cp $PANDOC_CITEPROC_PATH/LICENSE $DEST/share/doc/pandoc-citeproc/LICENSE
+echo "\npandoc-citeproc" >> $DEST/share/doc/pandoc/copyright
+cat $PANDOC_CITEPROC_PATH/LICENSE >> $DEST/share/doc/pandoc/copyright
 rm -rf make_binary_package.tmp.$$
 
 mkdir $DIST/DEBIAN
