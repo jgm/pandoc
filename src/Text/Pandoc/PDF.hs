@@ -36,10 +36,11 @@ import qualified Data.ByteString.Lazy.Char8 as BC
 import qualified Data.ByteString as BS
 import System.Exit (ExitCode (..))
 import System.FilePath
+import System.IO (stderr, stdout)
 import System.Directory
 import Data.Digest.Pure.SHA (showDigest, sha1)
 import System.Environment
-import Control.Monad (unless, (<=<))
+import Control.Monad (unless, when, (<=<))
 import qualified Control.Exception as E
 import Control.Applicative ((<$))
 import Data.List (isInfixOf)
@@ -70,7 +71,7 @@ makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex)
 makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
   doc' <- handleImages opts tmpdir doc
   let source = writer opts doc'
-  tex2pdf' tmpdir program source
+  tex2pdf' (writerVerbose opts) tmpdir program source
 
 handleImages :: WriterOptions
              -> FilePath      -- ^ temp dir to store images
@@ -130,15 +131,16 @@ convertImage tmpdir fname =
     mime = getMimeType fname
     doNothing = return (Right fname)
 
-tex2pdf' :: FilePath                        -- ^ temp directory for output
+tex2pdf' :: Bool                            -- ^ Verbose output
+         -> FilePath                        -- ^ temp directory for output
          -> String                          -- ^ tex program
          -> String                          -- ^ tex source
          -> IO (Either ByteString ByteString)
-tex2pdf' tmpDir program source = do
+tex2pdf' verbose tmpDir program source = do
   let numruns = if "\\tableofcontents" `isInfixOf` source
                    then 3  -- to get page numbers
                    else 2  -- 1 run won't give you PDF bookmarks
-  (exit, log', mbPdf) <- runTeXProgram program numruns tmpDir source
+  (exit, log', mbPdf) <- runTeXProgram verbose program 1 numruns tmpDir source
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do
           let logmsg = extractMsg log'
@@ -170,9 +172,9 @@ extractMsg log' = do
 -- Run a TeX program on an input bytestring and return (exit code,
 -- contents of stdout, contents of produced PDF if any).  Rerun
 -- a fixed number of times to resolve references.
-runTeXProgram :: String -> Int -> FilePath -> String
+runTeXProgram :: Bool -> String -> Int -> Int -> FilePath -> String
               -> IO (ExitCode, ByteString, Maybe ByteString)
-runTeXProgram program runsLeft tmpDir source = do
+runTeXProgram verbose program runNumber numRuns tmpDir source = do
     let file = tmpDir </> "input.tex"
     exists <- doesFileExist file
     unless exists $ UTF8.writeFile file source
@@ -192,9 +194,24 @@ runTeXProgram program runsLeft tmpDir source = do
           $ lookup "TEXINPUTS" env'
     let env'' = ("TEXINPUTS", texinputs) :
                   [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
+    when (verbose && runNumber == 1) $ do
+      putStrLn $ "[makePDF] Command line:"
+      putStrLn $ program ++ " " ++ unwords (map show programArgs)
+      putStr "\n"
+      putStrLn $ "[makePDF] Environment:"
+      mapM_ print env''
+      putStr "\n"
+      putStrLn $ "[makePDF] Contents of " ++ file' ++ ":"
+      B.readFile file' >>= B.putStr
+      putStr "\n"
     (exit, out, err) <- pipeProcess (Just env'') program programArgs BL.empty
-    if runsLeft > 1
-       then runTeXProgram program (runsLeft - 1) tmpDir source
+    when verbose $ do
+      putStrLn $ "[makePDF] Run #" ++ show runNumber
+      B.hPutStr stdout out
+      B.hPutStr stderr err
+      putStr "\n"
+    if runNumber <= numRuns
+       then runTeXProgram verbose program (runNumber + 1) numRuns tmpDir source
        else do
          let pdfFile = replaceDirectory (replaceExtension file ".pdf") tmpDir
          pdfExists <- doesFileExist pdfFile

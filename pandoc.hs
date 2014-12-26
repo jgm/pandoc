@@ -186,6 +186,7 @@ data Opt = Opt
     , optTOCDepth          :: Int     -- ^ Number of levels to include in TOC
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
+    , optVerbose           :: Bool    -- ^ Verbose diagnostic output
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optWrapText          :: Bool    -- ^ Wrap text
     , optColumns           :: Int     -- ^ Line length in characters
@@ -246,6 +247,7 @@ defaultOpts = Opt
     , optTOCDepth              = 3
     , optDumpArgs              = False
     , optIgnoreArgs            = False
+    , optVerbose               = False
     , optReferenceLinks        = False
     , optWrapText              = True
     , optColumns               = 72
@@ -858,6 +860,11 @@ options =
                   (\opt -> return opt { optIgnoreArgs = True }))
                  "" -- "Ignore command-line arguments."
 
+    , Option "" ["verbose"]
+                 (NoArg
+                  (\opt -> return opt { optVerbose = True }))
+                 "" -- "Verbose diagnostic output."
+
     , Option "v" ["version"]
                  (NoArg
                   (\_ -> do
@@ -1061,6 +1068,7 @@ main = do
               , optTOCDepth              = epubTOCDepth
               , optDumpArgs              = dumpArgs
               , optIgnoreArgs            = ignoreArgs
+              , optVerbose               = verbose
               , optReferenceLinks        = referenceLinks
               , optWrapText              = wrap
               , optColumns               = columns
@@ -1302,7 +1310,8 @@ main = do
                             writerTOCDepth         = epubTOCDepth,
                             writerReferenceODT     = referenceODT,
                             writerReferenceDocx    = referenceDocx,
-                            writerMediaBag         = media
+                            writerMediaBag         = media,
+                            writerVerbose          = verbose
                           }
 
 

@@ -323,6 +323,7 @@ data WriterOptions = WriterOptions
   , writerReferenceODT     :: Maybe FilePath -- ^ Path to reference ODT if specified
   , writerReferenceDocx    :: Maybe FilePath -- ^ Path to reference DOCX if specified
   , writerMediaBag         :: MediaBag       -- ^ Media collected by docx or epub reader
+  , writerVerbose          :: Bool           -- ^ Verbose debugging output
   } deriving Show
 
 instance Default WriterOptions where
@@ -366,6 +367,7 @@ instance Default WriterOptions where
                       , writerReferenceODT     = Nothing
                       , writerReferenceDocx    = Nothing
                       , writerMediaBag         = mempty
+                      , writerVerbose          = False
                       }
 
 -- | Returns True if the given extension is enabled.

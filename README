@@ -230,6 +230,10 @@ General options
     `epub.css`, `templates`, `slidy`, `slideous`, or `s5` directory
     placed in this directory will override pandoc's normal defaults.
 
+`--verbose`
+:   Give verbose debugging output.  Currently this only has an effect
+    with PDF output.
+
 `-v`, `--version`
 :   Print version.
 
