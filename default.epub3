@@ -45,7 +45,7 @@ $if(date)$
   <p class="date">$date$</p>
 $endif$
 $if(rights)$
-  <p class="rights">$rights$</p>
+  <div class="rights">$rights$</div>
 $endif$
 </section>
 $else$
