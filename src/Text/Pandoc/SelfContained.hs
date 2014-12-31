@@ -67,7 +67,10 @@ convertTag media sourceURL t@(TagOpen "script" as) =
        []     -> return t
        src    -> do
            (raw, mime) <- getRaw media sourceURL (fromAttrib "type" t) src
-           let enc = "data:" ++ mime ++ "," ++ escapeURIString isOk (toString raw)
+           let mime' = if ';' `elem` mime
+                          then mime  -- mime type already has charset
+                          else mime ++ ";charset=utf-8"
+           let enc = "data:" ++ mime' ++ "," ++ escapeURIString isOk (toString raw)
            return $ TagOpen "script" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
 convertTag media sourceURL t@(TagOpen "link" as) =
   case fromAttrib "href" t of
