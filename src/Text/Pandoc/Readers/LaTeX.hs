@@ -1018,7 +1018,8 @@ environments = M.fromList
   , ("center", env "center" blocks)
   , ("table",  env "table" $
          resetCaption *> skipopts *> blocks >>= addTableCaption)
-  , ("tabular", env "tabular" simpTable)
+  , ("tabular*", env "tabular" $ simpTable True)
+  , ("tabular", env "tabular"  $ simpTable False)
   , ("quote", blockQuote <$> env "quote" blocks)
   , ("quotation", blockQuote <$> env "quotation" blocks)
   , ("verse", blockQuote <$> env "verse" blocks)
@@ -1304,8 +1305,9 @@ parseTableRow cols = try $ do
   spaces
   return cells''
 
-simpTable :: LP Blocks
-simpTable = try $ do
+simpTable :: Bool -> LP Blocks
+simpTable hasWidthParameter = try $ do
+  when hasWidthParameter $ () <$ (spaces >> tok)
   spaces
   aligns <- parseAligns
   let cols = length aligns
