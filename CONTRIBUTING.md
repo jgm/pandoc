@@ -25,6 +25,33 @@ including
 A small test case (just a few lines) is ideal.  If your input is large,
 try to whittle it down to the minimum necessary to illustrate the problem.
 
+Fixing bugs from the issue tracker
+----------------------------------
+
+Almost all the bugs on the issue tracker have one or more associated tags. These
+are used to indicate the *difficulty* and *nature* of a bug. There is not yet a
+way to indicate priority. An up to date summary of issues can be found
+[here](https://github.com/jgm/pandoc/labels)
+
+* [Enhancement] -- A feature which would be desirable.
+* [Bug] -- A problem which needs to be fixed.
+
+* [Minor] -- The fix should only be a couple of lines.
+* [Major] -- The fix might require structural changes or in depth knowledge of
+the code base.
+* [Reader] -- A request to add a new input format.
+* [Writer] -- A request to add a new output format.
+* [docs]   -- A discrepency or ambiguity in the documentation.
+
+* [inprogress] -- Someone is actively working on or planning to work on the
+ticket.
+* [More discussion needed] -- It is unclear what the correct approach to solving
+the ticket is. Before starting on tickets such as this it would be advisable to
+post on the ticket.
+* [More info needed] -- We require more information from a user before we can
+classify a report properly.
+
+
 Have an idea for a new feature?
 -------------------------------
 
@@ -182,3 +209,13 @@ The library is structured as follows:
 [EditorConfig]: http://editorconfig.org/
 [Haskell platform]: http://www.haskell.org/platform/
 [hsb2hs]: http://hackage.haskell.org/package/hsb2hs
+[Enhancement]: https://github.com/jgm/pandoc/labels/enhancement
+[Bug]: https://github.com/jgm/pandoc/labels/bug
+[Minor]: https://github.com/jgm/pandoc/labels/Minor
+[Major]: https://github.com/jgm/pandoc/labels/Major
+[Reader]: https://github.com/jgm/pandoc/labels/Reader
+[Writer]: https://github.com/jgm/pandoc/labels/Writer
+[docs]: https://github.com/jgm/pandoc/labels/docs
+[inprogress]: https://github.com/jgm/pandoc/labels/inprogress
+[More discussion needed]: https://github.com/jgm/pandoc/labels/More%20discussion%20needed
+[More info needed]: https://github.com/jgm/pandoc/labels/More%20info%20needed
