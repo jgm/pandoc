@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-
 Copyright (C) 2014 Albert Krewinkel <tarleb@moltkeplatz.de>
 
@@ -1168,7 +1169,7 @@ isRelativeFilePath s = (("./" `isPrefixOf` s) || ("../" `isPrefixOf` s)) &&
 
 isUri :: String -> Bool
 isUri s = let (scheme, path) = break (== ':') s
-          in all (\c -> isAlphaNum c || c `elem` ".-") scheme
+          in all (\c -> isAlphaNum c || c `elem` (".-" :: String)) scheme
              && not (null path)
 
 isAbsoluteFilePath :: String -> Bool
@@ -1214,7 +1215,7 @@ solidify :: String -> String
 solidify = map replaceSpecialChar
  where replaceSpecialChar c
            | isAlphaNum c    = c
-           | c `elem` "_.-:" = c
+           | c `elem` ("_.-:" :: String) = c
            | otherwise       = '-'
 
 -- | Parses an inline code block and marks it as an babel block.
@@ -1465,7 +1466,7 @@ inlineLaTeX = try $ do
    parseAsMathMLSym :: String -> Maybe Inlines
    parseAsMathMLSym cs = B.str <$> MathMLEntityMap.getUnicode (clean cs)
     -- dropWhileEnd would be nice here, but it's not available before base 4.5
-    where clean = reverse . dropWhile (`elem` "{}") . reverse . drop 1
+    where clean = reverse . dropWhile (`elem` ("{}" :: String)) . reverse . drop 1
 
    state :: ParserState
    state = def{ stateOptions = def{ readerParseRaw = True }}
