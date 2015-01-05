@@ -1,4 +1,4 @@
-{-# LANGUAGE RelaxedPolyRec, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE RelaxedPolyRec, FlexibleInstances, TypeSynonymInstances, FlexibleContexts #-}
 -- RelaxedPolyRec needed for inlinesBetween on GHC < 7
 {-
   Copyright (C) 2014 Alexander Sulfrian <alexander.sulfrian@fu-berlin.de>
