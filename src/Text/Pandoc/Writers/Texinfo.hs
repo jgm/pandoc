@@ -368,7 +368,7 @@ inlineListForNode = return . text . stringToTexinfo .
 
 -- periods, commas, colons, and parentheses are disallowed in node names
 disallowedInNode :: Char -> Bool
-disallowedInNode c = c `elem` ".,:()"
+disallowedInNode c = c `elem` (".,:()" :: String)
 
 -- | Convert inline element to Texinfo
 inlineToTexinfo :: Inline    -- ^ Inline to convert
