@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-
 Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -708,7 +709,7 @@ extractCaption = do
 toChunks :: String -> [String]
 toChunks = dropWhile null
            . map (trim . unlines)
-           . splitBy (all (`elem` " \t")) . lines
+           . splitBy (all (`elem` (" \t" :: String))) . lines
 
 codeblock :: Maybe String -> String -> String -> RSTParser Blocks
 codeblock numberLines lang body =
