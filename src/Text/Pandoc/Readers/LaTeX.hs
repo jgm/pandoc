@@ -592,7 +592,7 @@ inNote ils =
 
 unescapeURL :: String -> String
 unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
-  where isEscapable c = c `elem` "#$%&~_^\\{}"
+  where isEscapable c = c `elem` ("#$%&~_^\\{}" :: String)
 unescapeURL (x:xs) = x:unescapeURL xs
 unescapeURL [] = ""
 
@@ -1224,7 +1224,7 @@ citationLabel  = optional sp *>
           <* optional sp
           <* optional (char ',')
           <* optional sp)
-  where isBibtexKeyChar c = isAlphaNum c || c `elem` ".:;?!`'()/*@_+=-[]*"
+  where isBibtexKeyChar c = isAlphaNum c || c `elem` (".:;?!`'()/*@_+=-[]*" :: String)
 
 cites :: CitationMode -> Bool -> LP [Citation]
 cites mode multi = try $ do
