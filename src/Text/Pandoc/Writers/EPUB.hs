@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, CPP, ScopedTypeVariables, ViewPatterns #-}
+{-# LANGUAGE PatternGuards, CPP, ScopedTypeVariables, ViewPatterns, FlexibleContexts #-}
 {-
 Copyright (C) 2010-2014 John MacFarlane <jgm@berkeley.edu>
 
