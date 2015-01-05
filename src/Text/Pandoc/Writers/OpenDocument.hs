@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, OverloadedStrings #-}
+{-# LANGUAGE PatternGuards, OverloadedStrings, FlexibleContexts #-}
 {-
 Copyright (C) 2008-2014 Andrea Rossato <andrea.rossato@ing.unitn.it>
                         and John MacFarlane.

@@ -119,7 +119,7 @@ stringToConTeXt opts = concatMap (escapeCharForConTeXt opts)
 toLabel :: String -> String
 toLabel z = concatMap go z
  where go x
-         | elem x "\\#[]\",{}%()|=" = "ux" ++ printf "%x" (ord x)
+         | elem x ("\\#[]\",{}%()|=" :: String) = "ux" ++ printf "%x" (ord x)
          | otherwise = [x]
 
 -- | Convert Elements to ConTeXt

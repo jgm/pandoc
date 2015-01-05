@@ -323,9 +323,9 @@ blockToMarkdown opts (Plain inlines) = do
                     then Just $ writerColumns opts
                     else Nothing
   let rendered = render colwidth contents
-  let escapeDelimiter (x:xs) | x `elem` ".()" = '\\':x:xs
-                             | otherwise      = x : escapeDelimiter xs
-      escapeDelimiter []                      = []
+  let escapeDelimiter (x:xs) | x `elem` (".()" :: String) = '\\':x:xs
+                             | otherwise                  = x : escapeDelimiter xs
+      escapeDelimiter []                                  = []
   let contents' = if isEnabled Ext_all_symbols_escapable opts &&
                      not (stPlain st) && beginsWithOrderedListMarker rendered
                      then text $ escapeDelimiter rendered
@@ -681,7 +681,7 @@ inlineListToMarkdown opts lst =
   mapM (inlineToMarkdown opts) (avoidBadWraps lst) >>= return . cat
   where avoidBadWraps [] = []
         avoidBadWraps (Space:Str (c:cs):xs)
-          | c `elem` "-*+>" = Str (' ':c:cs) : avoidBadWraps xs
+          | c `elem` ("-*+>" :: String) = Str (' ':c:cs) : avoidBadWraps xs
         avoidBadWraps (x:xs) = x : avoidBadWraps xs
 
 escapeSpaces :: Inline -> Inline
@@ -821,8 +821,8 @@ inlineToMarkdown opts (Cite (c:cs) lst)
            sdoc <- inlineListToMarkdown opts sinlines
            let k' = text (modekey m ++ "@" ++ k)
                r = case sinlines of
-                        Str (y:_):_ | y `elem` ",;]@" -> k' <> sdoc
-                        _                             -> k' <+> sdoc
+                        Str (y:_):_ | y `elem` (",;]@" :: String) -> k' <> sdoc
+                        _                                         -> k' <+> sdoc
            return $ pdoc <+> r
         modekey SuppressAuthor = "-"
         modekey _              = ""
