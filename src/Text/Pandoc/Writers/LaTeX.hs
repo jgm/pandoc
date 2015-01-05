@@ -240,7 +240,7 @@ toLabel z = go `fmap` stringToLaTeX URLString z
  where go [] = ""
        go (x:xs)
          | (isLetter x || isDigit x) && isAscii x = x:go xs
-         | elem x "-+=:;." = x:go xs
+         | elem x ("-+=:;." :: String) = x:go xs
          | otherwise = "ux" ++ printf "%x" (ord x) ++ go xs
 
 -- | Puts contents into LaTeX command.
