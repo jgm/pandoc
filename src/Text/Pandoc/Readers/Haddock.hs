@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {- |
    Module      : Text.Pandoc.Readers.Haddock
    Copyright   : Copyright (C) 2013 David Lazar
@@ -29,7 +30,12 @@ import Debug.Trace (trace)
 readHaddock :: ReaderOptions -- ^ Reader options
             -> String        -- ^ String to parse
             -> Pandoc
-readHaddock opts = B.doc . docHToBlocks . trace' . parseParas
+readHaddock opts =
+#if MIN_VERSION_haddock_library(1,2,0)
+  B.doc . docHToBlocks . trace' . _doc . parseParas
+#else
+  B.doc . docHToBlocks . trace' . parseParas
+#endif
   where trace' x = if readerTrace opts
                       then trace (show x) x
                       else x
