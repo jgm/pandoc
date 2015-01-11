@@ -146,8 +146,9 @@ tex2pdf' verbose tmpDir program source = do
           let logmsg = extractMsg log'
           let extramsg =
                 case logmsg of
-                     x | "! Package inputenc Error" `BC.isPrefixOf` x ->
-                           "\nTry running pandoc with --latex-engine=xelatex."
+                     x | ("! Package inputenc Error" `BC.isPrefixOf` x
+                           && program /= "xelatex")
+                       -> "\nTry running pandoc with --latex-engine=xelatex."
                      _ -> ""
           return $ Left $ logmsg <> extramsg
        (ExitSuccess, Nothing)  -> return $ Left ""
