@@ -469,15 +469,15 @@ Code:
 
 Hr’s:
 
-<hr>
 <hr />
 <hr />
-<hr>
 <hr />
 <hr />
-<hr class="foo" id="bar" />
-<hr class="foo" id="bar" />
-<hr class="foo" id="bar">
+<hr />
+<hr />
+<hr class="foo" id="bar1" />
+<hr class="foo" id="bar2" />
+<hr class="foo" id="bar3"/>
 
 ------------------------------------------------------------------------------
 
