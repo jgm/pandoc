@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables  #-}
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 {-
   Copyright (C) 2011-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -40,6 +41,10 @@ import Data.Binary
 import Data.Binary.Get
 import Text.Pandoc.Shared (safeRead)
 import qualified Data.Map as M
+import Text.Pandoc.Compat.Except
+import Text.Pandoc.Error
+import Control.Monad.Trans
+import Data.Maybe (fromMaybe)
 
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
@@ -64,7 +69,7 @@ imageType img = case B.take 4 img of
                      "%!PS"
                        | (B.take 4 $ B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
                                         -> return Eps
-                     _                  -> fail "Unknown image type"
+                     _                  -> (hush . Left) "Unknown image type"
 
 imageSize :: ByteString -> Maybe ImageSize
 imageSize img = do
@@ -114,7 +119,7 @@ pngSize img = do
                 ([w1,w2,w3,w4,h1,h2,h3,h4] :: [Integer]) -> return
                     ((shift w1 24) + (shift w2 16) + (shift w3 8) + w4,
                      (shift h1 24) + (shift h2 16) + (shift h3 8) + h4)
-                _ -> fail "PNG parse error"
+                _ -> (hush . Left) "PNG parse error"
   let (dpix, dpiy) = findpHYs rest''
   return $ ImageSize { pxX  = x, pxY = y, dpiX = dpix, dpiY = dpiy }
 
@@ -143,7 +148,7 @@ gifSize img = do
                           dpiX = 72,
                           dpiY = 72
                           }
-       _             -> fail "GIF parse error"
+       _             -> (hush . Left) "GIF parse error"
 
 jpegSize :: ByteString -> Maybe ImageSize
 jpegSize img = do
@@ -174,36 +179,37 @@ findJfifSize bs = do
        Just (c,bs'') | c >= '\xc0' && c <= '\xc3' -> do
          case map fromIntegral $ unpack $ B.take 4 $ B.drop 3 bs'' of
               [h1,h2,w1,w2] -> return (shift w1 8 + w2, shift h1 8 + h2)
-              _             -> fail "JPEG parse error"
+              _             -> (hush . Left) "JPEG parse error"
        Just (_,bs'') ->  do
          case map fromIntegral $ unpack $ B.take 2 bs'' of
               [c1,c2] -> do
                 let len = shift c1 8 + c2
                 -- skip variables
                 findJfifSize $ B.drop len bs''
-              _       -> fail "JPEG parse error"
-       Nothing -> fail "Did not find length record"
+              _       -> (hush . Left) "JPEG parse error"
+       Nothing -> (hush . Left) "Did not find length record"
 
 exifSize :: ByteString -> Maybe ImageSize
-exifSize bs = runGet (Just <$> exifHeader bl) bl
+exifSize bs = hush . runGet header $ bl
   where bl = BL.fromChunks [bs]
+        header = runExceptT $ exifHeader bl
 -- NOTE:  It would be nicer to do
 -- runGet ((Just <$> exifHeader) <|> return Nothing)
 -- which would prevent pandoc from raising an error when an exif header can't
 -- be parsed.  But we only get an Alternative instance for Get in binary 0.6,
 -- and binary 0.5 ships with ghc 7.6.
 
-exifHeader :: BL.ByteString -> Get ImageSize
+exifHeader :: BL.ByteString -> ExceptT String Get ImageSize
 exifHeader hdr = do
-  _app1DataSize <- getWord16be
-  exifHdr <- getWord32be
-  unless (exifHdr == 0x45786966) $ fail "Did not find exif header"
-  zeros <- getWord16be
-  unless (zeros == 0) $ fail "Expected zeros after exif header"
+  _app1DataSize <- lift getWord16be
+  exifHdr <- lift getWord32be
+  unless (exifHdr == 0x45786966) $ throwError "Did not find exif header"
+  zeros <- lift getWord16be
+  unless (zeros == 0) $ throwError "Expected zeros after exif header"
   -- beginning of tiff header -- we read whole thing to use
   -- in getting data from offsets:
   let tiffHeader = BL.drop 8 hdr
-  byteAlign <- getWord16be
+  byteAlign <- lift getWord16be
   let bigEndian = byteAlign == 0x4d4d
   let (getWord16, getWord32, getWord64) =
         if bigEndian
@@ -213,17 +219,17 @@ exifHeader hdr = do
         num <- getWord32
         den <- getWord32
         return $ fromIntegral num / fromIntegral den
-  tagmark <- getWord16
-  unless (tagmark == 0x002a) $ fail "Failed alignment sanity check"
-  ifdOffset <- getWord32
-  skip (fromIntegral ifdOffset - 8) -- skip to IDF
-  numentries <- getWord16
-  let ifdEntry = do
-       tag <- getWord16 >>= \t ->
-                maybe (return UnknownTagType) return
-                (M.lookup t tagTypeTable)
-       dataFormat <- getWord16
-       numComponents <- getWord32
+  tagmark <- lift getWord16
+  unless (tagmark == 0x002a) $ throwError "Failed alignment sanity check"
+  ifdOffset <- lift getWord32
+  lift $ skip (fromIntegral ifdOffset - 8) -- skip to IDF
+  numentries <- lift  getWord16
+  let ifdEntry :: ExceptT String Get (TagType, DataFormat)
+      ifdEntry = do
+       tag <- fromMaybe UnknownTagType . flip M.lookup tagTypeTable
+                <$> lift getWord16
+       dataFormat <- lift getWord16
+       numComponents <- lift getWord32
        (fmt, bytesPerComponent) <-
              case dataFormat of
                   1  -> return (UnsignedByte . runGet getWord8, 1)
@@ -238,9 +244,10 @@ exifHeader hdr = do
                   10 -> return (SignedRational . runGet getRational, 8)
                   11 -> return (SingleFloat . runGet getWord32 {- TODO -}, 4)
                   12 -> return (DoubleFloat . runGet getWord64 {- TODO -}, 8)
-                  _  -> fail $ "Unknown data format " ++ show dataFormat
+                  _  -> throwError $ "Unknown data format " ++ show dataFormat
        let totalBytes = fromIntegral $ numComponents * bytesPerComponent
-       payload <- if totalBytes <= 4 -- data is right here
+       payload <- lift $
+                    if totalBytes <= 4 -- data is right here
                      then fmt <$>
                           (getLazyByteString (fromIntegral totalBytes) <*
                           skip (4 - totalBytes))
@@ -252,9 +259,9 @@ exifHeader hdr = do
   entries <- sequence $ replicate (fromIntegral numentries) ifdEntry
   subentries <- case lookup ExifOffset entries of
                       Just (UnsignedLong offset) -> do
-                        pos <- bytesRead
-                        skip (fromIntegral offset - (fromIntegral pos - 8))
-                        numsubentries <- getWord16
+                        pos <- lift bytesRead
+                        lift $ skip (fromIntegral offset - (fromIntegral pos - 8))
+                        numsubentries <- lift getWord16
                         sequence $
                            replicate (fromIntegral numsubentries) ifdEntry
                       _ -> return []
