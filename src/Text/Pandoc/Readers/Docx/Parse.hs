@@ -639,6 +639,16 @@ elemToParPart ns element
      case drawing of
        Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp bs)
        Nothing -> throwError WrongElem
+-- The below is an attempt to deal with images in deprecated vml format.
+elemToParPart ns element
+  | isElem ns "w" "r" element
+  , Just _ <- findChild (elemName ns "w" "pict") element =
+    let drawing = findElement (elemName ns "v" "imagedata") element
+                  >>= findAttr (elemName ns "r" "id")
+    in
+     case drawing of
+       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp bs)
+       Nothing -> throwError WrongElem
 elemToParPart ns element
   | isElem ns "w" "r" element =
     elemToRun ns element >>= (\r -> return $ PlainRun r)
