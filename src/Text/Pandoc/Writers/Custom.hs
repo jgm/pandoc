@@ -42,6 +42,7 @@ import Text.Pandoc.UTF8 (fromString, toString)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C8
 import Data.Monoid
+import Control.Monad (when)
 import qualified Data.Map as M
 import Text.Pandoc.Templates
 
@@ -151,7 +152,11 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
   luaScript <- C8.unpack `fmap` C8.readFile luaFile
   lua <- Lua.newstate
   Lua.openlibs lua
-  Lua.loadstring lua luaScript "custom"
+  status <- Lua.loadstring lua luaScript luaFile
+  -- check for error in lua script (later we'll change the return type
+  -- to handle this more gracefully):
+  when (status /= 0) $
+    Lua.tostring lua 1 >>= error
   Lua.call lua 0 0
   -- TODO - call hierarchicalize, so we have that info
   rendered <- docToCustom lua opts doc
