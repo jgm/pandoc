@@ -49,7 +49,10 @@ import Data.String ( fromString )
 import Data.Maybe ( catMaybes, fromMaybe )
 import Control.Monad.State
 import Text.Blaze.Html hiding(contents)
+#if MIN_VERSION_blaze_markup(0,6,3)
+#else
 import Text.Blaze.Internal(preEscapedString)
+#endif
 #if MIN_VERSION_blaze_html(0,5,1)
 import qualified Text.Blaze.XHtml5 as H5
 #else
