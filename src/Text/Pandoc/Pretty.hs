@@ -250,6 +250,11 @@ renderDoc :: (IsString a, Monoid a)
           => Doc -> DocState a
 renderDoc = renderList . toList . unDoc
 
+data IsBlock = IsBlock Int [String]
+
+-- This would be nicer with a pattern synonym
+-- pattern VBlock i s <- mkIsBlock -> Just (IsBlock ..)
+
 renderList :: (IsString a, Monoid a)
            => [D] -> DocState a
 renderList [] = return ()
@@ -323,11 +328,11 @@ renderList (BreakingSpace : xs) = do
           outp 1 " "
           renderList xs'
 
-renderList (b1@Block{} : b2@Block{} : xs) =
-  renderList (mergeBlocks False b1 b2 : xs)
+renderList (Block i1 s1 : Block i2 s2  : xs) =
+  renderList (mergeBlocks False (IsBlock i1 s1) (IsBlock i2 s2) : xs)
 
-renderList (b1@Block{} : BreakingSpace : b2@Block{} : xs) =
-  renderList (mergeBlocks True b1 b2 : xs)
+renderList (Block i1 s1 : BreakingSpace : Block i2 s2 : xs) =
+  renderList (mergeBlocks True (IsBlock i1 s1) (IsBlock i2 s2) : xs)
 
 renderList (Block width lns : xs) = do
   st <- get
@@ -339,15 +344,14 @@ renderList (Block width lns : xs) = do
   modify $ \s -> s{ prefix = oldPref }
   renderList xs
 
-mergeBlocks :: Bool -> D -> D -> D
-mergeBlocks addSpace (Block w1 lns1) (Block w2 lns2) =
+mergeBlocks :: Bool -> IsBlock -> IsBlock -> D
+mergeBlocks addSpace (IsBlock w1 lns1) (IsBlock w2 lns2) =
   Block (w1 + w2 + if addSpace then 1 else 0) $
      zipWith (\l1 l2 -> pad w1 l1 ++ l2) (lns1 ++ empties) (map sp lns2 ++ empties)
     where empties = replicate (abs $ length lns1 - length lns2) ""
           pad n s = s ++ replicate (n - realLength s) ' '
           sp "" = ""
           sp xs = if addSpace then (' ' : xs) else xs
-mergeBlocks _ _ _ = error "mergeBlocks tried on non-Block!"
 
 blockToDoc :: Int -> [String] -> Doc
 blockToDoc _ lns = text $ intercalate "\n" lns
