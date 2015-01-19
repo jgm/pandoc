@@ -13,7 +13,7 @@ $endif$
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="$revealjs-url$/css/reveal.min.css"/>
+  <link rel="stylesheet" href="$revealjs-url$/css/reveal.css"/>
     <style type="text/css">code{white-space: pre;}</style>
 $if(highlighting-css)$
     <style type="text/css">
@@ -78,7 +78,7 @@ $body$
 
 
   <script src="$revealjs-url$/lib/js/head.min.js"></script>
-  <script src="$revealjs-url$/js/reveal.min.js"></script>
+  <script src="$revealjs-url$/js/reveal.js"></script>
 
   <script>
 
