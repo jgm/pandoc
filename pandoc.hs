@@ -1255,7 +1255,8 @@ main = do
              Right (bs,_)  -> return $ UTF8.toString bs
 
   let readFiles [] = error "Cannot read archive from stdin"
-      readFiles (x:_) = B.readFile x
+      readFiles [x] = B.readFile x
+      readFiles (x:xs) = mapM (warn . ("Ignoring: " ++)) xs >> B.readFile x
 
   let convertTabs = tabFilter (if preserveTabs || readerName' == "t2t"
                                  then 0
