@@ -114,6 +114,10 @@ tests = [ testGroup "inlines"
             "docx/image.docx"
             "docx/image_no_embed.native"
           , testCompare
+            "VML image"
+            "docx/image_vml.docx"
+            "docx/image_vml.native"
+          , testCompare
             "inline image in links"
             "docx/inline_images.docx"
             "docx/inline_images.native"
