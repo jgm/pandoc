@@ -898,6 +898,12 @@ backslash' = string "\\"
 braced' :: IncludeParser
 braced' = try $ char '{' *> manyTill (satisfy (/='}')) (char '}')
 
+maybeAddExtension :: String -> FilePath -> FilePath
+maybeAddExtension ext fp =
+  if null (takeExtension fp)
+     then addExtension fp ext
+     else fp
+
 include' :: IncludeParser
 include' = do
   fs' <- try $ do
@@ -909,8 +915,8 @@ include' = do
               skipMany $ try $ char '[' *> (manyTill anyChar (char ']'))
               fs <- (map trim . splitBy (==',')) <$> braced'
               return $ if name == "usepackage"
-                          then map (flip replaceExtension ".sty") fs
-                          else map (flip replaceExtension ".tex") fs
+                          then map (maybeAddExtension ".sty") fs
+                          else map (maybeAddExtension ".tex") fs
   pos <- getPosition
   containers <- getState
   let fn = case containers of
