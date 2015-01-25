@@ -374,12 +374,20 @@ pTable = try $ do
   caption <- option mempty $ pInTags "caption" inline <* skipMany pBlank
   -- TODO actually read these and take width information from them
   widths' <- pColgroup <|> many pCol
-  head' <- option [] $ pOptInTag "thead" $ pInTags "tr" (pCell "th")
-  skipMany pBlank
-  rows <- pOptInTag "tbody"
-          $ many1 $ try $ skipMany pBlank >> pInTags "tr" (pCell "td")
-  skipMany pBlank
+  let pTh = option [] $ pInTags "tr" (pCell "th")
+      pTr = try $ skipMany pBlank >> pInTags "tr" (pCell "td" <|> pCell "th")
+      pTBody = do pOptInTag "tbody" $ many1 pTr
+  head'' <- pOptInTag "thead" pTh
+  head'  <- pOptInTag "tbody" $ do
+              if null head''
+                 then pTh
+                 else return head''
+  rowsLs <- many pTBody
+  rows'  <- pOptInTag "tfoot" $ many pTr
   TagClose _ <- pSatisfy (~== TagClose "table")
+  let rows = (concat rowsLs) ++ rows'
+  -- fail on empty table
+  guard $ not $ null head' && null rows
   let isSinglePlain x = case B.toList x of
                              [Plain _] -> True
                              _         -> False
@@ -624,14 +632,17 @@ pInTags tagtype parser = try $ do
   pSatisfy (~== TagOpen tagtype [])
   mconcat <$> manyTill parser (pCloses tagtype <|> eof)
 
-pOptInTag :: String -> TagParser a
-          -> TagParser a
-pOptInTag tagtype parser = try $ do
-  open <- option False (pSatisfy (~== TagOpen tagtype []) >> return True)
+-- parses p, preceeded by an optional opening tag
+-- and followed by an optional closing tags
+pOptInTag :: String -> TagParser a -> TagParser a
+pOptInTag tagtype p = try $ do
   skipMany pBlank
-  x <- parser
+  optional $ pSatisfy (~== TagOpen tagtype [])
   skipMany pBlank
-  when open $ pCloses tagtype
+  x <- p
+  skipMany pBlank
+  optional $ pSatisfy (~== TagClose tagtype)
+  skipMany pBlank
   return x
 
 pCloses :: String -> TagParser ()
