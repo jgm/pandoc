@@ -138,6 +138,9 @@ $endif$
 $if(author)$
 \author{$for(author)$$author$$sep$ \and $endfor$}
 $endif$
+$if(institute)$
+\institute{$for(institute)$$institute$$sep$ \and $endfor$}
+$endif$
 \date{$date$}
 $for(header-includes)$
 $header-includes$
