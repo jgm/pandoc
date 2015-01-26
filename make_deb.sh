@@ -56,9 +56,12 @@ echo "pandoc-citeproc" >> $COPYRIGHT
 cat $PANDOC_CITEPROC_PATH/LICENSE >> $COPYRIGHT
 rm -rf make_binary_package.tmp.$$
 
+INSTALLED_SIZE=$(du -B 1024 -s $DEST | awk '{print $1}')
 mkdir $DIST/DEBIAN
 perl -pe "s/VERSION/$DEBVER/" deb/control.in | \
-  perl -pe "s/ARCHITECTURE/$ARCHITECTURE/" > $DIST/DEBIAN/control
+  perl -pe "s/ARCHITECTURE/$ARCHITECTURE/" | \
+  perl -pe "s/INSTALLED_SIZE/$INSTALLED_SIZE/" \
+  > $DIST/DEBIAN/control
 
 fakeroot dpkg-deb --build $DIST
 rm -rf $DIST
