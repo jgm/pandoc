@@ -525,7 +525,9 @@ blockToHtml opts (BulletList lst) = do
   return $ unordList opts contents
 blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   contents <- mapM (blockListToHtml opts) lst
-  let numstyle' = camelCaseToHyphenated $ show numstyle
+  let numstyle' = case numstyle of
+                       Example -> "decimal"
+                       _       -> camelCaseToHyphenated $ show numstyle
   let attribs = (if startnum /= 1
                    then [A.start $ toValue startnum]
                    else []) ++
