@@ -57,6 +57,7 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockT
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
+import Control.Monad.Reader
 import System.FilePath (takeExtension, addExtension)
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match (tagOpen)
@@ -64,25 +65,36 @@ import qualified Data.Set as Set
 import Text.Printf (printf)
 import Debug.Trace (trace)
 
-type MarkdownParser = Parser [Char] ParserState
+type MarkdownParser a = ParserT [Char] ParserState (Reader ParserState) a
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ReaderOptions -- ^ Reader options
              -> String        -- ^ String to parse (assuming @'\n'@ line endings)
              -> Pandoc
 readMarkdown opts s =
-  (readWith parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
+  (runMarkdown opts s parseMarkdown)
 
 -- | Read markdown from an input string and return a pair of a Pandoc document
 -- and a list of warnings.
 readMarkdownWithWarnings :: ReaderOptions -- ^ Reader options
                          -> String        -- ^ String to parse (assuming @'\n'@ line endings)
                          -> (Pandoc, [String])
-readMarkdownWithWarnings opts s =
-    (readWithWarnings parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
+readMarkdownWithWarnings opts s = runMarkdown opts s (returnWarnings parseMarkdown)
 
-trimInlinesF :: F Inlines -> F Inlines
-trimInlinesF = liftM trimInlines
+
+retState :: MarkdownParser a -> MarkdownParser (a, ParserState)
+retState p = do
+  r <- p
+  s <- getState
+  return (r, s)
+
+runMarkdown :: ReaderOptions -> String -> MarkdownParser a -> a
+runMarkdown opts inp p = fst res
+  where
+    imd = readWithM (retState p) def{ stateOptions = opts } (inp ++ "\n\n")
+    res = runReader imd s
+    s :: ParserState
+    s   = snd $ runReader imd s
 
 --
 -- Constants and data structure definitions
@@ -119,10 +131,10 @@ inList = do
   ctx <- stateParserContext <$> getState
   guard (ctx == ListItemState)
 
-isNull :: F Inlines -> Bool
-isNull ils = B.isNull $ runF ils def
+isNull :: Inlines -> Bool
+isNull ils = B.isNull ils
 
-spnl :: Parser [Char] st ()
+spnl :: Monad m => ParserT [Char] st m ()
 spnl = try $ do
   skipSpaces
   optional newline
@@ -162,9 +174,9 @@ litChar = escapedChar'
 
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
-inlinesInBalancedBrackets :: MarkdownParser (F Inlines)
+inlinesInBalancedBrackets :: MarkdownParser Inlines
 inlinesInBalancedBrackets = charsInBalancedBrackets >>=
-  parseFromString (trimInlinesF . mconcat <$> many inline)
+  parseFromString (trimInlines . mconcat <$> many inline)
 
 charsInBalancedBrackets :: MarkdownParser [Char]
 charsInBalancedBrackets = do
@@ -181,16 +193,16 @@ charsInBalancedBrackets = do
 -- document structure
 --
 
-titleLine :: MarkdownParser (F Inlines)
+titleLine :: MarkdownParser Inlines
 titleLine = try $ do
   char '%'
   skipSpaces
   res <- many $ (notFollowedBy newline >> inline)
              <|> try (endline >> whitespace)
   newline
-  return $ trimInlinesF $ mconcat res
+  return $ trimInlines $ mconcat res
 
-authorsLine :: MarkdownParser (F [Inlines])
+authorsLine :: MarkdownParser [Inlines]
 authorsLine = try $ do
   char '%'
   skipSpaces
@@ -199,13 +211,13 @@ authorsLine = try $ do
                        (char ';' <|>
                         try (newline >> notFollowedBy blankline >> spaceChar))
   newline
-  return $ sequence $ filter (not . isNull) $ map (trimInlinesF . mconcat) authors
+  return $ filter (not . isNull) $ map (trimInlines . mconcat) authors
 
-dateLine :: MarkdownParser (F Inlines)
+dateLine :: MarkdownParser Inlines
 dateLine = try $ do
   char '%'
   skipSpaces
-  trimInlinesF . mconcat <$> manyTill inline newline
+  trimInlines . mconcat <$> manyTill inline newline
 
 titleBlock :: MarkdownParser ()
 titleBlock = pandocTitleBlock <|> mmdTitleBlock
@@ -215,20 +227,16 @@ pandocTitleBlock = try $ do
   guardEnabled Ext_pandoc_title_block
   lookAhead (char '%')
   title <- option mempty titleLine
-  author <- option (return []) authorsLine
+  author <- option [] authorsLine
   date <- option mempty dateLine
   optional blanklines
-  let meta' = do title' <- title
-                 author' <- author
-                 date' <- date
-                 return $
-                     (if B.isNull title' then id else B.setMeta "title" title')
-                   . (if null author' then id else B.setMeta "author" author')
-                   . (if B.isNull date' then id else B.setMeta "date" date')
-                   $ nullMeta
-  updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
+  let meta' = (if B.isNull title then id else B.setMeta "title" title)
+              . (if null author then id else B.setMeta "author" author)
+              . (if B.isNull date then id else B.setMeta "date" date)
+              $ nullMeta
+  updateState $ \st -> st{ stateMeta = stateMeta st <> meta' }
 
-yamlMetaBlock :: MarkdownParser (F Blocks)
+yamlMetaBlock :: MarkdownParser (Blocks)
 yamlMetaBlock = try $ do
   guardEnabled Ext_yaml_metadata_block
   pos <- getPosition
@@ -241,17 +249,17 @@ yamlMetaBlock = try $ do
   optional blanklines
   opts <- stateOptions <$> getState
   meta' <- case Yaml.decodeEither' $ UTF8.fromString rawYaml of
-                Right (Yaml.Object hashmap) -> return $ return $
+                Right (Yaml.Object hashmap) -> return $
                          H.foldrWithKey (\k v m ->
                               if ignorable k
                                  then m
                                  else B.setMeta (T.unpack k)
                                             (yamlToMeta opts v) m)
                            nullMeta hashmap
-                Right Yaml.Null -> return $ return nullMeta
+                Right Yaml.Null -> return nullMeta
                 Right _ -> do
                             addWarning (Just pos) "YAML header is not an object"
-                            return $ return nullMeta
+                            return nullMeta
                 Left err' -> do
                          case err' of
                             InvalidYaml (Just YamlParseException{
@@ -270,8 +278,8 @@ yamlMetaBlock = try $ do
                             _ -> addWarning (Just pos)
                                     $ "Could not parse YAML header: " ++
                                         show err'
-                         return $ return nullMeta
-  updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
+                         return nullMeta
+  updateState $ \st -> st{ stateMeta = stateMeta st <> meta' }
   return mempty
 
 -- ignore fields ending with _
@@ -314,8 +322,8 @@ mmdTitleBlock = try $ do
   guardEnabled Ext_mmd_title_block
   kvPairs <- many1 kvPair
   blanklines
-  updateState $ \st -> st{ stateMeta' = stateMeta' st <>
-                             return (Meta $ M.fromList kvPairs) }
+  updateState $ \st -> st{ stateMeta = stateMeta st <>
+                             (Meta $ M.fromList kvPairs) }
 
 kvPair :: MarkdownParser (String, MetaValue)
 kvPair = try $ do
@@ -335,11 +343,11 @@ parseMarkdown = do
   optional titleBlock
   blocks <- parseBlocks
   st <- getState
-  let meta = runF (stateMeta' st) st
-  let Pandoc _ bs = B.doc $ runF blocks st
+  let meta = stateMeta st
+  let Pandoc _ bs = B.doc blocks
   return $ Pandoc meta bs
 
-referenceKey :: MarkdownParser (F Blocks)
+referenceKey :: MarkdownParser (Blocks)
 referenceKey = try $ do
   pos <- getPosition
   skipNonindentSpaces
@@ -366,7 +374,7 @@ referenceKey = try $ do
     Just _  -> addWarning (Just pos) $ "Duplicate link reference `" ++ raw ++ "'"
     Nothing -> return ()
   updateState $ \s -> s { stateKeys = M.insert key target oldkeys }
-  return $ return mempty
+  return mempty
 
 referenceTitle :: MarkdownParser String
 referenceTitle = try $ do
@@ -386,7 +394,7 @@ quotedTitle c = try $ do
 -- | PHP Markdown Extra style abbreviation key.  Currently
 -- we just skip them, since Pandoc doesn't have an element for
 -- an abbreviation.
-abbrevKey :: MarkdownParser (F Blocks)
+abbrevKey :: MarkdownParser (Blocks)
 abbrevKey = do
   guardEnabled Ext_abbreviations
   try $ do
@@ -395,7 +403,7 @@ abbrevKey = do
     char ':'
     skipMany (satisfy (/= '\n'))
     blanklines
-    return $ return mempty
+    return mempty
 
 noteMarker :: MarkdownParser String
 noteMarker = string "[^" >> many1Till (satisfy $ not . isBlank) (char ']')
@@ -413,7 +421,7 @@ rawLines = do
   rest <- many rawLine
   return $ unlines (first:rest)
 
-noteBlock :: MarkdownParser (F Blocks)
+noteBlock :: MarkdownParser (Blocks)
 noteBlock = try $ do
   pos <- getPosition
   skipNonindentSpaces
@@ -425,7 +433,7 @@ noteBlock = try $ do
   rest <- many $ try $ blanklines >> indentSpaces >> rawLines
   let raw = unlines (first:rest) ++ "\n"
   optional blanklines
-  parsed <- parseFromString parseBlocks raw
+  parsed <- parseFromString (inFootnote parseBlocks) raw
   let newnote = (ref, parsed)
   oldnotes <- stateNotes' <$> getState
   case lookup ref oldnotes of
@@ -434,14 +442,22 @@ noteBlock = try $ do
   updateState $ \s -> s { stateNotes' = newnote : oldnotes }
   return mempty
 
+inFootnote :: MarkdownParser a -> MarkdownParser a
+inFootnote p = do
+  st <- stateInFootnote <$> getState
+  updateState (\s -> s { stateInFootnote = True } )
+  r <- p
+  updateState (\s -> s { stateInFootnote = st } )
+  return r
+
 --
 -- parsing blocks
 --
 
-parseBlocks :: MarkdownParser (F Blocks)
+parseBlocks :: MarkdownParser (Blocks)
 parseBlocks = mconcat <$> manyTill block eof
 
-block :: MarkdownParser (F Blocks)
+block :: MarkdownParser (Blocks)
 block = do
   tr <- getOption readerTrace
   pos <- getPosition
@@ -457,7 +473,7 @@ block = do
                , htmlBlock
                , table
                , codeBlockIndented
-               , guardEnabled Ext_latex_macros *> (macro >>= return . return)
+               , guardEnabled Ext_latex_macros *> macro
                , rawTeXBlock
                , lineBlock
                , blockQuote
@@ -471,28 +487,27 @@ block = do
                , plain
                ] <?> "block"
   when tr $ do
-    st <- getState
     trace (printf "line %d: %s" (sourceLine pos)
-           (take 60 $ show $ B.toList $ runF res st)) (return ())
+           (take 60 $ show $ B.toList $ res)) (return ())
   return res
 
 --
 -- header blocks
 --
 
-header :: MarkdownParser (F Blocks)
+header :: MarkdownParser (Blocks)
 header = setextHeader <|> atxHeader <?> "header"
 
-atxHeader :: MarkdownParser (F Blocks)
+atxHeader :: MarkdownParser Blocks
 atxHeader = try $ do
   level <- many1 (char '#') >>= return . length
   notFollowedBy $ guardEnabled Ext_fancy_lists >>
                   (char '.' <|> char ')') -- this would be a list
   skipSpaces
-  text <- trimInlinesF . mconcat <$> many (notFollowedBy atxClosing >> inline)
+  text <- trimInlines . mconcat <$> many (notFollowedBy atxClosing >> inline)
   attr <- atxClosing
-  attr' <- registerHeader attr (runF text defaultParserState)
-  return $ B.headerWith attr' level <$> text
+  attr' <- registerHeader attr text
+  return $ B.headerWith attr' level text
 
 atxClosing :: MarkdownParser Attr
 atxClosing = try $ do
@@ -519,25 +534,25 @@ mmdHeaderIdentifier = do
   skipSpaces
   return (ident,[],[])
 
-setextHeader :: MarkdownParser (F Blocks)
+setextHeader :: MarkdownParser Blocks
 setextHeader = try $ do
   -- This lookahead prevents us from wasting time parsing Inlines
   -- unless necessary -- it gives a significant performance boost.
   lookAhead $ anyLine >> many1 (oneOf setextHChars) >> blankline
-  text <- trimInlinesF . mconcat <$> many1 (notFollowedBy setextHeaderEnd >> inline)
+  text <- trimInlines . mconcat <$> many1 (notFollowedBy setextHeaderEnd >> inline)
   attr <- setextHeaderEnd
   underlineChar <- oneOf setextHChars
   many (char underlineChar)
   blanklines
   let level = (fromMaybe 0 $ findIndex (== underlineChar) setextHChars) + 1
-  attr' <- registerHeader attr (runF text defaultParserState)
-  return $ B.headerWith attr' level <$> text
+  attr' <- registerHeader attr text
+  return $ B.headerWith attr' level text
 
 --
 -- hrule block
 --
 
-hrule :: Parser [Char] st (F Blocks)
+hrule :: Monad m => ParserT [Char] st m Blocks
 hrule = try $ do
   skipSpaces
   start <- satisfy isHruleChar
@@ -545,7 +560,7 @@ hrule = try $ do
   skipMany (spaceChar <|> char start)
   newline
   optional blanklines
-  return $ return B.horizontalRule
+  return B.horizontalRule
 
 --
 -- code blocks
@@ -554,9 +569,10 @@ hrule = try $ do
 indentedLine :: MarkdownParser String
 indentedLine = indentSpaces >> anyLine >>= return . (++ "\n")
 
-blockDelimiter :: (Char -> Bool)
+blockDelimiter :: Monad m
+               => (Char -> Bool)
                -> Maybe Int
-               -> Parser [Char] st Int
+               -> ParserT [Char] st m Int
 blockDelimiter f len = try $ do
   c <- lookAhead (satisfy f)
   case len of
@@ -607,7 +623,7 @@ specialAttr = do
   char '-'
   return $ \(id',cs,kvs) -> (id',cs ++ ["unnumbered"],kvs)
 
-codeBlockFenced :: MarkdownParser (F Blocks)
+codeBlockFenced :: MarkdownParser Blocks
 codeBlockFenced = try $ do
   c <- try (guardEnabled Ext_fenced_code_blocks >> lookAhead (char '~'))
      <|> (guardEnabled Ext_backtick_code_blocks >> lookAhead (char '`'))
@@ -619,7 +635,7 @@ codeBlockFenced = try $ do
   blankline
   contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
   blanklines
-  return $ return $ B.codeBlockWith attr $ intercalate "\n" contents
+  return $ B.codeBlockWith attr $ intercalate "\n" contents
 
 -- correctly handle github language identifiers
 toLanguageId :: String -> String
@@ -628,7 +644,7 @@ toLanguageId = map toLower . go
         go "objective-c" = "objectivec"
         go x = x
 
-codeBlockIndented :: MarkdownParser (F Blocks)
+codeBlockIndented :: MarkdownParser (Blocks)
 codeBlockIndented = do
   contents <- many1 (indentedLine <|>
                      try (do b <- blanklines
@@ -636,15 +652,15 @@ codeBlockIndented = do
                              return $ b ++ l))
   optional blanklines
   classes <- getOption readerIndentedCodeClasses
-  return $ return $ B.codeBlockWith ("", classes, []) $
+  return $ B.codeBlockWith ("", classes, []) $
            stripTrailingNewlines $ concat contents
 
-lhsCodeBlock :: MarkdownParser (F Blocks)
+lhsCodeBlock :: MarkdownParser (Blocks)
 lhsCodeBlock = do
   guardEnabled Ext_literate_haskell
-  (return . B.codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
+  (B.codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
           (lhsCodeBlockBird <|> lhsCodeBlockLaTeX))
-    <|> (return . B.codeBlockWith ("",["sourceCode","haskell"],[]) <$>
+    <|> (B.codeBlockWith ("",["sourceCode","haskell"],[]) <$>
           lhsCodeBlockInverseBird)
 
 lhsCodeBlockLaTeX :: MarkdownParser String
@@ -673,7 +689,7 @@ lhsCodeBlockBirdWith c = try $ do
   blanklines
   return $ intercalate "\n" lns'
 
-birdTrackLine :: Char -> Parser [Char] st String
+birdTrackLine :: Monad m => Char -> ParserT [Char] st m String
 birdTrackLine c = try $ do
   char c
   -- allow html tags on left margin:
@@ -701,12 +717,12 @@ emailBlockQuote = try $ do
   optional blanklines
   return raw
 
-blockQuote :: MarkdownParser (F Blocks)
+blockQuote :: MarkdownParser (Blocks)
 blockQuote = do
   raw <- emailBlockQuote
   -- parse the extracted block, which may contain various block elements:
   contents <- parseFromString parseBlocks $ (intercalate "\n" raw) ++ "\n\n"
-  return $ B.blockQuote <$> contents
+  return $ B.blockQuote contents
 
 --
 -- list blocks
@@ -804,7 +820,7 @@ listContinuationLine = try $ do
   return $ result ++ "\n"
 
 listItem :: MarkdownParser a
-         -> MarkdownParser (F Blocks)
+         -> MarkdownParser (Blocks)
 listItem start = try $ do
   first <- rawListItem start
   continuations <- many listContinuation
@@ -820,14 +836,14 @@ listItem start = try $ do
   updateState (\st -> st {stateParserContext = oldContext})
   return contents
 
-orderedList :: MarkdownParser (F Blocks)
+orderedList :: MarkdownParser Blocks
 orderedList = try $ do
   (start, style, delim) <- lookAhead anyOrderedListStart
   unless (style `elem` [DefaultStyle, Decimal, Example] &&
           delim `elem` [DefaultDelim, Period]) $
     guardEnabled Ext_fancy_lists
   when (style == Example) $ guardEnabled Ext_example_lists
-  items <- fmap sequence $ many1 $ listItem
+  items <- many1 $ listItem
                  ( try $ do
                      optional newline -- if preceded by Plain block in a list
                      startpos <- sourceColumn <$> getPosition
@@ -839,12 +855,12 @@ orderedList = try $ do
                      atMostSpaces (tabStop - (endpos - startpos))
                      return res )
   start' <- option 1 $ guardEnabled Ext_startnum >> return start
-  return $ B.orderedListWith (start', style, delim) <$> fmap compactify' items
+  return $ B.orderedListWith (start', style, delim) (compactify' items)
 
-bulletList :: MarkdownParser (F Blocks)
+bulletList :: MarkdownParser (Blocks)
 bulletList = do
-  items <- fmap sequence $ many1 $ listItem  bulletListStart
-  return $ B.bulletList <$> fmap compactify' items
+  items <- many1 $ listItem  bulletListStart
+  return $ B.bulletList (compactify' items)
 
 -- definition lists
 
@@ -859,14 +875,14 @@ defListMarker = do
      else mzero
   return ()
 
-definitionListItem :: Bool -> MarkdownParser (F (Inlines, [Blocks]))
+definitionListItem :: Bool -> MarkdownParser (Inlines, [Blocks])
 definitionListItem compact = try $ do
   rawLine' <- anyLine
   raw <- many1 $ defRawBlock compact
-  term <- parseFromString (trimInlinesF . mconcat <$> many inline) rawLine'
+  term <- parseFromString (trimInlines . mconcat <$> many inline) rawLine'
   contents <- mapM (parseFromString parseBlocks) raw
   optional blanklines
-  return $ liftM2 (,) term (sequence contents)
+  return $ (term, contents)
 
 defRawBlock :: Bool -> MarkdownParser String
 defRawBlock compact = try $ do
@@ -889,32 +905,32 @@ defRawBlock compact = try $ do
   return $ trimr (firstline ++ "\n" ++ unlines rawlines ++ cont) ++
             if hasBlank || not (null cont) then "\n\n" else ""
 
-definitionList :: MarkdownParser (F Blocks)
+definitionList :: MarkdownParser (Blocks)
 definitionList = try $ do
   lookAhead (anyLine >> optional blankline >> defListMarker)
   compactDefinitionList <|> normalDefinitionList
 
-compactDefinitionList :: MarkdownParser (F Blocks)
+compactDefinitionList :: MarkdownParser (Blocks)
 compactDefinitionList = do
   guardEnabled Ext_compact_definition_lists
-  items <- fmap sequence $ many1 $ definitionListItem True
-  return $ B.definitionList <$> fmap compactify'DL items
+  items <-  many1 $ definitionListItem True
+  return $ B.definitionList (compactify'DL items)
 
-normalDefinitionList :: MarkdownParser (F Blocks)
+normalDefinitionList :: MarkdownParser (Blocks)
 normalDefinitionList = do
   guardEnabled Ext_definition_lists
-  items <- fmap sequence $ many1 $ definitionListItem False
-  return $ B.definitionList <$> items
+  items <-  many1 $ definitionListItem False
+  return $ B.definitionList items
 
 --
 -- paragraph block
 --
 
-para :: MarkdownParser (F Blocks)
+para :: MarkdownParser Blocks
 para = try $ do
   exts <- getOption readerExtensions
-  result <- trimInlinesF . mconcat <$> many1 inline
-  option (B.plain <$> result)
+  result <- trimInlines . mconcat <$> many1 inline
+  option (B.plain result)
     $ try $ do
             newline
             (blanklines >> return mempty)
@@ -932,17 +948,16 @@ para = try $ do
                                        lookAhead (htmlTag (~== TagClose "div"))
                           _          -> mzero
             return $ do
-              result' <- result
-              case B.toList result' of
+              case B.toList result of
                    [Image alt (src,tit)]
                      | Ext_implicit_figures `Set.member` exts ->
                         -- the fig: at beginning of title indicates a figure
-                        return $ B.para $ B.singleton
+                        B.para $ B.singleton
                                $ Image alt (src,'f':'i':'g':':':tit)
-                   _ -> return $ B.para result'
+                   _ -> B.para result
 
-plain :: MarkdownParser (F Blocks)
-plain = fmap B.plain . trimInlinesF . mconcat <$> many1 inline
+plain :: MarkdownParser (Blocks)
+plain = B.plain . trimInlines . mconcat <$> many1 inline
 
 --
 -- raw html
@@ -953,13 +968,13 @@ htmlElement = rawVerbatimBlock
           <|> strictHtmlBlock
           <|> liftM snd (htmlTag isBlockTag)
 
-htmlBlock :: MarkdownParser (F Blocks)
+htmlBlock :: MarkdownParser (Blocks)
 htmlBlock = do
   guardEnabled Ext_raw_html
   try (do
       (TagOpen t attrs) <- lookAhead $ fst <$> htmlTag isBlockTag
       (guard (t `elem` ["pre","style","script"]) >>
-          (return . B.rawBlock "html") <$> rawVerbatimBlock)
+          (B.rawBlock "html") <$> rawVerbatimBlock)
         <|> (do guardEnabled Ext_markdown_attribute
                 oldMarkdownAttribute <- stateMarkdownAttribute <$> getState
                 markdownAttribute <-
@@ -978,12 +993,12 @@ htmlBlock = do
         <|> (guardEnabled Ext_markdown_in_html_blocks >> rawHtmlBlocks))
     <|> htmlBlock'
 
-htmlBlock' :: MarkdownParser (F Blocks)
+htmlBlock' :: MarkdownParser (Blocks)
 htmlBlock' = try $ do
     first <- htmlElement
     skipMany spaceChar
     optional blanklines
-    return $ return $ B.rawBlock "html" first
+    return $ B.rawBlock "html" first
 
 strictHtmlBlock :: MarkdownParser String
 strictHtmlBlock = htmlInBalanced (not . isInlineTag)
@@ -996,17 +1011,17 @@ rawVerbatimBlock = try $ do
   contents <- manyTill anyChar (htmlTag (~== TagClose tag))
   return $ open ++ contents ++ renderTags' [TagClose tag]
 
-rawTeXBlock :: MarkdownParser (F Blocks)
+rawTeXBlock :: MarkdownParser (Blocks)
 rawTeXBlock = do
   guardEnabled Ext_raw_tex
   result <- (B.rawBlock "latex" . concat <$>
-                  rawLaTeXBlock `sepEndBy1` blankline)
+                  (generalize rawLaTeXBlock) `sepEndBy1` blankline)
         <|> (B.rawBlock "context" . concat <$>
                   rawConTeXtEnvironment `sepEndBy1` blankline)
   spaces
-  return $ return result
+  return result
 
-rawHtmlBlocks :: MarkdownParser (F Blocks)
+rawHtmlBlocks :: MarkdownParser (Blocks)
 rawHtmlBlocks = do
   (TagOpen tagtype _, raw) <- htmlTag isBlockTag
   -- try to find closing tag
@@ -1018,10 +1033,10 @@ rawHtmlBlocks = do
   contents <- mconcat <$> many (notFollowedBy' closer >> block)
   result <-
     (closer >>= \(_, rawcloser) -> return (
-                return (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
+                (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
                 contents <>
-                return (B.rawBlock "html" rawcloser)))
-      <|> return (return (B.rawBlock "html" raw) <> contents)
+                (B.rawBlock "html" rawcloser)))
+      <|> return ((B.rawBlock "html" raw) <> contents)
   updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
   return result
 
@@ -1036,12 +1051,12 @@ stripMarkdownAttribute s = renderTags' $ map filterAttrib $ parseTags s
 -- line block
 --
 
-lineBlock :: MarkdownParser (F Blocks)
+lineBlock :: MarkdownParser (Blocks)
 lineBlock = try $ do
   guardEnabled Ext_line_blocks
   lines' <- lineBlockLines >>=
-            mapM (parseFromString (trimInlinesF . mconcat <$> many inline))
-  return $ B.para <$> (mconcat $ intersperse (return B.linebreak) lines')
+            mapM (parseFromString (trimInlines . mconcat <$> many inline))
+  return $ B.para (mconcat $ intersperse B.linebreak lines')
 
 --
 -- Tables
@@ -1049,8 +1064,8 @@ lineBlock = try $ do
 
 -- Parse a dashed line with optional trailing spaces; return its length
 -- and the length including trailing space.
-dashedLine :: Char
-           -> Parser [Char] st (Int, Int)
+dashedLine :: Monad m => Char
+           -> ParserT [Char] st m (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many spaceChar
@@ -1059,7 +1074,7 @@ dashedLine ch = do
 -- Parse a table header with dashed lines of '-' preceded by
 -- one (or zero) line of text.
 simpleTableHeader :: Bool  -- ^ Headerless table
-                  -> MarkdownParser (F [Blocks], [Alignment], [Int])
+                  -> MarkdownParser ([Blocks], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   rawContent  <- if headless
                     then return ""
@@ -1078,8 +1093,8 @@ simpleTableHeader headless = try $ do
   let rawHeads' = if headless
                      then replicate (length dashes) ""
                      else rawHeads
-  heads <- fmap sequence
-           $ mapM (parseFromString (mconcat <$> many plain))
+  heads <-
+           mapM (parseFromString (mconcat <$> many plain))
            $ map trim rawHeads'
   return (heads, aligns, indices)
 
@@ -1121,30 +1136,30 @@ rawTableLine indices = do
 
 -- Parse a table line and return a list of lists of blocks (columns).
 tableLine :: [Int]
-          -> MarkdownParser (F [Blocks])
+          -> MarkdownParser [Blocks]
 tableLine indices = rawTableLine indices >>=
-  fmap sequence . mapM (parseFromString (mconcat <$> many plain))
+   mapM (parseFromString (mconcat <$> many plain))
 
 -- Parse a multiline table row and return a list of blocks (columns).
 multilineRow :: [Int]
-             -> MarkdownParser (F [Blocks])
+             -> MarkdownParser [Blocks]
 multilineRow indices = do
   colLines <- many1 (rawTableLine indices)
   let cols = map unlines $ transpose colLines
-  fmap sequence $ mapM (parseFromString (mconcat <$> many plain)) cols
+  mapM (parseFromString (mconcat <$> many plain)) cols
 
 -- Parses a table caption:  inlines beginning with 'Table:'
 -- and followed by blank lines.
-tableCaption :: MarkdownParser (F Inlines)
+tableCaption :: MarkdownParser Inlines
 tableCaption = try $ do
   guardEnabled Ext_table_captions
   skipNonindentSpaces
   string ":" <|> string "Table:"
-  trimInlinesF . mconcat <$> many1 inline <* blanklines
+  trimInlines . mconcat <$> many1 inline <* blanklines
 
 -- Parse a simple table with '---' header and one line per row.
 simpleTable :: Bool  -- ^ Headerless table
-            -> MarkdownParser ([Alignment], [Double], F [Blocks], F [[Blocks]])
+            -> MarkdownParser ([Alignment], [Double], [Blocks], [[Blocks]])
 simpleTable headless = do
   (aligns, _widths, heads', lines') <-
        tableWith (simpleTableHeader headless) tableLine
@@ -1158,12 +1173,12 @@ simpleTable headless = do
 -- which may be multiline, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
 multilineTable :: Bool -- ^ Headerless table
-               -> MarkdownParser ([Alignment], [Double], F [Blocks], F [[Blocks]])
+               -> MarkdownParser ([Alignment], [Double], [Blocks], [[Blocks]])
 multilineTable headless =
   tableWith (multilineTableHeader headless) multilineRow blanklines tableFooter
 
 multilineTableHeader :: Bool -- ^ Headerless table
-                     -> MarkdownParser (F [Blocks], [Alignment], [Int])
+                     -> MarkdownParser ([Blocks], [Alignment], [Int])
 multilineTableHeader headless = try $ do
   unless headless $
      tableSep >> notFollowedBy blankline
@@ -1185,7 +1200,7 @@ multilineTableHeader headless = try $ do
   let rawHeads = if headless
                     then replicate (length dashes) ""
                     else map (unlines . map trim) rawHeadsList
-  heads <- fmap sequence $
+  heads <-
            mapM (parseFromString (mconcat <$> many plain)) $
              map trim rawHeads
   return (heads, aligns, indices)
@@ -1195,7 +1210,7 @@ multilineTableHeader headless = try $ do
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
 gridTable :: Bool -- ^ Headerless table
-          -> MarkdownParser ([Alignment], [Double], F [Blocks], F [[Blocks]])
+          -> MarkdownParser ([Alignment], [Double], [Blocks], [[Blocks]])
 gridTable headless =
   tableWith (gridTableHeader headless) gridTableRow
             (gridTableSep '-') gridTableFooter
@@ -1204,13 +1219,13 @@ gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
   splitStringByIndices (init indices) $ trimr line
 
-gridPart :: Char -> Parser [Char] st (Int, Int)
+gridPart :: Monad m => Char -> ParserT [Char] st m (Int, Int)
 gridPart ch = do
   dashes <- many1 (char ch)
   char '+'
   return (length dashes, length dashes + 1)
 
-gridDashedLines :: Char -> Parser [Char] st [(Int,Int)]
+gridDashedLines :: Monad m => Char -> ParserT [Char] st m [(Int,Int)]
 gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
 
 removeFinalBar :: String -> String
@@ -1223,7 +1238,7 @@ gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
 gridTableHeader :: Bool -- ^ Headerless table
-                -> MarkdownParser (F [Blocks], [Alignment], [Int])
+                -> MarkdownParser ([Blocks], [Alignment], [Int])
 gridTableHeader headless = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
@@ -1243,7 +1258,7 @@ gridTableHeader headless = try $ do
                     then replicate (length dashes) ""
                     else map (unlines . map trim) $ transpose
                        $ map (gridTableSplitLine indices) rawContent
-  heads <- fmap sequence $ mapM (parseFromString parseBlocks . trim) rawHeads
+  heads <-  mapM (parseFromString parseBlocks . trim) rawHeads
   return (heads, aligns, indices)
 
 gridTableRawLine :: [Int] -> MarkdownParser [String]
@@ -1254,12 +1269,12 @@ gridTableRawLine indices = do
 
 -- | Parse row of grid table.
 gridTableRow :: [Int]
-             -> MarkdownParser (F [Blocks])
+             -> MarkdownParser [Blocks]
 gridTableRow indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
                transpose colLines
-  fmap compactify' <$> fmap sequence (mapM (parseFromString parseBlocks) cols)
+  compactify' <$>  (mapM (parseFromString parseBlocks) cols)
 
 removeOneLeadingSpace :: [String] -> [String]
 removeOneLeadingSpace xs =
@@ -1285,11 +1300,9 @@ pipeBreak = try $ do
   blankline
   return (first:rest)
 
-pipeTable :: MarkdownParser ([Alignment], [Double], F [Blocks], F [[Blocks]])
+pipeTable :: MarkdownParser ([Alignment], [Double], [Blocks], [[Blocks]])
 pipeTable = try $ do
-  (heads,aligns) <- pipeTableRow >>= \row ->
-                    pipeBreak >>= \als ->
-                    return (row, als)
+  (heads,aligns) <- (,) <$> pipeTableRow <*> pipeBreak
   lines' <- sequence <$> many1 pipeTableRow
   let widths = replicate (length aligns) 0.0
   return $ (aligns, widths, heads, lines')
@@ -1300,7 +1313,7 @@ sepPipe = try $ do
   notFollowedBy blankline
 
 -- parse a row, also returning probable alignments for org-table cells
-pipeTableRow :: MarkdownParser (F [Blocks])
+pipeTableRow :: MarkdownParser [Blocks]
 pipeTableRow = do
   nonindentSpaces
   openPipe <- (True <$ char '|') <|> return False
@@ -1312,16 +1325,14 @@ pipeTableRow = do
   guard $ not (null rest && not openPipe)
   optional (char '|')
   blankline
-  let cells  = sequence (first:rest)
-  return $ do
-    cells' <- cells
-    return $ map
-        (\ils ->
+  let cells  = first:rest
+  return $
+    map (\ils ->
            case trimInlines ils of
                  ils' | B.isNull ils' -> mempty
-                      | otherwise   -> B.plain $ ils') cells'
+                      | otherwise   -> B.plain $ ils') cells
 
-pipeTableHeaderPart :: Parser [Char] st Alignment
+pipeTableHeaderPart :: Monad m => ParserT [Char] st m Alignment
 pipeTableHeaderPart = try $ do
   skipMany spaceChar
   left <- optionMaybe (char ':')
@@ -1336,7 +1347,7 @@ pipeTableHeaderPart = try $ do
       (Just _,Just _)   -> AlignCenter
 
 -- Succeed only if current line contains a pipe.
-scanForPipe :: Parser [Char] st ()
+scanForPipe :: Monad m => ParserT [Char] st m ()
 scanForPipe = do
   inp <- getInput
   case break (\c -> c == '\n' || c == '|') inp of
@@ -1346,14 +1357,14 @@ scanForPipe = do
 -- | Parse a table using 'headerParser', 'rowParser',
 -- 'lineParser', and 'footerParser'.  Variant of the version in
 -- Text.Pandoc.Parsing.
-tableWith :: MarkdownParser (F [Blocks], [Alignment], [Int])
-          -> ([Int] -> MarkdownParser (F [Blocks]))
+tableWith :: MarkdownParser ([Blocks], [Alignment], [Int])
+          -> ([Int] -> MarkdownParser [Blocks])
           -> MarkdownParser sep
           -> MarkdownParser end
-          -> MarkdownParser ([Alignment], [Double], F [Blocks], F [[Blocks]])
+          -> MarkdownParser ([Alignment], [Double], [Blocks], [[Blocks]])
 tableWith headerParser rowParser lineParser footerParser = try $ do
     (heads, aligns, indices) <- headerParser
-    lines' <- fmap sequence $ rowParser indices `sepEndBy1` lineParser
+    lines' <-  rowParser indices `sepEndBy1` lineParser
     footerParser
     numColumns <- getOption readerColumns
     let widths = if (indices == [])
@@ -1361,7 +1372,7 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
                     else widthsFromIndices numColumns indices
     return $ (aligns, widths, heads, lines')
 
-table :: MarkdownParser (F Blocks)
+table :: MarkdownParser Blocks
 table = try $ do
   frontCaption <- option Nothing (Just <$> tableCaption)
   (aligns, widths, heads, lns) <-
@@ -1376,19 +1387,15 @@ table = try $ do
                 (gridTable False <|> gridTable True)) <?> "table"
   optional blanklines
   caption <- case frontCaption of
-                  Nothing  -> option (return mempty) tableCaption
+                  Nothing  -> option mempty tableCaption
                   Just c   -> return c
-  return $ do
-    caption' <- caption
-    heads' <- heads
-    lns' <- lns
-    return $ B.table caption' (zip aligns widths) heads' lns'
+  return $ B.table caption (zip aligns widths) heads lns
 
 --
 -- inline
 --
 
-inline :: MarkdownParser (F Inlines)
+inline :: MarkdownParser Inlines
 inline = choice [ whitespace
                 , bareURL
                 , str
@@ -1411,7 +1418,7 @@ inline = choice [ whitespace
                 , rawLaTeXInline'
                 , exampleRef
                 , smart
-                , return . B.singleton <$> charRef
+                , B.singleton <$> charRef
                 , symbol
                 , ltSign
                 ] <?> "inline"
@@ -1422,43 +1429,42 @@ escapedChar' = try $ do
   (guardEnabled Ext_all_symbols_escapable >> satisfy (not . isAlphaNum))
      <|> oneOf "\\`*_{}[]()>#+-.!~\""
 
-escapedChar :: MarkdownParser (F Inlines)
+escapedChar :: MarkdownParser Inlines
 escapedChar = do
   result <- escapedChar'
   case result of
-       ' '   -> return $ return $ B.str "\160" -- "\ " is a nonbreaking space
+       ' '   -> return $ B.str "\160" -- "\ " is a nonbreaking space
        '\n'  -> guardEnabled Ext_escaped_line_breaks >>
-                return (return B.linebreak)  -- "\[newline]" is a linebreak
-       _     -> return $ return $ B.str [result]
+                return B.linebreak  -- "\[newline]" is a linebreak
+       _     -> return $ B.str [result]
 
-ltSign :: MarkdownParser (F Inlines)
+ltSign :: MarkdownParser Inlines
 ltSign = do
   guardDisabled Ext_raw_html
     <|> (notFollowedByHtmlCloser >> notFollowedBy' (htmlTag isBlockTag))
   char '<'
-  return $ return $ B.str "<"
+  return $ B.str "<"
 
-exampleRef :: MarkdownParser (F Inlines)
+exampleRef :: MarkdownParser Inlines
 exampleRef = try $ do
   guardEnabled Ext_example_lists
   char '@'
   lab <- many1 (alphaNum <|> oneOf "-_")
-  return $ do
-    st <- askF
-    return $ case M.lookup lab (stateExamples st) of
-                  Just n    -> B.str (show n)
-                  Nothing   -> B.str ('@':lab)
+  st <- ask
+  return $ case M.lookup lab (stateExamples st) of
+                Just n    -> B.str (show n)
+                Nothing   -> B.str ('@':lab)
 
-symbol :: MarkdownParser (F Inlines)
+symbol :: MarkdownParser Inlines
 symbol = do
   result <- noneOf "<\\\n\t "
          <|> try (do lookAhead $ char '\\'
                      notFollowedBy' (() <$ rawTeXBlock)
                      char '\\')
-  return $ return $ B.str [result]
+  return $ B.str [result]
 
 -- parses inline code, between n `s and n `s
-code :: MarkdownParser (F Inlines)
+code :: MarkdownParser Inlines
 code = try $ do
   starts <- many1 (char '`')
   skipSpaces
@@ -1468,16 +1474,16 @@ code = try $ do
                       notFollowedBy (char '`')))
   attr <- option ([],[],[]) (try $ guardEnabled Ext_inline_code_attributes >>
                                    optional whitespace >> attributes)
-  return $ return $ B.codeWith attr $ trim $ concat result
+  return $ B.codeWith attr $ trim $ concat result
 
-math :: MarkdownParser (F Inlines)
-math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
-     <|> (return . B.math <$> (mathInline >>= applyMacros'))
+math :: MarkdownParser Inlines
+math =  (B.displayMath <$> (mathDisplay >>= applyMacros'))
+     <|> (B.math <$> (mathInline >>= applyMacros'))
 
 -- Parses material enclosed in *s, **s, _s, or __s.
 -- Designed to avoid backtracking.
 enclosure :: Char
-          -> MarkdownParser (F Inlines)
+          -> MarkdownParser Inlines
 enclosure c = do
   -- we can't start an enclosure with _ if after a string and
   -- the intraword_underscores extension is enabled:
@@ -1485,13 +1491,13 @@ enclosure c = do
     <|> guard (c == '*')
     <|> (guard =<< notAfterString)
   cs <- many1 (char c)
-  (return (B.str cs) <>) <$> whitespace
+  ((B.str cs) <>) <$> whitespace
     <|> do
         case length cs of
              3  -> three c
              2  -> two   c mempty
              1  -> one   c mempty
-             _  -> return (return $ B.str cs)
+             _  -> return $ B.str cs
 
 ender :: Char -> Int -> MarkdownParser ()
 ender c n = try $ do
@@ -1504,74 +1510,74 @@ ender c n = try $ do
 -- If one c, emit emph and then parse two.
 -- If two cs, emit strong and then parse one.
 -- Otherwise, emit ccc then the results.
-three :: Char -> MarkdownParser (F Inlines)
+three :: Char -> MarkdownParser Inlines
 three c = do
   contents <- mconcat <$> many (notFollowedBy (ender c 1) >> inline)
-  (ender c 3 >> return ((B.strong . B.emph) <$> contents))
-    <|> (ender c 2 >> one c (B.strong <$> contents))
-    <|> (ender c 1 >> two c (B.emph <$> contents))
-    <|> return (return (B.str [c,c,c]) <> contents)
+  (ender c 3 >> return ((B.strong . B.emph) contents))
+    <|> (ender c 2 >> one c (B.strong contents))
+    <|> (ender c 1 >> two c (B.emph contents))
+    <|> return ((B.str [c,c,c]) <> contents)
 
 -- Parse inlines til you hit two c's, and emit strong.
 -- If you never do hit two cs, emit ** plus inlines parsed.
-two :: Char -> F Inlines -> MarkdownParser (F Inlines)
+two :: Char -> Inlines -> MarkdownParser Inlines
 two c prefix' = do
   contents <- mconcat <$> many (try $ notFollowedBy (ender c 2) >> inline)
-  (ender c 2 >> return (B.strong <$> (prefix' <> contents)))
-    <|> return (return (B.str [c,c]) <> (prefix' <> contents))
+  (ender c 2 >> return (B.strong (prefix' <> contents)))
+    <|> return ((B.str [c,c]) <> (prefix' <> contents))
 
 -- Parse inlines til you hit a c, and emit emph.
 -- If you never hit a c, emit * plus inlines parsed.
-one :: Char -> F Inlines -> MarkdownParser (F Inlines)
+one :: Char -> Inlines -> MarkdownParser Inlines
 one c prefix' = do
   contents <- mconcat <$> many (  (notFollowedBy (ender c 1) >> inline)
                            <|> try (string [c,c] >>
                                     notFollowedBy (ender c 1) >>
                                     two c mempty) )
-  (ender c 1 >> return (B.emph <$> (prefix' <> contents)))
-    <|> return (return (B.str [c]) <> (prefix' <> contents))
+  (ender c 1 >> return (B.emph (prefix' <> contents)))
+    <|> return ((B.str [c]) <> (prefix' <> contents))
 
-strongOrEmph :: MarkdownParser (F Inlines)
+strongOrEmph :: MarkdownParser Inlines
 strongOrEmph =  enclosure '*' <|> enclosure '_'
 
--- | Parses a list of inlines between start and end delimiters.
+-- | Parses a list oInlines between start and end delimiters.
 inlinesBetween :: (Show b)
                => MarkdownParser a
                -> MarkdownParser b
-               -> MarkdownParser (F Inlines)
+               -> MarkdownParser Inlines
 inlinesBetween start end =
-  (trimInlinesF . mconcat) <$> try (start >> many1Till inner end)
+  (trimInlines . mconcat) <$> try (start >> many1Till inner end)
     where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)
           innerSpace = try $ whitespace <* notFollowedBy' end
 
-strikeout :: MarkdownParser (F Inlines)
-strikeout = fmap B.strikeout <$>
+strikeout :: MarkdownParser Inlines
+strikeout = B.strikeout <$>
  (guardEnabled Ext_strikeout >> inlinesBetween strikeStart strikeEnd)
     where strikeStart = string "~~" >> lookAhead nonspaceChar
                         >> notFollowedBy (char '~')
           strikeEnd   = try $ string "~~"
 
-superscript :: MarkdownParser (F Inlines)
-superscript = fmap B.superscript <$> try (do
+superscript :: MarkdownParser Inlines
+superscript = B.superscript <$> try (do
   guardEnabled Ext_superscript
   char '^'
   mconcat <$> many1Till (notFollowedBy spaceChar >> inline) (char '^'))
 
-subscript :: MarkdownParser (F Inlines)
-subscript = fmap B.subscript <$> try (do
+subscript :: MarkdownParser Inlines
+subscript = B.subscript <$> try (do
   guardEnabled Ext_subscript
   char '~'
   mconcat <$> many1Till (notFollowedBy spaceChar >> inline) (char '~'))
 
-whitespace :: MarkdownParser (F Inlines)
-whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"
+whitespace :: MarkdownParser Inlines
+whitespace = spaceChar >> (lb <|> regsp) <?> "whitespace"
   where lb = spaceChar >> skipMany spaceChar >> option B.space (endline >> return B.linebreak)
         regsp = skipMany spaceChar >> return B.space
 
-nonEndline :: Parser [Char] st Char
+nonEndline :: Monad m => ParserT [Char] st m Char
 nonEndline = satisfy (/='\n')
 
-str :: MarkdownParser (F Inlines)
+str :: MarkdownParser Inlines
 str = do
   result <- many1 alphaNum
   updateLastStrPos
@@ -1579,14 +1585,14 @@ str = do
   isSmart <- getOption readerSmart
   if isSmart
      then case likelyAbbrev result of
-               []        -> return $ return $ B.str result
+               []        -> return $ B.str result
                xs        -> choice (map (\x ->
                                try (string x >> oneOf " \n" >>
                                     lookAhead alphaNum >>
-                                    return (return $ B.str
+                                    return (B.str
                                                   $ result ++ spacesToNbr x ++ "\160"))) xs)
-                           <|> (return $ return $ B.str result)
-     else return $ return $ B.str result
+                           <|> (return $ B.str result)
+     else return $ B.str result
 
 -- | if the string matches the beginning of an abbreviation (before
 -- the first period, return strings that would finish the abbreviation.
@@ -1601,7 +1607,7 @@ likelyAbbrev x =
   in  map snd $ filter (\(y,_) -> y == x) abbrPairs
 
 -- an endline character that can be treated as a space, not a structural break
-endline :: MarkdownParser (F Inlines)
+endline :: MarkdownParser Inlines
 endline = try $ do
   newline
   notFollowedBy blankline
@@ -1614,18 +1620,18 @@ endline = try $ do
      notFollowedBy (() <$ (lookAhead (char '`') >> codeBlockFenced))
   notFollowedByHtmlCloser
   (eof >> return mempty)
-    <|> (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
+    <|> (guardEnabled Ext_hard_line_breaks >> return B.linebreak)
     <|> (guardEnabled Ext_ignore_line_breaks >> return mempty)
-    <|> (return $ return B.space)
+    <|> (return B.space)
 
 --
 -- links
 --
 
 -- a reference label for a link
-reference :: MarkdownParser (F Inlines, String)
+reference :: MarkdownParser (Inlines, String)
 reference = do notFollowedBy' (string "[^")   -- footnote reference
-               withRaw $ trimInlinesF <$> inlinesInBalancedBrackets
+               withRaw $ trimInlines <$> inlinesInBalancedBrackets
 
 parenthesizedChars :: MarkdownParser [Char]
 parenthesizedChars = do
@@ -1653,7 +1659,7 @@ source = do
 linkTitle :: MarkdownParser String
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
 
-link :: MarkdownParser (F Inlines)
+link :: MarkdownParser Inlines
 link = try $ do
   st <- getState
   guard $ stateAllowLinks st
@@ -1663,14 +1669,14 @@ link = try $ do
   regLink B.link lab <|> referenceLink B.link (lab,raw)
 
 regLink :: (String -> String -> Inlines -> Inlines)
-        -> F Inlines -> MarkdownParser (F Inlines)
+        -> Inlines -> MarkdownParser Inlines
 regLink constructor lab = try $ do
   (src, tit) <- source
-  return $ constructor src tit <$> lab
+  return $ constructor src tit lab
 
 -- a link like [this][ref] or [this][] or [this]
 referenceLink :: (String -> String -> Inlines -> Inlines)
-              -> (F Inlines, String) -> MarkdownParser (F Inlines)
+              -> (Inlines, String) -> MarkdownParser Inlines
 referenceLink constructor (lab, raw) = do
   sp <- (True <$ lookAhead (char ' ')) <|> return False
   (ref,raw') <- option (mempty, "") $
@@ -1684,24 +1690,22 @@ referenceLink constructor (lab, raw) = do
   fallback <- parseFromString (mconcat <$> many inline) $ dropBrackets raw
   implicitHeaderRefs <- option False $
                          True <$ guardEnabled Ext_implicit_header_references
-  let makeFallback = do
-       parsedRaw' <- parsedRaw
-       fallback' <- fallback
-       return $ B.str "[" <> fallback' <> B.str "]" <>
+  let makeFallback =
+                B.str "[" <> fallback <> B.str "]" <>
                 (if sp && not (null raw) then B.space else mempty) <>
-                parsedRaw'
-  return $ do
-    keys <- asksF stateKeys
-    case M.lookup key keys of
-       Nothing        -> do
-         headers <- asksF stateHeaders
-         ref' <- if labIsRef then lab else ref
-         if implicitHeaderRefs
-            then case M.lookup ref' headers of
-                   Just ident -> constructor ('#':ident) "" <$> lab
-                   Nothing    -> makeFallback
-            else makeFallback
-       Just (src,tit) -> constructor src tit <$> lab
+                parsedRaw
+  keys <- asks stateKeys
+  headers <- asks stateHeaders
+  return $
+     case M.lookup key keys of
+     Nothing        ->
+       let ref' = if labIsRef then lab else ref in
+       if implicitHeaderRefs
+          then case M.lookup ref' headers of
+                 Just ident -> constructor ('#':ident) "" lab
+                 Nothing    -> makeFallback
+          else makeFallback
+     Just (src,tit) -> constructor src tit lab
 
 dropBrackets :: String -> String
 dropBrackets = reverse . dropRB . reverse . dropLB
@@ -1710,14 +1714,14 @@ dropBrackets = reverse . dropRB . reverse . dropLB
         dropLB ('[':xs) = xs
         dropLB xs = xs
 
-bareURL :: MarkdownParser (F Inlines)
+bareURL :: MarkdownParser Inlines
 bareURL = try $ do
   guardEnabled Ext_autolink_bare_uris
   (orig, src) <- uri <|> emailAddress
   notFollowedBy $ try $ spaces >> htmlTag (~== TagClose "a")
-  return $ return $ B.link src "" (B.str orig)
+  return $ B.link src "" (B.str orig)
 
-autoLink :: MarkdownParser (F Inlines)
+autoLink :: MarkdownParser Inlines
 autoLink = try $ do
   char '<'
   (orig, src) <- uri <|> emailAddress
@@ -1726,9 +1730,9 @@ autoLink = try $ do
   -- final punctuation.  for example:  in `<http://hi---there>`,
   -- the URI parser will stop before the dashes.
   extra <- fromEntities <$> manyTill nonspaceChar (char '>')
-  return $ return $ B.link (src ++ escapeURI extra) "" (B.str $ orig ++ extra)
+  return $ B.link (src ++ escapeURI extra) "" (B.str $ orig ++ extra)
 
-image :: MarkdownParser (F Inlines)
+image :: MarkdownParser Inlines
 image = try $ do
   char '!'
   (lab,raw) <- reference
@@ -1738,38 +1742,33 @@ image = try $ do
                               _  -> B.image src
   regLink constructor lab <|> referenceLink constructor (lab,raw)
 
-note :: MarkdownParser (F Inlines)
+note :: MarkdownParser Inlines
 note = try $ do
   guardEnabled Ext_footnotes
+  (stateInFootnote <$> getState) >>= guard . not
   ref <- noteMarker
-  return $ do
-    notes <- asksF stateNotes'
+  notes <- asks stateNotes'
+  return $
     case lookup ref notes of
-        Nothing       -> return $ B.str $ "[^" ++ ref ++ "]"
-        Just contents -> do
-          st <- askF
-          -- process the note in a context that doesn't resolve
-          -- notes, to avoid infinite looping with notes inside
-          -- notes:
-          let contents' = runF contents st{ stateNotes' = [] }
-          return $ B.note contents'
+        Nothing       -> B.str $ "[^" ++ ref ++ "]"
+        Just contents -> B.note contents
 
-inlineNote :: MarkdownParser (F Inlines)
+inlineNote :: MarkdownParser Inlines
 inlineNote = try $ do
   guardEnabled Ext_inline_notes
   char '^'
   contents <- inlinesInBalancedBrackets
-  return $ B.note . B.para <$> contents
+  return . B.note . B.para $ contents
 
-rawLaTeXInline' :: MarkdownParser (F Inlines)
+rawLaTeXInline' :: MarkdownParser Inlines
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
   lookAhead $ char '\\' >> notFollowedBy' (string "start") -- context env
-  RawInline _ s <- rawLaTeXInline
-  return $ return $ B.rawInline "tex" s
+  RawInline _ s <- generalize rawLaTeXInline
+  return $ B.rawInline "tex" s
   -- "tex" because it might be context or latex
 
-rawConTeXtEnvironment :: Parser [Char] st String
+rawConTeXtEnvironment :: Monad m => ParserT [Char] st m String
 rawConTeXtEnvironment = try $ do
   string "\\start"
   completion <- inBrackets (letter <|> digit <|> spaceChar)
@@ -1778,14 +1777,14 @@ rawConTeXtEnvironment = try $ do
                        (try $ string "\\stop" >> string completion)
   return $ "\\start" ++ completion ++ concat contents ++ "\\stop" ++ completion
 
-inBrackets :: (Parser [Char] st Char) -> Parser [Char] st String
+inBrackets :: Monad m => (ParserT [Char] st m Char) -> ParserT [Char] st m String
 inBrackets parser = do
   char '['
   contents <- many parser
   char ']'
   return $ "[" ++ contents ++ "]"
 
-spanHtml :: MarkdownParser (F Inlines)
+spanHtml :: MarkdownParser Inlines
 spanHtml = try $ do
   guardEnabled Ext_native_spans
   (TagOpen _ attrs, _) <- htmlTag (~== TagOpen "span" [])
@@ -1797,10 +1796,10 @@ spanHtml = try $ do
        Just s | null ident && null classes &&
             map toLower (filter (`notElem` " \t;") s) ==
                  "font-variant:small-caps"
-         -> return $ B.smallcaps <$> contents
-       _ -> return $ B.spanWith (ident, classes, keyvals) <$> contents
+         -> return $ B.smallcaps contents
+       _ -> return $ B.spanWith (ident, classes, keyvals) contents
 
-divHtml :: MarkdownParser (F Blocks)
+divHtml :: MarkdownParser Blocks
 divHtml = try $ do
   guardEnabled Ext_native_divs
   (TagOpen _ attrs, rawtag) <- htmlTag (~== TagOpen "div" [])
@@ -1818,11 +1817,11 @@ divHtml = try $ do
        let ident = fromMaybe "" $ lookup "id" attrs
        let classes = maybe [] words $ lookup "class" attrs
        let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
-       return $ B.divWith (ident, classes, keyvals) <$> contents
+       return $ B.divWith (ident, classes, keyvals) contents
      else -- avoid backtracing
-       return $ return (B.rawBlock "html" (rawtag <> bls)) <> contents
+       return $ (B.rawBlock "html" (rawtag <> bls)) <> contents
 
-rawHtmlInline :: MarkdownParser (F Inlines)
+rawHtmlInline :: MarkdownParser Inlines
 rawHtmlInline = do
   guardEnabled Ext_raw_html
   inHtmlBlock <- stateInHtmlBlock <$> getState
@@ -1837,19 +1836,19 @@ rawHtmlInline = do
                              then (\x -> isInlineTag x &&
                                          not (isCloseBlockTag x))
                              else not . isTextTag
-  return $ return $ B.rawInline "html" result
+  return $ B.rawInline "html" result
 
 -- Citations
 
-cite :: MarkdownParser (F Inlines)
+cite :: MarkdownParser Inlines
 cite = do
   guardEnabled Ext_citations
   citations <- textualCite
             <|> do (cs, raw) <- withRaw normalCite
-                   return $ (flip B.cite (B.text raw)) <$> cs
+                   return $ (flip B.cite (B.text raw)) cs
   return citations
 
-textualCite :: MarkdownParser (F Inlines)
+textualCite :: MarkdownParser Inlines
 textualCite = try $ do
   (_, key) <- citeKey
   let first = Citation{ citationId      = key
@@ -1863,29 +1862,26 @@ textualCite = try $ do
   case mbrest of
        Just (rest, raw) ->
          return $ (flip B.cite (B.text $ '@':key ++ " " ++ raw) . (first:))
-               <$> rest
+                    rest
        Nothing   ->
          (do (cs, raw) <- withRaw $ bareloc first
-             return $ (flip B.cite (B.text $ '@':key ++ " " ++ raw)) <$> cs)
-         <|> return (do st <- askF
-                        return $ case M.lookup key (stateExamples st) of
-                                 Just n -> B.str (show n)
-                                 _      -> B.cite [first] $ B.str $ '@':key)
+             return $ (flip B.cite (B.text $ '@':key ++ " " ++ raw)) cs)
+         <|> do st <- ask
+                return $ case M.lookup key (stateExamples st) of
+                              Just n -> B.str (show n)
+                              _      -> B.cite [first] $ B.str $ '@':key
 
-bareloc :: Citation -> MarkdownParser (F [Citation])
+bareloc :: Citation -> MarkdownParser [Citation]
 bareloc c = try $ do
   spnl
   char '['
   suff <- suffix
-  rest <- option (return []) $ try $ char ';' >> citeList
+  rest <- option [] $ try $ char ';' >> citeList
   spnl
   char ']'
-  return $ do
-    suff' <- suff
-    rest' <- rest
-    return $ c{ citationSuffix = B.toList suff' } : rest'
+  return $ c{ citationSuffix = B.toList suff } : rest
 
-normalCite :: MarkdownParser (F [Citation])
+normalCite :: MarkdownParser [Citation]
 normalCite = try $ do
   char '['
   spnl
@@ -1894,60 +1890,57 @@ normalCite = try $ do
   char ']'
   return citations
 
-suffix :: MarkdownParser (F Inlines)
+suffix :: MarkdownParser Inlines
 suffix = try $ do
   hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
   spnl
-  rest <- trimInlinesF . mconcat <$> many (notFollowedBy (oneOf ";]") >> inline)
+  rest <- trimInlines . mconcat <$> many (notFollowedBy (oneOf ";]") >> inline)
   return $ if hasSpace
-              then (B.space <>) <$> rest
+              then B.space <> rest
               else rest
 
-prefix :: MarkdownParser (F Inlines)
-prefix = trimInlinesF . mconcat <$>
+prefix :: MarkdownParser Inlines
+prefix = trimInlines . mconcat <$>
   manyTill inline (char ']' <|> liftM (const ']') (lookAhead citeKey))
 
-citeList :: MarkdownParser (F [Citation])
-citeList = fmap sequence $ sepBy1 citation (try $ char ';' >> spnl)
+citeList :: MarkdownParser [Citation]
+citeList =  sepBy1 citation (try $ char ';' >> spnl)
 
-citation :: MarkdownParser (F Citation)
+citation :: MarkdownParser (Citation)
 citation = try $ do
   pref <- prefix
   (suppress_author, key) <- citeKey
   suff <- suffix
-  return $ do
-    x <- pref
-    y <- suff
-    return $ Citation{ citationId      = key
-                     , citationPrefix  = B.toList x
-                     , citationSuffix  = B.toList y
-                     , citationMode    = if suppress_author
-                                            then SuppressAuthor
-                                            else NormalCitation
-                     , citationNoteNum = 0
-                     , citationHash    = 0
-                     }
+  return $ Citation{ citationId      = key
+                   , citationPrefix  = B.toList pref
+                   , citationSuffix  = B.toList suff
+                   , citationMode    = if suppress_author
+                                          then SuppressAuthor
+                                          else NormalCitation
+                   , citationNoteNum = 0
+                   , citationHash    = 0
+                   }
 
-smart :: MarkdownParser (F Inlines)
+smart :: MarkdownParser Inlines
 smart = do
   getOption readerSmart >>= guard
   doubleQuoted <|> singleQuoted <|>
-    choice (map (return <$>) [apostrophe, dash, ellipses])
+    choice [apostrophe, dash, ellipses]
 
-singleQuoted :: MarkdownParser (F Inlines)
+singleQuoted :: MarkdownParser Inlines
 singleQuoted = try $ do
   singleQuoteStart
   withQuoteContext InSingleQuote $
-    fmap B.singleQuoted . trimInlinesF . mconcat <$>
+    B.singleQuoted . trimInlines . mconcat <$>
       many1Till inline singleQuoteEnd
 
 -- doubleQuoted will handle regular double-quoted sections, as well
 -- as dialogues with an open double-quote without a close double-quote
 -- in the same paragraph.
-doubleQuoted :: MarkdownParser (F Inlines)
+doubleQuoted :: MarkdownParser Inlines
 doubleQuoted = try $ do
   doubleQuoteStart
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
   (withQuoteContext InDoubleQuote $ doubleQuoteEnd >> return
-       (fmap B.doubleQuoted . trimInlinesF $ contents))
-   <|> (return $ return (B.str "\8220") <> contents)
+       (B.doubleQuoted . trimInlines $ contents))
+   <|> return ((B.str "\8220") <> contents)
