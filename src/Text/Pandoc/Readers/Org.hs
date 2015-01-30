@@ -37,8 +37,7 @@ import           Text.Pandoc.Builder ( Inlines, Blocks, HasMeta(..), (<>)
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Options
 import qualified Text.Pandoc.Parsing as P
-import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
-                                            , newline, orderedListMarker
+import           Text.Pandoc.Parsing hiding ( newline, orderedListMarker
                                             , parseFromString, blanklines
                                             )
 import           Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)

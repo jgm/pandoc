@@ -104,10 +104,6 @@ module Text.Pandoc.Parsing ( anyLine,
                              applyMacros',
                              Parser,
                              ParserT,
-                             F(..),
-                             runF,
-                             askF,
-                             asksF,
                              token,
                              generalize,
                              -- * Re-exports from Text.Pandoc.Parsec
@@ -189,29 +185,13 @@ import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader
 import Control.Monad.Identity
-import Control.Applicative ((<$>), (<*>), (*>), (<*), (<$), Applicative)
+import Control.Applicative ((<$>), (<*>), (*>), (<*), (<$))
 import Data.Monoid
 import Data.Maybe (catMaybes)
 
 type Parser t s = Parsec t s
 
 type ParserT = ParsecT
-
-newtype F a = F { unF :: Reader ParserState a } deriving (Monad, Applicative, Functor)
-
-runF :: F a -> ParserState -> a
-runF = runReader . unF
-
-askF :: F ParserState
-askF = F ask
-
-asksF :: (ParserState -> a) -> F a
-asksF f = F $ asks f
-
-instance Monoid a => Monoid (F a) where
-  mempty = return mempty
-  mappend = liftM2 mappend
-  mconcat = liftM mconcat . sequence
 
 -- | Parse any line of text
 anyLine :: Stream [Char] m Char => ParserT [Char] st m [Char]
@@ -914,7 +894,6 @@ data ParserState = ParserState
       stateNotes           :: NoteTable,     -- ^ List of notes (raw bodies)
       stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
       stateMeta            :: Meta,          -- ^ Document metadata
-      stateMeta'           :: F Meta,        -- ^ Document metadata
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
       stateHeaders         :: M.Map Inlines String, -- ^ List of headers and ids (used for implicit ref links)
       stateIdentifiers     :: [String],      -- ^ List of header identifiers used
@@ -1011,7 +990,6 @@ defaultParserState =
                   stateNotes           = [],
                   stateNotes'          = [],
                   stateMeta            = nullMeta,
-                  stateMeta'           = return nullMeta,
                   stateHeaderTable     = [],
                   stateHeaders         = M.empty,
                   stateIdentifiers     = [],
@@ -1063,7 +1041,7 @@ data QuoteContext
 
 type NoteTable = [(String, String)]
 
-type NoteTable' = [(String, F Blocks)]  -- used in markdown reader
+type NoteTable' = [(String, Blocks)]  -- used in markdown reader
 
 newtype Key = Key String deriving (Show, Read, Eq, Ord)
 
