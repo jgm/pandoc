@@ -1239,7 +1239,7 @@ applyMacros' target = do
      else return target
 
 -- | Append a warning to the log.
-addWarning :: Maybe SourcePos -> String -> Parser [Char] ParserState ()
+addWarning :: (Stream s m c) => Maybe SourcePos -> String -> ParserT s ParserState m ()
 addWarning mbpos msg =
   updateState $ \st -> st{
     stateWarnings = (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) :
