@@ -46,7 +46,7 @@ import Text.Pandoc.ImageSize
 -- or a MediaBag, or the internet.
 -- If file not found or filetype not jpeg or png, leave the inline unchanged.
 rtfEmbedImage :: WriterOptions -> Inline -> IO Inline
-rtfEmbedImage opts x@(Image _ _ (src,_)) = do
+rtfEmbedImage opts x@(Image attr _ (src,_)) = do
   result <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case result of
        Right (imgdata, Just mime)
@@ -64,8 +64,8 @@ rtfEmbedImage opts x@(Image _ _ (src,_)) = do
                                         ++ "\\pichgoal" ++ show (ypt * 20)
                                 -- twip = 1/1440in = 1/20pt
                                 where (xpx, ypx) = sizeInPixels sz
-                                      (xpt, ypt) = sizeInPoints sz
-         let raw = "{\\pict" ++ filetype ++ sizeSpec ++ " " ++
+                                      (xpt, ypt) = desiredSizeInPoints opts attr sz
+         let raw = "{\\pict" ++ filetype ++ sizeSpec ++ "\\bin " ++
                     concat bytes ++ "}"
          return $ if B.null imgdata
                      then x

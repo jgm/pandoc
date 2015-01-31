@@ -941,7 +941,7 @@ inlineToOpenXML opts (Link txt (src,_)) = do
                         M.insert src i extlinks }
               return i
   return [ mknode "w:hyperlink" [("r:id",id')] contents ]
-inlineToOpenXML opts (Image _ alt (src, tit)) = do
+inlineToOpenXML opts (Image attr alt (src, tit)) = do
   -- first, check to see if we've already done this image
   pageWidth <- gets stPrintWidth
   imgs <- gets stImages
@@ -958,7 +958,7 @@ inlineToOpenXML opts (Image _ alt (src, tit)) = do
         Right (img, mt) -> do
           ident <- ("rId"++) `fmap` getUniqueId
           let size = imageSize img
-          let (xpt,ypt) = maybe (120,120) sizeInPoints size
+          let (xpt,ypt) = maybe (120,120) (desiredSizeInPoints opts attr) size
           -- 12700 emu = 1 pt
           let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) (pageWidth * 12700)
           let cNvPicPr = mknode "pic:cNvPicPr" [] $

@@ -24,6 +24,7 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.ImageSize
 import Data.List (isPrefixOf, isInfixOf, stripPrefix)
 import Data.Text as Text (breakOnAll, pack)
+import Data.Maybe (fromMaybe)
 import Data.Monoid (mappend)
 import Control.Monad.State
 import System.FilePath (pathSeparator)
@@ -494,28 +495,19 @@ styleToStrAttr style =
 -- | Assemble an ICML Image.
 imageICML :: WriterOptions -> Style -> Attr -> [Inline] -> Target -> WS Doc
 imageICML opts style attr _ (src, _) = do
-  res <- liftIO $ fetchItem (writerSourceURL opts) src
-  (ow, oh) <- case res of --original dims of image in points
-                Left (_) -> do
-                  liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
-                  return (300, 200)
-                Right (img, _) -> do
-                  let conv (x, y) = (fromIntegral x, fromIntegral y)
-                  return $ maybe (300, 200) (conv . sizeInPoints) $ imageSize img
-  let getDim dir = case (dimension dir attr) of
-                     Just (Percent _) -> Nothing
-                     Just dim         -> Just $ (inPoints opts dim)
-                     Nothing          -> Nothing
-      ratio = ow / oh
-      (imgWidth, imgHeight) =
-        case (getDim Width, getDim Height) of
-          (Just w, Just h)   -> (w, h)
-          (Just w, Nothing)  -> (w, w / ratio)
-          (Nothing, Just h)  -> (h * ratio, h)
-          (Nothing, Nothing) -> (ow, oh)
+  res  <- liftIO $ fetchItem (writerSourceURL opts) src
+  imgS <- case res of
+            Left (_) -> do
+              liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
+              return def
+            Right (img, _) -> do
+              return $ fromMaybe def $ imageSize img
+  let toDouble (x,y) = (fromIntegral x :: Double, fromIntegral y :: Double)
+      (ow, oh) = toDouble $ sizeInPoints imgS
+      (imgWidth, imgHeight) = toDouble $ desiredSizeInPoints opts attr imgS
       hw = showFl $ ow / 2
       hh = showFl $ oh / 2
-      scale = showFl (imgWidth  / ow) ++ " 0 0 " ++ showFl (imgHeight / oh)
+      scale = showFl (imgWidth / ow) ++ " 0 0 " ++ showFl (imgHeight / oh)
       src' = "file://." ++ pathSeparator : src
       (stlStr, attrs) = styleToStrAttr style
       props  = inTags True "Properties" [] $ inTags True "PathGeometry" []

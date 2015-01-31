@@ -33,6 +33,7 @@ module Text.Pandoc.ImageSize ( ImageType(..)
                              , imageSize
                              , sizeInPixels
                              , sizeInPoints
+                             , desiredSizeInPoints
                              , Dimension(..)
                              , Direction(..)
                              , dimension
@@ -56,6 +57,7 @@ import Control.Monad
 import Data.Bits
 import Data.Binary
 import Data.Binary.Get
+import Data.Default (Default)
 import Numeric (showFFloat)
 import Text.Read (readMaybe)
 import Text.Pandoc.Shared (safeRead)
@@ -86,6 +88,8 @@ data ImageSize = ImageSize{
                    , dpiX  :: Integer
                    , dpiY  :: Integer
                    } deriving (Read, Show, Eq)
+instance Default ImageSize where
+  def = ImageSize 300 200 72 72
 
 showFl :: (RealFloat a) => a -> String
 showFl a = showFFloat (Just 5) a ""
@@ -127,12 +131,30 @@ defaultSize = (72, 72)
 sizeInPixels :: ImageSize -> (Integer, Integer)
 sizeInPixels s = (pxX s, pxY s)
 
--- 72 Points == 1 Inch
+-- | Calculate (height, width) in points using the image file's dpi metadata,
+-- using 72 Points == 1 Inch.
 sizeInPoints :: ImageSize -> (Integer, Integer)
 sizeInPoints s = (pxX s * 72 `div` dpiX s, pxY s * 72 `div` dpiY s)
 
-inPoints :: WriterOptions -> Dimension -> Double
-inPoints opts dim = 72 * inInch opts dim
+-- | Calculate (height, width) in points, considering the desired dimensions in the
+-- attribute, while falling back on the image file's dpi metadata if no dimensions
+-- are specified in the attribute (or only dimensions in percentages).
+desiredSizeInPoints :: WriterOptions -> Attr -> ImageSize -> (Integer, Integer)
+desiredSizeInPoints opts attr s =
+  case (getDim Width, getDim Height) of
+    (Just w, Just h)   -> (w, h)
+    (Just w, Nothing)  -> (w, floor $ (fromIntegral w) / ratio)
+    (Nothing, Just h)  -> (floor $ (fromIntegral h) * ratio, h)
+    (Nothing, Nothing) -> sizeInPoints s
+  where
+    ratio = fromIntegral (pxX s) / fromIntegral (pxY s) :: Double
+    getDim dir = case (dimension dir attr) of
+                   Just (Percent _) -> Nothing
+                   Just dim         -> Just $ inPoints opts dim
+                   Nothing          -> Nothing
+
+inPoints :: WriterOptions -> Dimension -> Integer
+inPoints opts dim = floor $ 72 * inInch opts dim
 
 inInch :: WriterOptions -> Dimension -> Double
 inInch opts dim =
@@ -142,15 +164,19 @@ inInch opts dim =
     (Inch a)       -> a
     (Percent _)    -> 0
 
+-- | Convert a Dimension to a String denoting its equivalent in inches, for example "2.00000".
+-- Note: Dimensions in percentages are converted to the empty string.
 showInInch :: WriterOptions -> Dimension -> String
 showInInch _ (Percent _) = ""
 showInInch opts dim = showFl $ inInch opts dim
 
+-- | Same as showInInch, but returns a Text instead of a String.
 textInInch :: WriterOptions -> Dimension -> Doc
 textInInch _ (Percent _) = Text.Pandoc.Pretty.empty
 textInInch opts dim = textFl $ inInch opts dim
 
--- note: percentages are ignored
+-- | Convert a Dimension to a String denoting its equivalent in pixels, for example "600".
+-- Note: Dimensions in percentages are converted to the empty string.
 showInPixel :: WriterOptions -> Dimension -> String
 showInPixel opts dim =
   case dim of
@@ -161,9 +187,12 @@ showInPixel opts dim =
   where
     dpi = writerDpi opts
 
+-- | Same as showInPixel, but returns a Text instead of a String.
 textInPixel :: WriterOptions -> Dimension -> Doc
 textInPixel opts dim = text $ showInPixel opts dim
 
+-- | Read a Dimension from an Attr attribute.
+-- `dimension Width attr` might return `Just (Pixel 3)` or for example `Just (Centimeter 2.0)`, etc.
 dimension :: Direction -> Attr -> Maybe Dimension
 dimension dir (_, _, kvs) =
   case dir of

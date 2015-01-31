@@ -40,7 +40,7 @@ import Codec.Archive.Zip
 import Control.Applicative ((<$>))
 import Text.Pandoc.Options ( WriterOptions(..) )
 import Text.Pandoc.Shared ( stringify, readDataFile, fetchItem', warn )
-import Text.Pandoc.ImageSize ( imageSize, sizeInPoints )
+import Text.Pandoc.ImageSize ( imageSize, desiredSizeInPoints )
 import Text.Pandoc.MIME ( getMimeType, extensionFromMimeType )
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
@@ -135,7 +135,7 @@ transformPicMath opts entriesRef (Image attr lab (src,_)) = do
        return $ Emph lab
      Right (img, mbMimeType) -> do
        let size = imageSize img
-       let (w,h) = fromMaybe (0,0) $ sizeInPoints `fmap` size
+       let (w,h) = maybe (0,0) (desiredSizeInPoints opts attr) size
        let tit' = show w ++ "x" ++ show h
        entries <- readIORef entriesRef
        let extension = fromMaybe (takeExtension $ takeWhile (/='?') src)
