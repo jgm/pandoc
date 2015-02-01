@@ -60,8 +60,8 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = do
                              Nothing -> ""
                              Just sz -> "\\picw" ++ show xpx ++
                                         "\\pich" ++ show ypx ++
-                                        "\\picwgoal" ++ show (xpt * 20)
-                                        ++ "\\pichgoal" ++ show (ypt * 20)
+                                        "\\picwgoal" ++ show (floor (xpt * 20) :: Integer)
+                                        ++ "\\pichgoal" ++ show (floor (ypt * 20) :: Integer)
                                 -- twip = 1/1440in = 1/20pt
                                 where (xpx, ypx) = sizeInPixels sz
                                       (xpt, ypt) = desiredSizeInPoints opts attr sz

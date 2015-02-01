@@ -133,28 +133,33 @@ sizeInPixels s = (pxX s, pxY s)
 
 -- | Calculate (height, width) in points using the image file's dpi metadata,
 -- using 72 Points == 1 Inch.
-sizeInPoints :: ImageSize -> (Integer, Integer)
-sizeInPoints s = (pxX s * 72 `div` dpiX s, pxY s * 72 `div` dpiY s)
+sizeInPoints :: ImageSize -> (Double, Double)
+sizeInPoints s = (pxXf * 72 / dpiXf, pxYf * 72 / dpiYf)
+  where
+    pxXf  = fromIntegral $ pxX s
+    pxYf  = fromIntegral $ pxY s
+    dpiXf = fromIntegral $ dpiX s
+    dpiYf = fromIntegral $ dpiY s
 
 -- | Calculate (height, width) in points, considering the desired dimensions in the
 -- attribute, while falling back on the image file's dpi metadata if no dimensions
 -- are specified in the attribute (or only dimensions in percentages).
-desiredSizeInPoints :: WriterOptions -> Attr -> ImageSize -> (Integer, Integer)
+desiredSizeInPoints :: WriterOptions -> Attr -> ImageSize -> (Double, Double)
 desiredSizeInPoints opts attr s =
   case (getDim Width, getDim Height) of
     (Just w, Just h)   -> (w, h)
-    (Just w, Nothing)  -> (w, floor $ (fromIntegral w) / ratio)
-    (Nothing, Just h)  -> (floor $ (fromIntegral h) * ratio, h)
+    (Just w, Nothing)  -> (w, w / ratio)
+    (Nothing, Just h)  -> (h * ratio, h)
     (Nothing, Nothing) -> sizeInPoints s
   where
-    ratio = fromIntegral (pxX s) / fromIntegral (pxY s) :: Double
+    ratio = fromIntegral (pxX s) / fromIntegral (pxY s)
     getDim dir = case (dimension dir attr) of
                    Just (Percent _) -> Nothing
                    Just dim         -> Just $ inPoints opts dim
                    Nothing          -> Nothing
 
-inPoints :: WriterOptions -> Dimension -> Integer
-inPoints opts dim = floor $ 72 * inInch opts dim
+inPoints :: WriterOptions -> Dimension -> Double
+inPoints opts dim = 72 * inInch opts dim
 
 inInch :: WriterOptions -> Dimension -> Double
 inInch opts dim =

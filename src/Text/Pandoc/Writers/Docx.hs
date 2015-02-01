@@ -1028,10 +1028,9 @@ parseXml refArchive distArchive relpath =
 
 -- | Scales the image to fit the page
 -- sizes are passed in emu
-fitToPage :: (Integer, Integer) -> Integer -> (Integer, Integer)
+fitToPage :: (Double, Double) -> Integer -> (Integer, Integer)
 fitToPage (x, y) pageWidth
   -- Fixes width to the page width and scales the height
-  | x > pageWidth = 
-    (pageWidth, round $ 
-      ((fromIntegral pageWidth) / ((fromIntegral :: Integer -> Double) x)) * (fromIntegral y))
-  | otherwise = (x, y)
+  | x > fromIntegral pageWidth =
+    (pageWidth, floor $ ((fromIntegral pageWidth) / x) * y)
+  | otherwise = (floor x, floor y)

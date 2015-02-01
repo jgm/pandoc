@@ -502,9 +502,8 @@ imageICML opts style attr _ (src, _) = do
               return def
             Right (img, _) -> do
               return $ fromMaybe def $ imageSize img
-  let toDouble (x,y) = (fromIntegral x :: Double, fromIntegral y :: Double)
-      (ow, oh) = toDouble $ sizeInPoints imgS
-      (imgWidth, imgHeight) = toDouble $ desiredSizeInPoints opts attr imgS
+  let (ow, oh) = sizeInPoints imgS
+      (imgWidth, imgHeight) = desiredSizeInPoints opts attr imgS
       hw = showFl $ ow / 2
       hh = showFl $ oh / 2
       scale = showFl (imgWidth / ow) ++ " 0 0 " ++ showFl (imgHeight / oh)
