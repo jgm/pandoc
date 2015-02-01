@@ -206,7 +206,7 @@ stringToLaTeX  ctx (x:xs) = do
        '€' -> "\\euro{}" ++ rest
        '{' -> "\\{" ++ rest
        '}' -> "\\}" ++ rest
-       '$' -> "\\$" ++ rest
+       '$' | not isUrl -> "\\$" ++ rest
        '%' -> "\\%" ++ rest
        '&' -> "\\&" ++ rest
        '_' | not isUrl -> "\\_" ++ rest
