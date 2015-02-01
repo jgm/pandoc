@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, CPP, ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings, CPP, ViewPatterns, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-
 Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
@@ -704,62 +704,65 @@ inlineToHtml opts inline =
                                  H.q `fmap` inlineListToHtml opts lst
                                else (\x -> leftQuote >> x >> rightQuote)
                                     `fmap` inlineListToHtml opts lst
-    (Math t str) ->     modify (\st -> st {stMath = True}) >>
-                        (case writerHTMLMathMethod opts of
-                               LaTeXMathML _ ->
-                                  -- putting LaTeXMathML in container with class "LaTeX" prevents
-                                  -- non-math elements on the page from being treated as math by
-                                  -- the javascript
-                                  return $ H.span ! A.class_ "LaTeX" $
-                                         case t of
-                                           InlineMath  -> toHtml ("$" ++ str ++ "$")
-                                           DisplayMath -> toHtml ("$$" ++ str ++ "$$")
-                               JsMath _ -> do
-                                  let m = preEscapedString str
-                                  return $ case t of
-                                           InlineMath -> H.span ! A.class_ "math" $ m
-                                           DisplayMath -> H.div ! A.class_ "math" $ m
-                               WebTeX url -> do
-                                  let imtag = if writerHtml5 opts then H5.img else H.img
-                                  let m = imtag ! A.style "vertical-align:middle"
-                                                ! A.src (toValue $ url ++ urlEncode str)
-                                                ! A.alt (toValue str)
-                                                ! A.title (toValue str)
-                                  let brtag = if writerHtml5 opts then H5.br else H.br
-                                  return $ case t of
-                                            InlineMath  -> m
-                                            DisplayMath -> brtag >> m >> brtag
-                               GladTeX ->
-                                  return $ case t of
-                                             InlineMath -> preEscapedString $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
-                                             DisplayMath -> preEscapedString $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
-                               MathML _ -> do
-                                  let dt = if t == InlineMath
-                                              then DisplayInline
-                                              else DisplayBlock
-                                  let conf = useShortEmptyTags (const False)
-                                               defaultConfigPP
-                                  case writeMathML dt <$> readTeX str of
-                                        Right r  -> return $ preEscapedString $
-                                            ppcElement conf (annotateMML r str)
-                                        Left _   -> inlineListToHtml opts
-                                            (texMathToInlines t str) >>=
-                                            return .  (H.span ! A.class_ "math")
-                               MathJax _ -> return $ H.span ! A.class_ "math" $ toHtml $
-                                  case t of
-                                    InlineMath  -> "\\(" ++ str ++ "\\)"
-                                    DisplayMath -> "\\[" ++ str ++ "\\]"
-                               KaTeX _ _ -> return $ H.span ! A.class_ "math" $
-                                  toHtml (case t of
-                                            InlineMath -> str
-                                            DisplayMath -> "\\displaystyle " ++ str)
-                               PlainMath -> do
-                                  x <- inlineListToHtml opts (texMathToInlines t str)
-                                  let m = H.span ! A.class_ "math" $ x
-                                  let brtag = if writerHtml5 opts then H5.br else H.br
-                                  return  $ case t of
-                                             InlineMath  -> m
-                                             DisplayMath -> brtag >> m >> brtag )
+    (Math t str) -> do
+      modify (\st -> st {stMath = True})
+      let mathClass = toValue $ ("math " :: String) ++
+                      if t == InlineMath then "inline" else "display"
+      case writerHTMLMathMethod opts of
+           LaTeXMathML _ ->
+              -- putting LaTeXMathML in container with class "LaTeX" prevents
+              -- non-math elements on the page from being treated as math by
+              -- the javascript
+              return $ H.span ! A.class_ "LaTeX" $
+                     case t of
+                       InlineMath  -> toHtml ("$" ++ str ++ "$")
+                       DisplayMath -> toHtml ("$$" ++ str ++ "$$")
+           JsMath _ -> do
+              let m = preEscapedString str
+              return $ case t of
+                       InlineMath -> H.span ! A.class_ mathClass $ m
+                       DisplayMath -> H.div ! A.class_ mathClass $ m
+           WebTeX url -> do
+              let imtag = if writerHtml5 opts then H5.img else H.img
+              let m = imtag ! A.style "vertical-align:middle"
+                            ! A.src (toValue $ url ++ urlEncode str)
+                            ! A.alt (toValue str)
+                            ! A.title (toValue str)
+              let brtag = if writerHtml5 opts then H5.br else H.br
+              return $ case t of
+                        InlineMath  -> m
+                        DisplayMath -> brtag >> m >> brtag
+           GladTeX ->
+              return $ case t of
+                         InlineMath -> preEscapedString $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
+                         DisplayMath -> preEscapedString $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
+           MathML _ -> do
+              let dt = if t == InlineMath
+                          then DisplayInline
+                          else DisplayBlock
+              let conf = useShortEmptyTags (const False)
+                           defaultConfigPP
+              case writeMathML dt <$> readTeX str of
+                    Right r  -> return $ preEscapedString $
+                        ppcElement conf (annotateMML r str)
+                    Left _   -> inlineListToHtml opts
+                        (texMathToInlines t str) >>=
+                        return .  (H.span ! A.class_ mathClass)
+           MathJax _ -> return $ H.span ! A.class_ mathClass $ toHtml $
+              case t of
+                InlineMath  -> "\\(" ++ str ++ "\\)"
+                DisplayMath -> "\\[" ++ str ++ "\\]"
+           KaTeX _ _ -> return $ H.span ! A.class_ mathClass $
+              toHtml (case t of
+                        InlineMath -> str
+                        DisplayMath -> "\\displaystyle " ++ str)
+           PlainMath -> do
+              x <- inlineListToHtml opts (texMathToInlines t str)
+              let m = H.span ! A.class_ mathClass $ x
+              let brtag = if writerHtml5 opts then H5.br else H.br
+              return  $ case t of
+                         InlineMath  -> m
+                         DisplayMath -> brtag >> m >> brtag 
     (RawInline f str)
       | f == Format "latex" ->
                           case writerHTMLMathMethod opts of
