@@ -81,17 +81,10 @@ readMarkdownWithWarnings :: ReaderOptions -- ^ Reader options
                          -> (Pandoc, [String])
 readMarkdownWithWarnings opts s = runMarkdown opts s (returnWarnings parseMarkdown)
 
-
-retState :: MarkdownParser a -> MarkdownParser (a, ParserState)
-retState p = do
-  r <- p
-  s <- getState
-  return (r, s)
-
 runMarkdown :: ReaderOptions -> String -> MarkdownParser a -> a
 runMarkdown opts inp p = fst res
   where
-    imd = readWithM (retState p) def{ stateOptions = opts } (inp ++ "\n\n")
+    imd = readWithM (returnState p) def{ stateOptions = opts } (inp ++ "\n\n")
     res = runReader imd s
     s :: ParserState
     s   = snd $ runReader imd s

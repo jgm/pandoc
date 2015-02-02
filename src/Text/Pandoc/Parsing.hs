@@ -66,6 +66,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              gridTableWith,
                              readWith,
                              returnWarnings,
+                             returnState,
                              readWithM,
                              testStringWith,
                              guardEnabled,
@@ -872,6 +873,10 @@ returnWarnings p = do
          doc <- p
          warnings <- stateWarnings <$> getState
          return (doc, warnings)
+
+-- | Return the final internal state with the result of a parser
+returnState :: (Stream s m c) => ParsecT s st m a -> ParsecT s st m (a, st)
+returnState p = (,) <$> p <*> getState
 
 -- | Parse a string with @parser@ (for testing).
 testStringWith :: (Show a, Stream [Char] Identity Char)
