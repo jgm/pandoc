@@ -67,16 +67,10 @@ readOrg opts s = runOrg opts s parseOrg
 runOrg :: ReaderOptions -> String -> OrgParser a -> a
 runOrg opts inp p = fst res
   where
-    imd = readWithM (retState p) def{ orgStateOptions = opts } (inp ++ "\n\n")
+    imd = readWithM (returnState p) def{ orgStateOptions = opts } (inp ++ "\n\n")
     res = runReader imd s
     s :: OrgParserState
     s   = snd $ runReader imd s
-
-retState :: OrgParser a -> OrgParser (a, OrgParserState)
-retState p = do
-  r <- p
-  s <- getState
-  return (r, s)
 
 type OrgParser a = ParserT [Char] OrgParserState (Reader OrgParserState) a
 
