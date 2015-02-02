@@ -74,17 +74,10 @@ type OrgParser = ParserT [Char] OrgParserState (Reader OrgParserLocal)
 runOrg :: ReaderOptions -> String -> OrgParser a -> a
 runOrg opts inp p = fst res
   where
-    imd = readWithM (retState p) def{ orgStateOptions = opts } (inp ++ "\n\n")
+    imd = readWithM (returnState p) def{ orgStateOptions = opts } (inp ++ "\n\n")
     res = runReader imd def { finalState = s }
     s :: OrgParserState
     s   = snd $ runReader imd (def { finalState = s })
-
-retState :: OrgParser a -> OrgParser (a, OrgParserState)
-retState p = do
-  r <- p
-  s <- getState
-  return (r, s)
-
 
 parseOrg :: OrgParser Pandoc
 parseOrg = do
