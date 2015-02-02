@@ -57,6 +57,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag )
+import Text.Pandoc.Shared (trim)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
 import Text.HTML.TagSoup.Match
@@ -325,33 +326,30 @@ para = B.para . trimInlines . mconcat <$> many1 inline
 -- Tables
 
 -- | A table cell spans until a pipe |
-tableCell :: Parser [Char] ParserState Blocks
-tableCell = do
-  c <- many1 (noneOf "|\n")
-  content <- trimInlines . mconcat <$> parseFromString (many1 inline) c
+tableCell :: Bool -> Parser [Char] ParserState Blocks
+tableCell headerCell = try $ do
+  char '|'
+  when headerCell $ () <$ string "_."
+  notFollowedBy blankline
+  raw <- trim <$>
+         many (noneOf "|\n" <|> try (char '\n' <* notFollowedBy blankline))
+  content <- mconcat <$> parseFromString (many inline) raw
   return $ B.plain content
 
 -- | A table row is made of many table cells
 tableRow :: Parser [Char] ParserState [Blocks]
-tableRow = try $ ( char '|' *>
-  (endBy1 tableCell (optional blankline *> char '|')) <* newline)
+tableRow = many1 (tableCell False) <* char '|' <* newline
 
--- | Many table rows
-tableRows :: Parser [Char] ParserState [[Blocks]]
-tableRows = many1 tableRow
-
--- | Table headers are made of cells separated by a tag "|_."
-tableHeaders :: Parser [Char] ParserState [Blocks]
-tableHeaders = let separator = (try $ string "|_.") in
-  try $ ( separator *> (sepBy1 tableCell separator) <* char '|' <* newline )
+tableHeader :: Parser [Char] ParserState [Blocks]
+tableHeader = many1 (tableCell True) <* char '|' <* newline
 
 -- | A table with an optional header. Current implementation can
 -- handle tables with and without header, but will parse cells
 -- alignment attributes as content.
 table :: Parser [Char] ParserState Blocks
 table = try $ do
-  headers <- option mempty tableHeaders
-  rows <- tableRows
+  headers <- option mempty $ tableHeader
+  rows <- many1 tableRow
   blanklines
   let nbOfCols = max (length headers) (length $ head rows)
   return $ B.table mempty
