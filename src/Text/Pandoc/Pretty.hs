@@ -419,9 +419,6 @@ offset d = case map realLength . lines . render Nothing $ d of
                 []    -> 0
                 os    -> maximum os
 
-block :: (String -> String) -> Int -> Doc -> Doc
-block filler width = Doc . singleton . Block width .
-                      map filler . chop width . render (Just width)
 
 -- | @lblock n d@ is a block of width @n@ characters, with
 -- text derived from @d@ and aligned to the left.
@@ -439,6 +436,12 @@ cblock w = block (\s -> replicate ((w - realLength s) `div` 2) ' ' ++ s) w
 -- | Returns the height of a block or other 'Doc'.
 height :: Doc -> Int
 height = length . lines . render Nothing
+
+block :: (String -> String) -> Int -> Doc -> Doc
+block filler width d
+  | width < 1 && not (isEmpty d) = error "Text.Pandoc.Pretty.block: width < 1"
+  | otherwise                    = Doc $ singleton $ Block width $ map filler
+                                 $ chop width $ render (Just width) d
 
 chop :: Int -> String -> [String]
 chop _ [] = []
