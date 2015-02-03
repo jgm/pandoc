@@ -592,20 +592,32 @@ pipeTable headless aligns rawHeaders rawRows = do
 
 pandocTable :: WriterOptions -> Bool -> [Alignment] -> [Double]
             -> [Doc] -> [[Doc]] -> MD Doc
-pandocTable opts headless aligns widths rawHeaders rawRows =  do
+pandocTable opts headless aligns widths rawHeaders rawRows = do
   let isSimple = all (==0) widths
   let alignHeader alignment = case alignment of
                                 AlignLeft    -> lblock
                                 AlignCenter  -> cblock
                                 AlignRight   -> rblock
                                 AlignDefault -> lblock
-  let numChars = maximum . map offset
-  let widthsInChars = if isSimple
-                         then map ((+2) . numChars)
-                              $ transpose (rawHeaders : rawRows)
-                         else map
-                              (floor . (fromIntegral (writerColumns opts) *))
-                              widths
+  -- Number of characters per column necessary to output every cell
+  -- without requiring a line break.
+  -- The @+2@ is needed for specifying the alignment.
+  let numChars    = (+ 2) . maximum . map offset
+  -- Number of characters per column necessary to output every cell
+  -- without requiring a line break *inside a word*.
+  -- The @+2@ is needed for specifying the alignment.
+  let minNumChars = (+ 2) . maximum . map minOffset
+  let columns = transpose (rawHeaders : rawRows)
+  -- minimal column width without wrapping a single word
+  let noWordWrapWidth
+        | writerWrapText opts == WrapAuto
+                              = fromIntegral $ maximum (map minNumChars columns)
+        | otherwise           = fromIntegral $ maximum (map    numChars columns)
+  let relWidth w = floor $ max (fromIntegral (writerColumns opts) * w)
+                               (noWordWrapWidth * w / minimum widths)
+  let widthsInChars
+        | isSimple  = map numChars columns
+        | otherwise = map relWidth widths
   let makeRow = hcat . intersperse (lblock 1 (text " ")) .
                    (zipWith3 alignHeader aligns widthsInChars)
   let rows' = map makeRow rawRows
