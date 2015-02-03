@@ -46,6 +46,7 @@ module Text.Pandoc.Pretty (
      , beforeNonBlank
      , nowrap
      , offset
+     , minOffset
      , height
      , lblock
      , cblock
@@ -419,6 +420,9 @@ offset d = case map realLength . lines . render Nothing $ d of
                 []    -> 0
                 os    -> maximum os
 
+-- | Returns the minimal width of a 'Doc' when reflowed at breakable spaces.
+minOffset :: Doc -> Int
+minOffset d = maximum (0: map realLength (lines $ render (Just 0) d))
 
 -- | @lblock n d@ is a block of width @n@ characters, with
 -- text derived from @d@ and aligned to the left.
