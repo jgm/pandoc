@@ -421,7 +421,7 @@ inlineToTexinfo (RawInline f str)
                       return $ text "@tex" $$ text str $$ text "@end tex"
   | f == "texinfo" =  return $ text str
   | otherwise      =  return empty
-inlineToTexinfo (LineBreak) = return $ text "@*"
+inlineToTexinfo (LineBreak) = return $ text "@*" <> cr
 inlineToTexinfo Space = return $ char ' '
 
 inlineToTexinfo (Link txt (src@('#':_), _)) = do

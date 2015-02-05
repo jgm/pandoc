@@ -802,7 +802,7 @@ inlineToLaTeX (RawInline f str)
   | f == Format "latex" || f == Format "tex"
                         = return $ text str
   | otherwise           = return empty
-inlineToLaTeX (LineBreak) = return "\\\\"
+inlineToLaTeX (LineBreak) = return $ "\\\\" <> cr
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt
