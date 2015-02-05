@@ -107,7 +107,7 @@ blockToMediaWiki (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   let opt = if null txt
                then ""
                else "|alt=" ++ if null tit then capt else tit ++ capt
-  return $ "[[Image:" ++ src ++ "|frame|none" ++ opt ++ "]]\n"
+  return $ "[[File:" ++ src ++ "|frame|none" ++ opt ++ "]]\n"
 
 blockToMediaWiki (Para inlines) = do
   tags <- asks useTags
@@ -397,7 +397,7 @@ inlineToMediaWiki (Image alt (source, tit)) = do
                        then ""
                        else '|' : alt'
                else '|' : tit
-  return $ "[[Image:" ++ source ++ txt ++ "]]"
+  return $ "[[File:" ++ source ++ txt ++ "]]"
 
 inlineToMediaWiki (Note contents) = do
   contents' <- blockListToMediaWiki contents
