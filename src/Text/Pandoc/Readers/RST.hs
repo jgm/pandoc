@@ -58,7 +58,7 @@ readRST :: ReaderOptions -- ^ Reader options
 readRST opts s = (readWith parseRST) def{ stateOptions = opts } (s ++ "\n\n")
 
 readRSTWithWarnings :: ReaderOptions -> String -> (Pandoc, [String])
-readRSTWithWarnings opts s = (readWithWarnings parseRST) def{ stateOptions = opts } (s ++ "\n\n")
+readRSTWithWarnings opts s = (readWith (returnWarnings parseRST)) def{ stateOptions = opts } (s ++ "\n\n")
 
 type RSTParser = Parser [Char] ParserState
 
