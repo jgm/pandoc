@@ -422,7 +422,7 @@ inlineToTexinfo (RawInline f str)
   | f == "texinfo" =  return $ text str
   | otherwise      =  return empty
 inlineToTexinfo (LineBreak) = return $ text "@*" <> cr
-inlineToTexinfo Space = return $ char ' '
+inlineToTexinfo Space = return space
 
 inlineToTexinfo (Link txt (src@('#':_), _)) = do
   contents <- escapeCommas $ inlineListToTexinfo txt
