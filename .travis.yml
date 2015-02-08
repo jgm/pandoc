@@ -6,7 +6,7 @@ env:
  - CABALVER=1.16 GHCVER=7.4.2
  - CABALVER=1.18 GHCVER=7.6.3
  - CABALVER=1.18 GHCVER=7.8.4 # see note about Alex/Happy
- - CABALVER=1.22 GHCVER=7.10.1
+# - CABALVER=1.22 GHCVER=7.10.1
 # - GHCVER=head  # see section about GHC HEAD snapshots
 
 # Note: the distinction between `before_install` and `install` is not important.
