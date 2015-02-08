@@ -656,7 +656,8 @@ inlineToHtml opts inline =
   case inline of
     (Str str)        -> return $ strToHtml str
     (Space)          -> return $ strToHtml " "
-    (LineBreak)      -> return $ if writerHtml5 opts then H5.br else H.br
+    (LineBreak)      -> return $ (if writerHtml5 opts then H5.br else H.br)
+                                 <> strToHtml "\n"
     (Span (id',classes,kvs) ils)
                      -> inlineListToHtml opts ils >>=
                            return . addAttrs opts attr' . H.span

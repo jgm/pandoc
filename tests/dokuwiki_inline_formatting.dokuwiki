@@ -6,7 +6,8 @@ Some people use single underlines for //emphasis//.
 
 Above the line is <sup>superscript</sup> and below the line is <sub>subscript</sub>.
 
-A line\\ break.
+A line\\
+break.
 
 hello %%//%% world %%**%% from %%__%% me
 

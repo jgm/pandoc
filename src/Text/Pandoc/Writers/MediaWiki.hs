@@ -375,7 +375,7 @@ inlineToMediaWiki (RawInline f str)
   | f == Format "html"      = return str
   | otherwise               = return ""
 
-inlineToMediaWiki (LineBreak) = return "<br />"
+inlineToMediaWiki (LineBreak) = return "<br />\n"
 
 inlineToMediaWiki Space = return " "
 

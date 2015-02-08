@@ -459,7 +459,7 @@ inlineToDokuWiki _ (RawInline f str)
   | f == Format "html"     = return $ "<html>" ++ str ++ "</html>"
   | otherwise              = return ""
 
-inlineToDokuWiki _ (LineBreak) = return "\\\\ "
+inlineToDokuWiki _ (LineBreak) = return "\\\\\n"
 
 inlineToDokuWiki _ Space = return " "
 
