@@ -3,26 +3,27 @@
 # The following enables several GHC versions to be tested; often it's enough to test only against the last release in a major GHC version. Feel free to omit lines listings versions you don't need/want testing for.
 env:
 # - GHCVER=6.12.3
- - GHCVER=7.4.2
- - GHCVER=7.6.3
- - GHCVER=7.8.2 # see note about Alex/Happy
+ - CABALVER=1.16 GHCVER=7.4.2
+ - CABALVER=1.18 GHCVER=7.6.3
+ - CABALVER=1.18 GHCVER=7.8.4 # see note about Alex/Happy
+ - CABALVER=1.22 GHCVER=7.10.1
 # - GHCVER=head  # see section about GHC HEAD snapshots
 
 # Note: the distinction between `before_install` and `install` is not important.
 before_install:
  - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
  - travis_retry sudo apt-get update
- - travis_retry sudo apt-get install cabal-install-1.18 ghc-$GHCVER
+ - travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER
  - export PATH=/opt/ghc/$GHCVER/bin:$PATH
 
 install:
- - cabal-1.18 update
+ - cabal-$CABALVER update
 # - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
- - cabal-1.18 install --only-dependencies --enable-tests
+ - cabal-$CABALVER install --only-dependencies --enable-tests
 
 # Here starts the actual work to be performed for the package under test; any command which exits with a non-zero exit code causes the build to fail.
 script:
- - cabal-1.18 configure --enable-tests -v2  # -v2 provides useful information for debugging
- - cabal-1.18 build --ghc-options=-Werror  # this builds all libraries and executables (including tests/benchmarks)
- - cabal-1.18 test
- - cabal-1.18 check
+ - cabal-$CABALVER configure --enable-tests -v2  # -v2 provides useful information for debugging
+ - cabal-$CABALVER build  --ghc-options=-Werror # this builds all libraries and executables (including tests/benchmarks)
+ - cabal-$CABALVER test
+ - cabal-$CABALVER check
