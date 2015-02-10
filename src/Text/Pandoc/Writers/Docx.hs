@@ -107,6 +107,7 @@ data WriterState = WriterState{
        , stChangesDate    :: String
        , stPrintWidth     :: Integer
        , stHeadingStyles  :: [(Int,String)]
+       , stFirstPara      :: Bool
        }
 
 defaultWriterState :: WriterState
@@ -127,6 +128,7 @@ defaultWriterState = WriterState{
       , stChangesDate    = "1969-12-31T19:00:00Z"
       , stPrintWidth     = 1
       , stHeadingStyles  = []
+      , stFirstPara      = False
       }
 
 type WS a = StateT WriterState IO a
@@ -643,6 +645,7 @@ blockToOpenXML opts (Div (_,["references"],_) bs) = do
   return (header ++ rest)
 blockToOpenXML opts (Div _ bs) = blocksToOpenXML opts bs
 blockToOpenXML opts (Header lev (ident,_,_) lst) = do
+  setFirstPara
   headingStyles <- gets stHeadingStyles
   paraProps <- maybe id (withParaProp . pStyle) (lookup lev headingStyles) $
                     getParaProps False
@@ -661,6 +664,7 @@ blockToOpenXML opts (Plain lst) = withParaProp (pStyle "Compact")
   $ blockToOpenXML opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
+  setFirstPara
   paraProps <- getParaProps False
   contents <- inlinesToOpenXML opts [Image alt (src,tit)]
   captionNode <- withParaProp (pStyle "ImageCaption")
@@ -669,24 +673,35 @@ blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
 -- fixDisplayMath sometimes produces a Para [] as artifact
 blockToOpenXML _ (Para []) = return []
 blockToOpenXML opts (Para lst) = do
-    paraProps <- getParaProps $ case lst of
-                                     [Math DisplayMath _] -> True
-                                     _                    -> False
-    contents <- inlinesToOpenXML opts lst
-    return [mknode "w:p" [] (paraProps ++ contents)]
+  isFirstPara <- gets stFirstPara
+  if isFirstPara
+    then do modify $ \s -> s { stFirstPara = False }
+            withParaProp (pStyle "FirstParagraph") $ blockToOpenXML opts (Para lst)
+    else do paraProps <- getParaProps $ case lst of
+                                         [Math DisplayMath _] -> True
+                                         _                    -> False
+            contents <- inlinesToOpenXML opts lst
+            return [mknode "w:p" [] (paraProps ++ contents)]
 blockToOpenXML _ (RawBlock format str)
   | format == Format "openxml" = return [ x | Elem x <- parseXML str ]
   | otherwise                  = return []
-blockToOpenXML opts (BlockQuote blocks) =
-  withParaProp (pStyle "BlockQuote") $ blocksToOpenXML opts blocks
-blockToOpenXML opts (CodeBlock attrs str) =
-  withParaProp (pStyle "SourceCode") $ blockToOpenXML opts $ Para [Code attrs str]
-blockToOpenXML _ HorizontalRule = return [
-  mknode "w:p" [] $ mknode "w:r" [] $ mknode "w:pict" []
+blockToOpenXML opts (BlockQuote blocks) = do
+  p <- withParaProp (pStyle "BlockQuote") $ blocksToOpenXML opts blocks
+  setFirstPara
+  return p
+blockToOpenXML opts (CodeBlock attrs str) = do
+  p <- withParaProp (pStyle "SourceCode") $ (blockToOpenXML opts $ Para [Code attrs str])
+  setFirstPara
+  return p
+blockToOpenXML _ HorizontalRule = do
+  setFirstPara
+  return [
+    mknode "w:p" [] $ mknode "w:r" [] $ mknode "w:pict" []
     $ mknode "v:rect" [("style","width:0;height:1.5pt"),
                        ("o:hralign","center"),
                        ("o:hrstd","t"),("o:hr","t")] () ]
 blockToOpenXML opts (Table caption aligns widths headers rows) = do
+  setFirstPara
   let captionStr = stringify caption
   caption' <- if null caption
                  then return []
@@ -733,14 +748,20 @@ blockToOpenXML opts (BulletList lst) = do
   let marker = BulletMarker
   addList marker
   numid  <- getNumId
-  asList $ concat `fmap` mapM (listItemToOpenXML opts numid) lst
+  l <- asList $ concat `fmap` mapM (listItemToOpenXML opts numid) lst
+  setFirstPara
+  return l
 blockToOpenXML opts (OrderedList (start, numstyle, numdelim) lst) = do
   let marker = NumberMarker numstyle numdelim start
   addList marker
   numid  <- getNumId
-  asList $ concat `fmap` mapM (listItemToOpenXML opts numid) lst
-blockToOpenXML opts (DefinitionList items) =
-  concat `fmap` mapM (definitionListItemToOpenXML opts) items
+  l <- asList $ concat `fmap` mapM (listItemToOpenXML opts numid) lst
+  setFirstPara
+  return l
+blockToOpenXML opts (DefinitionList items) = do
+  l <- concat `fmap` mapM (definitionListItemToOpenXML opts) items
+  setFirstPara
+  return l
 
 definitionListItemToOpenXML  :: WriterOptions -> ([Inline],[[Block]]) -> WS [Element]
 definitionListItemToOpenXML opts (term,defs) = do
@@ -846,6 +867,9 @@ formattedString str = do
              props ++
              [ mknode (if inDel then "w:delText" else "w:t")
                [("xml:space","preserve")] str ] ]
+
+setFirstPara :: WS ()
+setFirstPara =  modify $ \s -> s { stFirstPara = True }
 
 -- | Convert an inline element to OpenXML.
 inlineToOpenXML :: WriterOptions -> Inline -> WS [Element]
