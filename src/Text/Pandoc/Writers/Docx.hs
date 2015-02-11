@@ -673,15 +673,17 @@ blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
 -- fixDisplayMath sometimes produces a Para [] as artifact
 blockToOpenXML _ (Para []) = return []
 blockToOpenXML opts (Para lst) = do
-  isFirstPara <- gets stFirstPara
-  if isFirstPara
-    then do modify $ \s -> s { stFirstPara = False }
-            withParaProp (pStyle "FirstParagraph") $ blockToOpenXML opts (Para lst)
-    else do paraProps <- getParaProps $ case lst of
-                                         [Math DisplayMath _] -> True
-                                         _                    -> False
-            contents <- inlinesToOpenXML opts lst
-            return [mknode "w:p" [] (paraProps ++ contents)]
+  isFirstPara <- gets stFirstPara 
+  paraProps <- getParaProps $ case lst of
+                               [Math DisplayMath _] -> True
+                               _                    -> False
+  let paraProps' = case paraProps of
+        [] | isFirstPara -> [mknode "w:pPr" [] [(pStyle "FirstParagraph")]]
+        []               -> [mknode "w:pPr" [] [(pStyle "BodyText")]]
+        ps               -> ps
+  modify $ \s -> s { stFirstPara = False }
+  contents <- inlinesToOpenXML opts lst
+  return [mknode "w:p" [] (paraProps' ++ contents)]
 blockToOpenXML _ (RawBlock format str)
   | format == Format "openxml" = return [ x | Elem x <- parseXML str ]
   | otherwise                  = return []
