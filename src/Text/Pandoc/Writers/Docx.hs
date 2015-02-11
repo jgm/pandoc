@@ -614,7 +614,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
       convertSpace (Str x : Str y : xs) = Str (x ++ y) : xs
       convertSpace xs = xs
   let blocks' = bottomUp convertSpace blocks
-  doc' <- blocksToOpenXML opts blocks'
+  doc' <- (setFirstPara >> blocksToOpenXML opts blocks')
   notes' <- reverse `fmap` gets stFootnotes
   let meta' = title ++ subtitle ++ authors ++ date ++ abstract
   return (meta' ++ doc', notes')
