@@ -114,7 +114,7 @@ defaultWriterState :: WriterState
 defaultWriterState = WriterState{
         stTextProperties = []
       , stParaProperties = []
-      , stFootnotes      = []
+      , stFootnotes      = defaultFootnotes
       , stSectionIds     = []
       , stExternalLinks  = M.empty
       , stImages         = M.empty
@@ -1073,6 +1073,22 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
 br :: Element
 br = mknode "w:r" [] [mknode "w:br" [("w:type","textWrapping")] () ]
 
+-- Word will insert these footnotes into the settings.xml file
+-- (whether or not they're visible in the document). If they're in the
+-- file, but not in the footnotes.xml file, it will produce
+-- problems. So we want to make sure we insert them into our document.
+defaultFootnotes :: [Element]
+defaultFootnotes = [ mknode "w:footnote"
+                     [("w:type", "separator"), ("w:id", "-1")] $
+                     [ mknode "w:p" [] $
+                       [mknode "w:r" [] $
+                        [ mknode "w:separator" [] ()]]]
+                   , mknode "w:footnote"
+                     [("w:type", "continuationSeparator"), ("w:id", "0")] $
+                     [ mknode "w:p" [] $
+                       [ mknode "w:r" [] $
+                         [ mknode "w:continuationSeparator" [] ()]]]]
+                    
 parseXml :: Archive -> Archive -> String -> IO Element
 parseXml refArchive distArchive relpath =
   case ((findEntryByPath relpath refArchive `mplus`
