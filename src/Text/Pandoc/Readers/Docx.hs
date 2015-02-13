@@ -397,7 +397,9 @@ singleParaToPlain blks
 singleParaToPlain blks = blks
 
 cellToBlocks :: Cell -> DocxContext Blocks
-cellToBlocks (Cell bps) = concatReduce <$> mapM bodyPartToBlocks bps
+cellToBlocks (Cell bps) = do
+  blks <- concatReduce <$> mapM bodyPartToBlocks bps
+  return $ fromList $ blocksToDefinitions $ blocksToBullets $ toList blks
 
 rowToBlocksList :: Row -> DocxContext [Blocks]
 rowToBlocksList (Row cells) = do
