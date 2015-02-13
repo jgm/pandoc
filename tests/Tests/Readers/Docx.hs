@@ -188,6 +188,10 @@ tests = [ testGroup "inlines"
             "docx/tables.docx"
             "docx/tables.native"
           , testCompare
+            "tables with lists in cells"
+            "docx/table_with_list_cell.docx"
+            "docx/table_with_list_cell.native"
+          , testCompare
             "code block"
             "docx/codeblock.docx"
             "docx/codeblock.native"
