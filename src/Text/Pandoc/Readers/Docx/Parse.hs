@@ -158,6 +158,7 @@ data ParagraphStyle = ParagraphStyle { pStyle :: [String]
                                      , indentation :: Maybe ParIndentation
                                      , dropCap     :: Bool
                                      , pHeading    :: Maybe (String, Int)
+                                     , pNumInfo    :: Maybe (String, String)
                                      , pBlockQuote :: Maybe Bool
                                      }
                       deriving Show
@@ -167,6 +168,7 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
                                        , indentation = Nothing
                                        , dropCap     = False
                                        , pHeading    = Nothing
+                                       , pNumInfo    = Nothing
                                        , pBlockQuote = Nothing
                                        }
 
@@ -224,6 +226,7 @@ data RunStyle = RunStyle { isBold :: Maybe Bool
 
 data ParStyleData = ParStyleData { headingLev :: Maybe (String, Int)
                                  , isBlockQuote :: Maybe Bool
+                                 , numInfo :: Maybe (String, String)
                                  , psStyle :: Maybe ParStyle}
                     deriving Show
 
@@ -546,20 +549,6 @@ elemToParIndentation ns element | isElem ns "w" "ind" element =
       stringToInteger}
 elemToParIndentation _ _ = Nothing
 
-
-elemToNumInfo :: NameSpaces -> Element -> Maybe (String, String)
-elemToNumInfo ns element  | isElem ns "w" "p" element = do
-  let pPr = findChild (elemName ns "w" "pPr") element
-      numPr = pPr >>= findChild (elemName ns "w" "numPr")
-  lvl <- numPr >>=
-         findChild (elemName ns "w" "ilvl") >>=
-         findAttr (elemName ns "w" "val")
-  numId <- numPr >>=
-           findChild (elemName ns "w" "numId") >>=
-           findAttr (elemName ns "w" "val")
-  return (numId, lvl)
-elemToNumInfo _ _ = Nothing
-
 testBitMask :: String -> Int -> Bool
 testBitMask bitMaskS n =
   case (reads ("0x" ++ bitMaskS) :: [(Int, String)]) of
@@ -578,20 +567,28 @@ elemToBodyPart ns element
         return $ OMathPara expsLst
 elemToBodyPart ns element
   | isElem ns "w" "p" element
-  , Just (numId, lvl) <- elemToNumInfo ns element = do
+  , Just (numId, lvl) <- getNumInfo ns element = do
     sty <- asks envParStyles
     let parstyle = elemToParagraphStyle ns element sty
     parparts <- mapD (elemToParPart ns) (elChildren element)
     num <- asks envNumbering
     case lookupLevel numId lvl num of
-      Just levelInfo -> return $ ListItem parstyle numId lvl levelInfo parparts
-      Nothing         -> throwError WrongElem
+     Just levelInfo -> return $ ListItem parstyle numId lvl levelInfo parparts
+     Nothing        -> throwError WrongElem
 elemToBodyPart ns element
   | isElem ns "w" "p" element = do
-    sty <- asks envParStyles
-    let parstyle = elemToParagraphStyle ns element sty
-    parparts <- mapD (elemToParPart ns) (elChildren element)
-    return $ Paragraph parstyle parparts
+      sty <- asks envParStyles
+      let parstyle = elemToParagraphStyle ns element sty
+      parparts <- mapD (elemToParPart ns) (elChildren element)
+      case pNumInfo parstyle of
+       Just (numId, lvl) -> do
+         num <- asks envNumbering
+         case lookupLevel numId lvl num of
+          Just levelInfo ->
+            return $ ListItem parstyle numId lvl levelInfo parparts
+          Nothing         ->
+            throwError WrongElem
+       Nothing -> return $ Paragraph parstyle parparts
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
     let caption' = findChild (elemName ns "w" "tblPr") element
@@ -771,6 +768,7 @@ elemToParagraphStyle ns element sty
             Just _      -> True
             Nothing     -> False
       , pHeading = getParStyleField headingLev sty style
+      , pNumInfo = getParStyleField numInfo sty style
       , pBlockQuote = getParStyleField isBlockQuote sty style
       }
 elemToParagraphStyle _ _ _ =  defaultParagraphStyle
@@ -857,12 +855,26 @@ getBlockQuote ns element
   , styleName `elem` blockQuoteStyleNames = Just True
 getBlockQuote _ _ = Nothing
 
+getNumInfo :: NameSpaces -> Element -> Maybe (String, String)
+getNumInfo ns element = do
+  let numPr = findChild (elemName ns "w" "pPr") element >>=
+              findChild (elemName ns "w" "numPr")
+      lvl = fromMaybe "0" (numPr >>=
+                           findChild (elemName ns "w" "ilvl") >>=
+                           findAttr (elemName ns "w" "val"))
+  numId <- numPr >>=
+           findChild (elemName ns "w" "numId") >>=
+           findAttr (elemName ns "w" "val")
+  return (numId, lvl)
+
+
 elemToParStyleData :: NameSpaces -> Element -> Maybe ParStyle -> ParStyleData
 elemToParStyleData ns element parentStyle =
     ParStyleData
       {
         headingLev = getHeaderLevel ns element
       , isBlockQuote = getBlockQuote ns element
+      , numInfo = getNumInfo ns element
       , psStyle = parentStyle
         }
 
