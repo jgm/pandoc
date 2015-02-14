@@ -36,6 +36,7 @@ import Data.List ( isPrefixOf, isInfixOf, intercalate )
 import System.Environment ( getEnv )
 import Text.Printf (printf)
 import System.FilePath ( takeExtension, takeFileName )
+import System.FilePath.Glob ( namesMatching )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -57,7 +58,7 @@ import Text.Pandoc.Options ( WriterOptions(..)
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walk, walkM)
 import Control.Monad.State (modify, get, execState, State, put, evalState)
-import Control.Monad (foldM, mplus, liftM)
+import Control.Monad (foldM, mplus, liftM, when)
 import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
                       , strContent, lookupAttr, Node(..), QName(..), parseXML
                       , onlyElems, node, ppElement)
@@ -387,8 +388,14 @@ writeEPUB opts doc@(Pandoc meta _) = do
   picEntries <- foldM readPicEntry [] pics
 
   -- handle fonts
+  let matchingGlob f = do
+        xs <- namesMatching f
+        when (null xs) $
+          warn $ f ++ " did not match any font files."
+        return xs
   let mkFontEntry f = mkEntry (takeFileName f) `fmap` B.readFile f
-  fontEntries <- mapM mkFontEntry $ writerEpubFonts opts'
+  fontFiles <- concat <$> mapM matchingGlob (writerEpubFonts opts')
+  fontEntries <- mapM mkFontEntry fontFiles
 
   -- set page progression direction attribution
   let progressionDirection = case epubPageDirection metadata of

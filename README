@@ -608,9 +608,12 @@ Options affecting specific writers
 
 `--epub-embed-font=`*FILE*
 :   Embed the specified font in the EPUB. This option can be repeated
-    to embed multiple fonts.  To use embedded fonts, you
-    will need to add declarations like the following to your CSS (see
-    `--epub-stylesheet`):
+    to embed multiple fonts.  Wildcards can also be used: for example,
+    `DejaVuSans-*.ttf`.  However, if you use wildcards on the command
+    line, be sure to escape them or put the whole filename in single quotes,
+    to prevent them from being interpreted by the shell. To use the
+    embedded fonts, you will need to add declarations like the following
+    to your CSS (see `--epub-stylesheet`):
 
         @font-face {
         font-family: DejaVuSans;
