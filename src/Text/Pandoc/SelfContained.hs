@@ -45,9 +45,20 @@ import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.UTF8 (toString,  fromString)
 import Text.Pandoc.Options (WriterOptions(..))
+import Data.List (isPrefixOf)
 
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c
+
+makeDataURI :: String -> ByteString -> String
+makeDataURI mime raw =
+  if textual
+     then "data:" ++ mime' ++ "," ++ escapeURIString isOk (toString raw)
+     else "data:" ++ mime' ++ ";base64," ++ toString (encode raw)
+  where textual = "text/" `Data.List.isPrefixOf` mime
+        mime' = if textual && ';' `notElem` mime
+                   then mime ++ ";charset=utf-8"
+                   else mime  -- mime type already has charset
 
 convertTag :: MediaBag -> Maybe String -> Tag String -> IO (Tag String)
 convertTag media sourceURL t@(TagOpen tagname as)
@@ -59,7 +70,7 @@ convertTag media sourceURL t@(TagOpen tagname as)
            if x == "src" || x == "href" || x == "poster"
               then do
                 (raw, mime) <- getRaw media sourceURL (fromAttrib "type" t) y
-                let enc = "data:" ++ mime ++ ";base64," ++ toString (encode raw)
+                let enc = makeDataURI mime raw
                 return (x, enc)
               else return (x,y)
 convertTag media sourceURL t@(TagOpen "script" as) =
@@ -67,17 +78,14 @@ convertTag media sourceURL t@(TagOpen "script" as) =
        []     -> return t
        src    -> do
            (raw, mime) <- getRaw media sourceURL (fromAttrib "type" t) src
-           let mime' = if ';' `elem` mime
-                          then mime  -- mime type already has charset
-                          else mime ++ ";charset=utf-8"
-           let enc = "data:" ++ mime' ++ "," ++ escapeURIString isOk (toString raw)
+           let enc = makeDataURI mime raw
            return $ TagOpen "script" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
 convertTag media sourceURL t@(TagOpen "link" as) =
   case fromAttrib "href" t of
        []  -> return t
        src -> do
            (raw, mime) <- getRaw media sourceURL (fromAttrib "type" t) src
-           let enc = "data:" ++ mime ++ "," ++ escapeURIString isOk (toString raw)
+           let enc = makeDataURI mime raw
            return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"])
 convertTag _ _ t = return t
 
@@ -99,8 +107,7 @@ cssURLs media sourceURL d orig =
                                 else d </> url
                   (raw, mime) <- getRaw media sourceURL "" url'
                   rest <- cssURLs media sourceURL d v
-                  let enc = "data:" `B.append` fromString mime `B.append`
-                               ";base64," `B.append` (encode raw)
+                  let enc = fromString $ makeDataURI mime raw
                   return $ x `B.append` "url(" `B.append` enc `B.append` rest
 
 getRaw :: MediaBag -> Maybe String -> MimeType -> String
