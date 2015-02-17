@@ -14,38 +14,38 @@ $endif$
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="$revealjs-url$/css/reveal.css"/>
-    <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">code{white-space: pre;}</style>
 $if(highlighting-css)$
-    <style type="text/css">
+  <style type="text/css">
 $highlighting-css$
-    </style>
+  </style>
 $endif$
 $for(css)$
-    <link rel="stylesheet" href="$css$"/>
+  <link rel="stylesheet" href="$css$"/>
 $endfor$
 $if(theme)$
-    <link rel="stylesheet" href="$revealjs-url$/css/theme/$theme$.css" id="theme">
+  <link rel="stylesheet" href="$revealjs-url$/css/theme/$theme$.css" id="theme">
 $else$
-    <link rel="stylesheet" href="$revealjs-url$/css/theme/black.css" id="theme">
+  <link rel="stylesheet" href="$revealjs-url$/css/theme/black.css" id="theme">
 $endif$
-    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
-    <script>
-      if( window.location.search.match( /print-pdf/gi ) ) {
-        var link = document.createElement( 'link' );
-        link.rel = 'stylesheet';
-        link.type = 'text/css';
-        link.href = '$revealjs-url$/css/print/pdf.css';
-        document.getElementsByTagName( 'head' )[0].appendChild( link );
-      }
-    </script>
-    <!--[if lt IE 9]>
-    <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
-    <![endif]-->
+  <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+  <script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = '$revealjs-url$/css/print/pdf.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+  </script>
+  <!--[if lt IE 9]>
+  <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
+  <![endif]-->
 $if(math)$
-    $math$
+  $math$
 $endif$
 $for(header-includes)$
-    $header-includes$
+  $header-includes$
 $endfor$
 </head>
 <body>
