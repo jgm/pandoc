@@ -20,13 +20,9 @@ $if(highlighting-css)$
 $highlighting-css$
     </style>
 $endif$
-$if(css)$
 $for(css)$
     <link rel="stylesheet" href="$css$"/>
 $endfor$
-$else$
-    <link rel="stylesheet" href="$revealjs-url$/css/theme/simple.css" id="theme">
-$endif$
 $if(theme)$
     <link rel="stylesheet" href="$revealjs-url$/css/theme/$theme$.css" id="theme">
 $else$
