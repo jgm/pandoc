@@ -70,7 +70,6 @@ linkName        = "Link"
 -- block element names (appear in InDesign's paragraph styles pane)
 paragraphName     :: String
 codeBlockName     :: String
-rawBlockName      :: String
 blockQuoteName    :: String
 orderedListName   :: String
 bulletListName    :: String
@@ -93,7 +92,6 @@ subListParName    :: String
 footnoteName      :: String
 paragraphName     = "Paragraph"
 codeBlockName     = "CodeBlock"
-rawBlockName      = "Rawblock"
 blockQuoteName    = "Blockquote"
 orderedListName   = "NumList"
 bulletListName    = "BulList"
@@ -278,7 +276,9 @@ blockToICML :: WriterOptions -> Style -> Block -> WS Doc
 blockToICML opts style (Plain lst) = parStyle opts style lst
 blockToICML opts style (Para lst) = parStyle opts (paragraphName:style) lst
 blockToICML opts style (CodeBlock _ str) = parStyle opts (codeBlockName:style) $ [Str str]
-blockToICML opts style (RawBlock _ str) = parStyle opts (rawBlockName:style) $ [Str str]
+blockToICML _ _ (RawBlock f str)
+  | f == Format "icml" = return $ text str
+  | otherwise          = return empty
 blockToICML opts style (BlockQuote blocks) = blocksToICML opts (blockQuoteName:style) blocks
 blockToICML opts style (OrderedList attribs lst) = listItemsToICML opts orderedListName style (Just attribs) lst
 blockToICML opts style (BulletList lst) = listItemsToICML opts bulletListName style Nothing lst
@@ -404,7 +404,9 @@ inlineToICML _    style (Code _ str) = charStyle (codeName:style) $ text $ escap
 inlineToICML _    style Space = charStyle style space
 inlineToICML _ style LineBreak = charStyle style $ text lineSeparator
 inlineToICML _ style (Math _ str) = charStyle style $ text $ escapeStringForXML str --InDesign doesn't really do math
-inlineToICML _ style (RawInline _ str) = charStyle style $ text $ escapeStringForXML str
+inlineToICML _ _ (RawInline f str)
+  | f == Format "icml" = return $ text str
+  | otherwise          = return empty
 inlineToICML opts style (Link lst (url, title)) = do
   content <- inlinesToICML opts (linkName:style) lst
   state $ \st ->
