@@ -28,7 +28,7 @@ This module provides a standard way to deal with possible errors encounted
 during parsing.
 
 -}
-module Text.Pandoc.Error (PandocError(..), handleError,hush, mapLeft) where
+module Text.Pandoc.Error (PandocError(..), handleError) where
 
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
@@ -46,13 +46,6 @@ data PandocError = -- | Generic parse failure
 instance Error PandocError where
   strMsg = ParseFailure
 
-mapLeft :: (a -> b) -> Either a c -> Either b c
-mapLeft f (Left x) = Left (f x)
-mapLeft _ (Right x) = Right x
-
-hush :: Either a b -> Maybe b
-hush (Left _) = Nothing
-hush (Right x) = Just x
 
 -- | An unsafe method to handle `PandocError`s.
 handleError :: Either PandocError a -> a

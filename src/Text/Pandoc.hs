@@ -164,7 +164,7 @@ import Text.Pandoc.Writers.Haddock
 import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (safeRead, warn)
+import Text.Pandoc.Shared (safeRead, warn, mapLeft)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Error
 import Data.Aeson

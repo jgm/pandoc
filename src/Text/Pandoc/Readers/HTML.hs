@@ -44,7 +44,7 @@ import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
 import Text.Pandoc.Shared ( extractSpaces, renderTags'
-                          , escapeURI, safeRead )
+                          , escapeURI, safeRead, mapLeft )
 import Text.Pandoc.Options (ReaderOptions(readerParseRaw, readerTrace)
                            , Extension (Ext_epub_html_exts,
                                Ext_native_divs, Ext_native_spans))

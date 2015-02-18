@@ -85,6 +85,8 @@ module Text.Pandoc.Shared (
                      -- * Error handling
                      err,
                      warn,
+                     mapLeft,
+                     hush,
                      -- * Safe read
                      safeRead,
                      -- * Temp directory
@@ -854,6 +856,14 @@ warn :: String -> IO ()
 warn msg = do
   name <- getProgName
   UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+
+mapLeft :: (a -> b) -> Either a c -> Either b c
+mapLeft f (Left x) = Left (f x)
+mapLeft _ (Right x) = Right x
+
+hush :: Either a b -> Maybe b
+hush (Left _) = Nothing
+hush (Right x) = Just x
 
 -- | Remove intermediate "." and ".." directories from a path.
 --

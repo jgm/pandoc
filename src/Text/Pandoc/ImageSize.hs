@@ -39,10 +39,9 @@ import Control.Monad
 import Data.Bits
 import Data.Binary
 import Data.Binary.Get
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Shared (safeRead, hush)
 import qualified Data.Map as M
 import Text.Pandoc.Compat.Except
-import Text.Pandoc.Error
 import Control.Monad.Trans
 import Data.Maybe (fromMaybe)
 
