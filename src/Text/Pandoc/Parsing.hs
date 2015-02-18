@@ -190,6 +190,8 @@ import Control.Applicative ((<$>), (<*>), (*>), (<*), (<$))
 import Data.Monoid
 import Data.Maybe (catMaybes)
 
+import Text.Pandoc.Error
+
 type Parser t s = Parsec t s
 
 type ParserT = ParsecT
@@ -845,25 +847,16 @@ readWithM :: (Monad m, Functor m)
           => ParserT [Char] st m a       -- ^ parser
           -> st                       -- ^ initial state
           -> String                   -- ^ input
-          -> m a
+          -> m (Either PandocError a)
 readWithM parser state input =
-    handleError <$> (runParserT parser state "source" input)
-    where
-      handleError (Left err') =
-        let errPos = errorPos err'
-            errLine = sourceLine errPos
-            errColumn = sourceColumn errPos
-            theline = (lines input ++ [""]) !! (errLine - 1)
-        in  error $ "\nError at " ++ show  err' ++ "\n" ++
-                theline ++ "\n" ++ replicate (errColumn - 1) ' ' ++
-                "^"
-      handleError (Right result) = result
+    mapLeft (ParsecError input) <$> runParserT parser state "source" input
+
 
 -- | Parse a string with a given parser and state
 readWith :: Parser [Char] st a
          -> st
          -> String
-         -> a
+         -> Either PandocError a
 readWith p t inp = runIdentity $ readWithM p t inp
 
 returnWarnings :: (Stream s m c)
