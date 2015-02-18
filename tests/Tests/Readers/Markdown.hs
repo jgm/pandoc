@@ -289,4 +289,26 @@ tests = [ testGroup "inline code"
                          , plain "b"
                          , plain "c" <> bulletList [plain "d"] ]
           ]
+        , testGroup "citations"
+          [ "simple" =:
+            "@item1" =?> para (cite [
+                Citation{ citationId      = "item1"
+                        , citationPrefix  = []
+                        , citationSuffix  = []
+                        , citationMode    = AuthorInText
+                        , citationNoteNum = 0
+                        , citationHash    = 0
+                        }
+                ] "@item1")
+          , "key starts with digit" =:
+            "@1657:huyghens" =?> para (cite [
+                Citation{ citationId      = "1657:huyghens"
+                        , citationPrefix  = []
+                        , citationSuffix  = []
+                        , citationMode    = AuthorInText
+                        , citationNoteNum = 0
+                        , citationHash    = 0
+                        }
+                ] "@1657:huyghens")
+          ]
         ]

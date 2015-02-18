@@ -1212,7 +1212,7 @@ citeKey = try $ do
   guard =<< notAfterString
   suppress_author <- option False (char '-' *> return True)
   char '@'
-  firstChar <- letter <|> char '_'
+  firstChar <- alphaNum <|> char '_'
   let regchar = satisfy (\c -> isAlphaNum c || c == '_')
   let internal p = try $ p <* lookAhead regchar
   rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/")
