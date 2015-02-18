@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Text.Pandoc.Readers.OPML ( readOPML ) where
 import Data.Char (toUpper)
 import Text.Pandoc.Options
@@ -11,8 +12,11 @@ import Data.Generics
 import Data.Monoid
 import Control.Monad.State
 import Control.Applicative ((<$>), (<$))
+import Data.Default
+import Text.Pandoc.Compat.Except
+import Text.Pandoc.Error
 
-type OPML = State OPMLState
+type OPML = ExceptT PandocError (State OPMLState)
 
 data OPMLState = OPMLState{
                         opmlSectionLevel :: Int
@@ -21,17 +25,19 @@ data OPMLState = OPMLState{
                       , opmlDocDate      :: Inlines
                       } deriving Show
 
-readOPML :: ReaderOptions -> String -> Pandoc
+instance Default OPMLState where
+  def = OPMLState{ opmlSectionLevel = 0
+                 , opmlDocTitle = mempty
+                 , opmlDocAuthors = []
+                 , opmlDocDate = mempty
+                  }
+
+readOPML :: ReaderOptions -> String -> Either PandocError Pandoc
 readOPML _ inp  = setTitle (opmlDocTitle st')
-                   $ setAuthors (opmlDocAuthors st')
-                   $ setDate (opmlDocDate st')
-                   $ doc $ mconcat bs
-  where (bs, st') = runState (mapM parseBlock $ normalizeTree $ parseXML inp)
-                             OPMLState{ opmlSectionLevel = 0
-                                    , opmlDocTitle = mempty
-                                    , opmlDocAuthors = []
-                                    , opmlDocDate = mempty
-                                    }
+                   . setAuthors (opmlDocAuthors st')
+                   . setDate (opmlDocDate st')
+                   . doc . mconcat <$> bs
+  where (bs, st') = flip runState def . runExceptT $ (mapM parseBlock $ normalizeTree $ parseXML inp)
 
 -- normalize input, consolidating adjacent Text and CRef elements
 normalizeTree :: [Content] -> [Content]
@@ -58,14 +64,16 @@ attrValue attr elt =
     Just z  -> z
     Nothing -> ""
 
-asHtml :: String -> Inlines
-asHtml s = case readHtml def s of
-                Pandoc _ [Plain ils] -> fromList ils
-                _ -> mempty
+exceptT :: Either PandocError a -> OPML a
+exceptT = either throwError return
 
-asMarkdown :: String -> Blocks
-asMarkdown s = fromList bs
-  where Pandoc _ bs = readMarkdown def s
+asHtml :: String -> OPML Inlines
+asHtml s = (\(Pandoc _ bs) -> case bs of
+                                [Plain ils] -> fromList ils
+                                _ -> mempty) <$> exceptT (readHtml def s)
+
+asMarkdown :: String -> OPML Blocks
+asMarkdown s = (\(Pandoc _ bs) -> fromList bs) <$> exceptT (readMarkdown def s)
 
 getBlocks :: Element -> OPML Blocks
 getBlocks e =  mconcat <$> (mapM parseBlock $ elContent e)
@@ -82,8 +90,8 @@ parseBlock (Elem e) =
         "outline" -> gets opmlSectionLevel >>= sect . (+1)
         "?xml"  -> return mempty
         _       -> getBlocks e
-   where sect n = do let headerText = asHtml $ attrValue "text" e
-                     let noteBlocks = asMarkdown $ attrValue "_note" e
+   where sect n = do headerText <- asHtml $ attrValue "text" e
+                     noteBlocks <- asMarkdown $ attrValue "_note" e
                      modify $ \st -> st{ opmlSectionLevel = n }
                      bs <- getBlocks e
                      modify $ \st -> st{ opmlSectionLevel = n - 1 }
