@@ -1,3 +1,33 @@
+{-
+Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-}
+{- |
+   Module      : Text.Pandoc.Error
+   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : John MacFarlane <jgm@berkeley.edu>
+   Stability   : alpha
+   Portability : portable
+
+This module provides a standard way to deal with possible errors encounted
+during parsing.
+
+-}
 module Text.Pandoc.Error (PandocError(..), handleError,hush, mapLeft) where
 
 import Text.Parsec.Error
@@ -6,14 +36,15 @@ import Text.Pandoc.Compat.Except
 
 type Input = String
 
-data PandocError = ParseFailure String
+data PandocError = -- | Generic parse failure
+                   ParseFailure String
+                 -- | Error thrown by a Parsec parser
                  | ParsecError Input ParseError
                  deriving (Show)
 
 
 instance Error PandocError where
   strMsg = ParseFailure
-
 
 mapLeft :: (a -> b) -> Either a c -> Either b c
 mapLeft f (Left x) = Left (f x)
@@ -23,6 +54,7 @@ hush :: Either a b -> Maybe b
 hush (Left _) = Nothing
 hush (Right x) = Just x
 
+-- | An unsafe method to handle `PandocError`s.
 handleError :: Either PandocError a -> a
 handleError (Right r) = r
 handleError (Left err) =
