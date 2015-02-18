@@ -58,19 +58,21 @@ import           Data.Maybe (fromMaybe, isJust)
 import           Data.Monoid (mconcat, mempty, mappend)
 import           Network.HTTP (urlEncode)
 
+import           Text.Pandoc.Error
+
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-        -> Pandoc
+        -> Either PandocError Pandoc
 readOrg opts s = runOrg opts s parseOrg
 
-runOrg :: ReaderOptions -> String -> OrgParser a -> a
-runOrg opts inp p = fst res
+runOrg :: ReaderOptions -> String -> OrgParser a -> Either PandocError a
+runOrg opts inp p = fst <$> res
   where
     imd = readWithM (returnState p) def{ orgStateOptions = opts } (inp ++ "\n\n")
     res = runReader imd s
     s :: OrgParserState
-    s   = snd $ runReader imd s
+    s   = either def snd res
 
 type OrgParser a = ParserT [Char] OrgParserState (Reader OrgParserState) a
 
