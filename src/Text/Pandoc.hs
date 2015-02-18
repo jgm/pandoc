@@ -166,6 +166,7 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, warn)
 import Text.Pandoc.MediaBag (MediaBag)
+import Text.Pandoc.Error
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
@@ -201,19 +202,22 @@ parseFormatSpec = parse formatSpec ""
                         '-'  -> Set.delete ext
                         _    -> Set.insert ext
 
-data Reader = StringReader (ReaderOptions -> String -> IO Pandoc)
-              | ByteStringReader (ReaderOptions -> BL.ByteString -> IO (Pandoc, MediaBag))
 
-mkStringReader :: (ReaderOptions -> String -> Pandoc) -> Reader
+data Reader = StringReader (ReaderOptions -> String -> IO (Either PandocError Pandoc))
+              | ByteStringReader (ReaderOptions -> BL.ByteString -> IO (Either PandocError (Pandoc,MediaBag)))
+
+mkStringReader :: (ReaderOptions -> String -> (Either PandocError Pandoc)) -> Reader
 mkStringReader r = StringReader (\o s -> return $ r o s)
 
-mkStringReaderWithWarnings :: (ReaderOptions -> String -> (Pandoc, [String])) -> Reader
+mkStringReaderWithWarnings :: (ReaderOptions -> String -> Either PandocError (Pandoc, [String])) -> Reader
 mkStringReaderWithWarnings r  = StringReader $ \o s -> do
-    let (doc, warnings) = r o s
-    mapM_ warn warnings
-    return doc
+  case r o s of
+    Left err -> return $ Left err
+    Right (doc, warnings) -> do
+      mapM_ warn warnings
+      return (Right doc)
 
-mkBSReader :: (ReaderOptions -> BL.ByteString -> (Pandoc, MediaBag)) -> Reader
+mkBSReader :: (ReaderOptions -> BL.ByteString -> (Either PandocError (Pandoc, MediaBag))) -> Reader
 mkBSReader r = ByteStringReader (\o s -> return $ r o s)
 
 -- | Association list of formats and readers.
@@ -357,8 +361,8 @@ class ToJSONFilter a => ToJsonFilter a
   where toJsonFilter :: a -> IO ()
         toJsonFilter = toJSONFilter
 
-readJSON :: ReaderOptions -> String -> Pandoc
-readJSON _ = either error id . eitherDecode' . UTF8.fromStringLazy
+readJSON :: ReaderOptions -> String -> Either PandocError Pandoc
+readJSON _ = mapLeft ParseFailure . eitherDecode' . UTF8.fromStringLazy
 
 writeJSON :: WriterOptions -> Pandoc -> String
 writeJSON _ = UTF8.toStringLazy . encode
