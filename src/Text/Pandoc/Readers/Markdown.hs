@@ -1,4 +1,5 @@
 {-# LANGUAGE RelaxedPolyRec #-} -- needed for inlinesBetween on GHC < 7
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -64,13 +65,14 @@ import Text.HTML.TagSoup.Match (tagOpen)
 import qualified Data.Set as Set
 import Text.Printf (printf)
 import Debug.Trace (trace)
+import Text.Pandoc.Error
 
 type MarkdownParser a = ParserT [Char] ParserState (Reader ParserState) a
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ReaderOptions -- ^ Reader options
              -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-             -> Pandoc
+             -> Either PandocError Pandoc
 readMarkdown opts s =
   runMarkdown opts s parseMarkdown
 
@@ -78,16 +80,17 @@ readMarkdown opts s =
 -- and a list of warnings.
 readMarkdownWithWarnings :: ReaderOptions -- ^ Reader options
                          -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-                         -> (Pandoc, [String])
+                         -> Either PandocError (Pandoc, [String])
 readMarkdownWithWarnings opts s = runMarkdown opts s (returnWarnings parseMarkdown)
 
-runMarkdown :: ReaderOptions -> String -> MarkdownParser a -> a
-runMarkdown opts inp p = fst res
+runMarkdown :: forall a . ReaderOptions -> String -> MarkdownParser a -> Either PandocError a
+runMarkdown opts inp p = fst <$> res
   where
     imd = readWithM (returnState p) def{ stateOptions = opts } (inp ++ "\n\n")
+    res :: Either PandocError (a, ParserState)
     res = runReader imd s
     s :: ParserState
-    s   = snd $ runReader imd s
+    s   = either def snd res
 
 --
 -- Constants and data structure definitions
@@ -246,8 +249,9 @@ yamlMetaBlock = try $ do
                          H.foldrWithKey (\k v m ->
                               if ignorable k
                                  then m
-                                 else B.setMeta (T.unpack k)
-                                            (yamlToMeta opts v) m)
+                                 else case yamlToMeta opts v of
+                                        Left _  -> m
+                                        Right v' -> B.setMeta (T.unpack k) v' m)
                            nullMeta hashmap
                 Right Yaml.Null -> return nullMeta
                 Right _ -> do
@@ -279,33 +283,37 @@ yamlMetaBlock = try $ do
 ignorable :: Text -> Bool
 ignorable t = T.pack "_" `T.isSuffixOf` t
 
-toMetaValue :: ReaderOptions -> Text -> MetaValue
-toMetaValue opts x =
-  case readMarkdown opts (T.unpack x) of
-       Pandoc _ [Plain xs] -> MetaInlines xs
-       Pandoc _ [Para xs]
+toMetaValue :: ReaderOptions -> Text -> Either PandocError MetaValue
+toMetaValue opts x = toMeta <$> readMarkdown opts (T.unpack x)
+  where
+    toMeta p =
+      case p of
+        Pandoc _ [Plain xs]  -> MetaInlines xs
+        Pandoc _ [Para xs]
          | endsWithNewline x -> MetaBlocks [Para xs]
          | otherwise         -> MetaInlines xs
-       Pandoc _ bs           -> MetaBlocks bs
-  where endsWithNewline t = T.pack "\n" `T.isSuffixOf` t
+        Pandoc _ bs           -> MetaBlocks bs
+    endsWithNewline t = T.pack "\n" `T.isSuffixOf` t
 
-yamlToMeta :: ReaderOptions -> Yaml.Value -> MetaValue
+yamlToMeta :: ReaderOptions -> Yaml.Value -> Either PandocError MetaValue
 yamlToMeta opts (Yaml.String t) = toMetaValue opts t
 yamlToMeta _    (Yaml.Number n)
   -- avoid decimal points for numbers that don't need them:
-  | base10Exponent n >= 0     = MetaString $ show
+  | base10Exponent n >= 0     = return $ MetaString $ show
                                 $ coefficient n * (10 ^ base10Exponent n)
-  | otherwise                 = MetaString $ show n
-yamlToMeta _    (Yaml.Bool b) = MetaBool b
-yamlToMeta opts (Yaml.Array xs) = B.toMetaValue $ map (yamlToMeta opts)
-                                                $ V.toList xs
-yamlToMeta opts (Yaml.Object o) = MetaMap $ H.foldrWithKey (\k v m ->
+  | otherwise                 = return $ MetaString $ show n
+yamlToMeta _    (Yaml.Bool b) = return $ MetaBool b
+yamlToMeta opts (Yaml.Array xs) = B.toMetaValue <$> mapM (yamlToMeta opts)
+                                                  (V.toList xs)
+yamlToMeta opts (Yaml.Object o) = MetaMap <$> H.foldrWithKey (\k v m ->
                                 if ignorable k
                                    then m
-                                   else M.insert (T.unpack k)
-                                           (yamlToMeta opts v) m)
-                               M.empty o
-yamlToMeta _ _ = MetaString ""
+                                   else (do
+                                    v' <- yamlToMeta opts v
+                                    m' <- m
+                                    return (M.insert (T.unpack k) v' m')))
+                                (return M.empty) o
+yamlToMeta _ _ = return $ MetaString ""
 
 stopLine :: MarkdownParser ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
