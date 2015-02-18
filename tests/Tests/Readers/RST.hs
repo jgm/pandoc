@@ -7,10 +7,11 @@ import Tests.Helpers
 import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
+import Text.Pandoc.Error
 import Data.Monoid (mempty)
 
 rst :: String -> Pandoc
-rst = readRST def{ readerStandalone = True }
+rst = handleError . readRST def{ readerStandalone = True }
 
 infix 4 =:
 (=:) :: ToString c
