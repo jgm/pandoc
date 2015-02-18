@@ -51,13 +51,15 @@ import Data.Monoid (mconcat, mempty)
 import Data.Sequence (viewr, ViewR(..))
 import Data.Char (toLower, isHexDigit, isSpace)
 
+import Text.Pandoc.Error
+
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-        -> Pandoc
+        -> Either PandocError Pandoc
 readRST opts s = (readWith parseRST) def{ stateOptions = opts } (s ++ "\n\n")
 
-readRSTWithWarnings :: ReaderOptions -> String -> (Pandoc, [String])
+readRSTWithWarnings :: ReaderOptions -> String -> Either PandocError (Pandoc, [String])
 readRSTWithWarnings opts s = (readWith (returnWarnings parseRST)) def{ stateOptions = opts } (s ++ "\n\n")
 
 type RSTParser = Parser [Char] ParserState
