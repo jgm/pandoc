@@ -113,7 +113,7 @@ import System.FilePath ( (</>), takeExtension, dropExtension)
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import qualified Control.Exception as E
-import Control.Monad (msum, unless)
+import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Compat.Locale (defaultTimeLocale)
 import Data.Time
@@ -883,11 +883,11 @@ collapseFilePath = joinPath . reverse . foldl go [] . splitDirectories
 -- Safe read
 --
 
-safeRead :: (Monad m, Read a) => String -> m a
+safeRead :: (MonadPlus m, Read a) => String -> m a
 safeRead s = case reads s of
                   (d,x):_
                     | all isSpace x -> return d
-                  _                 -> fail $ "Could not read `" ++ s ++ "'"
+                  _                 -> mzero
 
 --
 -- Temp directory
