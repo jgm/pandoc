@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses,
+ViewPatterns#-}
 {-
 Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -62,15 +63,18 @@ import Text.TeXMath (readMathML, writeTeX)
 import Data.Default (Default (..), def)
 import Control.Monad.Reader (Reader,ask, asks, local, runReader)
 
+import Text.Pandoc.Error
+
+import Text.Parsec.Error
+
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ReaderOptions -- ^ Reader options
          -> String        -- ^ String to parse (assumes @'\n'@ line endings)
-         -> Pandoc
+         -> Either PandocError Pandoc
 readHtml opts inp =
-  case flip runReader def $ runParserT parseDoc (HTMLState def{ stateOptions = opts } [])  "source" tags of
-          Left err'    -> error $ "\nError at " ++ show  err'
-          Right result -> result
+    mapLeft (ParseFailure . getError) . flip runReader def $
+      runParserT parseDoc (HTMLState def{ stateOptions = opts } []) "source" tags
     where tags = stripPrefixes . canonicalizeTags $
                    parseTagsOptions parseOptions{ optTagPosition = True } inp
           parseDoc = do
@@ -78,6 +82,9 @@ readHtml opts inp =
              meta <- stateMeta . parserState <$> getState
              bs' <- replaceNotes (B.toList blocks)
              return $ Pandoc meta bs'
+          getError (errorMessages -> ms) = case ms of
+                                                []    -> ""
+                                                (m:_) -> messageString m
 
 replaceNotes :: [Block] -> TagParser [Block]
 replaceNotes = walkM replaceNotes'
