@@ -15,6 +15,9 @@ import Control.Applicative ((<$>))
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 import Text.TeXMath (readMathML, writeTeX)
+import Text.Pandoc.Error (PandocError)
+import Text.Pandoc.Compat.Except
+import Data.Default
 
 {-
 
@@ -497,7 +500,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] ?asciidoc-br? - line break from asciidoc docbook output
 -}
 
-type DB = State DBState
+type DB = ExceptT PandocError (State DBState)
 
 data DBState = DBState{ dbSectionLevel :: Int
                       , dbQuoteType    :: QuoteType
@@ -507,16 +510,18 @@ data DBState = DBState{ dbSectionLevel :: Int
                       , dbFigureTitle  :: Inlines
                       } deriving Show
 
-readDocBook :: ReaderOptions -> String -> Pandoc
-readDocBook _ inp  = Pandoc (dbMeta st') (toList $ mconcat bs)
-  where (bs, st') = runState (mapM parseBlock $ normalizeTree $ parseXML inp')
-                             DBState{ dbSectionLevel = 0
-                                    , dbQuoteType = DoubleQuote
-                                    , dbMeta = mempty
-                                    , dbAcceptsMeta = False
-                                    , dbBook = False
-                                    , dbFigureTitle = mempty
-                                    }
+instance Default DBState where
+  def = DBState{ dbSectionLevel = 0
+               , dbQuoteType = DoubleQuote
+               , dbMeta = mempty
+               , dbAcceptsMeta = False
+               , dbBook = False
+               , dbFigureTitle = mempty }
+
+
+readDocBook :: ReaderOptions -> String -> Either PandocError Pandoc
+readDocBook _ inp  = (\blocks -> Pandoc (dbMeta st') (toList . mconcat $ blocks)) <$>  bs
+  where (bs , st') = flip runState def . runExceptT . mapM parseBlock . normalizeTree . parseXML $ inp'
         inp' = handleInstructions inp
 
 -- We treat <?asciidoc-br?> specially (issue #1236), converting it
