@@ -22,15 +22,17 @@ import System.Environment (getArgs)
 import Data.Monoid
 import Data.Maybe (mapMaybe)
 import Debug.Trace (trace)
+import Text.Pandoc.Error
+import Control.Applicative
 
 readerBench :: Pandoc
-            -> (String, ReaderOptions -> String -> IO Pandoc)
+            -> (String, ReaderOptions -> String -> IO (Either PandocError Pandoc))
             -> Maybe Benchmark
 readerBench doc (name, reader) = case lookup name writers of
   Just (PureStringWriter writer) ->
     let inp = writer def{ writerWrapText = True} doc
     in return $ bench (name ++ " reader") $ nfIO $
-                 (reader def{ readerSmart = True }) inp
+                 (fmap handleError <$> reader def{ readerSmart = True }) inp
   _ -> trace ("\nCould not find writer for " ++ name ++ "\n") Nothing
 
 writerBench :: Pandoc
@@ -46,7 +48,7 @@ main = do
                         defaultOptions args
   inp <- readFile "tests/testsuite.txt"
   let opts = def{ readerSmart = True }
-  let doc = readMarkdown opts inp
+  let doc = handleError $ readMarkdown opts inp
   let readers' = [(n,r) | (n, StringReader r) <- readers]
   let readerBs = mapMaybe (readerBench doc)
                  $ filter (\(n,_) -> n /="haddock") readers'
