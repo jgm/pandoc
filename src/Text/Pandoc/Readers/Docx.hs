@@ -96,14 +96,17 @@ import Control.Applicative ((<$>))
 import Data.Sequence (ViewL(..), viewl)
 import qualified Data.Sequence as Seq (null)
 
+import Text.Pandoc.Error
+import Text.Pandoc.Compat.Except
+
 readDocx :: ReaderOptions
          -> B.ByteString
-         -> (Pandoc, MediaBag)
+         -> Either PandocError (Pandoc, MediaBag)
 readDocx opts bytes =
   case archiveToDocx (toArchive bytes) of
-    Right docx -> (Pandoc meta blks, mediaBag) where
-      (meta, blks, mediaBag) = (docxToOutput opts docx)
-    Left _   -> error $ "couldn't parse docx file"
+    Right docx -> (\(meta, blks, mediaBag) -> (Pandoc meta blks, mediaBag))
+                    <$> (docxToOutput opts docx)
+    Left _   -> Left (ParseFailure "couldn't parse docx file")
 
 data DState = DState { docxAnchorMap :: M.Map String String
                      , docxMediaBag      :: MediaBag
@@ -122,10 +125,10 @@ data DEnv = DEnv { docxOptions  :: ReaderOptions
 instance Default DEnv where
   def = DEnv def False
 
-type DocxContext = ReaderT DEnv (State DState)
+type DocxContext = ExceptT PandocError (ReaderT DEnv (State DState))
 
-evalDocxContext :: DocxContext a -> DEnv -> DState -> a
-evalDocxContext ctx env st = evalState (runReaderT ctx env) st
+evalDocxContext :: DocxContext a -> DEnv -> DState -> Either PandocError a
+evalDocxContext ctx env st = flip evalState st . flip runReaderT env . runExceptT $ ctx
 
 -- This is empty, but we put it in for future-proofing.
 spansToKeep :: [String]
@@ -545,7 +548,7 @@ bodyToOutput (Body bps) = do
             blks',
             mediaBag)
 
-docxToOutput :: ReaderOptions -> Docx -> (Meta, [Block], MediaBag)
+docxToOutput :: ReaderOptions -> Docx -> Either PandocError (Meta, [Block], MediaBag)
 docxToOutput opts (Docx (Document _ body)) =
   let dEnv   = def { docxOptions  = opts} in
    evalDocxContext (bodyToOutput body) dEnv def
