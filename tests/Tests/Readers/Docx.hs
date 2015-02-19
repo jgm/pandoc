@@ -172,6 +172,10 @@ tests = [ testGroup "inlines"
             "docx/definition_list.docx"
             "docx/definition_list.native"
           , testCompare
+            "custom defined lists in styles"
+            "docx/german_styled_lists.docx"
+            "docx/german_styled_lists.native"
+          , testCompare
             "footnotes and endnotes"
             "docx/notes.docx"
             "docx/notes.native"
