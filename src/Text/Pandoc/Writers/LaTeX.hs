@@ -701,7 +701,7 @@ inlineListToLaTeX lst =
                                ("\\\\[" ++ show (length lbs) ++
                                 "\\baselineskip]") : fixBreaks rest
        fixBreaks (y:ys) = y : fixBreaks ys
- 
+
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
 isQuoted _ = False
@@ -750,10 +750,11 @@ inlineToLaTeX (Cite cits lst) = do
 
 inlineToLaTeX (Code (_,classes,_) str) = do
   opts <- gets stOptions
+  inHeading <- gets stInHeading
   case () of
-     _ | writerListings opts                         -> listingsCode
+     _ | writerListings opts  && not inHeading      -> listingsCode
        | writerHighlight opts && not (null classes) -> highlightCode
-       | otherwise                                   -> rawCode
+       | otherwise                                  -> rawCode
    where listingsCode = do
            inNote <- gets stInNote
            when inNote $ modify $ \s -> s{ stVerbInNote = True }
