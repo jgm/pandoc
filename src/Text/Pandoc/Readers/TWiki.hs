@@ -486,10 +486,7 @@ smart :: TWParser B.Inlines
 smart = do
   getOption readerSmart >>= guard
   doubleQuoted <|> singleQuoted <|>
-    choice [ apostrophe
-           , dash
-           , ellipses
-           ]
+    choice smartPunctuationParsers
 
 singleQuoted :: TWParser B.Inlines
 singleQuoted = try $ do

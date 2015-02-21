@@ -91,6 +91,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              toKey,
                              registerHeader,
                              smartPunctuation,
+                             smartPunctuationParsers,
                              singleQuoteStart,
                              singleQuoteEnd,
                              doubleQuoteStart,
@@ -1105,14 +1106,18 @@ smartPunctuation :: (HasReaderOptions st, HasLastStrPosition st, HasQuoteContext
                  -> ParserT s st m Inlines
 smartPunctuation inlineParser = do
   failUnlessSmart
-  choice [ quoted inlineParser, apostrophe, dash
-         , ellipses, leftAngulars, rightAngulars ]
+  choice $ quoted inlineParser : smartPunctuationParsers
+
+smartPunctuationParsers :: (HasReaderOptions st, Stream s m Char)
+                        => [ParserT s st m Inlines]
+smartPunctuationParsers = [ apostrophe, dash, ellipses
+                          , leftAngulars, rightAngulars ]
 
 leftAngulars :: Stream s m Char => ParserT s st m Inlines
-leftAngulars = try (string "<<" <|> string "\0171") >> return (B.str "\0171")
+leftAngulars = try (string "<<" >> return (B.str "\0171"))
 
 rightAngulars :: Stream s m Char => ParserT s st m Inlines
-rightAngulars = try (string ">>" <|> string "\0187") >> return (B.str "\0187")
+rightAngulars = try (string ">>" >> return (B.str "\0187"))
 
 apostrophe :: Stream s m Char => ParserT s st m Inlines
 apostrophe = (char '\'' <|> char '\8217') >> return (B.str "\x2019")

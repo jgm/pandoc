@@ -1191,7 +1191,7 @@ smart :: RSTParser Inlines
 smart = do
   getOption readerSmart >>= guard
   doubleQuoted <|> singleQuoted <|>
-    choice [apostrophe, dash, ellipses]
+    choice smartPunctuationParsers
 
 singleQuoted :: RSTParser Inlines
 singleQuoted = try $ do
