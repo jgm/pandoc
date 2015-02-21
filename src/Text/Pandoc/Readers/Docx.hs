@@ -278,11 +278,12 @@ runToInlines (Run rs runElems)
   | Just (s, _) <- rStyle rs
   , s `elem` codeStyles =
     let rPr = resolveDependentRunStyle rs
+        codeString = code $ concatMap runElemToString runElems
     in
      return $ case rVertAlign rPr of
-     Just SupScrpt -> superscript $ code $ concatMap runElemToString runElems
-     Just SubScrpt -> subscript $ code $ concatMap runElemToString runElems
-     _             -> code $ concatMap runElemToString runElems
+     Just SupScrpt -> superscript codeString
+     Just SubScrpt -> subscript codeString
+     _             -> codeString
   | otherwise = do
     let ils = concatReduce (map runElemToInlines runElems)
     return $ (runStyleToTransform $ resolveDependentRunStyle rs) ils
