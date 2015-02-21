@@ -394,7 +394,7 @@ writeDocx opts doc@(Pandoc meta _) = do
         linkrels
 
   -- styles
-  let newstyles = styleToOpenXml $ writerHighlightStyle opts
+  let newstyles = styleToOpenXml charStyles $ writerHighlightStyle opts
   let styledoc' = styledoc{ elContent = elContent styledoc ++
                   [Elem x | x <- newstyles, writerHighlight opts] }
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
@@ -473,10 +473,13 @@ writeDocx opts doc@(Pandoc meta _) = do
                   miscRelEntries ++ otherMediaEntries
   return $ fromArchive archive
 
-styleToOpenXml :: Style -> [Element]
-styleToOpenXml style = parStyle : map toStyle alltoktypes
+styleToOpenXml :: CharStyleMap -> Style -> [Element]
+styleToOpenXml (CharStyleMap m) style = parStyle : mapMaybe toStyle alltoktypes
   where alltoktypes = enumFromTo KeywordTok NormalTok
-        toStyle toktype = mknode "w:style" [("w:type","character"),
+        toStyle toktype =
+                        if M.member (map toLower $ show toktype) m then Nothing
+                        else Just $
+                          mknode "w:style" [("w:type","character"),
                            ("w:customStyle","1"),("w:styleId",show toktype)]
                              [ mknode "w:name" [("w:val",show toktype)] ()
                              , mknode "w:basedOn" [("w:val","VerbatimChar")] ()
