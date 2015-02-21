@@ -277,7 +277,12 @@ runToInlines :: Run -> DocxContext Inlines
 runToInlines (Run rs runElems)
   | Just (s, _) <- rStyle rs
   , s `elem` codeStyles =
-    return $ code $ concatMap runElemToString runElems
+    let rPr = resolveDependentRunStyle rs
+    in
+     return $ case rVertAlign rPr of
+     Just SupScrpt -> superscript $ code $ concatMap runElemToString runElems
+     Just SubScrpt -> subscript $ code $ concatMap runElemToString runElems
+     _             -> code $ concatMap runElemToString runElems
   | otherwise = do
     let ils = concatReduce (map runElemToInlines runElems)
     return $ (runStyleToTransform $ resolveDependentRunStyle rs) ils
