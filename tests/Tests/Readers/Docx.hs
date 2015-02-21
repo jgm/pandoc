@@ -145,6 +145,10 @@ tests = [ testGroup "inlines"
             "inline code (with VerbatimChar style)"
             "docx/inline_code.docx"
             "docx/inline_code.native"
+          , testCompare
+            "inline code in subscript and superscript"
+            "docx/verbatim_subsuper.docx"
+            "docx/verbatim_subsuper.native"
           ]
         , testGroup "blocks"
           [ testCompare

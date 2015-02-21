@@ -1,0 +1,8 @@
+[Para [Str "m",Superscript [Str "2"]]
+,Para [Str "m",Superscript [Code ("",[],[]) "2"]]
+,Para [Code ("",[],[]) "m",Superscript [Str "2"]]
+,Para [Code ("",[],[]) "m",Superscript [Code ("",[],[]) "2"]]
+,Para [Str "m",Subscript [Str "2"]]
+,Para [Str "m",Subscript [Code ("",[],[]) "2"]]
+,Para [Code ("",[],[]) "m",Subscript [Str "2"]]
+,Para [Code ("",[],[]) "m",Subscript [Code ("",[],[]) "2"]]]
