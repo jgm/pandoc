@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
-import Data.List ( intercalate, isPrefixOf, isSuffixOf, stripPrefix )
+import Data.List ( intercalate, isPrefixOf, isSuffixOf )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -64,7 +64,7 @@ import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
                          extensionFromMimeType)
 import Control.Applicative ((<$>), (<|>), (<*>))
 import Data.Maybe (fromMaybe, mapMaybe)
-import Data.Char (isDigit)
+import Data.Char (toLower)
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -90,6 +90,9 @@ listMarkerToId (NumberMarker sty delim n) =
                       OneParen       -> '2'
                       TwoParens      -> '3'
 
+newtype ParaStyleMap = ParaStyleMap (M.Map String String) deriving Show
+newtype CharStyleMap = CharStyleMap (M.Map String String) deriving Show
+
 data WriterState = WriterState{
          stTextProperties :: [Element]
        , stParaProperties :: [Element]
@@ -106,7 +109,8 @@ data WriterState = WriterState{
        , stChangesAuthor  :: String
        , stChangesDate    :: String
        , stPrintWidth     :: Integer
-       , stHeadingStyles  :: [(Int,String)]
+       , stParaStyles     :: ParaStyleMap
+       , stCharStyles     :: CharStyleMap
        , stFirstPara      :: Bool
        }
 
@@ -127,7 +131,8 @@ defaultWriterState = WriterState{
       , stChangesAuthor  = "unknown"
       , stChangesDate    = "1969-12-31T19:00:00Z"
       , stPrintWidth     = 1
-      , stHeadingStyles  = []
+      , stParaStyles     = ParaStyleMap M.empty
+      , stCharStyles     = CharStyleMap M.empty
       , stFirstPara      = False
       }
 
@@ -218,29 +223,25 @@ writeDocx opts doc@(Pandoc meta _) = do
   let styleNamespaces = map ((,) <$> qName . attrKey <*> attrVal) .
                         filter ((==Just "xmlns") . qPrefix . attrKey) .
                         elAttribs $ styledoc
-  let headingStyles =
-       let
-           mywURI = lookup "w" styleNamespaces
-           myName name = QName name mywURI (Just "w")
-           getAttrStyleId = findAttr (myName "styleId")
-           getNameVal = findChild (myName "name") >=> findAttr (myName "val")
-           getNum s | not $ null s, all isDigit s = Just (read s :: Int)
-                    | otherwise = Nothing
-           getEngHeader = getAttrStyleId >=> stripPrefix "Heading" >=> getNum
-           getIntHeader = getNameVal >=> stripPrefix "heading " >=> getNum
-           toTuple getF = liftM2 (,) <$> getF <*> getAttrStyleId
-           toMap getF = mapMaybe (toTuple getF) $
-                        findChildren (myName "style") styledoc
-           select a b | not $ null a = a
-                      | otherwise = b
-           in
-              select (toMap getEngHeader) (toMap getIntHeader)
+      mywURI = lookup "w" styleNamespaces
+      myName name = QName name mywURI (Just "w")
+      getAttrStyleId = findAttr (myName "styleId")
+      getAttrType = findAttr (myName "type")
+      isParaStyle = (Just "paragraph" ==) . getAttrType
+      isCharStyle = (Just "character" ==) . getAttrType
+      getNameVal = findChild (myName "name") >=> findAttr (myName "val") >=> return . map toLower
+      genStyleItem f e | f e       = liftM2 (,) <$> getNameVal <*> getAttrStyleId $ e
+                       | otherwise = Nothing
+      genStyleMap f = M.fromList $ mapMaybe (genStyleItem f) $ findChildren (myName "style") styledoc
+      paraStyles = ParaStyleMap $ genStyleMap isParaStyle
+      charStyles = CharStyleMap $ genStyleMap isCharStyle
 
   ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc')
                        defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
                                          , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
                                          , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
-                                         , stHeadingStyles = headingStyles}
+                                         , stParaStyles = paraStyles
+                                         , stCharStyles = charStyles}
   let epochtime = floor $ utcTimeToPOSIXSeconds utctime
   let imgs = M.elems $ stImages st
 
@@ -602,14 +603,14 @@ writeOpenXML opts (Pandoc meta blocks) = do
                        Just (MetaBlocks [Para  xs]) -> xs
                        Just (MetaInlines xs)        -> xs
                        _ -> []
-  title <- withParaProp (pStyle "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
-  subtitle <- withParaProp (pStyle "Subtitle") $ blocksToOpenXML opts [Para subtitle' | not (null subtitle')]
-  authors <- withParaProp (pStyle "Author") $ blocksToOpenXML opts $
+  title <- withParaPropM (pStyleM "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
+  subtitle <- withParaPropM (pStyleM "Subtitle") $ blocksToOpenXML opts [Para subtitle' | not (null subtitle')]
+  authors <- withParaPropM (pStyleM "Author") $ blocksToOpenXML opts $
        map Para auths
-  date <- withParaProp (pStyle "Date") $ blocksToOpenXML opts [Para dat | not (null dat)]
+  date <- withParaPropM (pStyleM "Date") $ blocksToOpenXML opts [Para dat | not (null dat)]
   abstract <- if null abstract'
                  then return []
-                 else withParaProp (pStyle "Abstract") $ blocksToOpenXML opts abstract'
+                 else withParaPropM (pStyleM "Abstract") $ blocksToOpenXML opts abstract'
   let convertSpace (Str x : Space : Str y : xs) = Str (x ++ " " ++ y) : xs
       convertSpace (Str x : Str y : xs) = Str (x ++ y) : xs
       convertSpace xs = xs
@@ -623,11 +624,24 @@ writeOpenXML opts (Pandoc meta blocks) = do
 blocksToOpenXML :: WriterOptions -> [Block] -> WS [Element]
 blocksToOpenXML opts bls = concat `fmap` mapM (blockToOpenXML opts) bls
 
-pStyle :: String -> Element
-pStyle sty = mknode "w:pStyle" [("w:val",sty)] ()
+getStyleId :: String -> M.Map String String -> String
+getStyleId s = M.findWithDefault (filter (/=' ') s) (map toLower s)
 
-rStyle :: String -> Element
-rStyle sty = mknode "w:rStyle" [("w:val",sty)] ()
+pStyle :: String -> ParaStyleMap -> Element
+pStyle sty (ParaStyleMap m) = mknode "w:pStyle" [("w:val",sty')] ()
+  where
+    sty' = getStyleId sty m
+
+pStyleM :: String -> WS XML.Element
+pStyleM = flip fmap (gets stParaStyles) . pStyle
+
+rStyle :: String -> CharStyleMap -> Element
+rStyle sty (CharStyleMap m) = mknode "w:rStyle" [("w:val",sty')] ()
+  where
+    sty' = getStyleId sty m
+
+rStyleM :: String -> WS XML.Element
+rStyleM = flip fmap (gets stCharStyles) . rStyle
 
 getUniqueId :: MonadIO m => m String
 -- the + 20 is to ensure that there are no clashes with the rIds
@@ -641,13 +655,12 @@ blockToOpenXML opts (Div (_,["references"],_) bs) = do
   let (hs, bs') = span isHeaderBlock bs
   header <- blocksToOpenXML opts hs
   -- We put the Bibliography style on paragraphs after the header
-  rest <- withParaProp (pStyle "Bibliography") $ blocksToOpenXML opts bs'
+  rest <- withParaPropM (pStyleM "Bibliography") $ blocksToOpenXML opts bs'
   return (header ++ rest)
 blockToOpenXML opts (Div _ bs) = blocksToOpenXML opts bs
 blockToOpenXML opts (Header lev (ident,_,_) lst) = do
   setFirstPara
-  headingStyles <- gets stHeadingStyles
-  paraProps <- maybe id (withParaProp . pStyle) (lookup lev headingStyles) $
+  paraProps <- withParaPropM (pStyleM ("Heading "++show lev)) $
                     getParaProps False
   contents <- inlinesToOpenXML opts lst
   usedIdents <- gets stSectionIds
@@ -660,26 +673,27 @@ blockToOpenXML opts (Header lev (ident,_,_) lst) = do
                                                ,("w:name",bookmarkName)] ()
   let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
   return [mknode "w:p" [] (paraProps ++ [bookmarkStart, bookmarkEnd] ++ contents)]
-blockToOpenXML opts (Plain lst) = withParaProp (pStyle "Compact")
+blockToOpenXML opts (Plain lst) = withParaPropM (pStyleM "Compact")
   $ blockToOpenXML opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
   setFirstPara
   paraProps <- getParaProps False
   contents <- inlinesToOpenXML opts [Image alt (src,tit)]
-  captionNode <- withParaProp (pStyle "ImageCaption")
+  captionNode <- withParaPropM (pStyleM "Image Caption")
                  $ blockToOpenXML opts (Para alt)
   return $ mknode "w:p" [] (paraProps ++ contents) : captionNode
 -- fixDisplayMath sometimes produces a Para [] as artifact
 blockToOpenXML _ (Para []) = return []
 blockToOpenXML opts (Para lst) = do
-  isFirstPara <- gets stFirstPara 
+  isFirstPara <- gets stFirstPara
   paraProps <- getParaProps $ case lst of
                                [Math DisplayMath _] -> True
                                _                    -> False
+  pSM <- gets stParaStyles
   let paraProps' = case paraProps of
-        [] | isFirstPara -> [mknode "w:pPr" [] [(pStyle "FirstParagraph")]]
-        []               -> [mknode "w:pPr" [] [(pStyle "BodyText")]]
+        [] | isFirstPara -> [mknode "w:pPr" [] [(pStyle "First Paragraph" pSM)]]
+        []               -> [mknode "w:pPr" [] [(pStyle "Body Text" pSM)]]
         ps               -> ps
   modify $ \s -> s { stFirstPara = False }
   contents <- inlinesToOpenXML opts lst
@@ -688,11 +702,11 @@ blockToOpenXML _ (RawBlock format str)
   | format == Format "openxml" = return [ x | Elem x <- parseXML str ]
   | otherwise                  = return []
 blockToOpenXML opts (BlockQuote blocks) = do
-  p <- withParaProp (pStyle "BlockQuote") $ blocksToOpenXML opts blocks
+  p <- withParaPropM (pStyleM "Block Quote") $ blocksToOpenXML opts blocks
   setFirstPara
   return p
 blockToOpenXML opts (CodeBlock attrs str) = do
-  p <- withParaProp (pStyle "SourceCode") $ (blockToOpenXML opts $ Para [Code attrs str])
+  p <- withParaPropM (pStyleM "Source Code") (blockToOpenXML opts $ Para [Code attrs str])
   setFirstPara
   return p
 blockToOpenXML _ HorizontalRule = do
@@ -707,7 +721,7 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
   let captionStr = stringify caption
   caption' <- if null caption
                  then return []
-                 else withParaProp (pStyle "TableCaption")
+                 else withParaPropM (pStyleM "Table Caption")
                       $ blockToOpenXML opts (Para caption)
   let alignmentFor al = mknode "w:jc" [("w:val",alignmentToString al)] ()
   let cellToOpenXML (al, cell) = withParaProp (alignmentFor al)
@@ -767,9 +781,9 @@ blockToOpenXML opts (DefinitionList items) = do
 
 definitionListItemToOpenXML  :: WriterOptions -> ([Inline],[[Block]]) -> WS [Element]
 definitionListItemToOpenXML opts (term,defs) = do
-  term' <- withParaProp (pStyle "DefinitionTerm")
+  term' <- withParaPropM (pStyleM "Definition Term")
            $ blockToOpenXML opts (Para term)
-  defs' <- withParaProp (pStyle "Definition")
+  defs' <- withParaPropM (pStyleM "Definition")
            $ concat `fmap` mapM (blocksToOpenXML opts) defs
   return $ term' ++ defs'
 
@@ -833,6 +847,9 @@ withTextProp d p = do
   popTextProp
   return res
 
+withTextPropM :: WS Element -> WS a -> WS a
+withTextPropM = (. flip withTextProp) . (>>=)
+
 getParaProps :: Bool -> WS [Element]
 getParaProps displayMathPara = do
   props <- gets stParaProperties
@@ -860,6 +877,9 @@ withParaProp d p = do
   res <- p
   popParaProp
   return res
+
+withParaPropM :: WS Element -> WS a -> WS a
+withParaPropM = (. flip withParaProp) . (>>=)
 
 formattedString :: String -> WS [Element]
 formattedString str = do
@@ -943,25 +963,27 @@ inlineToOpenXML opts (Math mathType str) = do
         Right r -> return [r]
         Left  _ -> inlinesToOpenXML opts (texMathToInlines mathType str)
 inlineToOpenXML opts (Cite _ lst) = inlinesToOpenXML opts lst
-inlineToOpenXML opts (Code attrs str) =
-  withTextProp (rStyle "VerbatimChar")
-  $ if writerHighlight opts
-       then case highlight formatOpenXML attrs str of
-             Nothing  -> unhighlighted
-             Just h   -> return h
-       else unhighlighted
-     where unhighlighted = intercalate [br] `fmap`
-                             (mapM formattedString $ lines str)
-           formatOpenXML _fmtOpts = intercalate [br] . map (map toHlTok)
-           toHlTok (toktype,tok) = mknode "w:r" []
-                                     [ mknode "w:rPr" []
-                                       [ rStyle $ show toktype ]
-                                     , mknode "w:t" [("xml:space","preserve")] tok ]
+inlineToOpenXML opts (Code attrs str) = do
+  rSM <- gets stCharStyles
+  let unhighlighted = intercalate [br] `fmap`
+                       (mapM formattedString $ lines str)
+      formatOpenXML _fmtOpts = intercalate [br] . map (map toHlTok)
+      toHlTok (toktype,tok) = mknode "w:r" []
+                               [ mknode "w:rPr" []
+                                 [ rStyle (show toktype) rSM ]
+                               , mknode "w:t" [("xml:space","preserve")] tok ]
+  withTextProp (rStyle "Verbatim Char" rSM)
+    $ if writerHighlight opts
+         then case highlight formatOpenXML attrs str of
+               Nothing  -> unhighlighted
+               Just h   -> return h
+         else unhighlighted
 inlineToOpenXML opts (Note bs) = do
   notes <- gets stFootnotes
   notenum <- getUniqueId
+  rSM <- gets stCharStyles
   let notemarker = mknode "w:r" []
-                   [ mknode "w:rPr" [] (rStyle "FootnoteRef")
+                   [ mknode "w:rPr" [] (rStyle "Footnote Ref" rSM)
                    , mknode "w:footnoteRef" [] () ]
   let notemarkerXml = RawInline (Format "openxml") $ ppElement notemarker
   let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : ils) : xs
@@ -971,22 +993,22 @@ inlineToOpenXML opts (Note bs) = do
   oldParaProperties <- gets stParaProperties
   oldTextProperties <- gets stTextProperties
   modify $ \st -> st{ stListLevel = -1, stParaProperties = [], stTextProperties = [] }
-  contents <- withParaProp (pStyle "FootnoteText") $ blocksToOpenXML opts
+  contents <- withParaPropM (pStyleM "Footnote Text") $ blocksToOpenXML opts
                 $ insertNoteRef bs
   modify $ \st -> st{ stListLevel = oldListLevel, stParaProperties = oldParaProperties,
                       stTextProperties = oldTextProperties }
   let newnote = mknode "w:footnote" [("w:id", notenum)] $ contents
   modify $ \s -> s{ stFootnotes = newnote : notes }
   return [ mknode "w:r" []
-           [ mknode "w:rPr" [] (rStyle "FootnoteRef")
+           [ mknode "w:rPr" [] (rStyle "Footnote Ref" rSM)
            , mknode "w:footnoteReference" [("w:id", notenum)] () ] ]
 -- internal link:
 inlineToOpenXML opts (Link txt ('#':xs,_)) = do
-  contents <- withTextProp (rStyle "Link") $ inlinesToOpenXML opts txt
+  contents <- withTextPropM (rStyleM "Link") $ inlinesToOpenXML opts txt
   return [ mknode "w:hyperlink" [("w:anchor",xs)] contents ]
 -- external link:
 inlineToOpenXML opts (Link txt (src,_)) = do
-  contents <- withTextProp (rStyle "Link") $ inlinesToOpenXML opts txt
+  contents <- withTextPropM (rStyleM "Link") $ inlinesToOpenXML opts txt
   extlinks <- gets stExternalLinks
   id' <- case M.lookup src extlinks of
             Just i   -> return i
@@ -1088,7 +1110,7 @@ defaultFootnotes = [ mknode "w:footnote"
                      [ mknode "w:p" [] $
                        [ mknode "w:r" [] $
                          [ mknode "w:continuationSeparator" [] ()]]]]
-                    
+
 parseXml :: Archive -> Archive -> String -> IO Element
 parseXml refArchive distArchive relpath =
   case ((findEntryByPath relpath refArchive `mplus`
