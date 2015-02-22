@@ -646,6 +646,9 @@ pStyle sty (ParaStyleMap m) = mknode "w:pStyle" [("w:val",sty')] ()
   where
     sty' = getStyleId sty m
 
+pCustomStyle :: String -> Element
+pCustomStyle sty = mknode "w:pStyle" [("w:val",sty)] ()
+
 pStyleM :: String -> WS XML.Element
 pStyleM = flip fmap (gets stParaStyles) . pStyle
 
@@ -653,6 +656,9 @@ rStyle :: String -> CharStyleMap -> Element
 rStyle sty (CharStyleMap m) = mknode "w:rStyle" [("w:val",sty')] ()
   where
     sty' = getStyleId sty m
+
+rCustomStyle :: String -> Element
+rCustomStyle sty = mknode "w:rStyle" [("w:val",sty)] ()
 
 rStyleM :: String -> WS XML.Element
 rStyleM = flip fmap (gets stCharStyles) . rStyle
@@ -720,7 +726,7 @@ blockToOpenXML opts (BlockQuote blocks) = do
   setFirstPara
   return p
 blockToOpenXML opts (CodeBlock attrs str) = do
-  p <- withParaPropM (pStyleM "Source Code") (blockToOpenXML opts $ Para [Code attrs str])
+  p <- withParaProp (pCustomStyle "SourceCode") (blockToOpenXML opts $ Para [Code attrs str])
   setFirstPara
   return p
 blockToOpenXML _ HorizontalRule = do
@@ -978,15 +984,14 @@ inlineToOpenXML opts (Math mathType str) = do
         Left  _ -> inlinesToOpenXML opts (texMathToInlines mathType str)
 inlineToOpenXML opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML opts (Code attrs str) = do
-  rSM <- gets stCharStyles
   let unhighlighted = intercalate [br] `fmap`
                        (mapM formattedString $ lines str)
       formatOpenXML _fmtOpts = intercalate [br] . map (map toHlTok)
       toHlTok (toktype,tok) = mknode "w:r" []
                                [ mknode "w:rPr" []
-                                 [ rStyle (show toktype) rSM ]
+                                 [ rCustomStyle (show toktype) ]
                                , mknode "w:t" [("xml:space","preserve")] tok ]
-  withTextProp (rStyle "Verbatim Char" rSM)
+  withTextProp (rCustomStyle "VerbatimChar")
     $ if writerHighlight opts
          then case highlight formatOpenXML attrs str of
                Nothing  -> unhighlighted
@@ -995,9 +1000,8 @@ inlineToOpenXML opts (Code attrs str) = do
 inlineToOpenXML opts (Note bs) = do
   notes <- gets stFootnotes
   notenum <- getUniqueId
-  rSM <- gets stCharStyles
   let notemarker = mknode "w:r" []
-                   [ mknode "w:rPr" [] (rStyle "Footnote Ref" rSM)
+                   [ mknode "w:rPr" [] (rCustomStyle "FootnoteRef")
                    , mknode "w:footnoteRef" [] () ]
   let notemarkerXml = RawInline (Format "openxml") $ ppElement notemarker
   let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : ils) : xs
@@ -1014,15 +1018,15 @@ inlineToOpenXML opts (Note bs) = do
   let newnote = mknode "w:footnote" [("w:id", notenum)] $ contents
   modify $ \s -> s{ stFootnotes = newnote : notes }
   return [ mknode "w:r" []
-           [ mknode "w:rPr" [] (rStyle "Footnote Ref" rSM)
+           [ mknode "w:rPr" [] (rCustomStyle "FootnoteRef")
            , mknode "w:footnoteReference" [("w:id", notenum)] () ] ]
 -- internal link:
 inlineToOpenXML opts (Link txt ('#':xs,_)) = do
-  contents <- withTextPropM (rStyleM "Link") $ inlinesToOpenXML opts txt
+  contents <- withTextProp (rCustomStyle "Link") $ inlinesToOpenXML opts txt
   return [ mknode "w:hyperlink" [("w:anchor",xs)] contents ]
 -- external link:
 inlineToOpenXML opts (Link txt (src,_)) = do
-  contents <- withTextPropM (rStyleM "Link") $ inlinesToOpenXML opts txt
+  contents <- withTextProp (rCustomStyle "Link") $ inlinesToOpenXML opts txt
   extlinks <- gets stExternalLinks
   id' <- case M.lookup src extlinks of
             Just i   -> return i
