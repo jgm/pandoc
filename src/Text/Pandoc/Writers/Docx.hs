@@ -63,7 +63,7 @@ import qualified Control.Exception as E
 import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
                          extensionFromMimeType)
 import Control.Applicative ((<$>), (<|>), (<*>))
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
 import Data.Char (toLower)
 
 data ListMarker = NoMarker
@@ -394,7 +394,7 @@ writeDocx opts doc@(Pandoc meta _) = do
         linkrels
 
   -- styles
-  let newstyles = styleToOpenXml charStyles $ writerHighlightStyle opts
+  let newstyles = styleToOpenXml charStyles paraStyles $ writerHighlightStyle opts
   let styledoc' = styledoc{ elContent = modifyContent (elContent styledoc) }
                   where
                     modifyContent
@@ -404,7 +404,7 @@ writeDocx opts doc@(Pandoc meta _) = do
                     notTokStyle _         = True
                     notStyle = (/= myName "style") . elName
                     notTokId = maybe True (`notElem` tokStys) . getAttrStyleId
-                    tokStys  = map show $ enumFromTo KeywordTok NormalTok
+                    tokStys  = "SourceCode" : map show (enumFromTo KeywordTok NormalTok)
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
 
   -- construct word/numbering.xml
@@ -481,12 +481,13 @@ writeDocx opts doc@(Pandoc meta _) = do
                   miscRelEntries ++ otherMediaEntries
   return $ fromArchive archive
 
-styleToOpenXml :: CharStyleMap -> Style -> [Element]
-styleToOpenXml (CharStyleMap m) style = parStyle : mapMaybe toStyle alltoktypes
+styleToOpenXml :: CharStyleMap -> ParaStyleMap -> Style -> [Element]
+styleToOpenXml (CharStyleMap csm) (ParaStyleMap psm) style =
+  maybeToList parStyle ++ mapMaybe toStyle alltoktypes
   where alltoktypes = enumFromTo KeywordTok NormalTok
-        toStyle toktype =
-                        if M.member (map toLower $ show toktype) m then Nothing
-                        else Just $
+        styleExists m styleName = M.member (map toLower styleName) m
+        toStyle toktype | styleExists csm $ show toktype = Nothing
+                        | otherwise = Just $
                           mknode "w:style" [("w:type","character"),
                            ("w:customStyle","1"),("w:styleId",show toktype)]
                              [ mknode "w:name" [("w:val",show toktype)] ()
@@ -508,7 +509,9 @@ styleToOpenXml (CharStyleMap m) style = parStyle : mapMaybe toStyle alltoktypes
         tokBg toktype = maybe "auto" (drop 1 . fromColor)
                          $ (tokenBackground =<< lookup toktype tokStyles)
                            `mplus` backgroundColor style
-        parStyle = mknode "w:style" [("w:type","paragraph"),
+        parStyle | styleExists psm "Source Code" = Nothing
+                 | otherwise = Just $
+                   mknode "w:style" [("w:type","paragraph"),
                            ("w:customStyle","1"),("w:styleId","SourceCode")]
                              [ mknode "w:name" [("w:val","Source Code")] ()
                              , mknode "w:basedOn" [("w:val","Normal")] ()
