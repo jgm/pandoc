@@ -395,8 +395,16 @@ writeDocx opts doc@(Pandoc meta _) = do
 
   -- styles
   let newstyles = styleToOpenXml charStyles $ writerHighlightStyle opts
-  let styledoc' = styledoc{ elContent = elContent styledoc ++
-                  [Elem x | x <- newstyles, writerHighlight opts] }
+  let styledoc' = styledoc{ elContent = modifyContent (elContent styledoc) }
+                  where
+                    modifyContent
+                      | writerHighlight opts = (++ map Elem newstyles)
+                      | otherwise = filter notTokStyle
+                    notTokStyle (Elem el) = notStyle el || notTokId el
+                    notTokStyle _         = True
+                    notStyle = (/= myName "style") . elName
+                    notTokId = maybe True (`notElem` tokStys) . getAttrStyleId
+                    tokStys  = map show $ enumFromTo KeywordTok NormalTok
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
 
   -- construct word/numbering.xml
