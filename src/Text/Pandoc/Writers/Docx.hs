@@ -619,12 +619,12 @@ writeOpenXML opts (Pandoc meta blocks) = do
                        _ -> []
   title <- withParaPropM (pStyleM "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
   subtitle <- withParaPropM (pStyleM "Subtitle") $ blocksToOpenXML opts [Para subtitle' | not (null subtitle')]
-  authors <- withParaPropM (pStyleM "Author") $ blocksToOpenXML opts $
+  authors <- withParaProp (pCustomStyle "Author") $ blocksToOpenXML opts $
        map Para auths
   date <- withParaPropM (pStyleM "Date") $ blocksToOpenXML opts [Para dat | not (null dat)]
   abstract <- if null abstract'
                  then return []
-                 else withParaPropM (pStyleM "Abstract") $ blocksToOpenXML opts abstract'
+                 else withParaProp (pCustomStyle "Abstract") $ blocksToOpenXML opts abstract'
   let convertSpace (Str x : Space : Str y : xs) = Str (x ++ " " ++ y) : xs
       convertSpace (Str x : Str y : xs) = Str (x ++ y) : xs
       convertSpace xs = xs
@@ -693,14 +693,14 @@ blockToOpenXML opts (Header lev (ident,_,_) lst) = do
                                                ,("w:name",bookmarkName)] ()
   let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
   return [mknode "w:p" [] (paraProps ++ [bookmarkStart, bookmarkEnd] ++ contents)]
-blockToOpenXML opts (Plain lst) = withParaPropM (pStyleM "Compact")
+blockToOpenXML opts (Plain lst) = withParaProp (pCustomStyle "Compact")
   $ blockToOpenXML opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
   setFirstPara
   paraProps <- getParaProps False
   contents <- inlinesToOpenXML opts [Image alt (src,tit)]
-  captionNode <- withParaPropM (pStyleM "Image Caption")
+  captionNode <- withParaProp (pCustomStyle "ImageCaption")
                  $ blockToOpenXML opts (Para alt)
   return $ mknode "w:p" [] (paraProps ++ contents) : captionNode
 -- fixDisplayMath sometimes produces a Para [] as artifact
@@ -712,8 +712,8 @@ blockToOpenXML opts (Para lst) = do
                                _                    -> False
   pSM <- gets stParaStyles
   let paraProps' = case paraProps of
-        [] | isFirstPara -> [mknode "w:pPr" [] [(pStyle "First Paragraph" pSM)]]
-        []               -> [mknode "w:pPr" [] [(pStyle "Body Text" pSM)]]
+        [] | isFirstPara -> [mknode "w:pPr" [] [pCustomStyle "FirstParagraph"]]
+        []               -> [mknode "w:pPr" [] [pStyle "Body Text" pSM]]
         ps               -> ps
   modify $ \s -> s { stFirstPara = False }
   contents <- inlinesToOpenXML opts lst
@@ -741,7 +741,7 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
   let captionStr = stringify caption
   caption' <- if null caption
                  then return []
-                 else withParaPropM (pStyleM "Table Caption")
+                 else withParaProp (pCustomStyle "TableCaption")
                       $ blockToOpenXML opts (Para caption)
   let alignmentFor al = mknode "w:jc" [("w:val",alignmentToString al)] ()
   let cellToOpenXML (al, cell) = withParaProp (alignmentFor al)
@@ -752,8 +752,7 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
                     [ mknode "w:tcBorders" []
                       $ mknode "w:bottom" [("w:val","single")] ()
                     , mknode "w:vAlign" [("w:val","bottom")] () ]
-  let emptyCell = [mknode "w:p" [] [mknode "w:pPr" []
-                    [mknode "w:pStyle" [("w:val","Compact")] ()]]]
+  let emptyCell = [mknode "w:p" [] [pCustomStyle "Compact"]]
   let mkcell border contents = mknode "w:tc" []
                             $ [ borderProps | border ] ++
                             if null contents
@@ -801,9 +800,9 @@ blockToOpenXML opts (DefinitionList items) = do
 
 definitionListItemToOpenXML  :: WriterOptions -> ([Inline],[[Block]]) -> WS [Element]
 definitionListItemToOpenXML opts (term,defs) = do
-  term' <- withParaPropM (pStyleM "Definition Term")
+  term' <- withParaProp (pCustomStyle "DefinitionTerm")
            $ blockToOpenXML opts (Para term)
-  defs' <- withParaPropM (pStyleM "Definition")
+  defs' <- withParaProp (pCustomStyle "Definition")
            $ concat `fmap` mapM (blocksToOpenXML opts) defs
   return $ term' ++ defs'
 

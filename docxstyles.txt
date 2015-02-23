@@ -1,0 +1,44 @@
+| Name                   | Id                   | custom | word | type | alt                              |
+|:-----------------------|:---------------------|:------:|:----:|:----:|:---------------------------------|
+| Title                  | Title                |        |  +   |  p   |                                  |
+| Subtitle               | Subtitle             |        |  +   |  p   |                                  |
+| Author                 | Author               |   ?    |      |  p   | ?                                |
+| Date                   | Date                 |        |  +   |  p   |                                  |
+| Abstract               | Abstract             |   ?    |      |  p   | ?                                |
+| Bibliography           | Bibliography         |        |  +   |  p   |                                  |
+| Heading 1              | Heading1             |        |  +   |  p   |                                  |
+| Heading 2              | Heading2             |        |  +   |  p   |                                  |
+| Heading 3              | Heading3             |        |  +   |  p   |                                  |
+| Heading 4              | Heading4             |        |  +   |  p   |                                  |
+| Heading 5              | Heading5             |        |  +   |  p   |                                  |
+| Compact                | Compact              |   ?    |      |  p   | ?                                |
+| Image Caption          | ImageCaption         |        |      |  p   | caption                          |
+| First Paragraph        | FirstParagraph       |        | ???  |  p   |                                  |
+| Body Text              | BodyText             |        |  +   |  p   |                                  |
+| Block Quote            | BlockQuote           |        |      |  p   | Intense Quote, Block Text, Quote |
+| Source Code            | SourceCode           |   +    |      |  p   |                                  |
+| Table Caption          | TableCaption         |        |      |  p   | caption                          |
+| Definition Term        | DefinitionTerm       |   ?    |      |  p   | ?                                |
+| Definition             | Definition           |   ?    |      |  p   | ?                                |
+| Verbatim Char          | VerbatimChar         |   +    |      |  c   |                                  |
+| Footnote Ref           | FootnoteRef          |   +    |      |  c   | footnote reference               |
+| Footnote Text          | FootnoteText         |        |  +   |  p   |                                  |
+| Link                   | Link                 |   +    |      |  c   | Hyperlink                        |
+| Normal                 | Normal               |        |  d   |  p   |                                  |
+| Default Paragraph Font | DefaultParagraphFont |        |  d   |  c   |                                  |
+| Normal Table           | TableNormal          |        |  d   |  t   |                                  |
+| Body Text Char         | BodyTextChar         |   +    |      |  c   |                                  |
+
+
+| Name            | ambiguous | type | can be replaced by               |
+|:----------------|:---------:|:----:|:---------------------------------|
+| Author          |    yes    |  p   | ?                                |
+| Abstract        |    yes    |  p   | ?                                |
+| Compact         |    yes    |  p   | ?                                |
+| Image Caption   |    yes    |  p   | caption                          |
+| Block Quote     |    yes    |  p   | Intense Quote, Block Text, Quote |
+| Table Caption   |    yes    |  p   | caption                          |
+| Definition Term |    yes    |  p   | ?                                |
+| Definition      |    yes    |  p   | ?                                |
+| Link            |    no     |  c   | Hyperlink                        |
+| Footnote Ref    |    no     |  c   | footnote reference               |
