@@ -1106,7 +1106,7 @@ explicitOrImageLink = try $ do
   char ']'
   return $ do
     src <- srcF
-    if isImageFilename src && isImageFilename title
+    if isImageFilename title
       then pure $ B.link src "" $ B.image title mempty mempty
       else linkToInlinesF src =<< title'
 
