@@ -448,18 +448,18 @@ block = do
   res <- choice [ mempty <$ blanklines
                , codeBlockFenced
                , yamlMetaBlock
-               , guardEnabled Ext_latex_macros *> (macro >>= return . return)
                -- note: bulletList needs to be before header because of
                -- the possibility of empty list items: -
                , bulletList
                , header
                , lhsCodeBlock
-               , rawTeXBlock
                , divHtml
                , htmlBlock
                , table
-               , lineBlock
                , codeBlockIndented
+               , guardEnabled Ext_latex_macros *> (macro >>= return . return)
+               , rawTeXBlock
+               , lineBlock
                , blockQuote
                , hrule
                , orderedList
