@@ -39,7 +39,6 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Data.Maybe (fromMaybe)
-import Data.Either (isRight)
 import Data.List ( group, stripPrefix, find, intersperse, transpose, sortBy )
 import Data.Char ( isSpace, isPunctuation )
 import Data.Ord ( comparing )
@@ -712,6 +711,10 @@ inlineListToMarkdown opts lst = do
                                      '.':_ -> True
                                      ')':_ -> True
                                      _     -> False
+
+isRight :: Either a b -> Bool
+isRight (Right _) = True
+isRight (Left  _) = False
 
 escapeSpaces :: Inline -> Inline
 escapeSpaces (Str s) = Str $ substitute " " "\\ " s
