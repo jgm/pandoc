@@ -42,6 +42,7 @@ import Data.List ( (\\), isSuffixOf, isInfixOf, stripPrefix,
                    isPrefixOf, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Data.Maybe ( fromMaybe )
+import Data.Aeson.Types ( (.:), parseMaybe, withObject )
 import Control.Applicative ((<|>))
 import Control.Monad.State
 import Text.Pandoc.Pretty
@@ -102,8 +103,16 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
   let template = writerTemplate options
   -- set stBook depending on documentclass
+  let colwidth = if writerWrapText options
+                    then Just $ writerColumns options
+                    else Nothing
+  metadata <- metaToJSON options
+              (fmap (render colwidth) . blockListToLaTeX)
+              (fmap (render colwidth) . inlineListToLaTeX)
+              meta
   let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
-  case lookup "documentclass" (writerVariables options) of
+  case lookup "documentclass" (writerVariables options) `mplus`
+        parseMaybe (withObject "object" (.: "documentclass")) metadata of
          Just x  | x `elem` bookClasses -> modify $ \s -> s{stBook = True}
                  | otherwise            -> return ()
          Nothing | any (\x -> "\\documentclass" `isPrefixOf` x &&
@@ -114,13 +123,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   -- \enquote{...} for smart quotes:
   when ("{csquotes}" `isInfixOf` template) $
     modify $ \s -> s{stCsquotes = True}
-  let colwidth = if writerWrapText options
-                    then Just $ writerColumns options
-                    else Nothing
-  metadata <- metaToJSON options
-              (fmap (render colwidth) . blockListToLaTeX)
-              (fmap (render colwidth) . inlineListToLaTeX)
-              meta
   let (blocks'', lastHeader) = if writerCiteMethod options == Citeproc then
                                  (blocks', [])
                                else case last blocks' of
