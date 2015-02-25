@@ -39,6 +39,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Data.Maybe (fromMaybe)
+import Data.Either (isRight)
 import Data.List ( group, stripPrefix, find, intersperse, transpose, sortBy )
 import Data.Char ( isSpace, isPunctuation )
 import Data.Ord ( comparing )
@@ -57,12 +58,14 @@ import qualified Data.Text as T
 
 type Notes = [[Block]]
 type Refs = [([Inline], Target)]
-data WriterState = WriterState { stNotes :: Notes
-                               , stRefs  :: Refs
-                               , stIds   :: [String]
-                               , stPlain :: Bool }
+data WriterState = WriterState { stNotes  :: Notes
+                               , stRefs   :: Refs
+                               , stInList :: Bool
+                               , stIds    :: [String]
+                               , stPlain  :: Bool }
 instance Default WriterState
-  where def = WriterState{ stNotes = [], stRefs = [], stIds = [], stPlain = False }
+  where def = WriterState{ stNotes = [], stRefs = [], stInList = False,
+                           stIds = [], stPlain = False }
 
 -- | Convert Pandoc to Markdown.
 writeMarkdown :: WriterOptions -> Pandoc -> String
@@ -453,7 +456,7 @@ blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
                                 $ Pandoc nullMeta [t]
   return $ nst $ tbl $$ blankline $$ caption'' $$ blankline
 blockToMarkdown opts (BulletList items) = do
-  contents <- mapM (bulletListItemToMarkdown opts) items
+  contents <- inList $ mapM (bulletListItemToMarkdown opts) items
   return $ cat contents <> blankline
 blockToMarkdown opts (OrderedList (start,sty,delim) items) = do
   let start' = if isEnabled Ext_startnum opts then start else 1
@@ -464,12 +467,21 @@ blockToMarkdown opts (OrderedList (start,sty,delim) items) = do
   let markers' = map (\m -> if length m < 3
                                then m ++ replicate (3 - length m) ' '
                                else m) markers
-  contents <- mapM (\(item, num) -> orderedListItemToMarkdown opts item num) $
+  contents <- inList $
+              mapM (\(item, num) -> orderedListItemToMarkdown opts item num) $
               zip markers' items
   return $ cat contents <> blankline
 blockToMarkdown opts (DefinitionList items) = do
-  contents <- mapM (definitionListItemToMarkdown opts) items
+  contents <- inList $ mapM (definitionListItemToMarkdown opts) items
   return $ cat contents <> blankline
+
+inList :: State WriterState a -> State WriterState a
+inList p = do
+  oldInList <- gets stInList
+  modify $ \st -> st{ stInList = True }
+  res <- p
+  modify $ \st -> st{ stInList = oldInList }
+  return res
 
 addMarkdownAttribute :: String -> String
 addMarkdownAttribute s =
@@ -677,12 +689,29 @@ getReference label (src, tit) = do
 
 -- | Convert list of Pandoc inline elements to markdown.
 inlineListToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
-inlineListToMarkdown opts lst =
-  mapM (inlineToMarkdown opts) (avoidBadWraps lst) >>= return . cat
+inlineListToMarkdown opts lst = do
+  inlist <- gets stInList
+  mapM (inlineToMarkdown opts)
+     (if inlist then avoidBadWraps lst else lst) >>= return . cat
   where avoidBadWraps [] = []
-        avoidBadWraps (Space:Str (c:cs):xs)
-          | c `elem` ("-*+>" :: String) = Str (' ':c:cs) : avoidBadWraps xs
+        avoidBadWraps (Space:Str ('>':cs):xs) =
+          Str (' ':'>':cs) : avoidBadWraps xs
+        avoidBadWraps (Space:Str [c]:[])
+          | c `elem` "-*+" = Str [' ', c] : []
+        avoidBadWraps (Space:Str [c]:Space:xs)
+          | c `elem` "-*+" = Str [' ', c] : Space : avoidBadWraps xs
+        avoidBadWraps (Space:Str cs:Space:xs)
+          | isOrderedListMarker cs = Str (' ':cs) : Space : avoidBadWraps xs
+        avoidBadWraps (Space:Str cs:[])
+          | isOrderedListMarker cs = Str (' ':cs) : []
         avoidBadWraps (x:xs) = x : avoidBadWraps xs
+        isOrderedListMarker xs = endsWithListPunct xs &&
+                      isRight (runParserT (anyOrderedListMarker >> eof)
+                               defaultParserState "" xs)
+        endsWithListPunct xs = case reverse xs of
+                                     '.':_ -> True
+                                     ')':_ -> True
+                                     _     -> False
 
 escapeSpaces :: Inline -> Inline
 escapeSpaces (Str s) = Str $ substitute " " "\\ " s

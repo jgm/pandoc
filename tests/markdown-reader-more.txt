@@ -276,3 +276,8 @@ most vocal proponent.
 bar
 
 [foo2]
+
+## Wrapping shouldn't introduce new list items
+
+- blah blah blah blah blah blah blah blah blah blah blah blah blah blah 2015.
+
