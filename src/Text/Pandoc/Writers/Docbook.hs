@@ -114,7 +114,8 @@ elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) =
                  n | n == 0           -> "chapter"
                    | n >= 1 && n <= 5 -> "sect" ++ show n
                    | otherwise        -> "simplesect"
-  in  inTags True tag [("id", writerIdentifierPrefix opts ++ id')] $
+  in  inTags True tag [("id", writerIdentifierPrefix opts ++ id') |
+                       not (null id')] $
       inTagsSimple "title" (inlinesToDocbook opts title) $$
       vcat (map (elementToDocbook opts (lvl + 1)) elements')
 
