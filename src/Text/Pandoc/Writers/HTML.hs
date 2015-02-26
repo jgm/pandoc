@@ -457,8 +457,13 @@ blockToHtml opts (Div attr@(_,classes,_) bs) = do
                   NoSlides       -> addAttrs opts' attr $ H.div $ contents'
                   _              -> mempty
         else addAttrs opts attr $ H.div $ contents'
-blockToHtml _ (RawBlock f str)
+blockToHtml opts (RawBlock f str)
   | f == Format "html" = return $ preEscapedString str
+  | f == Format "latex" =
+      case writerHTMLMathMethod opts of
+           MathJax _  -> do modify (\st -> st{ stMath = True })
+                            return $ toHtml str
+           _          -> return mempty
   | otherwise          = return mempty
 blockToHtml opts (HorizontalRule) = return $ if writerHtml5 opts then H5.hr else H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
@@ -768,6 +773,8 @@ inlineToHtml opts inline =
       | f == Format "latex" ->
                           case writerHTMLMathMethod opts of
                                LaTeXMathML _ -> do modify (\st -> st {stMath = True})
+                                                   return $ toHtml str
+                               MathJax _     -> do modify (\st -> st {stMath = True})
                                                    return $ toHtml str
                                _             -> return mempty
       | f == Format "html" -> return $ preEscapedString str
