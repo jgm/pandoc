@@ -212,6 +212,10 @@ tests =
           "[[sunset.png][dusk.svg]]" =?>
           (para $ link "sunset.png" "" (image "dusk.svg" "" ""))
 
+      , "Image link with non-image target" =:
+          "[[http://example.com][logo.png]]" =?>
+          (para $ link "http://example.com" "" (image "logo.png" "" ""))
+
       , "Plain link" =:
           "Posts on http://zeitlens.com/ can be funny at times." =?>
           (para $ spcSep [ "Posts", "on"
