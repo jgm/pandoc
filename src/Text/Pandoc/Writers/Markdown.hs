@@ -724,8 +724,10 @@ escapeSpaces x = x
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
 inlineToMarkdown opts (Span attrs ils) = do
+  plain <- gets stPlain
   contents <- inlineListToMarkdown opts ils
-  return $ if isEnabled Ext_raw_html opts
+  return $ if not plain &&
+              (isEnabled Ext_raw_html opts || isEnabled Ext_native_spans opts)
               then tagWithAttrs "span" attrs <> contents <> text "</span>"
               else contents
 inlineToMarkdown opts (Emph lst) = do
@@ -758,13 +760,14 @@ inlineToMarkdown opts (Subscript lst) = do
               else "<sub>" <> contents <> "</sub>"
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- gets stPlain
-  if plain
-     then inlineListToMarkdown opts $ capitalize lst
-     else do
+  if not plain &&
+     (isEnabled Ext_raw_html opts || isEnabled Ext_native_spans opts)
+     then do
        contents <- inlineListToMarkdown opts lst
        return $ tagWithAttrs "span"
-            ("",[],[("style","font-variant:small-caps;")])
+                 ("",[],[("style","font-variant:small-caps;")])
              <> contents <> text "</span>"
+     else inlineListToMarkdown opts $ capitalize lst
 inlineToMarkdown opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "‘" <> contents <> "’"
