@@ -49,7 +49,7 @@ import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
-import Data.List ( intercalate, isPrefixOf, isSuffixOf, sort )
+import Data.List ( delete, intercalate, isPrefixOf, isSuffixOf, sort )
 import System.Directory ( getAppUserDataDirectory, findExecutable,
                           doesFileExist, Permissions(..), getPermissions )
 import System.IO ( stdout, stderr )
@@ -905,13 +905,15 @@ readMetaValue s = case decode (UTF8.fromString s) of
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
-  (wrapWords 16 78 $ readers'names) ++ "\nOutput formats: " ++
+  (wrapWords 16 78 $ readers'names) ++ 
+     '\n' : replicate 16 ' ' ++
+     "[ *only Pandoc's JSON version of native AST]" ++ "\nOutput formats: " ++
   (wrapWords 16 78 $ writers'names) ++
      '\n' : replicate 16 ' ' ++
-     "[*for pdf output, use latex or beamer and -o FILENAME.pdf]\nOptions:")
+     "[**for pdf output, use latex or beamer and -o FILENAME.pdf]\nOptions:")
   where
-    writers'names = sort $ "pdf*" : map fst writers
-    readers'names = sort $ map fst readers
+    writers'names = sort $ "json*" : "pdf**" : delete "json" (map fst writers)
+    readers'names = sort $ "json*" : delete "json" (map fst readers)
 
 -- Determine default reader based on source file extensions
 defaultReaderName :: String -> [FilePath] -> String
