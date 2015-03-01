@@ -652,16 +652,16 @@ pCustomStyle sty = mknode "w:pStyle" [("w:val",sty)] ()
 pStyleM :: String -> WS XML.Element
 pStyleM = flip fmap (gets stParaStyles) . pStyle
 
--- rStyle :: String -> CharStyleMap -> Element
--- rStyle sty (CharStyleMap m) = mknode "w:rStyle" [("w:val",sty')] ()
---   where
---     sty' = getStyleId sty m
+rStyle :: String -> CharStyleMap -> Element
+rStyle sty (CharStyleMap m) = mknode "w:rStyle" [("w:val",sty')] ()
+  where
+    sty' = getStyleId sty m
 
 rCustomStyle :: String -> Element
 rCustomStyle sty = mknode "w:rStyle" [("w:val",sty)] ()
 
--- rStyleM :: String -> WS XML.Element
--- rStyleM = flip fmap (gets stCharStyles) . rStyle
+rStyleM :: String -> WS XML.Element
+rStyleM = flip fmap (gets stCharStyles) . rStyle
 
 getUniqueId :: MonadIO m => m String
 -- the + 20 is to ensure that there are no clashes with the rIds
@@ -722,7 +722,7 @@ blockToOpenXML _ (RawBlock format str)
   | format == Format "openxml" = return [ x | Elem x <- parseXML str ]
   | otherwise                  = return []
 blockToOpenXML opts (BlockQuote blocks) = do
-  p <- withParaPropM (pStyleM "Block Quote") $ blocksToOpenXML opts blocks
+  p <- withParaPropM (pStyleM "Block Text") $ blocksToOpenXML opts blocks
   setFirstPara
   return p
 blockToOpenXML opts (CodeBlock attrs str) = do
@@ -866,8 +866,8 @@ withTextProp d p = do
   popTextProp
   return res
 
--- withTextPropM :: WS Element -> WS a -> WS a
--- withTextPropM = (. flip withTextProp) . (>>=)
+withTextPropM :: WS Element -> WS a -> WS a
+withTextPropM = (. flip withTextProp) . (>>=)
 
 getParaProps :: Bool -> WS [Element]
 getParaProps displayMathPara = do
@@ -999,8 +999,9 @@ inlineToOpenXML opts (Code attrs str) = do
 inlineToOpenXML opts (Note bs) = do
   notes <- gets stFootnotes
   notenum <- getUniqueId
+  footnoteStyle <- rStyleM "Footnote Reference"
   let notemarker = mknode "w:r" []
-                   [ mknode "w:rPr" [] (rCustomStyle "FootnoteRef")
+                   [ mknode "w:rPr" [] footnoteStyle
                    , mknode "w:footnoteRef" [] () ]
   let notemarkerXml = RawInline (Format "openxml") $ ppElement notemarker
   let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : ils) : xs
@@ -1017,15 +1018,15 @@ inlineToOpenXML opts (Note bs) = do
   let newnote = mknode "w:footnote" [("w:id", notenum)] $ contents
   modify $ \s -> s{ stFootnotes = newnote : notes }
   return [ mknode "w:r" []
-           [ mknode "w:rPr" [] (rCustomStyle "FootnoteRef")
+           [ mknode "w:rPr" [] footnoteStyle
            , mknode "w:footnoteReference" [("w:id", notenum)] () ] ]
 -- internal link:
 inlineToOpenXML opts (Link txt ('#':xs,_)) = do
-  contents <- withTextProp (rCustomStyle "Link") $ inlinesToOpenXML opts txt
+  contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
   return [ mknode "w:hyperlink" [("w:anchor",xs)] contents ]
 -- external link:
 inlineToOpenXML opts (Link txt (src,_)) = do
-  contents <- withTextProp (rCustomStyle "Link") $ inlinesToOpenXML opts txt
+  contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
   extlinks <- gets stExternalLinks
   id' <- case M.lookup src extlinks of
             Just i   -> return i
