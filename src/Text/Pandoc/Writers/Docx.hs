@@ -54,6 +54,8 @@ import Text.Pandoc.Walk
 import Text.Highlighting.Kate.Types ()
 import Text.XML.Light as XML
 import Text.TeXMath
+import Text.Pandoc.Readers.Docx.StyleMap
+import Text.Pandoc.Readers.Docx.Util (elemName)
 import Control.Monad.State
 import Text.Highlighting.Kate
 import Data.Unique (hashUnique, newUnique)
@@ -64,7 +66,6 @@ import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
                          extensionFromMimeType)
 import Control.Applicative ((<$>), (<|>), (<*>))
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
-import Data.Char (toLower)
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -90,9 +91,6 @@ listMarkerToId (NumberMarker sty delim n) =
                       OneParen       -> '2'
                       TwoParens      -> '3'
 
-newtype ParaStyleMap = ParaStyleMap (M.Map String String) deriving Show
-newtype CharStyleMap = CharStyleMap (M.Map String String) deriving Show
-
 data WriterState = WriterState{
          stTextProperties :: [Element]
        , stParaProperties :: [Element]
@@ -109,8 +107,7 @@ data WriterState = WriterState{
        , stChangesAuthor  :: String
        , stChangesDate    :: String
        , stPrintWidth     :: Integer
-       , stParaStyles     :: ParaStyleMap
-       , stCharStyles     :: CharStyleMap
+       , stStyleMaps      :: StyleMaps
        , stFirstPara      :: Bool
        }
 
@@ -131,8 +128,7 @@ defaultWriterState = WriterState{
       , stChangesAuthor  = "unknown"
       , stChangesDate    = "1969-12-31T19:00:00Z"
       , stPrintWidth     = 1
-      , stParaStyles     = ParaStyleMap M.empty
-      , stCharStyles     = CharStyleMap M.empty
+      , stStyleMaps      = defaultStyleMaps
       , stFirstPara      = False
       }
 
@@ -220,28 +216,14 @@ writeDocx opts doc@(Pandoc meta _) = do
   styledoc <- parseXml refArchive distArchive stylepath
 
   -- parse styledoc for heading styles
-  let styleNamespaces = map ((,) <$> qName . attrKey <*> attrVal) .
-                        filter ((==Just "xmlns") . qPrefix . attrKey) .
-                        elAttribs $ styledoc
-      mywURI = lookup "w" styleNamespaces
-      myName name = QName name mywURI (Just "w")
-      getAttrStyleId = findAttr (myName "styleId")
-      getAttrType = findAttr (myName "type")
-      isParaStyle = (Just "paragraph" ==) . getAttrType
-      isCharStyle = (Just "character" ==) . getAttrType
-      getNameVal = findChild (myName "name") >=> findAttr (myName "val") >=> return . map toLower
-      genStyleItem f e | f e       = liftM2 (,) <$> getNameVal <*> getAttrStyleId $ e
-                       | otherwise = Nothing
-      genStyleMap f = M.fromList $ mapMaybe (genStyleItem f) $ findChildren (myName "style") styledoc
-      paraStyles = ParaStyleMap $ genStyleMap isParaStyle
-      charStyles = CharStyleMap $ genStyleMap isCharStyle
+  let styleMaps = getStyleMaps styledoc
 
   ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc')
                        defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
                                          , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
                                          , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
-                                         , stParaStyles = paraStyles
-                                         , stCharStyles = charStyles}
+                                         , stStyleMaps  = styleMaps
+                                         }
   let epochtime = floor $ utcTimeToPOSIXSeconds utctime
   let imgs = M.elems $ stImages st
 
@@ -394,7 +376,7 @@ writeDocx opts doc@(Pandoc meta _) = do
         linkrels
 
   -- styles
-  let newstyles = styleToOpenXml charStyles paraStyles $ writerHighlightStyle opts
+  let newstyles = styleToOpenXml styleMaps $ writerHighlightStyle opts
   let styledoc' = styledoc{ elContent = modifyContent (elContent styledoc) }
                   where
                     modifyContent
@@ -402,9 +384,10 @@ writeDocx opts doc@(Pandoc meta _) = do
                       | otherwise = filter notTokStyle
                     notTokStyle (Elem el) = notStyle el || notTokId el
                     notTokStyle _         = True
-                    notStyle = (/= myName "style") . elName
-                    notTokId = maybe True (`notElem` tokStys) . getAttrStyleId
+                    notStyle = (/= elemName' "style") . elName
+                    notTokId = maybe True (`notElem` tokStys) . findAttr (elemName' "styleId")
                     tokStys  = "SourceCode" : map show (enumFromTo KeywordTok NormalTok)
+                    elemName' = elemName (sNameSpaces styleMaps) "w"
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
 
   -- construct word/numbering.xml
@@ -481,12 +464,11 @@ writeDocx opts doc@(Pandoc meta _) = do
                   miscRelEntries ++ otherMediaEntries
   return $ fromArchive archive
 
-styleToOpenXml :: CharStyleMap -> ParaStyleMap -> Style -> [Element]
-styleToOpenXml (CharStyleMap csm) (ParaStyleMap psm) style =
+styleToOpenXml :: StyleMaps -> Style -> [Element]
+styleToOpenXml sm style =
   maybeToList parStyle ++ mapMaybe toStyle alltoktypes
   where alltoktypes = enumFromTo KeywordTok NormalTok
-        styleExists m styleName = M.member (map toLower styleName) m
-        toStyle toktype | styleExists csm $ show toktype = Nothing
+        toStyle toktype | hasStyleName (show toktype) (sCharStyleMap sm) = Nothing
                         | otherwise = Just $
                           mknode "w:style" [("w:type","character"),
                            ("w:customStyle","1"),("w:styleId",show toktype)]
@@ -509,7 +491,7 @@ styleToOpenXml (CharStyleMap csm) (ParaStyleMap psm) style =
         tokBg toktype = maybe "auto" (drop 1 . fromColor)
                          $ (tokenBackground =<< lookup toktype tokStyles)
                            `mplus` backgroundColor style
-        parStyle | styleExists psm "Source Code" = Nothing
+        parStyle | hasStyleName "Source Code" (sParaStyleMap sm) = Nothing
                  | otherwise = Just $
                    mknode "w:style" [("w:type","paragraph"),
                            ("w:customStyle","1"),("w:styleId","SourceCode")]
@@ -638,30 +620,27 @@ writeOpenXML opts (Pandoc meta blocks) = do
 blocksToOpenXML :: WriterOptions -> [Block] -> WS [Element]
 blocksToOpenXML opts bls = concat `fmap` mapM (blockToOpenXML opts) bls
 
-getStyleId :: String -> M.Map String String -> String
-getStyleId s = M.findWithDefault (filter (/=' ') s) (map toLower s)
-
-pStyle :: String -> ParaStyleMap -> Element
-pStyle sty (ParaStyleMap m) = mknode "w:pStyle" [("w:val",sty')] ()
+pStyle :: String -> StyleMaps -> Element
+pStyle sty m = mknode "w:pStyle" [("w:val",sty')] ()
   where
-    sty' = getStyleId sty m
+    sty' = getStyleId sty $ sParaStyleMap m
 
 pCustomStyle :: String -> Element
 pCustomStyle sty = mknode "w:pStyle" [("w:val",sty)] ()
 
 pStyleM :: String -> WS XML.Element
-pStyleM = flip fmap (gets stParaStyles) . pStyle
+pStyleM = (`fmap` gets stStyleMaps) . pStyle
 
-rStyle :: String -> CharStyleMap -> Element
-rStyle sty (CharStyleMap m) = mknode "w:rStyle" [("w:val",sty')] ()
+rStyle :: String -> StyleMaps -> Element
+rStyle sty m = mknode "w:rStyle" [("w:val",sty')] ()
   where
-    sty' = getStyleId sty m
+    sty' = getStyleId sty $ sCharStyleMap m
 
 rCustomStyle :: String -> Element
 rCustomStyle sty = mknode "w:rStyle" [("w:val",sty)] ()
 
 rStyleM :: String -> WS XML.Element
-rStyleM = flip fmap (gets stCharStyles) . rStyle
+rStyleM = (`fmap` gets stStyleMaps) . rStyle
 
 getUniqueId :: MonadIO m => m String
 -- the + 20 is to ensure that there are no clashes with the rIds
@@ -710,10 +689,10 @@ blockToOpenXML opts (Para lst) = do
   paraProps <- getParaProps $ case lst of
                                [Math DisplayMath _] -> True
                                _                    -> False
-  pSM <- gets stParaStyles
+  sm <- gets stStyleMaps
   let paraProps' = case paraProps of
         [] | isFirstPara -> [mknode "w:pPr" [] [pCustomStyle "FirstParagraph"]]
-        []               -> [mknode "w:pPr" [] [pStyle "Body Text" pSM]]
+        []               -> [mknode "w:pPr" [] [pStyle "Body Text" sm]]
         ps               -> ps
   modify $ \s -> s { stFirstPara = False }
   contents <- inlinesToOpenXML opts lst
