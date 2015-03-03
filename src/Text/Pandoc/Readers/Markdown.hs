@@ -1679,6 +1679,7 @@ referenceLink constructor (lab, raw) = do
       lookAhead (try (spnl >> normalCite >> return (mempty, "")))
       <|>
       try (spnl >> reference)
+  when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
   let labIsRef = raw' == "" || raw' == "[]"
   let key = toKey $ if labIsRef then raw else raw'
   parsedRaw <- parseFromString (mconcat <$> many inline) raw'

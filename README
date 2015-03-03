@@ -2785,6 +2785,11 @@ in several respects:
     we must either disallow lazy wrapping or require a blank line between
     list items.
 
+#### Extension: `shortcut_reference_links` ####
+
+Allows to use shortcut reference links: `[foo]` instead of `[foo][]`. Writer
+would shortcut links unless doing so might cause problems.
+
 Markdown variants
 -----------------
 
