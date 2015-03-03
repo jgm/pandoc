@@ -1,7 +1,4 @@
-module Text.Pandoc.Readers.Docx.StyleMap (  StyleMap
-                                          , ParaStyleMap
-                                          , CharStyleMap
-                                          , StyleMaps(..)
+module Text.Pandoc.Readers.Docx.StyleMap (  StyleMaps(..)
                                           , defaultStyleMaps
                                           , getStyleMaps
                                           , getStyleId
@@ -58,22 +55,25 @@ getStyleMaps :: Element -> StyleMaps
 getStyleMaps docElem = fromMaybe state' $ execStateT genStyleMap state'
     where
     state' = defaultStyleMaps {sNameSpaces = elemToNameSpaces docElem}
-    insertPara key val = modify $ \s ->
-      s { sParaStyleMap = insert key val $ sParaStyleMap s }
-    insertChar key val = modify $ \s ->
-      s { sCharStyleMap = insert key val $ sCharStyleMap s }
     genStyleItem e = do
       styleType <- getStyleType e
-      nameVal <- getNameVal e
       styleId <- getAttrStyleId e
-      let nameValLC = map toLower nameVal
+      nameValLowercase <- map toLower `fmap` getNameVal e
       case styleType of
-        ParaStyle -> insertPara nameValLC styleId
-        CharStyle -> insertChar nameValLC styleId
+        ParaStyle -> modParaStyleMap $ insert nameValLowercase styleId
+        CharStyle -> modCharStyleMap $ insert nameValLowercase styleId
     genStyleMap = do
       style <- elemName' "style"
       let styles = findChildren style docElem
       forM_ styles genStyleItem
+
+modParaStyleMap :: (ParaStyleMap -> ParaStyleMap) -> StateM ()
+modParaStyleMap f = modify $ \s ->
+  s {sParaStyleMap = f $ sParaStyleMap s}
+
+modCharStyleMap :: (CharStyleMap -> CharStyleMap) -> StateM ()
+modCharStyleMap f = modify $ \s ->
+  s {sCharStyleMap = f $ sCharStyleMap s}
 
 getStyleType :: Element -> StateM StyleType
 getStyleType e = do

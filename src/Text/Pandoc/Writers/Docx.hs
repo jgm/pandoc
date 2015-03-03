@@ -620,27 +620,23 @@ writeOpenXML opts (Pandoc meta blocks) = do
 blocksToOpenXML :: WriterOptions -> [Block] -> WS [Element]
 blocksToOpenXML opts bls = concat `fmap` mapM (blockToOpenXML opts) bls
 
-pStyle :: String -> StyleMaps -> Element
-pStyle sty m = mknode "w:pStyle" [("w:val",sty')] ()
-  where
-    sty' = getStyleId sty $ sParaStyleMap m
-
 pCustomStyle :: String -> Element
 pCustomStyle sty = mknode "w:pStyle" [("w:val",sty)] ()
 
 pStyleM :: String -> WS XML.Element
-pStyleM = (`fmap` gets stStyleMaps) . pStyle
-
-rStyle :: String -> StyleMaps -> Element
-rStyle sty m = mknode "w:rStyle" [("w:val",sty')] ()
-  where
-    sty' = getStyleId sty $ sCharStyleMap m
+pStyleM styleName = do
+  styleMaps <- gets stStyleMaps
+  let sty' = getStyleId styleName $ sParaStyleMap styleMaps
+  return $ mknode "w:pStyle" [("w:val",sty')] ()
 
 rCustomStyle :: String -> Element
 rCustomStyle sty = mknode "w:rStyle" [("w:val",sty)] ()
 
 rStyleM :: String -> WS XML.Element
-rStyleM = (`fmap` gets stStyleMaps) . rStyle
+rStyleM styleName = do
+  styleMaps <- gets stStyleMaps
+  let sty' = getStyleId styleName $ sCharStyleMap styleMaps
+  return $ mknode "w:rStyle" [("w:val",sty')] ()
 
 getUniqueId :: MonadIO m => m String
 -- the + 20 is to ensure that there are no clashes with the rIds
@@ -689,10 +685,10 @@ blockToOpenXML opts (Para lst) = do
   paraProps <- getParaProps $ case lst of
                                [Math DisplayMath _] -> True
                                _                    -> False
-  sm <- gets stStyleMaps
+  bodyTextStyle <- pStyleM "Body Text"
   let paraProps' = case paraProps of
         [] | isFirstPara -> [mknode "w:pPr" [] [pCustomStyle "FirstParagraph"]]
-        []               -> [mknode "w:pPr" [] [pStyle "Body Text" sm]]
+        []               -> [mknode "w:pPr" [] [bodyTextStyle]]
         ps               -> ps
   modify $ \s -> s { stFirstPara = False }
   contents <- inlinesToOpenXML opts lst
