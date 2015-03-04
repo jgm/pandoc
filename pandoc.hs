@@ -198,6 +198,7 @@ data Opt = Opt
     , optCiteMethod        :: CiteMethod -- ^ Method to output cites
     , optListings          :: Bool       -- ^ Use listings package for code blocks
     , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
+    , optLaTeXEngineArgs   :: [String]   -- ^ Flags to pass to the latex-engine
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
@@ -259,6 +260,7 @@ defaultOpts = Opt
     , optCiteMethod            = Citeproc
     , optListings              = False
     , optLaTeXEngine           = "pdflatex"
+    , optLaTeXEngineArgs       = []
     , optSlideLevel            = Nothing
     , optSetextHeaders         = True
     , optAscii                 = False
@@ -734,6 +736,14 @@ options =
                   "PROGRAM")
                  "" -- "Name of latex program to use in generating PDF"
 
+    , Option "" ["latex-engine-opt"]
+                 (ReqArg
+                  (\arg opt -> do
+                      let oldArgs = optLaTeXEngineArgs opt
+                      return opt { optLaTeXEngineArgs = arg : oldArgs })
+                  "STRING")
+                 "" -- "Flags to pass to the LaTeX engine, all instances of this option are accumulated and used"
+
     , Option "" ["bibliography"]
                  (ReqArg
                   (\arg opt -> return opt{ optMetadata = addMetadata
@@ -1080,6 +1090,7 @@ main = do
               , optCiteMethod            = citeMethod
               , optListings              = listings
               , optLaTeXEngine           = latexEngine
+              , optLaTeXEngineArgs       = latexEngineArgs
               , optSlideLevel            = slideLevel
               , optSetextHeaders         = setextHeaders
               , optAscii                 = ascii
@@ -1312,7 +1323,8 @@ main = do
                             writerReferenceODT     = referenceODT,
                             writerReferenceDocx    = referenceDocx,
                             writerMediaBag         = media,
-                            writerVerbose          = verbose
+                            writerVerbose          = verbose,
+                            writerLaTeXArgs        = latexEngineArgs
                           }
 
 

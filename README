@@ -655,6 +655,11 @@ Options affecting specific writers
     The default is `pdflatex`.  If the engine is not in your PATH,
     the full path of the engine may be specified here.
 
+`--latex-engine-opt=`*STRING*
+:   Use the given string as a command-line argument to the `latex-engine`.
+    If used multiple times, the arguments are provided with spaces between
+    them. Note that no check for duplicate options is done.
+
 Citation rendering
 ------------------
 
