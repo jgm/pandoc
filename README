@@ -1827,8 +1827,8 @@ Pipe tables look like this:
 The syntax is [the same as in PHP markdown extra].  The beginning and
 ending pipe characters are optional, but pipes are required between all
 columns.  The colons indicate column alignment as shown.  The header
-can be omitted, but the horizontal line must still be included, as
-it defines column alignments.
+cannot be omitted.  To simulate a headerless table, include a header
+with blank cells.
 
 Since the pipes indicate column boundaries, columns need not be vertically
 aligned, as they are in the above example.  So, this is a perfectly

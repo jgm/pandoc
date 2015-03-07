@@ -1287,11 +1287,9 @@ pipeBreak = try $ do
 
 pipeTable :: MarkdownParser ([Alignment], [Double], F [Blocks], F [[Blocks]])
 pipeTable = try $ do
-  (heads,aligns) <- try ( pipeBreak >>= \als ->
-                     return (return $ replicate (length als) mempty, als))
-                  <|> ( pipeTableRow >>= \row -> pipeBreak >>= \als ->
-
-                          return (row, als) )
+  (heads,aligns) <- pipeTableRow >>= \row ->
+                    pipeBreak >>= \als ->
+                    return (row, als)
   lines' <- sequence <$> many1 pipeTableRow
   let widths = replicate (length aligns) 0.0
   return $ (aligns, widths, heads, lines')

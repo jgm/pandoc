@@ -508,7 +508,12 @@ pipeTable headless aligns rawHeaders rawRows = do
                              AlignCenter  -> ':':replicate w '-' ++ ":"
                              AlignRight   -> replicate (w + 1) '-' ++ ":"
                              AlignDefault -> replicate (w + 2) '-'
-  let header = if headless then empty else torow rawHeaders
+  -- note:  pipe tables can't completely lack a
+  -- header; for a headerless table, we need a header of empty cells.
+  -- see jgm/pandoc#1996.
+  let header = if headless
+                  then torow (replicate (length aligns) empty)
+                  else torow rawHeaders
   let border = nowrap $ text "|" <> hcat (intersperse (text "|") $
                         map toborder $ zip aligns widths) <> text "|"
   let body   = vcat $ map torow rawRows
