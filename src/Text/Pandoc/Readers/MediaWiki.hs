@@ -593,11 +593,17 @@ imageOption =
   <|> try (many1 (oneOf "x0123456789") <* string "px")
   <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
 
+collapseUnderscores :: String -> String
+collapseUnderscores [] = []
+collapseUnderscores ('_':'_':xs) = collapseUnderscores ('_':xs)
+collapseUnderscores (x:xs) = x : collapseUnderscores xs
+
+addUnderscores :: String -> String
+addUnderscores = collapseUnderscores . intercalate "_" . words
+
 internalLink :: MWParser Inlines
 internalLink = try $ do
   sym "[["
-  let addUnderscores x = let (pref,suff) = break (=='#') x
-                         in  pref ++ intercalate "_" (words suff)
   pagename <- unwords . words <$> many (noneOf "|]")
   label <- option (B.text pagename) $ char '|' *>
              (  (mconcat <$> many1 (notFollowedBy (char ']') *> inline))
