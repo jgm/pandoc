@@ -1275,7 +1275,7 @@ complexNatbibCitation mode = try $ do
 parseAligns :: LP [Alignment]
 parseAligns = try $ do
   char '{'
-  let maybeBar = skipMany $ sp <|> () <$ char '|' <|> () <$ try (string "@{}")
+  let maybeBar = skipMany $ sp <|> () <$ char '|' <|> () <$ (char '@' >> braced)
   maybeBar
   let cAlign = AlignCenter <$ char 'c'
   let lAlign = AlignLeft <$ char 'l'
