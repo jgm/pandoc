@@ -1275,7 +1275,7 @@ complexNatbibCitation mode = try $ do
 parseAligns :: LP [Alignment]
 parseAligns = try $ do
   char '{'
-  let maybeBar = skipMany $ sp <|> () <$ char '|' <|> () <$ try (string "@{}")
+  let maybeBar = skipMany $ sp <|> () <$ char '|' <|> () <$ (char '@' >> braced)
   maybeBar
   let cAlign = AlignCenter <$ char 'c'
   let lAlign = AlignLeft <$ char 'l'
@@ -1314,7 +1314,7 @@ parseTableRow cols = try $ do
 simpTable :: Bool -> LP Blocks
 simpTable hasWidthParameter = try $ do
   when hasWidthParameter $ () <$ (spaces >> tok)
-  spaces
+  skipopts
   aligns <- parseAligns
   let cols = length aligns
   optional hline
