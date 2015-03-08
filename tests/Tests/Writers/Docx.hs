@@ -103,12 +103,12 @@ tests = [ testGroup "inlines"
             "hanging indents"
             "docx/hanging_indent.native"
           -- tables headers do not survive round-trip, should look into that
-          -- , testCompare
-          --   "tables"
-          --   "docx/tables.native"
-          -- , testCompare
-          --   "tables with lists in cells"
-          --   "docx/table_with_list_cell.native"
+          , testCompare
+            "tables"
+            "docx/tables.native"
+          , testCompare
+            "tables with lists in cells"
+            "docx/table_with_list_cell.native"
           , testCompare
             "code block"
             "docx/codeblock.native"
