@@ -733,25 +733,30 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
                             if null contents
                                then emptyCell
                                else contents
-  let mkrow border cells = mknode "w:tr" [] $ map (mkcell border) cells
+  let mkrow border cells = mknode "w:tr" [] $
+                        [mknode "w:trPr" [] [
+                          mknode "w:cnfStyle" [("w:firstRow","1")] ()] | border]
+                        ++ map (mkcell border) cells
   let textwidth = 7920  -- 5.5 in in twips, 1/20 pt
   let fullrow = 5000 -- 100% specified in pct
   let rowwidth = fullrow * sum widths
   let mkgridcol w = mknode "w:gridCol"
                        [("w:w", show (floor (textwidth * w) :: Integer))] ()
+  let hasHeader = not (all null headers)
   return $
     caption' ++
     [mknode "w:tbl" []
       ( mknode "w:tblPr" []
         (   mknode "w:tblStyle" [("w:val","TableNormal")] () :
             mknode "w:tblW" [("w:type", "pct"), ("w:w", show rowwidth)] () :
+            mknode "w:tblLook" [("w:firstRow","1") | hasHeader ] () :
           [ mknode "w:tblCaption" [("w:val", captionStr)] ()
           | not (null caption) ] )
       : mknode "w:tblGrid" []
         (if all (==0) widths
             then []
             else map mkgridcol widths)
-      : [ mkrow True headers' | not (all null headers) ] ++
+      : [ mkrow True headers' | hasHeader ] ++
       map (mkrow False) rows'
       )]
 blockToOpenXML opts (BulletList lst) = do
