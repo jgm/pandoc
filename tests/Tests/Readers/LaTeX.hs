@@ -91,6 +91,9 @@ tests = [ testGroup "basic"
           , "Table with empty column separators" =:
             "\\begin{tabular}{@{}r@{}l}One & Two\\\\ \\end{tabular}" =?>
             simpleTable' [AlignRight,AlignLeft] [[plain "One", plain "Two"]]
+          , "Table with vertical alignment argument" =:
+            "\\begin{tabular}[t]{r|r}One & Two\\\\ \\end{tabular}" =?>
+            simpleTable' [AlignRight,AlignRight] [[plain "One", plain "Two"]]
           ]
 
         , testGroup "citations"

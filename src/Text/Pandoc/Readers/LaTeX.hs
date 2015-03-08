@@ -1314,7 +1314,7 @@ parseTableRow cols = try $ do
 simpTable :: Bool -> LP Blocks
 simpTable hasWidthParameter = try $ do
   when hasWidthParameter $ () <$ (spaces >> tok)
-  spaces
+  skipopts
   aligns <- parseAligns
   let cols = length aligns
   optional hline
