@@ -83,10 +83,10 @@ tests = [ testGroup "inlines"
           , testCompare
             "i18n blocks (headers and blockquotes)"
             "docx/i18n_blocks.native"
-          -- some level problems, look into that
-          -- , testCompare
-          --   "lists"
-          --   "docx/lists.native"
+          -- Continuation does not survive round-trip
+          , testCompare
+            "lists"
+            "docx/lists_writer.native"
           , testCompare
             "definition lists"
             "docx/definition_list.native"
