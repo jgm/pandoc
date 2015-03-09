@@ -12,6 +12,9 @@ import Data.Monoid (mempty, mappend, mconcat)
 org :: String -> Pandoc
 org = readOrg def
 
+orgSmart :: String -> Pandoc
+orgSmart = readOrg def { readerSmart = True }
+
 infix 4 =:
 (=:) :: ToString c
      => String -> (String, c) -> Test
@@ -1151,5 +1154,26 @@ tests =
                         , ("rundoc-city", "Zürich")
                         ]
           in codeBlockWith ( "", classes, params) "code body\n"
+      ]
+    , testGroup "Smart punctuation"
+      [ test orgSmart "quote before ellipses"
+        ("'...hi'"
+         =?> para (singleQuoted "…hi"))
+        
+      , test orgSmart "apostrophe before emph"
+        ("D'oh! A l'/aide/!"
+         =?> para ("D’oh! A l’" <> emph "aide" <> "!"))
+        
+      , test orgSmart "apostrophe in French"
+        ("À l'arrivée de la guerre, le thème de l'«impossibilité du socialisme»"
+         =?> para "À l’arrivée de la guerre, le thème de l’«impossibilité du socialisme»")
+        
+      , test orgSmart "Quotes cannot occur at the end of emphasized text"
+        ("/say \"yes\"/" =?>
+         para ("/say" <> space <> doubleQuoted "yes" <> "/"))
+        
+      , test orgSmart "Dashes are allowed at the borders of emphasis'"
+        ("/foo---/" =?>
+         para (emph "foo—"))
       ]
   ]
