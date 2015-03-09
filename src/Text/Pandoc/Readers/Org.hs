@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
 {-
 Copyright (C) 2014 Albert Krewinkel <tarleb@moltkeplatz.de>
 
@@ -49,7 +49,7 @@ import           Control.Applicative ( Applicative, pure
                                      , (<$>), (<$), (<*>), (<*), (*>) )
 import           Control.Arrow (first)
 import           Control.Monad (foldM, guard, liftM, liftM2, mplus, mzero, when)
-import           Control.Monad.Reader (Reader, runReader, ask, asks)
+import           Control.Monad.Reader (Reader, runReader, ask, asks, local)
 import           Data.Char (isAlphaNum, toLower)
 import           Data.Default
 import           Data.List (intersperse, isPrefixOf, isSuffixOf)
@@ -62,9 +62,11 @@ import           Network.HTTP (urlEncode)
 readOrg :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
         -> Pandoc
-readOrg opts s = readWith parseOrg def{ orgStateOptions = opts } (s ++ "\n\n")
+readOrg opts s = flip runReader def $ readWithM parseOrg def{ orgStateOptions = opts } (s ++ "\n\n")
 
-type OrgParser = Parser [Char] OrgParserState
+data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext }
+
+type OrgParser = ParserT [Char] OrgParserState (Reader OrgParserLocal)
 
 parseOrg :: OrgParser Pandoc
 parseOrg = do
@@ -125,6 +127,9 @@ data OrgParserState = OrgParserState
                       , orgStateNotes'               :: OrgNoteTable
                       }
 
+instance Default OrgParserLocal where
+  def = OrgParserLocal NoQuote
+
 instance HasReaderOptions OrgParserState where
   extractReaderOptions = orgStateOptions
 
@@ -137,6 +142,10 @@ instance HasMeta OrgParserState where
 instance HasLastStrPosition OrgParserState where
   getLastStrPos = orgStateLastStrPos
   setLastStrPos pos st = st{ orgStateLastStrPos = Just pos }
+
+instance HasQuoteContext st (Reader OrgParserLocal) where
+  getQuoteContext = asks orgLocalQuoteContext
+  withQuoteContext q = local (\s -> s{orgLocalQuoteContext = q})
 
 instance Default OrgParserState where
   def = defaultOrgParserState
@@ -964,6 +973,7 @@ inline =
          , subscript
          , superscript
          , inlineLaTeX
+         , smart
          , symbol
          ] <* (guard =<< newlinesCountWithinLimits)
   <?> "inline"
@@ -1270,12 +1280,16 @@ displayMath :: OrgParser (F Inlines)
 displayMath = return . B.displayMath <$> choice [ rawMathBetween "\\[" "\\]"
                                                 , rawMathBetween "$$"  "$$"
                                                 ]
+
+updatePositions :: Char
+                -> OrgParser (Char)
+updatePositions c = do
+  when (c `elem` emphasisPreChars) updateLastPreCharPos
+  when (c `elem` emphasisForbiddenBorderChars) updateLastForbiddenCharPos
+  return c
+
 symbol :: OrgParser (F Inlines)
 symbol = return . B.str . (: "") <$> (oneOf specialChars >>= updatePositions)
- where updatePositions c = do
-         when (c `elem` emphasisPreChars) updateLastPreCharPos
-         when (c `elem` emphasisForbiddenBorderChars) updateLastForbiddenCharPos
-         return c
 
 emphasisBetween :: Char
                 -> OrgParser (F Inlines)
@@ -1486,3 +1500,31 @@ inlineLaTeXCommand = try $ do
       count len anyChar
       return cs
     _ -> mzero
+
+smart :: OrgParser (F Inlines)
+smart = do
+  getOption readerSmart >>= guard
+  doubleQuoted <|> singleQuoted <|>
+    choice (map (return <$>) [orgApostrophe, dash, ellipses])
+  where orgApostrophe =
+          (char '\'' <|> char '\8217') <* updateLastPreCharPos
+                                       <* updateLastForbiddenCharPos
+                                       *> return (B.str "\x2019")
+
+singleQuoted :: OrgParser (F Inlines)
+singleQuoted = try $ do
+  singleQuoteStart
+  withQuoteContext InSingleQuote $
+    fmap B.singleQuoted . trimInlinesF . mconcat <$>
+      many1Till inline singleQuoteEnd
+
+-- doubleQuoted will handle regular double-quoted sections, as well
+-- as dialogues with an open double-quote without a close double-quote
+-- in the same paragraph.
+doubleQuoted :: OrgParser (F Inlines)
+doubleQuoted = try $ do
+  doubleQuoteStart
+  contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
+  (withQuoteContext InDoubleQuote $ (doubleQuoteEnd <* updateLastForbiddenCharPos) >> return
+       (fmap B.doubleQuoted . trimInlinesF $ contents))
+   <|> (return $ return (B.str "\8220") <> contents)
