@@ -343,7 +343,7 @@ setCaption :: LP Blocks
 setCaption = do
   ils <- tok
   mblabel <- option Nothing $
-               try $ spaces >> controlSeq "label" >> (Just <$> tok)
+               try $ spaces' >> controlSeq "label" >> (Just <$> tok)
   let ils' = case mblabel of
                   Just lab -> ils <> spanWith
                                 ("",[],[("data-label", stringify lab)]) mempty
@@ -371,7 +371,7 @@ section (ident, classes, kvs) lvl = do
   let lvl' = if hasChapters then lvl + 1 else lvl
   skipopts
   contents <- grouped inline
-  lab <- option ident $ try (spaces >> controlSeq "label" >> spaces >> braced)
+  lab <- option ident $ try (spaces' >> controlSeq "label" >> spaces' >> braced)
   attr' <- registerHeader (lab, classes, kvs) contents
   return $ headerWith attr' lvl' contents
 
@@ -497,7 +497,7 @@ inlineCommands = M.fromList $
   , ("v", option (str "v") $ try $ tok >>= accent hacek)
   , ("u", option (str "u") $ try $ tok >>= accent breve)
   , ("i", lit "i")
-  , ("\\", linebreak <$ (optional (bracketed inline) *> optional sp))
+  , ("\\", linebreak <$ (optional (bracketed inline) *> spaces'))
   , (",", pure mempty)
   , ("@", pure mempty)
   , (" ", lit "\160")
@@ -1291,13 +1291,13 @@ parseAligns = try $ do
   return aligns'
 
 hline :: LP ()
-hline = () <$ (try $ spaces >> controlSeq "hline")
+hline = () <$ (try $ spaces' *> controlSeq "hline" <* spaces')
 
 lbreak :: LP ()
-lbreak = () <$ (try $ spaces *> controlSeq "\\")
+lbreak = () <$ (try $ spaces' *> controlSeq "\\" <* spaces')
 
 amp :: LP ()
-amp = () <$ (try $ spaces *> char '&')
+amp = () <$ (try $ spaces' *> char '&')
 
 parseTableRow :: Int  -- ^ number of columns
               -> LP [Blocks]
@@ -1310,20 +1310,22 @@ parseTableRow cols = try $ do
   guard $ cells' /= [mempty]
   -- note:  a & b in a three-column table leaves an empty 3rd cell:
   let cells'' = cells' ++ replicate (cols - numcells) mempty
-  spaces
+  spaces'
   return cells''
+
+spaces' :: LP ()
+spaces' = spaces *> skipMany (comment *> spaces)
 
 simpTable :: Bool -> LP Blocks
 simpTable hasWidthParameter = try $ do
-  when hasWidthParameter $ () <$ (spaces >> tok)
+  when hasWidthParameter $ () <$ (spaces' >> tok)
   skipopts
   aligns <- parseAligns
   let cols = length aligns
   optional hline
   header' <- option [] $ try (parseTableRow cols <* lbreak <* hline)
   rows <- sepEndBy (parseTableRow cols) (lbreak <* optional hline)
-  spaces
-  skipMany (comment *> spaces)
+  spaces'
   let header'' = if null header'
                     then replicate cols mempty
                     else header'
