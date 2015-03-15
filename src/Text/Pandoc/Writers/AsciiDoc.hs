@@ -272,7 +272,7 @@ bulletListItemToAsciiDoc opts blocks = do
   contents <- foldM addBlock empty blocks
   modify $ \s -> s{ bulletListLevel = lev }
   let marker = text (replicate lev '*')
-  return $ marker <> space <> contents <> cr
+  return $ marker <> text " " <> contents <> cr
 
 -- | Convert ordered list item (a list of blocks) to asciidoc.
 orderedListItemToAsciiDoc :: WriterOptions -- ^ options
@@ -292,7 +292,7 @@ orderedListItemToAsciiDoc opts marker blocks = do
   modify $ \s -> s{ orderedListLevel = lev + 1 }
   contents <- foldM addBlock empty blocks
   modify $ \s -> s{ orderedListLevel = lev }
-  return $ text marker <> space <> contents <> cr
+  return $ text marker <> text " " <> contents <> cr
 
 -- | Convert definition list item (label, list of blocks) to asciidoc.
 definitionListItemToAsciiDoc :: WriterOptions

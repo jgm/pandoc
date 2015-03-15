@@ -490,7 +490,7 @@ Ellipses…and…and….
 LaTeX
 -----
 
-*
+* 
 * latexmath:[$2+2=4$]
 * latexmath:[$x \in y$]
 * latexmath:[$\alpha \wedge \omega$]
