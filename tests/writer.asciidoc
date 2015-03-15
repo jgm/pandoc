@@ -375,15 +375,19 @@ HTML Blocks
 Simple block on one line:
 
 foo
+
 And nested without indentation:
 
 foo
 
 bar
+
 Interpreted markdown in a table:
 
 This is _emphasized_
+
 And this is *strong*
+
 Here’s a simple block:
 
 foo
@@ -405,6 +409,7 @@ As should this:
 Now, nested:
 
 foo
+
 This should just be an HTML comment:
 
 Multiline:

@@ -126,7 +126,7 @@ blockToAsciiDoc :: WriterOptions -- ^ Options
 blockToAsciiDoc _ Null = return empty
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
-  return $ contents <> cr
+  return $ contents <> blankline
 blockToAsciiDoc opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
   blockToAsciiDoc opts (Para [Image alt (src,tit)])
 blockToAsciiDoc opts (Para inlines) = do
