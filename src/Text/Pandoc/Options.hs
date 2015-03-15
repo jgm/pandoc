@@ -109,6 +109,7 @@ data Extension =
     | Ext_implicit_header_references -- ^ Implicit reference links for headers
     | Ext_line_blocks         -- ^ RST style line blocks
     | Ext_epub_html_exts      -- ^ Recognise the EPUB extended version of HTML
+    | Ext_shortcut_reference_links -- ^ Shortcut reference links
     deriving (Show, Read, Enum, Eq, Ord, Bounded)
 
 pandocExtensions :: Set Extension
@@ -151,6 +152,7 @@ pandocExtensions = Set.fromList
   , Ext_header_attributes
   , Ext_implicit_header_references
   , Ext_line_blocks
+  , Ext_shortcut_reference_links
   ]
 
 phpMarkdownExtraExtensions :: Set Extension
@@ -164,6 +166,7 @@ phpMarkdownExtraExtensions = Set.fromList
   , Ext_intraword_underscores
   , Ext_header_attributes
   , Ext_abbreviations
+  , Ext_shortcut_reference_links
   ]
 
 githubMarkdownExtensions :: Set Extension
@@ -180,6 +183,7 @@ githubMarkdownExtensions = Set.fromList
   , Ext_strikeout
   , Ext_hard_line_breaks
   , Ext_lists_without_preceding_blankline
+  , Ext_shortcut_reference_links
   ]
 
 multimarkdownExtensions :: Set Extension
@@ -202,7 +206,9 @@ multimarkdownExtensions = Set.fromList
 
 strictExtensions :: Set Extension
 strictExtensions = Set.fromList
-  [ Ext_raw_html ]
+  [ Ext_raw_html
+  , Ext_shortcut_reference_links
+  ]
 
 data ReaderOptions = ReaderOptions{
          readerExtensions      :: Set Extension  -- ^ Syntax extensions
