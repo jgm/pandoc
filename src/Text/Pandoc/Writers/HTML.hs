@@ -446,13 +446,14 @@ blockToHtml opts (Para lst) = do
   contents <- inlineListToHtml opts lst
   return $ H.p contents
 blockToHtml opts (Div attr@(_,classes,_) bs) = do
-  contents <- blockListToHtml opts bs
+  let speakerNotes = "notes" `elem` classes
+  -- we don't want incremental output inside speaker notes, see #1394
+  let opts' = if speakerNotes then opts{ writerIncremental = False } else opts
+  contents <- blockListToHtml opts' bs
   let contents' = nl opts >> contents >> nl opts
   return $
-     if "notes" `elem` classes
-        then let opts' = opts{ writerIncremental = False } in
-             -- we don't want incremental output inside speaker notes
-             case writerSlideVariant opts of
+     if speakerNotes
+        then case writerSlideVariant opts of
                   RevealJsSlides -> addAttrs opts' attr $ H5.aside $ contents'
                   NoSlides       -> addAttrs opts' attr $ H.div $ contents'
                   _              -> mempty
