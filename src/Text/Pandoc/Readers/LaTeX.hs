@@ -271,7 +271,9 @@ ignoreBlocks name = (name, doraw <|> (mempty <$ optargs))
 blockCommands :: M.Map String (LP Blocks)
 blockCommands = M.fromList $
   [ ("par", mempty <$ skipopts)
-  , ("title", mempty <$ (skipopts *> tok >>= addMeta "title"))
+  , ("title", mempty <$ (skipopts *>
+                          (grouped inline >>= addMeta "title")
+                      <|> (grouped block >>= addMeta "title")))
   , ("subtitle", mempty <$ (skipopts *> tok >>= addMeta "subtitle"))
   , ("author", mempty <$ (skipopts *> authors))
   -- -- in letter class, temp. store address & sig as title, author
