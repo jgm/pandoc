@@ -74,7 +74,7 @@ data Extension =
     | Ext_latex_macros        -- ^ Parse LaTeX macro definitions (for math only)
     | Ext_fenced_code_blocks  -- ^ Parse fenced code blocks
     | Ext_fenced_code_attributes  -- ^ Allow attributes on fenced code blocks
-    | Ext_backtick_code_blocks    -- ^ Github style ``` code blocks
+    | Ext_backtick_code_blocks    -- ^ GitHub style ``` code blocks
     | Ext_inline_code_attributes  -- ^ Allow attributes on inline code
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags

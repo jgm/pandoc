@@ -2810,7 +2810,7 @@ variants are supported:
     `fenced_code_blocks`, `definition_lists`, `intraword_underscores`,
     `header_attributes`, `abbreviations`.
 
-`markdown_github` (Github-flavored Markdown)
+`markdown_github` (GitHub-flavored Markdown)
 :   `pipe_tables`, `raw_html`, `tex_math_single_backslash`,
     `fenced_code_blocks`, `auto_identifiers`,
     `ascii_identifiers`, `backtick_code_blocks`, `autolink_bare_uris`,
