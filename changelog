@@ -3975,7 +3975,7 @@ pandoc (1.9)
 
     These constructions are now supported now by `rst2latex.py`.
 
-  * Github syntax for fenced code blocks is supported in pandoc's
+  * GitHub syntax for fenced code blocks is supported in pandoc's
     markdown.  You can now write
 
         ```ruby
