@@ -20,6 +20,7 @@ import qualified Tests.Writers.Native
 import qualified Tests.Writers.Markdown
 import qualified Tests.Writers.Plain
 import qualified Tests.Writers.AsciiDoc
+import qualified Tests.Writers.Docx
 import qualified Tests.Shared
 import qualified Tests.Walk
 import Text.Pandoc.Shared (inDirectory)
@@ -38,6 +39,7 @@ tests = [ testGroup "Old" Tests.Old.tests
           , testGroup "Markdown" Tests.Writers.Markdown.tests
           , testGroup "Plain" Tests.Writers.Plain.tests
           , testGroup "AsciiDoc" Tests.Writers.AsciiDoc.tests
+          , testGroup "Docx" Tests.Writers.Docx.tests
           ]
         , testGroup "Readers"
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests

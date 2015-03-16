@@ -65,6 +65,7 @@ import Text.Pandoc.Compat.Except
 import Text.TeXMath.Readers.OMML (readOMML)
 import Text.Pandoc.Readers.Docx.Fonts (getUnicode, Font(..))
 import Text.TeXMath (Exp)
+import Text.Pandoc.Readers.Docx.Util
 import Data.Char (readLitChar, ord, chr, isDigit)
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
@@ -107,8 +108,6 @@ mapD f xs =
   let handler x = (f x >>= (\y-> return [y])) `catchError` (\_ -> return [])
   in
    concatMapM handler xs
-
-type NameSpaces = [(String, String)]
 
 data Docx = Docx Document
           deriving Show
@@ -249,10 +248,6 @@ type ChangeId = String
 type Author = String
 type ChangeDate = String
 
-attrToNSPair :: Attr -> Maybe (String, String)
-attrToNSPair (Attr (QName s _ (Just "xmlns")) val) = Just (s, val)
-attrToNSPair _ = Nothing
-
 archiveToDocx :: Archive -> Either DocxError Docx
 archiveToDocx archive = do
   let notes     = archiveToNotes archive
@@ -269,7 +264,7 @@ archiveToDocument :: Archive -> D Document
 archiveToDocument zf = do
   entry <- maybeToD $ findEntryByPath "word/document.xml" zf
   docElem <- maybeToD $ (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
-  let namespaces = mapMaybe attrToNSPair (elAttribs docElem)
+  let namespaces = elemToNameSpaces docElem
   bodyElem <- maybeToD $ findChild (elemName namespaces "w" "body") docElem
   body <- elemToBody namespaces bodyElem
   return $ Document namespaces body
@@ -288,7 +283,7 @@ archiveToStyles zf =
    case stylesElem of
      Nothing -> (M.empty, M.empty)
      Just styElem ->
-       let namespaces = mapMaybe attrToNSPair (elAttribs styElem)
+       let namespaces = elemToNameSpaces styElem
        in
         ( M.fromList $ buildBasedOnList namespaces styElem
             (Nothing :: Maybe CharStyle),
@@ -356,10 +351,10 @@ archiveToNotes zf =
       enElem = findEntryByPath "word/endnotes.xml" zf
                >>= (parseXMLDoc . UTF8.toStringLazy . fromEntry)
       fn_namespaces = case fnElem of
-        Just e -> mapMaybe attrToNSPair (elAttribs e)
+        Just e -> elemToNameSpaces e
         Nothing -> []
       en_namespaces = case enElem of
-        Just e -> mapMaybe attrToNSPair (elAttribs e)
+        Just e -> elemToNameSpaces e
         Nothing -> []
       ns = unionBy (\x y -> fst x == fst y) fn_namespaces en_namespaces
       fn = fnElem >>= (elemToNotes ns "footnote")
@@ -459,7 +454,7 @@ archiveToNumbering' zf = do
     Nothing -> Just $ Numbering [] [] []
     Just entry -> do
       numberingElem <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
-      let namespaces = mapMaybe attrToNSPair (elAttribs numberingElem)
+      let namespaces = elemToNameSpaces numberingElem
           numElems = findChildren
                      (QName "num" (lookup "w" namespaces) (Just "w"))
                      numberingElem
@@ -487,15 +482,6 @@ elemToNotes _ _ _ = Nothing
 
 ---------------------------------------------
 ---------------------------------------------
-
-elemName :: NameSpaces -> String -> String -> QName
-elemName ns prefix name = (QName name (lookup prefix ns) (Just prefix))
-
-isElem :: NameSpaces -> String -> String -> Element -> Bool
-isElem ns prefix name element =
-  qName (elName element) == name &&
-  qURI (elName element) == (lookup prefix ns)
-
 
 elemToTblGrid :: NameSpaces -> Element -> D TblGrid
 elemToTblGrid ns element | isElem ns "w" "tblGrid" element =
