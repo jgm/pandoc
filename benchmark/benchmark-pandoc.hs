@@ -26,12 +26,18 @@ import Debug.Trace (trace)
 readerBench :: Pandoc
             -> (String, ReaderOptions -> String -> IO Pandoc)
             -> Maybe Benchmark
-readerBench doc (name, reader) = case lookup name writers of
-  Just (PureStringWriter writer) ->
-    let inp = writer def{ writerWrapText = True} doc
-    in return $ bench (name ++ " reader") $ nfIO $
-                 (reader def{ readerSmart = True }) inp
-  _ -> trace ("\nCould not find writer for " ++ name ++ "\n") Nothing
+readerBench doc (name, reader) =
+  case lookup name writers of
+       Just (PureStringWriter writer) ->
+         let inp = writer def{ writerWrapText = True} doc
+         in return $ bench (name ++ " reader") $ nfIO $
+                      (reader def{ readerSmart = True }) inp
+       _ | name == "commonmark" ->
+           let inp = writeMarkdown def{ writerWrapText = True} doc
+           in return $ bench (name ++ " reader") $ nfIO $
+                        (reader def{ readerSmart = True }) inp
+         | otherwise -> trace ("\nCould not find writer for " ++ name ++
+                                 "\n") Nothing
 
 writerBench :: Pandoc
             -> (String, WriterOptions -> Pandoc -> String)

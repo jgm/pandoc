@@ -66,6 +66,7 @@ module Text.Pandoc
                , mkStringReader
                , readDocx
                , readMarkdown
+               , readCommonMark
                , readMediaWiki
                , readRST
                , readOrg
@@ -124,6 +125,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.JSON
 import Text.Pandoc.Readers.Markdown
+import Text.Pandoc.Readers.CommonMark
 import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.Org
@@ -225,6 +227,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("markdown_phpextra" , mkStringReaderWithWarnings readMarkdownWithWarnings)
            ,("markdown_github" , mkStringReaderWithWarnings readMarkdownWithWarnings)
            ,("markdown_mmd",  mkStringReaderWithWarnings readMarkdownWithWarnings)
+           ,("commonmark"   , mkStringReader readCommonMark)
            ,("rst"          , mkStringReaderWithWarnings readRSTWithWarnings )
            ,("mediawiki"    , mkStringReader readMediaWiki)
            ,("docbook"      , mkStringReader readDocBook)
