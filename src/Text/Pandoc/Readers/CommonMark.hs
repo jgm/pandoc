@@ -82,7 +82,7 @@ addBlock (Node _ (LIST listAttrs) nodes) =
         delim = case listDelim listAttrs of
                      PERIOD_DELIM  -> Period
                      PAREN_DELIM   -> OneParen
-addBlock (Node _ ITEM nodes) = id -- handled in LIST
+addBlock (Node _ ITEM _) = id -- handled in LIST
 addBlock _ = id
 
 children :: Node -> [Node]
