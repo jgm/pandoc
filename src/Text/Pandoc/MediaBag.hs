@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
 {-
 Copyright (C) 2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -46,13 +46,15 @@ import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Maybe (fromMaybe)
 import System.IO (stderr)
+import Data.Data (Data)
+import Data.Typeable (Typeable)
 
 -- | A container for a collection of binary resources, with names and
 -- mime types.  Note that a 'MediaBag' is a Monoid, so 'mempty'
 -- can be used for an empty 'MediaBag', and '<>' can be used to append
 -- two 'MediaBag's.
 newtype MediaBag = MediaBag (M.Map [String] (MimeType, BL.ByteString))
-        deriving (Monoid)
+        deriving (Monoid, Data, Typeable)
 
 instance Show MediaBag where
   show bag = "MediaBag " ++ show (mediaDirectory bag)

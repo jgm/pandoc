@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-
 Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -51,6 +52,8 @@ import Data.Default
 import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.MediaBag (MediaBag)
 import Data.Monoid
+import Data.Data (Data)
+import Data.Typeable (Typeable)
 
 -- | Individually selectable syntax extensions.
 data Extension =
@@ -110,7 +113,7 @@ data Extension =
     | Ext_line_blocks         -- ^ RST style line blocks
     | Ext_epub_html_exts      -- ^ Recognise the EPUB extended version of HTML
     | Ext_shortcut_reference_links -- ^ Shortcut reference links
-    deriving (Show, Read, Enum, Eq, Ord, Bounded)
+    deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable)
 
 pandocExtensions :: Set Extension
 pandocExtensions = Set.fromList
@@ -226,7 +229,7 @@ data ReaderOptions = ReaderOptions{
        , readerDefaultImageExtension :: String -- ^ Default extension for images
        , readerTrace           :: Bool -- ^ Print debugging info
        , readerTrackChanges    :: TrackChanges
-} deriving (Show, Read)
+} deriving (Show, Read, Data, Typeable)
 
 instance Default ReaderOptions
   where def = ReaderOptions{
@@ -248,7 +251,7 @@ instance Default ReaderOptions
 -- Writer options
 --
 
-data EPUBVersion = EPUB2 | EPUB3 deriving (Eq, Show, Read)
+data EPUBVersion = EPUB2 | EPUB3 deriving (Eq, Show, Read, Data, Typeable)
 
 data HTMLMathMethod = PlainMath
                     | LaTeXMathML (Maybe String)  -- url of LaTeXMathML.js
@@ -258,18 +261,18 @@ data HTMLMathMethod = PlainMath
                     | MathML (Maybe String)       -- url of MathMLinHTML.js
                     | MathJax String              -- url of MathJax.js
                     | KaTeX String String -- url of stylesheet and katex.js
-                    deriving (Show, Read, Eq)
+                    deriving (Show, Read, Eq, Data, Typeable)
 
 data CiteMethod = Citeproc                        -- use citeproc to render them
                   | Natbib                        -- output natbib cite commands
                   | Biblatex                      -- output biblatex cite commands
-                deriving (Show, Read, Eq)
+                deriving (Show, Read, Eq, Data, Typeable)
 
 -- | Methods for obfuscating email addresses in HTML.
 data ObfuscationMethod = NoObfuscation
                        | ReferenceObfuscation
                        | JavascriptObfuscation
-                       deriving (Show, Read, Eq)
+                       deriving (Show, Read, Eq, Data, Typeable)
 
 -- | Varieties of HTML slide shows.
 data HTMLSlideVariant = S5Slides
@@ -278,13 +281,13 @@ data HTMLSlideVariant = S5Slides
                       | DZSlides
                       | RevealJsSlides
                       | NoSlides
-                      deriving (Show, Read, Eq)
+                      deriving (Show, Read, Eq, Data, Typeable)
 
 -- | Options for accepting or rejecting MS Word track-changes.
 data TrackChanges = AcceptChanges
                   | RejectChanges
                   | AllChanges
-                  deriving (Show, Read, Eq)
+                  deriving (Show, Read, Eq, Data, Typeable)
 
 -- | Options for writers
 data WriterOptions = WriterOptions
@@ -331,7 +334,7 @@ data WriterOptions = WriterOptions
   , writerMediaBag         :: MediaBag       -- ^ Media collected by docx or epub reader
   , writerVerbose          :: Bool           -- ^ Verbose debugging output
   , writerLaTeXArgs        :: [String]       -- ^ Flags to pass to latex-engine
-  } deriving Show
+  } deriving (Show, Data, Typeable)
 
 instance Default WriterOptions where
   def = WriterOptions { writerStandalone       = False
