@@ -724,9 +724,9 @@ avoidBadWrapsInList [] = []
 avoidBadWrapsInList (Space:Str ('>':cs):xs) =
   Str (' ':'>':cs) : avoidBadWrapsInList xs
 avoidBadWrapsInList (Space:Str [c]:[])
-  | c `elem` "-*+" = Str [' ', c] : []
+  | c `elem` ['-','*','+'] = Str [' ', c] : []
 avoidBadWrapsInList (Space:Str [c]:Space:xs)
-  | c `elem` "-*+" = Str [' ', c] : Space : avoidBadWrapsInList xs
+  | c `elem` ['-','*','+'] = Str [' ', c] : Space : avoidBadWrapsInList xs
 avoidBadWrapsInList (Space:Str cs:Space:xs)
   | isOrderedListMarker cs = Str (' ':cs) : Space : avoidBadWrapsInList xs
 avoidBadWrapsInList (Space:Str cs:[])
@@ -734,7 +734,7 @@ avoidBadWrapsInList (Space:Str cs:[])
 avoidBadWrapsInList (x:xs) = x : avoidBadWrapsInList xs
 
 isOrderedListMarker :: String -> Bool
-isOrderedListMarker xs = (last xs `elem` ".)") &&
+isOrderedListMarker xs = (last xs `elem` ['.',')']) &&
               isRight (runParserT (anyOrderedListMarker >> eof)
                        defaultParserState "" xs)
 
