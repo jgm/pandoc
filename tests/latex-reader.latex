@@ -845,4 +845,23 @@ indented.
 
 \$ \% \& \# \_ \{ \}
 
+\section{Block newcommands}
+
+See e.g. issues #1866, #1835
+
+\newcommand{\FIG}[3]{
+        \begin{figure}[h!]
+                \centering
+                \includegraphics[width=#2\columnwidth,angle=0]{#1}
+                \caption{#3}
+                \label{fig:#1}
+        \end{figure}
+}
+
+\newcommand{\separator}{\vspace{4em}}
+
+\separator
+
+\FIG{lalune.jpg}{0.5}{Test caption}
+
 \end{document}

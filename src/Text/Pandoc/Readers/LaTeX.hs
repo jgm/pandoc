@@ -239,17 +239,28 @@ block = (mempty <$ comment)
 blocks :: LP Blocks
 blocks = mconcat <$> many block
 
+getRawCommand :: String -> LP String
+getRawCommand name' = do
+  rawargs <- withRaw (skipopts *> option "" dimenarg *> many braced)
+  return $ '\\' : name' ++ snd rawargs
+
 blockCommand :: LP Blocks
 blockCommand = try $ do
   name <- anyControlSeq
   guard $ name /= "begin" && name /= "end"
   star <- option "" (string "*" <* optional sp)
   let name' = name ++ star
+  let raw = do
+        rawcommand <- getRawCommand name'
+        transformed <- applyMacros' rawcommand
+        if transformed /= rawcommand
+           then parseFromString blocks transformed
+           else mzero
   case M.lookup name' blockCommands of
        Just p      -> p
        Nothing     -> case M.lookup name blockCommands of
                            Just p    -> p
-                           Nothing   -> mzero
+                           Nothing   -> raw
 
 inBrackets :: Inlines -> Inlines
 inBrackets x = (str "[") <> x <> (str "]")
@@ -385,8 +396,7 @@ inlineCommand = try $ do
   star <- option "" (string "*")
   let name' = name ++ star
   let raw = do
-        rawargs <- withRaw (skipopts *> option "" dimenarg *> many braced)
-        let rawcommand = '\\' : name ++ star ++ snd rawargs
+        rawcommand <- getRawCommand name'
         transformed <- applyMacros' rawcommand
         if transformed /= rawcommand
            then parseFromString inlines transformed
