@@ -55,7 +55,7 @@ import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
                                   isTextTag, isCommentTag )
 import Data.Monoid (mconcat, mempty)
-import Control.Applicative ((<$>), (<*), (*>), (<$))
+import Control.Applicative ((<$>), (<*), (*>), (<$), (<*>))
 import Control.Monad
 import Control.Monad.Reader
 import System.FilePath (takeExtension, addExtension)
