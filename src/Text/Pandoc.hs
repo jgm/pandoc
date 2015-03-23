@@ -110,6 +110,7 @@ module Text.Pandoc
                , writeOrg
                , writeAsciiDoc
                , writeHaddock
+               , writeCommonMark
                , writeCustom
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates
@@ -163,6 +164,7 @@ import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Writers.Haddock
+import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
@@ -299,6 +301,7 @@ writers = [
   ,("org"          , PureStringWriter writeOrg)
   ,("asciidoc"     , PureStringWriter writeAsciiDoc)
   ,("haddock"      , PureStringWriter writeHaddock)
+  ,("commonmark"   , PureStringWriter writeCommonMark)
   ]
 
 getDefaultExtensions :: String -> Set Extension

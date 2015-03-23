@@ -317,6 +317,7 @@ Library
                    Text.Pandoc.Writers.Texinfo,
                    Text.Pandoc.Writers.Man,
                    Text.Pandoc.Writers.Markdown,
+                   Text.Pandoc.Writers.CommonMark,
                    Text.Pandoc.Writers.Haddock,
                    Text.Pandoc.Writers.RST,
                    Text.Pandoc.Writers.Org,
