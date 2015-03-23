@@ -255,7 +255,7 @@ Library
                  deepseq-generics >= 0.1 && < 0.2,
                  JuicyPixels >= 3.1.6.1 && < 3.3,
                  filemanip >= 0.3 && < 0.4,
-                 cmark >= 0.3 && < 0.4
+                 cmark >= 0.3.1 && < 0.4
   if flag(old-locale)
      Build-Depends: old-locale >= 1 && < 1.1,
                     time >= 1.2 && < 1.5
