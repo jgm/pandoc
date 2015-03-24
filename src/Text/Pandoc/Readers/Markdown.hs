@@ -1292,7 +1292,7 @@ pipeBreak = try $ do
 pipeTable :: MarkdownParser ([Alignment], [Double], [Blocks], [[Blocks]])
 pipeTable = try $ do
   (heads,aligns) <- (,) <$> pipeTableRow <*> pipeBreak
-  lines' <-  many1 pipeTableRow
+  lines' <-  many pipeTableRow
   let widths = replicate (length aligns) 0.0
   return (aligns, widths, heads, lines')
 
