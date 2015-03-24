@@ -9,7 +9,6 @@ import           Text.XML.Light
 import           Text.Pandoc.Readers.Docx.Util
 import           Control.Monad.State
 import           Data.Char  (toLower)
-import           Data.Maybe (fromMaybe)
 import qualified Data.Map                      as M
 
 newtype ParaStyleMap = ParaStyleMap ( M.Map String String )
@@ -27,8 +26,9 @@ instance StyleMap CharStyleMap where
   alterMap f (CharStyleMap m) = CharStyleMap $ f m
   getMap (CharStyleMap m) = m
 
-insert :: (StyleMap a) => String -> String -> a -> a
-insert k v = alterMap $ M.insert k v
+insert :: (StyleMap a) => Maybe String -> Maybe String -> a -> a
+insert (Just k) (Just v) m = alterMap (M.insert k v) m
+insert _ _ m = m
 
 getStyleId :: (StyleMap a) => String -> a -> String
 getStyleId s = M.findWithDefault (filter (/=' ') s) (map toLower s) . getMap
@@ -49,19 +49,20 @@ defaultStyleMaps = StyleMaps { sNameSpaces = []
                              , sCharStyleMap = CharStyleMap M.empty
                              }
 
-type StateM a = StateT StyleMaps Maybe a
+type StateM a = State StyleMaps a
 
 getStyleMaps :: Element -> StyleMaps
-getStyleMaps docElem = fromMaybe state' $ execStateT genStyleMap state'
+getStyleMaps docElem = execState genStyleMap state'
     where
     state' = defaultStyleMaps {sNameSpaces = elemToNameSpaces docElem}
     genStyleItem e = do
       styleType <- getStyleType e
       styleId <- getAttrStyleId e
-      nameValLowercase <- map toLower `fmap` getNameVal e
+      nameValLowercase <- fmap (map toLower) `fmap` getNameVal e
       case styleType of
-        ParaStyle -> modParaStyleMap $ insert nameValLowercase styleId
-        CharStyle -> modCharStyleMap $ insert nameValLowercase styleId
+        Just ParaStyle -> modParaStyleMap $ insert nameValLowercase styleId
+        Just CharStyle -> modCharStyleMap $ insert nameValLowercase styleId
+        _              -> return ()
     genStyleMap = do
       style <- elemName' "style"
       let styles = findChildren style docElem
@@ -75,29 +76,29 @@ modCharStyleMap :: (CharStyleMap -> CharStyleMap) -> StateM ()
 modCharStyleMap f = modify $ \s ->
   s {sCharStyleMap = f $ sCharStyleMap s}
 
-getStyleType :: Element -> StateM StyleType
+getStyleType :: Element -> StateM (Maybe StyleType)
 getStyleType e = do
   styleTypeStr <- getAttrType e
   case styleTypeStr of
-    "paragraph" -> return ParaStyle
-    "character" -> return CharStyle
-    _           -> lift   Nothing
+    Just "paragraph" -> return $ Just ParaStyle
+    Just "character" -> return $ Just CharStyle
+    _                -> return   Nothing
 
-getAttrType :: Element -> StateM String
+getAttrType :: Element -> StateM (Maybe String)
 getAttrType el = do
   name <- elemName' "type"
-  lift $ findAttr name el
+  return $ findAttr name el
 
-getAttrStyleId :: Element -> StateM String
+getAttrStyleId :: Element -> StateM (Maybe String)
 getAttrStyleId el = do
   name <- elemName' "styleId"
-  lift $ findAttr name el
+  return $ findAttr name el
 
-getNameVal :: Element -> StateM String
+getNameVal :: Element -> StateM (Maybe String)
 getNameVal el = do
   name <- elemName' "name"
   val <- elemName' "val"
-  lift $ findChild name el >>= findAttr val
+  return $ findChild name el >>= findAttr val
 
 elemName' :: String -> StateM QName
 elemName' name = do
