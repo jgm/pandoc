@@ -35,7 +35,7 @@ import Data.List ( transpose, sortBy, intersperse, intercalate, elemIndex)
 import qualified Data.Map as M
 import Data.Scientific (coefficient, base10Exponent)
 import Data.Ord ( comparing )
-import Data.Char ( isAlphaNum, toLower )
+import Data.Char ( isSpace, isAlphaNum, toLower )
 import Data.Maybe
 import Text.Pandoc.Definition
 import qualified Data.Text as T
@@ -326,11 +326,14 @@ mmdTitleBlock = try $ do
 kvPair :: MarkdownParser (String, MetaValue)
 kvPair = try $ do
   key <- many1Till (alphaNum <|> oneOf "_- ") (char ':')
+  skipMany1 spaceNoNewline
   val <- manyTill anyChar
           (try $ newline >> lookAhead (blankline <|> nonspaceChar))
   let key' = concat $ words $ map toLower key
   let val' = MetaBlocks $ B.toList $ B.plain $ B.text $ trim val
   return (key',val')
+  where
+    spaceNoNewline = satisfy (\x -> isSpace x && (x/='\n') && (x/='\r'))
 
 parseMarkdown :: MarkdownParser Pandoc
 parseMarkdown = do
