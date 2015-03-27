@@ -155,6 +155,7 @@ General options
 ---------------
 
 `-f` *FORMAT*, `-r` *FORMAT*, `--from=`*FORMAT*, `--read=`*FORMAT*
+
 :   Specify input format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `markdown` (pandoc's
     extended markdown), `markdown_strict` (original unextended markdown),
@@ -178,6 +179,7 @@ General options
     their names.
 
 `-t` *FORMAT*, `-w` *FORMAT*, `--to=`*FORMAT*, `--write=`*FORMAT*
+
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `plain` (plain text),
     `markdown` (pandoc's extended markdown), `markdown_strict` (original
@@ -207,11 +209,13 @@ General options
     above under `-f`.
 
 `-o` *FILE*, `--output=`*FILE*
+
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
     `-`, output will go to *stdout*.  (Exception: if the output
     format is `odt`, `docx`, `epub`, or `epub3`, output to stdout is disabled.)
 
 `--data-dir=`*DIRECTORY*
+
 :   Specify the user data directory to search for pandoc data files.
     If this option is not specified, the default user data directory
     will be used.  This is
@@ -233,19 +237,23 @@ General options
     placed in this directory will override pandoc's normal defaults.
 
 `--verbose`
+
 :   Give verbose debugging output.  Currently this only has an effect
     with PDF output.
 
 `-v`, `--version`
+
 :   Print version.
 
 `-h`, `--help`
+
 :   Show usage message.
 
 Reader options
 --------------
 
 `-R`, `--parse-raw`
+
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
     or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
     input. Raw HTML can be printed in markdown, reStructuredText, HTML,
@@ -256,6 +264,7 @@ Reader options
     LaTeX *commands*, even if `-R` is not specified.)
 
 `-S`, `--smart`
+
 :   Produce typographically correct output, converting straight quotes
     to curly quotes, `---` to em-dashes, `--` to en-dashes, and
     `...` to ellipses. Nonbreaking spaces are inserted after certain
@@ -266,25 +275,30 @@ Reader options
     is used.)
 
 `--old-dashes`
+
 :   Selects the pandoc <= 1.8.2.1 behavior for parsing smart dashes: `-` before
     a numeral is an en-dash, and `--` is an em-dash.  This option is selected
     automatically for `textile` input.
 
 `--base-header-level=`*NUMBER*
+
 :   Specify the base level for headers (defaults to 1).
 
 `--indented-code-classes=`*CLASSES*
+
 :   Specify classes to use for indented code blocks--for example,
     `perl,numberLines` or `haskell`. Multiple classes may be separated
     by spaces or commas.
 
 `--default-image-extension=`*EXTENSION*
+
 :   Specify a default extension to use when image paths/URLs have no
     extension.  This allows you to use the same source for formats that
     require different kinds of images.  Currently this option only affects
     the markdown and LaTeX readers.
 
 `--filter=`*EXECUTABLE*
+
 :   Specify an executable to be used as a filter transforming the
     Pandoc AST after the input is parsed and before the output is
     written.  The executable should read JSON from stdin and write
@@ -311,6 +325,7 @@ Reader options
     preface the filename with `./`.
 
 `-M` *KEY[=VAL]*, `--metadata=`*KEY[:VAL]*
+
 :   Set the metadata field *KEY* to the value *VAL*.  A value specified
     on the command line overrides a value specified in the document.
     Values will be parsed as YAML boolean or string values. If no value is
@@ -321,18 +336,22 @@ Reader options
     printed in some output formats).
 
 `--normalize`
+
 :   Normalize the document after reading:  merge adjacent
     `Str` or `Emph` elements, for example, and remove repeated `Space`s.
 
 `-p`, `--preserve-tabs`
+
 :   Preserve tabs instead of converting them to spaces (the default).
     Note that this will only affect tabs in literal code spans and code
     blocks; tabs in regular text will be treated as spaces.
 
 `--tab-stop=`*NUMBER*
+
 :   Specify the number of spaces per tab (default is 4).
 
 `--track-changes=`*accept|reject|all*
+
 :   Specifies what to do with insertions and deletions produced by the MS
     Word "track-changes" feature.  *accept* (the default), inserts all
     insertions, and ignores all deletions. *reject* inserts all
@@ -344,6 +363,7 @@ Reader options
     option only affects the docx reader.
 
 `--extract-media=`*DIR*
+
 :   Extract images and other media contained in a docx or epub container
     to the path *DIR*, creating it if necessary, and adjust the images
     references in the document so they point to the extracted files.
@@ -353,12 +373,14 @@ General writer options
 ----------------------
 
 `-s`, `--standalone`
+
 :   Produce output with an appropriate header and footer (e.g. a
     standalone HTML, LaTeX, or RTF file, not a fragment).  This option
     is set automatically for `pdf`, `epub`, `epub3`, `fb2`, `docx`, and `odt`
     output.
 
 `--template=`*FILE*
+
 :   Use *FILE* as a custom template for the generated document. Implies
     `--standalone`. See [Templates](#templates) below for a description
     of template syntax. If no extension is specified, an extension
@@ -370,6 +392,7 @@ General writer options
     `-D/--print-default-template`).
 
 `-V` *KEY[=VAL]*, `--variable=`*KEY[:VAL]*
+
 :   Set the template variable *KEY* to the value *VAL* when rendering the
     document in standalone mode. This is generally only useful when the
     `--template` option is used to specify a custom template, since
@@ -378,40 +401,49 @@ General writer options
     value `true`.
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
+
 :   Print the default template for an output *FORMAT*. (See `-t`
     for a list of possible *FORMAT*s.)
 
 `--print-default-data-file=`*FILE*
+
 :   Print a default data file.
 
 `--no-wrap`
+
 :   Disable text wrapping in output. By default, text is wrapped
     appropriately for the output format.
 
 `--columns`=*NUMBER*
+
 :   Specify length of lines in characters (for text wrapping).
 
 `--toc`, `--table-of-contents`
+
 :   Include an automatically generated table of contents (or, in
     the case of `latex`, `context`, and `rst`, an instruction to create
     one) in the output document. This option has no effect on `man`,
     `docbook`, `slidy`, `slideous`, `s5`, `docx`, or `odt` output.
 
 `--toc-depth=`*NUMBER*
+
 :   Specify the number of section levels to include in the table
     of contents.  The default is 3 (which means that level 1, 2, and 3
     headers will be listed in the contents).
 
 `--no-highlight`
+
 :   Disables syntax highlighting for code blocks and inlines, even when
     a language attribute is given.
 
 `--highlight-style`=*STYLE*
+
 :   Specifies the coloring style to be used in highlighted source code.
     Options are `pygments` (the default), `kate`, `monochrome`,
     `espresso`, `zenburn`, `haddock`, and `tango`.
 
 `-H` *FILE*, `--include-in-header=`*FILE*
+
 :   Include contents of *FILE*, verbatim, at the end of the header.
     This can be used, for example, to include special
     CSS or javascript in HTML documents.  This option can be used
@@ -419,6 +451,7 @@ General writer options
     included in the order specified.  Implies `--standalone`.
 
 `-B` *FILE*, `--include-before-body=`*FILE*
+
 :   Include contents of *FILE*, verbatim, at the beginning of the
     document body (e.g. after the `<body>` tag in HTML, or the
     `\begin{document}` command in LaTeX). This can be used to include
@@ -427,6 +460,7 @@ General writer options
     the order specified.  Implies `--standalone`.
 
 `-A` *FILE*, `--include-after-body=`*FILE*
+
 :   Include contents of *FILE*, verbatim, at the end of the document
     body (before the `</body>` tag in HTML, or the
     `\end{document}` command in LaTeX). This option can be be used
@@ -437,6 +471,7 @@ Options affecting specific writers
 ----------------------------------
 
 `--self-contained`
+
 :   Produce a standalone HTML file with no external dependencies, using
     `data:` URIs to incorporate the contents of linked scripts, stylesheets,
     images, and videos. The resulting file should be "self-contained,"
@@ -450,41 +485,50 @@ Options affecting specific writers
     file is remote).  `--self-contained` does not work with `--mathjax`.
 
 `--offline`
+
 :   Deprecated synonym for `--self-contained`.
 
 `-5`, `--html5`
+
 :   Produce HTML5 instead of HTML4.  This option has no effect for writers
     other than `html`. (*Deprecated:*  Use the `html5` output format instead.)
 
 `--html-q-tags`
+
 :   Use `<q>` tags for quotes in HTML.
 
 `--ascii`
+
 :   Use only ascii characters in output.  Currently supported only
     for HTML output (which uses numerical entities instead of
     UTF-8 when this option is selected).
 
 `--reference-links`
+
 :   Use reference-style links, rather than inline links, in writing markdown
     or reStructuredText.  By default inline links are used.
 
 `--atx-headers`
+
 :   Use ATX style headers in markdown and asciidoc output. The default is
     to use setext-style headers for levels 1-2, and then ATX headers.
 
 `--chapters`
+
 :   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
     output.  When the LaTeX template uses the report, book, or
     memoir class, this option is implied.  If `beamer` is the output
     format, top-level headers will become `\part{..}`.
 
 `-N`, `--number-sections`
+
 :   Number section headings in LaTeX, ConTeXt, HTML, or EPUB output.
     By default, sections are not numbered.  Sections with class
     `unnumbered` will never be numbered, even if `--number-sections`
     is specified.
 
 `--number-offset`=*NUMBER[,NUMBER,...]*,
+
 :   Offset for section headings in HTML output (ignored in other
     output formats).  The first number is added to the section number for
     top-level headers, the second for second-level headers, and so on.
@@ -495,6 +539,7 @@ Options affecting specific writers
     Offsets are 0 by default.  Implies `--number-sections`.
 
 `--no-tex-ligatures`
+
 :   Do not convert quotation marks, apostrophes, and dashes to
     the TeX ligatures when writing LaTeX or ConTeXt. Instead, just
     use literal unicode characters. This is needed for using advanced
@@ -506,13 +551,16 @@ Options affecting specific writers
     without `--smart`.
 
 `--listings`
+
 :   Use listings package for LaTeX code blocks
 
 `-i`, `--incremental`
+
 :   Make list items in slide shows display incrementally (one by one).
     The default is for lists to be displayed all at once.
 
 `--slide-level`=*NUMBER*
+
 :   Specifies that headers with the specified level create
     slides (for `beamer`, `s5`, `slidy`, `slideous`, `dzslides`).  Headers
     above this level in the hierarchy are used to divide the
@@ -522,34 +570,40 @@ Options affecting specific writers
     [Structuring the slide show](#structuring-the-slide-show), below.
 
 `--section-divs`
+
 :   Wrap sections in `<div>` tags (or `<section>` tags in HTML5),
     and attach identifiers to the enclosing `<div>` (or `<section>`)
     rather than the header itself.
     See [Section identifiers](#header-identifiers-in-html-latex-and-context), below.
 
 `--email-obfuscation=`*none|javascript|references*
+
 :   Specify a method for obfuscating `mailto:` links in HTML documents.
     *none* leaves `mailto:` links as they are.  *javascript* obfuscates
     them using javascript. *references* obfuscates them by printing their
     letters as decimal or hexadecimal character references.
 
 `--id-prefix`=*STRING*
+
 :   Specify a prefix to be added to all automatically generated identifiers
     in HTML and DocBook output, and to footnote numbers in markdown output.
     This is useful for preventing duplicate identifiers when generating
     fragments to be included in other pages.
 
 `-T` *STRING*, `--title-prefix=`*STRING*
+
 :   Specify *STRING* as a prefix at the beginning of the title
     that appears in the HTML header (but not in the title as it
     appears at the beginning of the HTML body).  Implies
     `--standalone`.
 
 `-c` *URL*, `--css=`*URL*
+
 :   Link to a CSS style sheet. This option can be be used repeatedly to
     include multiple files. They will be included in the order specified.
 
 `--reference-odt=`*FILE*
+
 :   Use the specified file as a style reference in producing an ODT.
     For best results, the reference ODT should be a modified version
     of an ODT produced using pandoc.  The contents of the reference ODT
@@ -560,6 +614,7 @@ Options affecting specific writers
     used.
 
 `--reference-docx=`*FILE*
+
 :   Use the specified file as a style reference in producing a docx file.
     For best results, the reference docx should be a modified version
     of a docx file produced using pandoc.  The contents of the reference docx
@@ -576,18 +631,21 @@ Options affecting specific writers
     Footnote Ref, Link.
 
 `--epub-stylesheet=`*FILE*
+
 :   Use the specified CSS file to style the EPUB.  If no stylesheet
     is specified, pandoc will look for a file `epub.css` in the
     user data directory (see `--data-dir`).  If it is not
     found there, sensible defaults will be used.
 
 `--epub-cover-image=`*FILE*
+
 :   Use the specified image as the EPUB cover.  It is recommended
     that the image be less than 1000px in width and height. Note that
     in a markdown source document you can also specify `cover-image`
     in a YAML metadata block (see [EPUB Metadata], below).
 
 `--epub-metadata=`*FILE*
+
 :   Look in the specified XML file for metadata for the EPUB.
     The file should contain a series of Dublin Core elements,
     as documented at <http://dublincore.org/documents/dces/>.
@@ -609,6 +667,7 @@ Options affecting specific writers
     [EPUB Metadata].
 
 `--epub-embed-font=`*FILE*
+
 :   Embed the specified font in the EPUB. This option can be repeated
     to embed multiple fonts.  Wildcards can also be used: for example,
     `DejaVuSans-*.ttf`.  However, if you use wildcards on the command
@@ -644,6 +703,7 @@ Options affecting specific writers
         body { font-family: "DejaVuSans"; }
 
 `--epub-chapter-level=`*NUMBER*
+
 :   Specify the header level at which to split the EPUB into separate
     "chapter" files. The default is to split into chapters at level 1
     headers. This option only affects the internal composition of the
@@ -653,11 +713,13 @@ Options affecting specific writers
     level of 2 or 3.
 
 `--latex-engine=`*pdflatex|lualatex|xelatex*
+
 :   Use the specified LaTeX engine when producing PDF output.
     The default is `pdflatex`.  If the engine is not in your PATH,
     the full path of the engine may be specified here.
 
 `--latex-engine-opt=`*STRING*
+
 :   Use the given string as a command-line argument to the `latex-engine`.
     If used multiple times, the arguments are provided with spaces between
     them. Note that no check for duplicate options is done.
@@ -666,28 +728,33 @@ Citation rendering
 ------------------
 
 `--bibliography=`*FILE*
+
 :   Set the `bibliography` field in the document's metadata to *FILE*,
     overriding any value set in the metadata, and process citations
     using `pandoc-citeproc`. (This is equivalent to
     `--metadata bibliography=FILE --filter pandoc-citeproc`.)
 
 `--csl=`*FILE*
+
 :   Set the `csl` field in the document's metadata to *FILE*,
     overriding any value set in the metadata.  (This is equivalent to
     `--metadata csl=FILE`.)
 
 `--citation-abbreviations=`*FILE*
+
 :   Set the `citation-abbreviations` field in the document's metadata to
     *FILE*, overriding any value set in the metadata.  (This is equivalent to
     `--metadata citation-abbreviations=FILE`.)
 
 `--natbib`
+
 :   Use natbib for citations in LaTeX output.  This option is not for use
     with the `pandoc-citeproc` filter or with PDF output.  It is intended for
     use in producing a LaTeX file that can be processed with pdflatex and
     bibtex.
 
 `--biblatex`
+
 :   Use biblatex for citations in LaTeX output.  This option is not for use
     with the `pandoc-citeproc` filter or with PDF output. It is intended for
     use in producing a LaTeX file that can be processed with pdflatex and
@@ -697,6 +764,7 @@ Math rendering in HTML
 ----------------------
 
 `-m` [*URL*], `--latexmathml`[=*URL*]
+
 :   Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
     To insert a link to a local copy of the `LaTeXMathML.js` script,
     provide a *URL*. If no *URL* is provided, the contents of the
@@ -706,12 +774,14 @@ Math rendering in HTML
     so it can be cached.
 
 `--mathml`[=*URL*]
+
 :   Convert TeX math to MathML (in `docbook` as well as `html` and `html5`).
     In standalone `html` output, a small javascript (or a link to such a
     script if a *URL* is supplied) will be inserted that allows the MathML to
     be viewed on some browsers.
 
 `--jsmath`[=*URL*]
+
 :   Use [jsMath] to display embedded TeX math in HTML output.
     The *URL* should point to the jsMath load script (e.g.
     `jsMath/easy/load.js`); if provided, it will be linked to in
@@ -720,31 +790,37 @@ Math rendering in HTML
     up to the author to provide such a link in the HTML template.
 
 `--mathjax`[=*URL*]
+
 :   Use [MathJax] to display embedded TeX math in HTML output.
     The *URL* should point to the `MathJax.js` load script.
     If a *URL* is not provided, a link to the MathJax CDN will
     be inserted.
 
 `--gladtex`
+
 :   Enclose TeX math in `<eq>` tags in HTML output.  These can then
     be processed by [gladTeX] to produce links to images of the typeset
     formulas.
 
 `--mimetex`[=*URL*]
+
 :   Render TeX math using the [mimeTeX] CGI script.  If *URL* is not
     specified, it is assumed that the script is at `/cgi-bin/mimetex.cgi`.
 
 `--webtex`[=*URL*]
+
 :   Render TeX formulas using an external script that converts TeX
     formulas to images. The formula will be concatenated with the URL
     provided. If *URL* is not specified, the Google Chart API will be used.
 
 `--katex`[=*URL*]
+
 :  Use [KaTeX] to display embedded TeX math in HTML output.
    The *URL* should point to the `katex.js` load script. If a *URL* is
    not provided, a link to the KaTeX CDN will be inserted.
 
 `--katex-stylesheet=*URL*`
+
 :  The *URL* should point to the `katex.css` stylesheet. If this option is
    not specified, a link to the KaTeX CDN will be inserted. Note that this
    option does not imply `--katex`.
@@ -753,6 +829,7 @@ Options for wrapper scripts
 ---------------------------
 
 `--dump-args`
+
 :   Print information about command-line arguments to *stdout*, then exit.
     This option is intended primarily for use in wrapper scripts.
     The first line of output contains the name of the output file specified
@@ -763,6 +840,7 @@ Options for wrapper scripts
     after a `--` separator at the end of the line.
 
 `--ignore-args`
+
 :   Ignore command-line arguments (for use in wrapper scripts).
     Regular Pandoc options are not ignored.  Thus, for example,
 
