@@ -281,13 +281,18 @@ ignorable t = T.pack "_" `T.isSuffixOf` t
 
 toMetaValue :: ReaderOptions -> Text -> MetaValue
 toMetaValue opts x =
-  case readMarkdown opts (T.unpack x) of
+  case readMarkdown opts' (T.unpack x) of
        Pandoc _ [Plain xs] -> MetaInlines xs
        Pandoc _ [Para xs]
          | endsWithNewline x -> MetaBlocks [Para xs]
          | otherwise         -> MetaInlines xs
        Pandoc _ bs           -> MetaBlocks bs
   where endsWithNewline t = T.pack "\n" `T.isSuffixOf` t
+        opts' = opts{readerExtensions=readerExtensions opts `Set.difference` meta_exts}
+        meta_exts = Set.fromList [ Ext_pandoc_title_block
+                                 , Ext_mmd_title_block
+                                 , Ext_yaml_metadata_block
+                                 ]
 
 yamlToMeta :: ReaderOptions -> Yaml.Value -> MetaValue
 yamlToMeta opts (Yaml.String t) = toMetaValue opts t
