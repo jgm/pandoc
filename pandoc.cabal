@@ -132,6 +132,9 @@ Extra-Source-Files:
                  tests/insert
                  tests/lalune.jpg
                  tests/movie.jpg
+                 tests/media/rId25.jpg
+                 tests/media/rId26.jpg
+                 tests/media/rId27.jpg
                  tests/latex-reader.latex
                  tests/textile-reader.textile
                  tests/markdown-reader-more.txt
