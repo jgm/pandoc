@@ -231,10 +231,6 @@ Flag https
   Description:   Enable support for downloading of resources over https.
   Default:       True
 
-Flag make-pandoc-man-pages
-  Description:   Build program to regenerate pandoc man pages from README.
-  Default:       False
-
 Flag network-uri
   Description:   Get Network.URI from the network-uri package
   Default:       True
@@ -442,10 +438,7 @@ Executable make-pandoc-man-pages
                  old-time >= 1.0 && < 1.2,
                  time >= 1.2 && < 1.6
   Default-Language: Haskell98
-  if flag(make-pandoc-man-pages)
-    Buildable:   True
-  else
-    Buildable:   False
+  Buildable:   True
 
 Executable make-reference-files
   Main-Is:       make-reference-files.hs

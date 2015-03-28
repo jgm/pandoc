@@ -66,11 +66,7 @@ Quick install
          --extra-include-dirs=/usr/local/Cellar/icu4c/51.1/include \
          -funicode_collation text-icu pandoc-citeproc
 
-The cabal installation procedure does not generate man pages.
-To build the `pandoc` man pages, build pandoc with the
-`make-pandoc-man-pages` flag, and then use the command
-`make-pandoc-man-pages` from the pandoc source directory.
-This will create the man pages in `man/man1` and `man/man5`.
+The build process will create man pages in `man/man1` and `man/man5`.
 
 To build the `pandoc-citeproc` man pages, go to the pandoc-citeproc
 build directory, and
@@ -209,4 +205,3 @@ To use a smaller sample size so the benchmarks run faster:
 To run just the markdown benchmarks:
 
     cabal bench --benchmark-options='markdown'
-
