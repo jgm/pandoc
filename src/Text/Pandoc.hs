@@ -37,10 +37,12 @@ inline links:
 
 > module Main where
 > import Text.Pandoc
+> import Text.Pandoc.Error (handleError)
 >
 > markdownToRST :: String -> String
-> markdownToRST =
->   (writeRST def {writerReferenceLinks = True}) . readMarkdown def
+> markdownToRST = handleError .
+>   writeRST def {writerReferenceLinks = True} .
+>   readMarkdown def
 >
 > main = getContents >>= putStrLn . markdownToRST
 
