@@ -35,7 +35,7 @@ import Data.List ( transpose, sortBy, intersperse, intercalate, elemIndex)
 import qualified Data.Map as M
 import Data.Scientific (coefficient, base10Exponent)
 import Data.Ord ( comparing )
-import Data.Char ( isAlphaNum, toLower )
+import Data.Char ( isSpace, isAlphaNum, toLower )
 import Data.Maybe
 import Text.Pandoc.Definition
 import qualified Data.Text as T
@@ -281,13 +281,18 @@ ignorable t = T.pack "_" `T.isSuffixOf` t
 
 toMetaValue :: ReaderOptions -> Text -> MetaValue
 toMetaValue opts x =
-  case readMarkdown opts (T.unpack x) of
+  case readMarkdown opts' (T.unpack x) of
        Pandoc _ [Plain xs] -> MetaInlines xs
        Pandoc _ [Para xs]
          | endsWithNewline x -> MetaBlocks [Para xs]
          | otherwise         -> MetaInlines xs
        Pandoc _ bs           -> MetaBlocks bs
   where endsWithNewline t = T.pack "\n" `T.isSuffixOf` t
+        opts' = opts{readerExtensions=readerExtensions opts `Set.difference` meta_exts}
+        meta_exts = Set.fromList [ Ext_pandoc_title_block
+                                 , Ext_mmd_title_block
+                                 , Ext_yaml_metadata_block
+                                 ]
 
 yamlToMeta :: ReaderOptions -> Yaml.Value -> MetaValue
 yamlToMeta opts (Yaml.String t) = toMetaValue opts t
@@ -321,11 +326,15 @@ mmdTitleBlock = try $ do
 kvPair :: MarkdownParser (String, MetaValue)
 kvPair = try $ do
   key <- many1Till (alphaNum <|> oneOf "_- ") (char ':')
+  skipMany1 spaceNoNewline
   val <- manyTill anyChar
           (try $ newline >> lookAhead (blankline <|> nonspaceChar))
+  guard $ not . null . trim $ val
   let key' = concat $ words $ map toLower key
   let val' = MetaBlocks $ B.toList $ B.plain $ B.text $ trim val
   return (key',val')
+  where
+    spaceNoNewline = satisfy (\x -> isSpace x && (x/='\n') && (x/='\r'))
 
 parseMarkdown :: MarkdownParser Pandoc
 parseMarkdown = do
