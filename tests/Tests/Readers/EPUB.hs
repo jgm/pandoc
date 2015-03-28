@@ -9,9 +9,10 @@ import Text.Pandoc.Readers.EPUB
 import Text.Pandoc.MediaBag (MediaBag, mediaDirectory)
 import Control.Applicative
 import System.FilePath (joinPath)
+import Text.Pandoc.Error
 
 getMediaBag :: FilePath -> IO MediaBag
-getMediaBag fp = snd . readEPUB def <$> BL.readFile fp
+getMediaBag fp = snd . handleError . readEPUB def <$> BL.readFile fp
 
 testMediaBag :: FilePath -> [(String, String, Int)] -> IO ()
 testMediaBag fp bag = do

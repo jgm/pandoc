@@ -68,11 +68,12 @@ import Text.Printf
 import Control.Applicative ((<$>), (*>), (<*), (<$))
 import Data.Monoid
 import Debug.Trace (trace)
+import Text.Pandoc.Error
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: ReaderOptions -- ^ Reader options
             -> String       -- ^ String to parse (assuming @'\n'@ line endings)
-            -> Pandoc
+            -> Either PandocError Pandoc
 readTextile opts s =
   (readWith parseTextile) def{ stateOptions = opts } (s ++ "\n\n")
 

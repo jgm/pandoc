@@ -60,10 +60,12 @@ import           Data.Maybe (fromMaybe, isJust)
 import           Data.Monoid (mconcat, mempty, mappend)
 import           Network.HTTP (urlEncode)
 
+import           Text.Pandoc.Error
+
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-        -> Pandoc
+        -> Either PandocError Pandoc
 readOrg opts s = runOrg opts s parseOrg
 
 data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext
@@ -71,13 +73,13 @@ data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext
 
 type OrgParser = ParserT [Char] OrgParserState (Reader OrgParserLocal)
 
-runOrg :: ReaderOptions -> String -> OrgParser a -> a
-runOrg opts inp p = fst res
+runOrg :: ReaderOptions -> String -> OrgParser a -> Either PandocError a
+runOrg opts inp p = fst <$> res
   where
     imd = readWithM (returnState p) def{ orgStateOptions = opts } (inp ++ "\n\n")
     res = runReader imd def { finalState = s }
     s :: OrgParserState
-    s   = snd $ runReader imd (def { finalState = s })
+    s   = either def snd res
 
 parseOrg :: OrgParser Pandoc
 parseOrg = do
@@ -1259,17 +1261,15 @@ math      = B.math      <$> choice [ math1CharBetween '$'
 
 displayMath :: OrgParser Inlines
 displayMath = B.displayMath <$> choice [ rawMathBetween "\\[" "\\]"
-                                       , rawMathBetween "$$"  "$$" ]
-
-updatePositions :: Char
-                -> OrgParser (Char)
-updatePositions c = do
-  when (c `elem` emphasisPreChars) updateLastPreCharPos
-  when (c `elem` emphasisForbiddenBorderChars) updateLastForbiddenCharPos
-  return c
+                                       , rawMathBetween "$$"  "$$"
+                                       ]
 
 symbol :: OrgParser Inlines
 symbol = B.str . (: "") <$> (oneOf specialChars >>= updatePositions)
+ where updatePositions c = do
+         when (c `elem` emphasisPreChars) updateLastPreCharPos
+         when (c `elem` emphasisForbiddenBorderChars) updateLastForbiddenCharPos
+         return c
 
 emphasisBetween :: Char
                 -> OrgParser Inlines

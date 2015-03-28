@@ -57,11 +57,12 @@ import qualified Data.Map as M
 import qualified Control.Exception as E
 import System.FilePath (takeExtension, addExtension)
 import Text.Pandoc.Highlighting (fromListingsLanguage)
+import Text.Pandoc.Error
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: ReaderOptions -- ^ Reader options
           -> String        -- ^ String to parse (assumes @'\n'@ line endings)
-          -> Pandoc
+          -> Either PandocError Pandoc
 readLaTeX opts = readWith parseLaTeX def{ stateOptions = opts }
 
 parseLaTeX :: LP Pandoc
@@ -853,12 +854,8 @@ rawEnv name = do
 type IncludeParser = ParserT [Char] [String] IO String
 
 -- | Replace "include" commands with file contents.
-handleIncludes :: String -> IO String
-handleIncludes s = do
-  res <- runParserT includeParser' [] "input" s
-  case res of
-       Right s'    -> return s'
-       Left e      -> error $ show e
+handleIncludes :: String -> IO (Either PandocError String)
+handleIncludes s =  mapLeft (ParsecError s) <$> runParserT includeParser' [] "input" s
 
 includeParser' :: IncludeParser
 includeParser' =

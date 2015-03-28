@@ -8,12 +8,13 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 import Data.List (intersperse)
 import Data.Monoid (mempty, mappend, mconcat)
+import Text.Pandoc.Error
 
 org :: String -> Pandoc
-org = readOrg def
+org = handleError . readOrg def
 
 orgSmart :: String -> Pandoc
-orgSmart = readOrg def { readerSmart = True }
+orgSmart = handleError . readOrg def { readerSmart = True }
 
 infix 4 =:
 (=:) :: ToString c

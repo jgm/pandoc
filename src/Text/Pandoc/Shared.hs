@@ -85,6 +85,8 @@ module Text.Pandoc.Shared (
                      -- * Error handling
                      err,
                      warn,
+                     mapLeft,
+                     hush,
                      -- * Safe read
                      safeRead,
                      -- * Temp directory
@@ -113,7 +115,7 @@ import System.FilePath ( (</>), takeExtension, dropExtension)
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import qualified Control.Exception as E
-import Control.Monad (msum, unless)
+import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Compat.Locale (defaultTimeLocale)
 import Data.Time
@@ -855,6 +857,14 @@ warn msg = do
   name <- getProgName
   UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
 
+mapLeft :: (a -> b) -> Either a c -> Either b c
+mapLeft f (Left x) = Left (f x)
+mapLeft _ (Right x) = Right x
+
+hush :: Either a b -> Maybe b
+hush (Left _) = Nothing
+hush (Right x) = Just x
+
 -- | Remove intermediate "." and ".." directories from a path.
 --
 -- > collapseFilePath "./foo" == "foo"
@@ -883,11 +893,11 @@ collapseFilePath = joinPath . reverse . foldl go [] . splitDirectories
 -- Safe read
 --
 
-safeRead :: (Monad m, Read a) => String -> m a
+safeRead :: (MonadPlus m, Read a) => String -> m a
 safeRead s = case reads s of
                   (d,x):_
                     | all isSpace x -> return d
-                  _                 -> fail $ "Could not read `" ++ s ++ "'"
+                  _                 -> mzero
 
 --
 -- Temp directory
