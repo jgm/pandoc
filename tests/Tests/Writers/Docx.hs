@@ -7,6 +7,7 @@ import Tests.Helpers
 import Test.Framework
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Docx
+import Text.Pandoc.Error
 
 type Options = (WriterOptions, ReaderOptions)
 
@@ -15,9 +16,9 @@ compareOutput :: Options
                  -> IO (Pandoc, Pandoc)
 compareOutput opts nativeFile = do
   nf <- Prelude.readFile nativeFile
-  df <- writeDocx (fst opts) (readNative nf)
-  let (p, _) = readDocx (snd opts) df
-  return (p, readNative nf)
+  df <- writeDocx (fst opts) (handleError $ readNative nf)
+  let (p, _) = handleError $ readDocx (snd opts) df
+  return (p, handleError $ readNative nf)
 
 testCompareWithOptsIO :: Options -> String -> FilePath -> IO Test
 testCompareWithOptsIO opts name nativeFile = do

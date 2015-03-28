@@ -9,19 +9,20 @@ import Text.Pandoc.Builder
 import qualified Data.Set as Set
 -- import Text.Pandoc.Shared ( normalize )
 import Text.Pandoc
+import Text.Pandoc.Error
 
 markdown :: String -> Pandoc
-markdown = readMarkdown def
+markdown = handleError . readMarkdown def
 
 markdownSmart :: String -> Pandoc
-markdownSmart = readMarkdown def { readerSmart = True }
+markdownSmart = handleError . readMarkdown def { readerSmart = True }
 
 markdownCDL :: String -> Pandoc
-markdownCDL = readMarkdown def { readerExtensions = Set.insert
+markdownCDL = handleError . readMarkdown def { readerExtensions = Set.insert
                  Ext_compact_definition_lists $ readerExtensions def }
 
 markdownGH :: String -> Pandoc
-markdownGH = readMarkdown def { readerExtensions = githubMarkdownExtensions }
+markdownGH = handleError . readMarkdown def { readerExtensions = githubMarkdownExtensions }
 
 infix 4 =:
 (=:) :: ToString c
@@ -30,7 +31,7 @@ infix 4 =:
 
 testBareLink :: (String, Inlines) -> Test
 testBareLink (inp, ils) =
-  test (readMarkdown def{ readerExtensions =
+  test (handleError . readMarkdown def{ readerExtensions =
              Set.fromList [Ext_autolink_bare_uris, Ext_raw_html] })
        inp (inp, doc $ para ils)
 
@@ -220,7 +221,7 @@ tests = [ testGroup "inline code"
             =?> para (note (para "See [^1]"))
           ]
         , testGroup "lhs"
-          [ test (readMarkdown def{ readerExtensions = Set.insert
+          [ test (handleError . readMarkdown def{ readerExtensions = Set.insert
                        Ext_literate_haskell $ readerExtensions def })
               "inverse bird tracks and html" $
               "> a\n\n< b\n\n<div>\n"

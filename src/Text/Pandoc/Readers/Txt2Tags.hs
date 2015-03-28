@@ -48,6 +48,7 @@ import Data.Monoid (Monoid, mconcat, mempty, mappend)
 import Control.Monad (void, guard, when)
 import Data.Default
 import Control.Monad.Reader (Reader, runReader, asks)
+import Text.Pandoc.Error
 
 import Data.Time.LocalTime (getZonedTime)
 import Text.Pandoc.Compat.Directory(getModificationTime)
@@ -83,12 +84,12 @@ getT2TMeta inps out = do
     return $ T2TMeta curDate curMtime (intercalate ", " inps) out
 
 -- | Read Txt2Tags from an input string returning a Pandoc document
-readTxt2Tags :: T2TMeta -> ReaderOptions -> String -> Pandoc
+readTxt2Tags :: T2TMeta -> ReaderOptions -> String -> Either PandocError Pandoc
 readTxt2Tags t opts s = flip runReader t $ readWithM parseT2T (def {stateOptions = opts}) (s ++ "\n\n")
 
 -- | Read Txt2Tags (ignoring all macros) from an input string returning
 -- a Pandoc document
-readTxt2TagsNoMacros :: ReaderOptions -> String -> Pandoc
+readTxt2TagsNoMacros :: ReaderOptions -> String -> Either PandocError Pandoc
 readTxt2TagsNoMacros = readTxt2Tags def
 
 parseT2T :: T2T Pandoc

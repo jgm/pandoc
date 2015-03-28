@@ -13,6 +13,7 @@ import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Codec.Archive.Zip
+import Text.Pandoc.Error
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure
@@ -41,8 +42,8 @@ compareOutput :: ReaderOptions
 compareOutput opts docxFile nativeFile = do
   df <- B.readFile docxFile
   nf <- Prelude.readFile nativeFile
-  let (p, _) = readDocx opts df
-  return $ (noNorm p, noNorm (readNative nf))
+  let (p, _) = handleError $ readDocx opts df
+  return $ (noNorm p, noNorm (handleError $ readNative nf))
 
 testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO Test
 testCompareWithOptsIO opts name docxFile nativeFile = do
@@ -79,7 +80,7 @@ compareMediaPathIO mediaPath mediaBag docxPath = do
 compareMediaBagIO :: FilePath -> IO Bool
 compareMediaBagIO docxFile = do
     df <- B.readFile docxFile
-    let (_, mb) = readDocx def df
+    let (_, mb) = handleError $ readDocx def df
     bools <- mapM
              (\(fp, _, _) -> compareMediaPathIO fp mb docxFile)
              (mediaDirectory mb)

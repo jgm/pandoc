@@ -58,21 +58,21 @@ import Data.Maybe (fromMaybe)
 import Text.Printf (printf)
 import Debug.Trace (trace)
 
+import Text.Pandoc.Error
+
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: ReaderOptions -- ^ Reader options
               -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-              -> Pandoc
+              -> Either PandocError Pandoc
 readMediaWiki opts s =
-  case runParser parseMediaWiki MWState{ mwOptions = opts
+  readWith parseMediaWiki MWState{ mwOptions = opts
                                        , mwMaxNestingLevel = 4
                                        , mwNextLinkNumber  = 1
                                        , mwCategoryLinks = []
                                        , mwHeaderMap = M.empty
                                        , mwIdentifierList = []
                                        }
-       "source" (s ++ "\n") of
-          Left err'    -> error $ "\nError:\n" ++ show err'
-          Right result -> result
+           (s ++ "\n")
 
 data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwMaxNestingLevel :: Int

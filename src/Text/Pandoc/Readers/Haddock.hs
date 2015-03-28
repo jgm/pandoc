@@ -26,15 +26,17 @@ import Documentation.Haddock.Parser
 import Documentation.Haddock.Types
 import Debug.Trace (trace)
 
+import Text.Pandoc.Error
+
 -- | Parse Haddock markup and return a 'Pandoc' document.
 readHaddock :: ReaderOptions -- ^ Reader options
             -> String        -- ^ String to parse
-            -> Pandoc
+            -> Either PandocError Pandoc
 readHaddock opts =
 #if MIN_VERSION_haddock_library(1,2,0)
-  B.doc . docHToBlocks . trace' . _doc . parseParas
+  Right . B.doc . docHToBlocks . trace' . _doc . parseParas
 #else
-  B.doc . docHToBlocks . trace' . parseParas
+  Right .  B.doc . docHToBlocks . trace' . parseParas
 #endif
   where trace' x = if readerTrace opts
                       then trace (show x) x

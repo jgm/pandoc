@@ -72,6 +72,8 @@ import Control.Applicative ((<$>), (<|>))
 import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
 import Data.Monoid
 
+import Text.Pandoc.Error
+
 type Transform = Pandoc -> Pandoc
 
 copyrightMessage :: String
@@ -1275,17 +1277,17 @@ main = do
                                  then 0
                                  else tabStop)
 
-  let handleIncludes' = if readerName' == "latex" ||
-                           readerName' == "latex+lhs"
+  let handleIncludes' :: String -> IO (Either PandocError String)
+      handleIncludes' = if readerName' `elem`  ["latex", "latex+lhs"]
                                then handleIncludes
-                               else return
+                               else return . Right
 
-  (doc, media) <-
-     case reader of
-          StringReader r-> (, mempty) <$>
-            (  readSources >=>
-               handleIncludes' . convertTabs . intercalate "\n" >=>
-               r readerOpts ) sources
+  (doc, media) <- fmap handleError $
+      case reader of
+          StringReader r-> do
+            srcs <- convertTabs . intercalate "\n" <$> readSources sources
+            doc <- handleIncludes' srcs
+            either (return . Left) (\s -> fmap (,mempty) <$> r readerOpts s) doc
           ByteStringReader r -> readFiles sources >>= r readerOpts
 
   let writerOptions = def { writerStandalone       = standalone',

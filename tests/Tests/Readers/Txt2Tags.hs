@@ -7,12 +7,13 @@ import Tests.Helpers
 import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
+import Text.Pandoc.Error
 import Data.List (intersperse)
 import Data.Monoid (mempty, mconcat)
 import Text.Pandoc.Readers.Txt2Tags
 
 t2t :: String -> Pandoc
-t2t s = readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def s
+t2t = handleError . readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def
 
 infix 4 =:
 (=:) :: ToString c
