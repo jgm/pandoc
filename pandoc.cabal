@@ -94,6 +94,31 @@ Extra-Source-Files:
                  -- generated man pages (produced post-build)
                  man/man1/pandoc.1
                  man/man5/pandoc_markdown.5
+                 -- source files for reference.docx
+                 data/docx/[Content_Types].xml
+                 data/docx/_rels/.rels
+                 data/docx/docProps/app.xml
+                 data/docx/docProps/core.xml
+                 data/docx/word/document.xml
+                 data/docx/word/fontTable.xml
+                 data/docx/word/footnotes.xml
+                 data/docx/word/numbering.xml
+                 data/docx/word/settings.xml
+                 data/docx/word/webSettings.xml
+                 data/docx/word/styles.xml
+                 data/docx/word/_rels/document.xml.rels
+                 data/docx/word/_rels/footnotes.xml.rels
+                 data/docx/word/theme/theme1.xml
+                 -- source files for reference.odt
+                 data/odt/mimetype
+                 data/odt/manifest.rdf
+                 data/odt/styles.xml
+                 data/odt/content.xml
+                 data/odt/meta.xml
+                 data/odt/settings.xml
+                 data/odt/Configurations2/accelerator/current.xml
+                 data/odt/Thumbnails/thumbnail.png
+                 data/odt/META-INF/manifest.xml
                  -- trypandoc
                  trypandoc/Makefile
                  trypandoc/index.html
