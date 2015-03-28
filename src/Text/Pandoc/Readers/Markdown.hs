@@ -329,6 +329,7 @@ kvPair = try $ do
   skipMany1 spaceNoNewline
   val <- manyTill anyChar
           (try $ newline >> lookAhead (blankline <|> nonspaceChar))
+  guard $ not . null . trim $ val
   let key' = concat $ words $ map toLower key
   let val' = MetaBlocks $ B.toList $ B.plain $ B.text $ trim val
   return (key',val')
