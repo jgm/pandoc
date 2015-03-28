@@ -277,7 +277,7 @@ Library
   if os(windows)
     Cpp-options:      -D_WINDOWS
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
-  Ghc-Prof-Options: -auto-all -caf-all -rtsopts
+  Ghc-Prof-Options: -auto-exported -rtsopts
   Default-Language: Haskell98
   Other-Extensions:   PatternGuards, OverloadedStrings,
                       ScopedTypeVariables, GeneralizedNewtypeDeriving,
@@ -379,7 +379,7 @@ Executable pandoc
   else
      Build-Depends: network >= 2 && < 2.6
   Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
-  Ghc-Prof-Options: -auto-all -caf-all -rtsopts -with-rtsopts=-K16m
+  Ghc-Prof-Options: -auto-exported -rtsopts -with-rtsopts=-K16m
   if os(windows)
     Cpp-options:      -D_WINDOWS
   Default-Language: Haskell98
