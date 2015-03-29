@@ -641,7 +641,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
   doc' <- (setFirstPara >> blocksToOpenXML opts blocks')
   notes' <- reverse `fmap` gets stFootnotes
   toc <- makeTOC opts
-  let meta' = title ++ subtitle ++ authors ++ date ++ toc ++ abstract
+  let meta' = title ++ subtitle ++ authors ++ date ++ abstract ++ toc
   return (meta' ++ doc', notes')
 
 -- | Convert a list of Pandoc blocks to OpenXML.
