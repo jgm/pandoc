@@ -449,6 +449,17 @@ writeDocx opts doc@(Pandoc meta _) = do
         ]
   let relsEntry = toEntry relsPath epochtime $ renderXml rels
 
+  -- we use dist archive for settings.xml, because Word sometimes
+  -- adds references to footnotes or endnotes we don't have...
+  -- we do, however, copy some settings over from reference
+  let settingsPath = "word/settings.xml"
+      settingsList = [ "w:autoHyphenation"
+                     , "w:consecutiveHyphenLimit"
+                     , "w:hyphenationZone"
+                     , "w:doNotHyphenateCap"
+                     ]
+  settingsEntry <- copyChildren refArchive distArchive settingsPath epochtime settingsList
+
   let entryFromArchive arch path =
          maybe (fail $ path ++ " corrupt or missing in reference docx")
                return
@@ -456,9 +467,6 @@ writeDocx opts doc@(Pandoc meta _) = do
   docPropsAppEntry <- entryFromArchive refArchive "docProps/app.xml"
   themeEntry <- entryFromArchive refArchive "word/theme/theme1.xml"
   fontTableEntry <- entryFromArchive refArchive "word/fontTable.xml"
-  -- we use dist archive for settings.xml, because Word sometimes
-  -- adds references to footnotes or endnotes we don't have...
-  settingsEntry <- entryFromArchive distArchive "word/settings.xml"
   webSettingsEntry <- entryFromArchive refArchive "word/webSettings.xml"
   headerFooterEntries <- mapM (entryFromArchive refArchive) $
                      mapMaybe (fmap ("word/" ++) . extractTarget)
@@ -520,6 +528,21 @@ styleToOpenXml sm style =
                                : ( maybe [] (\col -> [mknode "w:shd" [("w:val","clear"),("w:fill",drop 1 $ fromColor col)] ()])
                                  $ backgroundColor style )
                              ]
+
+copyChildren :: Archive -> Archive -> String -> Integer -> [String] -> IO Entry
+copyChildren refArchive distArchive path timestamp elNames = do
+  ref  <- parseXml refArchive distArchive path
+  dist <- parseXml distArchive distArchive path
+  return $ toEntry path timestamp $ renderXml dist{
+      elContent = elContent dist ++ copyContent ref
+    }
+  where
+    strName QName{qName=name, qPrefix=prefix}
+      | Just p <- prefix = p++":"++name
+      | otherwise        = name
+    shouldCopy = (`elem` elNames) . strName
+    cleanElem el@Element{elName=name} = Elem el{elName=name{qURI=Nothing}}
+    copyContent = map cleanElem . filterChildrenName shouldCopy
 
 -- this is the lowest number used for a list numId
 baseListId :: Int
