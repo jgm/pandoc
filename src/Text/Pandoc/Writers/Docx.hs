@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE ScopedTypeVariables, PatternGuards, ViewPatterns #-}
 {-
 Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -66,6 +66,7 @@ import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
                          extensionFromMimeType)
 import Control.Applicative ((<$>), (<|>), (<*>))
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
+import Data.Char (ord)
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -176,13 +177,29 @@ renumId f renumMap e
 renumIds :: (QName -> Bool) -> (M.Map String String) -> [Element] -> [Element]
 renumIds f renumMap = map (renumId f renumMap)
 
+-- | Certain characters are invalid in XML even if escaped.
+-- See #1992
+stripInvalidChars :: Pandoc -> Pandoc
+stripInvalidChars = bottomUp (filter isValidChar)
+
+-- | See XML reference
+isValidChar :: Char -> Bool
+isValidChar (ord -> c)
+  | c == 0x9                      = True
+  | c == 0xA                      = True
+  | c == 0xD                      = True
+  | 0x20 <= c &&  c <= 0xD7FF     = True
+  | 0xE000 <= c && c <= 0xFFFD    = True
+  | 0x10000 <= c && c <= 0x10FFFF = True
+  | otherwise                     = False
+
 -- | Produce an Docx file from a Pandoc document.
 writeDocx :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO BL.ByteString
 writeDocx opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
-  let doc' = walk fixDisplayMath doc
+  let doc' = stripInvalidChars . walk fixDisplayMath $ doc
   username <- lookup "USERNAME" <$> getEnvironment
   utctime <- getCurrentTime
   refArchive <- liftM (toArchive . toLazy) $
