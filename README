@@ -319,7 +319,12 @@ Reader options
     Those who would prefer to write filters in python can use the
     module `pandocfilters`, installable from PyPI. See
     <http://github.com/jgm/pandocfilters> for the module and several
-    examples.  Note that the *EXECUTABLE* will be sought in the user's
+    examples. There are also pandoc filter libraries in
+    [PHP](https://github.com/vinai/pandocfilters-php),
+    [perl](https://metacpan.org/pod/Pandoc::Filter), and
+    [javascript/node.js](https://github.com/mvhenderson/pandoc-filter-node).
+
+    Note that the *EXECUTABLE* will be sought in the user's
     `PATH`, and not in the working directory, if no directory is
     provided.  If you want to run a script in the working directory,
     preface the filename with `./`.
