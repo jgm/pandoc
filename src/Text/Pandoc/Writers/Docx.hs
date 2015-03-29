@@ -598,6 +598,33 @@ mkLvl marker lvl =
 getNumId :: WS Int
 getNumId = (((baseListId - 1) +) . length) `fmap` gets stLists
 
+makeTOC :: WriterOptions -> WS [Element]
+makeTOC opts | writerTableOfContents opts = do
+  let depth = "1-"++(show (writerTOCDepth opts))
+  let tocCmd = "TOC \\o \""++depth++"\" \\h \\z \\u"
+  title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para [Str "Table of Contents"]])
+  return $
+    [mknode "w:sdt" [] ([
+      mknode "w:sdtPr" [] (
+        mknode "w:docPartObj" [] (
+          [mknode "w:docPartGallery" [("w:val","Table of Contents")] (),
+          mknode "w:docPartUnique" [] ()]
+        ) -- w:docPartObj
+      ), -- w:sdtPr
+      mknode "w:sdtContent" [] (title++[
+        mknode "w:p" [] (
+          mknode "w:r" [] ([
+            mknode "w:fldChar" [("w:fldCharType","begin"),("w:dirty","true")] (),
+            mknode "w:instrText" [("xml:space","preserve")] tocCmd,
+            mknode "w:fldChar" [("w:fldCharType","separate")] (),
+            mknode "w:fldChar" [("w:fldCharType","end")] ()
+          ]) -- w:r
+        ) -- w:p
+      ])
+    ])] -- w:sdt
+makeTOC _ = return []
+
+
 -- | Convert Pandoc document to two lists of
 -- OpenXML elements (the main document and footnotes).
 writeOpenXML :: WriterOptions -> Pandoc -> WS ([Element], [Element])
@@ -630,7 +657,8 @@ writeOpenXML opts (Pandoc meta blocks) = do
   let blocks' = bottomUp convertSpace blocks
   doc' <- (setFirstPara >> blocksToOpenXML opts blocks')
   notes' <- reverse `fmap` gets stFootnotes
-  let meta' = title ++ subtitle ++ authors ++ date ++ abstract
+  toc <- makeTOC opts
+  let meta' = title ++ subtitle ++ authors ++ date ++ abstract ++ toc
   return (meta' ++ doc', notes')
 
 -- | Convert a list of Pandoc blocks to OpenXML.
