@@ -1093,7 +1093,7 @@ explicitOrImageLink = try $ do
   char ']'
   alt <- internalLink src title'
   return $
-    (if isImageFilename src && isImageFilename title
+    (if isImageFilename title
       then B.link src "" $ B.image title mempty mempty
       else fromMaybe alt (linkToInlines src title'))
 
