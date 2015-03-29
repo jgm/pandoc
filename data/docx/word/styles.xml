@@ -308,6 +308,9 @@
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="TableCaption">
     <w:name w:val="Table Caption" />
     <w:basedOn w:val="Caption" />
+    <w:pPr>
+      <w:keepNext />
+    </w:pPr>
   </w:style>
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="ImageCaption">
     <w:name w:val="Image Caption" />
