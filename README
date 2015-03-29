@@ -625,10 +625,11 @@ Options affecting specific writers
     `--data-dir`). If this is not found either, sensible defaults will be
     used. The following styles are used by pandoc: [paragraph]
     Normal, Compact, Title, Subtitle, Authors, Date, Abstract, Heading 1,
-    Heading 2, Heading 3, Heading 4, Heading 5, Block Quote, Definition Term,
-    Definition, Bibliography, Body Text, Table Caption, Image Caption;
+    Heading 2, Heading 3, Heading 4, Heading 5, Block Text, Definition Term,
+    Definition, Bibliography, Body Text, Table Caption, Image Caption,
+    Figure, FigureWithCaption;
     [character] Default Paragraph Font, Body Text Char, Verbatim Char,
-    Footnote Ref, Link.
+    Footnote Reference, Hyperlink.
 
 `--epub-stylesheet=`*FILE*
 
