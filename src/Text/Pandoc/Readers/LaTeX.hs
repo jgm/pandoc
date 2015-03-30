@@ -253,6 +253,7 @@ blockCommand = try $ do
   let raw = do
         rawcommand <- getRawCommand name'
         transformed <- applyMacros' rawcommand
+        notFollowedBy $ parseFromString inlines transformed
         if transformed /= rawcommand
            then parseFromString blocks transformed
            else mzero
