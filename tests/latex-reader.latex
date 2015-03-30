@@ -864,4 +864,8 @@ See e.g. issues #1866, #1835
 
 \FIG{lalune.jpg}{0.5}{Test caption}
 
+\newcommand{\wbal}{The Wikibook about \LaTeX}
+
+\wbal is a good resource for learning \LaTeX.
+
 \end{document}
