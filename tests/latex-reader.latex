@@ -868,4 +868,8 @@ See e.g. issues #1866, #1835
 
 \wbal is a good resource for learning \LaTeX.
 
+\separator with trailing inlines
+
+\FIG{lalune.jpg}{0.5}{Test caption} with trailing inlines
+
 \end{document}
