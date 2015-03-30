@@ -34,12 +34,7 @@ readerBench doc (name, reader) =
          let inp = writer def{ writerWrapText = True} doc
          in return $ bench (name ++ " reader") $ nfIO $
                  (fmap handleError <$> reader def{ readerSmart = True }) inp
-       _ | name == "commonmark" ->
-           let inp = writeMarkdown def{ writerWrapText = True} doc
-           in return $ bench (name ++ " reader") $ nfIO $
-                 (fmap handleError <$> reader def{ readerSmart = True }) inp
-         | otherwise -> trace ("\nCould not find writer for " ++ name ++
-                                 "\n") Nothing
+       _ -> trace ("\nCould not find writer for " ++ name ++ "\n") Nothing
 
 writerBench :: Pandoc
             -> (String, WriterOptions -> Pandoc -> String)
