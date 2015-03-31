@@ -308,10 +308,24 @@
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="TableCaption">
     <w:name w:val="Table Caption" />
     <w:basedOn w:val="Caption" />
+    <w:pPr>
+      <w:keepNext />
+    </w:pPr>
   </w:style>
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="ImageCaption">
     <w:name w:val="Image Caption" />
     <w:basedOn w:val="Caption" />
+  </w:style>
+  <w:style w:type="paragraph" w:customStyle="1" w:styleId="Figure">
+    <w:name w:val="Figure" />
+    <w:basedOn w:val="Normal" />
+  </w:style>
+  <w:style w:type="paragraph" w:customStyle="1" w:styleId="FigureWithCaption">
+    <w:name w:val="Figure with Caption" />
+    <w:basedOn w:val="Figure" />
+    <w:pPr>
+      <w:keepNext />
+    </w:pPr>
   </w:style>
   <w:style w:type="character" w:customStyle="1" w:styleId="BodyTextChar">
     <w:name w:val="Body Text Char" />

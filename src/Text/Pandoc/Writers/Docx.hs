@@ -741,7 +741,12 @@ blockToOpenXML opts (Plain lst) = withParaProp (pCustomStyle "Compact")
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
   setFirstPara
+  pushParaProp $ pCustomStyle $
+    if null alt
+      then "Figure"
+      else "FigureWithCaption"
   paraProps <- getParaProps False
+  popParaProp
   contents <- inlinesToOpenXML opts [Image alt (src,tit)]
   captionNode <- withParaProp (pCustomStyle "ImageCaption")
                  $ blockToOpenXML opts (Para alt)
