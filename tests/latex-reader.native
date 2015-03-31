@@ -372,4 +372,13 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  [[Para [Str "And",Space,Str "in",Space,Str "list",Space,Str "items.",Note [Para [Str "In",Space,Str "list."]]]]]
 ,Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",Space,Str "indented."]
 ,Header 1 ("escaped-characters",[],[]) [Str "Escaped",Space,Str "characters"]
-,Para [Str "$",Space,Str "%",Space,Str "&",Space,Str "#",Space,Str "_",Space,Str "{",Space,Str "}"]]
+,Para [Str "$",Space,Str "%",Space,Str "&",Space,Str "#",Space,Str "_",Space,Str "{",Space,Str "}"]
+,Header 1 ("block-newcommands",[],[]) [Str "Block",Space,Str "newcommands"]
+,Para [Str "See",Space,Str "e.g.",Space,Str "issues",Space,Str "#1866,",Space,Str "#1835"]
+,RawBlock (Format "latex") "\\vspace{4em}"
+,Para [RawInline (Format "latex") "\\centering",Image [Str "Test",Space,Str "caption",Span ("",[],[("data-label","fig:lalune.jpg")]) []] ("lalune.jpg","fig:")]
+,Para [Span ("",[],[]) [Str "The",Space,Str "Wikibook",Space,Str "about",Space,Str "LaTeX"],Str "is",Space,Str "a",Space,Str "good",Space,Str "resource",Space,Str "for",Space,Str "learning",Space,Str "LaTeX."]
+,RawBlock (Format "latex") "\\vspace{4em}"
+,Para [Str "with",Space,Str "trailing",Space,Str "inlines"]
+,Para [RawInline (Format "latex") "\\centering",Image [Str "Test",Space,Str "caption",Span ("",[],[("data-label","fig:lalune.jpg")]) []] ("lalune.jpg","fig:")]
+,Para [Str "with",Space,Str "trailing",Space,Str "inlines"]]
