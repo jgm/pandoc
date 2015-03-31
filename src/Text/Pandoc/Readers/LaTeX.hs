@@ -253,10 +253,9 @@ blockCommand = try $ do
   let raw = do
         rawcommand <- getRawCommand name'
         transformed <- applyMacros' rawcommand
+        guard $ transformed /= rawcommand
         notFollowedBy $ parseFromString inlines transformed
-        if transformed /= rawcommand
-           then parseFromString blocks transformed
-           else mzero
+        parseFromString blocks transformed
   case M.lookup name' blockCommands of
        Just p      -> p
        Nothing     -> case M.lookup name blockCommands of
