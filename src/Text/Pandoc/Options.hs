@@ -86,6 +86,7 @@ data Extension =
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown
                                   --   iff container has attribute 'markdown'
     | Ext_escaped_line_breaks     -- ^ Treat a backslash at EOL as linebreak
+    | Ext_common_link_attributes  -- ^ link and image attributes
     | Ext_link_attributes     -- ^ MMD style reference link attributes
     | Ext_autolink_bare_uris  -- ^ Make all absolute URIs into links
     | Ext_fancy_lists         -- ^ Enable fancy list numbers and delimiters
@@ -154,6 +155,7 @@ pandocExtensions = Set.fromList
   , Ext_subscript
   , Ext_auto_identifiers
   , Ext_header_attributes
+  , Ext_common_link_attributes
   , Ext_implicit_header_references
   , Ext_line_blocks
   , Ext_shortcut_reference_links
@@ -187,6 +189,7 @@ phpMarkdownExtraExtensions = Set.fromList
   , Ext_definition_lists
   , Ext_intraword_underscores
   , Ext_header_attributes
+  , Ext_common_link_attributes
   , Ext_abbreviations
   , Ext_shortcut_reference_links
   ]
@@ -324,6 +327,7 @@ data WriterOptions = WriterOptions
   , writerSectionDivs      :: Bool   -- ^ Put sections in div tags in HTML
   , writerExtensions       :: Set Extension -- ^ Markdown extensions that can be used
   , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
+  , writerDpi              :: Int    -- ^ Dpi for pixel to/from inch/cm conversions
   , writerWrapText         :: Bool   -- ^ Wrap text to line length
   , writerColumns          :: Int    -- ^ Characters in a line (for text wrapping)
   , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
@@ -370,6 +374,7 @@ instance Default WriterOptions where
                       , writerSectionDivs      = False
                       , writerExtensions       = pandocExtensions
                       , writerReferenceLinks   = False
+                      , writerDpi              = 96
                       , writerWrapText         = True
                       , writerColumns          = 72
                       , writerEmailObfuscation = JavascriptObfuscation

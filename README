@@ -420,14 +420,22 @@ General writer options
 :   Print a system default data file.  Files in the user data directory
     are ignored.
 
+`--dpi`=*NUMBER*
+:   Specify the dpi (dots per inch) value for conversion from pixels
+    to inch/centimeters and vice versa. The default is 96dpi.
+    Technically, the correct term would be ppi (pixels per inch).
+
 `--no-wrap`
 
 :   Disable text wrapping in output. By default, text is wrapped
-    appropriately for the output format.
+    appropriately for the output format. This affects only the
+    generated source code, not the layout on the rendered page.
 
 `--columns=`*NUMBER*
 
 :   Specify length of lines in characters (for text wrapping).
+    This affects only the generated source code, not the layout on
+    the rendered page.
 
 `--toc`, `--table-of-contents`
 
@@ -2634,6 +2642,53 @@ nonbreaking space after the image:
 
     ![This image won't be a figure](/url/of/image.png)\
 
+#### Extension: `common_link_attributes` ####
+
+Attributes can be set on images:
+
+    An inline ![image](foo.jpg){#id .class width=30 height=20px}
+    and a reference ![image][ref] with attributes.
+
+    [ref]: foo.jpg "optional title" {#id .class key=val key2="val 2"}
+
+(This syntax is compatible with [PHP Markdown Extra] when only `#id`
+and `.class` are used.)
+
+For HTML and EPUB, all attributes except `width` and `height` (but
+including `srcset` and `sizes`) are passed through as is. The other
+writers ignore attributes that are not supported by their output
+format.
+
+The `width` and `height` attributes on images are treated specially. When
+used without a unit, the unit is assumed to be pixels. However, any of
+the following unit identifiers can be used: `px`, `cm`, `mm`, `in`, `inch`
+and `%`. There must not be any spaces between the number and the unit.
+For example:
+
+```
+![](file.jpg){width=50%}
+```
+
+- Dimensions are converted to inches for output in page-based formats like
+  LaTeX. Dimensions are converted to pixels for output in HTML-like
+  formats.  Use the `--dpi` option to specify the number of pixels per
+  inch.  The default is 96dpi.
+- The `%` unit is generally relative to some available space.
+  For example the above example will render to
+  `<img href="file.jpg" style="width: 50%;" />` (HTML),
+  `\includegraphics[width=0.5\textwidth]{file.jpg}` (LaTeX), or
+  `\externalfigure[file.jpg][width=0.5\textwidth]` (ConTeXt).
+- Some output formats have a notion of a class
+  ([ConTeXt](http://wiki.contextgarden.net/Using_Graphics#Multiple_Image_Settings))
+  or a unique identifier (LaTeX `\caption`), or both (HTML).
+- When no `width` or `height` attributes are specified, the fallback
+  is to look at the image resolution and the dpi metadata embedded in
+  the image file.
+
+Note that while attributes are also parsed on links, pandoc's internal
+document model provides nowhere to put them, so they are presently
+just ignored.
+
 
 Footnotes
 ---------
@@ -2908,9 +2963,15 @@ letters are omitted.
 
 #### Extension: `link_attributes` ####
 
-Parses multimarkdown style key-value attributes on link and image references.
-Note that pandoc's internal document model provides nowhere to put
-these, so they are presently just ignored.
+Parses multimarkdown style key-value attributes on link
+and image references. (Since pandoc's internal document model
+provides nowhere to put these for links, they are presently just
+ignored, but they work for images.)
+
+    This is a reference ![image][ref] with multimarkdown attributes.
+
+    [ref]: http://path.to/image "Image title" width=20px height=30px
+           id=myId class="myClass1 myClass2"
 
 #### Extension: `mmd_header_identifiers` ####
 
@@ -2953,7 +3014,8 @@ variants are supported:
 `markdown_phpextra` (PHP Markdown Extra)
 :   `footnotes`, `pipe_tables`, `raw_html`, `markdown_attribute`,
     `fenced_code_blocks`, `definition_lists`, `intraword_underscores`,
-    `header_attributes`, `abbreviations`, `shortcut_reference_links`.
+    `header_attributes`, `common_link_attributes`, `abbreviations`,
+    `shortcut_reference_links`.
 
 `markdown_github` (GitHub-flavored Markdown)
 :   `pipe_tables`, `raw_html`, `tex_math_single_backslash`,
