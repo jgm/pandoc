@@ -296,8 +296,8 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
 ,HorizontalRule
 ,Header 1 ("",[],[]) [Str "Images"]
 ,Para [Str "From",Space,Str "\"Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune\"",Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902):"]
-,Para [Image [Str "lalune"] ("lalune.jpg","Voyage dans la Lune")]
-,Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image [Str "movie"] ("movie.jpg",""),Space,Str "icon."]
+,Para [Image ("",[],[]) [Str "lalune"] ("lalune.jpg","Voyage dans la Lune")]
+,Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image ("",[],[]) [Str "movie"] ("movie.jpg",""),Space,Str "icon."]
 ,HorizontalRule
 ,Header 1 ("",[],[]) [Str "Footnotes"]
 ,Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "footnote",Space,Str "reference",Link [Str "(1)"] ("#note_1",""),Str ",",Space,Str "and",Space,Str "another",Link [Str "(longnote)"] ("#note_longnote",""),Str ".",Space,Str "This",Space,Str "should",Space,Emph [Str "not"],Space,Str "be",Space,Str "a",Space,Str "footnote",Space,Str "reference,",Space,Str "because",Space,Str "it",Space,Str "contains",Space,Str "a",Space,Str "space^(my",Space,Str "note)."]

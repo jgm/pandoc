@@ -1,4 +1,4 @@
-[Para [Image [] ("wasteland-cover.jpg","")]
+[Para [Image ("",[],[]) [] ("wasteland-cover.jpg","")]
 ,Para [Span ("wasteland-content.xhtml",[],[]) []]
 ,RawBlock (Format "html") "<section type=\"frontmatter\" id=\"frontmatter\">"
 ,RawBlock (Format "html") "</section>"

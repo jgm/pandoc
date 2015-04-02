@@ -171,6 +171,10 @@ http://pandoc.org
 
 [[File:example.jpg|frameless|border|30x40px|caption]]
 
+[[File:example.jpg|frameless|border|30px|caption]]
+
+[[File:example.jpg|page=4|30px|border|caption]]
+
 [[File:example.jpg]]
 
 [[Archivo:example_es.jpg]]

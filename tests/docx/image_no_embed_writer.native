@@ -1,2 +1,2 @@
 [Para [Str "An",Space,Str "image:"]
-,Para [Image [] ("media/rId25.jpg","")]]
+,Para [Image ("",[],[]) [] ("media/rId25.jpg","")]]

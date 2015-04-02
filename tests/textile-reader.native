@@ -130,7 +130,7 @@ Pandoc (Meta {unMeta = fromList []})
   ,[Plain [Str "45"]]
   ,[Plain [Str "f"]]]]
 ,Header 1 ("images",[],[]) [Str "Images"]
-,Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax,",Space,Str "like",LineBreak,Str "here",Space,Image [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),LineBreak,Str "and",Space,Str "here",Space,Image [Str ""] ("this_is_an_image.png",""),Str "."]
+,Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax,",Space,Str "like",LineBreak,Str "here",Space,Image ("",[],[]) [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),LineBreak,Str "and",Space,Str "here",Space,Image ("",[],[]) [Str ""] ("this_is_an_image.png",""),Str "."]
 ,Header 1 ("attributes",[],[]) [Str "Attributes"]
 ,Header 2 ("ident",["bar","foo"],[("style","color:red"),("lang","en")]) [Str "HTML",Space,Str "and",Space,Str "CSS",Space,Str "attributes",Space,Str "are",Space,Str "parsed",Space,Str "in",Space,Str "headers."]
 ,Para [Str "as",Space,Str "well",Space,Str "as",Space,Strong [Span ("",["foo"],[]) [Str "inline",Space,Str "attributes"]],Space,Str "of",Space,Span ("",[],[("style","color:red")]) [Str "all",Space,Str "kind"]]
