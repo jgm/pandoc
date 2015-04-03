@@ -29,17 +29,37 @@ Portability : portable
 
 Functions for determining the size of a PNG, JPEG, or GIF image.
 -}
-module Text.Pandoc.ImageSize ( ImageType(..), imageType, imageSize,
-                    sizeInPixels, sizeInPoints ) where
+module Text.Pandoc.ImageSize ( ImageType(..)
+                             , imageType
+                             , imageSize
+                             , sizeInPixels
+                             , sizeInPoints
+                             , desiredSizeInPoints
+                             , Dimension(..)
+                             , Direction(..)
+                             , dimension
+                             , inInch
+                             , inPoints
+                             , numUnit
+                             , showInInch
+                             , showInPixel
+                             , showFl
+                             ) where
 import Data.ByteString (ByteString, unpack)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
+import Data.Char (isDigit)
 import Control.Applicative
 import Control.Monad
 import Data.Bits
 import Data.Binary
 import Data.Binary.Get
 import Text.Pandoc.Shared (safeRead, hush)
+import Data.Default (Default)
+import Numeric (showFFloat)
+import Text.Read (readMaybe)
+import Text.Pandoc.Definition
+import Text.Pandoc.Options
 import qualified Data.Map as M
 import Text.Pandoc.Compat.Except
 import Control.Monad.Trans
@@ -49,6 +69,20 @@ import Data.Maybe (fromMaybe)
 -- algorithms borrowed from wwwis.pl
 
 data ImageType = Png | Gif | Jpeg | Pdf | Eps deriving Show
+data Direction = Width | Height
+instance Show Direction where
+  show Width  = "width"
+  show Height = "height"
+
+data Dimension = Pixel Integer
+               | Centimeter Double
+               | Inch Double
+               | Percent Double
+instance Show Dimension where
+  show (Pixel a)      = show   a ++ "px"
+  show (Centimeter a) = showFl a ++ "cm"
+  show (Inch a)       = showFl a ++ "in"
+  show (Percent a)    = show   a ++ "%"
 
 data ImageSize = ImageSize{
                      pxX   :: Integer
@@ -56,7 +90,11 @@ data ImageSize = ImageSize{
                    , dpiX  :: Integer
                    , dpiY  :: Integer
                    } deriving (Read, Show, Eq)
+instance Default ImageSize where
+  def = ImageSize 300 200 72 72
 
+showFl :: (RealFloat a) => a -> String
+showFl a = showFFloat (Just 5) a ""
 
 imageType :: ByteString -> Maybe ImageType
 imageType img = case B.take 4 img of
@@ -88,8 +126,93 @@ defaultSize = (72, 72)
 sizeInPixels :: ImageSize -> (Integer, Integer)
 sizeInPixels s = (pxX s, pxY s)
 
-sizeInPoints :: ImageSize -> (Integer, Integer)
-sizeInPoints s = (pxX s * 72 `div` dpiX s, pxY s * 72 `div` dpiY s)
+-- | Calculate (height, width) in points using the image file's dpi metadata,
+-- using 72 Points == 1 Inch.
+sizeInPoints :: ImageSize -> (Double, Double)
+sizeInPoints s = (pxXf * 72 / dpiXf, pxYf * 72 / dpiYf)
+  where
+    pxXf  = fromIntegral $ pxX s
+    pxYf  = fromIntegral $ pxY s
+    dpiXf = fromIntegral $ dpiX s
+    dpiYf = fromIntegral $ dpiY s
+
+-- | Calculate (height, width) in points, considering the desired dimensions in the
+-- attribute, while falling back on the image file's dpi metadata if no dimensions
+-- are specified in the attribute (or only dimensions in percentages).
+desiredSizeInPoints :: WriterOptions -> Attr -> ImageSize -> (Double, Double)
+desiredSizeInPoints opts attr s =
+  case (getDim Width, getDim Height) of
+    (Just w, Just h)   -> (w, h)
+    (Just w, Nothing)  -> (w, w / ratio)
+    (Nothing, Just h)  -> (h * ratio, h)
+    (Nothing, Nothing) -> sizeInPoints s
+  where
+    ratio = fromIntegral (pxX s) / fromIntegral (pxY s)
+    getDim dir = case (dimension dir attr) of
+                   Just (Percent _) -> Nothing
+                   Just dim         -> Just $ inPoints opts dim
+                   Nothing          -> Nothing
+
+inPoints :: WriterOptions -> Dimension -> Double
+inPoints opts dim = 72 * inInch opts dim
+
+inInch :: WriterOptions -> Dimension -> Double
+inInch opts dim =
+  case dim of
+    (Pixel a)      -> fromIntegral a / (fromIntegral $ writerDpi opts)
+    (Centimeter a) -> a * 0.3937007874
+    (Inch a)       -> a
+    (Percent _)    -> 0
+
+-- | Convert a Dimension to a String denoting its equivalent in inches, for example "2.00000".
+-- Note: Dimensions in percentages are converted to the empty string.
+showInInch :: WriterOptions -> Dimension -> String
+showInInch _ (Percent _) = ""
+showInInch opts dim = showFl $ inInch opts dim
+
+-- | Convert a Dimension to a String denoting its equivalent in pixels, for example "600".
+-- Note: Dimensions in percentages are converted to the empty string.
+showInPixel :: WriterOptions -> Dimension -> String
+showInPixel opts dim =
+  case dim of
+    (Pixel a)      -> show a
+    (Centimeter a) -> show (floor $ dpi * a * 0.3937007874 :: Int)
+    (Inch a)       -> show (floor $ dpi * a :: Int)
+    (Percent _)    -> ""
+  where
+    dpi = fromIntegral $ writerDpi opts
+
+-- | Maybe split a string into a leading number and trailing unit, e.g. "3cm" to Just (3.0, "cm")
+numUnit :: String -> Maybe (Double, String)
+numUnit s =
+  let (nums, unit) = span (\c -> isDigit c || ('.'==c)) s
+  in  case readMaybe nums of
+        Just n  -> Just (n, unit)
+        Nothing -> Nothing
+
+-- | Read a Dimension from an Attr attribute.
+-- `dimension Width attr` might return `Just (Pixel 3)` or for example `Just (Centimeter 2.0)`, etc.
+dimension :: Direction -> Attr -> Maybe Dimension
+dimension dir (_, _, kvs) =
+  case dir of
+    Width  -> extractDim "width"
+    Height -> extractDim "height"
+  where
+    extractDim key =
+      case lookup key kvs of
+        Just str ->
+          case numUnit str of
+            Just (num, unit) -> toDim num unit
+            Nothing -> Nothing
+        Nothing  -> Nothing
+    toDim a "cm"   = Just $ Centimeter a
+    toDim a "mm"   = Just $ Centimeter (a / 10)
+    toDim a "in"   = Just $ Inch a
+    toDim a "inch" = Just $ Inch a
+    toDim a "%"    = Just $ Percent a
+    toDim a "px"   = Just $ Pixel (floor a::Integer)
+    toDim a ""     = Just $ Pixel (floor a::Integer)
+    toDim _ _      = Nothing
 
 epsSize :: ByteString -> Maybe ImageSize
 epsSize img = do
@@ -279,21 +402,21 @@ exifHeader hdr = do
        return (tag, payload)
   entries <- sequence $ replicate (fromIntegral numentries) ifdEntry
   subentries <- case lookup ExifOffset entries of
-                      Just (UnsignedLong offset) -> do
+                      Just (UnsignedLong offset') -> do
                         pos <- lift bytesRead
-                        lift $ skip (fromIntegral offset - (fromIntegral pos - 8))
+                        lift $ skip (fromIntegral offset' - (fromIntegral pos - 8))
                         numsubentries <- lift getWord16
                         sequence $
                            replicate (fromIntegral numsubentries) ifdEntry
                       _ -> return []
   let allentries = entries ++ subentries
-  (width, height) <- case (lookup ExifImageWidth allentries,
-                           lookup ExifImageHeight allentries) of
-                          (Just (UnsignedLong w), Just (UnsignedLong h)) ->
-                            return (fromIntegral w, fromIntegral h)
-                          _ -> return defaultSize
-                               -- we return a default width and height when
-                               -- the exif header doesn't contain these
+  (wdth, hght) <- case (lookup ExifImageWidth allentries,
+                        lookup ExifImageHeight allentries) of
+                       (Just (UnsignedLong w), Just (UnsignedLong h)) ->
+                         return (fromIntegral w, fromIntegral h)
+                       _ -> return defaultSize
+                            -- we return a default width and height when
+                            -- the exif header doesn't contain these
   let resfactor = case lookup ResolutionUnit allentries of
                         Just (UnsignedShort 1) -> (100 / 254)
                         _ -> 1
@@ -302,8 +425,8 @@ exifHeader hdr = do
   let yres = maybe 72 (\(UnsignedRational x) -> floor $ x * resfactor)
              $ lookup YResolution allentries
   return $ ImageSize{
-                    pxX  = width
-                  , pxY  = height
+                    pxX  = wdth
+                  , pxY  = hght
                   , dpiX = xres
                   , dpiY = yres }
 
