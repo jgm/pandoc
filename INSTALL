@@ -24,10 +24,14 @@ Quick install
 
     This procedure will install the released version of pandoc,
     which will be downloaded automatically from HackageDB.
-    (Note:  if this step fails, and you are using an older version
+
+    If this step fails, and you are using an older version
     of the Haskell Platform, e.g. on Debian stable, you may need to
-    upgrade your version of cabal: `cabal install cabal-install`,
-    then try `cabal update && cabal install pandoc` again.)
+    upgrade your version of cabal:
+
+        cabal install cabal-install
+        ~/.cabal/bin/cabal update
+        ~/.cabal/bin/cabal install pandoc
 
     If you want to install a modified or development version
     of pandoc instead, switch to the source directory and do
