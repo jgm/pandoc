@@ -633,11 +633,20 @@ addToStart toadd bs =
 -- A DocBook mediaobject is a wrapper around a set of alternative presentations
 getMediaobject :: Element -> DB Inlines
 getMediaobject e = do
-  imageUrl <- case filterChild (named "imageobject") e of
-                Nothing  -> return mempty
-                Just z   -> case filterChild (named "imagedata") z of
-                              Nothing -> return mempty
-                              Just i -> return $ attrValue "fileref" i
+  (imageUrl, attr) <-
+    case filterChild (named "imageobject") e of
+      Nothing  -> return (mempty, nullAttr)
+      Just z   -> case filterChild (named "imagedata") z of
+                    Nothing -> return (mempty, nullAttr)
+                    Just i  -> let atVal a = attrValue a i
+                                   w = case atVal "width" of
+                                         "" -> []
+                                         d  -> [("width", d)]
+                                   h = case atVal "depth" of
+                                         "" -> []
+                                         d  -> [("height", d)]
+                                   atr = (atVal "id", words $ atVal "role", w ++ h)
+                               in  return (atVal "fileref", atr)
   let getCaption el = case filterChild (\x -> named "caption" x
                                             || named "textobject" x
                                             || named "alt" x) el of
@@ -647,7 +656,7 @@ getMediaobject e = do
   let (caption, title) = if isNull figTitle
                             then (getCaption e, "")
                             else (return figTitle, "fig:")
-  liftM (image imageUrl title) caption
+  liftM (imageWith imageUrl title attr) caption
 
 getBlocks :: Element -> DB Blocks
 getBlocks e =  mconcat <$> (mapM parseBlock $ elContent e)

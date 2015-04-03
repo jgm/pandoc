@@ -41,7 +41,7 @@ import Control.Applicative ((<$>))
 import Text.Pandoc.Options ( WriterOptions(..) )
 import Text.Pandoc.Shared ( stringify, fetchItem', warn,
                             getDefaultReferenceODT )
-import Text.Pandoc.ImageSize ( imageSize, sizeInPoints )
+import Text.Pandoc.ImageSize ( imageSize, desiredSizeInPoints )
 import Text.Pandoc.MIME ( getMimeType, extensionFromMimeType )
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
@@ -127,7 +127,7 @@ writeODT opts doc@(Pandoc meta _) = do
   return $ fromArchive archive''
 
 transformPicMath :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline
-transformPicMath opts entriesRef (Image lab (src,t)) = do
+transformPicMath opts entriesRef (Image attr lab (src,t)) = do
   res <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case res of
      Left (_ :: E.SomeException) -> do
@@ -135,11 +135,12 @@ transformPicMath opts entriesRef (Image lab (src,t)) = do
        return $ Emph lab
      Right (img, mbMimeType) -> do
        (w,h) <- case imageSize img of
-                     Right size -> return $ sizeInPoints size
-                     Left msg   -> do
-                       warn $ "Could not determine image size in `" ++
-                         src ++ "': " ++ msg
-                       return (0,0)
+                      Right size -> return $
+                        desiredSizeInPoints opts attr size
+                      Left msg   -> do
+                        warn $ "Could not determine image size in `" ++
+                          src ++ "': " ++ msg
+                        return (0,0)
        let tit' = show w ++ "x" ++ show h
        entries <- readIORef entriesRef
        let extension = fromMaybe (takeExtension $ takeWhile (/='?') src)
@@ -151,7 +152,7 @@ transformPicMath opts entriesRef (Image lab (src,t)) = do
        modifyIORef entriesRef (entry:)
        let fig | "fig:" `isPrefixOf` t = "fig:"
                | otherwise             = ""
-       return $ Image lab (newsrc, fig++tit')
+       return $ Image attr lab (newsrc, fig++tit')
 transformPicMath _ entriesRef (Math t math) = do
   entries <- readIORef entriesRef
   let dt = if t == InlineMath then DisplayInline else DisplayBlock

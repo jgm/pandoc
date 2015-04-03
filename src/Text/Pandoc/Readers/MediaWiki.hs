@@ -577,21 +577,29 @@ image = try $ do
   sym "[["
   choice imageIdentifiers
   fname <- many1 (noneOf "|]")
-  _ <- many (try $ char '|' *> imageOption)
+  _ <- many imageOption
+  dims <- try (char '|' *> (sepBy (many digit) (char 'x')) <* string "px")
+          <|> return []
+  _ <- many imageOption
+  let kvs = case dims of
+              w:[]     -> [("width", w)]
+              w:(h:[]) -> [("width", w), ("height", h)]
+              _        -> []
+  let attr = ("", [], kvs)
   caption <-   (B.str fname <$ sym "]]")
            <|> try (char '|' *> (mconcat <$> manyTill inline (sym "]]")))
-  return $ B.image fname ("fig:" ++ stringify caption) caption
+  return $ B.imageWith fname ("fig:" ++ stringify caption) attr caption
 
 imageOption :: MWParser String
-imageOption =
-      try (oneOfStrings [ "border", "thumbnail", "frameless"
-                        , "thumb", "upright", "left", "right"
-                        , "center", "none", "baseline", "sub"
-                        , "super", "top", "text-top", "middle"
-                        , "bottom", "text-bottom" ])
-  <|> try (string "frame")
-  <|> try (many1 (oneOf "x0123456789") <* string "px")
-  <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
+imageOption = try $ char '|' *> opt
+  where
+    opt = try (oneOfStrings [ "border", "thumbnail", "frameless"
+                            , "thumb", "upright", "left", "right"
+                            , "center", "none", "baseline", "sub"
+                            , "super", "top", "text-top", "middle"
+                            , "bottom", "text-bottom" ])
+      <|> try (string "frame")
+      <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
 
 collapseUnderscores :: String -> String
 collapseUnderscores [] = []

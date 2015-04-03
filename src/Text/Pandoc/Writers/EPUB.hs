@@ -871,9 +871,9 @@ transformInline  :: WriterOptions
                  -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath) media
                  -> Inline
                  -> IO Inline
-transformInline opts mediaRef (Image lab (src,tit)) = do
+transformInline opts mediaRef (Image attr lab (src,tit)) = do
     newsrc <- modifyMediaRef opts mediaRef src
-    return $ Image lab (newsrc, tit)
+    return $ Image attr lab (newsrc, tit)
 transformInline opts _ (x@(Math _ _))
   | WebTeX _ <- writerHTMLMathMethod opts = do
     raw <- makeSelfContained opts $ writeHtmlInline opts x

@@ -115,5 +115,5 @@ addInline (Node _ STRONG nodes) =
 addInline (Node _ (LINK url title) nodes) =
   (Link (addInlines nodes) (unpack url, unpack title) :)
 addInline (Node _ (IMAGE url title) nodes) =
-  (Image (addInlines nodes) (unpack url, unpack title) :)
+  (Image nullAttr (addInlines nodes) (unpack url, unpack title) :)
 addInline _ = id

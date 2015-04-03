@@ -55,6 +55,7 @@ import Data.List (intercalate)
 import qualified Data.Map as M
 import qualified Control.Exception as E
 import Text.Pandoc.Highlighting (fromListingsLanguage)
+import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Error
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
@@ -391,7 +392,8 @@ inlineCommand = try $ do
   star <- option "" (string "*")
   let name' = name ++ star
   let raw = do
-        rawcommand <- getRawCommand name'
+        rawargs <- withRaw (skipopts *> option "" dimenarg *> many braced)
+        let rawcommand = '\\' : name ++ star ++ snd rawargs
         transformed <- applyMacros' rawcommand
         if transformed /= rawcommand
            then parseFromString inlines transformed
@@ -521,7 +523,9 @@ inlineCommands = M.fromList $
   , ("href", (unescapeURL <$> braced <* optional sp) >>= \url ->
        tok >>= \lab ->
          pure (link url "" lab))
-  , ("includegraphics", skipopts *> (unescapeURL <$> braced) >>= mkImage)
+  , ("includegraphics", do options <- option [] keyvals
+                           src <- unescapeURL <$> braced
+                           mkImage options src)
   , ("enquote", enquote)
   , ("cite", citation "cite" AuthorInText False)
   , ("citep", citation "citep" NormalCitation False)
@@ -582,14 +586,19 @@ inlineCommands = M.fromList $
   -- in which case they will appear as raw latex blocks:
   [ "index" ]
 
-mkImage :: String -> LP Inlines
-mkImage src = do
+mkImage :: [(String, String)] -> String -> LP Inlines
+mkImage options src = do
+   let replaceTextwidth (k,v) = case numUnit v of
+                                  Just (num, "\\textwidth") -> (k, showFl (num * 100) ++ "%")
+                                  _ -> (k, v)
+   let kvs = map replaceTextwidth $ filter (\(k,_) -> k `elem` ["width", "height"]) options
+   let attr = ("",[], kvs)
    let alt = str "image"
    case takeExtension src of
         "" -> do
               defaultExt <- getOption readerDefaultImageExtension
-              return $ image (addExtension src defaultExt) "" alt
-        _  -> return $ image src "" alt
+              return $ imageWith (addExtension src defaultExt) "" attr alt
+        _  -> return $ imageWith src "" attr alt
 
 inNote :: Inlines -> Inlines
 inNote ils =
@@ -970,7 +979,7 @@ readFileFromDirs (d:ds) f =
 keyval :: LP (String, String)
 keyval = try $ do
   key <- many1 alphaNum
-  val <- option "" $ char '=' >> many1 alphaNum
+  val <- option "" $ char '=' >> many1 (alphaNum <|> char '.' <|> char '\\')
   skipMany spaceChar
   optional (char ',')
   skipMany spaceChar
@@ -997,11 +1006,11 @@ rawLaTeXInline = do
 
 addImageCaption :: Blocks -> LP Blocks
 addImageCaption = walkM go
-  where go (Image alt (src,tit)) = do
+  where go (Image attr alt (src,tit)) = do
           mbcapt <- stateCaption <$> getState
           return $ case mbcapt of
-               Just ils -> Image (toList ils) (src, "fig:")
-               Nothing  -> Image alt (src,tit)
+               Just ils -> Image attr (toList ils) (src, "fig:")
+               Nothing  -> Image attr alt (src,tit)
         go x = return x
 
 addTableCaption :: Blocks -> LP Blocks

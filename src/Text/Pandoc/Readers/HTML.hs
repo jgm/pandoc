@@ -609,7 +609,13 @@ pImage = do
                  _               -> url'
   let title = fromAttrib "title" tag
   let alt = fromAttrib "alt" tag
-  return $ B.image (escapeURI url) title (B.text alt)
+  let uid = fromAttrib "id" tag
+  let cls = words $ fromAttrib "class" tag
+  let getAtt k = case fromAttrib k tag of
+                   "" -> []
+                   v  -> [(k, v)]
+  let kvs = concat $ map getAtt ["width", "height", "sizes", "srcset"]
+  return $ B.imageWith (escapeURI url) title (uid, cls, kvs) (B.text alt)
 
 pCode :: TagParser Inlines
 pCode = try $ do

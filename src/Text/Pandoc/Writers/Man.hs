@@ -350,7 +350,7 @@ inlineToMan opts (Link txt (src, _)) = do
              | escapeURI s == srcSuffix ->
                                  char '<' <> text srcSuffix <> char '>'
            _                  -> linktext <> text " (" <> text src <> char ')'
-inlineToMan opts (Image alternate (source, tit)) = do
+inlineToMan opts (Image _ alternate (source, tit)) = do
   let txt = if (null alternate) || (alternate == [Str ""]) ||
                (alternate == [Str source]) -- to prevent autolinks
                then [Str "image"]
