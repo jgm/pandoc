@@ -495,6 +495,9 @@ writeEPUB opts doc@(Pandoc meta _) = do
                                    []   -> "UNTITLED"
                                    (x:_) -> titleText x
                         x  -> stringify x
+
+  let tocTitle = fromMaybe plainTitle $
+                   metaValueToString <$> lookupMeta "toc-title" meta
   let uuid = case epubIdentifier metadata of
                   (x:_) -> identifierText x  -- use first identifier as UUID
                   []    -> error "epubIdentifier is null"  -- shouldn't happen
@@ -539,7 +542,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                   map chapterRefNode chapterEntries)
           , unode "guide" $
              [ unode "reference" !
-                   [("type","toc"),("title",plainTitle),
+                   [("type","toc"),("title", tocTitle),
                     ("href","nav.xhtml")] $ ()
              ] ++
              [ unode "reference" !
@@ -620,7 +623,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let navBlocks = [RawBlock (Format "html") $ ppElement $
                    unode navtag ! ([("epub:type","toc") | epub3] ++
                                    [("id","toc")]) $
-                    [ unode "h1" ! [("id","toc-title")] $ plainTitle
+                    [ unode "h1" ! [("id","toc-title")] $ tocTitle
                     , unode "ol" ! [("class","toc")] $ evalState (mapM (navPointNode navXhtmlFormatter) secs) 1]]
   let landmarks = if epub3
                      then [RawBlock (Format "html") $ ppElement $
