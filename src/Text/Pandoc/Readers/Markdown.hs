@@ -1078,7 +1078,9 @@ dashedLine :: Monad m => Char
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many spaceChar
-  return (length dashes, length $ dashes ++ sp)
+  let lengthDashes = length dashes
+      lengthSp     = length sp
+  return (lengthDashes, lengthDashes + lengthSp)
 
 -- Parse a table header with dashed lines of '-' preceded by
 -- one (or zero) line of text.
@@ -1231,7 +1233,8 @@ gridPart :: Monad m => Char -> ParserT [Char] st m (Int, Int)
 gridPart ch = do
   dashes <- many1 (char ch)
   char '+'
-  return (length dashes, length dashes + 1)
+  let lengthDashes = length dashes
+  return (lengthDashes, lengthDashes + 1)
 
 gridDashedLines :: Monad m => Char -> ParserT [Char] st m [(Int,Int)]
 gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
