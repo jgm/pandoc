@@ -11,6 +11,7 @@ import Data.Generics
 import Data.Monoid
 import Data.Char (isSpace)
 import Control.Monad.State
+import Control.Monad
 import Control.Applicative ((<$>))
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
@@ -868,7 +869,9 @@ parseBlock (Elem e) =
          parseRow = mapM (parseMixed plain . elContent) . filterChildren isEntry
          sect n = do isbook <- gets dbBook
                      let n' = if isbook || n == 0 then n + 1 else n
-                     headerText <- case filterChild (named "title") e of
+                     headerText <- case filterChild (named "title") e `mplus`
+                                        (filterChild (named "info") e >>=
+                                            filterChild (named "title")) of
                                       Just t -> getInlines t
                                       Nothing -> return mempty
                      modify $ \st -> st{ dbSectionLevel = n }
