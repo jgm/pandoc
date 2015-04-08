@@ -10,6 +10,10 @@ Pandoc Test Suite
    :format: html latex
 ..
 
+.. role:: raw-latex(raw)
+   :format: latex
+..
+
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 markdown test suite.
 
@@ -657,7 +661,7 @@ Ellipses…and…and….
 LaTeX
 =====
 
--  
+-  :raw-latex:`\cite[22-23]{smith.1899}`
 -  :math:`2+2=4`
 -  :math:`x \in y`
 -  :math:`\alpha \wedge \omega`

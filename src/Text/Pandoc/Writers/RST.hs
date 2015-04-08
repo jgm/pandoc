@@ -48,11 +48,12 @@ import Data.Char (isSpace, toLower)
 type Refs = [([Inline], Target)]
 
 data WriterState =
-  WriterState { stNotes     :: [[Block]]
-              , stLinks     :: Refs
-              , stImages    :: [([Inline], (String, String, Maybe String))]
-              , stHasMath   :: Bool
-              , stOptions   :: WriterOptions
+  WriterState { stNotes       :: [[Block]]
+              , stLinks       :: Refs
+              , stImages      :: [([Inline], (String, String, Maybe String))]
+              , stHasMath     :: Bool
+              , stHasRawTeX   :: Bool
+              , stOptions     :: WriterOptions
               }
 
 -- | Convert Pandoc to RST.
@@ -60,7 +61,7 @@ writeRST :: WriterOptions -> Pandoc -> String
 writeRST opts document =
   let st = WriterState { stNotes = [], stLinks = [],
                          stImages = [], stHasMath = False,
-                         stOptions = opts }
+                         stHasRawTeX = False, stOptions = opts }
   in evalState (pandocToRST document) st
 
 -- | Return RST representation of document.
@@ -84,6 +85,7 @@ pandocToRST (Pandoc meta blocks) = do
   refs <- liftM (reverse . stLinks) get >>= refsToRST
   pics <- liftM (reverse . stImages) get >>= pictRefsToRST
   hasMath <- liftM stHasMath get
+  rawTeX <- liftM stHasRawTeX get
   let main = render colwidth $ foldl ($+$) empty $ [body, notes, refs, pics]
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents opts)
@@ -91,6 +93,7 @@ pandocToRST (Pandoc meta blocks) = do
               $ defField "math" hasMath
               $ defField "title" (render Nothing title :: String)
               $ defField "math" hasMath
+              $ defField "rawtex" rawTeX
               $ metadata
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context
@@ -392,6 +395,9 @@ inlineToRST (Math t str) = do
                    else blankline $$ (".. math:: " <> text str) $$ blankline
 inlineToRST (RawInline f x)
   | f == "rst" = return $ text x
+  | f == "latex" || f == "tex" = do
+      modify $ \st -> st{ stHasRawTeX = True }
+      return $ ":raw-latex:`" <> text x <> "`"
   | otherwise  = return empty
 inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space
