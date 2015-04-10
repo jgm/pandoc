@@ -2675,7 +2675,7 @@ The bibliography may have any of these formats:
   ISI               .wos
   MEDLINE           .medline
   Copac             .copac
-  JSON citeproc     .json
+  CSL JSON          .json
 
 Note that `.bib` can generally be used with both BibTeX and BibLaTeX
 files, but you can use `.bibtex` to force BibTeX.
@@ -2687,34 +2687,40 @@ YAML-encoded references, for example:
 
     ---
     references:
-    - id: fenner2012a
-      title: One-click science marketing
+    - type: article-journal
+      id: WatsonCrick1953
       author:
-      - family: Fenner
-        given: Martin
-      container-title: Nature Materials
-      volume: 11
-      URL: 'http://dx.doi.org/10.1038/nmat3283'
-      DOI: 10.1038/nmat3283
-      issue: 4
-      publisher: Nature Publishing Group
-      page: 261-263
-      type: article-journal
+      - family: Watson
+        given: J. D.
+      - family: Crick
+        given: F. H. C.
       issued:
-        year: 2012
-        month: 3
+        date-parts:
+        - - 1953
+          - 4
+          - 25
+      title: 'Molecular structure of nucleic acids: a structure for deoxyribose nucleic
+        acid'
+      title-short: Molecular structure of nucleic acids
+      container-title: Nature
+      volume: 171
+      issue: 4356
+      page: 737-738
+      DOI: 10.1038/171737a0
+      URL: http://www.nature.com/nature/journal/v171/n4356/abs/171737a0.html
+      language: en-GB
     ...
 
-(The program `mods2yaml`, which comes with `pandoc-citeproc`, can help produce
-these from a MODS reference collection.)
+(`pandoc-citeproc --bib2yaml` can produce these from a bibliography file in one
+of the supported formats.)
 
-By default, `pandoc-citeproc` will use a Chicago author-date format for
-citations and references.  To use another style, you will need to specify
-a [CSL] 1.0 style file in the `csl` metadata field.  A primer on creating and
+By default, `pandoc-citeproc` will use the Chicago Manual of Style author-date
+format for citations and references.  To use another style, you will need to
+specify a [CSL] 1.0 style file in the `csl` metadata field.  A repository of CSL
+styles can be found at <https://github.com/citation-style-language/styles>.  See
+also <http://zotero.org/styles> for easy browsing. A primer on creating and
 modifying CSL styles can be found at
-<http://citationstyles.org/downloads/primer.html>.  A repository of CSL styles
-can be found at <https://github.com/citation-style-language/styles>.  See also
-<http://zotero.org/styles> for easy browsing.
+<http://citationstyles.org/downloads/primer.html>.
 
 Citations go inside square brackets and are separated by semicolons.
 Each citation must have a key, composed of '@' + the citation
