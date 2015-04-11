@@ -127,7 +127,7 @@ writeODT opts doc@(Pandoc meta _) = do
   return $ fromArchive archive''
 
 transformPicMath :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline
-transformPicMath opts entriesRef (Image lab (src,_)) = do
+transformPicMath opts entriesRef (Image lab (src,t)) = do
   res <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case res of
      Left (_ :: E.SomeException) -> do
@@ -145,7 +145,9 @@ transformPicMath opts entriesRef (Image lab (src,_)) = do
        epochtime <- floor `fmap` getPOSIXTime
        let entry = toEntry newsrc epochtime $ toLazy img
        modifyIORef entriesRef (entry:)
-       return $ Image lab (newsrc, tit')
+       let fig | "fig:" `isPrefixOf` t = "fig:"
+               | otherwise             = ""
+       return $ Image lab (newsrc, fig++tit')
 transformPicMath _ entriesRef (Math t math) = do
   entries <- readIORef entriesRef
   let dt = if t == InlineMath then DisplayInline else DisplayBlock
