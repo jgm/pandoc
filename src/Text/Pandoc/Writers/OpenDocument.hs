@@ -288,6 +288,8 @@ blockToOpenDocument o bs
     | Plain          b <- bs = if null b
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
+    | Para [Image c (s,'f':'i':'g':':':t)] <- bs
+                             = figure c s t
     | Para           b <- bs = if null b
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
@@ -334,7 +336,7 @@ blockToOpenDocument o bs
         mapM_ addParaStyle . newPara $ paraHStyles ++ paraStyles
         captionDoc <- if null c
                       then return empty
-                      else withParagraphStyle o "Caption" [Para c]
+                      else withParagraphStyle o "TableCaption" [Para c]
         th <- if all null h
                  then return empty
                  else colHeadsToOpenDocument o name (map fst paraHStyles) h
@@ -342,6 +344,12 @@ blockToOpenDocument o bs
         return $ inTags True "table:table" [ ("table:name"      , name)
                                            , ("table:style-name", name)
                                            ] (vcat columns $$ th $$ vcat tr) $$ captionDoc
+      figure caption source title | null caption =
+        withParagraphStyle o "Figure" [Para [Image caption (source,title)]]
+                                  | otherwise    = do
+        imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image caption (source,title)]]
+        captionDoc <- withParagraphStyle o "FigureCaption" [Para caption]
+        return $ imageDoc $$ captionDoc
 
 colHeadsToOpenDocument :: WriterOptions -> String -> [String] -> [[Block]] -> State WriterState Doc
 colHeadsToOpenDocument o tn ns hs =
@@ -553,4 +561,3 @@ textStyleAttr s
                     ,("style:font-name-asian"        ,"Courier New")
                     ,("style:font-name-complex"      ,"Courier New")]
     | otherwise   = []
-

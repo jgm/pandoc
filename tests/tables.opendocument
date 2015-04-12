@@ -63,7 +63,7 @@
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Caption">Demonstration of simple table
+<text:p text:style-name="TableCaption">Demonstration of simple table
 syntax.</text:p>
 <text:p text:style-name="First_20_paragraph">Simple table without
 caption:</text:p>
@@ -197,7 +197,7 @@ spaces:</text:p>
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Caption">Demonstration of simple table
+<text:p text:style-name="TableCaption">Demonstration of simple table
 syntax.</text:p>
 <text:p text:style-name="First_20_paragraph">Multiline table with
 caption:</text:p>
@@ -253,8 +253,8 @@ caption:</text:p>
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Caption">Here's the caption. It may span multiple
-lines.</text:p>
+<text:p text:style-name="TableCaption">Here's the caption. It may span
+multiple lines.</text:p>
 <text:p text:style-name="First_20_paragraph">Multiline table without
 caption:</text:p>
 <table:table table:name="Table5" table:style-name="Table5">

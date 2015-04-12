@@ -133,6 +133,22 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.2">
       style:font-size-complex="12pt"
       style:font-style-complex="italic" />
     </style:style>
+    <style:style style:name="TableCaption" style:family="paragraph"
+    style:parent-style-name="Caption" style:class="extra">
+    </style:style>
+    <style:style style:name="FigureCaption" style:family="paragraph"
+    style:parent-style-name="Caption" style:class="extra">
+    </style:style>
+    <style:style style:name="Figure" style:family="paragraph"
+    style:parent-style-name="Standard" style:class="extra">
+      <style:paragraph-properties text:number-lines="false"
+      text:line-number="0" />
+    </style:style>
+    <style:style style:name="FigureWithCaption" style:family="paragraph"
+    style:parent-style-name="Figure" style:class="extra">
+      <style:paragraph-properties text:number-lines="false"
+      text:line-number="0" fo:keep-with-next="always" />
+    </style:style>
     <style:style style:name="Index" style:family="paragraph"
     style:parent-style-name="Standard" style:class="index">
       <style:paragraph-properties text:number-lines="false"
