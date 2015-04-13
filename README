@@ -2666,19 +2666,23 @@ The bibliography may have any of these formats:
 
   Format            File extension
   ------------      --------------
-  MODS              .mods
   BibLaTeX          .bib
   BibTeX            .bibtex
-  RIS               .ris
+  Copac             .copac
+  CSL JSON          .json
+  CSL YAML          .yaml
   EndNote           .enl
   EndNote XML       .xml
   ISI               .wos
   MEDLINE           .medline
-  Copac             .copac
-  CSL JSON          .json
+  MODS              .mods
+  RIS               .ris
 
 Note that `.bib` can generally be used with both BibTeX and BibLaTeX
 files, but you can use `.bibtex` to force BibTeX.
+
+Note that `pandoc-citeproc --bib2json` and `pandoc-citeproc --bib2yaml`
+can produce `.json` and `.yaml` files from any of the supported formats.
 
 As an alternative to specifying a bibliography file, you can include
 the citation data directly in the `references` field of the
@@ -2699,8 +2703,8 @@ YAML-encoded references, for example:
         - - 1953
           - 4
           - 25
-      title: 'Molecular structure of nucleic acids: a structure for deoxyribose nucleic
-        acid'
+      title: 'Molecular structure of nucleic acids: a structure for deoxyribose
+        nucleic acid'
       title-short: Molecular structure of nucleic acids
       container-title: Nature
       volume: 171
