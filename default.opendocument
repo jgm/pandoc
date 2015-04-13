@@ -10,7 +10,7 @@ $endfor$
 <office:body>
 <office:text>
 $if(title)$
-<text:h text:style-name="Title">$title$</text:h>
+<text:p text:style-name="Title">$title$</text:p>
 $endif$
 $for(author)$
 <text:p text:style-name="Author">$author$</text:p>
