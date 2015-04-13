@@ -89,7 +89,7 @@ pandocToRST (Pandoc meta blocks) = do
   let main = render colwidth $ foldl ($+$) empty $ [body, notes, refs, pics]
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents opts)
-              $ defField "toc-depth" (writerTOCDepth opts)
+              $ defField "toc-depth" (show $ writerTOCDepth opts)
               $ defField "math" hasMath
               $ defField "title" (render Nothing title :: String)
               $ defField "math" hasMath
