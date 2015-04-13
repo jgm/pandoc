@@ -122,7 +122,7 @@ convertImage tmpdir fname =
     Just "application/pdf" -> doNothing
     _ -> JP.readImage fname >>= \res ->
           case res of
-               Left msg  -> return $ Left $ "Unable to convert `" ++
+               Left _    -> return $ Left $ "Unable to convert `" ++
                                fname ++ "' for use with pdflatex."
                Right img ->
                  E.catch (Right fileOut <$ JP.savePngImage fileOut img) $
