@@ -79,7 +79,7 @@ pandocToRST (Pandoc meta blocks) = do
                 (fmap (render colwidth) . blockListToRST)
                 (fmap (trimr . render colwidth) . inlineListToRST)
                 $ deleteMeta "title" $ deleteMeta "subtitle" meta
-  body <- blockListToRST blocks
+  body <- blockListToRST $ normalizeHeadings 1 blocks
   notes <- liftM (reverse . stNotes) get >>= notesToRST
   -- note that the notes may contain refs, so we do them first
   refs <- liftM (reverse . stLinks) get >>= refsToRST
@@ -98,6 +98,13 @@ pandocToRST (Pandoc meta blocks) = do
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context
      else return main
+  where
+    normalizeHeadings lev (Header l a i:bs) = Header lev a i:normalizeHeadings (lev+1) cont ++ normalizeHeadings lev bs'
+      where (cont,bs') = break (headerLtEq l) bs
+            headerLtEq level (Header l' _ _) = l' <= level
+            headerLtEq _ _ = False
+    normalizeHeadings lev (b:bs) = b:normalizeHeadings lev bs
+    normalizeHeadings _   []     = []
 
 -- | Return RST representation of reference key table.
 refsToRST :: Refs -> State WriterState Doc
