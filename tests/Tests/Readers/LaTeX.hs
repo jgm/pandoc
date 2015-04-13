@@ -106,6 +106,16 @@ tests = [ testGroup "basic"
           [ natbibCitations
           , biblatexCitations
           ]
+
+        , let hex = ['0'..'9']++['a'..'f'] in
+          testGroup "Character Escapes"
+          [ "Two-character escapes" =:
+            concat ["^^"++[i,j] | i <- hex, j <- hex] =?>
+            para (str ['\0'..'\255'])
+          , "One-character escapes" =:
+            concat ["^^"++[i] | i <- hex] =?>
+            para (str $ ['p'..'y']++['!'..'&'])
+          ]
         ]
 
 baseCitation :: Citation
