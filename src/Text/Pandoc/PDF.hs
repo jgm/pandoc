@@ -108,8 +108,7 @@ convertImages tmpdir (Image ils (src, tit)) = do
   img <- convertImage tmpdir src
   newPath <-
     case img of
-      Left e -> src <$
-                 warn ("Unable to convert image `" ++ src ++ "':\n" ++ e)
+      Left e -> src <$ warn e
       Right fp -> return fp
   return (Image ils (newPath, tit))
 convertImages _ x = return x
@@ -123,7 +122,8 @@ convertImage tmpdir fname =
     Just "application/pdf" -> doNothing
     _ -> JP.readImage fname >>= \res ->
           case res of
-               Left msg  -> return $ Left msg
+               Left msg  -> return $ Left $ "Unable to convert `" ++
+                               fname ++ "' for use with pdflatex."
                Right img ->
                  E.catch (Right fileOut <$ JP.savePngImage fileOut img) $
                      \(e :: E.SomeException) -> return (Left (show e))
