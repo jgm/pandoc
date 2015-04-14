@@ -993,6 +993,9 @@ as `title`, `author`, and `date`) as well as the following:
 `toc-depth`
 :   level of section to include in table of contents in LaTeX documents
 
+`toc-title`
+:   title of table of contents (works only with EPUB and docx)
+
 `lof`
 :   include list of figures in LaTeX documents
 
