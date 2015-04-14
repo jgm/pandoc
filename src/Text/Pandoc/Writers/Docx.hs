@@ -110,6 +110,7 @@ data WriterState = WriterState{
        , stPrintWidth     :: Integer
        , stStyleMaps      :: StyleMaps
        , stFirstPara      :: Bool
+       , stTocTitle       :: [Inline]
        }
 
 defaultWriterState :: WriterState
@@ -131,6 +132,7 @@ defaultWriterState = WriterState{
       , stPrintWidth     = 1
       , stStyleMaps      = defaultStyleMaps
       , stFirstPara      = False
+      , stTocTitle       = normalizeInlines [Str "Table of Contents"]
       }
 
 type WS a = StateT WriterState IO a
@@ -193,6 +195,13 @@ isValidChar (ord -> c)
   | 0x10000 <= c && c <= 0x10FFFF = True
   | otherwise                     = False
 
+metaValueToInlines :: MetaValue -> [Inline]
+metaValueToInlines (MetaString s) = normalizeInlines [Str s]
+metaValueToInlines (MetaInlines ils) = ils
+metaValueToInlines (MetaBlocks bs) = query return bs
+metaValueToInlines (MetaBool b) = [Str $ show b]
+metaValueToInlines _ = []
+
 -- | Produce an Docx file from a Pandoc document.
 writeDocx :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
@@ -235,11 +244,15 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- parse styledoc for heading styles
   let styleMaps = getStyleMaps styledoc
 
+  let tocTitle = fromMaybe (stTocTitle defaultWriterState) $
+                    metaValueToInlines <$> lookupMeta "toc-title" meta
+
   ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = False} doc')
                        defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
                                          , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
                                          , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
                                          , stStyleMaps  = styleMaps
+                                         , stTocTitle   = tocTitle
                                          }
   let epochtime = floor $ utcTimeToPOSIXSeconds utctime
   let imgs = M.elems $ stImages st
@@ -626,7 +639,8 @@ makeTOC :: WriterOptions -> WS [Element]
 makeTOC opts | writerTableOfContents opts = do
   let depth = "1-"++(show (writerTOCDepth opts))
   let tocCmd = "TOC \\o \""++depth++"\" \\h \\z \\u"
-  title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para [Str "Table of Contents"]])
+  tocTitle <- gets stTocTitle
+  title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para tocTitle])
   return $
     [mknode "w:sdt" [] ([
       mknode "w:sdtPr" [] (
