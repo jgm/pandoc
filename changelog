@@ -1,3 +1,10 @@
+pandoc (1.13.2.1)
+
+  * Updated to build with ghc 7.10.1.
+
+  * Bumped package upper bounds for filepath, blaze-html,
+    blaze-markup.
+
 pandoc (1.13.2)
 
   * TWiki Reader: add new new twiki reader (API chaneg, Alexander Sulfrian).
