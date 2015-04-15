@@ -1,3 +1,8 @@
+pandoc (1.13.2.1)
+
+  * Updates to build with ghc 7.10.1.
+  * Bumped package upper bounds.
+
 pandoc (1.13.2)
 
   * TWiki Reader: add new new twiki reader (API chaneg, Alexander Sulfrian).
