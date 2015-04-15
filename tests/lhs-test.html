@@ -6,32 +6,13 @@
   <meta name="generator" content="pandoc" />
   <title></title>
   <style type="text/css">code{white-space: pre;}</style>
-  <style type="text/css">
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; }
-code > span.dt { color: #902000; }
-code > span.dv { color: #40a070; }
-code > span.bn { color: #40a070; }
-code > span.fl { color: #40a070; }
-code > span.ch { color: #4070a0; }
-code > span.st { color: #4070a0; }
-code > span.co { color: #60a0b0; font-style: italic; }
-code > span.ot { color: #007020; }
-code > span.al { color: #ff0000; font-weight: bold; }
-code > span.fu { color: #06287e; }
-code > span.er { color: #ff0000; font-weight: bold; }
-  </style>
 </head>
 <body>
 <h1 id="lhs-test">lhs test</h1>
 <p><code>unsplit</code> is an arrow that takes a pair of values and combines them to return a single value:</p>
-<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">unsplit ::</span> (<span class="dt">Arrow</span> a) <span class="ot">=&gt;</span> (b <span class="ot">-&gt;</span> c <span class="ot">-&gt;</span> d) <span class="ot">-&gt;</span> a (b, c) d
-unsplit <span class="fu">=</span> arr <span class="fu">.</span> uncurry
-          <span class="co">-- arr (\op (x,y) -&gt; x `op` y)</span></code></pre>
+<pre class="sourceCode literate haskell"><code>unsplit :: (Arrow a) =&gt; (b -&gt; c -&gt; d) -&gt; a (b, c) d
+unsplit = arr . uncurry
+          -- arr (\op (x,y) -&gt; x `op` y)</code></pre>
 <p><code>(***)</code> combines two arrows into a new arrow by running the two arrows on a pair of values (one arrow on the first item of the pair and one arrow on the second item of the pair).</p>
 <pre><code>f *** g = first f &gt;&gt;&gt; second g</code></pre>
 <p>Block quote:</p>

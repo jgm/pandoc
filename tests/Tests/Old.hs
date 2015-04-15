@@ -175,7 +175,7 @@ lhsWriterTests format
     , t "lhs to lhs"    (format ++ "+lhs")
     ]
   where
-    t n f = test n ["--columns=78", "-r", "native", "-s", "-w", f]
+    t n f = test n ["--columns=78", "-r", "native", "-s", "--no-highlight", "-w", f]
              "lhs-test.native" ("lhs-test" <.> f)
 
 lhsReaderTest :: String -> Test
