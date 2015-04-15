@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.13.2
+Version:         1.13.2.1
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
@@ -11,7 +11,7 @@ Bug-Reports:     https://github.com/jgm/pandoc/issues
 Stability:       alpha
 Homepage:        http://johnmacfarlane.net/pandoc
 Category:        Text
-Tested-With:     GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.2
+Tested-With:     GHC == 7.6.3, GHC == 7.8.2, GHC == 7.10.1
 Synopsis:        Conversion between markup formats
 Description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
