@@ -54,6 +54,7 @@ data WriterState =
               , stHasMath     :: Bool
               , stHasRawTeX   :: Bool
               , stOptions     :: WriterOptions
+              , stTopLevel    :: Bool
               }
 
 -- | Convert Pandoc to RST.
@@ -61,7 +62,8 @@ writeRST :: WriterOptions -> Pandoc -> String
 writeRST opts document =
   let st = WriterState { stNotes = [], stLinks = [],
                          stImages = [], stHasMath = False,
-                         stHasRawTeX = False, stOptions = opts }
+                         stHasRawTeX = False, stOptions = opts,
+                         stTopLevel = True}
   in evalState (pandocToRST document) st
 
 -- | Return RST representation of document.
@@ -79,7 +81,7 @@ pandocToRST (Pandoc meta blocks) = do
                 (fmap (render colwidth) . blockListToRST)
                 (fmap (trimr . render colwidth) . inlineListToRST)
                 $ deleteMeta "title" $ deleteMeta "subtitle" meta
-  body <- blockListToRST $ normalizeHeadings 1 blocks
+  body <- blockListToRST' True $ normalizeHeadings 1 blocks
   notes <- liftM (reverse . stNotes) get >>= notesToRST
   -- note that the notes may contain refs, so we do them first
   refs <- liftM (reverse . stLinks) get >>= refsToRST
@@ -198,11 +200,21 @@ blockToRST (RawBlock f@(Format f') str)
                     (nest 3 $ text str) $$ blankline
 blockToRST HorizontalRule =
   return $ blankline $$ "--------------" $$ blankline
-blockToRST (Header level _ inlines) = do
+blockToRST (Header level (name,classes,_) inlines) = do
   contents <- inlineListToRST inlines
-  let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
-  let border = text $ replicate (offset contents) headerChar
-  return $ nowrap $ contents $$ border $$ blankline
+  isTopLevel <- gets stTopLevel
+  if isTopLevel
+    then do
+          let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
+          let border = text $ replicate (offset contents) headerChar
+          return $ nowrap $ contents $$ border $$ blankline
+    else do
+          let rub     = "rubric:: " <> contents
+          let name' | null name    = empty
+                    | otherwise    = ":name: " <> text name
+          let cls   | null classes = empty
+                    | otherwise    = ":class: " <> text (unwords classes)
+          return $ nowrap $ hang 3 ".. " (rub $$ name' $$ cls) $$ blankline
 blockToRST (CodeBlock (_,classes,kvs) str) = do
   opts <- stOptions <$> get
   let tabstop = writerTabStop opts
@@ -304,9 +316,19 @@ definitionListItemToRST (label, defs) = do
   return $ label' $$ nest tabstop (nestle contents <> cr)
 
 -- | Convert list of Pandoc block elements to RST.
+blockListToRST' :: Bool
+                -> [Block]       -- ^ List of block elements
+                -> State WriterState Doc
+blockListToRST' topLevel blocks = do
+  tl <- gets stTopLevel
+  modify (\s->s{stTopLevel=topLevel})
+  res <- vcat `fmap` mapM blockToRST blocks
+  modify (\s->s{stTopLevel=tl})
+  return res
+
 blockListToRST :: [Block]       -- ^ List of block elements
                -> State WriterState Doc
-blockListToRST blocks = mapM blockToRST blocks >>= return . vcat
+blockListToRST = blockListToRST' False
 
 -- | Convert list of Pandoc inline elements to RST.
 inlineListToRST :: [Inline] -> State WriterState Doc
