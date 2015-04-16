@@ -825,15 +825,15 @@ Math rendering in HTML
 
 `--katex`[=*URL*]
 
-:  Use [KaTeX] to display embedded TeX math in HTML output.
-   The *URL* should point to the `katex.js` load script. If a *URL* is
-   not provided, a link to the KaTeX CDN will be inserted.
+:   Use [KaTeX] to display embedded TeX math in HTML output.
+    The *URL* should point to the `katex.js` load script. If a *URL* is
+    not provided, a link to the KaTeX CDN will be inserted.
 
 `--katex-stylesheet=*URL*`
 
-:  The *URL* should point to the `katex.css` stylesheet. If this option is
-   not specified, a link to the KaTeX CDN will be inserted. Note that this
-   option does not imply `--katex`.
+:   The *URL* should point to the `katex.css` stylesheet. If this option is
+    not specified, a link to the KaTeX CDN will be inserted. Note that this
+    option does not imply `--katex`.
 
 Options for wrapper scripts
 ---------------------------
