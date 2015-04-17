@@ -161,7 +161,8 @@ module Text.Pandoc.Parsing ( anyLine,
                              setSourceColumn,
                              setSourceLine,
                              newPos,
-                             addWarning
+                             addWarning,
+                             (<+?>)
                              )
 where
 
@@ -1245,3 +1246,7 @@ addWarning mbpos msg =
 
 generalize :: (Monad m) => Parser s st a -> ParserT s st m a
 generalize m = mkPT (\ s -> (return $ (return . runIdentity) <$> runIdentity (runParsecT m s)))
+
+infixr 5 <+?>
+(<+?>) :: (Monoid a, Monad m) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
+a <+?> b = a >>= flip fmap (try b <|> return mempty) . (<>)
