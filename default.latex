@@ -143,6 +143,12 @@ $for(header-includes)$
 $header-includes$
 $endfor$
 
+% Redefines (sub)paragraphs to behave more like sections
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+
 \begin{document}
 $if(title)$
 \maketitle
