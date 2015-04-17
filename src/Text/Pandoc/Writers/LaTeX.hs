@@ -39,7 +39,7 @@ import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
 import Data.List ( (\\), isSuffixOf, isInfixOf, stripPrefix,
-                   isPrefixOf, intercalate, intersperse )
+                   isPrefixOf, intercalate, intersperse, partition )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Data.Maybe ( fromMaybe )
 import Data.Aeson.Types ( (.:), parseMaybe, withObject )
@@ -50,6 +50,7 @@ import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock,
                                  toListingsLanguage)
+import Control.Arrow ((***),(&&&))
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
@@ -947,17 +948,23 @@ citationsToBiblatex (one:[])
                   NormalCitation -> "autocite"
 
 citationsToBiblatex (c:cs) = do
-  args <- mapM convertOne (c:cs)
+  args <- mapM convertGroup (group (c:cs))
   return $ text cmd <> foldl (<>) empty args
     where
        cmd = case citationMode c of
                   AuthorInText -> "\\textcites"
                   _            -> "\\autocites"
-       convertOne Citation { citationId = k
+       convertGroup Citation { citationId = k
                            , citationPrefix = p
                            , citationSuffix = s
                            }
               = citeArguments p s k
+       group (c':cs') = let (matching, notmatching) = partition (eq' c') cs'
+                            ids = intercalate "," (map citationId $ c':matching)
+                        in c'{citationId=ids} : group notmatching
+       group [] = []
+       eq' a b = uncurry (==) $
+              join (***) (citationPrefix &&& citationSuffix) (a,b)
 
 citationsToBiblatex _ = return empty
 
