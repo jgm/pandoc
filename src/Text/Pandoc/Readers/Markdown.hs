@@ -1487,7 +1487,8 @@ code = try $ do
 
 math :: MarkdownParser Inlines
 math =  (B.displayMath <$> (mathDisplay >>= applyMacros'))
-     <|> (B.math <$> (mathInline >>= applyMacros'))
+     <|> ((B.math <$> (mathInline >>= applyMacros')) <+?>
+                            ((getOption readerSmart >>= guard) *> apostrophe <* notFollowedBy space))
 
 -- Parses material enclosed in *s, **s, _s, or __s.
 -- Designed to avoid backtracking.
