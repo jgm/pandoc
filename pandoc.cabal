@@ -483,6 +483,7 @@ Test-Suite test-pandoc
                   Tests.Walk
                   Tests.Readers.LaTeX
                   Tests.Readers.Markdown
+                  Tests.Readers.AsciiDoc
                   Tests.Readers.Org
                   Tests.Readers.RST
                   Tests.Readers.Docx
