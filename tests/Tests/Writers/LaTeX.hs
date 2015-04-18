@@ -13,6 +13,9 @@ latex = writeLaTeX def{ writerHighlight = True } . toPandoc
 latexListing :: (ToString a, ToPandoc a) => a -> String
 latexListing = writeLaTeX def{ writerListings = True } . toPandoc
 
+latexBiblatex :: (ToString a, ToPandoc a) => a -> String
+latexBiblatex = writeLaTeX def{ writerCiteMethod = Biblatex } . toPandoc
+
 {-
   "my test" =: X =?> Y
 
@@ -75,5 +78,29 @@ tests = [ testGroup "code blocks"
             "\\sout{\\texttt{foo} bar}"
           , "single quotes" =:
               code "dog's" =?> "\\texttt{dog\\textquotesingle{}s}"
+          ]
+        , let c p s i = Citation i p s NormalCitation 0 0
+              c' = c [] []
+              idlst = map $ ("c"++) . show
+              clist p s = map (c p s) . idlst
+          in testGroup "BibLaTeX citations"
+          [ test latexBiblatex "Regular citation" $
+              cite [c' "cite"] (str "@cite") =?>
+              ("\\autocite{cite}" :: String)
+          , test latexBiblatex "Citation list" $
+              cite (clist [] [] [1..5::Int]) (str "@cite") =?>
+              ("\\autocites{c1,c2,c3,c4,c5}" :: String)
+          , test latexBiblatex "Group by prefix" $
+              cite (clist [Str "prefix1"] [] [1..3::Int] ++
+                    clist [] [] [6..7::Int] ++
+                    clist [Str "prefix1"] [] [4..5::Int]
+                   ) (str "@cite") =?>
+              ("\\autocites[prefix1][]{c1,c2,c3,c4,c5}{c6,c7}" :: String)
+          , test latexBiblatex "Group by suffix" $
+              cite (clist [Str "p1"] [Str "s1"] [1..3::Int] ++
+                    clist [Str "p1"] [] [4..5::Int] ++
+                    clist [] [] [6..7::Int]
+                   ) (str "@cite") =?>
+              ("\\autocites[p1][s1]{c1,c2,c3}[p1][]{c4,c5}{c6,c7}" :: String)
           ]
         ]
