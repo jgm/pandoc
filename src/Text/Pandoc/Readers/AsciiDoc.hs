@@ -5,7 +5,6 @@ module Text.Pandoc.Readers.AsciiDoc (
 import qualified Data.Sequence as Seq
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<$))
-
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
@@ -37,7 +36,22 @@ block = do
   -- pos <- getPosition
   res <- choice [ mempty <$ blanklines
                 -- TODO: gbataille - remove
-                , return <$> (fmap (B.Many . Seq.singleton . Para . (:[]) . Str) anyLine)
+                , fmap (return . B.Many . Seq.singleton . Para . (:[]) . Str) paragraph
+             --   , return <$> (fmap (B.Many . Seq.singleton . Para . (:[]) . Str) anyLine)
+--                , literalParagraph
+--                , title
+--                , documentTitle
+--                , explicitId
+--                , hrule
+--                , pageBreak
+--                , list
+--                , labeledLine
+--                , labeledMultiLine
+--                , links
+--                , image
+--                , blockCode
+-- --               , citation -- inline
+--                , table
                ] <?> "wtf***"
   -- when tr $ do
   --   st <- getState
@@ -48,3 +62,6 @@ block = do
 -- anyLine :: AsciiDocParser (F B.Blocks)
 -- anyLine = anyChar
 
+
+paragraph :: AsciiDocParser String
+paragraph = manyTill (anyChar) (try $ newline >> many1 blankline)
