@@ -53,7 +53,7 @@ block = do
 --                , blockCode
 -- --               , citation -- inline
 --                , table
-                , fmap (return . B.Many . Seq.singleton . Para . (:[]) . Str) paragraph
+                , paragraph
                ] <?> "wtf***"
   -- when tr $ do
   --   st <- getState
@@ -65,8 +65,10 @@ block = do
 -- anyLine = anyChar
 
 
-paragraph :: AsciiDocParser String
-paragraph = manyTill (anyChar) (try $ newline >> many1 blankline)
+paragraph :: AsciiDocParser (F B.Blocks)
+paragraph = do
+  paraText <- manyTill (anyChar) (try $ newline >> many1 blankline)
+  return $ return $ (B.para . B.str) paraText
 
 title :: AsciiDocParser (F B.Blocks)
 title = (titleWithUnderline '=' 1) <|>
@@ -80,11 +82,11 @@ titleWithPrefix = try $ do
   posAfter <- getPosition
   let level = (sourceColumn posAfter) - (sourceColumn posBefore)
   space
-  str <- anyLine
+  lineText <- anyLine
   -- AsciiDoc does not support title of level > 5 (counts begins at 0 in the doc)
   if level > 6
     then unexpected "too long title"
-    else return $ return $ (B.headerWith nullAttr level ((B.Many . Seq.singleton . Str) str))
+    else return $ return $ (B.headerWith nullAttr level (B.str lineText))
 
 titleWithUnderline :: Char -- ^ the char used to underline the title
                    -> Int  -- ^ the level of the title corresponding to the underlining char
@@ -98,7 +100,7 @@ titleWithUnderline uCar level = try $ do
   -- text, with a margin of 2 characters
   -- Does not seem to be documented though
   if ((length titleUChar) >= (length titleText) - 2) && ((length titleUChar) <= (length titleText) + 2)
-    then return $ return $ (B.headerWith nullAttr level ((B.Many . Seq.singleton . Str) titleText))
+    then return $ return $ (B.headerWith nullAttr level (B.str titleText))
     else unexpected "bad number of title underlying characters"
 
 blockQuoteStart :: AsciiDocParser Char
