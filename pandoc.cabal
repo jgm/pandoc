@@ -320,6 +320,7 @@ Library
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,
                    Text.Pandoc.Readers.CommonMark,
+                   Text.Pandoc.Readers.AsciiDoc,
                    Text.Pandoc.Readers.MediaWiki,
                    Text.Pandoc.Readers.RST,
                    Text.Pandoc.Readers.Org,
