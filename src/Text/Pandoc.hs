@@ -214,6 +214,14 @@ parseFormatSpec = parse formatSpec ""
 data Reader = StringReader (ReaderOptions -> String -> IO (Either PandocError Pandoc))
               | ByteStringReader (ReaderOptions -> BL.ByteString -> IO (Either PandocError (Pandoc,MediaBag)))
 
+-- Add an auxiliary function for the asciidoc reader that is under development
+asciidoc :: ReaderOptions -> String -> IO (Either PandocError Pandoc)
+asciidoc o s =
+  warn ("\n[WARNING] You are using an AsciiDoc file as an input.\n" ++
+    "  The AsciiDoc reader is in alpha and numerous features are not yet implemented!\n" ++
+    "  Check out the documentation for more info\n")
+  >> (return $ readAsciiDoc o s)
+
 mkStringReader :: (ReaderOptions -> String -> (Either PandocError Pandoc)) -> Reader
 mkStringReader r = StringReader (\o s -> return $ r o s)
 
@@ -251,7 +259,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("docx"         , mkBSReader readDocx)
            ,("t2t"          , mkStringReader readTxt2TagsNoMacros)
            ,("epub"         , mkBSReader readEPUB)
-           ,("asciidoc"     , mkStringReader readAsciiDoc)
+           ,("asciidoc"     , StringReader asciidoc)
            ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
