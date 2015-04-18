@@ -169,6 +169,9 @@ tests = [ testGroup "inline code"
             "<del>test</del>" =?>
             rawBlock "html" "<del>" <> plain (str "test") <>
             rawBlock "html" "</del>"
+          , "invalid tag (issue #1820" =:
+            "</ div></.div>" =?>
+            para (text "</ div></.div>")
           ]
         , "unbalanced brackets" =:
             "[[[[[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[[[[[hi")

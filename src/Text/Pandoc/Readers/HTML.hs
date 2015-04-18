@@ -51,7 +51,7 @@ import Text.Pandoc.Options (ReaderOptions(readerParseRaw, readerTrace)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
 import Data.Maybe ( fromMaybe, isJust)
-import Data.List ( intercalate, isInfixOf )
+import Data.List ( intercalate, isInfixOf, isPrefixOf )
 import Data.Char ( isDigit )
 import Control.Monad ( liftM, guard, when, mzero, void, unless )
 import Control.Arrow ((***))
@@ -887,16 +887,18 @@ htmlTag :: Monad m
         => (Tag String -> Bool)
         -> ParserT [Char] st m (Tag String, String)
 htmlTag f = try $ do
-  lookAhead $ char '<' >> ((oneOf "/!?" >> nonspaceChar) <|> letter)
-  (next : _) <- getInput >>= return . canonicalizeTags . parseTags
+  lookAhead (char '<')
+  inp <- getInput
+  let (next : _) = canonicalizeTags $ parseTags inp
   guard $ f next
-  -- advance the parser
   case next of
-       TagComment s -> do
+       TagComment s
+         | "<!--" `isPrefixOf` inp -> do
           count (length s + 4) anyChar
           skipMany (satisfy (/='>'))
           char '>'
           return (next, "<!--" ++ s ++ "-->")
+         | otherwise -> fail "bogus comment mode, HTML5 parse error"
        _            -> do
           rendered <- manyTill anyChar (char '>')
           return (next, rendered ++ ">")
