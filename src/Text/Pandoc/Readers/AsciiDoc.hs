@@ -36,10 +36,9 @@ block = do
   -- pos <- getPosition
   res <- choice [ mempty <$ blanklines
                 -- TODO: gbataille - remove
-                , fmap (return . B.Many . Seq.singleton . Para . (:[]) . Str) paragraph
              --   , return <$> (fmap (B.Many . Seq.singleton . Para . (:[]) . Str) anyLine)
 --                , literalParagraph
---                , title
+               , titles
 --                , documentTitle
 --                , explicitId
 --                , hrule
@@ -52,6 +51,7 @@ block = do
 --                , blockCode
 -- --               , citation -- inline
 --                , table
+                , fmap (return . B.Many . Seq.singleton . Para . (:[]) . Str) paragraph
                ] <?> "wtf***"
   -- when tr $ do
   --   st <- getState
@@ -65,3 +65,11 @@ block = do
 
 paragraph :: AsciiDocParser String
 paragraph = manyTill (anyChar) (try $ newline >> many1 blankline)
+
+titles :: AsciiDocParser (F B.Blocks)
+titles = try $ do
+  many1 (char '=')
+  space
+  str <- anyLine
+  -- return $  (fmap (B.Many . Seq.singleton . (Header 1 nullAttr) . (:[]) . Str) str)
+  return $ return $ (B.headerWith nullAttr 1 ((B.Many . Seq.singleton . Str) str))
