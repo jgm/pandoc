@@ -72,6 +72,15 @@ titles = try $ do
   posBefore <- getPosition
   many1 (char '=')
   posAfter <- getPosition
+  let level = (sourceColumn posAfter) - (sourceColumn posBefore)
   space
   str <- anyLine
-  return $ return $ (B.headerWith nullAttr ((sourceColumn posAfter) - (sourceColumn posBefore)) ((B.Many . Seq.singleton . Str) str))
+  -- AsciiDoc does not support title of level > 5 (counts begins at 0 in the doc)
+  if level > 6
+    then unexpected "too long title"
+    else return $ return $ (B.headerWith nullAttr level ((B.Many . Seq.singleton . Str) str))
+
+-- titleWithUnderline :: AsciiDocParser (F B.Blocks)
+-- titleWithUnderline = try $ do
+--   lookAhead (anyLine >> (many1 '=') >> newline)
+--
