@@ -6,6 +6,7 @@ INSTALL.*
 .configure-stamp
 .cabal-sandbox
 cabal.sandbox.config
+cabal.config
 pandoc.cabal.orig
 man/man?/*.1
 man/man?/*.5
