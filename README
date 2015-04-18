@@ -5,7 +5,7 @@
 Synopsis
 ========
 
-pandoc [*options*] [*input-file*]...
+`pandoc` [*options*] [*input-file*]...
 
 Description
 ===========
@@ -333,7 +333,7 @@ Reader options
     provided.  If you want to run a script in the working directory,
     preface the filename with `./`.
 
-`-M` *KEY[=VAL]*, `--metadata=`*KEY[:VAL]*
+`-M` *KEY*[`=`*VAL*], `--metadata=`*KEY*[`:`*VAL*]
 
 :   Set the metadata field *KEY* to the value *VAL*.  A value specified
     on the command line overrides a value specified in the document.
@@ -359,15 +359,15 @@ Reader options
 
 :   Specify the number of spaces per tab (default is 4).
 
-`--track-changes=`*accept|reject|all*
+`--track-changes=accept`|`reject`|`all`
 
 :   Specifies what to do with insertions and deletions produced by the MS
-    Word "track-changes" feature.  *accept* (the default), inserts all
-    insertions, and ignores all deletions. *reject* inserts all
-    deletions and ignores insertions. *all* puts in both insertions
+    Word "track-changes" feature.  `accept` (the default), inserts all
+    insertions, and ignores all deletions. `reject` inserts all
+    deletions and ignores insertions. `all` puts in both insertions
     and deletions, wrapped in spans with `insertion` and `deletion`
     classes, respectively. The author and time of change is
-    included. *all* is useful for scripting: only accepting changes
+    included. `all` is useful for scripting: only accepting changes
     from a certain reviewer, say, or before a certain date. This
     option only affects the docx reader.
 
@@ -400,7 +400,7 @@ General writer options
     template appropriate for the output format will be used (see
     `-D/--print-default-template`).
 
-`-V` *KEY[=VAL]*, `--variable=`*KEY[:VAL]*
+`-V` *KEY*[`=`*VAL*], `--variable=`*KEY*[`:`*VAL*]
 
 :   Set the template variable *KEY* to the value *VAL* when rendering the
     document in standalone mode. This is generally only useful when the
@@ -423,7 +423,7 @@ General writer options
 :   Disable text wrapping in output. By default, text is wrapped
     appropriately for the output format.
 
-`--columns`=*NUMBER*
+`--columns=`*NUMBER*
 
 :   Specify length of lines in characters (for text wrapping).
 
@@ -445,7 +445,7 @@ General writer options
 :   Disables syntax highlighting for code blocks and inlines, even when
     a language attribute is given.
 
-`--highlight-style`=*STYLE*
+`--highlight-style=`*STYLE*
 
 :   Specifies the coloring style to be used in highlighted source code.
     Options are `pygments` (the default), `kate`, `monochrome`,
@@ -536,7 +536,7 @@ Options affecting specific writers
     `unnumbered` will never be numbered, even if `--number-sections`
     is specified.
 
-`--number-offset`=*NUMBER[,NUMBER,...]*,
+`--number-offset=`*NUMBER*[`,`*NUMBER*`,`*...*]
 
 :   Offset for section headings in HTML output (ignored in other
     output formats).  The first number is added to the section number for
@@ -568,7 +568,7 @@ Options affecting specific writers
 :   Make list items in slide shows display incrementally (one by one).
     The default is for lists to be displayed all at once.
 
-`--slide-level`=*NUMBER*
+`--slide-level=`*NUMBER*
 
 :   Specifies that headers with the specified level create
     slides (for `beamer`, `s5`, `slidy`, `slideous`, `dzslides`).  Headers
@@ -585,14 +585,14 @@ Options affecting specific writers
     rather than the header itself.
     See [Section identifiers](#header-identifiers-in-html-latex-and-context), below.
 
-`--email-obfuscation=`*none|javascript|references*
+`--email-obfuscation=none`|`javascript`|`references`
 
 :   Specify a method for obfuscating `mailto:` links in HTML documents.
-    *none* leaves `mailto:` links as they are.  *javascript* obfuscates
-    them using javascript. *references* obfuscates them by printing their
+    `none` leaves `mailto:` links as they are.  `javascript` obfuscates
+    them using javascript. `references` obfuscates them by printing their
     letters as decimal or hexadecimal character references.
 
-`--id-prefix`=*STRING*
+`--id-prefix=`*STRING*
 
 :   Specify a prefix to be added to all automatically generated identifiers
     in HTML and DocBook output, and to footnote numbers in markdown output.
@@ -722,7 +722,7 @@ Options affecting specific writers
     documents with few level 1 headers, one might want to use a chapter
     level of 2 or 3.
 
-`--latex-engine=`*pdflatex|lualatex|xelatex*
+`--latex-engine=pdflatex`|`lualatex`|`xelatex`
 
 :   Use the specified LaTeX engine when producing PDF output.
     The default is `pdflatex`.  If the engine is not in your PATH,
@@ -773,7 +773,7 @@ Citation rendering
 Math rendering in HTML
 ----------------------
 
-`-m` [*URL*], `--latexmathml`[=*URL*]
+`-m` [*URL*], `--latexmathml`[`=`*URL*]
 
 :   Use the [LaTeXMathML] script to display embedded TeX math in HTML output.
     To insert a link to a local copy of the `LaTeXMathML.js` script,
@@ -783,14 +783,14 @@ Math rendering in HTML
     several pages, it is much better to link to a copy of the script,
     so it can be cached.
 
-`--mathml`[=*URL*]
+`--mathml`[`=`*URL*]
 
 :   Convert TeX math to MathML (in `docbook` as well as `html` and `html5`).
     In standalone `html` output, a small javascript (or a link to such a
     script if a *URL* is supplied) will be inserted that allows the MathML to
     be viewed on some browsers.
 
-`--jsmath`[=*URL*]
+`--jsmath`[`=`*URL*]
 
 :   Use [jsMath] to display embedded TeX math in HTML output.
     The *URL* should point to the jsMath load script (e.g.
@@ -799,7 +799,7 @@ Math rendering in HTML
     no link to the jsMath load script will be inserted; it is then
     up to the author to provide such a link in the HTML template.
 
-`--mathjax`[=*URL*]
+`--mathjax`[`=`*URL*]
 
 :   Use [MathJax] to display embedded TeX math in HTML output.
     The *URL* should point to the `MathJax.js` load script.
@@ -812,28 +812,28 @@ Math rendering in HTML
     be processed by [gladTeX] to produce links to images of the typeset
     formulas.
 
-`--mimetex`[=*URL*]
+`--mimetex`[`=`*URL*]
 
 :   Render TeX math using the [mimeTeX] CGI script.  If *URL* is not
     specified, it is assumed that the script is at `/cgi-bin/mimetex.cgi`.
 
-`--webtex`[=*URL*]
+`--webtex`[`=`*URL*]
 
 :   Render TeX formulas using an external script that converts TeX
     formulas to images. The formula will be concatenated with the URL
     provided. If *URL* is not specified, the Google Chart API will be used.
 
-`--katex`[=*URL*]
+`--katex`[`=`*URL*]
 
-:  Use [KaTeX] to display embedded TeX math in HTML output.
-   The *URL* should point to the `katex.js` load script. If a *URL* is
-   not provided, a link to the KaTeX CDN will be inserted.
+:   Use [KaTeX] to display embedded TeX math in HTML output.
+    The *URL* should point to the `katex.js` load script. If a *URL* is
+    not provided, a link to the KaTeX CDN will be inserted.
 
-`--katex-stylesheet=*URL*`
+`--katex-stylesheet=`*URL*
 
-:  The *URL* should point to the `katex.css` stylesheet. If this option is
-   not specified, a link to the KaTeX CDN will be inserted. Note that this
-   option does not imply `--katex`.
+:   The *URL* should point to the `katex.css` stylesheet. If this option is
+    not specified, a link to the KaTeX CDN will be inserted. Note that this
+    option does not imply `--katex`.
 
 Options for wrapper scripts
 ---------------------------
