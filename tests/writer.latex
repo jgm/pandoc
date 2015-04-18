@@ -57,6 +57,8 @@
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
+\newcommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{0}
 \VerbatimFootnotes % allows verbatim text in footnotes
 
@@ -141,7 +143,7 @@ A list:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   item one
 \item
@@ -196,7 +198,7 @@ These should not be escaped:  \$ \\ \> \[ \{
 Asterisks tight:
 
 \begin{itemize}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   asterisk 1
 \item
@@ -219,7 +221,7 @@ Asterisks loose:
 Pluses tight:
 
 \begin{itemize}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   Plus 1
 \item
@@ -242,7 +244,7 @@ Pluses loose:
 Minuses tight:
 
 \begin{itemize}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   Minus 1
 \item
@@ -268,7 +270,7 @@ Tight:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   First
 \item
@@ -281,7 +283,7 @@ and:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   One
 \item
@@ -331,17 +333,17 @@ Multiple paragraphs:
 \subsection{Nested}\label{nested}
 
 \begin{itemize}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   Tab
 
   \begin{itemize}
-  \itemsep1pt\parskip0pt\parsep0pt
+  \tightlist
   \item
     Tab
 
     \begin{itemize}
-    \itemsep1pt\parskip0pt\parsep0pt
+    \tightlist
     \item
       Tab
     \end{itemize}
@@ -352,14 +354,14 @@ Here's another:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   First
 \item
   Second:
 
   \begin{itemize}
-  \itemsep1pt\parskip0pt\parsep0pt
+  \tightlist
   \item
     Fee
   \item
@@ -381,7 +383,7 @@ Same thing but with paragraphs:
   Second:
 
   \begin{itemize}
-  \itemsep1pt\parskip0pt\parsep0pt
+  \tightlist
   \item
     Fee
   \item
@@ -424,7 +426,7 @@ Same thing but with paragraphs:
   \begin{enumerate}
   \def\labelenumii{\roman{enumii}.}
   \setcounter{enumii}{3}
-  \itemsep1pt\parskip0pt\parsep0pt
+  \tightlist
   \item
     sublist with roman numerals, starting with 4
   \item
@@ -432,7 +434,7 @@ Same thing but with paragraphs:
 
     \begin{enumerate}
     \def\labelenumiii{(\Alph{enumiii})}
-    \itemsep1pt\parskip0pt\parsep0pt
+    \tightlist
     \item
       a subsublist
     \item
@@ -445,27 +447,27 @@ Nesting:
 
 \begin{enumerate}
 \def\labelenumi{\Alph{enumi}.}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   Upper Alpha
 
   \begin{enumerate}
   \def\labelenumii{\Roman{enumii}.}
-  \itemsep1pt\parskip0pt\parsep0pt
+  \tightlist
   \item
     Upper Roman.
 
     \begin{enumerate}
     \def\labelenumiii{(\arabic{enumiii})}
     \setcounter{enumiii}{5}
-    \itemsep1pt\parskip0pt\parsep0pt
+    \tightlist
     \item
       Decimal start with 6
 
       \begin{enumerate}
       \def\labelenumiv{\alph{enumiv})}
       \setcounter{enumiv}{2}
-      \itemsep1pt\parskip0pt\parsep0pt
+      \tightlist
       \item
         Lower alpha with paren
       \end{enumerate}
@@ -476,14 +478,14 @@ Nesting:
 Autonumbering:
 
 \begin{enumerate}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   Autonumber.
 \item
   More.
 
   \begin{enumerate}
-  \itemsep1pt\parskip0pt\parsep0pt
+  \tightlist
   \item
     Nested.
   \end{enumerate}
@@ -502,7 +504,7 @@ B. Williams
 Tight using spaces:
 
 \begin{description}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item[apple]
 red fruit
 \item[orange]
@@ -514,7 +516,7 @@ yellow fruit
 Tight using tabs:
 
 \begin{description}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item[apple]
 red fruit
 \item[orange]
@@ -556,7 +558,7 @@ orange block quote
 Multiple definitions, tight:
 
 \begin{description}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item[apple]
 red fruit
 
@@ -592,7 +594,7 @@ orange fruit
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   sublist
 \item
@@ -718,7 +720,7 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 \section{LaTeX}\label{latex}
 
 \begin{itemize}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   \cite[22-23]{smith.1899}
 \item
@@ -741,7 +743,7 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 These shouldn't be math:
 
 \begin{itemize}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   To get the famous equation, write \texttt{\$e\ =\ mc\^{}2\$}.
 \item
@@ -768,7 +770,7 @@ Cat    & 1      \\ \hline
 Here is some unicode:
 
 \begin{itemize}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   I hat: Î
 \item
@@ -892,7 +894,7 @@ Here's an \href{/script?foo=1\&bar=2}{inline link in pointy braces}.
 With an ampersand: \url{http://example.com/?foo=1\&bar=2}
 
 \begin{itemize}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   In a list?
 \item
@@ -958,7 +960,7 @@ Notes can go in quotes.\footnote{In quote.}
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
-\itemsep1pt\parskip0pt\parsep0pt
+\tightlist
 \item
   And in list items.\footnote{In list.}
 \end{enumerate}
