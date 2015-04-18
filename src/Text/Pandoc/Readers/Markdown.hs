@@ -880,7 +880,7 @@ defListMarker = do
   tabStop <- getOption readerTabStop
   let remaining = tabStop - (length sps + 1)
   if remaining > 0
-     then count remaining (char ' ') <|> string "\t"
+     then try (count remaining (char ' ')) <|> string "\t" <|> many1 spaceChar
      else mzero
   return ()
 
@@ -916,7 +916,9 @@ defRawBlock compact = try $ do
 
 definitionList :: MarkdownParser Blocks
 definitionList = try $ do
-  lookAhead (anyLine >> optional blankline >> defListMarker)
+  lookAhead (anyLine >> optional (blankline >> notFollowedBy table) >>
+             -- don't capture table caption as def list!
+             defListMarker)
   compactDefinitionList <|> normalDefinitionList
 
 compactDefinitionList :: MarkdownParser Blocks
