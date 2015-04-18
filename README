@@ -2733,7 +2733,7 @@ modifying CSL styles can be found at
 Citations go inside square brackets and are separated by semicolons.
 Each citation must have a key, composed of '@' + the citation
 identifier from the database, and may optionally have a prefix,
-a locator, and a suffix.  The citation key must begin with a letter
+a locator, and a suffix.  The citation key must begin with a letter, digit,
 or `_`, and may contain alphanumerics, `_`, and internal punctuation
 characters (`:.#$%&-+?<>~/`).  Here are some examples:
 
