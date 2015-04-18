@@ -11,6 +11,9 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import qualified Text.Pandoc.Builder as B
 
+import Debug.Trace (trace)
+import Text.Printf (printf)
+
 type AsciiDocParser = Parser String ParserState
 
 readAsciiDoc :: ReaderOptions
@@ -39,7 +42,7 @@ block = do
                 -- TODO: gbataille - remove
              --   , return <$> (fmap (B.Many . Seq.singleton . Para . (:[]) . Str) anyLine)
 --                , literalParagraph
-               , titles
+               , title
 --                , documentTitle
 --                , explicitId
 --                , hrule
@@ -67,8 +70,13 @@ block = do
 paragraph :: AsciiDocParser String
 paragraph = manyTill (anyChar) (try $ newline >> many1 blankline)
 
-titles :: AsciiDocParser (F B.Blocks)
-titles = try $ do
+title :: AsciiDocParser (F B.Blocks)
+title = (titleWithUnderline '=' 1) <|>
+        (titleWithUnderline '-' 2) <|>
+        titleWithPrefix
+
+titleWithPrefix :: AsciiDocParser (F B.Blocks)
+titleWithPrefix = try $ do
   posBefore <- getPosition
   many1 (char '=')
   posAfter <- getPosition
@@ -80,7 +88,17 @@ titles = try $ do
     then unexpected "too long title"
     else return $ return $ (B.headerWith nullAttr level ((B.Many . Seq.singleton . Str) str))
 
--- titleWithUnderline :: AsciiDocParser (F B.Blocks)
--- titleWithUnderline = try $ do
---   lookAhead (anyLine >> (many1 '=') >> newline)
---
+titleWithUnderline :: Char -- ^ the char used to underline the title
+                   -> Int  -- ^ the level of the title corresponding to the underlining char
+                   -> AsciiDocParser (F B.Blocks)
+titleWithUnderline uCar level = try $ do
+  titleText <- anyLine
+  titleUChar <- many1 (char uCar)
+  newline
+  -- By experimenting with the asciidoc CLI, it seems that the "underline title"
+  -- feature works only if the underline line is of the same length as the title
+  -- text, with a margin of 2 characters
+  -- Does not seem to be documented though
+  if ((length titleUChar) >= (length titleText) - 2) && ((length titleUChar) <= (length titleText) + 2)
+    then return $ return $ (B.headerWith nullAttr level ((B.Many . Seq.singleton . Str) titleText))
+    else unexpected "bad number of title underlying characters"
