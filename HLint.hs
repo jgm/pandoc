@@ -1,0 +1,1 @@
+ignore "Redundant bracket"
