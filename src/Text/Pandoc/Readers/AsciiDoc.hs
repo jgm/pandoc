@@ -2,8 +2,10 @@ module Text.Pandoc.Readers.AsciiDoc (
   readAsciiDoc
 ) where
 
-import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
+import Data.Monoid (mconcat, mempty)
+import Control.Applicative ((<$>), (<$))
+
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
@@ -21,5 +23,28 @@ readAsciiDoc opts s =
 parseAsciiDoc :: AsciiDocParser Pandoc
 parseAsciiDoc = do
   -- markdown allows raw HTML
-  let meta = (Meta (Map.singleton "foo" (MetaString "bar")))
-  return $ B.doc (B.Many Seq.empty)
+  blocks <- parseBlocks
+  st <- getState
+  let Pandoc _ bs = B.doc $ runF blocks st
+  return $ Pandoc nullMeta bs
+
+parseBlocks :: AsciiDocParser (F B.Blocks)
+parseBlocks = mconcat <$> manyTill block eof
+
+block :: AsciiDocParser (F B.Blocks)
+block = do
+  -- tr <- getOption readerTrace
+  -- pos <- getPosition
+  res <- choice [ mempty <$ blanklines
+                -- TODO: gbataille - remove
+                , return <$> (fmap (B.Many . Seq.singleton . Para . (:[]) . Str) anyLine)
+               ] <?> "wtf***"
+  -- when tr $ do
+  --   st <- getState
+  --   trace (printf "line %d: %s" (sourceLine pos)
+  --          (take 60 $ show $ B.toList $ runF res st)) (return ())
+  return res
+
+-- anyLine :: AsciiDocParser (F B.Blocks)
+-- anyLine = anyChar
+
