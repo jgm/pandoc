@@ -1,6 +1,4 @@
-module Text.Pandoc.Readers.AsciiDoc (
-  readAsciiDoc
-) where
+module Text.Pandoc.Readers.AsciiDoc where
 
 import qualified Data.Sequence as Seq
 import Data.Monoid (mconcat, mempty)
@@ -41,8 +39,8 @@ block = do
   res <- choice [ mempty <$ blanklines
                 -- TODO: gbataille - remove
              --   , return <$> (fmap (B.Many . Seq.singleton . Para . (:[]) . Str) anyLine)
---                , literalParagraph
                , title
+               , literalParagraph
 --                , documentTitle
 --                , explicitId
 --                , hrule
@@ -102,3 +100,23 @@ titleWithUnderline uCar level = try $ do
   if ((length titleUChar) >= (length titleText) - 2) && ((length titleUChar) <= (length titleText) + 2)
     then return $ return $ (B.headerWith nullAttr level ((B.Many . Seq.singleton . Str) titleText))
     else unexpected "bad number of title underlying characters"
+
+blockQuoteStart :: AsciiDocParser Char
+blockQuoteStart = try $ char ' '
+
+blockQuote :: AsciiDocParser [String]
+blockQuote = try $ do
+  lookAhead blockQuoteStart -- 1st line
+  let blockLine = many1Till notEndline newline
+  manyTill blockLine (try $ blanklines <|> (newline >> many1 blankline))
+
+notEndline :: AsciiDocParser Char
+notEndline = satisfy (/= '\n')
+
+-- TODO: convert inner blockLines
+literalParagraph :: AsciiDocParser (F B.Blocks)
+literalParagraph = try $ do
+    blockLines <- blockQuote
+    let unecessarySpaces = minimum $ map (length . takeWhile (==' ')) blockLines
+    let unindent = drop unecessarySpaces
+    return . return $ B.blockQuote $ B.plain $ B.fromList $ map (Str . unindent) blockLines
