@@ -887,7 +887,7 @@ htmlTag :: Monad m
         => (Tag String -> Bool)
         -> ParserT [Char] st m (Tag String, String)
 htmlTag f = try $ do
-  lookAhead $ char '<' >> (oneOf "/!?" <|> letter)
+  lookAhead $ char '<' >> ((oneOf "/!?" >> nonspaceChar) <|> letter)
   (next : _) <- getInput >>= return . canonicalizeTags . parseTags
   guard $ f next
   -- advance the parser
