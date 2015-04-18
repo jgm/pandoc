@@ -69,6 +69,7 @@ module Text.Pandoc
                , readDocx
                , readMarkdown
                , readCommonMark
+               , readAsciiDoc
                , readMediaWiki
                , readRST
                , readOrg
@@ -129,6 +130,7 @@ import Text.Pandoc.Generic
 import Text.Pandoc.JSON
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.CommonMark
+import Text.Pandoc.Readers.AsciiDoc
 import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.Org
@@ -249,6 +251,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("docx"         , mkBSReader readDocx)
            ,("t2t"          , mkStringReader readTxt2TagsNoMacros)
            ,("epub"         , mkBSReader readEPUB)
+           ,("asciidoc"     , mkStringReader readAsciiDoc)
            ]
 
 data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)

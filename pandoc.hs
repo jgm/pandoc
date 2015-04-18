@@ -954,6 +954,9 @@ defaultReaderName fallback (x:xs) =
     ".odt"      -> "odt"  -- so we get an "unknown reader" error
     ".pdf"      -> "pdf"  -- so we get an "unknown reader" error
     ".doc"      -> "doc"  -- so we get an "unknown reader" error
+    ".asciidoc" -> "asciidoc"
+    ".asc"      -> "asciidoc"
+    ".adoc"     -> "asciidoc"
     _           -> defaultReaderName fallback xs
 
 -- Returns True if extension of first source is .lhs
