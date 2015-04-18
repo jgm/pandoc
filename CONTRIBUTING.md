@@ -148,7 +148,7 @@ the pandoc library is in `src/`, the source for the tests is in
 `tests/`, and the source for the benchmarks is in `benchmark/`.
 
 The modules `Text.Pandoc.Definition`, `Text.Pandoc.Builder`, and
-`Text.Pandoc.Generics` are in a separate library `pandoc-types`.  The code can
+`Text.Pandoc.Generic` are in a separate library `pandoc-types`.  The code can
 be found in a <http://github.com/jgm/pandoc-types>.
 
 To build pandoc, you will need a working installation of the
