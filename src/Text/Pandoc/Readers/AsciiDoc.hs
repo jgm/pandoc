@@ -5,6 +5,7 @@ module Text.Pandoc.Readers.AsciiDoc (
 import qualified Data.Sequence as Seq
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<$))
+
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
@@ -68,8 +69,9 @@ paragraph = manyTill (anyChar) (try $ newline >> many1 blankline)
 
 titles :: AsciiDocParser (F B.Blocks)
 titles = try $ do
+  posBefore <- getPosition
   many1 (char '=')
+  posAfter <- getPosition
   space
   str <- anyLine
-  -- return $  (fmap (B.Many . Seq.singleton . (Header 1 nullAttr) . (:[]) . Str) str)
-  return $ return $ (B.headerWith nullAttr 1 ((B.Many . Seq.singleton . Str) str))
+  return $ return $ (B.headerWith nullAttr ((sourceColumn posAfter) - (sourceColumn posBefore)) ((B.Many . Seq.singleton . Str) str))
