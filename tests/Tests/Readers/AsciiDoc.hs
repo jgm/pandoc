@@ -56,4 +56,13 @@ tests = [ testGroup "Titles"
             "title level 2\n----------------"
             =?> para (str "title level 2\n----------------")
           ]
+          , testGroup "HorizontalRule"
+          [ "horizontal rule marker with the minimum 3 ' characters" =:
+            "'''"
+            =?> horizontalRule
+
+            , "horizontal rule marker with more chars" =:
+            "'''''''''''''''''"
+            =?> horizontalRule
+          ]
         ]

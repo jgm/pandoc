@@ -1,6 +1,5 @@
 module Text.Pandoc.Readers.AsciiDoc where
 
-import qualified Data.Sequence as Seq
 import Data.Monoid (mconcat, mempty)
 import Control.Applicative ((<$>), (<$))
 
@@ -9,8 +8,8 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import qualified Text.Pandoc.Builder as B
 
-import Debug.Trace (trace)
-import Text.Printf (printf)
+-- import Debug.Trace (trace)
+-- import Text.Printf (printf)
 
 type AsciiDocParser = Parser String ParserState
 
@@ -37,13 +36,11 @@ block = do
   -- tr <- getOption readerTrace
   -- pos <- getPosition
   res <- choice [ mempty <$ blanklines
-                -- TODO: gbataille - remove
-             --   , return <$> (fmap (B.Many . Seq.singleton . Para . (:[]) . Str) anyLine)
                , title
                , literalParagraph
 --                , documentTitle
 --                , explicitId
---                , hrule
+               , hrule
 --                , pageBreak
 --                , list
 --                , labeledLine
@@ -55,15 +52,15 @@ block = do
 --                , table
                 , paragraph
                ] <?> "wtf***"
-  -- when tr $ do
-  --   st <- getState
-  --   trace (printf "line %d: %s" (sourceLine pos)
-  --          (take 60 $ show $ B.toList $ runF res st)) (return ())
   return res
 
--- anyLine :: AsciiDocParser (F B.Blocks)
--- anyLine = anyChar
-
+-- | An horizontal rule is a line containing only ', and at least 3
+hrule :: AsciiDocParser (F B.Blocks)
+hrule = do
+  count 3 (char '\'')
+  skipMany (char '\'')
+  newline
+  return $ return $ B.horizontalRule
 
 paragraph :: AsciiDocParser (F B.Blocks)
 paragraph = do
