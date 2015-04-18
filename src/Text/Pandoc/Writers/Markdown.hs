@@ -246,7 +246,8 @@ noteToMarkdown opts num blocks = do
 -- | Escape special characters for Markdown.
 escapeString :: WriterOptions -> String -> String
 escapeString opts = escapeStringUsing markdownEscapes
-  where markdownEscapes = backslashEscapes specialChars
+  where markdownEscapes = ('<', "&lt;") : ('>', "&gt;") :
+                          backslashEscapes specialChars
         specialChars =
                 (if isEnabled Ext_superscript opts
                     then ('^':)
@@ -257,7 +258,7 @@ escapeString opts = escapeStringUsing markdownEscapes
                 (if isEnabled Ext_tex_math_dollars opts
                     then ('$':)
                     else id) $
-                "\\`*_<>#"
+                "\\`*_[]#"
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: WriterOptions -> [Block] -> Doc
