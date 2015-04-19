@@ -64,8 +64,10 @@ hrule = do
 
 paragraph :: AsciiDocParser (F B.Blocks)
 paragraph = do
-  paraText <- manyTill (anyChar) (try $ newline >> many1 blankline)
-  return $ return $ (B.para . B.str) paraText
+  paraText <- mconcat <$> many1 inline
+  return $ do
+    paraText' <- paraText
+    return $ B.para paraText'
 
 title :: AsciiDocParser (F B.Blocks)
 title = (titleWithUnderline '=' 1) <|>
@@ -119,3 +121,33 @@ literalParagraph = try $ do
     let unecessarySpaces = minimum $ map (length . takeWhile (==' ')) blockLines
     let unindent = drop unecessarySpaces
     return . return $ B.blockQuote $ B.plain $ B.fromList $ map (Str . unindent) blockLines
+
+inline :: AsciiDocParser (F B.Inlines)
+inline = choice [
+  whitespace
+  , endline
+  , str
+  -- specialChar MUST be after str, which catches the alphanum string
+  , specialChar
+  ] <?> "inlines"
+
+endline :: AsciiDocParser (F B.Inlines)
+endline = try $ do
+  newline
+  notFollowedBy blankline
+  return $ return $ B.space
+
+str :: AsciiDocParser (F B.Inlines)
+str = try $ do
+  wordText <- many1 alphaNum
+  return $ return $ B.str wordText
+
+specialChar :: AsciiDocParser (F B.Inlines)
+specialChar = try $ do
+  c <- noneOf "\n "
+  return $ return $ B.str [c]
+
+whitespace :: AsciiDocParser (F B.Inlines)
+whitespace = try $ do
+  spaceChar
+  return $ return $ B.space
