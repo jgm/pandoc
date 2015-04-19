@@ -200,6 +200,9 @@ tests = [ testGroup "inline code"
           [ "blank line before header" =:
             "\n# Header\n"
             =?> headerWith ("header",[],[]) 1 "Header"
+          , "bracketed text (#2062)" =:
+            "# [hi]\n"
+            =?> headerWith ("hi",[],[]) 1 "[hi]"
           ]
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
