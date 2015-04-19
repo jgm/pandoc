@@ -30,10 +30,9 @@ readAsciiDoc opts s =
 
 parseAsciiDoc :: AsciiDocParser Pandoc
 parseAsciiDoc = do
-  -- markdown allows raw HTML
   blocks <- parseBlocks
   st <- getState
-  let Pandoc _ bs = B.doc $ runF blocks st
+  let bs = B.toList $ runF blocks st
   return $ Pandoc nullMeta bs
 
 parseBlocks :: AsciiDocParser (F B.Blocks)
@@ -159,6 +158,11 @@ specialChar :: AsciiDocParser (F B.Inlines)
 specialChar = try $ do
   c <- noneOf "\n "
   return $ return $ B.str [c]
+
+-- stopOnInlineBlockElem :: AsciiDocParser (F B.Inlines)
+-- stopOnInlineBlockElem = do
+--   hrule
+--   unexpected "Stops the inline parsing"
 
 whitespace :: AsciiDocParser (F B.Inlines)
 whitespace = try $ do
