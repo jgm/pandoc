@@ -98,12 +98,13 @@ paragraph = do
 title :: AsciiDocParser (F B.Blocks)
 title = (titleWithUnderline '=' 1) <|>
         (titleWithUnderline '-' 2) <|>
-        titleWithPrefix
+        (titleWithPrefix '=') <|>
+        (titleWithPrefix '#')
 
-titleWithPrefix :: AsciiDocParser (F B.Blocks)
-titleWithPrefix = try $ do
+titleWithPrefix :: Char -> AsciiDocParser (F B.Blocks)
+titleWithPrefix c = try $ do
   posBefore <- getPosition
-  many1 (char '=')
+  many1 (char c)
   posAfter <- getPosition
   let level = (sourceColumn posAfter) - (sourceColumn posBefore)
   space
