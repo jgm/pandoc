@@ -324,4 +324,45 @@ tests = [ testGroup "inline code"
                         }
                 ] "@1657:huyghens")
           ]
+        , let citation = cite [Citation "cita" [] [] AuthorInText 0 0] (str "@cita")
+          in testGroup "footnote/link following citation" -- issue #2083
+          [ "footnote" =:
+              unlines [ "@cita[^note]"
+                      , ""
+                      , "[^note]: note" ] =?>
+              para (
+                citation <> note (para $ str "note")
+              )
+          , "normal link" =:
+              "@cita [link](http://www.com)" =?>
+              para (
+                citation <> space <> link "http://www.com" "" (str "link")
+              )
+          , "reference link" =:
+              unlines [ "@cita [link][link]"
+                      , ""
+                      , "[link]: http://www.com" ] =?>
+              para (
+                citation <> space <> link "http://www.com" "" (str "link")
+              )
+          , "short reference link" =:
+              unlines [ "@cita [link]"
+                      , ""
+                      , "[link]: http://www.com" ] =?>
+              para (
+                citation <> space <> link "http://www.com" "" (str "link")
+              )
+          , "implicit header link" =:
+              unlines [ "# Header"
+                      , "@cita [Header]" ] =?>
+              headerWith ("header",[],[]) 1 (str "Header") <> para (
+                citation <> space <> link "#header" "" (str "Header")
+              )
+          , "regular citation" =:
+              "@cita [foo]" =?>
+              para (
+                cite [Citation "cita" [] [Str "foo"] AuthorInText 0 0]
+                  (str "@cita" <> space <> str "[foo]")
+              )
+          ]
         ]

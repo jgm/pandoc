@@ -1887,8 +1887,20 @@ textualCite = try $ do
          return $ (flip B.cite (B.text $ '@':key ++ " " ++ raw) . (first:))
                <$> rest
        Nothing   ->
-         (do (cs, raw) <- withRaw $ bareloc first
-             return $ (flip B.cite (B.text $ '@':key ++ " " ++ raw)) <$> cs)
+         (do
+          (cs, raw) <- withRaw $ bareloc first
+          let (spaces',raw') = span isSpace raw
+              spc | null spaces' = mempty
+                  | otherwise    = B.space
+          lab <- parseFromString (mconcat <$> many inline) $ dropBrackets raw'
+          fallback <- referenceLink B.link (lab,raw')
+          return $ do
+            fallback' <- fallback
+            cs' <- cs
+            return $
+              case B.toList fallback' of
+                Link{}:_ -> B.cite [first] (B.str $ '@':key) <> spc <> fallback'
+                _        -> B.cite cs' (B.text $ '@':key ++ " " ++ raw))
          <|> return (do st <- askF
                         return $ case M.lookup key (stateExamples st) of
                                  Just n -> B.str (show n)
@@ -1898,10 +1910,12 @@ bareloc :: Citation -> MarkdownParser (F [Citation])
 bareloc c = try $ do
   spnl
   char '['
+  notFollowedBy $ char '^'
   suff <- suffix
   rest <- option (return []) $ try $ char ';' >> citeList
   spnl
   char ']'
+  notFollowedBy $ oneOf "[("
   return $ do
     suff' <- suff
     rest' <- rest
