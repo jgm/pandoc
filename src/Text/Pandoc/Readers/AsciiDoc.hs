@@ -1,3 +1,11 @@
+-- | == Parses AsciiDoc files
+--
+-- While we tried to follow the <http://asciidoctor.org/docs/user-manual/ specification>
+-- we tried also to check it against the CLI implementation (on Mac) and did not implement
+-- some of the features described but that don't exist, including
+--
+--    * Markdown style horizontal rule
+--    * Markdown style titles using '#'
 module Text.Pandoc.Readers.AsciiDoc where
 
 import Data.Monoid (mconcat, mempty)
@@ -51,16 +59,21 @@ block = do
 -- --               , citation -- inline
 --                , table
                 , paragraph
-               ] <?> "wtf***"
+               ] <?> "block"
   return res
 
 -- | An horizontal rule is a line containing only ', and at least 3
 hrule :: AsciiDocParser (F B.Blocks)
-hrule = do
-  count 3 (char '\'')
-  skipMany (char '\'')
-  newline
-  return $ return $ B.horizontalRule
+hrule = try $ do
+  -- Horizontal rules always start the line
+  pos <- getPosition
+  if (sourceColumn pos) /= 1
+    then unexpected "hrule always start the line"
+    else do
+      count 3 (char '\'')
+      skipMany (char '\'')
+      newline
+      return $ return $ B.horizontalRule
 
 paragraph :: AsciiDocParser (F B.Blocks)
 paragraph = do
