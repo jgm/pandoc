@@ -134,4 +134,13 @@ tests = [ F.testGroup "Titles"
                     <> space
                     <> (link ("http://www.foo.bar") ("www.foo.bar") (str "http://www.foo.bar")))
           ]
+          , F.testGroup "Strong"
+          [ "a strong word" =:
+          "a *strong* word"
+          =?> para ((str "a")
+                    <> space
+                    <> strong (str "strong")
+                    <> space
+                    <> (str "word"))
+          ]
         ]

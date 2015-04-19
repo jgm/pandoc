@@ -9,6 +9,7 @@
 --    * Literal paragraphs
 --    * Horizontal rules
 --    * Simple hyperlink support (with alias but no alias formatting)
+--    * Strong section (bold)
 --    * The rest default to plain paragraph
 module Text.Pandoc.Readers.AsciiDoc where
 
@@ -153,11 +154,17 @@ inline :: AsciiDocParser (F B.Inlines)
 inline = choice [
   whitespace
   , endline
+  , bold
   , link
   , str
   -- specialChar MUST be after str, which catches the alphanum string
   , specialChar
   ] <?> "inlines"
+
+bold :: AsciiDocParser (F B.Inlines)
+bold = try $ do
+  strongText <- between (char '*') (char '*') (many $ noneOf "*")
+  return $ return $ B.strong (B.str strongText)
 
 commonURLScheme :: [String]
 -- Careful to keep https before http for pattern matching
