@@ -6,7 +6,6 @@ import Test.Framework
 import Tests.Helpers
 import Tests.Arbitrary()
 import Text.Pandoc.Builder
-import qualified Data.Set as Set
 import Text.Pandoc
 
 asciidoc :: String -> Pandoc
@@ -21,40 +20,48 @@ infix 4 =:
 tests :: [Test]
 tests = [ testGroup "Titles"
           [ "level 2 with line prefix =" =:
-            "== title level 2"
-            =?> header 2 (str "title level 2")
+            "== title"
+            =?> header 2 (str "title")
 
             , "level 5 with line prefix =" =:
-            "===== title level 5"
-            =?> header 5 (str "title level 5")
+            "===== title"
+            =?> header 5 (str "title")
 
             , "level 7 with line prefix = does not exist" =:
-            "======= title level 7"
-            =?> para (str "======= title level 7")
+            "======= title"
+            =?> para ((str "=======") <> space <> (str "title"))
 
             , "level 1 with underline" =:
-            "title level 1\n============="
-            =?> header 1 (str "title level 1")
+            "title\n====="
+            =?> header 1 (str "title")
 
             , "level 2 with underline" =:
-            "title level 2\n-------------"
-            =?> header 2 (str "title level 2")
+            "title\n-----"
+            =?> header 2 (str "title")
 
             , "level 1 with underline not enough symbols" =:
-            "title level 1\n=========="
-            =?> para (str "title level 1\n==========")
+            "title\n=="
+            =?> para ((str "title") <>
+                         space <> (str "=="))
 
             , "level 2 with underline not enough symbols" =:
-            "title level 2\n----------"
-            =?> para (str "title level 2\n----------")
+            "title\n--"
+            =?> para ((str "title") <>
+                         space <> (str "--"))
 
             , "level 1 with underline too many symbols" =:
-            "title level 1\n================"
-            =?> para (str "title level 1\n================")
+            "title\n================"
+            =?> para ((str "title") <>
+                         space <> (str "================"))
 
             , "level 2 with underline too many symbols" =:
-            "title level 2\n----------------"
-            =?> para (str "title level 2\n----------------")
+            "title\n----------------"
+            =?> para ((str "title") <>
+                         space <> (str "----------------"))
+
+            , "level 2 with markdown style" =:
+            "## title\n"
+            =?> header 2 (str "title")
           ]
           , testGroup "HorizontalRule"
           [ "horizontal rule marker with the minimum 3 ' characters" =:
