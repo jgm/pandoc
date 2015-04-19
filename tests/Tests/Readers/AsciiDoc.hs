@@ -2,7 +2,9 @@
 module Tests.Readers.AsciiDoc (tests) where
 
 import Text.Pandoc.Definition
-import Test.Framework
+import qualified Test.Framework as F
+import Test.HUnit (assertBool)
+import Test.Framework.Providers.HUnit
 import Tests.Helpers
 import Tests.Arbitrary()
 import Text.Pandoc.Builder
@@ -11,14 +13,18 @@ import Text.Pandoc
 asciidoc :: String -> Pandoc
 asciidoc = readAsciiDoc def
 
+asciidocBlocks :: String -> [Block]
+asciidocBlocks s = blocks
+  where Pandoc _ blocks = asciidoc s
+
 infix 4 =:
 (=:) :: ToString c
-     => String -> (String, c) -> Test
+     => String -> (String, c) -> F.Test
 (=:) = test asciidoc
 
 
-tests :: [Test]
-tests = [ testGroup "Titles"
+tests :: [F.Test]
+tests = [ F.testGroup "Titles"
           [ "level 2 with line prefix =" =:
             "== title"
             =?> header 2 (str "title")
@@ -63,7 +69,7 @@ tests = [ testGroup "Titles"
             "## title\n"
             =?> header 2 (str "title")
           ]
-          , testGroup "HorizontalRule"
+          , F.testGroup "HorizontalRule"
           [ "horizontal rule marker with the minimum 3 ' characters" =:
             "'''"
             =?> horizontalRule
@@ -104,8 +110,17 @@ tests = [ testGroup "Titles"
             "* * *"
             =?> horizontalRule
 
+            , testCase "horizontal rule markdown markers * * *" $
+               assertBool "horizontal rule markdown markers * * *" $
+                 elem HorizontalRule (asciidocBlocks "* * *")
+
             , "horizontal rule markdown markers --- are exact, no additional dashes" =:
             "----"
             =?> para (str "----")
+
+            , testCase "horizontal rule markdown markers --- are exact, no additional dashes" $
+               assertBool "horizontal rule markdown markers --- are exact, no additional dashes" $
+                 not (elem HorizontalRule (asciidocBlocks "----"))
+
           ]
         ]
