@@ -36,7 +36,7 @@ module Text.Pandoc.Readers.TWiki ( readTWiki
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed, macro, nested)
+import Text.Pandoc.Parsing hiding (enclosed, macro, nested, between)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Data.Monoid (Monoid, mconcat, mempty)
 import Control.Applicative ((<$>), (<*), (*>), (<$))

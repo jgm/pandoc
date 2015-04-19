@@ -110,17 +110,28 @@ tests = [ F.testGroup "Titles"
             "* * *"
             =?> horizontalRule
 
-            , testCase "horizontal rule markdown markers * * *" $
-               assertBool "horizontal rule markdown markers * * *" $
-                 elem HorizontalRule (asciidocBlocks "* * *")
-
-            , "horizontal rule markdown markers --- are exact, no additional dashes" =:
-            "----"
-            =?> para (str "----")
-
             , testCase "horizontal rule markdown markers --- are exact, no additional dashes" $
                assertBool "horizontal rule markdown markers --- are exact, no additional dashes" $
                  not (elem HorizontalRule (asciidocBlocks "----"))
 
+          ]
+          , F.testGroup "HyperLinks"
+          [ "link without an alias" =:
+          "aa http://www.foo.bar"
+          =?> para ((str "aa")
+                    <> space
+                    <> (link ("http://www.foo.bar") ("www.foo.bar") (str "http://www.foo.bar")))
+
+          , "link with an alias" =:
+          "aa http://www.foo.bar[foo]"
+          =?> para ((str "aa")
+                    <> space
+                    <> (link ("http://www.foo.bar") ("www.foo.bar") (str "foo")))
+
+          , "link with an empty alias" =:
+          "aa http://www.foo.bar[]"
+          =?> para ((str "aa")
+                    <> space
+                    <> (link ("http://www.foo.bar") ("www.foo.bar") (str "http://www.foo.bar")))
           ]
         ]

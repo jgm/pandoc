@@ -8,10 +8,13 @@
 --    * Titles of any level
 --    * Literal paragraphs
 --    * Horizontal rules
+--    * Simple hyperlink support (with alias but no alias formatting)
 --    * The rest default to plain paragraph
 module Text.Pandoc.Readers.AsciiDoc where
 
 import Data.Monoid (mconcat, mempty)
+import Data.Maybe
+import qualified Data.Foldable as F
 import Control.Applicative ((<$>), (<$))
 
 import Text.Pandoc.Definition
@@ -43,8 +46,6 @@ parseBlocks = mconcat <$> manyTill block eof
 
 block :: AsciiDocParser (F B.Blocks)
 block = do
-  -- tr <- getOption readerTrace
-  -- pos <- getPosition
   res <- choice [ mempty <$ blanklines
                , title
                , literalParagraph
@@ -55,7 +56,6 @@ block = do
 --                , list
 --                , labeledLine
 --                , labeledMultiLine
-               -- , links
 --                , image
 --                , blockCode
 -- --               , citation -- inline
@@ -153,10 +153,39 @@ inline :: AsciiDocParser (F B.Inlines)
 inline = choice [
   whitespace
   , endline
+  , link
   , str
   -- specialChar MUST be after str, which catches the alphanum string
   , specialChar
   ] <?> "inlines"
+
+commonURLScheme :: [String]
+-- Careful to keep https before http for pattern matching
+commonURLScheme = ["https", "http", "ftp", "irc", "mailto"]
+
+link :: AsciiDocParser (F B.Inlines)
+link = try $ do
+  protocol <- F.foldl1 ((<|>) . try) $ fmap string commonURLScheme
+  sep <- string "://"
+  domains <- many1 subDomain
+  let domains' = mconcat domains
+  extension <- many1 $ noneOf " .\n\t/["
+  rest <- many $ noneOf " \n\t["
+  mbAlias <- optionMaybe  (between (string "[") (string "]") (many $ noneOf "]"))
+  let fullURL = protocol ++ sep ++ domains' ++ extension ++ rest
+  return $ return $ B.link (fullURL)
+                 (domains' ++ extension)
+                 (B.str $ fromMaybe fullURL (mbAlias >>= eliminateEmptyString))
+
+eliminateEmptyString :: String -> Maybe String
+eliminateEmptyString [] = Nothing
+eliminateEmptyString a  = Just a
+
+subDomain :: AsciiDocParser (String)
+subDomain = try $ do
+  domain <- (many1 $ noneOf ". \n\t/")
+  dot <- (string ".")
+  return (domain ++ dot)
 
 endline :: AsciiDocParser (F B.Inlines)
 endline = try $ do
