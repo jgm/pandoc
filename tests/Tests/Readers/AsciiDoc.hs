@@ -71,5 +71,41 @@ tests = [ testGroup "Titles"
             , "horizontal rule marker with more chars" =:
             "'''''''''''''''''"
             =?> horizontalRule
+
+            , "horizontal rule marker with trailing spaces" =:
+            "'''''''          "
+            =?> horizontalRule
+
+            , "horizontal rule markers preceded by spaces is not a horizontal rule" =:
+            " '''"
+            =?> blockQuote ( plain (str "'''") )
+
+            , "horizontal rule markers must be preceded by a blankline" =:
+            "\n'''"
+            =?> horizontalRule
+
+            , "horizontal rule markers not preceded by a blankline is not a horizontal rule" =:
+            "aaa\n'''"
+            =?> para ((str "aaa") <> space <> (str "'''"))
+
+            , "horizontal rule markdown markers ---" =:
+            "---"
+            =?> horizontalRule
+
+            , "horizontal rule markdown markers - - -" =:
+            "- - -"
+            =?> horizontalRule
+
+            , "horizontal rule markdown markers ***" =:
+            "***"
+            =?> horizontalRule
+
+            , "horizontal rule markdown markers * * *" =:
+            "* * *"
+            =?> horizontalRule
+
+            , "horizontal rule markdown markers --- are exact, no additional dashes" =:
+            "----"
+            =?> para (str "----")
           ]
         ]
