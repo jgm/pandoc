@@ -143,4 +143,13 @@ tests = [ F.testGroup "Titles"
                     <> space
                     <> (str "word"))
           ]
+          , F.testGroup "Emphasized"
+          [ "an emphasized word" =:
+          "an _emphasized_ word"
+          =?> para ((str "an")
+                    <> space
+                    <> emph (str "emphasized")
+                    <> space
+                    <> (str "word"))
+          ]
         ]
