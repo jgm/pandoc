@@ -6,6 +6,13 @@
 --
 --    * Markdown style horizontal rule
 --    * Markdown style titles using '#'
+--
+-- ==== Supported features
+--
+--    * Titles of any level
+--    * Literal paragraphs
+--    * Horizontal rules
+--    * The rest default to plain paragraph
 module Text.Pandoc.Readers.AsciiDoc where
 
 import Data.Monoid (mconcat, mempty)
