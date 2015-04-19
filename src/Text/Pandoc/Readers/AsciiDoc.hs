@@ -1,11 +1,7 @@
 -- | == Parses AsciiDoc files
 --
--- While we tried to follow the <http://asciidoctor.org/docs/user-manual/ specification>
--- we tried also to check it against the CLI implementation (on Mac) and did not implement
--- some of the features described but that don't exist, including
---
---    * Markdown style horizontal rule
---    * Markdown style titles using '#'
+-- We based the parser on the following <http://asciidoctor.org/docs/user-manual/ specification>
+-- We tried also to check it against the CLI implementation (ruby gem asciidoctor, on Mac)
 --
 -- ==== Supported features
 --
@@ -59,7 +55,7 @@ block = do
 --                , list
 --                , labeledLine
 --                , labeledMultiLine
---                , links
+               -- , links
 --                , image
 --                , blockCode
 -- --               , citation -- inline
@@ -69,17 +65,28 @@ block = do
   return res
 
 -- | An horizontal rule is a line containing only ', and at least 3
+hruleAsciiDoc :: AsciiDocParser (F B.Blocks)
+hruleAsciiDoc = try $ do
+  count 3 (char '\'')
+  skipMany (char '\'')
+  skipMany spaceChar
+  newline
+  return $ return $ B.horizontalRule
+
+hruleMarkdown :: AsciiDocParser (F B.Blocks)
+hruleMarkdown = try $ do
+  count 3 (oneOf "-*" >> optional spaceChar)
+  skipMany spaceChar
+  newline
+  return $ return $ B.horizontalRule
+
 hrule :: AsciiDocParser (F B.Blocks)
 hrule = try $ do
   -- Horizontal rules always start the line
   pos <- getPosition
   if (sourceColumn pos) /= 1
     then unexpected "hrule always start the line"
-    else do
-      count 3 (char '\'')
-      skipMany (char '\'')
-      newline
-      return $ return $ B.horizontalRule
+    else hruleAsciiDoc <|> hruleMarkdown
 
 paragraph :: AsciiDocParser (F B.Blocks)
 paragraph = do
