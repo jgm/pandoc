@@ -165,19 +165,22 @@ litChar = escapedChar'
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
 inlinesInBalancedBrackets :: MarkdownParser (F Inlines)
-inlinesInBalancedBrackets = charsInBalancedBrackets >>=
-  parseFromString (trimInlinesF . mconcat <$> many inline)
-
-charsInBalancedBrackets :: MarkdownParser [Char]
-charsInBalancedBrackets = do
+inlinesInBalancedBrackets = do
   char '['
-  result <- manyTill (  many1 (noneOf "`[]\n")
-                    <|> (snd <$> withRaw code)
-                    <|> ((\xs -> '[' : xs ++ "]") <$> charsInBalancedBrackets)
-                    <|> count 1 (satisfy (/='\n'))
-                    <|> (newline >> notFollowedBy blankline >> return "\n")
-                     ) (char ']')
-  return $ concat result
+  (_, raw) <- withRaw $ charsInBalancedBrackets 1
+  guard $ not $ null raw
+  parseFromString (trimInlinesF . mconcat <$> many inline) (init raw)
+
+charsInBalancedBrackets :: Int -> MarkdownParser ()
+charsInBalancedBrackets 0 = return ()
+charsInBalancedBrackets openBrackets =
+      (char '[' >> charsInBalancedBrackets (openBrackets + 1))
+  <|> (char ']' >> charsInBalancedBrackets (openBrackets - 1))
+  <|> ((  (() <$ code)
+     <|> (() <$ escapedChar')
+     <|> (newline >> notFollowedBy blankline)
+     <|> skipMany1 (noneOf "[]`\n\\")
+      ) >> charsInBalancedBrackets openBrackets)
 
 --
 -- document structure
