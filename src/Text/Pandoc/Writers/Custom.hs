@@ -40,8 +40,9 @@ import Scripting.Lua (LuaState, StackValue, callfunc)
 import Text.Pandoc.Writers.Shared
 import qualified Scripting.Lua as Lua
 import Text.Pandoc.UTF8 (fromString, toString)
+import qualified Text.Pandoc.UTF8 as UTF8
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as C8
+import qualified Data.ByteString as B
 import Data.Monoid
 import Control.Monad (when)
 import Control.Exception
@@ -67,8 +68,8 @@ getList lua i' = do
      else return []
 
 instance StackValue ByteString where
-    push l x = Lua.push l $ C8.unpack x
-    peek l n = (fmap . fmap) C8.pack (Lua.peek l n)
+    push l x = Lua.push l $ toString x
+    peek l n = (fmap . fmap) fromString (Lua.peek l n)
     valuetype _ = Lua.TSTRING
 
 instance StackValue a => StackValue [a] where
@@ -110,12 +111,12 @@ instance (StackValue a, StackValue b) => StackValue (a,b) where
   valuetype _ = Lua.TTABLE
 
 instance StackValue [Inline] where
-  push l ils = Lua.push l . C8.unpack =<< inlineListToCustom l ils
+  push l ils = Lua.push l . toString =<< inlineListToCustom l ils
   peek _ _ = undefined
   valuetype _ = Lua.TSTRING
 
 instance StackValue [Block] where
-  push l ils = Lua.push l . C8.unpack =<< blockListToCustom l ils
+  push l ils = Lua.push l . toString =<< blockListToCustom l ils
   peek _ _ = undefined
   valuetype _ = Lua.TSTRING
 
@@ -156,7 +157,7 @@ instance Exception PandocLuaException
 -- | Convert Pandoc to custom markup.
 writeCustom :: FilePath -> WriterOptions -> Pandoc -> IO String
 writeCustom luaFile opts doc@(Pandoc meta _) = do
-  luaScript <- C8.unpack `fmap` C8.readFile luaFile
+  luaScript <- UTF8.readFile luaFile
   lua <- Lua.newstate
   Lua.openlibs lua
   status <- Lua.loadstring lua luaScript luaFile
@@ -238,7 +239,7 @@ blockListToCustom lua xs = do
 inlineListToCustom :: LuaState -> [Inline] -> IO ByteString
 inlineListToCustom lua lst = do
   xs <- mapM (inlineToCustom lua) lst
-  return $ C8.concat xs
+  return $ B.concat xs
 
 -- | Convert Pandoc inline element to Custom.
 inlineToCustom :: LuaState -> Inline -> IO ByteString
