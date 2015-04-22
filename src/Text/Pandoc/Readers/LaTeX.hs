@@ -338,6 +338,7 @@ blockCommands = M.fromList $
   , "hyperdef"
   , "markboth", "markright", "markleft"
   , "hspace", "vspace"
+  , "newpage"
   ]
 
 addMeta :: ToMetaValue a => String -> a -> LP ()
