@@ -1,19 +1,24 @@
 # NB: don't set `language: haskell` here
 
+# Ensures that sudo is disabled, so that containerized builds are allowed
+sudo: false
+
 # The following enables several GHC versions to be tested; often it's enough to test only against the last release in a major GHC version. Feel free to omit lines listings versions you don't need/want testing for.
-env:
-# - GHCVER=6.12.3
- - CABALVER=1.16 GHCVER=7.4.2 GHCOPTS="-Werror"
- - CABALVER=1.18 GHCVER=7.6.3 GHCOPTS="-Werror"
- - CABALVER=1.18 GHCVER=7.8.4 GHCOPTS="-Werror" # see note on Alex/Happy
- - CABALVER=1.22 GHCVER=7.10.1 GHCOPTS=""
-# - GHCVER=head  # see section about GHC HEAD snapshots
+matrix:
+ include:
+  - env: CABALVER=1.16 GHCVER=7.4.2 GHCOPTS="-Werror"
+    addons: {apt: {packages: [cabal-install-1.16, ghc-7.4.2], sources: [hvr-ghc]}}
+  - env: CABALVER=1.18 GHCVER=7.6.3 GHCOPTS="-Werror"
+    addons: {apt: {packages: [cabal-install-1.18, ghc-7.6.3], sources: [hvr-ghc]}}
+  - env: CABALVER=1.18 GHCVER=7.8.4 GHCOPTS="-Werror"
+    addons: {apt: {packages: [cabal-install-1.18, ghc-7.8.4], sources: [hvr-ghc]}}
+  - env: CABALVER=1.22 GHCVER=7.10.1 GHCOPTS=""
+    addons: {apt: {packages: [cabal-install-1.22, ghc-7.10.1],sources: [hvr-ghc]}}
+#  - env: CABALVER=head GHCVER=head GHCOPTS="-Werror"
+#    addons: {apt: {packages: [cabal-install-head,ghc-head],  sources: [hvr-ghc]}}
 
 # Note: the distinction between `before_install` and `install` is not important.
 before_install:
- - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
- - travis_retry sudo apt-get update
- - travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER
  - export PATH=/opt/ghc/$GHCVER/bin:$PATH
 
 install:
