@@ -883,7 +883,7 @@ definitionListItem compact = try $ do
   rawLine' <- anyLine
   raw <- many1 $ defRawBlock compact
   term <- parseFromString (trimInlinesF . mconcat <$> many inline) rawLine'
-  contents <- mapM (parseFromString parseBlocks) raw
+  contents <- mapM (parseFromString parseBlocks . (++"\n")) raw
   optional blanklines
   return $ liftM2 (,) term (sequence contents)
 

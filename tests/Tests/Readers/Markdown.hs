@@ -276,6 +276,9 @@ tests = [ testGroup "inline code"
           , "first line not indented" =:
             "foo\n: bar\n" =?>
             definitionList [ (text "foo", [plain (text "bar")]) ]
+          , "list in definition" =:
+            "foo\n:   - bar\n" =?>
+            definitionList [ (text "foo", [bulletList [plain (text "bar")]]) ]
           ]
         , testGroup "+compact_definition_lists"
           [ test markdownCDL "basic compact list" $
