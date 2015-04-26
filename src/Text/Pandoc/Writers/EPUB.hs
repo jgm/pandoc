@@ -531,7 +531,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
               case epubCoverImage metadata of
                     Nothing -> []
                     Just _ -> [ unode "itemref" !
-                                [("idref", "cover_xhtml"),("linear","no")] $ () ]
+                                [("idref", "cover_xhtml")] $ () ]
               ++ ((unode "itemref" ! [("idref", "title_page_xhtml")
                                      ,("linear",
                                          case lookupMeta "title" meta of
