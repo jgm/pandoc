@@ -1,7 +1,7 @@
 install:
 - 'git submodule update --init'
 - 'choco install haskellplatform -version 2014.2.0.0 -y'
-- 'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path /t REG_SZ /d "%path%;C:\Program Files\Haskell Platform\2014.2.0.0\bin;C:\Program Files\Haskell Platform\2014.2.0.0\lib\extralibs\bin;C:\Program Files\Haskell Platform\2014.2.0.0\mingw\bin"'
+- 'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path /t REG_SZ /d "%path%;C:\Program Files\Haskell Platform\2014.2.0.0\bin;C:\Program Files\Haskell Platform\2014.2.0.0\lib\extralibs\bin;C:\Program Files\Haskell Platform\2014.2.0.0\mingw\bin" /f'
 - cabal update
 - cabal install --only-dependencies --enable-tests -w "C:\Program Files\Haskell Platform\2014.2.0.0\bin\ghc-7.8.3"
 
