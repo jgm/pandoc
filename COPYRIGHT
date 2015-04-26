@@ -1,5 +1,5 @@
 Pandoc
-Copyright (C) 2006-2014 John MacFarlane <jgm at berkeley dot edu>
+Copyright (C) 2006-2015 John MacFarlane <jgm at berkeley dot edu>
 
 This code is released under the [GPL], version 2 or later:
 
@@ -33,32 +33,32 @@ licenses.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Texinfo.hs
-Copyright (C) 2008-2014 John MacFarlane and Peter Wang
+Copyright (C) 2008-2015 John MacFarlane and Peter Wang
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/OpenDocument.hs
-Copyright (C) 2008-2014 Andrea Rossato and John MacFarlane
+Copyright (C) 2008-2015 Andrea Rossato and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Org.hs
-Copyright (C) 2010-2014 Puneeth Chaganti and JohnMacFarlane
+Copyright (C) 2010-2015 Puneeth Chaganti and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/Textile.hs
-Copyright (C) 2010-2014 Paul Rivier and John MacFarlane
+Copyright (C) 2010-2015 Paul Rivier and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/Org.hs
 tests/Tests/Readers/Org.hs
-Copyright (C) 2014 Albert Krewinkel
+Copyright (C) 2014-2015 Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
 
