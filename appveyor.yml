@@ -3,10 +3,10 @@ install:
 - 'choco install haskellplatform -version 2014.2.0.0 -y'
 - 'SET PATH=%PATH%;"C:\Program Files\Haskell Platform\2014.2.0.0\bin";"C:\Program Files\Haskell Platform\2014.2.0.0\lib\extralibs\bin";"C:\Program Files\Haskell Platform\2014.2.0.0\mingw\bin"'
 - cabal update
-- cabal install --only-dependencies --enable-tests
+- cabal install --only-dependencies --enable-tests -w "C:\Program Files\Haskell Platform\2014.2.0.0\bin\ghc-7.8.3"
 
 build_script:
-- 'cabal configure --enable-tests -v2'
+- 'cabal configure --enable-tests -v2 -w "C:\Program Files\Haskell Platform\2014.2.0.0\bin\ghc-7.8.3"'
 - 'cabal build'
 
 test_script:
