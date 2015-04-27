@@ -1,5 +1,5 @@
 install:
-- ps: >-
+- ps: |
     git submodule update --init
     choco install haskellplatform -version 2014.2.0.0 -y
     # Haskell Platfrom package doesn't update PATH for the current shell instance
@@ -12,11 +12,11 @@ install:
     cabal install --only-dependencies --enable-tests -w "C:\Program Files\Haskell Platform\2014.2.0.0\bin\ghc-7.8.3"
 
 build_script:
-- ps: >-
+- ps: |
     echo "PATH is $env:Path"
     cabal configure --enable-tests -v2 -w "C:\Program Files\Haskell Platform\2014.2.0.0\bin\ghc-7.8.3"
     cabal build
 
 test_script:
-- ps: >-
+- ps: |
     cabal test
