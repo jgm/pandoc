@@ -497,6 +497,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("wmx","video/x-ms-wmx")
            ,("wmz","application/x-ms-wmz")
            ,("woff","application/x-font-woff")
+           ,("woff2","application/x-font-woff2")
            ,("wp5","application/wordperfect5.1")
            ,("wpd","application/wordperfect")
            ,("wrl","model/vrml")
