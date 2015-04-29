@@ -380,7 +380,7 @@ pTable = try $ do
   skipMany pBlank
   caption <- option mempty $ pInTags "caption" inline <* skipMany pBlank
   -- TODO actually read these and take width information from them
-  widths' <- pColgroup <|> many pCol
+  widths' <- (mconcat <$> many1 pColgroup) <|> many pCol
   let pTh = option [] $ pInTags "tr" (pCell "th")
       pTr = try $ skipMany pBlank >> pInTags "tr" (pCell "td" <|> pCell "th")
       pTBody = do pOptInTag "tbody" $ many1 pTr
