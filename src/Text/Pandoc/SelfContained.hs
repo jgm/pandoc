@@ -97,18 +97,22 @@ cssURLs media sourceURL d orig =
        (x,y) | B.null y  -> return orig
              | otherwise -> do
                   let (u,v) = B.breakSubstring ")" $ B.drop 4 y
+                  rest <- cssURLs media sourceURL d v
                   let url = toString
                           $ case B.take 1 u of
                                  "\"" -> B.takeWhile (/='"') $ B.drop 1 u
                                  "'"  -> B.takeWhile (/='\'') $ B.drop 1 u
                                  _    -> u
-                  let url' = if isURI url
-                                then url
-                                else d </> url
-                  (raw, mime) <- getRaw media sourceURL "" url'
-                  rest <- cssURLs media sourceURL d v
-                  let enc = fromString $ makeDataURI mime raw
-                  return $ x `B.append` "url(" `B.append` enc `B.append` rest
+                  case url of
+                      '#':_ -> return $ x `B.append` rest
+                      _     -> do
+                        let url' = if isURI url
+                                      then url
+                                      else d </> url
+                        (raw, mime) <- getRaw media sourceURL "" url'
+                        let enc = fromString $ makeDataURI mime raw
+                        return $ x `B.append` "url(" `B.append` enc
+                                   `B.append` rest
 
 getRaw :: MediaBag -> Maybe String -> MimeType -> String
        -> IO (ByteString, MimeType)
