@@ -57,6 +57,8 @@ import Text.Pandoc.Options ( WriterOptions(..)
                            , ObfuscationMethod(NoObfuscation) )
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walk, walkM)
+import Data.Default
+import Text.Pandoc.Writers.Markdown (writePlain)
 import Control.Monad.State (modify, get, execState, State, put, evalState)
 import Control.Monad (foldM, mplus, liftM, when)
 import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
@@ -226,8 +228,9 @@ addMetadataFromXML _ md = md
 
 metaValueToString :: MetaValue -> String
 metaValueToString (MetaString s) = s
-metaValueToString (MetaInlines ils) = stringify ils
-metaValueToString (MetaBlocks bs) = stringify bs
+metaValueToString (MetaInlines ils) = writePlain def
+                                      (Pandoc nullMeta [Plain ils])
+metaValueToString (MetaBlocks bs) = writePlain def (Pandoc nullMeta bs)
 metaValueToString (MetaBool b) = show b
 metaValueToString _ = ""
 
