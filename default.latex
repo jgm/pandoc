@@ -146,10 +146,14 @@ $header-includes$
 $endfor$
 
 % Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
 \let\oldparagraph\paragraph
 \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
 \let\oldsubparagraph\subparagraph
 \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
 
 \begin{document}
 $if(title)$
