@@ -313,7 +313,8 @@ blockToLaTeX (Div (identifier,classes,_) bs) = do
   ref <- toLabel identifier
   let linkAnchor = if null identifier
                       then empty
-                      else "\\hyperdef{}" <> braces (text ref) <> "{}"
+                      else "\\hyperdef{}" <> braces (text ref) <>
+                           braces ("\\label" <> braces (text ref))
   contents <- blockListToLaTeX bs
   if beamer && "notes" `elem` classes  -- speaker notes
      then return $ "\\note" <> braces contents
@@ -718,7 +719,8 @@ inlineToLaTeX (Span (id',classes,_) ils) = do
   ref <- toLabel id'
   let linkAnchor = if null id'
                       then empty
-                      else "\\hyperdef{}" <> braces (text ref) <> "{}"
+                      else "\\hyperdef{}" <> braces (text ref) <>
+                             braces ("\\label" <> braces (text ref))
   fmap (linkAnchor <>)
     ((if noEmph then inCmd "textup" else id) .
      (if noStrong then inCmd "textnormal" else id) .
