@@ -279,6 +279,10 @@ tests = [ testGroup "inline code"
           , "list in definition" =:
             "foo\n:   - bar\n" =?>
             definitionList [ (text "foo", [bulletList [plain (text "bar")]]) ]
+          , "in div" =:
+            "<div>foo\n:   - bar\n</div>" =?>
+            divWith nullAttr (definitionList
+              [ (text "foo", [bulletList [plain (text "bar")]]) ])
           ]
         , testGroup "+compact_definition_lists"
           [ test markdownCDL "basic compact list" $

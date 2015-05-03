@@ -894,6 +894,7 @@ defRawBlock compact = try $ do
   firstline <- anyLine
   let dline = try
                ( do notFollowedBy blankline
+                    notFollowedByHtmlCloser
                     if compact -- laziness not compatible with compact
                        then () <$ indentSpaces
                        else (() <$ indentSpaces)
