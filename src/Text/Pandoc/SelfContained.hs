@@ -43,9 +43,17 @@ import qualified Data.ByteString.Lazy as L
 import Text.Pandoc.Shared (renderTags', err, fetchItem')
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.MIME (MimeType)
-import Text.Pandoc.UTF8 (toString,  fromString)
+import Text.Pandoc.UTF8 (toString)
 import Text.Pandoc.Options (WriterOptions(..))
 import Data.List (isPrefixOf)
+import Control.Applicative
+import Text.CSS.Parse (parseNestedBlocks, NestedBlock(..))
+import Text.CSS.Render (renderNestedBlocks)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
+import qualified Data.Text as T
+import Data.Text (Text)
+import Data.Text.Lazy (toStrict)
+import Data.Text.Lazy.Builder (toLazyText)
 
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c
@@ -69,54 +77,62 @@ convertTag media sourceURL t@(TagOpen tagname as)
   where processAttribute (x,y) =
            if x == "src" || x == "href" || x == "poster"
               then do
-                (raw, mime) <- getRaw media sourceURL (fromAttrib "type" t) y
-                let enc = makeDataURI mime raw
+                enc <- getDataURI media sourceURL (fromAttrib "type" t) y
                 return (x, enc)
               else return (x,y)
 convertTag media sourceURL t@(TagOpen "script" as) =
   case fromAttrib "src" t of
        []     -> return t
        src    -> do
-           (raw, mime) <- getRaw media sourceURL (fromAttrib "type" t) src
-           let enc = makeDataURI mime raw
+           enc <- getDataURI media sourceURL (fromAttrib "type" t) src
            return $ TagOpen "script" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
 convertTag media sourceURL t@(TagOpen "link" as) =
   case fromAttrib "href" t of
        []  -> return t
        src -> do
-           (raw, mime) <- getRaw media sourceURL (fromAttrib "type" t) src
-           let enc = makeDataURI mime raw
+           enc <- getDataURI media sourceURL (fromAttrib "type" t) src
            return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"])
 convertTag _ _ t = return t
 
 -- NOTE: This is really crude, it doesn't respect CSS comments.
 cssURLs :: MediaBag -> Maybe String -> FilePath -> ByteString
         -> IO ByteString
-cssURLs media sourceURL d orig =
-  case B.breakSubstring "url(" orig of
-       (x,y) | B.null y  -> return orig
-             | otherwise -> do
-                  let (u,v) = B.breakSubstring ")" $ B.drop 4 y
-                  rest <- cssURLs media sourceURL d v
-                  let url = toString
-                          $ case B.take 1 u of
-                                 "\"" -> B.takeWhile (/='"') $ B.drop 1 u
-                                 "'"  -> B.takeWhile (/='\'') $ B.drop 1 u
-                                 _    -> u
-                  case url of
-                      '#':_ -> return $ x `B.append` rest
-                      _     -> do
-                        let url' = if isURI url
-                                      then url
-                                      else d </> url
-                        (raw, mime) <- getRaw media sourceURL "" url'
-                        let enc = fromString $ makeDataURI mime raw
-                        return $ x `B.append` "url(" `B.append` enc
-                                   `B.append` rest
+cssURLs media sourceURL d orig = do
+  case parseNestedBlocks (decodeUtf8 orig) of
+       Left _err  -> return orig
+       Right bs   -> (encodeUtf8 . toStrict . toLazyText . renderNestedBlocks)
+                   <$> mapM (handleCSSUrls media sourceURL d) bs
 
-getRaw :: MediaBag -> Maybe String -> MimeType -> String
-       -> IO (ByteString, MimeType)
-getRaw media sourceURL mimetype src = do
+handleCSSUrls :: MediaBag -> Maybe String -> FilePath -> NestedBlock
+              -> IO NestedBlock
+handleCSSUrls media sourceURL d (NestedBlock t bs) =
+  NestedBlock t <$> mapM (handleCSSUrls media sourceURL d) bs
+handleCSSUrls media sourceURL d (LeafBlock (selector, attrs)) = do
+  attrs' <- mapM (handleCSSAttr media sourceURL d) attrs
+  return (LeafBlock (selector, attrs'))
+
+handleCSSAttr :: MediaBag -> Maybe String -> FilePath -> (Text, Text)
+              -> IO (Text, Text)
+handleCSSAttr media sourceURL d (key, val) =
+  if "url(" `T.isPrefixOf` val
+     then do
+        let url = T.unpack $ dropParens $ T.drop 3 val
+        case url of
+             '#':_ -> return (key, val)
+             'd':'a':'t':'a':':':_ -> return (key, val)
+             _ -> do
+               let url' = if isURI url then url else d </> url
+               enc <- getDataURI media sourceURL "" url'
+               return (key, T.pack enc)
+      else return (key, val)
+
+dropParens :: Text -> Text
+dropParens = T.dropAround (`elem` ['(',')','"','\'',' ','\t','\n','\r'])
+
+getDataURI :: MediaBag -> Maybe String -> MimeType -> String
+       -> IO String
+getDataURI _ _ _ src@('d':'a':'t':'a':':':_) = return src  -- already data: uri
+getDataURI media sourceURL mimetype src = do
   let ext = map toLower $ takeExtension src
   fetchResult <- fetchItem' media sourceURL src
   (raw, respMime) <- case fetchResult of
@@ -142,7 +158,7 @@ getRaw media sourceURL mimetype src = do
   result <- if mime == "text/css"
                then cssURLs media cssSourceURL (takeDirectory src) raw'
                else return raw'
-  return (result, mime)
+  return $ makeDataURI mime result
 
 -- | Convert HTML into self-contained HTML, incorporating images,
 -- scripts, and CSS using data: URIs.
