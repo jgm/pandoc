@@ -1096,7 +1096,7 @@ footnotes.
 Paragraphs
 ----------
 
-A paragraph is one or more lines of text followed by one or more blank line.
+A paragraph is one or more lines of text followed by one or more blank lines.
 Newlines are treated as spaces, so you can reflow your paragraphs as you like.
 If you need a hard line break, put two or more spaces at the end of a line.
 
@@ -1943,7 +1943,7 @@ to wrap within cells, use multiline or grid tables.
     http://michelf.ca/projects/php-markdown/extra/#table
 
 Note:  Pandoc also recognizes pipe tables of the following
-form, as can produced by Emacs' orgtbl-mode:
+form, as can be produced by Emacs' orgtbl-mode:
 
     | One | Two   |
     |-----+-------|
@@ -3053,7 +3053,7 @@ you use deeper nesting of section levels with reveal.js.
 Incremental lists
 -----------------
 
-By default, these writers produces lists that display "all at once."
+By default, these writers produce lists that display "all at once."
 If you want your lists to display incrementally (one item at a time),
 use the `-i` option. If you want a particular list to depart from the
 default (that is, to display incrementally without the `-i` option and
