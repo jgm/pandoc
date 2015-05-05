@@ -1,6 +1,10 @@
-{-# LANGUAGE OverlappingInstances, FlexibleInstances, OverloadedStrings,
-    ScopedTypeVariables, DeriveDataTypeable #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE FlexibleInstances, OverloadedStrings,
+    ScopedTypeVariables, DeriveDataTypeable, CPP #-}
+#if MIN_VERSION_base(4,8,0)
+#else
+{-# LANGUAGE OverlappingInstances #-}
+#endif
 {- Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
@@ -65,7 +69,11 @@ getList lua i' = do
        return (x : rest)
      else return []
 
+#if MIN_VERSION_base(4,8,0)
+instance {-# OVERLAPS #-} StackValue a => StackValue [a] where
+#else
 instance StackValue a => StackValue [a] where
+#endif
   push lua xs = do
     Lua.createtable lua (length xs + 1) 0
     let addValue (i, x) = Lua.push lua x >> Lua.rawseti lua (-2) i
