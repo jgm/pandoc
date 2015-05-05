@@ -2688,6 +2688,12 @@ files, but you can use `.bibtex` to force BibTeX.
 Note that `pandoc-citeproc --bib2json` and `pandoc-citeproc --bib2yaml`
 can produce `.json` and `.yaml` files from any of the supported formats.
 
+In-field markup: In bibtex and biblatex databases, pandoc-citeproc parses
+(a subset of) LaTeX markup; in CSL JSON databases, an HTML-like markup
+([specs](http://docs.citationstyles.org/en/1.0/release-notes.html#rich-text-markup-within-fields)); 
+and in CSL YAML databases, pandoc markdown. `pandoc-citeproc -j` and `-y` 
+interconvert these markup formats as far as possible.
+
 As an alternative to specifying a bibliography file, you can include
 the citation data directly in the `references` field of the
 document's YAML metadata. The field should contain an array of
