@@ -93,10 +93,16 @@ dropBOM :: String -> String
 dropBOM ('\xFEFF':xs) = xs
 dropBOM xs = xs
 
+filterCRs :: String -> String
+filterCRs ('\r':'\n':xs) = '\n': filterCRs xs
+filterCRs ('\r':xs) = '\n' : filterCRs xs
+filterCRs (x:xs) = x : filterCRs xs
+filterCRs []     = []
+
 -- | Convert UTF8-encoded ByteString to String, also
 -- removing '\r' characters.
 toString :: B.ByteString -> String
-toString = filter (/='\r') . dropBOM . T.unpack . T.decodeUtf8
+toString = filterCRs . dropBOM . T.unpack . T.decodeUtf8
 
 fromString :: String -> B.ByteString
 fromString = T.encodeUtf8 . T.pack
@@ -104,7 +110,7 @@ fromString = T.encodeUtf8 . T.pack
 -- | Convert UTF8-encoded ByteString to String, also
 -- removing '\r' characters.
 toStringLazy :: BL.ByteString -> String
-toStringLazy = filter (/='\r') . dropBOM . TL.unpack . TL.decodeUtf8
+toStringLazy = filterCRs . dropBOM . TL.unpack . TL.decodeUtf8
 
 fromStringLazy :: String -> BL.ByteString
 fromStringLazy = TL.encodeUtf8 . TL.pack
