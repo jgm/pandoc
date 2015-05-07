@@ -1337,9 +1337,9 @@ Note: blank lines in the verbatim text need not begin with four spaces.
 
 In addition to standard indented code blocks, Pandoc supports
 *fenced* code blocks.  These begin with a row of three or more
-tildes (`~`) or backticks (`` ` ``) and end with a row of tildes or
-backticks that must be at least as long as the starting row. Everything
-between these lines is treated as code. No indentation is necessary:
+tildes (`~`) and end with a row of tildes that must be at least as long as
+the starting row. Everything between these lines is treated as code. No
+indentation is necessary:
 
     ~~~~~~~
     if (a > 3) {
@@ -1359,9 +1359,14 @@ row of tildes or backticks at the start and end:
     ~~~~~~~~~~
     ~~~~~~~~~~~~~~~~
 
+#### Extension: `backtick_code_blocks` ####
+
+Same as `fenced_code_blocks`, but uses backticks (`` ` ``) instead of tildes
+(`~`).
+
 #### Extension: `fenced_code_attributes` ####
 
-Optionally, you may attach attributes to the code block using
+Optionally, you may attach attributes to fenced or backtick code block using
 this syntax:
 
     ~~~~ {#mycode .haskell .numberLines startFrom="100"}
@@ -2690,8 +2695,8 @@ can produce `.json` and `.yaml` files from any of the supported formats.
 
 In-field markup: In bibtex and biblatex databases, pandoc-citeproc parses
 (a subset of) LaTeX markup; in CSL JSON databases, an HTML-like markup
-([specs](http://docs.citationstyles.org/en/1.0/release-notes.html#rich-text-markup-within-fields)); 
-and in CSL YAML databases, pandoc markdown. `pandoc-citeproc -j` and `-y` 
+([specs](http://docs.citationstyles.org/en/1.0/release-notes.html#rich-text-markup-within-fields));
+and in CSL YAML databases, pandoc markdown. `pandoc-citeproc -j` and `-y`
 interconvert these markup formats as far as possible.
 
 As an alternative to specifying a bibliography file, you can include
