@@ -75,9 +75,17 @@ hruleAsciiDoc = try $ do
   newline
   return $ return $ B.horizontalRule
 
+-- | The markdown style hrule is composed of exactly 3 '-' (dash)
+-- or exactly 3 '*' (star)
+-- there should not be any leading space on the line
+-- there can be 0 or 1 space in between the chars
 hruleMarkdown :: AsciiDocParser (F B.Blocks)
 hruleMarkdown = try $ do
-  count 3 (oneOf "-*" >> optional spaceChar)
+  choice [ (try $ string "---")
+        , (try $ string "- - -")
+        , (try $ string "***")
+        , (try $ string "* * *")
+    ] <?> "markdown style hrule"
   skipMany spaceChar
   newline
   return $ return $ B.horizontalRule

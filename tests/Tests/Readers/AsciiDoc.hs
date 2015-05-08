@@ -111,6 +111,18 @@ tests = [ F.testGroup "Titles"
             "* * *"
             =?> horizontalRule
 
+            , testCase "horizontal rule markdown mixed markers * - *" $
+                assertBool "horizontal rule markdown mixed markers * - *" $
+                  not (elem HorizontalRule (asciidocBlocks "* - *"))
+
+            , testCase "horizontal rule markdown mixed markers - - *" $
+                assertBool "horizontal rule markdown mixed markers - - *" $
+                  not (elem HorizontalRule (asciidocBlocks "- - *"))
+
+            , testCase "horizontal rule markdown mixed markers -**" $
+                assertBool "horizontal rule markdown mixed markers -**" $
+                  not (elem HorizontalRule (asciidocBlocks "-**"))
+
             , testCase "horizontal rule markdown markers --- are exact, no additional dashes" $
                assertBool "horizontal rule markdown markers --- are exact, no additional dashes" $
                  not (elem HorizontalRule (asciidocBlocks "----"))
