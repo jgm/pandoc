@@ -22,6 +22,7 @@ import Control.Applicative ((<$>), (<$))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
+import Text.Pandoc.Error
 import qualified Text.Pandoc.Builder as B
 
 -- import Debug.Trace (trace)
@@ -31,8 +32,7 @@ type AsciiDocParser = Parser String ParserState
 
 readAsciiDoc :: ReaderOptions
              -> String
-             -> Pandoc
--- readAsciiDoc opts s = Pandoc (Meta (Map.singleton "foo" (MetaString "bar"))) []
+             -> (Either PandocError Pandoc)
 readAsciiDoc opts s =
   (readWith parseAsciiDoc) def{ stateOptions = opts } (s ++ "\n\n")
 

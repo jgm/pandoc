@@ -8,10 +8,11 @@ import Test.Framework.Providers.HUnit
 import Tests.Helpers
 import Tests.Arbitrary()
 import Text.Pandoc.Builder
+import Text.Pandoc.Error
 import Text.Pandoc
 
 asciidoc :: String -> Pandoc
-asciidoc = readAsciiDoc def
+asciidoc = handleError . (readAsciiDoc def)
 
 asciidocBlocks :: String -> [Block]
 asciidocBlocks s = blocks
