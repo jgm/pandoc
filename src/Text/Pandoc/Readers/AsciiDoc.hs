@@ -179,7 +179,7 @@ commonURLScheme = ["https", "http", "ftp", "irc", "mailto"]
 
 link :: AsciiDocParser (F B.Inlines)
 link = try $ do
-  protocol <- F.foldl1 ((<|>) . try) $ fmap string commonURLScheme
+  protocol <- choice (fmap (try . string) commonURLScheme) <?> "url scheme"
   sep <- string "://"
   domains <- many1 subDomain
   let domains' = mconcat domains
