@@ -45,24 +45,22 @@ parseBlocks :: AsciiDocParser (F B.Blocks)
 parseBlocks = mconcat <$> manyTill block eof
 
 block :: AsciiDocParser (F B.Blocks)
-block = do
-  res <- choice [ mempty <$ blanklines
-                , title
-                , literalParagraph
- --                , documentTitle
- --                , explicitId
-                , hrule
- --                , pageBreak
- --                , list
- --                , labeledLine
- --                , labeledMultiLine
- --                , image
- --                , blockCode
- -- --               , citation -- inline
- --                , table
-                 , paragraph
-                 ] <?> "block"
-  return res
+block = choice [ mempty <$ blanklines
+               , title
+               , literalParagraph
+ --            , documentTitle
+ --            , explicitId
+               , hrule
+ --            , pageBreak
+ --            , list
+ --            , labeledLine
+ --            , labeledMultiLine
+ --            , image
+ --            , blockCode
+ --            , citation -- inline
+ --            , table
+               , paragraph
+               ] <?> "block"
 
 -- | An horizontal rule is a line containing only ', and at least 3
 hruleAsciiDoc :: AsciiDocParser (F B.Blocks)
