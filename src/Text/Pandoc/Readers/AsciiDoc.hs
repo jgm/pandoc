@@ -14,10 +14,7 @@
 --    * The rest default to plain paragraph
 module Text.Pandoc.Readers.AsciiDoc where
 
-import Data.Monoid (mconcat, mempty)
 import Data.Maybe
-import qualified Data.Foldable as F
-import Control.Applicative ((<$>), (<$))
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
