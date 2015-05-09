@@ -160,7 +160,7 @@ tests = [ F.testGroup "Titles"
           "a *strong\nmultiline* text"
           =?> para ((str "a")
                     <> space
-                    <> strong (str "strong multiline")
+                    <> strong ((str "strong") <> space <> (str "multiline"))
                     <> space
                     <> (str "text"))
 
@@ -201,5 +201,9 @@ tests = [ F.testGroup "Titles"
                     <> emph (str "emphasized")
                     <> space
                     <> (str "word"))
+
+          , "both strong and emphasized" =:
+          "_*text*_"
+          =?> (para . emph . strong . str) "text"
           ]
         ]

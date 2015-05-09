@@ -15,6 +15,7 @@
 module Text.Pandoc.Readers.AsciiDoc where
 
 import Data.Maybe
+import Control.Monad (liftM)
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -178,26 +179,29 @@ endBlock = try $ newline >> blankline
 -- The ending marker must not be preceded by a space
 -- The ending marker must not be followed by an alphanumeric
 enclosed :: AsciiDocParser String
-         -> (String -> B.Inlines)
          -> AsciiDocParser (F B.Inlines)
-enclosed marker inliner = try $ do
-  text <- betweenNonGreedy
-                (marker >> (notFollowedBy spaceChar))
-                (marker >> (notFollowedBy alphaNum))
-                (
-                  (notFollowedBy endBlock) >> (
-                    (spaceChar >> marker) <|>
-                    (count 1 anyChar)
-                  )
-                )
-  return $ return $ inliner text
+enclosed delimiter =
+  mconcat <$> (
+    try $
+      (delimiter >> (notFollowedBy spaceChar))
+      >>
+      (manyTill
+        ((spacePrecededClosingDelimiter delimiter) <|> inline)
+        (delimiter >> (notFollowedBy alphaNum))
+      )
+    )
 
+spacePrecededClosingDelimiter :: AsciiDocParser String
+                              -> AsciiDocParser (F B.Inlines)
+spacePrecededClosingDelimiter delimiter = try $ do
+  del <- spaceChar >> delimiter
+  return $ return $ B.space B.<> (B.str del)
 
 emph :: AsciiDocParser (F B.Inlines)
-emph = enclosed (string "_") (B.emph . B.str)
+emph = (liftM (liftM B.emph) (enclosed (string "_")))
 
 bold :: AsciiDocParser (F B.Inlines)
-bold = enclosed (string "*") (B.strong . B.str)
+bold = (liftM (liftM B.strong) (enclosed (string "*")))
 
 commonURLScheme :: [String]
 -- Careful to keep https before http for pattern matching
@@ -252,10 +256,3 @@ whitespace :: AsciiDocParser (F B.Inlines)
 whitespace = try $ do
   spaceChar
   return $ return $ B.space
-
-betweenNonGreedy :: AsciiDocParser a
-                 -> AsciiDocParser b
-                 -> AsciiDocParser [Char]
-                 -> AsciiDocParser [Char]
-betweenNonGreedy start end content =
-  mconcat <$> try ( start >> manyTill content end )
