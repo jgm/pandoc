@@ -155,7 +155,44 @@ tests = [ F.testGroup "Titles"
                     <> strong (str "strong")
                     <> space
                     <> (str "word"))
+
+          , "strong spanning several lines" =:
+          "a *strong\nmultiline* text"
+          =?> para ((str "a")
+                    <> space
+                    <> strong (str "strong multiline")
+                    <> space
+                    <> (str "text"))
+
+          , "not strong due to space after opening char" =:
+          "a * strong* text"
+          =?> para ((str "a")
+                    <> space
+                    <> (str "*")
+                    <> space
+                    <> (str "strong*")
+                    <> space
+                    <> (str "text"))
+
+          , "not strong due to space before closing char" =:
+          "a *strong * text"
+          =?> para ((str "a")
+                    <> space
+                    <> (str "*strong")
+                    <> space
+                    <> (str "*")
+                    <> space
+                    <> (str "text"))
+
+          , "not strong due to alphanum after closing char" =:
+          "a *strong*ornot text"
+          =?> para ((str "a")
+                    <> space
+                    <> (str "*strong*ornot")
+                    <> space
+                    <> (str "text"))
           ]
+
           , F.testGroup "Emphasized"
           [ "an emphasized word" =:
           "an _emphasized_ word"

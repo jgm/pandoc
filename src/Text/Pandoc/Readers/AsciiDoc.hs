@@ -177,22 +177,27 @@ endBlock = try $ newline >> blankline
 -- The starting marker must not be followed by a space
 -- The ending marker must not be preceded by a space
 -- The ending marker must not be followed by an alphanumeric
-enclosed :: AsciiDocParser a
+enclosed :: AsciiDocParser String
          -> (String -> B.Inlines)
          -> AsciiDocParser (F B.Inlines)
 enclosed marker inliner = try $ do
   text <- betweenNonGreedy
                 (marker >> (notFollowedBy spaceChar))
                 (marker >> (notFollowedBy alphaNum))
-                ((notFollowedBy endBlock) >> anyChar)
+                (
+                  (notFollowedBy endBlock) >> (
+                    (spaceChar >> marker) <|>
+                    (count 1 anyChar)
+                  )
+                )
   return $ return $ inliner text
 
 
 emph :: AsciiDocParser (F B.Inlines)
-emph = enclosed (char '_') (B.emph . B.str)
+emph = enclosed (string "_") (B.emph . B.str)
 
 bold :: AsciiDocParser (F B.Inlines)
-bold = enclosed (char '*') (B.strong . B.str)
+bold = enclosed (string "*") (B.strong . B.str)
 
 commonURLScheme :: [String]
 -- Careful to keep https before http for pattern matching
@@ -250,7 +255,7 @@ whitespace = try $ do
 
 betweenNonGreedy :: AsciiDocParser a
                  -> AsciiDocParser b
-                 -> AsciiDocParser Char
-                 -> AsciiDocParser String
+                 -> AsciiDocParser [Char]
+                 -> AsciiDocParser [Char]
 betweenNonGreedy start end content =
-  try ( start >> manyTill content end )
+  mconcat <$> try ( start >> manyTill content end )
