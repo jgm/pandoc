@@ -689,8 +689,10 @@ options =
     , Option "" ["epub-stylesheet"]
                  (ReqArg
                   (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     return opt { optEpubStylesheet = Just text })
+                     warn "--epub-stylesheet is deprecated. Use --css or stylesheet in metadata."
+                     let newvars = optVariables opt ++ [("css",arg)]
+                     return opt { optVariables = newvars,
+                                  optStandalone = True })
                   "FILENAME")
                  "" -- "Path of epub.css"
 

@@ -646,6 +646,8 @@ Options affecting specific writers
     is specified, pandoc will look for a file `epub.css` in the
     user data directory (see `--data-dir`).  If it is not
     found there, sensible defaults will be used.
+    (*Deprecated:* use `--css` or the `stylesheet` metadata field
+    instead.)
 
 `--epub-cover-image=`*FILE*
 

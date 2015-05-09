@@ -99,7 +99,7 @@ data EPUBMetadata = EPUBMetadata{
   , epubPageDirection      :: Maybe ProgressionDirection
   } deriving Show
 
-data Stylesheet = StylesheetPath FilePath
+data Stylesheet = StylesheetPaths [FilePath]
                 | StylesheetContents String
                 deriving Show
 
@@ -323,8 +323,14 @@ metadataFromMeta opts meta = EPUBMetadata{
         coverImage = lookup "epub-cover-image" (writerVariables opts) `mplus`
              (metaValueToString <$> lookupMeta "cover-image" meta)
         stylesheet = (StylesheetContents <$> writerEpubStylesheet opts) `mplus`
-                     ((StylesheetPath . metaValueToString) <$>
-                       lookupMeta "stylesheet" meta)
+                     (case lookupMeta "stylesheet" meta of
+                         Just (MetaBlocks [CodeBlock (_,["css"],_) code])
+                                -> Just (StylesheetContents code)
+                         Just x -> Just (StylesheetPaths [metaValueToString x])
+                         Nothing -> Nothing) `mplus`
+                     (case [x | ("css", x) <- writerVariables opts] of
+                           []   -> Nothing
+                           xs   -> Just (StylesheetPaths xs))
         pageDirection = case map toLower . metaValueToString <$>
                              lookupMeta "page-progression-direction" meta of
                               Just "ltr" -> Just LTR
@@ -340,20 +346,21 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let epub3 = version == EPUB3
   epochtime <- floor `fmap` getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
-  let vars = ("epub3", if epub3 then "true" else "false")
-           : ("css", "stylesheet.css")
-           : writerVariables opts
-  let opts' = opts{ writerEmailObfuscation = NoObfuscation
-                  , writerStandalone = True
-                  , writerSectionDivs = True
-                  , writerHtml5 = epub3
-                  , writerVariables = vars
-                  , writerHTMLMathMethod =
-                       if epub3
-                          then MathML Nothing
-                          else writerHTMLMathMethod opts
-                  , writerWrapText = True }
-  metadata <- getEPUBMetadata opts' meta
+  let vars = ("epub3", if epub3 then "true" else "false") :
+             writerVariables opts
+  let opts'' = opts{ writerEmailObfuscation = NoObfuscation
+                   , writerStandalone = True
+                   , writerSectionDivs = True
+                   , writerHtml5 = epub3
+                   , writerVariables = vars
+                   , writerHTMLMathMethod =
+                        if epub3
+                           then MathML Nothing
+                           else writerHTMLMathMethod opts
+                   , writerWrapText = True }
+  metadata <- getEPUBMetadata opts'' meta
+  let opts' = opts''{ writerVariables = ("css", "stylesheet.css") :
+                      filter (\(x,_) -> x /= "css") vars }
 
   -- cover page
   (cpgEntry, cpicEntry) <-
@@ -675,7 +682,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   -- stylesheet
   stylesheet <- case epubStylesheet metadata of
-                   Just (StylesheetPath fp)    -> UTF8.readFile fp
+                   Just (StylesheetPaths fp)   -> concat <$>
+                                                  mapM UTF8.readFile fp
                    Just (StylesheetContents s) -> return s
                    Nothing -> UTF8.toString `fmap`
                               readDataFile (writerUserDataDir opts) "epub.css"
