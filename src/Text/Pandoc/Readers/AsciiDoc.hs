@@ -21,7 +21,7 @@ import Control.Applicative ((<$>), (<$))
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing
+import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Error
 import qualified Text.Pandoc.Builder as B
 
@@ -49,21 +49,21 @@ parseBlocks = mconcat <$> manyTill block eof
 block :: AsciiDocParser (F B.Blocks)
 block = do
   res <- choice [ mempty <$ blanklines
-               , title
-               , literalParagraph
---                , documentTitle
---                , explicitId
-               , hrule
---                , pageBreak
---                , list
---                , labeledLine
---                , labeledMultiLine
---                , image
---                , blockCode
--- --               , citation -- inline
---                , table
-                , paragraph
-               ] <?> "block"
+                , title
+                , literalParagraph
+ --                , documentTitle
+ --                , explicitId
+                , hrule
+ --                , pageBreak
+ --                , list
+ --                , labeledLine
+ --                , labeledMultiLine
+ --                , image
+ --                , blockCode
+ -- --               , citation -- inline
+ --                , table
+                 , paragraph
+                 ] <?> "block"
   return res
 
 -- | An horizontal rule is a line containing only ', and at least 3
@@ -171,15 +171,31 @@ inline = choice [
   , specialChar
   ] <?> "inlines"
 
+-- | Used when parsing chars and want to stop at a block end (which will be a
+-- newline and a blankline
+endBlock :: AsciiDocParser Char
+endBlock = try $ newline >> blankline
+
+-- | Parses inline elements enclosed inside markers
+-- The starting marker must not be followed by a space
+-- The ending marker must not be preceded by a space
+-- The ending marker must not be followed by an alphanumeric
+enclosed :: AsciiDocParser a
+         -> (String -> B.Inlines)
+         -> AsciiDocParser (F B.Inlines)
+enclosed marker inliner = try $ do
+  text <- betweenNonGreedy
+                (marker >> (notFollowedBy spaceChar))
+                (marker >> (notFollowedBy alphaNum))
+                ((notFollowedBy endBlock) >> anyChar)
+  return $ return $ inliner text
+
+
 emph :: AsciiDocParser (F B.Inlines)
-emph = try $ do
-  emphText <- between (char '_') (char '_') (many $ noneOf "_\n")
-  return $ return $ B.emph (B.str emphText)
+emph = enclosed (char '_') (B.emph . B.str)
 
 bold :: AsciiDocParser (F B.Inlines)
-bold = try $ do
-  strongText <- between (char '*') (char '*') (many $ noneOf "*\n")
-  return $ return $ B.strong (B.str strongText)
+bold = enclosed (char '*') (B.strong . B.str)
 
 commonURLScheme :: [String]
 -- Careful to keep https before http for pattern matching
@@ -234,3 +250,10 @@ whitespace :: AsciiDocParser (F B.Inlines)
 whitespace = try $ do
   spaceChar
   return $ return $ B.space
+
+betweenNonGreedy :: AsciiDocParser a
+                 -> AsciiDocParser b
+                 -> AsciiDocParser Char
+                 -> AsciiDocParser String
+betweenNonGreedy start end content =
+  try ( start >> manyTill content end )
