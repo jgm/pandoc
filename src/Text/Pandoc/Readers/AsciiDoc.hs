@@ -14,14 +14,12 @@
 --    * The rest default to plain paragraph
 module Text.Pandoc.Readers.AsciiDoc where
 
-import Data.Monoid (mconcat, mempty)
 import Data.Maybe
-import qualified Data.Foldable as F
-import Control.Applicative ((<$>), (<$))
+import Control.Monad (liftM)
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing
+import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Error
 import qualified Text.Pandoc.Builder as B
 
@@ -49,21 +47,21 @@ parseBlocks = mconcat <$> manyTill block eof
 block :: AsciiDocParser (F B.Blocks)
 block = do
   res <- choice [ mempty <$ blanklines
-               , title
-               , literalParagraph
---                , documentTitle
---                , explicitId
-               , hrule
---                , pageBreak
---                , list
---                , labeledLine
---                , labeledMultiLine
---                , image
---                , blockCode
--- --               , citation -- inline
---                , table
-                , paragraph
-               ] <?> "block"
+                , title
+                , literalParagraph
+ --                , documentTitle
+ --                , explicitId
+                , hrule
+ --                , pageBreak
+ --                , list
+ --                , labeledLine
+ --                , labeledMultiLine
+ --                , image
+ --                , blockCode
+ -- --               , citation -- inline
+ --                , table
+                 , paragraph
+                 ] <?> "block"
   return res
 
 -- | An horizontal rule is a line containing only ', and at least 3
@@ -171,15 +169,39 @@ inline = choice [
   , specialChar
   ] <?> "inlines"
 
+-- | Used when parsing chars and want to stop at a block end (which will be a
+-- newline and a blankline
+endBlock :: AsciiDocParser Char
+endBlock = try $ newline >> blankline
+
+-- | Parses inline elements enclosed inside markers
+-- The starting marker must not be followed by a space
+-- The ending marker must not be preceded by a space
+-- The ending marker must not be followed by an alphanumeric
+enclosed :: AsciiDocParser String
+         -> AsciiDocParser (F B.Inlines)
+enclosed delimiter =
+  mconcat <$> (
+    try $
+      (delimiter >> (notFollowedBy spaceChar))
+      >>
+      (manyTill
+        ((spacePrecededClosingDelimiter delimiter) <|> inline)
+        (delimiter >> (notFollowedBy alphaNum))
+      )
+    )
+
+spacePrecededClosingDelimiter :: AsciiDocParser String
+                              -> AsciiDocParser (F B.Inlines)
+spacePrecededClosingDelimiter delimiter = try $ do
+  del <- spaceChar >> delimiter
+  return $ return $ B.space B.<> (B.str del)
+
 emph :: AsciiDocParser (F B.Inlines)
-emph = try $ do
-  emphText <- between (char '_') (char '_') (many $ noneOf "_\n")
-  return $ return $ B.emph (B.str emphText)
+emph = (liftM (liftM B.emph) (enclosed (string "_")))
 
 bold :: AsciiDocParser (F B.Inlines)
-bold = try $ do
-  strongText <- between (char '*') (char '*') (many $ noneOf "*\n")
-  return $ return $ B.strong (B.str strongText)
+bold = (liftM (liftM B.strong) (enclosed (string "*")))
 
 commonURLScheme :: [String]
 -- Careful to keep https before http for pattern matching
