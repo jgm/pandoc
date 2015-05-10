@@ -68,14 +68,14 @@ imageType img = case B.take 4 img of
                      "%!PS"
                        | (B.take 4 $ B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
                                         -> return Eps
-                     _                  -> (hush . Left) "Unknown image type"
+                     _                  -> mzero
 
 imageSize :: ByteString -> Either String ImageSize
 imageSize img =
   case imageType img of
        Just Png  -> mbToEither "could not determine PNG size" $ pngSize img
        Just Gif  -> mbToEither "could not determine GIF size" $ gifSize img
-       Just Jpeg -> mbToEither "could not determine JPEG size" $ jpegSize img
+       Just Jpeg -> jpegSize img
        Just Eps  -> mbToEither "could not determine EPS size" $ epsSize img
        Just Pdf  -> Left "could not determine PDF size" -- TODO
        Nothing   -> Left "could not determine image type"
@@ -151,47 +151,52 @@ gifSize img = do
                           }
        _             -> (hush . Left) "GIF parse error"
 
-jpegSize :: ByteString -> Maybe ImageSize
-jpegSize img = do
+jpegSize :: ByteString -> Either String ImageSize
+jpegSize img =
   let (hdr, rest) = B.splitAt 4 img
-  guard $ B.length rest >= 14
-  case hdr of
-       "\xff\xd8\xff\xe0" -> jfifSize rest
-       "\xff\xd8\xff\xe1" -> exifSize $ B.takeWhile (/= '\xff') rest
-       _                  -> mzero
+  in if B.length rest < 14
+        then Left "unable to determine JPEG size"
+        else case hdr of
+               "\xff\xd8\xff\xe0" -> jfifSize rest
+               "\xff\xd8\xff\xe1" -> exifSize $ B.takeWhile (/= '\xff') rest
+               _                  -> Left "unable to determine JPEG size"
 
-jfifSize :: ByteString -> Maybe ImageSize
-jfifSize rest = do
+jfifSize :: ByteString -> Either String ImageSize
+jfifSize rest =
   let [dpiDensity,dpix1,dpix2,dpiy1,dpiy2] = map fromIntegral
                                            $ unpack $ B.take 5 $ B.drop 9 $ rest
-  let factor = case dpiDensity of
+      factor = case dpiDensity of
                     1 -> id
                     2 -> \x -> (x * 254 `div` 10)
                     _ -> const 72
-  let dpix = factor (shift dpix1 8 + dpix2)
-  let dpiy = factor (shift dpiy1 8 + dpiy2)
-  (w,h) <- findJfifSize rest
-  return $ ImageSize { pxX = w, pxY = h, dpiX = dpix, dpiY = dpiy }
+      dpix = factor (shift dpix1 8 + dpix2)
+      dpiy = factor (shift dpiy1 8 + dpiy2)
+  in case findJfifSize rest of
+       Left msg    -> Left msg
+       Right (w,h) -> Right $ ImageSize { pxX = w
+                                        , pxY = h
+                                        , dpiX = dpix
+                                        , dpiY = dpiy }
 
-findJfifSize :: ByteString -> Maybe (Integer,Integer)
-findJfifSize bs = do
+findJfifSize :: ByteString -> Either String (Integer,Integer)
+findJfifSize bs =
   let bs' = B.dropWhile (=='\xff') $ B.dropWhile (/='\xff') bs
-  case B.uncons bs' of
-       Just (c,bs'') | c >= '\xc0' && c <= '\xc3' -> do
+  in case B.uncons bs' of
+       Just (c,bs'') | c >= '\xc0' && c <= '\xc3' ->
          case map fromIntegral $ unpack $ B.take 4 $ B.drop 3 bs'' of
-              [h1,h2,w1,w2] -> return (shift w1 8 + w2, shift h1 8 + h2)
-              _             -> (hush . Left) "JPEG parse error"
-       Just (_,bs'') ->  do
+              [h1,h2,w1,w2] -> Right (shift w1 8 + w2, shift h1 8 + h2)
+              _             -> Left "JFIF parse error"
+       Just (_,bs'') ->
          case map fromIntegral $ unpack $ B.take 2 bs'' of
-              [c1,c2] -> do
+              [c1,c2] ->
                 let len = shift c1 8 + c2
                 -- skip variables
-                findJfifSize $ B.drop len bs''
-              _       -> (hush . Left) "JPEG parse error"
-       Nothing -> (hush . Left) "Did not find length record"
+                in  findJfifSize $ B.drop len bs''
+              _       -> Left "JFIF parse error"
+       Nothing -> Left "Did not find JFIF length record"
 
-exifSize :: ByteString -> Maybe ImageSize
-exifSize bs = hush . runGet header $ bl
+exifSize :: ByteString -> Either String ImageSize
+exifSize bs = runGet header $ bl
   where bl = BL.fromChunks [bs]
         header = runExceptT $ exifHeader bl
 -- NOTE:  It would be nicer to do
