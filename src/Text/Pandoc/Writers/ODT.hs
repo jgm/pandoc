@@ -134,8 +134,10 @@ transformPicMath opts entriesRef (Image lab (src,t)) = do
        warn $ "Could not find image `" ++ src ++ "', skipping..."
        return $ Emph lab
      Right (img, mbMimeType) -> do
-       let size = imageSize img
-       let (w,h) = fromMaybe (0,0) $ sizeInPoints `fmap` size
+       (w,h) <- case imageSize img of
+                     Right size -> return $ sizeInPoints size
+                     Left msg   -> do warn msg
+                                      return (0,0)
        let tit' = show w ++ "x" ++ show h
        entries <- readIORef entriesRef
        let extension = fromMaybe (takeExtension $ takeWhile (/='?') src)

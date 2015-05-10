@@ -56,9 +56,9 @@ rtfEmbedImage opts x@(Image _ (src,_)) = do
                              "image/jpeg" -> "\\jpegblip"
                              "image/png"  -> "\\pngblip"
                              _            -> error "Unknown file type"
-         let sizeSpec = case imageSize imgdata of
-                             Nothing -> ""
-                             Just sz -> "\\picw" ++ show xpx ++
+         sizeSpec <- case imageSize imgdata of
+                             Left msg -> warn msg >> return ""
+                             Right sz -> return $ "\\picw" ++ show xpx ++
                                         "\\pich" ++ show ypx ++
                                         "\\picwgoal" ++ show (xpt * 20)
                                         ++ "\\pichgoal" ++ show (ypt * 20)

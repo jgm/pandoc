@@ -1120,8 +1120,10 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
           inlinesToOpenXML opts alt
         Right (img, mt) -> do
           ident <- ("rId"++) `fmap` getUniqueId
-          let size = imageSize img
-          let (xpt,ypt) = maybe (120,120) sizeInPoints size
+          (xpt,ypt) <- case imageSize img of
+                             Right size  -> return $ sizeInPoints size
+                             Left msg    -> do liftIO (warn msg)
+                                               return (120,120)
           -- 12700 emu = 1 pt
           let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) (pageWidth * 12700)
           let cNvPicPr = mknode "pic:cNvPicPr" [] $

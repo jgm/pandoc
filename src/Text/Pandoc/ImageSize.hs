@@ -70,15 +70,17 @@ imageType img = case B.take 4 img of
                                         -> return Eps
                      _                  -> (hush . Left) "Unknown image type"
 
-imageSize :: ByteString -> Maybe ImageSize
-imageSize img = do
-  t <- imageType img
-  case t of
-       Png  -> pngSize img
-       Gif  -> gifSize img
-       Jpeg -> jpegSize img
-       Eps  -> epsSize img
-       Pdf  -> Nothing  -- TODO
+imageSize :: ByteString -> Either String ImageSize
+imageSize img =
+  case imageType img of
+       Just Png  -> mbToEither "could not determine PNG size" $ pngSize img
+       Just Gif  -> mbToEither "could not determine GIF size" $ gifSize img
+       Just Jpeg -> mbToEither "could not determine JPEG size" $ jpegSize img
+       Just Eps  -> mbToEither "could not determine EPS size" $ epsSize img
+       Just Pdf  -> Left "could not determine PDF size" -- TODO
+       Nothing   -> Left "could not determine image type"
+  where mbToEither msg Nothing  = Left msg
+        mbToEither _   (Just x) = Right x
 
 defaultSize :: (Integer, Integer)
 defaultSize = (72, 72)
