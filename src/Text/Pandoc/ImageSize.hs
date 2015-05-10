@@ -158,7 +158,7 @@ jpegSize img =
         then Left "unable to determine JPEG size"
         else case hdr of
                "\xff\xd8\xff\xe0" -> jfifSize rest
-               "\xff\xd8\xff\xe1" -> exifSize $ B.takeWhile (/= '\xff') rest
+               "\xff\xd8\xff\xe1" -> exifSize rest
                _                  -> Left "unable to determine JPEG size"
 
 jfifSize :: ByteString -> Either String ImageSize
@@ -249,29 +249,33 @@ exifHeader hdr = do
        numComponents <- lift getWord32
        (fmt, bytesPerComponent) <-
              case dataFormat of
-                  1  -> return (UnsignedByte . runGet getWord8, 1)
-                  2  -> return (AsciiString, 1)
-                  3  -> return (UnsignedShort . runGet getWord16, 2)
-                  4  -> return (UnsignedLong . runGet getWord32, 4)
-                  5  -> return (UnsignedRational . runGet getRational, 8)
-                  6  -> return (SignedByte . runGet getWord8, 1)
-                  7  -> return (Undefined . runGet getWord8, 1)
-                  8  -> return (SignedShort . runGet getWord16, 2)
-                  9  -> return (SignedLong . runGet getWord32, 4)
-                  10 -> return (SignedRational . runGet getRational, 8)
-                  11 -> return (SingleFloat . runGet getWord32 {- TODO -}, 4)
-                  12 -> return (DoubleFloat . runGet getWord64 {- TODO -}, 8)
+                  1  -> return (UnsignedByte <$> getWord8, 1)
+                  2  -> return (AsciiString <$>
+                                getLazyByteString
+                                (fromIntegral numComponents), 1)
+                  3  -> return (UnsignedShort <$> getWord16, 2)
+                  4  -> return (UnsignedLong <$> getWord32, 4)
+                  5  -> return (UnsignedRational <$> getRational, 8)
+                  6  -> return (SignedByte <$> getWord8, 1)
+                  7  -> return (Undefined <$> getLazyByteString
+                                (fromIntegral numComponents), 1)
+                  8  -> return (SignedShort <$> getWord16, 2)
+                  9  -> return (SignedLong <$> getWord32, 4)
+                  10 -> return (SignedRational <$> getRational, 8)
+                  11 -> return (SingleFloat <$> getWord32 {- TODO -}, 4)
+                  12 -> return (DoubleFloat <$> getWord64 {- TODO -}, 8)
                   _  -> throwError $ "Unknown data format " ++ show dataFormat
        let totalBytes = fromIntegral $ numComponents * bytesPerComponent
-       payload <- lift $
-                    if totalBytes <= 4 -- data is right here
-                     then fmt <$>
-                          (getLazyByteString (fromIntegral totalBytes) <*
-                          skip (4 - totalBytes))
+       payload <- if totalBytes <= 4 -- data is right here
+                     then lift $ fmt <* skip (4 - totalBytes)
                      else do  -- get data from offset
-                          offs <- getWord32
-                          return $ fmt $ BL.take (fromIntegral totalBytes) $
-                                   BL.drop (fromIntegral offs) tiffHeader
+                          offs <- lift getWord32
+                          let bytesAtOffset =
+                                 BL.take (fromIntegral totalBytes)
+                                 $ BL.drop (fromIntegral offs) tiffHeader
+                          case runGet' (Right <$> fmt) bytesAtOffset of
+                               Left msg -> throwError msg
+                               Right x  -> return x
        return (tag, payload)
   entries <- sequence $ replicate (fromIntegral numentries) ifdEntry
   subentries <- case lookup ExifOffset entries of
@@ -309,7 +313,7 @@ data DataFormat = UnsignedByte Word8
                 | UnsignedLong Word32
                 | UnsignedRational Rational
                 | SignedByte Word8
-                | Undefined Word8
+                | Undefined BL.ByteString
                 | SignedShort Word16
                 | SignedLong Word32
                 | SignedRational Rational
