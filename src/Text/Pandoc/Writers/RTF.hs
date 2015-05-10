@@ -57,7 +57,10 @@ rtfEmbedImage opts x@(Image _ (src,_)) = do
                              "image/png"  -> "\\pngblip"
                              _            -> error "Unknown file type"
          sizeSpec <- case imageSize imgdata of
-                             Left msg -> warn msg >> return ""
+                             Left msg -> do
+                               warn $ "Could not determine image size in `" ++
+                                 src ++ "': " ++ msg
+                               return ""
                              Right sz -> return $ "\\picw" ++ show xpx ++
                                         "\\pich" ++ show ypx ++
                                         "\\picwgoal" ++ show (xpt * 20)
