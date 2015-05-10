@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables  #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 {-
   Copyright (C) 2011-2015 John MacFarlane <jgm@berkeley.edu>
@@ -195,8 +195,19 @@ findJfifSize bs =
               _       -> Left "JFIF parse error"
        Nothing -> Left "Did not find JFIF length record"
 
+runGet' :: Get (Either String a) -> BL.ByteString -> Either String a
+runGet' p bl =
+#if MIN_VERSION_binary(0,7,0)
+  case runGetOrFail p bl of
+       Left (_,_,msg) -> Left msg
+       Right (_,_,x)  -> x
+#else
+  runGet p bl
+#endif
+
+
 exifSize :: ByteString -> Either String ImageSize
-exifSize bs = runGet header $ bl
+exifSize bs = runGet' header $ bl
   where bl = BL.fromChunks [bs]
         header = runExceptT $ exifHeader bl
 -- NOTE:  It would be nicer to do
