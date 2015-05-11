@@ -2107,6 +2107,23 @@ custom template.  For example:
     $endif$
     $endfor$
 
+Note: Currently export to docx cannot handle structured data for multiple authors or even a single author in the YAML block. So, for example, the following single-author information will not appear in docx output:
+
+    ---
+    title:  'This is the title: it contains a colon'
+    author:
+    - name: Author One
+    ---
+
+Nor will any multiple authors:
+
+    ---
+    title:  'This is the title: it contains a colon'
+    author:
+    - name: Author One
+    - name: Author Two
+    ---
+
 
 Backslash escapes
 -----------------
