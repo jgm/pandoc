@@ -2386,19 +2386,19 @@ by default, pandoc interprets material between HTML block tags as markdown.
 Thus, for example, Pandoc will turn
 
     <table>
-    	<tr>
-    		<td>*one*</td>
-    		<td>[a link](http://google.com)</td>
-    	</tr>
+    <tr>
+    <td>*one*</td>
+    <td>[a link](http://google.com)</td>
+    </tr>
     </table>
 
 into
 
     <table>
-    	<tr>
-    		<td><em>one</em></td>
-    		<td><a href="http://google.com">a link</a></td>
-    	</tr>
+    <tr>
+    <td><em>one</em></td>
+    <td><a href="http://google.com">a link</a></td>
+    </tr>
     </table>
 
 whereas `Markdown.pl` will preserve it as is.
