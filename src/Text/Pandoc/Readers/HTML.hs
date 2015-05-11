@@ -51,7 +51,7 @@ import Text.Pandoc.Options (ReaderOptions(readerParseRaw, readerTrace)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
 import Data.Maybe ( fromMaybe, isJust)
-import Data.List ( intercalate, isInfixOf, isPrefixOf )
+import Data.List ( intercalate, isInfixOf, isPrefixOf, isSuffixOf )
 import Data.Char ( isDigit )
 import Control.Monad ( liftM, guard, when, mzero, void, unless )
 import Control.Arrow ((***))
@@ -874,7 +874,7 @@ htmlInBalanced :: (Monad m)
                -> ParserT String st m String
 htmlInBalanced f = try $ do
   (TagOpen t _, tag) <- htmlTag f
-  guard $ '/' `notElem` tag      -- not a self-closing tag
+  guard $ not $ "/>" `isSuffixOf` tag -- not a self-closing tag
   let stopper = htmlTag (~== TagClose t)
   let anytag = snd <$> htmlTag (const True)
   contents <- many $ notFollowedBy' stopper >>

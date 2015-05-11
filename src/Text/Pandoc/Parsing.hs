@@ -1206,7 +1206,7 @@ citeKey = try $ do
   guard =<< notAfterString
   suppress_author <- option False (char '-' *> return True)
   char '@'
-  firstChar <- alphaNum <|> char '_'
+  firstChar <- alphaNum <|> char '_' <|> char '*' -- @* for wildcard in nocite
   let regchar = satisfy (\c -> isAlphaNum c || c == '_')
   let internal p = try $ p <* lookAhead regchar
   rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/")
