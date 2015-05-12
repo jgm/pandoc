@@ -58,7 +58,7 @@ import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad (when, unless, (>=>))
-import Data.Maybe (isJust, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Foldable (foldrM)
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
@@ -1117,7 +1117,7 @@ main = do
 
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
-  let needsCiteproc = isJust (M.lookup "bibliography" metadata) &&
+  let needsCiteproc = any ("--bibliography" `isPrefixOf`) rawArgs &&
                       optCiteMethod opts `notElem` [Natbib, Biblatex] &&
                       "pandoc-citeproc" `notElem` map takeBaseName filters
   let filters' = if needsCiteproc then "pandoc-citeproc" : filters
