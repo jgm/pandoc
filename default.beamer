@@ -42,9 +42,9 @@ $if(natbib)$
 $endif$
 $if(biblatex)$
 \usepackage{biblatex}
-$if(biblio-files)$
-\bibliography{$biblio-files$}
-$endif$
+$for(bibliography)$
+\addbibresource{$bibliography$}
+$endfor$
 $endif$
 $if(listings)$
 \usepackage{listings}
@@ -150,7 +150,7 @@ $endif$
 $body$
 
 $if(natbib)$
-$if(biblio-files)$
+$if(bibliography)$
 $if(biblio-title)$
 $if(book-class)$
 \renewcommand\bibname{$biblio-title$}
@@ -159,7 +159,7 @@ $else$
 $endif$
 $endif$
 \begin{frame}[allowframebreaks]{$biblio-title$}
-\bibliography{$biblio-files$}
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
 \end{frame}
 
 $endif$
