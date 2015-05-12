@@ -46,7 +46,7 @@ import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, intersperse )
 import Data.String ( fromString )
-import Data.Maybe ( catMaybes, fromMaybe )
+import Data.Maybe ( catMaybes, fromMaybe, isJust )
 import Control.Monad.State
 import Text.Blaze.Html hiding(contents)
 #if MIN_VERSION_blaze_markup(0,6,3)
@@ -825,7 +825,9 @@ inlineToHtml opts inline =
                                          writerIdentifierPrefix opts ++ "fn" ++ ref)
                                        ! A.class_ "footnoteRef"
                                        ! prefixedId opts ("fnref" ++ ref)
-                                       $ H.sup
+                                       $ (if isJust (writerEpubVersion opts)
+                                             then id
+                                             else H.sup)
                                        $ toHtml ref
                         return $ case writerEpubVersion opts of
                                       Just EPUB3 -> link ! customAttribute "epub:type" "noteref"
