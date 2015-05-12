@@ -1002,11 +1002,11 @@ as `title`, `author`, and `date`) as well as the following:
 `lot`
 :   include list of tables in LaTeX documents
 
+`bibliography`
+:   bibliography to use for resolving references
+
 `biblio-style`
 :   bibliography style in LaTeX, when used with `--natbib`
-
-`biblio-files`
-:   bibliography files to use in LaTeX, with `--natbib` or `--biblatex`
 
 `section`
 :   section number in man pages
