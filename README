@@ -743,18 +743,24 @@ Citation rendering
     overriding any value set in the metadata, and process citations
     using `pandoc-citeproc`. (This is equivalent to
     `--metadata bibliography=FILE --filter pandoc-citeproc`.)
+    If `--natbib` or `--biblatex` is also supplied, `pandoc-citeproc` is not
+    used, making this equivalent to `--metadata bibliography=FILE`.
+    If you supply this argument multiple times, each *FILE* will be added
+    to bibliography.
 
 `--csl=`*FILE*
 
 :   Set the `csl` field in the document's metadata to *FILE*,
     overriding any value set in the metadata.  (This is equivalent to
     `--metadata csl=FILE`.)
+    This option is only relevant with `pandoc-citeproc`.
 
 `--citation-abbreviations=`*FILE*
 
 :   Set the `citation-abbreviations` field in the document's metadata to
     *FILE*, overriding any value set in the metadata.  (This is equivalent to
     `--metadata citation-abbreviations=FILE`.)
+    This option is only relevant with `pandoc-citeproc`.
 
 `--natbib`
 
@@ -2670,7 +2676,10 @@ citations and a bibliography in a number of styles.  Basic usage is
     pandoc --filter pandoc-citeproc myinput.txt
 
 In order to use this feature, you will need to specify a bibliography file
-using the `bibliography` metadata field in a YAML metadata section.
+using the `bibliography` metadata field in a YAML metadata section, or
+`--bibliography` command line argument. You can supply multiple `--bibliography`
+arguments or set `bibliography` metadata field to YAML array, if you want to
+use multiple bibliography files.
 The bibliography may have any of these formats:
 
   Format            File extension
@@ -2792,6 +2801,12 @@ field and put the citations there:
 In this example, the document will contain a citation for `item3`
 only, but the bibliography will contain entries for `item1`, `item2`, and
 `item3`.
+
+For LaTeX or PDF output, you can also use NatBib or BibLaTeX
+to render bibliography. In order to do so, specify bibliography files as
+outlined above, and add `--natbib` or `--biblatex` argument to `pandoc`
+invocation. Bear in mind that bibliography files have to be in respective
+format (either BibTeX or BibLaTeX).
 
 Non-pandoc extensions
 ---------------------
