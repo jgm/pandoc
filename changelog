@@ -298,6 +298,7 @@ pandoc (1.14)
     + Use plain writer for metadata dc: fields (#2121).
       This gives better results when we have, e.g. multiple paragraphs.
       Note that tags aren't allowed in these fields.
+    + Properly handle image links without an extension (#1855).
 
   * ICML writer:  Better handling of raw blocks and inlines (#1951).
     Previously these were always escaped and printed verbatim.
