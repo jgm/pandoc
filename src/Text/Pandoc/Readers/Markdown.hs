@@ -177,9 +177,10 @@ charsInBalancedBrackets openBrackets =
       (char '[' >> charsInBalancedBrackets (openBrackets + 1))
   <|> (char ']' >> charsInBalancedBrackets (openBrackets - 1))
   <|> ((  (() <$ code)
-     <|> (() <$ escapedChar')
+     <|> (() <$ (escapedChar'))
      <|> (newline >> notFollowedBy blankline)
      <|> skipMany1 (noneOf "[]`\n\\")
+     <|> (() <$ count 1 (oneOf "`\\"))
       ) >> charsInBalancedBrackets openBrackets)
 
 --

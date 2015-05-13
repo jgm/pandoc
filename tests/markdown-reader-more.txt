@@ -258,6 +258,10 @@ Empty cells
 
 [linky]: hi_(there_(nested))
 
+## Backslashes in link references
+
+[\*\a](b)
+
 ## Reference link fallbacks
 
 [*not a link*] [*nope*]...
