@@ -1,3 +1,487 @@
+pandoc (1.14)
+
+  [new features]
+
+  * Added `commonmark` as input and output format.
+
+  * Added `--verbose` flag for debugging output in PDF production (#1840,
+    #1653).
+
+  * Allow wildcards in `--epub-embed-font` arguments (#1939).
+
+  * Added `--latex-engine-opt` option (#969, #1779, Sumit Sahrawat).
+
+  * Added `shortcut_reference_links` extension (Konstantin Zudov, #1977).
+    This is enabled by default for those markdown flavors that
+    support reading shortcut reference links, namely: `markdown`,
+    `markdown_strict`, `markdown_github`, `markdown_php`.
+    If the extension is enabled, the reader parses shortcut reference
+    links like `[foo]`, and the writer creates such links unless doing
+    so would cause problems.  Users of markdown flavors that support
+    shortcut reference links should not notice a difference in reading
+    markdown, but the markdown pandoc produces may differ.
+    If shortcut links are not desired, the extension can be disabled
+    in the normal way.
+
+  [behavior changes]
+
+  * `--toc` is now supported for `docx` output (#458, Nikolay Yakimov).
+    A "dirty" TOC is created at the beginning of document, after abstract.
+    It can be regenerated after the document has been opened.
+
+  * Only do implicit `-F pandoc-citeproc` when `--bibliography`
+    option used, not when `bibliography` field in metadata is specified
+    (#1849).
+
+  * Markdown reader:
+
+    + Definition lists:  don't require indent for first line (#2087).
+      Previously the body of the definition (after the `:` or `~` marker)
+      needed to be in column 4.  This commit relaxes that requirement,
+      to better match the behavior of PHP Markdown Extra.  So, now
+      this is a valid definition list:
+
+            foo
+            : bar
+
+      This patch also helps resolve a potentially ambiguity with table
+      captions:
+
+            foo
+
+              : bar
+
+              -----
+              table
+              -----
+
+      Is "bar" a definition, or the caption for the table?  We'll count
+      it as a caption for the table.
+    + Disallow headerless pipe tables (#1996), to conform to GFM and PHP
+      Markdown Extra.  Note:  If you have been using headerless pipe tables,
+      this change may cause existing tables to break.
+    + Allow pipe tables with header but no body (#2017).
+    + Allow a digit as first character of a citation key (Matthias Troffaes).
+      See https://github.com/jgm/pandoc-citeproc/issues/97
+
+  * LaTeX reader:
+
+    + Don't limit includes to `.tex` extension (#1882).
+      If the extension is not `.tex`, it must be given explicitly in
+      the `\input` or `\include`.
+
+  * Docx reader:
+
+    + Allow numbering in the style file.  This allows inherited styles
+      with numbering (lists) (Jesse Rosenthal).
+
+  * Org reader: add support for smart punctuation (Craig Bosma).
+
+  * HTML writer:
+
+    + Add "inline" or "display" class to math spans (#1914).
+      This allows inline and display math to be styled differently.
+    + Include raw latex blocks if `--mathjax` specified (#1938).
+    + Require highlighting-kate >= 0.5.14 (#1903).
+      This ensures that all code blocks will be wrapped in a `div`
+      with class `sourceCode`.  Also, the default highlighting CSS
+      now adds `div.sourceCode { x-overflow: auto; }`, which means
+      that code blocks (even with line numbers) will acquire a scroll
+      bar on screens too small to display them (e.g. mobile phones).
+      See also jgm/highlighting-kate#65.
+
+  * LaTeX writer:
+
+    + Use a declaration for tight lists (Jose Luis Duran, Joseph
+      Harriott). Previously, pandoc hard-coded some commands to make
+      tight lists in LaTeX.  Now we use a custom command instead,
+      allowing the styling to be changed in a macro in the header.
+
+  * MediaWiki writer:
+
+    + Use `File:` instead of the deprecated `Image:` for images and
+      other media files (Greg Rundlett).
+
+  * Append newline to the LineBreak in Dokuwiki, HTML, EPUB,
+    LaTeX, MediaWiki, OpenDocument, Texinfo writers (#1924, Tim Lin).
+
+  * RST writer:
+
+    + Normalize headings to sequential levels (Nikolay Yakimov).
+      This is pretty much required by docutils.
+    + Treat headings in block quotes, etc as rubrics (Nikolay Yakimov).
+    + Better handling of raw latex inline (#1961).  We use
+      `` :raw-latex:`...` `` and add a definition for this role to
+      the template.
+
+  * EPUB writer:
+
+    + Remove `linear=no` from cover `itemref` (#1609).
+    + Don't use `sup` element for epub footnotes (#1995).
+      Instead, just use an a element with class `footnoteRef`.
+      This allows more styling options, and provides better results
+      in some readers (e.g. iBooks, where anything inside the a
+      tag breaks popup footnotes).
+    + Take TOC title from `toc-title` metadata field.
+
+  * Docx writer:
+
+    + Implemented `FirstParagraph` style (Jesse Rosenthal).
+      Following the ODT writer, we add the `FirstParagraph` style to the
+      first text paragraph following an image, blockquote, table, heading,
+      or beginning of document.  This allows it to be styled differently.
+      The default is for it to be the same as `Normal`.
+    + Added `BodyText` style (Jesse Rosenthal).
+      We apply a `BodyText` style to all unstyled paragraphs. This is,
+      essentially, the same as `Normal`, except that since not everything
+      inherits from `BodyText` (the metadata won't, for example, or
+      the headers or footnote numbers), we can change the text in the body
+      without having to make exceptions for everything.  If we do want to
+      change *everything*, we can still do it through `Normal`.
+    + Altered `Blockquote` style slightly (Jesse Rosenthal).
+      Since `BlockQuote` derives from `BodyText`, we just want to specify
+      by default that it won't indent, regardless of what `BodyText` does.
+      Note that this will not produce any visible difference in the default
+      configuration.
+    + Take TOC title from `toc-title` metadata field (Nikolay Yakimov).
+    + Added a style to figure images (Nikolay Yakimov).
+      Figures with empty captions use style `Figure`.
+      Figures with nonempty captions use style `Figure with Caption`, which
+      is based on `Figure`, and additionally has `keepNext` set.
+
+  * ODT writer: Added figure captions (Nikolay Yakimov).
+    The following styles are used for figures:
+    `Figure` -- for figure with empty caption),
+    `FigureWithCaption` (based on `Figure`) -- for figure with caption,
+    `FigureCaption` (based on `Caption`) -- for figure captions.
+    Also, `TableCaption` (based on `Caption`) is used for table captions.
+
+  [API changes]
+
+  * New `Text.Pandoc.Error` module with `PandocError` type
+    (Matthew Pickering).
+
+  * All readers now return `Either PandocError Pandoc` instead of `Pandoc`
+    (Matthew Pickering).  This allows better handling of errors.
+
+  * Added `Text.Pandoc.Writers.CommonMark`, exporting `writeCommonMark`.
+
+  * Added `Text.Pandoc.Readers.CommonMark`, exporting `readCommonMark`.
+
+  * Derive `Data` and `Typeable` instances for `MediaBag`, `Extension`,
+    `ReaderOptions`, `EPUBVersion`, `CiteMethod`, `ObfuscationMethod`,
+    `HTMLSlideVariant`, `TrackChanges`, `WriterOptions` (Shabbaz
+    Youssefi).
+
+  * New `Ext_shortcut_reference_links` constructor for `Extension`
+    (Konstantin Zudov).
+
+  [bug fixes]
+
+  * Markdown reader:
+
+    + Allow smart `'` after inline math (#1909, Nikolay Yakimov).
+    + Check for tex macros after indented code (#1973).
+    + Rewrote `charsInBalancedBrackets` for efficiency.
+    + Make sure a closing `</div>` doesn't get included in a
+      definition list item (#2127).
+    + Don't parse bracketed text as citation if it might be a link,
+      image, or footnote (Nikolay Yakimov).
+    + Require space after key in mmd title block (#2026, Nikolay
+      Yakimov).  Require space after key-value delimiter colon in mmd title
+      block.
+    + Require nonempty value in mmd title block (Nikolay Yakimov).
+    + Disable all metadata block extensions when parsing
+      metadata field values (#2026, Nikolay Yakimov).  Otherwise we
+      could get a mmd title block inside YAML metadata, for example.
+
+  * HTML reader:
+
+    + Improve self-closing tag detection in `htmlInBalanced` (#2146).
+    + Handle tables with `<th>` in body rows (#1859, mb21).
+    + Fixed `htmlTag` (#1820).  If the tag parses as a comment, we check
+      to see if the input starts with `<!--`. If not, it's bogus comment
+      mode and we fail `htmlTag`.
+
+  * DocBook reader:  look inside "info" elements for section titles (#1931).
+
+  * Docx reader:
+
+    + Parse images in deprecated vml format (Jesse Rosenthal).
+    + Allow sub/superscript verbatims (Jesse Rosenthal).
+      Verbatim usually shuts off all other run styles, but we don't want it
+      to shut off sub/superscript.
+
+  * LaTeX reader:
+
+    + Handle `tabular*` environment (#1850).
+      Note that the table width is not actually parsed or taken into
+      account, but pandoc no longer chokes on it.
+    + Ignore options in `\lstinline` rather than raising error (#1997).
+    + Add some test cases for simple tables (Mathias Schenner).
+    + Handle valign argument in tables (Mathias Schenner) (currently
+      we just ignore this).
+    + Allow non-empty colsep in tables (Mathias Schenner).
+      The `tabular` environment allows non-empty column separators
+      with the "@{...}" syntax. Previously, pandoc would fail to
+      parse tables if a non-empty colsep was present. With this
+      commit, these separators are still ignored, but the table gets
+      parsed. A test case is included.
+    + Recognize `\newpage` as a block command.
+    + Allow block content in \title{} (#2001).
+    + Check for block-level newcommand aliases in blockCommand (Nikolay
+      Yakimov).
+    + Test for para starting with latex macro (Nikolay Yakimov).
+    + Guard against para starting with inline macro (Nikolay Yakimov).
+    + Test for `^^` character escapes (Nikolay Yakimov).
+    + Properly gobble spaces after `\\` (#2007).
+
+  * Textile reader:
+
+    +  Handle newlines in table cells, and empty cells (#1919).
+
+  * Org reader: Allow image links with non-image targets (Hans-Peter Deifel).
+    This matches behavior of Org-Mode for links like
+    `[[http://example.com][https://www.haskell.org/static/img/logo.png]]`.
+
+  * Docbook writer: don't print empty id attributes (thanks to Steve Horne).
+
+  * HTML writer:
+
+    + Fixed list-style-type for numbered example lists.
+      Should be "decimal," not "example" (#1902).
+    + Do not omit missing `alt` attribute on `img` tag (#1131,
+      Konstantin Zudov).
+    + Allow multiple colgroups in table (#2122).
+    + In revealjs, ensure that lists in speaker notes don't add "fragment"
+      classes, which can cause additional keypresses to be needed to
+      advance a slide (#1394).
+
+  * LaTeX writer:
+
+    + Don't escape `$` in URL (#1913).
+    + Don't use listings in headers (Matthew Pickering, #1963).
+    + Recognize book documentclass if set in metadata (#1971).
+      This sets `--chapters` implicitly if the documentclass in metadata
+      is a book documentclass.  Previously this was done only if a book
+      documentclass was set in a variable.
+    + Add a `\label` in `\hyperdef` for Div, Span (or links don't work).
+
+  * Texinfo writer:
+
+    + Fix wrapping by using breakable spaces (Tim Lin).
+
+  * RST writer:
+
+    + Fixed toc depth in RST writer.  Previously the depth was being
+      rendered as a floating point number with a decimal point.
+
+  * Markdown writer:
+
+    + Improved escaping (#2086).  `<` should not be escaped as `\<`, for
+      compatibility with original Markdown.  We now escape `<` and `>`
+      with entities.  Also, we now backslash-escape square brackets.
+    + Avoid introducing spurious list items through wrapping (#1946).
+    + Don't emit span tags if plain or raw HTML disabled.
+
+  * MediaWiki writer:  convert spaces to underscores in wikilink URL (#1982).
+    This mimics MediaWiki itself.
+
+  * AsciiDoc writer:
+
+    + Insert some needed blank lines (#1860).
+    + Avoid wrapping after list marker (#1858).
+
+  * EPUB writer:
+
+    + Properly handle internal links to IDs in spans, divs (#1884).
+    + Use plain writer for metadata dc: fields (#2121).
+      This gives better results when we have, e.g. multiple paragraphs.
+      Note that tags aren't allowed in these fields.
+
+  * ICML writer:  Better handling of raw blocks and inlines (#1951).
+    Previously these were always escaped and printed verbatim.
+    Now they are ignored unless the format is "icml", in which
+    case they are passed through unescaped.
+
+  * Custom writer:
+
+    + Raise error if loadstring returns an error status.
+    + Raise `PandocLuaException` instead of using 'error'.
+      Eventually we'll change the return type so that no exception
+      is involved, but at least this can be trapped.
+    + Use UTF-8 aware bytestring conversion.
+    + Set foreign encoding to UTF-8 (Nikolay Yakimov, #2101, #1634).
+      Also factored out ByteString, since it's only used as an intermediate
+      representation.
+
+  * Docx writer:
+
+    + Copy hyphenation settings from reference.docx (Nikolay Yakimov).
+    + Filter out illegal XML characters (#1992, Matthew Pickering).
+    + Added `noProof` to docx syntax highlighting `SourceCode` style.
+    + Added footnotes id -1 and 0 (Jesse Rosenthal).
+      Word uses, by default, footnotes with id -1 and 0 for separators. If a
+      user modifies `reference.docx`, they will end up with a `settings.xml`
+      file that references these footnotes, but no such footnotes in the
+      document. This will produce a corruption error. Here we add these to the
+      document and `settings.xml` file, so future modifications won't break
+      the file.
+    + Handle lists correctly inside table cells (Jesse Rosenthal).
+      Previously we didn't transform lists inside table cells.
+    + Set firstRow information in tables (Nikolay Yakimov).
+    + Don't replace `SourceCode` style in `reference.docx` if it is defined
+      there (Nikolay Yakimov, #1872).  If `--no-highlight` specified, remove
+      any `SourceCode` and `*Tok` styles in `reference.docx`.
+    + Attempt to match international style names (#1607, Nikolay Yakimov).
+    + Set these styles as custom (Nikolay Yakimov): `Author`, `Abstract`,
+      `Compact`, `Image Caption`, `Table Caption`, `Definition Term`,
+      `Definition`, `First Paragraph`.
+    + Rename these styles to correspond with Word `Normal.dotm` (Nikolay
+      Yakimov): `Block Quote -> Block Text`, `Link -> Hyperlink`,
+      `Footnote Ref -> Footnote Reference`.
+    + Added `Caption` style (Nikolay Yakimov).
+    + Changed these styles' inheritance (Nikolay Yakimov):
+      `Image Caption <- Caption`, `Table Caption <- Caption`.
+    + Remove `SourceCode` style from `reference.docx` (#1872).
+      This is added automatically by the docx writer.
+    + Added toc heading style to `reference.docx` (Nikolay Yakimov).
+
+  * `Text.Pandoc.PDF`
+
+    + Don't suggest "Try xelatex" if xelatex already in use (mb21, #1832).
+    + More comprehensible errors on image conversion (#2067).
+      EPS can't be supported without shelling out to something like
+      ImageMagick, but at least we can avoid mysterious error messages.
+
+  * `Text.Pandoc.Shared`:
+
+    + Make safeRead safe (#1801, Matthew Pickering).
+    + Addded `mapLeft`, `hush` (Matthew Pickering).
+
+  * `Text.Pandoc.Pretty`: Remove partial function (Matthew Pickering).
+
+  * `Text.Pandoc.SelfContained`:
+
+    + Add `;charset=utf-8` to script mime type if missing (#1842).
+    + Improved building of data URIs (#1940).  Now base64 is used except
+      for 'text/*' mime types.
+    + `cssURLs` no longer tries to fetch fragment URLs (#2121).
+    + Properly handle data URIs in css urls (#2129).
+      Use a proper CSS parser (adds dependency on `text-css`).
+
+  * `Text.Pandoc.UTF8`: Better handling of bare CRs in input files (#2132).
+    Previously we just stripped them out; now we convert
+    other line ending styles to LF line endings.
+
+  * `Text.Pandoc.ImageSize`:
+
+    + Fixed some exif header parsing bugs (#1834).
+    + Make imageSize return an Either, not a Maybe (#1834).
+      Use `runGetOrFail` (with `binary >= 0.7`) to return Left on
+      parse failure (rather than `error`).
+    + Improved warnings when image size can't be determined.
+    + Removed error landmines (Matthew Pickering).
+
+  * Added woff2 to MIME types (Alfred Wechselberger).
+
+  * pandoc:  When a binary input format is used, warn that
+    file arguments past the first one are being ignored
+    (Matthew Pickering).
+
+  [template changes]
+
+  * LaTeX template:
+
+    + Define `\tightlist` macro if not defined.
+    + Use `\providecommand` for `tightlist`.  This avoids a conflict
+      when memoir class is used (thanks to Joseph Harriott).
+    + Degrade gracefully if `\paragraph` not defined.
+    + Include `grffile` together with `graphicx` (#2074).
+      This properly handles filenames containing spaces and dots.
+    + Redefine `\paragraph`, `\subparagraph`...  to behave more
+      like section headers (#1658).
+
+  * LaTeX, Beamer templates:  use `bibliography` instead of `biblio-files`
+    (#1661).  Also use `\addbibresource` instead of `\bibliography` for
+    biblatex.
+
+  * EPUB templates:
+
+    + Use `div`, not `p`, for "rights" on title page.
+    + Added header-includes, include-before, include-after (#1987).
+
+  * OpenDocument template:  use `text:p` instead of `text:h` for title.
+    Using `text:h` causes problems with numbering.  Closes #2059.
+    Thansk to @nkalvi for diagnosing this.
+
+  * reveal.js template:
+
+    + Link to non-minified css, js.  The minified versions no longer
+      ship with the library.
+    + Correctly include style CSS (#1949).
+    + New configurable options options: `center`, `maxScale`, `slideNuber`
+      (Dmitry Smirnov, pandoc-templates#89).
+    + Moved custom CSS after theme.  This allows custom CSS to modify
+      themes, instead of being replaced by them.
+
+  [under the hood improvements]
+
+  * Removed pre-built `reference.docx` and `reference.odt` (Nikolay
+    Yakimov).  Instead the repository now includes the component text files,
+    and the zipped binaries are built from these using a helper
+    program, `make-reference-files`.  The new component files are in 
+    `extra-source-files`.  This should make maintenance of these components
+    easier going forward.
+
+  * `Text.Pandoc.Parsing`: Added new `<+?>` combinator (Nikolay Yakimov).
+
+  * `make_deb.sh` fixes:
+
+    + Detect architecture.
+    + Add Installed-Size to debian package control file (#1900).
+    + Use `fakeroot` to get permissions right.
+    + Use `mkdir` and `cp` instead of `install`.
+    + Set permissions of directories to 755.
+    + Install in `/usr` rather than `/usr/local`.
+    + Compress man pages.
+    + Combine copyright files for `pandoc`, `pandoc-citeproc`.
+
+  * Added `Text.Pandoc.Compat.Locale` and `old-locale` flag
+    to assist with transition to `time` 1.5.
+
+  * Updated CONTRIBUTING.md with information about issue tags (Matthew
+    Pickering).
+
+  * Updated travis installs to the new sudo-less syntax (Tim Lin).
+
+  * Updated dependency version bounds.
+
+  * EPUB tests:  don't use `joinPath`, which varies across platforms.
+    Instead, use a forward-slash to join paths, regardless of the
+    platform. This matches the way `MediaBag` now works.
+
+  * Clarify JSON input and output in usage message (Caleb McDaniel).
+
+  * Improved INSTALL instructions.
+
+  * Always build man pages.  Removed make-pandoc-man-pages flag.
+
+  * Makefile:  removed man target, now that we generate man pages by default.
+
+  * README:
+
+    + Various minor formatting and consistency fixes for the program
+      options (Andreas Lööw).
+    + Fix typos (J. Lewis Muir).
+    + Add documentation on backtick_code_blocks (#2135, Nikolay Yakimov).
+    + Add note on in-field markup in biblio databases (Nick Bart).
+    + Fixed misleading example of raw HTML block.
+    + Added YAML biblio format to table, and note on `pandoc-citeproc`'s
+      `--bib2json` and `--bib2yaml` options (Nick Bart).
+    + Make definition lists for options all "loose" for consistency.
+    + Remove obsolete reference to `mods2yaml` (Nick Bart).
+
 pandoc (1.13.2.1)
 
   * Updated to build with ghc 7.10.1.
