@@ -2944,20 +2944,22 @@ variants are supported:
 `markdown_phpextra` (PHP Markdown Extra)
 :   `footnotes`, `pipe_tables`, `raw_html`, `markdown_attribute`,
     `fenced_code_blocks`, `definition_lists`, `intraword_underscores`,
-    `header_attributes`, `abbreviations`.
+    `header_attributes`, `abbreviations`, `shortcut_reference_links`.
 
 `markdown_github` (GitHub-flavored Markdown)
 :   `pipe_tables`, `raw_html`, `tex_math_single_backslash`,
     `fenced_code_blocks`, `auto_identifiers`,
     `ascii_identifiers`, `backtick_code_blocks`, `autolink_bare_uris`,
-    `intraword_underscores`, `strikeout`, `hard_line_breaks`
+    `intraword_underscores`, `strikeout`, `hard_line_breaks`,
+    `shortcut_reference_links`.
 
 `markdown_mmd` (MultiMarkdown)
 :   `pipe_tables` `raw_html`, `markdown_attribute`, `link_attributes`,
     `raw_tex`, `tex_math_double_backslash`, `intraword_underscores`,
     `mmd_title_block`, `footnotes`, `definition_lists`,
     `all_symbols_escapable`, `implicit_header_references`,
-    `auto_identifiers`, `mmd_header_identifiers`
+    `auto_identifiers`, `mmd_header_identifiers`,
+    `shortcut_reference_links`.
 
 `markdown_strict` (Markdown.pl)
 :   `raw_html`
