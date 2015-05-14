@@ -903,7 +903,8 @@ data ParserState = ParserState
       stateAllowLinks      :: Bool,          -- ^ Allow parsing of links
       stateMaxNestingLevel :: Int,           -- ^ Max # of nested Strong/Emph
       stateLastStrPos      :: Maybe SourcePos, -- ^ Position after last str parsed
-      stateKeys            :: KeyTable,      -- ^ List of reference keys (with fallbacks)
+      stateKeys            :: KeyTable,      -- ^ List of reference keys
+      stateHeaderKeys      :: KeyTable,      -- ^ List of implicit header ref keys
       stateSubstitutions   :: SubstTable,    -- ^ List of substitution references
       stateNotes           :: NoteTable,     -- ^ List of notes (raw bodies)
       stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
@@ -1001,6 +1002,7 @@ defaultParserState =
                   stateMaxNestingLevel = 6,
                   stateLastStrPos      = Nothing,
                   stateKeys            = M.empty,
+                  stateHeaderKeys      = M.empty,
                   stateSubstitutions   = M.empty,
                   stateNotes           = [],
                   stateNotes'          = [],

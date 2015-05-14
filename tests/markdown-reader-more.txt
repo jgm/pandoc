@@ -168,6 +168,8 @@ A link to [My header].
 
 Another link to [it][My header].
 
+Should be [case insensitive][my header].
+
 Link to [Explicit header attributes].
 
 [my other header]: /foo

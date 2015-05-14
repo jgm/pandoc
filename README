@@ -1269,10 +1269,17 @@ If there are multiple headers with identical text, the corresponding
 reference will link to the first one only, and you will need to use explicit
 links to link to the others, as described above.
 
-Unlike regular reference links, these references are case-sensitive.
+Like regular reference links, these references are case-insensitive.
 
-Note:  if you have defined an explicit identifier for a header,
-then implicit references to it will not work.
+Explicit link reference definitions always take priority over
+implicit header references.  So, in the following example, the
+link will point to `bar`, not to `#foo`:
+
+    # Foo
+
+    [foo]: bar
+
+    See [foo]
 
 Block quotations
 ----------------

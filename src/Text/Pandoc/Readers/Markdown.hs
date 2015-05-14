@@ -509,9 +509,12 @@ atxHeader = try $ do
   notFollowedBy $ guardEnabled Ext_fancy_lists >>
                   (char '.' <|> char ')') -- this would be a list
   skipSpaces
-  text <- trimInlinesF . mconcat <$> many (notFollowedBy atxClosing >> inline)
+  (text, raw) <- withRaw $
+          trimInlinesF . mconcat <$> many (notFollowedBy atxClosing >> inline)
   attr <- atxClosing
-  attr' <- registerHeader attr (runF text defaultParserState)
+  attr'@(ident,_,_) <- registerHeader attr (runF text defaultParserState)
+  guardDisabled Ext_implicit_header_references
+    <|> registerImplicitHeader raw ident
   return $ B.headerWith attr' level <$> text
 
 atxClosing :: MarkdownParser Attr
@@ -544,14 +547,23 @@ setextHeader = try $ do
   -- This lookahead prevents us from wasting time parsing Inlines
   -- unless necessary -- it gives a significant performance boost.
   lookAhead $ anyLine >> many1 (oneOf setextHChars) >> blankline
-  text <- trimInlinesF . mconcat <$> many1 (notFollowedBy setextHeaderEnd >> inline)
+  (text, raw) <- withRaw $
+       trimInlinesF . mconcat <$> many1 (notFollowedBy setextHeaderEnd >> inline)
   attr <- setextHeaderEnd
   underlineChar <- oneOf setextHChars
   many (char underlineChar)
   blanklines
   let level = (fromMaybe 0 $ findIndex (== underlineChar) setextHChars) + 1
-  attr' <- registerHeader attr (runF text defaultParserState)
+  attr'@(ident,_,_) <- registerHeader attr (runF text defaultParserState)
+  guardDisabled Ext_implicit_header_references
+    <|> registerImplicitHeader raw ident
   return $ B.headerWith attr' level <$> text
+
+registerImplicitHeader :: String -> String -> MarkdownParser ()
+registerImplicitHeader raw ident = do
+  let key = toKey $ "[" ++ raw ++ "]"
+  updateState (\s -> s { stateHeaderKeys =
+                         M.insert key ('#':ident,"") (stateHeaderKeys s) })
 
 --
 -- hrule block
@@ -1700,7 +1712,7 @@ referenceLink :: (String -> String -> Inlines -> Inlines)
               -> (F Inlines, String) -> MarkdownParser (F Inlines)
 referenceLink constructor (lab, raw) = do
   sp <- (True <$ lookAhead (char ' ')) <|> return False
-  (ref,raw') <- option (mempty, "") $
+  (_,raw') <- option (mempty, "") $
       lookAhead (try (spnl >> normalCite >> return (mempty, "")))
       <|>
       try (spnl >> reference)
@@ -1720,13 +1732,13 @@ referenceLink constructor (lab, raw) = do
   return $ do
     keys <- asksF stateKeys
     case M.lookup key keys of
-       Nothing        -> do
-         headers <- asksF stateHeaders
-         ref' <- if labIsRef then lab else ref
+       Nothing        ->
          if implicitHeaderRefs
-            then case M.lookup ref' headers of
-                   Just ident -> constructor ('#':ident) "" <$> lab
-                   Nothing    -> makeFallback
+            then do
+              headerKeys <- asksF stateHeaderKeys
+              case M.lookup key headerKeys of
+                   Just (src, tit) -> constructor src tit <$> lab
+                   Nothing         -> makeFallback
             else makeFallback
        Just (src,tit) -> constructor src tit <$> lab
 

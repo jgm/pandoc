@@ -35,6 +35,8 @@ pandoc (1.14)
 
   * Markdown reader:
 
+    + Reference links with `implicit_header_references` are no longer
+      case-sensitive (#1606).
     + Definition lists:  don't require indent for first line (#2087).
       Previously the body of the definition (after the `:` or `~` marker)
       needed to be in column 4.  This commit relaxes that requirement,
@@ -439,7 +441,10 @@ pandoc (1.14)
     `extra-source-files`.  This should make maintenance of these components
     easier going forward.
 
-  * `Text.Pandoc.Parsing`: Added new `<+?>` combinator (Nikolay Yakimov).
+  * `Text.Pandoc.Parsing`:
+
+    + Added new `<+?>` combinator (Nikolay Yakimov).
+    + Added `stateHeaderKeys` to `ParserState`.
 
   * `make_deb.sh` fixes:
 
