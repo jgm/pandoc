@@ -481,6 +481,7 @@ Test-Suite test-pandoc
                   Tests.Shared
                   Tests.Walk
                   Tests.Readers.LaTeX
+                  Tests.Readers.HTML
                   Tests.Readers.Markdown
                   Tests.Readers.Org
                   Tests.Readers.RST
