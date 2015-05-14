@@ -3159,6 +3159,16 @@ To show the notes window, press `s` while viewing the presentation.
 Notes are not yet supported for other slide formats, but the notes
 will not appear on the slides themselves.
 
+Marking frames "fragile" in beamer
+----------------------------------
+
+Sometimes it is necessary to add the LaTeX `[fragile]` option to
+a frame in beamer (for example, when using the `minted` environment).
+This can be forced by adding the `fragile` class to the header
+introducing the slide:
+
+    # Fragile slide {.fragile}
+
 EPUB Metadata
 =============
 

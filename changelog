@@ -96,6 +96,8 @@ pandoc (1.14)
       Harriott). Previously, pandoc hard-coded some commands to make
       tight lists in LaTeX.  Now we use a custom command instead,
       allowing the styling to be changed in a macro in the header.
+    + Beamer output: if the header introducing a slide has the
+      class `fragile`, add the `[fragile]` option to the slide (#2119).
 
   * MediaWiki writer:
 
