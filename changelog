@@ -204,6 +204,8 @@ pandoc (1.14)
     + Fixed `htmlTag` (#1820).  If the tag parses as a comment, we check
       to see if the input starts with `<!--`. If not, it's bogus comment
       mode and we fail `htmlTag`.
+    + Handle `base` tag; if it has an `href` value, this is added to
+      all relative URLs in links and images.
 
   * DocBook reader:  look inside "info" elements for section titles (#1931).
 
