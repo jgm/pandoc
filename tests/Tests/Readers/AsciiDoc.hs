@@ -1,12 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.AsciiDoc (tests) where
 
-import Text.Pandoc.Definition
 import qualified Test.Framework as F
 import Test.HUnit (assertBool)
 import Test.Framework.Providers.HUnit
+
 import Tests.Helpers
 import Tests.Arbitrary()
+import Text.Pandoc.Definition
 import Text.Pandoc.Builder
 import Text.Pandoc.Error
 import Text.Pandoc
@@ -23,6 +24,9 @@ infix 4 =:
      => String -> (String, c) -> F.Test
 (=:) = test asciidoc
 
+infix 4 =!:
+(=!:) :: String -> (String, String) -> F.Test
+(=!:) = notIn asciidoc
 
 tests :: [F.Test]
 tests = [ F.testGroup "Titles"
@@ -173,6 +177,10 @@ tests = [ F.testGroup "Titles"
                     <> (str "strong*")
                     <> space
                     <> (str "text"))
+
+          , "not strong due to space after opening char" =!:
+          "a * strong* text"
+          =?> "Strong"
 
           , "not strong due to space before closing char" =:
           "a *strong * text"
