@@ -198,6 +198,8 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
     let env'' = ("TEXINPUTS", texinputs) :
                   [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
     when (verbose && runNumber == 1) $ do
+      putStrLn $ "[makePDF] temp dir:"
+      putStrLn tmpDir'
       putStrLn $ "[makePDF] Command line:"
       putStrLn $ program ++ " " ++ unwords (map show programArgs)
       putStr "\n"
