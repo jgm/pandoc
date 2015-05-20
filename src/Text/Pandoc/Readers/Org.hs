@@ -652,8 +652,25 @@ parseFormat = try $ do
 header :: OrgParser (F Blocks)
 header = try $ do
   level <- headerStart
-  title <- inlinesTillNewline
-  return $ B.header level <$> title
+  title <- manyTill inline (lookAhead headerEnd)
+  tags <- headerEnd
+  let inlns = trimInlinesF . mconcat $ title <> map tagToInlineF tags
+  return $ B.header level <$> inlns
+ where
+   tagToInlineF :: String -> F Inlines
+   tagToInlineF t = return $ B.spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
+
+headerEnd :: OrgParser [String]
+headerEnd = option [] headerTags <* newline
+
+headerTags :: OrgParser [String]
+headerTags = try $
+  skipSpaces
+  *> char ':'
+  *> many1 tag
+  <* skipSpaces
+ where tag = many1 (alphaNum <|> oneOf "@%#_")
+             <* char ':'
 
 headerStart :: OrgParser Int
 headerStart = try $
