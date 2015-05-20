@@ -111,6 +111,12 @@ pandoc (1.14)
     + Use `File:` instead of the deprecated `Image:` for images and
       other media files (Greg Rundlett).
 
+  * DocBook writer:
+
+    + Render a `Div (id,_,_) [Para _]` element as a `para` element
+      with an `id` attribute.  This makes links to citations work in
+      DocBook with pandoc-citeproc.
+
   * RST writer:
 
     + Normalize headings to sequential levels (Nikolay Yakimov).
