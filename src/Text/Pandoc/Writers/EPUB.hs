@@ -415,10 +415,14 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let blocks'' = replaceRefs reftable blocks'
 
   let isChapterHeader (Header n _ _) = n <= chapterHeaderLevel
+      isChapterHeader (Div ("",["references"],[]) (Header n _ _:_)) =
+        n <= chapterHeaderLevel
       isChapterHeader _ = False
 
   let toChapters :: [Block] -> State [Int] [Chapter]
       toChapters []     = return []
+      toChapters (Div ("",["references"],[]) bs@(Header 1 _ _:_) : rest) =
+        toChapters (bs ++ rest)
       toChapters (Header n attr@(_,classes,_) ils : bs) = do
         nums <- get
         mbnum <- if "unnumbered" `elem` classes
