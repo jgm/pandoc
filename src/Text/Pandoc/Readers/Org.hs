@@ -172,19 +172,6 @@ recordAnchorId :: String -> OrgParser ()
 recordAnchorId i = updateState $ \s ->
   s{ orgStateAnchorIds = i : (orgStateAnchorIds s) }
 
-addBlockAttribute :: String -> String -> OrgParser ()
-addBlockAttribute key val = updateState $ \s ->
-  let attrs = orgStateBlockAttributes s
-  in s{ orgStateBlockAttributes = M.insert key val attrs }
-
-lookupBlockAttribute :: String -> OrgParser (Maybe String)
-lookupBlockAttribute key =
-  M.lookup key . orgStateBlockAttributes <$> getState
-
-resetBlockAttributes :: OrgParser ()
-resetBlockAttributes = updateState $ \s ->
-  s{ orgStateBlockAttributes = orgStateBlockAttributes def }
-
 updateLastForbiddenCharPos :: OrgParser ()
 updateLastForbiddenCharPos = getPosition >>= \p ->
   updateState $ \s -> s{ orgStateLastForbiddenCharPos = Just p}
@@ -312,9 +299,18 @@ block = choice [ mempty <$ blanklines
                , paraOrPlain
                ] <?> "block"
 
+--
+-- Block Attributes
+--
+
+-- | Parse optional block attributes (like #+TITLE or #+NAME)
 optionalAttributes :: OrgParser (F Blocks) -> OrgParser (F Blocks)
 optionalAttributes parser = try $
   resetBlockAttributes *> parseBlockAttributes *> parser
+ where
+   resetBlockAttributes :: OrgParser ()
+   resetBlockAttributes = updateState $ \s ->
+     s{ orgStateBlockAttributes = orgStateBlockAttributes def }
 
 parseBlockAttributes :: OrgParser ()
 parseBlockAttributes = do
@@ -338,6 +334,15 @@ lookupInlinesAttr attr = try $ do
   maybe (return Nothing)
         (fmap Just . parseFromString parseInlines)
         val
+
+addBlockAttribute :: String -> String -> OrgParser ()
+addBlockAttribute key val = updateState $ \s ->
+  let attrs = orgStateBlockAttributes s
+  in s{ orgStateBlockAttributes = M.insert key val attrs }
+
+lookupBlockAttribute :: String -> OrgParser (Maybe String)
+lookupBlockAttribute key =
+  M.lookup key . orgStateBlockAttributes <$> getState
 
 
 --
