@@ -38,9 +38,9 @@ tests = [ F.testGroup "Titles"
             "===== title"
             =?> header 5 (str "title")
 
-            , "level 7 with line prefix = does not exist" =:
+            , "level 7 with line prefix = does not exist" =!:
             "======= title"
-            =?> para ((str "=======") <> space <> (str "title"))
+            =?> "Header"
 
             , "level 1 with underline" =:
             "title\n====="
@@ -50,25 +50,21 @@ tests = [ F.testGroup "Titles"
             "title\n-----"
             =?> header 2 (str "title")
 
-            , "level 1 with underline not enough symbols" =:
+            , "level 1 with underline not enough symbols" =!:
             "title\n=="
-            =?> para ((str "title") <>
-                         space <> (str "=="))
+            =?> "Header"
 
-            , "level 2 with underline not enough symbols" =:
+            , "level 2 with underline not enough symbols" =!:
             "title\n--"
-            =?> para ((str "title") <>
-                         space <> (str "--"))
+            =?> "Header"
 
-            , "level 1 with underline too many symbols" =:
+            , "level 1 with underline too many symbols" =!:
             "title\n================"
-            =?> para ((str "title") <>
-                         space <> (str "================"))
+            =?> "Header"
 
-            , "level 2 with underline too many symbols" =:
+            , "level 2 with underline too many symbols" =!:
             "title\n----------------"
-            =?> para ((str "title") <>
-                         space <> (str "----------------"))
+            =?> "Header"
 
             , "level 2 with markdown style" =:
             "## title\n"
@@ -115,21 +111,21 @@ tests = [ F.testGroup "Titles"
             "* * *"
             =?> horizontalRule
 
-            , testCase "horizontal rule markdown mixed markers * - *" $
-                assertBool "horizontal rule markdown mixed markers * - *" $
-                  not (elem HorizontalRule (asciidocBlocks "* - *"))
+            , "horizontal rule markers mixed * - * -> no horizontalRule" =!:
+            "* - *"
+            =?> "HorizontalRule"
 
-            , testCase "horizontal rule markdown mixed markers - - *" $
-                assertBool "horizontal rule markdown mixed markers - - *" $
-                  not (elem HorizontalRule (asciidocBlocks "- - *"))
+            , "horizontal rule markers mixed - - * -> no horizontalRule" =!:
+            "- - *"
+            =?> "HorizontalRule"
 
-            , testCase "horizontal rule markdown mixed markers -**" $
-                assertBool "horizontal rule markdown mixed markers -**" $
-                  not (elem HorizontalRule (asciidocBlocks "-**"))
+            , "horizontal rule markers mixed -** -> no horizontalRule" =!:
+            "-**"
+            =?> "HorizontalRule"
 
-            , testCase "horizontal rule markdown markers --- are exact, no additional dashes" $
-               assertBool "horizontal rule markdown markers --- are exact, no additional dashes" $
-                 not (elem HorizontalRule (asciidocBlocks "----"))
+            , "horizontal rule markdown markers --- are exact, no additional dashes" =!:
+            "----"
+            =?> "HorizontalRule"
 
           ]
           , F.testGroup "HyperLinks"
@@ -168,37 +164,21 @@ tests = [ F.testGroup "Titles"
                     <> space
                     <> (str "text"))
 
-          , "not strong due to space after opening char" =:
+          , "not strong due to space after opening char" =!:
           "a * strong* text"
-          =?> para ((str "a")
-                    <> space
-                    <> (str "*")
-                    <> space
-                    <> (str "strong*")
-                    <> space
-                    <> (str "text"))
+          =?> "Strong"
 
           , "not strong due to space after opening char" =!:
           "a * strong* text"
           =?> "Strong"
 
-          , "not strong due to space before closing char" =:
+          , "not strong due to space before closing char" =!:
           "a *strong * text"
-          =?> para ((str "a")
-                    <> space
-                    <> (str "*strong")
-                    <> space
-                    <> (str "*")
-                    <> space
-                    <> (str "text"))
+          =?> "Strong"
 
-          , "not strong due to alphanum after closing char" =:
+          , "not strong due to alphanum after closing char" =!:
           "a *strong*ornot text"
-          =?> para ((str "a")
-                    <> space
-                    <> (str "*strong*ornot")
-                    <> space
-                    <> (str "text"))
+          =?> "Strong"
           ]
 
           , F.testGroup "Emphasized"
