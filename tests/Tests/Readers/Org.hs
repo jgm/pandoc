@@ -524,6 +524,13 @@ tests =
           "* COMMENT Test" =?>
           (mempty::Blocks)
 
+      , "Tree with :noexport:" =:
+          unlines [ "* Should be ignored :archive:noexport:old:"
+                  , "** Old stuff"
+                  , "   This is not going to be exported"
+                  ] =?>
+          (mempty::Blocks)
+
       , "Paragraph starting with an asterisk" =:
           "*five" =?>
           para "*five"

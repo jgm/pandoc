@@ -84,13 +84,21 @@ dropCommentTrees [] = []
 dropCommentTrees blks@(b:bs) =
   maybe blks (flip dropUntilHeaderAboveLevel bs) $ commentHeaderLevel b
 
--- | Return the level of a header starting a comment tree and Nothing
--- otherwise.
+-- | Return the level of a header starting a comment or :noexport: tree and
+--  Nothing otherwise.
 commentHeaderLevel :: Block -> Maybe Int
 commentHeaderLevel blk =
    case blk of
-     (Header level _ ((Str "COMMENT"):_)) -> Just level
-     _                                    -> Nothing
+     (Header level _ ((Str "COMMENT"):_))          -> Just level
+     (Header level _ title) | hasNoExportTag title -> Just level
+     _                                             -> Nothing
+ where
+   hasNoExportTag :: [Inline] -> Bool
+   hasNoExportTag = any isNoExportTag
+
+   isNoExportTag :: Inline -> Bool
+   isNoExportTag (Span ("", ["tag"], [("data-tag-name", "noexport")]) []) = True
+   isNoExportTag _ = False
 
 -- | Drop blocks until a header on or above the given level is seen
 dropUntilHeaderAboveLevel :: Int -> [Block] -> [Block]
