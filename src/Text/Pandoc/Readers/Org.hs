@@ -399,11 +399,11 @@ exportsResults :: [(String, String)] -> Bool
 exportsResults attrs = ("rundoc-exports", "results") `elem` attrs
                        || ("rundoc-exports", "both") `elem` attrs
 
-followingResultsBlock :: OrgParser (Maybe String)
+followingResultsBlock :: OrgParser (Maybe (F Blocks))
 followingResultsBlock =
        optionMaybe (try $ blanklines *> stringAnyCase "#+RESULTS:"
                                      *> blankline
-                                     *> (unlines <$> many1 exampleLine))
+                                     *> block)
 
 codeBlock :: BlockProperties -> OrgParser (F Blocks)
 codeBlock blkProp = do
@@ -418,7 +418,7 @@ codeBlock blkProp = do
   labelledBlck      <- maybe (pure codeBlck)
                              (labelDiv codeBlck)
                              <$> lookupInlinesAttr "caption"
-  let resultBlck     = pure $ maybe mempty (exampleCode) resultsContent
+  let resultBlck     = fromMaybe mempty resultsContent
   return $ (if includeCode then labelledBlck else mempty)
            <> (if includeResults then resultBlck else mempty)
  where
