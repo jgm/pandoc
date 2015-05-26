@@ -449,7 +449,8 @@ General writer options
 
 :   Specifies the coloring style to be used in highlighted source code.
     Options are `pygments` (the default), `kate`, `monochrome`,
-    `espresso`, `zenburn`, `haddock`, and `tango`.
+    `espresso`, `zenburn`, `haddock`, and `tango`.  For more information
+    on syntax highlighting in pandoc, see [Syntax highlighting], below.
 
 `-H` *FILE*, `--include-in-header=`*FILE*
 
@@ -1422,6 +1423,8 @@ word.
 
 To prevent all highlighting, use the `--no-highlight` flag.
 To set the highlighting style, use `--highlight-style`.
+For more information on highlighting, see [Syntax highlighting],
+below.
 
 Line blocks
 -----------
@@ -3312,6 +3315,24 @@ ordinary HTML (without bird tracks).
 writes HTML with the Haskell code in bird tracks, so it can be copied
 and pasted as literate Haskell source.
 
+Syntax highlighting
+===================
+
+Pandoc will automatically highlight syntax in fenced code blocks that
+are marked with a language name.  (See [Extension:
+`inline_code_attributes`] and [Extension: `fenced_code_attributes`],
+above.)  The Haskell library [highlighting-kate] is used for
+highlighting, which works in HTML, Docx, and LaTeX/PDF output.
+The color scheme can be selected using the `--highlight-style` option.
+The default color scheme is `pygments`, which imitates the default color
+scheme used by the Python library pygments, but pygments is not actually
+used to do the highlighting.
+
+To see a list of language names that pandoc will recognize, type
+`pandoc --version`.
+
+To disable highlighting, use the `--no-highlight` option.
+
 Custom writers
 ==============
 
@@ -3499,3 +3520,4 @@ Wikiwide.
 [EPUBspine]: http://www.idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem
 [KaTeX]: https://github.com/Khan/KaTeX
 [CommonMark]: http://commonmark.org
+[highlighting-kate]: http://github.com/jgm/highlighting-kate
