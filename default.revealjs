@@ -89,7 +89,7 @@ $body$
         controls: true,         // Display controls in the bottom right corner
         progress: true,         // Display a presentation progress bar
         history: true,          // Push each slide change to the browser history
-        center: $if(center)$$center$$else$true$endif$,                       // Vertical centering of slides
+        center: $if(center)$$center$$else$false$endif$,                       // Vertical centering of slides
         maxScale: $if(maxScale)$$maxScale$$else$1.5$endif$,                  // Bounds for smallest/largest possible content scale
         slideNumber: $if(slideNumber)$true$else$false$endif$,                // Display the page number of the current slide
         theme: $if(theme)$'$theme$'$else$Reveal.getQueryHash().theme$endif$, // available themes are in /css/theme
