@@ -985,6 +985,9 @@ as `title`, `author`, and `date`) as well as the following:
 :   color for internal links in LaTeX documents (`red`, `green`,
     `magenta`, `cyan`, `blue`, `black`)
 
+`toccolor`
+:    color for links in table of contents in LaTeX documents
+
 `urlcolor`
 :   color for external links in LaTeX documents
 
