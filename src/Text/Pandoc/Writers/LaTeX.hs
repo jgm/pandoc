@@ -161,8 +161,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "euro" (stUsesEuro st) $
                   defField "listings" (writerListings options || stLHS st) $
                   defField "beamer" (writerBeamer options) $
-                  defField "mainlang" (maybe "" (reverse . takeWhile (/=',') . reverse)
-                                (lookup "lang" $ writerVariables options)) $
+                  defField "mainlang"
+                       (maybe "" (reverse . takeWhile (/=',') . reverse)
+                       (getField "lang" metadata)) $
                   (if stHighlighting st
                       then defField "highlighting-macros" (styleToLaTeX
                                 $ writerHighlightStyle options )
