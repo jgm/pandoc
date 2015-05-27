@@ -180,19 +180,6 @@ recordAnchorId :: String -> OrgParser ()
 recordAnchorId i = updateState $ \s ->
   s{ orgStateAnchorIds = i : (orgStateAnchorIds s) }
 
-addBlockAttribute :: String -> String -> OrgParser ()
-addBlockAttribute key val = updateState $ \s ->
-  let attrs = orgStateBlockAttributes s
-  in s{ orgStateBlockAttributes = M.insert key val attrs }
-
-lookupBlockAttribute :: String -> OrgParser (Maybe String)
-lookupBlockAttribute key =
-  M.lookup key . orgStateBlockAttributes <$> getState
-
-resetBlockAttributes :: OrgParser ()
-resetBlockAttributes = updateState $ \s ->
-  s{ orgStateBlockAttributes = orgStateBlockAttributes def }
-
 updateLastForbiddenCharPos :: OrgParser ()
 updateLastForbiddenCharPos = getPosition >>= \p ->
   updateState $ \s -> s{ orgStateLastForbiddenCharPos = Just p}
@@ -320,9 +307,18 @@ block = choice [ mempty <$ blanklines
                , paraOrPlain
                ] <?> "block"
 
+--
+-- Block Attributes
+--
+
+-- | Parse optional block attributes (like #+TITLE or #+NAME)
 optionalAttributes :: OrgParser (F Blocks) -> OrgParser (F Blocks)
 optionalAttributes parser = try $
   resetBlockAttributes *> parseBlockAttributes *> parser
+ where
+   resetBlockAttributes :: OrgParser ()
+   resetBlockAttributes = updateState $ \s ->
+     s{ orgStateBlockAttributes = orgStateBlockAttributes def }
 
 parseBlockAttributes :: OrgParser ()
 parseBlockAttributes = do
@@ -346,6 +342,15 @@ lookupInlinesAttr attr = try $ do
   maybe (return Nothing)
         (fmap Just . parseFromString parseInlines)
         val
+
+addBlockAttribute :: String -> String -> OrgParser ()
+addBlockAttribute key val = updateState $ \s ->
+  let attrs = orgStateBlockAttributes s
+  in s{ orgStateBlockAttributes = M.insert key val attrs }
+
+lookupBlockAttribute :: String -> OrgParser (Maybe String)
+lookupBlockAttribute key =
+  M.lookup key . orgStateBlockAttributes <$> getState
 
 
 --
@@ -402,11 +407,11 @@ exportsResults :: [(String, String)] -> Bool
 exportsResults attrs = ("rundoc-exports", "results") `elem` attrs
                        || ("rundoc-exports", "both") `elem` attrs
 
-followingResultsBlock :: OrgParser (Maybe String)
+followingResultsBlock :: OrgParser (Maybe (F Blocks))
 followingResultsBlock =
        optionMaybe (try $ blanklines *> stringAnyCase "#+RESULTS:"
                                      *> blankline
-                                     *> (unlines <$> many1 exampleLine))
+                                     *> block)
 
 codeBlock :: BlockProperties -> OrgParser (F Blocks)
 codeBlock blkProp = do
@@ -421,7 +426,7 @@ codeBlock blkProp = do
   labelledBlck      <- maybe (pure codeBlck)
                              (labelDiv codeBlck)
                              <$> lookupInlinesAttr "caption"
-  let resultBlck     = pure $ maybe mempty (exampleCode) resultsContent
+  let resultBlck     = fromMaybe mempty resultsContent
   return $ (if includeCode then labelledBlck else mempty)
            <> (if includeResults then resultBlck else mempty)
  where
