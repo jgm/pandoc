@@ -78,6 +78,17 @@ pandoc (1.14)
   * Org reader:
 
     + Support smart punctuation (Craig Bosma).
+    + Drop trees with a :noexport: tag (Albert Krewinkel). Trees having a
+      `:noexport:` tag set are not exported.  This mirrors org-mode.
+    + Put header tags into empty spans (Albert Krewinkel, #2160).
+      Org mode allows headers to be tagged: `* Headline  :TAG1:TAG2`.
+      Instead of being interpreted as part of the headline, the tags are now
+      put into the attributes of empty spans.  Spans without textual content
+      won't be visible by default, but they are detectable by filters.  They
+      can also be styled using CSS when written as HTML.
+    + Generalize code block result parsing (Albert Krewinkel).
+      Previously, only code blocks were recognized as result blocks;
+      now, any kind of block can be the result.
 
   * Append newline to the LineBreak in Dokuwiki, HTML, EPUB,
     LaTeX, MediaWiki, OpenDocument, Texinfo writers (#1924, Tim Lin).
@@ -286,6 +297,7 @@ pandoc (1.14)
       is a book documentclass.  Previously this was done only if a book
       documentclass was set in a variable.
     + Add a `\label` in `\hyperdef` for Div, Span (or links don't work).
+    + Make `mainlang` work when `lang` is in metadata (#2174).
 
   * Texinfo writer:
 
@@ -320,6 +332,11 @@ pandoc (1.14)
       This gives better results when we have, e.g. multiple paragraphs.
       Note that tags aren't allowed in these fields.
     + Properly handle image links without an extension (#1855).
+    + Improved chapter splitting and internal link rewriting (#1887,
+      #2162, #2163).  This will ensure that internal links work and
+      that the references section produced by pandoc-citeproc is
+      in its own chapter.
+    + Fixed handling of svg images (#2183).
 
   * ICML writer:
 
@@ -327,6 +344,7 @@ pandoc (1.14)
       Previously these were always escaped and printed verbatim.
       Now they are ignored unless the format is `icml`, in which
       case they are passed through unescaped.
+    + Fixed image URIs in ICML output (gohai).
 
   * Custom writer:
 
@@ -420,20 +438,25 @@ pandoc (1.14)
 
   * LaTeX template:
 
-    + Define `\tightlist` macro if not defined.
-    + Use `\providecommand` for `tightlist`.  This avoids a conflict
-      when memoir class is used (thanks to Joseph Harriott).
     + Degrade gracefully if `\paragraph` not defined.
     + Include `grffile` together with `graphicx` (#2074).
       This properly handles filenames containing spaces and dots.
     + Redefine `\paragraph`, `\subparagraph`...  to behave more
       like section headers (#1658).
+    + Import hyperref before polyglossia to avoid an error with xelatex,
+      "please load package hyperref before bidi package" (Nick Bart).
+    + Added `toccolor` variable to control link color in toc (Kaixhin).
 
   * LaTeX, Beamer templates:
 
+    + Provide `\tightlist`, which is now used by the LaTeX writer.
+    + Use polyglossia in beamer (#85).
     + Use `bibliography` instead of `biblio-files`
       (#1661).  Also use `\addbibresource` instead of `\bibliography` for
       biblatex.
+    + Added `setotherlanguages` in polyglossia. This uses an `otherlang`
+      variable that is derived from a comma-separated list in `lang`;
+      the last language is `mainlang` and the others are `otherlang`.
 
   * EPUB templates:
 
@@ -455,6 +478,7 @@ pandoc (1.14)
       (Dmitry Smirnov, pandoc-templates#89).
     + Moved custom CSS after theme.  This allows custom CSS to modify
       themes, instead of being replaced by them.
+    + Allow `center` to be set to false.
 
   [under the hood improvements]
 
@@ -514,6 +538,8 @@ pandoc (1.14)
     + Added YAML biblio format to table, and note on `pandoc-citeproc`'s
       `--bib2json` and `--bib2yaml` options (Nick Bart).
     + Removed obsolete reference to `mods2yaml` (Nick Bart).
+    + Added section on syntax highlighting.
+    + Documented `toccolor` variable.
 
 pandoc (1.13.2.1)
 
