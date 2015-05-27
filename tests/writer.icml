@@ -2514,7 +2514,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
             <GraphicBounds Left="0" Top="0" Right="150" Bottom="100" />
           </Profile>
         </Properties>
-        <Link Self="ueb" LinkResourceURI="lalune.jpg" />
+        <Link Self="ueb" LinkResourceURI="file:lalune.jpg" />
       </Image>
     </Rectangle>
   </CharacterStyleRange><Br />
@@ -2544,7 +2544,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
             <GraphicBounds Left="0" Top="0" Right="150" Bottom="100" />
           </Profile>
         </Properties>
-        <Link Self="ueb" LinkResourceURI="movie.jpg" />
+        <Link Self="ueb" LinkResourceURI="file:movie.jpg" />
       </Image>
     </Rectangle>
   </CharacterStyleRange>

@@ -25,6 +25,7 @@ import Data.List (isPrefixOf, isInfixOf, stripPrefix)
 import Data.Text as Text (breakOnAll, pack)
 import Data.Monoid (mappend)
 import Control.Monad.State
+import Network.URI (isURI)
 import qualified Data.Set as Set
 
 type Style = [String]
@@ -499,6 +500,7 @@ imageICML _ style _ (linkURI, _) =
       hh = show $ imgHeight `div` 2
       qw = show $ imgWidth  `div` 4
       qh = show $ imgHeight `div` 4
+      uriPrefix = if isURI linkURI then "" else "file:"
       (stlStr, attrs) = styleToStrAttr style
       props  = inTags True "Properties" [] $ inTags True "PathGeometry" []
                  $ inTags True "GeometryPathType" [("PathOpen","false")]
@@ -518,7 +520,7 @@ imageICML _ style _ (linkURI, _) =
                  $ vcat [
                      inTags True "Properties" [] $ inTags True "Profile" [("type","string")] $ text "$ID/Embedded"
                        $$ selfClosingTag "GraphicBounds" [("Left","0"), ("Top","0"), ("Right", hw), ("Bottom", hh)]
-                   , selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", linkURI)]
+                   , selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", uriPrefix++linkURI)]
                    ]
       doc    = inTags True "CharacterStyleRange" attrs
                  $ inTags True "Rectangle" [("Self","uec"), ("ItemTransform", "1 0 0 1 "++qw++" -"++qh)]
