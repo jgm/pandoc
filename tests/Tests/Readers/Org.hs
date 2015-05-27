@@ -497,6 +497,21 @@ tests =
                   , header 2 ("walk" <> space <> "dog")
                   ]
 
+      , "Tagged headers" =:
+          unlines [ "* Personal       :PERSONAL:"
+                  , "** Call Mom      :@PHONE:"
+                  , "** Call John     :@PHONE:JOHN: "
+                  ] =?>
+          let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
+          in mconcat [ header 1 ("Personal" <> tagSpan "PERSONAL")
+                     , header 2 ("Call Mom" <> tagSpan "@PHONE")
+                     , header 2 ("Call John" <> tagSpan "@PHONE" <> tagSpan "JOHN")
+                     ]
+
+      , "Untagged header containing colons" =:
+          "* This: is not: tagged" =?>
+          header 1 "This: is not: tagged"
+
       , "Comment Trees" =:
           unlines [ "* COMMENT A comment tree"
                   , "  Not much going on here"
@@ -507,6 +522,13 @@ tests =
 
       , "Nothing but a COMMENT header" =:
           "* COMMENT Test" =?>
+          (mempty::Blocks)
+
+      , "Tree with :noexport:" =:
+          unlines [ "* Should be ignored :archive:noexport:old:"
+                  , "** Old stuff"
+                  , "   This is not going to be exported"
+                  ] =?>
           (mempty::Blocks)
 
       , "Paragraph starting with an asterisk" =:
@@ -1164,19 +1186,19 @@ tests =
       [ test orgSmart "quote before ellipses"
         ("'...hi'"
          =?> para (singleQuoted "…hi"))
-        
+
       , test orgSmart "apostrophe before emph"
         ("D'oh! A l'/aide/!"
          =?> para ("D’oh! A l’" <> emph "aide" <> "!"))
-        
+
       , test orgSmart "apostrophe in French"
         ("À l'arrivée de la guerre, le thème de l'«impossibilité du socialisme»"
          =?> para "À l’arrivée de la guerre, le thème de l’«impossibilité du socialisme»")
-        
+
       , test orgSmart "Quotes cannot occur at the end of emphasized text"
         ("/say \"yes\"/" =?>
          para ("/say" <> space <> doubleQuoted "yes" <> "/"))
-        
+
       , test orgSmart "Dashes are allowed at the borders of emphasis'"
         ("/foo---/" =?>
          para (emph "foo—"))

@@ -84,13 +84,21 @@ dropCommentTrees [] = []
 dropCommentTrees blks@(b:bs) =
   maybe blks (flip dropUntilHeaderAboveLevel bs) $ commentHeaderLevel b
 
--- | Return the level of a header starting a comment tree and Nothing
--- otherwise.
+-- | Return the level of a header starting a comment or :noexport: tree and
+--  Nothing otherwise.
 commentHeaderLevel :: Block -> Maybe Int
 commentHeaderLevel blk =
    case blk of
-     (Header level _ ((Str "COMMENT"):_)) -> Just level
-     _                                    -> Nothing
+     (Header level _ ((Str "COMMENT"):_))          -> Just level
+     (Header level _ title) | hasNoExportTag title -> Just level
+     _                                             -> Nothing
+ where
+   hasNoExportTag :: [Inline] -> Bool
+   hasNoExportTag = any isNoExportTag
+
+   isNoExportTag :: Inline -> Bool
+   isNoExportTag (Span ("", ["tag"], [("data-tag-name", "noexport")]) []) = True
+   isNoExportTag _ = False
 
 -- | Drop blocks until a header on or above the given level is seen
 dropUntilHeaderAboveLevel :: Int -> [Block] -> [Block]
@@ -652,8 +660,25 @@ parseFormat = try $ do
 header :: OrgParser (F Blocks)
 header = try $ do
   level <- headerStart
-  title <- inlinesTillNewline
-  return $ B.header level <$> title
+  title <- manyTill inline (lookAhead headerEnd)
+  tags <- headerEnd
+  let inlns = trimInlinesF . mconcat $ title <> map tagToInlineF tags
+  return $ B.header level <$> inlns
+ where
+   tagToInlineF :: String -> F Inlines
+   tagToInlineF t = return $ B.spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
+
+headerEnd :: OrgParser [String]
+headerEnd = option [] headerTags <* newline
+
+headerTags :: OrgParser [String]
+headerTags = try $
+  skipSpaces
+  *> char ':'
+  *> many1 tag
+  <* skipSpaces
+ where tag = many1 (alphaNum <|> oneOf "@%#_")
+             <* char ':'
 
 headerStart :: OrgParser Int
 headerStart = try $
