@@ -120,6 +120,7 @@ $if(lang)$
 \ifxetex
   \usepackage{polyglossia}
   \setmainlanguage{$mainlang$}
+  \setotherlanguages{$for(otherlang)$$otherlang$$sep$,$endfor$}
 \else
   \usepackage[shorthands=off,$lang$]{babel}
 \fi
