@@ -137,6 +137,11 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
+  let (mainlang, otherlang) =
+       case (reverse . splitBy (==',') . filter (/=' ')) `fmap`
+            getField "lang" metadata of
+              Just (m:os) -> (m, reverse os)
+              _           -> ("", [])
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
                                               if stBook st
@@ -161,9 +166,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "euro" (stUsesEuro st) $
                   defField "listings" (writerListings options || stLHS st) $
                   defField "beamer" (writerBeamer options) $
-                  defField "mainlang"
-                       (maybe "" (reverse . takeWhile (/=',') . reverse)
-                       (getField "lang" metadata)) $
+                  defField "mainlang" mainlang $
+                  defField "otherlang" otherlang $
                   (if stHighlighting st
                       then defField "highlighting-macros" (styleToLaTeX
                                 $ writerHighlightStyle options )
