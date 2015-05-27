@@ -433,7 +433,9 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("sv4cpio","application/x-sv4cpio")
            ,("sv4crc","application/x-sv4crc")
            ,("svg","image/svg+xml")
-           ,("svgz","image/svg+xml")
+           -- removed for now, since it causes problems with
+           -- extensionFromMimeType: see #2183.
+           -- ,("svgz","image/svg+xml")
            ,("sw","chemical/x-swissprot")
            ,("swf","application/x-shockwave-flash")
            ,("swfl","application/x-shockwave-flash")

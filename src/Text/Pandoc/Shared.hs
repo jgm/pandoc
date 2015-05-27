@@ -796,6 +796,7 @@ fetchItem sourceURL s =
         fp = unEscapeString $ dropFragmentAndQuery s
         mime = case takeExtension fp of
                     ".gz" -> getMimeType $ dropExtension fp
+                    ".svgz" -> getMimeType $ dropExtension fp ++ ".svg"
                     x     -> getMimeType x
         ensureEscaped x@(_:':':'\\':_) = x -- likely windows path
         ensureEscaped x = escapeURIString isAllowedInURI x
