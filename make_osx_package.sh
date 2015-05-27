@@ -12,6 +12,7 @@ SCRIPTS=$OSX/osx-resources
 BASE=pandoc-$VERSION
 ME=$(whoami)
 PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
+CPPHS=$SANDBOX/bin/cpphs
 
 # echo Removing old files...
 rm -rf $DIST
@@ -25,7 +26,7 @@ echo Building pandoc...
 cabal clean
 # Use cpphs to avoid problems with clang cpp on ghc 7.8 osx:
 cabal install cpphs hsb2hs
-cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files make-pandoc-man-pages" . pandoc-citeproc
+cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files make-pandoc-man-pages" --ghc-options "-pgmP$CPPHS -optP--cpp" . pandoc-citeproc
 
 make man
 # get pandoc-citeproc man page:
