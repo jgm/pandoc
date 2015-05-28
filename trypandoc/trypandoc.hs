@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 import Network.Wai.Handler.CGI
 import Network.Wai
@@ -29,13 +29,9 @@ app req respond = do
              $ lookup fromFormat fromFormats
   let writer = maybe (error $ "could not find writer for " ++ T.unpack toFormat) id
              $ lookup toFormat toFormats
-#if MIN_VERSION_pandoc(1,14,0)
   let result = case reader $ tabFilter 4 $ T.unpack text of
                     Right doc -> T.pack $ writer doc
                     Left  err -> error (show err)
-#else
-  let result = T.pack $ writer $ reader $ tabFilter 4 $ T.unpack text
-#endif
   let output = encode $ object [ T.pack "result" .= result
                                , T.pack "name" .=
                                   if fromFormat == "markdown_strict"
