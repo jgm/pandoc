@@ -4,11 +4,12 @@ import Codec.Archive.Zip
 import qualified Data.ByteString.Lazy as BS
 import qualified Control.Exception as E
 import System.IO.Error (isDoesNotExistError)
+import System.FilePath
 
 mkzip :: String -> IO ()
 mkzip fmt = do
-  let dir    = "data/"++fmt
-      output = "data/reference."++fmt
+  let dir    = "data" </> fmt
+      output = "data" </> "reference" <.> fmt
   cd <- getCurrentDirectory
   setCurrentDirectory dir
   archive <- addFilesToArchive [OptRecursive] emptyArchive ["."]
