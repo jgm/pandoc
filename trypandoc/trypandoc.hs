@@ -8,6 +8,7 @@ import Network.HTTP.Types.Status (status200)
 import Network.HTTP.Types.Header (hContentType)
 import Network.HTTP.Types.URI (queryToQueryText)
 import Text.Pandoc
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Shared (tabFilter)
 import Text.Highlighting.Kate (pygments)
 import Data.Aeson
@@ -57,7 +58,7 @@ readerOpts :: ReaderOptions
 readerOpts = def { readerParseRaw = True,
                    readerSmart = True }
 
-fromFormats :: [(Text, String -> Pandoc)]
+fromFormats :: [(Text, String -> Either PandocError Pandoc)]
 fromFormats = [
             ("native"       , readNative)
            ,("json"         , Text.Pandoc.readJSON readerOpts)
