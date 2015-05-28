@@ -91,9 +91,6 @@ Extra-Source-Files:
                  Makefile
                  man/man1/pandoc.1.template
                  man/man5/pandoc_markdown.5.template
-                 -- generated man pages (produced post-build)
-                 man/man1/pandoc.1
-                 man/man5/pandoc_markdown.5
                  -- source files for reference.docx
                  data/docx/[Content_Types].xml
                  data/docx/_rels/.rels
