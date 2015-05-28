@@ -1,3 +1,13 @@
+pandoc (1.14.0.1)
+
+  * Ensure that docx and odt are built in windows installer (#2187).
+
+  * `make-reference-files`:  use proper path separators for Windows.
+
+  * Don't include generated man pages in extra-source-files (#2189).
+
+  * Bumped upper bound for aeson.
+
 pandoc (1.14)
 
   [new features]
