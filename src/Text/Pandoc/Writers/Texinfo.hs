@@ -120,7 +120,7 @@ inCmd cmd contents = char '@' <> text cmd <> braces contents
 
 -- | Convert Pandoc block element to Texinfo.
 blockToTexinfo :: Block     -- ^ Block to convert
-	       -> State WriterState Doc
+               -> State WriterState Doc
 
 blockToTexinfo Null = return empty
 
@@ -195,9 +195,9 @@ blockToTexinfo HorizontalRule =
     -- XXX can't get the equivalent from LaTeX.hs to work
     return $ text "@iftex" $$
              text "@bigskip@hrule@bigskip" $$
-	     text "@end iftex" $$
+             text "@end iftex" $$
              text "@ifnottex" $$
-	     text (take 72 $ repeat '-') $$
+             text (take 72 $ repeat '-') $$
              text "@end ifnottex"
 
 blockToTexinfo (Header 0 _ lst) = do
