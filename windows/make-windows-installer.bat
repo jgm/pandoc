@@ -6,7 +6,8 @@ cabal clean
 cabal install hsb2hs
 if %errorlevel% neq 0 exit /b %errorlevel%
 REM We do it once to regenrate data/reference.docx/odt
-cabal install -v1 --force --reinstall --flags="embed_data_files"
+cabal install -v1 --force --reinstall
+cabal clean
 REM then again for real, because otherwise it won't work with embed_data_files:
 cabal install -v1 --force --reinstall --flags="embed_data_files" . pandoc-citeproc
 if %errorlevel% neq 0 exit /b %errorlevel%
