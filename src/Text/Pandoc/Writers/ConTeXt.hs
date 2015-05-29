@@ -151,7 +151,13 @@ blockToConTeXt (CodeBlock _ str) =
   -- blankline because \stoptyping can't have anything after it, inc. '}'
 blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
 blockToConTeXt (RawBlock _ _ ) = return empty
-blockToConTeXt (Div _ bs) = blockListToConTeXt bs
+blockToConTeXt (Div (ident,_,_) bs) = do
+  contents <- blockListToConTeXt bs
+  if null ident
+     then return contents
+     else return $
+          ("\\reference" <> brackets (text $ toLabel ident) <> braces empty)
+          $$ contents
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ ("\\startitemize" <> if isTightList lst
