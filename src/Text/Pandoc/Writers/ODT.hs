@@ -60,11 +60,10 @@ writeODT :: WriterOptions  -- ^ Writer options
 writeODT opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let title = docTitle meta
-  refArchive <- liftM toArchive $
+  refArchive <-
        case writerReferenceODT opts of
-             Just f -> B.readFile f
-             Nothing -> (B.fromChunks . (:[])) `fmap`
-                           readDataFile datadir "reference.odt"
+             Just f -> liftM toArchive $ B.readFile f
+             Nothing -> getDefaultReferenceODT datadir
   -- handle formulas and pictures
   picEntriesRef <- newIORef ([] :: [Entry])
   doc' <- walkM (transformPicMath opts picEntriesRef) $ walk fixDisplayMath doc
@@ -178,3 +177,21 @@ transformPicMath _ entriesRef (Math t math) = do
                                         , ("xlink:actuate", "onLoad")]
 
 transformPicMath _ _ x = return x
+
+getDefaultReferenceODT :: Maybe FilePath -> IO Archive
+getDefaultReferenceODT datadir = do
+  let paths = ["mimetype",
+               "manifest.rdf",
+               "styles.xml",
+               "content.xml",
+               "meta.xml",
+               "settings.xml",
+               "Configurations2/accelerator/current.xml",
+               "Thumbnails/thumbnail.png",
+               "META-INF/manifest.xml"]
+  let pathToEntry path = do epochtime <- floor `fmap` getPOSIXTime
+                            contents <- (B.fromChunks . (:[])) `fmap`
+                                          readDataFile datadir ("odt/" ++ path)
+                            return $ toEntry path epochtime contents
+  entries <- mapM pathToEntry paths
+  return $ foldr addEntryToArchive emptyArchive entries

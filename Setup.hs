@@ -38,12 +38,11 @@ main = defaultMainWithHooks $ simpleUserHooks {
     , instHook = \pkgdescr ->
          instHook simpleUserHooks pkgdescr{ executables =
             [x | x <- executables pkgdescr, exeName x `notElem` noInstall] }
-    , postBuild = \args bf pkgdescr lbi -> do
+    , postBuild = \args bf pkgdescr lbi ->
             makeManPages args bf pkgdescr lbi
-            makeReferenceFiles args bf pkgdescr lbi
     }
   where
-    noInstall = ["make-pandoc-man-pages","make-reference-files"]
+    noInstall = ["make-pandoc-man-pages"]
 
 ppBlobSuffixHandler :: PPSuffixHandler
 ppBlobSuffixHandler = ("hsb", \_ _ ->
@@ -64,13 +63,3 @@ makeManPages _ bf _ LocalBuildInfo{buildDir=buildDir}
   where
     verbosity = fromFlagOrDefault normal $ buildVerbosity bf
     progPath = buildDir </> "make-pandoc-man-pages" </> "make-pandoc-man-pages"
-
-makeReferenceFiles :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-makeReferenceFiles _ bf _ LocalBuildInfo{buildDir=buildDir}
-  = mapM_
-      (rawSystemExit verbosity progPath . return)
-      referenceFormats
-  where
-    verbosity = fromFlagOrDefault normal $ buildVerbosity bf
-    progPath = buildDir </> "make-reference-files" </> "make-reference-files"
-    referenceFormats = ["docx", "odt"]
