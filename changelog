@@ -1,12 +1,23 @@
 pandoc (1.14.0.1)
 
-  * Ensure that docx and odt are built in windows installer (#2187).
-
-  * `make-reference-files`:  use proper path separators for Windows.
+  * Fixed problem with building of `reference.docx` and `reference.odt`
+    when the `embed_data_files` flag is used.  Instead of having a phase
+    of the build where `reference.docx` and `reference.odt` are created
+    from their constituent data files, we now construct these archives
+    from their constituents when a `docx` or `odt` is built.  The
+    constituent files have been moved from `extra-source-files` to
+    `data-files`, and `reference.docx` and `reference.odt` have been
+    removed. Users can create their own `reference.docx` or
+    `reference.odt` by using pandoc to create a simple `docx` or `odt`.
+    `make-reference-files.hs` has been removed, simplifying the build
+    process (#2187)
 
   * Don't include generated man pages in extra-source-files (#2189).
 
   * Bumped upper bound for aeson.
+
+  * ConTeXt writer:  create internal link anchors for Div elements with
+    identifiers.  (This is needed for linked citations to work.)
 
 pandoc (1.14)
 
