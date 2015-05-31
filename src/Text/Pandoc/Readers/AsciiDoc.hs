@@ -12,14 +12,14 @@
 --    * Strong section (bold)
 --    * Emphasized section (italic)
 --    * The rest default to plain paragraph
-module Text.Pandoc.Readers.AsciiDoc where
+module Text.Pandoc.Readers.AsciiDoc (readAsciiDoc) where
 
 import Data.Maybe
 import Control.Monad (liftM)
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed)
+import Text.Pandoc.Parsing
 import Text.Pandoc.Error
 import qualified Text.Pandoc.Builder as B
 
@@ -176,9 +176,9 @@ endBlock = try $ newline >> blankline
 -- The starting marker must not be followed by a space
 -- The ending marker must not be preceded by a space
 -- The ending marker must not be followed by an alphanumeric
-enclosed :: AsciiDocParser String
+enclosedBetween :: AsciiDocParser String
          -> AsciiDocParser (F B.Inlines)
-enclosed delimiter =
+enclosedBetween delimiter =
   mconcat <$> (
     try $
       (delimiter >> (notFollowedBy spaceChar))
@@ -196,10 +196,10 @@ spacePrecededClosingDelimiter delimiter = try $ do
   return $ return $ B.space B.<> (B.str del)
 
 emph :: AsciiDocParser (F B.Inlines)
-emph = (liftM (liftM B.emph) (enclosed (string "_")))
+emph = (liftM (liftM B.emph) (enclosedBetween (string "_")))
 
 bold :: AsciiDocParser (F B.Inlines)
-bold = (liftM (liftM B.strong) (enclosed (string "*")))
+bold = (liftM (liftM B.strong) (enclosedBetween (string "*")))
 
 commonURLScheme :: [String]
 -- Careful to keep https before http for pattern matching
@@ -208,16 +208,14 @@ commonURLScheme = ["https", "http", "ftp", "irc", "mailto"]
 
 link :: AsciiDocParser (F B.Inlines)
 link = try $ do
-  protocol <- choice (fmap (try . string) commonURLScheme) <?> "url scheme"
+  protocol <- oneOfStrings commonURLScheme
   sep <- string "://"
   domains <- many1 subDomain
   let domains' = mconcat domains
   extension <- many1 $ noneOf " .\n\t/["
   rest <- many $ noneOf " \n\t["
-  -- TODO: gbataille - cannot do many inline --> consumes the "]". Need manyTill implem
   mbAlias <- optionMaybe . try  $ (string "[") *> (mconcat <$> (manyTill inline (string "]")))
   let fullURL = protocol ++ sep ++ domains' ++ extension ++ rest
-  -- return $ return $ B.link (fullURL) (domains' ++ extension) (B.str fullURL)
   return $ (return $ B.link (fullURL)
                  (domains' ++ extension))
                  <*> (linkAlias mbAlias (pure (B.str fullURL)))
@@ -260,9 +258,10 @@ str = try $ do
   wordText <- many1 alphaNum
   return $ return $ B.str wordText
 
+-- | Definition sufficient like that ONLY because the alphanum parser is invoked before
 specialChar :: AsciiDocParser (F B.Inlines)
 specialChar = try $ do
-  c <- noneOf "\n "
+  c <- nonspaceChar
   return $ return $ B.str [c]
 
 -- stopOnInlineBlockElem :: AsciiDocParser (F B.Inlines)
