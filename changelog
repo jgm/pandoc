@@ -1,3 +1,7 @@
+pandoc (1.14.0.2)
+
+  * Allow building with hslua 0.4.
+
 pandoc (1.14.0.1)
 
   * Fixed problem with building of `reference.docx` and `reference.odt`
