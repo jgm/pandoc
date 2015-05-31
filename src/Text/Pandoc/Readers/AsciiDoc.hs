@@ -203,6 +203,7 @@ bold = (liftM (liftM B.strong) (enclosed (string "*")))
 
 commonURLScheme :: [String]
 -- Careful to keep https before http for pattern matching
+-- TODO: gbataille - mailto need a different parser
 commonURLScheme = ["https", "http", "ftp", "irc", "mailto"]
 
 link :: AsciiDocParser (F B.Inlines)
@@ -213,11 +214,30 @@ link = try $ do
   let domains' = mconcat domains
   extension <- many1 $ noneOf " .\n\t/["
   rest <- many $ noneOf " \n\t["
-  mbAlias <- optionMaybe  (between (string "[") (string "]") (many $ noneOf "]"))
+  -- TODO: gbataille - cannot do many inline --> consumes the "]". Need manyTill implem
+  mbAlias <- optionMaybe . try  $ (string "[") *> (mconcat <$> (manyTill inline (string "]")))
   let fullURL = protocol ++ sep ++ domains' ++ extension ++ rest
-  return $ return $ B.link (fullURL)
-                 (domains' ++ extension)
-                 (B.str $ fromMaybe fullURL (mbAlias >>= eliminateEmptyString))
+  -- return $ return $ B.link (fullURL) (domains' ++ extension) (B.str fullURL)
+  return $ (return $ B.link (fullURL)
+                 (domains' ++ extension))
+                 <*> (linkAlias mbAlias (pure (B.str fullURL)))
+
+linkAlias :: Maybe (F B.Inlines)  -- ^ parsed alias, if any (can be empty)
+          -> F B.Inlines          -- ^ default value
+          -> F B.Inlines
+linkAlias mbAlias defaultValue = do
+  let falias = fromMaybe defaultValue mbAlias
+  alias <- falias
+  unfDefault <- defaultValue
+  return $ defaultIfEmpty alias unfDefault
+
+defaultIfEmpty :: B.Inlines -- ^ value
+               -> B.Inlines -- ^ default
+               -> B.Inlines
+defaultIfEmpty value defaultValue
+  | B.isNull value = defaultValue
+  | otherwise    = value
+
 
 eliminateEmptyString :: String -> Maybe String
 eliminateEmptyString [] = Nothing

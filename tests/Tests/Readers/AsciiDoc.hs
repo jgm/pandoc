@@ -146,6 +146,10 @@ tests = [ F.testGroup "Titles"
           =?> para ((str "aa")
                     <> space
                     <> (link ("http://www.foo.bar") ("www.foo.bar") (str "http://www.foo.bar")))
+
+          , "link with a complex alias" =:
+          "http://www.foo.bar[*foo*]"
+          =?> para (link ("http://www.foo.bar") ("www.foo.bar") (strong "foo"))
           ]
           , F.testGroup "Strong"
           [ "a strong word" =:
