@@ -57,24 +57,17 @@ attrToMap (id',classes,keyvals) = M.fromList
     : ("class", unwords classes)
     : keyvals
 
-getList :: StackValue a => LuaState -> Int -> IO [a]
-getList lua i' = do
-  continue <- Lua.next lua i'
-  if continue
-     then do
-       next <- Lua.peek lua (-1)
-       Lua.pop lua 1
-       x <- maybe (fail "peek returned Nothing") return next
-       rest <- getList lua i'
-       return (x : rest)
-     else return []
-
 #if MIN_VERSION_hslua(0,4,0)
+#if MIN_VERSION_base(4,8,0)
 instance {-# OVERLAPS #-} StackValue [Char] where
+#else
+instance StackValue [Char] where
+#endif
   push lua cs = Lua.push lua (UTF8.fromString cs)
   peek lua i = do
                  res <- Lua.peek lua i
                  return $ UTF8.toString `fmap` res
+  valuetype _ = Lua.TSTRING
 #else
 #if MIN_VERSION_base(4,8,0)
 instance {-# OVERLAPS #-} StackValue a => StackValue [a] where
@@ -93,6 +86,18 @@ instance StackValue a => StackValue [a] where
     Lua.pop lua 1
     return (Just lst)
   valuetype _ = Lua.TTABLE
+
+getList :: StackValue a => LuaState -> Int -> IO [a]
+getList lua i' = do
+  continue <- Lua.next lua i'
+  if continue
+     then do
+       next <- Lua.peek lua (-1)
+       Lua.pop lua 1
+       x <- maybe (fail "peek returned Nothing") return next
+       rest <- getList lua i'
+       return (x : rest)
+     else return []
 #endif
 
 instance StackValue Format where
