@@ -3245,7 +3245,7 @@ The following fields are recognized:
   ~ A string value or a list of such values.
 
 `description`
-  ~ A string value.
+  ~ A string value which may include but is not limited to: an abstract, a table of contents, a graphical representation, or a free-text account of the resource. The character limit for the string is 282 characters.
 
 `type`
   ~ A string value.
@@ -3410,7 +3410,7 @@ Hans-Peter Deifel,
 Henry de Valence,
 Ilya V. Portnov,
 infinity0x,
-Jaime Marquínez Ferrándiz,
+Jaime Marquínez Ferrándiz,
 James Aspnes,
 Jamie F. Olson,
 Jason Ronallo,
