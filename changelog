@@ -1,3 +1,9 @@
+pandoc (1.14.0.3)
+
+  * Allow compilation with syb 0.5.*.
+
+  * Custom writer:  fixed some compiler warnings for ghc < 7.10.
+
 pandoc (1.14.0.2)
 
   * Allow building with hslua 0.4.
