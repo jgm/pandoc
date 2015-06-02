@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.14.0.3
+Version:         1.14.0.4
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
@@ -53,6 +53,7 @@ Data-Files:
                  data/templates/default.texinfo
                  data/templates/default.man
                  data/templates/default.markdown
+                 data/templates/default.commonmark
                  data/templates/default.rst
                  data/templates/default.plain
                  data/templates/default.mediawiki
