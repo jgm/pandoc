@@ -280,7 +280,9 @@ Library
                  deepseq-generics >= 0.1 && < 0.2,
                  JuicyPixels >= 3.2.5.2 && < 3.3,
                  filemanip >= 0.3 && < 0.4,
-                 cmark >= 0.4.0.1 && < 0.5
+                 cmark >= 0.4.0.1 && < 0.5,
+                 rasterific-svg >= 0.2.3 && < 0.3,
+                 svg-tree >= 0.3.1 && < 0.4
   if flag(old-locale)
      Build-Depends: old-locale >= 1 && < 1.1,
                     time >= 1.2 && < 1.5
