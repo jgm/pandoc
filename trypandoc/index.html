@@ -29,11 +29,6 @@ function newpage() {
   window.location.href = href.replace(/([?].*)?$/,"?" + $.param({text: input, from: from, to: to}));
 };
 
-function process(res) {
-  $("#results").text(res.result);
-  $("#version").text(res.version);
-}
-
 $(document).ready(function() {
     var text = $.QueryString["text"];
     $("#text").val(text);
@@ -42,8 +37,12 @@ $(document).ready(function() {
     var to = $.QueryString["to"] || "html";
     $("#to").val(to);
     if (text && text != "") {
-       $.getJSON("http://johnmacfarlane.net/cgi-bin/trypandoc", { from: from, to: to, text: text }, process);
-       $("#command").text("pandoc --from " + from + " --to " + to);
+       $.getJSON("/cgi-bin/trypandoc", { from: from, to: to, text: text },
+         function(res) {
+          $("#results").text(res.result);
+          $("#version").text(res.version);
+          $("#command").text("pandoc --from " + from + " --to " + to);
+         });
     };
     $("#convert").click(newpage);
 });
@@ -58,13 +57,14 @@ $(document).ready(function() {
     footer { color: #555; text-align: center; margin: 1em; }
     p.version { color: #555; }
     button#convert { vertical-align: bottom; }
+    pre#command { margin-top: 1em; background-color: transparent; border: none; }
   </style>
 </head>
 <body>
 <div class="container">
   <div class="row">
     <div class="col-md-6">
-      <h1>Try <a href="http://johnmacfarlane.net/pandoc/">pandoc</a>!</h1>
+      <h1>Try <a href="http://pandoc.org">pandoc</a>!</h1>
     </div>
     <div class="col-md-6">
       <pre id="command"></pre>
