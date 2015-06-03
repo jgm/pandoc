@@ -29,14 +29,15 @@ Portability : portable
 
 Functions for determining the size of a PNG, JPEG, or GIF image.
 -}
-module Text.Pandoc.ImageSize ( ImageType(..), imageType, imageSize,
+module Text.Pandoc.ImageSize ( ImageType(..), imageType, imageSize, imageSizeOfMetadata,
+                    imageSizeOfImage,
                     sizeInPixels, sizeInPoints ) where
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import Control.Monad
 import Text.Pandoc.Shared (safeRead)
 import qualified Codec.Picture.Metadata as JM
-import Codec.Picture( decodeImageWithMetadata )
+import qualified Codec.Picture as JP
 
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
@@ -61,22 +62,30 @@ imageType img = case B.take 4 img of
                      -> return Eps
   _                  -> mzero
 
-imageSize :: ByteString -> Either String ImageSize
-imageSize img = case (imageType img, decodeImageWithMetadata img) of
-  (Just Pdf, _) -> maybe (Left "can't find EPS size") Right $ epsSize img
-  (_, Left _err) -> Left "could not determine image size."
-  (_, Right (_, metadatas)) -> Right $ ImageSize
-      { pxX = extractSize metadatas JM.Width
-      , pxY = extractSize metadatas JM.Height
-      , dpiX = extractDpi metadatas JM.DpiX
-      , dpiY = extractDpi metadatas JM.DpiY
-      }
+imageSizeOfImage :: JP.Image px -> Integer -> ImageSize
+imageSizeOfImage img dpi =
+  ImageSize (fromIntegral $ JP.imageWidth img)
+            (fromIntegral $ JP.imageHeight img) dpi dpi
+
+imageSizeOfMetadata :: JM.Metadatas -> ImageSize
+imageSizeOfMetadata metadatas = ImageSize
+  { pxX = extractSize metadatas JM.Width
+  , pxY = extractSize metadatas JM.Height
+  , dpiX = extractDpi metadatas JM.DpiX
+  , dpiY = extractDpi metadatas JM.DpiY
+  }
   where
     defaultDpi = 72
     extractDpi metas k =
       maybe defaultDpi fromIntegral $ JM.lookup k metas
     extractSize metas k =
       maybe 0 fromIntegral $ JM.lookup k metas
+
+imageSize :: ByteString -> Either String ImageSize
+imageSize img = case (imageType img, JP.decodeImageWithMetadata img) of
+  (Just Pdf, _) -> maybe (Left "can't find EPS size") Right $ epsSize img
+  (_, Left _err) -> Left "could not determine image size."
+  (_, Right (_, metadatas)) -> Right $ imageSizeOfMetadata metadatas
 
 sizeInPixels :: ImageSize -> (Integer, Integer)
 sizeInPixels s = (pxX s, pxY s)

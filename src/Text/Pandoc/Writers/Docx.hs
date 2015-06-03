@@ -41,6 +41,7 @@ import Data.Time.Clock.POSIX
 import Data.Time.Clock
 import Data.Time.Format
 import System.Environment
+import System.FilePath
 import Text.Pandoc.Compat.Locale (defaultTimeLocale)
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
@@ -67,6 +68,12 @@ import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
 import Control.Applicative ((<$>), (<|>), (<*>))
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
 import Data.Char (ord)
+
+import qualified Codec.Picture as JP
+import qualified Codec.Picture.Saving as JP
+import qualified Codec.Picture.Metadata as JPM
+import qualified Graphics.Rasterific.Svg as RS
+import qualified Graphics.Svg as Svg
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -1117,15 +1124,9 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
           liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
           -- emit alt text
           inlinesToOpenXML opts alt
-        Right (img, mt) -> do
+        Right (baseImage, mt) -> do
           ident <- ("rId"++) `fmap` getUniqueId
-          (xpt,ypt) <- case imageSize img of
-                             Right size  -> return $ sizeInPoints size
-                             Left msg    -> do
-                               liftIO $ warn $
-                                 "Could not determine image size in `" ++
-                                 src ++ "': " ++ msg
-                               return (120,120)
+          (img, (xpt,ypt)) <- liftIO $ convertImage src baseImage
           -- 12700 emu = 1 pt
           let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) (pageWidth * 12700)
           let cNvPicPr = mknode "pic:cNvPicPr" [] $
@@ -1184,6 +1185,38 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
 
 br :: Element
 br = mknode "w:r" [] [mknode "w:br" [("w:type","textWrapping")] () ]
+
+needConversion :: Maybe JPM.SourceFormat -> Bool
+needConversion Nothing = False
+needConversion (Just f) = case f of
+  JPM.SourceJpeg -> False
+  JPM.SourcePng -> False
+  JPM.SourceBitmap -> False
+
+  JPM.SourceGif -> True
+  JPM.SourceTiff -> True
+  JPM.SourceHDR -> True
+  JPM.SourceTGA -> True
+
+renderSvgToPng :: FilePath -> B.ByteString -> IO (B.ByteString, (Integer, Integer))
+renderSvgToPng src img = case Svg.parseSvgFile "" img of
+  Nothing -> do
+    liftIO $ warn $ "Could not determine image size in `" ++ src
+    return (img, (120, 120))
+  Just svg -> withTempDir "svgconv" $ \tmpDir -> do
+    let dpi = 96
+    fontCache <- RS.loadCreateFontCache $ tmpDir </> "pandoc-font-cache"
+    (bitmap, _) <- RS.renderSvgDocument fontCache Nothing dpi svg
+    let s = imageSizeOfImage bitmap $ fromIntegral dpi
+    return (BL.toStrict $ JP.encodePng bitmap, sizeInPoints s)
+
+convertImage :: FilePath -> B.ByteString -> IO (B.ByteString, (Integer, Integer))
+convertImage src img = case JP.decodeImageWithMetadata img of
+  Left _ -> renderSvgToPng src img
+  Right (rawImg, metas) | needConversion $ JPM.lookup JPM.Format metas ->
+    return (BL.toStrict $ JP.imageToPng rawImg, sizeInPoints $ imageSizeOfMetadata metas)
+  Right (_, metas) ->
+    return (img, sizeInPoints $ imageSizeOfMetadata metas)
 
 -- Word will insert these footnotes into the settings.xml file
 -- (whether or not they're visible in the document). If they're in the
