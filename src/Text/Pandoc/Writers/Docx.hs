@@ -1124,9 +1124,9 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
           liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
           -- emit alt text
           inlinesToOpenXML opts alt
-        Right (baseImage, mt) -> do
+        Right (baseImage, origMt) -> do
           ident <- ("rId"++) `fmap` getUniqueId
-          (img, (xpt,ypt)) <- liftIO $ convertImage src baseImage
+          (img, imgPath', mt, (xpt,ypt)) <- liftIO $ convertImage src origMt baseImage
           -- 12700 emu = 1 pt
           let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) (pageWidth * 12700)
           let cNvPicPr = mknode "pic:cNvPicPr" [] $
@@ -1176,7 +1176,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
                inlinesToOpenXML opts alt -- return alt to avoid corrupted docx
              else do
                let imgpath = "media/" ++ ident ++ imgext
-               let mbMimeType = mt <|> getMimeType imgpath
+               let mbMimeType = mt <|> getMimeType imgPath'
                -- insert mime type to use in constructing [Content_Types].xml
                modify $ \st -> st{ stImages =
                    M.insert src (ident, imgpath, mbMimeType, imgElt, img)
@@ -1192,31 +1192,37 @@ needConversion (Just f) = case f of
   JPM.SourceJpeg -> False
   JPM.SourcePng -> False
   JPM.SourceBitmap -> False
-
-  JPM.SourceGif -> True
-  JPM.SourceTiff -> True
+  JPM.SourceGif -> False
+  JPM.SourceTiff -> False
   JPM.SourceHDR -> True
   JPM.SourceTGA -> True
 
-renderSvgToPng :: FilePath -> B.ByteString -> IO (B.ByteString, (Integer, Integer))
-renderSvgToPng src img = case Svg.parseSvgFile "" img of
+renderSvgToPng :: FilePath -> Maybe MimeType -> B.ByteString
+               -> IO (B.ByteString, FilePath, Maybe MimeType, (Integer, Integer))
+renderSvgToPng src mt img = case Svg.parseSvgFile "" img of
   Nothing -> do
     liftIO $ warn $ "Could not determine image size in `" ++ src
-    return (img, (120, 120))
+    return (img, src, mt, (120, 120))
   Just svg -> withTempDir "svgconv" $ \tmpDir -> do
     let dpi = 96
     fontCache <- RS.loadCreateFontCache $ tmpDir </> "pandoc-font-cache"
     (bitmap, _) <- RS.renderSvgDocument fontCache Nothing dpi svg
     let s = imageSizeOfImage bitmap $ fromIntegral dpi
-    return (BL.toStrict $ JP.encodePng bitmap, sizeInPoints s)
+        pngImage = BL.toStrict $ JP.encodePng bitmap
+        pngName = src ++ ".png"
+    return (pngImage, pngName, getMimeType pngName, sizeInPoints s)
 
-convertImage :: FilePath -> B.ByteString -> IO (B.ByteString, (Integer, Integer))
-convertImage src img = case JP.decodeImageWithMetadata img of
-  Left _ -> renderSvgToPng src img
-  Right (rawImg, metas) | needConversion $ JPM.lookup JPM.Format metas ->
-    return (BL.toStrict $ JP.imageToPng rawImg, sizeInPoints $ imageSizeOfMetadata metas)
+convertImage :: FilePath -> Maybe MimeType -> B.ByteString
+             -> IO (B.ByteString, FilePath, Maybe MimeType, (Integer, Integer))
+convertImage src mt img = case JP.decodeImageWithMetadata img of
+  Left _ -> renderSvgToPng src mt img
+  Right (rawImg, metas) | needConversion $ JPM.lookup JPM.Format metas -> do
+    let pngImage = BL.toStrict $ JP.imageToPng rawImg
+        pngName = src ++ ".png"
+        mime = getMimeType pngName
+    return (pngImage, pngName, mime, sizeInPoints $ imageSizeOfMetadata metas)
   Right (_, metas) ->
-    return (img, sizeInPoints $ imageSizeOfMetadata metas)
+    return (img, src, mt, sizeInPoints $ imageSizeOfMetadata metas)
 
 -- Word will insert these footnotes into the settings.xml file
 -- (whether or not they're visible in the document). If they're in the
