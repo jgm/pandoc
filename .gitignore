@@ -20,3 +20,5 @@ man/man?/*.html
 /windows/*.msi
 /windows/*.wixpdb
 windows/*.wixobj
+data/reference.docx
+data/reference.odt

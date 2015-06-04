@@ -1,10 +1,5 @@
 version=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
-makemanpages=$(shell find dist -type f -name make-pandoc-man-pages)
-ifeq "${makemanpages}" ""
-	makemanpages=@echo "You need to 'cabal configure -fmake-pandoc-man-pages && cabal build'" && exit 1
-endif
 setup=dist/setup/setup
-MANPAGES=man/man1/pandoc.1 man/man5/pandoc_markdown.5
 PREFIX ?= /usr/local
 
 quick:
@@ -43,8 +38,6 @@ dist: man
 debpkg:
 	./make_deb.sh
 
-man: $(MANPAGES)
-
 osxpkg:
 	./make_osx_package.sh
 
@@ -56,7 +49,6 @@ osxpkg:
 
 clean:
 	cabal clean
-	-rm $(MANPAGES)
 	-rm -rf $(BINDIST) $(BINDIST).tar.gz
 
 .PHONY: deps quick full install man clean test bench haddock osxpkg dist bindist prof

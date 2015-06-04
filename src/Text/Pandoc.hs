@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
 {-
-Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc
-   Copyright   : Copyright (C) 2006-2014 John MacFarlane
+   Copyright   : Copyright (C) 2006-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -37,10 +37,12 @@ inline links:
 
 > module Main where
 > import Text.Pandoc
+> import Text.Pandoc.Error (handleError)
 >
 > markdownToRST :: String -> String
-> markdownToRST =
->   (writeRST def {writerReferenceLinks = True}) . readMarkdown def
+> markdownToRST = handleError .
+>   writeRST def {writerReferenceLinks = True} .
+>   readMarkdown def
 >
 > main = getContents >>= putStrLn . markdownToRST
 
@@ -66,6 +68,7 @@ module Text.Pandoc
                , mkStringReader
                , readDocx
                , readMarkdown
+               , readCommonMark
                , readMediaWiki
                , readRST
                , readOrg
@@ -109,6 +112,7 @@ module Text.Pandoc
                , writeOrg
                , writeAsciiDoc
                , writeHaddock
+               , writeCommonMark
                , writeCustom
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates
@@ -124,6 +128,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.JSON
 import Text.Pandoc.Readers.Markdown
+import Text.Pandoc.Readers.CommonMark
 import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.Org
@@ -161,11 +166,13 @@ import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Writers.Haddock
+import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (safeRead, warn)
+import Text.Pandoc.Shared (safeRead, warn, mapLeft)
 import Text.Pandoc.MediaBag (MediaBag)
+import Text.Pandoc.Error
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
@@ -201,19 +208,22 @@ parseFormatSpec = parse formatSpec ""
                         '-'  -> Set.delete ext
                         _    -> Set.insert ext
 
-data Reader = StringReader (ReaderOptions -> String -> IO Pandoc)
-              | ByteStringReader (ReaderOptions -> BL.ByteString -> IO (Pandoc, MediaBag))
 
-mkStringReader :: (ReaderOptions -> String -> Pandoc) -> Reader
+data Reader = StringReader (ReaderOptions -> String -> IO (Either PandocError Pandoc))
+              | ByteStringReader (ReaderOptions -> BL.ByteString -> IO (Either PandocError (Pandoc,MediaBag)))
+
+mkStringReader :: (ReaderOptions -> String -> (Either PandocError Pandoc)) -> Reader
 mkStringReader r = StringReader (\o s -> return $ r o s)
 
-mkStringReaderWithWarnings :: (ReaderOptions -> String -> (Pandoc, [String])) -> Reader
+mkStringReaderWithWarnings :: (ReaderOptions -> String -> Either PandocError (Pandoc, [String])) -> Reader
 mkStringReaderWithWarnings r  = StringReader $ \o s -> do
-    let (doc, warnings) = r o s
-    mapM_ warn warnings
-    return doc
+  case r o s of
+    Left err -> return $ Left err
+    Right (doc, warnings) -> do
+      mapM_ warn warnings
+      return (Right doc)
 
-mkBSReader :: (ReaderOptions -> BL.ByteString -> (Pandoc, MediaBag)) -> Reader
+mkBSReader :: (ReaderOptions -> BL.ByteString -> (Either PandocError (Pandoc, MediaBag))) -> Reader
 mkBSReader r = ByteStringReader (\o s -> return $ r o s)
 
 -- | Association list of formats and readers.
@@ -225,6 +235,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("markdown_phpextra" , mkStringReaderWithWarnings readMarkdownWithWarnings)
            ,("markdown_github" , mkStringReaderWithWarnings readMarkdownWithWarnings)
            ,("markdown_mmd",  mkStringReaderWithWarnings readMarkdownWithWarnings)
+           ,("commonmark"   , mkStringReader readCommonMark)
            ,("rst"          , mkStringReaderWithWarnings readRSTWithWarnings )
            ,("mediawiki"    , mkStringReader readMediaWiki)
            ,("docbook"      , mkStringReader readDocBook)
@@ -296,6 +307,7 @@ writers = [
   ,("org"          , PureStringWriter writeOrg)
   ,("asciidoc"     , PureStringWriter writeAsciiDoc)
   ,("haddock"      , PureStringWriter writeHaddock)
+  ,("commonmark"   , PureStringWriter writeCommonMark)
   ]
 
 getDefaultExtensions :: String -> Set Extension
@@ -357,8 +369,8 @@ class ToJSONFilter a => ToJsonFilter a
   where toJsonFilter :: a -> IO ()
         toJsonFilter = toJSONFilter
 
-readJSON :: ReaderOptions -> String -> Pandoc
-readJSON _ = either error id . eitherDecode' . UTF8.fromStringLazy
+readJSON :: ReaderOptions -> String -> Either PandocError Pandoc
+readJSON _ = mapLeft ParseFailure . eitherDecode' . UTF8.fromStringLazy
 
 writeJSON :: WriterOptions -> Pandoc -> String
 writeJSON _ = UTF8.toStringLazy . encode

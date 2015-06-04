@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP, TupleSections #-}
 {-
-Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Main
-   Copyright   : Copyright (C) 2006-2014 John MacFarlane
+   Copyright   : Copyright (C) 2006-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -49,7 +49,7 @@ import System.Exit ( exitWith, ExitCode (..) )
 import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
-import Data.List ( intercalate, isPrefixOf, isSuffixOf, sort )
+import Data.List ( delete, intercalate, isPrefixOf, isSuffixOf, sort )
 import System.Directory ( getAppUserDataDirectory, findExecutable,
                           doesFileExist, Permissions(..), getPermissions )
 import System.IO ( stdout, stderr )
@@ -58,7 +58,7 @@ import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad (when, unless, (>=>))
-import Data.Maybe (isJust, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Foldable (foldrM)
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
@@ -72,12 +72,14 @@ import Control.Applicative ((<$>), (<|>))
 import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
 import Data.Monoid
 
+import Text.Pandoc.Error
+
 type Transform = Pandoc -> Pandoc
 
 copyrightMessage :: String
 copyrightMessage = intercalate "\n" [
   "",
-  "Copyright (C) 2006-2014 John MacFarlane",
+  "Copyright (C) 2006-2015 John MacFarlane",
   "Web:  http://johnmacfarlane.net/pandoc",
   "This is free software; see the source for copying conditions.",
   "There is no warranty, not even for merchantability or fitness",
@@ -198,6 +200,7 @@ data Opt = Opt
     , optCiteMethod        :: CiteMethod -- ^ Method to output cites
     , optListings          :: Bool       -- ^ Use listings package for code blocks
     , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
+    , optLaTeXEngineArgs   :: [String]   -- ^ Flags to pass to the latex-engine
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
@@ -259,6 +262,7 @@ defaultOpts = Opt
     , optCiteMethod            = Citeproc
     , optListings              = False
     , optLaTeXEngine           = "pdflatex"
+    , optLaTeXEngineArgs       = []
     , optSlideLevel            = Nothing
     , optSetextHeaders         = True
     , optAscii                 = False
@@ -734,14 +738,19 @@ options =
                   "PROGRAM")
                  "" -- "Name of latex program to use in generating PDF"
 
+    , Option "" ["latex-engine-opt"]
+                 (ReqArg
+                  (\arg opt -> do
+                      let oldArgs = optLaTeXEngineArgs opt
+                      return opt { optLaTeXEngineArgs = arg : oldArgs })
+                  "STRING")
+                 "" -- "Flags to pass to the LaTeX engine, all instances of this option are accumulated and used"
+
     , Option "" ["bibliography"]
                  (ReqArg
                   (\arg opt -> return opt{ optMetadata = addMetadata
                                              "bibliography" (readMetaValue arg)
                                              $ optMetadata opt
-                                         , optVariables =
-                                            ("biblio-files", dropExtension arg) :
-                                            optVariables opt
                                          })
                    "FILE")
                  ""
@@ -905,13 +914,15 @@ readMetaValue s = case decode (UTF8.fromString s) of
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
-  (wrapWords 16 78 $ readers'names) ++ "\nOutput formats: " ++
+  (wrapWords 16 78 $ readers'names) ++ 
+     '\n' : replicate 16 ' ' ++
+     "[ *only Pandoc's JSON version of native AST]" ++ "\nOutput formats: " ++
   (wrapWords 16 78 $ writers'names) ++
      '\n' : replicate 16 ' ' ++
-     "[*for pdf output, use latex or beamer and -o FILENAME.pdf]\nOptions:")
+     "[**for pdf output, use latex or beamer and -o FILENAME.pdf]\nOptions:")
   where
-    writers'names = sort $ "pdf*" : map fst writers
-    readers'names = sort $ map fst readers
+    writers'names = sort $ "json*" : "pdf**" : delete "json" (map fst writers)
+    readers'names = sort $ "json*" : delete "json" (map fst readers)
 
 -- Determine default reader based on source file extensions
 defaultReaderName :: String -> [FilePath] -> String
@@ -1080,6 +1091,7 @@ main = do
               , optCiteMethod            = citeMethod
               , optListings              = listings
               , optLaTeXEngine           = latexEngine
+              , optLaTeXEngineArgs       = latexEngineArgs
               , optSlideLevel            = slideLevel
               , optSetextHeaders         = setextHeaders
               , optAscii                 = ascii
@@ -1105,7 +1117,7 @@ main = do
 
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
-  let needsCiteproc = isJust (M.lookup "bibliography" metadata) &&
+  let needsCiteproc = any ("--bibliography" `isPrefixOf`) rawArgs &&
                       optCiteMethod opts `notElem` [Natbib, Biblatex] &&
                       "pandoc-citeproc" `notElem` map takeBaseName filters
   let filters' = if needsCiteproc then "pandoc-citeproc" : filters
@@ -1255,23 +1267,24 @@ main = do
              Right (bs,_)  -> return $ UTF8.toString bs
 
   let readFiles [] = error "Cannot read archive from stdin"
-      readFiles (x:_) = B.readFile x
+      readFiles [x] = B.readFile x
+      readFiles (x:xs) = mapM (warn . ("Ignoring: " ++)) xs >> B.readFile x
 
   let convertTabs = tabFilter (if preserveTabs || readerName' == "t2t"
                                  then 0
                                  else tabStop)
 
-  let handleIncludes' = if readerName' == "latex" ||
-                           readerName' == "latex+lhs"
+  let handleIncludes' :: String -> IO (Either PandocError String)
+      handleIncludes' = if readerName' `elem`  ["latex", "latex+lhs"]
                                then handleIncludes
-                               else return
+                               else return . Right
 
-  (doc, media) <-
-     case reader of
-          StringReader r-> (, mempty) <$>
-            (  readSources >=>
-               handleIncludes' . convertTabs . intercalate "\n" >=>
-               r readerOpts ) sources
+  (doc, media) <- fmap handleError $
+      case reader of
+          StringReader r-> do
+            srcs <- convertTabs . intercalate "\n" <$> readSources sources
+            doc <- handleIncludes' srcs
+            either (return . Left) (\s -> fmap (,mempty) <$> r readerOpts s) doc
           ByteStringReader r -> readFiles sources >>= r readerOpts
 
   let writerOptions = def { writerStandalone       = standalone',
@@ -1311,7 +1324,8 @@ main = do
                             writerReferenceODT     = referenceODT,
                             writerReferenceDocx    = referenceDocx,
                             writerMediaBag         = media,
-                            writerVerbose          = verbose
+                            writerVerbose          = verbose,
+                            writerLaTeXArgs        = latexEngineArgs
                           }
 
 

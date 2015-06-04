@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
-Copyright (C) 2008-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.ODT
-   Copyright   : Copyright (C) 2008-2014 John MacFarlane
+   Copyright   : Copyright (C) 2008-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -60,11 +60,10 @@ writeODT :: WriterOptions  -- ^ Writer options
 writeODT opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let title = docTitle meta
-  refArchive <- liftM toArchive $
+  refArchive <-
        case writerReferenceODT opts of
-             Just f -> B.readFile f
-             Nothing -> (B.fromChunks . (:[])) `fmap`
-                           readDataFile datadir "reference.odt"
+             Just f -> liftM toArchive $ B.readFile f
+             Nothing -> getDefaultReferenceODT datadir
   -- handle formulas and pictures
   picEntriesRef <- newIORef ([] :: [Entry])
   doc' <- walkM (transformPicMath opts picEntriesRef) $ walk fixDisplayMath doc
@@ -127,15 +126,19 @@ writeODT opts doc@(Pandoc meta _) = do
   return $ fromArchive archive''
 
 transformPicMath :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline
-transformPicMath opts entriesRef (Image lab (src,_)) = do
+transformPicMath opts entriesRef (Image lab (src,t)) = do
   res <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case res of
      Left (_ :: E.SomeException) -> do
        warn $ "Could not find image `" ++ src ++ "', skipping..."
        return $ Emph lab
      Right (img, mbMimeType) -> do
-       let size = imageSize img
-       let (w,h) = fromMaybe (0,0) $ sizeInPoints `fmap` size
+       (w,h) <- case imageSize img of
+                     Right size -> return $ sizeInPoints size
+                     Left msg   -> do
+                       warn $ "Could not determine image size in `" ++
+                         src ++ "': " ++ msg
+                       return (0,0)
        let tit' = show w ++ "x" ++ show h
        entries <- readIORef entriesRef
        let extension = fromMaybe (takeExtension $ takeWhile (/='?') src)
@@ -145,7 +148,9 @@ transformPicMath opts entriesRef (Image lab (src,_)) = do
        epochtime <- floor `fmap` getPOSIXTime
        let entry = toEntry newsrc epochtime $ toLazy img
        modifyIORef entriesRef (entry:)
-       return $ Image lab (newsrc, tit')
+       let fig | "fig:" `isPrefixOf` t = "fig:"
+               | otherwise             = ""
+       return $ Image lab (newsrc, fig++tit')
 transformPicMath _ entriesRef (Math t math) = do
   entries <- readIORef entriesRef
   let dt = if t == InlineMath then DisplayInline else DisplayBlock
@@ -172,3 +177,21 @@ transformPicMath _ entriesRef (Math t math) = do
                                         , ("xlink:actuate", "onLoad")]
 
 transformPicMath _ _ x = return x
+
+getDefaultReferenceODT :: Maybe FilePath -> IO Archive
+getDefaultReferenceODT datadir = do
+  let paths = ["mimetype",
+               "manifest.rdf",
+               "styles.xml",
+               "content.xml",
+               "meta.xml",
+               "settings.xml",
+               "Configurations2/accelerator/current.xml",
+               "Thumbnails/thumbnail.png",
+               "META-INF/manifest.xml"]
+  let pathToEntry path = do epochtime <- floor `fmap` getPOSIXTime
+                            contents <- (B.fromChunks . (:[])) `fmap`
+                                          readDataFile datadir ("odt/" ++ path)
+                            return $ toEntry path epochtime contents
+  entries <- mapM pathToEntry paths
+  return $ foldr addEntryToArchive emptyArchive entries

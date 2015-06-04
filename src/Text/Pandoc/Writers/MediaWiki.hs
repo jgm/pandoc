@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2008-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.MediaWiki
-   Copyright   : Copyright (C) 2008-2014 John MacFarlane
+   Copyright   : Copyright (C) 2008-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -107,7 +107,7 @@ blockToMediaWiki (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   let opt = if null txt
                then ""
                else "|alt=" ++ if null tit then capt else tit ++ capt
-  return $ "[[Image:" ++ src ++ "|frame|none" ++ opt ++ "]]\n"
+  return $ "[[File:" ++ src ++ "|frame|none" ++ opt ++ "]]\n"
 
 blockToMediaWiki (Para inlines) = do
   tags <- asks useTags
@@ -375,7 +375,7 @@ inlineToMediaWiki (RawInline f str)
   | f == Format "html"      = return str
   | otherwise               = return ""
 
-inlineToMediaWiki (LineBreak) = return "<br />"
+inlineToMediaWiki (LineBreak) = return "<br />\n"
 
 inlineToMediaWiki Space = return " "
 
@@ -397,7 +397,7 @@ inlineToMediaWiki (Image alt (source, tit)) = do
                        then ""
                        else '|' : alt'
                else '|' : tit
-  return $ "[[Image:" ++ source ++ txt ++ "]]"
+  return $ "[[File:" ++ source ++ txt ++ "]]"
 
 inlineToMediaWiki (Note contents) = do
   contents' <- blockListToMediaWiki contents

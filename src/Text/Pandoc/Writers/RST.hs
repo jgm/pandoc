@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.RST
-   Copyright   : Copyright (C) 2006-2014 John MacFarlane
+   Copyright   : Copyright (C) 2006-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -48,11 +48,13 @@ import Data.Char (isSpace, toLower)
 type Refs = [([Inline], Target)]
 
 data WriterState =
-  WriterState { stNotes     :: [[Block]]
-              , stLinks     :: Refs
-              , stImages    :: [([Inline], (String, String, Maybe String))]
-              , stHasMath   :: Bool
-              , stOptions   :: WriterOptions
+  WriterState { stNotes       :: [[Block]]
+              , stLinks       :: Refs
+              , stImages      :: [([Inline], (String, String, Maybe String))]
+              , stHasMath     :: Bool
+              , stHasRawTeX   :: Bool
+              , stOptions     :: WriterOptions
+              , stTopLevel    :: Bool
               }
 
 -- | Convert Pandoc to RST.
@@ -60,7 +62,8 @@ writeRST :: WriterOptions -> Pandoc -> String
 writeRST opts document =
   let st = WriterState { stNotes = [], stLinks = [],
                          stImages = [], stHasMath = False,
-                         stOptions = opts }
+                         stHasRawTeX = False, stOptions = opts,
+                         stTopLevel = True}
   in evalState (pandocToRST document) st
 
 -- | Return RST representation of document.
@@ -78,23 +81,32 @@ pandocToRST (Pandoc meta blocks) = do
                 (fmap (render colwidth) . blockListToRST)
                 (fmap (trimr . render colwidth) . inlineListToRST)
                 $ deleteMeta "title" $ deleteMeta "subtitle" meta
-  body <- blockListToRST blocks
+  body <- blockListToRST' True $ normalizeHeadings 1 blocks
   notes <- liftM (reverse . stNotes) get >>= notesToRST
   -- note that the notes may contain refs, so we do them first
   refs <- liftM (reverse . stLinks) get >>= refsToRST
   pics <- liftM (reverse . stImages) get >>= pictRefsToRST
   hasMath <- liftM stHasMath get
+  rawTeX <- liftM stHasRawTeX get
   let main = render colwidth $ foldl ($+$) empty $ [body, notes, refs, pics]
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents opts)
-              $ defField "toc-depth" (writerTOCDepth opts)
+              $ defField "toc-depth" (show $ writerTOCDepth opts)
               $ defField "math" hasMath
               $ defField "title" (render Nothing title :: String)
               $ defField "math" hasMath
+              $ defField "rawtex" rawTeX
               $ metadata
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context
      else return main
+  where
+    normalizeHeadings lev (Header l a i:bs) = Header lev a i:normalizeHeadings (lev+1) cont ++ normalizeHeadings lev bs'
+      where (cont,bs') = break (headerLtEq l) bs
+            headerLtEq level (Header l' _ _) = l' <= level
+            headerLtEq _ _ = False
+    normalizeHeadings lev (b:bs) = b:normalizeHeadings lev bs
+    normalizeHeadings _   []     = []
 
 -- | Return RST representation of reference key table.
 refsToRST :: Refs -> State WriterState Doc
@@ -188,11 +200,21 @@ blockToRST (RawBlock f@(Format f') str)
                     (nest 3 $ text str) $$ blankline
 blockToRST HorizontalRule =
   return $ blankline $$ "--------------" $$ blankline
-blockToRST (Header level _ inlines) = do
+blockToRST (Header level (name,classes,_) inlines) = do
   contents <- inlineListToRST inlines
-  let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
-  let border = text $ replicate (offset contents) headerChar
-  return $ nowrap $ contents $$ border $$ blankline
+  isTopLevel <- gets stTopLevel
+  if isTopLevel
+    then do
+          let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
+          let border = text $ replicate (offset contents) headerChar
+          return $ nowrap $ contents $$ border $$ blankline
+    else do
+          let rub     = "rubric:: " <> contents
+          let name' | null name    = empty
+                    | otherwise    = ":name: " <> text name
+          let cls   | null classes = empty
+                    | otherwise    = ":class: " <> text (unwords classes)
+          return $ nowrap $ hang 3 ".. " (rub $$ name' $$ cls) $$ blankline
 blockToRST (CodeBlock (_,classes,kvs) str) = do
   opts <- stOptions <$> get
   let tabstop = writerTabStop opts
@@ -294,9 +316,19 @@ definitionListItemToRST (label, defs) = do
   return $ label' $$ nest tabstop (nestle contents <> cr)
 
 -- | Convert list of Pandoc block elements to RST.
+blockListToRST' :: Bool
+                -> [Block]       -- ^ List of block elements
+                -> State WriterState Doc
+blockListToRST' topLevel blocks = do
+  tl <- gets stTopLevel
+  modify (\s->s{stTopLevel=topLevel})
+  res <- vcat `fmap` mapM blockToRST blocks
+  modify (\s->s{stTopLevel=tl})
+  return res
+
 blockListToRST :: [Block]       -- ^ List of block elements
                -> State WriterState Doc
-blockListToRST blocks = mapM blockToRST blocks >>= return . vcat
+blockListToRST = blockListToRST' False
 
 -- | Convert list of Pandoc inline elements to RST.
 inlineListToRST :: [Inline] -> State WriterState Doc
@@ -392,6 +424,9 @@ inlineToRST (Math t str) = do
                    else blankline $$ (".. math:: " <> text str) $$ blankline
 inlineToRST (RawInline f x)
   | f == "rst" = return $ text x
+  | f == "latex" || f == "tex" = do
+      modify $ \st -> st{ stHasRawTeX = True }
+      return $ ":raw-latex:`" <> text x <> "`"
   | otherwise  = return empty
 inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space

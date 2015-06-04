@@ -65,6 +65,7 @@ import Text.Pandoc.Compat.Except
 import Text.TeXMath.Readers.OMML (readOMML)
 import Text.Pandoc.Readers.Docx.Fonts (getUnicode, Font(..))
 import Text.TeXMath (Exp)
+import Text.Pandoc.Readers.Docx.Util
 import Data.Char (readLitChar, ord, chr, isDigit)
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
@@ -107,8 +108,6 @@ mapD f xs =
   let handler x = (f x >>= (\y-> return [y])) `catchError` (\_ -> return [])
   in
    concatMapM handler xs
-
-type NameSpaces = [(String, String)]
 
 data Docx = Docx Document
           deriving Show
@@ -158,6 +157,7 @@ data ParagraphStyle = ParagraphStyle { pStyle :: [String]
                                      , indentation :: Maybe ParIndentation
                                      , dropCap     :: Bool
                                      , pHeading    :: Maybe (String, Int)
+                                     , pNumInfo    :: Maybe (String, String)
                                      , pBlockQuote :: Maybe Bool
                                      }
                       deriving Show
@@ -167,6 +167,7 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
                                        , indentation = Nothing
                                        , dropCap     = False
                                        , pHeading    = Nothing
+                                       , pNumInfo    = Nothing
                                        , pBlockQuote = Nothing
                                        }
 
@@ -224,6 +225,7 @@ data RunStyle = RunStyle { isBold :: Maybe Bool
 
 data ParStyleData = ParStyleData { headingLev :: Maybe (String, Int)
                                  , isBlockQuote :: Maybe Bool
+                                 , numInfo :: Maybe (String, String)
                                  , psStyle :: Maybe ParStyle}
                     deriving Show
 
@@ -246,10 +248,6 @@ type ChangeId = String
 type Author = String
 type ChangeDate = String
 
-attrToNSPair :: Attr -> Maybe (String, String)
-attrToNSPair (Attr (QName s _ (Just "xmlns")) val) = Just (s, val)
-attrToNSPair _ = Nothing
-
 archiveToDocx :: Archive -> Either DocxError Docx
 archiveToDocx archive = do
   let notes     = archiveToNotes archive
@@ -266,7 +264,7 @@ archiveToDocument :: Archive -> D Document
 archiveToDocument zf = do
   entry <- maybeToD $ findEntryByPath "word/document.xml" zf
   docElem <- maybeToD $ (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
-  let namespaces = mapMaybe attrToNSPair (elAttribs docElem)
+  let namespaces = elemToNameSpaces docElem
   bodyElem <- maybeToD $ findChild (elemName namespaces "w" "body") docElem
   body <- elemToBody namespaces bodyElem
   return $ Document namespaces body
@@ -285,7 +283,7 @@ archiveToStyles zf =
    case stylesElem of
      Nothing -> (M.empty, M.empty)
      Just styElem ->
-       let namespaces = mapMaybe attrToNSPair (elAttribs styElem)
+       let namespaces = elemToNameSpaces styElem
        in
         ( M.fromList $ buildBasedOnList namespaces styElem
             (Nothing :: Maybe CharStyle),
@@ -353,10 +351,10 @@ archiveToNotes zf =
       enElem = findEntryByPath "word/endnotes.xml" zf
                >>= (parseXMLDoc . UTF8.toStringLazy . fromEntry)
       fn_namespaces = case fnElem of
-        Just e -> mapMaybe attrToNSPair (elAttribs e)
+        Just e -> elemToNameSpaces e
         Nothing -> []
       en_namespaces = case enElem of
-        Just e -> mapMaybe attrToNSPair (elAttribs e)
+        Just e -> elemToNameSpaces e
         Nothing -> []
       ns = unionBy (\x y -> fst x == fst y) fn_namespaces en_namespaces
       fn = fnElem >>= (elemToNotes ns "footnote")
@@ -456,7 +454,7 @@ archiveToNumbering' zf = do
     Nothing -> Just $ Numbering [] [] []
     Just entry -> do
       numberingElem <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
-      let namespaces = mapMaybe attrToNSPair (elAttribs numberingElem)
+      let namespaces = elemToNameSpaces numberingElem
           numElems = findChildren
                      (QName "num" (lookup "w" namespaces) (Just "w"))
                      numberingElem
@@ -484,15 +482,6 @@ elemToNotes _ _ _ = Nothing
 
 ---------------------------------------------
 ---------------------------------------------
-
-elemName :: NameSpaces -> String -> String -> QName
-elemName ns prefix name = (QName name (lookup prefix ns) (Just prefix))
-
-isElem :: NameSpaces -> String -> String -> Element -> Bool
-isElem ns prefix name element =
-  qName (elName element) == name &&
-  qURI (elName element) == (lookup prefix ns)
-
 
 elemToTblGrid :: NameSpaces -> Element -> D TblGrid
 elemToTblGrid ns element | isElem ns "w" "tblGrid" element =
@@ -546,20 +535,6 @@ elemToParIndentation ns element | isElem ns "w" "ind" element =
       stringToInteger}
 elemToParIndentation _ _ = Nothing
 
-
-elemToNumInfo :: NameSpaces -> Element -> Maybe (String, String)
-elemToNumInfo ns element  | isElem ns "w" "p" element = do
-  let pPr = findChild (elemName ns "w" "pPr") element
-      numPr = pPr >>= findChild (elemName ns "w" "numPr")
-  lvl <- numPr >>=
-         findChild (elemName ns "w" "ilvl") >>=
-         findAttr (elemName ns "w" "val")
-  numId <- numPr >>=
-           findChild (elemName ns "w" "numId") >>=
-           findAttr (elemName ns "w" "val")
-  return (numId, lvl)
-elemToNumInfo _ _ = Nothing
-
 testBitMask :: String -> Int -> Bool
 testBitMask bitMaskS n =
   case (reads ("0x" ++ bitMaskS) :: [(Int, String)]) of
@@ -578,20 +553,28 @@ elemToBodyPart ns element
         return $ OMathPara expsLst
 elemToBodyPart ns element
   | isElem ns "w" "p" element
-  , Just (numId, lvl) <- elemToNumInfo ns element = do
+  , Just (numId, lvl) <- getNumInfo ns element = do
     sty <- asks envParStyles
     let parstyle = elemToParagraphStyle ns element sty
     parparts <- mapD (elemToParPart ns) (elChildren element)
     num <- asks envNumbering
     case lookupLevel numId lvl num of
-      Just levelInfo -> return $ ListItem parstyle numId lvl levelInfo parparts
-      Nothing         -> throwError WrongElem
+     Just levelInfo -> return $ ListItem parstyle numId lvl levelInfo parparts
+     Nothing        -> throwError WrongElem
 elemToBodyPart ns element
   | isElem ns "w" "p" element = do
-    sty <- asks envParStyles
-    let parstyle = elemToParagraphStyle ns element sty
-    parparts <- mapD (elemToParPart ns) (elChildren element)
-    return $ Paragraph parstyle parparts
+      sty <- asks envParStyles
+      let parstyle = elemToParagraphStyle ns element sty
+      parparts <- mapD (elemToParPart ns) (elChildren element)
+      case pNumInfo parstyle of
+       Just (numId, lvl) -> do
+         num <- asks envNumbering
+         case lookupLevel numId lvl num of
+          Just levelInfo ->
+            return $ ListItem parstyle numId lvl levelInfo parparts
+          Nothing         ->
+            throwError WrongElem
+       Nothing -> return $ Paragraph parstyle parparts
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
     let caption' = findChild (elemName ns "w" "tblPr") element
@@ -635,6 +618,16 @@ elemToParPart ns element
     let a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
         drawing = findElement (QName "blip" (Just a_ns) (Just "a")) element
                   >>= findAttr (QName "embed" (lookup "r" ns) (Just "r"))
+    in
+     case drawing of
+       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp bs)
+       Nothing -> throwError WrongElem
+-- The below is an attempt to deal with images in deprecated vml format.
+elemToParPart ns element
+  | isElem ns "w" "r" element
+  , Just _ <- findChild (elemName ns "w" "pict") element =
+    let drawing = findElement (elemName ns "v" "imagedata") element
+                  >>= findAttr (elemName ns "r" "id")
     in
      case drawing of
        Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp bs)
@@ -761,6 +754,7 @@ elemToParagraphStyle ns element sty
             Just _      -> True
             Nothing     -> False
       , pHeading = getParStyleField headingLev sty style
+      , pNumInfo = getParStyleField numInfo sty style
       , pBlockQuote = getParStyleField isBlockQuote sty style
       }
 elemToParagraphStyle _ _ _ =  defaultParagraphStyle
@@ -847,12 +841,26 @@ getBlockQuote ns element
   , styleName `elem` blockQuoteStyleNames = Just True
 getBlockQuote _ _ = Nothing
 
+getNumInfo :: NameSpaces -> Element -> Maybe (String, String)
+getNumInfo ns element = do
+  let numPr = findChild (elemName ns "w" "pPr") element >>=
+              findChild (elemName ns "w" "numPr")
+      lvl = fromMaybe "0" (numPr >>=
+                           findChild (elemName ns "w" "ilvl") >>=
+                           findAttr (elemName ns "w" "val"))
+  numId <- numPr >>=
+           findChild (elemName ns "w" "numId") >>=
+           findAttr (elemName ns "w" "val")
+  return (numId, lvl)
+
+
 elemToParStyleData :: NameSpaces -> Element -> Maybe ParStyle -> ParStyleData
 elemToParStyleData ns element parentStyle =
     ParStyleData
       {
         headingLev = getHeaderLevel ns element
       , isBlockQuote = getBlockQuote ns element
+      , numInfo = getNumInfo ns element
       , psStyle = parentStyle
         }
 

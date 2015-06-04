@@ -1,5 +1,6 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-
-Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Options
-   Copyright   : Copyright (C) 2012-2014 John MacFarlane
+   Copyright   : Copyright (C) 2012-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -51,6 +52,8 @@ import Data.Default
 import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.MediaBag (MediaBag)
 import Data.Monoid
+import Data.Data (Data)
+import Data.Typeable (Typeable)
 
 -- | Individually selectable syntax extensions.
 data Extension =
@@ -74,7 +77,7 @@ data Extension =
     | Ext_latex_macros        -- ^ Parse LaTeX macro definitions (for math only)
     | Ext_fenced_code_blocks  -- ^ Parse fenced code blocks
     | Ext_fenced_code_attributes  -- ^ Allow attributes on fenced code blocks
-    | Ext_backtick_code_blocks    -- ^ Github style ``` code blocks
+    | Ext_backtick_code_blocks    -- ^ GitHub style ``` code blocks
     | Ext_inline_code_attributes  -- ^ Allow attributes on inline code
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
@@ -109,7 +112,8 @@ data Extension =
     | Ext_implicit_header_references -- ^ Implicit reference links for headers
     | Ext_line_blocks         -- ^ RST style line blocks
     | Ext_epub_html_exts      -- ^ Recognise the EPUB extended version of HTML
-    deriving (Show, Read, Enum, Eq, Ord, Bounded)
+    | Ext_shortcut_reference_links -- ^ Shortcut reference links
+    deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable)
 
 pandocExtensions :: Set Extension
 pandocExtensions = Set.fromList
@@ -151,6 +155,7 @@ pandocExtensions = Set.fromList
   , Ext_header_attributes
   , Ext_implicit_header_references
   , Ext_line_blocks
+  , Ext_shortcut_reference_links
   ]
 
 phpMarkdownExtraExtensions :: Set Extension
@@ -164,6 +169,7 @@ phpMarkdownExtraExtensions = Set.fromList
   , Ext_intraword_underscores
   , Ext_header_attributes
   , Ext_abbreviations
+  , Ext_shortcut_reference_links
   ]
 
 githubMarkdownExtensions :: Set Extension
@@ -180,6 +186,7 @@ githubMarkdownExtensions = Set.fromList
   , Ext_strikeout
   , Ext_hard_line_breaks
   , Ext_lists_without_preceding_blankline
+  , Ext_shortcut_reference_links
   ]
 
 multimarkdownExtensions :: Set Extension
@@ -202,7 +209,9 @@ multimarkdownExtensions = Set.fromList
 
 strictExtensions :: Set Extension
 strictExtensions = Set.fromList
-  [ Ext_raw_html ]
+  [ Ext_raw_html
+  , Ext_shortcut_reference_links
+  ]
 
 data ReaderOptions = ReaderOptions{
          readerExtensions      :: Set Extension  -- ^ Syntax extensions
@@ -220,7 +229,7 @@ data ReaderOptions = ReaderOptions{
        , readerDefaultImageExtension :: String -- ^ Default extension for images
        , readerTrace           :: Bool -- ^ Print debugging info
        , readerTrackChanges    :: TrackChanges
-} deriving (Show, Read)
+} deriving (Show, Read, Data, Typeable)
 
 instance Default ReaderOptions
   where def = ReaderOptions{
@@ -242,7 +251,7 @@ instance Default ReaderOptions
 -- Writer options
 --
 
-data EPUBVersion = EPUB2 | EPUB3 deriving (Eq, Show, Read)
+data EPUBVersion = EPUB2 | EPUB3 deriving (Eq, Show, Read, Data, Typeable)
 
 data HTMLMathMethod = PlainMath
                     | LaTeXMathML (Maybe String)  -- url of LaTeXMathML.js
@@ -252,18 +261,18 @@ data HTMLMathMethod = PlainMath
                     | MathML (Maybe String)       -- url of MathMLinHTML.js
                     | MathJax String              -- url of MathJax.js
                     | KaTeX String String -- url of stylesheet and katex.js
-                    deriving (Show, Read, Eq)
+                    deriving (Show, Read, Eq, Data, Typeable)
 
 data CiteMethod = Citeproc                        -- use citeproc to render them
                   | Natbib                        -- output natbib cite commands
                   | Biblatex                      -- output biblatex cite commands
-                deriving (Show, Read, Eq)
+                deriving (Show, Read, Eq, Data, Typeable)
 
 -- | Methods for obfuscating email addresses in HTML.
 data ObfuscationMethod = NoObfuscation
                        | ReferenceObfuscation
                        | JavascriptObfuscation
-                       deriving (Show, Read, Eq)
+                       deriving (Show, Read, Eq, Data, Typeable)
 
 -- | Varieties of HTML slide shows.
 data HTMLSlideVariant = S5Slides
@@ -272,13 +281,13 @@ data HTMLSlideVariant = S5Slides
                       | DZSlides
                       | RevealJsSlides
                       | NoSlides
-                      deriving (Show, Read, Eq)
+                      deriving (Show, Read, Eq, Data, Typeable)
 
 -- | Options for accepting or rejecting MS Word track-changes.
 data TrackChanges = AcceptChanges
                   | RejectChanges
                   | AllChanges
-                  deriving (Show, Read, Eq)
+                  deriving (Show, Read, Eq, Data, Typeable)
 
 -- | Options for writers
 data WriterOptions = WriterOptions
@@ -324,7 +333,8 @@ data WriterOptions = WriterOptions
   , writerReferenceDocx    :: Maybe FilePath -- ^ Path to reference DOCX if specified
   , writerMediaBag         :: MediaBag       -- ^ Media collected by docx or epub reader
   , writerVerbose          :: Bool           -- ^ Verbose debugging output
-  } deriving Show
+  , writerLaTeXArgs        :: [String]       -- ^ Flags to pass to latex-engine
+  } deriving (Show, Data, Typeable)
 
 instance Default WriterOptions where
   def = WriterOptions { writerStandalone       = False
@@ -368,6 +378,7 @@ instance Default WriterOptions where
                       , writerReferenceDocx    = Nothing
                       , writerMediaBag         = mempty
                       , writerVerbose          = False
+                      , writerLaTeXArgs        = []
                       }
 
 -- | Returns True if the given extension is enabled.

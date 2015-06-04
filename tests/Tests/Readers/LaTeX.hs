@@ -7,14 +7,20 @@ import Tests.Helpers
 import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
+import Data.Monoid (mempty)
+import Text.Pandoc.Error
 
 latex :: String -> Pandoc
-latex = readLaTeX def
+latex = handleError . readLaTeX def
 
 infix 4 =:
 (=:) :: ToString c
      => String -> (String, c) -> Test
 (=:) = test latex
+
+simpleTable' :: [Alignment] -> [[Blocks]] -> Blocks
+simpleTable' aligns = table "" (zip aligns (repeat 0.0))
+                      (map (const mempty) aligns)
 
 tests :: [Test]
 tests = [ testGroup "basic"
@@ -62,9 +68,53 @@ tests = [ testGroup "basic"
             "\\begin{lstlisting}\\end{lstlisting}" =?> codeBlock ""
           ]
 
+        , testGroup "tables"
+          [ "Single cell table" =:
+            "\\begin{tabular}{|l|}Test\\\\\\end{tabular}" =?>
+            simpleTable' [AlignLeft] [[plain "Test"]]
+          , "Multi cell table" =:
+            "\\begin{tabular}{|rl|}One & Two\\\\ \\end{tabular}" =?>
+            simpleTable' [AlignRight,AlignLeft] [[plain "One", plain "Two"]]
+          , "Multi line table" =:
+            unlines [ "\\begin{tabular}{|c|}"
+                    , "One\\\\"
+                    , "Two\\\\"
+                    , "Three\\\\"
+                    , "\\end{tabular}" ] =?>
+            simpleTable' [AlignCenter]
+                         [[plain "One"], [plain "Two"], [plain "Three"]]
+          , "Empty table" =:
+            "\\begin{tabular}{}\\end{tabular}" =?>
+            simpleTable' [] []
+          , "Table with fixed column width" =:
+            "\\begin{tabular}{|p{5cm}r|}One & Two\\\\ \\end{tabular}" =?>
+            simpleTable' [AlignLeft,AlignRight] [[plain "One", plain "Two"]]
+          , "Table with empty column separators" =:
+            "\\begin{tabular}{@{}r@{}l}One & Two\\\\ \\end{tabular}" =?>
+            simpleTable' [AlignRight,AlignLeft] [[plain "One", plain "Two"]]
+          , "Table with custom column separators" =:
+            unlines [ "\\begin{tabular}{@{($\\to$)}r@{\\hspace{2cm}}l}"
+                    , "One&Two\\\\"
+                    , "\\end{tabular}" ] =?>
+            simpleTable' [AlignRight,AlignLeft] [[plain "One", plain "Two"]]
+          , "Table with vertical alignment argument" =:
+            "\\begin{tabular}[t]{r|r}One & Two\\\\ \\end{tabular}" =?>
+            simpleTable' [AlignRight,AlignRight] [[plain "One", plain "Two"]]
+          ]
+
         , testGroup "citations"
           [ natbibCitations
           , biblatexCitations
+          ]
+
+        , let hex = ['0'..'9']++['a'..'f'] in
+          testGroup "Character Escapes"
+          [ "Two-character escapes" =:
+            concat ["^^"++[i,j] | i <- hex, j <- hex] =?>
+            para (str ['\0'..'\255'])
+          , "One-character escapes" =:
+            concat ["^^"++[i] | i <- hex] =?>
+            para (str $ ['p'..'y']++['!'..'&'])
           ]
         ]
 

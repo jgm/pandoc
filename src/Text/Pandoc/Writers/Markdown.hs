@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables #-}
 {-
-Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Markdown
-   Copyright   : Copyright (C) 2006-2014 John MacFarlane
+   Copyright   : Copyright (C) 2006-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -57,12 +57,15 @@ import qualified Data.Text as T
 
 type Notes = [[Block]]
 type Refs = [([Inline], Target)]
-data WriterState = WriterState { stNotes :: Notes
-                               , stRefs  :: Refs
-                               , stIds   :: [String]
-                               , stPlain :: Bool }
+data WriterState = WriterState { stNotes           :: Notes
+                               , stRefs            :: Refs
+                               , stRefShortcutable :: Bool
+                               , stInList          :: Bool
+                               , stIds             :: [String]
+                               , stPlain           :: Bool }
 instance Default WriterState
-  where def = WriterState{ stNotes = [], stRefs = [], stIds = [], stPlain = False }
+  where def = WriterState{ stNotes = [], stRefs = [], stRefShortcutable = True,
+                           stInList = False, stIds = [], stPlain = False }
 
 -- | Convert Pandoc to Markdown.
 writeMarkdown :: WriterOptions -> Pandoc -> String
@@ -243,7 +246,8 @@ noteToMarkdown opts num blocks = do
 -- | Escape special characters for Markdown.
 escapeString :: WriterOptions -> String -> String
 escapeString opts = escapeStringUsing markdownEscapes
-  where markdownEscapes = backslashEscapes specialChars
+  where markdownEscapes = ('<', "&lt;") : ('>', "&gt;") :
+                          backslashEscapes specialChars
         specialChars =
                 (if isEnabled Ext_superscript opts
                     then ('^':)
@@ -254,7 +258,7 @@ escapeString opts = escapeStringUsing markdownEscapes
                 (if isEnabled Ext_tex_math_dollars opts
                     then ('$':)
                     else id) $
-                "\\`*_<>#"
+                "\\`*_[]#"
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: WriterOptions -> [Block] -> Doc
@@ -453,7 +457,7 @@ blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
                                 $ Pandoc nullMeta [t]
   return $ nst $ tbl $$ blankline $$ caption'' $$ blankline
 blockToMarkdown opts (BulletList items) = do
-  contents <- mapM (bulletListItemToMarkdown opts) items
+  contents <- inList $ mapM (bulletListItemToMarkdown opts) items
   return $ cat contents <> blankline
 blockToMarkdown opts (OrderedList (start,sty,delim) items) = do
   let start' = if isEnabled Ext_startnum opts then start else 1
@@ -464,12 +468,21 @@ blockToMarkdown opts (OrderedList (start,sty,delim) items) = do
   let markers' = map (\m -> if length m < 3
                                then m ++ replicate (3 - length m) ' '
                                else m) markers
-  contents <- mapM (\(item, num) -> orderedListItemToMarkdown opts item num) $
+  contents <- inList $
+              mapM (\(item, num) -> orderedListItemToMarkdown opts item num) $
               zip markers' items
   return $ cat contents <> blankline
 blockToMarkdown opts (DefinitionList items) = do
-  contents <- mapM (definitionListItemToMarkdown opts) items
+  contents <- inList $ mapM (definitionListItemToMarkdown opts) items
   return $ cat contents <> blankline
+
+inList :: State WriterState a -> State WriterState a
+inList p = do
+  oldInList <- gets stInList
+  modify $ \st -> st{ stInList = True }
+  res <- p
+  modify $ \st -> st{ stInList = oldInList }
+  return res
 
 addMarkdownAttribute :: String -> String
 addMarkdownAttribute s =
@@ -497,7 +510,12 @@ pipeTable headless aligns rawHeaders rawRows = do
                              AlignCenter  -> ':':replicate w '-' ++ ":"
                              AlignRight   -> replicate (w + 1) '-' ++ ":"
                              AlignDefault -> replicate (w + 2) '-'
-  let header = if headless then empty else torow rawHeaders
+  -- note:  pipe tables can't completely lack a
+  -- header; for a headerless table, we need a header of empty cells.
+  -- see jgm/pandoc#1996.
+  let header = if headless
+                  then torow (replicate (length aligns) empty)
+                  else torow rawHeaders
   let border = nowrap $ text "|" <> hcat (intersperse (text "|") $
                         map toborder $ zip aligns widths) <> text "|"
   let body   = vcat $ map torow rawRows
@@ -677,12 +695,53 @@ getReference label (src, tit) = do
 
 -- | Convert list of Pandoc inline elements to markdown.
 inlineListToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
-inlineListToMarkdown opts lst =
-  mapM (inlineToMarkdown opts) (avoidBadWraps lst) >>= return . cat
-  where avoidBadWraps [] = []
-        avoidBadWraps (Space:Str (c:cs):xs)
-          | c `elem` ("-*+>" :: String) = Str (' ':c:cs) : avoidBadWraps xs
-        avoidBadWraps (x:xs) = x : avoidBadWraps xs
+inlineListToMarkdown opts lst = do
+  inlist <- gets stInList
+  go (if inlist then avoidBadWrapsInList lst else lst)
+  where go [] = return empty
+        go (i:is) = case i of
+            (Link _ _) -> case is of
+                -- If a link is followed by another link or '[' we don't shortcut
+                (Link _ _):_                  -> unshortcutable
+                Space:(Link _ _):_            -> unshortcutable
+                Space:(Str('[':_)):_          -> unshortcutable
+                Space:(RawInline _ ('[':_)):_ -> unshortcutable
+                Space:(Cite _ _):_            -> unshortcutable
+                (Cite _ _):_                  -> unshortcutable
+                Str ('[':_):_                 -> unshortcutable
+                (RawInline _ ('[':_)):_       -> unshortcutable
+                (RawInline _ (' ':'[':_)):_   -> unshortcutable
+                _                             -> shortcutable
+            _ -> shortcutable
+          where shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go is)
+                unshortcutable = do
+                    iMark <- withState (\s -> s { stRefShortcutable = False })
+                                       (inlineToMarkdown opts i)
+                    modify (\s -> s {stRefShortcutable = True })
+                    fmap (iMark <>) (go is)
+
+avoidBadWrapsInList :: [Inline] -> [Inline]
+avoidBadWrapsInList [] = []
+avoidBadWrapsInList (Space:Str ('>':cs):xs) =
+  Str (' ':'>':cs) : avoidBadWrapsInList xs
+avoidBadWrapsInList (Space:Str [c]:[])
+  | c `elem` ['-','*','+'] = Str [' ', c] : []
+avoidBadWrapsInList (Space:Str [c]:Space:xs)
+  | c `elem` ['-','*','+'] = Str [' ', c] : Space : avoidBadWrapsInList xs
+avoidBadWrapsInList (Space:Str cs:Space:xs)
+  | isOrderedListMarker cs = Str (' ':cs) : Space : avoidBadWrapsInList xs
+avoidBadWrapsInList (Space:Str cs:[])
+  | isOrderedListMarker cs = Str (' ':cs) : []
+avoidBadWrapsInList (x:xs) = x : avoidBadWrapsInList xs
+
+isOrderedListMarker :: String -> Bool
+isOrderedListMarker xs = (last xs `elem` ['.',')']) &&
+              isRight (runParserT (anyOrderedListMarker >> eof)
+                       defaultParserState "" xs)
+
+isRight :: Either a b -> Bool
+isRight (Right _) = True
+isRight (Left  _) = False
 
 escapeSpaces :: Inline -> Inline
 escapeSpaces (Str s) = Str $ substitute " " "\\ " s
@@ -692,8 +751,10 @@ escapeSpaces x = x
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
 inlineToMarkdown opts (Span attrs ils) = do
+  plain <- gets stPlain
   contents <- inlineListToMarkdown opts ils
-  return $ if isEnabled Ext_raw_html opts
+  return $ if not plain &&
+              (isEnabled Ext_raw_html opts || isEnabled Ext_native_spans opts)
               then tagWithAttrs "span" attrs <> contents <> text "</span>"
               else contents
 inlineToMarkdown opts (Emph lst) = do
@@ -726,13 +787,14 @@ inlineToMarkdown opts (Subscript lst) = do
               else "<sub>" <> contents <> "</sub>"
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- gets stPlain
-  if plain
-     then inlineListToMarkdown opts $ capitalize lst
-     else do
+  if not plain &&
+     (isEnabled Ext_raw_html opts || isEnabled Ext_native_spans opts)
+     then do
        contents <- inlineListToMarkdown opts lst
        return $ tagWithAttrs "span"
-            ("",[],[("style","font-variant:small-caps;")])
+                 ("",[],[("style","font-variant:small-caps;")])
              <> contents <> text "</span>"
+     else inlineListToMarkdown opts $ capitalize lst
 inlineToMarkdown opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ "‘" <> contents <> "’"
@@ -838,6 +900,9 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                       [Str s] | escapeURI s == srcSuffix -> True
                       _                                  -> False
   let useRefLinks = writerReferenceLinks opts && not useAuto
+  shortcutable <- gets stRefShortcutable
+  let useShortcutRefLinks = shortcutable &&
+                            isEnabled Ext_shortcut_reference_links opts
   ref <- if useRefLinks then getReference txt (src, tit) else return []
   reftext <- inlineListToMarkdown opts ref
   return $ if useAuto
@@ -847,7 +912,9 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
               else if useRefLinks
                       then let first  = "[" <> linktext <> "]"
                                second = if txt == ref
-                                           then "[]"
+                                           then if useShortcutRefLinks
+                                                   then ""
+                                                   else "[]"
                                            else "[" <> reftext <> "]"
                            in  first <> second
                       else if plain

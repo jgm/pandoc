@@ -9,19 +9,20 @@ import Text.Pandoc.Builder
 import qualified Data.Set as Set
 -- import Text.Pandoc.Shared ( normalize )
 import Text.Pandoc
+import Text.Pandoc.Error
 
 markdown :: String -> Pandoc
-markdown = readMarkdown def
+markdown = handleError . readMarkdown def
 
 markdownSmart :: String -> Pandoc
-markdownSmart = readMarkdown def { readerSmart = True }
+markdownSmart = handleError . readMarkdown def { readerSmart = True }
 
 markdownCDL :: String -> Pandoc
-markdownCDL = readMarkdown def { readerExtensions = Set.insert
+markdownCDL = handleError . readMarkdown def { readerExtensions = Set.insert
                  Ext_compact_definition_lists $ readerExtensions def }
 
 markdownGH :: String -> Pandoc
-markdownGH = readMarkdown def { readerExtensions = githubMarkdownExtensions }
+markdownGH = handleError . readMarkdown def { readerExtensions = githubMarkdownExtensions }
 
 infix 4 =:
 (=:) :: ToString c
@@ -30,7 +31,7 @@ infix 4 =:
 
 testBareLink :: (String, Inlines) -> Test
 testBareLink (inp, ils) =
-  test (readMarkdown def{ readerExtensions =
+  test (handleError . readMarkdown def{ readerExtensions =
              Set.fromList [Ext_autolink_bare_uris, Ext_raw_html] })
        inp (inp, doc $ para ils)
 
@@ -168,6 +169,9 @@ tests = [ testGroup "inline code"
             "<del>test</del>" =?>
             rawBlock "html" "<del>" <> plain (str "test") <>
             rawBlock "html" "</del>"
+          , "invalid tag (issue #1820" =:
+            "</ div></.div>" =?>
+            para (text "</ div></.div>")
           ]
         , "unbalanced brackets" =:
             "[[[[[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[[[[[hi")
@@ -196,6 +200,9 @@ tests = [ testGroup "inline code"
           [ "blank line before header" =:
             "\n# Header\n"
             =?> headerWith ("header",[],[]) 1 "Header"
+          , "bracketed text (#2062)" =:
+            "# [hi]\n"
+            =?> headerWith ("hi",[],[]) 1 "[hi]"
           ]
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
@@ -207,6 +214,9 @@ tests = [ testGroup "inline code"
           , test markdownSmart "apostrophe in French"
             ("À l'arrivée de la guerre, le thème de l'«impossibilité du socialisme»"
             =?> para "À l’arrivée de la guerre, le thème de l’«impossibilité du socialisme»")
+          , test markdownSmart "apostrophe after math" $ -- issue #1909
+              "The value of the $x$'s and the systems' condition." =?>
+              para (text "The value of the " <> math "x" <> text "\8217s and the systems\8217 condition.")
           ]
         , testGroup "footnotes"
           [ "indent followed by newline and flush-left text" =:
@@ -220,7 +230,7 @@ tests = [ testGroup "inline code"
             =?> para (note (para "See [^1]"))
           ]
         , testGroup "lhs"
-          [ test (readMarkdown def{ readerExtensions = Set.insert
+          [ test (handleError . readMarkdown def{ readerExtensions = Set.insert
                        Ext_literate_haskell $ readerExtensions def })
               "inverse bird tracks and html" $
               "> a\n\n< b\n\n<div>\n"
@@ -263,6 +273,16 @@ tests = [ testGroup "inline code"
             definitionList [ (text "foo1", [para (text "bar") <>
                                             para (text "baz")])
                            ]
+          , "first line not indented" =:
+            "foo\n: bar\n" =?>
+            definitionList [ (text "foo", [plain (text "bar")]) ]
+          , "list in definition" =:
+            "foo\n:   - bar\n" =?>
+            definitionList [ (text "foo", [bulletList [plain (text "bar")]]) ]
+          , "in div" =:
+            "<div>foo\n:   - bar\n</div>" =?>
+            divWith nullAttr (definitionList
+              [ (text "foo", [bulletList [plain (text "bar")]]) ])
           ]
         , testGroup "+compact_definition_lists"
           [ test markdownCDL "basic compact list" $
@@ -288,5 +308,68 @@ tests = [ testGroup "inline code"
               bulletList [ plain "a"
                          , plain "b"
                          , plain "c" <> bulletList [plain "d"] ]
+          ]
+        , testGroup "citations"
+          [ "simple" =:
+            "@item1" =?> para (cite [
+                Citation{ citationId      = "item1"
+                        , citationPrefix  = []
+                        , citationSuffix  = []
+                        , citationMode    = AuthorInText
+                        , citationNoteNum = 0
+                        , citationHash    = 0
+                        }
+                ] "@item1")
+          , "key starts with digit" =:
+            "@1657:huyghens" =?> para (cite [
+                Citation{ citationId      = "1657:huyghens"
+                        , citationPrefix  = []
+                        , citationSuffix  = []
+                        , citationMode    = AuthorInText
+                        , citationNoteNum = 0
+                        , citationHash    = 0
+                        }
+                ] "@1657:huyghens")
+          ]
+        , let citation = cite [Citation "cita" [] [] AuthorInText 0 0] (str "@cita")
+          in testGroup "footnote/link following citation" -- issue #2083
+          [ "footnote" =:
+              unlines [ "@cita[^note]"
+                      , ""
+                      , "[^note]: note" ] =?>
+              para (
+                citation <> note (para $ str "note")
+              )
+          , "normal link" =:
+              "@cita [link](http://www.com)" =?>
+              para (
+                citation <> space <> link "http://www.com" "" (str "link")
+              )
+          , "reference link" =:
+              unlines [ "@cita [link][link]"
+                      , ""
+                      , "[link]: http://www.com" ] =?>
+              para (
+                citation <> space <> link "http://www.com" "" (str "link")
+              )
+          , "short reference link" =:
+              unlines [ "@cita [link]"
+                      , ""
+                      , "[link]: http://www.com" ] =?>
+              para (
+                citation <> space <> link "http://www.com" "" (str "link")
+              )
+          , "implicit header link" =:
+              unlines [ "# Header"
+                      , "@cita [Header]" ] =?>
+              headerWith ("header",[],[]) 1 (str "Header") <> para (
+                citation <> space <> link "#header" "" (str "Header")
+              )
+          , "regular citation" =:
+              "@cita [foo]" =?>
+              para (
+                cite [Citation "cita" [] [Str "foo"] AuthorInText 0 0]
+                  (str "@cita" <> space <> str "[foo]")
+              )
           ]
         ]

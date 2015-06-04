@@ -168,6 +168,8 @@ A link to [My header].
 
 Another link to [it][My header].
 
+Should be [case insensitive][my header].
+
 Link to [Explicit header attributes].
 
 [my other header]: /foo
@@ -258,6 +260,10 @@ Empty cells
 
 [linky]: hi_(there_(nested))
 
+## Backslashes in link references
+
+[\*\a](b)
+
 ## Reference link fallbacks
 
 [*not a link*] [*nope*]...
@@ -276,3 +282,8 @@ most vocal proponent.
 bar
 
 [foo2]
+
+## Wrapping shouldn't introduce new list items
+
+- blah blah blah blah blah blah blah blah blah blah blah blah blah blah 2015.
+

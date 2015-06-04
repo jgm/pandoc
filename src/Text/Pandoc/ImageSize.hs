@@ -1,6 +1,7 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables  #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 {-
-  Copyright (C) 2011-2014 John MacFarlane <jgm@berkeley.edu>
+  Copyright (C) 2011-2015 John MacFarlane <jgm@berkeley.edu>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,7 +20,7 @@
 
 {- |
 Module      : Text.Pandoc.ImageSize
-Copyright   : Copyright (C) 2011-2014 John MacFarlane
+Copyright   : Copyright (C) 2011-2015 John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -38,8 +39,11 @@ import Control.Monad
 import Data.Bits
 import Data.Binary
 import Data.Binary.Get
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Shared (safeRead, hush)
 import qualified Data.Map as M
+import Text.Pandoc.Compat.Except
+import Control.Monad.Trans
+import Data.Maybe (fromMaybe)
 
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
@@ -64,17 +68,19 @@ imageType img = case B.take 4 img of
                      "%!PS"
                        | (B.take 4 $ B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
                                         -> return Eps
-                     _                  -> fail "Unknown image type"
+                     _                  -> mzero
 
-imageSize :: ByteString -> Maybe ImageSize
-imageSize img = do
-  t <- imageType img
-  case t of
-       Png  -> pngSize img
-       Gif  -> gifSize img
-       Jpeg -> jpegSize img
-       Eps  -> epsSize img
-       Pdf  -> Nothing  -- TODO
+imageSize :: ByteString -> Either String ImageSize
+imageSize img =
+  case imageType img of
+       Just Png  -> mbToEither "could not determine PNG size" $ pngSize img
+       Just Gif  -> mbToEither "could not determine GIF size" $ gifSize img
+       Just Jpeg -> jpegSize img
+       Just Eps  -> mbToEither "could not determine EPS size" $ epsSize img
+       Just Pdf  -> Left "could not determine PDF size" -- TODO
+       Nothing   -> Left "could not determine image type"
+  where mbToEither msg Nothing  = Left msg
+        mbToEither _   (Just x) = Right x
 
 defaultSize :: (Integer, Integer)
 defaultSize = (72, 72)
@@ -114,7 +120,7 @@ pngSize img = do
                 ([w1,w2,w3,w4,h1,h2,h3,h4] :: [Integer]) -> return
                     ((shift w1 24) + (shift w2 16) + (shift w3 8) + w4,
                      (shift h1 24) + (shift h2 16) + (shift h3 8) + h4)
-                _ -> fail "PNG parse error"
+                _ -> (hush . Left) "PNG parse error"
   let (dpix, dpiy) = findpHYs rest''
   return $ ImageSize { pxX  = x, pxY = y, dpiX = dpix, dpiY = dpiy }
 
@@ -143,67 +149,84 @@ gifSize img = do
                           dpiX = 72,
                           dpiY = 72
                           }
-       _             -> fail "GIF parse error"
+       _             -> (hush . Left) "GIF parse error"
 
-jpegSize :: ByteString -> Maybe ImageSize
-jpegSize img = do
+jpegSize :: ByteString -> Either String ImageSize
+jpegSize img =
   let (hdr, rest) = B.splitAt 4 img
-  guard $ B.length rest >= 14
-  case hdr of
-       "\xff\xd8\xff\xe0" -> jfifSize rest
-       "\xff\xd8\xff\xe1" -> exifSize $ B.takeWhile (/= '\xff') rest
-       _                  -> mzero
+  in if B.length rest < 14
+        then Left "unable to determine JPEG size"
+        else case hdr of
+               "\xff\xd8\xff\xe0" -> jfifSize rest
+               "\xff\xd8\xff\xe1" -> exifSize rest
+               _                  -> Left "unable to determine JPEG size"
 
-jfifSize :: ByteString -> Maybe ImageSize
-jfifSize rest = do
+jfifSize :: ByteString -> Either String ImageSize
+jfifSize rest =
   let [dpiDensity,dpix1,dpix2,dpiy1,dpiy2] = map fromIntegral
                                            $ unpack $ B.take 5 $ B.drop 9 $ rest
-  let factor = case dpiDensity of
+      factor = case dpiDensity of
                     1 -> id
                     2 -> \x -> (x * 254 `div` 10)
                     _ -> const 72
-  let dpix = factor (shift dpix1 8 + dpix2)
-  let dpiy = factor (shift dpiy1 8 + dpiy2)
-  (w,h) <- findJfifSize rest
-  return $ ImageSize { pxX = w, pxY = h, dpiX = dpix, dpiY = dpiy }
+      dpix = factor (shift dpix1 8 + dpix2)
+      dpiy = factor (shift dpiy1 8 + dpiy2)
+  in case findJfifSize rest of
+       Left msg    -> Left msg
+       Right (w,h) -> Right $ ImageSize { pxX = w
+                                        , pxY = h
+                                        , dpiX = dpix
+                                        , dpiY = dpiy }
 
-findJfifSize :: ByteString -> Maybe (Integer,Integer)
-findJfifSize bs = do
+findJfifSize :: ByteString -> Either String (Integer,Integer)
+findJfifSize bs =
   let bs' = B.dropWhile (=='\xff') $ B.dropWhile (/='\xff') bs
-  case B.uncons bs' of
-       Just (c,bs'') | c >= '\xc0' && c <= '\xc3' -> do
+  in case B.uncons bs' of
+       Just (c,bs'') | c >= '\xc0' && c <= '\xc3' ->
          case map fromIntegral $ unpack $ B.take 4 $ B.drop 3 bs'' of
-              [h1,h2,w1,w2] -> return (shift w1 8 + w2, shift h1 8 + h2)
-              _             -> fail "JPEG parse error"
-       Just (_,bs'') ->  do
+              [h1,h2,w1,w2] -> Right (shift w1 8 + w2, shift h1 8 + h2)
+              _             -> Left "JFIF parse error"
+       Just (_,bs'') ->
          case map fromIntegral $ unpack $ B.take 2 bs'' of
-              [c1,c2] -> do
+              [c1,c2] ->
                 let len = shift c1 8 + c2
                 -- skip variables
-                findJfifSize $ B.drop len bs''
-              _       -> fail "JPEG parse error"
-       Nothing -> fail "Did not find length record"
+                in  findJfifSize $ B.drop len bs''
+              _       -> Left "JFIF parse error"
+       Nothing -> Left "Did not find JFIF length record"
 
-exifSize :: ByteString -> Maybe ImageSize
-exifSize bs = runGet (Just <$> exifHeader bl) bl
+runGet' :: Get (Either String a) -> BL.ByteString -> Either String a
+runGet' p bl =
+#if MIN_VERSION_binary(0,7,0)
+  case runGetOrFail p bl of
+       Left (_,_,msg) -> Left msg
+       Right (_,_,x)  -> x
+#else
+  runGet p bl
+#endif
+
+
+exifSize :: ByteString -> Either String ImageSize
+exifSize bs = runGet' header $ bl
   where bl = BL.fromChunks [bs]
+        header = runExceptT $ exifHeader bl
 -- NOTE:  It would be nicer to do
 -- runGet ((Just <$> exifHeader) <|> return Nothing)
 -- which would prevent pandoc from raising an error when an exif header can't
 -- be parsed.  But we only get an Alternative instance for Get in binary 0.6,
 -- and binary 0.5 ships with ghc 7.6.
 
-exifHeader :: BL.ByteString -> Get ImageSize
+exifHeader :: BL.ByteString -> ExceptT String Get ImageSize
 exifHeader hdr = do
-  _app1DataSize <- getWord16be
-  exifHdr <- getWord32be
-  unless (exifHdr == 0x45786966) $ fail "Did not find exif header"
-  zeros <- getWord16be
-  unless (zeros == 0) $ fail "Expected zeros after exif header"
+  _app1DataSize <- lift getWord16be
+  exifHdr <- lift getWord32be
+  unless (exifHdr == 0x45786966) $ throwError "Did not find exif header"
+  zeros <- lift getWord16be
+  unless (zeros == 0) $ throwError "Expected zeros after exif header"
   -- beginning of tiff header -- we read whole thing to use
   -- in getting data from offsets:
   let tiffHeader = BL.drop 8 hdr
-  byteAlign <- getWord16be
+  byteAlign <- lift getWord16be
   let bigEndian = byteAlign == 0x4d4d
   let (getWord16, getWord32, getWord64) =
         if bigEndian
@@ -213,48 +236,53 @@ exifHeader hdr = do
         num <- getWord32
         den <- getWord32
         return $ fromIntegral num / fromIntegral den
-  tagmark <- getWord16
-  unless (tagmark == 0x002a) $ fail "Failed alignment sanity check"
-  ifdOffset <- getWord32
-  skip (fromIntegral ifdOffset - 8) -- skip to IDF
-  numentries <- getWord16
-  let ifdEntry = do
-       tag <- getWord16 >>= \t ->
-                maybe (return UnknownTagType) return
-                (M.lookup t tagTypeTable)
-       dataFormat <- getWord16
-       numComponents <- getWord32
+  tagmark <- lift getWord16
+  unless (tagmark == 0x002a) $ throwError "Failed alignment sanity check"
+  ifdOffset <- lift getWord32
+  lift $ skip (fromIntegral ifdOffset - 8) -- skip to IDF
+  numentries <- lift  getWord16
+  let ifdEntry :: ExceptT String Get (TagType, DataFormat)
+      ifdEntry = do
+       tag <- fromMaybe UnknownTagType . flip M.lookup tagTypeTable
+                <$> lift getWord16
+       dataFormat <- lift getWord16
+       numComponents <- lift getWord32
        (fmt, bytesPerComponent) <-
              case dataFormat of
-                  1  -> return (UnsignedByte . runGet getWord8, 1)
-                  2  -> return (AsciiString, 1)
-                  3  -> return (UnsignedShort . runGet getWord16, 2)
-                  4  -> return (UnsignedLong . runGet getWord32, 4)
-                  5  -> return (UnsignedRational . runGet getRational, 8)
-                  6  -> return (SignedByte . runGet getWord8, 1)
-                  7  -> return (Undefined . runGet getWord8, 1)
-                  8  -> return (SignedShort . runGet getWord16, 2)
-                  9  -> return (SignedLong . runGet getWord32, 4)
-                  10 -> return (SignedRational . runGet getRational, 8)
-                  11 -> return (SingleFloat . runGet getWord32 {- TODO -}, 4)
-                  12 -> return (DoubleFloat . runGet getWord64 {- TODO -}, 8)
-                  _  -> fail $ "Unknown data format " ++ show dataFormat
+                  1  -> return (UnsignedByte <$> getWord8, 1)
+                  2  -> return (AsciiString <$>
+                                getLazyByteString
+                                (fromIntegral numComponents), 1)
+                  3  -> return (UnsignedShort <$> getWord16, 2)
+                  4  -> return (UnsignedLong <$> getWord32, 4)
+                  5  -> return (UnsignedRational <$> getRational, 8)
+                  6  -> return (SignedByte <$> getWord8, 1)
+                  7  -> return (Undefined <$> getLazyByteString
+                                (fromIntegral numComponents), 1)
+                  8  -> return (SignedShort <$> getWord16, 2)
+                  9  -> return (SignedLong <$> getWord32, 4)
+                  10 -> return (SignedRational <$> getRational, 8)
+                  11 -> return (SingleFloat <$> getWord32 {- TODO -}, 4)
+                  12 -> return (DoubleFloat <$> getWord64 {- TODO -}, 8)
+                  _  -> throwError $ "Unknown data format " ++ show dataFormat
        let totalBytes = fromIntegral $ numComponents * bytesPerComponent
        payload <- if totalBytes <= 4 -- data is right here
-                     then fmt <$>
-                          (getLazyByteString (fromIntegral totalBytes) <*
-                          skip (4 - totalBytes))
+                     then lift $ fmt <* skip (4 - totalBytes)
                      else do  -- get data from offset
-                          offs <- getWord32
-                          return $ fmt $ BL.take (fromIntegral totalBytes) $
-                                   BL.drop (fromIntegral offs) tiffHeader
+                          offs <- lift getWord32
+                          let bytesAtOffset =
+                                 BL.take (fromIntegral totalBytes)
+                                 $ BL.drop (fromIntegral offs) tiffHeader
+                          case runGet' (Right <$> fmt) bytesAtOffset of
+                               Left msg -> throwError msg
+                               Right x  -> return x
        return (tag, payload)
   entries <- sequence $ replicate (fromIntegral numentries) ifdEntry
   subentries <- case lookup ExifOffset entries of
                       Just (UnsignedLong offset) -> do
-                        pos <- bytesRead
-                        skip (fromIntegral offset - (fromIntegral pos - 8))
-                        numsubentries <- getWord16
+                        pos <- lift bytesRead
+                        lift $ skip (fromIntegral offset - (fromIntegral pos - 8))
+                        numsubentries <- lift getWord16
                         sequence $
                            replicate (fromIntegral numsubentries) ifdEntry
                       _ -> return []
@@ -285,7 +313,7 @@ data DataFormat = UnsignedByte Word8
                 | UnsignedLong Word32
                 | UnsignedRational Rational
                 | SignedByte Word8
-                | Undefined Word8
+                | Undefined BL.ByteString
                 | SignedShort Word16
                 | SignedLong Word32
                 | SignedRational Rational

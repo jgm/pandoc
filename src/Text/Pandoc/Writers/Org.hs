@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2010-2014 Puneeth Chaganti <punchagan@gmail.com>
+Copyright (C) 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
                         and John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Org
-   Copyright   : Copyright (C) 2010-2014 Puneeth Chaganti and John MacFarlane
+   Copyright   : Copyright (C) 2010-2015 Puneeth Chaganti and John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Puneeth Chaganti <punchagan@gmail.com>

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, CPP, ScopedTypeVariables #-}
 {-
-Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.PDF
-   Copyright   : Copyright (C) 2012-2014 John MacFarlane
+   Copyright   : Copyright (C) 2012-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -71,7 +71,8 @@ makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex)
 makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
   doc' <- handleImages opts tmpdir doc
   let source = writer opts doc'
-  tex2pdf' (writerVerbose opts) tmpdir program source
+      args   = writerLaTeXArgs opts
+  tex2pdf' (writerVerbose opts) args tmpdir program source
 
 handleImages :: WriterOptions
              -> FilePath      -- ^ temp dir to store images
@@ -107,8 +108,7 @@ convertImages tmpdir (Image ils (src, tit)) = do
   img <- convertImage tmpdir src
   newPath <-
     case img of
-      Left e -> src <$
-                 warn ("Unable to convert image `" ++ src ++ "':\n" ++ e)
+      Left e -> src <$ warn e
       Right fp -> return fp
   return (Image ils (newPath, tit))
 convertImages _ x = return x
@@ -122,7 +122,8 @@ convertImage tmpdir fname =
     Just "application/pdf" -> doNothing
     _ -> JP.readImage fname >>= \res ->
           case res of
-               Left msg  -> return $ Left msg
+               Left _    -> return $ Left $ "Unable to convert `" ++
+                               fname ++ "' for use with pdflatex."
                Right img ->
                  E.catch (Right fileOut <$ JP.savePngImage fileOut img) $
                      \(e :: E.SomeException) -> return (Left (show e))
@@ -132,15 +133,16 @@ convertImage tmpdir fname =
     doNothing = return (Right fname)
 
 tex2pdf' :: Bool                            -- ^ Verbose output
+         -> [String]                        -- ^ Arguments to the latex-engine
          -> FilePath                        -- ^ temp directory for output
          -> String                          -- ^ tex program
          -> String                          -- ^ tex source
          -> IO (Either ByteString ByteString)
-tex2pdf' verbose tmpDir program source = do
+tex2pdf' verbose args tmpDir program source = do
   let numruns = if "\\tableofcontents" `isInfixOf` source
                    then 3  -- to get page numbers
                    else 2  -- 1 run won't give you PDF bookmarks
-  (exit, log', mbPdf) <- runTeXProgram verbose program 1 numruns tmpDir source
+  (exit, log', mbPdf) <- runTeXProgram verbose program args 1 numruns tmpDir source
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do
           let logmsg = extractMsg log'
@@ -173,9 +175,9 @@ extractMsg log' = do
 -- Run a TeX program on an input bytestring and return (exit code,
 -- contents of stdout, contents of produced PDF if any).  Rerun
 -- a fixed number of times to resolve references.
-runTeXProgram :: Bool -> String -> Int -> Int -> FilePath -> String
+runTeXProgram :: Bool -> String -> [String] -> Int -> Int -> FilePath -> String
               -> IO (ExitCode, ByteString, Maybe ByteString)
-runTeXProgram verbose program runNumber numRuns tmpDir source = do
+runTeXProgram verbose program args runNumber numRuns tmpDir source = do
     let file = tmpDir </> "input.tex"
     exists <- doesFileExist file
     unless exists $ UTF8.writeFile file source
@@ -188,7 +190,7 @@ runTeXProgram verbose program runNumber numRuns tmpDir source = do
     let file' = file
 #endif
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
-         "-output-directory", tmpDir', file']
+         "-output-directory", tmpDir', file'] ++ args
     env' <- getEnvironment
     let sep = searchPathSeparator:[]
     let texinputs = maybe (tmpDir' ++ sep) ((tmpDir' ++ sep) ++)
@@ -196,6 +198,8 @@ runTeXProgram verbose program runNumber numRuns tmpDir source = do
     let env'' = ("TEXINPUTS", texinputs) :
                   [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
     when (verbose && runNumber == 1) $ do
+      putStrLn $ "[makePDF] temp dir:"
+      putStrLn tmpDir'
       putStrLn $ "[makePDF] Command line:"
       putStrLn $ program ++ " " ++ unwords (map show programArgs)
       putStr "\n"
@@ -212,7 +216,7 @@ runTeXProgram verbose program runNumber numRuns tmpDir source = do
       B.hPutStr stderr err
       putStr "\n"
     if runNumber <= numRuns
-       then runTeXProgram verbose program (runNumber + 1) numRuns tmpDir source
+       then runTeXProgram verbose program args (runNumber + 1) numRuns tmpDir source
        else do
          let pdfFile = replaceDirectory (replaceExtension file ".pdf") tmpDir
          pdfExists <- doesFileExist pdfFile

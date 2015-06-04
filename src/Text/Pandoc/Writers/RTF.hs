@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.RTF
-   Copyright   : Copyright (C) 2006-2014 John MacFarlane
+   Copyright   : Copyright (C) 2006-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -56,9 +56,12 @@ rtfEmbedImage opts x@(Image _ (src,_)) = do
                              "image/jpeg" -> "\\jpegblip"
                              "image/png"  -> "\\pngblip"
                              _            -> error "Unknown file type"
-         let sizeSpec = case imageSize imgdata of
-                             Nothing -> ""
-                             Just sz -> "\\picw" ++ show xpx ++
+         sizeSpec <- case imageSize imgdata of
+                             Left msg -> do
+                               warn $ "Could not determine image size in `" ++
+                                 src ++ "': " ++ msg
+                               return ""
+                             Right sz -> return $ "\\picw" ++ show xpx ++
                                         "\\pich" ++ show ypx ++
                                         "\\picwgoal" ++ show (xpt * 20)
                                         ++ "\\pichgoal" ++ show (ypt * 20)

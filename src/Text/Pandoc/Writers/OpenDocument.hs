@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, OverloadedStrings, FlexibleContexts #-}
 {-
-Copyright (C) 2008-2014 Andrea Rossato <andrea.rossato@ing.unitn.it>
+Copyright (C) 2008-2015 Andrea Rossato <andrea.rossato@ing.unitn.it>
                         and John MacFarlane.
 
 This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.OpenDocument
-   Copyright   : Copyright (C) 2008-2014 Andrea Rossato and John MacFarlane
+   Copyright   : Copyright (C) 2008-2015 Andrea Rossato and John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Andrea Rossato <andrea.rossato@ing.unitn.it>
@@ -288,6 +288,8 @@ blockToOpenDocument o bs
     | Plain          b <- bs = if null b
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
+    | Para [Image c (s,'f':'i':'g':':':t)] <- bs
+                             = figure c s t
     | Para           b <- bs = if null b
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
@@ -334,7 +336,7 @@ blockToOpenDocument o bs
         mapM_ addParaStyle . newPara $ paraHStyles ++ paraStyles
         captionDoc <- if null c
                       then return empty
-                      else withParagraphStyle o "Caption" [Para c]
+                      else withParagraphStyle o "TableCaption" [Para c]
         th <- if all null h
                  then return empty
                  else colHeadsToOpenDocument o name (map fst paraHStyles) h
@@ -342,6 +344,12 @@ blockToOpenDocument o bs
         return $ inTags True "table:table" [ ("table:name"      , name)
                                            , ("table:style-name", name)
                                            ] (vcat columns $$ th $$ vcat tr) $$ captionDoc
+      figure caption source title | null caption =
+        withParagraphStyle o "Figure" [Para [Image caption (source,title)]]
+                                  | otherwise    = do
+        imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image caption (source,title)]]
+        captionDoc <- withParagraphStyle o "FigureCaption" [Para caption]
+        return $ imageDoc $$ captionDoc
 
 colHeadsToOpenDocument :: WriterOptions -> String -> [String] -> [[Block]] -> State WriterState Doc
 colHeadsToOpenDocument o tn ns hs =
@@ -370,7 +378,7 @@ inlineToOpenDocument :: WriterOptions -> Inline -> State WriterState Doc
 inlineToOpenDocument o ils
     | Space         <- ils = inTextStyle space
     | Span _ xs     <- ils = inlinesToOpenDocument o xs
-    | LineBreak     <- ils = return $ selfClosingTag "text:line-break" []
+    | LineBreak     <- ils = return $ selfClosingTag "text:line-break" [] <> cr
     | Str         s <- ils = inTextStyle $ handleSpaces $ escapeStringForXML s
     | Emph        l <- ils = withTextStyle Italic $ inlinesToOpenDocument o l
     | Strong      l <- ils = withTextStyle Bold   $ inlinesToOpenDocument o l
@@ -553,4 +561,3 @@ textStyleAttr s
                     ,("style:font-name-asian"        ,"Courier New")
                     ,("style:font-name-complex"      ,"Courier New")]
     | otherwise   = []
-

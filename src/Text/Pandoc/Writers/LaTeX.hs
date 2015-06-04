@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables,
              PatternGuards #-}
 {-
-Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.LaTeX
-   Copyright   : Copyright (C) 2006-2014 John MacFarlane
+   Copyright   : Copyright (C) 2006-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -42,6 +42,7 @@ import Data.List ( (\\), isSuffixOf, isInfixOf, stripPrefix,
                    isPrefixOf, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Data.Maybe ( fromMaybe )
+import Data.Aeson.Types ( (.:), parseMaybe, withObject )
 import Control.Applicative ((<|>))
 import Control.Monad.State
 import Text.Pandoc.Pretty
@@ -102,8 +103,16 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
   let template = writerTemplate options
   -- set stBook depending on documentclass
+  let colwidth = if writerWrapText options
+                    then Just $ writerColumns options
+                    else Nothing
+  metadata <- metaToJSON options
+              (fmap (render colwidth) . blockListToLaTeX)
+              (fmap (render colwidth) . inlineListToLaTeX)
+              meta
   let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
-  case lookup "documentclass" (writerVariables options) of
+  case lookup "documentclass" (writerVariables options) `mplus`
+        parseMaybe (withObject "object" (.: "documentclass")) metadata of
          Just x  | x `elem` bookClasses -> modify $ \s -> s{stBook = True}
                  | otherwise            -> return ()
          Nothing | any (\x -> "\\documentclass" `isPrefixOf` x &&
@@ -114,13 +123,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   -- \enquote{...} for smart quotes:
   when ("{csquotes}" `isInfixOf` template) $
     modify $ \s -> s{stCsquotes = True}
-  let colwidth = if writerWrapText options
-                    then Just $ writerColumns options
-                    else Nothing
-  metadata <- metaToJSON options
-              (fmap (render colwidth) . blockListToLaTeX)
-              (fmap (render colwidth) . inlineListToLaTeX)
-              meta
   let (blocks'', lastHeader) = if writerCiteMethod options == Citeproc then
                                  (blocks', [])
                                else case last blocks' of
@@ -135,6 +137,11 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
+  let (mainlang, otherlang) =
+       case (reverse . splitBy (==',') . filter (/=' ')) `fmap`
+            getField "lang" metadata of
+              Just (m:os) -> (m, reverse os)
+              _           -> ("", [])
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
                                               if stBook st
@@ -159,8 +166,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "euro" (stUsesEuro st) $
                   defField "listings" (writerListings options || stLHS st) $
                   defField "beamer" (writerBeamer options) $
-                  defField "mainlang" (maybe "" (reverse . takeWhile (/=',') . reverse)
-                                (lookup "lang" $ writerVariables options)) $
+                  defField "mainlang" mainlang $
+                  defField "otherlang" otherlang $
                   (if stHighlighting st
                       then defField "highlighting-macros" (styleToLaTeX
                                 $ writerHighlightStyle options )
@@ -206,7 +213,7 @@ stringToLaTeX  ctx (x:xs) = do
        '€' -> "\\euro{}" ++ rest
        '{' -> "\\{" ++ rest
        '}' -> "\\}" ++ rest
-       '$' -> "\\$" ++ rest
+       '$' | not isUrl -> "\\$" ++ rest
        '%' -> "\\%" ++ rest
        '&' -> "\\&" ++ rest
        '_' | not isUrl -> "\\_" ++ rest
@@ -272,10 +279,11 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
       let hasCode (Code _ _) = [True]
           hasCode _          = []
       opts <- gets stOptions
-      let fragile = not $ null $ query hasCodeBlock elts ++
+      let fragile = "fragile" `elem` classes ||
+                    not (null $ query hasCodeBlock elts ++
                                      if writerListings opts
                                         then query hasCode elts
-                                        else []
+                                        else [])
       let allowframebreaks = "allowframebreaks" `elem` classes
       let optionslist = ["fragile" | fragile] ++
                         ["allowframebreaks" | allowframebreaks]
@@ -311,7 +319,8 @@ blockToLaTeX (Div (identifier,classes,_) bs) = do
   ref <- toLabel identifier
   let linkAnchor = if null identifier
                       then empty
-                      else "\\hyperdef{}" <> braces (text ref) <> "{}"
+                      else "\\hyperdef{}" <> braces (text ref) <>
+                           braces ("\\label" <> braces (text ref))
   contents <- blockListToLaTeX bs
   if beamer && "notes" `elem` classes  -- speaker notes
      then return $ "\\note" <> braces contents
@@ -414,7 +423,7 @@ blockToLaTeX (BulletList lst) = do
   let inc = if incremental then "[<+->]" else ""
   items <- mapM listItemToLaTeX lst
   let spacing = if isTightList lst
-                   then text "\\itemsep1pt\\parskip0pt\\parsep0pt"
+                   then text "\\tightlist"
                    else empty
   return $ text ("\\begin{itemize}" ++ inc) $$ spacing $$ vcat items $$
              "\\end{itemize}"
@@ -449,7 +458,7 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
                         else "\\setcounter" <> braces enum <>
                               braces (text $ show $ start - 1)
   let spacing = if isTightList lst
-                   then text "\\itemsep1pt\\parskip0pt\\parsep0pt"
+                   then text "\\tightlist"
                    else empty
   return $ text ("\\begin{enumerate}" ++ inc)
          $$ stylecommand
@@ -463,7 +472,7 @@ blockToLaTeX (DefinitionList lst) = do
   let inc = if incremental then "[<+->]" else ""
   items <- mapM defListItemToLaTeX lst
   let spacing = if all isTightList (map snd lst)
-                   then text "\\itemsep1pt\\parskip0pt\\parsep0pt"
+                   then text "\\tightlist"
                    else empty
   return $ text ("\\begin{description}" ++ inc) $$ spacing $$ vcat items $$
                "\\end{description}"
@@ -701,7 +710,7 @@ inlineListToLaTeX lst =
                                ("\\\\[" ++ show (length lbs) ++
                                 "\\baselineskip]") : fixBreaks rest
        fixBreaks (y:ys) = y : fixBreaks ys
- 
+
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
 isQuoted _ = False
@@ -716,7 +725,8 @@ inlineToLaTeX (Span (id',classes,_) ils) = do
   ref <- toLabel id'
   let linkAnchor = if null id'
                       then empty
-                      else "\\hyperdef{}" <> braces (text ref) <> "{}"
+                      else "\\hyperdef{}" <> braces (text ref) <>
+                             braces ("\\label" <> braces (text ref))
   fmap (linkAnchor <>)
     ((if noEmph then inCmd "textup" else id) .
      (if noStrong then inCmd "textnormal" else id) .
@@ -750,10 +760,11 @@ inlineToLaTeX (Cite cits lst) = do
 
 inlineToLaTeX (Code (_,classes,_) str) = do
   opts <- gets stOptions
+  inHeading <- gets stInHeading
   case () of
-     _ | writerListings opts                         -> listingsCode
+     _ | writerListings opts  && not inHeading      -> listingsCode
        | writerHighlight opts && not (null classes) -> highlightCode
-       | otherwise                                   -> rawCode
+       | otherwise                                  -> rawCode
    where listingsCode = do
            inNote <- gets stInNote
            when inNote $ modify $ \s -> s{ stVerbInNote = True }
@@ -802,7 +813,7 @@ inlineToLaTeX (RawInline f str)
   | f == Format "latex" || f == Format "tex"
                         = return $ text str
   | otherwise           = return empty
-inlineToLaTeX (LineBreak) = return "\\\\"
+inlineToLaTeX (LineBreak) = return $ "\\\\" <> cr
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt

@@ -1,7 +1,7 @@
 Simplest table without caption:
 
 | Default1 | Default2 | Default3 | 
-|----------|----------|----------|
+ |----------|----------|----------|
 |12|12|12|
 |123|123|123|
 |1|1|1|
@@ -27,6 +27,7 @@ Simple table without caption:
 
 Headerless table without caption:
 
+|       |      |        |
 |------:|:-----|:------:|
 |12|12|12|
 |123|123|123|
@@ -48,5 +49,6 @@ One-column:
 
 Header-less one-column:
 
+|   |
 |:-:|
 |hi|

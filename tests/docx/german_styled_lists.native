@@ -1,0 +1,6 @@
+[BulletList
+ [[Para [Str "One",Space,Str "level",Space,Str "of",Space,Str "the",Space,Str "list."]]
+ ,[Para [Str "Second",Space,Str "level",Space,Str "of",Space,Str "the",Space,Str "list."]
+  ,BulletList
+   [[Para [Str "Next",Space,Str "level",Space,Str "of",Space,Str "the",Space,Str "list"]]]]
+ ,[Para [Str "Back",Space,Str "to",Space,Str "the",Space,Str "top",Space,Str "level."]]]]

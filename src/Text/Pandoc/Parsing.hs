@@ -5,7 +5,7 @@
 , MultiParamTypeClasses
 , FlexibleInstances #-}
 {-
-Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Parsing
-   Copyright   : Copyright (C) 2006-2014 John MacFarlane
+   Copyright   : Copyright (C) 2006-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -163,7 +163,8 @@ module Text.Pandoc.Parsing ( anyLine,
                              setSourceColumn,
                              setSourceLine,
                              newPos,
-                             addWarning
+                             addWarning,
+                             (<+?>)
                              )
 where
 
@@ -191,6 +192,8 @@ import Control.Monad.Identity
 import Control.Applicative ((<$>), (<*>), (*>), (<*), (<$), Applicative)
 import Data.Monoid
 import Data.Maybe (catMaybes)
+
+import Text.Pandoc.Error
 
 type Parser t s = Parsec t s
 
@@ -863,31 +866,22 @@ readWithM :: (Monad m, Functor m)
           => ParserT [Char] st m a       -- ^ parser
           -> st                       -- ^ initial state
           -> String                   -- ^ input
-          -> m a
+          -> m (Either PandocError a)
 readWithM parser state input =
-    handleError <$> (runParserT parser state "source" input)
-    where
-      handleError (Left err') =
-        let errPos = errorPos err'
-            errLine = sourceLine errPos
-            errColumn = sourceColumn errPos
-            theline = (lines input ++ [""]) !! (errLine - 1)
-        in  error $ "\nError at " ++ show  err' ++ "\n" ++
-                theline ++ "\n" ++ replicate (errColumn - 1) ' ' ++
-                "^"
-      handleError (Right result) = result
+    mapLeft (ParsecError input) <$> runParserT parser state "source" input
+
 
 -- | Parse a string with a given parser and state
 readWith :: Parser [Char] st a
          -> st
          -> String
-         -> a
+         -> Either PandocError a
 readWith p t inp = runIdentity $ readWithM p t inp
 
 readWithWarnings :: Parser [Char] ParserState a
                     -> ParserState
                     -> String
-                    -> (a, [String])
+                    -> Either PandocError (a, [String])
 readWithWarnings p = readWith $ do
          doc <- p
          warnings <- stateWarnings <$> getState
@@ -909,7 +903,8 @@ data ParserState = ParserState
       stateAllowLinks      :: Bool,          -- ^ Allow parsing of links
       stateMaxNestingLevel :: Int,           -- ^ Max # of nested Strong/Emph
       stateLastStrPos      :: Maybe SourcePos, -- ^ Position after last str parsed
-      stateKeys            :: KeyTable,      -- ^ List of reference keys (with fallbacks)
+      stateKeys            :: KeyTable,      -- ^ List of reference keys
+      stateHeaderKeys      :: KeyTable,      -- ^ List of implicit header ref keys
       stateSubstitutions   :: SubstTable,    -- ^ List of substitution references
       stateNotes           :: NoteTable,     -- ^ List of notes (raw bodies)
       stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
@@ -1007,6 +1002,7 @@ defaultParserState =
                   stateMaxNestingLevel = 6,
                   stateLastStrPos      = Nothing,
                   stateKeys            = M.empty,
+                  stateHeaderKeys      = M.empty,
                   stateSubstitutions   = M.empty,
                   stateNotes           = [],
                   stateNotes'          = [],
@@ -1212,7 +1208,7 @@ citeKey = try $ do
   guard =<< notAfterString
   suppress_author <- option False (char '-' *> return True)
   char '@'
-  firstChar <- letter <|> char '_'
+  firstChar <- alphaNum <|> char '_' <|> char '*' -- @* for wildcard in nocite
   let regchar = satisfy (\c -> isAlphaNum c || c == '_')
   let internal p = try $ p <* lookAhead regchar
   rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/")
@@ -1264,3 +1260,6 @@ addWarning mbpos msg =
   updateState $ \st -> st{
     stateWarnings = (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) :
                      stateWarnings st }
+infixr 5 <+?>
+(<+?>) :: (Monoid a, Monad m) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
+a <+?> b = a >>= flip fmap (try b <|> return mempty) . (<>)

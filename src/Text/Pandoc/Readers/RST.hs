@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-
-Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.RST
-   Copyright   : Copyright (C) 2006-2014 John MacFarlane
+   Copyright   : Copyright (C) 2006-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -51,13 +51,15 @@ import Data.Monoid (mconcat, mempty)
 import Data.Sequence (viewr, ViewR(..))
 import Data.Char (toLower, isHexDigit, isSpace)
 
+import Text.Pandoc.Error
+
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-        -> Pandoc
+        -> Either PandocError Pandoc
 readRST opts s = (readWith parseRST) def{ stateOptions = opts } (s ++ "\n\n")
 
-readRSTWithWarnings :: ReaderOptions -> String -> (Pandoc, [String])
+readRSTWithWarnings :: ReaderOptions -> String -> Either PandocError (Pandoc, [String])
 readRSTWithWarnings opts s = (readWithWarnings parseRST) def{ stateOptions = opts } (s ++ "\n\n")
 
 type RSTParser = Parser [Char] ParserState

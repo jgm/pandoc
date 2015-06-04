@@ -24,6 +24,15 @@ Quick install
 
     This procedure will install the released version of pandoc,
     which will be downloaded automatically from HackageDB.
+
+    If this step fails, and you are using an older version
+    of the Haskell Platform, e.g. on Debian stable, you may need to
+    upgrade your version of cabal:
+
+        cabal install cabal-install
+        ~/.cabal/bin/cabal update
+        ~/.cabal/bin/cabal install pandoc
+
     If you want to install a modified or development version
     of pandoc instead, switch to the source directory and do
     as above, but without the 'pandoc':
@@ -66,11 +75,7 @@ Quick install
          --extra-include-dirs=/usr/local/Cellar/icu4c/51.1/include \
          -funicode_collation text-icu pandoc-citeproc
 
-The cabal installation procedure does not generate man pages.
-To build the `pandoc` man pages, build pandoc with the
-`make-pandoc-man-pages` flag, and then use the command
-`make-pandoc-man-pages` from the pandoc source directory.
-This will create the man pages in `man/man1` and `man/man5`.
+The build process will create man pages in `man/man1` and `man/man5`.
 
 To build the `pandoc-citeproc` man pages, go to the pandoc-citeproc
 build directory, and
@@ -117,9 +122,8 @@ assume that the pandoc source directory is your working directory.
     - `embed_data_files`: embed all data files into the binary (default no).
       This is helpful if you want to create a relocatable binary.
       Note:  if this option is selected, you need to install the
-      `hsb2hs` preprocessor:
-
-          cabal install hsb2hs
+      `hsb2hs` preprocessor: `cabal install hsb2hs` (version 0.3 or
+      higher is required).
 
     - `https`:  enable support for downloading resources over https
       (using the `http-client` and `http-client-tls` libraries).
@@ -209,4 +213,3 @@ To use a smaller sample size so the benchmarks run faster:
 To run just the markdown benchmarks:
 
     cabal bench --benchmark-options='markdown'
-

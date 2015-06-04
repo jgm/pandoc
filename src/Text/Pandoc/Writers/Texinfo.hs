@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2008-2014 John MacFarlane and Peter Wang
+Copyright (C) 2008-2015 John MacFarlane and Peter Wang
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.Texinfo
-   Copyright   : Copyright (C) 2008-2014 John MacFarlane and Peter Wang
+   Copyright   : Copyright (C) 2008-2015 John MacFarlane and Peter Wang
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -120,7 +120,7 @@ inCmd cmd contents = char '@' <> text cmd <> braces contents
 
 -- | Convert Pandoc block element to Texinfo.
 blockToTexinfo :: Block     -- ^ Block to convert
-	       -> State WriterState Doc
+               -> State WriterState Doc
 
 blockToTexinfo Null = return empty
 
@@ -195,9 +195,9 @@ blockToTexinfo HorizontalRule =
     -- XXX can't get the equivalent from LaTeX.hs to work
     return $ text "@iftex" $$
              text "@bigskip@hrule@bigskip" $$
-	     text "@end iftex" $$
+             text "@end iftex" $$
              text "@ifnottex" $$
-	     text (take 72 $ repeat '-') $$
+             text (take 72 $ repeat '-') $$
              text "@end ifnottex"
 
 blockToTexinfo (Header 0 _ lst) = do
@@ -421,8 +421,8 @@ inlineToTexinfo (RawInline f str)
                       return $ text "@tex" $$ text str $$ text "@end tex"
   | f == "texinfo" =  return $ text str
   | otherwise      =  return empty
-inlineToTexinfo (LineBreak) = return $ text "@*"
-inlineToTexinfo Space = return $ char ' '
+inlineToTexinfo (LineBreak) = return $ text "@*" <> cr
+inlineToTexinfo Space = return space
 
 inlineToTexinfo (Link txt (src@('#':_), _)) = do
   contents <- escapeCommas $ inlineListToTexinfo txt

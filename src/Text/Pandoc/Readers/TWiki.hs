@@ -48,17 +48,18 @@ import Data.Maybe (fromMaybe)
 import Text.HTML.TagSoup
 import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F
+import Text.Pandoc.Error
 
 -- | Read twiki from an input string and return a Pandoc document.
 readTWiki :: ReaderOptions -- ^ Reader options
           -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-          -> Pandoc
+          -> Either PandocError Pandoc
 readTWiki opts s =
   (readWith parseTWiki) def{ stateOptions = opts } (s ++ "\n\n")
 
 readTWikiWithWarnings :: ReaderOptions -- ^ Reader options
                       -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-                      -> (Pandoc, [String])
+                      -> Either PandocError (Pandoc, [String])
 readTWikiWithWarnings opts s =
   (readWith parseTWikiWithWarnings) def{ stateOptions = opts } (s ++ "\n\n")
  where parseTWikiWithWarnings = do

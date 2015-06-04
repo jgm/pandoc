@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.AsciiDoc
-   Copyright   : Copyright (C) 2006-2014 John MacFarlane
+   Copyright   : Copyright (C) 2006-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -126,7 +126,7 @@ blockToAsciiDoc :: WriterOptions -- ^ Options
 blockToAsciiDoc _ Null = return empty
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
-  return $ contents <> cr
+  return $ contents <> blankline
 blockToAsciiDoc opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
   blockToAsciiDoc opts (Para [Image alt (src,tit)])
 blockToAsciiDoc opts (Para inlines) = do
@@ -272,7 +272,7 @@ bulletListItemToAsciiDoc opts blocks = do
   contents <- foldM addBlock empty blocks
   modify $ \s -> s{ bulletListLevel = lev }
   let marker = text (replicate lev '*')
-  return $ marker <> space <> contents <> cr
+  return $ marker <> text " " <> contents <> cr
 
 -- | Convert ordered list item (a list of blocks) to asciidoc.
 orderedListItemToAsciiDoc :: WriterOptions -- ^ options
@@ -292,7 +292,7 @@ orderedListItemToAsciiDoc opts marker blocks = do
   modify $ \s -> s{ orderedListLevel = lev + 1 }
   contents <- foldM addBlock empty blocks
   modify $ \s -> s{ orderedListLevel = lev }
-  return $ text marker <> space <> contents <> cr
+  return $ text marker <> text " " <> contents <> cr
 
 -- | Convert definition list item (label, list of blocks) to asciidoc.
 definitionListItemToAsciiDoc :: WriterOptions

@@ -1,7 +1,7 @@
 {-# LANGUAGE RelaxedPolyRec, FlexibleInstances, TypeSynonymInstances #-}
 -- RelaxedPolyRec needed for inlinesBetween on GHC < 7
 {-
-  Copyright (C) 2012-2014 John MacFarlane <jgm@berkeley.edu>
+  Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.MediaWiki
-   Copyright   : Copyright (C) 2012-2014 John MacFarlane
+   Copyright   : Copyright (C) 2012-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -58,21 +58,21 @@ import Data.Maybe (fromMaybe)
 import Text.Printf (printf)
 import Debug.Trace (trace)
 
+import Text.Pandoc.Error
+
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: ReaderOptions -- ^ Reader options
               -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-              -> Pandoc
+              -> Either PandocError Pandoc
 readMediaWiki opts s =
-  case runParser parseMediaWiki MWState{ mwOptions = opts
+  readWith parseMediaWiki MWState{ mwOptions = opts
                                        , mwMaxNestingLevel = 4
                                        , mwNextLinkNumber  = 1
                                        , mwCategoryLinks = []
                                        , mwHeaderMap = M.empty
                                        , mwIdentifierList = []
                                        }
-       "source" (s ++ "\n") of
-          Left err'    -> error $ "\nError:\n" ++ show err'
-          Right result -> result
+           (s ++ "\n")
 
 data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwMaxNestingLevel :: Int
@@ -593,11 +593,17 @@ imageOption =
   <|> try (many1 (oneOf "x0123456789") <* string "px")
   <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
 
+collapseUnderscores :: String -> String
+collapseUnderscores [] = []
+collapseUnderscores ('_':'_':xs) = collapseUnderscores ('_':xs)
+collapseUnderscores (x:xs) = x : collapseUnderscores xs
+
+addUnderscores :: String -> String
+addUnderscores = collapseUnderscores . intercalate "_" . words
+
 internalLink :: MWParser Inlines
 internalLink = try $ do
   sym "[["
-  let addUnderscores x = let (pref,suff) = break (=='#') x
-                         in  pref ++ intercalate "_" (words suff)
   pagename <- unwords . words <$> many (noneOf "|]")
   label <- option (B.text pagename) $ char '|' *>
              (  (mconcat <$> many1 (notFollowedBy (char ']') *> inline))

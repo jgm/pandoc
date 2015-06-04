@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 -- Create pandoc.1 man and pandoc_markdown.5 man pages from README
 import Text.Pandoc
+import Text.Pandoc.Error (handleError)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char (toUpper)
 import Control.Monad
@@ -27,7 +28,7 @@ main = do
 
   unless (null ds1 && null ds2) $ do
     rmContents <- UTF8.readFile "README"
-    let (Pandoc meta blocks) = normalize $ readMarkdown def rmContents
+    let (Pandoc meta blocks) = normalize $ handleError $ readMarkdown def rmContents
     let manBlocks = removeSect [Str "Wrappers"]
                   $ removeSect [Str "Pandoc's",Space,Str "markdown"] blocks
     let syntaxBlocks = extractSect [Str "Pandoc's",Space,Str "markdown"] blocks
@@ -101,4 +102,3 @@ modifiedDependencies file dependencies = do
   depModTimes <- mapM getModificationTime dependencies
   let modified = zipWith (\dep time -> if time > fileModTime then Just dep else Nothing) dependencies depModTimes
   return $ catMaybes modified
-

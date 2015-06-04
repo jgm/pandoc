@@ -8,10 +8,10 @@ import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Readers.EPUB
 import Text.Pandoc.MediaBag (MediaBag, mediaDirectory)
 import Control.Applicative
-import System.FilePath (joinPath)
+import Text.Pandoc.Error
 
 getMediaBag :: FilePath -> IO MediaBag
-getMediaBag fp = snd . readEPUB def <$> BL.readFile fp
+getMediaBag fp = snd . handleError . readEPUB def <$> BL.readFile fp
 
 testMediaBag :: FilePath -> [(String, String, Int)] -> IO ()
 testMediaBag fp bag = do
@@ -23,7 +23,11 @@ testMediaBag fp bag = do
              (actBag == bag)
 
 featuresBag :: [(String, String, Int)]
-featuresBag = [(joinPath ["img","check.gif"],"image/gif",1340),(joinPath ["img","check.jpg"],"image/jpeg",2661),(joinPath ["img","check.png"],"image/png",2815),(joinPath ["img","multiscripts_and_greek_alphabet.png"],"image/png",10060)]
+featuresBag = [("img/check.gif","image/gif",1340)
+              ,("img/check.jpg","image/jpeg",2661)
+              ,("img/check.png","image/png",2815)
+              ,("img/multiscripts_and_greek_alphabet.png","image/png",10060)
+              ]
 
 tests :: [Test]
 tests =

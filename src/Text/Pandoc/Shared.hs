@@ -2,7 +2,7 @@
     FlexibleContexts, ScopedTypeVariables, PatternGuards,
     ViewPatterns #-}
 {-
-Copyright (C) 2006-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Shared
-   Copyright   : Copyright (C) 2006-2014 John MacFarlane
+   Copyright   : Copyright (C) 2006-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -85,6 +85,8 @@ module Text.Pandoc.Shared (
                      -- * Error handling
                      err,
                      warn,
+                     mapLeft,
+                     hush,
                      -- * Safe read
                      safeRead,
                      -- * Temp directory
@@ -113,7 +115,7 @@ import System.FilePath ( (</>), takeExtension, dropExtension)
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import qualified Control.Exception as E
-import Control.Monad (msum, unless)
+import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Compat.Locale (defaultTimeLocale)
 import Data.Time
@@ -794,6 +796,7 @@ fetchItem sourceURL s =
         fp = unEscapeString $ dropFragmentAndQuery s
         mime = case takeExtension fp of
                     ".gz" -> getMimeType $ dropExtension fp
+                    ".svgz" -> getMimeType $ dropExtension fp ++ ".svg"
                     x     -> getMimeType x
         ensureEscaped x@(_:':':'\\':_) = x -- likely windows path
         ensureEscaped x = escapeURIString isAllowedInURI x
@@ -855,6 +858,14 @@ warn msg = do
   name <- getProgName
   UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
 
+mapLeft :: (a -> b) -> Either a c -> Either b c
+mapLeft f (Left x) = Left (f x)
+mapLeft _ (Right x) = Right x
+
+hush :: Either a b -> Maybe b
+hush (Left _) = Nothing
+hush (Right x) = Just x
+
 -- | Remove intermediate "." and ".." directories from a path.
 --
 -- > collapseFilePath "./foo" == "foo"
@@ -883,11 +894,11 @@ collapseFilePath = joinPath . reverse . foldl go [] . splitDirectories
 -- Safe read
 --
 
-safeRead :: (Monad m, Read a) => String -> m a
+safeRead :: (MonadPlus m, Read a) => String -> m a
 safeRead s = case reads s of
                   (d,x):_
                     | all isSpace x -> return d
-                  _                 -> fail $ "Could not read `" ++ s ++ "'"
+                  _                 -> mzero
 
 --
 -- Temp directory

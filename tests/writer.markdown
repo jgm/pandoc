@@ -80,7 +80,7 @@ E-mail style:
 >
 > > nested
 
-This should not be a block quote: 2 \> 1.
+This should not be a block quote: 2 &gt; 1.
 
 And a following paragraph.
 
@@ -549,8 +549,8 @@ LaTeX
 These shouldn’t be math:
 
 -   To get the famous equation, write `$e = mc^2$`.
--   \$22,000 is a *lot* of money. So is \$34,000. (It worked if “lot” is
-    emphasized.)
+-   \$22,000 is a *lot* of money. So is \$34,000. (It worked if “lot”
+    is emphasized.)
 -   Shoes (\$20) and socks (\$5).
 -   Escaped `$`: \$73 *this should be emphasized* 23\$.
 
@@ -581,9 +581,9 @@ AT&T is another way to write it.
 
 This & that.
 
-4 \< 5.
+4 &lt; 5.
 
-6 \> 5.
+6 &gt; 5.
 
 Backslash: \\
 
@@ -597,15 +597,15 @@ Left brace: {
 
 Right brace: }
 
-Left bracket: [
+Left bracket: \[
 
-Right bracket: ]
+Right bracket: \]
 
 Left paren: (
 
 Right paren: )
 
-Greater-than: \>
+Greater-than: &gt;
 
 Hash: \#
 
@@ -652,7 +652,7 @@ Foo [bar](/url/).
 
 Foo [bar](/url/).
 
-With [embedded [brackets]](/url/).
+With [embedded \[brackets\]](/url/).
 
 [b](/url/) by itself should be a link.
 
@@ -662,7 +662,7 @@ Indented [twice](/url).
 
 Indented [thrice](/url).
 
-This should [not][] be a link.
+This should \[not\]\[\] be a link.
 
     [not]: /url
 
@@ -716,8 +716,8 @@ Footnotes
 =========
 
 Here is a footnote reference,[^1] and another.[^2] This should *not* be a
-footnote reference, because it contains a space.[\^my note] Here is an inline
-note.[^3]
+footnote reference, because it contains a space.\[\^my note\] Here is an
+inline note.[^3]
 
 > Notes can go in quotes.[^4]
 
@@ -740,7 +740,7 @@ This paragraph should not be part of the note, as it is not indented.
 
 [^3]: This is *easier* to type. Inline notes may contain
     [links](http://google.com) and `]` verbatim characters, as well as
-    [bracketed text].
+    \[bracketed text\].
 
 [^4]: In quote.
 

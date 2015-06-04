@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2010-2014 Paul Rivier <paul*rivier#demotera*com> | tr '*#' '.@'
+Copyright (C) 2010-2015 Paul Rivier <paul*rivier#demotera*com> | tr '*#' '.@'
                         and John MacFarlane
 
 This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Textile
-   Copyright   : Copyright (C) 2010-2014 Paul Rivier and John MacFarlane
+   Copyright   : Copyright (C) 2010-2015 Paul Rivier and John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Paul Rivier <paul*rivier#demotera*com>
@@ -57,6 +57,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag )
+import Text.Pandoc.Shared (trim)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
 import Text.HTML.TagSoup.Match
@@ -67,11 +68,12 @@ import Text.Printf
 import Control.Applicative ((<$>), (*>), (<*), (<$))
 import Data.Monoid
 import Debug.Trace (trace)
+import Text.Pandoc.Error
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: ReaderOptions -- ^ Reader options
             -> String       -- ^ String to parse (assuming @'\n'@ line endings)
-            -> Pandoc
+            -> Either PandocError Pandoc
 readTextile opts s =
   (readWith parseTextile) def{ stateOptions = opts } (s ++ "\n\n")
 
@@ -325,33 +327,30 @@ para = B.para . trimInlines . mconcat <$> many1 inline
 -- Tables
 
 -- | A table cell spans until a pipe |
-tableCell :: Parser [Char] ParserState Blocks
-tableCell = do
-  c <- many1 (noneOf "|\n")
-  content <- trimInlines . mconcat <$> parseFromString (many1 inline) c
+tableCell :: Bool -> Parser [Char] ParserState Blocks
+tableCell headerCell = try $ do
+  char '|'
+  when headerCell $ () <$ string "_."
+  notFollowedBy blankline
+  raw <- trim <$>
+         many (noneOf "|\n" <|> try (char '\n' <* notFollowedBy blankline))
+  content <- mconcat <$> parseFromString (many inline) raw
   return $ B.plain content
 
 -- | A table row is made of many table cells
 tableRow :: Parser [Char] ParserState [Blocks]
-tableRow = try $ ( char '|' *>
-  (endBy1 tableCell (optional blankline *> char '|')) <* newline)
+tableRow = many1 (tableCell False) <* char '|' <* newline
 
--- | Many table rows
-tableRows :: Parser [Char] ParserState [[Blocks]]
-tableRows = many1 tableRow
-
--- | Table headers are made of cells separated by a tag "|_."
-tableHeaders :: Parser [Char] ParserState [Blocks]
-tableHeaders = let separator = (try $ string "|_.") in
-  try $ ( separator *> (sepBy1 tableCell separator) <* char '|' <* newline )
+tableHeader :: Parser [Char] ParserState [Blocks]
+tableHeader = many1 (tableCell True) <* char '|' <* newline
 
 -- | A table with an optional header. Current implementation can
 -- handle tables with and without header, but will parse cells
 -- alignment attributes as content.
 table :: Parser [Char] ParserState Blocks
 table = try $ do
-  headers <- option mempty tableHeaders
-  rows <- tableRows
+  headers <- option mempty $ tableHeader
+  rows <- many1 tableRow
   blanklines
   let nbOfCols = max (length headers) (length $ head rows)
   return $ B.table mempty
@@ -607,8 +606,8 @@ langAttr = do
 
 -- | Parses material surrounded by a parser.
 surrounded :: Parser [Char] st t   -- ^ surrounding parser
-	    -> Parser [Char] st a    -- ^ content parser (to be used repeatedly)
-	    -> Parser [Char] st [a]
+            -> Parser [Char] st a    -- ^ content parser (to be used repeatedly)
+            -> Parser [Char] st [a]
 surrounded border =
   enclosed (border *> notFollowedBy (oneOf " \t\n\r")) (try border)
 

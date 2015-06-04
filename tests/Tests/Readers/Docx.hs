@@ -13,6 +13,7 @@ import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Codec.Archive.Zip
+import Text.Pandoc.Error
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure
@@ -41,8 +42,8 @@ compareOutput :: ReaderOptions
 compareOutput opts docxFile nativeFile = do
   df <- B.readFile docxFile
   nf <- Prelude.readFile nativeFile
-  let (p, _) = readDocx opts df
-  return $ (noNorm p, noNorm (readNative nf))
+  let (p, _) = handleError $ readDocx opts df
+  return $ (noNorm p, noNorm (handleError $ readNative nf))
 
 testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO Test
 testCompareWithOptsIO opts name docxFile nativeFile = do
@@ -79,7 +80,7 @@ compareMediaPathIO mediaPath mediaBag docxPath = do
 compareMediaBagIO :: FilePath -> IO Bool
 compareMediaBagIO docxFile = do
     df <- B.readFile docxFile
-    let (_, mb) = readDocx def df
+    let (_, mb) = handleError $ readDocx def df
     bools <- mapM
              (\(fp, _, _) -> compareMediaPathIO fp mb docxFile)
              (mediaDirectory mb)
@@ -114,6 +115,10 @@ tests = [ testGroup "inlines"
             "docx/image.docx"
             "docx/image_no_embed.native"
           , testCompare
+            "VML image"
+            "docx/image_vml.docx"
+            "docx/image_vml.native"
+          , testCompare
             "inline image in links"
             "docx/inline_images.docx"
             "docx/inline_images.native"
@@ -141,6 +146,10 @@ tests = [ testGroup "inlines"
             "inline code (with VerbatimChar style)"
             "docx/inline_code.docx"
             "docx/inline_code.native"
+          , testCompare
+            "inline code in subscript and superscript"
+            "docx/verbatim_subsuper.docx"
+            "docx/verbatim_subsuper.native"
           ]
         , testGroup "blocks"
           [ testCompare
@@ -168,6 +177,10 @@ tests = [ testGroup "inlines"
             "docx/definition_list.docx"
             "docx/definition_list.native"
           , testCompare
+            "custom defined lists in styles"
+            "docx/german_styled_lists.docx"
+            "docx/german_styled_lists.native"
+          , testCompare
             "footnotes and endnotes"
             "docx/notes.docx"
             "docx/notes.native"
@@ -183,6 +196,10 @@ tests = [ testGroup "inlines"
             "tables"
             "docx/tables.docx"
             "docx/tables.native"
+          , testCompare
+            "tables with lists in cells"
+            "docx/table_with_list_cell.docx"
+            "docx/table_with_list_cell.native"
           , testCompare
             "code block"
             "docx/codeblock.docx"

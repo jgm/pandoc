@@ -1,5 +1,5 @@
 {-
-Copyright (C) 2011-2014 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2011-2015 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.MIME
-   Copyright   : Copyright (C) 2011-2014 John MacFarlane
+   Copyright   : Copyright (C) 2011-2015 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -433,7 +433,9 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("sv4cpio","application/x-sv4cpio")
            ,("sv4crc","application/x-sv4crc")
            ,("svg","image/svg+xml")
-           ,("svgz","image/svg+xml")
+           -- removed for now, since it causes problems with
+           -- extensionFromMimeType: see #2183.
+           -- ,("svgz","image/svg+xml")
            ,("sw","chemical/x-swissprot")
            ,("swf","application/x-shockwave-flash")
            ,("swfl","application/x-shockwave-flash")
@@ -497,6 +499,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("wmx","video/x-ms-wmx")
            ,("wmz","application/x-ms-wmz")
            ,("woff","application/x-font-woff")
+           ,("woff2","application/x-font-woff2")
            ,("wp5","application/wordperfect5.1")
            ,("wpd","application/wordperfect")
            ,("wrl","model/vrml")
