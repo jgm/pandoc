@@ -854,6 +854,7 @@ isCommentTag = tagComment (const True)
 closes :: String -> String -> Bool
 _ `closes` "body" = False
 _ `closes` "html" = False
+"body" `closes` "head" = True
 "a" `closes` "a" = True
 "li" `closes` "li" = True
 "th" `closes` t | t `elem` ["th","td"] = True
