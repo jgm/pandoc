@@ -251,6 +251,13 @@ charStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ inlineStyles st
                          else empty
       in  inTags True "CharacterStyle" ([("Self", "CharacterStyle/"++s), ("Name", s)] ++ attrs') props
 
+-- | Escape colon characters as %3a
+escapeColons :: String -> String
+escapeColons (x:xs)
+  | x == ':' = "%3a" ++ escapeColons xs
+  | otherwise = x : escapeColons xs
+escapeColons []     = []
+
 -- | Convert a list of (identifier, url) pairs to the ICML listing of hyperlinks.
 hyperlinksToDoc :: Hyperlink -> Doc
 hyperlinksToDoc []     = empty
@@ -259,13 +266,13 @@ hyperlinksToDoc (x:xs) = hyp x $$ hyperlinksToDoc xs
     hyp (ident, url) = hdest $$ hlink
       where
         hdest = selfClosingTag "HyperlinkURLDestination"
-                  [("Self", "HyperlinkURLDestination/"++url), ("Name","link"), ("DestinationURL",url), ("DestinationUniqueKey","1")]
+                  [("Self", "HyperlinkURLDestination/"++(escapeColons url)), ("Name","link"), ("DestinationURL",url), ("DestinationUniqueKey","1")] -- HyperlinkURLDestination with more than one colon crashes CS6
         hlink = inTags True "Hyperlink" [("Self","uf-"++show ident),  ("Name",url),
                     ("Source","htss-"++show ident), ("Visible","true"), ("DestinationUniqueKey","1")]
                   $ inTags True "Properties" []
                   $ inTags False "BorderColor" [("type","enumeration")] (text "Black")
                   $$ (inTags False "Destination" [("type","object")]
-                  $ text $ "HyperlinkURLDestination/"++(escapeStringForXML url))
+                  $ text $ "HyperlinkURLDestination/"++(escapeColons (escapeStringForXML url))) -- HyperlinkURLDestination with more than one colon crashes CS6
 
 
 -- | Convert a list of Pandoc blocks to ICML.
