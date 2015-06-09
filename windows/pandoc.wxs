@@ -15,7 +15,7 @@
         Minimum='0.0.0.0'  IncludeMinimum='yes'
         Maximum="99.0.0.0" IncludeMaximum="no" />
     </Upgrade>
-    <Property Id="ARPURLINFOABOUT" Value="http://johnmacfarlane.net/pandoc/" />
+    <Property Id="ARPURLINFOABOUT" Value="http://pandoc.org" />
 
     <InstallExecuteSequence>
       <RemoveExistingProducts After="InstallFinalize"/>
