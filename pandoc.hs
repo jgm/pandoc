@@ -813,7 +813,7 @@ options =
                   (\arg opt -> do
                       let url' = case arg of
                                       Just u   -> u
-                                      Nothing  -> "https://chart.apis.google.com/chart?cht=tx&chl="
+                                      Nothing  -> "http://chart.apis.google.com/chart?cht=tx&chl="
                       return opt { optHTMLMathMethod = WebTeX url' })
                   "URL")
                  "" -- "Use web service for HTML math"
