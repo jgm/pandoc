@@ -203,8 +203,8 @@ The library is structured as follows:
 
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
 [issue tracker]: https://github.com/jgm/pandoc/issues
-[User's Guide]: http://johnmacfarlane.net/pandoc/README.html
-[FAQs]:  http://johnmacfarlane.net/pandoc/faqs.html
+[User's Guide]: http://pandoc.org/README.html
+[FAQs]:  http://pandoc.org/faqs.html
 [EditorConfig]: http://editorconfig.org/
 [Haskell platform]: http://www.haskell.org/platform/
 [hsb2hs]: http://hackage.haskell.org/package/hsb2hs

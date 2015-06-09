@@ -80,7 +80,7 @@ copyrightMessage :: String
 copyrightMessage = intercalate "\n" [
   "",
   "Copyright (C) 2006-2015 John MacFarlane",
-  "Web:  http://johnmacfarlane.net/pandoc",
+  "Web:  http://pandoc.org",
   "This is free software; see the source for copying conditions.",
   "There is no warranty, not even for merchantability or fitness",
   "for a particular purpose." ]
