@@ -41,10 +41,10 @@ debpkg:
 osxpkg:
 	./make_osx_package.sh
 
-%.1: %.1.template README
+%.1: %.1.template README.md
 	${makemanpages}
 
-%.5: %.5.template README
+%.5: %.5.template README.md
 	${makemanpages}
 
 clean:

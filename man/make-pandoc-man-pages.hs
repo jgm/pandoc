@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
--- Create pandoc.1 man and pandoc_markdown.5 man pages from README
+-- Create pandoc.1 man and pandoc_markdown.5 man pages from README.md
 import Text.Pandoc
 import Text.Pandoc.Error (handleError)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -22,12 +22,12 @@ import System.Directory
 main :: IO ()
 main = do
   ds1 <- modifiedDependencies ("man" </> "man1" </> "pandoc.1")
-    ["README", "man" </> "man1" </> "pandoc.1.template"]
+    ["README.md", "man" </> "man1" </> "pandoc.1.template"]
   ds2 <- modifiedDependencies ("man" </> "man5" </> "pandoc_markdown.5")
-    ["README", "man" </> "man5" </> "pandoc_markdown.5.template"]
+    ["README.md", "man" </> "man5" </> "pandoc_markdown.5.template"]
 
   unless (null ds1 && null ds2) $ do
-    rmContents <- UTF8.readFile "README"
+    rmContents <- UTF8.readFile "README.md"
     let (Pandoc meta blocks) = normalize $ handleError $ readMarkdown def rmContents
     let manBlocks = removeSect [Str "Wrappers"]
                   $ removeSect [Str "Pandoc's",Space,Str "markdown"] blocks

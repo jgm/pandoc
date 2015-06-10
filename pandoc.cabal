@@ -105,7 +105,7 @@ Data-Files:
                  -- sample lua custom writer
                  data/sample.lua
                  -- documentation
-                 README, COPYRIGHT
+                 README.md, COPYRIGHT
 Extra-Source-Files:
                  -- documentation
                  INSTALL, BUGS, CONTRIBUTING.md, changelog

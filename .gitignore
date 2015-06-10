@@ -2,6 +2,7 @@
 dist/*
 README.*
 !README.Debian
+!README.md
 INSTALL.*
 .configure-stamp
 .cabal-sandbox
