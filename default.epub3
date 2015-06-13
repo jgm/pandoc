@@ -39,7 +39,7 @@ $for(author)$
   <h2 class="author">$author$</h2>
 $endfor$
 $for(creator)$
-  <h2 class="$creator.type$">$creator.text$</h2>
+  <h2 class="$creator.role$">$creator.text$</h2>
 $endfor$
 $if(publisher)$
   <p class="publisher">$publisher$</p>
