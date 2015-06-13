@@ -38,6 +38,10 @@ $endif$
 $if(mathfont)$
     \setmathfont(Digits,Latin,Greek){$mathfont$}
 $endif$
+$if(CJKmainfont)$
+    \usepackage{xeCJK}
+    \setCJKmainfont{$CJKmainfont$}
+$endif$
 \fi
 % use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
