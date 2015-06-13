@@ -971,9 +971,10 @@ as `title`, `author`, and `date`) as well as the following:
     `libertine` (Linux Libertine), `arev` (Arev Sans),
     and the default `lmodern`, among others.
 
-`mainfont`, `sansfont`, `monofont`, `mathfont`
+`mainfont`, `sansfont`, `monofont`, `mathfont`, `CJKmainfont`
 :   fonts for LaTeX documents (works only with xelatex
-    and lualatex)
+    and lualatex).  Note that if `CJKmainfont` is used,
+    the `xeCJK` package must be available.
 
 `colortheme`
 :   colortheme for LaTeX beamer documents
