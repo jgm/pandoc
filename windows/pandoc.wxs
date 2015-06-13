@@ -34,8 +34,6 @@
       <Custom Action="SetPerMachineFolder" After="SetPerUserFolder">ACTION="INSTALL" AND APPLICATIONFOLDER="" AND (ALLUSERS=1 OR (ALLUSERS=2 AND Privileged))</Custom>
     </InstallUISequence>
 
-<CustomActionRef Id="WixBroadcastSettingChange" />
-<CustomActionRef Id="WixBroadcastEnvironmentChange" />
 
     <Directory Id="TARGETDIR" Name="SourceDir">
 
@@ -52,7 +50,8 @@
             Source="..\COPYRIGHT.txt" />
             <File Id="pandocCOPYING" Name="COPYING.rtf"
             Source="..\COPYING.rtf" />
-          </Component>
+			<Environment Id='UpdatePath' Name='PATH' Action='set' Permanent='no' System='no' Part='last' Value='[APPLICATIONFOLDER]' />
+			</Component>
 
           <Component Id="CitationSupport"
           Guid="0A214839-2E69-4026-8DBB-0F0A9DB75C12">
@@ -60,9 +59,8 @@
             Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes"/>
             <File Id="pandoc_citeprocEXE" Name="pandoc-citeproc.exe"
             Source="..\.cabal-sandbox\bin\pandoc-citeproc.exe" />
-          </Component>
+			</Component>
 
-<Environment Id='UpdatePath' Name='PATH' Action='set' Permanent='no' System='no' Part='last' Value='[INSTALLDIR]' />
 
           <Component Id="Documentation"
           Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3">
@@ -90,8 +88,6 @@
     <Feature Id="Complete" Level="1" Title="Pandoc $(var.VERSION)" Description="Complete package"  Display="expand" ConfigurableDirectory="APPLICATIONFOLDER">
       <Feature Id="MainProgram" Title="Program" Description="The main executable." Level="1">
         <ComponentRef Id="MainExecutable" />
-        <ComponentRef Id="UpdatePathUser" />
-        <ComponentRef Id="UpdatePathMachine" />
       </Feature>
       <Feature Id="Manual" Title="Manual">
         <ComponentRef Id="Documentation" />
@@ -101,6 +97,9 @@
         <ComponentRef Id="CitationSupport" />
       </Feature>
     </Feature>
+
+	<CustomActionRef Id="WixBroadcastSettingChange" />
+	<CustomActionRef Id="WixBroadcastEnvironmentChange" />
 
     <Property Id="WIXUI_INSTALLDIR" Value="APPLICATIONFOLDER" />
     <UIRef Id="WixUI_InstallDir" />
