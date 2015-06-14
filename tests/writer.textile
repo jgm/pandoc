@@ -30,7 +30,7 @@ h1(#paragraphs). Paragraphs
 
 Here's a regular paragraph.
 
-In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard&#45;wrapped line in the middle of a paragraph looked like a list item.
 
 Here's one with a bullet. &#42; criminey.
 
@@ -41,7 +41,7 @@ here.
 
 h1(#block-quotes). Block Quotes
 
-E-mail style:
+E&#45;mail style:
 
 bq. This is a block quote. It is pretty short.
 
@@ -527,7 +527,7 @@ h1(#latex). LaTeX
 * <span class="math">x \in y</math>
 * <span class="math">\alpha \wedge \omega</math>
 * <span class="math">223</math>
-* <span class="math">p</math>-Tree
+* <span class="math">p</math>&#45;Tree
 * Here's some display math: <span class="math">\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
 * Here's one that has a line break in it: <span class="math">\alpha + \omega \times x^2</math>.
 
@@ -583,7 +583,7 @@ Left paren: (
 
 Right paren: )
 
-Greater-than: &gt;
+Greater&#45;than: &gt;
 
 Hash: #
 
@@ -591,9 +591,9 @@ Period: .
 
 Bang: !
 
-Plus: +
+Plus: &#43;
 
-Minus: -
+Minus: &#45;
 
 <hr />
 
@@ -664,13 +664,13 @@ With an ampersand: "$":http://example.com/?foo=1&bar=2
 * "$":http://example.com/
 * It should.
 
-An e-mail address: "nobody&#64;nowhere.net":mailto:nobody@nowhere.net
+An e&#45;mail address: "nobody&#64;nowhere.net":mailto:nobody@nowhere.net
 
 bq. Blockquoted: "$":http://example.com/
 
 
 
-Auto-links should not occur here: @<http://example.com/>@
+Auto&#45;links should not occur here: @<http://example.com/>@
 
 bc. or here: <http://example.com/>
 
