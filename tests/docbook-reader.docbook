@@ -1033,12 +1033,12 @@ or here: &lt;http://example.com/&gt;
     From <quote>Voyage dans la Lune</quote> by Georges Melies (1902):
   </para>
   <figure>
-    <title>lalune</title>
+    <title>lalune fig caption</title>
     <mediaobject>
       <imageobject>
         <imagedata fileref="lalune.jpg" />
       </imageobject>
-      <textobject><phrase>lalune</phrase></textobject>
+      <textobject><phrase>lalune alt text shadowed by fig caption</phrase></textobject>
     </mediaobject>
   </figure>
   <para>
@@ -1047,7 +1047,25 @@ or here: &lt;http://example.com/&gt;
         <imagedata fileref="movie.jpg" />
       </imageobject>
     </inlinemediaobject> icon.
+    And here a second movie <inlinemediaobject>
+      <alt>alt text</alt>
+      <imageobject>
+        <imagedata fileref="movie.jpg" />
+      </imageobject>
+    </inlinemediaobject> icon.
+    And here a third movie <inlinemediaobject>
+      <textobject><phrase>alt text</phrase></textobject>
+      <imageobject>
+        <imagedata fileref="movie.jpg" />
+      </imageobject>
+    </inlinemediaobject> icon.
   </para>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="lalune.jpg" />
+    </imageobject>
+    <textobject><phrase>lalune no figure alt text</phrase></textobject>
+  </mediaobject>
 </sect1>
 <sect1 id="footnotes">
   <title>Footnotes</title>

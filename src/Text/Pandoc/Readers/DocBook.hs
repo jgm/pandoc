@@ -167,7 +167,9 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] glossseealso - A cross-reference from one GlossEntry to another
 [x] glossterm - A glossary term
 [ ] graphic - A displayed graphical object (not an inline)
+    Note: in DocBook v5 `graphic` is discarded
 [ ] graphicco - A graphic that contains callout areas
+    Note: in DocBook v5 `graphicco` is discarded
 [ ] group - A group of elements in a CmdSynopsis
 [ ] guibutton - The text on a button in a GUI
 [ ] guiicon - Graphic and/or text appearing as a icon in a GUI
@@ -180,8 +182,9 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] holder - The name of the individual or organization that holds a copyright
 [o] honorific - The title of a person
 [ ] html:form - An HTML form
-[ ] imagedata - Pointer to external image data
-[ ] imageobject - A wrapper for image data and its associated meta-information
+[x] imagedata - Pointer to external image data (only `fileref` attribute
+    implemented but not `entityref` which would require parsing of the DTD)
+[x] imageobject - A wrapper for image data and its associated meta-information
 [ ] imageobjectco - A wrapper for an image object with callouts
 [x] important - An admonition set off from the text
 [x] index - An index
@@ -627,18 +630,24 @@ addToStart toadd bs =
 
 -- function that is used by both mediaobject (in parseBlock)
 -- and inlinemediaobject (in parseInline)
-getImage :: Element -> DB Inlines
-getImage e = do
+-- A DocBook mediaobject is a wrapper around a set of alternative presentations
+getMediaobject :: Element -> DB Inlines
+getMediaobject e = do
   imageUrl <- case filterChild (named "imageobject") e of
                 Nothing  -> return mempty
                 Just z   -> case filterChild (named "imagedata") z of
                               Nothing -> return mempty
                               Just i -> return $ attrValue "fileref" i
-  caption <- case filterChild
-                  (\x -> named "caption" x || named "textobject" x) e of
-               Nothing  -> gets dbFigureTitle
-               Just z   -> mconcat <$> (mapM parseInline $ elContent z)
-  return $ image imageUrl "" caption
+  let getCaption el = case filterChild (\x -> named "caption" x
+                                            || named "textobject" x
+                                            || named "alt" x) el of
+                        Nothing -> return mempty
+                        Just z  -> mconcat <$> (mapM parseInline $ elContent z)
+  figTitle <- gets dbFigureTitle
+  let (caption, title) = if isNull figTitle
+                            then (getCaption e, "")
+                            else (return figTitle, "fig:")
+  liftM (image imageUrl title) caption
 
 getBlocks :: Element -> DB Blocks
 getBlocks e =  mconcat <$> (mapM parseBlock $ elContent e)
@@ -734,7 +743,7 @@ parseBlock (Elem e) =
             <$> listitems
         "variablelist" -> definitionList <$> deflistitems
         "figure" -> getFigure e
-        "mediaobject" -> para <$> getImage e
+        "mediaobject" -> para <$> getMediaobject e
         "caption" -> return mempty
         "info" -> metaBlock
         "articleinfo" -> metaBlock
@@ -902,7 +911,7 @@ parseInline (Elem e) =
         "inlineequation" -> equation math
         "subscript" -> subscript <$> innerInlines
         "superscript" -> superscript <$> innerInlines
-        "inlinemediaobject" -> getImage e
+        "inlinemediaobject" -> getMediaobject e
         "quote" -> do
             qt <- gets dbQuoteType
             let qt' = if qt == SingleQuote then DoubleQuote else SingleQuote
