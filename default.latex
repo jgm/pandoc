@@ -60,6 +60,7 @@ $endif$
 \else
   \usepackage[unicode=true]{hyperref}
 \fi
+\usepackage[usenames,dvipsnames]{color}
 \hypersetup{breaklinks=true,
             bookmarks=true,
             pdfauthor={$author-meta$},
