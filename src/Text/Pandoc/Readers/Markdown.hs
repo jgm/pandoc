@@ -32,7 +32,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Markdown ( readMarkdown,
                                       readMarkdownWithWarnings ) where
 
-import Data.List ( transpose, sortBy, findIndex, intersperse, intercalate )
+import Data.List ( transpose, sortBy, elemIndex, elemIndices, findIndex, intersperse, intercalate )
 import qualified Data.Map as M
 import Data.Scientific (coefficient, base10Exponent)
 import Data.Ord ( comparing )
@@ -1475,6 +1475,7 @@ table = try $ do
 
 inline :: MarkdownParser (F Inlines)
 inline = choice [ whitespace
+                , wikilink
                 , bareURL
                 , str
                 , endline
@@ -1740,6 +1741,41 @@ source = do
 
 linkTitle :: MarkdownParser String
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
+
+wikilinkstuff :: MarkdownParser (F Inlines, String, String)
+wikilinkstuff = do
+  string "[["
+  (_, raw) <- withRaw $ charsInBalancedBrackets 2
+  guard $ not $ null raw
+  let depunct c = if isAlphaNum c then c else if c == '_' then c else '-'
+      deunder c = if c == '_' then ' ' else c
+      deiki s = case elemIndices '/' s of
+                  [] -> map deunder s
+                  xs -> map deunder (drop ((last xs) + 1) s)
+  case elemIndex '|' raw of
+    Nothing -> do
+      let rawstr = ((reverse . (drop 2) . reverse) raw)
+          srcstr = "#" ++ (map depunct rawstr) ++ "\n"
+          labstr = deiki rawstr ++ "\n"
+      src <- parseFromString (mconcat <$> many (count 1 anyChar)) (init srcstr)
+      lab <- parseFromString (trimInlinesF . mconcat <$> many inline) (init labstr)
+      return (lab, src, raw)
+    Just idx -> do
+      let rawstr = ((reverse . (drop 2) . reverse) raw)
+          srcstr = "#" ++ (map depunct (drop (idx + 1) rawstr)) ++ "\n"
+          labstr = deiki (take idx rawstr) ++ "\n"
+      src <- parseFromString (mconcat <$> many (count 1 anyChar)) (init srcstr)
+      lab <- parseFromString (trimInlinesF . mconcat <$> many inline) (init labstr)
+      return (lab, src, raw)
+
+wikilink :: MarkdownParser (F Inlines)
+wikilink = try $ do
+  st <- getState
+  guard $ stateAllowLinks st
+  setState $ st { stateAllowLinks = False }
+  (lab,src,raw) <- wikilinkstuff
+  setState $ st { stateAllowLinks = True }
+  return $ B.link src "" <$> lab
 
 link :: MarkdownParser (F Inlines)
 link = try $ do
