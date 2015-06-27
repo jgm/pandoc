@@ -40,7 +40,7 @@ $if(mathfont)$
 $endif$
 $if(CJKmainfont)$
     \usepackage{xeCJK}
-    \setCJKmainfont[$CJKoption$]{$CJKmainfont$}
+    \setCJKmainfont[$CJKoptions$]{$CJKmainfont$}
 $endif$
 \fi
 % use upquote if available, for straight quotes in verbatim environments
