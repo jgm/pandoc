@@ -44,7 +44,6 @@ import Data.Char ( isSpace, isPunctuation )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
 import Control.Monad.State
-import qualified Data.Set as Set
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Readers.TeXMath (texMathToInlines)
 import Text.HTML.TagSoup (parseTags, isTagText, Tag(..))
