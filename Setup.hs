@@ -31,18 +31,7 @@ main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
       -- enable hsb2hs preprocessor for .hsb files
       hookedPreProcessors = [ppBlobSuffixHandler]
-      -- ensure that make-pandoc-man-pages doesn't get installed to bindir
-    , copyHook = \pkgdescr ->
-         copyHook simpleUserHooks pkgdescr{ executables =
-            [x | x <- executables pkgdescr, exeName x `notElem` noInstall] }
-    , instHook = \pkgdescr ->
-         instHook simpleUserHooks pkgdescr{ executables =
-            [x | x <- executables pkgdescr, exeName x `notElem` noInstall] }
-    , postBuild = \args bf pkgdescr lbi ->
-            makeManPages args bf pkgdescr lbi
     }
-  where
-    noInstall = ["make-pandoc-man-pages"]
 
 ppBlobSuffixHandler :: PPSuffixHandler
 ppBlobSuffixHandler = ("hsb", \_ _ ->
@@ -56,10 +45,3 @@ ppBlobSuffixHandler = ("hsb", \_ _ ->
             Nothing -> error "hsb2hs is needed to build this program: cabal install hsb2hs"
          return ()
   })
-
-makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-makeManPages _ bf _ LocalBuildInfo{buildDir=buildDir}
-  = rawSystemExit verbosity progPath []
-  where
-    verbosity = fromFlagOrDefault normal $ buildVerbosity bf
-    progPath = buildDir </> "make-pandoc-man-pages" </> "make-pandoc-man-pages"

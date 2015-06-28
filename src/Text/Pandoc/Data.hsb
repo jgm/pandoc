@@ -5,3 +5,6 @@ import qualified Data.ByteString as B
 
 dataFiles :: [(FilePath, B.ByteString)]
 dataFiles = %blobs "data"
+
+readmeFile :: B.ByteString
+readmeFile = %blob "README"

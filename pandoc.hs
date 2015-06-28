@@ -39,6 +39,7 @@ import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
                             safeRead, headerShift, normalize, err, warn,
                             openURL )
 import Text.Pandoc.MediaBag ( mediaDirectory, extractMediaBag, MediaBag )
+import Text.Pandoc.ManPages ( manPandoc1, manPandocMarkdown5 )
 import Text.Pandoc.XML ( toEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Process (pipeProcess)
@@ -868,6 +869,20 @@ options =
                  (NoArg
                   (\opt -> return opt { optIgnoreArgs = True }))
                  "" -- "Ignore command-line arguments."
+
+    , Option "" ["man1"]
+                 (NoArg
+                  (\_ -> do
+                     manPandoc1 >>= UTF8.hPutStr stdout
+                     exitWith ExitSuccess ))
+                 "" -- "Print pandoc.1 man page"
+
+    , Option "" ["man5"]
+                 (NoArg
+                  (\_ -> do
+                     manPandocMarkdown5 >>= UTF8.hPutStr stdout
+                     exitWith ExitSuccess ))
+                 "" -- "Print pandoc_markdown.5 man page"
 
     , Option "" ["verbose"]
                  (NoArg

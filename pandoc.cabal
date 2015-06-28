@@ -106,13 +106,12 @@ Data-Files:
                  data/sample.lua
                  -- documentation
                  README, COPYRIGHT
+                 -- man page templates
+                 data/pandoc.1.template
+                 data/pandoc_markdown.5.template
 Extra-Source-Files:
                  -- documentation
                  INSTALL, BUGS, CONTRIBUTING.md, changelog
-                 -- code to create pandoc.1 man page
-                 Makefile
-                 man/man1/pandoc.1.template
-                 man/man5/pandoc_markdown.5.template
                 -- trypandoc
                  trypandoc/Makefile
                  trypandoc/index.html
@@ -323,6 +322,7 @@ Library
                    Text.Pandoc.Readers.Native,
                    Text.Pandoc.Readers.Haddock,
                    Text.Pandoc.Readers.TWiki,
+                   Text.Pandoc.Readers.Txt2Tags,
                    Text.Pandoc.Readers.Docx,
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Writers.Native,
@@ -356,7 +356,7 @@ Library
                    Text.Pandoc.XML,
                    Text.Pandoc.SelfContained,
                    Text.Pandoc.Process,
-                   Text.Pandoc.Readers.Txt2Tags
+                   Text.Pandoc.ManPages
   Other-Modules:   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Reducible,
                    Text.Pandoc.Readers.Docx.Parse,
@@ -421,19 +421,6 @@ Executable trypandoc
     Buildable:     True
   else
     Buildable:     False
-
--- NOTE:  A trick in Setup.hs makes sure this won't be installed:
-Executable make-pandoc-man-pages
-  Main-Is:       make-pandoc-man-pages.hs
-  Hs-Source-Dirs: man
-  Build-Depends: pandoc,
-                 base >= 4.2 && < 5,
-                 directory >= 1 && < 1.3,
-                 filepath >= 1.1 && < 1.5,
-                 old-time >= 1.0 && < 1.2,
-                 time >= 1.2 && < 1.6
-  Default-Language: Haskell98
-  Buildable:   True
 
 Test-Suite test-pandoc
   Type:           exitcode-stdio-1.0

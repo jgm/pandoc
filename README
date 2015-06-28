@@ -240,6 +240,14 @@ General options
     `epub.css`, `templates`, `slidy`, `slideous`, or `s5` directory
     placed in this directory will override pandoc's normal defaults.
 
+`--man1`
+
+:   Write `pandoc.1` man page to *stdout*.
+
+`--man5`
+
+:   Write `pandoc_markdown.5` man page to *stdout*.
+
 `--verbose`
 
 :   Give verbose debugging output.  Currently this only has an effect
