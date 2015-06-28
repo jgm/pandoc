@@ -6,7 +6,7 @@
   Version="$(var.VERSION)" Manufacturer="John MacFarlane"
   Language="1033">
 
-    <Package InstallerVersion="200" Compressed="yes" InstallScope="perUser"
+    <Package InstallerVersion="200" Compressed="yes"
     Comments="Windows Installer Package" />
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
     <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
@@ -23,17 +23,6 @@
 
     <Property Id="DISABLEADVTSHORTCUTS" Value="1" />
 
-    <CustomAction Id="SetPerUserFolder" Property="APPLICATIONFOLDER" Value="[LocalAppDataFolder]Pandoc" Execute="immediate" />
-    <CustomAction Id="SetPerMachineFolder" Property="APPLICATIONFOLDER" Value="[ProgramFilesFolder]Pandoc" Execute="immediate" />
-    <InstallExecuteSequence>
-      <Custom Action="SetPerUserFolder" Before="CostFinalize">ACTION="INSTALL" AND APPLICATIONFOLDER="" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))</Custom>
-      <Custom Action="SetPerMachineFolder" After="SetPerUserFolder">ACTION="INSTALL" AND APPLICATIONFOLDER="" AND (ALLUSERS=1 OR (ALLUSERS=2 AND Privileged))</Custom>
-    </InstallExecuteSequence>
-    <InstallUISequence>
-      <Custom Action="SetPerUserFolder" Before="CostFinalize">ACTION="INSTALL" AND APPLICATIONFOLDER="" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))</Custom>
-      <Custom Action="SetPerMachineFolder" After="SetPerUserFolder">ACTION="INSTALL" AND APPLICATIONFOLDER="" AND (ALLUSERS=1 OR (ALLUSERS=2 AND Privileged))</Custom>
-    </InstallUISequence>
-
 
     <Directory Id="TARGETDIR" Name="SourceDir">
 
@@ -41,8 +30,10 @@
         <Directory Id="APPLICATIONFOLDER" Name="Pandoc">
           <Component Id="MainExecutable"
           Guid="ECD35082-4C28-49E1-977E-B90FC7C400C7">
-            <RegistryValue Root="HKMU" Key="Software\John MacFarlane\Pandoc"
-            Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes"/>
+            <RegistryValue Root="HKMU" Key="Software\John
+                                            MacFarlane\Pandoc"
+            Name="Version" Type="string" Value="[ProductVersion]"
+            KeyPath="yes"/>
             <RemoveFolder Id="APPLICATIONFOLDER" On="uninstall"/>
             <File Id="pandocEXE" Name="pandoc.exe"
             Source="..\.cabal-sandbox\bin\pandoc.exe" />
@@ -50,23 +41,27 @@
             Source="..\COPYRIGHT.txt" />
             <File Id="pandocCOPYING" Name="COPYING.rtf"
             Source="..\COPYING.rtf" />
-			<Environment Id='UpdatePath' Name='PATH' Action='set' Permanent='no' System='no' Part='last' Value='[APPLICATIONFOLDER]' />
-			</Component>
+            <Environment Id='UpdatePath' Name='PATH' Action='set'
+                         Permanent='no' System='no' Part='last'
+                         Value='[APPLICATIONFOLDER]' />
+          </Component>
 
           <Component Id="CitationSupport"
           Guid="0A214839-2E69-4026-8DBB-0F0A9DB75C12">
             <RegistryValue Root="HKMU" Key="Software\John MacFarlane\Pandoc"
-            Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes"/>
+            Name="Version" Type="string" Value="[ProductVersion]"
+            KeyPath="yes"/>
             <File Id="pandoc_citeprocEXE" Name="pandoc-citeproc.exe"
             Source="..\.cabal-sandbox\bin\pandoc-citeproc.exe" />
-			</Component>
+          </Component>
 
 
           <Component Id="Documentation"
           Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3">
             <File Id="pandocREADME" Name="Pandoc User's Guide.html"
             Source="..\README.html" KeyPath="yes">
-              <Shortcut Id="ApplicationStartMenuShortcut" Directory="ApplicationProgramsFolder"
+              <Shortcut Id="ApplicationStartMenuShortcut"
+                        Directory="ApplicationProgramsFolder"
               Name="Pandoc User’s Guide" Advertise="yes" />
             </File>
           </Component>
@@ -75,36 +70,88 @@
 
       <Directory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="Pandoc">
-          <Component Id="ApplicationShortcut" Guid="7F807DD5-CC54-474A-B571-89630893F563">
-            <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-            <RegistryValue Root="HKMU" Key="Software\John MacFarlane\Pandoc"
-            Name="ShortcutInstalled" Type="integer" Value="1" KeyPath="yes"/>
+          <Component Id="ApplicationShortcut"
+                     Guid="7F807DD5-CC54-474A-B571-89630893F563">
+            <RemoveFolder Id="ApplicationProgramsFolder"
+                          On="uninstall"/>
+            <RegistryValue Root="HKMU" Key="Software\John
+                                            MacFarlane\Pandoc"
+            Name="ShortcutInstalled" Type="integer" Value="1"
+            KeyPath="yes"/>
           </Component>
         </Directory>
       </Directory>
 
     </Directory>
 
-    <Feature Id="Complete" Level="1" Title="Pandoc $(var.VERSION)" Description="Complete package"  Display="expand" ConfigurableDirectory="APPLICATIONFOLDER">
-      <Feature Id="MainProgram" Title="Program" Description="The main executable." Level="1">
+    <Feature Id="Complete" Level="1" Title="Pandoc $(var.VERSION)"
+             Description="Complete package"  Display="expand"
+             ConfigurableDirectory="APPLICATIONFOLDER">
+      <Feature Id="MainProgram" Title="Program" Description="The main
+                                                             executable."
+               Level="1">
         <ComponentRef Id="MainExecutable" />
       </Feature>
       <Feature Id="Manual" Title="Manual">
         <ComponentRef Id="Documentation" />
         <ComponentRef Id="ApplicationShortcut" />
       </Feature>
-      <Feature Id="Citation" Title="Citation Support" Description="Citation support.">
+      <Feature Id="Citation" Title="Citation Support"
+               Description="Citation support.">
         <ComponentRef Id="CitationSupport" />
       </Feature>
     </Feature>
 
-	<CustomActionRef Id="WixBroadcastSettingChange" />
-	<CustomActionRef Id="WixBroadcastEnvironmentChange" />
 
-    <Property Id="WIXUI_INSTALLDIR" Value="APPLICATIONFOLDER" />
-    <UIRef Id="WixUI_InstallDir" />
-    <UIRef Id="WixUI_ErrorProgressText" />
+    <SetProperty Id="ARPINSTALLLOCATION" Value="[APPLICATIONFOLDER]"
+                    After="CostFinalize" />
+
+    <CustomAction Id="SetExitDialogOptText"
+      Property="WIXUI_EXITDIALOGOPTIONALTEXT"
+      Value="[ProductName] was installed in [APPLICATIONFOLDER]. You
+      may need to restart Cmd/Powershell windows before using it."
+     />
+
+    <InstallUISequence>
+        <Custom Action="SetExitDialogOptText" Before="ExecuteAction">
+             NOT Installed
+        </Custom>
+    </InstallUISequence>
+
+    <CustomActionRef Id="WixBroadcastSettingChange" />
+    <CustomActionRef Id="WixBroadcastEnvironmentChange" />
+
+
+
+    <Property Id="ApplicationFolderName" Value="Pandoc" />
+    <Property Id="WixAppFolder" Value="WixPerUserFolder" />
+
     <WixVariable Id="WixUILicenseRtf" Value="..\COPYING.rtf" />
 
+    <UI Id="MyWixUI_Advanced">
+            <UIRef Id="WixUI_Advanced" />
+            <UIRef Id="WixUI_ErrorProgressText" />
+
+            <Publish Dialog="InstallScopeDlg" Control="Next"
+                     Event="NewDialog" Value="VerifyReadyDlg"
+                     Order="6">WixAppFolder =
+            "WixPerUserFolder"</Publish>
+            <Publish Dialog="InstallDirDlg" Control="Next"
+                     Event="NewDialog" Value="VerifyReadyDlg"
+                     Order="4">WIXUI_DONTVALIDATEPATH OR
+            WIXUI_INSTALLDIR_VALID="1"</Publish>
+
+            <Publish Dialog="VerifyReadyDlg" Control="Back"
+                     Event="NewDialog" Value="InstallScopeDlg"
+                     Order="11">WixAppFolder =
+            "WixPerUserFolder"</Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back"
+                     Event="NewDialog" Value="InstallDirDlg"
+                     Order="12">WixAppFolder =
+            "WixPerMachineFolder"</Publish>
+    </UI>
+
+
   </Product>
+
 </Wix>
