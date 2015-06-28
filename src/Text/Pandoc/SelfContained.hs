@@ -40,20 +40,16 @@ import System.FilePath (takeExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
-import Text.Pandoc.Shared (renderTags', err, fetchItem')
+import Text.Pandoc.Shared (renderTags', err, fetchItem', warn, trim)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.UTF8 (toString)
 import Text.Pandoc.Options (WriterOptions(..))
 import Data.List (isPrefixOf)
 import Control.Applicative
-import Text.CSS.Parse (parseNestedBlocks, NestedBlock(..))
-import Text.CSS.Render (renderNestedBlocks)
-import Data.Text.Encoding (decodeUtf8, encodeUtf8)
-import qualified Data.Text as T
-import Data.Text (Text)
-import Data.Text.Lazy (toStrict)
-import Data.Text.Lazy.Builder (toLazyText)
+import Text.Parsec (runParserT, ParsecT)
+import qualified Text.Parsec as P
+import Control.Monad.Trans (lift)
 
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c
@@ -94,40 +90,52 @@ convertTag media sourceURL t@(TagOpen "link" as) =
            return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"])
 convertTag _ _ t = return t
 
--- NOTE: This is really crude, it doesn't respect CSS comments.
 cssURLs :: MediaBag -> Maybe String -> FilePath -> ByteString
         -> IO ByteString
 cssURLs media sourceURL d orig = do
-  case parseNestedBlocks (decodeUtf8 orig) of
-       Left _err  -> return orig
-       Right bs   -> (encodeUtf8 . toStrict . toLazyText . renderNestedBlocks)
-                   <$> mapM (handleCSSUrls media sourceURL d) bs
+  res <- runParserT (parseCSSUrls media sourceURL d) () "css" orig
+  case res of
+       Left e    -> warn ("Could not parse CSS: " ++ show e) >> return orig
+       Right bs  -> return bs
 
-handleCSSUrls :: MediaBag -> Maybe String -> FilePath -> NestedBlock
-              -> IO NestedBlock
-handleCSSUrls media sourceURL d (NestedBlock t bs) =
-  NestedBlock t <$> mapM (handleCSSUrls media sourceURL d) bs
-handleCSSUrls media sourceURL d (LeafBlock (selector, attrs)) = do
-  attrs' <- mapM (handleCSSAttr media sourceURL d) attrs
-  return (LeafBlock (selector, attrs'))
+parseCSSUrls :: MediaBag -> Maybe String -> FilePath
+             -> ParsecT ByteString () IO ByteString
+parseCSSUrls media sourceURL d = B.concat <$> P.many
+    (pCSSWhite <|> pCSSComment <|> pCSSUrl media sourceURL d <|> pCSSOther)
 
-handleCSSAttr :: MediaBag -> Maybe String -> FilePath -> (Text, Text)
-              -> IO (Text, Text)
-handleCSSAttr media sourceURL d (key, val) =
-  if "url(" `T.isPrefixOf` val
-     then do
-        let url = T.unpack $ dropParens $ T.drop 3 val
-        case url of
-             '#':_ -> return (key, val)
-             'd':'a':'t':'a':':':_ -> return (key, val)
-             _ -> do
-               let url' = if isURI url then url else d </> url
-               enc <- getDataURI media sourceURL "" url'
-               return (key, T.pack enc)
-      else return (key, val)
+pCSSWhite :: ParsecT ByteString () IO ByteString
+pCSSWhite = P.space >> P.spaces >> return B.empty
 
-dropParens :: Text -> Text
-dropParens = T.dropAround (`elem` ['(',')','"','\'',' ','\t','\n','\r'])
+pCSSComment :: ParsecT ByteString () IO ByteString
+pCSSComment = P.try $ do
+  P.string "/*"
+  P.manyTill P.anyChar (P.try (P.string "*/"))
+  return B.empty
+
+pCSSOther :: ParsecT ByteString () IO ByteString
+pCSSOther = do
+  (B.pack <$> P.many1 (P.noneOf "u/ \n\r\t")) <|>
+    (B.singleton <$> P.char 'u') <|>
+    (B.singleton <$> P.char '/')
+
+pCSSUrl :: MediaBag -> Maybe String -> FilePath
+        -> ParsecT ByteString () IO ByteString
+pCSSUrl media sourceURL d = P.try $ do
+  P.string "url("
+  P.spaces
+  quote <- P.option Nothing (Just <$> P.oneOf "\"'")
+  url <- P.manyTill P.anyChar (maybe (P.lookAhead (P.char ')')) P.char quote)
+  P.spaces
+  P.char ')'
+  let fallback = B.pack ("url(" ++ maybe "" (:[]) quote ++ trim url ++
+                            maybe "" (:[]) quote ++ ")")
+  case trim url of
+      '#':_ -> return fallback
+      'd':'a':'t':'a':':':_ -> return fallback
+      u ->  do let url' = if isURI u then u else d </> u
+               enc <- lift $ getDataURI media sourceURL "" url'
+               return (B.pack enc)
+
 
 getDataURI :: MediaBag -> Maybe String -> MimeType -> String
        -> IO String
