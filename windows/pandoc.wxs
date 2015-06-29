@@ -110,9 +110,20 @@
       may need to restart Cmd/Powershell windows before using it."
      />
 
+    <CustomAction Id="CustomWixSetPerUserFolder" Property="APPLICATIONFOLDER" Value="[LocalAppDataFolder][ApplicationFolderName]" Execute="immediate" />
+
+    <InstallExecuteSequence>
+        <Custom Action="CustomWixSetPerUserFolder" After="WixSetPerUserFolder">
+            ACTION="INSTALL" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))
+        </Custom>
+    </InstallExecuteSequence>
+
     <InstallUISequence>
         <Custom Action="SetExitDialogOptText" Before="ExecuteAction">
              NOT Installed
+        </Custom>
+        <Custom Action="CustomWixSetPerUserFolder" After="WixSetPerUserFolder">
+            ACTION="INSTALL" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))
         </Custom>
     </InstallUISequence>
 
