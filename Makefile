@@ -47,8 +47,12 @@ osxpkg:
 %.5: %.5.template README
 	${makemanpages}
 
+download_stats:
+	curl https://api.github.com/repos/jgm/pandoc/releases | \
+		jq '[.[] | .assets | .[] | {name: .name, download_count: .download_count}]'
+
 clean:
 	cabal clean
 	-rm -rf $(BINDIST) $(BINDIST).tar.gz
 
-.PHONY: deps quick full install man clean test bench haddock osxpkg dist bindist prof
+.PHONY: deps quick full install man clean test bench haddock osxpkg dist bindist prof download_stats
