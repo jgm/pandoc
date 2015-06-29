@@ -30,8 +30,7 @@
         <Directory Id="APPLICATIONFOLDER" Name="Pandoc">
           <Component Id="MainExecutable"
           Guid="ECD35082-4C28-49E1-977E-B90FC7C400C7">
-            <RegistryValue Root="HKMU" Key="Software\John
-                                            MacFarlane\Pandoc"
+            <RegistryValue Root="HKMU" Key="Software\John MacFarlane\Pandoc"
             Name="Version" Type="string" Value="[ProductVersion]"
             KeyPath="yes"/>
             <RemoveFolder Id="APPLICATIONFOLDER" On="uninstall"/>
@@ -74,8 +73,7 @@
                      Guid="7F807DD5-CC54-474A-B571-89630893F563">
             <RemoveFolder Id="ApplicationProgramsFolder"
                           On="uninstall"/>
-            <RegistryValue Root="HKMU" Key="Software\John
-                                            MacFarlane\Pandoc"
+            <RegistryValue Root="HKMU" Key="Software\John MacFarlane\Pandoc"
             Name="ShortcutInstalled" Type="integer" Value="1"
             KeyPath="yes"/>
           </Component>
