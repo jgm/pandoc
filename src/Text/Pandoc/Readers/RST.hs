@@ -779,7 +779,7 @@ simpleReferenceName' :: Parser [Char] st String
 simpleReferenceName' = do
   x <- alphaNum
   xs <- many $  alphaNum
-            <|> (try $ oneOf "-_:+." >> lookAhead alphaNum)
+            <|> (try $ oneOf "-_:+." <* lookAhead alphaNum)
   return (x:xs)
 
 simpleReferenceName :: Parser [Char] st Inlines
