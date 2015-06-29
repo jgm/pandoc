@@ -824,7 +824,7 @@ inlineText :: LP Inlines
 inlineText = str <$> many1 inlineChar
 
 inlineChar :: LP Char
-inlineChar = noneOf "\\$%^_&~#{}^'`\"‘’“”-[] \t\n"
+inlineChar = noneOf "\\$%&~#{}^'`\"‘’“”-[] \t\n"
 
 environment :: LP Blocks
 environment = do
