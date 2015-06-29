@@ -4,7 +4,4 @@ module Text.Pandoc.Data (dataFiles) where
 import qualified Data.ByteString as B
 
 dataFiles :: [(FilePath, B.ByteString)]
-dataFiles = %blobs "data"
-
-readmeFile :: B.ByteString
-readmeFile = %blob "README"
+dataFiles = ("README", %blob "README") : %blobs "data"

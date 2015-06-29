@@ -132,7 +132,7 @@ import qualified Data.Text as T (toUpper, pack, unpack)
 import Data.ByteString.Lazy (toChunks)
 
 #ifdef EMBED_DATA_FILES
-import Text.Pandoc.Data (dataFiles, readmeFile)
+import Text.Pandoc.Data (dataFiles)
 #else
 import Paths_pandoc (getDataFileName)
 #endif
@@ -743,12 +743,6 @@ inDirectory path action = E.bracket
                              (const $ setCurrentDirectory path >> action)
 
 readDefaultDataFile :: FilePath -> IO BS.ByteString
-readDefaultDataFile "README" =
-#ifdef EMBED_DATA_FILES
-  return readmeFile
-#else
-  getDataFileName "README" >>= checkExistence >>= BS.readFile
-#endif
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
   case lookup (makeCanonical fname) dataFiles of
@@ -760,7 +754,8 @@ readDefaultDataFile fname =
         go (_:as) ".." = as
         go as     x    = x : as
 #else
-  getDataFileName ("data" </> fname) >>= checkExistence >>= BS.readFile
+  getDataFileName fname' >>= checkExistence >>= BS.readFile
+    where fname' = if fname == "README" then fname else "data" </> fname
 #endif
 
 checkExistence :: FilePath -> IO FilePath
