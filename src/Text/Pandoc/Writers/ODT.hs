@@ -39,7 +39,8 @@ import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Control.Applicative ((<$>))
 import Text.Pandoc.Options ( WriterOptions(..) )
-import Text.Pandoc.Shared ( stringify, readDataFile, fetchItem', warn )
+import Text.Pandoc.Shared ( stringify, readDataFile, fetchItem', warn,
+                            getDefaultReferenceODT )
 import Text.Pandoc.ImageSize ( imageSize, sizeInPoints )
 import Text.Pandoc.MIME ( getMimeType, extensionFromMimeType )
 import Text.Pandoc.Definition
@@ -177,21 +178,3 @@ transformPicMath _ entriesRef (Math t math) = do
                                         , ("xlink:actuate", "onLoad")]
 
 transformPicMath _ _ x = return x
-
-getDefaultReferenceODT :: Maybe FilePath -> IO Archive
-getDefaultReferenceODT datadir = do
-  let paths = ["mimetype",
-               "manifest.rdf",
-               "styles.xml",
-               "content.xml",
-               "meta.xml",
-               "settings.xml",
-               "Configurations2/accelerator/current.xml",
-               "Thumbnails/thumbnail.png",
-               "META-INF/manifest.xml"]
-  let pathToEntry path = do epochtime <- floor `fmap` getPOSIXTime
-                            contents <- (B.fromChunks . (:[])) `fmap`
-                                          readDataFile datadir ("odt/" ++ path)
-                            return $ toEntry path epochtime contents
-  entries <- mapM pathToEntry paths
-  return $ foldr addEntryToArchive emptyArchive entries

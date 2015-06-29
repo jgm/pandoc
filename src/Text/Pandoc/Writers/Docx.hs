@@ -1220,27 +1220,3 @@ fitToPage (x, y) pageWidth
       ((fromIntegral pageWidth) / ((fromIntegral :: Integer -> Double) x)) * (fromIntegral y))
   | otherwise = (x, y)
 
-getDefaultReferenceDocx :: Maybe FilePath -> IO Archive
-getDefaultReferenceDocx datadir = do
-  let paths = ["[Content_Types].xml",
-               "_rels/.rels",
-               "docProps/app.xml",
-               "docProps/core.xml",
-               "word/document.xml",
-               "word/fontTable.xml",
-               "word/footnotes.xml",
-               "word/numbering.xml",
-               "word/settings.xml",
-               "word/webSettings.xml",
-               "word/styles.xml",
-               "word/_rels/document.xml.rels",
-               "word/_rels/footnotes.xml.rels",
-               "word/theme/theme1.xml"]
-  let pathToEntry path = do epochtime <- (floor . utcTimeToPOSIXSeconds) <$>
-                                          getCurrentTime
-                            contents <- toLazy <$> readDataFile datadir
-                                                       ("docx/" ++ path)
-                            return $ toEntry path epochtime contents
-  entries <- mapM pathToEntry paths
-  let archive = foldr addEntryToArchive emptyArchive entries
-  return archive
