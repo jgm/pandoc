@@ -211,10 +211,10 @@ writeDocx opts doc@(Pandoc meta _) = do
   let doc' = stripInvalidChars . walk fixDisplayMath $ doc
   username <- lookup "USERNAME" <$> getEnvironment
   utctime <- getCurrentTime
-  distArchive <- getDefaultReferenceDocx datadir
+  distArchive <- getDefaultReferenceDocx Nothing
   refArchive <- case writerReferenceDocx opts of
                      Just f  -> liftM (toArchive . toLazy) $ B.readFile f
-                     Nothing -> return distArchive
+                     Nothing -> getDefaultReferenceDocx datadir
 
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
   let wname f qn = qPrefix qn == Just "w" && f (qName qn)
