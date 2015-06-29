@@ -117,6 +117,7 @@ import System.FilePath ( (</>), takeExtension, dropExtension)
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import qualified Control.Exception as E
+import Control.Applicative ((<$>))
 import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Compat.Locale (defaultTimeLocale)
