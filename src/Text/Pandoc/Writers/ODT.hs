@@ -39,7 +39,7 @@ import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Control.Applicative ((<$>))
 import Text.Pandoc.Options ( WriterOptions(..) )
-import Text.Pandoc.Shared ( stringify, readDataFile, fetchItem', warn,
+import Text.Pandoc.Shared ( stringify, fetchItem', warn,
                             getDefaultReferenceODT )
 import Text.Pandoc.ImageSize ( imageSize, sizeInPoints )
 import Text.Pandoc.MIME ( getMimeType, extensionFromMimeType )
