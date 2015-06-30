@@ -38,9 +38,10 @@ mkdir -p $DEST/share/man/man1
 mkdir -p $DEST/share/man/man5
 for f in pandoc pandoc-citeproc; do
   cp $SANDBOX/bin/$f $DEST/bin/;
-  cp $MANDIR/man1/$f.1 $DEST/share/man/man1/
 done
-cp $MANDIR/man5/pandoc_markdown.5 $DEST/share/man/man5/
+cp $MANDIR/man1/pandoc_citeproc.1 $DEST/share/man/man1/
+$SANDBOX/bin/pandoc --man1 > $DEST/share/man/man1/pandoc.1
+$SANDBOX/bin/pandoc --man5 > $DEST/share/man/man5/pandoc_citeproc.5
 
 chown -R $ME:staff $DIST
 
