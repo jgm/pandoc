@@ -1,3 +1,91 @@
+pandoc (1.14.1)
+
+  * Added `--man1` and `--man5` options to pandoc, allowing pandoc
+    to generate its own man pages.  Man pages are no longer automatically
+    generated in the build process (the process for this was too complex
+    and prone to failure, #2190).  The `make-pandoc-man-pages` executable
+    has been removed.  The `man/` directory has been removed, and man page
+    templates have been moved to `data/`.  NOTE TO PACKAGERS:  You will no
+    longer find pandoc's man pages in `man/`, but you can generate them using
+    `pandoc --man1 > pandoc.1` and `pandoc --man5 > pandoc_markdown.5`.
+
+  * Added new unexported module:  `Text.Pandoc.ManPages`.
+
+  * `README` now acts like a data file (even though it isn't in
+    `data/`).  So, for example, `pandoc --print-default-data-file README`
+    will produce the README.)  This change was required for the `--man1`
+    and `--man5` options, since the man pages are produced from the
+    README, but it may be useful for other purposes as well.
+
+  * Allow `reference.docx` and `reference.odt` to be used with
+    `--print-default-data-file` and to shadow defaults if placed in
+    the user data directory.  Note that as of 1.14, we no longer
+    include these files as data files; instead, we include their
+    components.  This change causes pandoc to behave as if it has
+    these data files; they are constructed on demand when needed
+    using `getDefaultReferenceDocx` and `getDefaultReferenceODT`.
+
+  * Fixed regression in CSS parsing with `--self-contained` (#2224).
+    Pandoc 1.14.0.x used css-text to parse the CSS, but its parser
+    silently drops big sections of CSS.  This commit replaces the
+    use of css-text with a small but principled CSS preprocessor,
+    which removes whitespace and comments and replaces `url()` with
+    base 64 data when possible.
+
+  * Use `https://` instead of `//` for MathJax and KaTeX CDN URLs (#1920).
+    This will allow math to work when pages are being viewed locally.
+
+  * `Text.Pandoc.Options`:  Export `plainExtensions`.
+    These are the extensions used in `plain` output.
+
+  * LaTeX reader: Don't parse `_` and `^` as sub/superscript outside of
+    math mode; treat them as regular inline text.  Normally these will
+    cause an error in LaTeX, but there are contexts (e.g. `alltt`
+    environments) where they are allowed.
+
+  * HTML reader:  allow `<body>` to close `<head>`.
+
+  * DocBook reader: support `mediaobject`s and `figures` (#2184, mb21).
+
+  * RST reader: Fix reference names with special characters
+    (Lars-Dominik Braun).
+
+  * Textile writer:  escape `+` and `-` as entities (#2225).
+
+  * DokuWiki writer: Use proper `<code>` tags for code blocks (#2213).
+
+  * Plain writer:  don't use symbols for super/subscript (#2237).
+    Simplified code by using `plainExtensions`.
+
+  * InDesign writer: Properly escape URLs containing more than one
+    colon character (gohai).
+
+  * Docx writer: Make sure we use dist version of `reference.docx`
+    (and not the user's version) for certain settings.  Taking some
+    settings values from a user-supplied reference.docx can lead to
+    corruption.  This fixes a regression from the last release (#2249).
+
+  * `Text.Pandoc.Shared`: exports `getDefaultReferenceDocx` and
+    `getDefaultReferenceODT` (API change).  These functions have been
+    removed from the Docx and ODT writers.
+
+  * LaTeX template (Xavier Olive):
+    + Added `CJKmainfont` and `CJKoptions` variables.
+    + Allow dvipsnames (e.g. `MidnightBlue`) for colors (Xavier Olive).
+
+  * Epub templates:  use `author.role`, not `author.type`.
+
+  * Bump cmark version to >= 0.3.4.
+
+  * Improved Windows installer (#2205, thanks to nkalvi).
+    Users can now select a per-user or systemwide install, and can set
+    the installation path.  At the end of installation, the install location
+    is given.  The install location is also now given in the list of
+    installed programs in Control Panel.  Cleaner WiX syntax is used for
+    setting the path.
+
+  * Added `download_stats` target to Makefile.
+
 pandoc (1.14.0.4)
 
   * Added missing commonmark template.
