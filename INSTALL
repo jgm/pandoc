@@ -77,7 +77,7 @@ Quick install
 
 To build the `pandoc.1` man page:
 
-    make man/man1/pandoc.1
+    pandoc --print-default-data-file pandoc.1 > pandoc.1
 
 To build the `pandoc-citeproc` man pages, go to the pandoc-citeproc
 build directory, and

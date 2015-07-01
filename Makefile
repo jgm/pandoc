@@ -40,21 +40,11 @@ debpkg:
 osxpkg:
 	./make_osx_package.sh
 
-man/man1/pandoc.1: README man/pandoc.1.template
-	@[ -n "$(pandoc)" ] || \
-		(echo "Could not find pandoc in dist/" && exit 1)
-	$(pandoc) $< -t man -s --template man/pandoc.1.template \
-	   --filter man/capitalizeHeaders.hs \
-	   --filter man/removeNotes.hs \
-	   --filter man/removeLinks.hs \
-	   -o $@
-
 download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
 		jq '[.[] | .assets | .[] | {name: .name, download_count: .download_count}]'
 
 clean:
 	cabal clean
-	-rm man/man1/pandoc.1
 
-.PHONY: deps quick full install man clean test bench haddock osxpkg dist bindist prof download_stats
+.PHONY: deps quick full install clean test bench osxpkg dist prof download_stats

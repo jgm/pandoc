@@ -31,6 +31,8 @@ main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
       -- enable hsb2hs preprocessor for .hsb files
       hookedPreProcessors = [ppBlobSuffixHandler]
+    , postBuild = \args bf pkgdescr lbi ->
+                  makeManPages args bf pkgdescr lbi
     }
 
 ppBlobSuffixHandler :: PPSuffixHandler
@@ -45,3 +47,18 @@ ppBlobSuffixHandler = ("hsb", \_ _ ->
             Nothing -> error "hsb2hs is needed to build this program: cabal install hsb2hs"
          return ()
   })
+
+makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo
+             -> IO ()
+makeManPages _ bf _ LocalBuildInfo{buildDir=buildDir}
+  = do info verbosity "Creating data/pandoc.1"
+       rawSystemExit verbosity progPath args
+  where verbosity = fromFlagOrDefault normal $ buildVerbosity bf
+        progPath = buildDir </> "pandoc" </> "pandoc"
+        args = ["README", "-t", "man", "-s",
+                "--template", "man/pandoc.1.template",
+                "--filter", "man/capitalizeHeaders.hs",
+                "--filter", "man/removeNotes.hs",
+                "--filter", "man/removeLinks.hs",
+                "-o", "data/pandoc.1"]
+
