@@ -31,23 +31,21 @@ echo Building pandoc...
 cabal clean
 cabal install --force --reinstall --flags="embed_data_files make-pandoc-man-pages" . pandoc-citeproc
 
-make man
+make $MANDIR/man1/pandoc.1
 # get pandoc-citeproc man page:
 PANDOC_CITEPROC_PATH=`cabal unpack -d make_binary_package.tmp.$$ pandoc-citeproc | awk '{print $3;}'`
 strip $SANDBOX/bin/pandoc
 strip $SANDBOX/bin/pandoc-citeproc
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
-mkdir -p $DEST/share/man/man5
 mkdir -p $DEST/share/doc/pandoc
+
 mkdir -p $DEST/share/doc/pandoc-citeproc
 find $DIST -type d | xargs chmod 755
 cp $SANDBOX/bin/pandoc $DEST/bin/
 cp $SANDBOX/bin/pandoc-citeproc $DEST/bin/
-$SANDBOX/bin/pandoc --man1 > $DEST/share/man/man1/pandoc.1
+cp $MANDIR/man1/pandoc.1 $DEST/share/man/man1/pandoc.1
 gzip -9 $DEST/share/man/man1/pandoc.1
-$SANDBOX/bin/pandoc --man5 > $DEST/share/man/man5/pandoc_markdown.5
-gzip -9 $DEST/share/man/man5/pandoc_markdown.5
 cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
 cp COPYRIGHT $COPYRIGHT
