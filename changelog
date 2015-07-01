@@ -1,3 +1,30 @@
+pandoc (1.15)
+
+  * Man page changes:
+
+    + Removed `--man1`, `--man5` options (breaking change).
+    + Removed `Text.Pandoc.ManPages` module (breaking API change).
+    + Makefile target for `man/man1/pandoc.1`.  This uses pandoc to
+      create the man page from README using a custom template and filters.
+    + Added `man/` directory with template and filters needed to build
+      man page.
+    + We no longer have two man pages: `pandoc.1` and `pandoc_markdown.5`.
+      Now there is just pandoc.1, which has all the content from README.
+      This change was needed because of the extensive cross-references
+      between parts of the README.
+    + Removed old `data/pandoc.1.template` and
+      `data/pandoc_markdown.5.template`.
+
+  * OpenDocument writer: Do not add a carriage return after a hard
+    line break (Michael Chladek).
+
+  * ConTeXt writer:
+
+    + use `\goto` for internal links.
+    + Added a `%` at end for `\reference` to avoid spurious space.
+
+  * Ignore sandbox on 'make quick'
+
 pandoc (1.14.1)
 
   * Added `--man1` and `--man5` options to pandoc, allowing pandoc
