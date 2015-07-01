@@ -156,8 +156,8 @@ blockToConTeXt (Div (ident,_,_) bs) = do
   if null ident
      then return contents
      else return $
-          ("\\reference" <> brackets (text $ toLabel ident) <> braces empty)
-          $$ contents
+          ("\\reference" <> brackets (text $ toLabel ident) <> braces empty <>
+            "%") $$ contents
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ ("\\startitemize" <> if isTightList lst
