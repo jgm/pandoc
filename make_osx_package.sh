@@ -31,7 +31,6 @@ cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags
 make man
 # get pandoc-citeproc man page:
 PANDOC_CITEPROC_PATH=`cabal unpack -d $DIST pandoc-citeproc | awk '{print $3;}'`
-cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $MANDIR/man1/
 
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
@@ -39,7 +38,7 @@ mkdir -p $DEST/share/man/man5
 for f in pandoc pandoc-citeproc; do
   cp $SANDBOX/bin/$f $DEST/bin/;
 done
-cp $MANDIR/man1/pandoc_citeproc.1 $DEST/share/man/man1/
+cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 $SANDBOX/bin/pandoc --man1 > $DEST/share/man/man1/pandoc.1
 $SANDBOX/bin/pandoc --man5 > $DEST/share/man/man5/pandoc_citeproc.5
 
