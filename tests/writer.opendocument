@@ -896,8 +896,7 @@ of a paragraph looked like a list item.</text:p>
 <text:p text:style-name="Text_20_body">Here’s one with a bullet. *
 criminey.</text:p>
 <text:p text:style-name="Text_20_body">There should be a hard line
-break<text:line-break />
-here.</text:p>
+break<text:line-break />here.</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Block
 Quotes</text:h>
