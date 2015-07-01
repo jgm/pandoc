@@ -28,7 +28,7 @@ cabal clean
 cabal install cpphs hsb2hs
 cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files make-pandoc-man-pages" --ghc-options "-pgmP$CPPHS -optP--cpp" . pandoc-citeproc
 
-make $MANDIR/man1/pandoc.1
+make -B $MANDIR/man1/pandoc.1
 # get pandoc-citeproc man page:
 PANDOC_CITEPROC_PATH=`cabal unpack -d $DIST pandoc-citeproc | awk '{print $3;}'`
 

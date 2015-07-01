@@ -31,7 +31,7 @@ echo Building pandoc...
 cabal clean
 cabal install --force --reinstall --flags="embed_data_files make-pandoc-man-pages" . pandoc-citeproc
 
-make $MANDIR/man1/pandoc.1
+make -B $MANDIR/man1/pandoc.1
 # get pandoc-citeproc man page:
 PANDOC_CITEPROC_PATH=`cabal unpack -d make_binary_package.tmp.$$ pandoc-citeproc | awk '{print $3;}'`
 strip $SANDBOX/bin/pandoc
