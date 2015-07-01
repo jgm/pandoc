@@ -5,7 +5,6 @@ SANDBOX=`pwd`/.cabal-sandbox
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
-MANDIR=`pwd`/man
 DEST=$ROOT/usr/local
 OSX=osx
 SCRIPTS=$OSX/osx-resources
@@ -28,7 +27,7 @@ cabal clean
 cabal install cpphs hsb2hs
 cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files make-pandoc-man-pages" --ghc-options "-pgmP$CPPHS -optP--cpp" . pandoc-citeproc
 
-make -B $MANDIR/man1/pandoc.1
+make -B man/man1/pandoc.1
 # get pandoc-citeproc man page:
 PANDOC_CITEPROC_PATH=`cabal unpack -d $DIST pandoc-citeproc | awk '{print $3;}'`
 
@@ -39,7 +38,7 @@ for f in pandoc pandoc-citeproc; do
   cp $SANDBOX/bin/$f $DEST/bin/;
 done
 cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
-cp $MANDIR/man1/pandoc.1 $DEST/share/man/man1/pandoc.1
+cp man/man1/pandoc.1 $DEST/share/man/man1/pandoc.1
 
 chown -R $ME:staff $DIST
 
