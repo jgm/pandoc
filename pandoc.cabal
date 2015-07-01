@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.14.1
+Version:         1.15
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
@@ -106,9 +106,6 @@ Data-Files:
                  data/sample.lua
                  -- documentation
                  README, COPYRIGHT
-                 -- man page templates
-                 data/pandoc.1.template
-                 data/pandoc_markdown.5.template
 Extra-Source-Files:
                  -- documentation
                  INSTALL, BUGS, CONTRIBUTING.md, changelog
@@ -355,8 +352,7 @@ Library
                    Text.Pandoc.Templates,
                    Text.Pandoc.XML,
                    Text.Pandoc.SelfContained,
-                   Text.Pandoc.Process,
-                   Text.Pandoc.ManPages
+                   Text.Pandoc.Process
   Other-Modules:   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Reducible,
                    Text.Pandoc.Readers.Docx.Parse,

@@ -75,11 +75,9 @@ Quick install
          --extra-include-dirs=/usr/local/Cellar/icu4c/51.1/include \
          -funicode_collation text-icu pandoc-citeproc
 
-To build the `pandoc.1` and `pandoc_markdown.5` man pages, you
-can ues pandoc itself:
+To build the `pandoc.1` man page:
 
-    pandoc --man1 > pandoc.1
-    pandoc --man5 > pandoc_markdown.5
+    make man/man1/pandoc.1
 
 To build the `pandoc-citeproc` man pages, go to the pandoc-citeproc
 build directory, and

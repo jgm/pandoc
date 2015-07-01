@@ -1,18 +1,17 @@
 version=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
-setup=dist/setup/setup
-PREFIX ?= /usr/local
+pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 
 quick:
 	cabal configure --enable-tests --disable-optimization
 	cabal build
 
 full:
-	cabal configure --enable-tests --enable-optimization -ftrypandoc -fmake-pandoc-man-pages -fembed_data_files --enable-benchmarks
+	cabal configure --enable-tests --enable-optimization -ftrypandoc -fembed_data_files --enable-benchmarks
 	cabal build
 	cabal haddock
 
 deps:
-	cabal install --only-dependencies --enable-tests -ftrypandoc -fmake-pandoc-man-pages -fembed_data_files --enable-benchmarks
+	cabal install --only-dependencies --enable-tests -ftrypandoc -fembed_data_files --enable-benchmarks
 
 prof:
 	cabal configure --enable-library-profiling --enable-executable-profiling --enable-optimization --enable-tests
@@ -28,7 +27,7 @@ install: full
 	cabal copy
 	cabal register
 
-dist: man
+dist:
 	cabal sdist
 	rm -rf "pandoc-${version}"
 	tar xvzf dist/pandoc-${version}.tar.gz
@@ -41,11 +40,14 @@ debpkg:
 osxpkg:
 	./make_osx_package.sh
 
-%.1: %.1.template README
-	${makemanpages}
-
-%.5: %.5.template README
-	${makemanpages}
+man/man1/pandoc.1: README man/pandoc.1.template
+	@[ -n "$(pandoc)" ] || \
+		(echo "Could not find pandoc in dist/" && exit 1)
+	$(pandoc) $< -t man -s --template man/pandoc.1.template \
+	   --filter man/capitalizeHeaders.hs \
+	   --filter man/removeNotes.hs \
+	   --filter man/removeLinks.hs \
+	   -o $@
 
 download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
@@ -53,6 +55,6 @@ download_stats:
 
 clean:
 	cabal clean
-	-rm -rf $(BINDIST) $(BINDIST).tar.gz
+	-rm man/man1/pandoc.1
 
 .PHONY: deps quick full install man clean test bench haddock osxpkg dist bindist prof download_stats
