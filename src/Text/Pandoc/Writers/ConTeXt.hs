@@ -302,13 +302,8 @@ inlineToConTeXt (Link txt          (('#' : ref), _)) = do
   opts <- gets stOptions
   contents <-  inlineListToConTeXt txt
   let ref' = toLabel $ stringToConTeXt opts ref
-  return $ text "\\in"
-           <> braces (if writerNumberSections opts
-                         then contents <+> text "(\\S"
-                         else contents)  -- prefix
-           <> braces (if writerNumberSections opts
-                         then text ")"
-                         else empty)  -- suffix
+  return $ text "\\goto"
+           <> braces contents
            <> brackets (text ref')
 
 inlineToConTeXt (Link txt          (src, _))      = do
