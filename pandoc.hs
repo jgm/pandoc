@@ -58,7 +58,7 @@ import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad (when, unless, (>=>))
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isNothing)
 import Data.Foldable (foldrM)
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
@@ -142,12 +142,18 @@ externalFilter f args' d = do
                                          ".php" -> ("php", f:args')
                                          _      -> (f, args')
                                 else err 85 $ "Filter " ++ f ++ " not found"
+      when (f' /= f) $ do
+          mbExe <- findExecutable f'
+          when (isNothing mbExe) $
+            err 83 $ "Error running filter " ++ f ++ "\n" ++
+                      show f' ++ " not found in path."
       (exitcode, outbs, errbs) <- E.handle filterException $
                                     pipeProcess Nothing f' args'' $ encode d
       when (not $ B.null errbs) $ B.hPutStr stderr errbs
       case exitcode of
            ExitSuccess    -> return $ either error id $ eitherDecode' outbs
-           ExitFailure _  -> err 83 $ "Error running filter " ++ f
+           ExitFailure ec -> err 83 $ "Error running filter " ++ f ++ "\n" ++
+                                       "Filter returned error status " ++ show ec
  where filterException :: E.SomeException -> IO a
        filterException e = err 83 $ "Error running filter " ++ f ++ "\n" ++
                                        show e
