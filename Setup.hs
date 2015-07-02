@@ -32,12 +32,8 @@ main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
       -- enable hsb2hs preprocessor for .hsb files
       hookedPreProcessors = [ppBlobSuffixHandler]
-    , postBuild = \args bf pkgdescr lbi ->
-                  makeManPage args bf pkgdescr lbi
-
-    , postCopy = \_ flags pkg lbi ->
-                installManpage pkg lbi (fromFlag $ copyVerbosity flags)
-                NoCopyDest
+    , postBuild = makeManPage
+    , postCopy = installManPage
     }
 
 ppBlobSuffixHandler :: PPSuffixHandler
@@ -53,8 +49,8 @@ ppBlobSuffixHandler = ("hsb", \_ _ ->
          return ()
   })
 
-makeManPage :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo
-            -> IO ()
+makeManPage :: Args -> BuildFlags
+            -> PackageDescription -> LocalBuildInfo -> IO ()
 makeManPage _ bf _ LocalBuildInfo{buildDir=buildDir}
   = do notice verbosity "Creating man/pandoc.1"
        rawSystemExit verbosity progPath args
@@ -67,9 +63,12 @@ makeManPage _ bf _ LocalBuildInfo{buildDir=buildDir}
                 "--filter", "man/removeLinks.hs",
                 "-o", "man/pandoc.1"]
 
-installManpage :: PackageDescription -> LocalBuildInfo
-               -> Verbosity -> CopyDest -> IO ()
-installManpage pkg lbi verbosity copy = do
-  let mandest = mandir (absoluteInstallDirs pkg lbi copy) </> "man1"
+installManPage :: Args -> CopyFlags
+               -> PackageDescription -> LocalBuildInfo -> IO ()
+installManPage _ flags pkg lbi = do
+  let verbosity = fromFlag (copyVerbosity flags)
+  let copydest  = fromFlag (copyDest flags)
+  let mandest   = mandir (absoluteInstallDirs pkg lbi copydest)
+                     </> "man1"
   notice verbosity $ "Copying man page to " ++ mandest
   installOrdinaryFiles verbosity mandest [("man", "pandoc.1")]
