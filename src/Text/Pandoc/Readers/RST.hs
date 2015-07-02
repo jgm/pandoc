@@ -209,7 +209,7 @@ rawFieldListItem minIndent = try $ do
 fieldListItem :: Int -> RSTParser (Inlines, [Blocks])
 fieldListItem minIndent = try $ do
   (name, raw) <- rawFieldListItem minIndent
-  let term = B.str name
+  term <- parseFromString (trimInlines . mconcat <$> many inline) name
   contents <- parseFromString parseBlocks raw
   optional blanklines
   return (term, [contents])
