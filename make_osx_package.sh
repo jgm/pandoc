@@ -37,7 +37,7 @@ for f in pandoc pandoc-citeproc; do
   cp $SANDBOX/bin/$f $DEST/bin/;
 done
 cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
-$SANDBOX/bin/pandoc --print-default-data-file pandoc.1 > $DEST/share/man/man1/pandoc.1
+cp $SANDBOX/share/man/man1/pandoc.1 $DEST/share/man/man1/pandoc.1
 
 chown -R $ME:staff $DIST
 

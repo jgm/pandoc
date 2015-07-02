@@ -18,11 +18,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import Distribution.Simple
 import Distribution.Simple.PreProcess
+import Distribution.Simple.InstallDirs (mandir)
 import Distribution.PackageDescription (PackageDescription(..), Executable(..))
 import System.Process ( rawSystem )
 import System.FilePath ( (</>) )
 import System.Directory ( findExecutable )
-import Distribution.Simple.Utils (info, rawSystemExit)
+import Distribution.Simple.Utils (info, notice, rawSystemExit, installOrdinaryFile)
 import Distribution.Simple.Setup
 import Distribution.Simple.LocalBuildInfo
 import Distribution.Verbosity
@@ -32,7 +33,11 @@ main = defaultMainWithHooks $ simpleUserHooks {
       -- enable hsb2hs preprocessor for .hsb files
       hookedPreProcessors = [ppBlobSuffixHandler]
     , postBuild = \args bf pkgdescr lbi ->
-                  makeManPages args bf pkgdescr lbi
+                  makeManPage args bf pkgdescr lbi
+
+    , postCopy = \_ flags pkg lbi ->
+                installManpage pkg lbi (fromFlag $ copyVerbosity flags)
+                NoCopyDest
     }
 
 ppBlobSuffixHandler :: PPSuffixHandler
@@ -48,10 +53,10 @@ ppBlobSuffixHandler = ("hsb", \_ _ ->
          return ()
   })
 
-makeManPages :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo
-             -> IO ()
-makeManPages _ bf _ LocalBuildInfo{buildDir=buildDir}
-  = do info verbosity "Creating data/pandoc.1"
+makeManPage :: Args -> BuildFlags -> PackageDescription -> LocalBuildInfo
+            -> IO ()
+makeManPage _ bf _ LocalBuildInfo{buildDir=buildDir}
+  = do notice verbosity "Creating man/pandoc.1"
        rawSystemExit verbosity progPath args
   where verbosity = fromFlagOrDefault normal $ buildVerbosity bf
         progPath = buildDir </> "pandoc" </> "pandoc"
@@ -60,5 +65,12 @@ makeManPages _ bf _ LocalBuildInfo{buildDir=buildDir}
                 "--filter", "man/capitalizeHeaders.hs",
                 "--filter", "man/removeNotes.hs",
                 "--filter", "man/removeLinks.hs",
-                "-o", "data/pandoc.1"]
+                "-o", "man/pandoc.1"]
 
+installManpage :: PackageDescription -> LocalBuildInfo
+               -> Verbosity -> CopyDest -> IO ()
+installManpage pkg lbi verbosity copy = do
+  let mandest = mandir (absoluteInstallDirs pkg lbi copy) </>
+                "man1" </> "pandoc.1"
+  notice verbosity $ "Copying man page to " ++ mandest
+  installOrdinaryFile verbosity ("man" </> "pandoc.1") mandest

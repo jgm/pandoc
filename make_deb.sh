@@ -42,7 +42,7 @@ mkdir -p $DEST/share/doc/pandoc-citeproc
 find $DIST -type d | xargs chmod 755
 cp $SANDBOX/bin/pandoc $DEST/bin/
 cp $SANDBOX/bin/pandoc-citeproc $DEST/bin/
-$SANDBOX/bin/pandoc --print-default-data-file pandoc.1 > $DEST/share/man/man1/pandoc.1
+cp $SANDBOX/share/man/man1/pandoc.1 $DEST/share/man/man1/pandoc.1
 gzip -9 $DEST/share/man/man1/pandoc.1
 cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
