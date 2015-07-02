@@ -109,7 +109,12 @@ Data-Files:
 Extra-Source-Files:
                  -- documentation
                  INSTALL, BUGS, CONTRIBUTING.md, changelog
-                -- trypandoc
+                 -- files needed to build man page
+                 man/capitalizeHeaders.hs
+                 man/removeNotes.hs
+                 man/removeLinks.hs
+                 man/pandoc.1.template
+                 -- trypandoc
                  trypandoc/Makefile
                  trypandoc/index.html
                  -- tests
