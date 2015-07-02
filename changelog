@@ -1,3 +1,7 @@
+pandoc (1.15.0.3)
+
+  * Ensure target directory is created when installing man page.
+
 pandoc (1.15.0.2)
 
   * Added files needed for building man page to Extra-Source-Files.
