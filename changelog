@@ -1,3 +1,8 @@
+pandoc (1.15.0.1)
+
+  * Man page is now built and installed as part of the cabal build
+    process. Removed Makefile target for man page.
+
 pandoc (1.15)
 
   * Man page changes:
