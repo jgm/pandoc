@@ -23,7 +23,7 @@ import Distribution.PackageDescription (PackageDescription(..), Executable(..))
 import System.Process ( rawSystem )
 import System.FilePath ( (</>) )
 import System.Directory ( findExecutable )
-import Distribution.Simple.Utils (info, notice, rawSystemExit, installOrdinaryFile)
+import Distribution.Simple.Utils (info, notice, rawSystemExit, installOrdinaryFiles)
 import Distribution.Simple.Setup
 import Distribution.Simple.LocalBuildInfo
 import Distribution.Verbosity
@@ -70,7 +70,6 @@ makeManPage _ bf _ LocalBuildInfo{buildDir=buildDir}
 installManpage :: PackageDescription -> LocalBuildInfo
                -> Verbosity -> CopyDest -> IO ()
 installManpage pkg lbi verbosity copy = do
-  let mandest = mandir (absoluteInstallDirs pkg lbi copy) </>
-                "man1" </> "pandoc.1"
+  let mandest = mandir (absoluteInstallDirs pkg lbi copy) </> "man1"
   notice verbosity $ "Copying man page to " ++ mandest
-  installOrdinaryFile verbosity ("man" </> "pandoc.1") mandest
+  installOrdinaryFiles verbosity mandest [("man", "pandoc.1")]
