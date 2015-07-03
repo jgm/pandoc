@@ -8,4 +8,5 @@
   ,[OrderedList (1,Decimal,Period)
     [[Para [Str "Cell",Space,Str "with"]]
     ,[Para [Str "A"]]
-    ,[Para [Str "Numbered",Space,Str "list."]]]]]]]
+    ,[Para [Str "Numbered",Space,Str "list."]]]]]]
+,Para []]
