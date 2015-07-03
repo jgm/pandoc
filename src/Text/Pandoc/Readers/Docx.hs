@@ -481,9 +481,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
       then do modify $ \s -> s { docxDropCap = ils' }
               return mempty
       else do modify $ \s -> s { docxDropCap = mempty }
-              return $ case isNull ils' of
-                True -> mempty
-                _ -> parStyleToTransform pPr $ para ils'
+              return $ parStyleToTransform pPr $ para ils'
 bodyPartToBlocks (ListItem pPr numId lvl levelInfo parparts) = do
   let
     kvs = case levelInfo of
