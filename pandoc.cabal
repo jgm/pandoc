@@ -109,6 +109,7 @@ Data-Files:
 Extra-Source-Files:
                  -- documentation
                  INSTALL, BUGS, CONTRIBUTING.md, changelog
+                 man/pandoc.1
                  -- files needed to build man page
                  man/capitalizeHeaders.hs
                  man/removeNotes.hs
@@ -209,7 +210,6 @@ Extra-Source-Files:
                  tests/epub/*.native
                  tests/txt2tags.t2t
                  tests/twiki-reader.twiki
-Extra-Tmp-Files: man/pandoc.1
 
 Source-repository head
   type:          git

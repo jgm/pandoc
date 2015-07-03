@@ -18,21 +18,18 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import Distribution.Simple
 import Distribution.Simple.PreProcess
-import Distribution.Simple.InstallDirs (mandir)
-import Distribution.PackageDescription (PackageDescription(..), Executable(..))
+import Distribution.PackageDescription (PackageDescription(..))
 import System.Process ( rawSystem )
 import System.FilePath ( (</>) )
 import System.Directory ( findExecutable )
-import Distribution.Simple.Utils (info, notice, rawSystemExit, installOrdinaryFiles)
+import Distribution.Simple.Utils (info, notice, installOrdinaryFiles)
 import Distribution.Simple.Setup
 import Distribution.Simple.LocalBuildInfo
-import Distribution.Verbosity
 
 main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
       -- enable hsb2hs preprocessor for .hsb files
       hookedPreProcessors = [ppBlobSuffixHandler]
-    , postBuild = makeManPage
     , postCopy = installManPage
     }
 
@@ -48,20 +45,6 @@ ppBlobSuffixHandler = ("hsb", \_ _ ->
             Nothing -> error "hsb2hs is needed to build this program: cabal install hsb2hs"
          return ()
   })
-
-makeManPage :: Args -> BuildFlags
-            -> PackageDescription -> LocalBuildInfo -> IO ()
-makeManPage _ bf _ LocalBuildInfo{buildDir=buildDir}
-  = do notice verbosity "Creating man/pandoc.1"
-       rawSystemExit verbosity progPath args
-  where verbosity = fromFlagOrDefault normal $ buildVerbosity bf
-        progPath = buildDir </> "pandoc" </> "pandoc"
-        args = ["README", "-t", "man", "-s",
-                "--template", "man/pandoc.1.template",
-                "--filter", "man/capitalizeHeaders.hs",
-                "--filter", "man/removeNotes.hs",
-                "--filter", "man/removeLinks.hs",
-                "-o", "man/pandoc.1"]
 
 installManPage :: Args -> CopyFlags
                -> PackageDescription -> LocalBuildInfo -> IO ()

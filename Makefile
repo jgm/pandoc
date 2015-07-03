@@ -27,18 +27,25 @@ install: full
 	cabal copy
 	cabal register
 
-dist:
+dist: man/pandoc.1
 	cabal sdist
 	rm -rf "pandoc-${version}"
 	tar xvzf dist/pandoc-${version}.tar.gz
 	cd pandoc-${version}
 	cabal configure ${CABALARGS} && cabal build && cabal test && cd .. && rm -rf "pandoc-${version}"
 
-debpkg:
+debpkg: man/pandoc.1
 	./make_deb.sh
 
-osxpkg:
+osxpkg: man/pandoc.1
 	./make_osx_package.sh
+
+man/pandoc.1: README man/pandoc.1.template
+	pandoc $< -t man -s --template man/pandoc.1.template \
+		--filter man/capitalizeHeaders.hs \
+		--filter man/removeNotes.hs \
+		--filter man/removeLinks.hs \
+		-o $@
 
 download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \

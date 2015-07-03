@@ -75,12 +75,12 @@ Quick install
          --extra-include-dirs=/usr/local/Cellar/icu4c/51.1/include \
          -funicode_collation text-icu pandoc-citeproc
 
-The `pandoc.1` man page will be built and installed automatically.
-The build process shows you where it is installed: you may need
-to set your `MANPATH` accordingly.
+The `pandoc.1` man page will be installed automatically.  cabal shows
+you where it is installed: you may need to set your `MANPATH`
+accordingly. If `README` has been modified, the man page can be
+rebuilt: `make man/pandoc.1`.
 
-The `pandoc-citeproc.1` man page will also be built and installed
-automatically.
+The `pandoc-citeproc.1` man page will also be installed automatically.
 
 [GHC]: http://www.haskell.org/ghc/
 [Haskell platform]: http://hackage.haskell.org/platform/
