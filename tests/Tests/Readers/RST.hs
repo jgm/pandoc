@@ -62,7 +62,9 @@ tests = [ "line block with blank line" =:
                  $ setMeta "subtitle" ("Subtitle" :: Inlines)
                  $ doc mempty )
           , "with inline markup" =: unlines
-             [ "the following field list is not metadata"
+             [ ":*Date*: today"
+             , ""
+             , ".."
              , ""
              , ":*one*: emphasis"
              , ":two_: reference"
@@ -72,9 +74,9 @@ tests = [ "line block with blank line" =:
              , ".. _two: http://example.com"
              , ".. _three: http://example.org"
              ]
-             =?> ( doc
-                 $ para "the following field list is not metadata" <>
-                   definitionList [ (emph "one", [para "emphasis"])
+             =?> ( setMeta "date" (str "today")
+                 $ doc
+                 $ definitionList [ (emph "one", [para "emphasis"])
                                   , (link "http://example.com" "" "two", [para "reference"])
                                   , (link "http://example.org" "" "three", [para "another one"])
                                   , (code "four", [para "literal"])
