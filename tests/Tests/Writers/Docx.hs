@@ -116,6 +116,9 @@ tests = [ testGroup "inlines"
           , testCompare
             "dropcap paragraphs"
             "docx/drop_cap.native"
+          , testCompare
+            "blank paragraphs"
+            "docx/blank_paragraphs_output.native"
           ]
         , testGroup "metadata"
           [ testCompareWithOpts (def,def{readerStandalone=True})
