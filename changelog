@@ -1,3 +1,16 @@
+pandoc (1.15.0.4)
+
+  * Added pandoc.1 man page to the repository.  It is no longer
+    built as part of the cabal build process. (This proved too
+    fragile.)  pandoc.1 can be regenerated (`make man/pandoc.1`)
+    when `README` is changed.
+
+  * Copying of the man page now respects `--destdir` (#2262).
+
+  * Improved error messages for filters.  User is now informed if
+    the filter requires an interpreter that isn't found in the path,
+    or if the filter returns an error status.
+
 pandoc (1.15.0.3)
 
   * Ensure target directory is created when installing man page.
