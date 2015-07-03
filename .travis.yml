@@ -28,6 +28,7 @@ install:
 
 # Here starts the actual work to be performed for the package under test; any command which exits with a non-zero exit code causes the build to fail.
 script:
+ - cabal-$CABALVER configure --enable-tests # needed for sdist with ghc 7.4.2/cabal 1.16
  - cabal-$CABALVER sdist --output-directory=build
  - cd build
  - cabal-$CABALVER configure --enable-tests -v2  # -v2 provides useful information for debugging
