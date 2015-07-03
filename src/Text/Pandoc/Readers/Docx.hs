@@ -474,7 +474,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
       headerWith ("", delete style (pStyle pPr), []) n ils
   | otherwise = do
     ils <- concatReduce <$> mapM parPartToInlines parparts >>=
-           (return . fromList . trimLineBreaks . normalizeSpaces . toList)
+           (return . fromList . normalizeSpaces . toList)
     dropIls <- gets docxDropCap
     let ils' = dropIls <> ils
     if dropCap pPr
