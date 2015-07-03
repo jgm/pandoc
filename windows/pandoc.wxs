@@ -7,6 +7,7 @@
   Language="1033">
 
     <Package InstallerVersion="200" Compressed="yes"
+    InstallPrivileges="limited"
     Comments="Windows Installer Package" />
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
     <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
