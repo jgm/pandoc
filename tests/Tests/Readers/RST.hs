@@ -22,7 +22,8 @@ tests :: [Test]
 tests = [ "line block with blank line" =:
           "| a\n|\n|  b" =?> para (str "a") <>
                              para (str "\160b")
-        , "field list" =: unlines
+        , testGroup "field list"
+          [ "general" =: unlines
              [ "para"
              , ""
              , ":Hostname: media08"
@@ -36,17 +37,17 @@ tests = [ "line block with blank line" =:
              , ":Parameter i: integer"
              , ":Final: item"
              , "  on two lines" ]
-           =?> ( doc
-               $ para "para" <>
-                 definitionList [ (str "Hostname", [para "media08"])
-                                , (text "IP address", [para "10.0.0.19"])
-                                , (str "Size", [para "3ru"])
-                                , (str "Version", [para "1"])
-                                , (str "Indentation", [para "Since the field marker may be quite long, the second and subsequent lines of the field body do not have to line up with the first line, but they must be indented relative to the field name marker, and they must line up with each other."])
-                                , (text "Parameter i", [para "integer"])
-                                , (str "Final", [para "item on two lines"])
-                              ])
-        , "initial field list" =: unlines
+             =?> ( doc
+                 $ para "para" <>
+                   definitionList [ (str "Hostname", [para "media08"])
+                                  , (text "IP address", [para "10.0.0.19"])
+                                  , (str "Size", [para "3ru"])
+                                  , (str "Version", [para "1"])
+                                  , (str "Indentation", [para "Since the field marker may be quite long, the second and subsequent lines of the field body do not have to line up with the first line, but they must be indented relative to the field name marker, and they must line up with each other."])
+                                  , (text "Parameter i", [para "integer"])
+                                  , (str "Final", [para "item on two lines"])
+                                  ])
+          , "metadata" =: unlines
              [ "====="
              , "Title"
              , "====="
@@ -56,11 +57,11 @@ tests = [ "line block with blank line" =:
              , ""
              , ":Version: 1"
              ]
-           =?> ( setMeta "version" (para "1")
-               $ setMeta "title" ("Title" :: Inlines)
-               $ setMeta "subtitle" ("Subtitle" :: Inlines)
-               $ doc mempty )
-        , "field list name with inline markup" =: unlines
+             =?> ( setMeta "version" (para "1")
+                 $ setMeta "title" ("Title" :: Inlines)
+                 $ setMeta "subtitle" ("Subtitle" :: Inlines)
+                 $ doc mempty )
+          , "with inline markup" =: unlines
              [ "the following field list is not metadata"
              , ""
              , ":*one*: emphasis"
@@ -71,13 +72,14 @@ tests = [ "line block with blank line" =:
              , ".. _two: http://example.com"
              , ".. _three: http://example.org"
              ]
-           =?> (doc
-               $ para "the following field list is not metadata" <>
-                 definitionList [ (emph "one", [para "emphasis"])
-                                , (link "http://example.com" "" "two", [para "reference"])
-                                , (link "http://example.org" "" "three", [para "another one"])
-                                , (code "four", [para "literal"])
-                                ])
+             =?> ( doc
+                 $ para "the following field list is not metadata" <>
+                   definitionList [ (emph "one", [para "emphasis"])
+                                  , (link "http://example.com" "" "two", [para "reference"])
+                                  , (link "http://example.org" "" "three", [para "another one"])
+                                  , (code "four", [para "literal"])
+                                  ])
+          ]
         , "URLs with following punctuation" =:
           ("http://google.com, http://yahoo.com; http://foo.bar.baz.\n" ++
            "http://foo.bar/baz_(bam) (http://foo.bar)") =?>
