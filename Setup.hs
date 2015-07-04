@@ -18,13 +18,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import Distribution.Simple
 import Distribution.Simple.PreProcess
-import Distribution.PackageDescription (PackageDescription(..))
+import Distribution.Simple.Setup (ConfigFlags(..))
+import Distribution.PackageDescription (PackageDescription(..), FlagName(..))
 import System.Process ( rawSystem )
 import System.FilePath ( (</>) )
 import System.Directory ( findExecutable )
 import Distribution.Simple.Utils (info, notice, installOrdinaryFiles)
 import Distribution.Simple.Setup
 import Distribution.Simple.LocalBuildInfo
+import Control.Monad (when)
 
 main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
@@ -34,16 +36,21 @@ main = defaultMainWithHooks $ simpleUserHooks {
     }
 
 ppBlobSuffixHandler :: PPSuffixHandler
-ppBlobSuffixHandler = ("hsb", \_ _ ->
+ppBlobSuffixHandler = ("hsb", \_ lbi ->
   PreProcessor {
     platformIndependent = True,
     runPreProcessor = mkSimplePreProcessor $ \infile outfile verbosity ->
-      do info verbosity $ "Preprocessing " ++ infile ++ " to " ++ outfile
-         hsb2hsPath <- findExecutable "hsb2hs"
-         case hsb2hsPath of
-            Just p  -> rawSystem p [infile, infile, outfile]
-            Nothing -> error "hsb2hs is needed to build this program: cabal install hsb2hs"
-         return ()
+      do let embedData = case lookup (FlagName "embed_data_files")
+                              (configConfigurationsFlags (configFlags lbi)) of
+                              Just True -> True
+                              _         -> False
+         when embedData $
+            do info verbosity $ "Preprocessing " ++ infile ++ " to " ++ outfile
+               hsb2hsPath <- findExecutable "hsb2hs"
+               case hsb2hsPath of
+                    Just p  -> rawSystem p [infile, infile, outfile]
+                    Nothing -> error "hsb2hs is needed to build this program: cabal install hsb2hs"
+               return ()
   })
 
 installManPage :: Args -> CopyFlags
