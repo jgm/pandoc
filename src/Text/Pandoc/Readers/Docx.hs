@@ -52,12 +52,13 @@ implemented, [-] means partially implemented):
 * Inlines
 
   - [X] Str
-  - [X] Emph (italics and underline both read as Emph)
+  - [X] Emph
   - [X] Strong
   - [X] Strikeout
   - [X] Superscript
   - [X] Subscript
   - [X] SmallCaps
+  - [-] Underline (was previously converted to Emph)
   - [ ] Quoted
   - [ ] Cite
   - [X] Code (styled with `VerbatimChar`)
@@ -287,7 +288,7 @@ runStyleToTransform rPr
   | Just SubScrpt <- rVertAlign rPr =
       subscript . (runStyleToTransform rPr {rVertAlign = Nothing})
   | Just "single" <- rUnderline rPr =
-      emph . (runStyleToTransform rPr {rUnderline = Nothing})
+      underlineSpan . (runStyleToTransform rPr {rUnderline = Nothing})
   | otherwise = id
 
 runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
