@@ -49,7 +49,7 @@ man/pandoc.1: README man/pandoc.1.template
 
 download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
-		jq '[.[] | .assets | .[] | {name: .name, download_count: .download_count}]'
+		jq -r '.[] | .assets | .[] | "\(.download_count)\t\(.name)"'
 
 clean:
 	cabal clean
