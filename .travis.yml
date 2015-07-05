@@ -24,6 +24,7 @@ before_install:
 install:
  - cabal-$CABALVER update
 # - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
+ - cabal-$CABALVER install hsb2hs
  - cabal-$CABALVER install $JOPTS --only-dependencies --enable-tests
 
 # Here starts the actual work to be performed for the package under test; any command which exits with a non-zero exit code causes the build to fail.
