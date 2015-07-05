@@ -23,17 +23,34 @@ import Distribution.PackageDescription (PackageDescription(..), FlagName(..))
 import System.Process ( rawSystem )
 import System.FilePath ( (</>) )
 import System.Directory ( findExecutable )
+import Distribution.Verbosity ( Verbosity )
 import Distribution.Simple.Utils (info, notice, installOrdinaryFiles)
 import Distribution.Simple.Setup
+import Distribution.Simple.Program (simpleProgram, Program(..))
 import Distribution.Simple.LocalBuildInfo
+import Data.Version
+import System.Process (readProcess)
+import Text.ParserCombinators.ReadP (readP_to_S, skipSpaces, eof)
 import Control.Monad (when)
 
 main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
       -- enable hsb2hs preprocessor for .hsb files
       hookedPreProcessors = [ppBlobSuffixHandler]
+    , hookedPrograms = [(simpleProgram "hsb2hs"){
+                           programFindVersion = findHsb2hsVersion }]
     , postCopy = installManPage
     }
+
+findHsb2hsVersion :: Verbosity -> FilePath -> IO (Maybe Version)
+findHsb2hsVersion verb fp = do
+  outp <- readProcess fp ["--version"] ""
+  case readP_to_S (do v <- parseVersion
+                      skipSpaces
+                      eof
+                      return v) outp of
+       ((v,""):_) -> return (Just v)
+       _          -> return Nothing
 
 ppBlobSuffixHandler :: PPSuffixHandler
 ppBlobSuffixHandler = ("hsb", \_ lbi ->
