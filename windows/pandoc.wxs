@@ -7,7 +7,6 @@
   Language="1033">
 
     <Package InstallerVersion="200" Compressed="yes"
-    InstallPrivileges="limited"
     Comments="Windows Installer Package" />
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
     <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
@@ -135,6 +134,8 @@
 
     <Property Id="ApplicationFolderName" Value="Pandoc" />
     <Property Id="WixAppFolder" Value="WixPerUserFolder" />
+    <Property Id="ALLUSERS" Value="2" Secure="yes" />
+    <Property Id='MSIINSTALLPERUSER' Value='1' />
 
     <WixVariable Id="WixUILicenseRtf" Value="..\COPYING.rtf" />
 
