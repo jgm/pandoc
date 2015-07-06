@@ -31,7 +31,7 @@ $endif$
 
 \definedescription
   [description]
-  [headstyle=bold, style=normal, location=hanging, width=broad, margin=1cm]
+  [headstyle=bold, style=normal, location=hanging, width=broad, margin=1cm, alternative=hanging]
 
 \setupitemize[autointro]    % prevent orphan list intro
 \setupitemize[indentnext=no]
