@@ -32,6 +32,7 @@ import Data.Version
 import System.Process (readProcess)
 import Text.ParserCombinators.ReadP (readP_to_S, skipSpaces, eof)
 import Control.Monad (when)
+import qualified Control.Exception as E
 
 main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
@@ -44,13 +45,16 @@ main = defaultMainWithHooks $ simpleUserHooks {
 
 findHsb2hsVersion :: Verbosity -> FilePath -> IO (Maybe Version)
 findHsb2hsVersion verb fp = do
-  outp <- readProcess fp ["--version"] ""
-  case readP_to_S (do v <- parseVersion
-                      skipSpaces
-                      eof
-                      return v) outp of
-       ((v,""):_) -> return (Just v)
-       _          -> return Nothing
+  let handleExitFailure :: IOError -> IO (Maybe Version)
+      handleExitFailure _ = return Nothing
+  E.handle handleExitFailure $ do
+    outp <- readProcess fp ["--version"] ""
+    case readP_to_S (do v <- parseVersion
+                        skipSpaces
+                        eof
+                        return v) outp of
+         ((v,""):_) -> return (Just v)
+         _          -> return Nothing
 
 ppBlobSuffixHandler :: PPSuffixHandler
 ppBlobSuffixHandler = ("hsb", \_ lbi ->
