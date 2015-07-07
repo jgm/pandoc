@@ -375,8 +375,8 @@ obfuscateLink opts (renderHtml -> txt) s =
               (linkText, altText) =
                  if txt == drop 7 s' -- autolink
                     then ("e", name' ++ " at " ++ domain')
-                    else ("'" ++ txt ++ "'", txt ++ " (" ++ name' ++ " at " ++
-                          domain' ++ ")")
+                    else ("'" ++ obfuscateString txt ++ "'",
+                          txt ++ " (" ++ name' ++ " at " ++ domain' ++ ")")
           in  case meth of
                 ReferenceObfuscation ->
                      -- need to use preEscapedString or &'s are escaped to &amp; in URL
