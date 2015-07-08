@@ -144,11 +144,11 @@ inlineToNodes (Strikeout xs) =
   ((node (INLINE_HTML (T.pack "<s>")) [] : inlinesToNodes xs ++
    [node (INLINE_HTML (T.pack "</s>")) []]) ++ )
 inlineToNodes (Superscript xs) =
-  ((node (INLINE_HTML (T.pack "<sub>")) [] : inlinesToNodes xs ++
-   [node (INLINE_HTML (T.pack "</sub>")) []]) ++ )
-inlineToNodes (Subscript xs) =
   ((node (INLINE_HTML (T.pack "<sup>")) [] : inlinesToNodes xs ++
    [node (INLINE_HTML (T.pack "</sup>")) []]) ++ )
+inlineToNodes (Subscript xs) =
+  ((node (INLINE_HTML (T.pack "<sub>")) [] : inlinesToNodes xs ++
+   [node (INLINE_HTML (T.pack "</sub>")) []]) ++ )
 inlineToNodes (SmallCaps xs) =
   ((node (INLINE_HTML (T.pack "<span style=\"font-variant:small-caps;\">")) []
     : inlinesToNodes xs ++
