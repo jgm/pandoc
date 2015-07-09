@@ -190,7 +190,7 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
     let file' = file
 #endif
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
-         "-output-directory", tmpDir', file'] ++ args
+         "-output-directory", tmpDir'] ++ args ++ [file']
     env' <- getEnvironment
     let sep = searchPathSeparator:[]
     let texinputs = maybe (tmpDir' ++ sep) ((tmpDir' ++ sep) ++)
