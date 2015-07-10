@@ -5,6 +5,9 @@ pandoc (1.15.0.5)
     single quotes weren't being escaped in the link portion, a
     specially crafted email address could allow javascript code injection.
 
+  * Markdown/HTML readers:  Avoid parsing partial URLs like
+    `<www.pandoc.org/blah#foo>` as HTML tags (#2277).
+
   * RST reader:  allow inline formatting in definition list field
     names (Lars-Dominik Braun).
 
