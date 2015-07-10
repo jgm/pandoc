@@ -911,8 +911,15 @@ htmlTag :: Monad m
 htmlTag f = try $ do
   lookAhead (char '<')
   inp <- getInput
-  let (next : _) = canonicalizeTags $ parseTags inp
+  let hasTagWarning (TagWarning _:_) = True
+      hasTagWarning _ = False
+  let (next : rest) = canonicalizeTags $ parseTagsOptions
+                       parseOptions{ optTagWarning = True } inp
   guard $ f next
+  -- we get a TagWarning on things like
+  -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
+  -- which should NOT be parsed as an HTML tag, see #2277
+  guard $ not $ hasTagWarning rest
   case next of
        TagComment s
          | "<!--" `isPrefixOf` inp -> do

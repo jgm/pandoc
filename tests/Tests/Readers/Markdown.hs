@@ -195,6 +195,9 @@ tests = [ testGroup "inline code"
           [ "with unicode dash following" =:
             "<http://foo.bar>\8212" =?> para (autolink "http://foo.bar" <>
                                          str "\8212")
+          , "a partial URL (#2277)" =:
+            "<www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>" =?>
+            para (text "<www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>")
           ]
         , testGroup "Headers"
           [ "blank line before header" =:
