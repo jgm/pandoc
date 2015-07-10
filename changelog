@@ -1,3 +1,38 @@
+pandoc (1.15.0.5)
+
+  * HTML writer: Fixed email javascript obfuscation with `mailto:`
+    URLs (#2280).  This fixes a potential security issue.  Because
+    single quotes weren't being escaped in the link portion, a
+    specially crafted email address could allow javascript code injection.
+
+  * RST reader:  allow inline formatting in definition list field
+    names (Lars-Dominik Braun).
+
+  * PDF:  Make sure `--latex-engine-opt` goes before the filename
+    on the command line.  LaTeX needs the argument to come after
+    the options (#1779).
+
+  * CommonMark writer: fixed tags used for super/subscript.
+
+  * ConTeXt template:  activate hanging indent for definition lists
+    (mb21).
+
+  * Make cabal require `hsb2hs` >= 0.3.1 if `embed_data_files` specified.
+    This is done by adding `hookedPrograms` in `Setup.hs`, which allows us
+    to include `hsb2hs` in Build-Tools in cabal.
+
+  * Improved Windows installer (thanks to nkalvi).
+
+    + When per-machine installation is chosen, the system path
+      is updated instead of the user's.
+    + An appropriate default is used for per-machine installation
+      directory.
+    + Admin privileges are no longer required for a per-user install
+
+  * Travis:  unpack sdist for build to catch packaging bugs.
+
+  * Improved documentation on where user templates go (#2272).
+
 pandoc (1.15.0.4)
 
   * Added pandoc.1 man page to the repository.  It is no longer
