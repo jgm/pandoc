@@ -451,7 +451,7 @@ inlineToDokuWiki _ (Code _ str) =
 
 inlineToDokuWiki _ (Str str) = return $ escapeString str
 
-inlineToDokuWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
+inlineToDokuWiki _ (Math _ str) = return $ "$" ++ str ++ "$"
                                  -- note:  str should NOT be escaped
 
 inlineToDokuWiki _ (RawInline f str)
