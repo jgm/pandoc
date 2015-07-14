@@ -1752,12 +1752,14 @@ dropBrackets = reverse . dropRB . reverse . dropLB
 bareURL :: MarkdownParser (F Inlines)
 bareURL = try $ do
   guardEnabled Ext_autolink_bare_uris
+  getState >>= guard . stateAllowLinks
   (orig, src) <- uri <|> emailAddress
   notFollowedBy $ try $ spaces >> htmlTag (~== TagClose "a")
   return $ return $ B.link src "" (B.str orig)
 
 autoLink :: MarkdownParser (F Inlines)
 autoLink = try $ do
+  getState >>= guard . stateAllowLinks
   char '<'
   (orig, src) <- uri <|> emailAddress
   -- in rare cases, something may remain after the uri parser

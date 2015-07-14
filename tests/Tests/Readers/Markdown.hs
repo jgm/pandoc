@@ -194,7 +194,7 @@ tests = [ testGroup "inline code"
             =?> para (link "/there.0" "" "hi")
           ]
         , testGroup "bare URIs"
-          (map testBareLink bareLinkTests)
+             (map testBareLink bareLinkTests)
         , testGroup "autolinks"
           [ "with unicode dash following" =:
             "<http://foo.bar>\8212" =?> para (autolink "http://foo.bar" <>
@@ -202,6 +202,17 @@ tests = [ testGroup "inline code"
           , "a partial URL (#2277)" =:
             "<www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>" =?>
             para (text "<www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>")
+          ]
+        , testGroup "links"
+          [ "no autolink inside link" =:
+            "[<https://example.org>](url)" =?>
+            para (link "url" "" (text "<https://example.org>"))
+          , "no inline link inside link" =:
+            "[[a](url2)](url)" =?>
+            para (link "url" "" (text "[a](url2)"))
+          , "no bare URI inside link" =:
+            "[https://example.org(](url)" =?>
+            para (link "url" "" (text "https://example.org("))
           ]
         , testGroup "Headers"
           [ "blank line before header" =:
