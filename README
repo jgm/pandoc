@@ -411,12 +411,14 @@ General writer options
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 
-:   Print the default template for an output *FORMAT*. (See `-t`
-    for a list of possible *FORMAT*s.)
+:   Print the system default template for an output *FORMAT*. (See `-t`
+    for a list of possible *FORMAT*s.)  Templates in the user data
+    directory are ignored.
 
 `--print-default-data-file=`*FILE*
 
-:   Print a default data file.
+:   Print a system default data file.  Files in the user data directory
+    are ignored.
 
 `--no-wrap`
 
