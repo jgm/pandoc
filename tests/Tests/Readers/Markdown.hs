@@ -119,6 +119,10 @@ bareLinkTests =
       autolink "http://business.timesonline.co.uk/article/0,,9065-2473189,00.html")
   , ("http://www.mail-archive.com/ruby-talk@ruby-lang.org/",
       autolink "http://www.mail-archive.com/ruby-talk@ruby-lang.org/")
+  , ("https://example.org/?anchor=lala-",
+      autolink "https://example.org/?anchor=lala-")
+  , ("https://example.org/?anchor=-lala",
+      autolink "https://example.org/?anchor=-lala")
   ]
 
 {-

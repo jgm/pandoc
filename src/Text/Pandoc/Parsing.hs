@@ -448,13 +448,12 @@ uri :: Stream [Char] m Char => ParserT [Char] st m (String, String)
 uri = try $ do
   scheme <- uriScheme
   char ':'
-  -- We allow punctuation except at the end, since
+  -- We allow sentence punctuation except at the end, since
   -- we don't want the trailing '.' in 'http://google.com.' We want to allow
   -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
   -- as a URL, while NOT picking up the closing paren in
   -- (http://wikipedia.org). So we include balanced parens in the URL.
-  let isWordChar c = isAlphaNum c || c == '_' || c == '/' || c == '+' ||
-                         not (isAscii c)
+  let isWordChar c = isAlphaNum c || c `elem` "#$%*+/@\\_-"
   let wordChar = satisfy isWordChar
   let percentEscaped = try $ char '%' >> skipMany1 (satisfy isHexDigit)
   let entity = () <$ characterReference
