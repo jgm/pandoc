@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "July 02, 2015" ""
+.TH PANDOC 1 "July 15, 2015" ""
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -507,13 +507,15 @@ If no \f[I]VAL\f[] is specified, the key will be given the value
 .RE
 .TP
 .B \f[C]\-D\f[] \f[I]FORMAT\f[], \f[C]\-\-print\-default\-template=\f[]\f[I]FORMAT\f[]
-Print the default template for an output \f[I]FORMAT\f[].
-(See \f[C]\-t\f[] for a list of possible \f[I]FORMAT\f[]s.)
+Print the system default template for an output \f[I]FORMAT\f[].
+(See \f[C]\-t\f[] for a list of possible \f[I]FORMAT\f[]s.) Templates in
+the user data directory are ignored.
 .RS
 .RE
 .TP
 .B \f[C]\-\-print\-default\-data\-file=\f[]\f[I]FILE\f[]
-Print a default data file.
+Print a system default data file.
+Files in the user data directory are ignored.
 .RS
 .RE
 .TP
