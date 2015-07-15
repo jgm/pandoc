@@ -176,7 +176,7 @@
       <w:keepNext />
       <w:keepLines />
       <w:spacing w:before="200" w:after="0" />
-      <w:outlineLvl w:val="1" />
+      <w:outlineLvl w:val="2" />
     </w:pPr>
     <w:rPr>
       <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
@@ -198,7 +198,7 @@
       <w:keepNext />
       <w:keepLines />
       <w:spacing w:before="200" w:after="0" />
-      <w:outlineLvl w:val="1" />
+      <w:outlineLvl w:val="3" />
     </w:pPr>
     <w:rPr>
       <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
@@ -220,7 +220,7 @@
       <w:keepNext />
       <w:keepLines />
       <w:spacing w:before="200" w:after="0" />
-      <w:outlineLvl w:val="1" />
+      <w:outlineLvl w:val="4" />
     </w:pPr>
     <w:rPr>
       <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
