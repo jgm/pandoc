@@ -120,6 +120,20 @@ The test program is `tests/test-pandoc.hs`.
 Benchmarks can be enabled by passing the `--enable-benchmarks` flag
 to `cabal configure`, and run using `cabal bench`.
 
+Using the REPL
+--------------
+
+With a recent version of cabal, you can do `cabal repl` and get
+a ghci REPL for working with pandoc.  We recommend using the following
+`.ghci` file (which can be placed in the source directory):
+
+```
+:set -fobject-code
+:set -XTypeSynonymInstances
+:set -XScopedTypeVariables
+:set -XOverloadedStrings
+```
+
 The code
 --------
 
