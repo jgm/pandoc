@@ -103,8 +103,9 @@ parseCSSUrls :: MediaBag -> Maybe String -> FilePath
 parseCSSUrls media sourceURL d = B.concat <$> P.many
     (pCSSWhite <|> pCSSComment <|> pCSSUrl media sourceURL d <|> pCSSOther)
 
+-- Note: some whitespace in CSS is significant, so we can't collapse it!
 pCSSWhite :: ParsecT ByteString () IO ByteString
-pCSSWhite = P.space >> P.spaces >> return B.empty
+pCSSWhite = B.singleton <$> P.space <* P.spaces
 
 pCSSComment :: ParsecT ByteString () IO ByteString
 pCSSComment = P.try $ do
