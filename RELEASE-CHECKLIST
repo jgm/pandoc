@@ -2,7 +2,7 @@ _ Test, on linux, windows, mac (inc. website demos)
 
 _ Finalize changelog
 
-_ man man/pandoc.1 and commit if needed
+_ make man/pandoc.1 and commit if needed
 
 _ Tag release in git
 
