@@ -1,3 +1,45 @@
+pandoc (1.15.0.6)
+
+  * `--self-contained`:  Fixed overaggressive CSS minimization (#2301, 2286).
+    Previously `--self-contained` wiped out all spaces in CSS,
+    including semantically significant spaces.  This was a regression
+    from 1.14.x.
+
+  * Markdown reader: don't allow bare URI links or autolinks in link
+    label (#2300).  Added test cases.
+
+  * `Text.Pandoc.Parsing`, `uri`: Improved bare autolink detection (#2299).
+    Previously we disallowed `-` at the end of an autolink,
+    and disallowed the combination `=-`.  This commit liberalizes the
+    rules for allowing punctuation in a bare URI, and adds test cases.
+    One potential drawback is that you can no longer put a bare
+    URI in em dashes like this:
+    `this uri---http://example.com---is an example.`
+    But in this respect we now match github's treatment of bare URIs.
+
+  * HTML writer:  support speaker notes in dzslides.
+    With this change `<div class="notes">` and also `<div class="notes"
+    role="note">` will be output if `-t dzslides` is used. So we can
+    have speaker notes in dzslides too.  Thanks to maybegeek.
+
+  * Updated dzslides template.
+
+  * Improved documentation of options to print system default files (#2298).
+    `--print-default-data-file` and `--print-default-template`.
+
+  * DokuWiki writer: use `$..$` for Math instead of `<math>..</math>`
+    (Tiziano Müller).  MathJax seems currently to be the only maintained
+    math rendering extension for DokuWiki.
+
+  * `Text.Pandoc.Shared`: Changed `hierarchicalize` so it treats references
+    div as top-level header (#2294).  This fixes a bug with `--section-divs`,
+    where the final references section added by pandoc-citeproc, enclosed in
+    its own div, got nested in the div for the section previous to it.
+
+  * Allow vector 0.11.
+
+  * Require cmark > 0.4.
+
 pandoc (1.15.0.5)
 
   * HTML writer: Fixed email javascript obfuscation with `mailto:`
