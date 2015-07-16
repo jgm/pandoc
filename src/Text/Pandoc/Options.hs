@@ -248,6 +248,7 @@ data ReaderOptions = ReaderOptions{
        , readerDefaultImageExtension :: String -- ^ Default extension for images
        , readerTrace           :: Bool -- ^ Print debugging info
        , readerTrackChanges    :: TrackChanges
+       , readerPreserveEmptyParas :: Bool -- ^ Preserve empty paragraphs in Docx reader
 } deriving (Show, Read, Data, Typeable)
 
 instance Default ReaderOptions
@@ -264,6 +265,7 @@ instance Default ReaderOptions
                , readerDefaultImageExtension = ""
                , readerTrace                 = False
                , readerTrackChanges          = AcceptChanges
+               , readerPreserveEmptyParas    = False
                }
 
 --
