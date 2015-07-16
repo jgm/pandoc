@@ -208,6 +208,10 @@ tests = [ testGroup "inlines"
             "dropcap paragraphs"
             "docx/drop_cap.docx"
             "docx/drop_cap.native"
+          , testCompare
+            "blank paragraphs"
+            "docx/blank_paragraphs.docx"
+            "docx/blank_paragraphs_output.native"
           ]
         , testGroup "track changes"
           [ testCompare

@@ -474,16 +474,14 @@ bodyPartToBlocks (Paragraph pPr parparts)
       headerWith ("", delete style (pStyle pPr), []) n ils
   | otherwise = do
     ils <- concatReduce <$> mapM parPartToInlines parparts >>=
-           (return . fromList . trimLineBreaks . normalizeSpaces . toList)
+           (return . fromList . normalizeSpaces . toList)
     dropIls <- gets docxDropCap
     let ils' = dropIls <> ils
     if dropCap pPr
       then do modify $ \s -> s { docxDropCap = ils' }
               return mempty
       else do modify $ \s -> s { docxDropCap = mempty }
-              return $ case isNull ils' of
-                True -> mempty
-                _ -> parStyleToTransform pPr $ para ils'
+              return $ parStyleToTransform pPr $ para ils'
 bodyPartToBlocks (ListItem pPr numId lvl levelInfo parparts) = do
   let
     kvs = case levelInfo of
