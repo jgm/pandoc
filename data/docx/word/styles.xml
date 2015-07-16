@@ -176,7 +176,7 @@
       <w:keepNext />
       <w:keepLines />
       <w:spacing w:before="200" w:after="0" />
-      <w:outlineLvl w:val="1" />
+      <w:outlineLvl w:val="2" />
     </w:pPr>
     <w:rPr>
       <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
@@ -198,7 +198,7 @@
       <w:keepNext />
       <w:keepLines />
       <w:spacing w:before="200" w:after="0" />
-      <w:outlineLvl w:val="1" />
+      <w:outlineLvl w:val="3" />
     </w:pPr>
     <w:rPr>
       <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
@@ -220,12 +220,32 @@
       <w:keepNext />
       <w:keepLines />
       <w:spacing w:before="200" w:after="0" />
-      <w:outlineLvl w:val="1" />
+      <w:outlineLvl w:val="4" />
     </w:pPr>
     <w:rPr>
       <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
       <w:i />
       <w:iCs />
+      <w:color w:val="4F81BD" w:themeColor="accent1" />
+      <w:sz w:val="24" />
+      <w:szCs w:val="24" />
+    </w:rPr>
+  </w:style>
+  <w:style w:type="paragraph" w:styleId="Heading6">
+    <w:name w:val="Heading 6" />
+    <w:basedOn w:val="Normal" />
+    <w:next w:val="BodyText" />
+    <w:uiPriority w:val="9" />
+    <w:unhideWhenUsed />
+    <w:qFormat />
+    <w:pPr>
+      <w:keepNext />
+      <w:keepLines />
+      <w:spacing w:before="200" w:after="0" />
+      <w:outlineLvl w:val="5" />
+    </w:pPr>
+    <w:rPr>
+      <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
       <w:color w:val="4F81BD" w:themeColor="accent1" />
       <w:sz w:val="24" />
       <w:szCs w:val="24" />
