@@ -45,6 +45,7 @@ import Data.Maybe ( fromMaybe )
 import Data.Aeson.Types ( (.:), parseMaybe, withObject )
 import Control.Applicative ((<|>))
 import Control.Monad.State
+import qualified Text.Parsec as P
 import Text.Pandoc.Pretty
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
@@ -111,13 +112,20 @@ pandocToLaTeX options (Pandoc meta blocks) = do
               (fmap (render colwidth) . inlineListToLaTeX)
               meta
   let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
+  let documentClass = case P.parse (do P.skipMany (P.satisfy (/='\\'))
+                                       P.string "\\documentclass"
+                                       P.skipMany (P.satisfy (/='{'))
+                                       P.char '{'
+                                       P.manyTill P.letter (P.char '}')) "template"
+                              template of
+                              Right r -> r
+                              Left _  -> ""
   case lookup "documentclass" (writerVariables options) `mplus`
         parseMaybe (withObject "object" (.: "documentclass")) metadata of
          Just x  | x `elem` bookClasses -> modify $ \s -> s{stBook = True}
                  | otherwise            -> return ()
-         Nothing | any (\x -> "\\documentclass" `isPrefixOf` x &&
-                          (any (`isSuffixOf` x) bookClasses))
-                          (lines template) -> modify $ \s -> s{stBook = True}
+         Nothing | documentClass `elem` bookClasses
+                                        -> modify $ \s -> s{stBook = True}
                  | otherwise               -> return ()
   -- check for \usepackage...{csquotes}; if present, we'll use
   -- \enquote{...} for smart quotes:
