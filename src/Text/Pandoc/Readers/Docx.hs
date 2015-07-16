@@ -476,12 +476,13 @@ bodyPartToBlocks (Paragraph pPr parparts)
     ils <- concatReduce <$> mapM parPartToInlines parparts >>=
            (return . fromList . trimLineBreaks . normalizeSpaces . toList)
     dropIls <- gets docxDropCap
+    opts <- asks docxOptions
     let ils' = dropIls <> ils
     if dropCap pPr
       then do modify $ \s -> s { docxDropCap = ils' }
               return mempty
       else do modify $ \s -> s { docxDropCap = mempty }
-              return $ case isNull ils' of
+              return $ case (isNull ils') && (not $ readerPreserveEmptyParas opts) of
                 True -> mempty
                 _ -> parStyleToTransform pPr $ para ils'
 bodyPartToBlocks (ListItem pPr numId lvl levelInfo parparts) = do
