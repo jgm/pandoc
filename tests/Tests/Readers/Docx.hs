@@ -57,6 +57,22 @@ testCompareWithOpts opts name docxFile nativeFile =
 testCompare :: String -> FilePath -> FilePath -> Test
 testCompare = testCompareWithOpts def
 
+-- Runs two tests:
+-- 1. Converts x.docx to native with default options, and compares with x.native
+-- 2. Converts x.docx to native with preserve-empty-paragraphs, and compares with x_preserve.native
+testComparePreserveEmptyParas :: String -> FilePath -> FilePath -> FilePath -> Test
+testComparePreserveEmptyParas name docxFile nativeFile nativeFilePreserve =
+  testGroup name
+    [ testCompare
+      "strip empty paragraphs"
+      docxFile
+      nativeFile
+    , testCompareWithOpts def{readerPreserveEmptyParas = True}
+      "preserve empty paragraphs"
+      docxFile
+      nativeFilePreserve
+    ]
+
 getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
 getMedia archivePath mediaPath = do
   zf <- B.readFile archivePath >>= return . toArchive
@@ -208,6 +224,11 @@ tests = [ testGroup "inlines"
             "dropcap paragraphs"
             "docx/drop_cap.docx"
             "docx/drop_cap.native"
+          , testComparePreserveEmptyParas
+            "blank paragraphs"
+            "docx/blank_paragraphs.docx"
+            "docx/blank_paragraphs_output.native"
+            "docx/blank_paragraphs_output_preserve.native"
           ]
         , testGroup "track changes"
           [ testCompare
