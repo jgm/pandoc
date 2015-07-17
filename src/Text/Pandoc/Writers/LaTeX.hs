@@ -38,8 +38,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
-import Data.List ( (\\), isSuffixOf, isInfixOf, stripPrefix,
-                   isPrefixOf, intercalate, intersperse )
+import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Data.Maybe ( fromMaybe )
 import Data.Aeson.Types ( (.:), parseMaybe, withObject )
