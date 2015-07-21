@@ -458,7 +458,8 @@ blockToHtml opts (Div attr@(_,classes,_) bs) = do
      if speakerNotes
         then case writerSlideVariant opts of
                   RevealJsSlides -> addAttrs opts' attr $ H5.aside $ contents'
-                  DZSlides       -> addAttrs opts' attr $ H5.div $ contents'
+                  DZSlides       -> (addAttrs opts' attr $ H5.div $ contents')
+                                      ! (H5.customAttribute "role" "note")
                   NoSlides       -> addAttrs opts' attr $ H.div $ contents'
                   _              -> mempty
         else addAttrs opts attr $ H.div $ contents'
