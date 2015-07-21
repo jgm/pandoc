@@ -1287,7 +1287,16 @@ parseAligns = try $ do
   return aligns'
 
 hline :: LP ()
-hline = () <$ try (spaces' *> controlSeq "hline" <* spaces')
+hline = try $ do
+  spaces'
+  controlSeq "hline" <|>
+    -- booktabs rules:
+    controlSeq "toprule" <|>
+    controlSeq "bottomrule" <|>
+    controlSeq "midrule"
+  spaces'
+  optional $ bracketed (many1 (satisfy (/=']')))
+  return ()
 
 lbreak :: LP ()
 lbreak = () <$ try (spaces' *> controlSeq "\\" <* spaces')
