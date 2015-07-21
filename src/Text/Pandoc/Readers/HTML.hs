@@ -270,7 +270,14 @@ pOrderedList = try $ do
                                      "lower-alpha"  -> LowerAlpha
                                      "upper-alpha"  -> UpperAlpha
                                      "decimal"      -> Decimal
-                                     _              -> DefaultStyle
+                                     _              ->
+                                       case lookup "type" attribs of
+                                               Just "1" -> Decimal
+                                               Just "I" -> UpperRoman
+                                               Just "i" -> LowerRoman
+                                               Just "A" -> UpperAlpha
+                                               Just "a" -> LowerAlpha
+                                               _        -> DefaultStyle
   let nonItem = pSatisfy (\t ->
                   not (tagOpen (`elem` ["li","ol","ul","dl"]) (const True) t) &&
                   not (t ~== TagClose "ol"))
