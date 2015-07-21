@@ -636,12 +636,13 @@ Options affecting specific writers
     for a file `reference.docx` in the user data directory (see
     `--data-dir`). If this is not found either, sensible defaults will be
     used. The following styles are used by pandoc: [paragraph]
-    Normal, Compact, Title, Subtitle, Authors, Date, Abstract, Heading 1,
-    Heading 2, Heading 3, Heading 4, Heading 5, Block Text, Definition Term,
-    Definition, Bibliography, Body Text, Table Caption, Image Caption,
-    Figure, FigureWithCaption;
+    Normal, Body Text, First Paragraph, Compact, Title, Subtitle, Author, Date,
+    Abstract, Bibliography, Heading 1, Heading 2, Heading 3, Heading 4,
+    Heading 5, Heading 6, Block Text, Footnote Text, Definition Term,
+    Definition, Caption, Table Caption, Image Caption, Figure,
+    Figure With Caption, TOC Heading;
     [character] Default Paragraph Font, Body Text Char, Verbatim Char,
-    Footnote Reference, Hyperlink.
+    Footnote Reference, Hyperlink; [table] Normal Table.
 
 `--epub-stylesheet=`*FILE*
 
