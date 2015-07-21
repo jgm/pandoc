@@ -142,9 +142,14 @@ import Text.Pandoc.Data (dataFiles)
 import Paths_pandoc (getDataFileName)
 #endif
 #ifdef HTTP_CLIENT
-import Network.HTTP.Client (httpLbs, parseUrl, withManager,
+import Network.HTTP.Client (httpLbs, parseUrl,
                             responseBody, responseHeaders,
                             Request(port,host))
+#if MIN_VERSION_http_client(0,4,18)
+import Network.HTTP.Client (newManager)
+#else
+import Network.HTTP.Client (withManager)
+#endif
 import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
@@ -905,7 +910,11 @@ openURL u
                      Right pr -> case parseUrl pr of
                                       Just r  -> addProxy (host r) (port r) req
                                       Nothing -> req
+#if MIN_VERSION_http_client(0,4,18)
+     resp <- newManager tlsManagerSettings >>= httpLbs req'
+#else
      resp <- withManager tlsManagerSettings $ httpLbs req'
+#endif
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 #else
