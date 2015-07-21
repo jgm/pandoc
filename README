@@ -585,8 +585,8 @@ Options affecting specific writers
 
 :   Wrap sections in `<div>` tags (or `<section>` tags in HTML5),
     and attach identifiers to the enclosing `<div>` (or `<section>`)
-    rather than the header itself.
-    See [Section identifiers](#header-identifiers-in-html-latex-and-context), below.
+    rather than the header itself. See
+    [Header identifiers](#header-identifiers), below.
 
 `--email-obfuscation=none`|`javascript`|`references`
 
@@ -1166,7 +1166,7 @@ wrapping). Consider, for example:
     #22, for example, and #5.
 
 
-### Header identifiers in HTML, LaTeX, and ConTeXt ###
+### Header identifiers ###
 
 #### Extension: `header_attributes` ####
 
@@ -2587,9 +2587,8 @@ be omitted entirely:
 ### Internal links ###
 
 To link to another section of the same document, use the automatically
-generated identifier (see [Header identifiers in HTML, LaTeX, and
-ConTeXt](#header-identifiers-in-html-latex-and-context), below).
-For example:
+generated identifier (see [Header identifiers](#header-identifiers),
+below). For example:
 
     See the [Introduction](#introduction).
 

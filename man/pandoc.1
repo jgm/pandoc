@@ -25,7 +25,7 @@ tables, flexible ordered lists, definition lists, fenced code blocks,
 superscript, subscript, strikeout, title blocks, automatic tables of
 contents, embedded LaTeX math, citations, and markdown inside HTML block
 elements.
-(These enhancements, described below under PANDOC\[aq]S MARKDOWN, can be
+(These enhancements, described below under Pandoc\[aq]s markdown, can be
 disabled using the \f[C]markdown_strict\f[] input or output format.)
 .PP
 In contrast to most existing tools for converting markdown to HTML,
@@ -64,7 +64,7 @@ pandoc\ \-s\ \-o\ output.html\ input.txt
 .fi
 .PP
 For more information on how standalone documents are produced, see
-TEMPLATES, below.
+Templates, below.
 .PP
 Instead of a file, an absolute URI may be given.
 In this case pandoc will fetch the content using HTTP:
@@ -200,7 +200,7 @@ markdown), \f[C]markdown_strict\f[] (original unextended markdown),
 (Haddock markup), or \f[C]latex\f[] (LaTeX).
 If \f[C]+lhs\f[] is appended to \f[C]markdown\f[], \f[C]rst\f[],
 \f[C]latex\f[], or \f[C]html\f[], the input will be treated as literate
-Haskell source: see LITERATE HASKELL SUPPORT, below.
+Haskell source: see Literate Haskell support, below.
 Markdown syntax extensions can be individually enabled or disabled by
 appending \f[C]+EXTENSION\f[] or \f[C]\-EXTENSION\f[] to the format
 name.
@@ -208,7 +208,7 @@ So, for example, \f[C]markdown_strict+footnotes+definition_lists\f[] is
 strict markdown with footnotes and definition lists enabled, and
 \f[C]markdown\-pipe_tables+hard_line_breaks\f[] is pandoc\[aq]s markdown
 without pipe tables and with hard line breaks.
-See PANDOC\[aq]S MARKDOWN, below, for a list of extensions and their
+See Pandoc\[aq]s markdown, below, for a list of extensions and their
 names.
 .RS
 .RE
@@ -237,14 +237,14 @@ slide show), \f[C]slideous\f[] (Slideous HTML and javascript slide
 show), \f[C]dzslides\f[] (DZSlides HTML5 + javascript slide show),
 \f[C]revealjs\f[] (reveal.js HTML5 + javascript slide show), \f[C]s5\f[]
 (S5 HTML and javascript slide show), or the path of a custom lua writer
-(see CUSTOM WRITERS, below).
+(see Custom writers, below).
 Note that \f[C]odt\f[], \f[C]epub\f[], and \f[C]epub3\f[] output will
 not be directed to \f[I]stdout\f[]; an output filename must be specified
 using the \f[C]\-o/\-\-output\f[] option.
 If \f[C]+lhs\f[] is appended to \f[C]markdown\f[], \f[C]rst\f[],
 \f[C]latex\f[], \f[C]beamer\f[], \f[C]html\f[], or \f[C]html5\f[], the
-output will be rendered as literate Haskell source: see LITERATE HASKELL
-SUPPORT, below.
+output will be rendered as literate Haskell source: see Literate Haskell
+support, below.
 Markdown syntax extensions can be individually enabled or disabled by
 appending \f[C]+EXTENSION\f[] or \f[C]\-EXTENSION\f[] to the format
 name, as described above under \f[C]\-f\f[].
@@ -482,7 +482,7 @@ This option is set automatically for \f[C]pdf\f[], \f[C]epub\f[],
 .B \f[C]\-\-template=\f[]\f[I]FILE\f[]
 Use \f[I]FILE\f[] as a custom template for the generated document.
 Implies \f[C]\-\-standalone\f[].
-See TEMPLATES below for a description of template syntax.
+See Templates below for a description of template syntax.
 If no extension is specified, an extension corresponding to the writer
 will be added, so that \f[C]\-\-template=special\f[] looks for
 \f[C]special.html\f[] for HTML output.
@@ -559,8 +559,8 @@ Specifies the coloring style to be used in highlighted source code.
 Options are \f[C]pygments\f[] (the default), \f[C]kate\f[],
 \f[C]monochrome\f[], \f[C]espresso\f[], \f[C]zenburn\f[],
 \f[C]haddock\f[], and \f[C]tango\f[].
-For more information on syntax highlighting in pandoc, see SYNTAX
-HIGHLIGHTING, below.
+For more information on syntax highlighting in pandoc, see Syntax
+highlighting, below.
 .RS
 .RE
 .TP
@@ -722,7 +722,7 @@ Headers above this level in the hierarchy are used to divide the slide
 show into sections; headers below this level create subheads within a
 slide.
 The default is to set the slide level based on the contents of the
-document; see STRUCTURING THE SLIDE SHOW, below.
+document; see Structuring the slide show, below.
 .RS
 .RE
 .TP
@@ -730,7 +730,7 @@ document; see STRUCTURING THE SLIDE SHOW, below.
 Wrap sections in \f[C]<div>\f[] tags (or \f[C]<section>\f[] tags in
 HTML5), and attach identifiers to the enclosing \f[C]<div>\f[] (or
 \f[C]<section>\f[]) rather than the header itself.
-See SECTION IDENTIFIERS, below.
+See Header identifiers, below.
 .RS
 .RE
 .TP
@@ -814,7 +814,7 @@ Use the specified image as the EPUB cover.
 It is recommended that the image be less than 1000px in width and
 height.
 Note that in a markdown source document you can also specify
-\f[C]cover\-image\f[] in a YAML metadata block (see EPUB METADATA,
+\f[C]cover\-image\f[] in a YAML metadata block (see EPUB Metadata,
 below).
 .RS
 .RE
@@ -843,7 +843,7 @@ Any of these may be overridden by elements in the metadata file.
 .PP
 Note: if the source document is markdown, a YAML metadata block in the
 document can be used instead.
-See below under EPUB METADATA.
+See below under EPUB Metadata.
 .RE
 .TP
 .B \f[C]\-\-epub\-embed\-font=\f[]\f[I]FILE\f[]
@@ -1453,7 +1453,7 @@ A\ level\-two\ header
 .fi
 .PP
 The header text can contain inline formatting, such as emphasis (see
-INLINE FORMATTING, below).
+Inline formatting, below).
 .SS Atx\-style headers
 .PP
 An Atx\-style header consists of one to six \f[C]#\f[] signs and a line
@@ -1492,7 +1492,7 @@ I\ like\ several\ of\ their\ flavors\ of\ ice\ cream:
 #22,\ for\ example,\ and\ #5.
 \f[]
 .fi
-.SS Header identifiers in HTML, LaTeX, and ConTeXt
+.SS Header identifiers
 .SS Extension: \f[C]header_attributes\f[]
 .PP
 Headers can be assigned attributes using this syntax at the end of the
@@ -1876,7 +1876,7 @@ will be printed after the opening fence as a bare word.
 .PP
 To prevent all highlighting, use the \f[C]\-\-no\-highlight\f[] flag.
 To set the highlighting style, use \f[C]\-\-highlight\-style\f[].
-For more information on highlighting, see SYNTAX HIGHLIGHTING, below.
+For more information on highlighting, see Syntax highlighting, below.
 .SS Line blocks
 .SS Extension: \f[C]line_blocks\f[]
 .PP
@@ -2191,7 +2191,7 @@ Term\ 2
 Note that space between items in a definition list is required.
 (A variant that loosens this requirement, but disallows "lazy" hard
 wrapping, can be activated with \f[C]compact_definition_lists\f[]: see
-NON\-PANDOC EXTENSIONS, below.)
+Non\-pandoc extensions, below.)
 .SS Numbered example lists
 .SS Extension: \f[C]example_lists\f[]
 .PP
@@ -2911,8 +2911,8 @@ This\ is\ a\ backslash\ followed\ by\ an\ asterisk:\ `\\*`.
 .fi
 .SS Extension: \f[C]inline_code_attributes\f[]
 .PP
-Attributes can be attached to verbatim text, just as with FENCED CODE
-BLOCKS:
+Attributes can be attached to verbatim text, just as with fenced code
+blocks:
 .IP
 .nf
 \f[C]
@@ -3323,8 +3323,7 @@ See\ [my\ website].
 .SS Internal links
 .PP
 To link to another section of the same document, use the automatically
-generated identifier (see HEADER IDENTIFIERS IN HTML, LATEX, AND
-CONTEXT, below).
+generated identifier (see Header identifiers, below).
 For example:
 .IP
 .nf
@@ -3758,7 +3757,7 @@ the header but before any trailing \f[C]#\f[]s in an ATX header).
 .SS Extension: \f[C]compact_definition_lists\f[]
 .PP
 Activates the definition list syntax of pandoc 1.12.x and earlier.
-This syntax differs from the one described ABOVE in several respects:
+This syntax differs from the one described above in several respects:
 .IP \[bu] 2
 No blank line is required between consecutive items of the definition
 list.
