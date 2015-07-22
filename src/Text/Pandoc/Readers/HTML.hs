@@ -65,6 +65,9 @@ import Control.Monad.Reader (Reader,ask, asks, local, runReader)
 import Network.URI (isURI)
 import Text.Pandoc.Error
 
+import Data.Text (unpack, pack)
+import Text.CSS.Parse (parseAttrs)
+
 import Text.Parsec.Error
 
 
@@ -252,6 +255,39 @@ pListItem nonItem = do
   let liDiv = maybe mempty (\x -> B.divWith (x, [], []) mempty) (lookup "id" attr)
   (liDiv <>) <$> pInTags "li" block <* skipMany nonItem
 
+parseListStyleType :: String -> ListNumberStyle
+parseListStyleType "lower-roman" = LowerRoman
+parseListStyleType "upper-roman" = UpperRoman
+parseListStyleType "lower-alpha" = LowerAlpha
+parseListStyleType "upper-alpha" = UpperAlpha
+parseListStyleType "decimal"     = Decimal
+parseListStyleType _             = DefaultStyle
+
+parseTypeAttr :: String -> ListNumberStyle
+parseTypeAttr "i" = LowerRoman
+parseTypeAttr "I" = UpperRoman
+parseTypeAttr "a" = LowerAlpha
+parseTypeAttr "A" = UpperAlpha
+parseTypeAttr "1" = Decimal
+parseTypeAttr _   = DefaultStyle
+
+eitherToMaybe :: Either a b -> Maybe b
+eitherToMaybe (Right x) = Just x
+eitherToMaybe _ = Nothing
+
+orElse :: Eq a => a -> a -> a -> a
+orElse v x y = if v == x then y else x
+
+foldOrElse :: Eq a => a -> [a] -> a
+foldOrElse v xs = foldr (orElse v) v xs
+
+pickListStyle :: String -> Maybe String
+pickListStyle inlineStyles = do
+  let unpackPair = map (\(f, s) -> (unpack f, unpack s))
+  attrs <- fmap unpackPair . eitherToMaybe . parseAttrs . pack $ inlineStyles
+  let lookupKeys = ["list-style-type", "list-style"]
+  foldOrElse Nothing $ map (flip lookup attrs) lookupKeys
+
 pOrderedList :: TagParser Blocks
 pOrderedList = try $ do
   TagOpen _ attribs <- pSatisfy (~== TagOpen "ol" [])
@@ -261,23 +297,17 @@ pOrderedList = try $ do
                              sta' = if all isDigit sta
                                        then read sta
                                        else 1
-                             sty = fromMaybe (fromMaybe "" $
-                                   lookup "style" attribs) $
-                                   lookup "class" attribs
-                             sty' = case sty of
-                                     "lower-roman"  -> LowerRoman
-                                     "upper-roman"  -> UpperRoman
-                                     "lower-alpha"  -> LowerAlpha
-                                     "upper-alpha"  -> UpperAlpha
-                                     "decimal"      -> Decimal
-                                     _              ->
-                                       case lookup "type" attribs of
-                                               Just "1" -> Decimal
-                                               Just "I" -> UpperRoman
-                                               Just "i" -> LowerRoman
-                                               Just "A" -> UpperAlpha
-                                               Just "a" -> LowerAlpha
-                                               _        -> DefaultStyle
+
+                             typeAttr  = fromMaybe "" $ lookup "type"  attribs
+                             classAttr = fromMaybe "" $ lookup "class" attribs
+                             styleAttr = fromMaybe "" $ lookup "style" attribs
+                             listStyle = fromMaybe "" $ pickListStyle styleAttr
+
+                             sty' = foldOrElse DefaultStyle
+                                      [ parseTypeAttr      typeAttr
+                                      , parseListStyleType classAttr
+                                      , parseListStyleType listStyle
+                                      ]
   let nonItem = pSatisfy (\t ->
                   not (tagOpen (`elem` ["li","ol","ul","dl"]) (const True) t) &&
                   not (t ~== TagClose "ol"))
