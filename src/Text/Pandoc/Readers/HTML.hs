@@ -923,10 +923,6 @@ htmlTag f = try $ do
   let (next : rest) = canonicalizeTags $ parseTagsOptions
                        parseOptions{ optTagWarning = True } inp
   guard $ f next
-  -- we get a TagWarning on things like
-  -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
-  -- which should NOT be parsed as an HTML tag, see #2277
-  guard $ not $ hasTagWarning rest
   case next of
        TagComment s
          | "<!--" `isPrefixOf` inp -> do
@@ -936,6 +932,10 @@ htmlTag f = try $ do
           return (next, "<!--" ++ s ++ "-->")
          | otherwise -> fail "bogus comment mode, HTML5 parse error"
        _            -> do
+          -- we get a TagWarning on things like
+          -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
+          -- which should NOT be parsed as an HTML tag, see #2277
+          guard $ not $ hasTagWarning rest
           rendered <- manyTill anyChar (char '>')
           return (next, rendered ++ ">")
 

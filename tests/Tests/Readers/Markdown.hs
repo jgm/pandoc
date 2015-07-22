@@ -176,6 +176,9 @@ tests = [ testGroup "inline code"
           , "invalid tag (issue #1820" =:
             "</ div></.div>" =?>
             para (text "</ div></.div>")
+          , "technically invalid comment" =:
+            "<!-- pandoc --help -->" =?>
+            rawBlock "html" "<!-- pandoc --help -->"
           ]
         , "unbalanced brackets" =:
             "[[[[[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[[[[[hi")
