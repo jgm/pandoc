@@ -178,7 +178,7 @@ import Text.Parsec hiding (token)
 import Text.Parsec.Pos (newPos)
 import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
                    isHexDigit, isSpace )
-import Data.List ( intercalate, transpose )
+import Data.List ( intercalate, transpose, isSuffixOf )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
 import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro,
@@ -1063,7 +1063,9 @@ type NoteTable' = [(String, F Blocks)]  -- used in markdown reader
 newtype Key = Key String deriving (Show, Read, Eq, Ord)
 
 toKey :: String -> Key
-toKey = Key . map toLower . unwords . words
+toKey = Key . map toLower . unwords . words . unbracket
+  where unbracket ('[':xs) | "]" `isSuffixOf` xs = take (length xs - 1) xs
+        unbracket xs       = xs
 
 type KeyTable = M.Map Key Target
 
