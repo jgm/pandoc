@@ -15,7 +15,7 @@ another, and a command-line tool that uses this library. It can read
 [Markdown], [CommonMark], and (subsets of) [Textile],
 [reStructuredText], [HTML], [LaTeX], [MediaWiki markup], [TWiki
 markup], [Haddock markup], [OPML], [Emacs Org-mode], [DocBook],
-[txt2tags], [EPUB] and [Word docx]; and it can write plain text,
+[txt2tags], [EPUB], [ODT] and [Word docx]; and it can write plain text,
 [Markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX] (including
 [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
@@ -68,7 +68,7 @@ pandoc will fetch the content using HTTP:
 
 If multiple input files are given, `pandoc` will concatenate them all (with
 blank lines between them) before parsing. This feature is disabled for
- binary input formats such as `EPUB` and `docx`.
+ binary input formats such as `EPUB`, `odt`, and `docx`.
 
 The format of the input and output can be specified explicitly using
 command-line options.  The input format can be specified using the
@@ -164,8 +164,8 @@ General options
     markdown), `markdown_github` (github extended markdown),
     `commonmark` (CommonMark markdown), `textile` (Textile), `rst`
     (reStructuredText), `html` (HTML), `docbook` (DocBook), `t2t`
-    (txt2tags), `docx` (docx), `epub` (EPUB), `opml` (OPML), `org`
-    (Emacs Org-mode), `mediawiki` (MediaWiki markup), `twiki` (TWiki
+    (txt2tags), `docx` (docx), `odt` (ODT), `epub` (EPUB), `opml` (OPML),
+    `org` (Emacs Org-mode), `mediawiki` (MediaWiki markup), `twiki` (TWiki
     markup), `haddock` (Haddock markup), or `latex` (LaTeX).  If
     `+lhs` is appended to `markdown`, `rst`, `latex`, or `html`, the
     input will be treated as literate Haskell source: see [Literate
