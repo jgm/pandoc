@@ -521,6 +521,7 @@ atxClosing :: MarkdownParser Attr
 atxClosing = try $ do
   attr' <- option nullAttr
              (guardEnabled Ext_mmd_header_identifiers >> mmdHeaderIdentifier)
+  skipSpaces
   skipMany (char '#')
   skipSpaces
   attr <- option attr'
@@ -547,6 +548,7 @@ setextHeader = try $ do
   -- This lookahead prevents us from wasting time parsing Inlines
   -- unless necessary -- it gives a significant performance boost.
   lookAhead $ anyLine >> many1 (oneOf setextHChars) >> blankline
+  skipSpaces
   (text, raw) <- withRaw $
        trimInlinesF . mconcat <$> many1 (notFollowedBy setextHeaderEnd >> inline)
   attr <- setextHeaderEnd
