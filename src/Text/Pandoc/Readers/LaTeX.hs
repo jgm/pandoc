@@ -1016,6 +1016,7 @@ addTableCaption = walkM go
 environments :: M.Map String (LP Blocks)
 environments = M.fromList
   [ ("document", env "document" blocks <* skipMany anyChar)
+  , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
   , ("letter", env "letter" letterContents)
   , ("figure", env "figure" $
          resetCaption *> skipopts *> blocks >>= addImageCaption)
