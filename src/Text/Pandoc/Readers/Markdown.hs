@@ -521,7 +521,6 @@ atxClosing :: MarkdownParser Attr
 atxClosing = try $ do
   attr' <- option nullAttr
              (guardEnabled Ext_mmd_header_identifiers >> mmdHeaderIdentifier)
-  skipSpaces
   skipMany (char '#')
   skipSpaces
   attr <- option attr'

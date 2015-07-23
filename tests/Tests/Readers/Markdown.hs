@@ -240,20 +240,20 @@ tests = [ testGroup "inline code"
             "# Header\n[header]\n\n[header ]\n\n[ header]" =?>
             headerWith ("header",[],[]) 1 "Header"
             <> para (link "#header" "" (text "header"))
-            <> para (text "[header" <> space <> text "]")
-            <> para (text "[" <> space <> text "header]")
+            <> para (link "#header" "" (text "header"))
+            <> para (link "#header" "" (text "header"))
           , "ATX header with trailing #s" =:
             "# Foo bar #\n[foo bar]\n\n[foo bar ]\n\n[ foo bar]" =?>
             headerWith ("foo-bar",[],[]) 1 "Foo bar"
             <> para (link "#foo-bar" "" (text "foo bar"))
-            <> para (text "[foo bar" <> space <> text "]")
-            <> para (text "[" <> space <> text "foo bar]")
+            <> para (link "#foo-bar" "" (text "foo bar"))
+            <> para (link "#foo-bar" "" (text "foo bar"))
           , "setext header" =:
             " Header \n=\n\n[header]\n\n[header ]\n\n[ header]" =?>
             headerWith ("header",[],[]) 1 "Header"
             <> para (link "#header" "" (text "header"))
-            <> para (text "[header" <> space <> text "]")
-            <> para (text "[" <> space <> text "header]")
+            <> para (link "#header" "" (text "header"))
+            <> para (link "#header" "" (text "header"))
           ]
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
