@@ -210,7 +210,9 @@ Extra-Source-Files:
                  tests/epub/*.native
                  tests/txt2tags.t2t
                  tests/twiki-reader.twiki
-
+                 tests/odt/odt/*.odt
+                 tests/odt/markdown/*.md
+                 tests/odt/native/*.native
 Source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
@@ -327,6 +329,7 @@ Library
                    Text.Pandoc.Readers.TWiki,
                    Text.Pandoc.Readers.Txt2Tags,
                    Text.Pandoc.Readers.Docx,
+                   Text.Pandoc.Readers.Odt,
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
@@ -364,7 +367,18 @@ Library
                    Text.Pandoc.Readers.Docx.Parse,
                    Text.Pandoc.Readers.Docx.Fonts,
                    Text.Pandoc.Readers.Docx.Util,
-                   Text.Pandoc.Readers.Docx.StyleMap
+                   Text.Pandoc.Readers.Docx.StyleMap,
+                   Text.Pandoc.Readers.Odt.Base,
+                   Text.Pandoc.Readers.Odt.Namespaces,
+                   Text.Pandoc.Readers.Odt.StyleReader,
+                   Text.Pandoc.Readers.Odt.ContentReader,
+                   Text.Pandoc.Readers.Odt.Generic.Fallible,
+                   Text.Pandoc.Readers.Odt.Generic.SetMap,
+                   Text.Pandoc.Readers.Odt.Generic.Utils,
+                   Text.Pandoc.Readers.Odt.Generic.Namespaces,
+                   Text.Pandoc.Readers.Odt.Generic.XMLConverter,
+                   Text.Pandoc.Readers.Odt.Arrows.State,
+                   Text.Pandoc.Readers.Odt.Arrows.Utils,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Asciify,
                    Text.Pandoc.MIME,
@@ -459,6 +473,7 @@ Test-Suite test-pandoc
                   Tests.Readers.Org
                   Tests.Readers.RST
                   Tests.Readers.Docx
+                  Tests.Readers.Odt
                   Tests.Readers.Txt2Tags
                   Tests.Readers.EPUB
                   Tests.Writers.Native

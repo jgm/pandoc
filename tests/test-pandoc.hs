@@ -11,6 +11,7 @@ import qualified Tests.Readers.Org
 import qualified Tests.Readers.HTML
 import qualified Tests.Readers.RST
 import qualified Tests.Readers.Docx
+import qualified Tests.Readers.Odt
 import qualified Tests.Readers.Txt2Tags
 import qualified Tests.Readers.EPUB
 import qualified Tests.Writers.ConTeXt
@@ -51,6 +52,7 @@ tests = [ testGroup "Old" Tests.Old.tests
           , testGroup "Org" Tests.Readers.Org.tests
           , testGroup "RST" Tests.Readers.RST.tests
           , testGroup "Docx" Tests.Readers.Docx.tests
+          , testGroup "Odt" Tests.Readers.Odt.tests
           , testGroup "Txt2Tags" Tests.Readers.Txt2Tags.tests
           , testGroup "EPUB" Tests.Readers.EPUB.tests
           ]

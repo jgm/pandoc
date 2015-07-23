@@ -1,0 +1,1 @@
+[Header 1 ("a-chapter",[],[]) [Span ("anchor",[],[]) [],Str "A",Space,Str "chapter"],Para [Str "Some",Space,Str "text."],Header 1 ("another-chapter",[],[]) [Str "Another",Space,Str "chapter"],Para [Str "A",Space,Str "reference",Space,Str "to",Space,Str "."],Para [Str "A",Space,Str "reference",Space,Str "to",Space,Link [Str "A",Space,Str "chapter"] ("#anchor",""),Str "."]]
