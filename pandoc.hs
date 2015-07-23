@@ -954,7 +954,7 @@ defaultReaderName fallback (x:xs) =
     ".docx"     -> "docx"
     ".t2t"      -> "t2t"
     ".epub"     -> "epub"
-    ".odt"      -> "odt"  -- so we get an "unknown reader" error
+    ".odt"      -> "odt"
     ".pdf"      -> "pdf"  -- so we get an "unknown reader" error
     ".doc"      -> "doc"  -- so we get an "unknown reader" error
     _           -> defaultReaderName fallback xs
@@ -1180,8 +1180,6 @@ main = do
                 Right r  -> return r
                 Left e   -> err 7 e'
                   where e' = case readerName' of
-                                  "odt" -> e ++
-                                    "\nPandoc can convert to ODT, but not from ODT.\nTry using LibreOffice to export as HTML, and convert that with pandoc."
                                   "pdf" -> e ++
                                      "\nPandoc can convert to PDF, but not from PDF."
                                   "doc" -> e ++

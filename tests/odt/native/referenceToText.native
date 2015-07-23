@@ -1,0 +1,1 @@
+[Para [Span ("an anchor",[],[]) [],Str "Some",Space,Str "text."],Para [Str "A",Space,Str "reference",Space,Str "to",Space,Link [Str "Some",Space,Str "text"] ("#an anchor",""),Str "."]]

@@ -67,6 +67,7 @@ module Text.Pandoc
                , Reader (..)
                , mkStringReader
                , readDocx
+               , readOdt
                , readMarkdown
                , readCommonMark
                , readMediaWiki
@@ -85,7 +86,7 @@ module Text.Pandoc
                , readTxt2TagsNoMacros
                , readEPUB
                -- * Writers: converting /from/ Pandoc format
-               , Writer (..)
+              , Writer (..)
                , writeNative
                , writeJSON
                , writeMarkdown
@@ -141,6 +142,7 @@ import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Haddock
 import Text.Pandoc.Readers.TWiki
 import Text.Pandoc.Readers.Docx
+import Text.Pandoc.Readers.Odt
 import Text.Pandoc.Readers.Txt2Tags
 import Text.Pandoc.Readers.EPUB
 import Text.Pandoc.Writers.Native
@@ -247,6 +249,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("haddock"      , mkStringReader readHaddock)
            ,("twiki"        , mkStringReader readTWiki)
            ,("docx"         , mkBSReader readDocx)
+           ,("odt"          , mkBSReader readOdt)
            ,("t2t"          , mkStringReader readTxt2TagsNoMacros)
            ,("epub"         , mkBSReader readEPUB)
            ]

@@ -1,0 +1,1 @@
+![Abbildung 1: Image caption](10000000000000FA000000FAD6A15225.jpg)

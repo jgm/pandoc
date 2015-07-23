@@ -683,16 +683,16 @@ headerLtEq _ _ = False
 -- | Generate a unique identifier from a list of inlines.
 -- Second argument is a list of already used identifiers.
 uniqueIdent :: [Inline] -> [String] -> String
-uniqueIdent title' usedIdents =
-  let baseIdent = case inlineListToIdentifier title' of
+uniqueIdent title' usedIdents
+  =  let baseIdent = case inlineListToIdentifier title' of
                         ""   -> "section"
                         x    -> x
-      numIdent n = baseIdent ++ "-" ++ show n
-  in  if baseIdent `elem` usedIdents
-        then case find (\x -> numIdent x `notElem` usedIdents) ([1..60000] :: [Int]) of
+         numIdent n = baseIdent ++ "-" ++ show n
+     in  if baseIdent `elem` usedIdents
+           then case find (\x -> numIdent x `notElem` usedIdents) ([1..60000] :: [Int]) of
                   Just x  -> numIdent x
                   Nothing -> baseIdent   -- if we have more than 60,000, allow repeats
-        else baseIdent
+           else baseIdent
 
 -- | True if block is a Header block.
 isHeaderBlock :: Block -> Bool

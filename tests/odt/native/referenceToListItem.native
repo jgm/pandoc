@@ -1,0 +1,1 @@
+[OrderedList (1,Decimal,Period) [[Plain [Span ("anchor",[],[]) [],Str "A",Space,Str "list",Space,Str "item"]],[Plain [Str "Another",Space,Str "list",Space,Str "item"]]],Para [Str "A",Space,Str "reference",Space,Str "to",Space,Str "list",Space,Str "item",Space,Link [Str "1."] ("#anchor",""),Str "."],Para [],Para []]
