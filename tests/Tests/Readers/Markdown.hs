@@ -224,6 +224,16 @@ tests = [ testGroup "inline code"
           , "bracketed text (#2062)" =:
             "# [hi]\n"
             =?> headerWith ("hi",[],[]) 1 "[hi]"
+          , "ATX header without trailing #s" =:
+            "# Foo bar\n\n" =?>
+            headerWith ("foo-bar",[],[]) 1 "Foo bar"
+          , "ATX header without trailing #s" =:
+            "# Foo bar with # #" =?>
+            headerWith ("foo-bar-with",[],[]) 1 "Foo bar with #"
+          , "setext header" =:
+            "Foo bar\n=\n\n Foo bar 2 \n=" =?>
+            headerWith ("foo-bar",[],[]) 1 "Foo bar"
+            <> headerWith ("foo-bar-2",[],[]) 1 "Foo bar 2"
           ]
         , testGroup "Implicit header references"
           [ "ATX header without trailing #s" =:
