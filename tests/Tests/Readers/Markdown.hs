@@ -225,6 +225,26 @@ tests = [ testGroup "inline code"
             "# [hi]\n"
             =?> headerWith ("hi",[],[]) 1 "[hi]"
           ]
+        , testGroup "Implicit header references"
+          [ "ATX header without trailing #s" =:
+            "# Header\n[header]\n\n[header ]\n\n[ header]" =?>
+            headerWith ("header",[],[]) 1 "Header"
+            <> para (link "#header" "" (text "header"))
+            <> para (text "[header" <> space <> text "]")
+            <> para (text "[" <> space <> text "header]")
+          , "ATX header with trailing #s" =:
+            "# Foo bar #\n[foo bar]\n\n[foo bar ]\n\n[ foo bar]" =?>
+            headerWith ("foo-bar",[],[]) 1 "Foo bar"
+            <> para (link "#foo-bar" "" (text "foo bar"))
+            <> para (text "[foo bar" <> space <> text "]")
+            <> para (text "[" <> space <> text "foo bar]")
+          , "setext header" =:
+            " Header \n=\n\n[header]\n\n[header ]\n\n[ header]" =?>
+            headerWith ("header",[],[]) 1 "Header"
+            <> para (link "#header" "" (text "header"))
+            <> para (text "[header" <> space <> text "]")
+            <> para (text "[" <> space <> text "header]")
+          ]
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
             ("'...hi'"
