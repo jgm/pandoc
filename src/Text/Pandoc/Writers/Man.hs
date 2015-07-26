@@ -342,7 +342,7 @@ inlineToMan _ (RawInline f str)
 inlineToMan _ (LineBreak) = return $
   cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
 inlineToMan _ Space = return space
-inlineToMan opts (Link txt (src, _)) = do
+inlineToMan opts (Link _ txt (src, _)) = do
   linktext <- inlineListToMan opts txt
   let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
   return $ case txt of
@@ -350,12 +350,12 @@ inlineToMan opts (Link txt (src, _)) = do
              | escapeURI s == srcSuffix ->
                                  char '<' <> text srcSuffix <> char '>'
            _                  -> linktext <> text " (" <> text src <> char ')'
-inlineToMan opts (Image _ alternate (source, tit)) = do
+inlineToMan opts (Image attr alternate (source, tit)) = do
   let txt = if (null alternate) || (alternate == [Str ""]) ||
                (alternate == [Str source]) -- to prevent autolinks
                then [Str "image"]
                else alternate
-  linkPart <- inlineToMan opts (Link txt (source, tit))
+  linkPart <- inlineToMan opts (Link attr txt (source, tit))
   return $ char '[' <> text "IMAGE: " <> linkPart <> char ']'
 inlineToMan _ (Note contents) = do
   -- add to notes in state

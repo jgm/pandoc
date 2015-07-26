@@ -99,8 +99,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                              _ -> blocks
                    else blocks
   -- see if there are internal links
-  let isInternalLink (Link _ ('#':xs,_))  = [xs]
-      isInternalLink _                    = []
+  let isInternalLink (Link _ _ ('#':xs,_))  = [xs]
+      isInternalLink _                      = []
   modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
   let template = writerTemplate options
   -- set stBook depending on documentclass
@@ -620,8 +620,8 @@ defListItemToLaTeX (term, defs) = do
     term' <- inlineListToLaTeX term
     -- put braces around term if it contains an internal link,
     -- since otherwise we get bad bracket interactions: \item[\hyperref[..]
-    let isInternalLink (Link _ ('#':_,_)) = True
-        isInternalLink _                  = False
+    let isInternalLink (Link _ _ ('#':_,_)) = True
+        isInternalLink _                    = False
     let term'' = if any isInternalLink term
                     then braces term'
                     else term'
@@ -828,11 +828,11 @@ inlineToLaTeX (RawInline f str)
   | otherwise           = return empty
 inlineToLaTeX (LineBreak) = return $ "\\\\" <> cr
 inlineToLaTeX Space = return space
-inlineToLaTeX (Link txt ('#':ident, _)) = do
+inlineToLaTeX (Link _ txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt
   lab <- toLabel ident
   return $ text "\\hyperref" <> brackets (text lab) <> braces contents
-inlineToLaTeX (Link txt (src, _)) =
+inlineToLaTeX (Link _ txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }

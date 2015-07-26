@@ -2644,7 +2644,7 @@ nonbreaking space after the image:
 
 #### Extension: `common_link_attributes` ####
 
-Attributes can be set on images:
+Attributes can be set on links and images:
 
     An inline ![image](foo.jpg){#id .class width=30 height=20px}
     and a reference ![image][ref] with attributes.
@@ -2666,7 +2666,7 @@ and `%`. There must not be any spaces between the number and the unit.
 For example:
 
 ```
-![](file.jpg){width=50%}
+![](file.jpg){ width=50% }
 ```
 
 - Dimensions are converted to inches for output in page-based formats like
@@ -2684,10 +2684,6 @@ For example:
 - When no `width` or `height` attributes are specified, the fallback
   is to look at the image resolution and the dpi metadata embedded in
   the image file.
-
-Note that while attributes are also parsed on links, pandoc's internal
-document model provides nowhere to put them, so they are presently
-just ignored.
 
 
 Footnotes
@@ -2964,9 +2960,8 @@ letters are omitted.
 #### Extension: `link_attributes` ####
 
 Parses multimarkdown style key-value attributes on link
-and image references. (Since pandoc's internal document model
-provides nowhere to put these for links, they are presently just
-ignored, but they work for images.)
+and image references. This extension should not be confused with the
+[`common_link_attributes`](#extension-common_link_attributes) extension.
 
     This is a reference ![image][ref] with multimarkdown attributes.
 

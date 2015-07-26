@@ -390,7 +390,7 @@ inlineListToRST lst =
         isComplex (Strikeout _) = True
         isComplex (Superscript _) = True
         isComplex (Subscript _) = True
-        isComplex (Link _ _) = True
+        isComplex (Link _ _ _) = True
         isComplex (Image _ _ _) = True
         isComplex (Code _ _) = True
         isComplex (Math _ _) = True
@@ -442,17 +442,17 @@ inlineToRST (RawInline f x)
 inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space
 -- autolink
-inlineToRST (Link [Str str] (src, _))
+inlineToRST (Link _ [Str str] (src, _))
   | isURI src &&
     if "mailto:" `isPrefixOf` src
        then src == escapeURI ("mailto:" ++ str)
        else src == escapeURI str = do
   let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
   return $ text srcSuffix
-inlineToRST (Link [Image attr alt (imgsrc,imgtit)] (src, _tit)) = do
+inlineToRST (Link _ [Image attr alt (imgsrc,imgtit)] (src, _tit)) = do
   label <- registerImage attr alt (imgsrc,imgtit) (Just src)
   return $ "|" <> label <> "|"
-inlineToRST (Link txt (src, tit)) = do
+inlineToRST (Link _ txt (src, tit)) = do
   useReferenceLinks <- get >>= return . writerReferenceLinks . stOptions
   linktext <- inlineListToRST $ normalizeSpaces txt
   if useReferenceLinks

@@ -464,13 +464,13 @@ inlineToDokuWiki _ (LineBreak) = return "\\\\\n"
 
 inlineToDokuWiki _ Space = return " "
 
-inlineToDokuWiki opts (Link txt (src, _)) = do
+inlineToDokuWiki opts (Link _ txt (src, _)) = do
   label <- inlineListToDokuWiki opts txt
   case txt of
      [Str s] | "mailto:" `isPrefixOf` src -> return $ "<" ++ s ++ ">"
              | escapeURI s == src -> return src
      _  -> if isURI src
-              then return $ "[[" ++ src ++ "|" ++ label ++ "]]"
+              then return $ "[[" ++ src  ++ "|" ++ label ++ "]]"
               else return $ "[[" ++ src' ++ "|" ++ label ++ "]]"
                      where src' = case src of
                                      '/':xs -> xs  -- with leading / it's a

@@ -309,7 +309,7 @@ inlineToCustom lua (RawInline format str) =
 
 inlineToCustom lua (LineBreak) = callfunc lua "LineBreak"
 
-inlineToCustom lua (Link txt (src,tit)) =
+inlineToCustom lua (Link _ txt (src,tit)) =
   callfunc lua "Link" txt src tit
 
 inlineToCustom lua (Image _ alt (src,tit)) =

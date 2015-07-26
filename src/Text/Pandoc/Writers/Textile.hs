@@ -426,23 +426,25 @@ inlineToTextile _ (LineBreak) = return "\n"
 
 inlineToTextile _ Space = return " "
 
-inlineToTextile opts (Link txt (src, _)) = do
+inlineToTextile opts (Link (_, cls, _) txt (src, _)) = do
+  let classes = if null cls
+                   then ""
+                   else "(" ++ unwords cls ++ ")"
   label <- case txt of
                 [Code _ s]
                  | s == src -> return "$"
                 [Str s]
                  | s == src -> return "$"
                 _           -> inlineListToTextile opts txt
-  return $ "\"" ++ label ++ "\":" ++ src
+  return $ "\"" ++ classes ++ label ++ "\":" ++ src
 
-inlineToTextile opts (Image attr alt (source, tit)) = do
+inlineToTextile opts (Image attr@(_, cls, _) alt (source, tit)) = do
   alt' <- inlineListToTextile opts alt
   let txt = if null tit
                then if null alt'
                        then ""
                        else "(" ++ alt' ++ ")"
                else "(" ++ tit ++ ")"
-      (_, cls, _) = attr
       classes = if null cls
                    then ""
                    else "(" ++ unwords cls ++ ")"

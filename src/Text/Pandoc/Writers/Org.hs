@@ -276,7 +276,7 @@ inlineToOrg (RawInline f str) | f == "tex" || f == "latex" = return $ text str
 inlineToOrg (RawInline _ _) = return empty
 inlineToOrg (LineBreak) = return (text "\\\\" <> cr)
 inlineToOrg Space = return space
-inlineToOrg (Link txt (src, _)) = do
+inlineToOrg (Link _ txt (src, _)) = do
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
              do modify $ \s -> s{ stLinks = True }

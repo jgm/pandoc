@@ -350,7 +350,7 @@ inlineToRTF (RawInline f str)
   | otherwise         = ""
 inlineToRTF (LineBreak) = "\\line "
 inlineToRTF Space = " "
-inlineToRTF (Link text (src, _)) =
+inlineToRTF (Link _ text (src, _)) =
   "{\\field{\\*\\fldinst{HYPERLINK \"" ++ (codeStringToRTF src) ++
   "\"}}{\\fldrslt{\\ul\n" ++ (inlineListToRTF text) ++ "\n}}}\n"
 inlineToRTF (Image _ _ (source, _)) =

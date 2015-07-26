@@ -303,7 +303,7 @@ inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
 -- Handle HTML-like internal document references to sections
-inlineToConTeXt (Link txt          (('#' : ref), _)) = do
+inlineToConTeXt (Link _ txt (('#' : ref), _)) = do
   opts <- gets stOptions
   contents <-  inlineListToConTeXt txt
   let ref' = toLabel $ stringToConTeXt opts ref
@@ -311,7 +311,7 @@ inlineToConTeXt (Link txt          (('#' : ref), _)) = do
            <> braces contents
            <> brackets (text ref')
 
-inlineToConTeXt (Link txt          (src, _))      = do
+inlineToConTeXt (Link _ txt (src, _)) = do
   let isAutolink = txt == [Str (unEscapeString src)]
   st <- get
   let next = stNextRef st
@@ -326,10 +326,9 @@ inlineToConTeXt (Link txt          (src, _))      = do
                   else brackets empty <> brackets contents)
            <> "\\from"
            <> brackets (text ref)
-inlineToConTeXt (Image attr _ (src, _)) = do
+inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
   opts <- gets stOptions
-  let (_,cls,_) = attr
-      showDim dir = let d = text (show dir) <> "="
+  let showDim dir = let d = text (show dir) <> "="
                     in case (dimension dir attr) of
                          Just (Pixel a)   ->
                            [d <> text (showInInch opts (Pixel a)) <> "in"]

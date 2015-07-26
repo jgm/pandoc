@@ -967,7 +967,8 @@ parseInline (Elem e) =
                                Just h -> h
                                _      -> ('#' : attrValue "linkend" e)
              let ils' = if ils == mempty then str href else ils
-             return $ link href "" ils'
+             let attr = (attrValue "id" e, words $ attrValue "role" e, [])
+             return $ linkWith href "" attr ils'
         "foreignphrase" -> emph <$> innerInlines
         "emphasis" -> case attrValue "role" e of
                              "bold"   -> strong <$> innerInlines

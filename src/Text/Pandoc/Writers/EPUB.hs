@@ -457,10 +457,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
                           chapters' [1..]
 
   let fixInternalReferences :: Inline -> Inline
-      fixInternalReferences (Link lab ('#':xs, tit)) =
+      fixInternalReferences (Link attr lab ('#':xs, tit)) =
         case lookup xs reftable of
-             Just ys ->  Link lab (ys, tit)
-             Nothing -> Link lab ('#':xs, tit)
+             Just ys -> Link attr lab (ys, tit)
+             Nothing -> Link attr lab ('#':xs, tit)
       fixInternalReferences x = x
 
   -- internal reference IDs change when we chunk the file,

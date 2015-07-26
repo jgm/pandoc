@@ -427,11 +427,11 @@ inlineToTexinfo (RawInline f str)
 inlineToTexinfo (LineBreak) = return $ text "@*" <> cr
 inlineToTexinfo Space = return space
 
-inlineToTexinfo (Link txt (src@('#':_), _)) = do
+inlineToTexinfo (Link _ txt (src@('#':_), _)) = do
   contents <- escapeCommas $ inlineListToTexinfo txt
   return $ text "@ref" <>
            braces (text (stringToTexinfo src) <> text "," <> contents)
-inlineToTexinfo (Link txt (src, _)) = do
+inlineToTexinfo (Link _ txt (src, _)) = do
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
              do return $ text $ "@url{" ++ x ++ "}"

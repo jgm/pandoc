@@ -814,7 +814,7 @@ substKey = try $ do
              -- use alt unless :alt: attribute on image:
              [Para [Image _ [Str "image"] (src,tit)]] ->
                 return $ B.image src tit alt
-             [Para [Link [Image _ [Str "image"] (src,tit)] (src',tit')]] ->
+             [Para [Link _ [Image _ [Str "image"] (src,tit)] (src',tit')]] ->
                 return $ B.link src' tit' (B.image src tit alt)
              [Para ils] -> return $ B.fromList ils
              _          -> mzero

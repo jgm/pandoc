@@ -153,7 +153,7 @@ inlineToNodes (SmallCaps xs) =
   ((node (INLINE_HTML (T.pack "<span style=\"font-variant:small-caps;\">")) []
     : inlinesToNodes xs ++
     [node (INLINE_HTML (T.pack "</span>")) []]) ++ )
-inlineToNodes (Link ils (url,tit)) =
+inlineToNodes (Link _ ils (url,tit)) =
   (node (LINK (T.pack url) (T.pack tit)) (inlinesToNodes ils) :)
 inlineToNodes (Image _ ils (url,tit)) =
   (node (IMAGE (T.pack url) (T.pack tit)) (inlinesToNodes ils) :)

@@ -192,20 +192,20 @@ fixInlineIRs s (Span as v) =
   Span (fixAttrs s as) v
 fixInlineIRs s (Code as code) =
   Code (fixAttrs s as) code
-fixInlineIRs s (Link t ('#':url, tit)) =
-  Link t (addHash s url, tit)
+fixInlineIRs s (Link attr t ('#':url, tit)) =
+  Link attr t (addHash s url, tit)
 fixInlineIRs _ v = v
 
 normalisePath :: Inline -> Inline
-normalisePath (Link t (url, tit)) =
+normalisePath (Link attr t (url, tit)) =
   let (path, uid) = span (/= '#') url in
-  Link t (takeFileName path ++ uid, tit)
+  Link attr t (takeFileName path ++ uid, tit)
 normalisePath s = s
 
 prependHash :: [String] -> Inline -> Inline
-prependHash ps l@(Link is (url, tit))
+prependHash ps l@(Link attr is (url, tit))
   | or [s `isPrefixOf` url | s <- ps] =
-    Link is ('#':url, tit)
+    Link attr is ('#':url, tit)
   | otherwise = l
 prependHash _ i = i
 

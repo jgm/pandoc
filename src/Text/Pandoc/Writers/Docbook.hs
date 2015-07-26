@@ -153,16 +153,9 @@ listItemToDocbook opts item =
   inTagsIndented "listitem" $ blocksToDocbook opts $ map plainToPara item
 
 imageToDocbook :: WriterOptions -> Attr -> String -> Doc
-imageToDocbook _ attr src = selfClosingTag "imagedata" $ ("fileref", src):ident
-  ++ roles ++ dims
+imageToDocbook _ attr src = selfClosingTag "imagedata" $
+  ("fileref", src) : idAndRole attr ++ dims
   where
-    (idStr,cls,_) = attr
-    ident = if null idStr
-               then []
-               else [("id", idStr)]
-    roles = if null cls
-               then []
-               else [("role", unwords cls)]
     dims = go Width "width" ++ go Height "depth"
     go dir dstr = case (dimension dir attr) of
                     Just a  -> [(dstr, show a)]
@@ -339,7 +332,7 @@ inlineToDocbook _ (RawInline f x) | f == "html" || f == "docbook" = text x
                                   | otherwise                     = empty
 inlineToDocbook _ LineBreak = text "\n"
 inlineToDocbook _ Space = space
-inlineToDocbook opts (Link txt (src, _))
+inlineToDocbook opts (Link attr txt (src, _))
   | Just email <- stripPrefix "mailto:" src =
       let emailLink = inTagsSimple "email" $ text $
                       escapeStringForXML $ email
@@ -349,8 +342,8 @@ inlineToDocbook opts (Link txt (src, _))
                               char '(' <> emailLink <> char ')'
   | otherwise =
       (if isPrefixOf "#" src
-            then inTags False "link" [("linkend", drop 1 src)]
-            else inTags False "ulink" [("url", src)]) $
+            then inTags False "link" $ ("linkend", drop 1 src) : idAndRole attr
+            else inTags False "ulink" $ ("url", src) : idAndRole attr ) $
         inlinesToDocbook opts txt
 inlineToDocbook opts (Image attr _ (src, tit)) =
   let titleDoc = if null tit
@@ -365,3 +358,14 @@ inlineToDocbook opts (Note contents) =
 isMathML :: HTMLMathMethod -> Bool
 isMathML (MathML _) = True
 isMathML _          = False
+
+idAndRole :: Attr -> [(String, String)]
+idAndRole (id',cls,_) = ident ++ role
+  where
+    ident = if null id'
+               then []
+               else [("id", id')]
+    role  = if null cls
+               then []
+               else [("role", unwords cls)]
+

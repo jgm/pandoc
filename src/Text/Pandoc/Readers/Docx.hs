@@ -533,10 +533,10 @@ bodyPartToBlocks (OMathPara e) = do
 
 -- replace targets with generated anchors.
 rewriteLink' :: Inline -> DocxContext Inline
-rewriteLink' l@(Link ils ('#':target, title)) = do
+rewriteLink' l@(Link attr ils ('#':target, title)) = do
   anchorMap <- gets docxAnchorMap
   return $ case M.lookup target anchorMap of
-    Just newTarget -> (Link ils ('#':newTarget, title))
+    Just newTarget -> (Link attr ils ('#':newTarget, title))
     Nothing        -> l
 rewriteLink' il = return il
 

@@ -393,7 +393,7 @@ inlineToOpenDocument o ils
     | RawInline f s <- ils = if f == Format "opendocument"
                                 then return $ text s
                                 else return empty
-    | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
+    | Link _ l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
     | Image attr _ (s,t) <- ils = mkImg attr s t
     | Note        l <- ils = mkNote l
     | otherwise            = return empty

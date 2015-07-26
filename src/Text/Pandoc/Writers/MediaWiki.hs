@@ -399,7 +399,7 @@ inlineToMediaWiki (LineBreak) = return "<br />\n"
 
 inlineToMediaWiki Space = return " "
 
-inlineToMediaWiki (Link txt (src, _)) = do
+inlineToMediaWiki (Link _ txt (src, _)) = do
   label <- inlineListToMediaWiki txt
   case txt of
      [Str s] | isURI src && escapeURI s == src -> return src

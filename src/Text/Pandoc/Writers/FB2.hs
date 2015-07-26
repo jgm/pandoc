@@ -442,7 +442,7 @@ toXml Space = return [txt " "]
 toXml LineBreak = return [el "empty-line" ()]
 toXml (Math _ formula) = insertMath InlineImage formula
 toXml (RawInline _ _) = return []  -- raw TeX and raw HTML are suppressed
-toXml (Link text (url,ttl)) = do
+toXml (Link _ text (url,ttl)) = do
   fns <- footnotes `liftM` get
   let n = 1 + length fns
   let ln_id = linkID n
@@ -572,7 +572,7 @@ plain Space = " "
 plain LineBreak = "\n"
 plain (Math _ s) = s
 plain (RawInline _ s) = s
-plain (Link text (url,_)) = concat (map plain text ++ [" <", url, ">"])
+plain (Link _ text (url,_)) = concat (map plain text ++ [" <", url, ">"])
 plain (Image _ alt _) = concat (map plain alt)
 plain (Note _) = ""  -- FIXME
 

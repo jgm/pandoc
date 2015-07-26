@@ -327,7 +327,7 @@ inlineToHaddock _ (RawInline f str)
 inlineToHaddock _ (LineBreak) = return cr
 inlineToHaddock _ Space = return space
 inlineToHaddock opts (Cite _ lst) = inlineListToHaddock opts lst
-inlineToHaddock opts (Link txt (src, _)) = do
+inlineToHaddock opts (Link _ txt (src, _)) = do
   linktext <- inlineListToHaddock opts txt
   let useAuto = isURI src &&
                 case txt of
@@ -335,8 +335,8 @@ inlineToHaddock opts (Link txt (src, _)) = do
                       _                            -> False
   return $ nowrap $ "<" <> text src <>
            (if useAuto then empty else space <> linktext) <> ">"
-inlineToHaddock opts (Image _ alternate (source, tit)) = do
-  linkhaddock <- inlineToHaddock opts (Link alternate (source, tit))
+inlineToHaddock opts (Image attr alternate (source, tit)) = do
+  linkhaddock <- inlineToHaddock opts (Link attr alternate (source, tit))
   return $ "<" <> linkhaddock <> ">"
 -- haddock doesn't have notes, but we can fake it:
 inlineToHaddock opts (Note contents) = do

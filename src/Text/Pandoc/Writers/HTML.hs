@@ -363,10 +363,10 @@ parseMailto s = do
        _ -> fail "not a mailto: URL"
 
 -- | Obfuscate a "mailto:" link.
-obfuscateLink :: WriterOptions -> Html -> String -> Html
-obfuscateLink opts txt s | writerEmailObfuscation opts == NoObfuscation =
-  H.a ! A.href (toValue s) $ txt
-obfuscateLink opts (renderHtml -> txt) s =
+obfuscateLink :: WriterOptions -> Attr -> Html -> String -> Html
+obfuscateLink opts attr txt s | writerEmailObfuscation opts == NoObfuscation =
+  addAttrs opts attr $ H.a ! A.href (toValue s) $ txt
+obfuscateLink opts attr (renderHtml -> txt) s =
   let meth = writerEmailObfuscation opts
       s' = map toLower (take 7 s) ++ drop 7 s
   in  case parseMailto s' of
@@ -392,7 +392,7 @@ obfuscateLink opts (renderHtml -> txt) s =
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) >>
                      H.noscript (preEscapedString $ obfuscateString altText)
                 _ -> error $ "Unknown obfuscation method: " ++ show meth
-        _ -> H.a ! A.href (toValue s) $ toHtml txt  -- malformed email
+        _ -> addAttrs opts attr $ H.a ! A.href (toValue s) $ toHtml txt  -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
@@ -808,10 +808,10 @@ inlineToHtml opts inline =
                                _             -> return mempty
       | f == Format "html" -> return $ preEscapedString str
       | otherwise          -> return mempty
-    (Link txt (s,_)) | "mailto:" `isPrefixOf` s -> do
+    (Link attr txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
-                        return $ obfuscateLink opts linkText s
-    (Link txt (s,tit)) -> do
+                        return $ obfuscateLink opts attr linkText s
+    (Link attr txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
                         let s' = case s of
                                       '#':xs | writerSlideVariant opts ==
@@ -821,9 +821,10 @@ inlineToHtml opts inline =
                         let link' = if txt == [Str (unEscapeString s)]
                                        then link ! A.class_ "uri"
                                        else link
+                        let link'' = addAttrs opts attr link'
                         return $ if null tit
-                                    then link'
-                                    else link' ! A.title (toValue tit)
+                                    then link''
+                                    else link'' ! A.title (toValue tit)
     (Image attr txt (s,tit)) | treatAsImage s -> do
                         let alternate' = stringify txt
                         let attributes = [A.src $ toValue s] ++
@@ -874,7 +875,7 @@ blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
 blockListToNote opts ref blocks =
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
-  let backlink = [Link [Str "↩"] ("#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref,[])]
+  let backlink = [Link nullAttr [Str "↩"] ("#" ++ writerIdentifierPrefix opts ++ "fnref" ++ ref,[])]
       blocks'  = if null blocks
                     then []
                     else let lastBlock   = last blocks

@@ -394,7 +394,7 @@ inlineToAsciiDoc _ (RawInline f s)
 inlineToAsciiDoc _ (LineBreak) = return $ " +" <> cr
 inlineToAsciiDoc _ Space = return space
 inlineToAsciiDoc opts (Cite _ lst) = inlineListToAsciiDoc opts lst
-inlineToAsciiDoc opts (Link txt (src, _tit)) = do
+inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
 -- relative:  link:downloads/foo.zip[download foo.zip]
 -- abs:  http://google.cod[Google]
 -- or my@email.com[email john]

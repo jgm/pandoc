@@ -419,7 +419,7 @@ inlineToICML _ style (Math _ str) = charStyle style $ text $ escapeStringForXML 
 inlineToICML _ _ (RawInline f str)
   | f == Format "icml" = return $ text str
   | otherwise          = return empty
-inlineToICML opts style (Link lst (url, title)) = do
+inlineToICML opts style (Link _ lst (url, title)) = do
   content <- inlinesToICML opts (linkName:style) lst
   state $ \st ->
             let ident = if null $ links st
