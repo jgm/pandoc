@@ -52,3 +52,10 @@ Header-less one-column:
 |   |
 |:-:|
 |hi|
+
+Indented left column:
+
+Number of siblings | Salary
+------------------:|:------
+                 3 | 33
+                 4 | 44

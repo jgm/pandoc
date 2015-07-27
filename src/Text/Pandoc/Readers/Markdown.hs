@@ -1333,6 +1333,8 @@ pipeBreak = try $ do
 
 pipeTable :: MarkdownParser ([Alignment], [Double], F [Blocks], F [[Blocks]])
 pipeTable = try $ do
+  nonindentSpaces
+  lookAhead nonspaceChar
   (heads,aligns) <- (,) <$> pipeTableRow <*> pipeBreak
   lines' <-  sequence <$> many pipeTableRow
   let widths = replicate (length aligns) 0.0
@@ -1346,7 +1348,7 @@ sepPipe = try $ do
 -- parse a row, also returning probable alignments for org-table cells
 pipeTableRow :: MarkdownParser (F [Blocks])
 pipeTableRow = do
-  nonindentSpaces
+  skipMany spaceChar
   openPipe <- (True <$ char '|') <|> return False
   let cell = mconcat <$>
                  many (notFollowedBy (blankline <|> char '|') >> inline)
