@@ -635,12 +635,11 @@ pSpan = try $ do
   guardEnabled Ext_native_spans
   TagOpen _ attr <- lookAhead $ pSatisfy $ tagOpen (=="span") (const True)
   contents <- pInTags "span" inline
-  let attr' = mkAttr attr
-  return $ case attr' of
-                ("",[],[("style",s)])
-                  | filter (`notElem` " \t;") s == "font-variant:small-caps" ->
-                     B.smallcaps contents
-                _ -> B.spanWith (mkAttr attr) contents
+  let isSmallCaps = fontVariant == "small-caps"
+                    where styleAttr   = fromMaybe "" $ lookup "style" attr
+                          fontVariant = fromMaybe "" $ pickStyleAttrProps ["font-variant"] styleAttr
+  let tag = if isSmallCaps then B.smallcaps else B.spanWith (mkAttr attr)
+  return $ tag contents
 
 pRawHtmlInline :: TagParser Inlines
 pRawHtmlInline = do
