@@ -1742,7 +1742,7 @@ source = do
 linkTitle :: MarkdownParser String
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
 
-wikilinkstuff :: MarkdownParser (F Inlines, String, String)
+wikilinkstuff :: MarkdownParser (F Inlines, String)
 wikilinkstuff = do
   string "[["
   (_, raw) <- withRaw $ charsInBalancedBrackets 2
@@ -1759,21 +1759,21 @@ wikilinkstuff = do
           labstr = deiki rawstr ++ "\n"
       src <- parseFromString (mconcat <$> many (count 1 anyChar)) (init srcstr)
       lab <- parseFromString (trimInlinesF . mconcat <$> many inline) (init labstr)
-      return (lab, src, raw)
+      return (lab, src)
     Just idx -> do
       let rawstr = ((reverse . (drop 2) . reverse) raw)
           srcstr = "#" ++ (map depunct (drop (idx + 1) rawstr)) ++ "\n"
           labstr = deiki (take idx rawstr) ++ "\n"
       src <- parseFromString (mconcat <$> many (count 1 anyChar)) (init srcstr)
       lab <- parseFromString (trimInlinesF . mconcat <$> many inline) (init labstr)
-      return (lab, src, raw)
+      return (lab, src)
 
 wikilink :: MarkdownParser (F Inlines)
 wikilink = try $ do
   st <- getState
   guard $ stateAllowLinks st
   setState $ st { stateAllowLinks = False }
-  (lab,src,raw) <- wikilinkstuff
+  (lab,src) <- wikilinkstuff
   setState $ st { stateAllowLinks = True }
   return $ B.link src "" <$> lab
 
