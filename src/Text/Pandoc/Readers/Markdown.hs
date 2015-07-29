@@ -1770,6 +1770,7 @@ wikilinkstuff = do
 
 wikilink :: MarkdownParser (F Inlines)
 wikilink = try $ do
+  guardEnabled Ext_ikiwiki_wikilinks
   st <- getState
   guard $ stateAllowLinks st
   setState $ st { stateAllowLinks = False }
