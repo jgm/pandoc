@@ -136,6 +136,8 @@ import qualified Data.Text as T (toUpper, pack, unpack)
 import Data.ByteString.Lazy (toChunks, fromChunks)
 import qualified Data.ByteString.Lazy as BL
 
+import Codec.Archive.Zip
+
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
 #else
@@ -155,7 +157,6 @@ import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
 import Network.HTTP.Types.Header ( hContentType)
 import Network (withSocketsDo)
-import Codec.Archive.Zip
 #else
 import Network.URI (parseURI)
 import Network.HTTP (findHeader, rspBody,
