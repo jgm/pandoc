@@ -1,0 +1,59 @@
+\begin[$if(papersize)$papersize=$papersize$,$endif$class=$documentclass$$if(classoptions)$,$classoptions$$endif$]{document}
+\script[src=packages/pandoc]
+$if(lang)$
+\language[main=$lang$]
+\font[language=$lang$]
+$endif$
+$if(langscript)$
+\font[script=$langscript$]
+$endif$
+$if(mainfont)$
+\font[family=$mainfont$]
+$endif$
+$if(fontsize)$
+\font[size=$fontsize$]
+$endif$
+\begin{script}
+$if(links-as-notes)$
+SILE.registerCommand("href", function(options, content)
+  SILE.call("url", options, content)
+  SILE.call("footnote", options, content)
+end)
+$else$
+SILE.registerCommand("href", function(options, content)
+  SILE.call("url", options, content)
+end)
+$endif$
+\end{script}
+$for(include)$
+\script[src=$include$]
+$endfor$
+$for(script)$
+\script[src=$script$]
+$endfor$
+\set[parameter=linebreak.emergencyStretch,value=1em]
+$if(sansfont)$
+\define[command=book:chapterfont]{\font[family=$sansfont$,weight=800,size=20pt]{\process}}
+\define[command=book:sectionfont]{\font[family=$sansfont$,weight=800]{\process}}
+$endif$
+$if(monofont)$
+\define[command=verbatim:font]{\font[family=$monofont$]}
+$endif$
+$if(title-meta)$
+\define[command=title]{$title-meta$}
+$endif$
+$if(author-meta)$
+\define[command=author]{$author-meta$}
+$endif$
+$if(subtitle-meta)$
+\define[command=subtitle]{$subtitle-meta$}
+$endif$
+$if(rights-meta)$
+\define[command=rights]{$title-rights$}
+$endif$
+$body$
+$for(include-after)$
+$include-after$
+\script[src=$include-after$]
+$endfor$
+\end{document}
