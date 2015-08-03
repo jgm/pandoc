@@ -61,6 +61,7 @@ formatFromFilePath x =
     ".rst"      -> Just "rst"
     ".rtf"      -> Just "rtf"
     ".s5"       -> Just "s5"
+    ".sil"      -> Just "sile"
     ".t2t"      -> Just "t2t"
     ".tei"      -> Just "tei"
     ".tei.xml"  -> Just "tei"

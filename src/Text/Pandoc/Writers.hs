@@ -63,6 +63,7 @@ module Text.Pandoc.Writers
     , writeRTF
     , writeRevealJs
     , writeS5
+    , writeSILE
     , writeSlideous
     , writeSlidy
     , writeTEI
@@ -114,6 +115,7 @@ import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.Powerpoint
 import Text.Pandoc.Writers.RST
 import Text.Pandoc.Writers.RTF
+import Text.Pandoc.Writers.SILE
 import Text.Pandoc.Writers.TEI
 import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.Textile
@@ -159,6 +161,7 @@ writers = [
   ,("latex"        , TextWriter writeLaTeX)
   ,("beamer"       , TextWriter writeBeamer)
   ,("context"      , TextWriter writeConTeXt)
+  ,("sile"         , TextWriter writeSILE)
   ,("texinfo"      , TextWriter writeTexinfo)
   ,("man"          , TextWriter writeMan)
   ,("ms"           , TextWriter writeMs)
