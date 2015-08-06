@@ -1295,8 +1295,8 @@ Block quotations
 Markdown uses email conventions for quoting blocks of text.
 A block quotation is one or more paragraphs or other block elements
 (such as lists or headers), with each line preceded by a `>` character
-and a space. (The `>` need not start at the left margin, but it should
-not be indented more than three spaces.)
+and an optional space. (The `>` need not start at the left margin, but
+it should not be indented more than three spaces.)
 
     > This is a block quote. This
     > paragraph has two lines.
@@ -1319,6 +1319,13 @@ other block quotes. That is, block quotes can be nested:
     > This is a block quote.
     >
     > > A block quote within a block quote.
+
+If the `>` character is followed by an optional space, that space
+will be considered part of the block quote marker and not part of
+the indentation of the contents.  Thus, to put an indented code
+block in a block quote, you need five spaces after the `>`:
+
+    >     code
 
 #### Extension: `blank_before_blockquote` ####
 
