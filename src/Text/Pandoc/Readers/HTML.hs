@@ -64,6 +64,7 @@ import Data.Default (Default (..), def)
 import Control.Monad.Reader (Reader,ask, asks, local, runReader)
 import Network.URI (isURI)
 import Text.Pandoc.Error
+import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 
 import Text.Parsec.Error
 
@@ -252,6 +253,22 @@ pListItem nonItem = do
   let liDiv = maybe mempty (\x -> B.divWith (x, [], []) mempty) (lookup "id" attr)
   (liDiv <>) <$> pInTags "li" block <* skipMany nonItem
 
+parseListStyleType :: String -> ListNumberStyle
+parseListStyleType "lower-roman" = LowerRoman
+parseListStyleType "upper-roman" = UpperRoman
+parseListStyleType "lower-alpha" = LowerAlpha
+parseListStyleType "upper-alpha" = UpperAlpha
+parseListStyleType "decimal"     = Decimal
+parseListStyleType _             = DefaultStyle
+
+parseTypeAttr :: String -> ListNumberStyle
+parseTypeAttr "i" = LowerRoman
+parseTypeAttr "I" = UpperRoman
+parseTypeAttr "a" = LowerAlpha
+parseTypeAttr "A" = UpperAlpha
+parseTypeAttr "1" = Decimal
+parseTypeAttr _   = DefaultStyle
+
 pOrderedList :: TagParser Blocks
 pOrderedList = try $ do
   TagOpen _ attribs <- pSatisfy (~== TagOpen "ol" [])
@@ -261,23 +278,19 @@ pOrderedList = try $ do
                              sta' = if all isDigit sta
                                        then read sta
                                        else 1
-                             sty = fromMaybe (fromMaybe "" $
-                                   lookup "style" attribs) $
-                                   lookup "class" attribs
-                             sty' = case sty of
-                                     "lower-roman"  -> LowerRoman
-                                     "upper-roman"  -> UpperRoman
-                                     "lower-alpha"  -> LowerAlpha
-                                     "upper-alpha"  -> UpperAlpha
-                                     "decimal"      -> Decimal
-                                     _              ->
-                                       case lookup "type" attribs of
-                                               Just "1" -> Decimal
-                                               Just "I" -> UpperRoman
-                                               Just "i" -> LowerRoman
-                                               Just "A" -> UpperAlpha
-                                               Just "a" -> LowerAlpha
-                                               _        -> DefaultStyle
+
+                             pickListStyle = pickStyleAttrProps ["list-style-type", "list-style"]
+
+                             typeAttr  = fromMaybe "" $ lookup "type"  attribs
+                             classAttr = fromMaybe "" $ lookup "class" attribs
+                             styleAttr = fromMaybe "" $ lookup "style" attribs
+                             listStyle = fromMaybe "" $ pickListStyle styleAttr
+
+                             sty' = foldOrElse DefaultStyle
+                                      [ parseTypeAttr      typeAttr
+                                      , parseListStyleType classAttr
+                                      , parseListStyleType listStyle
+                                      ]
   let nonItem = pSatisfy (\t ->
                   not (tagOpen (`elem` ["li","ol","ul","dl"]) (const True) t) &&
                   not (t ~== TagClose "ol"))
@@ -622,12 +635,11 @@ pSpan = try $ do
   guardEnabled Ext_native_spans
   TagOpen _ attr <- lookAhead $ pSatisfy $ tagOpen (=="span") (const True)
   contents <- pInTags "span" inline
-  let attr' = mkAttr attr
-  return $ case attr' of
-                ("",[],[("style",s)])
-                  | filter (`notElem` " \t;") s == "font-variant:small-caps" ->
-                     B.smallcaps contents
-                _ -> B.spanWith (mkAttr attr) contents
+  let isSmallCaps = fontVariant == "small-caps"
+                    where styleAttr   = fromMaybe "" $ lookup "style" attr
+                          fontVariant = fromMaybe "" $ pickStyleAttrProps ["font-variant"] styleAttr
+  let tag = if isSmallCaps then B.smallcaps else B.spanWith (mkAttr attr)
+  return $ tag contents
 
 pRawHtmlInline :: TagParser Inlines
 pRawHtmlInline = do

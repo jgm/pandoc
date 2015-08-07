@@ -116,6 +116,19 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
   ,Para [Str "Item",Space,Str "1.",Space,Str "graf",Space,Str "two.",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog's",Space,Str "back."]]
  ,[Para [Str "Item",Space,Str "2."]]
  ,[Para [Str "Item",Space,Str "3."]]]
+,Para [Str "List",Space,Str "styles:"]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ []
+,OrderedList (1,LowerRoman,DefaultDelim)
+ []
+,OrderedList (1,LowerRoman,DefaultDelim)
+ []
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ []
+,OrderedList (1,LowerRoman,DefaultDelim)
+ []
+,OrderedList (1,LowerRoman,DefaultDelim)
+ []
 ,Header 2 ("",[],[]) [Str "Nested"]
 ,BulletList
  [[Plain [Str "Tab"]
