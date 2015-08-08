@@ -25,6 +25,32 @@ including
 A small test case (just a few lines) is ideal.  If your input is large,
 try to whittle it down to the minimum necessary to illustrate the problem.
 
+Out of scope?
+-------------
+
+A less than perfect conversion does not necessarily mean there's
+a bug in pandoc.  Quoting from the README:
+
+> Because Pandoc's intermediate representation of a document is less
+> expressive than many of the formats it converts between, one should
+> not expect perfect conversions between every format and every other.
+> Pandoc attempts to preserve the structural elements of a document, but
+> not formatting details such as margin size.  And some document elements,
+> such as complex tables, may not fit into Pandoc's simple document
+> model.  While conversions from Pandoc's Markdown to all formats aspire
+> to be perfect, conversions from formats more expressive than Pandoc's
+> Markdown can be expected to be lossy.
+
+For example, both docx and odt can represent margin size, but because
+pandoc's internal document model does not contain a representation of
+margin size, this information will be lost on converting from docx
+to odt.  (You can, however, customize margin size using `--reference-odt`.)
+
+So before submitting a bug report, consider whether it might be
+"out of scope."  If it concerns a feature of documents that isn't
+representable in pandoc's Markdown, then it very likely is.
+(If in doubt, you can always ask on pandoc-discuss.)
+
 Fixing bugs from the issue tracker
 ----------------------------------
 
