@@ -194,7 +194,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] indexterm - A wrapper for terms to be indexed
 [x] info - A wrapper for information about a component or other block. (DocBook v5)
 [x] informalequation - A displayed mathematical equation without a title
-[ ] informalexample - A displayed example without a title
+[x] informalexample - A displayed example without a title
 [ ] informalfigure - A untitled figure
 [ ] informaltable - A table without a title
 [ ] initializer - The initializer for a FieldSynopsis
@@ -611,6 +611,7 @@ isBlockElement (Elem e) = qName (elName e) `elem` blocktags
            "important","caution","note","tip","warning","qandadiv",
            "question","answer","abstract","itemizedlist","orderedlist",
            "variablelist","article","book","table","informaltable",
+           "informalexample",
            "screen","programlisting","example","calloutlist"]
 isBlockElement _ = False
 
@@ -766,6 +767,8 @@ parseBlock (Elem e) =
         "book" -> modify (\st -> st{ dbBook = True }) >>  getBlocks e
         "table" -> parseTable
         "informaltable" -> parseTable
+        "informalexample" -> divWith ("", ["informalexample"], []) <$>
+                             getBlocks e
         "literallayout" -> codeBlockWithLang
         "screen" -> codeBlockWithLang
         "programlisting" -> codeBlockWithLang
