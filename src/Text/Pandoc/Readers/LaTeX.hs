@@ -524,6 +524,7 @@ inlineCommands = M.fromList $
   , ("includegraphics", skipopts *> (unescapeURL <$> braced) >>= mkImage)
   , ("enquote", enquote)
   , ("cite", citation "cite" AuthorInText False)
+  , ("Cite", citation "cite" AuthorInText False)
   , ("citep", citation "citep" NormalCitation False)
   , ("citep*", citation "citep*" NormalCitation False)
   , ("citeal", citation "citeal" NormalCitation False)
