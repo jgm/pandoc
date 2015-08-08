@@ -50,6 +50,7 @@ import Text.Pandoc.Options (ReaderOptions(readerParseRaw, readerTrace)
                                Ext_native_divs, Ext_native_spans))
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
+import qualified Data.Map as M
 import Data.Maybe ( fromMaybe, isJust)
 import Data.List ( intercalate, isInfixOf, isPrefixOf, isSuffixOf )
 import Data.Char ( isDigit )
@@ -75,8 +76,9 @@ readHtml :: ReaderOptions -- ^ Reader options
          -> Either PandocError Pandoc
 readHtml opts inp =
     mapLeft (ParseFailure . getError) . flip runReader def $
-      runParserT parseDoc (HTMLState def{ stateOptions = opts } [] Nothing)
-             "source" tags
+      runParserT parseDoc
+        (HTMLState def{ stateOptions = opts } [] Nothing [] M.empty)
+        "source" tags
     where tags = stripPrefixes . canonicalizeTags $
                    parseTagsOptions parseOptions{ optTagPosition = True } inp
           parseDoc = do
@@ -101,7 +103,9 @@ data HTMLState =
   HTMLState
   {  parserState :: ParserState,
      noteTable   :: [(String, Blocks)],
-     baseHref    :: Maybe String
+     baseHref    :: Maybe String,
+     identifiers :: [String],
+     headerMap   :: M.Map Inlines String
   }
 
 data HTMLLocal = HTMLLocal { quoteContext :: QuoteContext
@@ -398,9 +402,10 @@ pHeader = try $ do
   let ident = fromMaybe "" $ lookup "id" attr
   let classes = maybe [] words $ lookup "class" attr
   let keyvals = [(k,v) | (k,v) <- attr, k /= "class", k /= "id"]
+  attr' <- registerHeader (ident, classes, keyvals) contents
   return $ if bodyTitle
               then mempty  -- skip a representation of the title in the body
-              else B.headerWith (ident, classes, keyvals) level contents
+              else B.headerWith attr' level contents
 
 pHrule :: TagParser Blocks
 pHrule = do
@@ -983,6 +988,14 @@ isSpace _    = False
 
 -- Instances
 
+instance HasIdentifierList HTMLState where
+  extractIdentifierList = identifiers
+  updateIdentifierList f s = s{ identifiers = f (identifiers s) }
+
+instance HasHeaderMap HTMLState where
+  extractHeaderMap = headerMap
+  updateHeaderMap  f s = s{ headerMap = f (headerMap s) }
+
 -- This signature should be more general
 -- MonadReader HTMLLocal m => HasQuoteContext st m
 instance HasQuoteContext st (Reader HTMLLocal) where
@@ -991,9 +1004,6 @@ instance HasQuoteContext st (Reader HTMLLocal) where
 
 instance HasReaderOptions HTMLState where
     extractReaderOptions = extractReaderOptions . parserState
-
-instance Default HTMLState where
-  def = HTMLState def [] Nothing
 
 instance HasMeta HTMLState where
   setMeta s b st = st {parserState = setMeta s b $ parserState st}
