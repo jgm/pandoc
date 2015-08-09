@@ -326,8 +326,7 @@ getDefaultExtensions "html"            = Set.fromList [Ext_auto_identifiers,
                                                        Ext_native_divs,
                                                        Ext_native_spans]
 getDefaultExtensions "html5"           = getDefaultExtensions "html"
-getDefaultExtensions "epub"            = Set.fromList [Ext_auto_identifiers,
-                                                       Ext_raw_html,
+getDefaultExtensions "epub"            = Set.fromList [Ext_raw_html,
                                                        Ext_native_divs,
                                                        Ext_native_spans,
                                                        Ext_epub_html_exts]
