@@ -35,8 +35,5 @@ script:
    fi
  - cabal-$CABALVER configure --enable-tests -v2  # -v2 provides useful information for debugging
  - cabal-$CABALVER build $JOPTS --ghc-options=$GHCOPTS # this builds all libraries and executables (including tests/benchmarks)
-# Since we're having problems with "cabal version changed" on ghc 7.10
-# on travis, let's temporarily just call the test program directly:
-# - cabal-$CABALVER test
- - dist/build/test-pandoc/test-pandoc
+ - cabal-$CABALVER test
  - cabal-$CABALVER check
