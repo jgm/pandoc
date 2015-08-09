@@ -162,13 +162,13 @@ $endfor$
 \fi
 
 \begin{document}
-$if(title)$
-\maketitle
-$endif$
 $if(abstract)$
 \begin{abstract}
 $abstract$
 \end{abstract}
+$endif$
+$if(title)$
+\maketitle
 $endif$
 
 $for(include-before)$
