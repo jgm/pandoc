@@ -344,7 +344,7 @@ and cheese
 |   Butter   || Ice cream ||  and more
 |}
 
-{|width="50%"
+{|width=50%
 ! align="left" width="50%"| Left
 ! align="right"|Right
 ! align="center"|Center

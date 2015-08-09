@@ -252,8 +252,8 @@ parseAttr = try $ do
   skipMany spaceChar
   k <- many1 letter
   char '='
-  char '"'
-  v <- many1Till (satisfy (/='\n')) (char '"')
+  v <- (char '"' >> many1Till (satisfy (/='\n')) (char '"'))
+       <|> many1 nonspaceChar
   return (k,v)
 
 tableStart :: MWParser ()
