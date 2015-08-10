@@ -498,6 +498,6 @@ benchmark benchmark-pandoc
   Build-Depends:   pandoc,
                    base >= 4.2 && < 5,
                    syb >= 0.1 && < 0.6,
-                   criterion >= 0.5 && < 1.1
+                   criterion >= 0.5 && < 1.2
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Default-Language: Haskell98
