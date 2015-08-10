@@ -181,7 +181,6 @@ getManifest archive = do
 fixInternalReferences :: FilePath -> Pandoc -> Pandoc
 fixInternalReferences pathToFile =
   (walk $ renameImages root)
-  . (walk normalisePath)
   . (walk $ fixBlockIRs filename)
   . (walk $ fixInlineIRs filename)
   where
@@ -195,12 +194,6 @@ fixInlineIRs s (Code as code) =
 fixInlineIRs s (Link t ('#':url, tit)) =
   Link t (addHash s url, tit)
 fixInlineIRs _ v = v
-
-normalisePath :: Inline -> Inline
-normalisePath (Link t (url, tit)) =
-  let (path, uid) = span (/= '#') url in
-  Link t (takeFileName path ++ uid, tit)
-normalisePath s = s
 
 prependHash :: [String] -> Inline -> Inline
 prependHash ps l@(Link is (url, tit))
@@ -223,7 +216,7 @@ fixAttrs s (ident, cs, kvs) = (addHash s ident, filter (not . null) cs, removeEP
 
 addHash :: String -> String -> String
 addHash _ "" = ""
-addHash s ident = s ++ "#" ++ ident
+addHash s ident = takeFileName s ++ "#" ++ ident
 
 removeEPUBAttrs :: [(String, String)] -> [(String, String)]
 removeEPUBAttrs kvs = filter (not . isEPUBAttr) kvs
