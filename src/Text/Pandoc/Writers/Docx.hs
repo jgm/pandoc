@@ -181,8 +181,8 @@ renumIds f renumMap = map (renumId f renumMap)
 
 -- | Certain characters are invalid in XML even if escaped.
 -- See #1992
-stripInvalidChars :: Pandoc -> Pandoc
-stripInvalidChars = bottomUp (filter isValidChar)
+stripInvalidChars :: String -> String
+stripInvalidChars = filter isValidChar
 
 -- | See XML reference
 isValidChar :: Char -> Bool
@@ -208,7 +208,7 @@ writeDocx :: WriterOptions  -- ^ Writer options
           -> IO BL.ByteString
 writeDocx opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
-  let doc' = stripInvalidChars . walk fixDisplayMath $ doc
+  let doc' = walk fixDisplayMath $ doc
   username <- lookup "USERNAME" <$> getEnvironment
   utctime <- getCurrentTime
   distArchive <- getDefaultReferenceDocx Nothing
@@ -974,7 +974,7 @@ formattedString str = do
   return [ mknode "w:r" [] $
              props ++
              [ mknode (if inDel then "w:delText" else "w:t")
-               [("xml:space","preserve")] str ] ]
+               [("xml:space","preserve")] (stripInvalidChars str) ] ]
 
 setFirstPara :: WS ()
 setFirstPara =  modify $ \s -> s { stFirstPara = True }
