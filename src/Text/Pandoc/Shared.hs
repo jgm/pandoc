@@ -540,6 +540,7 @@ stringify = query go . walk deNote
         go (Str x) = x
         go (Code _ x) = x
         go (Math _ x) = x
+        go (RawInline (Format "html") ('<':'b':'r':_)) = " " -- see #2105
         go LineBreak = " "
         go _ = ""
         deNote (Note _) = Str ""
