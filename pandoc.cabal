@@ -105,6 +105,8 @@ Data-Files:
                  data/dzslides/template.html
                  -- sample lua custom writer
                  data/sample.lua
+                 -- bash completion template
+                 data/bash_completion.tpl
                  -- documentation
                  README, COPYRIGHT
 Extra-Source-Files:

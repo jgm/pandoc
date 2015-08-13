@@ -250,6 +250,13 @@ General options
     `epub.css`, `templates`, `slidy`, `slideous`, or `s5` directory
     placed in this directory will override pandoc's normal defaults.
 
+`--bash-completiion`
+
+:   Generate a bash completion script.  to enable bash completion
+    with pandoc, add this to your `.bashrc`:
+
+         eval "$(pandoc --bash-completion)"
+
 `--verbose`
 
 :   Give verbose debugging output.  Currently this only has an effect

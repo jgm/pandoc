@@ -71,7 +71,8 @@ import qualified Data.Text as T
 import Control.Applicative ((<$>), (<|>))
 import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
 import Data.Monoid
-
+import Paths_pandoc (getDataDir)
+import Text.Printf (printf)
 import Text.Pandoc.Error
 
 type Transform = Pandoc -> Pandoc
@@ -879,6 +880,22 @@ options =
                  (NoArg
                   (\opt -> return opt { optVerbose = True }))
                  "" -- "Verbose diagnostic output."
+
+    , Option "" ["bash-completion"]
+                 (NoArg
+                  (\_ -> do
+                     ddir <- getDataDir
+                     tpl <- readDataFileUTF8 Nothing "bash_completion.tpl"
+                     let optnames (Option shorts longs _ _) =
+                           map (\c -> ['-',c]) shorts ++
+                           map ("--" ++) longs
+                     let allopts = unwords (concatMap optnames options)
+                     UTF8.hPutStrLn stdout $ printf tpl allopts
+                         (unwords (map fst readers))
+                         (unwords ("pdf": map fst writers))
+                         ddir
+                     exitWith ExitSuccess ))
+                 "" -- "Print bash completion script"
 
     , Option "v" ["version"]
                  (NoArg
