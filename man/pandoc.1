@@ -11,12 +11,12 @@ Pandoc is a Haskell library for converting from one markup format to
 another, and a command\-line tool that uses this library.
 It can read Markdown, CommonMark, and (subsets of) Textile,
 reStructuredText, HTML, LaTeX, MediaWiki markup, TWiki markup, Haddock
-markup, OPML, Emacs Org\-mode, DocBook, txt2tags, EPUB and Word docx;
-and it can write plain text, Markdown, reStructuredText, XHTML, HTML 5,
-LaTeX (including beamer slide shows), ConTeXt, RTF, OPML, DocBook,
-OpenDocument, ODT, Word docx, GNU Texinfo, MediaWiki markup, DokuWiki
-markup, Haddock markup, EPUB (v2 or v3), FictionBook2, Textile, groff
-man pages, Emacs Org\-Mode, AsciiDoc, InDesign ICML, and Slidy,
+markup, OPML, Emacs Org\-mode, DocBook, txt2tags, EPUB, ODT and Word
+docx; and it can write plain text, Markdown, reStructuredText, XHTML,
+HTML 5, LaTeX (including beamer slide shows), ConTeXt, RTF, OPML,
+DocBook, OpenDocument, ODT, Word docx, GNU Texinfo, MediaWiki markup,
+DokuWiki markup, Haddock markup, EPUB (v2 or v3), FictionBook2, Textile,
+groff man pages, Emacs Org\-Mode, AsciiDoc, InDesign ICML, and Slidy,
 Slideous, DZSlides, reveal.js or S5 HTML slide shows.
 It can also produce PDF output on systems where LaTeX is installed.
 .PP
@@ -35,6 +35,17 @@ native representation of the document, and a set of writers, which
 convert this native representation into a target format.
 Thus, adding an input or output format requires only adding a reader or
 writer.
+.PP
+Because Pandoc\[aq]s intermediate representation of a document is less
+expressive than many of the formats it converts between, one should not
+expect perfect conversions between every format and every other.
+Pandoc attempts to preserve the structural elements of a document, but
+not formatting details such as margin size.
+And some document elements, such as complex tables, may not fit into
+Pandoc\[aq]s simple document model.
+While conversions from Pandoc\[aq]s Markdown to all formats aspire to be
+perfect, conversions from formats more expressive than Pandoc\[aq]s
+Markdown can be expected to be lossy.
 .SS Using \f[C]pandoc\f[]
 .PP
 If no \f[I]input\-file\f[] is specified, input is read from
@@ -77,8 +88,8 @@ pandoc\ \-f\ html\ \-t\ markdown\ http://www.fsf.org
 .PP
 If multiple input files are given, \f[C]pandoc\f[] will concatenate them
 all (with blank lines between them) before parsing.
-This feature is disabled for binary input formats such as \f[C]EPUB\f[]
-and \f[C]docx\f[].
+This feature is disabled for binary input formats such as \f[C]EPUB\f[],
+\f[C]odt\f[], and \f[C]docx\f[].
 .PP
 The format of the input and output can be specified explicitly using
 command\-line options.
@@ -194,10 +205,10 @@ markdown), \f[C]markdown_strict\f[] (original unextended markdown),
 \f[C]markdown_github\f[] (github extended markdown), \f[C]commonmark\f[]
 (CommonMark markdown), \f[C]textile\f[] (Textile), \f[C]rst\f[]
 (reStructuredText), \f[C]html\f[] (HTML), \f[C]docbook\f[] (DocBook),
-\f[C]t2t\f[] (txt2tags), \f[C]docx\f[] (docx), \f[C]epub\f[] (EPUB),
-\f[C]opml\f[] (OPML), \f[C]org\f[] (Emacs Org\-mode), \f[C]mediawiki\f[]
-(MediaWiki markup), \f[C]twiki\f[] (TWiki markup), \f[C]haddock\f[]
-(Haddock markup), or \f[C]latex\f[] (LaTeX).
+\f[C]t2t\f[] (txt2tags), \f[C]docx\f[] (docx), \f[C]odt\f[] (ODT),
+\f[C]epub\f[] (EPUB), \f[C]opml\f[] (OPML), \f[C]org\f[] (Emacs
+Org\-mode), \f[C]mediawiki\f[] (MediaWiki markup), \f[C]twiki\f[] (TWiki
+markup), \f[C]haddock\f[] (Haddock markup), or \f[C]latex\f[] (LaTeX).
 If \f[C]+lhs\f[] is appended to \f[C]markdown\f[], \f[C]rst\f[],
 \f[C]latex\f[], or \f[C]html\f[], the input will be treated as literate
 Haskell source: see Literate Haskell support, below.
@@ -295,6 +306,19 @@ at the output of \f[C]pandoc\ \-\-version\f[].) A
 \f[C]epub.css\f[], \f[C]templates\f[], \f[C]slidy\f[],
 \f[C]slideous\f[], or \f[C]s5\f[] directory placed in this directory
 will override pandoc\[aq]s normal defaults.
+.RE
+.TP
+.B \f[C]\-\-bash\-completiion\f[]
+Generate a bash completion script.
+to enable bash completion with pandoc, add this to your
+\f[C]\&.bashrc\f[]:
+.RS
+.IP
+.nf
+\f[C]
+\ eval\ "$(pandoc\ \-\-bash\-completion)"
+\f[]
+.fi
 .RE
 .TP
 .B \f[C]\-\-verbose\f[]
@@ -1699,7 +1723,7 @@ See\ [foo]
 Markdown uses email conventions for quoting blocks of text.
 A block quotation is one or more paragraphs or other block elements
 (such as lists or headers), with each line preceded by a \f[C]>\f[]
-character and a space.
+character and an optional space.
 (The \f[C]>\f[] need not start at the left margin, but it should not be
 indented more than three spaces.)
 .IP
@@ -1735,6 +1759,18 @@ That is, block quotes can be nested:
 >\ This\ is\ a\ block\ quote.
 >
 >\ >\ A\ block\ quote\ within\ a\ block\ quote.
+\f[]
+.fi
+.PP
+If the \f[C]>\f[] character is followed by an optional space, that space
+will be considered part of the block quote marker and not part of the
+indentation of the contents.
+Thus, to put an indented code block in a block quote, you need five
+spaces after the \f[C]>\f[]:
+.IP
+.nf
+\f[C]
+>\ \ \ \ \ code
 \f[]
 .fi
 .SS Extension: \f[C]blank_before_blockquote\f[]
@@ -3379,7 +3415,7 @@ One way to do this is to insert a nonbreaking space after the image:
 .IP
 .nf
 \f[C]
-![This\ image\ won\[aq]t\ be\ a\ figure](/url/of/image.png)\\
+![This\ image\ won\[aq]t\ be\ a\ figure](/url/of/image.png)\\\ 
 \f[]
 .fi
 .SS Footnotes
@@ -4203,6 +4239,8 @@ In markdown input, "bird track" sections will be parsed as Haskell code
 rather than block quotations.
 Text between \f[C]\\begin{code}\f[] and \f[C]\\end{code}\f[] will also
 be treated as Haskell code.
+For atx\-style headers the character \[aq]=\[aq] will be used instead of
+\[aq]#\[aq].
 .IP \[bu] 2
 In markdown output, code blocks with classes \f[C]haskell\f[] and
 \f[C]literate\f[] will be rendered using bird tracks, and block
@@ -4251,8 +4289,8 @@ and pasted as literate Haskell source.
 .PP
 Pandoc will automatically highlight syntax in fenced code blocks that
 are marked with a language name.
-(See [Extension: \f[C]inline_code_attributes\f[]] and [Extension:
-\f[C]fenced_code_attributes\f[]], above.) The Haskell library
+(See Extension: \f[C]inline_code_attributes\f[] and Extension:
+\f[C]fenced_code_attributes\f[], above.) The Haskell library
 highlighting\-kate is used for highlighting, which works in HTML, Docx,
 and LaTeX/PDF output.
 The color scheme can be selected using the \f[C]\-\-highlight\-style\f[]
