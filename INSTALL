@@ -8,8 +8,26 @@ There are also binary installers for Windows and Mac OS X.
 If you are installing the development version from github, see also:
 https://github.com/jgm/pandoc/wiki/Installing-the-development-version-of-pandoc
 
-Quick install
--------------
+Quick install with stack
+------------------------
+
+1.  Install [stack](https://github.com/commercialhaskell/stack/wiki/Downloads).
+
+2.  If you used git to get the pandoc source (as opposed to unpacking
+    a release tarball), do
+
+        git submodule update --init
+
+3.  In the pandoc source directory,
+
+        stack install
+
+    You may be prompted to run `stack setup`, which will automatically
+    download the ghc compiler if needed.
+
+
+Quick install with cabal
+------------------------
 
 1.  Install the [Haskell platform].  This will give you [GHC] and
     the [cabal-install] build tool.
