@@ -384,6 +384,8 @@ inlineListToRST lst =
         isComplex (Image _ _) = True
         isComplex (Code _ _) = True
         isComplex (Math _ _) = True
+        isComplex (Cite _ (x:_)) = isComplex x
+        isComplex (Span _ (x:_)) = isComplex x
         isComplex _ = False
 
 -- | Convert Pandoc inline element to RST.
