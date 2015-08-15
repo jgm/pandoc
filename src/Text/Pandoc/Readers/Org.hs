@@ -70,6 +70,14 @@ data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext }
 
 type OrgParser = ParserT [Char] OrgParserState (Reader OrgParserLocal)
 
+instance HasIdentifierList OrgParserState where
+  extractIdentifierList = orgStateIdentifiers
+  updateIdentifierList f s = s{ orgStateIdentifiers = f (orgStateIdentifiers s) }
+
+instance HasHeaderMap OrgParserState where
+  extractHeaderMap = orgStateHeaderMap
+  updateHeaderMap  f s = s{ orgStateHeaderMap = f (orgStateHeaderMap s) }
+
 parseOrg :: OrgParser Pandoc
 parseOrg = do
   blocks' <- parseBlocks
@@ -135,6 +143,8 @@ data OrgParserState = OrgParserState
                       , orgStateMeta                 :: Meta
                       , orgStateMeta'                :: F Meta
                       , orgStateNotes'               :: OrgNoteTable
+                      , orgStateIdentifiers          :: [String]
+                      , orgStateHeaderMap            :: M.Map Inlines String
                       }
 
 instance Default OrgParserLocal where
@@ -174,6 +184,8 @@ defaultOrgParserState = OrgParserState
                         , orgStateMeta = nullMeta
                         , orgStateMeta' = return nullMeta
                         , orgStateNotes' = []
+                        , orgStateIdentifiers = []
+                        , orgStateHeaderMap = M.empty
                         }
 
 recordAnchorId :: String -> OrgParser ()
@@ -668,7 +680,10 @@ header = try $ do
   title <- manyTill inline (lookAhead headerEnd)
   tags <- headerEnd
   let inlns = trimInlinesF . mconcat $ title <> map tagToInlineF tags
-  return $ B.header level <$> inlns
+  st <- getState
+  let inlines = runF inlns st
+  attr <- registerHeader nullAttr inlines
+  return $ pure (B.headerWith attr level inlines)
  where
    tagToInlineF :: String -> F Inlines
    tagToInlineF t = return $ B.spanWith ("", ["tag"], [("data-tag-name", t)]) mempty

@@ -320,7 +320,8 @@ getDefaultExtensions "markdown_mmd" = multimarkdownExtensions
 getDefaultExtensions "markdown_github" = githubMarkdownExtensions
 getDefaultExtensions "markdown"        = pandocExtensions
 getDefaultExtensions "plain"           = plainExtensions
-getDefaultExtensions "org"             = Set.fromList [Ext_citations]
+getDefaultExtensions "org"             = Set.fromList [Ext_citations,
+                                                       Ext_auto_identifiers]
 getDefaultExtensions "textile"         = Set.fromList [Ext_auto_identifiers]
 getDefaultExtensions "html"            = Set.fromList [Ext_auto_identifiers,
                                                        Ext_native_divs,
