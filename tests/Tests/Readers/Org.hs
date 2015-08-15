@@ -457,21 +457,25 @@ tests =
 
       , "First Level Header" =:
           "* Headline\n" =?>
-          header 1 "Headline"
+          headerWith ("headline", [], []) 1 "Headline"
 
       , "Third Level Header" =:
           "*** Third Level Headline\n" =?>
-          header 3 ("Third" <> space <>
-                    "Level" <> space <>
-                    "Headline")
+          headerWith ("third-level-headline", [], [])
+                     3
+                     ("Third" <> space <> "Level" <> space <> "Headline")
 
       , "Compact Headers with Paragraph" =:
           unlines [ "* First Level"
                   , "** Second Level"
                   , "   Text"
                   ] =?>
-          mconcat [ header 1 ("First" <> space <> "Level")
-                  , header 2 ("Second" <> space <> "Level")
+          mconcat [ headerWith ("first-level", [], [])
+                               1
+                               ("First" <> space <> "Level")
+                  , headerWith ("second-level", [], [])
+                               2
+                               ("Second" <> space <> "Level")
                   , para "Text"
                   ]
 
@@ -482,8 +486,12 @@ tests =
                   , ""
                   , "   Text"
                   ] =?>
-          mconcat [ header 1 ("First" <> space <> "Level")
-                  , header 2 ("Second" <> space <> "Level")
+          mconcat [ headerWith ("first-level", [], [])
+                               1
+                               ("First" <> space <> "Level")
+                  , headerWith ("second-level", [], [])
+                               2
+                               ("Second" <> space <> "Level")
                   , para "Text"
                   ]
 
@@ -492,9 +500,13 @@ tests =
                   , "Spaghetti and meatballs tonight."
                   , "** walk dog"
                   ] =?>
-          mconcat [ header 2 ("eat" <> space <> "dinner")
+          mconcat [ headerWith ("eat-dinner", [], [])
+                               2
+                               ("eat" <> space <> "dinner")
                   , para $ spcSep [ "Spaghetti", "and", "meatballs", "tonight." ]
-                  , header 2 ("walk" <> space <> "dog")
+                  , headerWith ("walk-dog", [], [])
+                               2
+                               ("walk" <> space <> "dog")
                   ]
 
       , "Tagged headers" =:
@@ -503,14 +515,20 @@ tests =
                   , "** Call John     :@PHONE:JOHN: "
                   ] =?>
           let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
-          in mconcat [ header 1 ("Personal" <> tagSpan "PERSONAL")
-                     , header 2 ("Call Mom" <> tagSpan "@PHONE")
-                     , header 2 ("Call John" <> tagSpan "@PHONE" <> tagSpan "JOHN")
+          in mconcat [ headerWith ("personal", [], [])
+                                  1
+                                  ("Personal" <> tagSpan "PERSONAL")
+                     , headerWith ("call-mom", [], [])
+                                  2
+                                  ("Call Mom" <> tagSpan "@PHONE")
+                     , headerWith ("call-john", [], [])
+                                  2
+                                  ("Call John" <> tagSpan "@PHONE" <> tagSpan "JOHN")
                      ]
 
       , "Untagged header containing colons" =:
           "* This: is not: tagged" =?>
-          header 1 "This: is not: tagged"
+          headerWith ("this-is-not-tagged", [], []) 1 "This: is not: tagged"
 
       , "Comment Trees" =:
           unlines [ "* COMMENT A comment tree"
@@ -518,7 +536,7 @@ tests =
                   , "** This will be dropped"
                   , "* Comment tree above"
                   ] =?>
-          header 1 "Comment tree above"
+          headerWith ("comment-tree-above", [], []) 1 "Comment tree above"
 
       , "Nothing but a COMMENT header" =:
           "* COMMENT Test" =?>
@@ -640,7 +658,7 @@ tests =
                   [ "Another", space, "note"
                   , note $ para ("This" <> space <> "is" <> space <> "great!")
                   ])
-          , header 2 "Headline"
+          , headerWith ("headline", [], []) 2 "Headline"
           ]
       ]
 
@@ -664,7 +682,7 @@ tests =
            "* Item2\n") =?>
           bulletList [ plain "Item1"
                      ] <>
-          header 1 "Item2"
+          headerWith ("item2", [], []) 1 "Item2"
 
       , "Multi-line Bullet Lists" =:
           ("- *Fat\n" ++
@@ -724,7 +742,7 @@ tests =
           mconcat [ bulletList [ plain "Discovery"
                                , plain ("Human" <> space <> "After" <> space <> "All")
                                ]
-                  , header 1 "Homework"
+                  , headerWith ("homework", [], []) 1 "Homework"
                   ]
 
       , "Bullet List Unindented with trailing Header" =:
@@ -734,7 +752,7 @@ tests =
           mconcat [ bulletList [ plain "Discovery"
                                , plain "Homework"
                                ]
-                  , header 1 "NotValidListItem"
+                  , headerWith ("notvalidlistitem", [], []) 1 "NotValidListItem"
                   ]
 
       , "Simple Ordered List" =:
@@ -839,7 +857,7 @@ tests =
           mconcat [ definitionList [ ("definition", [plain "list"])
                                    , ("cool", [plain "defs"])
                                    ]
-                  , header 1 "header"
+                  , headerWith ("header", [], []) 1 "header"
                   ]
 
       , "Loose bullet list" =:
