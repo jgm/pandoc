@@ -12,20 +12,16 @@ matrix:
     addons: {apt: {packages: [cabal-install-1.18, ghc-7.6.3], sources: [hvr-ghc]}}
   - env: CABALVER=1.18 GHCVER=7.8.4 GHCOPTS="-Werror" JOPTS="-j2"
     addons: {apt: {packages: [cabal-install-1.18, ghc-7.8.4], sources: [hvr-ghc]}}
-  - env: CABALVER=1.22 GHCVER=7.10.2 GHCOPTS="" JOPTS="-j2"
-    addons: {apt: {packages: [cabal-install-1.22, ghc-7.10.2],sources: [hvr-ghc]}}
+  - env: CABALVER=1.22 GHCVER=7.10.1 GHCOPTS="" JOPTS="-j2"
+    addons: {apt: {packages: [cabal-install-1.22, ghc-7.10.1],sources: [hvr-ghc]}}
 #  - env: CABALVER=head GHCVER=head GHCOPTS="-Werror" JOPTS="-j2"
 #    addons: {apt: {packages: [cabal-install-head,ghc-head],  sources: [hvr-ghc]}}
 
 # Note: the distinction between `before_install` and `install` is not important.
 before_install:
- - export PATH=/opt/ghc/$GHCVER/bin:$PATH
+ - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
 
 install:
- # diagnostics:
- - echo $PATH
- - ls /opt/ghc/
- - which ghc
  - cabal-$CABALVER update
 # - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
  - cabal-$CABALVER install $JOPTS --only-dependencies --enable-tests
