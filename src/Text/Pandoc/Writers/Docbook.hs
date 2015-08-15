@@ -154,6 +154,14 @@ listItemToDocbook opts item =
 -- | Convert a Pandoc block element to Docbook.
 blockToDocbook :: WriterOptions -> Block -> Doc
 blockToDocbook _ Null = empty
+-- Add ids to paragraphs in divs with ids - this is needed for
+-- pandoc-citeproc to get link anchors in bibliographies:
+blockToDocbook opts (Div (ident,_,_) [Para lst]) =
+  let attribs = [("id", ident) | not (null ident)] in
+  if hasLineBreaks lst
+     then flush $ nowrap $ inTags False "literallayout" attribs
+                         $ inlinesToDocbook opts lst
+     else inTags True "para" attribs $ inlinesToDocbook opts lst
 blockToDocbook opts (Div _ bs) = blocksToDocbook opts $ map plainToPara bs
 blockToDocbook _ (Header _ _ _) = empty -- should not occur after hierarchicalize
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst

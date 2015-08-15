@@ -190,7 +190,7 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
     let file' = file
 #endif
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
-         "-output-directory", tmpDir', file'] ++ args
+         "-output-directory", tmpDir'] ++ args ++ [file']
     env' <- getEnvironment
     let sep = searchPathSeparator:[]
     let texinputs = maybe (tmpDir' ++ sep) ((tmpDir' ++ sep) ++)
@@ -198,6 +198,8 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
     let env'' = ("TEXINPUTS", texinputs) :
                   [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
     when (verbose && runNumber == 1) $ do
+      putStrLn $ "[makePDF] temp dir:"
+      putStrLn tmpDir'
       putStrLn $ "[makePDF] Command line:"
       putStrLn $ program ++ " " ++ unwords (map show programArgs)
       putStr "\n"

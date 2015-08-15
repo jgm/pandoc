@@ -51,9 +51,11 @@ E-mail style:
 <HTML><blockquote>
 Code in a block quote:
 
-<code>sub status {
+<code>
+sub status {
     print "working";
-}</code>
+}
+</code>
 A list:
 
   - item one
@@ -76,18 +78,22 @@ And a following paragraph.
 
 Code:
 
-<code>---- (should be four hyphens)
+<code>
+---- (should be four hyphens)
 
 sub status {
     print "working";
 }
 
-this code block is indented by one tab</code>
+this code block is indented by one tab
+</code>
 And:
 
-<code>    this code block is indented by two tabs
+<code>
+    this code block is indented by two tabs
 
-These should not be escaped:  \$ \\ \> \[ \{</code>
+These should not be escaped:  \$ \\ \> \[ \{
+</code>
 
 ----
 
@@ -268,7 +274,9 @@ Multiple blocks with italics:
 <HTML><p></HTML>contains seeds, crisp, pleasant to taste<HTML></p></HTML><HTML></dd></HTML>
 <HTML><dt></HTML>//orange//<HTML></dt></HTML>
 <HTML><dd></HTML><HTML><p></HTML>orange fruit<HTML></p></HTML>
-<code>{ orange code block }</code>
+<code>
+{ orange code block }
+</code>
 > <HTML><p></HTML>orange block quote<HTML></p></HTML>
 <HTML></dd></HTML><HTML></dl></HTML>
 
@@ -330,12 +338,16 @@ foo
 
 This should be a code block, though:
 
-<code><div>
+<code>
+<div>
     foo
-</div></code>
+</div>
+</code>
 As should this:
 
-<code><div>foo</div></code>
+<code>
+<div>foo</div>
+</code>
 Now, nested:
 
 foo
@@ -360,7 +372,9 @@ Blah
 </HTML>
 Code block:
 
-<code><!-- Comment --></code>
+<code>
+<!-- Comment -->
+</code>
 Just plain comment, with trailing spaces on the line:
 
 <HTML>
@@ -368,7 +382,9 @@ Just plain comment, with trailing spaces on the line:
 </HTML>
 Code:
 
-<code><hr /></code>
+<code>
+<hr />
+</code>
 Hr’s:
 
 <HTML>
@@ -438,13 +454,13 @@ Ellipses…and…and….
 ====== LaTeX ======
 
   * 
-  * <math>2+2=4</math>
-  * <math>x \in y</math>
-  * <math>\alpha \wedge \omega</math>
-  * <math>223</math>
-  * <math>p</math>-Tree
-  * Here’s some display math: <math>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
-  * Here’s one that has a line break in it: <math>\alpha + \omega \times x^2</math>.
+  * $2+2=4$
+  * $x \in y$
+  * $\alpha \wedge \omega$
+  * $223$
+  * $p$-Tree
+  * Here’s some display math: $\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$
+  * Here’s one that has a line break in it: $\alpha + \omega \times x^2$.
 
 These shouldn’t be math:
 
@@ -556,7 +572,9 @@ Indented [[url|thrice]].
 
 This should [not][] be a link.
 
-<code>[not]: /url</code>
+<code>
+[not]: /url
+</code>
 Foo [[url/|bar]].
 
 Foo [[url/|biz]].
@@ -585,7 +603,9 @@ An e-mail address: <nobody@nowhere.net>
 
 Auto-links should not occur here: ''%%<http://example.com/>%%''
 
-<code>or here: <http://example.com/></code>
+<code>
+or here: <http://example.com/>
+</code>
 
 ----
 
@@ -607,7 +627,9 @@ Here is a footnote reference,((Here is the footnote. It can go anywhere after th
 
 Subsequent blocks are indented to show that they belong to the footnote (as with list items).
 
-<code>  { <code> }</code>
+<code>
+  { <code> }
+</code>
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
 )) This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note.((This is //easier// to type. Inline notes may contain [[http://google.com|links]] and ''%%]%%'' verbatim characters, as well as [bracketed text].
 ))

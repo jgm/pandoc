@@ -76,6 +76,8 @@ module Text.Pandoc.Shared (
                      renderTags',
                      -- * File handling
                      inDirectory,
+                     getDefaultReferenceDocx,
+                     getDefaultReferenceODT,
                      readDataFile,
                      readDataFileUTF8,
                      fetchItem,
@@ -115,10 +117,12 @@ import System.FilePath ( (</>), takeExtension, dropExtension)
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import qualified Control.Exception as E
+import Control.Applicative ((<$>))
 import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Compat.Locale (defaultTimeLocale)
 import Data.Time
+import Data.Time.Clock.POSIX
 import System.IO (stderr)
 import System.IO.Temp
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
@@ -129,7 +133,10 @@ import Text.Pandoc.Compat.Monoid
 import Data.ByteString.Base64 (decodeLenient)
 import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
 import qualified Data.Text as T (toUpper, pack, unpack)
-import Data.ByteString.Lazy (toChunks)
+import Data.ByteString.Lazy (toChunks, fromChunks)
+import qualified Data.ByteString.Lazy as BL
+
+import Codec.Archive.Zip
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -137,9 +144,14 @@ import Text.Pandoc.Data (dataFiles)
 import Paths_pandoc (getDataFileName)
 #endif
 #ifdef HTTP_CLIENT
-import Network.HTTP.Client (httpLbs, parseUrl, withManager,
+import Network.HTTP.Client (httpLbs, parseUrl,
                             responseBody, responseHeaders,
                             Request(port,host))
+#if MIN_VERSION_http_client(0,4,18)
+import Network.HTTP.Client (newManager)
+#else
+import Network.HTTP.Client (withManager)
+#endif
 import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
@@ -656,27 +668,32 @@ hierarchicalizeWithIds ((Header level attr@(_,classes,_) title'):xs) = do
   sectionContents' <- hierarchicalizeWithIds sectionContents
   rest' <- hierarchicalizeWithIds rest
   return $ Sec level newnum attr title' sectionContents' : rest'
+hierarchicalizeWithIds ((Div ("",["references"],[])
+                         (Header level (ident,classes,kvs) title' : xs)):ys) =
+  hierarchicalizeWithIds ((Header level (ident,("references":classes),kvs)
+                           title') : (xs ++ ys))
 hierarchicalizeWithIds (x:rest) = do
   rest' <- hierarchicalizeWithIds rest
   return $ (Blk x) : rest'
 
 headerLtEq :: Int -> Block -> Bool
 headerLtEq level (Header l _ _) = l <= level
+headerLtEq level (Div ("",["references"],[]) (Header l _ _ : _))  = l <= level
 headerLtEq _ _ = False
 
 -- | Generate a unique identifier from a list of inlines.
 -- Second argument is a list of already used identifiers.
 uniqueIdent :: [Inline] -> [String] -> String
-uniqueIdent title' usedIdents =
-  let baseIdent = case inlineListToIdentifier title' of
+uniqueIdent title' usedIdents
+  =  let baseIdent = case inlineListToIdentifier title' of
                         ""   -> "section"
                         x    -> x
-      numIdent n = baseIdent ++ "-" ++ show n
-  in  if baseIdent `elem` usedIdents
-        then case find (\x -> numIdent x `notElem` usedIdents) ([1..60000] :: [Int]) of
+         numIdent n = baseIdent ++ "-" ++ show n
+     in  if baseIdent `elem` usedIdents
+           then case find (\x -> numIdent x `notElem` usedIdents) ([1..60000] :: [Int]) of
                   Just x  -> numIdent x
                   Nothing -> baseIdent   -- if we have more than 60,000, allow repeats
-        else baseIdent
+           else baseIdent
 
 -- | True if block is a Header block.
 isHeaderBlock :: Block -> Bool
@@ -742,7 +759,73 @@ inDirectory path action = E.bracket
                              setCurrentDirectory
                              (const $ setCurrentDirectory path >> action)
 
+getDefaultReferenceDocx :: Maybe FilePath -> IO Archive
+getDefaultReferenceDocx datadir = do
+  let paths = ["[Content_Types].xml",
+               "_rels/.rels",
+               "docProps/app.xml",
+               "docProps/core.xml",
+               "word/document.xml",
+               "word/fontTable.xml",
+               "word/footnotes.xml",
+               "word/numbering.xml",
+               "word/settings.xml",
+               "word/webSettings.xml",
+               "word/styles.xml",
+               "word/_rels/document.xml.rels",
+               "word/_rels/footnotes.xml.rels",
+               "word/theme/theme1.xml"]
+  let toLazy = fromChunks . (:[])
+  let pathToEntry path = do epochtime <- (floor . utcTimeToPOSIXSeconds) <$>
+                                          getCurrentTime
+                            contents <- toLazy <$> readDataFile datadir
+                                                       ("docx/" ++ path)
+                            return $ toEntry path epochtime contents
+  mbArchive <- case datadir of
+                    Nothing   -> return Nothing
+                    Just d    -> do
+                       exists <- doesFileExist (d </> "reference.docx")
+                       if exists
+                          then return (Just (d </> "reference.docx"))
+                          else return Nothing
+  case mbArchive of
+     Just arch -> toArchive <$> BL.readFile arch
+     Nothing   -> foldr addEntryToArchive emptyArchive <$>
+                     mapM pathToEntry paths
+
+getDefaultReferenceODT :: Maybe FilePath -> IO Archive
+getDefaultReferenceODT datadir = do
+  let paths = ["mimetype",
+               "manifest.rdf",
+               "styles.xml",
+               "content.xml",
+               "meta.xml",
+               "settings.xml",
+               "Configurations2/accelerator/current.xml",
+               "Thumbnails/thumbnail.png",
+               "META-INF/manifest.xml"]
+  let pathToEntry path = do epochtime <- floor `fmap` getPOSIXTime
+                            contents <- (fromChunks . (:[])) `fmap`
+                                          readDataFile datadir ("odt/" ++ path)
+                            return $ toEntry path epochtime contents
+  mbArchive <- case datadir of
+                    Nothing   -> return Nothing
+                    Just d    -> do
+                       exists <- doesFileExist (d </> "reference.odt")
+                       if exists
+                          then return (Just (d </> "reference.odt"))
+                          else return Nothing
+  case mbArchive of
+     Just arch -> toArchive <$> BL.readFile arch
+     Nothing   -> foldr addEntryToArchive emptyArchive <$>
+                     mapM pathToEntry paths
+
+
 readDefaultDataFile :: FilePath -> IO BS.ByteString
+readDefaultDataFile "reference.docx" =
+  (BS.concat . toChunks . fromArchive) <$> getDefaultReferenceDocx Nothing
+readDefaultDataFile "reference.odt" =
+  (BS.concat . toChunks . fromArchive) <$> getDefaultReferenceODT Nothing
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
   case lookup (makeCanonical fname) dataFiles of
@@ -754,13 +837,16 @@ readDefaultDataFile fname =
         go (_:as) ".." = as
         go as     x    = x : as
 #else
-  getDataFileName ("data" </> fname) >>= checkExistence >>= BS.readFile
-   where checkExistence fn = do
-           exists <- doesFileExist fn
-           if exists
-              then return fn
-              else err 97 ("Could not find data file " ++ fname)
+  getDataFileName fname' >>= checkExistence >>= BS.readFile
+    where fname' = if fname == "README" then fname else "data" </> fname
 #endif
+
+checkExistence :: FilePath -> IO FilePath
+checkExistence fn = do
+  exists <- doesFileExist fn
+  if exists
+     then return fn
+     else err 97 ("Could not find data file " ++ fn)
 
 -- | Read file from specified user data directory or, if not found there, from
 -- Cabal data directory.
@@ -796,6 +882,7 @@ fetchItem sourceURL s =
         fp = unEscapeString $ dropFragmentAndQuery s
         mime = case takeExtension fp of
                     ".gz" -> getMimeType $ dropExtension fp
+                    ".svgz" -> getMimeType $ dropExtension fp ++ ".svg"
                     x     -> getMimeType x
         ensureEscaped x@(_:':':'\\':_) = x -- likely windows path
         ensureEscaped x = escapeURIString isAllowedInURI x
@@ -824,7 +911,11 @@ openURL u
                      Right pr -> case parseUrl pr of
                                       Just r  -> addProxy (host r) (port r) req
                                       Nothing -> req
+#if MIN_VERSION_http_client(0,4,18)
+     resp <- newManager tlsManagerSettings >>= httpLbs req'
+#else
      resp <- withManager tlsManagerSettings $ httpLbs req'
+#endif
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 #else

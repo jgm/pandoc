@@ -177,9 +177,10 @@ charsInBalancedBrackets openBrackets =
       (char '[' >> charsInBalancedBrackets (openBrackets + 1))
   <|> (char ']' >> charsInBalancedBrackets (openBrackets - 1))
   <|> ((  (() <$ code)
-     <|> (() <$ escapedChar')
+     <|> (() <$ (escapedChar'))
      <|> (newline >> notFollowedBy blankline)
      <|> skipMany1 (noneOf "[]`\n\\")
+     <|> (() <$ count 1 (oneOf "`\\"))
       ) >> charsInBalancedBrackets openBrackets)
 
 --
@@ -502,22 +503,31 @@ block = do
 header :: MarkdownParser (F Blocks)
 header = setextHeader <|> atxHeader <?> "header"
 
+atxChar :: MarkdownParser Char
+atxChar = do
+  exts <- getOption readerExtensions
+  return $ if Set.member Ext_literate_haskell exts
+    then '=' else '#'
+
 atxHeader :: MarkdownParser (F Blocks)
 atxHeader = try $ do
-  level <- many1 (char '#') >>= return . length
+  level <- atxChar >>= many1 . char >>= return . length
   notFollowedBy $ guardEnabled Ext_fancy_lists >>
                   (char '.' <|> char ')') -- this would be a list
   skipSpaces
-  text <- trimInlinesF . mconcat <$> many (notFollowedBy atxClosing >> inline)
+  (text, raw) <- withRaw $
+          trimInlinesF . mconcat <$> many (notFollowedBy atxClosing >> inline)
   attr <- atxClosing
-  attr' <- registerHeader attr (runF text defaultParserState)
+  attr'@(ident,_,_) <- registerHeader attr (runF text defaultParserState)
+  guardDisabled Ext_implicit_header_references
+    <|> registerImplicitHeader raw ident
   return $ B.headerWith attr' level <$> text
 
 atxClosing :: MarkdownParser Attr
 atxClosing = try $ do
   attr' <- option nullAttr
              (guardEnabled Ext_mmd_header_identifiers >> mmdHeaderIdentifier)
-  skipMany (char '#')
+  skipMany . char =<< atxChar
   skipSpaces
   attr <- option attr'
              (guardEnabled Ext_header_attributes >> attributes)
@@ -543,14 +553,24 @@ setextHeader = try $ do
   -- This lookahead prevents us from wasting time parsing Inlines
   -- unless necessary -- it gives a significant performance boost.
   lookAhead $ anyLine >> many1 (oneOf setextHChars) >> blankline
-  text <- trimInlinesF . mconcat <$> many1 (notFollowedBy setextHeaderEnd >> inline)
+  skipSpaces
+  (text, raw) <- withRaw $
+       trimInlinesF . mconcat <$> many1 (notFollowedBy setextHeaderEnd >> inline)
   attr <- setextHeaderEnd
   underlineChar <- oneOf setextHChars
   many (char underlineChar)
   blanklines
   let level = (fromMaybe 0 $ findIndex (== underlineChar) setextHChars) + 1
-  attr' <- registerHeader attr (runF text defaultParserState)
+  attr'@(ident,_,_) <- registerHeader attr (runF text defaultParserState)
+  guardDisabled Ext_implicit_header_references
+    <|> registerImplicitHeader raw ident
   return $ B.headerWith attr' level <$> text
+
+registerImplicitHeader :: String -> String -> MarkdownParser ()
+registerImplicitHeader raw ident = do
+  let key = toKey $ "[" ++ raw ++ "]"
+  updateState (\s -> s { stateHeaderKeys =
+                         M.insert key ('#':ident,"") (stateHeaderKeys s) })
 
 --
 -- hrule block
@@ -1313,6 +1333,8 @@ pipeBreak = try $ do
 
 pipeTable :: MarkdownParser ([Alignment], [Double], F [Blocks], F [[Blocks]])
 pipeTable = try $ do
+  nonindentSpaces
+  lookAhead nonspaceChar
   (heads,aligns) <- (,) <$> pipeTableRow <*> pipeBreak
   lines' <-  sequence <$> many pipeTableRow
   let widths = replicate (length aligns) 0.0
@@ -1326,7 +1348,7 @@ sepPipe = try $ do
 -- parse a row, also returning probable alignments for org-table cells
 pipeTableRow :: MarkdownParser (F [Blocks])
 pipeTableRow = do
-  nonindentSpaces
+  skipMany spaceChar
   openPipe <- (True <$ char '|') <|> return False
   let cell = mconcat <$>
                  many (notFollowedBy (blankline <|> char '|') >> inline)
@@ -1635,7 +1657,7 @@ endline = try $ do
   notFollowedBy (inList >> listStart)
   guardDisabled Ext_lists_without_preceding_blankline <|> notFollowedBy listStart
   guardEnabled Ext_blank_before_blockquote <|> notFollowedBy emailBlockQuoteStart
-  guardEnabled Ext_blank_before_header <|> notFollowedBy (char '#') -- atx header
+  guardEnabled Ext_blank_before_header <|> (notFollowedBy . char =<< atxChar) -- atx header
   guardDisabled Ext_backtick_code_blocks <|>
      notFollowedBy (() <$ (lookAhead (char '`') >> codeBlockFenced))
   notFollowedByHtmlCloser
@@ -1699,7 +1721,7 @@ referenceLink :: (String -> String -> Inlines -> Inlines)
               -> (F Inlines, String) -> MarkdownParser (F Inlines)
 referenceLink constructor (lab, raw) = do
   sp <- (True <$ lookAhead (char ' ')) <|> return False
-  (ref,raw') <- option (mempty, "") $
+  (_,raw') <- option (mempty, "") $
       lookAhead (try (spnl >> normalCite >> return (mempty, "")))
       <|>
       try (spnl >> reference)
@@ -1719,13 +1741,13 @@ referenceLink constructor (lab, raw) = do
   return $ do
     keys <- asksF stateKeys
     case M.lookup key keys of
-       Nothing        -> do
-         headers <- asksF stateHeaders
-         ref' <- if labIsRef then lab else ref
+       Nothing        ->
          if implicitHeaderRefs
-            then case M.lookup ref' headers of
-                   Just ident -> constructor ('#':ident) "" <$> lab
-                   Nothing    -> makeFallback
+            then do
+              headerKeys <- asksF stateHeaderKeys
+              case M.lookup key headerKeys of
+                   Just (src, tit) -> constructor src tit <$> lab
+                   Nothing         -> makeFallback
             else makeFallback
        Just (src,tit) -> constructor src tit <$> lab
 
@@ -1739,12 +1761,14 @@ dropBrackets = reverse . dropRB . reverse . dropLB
 bareURL :: MarkdownParser (F Inlines)
 bareURL = try $ do
   guardEnabled Ext_autolink_bare_uris
+  getState >>= guard . stateAllowLinks
   (orig, src) <- uri <|> emailAddress
   notFollowedBy $ try $ spaces >> htmlTag (~== TagClose "a")
   return $ return $ B.link src "" (B.str orig)
 
 autoLink :: MarkdownParser (F Inlines)
 autoLink = try $ do
+  getState >>= guard . stateAllowLinks
   char '<'
   (orig, src) <- uri <|> emailAddress
   -- in rare cases, something may remain after the uri parser

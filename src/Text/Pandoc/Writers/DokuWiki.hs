@@ -172,10 +172,10 @@ blockToDokuWiki _ (CodeBlock (_,classes,_) str) = do
                        "python", "qbasic", "rails", "reg", "robots", "ruby", "sas", "scheme", "sdlbasic",
                        "smalltalk", "smarty", "sql", "tcl", "", "thinbasic", "tsql", "vb", "vbnet", "vhdl",
                        "visualfoxpro", "winbatch", "xml", "xpp", "z80"]
-  let (beg, end) = if null at
-                      then ("<code" ++ if null classes then ">" else " class=\"" ++ unwords classes ++ "\">", "</code>")
-                      else ("<source lang=\"" ++ head at ++ "\">", "</source>")
-  return $ beg ++ str ++ end
+  return $ "<code" ++
+                (case at of
+                      [] -> ">\n"
+                      (x:_) -> " " ++ x ++ ">\n") ++ str ++ "\n</code>"
 
 blockToDokuWiki opts (BlockQuote blocks) = do
   contents <- blockListToDokuWiki opts blocks
@@ -451,7 +451,7 @@ inlineToDokuWiki _ (Code _ str) =
 
 inlineToDokuWiki _ (Str str) = return $ escapeString str
 
-inlineToDokuWiki _ (Math _ str) = return $ "<math>" ++ str ++ "</math>"
+inlineToDokuWiki _ (Math _ str) = return $ "$" ++ str ++ "$"
                                  -- note:  str should NOT be escaped
 
 inlineToDokuWiki _ (RawInline f str)

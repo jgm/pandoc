@@ -209,7 +209,7 @@ rawFieldListItem minIndent = try $ do
 fieldListItem :: Int -> RSTParser (Inlines, [Blocks])
 fieldListItem minIndent = try $ do
   (name, raw) <- rawFieldListItem minIndent
-  let term = B.str name
+  term <- parseInlineFromString name
   contents <- parseFromString parseBlocks raw
   optional blanklines
   return (term, [contents])
@@ -229,8 +229,7 @@ fieldList = try $ do
 lineBlock :: RSTParser Blocks
 lineBlock = try $ do
   lines' <- lineBlockLines
-  lines'' <- mapM (parseFromString
-                   (trimInlines . mconcat <$> many inline)) lines'
+  lines'' <- mapM parseInlineFromString lines'
   return $ B.para (mconcat $ intersperse B.linebreak lines'')
 
 --
@@ -549,39 +548,33 @@ directive' = do
         "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
         "container" -> parseFromString parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey
-                   parseFromString (trimInlines . mconcat <$> many inline)
-                   (trim top)
+                   parseInlineFromString (trim top)
         "unicode" -> B.para <$>  -- consumed by substKey
-                   parseFromString (trimInlines . mconcat <$> many inline)
-                   (trim $ unicodeTransform top)
+                   parseInlineFromString (trim $ unicodeTransform top)
         "compound" -> parseFromString parseBlocks body'
         "pull-quote" -> B.blockQuote <$> parseFromString parseBlocks body'
         "epigraph" -> B.blockQuote <$> parseFromString parseBlocks body'
         "highlights" -> B.blockQuote <$> parseFromString parseBlocks body'
-        "rubric" -> B.para . B.strong <$> parseFromString
-                          (trimInlines . mconcat <$> many inline) top
+        "rubric" -> B.para . B.strong <$> parseInlineFromString top
         _ | label `elem` ["attention","caution","danger","error","hint",
                           "important","note","tip","warning"] ->
            do let tit = B.para $ B.strong $ B.str label
               bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
               return $ B.blockQuote $ tit <> bod
         "admonition" ->
-           do tit <- B.para . B.strong <$> parseFromString
-                          (trimInlines . mconcat <$> many inline) top
+           do tit <- B.para . B.strong <$> parseInlineFromString top
               bod <- parseFromString parseBlocks body'
               return $ B.blockQuote $ tit <> bod
         "sidebar" ->
            do let subtit = maybe "" trim $ lookup "subtitle" fields
-              tit <- B.para . B.strong <$> parseFromString
-                          (trimInlines . mconcat <$> many inline)
+              tit <- B.para . B.strong <$> parseInlineFromString
                           (trim top ++ if null subtit
                                           then ""
                                           else (":  " ++ subtit))
               bod <- parseFromString parseBlocks body'
               return $ B.blockQuote $ tit <> bod
         "topic" ->
-           do tit <- B.para . B.strong <$> parseFromString
-                          (trimInlines . mconcat <$> many inline) top
+           do tit <- B.para . B.strong <$> parseInlineFromString top
               bod <- parseFromString parseBlocks body'
               return $ tit <> bod
         "default-role" -> mempty <$ updateState (\s ->
@@ -779,7 +772,7 @@ simpleReferenceName' :: Parser [Char] st String
 simpleReferenceName' = do
   x <- alphaNum
   xs <- many $  alphaNum
-            <|> (try $ oneOf "-_:+." >> lookAhead alphaNum)
+            <|> (try $ oneOf "-_:+." <* lookAhead alphaNum)
   return (x:xs)
 
 simpleReferenceName :: Parser [Char] st Inlines
@@ -961,6 +954,9 @@ inline = choice [ whitespace
                 , hyphens
                 , escapedChar
                 , symbol ] <?> "inline"
+
+parseInlineFromString :: String -> RSTParser Inlines
+parseInlineFromString = parseFromString (trimInlines . mconcat <$> many inline)
 
 hyphens :: RSTParser Inlines
 hyphens = do

@@ -151,7 +151,13 @@ blockToConTeXt (CodeBlock _ str) =
   -- blankline because \stoptyping can't have anything after it, inc. '}'
 blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
 blockToConTeXt (RawBlock _ _ ) = return empty
-blockToConTeXt (Div _ bs) = blockListToConTeXt bs
+blockToConTeXt (Div (ident,_,_) bs) = do
+  contents <- blockListToConTeXt bs
+  if null ident
+     then return contents
+     else return $
+          ("\\reference" <> brackets (text $ toLabel ident) <> braces empty <>
+            "%") $$ contents
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ ("\\startitemize" <> if isTightList lst
@@ -296,13 +302,8 @@ inlineToConTeXt (Link txt          (('#' : ref), _)) = do
   opts <- gets stOptions
   contents <-  inlineListToConTeXt txt
   let ref' = toLabel $ stringToConTeXt opts ref
-  return $ text "\\in"
-           <> braces (if writerNumberSections opts
-                         then contents <+> text "(\\S"
-                         else contents)  -- prefix
-           <> braces (if writerNumberSections opts
-                         then text ")"
-                         else empty)  -- suffix
+  return $ text "\\goto"
+           <> braces contents
            <> brackets (text ref')
 
 inlineToConTeXt (Link txt          (src, _))      = do

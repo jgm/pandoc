@@ -51,7 +51,7 @@ import Text.Pandoc.Options (ReaderOptions(readerParseRaw, readerTrace)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
 import Data.Maybe ( fromMaybe, isJust)
-import Data.List ( intercalate, isInfixOf, isPrefixOf )
+import Data.List ( intercalate, isInfixOf, isPrefixOf, isSuffixOf )
 import Data.Char ( isDigit )
 import Control.Monad ( liftM, guard, when, mzero, void, unless )
 import Control.Arrow ((***))
@@ -62,7 +62,7 @@ import Debug.Trace (trace)
 import Text.TeXMath (readMathML, writeTeX)
 import Data.Default (Default (..), def)
 import Control.Monad.Reader (Reader,ask, asks, local, runReader)
-
+import Network.URI (isURI)
 import Text.Pandoc.Error
 
 import Text.Parsec.Error
@@ -74,7 +74,8 @@ readHtml :: ReaderOptions -- ^ Reader options
          -> Either PandocError Pandoc
 readHtml opts inp =
     mapLeft (ParseFailure . getError) . flip runReader def $
-      runParserT parseDoc (HTMLState def{ stateOptions = opts } []) "source" tags
+      runParserT parseDoc (HTMLState def{ stateOptions = opts } [] Nothing)
+             "source" tags
     where tags = stripPrefixes . canonicalizeTags $
                    parseTagsOptions parseOptions{ optTagPosition = True } inp
           parseDoc = do
@@ -98,7 +99,8 @@ replaceNotes' x = return x
 data HTMLState =
   HTMLState
   {  parserState :: ParserState,
-     noteTable   :: [(String, Blocks)]
+     noteTable   :: [(String, Blocks)],
+     baseHref    :: Maybe String
   }
 
 data HTMLLocal = HTMLLocal { quoteContext :: QuoteContext
@@ -120,7 +122,7 @@ pBody :: TagParser Blocks
 pBody = pInTags "body" block
 
 pHead :: TagParser Blocks
-pHead = pInTags "head" $ pTitle <|> pMetaTag <|> (mempty <$ pAnyTag)
+pHead = pInTags "head" $ pTitle <|> pMetaTag <|> pBaseTag <|> (mempty <$ pAnyTag)
   where pTitle = pInTags "title" inline >>= setTitle . trimInlines
         setTitle t = mempty <$ (updateState $ B.setMeta "title" t)
         pMetaTag = do
@@ -131,6 +133,17 @@ pHead = pInTags "head" $ pTitle <|> pMetaTag <|> (mempty <$ pAnyTag)
              else do
                let content = fromAttrib "content" mt
                updateState $ B.setMeta name (B.text content)
+               return mempty
+        pBaseTag = do
+          bt <- pSatisfy (~== TagOpen "base" [])
+          let baseH = fromAttrib "href" bt
+          if null baseH
+             then return mempty
+             else do
+               let baseH' = case reverse baseH of
+                                  '/':_ -> baseH
+                                  _     -> baseH ++ "/"
+               updateState $ \st -> st{ baseHref = Just baseH' }
                return mempty
 
 block :: TagParser Blocks
@@ -257,7 +270,14 @@ pOrderedList = try $ do
                                      "lower-alpha"  -> LowerAlpha
                                      "upper-alpha"  -> UpperAlpha
                                      "decimal"      -> Decimal
-                                     _              -> DefaultStyle
+                                     _              ->
+                                       case lookup "type" attribs of
+                                               Just "1" -> Decimal
+                                               Just "I" -> UpperRoman
+                                               Just "i" -> LowerRoman
+                                               Just "A" -> UpperAlpha
+                                               Just "a" -> LowerAlpha
+                                               _        -> DefaultStyle
   let nonItem = pSatisfy (\t ->
                   not (tagOpen (`elem` ["li","ol","ul","dl"]) (const True) t) &&
                   not (t ~== TagClose "ol"))
@@ -566,7 +586,11 @@ pAnchor = try $ do
 pRelLink :: TagParser Inlines
 pRelLink = try $ do
   tag <- pSatisfy (tagOpenLit "a" (isJust . lookup "href"))
-  let url = fromAttrib "href" tag
+  mbBaseHref <- baseHref <$> getState
+  let url' = fromAttrib "href" tag
+  let url = case (isURI url', mbBaseHref) of
+                 (False, Just h) -> h ++ url'
+                 _               -> url'
   let title = fromAttrib "title" tag
   let uid = fromAttrib "id" tag
   let spanC = case uid of
@@ -578,7 +602,11 @@ pRelLink = try $ do
 pImage :: TagParser Inlines
 pImage = do
   tag <- pSelfClosing (=="img") (isJust . lookup "src")
-  let url = fromAttrib "src" tag
+  mbBaseHref <- baseHref <$> getState
+  let url' = fromAttrib "src" tag
+  let url = case (isURI url', mbBaseHref) of
+                 (False, Just h) -> h ++ url'
+                 _               -> url'
   let title = fromAttrib "title" tag
   let alt = fromAttrib "alt" tag
   return $ B.image (escapeURI url) title (B.text alt)
@@ -833,6 +861,7 @@ isCommentTag = tagComment (const True)
 closes :: String -> String -> Bool
 _ `closes` "body" = False
 _ `closes` "html" = False
+"body" `closes` "head" = True
 "a" `closes` "a" = True
 "li" `closes` "li" = True
 "th" `closes` t | t `elem` ["th","td"] = True
@@ -874,7 +903,7 @@ htmlInBalanced :: (Monad m)
                -> ParserT String st m String
 htmlInBalanced f = try $ do
   (TagOpen t _, tag) <- htmlTag f
-  guard $ '/' `notElem` tag      -- not a self-closing tag
+  guard $ not $ "/>" `isSuffixOf` tag -- not a self-closing tag
   let stopper = htmlTag (~== TagClose t)
   let anytag = snd <$> htmlTag (const True)
   contents <- many $ notFollowedBy' stopper >>
@@ -889,7 +918,10 @@ htmlTag :: Monad m
 htmlTag f = try $ do
   lookAhead (char '<')
   inp <- getInput
-  let (next : _) = canonicalizeTags $ parseTags inp
+  let hasTagWarning (TagWarning _:_) = True
+      hasTagWarning _ = False
+  let (next : rest) = canonicalizeTags $ parseTagsOptions
+                       parseOptions{ optTagWarning = True } inp
   guard $ f next
   case next of
        TagComment s
@@ -900,6 +932,10 @@ htmlTag f = try $ do
           return (next, "<!--" ++ s ++ "-->")
          | otherwise -> fail "bogus comment mode, HTML5 parse error"
        _            -> do
+          -- we get a TagWarning on things like
+          -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
+          -- which should NOT be parsed as an HTML tag, see #2277
+          guard $ not $ hasTagWarning rest
           rendered <- manyTill anyChar (char '>')
           return (next, rendered ++ ">")
 
@@ -945,7 +981,7 @@ instance HasReaderOptions HTMLState where
     extractReaderOptions = extractReaderOptions . parserState
 
 instance Default HTMLState where
-  def = HTMLState def []
+  def = HTMLState def [] Nothing
 
 instance HasMeta HTMLState where
   setMeta s b st = st {parserState = setMeta s b $ parserState st}

@@ -67,6 +67,7 @@ module Text.Pandoc
                , Reader (..)
                , mkStringReader
                , readDocx
+               , readOdt
                , readMarkdown
                , readCommonMark
                , readAsciiDoc
@@ -86,7 +87,7 @@ module Text.Pandoc
                , readTxt2TagsNoMacros
                , readEPUB
                -- * Writers: converting /from/ Pandoc format
-               , Writer (..)
+              , Writer (..)
                , writeNative
                , writeJSON
                , writeMarkdown
@@ -143,6 +144,7 @@ import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Haddock
 import Text.Pandoc.Readers.TWiki
 import Text.Pandoc.Readers.Docx
+import Text.Pandoc.Readers.Odt
 import Text.Pandoc.Readers.Txt2Tags
 import Text.Pandoc.Readers.EPUB
 import Text.Pandoc.Writers.Native
@@ -257,6 +259,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("haddock"      , mkStringReader readHaddock)
            ,("twiki"        , mkStringReader readTWiki)
            ,("docx"         , mkBSReader readDocx)
+           ,("odt"          , mkBSReader readOdt)
            ,("t2t"          , mkStringReader readTxt2TagsNoMacros)
            ,("epub"         , mkBSReader readEPUB)
            ,("asciidoc"     , StringReader asciidoc)
@@ -327,7 +330,7 @@ getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
 getDefaultExtensions "markdown_mmd" = multimarkdownExtensions
 getDefaultExtensions "markdown_github" = githubMarkdownExtensions
 getDefaultExtensions "markdown"        = pandocExtensions
-getDefaultExtensions "plain"           = pandocExtensions
+getDefaultExtensions "plain"           = plainExtensions
 getDefaultExtensions "org"             = Set.fromList [Ext_citations]
 getDefaultExtensions "textile"         = Set.fromList [Ext_auto_identifiers]
 getDefaultExtensions "html"            = Set.fromList [Ext_auto_identifiers,

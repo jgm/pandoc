@@ -25,6 +25,7 @@ import Data.List (isPrefixOf, isInfixOf, stripPrefix)
 import Data.Text as Text (breakOnAll, pack)
 import Data.Monoid (mappend)
 import Control.Monad.State
+import Network.URI (isURI)
 import qualified Data.Set as Set
 
 type Style = [String]
@@ -250,6 +251,13 @@ charStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ inlineStyles st
                          else empty
       in  inTags True "CharacterStyle" ([("Self", "CharacterStyle/"++s), ("Name", s)] ++ attrs') props
 
+-- | Escape colon characters as %3a
+escapeColons :: String -> String
+escapeColons (x:xs)
+  | x == ':' = "%3a" ++ escapeColons xs
+  | otherwise = x : escapeColons xs
+escapeColons []     = []
+
 -- | Convert a list of (identifier, url) pairs to the ICML listing of hyperlinks.
 hyperlinksToDoc :: Hyperlink -> Doc
 hyperlinksToDoc []     = empty
@@ -258,13 +266,13 @@ hyperlinksToDoc (x:xs) = hyp x $$ hyperlinksToDoc xs
     hyp (ident, url) = hdest $$ hlink
       where
         hdest = selfClosingTag "HyperlinkURLDestination"
-                  [("Self", "HyperlinkURLDestination/"++url), ("Name","link"), ("DestinationURL",url), ("DestinationUniqueKey","1")]
+                  [("Self", "HyperlinkURLDestination/"++(escapeColons url)), ("Name","link"), ("DestinationURL",url), ("DestinationUniqueKey","1")] -- HyperlinkURLDestination with more than one colon crashes CS6
         hlink = inTags True "Hyperlink" [("Self","uf-"++show ident),  ("Name",url),
                     ("Source","htss-"++show ident), ("Visible","true"), ("DestinationUniqueKey","1")]
                   $ inTags True "Properties" []
                   $ inTags False "BorderColor" [("type","enumeration")] (text "Black")
                   $$ (inTags False "Destination" [("type","object")]
-                  $ text $ "HyperlinkURLDestination/"++(escapeStringForXML url))
+                  $ text $ "HyperlinkURLDestination/"++(escapeColons (escapeStringForXML url))) -- HyperlinkURLDestination with more than one colon crashes CS6
 
 
 -- | Convert a list of Pandoc blocks to ICML.
@@ -499,6 +507,7 @@ imageICML _ style _ (linkURI, _) =
       hh = show $ imgHeight `div` 2
       qw = show $ imgWidth  `div` 4
       qh = show $ imgHeight `div` 4
+      uriPrefix = if isURI linkURI then "" else "file:"
       (stlStr, attrs) = styleToStrAttr style
       props  = inTags True "Properties" [] $ inTags True "PathGeometry" []
                  $ inTags True "GeometryPathType" [("PathOpen","false")]
@@ -518,7 +527,7 @@ imageICML _ style _ (linkURI, _) =
                  $ vcat [
                      inTags True "Properties" [] $ inTags True "Profile" [("type","string")] $ text "$ID/Embedded"
                        $$ selfClosingTag "GraphicBounds" [("Left","0"), ("Top","0"), ("Right", hw), ("Bottom", hh)]
-                   , selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", linkURI)]
+                   , selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", uriPrefix++linkURI)]
                    ]
       doc    = inTags True "CharacterStyleRange" attrs
                  $ inTags True "Rectangle" [("Self","uec"), ("ItemTransform", "1 0 0 1 "++qw++" -"++qh)]

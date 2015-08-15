@@ -31,6 +31,7 @@ options.
 -}
 module Text.Pandoc.Options ( Extension(..)
                            , pandocExtensions
+                           , plainExtensions
                            , strictExtensions
                            , phpMarkdownExtraExtensions
                            , githubMarkdownExtensions
@@ -156,6 +157,24 @@ pandocExtensions = Set.fromList
   , Ext_implicit_header_references
   , Ext_line_blocks
   , Ext_shortcut_reference_links
+  ]
+
+plainExtensions :: Set Extension
+plainExtensions = Set.fromList
+  [ Ext_table_captions
+  , Ext_implicit_figures
+  , Ext_simple_tables
+  , Ext_multiline_tables
+  , Ext_grid_tables
+  , Ext_latex_macros
+  , Ext_fancy_lists
+  , Ext_startnum
+  , Ext_definition_lists
+  , Ext_example_lists
+  , Ext_intraword_underscores
+  , Ext_blank_before_blockquote
+  , Ext_blank_before_header
+  , Ext_strikeout
   ]
 
 phpMarkdownExtraExtensions :: Set Extension

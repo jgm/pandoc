@@ -44,7 +44,6 @@ import Data.Char ( isSpace, isPunctuation )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
 import Control.Monad.State
-import qualified Data.Set as Set
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Readers.TeXMath (texMathToInlines)
 import Text.HTML.TagSoup (parseTags, isTagText, Tag(..))
@@ -79,17 +78,7 @@ writeMarkdown opts document =
 -- pictures, or inline formatting).
 writePlain :: WriterOptions -> Pandoc -> String
 writePlain opts document =
-  evalState (pandocToMarkdown opts{
-                 writerExtensions = Set.delete Ext_escaped_line_breaks $
-                                    Set.delete Ext_pipe_tables $
-                                    Set.delete Ext_raw_html $
-                                    Set.delete Ext_markdown_in_html_blocks $
-                                    Set.delete Ext_raw_tex $
-                                    Set.delete Ext_footnotes $
-                                    Set.delete Ext_tex_math_dollars $
-                                    Set.delete Ext_citations $
-                                    writerExtensions opts }
-              document) def{ stPlain = True }
+  evalState (pandocToMarkdown opts document) def{ stPlain = True }
 
 pandocTitleBlock :: Doc -> [Doc] -> Doc -> Doc
 pandocTitleBlock tit auths dat =
@@ -774,17 +763,23 @@ inlineToMarkdown opts (Strikeout lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ if isEnabled Ext_strikeout opts
               then "~~" <> contents <> "~~"
-              else "<s>" <> contents <> "</s>"
+              else if isEnabled Ext_raw_html opts
+                       then "<s>" <> contents <> "</s>"
+                       else contents
 inlineToMarkdown opts (Superscript lst) = do
   contents <- inlineListToMarkdown opts $ walk escapeSpaces lst
   return $ if isEnabled Ext_superscript opts
               then "^" <> contents <> "^"
-              else "<sup>" <> contents <> "</sup>"
+              else if isEnabled Ext_raw_html opts
+                       then "<sup>" <> contents <> "</sup>"
+                       else contents
 inlineToMarkdown opts (Subscript lst) = do
   contents <- inlineListToMarkdown opts $ walk escapeSpaces lst
   return $ if isEnabled Ext_subscript opts
               then "~" <> contents <> "~"
-              else "<sub>" <> contents <> "</sub>"
+              else if isEnabled Ext_raw_html opts
+                       then "<sub>" <> contents <> "</sub>"
+                       else contents
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- gets stPlain
   if not plain &&

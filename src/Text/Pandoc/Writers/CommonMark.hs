@@ -76,8 +76,8 @@ blocksToCommonMark opts bs = return $
            $ node DOCUMENT (blocksToNodes bs)
    where cmarkOpts = [optHardBreaks | isEnabled Ext_hard_line_breaks opts]
          colwidth = if writerWrapText opts
-                       then writerColumns opts
-                       else 0
+                       then Just $ writerColumns opts
+                       else Nothing
 
 inlinesToCommonMark :: WriterOptions -> [Inline] -> Identity String
 inlinesToCommonMark opts ils = return $
@@ -85,8 +85,8 @@ inlinesToCommonMark opts ils = return $
            $ node PARAGRAPH (inlinesToNodes ils)
    where cmarkOpts = [optHardBreaks | isEnabled Ext_hard_line_breaks opts]
          colwidth = if writerWrapText opts
-                       then writerColumns opts
-                       else 0
+                       then Just $ writerColumns opts
+                       else Nothing
 
 blocksToNodes :: [Block] -> [Node]
 blocksToNodes = foldr blockToNodes []
@@ -144,11 +144,11 @@ inlineToNodes (Strikeout xs) =
   ((node (INLINE_HTML (T.pack "<s>")) [] : inlinesToNodes xs ++
    [node (INLINE_HTML (T.pack "</s>")) []]) ++ )
 inlineToNodes (Superscript xs) =
-  ((node (INLINE_HTML (T.pack "<sub>")) [] : inlinesToNodes xs ++
-   [node (INLINE_HTML (T.pack "</sub>")) []]) ++ )
-inlineToNodes (Subscript xs) =
   ((node (INLINE_HTML (T.pack "<sup>")) [] : inlinesToNodes xs ++
    [node (INLINE_HTML (T.pack "</sup>")) []]) ++ )
+inlineToNodes (Subscript xs) =
+  ((node (INLINE_HTML (T.pack "<sub>")) [] : inlinesToNodes xs ++
+   [node (INLINE_HTML (T.pack "</sub>")) []]) ++ )
 inlineToNodes (SmallCaps xs) =
   ((node (INLINE_HTML (T.pack "<span style=\"font-variant:small-caps;\">")) []
     : inlinesToNodes xs ++

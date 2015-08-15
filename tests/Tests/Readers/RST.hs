@@ -22,7 +22,8 @@ tests :: [Test]
 tests = [ "line block with blank line" =:
           "| a\n|\n|  b" =?> para (str "a") <>
                              para (str "\160b")
-        , "field list" =: unlines
+        , testGroup "field list"
+          [ "general" =: unlines
              [ "para"
              , ""
              , ":Hostname: media08"
@@ -36,17 +37,17 @@ tests = [ "line block with blank line" =:
              , ":Parameter i: integer"
              , ":Final: item"
              , "  on two lines" ]
-           =?> ( doc
-               $ para "para" <>
-                 definitionList [ (str "Hostname", [para "media08"])
-                                , (str "IP address", [para "10.0.0.19"])
-                                , (str "Size", [para "3ru"])
-                                , (str "Version", [para "1"])
-                                , (str "Indentation", [para "Since the field marker may be quite long, the second and subsequent lines of the field body do not have to line up with the first line, but they must be indented relative to the field name marker, and they must line up with each other."])
-                                , (str "Parameter i", [para "integer"])
-                                , (str "Final", [para "item on two lines"])
-                              ])
-        , "initial field list" =: unlines
+             =?> ( doc
+                 $ para "para" <>
+                   definitionList [ (str "Hostname", [para "media08"])
+                                  , (text "IP address", [para "10.0.0.19"])
+                                  , (str "Size", [para "3ru"])
+                                  , (str "Version", [para "1"])
+                                  , (str "Indentation", [para "Since the field marker may be quite long, the second and subsequent lines of the field body do not have to line up with the first line, but they must be indented relative to the field name marker, and they must line up with each other."])
+                                  , (text "Parameter i", [para "integer"])
+                                  , (str "Final", [para "item on two lines"])
+                                  ])
+          , "metadata" =: unlines
              [ "====="
              , "Title"
              , "====="
@@ -56,10 +57,31 @@ tests = [ "line block with blank line" =:
              , ""
              , ":Version: 1"
              ]
-           =?> ( setMeta "version" (para "1")
-               $ setMeta "title" ("Title" :: Inlines)
-               $ setMeta "subtitle" ("Subtitle" :: Inlines)
-               $ doc mempty )
+             =?> ( setMeta "version" (para "1")
+                 $ setMeta "title" ("Title" :: Inlines)
+                 $ setMeta "subtitle" ("Subtitle" :: Inlines)
+                 $ doc mempty )
+          , "with inline markup" =: unlines
+             [ ":*Date*: today"
+             , ""
+             , ".."
+             , ""
+             , ":*one*: emphasis"
+             , ":two_: reference"
+             , ":`three`_: another one"
+             , ":``four``: literal"
+             , ""
+             , ".. _two: http://example.com"
+             , ".. _three: http://example.org"
+             ]
+             =?> ( setMeta "date" (str "today")
+                 $ doc
+                 $ definitionList [ (emph "one", [para "emphasis"])
+                                  , (link "http://example.com" "" "two", [para "reference"])
+                                  , (link "http://example.org" "" "three", [para "another one"])
+                                  , (code "four", [para "literal"])
+                                  ])
+          ]
         , "URLs with following punctuation" =:
           ("http://google.com, http://yahoo.com; http://foo.bar.baz.\n" ++
            "http://foo.bar/baz_(bam) (http://foo.bar)") =?>
@@ -68,6 +90,10 @@ tests = [ "line block with blank line" =:
                 link "http://foo.bar.baz" "" "http://foo.bar.baz" <> ". " <>
                 link "http://foo.bar/baz_(bam)" "" "http://foo.bar/baz_(bam)"
                 <> " (" <> link "http://foo.bar" "" "http://foo.bar" <> ")")
+        , "Reference names with special characters" =:
+                   ("A-1-B_2_C:3:D+4+E.5.F_\n\n" ++
+                   ".. _A-1-B_2_C:3:D+4+E.5.F: https://example.com\n") =?>
+                   para (link "https://example.com" "" "A-1-B_2_C:3:D+4+E.5.F")
         , testGroup "literal / line / code blocks"
           [ "indented literal block" =: unlines
             [ "::"

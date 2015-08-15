@@ -1,18 +1,17 @@
 version=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
-setup=dist/setup/setup
-PREFIX ?= /usr/local
+pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 
 quick:
-	cabal configure --enable-tests --disable-optimization
+	cabal --ignore-sandbox configure --enable-tests -fembed_data_files --disable-optimization
 	cabal build
 
 full:
-	cabal configure --enable-tests --enable-optimization -ftrypandoc -fmake-pandoc-man-pages -fembed_data_files --enable-benchmarks
+	cabal configure --enable-tests --enable-optimization -ftrypandoc -fembed_data_files --enable-benchmarks
 	cabal build
 	cabal haddock
 
 deps:
-	cabal install --only-dependencies --enable-tests -ftrypandoc -fmake-pandoc-man-pages -fembed_data_files --enable-benchmarks
+	cabal install --only-dependencies --enable-tests -ftrypandoc -fembed_data_files --enable-benchmarks
 
 prof:
 	cabal configure --enable-library-profiling --enable-executable-profiling --enable-optimization --enable-tests
@@ -28,27 +27,31 @@ install: full
 	cabal copy
 	cabal register
 
-dist: man
+dist: man/pandoc.1
 	cabal sdist
 	rm -rf "pandoc-${version}"
 	tar xvzf dist/pandoc-${version}.tar.gz
 	cd pandoc-${version}
 	cabal configure ${CABALARGS} && cabal build && cabal test && cd .. && rm -rf "pandoc-${version}"
 
-debpkg:
+debpkg: man/pandoc.1
 	./make_deb.sh
 
-osxpkg:
+osxpkg: man/pandoc.1
 	./make_osx_package.sh
 
-%.1: %.1.template README
-	${makemanpages}
+man/pandoc.1: README man/pandoc.1.template
+	pandoc $< -t man -s --template man/pandoc.1.template \
+		--filter man/capitalizeHeaders.hs \
+		--filter man/removeNotes.hs \
+		--filter man/removeLinks.hs \
+		-o $@
 
-%.5: %.5.template README
-	${makemanpages}
+download_stats:
+	curl https://api.github.com/repos/jgm/pandoc/releases | \
+		jq -r '.[] | .assets | .[] | "\(.download_count)\t\(.name)"'
 
 clean:
 	cabal clean
-	-rm -rf $(BINDIST) $(BINDIST).tar.gz
 
-.PHONY: deps quick full install man clean test bench haddock osxpkg dist bindist prof
+.PHONY: deps quick full install clean test bench osxpkg dist prof download_stats

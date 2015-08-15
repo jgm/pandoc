@@ -39,7 +39,8 @@ import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Control.Applicative ((<$>))
 import Text.Pandoc.Options ( WriterOptions(..) )
-import Text.Pandoc.Shared ( stringify, readDataFile, fetchItem', warn )
+import Text.Pandoc.Shared ( stringify, fetchItem', warn,
+                            getDefaultReferenceODT )
 import Text.Pandoc.ImageSize ( imageSize, sizeInPoints )
 import Text.Pandoc.MIME ( getMimeType, extensionFromMimeType )
 import Text.Pandoc.Definition
@@ -60,11 +61,10 @@ writeODT :: WriterOptions  -- ^ Writer options
 writeODT opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let title = docTitle meta
-  refArchive <- liftM toArchive $
+  refArchive <-
        case writerReferenceODT opts of
-             Just f -> B.readFile f
-             Nothing -> (B.fromChunks . (:[])) `fmap`
-                           readDataFile datadir "reference.odt"
+             Just f -> liftM toArchive $ B.readFile f
+             Nothing -> getDefaultReferenceODT datadir
   -- handle formulas and pictures
   picEntriesRef <- newIORef ([] :: [Entry])
   doc' <- walkM (transformPicMath opts picEntriesRef) $ walk fixDisplayMath doc
@@ -134,8 +134,12 @@ transformPicMath opts entriesRef (Image lab (src,t)) = do
        warn $ "Could not find image `" ++ src ++ "', skipping..."
        return $ Emph lab
      Right (img, mbMimeType) -> do
-       let size = imageSize img
-       let (w,h) = fromMaybe (0,0) $ sizeInPoints `fmap` size
+       (w,h) <- case imageSize img of
+                     Right size -> return $ sizeInPoints size
+                     Left msg   -> do
+                       warn $ "Could not determine image size in `" ++
+                         src ++ "': " ++ msg
+                       return (0,0)
        let tit' = show w ++ "x" ++ show h
        entries <- readIORef entriesRef
        let extension = fromMaybe (takeExtension $ takeWhile (/='?') src)

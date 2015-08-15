@@ -46,7 +46,7 @@ import Numeric ( showHex )
 import Data.Char ( ord, toLower )
 import Data.List ( isPrefixOf, intersperse )
 import Data.String ( fromString )
-import Data.Maybe ( catMaybes, fromMaybe )
+import Data.Maybe ( catMaybes, fromMaybe, isJust )
 import Control.Monad.State
 import Text.Blaze.Html hiding(contents)
 #if MIN_VERSION_blaze_markup(0,6,3)
@@ -194,6 +194,9 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "revealjs-url" ("reveal.js" :: String) $
                   defField "s5-url" ("s5/default" :: String) $
                   defField "html5" (writerHtml5 opts) $
+                  defField "center" (case lookupMeta "center" meta of
+                                          Just (MetaBool False) -> False
+                                          _                     -> True) $
                   metadata
   return (thebody, context)
 
@@ -372,8 +375,8 @@ obfuscateLink opts (renderHtml -> txt) s =
               (linkText, altText) =
                  if txt == drop 7 s' -- autolink
                     then ("e", name' ++ " at " ++ domain')
-                    else ("'" ++ txt ++ "'", txt ++ " (" ++ name' ++ " at " ++
-                          domain' ++ ")")
+                    else ("'" ++ obfuscateString txt ++ "'",
+                          txt ++ " (" ++ name' ++ " at " ++ domain' ++ ")")
           in  case meth of
                 ReferenceObfuscation ->
                      -- need to use preEscapedString or &'s are escaped to &amp; in URL
@@ -455,6 +458,8 @@ blockToHtml opts (Div attr@(_,classes,_) bs) = do
      if speakerNotes
         then case writerSlideVariant opts of
                   RevealJsSlides -> addAttrs opts' attr $ H5.aside $ contents'
+                  DZSlides       -> (addAttrs opts' attr $ H5.div $ contents')
+                                      ! (H5.customAttribute "role" "note")
                   NoSlides       -> addAttrs opts' attr $ H.div $ contents'
                   _              -> mempty
         else addAttrs opts attr $ H.div $ contents'
@@ -825,7 +830,9 @@ inlineToHtml opts inline =
                                          writerIdentifierPrefix opts ++ "fn" ++ ref)
                                        ! A.class_ "footnoteRef"
                                        ! prefixedId opts ("fnref" ++ ref)
-                                       $ H.sup
+                                       $ (if isJust (writerEpubVersion opts)
+                                             then id
+                                             else H.sup)
                                        $ toHtml ref
                         return $ case writerEpubVersion opts of
                                       Just EPUB3 -> link ! customAttribute "epub:type" "noteref"

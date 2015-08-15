@@ -58,7 +58,7 @@ import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad (when, unless, (>=>))
-import Data.Maybe (isJust, fromMaybe)
+import Data.Maybe (fromMaybe, isNothing)
 import Data.Foldable (foldrM)
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
@@ -80,7 +80,7 @@ copyrightMessage :: String
 copyrightMessage = intercalate "\n" [
   "",
   "Copyright (C) 2006-2015 John MacFarlane",
-  "Web:  http://johnmacfarlane.net/pandoc",
+  "Web:  http://pandoc.org",
   "This is free software; see the source for copying conditions.",
   "There is no warranty, not even for merchantability or fitness",
   "for a particular purpose." ]
@@ -142,12 +142,18 @@ externalFilter f args' d = do
                                          ".php" -> ("php", f:args')
                                          _      -> (f, args')
                                 else err 85 $ "Filter " ++ f ++ " not found"
+      when (f' /= f) $ do
+          mbExe <- findExecutable f'
+          when (isNothing mbExe) $
+            err 83 $ "Error running filter " ++ f ++ "\n" ++
+                      show f' ++ " not found in path."
       (exitcode, outbs, errbs) <- E.handle filterException $
                                     pipeProcess Nothing f' args'' $ encode d
       when (not $ B.null errbs) $ B.hPutStr stderr errbs
       case exitcode of
            ExitSuccess    -> return $ either error id $ eitherDecode' outbs
-           ExitFailure _  -> err 83 $ "Error running filter " ++ f
+           ExitFailure ec -> err 83 $ "Error running filter " ++ f ++ "\n" ++
+                                       "Filter returned error status " ++ show ec
  where filterException :: E.SomeException -> IO a
        filterException e = err 83 $ "Error running filter " ++ f ++ "\n" ++
                                        show e
@@ -751,9 +757,6 @@ options =
                   (\arg opt -> return opt{ optMetadata = addMetadata
                                              "bibliography" (readMetaValue arg)
                                              $ optMetadata opt
-                                         , optVariables =
-                                            ("biblio-files", dropExtension arg) :
-                                            optVariables opt
                                          })
                    "FILE")
                  ""
@@ -832,7 +835,7 @@ options =
                   (\arg opt -> do
                       let url' = case arg of
                                       Just u   -> u
-                                      Nothing  -> "//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+                                      Nothing  -> "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
@@ -841,7 +844,7 @@ options =
                   (\arg opt ->
                       return opt
                         { optKaTeXJS =
-                           arg <|> Just "http://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.1.0/katex.min.js"})
+                           arg <|> Just "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.1.0/katex.min.js"})
                   "URL")
                   "" -- Use KaTeX for HTML Math
 
@@ -917,7 +920,7 @@ readMetaValue s = case decode (UTF8.fromString s) of
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
-  (wrapWords 16 78 $ readers'names) ++ 
+  (wrapWords 16 78 $ readers'names) ++
      '\n' : replicate 16 ' ' ++
      "[ *only Pandoc's JSON version of native AST]" ++ "\nOutput formats: " ++
   (wrapWords 16 78 $ writers'names) ++
@@ -951,7 +954,7 @@ defaultReaderName fallback (x:xs) =
     ".docx"     -> "docx"
     ".t2t"      -> "t2t"
     ".epub"     -> "epub"
-    ".odt"      -> "odt"  -- so we get an "unknown reader" error
+    ".odt"      -> "odt"
     ".pdf"      -> "pdf"  -- so we get an "unknown reader" error
     ".doc"      -> "doc"  -- so we get an "unknown reader" error
     ".asciidoc" -> "asciidoc"
@@ -1115,7 +1118,7 @@ main = do
        mapM_ (\arg -> UTF8.hPutStrLn stdout arg) args
        exitWith ExitSuccess
 
-  let csscdn = "http://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.1.0/katex.min.css"
+  let csscdn = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.1.0/katex.min.css"
   let mathMethod =
         case (katexJS, katexStylesheet) of
             (Nothing, _) -> mathMethod'
@@ -1123,7 +1126,7 @@ main = do
 
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
-  let needsCiteproc = isJust (M.lookup "bibliography" metadata) &&
+  let needsCiteproc = any ("--bibliography" `isPrefixOf`) rawArgs &&
                       optCiteMethod opts `notElem` [Natbib, Biblatex] &&
                       "pandoc-citeproc" `notElem` map takeBaseName filters
   let filters' = if needsCiteproc then "pandoc-citeproc" : filters
@@ -1180,8 +1183,6 @@ main = do
                 Right r  -> return r
                 Left e   -> err 7 e'
                   where e' = case readerName' of
-                                  "odt" -> e ++
-                                    "\nPandoc can convert to ODT, but not from ODT.\nTry using LibreOffice to export as HTML, and convert that with pandoc."
                                   "pdf" -> e ++
                                      "\nPandoc can convert to PDF, but not from PDF."
                                   "doc" -> e ++

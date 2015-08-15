@@ -606,8 +606,8 @@ langAttr = do
 
 -- | Parses material surrounded by a parser.
 surrounded :: Parser [Char] st t   -- ^ surrounding parser
-	    -> Parser [Char] st a    -- ^ content parser (to be used repeatedly)
-	    -> Parser [Char] st [a]
+            -> Parser [Char] st a    -- ^ content parser (to be used repeatedly)
+            -> Parser [Char] st [a]
 surrounded border =
   enclosed (border *> notFollowedBy (oneOf " \t\n\r")) (try border)
 

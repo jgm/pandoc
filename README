@@ -1,6 +1,6 @@
 % Pandoc User's Guide
 % John MacFarlane
-% August 30, 2014
+% July 15, 2015
 
 Synopsis
 ========
@@ -15,7 +15,7 @@ another, and a command-line tool that uses this library. It can read
 [Markdown], [CommonMark], and (subsets of) [Textile],
 [reStructuredText], [HTML], [LaTeX], [MediaWiki markup], [TWiki
 markup], [Haddock markup], [OPML], [Emacs Org-mode], [DocBook],
-[txt2tags], [EPUB] and [Word docx]; and it can write plain text,
+[txt2tags], [EPUB], [ODT] and [Word docx]; and it can write plain text,
 [Markdown], [reStructuredText], [XHTML], [HTML 5], [LaTeX] (including
 [beamer] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
@@ -68,7 +68,7 @@ pandoc will fetch the content using HTTP:
 
 If multiple input files are given, `pandoc` will concatenate them all (with
 blank lines between them) before parsing. This feature is disabled for
- binary input formats such as `EPUB` and `docx`.
+ binary input formats such as `EPUB`, `odt`, and `docx`.
 
 The format of the input and output can be specified explicitly using
 command-line options.  The input format can be specified using the
@@ -164,8 +164,8 @@ General options
     markdown), `markdown_github` (github extended markdown),
     `commonmark` (CommonMark markdown), `textile` (Textile), `rst`
     (reStructuredText), `html` (HTML), `docbook` (DocBook), `t2t`
-    (txt2tags), `docx` (docx), `epub` (EPUB), `opml` (OPML), `org`
-    (Emacs Org-mode), `mediawiki` (MediaWiki markup), `twiki` (TWiki
+    (txt2tags), `docx` (docx), `odt` (ODT), `epub` (EPUB), `opml` (OPML),
+    `org` (Emacs Org-mode), `mediawiki` (MediaWiki markup), `twiki` (TWiki
     markup), `haddock` (Haddock markup), or `latex` (LaTeX).  If
     `+lhs` is appended to `markdown`, `rst`, `latex`, or `html`, the
     input will be treated as literate Haskell source: see [Literate
@@ -395,9 +395,9 @@ General writer options
     of template syntax. If no extension is specified, an extension
     corresponding to the writer will be added, so that `--template=special`
     looks for `special.html` for HTML output.  If the template is not
-    found, pandoc will search for it in the user data directory
-    (see `--data-dir`). If this option is not used, a default
-    template appropriate for the output format will be used (see
+    found, pandoc will search for it in the `templates` subdirectory of
+    the user data directory (see `--data-dir`). If this option is not used,
+    a default template appropriate for the output format will be used (see
     `-D/--print-default-template`).
 
 `-V` *KEY*[`=`*VAL*], `--variable=`*KEY*[`:`*VAL*]
@@ -411,12 +411,14 @@ General writer options
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 
-:   Print the default template for an output *FORMAT*. (See `-t`
-    for a list of possible *FORMAT*s.)
+:   Print the system default template for an output *FORMAT*. (See `-t`
+    for a list of possible *FORMAT*s.)  Templates in the user data
+    directory are ignored.
 
 `--print-default-data-file=`*FILE*
 
-:   Print a default data file.
+:   Print a system default data file.  Files in the user data directory
+    are ignored.
 
 `--no-wrap`
 
@@ -449,7 +451,8 @@ General writer options
 
 :   Specifies the coloring style to be used in highlighted source code.
     Options are `pygments` (the default), `kate`, `monochrome`,
-    `espresso`, `zenburn`, `haddock`, and `tango`.
+    `espresso`, `zenburn`, `haddock`, and `tango`.  For more information
+    on syntax highlighting in pandoc, see [Syntax highlighting], below.
 
 `-H` *FILE*, `--include-in-header=`*FILE*
 
@@ -582,8 +585,8 @@ Options affecting specific writers
 
 :   Wrap sections in `<div>` tags (or `<section>` tags in HTML5),
     and attach identifiers to the enclosing `<div>` (or `<section>`)
-    rather than the header itself.
-    See [Section identifiers](#header-identifiers-in-html-latex-and-context), below.
+    rather than the header itself. See
+    [Header identifiers](#header-identifiers), below.
 
 `--email-obfuscation=none`|`javascript`|`references`
 
@@ -633,12 +636,13 @@ Options affecting specific writers
     for a file `reference.docx` in the user data directory (see
     `--data-dir`). If this is not found either, sensible defaults will be
     used. The following styles are used by pandoc: [paragraph]
-    Normal, Compact, Title, Subtitle, Authors, Date, Abstract, Heading 1,
-    Heading 2, Heading 3, Heading 4, Heading 5, Block Text, Definition Term,
-    Definition, Bibliography, Body Text, Table Caption, Image Caption,
-    Figure, FigureWithCaption;
+    Normal, Body Text, First Paragraph, Compact, Title, Subtitle, Author, Date,
+    Abstract, Bibliography, Heading 1, Heading 2, Heading 3, Heading 4,
+    Heading 5, Heading 6, Block Text, Footnote Text, Definition Term,
+    Definition, Caption, Table Caption, Image Caption, Figure,
+    Figure With Caption, TOC Heading;
     [character] Default Paragraph Font, Body Text Char, Verbatim Char,
-    Footnote Reference, Hyperlink.
+    Footnote Reference, Hyperlink; [table] Normal Table.
 
 `--epub-stylesheet=`*FILE*
 
@@ -743,18 +747,24 @@ Citation rendering
     overriding any value set in the metadata, and process citations
     using `pandoc-citeproc`. (This is equivalent to
     `--metadata bibliography=FILE --filter pandoc-citeproc`.)
+    If `--natbib` or `--biblatex` is also supplied, `pandoc-citeproc` is not
+    used, making this equivalent to `--metadata bibliography=FILE`.
+    If you supply this argument multiple times, each *FILE* will be added
+    to bibliography.
 
 `--csl=`*FILE*
 
 :   Set the `csl` field in the document's metadata to *FILE*,
     overriding any value set in the metadata.  (This is equivalent to
     `--metadata csl=FILE`.)
+    This option is only relevant with `pandoc-citeproc`.
 
 `--citation-abbreviations=`*FILE*
 
 :   Set the `citation-abbreviations` field in the document's metadata to
     *FILE*, overriding any value set in the metadata.  (This is equivalent to
     `--metadata citation-abbreviations=FILE`.)
+    This option is only relevant with `pandoc-citeproc`.
 
 `--natbib`
 
@@ -964,9 +974,10 @@ as `title`, `author`, and `date`) as well as the following:
     `libertine` (Linux Libertine), `arev` (Arev Sans),
     and the default `lmodern`, among others.
 
-`mainfont`, `sansfont`, `monofont`, `mathfont`
+`mainfont`, `sansfont`, `monofont`, `mathfont`, `CJKmainfont`
 :   fonts for LaTeX documents (works only with xelatex
-    and lualatex)
+    and lualatex).  Note that if `CJKmainfont` is used,
+    the `xeCJK` package must be available.
 
 `colortheme`
 :   colortheme for LaTeX beamer documents
@@ -977,6 +988,9 @@ as `title`, `author`, and `date`) as well as the following:
 `linkcolor`
 :   color for internal links in LaTeX documents (`red`, `green`,
     `magenta`, `cyan`, `blue`, `black`)
+
+`toccolor`
+:    color for links in table of contents in LaTeX documents
 
 `urlcolor`
 :   color for external links in LaTeX documents
@@ -1002,11 +1016,11 @@ as `title`, `author`, and `date`) as well as the following:
 `lot`
 :   include list of tables in LaTeX documents
 
+`bibliography`
+:   bibliography to use for resolving references
+
 `biblio-style`
 :   bibliography style in LaTeX, when used with `--natbib`
-
-`biblio-files`
-:   bibliography files to use in LaTeX, with `--natbib` or `--biblatex`
 
 `section`
 :   section number in man pages
@@ -1153,7 +1167,7 @@ wrapping). Consider, for example:
     #22, for example, and #5.
 
 
-### Header identifiers in HTML, LaTeX, and ConTeXt ###
+### Header identifiers ###
 
 #### Extension: `header_attributes` ####
 
@@ -1263,10 +1277,17 @@ If there are multiple headers with identical text, the corresponding
 reference will link to the first one only, and you will need to use explicit
 links to link to the others, as described above.
 
-Unlike regular reference links, these references are case-sensitive.
+Like regular reference links, these references are case-insensitive.
 
-Note:  if you have defined an explicit identifier for a header,
-then implicit references to it will not work.
+Explicit link reference definitions always take priority over
+implicit header references.  So, in the following example, the
+link will point to `bar`, not to `#foo`:
+
+    # Foo
+
+    [foo]: bar
+
+    See [foo]
 
 Block quotations
 ----------------
@@ -1409,6 +1430,8 @@ word.
 
 To prevent all highlighting, use the `--no-highlight` flag.
 To set the highlighting style, use `--highlight-style`.
+For more information on highlighting, see [Syntax highlighting],
+below.
 
 Line blocks
 -----------
@@ -2386,19 +2409,19 @@ by default, pandoc interprets material between HTML block tags as markdown.
 Thus, for example, Pandoc will turn
 
     <table>
-    	<tr>
-    		<td>*one*</td>
-    		<td>[a link](http://google.com)</td>
-    	</tr>
+    <tr>
+    <td>*one*</td>
+    <td>[a link](http://google.com)</td>
+    </tr>
     </table>
 
 into
 
     <table>
-    	<tr>
-    		<td><em>one</em></td>
-    		<td><a href="http://google.com">a link</a></td>
-    	</tr>
+    <tr>
+    <td><em>one</em></td>
+    <td><a href="http://google.com">a link</a></td>
+    </tr>
     </table>
 
 whereas `Markdown.pl` will preserve it as is.
@@ -2565,9 +2588,8 @@ be omitted entirely:
 ### Internal links ###
 
 To link to another section of the same document, use the automatically
-generated identifier (see [Header identifiers in HTML, LaTeX, and
-ConTeXt](#header-identifiers-in-html-latex-and-context), below).
-For example:
+generated identifier (see [Header identifiers](#header-identifiers),
+below). For example:
 
     See the [Introduction](#introduction).
 
@@ -2610,7 +2632,7 @@ If you just want a regular inline image, just make sure it is not
 the only thing in the paragraph. One way to do this is to insert a
 nonbreaking space after the image:
 
-    ![This image won't be a figure](/url/of/image.png)\
+    ![This image won't be a figure](/url/of/image.png)\ 
 
 
 Footnotes
@@ -2670,7 +2692,10 @@ citations and a bibliography in a number of styles.  Basic usage is
     pandoc --filter pandoc-citeproc myinput.txt
 
 In order to use this feature, you will need to specify a bibliography file
-using the `bibliography` metadata field in a YAML metadata section.
+using the `bibliography` metadata field in a YAML metadata section, or
+`--bibliography` command line argument. You can supply multiple `--bibliography`
+arguments or set `bibliography` metadata field to YAML array, if you want to
+use multiple bibliography files.
 The bibliography may have any of these formats:
 
   Format            File extension
@@ -2792,6 +2817,12 @@ field and put the citations there:
 In this example, the document will contain a citation for `item3`
 only, but the bibliography will contain entries for `item1`, `item2`, and
 `item3`.
+
+For LaTeX or PDF output, you can also use NatBib or BibLaTeX
+to render bibliography. In order to do so, specify bibliography files as
+outlined above, and add `--natbib` or `--biblatex` argument to `pandoc`
+invocation. Bear in mind that bibliography files have to be in respective
+format (either BibTeX or BibLaTeX).
 
 Non-pandoc extensions
 ---------------------
@@ -2922,20 +2953,22 @@ variants are supported:
 `markdown_phpextra` (PHP Markdown Extra)
 :   `footnotes`, `pipe_tables`, `raw_html`, `markdown_attribute`,
     `fenced_code_blocks`, `definition_lists`, `intraword_underscores`,
-    `header_attributes`, `abbreviations`.
+    `header_attributes`, `abbreviations`, `shortcut_reference_links`.
 
 `markdown_github` (GitHub-flavored Markdown)
 :   `pipe_tables`, `raw_html`, `tex_math_single_backslash`,
     `fenced_code_blocks`, `auto_identifiers`,
     `ascii_identifiers`, `backtick_code_blocks`, `autolink_bare_uris`,
-    `intraword_underscores`, `strikeout`, `hard_line_breaks`
+    `intraword_underscores`, `strikeout`, `hard_line_breaks`,
+    `shortcut_reference_links`.
 
 `markdown_mmd` (MultiMarkdown)
 :   `pipe_tables` `raw_html`, `markdown_attribute`, `link_attributes`,
     `raw_tex`, `tex_math_double_backslash`, `intraword_underscores`,
     `mmd_title_block`, `footnotes`, `definition_lists`,
     `all_symbols_escapable`, `implicit_header_references`,
-    `auto_identifiers`, `mmd_header_identifiers`
+    `auto_identifiers`, `mmd_header_identifiers`,
+    `shortcut_reference_links`.
 
 `markdown_strict` (Markdown.pl)
 :   `raw_html`
@@ -3144,6 +3177,16 @@ To show the notes window, press `s` while viewing the presentation.
 Notes are not yet supported for other slide formats, but the notes
 will not appear on the slides themselves.
 
+Marking frames "fragile" in beamer
+----------------------------------
+
+Sometimes it is necessary to add the LaTeX `[fragile]` option to
+a frame in beamer (for example, when using the `minted` environment).
+This can be forced by adding the `fragile` class to the header
+introducing the slide:
+
+    # Fragile slide {.fragile}
+
 EPUB Metadata
 =============
 
@@ -3242,7 +3285,8 @@ literate Haskell source. This means that
 
   - In markdown input, "bird track" sections will be parsed as Haskell
     code rather than block quotations.  Text between `\begin{code}`
-    and `\end{code}` will also be treated as Haskell code.
+    and `\end{code}` will also be treated as Haskell code.  For
+    atx-style headers the character '=' will be used instead of '#'.
 
   - In markdown output, code blocks with classes `haskell` and `literate`
     will be rendered using bird tracks, and block quotations will be
@@ -3278,6 +3322,24 @@ ordinary HTML (without bird tracks).
 writes HTML with the Haskell code in bird tracks, so it can be copied
 and pasted as literate Haskell source.
 
+Syntax highlighting
+===================
+
+Pandoc will automatically highlight syntax in fenced code blocks that
+are marked with a language name.  (See [Extension:
+`inline_code_attributes`] and [Extension: `fenced_code_attributes`],
+above.)  The Haskell library [highlighting-kate] is used for
+highlighting, which works in HTML, Docx, and LaTeX/PDF output.
+The color scheme can be selected using the `--highlight-style` option.
+The default color scheme is `pygments`, which imitates the default color
+scheme used by the Python library pygments, but pygments is not actually
+used to do the highlighting.
+
+To see a list of language names that pandoc will recognize, type
+`pandoc --version`.
+
+To disable highlighting, use the `--no-highlight` option.
+
 Custom writers
 ==============
 
@@ -3298,18 +3360,135 @@ which you can modify according to your needs, do
 Authors
 =======
 
-© 2006-2013 John MacFarlane (jgm at berkeley dot edu). Released under the
+© 2006-2015 John MacFarlane (jgm@berkeley.edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
 any kind.  (See COPYRIGHT for full copyright and warranty notices.)
-Other contributors include Recai Oktaş, Paulo Tanimoto, Peter Wang,
-Andrea Rossato, Eric Kow, infinity0x, Luke Plant, shreevatsa.public,
-Puneeth Chaganti, Paul Rivier, rodja.trappe, Bradley Kuhn, thsutton,
-Nathan Gass, Jonathan Daugherty, Jérémy Bobbio, Justin Bogner, qerub,
-Christopher Sawicki, Kelsey Hightower, Masayoshi Takahashi, Antoine
-Latter, Ralf Stephan, Eric Seidel, B. Scott Michel, Gavin Beatty,
-Sergey Astanin, Arlo O'Keeffe, Denis Laxalde, Brent Yorgey, David Lazar,
-Jamie F. Olson, Matthew Pickering, Albert Krewinkel, mb21, Jesse
-Rosenthal.
+
+Contributors include
+Aaron Wolen,
+Albert Krewinkel,
+Alexander Kondratskiy,
+Alexander Sulfrian,
+Alexander V Vershilov,
+Alfred Wechselberger,
+Andreas Lööw,
+Andrew Dunning,
+Antoine Latter,
+Arlo O'Keeffe,
+Artyom Kazak,
+Ben Gamari,
+Beni Cherniavsky-Paskin,
+Bjorn Buckwalter,
+Bradley Kuhn,
+Brent Yorgey,
+Bryan O'Sullivan,
+B. Scott Michel,
+Caleb McDaniel,
+Calvin Beck,
+Christoffer Ackelman,
+Christoffer Sawicki,
+Clare Macrae,
+Clint Adams,
+Conal Elliott,
+Craig S. Bosma,
+Daniel Bergey,
+Daniel T. Staal,
+David Lazar,
+David Röthlisberger,
+Denis Laxalde,
+Douglas Calvert,
+Douglas F. Calvert,
+Eric Kow,
+Eric Seidel,
+Florian Eitel,
+François Gannaz,
+Freiric Barral,
+Fyodor Sheremetyev,
+Gabor Pali,
+Gavin Beatty,
+Greg Maslov,
+Grégory Bataille,
+Greg Rundlett,
+gwern,
+Gwern Branwen,
+Hans-Peter Deifel,
+Henry de Valence,
+Ilya V. Portnov,
+infinity0x,
+Jaime Marquínez Ferrándiz,
+James Aspnes,
+Jamie F. Olson,
+Jan Larres,
+Jason Ronallo,
+Jeff Arnold,
+Jeff Runningen,
+Jens Petersen,
+Jérémy Bobbio,
+Jesse Rosenthal,
+J. Lewis Muir,
+Joe Hillenbrand,
+John MacFarlane,
+Jonas Smedegaard,
+Jonathan Daugherty,
+Josef Svenningsson,
+Jose Luis Duran,
+Julien Cretel,
+Justin Bogner,
+Kelsey Hightower,
+Konstantin Zudov,
+Lars-Dominik Braun,
+Luke Plant,
+Mark Szepieniec,
+Mark Wright,
+Masayoshi Takahashi,
+Matej Kollar,
+Mathias Schenner,
+Matthew Pickering,
+Matthias C. M. Troffaes,
+Max Bolingbroke,
+Max Rydahl Andersen,
+mb21,
+Merijn Verstraaten,
+Michael Snoyman,
+Michael Thompson,
+MinRK,
+Nathan Gass,
+Neil Mayhew,
+Nick Bart,
+Nicolas Kaiser,
+Nikolay Yakimov,
+nkalvi,
+Paulo Tanimoto,
+Paul Rivier,
+Peter Wang,
+Philippe Ombredanne,
+Phillip Alday,
+Puneeth Chaganti,
+qerub,
+Ralf Stephan,
+Recai Oktaş,
+rodja.trappe,
+RyanGlScott,
+Scott Morrison,
+Sergei Trofimovich,
+Sergey Astanin,
+Shahbaz Youssefi,
+Shaun Attfield,
+shreevatsa.public,
+Simon Hengel,
+Sumit Sahrawat,
+takahashim,
+thsutton,
+Tim Lin,
+Timothy Humphries,
+Todd Sifleet,
+Tom Leese,
+Uli Köhler,
+Václav Zeman,
+Viktor Kronvall,
+Vincent,
+Wikiwide, and
+Xavier Olive.
 
 [markdown]: http://daringfireball.net/projects/markdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
@@ -3353,3 +3532,4 @@ Rosenthal.
 [EPUBspine]: http://www.idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem
 [KaTeX]: https://github.com/Khan/KaTeX
 [CommonMark]: http://commonmark.org
+[highlighting-kate]: http://github.com/jgm/highlighting-kate

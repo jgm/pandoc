@@ -23,14 +23,23 @@
       <li>Item 1
       <li>Item 2
       <li>Item 3
+        <ul class="incremental">
+          <li> Item 3.1
+          <li> Item 3.2
+        </ul>
     </ul>
-    <details>Some notes. They are only visible using onstage shell.</details>
+    <div role="note">Some notes. They are only visible using onstage shell.</div>
 </section>
 
 <section>
-  <q>
+  <blockquote>
     Who's brave enough to fly into something we all keep calling a death sphere?
-  </q>
+  </blockquote>
+  <details>
+    <p>In the onstage shell, notes scroll rather than overflow:</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla ac dui eu est feugiat lacinia sit amet nec leo. Mauris eu ipsum leo. Nulla mi odio, cursus sed sollicitudin non, fringilla id magna. Suspendisse sit amet posuere elit. Maecenas iaculis, turpis a placerat imperdiet, libero lorem feugiat nisi, nec tincidunt diam nibh sit amet massa. Vestibulum quis adipiscing tellus. Maecenas sollicitudin sodales pulvinar. Donec dui ipsum, bibendum facilisis consequat interdum, tempus ut mauris. Aliquam ut dolor nec odio scelerisque bibendum quis in neque. Aliquam dui dui, pulvinar quis fermentum quis, gravida eu augue. Nunc tristique dolor a urna pulvinar bibendum. Curabitur mollis cursus neque, in scelerisque metus porta non. Donec tempor enim in nibh vestibulum et convallis nisi malesuada. Duis ut lectus sed metus venenatis porttitor id pharetra quam. Suspendisse sapien turpis, ornare in molestie et, gravida eget turpis.
+    </p>
+  </details>
 </section>
 
 <section>
@@ -42,7 +51,7 @@
       <img src="http://placekitten.com/g/800/600">
       <figcaption>An image</figcaption>
     </figure>
-    <details>Kittens are so cute!</details>
+    <div role="note">Kittens are so cute!</div>
 </section>
 
 <section>
@@ -63,14 +72,28 @@
 <link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
 
 <style>
-  html { background-color: black; }
-  body { background-color: white; border-radius: 12px}
+  html, .view body { background-color: black; counter-reset: slideidx; }
+  body, .view section { background-color: white; border-radius: 12px }
   /* A section is a slide. It's size is 800x600, and this will never change */
-  section {
+  section, .view head > title {
       /* The font from Google */
       font-family: 'Oswald', arial, serif;
       font-size: 30px;
   }
+
+  .view section:after {
+    counter-increment: slideidx;
+    content: counter(slideidx, decimal-leading-zero);
+    position: absolute; bottom: -80px; right: 100px;
+    color: white;
+  }
+
+  .view head > title {
+    color: white;
+    text-align: center;
+    margin: 1em 0 1em 0;
+  }
+
   h1, h2 {
     margin-top: 200px;
     text-align: center;
@@ -83,26 +106,41 @@
   ul {
       margin: 50px 200px;
   }
+  li > ul {
+      margin: 15px 50px;
+  }
 
   p {
     margin: 75px;
     font-size: 50px;
   }
 
-  q {
-    display: block;
-    width: 100%;
+  blockquote {
     height: 100%;
     background-color: black;
     color: white;
     font-size: 60px;
     padding: 50px;
   }
+  blockquote:before {
+    content: open-quote;
+  }
+  blockquote:after {
+    content: close-quote;
+  }
 
   /* Figures are displayed full-page, with the caption
      on top of the image/video */
   figure {
     background-color: black;
+    width: 100%;
+    height: 100%;
+  }
+  figure > * {
+    position: absolute;
+  }
+  figure > img, figure > video {
+    width: 100%; height: 100%;
   }
   figcaption {
     margin: 70px;
@@ -125,10 +163,20 @@
      https://developer.mozilla.org/en/CSS/CSS_transitions
      How to use CSS3 Transitions: */
   section {
-      -moz-transition: left 400ms linear 0s;
-      -webkit-transition: left 400ms linear 0s;
-      -ms-transition: left 400ms linear 0s;
-      transition: left 400ms linear 0s;
+    -moz-transition: left 400ms linear 0s;
+    -webkit-transition: left 400ms linear 0s;
+    -ms-transition: left 400ms linear 0s;
+    transition: left 400ms linear 0s;
+  }
+  .view section {
+    -moz-transition: none;
+    -webkit-transition: none;
+    -ms-transition: none;
+    transition: none;
+  }
+
+  .view section[aria-selected] {
+    border: 5px red solid;
   }
 
   /* Before */
@@ -176,21 +224,50 @@
 <!-- Default Style -->
 <style>
   * { margin: 0; padding: 0; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
-  details { display: none; }
+  [role="note"] { display: none; }
   body {
     width: 800px; height: 600px;
     margin-left: -400px; margin-top: -300px;
     position: absolute; top: 50%; left: 50%;
     overflow: hidden;
+    display: none;
   }
+  .view body {
+    position: static;
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    display: inline-block;
+    overflow: visible; overflow-x: hidden;
+    /* undo Dz.onresize */
+    transform: none !important;
+    -moz-transform: none !important;
+    -webkit-transform: none !important;
+    -o-transform: none !important;
+    -ms-transform: none !important;
+  }
+  .view head, .view head > title { display: block }
   section {
     position: absolute;
     pointer-events: none;
     width: 100%; height: 100%;
   }
+  .view section {
+    pointer-events: auto;
+    position: static;
+    width: 800px; height: 600px;
+    margin: -150px -200px;
+    float: left;
+
+    transform: scale(.4);
+    -moz-transform: scale(.4);
+    -webkit-transform: scale(.4);
+    -o-transform: scale(.4);
+    -ms-transform: scale(.4);
+  }
+  .view section > * { pointer-events: none; }
   section[aria-selected] { pointer-events: auto; }
   html { overflow: hidden; }
-  body { display: none; }
+  html.view { overflow: visible; }
   body.loaded { display: block; }
   .incremental {visibility: hidden; }
   .incremental[active] {visibility: visible; }
@@ -202,15 +279,8 @@
     -ms-transition: width 400ms linear 0s;
     transition: width 400ms linear 0s;
   }
-  figure {
-    width: 100%;
-    height: 100%;
-  }
-  figure > * {
-    position: absolute;
-  }
-  figure > img, figure > video {
-    width: 100%; height: 100%;
+  .view #progress-bar {
+    display: none;
   }
 </style>
 
@@ -219,6 +289,7 @@
     remoteWindows: [],
     idx: -1,
     step: 0,
+    html: null,
     slides: null,
     progressBar : null,
     params: {
@@ -228,14 +299,16 @@
 
   Dz.init = function() {
     document.body.className = "loaded";
-    this.slides = $$("body > section");
+    this.slides = Array.prototype.slice.call($$("body > section"));
     this.progressBar = $("#progress-bar");
+    this.html = document.body.parentNode;
     this.setupParams();
     this.onhashchange();
     this.setupTouchEvents();
     this.onresize();
+    this.setupView();
   }
-  
+
   Dz.setupParams = function() {
     var p = window.location.search.substr(1).split('&');
     p.forEach(function(e, i, a) {
@@ -285,6 +358,10 @@
       aEvent.preventDefault();
       this.goFullscreen();
     }
+    if (aEvent.keyCode == 79) { // o
+      aEvent.preventDefault();
+      this.toggleView();
+    }
   }
 
   /* Touch Events */
@@ -318,6 +395,16 @@
     }
   }
 
+  Dz.setupView = function() {
+    document.body.addEventListener("click", function ( e ) {
+      if (!Dz.html.classList.contains("view")) return;
+      if (!e.target || e.target.nodeName != "SECTION") return;
+
+      Dz.html.classList.remove("view");
+      Dz.setCursor(Dz.slides.indexOf(e.target) + 1);
+    }, false);
+  }
+
   /* Adapt the size of the slides to the window */
 
   Dz.onresize = function() {
@@ -334,9 +421,9 @@
   }
 
 
-  Dz.getDetails = function(aIdx) {
+  Dz.getNotes = function(aIdx) {
     var s = $("section:nth-of-type(" + aIdx + ")");
-    var d = s.$("details");
+    var d = s.$("[role='note']");
     return d ? d.innerHTML : "";
   }
 
@@ -365,7 +452,7 @@
     if (argv[0] === "GET_CURSOR" && argc === 1)
       this.postMsg(win, "CURSOR", this.idx + "." + this.step);
     if (argv[0] === "GET_NOTES" && argc === 1)
-      this.postMsg(win, "NOTES", this.getDetails(this.idx));
+      this.postMsg(win, "NOTES", this.getNotes(this.idx));
   }
 
   Dz.toggleContent = function() {
@@ -449,6 +536,14 @@
     this.setCursor(lastIdx, lastStep);
   }
 
+  Dz.toggleView = function() {
+    this.html.classList.toggle("view");
+
+    if (this.html.classList.contains("view")) {
+      $("section[aria-selected]").scrollIntoView(true);
+    }
+  }
+
   Dz.setSlide = function(aIdx) {
     this.idx = aIdx;
     var old = $("section[aria-selected]");
@@ -462,6 +557,9 @@
     }
     if (next) {
       next.setAttribute("aria-selected", "true");
+      if (this.html.classList.contains("view")) {
+        next.scrollIntoView();
+      }
       var video = next.$("video");
       if (video && !!+this.params.autoplay) {
         video.play();

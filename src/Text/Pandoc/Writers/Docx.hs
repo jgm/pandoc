@@ -211,11 +211,10 @@ writeDocx opts doc@(Pandoc meta _) = do
   let doc' = stripInvalidChars . walk fixDisplayMath $ doc
   username <- lookup "USERNAME" <$> getEnvironment
   utctime <- getCurrentTime
-  refArchive <- liftM (toArchive . toLazy) $
-       case writerReferenceDocx opts of
-             Just f  -> B.readFile f
-             Nothing -> readDataFile datadir "reference.docx"
-  distArchive <- liftM (toArchive . toLazy) $ readDataFile datadir "reference.docx"
+  distArchive <- getDefaultReferenceDocx Nothing
+  refArchive <- case writerReferenceDocx opts of
+                     Just f  -> liftM (toArchive . toLazy) $ B.readFile f
+                     Nothing -> getDefaultReferenceDocx datadir
 
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
   let wname f qn = qPrefix qn == Just "w" && f (qName qn)
@@ -474,7 +473,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   settingsEntry <- copyChildren refArchive distArchive settingsPath epochtime settingsList
 
   let entryFromArchive arch path =
-         maybe (fail $ path ++ " corrupt or missing in reference docx")
+         maybe (fail $ path ++ " missing in reference docx")
                return
                (findEntryByPath path arch `mplus` findEntryByPath path distArchive)
   docPropsAppEntry <- entryFromArchive refArchive "docProps/app.xml"
@@ -1120,8 +1119,13 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
           inlinesToOpenXML opts alt
         Right (img, mt) -> do
           ident <- ("rId"++) `fmap` getUniqueId
-          let size = imageSize img
-          let (xpt,ypt) = maybe (120,120) sizeInPoints size
+          (xpt,ypt) <- case imageSize img of
+                             Right size  -> return $ sizeInPoints size
+                             Left msg    -> do
+                               liftIO $ warn $
+                                 "Could not determine image size in `" ++
+                                 src ++ "': " ++ msg
+                               return (120,120)
           -- 12700 emu = 1 pt
           let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) (pageWidth * 12700)
           let cNvPicPr = mknode "pic:cNvPicPr" [] $
@@ -1199,11 +1203,12 @@ defaultFootnotes = [ mknode "w:footnote"
 
 parseXml :: Archive -> Archive -> String -> IO Element
 parseXml refArchive distArchive relpath =
-  case ((findEntryByPath relpath refArchive `mplus`
-         findEntryByPath relpath distArchive)
-         >>= parseXMLDoc . UTF8.toStringLazy . fromEntry) of
-            Just d  -> return d
-            Nothing -> fail $ relpath ++ " corrupt or missing in reference docx"
+  case findEntryByPath relpath refArchive `mplus`
+         findEntryByPath relpath distArchive of
+            Nothing -> fail $ relpath ++ " missing in reference docx"
+            Just e  -> case parseXMLDoc . UTF8.toStringLazy . fromEntry $ e of
+                       Nothing -> fail $ relpath ++ " corrupt in reference docx"
+                       Just d  -> return d
 
 -- | Scales the image to fit the page
 -- sizes are passed in emu
@@ -1214,3 +1219,4 @@ fitToPage (x, y) pageWidth
     (pageWidth, round $
       ((fromIntegral pageWidth) / ((fromIntegral :: Integer -> Double) x)) * (fromIntegral y))
   | otherwise = (x, y)
+

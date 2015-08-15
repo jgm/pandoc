@@ -200,8 +200,6 @@ inline = (mempty <$ comment)
      <|> (str "\160" <$ char '~')
      <|> mathDisplay (string "$$" *> mathChars <* string "$$")
      <|> mathInline  (char '$' *> mathChars <* char '$')
-     <|> try (superscript <$> (char '^' *> tok))
-     <|> (subscript <$> (char '_' *> tok))
      <|> (guardEnabled Ext_literate_haskell *> char '|' *> doLHSverb)
      <|> (str . (:[]) <$> tildeEscape)
      <|> (str . (:[]) <$> oneOf "[]")
@@ -826,7 +824,7 @@ inlineText :: LP Inlines
 inlineText = str <$> many1 inlineChar
 
 inlineChar :: LP Char
-inlineChar = noneOf "\\$%^_&~#{}^'`\"‘’“”-[] \t\n"
+inlineChar = noneOf "\\$%&~#{}^'`\"‘’“”-[] \t\n"
 
 environment :: LP Blocks
 environment = do
@@ -1018,6 +1016,7 @@ addTableCaption = walkM go
 environments :: M.Map String (LP Blocks)
 environments = M.fromList
   [ ("document", env "document" blocks <* skipMany anyChar)
+  , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
   , ("letter", env "letter" letterContents)
   , ("figure", env "figure" $
          resetCaption *> skipopts *> blocks >>= addImageCaption)
@@ -1289,7 +1288,16 @@ parseAligns = try $ do
   return aligns'
 
 hline :: LP ()
-hline = () <$ try (spaces' *> controlSeq "hline" <* spaces')
+hline = try $ do
+  spaces'
+  controlSeq "hline" <|>
+    -- booktabs rules:
+    controlSeq "toprule" <|>
+    controlSeq "bottomrule" <|>
+    controlSeq "midrule"
+  spaces'
+  optional $ bracketed (many1 (satisfy (/=']')))
+  return ()
 
 lbreak :: LP ()
 lbreak = () <$ try (spaces' *> controlSeq "\\" <* spaces')

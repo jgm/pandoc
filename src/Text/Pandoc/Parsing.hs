@@ -179,7 +179,7 @@ import Text.Parsec hiding (token)
 import Text.Parsec.Pos (newPos)
 import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
                    isHexDigit, isSpace )
-import Data.List ( intercalate, transpose )
+import Data.List ( intercalate, transpose, isSuffixOf )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
 import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro,
@@ -449,13 +449,12 @@ uri :: Stream [Char] m Char => ParserT [Char] st m (String, String)
 uri = try $ do
   scheme <- uriScheme
   char ':'
-  -- We allow punctuation except at the end, since
+  -- We allow sentence punctuation except at the end, since
   -- we don't want the trailing '.' in 'http://google.com.' We want to allow
   -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
   -- as a URL, while NOT picking up the closing paren in
   -- (http://wikipedia.org). So we include balanced parens in the URL.
-  let isWordChar c = isAlphaNum c || c == '_' || c == '/' || c == '+' ||
-                         not (isAscii c)
+  let isWordChar c = isAlphaNum c || c `elem` "#$%*+/@\\_-"
   let wordChar = satisfy isWordChar
   let percentEscaped = try $ char '%' >> skipMany1 (satisfy isHexDigit)
   let entity = () <$ characterReference
@@ -904,7 +903,8 @@ data ParserState = ParserState
       stateAllowLinks      :: Bool,          -- ^ Allow parsing of links
       stateMaxNestingLevel :: Int,           -- ^ Max # of nested Strong/Emph
       stateLastStrPos      :: Maybe SourcePos, -- ^ Position after last str parsed
-      stateKeys            :: KeyTable,      -- ^ List of reference keys (with fallbacks)
+      stateKeys            :: KeyTable,      -- ^ List of reference keys
+      stateHeaderKeys      :: KeyTable,      -- ^ List of implicit header ref keys
       stateSubstitutions   :: SubstTable,    -- ^ List of substitution references
       stateNotes           :: NoteTable,     -- ^ List of notes (raw bodies)
       stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
@@ -1002,6 +1002,7 @@ defaultParserState =
                   stateMaxNestingLevel = 6,
                   stateLastStrPos      = Nothing,
                   stateKeys            = M.empty,
+                  stateHeaderKeys      = M.empty,
                   stateSubstitutions   = M.empty,
                   stateNotes           = [],
                   stateNotes'          = [],
@@ -1063,7 +1064,9 @@ type NoteTable' = [(String, F Blocks)]  -- used in markdown reader
 newtype Key = Key String deriving (Show, Read, Eq, Ord)
 
 toKey :: String -> Key
-toKey = Key . map toLower . unwords . words
+toKey = Key . map toLower . unwords . words . unbracket
+  where unbracket ('[':xs) | "]" `isSuffixOf` xs = take (length xs - 1) xs
+        unbracket xs       = xs
 
 type KeyTable = M.Map Key Target
 
@@ -1207,7 +1210,7 @@ citeKey = try $ do
   guard =<< notAfterString
   suppress_author <- option False (char '-' *> return True)
   char '@'
-  firstChar <- alphaNum <|> char '_'
+  firstChar <- alphaNum <|> char '_' <|> char '*' -- @* for wildcard in nocite
   let regchar = satisfy (\c -> isAlphaNum c || c == '_')
   let internal p = try $ p <* lookAhead regchar
   rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/")

@@ -38,13 +38,13 @@ import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
-import Data.List ( (\\), isSuffixOf, isInfixOf, stripPrefix,
-                   isPrefixOf, intercalate, intersperse )
+import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Data.Maybe ( fromMaybe )
 import Data.Aeson.Types ( (.:), parseMaybe, withObject )
 import Control.Applicative ((<|>))
 import Control.Monad.State
+import qualified Text.Parsec as P
 import Text.Pandoc.Pretty
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
@@ -111,13 +111,20 @@ pandocToLaTeX options (Pandoc meta blocks) = do
               (fmap (render colwidth) . inlineListToLaTeX)
               meta
   let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
+  let documentClass = case P.parse (do P.skipMany (P.satisfy (/='\\'))
+                                       P.string "\\documentclass"
+                                       P.skipMany (P.satisfy (/='{'))
+                                       P.char '{'
+                                       P.manyTill P.letter (P.char '}')) "template"
+                              template of
+                              Right r -> r
+                              Left _  -> ""
   case lookup "documentclass" (writerVariables options) `mplus`
         parseMaybe (withObject "object" (.: "documentclass")) metadata of
          Just x  | x `elem` bookClasses -> modify $ \s -> s{stBook = True}
                  | otherwise            -> return ()
-         Nothing | any (\x -> "\\documentclass" `isPrefixOf` x &&
-                          (any (`isSuffixOf` x) bookClasses))
-                          (lines template) -> modify $ \s -> s{stBook = True}
+         Nothing | documentClass `elem` bookClasses
+                                        -> modify $ \s -> s{stBook = True}
                  | otherwise               -> return ()
   -- check for \usepackage...{csquotes}; if present, we'll use
   -- \enquote{...} for smart quotes:
@@ -137,6 +144,11 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
+  let (mainlang, otherlang) =
+       case (reverse . splitBy (==',') . filter (/=' ')) `fmap`
+            getField "lang" metadata of
+              Just (m:os) -> (m, reverse os)
+              _           -> ("", [])
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
                                               if stBook st
@@ -161,8 +173,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "euro" (stUsesEuro st) $
                   defField "listings" (writerListings options || stLHS st) $
                   defField "beamer" (writerBeamer options) $
-                  defField "mainlang" (maybe "" (reverse . takeWhile (/=',') . reverse)
-                                (lookup "lang" $ writerVariables options)) $
+                  defField "mainlang" mainlang $
+                  defField "otherlang" otherlang $
                   (if stHighlighting st
                       then defField "highlighting-macros" (styleToLaTeX
                                 $ writerHighlightStyle options )
@@ -274,10 +286,11 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
       let hasCode (Code _ _) = [True]
           hasCode _          = []
       opts <- gets stOptions
-      let fragile = not $ null $ query hasCodeBlock elts ++
+      let fragile = "fragile" `elem` classes ||
+                    not (null $ query hasCodeBlock elts ++
                                      if writerListings opts
                                         then query hasCode elts
-                                        else []
+                                        else [])
       let allowframebreaks = "allowframebreaks" `elem` classes
       let optionslist = ["fragile" | fragile] ++
                         ["allowframebreaks" | allowframebreaks]

@@ -119,6 +119,10 @@ bareLinkTests =
       autolink "http://business.timesonline.co.uk/article/0,,9065-2473189,00.html")
   , ("http://www.mail-archive.com/ruby-talk@ruby-lang.org/",
       autolink "http://www.mail-archive.com/ruby-talk@ruby-lang.org/")
+  , ("https://example.org/?anchor=lala-",
+      autolink "https://example.org/?anchor=lala-")
+  , ("https://example.org/?anchor=-lala",
+      autolink "https://example.org/?anchor=-lala")
   ]
 
 {-
@@ -172,6 +176,9 @@ tests = [ testGroup "inline code"
           , "invalid tag (issue #1820" =:
             "</ div></.div>" =?>
             para (text "</ div></.div>")
+          , "technically invalid comment" =:
+            "<!-- pandoc --help -->" =?>
+            rawBlock "html" "<!-- pandoc --help -->"
           ]
         , "unbalanced brackets" =:
             "[[[[[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[[[[[hi")
@@ -190,11 +197,25 @@ tests = [ testGroup "inline code"
             =?> para (link "/there.0" "" "hi")
           ]
         , testGroup "bare URIs"
-          (map testBareLink bareLinkTests)
+             (map testBareLink bareLinkTests)
         , testGroup "autolinks"
           [ "with unicode dash following" =:
             "<http://foo.bar>\8212" =?> para (autolink "http://foo.bar" <>
                                          str "\8212")
+          , "a partial URL (#2277)" =:
+            "<www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>" =?>
+            para (text "<www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>")
+          ]
+        , testGroup "links"
+          [ "no autolink inside link" =:
+            "[<https://example.org>](url)" =?>
+            para (link "url" "" (text "<https://example.org>"))
+          , "no inline link inside link" =:
+            "[[a](url2)](url)" =?>
+            para (link "url" "" (text "[a](url2)"))
+          , "no bare URI inside link" =:
+            "[https://example.org(](url)" =?>
+            para (link "url" "" (text "https://example.org("))
           ]
         , testGroup "Headers"
           [ "blank line before header" =:
@@ -203,6 +224,36 @@ tests = [ testGroup "inline code"
           , "bracketed text (#2062)" =:
             "# [hi]\n"
             =?> headerWith ("hi",[],[]) 1 "[hi]"
+          , "ATX header without trailing #s" =:
+            "# Foo bar\n\n" =?>
+            headerWith ("foo-bar",[],[]) 1 "Foo bar"
+          , "ATX header without trailing #s" =:
+            "# Foo bar with # #" =?>
+            headerWith ("foo-bar-with",[],[]) 1 "Foo bar with #"
+          , "setext header" =:
+            "Foo bar\n=\n\n Foo bar 2 \n=" =?>
+            headerWith ("foo-bar",[],[]) 1 "Foo bar"
+            <> headerWith ("foo-bar-2",[],[]) 1 "Foo bar 2"
+          ]
+        , testGroup "Implicit header references"
+          [ "ATX header without trailing #s" =:
+            "# Header\n[header]\n\n[header ]\n\n[ header]" =?>
+            headerWith ("header",[],[]) 1 "Header"
+            <> para (link "#header" "" (text "header"))
+            <> para (link "#header" "" (text "header"))
+            <> para (link "#header" "" (text "header"))
+          , "ATX header with trailing #s" =:
+            "# Foo bar #\n[foo bar]\n\n[foo bar ]\n\n[ foo bar]" =?>
+            headerWith ("foo-bar",[],[]) 1 "Foo bar"
+            <> para (link "#foo-bar" "" (text "foo bar"))
+            <> para (link "#foo-bar" "" (text "foo bar"))
+            <> para (link "#foo-bar" "" (text "foo bar"))
+          , "setext header" =:
+            " Header \n=\n\n[header]\n\n[header ]\n\n[ header]" =?>
+            headerWith ("header",[],[]) 1 "Header"
+            <> para (link "#header" "" (text "header"))
+            <> para (link "#header" "" (text "header"))
+            <> para (link "#header" "" (text "header"))
           ]
         , testGroup "smart punctuation"
           [ test markdownSmart "quote before ellipses"
