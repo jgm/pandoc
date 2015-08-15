@@ -22,6 +22,10 @@ before_install:
  - export PATH=/opt/ghc/$GHCVER/bin:$PATH
 
 install:
+ # diagnostics:
+ - echo $PATH
+ - ls /opt/ghc/
+ - which ghc
  - cabal-$CABALVER update
 # - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
  - cabal-$CABALVER install $JOPTS --only-dependencies --enable-tests
