@@ -614,20 +614,22 @@ directive' = do
             return mempty
 
 -- TODO:
---  - Silently ignores illegal fields
 --  - Only supports :format: fields with a single format for :raw: roles,
 --    change Text.Pandoc.Definition.Format to fix
 addNewRole :: String -> [(String, String)] -> RSTParser Blocks
 addNewRole roleString fields = do
     (role, parentRole) <- parseFromString inheritedRole roleString
     customRoles <- stateRstCustomRoles <$> getState
-    let (baseRole, baseFmt, baseAttr) =
-            maybe (parentRole, Nothing, nullAttr) id $
-              M.lookup parentRole customRoles
+    let getBaseRole (r, f, a) roles =
+            case M.lookup r roles of
+                 Just (r', f', a') -> getBaseRole (r', f', a') roles
+                 Nothing -> (r, f, a)
+        (baseRole, baseFmt, baseAttr) =
+               getBaseRole (parentRole, Nothing, nullAttr) customRoles
         fmt = if parentRole == "raw" then lookup "format" fields else baseFmt
         annotate :: [String] -> [String]
         annotate = maybe id (:) $
-            if parentRole == "code"
+            if baseRole == "code"
                then lookup "language" fields
                else Nothing
         attr = let (ident, classes, keyValues) = baseAttr
@@ -636,12 +638,12 @@ addNewRole roleString fields = do
 
     -- warn about syntax we ignore
     flip mapM_ fields $ \(key, _) -> case key of
-        "language" -> when (parentRole /= "code") $ addWarning Nothing $
+        "language" -> when (baseRole /= "code") $ addWarning Nothing $
             "ignoring :language: field because the parent of role :" ++
-            role ++ ": is :" ++ parentRole ++ ": not :code:"
-        "format" -> when (parentRole /= "raw") $ addWarning Nothing $
+            role ++ ": is :" ++ baseRole ++ ": not :code:"
+        "format" -> when (baseRole /= "raw") $ addWarning Nothing $
             "ignoring :format: field because the parent of role :" ++
-            role ++ ": is :" ++ parentRole ++ ": not :raw:"
+            role ++ ": is :" ++ baseRole ++ ": not :raw:"
         _ -> addWarning Nothing $ "ignoring unknown field :" ++ key ++
              ": in definition of role :" ++ role ++ ": in"
     when (parentRole == "raw" && countKeys "format" > 1) $

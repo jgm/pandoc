@@ -611,10 +611,10 @@ And some inline haskell :haskell:`fmap id [1,2..10]`.
 
 .. role:: indirect(code)
 
-.. role:: python(indirect)
+.. role:: py(indirect)
    :language: python
 
-Indirect python role :python:`[x*x for x in [1,2,3,4,5]]`.
+Indirect python role :py:`[x*x for x in [1,2,3,4,5]]`.
 
 .. role:: different-indirect(code)
    :language: c

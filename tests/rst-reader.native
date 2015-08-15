@@ -325,7 +325,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "And",Space,Str "some",Space,Str "inline",Space,Str "haskell",Space,Code ("",["haskell","sourceCode"],[]) "fmap id [1,2..10]",Str "."]
 ,Null
 ,Null
-,Para [Str "Indirect",Space,Str "python",Space,Str "role",Space,Code ("",["python","indirect","sourceCode"],[]) "[x*x for x in [1,2,3,4,5]]",Str "."]
+,Para [Str "Indirect",Space,Str "python",Space,Str "role",Space,Code ("",["py","python","indirect","sourceCode"],[]) "[x*x for x in [1,2,3,4,5]]",Str "."]
 ,Null
 ,Null
 ,Para [Str "Different",Space,Str "indirect",Space,Str "C",Space,Code ("",["c","different-indirect","sourceCode"],[]) "int x = 15;",Str "."]
