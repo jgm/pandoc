@@ -12,6 +12,7 @@
 --    * Strong section (bold)
 --    * Emphasized section (italic)
 --    * The rest default to plain paragraph
+--    * Page Breaks
 module Text.Pandoc.Readers.AsciiDoc (readAsciiDoc) where
 
 import Data.Maybe
@@ -46,12 +47,12 @@ parseBlocks = mconcat <$> manyTill block eof
 
 block :: AsciiDocParser (F B.Blocks)
 block = choice [ mempty <$ blanklines
+               , mempty <$ pageBreak
                , title
                , literalParagraph
  --            , documentTitle
  --            , explicitId
                , hrule
- --            , pageBreak
  --            , list
  --            , labeledLine
  --            , labeledMultiLine
@@ -93,6 +94,10 @@ hrule = try $ do
   if (sourceColumn pos) /= 1
     then unexpected "hrule always start the line"
     else hruleAsciiDoc <|> hruleMarkdown
+
+pageBreak :: AsciiDocParser [Char]
+pageBreak = try $ do
+  count 3 (char '<')
 
 paragraph :: AsciiDocParser (F B.Blocks)
 paragraph = do
@@ -156,21 +161,18 @@ literalParagraph = try $ do
     return . return $ B.blockQuote $ B.plain $ B.fromList $ map (Str . unindent) blockLines
 
 inline :: AsciiDocParser (F B.Inlines)
-inline = choice [
-  whitespace
-  , endline
-  , bold
-  , emph
-  , link
-  , str
-  -- specialChar MUST be after str, which catches the alphanum string
-  , specialChar
-  ] <?> "inlines"
-
--- | Used when parsing chars and want to stop at a block end (which will be a
--- newline and a blankline
-endBlock :: AsciiDocParser Char
-endBlock = try $ newline >> blankline
+inline = do
+  notFollowedBy pageBreak
+  choice [
+    whitespace
+    , endline
+    , bold
+    , emph
+    , link
+    , str
+    -- specialChar MUST be after str, which catches the alphanum string
+    , specialChar
+    ] <?> "inlines"
 
 -- | Parses inline elements enclosed inside markers
 -- The starting marker must not be followed by a space
@@ -236,11 +238,6 @@ defaultIfEmpty value defaultValue
   | B.isNull value = defaultValue
   | otherwise    = value
 
-
-eliminateEmptyString :: String -> Maybe String
-eliminateEmptyString [] = Nothing
-eliminateEmptyString a  = Just a
-
 subDomain :: AsciiDocParser (String)
 subDomain = try $ do
   domain <- (many1 $ noneOf ". \n\t/")
@@ -263,11 +260,6 @@ specialChar :: AsciiDocParser (F B.Inlines)
 specialChar = try $ do
   c <- nonspaceChar
   return $ return $ B.str [c]
-
--- stopOnInlineBlockElem :: AsciiDocParser (F B.Inlines)
--- stopOnInlineBlockElem = do
---   hrule
---   unexpected "Stops the inline parsing"
 
 whitespace :: AsciiDocParser (F B.Inlines)
 whitespace = try $ do

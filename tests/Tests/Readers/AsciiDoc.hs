@@ -218,4 +218,12 @@ tests = [ F.testGroup "Titles"
           "_*text*_"
           =?> (para . emph . strong . str) "text"
           ]
+          , F.testGroup "Page Break"
+          [ "a page break" =:
+          "a text\n<<<\nwith a page break"
+          =?> para ((str "a")
+                    <> space <> (str "text") <> space)
+              <> para ((str "with") <> space <> (str "a")
+                      <> space <> (str "page") <> space <> (str "break"))
+          ]
         ]
