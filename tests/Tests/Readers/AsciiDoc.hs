@@ -2,8 +2,6 @@
 module Tests.Readers.AsciiDoc (tests) where
 
 import qualified Test.Framework as F
-import Test.HUnit (assertBool)
-import Test.Framework.Providers.HUnit
 
 import Tests.Helpers
 import Tests.Arbitrary()
@@ -14,10 +12,6 @@ import Text.Pandoc
 
 asciidoc :: String -> Pandoc
 asciidoc = handleError . (readAsciiDoc def)
-
-asciidocBlocks :: String -> [Block]
-asciidocBlocks s = blocks
-  where Pandoc _ blocks = asciidoc s
 
 infix 4 =:
 (=:) :: ToString c
@@ -194,7 +188,33 @@ tests = [ F.testGroup "Titles"
                     <> space
                     <> (str "word"))
 
-          , "both strong and emphasized" =:
+          , "emphasized spanning several lines" =:
+          "a _emphasized\nmultiline_ text"
+          =?> para ((str "a")
+                    <> space
+                    <> emph ((str "emphasized") <> space <> (str "multiline"))
+                    <> space
+                    <> (str "text"))
+
+          , "not emphasized due to space after opening char" =!:
+          "a * emphasized* text"
+          =?> "Emph"
+
+          , "not emphasized due to space after opening char" =!:
+          "a * emphasized* text"
+          =?> "Emph"
+
+          , "not emphasized due to space before closing char" =!:
+          "a *emphasized * text"
+          =?> "Emph"
+
+          , "not emphasized due to alphanum after closing char" =!:
+          "a *emphasized*ornot text"
+          =?> "Emph"
+          ]
+          , F.testGroup "Strong + Emphasized"
+          [
+          "both strong and emphasized" =:
           "_*text*_"
           =?> (para . emph . strong . str) "text"
           ]
