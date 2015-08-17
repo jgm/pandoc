@@ -362,11 +362,11 @@ instance Read XslUnit where
 estimateInMillimeter :: Int -> XslUnit -> Int
 estimateInMillimeter n XslUnitMM     = n
 estimateInMillimeter n XslUnitCM     = n * 10
-estimateInMillimeter n XslUnitInch   = n * 25    -- *             25.4
-estimateInMillimeter n XslUnitPoints = n `div` 3 -- *      1/72 * 25.4
-estimateInMillimeter n XslUnitPica   = n * 4     -- * 12 * 1/72 * 25.4
-estimateInMillimeter n XslUnitPixel  = n `div`3  -- *      1/72 * 25.4
-estimateInMillimeter n XslUnitEM     = n * 7     -- * 16 * 1/72 * 25.4
+estimateInMillimeter n XslUnitInch   = n * 25    -- \*             25.4
+estimateInMillimeter n XslUnitPoints = n `div` 3 -- \*      1/72 * 25.4
+estimateInMillimeter n XslUnitPica   = n * 4     -- \* 12 * 1/72 * 25.4
+estimateInMillimeter n XslUnitPixel  = n `div`3  -- \*      1/72 * 25.4
+estimateInMillimeter n XslUnitEM     = n * 7     -- \* 16 * 1/72 * 25.4
 
 
 ----
@@ -385,7 +385,7 @@ getListLevelStyle level ListStyle{..} =
   let (lower , exactHit , _) = M.splitLookup level levelStyles
   in  exactHit <|> fmap fst (M.maxView lower)
   -- findBy (`M.lookup` levelStyles) [level, (level-1) .. 1]
-  -- ^ simpler, but in general less efficient
+  -- \^ simpler, but in general less efficient
 
 data ListLevelStyle = ListLevelStyle { listLevelType  :: ListLevelType
                                      , listItemPrefix :: Maybe String
