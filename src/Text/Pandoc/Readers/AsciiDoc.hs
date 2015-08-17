@@ -176,10 +176,8 @@ inline = do
     , bold
     , emph
     , link
-    , str
     , pNewline
-    -- specialChar MUST be after str, which catches the alphanum string
-    , specialChar
+    , anyOtherChar
     ] <?> "inlines"
 
 -- | Parses a single new line and returns a space
@@ -258,14 +256,9 @@ subDomain = try $ do
   dot <- (string ".")
   return (domain ++ dot)
 
-str :: AsciiDocParser (F B.Inlines)
-str = try $ do
-  wordText <- many1 alphaNum
-  return $ return $ B.str wordText
-
--- | Definition sufficient like that ONLY because the alphanum parser is invoked before
-specialChar :: AsciiDocParser (F B.Inlines)
-specialChar = try $ do
+-- | Consumes inline chars that are "non meaningful", i.e. text and punctuation
+anyOtherChar :: AsciiDocParser (F B.Inlines)
+anyOtherChar = try $ do
   c <- nonspaceChar
   return $ return $ B.str [c]
 
