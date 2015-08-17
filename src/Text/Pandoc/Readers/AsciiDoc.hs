@@ -95,10 +95,6 @@ hrule = try $ do
     then unexpected "hrule always start the line"
     else hruleAsciiDoc <|> hruleMarkdown
 
-pageBreak :: AsciiDocParser [Char]
-pageBreak = try $ do
-  count 3 (char '<')
-
 paragraph :: AsciiDocParser (F B.Blocks)
 paragraph = do
   paraText <- mconcat <$> many1 inline
@@ -160,19 +156,37 @@ literalParagraph = try $ do
     let unindent = drop unecessarySpaces
     return . return $ B.blockQuote $ B.plain $ B.fromList $ map (Str . unindent) blockLines
 
+pageBreak :: AsciiDocParser [Char]
+pageBreak = try $ do
+  count 3 (char '<')
+
+emptyLine :: AsciiDocParser [Char]
+emptyLine = do
+  newline
+  blanklines
+
+blockTerminator :: AsciiDocParser [Char]
+blockTerminator = pageBreak <|> emptyLine
+
 inline :: AsciiDocParser (F B.Inlines)
 inline = do
-  notFollowedBy pageBreak
+  notFollowedBy blockTerminator
   choice [
     whitespace
-    , endline
     , bold
     , emph
     , link
     , str
+    , pNewline
     -- specialChar MUST be after str, which catches the alphanum string
     , specialChar
     ] <?> "inlines"
+
+-- | Parses a single new line and returns a space
+pNewline :: AsciiDocParser (F B.Inlines)
+pNewline = try $ do
+  newline
+  return $ return $ B.space
 
 -- | Parses inline elements enclosed inside markers
 -- The starting marker must not be followed by a space
@@ -243,12 +257,6 @@ subDomain = try $ do
   domain <- (many1 $ noneOf ". \n\t/")
   dot <- (string ".")
   return (domain ++ dot)
-
-endline :: AsciiDocParser (F B.Inlines)
-endline = try $ do
-  newline
-  notFollowedBy blankline
-  return $ return $ B.space
 
 str :: AsciiDocParser (F B.Inlines)
 str = try $ do
