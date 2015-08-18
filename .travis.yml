@@ -23,6 +23,7 @@ install:
  - cabal-$CABALVER update
 # - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
  - cabal-$CABALVER install "Cabal >= 1.18" # -v2 provides useful information for debugging
+ - cabal-$CABALVER sandbox init --sandbox=tsandbox
  - cabal-$CABALVER install $JOPTS --only-dependencies --enable-tests
 
 # Here starts the actual work to be performed for the package under test; any command which exits with a non-zero exit code causes the build to fail.
@@ -32,6 +33,7 @@ script:
       cabal-$CABALVER sdist --output-directory=build
       cd build
    fi
+ - cabal-$CABALVER sandbox init --sandbox=../tsandbox
  - cabal-$CABALVER install "Cabal >= 1.18" -v2  # -v2 provides useful information for debugging
  - cabal-$CABALVER configure --enable-tests -v2  # -v2 provides useful information for debugging
  - cabal-$CABALVER build $JOPTS --ghc-options=$GHCOPTS # this builds all libraries and executables (including tests/benchmarks)
