@@ -69,8 +69,8 @@ $endif$
             citecolor=$if(citecolor)$$citecolor$$else$blue$endif$,
             urlcolor=$if(urlcolor)$$urlcolor$$else$blue$endif$,
             linkcolor=$if(linkcolor)$$linkcolor$$else$magenta$endif$,
-            $if(hidelinks)$hidelinks=$hidelinks$,$endif$
-            pdfborder={0 0 0}}
+            pdfborder={0 0 0}
+            $if(hidelinks)$,hidelinks,$endif$}
 \urlstyle{same}  % don't use monospace font for urls
 $if(lang)$
 \ifxetex
