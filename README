@@ -945,7 +945,19 @@ as `title`, `author`, and `date`) as well as the following:
 :   body of document
 
 `lang`
-:   language code for HTML or LaTeX documents
+:   The `lang` variable should be set by the user to a language
+    code according to [BCP 47] (e.g. `en` or `en-GB`).
+    For some output formats, pandoc will convert it to an approriate
+    format stored in the additional variables `babel-lang`,
+    `polyglossia-lang`, `polyglossia-variant` (LaTeX)
+    and `context-lang` (ConTeXt).
+
+`otherlangs`
+:   Should be set to a list of other languages used in the document
+    in the YAML metadata, according to [BCP 47]. For example:
+    `otherlangs: [en-GB, fr]`.
+    Currently only used by XeTeX through the generated
+    `polyglossia-otherlangs` variable.
 
 `slidy-url`
 :   base URL for Slidy documents (defaults to
@@ -3264,8 +3276,8 @@ The following fields are recognized:
   ~ A string value in `YYYY-MM-DD` format.  (Only the year is necessary.)
     Pandoc will attempt to convert other common date formats.
 
-`language`
-  ~ A string value in [RFC5646] format.  Pandoc will default to the local
+`lang` (or legacy: `language`)
+  ~ A string value in [BCP 47] format.  Pandoc will default to the local
     language if nothing is specified.
 
 `subject`
@@ -3549,7 +3561,7 @@ Xavier Olive.
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
 [lua]: http://www.lua.org
 [marc relators]: http://www.loc.gov/marc/relators/relaterm.html
-[RFC5646]: http://tools.ietf.org/html/rfc5646
+[BCP 47]: https://tools.ietf.org/html/bcp47
 [InDesign ICML]: https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf
 [txt2tags]: http://txt2tags.org/
 [EPUB]: http://idpf.org/epub

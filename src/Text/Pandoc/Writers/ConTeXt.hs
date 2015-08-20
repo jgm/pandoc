@@ -80,12 +80,12 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                         "subsubsubsection","subsubsubsubsection"])
                 $ defField "body" main
                 $ defField "number-sections" (writerNumberSections options)
-                $ defField "mainlang" (maybe ""
-                    (reverse . takeWhile (/=',') . reverse)
-                    (lookup "lang" $ writerVariables options))
                 $ metadata
+  let context' =  defField "context-lang" (maybe "" (fromBcp47 . splitBy (=='-')) $
+                    getField "lang" context)
+                  context
   return $ if writerStandalone options
-              then renderTemplate' (writerTemplate options) context
+              then renderTemplate' (writerTemplate options) context'
               else main
 
 -- escape things as needed for ConTeXt
@@ -361,4 +361,36 @@ sectionHeader (ident,classes,_) hdrLevel lst = do
                else if level' == 0
                        then char '\\' <> chapter <> braces contents
                        else contents <> blankline
+
+-- Takes a list of the constituents of a BCP 47 language code
+-- and irons out ConTeXt's exceptions
+-- https://tools.ietf.org/html/bcp47#section-2.1
+-- http://wiki.contextgarden.net/Language_Codes
+fromBcp47 :: [String] -> String
+fromBcp47 []              = ""
+fromBcp47 ("ar":"SY":_)   = "ar-sy"
+fromBcp47 ("ar":"IQ":_)   = "ar-iq"
+fromBcp47 ("ar":"JO":_)   = "ar-jo"
+fromBcp47 ("ar":"LB":_)   = "ar-lb"
+fromBcp47 ("ar":"DZ":_)   = "ar-dz"
+fromBcp47 ("ar":"MA":_)   = "ar-ma"
+fromBcp47 ("de":"1901":_) = "deo"
+fromBcp47 ("de":"DE":_)   = "de-de"
+fromBcp47 ("de":"AT":_)   = "de-at"
+fromBcp47 ("de":"CH":_)   = "de-ch"
+fromBcp47 ("el":"poly":_) = "agr"
+fromBcp47 ("en":"US":_)   = "en-us"
+fromBcp47 ("en":"GB":_)   = "en-gb"
+fromBcp47 ("grc":_)       = "agr"
+fromBcp47 x               = fromIso $ head x
+  where
+    fromIso "cz" = "cs"
+    fromIso "el" = "gr"
+    fromIso "eu" = "ba"
+    fromIso "he" = "il"
+    fromIso "jp" = "ja"
+    fromIso "uk" = "ua"
+    fromIso "vi" = "vn"
+    fromIso "zh" = "cn"
+    fromIso l    = l
 
