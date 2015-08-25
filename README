@@ -246,8 +246,8 @@ General options
 
     in Windows 7. (You can find the default user data directory
     on your system by looking at the output of `pandoc --version`.)
-    A `reference.odt`, `reference.docx`, `default.csl`,
-    `epub.css`, `templates`, `slidy`, `slideous`, or `s5` directory
+    A `reference.odt`, `reference.docx`, `epub.css`, `templates`,
+    `slidy`, `slideous`, or `s5` directory
     placed in this directory will override pandoc's normal defaults.
 
 `--bash-completiion`
