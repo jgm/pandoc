@@ -63,10 +63,10 @@ $endif$
   \usepackage[unicode=true]{hyperref}
 \fi
 }
-\makeatother
-\makeatletter
-\@ifpackageloaded{color}{}{%
-\usepackage[usenames,dvipsnames]{color}
+\@ifpackageloaded{color}{
+    \PassOptionsToPackage{usenames,dvipsnames}{color}
+}{%
+    \usepackage[usenames,dvipsnames]{color}
 }
 \makeatother
 \hypersetup{breaklinks=true,
