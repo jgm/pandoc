@@ -1776,7 +1776,7 @@ wikilink = try $ do
   setState $ st { stateAllowLinks = False }
   (lab,src) <- wikilinkstuff
   setState $ st { stateAllowLinks = True }
-  return $ B.link src "" <$> lab
+  return $ B.link src "wikilink" <$> lab
 
 link :: MarkdownParser (F Inlines)
 link = try $ do
