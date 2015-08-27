@@ -1747,22 +1747,21 @@ wikilinkstuff = do
   string "[["
   (_, raw) <- withRaw $ charsInBalancedBrackets 2
   guard $ not $ null raw
-  let depunct c = if isAlphaNum c then c else if c == '_' then c else '-'
-      deunder c = if c == '_' then ' ' else c
+  let deunder c = if c == '_' then ' ' else c
       deiki s = case elemIndices '/' s of
                   [] -> map deunder s
                   xs -> map deunder (drop ((last xs) + 1) s)
   case elemIndex '|' raw of
     Nothing -> do
       let rawstr = ((reverse . (drop 2) . reverse) raw)
-          srcstr = "#" ++ (map depunct rawstr) ++ "\n"
+          srcstr = rawstr ++ "\n"
           labstr = deiki rawstr ++ "\n"
       src <- parseFromString (mconcat <$> many (count 1 anyChar)) (init srcstr)
       lab <- parseFromString (trimInlinesF . mconcat <$> many inline) (init labstr)
       return (lab, src)
     Just idx -> do
       let rawstr = ((reverse . (drop 2) . reverse) raw)
-          srcstr = "#" ++ (map depunct (drop (idx + 1) rawstr)) ++ "\n"
+          srcstr = (drop (idx + 1) rawstr) ++ "\n"
           labstr = deiki (take idx rawstr) ++ "\n"
       src <- parseFromString (mconcat <$> many (count 1 anyChar)) (init srcstr)
       lab <- parseFromString (trimInlinesF . mconcat <$> many inline) (init labstr)
