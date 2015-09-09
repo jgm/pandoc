@@ -7,6 +7,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 import Tests.Helpers
 import Tests.Arbitrary()
+import qualified Data.Set as Set
 
 markdown :: (ToPandoc a) => a -> String
 markdown = writeMarkdown def . toPandoc
@@ -23,6 +24,9 @@ which is in turn shorthand for
   test markdown "my test" (X,Y)
 -}
 
+markdownIkiWiki :: (ToString a, ToPandoc a) => a -> String
+markdownIkiWiki = writeMarkdown def { writerExtensions = Set.insert Ext_ikiwiki_wikilinks $ writerExtensions def } . toPandoc
+
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> Test
@@ -36,7 +40,7 @@ tests = [ "indented code after list"
              =: bulletList [ plain "foo" <> bulletList [ plain "bar" ],
                              plain "baz" ]
              =?> "-   foo\n    -   bar\n-   baz\n"
-        ] ++ [shortcutLinkRefsTests]
+        ] ++ [shortcutLinkRefsTests] ++ [ikiWikiLinkTests]
 
 shortcutLinkRefsTests :: Test
 shortcutLinkRefsTests =
@@ -124,4 +128,41 @@ shortcutLinkRefsTests =
                       , ""
                       , "  [link]: /url"
                       ]
+     ]
+
+ikiWikiLinkTests :: Test
+ikiWikiLinkTests =
+  let infix 4 =:
+      (=:) :: (ToString a, ToPandoc a)
+           => String -> (a, String) -> Test
+      (=:) = test markdownIkiWiki
+      infix 4 =/:
+      (=/:) :: (ToString a, ToPandoc a)
+           => String -> (a, String) -> Test
+      (=/:) = test markdown
+  in testGroup "ikiwiki_wikilink"
+     [ "basic ikiwikilink (default)" =/:
+         (para (link "text" "wikilink" "text") )
+         =?> "[text](text \"wikilink\")"
+     , "basic ikiwikilink (+ikiwiki_wikilinks)"
+         =: para (link "text" "wikilink" "text")
+         =?> "[[text]]"
+     , "ikiwikilink (default)" =/:
+         (para (link "url" "wikilink" "text") )
+         =?> "[text](url \"wikilink\")"
+     , "ikiwikilink (+ikiwiki_wikilinks)"
+         =: (para (link "url" "wikilink" "text") )
+         =?> "[[text|url]]"
+     , "relative link (default)" =/:
+         (para (link "url" "" "text"))
+         =?> "[text](url)"
+     , "relative link (+ikiwiki_wikilinks)"
+         =: (para (link "url" "" "text"))
+         =?> "[text](url)"
+     , "proper escaping (default)" =/:
+         para (str "[[text]]")
+         =?> "\\[\\[text\\]\\]"
+     , "proper escaping (+ikiwiki_wikilinks)"
+         =: para (str "[[text]]")
+         =?> "\\[\\[text\\]\\]"
      ]
