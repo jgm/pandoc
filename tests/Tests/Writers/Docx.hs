@@ -8,6 +8,7 @@ import Test.Framework
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Error
+import System.FilePath ((</>))
 
 type Options = (WriterOptions, ReaderOptions)
 
@@ -16,7 +17,9 @@ compareOutput :: Options
                  -> IO (Pandoc, Pandoc)
 compareOutput opts nativeFile = do
   nf <- Prelude.readFile nativeFile
-  df <- writeDocx (fst opts) (handleError $ readNative nf)
+  let wopts = fst opts
+  df <- writeDocx wopts{writerUserDataDir = Just (".." </> "data")}
+             (handleError $ readNative nf)
   let (p, _) = handleError $ readDocx (snd opts) df
   return (p, handleError $ readNative nf)
 
