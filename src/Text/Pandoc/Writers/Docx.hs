@@ -211,7 +211,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   let doc' = walk fixDisplayMath $ doc
   username <- lookup "USERNAME" <$> getEnvironment
   utctime <- getCurrentTime
-  distArchive <- getDefaultReferenceDocx Nothing
+  distArchive <- getDefaultReferenceDocx datadir
   refArchive <- case writerReferenceDocx opts of
                      Just f  -> liftM (toArchive . toLazy) $ B.readFile f
                      Nothing -> getDefaultReferenceDocx datadir
