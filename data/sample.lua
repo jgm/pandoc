@@ -84,7 +84,7 @@ function Doc(body, metadata, variables)
     end
     add('</ol>')
   end
-  return table.concat(buffer,'\n')
+  return table.concat(buffer,'\n') .. '\n'
 end
 
 -- The functions that follow render corresponding pandoc elements.
@@ -249,6 +249,12 @@ function html_align(align)
   else
     return 'left'
   end
+end
+
+function CaptionedImage(src, tit, caption)
+   return '<div class="figure">\n<img src="' .. escape(src,true) ..
+      '" title="' .. escape(tit,true) .. '"/>\n' ..
+      '<p class="caption">' .. caption .. '</p>\n</div>'
 end
 
 -- Caption is a string, aligns is an array of strings,
