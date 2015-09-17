@@ -258,10 +258,13 @@ tableOfContents opts headers =
 
 -- | Converts an Element to a list item for a table of contents,
 elementToListItem :: WriterOptions -> Element -> [Block]
-elementToListItem opts (Sec lev _ _ headerText subsecs)
-  = Plain headerText :
+elementToListItem opts (Sec lev _nums (ident,_,_) headerText subsecs)
+  = Plain headerLink :
     [ BulletList (map (elementToListItem opts) subsecs) |
       not (null subsecs) && lev < writerTOCDepth opts ]
+   where headerLink = if null ident
+                         then headerText
+                         else [Link headerText ('#':ident, "")]
 elementToListItem _ (Blk _) = []
 
 attrsToMarkdown :: Attr -> Doc
