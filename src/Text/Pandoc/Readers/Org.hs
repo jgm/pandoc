@@ -409,7 +409,7 @@ verseBlock blkProp = try $ do
   ignHeaders
   content <- rawBlockContent blkProp
   fmap B.para . mconcat . intersperse (pure B.linebreak)
-    <$> mapM (parseFromString parseInlines) (lines content)
+    <$> mapM (parseFromString parseInlines) (map (++ "\n") . lines $ content)
 
 exportsCode :: [(String, String)] -> Bool
 exportsCode attrs = not (("rundoc-exports", "none") `elem` attrs

@@ -1143,6 +1143,15 @@ tests =
               ]
           ]
 
+      , "Verse block with newlines" =:
+          unlines [ "#+BEGIN_VERSE"
+                  , "foo"
+                  , ""
+                  , "bar"
+                  , "#+END_VERSE"
+                  ] =?>
+          para ("foo" <> linebreak <> linebreak <> "bar")
+
       , "LaTeX fragment" =:
           unlines [ "\\begin{equation}"
                   , "X_i = \\begin{cases}"
