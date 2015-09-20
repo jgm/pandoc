@@ -81,7 +81,8 @@ pandocToRST (Pandoc meta blocks) = do
                 (fmap (render colwidth) . blockListToRST)
                 (fmap (trimr . render colwidth) . inlineListToRST)
                 $ deleteMeta "title" $ deleteMeta "subtitle" meta
-  body <- blockListToRST' True $ normalizeHeadings 1 blocks
+  let minLev = findMinHeadingLevel Nothing blocks
+  body <- blockListToRST' True $ normalizeHeadings minLev blocks
   notes <- liftM (reverse . stNotes) get >>= notesToRST
   -- note that the notes may contain refs, so we do them first
   refs <- liftM (reverse . stLinks) get >>= refsToRST
@@ -107,6 +108,11 @@ pandocToRST (Pandoc meta blocks) = do
             headerLtEq _ _ = False
     normalizeHeadings lev (b:bs) = b:normalizeHeadings lev bs
     normalizeHeadings _   []     = []
+    findMinHeadingLevel Nothing (Header l _a _i:bs) = findMinHeadingLevel (Just l) bs
+    findMinHeadingLevel (Just ol) (Header l _a _i:bs) =
+      findMinHeadingLevel (Just $ if ol>l then l else ol) bs
+    findMinHeadingLevel l (_:bs) = findMinHeadingLevel l bs
+    findMinHeadingLevel l [] = fromMaybe 1 l
 
 -- | Return RST representation of reference key table.
 refsToRST :: Refs -> State WriterState Doc
