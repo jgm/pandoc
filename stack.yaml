@@ -7,5 +7,6 @@ flags:
     network-uri: true
 packages:
 - '.'
+- 'https://hackage.haskell.org/package/pandoc-types-1.12.4.6/pandoc-types-1.12.4.6.tar.gz'
 extra-deps: []
 resolver: lts-3.4
