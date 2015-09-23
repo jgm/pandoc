@@ -1024,8 +1024,22 @@ parseInline (Elem e) =
          findElementById idString content
             = asum [filterElement (\x -> attrValue "id" x == idString) el | Elem el <- content]
 
+         -- Use the 'xreflabel' attribute for getting the title of a xref link;
+         -- if there's no such attribute, employ some heuristics based on what
+         -- docbook-xsl does.
          xrefTitleByElem el
-             | null xrefLabel = "???"
-             | otherwise      = xrefLabel
+             | not (null xrefLabel) = xrefLabel
+             | otherwise            = case qName (elName el) of
+                  "chapter"      -> descendantContent "title" el
+                  "sect1"        -> descendantContent "title" el
+                  "sect2"        -> descendantContent "title" el
+                  "sect3"        -> descendantContent "title" el
+                  "sect4"        -> descendantContent "title" el
+                  "sect5"        -> descendantContent "title" el
+                  "cmdsynopsis"  -> descendantContent "command" el
+                  "funcsynopsis" -> descendantContent "function" el
+                  _              -> qName (elName el) ++ "_title"
           where
             xrefLabel = attrValue "xreflabel" el
+            descendantContent name = maybe "???" strContent
+                                   . findElement (QName name Nothing Nothing)
