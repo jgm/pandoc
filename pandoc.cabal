@@ -242,7 +242,7 @@ Flag old-locale
 
 Library
   Build-Depends: base >= 4.2 && <5,
-                 syb >= 0.1 && < 0.6,
+                 syb >= 0.1 && < 0.7,
                  containers >= 0.1 && < 0.6,
                  unordered-containers >= 0.2 && < 0.3,
                  array >= 0.3 && < 0.6,
@@ -447,7 +447,7 @@ Test-Suite test-pandoc
   Main-Is:        test-pandoc.hs
   Hs-Source-Dirs: tests
   Build-Depends:  base >= 4.2 && < 5,
-                  syb >= 0.1 && < 0.6,
+                  syb >= 0.1 && < 0.7,
                   pandoc,
                   pandoc-types >= 1.12.4 && < 1.13,
                   bytestring >= 0.9 && < 0.11,
@@ -499,7 +499,7 @@ benchmark benchmark-pandoc
   Hs-Source-Dirs:  benchmark
   Build-Depends:   pandoc,
                    base >= 4.2 && < 5,
-                   syb >= 0.1 && < 0.6,
+                   syb >= 0.1 && < 0.7,
                    criterion >= 0.5 && < 1.2
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Default-Language: Haskell98
