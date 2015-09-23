@@ -511,6 +511,7 @@ data DBState = DBState{ dbSectionLevel :: Int
                       , dbAcceptsMeta  :: Bool
                       , dbBook         :: Bool
                       , dbFigureTitle  :: Inlines
+                      , dbContent      :: [Content]
                       } deriving Show
 
 instance Default DBState where
@@ -519,12 +520,13 @@ instance Default DBState where
                , dbMeta = mempty
                , dbAcceptsMeta = False
                , dbBook = False
-               , dbFigureTitle = mempty }
+               , dbFigureTitle = mempty
+               , dbContent = [] }
 
 
 readDocBook :: ReaderOptions -> String -> Either PandocError Pandoc
 readDocBook _ inp  = (\blocks -> Pandoc (dbMeta st') (toList . mconcat $ blocks)) <$>  bs
-  where (bs , st') = flip runState def . runExceptT . mapM parseBlock $ tree
+  where (bs , st') = flip runState (def{ dbContent = tree }) . runExceptT . mapM parseBlock $ tree
         tree = normalizeTree . parseXML . handleInstructions $ inp
 
 -- We treat <?asciidoc-br?> specially (issue #1236), converting it
