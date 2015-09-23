@@ -144,11 +144,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
-  let (mainlang, otherlang) =
-       case (reverse . splitBy (==',') . filter (/=' ')) `fmap`
-            getField "lang" metadata of
-              Just (m:os) -> (m, reverse os)
-              _           -> ("", [])
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
                                               if stBook st
@@ -173,8 +168,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "euro" (stUsesEuro st) $
                   defField "listings" (writerListings options || stLHS st) $
                   defField "beamer" (writerBeamer options) $
-                  defField "mainlang" mainlang $
-                  defField "otherlang" otherlang $
                   (if stHighlighting st
                       then defField "highlighting-macros" (styleToLaTeX
                                 $ writerHighlightStyle options )
@@ -186,8 +179,18 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                      defField "biblatex" True
                          _        -> id) $
                   metadata
+  let lang = maybe [] (splitBy (=='-')) $ getField "lang" context
+      (polyLang, polyVar) = toPolyglossia lang
+  let context' =
+          defField "babel-lang" (toBabel lang)
+        $ defField "polyglossia-lang" polyLang
+        $ defField "polyglossia-variant" polyVar
+        $ defField "polyglossia-otherlangs"
+            (maybe [] (map $ fst . toPolyglossia . splitBy (=='-')) $
+            getField "otherlangs" context)
+        $ context
   return $ if writerStandalone options
-              then renderTemplate' template context
+              then renderTemplate' template context'
               else main
 
 -- | Convert Elements to LaTeX
@@ -980,3 +983,132 @@ citationsToBiblatex _ = return empty
 getListingsLanguage :: [String] -> Maybe String
 getListingsLanguage [] = Nothing
 getListingsLanguage (x:xs) = toListingsLanguage x <|> getListingsLanguage xs
+
+-- Takes a list of the constituents of a BCP 47 language code and
+-- converts it to a Polyglossia (language, variant) tuple
+-- http://mirrors.concertpass.com/tex-archive/macros/latex/contrib/polyglossia/polyglossia.pdf
+toPolyglossia :: [String] -> (String, String)
+toPolyglossia ("de":"AT":_)   = ("german", "austrian")
+toPolyglossia ("de":"CH":_)   = ("german", "swiss")
+toPolyglossia ("de":_)        = ("german", "")
+toPolyglossia ("dsb":_)       = ("lsorbian", "")
+toPolyglossia ("el":"poly":_) = ("greek", "poly")
+toPolyglossia ("en":"AU":_)   = ("english", "australian")
+toPolyglossia ("en":"CA":_)   = ("english", "canadian")
+toPolyglossia ("en":"GB":_)   = ("english", "british")
+toPolyglossia ("en":"NZ":_)   = ("english", "newzealand")
+toPolyglossia ("en":"UK":_)   = ("english", "british")
+toPolyglossia ("en":"US":_)   = ("english", "american")
+toPolyglossia ("grc":_)       = ("greek", "ancient")
+toPolyglossia ("hsb":_)       = ("usorbian", "")
+toPolyglossia ("sl":_)        = ("slovenian", "")
+toPolyglossia x               = (commonFromBcp47 x, "")
+
+-- Takes a list of the constituents of a BCP 47 language code and
+-- converts it to a Babel language string.
+-- http://mirrors.concertpass.com/tex-archive/macros/latex/required/babel/base/babel.pdf
+-- Note that the PDF unfortunately does not contain a complete list of supported languages.
+toBabel :: [String] -> String
+toBabel ("de":"1901":_)      = "german"
+toBabel ("de":"AT":"1901":_) = "austrian"
+toBabel ("de":"AT":_)        = "naustrian"
+toBabel ("de":_)             = "ngerman"
+toBabel ("dsb":_)            = "lowersorbian"
+toBabel ("el":"poly":_)      = "polutonikogreek"
+toBabel ("en":"AU":_)        = "australian"
+toBabel ("en":"CA":_)        = "canadian"
+toBabel ("en":"GB":_)        = "british"
+toBabel ("en":"NZ":_)        = "newzealand"
+toBabel ("en":"UK":_)        = "british"
+toBabel ("en":"US":_)        = "american"
+toBabel ("fr":"CA":_)        = "canadien"
+toBabel ("fra":"aca":_)      = "acadian"
+toBabel ("grc":_)            = "polutonikogreek"
+toBabel ("hsb":_)            = "uppersorbian"
+toBabel ("sl":_)             = "slovene"
+toBabel x                    = commonFromBcp47 x
+
+-- Takes a list of the constituents of a BCP 47 language code
+-- and converts it to a string shared by Babel and Polyglossia.
+-- https://tools.ietf.org/html/bcp47#section-2.1
+commonFromBcp47 :: [String] -> String
+commonFromBcp47 [] = ""
+commonFromBcp47 ("pt":"BR":_) = "brazilian"
+commonFromBcp47 x = fromIso $ head x
+  where
+    fromIso "af"  = "afrikaans"
+    fromIso "am"  = "amharic"
+    fromIso "ar"  = "arabic"
+    fromIso "ast" = "asturian"
+    fromIso "bg"  = "bulgarian"
+    fromIso "bn"  = "bengali"
+    fromIso "bo"  = "tibetan"
+    fromIso "br"  = "breton"
+    fromIso "ca"  = "catalan"
+    fromIso "cy"  = "welsh"
+    fromIso "cz"  = "czech"
+    fromIso "cop" = "coptic"
+    fromIso "da"  = "danish"
+    fromIso "dv"  = "divehi"
+    fromIso "el"  = "greek"
+    fromIso "en"  = "english"
+    fromIso "eo"  = "esperanto"
+    fromIso "es"  = "spanish"
+    fromIso "et"  = "estonian"
+    fromIso "eu"  = "basque"
+    fromIso "fa"  = "farsi"
+    fromIso "fi"  = "finnish"
+    fromIso "fr"  = "french"
+    fromIso "fur" = "friulan"
+    fromIso "ga"  = "irish"
+    fromIso "gd"  = "scottish"
+    fromIso "gl"  = "galician"
+    fromIso "he"  = "hebrew"
+    fromIso "hi"  = "hindi"
+    fromIso "hr"  = "croatian"
+    fromIso "hy"  = "armenian"
+    fromIso "hu"  = "magyar"
+    fromIso "ia"  = "interlingua"
+    fromIso "id"  = "indonesian"
+    fromIso "ie"  = "interlingua"
+    fromIso "is"  = "icelandic"
+    fromIso "it"  = "italian"
+    fromIso "jp"  = "japanese"
+    fromIso "km"  = "khmer"
+    fromIso "kn"  = "kannada"
+    fromIso "ko"  = "korean"
+    fromIso "la"  = "latin"
+    fromIso "lo"  = "lao"
+    fromIso "lt"  = "lithuanian"
+    fromIso "lv"  = "latvian"
+    fromIso "ml"  = "malayalam"
+    fromIso "mn"  = "mongolian"
+    fromIso "mr"  = "marathi"
+    fromIso "nb"  = "norsk"
+    fromIso "nl"  = "dutch"
+    fromIso "nn"  = "nynorsk"
+    fromIso "no"  = "norsk"
+    fromIso "nqo" = "nko"
+    fromIso "oc"  = "occitan"
+    fromIso "pl"  = "polish"
+    fromIso "pms" = "piedmontese"
+    fromIso "pt"  = "portuguese"
+    fromIso "rm"  = "romansh"
+    fromIso "ro"  = "romanian"
+    fromIso "ru"  = "russian"
+    fromIso "sa"  = "sanskrit"
+    fromIso "se"  = "samin"
+    fromIso "sk"  = "slovak"
+    fromIso "sq"  = "albanian"
+    fromIso "sr"  = "serbian"
+    fromIso "sv"  = "swedish"
+    fromIso "syr" = "syriac"
+    fromIso "ta"  = "tamil"
+    fromIso "te"  = "telugu"
+    fromIso "th"  = "thai"
+    fromIso "tk"  = "turkmen"
+    fromIso "tr"  = "turkish"
+    fromIso "uk"  = "ukrainian"
+    fromIso "ur"  = "urdu"
+    fromIso "vi"  = "vietnamese"
+    fromIso _     = ""
