@@ -524,8 +524,8 @@ instance Default DBState where
 
 readDocBook :: ReaderOptions -> String -> Either PandocError Pandoc
 readDocBook _ inp  = (\blocks -> Pandoc (dbMeta st') (toList . mconcat $ blocks)) <$>  bs
-  where (bs , st') = flip runState def . runExceptT . mapM parseBlock . normalizeTree . parseXML $ inp'
-        inp' = handleInstructions inp
+  where (bs , st') = flip runState def . runExceptT . mapM parseBlock $ tree
+        tree = normalizeTree . parseXML . handleInstructions $ inp
 
 -- We treat <?asciidoc-br?> specially (issue #1236), converting it
 -- to <br/>, since xml-light doesn't parse the instruction correctly.
