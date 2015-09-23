@@ -18,6 +18,7 @@ import Text.TeXMath (readMathML, writeTeX)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Compat.Except
 import Data.Default
+import Data.Foldable (asum)
 
 {-
 
@@ -498,7 +499,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] warning - An admonition set off from the text
 [x] wordasword - A word meant specifically as a word and not representing
     anything else
-[ ] xref - A cross reference to another part of the document
+[x] xref - A cross reference to another part of the document
 [ ] year - The year of publication of a document
 [x] ?asciidoc-br? - line break from asciidoc docbook output
 -}
@@ -952,7 +953,13 @@ parseInline (Elem e) =
         "keycombo" -> keycombo <$> (mapM parseInline $ elContent e)
         "menuchoice" -> menuchoice <$> (mapM parseInline $
                                         filter isGuiMenu $ elContent e)
-        "xref" -> return $ str "?" -- so at least you know something is there
+        "xref" -> do
+            content <- dbContent <$> get
+            let linkend = attrValue "linkend" e
+            let title = case attrValue "endterm" e of
+                            ""      -> maybe "???" xrefTitleByElem (findElementById linkend content)
+                            endterm -> maybe "???" strContent (findElementById endterm content)
+            return $ link ('#' : linkend) "" (singleton (Str title))
         "email" -> return $ link ("mailto:" ++ strContent e) ""
                           $ str $ strContent e
         "uri" -> return $ link (strContent e) "" $ str $ strContent e
@@ -1013,3 +1020,12 @@ parseInline (Elem e) =
          isGuiMenu (Elem x) = named "guimenu" x || named "guisubmenu" x ||
                               named "guimenuitem" x
          isGuiMenu _        = False
+
+         findElementById idString content
+            = asum [filterElement (\x -> attrValue "id" x == idString) el | Elem el <- content]
+
+         xrefTitleByElem el
+             | null xrefLabel = "???"
+             | otherwise      = xrefLabel
+          where
+            xrefLabel = attrValue "xreflabel" el

@@ -1,0 +1,70 @@
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+          "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<book><title>An Example Book</title>
+<chapter id="ch01"><title>XRef Samples</title>
+<para>
+This paragraph demonstrates several features of
+<sgmltag>XRef</sgmltag>.
+</para>
+<itemizedlist>
+<listitem><para>A straight link generates the
+cross-reference text: <xref linkend="ch02"/>.
+</para></listitem>
+<listitem><para>A link to an element with an
+<sgmltag class="attribute">XRefLabel</sgmltag>:
+<xref linkend="ch03"/>.
+</para></listitem>
+<listitem><para>A link with an
+<sgmltag class="attribute">EndTerm</sgmltag>:
+<xref linkend="ch04" endterm="ch04short"/>.
+</para></listitem>
+<listitem><para>A link to an
+<sgmltag>cmdsynopsis</sgmltag> element: <xref linkend="cmd01"/>.
+</para></listitem>
+<listitem><para>A link to an
+<sgmltag>funcsynopsis</sgmltag> element: <xref linkend="func01"/>.
+</para></listitem>
+</itemizedlist>
+</chapter>
+
+<chapter id="ch02">
+  <title>The Second Chapter</title>
+  <para>Some content here</para>
+</chapter>
+
+<chapter id="ch03" xreflabel="Chapter the Third">
+  <title>The Third Chapter</title>
+  <para>Some content here</para>
+</chapter>
+
+<chapter id="ch04">
+  <title>The Fourth Chapter</title>
+  <titleabbrev id="ch04short">Chapter 4</titleabbrev>
+  <para>Some content here</para>
+
+<cmdsynopsis id="cmd01">
+  <command>chgrp</command>
+  <arg>-R
+    <group>
+      <arg>-H</arg>
+      <arg>-L</arg>
+      <arg>-P</arg>
+    </group>
+  </arg>
+  <arg>-f</arg>
+  <arg choice='plain'><replaceable>group</replaceable></arg>
+  <arg rep='repeat' choice='plain'><replaceable>file</replaceable></arg>
+</cmdsynopsis>
+
+
+<funcsynopsis id="func01">
+<funcprototype>
+<funcdef>int <function>max</function></funcdef>
+<paramdef>int <parameter>int1</parameter></paramdef>
+<paramdef>int <parameter>int2</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+</chapter>
+</book>
+
