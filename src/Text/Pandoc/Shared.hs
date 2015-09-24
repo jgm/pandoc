@@ -92,7 +92,9 @@ module Text.Pandoc.Shared (
                      -- * Safe read
                      safeRead,
                      -- * Temp directory
-                     withTempDir
+                     withTempDir,
+                     -- * Version
+                     pandocVersion
                     ) where
 
 import Text.Pandoc.Definition
@@ -106,6 +108,7 @@ import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, stripPrefix, intercalate )
+import Data.Version ( showVersion )
 import qualified Data.Map as M
 import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI )
@@ -136,6 +139,7 @@ import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
 import qualified Data.Text as T (toUpper, pack, unpack)
 import Data.ByteString.Lazy (toChunks, fromChunks)
 import qualified Data.ByteString.Lazy as BL
+import Paths_pandoc (version)
 
 import Codec.Archive.Zip
 
@@ -164,6 +168,10 @@ import Network.HTTP (findHeader, rspBody,
                      RequestMethod(..), HeaderName(..), mkRequest)
 import Network.Browser (browse, setAllowRedirects, setOutHandler, request)
 #endif
+
+-- | Version number of pandoc library.
+pandocVersion :: String
+pandocVersion = showVersion version
 
 --
 -- List processing
