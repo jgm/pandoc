@@ -2,8 +2,8 @@
   \enableregime[utf-8]  
   \setupcolors[state=start]
 \stopmode
-$if(mainlang)$
-\mainlanguage[$mainlang$]
+$if(context-lang)$
+\mainlanguage[$context-lang$]
 $endif$
 
 % Enable hyperlinks
