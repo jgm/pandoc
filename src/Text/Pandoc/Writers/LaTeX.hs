@@ -188,6 +188,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
         $ defField "polyglossia-otherlangs"
             (maybe [] (map $ fst . toPolyglossia . splitBy (=='-')) $
             getField "otherlangs" context)
+        $ defField "latex-dir-rtl" (case (getField "dir" context)::Maybe String of
+                                      Just "rtl" -> True
+                                      _          -> False)
         $ context
   return $ if writerStandalone options
               then renderTemplate' template context'
@@ -324,14 +327,19 @@ isLineBreakOrSpace _ = False
 blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
 blockToLaTeX Null = return empty
-blockToLaTeX (Div (identifier,classes,_) bs) = do
+blockToLaTeX (Div (identifier,classes,kvs) bs) = do
   beamer <- writerBeamer `fmap` gets stOptions
   ref <- toLabel identifier
   let linkAnchor = if null identifier
                       then empty
                       else "\\hyperdef{}" <> braces (text ref) <>
                            braces ("\\label" <> braces (text ref))
-  contents <- blockListToLaTeX bs
+  contents' <- blockListToLaTeX bs
+  let align dir = inCmd "begin" dir $$ contents' $$ inCmd "end" dir
+  let contents = case lookup "dir" kvs of
+                   Just "rtl" -> align "RTL"
+                   Just "ltr" -> align "LTR"
+                   _          -> contents'
   if beamer && "notes" `elem` classes  -- speaker notes
      then return $ "\\note" <> braces contents
      else return (linkAnchor $$ contents)
@@ -728,10 +736,12 @@ isQuoted _ = False
 -- | Convert inline element to LaTeX
 inlineToLaTeX :: Inline    -- ^ Inline to convert
               -> State WriterState Doc
-inlineToLaTeX (Span (id',classes,_) ils) = do
+inlineToLaTeX (Span (id',classes,kvs) ils) = do
   let noEmph = "csl-no-emph" `elem` classes
   let noStrong = "csl-no-strong" `elem` classes
   let noSmallCaps = "csl-no-smallcaps" `elem` classes
+  let rtl = ("dir","rtl") `elem` kvs
+  let ltr = ("dir","ltr") `elem` kvs
   ref <- toLabel id'
   let linkAnchor = if null id'
                       then empty
@@ -741,7 +751,9 @@ inlineToLaTeX (Span (id',classes,_) ils) = do
     ((if noEmph then inCmd "textup" else id) .
      (if noStrong then inCmd "textnormal" else id) .
      (if noSmallCaps then inCmd "textnormal" else id) .
-     (if not (noEmph || noStrong || noSmallCaps)
+     (if rtl then inCmd "RL" else id) .
+     (if ltr then inCmd "LR" else id) .
+     (if not (noEmph || noStrong || noSmallCaps || rtl || ltr)
          then braces
          else id)) `fmap` inlineListToLaTeX ils
 inlineToLaTeX (Emph lst) =
