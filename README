@@ -2809,11 +2809,18 @@ a locator, and a suffix.  The citation key must begin with a letter, digit,
 or `_`, and may contain alphanumerics, `_`, and internal punctuation
 characters (`:.#$%&-+?<>~/`).  Here are some examples:
 
-    Blah blah [see @doe99, pp. 33-35; also @smith04, ch. 1].
+    Blah blah [see @doe99, pp. 33-35; also @smith04, chap. 1].
 
     Blah blah [@doe99, pp. 33-35, 38-39 and *passim*].
 
     Blah blah [@smith04; @doe99].
+
+Pandoc detects locator terms based on the locale file. Either abbreviated or
+unabbreviated forms are accepted. In en-US, locator terms include book, bk.;
+chapter, chap.; column, col.; figure, fig.; folio, f.; number, no.; line, l.;
+note, n.; opus, op.; page, p. paragraph, para.; part, pt.; section, sec.; sub
+verbo, s.v.; verse, v.; volume, vol. as well as the plural forms of all these.
+If no locator term is used, "page" is assumed.
 
 A minus sign (`-`) before the `@` will suppress mention of
 the author in the citation.  This can be useful when the
