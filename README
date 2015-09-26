@@ -2815,12 +2815,16 @@ characters (`:.#$%&-+?<>~/`).  Here are some examples:
 
     Blah blah [@smith04; @doe99].
 
-Pandoc detects locator terms based on the locale file. Either abbreviated or
-unabbreviated forms are accepted. In en-US, locator terms include book, bk.;
-chapter, chap.; column, col.; figure, fig.; folio, f.; number, no.; line, l.;
-note, n.; opus, op.; page, p. paragraph, para.; part, pt.; section, sec.; sub
-verbo, s.v.; verse, v.; volume, vol. as well as the plural forms of all these.
-If no locator term is used, "page" is assumed.
+`pandoc-citeproc` detects locator terms based on the [CSL locale files].
+Either abbreviated or unabbreviated forms are accepted. In the `en-US` locale,
+locator terms include `book`, `bk.`; `chapter`, `chap.`; `column`, `col.`;
+`figure`, `fig.`; `folio`, `f.`; `number`, `no.`; `line`, `l.`; `note`, `n.`;
+`opus`, `op.`; `page`, `p.`; `paragraph`, `para.`; `part`, `pt.`;
+`section`, `sec.`; `sub verbo`, `s.v.`; `verse`, `v.`; `volume`, `vol.`
+as well as the plural forms of all these.  If no locator term is used,
+"page" is assumed.
+
+  [CSL locale files]: https://github.com/citation-style-language/locales
 
 A minus sign (`-`) before the `@` will suppress mention of
 the author in the citation.  This can be useful when the
