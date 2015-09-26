@@ -120,7 +120,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                               Right r -> r
                               Left _  -> ""
   case lookup "documentclass" (writerVariables options) `mplus`
-        parseMaybe (withObject "object" (.: "documentclass")) metadata of
+        fmap stringify (lookupMeta "documentclass" meta) of
          Just x  | x `elem` bookClasses -> modify $ \s -> s{stBook = True}
                  | otherwise            -> return ()
          Nothing | documentClass `elem` bookClasses
