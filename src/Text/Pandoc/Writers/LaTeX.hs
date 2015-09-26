@@ -41,7 +41,6 @@ import Network.URI ( isURI, unEscapeString )
 import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Data.Maybe ( fromMaybe )
-import Data.Aeson.Types ( (.:), parseMaybe, withObject )
 import Control.Applicative ((<|>))
 import Control.Monad.State
 import qualified Text.Parsec as P
