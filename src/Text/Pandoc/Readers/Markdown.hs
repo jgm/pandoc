@@ -639,7 +639,11 @@ keyValAttr = try $ do
   val <- enclosed (char '"') (char '"') litChar
      <|> enclosed (char '\'') (char '\'') litChar
      <|> many (escapedChar' <|> noneOf " \t\n\r}")
-  return $ \(id',cs,kvs) -> (id',cs,kvs ++ [(key,val)])
+  return $ \(id',cs,kvs) ->
+    case key of
+         "id"    -> (val,cs,kvs)
+         "class" -> (id',cs ++ words val,kvs)
+         _       -> (id',cs,kvs ++ [(key,val)])
 
 specialAttr :: MarkdownParser (Attr -> Attr)
 specialAttr = do
