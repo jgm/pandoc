@@ -9,6 +9,7 @@ cache:
 build: off
 
 before_test:
+- git submodule update --init
 - ps: Invoke-WebRequest "https://github.com/commercialhaskell/stack/releases/download/v0.1.5.0/stack-0.1.5.0-x86_64-windows.zip" -OutFile stack.zip
 - ps: Invoke-WebRequest "https://github.com/fpco/minghc/blob/master/bin/7z.exe?raw=true" -OutFile 7z.exe
 - ps: Invoke-WebRequest "https://github.com/fpco/minghc/blob/master/bin/7z.dll?raw=true" -OutFile 7z.dll
