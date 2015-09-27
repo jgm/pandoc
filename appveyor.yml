@@ -17,13 +17,11 @@ install:
     cabal install --force hsb2hs
 
 build_script:
-- ps: |
-    echo "PATH is $env:Path"
+- cmd: |
     cabal install --force --enable-tests -fembed_data_files
 
 after_build:
-- ps: |
-    echo "PATH is $env:Path"
+- cmd: |
     cabal install --force --enable-tests -fembed_data_files pandoc-citeproc
     .\.cabal-sandbox\bin\test-pandoc-citeproc.exe
     strip .\.cabal-sandbox\bin\pandoc.exe
@@ -47,5 +45,5 @@ after_build:
     light  -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
 
 test_script:
-- ps: |
+- cmd: |
     cabal test
