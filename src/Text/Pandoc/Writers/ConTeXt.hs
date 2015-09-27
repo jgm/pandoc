@@ -83,13 +83,18 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                 $ metadata
   let context' =  defField "context-lang" (maybe "" (fromBcp47 . splitBy (=='-')) $
                     getField "lang" context)
-                  context
+                $ defField "context-dir" (toContextDir $ getField "dir" context)
+                $ context
   return $ if writerStandalone options
               then renderTemplate' (writerTemplate options) context'
               else main
 
--- escape things as needed for ConTeXt
+toContextDir :: Maybe String -> String
+toContextDir (Just "rtl") = "r2l"
+toContextDir (Just "ltr") = "l2r"
+toContextDir _            = ""
 
+-- | escape things as needed for ConTeXt
 escapeCharForConTeXt :: WriterOptions -> Char -> String
 escapeCharForConTeXt opts ch =
  let ligatures = writerTeXLigatures opts in
@@ -151,13 +156,18 @@ blockToConTeXt (CodeBlock _ str) =
   -- blankline because \stoptyping can't have anything after it, inc. '}'
 blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
 blockToConTeXt (RawBlock _ _ ) = return empty
-blockToConTeXt (Div (ident,_,_) bs) = do
+blockToConTeXt (Div (ident,_,kvs) bs) = do
   contents <- blockListToConTeXt bs
-  if null ident
-     then return contents
-     else return $
-          ("\\reference" <> brackets (text $ toLabel ident) <> braces empty <>
-            "%") $$ contents
+  let contents' = if null ident
+                     then contents
+                     else ("\\reference" <> brackets (text $ toLabel ident) <>
+                            braces empty <> "%") $$ contents
+  let align dir = blankline <> "\\startalignment[" <> dir <> "]"
+                    $$ contents' $$ "\\stopalignment" <> blankline
+  return $ case lookup "dir" kvs of
+             Just "rtl" -> align "righttoleft"
+             Just "ltr" -> align "lefttoright"
+             _          -> contents'
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ ("\\startitemize" <> if isTightList lst
@@ -335,7 +345,12 @@ inlineToConTeXt (Note contents) = do
               then text "\\footnote{" <> nest 2 contents' <> char '}'
               else text "\\startbuffer " <> nest 2 contents' <>
                    text "\\stopbuffer\\footnote{\\getbuffer}"
-inlineToConTeXt (Span _ ils) = inlineListToConTeXt ils
+inlineToConTeXt (Span (_,_,kvs) ils) = do
+  contents <- inlineListToConTeXt ils
+  return $ case lookup "dir" kvs of
+             Just "rtl" -> braces $ "\\righttoleft " <> contents
+             Just "ltr" -> braces $ "\\lefttoright " <> contents
+             _          -> contents
 
 -- | Craft the section header, inserting the secton reference, if supplied.
 sectionHeader :: Attr

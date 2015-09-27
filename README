@@ -959,6 +959,25 @@ as `title`, `author`, and `date`) as well as the following:
     Currently only used by XeTeX through the generated
     `polyglossia-otherlangs` variable.
 
+`dir`
+:   the base direction of the document, either `rtl` (right-to-left)
+    or `ltr` (left-to-right).
+
+    For bidirectional documents, native pandoc `span`s and `div`s
+    with the `dir` attribute (value `rtl` or `ltr`) can be used to
+    override the base direction in some output formats.
+    This may not always be necessary if the final renderer
+    (e.g. the browser, when generating HTML) supports the
+    [Unicode Bidirectional Algorithm][uba-basics].
+
+    When using LaTeX for bidi documents, only the XeLaTeX engine
+    is fully supported (see `--latex-engine`).
+    Setting the `dir` variable enables bidirectional text
+    handling in LaTeX and ConTeXt, thus even if the base direction
+    is the default left-to-right, you should set `dir: ltr` for
+    documents that also contain some right-to-left script.
+
+
 `slidy-url`
 :   base URL for Slidy documents (defaults to
     `http://www.w3.org/Talks/Tools/Slidy2`)
