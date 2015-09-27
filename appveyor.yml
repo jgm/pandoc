@@ -16,7 +16,7 @@ install:
 build_script:
 - ps: |
     echo "PATH is $env:Path"
-    cabal install --force --enable-tests --embed_data_files . pandoc-citeproc
+    cabal install --force --enable-tests -fembed_data_files . pandoc-citeproc
 
 after_build:
 - ps: |
