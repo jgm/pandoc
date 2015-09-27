@@ -1,3 +1,7 @@
+branches:
+  only:
+  - master
+
 cache:
 - "c:\\sr" # stack root, short paths == fewer problems
 - "%LOCALAPPDATA%\\Programs\\stack"
@@ -11,7 +15,7 @@ before_test:
 - 7z x stack.zip
 - move stack.exe.exe stack.exe
 
-clone_folder: "c:\\stack"
+clone_folder: "c:\\pandoc"
 environment:
   global:
     STACK_ROOT: "c:\\sr"
