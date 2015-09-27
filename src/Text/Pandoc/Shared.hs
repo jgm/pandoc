@@ -111,7 +111,7 @@ import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI )
 import qualified Data.Set as Set
 import System.Directory
-import System.FilePath (joinPath, splitDirectories, isPathSeparator)
+import System.FilePath (splitDirectories, isPathSeparator)
 import qualified System.FilePath.Posix as Posix
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension)
@@ -833,7 +833,7 @@ readDefaultDataFile fname =
   case lookup (makeCanonical fname) dataFiles of
     Nothing       -> err 97 $ "Could not find data file " ++ fname
     Just contents -> return contents
-  where makeCanonical = joinPath . transformPathParts . splitDirectories
+  where makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
         transformPathParts = reverse . foldl go []
         go as     "."  = as
         go (_:as) ".." = as
