@@ -13,7 +13,7 @@ before_test:
 - ps: Invoke-WebRequest "https://github.com/fpco/minghc/blob/master/bin/7z.exe?raw=true" -OutFile 7z.exe
 - ps: Invoke-WebRequest "https://github.com/fpco/minghc/blob/master/bin/7z.dll?raw=true" -OutFile 7z.dll
 - 7z x -oc:\\stack stack.zip
-- move c:\\stack\\stack.exe.exe stack.exe
+- move c:\\stack\\stack.exe stack.exe
 
 clone_folder: "c:\\pandoc"
 environment:
