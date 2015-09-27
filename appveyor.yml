@@ -1,28 +1,21 @@
-branches:
-  only:
-  - master
+install:
+- cmd: 'git submodule update --init'
+- ps: |
+    choco install haskellplatform -version 2014.2.0.0 -y
+    # Haskell Platfrom package doesn't update PATH for the current shell instance
 
-cache:
-- "c:\\sr" # stack root, short paths == fewer problems
-- "%LOCALAPPDATA%\\Programs\\stack"
+    $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\bin"
+    $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\lib\extralibs\bin"
+    $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\mingw\bin"
+    cabal update
+    cabal install --only-dependencies --enable-tests -w "C:\Program Files\Haskell Platform\2014.2.0.0\bin\ghc-7.8.3"
 
-build: off
-
-before_test:
-- git submodule update --init
-- ps: Invoke-WebRequest "https://github.com/commercialhaskell/stack/releases/download/v0.1.5.0/stack-0.1.5.0-x86_64-windows.zip" -OutFile stack.zip
-- ps: Invoke-WebRequest "https://github.com/fpco/minghc/blob/master/bin/7z.exe?raw=true" -OutFile 7z.exe
-- ps: Invoke-WebRequest "https://github.com/fpco/minghc/blob/master/bin/7z.dll?raw=true" -OutFile 7z.dll
-- 7z x -oc:\\stack stack.zip
-- move c:\\stack\\stack.exe stack.exe
-
-clone_folder: "c:\\pandoc"
-environment:
-  global:
-    STACK_ROOT: "c:\\sr"
+build_script:
+- ps: |
+    echo "PATH is $env:Path"
+    cabal configure --enable-tests -v2 -w "C:\Program Files\Haskell Platform\2014.2.0.0\bin\ghc-7.8.3"
+    cabal build
 
 test_script:
-# The ugly echo "" hack is to avoid complaints about 0 being an invalid file
-# descriptor
-- echo "" | stack --arch i386 --no-terminal --install-ghc test
-
+- ps: |
+    cabal test
