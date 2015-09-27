@@ -37,9 +37,11 @@ module Text.Pandoc.MediaBag (
                      extractMediaBag
                      ) where
 import System.FilePath
+import qualified System.FilePath.Posix as Posix
 import System.Directory (createDirectoryIfMissing)
 import qualified Data.Map as M
 import qualified Data.ByteString.Lazy as BL
+import Data.List (intercalate)
 import Data.Monoid (Monoid)
 import Control.Monad (when)
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
@@ -67,7 +69,7 @@ insertMedia :: FilePath       -- ^ relative path and canonical name of resource
             -> MediaBag
             -> MediaBag
 insertMedia fp mbMime contents (MediaBag mediamap) =
-  MediaBag (M.insert (splitPath fp) (mime, contents) mediamap)
+  MediaBag (M.insert (splitDirectories fp) (mime, contents) mediamap)
   where mime = fromMaybe fallback mbMime
         fallback = case takeExtension fp of
                         ".gz"   -> getMimeTypeDef $ dropExtension fp
@@ -77,14 +79,14 @@ insertMedia fp mbMime contents (MediaBag mediamap) =
 lookupMedia :: FilePath
             -> MediaBag
             -> Maybe (MimeType, BL.ByteString)
-lookupMedia fp (MediaBag mediamap) = M.lookup (splitPath fp) mediamap
+lookupMedia fp (MediaBag mediamap) = M.lookup (splitDirectories fp) mediamap
 
 -- | Get a list of the file paths stored in a 'MediaBag', with
 -- their corresponding mime types and the lengths in bytes of the contents.
 mediaDirectory :: MediaBag -> [(String, MimeType, Int)]
 mediaDirectory (MediaBag mediamap) =
   M.foldWithKey (\fp (mime,contents) ->
-      (((joinPath fp), mime, fromIntegral $ BL.length contents):)) [] mediamap
+      (((Posix.joinPath fp), mime, fromIntegral $ BL.length contents):)) [] mediamap
 
 -- | Extract contents of MediaBag to a given directory.  Print informational
 -- messages if 'verbose' is true.
@@ -95,7 +97,7 @@ extractMediaBag :: Bool
 extractMediaBag verbose dir (MediaBag mediamap) = do
   sequence_ $ M.foldWithKey
      (\fp (_ ,contents) ->
-        ((writeMedia verbose dir (joinPath fp, contents)):)) [] mediamap
+        ((writeMedia verbose dir (Posix.joinPath fp, contents)):)) [] mediamap
 
 writeMedia :: Bool -> FilePath -> (FilePath, BL.ByteString) -> IO ()
 writeMedia verbose dir (subpath, bs) = do

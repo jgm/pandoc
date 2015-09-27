@@ -111,7 +111,8 @@ import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI )
 import qualified Data.Set as Set
 import System.Directory
-import System.FilePath (joinPath, splitDirectories, pathSeparator, isPathSeparator)
+import System.FilePath (joinPath, splitDirectories, isPathSeparator)
+import qualified System.FilePath.Posix as Posix
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension)
 import Data.Generics (Typeable, Data)
@@ -967,14 +968,14 @@ hush (Right x) = Just x
 -- > collapseFilePath "parent/foo/.." ==  "parent"
 -- > collapseFilePath "/parent/foo/../../bar" ==  "/bar"
 collapseFilePath :: FilePath -> FilePath
-collapseFilePath = joinPath . reverse . foldl go [] . splitDirectories
+collapseFilePath = Posix.joinPath . reverse . foldl go [] . splitDirectories
   where
     go rs "." = rs
     go r@(p:rs) ".." = case p of
                             ".." -> ("..":r)
                             (checkPathSeperator -> Just True) -> ("..":r)
                             _ -> rs
-    go _ (checkPathSeperator -> Just True) = [[pathSeparator]]
+    go _ (checkPathSeperator -> Just True) = [[Posix.pathSeparator]]
     go rs x = x:rs
     isSingleton [] = Nothing
     isSingleton [x] = Just x

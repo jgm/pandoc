@@ -9,7 +9,7 @@ import Test.Framework.Providers.HUnit
 import Test.HUnit ( assertBool, (@?=) )
 import Text.Pandoc.Builder
 import Data.Monoid
-import System.FilePath (joinPath)
+import System.FilePath.Posix (joinPath)
 
 tests :: [Test]
 tests = [ testGroup "normalize"
