@@ -7,14 +7,39 @@ install:
     $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\bin"
     $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\lib\extralibs\bin"
     $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\mingw\bin"
+    choco install wixtoolset
+    cabal sandbox init
+    $env:Path += ";.\.cabal-sandbox\bin"
     cabal update
-    cabal install --only-dependencies --enable-tests -w "C:\Program Files\Haskell Platform\2014.2.0.0\bin\ghc-7.8.3"
+    cabal install --force hsb2hs
 
 build_script:
 - ps: |
     echo "PATH is $env:Path"
-    cabal configure --enable-tests -v2 -w "C:\Program Files\Haskell Platform\2014.2.0.0\bin\ghc-7.8.3"
-    cabal build
+    cabal install --force --enable-tests --embed_data_files . pandoc-citeproc
+
+after_build:
+- ps: |
+    echo "PATH is $env:Path"
+    strip .\.cabal-sandbox\bin\pandoc.exe
+    strip .\.cabal-sandbox\bin\pandoc-citeproc.exe
+    .\.cabal-sandbox\bin\pandoc.exe -s --template data\templates\default.html -S README -o README.html
+    .\.cabal-sandbox\bin\pandoc.exe -s --template data\templates\default.rtf COPYING -t rtf -S -o COPYING.rtf
+    copy COPYRIGHT COPYRIGHT.txt
+    for /f "tokens=1-2 delims= " %%a in ('.\.cabal-sandbox\bin\pandoc --version') do (
+        @set VERSION=%%b
+        goto :next
+    )
+    :next
+    if "%VERSION%" == "" (
+        echo Error: could not determine version number.
+        exit /b 1
+    )
+    cd windows
+    echo Creating msi...
+    candle -dVERSION=%VERSION% pandoc.wxs
+    if %errorlevel% neq 0 exit /b %errorlevel%
+    light  -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
 
 test_script:
 - ps: |
