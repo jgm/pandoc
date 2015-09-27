@@ -22,8 +22,7 @@ build_script:
 
 after_build:
 - cmd: |
-    cabal install --force --enable-tests -fembed_data_files pandoc-citeproc
-    .\.cabal-sandbox\bin\test-pandoc-citeproc.exe
+    cabal install -fembed_data_files pandoc-citeproc
     strip .\.cabal-sandbox\bin\pandoc.exe
     strip .\.cabal-sandbox\bin\pandoc-citeproc.exe
     .\.cabal-sandbox\bin\pandoc.exe -s --template data\templates\default.html -S README -o README.html
