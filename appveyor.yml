@@ -1,3 +1,6 @@
+cache:
+- "C:\\Program Files\\Haskell Platform\\2014.2.0.0"
+
 install:
 - cmd: 'git submodule update --init'
 - ps: |
