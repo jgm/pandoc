@@ -19,11 +19,13 @@ install:
 build_script:
 - ps: |
     echo "PATH is $env:Path"
-    cabal install --force --enable-tests -fembed_data_files . pandoc-citeproc
+    cabal install --force --enable-tests -fembed_data_files
 
 after_build:
 - ps: |
     echo "PATH is $env:Path"
+    cabal install --force --enable-tests -fembed_data_files pandoc-citeproc
+    .\.cabal-sandbox\bin\test-pandoc-citeproc.exe
     strip .\.cabal-sandbox\bin\pandoc.exe
     strip .\.cabal-sandbox\bin\pandoc-citeproc.exe
     .\.cabal-sandbox\bin\pandoc.exe -s --template data\templates\default.html -S README -o README.html
