@@ -28,7 +28,11 @@ after_build:
     .\.cabal-sandbox\bin\pandoc.exe -s --template data\templates\default.html -S README -o README.html
     .\.cabal-sandbox\bin\pandoc.exe -s --template data\templates\default.rtf COPYING -t rtf -S -o COPYING.rtf
     copy COPYRIGHT COPYRIGHT.txt
-    for /f "tokens=2 delims= " %%a in ('.\.cabal-sandbox\bin\pandoc --version') do set "VERSION=%%a"
+    for /f "tokens=2 delims= " %%a in ('.\.cabal-sandbox\bin\pandoc --version') do (
+        set "VERSION=%%a"
+        goto :next
+    )
+    :next
     if "%VERSION%" == "" (
         echo Error: could not determine version number.
         exit /b 1
