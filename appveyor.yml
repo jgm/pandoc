@@ -29,10 +29,7 @@ after_build:
     .\.cabal-sandbox\bin\pandoc.exe -s --template data\templates\default.rtf COPYING -t rtf -S -o COPYING.rtf
     copy COPYRIGHT COPYRIGHT.txt
     for /f "tokens=2 delims= " %%a in ('.\.cabal-sandbox\bin\pandoc --version') do ( set "VERSION=%%a" && exit )
-    if "%VERSION%" == "" (
-        echo Error: could not determine version number.
-        exit /b 1
-    )
+    if "%VERSION%" == "" ( echo "Error: could not determine version number." && exit /b 1 )
     cd windows
     echo Creating msi...
     candle -dVERSION=%VERSION% pandoc.wxs
