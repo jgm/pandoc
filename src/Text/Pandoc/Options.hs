@@ -224,6 +224,15 @@ multimarkdownExtensions = Set.fromList
   , Ext_implicit_header_references
   , Ext_auto_identifiers
   , Ext_mmd_header_identifiers
+  , Ext_implicit_figures
+  -- Note: MMD's syntax for superscripts and subscripts
+  -- is a bit more permissive than pandoc's, allowing
+  -- e^2 and a~1 instead of e^2^ and a~1~, so even with
+  -- these options we don't have full support for MMD
+  -- superscripts and subscripts, but there's no reason
+  -- not to include these:
+  , Ext_superscripts
+  , Ext_subscripts
   ]
 
 strictExtensions :: Set Extension
