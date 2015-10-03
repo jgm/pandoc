@@ -231,8 +231,8 @@ multimarkdownExtensions = Set.fromList
   -- these options we don't have full support for MMD
   -- superscripts and subscripts, but there's no reason
   -- not to include these:
-  , Ext_superscripts
-  , Ext_subscripts
+  , Ext_superscript
+  , Ext_subscript
   ]
 
 strictExtensions :: Set Extension
