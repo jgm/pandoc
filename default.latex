@@ -1,6 +1,6 @@
 \documentclass[$if(fontsize)$$fontsize$,$endif$$if(lang)$$babel-lang$,$endif$$if(papersize)$$papersize$,$endif$$for(classoption)$$classoption$$sep$,$endfor$]{$documentclass$}
 $if(fontfamily)$
-\usepackage{$fontfamily$}
+\usepackage[$fontfamilyoptions$]{$fontfamily$}
 $else$
 \usepackage{lmodern}
 $endif$
@@ -27,16 +27,16 @@ $endif$
   \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
   \newcommand{\euro}{€}
 $if(mainfont)$
-    \setmainfont{$mainfont$}
+    \setmainfont[$mainfontoptions$]{$mainfont$}
 $endif$
 $if(sansfont)$
-    \setsansfont{$sansfont$}
+    \setsansfont[$sansfontoptions$]{$sansfont$}
 $endif$
 $if(monofont)$
-    \setmonofont[Mapping=tex-ansi]{$monofont$}
+    \setmonofont[Mapping=tex-ansi$if(monofontoptions)$,$monofontoptions$$endif$]{$monofont$}
 $endif$
 $if(mathfont)$
-    \setmathfont(Digits,Latin,Greek){$mathfont$}
+    \setmathfont(Digits,Latin,Greek)[$mathfontoptions$]{$mathfont$}
 $endif$
 $if(CJKmainfont)$
     \usepackage{xeCJK}
