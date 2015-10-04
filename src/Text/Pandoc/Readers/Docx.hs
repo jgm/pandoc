@@ -206,11 +206,15 @@ runElemToInlines :: RunElem -> Inlines
 runElemToInlines (TextRun s) = text s
 runElemToInlines (LnBrk) = linebreak
 runElemToInlines (Tab) = space
+runElemToInlines (SoftHyphen) = text "\xad"
+runElemToInlines (NoBreakHyphen) = text "\x2011"
 
 runElemToString :: RunElem -> String
 runElemToString (TextRun s) = s
 runElemToString (LnBrk) = ['\n']
 runElemToString (Tab) = ['\t']
+runElemToString (SoftHyphen) = ['\xad']
+runElemToString (NoBreakHyphen) = ['\x2011']
 
 runToString :: Run -> String
 runToString (Run _ runElems) = concatMap runElemToString runElems
