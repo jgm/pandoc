@@ -131,6 +131,10 @@ tests = [ testGroup "inlines"
             "docx/tabs.docx"
             "docx/tabs.native"
           , testCompare
+            "special punctuation"
+            "docx/special_punctuation.docx"
+            "docx/special_punctuation.native"
+          , testCompare
             "normalizing inlines"
             "docx/normalize.docx"
             "docx/normalize.native"
