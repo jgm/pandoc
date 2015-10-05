@@ -208,7 +208,7 @@ data Run = Run RunStyle [RunElem]
          | InlineDrawing FilePath B.ByteString
            deriving Show
 
-data RunElem = TextRun String | LnBrk | Tab
+data RunElem = TextRun String | LnBrk | Tab | SoftHyphen | NoBreakHyphen
              deriving Show
 
 data VertAlign = BaseLn | SupScrpt | SubScrpt
@@ -877,6 +877,8 @@ elemToRunElem ns element
                   map (\x -> fromMaybe x . getUnicode f . lowerFromPrivate $ x) str
   | isElem ns "w" "br" element = return LnBrk
   | isElem ns "w" "tab" element = return Tab
+  | isElem ns "w" "softHyphen" element = return SoftHyphen
+  | isElem ns "w" "noBreakHyphen" element = return NoBreakHyphen
   | isElem ns "w" "sym" element = return (getSymChar ns element)
   | otherwise = throwError WrongElem
   where
