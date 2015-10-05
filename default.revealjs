@@ -86,8 +86,8 @@ $body$
       // Full list of configuration options available here:
       // https://github.com/hakimel/reveal.js#configuration
       Reveal.initialize({
-        controls: true,         // Display controls in the bottom right corner
-        progress: true,         // Display a presentation progress bar
+        controls: $if(controls)$$controls$$else$true$endif$,         // Display controls in the bottom right corner
+        progress: $if(progress)$$progress$$else$true$endif$,         // Display a presentation progress bar
         history: true,          // Push each slide change to the browser history
         center: $if(center)$$center$$else$false$endif$,                       // Vertical centering of slides
         maxScale: $if(maxScale)$$maxScale$$else$1.5$endif$,                  // Bounds for smallest/largest possible content scale
