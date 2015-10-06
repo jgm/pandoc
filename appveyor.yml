@@ -1,41 +1,25 @@
+branches:
+  only:
+  - master
+
 cache:
-- "C:\\Program Files\\Haskell Platform\\2014.2.0.0"
+- "c:\\sr" # stack root, short paths == fewer problems
+- "%LOCALAPPDATA%\\Programs\\stack"
 
-install:
-- cmd: 'git submodule update --init'
-- ps: |
-    choco install haskellplatform -version 2014.2.0.0 -y
-    # Haskell Platfrom package doesn't update PATH for the current shell instance
+build: off
 
-    $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\bin"
-    $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\lib\extralibs\bin"
-    $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\mingw\bin"
-    choco install wixtoolset
-    cabal sandbox init
-    $env:Path += ";.\.cabal-sandbox\bin"
-    cabal update
-    cabal install --force hsb2hs
+before_test:
+- git submodule update --init
+- ps: Invoke-WebRequest "https://github.com/commercialhaskell/stack/releases/download/v0.1.5.0/stack-0.1.5.0-x86_64-windows.zip" -OutFile stack.zip
+- ps: Invoke-WebRequest "https://github.com/fpco/minghc/blob/master/bin/7z.exe?raw=true" -OutFile 7z.exe
+- ps: Invoke-WebRequest "https://github.com/fpco/minghc/blob/master/bin/7z.dll?raw=true" -OutFile 7z.dll
+- 7z x -oc:\\stack stack.zip
+- move c:\\stack\\stack.exe stack.exe
 
-build_script:
-- cmd: |
-    cabal install --force --enable-tests -fembed_data_files
-
-# after_build:
-# - cmd: |
-#     cabal install -fembed_data_files pandoc-citeproc
-#     strip .\.cabal-sandbox\bin\pandoc.exe
-#     strip .\.cabal-sandbox\bin\pandoc-citeproc.exe
-#     .\.cabal-sandbox\bin\pandoc.exe -s --template data\templates\default.html -S README -o README.html
-#     .\.cabal-sandbox\bin\pandoc.exe -s --template data\templates\default.rtf COPYING -t rtf -S -o COPYING.rtf
-#     copy COPYRIGHT COPYRIGHT.txt
-#     for /f "tokens=2 delims= " %%a in ('.\.cabal-sandbox\bin\pandoc --version') do ( set "VERSION=%%a" && exit )
-#     if "%VERSION%" == "" ( echo "Error: could not determine version number." && exit /b 1 )
-#     cd windows
-#     echo Creating msi...
-#     candle -dVERSION=%VERSION% pandoc.wxs
-#     if %errorlevel% neq 0 exit /b %errorlevel%
-#     light  -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
+clone_folder: "c:\\pandoc"
+environment:
+  global:
+    STACK_ROOT: "c:\\sr"
 
 test_script:
-- cmd: |
-    cabal test
+- stack test
