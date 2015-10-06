@@ -23,4 +23,4 @@ environment:
     STACK_ROOT: "c:\\sr"
 
 test_script:
-- stack test
+- echo "" | stack test
