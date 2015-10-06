@@ -134,7 +134,7 @@ Production of a PDF requires that a LaTeX engine be installed (see
 available: `amssymb`, `amsmath`, `ifxetex`, `ifluatex`, `listings` (if the
 `--listings` option is used), `fancyvrb`, `longtable`, `booktabs`, `url`,
 `graphicx` and `grffile` (if the document contains images),
-`hyperref`, `ulem`, `babel` and `polyglossia` (if the `lang` variable is set),
+`hyperref`, `ulem`, `babel` or `polyglossia` (if the `lang` variable is set),
 `fontspec` (if `xelatex` or `lualatex` is used as the LaTeX engine), `xltxtra`
 and `xunicode` (if `xelatex` is used).
 
