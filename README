@@ -124,12 +124,8 @@ will only be included if you use the `-s/--standalone` option.
 Creating a PDF
 --------------
 
-Earlier versions of pandoc came with a program, `markdown2pdf`, that
-used pandoc and pdflatex to produce a PDF.  This is no longer needed,
-since `pandoc` can now produce `pdf` output itself. To produce a PDF, simply
-specify an output file with a `.pdf` extension. Pandoc will create a latex
-file and use pdflatex (or another engine, see `--latex-engine`) to convert it
-to PDF:
+To produce a PDF, specify an output file with a `.pdf` extension.
+Pandoc will use LaTeX to convert it to PDF:
 
     pandoc test.txt -o test.pdf
 
@@ -138,7 +134,7 @@ Production of a PDF requires that a LaTeX engine be installed (see
 available: `amssymb`, `amsmath`, `ifxetex`, `ifluatex`, `listings` (if the
 `--listings` option is used), `fancyvrb`, `longtable`, `booktabs`, `url`,
 `graphicx` and `grffile` (if the document contains images),
- `hyperref`, `ulem`, `babel` (if the `lang` variable is set),
+`hyperref`, `ulem`, `babel` and `polyglossia` (if the `lang` variable is set),
 `fontspec` (if `xelatex` or `lualatex` is used as the LaTeX engine), `xltxtra`
 and `xunicode` (if `xelatex` is used).
 
@@ -195,7 +191,7 @@ General options
     `json` (JSON version of native AST), `plain` (plain text),
     `markdown` (pandoc's extended markdown), `markdown_strict`
     (original unextended markdown), `markdown_phpextra` (PHP Markdown
-    extra extended markdown), `markdown_github` (github extended
+    extra extended markdown), `markdown_github` (GitHub-flavored
     markdown), `commonmark` (CommonMark markdown), `rst`
     (reStructuredText), `html` (XHTML 1), `html5` (HTML 5), `latex`
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
@@ -232,27 +228,27 @@ General options
 
 :   Specify the user data directory to search for pandoc data files.
     If this option is not specified, the default user data directory
-    will be used.  This is
+    will be used.  This is, in Unix:
 
         $HOME/.pandoc
 
-    in unix,
+    in Windows XP:
 
         C:\Documents And Settings\USERNAME\Application Data\pandoc
 
-    in Windows XP, and
+    and in Windows Vista or later:
 
         C:\Users\USERNAME\AppData\Roaming\pandoc
 
-    in Windows 7. (You can find the default user data directory
-    on your system by looking at the output of `pandoc --version`.)
+    You can find the default user data directory on your system by
+    looking at the output of `pandoc --version`.
     A `reference.odt`, `reference.docx`, `epub.css`, `templates`,
     `slidy`, `slideous`, or `s5` directory
     placed in this directory will override pandoc's normal defaults.
 
-`--bash-completiion`
+`--bash-completion`
 
-:   Generate a bash completion script.  to enable bash completion
+:   Generate a bash completion script.  To enable bash completion
     with pandoc, add this to your `.bashrc`:
 
          eval "$(pandoc --bash-completion)"
@@ -379,7 +375,7 @@ Reader options
 `--track-changes=accept`|`reject`|`all`
 
 :   Specifies what to do with insertions and deletions produced by the MS
-    Word "track-changes" feature.  `accept` (the default), inserts all
+    Word "Track Changes" feature.  `accept` (the default), inserts all
     insertions, and ignores all deletions. `reject` inserts all
     deletions and ignores insertions. `all` puts in both insertions
     and deletions, wrapped in spans with `insertion` and `deletion`
@@ -545,8 +541,8 @@ Options affecting specific writers
 `--chapters`
 
 :   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
-    output.  When the LaTeX template uses the report, book, or
-    memoir class, this option is implied.  If `beamer` is the output
+    output.  When the LaTeX document class is set to `report`, `book`, or
+    `memoir`, this option is implied.  If `beamer` is the output
     format, top-level headers will become `\part{..}`.
 
 `-N`, `--number-sections`
@@ -572,7 +568,7 @@ Options affecting specific writers
 :   Do not convert quotation marks, apostrophes, and dashes to
     the TeX ligatures when writing LaTeX or ConTeXt. Instead, just
     use literal unicode characters. This is needed for using advanced
-    OpenType features with XeLaTeX and LuaLaTeX. Note: normally
+    OpenType features with `xelatex` and `lualatex`. Note: normally
     `--smart` is selected automatically for LaTeX and ConTeXt
     output, but it must be specified explicitly if `--no-tex-ligatures`
     is selected. If you use literal curly quotes, dashes, and ellipses
@@ -581,7 +577,7 @@ Options affecting specific writers
 
 `--listings`
 
-:   Use listings package for LaTeX code blocks
+:   Use the `listings` package for LaTeX code blocks
 
 `-i`, `--incremental`
 
@@ -787,15 +783,13 @@ Citation rendering
 
 :   Use natbib for citations in LaTeX output.  This option is not for use
     with the `pandoc-citeproc` filter or with PDF output.  It is intended for
-    use in producing a LaTeX file that can be processed with pdflatex and
-    bibtex.
+    use in producing a LaTeX file that can be processed with bibtex.
 
 `--biblatex`
 
 :   Use biblatex for citations in LaTeX output.  This option is not for use
     with the `pandoc-citeproc` filter or with PDF output. It is intended for
-    use in producing a LaTeX file that can be processed with pdflatex and
-    bibtex or biber.
+    use in producing a LaTeX file that can be processed with bibtex or biber.
 
 Math rendering in HTML
 ----------------------
@@ -901,26 +895,24 @@ When the `-s/--standalone` option is used, pandoc uses a template to
 add header and footer material that is needed for a self-standing
 document.  To see the default template that is used, just type
 
-    pandoc -D FORMAT
+    pandoc -D *FORMAT*
 
-where `FORMAT` is the name of the output format. A custom template
+where *FORMAT* is the name of the output format. A custom template
 can be specified using the `--template` option.  You can also override
-the system default templates for a given output format `FORMAT`
-by putting a file `templates/default.FORMAT` in the user data
+the system default templates for a given output format *FORMAT*
+by putting a file `templates/default.*FORMAT*` in the user data
 directory (see `--data-dir`, above). *Exceptions:* For `odt` output,
 customize the `default.opendocument` template.  For `pdf` output,
 customize the `default.latex` template.
 
-Templates may contain *variables*.  Variable names are sequences of
-alphanumerics, `-`, and `_`, starting with a letter.  A variable name
-surrounded by `$` signs will be replaced by its value.  For example,
-the string `$title$` in
+Templates contain *variables*, which allow for the inclusion of
+arbitrary information at any point in the file. Variables may be set 
+within the document using YAML metadata. They may also be set at the
+command line using the `-V/--variable` option: variables set in this
+way override metadata fields with the same name.
 
-    <title>$title$</title>
-
-will be replaced by the document title.
-
-To write a literal `$` in a template, use `$$`.
+Variables set by pandoc
+-----------------------
 
 Some variables are set automatically by pandoc.  These vary somewhat
 depending on the output format, but include metadata fields (such
@@ -944,19 +936,22 @@ as `title`, `author`, and `date`) as well as the following:
 `body`
 :   body of document
 
+Language variables
+------------------
+
 `lang`
-:   The `lang` variable should be set by the user to a language
-    code according to [BCP 47] (e.g. `en` or `en-GB`).
-    For some output formats, pandoc will convert it to an approriate
+:   identifies the main language of the document,
+    using a code according to [BCP 47] (e.g. `en` or `en-GB`).
+    For some output formats, pandoc will convert it to an appropriate
     format stored in the additional variables `babel-lang`,
     `polyglossia-lang`, `polyglossia-variant` (LaTeX)
     and `context-lang` (ConTeXt).
 
 `otherlangs`
-:   Should be set to a list of other languages used in the document
+:   a list of other languages used in the document
     in the YAML metadata, according to [BCP 47]. For example:
     `otherlangs: [en-GB, fr]`.
-    Currently only used by XeTeX through the generated
+    Currently only used by `xelatex` through the generated
     `polyglossia-otherlangs` variable.
 
 `dir`
@@ -970,13 +965,15 @@ as `title`, `author`, and `date`) as well as the following:
     (e.g. the browser, when generating HTML) supports the
     [Unicode Bidirectional Algorithm][uba-basics].
 
-    When using LaTeX for bidi documents, only the XeLaTeX engine
+    When using LaTeX for bidirectional documents, only the `xelatex` engine
     is fully supported (see `--latex-engine`).
     Setting the `dir` variable enables bidirectional text
-    handling in LaTeX and ConTeXt, thus even if the base direction
-    is the default left-to-right, you should set `dir: ltr` for
-    documents that also contain some right-to-left script.
+    handling in LaTeX and ConTeXt: set `dir: ltr` for
+    documents that also contain some right-to-left script,
+    even if the base direction is the default left-to-right.
 
+Variables for slides
+--------------------
 
 `slidy-url`
 :   base URL for Slidy documents (defaults to
@@ -997,49 +994,58 @@ as `title`, `author`, and `date`) as well as the following:
 `transition`
 :   reveal.js transition
 
+Variables for LaTeX
+-------------------
+
 `fontsize`
 :   font size (10pt, 11pt, 12pt) for LaTeX documents
 
 `documentclass`
-:   document class for LaTeX documents
+:   document class for LaTeX documents, e.g. `article`, `report`, `book`
 
 `classoption`
 :   option for LaTeX documentclass, e.g. `oneside`; may be repeated
     for multiple options
 
 `geometry`
-:   options for LaTeX `geometry` class, e.g. `margin=1in`;
+:   options for LaTeX `geometry` package, e.g. `margin=1in`;
     may be repeated for multiple options
 
 `linestretch`
-:   adjusts line spacing (requires the `setspace` package)
+:   adjusts line spacing in LaTeX documents using the `setspace`
+    package, e.g. `onehalfspacing`, `doublespacing`
 
 `fontfamily`
 :   font package to use for LaTeX documents (with pdflatex):
-    TeXLive has `bookman` (Bookman), `utopia` or `fourier` (Utopia),
+    TeX Live has `bookman` (Bookman), `utopia` or `fourier` (Utopia),
     `fouriernc` (New Century Schoolbook), `times` or `txfonts` (Times),
     `mathpazo` or `pxfonts` or `mathpple` (Palatino),
     `libertine` (Linux Libertine), `arev` (Arev Sans),
     and the default `lmodern`, among others.
 
 `fontfamilyoptions`
-:   options to use with `fontfamily`.
+:   options to use with `fontfamily` package: e.g. `osf,sc` with
+    `fontfamily` set to `mathpazo` provides Palatino with old-style
+    figures and true small caps
 
 `mainfont`, `sansfont`, `monofont`, `mathfont`, `CJKmainfont`
-:   fonts for LaTeX documents (works only with xelatex
-    and lualatex).  Note that if `CJKmainfont` is used,
+:   fonts for LaTeX documents (works only with `xelatex` and
+    `lualatex`): takes the name of any system font, using the
+    `fontspec` package.  Note that if `CJKmainfont` is used,
     the `xeCJK` package must be available.
 
-`mainfontoptions`, `sansfontoptions`, `monofontoptions`, `mathfontoptions`
-:   options to use with `mainfont`, `sansfont`, `monofont`,
-    `mathfont` in xelatex and lualatex.
+`mainfontoptions`, `sansfontoptions`, `monofontoptions`, `mathfontoptions`, `CJKoptions`
+:   options to use with `mainfont`, `sansfont`, `monofont`, `mathfont`,
+    `CJKmainfont` in `xelatex` and `lualatex`.  Allows for any choices
+    available through `fontspec`, such as the OpenType features
+    `Numbers=OldStyle,Numbers=Proportional`.
 
 `colortheme`, `fonttheme`, `innertheme`, `outertheme`
 :   themes for LaTeX beamer documents
 
 `linkcolor`
-:   color for internal links in LaTeX documents (`red`, `green`,
-    `magenta`, `cyan`, `blue`, `black`)
+:   color for internal links in LaTeX documents, e.g. `red`, `green`,
+    `magenta`, `cyan`, `blue`, `black`
 
 `toccolor`
 :    color for links in table of contents in LaTeX documents
@@ -1074,6 +1080,9 @@ as `title`, `author`, and `date`) as well as the following:
 `biblio-style`
 :   bibliography style in LaTeX, when used with `--natbib`
 
+Variables for man pages
+-----------------------
+
 `section`
 :   section number in man pages
 
@@ -1083,9 +1092,18 @@ as `title`, `author`, and `date`) as well as the following:
 `footer`
 :   footer in man pages
 
-Variables may be set at the command line using the `-V/--variable`
-option.  Variables set in this way override metadata fields with
-the same name.
+Using variables in templates
+----------------------------
+
+Variable names are sequences of alphanumerics, `-`, and `_`,
+starting with a letter.  A variable name surrounded by `$` signs
+will be replaced by its value.  For example, the string `$title$` in
+
+    <title>$title$</title>
+
+will be replaced by the document title.
+
+To write a literal `$` in a template, use `$$`.
 
 Templates may contain conditionals.  The syntax is as follows:
 
@@ -3485,7 +3503,7 @@ Hans-Peter Deifel,
 Henry de Valence,
 Ilya V. Portnov,
 infinity0x,
-Jaime Marquínez Ferrándiz,
+Jaime Marquínez Ferrándiz,
 James Aspnes,
 Jamie F. Olson,
 Jan Larres,
@@ -3569,7 +3587,7 @@ Xavier Olive.
 [HTML 5]:  http://www.w3.org/TR/html5/
 [XHTML]:  http://www.w3.org/TR/xhtml1/
 [LaTeX]: http://www.latex-project.org/
-[beamer]: http://www.tex.ac.uk/CTAN/macros/latex/contrib/beamer
+[beamer]: https://ctan.org/pkg/beamer
 [ConTeXt]: http://www.pragma-ade.nl/
 [RTF]:  http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook]:  http://www.docbook.org/
