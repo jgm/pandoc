@@ -1,6 +1,3 @@
-cache:
-- "C:\\Program Files\\Haskell Platform\\2014.2.0.0"
-
 install:
 - cmd: 'git submodule update --init'
 - ps: |
@@ -10,7 +7,7 @@ install:
     $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\bin"
     $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\lib\extralibs\bin"
     $env:Path += ";${env:ProgramFiles}\Haskell Platform\2014.2.0.0\mingw\bin"
-    choco install wixtoolset
+    # choco install wixtoolset
     cabal sandbox init
     $env:Path += ";.\.cabal-sandbox\bin"
     cabal update
