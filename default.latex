@@ -82,8 +82,10 @@ $endif$
 $if(lang)$
 \ifxetex
   \usepackage{polyglossia}
-  \setmainlanguage[variant=$polyglossia-variant$]{$polyglossia-lang$}
-  \setotherlanguages{$for(polyglossia-otherlangs)$$polyglossia-otherlangs$$sep$,$endfor$}
+  \setmainlanguage[$polyglossia-lang.options$]{$polyglossia-lang.name$}
+$for(polyglossia-otherlangs)$
+  \setotherlanguage[$polyglossia-otherlangs.options$]{$polyglossia-otherlangs.name$}
+$endfor$
 \else
   \usepackage[shorthands=off,$babel-lang$]{babel}
 \fi
