@@ -10,12 +10,12 @@ build: off
 
 before_test:
 - git submodule update --init
-- ps: Invoke-WebRequest "https://github.com/commercialhaskell/stack/releases/download/v0.1.5.0/stack-0.1.5.0-x86_64-windows.zip" -OutFile stack.zip
+- ps: Invoke-WebRequest "https://github.com/commercialhaskell/stack/releases/download/v0.1.5.0/stack-0.1.5.0-i386-windows.zip" -OutFile stack.zip
 - ps: Invoke-WebRequest "https://github.com/fpco/minghc/blob/master/bin/7z.exe?raw=true" -OutFile 7z.exe
 - ps: Invoke-WebRequest "https://github.com/fpco/minghc/blob/master/bin/7z.dll?raw=true" -OutFile 7z.dll
 - 7z x -oc:\\stack stack.zip
 - move c:\\stack\\stack.exe stack.exe
-- stack setup --arch=x86_64
+- stack setup --arch=i386
 
 clone_folder: "c:\\pandoc"
 environment:
