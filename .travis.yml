@@ -6,8 +6,6 @@ sudo: false
 # The following enables several GHC versions to be tested; often it's enough to test only against the last release in a major GHC version. Feel free to omit lines listings versions you don't need/want testing for.
 matrix:
  include:
-  - env: CABALVER=1.16 GHCVER=7.4.2 GHCOPTS="-Werror" JOPTS=""
-    addons: {apt: {packages: [cabal-install-1.16, ghc-7.4.2], sources: [hvr-ghc]}}
   - env: CABALVER=1.18 GHCVER=7.6.3 GHCOPTS="-Werror" JOPTS="-j2"
     addons: {apt: {packages: [cabal-install-1.18, ghc-7.6.3], sources: [hvr-ghc]}}
   - env: CABALVER=1.18 GHCVER=7.8.4 GHCOPTS="-Werror" JOPTS="-j2"
@@ -24,6 +22,8 @@ before_install:
 install:
  - cabal-$CABALVER update
 # - git clone https://github.com/jgm/pandoc-types && cd pandoc-types && cabal-1.18 install && cd ..
+ - cabal-$CABALVER install "Cabal >= 1.18" # -v2 provides useful information for debugging
+ - cabal-$CABALVER sandbox init --sandbox=tsandbox
  - cabal-$CABALVER install $JOPTS --only-dependencies --enable-tests
 
 # Here starts the actual work to be performed for the package under test; any command which exits with a non-zero exit code causes the build to fail.
@@ -33,6 +33,8 @@ script:
       cabal-$CABALVER sdist --output-directory=build
       cd build
    fi
+ - cabal-$CABALVER sandbox init --sandbox=../tsandbox
+ - cabal-$CABALVER install "Cabal >= 1.18" -v2  # -v2 provides useful information for debugging
  - cabal-$CABALVER configure --enable-tests -v2  # -v2 provides useful information for debugging
  - cabal-$CABALVER build $JOPTS --ghc-options=$GHCOPTS # this builds all libraries and executables (including tests/benchmarks)
  - cabal-$CABALVER test

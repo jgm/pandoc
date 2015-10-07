@@ -54,6 +54,8 @@ import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Process (pipeProcess)
 import qualified Data.ByteString.Lazy as BL
 import qualified Codec.Picture as JP
+import qualified Graphics.Rasterific.Svg as RS
+import qualified Graphics.Svg as Svg
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
@@ -120,17 +122,31 @@ convertImage tmpdir fname =
     Just "image/png" -> doNothing
     Just "image/jpeg" -> doNothing
     Just "application/pdf" -> doNothing
+    Just "image/svg+xml" -> renderSvgToPdf tmpdir fname
     _ -> JP.readImage fname >>= \res ->
-          case res of
-               Left _    -> return $ Left $ "Unable to convert `" ++
-                               fname ++ "' for use with pdflatex."
-               Right img ->
-                 E.catch (Right fileOut <$ JP.savePngImage fileOut img) $
-                     \(e :: E.SomeException) -> return (Left (show e))
+      case res of
+        Left _    -> return $ Left $ "Unable to convert `" ++
+                        fname ++ "' for use with pdflatex."
+        Right img ->
+          E.catch (Right fileOut <$ JP.savePngImage fileOut img) $
+              \(e :: E.SomeException) -> return (Left (show e))
   where
     fileOut = replaceDirectory (replaceExtension fname (".png")) tmpdir
     mime = getMimeType fname
     doNothing = return (Right fname)
+
+renderSvgToPdf :: FilePath -> FilePath -> IO (Either String FilePath)
+renderSvgToPdf tmpdir fname = do
+  fontCache <- RS.loadCreateFontCache $ tmpdir </> "pandoc-font-cache"
+  maySvg <- Svg.loadSvgFile fname
+  case maySvg of
+    Nothing -> return $ Left "Can't load SVG file"
+    Just svg -> do
+      (pdf, _) <- RS.pdfOfSvgDocument fontCache Nothing 96 svg
+      let fileOut =
+            replaceDirectory (replaceExtension fname ".pdf") tmpdir
+      BL.writeFile fileOut pdf
+      return $ Right fileOut
 
 tex2pdf' :: Bool                            -- ^ Verbose output
          -> [String]                        -- ^ Arguments to the latex-engine

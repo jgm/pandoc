@@ -41,6 +41,7 @@ import Data.Time.Clock.POSIX
 import Data.Time.Clock
 import Data.Time.Format
 import System.Environment
+import System.FilePath
 import Text.Pandoc.Compat.Locale (defaultTimeLocale)
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
@@ -67,6 +68,12 @@ import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
 import Control.Applicative ((<$>), (<|>), (<*>))
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
 import Data.Char (ord)
+
+import qualified Codec.Picture as JP
+import qualified Codec.Picture.Saving as JP
+import qualified Codec.Picture.Metadata as JPM
+import qualified Graphics.Rasterific.Svg as RS
+import qualified Graphics.Svg as Svg
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -1117,15 +1124,9 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
           liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
           -- emit alt text
           inlinesToOpenXML opts alt
-        Right (img, mt) -> do
+        Right (baseImage, origMt) -> do
           ident <- ("rId"++) `fmap` getUniqueId
-          (xpt,ypt) <- case imageSize img of
-                             Right size  -> return $ sizeInPoints size
-                             Left msg    -> do
-                               liftIO $ warn $
-                                 "Could not determine image size in `" ++
-                                 src ++ "': " ++ msg
-                               return (120,120)
+          (img, imgPath', mt, (xpt,ypt)) <- liftIO $ convertImage src origMt baseImage
           -- 12700 emu = 1 pt
           let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) (pageWidth * 12700)
           let cNvPicPr = mknode "pic:cNvPicPr" [] $
@@ -1175,7 +1176,7 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
                inlinesToOpenXML opts alt -- return alt to avoid corrupted docx
              else do
                let imgpath = "media/" ++ ident ++ imgext
-               let mbMimeType = mt <|> getMimeType imgpath
+               let mbMimeType = mt <|> getMimeType imgPath'
                -- insert mime type to use in constructing [Content_Types].xml
                modify $ \st -> st{ stImages =
                    M.insert src (ident, imgpath, mbMimeType, imgElt, img)
@@ -1184,6 +1185,44 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
 
 br :: Element
 br = mknode "w:r" [] [mknode "w:br" [("w:type","textWrapping")] () ]
+
+needConversion :: Maybe JPM.SourceFormat -> Bool
+needConversion Nothing = False
+needConversion (Just f) = case f of
+  JPM.SourceJpeg -> False
+  JPM.SourcePng -> False
+  JPM.SourceBitmap -> False
+  JPM.SourceGif -> False
+  JPM.SourceTiff -> False
+  JPM.SourceHDR -> True
+  JPM.SourceTGA -> True
+
+renderSvgToPng :: FilePath -> Maybe MimeType -> B.ByteString
+               -> IO (B.ByteString, FilePath, Maybe MimeType, (Integer, Integer))
+renderSvgToPng src mt img = case Svg.parseSvgFile "" img of
+  Nothing -> do
+    liftIO $ warn $ "Could not determine image size in `" ++ src
+    return (img, src, mt, (120, 120))
+  Just svg -> withTempDir "svgconv" $ \tmpDir -> do
+    let dpi = 96
+    fontCache <- RS.loadCreateFontCache $ tmpDir </> "pandoc-font-cache"
+    (bitmap, _) <- RS.renderSvgDocument fontCache Nothing dpi svg
+    let s = imageSizeOfImage bitmap $ fromIntegral dpi
+        pngImage = BL.toStrict $ JP.encodePng bitmap
+        pngName = src ++ ".png"
+    return (pngImage, pngName, getMimeType pngName, sizeInPoints s)
+
+convertImage :: FilePath -> Maybe MimeType -> B.ByteString
+             -> IO (B.ByteString, FilePath, Maybe MimeType, (Integer, Integer))
+convertImage src mt img = case JP.decodeImageWithMetadata img of
+  Left _ -> renderSvgToPng src mt img
+  Right (rawImg, metas) | needConversion $ JPM.lookup JPM.Format metas -> do
+    let pngImage = BL.toStrict $ JP.imageToPng rawImg
+        pngName = src ++ ".png"
+        mime = getMimeType pngName
+    return (pngImage, pngName, mime, sizeInPoints $ imageSizeOfMetadata metas)
+  Right (_, metas) ->
+    return (img, src, mt, sizeInPoints $ imageSizeOfMetadata metas)
 
 -- Word will insert these footnotes into the settings.xml file
 -- (whether or not they're visible in the document). If they're in the
