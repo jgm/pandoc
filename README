@@ -944,8 +944,7 @@ Language variables
     using a code according to [BCP 47] (e.g. `en` or `en-GB`).
     For some output formats, pandoc will convert it to an appropriate
     format stored in the additional variables `babel-lang`,
-    `polyglossia-lang`, `polyglossia-variant` (LaTeX)
-    and `context-lang` (ConTeXt).
+    `polyglossia-lang` (LaTeX) and `context-lang` (ConTeXt).
 
 `otherlangs`
 :   a list of other languages used in the document

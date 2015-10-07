@@ -38,9 +38,11 @@ import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
+import Data.Aeson (object, (.=))
 import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Data.Maybe ( fromMaybe )
+import qualified Data.Text as T
 import Control.Applicative ((<|>))
 import Control.Monad.State
 import qualified Text.Parsec as P
@@ -178,14 +180,16 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                      defField "biblatex" True
                          _        -> id) $
                   metadata
+  let toPolyObj lang = object [ "name"    .= T.pack name
+                              , "options" .= T.pack opts ]
+        where
+          (name, opts) = toPolyglossia lang
   let lang = maybe [] (splitBy (=='-')) $ getField "lang" context
-      (polyLang, polyVar) = toPolyglossia lang
   let context' =
           defField "babel-lang" (toBabel lang)
-        $ defField "polyglossia-lang" polyLang
-        $ defField "polyglossia-variant" polyVar
+        $ defField "polyglossia-lang" (toPolyObj lang)
         $ defField "polyglossia-otherlangs"
-            (maybe [] (map $ fst . toPolyglossia . splitBy (=='-')) $
+            (maybe [] (map $ toPolyObj . splitBy (=='-')) $
             getField "otherlangs" context)
         $ defField "latex-dir-rtl" (case (getField "dir" context)::Maybe String of
                                       Just "rtl" -> True
@@ -996,24 +1000,36 @@ getListingsLanguage [] = Nothing
 getListingsLanguage (x:xs) = toListingsLanguage x <|> getListingsLanguage xs
 
 -- Takes a list of the constituents of a BCP 47 language code and
--- converts it to a Polyglossia (language, variant) tuple
+-- converts it to a Polyglossia (language, options) tuple
 -- http://mirrors.concertpass.com/tex-archive/macros/latex/contrib/polyglossia/polyglossia.pdf
 toPolyglossia :: [String] -> (String, String)
-toPolyglossia ("de":"AT":_)   = ("german", "austrian")
-toPolyglossia ("de":"CH":_)   = ("german", "swiss")
-toPolyglossia ("de":_)        = ("german", "")
-toPolyglossia ("dsb":_)       = ("lsorbian", "")
-toPolyglossia ("el":"poly":_) = ("greek", "poly")
-toPolyglossia ("en":"AU":_)   = ("english", "australian")
-toPolyglossia ("en":"CA":_)   = ("english", "canadian")
-toPolyglossia ("en":"GB":_)   = ("english", "british")
-toPolyglossia ("en":"NZ":_)   = ("english", "newzealand")
-toPolyglossia ("en":"UK":_)   = ("english", "british")
-toPolyglossia ("en":"US":_)   = ("english", "american")
-toPolyglossia ("grc":_)       = ("greek", "ancient")
-toPolyglossia ("hsb":_)       = ("usorbian", "")
-toPolyglossia ("sl":_)        = ("slovenian", "")
-toPolyglossia x               = (commonFromBcp47 x, "")
+toPolyglossia ("ar":"DZ":_)        = ("arabic", "locale=algeria")
+toPolyglossia ("ar":"IQ":_)        = ("arabic", "locale=mashriq")
+toPolyglossia ("ar":"JO":_)        = ("arabic", "locale=mashriq")
+toPolyglossia ("ar":"LB":_)        = ("arabic", "locale=mashriq")
+toPolyglossia ("ar":"LY":_)        = ("arabic", "locale=libya")
+toPolyglossia ("ar":"MA":_)        = ("arabic", "locale=morocco")
+toPolyglossia ("ar":"MR":_)        = ("arabic", "locale=mauritania")
+toPolyglossia ("ar":"PS":_)        = ("arabic", "locale=mashriq")
+toPolyglossia ("ar":"SY":_)        = ("arabic", "locale=mashriq")
+toPolyglossia ("ar":"TN":_)        = ("arabic", "locale=tunisia")
+toPolyglossia ("de":"1901":_)      = ("german", "spelling=old")
+toPolyglossia ("de":"AT":"1901":_) = ("german", "variant=austrian, spelling=old")
+toPolyglossia ("de":"AT":_)        = ("german", "variant=austrian")
+toPolyglossia ("de":"CH":_)        = ("german", "variant=swiss")
+toPolyglossia ("de":_)             = ("german", "")
+toPolyglossia ("dsb":_)            = ("lsorbian", "")
+toPolyglossia ("el":"poly":_)      = ("greek",   "variant=poly")
+toPolyglossia ("en":"AU":_)        = ("english", "variant=australian")
+toPolyglossia ("en":"CA":_)        = ("english", "variant=canadian")
+toPolyglossia ("en":"GB":_)        = ("english", "variant=british")
+toPolyglossia ("en":"NZ":_)        = ("english", "variant=newzealand")
+toPolyglossia ("en":"UK":_)        = ("english", "variant=british")
+toPolyglossia ("en":"US":_)        = ("english", "variant=american")
+toPolyglossia ("grc":_)            = ("greek",   "variant=ancient")
+toPolyglossia ("hsb":_)            = ("usorbian", "")
+toPolyglossia ("sl":_)             = ("slovenian", "")
+toPolyglossia x                    = (commonFromBcp47 x, "")
 
 -- Takes a list of the constituents of a BCP 47 language code and
 -- converts it to a Babel language string.
