@@ -1128,7 +1128,7 @@ Variables for LaTeX
 
 `linestretch`
 :   adjusts line spacing in LaTeX documents using the [`setspace`]
-    package, e.g. `onehalfspacing`, `doublespacing`
+    package, e.g. `1.25`, `1.5`
 
 `fontfamily`
 :   font package for LaTeX documents (with `pdflatex`):
