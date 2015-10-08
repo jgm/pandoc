@@ -1346,7 +1346,7 @@ wrapping). Consider, for example:
     #22, for example, and #5.
 
 
-### Header identifiers
+### Header identifiers ###
 
 #### Extension: `header_attributes` ####
 
@@ -1538,7 +1538,7 @@ of the verbatim text, and is removed in the output.
 Note: blank lines in the verbatim text need not begin with four spaces.
 
 
-### Fenced code blocks
+### Fenced code blocks ###
 
 #### Extension: `fenced_code_blocks` ####
 
@@ -1745,7 +1745,7 @@ pandoc interprets it that way.
   [markdown syntax guide]:
     http://daringfireball.net/projects/markdown/syntax#list
 
-### Ordered lists
+### Ordered lists ###
 
 Ordered lists work just like bulleted lists, except that the items
 begin with enumerators rather than bullets.
@@ -1825,7 +1825,7 @@ If default list markers are desired, use `#.`:
     #.  three
 
 
-### Definition lists
+### Definition lists ###
 
 #### Extension: `definition_lists` ####
 
@@ -2167,7 +2167,7 @@ you'll need to add colons as above.
 Metadata blocks
 ---------------
 
-#### Extension: `pandoc_title_block`
+#### Extension: `pandoc_title_block` ####
 
 If the file begins with a title block
 
@@ -2243,7 +2243,7 @@ will also have "Pandoc User Manuals" in the footer.
 
 will also have "Version 4.0" in the header.
 
-#### Extension: `yaml_metadata_block`
+#### Extension: `yaml_metadata_block` ####
 
 A YAML metadata block is a valid YAML object, delimited by a line of three
 hyphens (`---`) at the top and a line of three hyphens (`---`) or three dots
@@ -2394,7 +2394,7 @@ just part of a word, use `*`:
     feas*ible*, not feas*able*.
 
 
-### Strikeout
+### Strikeout ###
 
 #### Extension: `strikeout` ####
 
@@ -2404,7 +2404,7 @@ with `~~`. Thus, for example,
     This ~~is deleted text.~~
 
 
-### Superscripts and subscripts
+### Superscripts and subscripts ###
 
 #### Extension: `superscript`, `subscript` ####
 
@@ -2579,7 +2579,7 @@ The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
 DZSlides, EPUB, Markdown, and Textile output, and suppressed in other
 formats.
 
-#### Extension: `markdown_in_html_blocks`
+#### Extension: `markdown_in_html_blocks` ####
 
 Standard markdown allows you to include HTML "blocks":  blocks
 of HTML between balanced tags that are separated from the surrounding text
@@ -2901,9 +2901,28 @@ Note that `pandoc-citeproc --bib2json` and `pandoc-citeproc --bib2yaml`
 can produce `.json` and `.yaml` files from any of the supported formats.
 
 In-field markup: In BibTeX and BibLaTeX databases, pandoc-citeproc parses
-a subset of LaTeX markup; in CSL JSON databases, an [HTML-like markup][CSL markup specs];
-and in CSL YAML databases, pandoc markdown. `pandoc-citeproc -j` and `-y`
-interconvert these markup formats as far as possible.
+a subset of LaTeX markup; in CSL YAML databases, pandoc markdown; and in CSL JSON databases, an [HTML-like markup][CSL markup specs]:
+
+`<i>...</i>`
+:   italics
+
+`<b>...</b>`
+:   bold
+
+`<span style="font-variant:small-caps;">...</span>` or `<sc>...</sc>`
+:   small capitals
+
+`<sub>...</sub>`
+:   subscript
+
+`<sup>...</sup>`
+:   superscript
+
+`<span class="nocase">...</span>`
+:   prevent a phrase from being capitalized as title case
+
+`pandoc-citeproc -j` and `-y` interconvert the CSL JSON
+and CSL YAML formats as far as possible.
 
 As an alternative to specifying a bibliography file, you can include
 the citation data directly in the `references` field of the
@@ -2959,13 +2978,15 @@ characters (`:.#$%&-+?<>~/`).  Here are some examples:
     Blah blah [@smith04; @doe99].
 
 `pandoc-citeproc` detects locator terms in the [CSL locale files].
-Either abbreviated or unabbreviated forms are accepted. In the `en-US` locale,
-locator terms include `book`, `bk.`; `chapter`, `chap.`; `column`, `col.`;
-`figure`, `fig.`; `folio`, `fol.`; `number`, `no.`; `line`, `l.`; `note`, `n.`;
-`opus`, `op.`; `page`, `p.`; `paragraph`, `para.`; `part`, `pt.`;
-`section`, `sec.`; `sub verbo`, `s.v.`; `verse`, `v.`; `volume`, `vol.`
-as well as the plural forms of all these.  If no locator term is used,
-"page" is assumed.
+Either abbreviated or unabbreviated forms are accepted. In the `en-US`
+locale, locator terms can be written in either singular or plural forms,
+as `book`, `bk.`/`bks.`; `chapter`, `chap.`/`chaps.`; `column`,
+`col.`/`cols.`; `figure`, `fig.`/`figs.`; `folio`, `fol.`/`fols.`;
+`number`, `no.`/`nos.`; `line`, `l.`/`ll.`; `note`, `n.`/`nn.`; `opus`,
+`op.`/`opp.`; `page`, `p.`/`pp.`; `paragraph`, `para.`/`paras.`; `part`,
+`pt.`/`pts.`; `section`, `sec.`/`secs.`; `sub verbo`, `s.v.`/`s.vv.`;
+`verse`, `v.`/`vv.`; `volume`, `vol.`/`vols.`; `¶`/`¶¶`; `§`/`§§`. If no
+locator term is used, "page" is assumed.
 
 A minus sign (`-`) before the `@` will suppress mention of
 the author in the citation.  This can be useful when the
