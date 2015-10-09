@@ -216,6 +216,7 @@ data Opt = Opt
     , optExtractMedia      :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrace             :: Bool       -- ^ Print debug information
     , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes.
+    , optPreserveEmptyParas :: Bool         -- ^ Preserve empty paragraphs in Docx reader
     , optKaTeXStylesheet   :: Maybe String     -- ^ Path to stylesheet for KaTeX
     , optKaTeXJS           :: Maybe String     -- ^ Path to js file for KaTeX
     }
@@ -278,6 +279,7 @@ defaultOpts = Opt
     , optExtractMedia          = Nothing
     , optTrace                 = False
     , optTrackChanges          = AcceptChanges
+    , optPreserveEmptyParas    = False
     , optKaTeXStylesheet       = Nothing
     , optKaTeXJS               = Nothing
     }
@@ -394,6 +396,11 @@ options =
                      return opt { optTrackChanges = action })
                   "accept|reject|all")
                  "" -- "Accepting or reject MS Word track-changes.""
+
+    , Option "" ["preserve-empty-paragraphs"]
+                 (NoArg
+                  (\opt -> return opt { optPreserveEmptyParas = True }))
+                 "" -- "Preserve empty paragraphs in Docx reader"
 
     , Option "" ["extract-media"]
                  (ReqArg
@@ -1123,6 +1130,7 @@ main = do
               , optExtractMedia          = mbExtractMedia
               , optTrace                 = trace
               , optTrackChanges          = trackChanges
+              , optPreserveEmptyParas    = preserveEmptyParas
               , optKaTeXStylesheet       = katexStylesheet
               , optKaTeXJS               = katexJS
              } = opts
@@ -1268,6 +1276,7 @@ main = do
                       , readerDefaultImageExtension = defaultImageExtension
                       , readerTrace = trace
                       , readerTrackChanges = trackChanges
+                      , readerPreserveEmptyParas = preserveEmptyParas
                       }
 
   when (not (isTextFormat writerName') && outputFile == "-") $

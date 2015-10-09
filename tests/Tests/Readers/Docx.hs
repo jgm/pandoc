@@ -57,6 +57,22 @@ testCompareWithOpts opts name docxFile nativeFile =
 testCompare :: String -> FilePath -> FilePath -> Test
 testCompare = testCompareWithOpts def
 
+-- Runs two tests:
+-- 1. Converts x.docx to native with default options, and compares with x.native
+-- 2. Converts x.docx to native with preserve-empty-paragraphs, and compares with x_preserve.native
+testComparePreserveEmptyParas :: String -> FilePath -> FilePath -> FilePath -> Test
+testComparePreserveEmptyParas name docxFile nativeFile nativeFilePreserve =
+  testGroup name
+    [ testCompare
+      "strip empty paragraphs"
+      docxFile
+      nativeFile
+    , testCompareWithOpts def{readerPreserveEmptyParas = True}
+      "preserve empty paragraphs"
+      docxFile
+      nativeFilePreserve
+    ]
+
 getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
 getMedia archivePath mediaPath = do
   zf <- B.readFile archivePath >>= return . toArchive
@@ -172,10 +188,11 @@ tests = [ testGroup "inlines"
             "i18n blocks (headers and blockquotes)"
             "docx/i18n_blocks.docx"
             "docx/i18n_blocks.native"
-          , testCompare
+          , testComparePreserveEmptyParas
             "lists"
             "docx/lists.docx"
             "docx/lists.native"
+            "docx/lists_preserve.native"
           , testCompare
             "definition lists"
             "docx/definition_list.docx"
@@ -188,30 +205,39 @@ tests = [ testGroup "inlines"
             "footnotes and endnotes"
             "docx/notes.docx"
             "docx/notes.native"
-          , testCompare
+          , testComparePreserveEmptyParas
             "blockquotes (parsing indent as blockquote)"
             "docx/block_quotes.docx"
             "docx/block_quotes_parse_indent.native"
+            "docx/block_quotes_parse_indent_preserve.native"
           , testCompare
             "hanging indents"
             "docx/hanging_indent.docx"
             "docx/hanging_indent.native"
-          , testCompare
+          , testComparePreserveEmptyParas
             "tables"
             "docx/tables.docx"
             "docx/tables.native"
-          , testCompare
+            "docx/tables_preserve.native"
+          , testComparePreserveEmptyParas
             "tables with lists in cells"
             "docx/table_with_list_cell.docx"
             "docx/table_with_list_cell.native"
+            "docx/table_with_list_cell_preserve.native"
           , testCompare
             "code block"
             "docx/codeblock.docx"
             "docx/codeblock.native"
-          , testCompare
+          , testComparePreserveEmptyParas
             "dropcap paragraphs"
             "docx/drop_cap.docx"
             "docx/drop_cap.native"
+            "docx/drop_cap_preserve.native"
+          , testComparePreserveEmptyParas
+            "blank paragraphs"
+            "docx/blank_paragraphs.docx"
+            "docx/blank_paragraphs_output.native"
+            "docx/blank_paragraphs_output_preserve.native"
           ]
         , testGroup "track changes"
           [ testCompare

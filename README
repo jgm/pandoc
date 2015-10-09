@@ -391,6 +391,11 @@ Reader options
     references in the document so they point to the extracted files.
     This option only affects the docx and epub readers.
 
+`--preserve-empty-paragraphs`
+
+:   Prevents empty paragraphs from being stripped out. This option only
+    affects the docx reader.
+
 General writer options
 ----------------------
 
