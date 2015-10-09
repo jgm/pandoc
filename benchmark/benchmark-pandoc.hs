@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 import Text.Pandoc
 import Criterion.Main
 import Criterion.Monad
-import System.Environment (getArgs)
+import Criterion.Types (Config(..))
 import Data.Monoid
 import Data.Maybe (mapMaybe)
 import Debug.Trace (trace)
@@ -44,9 +44,6 @@ writerBench doc (name, writer) = bench (name ++ " writer") $ nf
 
 main :: IO ()
 main = do
-  args <- getArgs
-  (conf,_) <- parseArgs defaultConfig{ cfgSamples = Last $ Just 20 }
-                        defaultOptions args
   inp <- readFile "tests/testsuite.txt"
   let opts = def{ readerSmart = True }
   let doc = handleError $ readMarkdown opts inp
@@ -56,5 +53,5 @@ main = do
   let writers' = [(n,w) | (n, PureStringWriter w) <- writers]
   let writerBs = map (writerBench doc)
                  $ writers'
-  defaultMainWith conf (return ()) $
-    writerBs ++ readerBs
+  defaultMainWith defaultConfig{ timeLimit = 6.0 }
+    (writerBs ++ readerBs)
