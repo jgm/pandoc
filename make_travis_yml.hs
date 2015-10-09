@@ -4,7 +4,7 @@
 
 import Control.Monad
 import Data.List
-import Data.Version (makeVersion)
+import Data.Version
 import System.Environment
 import System.Exit
 import System.IO
@@ -89,7 +89,7 @@ genTravisFromCabalFile fn xpkgs = do
     forM_ testedGhcVersions $ \gv -> do
         let cvs = disp' (lookupCabVer gv)
             gvs = disp' gv
-            ghcopts = if gv >= makeVersion [7,10,0]
+            ghcopts = if gv >= Version [7,10,0] []
                          then ""
                          else "-Werror"
 
