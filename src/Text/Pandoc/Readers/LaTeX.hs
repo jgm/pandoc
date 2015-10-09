@@ -234,8 +234,8 @@ blocks = mconcat <$> many block
 
 getRawCommand :: String -> LP String
 getRawCommand name' = do
-  rawargs <- withRaw (opt `sepBy` (optional sp) *>
-                      option "" (optional sp *> dimenarg) *>
+  rawargs <- withRaw (many (try (optional sp *> opt)) *>
+                      option "" (try (optional sp *> dimenarg)) *>
                       many braced)
   return $ '\\' : name' ++ snd rawargs
 
@@ -818,10 +818,10 @@ tok :: LP Inlines
 tok = try $ grouped inline <|> inlineCommand <|> str <$> count 1 inlineChar
 
 opt :: LP Inlines
-opt = bracketed inline <* optional sp
+opt = bracketed inline
 
 skipopts :: LP ()
-skipopts = skipMany opt
+skipopts = skipMany (opt *> optional sp)
 
 inlineText :: LP Inlines
 inlineText = str <$> many1 inlineChar
