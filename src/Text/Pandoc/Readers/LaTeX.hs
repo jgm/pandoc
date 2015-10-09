@@ -234,7 +234,9 @@ blocks = mconcat <$> many block
 
 getRawCommand :: String -> LP String
 getRawCommand name' = do
-  rawargs <- withRaw (skipopts *> option "" dimenarg *> many braced)
+  rawargs <- withRaw (opt `sepBy` (optional sp) *>
+                      option "" (optional sp *> dimenarg) *>
+                      many braced)
   return $ '\\' : name' ++ snd rawargs
 
 lookupListDefault :: (Ord k) => v -> [k] -> M.Map k v -> v
