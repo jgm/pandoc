@@ -85,6 +85,8 @@ pandocToMan opts (Pandoc meta blocks) = do
   let context = defField "body" main
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
+              $ defField "hyphenate" True
+              $ defField "pandoc-version" pandocVersion
               $ metadata
   if writerStandalone opts
      then return $ renderTemplate' (writerTemplate opts) context

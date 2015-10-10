@@ -117,8 +117,6 @@ module Text.Pandoc
                , writeCustom
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates
-               -- * Version
-               , pandocVersion
                -- * Miscellaneous
                , getReader
                , getWriter
@@ -178,17 +176,11 @@ import Text.Pandoc.Error
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
-import Data.Version (showVersion)
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Text.Parsec
 import Text.Parsec.Error
 import qualified Text.Pandoc.UTF8 as UTF8
-import Paths_pandoc (version)
-
--- | Version number of pandoc library.
-pandocVersion :: String
-pandocVersion = showVersion version
 
 parseFormatSpec :: String
                 -> Either ParseError (String, Set Extension -> Set Extension)
