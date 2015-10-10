@@ -1200,6 +1200,13 @@ Variables for man pages
 `footer`
 :   footer in man pages
 
+`adjusting`
+:   adjusts text to left (`l`), right (`r`), center (`c`),
+    or both (`b`) margins
+
+`hyphenate`
+:   if `true` (the default), hyphenation will be used
+
 Using variables in templates
 ----------------------------
 
