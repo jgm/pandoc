@@ -125,6 +125,7 @@ Extra-Source-Files:
                  tests/bodybg.gif
                  tests/*.native
                  tests/docbook-reader.docbook
+                 tests/docbook-xref.docbook
                  tests/html-reader.html
                  tests/opml-reader.opml
                  tests/haddock-reader.haddock
