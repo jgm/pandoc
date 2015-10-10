@@ -74,7 +74,7 @@ script:
  - cabal build --ghc-options=$GHCOPTS  # this builds all libraries and executables (including tests/benchmarks)
  - cabal test
  - cabal check
- - cabal sdist   # tests that a source-distribution can be generated
+ - ./dist/setup/setup sdist   # tests that a source-distribution can be generated
 
 # Check that the resulting source distribution can be built & installed.
 # If there are no other `.tar.gz` files in `dist`, this can be even simpler:
