@@ -17,9 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 import Text.Pandoc
 import Criterion.Main
-import Criterion.Monad
 import Criterion.Types (Config(..))
-import Data.Monoid
 import Data.Maybe (mapMaybe)
 import Debug.Trace (trace)
 import Text.Pandoc.Error
