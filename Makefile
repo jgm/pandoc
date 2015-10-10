@@ -34,7 +34,7 @@ dist: man/pandoc.1
 	cd pandoc-${version}
 	cabal configure ${CABALARGS} && cabal build && cabal test && cd .. && rm -rf "pandoc-${version}"
 
-.travis.yml: pandoc.cabal
+.travis.yml: pandoc.cabal make_travis_yml.hs
 	runghc make_travis_yml.hs $< > $@
 
 debpkg: man/pandoc.1
