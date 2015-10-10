@@ -1108,6 +1108,12 @@ Variables for slides
 `colortheme`, `fonttheme`, `innertheme`, `outertheme`
 :   themes for LaTeX [`beamer`] documents
 
+`controls`
+:   show controls in reveal.js slide shows
+
+`progress`
+:   show progress bar in reveal.js slide shows
+
 Variables for LaTeX
 -------------------
 
