@@ -121,6 +121,7 @@ module Text.Pandoc
                , getReader
                , getWriter
                , ToJsonFilter(..)
+               , pandocVersion
              ) where
 
 import Text.Pandoc.Definition
@@ -170,7 +171,7 @@ import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (safeRead, warn, mapLeft)
+import Text.Pandoc.Shared (safeRead, warn, mapLeft, pandocVersion)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Error
 import Data.Aeson
