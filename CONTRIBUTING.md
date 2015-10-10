@@ -134,10 +134,11 @@ Please follow these guidelines:
 
 10. We aim for compatibility with ghc versions from 7.4.2 to the
     latest release.  All pull requests and commits are tested
-    automatically on travis-ci.org, using several GHC versions.
-    We currently relax the "`-Wall` clean" requirement for GHC 7.10.x,
-    because there are so many warnings relating to the addition of
-    type classes to the Prelude.
+    automatically on travis-ci.org, using GHC versions in the
+    `Tested-With` stanza of `pandoc.cabal`.  We currently relax
+    the "`-Wall` clean" requirement for GHC 7.10.x, because
+    there are so many warnings relating to the addition of type
+    classes to the Prelude.
 
 Tests
 -----
