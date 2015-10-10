@@ -1,44 +1,104 @@
 pandoc (1.15.1)
 
-  [TODO - NEEDS ORGANIZING]
-
   * `pandocVersion` is now defined in `Text.Pandoc.Shared`
     and reexported from `Text.Pandoc` (Alex Vong).  This allows
     writers to access it.  (Alex Vong) (API change)
 
-  * Setup.hs: rewrite so as not to use process, directory, filepath.
-    Using anything outside base is dangerous, since older
-    versions of ghc may link against two different versions.
+  * For `markdown_mmd`, add: `implicit_figures`, `superscripts`,
+    `subscripts` (#2401).
 
-  * Updated benchmark program for new criterion API.
+  * Added `odt` as input format (MarLinn).  Added new module
+    `Text.Pandoc.Reader.ODT` (API change). Fully implemented features:
+    Paragraphs, Headers, Basic styling, Unordered lists, Ordered lists,
+    External Links, Internal Links, Footnotes, Endnotes, Blockquotes.
+    Partly implemented features: Citations, Tables.
 
-  * LaTeX reader:  don't eat excess whitespace after macros with
-    only optional arguments (#2446).
+  * Markdown Reader:
 
-  * New `.travis.yml`.  Autgenerated using `make_travis_yml.hs`.
-    This script has been modified in a few ways, e.g. to add `GHCOPTS`.
-    `make .travis.yml` regenerates it based on the tested-with
-    field of the cabal file.
+    + Add basic tests for each header style (Ophir Lifshitz).
+    + Add implicit header ref tests for headers with spaces (ophir Lifshitz).
+    + Skip spaces in headers (Ophir Lifsihtz).
+    + Handle 'id' and 'class' in parsing key/value attributes (#2396).
+      `# Header {id="myid" class="foo bar"}`
+      is now equivalent to `# Header {#myid .foo .bar}`.
+    + Use '=' instead of '#' for atx-style headers in markdown+lhs.
+      (Kristof Bastiaensen)
+    + Pipe tables: allow indented columns.  Previously the left-hand column
+      could not start with 4 or more spaces indent.  This was inconvenient
+      for right-aligned left columns.  Note that the first (header column)
+      must still have 3 or fewer spaces indentation, or the table will be
+      treated as an indented code  block.
+    + Fix regression:  allow HTML comments containing `--`.
+      Technically this isn't allowed in an HTML comment, but
+      we've always allowed it, and so do most other implementations.
+      It is handy if e.g. you want to put command line arguments
+      in HTML comments.
 
-  * Improve CSL documentation, variables documentations,
-    links, and cross-references in README. (Andrew Dunning)
+  * LaTeX reader:
 
-  * Describe correct `setspace` package usage in README (Andrew
-    Dunning).
+    + Don't eat excess whitespace after macros with only optional
+      arguments (#2446).
+    + Support longtable (#2411).
+    + Implement `\Cite` (#2335).
+    + Support abstract environment.  The abstract populates an
+      `abstract` metadata field.
+    + Properly handle booktabs lines.  Lines aren't part of the
+      pandoc table model, so we just ignore them (#2307).
 
-  * Added proper support for DocBook `xref` elements (Frerich Raabe).
-    Added `dbContent` field to reader state, so we can lookup
-    cross refs.
+  * HTML reader:
 
-  * Allow building with latest versions of http-types,
-    HUnit, criterion, syb, aeson.
+    + Handle type attribute on ol, e.g. `<ol type="i">` (#2313).
+    + Updated for new automatic header attributes.
+    + Add auto identifiers if not present on headers.  This makes
+      TOC linking work properly.
+    + Detect `font-variant` with `pickStyleAttrProps` (Ophir Lifshitz).
+    + Test `<ol>` type, class, and inline list-style(-type) CSS
+      (Ophir Lifshitz).
 
-  * Revise variables discussion in README (Andrew Dunning).
+  * MediaWiki reader:  handle unquoted table attributes (#2355).
+
+  * DocBook reader:
+
+    + Added proper support for DocBook `xref` elements (Frerich Raabe).
+      Added `dbContent` field to reader state, so we can lookup
+      cross refs.
+    + Handle `informalexample` (#2319).
 
   * Docx Reader:
 
     + Create special punctuation test (Ophir Lifshitz).
     + Parse soft, no-break hyphen elements (Ophir Lifshit).
+    + Updated headers test (Ophir Lifshitz). Replaced `styles.xml`
+      in `headers.docx` with pandoc's current `styles.xml`, which
+      contains styles for Heading 1 through 6. Added Heading 4
+      through 7 to the test document. Note that Heading 7 is not
+      parsed as a Heading because there is no Heading 7 style.
+
+  * RST reader:  better handling of indirect roles.
+    Previously the parser failed on this kind of case
+
+        .. role:: indirect(code)
+
+        .. role:: py(indirect)
+           :language: python
+
+        :py:`hi`
+
+    Now it currectly recognizes `:py:` as a code role.
+
+  * Org reader:
+
+    + Add auto identifiers if not present on headers
+      (#2354, Juliusz Gonera).
+    + Allow verse blocks to contain empty lines (#2402,
+      Albert Krewinkel).
+
+  * EPUB reader:  stop mangling external URLs (#2284).
+
+  * Reference Docx:
+
+    + Add missing Header 6 style (steel blue) (Ophir Lifshitz).
+    + Correct `outlineLvl` for Header styles (Ophir Lifshitz).
 
   * Templates
 
@@ -64,139 +124,61 @@ pandoc (1.15.1)
       autogenerated by pandoc, giving version.  Added `adjusting`
       and `hyphenate` variables.
 
-  * epub.css: added selectors for nested emphasis (Pablo Rodriguez).
+  * RST Writer:
 
-  * For markdown_mmd, add: implicit_figures, superscripts, subscripts
-    (#2401).
-
-  * Added appveyor builds.
-
-  * MediaBag:  ensure that `/` is always used as path separator.
-
-  * Update KaTeX JS and CSS versions (Emily Eisenberg).
-
-  * Support bidirectional text output with XeLaTeX, ConTeXt and HTML
-    (mb21)
-    closes #2191
-
-  * Document details of citation locator terms (Nick Bart).
-
-  * Correctly recognize book documentclass in metadata (#2395).
-
-  * Markdown reader:  handle 'id' and 'class' in parsing key/value
-    attributes (#2396).  `# Header {id="myid" class="foo bar"}`
-    is now equivalent to `# Header {#myid .foo .bar}`.
-
-  * LaTeX reader: support longtable (#2411).
-
-  * Org reader: Allow verse blocks to contain empty lines (#2402,
-    Albert Krewinkel).
-
-  * RST Writer: Don't normalize heading levels below input minimum
-    (Nikolay Yakimov).
-
-  * Markdown writer:  in TOC, add links to headers (#829).
-
-  * `sample.lua`: define `CaptionedImage`, add newline at end (#2393).
-
-  * Tests:  docx writer tests now use `../data` for data directory.
-    This allows tests to be run without installing first.
-
-  * Use user data directory for reference docx archive.
-    This allows the test suite to work without installing pandoc first.
-    It also brings the docx writer in line with the odt writer.
-
-  * Removed obsolete reference to default.csl (#2372).
-
-  * `lang` variable is now in BCP47 format (#1614, mb21).
-    Strings are converted for LaTeX and ConTeXt output.
+    + Don't insert `\ ` when complex expression in matched pairs.
+      E.g. `` [:sup:`3`] `` is okay; you don't need `` [:sup:`3`\ ] ``.
+    + Don't normalize heading levels below input minimum (Nikolay Yakimov).
+    + Ensure that `\ ` is inserted when needed before Cite and Span
+      elements that begin with a "complex" element (jgm/pandoc-citeproc#157).
 
   * Haddock writer: escape `*` and `^` (G. Bataille).
 
-  * Use real jpg (not empty) for docx tests to avoid warning.
+  * Markdown writer:  in TOC, add links to headers (#829).
 
-  * RST reader:  better handling of indirect roles.
-    Previously the parser failed on this kind of case
+  * Docx writer:
 
-        .. role:: indirect(code)
+    + Moved invalid character stripping to `formattedString`.
+      This avoids an inefficient generic traversal (#2356).
+    + Use user data directory for `reference.docx` archive.
+      This allows the test suite to work without installing pandoc first.
+      It also brings the docx writer in line with the odt writer.
+    + Tests:  docx writer tests now use `../data` for data directory.
+      This allows tests to be run without installing first.
+    + Tests: Use real jpg (not empty) for docx tests to avoid warning.
 
-        .. role:: py(indirect)
-           :language: python
+  * LaTeX writer:
 
-        :py:`hi`
+    + Fixed detection of 'chapters' from template.
+      If a documentclass isn't specified in metadata, but the
+      template has a hardwired bookish documentclass, act as if
+      `--chapters` was used.  This was the default in earlier
+      versions, but it has been broken for a little while.
+    + Correctly recognize book documentclass in metadata (#2395).
+    + Set language-related variables automatically, depending
+      on the value of the `lang` field, which is now always
+      assumed to be in BCP47 format (#1614, mb21).
 
-    Now it currectly recognizes `:py:` as a code role.
+  * HTML writer:
 
-  * Added note to CONTRIBUTING.md about ghc versions and travis.
+    + Update KaTeX JS and CSS versions (Emily Eisenberg).
+    + For dzslides, add `role="note"` for speaker notes (#1693).
 
+  * EPUB writer: in TOC, replace literal "<br/>" with space (#2105).
 
-  * Org reader: add auto identifiers if not present on headers
-    (#2354, Juliusz Gonera).
+  * Support bidirectional text output with XeLaTeX, ConTeXt and HTML
+    (#2191, mb21).
 
-  * RST writer:  ensure that `\ ` is inserted when needed
-    before Cite and Span elements that begin with a "complex"
-    element (jgm/pandoc-citeproc#157).
+  * epub.css: added selectors for nested emphasis (Pablo Rodriguez).
+
+  * MediaBag:  ensure that `/` is always used as path separator.
+
+  * `sample.lua`: define `CaptionedImage`, add newline at end (#2393).
 
   * Added `--bash-completion` option.  This generates a bash completion
     script.  To use: `eval "$(pandoc --bash-completion)"`.
 
-  * Added stack install instructions to INSTALL.
-
-  * Added a stack.yaml.
-
-  * RST writer:  Don't insert `\ ` when complex expression in matched pairs.
-    E.g. `` [:sup:`3`] `` is okay; you don't need `` [:sup:`3`\ ] ``.
-
-
-  * EPUB TOC: replace literal "<br/>" with space (#2105).
-
-  * EPUB reader:  stop mangling external URLs (#2284).
-
-  * Docx writer: Moved invalid character stripping to `formattedString`.
-    This avoids an inefficient generic traversal (#2356).
-
-  * Text.Pandoc: disable `auto_identifiers` for epub.
-    The epub writer inserts its own auto identifiers;
-    this is more complex due to splitting into "chapter" files.
-
-  * HTML reader: updated for new automatic header attributes.
-
-  * MediaWiki reader:  handle unquoted table attributes (#2355).
-
-  * Clarified what is "out of scope" in README and CONTRIBUTING.md.
-
-  * HTML reader:  add auto identifiers if not present on headers.
-    This makes TOC linking work properly.
-
-  * DocBook reader: handle `informalexample` (#2319).
-
-  * LaTeX reader: Implement \Cite (#2335).
-
-  * Clarify docs on block quotes.  The space after `>` is optional (#2346).
-
-
-  * Fix build failure with `--flags=-https` (Sergei Trofimovich).
-
-  * HTML Reader: Detect `font-variant` with `pickStyleAttrProps`
-    (Ophir Lifshitz).
-
-  * Pipe tables: allow indented columns.  Previously the left-hand column
-    could not start with 4 or more spaces indent.  This was inconvenient
-    for right-aligned left columns.  Note that the first (header column)
-    must still have 3 or fewer spaces indentation, or the table will be
-    treated as an indented code  block.
-
-  * README:  Added space after backslash in image example (#2329).
-
-  * HTML Reader: Test `<ol>` type, class, and inline list-style(-type) CSS
-    (Ophir Lifshitz).
-
-  * Added ODT reader (MarLinn). Fully implemented features:
-    Paragraphs, Headers, Basic styling, Unordered lists, Ordered lists,
-    External Links, Internal Links, Footnotes, Endnotes, Blockquotes.
-    Partly implemented features: Citations, Tables.
-
-  * Parsing: `toKey`: strip off outer brackets.
+  * Text.Pandoc.Parsing: `toKey`: strip off outer brackets.
     This makes keys with extra space at the beginning and end
     work:  e.g.
 
@@ -206,60 +188,55 @@ pandoc (1.15.1)
 
     will now be a link to bar (it wasn't before).
 
-  * LaTeX reader: support abstract environment.
-    The abstract populates an "abstract" metadata field.
+  * Text.Pandoc: disable `auto_identifiers` for epub.
+    The epub writer inserts its own auto identifiers;
+    this is more complex due to splitting into "chapter" files.
 
-  * Markdown Reader:
+  * Added a `stack.ymal` and stack install instructions to INSTALL.
 
-    + Add basic tests for each header style (Ophir Lifshitz).
-    + Add implicit header ref tests for headers with spaces (ophir Lifshitz).
-    + Skip spaces in headers (Ophir Lifsihtz).
+  * Clarified what is "out of scope" in README and CONTRIBUTING.md.
 
-  * Fix regression:  allow HTML comments containing `--`.
-    Technically this isn't allowed in an HTML comment, but
-    we've always allowed it, and so do most other implementations.
-    It is handy if e.g. you want to put command line arguments
-    in HTML comments.
+  * Added note to CONTRIBUTING.md about ghc versions and travis.
 
-  * Use newManager instead of withManager in recent http-client.
-    This avoids a deprecation warning.
+  * Clarify docs on block quotes.  The space after `>` is optional (#2346).
+
+  * Removed obsolete reference to default.csl (#2372).
 
   * List all styles in manual for `--reference-docx` (Chris Black)
 
-  * DZSlides:  Add `role="note"` for speaker notes (#1693).
-
-  * HTML reader:  handle type attribute on ol, e.g. `<ol type="i">`
-    (#2313).
-
-  * LaTeX reader: properly handle booktabs lines.  Lines aren't
-    part of the pandoc table model, but we can just ignore them (#2307).
-
   * Don't capitalize header links in man page.
-    Also regenerated man page from latest README.
+
+  * Added section on repl to CONTRIBUTING.md.
+
+  * README:  Added space after backslash in image example (#2329).
+
+  * Document details of citation locator terms (Nick Bart).
 
   * Fixed some internal links in README (#2309).
 
-  * LaTeX writer:  Fixed detection of 'chapters' from template.
-    If a documentclass isn't specified in metadata, but the
-    template has a hardwired bookish documentclass, act as if
-    `--chapters` was used.  This was the default in earlier
-    versions, but it has been broken for a little while.
+  * Improve CSL documentation, variables documentations,
+    links, and cross-references in README. (Andrew Dunning)
 
-  * Docx Reader: Updated headers test (Ophir Lifshitz)
-    Replaced styles.xml in headers.docx with pandoc's current styles.xml, which
-    contains styles for Heading 1 through 6. Added Heading 4 through 7 to the test
-    document. Note that Heading 7 is not parsed as a Heading because there is no
-    Heading 7 style.
+  * Fix build failure with `--flags=-https` (Sergei Trofimovich).
 
-  * Reference Docx:
+  * Use `newManager` instead of `withManager` in recent `http-client`.
+    This avoids a deprecation warning.
 
-    + Add missing Header 6 style (steel blue) (Ophir Lifshitz).
-    + Correct outlineLvl for Header styles (Ophir Lifshitz).
+  * Allow building with latest versions of http-types,
+    HUnit, criterion, syb, aeson.
 
-  * Added section on REPL to CONTRIBUTING.md.
+  * Updated benchmark program for new criterion API.
 
-  * Use '=' instead of '#' for atx-style headers in markdown+lhs.
-    (Kristof Bastiaensen)
+  * Setup.hs: rewrite so as not to use process, directory, filepath.
+    Using anything outside base is dangerous, since older
+    versions of ghc may link against two different versions.
+
+  * Added appveyor (Windows continuous integration) builds.
+
+  * New `.travis.yml`.  Autgenerated using `make_travis_yml.hs`.
+    This script has been modified in a few ways, e.g. to add `GHCOPTS`.
+    `make .travis.yml` regenerates it based on the tested-with
+    field of the cabal file.
 
 pandoc (1.15.0.6)
 
