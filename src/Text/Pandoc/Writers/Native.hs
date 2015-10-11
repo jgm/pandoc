@@ -63,6 +63,8 @@ prettyBlock (Table caption aligns widths header rows) =
   prettyRow header $$
   prettyList (map prettyRow rows)
     where prettyRow cols = prettyList (map (prettyList . map prettyBlock) cols)
+prettyBlock (Div attr blocks) =
+  text ("Div " <> show attr) $$ prettyList (map prettyBlock blocks)
 prettyBlock block = text $ show block
 
 -- | Prettyprint Pandoc document.
