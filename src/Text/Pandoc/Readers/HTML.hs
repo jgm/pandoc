@@ -347,9 +347,16 @@ pRawTag = do
 pDiv :: TagParser Blocks
 pDiv = try $ do
   guardEnabled Ext_native_divs
-  TagOpen _ attr <- lookAhead $ pSatisfy $ tagOpen (=="div") (const True)
-  contents <- pInTags "div" block
-  return $ B.divWith (mkAttr attr) contents
+  let isDivLike "div" = True
+      isDivLike "section" = True
+      isDivLike _ = False
+  TagOpen tag attr <- lookAhead $ pSatisfy $ tagOpen isDivLike (const True)
+  contents <- pInTags tag block
+  let (ident, classes, kvs) = mkAttr attr
+  let classes' = if tag == "section"
+                    then "section":classes
+                    else classes
+  return $ B.divWith (ident, classes', kvs) contents
 
 pRawHtmlBlock :: TagParser Blocks
 pRawHtmlBlock = do
