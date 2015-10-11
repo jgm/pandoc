@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -33,6 +34,9 @@ module Text.Pandoc.Error (PandocError(..), handleError) where
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
 import Text.Pandoc.Compat.Except
+import GHC.Generics (Generic)
+import Data.Generics (Data, Typeable)
+import Control.Exception (Exception)
 
 type Input = String
 
@@ -40,8 +44,9 @@ data PandocError = -- | Generic parse failure
                    ParseFailure String
                  -- | Error thrown by a Parsec parser
                  | ParsecError Input ParseError
-                 deriving (Show)
+                 deriving (Show, Typeable, Generic)
 
+instance Exception PandocError
 
 instance Error PandocError where
   strMsg = ParseFailure
