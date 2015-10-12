@@ -353,11 +353,12 @@ blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   inNote <- gets stInNote
   capt <- inlineListToLaTeX txt
   img <- inlineToLaTeX (Image txt (src,tit))
+  short <- stringToLaTeX TextString tit
   return $ if inNote
               -- can't have figures in notes
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
               else "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
-                      ("\\caption" <> braces capt) $$ "\\end{figure}"
+                      ("\\caption" <> brackets (text short) <> braces capt) $$ "\\end{figure}"
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- writerBeamer `fmap` gets stOptions
