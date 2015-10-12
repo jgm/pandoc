@@ -242,7 +242,7 @@ stringToLaTeX  ctx (x:xs) = do
        '^' -> "\\^{}" ++ rest
        '\\'| isUrl     -> '/' : rest  -- NB. / works as path sep even on Windows
            | otherwise -> "\\textbackslash{}" ++ rest
-       '|' -> "\\textbar{}" ++ rest
+       '|' | not isUrl -> "\\textbar{}" ++ rest
        '<' -> "\\textless{}" ++ rest
        '>' -> "\\textgreater{}" ++ rest
        '[' -> "{[}" ++ rest  -- to avoid interpretation as
@@ -848,17 +848,17 @@ inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
-                src' <- stringToLaTeX URLString src
+                src' <- stringToLaTeX URLString (escapeURI src)
                 return $ text $ "\\url{" ++ src' ++ "}"
         [Str x] | Just rest <- stripPrefix "mailto:" src,
                   escapeURI x == rest -> -- email autolink
              do modify $ \s -> s{ stUrl = True }
-                src' <- stringToLaTeX URLString src
+                src' <- stringToLaTeX URLString (escapeURI src)
                 contents <- inlineListToLaTeX txt
                 return $ "\\href" <> braces (text src') <>
                    braces ("\\nolinkurl" <> braces contents)
         _ -> do contents <- inlineListToLaTeX txt
-                src' <- stringToLaTeX URLString src
+                src' <- stringToLaTeX URLString (escapeURI src)
                 return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
 inlineToLaTeX (Image _ (source, _)) = do
@@ -866,7 +866,7 @@ inlineToLaTeX (Image _ (source, _)) = do
   let source' = if isURI source
                    then source
                    else unEscapeString source
-  source'' <- stringToLaTeX URLString source'
+  source'' <- stringToLaTeX URLString (escapeURI source')
   inHeading <- gets stInHeading
   return $
     (if inHeading then "\\protect\\includegraphics" else "\\includegraphics")

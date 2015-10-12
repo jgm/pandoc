@@ -66,9 +66,11 @@ bareLinkTests =
   , ("http://en.wikipedia.org/wiki/Sprite_(computer_graphics)",
       autolink "http://en.wikipedia.org/wiki/Sprite_(computer_graphics)")
   , ("http://en.wikipedia.org/wiki/Sprite_[computer_graphics]",
-      autolink "http://en.wikipedia.org/wiki/Sprite_[computer_graphics]")
+      link "http://en.wikipedia.org/wiki/Sprite_%5Bcomputer_graphics%5D" ""
+        (str "http://en.wikipedia.org/wiki/Sprite_[computer_graphics]"))
   , ("http://en.wikipedia.org/wiki/Sprite_{computer_graphics}",
-      autolink "http://en.wikipedia.org/wiki/Sprite_{computer_graphics}")
+      link "http://en.wikipedia.org/wiki/Sprite_%7Bcomputer_graphics%7D" ""
+        (str "http://en.wikipedia.org/wiki/Sprite_{computer_graphics}"))
   , ("http://example.com/Notification_Center-GitHub-20101108-140050.jpg",
       autolink "http://example.com/Notification_Center-GitHub-20101108-140050.jpg")
   , ("https://github.com/github/hubot/blob/master/scripts/cream.js#L20-20",

@@ -288,9 +288,12 @@ toRomanNumeral x =
               _ | x >= 1    -> "I" ++ toRomanNumeral (x - 1)
               _             -> ""
 
--- | Escape whitespace in URI.
+-- | Escape whitespace and some punctuation characters in URI.
 escapeURI :: String -> String
-escapeURI = escapeURIString (not . isSpace)
+escapeURI = escapeURIString (not . needsEscaping)
+  where needsEscaping c = isSpace c || c `elem`
+                           ['<','>','|','"','{','}','[',']','^', '`']
+
 
 -- | Convert tabs to spaces and filter out DOS line endings.
 -- Tabs will be preserved if tab stop is set to 0.
