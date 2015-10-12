@@ -35,7 +35,7 @@ import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
 import Text.Pandoc.Compat.Except
 import GHC.Generics (Generic)
-import Data.Generics (Data, Typeable)
+import Data.Generics (Typeable)
 import Control.Exception (Exception)
 
 type Input = String
