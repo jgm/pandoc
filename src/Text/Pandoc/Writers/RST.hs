@@ -82,7 +82,7 @@ pandocToRST (Pandoc meta blocks) = do
                 (fmap (trimr . render colwidth) . inlineListToRST)
                 $ deleteMeta "title" $ deleteMeta "subtitle" meta
   let minLev = findMinHeadingLevel Nothing blocks
-  body <- blockListToRST' True $ normalizeHeadings minLev blocks
+  body <- blockListToRST' True $ normalizeHeadings minLev 0 blocks
   notes <- liftM (reverse . stNotes) get >>= notesToRST
   -- note that the notes may contain refs, so we do them first
   refs <- liftM (reverse . stLinks) get >>= refsToRST
@@ -102,12 +102,30 @@ pandocToRST (Pandoc meta blocks) = do
      then return $ renderTemplate' (writerTemplate opts) context
      else return main
   where
-    normalizeHeadings lev (Header l a i:bs) = Header lev a i:normalizeHeadings (lev+1) cont ++ normalizeHeadings lev bs'
+    -- Partial normalization:
+    -- We use the underline scheme appropriate for the lowest
+    -- header level found, and we don't normalize headers
+    -- until we've hit the first header with minimum header
+    -- level in the fragment.
+    -- This is intended to help with the problems noted in
+    -- #2079, while still being flexible enough for use
+    -- with fragments that might not include the base
+    -- header level, and might start halfway through a section
+    -- (see #2394).
+    normalizeHeadings minLev lev (Header l a i:bs) =
+      let lev' = if lev == 0 && l == minLev
+                    then minLev
+                    else lev
+      in if lev' == 0 -- we haven't hit minLev yet
+            then Header l a i : normalizeHeadings minLev 0 cont ++
+                                normalizeHeadings minLev 0 bs'
+            else Header lev' a i : normalizeHeadings minLev (lev' + 1) cont ++
+                                   normalizeHeadings minLev lev' bs'
       where (cont,bs') = break (headerLtEq l) bs
             headerLtEq level (Header l' _ _) = l' <= level
             headerLtEq _ _ = False
-    normalizeHeadings lev (b:bs) = b:normalizeHeadings lev bs
-    normalizeHeadings _   []     = []
+    normalizeHeadings minLev lev (b:bs) = b : normalizeHeadings minLev lev bs
+    normalizeHeadings _      _   []     = []
     findMinHeadingLevel Nothing (Header l _a _i:bs) = findMinHeadingLevel (Just l) bs
     findMinHeadingLevel (Just ol) (Header l _a _i:bs) =
       findMinHeadingLevel (Just $ if ol>l then l else ol) bs
