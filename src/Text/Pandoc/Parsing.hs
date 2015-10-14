@@ -189,8 +189,6 @@ import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader
 import Control.Monad.Identity
-import Control.Applicative ((<$>), (<*>), (*>), (<*), (<$), Applicative)
-import Data.Monoid
 import Data.Maybe (catMaybes)
 
 import Text.Pandoc.Error

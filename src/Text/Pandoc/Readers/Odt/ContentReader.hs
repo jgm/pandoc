@@ -44,7 +44,6 @@ import           Control.Applicative    hiding ( liftA, liftA2, liftA3 )
 
 import qualified Data.Map               as M
 import           Data.List                     ( find )
-import           Data.Monoid
 import           Data.Maybe
 
 import qualified Text.XML.Light         as XML

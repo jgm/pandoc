@@ -36,7 +36,6 @@ import           Codec.Archive.Zip
 import qualified Text.XML.Light                        as XML
 
 import qualified Data.ByteString.Lazy                  as B
-import           Data.Monoid                                   ( mempty )
 
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Error

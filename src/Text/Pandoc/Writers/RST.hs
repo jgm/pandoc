@@ -42,7 +42,6 @@ import Data.List ( isPrefixOf, stripPrefix, intersperse, transpose )
 import Network.URI (isURI)
 import Text.Pandoc.Pretty
 import Control.Monad.State
-import Control.Applicative ( (<$>) )
 import Data.Char (isSpace, toLower)
 
 type Refs = [([Inline], Target)]

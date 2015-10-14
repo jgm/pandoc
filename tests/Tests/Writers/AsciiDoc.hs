@@ -5,7 +5,6 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 import Tests.Helpers
 import Tests.Arbitrary()
-import Data.Monoid
 
 asciidoc :: (ToString a, ToPandoc a) => a -> String
 asciidoc = writeAsciiDoc def{ writerWrapText = False } . toPandoc

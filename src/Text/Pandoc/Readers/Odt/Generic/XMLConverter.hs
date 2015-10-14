@@ -123,7 +123,6 @@ import           Control.Arrow
 import qualified Data.Map             as M
 import qualified Data.Foldable        as F
 import           Data.Default
-import           Data.Monoid                 ( Monoid )
 import           Data.Maybe
 
 import qualified Text.XML.Light       as XML

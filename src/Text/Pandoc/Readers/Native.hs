@@ -34,7 +34,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared (safeRead)
 
 import Text.Pandoc.Error
-import Control.Applicative
 
 -- | Read native formatted text and return a Pandoc document.
 -- The input may be a full pandoc document, a block list, a block,

@@ -8,7 +8,6 @@ import Tests.Arbitrary()
 import Test.Framework.Providers.HUnit
 import Test.HUnit ( assertBool, (@?=) )
 import Text.Pandoc.Builder
-import Data.Monoid
 import System.FilePath.Posix (joinPath)
 
 tests :: [Test]

@@ -42,7 +42,6 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import qualified Text.Pandoc.UTF8 as UTF8
 import Codec.Archive.Zip ( emptyArchive, addEntryToArchive, eRelativePath, fromEntry                         , Entry, toEntry, fromArchive)
-import Control.Applicative ((<$>))
 import Data.Time.Clock.POSIX ( getPOSIXTime )
 import Data.Time (getCurrentTime,UTCTime, formatTime)
 import Text.Pandoc.Compat.Locale ( defaultTimeLocale )

@@ -46,7 +46,7 @@ import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.UTF8 (toString)
 import Text.Pandoc.Options (WriterOptions(..))
 import Data.List (isPrefixOf)
-import Control.Applicative
+import Control.Applicative ((<|>))
 import Text.Parsec (runParserT, ParsecT)
 import qualified Text.Parsec as P
 import Control.Monad.Trans (lift)

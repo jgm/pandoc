@@ -59,7 +59,7 @@ import Data.Bits ((.|.))
 import qualified Data.ByteString.Lazy as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad.Reader
-import Control.Applicative ((<$>), (<|>))
+import Control.Applicative ((<|>))
 import qualified Data.Map as M
 import Text.Pandoc.Compat.Except
 import Text.TeXMath.Readers.OMML (readOMML)

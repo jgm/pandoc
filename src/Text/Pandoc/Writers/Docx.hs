@@ -35,7 +35,6 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Compat.Monoid ((<>))
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Data.Time.Clock
@@ -64,7 +63,7 @@ import Text.Printf (printf)
 import qualified Control.Exception as E
 import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
                          extensionFromMimeType)
-import Control.Applicative ((<$>), (<|>), (<*>))
+import Control.Applicative ((<|>))
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
 import Data.Char (ord)
 

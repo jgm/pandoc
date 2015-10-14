@@ -68,9 +68,8 @@ import qualified Data.Map as M
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import qualified Data.Text as T
-import Control.Applicative ((<$>), (<|>))
+import Control.Applicative ((<|>))
 import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
-import Data.Monoid
 import Paths_pandoc (getDataDir)
 import Text.Printf (printf)
 import Text.Pandoc.Error

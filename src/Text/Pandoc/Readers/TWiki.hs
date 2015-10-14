@@ -38,8 +38,6 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, macro, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
-import Data.Monoid (Monoid, mconcat, mempty)
-import Control.Applicative ((<$>), (<*), (*>), (<$))
 import Control.Monad
 import Text.Printf (printf)
 import Debug.Trace (trace)

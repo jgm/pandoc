@@ -77,7 +77,6 @@ where
 import Data.Sequence (Seq, fromList, (<|), singleton, mapWithIndex, viewl, ViewL(..))
 import Data.Foldable (toList)
 import Data.List (intercalate)
-import Data.Monoid
 import Data.String
 import Control.Monad.State
 import Data.Char (isSpace)

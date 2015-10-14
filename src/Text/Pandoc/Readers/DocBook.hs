@@ -8,10 +8,8 @@ import Text.XML.Light
 import Text.Pandoc.Compat.TagSoupEntity (lookupEntity)
 import Data.Either (rights)
 import Data.Generics
-import Data.Monoid
 import Data.Char (isSpace)
 import Control.Monad.State
-import Control.Applicative ((<$>))
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 import Text.TeXMath (readMathML, writeTeX)

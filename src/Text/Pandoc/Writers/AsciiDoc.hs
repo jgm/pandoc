@@ -50,7 +50,6 @@ import Control.Monad.State
 import qualified Data.Map as M
 import Data.Aeson (Value(String), fromJSON, toJSON, Result(..))
 import qualified Data.Text as T
-import Control.Applicative ((<*), (*>))
 
 data WriterState = WriterState { defListMarker :: String
                                , orderedListLevel :: Int

@@ -44,10 +44,8 @@ import Data.List ( findIndex, intersperse, intercalate,
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 import Text.Printf ( printf )
-import Control.Applicative ((<$>), (<$), (<*), (*>), (<*>), pure)
-import Text.Pandoc.Builder (Inlines, Blocks, trimInlines, (<>))
+import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Data.Monoid (mconcat, mempty)
 import Data.Sequence (viewr, ViewR(..))
 import Data.Char (toLower, isHexDigit, isSpace)
 

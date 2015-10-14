@@ -34,7 +34,6 @@ module Text.Pandoc.ImageSize ( ImageType(..), imageType, imageSize,
 import Data.ByteString (ByteString, unpack)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
-import Control.Applicative
 import Control.Monad
 import Data.Bits
 import Data.Binary

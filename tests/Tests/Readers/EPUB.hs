@@ -7,7 +7,6 @@ import Test.Framework.Providers.HUnit
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Readers.EPUB
 import Text.Pandoc.MediaBag (MediaBag, mediaDirectory)
-import Control.Applicative
 import Text.Pandoc.Error
 
 getMediaBag :: FilePath -> IO MediaBag

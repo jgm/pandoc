@@ -7,7 +7,6 @@ import Tests.Helpers
 import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
-import Data.Monoid (mempty)
 import Text.Pandoc.Error
 
 latex :: String -> Pandoc

@@ -31,8 +31,8 @@ Conversion of org-mode formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Org ( readOrg ) where
 
 import qualified Text.Pandoc.Builder as B
-import           Text.Pandoc.Builder ( Inlines, Blocks, HasMeta(..), (<>)
-                                     , trimInlines )
+import           Text.Pandoc.Builder ( Inlines, Blocks, HasMeta(..),
+                                       trimInlines )
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Options
 import qualified Text.Pandoc.Parsing as P
@@ -45,8 +45,6 @@ import           Text.Pandoc.Shared (compactify', compactify'DL)
 import           Text.TeXMath (readTeX, writePandoc, DisplayType(..))
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
-import           Control.Applicative ( Applicative, pure
-                                     , (<$>), (<$), (<*>), (<*), (*>) )
 import           Control.Arrow (first)
 import           Control.Monad (foldM, guard, liftM, liftM2, mplus, mzero, when)
 import           Control.Monad.Reader (Reader, runReader, ask, asks, local)
@@ -55,7 +53,6 @@ import           Data.Default
 import           Data.List (intersperse, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
 import           Data.Maybe (fromMaybe, isJust)
-import           Data.Monoid (Monoid, mconcat, mempty, mappend)
 import           Network.HTTP (urlEncode)
 
 import           Text.Pandoc.Error

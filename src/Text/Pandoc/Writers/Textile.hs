@@ -39,7 +39,6 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.XML ( escapeStringForXML )
 import Data.List ( intercalate )
 import Control.Monad.State
-import Control.Applicative ((<$>))
 import Data.Char ( isSpace )
 
 data WriterState = WriterState {

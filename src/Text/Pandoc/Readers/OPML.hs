@@ -9,9 +9,7 @@ import Text.Pandoc.Readers.Markdown (readMarkdown)
 import Text.XML.Light
 import Text.Pandoc.Compat.TagSoupEntity (lookupEntity)
 import Data.Generics
-import Data.Monoid
 import Control.Monad.State
-import Control.Applicative ((<$>), (<$))
 import Data.Default
 import Text.Pandoc.Compat.Except
 import Text.Pandoc.Error

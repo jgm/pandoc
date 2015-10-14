@@ -6,7 +6,6 @@ where
 import Text.Pandoc.Shared (trim)
 import Text.Parsec
 import Text.Parsec.String
-import Control.Applicative ((<*))
 
 ruleParser :: Parser (String, String)
 ruleParser = do

@@ -8,7 +8,6 @@ module Text.Pandoc.Readers.Docx.Reducible ( concatReduce
 
 
 import Text.Pandoc.Builder
-import Data.Monoid
 import Data.List
 import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)
 import qualified Data.Sequence as Seq (null)

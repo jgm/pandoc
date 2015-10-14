@@ -44,7 +44,6 @@ import qualified Control.Category                     as Cat
 import           Control.Arrow
 import           Control.Monad
 
-import           Data.Monoid
 import           Data.Foldable
 
 import           Text.Pandoc.Readers.Odt.Arrows.Utils

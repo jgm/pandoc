@@ -78,7 +78,6 @@ import qualified Data.Map                                     as M
 import qualified Data.Set                                     as S
 import           Data.List                                           ( unfoldr )
 import           Data.Default
-import           Data.Monoid
 import           Data.Maybe
 
 import qualified Text.XML.Light                               as XML

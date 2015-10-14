@@ -42,7 +42,6 @@ import Data.Digest.Pure.SHA (showDigest, sha1)
 import System.Environment
 import Control.Monad (unless, when, (<=<))
 import qualified Control.Exception as E
-import Control.Applicative ((<$))
 import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -155,9 +154,6 @@ tex2pdf' verbose args tmpDir program source = do
           return $ Left $ logmsg <> extramsg
        (ExitSuccess, Nothing)  -> return $ Left ""
        (ExitSuccess, Just pdf) -> return $ Right pdf
-
-(<>) :: ByteString -> ByteString -> ByteString
-(<>) = B.append
 
 -- parsing output
 

@@ -25,9 +25,7 @@ import System.FilePath ( takeFileName, (</>), dropFileName, normalise
                        , dropFileName
                        , splitFileName )
 import qualified Text.Pandoc.UTF8 as UTF8 (toStringLazy)
-import Control.Applicative ((<$>))
 import Control.Monad (guard, liftM, when)
-import Data.Monoid (mempty, (<>))
 import Data.List (isPrefixOf, isInfixOf)
 import Data.Maybe (mapMaybe, fromMaybe)
 import qualified Data.Map as M (Map, lookup, fromList, elems)

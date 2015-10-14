@@ -33,17 +33,14 @@ module Text.Pandoc.Readers.Txt2Tags ( readTxt2Tags
                                     where
 
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Builder ( Inlines, Blocks, (<>)
-                           , trimInlines )
+import Text.Pandoc.Builder ( Inlines, Blocks, trimInlines )
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (escapeURI,compactify', compactify'DL)
 import Text.Pandoc.Parsing hiding (space, spaces, uri, macro)
-import Control.Applicative ((<$>), (<$), (<*>), (<*), (*>))
 import Data.Char (toLower)
 import Data.List (transpose, intersperse, intercalate)
 import Data.Maybe (fromMaybe)
-import Data.Monoid (Monoid, mconcat, mempty, mappend)
 --import Network.URI (isURI) -- Not sure whether to use this function
 import Control.Monad (void, guard, when)
 import Data.Default

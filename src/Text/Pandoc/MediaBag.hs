@@ -41,7 +41,6 @@ import qualified System.FilePath.Posix as Posix
 import System.Directory (createDirectoryIfMissing)
 import qualified Data.Map as M
 import qualified Data.ByteString.Lazy as BL
-import Data.Monoid (Monoid)
 import Control.Monad (when)
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
 import qualified Text.Pandoc.UTF8 as UTF8

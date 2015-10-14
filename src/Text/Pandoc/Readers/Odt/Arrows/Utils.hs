@@ -42,7 +42,6 @@ module Text.Pandoc.Readers.Odt.Arrows.Utils where
 import           Control.Arrow
 import           Control.Monad                         ( join, MonadPlus(..) )
 
-import           Data.Monoid
 import qualified Data.Foldable                    as F
 
 import           Text.Pandoc.Readers.Odt.Generic.Fallible

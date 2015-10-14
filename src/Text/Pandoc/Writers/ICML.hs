@@ -23,7 +23,6 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Pretty
 import Data.List (isPrefixOf, isInfixOf, stripPrefix)
 import Data.Text as Text (breakOnAll, pack)
-import Data.Monoid (mappend)
 import Control.Monad.State
 import Network.URI (isURI)
 import qualified Data.Set as Set

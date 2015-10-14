@@ -66,9 +66,7 @@ import Text.XML.Light.Output
 import Text.XML.Light (unode, elChildren, unqual)
 import qualified Text.XML.Light as XML
 import System.FilePath (takeExtension)
-import Data.Monoid
 import Data.Aeson (Value)
-import Control.Applicative ((<$>))
 
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes

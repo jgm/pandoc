@@ -44,7 +44,6 @@ import Scripting.Lua (LuaState, StackValue, callfunc)
 import Text.Pandoc.Writers.Shared
 import qualified Scripting.Lua as Lua
 import qualified Text.Pandoc.UTF8 as UTF8
-import Data.Monoid
 import Control.Monad (when)
 import Control.Exception
 import qualified Data.Map as M

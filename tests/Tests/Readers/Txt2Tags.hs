@@ -9,7 +9,6 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 import Text.Pandoc.Error
 import Data.List (intersperse)
-import Data.Monoid (mempty, mconcat)
 import Text.Pandoc.Readers.Txt2Tags
 
 t2t :: String -> Pandoc

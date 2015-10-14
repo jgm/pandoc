@@ -52,7 +52,6 @@ import qualified Data.Set as Set
 import Data.Default
 import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.MediaBag (MediaBag)
-import Data.Monoid
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 

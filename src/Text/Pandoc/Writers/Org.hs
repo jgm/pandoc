@@ -40,7 +40,6 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Templates (renderTemplate')
 import Data.List ( intersect, intersperse, transpose )
 import Control.Monad.State
-import Control.Applicative ( (<$>) )
 
 data WriterState =
   WriterState { stNotes     :: [[Block]]

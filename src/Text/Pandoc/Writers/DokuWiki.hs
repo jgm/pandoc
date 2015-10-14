@@ -54,7 +54,6 @@ import Network.URI ( isURI )
 import Control.Monad ( zipWithM )
 import Control.Monad.State ( modify, State, get, evalState )
 import Control.Monad.Reader ( ReaderT, runReaderT, ask, local )
-import Control.Applicative ( (<$>) )
 
 data WriterState = WriterState {
     stNotes     :: Bool            -- True if there are notes

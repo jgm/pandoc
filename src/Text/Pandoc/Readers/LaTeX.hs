@@ -46,8 +46,7 @@ import Data.Char ( chr, ord, isLetter, isAlphaNum )
 import Control.Monad.Trans (lift)
 import Control.Monad
 import Text.Pandoc.Builder
-import Control.Applicative
-import Data.Monoid
+import Control.Applicative ((<|>), many, optional)
 import Data.Maybe (fromMaybe, maybeToList)
 import System.Environment (getEnv)
 import System.FilePath (replaceExtension, (</>), takeExtension, addExtension)

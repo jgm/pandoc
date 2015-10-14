@@ -8,7 +8,6 @@ import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Text.Pandoc.Error
-import Data.Monoid (mempty)
 
 rst :: String -> Pandoc
 rst = handleError . readRST def{ readerStandalone = True }

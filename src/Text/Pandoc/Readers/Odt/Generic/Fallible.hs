@@ -43,7 +43,6 @@ import           Control.Applicative
 import           Control.Monad
 
 import qualified Data.Foldable       as F
-import           Data.Monoid
 
 -- | Default for now. Will probably become a class at some point.
 type Failure = ()
