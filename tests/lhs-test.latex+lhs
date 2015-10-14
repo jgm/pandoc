@@ -46,7 +46,8 @@
             citecolor=blue,
             urlcolor=blue,
             linkcolor=magenta,
-            pdfborder={0 0 0}}
+            pdfborder={0 0 0}
+            }
 \urlstyle{same}  % don't use monospace font for urls
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}

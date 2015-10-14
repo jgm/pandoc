@@ -46,10 +46,11 @@
             citecolor=blue,
             urlcolor=blue,
             linkcolor=magenta,
-            pdfborder={0 0 0}}
+            pdfborder={0 0 0}
+            }
 \urlstyle{same}  % don't use monospace font for urls
 \usepackage{fancyvrb}
-\VerbatimFootnotes
+\VerbatimFootnotes % allows verbatim text in footnotes
 \usepackage{graphicx,grffile}
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
@@ -68,7 +69,6 @@
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{0}
-\VerbatimFootnotes % allows verbatim text in footnotes
 
 \title{Pandoc Test Suite}
 \author{John MacFarlane \and Anonymous}
