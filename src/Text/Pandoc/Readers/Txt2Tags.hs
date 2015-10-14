@@ -50,7 +50,7 @@ import Text.Pandoc.Error
 import Data.Time.LocalTime (getZonedTime)
 import Text.Pandoc.Compat.Directory(getModificationTime)
 import Data.Time.Format (formatTime)
-import Text.Pandoc.Compat.Locale (defaultTimeLocale)
+import Text.Pandoc.Compat.Time (defaultTimeLocale)
 import System.IO.Error (catchIOError)
 
 type T2T = ParserT String ParserState (Reader T2TMeta)

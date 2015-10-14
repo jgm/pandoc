@@ -123,8 +123,7 @@ import qualified Control.Monad.State as S
 import qualified Control.Exception as E
 import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
-import Text.Pandoc.Compat.Locale (defaultTimeLocale)
-import Data.Time
+import Text.Pandoc.Compat.Time
 import Data.Time.Clock.POSIX
 import System.IO (stderr)
 import System.IO.Temp
@@ -321,7 +320,12 @@ tabFilter tabStop =
 normalizeDate :: String -> Maybe String
 normalizeDate s = fmap (formatTime defaultTimeLocale "%F")
   (msum $ map (\fs -> parsetimeWith fs s) formats :: Maybe Day)
-   where parsetimeWith = parseTime defaultTimeLocale
+   where parsetimeWith =
+#if MIN_VERSION_time(1,5,0)
+             parseTimeM True defaultTimeLocale
+#else
+             parseTime defaultTimeLocale
+#endif
          formats = ["%x","%m/%d/%Y", "%D","%F", "%d %b %Y",
                     "%d %B %Y", "%b. %d, %Y", "%B %d, %Y", "%Y"]
 

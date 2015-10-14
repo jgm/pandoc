@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-
 Copyright (C) 2013-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -37,8 +38,7 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import Text.Pandoc.Pretty
-import Data.Time
-import Text.Pandoc.Compat.Locale (defaultTimeLocale)
+import Text.Pandoc.Compat.Time
 import qualified Text.Pandoc.Builder as B
 
 -- | Convert Pandoc document to string in OPML format.
@@ -69,8 +69,13 @@ showDateTimeRFC822 :: UTCTime -> String
 showDateTimeRFC822 = formatTime defaultTimeLocale "%a, %d %b %Y %X %Z"
 
 convertDate :: [Inline] -> String
-convertDate ils = maybe "" showDateTimeRFC822
-  $ parseTime defaultTimeLocale "%F" =<< (normalizeDate $ stringify ils)
+convertDate ils = maybe "" showDateTimeRFC822 $
+#if MIN_VERSION_time(1,5,0)
+  parseTimeM True
+#else
+  parseTime
+#endif
+  defaultTimeLocale "%F" =<< (normalizeDate $ stringify ils)
 
 -- | Convert an Element to OPML.
 elementToOPML :: WriterOptions -> Element -> Doc

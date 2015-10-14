@@ -393,7 +393,7 @@ Library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Slides,
                    Text.Pandoc.Highlighting,
-                   Text.Pandoc.Compat.Locale,
+                   Text.Pandoc.Compat.Time,
                    Text.Pandoc.Compat.Except,
                    Text.Pandoc.Compat.TagSoupEntity,
                    Text.Pandoc.Compat.Directory
@@ -432,6 +432,7 @@ Executable pandoc
   Hs-Source-Dirs:  ., prelude
   Main-Is:         pandoc.hs
   Buildable:       True
+  Other-Modules: Prelude
 
 Executable trypandoc
   Main-Is:         trypandoc.hs
@@ -443,6 +444,7 @@ Executable trypandoc
     Buildable:     True
   else
     Buildable:     False
+  Other-Modules: Prelude
 
 Test-Suite test-pandoc
   Type:           exitcode-stdio-1.0
@@ -492,6 +494,7 @@ Test-Suite test-pandoc
                   Tests.Writers.LaTeX
                   Tests.Writers.Docx
                   Tests.Writers.RST
+                  Prelude
   Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   Default-Language: Haskell98
 
@@ -505,3 +508,4 @@ benchmark benchmark-pandoc
                    criterion >= 1.0 && < 1.2
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Default-Language: Haskell98
+  Other-Modules:   Prelude

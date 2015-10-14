@@ -38,9 +38,8 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
 import Data.Time.Clock
-import Data.Time.Format
 import System.Environment
-import Text.Pandoc.Compat.Locale (defaultTimeLocale)
+import Text.Pandoc.Compat.Time
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.ImageSize
