@@ -37,16 +37,16 @@ import System.Environment ( getEnv )
 import Text.Printf (printf)
 import System.FilePath ( takeExtension, takeFileName )
 import System.FilePath.Glob ( namesMatching )
+import Network.HTTP ( urlEncode )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.SelfContained ( makeSelfContained )
 import Codec.Archive.Zip ( emptyArchive, addEntryToArchive, eRelativePath, fromEntry                         , Entry, toEntry, fromArchive)
 import Control.Applicative ((<$>))
 import Data.Time.Clock.POSIX ( getPOSIXTime )
 import Data.Time (getCurrentTime,UTCTime, formatTime)
 import Text.Pandoc.Compat.Locale ( defaultTimeLocale )
-import Text.Pandoc.Shared ( trimr, renderTags', safeRead, uniqueIdent, trim
+import Text.Pandoc.Shared ( renderTags', safeRead, uniqueIdent, trim
                           , normalizeDate, readDataFile, stringify, warn
                           , hierarchicalize, fetchItem' )
 import qualified Text.Pandoc.Shared as S (Element(..))
@@ -65,7 +65,7 @@ import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
                       , strContent, lookupAttr, Node(..), QName(..), parseXML
                       , onlyElems, node, ppElement)
 import Text.Pandoc.UUID (getRandomUUID)
-import Text.Pandoc.Writers.HTML (writeHtmlString, writeHtml)
+import Text.Pandoc.Writers.HTML ( writeHtml )
 import Data.Char ( toLower, isDigit, isAlphaNum )
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import qualified Control.Exception as E
@@ -874,21 +874,17 @@ transformInline  :: WriterOptions
 transformInline opts mediaRef (Image lab (src,tit)) = do
     newsrc <- modifyMediaRef opts mediaRef src
     return $ Image lab (newsrc, tit)
-transformInline opts _ (x@(Math _ _))
-  | WebTeX _ <- writerHTMLMathMethod opts = do
-    raw <- makeSelfContained opts $ writeHtmlInline opts x
-    return $ RawInline (Format "html") raw
+transformInline opts mediaRef (x@(Math t m))
+  | WebTeX url <- writerHTMLMathMethod opts = do
+    newsrc <- modifyMediaRef opts mediaRef (url ++ urlEncode m)
+    let mathclass = if t == DisplayMath then "display" else "inline"
+    return $ Span ("",["math",mathclass],[]) [Image [x] (newsrc, "")]
 transformInline opts mediaRef  (RawInline fmt raw)
   | fmt == Format "html" = do
   let tags = parseTags raw
   tags' <- mapM (transformTag opts mediaRef) tags
   return $ RawInline fmt (renderTags' tags')
 transformInline _ _ x = return x
-
-writeHtmlInline :: WriterOptions -> Inline -> String
-writeHtmlInline opts z = trimr $
-  writeHtmlString opts{ writerStandalone = False }
-    $ Pandoc nullMeta [Plain [z]]
 
 (!) :: Node t => (t -> Element) -> [(String, String)] -> t -> Element
 (!) f attrs n = add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) (f n)
