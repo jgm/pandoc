@@ -195,6 +195,15 @@ $endif$
 $if(parallaxBackgroundVertical)$
         parallaxBackgroundVertical: '$parallaxBackgroundVertical$',
 $endif$
+$if(width)$
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: $width$,
+$endif$
+$if(height)$
+        height: $height$,
+$endif$
 $if(margin)$
         // Factor of the display size that should remain empty around the content
         margin: $margin$,
