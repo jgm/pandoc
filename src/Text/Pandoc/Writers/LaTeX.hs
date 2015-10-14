@@ -748,7 +748,7 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
   ref <- toLabel id'
   let linkAnchor = if null id'
                       then empty
-                      else "\\hyperdef{}" <> braces (text ref) <>
+                      else "\\protect\\hyperdef{}" <> braces (text ref) <>
                              braces ("\\label" <> braces (text ref))
   fmap (linkAnchor <>)
     ((if noEmph then inCmd "textup" else id) .
