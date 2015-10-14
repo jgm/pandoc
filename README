@@ -1097,7 +1097,7 @@ Variables for slides
 :   reveal.js transition: `cube`, `page`, `concave`, `zoom`, `linear`, `fade`, or `none`
 
 `center`
-:   enables vertical centering of slides in reveal.js
+:   enables vertical centering of slides in reveal.js if set to `true`
 
 `maxScale`
 :   bounds for smallest/largest possible content scale in reveal.js (default: 1.5)
@@ -1105,14 +1105,14 @@ Variables for slides
 `slideNumber`
 :   enables display of the page number of the current slide in reveal.js
 
-`colortheme`, `fonttheme`, `innertheme`, `outertheme`
-:   themes for LaTeX [`beamer`] documents
-
 `controls`
-:   show controls in reveal.js slide shows
+:   disables controls in reveal.js slide shows if set to `false`
 
 `progress`
-:   show progress bar in reveal.js slide shows
+:   disables progress bar in reveal.js slide shows if set to `false`
+
+`colortheme`, `fonttheme`, `innertheme`, `outertheme`
+:   themes for LaTeX [`beamer`] documents
 
 Variables for LaTeX
 -------------------
@@ -1157,13 +1157,28 @@ Variables for LaTeX
     available through [`fontspec`], such as the OpenType features
     `Numbers=OldStyle,Numbers=Proportional`.
 
+`fontenc`
+:   allows font encoding to be specified through `fontenc` package (with `pdflatex`);
+    default is `T1` (see guide to [LaTeX font encodings])
+
 `linkcolor`, `toccolor`, `urlcolor`, `citecolor`
 :   color for internal links, links in table of contents, external links,
     and citation links in LaTeX documents, using options available through
     [`color`] package, e.g. `red`, `green`, `magenta`, `cyan`, `blue`, `black`
 
+`hidelinks`
+:   enables `hidelinks` option for [`hyperref`], disabling link color
+
 `links-as-notes`
 :   causes links to be printed as footnotes in LaTeX documents
+
+`indent`
+:   uses document class settings for indentation (the default LaTeX template
+    otherwise removes indentation and adds space between paragraphs)
+
+`subparagraph`
+:   disables default behavior of LaTeX template that redefines (sub)paragraphs
+    as sections, changing the appearance of nested headings in some classes
 
 `toc`
 :   include table of contents in LaTeX documents
@@ -1192,6 +1207,7 @@ Variables for LaTeX
 [`memoir`]: https://ctan.org/pkg/memoir
 [LaTeX Font Catalogue]: http://www.tug.dk/FontCatalogue/
 [`mathpazo`]: https://ctan.org/pkg/mathpazo
+[LaTeX font encodings]: https://ctan.org/pkg/encguide
 
 Variables for man pages
 -----------------------
