@@ -40,7 +40,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Data.Maybe (fromMaybe)
 import Data.List ( group, stripPrefix, find, intersperse, transpose, sortBy )
-import Data.Char ( isSpace, isPunctuation )
+import Data.Char ( isSpace, isPunctuation, ord, chr )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
 import Control.Monad.State
@@ -775,14 +775,25 @@ inlineToMarkdown opts (Superscript lst) = do
               then "^" <> contents <> "^"
               else if isEnabled Ext_raw_html opts
                        then "<sup>" <> contents <> "</sup>"
-                       else contents
+                       else case (render Nothing contents) of
+                                 ds | all (\d -> d >= '0' && d <= '9') ds
+                                   -> text (map toSuperscript ds)
+                                 _ -> contents
+                        where toSuperscript '1' = '\x00B9'
+                              toSuperscript '2' = '\x00B2'
+                              toSuperscript '3' = '\x00B3'
+                              toSuperscript c = chr (0x2070 + (ord c - 48))
 inlineToMarkdown opts (Subscript lst) = do
   contents <- inlineListToMarkdown opts $ walk escapeSpaces lst
   return $ if isEnabled Ext_subscript opts
               then "~" <> contents <> "~"
               else if isEnabled Ext_raw_html opts
                        then "<sub>" <> contents <> "</sub>"
-                       else contents
+                       else case (render Nothing contents) of
+                                 ds | all (\d -> d >= '0' && d <= '9') ds
+                                   -> text (map toSubscript ds)
+                                 _ -> contents
+                        where toSubscript c = chr (0x2080 + (ord c - 48))
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- gets stPlain
   if not plain &&
