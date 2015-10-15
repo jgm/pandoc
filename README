@@ -1077,6 +1077,9 @@ Language variables
 Variables for slides
 --------------------
 
+Variables are available for [producing slide shows with pandoc],
+including all [reveal.js configuration options].
+
 `slidy-url`
 :   base URL for Slidy documents (defaults to
     `http://www.w3.org/Talks/Tools/Slidy2`)
@@ -1090,32 +1093,15 @@ Variables for slides
 `revealjs-url`
 :   base URL for reveal.js documents (defaults to `reveal.js`)
 
-`theme`
-:   reveal.js or LaTeX beamer theme
-
-`transition`
-:   reveal.js transition: `cube`, `page`, `concave`, `zoom`, `linear`, `fade`, or `none`
-
-`center`
-:   enables vertical centering of slides in reveal.js if set to `true`
-
-`maxScale`
-:   bounds for smallest/largest possible content scale in reveal.js (default: 1.5)
-
-`slideNumber`
-:   enables display of the page number of the current slide in reveal.js
-
-`controls`
-:   disables controls in reveal.js slide shows if set to `false`
-
-`progress`
-:   disables progress bar in reveal.js slide shows if set to `false`
-
-`colortheme`, `fonttheme`, `innertheme`, `outertheme`
+`theme`, `colortheme`, `fonttheme`, `innertheme`, `outertheme`
 :   themes for LaTeX [`beamer`] documents
+
+[reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
 Variables for LaTeX
 -------------------
+
+LaTeX variables are used when [creating a PDF].
 
 `fontsize`
 :   font size (e.g. `10pt`, `12pt`) for LaTeX documents
@@ -3284,7 +3270,7 @@ For Slidy, Slideous, reveal.js, and S5, the file produced by pandoc with the
 assumed to be available at the relative path `s5/default` (for S5), `slideous`
 (for Slideous), `reveal.js` (for reveal.js), or at the Slidy website at
 `w3.org` (for Slidy).  (These paths can be changed by setting the `slidy-url`,
-`slideous-url`, `revealjs-url`, or `s5-url` variables; see `--variable`,
+`slideous-url`, `revealjs-url`, or `s5-url` variables; see [Variables for slides],
 above.) For DZSlides, the (relatively short) javascript and css are included in
 the file by default.
 
@@ -3381,15 +3367,15 @@ files it does not find in the user data directory.
 For dzslides, the CSS is included in the HTML file itself, and may
 be modified there.
 
-For reveal.js, themes can be used by setting the `theme` variable,
-for example:
+All [reveal.js configuration options] can be set through variables.
+For example, themes can be used by setting the `theme` variable:
 
     -V theme=moon
 
 Or you can specify a custom stylesheet using the `--css` option.
 
-To style beamer slides, you can specify a beamer "theme" or "colortheme"
-using the `-V` option:
+To style beamer slides, you can specify a `theme`, `colortheme`,
+`fonttheme`, `innertheme`, and `outertheme`, using the `-V` option:
 
     pandoc -t beamer habits.txt -V theme:Warsaw -o habits.pdf
 
