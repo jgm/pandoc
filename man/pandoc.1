@@ -1242,6 +1242,9 @@ When using LaTeX for bidirectional documents, only the \f[C]xelatex\f[]
 engine is fully supported (use \f[C]\-\-latex\-engine=xelatex\f[]).
 .RE
 .SS Variables for slides
+.PP
+Variables are available for producing slide shows with pandoc, including
+all reveal.js configuration options.
 .TP
 .B \f[C]slidy\-url\f[]
 base URL for Slidy documents (defaults to
@@ -1264,48 +1267,13 @@ base URL for reveal.js documents (defaults to \f[C]reveal.js\f[])
 .RS
 .RE
 .TP
-.B \f[C]theme\f[]
-reveal.js or LaTeX beamer theme
-.RS
-.RE
-.TP
-.B \f[C]transition\f[]
-reveal.js transition: \f[C]cube\f[], \f[C]page\f[], \f[C]concave\f[],
-\f[C]zoom\f[], \f[C]linear\f[], \f[C]fade\f[], or \f[C]none\f[]
-.RS
-.RE
-.TP
-.B \f[C]center\f[]
-enables vertical centering of slides in reveal.js
-.RS
-.RE
-.TP
-.B \f[C]maxScale\f[]
-bounds for smallest/largest possible content scale in reveal.js
-(default: 1.5)
-.RS
-.RE
-.TP
-.B \f[C]slideNumber\f[]
-enables display of the page number of the current slide in reveal.js
-.RS
-.RE
-.TP
-.B \f[C]colortheme\f[], \f[C]fonttheme\f[], \f[C]innertheme\f[], \f[C]outertheme\f[]
+.B \f[C]theme\f[], \f[C]colortheme\f[], \f[C]fonttheme\f[], \f[C]innertheme\f[], \f[C]outertheme\f[]
 themes for LaTeX \f[C]beamer\f[] documents
 .RS
 .RE
-.TP
-.B \f[C]controls\f[]
-show controls in reveal.js slide shows
-.RS
-.RE
-.TP
-.B \f[C]progress\f[]
-show progress bar in reveal.js slide shows
-.RS
-.RE
 .SS Variables for LaTeX
+.PP
+LaTeX variables are used when creating a PDF.
 .TP
 .B \f[C]fontsize\f[]
 font size (e.g.
@@ -1370,6 +1338,13 @@ OpenType features \f[C]Numbers=OldStyle,Numbers=Proportional\f[].
 .RS
 .RE
 .TP
+.B \f[C]fontenc\f[]
+allows font encoding to be specified through \f[C]fontenc\f[] package
+(with \f[C]pdflatex\f[]); default is \f[C]T1\f[] (see guide to LaTeX
+font encodings)
+.RS
+.RE
+.TP
 .B \f[C]linkcolor\f[], \f[C]toccolor\f[], \f[C]urlcolor\f[], \f[C]citecolor\f[]
 color for internal links, links in table of contents, external links,
 and citation links in LaTeX documents, using options available through
@@ -1379,8 +1354,27 @@ and citation links in LaTeX documents, using options available through
 .RS
 .RE
 .TP
+.B \f[C]hidelinks\f[]
+enables \f[C]hidelinks\f[] option for \f[C]hyperref\f[], disabling link
+color
+.RS
+.RE
+.TP
 .B \f[C]links\-as\-notes\f[]
 causes links to be printed as footnotes in LaTeX documents
+.RS
+.RE
+.TP
+.B \f[C]indent\f[]
+uses document class settings for indentation (the default LaTeX template
+otherwise removes indentation and adds space between paragraphs)
+.RS
+.RE
+.TP
+.B \f[C]subparagraph\f[]
+disables default behavior of LaTeX template that redefines
+(sub)paragraphs as sections, changing the appearance of nested headings
+in some classes
 .RS
 .RE
 .TP
@@ -4079,7 +4073,7 @@ CSS files, which are assumed to be available at the relative path
 \f[C]w3.org\f[] (for Slidy).
 (These paths can be changed by setting the \f[C]slidy\-url\f[],
 \f[C]slideous\-url\f[], \f[C]revealjs\-url\f[], or \f[C]s5\-url\f[]
-variables; see \f[C]\-\-variable\f[], above.) For DZSlides, the
+variables; see Variables for slides, above.) For DZSlides, the
 (relatively short) javascript and css are included in the file by
 default.
 .PP
@@ -4186,8 +4180,8 @@ directory.
 For dzslides, the CSS is included in the HTML file itself, and may be
 modified there.
 .PP
-For reveal.js, themes can be used by setting the \f[C]theme\f[]
-variable, for example:
+All reveal.js configuration options can be set through variables.
+For example, themes can be used by setting the \f[C]theme\f[] variable:
 .IP
 .nf
 \f[C]
@@ -4198,8 +4192,9 @@ variable, for example:
 Or you can specify a custom stylesheet using the \f[C]\-\-css\f[]
 option.
 .PP
-To style beamer slides, you can specify a beamer "theme" or "colortheme"
-using the \f[C]\-V\f[] option:
+To style beamer slides, you can specify a \f[C]theme\f[],
+\f[C]colortheme\f[], \f[C]fonttheme\f[], \f[C]innertheme\f[], and
+\f[C]outertheme\f[], using the \f[C]\-V\f[] option:
 .IP
 .nf
 \f[C]
