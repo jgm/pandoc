@@ -64,6 +64,7 @@ Markdown can be expected to be lossy.
 [XHTML]: http://www.w3.org/TR/xhtml1/
 [LaTeX]: http://latex-project.org
 [`beamer`]: https://ctan.org/pkg/beamer
+[Beamer User's Guide]: http://ctan.math.utah.edu/ctan/tex-archive/macros/latex/contrib/beamer/doc/beameruserguide.pdf
 [ConTeXt]: http://pragma-ade.nl
 [RTF]: http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook]: http://docbook.org
@@ -3407,8 +3408,8 @@ To show the notes window, press `s` while viewing the presentation.
 Notes are not yet supported for other slide formats, but the notes
 will not appear on the slides themselves.
 
-Marking frames "fragile" in beamer
-----------------------------------
+Frame attributes in beamer
+--------------------------
 
 Sometimes it is necessary to add the LaTeX `[fragile]` option to
 a frame in beamer (for example, when using the `minted` environment).
@@ -3416,6 +3417,11 @@ This can be forced by adding the `fragile` class to the header
 introducing the slide:
 
     # Fragile slide {.fragile}
+
+All of the other frame attributes described in Section 8.1 of
+the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
+`allowframebreaks`, `b`, `c`, `t`, `environment`, `label`, `plain`,
+`shrink`.
 
 EPUB Metadata
 =============

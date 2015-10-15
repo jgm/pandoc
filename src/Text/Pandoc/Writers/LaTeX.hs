@@ -300,9 +300,12 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
                                      if writerListings opts
                                         then query hasCode elts
                                         else [])
-      let allowframebreaks = "allowframebreaks" `elem` classes
+      let frameoptions = ["allowdisplaybreaks", "allowframebreaks",
+                          "b", "c", "t", "environment",
+                          "label", "plain", "shrink"]
       let optionslist = ["fragile" | fragile] ++
-                        ["allowframebreaks" | allowframebreaks]
+                        [k | k <- classes, k `elem` frameoptions] ++
+                        [k ++ "=" ++ v | (k,v) <- kvs, k `elem` frameoptions]
       let options = if null optionslist
                        then ""
                        else "[" ++ intercalate "," optionslist ++ "]"
