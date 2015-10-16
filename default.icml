@@ -30,7 +30,7 @@
     </RootCellStyleGroup>
   <Story Self="pandoc_story"
       TrackChanges="false"
-      StoryTitle="$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$"
+      StoryTitle="$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$"
       AppliedTOCStyle="n"
       AppliedNamedGrid="n" >
     <StoryPreference OpticalMarginAlignment="true" OpticalMarginSize="12" />
