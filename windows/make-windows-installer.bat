@@ -32,3 +32,6 @@ light  -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-w
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo Starting kSign: sign, then quit kSign to complete the build...
 kSign
+
+echo Copying to shared drive
+copy pandoc-%VERSION%-windows.msi \\VBOXSVR\WindowsShared\
