@@ -13,7 +13,10 @@ flags:
     debug: false
 ghc-options:
   pandoc-citeproc:  '-pgmP cpphs -optP--cpp'
+  highlighting-kate: '-pgmP cpphs -optP--cpp'
 packages:
 - '.'
-- '../pandoc-citeproc'
+- 'https://hackage.haskell.org/package/highlighting-kate-0.6/highlighting-kate-0.6.tar.gz'
+- 'https://hackage.haskell.org/package/texmath-0.8.4/texmath-0.8.4.tar.gz'
+- 'https://hackage.haskell.org/package/pandoc-citeproc-0.8.0.1/pandoc-citeproc-0.8.0.1.tar.gz'
 resolver: lts-3.9
