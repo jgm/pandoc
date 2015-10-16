@@ -21,7 +21,7 @@ stack install --stack-yaml=stack.pkg.yaml
 
 echo Getting man pages...
 make man/pandoc.1
-PANDOC_CITEPROC_PATH=`cabal unpack -d $DIST pandoc-citeproc | awk '{print $3;}'
+PANDOC_CITEPROC_PATH=`cabal unpack -d $DIST pandoc-citeproc | awk '{print $3;}'`
 
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
