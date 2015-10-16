@@ -154,7 +154,7 @@ pandoc (1.15.1)
 
   * EPUB writer:
 
-    + In TOC, replace literal "<br/>" with space (#2105).
+    + In TOC, replace literal `<br/>` with space (#2105).
     + With `--webtex`, include image file rather than `data:` URI (#2363).
 
   * Native writer: format Div properly, with blocks separated.
