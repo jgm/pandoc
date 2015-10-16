@@ -4237,7 +4237,7 @@ To show the notes window, press \f[C]s\f[] while viewing the
 presentation.
 Notes are not yet supported for other slide formats, but the notes will
 not appear on the slides themselves.
-.SS Marking frames "fragile" in beamer
+.SS Frame attributes in beamer
 .PP
 Sometimes it is necessary to add the LaTeX \f[C][fragile]\f[] option to
 a frame in beamer (for example, when using the \f[C]minted\f[]
@@ -4250,6 +4250,11 @@ introducing the slide:
 #\ Fragile\ slide\ {.fragile}
 \f[]
 .fi
+.PP
+All of the other frame attributes described in Section 8.1 of the Beamer
+User\[aq]s Guide may also be used: \f[C]allowdisplaybreaks\f[],
+\f[C]allowframebreaks\f[], \f[C]b\f[], \f[C]c\f[], \f[C]t\f[],
+\f[C]environment\f[], \f[C]label\f[], \f[C]plain\f[], \f[C]shrink\f[].
 .SH EPUB METADATA
 .PP
 EPUB metadata may be specified using the \f[C]\-\-epub\-metadata\f[]
