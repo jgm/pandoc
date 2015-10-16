@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
+LOCALBIN=$HOME/.local/bin
 DIST=`pwd`/osx_package
-SANDBOX=`pwd`/.cabal-sandbox
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
@@ -11,38 +11,28 @@ SCRIPTS=$OSX/osx-resources
 BASE=pandoc-$VERSION
 ME=$(whoami)
 PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
-CPPHS=$SANDBOX/bin/cpphs
 
 # echo Removing old files...
 rm -rf $DIST
 mkdir -p $RESOURCES
 
-cabal sandbox init
-echo Updating database
-cabal update
-
 echo Building pandoc...
-cabal clean
-# Use cpphs to avoid problems with clang cpp on ghc 7.8 osx:
-cabal install cpphs hsb2hs
-cabal install --ghc-options="-optl-mmacosx-version-min=10.6" --reinstall --flags="embed_data_files make-pandoc-man-pages" --ghc-options "-pgmP$CPPHS -optP--cpp" . pandoc-citeproc
-
-# get pandoc-citeproc man page:
-PANDOC_CITEPROC_PATH=`cabal unpack -d $DIST pandoc-citeproc | awk '{print $3;}'`
+stack install --stack-yaml=stack.pkg.yaml
+make man/pandoc.1
 
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
 mkdir -p $DEST/share/man/man5
 for f in pandoc pandoc-citeproc; do
-  cp $SANDBOX/bin/$f $DEST/bin/;
+  cp $LOCALBIN/$f $DEST/bin/;
 done
-cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
-cp $SANDBOX/share/man/man1/pandoc.1 $DEST/share/man/man1/pandoc.1
+cp ../pandoc-citeproc/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
+cp man/pandoc.1 $DEST/share/man/man1/
 
 chown -R $ME:staff $DIST
 
 echo Copying license...
-$SANDBOX/bin/pandoc --data data -t html5 -s COPYING -o $RESOURCES/license.html
+$LOCALBIN/pandoc --data data -t html5 -s COPYING -o $RESOURCES/license.html
 
 echo Signing pandoc executable...
 

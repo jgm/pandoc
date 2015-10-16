@@ -1,0 +1,19 @@
+flags:
+  pandoc:
+    trypandoc: false
+    https: true
+    embed_data_files: true
+    old-locale: false
+    network-uri: true
+  pandoc-citeproc:
+    bibutils: true
+    embed_data_files: true
+    unicode_collation: false
+    test_citeproc: false
+    debug: false
+ghc-options:
+  pandoc-citeproc:  '-pgmP cpphs -optP--cpp'
+packages:
+- '.'
+- '../pandoc-citeproc'
+resolver: lts-3.9
