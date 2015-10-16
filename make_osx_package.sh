@@ -18,7 +18,10 @@ mkdir -p $RESOURCES
 
 echo Building pandoc...
 stack install --stack-yaml=stack.pkg.yaml
+
+echo Getting man pages...
 make man/pandoc.1
+PANDOC_CITEPROC_PATH=`cabal unpack -d $DIST pandoc-citeproc | awk '{print $3;}'
 
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
@@ -26,7 +29,7 @@ mkdir -p $DEST/share/man/man5
 for f in pandoc pandoc-citeproc; do
   cp $LOCALBIN/$f $DEST/bin/;
 done
-cp ../pandoc-citeproc/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
+cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 cp man/pandoc.1 $DEST/share/man/man1/
 
 chown -R $ME:staff $DIST
