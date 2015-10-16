@@ -1023,7 +1023,7 @@ environments = M.fromList
   , ("figure", env "figure" $
          resetCaption *> skipopts *> blocks >>= addImageCaption)
   , ("center", env "center" blocks)
-  , ("longtable",  env "table" $
+  , ("longtable",  env "longtable" $
          resetCaption *> skipopts *> blocks >>= addTableCaption)
   , ("table",  env "table" $
          resetCaption *> skipopts *> blocks >>= addTableCaption)
