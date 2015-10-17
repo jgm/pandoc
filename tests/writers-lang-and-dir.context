@@ -1,0 +1,111 @@
+\startmode[*mkii]
+  \enableregime[utf-8]  
+  \setupcolors[state=start]
+\stopmode
+
+% Enable hyperlinks
+\setupinteraction[state=start, color=middleblue]
+
+\setuppapersize [letter][letter]
+\setuplayout    [width=middle,  backspace=1.5in, cutspace=1.5in,
+                 height=middle, topspace=0.75in, bottomspace=0.75in]
+
+\setuppagenumbering[location={footer,center}]
+
+\setupbodyfont[11pt]
+
+\setupwhitespace[medium]
+
+\setuphead[chapter]      [style=\tfd]
+\setuphead[section]      [style=\tfc]
+\setuphead[subsection]   [style=\tfb]
+\setuphead[subsubsection][style=\bf]
+
+\setuphead[chapter, section, subsection, subsubsection][number=no]
+
+\definedescription
+  [description]
+  [headstyle=bold, style=normal, location=hanging, width=broad, margin=1cm, alternative=hanging]
+
+\setupitemize[autointro]    % prevent orphan list intro
+\setupitemize[indentnext=no]
+
+\setupfloat[figure][default={here,nonumber}]
+\setupfloat[table][default={here,nonumber}]
+
+\setupthinrules[width=15em] % width of horizontal rules
+
+\setupdelimitedtext
+  [blockquote]
+  [before={\blank[medium]},
+   after={\blank[medium]},
+   indentnext=no,
+  ]
+
+
+\starttext
+
+\section[empty-divs-and-spans]{Empty Divs and Spans}
+
+Some text and
+
+div contents
+
+and more text.
+
+Next paragraph with a span and a word-thatincludesaspanright?
+
+\section[directionality]{Directionality}
+
+Some text and
+
+\startalignment[righttoleft]
+rtl div contents
+
+\stopalignment
+
+and more text.
+
+\startalignment[lefttoright]
+and a ltr div. with a {\righttoleft rtl span}.
+
+\stopalignment
+
+Next paragraph with a {\righttoleft rtl span} and a
+word-that-includesa{\lefttoright ltrspan}right?
+
+\section[languages]{Languages}
+
+Some text and
+
+\start\language[de]
+German div contents
+
+\stop
+
+and more text.
+
+Next paragraph with a \start\language[en-gb]British span\stop  and a
+word-that-includesa\start\language[de-ch]Swiss German span\stop right?
+
+Some \start\language[es]Spanish text\stop .
+
+\section[combined]{Combined}
+
+Some text and
+
+\start\language[fr]
+\startalignment[righttoleft]
+French rtl div contents
+
+\stopalignment
+\stop
+
+and more text.
+
+Next paragraph with a \start\language[en-gb]{\lefttoright British ltr
+span}\stop  and a
+word-that-includesa\start\language[de-ch]{\lefttoright Swiss German ltr
+span}\stop right?
+
+\stoptext
