@@ -184,10 +184,10 @@ document contains images), [`color`], [`hyperref`], [`ulem`],
 [`mathspec`], [`polyglossia`] (with `lang`), [`xecjk`], and
 [`bidi`] (with the `dir` variable set). The [`upquote`] and
 [`microtype`] packages are used if available, and [`csquotes`] will
-be used for [smart punctuation] if added to the template. The
-[`natbib`], [`biblatex`], [`bibtex`], and [`biber`] packages can
-optionally be used for [citation rendering]. These are included with
-all recent versions of [TeX Live].
+be used for [smart punctuation] if added to the template or included in
+any header file. The [`natbib`], [`biblatex`], [`bibtex`], and [`biber`]
+packages can optionally be used for [citation rendering]. These are
+included with all recent versions of [TeX Live].
 
 PDF output can be controlled using [variables for LaTeX].
 
@@ -2377,8 +2377,9 @@ correct output, converting straight quotes to curly quotes, `---` to
 em-dashes, `--` to en-dashes, and `...` to ellipses. Nonbreaking spaces
 are inserted after certain abbreviations, such as "Mr."
 
-Note:  if your LaTeX template calls for the [`csquotes`] package, pandoc will
-detect this automatically and use `\enquote{...}` for quoted text.
+Note:  if your LaTeX template or any included header file call for the
+[`csquotes`] package, pandoc will detect this automatically and use
+`\enquote{...}` for quoted text.
 
 Inline formatting
 -----------------

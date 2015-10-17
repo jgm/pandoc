@@ -38,7 +38,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
-import Data.Aeson (object, (.=))
+import Data.Aeson ( object, (.=), FromJSON )
 import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Data.Maybe ( fromMaybe )
@@ -129,7 +129,12 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                  | otherwise               -> return ()
   -- check for \usepackage...{csquotes}; if present, we'll use
   -- \enquote{...} for smart quotes:
-  when ("{csquotes}" `isInfixOf` template) $
+  let headerIncludesField :: FromJSON a => Maybe a
+      headerIncludesField = getField "header-includes" metadata
+  let headerIncludes = fromMaybe [] $ mplus
+                       (fmap return headerIncludesField)
+                       headerIncludesField
+  when (any (isInfixOf "{csquotes}") (template : headerIncludes)) $
     modify $ \s -> s{stCsquotes = True}
   let (blocks'', lastHeader) = if writerCiteMethod options == Citeproc then
                                  (blocks', [])
