@@ -196,7 +196,8 @@ writerTests format
     , test "tables" opts             "tables.native"    ("tables" <.> format)
     ]
   where
-    opts = ["-r", "native", "-w", format, "--columns=78"]
+    opts = ["-r", "native", "-w", format, "--columns=78",
+            "--variable", "pandoc-version="]
 
 s5WriterTest :: String -> [String] -> String -> Test
 s5WriterTest modifier opts format
