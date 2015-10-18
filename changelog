@@ -1,3 +1,10 @@
+pandoc (1.15.1.1)
+
+  * `Text.Pandoc.Data`:  store paths in dataFiles using posix separators.
+    This way we have uniform separators, whether on Windows or Linux.
+    This should solve a problem where on some Windows versions
+    the data files weren't being found (#2459).
+
 pandoc (1.15.1)
 
   * `pandocVersion` is now defined in `Text.Pandoc.Shared`
