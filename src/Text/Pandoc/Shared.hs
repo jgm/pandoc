@@ -854,7 +854,6 @@ readDefaultDataFile fname =
 #else
   getDataFileName fname' >>= checkExistence >>= BS.readFile
     where fname' = if fname == "README" then fname else "data" </> fname
-#endif
 
 checkExistence :: FilePath -> IO FilePath
 checkExistence fn = do
@@ -862,6 +861,7 @@ checkExistence fn = do
   if exists
      then return fn
      else err 97 ("Could not find data file " ++ fn)
+#endif
 
 -- | Read file from specified user data directory or, if not found there, from
 -- Cabal data directory.
