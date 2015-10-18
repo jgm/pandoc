@@ -1418,11 +1418,11 @@ Thus, for example,
 
   Header                            Identifier
   -------------------------------   ----------------------------
-  Header identifiers in HTML        `header-identifiers-in-html`
-  *Dogs*?--in *my* house?           `dogs--in-my-house`
-  [HTML], [S5], or [RTF]?           `html-s5-or-rtf`
-  3. Applications                   `applications`
-  33                                `section`
+  `Header identifiers in HTML`      `header-identifiers-in-html`
+  `*Dogs*?--in *my* house?`         `dogs--in-my-house`
+  `[HTML], [S5], or [RTF]?`         `html-s5-or-rtf`
+  `3. Applications`                 `applications`
+  `33`                              `section`
 
 These rules should, in most cases, allow one to determine the identifier
 from the header text. The exception is when several headers have the
