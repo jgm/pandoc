@@ -14,7 +14,7 @@ pandoc (1.15.1)
   * For `markdown_mmd`, add: `implicit_figures`, `superscripts`,
     `subscripts` (#2401).
 
-  * Added `odt` as input format (MarLinn).  Added new module
+  * Added `odt` as input format (Martin Linnemann).  Added new module
     `Text.Pandoc.Reader.ODT` (API change). Fully implemented features:
     Paragraphs, Headers, Basic styling, Unordered lists, Ordered lists,
     External Links, Internal Links, Footnotes, Endnotes, Blockquotes.
