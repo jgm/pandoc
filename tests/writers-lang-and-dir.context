@@ -1,27 +1,28 @@
-\startmode[*mkii]
-  \enableregime[utf-8]  
-  \setupcolors[state=start]
-\stopmode
-
 % Enable hyperlinks
-\setupinteraction[state=start, color=middleblue]
+\setupinteraction
+  [state=start,
+  style=normal,
+  color=black,
+  contrastcolor=black]
+% make chapter, section bookmarks visible when opening document
+\placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
+\setupinteractionscreen[option=bookmark]
+\setuptagging[state=start]
 
-\setuppapersize [letter][letter]
-\setuplayout    [width=middle,  backspace=1.5in, cutspace=1.5in,
-                 height=middle, topspace=0.75in, bottomspace=0.75in]
-
-\setuppagenumbering[location={footer,center}]
-
-\setupbodyfont[11pt]
-
+\definefontfeature[default][default][protrusion=quality,expansion=quality,onum=yes] % use microtypography
+\setupalign[hz,hanging]
+\setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
+\setupbodyfont[mainfont]
 \setupwhitespace[medium]
 
-\setuphead[chapter]      [style=\tfd]
-\setuphead[section]      [style=\tfc]
-\setuphead[subsection]   [style=\tfb]
-\setuphead[subsubsection][style=\bf]
+\setuphead[chapter]            [style=\tfd,header=empty]
+\setuphead[section]            [style=\tfc]
+\setuphead[subsection]         [style=\tfb]
+\setuphead[subsubsection]      [style=\bf]
+\setuphead[subsubsubsection]   [style=\sc]
+\setuphead[subsubsubsubsection][style=\it]
 
-\setuphead[chapter, section, subsection, subsubsection][number=no]
+\setuphead[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][number=no]
 
 \definedescription
   [description]
@@ -35,12 +36,11 @@
 
 \setupthinrules[width=15em] % width of horizontal rules
 
-\setupdelimitedtext
-  [blockquote]
-  [before={\blank[medium]},
-   after={\blank[medium]},
-   indentnext=no,
-  ]
+\setuphead[title][
+  style={\tfd\raggedcenter},
+  before={\startalignment[middle]},
+  after={
+    \bigskip\stopalignment}]
 
 
 \starttext
