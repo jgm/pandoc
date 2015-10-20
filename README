@@ -65,7 +65,7 @@ Markdown can be expected to be lossy.
 [LaTeX]: http://latex-project.org
 [`beamer`]: https://ctan.org/pkg/beamer
 [Beamer User's Guide]: http://ctan.math.utah.edu/ctan/tex-archive/macros/latex/contrib/beamer/doc/beameruserguide.pdf
-[ConTeXt]: http://pragma-ade.nl
+[ConTeXt]: http://contextgarden.net/
 [RTF]: http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook]: http://docbook.org
 [txt2tags]: http://txt2tags.org
@@ -189,7 +189,7 @@ be used for [smart punctuation] if added to the template. The
 optionally be used for [citation rendering]. These are included with
 all recent versions of [TeX Live].
 
-Alternatively, you can ask pandoc to use ConTeXt to create the PDF.
+Alternatively, pandoc can use ConTeXt to create a PDF.
 To do this, specify an output file with a `.pdf` extension,
 as before, but add `-t context` to the command line.
 
@@ -1009,9 +1009,9 @@ Variables set by pandoc
 Some variables are set automatically by pandoc.  These vary somewhat
 depending on the output format, but include metadata fields as well as the following:
 
-`title`, `author`, `date`
+`title`, `author`, `date`, `subtitle`
 :   allow identification of basic aspects of the document.
-    Included in PDF metadata through LaTeX.
+    Included in PDF metadata through LaTeX and ConTeXt.
     These can be set through a [pandoc title block][Extension: `pandoc_title_block`],
     which allows for multiple authors, or through a YAML metadata block:
 
@@ -1022,7 +1022,7 @@ depending on the output format, but include metadata fields as well as the follo
         ...
 
 `abstract`
-:   allows for specification of document summary in LaTeX and Word docx
+:   allows for specification of document summary in LaTeX, ConTeXt, and Word docx
 
 `header-includes`
 :   contents specified by `-H/--include-in-header` (may have multiple
@@ -1030,6 +1030,9 @@ depending on the output format, but include metadata fields as well as the follo
 
 `toc`
 :   non-null value if `--toc/--table-of-contents` was specified
+
+`toc-title`
+:   title of table of contents (works only with EPUB and docx)
 
 `include-before`
 :   contents specified by `-B/--include-before-body` (may have
@@ -1115,25 +1118,25 @@ Variables for LaTeX
 LaTeX variables are used when [creating a PDF].
 
 `fontsize`
-:   font size (e.g. `10pt`, `12pt`) for LaTeX documents
+:   font size for body text (e.g. `10pt`, `12pt`)
 
 `documentclass`
-:   document class for LaTeX documents, e.g. [`article`], [`report`], [`book`], [`memoir`]
+:   document class, e.g. [`article`], [`report`], [`book`], [`memoir`]
 
 `classoption`
-:   option for LaTeX document class, e.g. `oneside`; may be repeated
+:   option for document class, e.g. `oneside`; may be repeated
     for multiple options
 
 `geometry`
-:   option for LaTeX [`geometry`] package, e.g. `margin=1in`;
+:   option for [`geometry`] package, e.g. `margin=1in`;
     may be repeated for multiple options
 
 `linestretch`
-:   adjusts line spacing in LaTeX documents using the [`setspace`]
+:   adjusts line spacing using the [`setspace`]
     package, e.g. `1.25`, `1.5`
 
 `fontfamily`
-:   font package for LaTeX documents (with `pdflatex`):
+:   font package for use with `pdflatex`:
     [TeX Live] includes many options, documented in the [LaTeX Font Catalogue].
     The default is [Latin Modern][`lm`].
 
@@ -1143,14 +1146,14 @@ LaTeX variables are used when [creating a PDF].
     figures and true small caps
 
 `mainfont`, `sansfont`, `monofont`, `mathfont`, `CJKmainfont`
-:   fonts for LaTeX documents (works only with `xelatex` and
-    `lualatex`): takes the name of any system font, using the
+:   font families for use with `xelatex` or
+    `lualatex`: take the name of any system font, using the
     [`fontspec`] package.  Note that if `CJKmainfont` is used,
     the [`xecjk`] package must be available.
 
 `mainfontoptions`, `sansfontoptions`, `monofontoptions`, `mathfontoptions`, `CJKoptions`
 :   options to use with `mainfont`, `sansfont`, `monofont`, `mathfont`,
-    `CJKmainfont` in `xelatex` and `lualatex`.  Allows for any choices
+    `CJKmainfont` in `xelatex` and `lualatex`.  Allow for any choices
     available through [`fontspec`], such as the OpenType features
     `Numbers=OldStyle,Numbers=Proportional`.
 
@@ -1160,14 +1163,14 @@ LaTeX variables are used when [creating a PDF].
 
 `linkcolor`, `toccolor`, `urlcolor`, `citecolor`
 :   color for internal links, links in table of contents, external links,
-    and citation links in LaTeX documents, using options available through
+    and citation links, using options available through
     [`color`] package, e.g. `red`, `green`, `magenta`, `cyan`, `blue`, `black`
 
 `hidelinks`
 :   enables `hidelinks` option for [`hyperref`], disabling link color
 
 `links-as-notes`
-:   causes links to be printed as footnotes in LaTeX documents
+:   causes links to be printed as footnotes
 
 `indent`
 :   uses document class settings for indentation (the default LaTeX template
@@ -1178,25 +1181,23 @@ LaTeX variables are used when [creating a PDF].
     as sections, changing the appearance of nested headings in some classes
 
 `toc`
-:   include table of contents in LaTeX documents
+:   include table of contents (can also be set using `--toc/--table-of-contents`)
 
 `toc-depth`
-:   level of section to include in table of contents in LaTeX documents
+:   level of section to include in table of contents
 
-`toc-title`
-:   title of table of contents (works only with EPUB and docx)
+`lof`, `lot`
+:   include list of figures, list of tables
 
-`lof`
-:   include list of figures in LaTeX documents
-
-`lot`
-:   include list of tables in LaTeX documents
+`keywords`
+:   list of keywords to be included in PDF metadata,
+    separated by commas or semicolons
 
 `bibliography`
 :   bibliography to use for resolving references
 
 `biblio-style`
-:   bibliography style in LaTeX, when used with `--natbib`
+:   bibliography style, when used with `--natbib`
 
 [`article`]: https://ctan.org/pkg/article
 [`report`]: https://ctan.org/pkg/report
@@ -1210,7 +1211,52 @@ Variables for ConTeXt
 ---------------------
 
 `papersize`
-:   paper size (defaults to `letter`)
+:   paper size, e.g. `letter`, `A4`, `landscape` (see [ConTeXt Paper Setup]);
+    may be repeated for multiple options
+
+`layout`
+:   options for page margins and text arrangement (see [ConTeXt Layout]);
+    may be repeated for multiple options
+
+`fontsize`
+:   font size for body text (e.g. `10pt`, `12pt`)
+
+`mainfont`, `sansfont`, `monofont`, `mathfont`
+:   font families: take the name of any system font (see [ConTeXt Font Switching])
+
+`linkcolor`
+:   color for links, e.g. `red`, `blue` (see [ConTeXt Color])
+
+`whitespace`
+:   spacing between paragraphs, e.g. `none`, `small` (using [`setupwhitespace`])
+
+`interlinespace`
+:   adjusts line spacing, e.g. `4ex` (using [`setupinterlinespace`])
+
+`headertext`, `footertext`
+:   text to be placed in running header or footer (see [ConTeXt Headers and Footers])
+
+`pagenumbering`
+:   page number style and location (using [`setuppagenumbering`])
+
+`toc`
+:   include table of contents (can also be set using `--toc/--table-of-contents`)
+
+`lof`, `lot`
+:   include list of figures, list of tables
+
+`keywords`
+:   list of keywords to be included in PDF metadata,
+    separated by commas or semicolons
+
+[ConTeXt Paper Setup]: http://wiki.contextgarden.net/PaperSetup
+[ConTeXt Layout]: http://wiki.contextgarden.net/Layout
+[ConTeXt Font Switching]: http://wiki.contextgarden.net/Font_Switching
+[ConTeXt Color]: http://wiki.contextgarden.net/Color
+[ConTeXt Headers and Footers]: http://wiki.contextgarden.net/Headers_and_Footers
+[`setupwhitespace`]: http://wiki.contextgarden.net/Command/setupwhitespace
+[`setupinterlinespace`]: http://wiki.contextgarden.net/Command/setupinterlinespace
+[`setuppagenumbering`]: http://wiki.contextgarden.net/Command/setuppagenumbering
 
 Variables for man pages
 -----------------------
