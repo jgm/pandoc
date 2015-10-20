@@ -24,7 +24,7 @@ markup], [Haddock markup], [OPML], [Emacs Org mode], [DocBook],
 [FictionBook2], [Textile], [groff man] pages, [Emacs Org mode],
 [AsciiDoc], [InDesign ICML], and [Slidy], [Slideous], [DZSlides],
 [reveal.js] or [S5] HTML slide shows. It can also produce [PDF] output
-on systems where LaTeX is installed.
+on systems where LaTeX or ConTeXt is installed.
 
 Pandoc's enhanced version of markdown includes syntax for [footnotes],
 [tables], flexible [ordered lists], [definition lists], [fenced code blocks],
@@ -167,7 +167,7 @@ Creating a PDF
 --------------
 
 To produce a PDF, specify an output file with a `.pdf` extension.
-Pandoc will use LaTeX to convert it to PDF:
+By default, pandoc will use LaTeX to convert it to PDF:
 
     pandoc test.txt -o test.pdf
 
@@ -189,7 +189,12 @@ be used for [smart punctuation] if added to the template. The
 optionally be used for [citation rendering]. These are included with
 all recent versions of [TeX Live].
 
-PDF output can be controlled using [variables for LaTeX].
+Alternatively, you can ask pandoc to use ConTeXt to create the PDF.
+To do this, specify an output file with a `.pdf` extension,
+as before, but add `-t context` to the command line.
+
+PDF output can be controlled using [variables for LaTeX]
+or [variables for ConTeXt].
 
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
 [`amsmath`]: https://ctan.org/pkg/amsmath
@@ -992,9 +997,9 @@ customize the `default.opendocument` template.  For `pdf` output,
 customize the `default.latex` template.
 
 Templates contain *variables*, which allow for the inclusion of
-arbitrary information at any point in the file. Variables may be set 
-within the document using [YAML metadata blocks][Extension: `yaml_metadata_block`].
-They may also be set at the
+arbitrary information at any point in the file. Variables may be set
+within the document using [YAML metadata blocks][Extension:
+`yaml_metadata_block`].  They may also be set at the
 command line using the `-V/--variable` option: variables set in this
 way override metadata fields with the same name.
 
@@ -1200,6 +1205,12 @@ LaTeX variables are used when [creating a PDF].
 [LaTeX Font Catalogue]: http://www.tug.dk/FontCatalogue/
 [`mathpazo`]: https://ctan.org/pkg/mathpazo
 [LaTeX font encodings]: https://ctan.org/pkg/encguide
+
+Variables for ConTeXt
+---------------------
+
+`papersize`
+:   paper size (defaults to `letter`)
 
 Variables for man pages
 -----------------------

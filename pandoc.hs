@@ -1173,6 +1173,7 @@ main = do
 
   let laTeXOutput = "latex" `isPrefixOf` writerName' ||
                     "beamer" `isPrefixOf` writerName'
+  let conTeXtOutput = "context" `isPrefixOf` writerName'
 
   writer <- if ".lua" `isSuffixOf` writerName'
                -- note:  use non-lowercased version writerName
@@ -1256,7 +1257,7 @@ main = do
                                 _ -> Nothing
 
   let readerOpts = def{ readerSmart = smart || (texLigatures &&
-                          (laTeXOutput || "context" `isPrefixOf` writerName'))
+                          (laTeXOutput || conTeXtOutput))
                       , readerStandalone = standalone'
                       , readerParseRaw = parseRaw
                       , readerColumns = columns
@@ -1367,17 +1368,20 @@ main = do
     PureStringWriter f
       | pdfOutput -> do
               -- make sure writer is latex or beamer
-              unless laTeXOutput $
+              unless (laTeXOutput || conTeXtOutput) $
                 err 47 $ "cannot produce pdf output with " ++ writerName' ++
                          " writer"
 
+              let texprog = if conTeXtOutput
+                              then "context"
+                              else latexEngine
               -- check for latex program
-              mbLatex <- findExecutable latexEngine
+              mbLatex <- findExecutable texprog
               when (mbLatex == Nothing) $
-                   err 41 $ latexEngine ++ " not found. " ++
-                     latexEngine ++ " is needed for pdf output."
+                   err 41 $ texprog ++ " not found. " ++
+                     texprog ++ " is needed for pdf output."
 
-              res <- makePDF latexEngine f writerOptions doc'
+              res <- makePDF texprog f writerOptions doc'
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> do
