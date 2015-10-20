@@ -39,7 +39,7 @@ import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
 import Data.Aeson (object, (.=))
-import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse )
+import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse, nub, nubBy )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Data.Maybe ( fromMaybe )
 import qualified Data.Text as T
@@ -145,6 +145,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
+  let docLangs = nub $ query (extract "lang") blocks
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
                                               if stBook st
@@ -179,18 +180,48 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                          Biblatex -> defField "biblio-title" biblioTitle .
                                      defField "biblatex" True
                          _        -> id) $
+                  -- set lang to something so polyglossia/babel is included
+                  defField "lang" (if null docLangs then ""::String else "en") $
+                  defField "otherlangs" docLangs $
+                  defField "dir" (if (null $ query (extract "dir") blocks)
+                                     then ""::String
+                                     else "ltr") $
                   metadata
   let toPolyObj lang = object [ "name"    .= T.pack name
                               , "options" .= T.pack opts ]
         where
           (name, opts) = toPolyglossia lang
   let lang = maybe [] (splitBy (=='-')) $ getField "lang" context
+      otherlangs = maybe [] (map $ splitBy (=='-')) $ getField "otherlangs" context
   let context' =
           defField "babel-lang" (toBabel lang)
+        $ defField "babel-otherlangs" (map toBabel otherlangs)
+        $ defField "babel-newcommands" (concatMap (\(poly, babel) ->
+            -- \textspanish and \textgalician are already used by babel
+            -- save them as \oritext... and let babel use that
+            if poly `elem` ["spanish", "galician"]
+               then "\\let\\oritext" ++ poly ++ "\\text" ++ poly ++ "\n" ++
+                    "\\AddBabelHook{" ++ poly ++ "}{beforeextras}" ++
+                      "{\\renewcommand{\\text" ++ poly ++ "}{\\oritext"
+                      ++ poly ++ "}}\n" ++
+                    "\\AddBabelHook{" ++ poly ++ "}{afterextras}" ++
+                      "{\\renewcommand{\\text" ++ poly ++ "}[2][]{\\foreignlanguage{"
+                      ++ poly ++ "}{##2}}}\n"
+               else "\\newcommand{\\text" ++ poly ++ "}[2][]{\\foreignlanguage{"
+                      ++ babel ++ "}{#2}}\n" ++
+                    "\\newenvironment{" ++ poly ++ "}[1]{\\begin{otherlanguage}{"
+                      ++ babel ++ "}}{\\end{otherlanguage}}\n"
+            )
+            -- eliminate duplicates that have same polyglossia name
+            $ nubBy (\a b -> fst a == fst b)
+            -- find polyglossia and babel names of languages used in the document
+            $ map (\l ->
+              let lng = splitBy (=='-') l
+              in  (fst $ toPolyglossia lng, toBabel lng)
+              )
+            docLangs )
         $ defField "polyglossia-lang" (toPolyObj lang)
-        $ defField "polyglossia-otherlangs"
-            (maybe [] (map $ toPolyObj . splitBy (=='-')) $
-            getField "otherlangs" context)
+        $ defField "polyglossia-otherlangs" (map toPolyObj otherlangs)
         $ defField "latex-dir-rtl" (case (getField "dir" context)::Maybe String of
                                       Just "rtl" -> True
                                       _          -> False)
@@ -340,15 +371,24 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
                       then empty
                       else "\\hyperdef{}" <> braces (text ref) <>
                            braces ("\\label" <> braces (text ref))
-  contents' <- blockListToLaTeX bs
-  let align dir = inCmd "begin" dir $$ contents' $$ inCmd "end" dir
-  let contents = case lookup "dir" kvs of
-                   Just "rtl" -> align "RTL"
-                   Just "ltr" -> align "LTR"
-                   _          -> contents'
-  if beamer && "notes" `elem` classes  -- speaker notes
-     then return $ "\\note" <> braces contents
-     else return (linkAnchor $$ contents)
+  let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
+  let wrapDir = case lookup "dir" kvs of
+                  Just "rtl" -> align "RTL"
+                  Just "ltr" -> align "LTR"
+                  _          -> id
+      wrapLang txt = case lookup "lang" kvs of
+                       Just lng -> let (l, o) = toPolyglossiaEnv lng
+                                       ops = if null o
+                                                then ""
+                                                else brackets $ text o
+                                   in  inCmd "begin" (text l) <> ops
+                                       $$ blankline <> txt <> blankline
+                                       $$ inCmd "end" (text l)
+                       Nothing  -> txt
+      wrapNotes txt = if beamer && "notes" `elem` classes
+                          then "\\note" <> braces txt -- speaker notes
+                          else linkAnchor $$ txt
+  fmap (wrapDir . wrapLang . wrapNotes) $ blockListToLaTeX bs
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
@@ -759,9 +799,12 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
      (if noSmallCaps then inCmd "textnormal" else id) .
      (if rtl then inCmd "RL" else id) .
      (if ltr then inCmd "LR" else id) .
-     (if not (noEmph || noStrong || noSmallCaps || rtl || ltr)
-         then braces
-         else id)) `fmap` inlineListToLaTeX ils
+     (case lookup "lang" kvs of
+        Just lng -> let (l, o) = toPolyglossiaEnv lng
+                        ops = if null o then "" else brackets (text o)
+                    in  \c -> char '\\' <> "text" <> text l <> ops <> braces c
+        Nothing  -> id)
+    ) `fmap` inlineListToLaTeX ils
 inlineToLaTeX (Emph lst) =
   inlineListToLaTeX lst >>= return . inCmd "emph"
 inlineToLaTeX (Strong lst) =
@@ -1001,6 +1044,30 @@ citationsToBiblatex _ = return empty
 getListingsLanguage :: [String] -> Maybe String
 getListingsLanguage [] = Nothing
 getListingsLanguage (x:xs) = toListingsLanguage x <|> getListingsLanguage xs
+
+-- Extract a key from divs and spans
+extract :: String -> Block -> [String]
+extract key (Div attr _)     = lookKey key attr
+extract key (Plain ils)      = concatMap (extractInline key) ils
+extract key (Para ils)       = concatMap (extractInline key) ils
+extract key (Header _ _ ils) = concatMap (extractInline key) ils
+extract _ _                  = []
+
+-- Extract a key from spans
+extractInline :: String -> Inline -> [String]
+extractInline key (Span attr _) = lookKey key attr
+extractInline _ _               = []
+
+-- Look up a key in an attribute and give a list of its values
+lookKey :: String -> Attr -> [String]
+lookKey key (_,_,kvs) =  maybe [] words $ lookup key kvs
+
+-- In environments \Arabic instead of \arabic is used
+toPolyglossiaEnv :: String -> (String, String)
+toPolyglossiaEnv l =
+  case toPolyglossia $ (splitBy (=='-')) l of
+    ("arabic", o) -> ("Arabic", o)
+    x             -> x
 
 -- Takes a list of the constituents of a BCP 47 language code and
 -- converts it to a Polyglossia (language, options) tuple

@@ -545,11 +545,13 @@ Blank line after term, indented marker, alternate markers:
 Simple block on one line:
 
 foo
+
 And nested without indentation:
 
 foo
 
 bar
+
 Interpreted markdown in a table:
 
 This is {\em emphasized}
@@ -575,6 +577,7 @@ As should this:
 Now, nested:
 
 foo
+
 This should just be an HTML comment:
 
 Multiline:

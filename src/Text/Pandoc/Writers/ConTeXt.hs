@@ -157,17 +157,21 @@ blockToConTeXt (CodeBlock _ str) =
 blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
 blockToConTeXt (RawBlock _ _ ) = return empty
 blockToConTeXt (Div (ident,_,kvs) bs) = do
-  contents <- blockListToConTeXt bs
-  let contents' = if null ident
-                     then contents
-                     else ("\\reference" <> brackets (text $ toLabel ident) <>
-                            braces empty <> "%") $$ contents
-  let align dir = blankline <> "\\startalignment[" <> dir <> "]"
-                    $$ contents' $$ "\\stopalignment" <> blankline
-  return $ case lookup "dir" kvs of
-             Just "rtl" -> align "righttoleft"
-             Just "ltr" -> align "lefttoright"
-             _          -> contents'
+  let align dir txt = "\\startalignment[" <> dir <> "]" $$ txt $$ "\\stopalignment"
+  let wrapRef txt = if null ident
+                       then txt
+                       else ("\\reference" <> brackets (text $ toLabel ident) <>
+                              braces empty <> "%") $$ txt
+      wrapDir = case lookup "dir" kvs of
+                  Just "rtl" -> align "righttoleft"
+                  Just "ltr" -> align "lefttoright"
+                  _          -> id
+      wrapLang txt = case lookup "lang" kvs of
+                       Just lng -> "\\start\\language["
+                                     <> text (fromBcp47' lng) <> "]" $$ txt $$ "\\stop"
+                       Nothing  -> txt
+      wrapBlank txt = blankline <> txt <> blankline
+  fmap (wrapBlank . wrapLang . wrapDir . wrapRef) $ blockListToConTeXt bs
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ ("\\startitemize" <> if isTightList lst
@@ -346,11 +350,15 @@ inlineToConTeXt (Note contents) = do
               else text "\\startbuffer " <> nest 2 contents' <>
                    text "\\stopbuffer\\footnote{\\getbuffer}"
 inlineToConTeXt (Span (_,_,kvs) ils) = do
-  contents <- inlineListToConTeXt ils
-  return $ case lookup "dir" kvs of
-             Just "rtl" -> braces $ "\\righttoleft " <> contents
-             Just "ltr" -> braces $ "\\lefttoright " <> contents
-             _          -> contents
+  let wrapDir txt = case lookup "dir" kvs of
+                      Just "rtl" -> braces $ "\\righttoleft " <> txt
+                      Just "ltr" -> braces $ "\\lefttoright " <> txt
+                      _          -> txt
+      wrapLang txt = case lookup "lang" kvs of
+                       Just lng -> "\\start\\language[" <> text (fromBcp47' lng)
+                                      <> "]" <> txt <> "\\stop "
+                       Nothing -> txt
+  fmap (wrapLang . wrapDir) $ inlineListToConTeXt ils
 
 -- | Craft the section header, inserting the secton reference, if supplied.
 sectionHeader :: Attr
@@ -376,6 +384,9 @@ sectionHeader (ident,classes,_) hdrLevel lst = do
                else if level' == 0
                        then char '\\' <> chapter <> braces contents
                        else contents <> blankline
+
+fromBcp47' :: String -> String
+fromBcp47' = fromBcp47 . splitBy (=='-')
 
 -- Takes a list of the constituents of a BCP 47 language code
 -- and irons out ConTeXt's exceptions

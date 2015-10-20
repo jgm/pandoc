@@ -1047,12 +1047,21 @@ Language variables
     format stored in the additional variables `babel-lang`,
     `polyglossia-lang` (LaTeX) and `context-lang` (ConTeXt).
 
+    Native pandoc `span`s and `div`s with the lang attribute
+    (value in BCP 47) can be used to switch the language in
+    that range.
+
 `otherlangs`
 :   a list of other languages used in the document
     in the YAML metadata, according to [BCP 47]. For example:
     `otherlangs: [en-GB, fr]`.
-    Currently only used by `xelatex` through the generated
-    `polyglossia-otherlangs` variable.
+    This is automatically generated from the `lang` attributes
+    in all `span`s and `div`s but can be overriden.
+    Currently only used by LaTeX through the generated
+    `babel-otherlangs` and `polyglossia-otherlangs` variables.
+    The LaTeX writer outputs polyglossia commands in the text but
+    the `babel-newcommands` variable contains mappings for them
+    to the corresponding babel.
 
 `dir`
 :   the base direction of the document, either `rtl` (right-to-left)
@@ -1064,10 +1073,6 @@ Language variables
     This may not always be necessary if the final renderer
     (e.g. the browser, when generating HTML) supports the
     [Unicode Bidirectional Algorithm].
-
-    LaTeX and ConTeXt assume by default that all text is left-to-right.
-    Setting `dir: ltr` enables bidirectional text handling in a document
-    whose base direction is left-to-right but contains some right-to-left script.
 
     When using LaTeX for bidirectional documents, only the `xelatex` engine
     is fully supported (use `--latex-engine=xelatex`).

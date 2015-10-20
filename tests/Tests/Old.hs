@@ -165,6 +165,12 @@ tests = [ testGroup "markdown"
           [ "opendocument" , "context" , "texinfo", "icml"
           , "man" , "plain" , "rtf", "org", "asciidoc"
           ]
+        , testGroup "writers-lang-and-dir"
+          [ test "latex" ["-f", "native", "-t", "latex", "-s"]
+            "writers-lang-and-dir.native" "writers-lang-and-dir.latex"
+          , test "context" ["-f", "native", "-t", "context", "-s"]
+            "writers-lang-and-dir.native" "writers-lang-and-dir.context"
+          ]
         ]
 
 -- makes sure file is fully closed after reading
