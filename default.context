@@ -7,17 +7,18 @@ $if(context-dir)$
 $endif$
 % Enable hyperlinks
 \setupinteraction
-  [state=start$if(style)$,
-  style=$style$$endif$$if(linkcolor)$,
-  color=$linkcolor$,
-  contrastcolor=$linkcolor$$endif$$if(title)$,
+  [state=start,
+  style=$if(style)$$style$$else$normal$endif$,
+  color=$if(linkcolor)$$linkcolor$$else$black$endif$,
+  contrastcolor=$if(linkcolor)$$linkcolor$$else$black$endif$$if(title)$,
   title=$title$$endif$$if(subtitle)$,
   subtitle=$subtitle$$endif$$if(author)$,
   author=$author$$endif$$if(keywords)$,
   keyword=$keywords$$endif$]
 % make chapter, section bookmarks visible when opening document
-\placebookmarks[chapter,section,subsection,subsubsection][chapter,section]
+\placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]
+\setuptagging[state=start]
 
 $if(papersize)$
 \setuppapersize[$for(papersize)$$papersize$$sep$,
@@ -56,10 +57,12 @@ $if(interlinespace)$
 \setupinterlinespace[$interlinespace$]
 $endif$
 
-\setuphead[chapter]      [style=\tfd]
-\setuphead[section]      [style=\tfc]
-\setuphead[subsection]   [style=\tfb]
-\setuphead[subsubsection][style=\bf]
+\setuphead[chapter]            [style=\tfd,header=empty]
+\setuphead[section]            [style=\tfc]
+\setuphead[subsection]         [style=\tfb]
+\setuphead[subsubsection]      [style=\bf]
+\setuphead[subsubsubsection]   [style=\sc]
+\setuphead[subsubsubsubsection][style=\it]
 
 $if(headertext)$
 \setupheadertexts[$headertext$]
@@ -69,7 +72,7 @@ $if(footertext)$
 $endif$
 $if(number-sections)$
 $else$
-\setuphead[chapter, section, subsection, subsubsection][number=no]
+\setuphead[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][number=no]
 $endif$
 
 \definedescription
