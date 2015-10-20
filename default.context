@@ -7,17 +7,18 @@ $if(context-dir)$
 $endif$
 % Enable hyperlinks
 \setupinteraction
-  [state=start$if(style)$,
-  style=$style$$endif$$if(linkcolor)$,
-  color=$linkcolor$,
-  contrastcolor=$linkcolor$$endif$$if(title)$,
+  [state=start,
+  style=$if(style)$$style$$else$normal$endif$,
+  color=$if(linkcolor)$$linkcolor$$else$black$endif$,
+  contrastcolor=$if(linkcolor)$$linkcolor$$else$black$endif$$if(title)$,
   title=$title$$endif$$if(subtitle)$,
   subtitle=$subtitle$$endif$$if(author)$,
-  author=$author$$endif$$if(keywords)$,
+  author=$for(author)$$author$$sep$; $endfor$$endif$$if(keywords)$,
   keyword=$keywords$$endif$]
 % make chapter, section bookmarks visible when opening document
-\placebookmarks[chapter,section,subsection,subsubsection][chapter,section]
+\placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]
+\setuptagging[state=start]
 
 $if(papersize)$
 \setuppapersize[$for(papersize)$$papersize$$sep$,
@@ -56,10 +57,12 @@ $if(interlinespace)$
 \setupinterlinespace[$interlinespace$]
 $endif$
 
-\setuphead[chapter]      [style=\tfd]
-\setuphead[section]      [style=\tfc]
-\setuphead[subsection]   [style=\tfb]
-\setuphead[subsubsection][style=\bf]
+\setuphead[chapter]            [style=\tfd,header=empty]
+\setuphead[section]            [style=\tfc]
+\setuphead[subsection]         [style=\tfb]
+\setuphead[subsubsection]      [style=\bf]
+\setuphead[subsubsubsection]   [style=\sc]
+\setuphead[subsubsubsubsection][style=\it]
 
 $if(headertext)$
 \setupheadertexts[$headertext$]
@@ -69,7 +72,7 @@ $if(footertext)$
 $endif$
 $if(number-sections)$
 $else$
-\setuphead[chapter, section, subsection, subsubsection][number=no]
+\setuphead[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][number=no]
 $endif$
 
 \definedescription
@@ -84,32 +87,34 @@ $endif$
 
 \setupthinrules[width=15em] % width of horizontal rules
 
+\setuphead[title][
+  style={\tfd\raggedcenter},
+  before={\startalignment[middle]},
+  after={
+$if(subtitle)$
+    \smallskip
+    {\tfa $subtitle$}
+$endif$
+$if(author)$
+    \smallskip
+    {\tfa $for(author)$$author$$sep$\crlf $endfor$}
+$endif$
+$if(date)$
+    \smallskip
+    {\tfa $date$}
+$endif$
+    \bigskip\stopalignment}]
+
 $for(header-includes)$
 $header-includes$
 $endfor$
 
 \starttext
 $if(title)$
-\startalignment[center]
-  \blank[2*big]
-  {\tfd $title$}
-$if(subtitle)$
-  \blank[3*medium]
-  {\tfa $subtitle$}
-$endif$
-$if(author)$
-  \blank[3*medium]
-  {\tfa $for(author)$$author$$sep$\crlf $endfor$}
-$endif$
-$if(date)$
-  \blank[2*medium]
-  {\tfa $date$}
-$endif$
-  \blank[3*medium]
-\stopalignment
+\title{$title$}
 $endif$
 $if(abstract)$
-\midaligned{\bf Abstract}
+\midaligned{\it Abstract}
 \startnarrower[2*middle]
 $abstract$
 \stopnarrower
