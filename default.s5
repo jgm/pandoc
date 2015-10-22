@@ -1,10 +1,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml"$if(lang)$ lang="$lang$" xml:lang="$lang$"$endif$$if(dir)$ dir="$dir$"$endif$>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
 $for(author-meta)$
+  <meta name="version" content="S5 1.1" />
   <meta name="author" content="$author-meta$" />
 $endfor$
 $if(date-meta)$
@@ -18,6 +19,9 @@ $endif$
   <!-- configuration parameters -->
   <meta name="defaultView" content="slideshow" />
   <meta name="controlVis" content="hidden" />
+$if(quotes)$
+  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
+$endif$
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$
@@ -56,12 +60,16 @@ $endfor$
 <div class="presentation">
 $if(title)$
 <div class="titleslide slide">
-  <h1>$title$</h1>
+  <h1 class="title">$title$</h1>
 $if(subtitle)$
-  <h1 class="subtitle">$subtitle$</h1>
+  <h2 class="subtitle">$subtitle$</h2>
 $endif$
-  <h2>$for(author)$$author$$sep$<br/>$endfor$</h2>
-  <h3>$date$</h3>
+$if(author)$
+  <h3 class="author">$for(author)$$author$$sep$<br/>$endfor$</h3>
+$endif$
+$if(date)$
+  <h4 class="date">$date$</h4>
+$endif$
 </div>
 $endif$
 $body$
