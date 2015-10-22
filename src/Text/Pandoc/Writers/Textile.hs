@@ -44,6 +44,7 @@ import Data.Char ( isSpace )
 data WriterState = WriterState {
     stNotes     :: [String]        -- Footnotes
   , stListLevel :: [Char]          -- String at beginning of list items, e.g. "**"
+  , stStartNum  :: Maybe Int       -- Start number if first list item
   , stUseTags   :: Bool            -- True if we should use HTML tags because we're in a complex list
   }
 
@@ -51,7 +52,8 @@ data WriterState = WriterState {
 writeTextile :: WriterOptions -> Pandoc -> String
 writeTextile opts document =
   evalState (pandocToTextile opts document)
-            WriterState { stNotes = [], stListLevel = [], stUseTags = False }
+            WriterState { stNotes = [], stListLevel = [], stStartNum = Nothing,
+                          stUseTags = False }
 
 -- | Return Textile representation of document.
 pandocToTextile :: WriterOptions -> Pandoc -> State WriterState String
@@ -218,7 +220,7 @@ blockToTextile opts x@(BulletList items) = do
         modify $ \s -> s { stListLevel = init (stListLevel s) }
         return $ vcat contents ++ (if level > 1 then "" else "\n")
 
-blockToTextile opts x@(OrderedList attribs items) = do
+blockToTextile opts x@(OrderedList attribs@(start, _, _) items) = do
   oldUseTags <- liftM stUseTags get
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
@@ -227,10 +229,14 @@ blockToTextile opts x@(OrderedList attribs items) = do
         return $ "<ol" ++ listAttribsToString attribs ++ ">\n" ++ vcat contents ++
                    "\n</ol>\n"
      else do
-        modify $ \s -> s { stListLevel = stListLevel s ++ "#" }
+        modify $ \s -> s { stListLevel = stListLevel s ++ "#"
+                         , stStartNum = if start > 1
+                                           then Just start
+                                           else Nothing }
         level <- get >>= return . length . stListLevel
         contents <- mapM (listItemToTextile opts) items
-        modify $ \s -> s { stListLevel = init (stListLevel s) }
+        modify $ \s -> s { stListLevel = init (stListLevel s),
+                           stStartNum = Nothing }
         return $ vcat contents ++ (if level > 1 then "" else "\n")
 
 blockToTextile opts (DefinitionList items) = do
@@ -258,8 +264,13 @@ listItemToTextile opts items = do
   if useTags
      then return $ "<li>" ++ contents ++ "</li>"
      else do
-       marker <- get >>= return . stListLevel
-       return $ marker ++ " " ++ contents
+       marker <- gets stListLevel
+       mbstart <- gets stStartNum
+       case mbstart of
+            Just n -> do
+              modify $ \s -> s{ stStartNum = Nothing }
+              return $ marker ++ show n ++ " " ++ contents
+            Nothing -> return $ marker ++ " " ++ contents
 
 -- | Convert definition list item (label, list of blocks) to Textile.
 definitionListItemToTextile :: WriterOptions
@@ -277,7 +288,7 @@ isSimpleList x =
   case x of
        BulletList items                 -> all isSimpleListItem items
        OrderedList (num, sty, _) items  -> all isSimpleListItem items &&
-                                            num == 1 && sty `elem` [DefaultStyle, Decimal]
+                                            sty `elem` [DefaultStyle, Decimal]
        _                                -> False
 
 -- | True if list item can be handled with the simple wiki syntax.  False if
