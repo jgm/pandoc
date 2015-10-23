@@ -287,7 +287,7 @@ isSimpleList :: Block -> Bool
 isSimpleList x =
   case x of
        BulletList items                 -> all isSimpleListItem items
-       OrderedList (num, sty, _) items  -> all isSimpleListItem items &&
+       OrderedList (_, sty, _) items    -> all isSimpleListItem items &&
                                             sty `elem` [DefaultStyle, Decimal]
        _                                -> False
 
