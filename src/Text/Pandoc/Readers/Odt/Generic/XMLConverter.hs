@@ -331,7 +331,7 @@ convertingExtraState v a = withSubStateF setVAsExtraState modifyWithA
   where
     setVAsExtraState     = liftAsSuccess $ extractFromState id >>^ replaceExtraState v
     modifyWithA          = keepingTheValue (moreState ^>> a)
-                           >>^ spreadChoice >>?§ flip replaceExtraState
+                           >>^ spreadChoice >>?% flip replaceExtraState
 
 -- | First sets the extra state to the new value. Then produces a new
 -- extra state with a converter that uses the new state. Finally, the
@@ -413,14 +413,14 @@ elemName                 :: (NameSpaceID nsID)
                          -> XMLConverter nsID extraState x XML.QName
 elemName nsID name       =         lookupNSiri nsID
                                &&& lookupNSprefix nsID
-                           >>§ XML.QName name
+                           >>% XML.QName name
 
 -- | Checks if a given element matches both a specified namespace id
 -- and a specified element name
 elemNameIs               :: (NameSpaceID nsID)
                          => nsID -> ElementName
                          -> XMLConverter nsID extraState XML.Element Bool
-elemNameIs nsID name     = keepingTheValue (lookupNSiri nsID) >>§ hasThatName
+elemNameIs nsID name     = keepingTheValue (lookupNSiri nsID) >>% hasThatName
   where hasThatName e iri = let elName = XML.elName e
                             in     XML.qName elName == name
                                 && XML.qURI  elName == iri
@@ -461,8 +461,8 @@ currentElemIs'' nsID name = ( (getCurrentElement >>^ XML.elName >>>
                                 (XML.qName >>^ (&&).(== name) )
                                   ^&&&^
                                 (XML.qIRI  >>^ (==) )
-                              ) >>§ (.)
-                            ) &&& lookupNSiri nsID >>§ ($)
+                              ) >>% (.)
+                            ) &&& lookupNSiri nsID >>% ($)
 -}
 
 --
@@ -487,7 +487,7 @@ findChildren             :: (NameSpaceID nsID)
                          -> XMLConverter nsID extraState x [XML.Element]
 findChildren nsID name   =         elemName nsID name
                                &&& getCurrentElement
-                           >>§ XML.findChildren
+                           >>% XML.findChildren
 
 --
 filterChildren           :: (XML.Element -> Bool)
@@ -508,7 +508,7 @@ findChild'              :: (NameSpaceID nsID)
                         -> XMLConverter nsID extraState x (Maybe XML.Element)
 findChild' nsID name    =         elemName nsID name
                               &&& getCurrentElement
-                          >>§ XML.findChild
+                          >>% XML.findChild
 
 --
 findChild              :: (NameSpaceID nsID)
@@ -596,7 +596,7 @@ isThatTheAttrValue       :: (NameSpaceID nsID)
 isThatTheAttrValue nsID attrName
                          =     keepingTheValue
                                  (findAttr nsID attrName)
-                           >>§ right.(==)
+                           >>% right.(==)
 
 -- | Lookup value in a dictionary, fail if no attribute found or value
 -- not in dictionary
@@ -669,7 +669,7 @@ findAttr'               :: (NameSpaceID nsID)
                         -> XMLConverter nsID extraState x (Maybe AttributeValue)
 findAttr' nsID attrName =         elemName nsID attrName
                               &&& getCurrentElement
-                          >>§ XML.findAttr
+                          >>% XML.findAttr
 
 -- | Return value as string or fail
 findAttr               :: (NameSpaceID nsID)
@@ -787,7 +787,7 @@ prepareIteration       :: (NameSpaceID nsID)
                        -> XMLConverter nsID extraState b [(b, XML.Element)]
 prepareIteration nsID name =     keepingTheValue
                                    (findChildren nsID name)
-                             >>§ distributeValue
+                             >>% distributeValue
 
 -- | Applies a converter to every child element of a specific type.
 -- Collects results in a 'Monoid'.
@@ -877,9 +877,9 @@ makeMatcherE nsID name c = (     second (
                                               elemNameIs nsID name
                                           >>^ bool Nothing (Just tryC)
                                         )
-                             >>§ (<|>)
+                             >>% (<|>)
                            ) &&&^ snd
-  where tryC = (fst ^&&& executeThere c >>§ recover) &&&^ snd
+  where tryC = (fst ^&&& executeThere c >>% recover) &&&^ snd
 
 -- Helper function: The @c@ is actually a converter that is to be selected by
 -- matching XML content to the first two parameters.
@@ -899,14 +899,14 @@ makeMatcherC nsID name c = (    second (    contentToElem
                                               >>^ bool Nothing (Just cWithJump)
                                              )
                                         )
-                             >>§ (<|>)
+                             >>% (<|>)
                            ) &&&^ snd
   where cWithJump =      ( fst
                            ^&&& (      second contentToElem
                                   >>>  spreadChoice
                                   ^>>? executeThere c
                                 )
-                            >>§ recover)
+                            >>% recover)
                     &&&^ snd
         contentToElem :: FallibleXMLConverter nsID extraState XML.Content XML.Element
         contentToElem = arr $ \e -> case e of

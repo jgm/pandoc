@@ -145,7 +145,7 @@ type OdtReaderSafe  a b = XMLReaderSafe ReaderState a b
 fromStyles :: (a -> Styles -> b) -> OdtReaderSafe a b
 fromStyles f =     keepingTheValue
                      (getExtraState >>^ styleSet)
-               >>§ f
+               >>% f
 
 --
 getStyleByName :: OdtReader StyleName Style
@@ -162,7 +162,7 @@ lookupListStyle = fromStyles lookupListStyleByName >>^ maybeToChoice
 --
 switchCurrentListStyle :: OdtReaderSafe (Maybe ListStyle) (Maybe ListStyle)
 switchCurrentListStyle =     keepingTheValue getExtraState
-                         >>§ swapCurrentListStyle
+                         >>% swapCurrentListStyle
                          >>> first setExtraState
                          >>^ snd
 
@@ -170,7 +170,7 @@ switchCurrentListStyle =     keepingTheValue getExtraState
 pushStyle :: OdtReaderSafe Style Style
 pushStyle =     keepingTheValue (
                   (     keepingTheValue getExtraState
-                    >>§ pushStyle'
+                    >>% pushStyle'
                   )
                   >>> setExtraState
                 )
@@ -470,7 +470,7 @@ matchingElement :: (Monoid e)
 matchingElement ns name reader = (ns, name, asResultAccumulator reader)
   where
    asResultAccumulator :: (ArrowChoice a, Monoid m) => a m m -> a m (Fallible m)
-   asResultAccumulator a = liftAsSuccess $ keepingTheValue a >>§ (<>)
+   asResultAccumulator a = liftAsSuccess $ keepingTheValue a >>% (<>)
 
 --
 matchChildContent'   :: (Monoid result)
@@ -497,14 +497,14 @@ matchChildContent ls fallback = returnV mempty >>> matchContent ls fallback
 --
 -- | Open Document allows several consecutive spaces if they are marked up
 read_plain_text :: OdtReaderSafe (Inlines, XML.Content) Inlines
-read_plain_text =  fst ^&&& read_plain_text' >>§ recover
+read_plain_text =  fst ^&&& read_plain_text' >>% recover
   where
     -- fallible version
     read_plain_text' :: OdtReader (Inlines, XML.Content) Inlines
     read_plain_text' =      (     second ( arr extractText )
                               >>^ spreadChoice >>?! second text
                             )
-                       >>?§ (<>)
+                       >>?% (<>)
     --
     extractText     :: XML.Content -> Fallible String
     extractText (XML.Text cData) = succeedWith (XML.cdData cData)

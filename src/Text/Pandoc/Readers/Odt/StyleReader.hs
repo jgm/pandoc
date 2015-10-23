@@ -174,7 +174,7 @@ findPitch :: XMLReaderSafe FontPitches _x (Maybe FontPitch)
 findPitch =     ( lookupAttr NsStyle "font-pitch"
                   `ifFailedDo`     findAttr NsStyle "font-name"
                                >>? (     keepingTheValue getExtraState
-                                     >>§ M.lookup
+                                     >>% M.lookup
                                      >>^ maybeToChoice
                                    )
                 )
@@ -447,7 +447,7 @@ readAllStyles :: StyleReader _x Styles
 readAllStyles = (      readFontPitches
                   >>?! (     readAutomaticStyles
                          &&& readStyles ))
-                  >>?§? chooseMax
+                  >>?%? chooseMax
  -- all top elements are always on the same hierarchy level
 
 --

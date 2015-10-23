@@ -129,24 +129,23 @@ joinOn :: (Arrow a) => (x -> y -> z) -> a (x,y) z
 joinOn = arr.uncurry
 
 -- | Applies a function to the uncurried result-pair of an arrow-application.
--- (The §-symbol was chosen to evoke an association with pairs through the
--- shared first character)
-(>>§) :: (Arrow a) => a x (b,c) -> (b -> c -> d) -> a x d
-a >>§ f = a >>^ uncurry f
+-- (The %-symbol was chosen to evoke an association with pairs.)
+(>>%) :: (Arrow a) => a x (b,c) -> (b -> c -> d) -> a x d
+a >>% f = a >>^ uncurry f
 
--- | '(>>§)' with its arguments flipped
-(§<<) :: (Arrow a) => (b -> c -> d) -> a x (b,c) -> a x d
-(§<<) = flip (>>§)
+-- | '(>>%)' with its arguments flipped
+(%<<) :: (Arrow a) => (b -> c -> d) -> a x (b,c) -> a x d
+(%<<) = flip (>>%)
 
 -- | Precomposition with an uncurried function
-(§>>) :: (Arrow a) => (b -> c -> d) -> a d r -> a (b,c) r
-f §>> a = uncurry f ^>> a
+(%>>) :: (Arrow a) => (b -> c -> d) -> a d r -> a (b,c) r
+f %>> a = uncurry f ^>> a
 
 -- | Precomposition with an uncurried function (right to left variant)
-(<<§) :: (Arrow a) => a d r -> (b -> c -> d) -> a (b,c) r
-(<<§) = flip (§>>)
+(<<%) :: (Arrow a) => a d r -> (b -> c -> d) -> a (b,c) r
+(<<%) = flip (%>>)
 
-infixr 2 >>§, §<<, §>>, <<§
+infixr 2 >>%, %<<, %>>, <<%
 
 
 -- | Duplicate a value and apply an arrow to the second instance.
@@ -271,7 +270,7 @@ newtype ParallelArrow a b c = CoEval { evalParallelArrow :: a b c }
 
 instance (Arrow a, Monoid m) => Monoid (ParallelArrow a b m) where
   mempty = CoEval $ returnV mempty
-  (CoEval a) `mappend` (CoEval ~b) = CoEval $ a &&& b >>§ mappend
+  (CoEval a) `mappend` (CoEval ~b) = CoEval $ a &&& b >>% mappend
 
 -- | Evaluates a collection of arrows in a parallel fashion.
 --
@@ -433,29 +432,29 @@ a ^>>?^? f = a ^>> Left ^|||^ f
 a >>?! f = a >>> right f
 
 ---
-(>>?§) :: (ArrowChoice a, Monoid f)
+(>>?%) :: (ArrowChoice a, Monoid f)
           => FallibleArrow a x f (b,b')
           -> (b -> b' -> c)
           -> FallibleArrow a x f c
-a >>?§ f = a >>?^ (uncurry f)
+a >>?% f = a >>?^ (uncurry f)
 
 ---
-(^>>?§) :: (ArrowChoice a, Monoid f)
+(^>>?%) :: (ArrowChoice a, Monoid f)
           => (x -> Either f (b,b'))
           -> (b -> b' -> c)
           -> FallibleArrow a x f c
-a ^>>?§ f = arr a >>?^ (uncurry f)
+a ^>>?% f = arr a >>?^ (uncurry f)
 
 ---
-(>>?§?) :: (ArrowChoice a, Monoid f)
+(>>?%?) :: (ArrowChoice a, Monoid f)
            => FallibleArrow a x f (b,b')
            -> (b -> b' -> (Either f c))
            -> FallibleArrow a x f c
-a >>?§? f = a >>?^? (uncurry f)
+a >>?%? f = a >>?^? (uncurry f)
 
 infixr 1  >>?,  >>?^,  >>?^?
 infixr 1 ^>>?, ^>>?^, ^>>?^?, >>?!
-infixr 1 >>?§, ^>>?§, >>?§?
+infixr 1 >>?%, ^>>?%, >>?%?
 
 -- | Keep values that are Right, replace Left values by a constant.
 ifFailedUse :: (ArrowChoice a) => v -> a (Either f v) v
