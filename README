@@ -1025,10 +1025,10 @@ depending on the output format, but include metadata fields as well as the follo
 :   document subtitle; also used as subject in PDF metadata
 
 `abstract`
-:   document summary, used in LaTeX, ConTeXt, and Word docx
+:   document summary, included in LaTeX, ConTeXt, AsciiDoc, and Word docx
 
 `keywords`
-:   list of keywords to be included in PDF metadata; may be repeated as for `author`, above
+:   list of keywords to be included in HTML, PDF, and AsciiDoc metadata; may be repeated as for `author`, above
 
 `header-includes`
 :   contents specified by `-H/--include-in-header` (may have multiple
