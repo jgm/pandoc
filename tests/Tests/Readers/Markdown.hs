@@ -181,6 +181,9 @@ tests = [ testGroup "inline code"
           , "technically invalid comment" =:
             "<!-- pandoc --help -->" =?>
             rawBlock "html" "<!-- pandoc --help -->"
+          , test markdownGH "issue 2469" $
+            "<\n\na>" =?>
+            para (text "<") <> para (text "a>")
           ]
         , "unbalanced brackets" =:
             "[[[[[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[[[[[hi")

@@ -948,6 +948,7 @@ htmlTag f = try $ do
                        parseOptions{ optTagWarning = True } inp
   guard $ f next
   case next of
+       TagWarning _ -> fail "encountered TagWarning"
        TagComment s
          | "<!--" `isPrefixOf` inp -> do
           count (length s + 4) anyChar
