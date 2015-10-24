@@ -870,6 +870,14 @@ tests =
                      , para "orange"
                      , para "peach"
                      ]
+
+      , "Recognize preceding paragraphs in non-list contexts" =:
+          unlines [ "CLOSED: [2015-10-19 Mon 15:03]"
+                  , "- Note taken on [2015-10-19 Mon 13:24]"
+                  ] =?>
+          mconcat [ para "CLOSED: [2015-10-19 Mon 15:03]"
+                  , bulletList [ plain "Note taken on [2015-10-19 Mon 13:24]" ]
+                  ]
       ]
 
   , testGroup "Tables"
