@@ -2,7 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
 {-
-Copyright (C) 2014-2015 Albert Krewinkel <tarleb@moltkeplatz.de>
+Copyright (C) 2014-2015 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Copyright   : Copyright (C) 2014 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 Conversion of org-mode formatted plain text to 'Pandoc' document.
 -}
@@ -140,6 +140,7 @@ data OrgParserState = OrgParserState
                       , orgStateMeta                 :: Meta
                       , orgStateMeta'                :: F Meta
                       , orgStateNotes'               :: OrgNoteTable
+                      , orgStateParserContext        :: ParserContext
                       , orgStateIdentifiers          :: [String]
                       , orgStateHeaderMap            :: M.Map Inlines String
                       }
@@ -181,6 +182,7 @@ defaultOrgParserState = OrgParserState
                         , orgStateMeta = nullMeta
                         , orgStateMeta' = return nullMeta
                         , orgStateNotes' = []
+                        , orgStateParserContext = NullState
                         , orgStateIdentifiers = []
                         , orgStateHeaderMap = M.empty
                         }
@@ -290,6 +292,23 @@ blanklines =
   P.blanklines
        <* updateLastPreCharPos
        <* updateLastForbiddenCharPos
+
+-- | Succeeds when we're in list context.
+inList :: OrgParser ()
+inList = do
+  ctx <- orgStateParserContext <$> getState
+  guard (ctx == ListItemState)
+
+-- | Parse in different context
+withContext :: ParserContext -- ^ New parser context
+            -> OrgParser a   -- ^ Parser to run in that context
+            -> OrgParser a
+withContext context parser = do
+  oldContext <- orgStateParserContext <$> getState
+  updateState $ \s -> s{ orgStateParserContext = context }
+  result <- parser
+  updateState $ \s -> s{ orgStateParserContext = oldContext }
+  return result
 
 --
 -- parsing blocks
@@ -891,9 +910,13 @@ noteBlock = try $ do
 paraOrPlain :: OrgParser (F Blocks)
 paraOrPlain = try $ do
   ils <- parseInlines
-  nl <- option False (newline >> return True)
-  try (guard nl >> notFollowedBy (orderedListStart <|> bulletListStart) >>
-           return (B.para <$> ils))
+  nl <- option False (newline *> return True)
+  -- Read block as paragraph, except if we are in a list context and the block
+  -- is directly followed by a list item, in which case the block is read as
+  -- plain text.
+  try (guard nl
+       *> notFollowedBy (inList *> (orderedListStart <|> bulletListStart))
+       *> return (B.para <$> ils))
     <|>  (return (B.plain <$> ils))
 
 inlinesTillNewline :: OrgParser (F Inlines)
@@ -970,7 +993,7 @@ definitionListItem parseMarkerGetLength = try $ do
 -- parse raw text for one list item, excluding start marker and continuations
 listItem :: OrgParser Int
          -> OrgParser (F Blocks)
-listItem start = try $ do
+listItem start = try . withContext ListItemState $ do
   markerLength <- try start
   firstLine <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
