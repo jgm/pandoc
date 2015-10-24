@@ -25,7 +25,6 @@ PANDOC_CITEPROC_PATH=`cabal unpack -d $DIST pandoc-citeproc | awk '{print $3;}'`
 
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
-mkdir -p $DEST/share/man/man5
 for f in pandoc pandoc-citeproc; do
   cp $LOCALBIN/$f $DEST/bin/;
 done
