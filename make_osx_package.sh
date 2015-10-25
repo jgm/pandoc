@@ -17,6 +17,7 @@ PATH=$LOCALBIN:$PATH
 
 # echo Removing old files...
 rm -rf $DIST
+mkdir -p $DIST
 mkdir -p $RESOURCES
 stack setup
 which hsb2hs | stack install --stack-yaml=stack.hsb2hs.yaml
@@ -27,7 +28,12 @@ stack install --stack-yaml=osx/stack.yaml
 
 echo Getting man pages...
 make man/pandoc.1
-PANDOC_CITEPROC_PATH=`stack unpack -d $DIST pandoc-citeproc | awk '{print $3;}'`
+
+# get pandoc-citeproc man page:
+PANDOC_CITEPROC_VERSION=`pandoc-citeproc --version | awk '{print $2;}'`
+PANDOC_CITEPROC_TARBALL=https://hackage.haskell.org/package/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}.tar.gz
+curl ${PANDOC_CITEPROC_TARBALL} | tar xzC $DIST
+PANDOC_CITEPROC_PATH=$DIST/pandoc-citeproc/${PANDOC_CITEPROC_VERSION}
 
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
