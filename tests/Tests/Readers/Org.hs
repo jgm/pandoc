@@ -264,6 +264,16 @@ tests =
                            )
                            "echo 'Hello, World'")
 
+      , "Inline code block with toggle" =:
+          "src_sh[:toggle]{echo $HOME}" =?>
+          (para $ codeWith ( ""
+                           , [ "bash", "rundoc-block" ]
+                           , [ ("rundoc-language", "sh")
+                             , ("rundoc-toggle", "yes")
+                             ]
+                           )
+                           "echo $HOME")
+
       , "Citation" =:
           "[@nonexistent]" =?>
           let citation = Citation
@@ -1093,6 +1103,15 @@ tests =
                    , "#+RESULTS:"
                    , ": 65" ] =?>
            rawBlock "html" ""
+
+      , "Source block with toggling header arguments" =:
+        unlines [ "#+BEGIN_SRC sh :noeval"
+                , "echo $HOME"
+                , "#+END_SRC"
+                ] =?>
+        let classes = [ "bash", "rundoc-block" ]
+            params = [ ("rundoc-language", "sh"), ("rundoc-noeval", "yes") ]
+        in codeBlockWith ("", classes, params) "echo $HOME\n"
 
       , "Example block" =:
            unlines [ "#+begin_example"

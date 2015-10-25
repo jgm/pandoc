@@ -513,10 +513,16 @@ rundocBlockClass :: String
 rundocBlockClass = rundocPrefix ++ "block"
 
 blockOption :: OrgParser (String, String)
-blockOption = try $ (,) <$> orgArgKey <*> orgParamValue
+blockOption = try $ do
+  argKey <- orgArgKey
+  paramValue <- option "yes" orgParamValue
+  return (argKey, paramValue)
 
 inlineBlockOption :: OrgParser (String, String)
-inlineBlockOption = try $ (,) <$> orgArgKey <*> orgInlineParamValue
+inlineBlockOption = try $ do
+  argKey <- orgArgKey
+  paramValue <- option "yes" orgInlineParamValue
+  return (argKey, paramValue)
 
 orgArgKey :: OrgParser String
 orgArgKey = try $
@@ -525,11 +531,17 @@ orgArgKey = try $
 
 orgParamValue :: OrgParser String
 orgParamValue = try $
-  skipSpaces *> many1 (noneOf "\t\n\r ") <* skipSpaces
+  skipSpaces
+    *> notFollowedBy (char ':' )
+    *> many1 (noneOf "\t\n\r ")
+    <* skipSpaces
 
 orgInlineParamValue :: OrgParser String
 orgInlineParamValue = try $
-  skipSpaces *> many1 (noneOf "\t\n\r ]") <* skipSpaces
+  skipSpaces
+    *> notFollowedBy (char ':')
+    *> many1 (noneOf "\t\n\r ]")
+    <* skipSpaces
 
 orgArgWordChar :: OrgParser Char
 orgArgWordChar = alphaNum <|> oneOf "-_"
