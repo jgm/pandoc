@@ -1,0 +1,17 @@
+flags:
+  pandoc:
+    trypandoc: false
+    https: true
+    embed_data_files: true
+    old-locale: false
+    network-uri: true
+  pandoc-citeproc:
+    bibutils: true
+    embed_data_files: true
+    unicode_collation: false
+    test_citeproc: false
+    debug: false
+packages:
+- '.'
+- 'https://hackage.haskell.org/package/pandoc-citeproc-0.8.0.1/pandoc-citeproc-0.8.0.1.tar.gz'
+resolver: lts-3.10

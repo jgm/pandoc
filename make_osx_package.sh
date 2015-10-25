@@ -15,13 +15,16 @@ PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
 # echo Removing old files...
 rm -rf $DIST
 mkdir -p $RESOURCES
+stack setup
+which hsb2hs | stack install --stack-yaml=stack.hsb2hs.yaml
 
 echo Building pandoc...
-stack install --stack-yaml=stack.pkg.yaml
+stack clean
+stack install --stack-yaml=osx/stack.yaml
 
 echo Getting man pages...
 make man/pandoc.1
-PANDOC_CITEPROC_PATH=`cabal unpack -d $DIST pandoc-citeproc | awk '{print $3;}'`
+PANDOC_CITEPROC_PATH=`stack unpack -d $DIST pandoc-citeproc | awk '{print $3;}'`
 
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1

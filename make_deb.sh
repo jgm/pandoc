@@ -7,7 +7,7 @@ case "$MACHINE" in
   i386)   ARCHITECTURE=i386;;
 esac
 
-SANDBOX=`pwd`/.cabal-sandbox
+LOCAL=$HOME/.local
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 DEBPKGVER=1
 DEBVER=$VERSION-$DEBPKGVER
@@ -17,32 +17,24 @@ DEST=$DIST/usr
 ME=$(whoami)
 COPYRIGHT=$DEST/share/doc/pandoc/copyright
 
-# echo Removing old files...
-rm -rf $DIST
-
-cabal sandbox init
-echo Updating database
-cabal update
-
-export PATH=`pwd`/.cabal-sandbox/bin:$PATH
-which hsb2hs || cabal install hsb2hs
-echo Building pandoc...
-cabal clean
-cabal install --force --reinstall --flags="embed_data_files make-pandoc-man-pages" . pandoc-citeproc
+stack setup
+stack clean
+which hsb2hs || stack install --stack-yaml stack.hsb2hs.yaml
+stack install --stack-yaml deb/stack.yaml
 
 # get pandoc-citeproc man page:
-PANDOC_CITEPROC_PATH=`cabal unpack -d make_binary_package.tmp.$$ pandoc-citeproc | awk '{print $3;}'`
-strip $SANDBOX/bin/pandoc
-strip $SANDBOX/bin/pandoc-citeproc
+PANDOC_CITEPROC_PATH=`stack unpack -d make_binary_package.tmp.$$ pandoc-citeproc | awk '{print $3;}'`
+strip $LOCAL/bin/pandoc
+strip $LOCAL/bin/pandoc-citeproc
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
 mkdir -p $DEST/share/doc/pandoc
 
 mkdir -p $DEST/share/doc/pandoc-citeproc
 find $DIST -type d | xargs chmod 755
-cp $SANDBOX/bin/pandoc $DEST/bin/
-cp $SANDBOX/bin/pandoc-citeproc $DEST/bin/
-cp $SANDBOX/share/man/man1/pandoc.1 $DEST/share/man/man1/pandoc.1
+cp $LOCAL/bin/pandoc $DEST/bin/
+cp $LOCAL/bin/pandoc-citeproc $DEST/bin/
+cp $LOCAL/share/man/man1/pandoc.1 $DEST/share/man/man1/pandoc.1
 gzip -9 $DEST/share/man/man1/pandoc.1
 cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
