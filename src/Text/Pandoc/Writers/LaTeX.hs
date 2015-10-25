@@ -800,7 +800,7 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
      (if rtl then inCmd "RL" else id) .
      (if ltr then inCmd "LR" else id) .
      (case lookup "lang" kvs of
-        Just lng -> let (l, o) = toPolyglossiaEnv lng
+        Just lng -> let (l, o) = toPolyglossia $ splitBy (=='-') lng
                         ops = if null o then "" else brackets (text o)
                     in  \c -> char '\\' <> "text" <> text l <> ops <> braces c
         Nothing  -> id)
