@@ -33,7 +33,7 @@ PANDOC_CITEPROC_VERSION=`pandoc-citeproc --version | awk '{print $2;}'`
 PANDOC_CITEPROC_TARBALL=https://hackage.haskell.org/package/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}.tar.gz
 mkdir $TEMPDIR
 curl ${PANDOC_CITEPROC_TARBALL} | tar xzC $TEMPDIR
-PANDOC_CITEPROC_PATH=$TEMPDIR/pandoc-citeproc/${PANDOC_CITEPROC_VERSION}
+PANDOC_CITEPROC_PATH=$TEMPDIR/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}
 
 strip $LOCAL/bin/pandoc
 strip $LOCAL/bin/pandoc-citeproc

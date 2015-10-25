@@ -33,7 +33,7 @@ make man/pandoc.1
 PANDOC_CITEPROC_VERSION=`pandoc-citeproc --version | awk '{print $2;}'`
 PANDOC_CITEPROC_TARBALL=https://hackage.haskell.org/package/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}.tar.gz
 curl ${PANDOC_CITEPROC_TARBALL} | tar xzC $DIST
-PANDOC_CITEPROC_PATH=$DIST/pandoc-citeproc/${PANDOC_CITEPROC_VERSION}
+PANDOC_CITEPROC_PATH=$DIST/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}
 
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
