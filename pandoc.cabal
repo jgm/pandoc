@@ -433,6 +433,7 @@ Executable pandoc
   Main-Is:         pandoc.hs
   Buildable:       True
   Other-Modules: Prelude
+                 Paths_pandoc
 
 Executable trypandoc
   Main-Is:         trypandoc.hs
