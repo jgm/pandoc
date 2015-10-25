@@ -47,7 +47,7 @@ cp $LOCAL/bin/pandoc $DEST/bin/
 cp $LOCAL/bin/pandoc-citeproc $DEST/bin/
 cp man/pandoc.1 $DEST/share/man/man1/pandoc.1
 gzip -9 $DEST/share/man/man1/pandoc.1
-cp ${PANDOC_CITEPROC_pATH}/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
+cp ${PANDOC_CITEPROC_PATH}/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
 cp COPYRIGHT $COPYRIGHT
 echo "" >> $COPYRIGHT
