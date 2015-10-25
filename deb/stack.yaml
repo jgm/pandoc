@@ -12,6 +12,6 @@ flags:
     test_citeproc: false
     debug: false
 packages:
-- '.'
+- '..'
 - 'https://hackage.haskell.org/package/pandoc-citeproc-0.8.0.1/pandoc-citeproc-0.8.0.1.tar.gz'
 resolver: lts-3.10
