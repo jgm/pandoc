@@ -1,14 +1,21 @@
 <!DOCTYPE html>
-<head>
-<meta charset="utf-8">
+<head$if(lang)$ lang="$lang$"$endif$$if(dir)$ dir="$dir$"$endif$>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
 $for(author-meta)$
-  <meta name="author" content="$author-meta$" />
+  <meta name="author" content="$author-meta$">
 $endfor$
 $if(date-meta)$
-  <meta name="dcterms.date" content="$date-meta$" />
+  <meta name="dcterms.date" content="$date-meta$">
+$endif$
+$if(keywords)$
+  <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
 $endif$
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
   <style type="text/css">code{white-space: pre;}</style>
+$if(quotes)$
+  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
+$endif$
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$
@@ -16,40 +23,87 @@ $highlighting-css$
 $endif$
 $if(css)$
 $for(css)$
-  <link rel="stylesheet" href="$css$" $if(html5)$$else$type="text/css" $endif$/>
+  <link rel="stylesheet" href="$css$">
 $endfor$
 $else$
+<link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+
 <style>
-  html { background-color: black; }
-  body { background-color: white; border-radius: 12px}
+  html, .view body { background-color: black; counter-reset: slideidx; }
+  body, .view section { background-color: white; border-radius: 12px }
   /* A section is a slide. It's size is 800x600, and this will never change */
-  section {
-      font-family: Arial, serif;
-      font-size: 20pt;
-    }
-  address, blockquote, dl, fieldset, form, h1, h2, h3, h4, h5, h6, hr, ol, p, pre, table, ul, dl { padding: 10px 20px 10px 20px; }
-  h1, h2, h3 {
+  section, .view head > title {
+      /* The font from Google */
+      font-family: 'Oswald', arial, serif;
+      font-size: 30px;
+  }
+
+  .view section:after {
+    counter-increment: slideidx;
+    content: counter(slideidx, decimal-leading-zero);
+    position: absolute; bottom: -80px; right: 100px;
+    color: white;
+  }
+
+  .view head > title {
+    color: white;
     text-align: center;
-    margin: 10pt 10pt 20pt 10pt;
+    margin: 1em 0 1em 0;
   }
-  ul, ol {
-    margin: 10px 10px 10px 50px;
+
+  h1, h2 {
+    margin-top: 200px;
+    text-align: center;
+    font-size: 80px;
   }
-  section.titleslide h1 { margin-top: 200px; }
-  h1.title { margin-top: 150px; }
-  h1 { font-size: 180%; }
-  h2 { font-size: 120%; }
-  h3 { font-size: 100%; }
-  q { quotes: "“" "”" "‘" "’"; }
-  blockquote { font-style: italic }
-  /* Figures are displayed full-page, with the caption on
-     top of the image/video */
+  h3 {
+    margin: 100px 0 50px 100px;
+  }
+
+  ul {
+      margin: 50px 200px;
+  }
+  li > ul {
+      margin: 15px 50px;
+  }
+
+  p {
+    margin: 75px;
+    font-size: 50px;
+  }
+
+  blockquote {
+    height: 100%;
+    background-color: black;
+    color: white;
+    font-size: 60px;
+    padding: 50px;
+  }
+  blockquote:before {
+    content: open-quote;
+  }
+  blockquote:after {
+    content: close-quote;
+  }
+
+  /* Figures are displayed full-page, with the caption
+     on top of the image/video */
   figure {
     background-color: black;
+    width: 100%;
+    height: 100%;
+  }
+  figure > * {
+    position: absolute;
+  }
+  figure > img, figure > video {
+    width: 100%; height: 100%;
   }
   figcaption {
     margin: 70px;
+    font-size: 50px;
   }
+
   footer {
     position: absolute;
     bottom: 0;
@@ -66,10 +120,20 @@ $else$
      https://developer.mozilla.org/en/CSS/CSS_transitions
      How to use CSS3 Transitions: */
   section {
-      -moz-transition: left 400ms linear 0s;
-      -webkit-transition: left 400ms linear 0s;
-      -ms-transition: left 400ms linear 0s;
-      transition: left 400ms linear 0s;
+    -moz-transition: left 400ms linear 0s;
+    -webkit-transition: left 400ms linear 0s;
+    -ms-transition: left 400ms linear 0s;
+    transition: left 400ms linear 0s;
+  }
+  .view section {
+    -moz-transition: none;
+    -webkit-transition: none;
+    -ms-transition: none;
+    transition: none;
+  }
+
+  .view section[aria-selected] {
+    border: 5px red solid;
   }
 
   /* Before */
@@ -85,10 +149,17 @@ $else$
   .incremental > * { opacity: 1; }
 
   /* The current item */
-  .incremental > *[aria-selected] { color: red; opacity: 1; }
+  .incremental > *[aria-selected] { opacity: 1; }
 
   /* The items to-be-selected */
-  .incremental > *[aria-selected] ~ * { opacity: 0.2; }
+  .incremental > *[aria-selected] ~ * { opacity: 0; }
+
+  /* The progressbar, at the bottom of the slides, show the global
+     progress of the presentation. */
+  #progress-bar {
+    height: 2px;
+    background: #AAA;
+  }
 </style>
 $endif$
 $if(math)$
@@ -105,10 +176,9 @@ $if(title)$
 $if(subtitle)$
   <h1 class="subtitle">$subtitle$</h1>
 $endif$
-$for(author)$
-  <h2 class="author">$author$</h2>
-$endfor$
-  <h3 class="date">$date$</h3>
+  <footer>
+    $if(author)$<span class="author">$for(author)$$author$$sep$, $endfor$</span>$endif$ · $if(date)$<span class="date">$date$</span>$endif$
+  </footer>
 </section>
 $endif$
 $for(include-before)$
