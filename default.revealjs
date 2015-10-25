@@ -9,12 +9,18 @@ $endfor$
 $if(date-meta)$
   <meta name="dcterms.date" content="$date-meta$">
 $endif$
+$if(keywords)$
+  <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
+$endif$
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
-  <link rel="stylesheet" href="$revealjs-url$/css/reveal.css"/>
+  <link rel="stylesheet" href="$revealjs-url$/css/reveal.css">
   <style type="text/css">code{white-space: pre;}</style>
+$if(quotes)$
+  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
+$endif$
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$
@@ -55,14 +61,16 @@ $endfor$
 
 $if(title)$
 <section>
-    <h1 class="title">$title$</h1>
+  <h1 class="title">$title$</h1>
 $if(subtitle)$
   <h1 class="subtitle">$subtitle$</h1>
 $endif$
 $for(author)$
-    <h2 class="author">$author$</h2>
+  <h2 class="author">$author$</h2>
 $endfor$
-    <h3 class="date">$date$</h3>
+$if(date)$
+  <h3 class="date">$date$</h3>
+$endif$
 </section>
 $endif$
 $if(toc)$
