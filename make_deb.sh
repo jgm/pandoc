@@ -27,6 +27,7 @@ which hsb2hs || stack install --stack-yaml stack.hsb2hs.yaml
 
 stack install --stack-yaml deb/stack.yaml
 
+make man/pandoc.1
 # get pandoc-citeproc man page:
 PANDOC_CITEPROC_VERSION=`pandoc-citeproc --version | awk '{print $2;}'`
 PANDOC_CITEPROC_TARBALL=https://hackage.haskell.org/package/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}.tar.gz
@@ -44,7 +45,7 @@ mkdir -p $DEST/share/doc/pandoc-citeproc
 find $DIST -type d | xargs chmod 755
 cp $LOCAL/bin/pandoc $DEST/bin/
 cp $LOCAL/bin/pandoc-citeproc $DEST/bin/
-cp $LOCAL/share/man/man1/pandoc.1 $DEST/share/man/man1/pandoc.1
+cp man/pandoc.1 $DEST/share/man/man1/pandoc.1
 gzip -9 $DEST/share/man/man1/pandoc.1
 cp ${PANDOC_CITEPROC_pATH}/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
