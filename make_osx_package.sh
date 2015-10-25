@@ -17,6 +17,8 @@ rm -rf $DIST
 mkdir -p $RESOURCES
 stack setup
 which hsb2hs | stack install --stack-yaml=stack.hsb2hs.yaml
+# We need this for hsb2hs:
+PATH=$LOCALBIN:$PATH
 
 echo Building pandoc...
 stack clean

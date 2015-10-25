@@ -20,6 +20,9 @@ COPYRIGHT=$DEST/share/doc/pandoc/copyright
 stack setup
 stack clean
 which hsb2hs || stack install --stack-yaml stack.hsb2hs.yaml
+# We need this for hsb2hs:
+PATH=$LOCAL/bin:$PATH
+
 stack install --stack-yaml deb/stack.yaml
 
 # get pandoc-citeproc man page:
