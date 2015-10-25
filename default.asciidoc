@@ -1,14 +1,23 @@
 $if(titleblock)$
 $title$
-$for(author)$
-:author: $author$
-$endfor$
+$if(author)$
+$for(author)$$author$$sep$; $endfor$
+$endif$
 $if(date)$
-:date: $date$
+$date$
+$endif$
+$if(keywords)$
+:keywords: $for(keywords)$$keywords$$sep$, $endfor$
 $endif$
 $if(toc)$
 :toc:
 $endif$
+
+$endif$
+$if(abstract)$
+[abstract]
+== Abstract
+$abstract$
 
 $endif$
 $for(header-includes)$
