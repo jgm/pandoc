@@ -1086,10 +1086,11 @@ toPolyglossia ("ar":"TN":_)        = ("arabic", "locale=tunisia")
 toPolyglossia ("de":"1901":_)      = ("german", "spelling=old")
 toPolyglossia ("de":"AT":"1901":_) = ("german", "variant=austrian, spelling=old")
 toPolyglossia ("de":"AT":_)        = ("german", "variant=austrian")
+toPolyglossia ("de":"CH":"1901":_) = ("german", "variant=swiss, spelling=old")
 toPolyglossia ("de":"CH":_)        = ("german", "variant=swiss")
 toPolyglossia ("de":_)             = ("german", "")
 toPolyglossia ("dsb":_)            = ("lsorbian", "")
-toPolyglossia ("el":"poly":_)      = ("greek",   "variant=poly")
+toPolyglossia ("el":"polyton":_)   = ("greek",   "variant=poly")
 toPolyglossia ("en":"AU":_)        = ("english", "variant=australian")
 toPolyglossia ("en":"CA":_)        = ("english", "variant=canadian")
 toPolyglossia ("en":"GB":_)        = ("english", "variant=british")
@@ -1111,7 +1112,7 @@ toBabel ("de":"AT":"1901":_) = "austrian"
 toBabel ("de":"AT":_)        = "naustrian"
 toBabel ("de":_)             = "ngerman"
 toBabel ("dsb":_)            = "lowersorbian"
-toBabel ("el":"poly":_)      = "polutonikogreek"
+toBabel ("el":"polyton":_)   = "polutonikogreek"
 toBabel ("en":"AU":_)        = "australian"
 toBabel ("en":"CA":_)        = "canadian"
 toBabel ("en":"GB":_)        = "british"
