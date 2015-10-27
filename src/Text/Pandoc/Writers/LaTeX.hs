@@ -369,8 +369,8 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
   ref <- toLabel identifier
   let linkAnchor = if null identifier
                       then empty
-                      else "\\hyperdef{}" <> braces (text ref) <>
-                           braces ("\\label" <> braces (text ref))
+                      else "\\hypertarget" <> braces (text ref) <>
+                             braces empty
   let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
   let wrapDir = case lookup "dir" kvs of
                   Just "rtl" -> align "RTL"
@@ -429,7 +429,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   ref <- toLabel identifier
   let linkAnchor = if null identifier
                       then empty
-                      else "\\hyperdef{}" <> braces (text ref) <>
+                      else "\\hypertarget" <> braces (text ref) <>
                                 braces ("\\label" <> braces (text ref))
   let lhsCodeBlock = do
         modify $ \s -> s{ stLHS = True }
@@ -669,19 +669,12 @@ listItemToLaTeX lst
 defListItemToLaTeX :: ([Inline], [[Block]]) -> State WriterState Doc
 defListItemToLaTeX (term, defs) = do
     term' <- inlineListToLaTeX term
-    -- put braces around term if it contains an internal link,
-    -- since otherwise we get bad bracket interactions: \item[\hyperref[..]
-    let isInternalLink (Link _ ('#':_,_)) = True
-        isInternalLink _                  = False
-    let term'' = if any isInternalLink term
-                    then braces term'
-                    else term'
     def'  <- liftM vsep $ mapM blockListToLaTeX defs
     return $ case defs of
      (((Header _ _ _) : _) : _) ->
-       "\\item" <> brackets term'' <> " ~ " $$ def'
+       "\\item" <> brackets term' <> " ~ " $$ def'
      _                          ->
-       "\\item" <> brackets term'' $$ def'
+       "\\item" <> brackets term' $$ def'
 
 -- | Craft the section header, inserting the secton reference, if supplied.
 sectionHeader :: Bool    -- True for unnumbered
@@ -716,8 +709,7 @@ sectionHeader unnumbered ref level lst = do
   let level' = if book || writerChapters opts then level - 1 else level
   internalLinks <- gets stInternalLinks
   let refLabel x = (if ref `elem` internalLinks
-                       then text "\\hyperdef"
-                                <> braces empty
+                       then text "\\hypertarget"
                                 <> braces lab
                                 <> braces x
                        else x)
@@ -791,8 +783,8 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
   ref <- toLabel id'
   let linkAnchor = if null id'
                       then empty
-                      else "\\protect\\hyperdef{}" <> braces (text ref) <>
-                             braces ("\\label" <> braces (text ref))
+                      else "\\protect\\hypertarget" <> braces (text ref) <>
+                             braces empty
   fmap (linkAnchor <>)
     ((if noEmph then inCmd "textup" else id) .
      (if noStrong then inCmd "textnormal" else id) .
@@ -889,7 +881,7 @@ inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt
   lab <- toLabel ident
-  return $ text "\\hyperref" <> brackets (text lab) <> braces contents
+  return $ text "\\hyperlink" <> braces (text lab) <> braces contents
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
