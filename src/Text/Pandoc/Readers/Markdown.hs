@@ -326,23 +326,22 @@ stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
 mmdTitleBlock :: MarkdownParser ()
 mmdTitleBlock = try $ do
   guardEnabled Ext_mmd_title_block
-  kvPairs <- many1 kvPair
+  firstPair <- kvPair False
+  restPairs <- many (kvPair True)
+  let kvPairs = firstPair : restPairs
   blanklines
   updateState $ \st -> st{ stateMeta' = stateMeta' st <>
                              return (Meta $ M.fromList kvPairs) }
 
-kvPair :: MarkdownParser (String, MetaValue)
-kvPair = try $ do
+kvPair :: Bool -> MarkdownParser (String, MetaValue)
+kvPair allowEmpty = try $ do
   key <- many1Till (alphaNum <|> oneOf "_- ") (char ':')
-  skipMany1 spaceNoNewline
-  val <- manyTill anyChar
+  val <- trim <$> manyTill anyChar
           (try $ newline >> lookAhead (blankline <|> nonspaceChar))
-  guard $ not . null . trim $ val
+  guard $ allowEmpty || not (null val)
   let key' = concat $ words $ map toLower key
-  let val' = MetaBlocks $ B.toList $ B.plain $ B.text $ trim val
+  let val' = MetaBlocks $ B.toList $ B.plain $ B.text $ val
   return (key',val')
-  where
-    spaceNoNewline = satisfy (\x -> isSpace x && (x/='\n') && (x/='\r'))
 
 parseMarkdown :: MarkdownParser Pandoc
 parseMarkdown = do
