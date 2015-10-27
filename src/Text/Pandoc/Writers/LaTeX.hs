@@ -369,7 +369,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
   ref <- toLabel identifier
   let linkAnchor = if null identifier
                       then empty
-                      else "\\hyperdef{}" <> braces (text ref) <>
+                      else "\\hypertarget" <> braces (text ref) <>
                            braces ("\\label" <> braces (text ref))
   let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
   let wrapDir = case lookup "dir" kvs of
@@ -429,7 +429,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   ref <- toLabel identifier
   let linkAnchor = if null identifier
                       then empty
-                      else "\\hyperdef{}" <> braces (text ref) <>
+                      else "\\hypertarget" <> braces (text ref) <>
                                 braces ("\\label" <> braces (text ref))
   let lhsCodeBlock = do
         modify $ \s -> s{ stLHS = True }
@@ -716,8 +716,7 @@ sectionHeader unnumbered ref level lst = do
   let level' = if book || writerChapters opts then level - 1 else level
   internalLinks <- gets stInternalLinks
   let refLabel x = (if ref `elem` internalLinks
-                       then text "\\hyperdef"
-                                <> braces empty
+                       then text "\\hypertarget"
                                 <> braces lab
                                 <> braces x
                        else x)
@@ -791,7 +790,7 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
   ref <- toLabel id'
   let linkAnchor = if null id'
                       then empty
-                      else "\\protect\\hyperdef{}" <> braces (text ref) <>
+                      else "\\protect\\hypertarget" <> braces (text ref) <>
                              braces ("\\label" <> braces (text ref))
   fmap (linkAnchor <>)
     ((if noEmph then inCmd "textup" else id) .
@@ -889,7 +888,7 @@ inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt
   lab <- toLabel ident
-  return $ text "\\hyperref" <> brackets (text lab) <> braces contents
+  return $ text "\\hyperlink" <> brackets (text lab) <> braces contents
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
