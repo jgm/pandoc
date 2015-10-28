@@ -1,0 +1,19 @@
+flags:
+  pandoc:
+    trypandoc: false
+    https: true
+    embed_data_files: false
+    old-locale: false
+    network-uri: true
+flags:
+  hslua:
+    system-lua: True
+packages:
+- '..'
+- '../hslua-0.4.1'
+extra-deps: []
+extra-include-dirs:
+- "C:/lua-5.1.5/include"
+extra-lib-dirs:
+- "C:/lua-5.1.5"
+resolver: lts-3.10
