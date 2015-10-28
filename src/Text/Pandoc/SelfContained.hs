@@ -135,7 +135,7 @@ pCSSUrl media sourceURL d = P.try $ do
       'd':'a':'t':'a':':':_ -> return fallback
       u ->  do let url' = if isURI u then u else d </> u
                enc <- lift $ getDataURI media sourceURL "" url'
-               return (B.pack enc)
+               return (B.pack $ "url(" ++ enc ++ ")")
 
 
 getDataURI :: MediaBag -> Maybe String -> MimeType -> String
