@@ -42,7 +42,7 @@ tests = [ testGroup "code blocks"
         , testGroup "definition lists"
           [ "with internal link" =: definitionList [(link "#go" "" (str "testing"),
              [plain (text "hi there")])] =?>
-            "\\begin{description}\n\\tightlist\n\\item[\\hyperlink{go}{testing}]\nhi there\n\\end{description}"
+            "\\begin{description}\n\\tightlist\n\\item[\\protect\\hyperlink{go}{testing}]\nhi there\n\\end{description}"
           ]
         , testGroup "math"
           [ "escape |" =: para (math "\\sigma|_{\\{x\\}}") =?>

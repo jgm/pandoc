@@ -881,7 +881,7 @@ inlineToLaTeX Space = return space
 inlineToLaTeX (Link txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt
   lab <- toLabel ident
-  return $ text "\\hyperlink" <> braces (text lab) <> braces contents
+  return $ text "\\protect\\hyperlink" <> braces (text lab) <> braces contents
 inlineToLaTeX (Link txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
