@@ -239,7 +239,7 @@ Flag network-uri
 
 Flag old-locale
   Description:   Use old-locale and time < 1.5
-  Default:       True
+  Default:       False
 
 Library
   Build-Depends: base >= 4.2 && <5,
