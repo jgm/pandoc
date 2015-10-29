@@ -78,6 +78,7 @@ $for(polyglossia-otherlangs)$
 $endfor$
 \fi
 $endif$
+\newif\ifbibliography
 $if(natbib)$
 \usepackage{natbib}
 \bibliographystyle{$if(biblio-style)$$biblio-style$$else$plainnat$endif$}
@@ -129,9 +130,12 @@ $endif$
   \frame{\partpage}
 }
 \AtBeginSection{
-  \let\insertsectionnumber\relax
-  \let\sectionname\relax
-  \frame{\sectionpage}
+  \ifbibliography
+  \else
+    \let\insertsectionnumber\relax
+    \let\sectionname\relax
+    \frame{\sectionpage}
+  \fi
 }
 \AtBeginSubsection{
   \let\insertsubsectionnumber\relax
@@ -215,6 +219,7 @@ $else$
 $endif$
 $endif$
 \begin{frame}[allowframebreaks]{$biblio-title$}
+\bibliographytrue
 \bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
 \end{frame}
 
@@ -222,6 +227,7 @@ $endif$
 $endif$
 $if(biblatex)$
 \begin{frame}[allowframebreaks]{$biblio-title$}
+\bibliographytrue
 \printbibliography[heading=none]
 \end{frame}
 
