@@ -593,8 +593,15 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
                 return $ H.thead (nl opts >> contents) >> nl opts
   body' <- liftM (\x -> H.tbody (nl opts >> mconcat x)) $
                zipWithM (tableRowToHtml opts aligns) [1..] rows'
-  return $ H.table $ nl opts >> captionDoc >> coltags >> head' >>
-                   body' >> nl opts
+  let tbl = H.table $
+              nl opts >> captionDoc >> coltags >> head' >> body' >> nl opts
+  let totalWidth = sum widths
+  -- When widths of columns are < 100%, we need to set width for the whole
+  -- table, or some browsers give us skinny columns with lots of space between:
+  return $ if totalWidth == 0 || totalWidth == 1
+              then tbl
+              else tbl ! A.style (toValue $ "width:" ++
+                              show (round (totalWidth * 100) :: Int) ++ "%;")
 
 tableRowToHtml :: WriterOptions
                -> [Alignment]
