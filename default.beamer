@@ -122,6 +122,10 @@ $if(graphics)$
 \setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
 $endif$
 
+% Prevent slide breaks in the middle of a paragraph:
+\widowpenalties 1 10000
+\raggedbottom
+
 % Comment these out if you don't want a slide with just the
 % part/section/subsection/subsubsection title:
 \AtBeginPart{
