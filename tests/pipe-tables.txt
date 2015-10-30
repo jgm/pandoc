@@ -59,3 +59,10 @@ Number of siblings | Salary
 ------------------:|:------
                  3 | 33
                  4 | 44
+
+Long pipe table with relative widths:
+
+| Default1 | Default2 | Default3 |
+ |---------|----------|---------------------------------------|
+|123|this is a table cell|and this is a really long table cell that will probably need wrapping|
+|123|123|123|

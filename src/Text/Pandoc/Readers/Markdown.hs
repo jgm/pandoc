@@ -1320,7 +1320,7 @@ removeOneLeadingSpace xs =
 gridTableFooter :: MarkdownParser [Char]
 gridTableFooter = blanklines
 
-pipeBreak :: MarkdownParser [Alignment]
+pipeBreak :: MarkdownParser ([Alignment], [Int])
 pipeBreak = try $ do
   nonindentSpaces
   openPipe <- (True <$ char '|') <|> return False
@@ -1330,16 +1330,22 @@ pipeBreak = try $ do
   guard $ not (null rest && not openPipe)
   optional (char '|')
   blankline
-  return (first:rest)
+  return $ unzip (first:rest)
 
 pipeTable :: MarkdownParser ([Alignment], [Double], F [Blocks], F [[Blocks]])
 pipeTable = try $ do
   nonindentSpaces
   lookAhead nonspaceChar
-  (heads,aligns) <- (,) <$> pipeTableRow <*> pipeBreak
-  lines' <-  sequence <$> many pipeTableRow
-  let widths = replicate (length aligns) 0.0
-  return $ (aligns, widths, heads, lines')
+  (heads,(aligns, seplengths)) <- (,) <$> pipeTableRow <*> pipeBreak
+  (lines', rawRows) <- unzip <$> many (withRaw pipeTableRow)
+  let maxlength = maximum $ map length rawRows
+  numColumns <- getOption readerColumns
+  let widths = if maxlength > numColumns
+                  then map (\len ->
+                           fromIntegral (len + 1) / fromIntegral numColumns)
+                             seplengths
+                  else replicate (length aligns) 0.0
+  return $ (aligns, widths, heads, sequence lines')
 
 sepPipe :: MarkdownParser ()
 sepPipe = try $ do
@@ -1368,19 +1374,20 @@ pipeTableRow = do
                  ils' | B.isNull ils' -> mempty
                       | otherwise   -> B.plain $ ils') cells'
 
-pipeTableHeaderPart :: Parser [Char] st Alignment
+pipeTableHeaderPart :: Parser [Char] st (Alignment, Int)
 pipeTableHeaderPart = try $ do
   skipMany spaceChar
   left <- optionMaybe (char ':')
-  many1 (char '-')
+  pipe <- many1 (char '-')
   right <- optionMaybe (char ':')
   skipMany spaceChar
+  let len = length pipe + maybe 0 (const 1) left + maybe 0 (const 1) right
   return $
-    case (left,right) of
-      (Nothing,Nothing) -> AlignDefault
-      (Just _,Nothing)  -> AlignLeft
-      (Nothing,Just _)  -> AlignRight
-      (Just _,Just _)   -> AlignCenter
+    ((case (left,right) of
+       (Nothing,Nothing) -> AlignDefault
+       (Just _,Nothing)  -> AlignLeft
+       (Nothing,Just _)  -> AlignRight
+       (Just _,Just _)   -> AlignCenter), len)
 
 -- Succeed only if current line contains a pipe.
 scanForPipe :: Parser [Char] st ()
