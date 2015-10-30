@@ -372,10 +372,8 @@ Reader options
 :   Produce typographically correct output, converting straight quotes
     to curly quotes, `---` to em-dashes, `--` to en-dashes, and
     `...` to ellipses. Nonbreaking spaces are inserted after certain
-    abbreviations, such as "Mr." (Note: This option is significant only when
-    the input format is `markdown`, `markdown_strict`, `textile` or `twiki`.
-    It is selected automatically when the input format is `textile` or the
-    output format is `latex` or `context`, unless `--no-tex-ligatures`
+    abbreviations, such as "Mr." (Note: This option is selected automatically
+    when the output format is `latex` or `context`, unless `--no-tex-ligatures`
     is used.)
 
 `--old-dashes`
