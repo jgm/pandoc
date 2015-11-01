@@ -394,18 +394,23 @@ blockToLaTeX (Plain lst) =
 -- title beginning with fig: indicates that the image is a figure
 blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   inNote <- gets stInNote
+  modify $ \st -> st{ stInMinipage = True, stNotes = [] }
   capt <- inlineListToLaTeX txt
+  notes <- gets stNotes
+  modify $ \st -> st{ stInMinipage = False, stNotes = [] }
   -- We can't have footnotes in the list of figures, so remove them:
-  captForLof <- if null (query queryNote txt)
+  captForLof <- if null notes
                    then return empty
                    else brackets <$> inlineListToLaTeX (walk deNote txt)
   img <- inlineToLaTeX (Image txt (src,tit))
+  let footnotes = notesToLaTeX notes
   return $ if inNote
               -- can't have figures in notes
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
               else "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
                     ("\\caption" <> captForLof <> braces capt) $$
-                    "\\end{figure}"
+                    "\\end{figure}" $$
+                    footnotes
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- writerBeamer `fmap` gets stOptions
@@ -647,19 +652,21 @@ tableCellToLaTeX header (width, align, blocks) = do
   return $ ("\\begin{minipage}" <> valign <>
             braces (text (printf "%.2f\\columnwidth" width)) <>
             (halign <> "\\strut" <> cr <> cellContents <> cr) <>
-            "\\strut\\end{minipage}")
-          $$ case notes of
-                  [] -> empty
-                  ns -> (case length ns of
+            "\\strut\\end{minipage}") $$
+            notesToLaTeX notes
+
+notesToLaTeX :: [Doc] -> Doc
+notesToLaTeX [] = empty
+notesToLaTeX ns = (case length ns of
                               n | n > 1 -> "\\addtocounter" <>
                                            braces "footnote" <>
                                            braces (text $ show $ 1 - n)
                                 | otherwise -> empty)
-                        $$
-                        vcat (intersperse
-                          ("\\addtocounter" <> braces "footnote" <> braces "1")
-                          $ map (\x -> "\\footnotetext" <> braces x)
-                          $ reverse ns)
+                   $$
+                   vcat (intersperse
+                     ("\\addtocounter" <> braces "footnote" <> braces "1")
+                     $ map (\x -> "\\footnotetext" <> braces x)
+                     $ reverse ns)
 
 listItemToLaTeX :: [Block] -> State WriterState Doc
 listItemToLaTeX lst
@@ -1207,10 +1214,6 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "ur"  = "urdu"
     fromIso "vi"  = "vietnamese"
     fromIso _     = ""
-
-queryNote :: Inline -> [Inline]
-queryNote (Note xs) = [Note xs]
-queryNote _ = []
 
 deNote :: Inline -> Inline
 deNote (Note _) = RawInline (Format "latex") ""
