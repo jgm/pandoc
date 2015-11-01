@@ -395,12 +395,17 @@ blockToLaTeX (Plain lst) =
 blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   inNote <- gets stInNote
   capt <- inlineListToLaTeX txt
+  -- We can't have footnotes in the list of figures, so remove them:
+  captForLof <- if null (query queryNote txt)
+                   then return empty
+                   else brackets <$> inlineListToLaTeX (walk deNote txt)
   img <- inlineToLaTeX (Image txt (src,tit))
   return $ if inNote
               -- can't have figures in notes
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
               else "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
-                      ("\\caption" <> braces capt) $$ "\\end{figure}"
+                    ("\\caption" <> captForLof <> braces capt) $$
+                    "\\end{figure}"
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- writerBeamer `fmap` gets stOptions
@@ -1202,3 +1207,11 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "ur"  = "urdu"
     fromIso "vi"  = "vietnamese"
     fromIso _     = ""
+
+queryNote :: Inline -> [Inline]
+queryNote (Note xs) = [Note xs]
+queryNote _ = []
+
+deNote :: Inline -> Inline
+deNote (Note _) = RawInline (Format "latex") ""
+deNote x = x
