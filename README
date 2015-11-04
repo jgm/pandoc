@@ -1007,7 +1007,7 @@ Variables set by pandoc
 Some variables are set automatically by pandoc.  These vary somewhat
 depending on the output format, but include metadata fields as well as the following:
 
-`title`, `author`, `date`, `subtitle`
+`title`, `author`, `date`
 :   allow identification of basic aspects of the document.
     Included in PDF metadata through LaTeX and ConTeXt.
     These can be set through a [pandoc title block][Extension: `pandoc_title_block`],
@@ -1019,8 +1019,14 @@ depending on the output format, but include metadata fields as well as the follo
         - Peter Abelard
         ...
 
+`subtitle`
+:   document subtitle; also used as subject in PDF metadata
+
 `abstract`
-:   allows for specification of document summary in LaTeX, ConTeXt, and Word docx
+:   document summary, included in LaTeX, ConTeXt, AsciiDoc, and Word docx
+
+`keywords`
+:   list of keywords to be included in HTML, PDF, and AsciiDoc metadata; may be repeated as for `author`, above
 
 `header-includes`
 :   contents specified by `-H/--include-in-header` (may have multiple
@@ -1141,7 +1147,7 @@ LaTeX variables are used when [creating a PDF].
 `fontfamilyoptions`
 :   options for package used as `fontfamily`: e.g. `osf,sc` with
     `fontfamily` set to [`mathpazo`] provides Palatino with old-style
-    figures and true small caps
+    figures and true small caps; may be repeated for multiple options
 
 `mainfont`, `sansfont`, `monofont`, `mathfont`, `CJKmainfont`
 :   font families for use with `xelatex` or
@@ -1153,7 +1159,7 @@ LaTeX variables are used when [creating a PDF].
 :   options to use with `mainfont`, `sansfont`, `monofont`, `mathfont`,
     `CJKmainfont` in `xelatex` and `lualatex`.  Allow for any choices
     available through [`fontspec`], such as the OpenType features
-    `Numbers=OldStyle,Numbers=Proportional`.
+    `Numbers=OldStyle,Numbers=Proportional`. May be repeated for multiple options.
 
 `fontenc`
 :   allows font encoding to be specified through `fontenc` package (with `pdflatex`);
@@ -1186,10 +1192,6 @@ LaTeX variables are used when [creating a PDF].
 
 `lof`, `lot`
 :   include list of figures, list of tables
-
-`keywords`
-:   list of keywords to be included in PDF metadata,
-    separated by commas or semicolons
 
 `bibliography`
 :   bibliography to use for resolving references
@@ -1225,17 +1227,24 @@ Variables for ConTeXt
 `linkcolor`
 :   color for links, e.g. `red`, `blue` (see [ConTeXt Color])
 
+`indenting`
+:   controls indentation of paragraphs, e.g. `yes,small,next` (see [ConTeXt Indentation]);
+    may be repeated for multiple options
+
 `whitespace`
 :   spacing between paragraphs, e.g. `none`, `small` (using [`setupwhitespace`])
 
 `interlinespace`
-:   adjusts line spacing, e.g. `4ex` (using [`setupinterlinespace`])
+:   adjusts line spacing, e.g. `4ex` (using [`setupinterlinespace`]);
+    may be repeated for multiple options
 
 `headertext`, `footertext`
-:   text to be placed in running header or footer (see [ConTeXt Headers and Footers])
+:   text to be placed in running header or footer (see [ConTeXt Headers and Footers]);
+    may be repeated up to four times for different placement
 
 `pagenumbering`
-:   page number style and location (using [`setuppagenumbering`])
+:   page number style and location (using [`setuppagenumbering`]);
+    may be repeated for multiple options
 
 `toc`
 :   include table of contents (can also be set using `--toc/--table-of-contents`)
@@ -1243,15 +1252,12 @@ Variables for ConTeXt
 `lof`, `lot`
 :   include list of figures, list of tables
 
-`keywords`
-:   list of keywords to be included in PDF metadata,
-    separated by commas or semicolons
-
 [ConTeXt Paper Setup]: http://wiki.contextgarden.net/PaperSetup
 [ConTeXt Layout]: http://wiki.contextgarden.net/Layout
 [ConTeXt Font Switching]: http://wiki.contextgarden.net/Font_Switching
 [ConTeXt Color]: http://wiki.contextgarden.net/Color
 [ConTeXt Headers and Footers]: http://wiki.contextgarden.net/Headers_and_Footers
+[ConTeXt Indentation]: http://wiki.contextgarden.net/Indentation
 [`setupwhitespace`]: http://wiki.contextgarden.net/Command/setupwhitespace
 [`setupinterlinespace`]: http://wiki.contextgarden.net/Command/setupinterlinespace
 [`setuppagenumbering`]: http://wiki.contextgarden.net/Command/setuppagenumbering
