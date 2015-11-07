@@ -886,7 +886,7 @@ verbatimEnv' = fmap snd <$>
              string "\\begin"
              name <- braced'
              guard $ name `elem` ["verbatim", "Verbatim", "lstlisting",
-                                  "minted", "alltt"]
+                                  "minted", "alltt", "comment"]
              manyTill anyChar (try $ string $ "\\end{" ++ name ++ "}")
 
 blob' :: IncludeParser
@@ -1039,6 +1039,7 @@ environments = M.fromList
   , ("code", guardEnabled Ext_literate_haskell *>
       (codeBlockWith ("",["sourceCode","literate","haskell"],[]) <$>
         verbEnv "code"))
+  , ("comment", mempty <$ verbEnv "comment")
   , ("verbatim", codeBlock <$> verbEnv "verbatim")
   , ("Verbatim",   do options <- option [] keyvals
                       let kvs = [ (if k == "firstnumber"
