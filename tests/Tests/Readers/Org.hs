@@ -539,6 +539,17 @@ tests =
           "* This: is not: tagged" =?>
           headerWith ("this-is-not-tagged", [], []) 1 "This: is not: tagged"
 
+      , "Header starting with strokeout text" =:
+          unlines [ "foo"
+                  , ""
+                  , "* +thing+ other thing"
+                  ] =?>
+          mconcat [ para "foo"
+                  , headerWith ("thing-other-thing", [], [])
+                               1
+                               ((strikeout "thing") <> " other thing")
+                  ]
+
       , "Comment Trees" =:
           unlines [ "* COMMENT A comment tree"
                   , "  Not much going on here"

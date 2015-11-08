@@ -730,7 +730,7 @@ headerTags = try $
 
 headerStart :: OrgParser Int
 headerStart = try $
-  (length <$> many1 (char '*')) <* many1 (char ' ')
+  (length <$> many1 (char '*')) <* many1 (char ' ') <* updateLastPreCharPos
 
 
 -- Don't use (or need) the reader wrapper here, we want hline to be
