@@ -3,6 +3,7 @@
 -- provides Arbitrary instance for Pandoc types
 module Tests.Arbitrary ()
 where
+import Prelude
 import Test.QuickCheck.Gen
 import Test.QuickCheck.Arbitrary
 import Control.Monad (liftM, liftM2)

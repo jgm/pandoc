@@ -93,6 +93,7 @@ module Text.Pandoc.Templates ( renderTemplate
                              , Template
                              , getDefaultTemplate ) where
 
+import Prelude
 import Data.Char (isAlphaNum)
 import Control.Monad (guard, when)
 import Data.Aeson (ToJSON(..), Value(..))

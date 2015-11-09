@@ -34,6 +34,7 @@ metadata.
 -}
 module Text.Pandoc.Writers.Native ( writeNative )
 where
+import Prelude
 import Text.Pandoc.Options ( WriterOptions(..) )
 import Data.List ( intersperse )
 import Text.Pandoc.Definition

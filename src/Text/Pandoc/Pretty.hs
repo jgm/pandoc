@@ -74,6 +74,7 @@ module Text.Pandoc.Pretty (
      )
 
 where
+import Prelude
 import Data.Sequence (Seq, fromList, (<|), singleton, mapWithIndex, viewl, ViewL(..))
 import Data.Foldable (toList)
 import Data.List (intercalate)

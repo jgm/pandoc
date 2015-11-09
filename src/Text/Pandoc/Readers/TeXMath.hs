@@ -29,6 +29,7 @@ Conversion of TeX math to a list of 'Pandoc' inline elements.
 -}
 module Text.Pandoc.Readers.TeXMath ( texMathToInlines ) where
 
+import Prelude
 import Text.Pandoc.Definition
 import Text.TeXMath
 

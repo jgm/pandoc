@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Org (tests) where
 
+import Prelude
 import Text.Pandoc.Definition
 import Test.Framework
 import Tests.Helpers

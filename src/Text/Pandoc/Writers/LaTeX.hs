@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' format into LaTeX.
 -}
 module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
+import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Shared

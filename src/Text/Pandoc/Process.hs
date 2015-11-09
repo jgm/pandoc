@@ -29,6 +29,7 @@ ByteString variant of 'readProcessWithExitCode'.
 -}
 module Text.Pandoc.Process (pipeProcess)
 where
+import Prelude
 import System.Process
 import System.Exit (ExitCode (..))
 import Control.Exception

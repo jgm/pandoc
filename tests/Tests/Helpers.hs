@@ -9,6 +9,7 @@ module Tests.Helpers ( test
                      )
                      where
 
+import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (Inlines, Blocks, doc, plain)
 import Test.Framework

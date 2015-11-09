@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Tests.Readers.RST (tests) where
 
+import Prelude
 import Text.Pandoc.Definition
 import Test.Framework
 import Tests.Helpers

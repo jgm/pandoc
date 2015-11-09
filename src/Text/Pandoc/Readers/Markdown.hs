@@ -32,6 +32,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Markdown ( readMarkdown,
                                       readMarkdownWithWarnings ) where
 
+import Prelude
 import Data.List ( transpose, sortBy, findIndex, intersperse, intercalate )
 import qualified Data.Map as M
 import Data.Scientific (coefficient, base10Exponent)

@@ -30,6 +30,7 @@ ascii equivalents (used in constructing HTML identifiers).
 -}
 module Text.Pandoc.Asciify (toAsciiChar)
 where
+import Prelude
 import qualified Data.Map as M
 import Data.Char (isAscii)
 

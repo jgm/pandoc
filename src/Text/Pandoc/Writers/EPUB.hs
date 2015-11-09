@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to EPUB.
 -}
 module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
+import Prelude
 import Data.IORef ( IORef, newIORef, readIORef, modifyIORef )
 import qualified Data.Map as M
 import Data.Maybe ( fromMaybe, catMaybes )

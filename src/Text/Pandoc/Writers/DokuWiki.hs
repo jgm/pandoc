@@ -39,6 +39,7 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 -}
 
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
+import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Options ( WriterOptions(
                                 writerTableOfContents

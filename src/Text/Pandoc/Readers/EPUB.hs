@@ -8,6 +8,7 @@ module Text.Pandoc.Readers.EPUB
   (readEPUB)
   where
 
+import Prelude
 import Text.XML.Light
 import Text.Pandoc.Definition hiding (Attr)
 import Text.Pandoc.Walk (walk, query)

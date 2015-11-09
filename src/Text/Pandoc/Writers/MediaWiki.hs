@@ -30,6 +30,7 @@ Conversion of 'Pandoc' documents to MediaWiki markup.
 MediaWiki:  <http://www.mediawiki.org/wiki/MediaWiki>
 -}
 module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki ) where
+import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared

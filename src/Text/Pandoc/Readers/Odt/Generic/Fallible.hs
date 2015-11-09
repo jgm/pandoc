@@ -39,6 +39,7 @@ compatible instances of "ArrowChoice".
 -- We export everything
 module Text.Pandoc.Readers.Odt.Generic.Fallible where
 
+import Prelude
 import           Control.Applicative
 import           Control.Monad
 

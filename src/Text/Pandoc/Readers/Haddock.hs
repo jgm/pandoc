@@ -14,6 +14,7 @@ module Text.Pandoc.Readers.Haddock
     ( readHaddock
     ) where
 
+import Prelude
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Shared (trim, splitBy)
@@ -129,7 +130,7 @@ makeExample prompt expression result =
         <> (mconcat $ intersperse B.linebreak $ map coder result')
   where
     -- 1. drop trailing whitespace from the prompt, remember the prefix
-    prefix = takeWhile (`elem` " \t") prompt
+    prefix = takeWhile (`elem` [' ','\t']) prompt
 
     -- 2. drop, if possible, the exact same sequence of whitespace
     -- characters from each result line

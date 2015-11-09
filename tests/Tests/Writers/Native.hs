@@ -1,5 +1,6 @@
 module Tests.Writers.Native (tests) where
 
+import Prelude
 import Test.Framework
 import Text.Pandoc.Builder
 import Text.Pandoc

@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' format into ConTeXt.
 -}
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
+import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared

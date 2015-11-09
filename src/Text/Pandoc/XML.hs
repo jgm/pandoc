@@ -36,6 +36,7 @@ module Text.Pandoc.XML ( escapeCharForXML,
                          toEntities,
                          fromEntities ) where
 
+import Prelude
 import Text.Pandoc.Pretty
 import Data.Char (ord, isAscii, isSpace)
 import Text.Pandoc.Compat.TagSoupEntity (lookupEntity)

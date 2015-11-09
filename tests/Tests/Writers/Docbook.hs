@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.Docbook (tests) where
 
+import Prelude
 import Test.Framework
 import Text.Pandoc.Builder
 import Text.Pandoc

@@ -39,6 +39,7 @@ with an equivalent return value.
 -- We export everything
 module Text.Pandoc.Readers.Odt.Arrows.Utils where
 
+import Prelude
 import           Control.Arrow
 import           Control.Monad                         ( join, MonadPlus(..) )
 

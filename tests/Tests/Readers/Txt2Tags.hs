@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Txt2Tags (tests) where
 
+import Prelude
 import Text.Pandoc.Definition
 import Test.Framework
 import Tests.Helpers

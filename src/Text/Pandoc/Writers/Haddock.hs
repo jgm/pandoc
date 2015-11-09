@@ -31,6 +31,7 @@ Conversion of 'Pandoc' documents to haddock markup.
 Haddock:  <http://www.haskell.org/haddock/doc/html/>
 -}
 module Text.Pandoc.Writers.Haddock (writeHaddock) where
+import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Shared

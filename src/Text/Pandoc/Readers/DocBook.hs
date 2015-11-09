@@ -1,4 +1,5 @@
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
+import Prelude
 import Data.Char (toUpper)
 import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.Options

@@ -30,6 +30,7 @@ Parses command-line options and calls the appropriate readers and
 writers.
 -}
 module Main where
+import Prelude
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.PDF (makePDF)

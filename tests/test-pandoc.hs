@@ -2,6 +2,7 @@
 
 module Main where
 
+import Prelude
 import Test.Framework
 import GHC.IO.Encoding
 import qualified Tests.Old

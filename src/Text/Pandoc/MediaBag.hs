@@ -36,6 +36,7 @@ module Text.Pandoc.MediaBag (
                      mediaDirectory,
                      extractMediaBag
                      ) where
+import Prelude
 import System.FilePath
 import qualified System.FilePath.Posix as Posix
 import System.Directory (createDirectoryIfMissing)

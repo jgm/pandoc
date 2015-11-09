@@ -50,6 +50,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , Cell(..)
                                       , archiveToDocx
                                       ) where
+import Prelude
 import Codec.Archive.Zip
 import Text.XML.Light
 import Data.Maybe

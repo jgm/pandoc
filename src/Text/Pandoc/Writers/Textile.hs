@@ -30,6 +30,7 @@ Conversion of 'Pandoc' documents to Textile markup.
 Textile:  <http://thresholdstate.com/articles/4312/the-textile-reference-manual>
 -}
 module Text.Pandoc.Writers.Textile ( writeTextile ) where
+import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared

@@ -1,5 +1,6 @@
 module Tests.Old (tests) where
 
+import Prelude
 import Test.Framework (testGroup, Test )
 import Test.Framework.Providers.HUnit
 import Test.HUnit ( assertBool )

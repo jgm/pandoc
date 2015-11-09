@@ -31,6 +31,7 @@ in RFC4122. See http://tools.ietf.org/html/rfc4122
 
 module Text.Pandoc.UUID ( UUID, getRandomUUID ) where
 
+import Prelude
 import Text.Printf ( printf )
 import System.Random ( randomIO )
 import Data.Word

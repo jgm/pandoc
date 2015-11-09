@@ -33,6 +33,7 @@ module Text.Pandoc.Readers.TWiki ( readTWiki
                                  , readTWikiWithWarnings
                                  ) where
 
+import Prelude
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Options

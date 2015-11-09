@@ -30,6 +30,7 @@ Conversion of LaTeX documents to PDF.
 -}
 module Text.Pandoc.PDF ( makePDF ) where
 
+import Prelude
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as BC

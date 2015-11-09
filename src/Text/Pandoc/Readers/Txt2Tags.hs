@@ -32,6 +32,7 @@ module Text.Pandoc.Readers.Txt2Tags ( readTxt2Tags
                                     , readTxt2TagsNoMacros)
                                     where
 
+import Prelude
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder ( Inlines, Blocks, trimInlines )
 import Text.Pandoc.Definition

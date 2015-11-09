@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to OPML XML.
 -}
 module Text.Pandoc.Writers.OPML ( writeOPML) where
+import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Writers.Shared

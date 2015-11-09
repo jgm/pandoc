@@ -1,5 +1,6 @@
 module Tests.Readers.EPUB (tests) where
 
+import Prelude
 import Text.Pandoc.Options
 import Test.Framework
 import Test.HUnit (assertBool)

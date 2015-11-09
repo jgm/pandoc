@@ -5,6 +5,7 @@ module Text.Pandoc.Readers.Docx.StyleMap (  StyleMaps(..)
                                           , hasStyleName
                                           ) where
 
+import Prelude
 import           Text.XML.Light
 import           Text.Pandoc.Readers.Docx.Util
 import           Control.Monad.State

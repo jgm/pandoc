@@ -30,6 +30,7 @@ Conversion of org-mode formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Org ( readOrg ) where
 
+import Prelude
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines, Blocks, HasMeta(..),
                                        trimInlines )

@@ -48,6 +48,7 @@ module Text.Pandoc.Highlighting ( languages
                                 , fromListingsLanguage
                                 , toListingsLanguage
                                 ) where
+import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (safeRead)
 import Text.Highlighting.Kate

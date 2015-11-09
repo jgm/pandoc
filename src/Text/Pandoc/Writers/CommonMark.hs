@@ -31,6 +31,7 @@ CommonMark:  <http://commonmark.org>
 -}
 module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
+import Prelude
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (isTightList)
