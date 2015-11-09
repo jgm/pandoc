@@ -62,6 +62,7 @@ import Text.HTML.TagSoup.Match (tagOpen)
 import qualified Data.Set as Set
 import Text.Printf (printf)
 import Debug.Trace (trace)
+import Text.Pandoc.Compat.Monoid ((<>))
 import Text.Pandoc.Error
 
 type MarkdownParser = Parser [Char] ParserState

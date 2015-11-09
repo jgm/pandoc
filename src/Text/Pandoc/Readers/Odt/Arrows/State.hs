@@ -46,6 +46,7 @@ import           Control.Monad
 
 import           Data.Foldable
 
+import           Text.Pandoc.Compat.Monoid
 import           Text.Pandoc.Readers.Odt.Arrows.Utils
 import           Text.Pandoc.Readers.Odt.Generic.Fallible
 

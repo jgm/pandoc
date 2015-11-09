@@ -34,6 +34,7 @@ import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines, Blocks, HasMeta(..),
                                        trimInlines )
 import           Text.Pandoc.Definition
+import           Text.Pandoc.Compat.Monoid ((<>))
 import           Text.Pandoc.Options
 import qualified Text.Pandoc.Parsing as P
 import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF

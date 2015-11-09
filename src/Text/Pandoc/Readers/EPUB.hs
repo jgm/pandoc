@@ -16,6 +16,7 @@ import Text.Pandoc.Options ( ReaderOptions(..), readerTrace)
 import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Compat.Except (MonadError, throwError, runExcept, Except)
+import Text.Pandoc.Compat.Monoid ((<>))
 import Text.Pandoc.MIME (MimeType)
 import qualified Text.Pandoc.Builder as B
 import Codec.Archive.Zip ( Archive (..), toArchive, fromEntry

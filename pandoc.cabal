@@ -310,7 +310,10 @@ Library
                       ScopedTypeVariables, GeneralizedNewtypeDeriving,
                       RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
                       FlexibleInstances
-  Hs-Source-Dirs:  src, prelude
+  Hs-Source-Dirs:  src
+  if impl(ghc < 7.10)
+     Hs-Source-Dirs: prelude
+     Other-Modules:  Prelude
 
   Exposed-Modules: Text.Pandoc,
                    Text.Pandoc.Options,
@@ -396,9 +399,9 @@ Library
                    Text.Pandoc.Compat.Time,
                    Text.Pandoc.Compat.Except,
                    Text.Pandoc.Compat.TagSoupEntity,
-                   Text.Pandoc.Compat.Directory
+                   Text.Pandoc.Compat.Directory,
+                   Text.Pandoc.Compat.Monoid,
                    Paths_pandoc
-                   Prelude
 
   Buildable:       True
 
@@ -429,15 +432,20 @@ Executable pandoc
                     ScopedTypeVariables, GeneralizedNewtypeDeriving,
                     RelaxedPolyRec, DeriveDataTypeable, TypeSynonymInstances,
                     FlexibleInstances
-  Hs-Source-Dirs:  ., prelude
+  Hs-Source-Dirs:  .
+  if impl(ghc < 7.10)
+     Hs-Source-Dirs: prelude
+     Other-Modules:  Prelude
   Main-Is:         pandoc.hs
   Buildable:       True
-  Other-Modules: Prelude
-                 Paths_pandoc
+  Other-Modules:   Paths_pandoc
 
 Executable trypandoc
   Main-Is:         trypandoc.hs
-  Hs-Source-Dirs:  trypandoc, prelude
+  Hs-Source-Dirs:  trypandoc
+  if impl(ghc < 7.10)
+     Hs-Source-Dirs: prelude
+     Other-Modules:  Prelude
   default-language: Haskell2010
   if flag(trypandoc)
     Build-Depends: base, aeson, pandoc, highlighting-kate,
@@ -445,12 +453,14 @@ Executable trypandoc
     Buildable:     True
   else
     Buildable:     False
-  Other-Modules: Prelude
 
 Test-Suite test-pandoc
   Type:           exitcode-stdio-1.0
   Main-Is:        test-pandoc.hs
-  Hs-Source-Dirs: tests, prelude
+  Hs-Source-Dirs: tests
+  if impl(ghc < 7.10)
+     Hs-Source-Dirs: prelude
+     Other-Modules:  Prelude
   Build-Depends:  base >= 4.2 && < 5,
                   syb >= 0.1 && < 0.7,
                   pandoc,
@@ -495,18 +505,19 @@ Test-Suite test-pandoc
                   Tests.Writers.LaTeX
                   Tests.Writers.Docx
                   Tests.Writers.RST
-                  Prelude
   Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   Default-Language: Haskell98
 
 benchmark benchmark-pandoc
   Type:            exitcode-stdio-1.0
   Main-Is:         benchmark-pandoc.hs
-  Hs-Source-Dirs:  benchmark, prelude
+  Hs-Source-Dirs:  benchmark
+  if impl(ghc < 7.10)
+     Hs-Source-Dirs: prelude
+     Other-Modules:  Prelude
   Build-Depends:   pandoc,
                    base >= 4.2 && < 5,
                    syb >= 0.1 && < 0.7,
                    criterion >= 1.0 && < 1.2
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Default-Language: Haskell98
-  Other-Modules:   Prelude

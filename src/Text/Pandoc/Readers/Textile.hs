@@ -64,6 +64,7 @@ import Text.HTML.TagSoup.Match
 import Data.List ( intercalate )
 import Data.Char ( digitToInt, isUpper)
 import Control.Monad ( guard, liftM, when )
+import Text.Pandoc.Compat.Monoid ((<>))
 import Text.Printf
 import Debug.Trace (trace)
 import Text.Pandoc.Error

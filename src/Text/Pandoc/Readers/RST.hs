@@ -48,7 +48,7 @@ import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Data.Sequence (viewr, ViewR(..))
 import Data.Char (toLower, isHexDigit, isSpace)
-
+import Text.Pandoc.Compat.Monoid ((<>))
 import Text.Pandoc.Error
 
 -- | Parse reStructuredText string and return Pandoc document.
