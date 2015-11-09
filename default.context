@@ -20,7 +20,7 @@ $endif$
 $if(keywords)$
   keyword={$for(keywords)$$keywords$$sep$; $endfor$},
 $endif$
-  style=$if(style)$$style$$else$normal$endif$,
+  style=$linkstyle$,
   color=$linkcolor$,
   contrastcolor=$linkcolor$]
 % make chapter, section bookmarks visible when opening document
