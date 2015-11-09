@@ -193,9 +193,6 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "revealjs-url" ("reveal.js" :: String) $
                   defField "s5-url" ("s5/default" :: String) $
                   defField "html5" (writerHtml5 opts) $
-                  defField "center" (case lookupMeta "center" meta of
-                                          Just (MetaBool False) -> False
-                                          _                     -> True) $
                   metadata
   return (thebody, context)
 
