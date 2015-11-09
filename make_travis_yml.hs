@@ -90,7 +90,7 @@ genTravisFromCabalFile fn xpkgs = do
         let cvs = disp' (lookupCabVer gv)
             gvs = disp' gv
             ghcopts = if gv >= Version [7,10,0] []
-                         then "-Werror"
+                         then ""
                          else "-Werror"
 
             xpkgs' = concatMap (',':) xpkgs
