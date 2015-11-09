@@ -37,7 +37,6 @@ that it has omitted the construct.
 AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Shared

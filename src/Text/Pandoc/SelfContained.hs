@@ -31,7 +31,6 @@ offline, by incorporating linked images, CSS, and scripts into
 the HTML using data URIs.
 -}
 module Text.Pandoc.SelfContained ( makeSelfContained ) where
-import Prelude
 import Text.HTML.TagSoup
 import Network.URI (isURI, escapeURIString, URI(..), parseURI)
 import Data.ByteString.Base64

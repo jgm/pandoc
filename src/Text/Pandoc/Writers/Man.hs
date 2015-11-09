@@ -29,7 +29,6 @@ Conversion of 'Pandoc' documents to groff man page format.
 
 -}
 module Text.Pandoc.Writers.Man ( writeMan) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Templates
 import Text.Pandoc.Shared

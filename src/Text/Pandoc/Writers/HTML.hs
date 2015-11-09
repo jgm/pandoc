@@ -30,7 +30,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to HTML.
 -}
 module Text.Pandoc.Writers.HTML ( writeHtml , writeHtmlString ) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared

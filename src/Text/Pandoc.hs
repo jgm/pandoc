@@ -150,7 +150,6 @@ import Text.Pandoc.Writers.RST
 import Text.Pandoc.Writers.LaTeX
 import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.Texinfo
-import Prelude
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.ODT
 import Text.Pandoc.Writers.Docx

@@ -1,6 +1,5 @@
 module Tests.Shared (tests) where
 
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Test.Framework

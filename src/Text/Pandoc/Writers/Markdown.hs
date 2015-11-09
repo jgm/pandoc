@@ -31,7 +31,6 @@ Conversion of 'Pandoc' documents to markdown-formatted plain text.
 Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Templates (renderTemplate')

@@ -14,7 +14,6 @@ InCopy is the companion word-processor to Adobe InDesign and ICML documents can 
 into InDesign with File -> Place.
 -}
 module Text.Pandoc.Writers.ICML (writeICML) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Writers.Shared

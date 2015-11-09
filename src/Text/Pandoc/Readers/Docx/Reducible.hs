@@ -7,7 +7,6 @@ module Text.Pandoc.Readers.Docx.Reducible ( concatReduce
        where
 
 
-import Prelude
 import Text.Pandoc.Builder
 import Data.List
 import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr)

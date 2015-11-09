@@ -74,7 +74,6 @@ module Text.Pandoc.Readers.Docx
        ( readDocx
        ) where
 
-import Prelude
 import Codec.Archive.Zip
 import Text.Pandoc.Definition
 import Text.Pandoc.Options

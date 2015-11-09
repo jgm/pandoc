@@ -47,7 +47,6 @@ module Text.Pandoc.Options ( Extension(..)
                            , def
                            , isEnabled
                            ) where
-import Prelude
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Default

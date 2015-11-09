@@ -38,7 +38,6 @@ module Text.Pandoc.Readers.HTML ( readHtml
                                 , isCommentTag
                                 ) where
 
-import Prelude
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Definition

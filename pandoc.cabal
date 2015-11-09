@@ -303,7 +303,7 @@ Library
      other-modules: Text.Pandoc.Data
   if os(windows)
     Cpp-options:      -D_WINDOWS
-  Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind -XNoImplicitPrelude
+  Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -fprof-auto-exported -rtsopts
   Default-Language: Haskell98
   Other-Extensions:   PatternGuards, OverloadedStrings,
@@ -420,7 +420,7 @@ Executable pandoc
      Build-Depends: network-uri >= 2.6 && < 2.7, network >= 2.6
   else
      Build-Depends: network >= 2 && < 2.6
-  Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind -XNoImplicitPrelude
+  Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -fprof-auto-exported -rtsopts -with-rtsopts=-K16m
   if os(windows)
     Cpp-options:      -D_WINDOWS
@@ -496,7 +496,7 @@ Test-Suite test-pandoc
                   Tests.Writers.Docx
                   Tests.Writers.RST
                   Prelude
-  Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded -XNoImplicitPrelude
+  Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   Default-Language: Haskell98
 
 benchmark benchmark-pandoc
@@ -507,6 +507,6 @@ benchmark benchmark-pandoc
                    base >= 4.2 && < 5,
                    syb >= 0.1 && < 0.7,
                    criterion >= 1.0 && < 1.2
-  Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind -XNoImplicitPrelude
+  Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Default-Language: Haskell98
   Other-Modules:   Prelude

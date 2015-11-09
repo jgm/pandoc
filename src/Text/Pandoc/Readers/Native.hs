@@ -30,7 +30,6 @@ Conversion of a string representation of a pandoc type (@Pandoc@,
 -}
 module Text.Pandoc.Readers.Native ( readNative ) where
 
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (safeRead)
 

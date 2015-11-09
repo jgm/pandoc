@@ -31,7 +31,6 @@ Conversion of 'Pandoc' documents to reStructuredText.
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
 module Text.Pandoc.Writers.RST ( writeRST ) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared

@@ -2,7 +2,6 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Tests.Writers.Markdown (tests) where
 
-import Prelude
 import Test.Framework
 import Text.Pandoc.Builder
 import Text.Pandoc

@@ -32,7 +32,6 @@ Conversion of 'Pandoc' documents to Emacs Org-Mode.
 Org-Mode:  <http://orgmode.org>
 -}
 module Text.Pandoc.Writers.Org ( writeOrg) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared

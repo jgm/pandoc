@@ -29,7 +29,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' format into Texinfo.
 -}
 module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared

@@ -9,7 +9,6 @@ module Text.Pandoc.Compat.Except ( ExceptT
                                  , catchError )
        where
 
-import Prelude
 #if MIN_VERSION_mtl(2,2,1)
 import Control.Monad.Except
 

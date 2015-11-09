@@ -2,7 +2,6 @@
 module Text.Pandoc.Compat.TagSoupEntity (lookupEntity
                           ) where
 
-import Prelude
 import qualified Text.HTML.TagSoup.Entity as TE
 
 lookupEntity :: String -> Maybe Char

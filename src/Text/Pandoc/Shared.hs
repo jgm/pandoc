@@ -97,7 +97,6 @@ module Text.Pandoc.Shared (
                      pandocVersion
                     ) where
 
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
@@ -247,7 +246,7 @@ trim = triml . trimr
 
 -- | Remove leading space (including newlines) from string.
 triml :: String -> String
-triml = dropWhile (`elem` [' ','\r','\n','\t'])
+triml = dropWhile (`elem` " \r\n\t")
 
 -- | Remove trailing space (including newlines) from string.
 trimr :: String -> String
@@ -660,7 +659,7 @@ inlineListToIdentifier :: [Inline] -> String
 inlineListToIdentifier =
   dropWhile (not . isAlpha) . intercalate "-" . words .
     map (nbspToSp . toLower) .
-    filter (\c -> isLetter c || isDigit c || c `elem` ['_','-','.',' ']) .
+    filter (\c -> isLetter c || isDigit c || c `elem` "_-. ") .
     stringify
  where nbspToSp '\160'     =  ' '
        nbspToSp x          =  x
@@ -914,9 +913,9 @@ fetchItem' media sourceURL s = do
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
 openURL u
-  | Just u'' <- stripPrefix "data:" u =
-    let mime     = takeWhile (/=',') u''
-        contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u''
+  | Just u' <- stripPrefix "data:" u =
+    let mime     = takeWhile (/=',') u'
+        contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u'
     in  return $ Right (decodeLenient contents, Just mime)
 #ifdef HTTP_CLIENT
   | otherwise = withSocketsDo $ E.try $ do

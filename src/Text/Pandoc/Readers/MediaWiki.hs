@@ -36,7 +36,6 @@ _ parse templates?
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
-import Prelude
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)

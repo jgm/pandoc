@@ -31,7 +31,6 @@ Namespaces used in odt files.
 module Text.Pandoc.Readers.Odt.Namespaces ( Namespace (..)
                                           ) where
 
-import Prelude
 import           Data.List       ( isPrefixOf )
 import           Data.Maybe      ( fromMaybe, listToMaybe )
 import qualified Data.Map   as M ( empty, insert )

@@ -180,7 +180,6 @@ import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
                    isHexDigit, isSpace )
 import Data.List ( intercalate, transpose, isSuffixOf )
 import Text.Pandoc.Shared
-import Prelude
 import qualified Data.Map as M
 import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro,
                                         parseMacroDefinitions)

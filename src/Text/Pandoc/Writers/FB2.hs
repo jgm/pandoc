@@ -27,7 +27,6 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
-import Prelude
 import Control.Monad.State (StateT, evalStateT, get, modify)
 import Control.Monad.State (liftM, liftM2, liftIO)
 import Data.ByteString.Base64 (encode)

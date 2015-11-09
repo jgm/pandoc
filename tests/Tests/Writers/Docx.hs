@@ -1,6 +1,5 @@
 module Tests.Writers.Docx (tests) where
 
-import Prelude
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Definition

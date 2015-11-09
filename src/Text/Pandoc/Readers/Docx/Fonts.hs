@@ -29,7 +29,6 @@ Utilities to convert between font codepoints and unicode characters.
 -}
 module Text.Pandoc.Readers.Docx.Fonts (getUnicode, Font(..)) where
 
-import Prelude
 
 -- | Enumeration of recognised fonts
 data Font = Symbol -- ^ <http://en.wikipedia.org/wiki/Symbol_(typeface) Adobe Symbol>

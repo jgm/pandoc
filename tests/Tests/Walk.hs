@@ -1,7 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables, FlexibleContexts #-}
 module Tests.Walk (tests) where
 
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Test.Framework

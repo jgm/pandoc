@@ -29,7 +29,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
-import Prelude
 import Data.List ( intercalate, isPrefixOf, isSuffixOf )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL

@@ -35,7 +35,6 @@ Conversion of 'Pandoc' documents to custom markup using
 a lua writer.
 -}
 module Text.Pandoc.Writers.Custom ( writeCustom ) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Data.List ( intersperse )

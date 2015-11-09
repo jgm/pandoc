@@ -33,7 +33,6 @@ module Text.Pandoc.Readers.RST (
                                 readRST,
                                 readRSTWithWarnings
                                ) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (setMeta, fromList)
 import Text.Pandoc.Shared

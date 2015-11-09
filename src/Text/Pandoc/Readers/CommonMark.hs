@@ -32,7 +32,6 @@ CommonMark is a strongly specified variant of Markdown: http://commonmark.org.
 module Text.Pandoc.Readers.CommonMark (readCommonMark)
 where
 
-import Prelude
 import CMark
 import Data.Text (unpack, pack)
 import Data.List (groupBy)

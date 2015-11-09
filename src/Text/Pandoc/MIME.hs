@@ -29,7 +29,6 @@ Mime type lookup for ODT writer.
 -}
 module Text.Pandoc.MIME ( MimeType, getMimeType, getMimeTypeDef,
                           extensionFromMimeType )where
-import Prelude
 import System.FilePath
 import Data.Char ( toLower )
 import Data.List (isPrefixOf, isSuffixOf)

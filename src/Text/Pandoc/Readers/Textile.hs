@@ -51,7 +51,6 @@ TODO : refactor common patterns across readers :
 
 
 module Text.Pandoc.Readers.Textile ( readTextile) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import qualified Text.Pandoc.Builder as B

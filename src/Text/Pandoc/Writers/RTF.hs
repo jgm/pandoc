@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
 module Text.Pandoc.Writers.RTF ( writeRTF, writeRTFWithEmbeddedImages ) where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared

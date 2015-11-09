@@ -70,7 +70,6 @@ module Text.Pandoc.Readers.Odt.StyleReader
 , readStylesAt
 ) where
 
-import Prelude
 import           Control.Arrow
 import           Control.Applicative hiding ( liftA, liftA2, liftA3 )
 

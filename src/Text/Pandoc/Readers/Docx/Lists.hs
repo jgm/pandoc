@@ -33,7 +33,6 @@ module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
                                       , listParagraphDivs
                                       ) where
 
-import Prelude
 import Text.Pandoc.JSON
 import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.Shared (trim)

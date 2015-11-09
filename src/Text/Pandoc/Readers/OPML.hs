@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Text.Pandoc.Readers.OPML ( readOPML ) where
-import Prelude
 import Data.Char (toUpper)
 import Text.Pandoc.Options
 import Text.Pandoc.Definition

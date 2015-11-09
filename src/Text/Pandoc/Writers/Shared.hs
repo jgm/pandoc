@@ -37,7 +37,6 @@ module Text.Pandoc.Writers.Shared (
                      , fixDisplayMath
                      )
 where
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Pretty
 import Text.Pandoc.XML (escapeStringForXML)

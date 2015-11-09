@@ -35,7 +35,6 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    handleIncludes
                                  ) where
 
-import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Shared

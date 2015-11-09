@@ -5,7 +5,6 @@ module Text.Pandoc.Readers.Docx.Util (
                                       , elemToNameSpaces
                                       ) where
 
-import Prelude
 import Text.XML.Light
 import Data.Maybe (mapMaybe)
 

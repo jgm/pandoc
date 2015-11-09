@@ -31,7 +31,6 @@ during parsing.
 -}
 module Text.Pandoc.Error (PandocError(..), handleError) where
 
-import Prelude
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
 import Text.Pandoc.Compat.Except

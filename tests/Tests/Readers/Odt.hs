@@ -1,6 +1,5 @@
 module Tests.Readers.Odt (tests) where
 
-import Prelude
 import Control.Monad ( liftM )
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Native

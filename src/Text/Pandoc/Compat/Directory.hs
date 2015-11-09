@@ -5,6 +5,7 @@ module Text.Pandoc.Compat.Directory ( getModificationTime )
 #if MIN_VERSION_directory(1,2,0)
 import System.Directory
 
+
 #else
 import qualified System.Directory as S
 import Data.Time.Clock (UTCTime)
