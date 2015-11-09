@@ -21,8 +21,8 @@ $if(keywords)$
   keyword={$for(keywords)$$keywords$$sep$; $endfor$},
 $endif$
   style=$if(style)$$style$$else$normal$endif$,
-  color=$if(linkcolor)$$linkcolor$$else$black$endif$,
-  contrastcolor=$if(linkcolor)$$linkcolor$$else$black$endif$]
+  color=$linkcolor$,
+  contrastcolor=$linkcolor$]
 % make chapter, section bookmarks visible when opening document
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]

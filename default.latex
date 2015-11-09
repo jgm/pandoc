@@ -54,8 +54,7 @@ $if(geometry)$
 $endif$
 \usepackage{hyperref}
 \PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
-\hypersetup{breaklinks=true,
-            unicode=true,
+\hypersetup{unicode=true,
 $if(title-meta)$
             pdftitle={$title-meta$},
 $endif$
@@ -68,12 +67,15 @@ $endif$
 $if(keywords)$
             pdfkeywords={$for(keywords)$$keywords$$sep$; $endfor$},
 $endif$
+$if(colorlinks)$
             colorlinks=true,
-            citecolor=$if(citecolor)$$citecolor$$else$black$endif$,
-            urlcolor=$if(urlcolor)$$urlcolor$$else$black$endif$,
-            linkcolor=$if(linkcolor)$$linkcolor$$else$black$endif$,
-            pdfborder={0 0 0}$if(hidelinks)$,
-            hidelinks$endif$}
+            linkcolor=$if(linkcolor)$$linkcolor$$else$Maroon$endif$,
+            citecolor=$if(citecolor)$$citecolor$$else$Blue$endif$,
+            urlcolor=$if(urlcolor)$$urlcolor$$else$Blue$endif$,
+$else$
+            pdfborder={0 0 0},
+$endif$
+            breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
 $if(lang)$
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
@@ -206,7 +208,9 @@ $include-before$
 $endfor$
 $if(toc)$
 {
+$if(colorlinks)$
 \hypersetup{linkcolor=$if(toccolor)$$toccolor$$else$black$endif$}
+$endif$
 \setcounter{tocdepth}{$toc-depth$}
 \tableofcontents
 }
