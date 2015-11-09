@@ -22,7 +22,7 @@ $if(keywords)$
 $endif$
   style=$linkstyle$,
   color=$linkcolor$,
-  contrastcolor=$linkcolor$]
+  contrastcolor=$linkcontrastcolor$]
 % make chapter, section bookmarks visible when opening document
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]
