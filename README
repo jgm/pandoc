@@ -176,8 +176,8 @@ Production of a PDF requires that a LaTeX engine be installed (see
 are available: [`amsfonts`], [`amsmath`], [`lm`],
 [`ifxetex`], [`ifluatex`], [`eurosym`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
-[`booktabs`], [`url`], [`graphicx`] and [`grffile`] (if the
-document contains images), [`color`], [`hyperref`], [`ulem`],
+[`booktabs`], [`graphicx`] and [`grffile`] (if the
+document contains images), [`hyperref`], [`ulem`],
 [`geometry`] (with the `geometry` variable set), [`setspace`] (with
 `linestretch`), and [`babel`] (with `lang`). The use of `xelatex` or
 `lualatex` as the LaTeX engine requires [`fontspec`]; `xelatex` uses
@@ -206,12 +206,10 @@ or [variables for ConTeXt].
 [`fancyvrb`]: https://ctan.org/pkg/fancyvrb
 [`longtable`]: https://ctan.org/pkg/longtable
 [`booktabs`]: https://ctan.org/pkg/booktabs
-[`url`]: https://ctan.org/pkg/url
 [`graphicx`]: https://ctan.org/pkg/graphicx
 [`grffile`]: https://ctan.org/pkg/grffile
 [`geometry`]: https://ctan.org/pkg/geometry
 [`setspace`]: https://ctan.org/pkg/setspace
-[`color`]: http://ctan.org/pkg/color
 [`xecjk`]: https://ctan.org/pkg/xecjk
 [`hyperref`]: https://ctan.org/pkg/hyperref
 [`ulem`]: https://ctan.org/pkg/ulem
@@ -1165,13 +1163,13 @@ LaTeX variables are used when [creating a PDF].
 :   allows font encoding to be specified through `fontenc` package (with `pdflatex`);
     default is `T1` (see guide to [LaTeX font encodings])
 
-`linkcolor`, `toccolor`, `urlcolor`, `citecolor`
-:   color for internal links, links in table of contents, external links,
-    and citation links, using options available through
-    [`color`] package, e.g. `red`, `green`, `magenta`, `cyan`, `blue`, `black`
+`colorlinks`
+:   add color to link text; automatically enabled if any of `linkcolor`, `citecolor`,
+    `urlcolor`, or `toccolor` are set
 
-`hidelinks`
-:   enables `hidelinks` option for [`hyperref`], disabling link color
+`linkcolor`, `citecolor`, `urlcolor`, `toccolor`
+:   color for internal links, citation links, external links, and links in table of contents:
+    uses any of the [predefined LaTeX colors]
 
 `links-as-notes`
 :   causes links to be printed as footnotes
@@ -1203,6 +1201,7 @@ LaTeX variables are used when [creating a PDF].
 [`report`]: https://ctan.org/pkg/report
 [`book`]: https://ctan.org/pkg/book
 [`memoir`]: https://ctan.org/pkg/memoir
+[predefined LaTeX colors]: https://en.wikibooks.org/wiki/LaTeX/Colors#Predefined_colors
 [LaTeX Font Catalogue]: http://www.tug.dk/FontCatalogue/
 [`mathpazo`]: https://ctan.org/pkg/mathpazo
 [LaTeX font encodings]: https://ctan.org/pkg/encguide
@@ -1224,8 +1223,11 @@ Variables for ConTeXt
 `mainfont`, `sansfont`, `monofont`, `mathfont`
 :   font families: take the name of any system font (see [ConTeXt Font Switching])
 
-`linkcolor`
-:   color for links, e.g. `red`, `blue` (see [ConTeXt Color])
+`linkcolor`, `contrastcolor`
+:   color for links outside and inside a page, e.g. `red`, `blue` (see [ConTeXt Color])
+
+`linkstyle`
+:   typeface style for links, e.g. `normal`, `bold`, `slanted`, `boldslanted`, `type`, `cap`, `small`
 
 `indenting`
 :   controls indentation of paragraphs, e.g. `yes,small,next` (see [ConTeXt Indentation]);
