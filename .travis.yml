@@ -13,9 +13,6 @@ before_cache:
 
 matrix:
   include:
-    - env: CABALVER=1.16 GHCVER=7.4.2 GHCOPTS=-Werror
-      compiler: ": #GHC 7.4.2"
-      addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.2], sources: [hvr-ghc]}}
     - env: CABALVER=1.16 GHCVER=7.6.3 GHCOPTS=-Werror
       compiler: ": #GHC 7.6.3"
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.6.3], sources: [hvr-ghc]}}
