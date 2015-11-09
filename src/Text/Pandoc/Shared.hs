@@ -914,9 +914,9 @@ fetchItem' media sourceURL s = do
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
 openURL u
-  | Just u' <- stripPrefix "data:" u =
-    let mime     = takeWhile (/=',') u'
-        contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u'
+  | Just u'' <- stripPrefix "data:" u =
+    let mime     = takeWhile (/=',') u''
+        contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u''
     in  return $ Right (decodeLenient contents, Just mime)
 #ifdef HTTP_CLIENT
   | otherwise = withSocketsDo $ E.try $ do
