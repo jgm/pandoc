@@ -41,7 +41,7 @@ import Network.URI ( isURI, unEscapeString )
 import Data.Aeson (object, (.=))
 import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse, nub, nubBy )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
-import Data.Maybe ( fromMaybe )
+import Data.Maybe ( fromMaybe, isJust )
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
 import Control.Monad.State
@@ -146,6 +146,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
   let docLangs = nub $ query (extract "lang") blocks
+  let hasStringValue x = isJust (getField x metadata :: Maybe String)
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
                                               if stBook st
@@ -183,6 +184,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   -- set lang to something so polyglossia/babel is included
                   defField "lang" (if null docLangs then ""::String else "en") $
                   defField "otherlangs" docLangs $
+                  defField "colorlinks" (any hasStringValue
+                           ["citecolor", "urlcolor", "linkcolor", "toccolor"]) $
                   defField "dir" (if (null $ query (extract "dir") blocks)
                                      then ""::String
                                      else "ltr") $
