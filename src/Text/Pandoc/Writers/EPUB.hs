@@ -816,7 +816,8 @@ transformTag :: WriterOptions
              -> Tag String
              -> IO (Tag String)
 transformTag opts mediaRef tag@(TagOpen name attr)
-  | name `elem` ["video", "source", "img", "audio"] = do
+  | name `elem` ["video", "source", "img", "audio"] &&
+    lookup "data-external" attr == Nothing = do
   let src = fromAttrib "src" tag
   let poster = fromAttrib "poster" tag
   newsrc <- modifyMediaRef opts mediaRef src

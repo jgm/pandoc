@@ -3489,8 +3489,11 @@ the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
 `allowframebreaks`, `b`, `c`, `t`, `environment`, `label`, `plain`,
 `shrink`.
 
+Creating EPUBs with pandoc
+==========================
+
 EPUB Metadata
-=============
+-------------
 
 EPUB metadata may be specified using the `--epub-metadata` option, but
 if the source document is markdown, it is better to use a [YAML metadata
@@ -3579,6 +3582,20 @@ The following fields are recognized:
 
 [MARC relators]: http://loc.gov/marc/relators/relaterm.html
 [`spine` element]: http://idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem
+
+Linked media
+------------
+
+By default, pandoc will download linked media (including audio and
+video) and include it in the EPUB container, yielding a completely
+self-contained EPUB.  If you want to link to external media resources
+instead, use raw HTML in your source and add `data-external="1"` to the tag
+with the `src` attribute.  For example:
+
+    <audio controls="1">
+     <source src="http://www.sixbarsjail.it/tmp/bach_toccata.mp3"
+     data-external="1" type="audio/mpeg"></source>
+    </audio>
 
 Literate Haskell support
 ========================
