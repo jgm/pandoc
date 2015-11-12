@@ -26,32 +26,32 @@ markup], [Haddock markup], [OPML], [Emacs Org mode], [DocBook],
 [reveal.js] or [S5] HTML slide shows. It can also produce [PDF] output
 on systems where LaTeX or ConTeXt is installed.
 
-Pandoc's enhanced version of markdown includes syntax for [footnotes],
+Pandoc's enhanced version of Markdown includes syntax for [footnotes],
 [tables], flexible [ordered lists], [definition lists], [fenced code blocks],
 [superscripts and subscripts], [strikeout], [metadata blocks], automatic tables of
-contents, [embedded LaTeX math][Math rendering in HTML], [citations], and [markdown inside HTML block
+contents, [embedded LaTeX math][Math rendering in HTML], [citations], and [Markdown inside HTML block
 elements][Extension: `markdown_in_html_blocks`]. (These enhancements, described below under
-[Pandoc's markdown], can be disabled using the
+[Pandoc's Markdown], can be disabled using the
 `markdown_strict` input or output format.)
 
-In contrast to most existing tools for converting markdown to HTML, which
-use regex substitutions, Pandoc has a modular design: it consists of a
+In contrast to most existing tools for converting Markdown to HTML, which
+use regex substitutions, pandoc has a modular design: it consists of a
 set of readers, which parse text in a given format and produce a native
 representation of the document, and a set of writers, which convert
 this native representation into a target format. Thus, adding an input
 or output format requires only adding a reader or writer.
 
-Because Pandoc's intermediate representation of a document is less
+Because pandoc's intermediate representation of a document is less
 expressive than many of the formats it converts between, one should
 not expect perfect conversions between every format and every other.
 Pandoc attempts to preserve the structural elements of a document, but
 not formatting details such as margin size.  And some document elements,
-such as complex tables, may not fit into Pandoc's simple document
-model.  While conversions from Pandoc's Markdown to all formats aspire
-to be perfect, conversions from formats more expressive than Pandoc's
+such as complex tables, may not fit into pandoc's simple document
+model.  While conversions from pandoc's Markdown to all formats aspire
+to be perfect, conversions from formats more expressive than pandoc's
 Markdown can be expected to be lossy.
 
-[markdown]: http://daringfireball.net/projects/markdown/
+[Markdown]: http://daringfireball.net/projects/markdown/
 [CommonMark]: http://commonmark.org
 [PHP Markdown Extra]: https://michelf.ca/projects/php-markdown/extra/
 [GitHub-Flavored Markdown]: https://help.github.com/articles/github-flavored-markdown/
@@ -124,11 +124,11 @@ The format of the input and output can be specified explicitly using
 command-line options.  The input format can be specified using the
 `-r/--read` or `-f/--from` options, the output format using the
 `-w/--write` or `-t/--to` options.  Thus, to convert `hello.txt` from
-markdown to LaTeX, you could type:
+Markdown to LaTeX, you could type:
 
     pandoc -f markdown -t latex hello.txt
 
-To convert `hello.html` from HTML to markdown:
+To convert `hello.html` from HTML to Markdown:
 
     pandoc -f html -t markdown hello.html
 
@@ -143,12 +143,12 @@ the input and output filenames.  Thus, for example,
 
     pandoc -o hello.tex hello.txt
 
-will convert `hello.txt` from markdown to LaTeX.  If no output file
+will convert `hello.txt` from Markdown to LaTeX.  If no output file
 is specified (so that output goes to *stdout*), or if the output file's
 extension is unknown, the output format will default to HTML.
 If no input file is specified (so that input comes from *stdin*), or
 if the input files' extensions are unknown, the input format will
-be assumed to be markdown unless explicitly specified.
+be assumed to be Markdown unless explicitly specified.
 
 Pandoc uses the UTF-8 character encoding for both input and output.
 If your local character encoding is not UTF-8, you
@@ -252,10 +252,10 @@ General options
 
 :   Specify input format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `markdown` (pandoc's
-    extended markdown), `markdown_strict` (original unextended
-    markdown), `markdown_phpextra` (PHP Markdown Extra),
+    extended Markdown), `markdown_strict` (original unextended
+    Markdown), `markdown_phpextra` (PHP Markdown Extra),
     `markdown_github` (GitHub-Flavored Markdown),
-    `commonmark` (CommonMark markdown), `textile` (Textile), `rst`
+    `commonmark` (CommonMark Markdown), `textile` (Textile), `rst`
     (reStructuredText), `html` (HTML), `docbook` (DocBook), `t2t`
     (txt2tags), `docx` (docx), `odt` (ODT), `epub` (EPUB), `opml` (OPML),
     `org` (Emacs Org mode), `mediawiki` (MediaWiki markup), `twiki` (TWiki
@@ -266,20 +266,20 @@ General options
     syntax extensions can be individually enabled or disabled by
     appending `+EXTENSION` or `-EXTENSION` to the format name. So, for
     example, `markdown_strict+footnotes+definition_lists` is strict
-    markdown with footnotes and definition lists enabled, and
-    `markdown-pipe_tables+hard_line_breaks` is pandoc's markdown
+    Markdown with footnotes and definition lists enabled, and
+    `markdown-pipe_tables+hard_line_breaks` is pandoc's Markdown
     without pipe tables and with hard line breaks. See [Pandoc's
-    markdown], below, for a list of extensions and
+    Markdown], below, for a list of extensions and
     their names.
 
 `-t` *FORMAT*, `-w` *FORMAT*, `--to=`*FORMAT*, `--write=`*FORMAT*
 
 :   Specify output format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `plain` (plain text),
-    `markdown` (pandoc's extended markdown), `markdown_strict`
-    (original unextended markdown), `markdown_phpextra` (PHP Markdown
+    `markdown` (pandoc's extended Markdown), `markdown_strict`
+    (original unextended Markdown), `markdown_phpextra` (PHP Markdown
     Extra), `markdown_github` (GitHub-Flavored
-    Markdown), `commonmark` (CommonMark markdown), `rst`
+    Markdown), `commonmark` (CommonMark Markdown), `rst`
     (reStructuredText), `html` (XHTML), `html5` (HTML5), `latex`
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
     `man` (groff man), `mediawiki` (MediaWiki markup), `dokuwiki`
@@ -360,9 +360,9 @@ Reader options
 
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
     or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
-    input. Raw HTML can be printed in markdown, reStructuredText, HTML,
+    input. Raw HTML can be printed in Markdown, reStructuredText, HTML,
     Slidy, Slideous, DZSlides, reveal.js, and S5 output; raw LaTeX
-    can be printed in markdown, reStructuredText, LaTeX, and ConTeXt output.
+    can be printed in Markdown, reStructuredText, LaTeX, and ConTeXt output.
     The default is for the readers to omit untranslatable HTML codes and
     LaTeX environments.  (The LaTeX reader does pass through untranslatable
     LaTeX *commands*, even if `-R` is not specified.)
@@ -397,12 +397,12 @@ Reader options
 :   Specify a default extension to use when image paths/URLs have no
     extension.  This allows you to use the same source for formats that
     require different kinds of images.  Currently this option only affects
-    the markdown and LaTeX readers.
+    the Markdown and LaTeX readers.
 
 `--filter=`*EXECUTABLE*
 
 :   Specify an executable to be used as a filter transforming the
-    Pandoc AST after the input is parsed and before the output is
+    pandoc AST after the input is parsed and before the output is
     written.  The executable should read JSON from stdin and write
     JSON to stdout.  The JSON must be formatted like  pandoc's own
     JSON input and output.  The name of the output format will be
@@ -616,12 +616,12 @@ Options affecting specific writers
 
 `--reference-links`
 
-:   Use reference-style links, rather than inline links, in writing markdown
+:   Use reference-style links, rather than inline links, in writing Markdown
     or reStructuredText.  By default inline links are used.
 
 `--atx-headers`
 
-:   Use ATX-style headers in markdown and asciidoc output. The default is
+:   Use ATX-style headers in Markdown and asciidoc output. The default is
     to use setext-style headers for levels 1-2, and then ATX headers.
 
 `--chapters`
@@ -697,7 +697,7 @@ Options affecting specific writers
 `--id-prefix=`*STRING*
 
 :   Specify a prefix to be added to all automatically generated identifiers
-    in HTML and DocBook output, and to footnote numbers in markdown output.
+    in HTML and DocBook output, and to footnote numbers in Markdown output.
     This is useful for preventing duplicate identifiers when generating
     fragments to be included in other pages.
 
@@ -754,7 +754,7 @@ Options affecting specific writers
 
 :   Use the specified image as the EPUB cover.  It is recommended
     that the image be less than 1000px in width and height. Note that
-    in a markdown source document you can also specify `cover-image`
+    in a Markdown source document you can also specify `cover-image`
     in a YAML metadata block (see [EPUB Metadata], below).
 
 `--epub-metadata=`*FILE*
@@ -774,7 +774,7 @@ Options affecting specific writers
     id="BookId">` (a randomly generated UUID). Any of these may be
     overridden by elements in the metadata file.
 
-    Note: if the source document is markdown, a YAML metadata block
+    Note: if the source document is Markdown, a YAML metadata block
     in the document can be used instead.  See below under
     [EPUB Metadata].
 
@@ -963,13 +963,13 @@ Options for wrapper scripts
     with the `-o` option, or `-` (for *stdout*) if no output file was
     specified.  The remaining lines contain the command-line arguments,
     one per line, in the order they appear.  These do not include regular
-    Pandoc options and their arguments, but do include any options appearing
+    pandoc options and their arguments, but do include any options appearing
     after a `--` separator at the end of the line.
 
 `--ignore-args`
 
 :   Ignore command-line arguments (for use in wrapper scripts).
-    Regular Pandoc options are not ignored.  Thus, for example,
+    Regular pandoc options are not ignored.  Thus, for example,
 
         pandoc --ignore-args -o foo.html -s foo.txt -- -e latin1
 
@@ -1332,18 +1332,18 @@ pandoc release.
 
 [pandoc-templates]: https://github.com/jgm/pandoc-templates
 
-Pandoc's markdown
+Pandoc's Markdown
 =================
 
 Pandoc understands an extended and slightly revised version of
-John Gruber's [markdown] syntax.  This document explains the syntax,
-noting differences from standard markdown. Except where noted, these
+John Gruber's [Markdown] syntax.  This document explains the syntax,
+noting differences from standard Markdown. Except where noted, these
 differences can be suppressed by using the `markdown_strict` format instead
 of `markdown`.  An extensions can be enabled by adding `+EXTENSION`
 to the format name and disabled by adding `-EXTENSION`. For example,
-`markdown_strict+footnotes` is strict markdown with footnotes
+`markdown_strict+footnotes` is strict Markdown with footnotes
 enabled, while `markdown-footnotes-pipe_tables` is pandoc's
-markdown without footnotes or pipe tables.
+Markdown without footnotes or pipe tables.
 
 Philosophy
 ----------
@@ -1360,7 +1360,7 @@ This principle has guided pandoc's decisions in finding syntax for
 tables, footnotes, and other extensions.
 
 There is, however, one respect in which pandoc's aims are different
-from the original aims of markdown.  Whereas markdown was originally
+from the original aims of Markdown.  Whereas Markdown was originally
 designed with HTML generation in mind, pandoc is designed for multiple
 output formats.  Thus, while pandoc allows the embedding of raw HTML,
 it discourages it, and provides other, non-HTMLish ways of representing
@@ -1417,7 +1417,7 @@ As with setext-style headers, the header text can contain formatting:
 
 #### Extension: `blank_before_header` ####
 
-Standard markdown syntax does not require a blank line before a header.
+Standard Markdown syntax does not require a blank line before a header.
 Pandoc does require this (except, of course, at the beginning of the
 document). The reason for the requirement is that it is all too easy for a
 `#` to end up at the beginning of a line by accident (perhaps through line
@@ -1589,7 +1589,7 @@ block in a block quote, you need five spaces after the `>`:
 
 #### Extension: `blank_before_blockquote` ####
 
-Standard markdown syntax does not require a blank line before a block
+Standard Markdown syntax does not require a blank line before a block
 quote.  Pandoc does require this (except, of course, at the beginning of the
 document). The reason for the requirement is that it is all too easy for a
 `>` to end up at the beginning of a line by accident (perhaps through line
@@ -1623,7 +1623,7 @@ Note: blank lines in the verbatim text need not begin with four spaces.
 
 #### Extension: `fenced_code_blocks` ####
 
-In addition to standard indented code blocks, Pandoc supports
+In addition to standard indented code blocks, pandoc supports
 *fenced* code blocks.  These begin with a row of three or more
 tildes (`~`) and end with a row of tildes that must be at least as long as
 the starting row. Everything between these lines is treated as code. No
@@ -1708,7 +1708,7 @@ Line blocks
 A line block is a sequence of lines beginning with a vertical bar (`|`)
 followed by a space.  The division into lines will be preserved in
 the output, as will any leading spaces; otherwise, the lines will
-be formatted as markdown.  This is useful for verse and addresses:
+be formatted as Markdown.  This is useful for verse and addresses:
 
     | The limerick packs laughs anatomical
     | In space that is quite economical.
@@ -1762,7 +1762,7 @@ line (after the bullet):
       list item.
     * and my second.
 
-But markdown also allows a "lazy" format:
+But Markdown also allows a "lazy" format:
 
     * here is my first
     list item.
@@ -1798,7 +1798,7 @@ one tab:
         + broccoli
         + chard
 
-As noted above, markdown allows you to write list items "lazily," instead of
+As noted above, Markdown allows you to write list items "lazily," instead of
 indenting continuation lines. However, if there are multiple paragraphs or
 other blocks in a list item, the first line of each must be indented.
 
@@ -1812,18 +1812,18 @@ other blocks in a list item, the first line of each must be indented.
     list item.
 
 **Note:**  Although the four-space rule for continuation paragraphs
-comes from the official [markdown syntax guide], the reference implementation,
+comes from the official [Markdown syntax guide], the reference implementation,
 `Markdown.pl`, does not follow it. So pandoc will give different results than
 `Markdown.pl` when authors have indented continuation paragraphs fewer than
 four spaces.
 
-The [markdown syntax guide] is not explicit whether the four-space
+The [Markdown syntax guide] is not explicit whether the four-space
 rule applies to *all* block-level content in a list item; it only
 mentions paragraphs and code blocks.  But it implies that the rule
 applies to all block-level content (including nested lists), and
 pandoc interprets it that way.
 
-  [markdown syntax guide]:
+  [Markdown syntax guide]:
     http://daringfireball.net/projects/markdown/syntax#list
 
 ### Ordered lists ###
@@ -1831,7 +1831,7 @@ pandoc interprets it that way.
 Ordered lists work just like bulleted lists, except that the items
 begin with enumerators rather than bullets.
 
-In standard markdown, enumerators are decimal numbers followed
+In standard Markdown, enumerators are decimal numbers followed
 by a period and a space.  The numbers themselves are ignored, so
 there is no difference between this list:
 
@@ -1847,7 +1847,7 @@ and this one:
 
 #### Extension: `fancy_lists` ####
 
-Unlike standard markdown, Pandoc allows ordered list items to be marked
+Unlike standard Markdown, pandoc allows ordered list items to be marked
 with uppercase and lowercase letters and roman numerals, in addition to
 arabic numerals. List markers may be enclosed in parentheses or followed by a
 single right-parentheses or period. They must be separated from the
@@ -1934,7 +1934,7 @@ A term may have multiple definitions, and each definition may consist of one or
 more block elements (paragraph, code block, list, etc.), each indented four
 spaces or one tab stop.  The body of the definition (including the first line,
 aside from the colon or tilde) should be indented four spaces. However,
-as with other markdown lists, you can "lazily" omit indentation except
+as with other Markdown lists, you can "lazily" omit indentation except
 at the beginning of a paragraph or other block element:
 
     Term 1
@@ -2006,14 +2006,14 @@ cases" involving lists.  Consider this source:
     +   Third
 
 Pandoc transforms this into a "compact list" (with no `<p>` tags around
-"First", "Second", or "Third"), while markdown puts `<p>` tags around
+"First", "Second", or "Third"), while Markdown puts `<p>` tags around
 "Second" and "Third" (but not "First"), because of the blank space
 around "Third". Pandoc follows a simple rule: if the text is followed by
 a blank line, it is treated as a paragraph. Since "Second" is followed
 by a list, and not a blank line, it isn't treated as a paragraph. The
 fact that the list is followed by a blank line is irrelevant. (Note:
 Pandoc works this way even when the `markdown_strict` format is specified. This
-behavior is consistent with the official markdown syntax description,
+behavior is consistent with the official Markdown syntax description,
 even though it is different from that of `Markdown.pl`.)
 
 
@@ -2026,7 +2026,7 @@ What if you want to put an indented code block after a list?
 
         { my code block }
 
-Trouble! Here pandoc (like other markdown implementations) will treat
+Trouble! Here pandoc (like other Markdown implementations) will treat
 `{ my code block }` as the second paragraph of item two, and not as
 a code block.
 
@@ -2154,7 +2154,7 @@ These work like simple tables, but with the following differences:
 In multiline tables, the table parser pays attention to the widths of
 the columns, and the writers try to reproduce these relative widths in
 the output. So, if you find that one of the columns is too narrow in the
-output, try widening it in the markdown source.
+output, try widening it in the Markdown source.
 
 Headers may be omitted in multiline tables as well as simple tables:
 
@@ -2231,7 +2231,7 @@ output, the cells produced by pipe tables will not wrap, since there
 is no information available about relative widths.  If you want content
 to wrap within cells, use multiline or grid tables.
 
-Note:  Pandoc also recognizes pipe tables of the following
+Note:  pandoc also recognizes pipe tables of the following
 form, as can be produced by Emacs' orgtbl-mode:
 
     | One | Two   |
@@ -2332,7 +2332,7 @@ hyphens (`---`) at the top and a line of three hyphens (`---`) or three dots
 document, but if it is not at the beginning, it must be preceded by a blank
 line.  (Note that, because of the way pandoc concatenates input files when
 several are provided, you may also keep the metadata in a separate YAML file
-and pass it to pandoc as an argument, along with your markdown files:
+and pass it to pandoc as an argument, along with your Markdown files:
 
     pandoc chap1.md chap2.md chap3.md metadata.yaml -s -o book.html
 
@@ -2341,7 +2341,7 @@ Just be sure that the YAML file begins with `---` and ends with `---` or
 
 Metadata will be taken from the fields of the YAML object and added to any
 existing document metadata.  Metadata can contain lists and objects (nested
-arbitrarily), but all string scalars will be interpreted as markdown.  Fields
+arbitrarily), but all string scalars will be interpreted as Markdown.  Fields
 with names ending in an underscore will be ignored by pandoc.  (They may be
 given a role by external processors.)
 
@@ -2349,7 +2349,7 @@ A document may contain multiple metadata blocks.  The metadata fields will
 be combined through a *left-biased union*:  if two metadata blocks attempt
 to set the same field, the value from the first block will be taken.
 
-When pandoc is used with `-t markdown` to create a markdown document,
+When pandoc is used with `-t markdown` to create a Markdown document,
 a YAML metadata block will be produced only if the `-s/--standalone`
 option is used.  All of the metadata will appear in a single block
 at the beginning of the document.
@@ -2376,7 +2376,7 @@ when the field contains blank lines:
 
 Template variables will be set automatically from the metadata.  Thus, for
 example, in writing HTML, the variable `abstract` will be set to the HTML
-equivalent of the markdown in the `abstract` field:
+equivalent of the Markdown in the `abstract` field:
 
     <p>This is the abstract.</p>
     <p>It consists of two paragraphs.</p>
@@ -2413,12 +2413,12 @@ instead of
 
     <strong>hello</strong>
 
-This rule is easier to remember than standard markdown's rule,
+This rule is easier to remember than standard Markdown's rule,
 which allows only the following characters to be backslash-escaped:
 
     \`*_{}[]()>#+-.!
 
-(However, if the `markdown_strict` format is used, the standard markdown rule
+(However, if the `markdown_strict` format is used, the standard Markdown rule
 will be used.)
 
 A backslash-escaped space is parsed as a nonbreaking space.  It will
@@ -2428,7 +2428,7 @@ appear in TeX output as `~` and in HTML and XML as `\&#160;` or
 A backslash-escaped newline (i.e. a backslash occurring at the end of
 a line) is parsed as a hard line break.  It will appear in TeX output as
 `\\` and in HTML as `<br />`.  This is a nice alternative to
-markdown's "invisible" way of indicating hard line breaks using
+Markdown's "invisible" way of indicating hard line breaks using
 two trailing spaces on a line.
 
 Backslash escapes do not work in verbatim contexts.
@@ -2520,7 +2520,7 @@ of consecutive backticks (optionally followed by a space)
 and ends with a string of the same number of backticks (optionally
 preceded by a space).
 
-Note that backslash-escapes (and other markdown constructs) do not
+Note that backslash-escapes (and other Markdown constructs) do not
 work in verbatim contexts:
 
     This is a backslash followed by an asterisk: `\*`.
@@ -2653,7 +2653,7 @@ Raw HTML
 Markdown allows you to insert raw HTML (or DocBook) anywhere in a document
 (except verbatim contexts, where `<`, `>`, and `&` are interpreted
 literally).  (Technically this is not an extension, since standard
-markdown allows it, but it has been made an extension so that it can
+Markdown allows it, but it has been made an extension so that it can
 be disabled if desired.)
 
 The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
@@ -2662,15 +2662,15 @@ formats.
 
 #### Extension: `markdown_in_html_blocks` ####
 
-Standard markdown allows you to include HTML "blocks":  blocks
+Standard Markdown allows you to include HTML "blocks":  blocks
 of HTML between balanced tags that are separated from the surrounding text
 with blank lines, and start and end at the left margin.  Within
-these blocks, everything is interpreted as HTML, not markdown;
+these blocks, everything is interpreted as HTML, not Markdown;
 so (for example), `*` does not signify emphasis.
 
 Pandoc behaves this way when the `markdown_strict` format is used; but
-by default, pandoc interprets material between HTML block tags as markdown.
-Thus, for example, Pandoc will turn
+by default, pandoc interprets material between HTML block tags as Markdown.
+Thus, for example, pandoc will turn
 
     <table>
     <tr>
@@ -2691,12 +2691,12 @@ into
 whereas `Markdown.pl` will preserve it as is.
 
 There is one exception to this rule:  text between `<script>` and
-`<style>` tags is not interpreted as markdown.
+`<style>` tags is not interpreted as Markdown.
 
-This departure from standard markdown should make it easier to mix
-markdown with HTML block elements.  For example, one can surround
-a block of markdown text with `<div>` tags without preventing it
-from being interpreted as markdown.
+This departure from standard Markdown should make it easier to mix
+Markdown with HTML block elements.  For example, one can surround
+a block of Markdown text with `<div>` tags without preventing it
+from being interpreted as Markdown.
 
 #### Extension: `native_divs` ####
 
@@ -2734,7 +2734,7 @@ Note that in LaTeX environments, like
     \end{tabular}
 
 the material between the begin and end tags will be interpreted as raw
-LaTeX, not as markdown.
+LaTeX, not as Markdown.
 
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
 and ConTeXt.
@@ -2830,7 +2830,7 @@ empty:
 
     [my website]: http://foo.bar.baz
 
-Note:  In `Markdown.pl` and most other markdown implementations,
+Note:  In `Markdown.pl` and most other Markdown implementations,
 reference link definitions cannot occur in nested constructions
 such as list items or block quotes.  Pandoc lifts this arbitrary
 seeming restriction.  So the following is fine in pandoc, though
@@ -2903,7 +2903,7 @@ Footnotes
 
 #### Extension: `footnotes` ####
 
-Pandoc's markdown allows footnotes, using the following syntax:
+Pandoc's Markdown allows footnotes, using the following syntax:
 
     Here is a footnote reference,[^1] and another.[^longnote]
 
@@ -2982,7 +2982,7 @@ Note that `pandoc-citeproc --bib2json` and `pandoc-citeproc --bib2yaml`
 can produce `.json` and `.yaml` files from any of the supported formats.
 
 In-field markup: In BibTeX and BibLaTeX databases, pandoc-citeproc parses
-a subset of LaTeX markup; in CSL YAML databases, pandoc markdown; and in CSL JSON databases, an [HTML-like markup][CSL markup specs]:
+a subset of LaTeX markup; in CSL YAML databases, pandoc Markdown; and in CSL JSON databases, an [HTML-like markup][CSL markup specs]:
 
 `<i>...</i>`
 :   italics
@@ -3124,10 +3124,10 @@ format (either BibTeX or BibLaTeX).
 Non-pandoc extensions
 ---------------------
 
-The following markdown syntax extensions are not enabled by default
+The following Markdown syntax extensions are not enabled by default
 in pandoc, but may be enabled by adding `+EXTENSION` to the format
 name, where `EXTENSION` is the name of the extension.  Thus, for
-example, `markdown+hard_line_breaks` is markdown with hard line breaks.
+example, `markdown+hard_line_breaks` is Markdown with hard line breaks.
 
 #### Extension: `lists_without_preceding_blankline` ####
 
@@ -3161,8 +3161,8 @@ as display TeX math.
 
 #### Extension: `markdown_attribute` ####
 
-By default, pandoc interprets material inside block-level tags as markdown.
-This extension changes the behavior so that markdown is only parsed
+By default, pandoc interprets material inside block-level tags as Markdown.
+This extension changes the behavior so that Markdown is only parsed
 inside block-level tags if the tags have the attribute `markdown=1`.
 
 #### Extension: `mmd_title_block` ####
@@ -3244,7 +3244,7 @@ in several respects:
 Markdown variants
 -----------------
 
-In addition to pandoc's extended markdown, the following markdown
+In addition to pandoc's extended Markdown, the following Markdown
 variants are supported:
 
 `markdown_phpextra` (PHP Markdown Extra)
@@ -3270,11 +3270,11 @@ variants are supported:
 `markdown_strict` (Markdown.pl)
 :   `raw_html`
 
-Extensions with formats other than markdown
+Extensions with formats other than Markdown
 -------------------------------------------
 
 Some of the extensions discussed above can be used with formats
-other than markdown:
+other than Markdown:
 
 * `auto_identifiers` can be used with `latex`, `rst`, `mediawiki`,
   and `textile` input (and is used by default).
@@ -3284,15 +3284,15 @@ other than markdown:
   (This is handy for reading web pages formatted using MathJax,
   for example.)
 
-Producing slide shows with Pandoc
+Producing slide shows with pandoc
 =================================
 
-You can use Pandoc to produce an HTML + javascript slide presentation
+You can use pandoc to produce an HTML + javascript slide presentation
 that can be viewed via a web browser.  There are five ways to do this,
 using [S5], [DZSlides], [Slidy], [Slideous], or [reveal.js].
 You can also produce a PDF slide show using LaTeX [`beamer`].
 
-Here's the markdown source for a simple slide show, `habits.txt`:
+Here's the Markdown source for a simple slide show, `habits.txt`:
 
     % Habits
     % John Doe
@@ -3460,12 +3460,12 @@ Speaker notes
 -------------
 
 reveal.js has good support for speaker notes.  You can add notes to your
-markdown document thus:
+Markdown document thus:
 
     <div class="notes">
     This is my note.
 
-    - It can contain markdown
+    - It can contain Markdown
     - like this list
 
     </div>
@@ -3496,7 +3496,7 @@ EPUB Metadata
 -------------
 
 EPUB metadata may be specified using the `--epub-metadata` option, but
-if the source document is markdown, it is better to use a [YAML metadata
+if the source document is Markdown, it is better to use a [YAML metadata
 block][Extension: `yaml_metadata_block`].  Here is an example:
 
     ---
@@ -3605,12 +3605,12 @@ format (`markdown`, `markdown_strict`, `rst`, or `latex` for input or output;
 `beamer`, `html` or `html5` for output only), pandoc will treat the document as
 literate Haskell source. This means that
 
-  - In markdown input, "bird track" sections will be parsed as Haskell
+  - In Markdown input, "bird track" sections will be parsed as Haskell
     code rather than block quotations.  Text between `\begin{code}`
     and `\end{code}` will also be treated as Haskell code.  For
     ATX-style headers the character '=' will be used instead of '#'.
 
-  - In markdown output, code blocks with classes `haskell` and `literate`
+  - In Markdown output, code blocks with classes `haskell` and `literate`
     will be rendered using bird tracks, and block quotations will be
     indented one space, so they will not be treated as Haskell code.
     In addition, headers will be rendered setext-style (with underlines)
@@ -3636,7 +3636,7 @@ Examples:
 
     pandoc -f markdown+lhs -t html
 
-reads literate Haskell source formatted with markdown conventions and writes
+reads literate Haskell source formatted with Markdown conventions and writes
 ordinary HTML (without bird tracks).
 
     pandoc -f markdown+lhs -t html+lhs
