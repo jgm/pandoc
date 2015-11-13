@@ -45,6 +45,8 @@ pandoc (1.15.2)
       permit this.
     + Improved parser for `mmd_title_block`.  We now allow blank metadata
       fields.  These were explicitly disallowed before.
+    + Citation keys can now contain `://`, so URLs and DOIs can be used
+      as citation keys (jgm/pandoc-citeproc#166).
 
   * Beamer template:  fix incompatibility of section slides with natbib.
     Natbib (and presumably biblatex) bibliography commands create
