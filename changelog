@@ -1,3 +1,179 @@
+pandoc (1.15.2)
+
+  * `pandoc my.md -t context -o my.pdf` will now create a PDF using
+    ConTeXt rather than LaTeX (#2463).
+
+  * Fixed omitted `url(...)` in CSS data-uri with `--self-contained` (#2489).
+
+  * `Text.Pandoc.Readers.HTML.parseTags`: Fixed over-eager raw HTML inline
+    parsing (#2469).  Tightened up the inline HTML parser so it disallows
+    TagWarnings.
+
+  * Org reader:
+
+    + Fix paragraph/list interaction (Albert Krewinkel, #2464).
+      Paragraphs can be followed by lists, even if there is no blank line
+      between the two blocks.  However, this should only be true if the
+      paragraph is not within a list, were the preceding block should be
+      parsed as a plain instead of paragraph (to allow for compact lists).
+      Thanks to @rgaiacs for bringing this up.
+    + Allow toggling header args (Albert Krewinkel, #2269).
+      Org-mode allows to skip the argument of a code block header argument if
+      it's toggling a value.  Argument-less headers are now recognized,
+      avoiding weird parsing errors.
+    + Fix markup parsing in headers (Albert Krewinkel, #2504).
+      Markup as the very first item in a header wasn't recognized.  This was
+      caused by an incorrect parser state: positions at which inline markup
+      can start need to be marked explicitly by changing the parser state.
+      This wasn't done for headers.  The proper function to update the state
+      is now called at the beginning of the header parser, fixing this issue.
+
+  * Markdown reader:
+
+    + Pipe tables with long lines now get relative cell widths (#2471).
+      If a pipe table contains a line longer than the column width (as set by
+      `--columns` or 80 by default), relative widths are computed based on the
+      widths of the separator lines relative to the column width.  This should
+      solve persistent problems with long pipe tables in LaTeX/PDF output, and
+      give more flexibility for determining relative column widths in other
+      formats, too.  For narrower pipe tables, column widths of 0 are used,
+      telling pandoc not to specify widths explicitly in output formats that
+      permit this.
+    + Improved parser for `mmd_title_block`.  We now allow blank metadata
+      fields.  These were explicitly disallowed before.
+
+  * Beamer template:  fix incompatibility of section slides with natbib.
+    Natbib (and presumably biblatex) bibliography commands create
+    their own section.  Since these are in frame environments,
+    we have an incompatibility with the `\AtBeginSection` macro
+    which creates a special frame when a new section occurs.
+    (We can't have a frame inside another frame.) This change disables
+    `\AtBeginSection` inside bibliography slides.  Thinks to Yihui Xie for
+    bringing the problem to my attention.  This supersedes #145.  See
+    discussion there.
+
+  * Textile reader:  don't do smart punctuation unless explicitly asked
+    (#2480).  Note that although smart punctuation is part of the textile
+    spec, it's not always wanted when converting from textile
+    to, say, Markdown.  So it seems better to make this an option.
+
+  * LaTeX reader: Handle `comment` environment (Arata Mizuki).
+    The `comment` environment is handled in a similar way to the
+    `verbatim` environment, except that its content is discarded.
+
+  * LaTeX and ConTeXt writers: support `lang` attribute on divs and spans
+    (mb21).  For LaTeX, also collect `lang` and `dir` attributes on spans and
+    divs to set the `lang`, `otherlangs` and `dir` variables if they aren’t set
+    already.  See #895.
+
+  * LaTeX writer:
+
+    + Use proper command for `\textarabic` (mb21).
+    + Added `de-CH-1901`, fixed `el-polyton` in `toPloyglossia` (Nick Bart).
+    + Use `\hypertarget` and `\hyperlink` for links.  This works correctly
+      to link to Div or Span elements.  We now don't bother defining `\label`
+      for Div or Span elements.  Closes jgm/pandoc-citeproc#174.
+    + Avoid footnotes in list of figures (#1506).
+    + Properly handle footnotes in captions (#1506).
+    + Add `\protect` to `\hyperlink` (#2490).  Thanks to Hadrien Mary.
+    + Set `colorlinks` if `linkcolor`, `urlcolor`, `citecolor`, or
+      `toccolor` is set (#2508).
+
+  * Textile writer: support start number in ordered lists (#2465).
+
+  * EPUB writer:  don't download linked media when `data-external` attribute
+    set (#2473).  By default pandoc downloads all linked media and includes it
+    in the EPUB container.  This can be disabled by setting `data-external` on
+    the tags linking to media that should not be downloaded.  Example:
+
+        <audio controls="1">
+         <source src="http://www.sixbarsjail.it/tmp/bach_toccata.mp3"
+         type="audio/mpeg"></source>
+        </audio>
+
+  * HTML writer:  use width on whole table if col widths sum to < 100%.
+    Otherwise some browsers display the table with the columns
+    separated far apart.
+
+  * Updated dzslides template from source (Andrew Dunning).
+
+  * Asciidoc template:  Fixed `author` and `date`; added `keywords`,
+    `abstract` (Andrew Dunning).
+
+  * HTML-based templates:
+
+    + Use en dash instead of hypehn between title prefix & title
+      (Andrew Dunning.)
+    + Added `keywords` and fixed alignment (Andrew Dunning).
+    + Added `lang`, `dir`, `quotes` (Andrew Dunning).
+    + Always make author and date display conditional (Andrew Dunning).
+
+  * Man template: make "generated by" comment conditional.
+
+  * LaTeX template:
+
+    + Simplify hyperref usage (Andrew Dunning, #139).
+    + Improved formatting of conditionals.
+    + `$for$` is always provided where the user might want to use
+      multiple options (does not change existing functionality).
+    + `hyperref` link rendering revised:
+        - the `hidelinks` option is now effectively the default (and has
+          been removed as a separate option), rather than setting all links to
+          black;
+        - link colours can be enabled more easily (using a slightly darker
+          version of the old Pandoc defaults) using a new `colorlinks` variable
+        - `pdfborder={0 0 0}` is automatically enabled in `hyperref` when
+          `colorlinks` is enabled, and is now only applied.
+
+  * ConTeXt template (Andrew Dunning):
+
+    + Default link color to black.
+    + Define all sections.
+    + microtype applied to both regular text and small caps.
+    + `indenting` variable added.
+    + Renamed `style` to `linkstyle` for consistency.
+    + Separated `linkcontrastcolor` from `linkcolor`.
+    + Matching LaTeX `hyperref` usage, only disable link styling rather
+      than providing a specific setting.
+    + Improved formatting of conditionals.
+
+  * Beamer template:  added code to prevent slide breaks inside paragraphs
+    (#2422, thanks to Nick Bart).  This will matter, in practice, only when
+    `allowframebreaks` is used.  It is especially helpful for bibliography
+    slides.
+
+  * Updated latex, beamer templates to support language divs/spans.
+    This adds a template variable that can be filled
+    by commands that make babel understand the polyglossia-style
+    language directives.  Thanks to mb21.
+
+  * Restored Text.Pandoc.Compat.Monoid.
+
+  * Do not export (<>) from custom Prelude.  The Prelude now matches
+    base 4.8 Prelude's API.
+
+  * Don't use custom prelude with ghc 7.10.  Use the custom prelude
+    only for earlier versions.  This change makes `stack ghci` and
+    `cabal repl` work (#2503), at least with ghc 7.10.
+
+  * Changed § to % in operators from Odt.Arrows.Utils (#2457).
+    This prevents problems building haddocks with "C" locale.
+
+  * Change default for old-locale flag to False.
+
+  * Use stack in deb and osx package generators.
+
+  * Added Vagrantfile for building deb in vm.
+    This should help in automating binary package creation.  'make package'
+    will make the package.  'make package COMMIT=blah' will make the package
+    from commit blah.
+
+  * README:
+
+    + Consistent capitalization for pandoc and Markdown.
+    + Fixed `auto_identifiers` examples (Benoit Schweblin).
+    + Improved documentation of template variables (Andrew Dunning).
+
 pandoc (1.15.1.1)
 
   * `Text.Pandoc.Data`:  store paths in dataFiles using posix separators.
