@@ -5,6 +5,10 @@ pandoc (1.15.2)
 
   * Fixed omitted `url(...)` in CSS data-uri with `--self-contained` (#2489).
 
+  * Added `emoji` Markdown extension, enabled by default in `markdown_github`
+    (#2523).  Added `Ext_emoji` to `Extension` in `Text.Pandoc.Options`
+    (API change).
+
   * `Text.Pandoc.Readers.HTML.parseTags`: Fixed over-eager raw HTML inline
     parsing (#2469).  Tightened up the inline HTML parser so it disallows
     TagWarnings.

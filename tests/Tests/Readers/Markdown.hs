@@ -185,6 +185,10 @@ tests = [ testGroup "inline code"
             "<\n\na>" =?>
             para (text "<") <> para (text "a>")
           ]
+        , testGroup "emoji"
+          [ test markdownGH "emoji symbols" $
+            ":smile: and :+1:" =?> para (text "😄 and 👍")
+          ]
         , "unbalanced brackets" =:
             "[[[[[[[[[[[[[[[hi" =?> para (text "[[[[[[[[[[[[[[[hi")
         , testGroup "backslash escapes"

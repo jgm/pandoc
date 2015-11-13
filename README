@@ -3146,6 +3146,10 @@ treated as spaces or as hard line breaks.  This option is intended for
 use with East Asian languages where spaces are not used between words,
 but text is divided into lines for readability.
 
+#### Extension: `emoji` ####
+
+Parses textual emojis like `:smile:` as Unicode emoticons.
+
 #### Extension: `tex_math_single_backslash` ####
 
 Causes anything between `\(` and `\)` to be interpreted as inline
@@ -3256,7 +3260,7 @@ variants are supported:
 :   `pipe_tables`, `raw_html`, `tex_math_single_backslash`,
     `fenced_code_blocks`, `auto_identifiers`,
     `ascii_identifiers`, `backtick_code_blocks`, `autolink_bare_uris`,
-    `intraword_underscores`, `strikeout`, `hard_line_breaks`,
+    `intraword_underscores`, `strikeout`, `hard_line_breaks`, `emoji`,
     `shortcut_reference_links`.
 
 `markdown_mmd` (MultiMarkdown)

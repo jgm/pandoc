@@ -105,6 +105,7 @@ data Extension =
     | Ext_ignore_line_breaks  -- ^ Newlines in paragraphs are ignored
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
     | Ext_abbreviations       -- ^ PHP markdown extra abbreviation definitions
+    | Ext_emoji               -- ^ Support emoji like :smile:
     | Ext_auto_identifiers    -- ^ Automatic identifiers for headers
     | Ext_ascii_identifiers   -- ^ ascii-only identifiers for headers
     | Ext_header_attributes   -- ^ Explicit header attributes {#id .class k=v}
@@ -203,6 +204,7 @@ githubMarkdownExtensions = Set.fromList
   , Ext_intraword_underscores
   , Ext_strikeout
   , Ext_hard_line_breaks
+  , Ext_emoji
   , Ext_lists_without_preceding_blankline
   , Ext_shortcut_reference_links
   ]
