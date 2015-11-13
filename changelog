@@ -34,6 +34,9 @@ pandoc (1.15.2)
     + Fix emphasis rules for smart parsing (Albert Krewinkel, #2513).
       Smart quotes, ellipses, and dashes should behave like normal quotes,
       single dashes, and dots with respect to text markup parsing.
+    + Require whitespace around definition list markers (#2518).
+      This rule was not checked before, resulting in bugs with footnotes
+      and some link types.
 
   * Markdown reader:
 
