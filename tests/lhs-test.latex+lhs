@@ -24,12 +24,9 @@
 }{}
 \usepackage{hyperref}
 \PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
-\hypersetup{breaklinks=true,
-            unicode=true,            colorlinks=true,
-            citecolor=black,
-            urlcolor=black,
-            linkcolor=black,
-            pdfborder={0 0 0}}
+\hypersetup{unicode=true,
+            pdfborder={0 0 0},
+            breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
 \usepackage{listings}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}

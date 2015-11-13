@@ -24,12 +24,11 @@
 }{}
 \usepackage{hyperref}
 \PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
-\hypersetup{breaklinks=true,
-            unicode=true,            pdftitle={Pandoc Test Suite},            pdfauthor={John MacFarlane; Anonymous},            colorlinks=true,
-            citecolor=black,
-            urlcolor=black,
-            linkcolor=black,
-            pdfborder={0 0 0}}
+\hypersetup{unicode=true,
+            pdftitle={Pandoc Test Suite},
+            pdfauthor={John MacFarlane; Anonymous},
+            pdfborder={0 0 0},
+            breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
 \usepackage{fancyvrb}
 \VerbatimFootnotes % allows verbatim text in footnotes

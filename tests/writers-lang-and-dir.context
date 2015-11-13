@@ -1,15 +1,17 @@
 % Enable hyperlinks
 \setupinteraction
   [state=start,
-  style=normal,
-  color=black,
-  contrastcolor=black]
+  style=,
+  color=,
+  contrastcolor=]
 % make chapter, section bookmarks visible when opening document
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]
 \setuptagging[state=start]
 
-\definefontfeature[default][default][protrusion=quality,expansion=quality,onum=yes] % use microtypography
+% use microtypography
+\definefontfeature[default][default][protrusion=quality,expansion=quality,onum=yes,pnum=yes]
+\definefontfeature[smallcaps][smallcaps][protrusion=quality,expansion=quality,onum=yes,pnum=yes]
 \setupalign[hz,hanging]
 \setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
 \setupbodyfont[mainfont]
