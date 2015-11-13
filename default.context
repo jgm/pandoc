@@ -8,31 +8,38 @@ $endif$
 % Enable hyperlinks
 \setupinteraction
   [state=start,
-  style=$if(style)$$style$$else$normal$endif$,
-  color=$if(linkcolor)$$linkcolor$$else$black$endif$,
-  contrastcolor=$if(linkcolor)$$linkcolor$$else$black$endif$$if(title)$,
-  title=$title$$endif$$if(subtitle)$,
-  subtitle=$subtitle$$endif$$if(author)$,
-  author=$for(author)$$author$$sep$; $endfor$$endif$$if(keywords)$,
-  keyword=$keywords$$endif$]
+$if(title)$
+  title={$title$},
+$endif$
+$if(subtitle)$
+  subtitle={$subtitle$},
+$endif$
+$if(author)$
+  author={$for(author)$$author$$sep$; $endfor$},
+$endif$
+$if(keywords)$
+  keyword={$for(keywords)$$keywords$$sep$; $endfor$},
+$endif$
+  style=$linkstyle$,
+  color=$linkcolor$,
+  contrastcolor=$linkcontrastcolor$]
 % make chapter, section bookmarks visible when opening document
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]
 \setuptagging[state=start]
 
 $if(papersize)$
-\setuppapersize[$for(papersize)$$papersize$$sep$,
-  $endfor$]
+\setuppapersize[$for(papersize)$$papersize$$sep$,$endfor$]
 $endif$
 $if(layout)$
-\setuplayout[$for(layout)$$layout$$sep$,
-  $endfor$]
+\setuplayout[$for(layout)$$layout$$sep$,$endfor$]
 $endif$
 $if(pagenumbering)$
-\setuppagenumbering[$for(pagenumbering)$$pagenumbering$$sep$,
-  $endfor$]
+\setuppagenumbering[$for(pagenumbering)$$pagenumbering$$sep$,$endfor$]
 $endif$
-\definefontfeature[default][default][protrusion=quality,expansion=quality,onum=yes] % use microtypography
+% use microtypography
+\definefontfeature[default][default][protrusion=quality,expansion=quality,onum=yes,pnum=yes]
+\definefontfeature[smallcaps][smallcaps][protrusion=quality,expansion=quality,onum=yes,pnum=yes]
 \setupalign[hz,hanging]
 \setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
 $if(mainfont)$
@@ -48,13 +55,12 @@ $if(mathfont)$
 \definefontfamily[mathfont][math][$mathfont$]
 $endif$
 \setupbodyfont[mainfont$if(fontsize)$,$fontsize$$endif$]
-$if(whitespace)$
-\setupwhitespace[$whitespace$]
-$else$
-\setupwhitespace[medium]
+\setupwhitespace[$if(whitespace)$$whitespace$$else$medium$endif$]
+$if(indenting)$
+\setupindenting[$for(indenting)$$indenting$$sep$,$endfor$]
 $endif$
 $if(interlinespace)$
-\setupinterlinespace[$interlinespace$]
+\setupinterlinespace[$for(interlinespace)$$interlinespace$$sep$,$endfor$]
 $endif$
 
 \setuphead[chapter]            [style=\tfd,header=empty]
@@ -65,10 +71,10 @@ $endif$
 \setuphead[subsubsubsubsection][style=\it]
 
 $if(headertext)$
-\setupheadertexts[$headertext$]
+\setupheadertexts$for(headertext)$[$headertext$]$endfor$
 $endif$
 $if(footertext)$
-\setupfootertexts[$footertext$]
+\setupfootertexts$for(footertext)$[$footertext$]$endfor$
 $endif$
 $if(number-sections)$
 $else$
