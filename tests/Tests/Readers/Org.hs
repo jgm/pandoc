@@ -841,7 +841,7 @@ tests =
           unlines [ "- PLL :: phase-locked loop"
                   , "- TTL ::"
                   , "  transistor-transistor logic"
-                  , "- PSK::phase-shift keying"
+                  , "- PSK :: phase-shift keying"
                   , ""
                   , "  a digital modulation scheme"
                   ] =?>
@@ -879,6 +879,10 @@ tests =
                                    ]
                   , headerWith ("header", [], []) 1 "header"
                   ]
+
+      , "Definition lists double-colon markers must be surrounded by whitespace" =:
+          "- std::cout" =?>
+          bulletList [ plain "std::cout" ]
 
       , "Loose bullet list" =:
           unlines [ "- apple"

@@ -994,13 +994,16 @@ definitionListItem :: OrgParser Int
                    -> OrgParser (F (Inlines, [Blocks]))
 definitionListItem parseMarkerGetLength = try $ do
   markerLength <- parseMarkerGetLength
-  term <- manyTill (noneOf "\n\r") (try $ string "::")
+  term <- manyTill (noneOf "\n\r") (try definitionMarker)
   line1 <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
   cont <- concat <$> many (listContinuation markerLength)
   term' <- parseFromString parseInlines term
   contents' <- parseFromString parseBlocks $ line1 ++ blank ++ cont
   return $ (,) <$> term' <*> fmap (:[]) contents'
+ where
+   definitionMarker =
+     spaceChar *> string "::" <* (spaceChar <|> lookAhead P.newline)
 
 
 -- parse raw text for one list item, excluding start marker and continuations
