@@ -31,6 +31,9 @@ pandoc (1.15.2)
       can start need to be marked explicitly by changing the parser state.
       This wasn't done for headers.  The proper function to update the state
       is now called at the beginning of the header parser, fixing this issue.
+    + Fix emphasis rules for smart parsing (Albert Krewinkel, #2513).
+      Smart quotes, ellipses, and dashes should behave like normal quotes,
+      single dashes, and dots with respect to text markup parsing.
 
   * Markdown reader:
 
