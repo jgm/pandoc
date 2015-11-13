@@ -48,6 +48,7 @@ man/pandoc.1: README man/pandoc.1.template
 		--filter man/capitalizeHeaders.hs \
 		--filter man/removeNotes.hs \
 		--filter man/removeLinks.hs \
+		--variable version="pandoc $(version)" \
 		-o $@
 
 download_stats:
