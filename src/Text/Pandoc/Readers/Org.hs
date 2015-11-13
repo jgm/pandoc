@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Org
-   Copyright   : Copyright (C) 2014 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2015 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -1585,8 +1585,11 @@ smart :: OrgParser (F Inlines)
 smart = do
   getOption readerSmart >>= guard
   doubleQuoted <|> singleQuoted <|>
-    choice (map (return <$>) [orgApostrophe, dash, ellipses])
-  where orgApostrophe =
+    choice (map (return <$>) [orgApostrophe, orgDash, orgEllipses])
+  where
+    orgDash = dash <* updatePositions '-'
+    orgEllipses = ellipses <* updatePositions '.'
+    orgApostrophe =
           (char '\'' <|> char '\8217') <* updateLastPreCharPos
                                        <* updateLastForbiddenCharPos
                                        *> return (B.str "\x2019")
@@ -1594,9 +1597,10 @@ smart = do
 singleQuoted :: OrgParser (F Inlines)
 singleQuoted = try $ do
   singleQuoteStart
+  updatePositions '\''
   withQuoteContext InSingleQuote $
     fmap B.singleQuoted . trimInlinesF . mconcat <$>
-      many1Till inline singleQuoteEnd
+      many1Till inline (singleQuoteEnd <* updatePositions '\'')
 
 -- doubleQuoted will handle regular double-quoted sections, as well
 -- as dialogues with an open double-quote without a close double-quote
@@ -1604,6 +1608,7 @@ singleQuoted = try $ do
 doubleQuoted :: OrgParser (F Inlines)
 doubleQuoted = try $ do
   doubleQuoteStart
+  updatePositions '"'
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
   (withQuoteContext InDoubleQuote $ (doubleQuoteEnd <* updateLastForbiddenCharPos) >> return
        (fmap B.doubleQuoted . trimInlinesF $ contents))

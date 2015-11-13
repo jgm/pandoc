@@ -1246,6 +1246,7 @@ tests =
                         ]
           in codeBlockWith ( "", classes, params) "code body\n"
       ]
+
     , testGroup "Smart punctuation"
       [ test orgSmart "quote before ellipses"
         ("'...hi'"
@@ -1266,5 +1267,13 @@ tests =
       , test orgSmart "Dashes are allowed at the borders of emphasis'"
         ("/foo---/" =?>
          para (emph "foo—"))
+
+      , test orgSmart "Single quotes can be followed by emphasized text"
+        ("Singles on the '/meat market/'" =?>
+         para ("Singles on the " <> (singleQuoted $ emph "meat market")))
+
+      , test orgSmart "Double quotes can be followed by emphasized text"
+        ("Double income, no kids: \"/DINK/\"" =?>
+         para ("Double income, no kids: " <> (doubleQuoted $ emph "DINK")))
       ]
   ]
