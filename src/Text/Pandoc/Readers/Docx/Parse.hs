@@ -75,6 +75,7 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envFont          :: Maybe Font
                            , envCharStyles    :: CharStyleMap
                            , envParStyles     :: ParStyleMap
+                           , envLocation      :: DocumentLocation
                            }
                deriving Show
 
@@ -87,7 +88,7 @@ instance Error DocxError where
 type D = ExceptT DocxError (Reader ReaderEnv)
 
 runD :: D a -> ReaderEnv -> Either DocxError a
-runD dx re = runReader (runExceptT dx ) re
+runD dx re = runReader (runExceptT dx) re
 
 maybeToD :: Maybe a -> D a
 maybeToD (Just a) = return a
@@ -140,7 +141,13 @@ data AbstractNumb = AbstractNumb String [Level]
 -- (ilvl, format, string, start)
 type Level = (String, String, String, Maybe Integer)
 
-data Relationship = Relationship (RelId, Target)
+data DocumentLocation = InDocument | InFootnote | InEndnote
+                      deriving (Eq,Show)
+
+-- data RelationshipType = DocumentRel | FootnoteRel | EndnoteRel
+--                       deriving Show
+
+data Relationship = Relationship DocumentLocation RelId Target
                   deriving Show
 
 data Notes = Notes NameSpaces
@@ -255,7 +262,8 @@ archiveToDocx archive = do
       rels      = archiveToRelationships archive
       media     = archiveToMedia archive
       (styles, parstyles) = archiveToStyles archive
-      rEnv = ReaderEnv notes numbering rels media Nothing styles parstyles
+      rEnv =
+        ReaderEnv notes numbering rels media Nothing styles parstyles InDocument
   doc <- runD (archiveToDocument archive) rEnv
   return $ Docx doc
 
@@ -362,29 +370,30 @@ archiveToNotes zf =
   in
    Notes ns fn en
 
-filePathIsRel :: FilePath -> Bool
-filePathIsRel fp =
-  let (dir, name) = splitFileName fp
-  in
-   (dir == "word/_rels/") && ((takeExtension name) == ".rels")
+filePathToRelType :: FilePath -> Maybe DocumentLocation
+filePathToRelType "word/_rels/document.xml.rels" = Just InDocument
+filePathToRelType "word/_rels/footnotes.xml.rels" = Just InFootnote
+filePathToRelType "word/_rels/endnotes.xml.rels" = Just InEndnote
+filePathToRelType _ = Nothing
 
-relElemToRelationship :: Element -> Maybe Relationship
-relElemToRelationship element | qName (elName element) == "Relationship" =
+relElemToRelationship :: DocumentLocation -> Element -> Maybe Relationship
+relElemToRelationship relType element | qName (elName element) == "Relationship" =
   do
     relId <- findAttr (QName "Id" Nothing Nothing) element
     target <- findAttr (QName "Target" Nothing Nothing) element
-    return $ Relationship (relId, target)
-relElemToRelationship _ = Nothing
+    return $ Relationship relType relId target
+relElemToRelationship _ _ = Nothing
 
-
+filePathToRelationships :: Archive -> FilePath -> [Relationship]
+filePathToRelationships ar fp | Just relType <- filePathToRelType fp
+                              , Just entry <- findEntryByPath fp ar
+                              , Just relElems <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry =
+  mapMaybe (relElemToRelationship relType) $ elChildren relElems
+filePathToRelationships _ _ = []
+                               
 archiveToRelationships :: Archive -> [Relationship]
 archiveToRelationships archive =
-  let relPaths = filter filePathIsRel (filesInArchive archive)
-      entries  = mapMaybe (\f -> findEntryByPath f archive) relPaths
-      relElems = mapMaybe (parseXMLDoc . UTF8.toStringLazy . fromEntry) entries
-      rels =     mapMaybe relElemToRelationship $ concatMap elChildren relElems
-  in
-   rels
+  concatMap (filePathToRelationships archive) $ filesInArchive archive
 
 filePathIsMedia :: FilePath -> Bool
 filePathIsMedia fp =
@@ -596,13 +605,16 @@ elemToBodyPart ns element
     return $ Tbl caption grid tblLook rows
 elemToBodyPart _ _ = throwError WrongElem
 
-lookupRelationship :: RelId -> [Relationship] -> Maybe Target
-lookupRelationship relid rels =
-  lookup relid (map (\(Relationship pair) -> pair) rels)
+lookupRelationship :: DocumentLocation -> RelId -> [Relationship] -> Maybe Target
+lookupRelationship docLocation relid rels =
+  lookup (docLocation, relid) pairs
+  where
+    pairs = map (\(Relationship loc relid' target) -> ((loc, relid'), target)) rels
 
 expandDrawingId :: String -> D (FilePath, B.ByteString)
 expandDrawingId s = do
-  target <- asks (lookupRelationship s . envRelationships)
+  location <- asks envLocation
+  target <- asks (lookupRelationship location s . envRelationships)
   case target of
     Just filepath -> do
       bytes <- asks (lookup ("word/" ++ filepath) . envMedia)
@@ -657,9 +669,10 @@ elemToParPart ns element
 elemToParPart ns element
   | isElem ns "w" "hyperlink" element
   , Just relId <- findAttr (elemName ns "r" "id") element = do
+    location <- asks envLocation
     runs <- mapD (elemToRun ns) (elChildren element)
     rels <- asks envRelationships
-    case lookupRelationship relId rels of
+    case lookupRelationship location relId rels of
       Just target -> do
          case findAttr (elemName ns "w" "anchor") element of
              Just anchor -> return $ ExternalHyperLink (target ++ '#':anchor) runs
@@ -699,7 +712,7 @@ elemToRun ns element
   , Just fnId <- findAttr (elemName ns "w" "id") ref = do
     notes <- asks envNotes
     case lookupFootnote fnId notes of
-      Just e -> do bps <- mapD (elemToBodyPart ns) (elChildren e)
+      Just e -> do bps <- local (\r -> r {envLocation=InFootnote}) $ mapD (elemToBodyPart ns) (elChildren e)
                    return $ Footnote bps
       Nothing  -> return $ Footnote []
 elemToRun ns element
@@ -708,7 +721,7 @@ elemToRun ns element
   , Just enId <- findAttr (elemName ns "w" "id") ref = do
     notes <- asks envNotes
     case lookupEndnote enId notes of
-      Just e -> do bps <- mapD (elemToBodyPart ns) (elChildren e)
+      Just e -> do bps <- local (\r -> r {envLocation=InEndnote}) $ mapD (elemToBodyPart ns) (elChildren e)
                    return $ Endnote bps
       Nothing  -> return $ Endnote []
 elemToRun ns element
