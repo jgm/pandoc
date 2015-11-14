@@ -16,5 +16,5 @@ ghc-options:
   highlighting-kate: '-pgmP cpphs -optP--cpp'
 packages:
 - '..'
-- 'https://hackage.haskell.org/package/pandoc-citeproc-0.8.1/pandoc-citeproc-0.8.1.tar.gz'
-resolver: lts-3.10
+- 'https://hackage.haskell.org/package/pandoc-citeproc-0.8.1.1/pandoc-citeproc-0.8.1.1.tar.gz'
+resolver: lts-3.13
