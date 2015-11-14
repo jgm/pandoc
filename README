@@ -692,7 +692,8 @@ Options affecting specific writers
 :   Specify a method for obfuscating `mailto:` links in HTML documents.
     `none` leaves `mailto:` links as they are.  `javascript` obfuscates
     them using javascript. `references` obfuscates them by printing their
-    letters as decimal or hexadecimal character references.
+    letters as decimal or hexadecimal character references.  The default
+    is `javascript`.
 
 `--id-prefix=`*STRING*
 
