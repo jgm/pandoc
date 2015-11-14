@@ -73,6 +73,11 @@ pandoc (1.15.2)
     The `comment` environment is handled in a similar way to the
     `verbatim` environment, except that its content is discarded.
 
+  * Docx reader:  Follow relationships correctly in foot/endnotes (Jesse
+    Rosenthal).  There are separate relationship (link) files for foot and
+    endnotes. These had previously been grouped together which led
+    to links not working correctly in notes. This should finally fix that.
+
   * LaTeX and ConTeXt writers: support `lang` attribute on divs and spans
     (mb21).  For LaTeX, also collect `lang` and `dir` attributes on spans and
     divs to set the `lang`, `otherlangs` and `dir` variables if they aren’t set
