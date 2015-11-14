@@ -189,6 +189,10 @@ tests = [ testGroup "inlines"
             "docx/notes.docx"
             "docx/notes.native"
           , testCompare
+            "links in footnotes and endnotes"
+            "docx/link_in_notes.docx"
+            "docx/link_in_notes.native"
+          , testCompare
             "blockquotes (parsing indent as blockquote)"
             "docx/block_quotes.docx"
             "docx/block_quotes_parse_indent.native"
