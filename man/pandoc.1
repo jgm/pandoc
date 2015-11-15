@@ -774,6 +774,7 @@ documents.
 \f[C]javascript\f[] obfuscates them using javascript.
 \f[C]references\f[] obfuscates them by printing their letters as decimal
 or hexadecimal character references.
+The default is \f[C]javascript\f[].
 .RS
 .RE
 .TP
@@ -3959,6 +3960,9 @@ treated as spaces or as hard line breaks.
 This option is intended for use with East Asian languages where spaces
 are not used between words, but text is divided into lines for
 readability.
+.SS Extension: \f[C]emoji\f[]
+.PP
+Parses textual emojis like \f[C]:smile:\f[] as Unicode emoticons.
 .SS Extension: \f[C]tex_math_single_backslash\f[]
 .PP
 Causes anything between \f[C]\\(\f[] and \f[C]\\)\f[] to be interpreted
@@ -4064,7 +4068,8 @@ variants are supported:
 \f[C]auto_identifiers\f[], \f[C]ascii_identifiers\f[],
 \f[C]backtick_code_blocks\f[], \f[C]autolink_bare_uris\f[],
 \f[C]intraword_underscores\f[], \f[C]strikeout\f[],
-\f[C]hard_line_breaks\f[], \f[C]shortcut_reference_links\f[].
+\f[C]hard_line_breaks\f[], \f[C]emoji\f[],
+\f[C]shortcut_reference_links\f[].
 .RS
 .RE
 .TP
