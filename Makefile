@@ -23,6 +23,9 @@ test:
 bench:
 	cabal bench
 
+changes:
+	pandoc --filter extract-changes.hs changelog -t markdown_github | pbcopy
+
 install: full
 	cabal copy
 	cabal register
@@ -58,4 +61,4 @@ download_stats:
 clean:
 	cabal clean
 
-.PHONY: deps quick full install clean test bench osxpkg dist prof download_stats
+.PHONY: deps quick full install clean test bench changes osxpkg dist prof download_stats
