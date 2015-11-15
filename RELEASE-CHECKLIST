@@ -16,11 +16,11 @@ _ Generate Mac OSX package.
 
 _ Generate Ubuntu/Debian deb package (cd deb; make package).
 
-- Add release on github (and upload files)
+- Add release on github (use 'make changes_github' and upload files)
 
 _ Upload to HackageDB
 
-_ Update website, including short description of changes
+_ Update website, including short description of changes ('make changes')
 
 _ Announce on pandoc-announce, pandoc-discuss
 
