@@ -14,6 +14,7 @@ PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
 
 # We need this for hsb2hs:
 PATH=$LOCALBIN:$PATH
+export MACOSX_DEPLOYMENT_TARGET=10.7
 
 # echo Removing old files...
 rm -rf $DIST
