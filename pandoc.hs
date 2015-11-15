@@ -187,6 +187,7 @@ data Opt = Opt
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optReferenceDocx     :: Maybe FilePath -- ^ Path of reference.docx
+    , optDocxNoteTab       :: Bool    -- ^ Insert tab rather than space after DOCX footnote reference
     , optEpubStylesheet    :: Maybe String   -- ^ EPUB stylesheet
     , optEpubMetadata      :: String  -- ^ EPUB metadata
     , optEpubFonts         :: [FilePath] -- ^ EPUB fonts to embed
@@ -249,6 +250,7 @@ defaultOpts = Opt
     , optHTMLMathMethod        = PlainMath
     , optReferenceODT          = Nothing
     , optReferenceDocx         = Nothing
+    , optDocxNoteTab           = False
     , optEpubStylesheet        = Nothing
     , optEpubMetadata          = ""
     , optEpubFonts             = []
@@ -692,6 +694,11 @@ options =
                   "FILENAME")
                  "" -- "Path of custom reference.docx"
 
+    , Option "" ["docx-note-tab"]
+                 (NoArg
+                  (\opt -> return opt { optDocxNoteTab = True }))
+                 "" -- "Insert tab rather than space after DOCX footnote reference"
+
     , Option "" ["epub-stylesheet"]
                  (ReqArg
                   (\arg opt -> do
@@ -1094,6 +1101,7 @@ main = do
               , optHTMLMathMethod        = mathMethod'
               , optReferenceODT          = referenceODT
               , optReferenceDocx         = referenceDocx
+              , optDocxNoteTab           = docxNoteTab
               , optEpubStylesheet        = epubStylesheet
               , optEpubMetadata          = epubMetadata
               , optEpubFonts             = epubFonts
@@ -1344,6 +1352,7 @@ main = do
                             writerTOCDepth         = epubTOCDepth,
                             writerReferenceODT     = referenceODT,
                             writerReferenceDocx    = referenceDocx,
+                            writerDocxNoteTab      = docxNoteTab,
                             writerMediaBag         = media,
                             writerVerbose          = verbose,
                             writerLaTeXArgs        = latexEngineArgs
