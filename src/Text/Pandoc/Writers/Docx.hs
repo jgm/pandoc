@@ -1070,8 +1070,8 @@ inlineToOpenXML opts (Note bs) = do
                    [ mknode "w:rPr" [] footnoteStyle
                    , mknode "w:footnoteRef" [] () ]
   let notemarkerXml = RawInline (Format "openxml") $ ppElement notemarker
-  let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : ils) : xs
-      insertNoteRef (Para ils  : xs) = Para  (notemarkerXml : ils) : xs
+  let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : Space : ils) : xs
+      insertNoteRef (Para ils  : xs) = Para  (notemarkerXml : Space : ils) : xs
       insertNoteRef xs               = Para [notemarkerXml] : xs
   oldListLevel <- gets stListLevel
   oldParaProperties <- gets stParaProperties
