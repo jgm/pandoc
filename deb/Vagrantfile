@@ -12,7 +12,7 @@ Vagrant.configure(2) do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = ENV['VAGRANTBOX'] || "ubuntu/trusty64"
+  config.vm.box = ENV['VAGRANTBOX'] || "ubuntu/precise64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -67,7 +67,7 @@ Vagrant.configure(2) do |config|
   config.vm.provision "shell", inline: <<-SHELL
     wget -q https://s3.amazonaws.com/download.fpcomplete.com/debian/fpco.key
     sudo apt-key add fpco.key
-    echo 'deb http://download.fpcomplete.com/ubuntu/trusty stable main'|sudo tee /etc/apt/sources.list.d/fpco.list
+    echo 'deb http://download.fpcomplete.com/ubuntu/precise stable main'|sudo tee /etc/apt/sources.list.d/fpco.list
     sudo apt-get update
     sudo apt-get install -y stack build-essential debhelper dh-make
     sudo cp /vagrant_data/deb/*.pem /etc/ssl/certs/

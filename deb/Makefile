@@ -1,5 +1,5 @@
 COMMIT?=HEAD
-VAGRANTBOX?=ubuntu/trusty64
+VAGRANTBOX?=debian/wheezy64
 
 .PHONY: package clean
 
