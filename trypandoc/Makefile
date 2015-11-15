@@ -1,7 +1,7 @@
 CGIBIN=/home/website/cgi-bin
 TRYPANDOC=/home/website/html/pandoc/try/
 CGI=${CGIBIN}/trypandoc
-BIN=../dist/build/trypandoc/trypandoc
+BIN=../.cabal-sandbox/bin/trypandoc
 
 install: ${CGI} ${TRYPANDOC}/index.html
 
