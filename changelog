@@ -13,6 +13,8 @@ pandoc (1.15.2)
     parsing (#2469).  Tightened up the inline HTML parser so it disallows
     TagWarnings.
 
+  * Derive `Generic` instances for the types in `Text.Pandoc.Options`.
+
   * Org reader:
 
     + Fix paragraph/list interaction (Albert Krewinkel, #2464).
@@ -96,6 +98,14 @@ pandoc (1.15.2)
 
   * Textile writer: support start number in ordered lists (#2465).
 
+  * OpenDocument writer:  Allow customization of opendocument
+    automatic styles.  Automatic styles can now be inserted in the
+    template, which now provides the enclosing `<office:automatic-styles>`
+    tags (#2520).
+
+  * Docx writer:  insert space between footnote reference and note (#2527).
+    This matches Word's default behavior.
+
   * EPUB writer:  don't download linked media when `data-external` attribute
     set (#2473).  By default pandoc downloads all linked media and includes it
     in the EPUB container.  This can be disabled by setting `data-external` on
@@ -164,6 +174,9 @@ pandoc (1.15.2)
     `allowframebreaks` is used.  It is especially helpful for bibliography
     slides.
 
+  * OpenDocument template:  Add `<office:automatic-styles>` tag around
+    automatic styles.  The writer now longer provides this (see #2520).
+
   * Restored Text.Pandoc.Compat.Monoid.
 
   * Do not export (<>) from custom Prelude.  The Prelude now matches
@@ -178,7 +191,7 @@ pandoc (1.15.2)
 
   * Change default for old-locale flag to False.
 
-  * Use stack in deb and osx package generators.
+  * Use stack in deb, osx, and Windows package generators.
 
   * Added Vagrantfile for building deb in vm.
     This should help in automating binary package creation.  'make package'
