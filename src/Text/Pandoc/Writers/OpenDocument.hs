@@ -191,8 +191,7 @@ writeOpenDocument opts (Pandoc meta blocks) =
       listStyle (n,l) = inTags True "text:list-style"
                           [("style:name", "L" ++ show n)] (vcat l)
       listStyles  = map listStyle (stListStyles s)
-      automaticStyles = inTagsIndented "office:automatic-styles" $ vcat $
-                          reverse $ styles ++ listStyles
+      automaticStyles = vcat $ reverse $ styles ++ listStyles
       context = defField "body" body
               $ defField "automatic-styles" (render' automaticStyles)
               $ metadata
