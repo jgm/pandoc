@@ -1,0 +1,19 @@
+flags:
+  pandoc:
+    trypandoc: false
+    https: true
+    embed_data_files: true
+    old-locale: false
+    network-uri: true
+  pandoc-citeproc:
+    bibutils: true
+    embed_data_files: true
+    unicode_collation: false
+    test_citeproc: false
+    debug: false
+packages:
+- '..'
+- '../../pandoc-citeproc'
+extra-deps:
+- 'hsb2hs-0.3.1'
+resolver: lts-3.13

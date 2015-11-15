@@ -41,11 +41,11 @@
                            KeyPath="yes"/>
             <RemoveFolder Id="APPLICATIONFOLDER" On="uninstall"/>
             <File Id="pandocEXE" Name="pandoc.exe"
-                  Source="..\.cabal-sandbox\bin\pandoc.exe" />
+                  Source="$(var.BINPATH)\pandoc.exe" />
             <File Id="pandocCOPYRIGHT" Name="COPYRIGHT.txt"
-                  Source="..\COPYRIGHT.txt" />
+                  Source="COPYRIGHT.txt" />
             <File Id="pandocCOPYING" Name="COPYING.rtf"
-                  Source="..\COPYING.rtf" />
+                  Source="COPYING.rtf" />
           </Component>
 
           <Component Id="CitationSupport"
@@ -55,13 +55,13 @@
                            Name="Version" Type="string" Value="[ProductVersion]"
                            KeyPath="yes"/>
             <File Id="pandoc_citeprocEXE" Name="pandoc-citeproc.exe"
-                  Source="..\.cabal-sandbox\bin\pandoc-citeproc.exe" />
+                  Source="$(var.BINPATH)\pandoc-citeproc.exe" />
           </Component>
 
           <Component Id="Documentation"
                      Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3">
             <File Id="pandocREADME" Name="Pandoc User's Guide.html"
-                  Source="..\README.html" KeyPath="yes">
+                  Source="README.html" KeyPath="yes">
               <Shortcut Id="ApplicationStartMenuShortcut"
                         Directory="ApplicationProgramsFolder"
                         Name="Pandoc User’s Guide" Advertise="yes" />
@@ -163,7 +163,7 @@
     <Property Id="ALLUSERS" Value="2" Secure="yes" />
     <Property Id="MSIINSTALLPERUSER" Value="1" />
 
-    <WixVariable Id="WixUILicenseRtf" Value="..\COPYING.rtf" />
+    <WixVariable Id="WixUILicenseRtf" Value="COPYING.rtf" />
 
     <UI Id="MyWixUI_Advanced">
       <UIRef Id="WixUI_Advanced" />
