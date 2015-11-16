@@ -1139,7 +1139,7 @@ main = do
 
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
-  let needsCiteproc = any ("--bibliography" `isPrefixOf`) rawArgs &&
+  let needsCiteproc = M.lookup "bibliography" (optMetadata opts) /= Nothing &&
                       optCiteMethod opts `notElem` [Natbib, Biblatex] &&
                       "pandoc-citeproc" `notElem` map takeBaseName filters
   let filters' = if needsCiteproc then "pandoc-citeproc" : filters
