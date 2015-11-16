@@ -35,7 +35,7 @@ dist: man/pandoc.1
 	rm -rf "pandoc-${version}"
 	tar xvzf dist/pandoc-${version}.tar.gz
 	cd pandoc-${version}
-	cabal configure ${CABALARGS} && cabal build && cabal test && cd .. && rm -rf "pandoc-${version}"
+	stack setup && stack test && cd .. && rm -rf "pandoc-${version}"
 
 .travis.yml: pandoc.cabal make_travis_yml.hs
 	runghc make_travis_yml.hs $< > $@
