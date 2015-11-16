@@ -198,10 +198,10 @@ $endif$
 $if(parallaxBackgroundHorizontal)$
         // Amount to move parallax background (horizontal and vertical) on slide change
         // Number, e.g. 100
-        parallaxBackgroundHorizontal: '$parallaxBackgroundHorizontal$',
+        parallaxBackgroundHorizontal: $parallaxBackgroundHorizontal$,
 $endif$
 $if(parallaxBackgroundVertical)$
-        parallaxBackgroundVertical: '$parallaxBackgroundVertical$',
+        parallaxBackgroundVertical: $parallaxBackgroundVertical$,
 $endif$
 $if(width)$
         // The "normal" size of the presentation, aspect ratio will be preserved
