@@ -113,6 +113,8 @@ Extra-Source-Files:
                  -- documentation
                  INSTALL, BUGS, CONTRIBUTING.md, changelog
                  man/pandoc.1
+                 -- stack build plan
+                 stack.yaml
                  -- files needed to build man page
                  man/capitalizeHeaders.hs
                  man/removeNotes.hs
