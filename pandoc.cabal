@@ -187,6 +187,8 @@ Extra-Source-Files:
                  tests/writer.fb2
                  tests/writer.opml
                  tests/writer.dokuwiki
+                 tests/writers-lang-and-dir.latex
+                 tests/writers-lang-and-dir.context
                  tests/dokuwiki_inline_formatting.dokuwiki
                  tests/lhs-test.markdown
                  tests/lhs-test.markdown+lhs
