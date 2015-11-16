@@ -112,9 +112,9 @@ pandoc (1.15.2)
     the tags linking to media that should not be downloaded.  Example:
 
         <audio controls="1">
-         <source
-	 src="https://example.com/downloads/tocatta.mp3"
-         type="audio/mpeg"></source>
+          <source src="http://example.com/music/toccata.mp3"
+                  data-external="1" type="audio/mpeg">
+          </source>
         </audio>
 
   * HTML writer:  use width on whole table if col widths sum to < 100%.
