@@ -4,7 +4,7 @@ Section: text
 Priority: optional
 Architecture: ARCHITECTURE
 Installed-Size: INSTALLED_SIZE
-Depends: libc6 (>= 2.11), libgmp10, zlib1g (>= 1:1.1.4)
+Depends: libc6 (>= 2.13), libgmp10, zlib1g (>= 1:1.1.4)
 Maintainer: John MacFarlane <jgm@berkeley.edu>
 Description: general markup converter
  Pandoc is a Haskell library for converting from one markup

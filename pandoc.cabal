@@ -1,5 +1,5 @@
 Name:            pandoc
-Version:         1.15.2
+Version:         1.15.2.1
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
@@ -113,6 +113,8 @@ Extra-Source-Files:
                  -- documentation
                  INSTALL, BUGS, CONTRIBUTING.md, changelog
                  man/pandoc.1
+                 -- stack build plan
+                 stack.yaml
                  -- files needed to build man page
                  man/capitalizeHeaders.hs
                  man/removeNotes.hs
@@ -187,6 +189,8 @@ Extra-Source-Files:
                  tests/writer.fb2
                  tests/writer.opml
                  tests/writer.dokuwiki
+                 tests/writers-lang-and-dir.latex
+                 tests/writers-lang-and-dir.context
                  tests/dokuwiki_inline_formatting.dokuwiki
                  tests/lhs-test.markdown
                  tests/lhs-test.markdown+lhs

@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "November 12, 2015" "pandoc 1.15.2"
+.TH PANDOC 1 "November 12, 2015" "pandoc 1.15.2.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -4491,8 +4491,9 @@ For example:
 .nf
 \f[C]
 <audio\ controls="1">
-\ <source\ src="http://www.sixbarsjail.it/tmp/bach_toccata.mp3"
-\ data\-external="1"\ type="audio/mpeg"></source>
+\ \ <source\ src="http://example.com/music/toccata.mp3"
+\ \ \ \ \ \ \ \ \ \ data\-external="1"\ type="audio/mpeg">
+\ \ </source>
 </audio>
 \f[]
 .fi
