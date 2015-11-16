@@ -1010,6 +1010,7 @@ defaultWriterName x =
     ".epub"     -> "epub"
     ".org"      -> "org"
     ".asciidoc" -> "asciidoc"
+    ".adoc"     -> "asciidoc"
     ".pdf"      -> "latex"
     ".fb2"      -> "fb2"
     ".opml"     -> "opml"
