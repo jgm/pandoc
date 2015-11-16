@@ -1,3 +1,9 @@
+pandoc (1.15.2.1)
+
+
+  * Added two missing test files, and `stack.yaml`, to
+    `extra-source-files` so they're included in the source tarball.
+
 pandoc (1.15.2)
 
   * `pandoc my.md -t context -o my.pdf` will now create a PDF using
