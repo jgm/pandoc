@@ -111,6 +111,11 @@ $endfor$
   <h3 class="date">$date$</h3>
 </section>
 $endif$
+$if(toc)$
+<section id="$idprefix$TOC">
+$toc$
+</section>
+$endif$
 $for(include-before)$
 $include-before$
 $endfor$
