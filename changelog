@@ -1,8 +1,11 @@
 pandoc (1.15.2.1)
 
-
   * Added two missing test files, and `stack.yaml`, to
     `extra-source-files` so they're included in the source tarball.
+
+  * reveal.js template: Fixed parallaxBackground options.
+    `parallaxBackgroundHorizontal` and `parallaxBackgroundVertical`
+    need integer values, not strings.  (Vaughn Iverson)
 
 pandoc (1.15.2)
 
