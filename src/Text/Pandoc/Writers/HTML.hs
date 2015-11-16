@@ -544,6 +544,9 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   let attribs = (if startnum /= 1
                    then [A.start $ toValue startnum]
                    else []) ++
+                (if numstyle == Example
+                    then [A.class_ "example"]
+                    else []) ++
                 (if numstyle /= DefaultStyle
                    then if writerHtml5 opts
                            then [A.type_ $
