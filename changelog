@@ -112,7 +112,8 @@ pandoc (1.15.2)
     the tags linking to media that should not be downloaded.  Example:
 
         <audio controls="1">
-         <source src="http://www.sixbarsjail.it/tmp/bach_toccata.mp3"
+         <source
+	 src="https://example.com/downloads/tocatta.mp3"
          type="audio/mpeg"></source>
         </audio>
 
