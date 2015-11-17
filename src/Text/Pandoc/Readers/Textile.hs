@@ -535,6 +535,7 @@ link = try $ do
 image :: Parser [Char] ParserState Inlines
 image = try $ do
   char '!' >> notFollowedBy space
+  _ <- attributes -- ignore for now, until we have image attributes
   src <- manyTill anyChar' (lookAhead $ oneOf "!(")
   alt <- option "" (try $ (char '(' >> manyTill anyChar' (char ')')))
   char '!'
