@@ -327,8 +327,8 @@ inlineToHaddock _ (RawInline f str)
 inlineToHaddock _ (LineBreak) = return cr
 inlineToHaddock _ Space = return space
 inlineToHaddock opts (Cite _ lst) = inlineListToHaddock opts lst
-inlineToHaddock opts (Link txt (src, _)) = do
-  linktext <- inlineListToHaddock opts txt
+inlineToHaddock _opts (Link txt (src, _)) = do
+  let linktext = text $ escapeString $ stringify txt
   let useAuto = isURI src &&
                 case txt of
                       [Str s] | escapeURI s == src -> True
