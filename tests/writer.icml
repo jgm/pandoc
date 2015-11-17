@@ -1864,17 +1864,49 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 </ParagraphStyleRange>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>2+2=4</Content>
+    <Content>2</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content>+</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content>2</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content>=</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content>4</Content>
   </CharacterStyleRange><Br />
 </ParagraphStyleRange>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
-  <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>x \in y</Content>
+  <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
+    <Content>x</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content>∈</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
+    <Content>y</Content>
   </CharacterStyleRange><Br />
 </ParagraphStyleRange>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
-  <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>\alpha \wedge \omega</Content>
+  <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
+    <Content>α</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content>∧</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
+    <Content>ω</Content>
   </CharacterStyleRange><Br />
 </ParagraphStyleRange>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
@@ -1883,7 +1915,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange><Br />
 </ParagraphStyleRange>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
-  <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+  <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
     <Content>p</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
@@ -1895,15 +1927,33 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
     <Content>Here’s some display math: </Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</Content>
+    <Content>$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$</Content>
   </CharacterStyleRange><Br />
 </ParagraphStyleRange>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s one that has a line break in it: </Content>
   </CharacterStyleRange>
-  <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>\alpha + \omega \times x^2</Content>
+  <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
+    <Content>α</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content>+</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
+    <Content>ω</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content>×</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content> </Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
+    <Content>x</Content>
+  </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Superscript">
+    <Content>2</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>

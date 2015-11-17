@@ -16,6 +16,7 @@ into InDesign with File -> Place.
 module Text.Pandoc.Writers.ICML (writeICML) where
 import Text.Pandoc.Definition
 import Text.Pandoc.XML
+import Text.Pandoc.Readers.TeXMath (texMathToInlines)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Shared (splitBy)
 import Text.Pandoc.Options
@@ -410,7 +411,8 @@ inlineToICML opts style (Cite _ lst) = inlinesToICML opts style lst
 inlineToICML _    style (Code _ str) = charStyle (codeName:style) $ text $ escapeStringForXML str
 inlineToICML _    style Space = charStyle style space
 inlineToICML _ style LineBreak = charStyle style $ text lineSeparator
-inlineToICML _ style (Math _ str) = charStyle style $ text $ escapeStringForXML str --InDesign doesn't really do math
+inlineToICML opts style (Math mt str) =
+  cat <$> mapM (inlineToICML opts style) (texMathToInlines mt str)
 inlineToICML _ _ (RawInline f str)
   | f == Format "icml" = return $ text str
   | otherwise          = return empty
