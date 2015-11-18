@@ -408,13 +408,6 @@ archiveToMedia :: Archive -> Media
 archiveToMedia zf =
   mapMaybe (getMediaPair zf) (filter filePathIsMedia (filesInArchive zf))
 
--- lookupLevel :: String -> String -> Numbering -> Maybe Level
--- lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
---   absNumId <- lookup numId $ map (\(Numb nid absnumid) -> (nid, absnumid)) numbs
---   lvls <- lookup absNumId $ map (\(AbstractNumb aid ls) -> (aid, ls)) absNumbs
---   lvl  <- lookup ilvl $ map (\l@(i, _, _, _) -> (i, l)) lvls
---   return lvl
-
 lookupLevel :: String -> String -> Numbering -> Maybe Level
 lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
   absNumId <- lookup numId $ map (\(Numb nid absnumid) -> (nid, absnumid)) numbs
