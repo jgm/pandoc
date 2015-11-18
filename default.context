@@ -93,31 +93,28 @@ $endif$
 
 \setupthinrules[width=15em] % width of horizontal rules
 
-\setuphead[title][
-  style={\tfd\raggedcenter},
-  before={\startalignment[middle]},
-  after={
-$if(subtitle)$
-    \smallskip
-    {\tfa $subtitle$}
-$endif$
-$if(author)$
-    \smallskip
-    {\tfa $for(author)$$author$$sep$\crlf $endfor$}
-$endif$
-$if(date)$
-    \smallskip
-    {\tfa $date$}
-$endif$
-    \bigskip\stopalignment}]
-
 $for(header-includes)$
 $header-includes$
 $endfor$
 
 \starttext
 $if(title)$
-\title{$title$}
+\startalignment[middle]
+  {\tfd $title$}
+$if(subtitle)$
+  \smallskip
+  {\tfa $subtitle$}
+$endif$
+$if(author)$
+  \smallskip
+  {\tfa $for(author)$$author$$sep$\crlf $endfor$}
+$endif$
+$if(date)$
+  \smallskip
+  {\tfa $date$}
+$endif$
+  \bigskip
+\stopalignment
 $endif$
 $if(abstract)$
 \midaligned{\it Abstract}
