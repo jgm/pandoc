@@ -144,9 +144,6 @@ type Level = (String, String, String, Maybe Integer)
 data DocumentLocation = InDocument | InFootnote | InEndnote
                       deriving (Eq,Show)
 
--- data RelationshipType = DocumentRel | FootnoteRel | EndnoteRel
---                       deriving Show
-
 data Relationship = Relationship DocumentLocation RelId Target
                   deriving Show
 
@@ -181,6 +178,7 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
 
 data BodyPart = Paragraph ParagraphStyle [ParPart]
               | ListItem ParagraphStyle String String Level [ParPart]
+              | DummyListItem ParagraphStyle String [ParPart]
               | Tbl String TblGrid TblLook [Row]
               | OMathPara [Exp]
               deriving Show
@@ -244,7 +242,6 @@ defaultRunStyle = RunStyle { isBold = Nothing
                            , rVertAlign = Nothing
                            , rUnderline = Nothing
                            , rStyle = Nothing}
-
 
 type Target = String
 type Anchor = String
@@ -411,12 +408,20 @@ archiveToMedia :: Archive -> Media
 archiveToMedia zf =
   mapMaybe (getMediaPair zf) (filter filePathIsMedia (filesInArchive zf))
 
+-- lookupLevel :: String -> String -> Numbering -> Maybe Level
+-- lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
+--   absNumId <- lookup numId $ map (\(Numb nid absnumid) -> (nid, absnumid)) numbs
+--   lvls <- lookup absNumId $ map (\(AbstractNumb aid ls) -> (aid, ls)) absNumbs
+--   lvl  <- lookup ilvl $ map (\l@(i, _, _, _) -> (i, l)) lvls
+--   return lvl
+
 lookupLevel :: String -> String -> Numbering -> Maybe Level
 lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
   absNumId <- lookup numId $ map (\(Numb nid absnumid) -> (nid, absnumid)) numbs
   lvls <- lookup absNumId $ map (\(AbstractNumb aid ls) -> (aid, ls)) absNumbs
   lvl  <- lookup ilvl $ map (\l@(i, _, _, _) -> (i, l)) lvls
   return lvl
+
 
 numElemToNum :: NameSpaces -> Element -> Maybe Numb
 numElemToNum ns element |
@@ -569,7 +574,7 @@ elemToBodyPart ns element
     num <- asks envNumbering
     case lookupLevel numId lvl num of
      Just levelInfo -> return $ ListItem parstyle numId lvl levelInfo parparts
-     Nothing        -> throwError WrongElem
+     Nothing        -> return $ DummyListItem parstyle lvl parparts
 elemToBodyPart ns element
   | isElem ns "w" "p" element = do
       sty <- asks envParStyles
@@ -582,7 +587,7 @@ elemToBodyPart ns element
           Just levelInfo ->
             return $ ListItem parstyle numId lvl levelInfo parparts
           Nothing         ->
-            throwError WrongElem
+            return $ DummyListItem parstyle lvl parparts
        Nothing -> return $ Paragraph parstyle parparts
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do

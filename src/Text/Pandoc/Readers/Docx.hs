@@ -503,6 +503,10 @@ bodyPartToBlocks (ListItem pPr numId lvl levelInfo parparts) = do
                                    ]
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
   return $ divWith ("", ["list-item"], kvs) blks
+bodyPartToBlocks (DummyListItem pPr _ parparts) = 
+  let pPr' = pPr {pStyle = "ListParagraph": (pStyle pPr)}
+  in
+    bodyPartToBlocks $ Paragraph pPr' parparts
 bodyPartToBlocks (Tbl _ _ _ []) =
   return $ para mempty
 bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
