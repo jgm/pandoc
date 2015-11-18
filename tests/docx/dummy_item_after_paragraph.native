@@ -1,0 +1,3 @@
+[Para [Str "First",Space,Str "bullet",Space,Str "point",Space,Str "created",Space,Str "and",Space,Str "then",Space,Str "deleted"]
+,Para [Str "A",Space,Str "normal",Space,Str "paragraph"]
+,Para [Str "First",Space,Str "bullet",Space,Str "point",Space,Str "created",Space,Str "and",Space,Str "then",Space,Str "deleted",Space,Str "after",Space,Str "the",Space,Str "normal",Space,Str "paragraph"]]

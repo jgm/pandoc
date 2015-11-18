@@ -185,6 +185,14 @@ tests = [ testGroup "inlines"
             "docx/german_styled_lists.docx"
             "docx/german_styled_lists.native"
           , testCompare
+            "user deletes bullet after list item (=> part of item par)"
+            "docx/dummy_item_after_list_item.docx"
+            "docx/dummy_item_after_list_item.native"
+          , testCompare
+            "user deletes bullet after par (=> new par)"
+            "docx/dummy_item_after_paragraph.docx"
+            "docx/dummy_item_after_paragraph.native"
+          , testCompare
             "footnotes and endnotes"
             "docx/notes.docx"
             "docx/notes.native"
