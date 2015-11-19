@@ -439,13 +439,15 @@
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Headers</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Level 2 with an </Content>
@@ -454,79 +456,93 @@
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>embedded link</Content>
     </CharacterStyleRange>
-  </HyperlinkTextSource><Br />
+  </HyperlinkTextSource>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header3">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Level 3 with </Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
     <Content>emphasis</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header4">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Level 4</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header5">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Level 5</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Level 1</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Level 2 with </Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
     <Content>emphasis</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header3">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Level 3</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>with no blank line</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Level 2</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>with no blank line</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Paragraphs</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s a regular paragraph.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s one with a bullet. * criminey.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>There should be a hard line break</Content>
@@ -536,85 +552,101 @@
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>here.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Block Quotes</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>E-mail style:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This is a block quote. It is pretty short.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Code in a block quote:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; CodeBlock">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>sub status {
     print &quot;working&quot;;
 }</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>A list:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; NumList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>item one</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; NumList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>item two</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Nested block quotes:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Blockquote &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>nested</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Blockquote &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>nested</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This should not be a block quote: 2 &gt; 1.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>And a following paragraph.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Code Blocks</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Code:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/CodeBlock">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>---- (should be four hyphens)
@@ -624,879 +656,1051 @@ sub status {
 }
 
 this code block is indented by one tab</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>And:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/CodeBlock">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>    this code block is indented by two tabs
 
 These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Lists</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Unordered</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Asterisks tight:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>asterisk 1</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>asterisk 2</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>asterisk 3</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Asterisks loose:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first &gt; Paragraph" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>asterisk 1</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>asterisk 2</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>asterisk 3</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Pluses tight:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Plus 1</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Plus 2</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Plus 3</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Pluses loose:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first &gt; Paragraph" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Plus 1</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Plus 2</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Plus 3</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Minuses tight:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Minus 1</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Minus 2</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Minus 3</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Minuses loose:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first &gt; Paragraph" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Minus 1</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Minus 2</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Minus 3</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Ordered</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Tight:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>First</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Second</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Third</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>and:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>One</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Two</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Three</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Loose using tabs:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; first &gt; Paragraph" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>First</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Second</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Third</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>and using spaces:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; first &gt; Paragraph" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>One</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Two</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Three</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiple paragraphs:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; first &gt; Paragraph" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Item 1, graf one.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; subParagraph &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>	</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Item 2.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Item 3.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Nested</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Tab</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; BulList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Tab</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; BulList &gt; BulList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Tab</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s another:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>First</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Second:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; BulList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Fee</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Fie</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Foe</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Third</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Same thing but with paragraphs:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; first &gt; Paragraph" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>First</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Second:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; BulList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Fee</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Fie</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Foe</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Third</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Tabs and spaces</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first &gt; Paragraph" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>this is a list item indented with tabs</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>this is a list item indented with spaces</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; BulList &gt; first &gt; Paragraph" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>this is an example list item indented with tabs</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; BulList &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>this is an example list item indented with spaces</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Fancy list markers</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange NumberingStartAt="2" AppliedParagraphStyle="ParagraphStyle/NumList &gt; first &gt; beginsWith-2" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>begins with 2</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; beginsWith-2 &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>and now 3</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; subParagraph &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>	</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>with a continuation</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange NumberingStartAt="4" AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; first &gt; beginsWith-4 &gt; lowerRoman" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>sublist with roman numerals, starting with 4</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; beginsWith-4 &gt; lowerRoman">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>more items</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; first &gt; upperAlpha" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>a subsublist</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; upperAlpha">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>a subsublist</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Nesting:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; first &gt; upperAlpha" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Upper Alpha</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; first &gt; upperRoman" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Upper Roman.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange NumberingStartAt="6" AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-6" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Decimal start with 6</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange NumberingStartAt="3" AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-3 &gt; lowerAlpha" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Lower alpha with paren</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Autonumbering:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Autonumber.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>More.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; NumList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Nested.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Should not be a list item:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>M.A. 2007</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>B. Williams</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Definition Lists</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Tight using spaces:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>apple</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>red fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>banana</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>yellow fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Tight using tabs:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>apple</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>red fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>banana</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>yellow fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Loose:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>apple</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>red fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>banana</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>yellow fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiple blocks with italics:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
     <Content>apple</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>red fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>contains seeds, crisp, pleasant to taste</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
     <Content>orange</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; CodeBlock">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>{ orange code block }</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Blockquote &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange block quote</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiple definitions, tight:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>apple</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>red fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>computer</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>bank</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiple definitions, loose:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>apple</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>red fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>computer</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>bank</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Blank line after term, indented marker, alternate markers:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>apple</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>red fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>computer</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListTerm">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange fruit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; NumList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>sublist</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; NumList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>sublist</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>HTML Blocks</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Simple block on one line:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>foo</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>And nested without indentation:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>foo</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>bar</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Interpreted markdown in a table:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This is </Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
     <Content>emphasized</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>And this is </Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Bold">
     <Content>strong</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s a simple block:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>foo</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This should be a code block, though:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/CodeBlock">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>&lt;div&gt;
     foo
 &lt;/div&gt;</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>As should this:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/CodeBlock">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>&lt;div&gt;foo&lt;/div&gt;</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Now, nested:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>foo</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This should just be an HTML comment:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiline:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Code block:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/CodeBlock">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>&lt;!-- Comment --&gt;</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Just plain comment, with trailing spaces on the line:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Code:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/CodeBlock">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>&lt;hr /&gt;</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Hr’s:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Inline Markup</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This is </Content>
@@ -1512,8 +1716,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This is </Content>
@@ -1529,8 +1734,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>An </Content>
@@ -1542,13 +1748,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Bold Italic">
     <Content>This is strong and em.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>So is </Content>
@@ -1558,13 +1766,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content> word.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Bold Italic">
     <Content>This is strong and em.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>So is </Content>
@@ -1574,8 +1784,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content> word.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This is code: </Content>
@@ -1609,8 +1820,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Strikeout">
     <Content>This is </Content>
@@ -1620,8 +1832,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Strikeout">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Superscripts: a</Content>
@@ -1643,8 +1856,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Subscripts: H</Content>
@@ -1666,18 +1880,21 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>O.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Smart quotes, ellipses, dashes</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>“</Content>
@@ -1708,8 +1925,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>”</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>‘</Content>
@@ -1746,8 +1964,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content> are letters.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>‘</Content>
@@ -1793,8 +2012,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>’</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>‘</Content>
@@ -1816,8 +2036,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content> Were you alive in the 70’s?</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here is some quoted </Content>
@@ -1847,31 +2068,36 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Some dashes: one—two — three—four — five.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Dashes between numbers: 5–7, 255–66, 1987–1999.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Ellipses…and…and….</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>LaTeX</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first" NumberingContinue="false">
-  <Br />
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>2</Content>
@@ -1891,8 +2117,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
     <Content> </Content>
   </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>4</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
     <Content>x</Content>
@@ -1904,8 +2131,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
     <Content> </Content>
   </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
     <Content>y</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
     <Content>α</Content>
@@ -1917,29 +2145,33 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
     <Content> </Content>
   </CharacterStyleRange><CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
     <Content>ω</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>223</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
     <Content>p</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>-Tree</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s some display math: </Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s one that has a line break in it: </Content>
@@ -1967,13 +2199,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>These shouldn’t be math:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>To get the famous equation, write </Content>
@@ -1983,8 +2217,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>$22,000 is a </Content>
@@ -2006,13 +2241,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content> is emphasized.)</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Shoes ($20) and socks ($5).</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Escaped </Content>
@@ -2028,163 +2265,195 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content> 23$.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s a LaTeX table:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Special Characters</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here is some unicode:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>I hat: Î</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>o umlaut: ö</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>section: §</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>set membership: ∈</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>copyright: ©</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>AT&amp;T has an ampersand in their name.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>AT&amp;T is another way to write it.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This &amp; that.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>4 &lt; 5.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>6 &gt; 5.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Backslash: \</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Backtick: `</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Asterisk: *</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Underscore: _</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Left brace: {</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Right brace: }</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Left bracket: [</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Right bracket: ]</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Left paren: (</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Right paren: )</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Greater-than: &gt;</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Hash: #</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Period: .</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Bang: !</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Plus: +</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Minus: -</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Links</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Explicit</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Just a </Content>
@@ -2196,8 +2465,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <HyperlinkTextSource Self="htss-5" Name="title" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
@@ -2206,8 +2476,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <HyperlinkTextSource Self="htss-6" Name="title preceded by two spaces" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
@@ -2216,8 +2487,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <HyperlinkTextSource Self="htss-7" Name="title preceded by a tab" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
@@ -2226,36 +2498,41 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <HyperlinkTextSource Self="htss-8" Name="title with &quot;quotes&quot; in it" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>URL and title</Content>
     </CharacterStyleRange>
-  </HyperlinkTextSource><Br />
+  </HyperlinkTextSource>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <HyperlinkTextSource Self="htss-9" Name="title with single quotes" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>URL and title</Content>
     </CharacterStyleRange>
-  </HyperlinkTextSource><Br />
+  </HyperlinkTextSource>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <HyperlinkTextSource Self="htss-10" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>with_underscore</Content>
     </CharacterStyleRange>
-  </HyperlinkTextSource><Br />
+  </HyperlinkTextSource>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <HyperlinkTextSource Self="htss-11" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>Email link</Content>
     </CharacterStyleRange>
-  </HyperlinkTextSource><Br />
+  </HyperlinkTextSource>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <HyperlinkTextSource Self="htss-12" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
@@ -2264,13 +2541,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Reference</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Foo </Content>
@@ -2282,8 +2561,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Foo </Content>
@@ -2295,8 +2575,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Foo </Content>
@@ -2308,8 +2589,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>With </Content>
@@ -2321,8 +2603,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <HyperlinkTextSource Self="htss-17" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
@@ -2331,8 +2614,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content> by itself should be a link.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Indented </Content>
@@ -2344,8 +2628,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Indented </Content>
@@ -2357,8 +2642,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Indented </Content>
@@ -2370,18 +2656,21 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This should [not][] be a link.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/CodeBlock">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>[not]: /url</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Foo </Content>
@@ -2393,8 +2682,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Foo </Content>
@@ -2406,13 +2696,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>With ampersands</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s a </Content>
@@ -2424,8 +2716,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s a link with an amersand in the link text: </Content>
@@ -2437,8 +2730,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s an </Content>
@@ -2450,8 +2744,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s an </Content>
@@ -2463,13 +2758,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Autolinks</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>With an ampersand: </Content>
@@ -2478,25 +2775,29 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>http://example.com/?foo=1&amp;bar=2</Content>
     </CharacterStyleRange>
-  </HyperlinkTextSource><Br />
+  </HyperlinkTextSource>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>In a list?</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <HyperlinkTextSource Self="htss-28" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>http://example.com/</Content>
     </CharacterStyleRange>
-  </HyperlinkTextSource><Br />
+  </HyperlinkTextSource>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>It should.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>An e-mail address: </Content>
@@ -2505,8 +2806,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>nobody@nowhere.net</Content>
     </CharacterStyleRange>
-  </HyperlinkTextSource><Br />
+  </HyperlinkTextSource>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Blockquoted: </Content>
@@ -2515,26 +2817,30 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
       <Content>http://example.com/</Content>
     </CharacterStyleRange>
-  </HyperlinkTextSource><Br />
+  </HyperlinkTextSource>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Auto-links should not occur here: </Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Code">
     <Content>&lt;http://example.com/&gt;</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/CodeBlock">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>or here: &lt;http://example.com/&gt;</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Images</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>From </Content>
@@ -2550,8 +2856,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content> by Georges Melies (1902):</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Figure">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1.00000 0 0 1.00000 75.00000 -75.00000">
@@ -2576,13 +2883,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
         <Link Self="ueb" LinkResourceURI="file:lalune.jpg" />
       </Image>
     </Rectangle>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Caption">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>lalune</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here is a movie </Content>
@@ -2613,13 +2922,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content> icon.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Footnotes</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here is a footnote reference,</Content>
@@ -2637,7 +2948,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
         </CharacterStyleRange>
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content>Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.</Content>
-        </CharacterStyleRange><Br />
+        </CharacterStyleRange>
       </ParagraphStyleRange>
     </Footnote>
   </CharacterStyleRange>
@@ -2657,28 +2968,31 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
         </CharacterStyleRange>
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content>Here’s the long note. This one contains multiple blocks.</Content>
-        </CharacterStyleRange><Br />
+        </CharacterStyleRange>
       </ParagraphStyleRange>
+      <Br />
       <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Footnote &gt; Paragraph">
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content>	</Content>
         </CharacterStyleRange>
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content>Subsequent blocks are indented to show that they belong to the footnote (as with list items).</Content>
-        </CharacterStyleRange><Br />
+        </CharacterStyleRange>
       </ParagraphStyleRange>
+      <Br />
       <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Footnote &gt; CodeBlock">
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content>  { &lt;code&gt; }</Content>
-        </CharacterStyleRange><Br />
+        </CharacterStyleRange>
       </ParagraphStyleRange>
+      <Br />
       <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Footnote &gt; Paragraph">
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content>	</Content>
         </CharacterStyleRange>
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content>If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.</Content>
-        </CharacterStyleRange><Br />
+        </CharacterStyleRange>
       </ParagraphStyleRange>
     </Footnote>
   </CharacterStyleRange>
@@ -2724,11 +3038,12 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
         </CharacterStyleRange>
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content> verbatim characters, as well as [bracketed text].</Content>
-        </CharacterStyleRange><Br />
+        </CharacterStyleRange>
       </ParagraphStyleRange>
     </Footnote>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Notes can go in quotes.</Content>
@@ -2746,11 +3061,12 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
         </CharacterStyleRange>
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content>In quote.</Content>
-        </CharacterStyleRange><Br />
+        </CharacterStyleRange>
       </ParagraphStyleRange>
     </Footnote>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; first" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>And in list items.</Content>
@@ -2768,15 +3084,16 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
         </CharacterStyleRange>
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content>In list.</Content>
-        </CharacterStyleRange><Br />
+        </CharacterStyleRange>
       </ParagraphStyleRange>
     </Footnote>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This paragraph should not be part of the note, as it is not indented.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
 
   </Story>
