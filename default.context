@@ -38,23 +38,25 @@ $if(pagenumbering)$
 \setuppagenumbering[$for(pagenumbering)$$pagenumbering$$sep$,$endfor$]
 $endif$
 % use microtypography
-\definefontfeature[default][default][protrusion=quality,expansion=quality,onum=yes,pnum=yes]
-\definefontfeature[smallcaps][smallcaps][protrusion=quality,expansion=quality,onum=yes,pnum=yes]
+\definefontfeature[default][default][script=latn, protrusion=quality, expansion=quality, itlc=yes, textitalics=yes, onum=yes, pnum=yes]
+\definefontfeature[smallcaps][script=latn, protrusion=quality, expansion=quality, smcp=yes, onum=yes, pnum=yes]
 \setupalign[hz,hanging]
+\setupitaliccorrection[global, always]
 \setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
+\usemodule[simplefonts$if(fontsize)$,$fontsize$$endif$]
+\setmainfontfallback[DejaVu Serif][range={greekandcoptic, greekextended}, force=yes, rscale=auto]
 $if(mainfont)$
-\definefontfamily[mainfont][serif][$mainfont$]
+\setmainfont[$mainfont$]
 $endif$
 $if(sansfont)$
-\definefontfamily[sansfont][sans][$sansfont$]
+\setsansfont[$sansfont$][rscale=auto]
 $endif$
 $if(monofont)$
-\definefontfamily[monofont][mono][$monofont$][features=none]
+\setmonofont[$monofont$][features=none, rscale=auto]
 $endif$
 $if(mathfont)$
-\definefontfamily[mathfont][math][$mathfont$]
+\setmathfont[$mathfont$][rscale=auto]
 $endif$
-\setupbodyfont[mainfont$if(fontsize)$,$fontsize$$endif$]
 \setupwhitespace[$if(whitespace)$$whitespace$$else$medium$endif$]
 $if(indenting)$
 \setupindenting[$for(indenting)$$indenting$$sep$,$endfor$]
