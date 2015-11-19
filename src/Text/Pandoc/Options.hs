@@ -347,6 +347,7 @@ data WriterOptions = WriterOptions
   , writerHtmlQTags        :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
   , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
   , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
+  , writerRevealjsTitleContent :: Bool -- ^ Render content for Reveal.js title slides
   , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
   , writerListings         :: Bool       -- ^ Use listings package for code
   , writerHighlight        :: Bool       -- ^ Highlight source code
@@ -392,6 +393,7 @@ instance Default WriterOptions where
                       , writerHtmlQTags        = False
                       , writerBeamer           = False
                       , writerSlideLevel       = Nothing
+                      , writerRevealjsTitleContent = False
                       , writerChapters         = False
                       , writerListings         = False
                       , writerHighlight        = False

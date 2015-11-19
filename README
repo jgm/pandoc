@@ -680,6 +680,12 @@ Options affecting specific writers
     based on the contents of the document; see
     [Structuring the slide show].
 
+`--revealjs-title-content`
+:   Specifies that slides higher than the slide level (thus, level < slideLevel)
+    should include content when generated with Reveal.js.  This allows for
+    slide-shows that have content slides in both the horizontal and vertical
+    directions, as well as section title slides that have content.
+
 `--section-divs`
 
 :   Wrap sections in `<div>` tags (or `<section>` tags in HTML5),

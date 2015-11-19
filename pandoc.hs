@@ -217,6 +217,7 @@ data Opt = Opt
     , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes.
     , optKaTeXStylesheet   :: Maybe String     -- ^ Path to stylesheet for KaTeX
     , optKaTeXJS           :: Maybe String     -- ^ Path to js file for KaTeX
+    , optRevealjsTitleContent :: Bool
     }
 
 -- | Defaults for command-line options.
@@ -279,6 +280,7 @@ defaultOpts = Opt
     , optTrackChanges          = AcceptChanges
     , optKaTeXStylesheet       = Nothing
     , optKaTeXJS               = Nothing
+    , optRevealjsTitleContent  = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -628,6 +630,12 @@ options =
                                     "slide level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Force header level for slides"
+
+    , Option "" ["revealjs-title-content"]
+                 (NoArg
+                  (\opt -> do
+                      return opt { optRevealjsTitleContent = True } ))
+                 "" -- "Render content on horizontal title slides with Reveal.js"
 
     , Option "" ["section-divs"]
                  (NoArg
@@ -1125,6 +1133,7 @@ main = do
               , optTrackChanges          = trackChanges
               , optKaTeXStylesheet       = katexStylesheet
               , optKaTeXJS               = katexJS
+              , optRevealjsTitleContent  = revealjsTitleContent
              } = opts
 
   when dumpArgs $
@@ -1334,6 +1343,7 @@ main = do
                             writerListings         = listings,
                             writerBeamer           = False,
                             writerSlideLevel       = slideLevel,
+                            writerRevealjsTitleContent = revealjsTitleContent,
                             writerHighlight        = highlight,
                             writerHighlightStyle   = highlightStyle,
                             writerSetextHeaders    = setextHeaders,
