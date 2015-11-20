@@ -368,15 +368,15 @@ referenceKey = try $ do
   let sourceURL = liftM unwords $ many $ try $ do
                     skipMany spaceChar
                     notFollowedBy' referenceTitle
-                    notFollowedBy' $ guardEnabled Ext_common_link_attributes >> attributes
+                    notFollowedBy' $ guardEnabled Ext_link_attributes >> attributes
                     notFollowedBy' (() <$ reference)
                     many1 $ notFollowedBy space >> litChar
   let betweenAngles = try $ char '<' >> manyTill litChar (char '>')
   src <- try betweenAngles <|> sourceURL
   tit <- option "" referenceTitle
   attr   <- option nullAttr $ try $
-              guardEnabled Ext_common_link_attributes >> skipSpaces >> attributes
-  addKvs <- option [] $ guardEnabled Ext_link_attributes
+              guardEnabled Ext_link_attributes >> skipSpaces >> attributes
+  addKvs <- option [] $ guardEnabled Ext_mmd_link_attributes
                           >> many (try $ spnl >> keyValAttr)
   blanklines
   let attr'  = extractIdClass $ foldl (\x f -> f x) attr addKvs
@@ -1729,7 +1729,7 @@ regLink :: (Attr -> String -> String -> Inlines -> Inlines)
 regLink constructor lab = try $ do
   (src, tit) <- source
   attr <- option nullAttr $
-          guardEnabled Ext_common_link_attributes >> attributes
+          guardEnabled Ext_link_attributes >> attributes
   return $ constructor attr src tit <$> lab
 
 -- a link like [this][ref] or [this][] or [this]

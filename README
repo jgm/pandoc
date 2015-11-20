@@ -2917,7 +2917,7 @@ nonbreaking space after the image:
 
     ![This image won't be a figure](/url/of/image.png)\ 
 
-#### Extension: `common_link_attributes` ####
+#### Extension: `link_attributes` ####
 
 Attributes can be set on links and images:
 
@@ -3270,11 +3270,11 @@ Causes the identifiers produced by `auto_identifiers` to be pure ASCII.
 Accents are stripped off of accented latin letters, and non-latin
 letters are omitted.
 
-#### Extension: `link_attributes` ####
+#### Extension: `mmd_link_attributes` ####
 
 Parses multimarkdown style key-value attributes on link
 and image references. This extension should not be confused with the
-[`common_link_attributes`](#extension-common_link_attributes) extension.
+[`link_attributes`](#extension-link_attributes) extension.
 
     This is a reference ![image][ref] with multimarkdown attributes.
 
@@ -3322,7 +3322,7 @@ variants are supported:
 `markdown_phpextra` (PHP Markdown Extra)
 :   `footnotes`, `pipe_tables`, `raw_html`, `markdown_attribute`,
     `fenced_code_blocks`, `definition_lists`, `intraword_underscores`,
-    `header_attributes`, `common_link_attributes`, `abbreviations`,
+    `header_attributes`, `link_attributes`, `abbreviations`,
     `shortcut_reference_links`.
 
 `markdown_github` (GitHub-Flavored Markdown)
@@ -3333,7 +3333,7 @@ variants are supported:
     `shortcut_reference_links`.
 
 `markdown_mmd` (MultiMarkdown)
-:   `pipe_tables` `raw_html`, `markdown_attribute`, `link_attributes`,
+:   `pipe_tables` `raw_html`, `markdown_attribute`, `mmd_link_attributes`,
     `raw_tex`, `tex_math_double_backslash`, `intraword_underscores`,
     `mmd_title_block`, `footnotes`, `definition_lists`,
     `all_symbols_escapable`, `implicit_header_references`,

@@ -86,8 +86,8 @@ data Extension =
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown
                                   --   iff container has attribute 'markdown'
     | Ext_escaped_line_breaks     -- ^ Treat a backslash at EOL as linebreak
-    | Ext_common_link_attributes  -- ^ link and image attributes
-    | Ext_link_attributes     -- ^ MMD style reference link attributes
+    | Ext_link_attributes         -- ^ link and image attributes
+    | Ext_mmd_link_attributes     -- ^ MMD style reference link attributes
     | Ext_autolink_bare_uris  -- ^ Make all absolute URIs into links
     | Ext_fancy_lists         -- ^ Enable fancy list numbers and delimiters
     | Ext_lists_without_preceding_blankline -- ^ Allow lists without preceding blank
@@ -156,7 +156,7 @@ pandocExtensions = Set.fromList
   , Ext_subscript
   , Ext_auto_identifiers
   , Ext_header_attributes
-  , Ext_common_link_attributes
+  , Ext_link_attributes
   , Ext_implicit_header_references
   , Ext_line_blocks
   , Ext_shortcut_reference_links
@@ -190,7 +190,7 @@ phpMarkdownExtraExtensions = Set.fromList
   , Ext_definition_lists
   , Ext_intraword_underscores
   , Ext_header_attributes
-  , Ext_common_link_attributes
+  , Ext_link_attributes
   , Ext_abbreviations
   , Ext_shortcut_reference_links
   ]
@@ -218,7 +218,7 @@ multimarkdownExtensions = Set.fromList
   [ Ext_pipe_tables
   , Ext_raw_html
   , Ext_markdown_attribute
-  , Ext_link_attributes
+  , Ext_mmd_link_attributes
   , Ext_raw_tex
   , Ext_tex_math_double_backslash
   , Ext_intraword_underscores

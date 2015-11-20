@@ -287,7 +287,7 @@ attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
 
 linkAttributes :: WriterOptions -> Attr -> Doc
 linkAttributes opts attr =
-  if isEnabled Ext_common_link_attributes opts && attr /= nullAttr
+  if isEnabled Ext_link_attributes opts && attr /= nullAttr
      then attrsToMarkdown attr
      else empty
 
