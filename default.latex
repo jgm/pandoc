@@ -61,9 +61,6 @@ $endif$
 $if(author-meta)$
             pdfauthor={$author-meta$},
 $endif$
-$if(subtitle)$
-            pdfsubject={$subtitle$},
-$endif$
 $if(keywords)$
             pdfkeywords={$for(keywords)$$keywords$$sep$; $endfor$},
 $endif$
