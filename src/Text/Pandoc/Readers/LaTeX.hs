@@ -169,17 +169,23 @@ quoted' f starter ender = do
   try ((f . mconcat) <$> manyTill inline ender) <|> lit startchs
 
 doubleQuote :: LP Inlines
-doubleQuote =
-      quoted' doubleQuoted (try $ string "``") (void $ try $ string "''")
-  <|> quoted' doubleQuoted (string "“")        (void $ char '”')
-  -- the following is used by babel for localized quotes:
-  <|> quoted' doubleQuoted (try $ string "\"`") (void $ try $ string "\"'")
-  <|> quoted' doubleQuoted (string "\"")       (void $ char '"')
+doubleQuote = do
+  smart <- getOption readerSmart
+  if smart
+     then quoted' doubleQuoted (try $ string "``") (void $ try $ string "''")
+        <|> quoted' doubleQuoted (string "“")        (void $ char '”')
+        -- the following is used by babel for localized quotes:
+        <|> quoted' doubleQuoted (try $ string "\"`") (void $ try $ string "\"'")
+        <|> quoted' doubleQuoted (string "\"")       (void $ char '"')
+     else str <$> many1 (oneOf "`'“”\"")
 
 singleQuote :: LP Inlines
-singleQuote =
-      quoted' singleQuoted (string "`") (try $ char '\'' >> notFollowedBy letter)
-  <|> quoted' singleQuoted (string "‘") (try $ char '’' >> notFollowedBy letter)
+singleQuote = do
+  smart <- getOption readerSmart
+  if smart
+     then quoted' singleQuoted (string "`") (try $ char '\'' >> notFollowedBy letter)
+      <|> quoted' singleQuoted (string "‘") (try $ char '’' >> notFollowedBy letter)
+     else str <$> many1 (oneOf "`\'‘’")
 
 inline :: LP Inlines
 inline = (mempty <$ comment)

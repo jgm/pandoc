@@ -1176,6 +1176,9 @@ main = do
                     "beamer" `isPrefixOf` writerName'
   let conTeXtOutput = "context" `isPrefixOf` writerName'
 
+  let laTeXInput = "latex" `isPrefixOf` readerName' ||
+                    "beamer" `isPrefixOf` readerName'
+
   writer <- if ".lua" `isSuffixOf` writerName'
                -- note:  use non-lowercased version writerName
                then return $ IOStringWriter $ writeCustom writerName
@@ -1257,8 +1260,10 @@ main = do
                                                      uriFragment = "" }
                                 _ -> Nothing
 
-  let readerOpts = def{ readerSmart = smart || (texLigatures &&
-                          (laTeXOutput || conTeXtOutput))
+  let readerOpts = def{ readerSmart = if laTeXInput
+                                         then texLigatures
+                                         else smart || (texLigatures &&
+                                               (laTeXOutput || conTeXtOutput))
                       , readerStandalone = standalone'
                       , readerParseRaw = parseRaw
                       , readerColumns = columns

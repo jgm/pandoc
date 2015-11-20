@@ -374,7 +374,7 @@ Reader options
     `...` to ellipses. Nonbreaking spaces are inserted after certain
     abbreviations, such as "Mr." (Note: This option is selected automatically
     when the output format is `latex` or `context`, unless `--no-tex-ligatures`
-    is used.)
+    is used.  It has no effect for `latex` input.)
 
 `--old-dashes`
 
@@ -651,15 +651,19 @@ Options affecting specific writers
 
 `--no-tex-ligatures`
 
-:   Do not convert quotation marks, apostrophes, and dashes to
-    the TeX ligatures when writing LaTeX or ConTeXt. Instead, just
-    use literal unicode characters. This is needed for using advanced
-    OpenType features with `xelatex` and `lualatex`. Note: normally
-    `--smart` is selected automatically for LaTeX and ConTeXt
-    output, but it must be specified explicitly if `--no-tex-ligatures`
-    is selected. If you use literal curly quotes, dashes, and ellipses
-    in your source, then you may want to use `--no-tex-ligatures`
-    without `--smart`.
+:   Do not use the TeX ligatures for quotation marks, apostrophes,
+    and dashes (`` `...' ``, ` ``..'' `, `--`, `---`) when
+    writing or reading LaTeX or ConTeXt.  In reading LaTeX,
+    parse the characters `` ` ``, `'`, and `-` literally, rather
+    than parsing ligatures for quotation marks and dashes.  In
+    writing LaTeX or ConTeXt, print unicode quotation mark and
+    dash characters literally, rather than converting them to
+    the standard ASCII TeX ligatures.  Note: normally `--smart`
+    is selected automatically for LaTeX and ConTeXt output, but
+    it must be specified explicitly if `--no-tex-ligatures` is
+    selected. If you use literal curly quotes, dashes, and
+    ellipses in your source, then you may want to use
+    `--no-tex-ligatures` without `--smart`.
 
 `--listings`
 
