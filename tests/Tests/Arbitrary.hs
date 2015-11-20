@@ -56,14 +56,16 @@ arbInline n = frequency $ [ (60, liftM Str realString)
                    , (10,  do x1 <- arbitrary
                               x2 <- realString
                               return $ Math x1 x2)
-                   , (10,  do x1 <- arbInlines (n-1)
+                   , (10,  do x0 <- arbAttr
+                              x1 <- arbInlines (n-1)
                               x3 <- realString
                               x2 <- liftM escapeURI realString
-                              return $ Link x1 (x2,x3))
-                   , (10,  do x1 <- arbInlines (n-1)
+                              return $ Link x0 x1 (x2,x3))
+                   , (10,  do x0 <- arbAttr
+                              x1 <- arbInlines (n-1)
                               x3 <- realString
                               x2 <- liftM escapeURI realString
-                              return $ Image x1 (x2,x3))
+                              return $ Image x0 x1 (x2,x3))
                    , (2,  liftM2 Cite arbitrary (arbInlines 1))
                    , (2,  liftM Note $ resize 3 $ listOf1 $ arbBlock (n-1))
                    ]

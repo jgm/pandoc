@@ -116,12 +116,12 @@ blockToOrg (Div attrs bs) = do
            nest 2 endTag $$ "#+END_HTML" $$ blankline
 blockToOrg (Plain inlines) = inlineListToOrg inlines
 -- title beginning with fig: indicates that the image is a figure
-blockToOrg (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
+blockToOrg (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   capt <- if null txt
              then return empty
              else (\c -> "#+CAPTION: " <> c <> blankline) `fmap`
                     inlineListToOrg txt
-  img <- inlineToOrg (Image txt (src,tit))
+  img <- inlineToOrg (Image attr txt (src,tit))
   return $ capt <> img
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
@@ -275,7 +275,7 @@ inlineToOrg (RawInline f str) | f == "tex" || f == "latex" = return $ text str
 inlineToOrg (RawInline _ _) = return empty
 inlineToOrg (LineBreak) = return (text "\\\\" <> cr)
 inlineToOrg Space = return space
-inlineToOrg (Link txt (src, _)) = do
+inlineToOrg (Link _ txt (src, _)) = do
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
              do modify $ \s -> s{ stLinks = True }
@@ -283,7 +283,7 @@ inlineToOrg (Link txt (src, _)) = do
         _ -> do contents <- inlineListToOrg txt
                 modify $ \s -> s{ stLinks = True }
                 return $ "[[" <> text src <> "][" <> contents <> "]]"
-inlineToOrg (Image _ (source, _)) = do
+inlineToOrg (Image _ _ (source, _)) = do
   modify $ \s -> s{ stImages = True }
   return $ "[[" <> text source <> "]]"
 inlineToOrg (Note contents) = do

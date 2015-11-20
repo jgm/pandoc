@@ -46,7 +46,7 @@ import Text.Pandoc.ImageSize
 -- or a MediaBag, or the internet.
 -- If file not found or filetype not jpeg or png, leave the inline unchanged.
 rtfEmbedImage :: WriterOptions -> Inline -> IO Inline
-rtfEmbedImage opts x@(Image _ (src,_)) = do
+rtfEmbedImage opts x@(Image attr _ (src,_)) = do
   result <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case result of
        Right (imgdata, Just mime)
@@ -63,12 +63,12 @@ rtfEmbedImage opts x@(Image _ (src,_)) = do
                                return ""
                              Right sz -> return $ "\\picw" ++ show xpx ++
                                         "\\pich" ++ show ypx ++
-                                        "\\picwgoal" ++ show (xpt * 20)
-                                        ++ "\\pichgoal" ++ show (ypt * 20)
+                                        "\\picwgoal" ++ show (floor (xpt * 20) :: Integer)
+                                        ++ "\\pichgoal" ++ show (floor (ypt * 20) :: Integer)
                                 -- twip = 1/1440in = 1/20pt
                                 where (xpx, ypx) = sizeInPixels sz
-                                      (xpt, ypt) = sizeInPoints sz
-         let raw = "{\\pict" ++ filetype ++ sizeSpec ++ " " ++
+                                      (xpt, ypt) = desiredSizeInPoints opts attr sz
+         let raw = "{\\pict" ++ filetype ++ sizeSpec ++ "\\bin " ++
                     concat bytes ++ "}"
          return $ if B.null imgdata
                      then x
@@ -350,10 +350,10 @@ inlineToRTF (RawInline f str)
   | otherwise         = ""
 inlineToRTF (LineBreak) = "\\line "
 inlineToRTF Space = " "
-inlineToRTF (Link text (src, _)) =
+inlineToRTF (Link _ text (src, _)) =
   "{\\field{\\*\\fldinst{HYPERLINK \"" ++ (codeStringToRTF src) ++
   "\"}}{\\fldrslt{\\ul\n" ++ (inlineListToRTF text) ++ "\n}}}\n"
-inlineToRTF (Image _ (source, _)) =
+inlineToRTF (Image _ _ (source, _)) =
   "{\\cf1 [image: " ++ source ++ "]\\cf0}"
 inlineToRTF (Note contents) =
   "{\\super\\chftn}{\\*\\footnote\\chftn\\~\\plain\\pard " ++

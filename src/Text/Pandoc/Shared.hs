@@ -523,10 +523,10 @@ normalizeInlines (Note bs : ys) = Note (normalizeBlocks bs) :
   normalizeInlines ys
 normalizeInlines (Quoted qt ils : ys) =
   Quoted qt (normalizeInlines ils) : normalizeInlines ys
-normalizeInlines (Link ils t : ys) =
-  Link (normalizeInlines ils) t : normalizeInlines ys
-normalizeInlines (Image ils t : ys) =
-  Image (normalizeInlines ils) t : normalizeInlines ys
+normalizeInlines (Link attr ils t : ys) =
+  Link attr (normalizeInlines ils) t : normalizeInlines ys
+normalizeInlines (Image attr ils t : ys) =
+  Image attr (normalizeInlines ils) t : normalizeInlines ys
 normalizeInlines (Cite cs ils : ys) =
   Cite cs (normalizeInlines ils) : normalizeInlines ys
 normalizeInlines (x : xs) = x : normalizeInlines xs

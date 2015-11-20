@@ -171,7 +171,7 @@ infixr 5 $$
                    else x <> cr <> y
 
 infixr 5 $+$
--- | @a $$ b@ puts @a@ above @b@, with a blank line between.
+-- | @a $+$ b@ puts @a@ above @b@, with a blank line between.
 ($+$) :: Doc -> Doc -> Doc
 ($+$) x y = if isEmpty x
                then y

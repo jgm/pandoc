@@ -601,16 +601,8 @@ pLineBreak = do
   return B.linebreak
 
 pLink :: TagParser Inlines
-pLink = pRelLink <|> pAnchor
-
-pAnchor :: TagParser Inlines
-pAnchor = try $ do
-  tag <- pSatisfy (tagOpenLit "a" (isJust . lookup "id"))
-  return $ B.spanWith (fromAttrib "id" tag , [], []) mempty
-
-pRelLink :: TagParser Inlines
-pRelLink = try $ do
-  tag <- pSatisfy (tagOpenLit "a" (isJust . lookup "href"))
+pLink = try $ do
+  tag <- pSatisfy $ tagOpenLit "a" (const True)
   mbBaseHref <- baseHref <$> getState
   let url' = fromAttrib "href" tag
   let url = case (isURI url', mbBaseHref) of
@@ -618,11 +610,9 @@ pRelLink = try $ do
                  _               -> url'
   let title = fromAttrib "title" tag
   let uid = fromAttrib "id" tag
-  let spanC = case uid of
-              [] -> id
-              s  -> B.spanWith (s, [], [])
+  let cls = words $ fromAttrib "class" tag
   lab <- trimInlines . mconcat <$> manyTill inline (pCloses "a")
-  return $ spanC $ B.link (escapeURI url) title lab
+  return $ B.linkWith (uid, cls, []) (escapeURI url) title lab
 
 pImage :: TagParser Inlines
 pImage = do
@@ -634,7 +624,13 @@ pImage = do
                  _               -> url'
   let title = fromAttrib "title" tag
   let alt = fromAttrib "alt" tag
-  return $ B.image (escapeURI url) title (B.text alt)
+  let uid = fromAttrib "id" tag
+  let cls = words $ fromAttrib "class" tag
+  let getAtt k = case fromAttrib k tag of
+                   "" -> []
+                   v  -> [(k, v)]
+  let kvs = concat $ map getAtt ["width", "height", "sizes", "srcset"]
+  return $ B.imageWith (uid, cls, kvs) (escapeURI url) title (B.text alt)
 
 pCode :: TagParser Inlines
 pCode = try $ do

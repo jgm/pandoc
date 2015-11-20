@@ -34,6 +34,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Pretty (render)
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.XML ( escapeStringForXML )
@@ -116,9 +117,9 @@ blockToTextile opts (Plain inlines) =
   inlineListToTextile opts inlines
 
 -- title beginning with fig: indicates that the image is a figure
-blockToTextile opts (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
+blockToTextile opts (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   capt <- blockToTextile opts (Para txt)
-  im <- inlineToTextile opts (Image txt (src,tit))
+  im <- inlineToTextile opts (Image attr txt (src,tit))
   return $ im ++ "\n" ++ capt
 
 blockToTextile opts (Para inlines) = do
@@ -435,23 +436,39 @@ inlineToTextile _ (LineBreak) = return "\n"
 
 inlineToTextile _ Space = return " "
 
-inlineToTextile opts (Link txt (src, _)) = do
+inlineToTextile opts (Link (_, cls, _) txt (src, _)) = do
+  let classes = if null cls
+                   then ""
+                   else "(" ++ unwords cls ++ ")"
   label <- case txt of
                 [Code _ s]
                  | s == src -> return "$"
                 [Str s]
                  | s == src -> return "$"
                 _           -> inlineListToTextile opts txt
-  return $ "\"" ++ label ++ "\":" ++ src
+  return $ "\"" ++ classes ++ label ++ "\":" ++ src
 
-inlineToTextile opts (Image alt (source, tit)) = do
+inlineToTextile opts (Image attr@(_, cls, _) alt (source, tit)) = do
   alt' <- inlineListToTextile opts alt
   let txt = if null tit
                then if null alt'
                        then ""
                        else "(" ++ alt' ++ ")"
                else "(" ++ tit ++ ")"
-  return $ "!" ++ source ++ txt ++ "!"
+      classes = if null cls
+                   then ""
+                   else "(" ++ unwords cls ++ ")"
+      showDim dir = let toCss str = Just $ show dir ++ ":" ++ str ++ ";"
+                    in case (dimension dir attr) of
+                         Just (Percent a) -> toCss $ show (Percent a)
+                         Just dim         -> toCss $ showInPixel opts dim ++ "px"
+                         Nothing          -> Nothing
+      styles = case (showDim Width, showDim Height) of
+                 (Just w, Just h)   -> "{" ++ w ++ h ++ "}"
+                 (Just w, Nothing)  -> "{" ++ w ++ "height:auto;}"
+                 (Nothing, Just h)  -> "{" ++ "width:auto;" ++ h ++ "}"
+                 (Nothing, Nothing) -> ""
+  return $ "!" ++ classes ++ styles ++ source ++ txt ++ "!"
 
 inlineToTextile opts (Note contents) = do
   curNotes <- liftM stNotes get

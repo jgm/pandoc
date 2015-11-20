@@ -100,12 +100,12 @@ fetchImages mimes root arc (query iq -> links) =
           <$> findEntryByPath abslink arc
 
 iq :: Inline -> [FilePath]
-iq (Image _ (url, _)) = [url]
+iq (Image _ _ (url, _)) = [url]
 iq _ = []
 
 -- Remove relative paths
 renameImages :: FilePath -> Inline -> Inline
-renameImages root (Image a (url, b)) = Image a (collapseFilePath (root </> url), b)
+renameImages root (Image attr a (url, b)) = Image attr a (collapseFilePath (root </> url), b)
 renameImages _ x = x
 
 imageToPandoc :: FilePath -> Pandoc
@@ -190,14 +190,14 @@ fixInlineIRs s (Span as v) =
   Span (fixAttrs s as) v
 fixInlineIRs s (Code as code) =
   Code (fixAttrs s as) code
-fixInlineIRs s (Link t ('#':url, tit)) =
-  Link t (addHash s url, tit)
+fixInlineIRs s (Link attr t ('#':url, tit)) =
+  Link attr t (addHash s url, tit)
 fixInlineIRs _ v = v
 
 prependHash :: [String] -> Inline -> Inline
-prependHash ps l@(Link is (url, tit))
+prependHash ps l@(Link attr is (url, tit))
   | or [s `isPrefixOf` url | s <- ps] =
-    Link is ('#':url, tit)
+    Link attr is ('#':url, tit)
   | otherwise = l
 prependHash _ i = i
 

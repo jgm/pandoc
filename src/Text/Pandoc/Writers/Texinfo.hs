@@ -40,6 +40,7 @@ import Data.Ord ( comparing )
 import Data.Char ( chr, ord )
 import Control.Monad.State
 import Text.Pandoc.Pretty
+import Text.Pandoc.ImageSize
 import Network.URI ( isURI, unEscapeString )
 import System.FilePath
 
@@ -49,6 +50,7 @@ data WriterState =
               , stSubscript   :: Bool -- document contains subscript
               , stEscapeComma :: Bool -- in a context where we need @comma
               , stIdentifiers :: [String] -- header ids used already
+              , stOptions     :: WriterOptions -- writer options
               }
 
 {- TODO:
@@ -61,7 +63,8 @@ writeTexinfo :: WriterOptions -> Pandoc -> String
 writeTexinfo options document =
   evalState (pandocToTexinfo options $ wrapTop document) $
   WriterState { stStrikeout = False, stSuperscript = False,
-                stEscapeComma = False, stSubscript = False, stIdentifiers = [] }
+                stEscapeComma = False, stSubscript = False,
+                stIdentifiers = [], stOptions = options}
 
 -- | Add a "Top" node around the document, needed by Texinfo.
 wrapTop :: Pandoc -> Pandoc
@@ -130,12 +133,12 @@ blockToTexinfo (Plain lst) =
   inlineListToTexinfo lst
 
 -- title beginning with fig: indicates that the image is a figure
-blockToTexinfo (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
+blockToTexinfo (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   capt <- if null txt
              then return empty
              else (\c -> text "@caption" <> braces c) `fmap`
                     inlineListToTexinfo txt
-  img  <- inlineToTexinfo (Image txt (src,tit))
+  img  <- inlineToTexinfo (Image attr txt (src,tit))
   return $ text "@float" $$ img $$ capt $$ text "@end float"
 
 blockToTexinfo (Para lst) =
@@ -424,11 +427,11 @@ inlineToTexinfo (RawInline f str)
 inlineToTexinfo (LineBreak) = return $ text "@*" <> cr
 inlineToTexinfo Space = return space
 
-inlineToTexinfo (Link txt (src@('#':_), _)) = do
+inlineToTexinfo (Link _ txt (src@('#':_), _)) = do
   contents <- escapeCommas $ inlineListToTexinfo txt
   return $ text "@ref" <>
            braces (text (stringToTexinfo src) <> text "," <> contents)
-inlineToTexinfo (Link txt (src, _)) = do
+inlineToTexinfo (Link _ txt (src, _)) = do
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
              do return $ text $ "@url{" ++ x ++ "}"
@@ -437,10 +440,16 @@ inlineToTexinfo (Link txt (src, _)) = do
                 return $ text ("@uref{" ++ src1 ++ ",") <> contents <>
                          char '}'
 
-inlineToTexinfo (Image alternate (source, _)) = do
+inlineToTexinfo (Image attr alternate (source, _)) = do
   content <- escapeCommas $ inlineListToTexinfo alternate
-  return $ text ("@image{" ++ base ++ ",,,") <> content <> text "," <>
-           text (ext ++ "}")
+  opts <- gets stOptions
+  let showDim dim = case (dimension dim attr) of
+                      (Just (Pixel a))   -> showInInch opts (Pixel a) ++ "in"
+                      (Just (Percent _)) -> ""
+                      (Just d)           -> show d
+                      Nothing            -> ""
+  return $ text ("@image{" ++ base ++ ',':(showDim Width) ++ ',':(showDim Height) ++ ",")
+           <> content <> text "," <> text (ext ++ "}")
   where
     ext     = drop 1 $ takeExtension source'
     base    = dropExtension source'

@@ -46,6 +46,7 @@ import Text.Pandoc.Parsing hiding (blankline, space)
 import Data.Maybe (fromMaybe)
 import Data.List ( stripPrefix, intersperse, intercalate )
 import Text.Pandoc.Pretty
+import Text.Pandoc.ImageSize
 import Control.Monad.State
 import qualified Data.Map as M
 import Data.Aeson (Value(String), fromJSON, toJSON, Result(..))
@@ -126,8 +127,8 @@ blockToAsciiDoc _ Null = return empty
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   return $ contents <> blankline
-blockToAsciiDoc opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
-  blockToAsciiDoc opts (Para [Image alt (src,tit)])
+blockToAsciiDoc opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
+  blockToAsciiDoc opts (Para [Image attr alt (src,tit)])
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
@@ -392,7 +393,7 @@ inlineToAsciiDoc _ (RawInline f s)
 inlineToAsciiDoc _ (LineBreak) = return $ " +" <> cr
 inlineToAsciiDoc _ Space = return space
 inlineToAsciiDoc opts (Cite _ lst) = inlineListToAsciiDoc opts lst
-inlineToAsciiDoc opts (Link txt (src, _tit)) = do
+inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
 -- relative:  link:downloads/foo.zip[download foo.zip]
 -- abs:  http://google.cod[Google]
 -- or my@email.com[email john]
@@ -408,7 +409,7 @@ inlineToAsciiDoc opts (Link txt (src, _tit)) = do
   return $ if useAuto
               then text srcSuffix
               else prefix <> text src <> "[" <> linktext <> "]"
-inlineToAsciiDoc opts (Image alternate (src, tit)) = do
+inlineToAsciiDoc opts (Image attr alternate (src, tit)) = do
 -- image:images/logo.png[Company logo, title="blah"]
   let txt = if (null alternate) || (alternate == [Str ""])
                then [Str "image"]
@@ -416,8 +417,19 @@ inlineToAsciiDoc opts (Image alternate (src, tit)) = do
   linktext <- inlineListToAsciiDoc opts txt
   let linktitle = if null tit
                      then empty
-                     else text $ ",title=\"" ++ tit ++ "\""
-  return $ "image:" <> text src <> "[" <> linktext <> linktitle <> "]"
+                     else ",title=\"" <> text tit <> "\""
+      showDim dir = case (dimension dir attr) of
+                      Just (Percent a) ->
+                        ["scaledwidth=" <> text (show (Percent a))]
+                      Just dim         ->
+                        [text (show dir) <> "=" <> text (showInPixel opts dim)]
+                      Nothing          ->
+                        []
+      dimList = showDim Width ++ showDim Height
+      dims = if null dimList
+                then empty
+                else "," <> cat (intersperse "," dimList)
+  return $ "image:" <> text src <> "[" <> linktext <> linktitle <> dims <> "]"
 inlineToAsciiDoc opts (Note [Para inlines]) =
   inlineToAsciiDoc opts (Note [Plain inlines])
 inlineToAsciiDoc opts (Note [Plain inlines]) = do

@@ -536,7 +536,6 @@ styleToOpenXml sm style =
                              , mknode "w:link" [("w:val","VerbatimChar")] ()
                              , mknode "w:pPr" []
                                $ mknode "w:wordWrap" [("w:val","off")] ()
-                               : mknode "w:noProof" [] ()
                                : ( maybe [] (\col -> [mknode "w:shd" [("w:val","clear"),("w:fill",drop 1 $ fromColor col)] ()])
                                  $ backgroundColor style )
                              ]
@@ -752,7 +751,7 @@ blockToOpenXML opts (Header lev (ident,_,_) lst) = do
 blockToOpenXML opts (Plain lst) = withParaProp (pCustomStyle "Compact")
   $ blockToOpenXML opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure
-blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
+blockToOpenXML opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
   setFirstPara
   pushParaProp $ pCustomStyle $
     if null alt
@@ -760,7 +759,7 @@ blockToOpenXML opts (Para [Image alt (src,'f':'i':'g':':':tit)]) = do
       else "FigureWithCaption"
   paraProps <- getParaProps False
   popParaProp
-  contents <- inlinesToOpenXML opts [Image alt (src,tit)]
+  contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
   captionNode <- withParaProp (pCustomStyle "ImageCaption")
                  $ blockToOpenXML opts (Para alt)
   return $ mknode "w:p" [] (paraProps ++ contents) : captionNode
@@ -1087,11 +1086,11 @@ inlineToOpenXML opts (Note bs) = do
            [ mknode "w:rPr" [] footnoteStyle
            , mknode "w:footnoteReference" [("w:id", notenum)] () ] ]
 -- internal link:
-inlineToOpenXML opts (Link txt ('#':xs,_)) = do
+inlineToOpenXML opts (Link _ txt ('#':xs,_)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
   return [ mknode "w:hyperlink" [("w:anchor",xs)] contents ]
 -- external link:
-inlineToOpenXML opts (Link txt (src,_)) = do
+inlineToOpenXML opts (Link _ txt (src,_)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
   extlinks <- gets stExternalLinks
   id' <- case M.lookup src extlinks of
@@ -1102,7 +1101,7 @@ inlineToOpenXML opts (Link txt (src,_)) = do
                         M.insert src i extlinks }
               return i
   return [ mknode "w:hyperlink" [("r:id",id')] contents ]
-inlineToOpenXML opts (Image alt (src, tit)) = do
+inlineToOpenXML opts (Image attr alt (src, tit)) = do
   -- first, check to see if we've already done this image
   pageWidth <- gets stPrintWidth
   imgs <- gets stImages
@@ -1119,7 +1118,8 @@ inlineToOpenXML opts (Image alt (src, tit)) = do
         Right (img, mt) -> do
           ident <- ("rId"++) `fmap` getUniqueId
           (xpt,ypt) <- case imageSize img of
-                             Right size  -> return $ sizeInPoints size
+                             Right size  -> return $
+                               desiredSizeInPoints opts attr size
                              Left msg    -> do
                                liftIO $ warn $
                                  "Could not determine image size in `" ++
@@ -1211,11 +1211,9 @@ parseXml refArchive distArchive relpath =
 
 -- | Scales the image to fit the page
 -- sizes are passed in emu
-fitToPage :: (Integer, Integer) -> Integer -> (Integer, Integer)
+fitToPage :: (Double, Double) -> Integer -> (Integer, Integer)
 fitToPage (x, y) pageWidth
   -- Fixes width to the page width and scales the height
-  | x > pageWidth =
-    (pageWidth, round $
-      ((fromIntegral pageWidth) / ((fromIntegral :: Integer -> Double) x)) * (fromIntegral y))
-  | otherwise = (x, y)
-
+  | x > fromIntegral pageWidth =
+    (pageWidth, floor $ ((fromIntegral pageWidth) / x) * y)
+  | otherwise = (floor x, floor y)

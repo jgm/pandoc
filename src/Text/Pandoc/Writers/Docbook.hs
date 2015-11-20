@@ -42,6 +42,7 @@ import Data.Char ( toLower )
 import Data.Monoid ( Any(..) )
 import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
+import Text.Pandoc.ImageSize
 import qualified Text.Pandoc.Builder as B
 import Text.TeXMath
 import qualified Text.XML.Light as Xml
@@ -150,6 +151,15 @@ listItemToDocbook :: WriterOptions -> [Block] -> Doc
 listItemToDocbook opts item =
   inTagsIndented "listitem" $ blocksToDocbook opts $ map plainToPara item
 
+imageToDocbook :: WriterOptions -> Attr -> String -> Doc
+imageToDocbook _ attr src = selfClosingTag "imagedata" $
+  ("fileref", src) : idAndRole attr ++ dims
+  where
+    dims = go Width "width" ++ go Height "depth"
+    go dir dstr = case (dimension dir attr) of
+                    Just a  -> [(dstr, show a)]
+                    Nothing -> []
+
 -- | Convert a Pandoc block element to Docbook.
 blockToDocbook :: WriterOptions -> Block -> Doc
 blockToDocbook _ Null = empty
@@ -165,7 +175,7 @@ blockToDocbook opts (Div _ bs) = blocksToDocbook opts $ map plainToPara bs
 blockToDocbook _ (Header _ _ _) = empty -- should not occur after hierarchicalize
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst
 -- title beginning with fig: indicates that the image is a figure
-blockToDocbook opts (Para [Image txt (src,'f':'i':'g':':':_)]) =
+blockToDocbook opts (Para [Image attr txt (src,'f':'i':'g':':':_)]) =
   let alt  = inlinesToDocbook opts txt
       capt = if null txt
                 then empty
@@ -174,7 +184,7 @@ blockToDocbook opts (Para [Image txt (src,'f':'i':'g':':':_)]) =
         capt $$
         (inTagsIndented "mediaobject" $
            (inTagsIndented "imageobject"
-             (selfClosingTag "imagedata" [("fileref",src)])) $$
+             (imageToDocbook opts attr src)) $$
            inTagsSimple "textobject" (inTagsSimple "phrase" alt))
 blockToDocbook opts (Para lst)
   | hasLineBreaks lst = flush $ nowrap $ inTagsSimple "literallayout" $ inlinesToDocbook opts lst
@@ -321,7 +331,7 @@ inlineToDocbook _ (RawInline f x) | f == "html" || f == "docbook" = text x
                                   | otherwise                     = empty
 inlineToDocbook _ LineBreak = text "\n"
 inlineToDocbook _ Space = space
-inlineToDocbook opts (Link txt (src, _))
+inlineToDocbook opts (Link attr txt (src, _))
   | Just email <- stripPrefix "mailto:" src =
       let emailLink = inTagsSimple "email" $ text $
                       escapeStringForXML $ email
@@ -331,19 +341,30 @@ inlineToDocbook opts (Link txt (src, _))
                               char '(' <> emailLink <> char ')'
   | otherwise =
       (if isPrefixOf "#" src
-            then inTags False "link" [("linkend", drop 1 src)]
-            else inTags False "ulink" [("url", src)]) $
+            then inTags False "link" $ ("linkend", drop 1 src) : idAndRole attr
+            else inTags False "ulink" $ ("url", src) : idAndRole attr ) $
         inlinesToDocbook opts txt
-inlineToDocbook _ (Image _ (src, tit)) =
+inlineToDocbook opts (Image attr _ (src, tit)) =
   let titleDoc = if null tit
                    then empty
                    else inTagsIndented "objectinfo" $
                         inTagsIndented "title" (text $ escapeStringForXML tit)
   in  inTagsIndented "inlinemediaobject" $ inTagsIndented "imageobject" $
-      titleDoc $$ selfClosingTag "imagedata" [("fileref", src)]
+      titleDoc $$ imageToDocbook opts attr src
 inlineToDocbook opts (Note contents) =
   inTagsIndented "footnote" $ blocksToDocbook opts contents
 
 isMathML :: HTMLMathMethod -> Bool
 isMathML (MathML _) = True
 isMathML _          = False
+
+idAndRole :: Attr -> [(String, String)]
+idAndRole (id',cls,_) = ident ++ role
+  where
+    ident = if null id'
+               then []
+               else [("id", id')]
+    role  = if null cls
+               then []
+               else [("role", unwords cls)]
+

@@ -35,6 +35,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Pretty (render)
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.XML ( escapeStringForXML )
 import Data.List ( intersect, intercalate )
@@ -44,6 +45,7 @@ import Control.Monad.State
 
 data WriterState = WriterState {
     stNotes     :: Bool            -- True if there are notes
+  , stOptions   :: WriterOptions   -- writer options
   }
 
 data WriterReader = WriterReader {
@@ -57,7 +59,7 @@ type MediaWikiWriter = ReaderT WriterReader (State WriterState)
 -- | Convert Pandoc to MediaWiki.
 writeMediaWiki :: WriterOptions -> Pandoc -> String
 writeMediaWiki opts document =
-  let initialState = WriterState { stNotes = False }
+  let initialState = WriterState { stNotes = False, stOptions = opts }
       env = WriterReader { options = opts, listLevel = [], useTags = False }
   in  evalState (runReaderT (pandocToMediaWiki document) env) initialState
 
@@ -100,14 +102,15 @@ blockToMediaWiki (Plain inlines) =
   inlineListToMediaWiki inlines
 
 -- title beginning with fig: indicates that the image is a figure
-blockToMediaWiki (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
+blockToMediaWiki (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   capt <- if null txt
              then return ""
              else ("|caption " ++) `fmap` inlineListToMediaWiki txt
+  img  <- imageToMediaWiki attr
   let opt = if null txt
                then ""
                else "|alt=" ++ if null tit then capt else tit ++ capt
-  return $ "[[File:" ++ src ++ "|frame|none" ++ opt ++ "]]\n"
+  return $ "[[File:" ++ src ++ "|frame|none" ++ img ++ opt ++ "]]\n"
 
 blockToMediaWiki (Para inlines) = do
   tags <- asks useTags
@@ -312,6 +315,23 @@ alignmentToString alignment = case alignment of
                                  AlignCenter  -> "center"
                                  AlignDefault -> "left"
 
+imageToMediaWiki :: Attr -> MediaWikiWriter String
+imageToMediaWiki attr = do
+  opts <- gets stOptions
+  let (_, cls, _) = attr
+      toPx = fmap (showInPixel opts) . checkPct
+      checkPct (Just (Percent _)) = Nothing
+      checkPct maybeDim = maybeDim
+      go (Just w) Nothing  = '|':w ++ "px"
+      go (Just w) (Just h) = '|':w ++ "x" ++ h ++ "px"
+      go Nothing  (Just h) = "|x" ++ h ++ "px"
+      go Nothing  Nothing  = ""
+      dims = go (toPx $ dimension Width attr) (toPx $ dimension Height attr)
+      classes = if null cls
+                   then ""
+                   else "|class=" ++ unwords cls
+  return $ dims ++ classes
+
 -- | Convert list of Pandoc block elements to MediaWiki.
 blockListToMediaWiki :: [Block]       -- ^ List of block elements
                      -> MediaWikiWriter String
@@ -379,7 +399,7 @@ inlineToMediaWiki (LineBreak) = return "<br />\n"
 
 inlineToMediaWiki Space = return " "
 
-inlineToMediaWiki (Link txt (src, _)) = do
+inlineToMediaWiki (Link _ txt (src, _)) = do
   label <- inlineListToMediaWiki txt
   case txt of
      [Str s] | isURI src && escapeURI s == src -> return src
@@ -390,14 +410,15 @@ inlineToMediaWiki (Link txt (src, _)) = do
                                      '/':xs -> xs  -- with leading / it's a
                                      _      -> src -- link to a help page
 
-inlineToMediaWiki (Image alt (source, tit)) = do
+inlineToMediaWiki (Image attr alt (source, tit)) = do
+  img  <- imageToMediaWiki attr
   alt' <- inlineListToMediaWiki alt
   let txt = if null tit
                then if null alt
                        then ""
                        else '|' : alt'
                else '|' : tit
-  return $ "[[File:" ++ source ++ txt ++ "]]"
+  return $ "[[File:" ++ source ++ img ++ txt ++ "]]"
 
 inlineToMediaWiki (Note contents) = do
   contents' <- blockListToMediaWiki contents

@@ -812,9 +812,9 @@ substKey = try $ do
   res <- B.toList <$> directive'
   il <- case res of
              -- use alt unless :alt: attribute on image:
-             [Para [Image [Str "image"] (src,tit)]] ->
+             [Para [Image _ [Str "image"] (src,tit)]] ->
                 return $ B.image src tit alt
-             [Para [Link [Image [Str "image"] (src,tit)] (src',tit')]] ->
+             [Para [Link _ [Image _ [Str "image"] (src,tit)] (src',tit')]] ->
                 return $ B.link src' tit' (B.image src tit alt)
              [Para ils] -> return $ B.fromList ils
              _          -> mzero
@@ -827,7 +827,8 @@ anonymousKey = try $ do
   src <- targetURI
   pos <- getPosition
   let key = toKey $ "_" ++ printf "%09d" (sourceLine pos)
-  updateState $ \s -> s { stateKeys = M.insert key (src,"") $ stateKeys s }
+  --TODO: parse width, height, class and name attributes
+  updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $ stateKeys s }
 
 stripTicks :: String -> String
 stripTicks = reverse . stripTick . reverse . stripTick
@@ -841,7 +842,8 @@ regularKey = try $ do
   char ':'
   src <- targetURI
   let key = toKey $ stripTicks ref
-  updateState $ \s -> s { stateKeys = M.insert key (src,"") $ stateKeys s }
+  --TODO: parse width, height, class and name attributes
+  updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $ stateKeys s }
 
 --
 -- tables
@@ -1131,12 +1133,12 @@ referenceLink = try $ do
                    if null anonKeys
                       then mzero
                       else return (head anonKeys)
-  (src,tit) <- case M.lookup key keyTable of
-                    Nothing     -> fail "no corresponding key"
-                    Just target -> return target
+  ((src,tit), attr) <- case M.lookup key keyTable of
+                         Nothing  -> fail "no corresponding key"
+                         Just val -> return val
   -- if anonymous link, remove key so it won't be used again
   when (isAnonKey key) $ updateState $ \s -> s{ stateKeys = M.delete key keyTable }
-  return $ B.link src tit label'
+  return $ B.linkWith attr src tit label'
 
 autoURI :: RSTParser Inlines
 autoURI = do

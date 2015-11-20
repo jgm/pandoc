@@ -55,7 +55,8 @@ import qualified Data.Vector as V
 import qualified Data.Text as T
 
 type Notes = [[Block]]
-type Refs = [([Inline], Target)]
+type Ref   = ([Inline], Target, Attr)
+type Refs  = [Ref]
 data WriterState = WriterState { stNotes           :: Notes
                                , stRefs            :: Refs
                                , stRefShortcutable :: Bool
@@ -200,15 +201,16 @@ refsToMarkdown opts refs = mapM (keyToMarkdown opts) refs >>= return . vcat
 
 -- | Return markdown representation of a reference key.
 keyToMarkdown :: WriterOptions
-              -> ([Inline], (String, String))
+              -> Ref
               -> State WriterState Doc
-keyToMarkdown opts (label, (src, tit)) = do
+keyToMarkdown opts (label, (src, tit), attr) = do
   label' <- inlineListToMarkdown opts label
   let tit' = if null tit
                 then empty
                 else space <> "\"" <> text tit <> "\""
   return $ nest 2 $ hang 2
             ("[" <> label' <> "]:" <> space) (text src <> tit')
+            <> linkAttributes opts attr
 
 -- | Return markdown representation of notes.
 notesToMarkdown :: WriterOptions -> [[Block]] -> State WriterState Doc
@@ -264,7 +266,7 @@ elementToListItem opts (Sec lev _nums (ident,_,_) headerText subsecs)
       not (null subsecs) && lev < writerTOCDepth opts ]
    where headerLink = if null ident
                          then headerText
-                         else [Link headerText ('#':ident, "")]
+                         else [Link nullAttr headerText ('#':ident, "")]
 elementToListItem _ (Blk _) = []
 
 attrsToMarkdown :: Attr -> Doc
@@ -282,6 +284,12 @@ attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
                                 (_,_,ks) -> hsep $
                                             map (\(k,v) -> text k
                                               <> "=\"" <> text v <> "\"") ks
+
+linkAttributes :: WriterOptions -> Attr -> Doc
+linkAttributes opts attr =
+  if isEnabled Ext_common_link_attributes opts && attr /= nullAttr
+     then attrsToMarkdown attr
+     else empty
 
 -- | Ordered list start parser for use in Para below.
 olMarker :: Parser [Char] ParserState Char
@@ -328,8 +336,8 @@ blockToMarkdown opts (Plain inlines) = do
                      else contents
   return $ contents' <> cr
 -- title beginning with fig: indicates figure
-blockToMarkdown opts (Para [Image alt (src,'f':'i':'g':':':tit)]) =
-  blockToMarkdown opts (Para [Image alt (src,tit)])
+blockToMarkdown opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
+  blockToMarkdown opts (Para [Image attr alt (src,tit)])
 blockToMarkdown opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
 blockToMarkdown opts (RawBlock f str)
@@ -668,21 +676,21 @@ blockListToMarkdown opts blocks =
 
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
-getReference :: [Inline] -> Target -> State WriterState [Inline]
-getReference label (src, tit) = do
+getReference :: Attr -> [Inline] -> Target -> State WriterState [Inline]
+getReference attr label target = do
   st <- get
-  case find ((== (src, tit)) . snd) (stRefs st) of
-    Just (ref, _) -> return ref
+  case find (\(_,t,a) -> t == target && a == attr) (stRefs st) of
+    Just (ref, _, _) -> return ref
     Nothing       -> do
-      let label' = case find ((== label) . fst) (stRefs st) of
+      let label' = case find (\(l,_,_) -> l == label) (stRefs st) of
                       Just _ -> -- label is used; generate numerical label
                              case find (\n -> notElem [Str (show n)]
-                                                      (map fst (stRefs st)))
+                                                      (map (\(l,_,_) -> l) (stRefs st)))
                                        [1..(10000 :: Integer)] of
                                   Just x  -> [Str (show x)]
                                   Nothing -> error "no unique label"
                       Nothing -> label
-      modify (\s -> s{ stRefs = (label', (src,tit)) : stRefs st })
+      modify (\s -> s{ stRefs = (label', target, attr) : stRefs st })
       return label'
 
 -- | Convert list of Pandoc inline elements to markdown.
@@ -692,10 +700,10 @@ inlineListToMarkdown opts lst = do
   go (if inlist then avoidBadWrapsInList lst else lst)
   where go [] = return empty
         go (i:is) = case i of
-            (Link _ _) -> case is of
+            (Link _ _ _) -> case is of
                 -- If a link is followed by another link or '[' we don't shortcut
-                (Link _ _):_                  -> unshortcutable
-                Space:(Link _ _):_            -> unshortcutable
+                (Link _ _ _):_                -> unshortcutable
+                Space:(Link _ _ _):_          -> unshortcutable
                 Space:(Str('[':_)):_          -> unshortcutable
                 Space:(RawInline _ ('[':_)):_ -> unshortcutable
                 Space:(Cite _ _):_            -> unshortcutable
@@ -897,7 +905,7 @@ inlineToMarkdown opts (Cite (c:cs) lst)
            return $ pdoc <+> r
         modekey SuppressAuthor = "-"
         modekey _              = ""
-inlineToMarkdown opts (Link txt (src, tit)) = do
+inlineToMarkdown opts (Link attr txt (src, tit)) = do
   plain <- gets stPlain
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit
@@ -912,7 +920,7 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
   shortcutable <- gets stRefShortcutable
   let useShortcutRefLinks = shortcutable &&
                             isEnabled Ext_shortcut_reference_links opts
-  ref <- if useRefLinks then getReference txt (src, tit) else return []
+  ref <- if useRefLinks then getReference attr txt (src, tit) else return []
   reftext <- inlineListToMarkdown opts ref
   return $ if useAuto
               then if plain
@@ -929,14 +937,15 @@ inlineToMarkdown opts (Link txt (src, tit)) = do
                       else if plain
                               then linktext
                               else "[" <> linktext <> "](" <>
-                                   text src <> linktitle <> ")"
-inlineToMarkdown opts (Image alternate (source, tit)) = do
+                                   text src <> linktitle <> ")" <>
+                                   linkAttributes opts attr
+inlineToMarkdown opts (Image attr alternate (source, tit)) = do
   plain <- gets stPlain
   let txt = if null alternate || alternate == [Str source]
                                  -- to prevent autolinks
                then [Str ""]
                else alternate
-  linkPart <- inlineToMarkdown opts (Link txt (source, tit))
+  linkPart <- inlineToMarkdown opts (Link attr txt (source, tit))
   return $ if plain
               then "[" <> linkPart <> "]"
               else "!" <> linkPart

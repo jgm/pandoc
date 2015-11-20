@@ -35,10 +35,11 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Walk (query)
 import Text.Printf ( printf )
-import Data.List ( intercalate )
+import Data.List ( intercalate, intersperse )
 import Data.Char ( ord )
 import Control.Monad.State
 import Text.Pandoc.Pretty
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Templates ( renderTemplate' )
 import Network.URI ( isURI, unEscapeString )
 
@@ -141,10 +142,14 @@ blockToConTeXt :: Block
 blockToConTeXt Null = return empty
 blockToConTeXt (Plain lst) = inlineListToConTeXt lst
 -- title beginning with fig: indicates that the image is a figure
-blockToConTeXt (Para [Image txt (src,'f':'i':'g':':':_)]) = do
+blockToConTeXt (Para [Image attr txt (src,'f':'i':'g':':':_)]) = do
   capt <- inlineListToConTeXt txt
-  return $ blankline $$ "\\placefigure" <> braces capt <>
-           braces ("\\externalfigure" <> brackets (text src)) <> blankline
+  img  <- inlineToConTeXt (Image attr txt (src, ""))
+  let (ident, _, _) = attr
+      label = if null ident
+                 then empty
+                 else "[]" <> brackets (text $ toLabel ident)
+  return $ blankline $$ "\\placefigure" <> label <> braces capt <> img <> blankline
 blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
   return $ contents <> blankline
@@ -312,7 +317,7 @@ inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt Space = return space
 -- Handle HTML-like internal document references to sections
-inlineToConTeXt (Link txt          (('#' : ref), _)) = do
+inlineToConTeXt (Link _ txt (('#' : ref), _)) = do
   opts <- gets stOptions
   contents <-  inlineListToConTeXt txt
   let ref' = toLabel $ stringToConTeXt opts ref
@@ -320,7 +325,7 @@ inlineToConTeXt (Link txt          (('#' : ref), _)) = do
            <> braces contents
            <> brackets (text ref')
 
-inlineToConTeXt (Link txt          (src, _))      = do
+inlineToConTeXt (Link _ txt (src, _)) = do
   let isAutolink = txt == [Str (unEscapeString src)]
   st <- get
   let next = stNextRef st
@@ -335,11 +340,29 @@ inlineToConTeXt (Link txt          (src, _))      = do
                   else brackets empty <> brackets contents)
            <> "\\from"
            <> brackets (text ref)
-inlineToConTeXt (Image _ (src, _)) = do
-  let src' = if isURI src
+inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
+  opts <- gets stOptions
+  let showDim dir = let d = text (show dir) <> "="
+                    in case (dimension dir attr) of
+                         Just (Pixel a)   ->
+                           [d <> text (showInInch opts (Pixel a)) <> "in"]
+                         Just (Percent a) ->
+                           [d <> text (showFl (a / 100)) <> "\\textwidth"]
+                         Just dim         ->
+                           [d <> text (show dim)]
+                         Nothing          ->
+                           []
+      dimList = showDim Width ++ showDim Height
+      dims = if null dimList
+                then empty
+                else brackets $ cat (intersperse "," dimList)
+      clas = if null cls
+                then empty
+                else brackets $ text $ toLabel $ head cls
+      src' = if isURI src
                 then src
                 else unEscapeString src
-  return $ braces $ "\\externalfigure" <> brackets (text src')
+  return $ braces $ "\\externalfigure" <> brackets (text src') <> dims <> clas
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   let codeBlock x@(CodeBlock _ _) = [x]

@@ -47,6 +47,7 @@ import Control.Applicative ((<|>))
 import Control.Monad.State
 import qualified Text.Parsec as P
 import Text.Pandoc.Pretty
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock,
@@ -99,8 +100,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                              _ -> blocks
                    else blocks
   -- see if there are internal links
-  let isInternalLink (Link _ ('#':xs,_))  = [xs]
-      isInternalLink _                    = []
+  let isInternalLink (Link _ _ ('#':xs,_))  = [xs]
+      isInternalLink _                      = []
   modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
   let template = writerTemplate options
   -- set stBook depending on documentclass
@@ -395,7 +396,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
-blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
+blockToLaTeX (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   inNote <- gets stInNote
   modify $ \st -> st{ stInMinipage = True, stNotes = [] }
   capt <- inlineListToLaTeX txt
@@ -405,7 +406,7 @@ blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
   captForLof <- if null notes
                    then return empty
                    else brackets <$> inlineListToLaTeX (walk deNote txt)
-  img <- inlineToLaTeX (Image txt (src,tit))
+  img <- inlineToLaTeX (Image attr txt (src,tit))
   let footnotes = notesToLaTeX notes
   return $ if inNote
               -- can't have figures in notes
@@ -684,12 +685,19 @@ listItemToLaTeX lst
 defListItemToLaTeX :: ([Inline], [[Block]]) -> State WriterState Doc
 defListItemToLaTeX (term, defs) = do
     term' <- inlineListToLaTeX term
+    -- put braces around term if it contains an internal link,
+    -- since otherwise we get bad bracket interactions: \item[\hyperref[..]
+    let isInternalLink (Link _ _ ('#':_,_)) = True
+        isInternalLink _                    = False
+    let term'' = if any isInternalLink term
+                    then braces term'
+                    else term'
     def'  <- liftM vsep $ mapM blockListToLaTeX defs
     return $ case defs of
      (((Header _ _ _) : _) : _) ->
-       "\\item" <> brackets term' <> " ~ " $$ def'
+       "\\item" <> brackets term'' <> " ~ " $$ def'
      _                          ->
-       "\\item" <> brackets term' $$ def'
+       "\\item" <> brackets term'' $$ def'
 
 -- | Craft the section header, inserting the secton reference, if supplied.
 sectionHeader :: Bool    -- True for unnumbered
@@ -893,11 +901,11 @@ inlineToLaTeX (RawInline f str)
   | otherwise           = return empty
 inlineToLaTeX (LineBreak) = return $ "\\\\" <> cr
 inlineToLaTeX Space = return space
-inlineToLaTeX (Link txt ('#':ident, _)) = do
+inlineToLaTeX (Link _ txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt
   lab <- toLabel ident
   return $ text "\\protect\\hyperlink" <> braces (text lab) <> braces contents
-inlineToLaTeX (Link txt (src, _)) =
+inlineToLaTeX (Link _ txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
              do modify $ \s -> s{ stUrl = True }
@@ -914,16 +922,31 @@ inlineToLaTeX (Link txt (src, _)) =
                 src' <- stringToLaTeX URLString (escapeURI src)
                 return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
-inlineToLaTeX (Image _ (source, _)) = do
+inlineToLaTeX (Image attr _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
-  let source' = if isURI source
+  opts <- gets stOptions
+  let showDim dir = let d = text (show dir) <> "="
+                    in case (dimension dir attr) of
+                         Just (Pixel a)   ->
+                           [d <> text (showInInch opts (Pixel a)) <> "in"]
+                         Just (Percent a) ->
+                           [d <> text (showFl (a / 100)) <> "\\textwidth"]
+                         Just dim         ->
+                           [d <> text (show dim)]
+                         Nothing          ->
+                           []
+      dimList = showDim Width ++ showDim Height
+      dims = if null dimList
+                then empty
+                else brackets $ cat (intersperse "," dimList)
+      source' = if isURI source
                    then source
                    else unEscapeString source
   source'' <- stringToLaTeX URLString (escapeURI source')
   inHeading <- gets stInHeading
   return $
-    (if inHeading then "\\protect\\includegraphics" else "\\includegraphics")
-    <> braces (text source'')
+    (if inHeading then "\\protect\\includegraphics" else "\\includegraphics") <>
+    dims <> braces (text source'')
 inlineToLaTeX (Note contents) = do
   inMinipage <- gets stInMinipage
   modify (\s -> s{stInNote = True})

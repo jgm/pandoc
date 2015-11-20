@@ -18,14 +18,16 @@ import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Readers.TeXMath (texMathToInlines)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Shared (splitBy)
+import Text.Pandoc.Shared (splitBy, fetchItem, warn)
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Pretty
+import Text.Pandoc.ImageSize
 import Data.List (isPrefixOf, isInfixOf, stripPrefix)
 import Data.Text as Text (breakOnAll, pack)
 import Control.Monad.State
 import Network.URI (isURI)
+import System.FilePath (pathSeparator)
 import qualified Data.Set as Set
 
 type Style = [String]
@@ -39,7 +41,7 @@ data WriterState = WriterState{
   , maxListDepth :: Int
   }
 
-type WS a = State WriterState a
+type WS a = StateT WriterState IO a
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{
@@ -91,6 +93,7 @@ lowerAlphaName    :: String
 upperAlphaName    :: String
 subListParName    :: String
 footnoteName      :: String
+citeName          :: String
 paragraphName     = "Paragraph"
 codeBlockName     = "CodeBlock"
 blockQuoteName    = "Blockquote"
@@ -113,30 +116,31 @@ lowerAlphaName    = "lowerAlpha"
 upperAlphaName    = "upperAlpha"
 subListParName    = "subParagraph"
 footnoteName      = "Footnote"
+citeName          = "Cite"
 
 
 -- | Convert Pandoc document to string in ICML format.
-writeICML :: WriterOptions -> Pandoc -> String
-writeICML opts (Pandoc meta blocks) =
+writeICML :: WriterOptions -> Pandoc -> IO String
+writeICML opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts
                     then Just $ writerColumns opts
                     else Nothing
       render' = render colwidth
-      renderMeta f s = Just $ render' $ fst $ runState (f opts [] s) defaultWriterState
-      Just metadata = metaToJSON opts
-                 (renderMeta blocksToICML)
-                 (renderMeta inlinesToICML)
-                 meta
-      (doc, st) = runState (blocksToICML opts [] blocks) defaultWriterState
-      main    = render' doc
+      renderMeta f s = liftM (render' . fst) $ runStateT (f opts [] s) defaultWriterState
+  metadata <- metaToJSON opts
+             (renderMeta blocksToICML)
+             (renderMeta inlinesToICML)
+             meta
+  (doc, st) <- runStateT (blocksToICML opts [] blocks) defaultWriterState
+  let main    = render' doc
       context = defField "body" main
               $ defField "charStyles" (render' $ charStylesToDoc st)
               $ defField "parStyles"  (render' $ parStylesToDoc st)
               $ defField "hyperlinks" (render' $ hyperlinksToDoc $ links st)
               $ metadata
-  in  if writerStandalone opts
-         then renderTemplate' (writerTemplate opts) context
-         else main
+  return $ if writerStandalone opts
+              then renderTemplate' (writerTemplate opts) context
+              else main
 
 -- | Auxilary functions for parStylesToDoc and charStylesToDoc.
 contains :: String -> (String, (String, String)) -> [(String, String)]
@@ -407,7 +411,7 @@ inlineToICML opts style (Subscript lst) = inlinesToICML opts (subscriptName:styl
 inlineToICML opts style (SmallCaps lst) = inlinesToICML opts (smallCapsName:style) lst
 inlineToICML opts style (Quoted SingleQuote lst) = inlinesToICML opts style $ [Str "‘"] ++ lst ++ [Str "’"]
 inlineToICML opts style (Quoted DoubleQuote lst) = inlinesToICML opts style $ [Str "“"] ++ lst ++ [Str "”"]
-inlineToICML opts style (Cite _ lst) = inlinesToICML opts style lst
+inlineToICML opts style (Cite _ lst) = inlinesToICML opts (citeName:style) lst
 inlineToICML _    style (Code _ str) = charStyle (codeName:style) $ text $ escapeStringForXML str
 inlineToICML _    style Space = charStyle style space
 inlineToICML _ style LineBreak = charStyle style $ text lineSeparator
@@ -416,7 +420,7 @@ inlineToICML opts style (Math mt str) =
 inlineToICML _ _ (RawInline f str)
   | f == Format "icml" = return $ text str
   | otherwise          = return empty
-inlineToICML opts style (Link lst (url, title)) = do
+inlineToICML opts style (Link _ lst (url, title)) = do
   content <- inlinesToICML opts (linkName:style) lst
   state $ \st ->
             let ident = if null $ links st
@@ -426,7 +430,7 @@ inlineToICML opts style (Link lst (url, title)) = do
                 cont  = inTags True "HyperlinkTextSource"
                          [("Self","htss-"++show ident), ("Name",title), ("Hidden","false")] content
             in  (cont, newst)
-inlineToICML opts style (Image alt target) = imageICML opts style alt target
+inlineToICML opts style (Image attr alt target) = imageICML opts style attr alt target
 inlineToICML opts style (Note lst) = footnoteToICML opts style lst
 inlineToICML opts style (Span _ lst) = inlinesToICML opts style lst
 
@@ -499,39 +503,48 @@ styleToStrAttr style =
   in  (stlStr, attrs)
 
 -- | Assemble an ICML Image.
-imageICML :: WriterOptions -> Style -> [Inline] -> Target -> WS Doc
-imageICML _ style _ (linkURI, _) =
-  let imgWidth  = 300::Int --TODO: set width, height dynamically as in Docx.hs
-      imgHeight = 200::Int
-      scaleFact = show (1::Double) --TODO: set scaling factor so image is scaled exactly to imgWidth x imgHeight
-      hw = show $ imgWidth  `div` 2
-      hh = show $ imgHeight `div` 2
-      qw = show $ imgWidth  `div` 4
-      qh = show $ imgHeight `div` 4
-      uriPrefix = if isURI linkURI then "" else "file:"
+imageICML :: WriterOptions -> Style -> Attr -> [Inline] -> Target -> WS Doc
+imageICML opts style attr _ (src, _) = do
+  res  <- liftIO $ fetchItem (writerSourceURL opts) src
+  imgS <- case res of
+            Left (_) -> do
+              liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
+              return def
+            Right (img, _) -> do
+              case imageSize img of
+                Right size -> return size
+                Left msg   -> do
+                  return $ warn $ "Could not determine image size in `" ++
+                    src ++ "': " ++ msg
+                  return def
+  let (ow, oh) = sizeInPoints imgS
+      (imgWidth, imgHeight) = desiredSizeInPoints opts attr imgS
+      hw = showFl $ ow / 2
+      hh = showFl $ oh / 2
+      scale = showFl (imgWidth / ow) ++ " 0 0 " ++ showFl (imgHeight / oh)
+      src' = if isURI src then src else "file://." ++ pathSeparator : src
       (stlStr, attrs) = styleToStrAttr style
       props  = inTags True "Properties" [] $ inTags True "PathGeometry" []
                  $ inTags True "GeometryPathType" [("PathOpen","false")]
                  $ inTags True "PathPointArray" []
                  $ vcat [
-                     selfClosingTag "PathPointType" [("Anchor", "-"++qw++" -"++qh),
-                       ("LeftDirection", "-"++qw++" -"++qh), ("RightDirection", "-"++qw++" -"++qh)]
-                   , selfClosingTag "PathPointType" [("Anchor", "-"++qw++" "++qh),
-                       ("LeftDirection", "-"++qw++" "++qh), ("RightDirection", "-"++qw++" "++qh)]
-                   , selfClosingTag "PathPointType" [("Anchor", qw++" "++qh),
-                       ("LeftDirection", qw++" "++qh), ("RightDirection", qw++" "++qh)]
-                   , selfClosingTag "PathPointType" [("Anchor", qw++" -"++qh),
-                       ("LeftDirection", qw++" -"++qh), ("RightDirection", qw++" -"++qh)]
+                     selfClosingTag "PathPointType" [("Anchor", "-"++hw++" -"++hh),
+                       ("LeftDirection", "-"++hw++" -"++hh), ("RightDirection", "-"++hw++" -"++hh)]
+                   , selfClosingTag "PathPointType" [("Anchor", "-"++hw++" "++hh),
+                       ("LeftDirection", "-"++hw++" "++hh), ("RightDirection", "-"++hw++" "++hh)]
+                   , selfClosingTag "PathPointType" [("Anchor", hw++" "++hh),
+                       ("LeftDirection", hw++" "++hh), ("RightDirection", hw++" "++hh)]
+                   , selfClosingTag "PathPointType" [("Anchor", hw++" -"++hh),
+                       ("LeftDirection", hw++" -"++hh), ("RightDirection", hw++" -"++hh)]
                    ]
       image  = inTags True "Image"
-                   [("Self","ue6"), ("ItemTransform", scaleFact++" 0 0 "++scaleFact++" -"++qw++" -"++qh)]
+                   [("Self","ue6"), ("ItemTransform", scale++" -"++hw++" -"++hh)]
                  $ vcat [
                      inTags True "Properties" [] $ inTags True "Profile" [("type","string")] $ text "$ID/Embedded"
-                       $$ selfClosingTag "GraphicBounds" [("Left","0"), ("Top","0"), ("Right", hw), ("Bottom", hh)]
-                   , selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", uriPrefix++linkURI)]
+                   , selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", src')]
                    ]
       doc    = inTags True "CharacterStyleRange" attrs
-                 $ inTags True "Rectangle" [("Self","uec"), ("ItemTransform", "1 0 0 1 "++qw++" -"++qh)]
+                 $ inTags True "Rectangle" [("Self","uec"), ("StrokeWeight", "0"),
+                     ("ItemTransform", scale++" "++hw++" -"++hh)]
                  $ (props $$ image)
-  in  do
-      state $ \st -> (doc, st{ inlineStyles = Set.insert stlStr $ inlineStyles st } )
+  state $ \st -> (doc, st{ inlineStyles = Set.insert stlStr $ inlineStyles st } )

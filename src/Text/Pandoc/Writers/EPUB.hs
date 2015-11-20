@@ -455,10 +455,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
                           chapters' [1..]
 
   let fixInternalReferences :: Inline -> Inline
-      fixInternalReferences (Link lab ('#':xs, tit)) =
+      fixInternalReferences (Link attr lab ('#':xs, tit)) =
         case lookup xs reftable of
-             Just ys ->  Link lab (ys, tit)
-             Nothing -> Link lab ('#':xs, tit)
+             Just ys -> Link attr lab (ys, tit)
+             Nothing -> Link attr lab ('#':xs, tit)
       fixInternalReferences x = x
 
   -- internal reference IDs change when we chunk the file,
@@ -870,14 +870,14 @@ transformInline  :: WriterOptions
                  -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath) media
                  -> Inline
                  -> IO Inline
-transformInline opts mediaRef (Image lab (src,tit)) = do
+transformInline opts mediaRef (Image attr lab (src,tit)) = do
     newsrc <- modifyMediaRef opts mediaRef src
-    return $ Image lab (newsrc, tit)
+    return $ Image attr lab (newsrc, tit)
 transformInline opts mediaRef (x@(Math t m))
   | WebTeX url <- writerHTMLMathMethod opts = do
     newsrc <- modifyMediaRef opts mediaRef (url ++ urlEncode m)
     let mathclass = if t == DisplayMath then "display" else "inline"
-    return $ Span ("",["math",mathclass],[]) [Image [x] (newsrc, "")]
+    return $ Span ("",["math",mathclass],[]) [Image nullAttr [x] (newsrc, "")]
 transformInline opts mediaRef  (RawInline fmt raw)
   | fmt == Format "html" = do
   let tags = parseTags raw

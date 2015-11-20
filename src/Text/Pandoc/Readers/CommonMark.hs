@@ -113,7 +113,7 @@ addInline (Node _ EMPH nodes) =
 addInline (Node _ STRONG nodes) =
   (Strong (addInlines nodes) :)
 addInline (Node _ (LINK url title) nodes) =
-  (Link (addInlines nodes) (unpack url, unpack title) :)
+  (Link nullAttr (addInlines nodes) (unpack url, unpack title) :)
 addInline (Node _ (IMAGE url title) nodes) =
-  (Image (addInlines nodes) (unpack url, unpack title) :)
+  (Image nullAttr (addInlines nodes) (unpack url, unpack title) :)
 addInline _ = id

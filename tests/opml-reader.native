@@ -7,7 +7,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Dave",Spa
 ,Header 3 ("",[],[]) [Strong [Str "Nevada"]]
 ,Para [Str "I",Space,Str "lived",Space,Str "here",Space,Emph [Str "once"],Str "."]
 ,Para [Str "Loved",Space,Str "it."]
-,Header 4 ("",[],[]) [Link [Str "Reno"] ("http://www.reno.gov","")]
+,Header 4 ("",[],[]) [Link ("",[],[]) [Str "Reno"] ("http://www.reno.gov","")]
 ,Header 4 ("",[],[]) [Str "Las",Space,Str "Vegas"]
 ,Header 4 ("",[],[]) [Str "Ely"]
 ,Header 4 ("",[],[]) [Str "Gerlach"]

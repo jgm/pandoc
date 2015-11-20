@@ -286,8 +286,8 @@ blockToOpenDocument o bs
     | Plain          b <- bs = if null b
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
-    | Para [Image c (s,'f':'i':'g':':':t)] <- bs
-                             = figure c s t
+    | Para [Image attr c (s,'f':'i':'g':':':t)] <- bs
+                             = figure attr c s t
     | Para           b <- bs = if null b
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
@@ -342,10 +342,10 @@ blockToOpenDocument o bs
         return $ inTags True "table:table" [ ("table:name"      , name)
                                            , ("table:style-name", name)
                                            ] (vcat columns $$ th $$ vcat tr) $$ captionDoc
-      figure caption source title | null caption =
-        withParagraphStyle o "Figure" [Para [Image caption (source,title)]]
+      figure attr caption source title | null caption =
+        withParagraphStyle o "Figure" [Para [Image attr caption (source,title)]]
                                   | otherwise    = do
-        imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image caption (source,title)]]
+        imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image attr caption (source,title)]]
         captionDoc <- withParagraphStyle o "FigureCaption" [Para caption]
         return $ imageDoc $$ captionDoc
 
@@ -391,8 +391,8 @@ inlineToOpenDocument o ils
     | RawInline f s <- ils = if f == Format "opendocument"
                                 then return $ text s
                                 else return empty
-    | Link  l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
-    | Image _ (s,t) <- ils = mkImg  s t
+    | Link _ l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
+    | Image attr _ (s,t) <- ils = mkImg attr s t
     | Note        l <- ils = mkNote l
     | otherwise            = return empty
     where
@@ -401,7 +401,7 @@ inlineToOpenDocument o ils
                                            , ("xlink:href" , s       )
                                            , ("office:name", t       )
                                            ] . inSpanTags "Definition"
-      mkImg  s t   = do
+      mkImg _ s t = do
                id' <- gets stImageId
                modify (\st -> st{ stImageId = id' + 1 })
                return $ inTags False "draw:frame"
