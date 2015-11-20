@@ -12,11 +12,13 @@
 \setuptagging[state=start]
 
 % use microtypography
-\definefontfeature[default][default][protrusion=quality,expansion=quality,onum=yes,pnum=yes]
-\definefontfeature[smallcaps][smallcaps][protrusion=quality,expansion=quality,onum=yes,pnum=yes]
+\definefontfeature[default][default][script=latn, protrusion=quality, expansion=quality, itlc=yes, textitalics=yes, onum=yes, pnum=yes]
+\definefontfeature[smallcaps][script=latn, protrusion=quality, expansion=quality, smcp=yes, onum=yes, pnum=yes]
 \setupalign[hz,hanging]
+\setupitaliccorrection[global, always]
 \setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
-\setupbodyfont[mainfont]
+\usemodule[simplefonts]
+\setmainfontfallback[DejaVu Serif][range={greekandcoptic, greekextended}, force=yes, rscale=auto]
 \setupwhitespace[medium]
 
 \setuphead[chapter]            [style=\tfd,header=empty]
@@ -40,19 +42,16 @@
 
 \setupthinrules[width=15em] % width of horizontal rules
 
-\setuphead[title][
-  style={\tfd\raggedcenter},
-  before={\startalignment[middle]},
-  after={
-    \smallskip
-    {\tfa John MacFarlane\crlf Anonymous}
-    \smallskip
-    {\tfa July 17, 2006}
-    \bigskip\stopalignment}]
-
 
 \starttext
-\title{Pandoc Test Suite}
+\startalignment[middle]
+  {\tfd Pandoc Test Suite}
+  \smallskip
+  {\tfa John MacFarlane\crlf Anonymous}
+  \smallskip
+  {\tfa July 17, 2006}
+  \bigskip
+\stopalignment
 
 This is a set of tests for pandoc. Most of them are adapted from John Gruber's
 markdown test suite.
