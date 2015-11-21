@@ -22,8 +22,11 @@ matrix:
 
 before_install:
 - mkdir -p ~/.local/bin
+- export STACKVER=0.1.8.0
 - export PATH=~/.local/bin:/opt/ghc/$GHCVER/bin:$PATH
-- travis_retry curl -L https://github.com/commercialhaskell/stack/releases/download/v0.1.8.0/stack-0.1.8.0-linux-x86_64.tar.gz | gunzip > ~/.local/bin/stack
+- travis_retry curl -L https://github.com/commercialhaskell/stack/releases/download/v$STACKVER/stack-$STACKVER-linux-x86_64.tar.gz
+- tar xvzf stack-$STACKVER-linux-x86_64.tar.gz
+- cp stack-$STACKVER-linux-x86_64/stack ~/.local/bin/stack
 - chmod a+x ~/.local/bin/stack
 
 install:
