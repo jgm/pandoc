@@ -173,7 +173,7 @@ genTravisFromCabalFile fn xpkgs = do
         , "# If there are no other `.tar.gz` files in `dist`, this can be even simpler:"
         , "# `cabal install --force-reinstalls dist/*-*.tar.gz`"
         , " - SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz &&"
-        , "   (cd dist && cabal install --force-reinstalls \"$SRC_TGZ\")"
+        , "   (cd dist && cabal install --force-reinstalls \"$SRC_TGZ\" && cabal test)"
         , ""
         , "# EOF"
         ]
