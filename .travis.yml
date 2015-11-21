@@ -24,16 +24,12 @@ before_install:
 - mkdir -p ~/.local/bin
 - export STACKVER=0.1.8.0
 - export PATH=~/.local/bin:/opt/ghc/$GHCVER/bin:$PATH
-# sanity check:
-- echo $PATH
-- which ghc
-- ghc --version
 - travis_retry curl -L https://github.com/commercialhaskell/stack/releases/download/v$STACKVER/stack-$STACKVER-linux-x86_64.tar.gz | tar xvzf -
 - cp stack-$STACKVER-linux-x86_64/stack ~/.local/bin/stack
 - chmod a+x ~/.local/bin/stack
 
 install:
-  - stack setup --no-terminal --skip-ghc-check
+  - stack setup $GHCVER --system-ghc --no-terminal --skip-ghc-check
   - stack test --only-snapshot --no-terminal --skip-ghc-check
 
 script:
