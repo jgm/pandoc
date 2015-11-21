@@ -7,15 +7,15 @@ cache:
 
 matrix:
   include:
-    - env: GHCVER=7.4.2 GHCOPTS=-Werror
-      compiler: ": #GHC 7.4.2"
-      addons: {apt: {packages: [ghc-7.4.2], sources: [hvr-ghc]}}
-    - env: GHCVER=7.6.3 GHCOPTS=-Werror
-      compiler: ": #GHC 7.6.3"
-      addons: {apt: {packages: [ghc-7.6.3], sources: [hvr-ghc]}}
-    - env: GHCVER=7.8.4 GHCOPTS=-Werror
-      compiler: ": #GHC 7.8.4"
-      addons: {apt: {packages: [ghc-7.8.4], sources: [hvr-ghc]}}
+#    - env: GHCVER=7.4.2 GHCOPTS=-Werror
+#      compiler: ": #GHC 7.4.2"
+#      addons: {apt: {packages: [ghc-7.4.2], sources: [hvr-ghc]}}
+#    - env: GHCVER=7.6.3 GHCOPTS=-Werror
+#      compiler: ": #GHC 7.6.3"
+#      addons: {apt: {packages: [ghc-7.6.3], sources: [hvr-ghc]}}
+#    - env: GHCVER=7.8.4 GHCOPTS=-Werror
+#      compiler: ": #GHC 7.8.4"
+#      addons: {apt: {packages: [ghc-7.8.4], sources: [hvr-ghc]}}
     - env: GHCVER=7.10.2 GHCOPTS=-Werror
       compiler: ": #GHC 7.10.2"
       addons: {apt: {packages: [ghc-7.10.2], sources: [hvr-ghc]}}
