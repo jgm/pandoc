@@ -40,7 +40,15 @@ install:
    fi
  - travis_retry cabal update -v
  - sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config
- - cabal install --only-dependencies --enable-tests --enable-benchmarks --dry -v > installplan.txt || echo "No install plan" > installplan.txt
+ # temporary: install unreleased dependencies:
+ - for repo in pandoc-types texmath;
+       do
+       git clone https://github.com/jgm/$repo;
+       cd $repo;
+       cabal install;
+       cd ..;
+   done;
+ - cabal install --only-dependencies --enable-tests --enable-benchmarks --dry -v > installplan.txt
  - sed -i -e '1,/^Resolving /d' installplan.txt; cat installplan.txt
 
 # check whether current requested install-plan matches cached package-db snapshot
@@ -54,14 +62,6 @@ install:
      echo "cabal build-cache MISS";
      rm -rf $HOME/.cabsnap;
      mkdir -p $HOME/.ghc $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin;
-     for repo in pandoc-types texmath;
-       do
-       git clone https://github.com/jgm/$repo;
-       cd $repo;
-       cabal install;
-       cd ..;
-     done;
-     cd pandoc-types;
      cabal install --only-dependencies --enable-tests --enable-benchmarks;
    fi
  
