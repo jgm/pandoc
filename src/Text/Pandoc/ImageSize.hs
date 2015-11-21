@@ -56,7 +56,6 @@ import Data.Binary.Get
 import Text.Pandoc.Shared (safeRead, hush)
 import Data.Default (Default)
 import Numeric (showFFloat)
-import Text.Read (readMaybe)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import qualified Data.Map as M
@@ -185,7 +184,7 @@ showInPixel opts dim =
 numUnit :: String -> Maybe (Double, String)
 numUnit s =
   let (nums, unit) = span (\c -> isDigit c || ('.'==c)) s
-  in  case readMaybe nums of
+  in  case safeRead nums of
         Just n  -> Just (n, unit)
         Nothing -> Nothing
 
