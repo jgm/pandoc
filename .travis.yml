@@ -54,14 +54,14 @@ install:
      echo "cabal build-cache MISS";
      rm -rf $HOME/.cabsnap;
      mkdir -p $HOME/.ghc $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin;
-     # install unreleased versions of pandoc-types and texmath from git repos
-     for repo in pandoc-types texmath; do \
-       git clone https://github.com/jgm/$repo; \
-       cd $repo; \
-       cabal install; \
-       cd ..; \
-     done
-     cd pandoc-types
+     for repo in pandoc-types texmath;
+       do
+       git clone https://github.com/jgm/$repo;
+       cd $repo;
+       cabal install;
+       cd ..;
+     done;
+     cd pandoc-types;
      cabal install --only-dependencies --enable-tests --enable-benchmarks;
    fi
  
