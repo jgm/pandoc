@@ -27,8 +27,8 @@ before_install:
 - chmod a+x ~/.local/bin/stack
 
 install:
-  - ./travis_long stack setup --no-terminal --skip-ghc-check
-  - ./travis_long stack build --test --no-terminal --only-snapshot --skip-ghc-check
+  - stack setup --no-terminal --skip-ghc-check
+  - stack build --test --no-terminal --only-snapshot --skip-ghc-check
 
 script:
   - stack build --test --haddock --no-terminal --skip-ghc-check
