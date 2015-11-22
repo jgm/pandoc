@@ -130,7 +130,7 @@ convertImage tmpdir fname =
                  E.catch (Right fileOut <$ JP.savePngImage fileOut img) $
                      \(e :: E.SomeException) -> return (Left (show e))
   where
-    fileOut = replaceDirectory (replaceExtension fname (".png")) tmpdir
+    fileOut = replaceDirectory (replaceExtension fname ".png") tmpdir
     mime = getMimeType fname
     doNothing = return (Right fname)
 
@@ -150,8 +150,8 @@ tex2pdf' verbose args tmpDir program source = do
           let logmsg = extractMsg log'
           let extramsg =
                 case logmsg of
-                     x | ("! Package inputenc Error" `BC.isPrefixOf` x
-                           && program /= "xelatex")
+                     x | "! Package inputenc Error" `BC.isPrefixOf` x
+                           && program /= "xelatex"
                        -> "\nTry running pandoc with --latex-engine=xelatex."
                      _ -> ""
           return $ Left $ logmsg <> extramsg
@@ -199,18 +199,18 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
     let programArgs = ["-halt-on-error", "-interaction", "nonstopmode",
          "-output-directory", tmpDir'] ++ args ++ [file']
     env' <- getEnvironment
-    let sep = searchPathSeparator:[]
+    let sep = [searchPathSeparator]
     let texinputs = maybe (tmpDir' ++ sep) ((tmpDir' ++ sep) ++)
           $ lookup "TEXINPUTS" env'
     let env'' = ("TEXINPUTS", texinputs) :
                   [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
     when (verbose && runNumber == 1) $ do
-      putStrLn $ "[makePDF] temp dir:"
+      putStrLn "[makePDF] temp dir:"
       putStrLn tmpDir'
-      putStrLn $ "[makePDF] Command line:"
+      putStrLn "[makePDF] Command line:"
       putStrLn $ program ++ " " ++ unwords (map show programArgs)
       putStr "\n"
-      putStrLn $ "[makePDF] Environment:"
+      putStrLn "[makePDF] Environment:"
       mapM_ print env''
       putStr "\n"
       putStrLn $ "[makePDF] Contents of " ++ file' ++ ":"
@@ -248,20 +248,20 @@ context2pdf verbose tmpDir source = inDirectory tmpDir $ do
 #else
   let tmpDir' = tmpDir
 #endif
-  let programArgs = ["--batchmode"] ++ [file]
+  let programArgs = "--batchmode" : [file]
   env' <- getEnvironment
-  let sep = searchPathSeparator:[]
+  let sep = [searchPathSeparator]
   let texinputs = maybe (".." ++ sep) ((".." ++ sep) ++)
         $ lookup "TEXINPUTS" env'
   let env'' = ("TEXINPUTS", texinputs) :
                 [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
   when verbose $ do
-    putStrLn $ "[makePDF] temp dir:"
+    putStrLn "[makePDF] temp dir:"
     putStrLn tmpDir'
-    putStrLn $ "[makePDF] Command line:"
+    putStrLn "[makePDF] Command line:"
     putStrLn $ "context" ++ " " ++ unwords (map show programArgs)
     putStr "\n"
-    putStrLn $ "[makePDF] Environment:"
+    putStrLn "[makePDF] Environment:"
     mapM_ print env''
     putStr "\n"
     putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
@@ -287,3 +287,4 @@ context2pdf verbose tmpDir source = inDirectory tmpDir $ do
           return $ Left logmsg
        (ExitSuccess, Nothing)  -> return $ Left ""
        (ExitSuccess, Just pdf) -> return $ Right pdf
+
