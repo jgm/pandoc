@@ -45,7 +45,7 @@ import Text.Pandoc.Process (pipeProcess)
 import Text.Highlighting.Kate ( languages, Style, tango, pygments,
          espresso, zenburn, kate, haddock, monochrome )
 import System.Environment ( getArgs, getProgName )
-import System.Exit ( exitWith, ExitCode (..) )
+import System.Exit ( ExitCode (..), exitSuccess )
 import System.FilePath
 import System.Console.GetOpt
 import Data.Char ( toLower )
@@ -58,7 +58,7 @@ import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad (when, unless, (>=>))
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe, isNothing, isJust)
 import Data.Foldable (foldrM)
 import Network.URI (parseURI, isURI, URI(..))
 import qualified Data.ByteString.Lazy as B
@@ -149,7 +149,7 @@ externalFilter f args' d = do
                       show f' ++ " not found in path."
       (exitcode, outbs, errbs) <- E.handle filterException $
                                     pipeProcess Nothing f' args'' $ encode d
-      when (not $ B.null errbs) $ B.hPutStr stderr errbs
+      unless (B.null errbs) $ B.hPutStr stderr errbs
       case exitcode of
            ExitSuccess    -> return $ either error id $ eitherDecode' outbs
            ExitFailure ec -> err 83 $ "Error running filter " ++ f ++ "\n" ++
@@ -398,7 +398,7 @@ options =
 
     , Option "" ["extract-media"]
                  (ReqArg
-                  (\arg opt -> do
+                  (\arg opt ->
                     return opt { optExtractMedia = Just arg })
                   "PATH")
                  "" -- "Directory to which to extract embedded media"
@@ -410,7 +410,7 @@ options =
 
     , Option "" ["template"]
                  (ReqArg
-                  (\arg opt -> do
+                  (\arg opt ->
                      return opt{ optTemplate = Just arg,
                                  optStandalone = True })
                   "FILENAME")
@@ -444,7 +444,7 @@ options =
                      case templ of
                           Right t -> UTF8.hPutStr stdout t
                           Left e  -> error $ show e
-                     exitWith ExitSuccess)
+                     exitSuccess)
                   "FORMAT")
                  "" -- "Print default template for FORMAT"
 
@@ -452,7 +452,7 @@ options =
                  (ReqArg
                   (\arg _ -> do
                      readDataFile Nothing arg >>= BS.hPutStr stdout
-                     exitWith ExitSuccess)
+                     exitSuccess)
                   "FILE")
                   "" -- "Print default data file"
 
@@ -476,7 +476,7 @@ options =
                   (\arg opt ->
                       case safeRead arg of
                            Just t | t > 0 -> return opt { optColumns = t }
-                           _              -> err 33 $
+                           _              -> err 33
                                    "columns must be a number greater than 0")
                  "NUMBER")
                  "" -- "Length of line in characters"
@@ -488,11 +488,11 @@ options =
 
     , Option "" ["toc-depth"]
                  (ReqArg
-                  (\arg opt -> do
+                  (\arg opt ->
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optTOCDepth = t }
-                           _      -> err 57 $
+                           _      -> err 57
                                     "TOC level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Number of levels to include in TOC"
@@ -560,7 +560,7 @@ options =
 
     , Option "" ["offline"]
                  (NoArg
-                  (\opt -> do warn $ "--offline is deprecated. Use --self-contained instead."
+                  (\opt -> do warn "--offline is deprecated. Use --self-contained instead."
                               return opt { optSelfContained = True,
                                            optStandalone = True }))
                  "" -- "Make slide shows include all the needed js and css"
@@ -576,7 +576,7 @@ options =
 
     , Option "" ["html-q-tags"]
                  (NoArg
-                  (\opt -> do
+                  (\opt ->
                      return opt { optHtmlQTags = True }))
                  "" -- "Use <q> tags for quotes in HTML"
 
@@ -632,11 +632,11 @@ options =
 
     , Option "" ["slide-level"]
                  (ReqArg
-                  (\arg opt -> do
+                  (\arg opt ->
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optSlideLevel = Just t }
-                           _      -> err 39 $
+                           _      -> err 39
                                     "slide level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Force header level for slides"
@@ -692,14 +692,14 @@ options =
 
     , Option "" ["reference-odt"]
                  (ReqArg
-                  (\arg opt -> do
+                  (\arg opt ->
                     return opt { optReferenceODT = Just arg })
                   "FILENAME")
                  "" -- "Path of custom reference.odt"
 
     , Option "" ["reference-docx"]
                  (ReqArg
-                  (\arg opt -> do
+                  (\arg opt ->
                     return opt { optReferenceDocx = Just arg })
                   "FILENAME")
                  "" -- "Path of custom reference.docx"
@@ -730,18 +730,18 @@ options =
 
     , Option "" ["epub-embed-font"]
                  (ReqArg
-                  (\arg opt -> do
+                  (\arg opt ->
                      return opt{ optEpubFonts = arg : optEpubFonts opt })
                   "FILE")
                  "" -- "Directory of fonts to embed"
 
     , Option "" ["epub-chapter-level"]
                  (ReqArg
-                  (\arg opt -> do
+                  (\arg opt ->
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optEpubChapterLevel = t }
-                           _      -> err 59 $
+                           _      -> err 59
                                     "chapter level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Header level at which to split chapters in EPUB"
@@ -829,9 +829,7 @@ options =
     , Option "" ["webtex"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = case arg of
-                                      Just u   -> u
-                                      Nothing  -> "http://chart.apis.google.com/chart?cht=tx&chl="
+                      let url' = fromMaybe "http://chart.apis.google.com/chart?cht=tx&chl=" arg
                       return opt { optHTMLMathMethod = WebTeX url' })
                   "URL")
                  "" -- "Use web service for HTML math"
@@ -845,9 +843,7 @@ options =
     , Option "" ["mathjax"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = case arg of
-                                      Just u   -> u
-                                      Nothing  -> "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+                      let url' = fromMaybe "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" arg
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
@@ -905,7 +901,7 @@ options =
                          (unwords (map fst readers))
                          (unwords ("pdf": map fst writers))
                          ddir
-                     exitWith ExitSuccess ))
+                     exitSuccess ))
                  "" -- "Print bash completion script"
 
     , Option "v" ["version"]
@@ -916,7 +912,7 @@ options =
                      UTF8.hPutStrLn stdout (prg ++ " " ++ pandocVersion ++
                        compileInfo ++ "\nDefault user data directory: " ++
                        defaultDatadir ++ copyrightMessage)
-                     exitWith ExitSuccess ))
+                     exitSuccess ))
                  "" -- "Print version"
 
     , Option "h" ["help"]
@@ -924,7 +920,7 @@ options =
                   (\_ -> do
                      prg <- getProgName
                      UTF8.hPutStr stdout (usageMessage prg options)
-                     exitWith ExitSuccess ))
+                     exitSuccess ))
                  "" -- "Show help"
 
     ]
@@ -948,10 +944,10 @@ readMetaValue s = case decode (UTF8.fromString s) of
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
-  (wrapWords 16 78 $ readers'names) ++
+  wrapWords 16 78 readers'names ++
      '\n' : replicate 16 ' ' ++
      "[ *only Pandoc's JSON version of native AST]" ++ "\nOutput formats: " ++
-  (wrapWords 16 78 $ writers'names) ++
+  wrapWords 16 78 writers'names ++
      '\n' : replicate 16 ' ' ++
      "[**for pdf output, use latex or beamer and -o FILENAME.pdf]\nOptions:")
   where
@@ -1060,7 +1056,7 @@ main = do
 
   rawArgs <- map UTF8.decodeArg <$> getArgs
   prg <- getProgName
-  let compatMode = (prg == "hsmarkdown")
+  let compatMode = prg == "hsmarkdown"
 
   let (actions, args, errors) = if compatMode
                                   then ([], rawArgs, [])
@@ -1142,8 +1138,8 @@ main = do
 
   when dumpArgs $
     do UTF8.hPutStrLn stdout outputFile
-       mapM_ (\arg -> UTF8.hPutStrLn stdout arg) args
-       exitWith ExitSuccess
+       mapM_ (UTF8.hPutStrLn stdout) args
+       exitSuccess
 
   let csscdn = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"
   let mathMethod =
@@ -1153,7 +1149,7 @@ main = do
 
 
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
-  let needsCiteproc = M.lookup "bibliography" (optMetadata opts) /= Nothing &&
+  let needsCiteproc = isJust (M.lookup "bibliography" (optMetadata opts)) &&
                       optCiteMethod opts `notElem` [Natbib, Biblatex] &&
                       "pandoc-citeproc" `notElem` map takeBaseName filters
   let filters' = if needsCiteproc then "pandoc-citeproc" : filters
@@ -1209,7 +1205,7 @@ main = do
   reader <- if "t2t" == readerName'
               then (mkStringReader .
                     readTxt2Tags) <$>
-                      (getT2TMeta sources outputFile)
+                      getT2TMeta sources outputFile
               else case getReader readerName' of
                 Right r  -> return r
                 Left e   -> err 7 e'
@@ -1308,7 +1304,7 @@ main = do
 
   let readFiles [] = error "Cannot read archive from stdin"
       readFiles [x] = B.readFile x
-      readFiles (x:xs) = mapM (warn . ("Ignoring: " ++)) xs >> B.readFile x
+      readFiles (x:xs) = mapM_ (warn . ("Ignoring: " ++)) xs >> B.readFile x
 
   let convertTabs = tabFilter (if preserveTabs || readerName' == "t2t"
                                  then 0
@@ -1397,7 +1393,7 @@ main = do
                               else latexEngine
               -- check for latex program
               mbLatex <- findExecutable texprog
-              when (mbLatex == Nothing) $
+              when (isNothing mbLatex) $
                    err 41 $ texprog ++ " not found. " ++
                      texprog ++ " is needed for pdf output."
 
@@ -1405,7 +1401,7 @@ main = do
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> do
-                     B.hPutStr stderr $ err'
+                     B.hPutStr stderr err'
                      B.hPut stderr $ B.pack [10]
                      err 43 "Error producing PDF from TeX source"
       | otherwise -> selfcontain (f writerOptions doc' ++
