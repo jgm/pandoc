@@ -65,9 +65,7 @@ highlight :: (FormatOptions -> [SourceLine] -> a) -- ^ Formatter
           -> String -- ^ Raw contents of the CodeBlock
           -> Maybe a -- ^ Maybe the formatted result
 highlight formatter (_, classes, keyvals) rawCode =
-  let firstNum = case safeRead (fromMaybe "1" $ lookup "startFrom" keyvals) of
-                      Just n  -> n
-                      Nothing -> 1
+  let firstNum = fromMaybe 1 (safeRead (fromMaybe "1" $ lookup "startFrom" keyvals))
       fmtOpts = defaultFormatOpts{
                   startNumber = firstNum,
                   numberLines = any (`elem`
