@@ -40,7 +40,7 @@ getSlideLevel = go 6
                  | otherwise               = go least (x:xs)
         go least (_ : xs) = go least xs
         go least [] = least
-        nonHOrHR (Header _ _ _) = False
+        nonHOrHR (Header{}) = False
         nonHOrHR (HorizontalRule) = False
         nonHOrHR _ = True
 
