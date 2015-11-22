@@ -207,18 +207,18 @@ parseFormatSpec = parse formatSpec ""
 data Reader = StringReader (ReaderOptions -> String -> IO (Either PandocError Pandoc))
               | ByteStringReader (ReaderOptions -> BL.ByteString -> IO (Either PandocError (Pandoc,MediaBag)))
 
-mkStringReader :: (ReaderOptions -> String -> (Either PandocError Pandoc)) -> Reader
+mkStringReader :: (ReaderOptions -> String -> Either PandocError Pandoc) -> Reader
 mkStringReader r = StringReader (\o s -> return $ r o s)
 
 mkStringReaderWithWarnings :: (ReaderOptions -> String -> Either PandocError (Pandoc, [String])) -> Reader
-mkStringReaderWithWarnings r  = StringReader $ \o s -> do
+mkStringReaderWithWarnings r  = StringReader $ \o s ->
   case r o s of
     Left err -> return $ Left err
     Right (doc, warnings) -> do
       mapM_ warn warnings
       return (Right doc)
 
-mkBSReader :: (ReaderOptions -> BL.ByteString -> (Either PandocError (Pandoc, MediaBag))) -> Reader
+mkBSReader :: (ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag)) -> Reader
 mkBSReader r = ByteStringReader (\o s -> return $ r o s)
 
 -- | Association list of formats and readers.
@@ -330,7 +330,7 @@ getDefaultExtensions _                 = Set.fromList [Ext_auto_identifiers]
 getReader :: String -> Either String Reader
 getReader s =
   case parseFormatSpec s of
-       Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
+       Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
        Right (readerName, setExts) ->
            case lookup readerName readers of
                    Nothing  -> Left $ "Unknown reader: " ++ readerName
@@ -345,7 +345,7 @@ getReader s =
 getWriter :: String -> Either String Writer
 getWriter s
   = case parseFormatSpec s of
-         Left e  -> Left $ intercalate "\n" $ [m | Message m <- errorMessages e]
+         Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
          Right (writerName, setExts) ->
              case lookup writerName writers of
                      Nothing -> Left $ "Unknown writer: " ++ writerName
