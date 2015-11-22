@@ -14,9 +14,7 @@ ruleParser = do
     return (trim p, trim v)
 
 styleAttrParser :: Parser [(String, String)]
-styleAttrParser = do
-    p <- many1 ruleParser
-    return p
+styleAttrParser = many1 ruleParser
 
 orElse :: Eq a => a -> a -> a -> a
 orElse v x y = if v == x then y else x
