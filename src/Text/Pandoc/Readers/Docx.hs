@@ -486,7 +486,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
               return $ case isNull ils' of
                 True -> mempty
                 _ -> parStyleToTransform pPr $ para ils'
-bodyPartToBlocks (ListItem pPr numId lvl levelInfo parparts) = do
+bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   let
     kvs = case levelInfo of
       (_, fmt, txt, Just start) -> [ ("level", lvl)
@@ -503,7 +503,7 @@ bodyPartToBlocks (ListItem pPr numId lvl levelInfo parparts) = do
                                    ]
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
   return $ divWith ("", ["list-item"], kvs) blks
-bodyPartToBlocks (DummyListItem pPr _ parparts) = 
+bodyPartToBlocks (ListItem pPr _ _ _ parparts) = 
   let pPr' = pPr {pStyle = "ListParagraph": (pStyle pPr)}
   in
     bodyPartToBlocks $ Paragraph pPr' parparts

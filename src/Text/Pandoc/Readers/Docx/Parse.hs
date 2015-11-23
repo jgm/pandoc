@@ -177,8 +177,7 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
 
 
 data BodyPart = Paragraph ParagraphStyle [ParPart]
-              | ListItem ParagraphStyle String String Level [ParPart]
-              | DummyListItem ParagraphStyle String [ParPart]
+              | ListItem ParagraphStyle String String (Maybe Level) [ParPart]
               | Tbl String TblGrid TblLook [Row]
               | OMathPara [Exp]
               deriving Show
@@ -565,9 +564,8 @@ elemToBodyPart ns element
     let parstyle = elemToParagraphStyle ns element sty
     parparts <- mapD (elemToParPart ns) (elChildren element)
     num <- asks envNumbering
-    case lookupLevel numId lvl num of
-     Just levelInfo -> return $ ListItem parstyle numId lvl levelInfo parparts
-     Nothing        -> return $ DummyListItem parstyle lvl parparts
+    let levelInfo = lookupLevel numId lvl num
+    return $ ListItem parstyle numId lvl levelInfo parparts
 elemToBodyPart ns element
   | isElem ns "w" "p" element = do
       sty <- asks envParStyles
@@ -576,11 +574,8 @@ elemToBodyPart ns element
       case pNumInfo parstyle of
        Just (numId, lvl) -> do
          num <- asks envNumbering
-         case lookupLevel numId lvl num of
-          Just levelInfo ->
-            return $ ListItem parstyle numId lvl levelInfo parparts
-          Nothing         ->
-            return $ DummyListItem parstyle lvl parparts
+         let levelInfo = lookupLevel numId lvl num
+         return $ ListItem parstyle numId lvl levelInfo parparts
        Nothing -> return $ Paragraph parstyle parparts
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
