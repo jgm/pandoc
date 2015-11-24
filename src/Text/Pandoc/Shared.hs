@@ -110,8 +110,9 @@ import Data.Char ( toLower, isLower, isUpper, isAlpha,
 import Data.List ( find, stripPrefix, intercalate )
 import Data.Version ( showVersion )
 import qualified Data.Map as M
-import Network.URI ( escapeURIString, isURI, nonStrictRelativeTo,
-                     unEscapeString, parseURIReference, isAllowedInURI )
+import Network.URI ( escapeURIString, nonStrictRelativeTo,
+                     unEscapeString, parseURIReference, isAllowedInURI,
+                     parseURI, URI(..) )
 import qualified Data.Set as Set
 import System.Directory
 import System.FilePath (splitDirectories, isPathSeparator)
@@ -879,18 +880,30 @@ readDataFileUTF8 :: Maybe FilePath -> FilePath -> IO String
 readDataFileUTF8 userDir fname =
   UTF8.toString `fmap` readDataFile userDir fname
 
+-- | Specialized version of parseURIReference that disallows
+-- single-letter schemes.  Reason:  these are usually windows absolute
+-- paths.
+parseURIReference' :: String -> Maybe URI
+parseURIReference' s =
+  case parseURIReference s of
+       Just u | length (uriScheme u) > 2 -> Just u
+       _                                 -> Nothing
+
 -- | Fetch an image or other item from the local filesystem or the net.
 -- Returns raw content and maybe mime type.
 fetchItem :: Maybe String -> String
           -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
 fetchItem sourceURL s =
-  case (sourceURL >>= parseURIReference . ensureEscaped, ensureEscaped s) of
-       (_, s') | isURI s'  -> openURL s'
+  case (sourceURL >>= parseURIReference' . ensureEscaped, ensureEscaped s) of
        (Just u, s') -> -- try fetching from relative path at source
-          case parseURIReference s' of
+          case parseURIReference' s' of
                Just u' -> openURL $ show $ u' `nonStrictRelativeTo` u
                Nothing -> openURL s' -- will throw error
-       (Nothing, _) -> E.try readLocalFile -- get from local file system
+       (Nothing, s') ->
+          case parseURI s' of  -- requires absolute URI
+               -- We don't want to treat C:/ as a scheme:
+               Just u' | length (uriScheme u') > 2 -> openURL (show u')
+               _ -> E.try readLocalFile -- get from local file system
   where readLocalFile = do
           cont <- BS.readFile fp
           return (cont, mime)
