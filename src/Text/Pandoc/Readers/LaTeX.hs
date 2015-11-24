@@ -166,8 +166,15 @@ mathChars = (concat <$>) $
 
 quoted' :: (Inlines -> Inlines) -> LP String -> LP () -> LP Inlines
 quoted' f starter ender = do
+  smart <- getOption readerSmart
   startchs <- starter
-  try ((f . mconcat) <$> manyTill inline ender) <|> lit startchs
+  ((f . mconcat) <$> manyTill inline ender) <|>
+    lit (if smart
+            then case startchs of
+                      "``"  -> "“"
+                      "`"   -> "‘"
+                      _     -> startchs
+            else startchs)
 
 doubleQuote :: LP Inlines
 doubleQuote = do
