@@ -329,12 +329,8 @@ elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
           hasCodeBlock _               = []
       let hasCode (Code _ _) = [True]
           hasCode _          = []
-      opts <- gets stOptions
       let fragile = "fragile" `elem` classes ||
-                    not (null $ query hasCodeBlock elts ++
-                                     if writerListings opts
-                                        then query hasCode elts
-                                        else [])
+                    not (null $ query hasCodeBlock elts ++ query hasCode elts)
       let frameoptions = ["allowdisplaybreaks", "allowframebreaks",
                           "b", "c", "t", "environment",
                           "label", "plain", "shrink"]
