@@ -160,13 +160,12 @@ blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
                _  -> empty) <> blankline
             else
               identifier $$ text (replicate level '=') <> space <> contents <> blankline)
-blockToAsciiDoc _ (CodeBlock (_,classes,_) str) = return $
-  flush (attrs <> dashes <> space <> attrs <> cr <> text str <>
-           cr <> dashes) <> blankline
-     where dashes  = text $ replicate (maximum $ map length $ lines str) '-'
-           attrs = if null classes
-                      then empty
-                      else text $ intercalate "," $ "code" : classes
+blockToAsciiDoc _ (CodeBlock (_,classes,_) str) = return $ (flush $
+  if null classes
+     then "...." $$ text str $$ "...."
+     else attrs $$ "----" $$ text str $$ "----")
+  <> blankline
+    where attrs = "[" <> text (intercalate "," ("source" : classes)) <> "]"
 blockToAsciiDoc opts (BlockQuote blocks) = do
   contents <- blockListToAsciiDoc opts blocks
   let isBlock (BlockQuote _) = True
