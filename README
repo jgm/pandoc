@@ -1035,7 +1035,7 @@ depending on the output format, but include metadata fields as well as the follo
         ...
 
 `subtitle`
-:   document subtitle; also used as subject in PDF metadata
+:   document subtitle
 
 `abstract`
 :   document summary, included in LaTeX, ConTeXt, AsciiDoc, and Word docx
@@ -1063,6 +1063,9 @@ depending on the output format, but include metadata fields as well as the follo
 
 `body`
 :   body of document
+
+`meta-json`
+:   JSON representation of all of the document's metadata
 
 Language variables
 ------------------

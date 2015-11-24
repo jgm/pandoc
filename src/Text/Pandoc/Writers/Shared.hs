@@ -45,7 +45,8 @@ import Text.Pandoc.Options (WriterOptions(..))
 import qualified Data.HashMap.Strict as H
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Data.Aeson (FromJSON(..), fromJSON, ToJSON (..), Value(Object), Result(..))
+import Data.Aeson (FromJSON(..), fromJSON, ToJSON (..), Value(Object), Result(..), encode)
+import Text.Pandoc.UTF8 (toStringLazy)
 import qualified Data.Traversable as Traversable
 import Data.List ( groupBy )
 
@@ -67,7 +68,8 @@ metaToJSON opts blockWriter inlineWriter (Meta metamap)
     renderedMap <- Traversable.mapM
                    (metaValueToJSON blockWriter inlineWriter)
                    metamap
-    return $ M.foldWithKey defField baseContext renderedMap
+    let metadata = M.foldWithKey defField baseContext renderedMap
+    return $ defField "meta-json" (toStringLazy $ encode metadata) metadata
   | otherwise = return (Object H.empty)
 
 metaValueToJSON :: Monad m
