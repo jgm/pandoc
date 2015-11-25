@@ -2253,10 +2253,10 @@ legal (though ugly) pipe table:
     orange|3.09
 
 The cells of pipe tables cannot contain block elements like paragraphs
-and lists, and cannot span multiple lines.  Note also that in LaTeX/PDF
-output, the cells produced by pipe tables will not wrap, since there
-is no information available about relative widths.  If you want content
-to wrap within cells, use multiline or grid tables.
+and lists, and cannot span multiple lines.  If a pipe table contains a
+row that is wider than the column width (see `--columns`), then the cell
+contents will wrap, with the relative cell widths determined by the widths
+of the separator lines.
 
 Note:  pandoc also recognizes pipe tables of the following
 form, as can be produced by Emacs' orgtbl-mode:
