@@ -906,7 +906,12 @@ inlineToMarkdown opts (Cite (c:cs) lst)
            return $ pdoc <+> r
         modekey SuppressAuthor = "-"
         modekey _              = ""
-inlineToMarkdown opts (Link attr txt (src, tit)) = do
+inlineToMarkdown opts lnk@(Link attr txt (src, tit))
+  | isEnabled Ext_raw_html opts &&
+    not (isEnabled Ext_link_attributes opts) &&
+    attr /= nullAttr = -- use raw HTML
+    return $ text $ trim $ writeHtmlString def $ Pandoc nullMeta [Plain [lnk]]
+  | otherwise = do
   plain <- gets stPlain
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit
@@ -940,7 +945,12 @@ inlineToMarkdown opts (Link attr txt (src, tit)) = do
                               else "[" <> linktext <> "](" <>
                                    text src <> linktitle <> ")" <>
                                    linkAttributes opts attr
-inlineToMarkdown opts (Image attr alternate (source, tit)) = do
+inlineToMarkdown opts img@(Image attr alternate (source, tit))
+  | isEnabled Ext_raw_html opts &&
+    not (isEnabled Ext_link_attributes opts) &&
+    attr /= nullAttr = -- use raw HTML
+    return $ text $ trim $ writeHtmlString def $ Pandoc nullMeta [Plain [img]]
+  | otherwise = do
   plain <- gets stPlain
   let txt = if null alternate || alternate == [Str source]
                                  -- to prevent autolinks
