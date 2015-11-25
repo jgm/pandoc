@@ -166,26 +166,25 @@ mathChars = (concat <$>) $
 
 quoted' :: (Inlines -> Inlines) -> LP String -> LP () -> LP Inlines
 quoted' f starter ender = do
-  smart <- getOption readerSmart
   startchs <- starter
-  ((f . mconcat) <$> manyTill inline ender) <|>
-    lit (if smart
-            then case startchs of
+  smart <- getOption readerSmart
+  if smart
+     then do
+       ils <- many (notFollowedBy ender >> inline)
+       (ender >> return (f (mconcat ils))) <|>
+            lit (case startchs of
                       "``"  -> "“"
                       "`"   -> "‘"
-                      _     -> startchs
-            else startchs)
+                      _     -> startchs)
+     else lit startchs
 
 doubleQuote :: LP Inlines
 doubleQuote = do
-  smart <- getOption readerSmart
-  if smart
-     then quoted' doubleQuoted (try $ string "``") (void $ try $ string "''")
-        <|> quoted' doubleQuoted (string "“")        (void $ char '”')
-        -- the following is used by babel for localized quotes:
-        <|> quoted' doubleQuoted (try $ string "\"`") (void $ try $ string "\"'")
-        <|> quoted' doubleQuoted (string "\"")       (void $ char '"')
-     else str <$> many1 (oneOf "`'“”\"")
+  quoted' doubleQuoted (try $ string "``") (void $ try $ string "''")
+   <|> quoted' doubleQuoted (string "“")        (void $ char '”')
+   -- the following is used by babel for localized quotes:
+   <|> quoted' doubleQuoted (try $ string "\"`") (void $ try $ string "\"'")
+   <|> quoted' doubleQuoted (string "\"")       (void $ char '"')
 
 singleQuote :: LP Inlines
 singleQuote = do
