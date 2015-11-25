@@ -1,0 +1,22 @@
+# This version builds both pandoc and pandoc-citeproc, assuming
+# pandoc-citeproc is in the pandoc-citeproc subdirectory.
+flags:
+  pandoc:
+    trypandoc: false
+    https: true
+    embed_data_files: false
+    old-locale: false
+    network-uri: true
+packages:
+- '.'
+- './pandoc-citeproc'
+- location:
+    git: 'https://github.com/jgm/pandoc-types'
+    commit: c64eb383dce64396290aa815351ddb6e43cb6b0f
+  extra-dep: true
+- location:
+    git: 'https://github.com/jgm/texmath'
+    commit: a716e9b5d8c1634847db2c1119e60836634569bf
+  extra-dep: true
+extra-deps: []
+resolver: lts-3.13
