@@ -1341,9 +1341,10 @@ pipeTable :: MarkdownParser ([Alignment], [Double], F [Blocks], F [[Blocks]])
 pipeTable = try $ do
   nonindentSpaces
   lookAhead nonspaceChar
-  (heads,(aligns, seplengths)) <- (,) <$> pipeTableRow <*> pipeBreak
+  ((heads, rawHead),(aligns, seplengths)) <- (,) <$>
+                                        withRaw pipeTableRow <*> pipeBreak
   (lines', rawRows) <- unzip <$> many (withRaw pipeTableRow)
-  let maxlength = maximum $ map length rawRows
+  let maxlength = maximum $ map length (rawHead : rawRows)
   numColumns <- getOption readerColumns
   let widths = if maxlength > numColumns
                   then map (\len ->
