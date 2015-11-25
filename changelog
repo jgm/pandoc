@@ -88,13 +88,13 @@ pandoc (1.15.2)
     Jesse Rosenthal).  This fixes a problem with links in notes.
 
   * LaTeX and ConTeXt writers: support `lang` attribute on divs and spans
-    (mb21).  For LaTeX, also collect `lang` and `dir` attributes on spans and
-    divs to set the `lang`, `otherlangs` and `dir` variables if they aren’t set
-    already.  See #895.
+    (Mauro Bieg).  For LaTeX, also collect `lang` and `dir` attributes on
+    spans and divs to set the `lang`, `otherlangs` and `dir` variables if
+    they aren’t set already.  See #895.
 
   * LaTeX writer:
 
-    + Use proper command for `\textarabic` (mb21).
+    + Use proper command for `\textarabic` (Mauro Bieg).
     + Added `de-CH-1901`, fixed `el-polyton` in `toPloyglossia` (Nick Bart).
     + Use `\hypertarget` and `\hyperlink` for links.  This works correctly
       to link to Div or Span elements.  We now don't bother defining `\label`
@@ -147,7 +147,7 @@ pandoc (1.15.2)
 
     + Add `babel-otherlangs` for language divs/spans; `babel-newcommands`,
       filled by commands that make babel understand the polyglossia-style
-      language directives (mb21, #137).
+      language directives (Mauro Bieg, #137).
     + Improved formatting of conditionals; `$for$` is always provided to allow
       multiple options (Andrew Dunning, #141).
     + Use `Ligatures=TeX` rather than `Mapping=tex-text` with `fontspec`
@@ -360,7 +360,7 @@ pandoc (1.15.1)
     + Correctly recognize book documentclass in metadata (#2395).
     + Set language-related variables automatically, depending
       on the value of the `lang` field, which is now always
-      assumed to be in BCP47 format (mb21, #1614, #2437).
+      assumed to be in BCP47 format (Mauro Bieg, #1614, #2437).
     + Add `\protect` to `\hyperdef` in inline context.  This way we
       don't get an error when this is used as a moveable argument (#2136).
     + Support all frame attributes in Beamer.
@@ -383,7 +383,7 @@ pandoc (1.15.1)
   * Native writer: format Div properly, with blocks separated.
 
   * Support bidirectional text output with XeLaTeX, ConTeXt and HTML
-    (#2191, mb21).
+    (#2191, Mauro Bieg).
 
   * Reference Docx:
 
@@ -400,7 +400,7 @@ pandoc (1.15.1)
     + LaTeX:  Add `mainfontoptions`, `sansfontoptions`,
       `monofontoptions`, `mathfontoptions`, `fontfamilyoptions`
       (Andrew Dunning, #122).  Support handling of bidirectional
-      text (mb21, #120). Improve reliability of superscripts/subscripts
+      text (Mauro Bieg, #120). Improve reliability of superscripts/subscripts
       under XeTeX and prevent letters and numbers from appearing on a
       different baseline by removing use of the `realscripts` package
       (via `xltxtra`).  To restore use of OpenType characters for these
@@ -411,13 +411,14 @@ pandoc (1.15.1)
       Allow use of `hidelinks` variable for `hyperref` package (Hugo Roy,
       #113).  Prevent package clash with `tufte-latex` and other classes that
       include `hyperref` or `color` (Xavier Olive, #115).
-    + ConTeXt:  Support handling of bidirectional text (mb21, #120).
+    + ConTeXt:  Support handling of bidirectional text (Mauro Bieg, #120).
     + LaTeX and ConTeXt: Use more specific language variables.
       Instead of directly using `lang`, we now use `babel-lang` and
       `polyglossia-lang` and `context-lang`.  These variables are set by
       the writers to the necessary values, based on the `lang` variable
-      (which now always takes a value in BCP47 format). (mb21, #114, #129).
-    + HTML:  Support handling of bidirectional text (mb21, #120).
+      (which now always takes a value in BCP47 format). (Mauro Bieg, #114,
+      #129).
+    + HTML:  Support handling of bidirectional text (Mauro Bieg, #120).
       Move HTML5 shiv after CSS and fix URL (Andrew Dunning).
       Add dir attribute in html5 (Andrew Dunning).
     + reveal.js: Add `controls`, `progress` variables (Grégoire Pineau, #127).
@@ -574,7 +575,7 @@ pandoc (1.15.0.5)
   * CommonMark writer: fixed tags used for super/subscript.
 
   * ConTeXt template:  activate hanging indent for definition lists
-    (mb21).
+    (Mauro Bieg).
 
   * Make cabal require `hsb2hs` >= 0.3.1 if `embed_data_files` specified.
     This is done by adding `hookedPrograms` in `Setup.hs`, which allows us
@@ -692,7 +693,7 @@ pandoc (1.14.1)
 
   * HTML reader:  allow `<body>` to close `<head>`.
 
-  * DocBook reader: support `mediaobject`s and `figures` (#2184, mb21).
+  * DocBook reader: support `mediaobject`s and `figures` (#2184, Mauro Bieg).
 
   * RST reader: Fix reference names with special characters
     (Lars-Dominik Braun).
@@ -995,7 +996,7 @@ pandoc (1.14)
   * HTML reader:
 
     + Improve self-closing tag detection in `htmlInBalanced` (#2146).
-    + Handle tables with `<th>` in body rows (#1859, mb21).
+    + Handle tables with `<th>` in body rows (#1859, Mauro Bieg).
     + Fixed `htmlTag` (#1820).  If the tag parses as a comment, we check
       to see if the input starts with `<!--`. If not, it's bogus comment
       mode and we fail `htmlTag`.
@@ -1163,7 +1164,8 @@ pandoc (1.14)
 
   * `Text.Pandoc.PDF`
 
-    + Don't suggest "Try xelatex" if xelatex already in use (mb21, #1832).
+    + Don't suggest "Try xelatex" if xelatex already in use (Mauro Bieg,
+      #1832).
     + More comprehensible errors on image conversion (#2067).
       EPS can't be supported without shelling out to something like
       ImageMagick, but at least we can avoid mysterious error messages.
@@ -2416,7 +2418,7 @@ pandoc (1.12.4)
 
   * Added Emacs org-mode reader (Albert Krewinkel).
 
-  * Added InDesign ICML Writer (mb21).
+  * Added InDesign ICML Writer (Mauro Bieg).
 
   * MediaWiki reader:
 
@@ -4818,7 +4820,7 @@ pandoc (1.9.4.2)
     an hrule break.  This avoids creation of an empty H1 in these
     contexts.  Closes #484.
 
-  * Docbook reader: Added support for "bold" emphasis.  Thanks to mb21.
+  * Docbook reader: Added support for "bold" emphasis.  Thanks to Mauro Bieg.
 
   * In make_osx_package.sh, ensure citeproc-hs is built with the
     embed_data_files flag.
