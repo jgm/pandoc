@@ -66,3 +66,9 @@ Long pipe table with relative widths:
  |---------|----------|---------------------------------------|
 |123|this is a table cell|and this is a really long table cell that will probably need wrapping|
 |123|123|123|
+
+Pipe table with no body:
+
+| Header |
+| ------ |
+
