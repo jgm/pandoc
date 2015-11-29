@@ -30,6 +30,9 @@ install: full
 	cabal copy
 	cabal register
 
+stack:
+	stack install --test --stack-yaml stack.full.yaml
+
 dist: man/pandoc.1
 	cabal sdist
 	rm -rf "pandoc-${version}"
