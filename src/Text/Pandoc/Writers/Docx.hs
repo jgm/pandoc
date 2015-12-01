@@ -1117,14 +1117,8 @@ inlineToOpenXML opts (Image attr alt (src, tit)) = do
           inlinesToOpenXML opts alt
         Right (img, mt) -> do
           ident <- ("rId"++) `fmap` getUniqueId
-          (xpt,ypt) <- case imageSize img of
-                             Right size  -> return $
-                               desiredSizeInPoints opts attr size
-                             Left msg    -> do
-                               liftIO $ warn $
-                                 "Could not determine image size in `" ++
-                                 src ++ "': " ++ msg
-                               return (120,120)
+          let (xpt,ypt) = desiredSizeInPoints opts attr
+                 (either (const def) id (imageSize img))
           -- 12700 emu = 1 pt
           let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) (pageWidth * 12700)
           let cNvPicPr = mknode "pic:cNvPicPr" [] $
