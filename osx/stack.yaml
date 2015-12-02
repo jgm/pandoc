@@ -17,4 +17,4 @@ ghc-options:
 packages:
 - '..'
 - 'https://hackage.haskell.org/package/pandoc-citeproc-0.8.1.3/pandoc-citeproc-0.8.1.3.tar.gz'
-resolver: lts-3.13
+resolver: lts-3.16

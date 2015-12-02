@@ -13,4 +13,4 @@ packages:
 - '../pandoc-types'
 - '../texmath'
 extra-deps: []
-resolver: lts-3.13
+resolver: lts-3.16

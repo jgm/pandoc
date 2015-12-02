@@ -16,4 +16,4 @@ packages:
 - '../../pandoc-citeproc'
 extra-deps:
 - 'hsb2hs-0.3.1'
-resolver: lts-3.13
+resolver: lts-3.16
