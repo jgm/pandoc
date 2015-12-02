@@ -51,6 +51,7 @@ TODO : refactor common patterns across readers :
 
 
 module Text.Pandoc.Readers.Textile ( readTextile) where
+import Text.Pandoc.CSS
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import qualified Text.Pandoc.Builder as B
@@ -535,11 +536,17 @@ link = try $ do
 image :: Parser [Char] ParserState Inlines
 image = try $ do
   char '!' >> notFollowedBy space
-  _ <- attributes -- ignore for now, until we have image attributes
+  (ident, cls, kvs) <- attributes
+  let getAtt k styles = case pickStyleAttrProps [k] styles of
+                          Just v  -> [(k, v)]
+                          Nothing -> []
+  let attr = case lookup "style" kvs of
+               Just stls -> (ident, cls, getAtt "width" stls ++ getAtt "height" stls)
+               Nothing   -> (ident, cls, kvs)
   src <- manyTill anyChar' (lookAhead $ oneOf "!(")
   alt <- option "" (try $ (char '(' >> manyTill anyChar' (char ')')))
   char '!'
-  return $ B.image src alt (B.str alt)
+  return $ B.imageWith attr src alt (B.str alt)
 
 escapedInline :: Parser [Char] ParserState Inlines
 escapedInline = escapedEqs <|> escapedTag
