@@ -53,7 +53,9 @@ $if(geometry)$
 \usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
 $endif$
 \usepackage{hyperref}
+$if(colorlinks)$
 \PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
+$endif$
 \hypersetup{unicode=true,
 $if(title-meta)$
             pdftitle={$title-meta$},
