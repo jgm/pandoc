@@ -8,12 +8,12 @@ $endif$
 $if(adjusting)$
 .ad $adjusting$
 $endif$
+.TH "$title$" "$section$" "$date$" "$footer$" "$header$"
 $if(hyphenate)$
 .hy
 $else$
-.nh
+.nh \" Turn off hyphenation by default.
 $endif$
-.TH "$title$" "$section$" "$date$" "$footer$" "$header$"
 $for(header-includes)$
 $header-includes$
 $endfor$
