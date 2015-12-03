@@ -13,7 +13,6 @@
     \usepackage{fontspec}
   \fi
   \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
-  \newcommand{\euro}{€}
 \fi
 % use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -23,7 +22,6 @@
 \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
 \usepackage{hyperref}
-\PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
 \hypersetup{unicode=true,
             pdftitle={Pandoc Test Suite},
             pdfauthor={John MacFarlane; Anonymous},
