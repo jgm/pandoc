@@ -124,6 +124,7 @@ langsList =    [("ada","Ada")
                ,("php","PHP")
                ,("xslt","XSLT")
                ,("html","HTML")
+               ,("gap","GAP")
                ]
 
 listingsLangs :: [String]
@@ -138,7 +139,7 @@ listingsLangs = ["Ada","Java","Prolog","Algol","JVMIS","Promela",
                  "Oberon-2","TeX","erlang","OCL","VBScript","Euphoria",
                  "Octave","Verilog","Fortran","Oz","VHDL","GCL",
                  "Pascal","VRML","Gnuplot","Perl","XML","Haskell",
-                 "PHP","XSLT","HTML","PL/I"]
+                 "PHP","XSLT","HTML","PL/I","GAP"]
 
 -- Determine listings language name from highlighting-kate language name.
 toListingsLanguage :: String -> Maybe String
