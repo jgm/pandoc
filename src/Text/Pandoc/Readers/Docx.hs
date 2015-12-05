@@ -298,10 +298,17 @@ runToInlines (Footnote bps) = do
 runToInlines (Endnote bps) = do
   blksList <- concatReduce <$> (mapM bodyPartToBlocks bps)
   return $ note blksList
-runToInlines (InlineDrawing fp bs) = do
+runToInlines (InlineDrawing fp bs ext) = do
   mediaBag <- gets docxMediaBag
   modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
-  return $ image fp "" ""
+  return $ imageWith (extentToAttr ext) fp "" ""
+
+extentToAttr :: Extent -> Attr
+extentToAttr (Just (w, h)) =
+  ("", [], [("width", showDim w), ("height", showDim h)] )
+  where
+    showDim d = show (d / 914400) ++ "in"
+extentToAttr _ = nullAttr
 
 parPartToInlines :: ParPart -> DocxContext Inlines
 parPartToInlines (PlainRun r) = runToInlines r
@@ -348,10 +355,10 @@ parPartToInlines (BookMark _ anchor) =
     unless inHdrBool
       (modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap})
     return $ spanWith (newAnchor, ["anchor"], []) mempty
-parPartToInlines (Drawing fp bs) = do
+parPartToInlines (Drawing fp bs ext) = do
   mediaBag <- gets docxMediaBag
   modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
-  return $ image fp "" ""
+  return $ imageWith (extentToAttr ext) fp "" ""
 parPartToInlines (InternalHyperLink anchor runs) = do
   ils <- concatReduce <$> mapM runToInlines runs
   return $ link ('#' : anchor) "" ils

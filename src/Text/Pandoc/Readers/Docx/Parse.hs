@@ -35,6 +35,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , Body(..)
                                       , BodyPart(..)
                                       , TblLook(..)
+                                      , Extent
                                       , ParPart(..)
                                       , Run(..)
                                       , RunElem(..)
@@ -62,6 +63,7 @@ import Control.Monad.Reader
 import Control.Applicative ((<|>))
 import qualified Data.Map as M
 import Text.Pandoc.Compat.Except
+import Text.Pandoc.Shared (safeRead)
 import Text.TeXMath.Readers.OMML (readOMML)
 import Text.Pandoc.Readers.Docx.Fonts (getUnicode, Font(..))
 import Text.TeXMath (Exp)
@@ -196,20 +198,23 @@ data Row = Row [Cell]
 data Cell = Cell [BodyPart]
             deriving Show
 
+-- (width, height) in EMUs
+type Extent = Maybe (Double, Double)
+
 data ParPart = PlainRun Run
              | Insertion ChangeId Author ChangeDate [Run]
              | Deletion ChangeId Author ChangeDate [Run]
              | BookMark BookMarkId Anchor
              | InternalHyperLink Anchor [Run]
              | ExternalHyperLink URL [Run]
-             | Drawing FilePath B.ByteString
+             | Drawing FilePath B.ByteString Extent
              | PlainOMath [Exp]
              deriving Show
 
 data Run = Run RunStyle [RunElem]
          | Footnote [BodyPart]
          | Endnote [BodyPart]
-         | InlineDrawing FilePath B.ByteString
+         | InlineDrawing FilePath B.ByteString Extent
            deriving Show
 
 data RunElem = TextRun String | LnBrk | Tab | SoftHyphen | NoBreakHyphen
@@ -619,13 +624,13 @@ expandDrawingId s = do
 elemToParPart :: NameSpaces -> Element -> D ParPart
 elemToParPart ns element
   | isElem ns "w" "r" element
-  , Just _ <- findChild (elemName ns "w" "drawing") element =
+  , Just drawingElem <- findChild (elemName ns "w" "drawing") element =
     let a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
         drawing = findElement (QName "blip" (Just a_ns) (Just "a")) element
                   >>= findAttr (QName "embed" (lookup "r" ns) (Just "r"))
     in
      case drawing of
-       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp bs)
+       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp bs $ elemToExtent drawingElem)
        Nothing -> throwError WrongElem
 -- The below is an attempt to deal with images in deprecated vml format.
 elemToParPart ns element
@@ -635,7 +640,7 @@ elemToParPart ns element
                   >>= findAttr (elemName ns "r" "id")
     in
      case drawing of
-       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp bs)
+       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp bs Nothing)
        Nothing -> throwError WrongElem
 elemToParPart ns element
   | isElem ns "w" "r" element =
@@ -687,6 +692,16 @@ lookupFootnote s (Notes _ fns _) = fns >>= (M.lookup s)
 lookupEndnote :: String -> Notes -> Maybe Element
 lookupEndnote s (Notes _ _ ens) = ens >>= (M.lookup s)
 
+elemToExtent :: Element -> Extent
+elemToExtent drawingElem =
+  case (getDim "cx", getDim "cy") of
+    (Just w, Just h) -> Just (w, h)
+    _ -> Nothing
+    where
+      wp_ns  = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+      getDim at = findElement (QName "extent" (Just wp_ns) (Just "wp")) drawingElem
+                    >>= findAttr (QName at Nothing Nothing) >>= safeRead
+
 elemToRun :: NameSpaces -> Element -> D Run
 elemToRun ns element
   | isElem ns "w" "r" element
@@ -697,7 +712,7 @@ elemToRun ns element
     in
      case drawing of
        Just s -> expandDrawingId s >>=
-                 (\(fp, bs) -> return $ InlineDrawing fp bs)
+                 (\(fp, bs) -> return $ InlineDrawing fp bs $ elemToExtent drawingElem)
        Nothing -> throwError WrongElem
 elemToRun ns element
   | isElem ns "w" "r" element
