@@ -78,21 +78,21 @@ $(document).ready(function() {
       from
       </label>
       <select id="from">
-        <option value="markdown" selected>Markdown</option>
-        <option value="markdown_strict">Markdown/strict</option>
-        <option value="markdown_phpextra">PHP Markdown Extra</option>
-        <option value="markdown_github">GitHub Markdown</option>
+        <option value="docbook">DocBook</option>
+        <option value="haddock">Haddock markup</option>
+        <option value="html">HTML</option>
+        <option value="latex">LaTeX</option>
+        <option value="markdown" selected>Markdown (pandoc)</option>
+        <option value="markdown_strict">Markdown (strict)</option>
+        <option value="markdown_phpextra">Markdown (PHP Markdown Extra)</option>
+        <option value="markdown_github">Markdown (GitHub)</option>
+        <option value="mediawiki">MediaWiki</option>
         <option value="markdown_mmd">MultiMarkdown</option>
+        <option value="opml">OPML</option>
+        <option value="org">Org Mode</option>
         <option value="rst">reStructuredText</option>
         <option value="textile">Textile</option>
-        <option value="latex">LaTeX</option>
-        <option value="html">HTML</option>
-        <option value="docbook">DocBook</option>
-        <option value="opml">OPML</option>
-        <option value="org">Emacs Org Mode</option>
         <option value="t2t">Txt2Tags</option>
-        <option value="mediawiki">MediaWiki</option>
-        <option value="haddock">Haddock markup</option>
       </select>
       <br/>
       <textarea id="text" maxlength="3000" rows="15"></textarea>
@@ -102,33 +102,33 @@ $(document).ready(function() {
       to
       </label>
       <select id="to">
+        <option value="asciidoc">AsciiDoc</option>
+        <option value="context">ConTeXt</option>
+        <option value="docbook">DocBook</option>
+        <option value="dokuwiki">DokuWiki</option>
+        <option value="dzslides">DZSlides</option>
+        <option value="man">Groff man</option>
         <option value="html" selected>HTML</option>
         <option value="html5">HTML 5</option>
-        <option value="markdown">Markdown</option>
-        <option value="markdown_strict">Markdown/strict</option>
-        <option value="markdown_phpextra">PHP Markdown Extra</option>
-        <option value="markdown_github">GitHub Markdown</option>
-        <option value="markdown_mmd">MultiMarkdown</option>
-        <option value="rst">reStructuredText</option>
-        <option value="asciidoc">AsciiDoc</option>
-        <option value="textile">Textile</option>
-        <option value="mediawiki">MediaWiki</option>
-        <option value="dokuwiki">DokuWiki</option>
-        <option value="org">Emacs Org Mode</option>
+        <option value="icml">ICML</option>
         <option value="latex">LaTeX</option>
         <option value="beamer">LaTeX Beamer</option>
-        <option value="context">ConTeXt</option>
-        <option value="man">Groff man</option>
-        <option value="texinfo">Texinfo</option>
-        <option value="docbook">DocBook</option>
-        <option value="opml">OPML</option>
-        <option value="icml">ICML</option>
+        <option value="markdown">Markdown (pandoc)</option>
+        <option value="markdown_strict">Markdown (strict)</option>
+        <option value="markdown_phpextra">Markdown (PHP Markdown Extra)</option>
+        <option value="markdown_github">Markdown (GitHub)</option>
+        <option value="markdown_mmd">MultiMarkdown</option>
+        <option value="rst">reStructuredText</option>
+        <option value="textile">Textile</option>
+        <option value="mediawiki">MediaWiki</option>
+        <option value="org">Org Mode</option>
         <option value="opendocument">OpenDocument</option>
+        <option value="opml">OPML</option>
         <option value="rtf">RTF</option>
-        <option value="dzslides">DZSlides</option>
-        <option value="slidy">Slidy</option>
         <option value="S5">S5</option>
         <option value="slideous">Slideous</option>
+        <option value="slidy">Slidy</option>
+        <option value="texinfo">Texinfo</option>
       </select>
       <br/>
       <pre id="results"></pre>
@@ -137,7 +137,7 @@ $(document).ready(function() {
 </div>
 <footer>
  <p class="version">pandoc <span id="version"></span></p>
- <p>&copy; 2013&ndash;2014 <a href="http://johnmacfarlane.net">John MacFarlane</a></p>
+ <p>&copy; 2013&ndash;2015 <a href="http://johnmacfarlane.net">John MacFarlane</a></p>
 </footer>
 </body>
 </html>
