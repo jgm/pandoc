@@ -52,7 +52,7 @@ import Data.Generics (everywhere, mkT)
 authorToDocbook :: WriterOptions -> [Inline] -> B.Inlines
 authorToDocbook opts name' =
   let name = render Nothing $ inlinesToDocbook opts name'
-      colwidth = if writerWrapText opts
+      colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
   in  B.rawInline "docbook" $ render colwidth $
@@ -76,7 +76,7 @@ authorToDocbook opts name' =
 writeDocbook :: WriterOptions -> Pandoc -> String
 writeDocbook opts (Pandoc meta blocks) =
   let elements = hierarchicalize blocks
-      colwidth = if writerWrapText opts
+      colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
       render' = render colwidth
@@ -331,6 +331,8 @@ inlineToDocbook _ (RawInline f x) | f == "html" || f == "docbook" = text x
                                   | otherwise                     = empty
 inlineToDocbook _ LineBreak = text "\n"
 inlineToDocbook _ Space = space
+-- because we use \n for LineBreak, we can't do soft breaks:
+inlineToDocbook _ SoftBreak = space
 inlineToDocbook opts (Link attr txt (src, _))
   | Just email <- stripPrefix "mailto:" src =
       let emailLink = inTagsSimple "email" $ text $

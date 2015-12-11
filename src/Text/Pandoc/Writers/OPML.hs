@@ -45,7 +45,7 @@ import qualified Text.Pandoc.Builder as B
 writeOPML :: WriterOptions -> Pandoc -> String
 writeOPML opts (Pandoc meta blocks) =
   let elements = hierarchicalize blocks
-      colwidth = if writerWrapText opts
+      colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
       meta' = B.setMeta "date" (B.str $ convertDate $ docDate meta) meta

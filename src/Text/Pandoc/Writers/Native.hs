@@ -34,7 +34,7 @@ metadata.
 -}
 module Text.Pandoc.Writers.Native ( writeNative )
 where
-import Text.Pandoc.Options ( WriterOptions(..) )
+import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..) )
 import Data.List ( intersperse )
 import Text.Pandoc.Definition
 import Text.Pandoc.Pretty
@@ -70,7 +70,7 @@ prettyBlock block = text $ show block
 -- | Prettyprint Pandoc document.
 writeNative :: WriterOptions -> Pandoc -> String
 writeNative opts (Pandoc meta blocks) =
-  let colwidth = if writerWrapText opts
+  let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
       withHead = if writerStandalone opts

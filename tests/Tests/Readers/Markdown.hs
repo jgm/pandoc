@@ -157,7 +157,7 @@ tests = [ testGroup "inline code"
           , "emph and strong emph alternating" =:
             "*xxx* ***xxx*** xxx\n*xxx* ***xxx*** xxx"
             =?> para (emph "xxx" <> space <> strong (emph "xxx") <>
-                      space <> "xxx" <> space <>
+                      space <> "xxx" <> softbreak <>
                       emph "xxx" <> space <> strong (emph "xxx") <>
                       space <> "xxx")
           , "emph with spaced strong" =:
@@ -325,7 +325,8 @@ tests = [ testGroup "inline code"
                            ]
           , "laziness" =:
             "foo1\n  :  bar\nbaz\n  : bar2\n" =?>
-            definitionList [ (text "foo1", [plain (text "bar baz"),
+            definitionList [ (text "foo1", [plain (text "bar" <>
+                                                 softbreak <> text "baz"),
                                             plain (text "bar2")])
                            ]
           , "no blank space before first of two paragraphs" =:
@@ -347,7 +348,8 @@ tests = [ testGroup "inline code"
         , testGroup "+compact_definition_lists"
           [ test markdownCDL "basic compact list" $
             "foo1\n:   bar\n    baz\nfoo2\n:   bar2\n" =?>
-            definitionList [ (text "foo1", [plain (text "bar baz")])
+            definitionList [ (text "foo1", [plain (text "bar" <> softbreak <>
+                                                     text "baz")])
                            , (text "foo2", [plain (text "bar2")])
                            ]
           ]

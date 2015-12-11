@@ -1439,7 +1439,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 </ParagraphStyleRange>
 <ParagraphStyleRange AppliedParagraphStyle="">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>foo</Content>
+    <Content>foo </Content>
   </CharacterStyleRange><Br />
 </ParagraphStyleRange>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">

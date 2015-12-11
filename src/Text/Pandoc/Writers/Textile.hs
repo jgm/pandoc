@@ -434,6 +434,8 @@ inlineToTextile opts (RawInline f str)
 
 inlineToTextile _ (LineBreak) = return "\n"
 
+inlineToTextile _ SoftBreak = return " "
+
 inlineToTextile _ Space = return " "
 
 inlineToTextile opts (Link (_, cls, _) txt (src, _)) = do

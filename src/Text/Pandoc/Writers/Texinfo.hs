@@ -75,7 +75,7 @@ pandocToTexinfo :: WriterOptions -> Pandoc -> State WriterState String
 pandocToTexinfo options (Pandoc meta blocks) = do
   let titlePage = not $ all null
                       $ docTitle meta : docDate meta : docAuthors meta
-  let colwidth = if writerWrapText options
+  let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
   metadata <- metaToJSON options
@@ -425,6 +425,12 @@ inlineToTexinfo (RawInline f str)
   | f == "texinfo" =  return $ text str
   | otherwise      =  return empty
 inlineToTexinfo (LineBreak) = return $ text "@*" <> cr
+inlineToTexinfo SoftBreak = do
+  wrapText <- gets (writerWrapText . stOptions)
+  case wrapText of
+      WrapAuto     -> return space
+      WrapNone     -> return space
+      WrapPreserve -> return cr
 inlineToTexinfo Space = return space
 
 inlineToTexinfo (Link _ txt (src@('#':_), _)) = do

@@ -50,6 +50,7 @@ import Text.Pandoc.Shared ( renderTags', safeRead, uniqueIdent, trim
 import qualified Text.Pandoc.Shared as S (Element(..))
 import Text.Pandoc.Builder (fromList, setMeta)
 import Text.Pandoc.Options ( WriterOptions(..)
+                           , WrapOption(..)
                            , HTMLMathMethod(..)
                            , EPUBVersion(..)
                            , ObfuscationMethod(NoObfuscation) )
@@ -350,7 +351,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                        if epub3
                           then MathML Nothing
                           else writerHTMLMathMethod opts
-                  , writerWrapText = True }
+                  , writerWrapText = WrapAuto }
   metadata <- getEPUBMetadata opts' meta
 
   -- cover page

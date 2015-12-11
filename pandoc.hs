@@ -48,7 +48,7 @@ import System.Environment ( getArgs, getProgName )
 import System.Exit ( ExitCode (..), exitSuccess )
 import System.FilePath
 import System.Console.GetOpt
-import Data.Char ( toLower )
+import Data.Char ( toLower, toUpper )
 import Data.List ( delete, intercalate, isPrefixOf, isSuffixOf, sort )
 import System.Directory ( getAppUserDataDirectory, findExecutable,
                           doesFileExist, Permissions(..), getPermissions )
@@ -197,7 +197,7 @@ data Opt = Opt
     , optVerbose           :: Bool    -- ^ Verbose diagnostic output
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optDpi               :: Int     -- ^ Dpi
-    , optWrapText          :: Bool    -- ^ Wrap text
+    , optWrapText          :: WrapOption  -- ^ Options for wrapping text
     , optColumns           :: Int     -- ^ Line length in characters
     , optFilters           :: [FilePath] -- ^ Filters to apply
     , optEmailObfuscation  :: ObfuscationMethod
@@ -260,7 +260,7 @@ defaultOpts = Opt
     , optVerbose               = False
     , optReferenceLinks        = False
     , optDpi                   = 96
-    , optWrapText              = True
+    , optWrapText              = WrapAuto
     , optColumns               = 72
     , optFilters               = []
     , optEmailObfuscation      = JavascriptObfuscation
@@ -468,8 +468,19 @@ options =
 
     , Option "" ["no-wrap"]
                  (NoArg
-                  (\opt -> return opt { optWrapText = False }))
-                 "" -- "Do not wrap text in output"
+                  (\opt -> do warn $ "--no-wrap is deprecated. " ++
+                                     "Use --wrap=none or --wrap=preserve instead."
+                              return opt { optWrapText = WrapNone }))
+                 ""
+
+    , Option "" ["wrap"]
+                 (ReqArg
+                  (\arg opt ->
+                    case safeRead ("Wrap" ++ uppercaseFirstLetter arg) of
+                          Just o   -> return opt { optWrapText = o }
+                          Nothing  -> err 77 "--wrap must be auto, none, or preserve")
+                 "[auto|none|preserve]")
+                 "" -- "Option for wrapping text in output"
 
     , Option "" ["columns"]
                  (ReqArg
@@ -1050,6 +1061,10 @@ applyTransforms transforms d = return $ foldr ($) d transforms
 applyFilters :: [FilePath] -> [String] -> Pandoc -> IO Pandoc
 applyFilters filters args d =
   foldrM ($) d $ map (flip externalFilter args) filters
+
+uppercaseFirstLetter :: String -> String
+uppercaseFirstLetter (c:cs) = toUpper c : cs
+uppercaseFirstLetter [] = []
 
 main :: IO ()
 main = do

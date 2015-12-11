@@ -912,7 +912,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     Now, nested:
   </para>
   <para>
-    foo
+    foo 
   </para>
   <para>
     This should just be an HTML comment:

@@ -375,17 +375,19 @@ isSpaceOrEmpty (Str "") = True
 isSpaceOrEmpty _ = False
 
 -- | Extract the leading and trailing spaces from inside an inline element
--- and place them outside the element.
-
+-- and place them outside the element.  SoftBreaks count as Spaces for
+-- these purposes.
 extractSpaces :: (Inlines -> Inlines) -> Inlines -> Inlines
 extractSpaces f is =
   let contents = B.unMany is
       left  = case viewl contents of
-                    (Space :< _) -> B.space
-                    _            -> mempty
+                    (Space :< _)     -> B.space
+                    (SoftBreak :< _) -> B.softbreak
+                    _                -> mempty
       right = case viewr contents of
-                    (_ :> Space) -> B.space
-                    _            -> mempty in
+                    (_ :> Space)     -> B.space
+                    (_ :> SoftBreak) -> B.softbreak
+                    _                -> mempty in
   (left <> f (B.trimInlines . B.Many $ contents) <> right)
 
 -- | Normalize @Pandoc@ document, consolidating doubled 'Space's,
@@ -452,6 +454,8 @@ normalizeInlines (Str x : ys) =
      isStr _       = False
      fromStr (Str z) = z
      fromStr _       = error "normalizeInlines - fromStr - not a Str"
+normalizeInlines (Space : SoftBreak : ys) =
+  SoftBreak : normalizeInlines ys
 normalizeInlines (Space : ys) =
   if null rest
      then []
@@ -539,6 +543,7 @@ removeFormatting = query go . walk deNote
   where go :: Inline -> [Inline]
         go (Str xs)     = [Str xs]
         go Space        = [Space]
+        go SoftBreak    = [SoftBreak]
         go (Code _ x)   = [Str x]
         go (Math _ x)   = [Str x]
         go LineBreak    = [Space]
@@ -553,6 +558,7 @@ stringify :: Walkable Inline a => a -> String
 stringify = query go . walk deNote
   where go :: Inline -> [Char]
         go Space = " "
+        go SoftBreak = " "
         go (Str x) = x
         go (Code _ x) = x
         go (Math _ x) = x

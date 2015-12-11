@@ -397,6 +397,13 @@ inlineToMediaWiki (RawInline f str)
 
 inlineToMediaWiki (LineBreak) = return "<br />\n"
 
+inlineToMediaWiki SoftBreak = do
+  wrapText <- gets (writerWrapText . stOptions)
+  case wrapText of
+       WrapAuto     -> return " "
+       WrapNone     -> return " "
+       WrapPreserve -> return "\n"
+
 inlineToMediaWiki Space = return " "
 
 inlineToMediaWiki (Link _ txt (src, _)) = do

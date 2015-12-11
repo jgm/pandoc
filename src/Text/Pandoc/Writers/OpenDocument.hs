@@ -175,7 +175,7 @@ handleSpaces s
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: WriterOptions -> Pandoc -> String
 writeOpenDocument opts (Pandoc meta blocks) =
-  let colwidth = if writerWrapText opts
+  let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
       render' = render colwidth
@@ -374,27 +374,31 @@ inlinesToOpenDocument o l = hcat <$> mapM (inlineToOpenDocument o) l
 -- | Convert an inline element to OpenDocument.
 inlineToOpenDocument :: WriterOptions -> Inline -> State WriterState Doc
 inlineToOpenDocument o ils
-    | Space         <- ils = inTextStyle space
-    | Span _ xs     <- ils = inlinesToOpenDocument o xs
-    | LineBreak     <- ils = return $ selfClosingTag "text:line-break" []
-    | Str         s <- ils = inTextStyle $ handleSpaces $ escapeStringForXML s
-    | Emph        l <- ils = withTextStyle Italic $ inlinesToOpenDocument o l
-    | Strong      l <- ils = withTextStyle Bold   $ inlinesToOpenDocument o l
-    | Strikeout   l <- ils = withTextStyle Strike $ inlinesToOpenDocument o l
-    | Superscript l <- ils = withTextStyle Sup    $ inlinesToOpenDocument o l
-    | Subscript   l <- ils = withTextStyle Sub    $ inlinesToOpenDocument o l
-    | SmallCaps   l <- ils = withTextStyle SmallC $ inlinesToOpenDocument o l
-    | Quoted    t l <- ils = inQuotes t <$> inlinesToOpenDocument o l
-    | Code      _ s <- ils = withTextStyle Pre $ inTextStyle $ preformatted s
-    | Math      t s <- ils = inlinesToOpenDocument o (texMathToInlines t s)
-    | Cite      _ l <- ils = inlinesToOpenDocument o l
-    | RawInline f s <- ils = if f == Format "opendocument"
-                                then return $ text s
-                                else return empty
-    | Link _ l (s,t) <- ils = mkLink s t <$> inlinesToOpenDocument o l
-    | Image attr _ (s,t) <- ils = mkImg attr s t
-    | Note        l <- ils = mkNote l
-    | otherwise            = return empty
+  = case ils of
+    Space         -> inTextStyle space
+    SoftBreak
+     | writerWrapText o == WrapPreserve
+                  -> inTextStyle (preformatted "\n")
+     | otherwise  -> inTextStyle space
+    Span _ xs     -> inlinesToOpenDocument o xs
+    LineBreak     -> return $ selfClosingTag "text:line-break" []
+    Str         s -> inTextStyle $ handleSpaces $ escapeStringForXML s
+    Emph        l -> withTextStyle Italic $ inlinesToOpenDocument o l
+    Strong      l -> withTextStyle Bold   $ inlinesToOpenDocument o l
+    Strikeout   l -> withTextStyle Strike $ inlinesToOpenDocument o l
+    Superscript l -> withTextStyle Sup    $ inlinesToOpenDocument o l
+    Subscript   l -> withTextStyle Sub    $ inlinesToOpenDocument o l
+    SmallCaps   l -> withTextStyle SmallC $ inlinesToOpenDocument o l
+    Quoted    t l -> inQuotes t <$> inlinesToOpenDocument o l
+    Code      _ s -> withTextStyle Pre $ inTextStyle $ preformatted s
+    Math      t s -> inlinesToOpenDocument o (texMathToInlines t s)
+    Cite      _ l -> inlinesToOpenDocument o l
+    RawInline f s -> if f == Format "opendocument"
+                       then return $ text s
+                       else return empty
+    Link _ l (s,t) ->  mkLink s t <$> inlinesToOpenDocument o l
+    Image attr _ (s,t) -> mkImg attr s t
+    Note        l  -> mkNote l
     where
       preformatted s = handleSpaces $ escapeStringForXML s
       mkLink   s t = inTags False "text:a" [ ("xlink:type" , "simple")

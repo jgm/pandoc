@@ -63,7 +63,7 @@ writeConTeXt options document =
 
 pandocToConTeXt :: WriterOptions -> Pandoc -> State WriterState String
 pandocToConTeXt options (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText options
+  let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
   metadata <- metaToJSON options
@@ -315,6 +315,12 @@ inlineToConTeXt (RawInline "context" str) = return $ text str
 inlineToConTeXt (RawInline "tex" str) = return $ text str
 inlineToConTeXt (RawInline _ _) = return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
+inlineToConTeXt SoftBreak = do
+  wrapText <- gets (writerWrapText . stOptions)
+  return $ case wrapText of
+               WrapAuto     -> space
+               WrapNone     -> space
+               WrapPreserve -> cr
 inlineToConTeXt Space = return space
 -- Handle HTML-like internal document references to sections
 inlineToConTeXt (Link _ txt (('#' : ref), _)) = do

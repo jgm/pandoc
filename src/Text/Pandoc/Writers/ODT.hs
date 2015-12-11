@@ -37,7 +37,7 @@ import Text.TeXMath
 import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
-import Text.Pandoc.Options ( WriterOptions(..) )
+import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..) )
 import Text.Pandoc.Shared ( stringify, fetchItem', warn,
                             getDefaultReferenceODT )
 import Text.Pandoc.ImageSize ( imageSize, desiredSizeInPoints )
@@ -67,7 +67,7 @@ writeODT opts doc@(Pandoc meta _) = do
   -- handle formulas and pictures
   picEntriesRef <- newIORef ([] :: [Entry])
   doc' <- walkM (transformPicMath opts picEntriesRef) $ walk fixDisplayMath doc
-  let newContents = writeOpenDocument opts{writerWrapText = False} doc'
+  let newContents = writeOpenDocument opts{writerWrapText = WrapAuto} doc'
   epochtime <- floor `fmap` getPOSIXTime
   let contentEntry = toEntry "content.xml" epochtime
                      $ fromStringLazy newContents

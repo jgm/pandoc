@@ -54,7 +54,7 @@ writeMan opts document = evalState (pandocToMan opts document) (WriterState [] F
 -- | Return groff man representation of document.
 pandocToMan :: WriterOptions -> Pandoc -> State WriterState String
 pandocToMan opts (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText opts
+  let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
   let render' = render colwidth
@@ -146,6 +146,7 @@ breakSentence xs =
            []             -> (as, [])
            [c]            -> (as ++ [c], [])
            (c:Space:cs)   -> (as ++ [c], cs)
+           (c:SoftBreak:cs) -> (as ++ [c], cs)
            (Str ".":Str (')':ys):cs) -> (as ++ [Str ".", Str (')':ys)], cs)
            (x@(Str ('.':')':_)):cs) -> (as ++ [x], cs)
            (LineBreak:x@(Str ('.':_)):cs) -> (as ++[LineBreak], x:cs)
@@ -343,6 +344,7 @@ inlineToMan _ (RawInline f str)
   | otherwise         = return empty
 inlineToMan _ (LineBreak) = return $
   cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
+inlineToMan _ SoftBreak = return space
 inlineToMan _ Space = return space
 inlineToMan opts (Link _ txt (src, _)) = do
   linktext <- inlineListToMan opts txt

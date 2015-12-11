@@ -75,7 +75,7 @@ blocksToCommonMark opts bs = return $
   T.unpack $ nodeToCommonmark cmarkOpts colwidth
            $ node DOCUMENT (blocksToNodes bs)
    where cmarkOpts = [optHardBreaks | isEnabled Ext_hard_line_breaks opts]
-         colwidth = if writerWrapText opts
+         colwidth = if writerWrapText opts == WrapAuto
                        then Just $ writerColumns opts
                        else Nothing
 
@@ -84,7 +84,7 @@ inlinesToCommonMark opts ils = return $
   T.unpack $ nodeToCommonmark cmarkOpts colwidth
            $ node PARAGRAPH (inlinesToNodes ils)
    where cmarkOpts = [optHardBreaks | isEnabled Ext_hard_line_breaks opts]
-         colwidth = if writerWrapText opts
+         colwidth = if writerWrapText opts == WrapAuto
                        then Just $ writerColumns opts
                        else Nothing
 
@@ -138,6 +138,7 @@ inlineToNodes :: Inline -> [Node] -> [Node]
 inlineToNodes (Str s) = (node (TEXT (T.pack s)) [] :)
 inlineToNodes Space   = (node (TEXT (T.pack " ")) [] :)
 inlineToNodes LineBreak = (node LINEBREAK [] :)
+inlineToNodes SoftBreak = (node SOFTBREAK [] :)
 inlineToNodes (Emph xs) = (node EMPH (inlinesToNodes xs) :)
 inlineToNodes (Strong xs) = (node STRONG (inlinesToNodes xs) :)
 inlineToNodes (Strikeout xs) =

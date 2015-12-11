@@ -105,7 +105,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
   let template = writerTemplate options
   -- set stBook depending on documentclass
-  let colwidth = if writerWrapText options
+  let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
   metadata <- metaToJSON options
@@ -357,6 +357,7 @@ isListBlock _                  = False
 
 isLineBreakOrSpace :: Inline -> Bool
 isLineBreakOrSpace LineBreak = True
+isLineBreakOrSpace SoftBreak = True
 isLineBreakOrSpace Space = True
 isLineBreakOrSpace _ = False
 
@@ -896,6 +897,12 @@ inlineToLaTeX (RawInline f str)
                         = return $ text str
   | otherwise           = return empty
 inlineToLaTeX (LineBreak) = return $ "\\\\" <> cr
+inlineToLaTeX SoftBreak = do
+  wrapText <- gets (writerWrapText . stOptions)
+  case wrapText of
+       WrapAuto     -> return space
+       WrapNone     -> return space
+       WrapPreserve -> return cr
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link _ txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt

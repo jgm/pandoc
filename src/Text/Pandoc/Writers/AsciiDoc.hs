@@ -73,7 +73,7 @@ pandocToAsciiDoc :: WriterOptions -> Pandoc -> State WriterState String
 pandocToAsciiDoc opts (Pandoc meta blocks) = do
   let titleblock = not $ null (docTitle meta) && null (docAuthors meta) &&
                          null (docDate meta)
-  let colwidth = if writerWrapText opts
+  let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
   metadata <- metaToJSON opts
@@ -227,7 +227,7 @@ blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
   rows' <- mapM makeRow rows
   head' <- makeRow headers
   let head'' = if all null headers then empty else head'
-  let colwidth = if writerWrapText opts
+  let colwidth = if writerWrapText opts == WrapAuto
                     then writerColumns opts
                     else 100000
   let maxwidth = maximum $ map offset (head':rows')
@@ -335,7 +335,7 @@ inlineListToAsciiDoc opts lst = do
            x' <- withIntraword $ inlineToAsciiDoc opts x
            xs' <- go xs
            return (y' <> x' <> xs')
-         | x /= Space && x /= LineBreak = do
+         | not (isSpacy x) = do
            y' <- withIntraword $ inlineToAsciiDoc opts y
            xs' <- go (x:xs)
            return (y' <> xs')
@@ -345,6 +345,7 @@ inlineListToAsciiDoc opts lst = do
            return (x' <> xs')
        isSpacy Space = True
        isSpacy LineBreak = True
+       isSpacy SoftBreak = True
        isSpacy _ = False
 
 setIntraword :: Bool -> State WriterState ()
@@ -391,6 +392,11 @@ inlineToAsciiDoc _ (RawInline f s)
   | otherwise       = return empty
 inlineToAsciiDoc _ (LineBreak) = return $ " +" <> cr
 inlineToAsciiDoc _ Space = return space
+inlineToAsciiDoc opts SoftBreak =
+  case writerWrapText opts of
+       WrapAuto -> return space
+       WrapPreserve -> return cr
+       WrapNone -> return space
 inlineToAsciiDoc opts (Cite _ lst) = inlineListToAsciiDoc opts lst
 inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
 -- relative:  link:downloads/foo.zip[download foo.zip]

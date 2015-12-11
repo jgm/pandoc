@@ -122,7 +122,7 @@ citeName          = "Cite"
 -- | Convert Pandoc document to string in ICML format.
 writeICML :: WriterOptions -> Pandoc -> IO String
 writeICML opts (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText opts
+  let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
       render' = render colwidth
@@ -414,6 +414,11 @@ inlineToICML opts style (Quoted DoubleQuote lst) = inlinesToICML opts style $ [S
 inlineToICML opts style (Cite _ lst) = inlinesToICML opts (citeName:style) lst
 inlineToICML _    style (Code _ str) = charStyle (codeName:style) $ text $ escapeStringForXML str
 inlineToICML _    style Space = charStyle style space
+inlineToICML opts style SoftBreak =
+  case writerWrapText opts of
+       WrapAuto     -> charStyle style space
+       WrapNone     -> charStyle style space
+       WrapPreserve -> charStyle style cr
 inlineToICML _ style LineBreak = charStyle style $ text lineSeparator
 inlineToICML opts style (Math mt str) =
   cat <$> mapM (inlineToICML opts style) (texMathToInlines mt str)
@@ -449,11 +454,17 @@ footnoteToICML opts style lst =
 
 -- | Auxiliary function to merge Space elements into the adjacent Strs.
 mergeSpaces :: [Inline] -> [Inline]
-mergeSpaces ((Str s):(Space:((Str s'):xs))) = mergeSpaces $ Str(s++" "++s') : xs
-mergeSpaces (Space:((Str s):xs)) = mergeSpaces $ Str (" "++s) : xs
-mergeSpaces ((Str s):(Space:xs)) = mergeSpaces $ Str (s++" ") : xs
+mergeSpaces ((Str s):(x:((Str s'):xs))) | isSp x =
+  mergeSpaces $ Str(s++" "++s') : xs
+mergeSpaces (x:((Str s):xs)) | isSp x = mergeSpaces $ Str (" "++s) : xs
+mergeSpaces ((Str s):(x:xs)) | isSp x = mergeSpaces $ Str (s++" ") : xs
 mergeSpaces (x:xs) = x : (mergeSpaces xs)
 mergeSpaces []     = []
+
+isSp :: Inline -> Bool
+isSp Space = True
+isSp SoftBreak = True
+isSp _ = False
 
 -- | Wrap a list of inline elements in an ICML Paragraph Style
 parStyle :: WriterOptions -> Style -> [Inline] -> WS Doc

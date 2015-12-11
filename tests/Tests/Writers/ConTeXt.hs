@@ -11,7 +11,7 @@ context :: (ToString a, ToPandoc a) => a -> String
 context = writeConTeXt def . toPandoc
 
 context' :: (ToString a, ToPandoc a) => a -> String
-context' = writeConTeXt def{ writerWrapText = False } . toPandoc
+context' = writeConTeXt def{ writerWrapText = WrapNone } . toPandoc
 
 {-
   "my test" =: X =?> Y

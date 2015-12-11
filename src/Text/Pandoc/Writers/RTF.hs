@@ -349,6 +349,7 @@ inlineToRTF (RawInline f str)
   | f == Format "rtf" = str
   | otherwise         = ""
 inlineToRTF (LineBreak) = "\\line "
+inlineToRTF SoftBreak = " "
 inlineToRTF Space = " "
 inlineToRTF (Link _ text (src, _)) =
   "{\\field{\\*\\fldinst{HYPERLINK \"" ++ (codeStringToRTF src) ++

@@ -276,6 +276,8 @@ inlineToCustom lua (Str str) = callfunc lua "Str" str
 
 inlineToCustom lua Space = callfunc lua "Space"
 
+inlineToCustom lua SoftBreak = callfunc lua "SoftBreak"
+
 inlineToCustom lua (Emph lst) = callfunc lua "Emph" lst
 
 inlineToCustom lua (Strong lst) = callfunc lua "Strong" lst
@@ -308,11 +310,11 @@ inlineToCustom lua (RawInline format str) =
 
 inlineToCustom lua (LineBreak) = callfunc lua "LineBreak"
 
-inlineToCustom lua (Link _ txt (src,tit)) =
-  callfunc lua "Link" txt src tit
+inlineToCustom lua (Link attr txt (src,tit)) =
+  callfunc lua "Link" txt src tit (attrToMap attr)
 
-inlineToCustom lua (Image _ alt (src,tit)) =
-  callfunc lua "Image" alt src tit
+inlineToCustom lua (Image attr alt (src,tit)) =
+  callfunc lua "Image" alt src tit (attrToMap attr)
 
 inlineToCustom lua (Note contents) = callfunc lua "Note" contents
 

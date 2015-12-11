@@ -522,11 +522,20 @@ General writer options
     to inch/centimeters and vice versa. The default is 96dpi.
     Technically, the correct term would be ppi (pixels per inch).
 
+`--wrap=[auto|none|preserve]`
+
+:   Determine how text is wrapped in the output (the source
+    code, not the rendered version).  With `auto` (the default),
+    pandoc will attempt to wrap lines to the column width specified by
+    `--columns` (default 80).  With `none`, pandoc will not wrap
+    lines at all.  With `preserve`, pandoc will attempt to
+    preserve the wrapping from the source document (that is,
+    where there are nonsemantic newlines in the source, there
+    will be nonsemantic newlines in the output as well).
+
 `--no-wrap`
 
-:   Disable text wrapping in output. By default, text is wrapped
-    appropriately for the output format. This affects only the
-    generated source code, not the layout on the rendered page.
+:   Deprecated synonym for `--wrap=none`.
 
 `--columns=`*NUMBER*
 

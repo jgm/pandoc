@@ -71,8 +71,9 @@ instance Default WriterState
 writeMarkdown :: WriterOptions -> Pandoc -> String
 writeMarkdown opts document =
   evalState (pandocToMarkdown opts{
-                  writerWrapText = writerWrapText opts &&
-                  not (isEnabled Ext_hard_line_breaks opts) }
+                  writerWrapText = if isEnabled Ext_hard_line_breaks opts
+                                      then WrapNone
+                                      else writerWrapText opts }
              document) def
 
 -- | Convert Pandoc to plain text (like markdown, but without links,
@@ -144,7 +145,7 @@ jsonToYaml _ = empty
 -- | Return markdown representation of document.
 pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState String
 pandocToMarkdown opts (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText opts
+  let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
   isPlain <- gets stPlain
@@ -324,7 +325,7 @@ blockToMarkdown opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
   -- escape if para starts with ordered list marker
   st <- get
-  let colwidth = if writerWrapText opts
+  let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
   let rendered = render colwidth contents
@@ -708,6 +709,10 @@ inlineListToMarkdown opts lst = do
                 Space:(Str('[':_)):_          -> unshortcutable
                 Space:(RawInline _ ('[':_)):_ -> unshortcutable
                 Space:(Cite _ _):_            -> unshortcutable
+                SoftBreak:(Link _ _ _):_      -> unshortcutable
+                SoftBreak:(Str('[':_)):_      -> unshortcutable
+                SoftBreak:(RawInline _ ('[':_)):_ -> unshortcutable
+                SoftBreak:(Cite _ _):_        -> unshortcutable
                 (Cite _ _):_                  -> unshortcutable
                 Str ('[':_):_                 -> unshortcutable
                 (RawInline _ ('[':_)):_       -> unshortcutable
@@ -721,18 +726,25 @@ inlineListToMarkdown opts lst = do
                     modify (\s -> s {stRefShortcutable = True })
                     fmap (iMark <>) (go is)
 
+isSp :: Inline -> Bool
+isSp Space = True
+isSp SoftBreak = True
+isSp _ = False
+
 avoidBadWrapsInList :: [Inline] -> [Inline]
 avoidBadWrapsInList [] = []
-avoidBadWrapsInList (Space:Str ('>':cs):xs) =
+avoidBadWrapsInList (s:Str ('>':cs):xs) | isSp s =
   Str (' ':'>':cs) : avoidBadWrapsInList xs
-avoidBadWrapsInList (Space:Str [c]:[])
-  | c `elem` ['-','*','+'] = Str [' ', c] : []
-avoidBadWrapsInList (Space:Str [c]:Space:xs)
-  | c `elem` ['-','*','+'] = Str [' ', c] : Space : avoidBadWrapsInList xs
-avoidBadWrapsInList (Space:Str cs:Space:xs)
-  | isOrderedListMarker cs = Str (' ':cs) : Space : avoidBadWrapsInList xs
-avoidBadWrapsInList (Space:Str cs:[])
-  | isOrderedListMarker cs = Str (' ':cs) : []
+avoidBadWrapsInList (s:Str [c]:[])
+  | isSp s && c `elem` ['-','*','+'] = Str [' ', c] : []
+avoidBadWrapsInList (s:Str [c]:Space:xs)
+  | isSp s && c `elem` ['-','*','+'] =
+    Str [' ', c] : Space : avoidBadWrapsInList xs
+avoidBadWrapsInList (s:Str cs:Space:xs)
+  | isSp s && isOrderedListMarker cs =
+    Str (' ':cs) : Space : avoidBadWrapsInList xs
+avoidBadWrapsInList (s:Str cs:[])
+  | isSp s && isOrderedListMarker cs = Str (' ':cs) : []
 avoidBadWrapsInList (x:xs) = x : avoidBadWrapsInList xs
 
 isOrderedListMarker :: String -> Bool
@@ -747,6 +759,7 @@ isRight (Left  _) = False
 escapeSpaces :: Inline -> Inline
 escapeSpaces (Str s) = Str $ substitute " " "\\ " s
 escapeSpaces Space = Str "\\ "
+escapeSpaces SoftBreak = Str "\\ "
 escapeSpaces x = x
 
 -- | Convert Pandoc inline element to markdown.
@@ -876,6 +889,11 @@ inlineToMarkdown opts (LineBreak) = do
              then "\\" <> cr
              else "  " <> cr
 inlineToMarkdown _ Space = return space
+inlineToMarkdown opts SoftBreak = return $
+  case writerWrapText opts of
+       WrapNone     -> space
+       WrapAuto     -> space
+       WrapPreserve -> cr
 inlineToMarkdown opts (Cite [] lst) = inlineListToMarkdown opts lst
 inlineToMarkdown opts (Cite (c:cs) lst)
   | not (isEnabled Ext_citations opts) = inlineListToMarkdown opts lst

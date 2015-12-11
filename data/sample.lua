@@ -100,6 +100,10 @@ function Space()
   return " "
 end
 
+function SoftBreak()
+  return "\n"
+end
+
 function LineBreak()
   return "<br/>"
 end
@@ -128,12 +132,12 @@ function Strikeout(s)
   return '<del>' .. s .. '</del>'
 end
 
-function Link(s, src, tit)
+function Link(s, src, tit, attr)
   return "<a href='" .. escape(src,true) .. "' title='" ..
          escape(tit,true) .. "'>" .. s .. "</a>"
 end
 
-function Image(s, src, tit)
+function Image(s, src, tit, attr)
   return "<img src='" .. escape(src,true) .. "' title='" ..
          escape(tit,true) .. "'/>"
 end

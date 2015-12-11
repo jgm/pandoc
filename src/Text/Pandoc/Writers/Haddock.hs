@@ -57,7 +57,7 @@ writeHaddock opts document =
 -- | Return haddock representation of document.
 pandocToHaddock :: WriterOptions -> Pandoc -> State WriterState String
 pandocToHaddock opts (Pandoc meta blocks) = do
-  let colwidth = if writerWrapText opts
+  let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
   body <- blockListToHaddock opts blocks
@@ -325,6 +325,11 @@ inlineToHaddock _ (RawInline f str)
   | otherwise = return empty
 -- no line break in haddock (see above on CodeBlock)
 inlineToHaddock _ (LineBreak) = return cr
+inlineToHaddock opts SoftBreak =
+  case writerWrapText opts of
+       WrapAuto     -> return space
+       WrapNone     -> return space
+       WrapPreserve -> return cr
 inlineToHaddock _ Space = return space
 inlineToHaddock opts (Cite _ lst) = inlineListToHaddock opts lst
 inlineToHaddock _ (Link _ txt (src, _)) = do

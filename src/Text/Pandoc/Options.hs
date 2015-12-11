@@ -42,6 +42,7 @@ module Text.Pandoc.Options ( Extension(..)
                            , ObfuscationMethod (..)
                            , HTMLSlideVariant (..)
                            , EPUBVersion (..)
+                           , WrapOption (..)
                            , WriterOptions (..)
                            , TrackChanges (..)
                            , def
@@ -322,6 +323,12 @@ data TrackChanges = AcceptChanges
                   | AllChanges
                   deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+-- | Options for wrapping text in the output.
+data WrapOption = WrapAuto        -- ^ Automatically wrap to width
+                | WrapNone        -- ^ No non-semantic newlines
+                | WrapPreserve    -- ^ Preserve wrapping of input source
+                deriving (Show, Read, Eq, Data, Typeable, Generic)
+
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerStandalone       :: Bool   -- ^ Include header and footer
@@ -339,7 +346,7 @@ data WriterOptions = WriterOptions
   , writerExtensions       :: Set Extension -- ^ Markdown extensions that can be used
   , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
   , writerDpi              :: Int    -- ^ Dpi for pixel to/from inch/cm conversions
-  , writerWrapText         :: Bool   -- ^ Wrap text to line length
+  , writerWrapText         :: WrapOption  -- ^ Option for wrapping text
   , writerColumns          :: Int    -- ^ Characters in a line (for text wrapping)
   , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
   , writerIdentifierPrefix :: String -- ^ Prefix for section & note ids in HTML
@@ -386,7 +393,7 @@ instance Default WriterOptions where
                       , writerExtensions       = pandocExtensions
                       , writerReferenceLinks   = False
                       , writerDpi              = 96
-                      , writerWrapText         = True
+                      , writerWrapText         = WrapAuto
                       , writerColumns          = 72
                       , writerEmailObfuscation = JavascriptObfuscation
                       , writerIdentifierPrefix = ""

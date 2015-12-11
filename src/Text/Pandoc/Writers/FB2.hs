@@ -27,7 +27,7 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
-import Control.Monad.State (StateT, evalStateT, get, modify)
+import Control.Monad.State (StateT, evalStateT, get, gets, modify)
 import Control.Monad.State (liftM, liftM2, liftIO)
 import Data.ByteString.Base64 (encode)
 import Data.Char (toLower, isSpace, isAscii, isControl)
@@ -439,6 +439,7 @@ toXml (Quoted DoubleQuote ss) = do
 toXml (Cite _ ss) = cMapM toXml ss  -- FIXME: support citation styles
 toXml (Code _ s) = return [el "code" s]
 toXml Space = return [txt " "]
+toXml SoftBreak = return [txt " "]
 toXml LineBreak = return [el "empty-line" ()]
 toXml (Math _ formula) = insertMath InlineImage formula
 toXml (RawInline _ _) = return []  -- raw TeX and raw HTML are suppressed

@@ -61,7 +61,7 @@ writeOrg opts document =
 pandocToOrg :: Pandoc -> State WriterState String
 pandocToOrg (Pandoc meta blocks) = do
   opts <- liftM stOptions get
-  let colwidth = if writerWrapText opts
+  let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
   metadata <- metaToJSON opts
@@ -275,6 +275,12 @@ inlineToOrg (RawInline f str) | f == "tex" || f == "latex" = return $ text str
 inlineToOrg (RawInline _ _) = return empty
 inlineToOrg (LineBreak) = return (text "\\\\" <> cr)
 inlineToOrg Space = return space
+inlineToOrg SoftBreak = do
+  wrapText <- gets (writerWrapText . stOptions)
+  case wrapText of
+       WrapPreserve   -> return cr
+       WrapAuto       -> return space
+       WrapNone       -> return space
 inlineToOrg (Link _ txt (src, _)) = do
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink

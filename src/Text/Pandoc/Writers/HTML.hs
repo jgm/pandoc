@@ -95,9 +95,9 @@ strToHtml [] = ""
 
 -- | Hard linebreak.
 nl :: WriterOptions -> Html
-nl opts = if writerWrapText opts
-             then preEscapedString "\n"
-             else mempty
+nl opts = if writerWrapText opts == WrapNone
+             then mempty
+             else preEscapedString "\n"
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: WriterOptions -> Pandoc -> String
@@ -697,6 +697,10 @@ inlineToHtml opts inline =
   case inline of
     (Str str)        -> return $ strToHtml str
     (Space)          -> return $ strToHtml " "
+    (SoftBreak)      -> return $ case writerWrapText opts of
+                                       WrapNone     -> preEscapedString " "
+                                       WrapAuto     -> preEscapedString " "
+                                       WrapPreserve -> preEscapedString "\n"
     (LineBreak)      -> return $ (if writerHtml5 opts then H5.br else H.br)
                                  <> strToHtml "\n"
     (Span (id',classes,kvs) ils)

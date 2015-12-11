@@ -70,7 +70,7 @@ writeRST opts document =
 pandocToRST :: Pandoc -> State WriterState String
 pandocToRST (Pandoc meta blocks) = do
   opts <- liftM stOptions get
-  let colwidth = if writerWrapText opts
+  let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
   let subtit = case lookupMeta "subtitle" meta of
@@ -378,11 +378,13 @@ inlineListToRST lst =
         surroundComplex _ _ = False
         okAfterComplex :: Inline -> Bool
         okAfterComplex Space = True
+        okAfterComplex SoftBreak = True
         okAfterComplex LineBreak = True
         okAfterComplex (Str (c:_)) = isSpace c || c `elem` ("-.,:;!?\\/'\")]}>–—" :: String)
         okAfterComplex _ = False
         okBeforeComplex :: Inline -> Bool
         okBeforeComplex Space = True
+        okBeforeComplex SoftBreak = True
         okBeforeComplex LineBreak = True
         okBeforeComplex (Str (c:_)) = isSpace c || c `elem` ("-:/'\"<([{–—" :: String)
         okBeforeComplex _ = False
@@ -446,6 +448,12 @@ inlineToRST (RawInline f x)
   | otherwise  = return empty
 inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space
+inlineToRST SoftBreak = do
+  wrapText <- gets (writerWrapText . stOptions)
+  case wrapText of
+        WrapPreserve  -> return cr
+        WrapAuto      -> return space
+        WrapNone      -> return space
 -- autolink
 inlineToRST (Link _ [Str str] (src, _))
   | isURI src &&

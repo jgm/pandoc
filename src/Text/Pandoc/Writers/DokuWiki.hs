@@ -43,7 +43,8 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options ( WriterOptions(
                                 writerTableOfContents
                               , writerStandalone
-                              , writerTemplate) )
+                              , writerTemplate
+                              , writerWrapText), WrapOption(..) )
 import Text.Pandoc.Shared ( escapeURI, removeFormatting, camelCaseToHyphenated
                           , trimr, normalize, substitute  )
 import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
@@ -460,6 +461,12 @@ inlineToDokuWiki _ (RawInline f str)
   | otherwise              = return ""
 
 inlineToDokuWiki _ (LineBreak) = return "\\\\\n"
+
+inlineToDokuWiki opts SoftBreak =
+  case writerWrapText opts of
+       WrapNone     -> return " "
+       WrapAuto     -> return " "
+       WrapPreserve -> return "\n"
 
 inlineToDokuWiki _ Space = return " "
 
