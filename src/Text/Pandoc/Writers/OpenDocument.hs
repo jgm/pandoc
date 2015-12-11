@@ -39,7 +39,7 @@ import Text.Pandoc.Pretty
 import Text.Printf ( printf )
 import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
-import Data.Char (chr, isDigit)
+import Data.Char (chr)
 import qualified Data.Map as Map
 import Text.Pandoc.Writers.Shared
 
@@ -405,11 +405,17 @@ inlineToOpenDocument o ils
                                            , ("xlink:href" , s       )
                                            , ("office:name", t       )
                                            ] . inSpanTags "Definition"
-      mkImg _ s t = do
+      mkImg (_, _, kvs) s _ = do
                id' <- gets stImageId
                modify (\st -> st{ stImageId = id' + 1 })
+               let getDims [] = []
+                   getDims (("width", w) :xs) = ("svg:width", w)  : getDims xs
+                   getDims (("height", h):xs) = ("svg:height", h) : getDims xs
+                   getDims (x@("style:rel-width", _) :xs) = x : getDims xs
+                   getDims (x@("style:rel-height", _):xs) = x : getDims xs
+                   getDims (_:xs) =                             getDims xs
                return $ inTags False "draw:frame"
-                        (("draw:name", "img" ++ show id'):attrsFromTitle t) $
+                        (("draw:name", "img" ++ show id') : getDims kvs) $
                      selfClosingTag "draw:image" [ ("xlink:href"   , s       )
                                                  , ("xlink:type"   , "simple")
                                                  , ("xlink:show"   , "embed" )
@@ -424,17 +430,6 @@ inlineToOpenDocument o ils
         nn <- footNote <$> withParagraphStyle o "Footnote" l
         addNote nn
         return nn
-
--- a title of the form "120x140" will be interpreted as image
--- size in points.
-attrsFromTitle :: String -> [(String,String)]
-attrsFromTitle s = if null xs || null ys
-                      then []
-                      else [("svg:width",xs ++ "pt"),("svg:height",ys ++ "pt")]
-  where (xs,rest) = span isDigit s
-        ys        = case rest of
-                         ('x':zs) | all isDigit zs -> zs
-                         _ -> ""
 
 bulletListStyle :: Int -> State WriterState (Int,(Int,[Doc]))
 bulletListStyle l =
