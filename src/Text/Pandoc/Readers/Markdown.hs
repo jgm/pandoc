@@ -1679,7 +1679,7 @@ endline = try $ do
   (eof >> return mempty)
     <|> (guardEnabled Ext_hard_line_breaks >> return (return B.linebreak))
     <|> (guardEnabled Ext_ignore_line_breaks >> return mempty)
-    <|> (return $ return B.space)
+    <|> (return $ return B.softbreak)
 
 --
 -- links
