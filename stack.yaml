@@ -9,7 +9,7 @@ packages:
 - '.'
 - location:
     git: 'https://github.com/jgm/pandoc-types'
-    commit: c64eb383dce64396290aa815351ddb6e43cb6b0f
+    commit: 67d733e459a2087a41a371261a63ecde1d3bc04f
   extra-dep: true
 - location:
     git: 'https://github.com/jgm/texmath'
