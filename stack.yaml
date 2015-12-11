@@ -13,7 +13,7 @@ packages:
   extra-dep: true
 - location:
     git: 'https://github.com/jgm/texmath'
-    commit: a716e9b5d8c1634847db2c1119e60836634569bf
+    commit: a5e339552535fffaadc8c131b08e6be1bdff3914
   extra-dep: true
 extra-deps: []
 resolver: lts-3.16
