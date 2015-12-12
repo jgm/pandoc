@@ -569,22 +569,6 @@ options =
                                         optStandalone = True }))
                  "" -- "Make slide shows include all the needed js and css"
 
-    , Option "" ["offline"]
-                 (NoArg
-                  (\opt -> do warn "--offline is deprecated. Use --self-contained instead."
-                              return opt { optSelfContained = True,
-                                           optStandalone = True }))
-                 "" -- "Make slide shows include all the needed js and css"
-                 -- deprecated synonym for --self-contained
-
-    , Option "5" ["html5"]
-                 (NoArg
-                  (\opt -> do
-                     warn $ "--html5 is deprecated. "
-                       ++ "Use the html5 output format instead."
-                     return opt { optHtml5 = True }))
-                 "" -- "Produce HTML5 in HTML output"
-
     , Option "" ["html-q-tags"]
                  (NoArg
                   (\opt ->
