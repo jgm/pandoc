@@ -100,8 +100,13 @@ dimenarg = try $ do
   return $ ch ++ num ++ dim
 
 sp :: LP ()
-sp = skipMany1 $ satisfy (\c -> c == ' ' || c == '\t')
-        <|> try (newline <* lookAhead anyChar <* notFollowedBy blankline)
+sp = whitespace <|> endline
+
+whitespace :: LP ()
+whitespace = skipMany1 $ satisfy (\c -> c == ' ' || c == '\t')
+
+endline :: LP ()
+endline = try (newline >> lookAhead anyChar >> notFollowedBy blankline)
 
 isLowerHex :: Char -> Bool
 isLowerHex x = x >= '0' && x <= '9' || x >= 'a' && x <= 'f'
@@ -196,7 +201,8 @@ singleQuote = do
 
 inline :: LP Inlines
 inline = (mempty <$ comment)
-     <|> (space  <$ sp)
+     <|> (space  <$ whitespace)
+     <|> (softbreak <$ endline)
      <|> inlineText
      <|> inlineCommand
      <|> inlineEnvironment

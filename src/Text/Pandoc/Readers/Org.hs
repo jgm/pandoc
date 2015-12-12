@@ -1103,7 +1103,7 @@ endline = try $ do
   decEmphasisNewlinesCount
   guard =<< newlinesCountWithinLimits
   updateLastPreCharPos
-  return . return $ B.space
+  return . return $ B.softbreak
 
 cite :: OrgParser (F Inlines)
 cite = try $ do

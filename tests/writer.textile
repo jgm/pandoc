@@ -424,7 +424,7 @@ Now, nested:
 
 <div>
 
-foo 
+foo
 
 </div>
 

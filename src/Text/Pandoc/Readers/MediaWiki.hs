@@ -555,7 +555,8 @@ inlineHtml :: MWParser Inlines
 inlineHtml = B.rawInline "html" . snd <$> htmlTag isInlineTag'
 
 whitespace :: MWParser Inlines
-whitespace = B.space <$ (skipMany1 spaceChar <|> endline <|> htmlComment)
+whitespace = B.space <$ (skipMany1 spaceChar <|> htmlComment)
+         <|> B.softbreak <$ endline
 
 endline :: MWParser ()
 endline = () <$ try (newline <*

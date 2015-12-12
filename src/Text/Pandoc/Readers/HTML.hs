@@ -799,7 +799,10 @@ pBad = do
   return $ B.str [c']
 
 pSpace :: InlinesParser Inlines
-pSpace = many1 (satisfy isSpace) >> return B.space
+pSpace = many1 (satisfy isSpace) >>= \xs ->
+            if '\n' `elem` xs
+               then return B.softbreak
+               else return B.space
 
 --
 -- Constants

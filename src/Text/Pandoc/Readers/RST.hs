@@ -1098,7 +1098,7 @@ endline = try $ do
      then notFollowedBy (anyOrderedListMarker >> spaceChar) >>
           notFollowedBy' bulletListStart
      else return ()
-  return B.space
+  return B.softbreak
 
 --
 -- links

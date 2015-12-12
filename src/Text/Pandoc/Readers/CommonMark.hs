@@ -103,7 +103,7 @@ addInline (Node _ (TEXT t) _) = (map toinl clumps ++)
         toinl (' ':_)    = Space
         toinl xs         = Str xs
 addInline (Node _ LINEBREAK _) = (LineBreak :)
-addInline (Node _ SOFTBREAK _) = (Space :)
+addInline (Node _ SOFTBREAK _) = (SoftBreak :)
 addInline (Node _ (INLINE_HTML t) _) =
   (RawInline (Format "html") (unpack t) :)
 addInline (Node _ (CODE t) _) =
