@@ -1318,7 +1318,7 @@ though:</text:p>
 <text:p text:style-name="First_20_paragraph">As should this:</text:p>
 <text:p text:style-name="P48">&lt;div&gt;foo&lt;/div&gt;</text:p>
 <text:p text:style-name="First_20_paragraph">Now, nested:</text:p>
-<text:p text:style-name="Text_20_body">foo </text:p>
+<text:p text:style-name="Text_20_body">foo</text:p>
 <text:p text:style-name="Text_20_body">This should just be an HTML
 comment:</text:p>
 <text:p text:style-name="Text_20_body">Multiline:</text:p>

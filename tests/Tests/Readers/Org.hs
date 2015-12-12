@@ -109,10 +109,9 @@ tests =
                   , "seven*eight* nine*"
                   , "+not+funny+"
                   ] =?>
-          para (spcSep [ "this+that+", "+so+on"
-                       , "seven*eight*", "nine*"
-                       , strikeout "not+funny"
-                       ])
+          para ("this+that+ +so+on" <> softbreak <>
+                "seven*eight* nine*" <> softbreak <>
+                strikeout "not+funny")
 
       , "No empty markup" =:
           "// ** __ ++ == ~~ $$" =?>
@@ -142,8 +141,9 @@ tests =
 
       , "Inline math must stay within three lines" =:
           unlines [ "$a", "b", "c$", "$d", "e", "f", "g$" ] =?>
-          para ((math "a\nb\nc") <> space <>
-                spcSep [ "$d", "e", "f", "g$" ])
+          para ((math "a\nb\nc") <> softbreak <>
+                "$d" <> softbreak <> "e" <> softbreak <>
+                "f" <> softbreak <> "g$")
 
       , "Single-character math" =:
           "$a$ $b$! $c$?" =?>
@@ -153,14 +153,13 @@ tests =
                        ])
 
       , "Markup may not span more than two lines" =:
-          unlines [ "/this *is +totally", "nice+ not*", "emph/" ] =?>
-          para (spcSep [ "/this"
-                       , (strong (spcSep
-                                  [ "is"
-                                  , (strikeout ("totally" <> space <> "nice"))
-                                  , "not"
-                                  ]))
-                       , "emph/" ])
+          "/this *is +totally\nnice+ not*\nemph/" =?>
+          para ("/this" <> space <>
+                  strong ("is" <> space <>
+                          strikeout ("totally" <>
+                            softbreak <> "nice") <>
+                          space <> "not") <>
+                  softbreak <> "emph/")
 
       , "Sub- and superscript expressions" =:
          unlines [ "a_(a(b)(c)d)"
@@ -174,7 +173,8 @@ tests =
                  , "3_{{}}"
                  , "4^(a(*b(c*)d))"
                  ] =?>
-         para (spcSep [ "a" <> subscript "(a(b)(c)d)"
+         para (mconcat $ intersperse softbreak
+                      [ "a" <> subscript "(a(b)(c)d)"
                       , "e" <> superscript "(f(g)h)"
                       , "i" <> (subscript "(jk)") <> "l)"
                       , "m" <> (superscript "()") <> "n"
@@ -404,13 +404,13 @@ tests =
           unlines [ "  :LOGBOOK: foo"
                   , "  :END:"
                   ] =?>
-          para (spcSep [ ":LOGBOOK:", "foo", ":END:" ])
+          para (":LOGBOOK:" <> space <> "foo" <> softbreak <> ":END:")
 
       , "Drawers with unknown names are just text" =:
           unlines [ ":FOO:"
                   , ":END:"
                   ] =?>
-          para (":FOO:" <> space <> ":END:")
+          para (":FOO:" <> softbreak <> ":END:")
 
       , "Anchor reference" =:
           unlines [ "<<link-here>> Target."
@@ -577,7 +577,7 @@ tests =
           unlines [ "lucky"
                   , "*star"
                   ] =?>
-          para ("lucky" <> space <> "*star")
+          para ("lucky" <> softbreak <> "*star")
 
       , "Example block" =:
           unlines [ ": echo hello"
@@ -709,8 +709,8 @@ tests =
            "  Tony*\n" ++
            "- /Sideshow\n" ++
            " Bob/") =?>
-          bulletList [ plain $ strong ("Fat" <> space <> "Tony")
-                     , plain $ emph ("Sideshow" <> space <> "Bob")
+          bulletList [ plain $ strong ("Fat" <> softbreak <> "Tony")
+                     , plain $ emph ("Sideshow" <> softbreak <> "Bob")
                      ]
 
       , "Nested Bullet Lists" =:

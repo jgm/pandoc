@@ -57,7 +57,7 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "hi",Space,Emph [Str "there"]]
 ,RawBlock (Format "html") "</div>"
 ,Header 2 ("sup-sub-del",[],[]) [Str "sup,",Space,Str "sub,",Space,Str "del"]
-,Para [Str "H",Subscript [Str "2"],Str "O",Space,Str "base",Superscript [Emph [Str "exponent"]],Space,Strikeout [Str "hello"]]
+,Para [Str "H",Subscript [Str "2"],Str "O",Space,Str "base",Superscript [Emph [Str "exponent"]],SoftBreak,Strikeout [Str "hello"]]
 ,Header 2 ("inline-code",[],[]) [Str "inline",Space,Str "code"]
 ,Para [Code ("",[],[]) "*\8594*",Space,Code ("",[],[]) "typed",Space,Code ("",["haskell"],[]) ">>="]
 ,Header 2 ("code-blocks",[],[]) [Str "code",Space,Str "blocks"]
@@ -123,7 +123,7 @@ Pandoc (Meta {unMeta = fromList []})
  ,[Plain [Str "Blank",Space,Str "lines"]]]
 ,OrderedList (1,DefaultStyle,DefaultDelim)
  [[Plain [Str "end",Space,Str "the",Space,Str "list",Space,Str "and",Space,Str "start",Space,Str "another."]]]
-,Para [Str "Any",Space,Str "other",Space,Str "start",Space,Str "also",Space,Str "ends",Space,Str "the",Space,Str "list."]
+,Para [Str "Any",Space,Str "other",Space,Str "start",Space,Str "also",SoftBreak,Str "ends",Space,Str "the",Space,Str "list."]
 ,DefinitionList
  [([Str "item",Space,Str "1"],
    [[Plain [Str "definition",Space,Str "1"]]])

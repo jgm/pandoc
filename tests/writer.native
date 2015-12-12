@@ -260,7 +260,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Div ("",[],[])
  [Div ("",[],[])
   [Div ("",[],[])
-   [Plain [Str "foo",SoftBreak]]]]
+   [Plain [Str "foo"]]]]
 ,Para [Str "This",Space,Str "should",Space,Str "just",Space,Str "be",Space,Str "an",Space,Str "HTML",Space,Str "comment:"]
 ,RawBlock (Format "html") "<!-- Comment -->"
 ,Para [Str "Multiline:"]
