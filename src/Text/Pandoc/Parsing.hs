@@ -1213,7 +1213,7 @@ citeKey = try $ do
   let regchar = satisfy (\c -> isAlphaNum c || c == '_')
   let internal p = try $ p <* lookAhead regchar
   rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/") <|>
-                 (oneOf ":/" <* lookAhead (char '/'))
+                 try (oneOf ":/" <* lookAhead (char '/'))
   let key = firstChar:rest
   return (suppress_author, key)
 
