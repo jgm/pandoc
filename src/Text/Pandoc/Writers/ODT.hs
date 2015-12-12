@@ -67,7 +67,7 @@ writeODT opts doc@(Pandoc meta _) = do
   -- handle formulas and pictures
   picEntriesRef <- newIORef ([] :: [Entry])
   doc' <- walkM (transformPicMath opts picEntriesRef) $ walk fixDisplayMath doc
-  let newContents = writeOpenDocument opts{writerWrapText = WrapAuto} doc'
+  let newContents = writeOpenDocument opts{writerWrapText = WrapNone} doc'
   epochtime <- floor `fmap` getPOSIXTime
   let contentEntry = toEntry "content.xml" epochtime
                      $ fromStringLazy newContents

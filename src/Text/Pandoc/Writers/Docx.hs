@@ -245,7 +245,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   let tocTitle = fromMaybe (stTocTitle defaultWriterState) $
                     metaValueToInlines <$> lookupMeta "toc-title" meta
 
-  ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = WrapAuto} doc')
+  ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = WrapNone} doc')
                        defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
                                          , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
                                          , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
