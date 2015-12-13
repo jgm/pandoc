@@ -1056,7 +1056,10 @@ main = do
 
   -- thread option data structure through all supplied option actions
   opts <- foldl (>>=) (return defaultOpts) actions
+  convertWithOpts opts args
 
+convertWithOpts :: Opt -> [FilePath] -> IO ()
+convertWithOpts opts args = do
   let Opt    {  optTabStop               = tabStop
               , optPreserveTabs          = preserveTabs
               , optStandalone            = standalone
