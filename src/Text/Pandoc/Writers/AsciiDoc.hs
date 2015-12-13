@@ -253,7 +253,10 @@ blockToAsciiDoc opts (OrderedList (_start, sty, _delim) items) = do
 blockToAsciiDoc opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToAsciiDoc opts) items
   return $ cat contents <> blankline
-blockToAsciiDoc opts (Div _ bs) = blockListToAsciiDoc opts bs
+blockToAsciiDoc opts (Div (ident,_,_) bs) = do
+  let identifier = if (null ident) then empty else ("[[" <> text ident <> "]]")
+  contents <- blockListToAsciiDoc opts bs
+  return $ identifier $$ contents
 
 -- | Convert bullet list item (list of blocks) to asciidoc.
 bulletListItemToAsciiDoc :: WriterOptions -> [Block] -> State WriterState Doc
