@@ -30,7 +30,7 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "between",Space,Str "blocks"]
 ,Header 1 ("linebreaks",[],[]) [Str "linebreaks"]
 ,Para [Str "hi",LineBreak,Str "there"]
-,Para [Str "hi",LineBreak,Space,Str "there"]
+,Para [Str "hi",LineBreak,Str "there"]
 ,Header 1 ("inline-code",[],[]) [Str "inline",Space,Str "code"]
 ,Para [Code ("",[],[]) "*\8594*",Space,Code ("",[],[]) "typed",Space,Code ("",["haskell"],[]) ">>="]
 ,Header 1 ("code-blocks",[],[]) [Str "code",Space,Str "blocks"]
