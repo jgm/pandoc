@@ -445,4 +445,8 @@ inlineToAsciiDoc opts (Note [Plain inlines]) = do
   return $ text "footnote:[" <> contents <> "]"
 -- asciidoc can't handle blank lines in notes
 inlineToAsciiDoc _ (Note _) = return "[multiblock footnote omitted]"
-inlineToAsciiDoc opts (Span _ ils) = inlineListToAsciiDoc opts ils
+inlineToAsciiDoc opts (Span (ident,_,_) ils) = do
+  let identifier = if (null ident) then empty else ("[[" <> text ident <> "]]")
+  contents <- inlineListToAsciiDoc opts ils
+  return $ identifier <> contents
+
