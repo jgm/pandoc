@@ -40,6 +40,7 @@ import Data.Char ( isSpace, isAlphaNum, toLower )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojis)
+import Text.Pandoc.Generic (bottomUp)
 import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Data.Yaml as Yaml
@@ -51,6 +52,7 @@ import qualified Data.Vector as V
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
+import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
@@ -356,7 +358,19 @@ parseMarkdown = do
   st <- getState
   let meta = runF (stateMeta' st) st
   let Pandoc _ bs = B.doc $ runF blocks st
-  return $ Pandoc meta bs
+  eastAsianLineBreaks <- option False $
+                    True <$ guardEnabled Ext_east_asian_line_breaks
+  return $ (if eastAsianLineBreaks
+               then bottomUp softBreakFilter
+               else id) $ Pandoc meta bs
+
+softBreakFilter :: [Inline] -> [Inline]
+softBreakFilter (x:SoftBreak:y:zs) =
+  case (stringify x, stringify y) of
+        (xs@(_:_), (c:_))
+          | charWidth (last xs) == 2 && charWidth c == 2 -> x:y:zs
+        _ -> x:SoftBreak:y:zs
+softBreakFilter xs = xs
 
 referenceKey :: MarkdownParser (F Blocks)
 referenceKey = try $ do

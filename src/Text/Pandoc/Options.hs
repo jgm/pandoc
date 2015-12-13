@@ -106,6 +106,8 @@ data Extension =
     | Ext_subscript           -- ^ Subscript using ~this~ syntax
     | Ext_hard_line_breaks    -- ^ All newlines become hard line breaks
     | Ext_ignore_line_breaks  -- ^ Newlines in paragraphs are ignored
+    | Ext_east_asian_line_breaks  -- ^ Newlines in paragraphs are ignored between
+                              -- East Asian wide characters
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
     | Ext_abbreviations       -- ^ PHP markdown extra abbreviation definitions
     | Ext_emoji               -- ^ Support emoji like :smile:
