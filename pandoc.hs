@@ -1047,25 +1047,15 @@ main = do
 
   rawArgs <- map UTF8.decodeArg <$> getArgs
   prg <- getProgName
-  let compatMode = prg == "hsmarkdown"
 
-  let (actions, args, errors) = if compatMode
-                                  then ([], rawArgs, [])
-                                  else getOpt Permute options rawArgs
+  let (actions, args, errors) = getOpt Permute options rawArgs
 
   unless (null errors) $
      err 2 $ concat $ errors ++
         ["Try " ++ prg ++ " --help for more information."]
 
-  let defaultOpts' = if compatMode
-                       then defaultOpts { optReader = "markdown_strict"
-                                        , optWriter = "html"
-                                        , optEmailObfuscation =
-                                           ReferenceObfuscation }
-                       else defaultOpts
-
   -- thread option data structure through all supplied option actions
-  opts <- foldl (>>=) (return defaultOpts') actions
+  opts <- foldl (>>=) (return defaultOpts) actions
 
   let Opt    {  optTabStop               = tabStop
               , optPreserveTabs          = preserveTabs

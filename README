@@ -227,19 +227,6 @@ or [variables for ConTeXt].
 [`biber`]: https://ctan.org/pkg/biber
 [TeX Live]: http://www.tug.org/texlive/
 
-`hsmarkdown`
-------------
-
-A user who wants a drop-in replacement for `Markdown.pl` may create
-a symbolic link to the `pandoc` executable called `hsmarkdown`. When
-invoked under the name `hsmarkdown`, `pandoc` will behave as if
-invoked with `-f markdown_strict --email-obfuscation=references`,
-and all command-line options will be treated as regular arguments.
-This approach does not work under [Cygwin], due to problems with
-its simulation of symbolic links.
-
-[Cygwin]: https://cygwin.com
-
 Options
 =======
 
