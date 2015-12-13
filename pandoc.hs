@@ -311,14 +311,6 @@ options =
                  "DIRECTORY") -- "Directory containing pandoc data files."
                 ""
 
-    , Option "" ["strict"]
-                 (NoArg
-                  (\opt -> do
-                      err 59 $ "The --strict option has been removed.\n" ++
-                               "Use `markdown_strict' input or output format instead."
-                      return opt ))
-                 "" -- "Disable markdown syntax extensions"
-
     , Option "R" ["parse-raw"]
                  (NoArg
                   (\opt -> return opt { optParseRaw = True }))
