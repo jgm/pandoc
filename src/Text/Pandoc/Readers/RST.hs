@@ -541,6 +541,12 @@ directive' = do
   body <- option "" $ try $ blanklines >> indentedBlock
   optional blanklines
   let body' = body ++ "\n\n"
+      imgAttr cl = ("", classes, getAtt "width" ++ getAtt "height")
+        where
+          classes = words $ maybe "" trim $ lookup cl fields
+          getAtt k = case lookup k fields of
+                       Just v  -> [(k, filter (not . isSpace) v)]
+                       Nothing -> []
   case label of
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
@@ -590,15 +596,16 @@ directive' = do
         "figure" -> do
            (caption, legend) <- parseFromString extractCaption body'
            let src = escapeURI $ trim top
-           return $ B.para (B.image src "fig:" caption) <> legend
+           return $ B.para (B.imageWith (imgAttr "figclass") src "fig:" caption) <> legend
         "image" -> do
            let src = escapeURI $ trim top
            let alt = B.str $ maybe "image" trim $ lookup "alt" fields
+           let attr = imgAttr "class"
            return $ B.para
                   $ case lookup "target" fields of
                           Just t  -> B.link (escapeURI $ trim t) ""
-                                     $ B.image src "" alt
-                          Nothing -> B.image src "" alt
+                                     $ B.imageWith attr src "" alt
+                          Nothing -> B.imageWith attr src "" alt
         "class" -> do
             let attrs = ("", (splitBy isSpace $ trim top), map (\(k,v) -> (k, trimr v)) fields)
             --  directive content or the first immediately following element
@@ -812,10 +819,10 @@ substKey = try $ do
   res <- B.toList <$> directive'
   il <- case res of
              -- use alt unless :alt: attribute on image:
-             [Para [Image _ [Str "image"] (src,tit)]] ->
-                return $ B.image src tit alt
-             [Para [Link _ [Image _ [Str "image"] (src,tit)] (src',tit')]] ->
-                return $ B.link src' tit' (B.image src tit alt)
+             [Para [Image attr [Str "image"] (src,tit)]] ->
+                return $ B.imageWith attr src tit alt
+             [Para [Link _ [Image attr [Str "image"] (src,tit)] (src',tit')]] ->
+                return $ B.link src' tit' (B.imageWith attr src tit alt)
              [Para ils] -> return $ B.fromList ils
              _          -> mzero
   let key = toKey $ stripFirstAndLast ref

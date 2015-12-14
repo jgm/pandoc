@@ -40,7 +40,7 @@ import Codec.Archive.Zip
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..) )
 import Text.Pandoc.Shared ( stringify, fetchItem', warn,
                             getDefaultReferenceODT )
-import Text.Pandoc.ImageSize ( imageSize, desiredSizeInPoints )
+import Text.Pandoc.ImageSize
 import Text.Pandoc.MIME ( getMimeType, extensionFromMimeType )
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
@@ -125,22 +125,36 @@ writeODT opts doc@(Pandoc meta _) = do
                   $ addEntryToArchive metaEntry archive'
   return $ fromArchive archive''
 
+-- | transform both Image and Math elements
 transformPicMath :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline
-transformPicMath opts entriesRef (Image attr lab (src,t)) = do
+transformPicMath opts entriesRef (Image attr@(id', cls, _) lab (src,t)) = do
   res <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case res of
      Left (_ :: E.SomeException) -> do
        warn $ "Could not find image `" ++ src ++ "', skipping..."
        return $ Emph lab
      Right (img, mbMimeType) -> do
-       (w,h) <- case imageSize img of
-                      Right size -> return $
-                        desiredSizeInPoints opts attr size
-                      Left msg   -> do
-                        warn $ "Could not determine image size in `" ++
-                          src ++ "': " ++ msg
-                        return (0,0)
-       let tit' = show w ++ "x" ++ show h
+       (ptX, ptY) <- case imageSize img of
+                       Right s  -> return $ sizeInPoints s
+                       Left msg -> do
+                         warn $ "Could not determine image size in `" ++
+                           src ++ "': " ++ msg
+                         return (100, 100)
+       let dims =
+             case (getDim Width, getDim Height) of
+               (Just w, Just h)              -> [("width", show w), ("height", show h)]
+               (Just w@(Percent _), Nothing) -> [("width", show w), ("style:rel-height", "scale")]
+               (Nothing, Just h@(Percent _)) -> [("style:rel-width", "scale"), ("height", show h)]
+               (Just w@(Inch i), Nothing)    -> [("width", show w), ("height", show (i / ratio) ++ "in")]
+               (Nothing, Just h@(Inch i))    -> [("width", show (i * ratio) ++ "in"), ("height", show h)]
+               _                             -> [("width", show ptX ++ "pt"), ("height", show ptY ++ "pt")]
+             where
+               ratio = ptX / ptY
+               getDim dir = case (dimension dir attr) of
+                              Just (Percent i) -> Just $ Percent i
+                              Just dim         -> Just $ Inch $ inInch opts dim
+                              Nothing          -> Nothing
+       let  newattr = (id', cls, dims)
        entries <- readIORef entriesRef
        let extension = fromMaybe (takeExtension $ takeWhile (/='?') src)
                            (mbMimeType >>= extensionFromMimeType)
@@ -149,9 +163,7 @@ transformPicMath opts entriesRef (Image attr lab (src,t)) = do
        epochtime <- floor `fmap` getPOSIXTime
        let entry = toEntry newsrc epochtime $ toLazy img
        modifyIORef entriesRef (entry:)
-       let fig | "fig:" `isPrefixOf` t = "fig:"
-               | otherwise             = ""
-       return $ Image attr lab (newsrc, fig++tit')
+       return $ Image newattr lab (newsrc, t)
 transformPicMath _ entriesRef (Math t math) = do
   entries <- readIORef entriesRef
   let dt = if t == InlineMath then DisplayInline else DisplayBlock
