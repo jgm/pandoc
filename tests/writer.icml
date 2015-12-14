@@ -2563,7 +2563,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
             $ID/Embedded
           </Profile>
         </Properties>
-        <Link Self="ueb" LinkResourceURI="file://./lalune.jpg" />
+        <Link Self="ueb" LinkResourceURI="file:lalune.jpg" />
       </Image>
     </Rectangle>
   </CharacterStyleRange><Br />
@@ -2592,7 +2592,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
             $ID/Embedded
           </Profile>
         </Properties>
-        <Link Self="ueb" LinkResourceURI="file://./movie.jpg" />
+        <Link Self="ueb" LinkResourceURI="file:movie.jpg" />
       </Image>
     </Rectangle>
   </CharacterStyleRange>

@@ -533,7 +533,7 @@ imageICML opts style attr _ (src, _) = do
       hw = showFl $ ow / 2
       hh = showFl $ oh / 2
       scale = showFl (imgWidth / ow) ++ " 0 0 " ++ showFl (imgHeight / oh)
-      src' = if isURI src then src else "file://." ++ pathSeparator : src
+      src' = if isURI src then src else "file:" ++ src
       (stlStr, attrs) = styleToStrAttr style
       props  = inTags True "Properties" [] $ inTags True "PathGeometry" []
                  $ inTags True "GeometryPathType" [("PathOpen","false")]
