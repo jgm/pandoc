@@ -27,7 +27,6 @@ import Data.List (isPrefixOf, isInfixOf, stripPrefix)
 import Data.Text as Text (breakOnAll, pack)
 import Control.Monad.State
 import Network.URI (isURI)
-import System.FilePath.Posix (pathSeparator)
 import qualified Data.Set as Set
 
 type Style = [String]
