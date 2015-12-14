@@ -14,6 +14,10 @@ flags:
 packages:
 - '..'
 - '../../pandoc-citeproc'
+- location:
+    git: 'https://github.com/jgm/pandoc-types'
+    commit: 7b471a3d129efd8155f6cdcb2f2b58b5605df0fc
+  extra-dep: true
 extra-deps:
 - 'hsb2hs-0.3.1'
-resolver: lts-3.16
+resolver: lts-3.18
