@@ -1,3 +1,250 @@
+pandoc (1.16)
+
+  * Fixed ICML image syntax for local files (#2589).
+
+  * Use lts-3.18 in stack.yaml.  This avoids Windows build
+    issues with the HTTP library.
+
+  * ODT/OpenDocument writer: improved image attributes (Mauro Bieg).
+
+    + Support for percentage widths/heights
+    + Use `Attr` instead of title to get dimensions from ODT walker
+      to `writeOpenDocument`.
+
+  * Support image attributes in Docx, Textile, RST readers (Mauro
+    Bieg).
+
+  * Text.Pandoc.CSS:  Added `pickStylesToKVs` function to
+    extract multiple properties at once (API change, Maura Bieg).
+
+  * AsciiDoc writer: support anchors in spans with id elements.
+
+  * AsciiDoc writers: Add anchors on Div elements (jgm/pandoc-citeproc#143).
+
+  * Implemented `east_asian_line_breaks` extension (#2586).
+    In Text.Pandoc.Options, added `Ext_east_asian_line_breaks` constructor
+    to `Extension` (API change).  This extension is like
+    `ignore_line_breaks`, but smarter -- it only ignores line breaks
+    between two East Asian wide characters.  This makes it better suited
+    for writing with a mix of East Asian and non-East Asian scripts.
+
+  * Fixed cite key parsing regression (jgm/pandoc-citeproc#201).
+    We were capturing final colons as in [@foo: bar]; the citation id
+    was being parsed as "@foo:".
+
+  * Removed deprecated options `--offline` and `--html5`.
+    These have been deprecated forever.
+
+  * Implemented SoftBreak and new `--wrap` option (#1701).
+    Added threefold wrapping option.
+
+    * Command line option: deprecated `--no-wrap`, added
+      `--wrap=[auto|none|preserve]`
+    * Added WrapOption, exported from Text.Pandoc.Options
+    * Changed type of writerWrapText in WriterOptions from
+      Bool to WrapOption.
+    * Modified Text.Pandoc.Shared functions for SoftBreak.
+    * Supported SoftBreak in writers.
+    * Updated tests.
+    * Updated README.
+
+  * trypandoc: sort drop-down lists.
+
+  * Fixed Emoji character definitions (#2523).  There were many bugs in the
+    definitions.
+
+  * Beamer template: make `\euro` conditional on presence of character.
+    for xelatex and lualatex, as it is for pdflatex (Andrew Dunning).
+
+  * Markdown reader: Improved pipe table relative widths.
+    Previously pipe table columns got relative widths (based on the header
+    underscore lines) when the source of one of the rows was greater in
+    width than the column width.  This gave bad results in some cases where
+    much of the width of the row was due to nonprinting material (e.g. link
+    URLs).  Now pandoc only looks at printable width (the width of a plain
+    string version of the source), which should give better results.
+    Thanks to John Muccigrosso for bringing up the issue.
+
+  * LaTeX template changes (Andrew Dunning):
+
+    + Only pass options to color package if `colorlinks` is set.
+    + Make definition of `\euro` conditional in xelatex/lualatex,
+      as it is already for pdflatex
+
+  * Fixed man template so disabling hyphenation actually works.
+    The command needs to come after .TH.
+
+  * Add support for GAP highlighting using listings (Rainere Silva).
+
+  * Parse CSS that doesn't contain the optional semicolon (Mauro Bieg).
+
+  * Docx writer:  better handling of PDF images.  Previously we tried
+    to get the image size from the image even if an explicit size was
+    specified.  Since we still can't get image size for PDFs, this made
+    it impossible to use PDF images in docx.  Now we don't try to get
+    the image size when a size is already explicitly specified.
+
+  * Markdown writer:  use raw HTML for link/image attributes when
+    the `link_attributes` extension is unset and `raw_html` is set (#2554).
+
+  * Added `stack.full.yaml` to build `pandoc-citeproc` as well.
+
+  * Allow pipe tables with no body rows (#2556).
+    Previously this raised a runtime error.
+
+  * LaTeX reader:  Improved smart quote parsing (#2555).
+    This fixes redering of unmatched quotes.
+
+  * Shared: Improved `fetchItem` so that `C:/Blah/Blah.jpg` isn't treated
+    as URL.  The Haskell URI parsing routines will accept "C:" as a
+    scheme, so we rule that out manually.  This helps with
+    `--self-contained` and absolute Windows paths.
+
+  * LaTeX reader: Use curly quotes for unmatched ` (#2555).
+
+  * Beamer writer: mark frame as fragile when it contains verbatim (#1613).
+
+  * AsciiDoc writer: Fixed code blocks (#1861).
+
+  * Define a `meta-json` variable for all writers (#2019).  This contains
+    a JSON version of all the metadata, in the format selected for the
+    writer.  So, for example, to get just the YAML metadata, you can run
+    pandoc with the following custom template: `$meta-json$`.  The intent
+    is to make it easier for static site generators and other tools to get
+    at the metadata.
+
+  * Document limitations of --self-contained (#2553).
+
+  * Improved Citations section of README (#2551).  Added information
+    about `link-citations` and a link to the pandoc-citeproc man page.
+
+  * `ImageSize`: use `safeRead` instead of `readMaybe`, which isn't
+    in base < 4.6.
+
+  * Context template:
+
+    + Use simplefonts for font loading (Paolo Rodríguez).  This is
+      needed for things to work on ConTeXt stable from TeXLive 2015.
+    + Revert use of `\setuphead` in title block (Andrew Dunning,
+      Rik Kabel).
+
+  * LaTeX template changes:
+
+    + Removed setting of `subject` in PDF metadata.
+      This used to be set to the subtitle, but really the subtitle
+      need not give the subject.  Also, `subtitle` can contain formatting,
+      so we'd need, at least, a plain text version for this.
+    + Moved `header-includes` before setting of `\title`, `\author`,
+      etc.  This allows these macros to be redefined.
+    + Use `\subtitle` command for `subtitle`, instead of tacking it
+      on to the title as before.  We give a no-op fallback definition if it is
+      not defined.  This change should produce much better results
+      in classes that support `\subtitle`.  With the default article
+      class, which does not define `\subtitle`, subtitles will no
+      longer be printed unless the user defines `\subtitle` and
+      redefines `\maketitle`.
+    + Moved redefinitions of `\paragraph` and `\subparagraph` to
+      before header-includes.
+
+  * Renamed link attribute extensions.  The old `link_attributes` is
+    now `mmd_link_attributes`, and `link_attributes` now enables the
+    new pandoc-style link and image attributes (API change).
+    Note: this change could break some existing workflows.
+
+  * Added Attr field to Link and Image (Mauro Bieg, #261, API change).
+
+  * Added syntax for link and image attributes to pandoc's Markdown
+    (Mauro Bieg).
+
+  * Updated readers and writers to use link and image attributes
+    when appropriate (Mauro Bieg).
+
+  * Rationalized behavior of `--no-tex-ligatures` and `--smart` (#2541).
+    This change makes `--no-tex-ligatures` affect the LaTeX reader
+    as well as the LaTeX and ConTeXt writers.  If it is used,
+    the LaTeX reader will parse characters `` ` ``, `'`, and `-`
+    literally, rather than parsing ligatures for quotation marks
+    and dashes.  And the LaTeX writer will print unicode quotation
+    mark and dash characters literally, rather than converting
+    them to the standard ASCII ligatures.  Note that `--smart` has
+    no effect on the LaTeX reader.  `--smart` is still the default
+    for all input formats when LaTeX or ConTeXt is the output format,
+    *unless* `--no-tex-ligatures` is used.
+
+    Some examples to illustrate the logic:
+
+    ```
+    % echo "'hi'" | pandoc -t latex
+    `hi'
+    % echo "'hi'" | pandoc -t latex --no-tex-ligatures
+    'hi'
+    % echo "'hi'" | pandoc -t latex --no-tex-ligatures --smart
+    ‘hi’
+    % echo "'hi'" | pandoc -f latex --no-tex-ligatures
+    <p>'hi'</p>
+    % echo "'hi'" | pandoc -f latex
+    <p>’hi’</p>
+    ```
+
+  * Docx reader: Handle dummy list items (Jesse Rosenthal).
+    These come up when people create a list item and then delete the
+    bullet. It doesn't refer to any real list item, and we used to ignore
+    it.
+
+  * Added 'navigation' variable to beamer template (#2543).
+    Valid values are `empty` (the default), `horizontal`, `vertical`,
+    and `frame`.  Note that this changes the default behavior from
+    `horizontal` to `empty`.  Closes #2543.
+
+  * Haddock writer:  omit formatting inside links, which isn't supported
+    by Haddock (#2515).
+
+  * Textile reader:  skip over attribute in image source (#2515).
+    We don't have a place yet for styles or sizes on images, but
+    we can skip the attributes rather than incorrectly taking them
+    to be part of the filename.
+
+  * ICML writer:  better handling of math.  Instead of just printing
+    the raw tex, we now try to fake it with unicode characters.
+
+  * Allow .adoc file extension for AsciiDoc (Andrew Dunning).
+
+  * HTML writer: Include `example` class for example lists (#2524).
+
+  * Improved implicit pandoc-citeproc inclusion.
+    The filter pandoc-citeproc is automatically used when
+    `--bibliography` is specified on the command line, unless
+    `--natbib` or `--biblatex` is used.  However, previously this
+    only worked if `--bibliography` was spelled out in full, and not
+    if `--biblio` was used.
+
+  * Update LaTeX/ConTeXt link colour usage (Andrew Dunning).
+
+  * reveal.js: Interpret pauses correctly for all headers (#2530).
+    Previously, when using headers below the slide level, pauses are left
+    uninterpreted into pauses. In my opinion, unexpected behavior but
+    intentional looking at the code.
+
+  * Remove redundant `center` variable for reveal.js (Andrew Dunning).
+
+  * ICML writer:  changed type of `writeICML` (Mauro Bieg).
+    API change:  It is now `WriterOptions -> Pandoc -> IO String`.
+    Also handle new image attributes.
+
+  * ICML writer:  Add Cite style to citations (Mauro Bieg).
+
+  * Parsing: Add `extractIdClass`, modified type of `KeyTable` (Mauro
+    Bieg, API change).
+
+  * ImageSize:  Added functions for converting between image dimensions
+    (Mauro Bieg).
+
+  * Text.Pandoc.Options:  Added `writerDpi` to `WriterOptions` (Mauro
+    Bieg).
+
+  * Added `--dpi` command-line option.
+
+
 pandoc (1.15.2.1)
 
   * Added two missing test files, and `stack.yaml`, to
