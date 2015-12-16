@@ -13,7 +13,7 @@ pandoc (1.16)
     + Updated tests.
     + Updated README.
 
-  * Added `--dpi` command-line option (Maura Bieg).
+  * Added `--dpi` command-line option (Mauro Bieg).
 
   * Removed deprecated options `--offline` and `--html5`.
 
@@ -60,7 +60,7 @@ pandoc (1.16)
 
   * AsciiDoc writer:
 
-    + Support anchors in spans and divswith id elements
+    + Support anchors in spans and divs with id elements
       (jgm/pandoc-citeproc#143).
     + Fixed code blocks (#1861).
 
@@ -69,7 +69,7 @@ pandoc (1.16)
 
   * Beamer writer: mark frame as fragile when it contains verbatim (#1613).
 
-  * LaTeX writer: Add support for GAP highlighting using listings (Rainere
+  * LaTeX writer: Add support for GAP highlighting using listings (Raniere
     Silva).
 
   * Docx writer:  better handling of PDF images.  Previously we tried
@@ -144,7 +144,7 @@ pandoc (1.16)
   * Text.Pandoc.CSS:
 
     + Added `pickStylesToKVs` function to extract multiple properties at
-      once (API change, Maura Bieg).
+      once (API change, Mauro Bieg).
     + Parse CSS that doesn't contain the optional semicolon (Mauro Bieg).
 
   * trypandoc: sort drop-down lists.
