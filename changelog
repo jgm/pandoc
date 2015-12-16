@@ -47,6 +47,7 @@ pandoc (1.16)
       API change:  It is now `WriterOptions -> Pandoc -> IO String`.
       Also handle new image attributes.
     + Add Cite style to citations (Mauro Bieg).
+    + Added figure handling (#2590, Mauro Bieg).
     + Better handling of math.  Instead of just printing the raw tex,
       we now try to fake it with unicode characters.
 
