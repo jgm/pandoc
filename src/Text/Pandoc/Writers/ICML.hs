@@ -71,6 +71,8 @@ linkName        = "Link"
 
 -- block element names (appear in InDesign's paragraph styles pane)
 paragraphName     :: String
+figureName        :: String
+imgCaptionName    :: String
 codeBlockName     :: String
 blockQuoteName    :: String
 orderedListName   :: String
@@ -94,6 +96,8 @@ subListParName    :: String
 footnoteName      :: String
 citeName          :: String
 paragraphName     = "Paragraph"
+figureName        = "Figure"
+imgCaptionName    = "Caption"
 codeBlockName     = "CodeBlock"
 blockQuoteName    = "Blockquote"
 orderedListName   = "NumList"
@@ -285,6 +289,11 @@ blocksToICML opts style lst = vcat `fmap` mapM (blockToICML opts style) lst
 -- | Convert a Pandoc block element to ICML.
 blockToICML :: WriterOptions -> Style -> Block -> WS Doc
 blockToICML opts style (Plain lst) = parStyle opts style lst
+-- title beginning with fig: indicates that the image is a figure
+blockToICML opts style (Para img@[Image _ txt (_,'f':'i':'g':':':_)]) = do
+  figure  <- parStyle opts (figureName:style) img
+  caption <- parStyle opts (imgCaptionName:style) txt
+  return $ figure $$ caption
 blockToICML opts style (Para lst) = parStyle opts (paragraphName:style) lst
 blockToICML opts style (CodeBlock _ str) = parStyle opts (codeBlockName:style) $ [Str str]
 blockToICML _ _ (RawBlock f str)
@@ -434,7 +443,7 @@ inlineToICML opts style (Link _ lst (url, title)) = do
                 cont  = inTags True "HyperlinkTextSource"
                          [("Self","htss-"++show ident), ("Name",title), ("Hidden","false")] content
             in  (cont, newst)
-inlineToICML opts style (Image attr alt target) = imageICML opts style attr alt target
+inlineToICML opts style (Image attr _ target) = imageICML opts style attr target
 inlineToICML opts style (Note lst) = footnoteToICML opts style lst
 inlineToICML opts style (Span _ lst) = inlinesToICML opts style lst
 
@@ -513,8 +522,8 @@ styleToStrAttr style =
   in  (stlStr, attrs)
 
 -- | Assemble an ICML Image.
-imageICML :: WriterOptions -> Style -> Attr -> [Inline] -> Target -> WS Doc
-imageICML opts style attr _ (src, _) = do
+imageICML :: WriterOptions -> Style -> Attr -> Target -> WS Doc
+imageICML opts style attr (src, _) = do
   res  <- liftIO $ fetchItem (writerSourceURL opts) src
   imgS <- case res of
             Left (_) -> do

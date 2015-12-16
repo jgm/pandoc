@@ -215,6 +215,11 @@
           </TabList>
         </Properties>
       </ParagraphStyle>
+      <ParagraphStyle Self="ParagraphStyle/Caption" Name="Caption" LeftIndent="0">
+        <Properties>
+          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+        </Properties>
+      </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/CodeBlock" Name="CodeBlock" LeftIndent="0">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
@@ -253,6 +258,11 @@
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/DefListTerm" Name="DefListTerm" LeftIndent="0" BulletsAndNumberingListType="BulletList" FontStyle="Bold">
+        <Properties>
+          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+        </Properties>
+      </ParagraphStyle>
+      <ParagraphStyle Self="ParagraphStyle/Figure" Name="Figure" LeftIndent="0">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
@@ -2542,7 +2552,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
     <Content> by Georges Melies (1902):</Content>
   </CharacterStyleRange><Br />
 </ParagraphStyleRange>
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Figure">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1.00000 0 0 1.00000 75.00000 -75.00000">
       <Properties>
@@ -2566,6 +2576,11 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
         <Link Self="ueb" LinkResourceURI="file:lalune.jpg" />
       </Image>
     </Rectangle>
+  </CharacterStyleRange><Br />
+</ParagraphStyleRange>
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Caption">
+  <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <Content>lalune</Content>
   </CharacterStyleRange><Br />
 </ParagraphStyleRange>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
