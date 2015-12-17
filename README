@@ -1022,7 +1022,9 @@ depending on the output format, but include metadata fields as well as the follo
         ...
 
 `subtitle`
-:   document subtitle
+:   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and Word docx;
+    renders in LaTeX only when using a document class that supports `\subtitle`,
+    such as `beamer` or the [KOMA-Script] series (`scrartcl`, `scrreprt`, `scrbook`)
 
 `abstract`
 :   document summary, included in LaTeX, ConTeXt, AsciiDoc, and Word docx
@@ -1212,6 +1214,7 @@ LaTeX variables are used when [creating a PDF].
 [`article`]: https://ctan.org/pkg/article
 [`report`]: https://ctan.org/pkg/report
 [`book`]: https://ctan.org/pkg/book
+[KOMA-Script]: https://ctan.org/pkg/koma-script
 [`memoir`]: https://ctan.org/pkg/memoir
 [predefined LaTeX colors]: https://en.wikibooks.org/wiki/LaTeX/Colors#Predefined_colors
 [LaTeX Font Catalogue]: http://www.tug.dk/FontCatalogue/
