@@ -1,8 +1,9 @@
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Simple table with caption:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <Table AppliedTableStyle="TableStyle/Table" HeaderRowCount="1" BodyRowCount="3" ColumnCount="4">
   <Column Name="0" />
   <Column Name="1" />
@@ -12,125 +13,127 @@
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Right</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Left</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Center</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Default</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
 </Table>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TableCaption">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Demonstration of simple table syntax.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Simple table without caption:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <Table AppliedTableStyle="TableStyle/Table" HeaderRowCount="1" BodyRowCount="3" ColumnCount="4">
   <Column Name="0" />
   <Column Name="1" />
@@ -140,123 +143,124 @@
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Right</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Left</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Center</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Default</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
 </Table>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TableCaption">
-  <Br />
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Simple table indented two spaces:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <Table AppliedTableStyle="TableStyle/Table" HeaderRowCount="1" BodyRowCount="3" ColumnCount="4">
   <Column Name="0" />
   <Column Name="1" />
@@ -266,125 +270,127 @@
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Right</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Left</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Center</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Default</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:3" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
 </Table>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TableCaption">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Demonstration of simple table syntax.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiline table with caption:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <Table AppliedTableStyle="TableStyle/Table" HeaderRowCount="1" BodyRowCount="2" ColumnCount="4">
   <Column Name="0" SingleColumnWidth="75.0" />
   <Column Name="1" SingleColumnWidth="68.75" />
@@ -394,97 +400,99 @@
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Centered Header</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Left Aligned</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Right Aligned</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Default aligned</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>First</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>row</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12.0</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Example of a row that spans multiple lines.</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Second</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>row</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>5.0</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Here's another one. Note the blank line between rows.</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
 </Table>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TableCaption">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here's the caption. It may span multiple lines.</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiline table without caption:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <Table AppliedTableStyle="TableStyle/Table" HeaderRowCount="1" BodyRowCount="2" ColumnCount="4">
   <Column Name="0" SingleColumnWidth="75.0" />
   <Column Name="1" SingleColumnWidth="68.75" />
@@ -494,95 +502,96 @@
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Centered Header</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Left Aligned</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Right Aligned</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; TableHeader &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Default aligned</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>First</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>row</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12.0</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Example of a row that spans multiple lines.</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Second</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>row</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>5.0</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Here's another one. Note the blank line between rows.</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
 </Table>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TableCaption">
-  <Br />
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Table without column headers:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <Table AppliedTableStyle="TableStyle/Table" HeaderRowCount="0" BodyRowCount="3" ColumnCount="4">
   <Column Name="0" />
   <Column Name="1" />
@@ -592,95 +601,96 @@
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>123</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>1</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
 </Table>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TableCaption">
-  <Br />
 </ParagraphStyleRange>
+<Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiline table without column headers:</Content>
-  </CharacterStyleRange><Br />
+  </CharacterStyleRange>
 </ParagraphStyleRange>
+<Br />
 <Table AppliedTableStyle="TableStyle/Table" HeaderRowCount="0" BodyRowCount="2" ColumnCount="4">
   <Column Name="0" SingleColumnWidth="75.0" />
   <Column Name="1" SingleColumnWidth="68.75" />
@@ -690,59 +700,58 @@
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>First</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>row</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>12.0</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:0" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Example of a row that spans multiple lines.</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="0:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; CenterAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Second</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="1:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>row</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="2:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; RightAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>5.0</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
   <Cell Name="3:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
         <Content>Here's another one. Note the blank line between rows.</Content>
-      </CharacterStyleRange><Br />
+      </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
 </Table>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TableCaption">
-  <Br />
 </ParagraphStyleRange>

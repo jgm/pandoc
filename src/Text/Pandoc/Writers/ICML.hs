@@ -23,7 +23,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Pretty
 import Text.Pandoc.ImageSize
-import Data.List (isPrefixOf, isInfixOf, stripPrefix)
+import Data.List (isPrefixOf, isInfixOf, stripPrefix, intersperse)
 import Data.Text as Text (breakOnAll, pack)
 import Control.Monad.State
 import Network.URI (isURI)
@@ -284,7 +284,9 @@ hyperlinksToDoc (x:xs) = hyp x $$ hyperlinksToDoc xs
 
 -- | Convert a list of Pandoc blocks to ICML.
 blocksToICML :: WriterOptions -> Style -> [Block] -> WS Doc
-blocksToICML opts style lst = vcat `fmap` mapM (blockToICML opts style) lst
+blocksToICML opts style lst = do
+  docs <- mapM (blockToICML opts style) lst
+  return $ intersperseBrs docs
 
 -- | Convert a Pandoc block element to ICML.
 blockToICML :: WriterOptions -> Style -> Block -> WS Doc
@@ -293,7 +295,7 @@ blockToICML opts style (Plain lst) = parStyle opts style lst
 blockToICML opts style (Para img@[Image _ txt (_,'f':'i':'g':':':_)]) = do
   figure  <- parStyle opts (figureName:style) img
   caption <- parStyle opts (imgCaptionName:style) txt
-  return $ figure $$ caption
+  return $ intersperseBrs [figure, caption]
 blockToICML opts style (Para lst) = parStyle opts (paragraphName:style) lst
 blockToICML opts style (CodeBlock _ str) = parStyle opts (codeBlockName:style) $ [Str str]
 blockToICML _ _ (RawBlock f str)
@@ -302,7 +304,7 @@ blockToICML _ _ (RawBlock f str)
 blockToICML opts style (BlockQuote blocks) = blocksToICML opts (blockQuoteName:style) blocks
 blockToICML opts style (OrderedList attribs lst) = listItemsToICML opts orderedListName style (Just attribs) lst
 blockToICML opts style (BulletList lst) = listItemsToICML opts bulletListName style Nothing lst
-blockToICML opts style (DefinitionList lst) = vcat `fmap` mapM (definitionListItemToICML opts style) lst
+blockToICML opts style (DefinitionList lst) = intersperseBrs `fmap` mapM (definitionListItemToICML opts style) lst
 blockToICML opts style (Header lvl _ lst) =
   let stl = (headerName ++ show lvl):style
   in parStyle opts stl lst
@@ -367,7 +369,7 @@ listItemsToICML opts listType style attribs (first:rest) = do
   s    <- get
   let maxD = max (maxListDepth s) (listDepth s)
   put s{ listDepth = 1, maxListDepth = maxD }
-  return $ vcat docs
+  return $ intersperseBrs docs
 
 -- | Convert a list of blocks to ICML list items.
 listItemToICML :: WriterOptions -> Style -> Bool-> Maybe ListAttributes -> [Block] -> WS Doc
@@ -393,15 +395,15 @@ listItemToICML opts style isFirst attribs item =
            let insertTab (Para lst) = blockToICML opts (subListParName:style) $ Para $ (Str "\t"):lst
                insertTab block      = blockToICML opts style block
            f <- blockToICML opts stl' $ head item
-           r <- fmap vcat $ mapM insertTab $ tail item
-           return $ f $$ r
+           r <- mapM insertTab $ tail item
+           return $ intersperseBrs (f : r)
          else blocksToICML opts stl' item
 
 definitionListItemToICML :: WriterOptions -> Style -> ([Inline],[[Block]]) -> WS Doc
 definitionListItemToICML opts style (term,defs) = do
   term' <- parStyle opts (defListTermName:style) term
-  defs' <- vcat `fmap` mapM (blocksToICML opts (defListDefName:style)) defs
-  return $ term' $$ defs'
+  defs' <- mapM (blocksToICML opts (defListDefName:style)) defs
+  return $ intersperseBrs $ (term' : defs')
 
 
 -- | Convert a list of inline elements to ICML.
@@ -458,7 +460,7 @@ footnoteToICML opts style lst =
                    inTags True "CharacterStyleRange" [] $ inTagsSimple "Content" "<?ACE 4?>"
     return $ inTags True "CharacterStyleRange"
       [("AppliedCharacterStyle","$ID/NormalCharacterStyle"), ("Position","Superscript")]
-      $ inTags True "Footnote" [] $ number $$ vcat contents
+      $ inTags True "Footnote" [] $ number $$ intersperseBrs contents
 
 -- | Auxiliary function to merge Space elements into the adjacent Strs.
 mergeSpaces :: [Inline] -> [Inline]
@@ -473,6 +475,10 @@ isSp :: Inline -> Bool
 isSp Space = True
 isSp SoftBreak = True
 isSp _ = False
+
+-- | Intersperse line breaks
+intersperseBrs :: [Doc] -> Doc
+intersperseBrs = vcat . intersperse (selfClosingTag "Br" []) . filter (not . isEmpty)
 
 -- | Wrap a list of inline elements in an ICML Paragraph Style
 parStyle :: WriterOptions -> Style -> [Inline] -> WS Doc
@@ -495,8 +501,7 @@ parStyle opts style lst =
                    else [attrs]
   in  do
       content <- inlinesToICML opts [] lst
-      let cont = inTags True "ParagraphStyleRange" attrs'
-                   $ mappend content $ selfClosingTag "Br" []
+      let cont = inTags True "ParagraphStyleRange" attrs' content
       state $ \st -> (cont, st{ blockStyles = Set.insert stlStr $ blockStyles st })
 
 -- | Wrap a Doc in an ICML Character Style.
