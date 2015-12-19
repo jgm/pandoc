@@ -130,7 +130,12 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                  | otherwise               -> return ()
   -- check for \usepackage...{csquotes}; if present, we'll use
   -- \enquote{...} for smart quotes:
-  when ("{csquotes}" `isInfixOf` template) $
+  let headerIncludesField :: FromJSON a => Maybe a
+      headerIncludesField = getField "header-includes" metadata
+  let headerIncludes = fromMaybe [] $ mplus
+                       (fmap return headerIncludesField)
+                       headerIncludesField
+  when (any (isInfixOf "{csquotes}") (template : headerIncludes)) $
     modify $ \s -> s{stCsquotes = True}
   let (blocks'', lastHeader) = if writerCiteMethod options == Citeproc then
                                  (blocks', [])
