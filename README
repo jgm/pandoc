@@ -1023,8 +1023,9 @@ depending on the output format, but include metadata fields as well as the follo
 
 `subtitle`
 :   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and Word docx;
-    renders in LaTeX only when using a document class that supports `\subtitle`,
-    such as `beamer` or the [KOMA-Script] series (`scrartcl`, `scrreprt`, `scrbook`)
+    renders in LaTeX only when using a document class that supports
+    `\subtitle`, such as `beamer` or the [KOMA-Script] series (`scrartcl`,
+    `scrreprt`, `scrbook`).[^subtitle]
 
 `abstract`
 :   document summary, included in LaTeX, ConTeXt, AsciiDoc, and Word docx
@@ -1055,6 +1056,15 @@ depending on the output format, but include metadata fields as well as the follo
 
 `meta-json`
 :   JSON representation of all of the document's metadata
+
+[^subtitle]: To make `subtitle` work with other LaTeX
+    document classes, you can add the following to `header-includes`:
+
+        \providecommand{\subtitle}[1]{%
+          \usepackage{titling}
+          \posttitle{%
+            \par\large#1\end{center}}
+        }
 
 Language variables
 ------------------
