@@ -1007,12 +1007,13 @@ Variables set by pandoc
 -----------------------
 
 Some variables are set automatically by pandoc.  These vary somewhat
-depending on the output format, but include metadata fields as well as the following:
+depending on the output format, but include metadata fields as well
+as the following:
 
 `title`, `author`, `date`
-:   allow identification of basic aspects of the document.
-    Included in PDF metadata through LaTeX and ConTeXt.
-    These can be set through a [pandoc title block][Extension: `pandoc_title_block`],
+:   allow identification of basic aspects of the document.  Included
+    in PDF metadata through LaTeX and ConTeXt.  These can be set
+    through a [pandoc title block][Extension: `pandoc_title_block`],
     which allows for multiple authors, or through a YAML metadata block:
 
         ---
@@ -1031,7 +1032,8 @@ depending on the output format, but include metadata fields as well as the follo
 :   document summary, included in LaTeX, ConTeXt, AsciiDoc, and Word docx
 
 `keywords`
-:   list of keywords to be included in HTML, PDF, and AsciiDoc metadata; may be repeated as for `author`, above
+:   list of keywords to be included in HTML, PDF, and AsciiDoc metadata;
+    may be repeated as for `author`, above
 
 `header-includes`
 :   contents specified by `-H/--include-in-header` (may have multiple
