@@ -38,7 +38,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
-import Data.Aeson (object, (.=))
+import Data.Aeson (object, (.=), FromJSON)
 import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse, nub, nubBy )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
 import Data.Maybe ( fromMaybe, isJust )
