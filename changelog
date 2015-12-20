@@ -17,6 +17,8 @@ pandoc (1.16)
 
   * Removed deprecated options `--offline` and `--html5`.
 
+  * Fixed language code for Czech (cs not cz) (#2597).
+
   * Added Attr field to Link and Image (Mauro Bieg, #261, API change).
 
     + Added syntax for link and image attributes to pandoc's Markdown
@@ -46,6 +48,8 @@ pandoc (1.16)
     + Changed type of `writeICML` (Mauro Bieg).
       API change:  It is now `WriterOptions -> Pandoc -> IO String`.
       Also handle new image attributes.
+    + Intersperse line breaks instead of appending them to
+      every ParagraphStyleRange (Mauro Bieg, #2501).
     + Add Cite style to citations (Mauro Bieg).
     + Added figure handling (#2590, Mauro Bieg).
     + Better handling of math.  Instead of just printing the raw tex,
@@ -70,8 +74,11 @@ pandoc (1.16)
 
   * Beamer writer: mark frame as fragile when it contains verbatim (#1613).
 
-  * LaTeX writer: Add support for GAP highlighting using listings (Raniere
-    Silva).
+  * LaTeX writer:
+
+    + Add support for GAP highlighting using listings (Raniere Silva).
+    + Consider `header-includes` content as well as templates
+      when determining whether to use csquotes (Andreas Lööw).
 
   * Docx writer:  better handling of PDF images.  Previously we tried
     to get the image size from the image even if an explicit size was
@@ -88,14 +95,18 @@ pandoc (1.16)
       unmatched quotes.
     + LaTeX reader: Use curly quotes for unmatched ` (#2555).
 
-  * Markdown reader: Improved pipe table relative widths.
-    Previously pipe table columns got relative widths (based on the header
-    underscore lines) when the source of one of the rows was greater in
-    width than the column width.  This gave bad results in some cases where
-    much of the width of the row was due to nonprinting material (e.g. link
-    URLs).  Now pandoc only looks at printable width (the width of a plain
-    string version of the source), which should give better results.
-    Thanks to John Muccigrosso for bringing up the issue.
+  * Markdown reader:
+
+    + Improved pipe table relative widths.  Previously pipe table
+      columns got relative widths (based on the header underscore lines)
+      when the source of one of the rows was greater in width than the
+      column width.  This gave bad results in some cases where much of
+      the width of the row was due to nonprinting material (e.g. link
+      URLs).  Now pandoc only looks at printable width (the width of a
+      plain string version of the source), which should give better results.
+      Thanks to John Muccigrosso for bringing up the issue.
+    + Fixed parsing bug with macros.  Previously macro definitions in
+      indented code blocks were being parsed as macro definitions, not code.
 
   * Textile reader:  skip over attribute in image source (#2515).
     We don't have a place yet for styles or sizes on images, but
@@ -150,8 +161,25 @@ pandoc (1.16)
 
   * trypandoc: sort drop-down lists.
 
-  * Beamer template: make `\euro` conditional on presence of character.
-    for xelatex and lualatex, as it is for pdflatex (Andrew Dunning).
+  * Beamer template:
+
+    + Made `\euro` conditional on presence of character.
+      for xelatex and lualatex, as it is for pdflatex (Andrew Dunning).
+    + Moved `header-includes` before setting of title (Thomas Hodgson),
+      to match the LaTeX template (jgm/pandoc-templates#168).
+    + Added `section-titles` variable (defaults to true)
+      to enable/suppress section title pages in beamer
+      slide shows (Thomas Hodgson).
+    + Moved beamer themes after fonts, so that themes can
+      change fonts.  (Previously the fonts set were being
+      clobbered by lmodern.sty.) (Thomas Hodgson).
+
+  * Beamer/LaTeX template changes (Thomas Hodgson):
+    + Added `thanks` variable
+    + Use `parskip.sty` when `indent` isn't set (fall back to using
+      `setlength` as before if `parskip.sty` isn't available).
+    + Use `biblio-style` with biblatex.
+    + Added `biblatexoptions` variable.
 
   * LaTeX template changes:
 
@@ -181,7 +209,7 @@ pandoc (1.16)
       needed for things to work on ConTeXt stable from TeXLive 2015.
     + Revert use of `\setuphead` in title block (Andrew Dunning,
       Rik Kabel).
-  
+
   * Update LaTeX/ConTeXt link colour usage (Andrew Dunning).
 
   * Fixed man template so disabling hyphenation actually works.
