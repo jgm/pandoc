@@ -439,7 +439,6 @@ fromBcp47 ("en":"GB":_)   = "en-gb"
 fromBcp47 ("grc":_)       = "agr"
 fromBcp47 x               = fromIso $ head x
   where
-    fromIso "cz" = "cs"
     fromIso "el" = "gr"
     fromIso "eu" = "ba"
     fromIso "he" = "il"
