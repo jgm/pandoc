@@ -1231,7 +1231,7 @@ LaTeX variables are used when [creating a PDF].
 :   bibliography style, when used with `--natbib` and
     `--biblatex`.
 
-`biblatex-options`
+`biblatexoptions`
 :   list of options for biblatex.
 
 [`article`]: https://ctan.org/pkg/article
