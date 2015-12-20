@@ -1138,6 +1138,10 @@ including all [reveal.js configuration options].
     (default is `empty` for no navigation symbols; other valid values
     are `frame`, `vertical`, and `horizontal`).
 
+`section-titles`
+:   enables on "title pages" for new sections in `beamer`
+    documents (default = true).
+
 [reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
 Variables for LaTeX
@@ -1208,6 +1212,9 @@ LaTeX variables are used when [creating a PDF].
 :   disables default behavior of LaTeX template that redefines (sub)paragraphs
     as sections, changing the appearance of nested headings in some classes
 
+`thanks`
+:   specifies contents of acknowledgments footnote after document title.
+
 `toc`
 :   include table of contents (can also be set using `--toc/--table-of-contents`)
 
@@ -1221,7 +1228,11 @@ LaTeX variables are used when [creating a PDF].
 :   bibliography to use for resolving references
 
 `biblio-style`
-:   bibliography style, when used with `--natbib`
+:   bibliography style, when used with `--natbib` and
+    `--biblatex`.
+
+`biblatex-options`
+:   list of options for biblatex.
 
 [`article`]: https://ctan.org/pkg/article
 [`report`]: https://ctan.org/pkg/report

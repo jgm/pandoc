@@ -195,6 +195,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "dir" (if (null $ query (extract "dir") blocks)
                                      then ""::String
                                      else "ltr") $
+                  defField "section-titles" True $
                   metadata
   let toPolyObj lang = object [ "name"    .= T.pack name
                               , "options" .= T.pack opts ]
