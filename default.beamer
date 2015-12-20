@@ -187,6 +187,9 @@ $if(dir)$
   \newenvironment{LTR}{\beginL}{\endL}
 \fi
 $endif$
+$for(header-includes)$
+$header-includes$
+$endfor$
 
 $if(title)$
 \title{$title$}
@@ -198,9 +201,6 @@ $if(author)$
 \author{$for(author)$$author$$sep$ \and $endfor$}
 $endif$
 \date{$date$}
-$for(header-includes)$
-$header-includes$
-$endfor$
 
 \begin{document}
 $if(title)$
