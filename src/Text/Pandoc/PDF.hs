@@ -46,10 +46,13 @@ import Control.Monad (unless, when, (<=<))
 import qualified Control.Exception as E
 import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe)
+import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walkM)
-import Text.Pandoc.Shared (fetchItem', warn, withTempDir, inDirectory)
+import Text.Pandoc.Shared (fetchItem', warn, withTempDir, inDirectory,
+                           stringify)
+import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..))
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Process (pipeProcess)
@@ -70,14 +73,20 @@ makePDF :: String              -- ^ pdf creator (pdflatex, lualatex,
         -> WriterOptions       -- ^ options
         -> Pandoc              -- ^ document
         -> IO (Either ByteString ByteString)
-makePDF "wkhtmltopdf" writer opts doc =
-  wkhtml2pdf (writerVerbose opts) args source
-    where args = case writerHTMLMathMethod opts of
-            -- with MathJax, wait til all math is rendered:
+makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = do
+  let mathArgs = case writerHTMLMathMethod opts of
+                 -- with MathJax, wait til all math is rendered:
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
                                     "--window-status", "mathjax_loaded"]
                       _ -> []
-          source = writer opts doc
+  meta' <- metaToJSON opts (return . stringify) (return . stringify) meta
+  let toArgs (f, d) = maybe (maybe [] (\x -> ['-':'-':f, x]) d)
+                        (\x -> ['-':'-':f, x]) $ getField f meta'
+  let args   = mathArgs ++
+               concatMap toArgs [("page-size", Just "letter")
+                                ,("title", Nothing)]
+  let source = writer opts doc
+  html2pdf (writerVerbose opts) args source
 makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
   doc' <- handleImages opts tmpdir doc
   let source = writer opts doc'
@@ -247,13 +256,13 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
                    else return Nothing
          return (exit, out <> err, pdf)
 
-wkhtml2pdf  :: Bool         -- ^ Verbose output
-            -> [String]     -- ^ Args to wkhtmltopdf
-            -> String       -- ^ HTML5 source
-            -> IO (Either ByteString ByteString)
-wkhtml2pdf verbose args source = do
-  file <- withTempFile "." "wkhtml2pdf.html" $ \fp _ -> return fp
-  pdfFile <- withTempFile "." "wkhtml2pdf.pdf" $ \fp _ -> return fp
+html2pdf  :: Bool         -- ^ Verbose output
+          -> [String]     -- ^ Args to wkhtmltopdf
+          -> String       -- ^ HTML5 source
+          -> IO (Either ByteString ByteString)
+html2pdf verbose args source = do
+  file <- withTempFile "." "html2pdf.html" $ \fp _ -> return fp
+  pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
   UTF8.writeFile file source
   let programArgs = args ++ [file, pdfFile]
   env' <- getEnvironment
