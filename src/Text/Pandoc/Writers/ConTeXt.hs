@@ -37,6 +37,7 @@ import Text.Pandoc.Walk (query)
 import Text.Printf ( printf )
 import Data.List ( intercalate, intersperse )
 import Data.Char ( ord )
+import Data.Maybe ( catMaybes )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import Text.Pandoc.ImageSize
@@ -72,6 +73,14 @@ pandocToConTeXt options (Pandoc meta blocks) = do
               meta
   body <- mapM (elementToConTeXt options) $ hierarchicalize blocks
   let main = (render colwidth . vcat) body
+  let layoutFromMargins = intercalate [','] $ catMaybes $
+                              map (\(x,y) ->
+                                ((x ++ "=") ++) <$> getField y metadata)
+                              [("leftmargin","margin-left")
+                              ,("rightmargin","margin-right")
+                              ,("top","margin-top")
+                              ,("bottom","margin-bottom")
+                              ]
   let context =   defField "toc" (writerTableOfContents options)
                 $ defField "placelist" (intercalate ("," :: String) $
                      take (writerTOCDepth options + if writerChapters options
@@ -80,6 +89,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                        ["chapter","section","subsection","subsubsection",
                         "subsubsubsection","subsubsubsubsection"])
                 $ defField "body" main
+                $ defField "layout" layoutFromMargins
                 $ defField "number-sections" (writerNumberSections options)
                 $ metadata
   let context' =  defField "context-lang" (maybe "" (fromBcp47 . splitBy (=='-')) $
