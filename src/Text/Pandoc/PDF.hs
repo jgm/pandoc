@@ -79,16 +79,20 @@ makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = do
                                     "--window-status", "mathjax_loaded"]
                       _ -> []
   meta' <- metaToJSON opts (return . stringify) (return . stringify) meta
-  let toArgs (f, d) = maybe (maybe [] (\x -> ['-':'-':f, x]) d)
-                        (\x -> ['-':'-':f, x]) $ getField f meta'
+  let toArgs (f, mbd) = maybe [] (\d -> ['-':'-':f, d]) mbd
   let args   = mathArgs ++
-               concatMap toArgs [("page-size", Just "letter")
-                                ,("title", Nothing)
-                                ,("margin-bottom", Just "1in")
-                                ,("margin-top", Just "1in")
-                                ,("margin-left", Just "1in")
-                                ,("margin-right", Just "1in")
-                                ]
+               concatMap toArgs
+                 [("page-size", getField "papersize" meta')
+                 ,("title", getField "title" meta')
+                 ,("margin-bottom", fromMaybe (Just "1.2in")
+                            (getField "margin-bottom" meta'))
+                 ,("margin-top", fromMaybe (Just "1.25in")
+                            (getField "margin-top" meta'))
+                 ,("margin-right", fromMaybe (Just "1.25in")
+                            (getField "margin-right" meta'))
+                 ,("margin-left", fromMaybe (Just "1.25in")
+                            (getField "margin-left" meta'))
+                 ]
   let source = writer opts doc
   html2pdf (writerVerbose opts) args source
 makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
