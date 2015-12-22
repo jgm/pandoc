@@ -1168,6 +1168,7 @@ convertWithOpts opts args = do
   let laTeXOutput = "latex" `isPrefixOf` writerName' ||
                     "beamer" `isPrefixOf` writerName'
   let conTeXtOutput = "context" `isPrefixOf` writerName'
+  let html5Output = "html5" `isPrefixOf` writerName'
 
   let laTeXInput = "latex" `isPrefixOf` readerName' ||
                     "beamer" `isPrefixOf` readerName'
@@ -1367,27 +1368,28 @@ convertWithOpts opts args = do
     IOByteStringWriter f -> f writerOptions doc' >>= writeBinary
     PureStringWriter f
       | pdfOutput -> do
-              -- make sure writer is latex or beamer
-              unless (laTeXOutput || conTeXtOutput) $
+              -- make sure writer is latex or beamer or context or html5
+              unless (laTeXOutput || conTeXtOutput || html5Output) $
                 err 47 $ "cannot produce pdf output with " ++ writerName' ++
                          " writer"
 
-              let texprog = if conTeXtOutput
-                              then "context"
-                              else latexEngine
-              -- check for latex program
-              mbLatex <- findExecutable texprog
-              when (isNothing mbLatex) $
-                   err 41 $ texprog ++ " not found. " ++
-                     texprog ++ " is needed for pdf output."
+              let pdfprog = case () of
+                              _ | conTeXtOutput -> "context"
+                              _ | html5Output   -> "wkhtmltopdf"
+                              _                 -> latexEngine
+              -- check for pdf creating program
+              mbPdfProg <- findExecutable pdfprog
+              when (isNothing mbPdfProg) $
+                   err 41 $ pdfprog ++ " not found. " ++
+                     pdfprog ++ " is needed for pdf output."
 
-              res <- makePDF texprog f writerOptions doc'
+              res <- makePDF pdfprog f writerOptions doc'
               case res of
                    Right pdf -> writeBinary pdf
                    Left err' -> do
                      B.hPutStr stderr err'
                      B.hPut stderr $ B.pack [10]
-                     err 43 "Error producing PDF from TeX source"
+                     err 43 "Error producing PDF"
       | otherwise -> selfcontain (f writerOptions doc' ++
                                   ['\n' | not standalone'])
                       >>= writerFn outputFile . handleEntities

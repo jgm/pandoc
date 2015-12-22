@@ -24,7 +24,7 @@ markup], [Haddock markup], [OPML], [Emacs Org mode], [DocBook],
 [FictionBook2], [Textile], [groff man] pages, [Emacs Org mode],
 [AsciiDoc], [InDesign ICML], and [Slidy], [Slideous], [DZSlides],
 [reveal.js] or [S5] HTML slide shows. It can also produce [PDF] output
-on systems where LaTeX or ConTeXt is installed.
+on systems where LaTeX, ConTeXt, or `wkhtmltopdf` is installed.
 
 Pandoc's enhanced version of Markdown includes syntax for [footnotes],
 [tables], flexible [ordered lists], [definition lists], [fenced code blocks],
@@ -189,12 +189,13 @@ any header file. The [`natbib`], [`biblatex`], [`bibtex`], and [`biber`]
 packages can optionally be used for [citation rendering]. These are
 included with all recent versions of [TeX Live].
 
-Alternatively, pandoc can use ConTeXt to create a PDF.
+Alternatively, pandoc can use ConTeXt or `wkhtmltopdf` to create a PDF.
 To do this, specify an output file with a `.pdf` extension,
-as before, but add `-t context` to the command line.
+as before, but add `-t context` or `-t html5` to the command line.
 
-PDF output can be controlled using [variables for LaTeX]
-or [variables for ConTeXt].
+PDF output can be controlled using [variables for LaTeX] (if
+LaTeX is used), [variables for ConTeXt] (if ConTeXt is used),
+and `--css` (if `wkhtmltopdf` is used).
 
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
 [`amsmath`]: https://ctan.org/pkg/amsmath

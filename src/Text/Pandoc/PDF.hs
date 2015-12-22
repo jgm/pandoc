@@ -38,6 +38,7 @@ import Text.Pandoc.Compat.Monoid ((<>))
 import System.Exit (ExitCode (..))
 import System.FilePath
 import System.IO (stderr, stdout)
+import System.IO.Temp (withTempFile)
 import System.Directory
 import Data.Digest.Pure.SHA (showDigest, sha1)
 import System.Environment
@@ -49,7 +50,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Shared (fetchItem', warn, withTempDir, inDirectory)
-import Text.Pandoc.Options (WriterOptions(..))
+import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..))
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Process (pipeProcess)
 import qualified Data.ByteString.Lazy as BL
@@ -63,18 +64,29 @@ changePathSeparators :: FilePath -> FilePath
 changePathSeparators = intercalate "/" . splitDirectories
 #endif
 
-makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex)
+makePDF :: String              -- ^ pdf creator (pdflatex, lualatex,
+                               -- xelatex, context, wkhtmltopdf)
         -> (WriterOptions -> Pandoc -> String)  -- ^ writer
         -> WriterOptions       -- ^ options
         -> Pandoc              -- ^ document
         -> IO (Either ByteString ByteString)
+makePDF "wkhtmltopdf" writer opts doc =
+  wkhtml2pdf (writerVerbose opts) args source
+    where args = case writerHTMLMathMethod opts of
+            -- with MathJax, wait til all math is rendered:
+                      MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
+                                    "--window-status", "mathjax_loaded"]
+                      _ -> []
+          source = writer opts doc
 makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
   doc' <- handleImages opts tmpdir doc
   let source = writer opts doc'
       args   = writerLaTeXArgs opts
   case program of
      "context" -> context2pdf (writerVerbose opts) tmpdir source
-     _ -> tex2pdf' (writerVerbose opts) args tmpdir program source
+     _ | program `elem` ["pdflatex", "lualatex", "xelatex"]
+         -> tex2pdf' (writerVerbose opts) args tmpdir program source
+     _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
 
 handleImages :: WriterOptions
              -> FilePath      -- ^ temp dir to store images
@@ -234,6 +246,49 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
                    then (Just . B.fromChunks . (:[])) `fmap` BS.readFile pdfFile
                    else return Nothing
          return (exit, out <> err, pdf)
+
+wkhtml2pdf  :: Bool         -- ^ Verbose output
+            -> [String]     -- ^ Args to wkhtmltopdf
+            -> String       -- ^ HTML5 source
+            -> IO (Either ByteString ByteString)
+wkhtml2pdf verbose args source = do
+  file <- withTempFile "." "wkhtml2pdf.html" $ \fp _ -> return fp
+  pdfFile <- withTempFile "." "wkhtml2pdf.pdf" $ \fp _ -> return fp
+  UTF8.writeFile file source
+  let programArgs = args ++ [file, pdfFile]
+  env' <- getEnvironment
+  when verbose $ do
+    putStrLn "[makePDF] Command line:"
+    putStrLn $ "wkhtmltopdf" ++ " " ++ unwords (map show programArgs)
+    putStr "\n"
+    putStrLn "[makePDF] Environment:"
+    mapM_ print env'
+    putStr "\n"
+    putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
+    B.readFile file >>= B.putStr
+    putStr "\n"
+  (exit, out, err) <- pipeProcess (Just env') "wkhtmltopdf"
+                              programArgs BL.empty
+  removeFile file
+  when verbose $ do
+    B.hPutStr stdout out
+    B.hPutStr stderr err
+    putStr "\n"
+  pdfExists <- doesFileExist pdfFile
+  mbPdf <- if pdfExists
+            -- We read PDF as a strict bytestring to make sure that the
+            -- temp directory is removed on Windows.
+            -- See https://github.com/jgm/pandoc/issues/1192.
+            then do
+              res <- (Just . B.fromChunks . (:[])) `fmap` BS.readFile pdfFile
+              removeFile pdfFile
+              return res
+            else return Nothing
+  let log' = out <> err
+  return $ case (exit, mbPdf) of
+             (ExitFailure _, _)      -> Left log'
+             (ExitSuccess, Nothing)  -> Left ""
+             (ExitSuccess, Just pdf) -> Right pdf
 
 context2pdf :: Bool         -- ^ Verbose output
             -> FilePath     -- ^ temp directory for output
