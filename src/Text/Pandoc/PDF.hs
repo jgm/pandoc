@@ -46,7 +46,6 @@ import Control.Monad (unless, when, (<=<))
 import qualified Control.Exception as E
 import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe)
-import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walkM)
@@ -84,7 +83,12 @@ makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = do
                         (\x -> ['-':'-':f, x]) $ getField f meta'
   let args   = mathArgs ++
                concatMap toArgs [("page-size", Just "letter")
-                                ,("title", Nothing)]
+                                ,("title", Nothing)
+                                ,("margin-bottom", Just "1in")
+                                ,("margin-top", Just "1in")
+                                ,("margin-left", Just "1in")
+                                ,("margin-right", Just "1in")
+                                ]
   let source = writer opts doc
   html2pdf (writerVerbose opts) args source
 makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
