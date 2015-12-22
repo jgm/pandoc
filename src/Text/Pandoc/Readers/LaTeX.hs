@@ -132,7 +132,9 @@ comment = do
   return ()
 
 bgroup :: LP ()
-bgroup = () <$ char '{'
+bgroup = try $ do
+  skipMany (spaceChar <|> try (newline <* notFollowedBy blankline))
+  () <$ char '{'
      <|> () <$ controlSeq "bgroup"
      <|> () <$ controlSeq "begingroup"
 
