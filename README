@@ -194,8 +194,10 @@ To do this, specify an output file with a `.pdf` extension,
 as before, but add `-t context` or `-t html5` to the command line.
 
 PDF output can be controlled using [variables for LaTeX] (if
-LaTeX is used), [variables for ConTeXt] (if ConTeXt is used),
-and `--css` (if `wkhtmltopdf` is used).
+LaTeX is used) and [variables for ConTeXt] (if ConTeXt is used).
+If `wkhtmltopdf` is used, then the variables `margin-left`,
+`margin-right`, `margin-top`, `margin-bottom`, and `papersize`
+will affect the output, as will `--css`.
 
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
 [`amsmath`]: https://ctan.org/pkg/amsmath
@@ -1150,6 +1152,9 @@ Variables for LaTeX
 
 LaTeX variables are used when [creating a PDF].
 
+`papersize`
+:   paper size, e.g. `letter`, `A4`
+
 `fontsize`
 :   font size for body text (e.g. `10pt`, `12pt`)
 
@@ -1163,6 +1168,10 @@ LaTeX variables are used when [creating a PDF].
 `geometry`
 :   option for [`geometry`] package, e.g. `margin=1in`;
     may be repeated for multiple options
+
+`margin-left`, `margin-right`, `margin-top`, `margin-bottom`
+:   sets margins, if `geometry` is not used (otherwise `geometry`
+    overrides these)
 
 `linestretch`
 :   adjusts line spacing using the [`setspace`]
@@ -1255,6 +1264,10 @@ Variables for ConTeXt
 `layout`
 :   options for page margins and text arrangement (see [ConTeXt Layout]);
     may be repeated for multiple options
+
+`margin-left`, `margin-right`, `margin-top`, `margin-bottom`
+:   sets margins, if `layout` is not used (otherwise `layout`
+    overrides these)
 
 `fontsize`
 :   font size for body text (e.g. `10pt`, `12pt`)
