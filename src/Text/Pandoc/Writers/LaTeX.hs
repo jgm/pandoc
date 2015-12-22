@@ -41,7 +41,7 @@ import Network.URI ( isURI, unEscapeString )
 import Data.Aeson (object, (.=), FromJSON)
 import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse, nub, nubBy )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
-import Data.Maybe ( fromMaybe, isJust )
+import Data.Maybe ( fromMaybe, isJust, catMaybes )
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
 import Control.Monad.State
@@ -153,6 +153,14 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
   let docLangs = nub $ query (extract "lang") blocks
   let hasStringValue x = isJust (getField x metadata :: Maybe String)
+  let geometryFromMargins = intercalate [','] $ catMaybes $
+                              map (\(x,y) ->
+                                ((x ++ "=") ++) <$> getField y metadata)
+                              [("lmargin","margin-left")
+                              ,("rmargin","margin-right")
+                              ,("tmargin","margin-top")
+                              ,("bmargin","margin-bottom")
+                              ]
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (show (writerTOCDepth options -
                                               if stBook st
@@ -196,6 +204,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                      then ""::String
                                      else "ltr") $
                   defField "section-titles" True $
+                  defField "geometry" geometryFromMargins $
                   metadata
   let toPolyObj lang = object [ "name"    .= T.pack name
                               , "options" .= T.pack opts ]
