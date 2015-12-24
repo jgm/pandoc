@@ -1009,6 +1009,8 @@ defaultWriterName x =
     ".fb2"      -> "fb2"
     ".opml"     -> "opml"
     ".icml"     -> "icml"
+    ".tei.xml"  -> "tei"
+    ".tei"      -> "tei"
     ['.',y] | y `elem` ['1'..'9'] -> "man"
     _           -> "html"
 
