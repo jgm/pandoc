@@ -12,7 +12,6 @@ packages:
 - '../pandoc-citeproc'
 - '../pandoc-types'
 - '../texmath'
-- location: 'https://hackage.haskell.org/package/cmark-0.5.0/cmark-0.5.0.tar.gz'
-  extra-dep: true
-extra-deps: []
+extra-deps:
+- 'cmark-0.5.0'
 resolver: lts-3.18

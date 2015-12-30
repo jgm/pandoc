@@ -14,6 +14,6 @@ flags:
 packages:
 - '..'
 - 'https://hackage.haskell.org/package/pandoc-citeproc-0.8.1.3/pandoc-citeproc-0.8.1.3.tar.gz'
-- location: 'https://hackage.haskell.org/package/cmark-0.5.0/cmark-0.5.0.tar.gz'
-  extra-dep: true
+extra-deps:
+- 'cmark-0.5.0'
 resolver: lts-3.18
