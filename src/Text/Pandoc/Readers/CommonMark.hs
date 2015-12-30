@@ -58,15 +58,19 @@ addBlocks = foldr addBlock []
 addBlock :: Node -> [Block] -> [Block]
 addBlock (Node _ PARAGRAPH nodes) =
   (Para (addInlines nodes) :)
-addBlock (Node _ HRULE _) =
+addBlock (Node _ THEMATIC_BREAK _) =
   (HorizontalRule :)
 addBlock (Node _ BLOCK_QUOTE nodes) =
   (BlockQuote (addBlocks nodes) :)
-addBlock (Node _ (HTML t) _) =
+addBlock (Node _ (HTML_BLOCK t) _) =
   (RawBlock (Format "html") (unpack t) :)
+-- Note:  the cmark parser will never generate CUSTOM_BLOCK,
+-- so we don't need to handle it:
+addBlock (Node _ (CUSTOM_BLOCK _onEnter _onExit) _nodes) =
+  id
 addBlock (Node _ (CODE_BLOCK info t) _) =
   (CodeBlock ("", take 1 (words (unpack info)), []) (unpack t) :)
-addBlock (Node _ (HEADER lev) nodes) =
+addBlock (Node _ (HEADING lev) nodes) =
   (Header lev ("",[],[]) (addInlines nodes) :)
 addBlock (Node _ (LIST listAttrs) nodes) =
   (constructor (map (setTightness . addBlocks . children) nodes) :)
@@ -104,8 +108,12 @@ addInline (Node _ (TEXT t) _) = (map toinl clumps ++)
         toinl xs         = Str xs
 addInline (Node _ LINEBREAK _) = (LineBreak :)
 addInline (Node _ SOFTBREAK _) = (SoftBreak :)
-addInline (Node _ (INLINE_HTML t) _) =
+addInline (Node _ (HTML_INLINE t) _) =
   (RawInline (Format "html") (unpack t) :)
+-- Note:  the cmark parser will never generate CUSTOM_BLOCK,
+-- so we don't need to handle it:
+addInline (Node _ (CUSTOM_INLINE _onEnter _onExit) _nodes) =
+  id
 addInline (Node _ (CODE t) _) =
   (Code ("",[],[]) (unpack t) :)
 addInline (Node _ EMPH nodes) =

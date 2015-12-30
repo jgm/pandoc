@@ -909,9 +909,11 @@ fetchItem sourceURL s =
           case parseURI s' of  -- requires absolute URI
                -- We don't want to treat C:/ as a scheme:
                Just u' | length (uriScheme u') > 2 -> openURL (show u')
-               _ -> E.try readLocalFile -- get from local file system
-  where readLocalFile = do
-          cont <- BS.readFile fp
+               Just u' | uriScheme u' == "file:" ->
+                    E.try $ readLocalFile $ dropWhile (=='/') (uriPath u')
+               _ -> E.try $ readLocalFile fp -- get from local file system
+  where readLocalFile f = do
+          cont <- BS.readFile f
           return (cont, mime)
         dropFragmentAndQuery = takeWhile (\c -> c /= '?' && c /= '#')
         fp = unEscapeString $ dropFragmentAndQuery s
@@ -919,8 +921,9 @@ fetchItem sourceURL s =
                     ".gz" -> getMimeType $ dropExtension fp
                     ".svgz" -> getMimeType $ dropExtension fp ++ ".svg"
                     x     -> getMimeType x
-        ensureEscaped x@(_:':':'\\':_) = x -- likely windows path
-        ensureEscaped x = escapeURIString isAllowedInURI x
+        ensureEscaped = escapeURIString isAllowedInURI . map convertSlash
+        convertSlash '\\' = '/'
+        convertSlash x    = x
 
 -- | Like 'fetchItem', but also looks for items in a 'MediaBag'.
 fetchItem' :: MediaBag -> Maybe String -> String
