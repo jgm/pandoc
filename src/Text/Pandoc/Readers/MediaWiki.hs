@@ -370,14 +370,16 @@ preformatted = try $ do
                    manyTill anyChar (htmlTag (~== TagClose "nowiki")))
   let inline' = whitespace' <|> endline' <|> nowiki'
                   <|> (try $ notFollowedBy newline *> inline)
-  let strToCode (Str s) = Code ("",[],[]) s
-      strToCode  x      = x
   contents <- mconcat <$> many1 inline'
   let spacesStr (Str xs) = all isSpace xs
       spacesStr _        = False
   if F.all spacesStr contents
      then return mempty
      else return $ B.para $ walk strToCode contents
+
+strToCode :: Inline -> Inline
+strToCode (Str s) = Code ("",[],[]) s
+strToCode  x      = x
 
 header :: MWParser Blocks
 header = try $ do
@@ -542,8 +544,8 @@ inlineTag = do
        TagOpen "del" _ -> B.strikeout <$> inlinesInTags "del"
        TagOpen "sub" _ -> B.subscript <$> inlinesInTags "sub"
        TagOpen "sup" _ -> B.superscript <$> inlinesInTags "sup"
-       TagOpen "code" _ -> B.code <$> charsInTags "code"
-       TagOpen "tt" _ -> B.code <$> charsInTags "tt"
+       TagOpen "code" _ -> walk strToCode <$> inlinesInTags "code"
+       TagOpen "tt" _ -> walk strToCode <$> inlinesInTags "tt"
        TagOpen "hask" _ -> B.codeWith ("",["haskell"],[]) <$> charsInTags "hask"
        _ -> B.rawInline "html" . snd <$> htmlTag (~== tag)
 
