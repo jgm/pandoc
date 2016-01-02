@@ -13,12 +13,9 @@ flags:
     debug: false
 packages:
 - '..'
-- '../../pandoc-citeproc'
-- location:
-    git: 'https://github.com/jgm/pandoc-types'
-    commit: 7b471a3d129efd8155f6cdcb2f2b58b5605df0fc
-  extra-dep: true
+- '../pandoc-citeproc'
 extra-deps:
 - 'cmark-0.5.0'
 - 'hsb2hs-0.3.1'
-resolver: lts-3.18
+- 'pandoc-types-1.16'
+resolver: lts-3.20
