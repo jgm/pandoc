@@ -4,6 +4,6 @@ main :: IO ()
 main = toJSONFilter removeLinks
 
 removeLinks :: Inline -> [Inline]
-removeLinks (Link l _) = l
+removeLinks (Link _ l _) = l
 removeLinks x = [x]
 
