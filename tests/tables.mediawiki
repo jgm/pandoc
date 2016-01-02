@@ -2,145 +2,145 @@ Simple table with caption:
 
 {|
 |+ Demonstration of simple table syntax.
-!align="right"|Right
-!Left
-!align="center"|Center
-!Default
+!align="right"| Right
+! Left
+!align="center"| Center
+! Default
 |-
-|align="right"|12
-|12
-|align="center"|12
-|12
+|align="right"| 12
+| 12
+|align="center"| 12
+| 12
 |-
-|align="right"|123
-|123
-|align="center"|123
-|123
+|align="right"| 123
+| 123
+|align="center"| 123
+| 123
 |-
-|align="right"|1
-|1
-|align="center"|1
-|1
+|align="right"| 1
+| 1
+|align="center"| 1
+| 1
 |}
 
 Simple table without caption:
 
 {|
-!align="right"|Right
-!Left
-!align="center"|Center
-!Default
+!align="right"| Right
+! Left
+!align="center"| Center
+! Default
 |-
-|align="right"|12
-|12
-|align="center"|12
-|12
+|align="right"| 12
+| 12
+|align="center"| 12
+| 12
 |-
-|align="right"|123
-|123
-|align="center"|123
-|123
+|align="right"| 123
+| 123
+|align="center"| 123
+| 123
 |-
-|align="right"|1
-|1
-|align="center"|1
-|1
+|align="right"| 1
+| 1
+|align="center"| 1
+| 1
 |}
 
 Simple table indented two spaces:
 
 {|
 |+ Demonstration of simple table syntax.
-!align="right"|Right
-!Left
-!align="center"|Center
-!Default
+!align="right"| Right
+! Left
+!align="center"| Center
+! Default
 |-
-|align="right"|12
-|12
-|align="center"|12
-|12
+|align="right"| 12
+| 12
+|align="center"| 12
+| 12
 |-
-|align="right"|123
-|123
-|align="center"|123
-|123
+|align="right"| 123
+| 123
+|align="center"| 123
+| 123
 |-
-|align="right"|1
-|1
-|align="center"|1
-|1
+|align="right"| 1
+| 1
+|align="center"| 1
+| 1
 |}
 
 Multiline table with caption:
 
 {|
 |+ Here's the caption. It may span multiple lines.
-!align="center" width="15%"|Centered Header
-!width="13%"|Left Aligned
-!align="right" width="16%"|Right Aligned
-!width="33%"|Default aligned
+!align="center" width="15%"| Centered Header
+!width="13%"| Left Aligned
+!align="right" width="16%"| Right Aligned
+!width="33%"| Default aligned
 |-
-|align="center"|First
-|row
-|align="right"|12.0
-|Example of a row that spans multiple lines.
+|align="center"| First
+| row
+|align="right"| 12.0
+| Example of a row that spans multiple lines.
 |-
-|align="center"|Second
-|row
-|align="right"|5.0
-|Here's another one. Note the blank line between rows.
+|align="center"| Second
+| row
+|align="right"| 5.0
+| Here's another one. Note the blank line between rows.
 |}
 
 Multiline table without caption:
 
 {|
-!align="center" width="15%"|Centered Header
-!width="13%"|Left Aligned
-!align="right" width="16%"|Right Aligned
-!width="33%"|Default aligned
+!align="center" width="15%"| Centered Header
+!width="13%"| Left Aligned
+!align="right" width="16%"| Right Aligned
+!width="33%"| Default aligned
 |-
-|align="center"|First
-|row
-|align="right"|12.0
-|Example of a row that spans multiple lines.
+|align="center"| First
+| row
+|align="right"| 12.0
+| Example of a row that spans multiple lines.
 |-
-|align="center"|Second
-|row
-|align="right"|5.0
-|Here's another one. Note the blank line between rows.
+|align="center"| Second
+| row
+|align="right"| 5.0
+| Here's another one. Note the blank line between rows.
 |}
 
 Table without column headers:
 
 {|
-|align="right"|12
-|12
-|align="center"|12
-|align="right"|12
+|align="right"| 12
+| 12
+|align="center"| 12
+|align="right"| 12
 |-
-|align="right"|123
-|123
-|align="center"|123
-|align="right"|123
+|align="right"| 123
+| 123
+|align="center"| 123
+|align="right"| 123
 |-
-|align="right"|1
-|1
-|align="center"|1
-|align="right"|1
+|align="right"| 1
+| 1
+|align="center"| 1
+|align="right"| 1
 |}
 
 Multiline table without column headers:
 
 {|
-|align="center" width="15%"|First
-|width="13%"|row
-|align="right" width="16%"|12.0
-|width="33%"|Example of a row that spans multiple lines.
+|align="center" width="15%"| First
+|width="13%"| row
+|align="right" width="16%"| 12.0
+|width="33%"| Example of a row that spans multiple lines.
 |-
-|align="center"|Second
-|row
-|align="right"|5.0
-|Here's another one. Note the blank line between rows.
+|align="center"| Second
+| row
+|align="right"| 5.0
+| Here's another one. Note the blank line between rows.
 |}
 

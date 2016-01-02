@@ -306,7 +306,11 @@ tableCellToMediaWiki headless rownum (alignment, width, bs) = do
   let attr = if null attrs
                 then ""
                 else unwords attrs ++ "|"
-  return $ marker ++ attr ++ trimr contents
+  let sep = case bs of
+                 [Plain _] -> " "
+                 [Para  _] -> " "
+                 _         -> "\n"
+  return $ marker ++ attr ++ sep ++ trimr contents
 
 alignmentToString :: Alignment -> String
 alignmentToString alignment = case alignment of
