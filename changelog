@@ -1,6 +1,15 @@
 pandoc (1.16)
 
-  * Implemented SoftBreak and new `--wrap` option (#1701).
+  * Added Attr field to Link and Image (Mauro Bieg, #261, API change).
+
+    + Added syntax for link and image attributes to pandoc's Markdown
+      (Mauro Bieg).
+    + Updated readers and writers to use link and image attributes
+      when appropriate (Mauro Bieg).
+    + Support image attributes in Docx, Textile, RST readers (Mauro
+      Bieg).
+
+  * Implemented SoftBreak and new `--wrap` option (#1701, API change).
     Added threefold wrapping option.
 
     + Command line option: deprecated `--no-wrap`, added
@@ -10,23 +19,12 @@ pandoc (1.16)
       Bool to WrapOption.
     + Modified Text.Pandoc.Shared functions for SoftBreak.
     + Supported SoftBreak in writers.
-    + Updated tests.
-    + Updated README.
 
   * Added `--dpi` command-line option (Mauro Bieg).
 
   * Removed deprecated options `--offline` and `--html5`.
 
   * Fixed language code for Czech (cs not cz) (#2597).
-
-  * Added Attr field to Link and Image (Mauro Bieg, #261, API change).
-
-    + Added syntax for link and image attributes to pandoc's Markdown
-      (Mauro Bieg).
-    + Updated readers and writers to use link and image attributes
-      when appropriate (Mauro Bieg).
-    + Support image attributes in Docx, Textile, RST readers (Mauro
-      Bieg).
 
   * Text.Pandoc.Options:  Added `writerDpi` to `WriterOptions` (API
     change, Mauro Bieg).
@@ -37,6 +35,12 @@ pandoc (1.16)
     `ignore_line_breaks`, but smarter -- it only ignores line breaks
     between two East Asian wide characters.  This makes it better suited
     for writing with a mix of East Asian and non-East Asian scripts.
+
+  * Added support for PDF creation via `wkhtmltopdf`.
+    To use this: `pandoc -t html5 -o result.pdf` (and add `--mathjax`
+    if you have math.) Margins can be set using the variables
+    `margin-top`, `margin-bottom`, `margin-left`, `margin-right`.
+    Other styling can be done through CSS.
 
   * Fixed cite key parsing regression (jgm/pandoc-citeproc#201).
     We were capturing final colons as in [@foo: bar]; the citation id
@@ -79,6 +83,16 @@ pandoc (1.16)
     + Add support for GAP highlighting using listings (Raniere Silva).
     + Consider `header-includes` content as well as templates
       when determining whether to use csquotes (Andreas Lööw).
+    + Create defaults for geometry using `margin-left` etc.
+      If `geometry` has no value, but `margin-left`, `margin-right`,
+      `margin-top`, and/or `-margin-bottom` are given, a default value
+      for `geometry` is created from these.  Note that these variables
+      already affect PDF production via HTML5 with `wkhtmltopdf`.
+
+  * ConTeXt writer: set default layout based on `margin-left`, etc.
+    This sets up `\setuplayout` based on the variables `margin-left`,
+    `margin-right`, `margin-bottom`, and `margin-top`, if no layout
+    is given.
 
   * Docx writer:  better handling of PDF images.  Previously we tried
     to get the image size from the image even if an explicit size was
@@ -93,7 +107,8 @@ pandoc (1.16)
 
     + Improved smart quote parsing (#2555). This fixes redering of
       unmatched quotes.
-    + LaTeX reader: Use curly quotes for unmatched ` (#2555).
+    + Use curly quotes for unmatched ` (#2555).
+    + Allow blank space between braced arguments of commands (#2592).
 
   * Markdown reader:
 
@@ -117,6 +132,8 @@ pandoc (1.16)
     These come up when people create a list item and then delete the
     bullet. It doesn't refer to any real list item, and we used to ignore
     it.
+
+  * CommonMark reader/writer rewritten to use latest `cmark`.
 
   * Renamed link attribute extensions.  The old `link_attributes` is
     now `mmd_link_attributes`, and `link_attributes` now enables the
@@ -183,6 +200,13 @@ pandoc (1.16)
 
   * LaTeX template changes:
 
+    + Added `paper` after `$papersize$` variable in latex template.
+      Thus you can say `papersize: a4` and the latex will contain
+      `a4paper`.  This change may break some existing workflows; if
+      you currently specify `a4paper`, you'll get `a4paperpaper` which
+      is meaningless.  However, the change seems worth it, as it will
+      make the `papersize` variable work uniformly across ConTeXt, LaTeX,
+      and html->pdf via wkhtmltopdf.
     + Only pass options to color package if `colorlinks` is set
       (Andrew Dunning).
     + Make definition of `\euro` conditional in xelatex/lualatex,
@@ -219,6 +243,9 @@ pandoc (1.16)
     Valid values are `empty` (the default), `horizontal`, `vertical`,
     and `frame`.  Note that this changes the default behavior from
     `horizontal` to `empty`.  Closes #2543.
+
+  * Added `toc` to HTML slide format templates (Andrew Dunning),
+    so that `--toc` creates a contents slide.
 
   * Added `stack.full.yaml` to build `pandoc-citeproc` as well.
 
@@ -270,6 +297,7 @@ pandoc (1.16)
   * Use lts-3.18 in stack.yaml.  This avoids Windows build
     issues with the HTTP library.
 
+  * Bump version bounds for dependencies.
 
 pandoc (1.15.2.1)
 
