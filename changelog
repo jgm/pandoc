@@ -1,36 +1,66 @@
 pandoc (1.16)
 
-  * Added Attr field to Link and Image (Mauro Bieg, #261, API change).
+  * Added `Attr` field to `Link` and `Image` (Mauro Bieg, #261, API change).
 
-    + Added syntax for link and image attributes to pandoc's Markdown
-      (Mauro Bieg).
+    + Added syntax for link and image attributes to pandoc's Markdown.
     + Updated readers and writers to use link and image attributes
-      when appropriate (Mauro Bieg).
-    + Support image attributes in Docx, Textile, RST readers (Mauro
-      Bieg).
+      when appropriate.
+    + Support image attributes in Docx, Textile, RST readers.
 
-  * Implemented SoftBreak and new `--wrap` option (#1701, API change).
+  * Renamed link attribute extensions.  The old `link_attributes` is
+    now `mmd_link_attributes`, and `link_attributes` now enables the
+    new pandoc-style link and image attributes (API change).
+    Note: this change could break some existing workflows.
+
+  * Implemented `SoftBreak` and new `--wrap` option (#1701, API change).
     Added threefold wrapping option.
 
     + Command line option: deprecated `--no-wrap`, added
       `--wrap=[auto|none|preserve]`
-    + Added WrapOption, exported from Text.Pandoc.Options
-    + Changed type of writerWrapText in WriterOptions from
-      Bool to WrapOption.
-    + Modified Text.Pandoc.Shared functions for SoftBreak.
-    + Supported SoftBreak in writers.
-
-  * Added `--dpi` command-line option (Mauro Bieg).
-
-  * Removed deprecated options `--offline` and `--html5`.
-
-  * Fixed language code for Czech (cs not cz) (#2597).
+    + Added `WrapOption`, exported from `Text.Pandoc.Options`
+    + Changed type of `writerWrapText` in `WriterOptions` from
+      `Bool` to `WrapOption`.
+    + Modified `Text.Pandoc.Shared` functions to allow `SoftBreak`.
+    + Supported `SoftBreak` in readers and writers.
 
   * Text.Pandoc.Options:  Added `writerDpi` to `WriterOptions` (API
     change, Mauro Bieg).
 
+  * Added `--dpi` command-line option (Mauro Bieg).
+
+  * Rationalized behavior of `--no-tex-ligatures` and `--smart` (#2541).
+    This change makes `--no-tex-ligatures` affect the LaTeX reader
+    as well as the LaTeX and ConTeXt writers.  If it is used,
+    the LaTeX reader will parse characters `` ` ``, `'`, and `-`
+    literally, rather than parsing ligatures for quotation marks
+    and dashes.  And the LaTeX writer will print unicode quotation
+    mark and dash characters literally, rather than converting
+    them to the standard ASCII ligatures.  Note that `--smart` has
+    no effect on the LaTeX reader.  `--smart` is still the default
+    for all input formats when LaTeX or ConTeXt is the output format,
+    *unless* `--no-tex-ligatures` is used.
+
+    Some examples to illustrate the logic:
+
+    ```
+    % echo "'hi'" | pandoc -t latex
+    `hi'
+    % echo "'hi'" | pandoc -t latex --no-tex-ligatures
+    'hi'
+    % echo "'hi'" | pandoc -t latex --no-tex-ligatures --smart
+    ‘hi’
+    % echo "'hi'" | pandoc -f latex --no-tex-ligatures
+    <p>'hi'</p>
+    % echo "'hi'" | pandoc -f latex
+    <p>’hi’</p>
+    ```
+
+  * Removed deprecated options `--offline` and `--html5`.
+
+  * Fixed language code for Czech (`cs` not `cz`) (#2597).
+
   * Implemented `east_asian_line_breaks` extension (#2586).
-    In Text.Pandoc.Options, added `Ext_east_asian_line_breaks` constructor
+    In `Text.Pandoc.Options`, added `Ext_east_asian_line_breaks` constructor
     to `Extension` (API change).  This extension is like
     `ignore_line_breaks`, but smarter -- it only ignores line breaks
     between two East Asian wide characters.  This makes it better suited
@@ -43,8 +73,8 @@ pandoc (1.16)
     Other styling can be done through CSS.
 
   * Fixed cite key parsing regression (jgm/pandoc-citeproc#201).
-    We were capturing final colons as in [@foo: bar]; the citation id
-    was being parsed as "@foo:".
+    We were capturing final colons as in `[@foo: bar]`; the citation id
+    was being parsed as `@foo:`.
 
   * ICML writer:
 
@@ -53,8 +83,8 @@ pandoc (1.16)
       API change:  It is now `WriterOptions -> Pandoc -> IO String`.
       Also handle new image attributes.
     + Intersperse line breaks instead of appending them to
-      every ParagraphStyleRange (Mauro Bieg, #2501).
-    + Add Cite style to citations (Mauro Bieg).
+      every `ParagraphStyleRange` (Mauro Bieg, #2501).
+    + Add `Cite` style to citations (Mauro Bieg).
     + Added figure handling (#2590, Mauro Bieg).
     + Better handling of math.  Instead of just printing the raw tex,
       we now try to fake it with unicode characters.
@@ -135,48 +165,16 @@ pandoc (1.16)
 
   * CommonMark reader/writer rewritten to use latest `cmark`.
 
-  * Renamed link attribute extensions.  The old `link_attributes` is
-    now `mmd_link_attributes`, and `link_attributes` now enables the
-    new pandoc-style link and image attributes (API change).
-    Note: this change could break some existing workflows.
-
-  * Rationalized behavior of `--no-tex-ligatures` and `--smart` (#2541).
-    This change makes `--no-tex-ligatures` affect the LaTeX reader
-    as well as the LaTeX and ConTeXt writers.  If it is used,
-    the LaTeX reader will parse characters `` ` ``, `'`, and `-`
-    literally, rather than parsing ligatures for quotation marks
-    and dashes.  And the LaTeX writer will print unicode quotation
-    mark and dash characters literally, rather than converting
-    them to the standard ASCII ligatures.  Note that `--smart` has
-    no effect on the LaTeX reader.  `--smart` is still the default
-    for all input formats when LaTeX or ConTeXt is the output format,
-    *unless* `--no-tex-ligatures` is used.
-
-    Some examples to illustrate the logic:
-
-    ```
-    % echo "'hi'" | pandoc -t latex
-    `hi'
-    % echo "'hi'" | pandoc -t latex --no-tex-ligatures
-    'hi'
-    % echo "'hi'" | pandoc -t latex --no-tex-ligatures --smart
-    ‘hi’
-    % echo "'hi'" | pandoc -f latex --no-tex-ligatures
-    <p>'hi'</p>
-    % echo "'hi'" | pandoc -f latex
-    <p>’hi’</p>
-    ```
-
   * Fixed Emoji character definitions (#2523).  There were many bugs in the
     definitions.
 
-  * Text.Pandoc.CSS:
+  * `Text.Pandoc.CSS`:
 
     + Added `pickStylesToKVs` function to extract multiple properties at
       once (API change, Mauro Bieg).
     + Parse CSS that doesn't contain the optional semicolon (Mauro Bieg).
 
-  * trypandoc: sort drop-down lists.
+  * `trypandoc`: sort drop-down lists.
 
   * Beamer template:
 
@@ -229,7 +227,7 @@ pandoc (1.16)
 
   * Context template:
 
-    + Use simplefonts for font loading (Paolo Rodríguez).  This is
+    + Use `simplefonts` for font loading (Paolo Rodríguez).  This is
       needed for things to work on ConTeXt stable from TeXLive 2015.
     + Revert use of `\setuphead` in title block (Andrew Dunning,
       Rik Kabel).
