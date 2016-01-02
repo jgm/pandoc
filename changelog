@@ -106,6 +106,14 @@ pandoc (1.16)
   * Haddock writer:  omit formatting inside links, which isn't supported
     by Haddock (#2515).
 
+  * MediaWiki writer:  Fixed spacing issues in table cells.
+
+    + Start cell on new line unless it's a single Para or Plain
+      (#2606).
+    + For single Para or Plain, insert a space after the `|` to
+      avoid problems when the text begins with a character like
+      `-` (#2604).
+
   * Beamer writer: mark frame as fragile when it contains verbatim (#1613).
 
   * LaTeX writer:
@@ -132,6 +140,8 @@ pandoc (1.16)
 
   * Markdown writer:  use raw HTML for link/image attributes when
     the `link_attributes` extension is unset and `raw_html` is set (#2554).
+
+  * MediaWiki reader: interpret markup inside `<tt>`, `<code>` (#2607).
 
   * LaTeX reader:
 
