@@ -63,6 +63,11 @@ $if(date)$
 $endif$
 </div>
 $endif$
+$if(toc)$
+<div class="slide" id="$idprefix$TOC">
+$toc$
+</div>
+$endif$
 $body$
 $for(include-after)$
 $include-after$
