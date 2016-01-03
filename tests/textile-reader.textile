@@ -228,10 +228,7 @@ However, <strong> raw HTML inlines </strong> are accepted, as well as :
   any *Raw HTML Block* with bold
 </div>
 
-Html blocks can be <div>inlined</div> as well. 
-
-* this <div> won't produce raw html blocks </div>
-* but this <strong> will produce inline html </strong>
+Html blocks can <div>interrupt paragraphs</div> as well.
 
 Can you prove that 2 < 3 ?
 

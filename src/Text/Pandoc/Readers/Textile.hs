@@ -57,7 +57,7 @@ import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
-import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag )
+import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isInlineTag )
 import Text.Pandoc.Shared (trim)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
@@ -504,7 +504,7 @@ endline = try $ do
   return B.linebreak
 
 rawHtmlInline :: Parser [Char] ParserState Inlines
-rawHtmlInline = B.rawInline "html" . snd <$> htmlTag (const True)
+rawHtmlInline = B.rawInline "html" . snd <$> htmlTag isInlineTag
 
 -- | Raw LaTeX Inline
 rawLaTeXInline' :: Parser [Char] ParserState Inlines
