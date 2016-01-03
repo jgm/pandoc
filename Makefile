@@ -44,7 +44,7 @@ dist: man/pandoc.1
 	runghc make_travis_yml.hs $< > $@
 
 debpkg: man/pandoc.1
-	./make_deb.sh
+	make -C deb
 
 osxpkg: man/pandoc.1
 	./make_osx_package.sh
