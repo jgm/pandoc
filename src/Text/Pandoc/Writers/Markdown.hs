@@ -572,7 +572,7 @@ gridTable opts headless _aligns widths headers' rawRows =  do
                    else widths
   let widthsInChars = map (floor . (fromIntegral (writerColumns opts) *)) widths'
   let hpipeBlocks blocks = hcat [beg, middle, end]
-        where h       = maximum (map height blocks)
+        where h       = maximum (1 : map height blocks)
               sep'    = lblock 3 $ vcat (map text $ replicate h " | ")
               beg     = lblock 2 $ vcat (map text $ replicate h "| ")
               end     = lblock 2 $ vcat (map text $ replicate h " |")

@@ -267,7 +267,7 @@ blockToRST (Table caption _ widths headers rows) =  do
           then map ((+2) . numChars) $ transpose (headers' : rawRows)
           else map (floor . (fromIntegral (writerColumns opts) *)) widths
   let hpipeBlocks blocks = hcat [beg, middle, end]
-        where h      = maximum (map height blocks)
+        where h      = maximum (1 : map height blocks)
               sep'   = lblock 3 $ vcat (map text $ replicate h " | ")
               beg    = lblock 2 $ vcat (map text $ replicate h "| ")
               end    = lblock 2 $ vcat (map text $ replicate h " |")
