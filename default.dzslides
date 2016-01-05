@@ -181,6 +181,11 @@ $endif$
   </footer>
 </section>
 $endif$
+$if(toc)$
+<section id="$idprefix$TOC">
+$toc$
+</section>
+$endif$
 $for(include-before)$
 $include-before$
 $endfor$
