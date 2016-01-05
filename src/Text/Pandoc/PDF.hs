@@ -99,9 +99,9 @@ makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
   doc' <- handleImages opts tmpdir doc
   let source = writer opts doc'
       args   = writerLaTeXArgs opts
-  case program of
+  case takeBaseName program of
      "context" -> context2pdf (writerVerbose opts) tmpdir source
-     _ | program `elem` ["pdflatex", "lualatex", "xelatex"]
+     prog | prog `elem` ["pdflatex", "lualatex", "xelatex"]
          -> tex2pdf' (writerVerbose opts) args tmpdir program source
      _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
 
