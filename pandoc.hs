@@ -110,8 +110,7 @@ wrapWords indent c = wrap' (c - indent) (c - indent)
             wrap' cols (remaining - length x - 2) xs
 
 isTextFormat :: String -> Bool
-isTextFormat s = takeWhile (`notElem` "+-") s `notElem` binaries
-  where binaries = ["odt","docx","epub","epub3"]
+isTextFormat s = s `notElem` ["odt","docx","epub","epub3"]
 
 externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
 externalFilter f args' d = do
@@ -1162,23 +1161,24 @@ convertWithOpts opts args = do
                           "epub2"   -> "epub"
                           "html4"   -> "html"
                           x         -> x
+  let format = takeWhile (`notElem` ['+','-'])
+                       $ takeFileName writerName'  -- in case path to lua script
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
-  let laTeXOutput = "latex" `isPrefixOf` writerName' ||
-                    "beamer" `isPrefixOf` writerName'
-  let conTeXtOutput = "context" `isPrefixOf` writerName'
-  let html5Output = "html5" `isPrefixOf` writerName'
+  let laTeXOutput = format `elem` ["latex", "beamer"]
+  let conTeXtOutput = format == "context"
+  let html5Output = format == "html5"
 
   let laTeXInput = "latex" `isPrefixOf` readerName' ||
                     "beamer" `isPrefixOf` readerName'
 
-  writer <- if ".lua" `isSuffixOf` writerName'
+  writer <- if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName
                then return $ IOStringWriter $ writeCustom writerName
                else case getWriter writerName' of
                          Left e  -> err 9 $
-                           if writerName' == "pdf"
+                           if format == "pdf"
                               then e ++
                                "\nTo create a pdf with pandoc, use " ++
                                "the latex or beamer writer and specify\n" ++
@@ -1201,18 +1201,17 @@ convertWithOpts opts args = do
                                      "\nPandoc can convert from DOCX, but not from DOC.\nTry using Word to save your DOC file as DOCX, and convert that with pandoc."
                                   _ -> e
 
-  let standalone' = standalone || not (isTextFormat writerName') || pdfOutput
+  let standalone' = standalone || not (isTextFormat format) || pdfOutput
 
   templ <- case templatePath of
                 _ | not standalone' -> return ""
                 Nothing -> do
-                           deftemp <- getDefaultTemplate datadir writerName'
+                           deftemp <- getDefaultTemplate datadir format
                            case deftemp of
                                  Left e   -> throwIO e
                                  Right t  -> return t
                 Just tp -> do
                            -- strip off extensions
-                           let format = takeWhile (`notElem` "+-") writerName'
                            let tp' = case takeExtension tp of
                                           ""   -> tp <.> format
                                           _    -> tp
@@ -1234,7 +1233,7 @@ convertWithOpts opts args = do
                          return $ ("mathml-script", s) : variables
                       _ -> return variables
 
-  variables'' <- if "dzslides" `isPrefixOf` writerName'
+  variables'' <- if format == "dzslides"
                     then do
                         dztempl <- readDataFileUTF8 datadir
                                      ("dzslides" </> "template.html")
@@ -1270,8 +1269,8 @@ convertWithOpts opts args = do
                       , readerTrackChanges = trackChanges
                       }
 
-  when (not (isTextFormat writerName') && outputFile == "-") $
-    err 5 $ "Cannot write " ++ writerName' ++ " output to stdout.\n" ++
+  when (not (isTextFormat format) && outputFile == "-") $
+    err 5 $ "Cannot write " ++ format ++ " output to stdout.\n" ++
             "Specify an output file using the -o option."
 
   let readSources [] = mapM readSource ["-"]
@@ -1354,7 +1353,7 @@ convertWithOpts opts args = do
   doc' <- (maybe return (extractMedia media) mbExtractMedia >=>
            adjustMetadata metadata >=>
            applyTransforms transforms >=>
-           applyFilters filters' [writerName']) doc
+           applyFilters filters' [format]) doc
 
   let writeBinary :: B.ByteString -> IO ()
       writeBinary = B.writeFile (UTF8.encodePath outputFile)
@@ -1370,7 +1369,7 @@ convertWithOpts opts args = do
       | pdfOutput -> do
               -- make sure writer is latex or beamer or context or html5
               unless (laTeXOutput || conTeXtOutput || html5Output) $
-                err 47 $ "cannot produce pdf output with " ++ writerName' ++
+                err 47 $ "cannot produce pdf output with " ++ format ++
                          " writer"
 
               let pdfprog = case () of
@@ -1393,9 +1392,8 @@ convertWithOpts opts args = do
       | otherwise -> selfcontain (f writerOptions doc' ++
                                   ['\n' | not standalone'])
                       >>= writerFn outputFile . handleEntities
-          where htmlFormat = writerName' `elem`
-                               ["html","html+lhs","html5","html5+lhs",
-                               "s5","slidy","slideous","dzslides","revealjs"]
+          where htmlFormat = format `elem`
+                  ["html","html5","s5","slidy","slideous","dzslides","revealjs"]
                 selfcontain = if selfContained && htmlFormat
                                  then makeSelfContained writerOptions
                                  else return
