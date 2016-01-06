@@ -300,7 +300,8 @@ Library
      Build-Tools:   hsb2hs >= 0.3.1
      other-modules: Text.Pandoc.Data
   if os(windows)
-    Cpp-options:      -D_WINDOWS
+    Cpp-options:    -D_WINDOWS
+    Build-depends:  Glob >= 0.7 && < 0.8
   Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -fprof-auto-exported -rtsopts
   Default-Language: Haskell98
