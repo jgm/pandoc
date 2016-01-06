@@ -748,6 +748,17 @@ Options affecting specific writers
     [character] Default Paragraph Font, Body Text Char, Verbatim Char,
     Footnote Reference, Hyperlink; [table] Normal Table.
 
+`--docx-note-tab`
+
+:   When producing footnotes in docx files, place a tab character rather than a
+    space between the footnote reference (i.e. the footnote number) and the text
+    of the footnote.  If the Footnote Text style in the reference docx has a 
+    hanging indent, this will produce typographically aligned footnotes: the 
+    text will be uniformly aligned, with all footnote references to the left, 
+    as in a well-typeset book.  Correct alignment may also be ensured by 
+    manually modifying the Footnote Text style in the output file to have a
+    small hanging indent. 
+
 `--epub-stylesheet=`*FILE*
 
 :   Use the specified CSS file to style the EPUB.  If no stylesheet

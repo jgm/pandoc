@@ -377,6 +377,7 @@ data WriterOptions = WriterOptions
   , writerMediaBag         :: MediaBag       -- ^ Media collected by docx or epub reader
   , writerVerbose          :: Bool           -- ^ Verbose debugging output
   , writerLaTeXArgs        :: [String]       -- ^ Flags to pass to latex-engine
+  , writerDocxNoteTab      :: Bool           -- ^ Insert tab rather than space after DOCX footnote reference
   } deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
@@ -423,6 +424,7 @@ instance Default WriterOptions where
                       , writerMediaBag         = mempty
                       , writerVerbose          = False
                       , writerLaTeXArgs        = []
+                      , writerDocxNoteTab      = False
                       }
 
 -- | Returns True if the given extension is enabled.
