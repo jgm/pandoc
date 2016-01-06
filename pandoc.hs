@@ -73,9 +73,6 @@ import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
 import Paths_pandoc (getDataDir)
 import Text.Printf (printf)
 import Text.Pandoc.Error
-#ifdef _WINDOWS
-import System.FilePath.Glob (glob)
-#endif
 
 type Transform = Pandoc -> Pandoc
 
@@ -1059,13 +1056,7 @@ main = do
 
   -- thread option data structure through all supplied option actions
   opts <- foldl (>>=) (return defaultOpts) actions
-
--- on windows we need to do our own file globbing, since the shell doesn't.
-#ifdef _WINDOWS
-  mapM glob args >>= convertWithOpts opts . concat
-#else
   convertWithOpts opts args
-#endif
 
 convertWithOpts :: Opt -> [FilePath] -> IO ()
 convertWithOpts opts args = do
