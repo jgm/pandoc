@@ -14,4 +14,6 @@ packages:
 - '../texmath'
 extra-deps:
 - 'cmark-0.5.0'
+# Use older aeson to avoid excessive memory use in compilation:
+- 'aeson-0.8.0.2
 resolver: lts-4.0
