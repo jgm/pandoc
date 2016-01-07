@@ -6,7 +6,7 @@ VAGRANTBOX?=debian/wheezy64
 
 package:
 	VAGRANTBOX=$(VAGRANTBOX) vagrant up
-	vagrant ssh -c 'DEBPKGVER=$(DEBPKGVER) rm -rf pandoc && git clone https://github.com/jgm/pandoc && cd pandoc && git checkout -b work $(TREE) && git submodule update --init && sh -ev ./deb/make_deb.sh && cp *.deb /vagrant_data/'
+	vagrant ssh -c 'DEBPKGVER=$(DEBPKGVER) rm -rf pandoc && git clone https://github.com/jgm/pandoc && cd pandoc && git checkout -b work $(TREE) && git submodule update --init && ./deb/make_deb.sh && cp *.deb /vagrant_data/'
 	vagrant halt
 
 clean:
