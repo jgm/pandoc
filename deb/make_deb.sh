@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -e -v
 
 MACHINE=$(uname -m)
 case "$MACHINE" in
@@ -21,7 +21,6 @@ TEMPDIR=make_binary_package.tmp.$$
 # We need this for hsb2hs:
 PATH=$LOCAL/bin:$PATH
 
-stack clean
 which hsb2hs || stack install --install-ghc --stack-yaml stack.hsb2hs.yaml
 
 stack install --install-ghc --stack-yaml deb/stack.yaml
