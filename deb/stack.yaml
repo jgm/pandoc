@@ -17,4 +17,4 @@ packages:
 extra-deps:
 - 'cmark-0.5.0'
 - 'pandoc-types-1.16.0.1'
-resolver: lts-4.0
+resolver: lts-3.20
