@@ -21,7 +21,7 @@ TEMPDIR=make_binary_package.tmp.$$
 # We need this for hsb2hs:
 PATH=$LOCAL/bin:$PATH
 
-stack setup
+stack setup --stack-setup-yaml deb/stack.yaml
 stack clean
 which hsb2hs || stack install --stack-yaml stack.hsb2hs.yaml
 
