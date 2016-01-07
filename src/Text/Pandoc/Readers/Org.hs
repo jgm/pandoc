@@ -87,8 +87,10 @@ parseOrg = do
 -- | Drop COMMENT headers and the document tree below those headers.
 dropCommentTrees :: [Block] -> [Block]
 dropCommentTrees [] = []
-dropCommentTrees blks@(b:bs) =
-  maybe blks (flip dropUntilHeaderAboveLevel bs) $ commentHeaderLevel b
+dropCommentTrees (b:bs) =
+  maybe (b:dropCommentTrees bs)
+        (dropCommentTrees . flip dropUntilHeaderAboveLevel bs)
+        (commentHeaderLevel b)
 
 -- | Return the level of a header starting a comment or :noexport: tree and
 --  Nothing otherwise.
