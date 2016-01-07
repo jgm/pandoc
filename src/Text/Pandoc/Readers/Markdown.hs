@@ -1452,11 +1452,16 @@ table = try $ do
   caption <- case frontCaption of
                   Nothing  -> option (return mempty) tableCaption
                   Just c   -> return c
+  -- renormalize widths if greater than 100%:
+  let totalWidth = sum widths
+  let widths' = if totalWidth < 1
+                   then widths
+                   else map (/ totalWidth) widths
   return $ do
     caption' <- caption
     heads' <- heads
     lns' <- lns
-    return $ B.table caption' (zip aligns widths) heads' lns'
+    return $ B.table caption' (zip aligns widths') heads' lns'
 
 --
 -- inline
