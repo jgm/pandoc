@@ -1,5 +1,3 @@
-#!/bin/bash -e -v
-
 MACHINE=$(uname -m)
 case "$MACHINE" in
   x86_64) ARCHITECTURE=amd64;;
