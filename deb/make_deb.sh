@@ -9,7 +9,7 @@ esac
 
 LOCAL=$HOME/.local
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
-DEBPKGVER=1
+DEBPKGVER=${DEBPKGVER:-1}
 DEBVER=$VERSION-$DEBPKGVER
 BASE=pandoc-$DEBVER-$ARCHITECTURE
 DIST=`pwd`/$BASE
