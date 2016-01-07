@@ -569,6 +569,16 @@ tests =
                   ] =?>
           (mempty::Blocks)
 
+      , "Subtree with :noexport:" =:
+          unlines [ "* Exported"
+                  , "** This isn't exported :noexport:"
+                  , "*** This neither"
+                  , "** But this is"
+                  ] =?>
+          mconcat [ headerWith ("exported", [], []) 1 "Exported"
+                  , headerWith ("but-this-is", [], []) 2 "But this is"
+                  ]
+
       , "Paragraph starting with an asterisk" =:
           "*five" =?>
           para "*five"
