@@ -12,5 +12,5 @@ extra-deps:
 - 'pandoc-citeproc-0.9'
 - 'pandoc-types-1.16.0.1'
 # Use older aeson to avoid excessive memory use in compilation:
-- 'aeson-0.8.0.2
+- 'aeson-0.8.0.2'
 resolver: lts-4.0
