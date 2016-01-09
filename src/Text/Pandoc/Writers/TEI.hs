@@ -92,8 +92,8 @@ elementToTEI opts lvl (Sec _ _num (id',_,_) title elements) =
                     else elements
       divType = case lvl of
                  n | n == 0           -> "chapter"
-                   | n >= 1 && n <= 5 -> "sect" ++ show n
-                   | otherwise        -> "simplesect"
+                   | n >= 1 && n <= 5 -> "level" ++ show n
+                   | otherwise        -> "section"
   in inTags True "div" [("type", divType) | not (null id')] $
 --                        ("id", writerIdentifierPrefix opts ++ id') | not (null id')] $
       inTagsSimple "head" (inlinesToTEI opts title) $$
@@ -181,7 +181,7 @@ blockToTEI _ (CodeBlock (_,classes,_) str) =
                            else languagesByExtension . map toLower $ s
           langs       = concatMap langsFrom classes
 blockToTEI opts (BulletList lst) =
-  let attribs = [("type", "bullet") | isTightList lst]
+  let attribs = [("type", "unordered")]
   in  inTags True "list" attribs $ listItemsToTEI opts lst
 blockToTEI _ (OrderedList _ []) = empty
 blockToTEI opts (OrderedList (start, numstyle, _) (first:rest)) =
@@ -277,9 +277,9 @@ inlineToTEI _ (Math t str) =
     DisplayMath -> inTags True "figure" [("type","math")] $
                    inTags False "formula" [("notation","TeX")] $ text (str)
       
-inlineToTEI _ (RawInline f x) | f == "html" || f == "tei"     = text x
-                              | otherwise                     = empty
-inlineToTEI _ LineBreak = text ""
+inlineToTEI _ (RawInline f x) | f == "tei"     = text x
+                              | otherwise      = empty
+inlineToTEI _ LineBreak = selfClosingTag "lb" []
 inlineToTEI _ Space = space
 -- because we use \n for LineBreak, we can't do soft breaks:
 inlineToTEI _ SoftBreak = space

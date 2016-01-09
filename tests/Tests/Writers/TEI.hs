@@ -27,15 +27,17 @@ infix 4 =:
 tests :: [Test]
 tests = [ testGroup "block elements"
           ["para"          =: para "Lorem ipsum cetera."
-                           =?> "<p>Lorem ipsum cetera.</p>" 
+                           =?> "<p>Lorem ipsum cetera.</p>"
           ]
---        ]
---        , testGroup "lists"
---          [ 
---            ]
         , testGroup "inlines"
           [
-            "Emphasis"      =: emph ("emphasized")
-                            =?> "<hi rendition=\"simple:italic\">emphasized</hi>"
-            ]
-        ]
+            "Emphasis"      =:  emph ("emphasized")
+                            =?> "<p><hi rendition=\"simple:italic\">emphasized</hi></p>"
+           ,"SingleQuoted"  =:  singleQuoted (text "quoted material")
+                            =?> "<p><quote>quoted material</quote></p>"
+           ,"DoubleQuoted"  =:  doubleQuoted (text "quoted material")
+                            =?> "<p><quote>quoted material</quote></p>"
+           ,"NestedQuoted"  =:  doubleQuoted (singleQuoted (text "quoted material"))
+                            =?> "<p><quote><quote>quoted material</quote></quote></p>"
+          ]
+         ]
