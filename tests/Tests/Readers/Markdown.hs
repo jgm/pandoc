@@ -371,6 +371,15 @@ tests = [ testGroup "inline code"
                          , plain "b"
                          , plain "c" <> bulletList [plain "d"] ]
           ]
+        , testGroup "entities"
+          [ "character references" =:
+            "&lang; &ouml;" =?> para (text "\10216 ö")
+          , "numeric" =:
+            "&#44;&#x44;&#X44;" =?> para (text ",DD")
+          , "in link title" =:
+            "[link](/url \"title &lang; &ouml; &#44;\")" =?>
+               para (link "/url" "title \10216 ö ," (text "link"))
+          ]
         , testGroup "citations"
           [ "simple" =:
             "@item1" =?> para (cite [
