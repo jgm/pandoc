@@ -107,6 +107,7 @@ fromEntities ('&':xs) =
                              (zs,';':ys) -> (zs,ys)
                              (zs,    ys) -> (zs,ys)
           ent' = case ent of
+                      '#':'X':xs -> '#':'x':xs  -- workaround tagsoup bug
                       '#':_ -> ent
                       _     -> ent ++ ";"
 

@@ -574,6 +574,7 @@ characterReference = try $ do
   char '&'
   ent <- many1Till nonspaceChar (char ';')
   let ent' = case ent of
+                  '#':'X':xs -> '#':'x':xs  -- workaround tagsoup bug
                   '#':_  -> ent
                   _      -> ent ++ ";"
   case lookupEntity ent' of
