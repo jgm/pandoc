@@ -1,3 +1,60 @@
+pandoc (1.16.0.1)
+
+  * Fixed regression with `--latex-engine` (#2618).  In 1.16 `--latex-engine`
+    raises an error if a full path is given.
+
+  * Org reader: Fix function dropping subtrees tagged `:noexport`
+    (Albert Krewinkel, #2628):
+
+  * Markdown reader: renormalize table column widths if they exceed 100%
+    (#2626).
+
+  * Textile reader:  don't allow block HTML tags in inline contexts.
+    The reader previously did allow this, following redcloth,
+    which happily parses
+
+        Html blocks can be <div>inlined</div> as well.
+
+    as
+
+        <p>Html blocks can be <div>inlined</div> as well.</p>
+
+    This is invalid HTML.  The above sample now produces;
+
+        <p>Html blocks can be</p>
+        <div>
+        <p>inlined</p>
+        </div>
+        <p>as well.</p>
+
+  * Improved default template lookup for custom lua scripts (#2625).
+    Previously, if you tried to do `pandoc -s -t /path/to/lua/script.lua`,
+    pandoc would look for the template in
+    `~/.pandoc/templates/default./path/to/lua/script.lua`.
+    With this change it will look in the more reasonable
+    `~/.pandoc/templates/default.script.lua`.  This makes it possible to
+    store default templates for custom writers.
+
+  * RST, Markdown writers: Fixed rendering of grid tables with blank rows
+    (#2615).
+
+  * LaTeX writer: restore old treatment of Span (#2624).  A Span is
+    now rendered with surrounding `{}`, as it was before 1.16.
+
+  * Entity handling fixes: improved handling of entities like
+    `&lang;` that require a trailing semicolon.  Allow uppercase
+    `x` in numerical hexidecimal character references, working
+    around a tagsoup bug.
+
+  * `stack.yaml` - use lts-4.0, but with older aeson to avoid excessive
+    memory use on compile.  With aeson 0.10 we were getting an out of
+    memory error on a 2GB Ubuntu 64-bit VM.
+
+  * Improved deb package creation script. Made `DPKGVER` work.
+    Renamed `COMMIT` to `TREE`.  You should now be able to do
+    `TREE=1.16.0.1 DPKGVER=2 make deb`.
+
+
 pandoc (1.16)
 
   * Added `Attr` field to `Link` and `Image` (Mauro Bieg, #261, API change).
