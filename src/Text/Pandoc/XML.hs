@@ -100,11 +100,15 @@ toEntities (c:cs)
 -- Unescapes XML entities
 fromEntities :: String -> String
 fromEntities ('&':xs) =
-  case lookupEntity ent of
+  case lookupEntity ent' of
         Just c  -> c : fromEntities rest
         Nothing -> '&' : fromEntities xs
     where (ent, rest) = case break (\c -> isSpace c || c == ';') xs of
                              (zs,';':ys) -> (zs,ys)
-                             _           -> ("",xs)
+                             (zs,    ys) -> (zs,ys)
+          ent' = case ent of
+                      '#':_ -> ent
+                      _     -> ent ++ ";"
+
 fromEntities (x:xs) = x : fromEntities xs
 fromEntities [] = []

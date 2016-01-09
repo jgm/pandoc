@@ -573,7 +573,10 @@ characterReference :: Stream s m Char => ParserT s st m Char
 characterReference = try $ do
   char '&'
   ent <- many1Till nonspaceChar (char ';')
-  case lookupEntity ent of
+  let ent' = case ent of
+                  '#':_  -> ent
+                  _      -> ent ++ ";"
+  case lookupEntity ent' of
        Just c  -> return c
        Nothing -> fail "entity not found"
 
