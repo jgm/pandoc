@@ -17,5 +17,5 @@ packages:
 extra-deps:
 - 'cmark-0.5.0'
 - 'hsb2hs-0.3.1'
-- 'pandoc-types-1.16'
+- 'pandoc-types-1.16.0.1'
 resolver: lts-3.20
