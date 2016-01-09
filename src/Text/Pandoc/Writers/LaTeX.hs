@@ -810,28 +810,26 @@ isQuoted _ = False
 inlineToLaTeX :: Inline    -- ^ Inline to convert
               -> State WriterState Doc
 inlineToLaTeX (Span (id',classes,kvs) ils) = do
-  let noEmph = "csl-no-emph" `elem` classes
-  let noStrong = "csl-no-strong" `elem` classes
-  let noSmallCaps = "csl-no-smallcaps" `elem` classes
-  let rtl = ("dir","rtl") `elem` kvs
-  let ltr = ("dir","ltr") `elem` kvs
   ref <- toLabel id'
   let linkAnchor = if null id'
                       then empty
                       else "\\protect\\hypertarget" <> braces (text ref) <>
                              braces empty
-  fmap (linkAnchor <>)
-    ((if noEmph then inCmd "textup" else id) .
-     (if noStrong then inCmd "textnormal" else id) .
-     (if noSmallCaps then inCmd "textnormal" else id) .
-     (if rtl then inCmd "RL" else id) .
-     (if ltr then inCmd "LR" else id) .
-     (case lookup "lang" kvs of
-        Just lng -> let (l, o) = toPolyglossia $ splitBy (=='-') lng
-                        ops = if null o then "" else brackets (text o)
-                    in  \c -> char '\\' <> "text" <> text l <> ops <> braces c
-        Nothing  -> id)
-    ) `fmap` inlineListToLaTeX ils
+  let cmds = ["textup" | "csl-no-emph" `elem` classes] ++
+             ["textnormal" | "csl-no-strong" `elem` classes ||
+                             "csl-no-smallcaps" `elem` classes] ++
+             ["RL" | ("dir", "rtl") `elem` kvs] ++
+             ["LR" | ("dir", "ltr") `elem` kvs] ++
+             (case lookup "lang" kvs of
+                Just lng -> let (l, o) = toPolyglossia $ splitBy (=='-') lng
+                                ops = if null o then "" else ("[" ++ o ++ "]")
+                            in  ["text" ++ l ++ ops]
+                Nothing  -> [])
+  contents <- inlineListToLaTeX ils
+  return $ linkAnchor <>
+           if null cmds
+              then braces contents
+              else foldr inCmd contents cmds
 inlineToLaTeX (Emph lst) =
   inlineListToLaTeX lst >>= return . inCmd "emph"
 inlineToLaTeX (Strong lst) =

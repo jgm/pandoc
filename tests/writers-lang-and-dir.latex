@@ -89,7 +89,7 @@ div contents
 
 and more text.
 
-Next paragraph with a span and a word-thatincludesaspanright?
+Next paragraph with a {span} and a word-thatincludesa{span}right?
 
 \section{Directionality}\label{directionality}
 
