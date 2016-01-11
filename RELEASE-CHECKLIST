@@ -20,6 +20,9 @@ _ Generate Ubuntu/Debian deb package (cd deb; make package).
 
 _ Upload to HackageDB
 
+_ if docs don't build on Hackage:
+  'cabal install neil && neil docs --username=MYUSERNAME'
+
 _ Update website, including short description of changes ('make changes')
 
 _ Announce on pandoc-announce, pandoc-discuss
