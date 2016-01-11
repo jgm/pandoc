@@ -179,10 +179,11 @@ quoted' f starter ender = do
      then do
        ils <- many (notFollowedBy ender >> inline)
        (ender >> return (f (mconcat ils))) <|>
-            lit (case startchs of
-                      "``"  -> "“"
-                      "`"   -> "‘"
-                      _     -> startchs)
+            (<> mconcat ils) <$>
+                    lit (case startchs of
+                              "``"  -> "“"
+                              "`"   -> "‘"
+                              _     -> startchs)
      else lit startchs
 
 doubleQuote :: LP Inlines
