@@ -30,7 +30,7 @@ import Control.Monad (guard, liftM, when)
 import Data.List (isPrefixOf, isInfixOf)
 import Data.Maybe (mapMaybe, fromMaybe)
 import qualified Data.Map as M (Map, lookup, fromList, elems)
-import Control.DeepSeq.Generics (deepseq, NFData)
+import Control.DeepSeq (deepseq, NFData)
 
 import Debug.Trace (trace)
 
