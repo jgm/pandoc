@@ -2,8 +2,8 @@
 <installer-gui-script minSpecVersion="1">
     <title>pandoc</title>
     <organization>net.johnmacfarlane.pandoc</organization>
-    <domains enable_localSystem="true"/>
-    <options customize="never" require-scripts="true" rootVolumeOnly="true" />
+    <domains enable_localSystem="true" enable_anywhere="true" />
+    <options customize="allow" require-scripts="false" rootVolumeOnly="false" />
     <!-- Define documents displayed at various steps -->
     <!-- <welcome    file="welcome.html"    mime-type="text/html" /> -->
     <license    file="license.html"    mime-type="text/html" />
@@ -11,7 +11,7 @@
     <options hostArchitectures="x86_64" />
     <!-- List all component packages -->
     <pkg-ref id="net.johnmacfarlane.pandoc"
-             version="1.13"
+             version="1.16.0.1"
              auth="root">pandoc.pkg</pkg-ref>
     <!-- List them again here. They can now be organized
          as a hierarchy if you want. -->
