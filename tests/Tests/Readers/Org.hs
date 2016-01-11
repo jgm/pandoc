@@ -635,11 +635,11 @@ tests =
                   ] =?>
           para (image "edward.jpg" "fig:goodguy" "A very courageous man.")
 
-      , "Unnamed figure" =:
-          unlines [ "#+caption: A great whistleblower."
-                  , "[[snowden.png]]"
+      , "Figure with no name" =:
+          unlines [ "#+caption: I've been through the desert on this"
+                  , "[[horse.png]]"
                   ] =?>
-          para (image "snowden.png" "" "A great whistleblower.")
+          para (image "horse.png" "fig:" "I've been through the desert on this")
 
       , "Figure with `fig:` prefix in name" =:
           unlines [ "#+caption: Used as a metapher in evolutionary biology."

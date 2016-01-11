@@ -2,7 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
 {-
-Copyright (C) 2014-2015 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Org
-   Copyright   : Copyright (C) 2014-2015 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2016 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -628,7 +628,7 @@ figure = try $ do
          maybeNam <- lookupBlockAttribute "name"
          guard $ isJust maybeCap || isJust maybeNam
          return ( fromMaybe mempty maybeCap
-                , maybe mempty withFigPrefix maybeNam )
+                , withFigPrefix $ fromMaybe mempty maybeNam )
    withFigPrefix cs =
        if "fig:" `isPrefixOf` cs
        then cs
