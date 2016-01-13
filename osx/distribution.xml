@@ -11,7 +11,7 @@
     <options hostArchitectures="x86_64" />
     <!-- List all component packages -->
     <pkg-ref id="net.johnmacfarlane.pandoc"
-             version="1.16.0.1"
+             version="1.16.0.2"
              auth="root">pandoc.pkg</pkg-ref>
     <!-- List them again here. They can now be organized
          as a hierarchy if you want. -->

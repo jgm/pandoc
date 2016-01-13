@@ -1,3 +1,11 @@
+pandoc (1.16.0.2)
+
+  * Depend on deepseq rather than deepseq-generics (fpco/stackage#1096).
+
+  * Fixed regression in latex smart quote parsing (#2645).
+    In cases where a match was not found for a quote, everything
+    from the open quote to the end of the paragraph was being dropped.
+
 pandoc (1.16.0.1)
 
   * Fixed regression with `--latex-engine` (#2618).  In 1.16 `--latex-engine`
