@@ -11,6 +11,8 @@ SCRIPTS=$OSX/osx-resources
 BASE=pandoc-$VERSION
 ME=$(whoami)
 PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
+DEVELOPER_ID_APPLICATION=${DEVELOPER_ID_APPLICATION:-Developer ID Application: John Macfarlane}
+DEVELOPER_ID_INSTALLER=${DEVELOPER_ID_INSTALLER:-Developer ID Installer: John Macfarlane}
 
 # We need this for hsb2hs:
 PATH=$LOCALBIN:$PATH
@@ -51,7 +53,7 @@ $LOCALBIN/pandoc --data data -t html5 -s COPYING -o $RESOURCES/license.html
 
 echo Signing pandoc executable...
 
-codesign --force --sign "Developer ID Application: John Macfarlane" $DEST/bin/pandoc
+codesign --force --sign ${DEVELOPER_ID_APPLICATION} $DEST/bin/pandoc
 # make sure it's valid... returns nonzero exit code if it isn't:
 spctl --assess --type execute $DEST/bin/pandoc
 
@@ -60,7 +62,7 @@ echo Creating OSX package...
 rm -rf $BASE.pkg
 
 pkgbuild --root $DIST/pandoc --identifier net.johnmacfarlane.pandoc --version 1.13 --ownership recommended $DIST/pandoc.pkg
-productbuild --distribution osx/distribution.xml --resources $DIST/Resources --package-path $DIST --version $VERSION --sign "Developer ID Installer: John Macfarlane" $BASE-osx.pkg
+productbuild --distribution osx/distribution.xml --resources $DIST/Resources --package-path $DIST --version $VERSION --sign ${DEVELOPER_ID_INSTALLER} $BASE-osx.pkg
 
 # verify signature
 spctl --assess --type install $BASE-osx.pkg
