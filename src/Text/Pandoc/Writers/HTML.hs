@@ -140,40 +140,38 @@ pandocToHtml opts (Pandoc meta blocks) = do
   st <- get
   let notes = reverse (stNotes st)
   let thebody = blocks' >> footnoteSection opts notes
-  let  math = if stMath st
-                then case writerHTMLMathMethod opts of
-                           LaTeXMathML (Just url) ->
-                              H.script ! A.src (toValue url)
-                                       ! A.type_ "text/javascript"
-                                       $ mempty
-                           MathML (Just url) ->
-                              H.script ! A.src (toValue url)
-                                       ! A.type_ "text/javascript"
-                                       $ mempty
-                           MathJax url ->
-                              H.script ! A.src (toValue url)
-                                       ! A.type_ "text/javascript"
-                                       $ case writerSlideVariant opts of
-                                              SlideousSlides ->
-                                                 preEscapedString
-                                                 "MathJax.Hub.Queue([\"Typeset\",MathJax.Hub]);"
-                                              _ -> mempty
-                           JsMath (Just url) ->
-                              H.script ! A.src (toValue url)
-                                       ! A.type_ "text/javascript"
-                                       $ mempty
-                           KaTeX js css ->
-                              (H.script ! A.src (toValue js) $ mempty) <>
-                              (H.link ! A.rel "stylesheet" ! A.href (toValue css)) <>
-                              (H.script ! A.type_ "text/javascript" $ toHtml renderKaTeX)
-                           _ -> case lookup "mathml-script" (writerVariables opts) of
-                                      Just s | not (writerHtml5 opts) ->
-                                        H.script ! A.type_ "text/javascript"
-                                           $ preEscapedString
-                                            ("/*<![CDATA[*/\n" ++ s ++ "/*]]>*/\n")
-                                             | otherwise -> mempty
-                                      Nothing -> mempty
-                else mempty
+  let  math = case writerHTMLMathMethod opts of
+                      LaTeXMathML (Just url) ->
+                         H.script ! A.src (toValue url)
+                                  ! A.type_ "text/javascript"
+                                  $ mempty
+                      MathML (Just url) ->
+                         H.script ! A.src (toValue url)
+                                  ! A.type_ "text/javascript"
+                                  $ mempty
+                      MathJax url ->
+                         H.script ! A.src (toValue url)
+                                  ! A.type_ "text/javascript"
+                                  $ case writerSlideVariant opts of
+                                         SlideousSlides ->
+                                            preEscapedString
+                                            "MathJax.Hub.Queue([\"Typeset\",MathJax.Hub]);"
+                                         _ -> mempty
+                      JsMath (Just url) ->
+                         H.script ! A.src (toValue url)
+                                  ! A.type_ "text/javascript"
+                                  $ mempty
+                      KaTeX js css ->
+                         (H.script ! A.src (toValue js) $ mempty) <>
+                         (H.link ! A.rel "stylesheet" ! A.href (toValue css)) <>
+                         (H.script ! A.type_ "text/javascript" $ toHtml renderKaTeX)
+                      _ -> case lookup "mathml-script" (writerVariables opts) of
+                                 Just s | not (writerHtml5 opts) ->
+                                   H.script ! A.type_ "text/javascript"
+                                      $ preEscapedString
+                                       ("/*<![CDATA[*/\n" ++ s ++ "/*]]>*/\n")
+                                        | otherwise -> mempty
+                                 Nothing -> mempty
   let context =   (if stHighlighting st
                       then defField "highlighting-css"
                              (styleToCss $ writerHighlightStyle opts)
