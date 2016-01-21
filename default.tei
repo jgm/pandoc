@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0"$if(lang)$ xml:lang="$lang$"$endif$>
+<teiHeader>
+  <fileDesc>
+    <titleStmt>
+$if(title)$
+      <title>$title$</title>
+$endif$
+$for(author)$
+      $author$
+$endfor$
+    </titleStmt>
+    <publicationStmt>
+      <p>$if(publicationStmt)$$publicationStmt$$endif$</p>
+      $if(license)$
+      <availability><licence>$license$</licence></availability>
+$endif$
+    </publicationStmt>
+    <sourceDesc>
+$if(sourceDesc)$
+      $sourceDesc$
+$else$
+      <p>Produced by pandoc.</p>
+$endif$
+    </sourceDesc>
+  </fileDesc>
+</teiHeader>
+<text>
+$for(include-before)$
+$include-before$
+$endfor$
+<body>
+$body$
+</body>
+$for(include-after)$
+$include-after$
+$endfor$
+</text>
+</TEI>
