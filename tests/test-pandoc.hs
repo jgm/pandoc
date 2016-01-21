@@ -24,6 +24,7 @@ import qualified Tests.Writers.Plain
 import qualified Tests.Writers.AsciiDoc
 import qualified Tests.Writers.Docx
 import qualified Tests.Writers.RST
+import qualified Tests.Writers.TEI
 import qualified Tests.Shared
 import qualified Tests.Walk
 import Text.Pandoc.Shared (inDirectory)
@@ -44,6 +45,7 @@ tests = [ testGroup "Old" Tests.Old.tests
           , testGroup "AsciiDoc" Tests.Writers.AsciiDoc.tests
           , testGroup "Docx" Tests.Writers.Docx.tests
           , testGroup "RST" Tests.Writers.RST.tests
+          , testGroup "TEI" Tests.Writers.TEI.tests
           ]
         , testGroup "Readers"
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests

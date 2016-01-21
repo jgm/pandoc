@@ -115,6 +115,7 @@ module Text.Pandoc
                , writeHaddock
                , writeCommonMark
                , writeCustom
+               , writeTEI
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates
                -- * Miscellaneous
@@ -169,6 +170,7 @@ import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Writers.Haddock
 import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.Custom
+import Text.Pandoc.Writers.TEI
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, warn, mapLeft, pandocVersion)
@@ -304,6 +306,7 @@ writers = [
   ,("asciidoc"     , PureStringWriter writeAsciiDoc)
   ,("haddock"      , PureStringWriter writeHaddock)
   ,("commonmark"   , PureStringWriter writeCommonMark)
+  ,("tei"          , PureStringWriter writeTEI)
   ]
 
 getDefaultExtensions :: String -> Set Extension

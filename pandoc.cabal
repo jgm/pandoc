@@ -362,6 +362,7 @@ Library
                    Text.Pandoc.Writers.Docx,
                    Text.Pandoc.Writers.EPUB,
                    Text.Pandoc.Writers.FB2,
+                   Text.Pandoc.Writers.TEI,                                      
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,
                    Text.Pandoc.Templates,
@@ -504,6 +505,7 @@ Test-Suite test-pandoc
                   Tests.Writers.LaTeX
                   Tests.Writers.Docx
                   Tests.Writers.RST
+                  Tests.Writers.TEI
   Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   Default-Language: Haskell98
 
