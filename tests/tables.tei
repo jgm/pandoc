@@ -1,0 +1,171 @@
+<p>Simple table with caption:</p>
+<table>
+  <row role="label">
+    <cell><p>Right</p></cell>
+    <cell><p>Left</p></cell>
+    <cell><p>Center</p></cell>
+    <cell><p>Default</p></cell>
+  </row>
+  <row>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+  </row>
+  <row>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+  </row>
+  <row>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+  </row>
+</table>
+<p>Simple table without caption:</p>
+<table>
+  <row role="label">
+    <cell><p>Right</p></cell>
+    <cell><p>Left</p></cell>
+    <cell><p>Center</p></cell>
+    <cell><p>Default</p></cell>
+  </row>
+  <row>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+  </row>
+  <row>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+  </row>
+  <row>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+  </row>
+</table>
+<p>Simple table indented two spaces:</p>
+<table>
+  <row role="label">
+    <cell><p>Right</p></cell>
+    <cell><p>Left</p></cell>
+    <cell><p>Center</p></cell>
+    <cell><p>Default</p></cell>
+  </row>
+  <row>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+  </row>
+  <row>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+  </row>
+  <row>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+  </row>
+</table>
+<p>Multiline table with caption:</p>
+<table>
+  <row role="label">
+    <cell><p>Centered Header</p></cell>
+    <cell><p>Left Aligned</p></cell>
+    <cell><p>Right Aligned</p></cell>
+    <cell><p>Default aligned</p></cell>
+  </row>
+  <row>
+    <cell><p>First</p></cell>
+    <cell><p>row</p></cell>
+    <cell><p>12.0</p></cell>
+    <cell><p>Example of a row that spans multiple lines.</p></cell>
+  </row>
+  <row>
+    <cell><p>Second</p></cell>
+    <cell><p>row</p></cell>
+    <cell><p>5.0</p></cell>
+    <cell><p>Here's another one. Note the blank line between rows.</p></cell>
+  </row>
+</table>
+<p>Multiline table without caption:</p>
+<table>
+  <row role="label">
+    <cell><p>Centered Header</p></cell>
+    <cell><p>Left Aligned</p></cell>
+    <cell><p>Right Aligned</p></cell>
+    <cell><p>Default aligned</p></cell>
+  </row>
+  <row>
+    <cell><p>First</p></cell>
+    <cell><p>row</p></cell>
+    <cell><p>12.0</p></cell>
+    <cell><p>Example of a row that spans multiple lines.</p></cell>
+  </row>
+  <row>
+    <cell><p>Second</p></cell>
+    <cell><p>row</p></cell>
+    <cell><p>5.0</p></cell>
+    <cell><p>Here's another one. Note the blank line between rows.</p></cell>
+  </row>
+</table>
+<p>Table without column headers:</p>
+<table>
+  <row role="label">
+    <cell></cell>
+    <cell></cell>
+    <cell></cell>
+    <cell></cell>
+  </row>
+  <row>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+    <cell><p>12</p></cell>
+  </row>
+  <row>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+    <cell><p>123</p></cell>
+  </row>
+  <row>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+    <cell><p>1</p></cell>
+  </row>
+</table>
+<p>Multiline table without column headers:</p>
+<table>
+  <row role="label">
+    <cell></cell>
+    <cell></cell>
+    <cell></cell>
+    <cell></cell>
+  </row>
+  <row>
+    <cell><p>First</p></cell>
+    <cell><p>row</p></cell>
+    <cell><p>12.0</p></cell>
+    <cell><p>Example of a row that spans multiple lines.</p></cell>
+  </row>
+  <row>
+    <cell><p>Second</p></cell>
+    <cell><p>row</p></cell>
+    <cell><p>5.0</p></cell>
+    <cell><p>Here's another one. Note the blank line between rows.</p></cell>
+  </row>
+</table>

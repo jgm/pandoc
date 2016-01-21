@@ -1,0 +1,861 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+<teiHeader>
+  <fileDesc>
+    <titleStmt>
+      <title>Pandoc Test Suite</title>
+      <author>John MacFarlane</author>
+      <author>Anonymous</author>
+    </titleStmt>
+    <publicationStmt>
+      <p></p>
+          </publicationStmt>
+    <sourceDesc>
+      <p>Produced by pandoc.</p>
+    </sourceDesc>
+  </fileDesc>
+</teiHeader>
+<text>
+<body>
+<p>This is a set of tests for pandoc. Most of them are adapted from John
+Gruber’s markdown test suite.</p>
+<milestone unit="undefined" type="separator" rendition="line" />
+<div type="level1">
+  <head>Headers</head>
+  <div type="level2">
+    <head>Level 2 with an <ref target="/url">embedded link</ref></head>
+    <div type="level3">
+      <head>Level 3 with <hi rendition="simple:italic">emphasis</hi></head>
+      <div type="level4">
+        <head>Level 4</head>
+        <div type="level5">
+          <head>Level 5</head>
+          <p></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div type="level1">
+  <head>Level 1</head>
+  <div type="level2">
+    <head>Level 2 with <hi rendition="simple:italic">emphasis</hi></head>
+    <div type="level3">
+      <head>Level 3</head>
+      <p>with no blank line</p>
+    </div>
+  </div>
+  <div type="level2">
+    <head>Level 2</head>
+    <p>with no blank line</p>
+    <milestone unit="undefined" type="separator" rendition="line" />
+  </div>
+</div>
+<div type="level1">
+  <head>Paragraphs</head>
+  <p>Here’s a regular paragraph.</p>
+  <p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list
+  item. Because a hard-wrapped line in the middle of a paragraph looked like a
+  list item.</p>
+  <p>Here’s one with a bullet. * criminey.</p>
+  <p>There should be a hard line break<lb />here.</p>
+  <milestone unit="undefined" type="separator" rendition="line" />
+</div>
+<div type="level1">
+  <head>Block Quotes</head>
+  <p>E-mail style:</p>
+  <quote>
+    <p>This is a block quote. It is pretty short.</p>
+  </quote>
+  <quote>
+    <p>Code in a block quote:</p>
+    <ab type='codeblock '>
+sub status {
+    print &quot;working&quot;;
+}
+</ab>
+    <p>A list:</p>
+    <list type="ordered:arabic">
+      <item>
+        <p>item one</p>
+      </item>
+      <item>
+        <p>item two</p>
+      </item>
+    </list>
+    <p>Nested block quotes:</p>
+    <quote>
+      <p>nested</p>
+    </quote>
+    <quote>
+      <p>nested</p>
+    </quote>
+  </quote>
+  <p>This should not be a block quote: 2 &gt; 1.</p>
+  <p>And a following paragraph.</p>
+  <milestone unit="undefined" type="separator" rendition="line" />
+</div>
+<div type="level1">
+  <head>Code Blocks</head>
+  <p>Code:</p>
+  <ab type='codeblock '>
+---- (should be four hyphens)
+
+sub status {
+    print &quot;working&quot;;
+}
+
+this code block is indented by one tab
+</ab>
+  <p>And:</p>
+  <ab type='codeblock '>
+    this code block is indented by two tabs
+
+These should not be escaped:  \$ \\ \&gt; \[ \{
+</ab>
+  <milestone unit="undefined" type="separator" rendition="line" />
+</div>
+<div type="level1">
+  <head>Lists</head>
+  <div type="level2">
+    <head>Unordered</head>
+    <p>Asterisks tight:</p>
+    <list type="unordered">
+      <item>
+        <p>asterisk 1</p>
+      </item>
+      <item>
+        <p>asterisk 2</p>
+      </item>
+      <item>
+        <p>asterisk 3</p>
+      </item>
+    </list>
+    <p>Asterisks loose:</p>
+    <list type="unordered">
+      <item>
+        <p>asterisk 1</p>
+      </item>
+      <item>
+        <p>asterisk 2</p>
+      </item>
+      <item>
+        <p>asterisk 3</p>
+      </item>
+    </list>
+    <p>Pluses tight:</p>
+    <list type="unordered">
+      <item>
+        <p>Plus 1</p>
+      </item>
+      <item>
+        <p>Plus 2</p>
+      </item>
+      <item>
+        <p>Plus 3</p>
+      </item>
+    </list>
+    <p>Pluses loose:</p>
+    <list type="unordered">
+      <item>
+        <p>Plus 1</p>
+      </item>
+      <item>
+        <p>Plus 2</p>
+      </item>
+      <item>
+        <p>Plus 3</p>
+      </item>
+    </list>
+    <p>Minuses tight:</p>
+    <list type="unordered">
+      <item>
+        <p>Minus 1</p>
+      </item>
+      <item>
+        <p>Minus 2</p>
+      </item>
+      <item>
+        <p>Minus 3</p>
+      </item>
+    </list>
+    <p>Minuses loose:</p>
+    <list type="unordered">
+      <item>
+        <p>Minus 1</p>
+      </item>
+      <item>
+        <p>Minus 2</p>
+      </item>
+      <item>
+        <p>Minus 3</p>
+      </item>
+    </list>
+  </div>
+  <div type="level2">
+    <head>Ordered</head>
+    <p>Tight:</p>
+    <list type="ordered:arabic">
+      <item>
+        <p>First</p>
+      </item>
+      <item>
+        <p>Second</p>
+      </item>
+      <item>
+        <p>Third</p>
+      </item>
+    </list>
+    <p>and:</p>
+    <list type="ordered:arabic">
+      <item>
+        <p>One</p>
+      </item>
+      <item>
+        <p>Two</p>
+      </item>
+      <item>
+        <p>Three</p>
+      </item>
+    </list>
+    <p>Loose using tabs:</p>
+    <list type="ordered:arabic">
+      <item>
+        <p>First</p>
+      </item>
+      <item>
+        <p>Second</p>
+      </item>
+      <item>
+        <p>Third</p>
+      </item>
+    </list>
+    <p>and using spaces:</p>
+    <list type="ordered:arabic">
+      <item>
+        <p>One</p>
+      </item>
+      <item>
+        <p>Two</p>
+      </item>
+      <item>
+        <p>Three</p>
+      </item>
+    </list>
+    <p>Multiple paragraphs:</p>
+    <list type="ordered:arabic">
+      <item>
+        <p>Item 1, graf one.</p>
+        <p>Item 1. graf two. The quick brown fox jumped over the lazy dog’s
+        back.</p>
+      </item>
+      <item>
+        <p>Item 2.</p>
+      </item>
+      <item>
+        <p>Item 3.</p>
+      </item>
+    </list>
+  </div>
+  <div type="level2">
+    <head>Nested</head>
+    <list type="unordered">
+      <item>
+        <p>Tab</p>
+        <list type="unordered">
+          <item>
+            <p>Tab</p>
+            <list type="unordered">
+              <item>
+                <p>Tab</p>
+              </item>
+            </list>
+          </item>
+        </list>
+      </item>
+    </list>
+    <p>Here’s another:</p>
+    <list type="ordered:arabic">
+      <item>
+        <p>First</p>
+      </item>
+      <item>
+        <p>Second:</p>
+        <list type="unordered">
+          <item>
+            <p>Fee</p>
+          </item>
+          <item>
+            <p>Fie</p>
+          </item>
+          <item>
+            <p>Foe</p>
+          </item>
+        </list>
+      </item>
+      <item>
+        <p>Third</p>
+      </item>
+    </list>
+    <p>Same thing but with paragraphs:</p>
+    <list type="ordered:arabic">
+      <item>
+        <p>First</p>
+      </item>
+      <item>
+        <p>Second:</p>
+        <list type="unordered">
+          <item>
+            <p>Fee</p>
+          </item>
+          <item>
+            <p>Fie</p>
+          </item>
+          <item>
+            <p>Foe</p>
+          </item>
+        </list>
+      </item>
+      <item>
+        <p>Third</p>
+      </item>
+    </list>
+  </div>
+  <div type="level2">
+    <head>Tabs and spaces</head>
+    <list type="unordered">
+      <item>
+        <p>this is a list item indented with tabs</p>
+      </item>
+      <item>
+        <p>this is a list item indented with spaces</p>
+        <list type="unordered">
+          <item>
+            <p>this is an example list item indented with tabs</p>
+          </item>
+          <item>
+            <p>this is an example list item indented with spaces</p>
+          </item>
+        </list>
+      </item>
+    </list>
+  </div>
+  <div type="level2">
+    <head>Fancy list markers</head>
+    <list type="ordered:arabic">
+      <item n="2">
+        <p>begins with 2</p>
+      </item>
+      <item>
+        <p>and now 3</p>
+        <p>with a continuation</p>
+        <list type="ordered:lowerroman">
+          <item n="4">
+            <p>sublist with roman numerals, starting with 4</p>
+          </item>
+          <item>
+            <p>more items</p>
+            <list type="ordered:upperalpha">
+              <item>
+                <p>a subsublist</p>
+              </item>
+              <item>
+                <p>a subsublist</p>
+              </item>
+            </list>
+          </item>
+        </list>
+      </item>
+    </list>
+    <p>Nesting:</p>
+    <list type="ordered:upperalpha">
+      <item>
+        <p>Upper Alpha</p>
+        <list type="ordered:upperroman">
+          <item>
+            <p>Upper Roman.</p>
+            <list type="ordered:arabic">
+              <item n="6">
+                <p>Decimal start with 6</p>
+                <list type="ordered:loweralpha">
+                  <item n="3">
+                    <p>Lower alpha with paren</p>
+                  </item>
+                </list>
+              </item>
+            </list>
+          </item>
+        </list>
+      </item>
+    </list>
+    <p>Autonumbering:</p>
+    <list>
+      <item>
+        <p>Autonumber.</p>
+      </item>
+      <item>
+        <p>More.</p>
+        <list>
+          <item>
+            <p>Nested.</p>
+          </item>
+        </list>
+      </item>
+    </list>
+    <p>Should not be a list item:</p>
+    <p>M.A. 2007</p>
+    <p>B. Williams</p>
+    <milestone unit="undefined" type="separator" rendition="line" />
+  </div>
+</div>
+<div type="level1">
+  <head>Definition Lists</head>
+  <p>Tight using spaces:</p>
+  <list type="definition">
+    <label>
+      apple
+    </label>
+    <item>
+      <p>red fruit</p>
+    </item>
+    <label>
+      orange
+    </label>
+    <item>
+      <p>orange fruit</p>
+    </item>
+    <label>
+      banana
+    </label>
+    <item>
+      <p>yellow fruit</p>
+    </item>
+  </list>
+  <p>Tight using tabs:</p>
+  <list type="definition">
+    <label>
+      apple
+    </label>
+    <item>
+      <p>red fruit</p>
+    </item>
+    <label>
+      orange
+    </label>
+    <item>
+      <p>orange fruit</p>
+    </item>
+    <label>
+      banana
+    </label>
+    <item>
+      <p>yellow fruit</p>
+    </item>
+  </list>
+  <p>Loose:</p>
+  <list type="definition">
+    <label>
+      apple
+    </label>
+    <item>
+      <p>red fruit</p>
+    </item>
+    <label>
+      orange
+    </label>
+    <item>
+      <p>orange fruit</p>
+    </item>
+    <label>
+      banana
+    </label>
+    <item>
+      <p>yellow fruit</p>
+    </item>
+  </list>
+  <p>Multiple blocks with italics:</p>
+  <list type="definition">
+    <label>
+      <hi rendition="simple:italic">apple</hi>
+    </label>
+    <item>
+      <p>red fruit</p>
+      <p>contains seeds, crisp, pleasant to taste</p>
+    </item>
+    <label>
+      <hi rendition="simple:italic">orange</hi>
+    </label>
+    <item>
+      <p>orange fruit</p>
+      <ab type='codeblock '>
+{ orange code block }
+</ab>
+      <quote>
+        <p>orange block quote</p>
+      </quote>
+    </item>
+  </list>
+  <p>Multiple definitions, tight:</p>
+  <list type="definition">
+    <label>
+      apple
+    </label>
+    <item>
+      <p>red fruit</p>
+      <p>computer</p>
+    </item>
+    <label>
+      orange
+    </label>
+    <item>
+      <p>orange fruit</p>
+      <p>bank</p>
+    </item>
+  </list>
+  <p>Multiple definitions, loose:</p>
+  <list type="definition">
+    <label>
+      apple
+    </label>
+    <item>
+      <p>red fruit</p>
+      <p>computer</p>
+    </item>
+    <label>
+      orange
+    </label>
+    <item>
+      <p>orange fruit</p>
+      <p>bank</p>
+    </item>
+  </list>
+  <p>Blank line after term, indented marker, alternate markers:</p>
+  <list type="definition">
+    <label>
+      apple
+    </label>
+    <item>
+      <p>red fruit</p>
+      <p>computer</p>
+    </item>
+    <label>
+      orange
+    </label>
+    <item>
+      <p>orange fruit</p>
+      <list type="ordered:arabic">
+        <item>
+          <p>sublist</p>
+        </item>
+        <item>
+          <p>sublist</p>
+        </item>
+      </list>
+    </item>
+  </list>
+</div>
+<div type="level1">
+  <head>HTML Blocks</head>
+  <p>Simple block on one line:</p>
+  <p>foo</p>
+  <p>And nested without indentation:</p>
+  <p>foo</p>
+  <p>bar</p>
+  <p>Interpreted markdown in a table:</p>
+  <p>This is <hi rendition="simple:italic">emphasized</hi></p>
+  <p>And this is <hi rendition="simple:bold">strong</hi></p>
+  <p>Here’s a simple block:</p>
+  <p>foo</p>
+  <p>This should be a code block, though:</p>
+  <ab type='codeblock '>
+&lt;div&gt;
+    foo
+&lt;/div&gt;
+</ab>
+  <p>As should this:</p>
+  <ab type='codeblock '>
+&lt;div&gt;foo&lt;/div&gt;
+</ab>
+  <p>Now, nested:</p>
+  <p>foo</p>
+  <p>This should just be an HTML comment:</p>
+  <p>Multiline:</p>
+  <p>Code block:</p>
+  <ab type='codeblock '>
+&lt;!-- Comment --&gt;
+</ab>
+  <p>Just plain comment, with trailing spaces on the line:</p>
+  <p>Code:</p>
+  <ab type='codeblock '>
+&lt;hr /&gt;
+</ab>
+  <p>Hr’s:</p>
+  <milestone unit="undefined" type="separator" rendition="line" />
+</div>
+<div type="level1">
+  <head>Inline Markup</head>
+  <p>This is <hi rendition="simple:italic">emphasized</hi>, and so
+  <hi rendition="simple:italic">is this</hi>.</p>
+  <p>This is <hi rendition="simple:bold">strong</hi>, and so
+  <hi rendition="simple:bold">is this</hi>.</p>
+  <p>An <hi rendition="simple:italic"><ref target="/url">emphasized
+  link</ref></hi>.</p>
+  <p><hi rendition="simple:bold"><hi rendition="simple:italic">This is strong
+  and em.</hi></hi></p>
+  <p>So is
+  <hi rendition="simple:bold"><hi rendition="simple:italic">this</hi></hi>
+  word.</p>
+  <p><hi rendition="simple:bold"><hi rendition="simple:italic">This is strong
+  and em.</hi></hi></p>
+  <p>So is
+  <hi rendition="simple:bold"><hi rendition="simple:italic">this</hi></hi>
+  word.</p>
+  <p>This is code: <seg type="code">&gt;</seg>, <seg type="code">$</seg>,
+  <seg type="code">\</seg>, <seg type="code">\$</seg>,
+  <seg type="code">&lt;html&gt;</seg>.</p>
+  <p><hi rendition="simple:strikethrough">This is
+  <hi rendition="simple:italic">strikeout</hi>.</hi></p>
+  <p>Superscripts: a<hi rendition="simple:superscript">bc</hi>d
+  a<hi rendition="simple:superscript"><hi rendition="simple:italic">hello</hi></hi>
+  a<hi rendition="simple:superscript">hello there</hi>.</p>
+  <p>Subscripts: H<hi rendition="simple:subscript">2</hi>O,
+  H<hi rendition="simple:subscript">23</hi>O,
+  H<hi rendition="simple:subscript">many of them</hi>O.</p>
+  <p>These should not be superscripts or subscripts, because of the unescaped
+  spaces: a^b c^d, a~b c~d.</p>
+  <milestone unit="undefined" type="separator" rendition="line" />
+</div>
+<div type="level1">
+  <head>Smart quotes, ellipses, dashes</head>
+  <p><quote>Hello,</quote> said the spider. <quote><quote>Shelob</quote> is my
+  name.</quote></p>
+  <p><quote>A</quote>, <quote>B</quote>, and <quote>C</quote> are letters.</p>
+  <p><quote>Oak,</quote> <quote>elm,</quote> and <quote>beech</quote> are
+  names of trees. So is <quote>pine.</quote></p>
+  <p><quote>He said, <quote>I want to go.</quote></quote> Were you alive in
+  the 70’s?</p>
+  <p>Here is some quoted <quote><seg type="code">code</seg></quote> and a
+  <quote><ref target="http://example.com/?foo=1&amp;bar=2">quoted
+  link</ref></quote>.</p>
+  <p>Some dashes: one—two — three—four — five.</p>
+  <p>Dashes between numbers: 5–7, 255–66, 1987–1999.</p>
+  <p>Ellipses…and…and….</p>
+  <milestone unit="undefined" type="separator" rendition="line" />
+</div>
+<div type="level1">
+  <head>LaTeX</head>
+  <list type="unordered">
+    <item>
+      <p></p>
+    </item>
+    <item>
+      <p><formula notation="TeX">2+2=4</formula></p>
+    </item>
+    <item>
+      <p><formula notation="TeX">x \in y</formula></p>
+    </item>
+    <item>
+      <p><formula notation="TeX">\alpha \wedge \omega</formula></p>
+    </item>
+    <item>
+      <p><formula notation="TeX">223</formula></p>
+    </item>
+    <item>
+      <p><formula notation="TeX">p</formula>-Tree</p>
+    </item>
+    <item>
+      <p>Here’s some display math: <figure type="math">
+        <formula notation="TeX">\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</formula>
+      </figure></p>
+    </item>
+    <item>
+      <p>Here’s one that has a line break in it:
+      <formula notation="TeX">\alpha + \omega \times x^2</formula>.</p>
+    </item>
+  </list>
+  <p>These shouldn’t be math:</p>
+  <list type="unordered">
+    <item>
+      <p>To get the famous equation, write
+      <seg type="code">$e = mc^2$</seg>.</p>
+    </item>
+    <item>
+      <p>$22,000 is a <hi rendition="simple:italic">lot</hi> of money. So is
+      $34,000. (It worked if <quote>lot</quote> is emphasized.)</p>
+    </item>
+    <item>
+      <p>Shoes ($20) and socks ($5).</p>
+    </item>
+    <item>
+      <p>Escaped <seg type="code">$</seg>: $73
+      <hi rendition="simple:italic">this should be emphasized</hi> 23$.</p>
+    </item>
+  </list>
+  <p>Here’s a LaTeX table:</p>
+  <milestone unit="undefined" type="separator" rendition="line" />
+</div>
+<div type="level1">
+  <head>Special Characters</head>
+  <p>Here is some unicode:</p>
+  <list type="unordered">
+    <item>
+      <p>I hat: Î</p>
+    </item>
+    <item>
+      <p>o umlaut: ö</p>
+    </item>
+    <item>
+      <p>section: §</p>
+    </item>
+    <item>
+      <p>set membership: ∈</p>
+    </item>
+    <item>
+      <p>copyright: ©</p>
+    </item>
+  </list>
+  <p>AT&amp;T has an ampersand in their name.</p>
+  <p>AT&amp;T is another way to write it.</p>
+  <p>This &amp; that.</p>
+  <p>4 &lt; 5.</p>
+  <p>6 &gt; 5.</p>
+  <p>Backslash: \</p>
+  <p>Backtick: `</p>
+  <p>Asterisk: *</p>
+  <p>Underscore: _</p>
+  <p>Left brace: {</p>
+  <p>Right brace: }</p>
+  <p>Left bracket: [</p>
+  <p>Right bracket: ]</p>
+  <p>Left paren: (</p>
+  <p>Right paren: )</p>
+  <p>Greater-than: &gt;</p>
+  <p>Hash: #</p>
+  <p>Period: .</p>
+  <p>Bang: !</p>
+  <p>Plus: +</p>
+  <p>Minus: -</p>
+  <milestone unit="undefined" type="separator" rendition="line" />
+</div>
+<div type="level1">
+  <head>Links</head>
+  <div type="level2">
+    <head>Explicit</head>
+    <p>Just a <ref target="/url/">URL</ref>.</p>
+    <p><ref target="/url/">URL and title</ref>.</p>
+    <p><ref target="/url/">URL and title</ref>.</p>
+    <p><ref target="/url/">URL and title</ref>.</p>
+    <p><ref target="/url/">URL and title</ref></p>
+    <p><ref target="/url/">URL and title</ref></p>
+    <p><ref target="/url/with_underscore">with_underscore</ref></p>
+    <p>Email link (nobody@nowhere.net)</p>
+    <p><ref target="">Empty</ref>.</p>
+  </div>
+  <div type="level2">
+    <head>Reference</head>
+    <p>Foo <ref target="/url/">bar</ref>.</p>
+    <p>Foo <ref target="/url/">bar</ref>.</p>
+    <p>Foo <ref target="/url/">bar</ref>.</p>
+    <p>With <ref target="/url/">embedded [brackets]</ref>.</p>
+    <p><ref target="/url/">b</ref> by itself should be a link.</p>
+    <p>Indented <ref target="/url">once</ref>.</p>
+    <p>Indented <ref target="/url">twice</ref>.</p>
+    <p>Indented <ref target="/url">thrice</ref>.</p>
+    <p>This should [not][] be a link.</p>
+    <ab type='codeblock '>
+[not]: /url
+</ab>
+    <p>Foo <ref target="/url/">bar</ref>.</p>
+    <p>Foo <ref target="/url/">biz</ref>.</p>
+  </div>
+  <div type="level2">
+    <head>With ampersands</head>
+    <p>Here’s a <ref target="http://example.com/?foo=1&amp;bar=2">link with an
+    ampersand in the URL</ref>.</p>
+    <p>Here’s a link with an amersand in the link text:
+    <ref target="http://att.com/">AT&amp;T</ref>.</p>
+    <p>Here’s an <ref target="/script?foo=1&amp;bar=2">inline link</ref>.</p>
+    <p>Here’s an <ref target="/script?foo=1&amp;bar=2">inline link in pointy
+    braces</ref>.</p>
+  </div>
+  <div type="level2">
+    <head>Autolinks</head>
+    <p>With an ampersand:
+    <ref target="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</ref></p>
+    <list type="unordered">
+      <item>
+        <p>In a list?</p>
+      </item>
+      <item>
+        <p><ref target="http://example.com/">http://example.com/</ref></p>
+      </item>
+      <item>
+        <p>It should.</p>
+      </item>
+    </list>
+    <p>An e-mail address: nobody@nowhere.net</p>
+    <quote>
+      <p>Blockquoted:
+      <ref target="http://example.com/">http://example.com/</ref></p>
+    </quote>
+    <p>Auto-links should not occur here:
+    <seg type="code">&lt;http://example.com/&gt;</seg></p>
+    <ab type='codeblock '>
+or here: &lt;http://example.com/&gt;
+</ab>
+    <milestone unit="undefined" type="separator" rendition="line" />
+  </div>
+</div>
+<div type="level1">
+  <head>Images</head>
+  <p>From <quote>Voyage dans la Lune</quote> by Georges Melies (1902):</p>
+  <p><figure>
+    <head>lalune</head>
+    <graphic url="lalune.jpg" />
+    <figDesc>fig:Voyage dans la Lune</figDesc>
+  </figure></p>
+  <p>Here is a movie <figure>
+    <head>movie</head>
+    <graphic url="movie.jpg" />
+  </figure> icon.</p>
+  <milestone unit="undefined" type="separator" rendition="line" />
+</div>
+<div type="level1">
+  <head>Footnotes</head>
+  <p>Here is a footnote reference,<note>
+    <p>Here is the footnote. It can go anywhere after the footnote reference.
+    It need not be placed at the end of the document.</p>
+  </note> and another.<note>
+    <p>Here’s the long note. This one contains multiple blocks.</p>
+    <p>Subsequent blocks are indented to show that they belong to the footnote
+    (as with list items).</p>
+    <ab type='codeblock '>
+  { &lt;code&gt; }
+</ab>
+    <p>If you want, you can indent every line, but you can also be lazy and
+    just indent the first line of each block.</p>
+  </note> This should <hi rendition="simple:italic">not</hi> be a footnote
+  reference, because it contains a space.[^my note] Here is an inline
+  note.<note>
+    <p>This is <hi rendition="simple:italic">easier</hi> to type. Inline notes
+    may contain <ref target="http://google.com">links</ref> and
+    <seg type="code">]</seg> verbatim characters, as well as [bracketed
+    text].</p>
+  </note></p>
+  <quote>
+    <p>Notes can go in quotes.<note>
+      <p>In quote.</p>
+    </note></p>
+  </quote>
+  <list type="ordered:arabic">
+    <item>
+      <p>And in list items.<note>
+        <p>In list.</p>
+      </note></p>
+    </item>
+  </list>
+  <p>This paragraph should not be part of the note, as it is not indented.</p>
+</div>
+</body>
+</text>
+</TEI>

@@ -162,7 +162,7 @@ tests = [ testGroup "markdown"
           [ test "reader" ["-r", "twiki", "-w", "native", "-s"]
               "twiki-reader.twiki" "twiki-reader.native" ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
-          [ "opendocument" , "context" , "texinfo", "icml"
+          [ "opendocument" , "context" , "texinfo", "icml", "tei"
           , "man" , "plain" , "rtf", "org", "asciidoc"
           ]
         , testGroup "writers-lang-and-dir"
