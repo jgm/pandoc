@@ -53,6 +53,7 @@ import Data.Yaml (Value(Object,String,Array,Bool,Number))
 import qualified Data.HashMap.Strict as H
 import qualified Data.Vector as V
 import qualified Data.Text as T
+import qualified Data.Set as Set
 
 type Notes = [[Block]]
 type Ref   = ([Inline], Target, Attr)
@@ -61,11 +62,11 @@ data WriterState = WriterState { stNotes           :: Notes
                                , stRefs            :: Refs
                                , stRefShortcutable :: Bool
                                , stInList          :: Bool
-                               , stIds             :: [String]
+                               , stIds             :: Set.Set String
                                , stPlain           :: Bool }
 instance Default WriterState
   where def = WriterState{ stNotes = [], stRefs = [], stRefShortcutable = True,
-                           stInList = False, stIds = [], stPlain = False }
+                           stInList = False, stIds = Set.empty, stPlain = False }
 
 -- | Convert Pandoc to Markdown.
 writeMarkdown :: WriterOptions -> Pandoc -> String
@@ -364,7 +365,7 @@ blockToMarkdown opts (Header level attr inlines) = do
   -- so we know whether to print an explicit identifier
   ids <- gets stIds
   let autoId = uniqueIdent inlines ids
-  modify $ \st -> st{ stIds = autoId : ids }
+  modify $ \st -> st{ stIds = Set.insert autoId ids }
   let attr' = case attr of
                    ("",[],[]) -> empty
                    (id',[],[]) | isEnabled Ext_auto_identifiers opts

@@ -31,6 +31,7 @@ Conversion of 'Pandoc' documents to EPUB.
 module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
 import Data.IORef ( IORef, newIORef, readIORef, modifyIORef )
 import qualified Data.Map as M
+import qualified Data.Set as Set
 import Data.Maybe ( fromMaybe, catMaybes )
 import Data.List ( isPrefixOf, isInfixOf, intercalate )
 import System.Environment ( getEnv )
@@ -916,13 +917,13 @@ showChapter = printf "ch%03d.xhtml"
 
 -- Add identifiers to any headers without them.
 addIdentifiers :: [Block] -> [Block]
-addIdentifiers bs = evalState (mapM go bs) []
+addIdentifiers bs = evalState (mapM go bs) Set.empty
  where go (Header n (ident,classes,kvs) ils) = do
          ids <- get
          let ident' = if null ident
                          then uniqueIdent ils ids
                          else ident
-         put $ ident' : ids
+         modify $ Set.insert ident'
          return $ Header n (ident',classes,kvs) ils
        go x = return x
 

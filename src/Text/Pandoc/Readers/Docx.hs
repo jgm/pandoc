@@ -89,6 +89,7 @@ import Text.TeXMath (writeTeX)
 import Data.Default (Default)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
+import qualified Data.Set as Set
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Sequence (ViewL(..), viewl)
@@ -350,7 +351,7 @@ parPartToInlines (BookMark _ anchor) =
     -- avoid an extra pass.
     let newAnchor =
           if not inHdrBool && anchor `elem` (M.elems anchorMap)
-          then uniqueIdent [Str anchor] (M.elems anchorMap)
+          then uniqueIdent [Str anchor] (Set.fromList $ M.elems anchorMap)
           else anchor
     unless inHdrBool
       (modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap})
@@ -393,7 +394,7 @@ makeHeaderAnchor' (Header n (_, classes, kvs) ils)
   | (c:cs) <- filter isAnchorSpan ils
   , (Span (ident, ["anchor"], _) _) <- c = do
     hdrIDMap <- gets docxAnchorMap
-    let newIdent = uniqueIdent ils (M.elems hdrIDMap)
+    let newIdent = uniqueIdent ils (Set.fromList $ M.elems hdrIDMap)
     modify $ \s -> s {docxAnchorMap = M.insert ident newIdent hdrIDMap}
     return $ Header n (newIdent, classes, kvs) (ils \\ (c:cs))
 -- Otherwise we just give it a name, and register that name (associate
@@ -401,7 +402,7 @@ makeHeaderAnchor' (Header n (_, classes, kvs) ils)
 makeHeaderAnchor' (Header n (_, classes, kvs) ils) =
   do
     hdrIDMap <- gets docxAnchorMap
-    let newIdent = uniqueIdent ils (M.elems hdrIDMap)
+    let newIdent = uniqueIdent ils (Set.fromList $ M.elems hdrIDMap)
     modify $ \s -> s {docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
     return $ Header n (newIdent, classes, kvs) ils
 makeHeaderAnchor' blk = return blk

@@ -53,6 +53,7 @@ import           Data.Char (isAlphaNum, toLower)
 import           Data.Default
 import           Data.List (intersperse, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
+import qualified Data.Set as Set
 import           Data.Maybe (fromMaybe, isJust)
 import           Network.HTTP (urlEncode)
 
@@ -144,7 +145,7 @@ data OrgParserState = OrgParserState
                       , orgStateMeta'                :: F Meta
                       , orgStateNotes'               :: OrgNoteTable
                       , orgStateParserContext        :: ParserContext
-                      , orgStateIdentifiers          :: [String]
+                      , orgStateIdentifiers          :: Set.Set String
                       , orgStateHeaderMap            :: M.Map Inlines String
                       }
 
@@ -186,7 +187,7 @@ defaultOrgParserState = OrgParserState
                         , orgStateMeta' = return nullMeta
                         , orgStateNotes' = []
                         , orgStateParserContext = NullState
-                        , orgStateIdentifiers = []
+                        , orgStateIdentifiers = Set.empty
                         , orgStateHeaderMap = M.empty
                         }
 

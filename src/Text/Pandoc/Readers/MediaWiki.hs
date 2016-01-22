@@ -52,6 +52,7 @@ import Text.HTML.TagSoup
 import Data.Sequence (viewl, ViewL(..), (<|))
 import qualified Data.Foldable as F
 import qualified Data.Map as M
+import qualified Data.Set as Set
 import Data.Char (isDigit, isSpace)
 import Data.Maybe (fromMaybe)
 import Text.Printf (printf)
@@ -69,7 +70,7 @@ readMediaWiki opts s =
                                        , mwNextLinkNumber  = 1
                                        , mwCategoryLinks = []
                                        , mwHeaderMap = M.empty
-                                       , mwIdentifierList = []
+                                       , mwIdentifierList = Set.empty
                                        }
            (s ++ "\n")
 
@@ -78,7 +79,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwNextLinkNumber  :: Int
                        , mwCategoryLinks   :: [Inlines]
                        , mwHeaderMap       :: M.Map Inlines String
-                       , mwIdentifierList  :: [String]
+                       , mwIdentifierList  :: Set.Set String
                        }
 
 type MWParser = Parser [Char] MWState

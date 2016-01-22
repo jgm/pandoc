@@ -915,7 +915,7 @@ data ParserState = ParserState
       stateMeta'           :: F Meta,        -- ^ Document metadata
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
       stateHeaders         :: M.Map Inlines String, -- ^ List of headers and ids (used for implicit ref links)
-      stateIdentifiers     :: [String],      -- ^ List of header identifiers used
+      stateIdentifiers     :: Set.Set String, -- ^ Header identifiers used
       stateNextExample     :: Int,           -- ^ Number of next example
       stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers
       stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
@@ -973,8 +973,8 @@ instance HasHeaderMap ParserState where
   updateHeaderMap f st = st{ stateHeaders = f $ stateHeaders st }
 
 class HasIdentifierList st where
-  extractIdentifierList  :: st -> [String]
-  updateIdentifierList   :: ([String] -> [String]) -> st -> st
+  extractIdentifierList  :: st -> Set.Set String
+  updateIdentifierList   :: (Set.Set String -> Set.Set String) -> st -> st
 
 instance HasIdentifierList ParserState where
   extractIdentifierList     = stateIdentifiers
@@ -1013,7 +1013,7 @@ defaultParserState =
                   stateMeta'           = return nullMeta,
                   stateHeaderTable     = [],
                   stateHeaders         = M.empty,
-                  stateIdentifiers     = [],
+                  stateIdentifiers     = Set.empty,
                   stateNextExample     = 1,
                   stateExamples        = M.empty,
                   stateHasChapters     = False,
@@ -1092,8 +1092,8 @@ registerHeader (ident,classes,kvs) header' = do
        let id'' = if Ext_ascii_identifiers `Set.member` exts
                      then catMaybes $ map toAsciiChar id'
                      else id'
-       updateState $ updateIdentifierList $
-         if id' == id'' then (id' :) else ([id', id''] ++)
+       updateState $ updateIdentifierList $ Set.insert id'
+       updateState $ updateIdentifierList $ Set.insert id''
        updateState $ updateHeaderMap $ insert' header' id'
        return (id'',classes,kvs)
      else do

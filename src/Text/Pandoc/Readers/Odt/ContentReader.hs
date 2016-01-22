@@ -61,6 +61,7 @@ import           Text.Pandoc.Readers.Odt.Generic.XMLConverter
 import           Text.Pandoc.Readers.Odt.Generic.Fallible
 import           Text.Pandoc.Readers.Odt.Generic.Utils
 
+import qualified Data.Set as Set
 
 --------------------------------------------------------------------------------
 -- State
@@ -221,7 +222,7 @@ getPrettyAnchor = proc (baseIdent, uglyAnchor) -> do
 getHeaderAnchor :: OdtReaderSafe Inlines Anchor
 getHeaderAnchor = proc title -> do
   state <- getExtraState -< ()
-  let anchor = uniqueIdent (toList title) (usedAnchors state)
+  let anchor = uniqueIdent (toList title) (Set.fromList $ usedAnchors state)
   modifyExtraState (putPrettyAnchor anchor anchor) -<< anchor
 
 

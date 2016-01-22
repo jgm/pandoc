@@ -68,7 +68,7 @@ import Text.Pandoc.Error
 import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 import Text.Pandoc.Compat.Monoid ((<>))
 import Text.Parsec.Error
-
+import qualified Data.Set as Set
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ReaderOptions -- ^ Reader options
@@ -77,7 +77,7 @@ readHtml :: ReaderOptions -- ^ Reader options
 readHtml opts inp =
     mapLeft (ParseFailure . getError) . flip runReader def $
       runParserT parseDoc
-        (HTMLState def{ stateOptions = opts } [] Nothing [] M.empty)
+        (HTMLState def{ stateOptions = opts } [] Nothing Set.empty M.empty)
         "source" tags
     where tags = stripPrefixes . canonicalizeTags $
                    parseTagsOptions parseOptions{ optTagPosition = True } inp
@@ -104,7 +104,7 @@ data HTMLState =
   {  parserState :: ParserState,
      noteTable   :: [(String, Blocks)],
      baseHref    :: Maybe String,
-     identifiers :: [String],
+     identifiers :: Set.Set String,
      headerMap   :: M.Map Inlines String
   }
 

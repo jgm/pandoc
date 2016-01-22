@@ -43,13 +43,14 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.ImageSize
 import Network.URI ( isURI, unEscapeString )
 import System.FilePath
+import qualified Data.Set as Set
 
 data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
               , stSuperscript :: Bool -- document contains superscript
               , stSubscript   :: Bool -- document contains subscript
               , stEscapeComma :: Bool -- in a context where we need @comma
-              , stIdentifiers :: [String] -- header ids used already
+              , stIdentifiers :: Set.Set String -- header ids used already
               , stOptions     :: WriterOptions -- writer options
               }
 
@@ -64,7 +65,7 @@ writeTexinfo options document =
   evalState (pandocToTexinfo options $ wrapTop document) $
   WriterState { stStrikeout = False, stSuperscript = False,
                 stEscapeComma = False, stSubscript = False,
-                stIdentifiers = [], stOptions = options}
+                stIdentifiers = Set.empty, stOptions = options}
 
 -- | Add a "Top" node around the document, needed by Texinfo.
 wrapTop :: Pandoc -> Pandoc
@@ -215,7 +216,7 @@ blockToTexinfo (Header level _ lst) = do
   txt <- inlineListToTexinfo lst
   idsUsed <- gets stIdentifiers
   let id' = uniqueIdent lst idsUsed
-  modify $ \st -> st{ stIdentifiers = id' : idsUsed }
+  modify $ \st -> st{ stIdentifiers = Set.insert id' idsUsed }
   return $ if (level > 0) && (level <= 4)
               then blankline <> text "@node " <> node $$
                    text (seccmd level) <> txt $$

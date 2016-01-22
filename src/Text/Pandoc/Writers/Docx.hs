@@ -34,6 +34,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import qualified Data.Map as M
+import qualified Data.Set as Set
 import qualified Text.Pandoc.UTF8 as UTF8
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
@@ -95,7 +96,7 @@ data WriterState = WriterState{
          stTextProperties :: [Element]
        , stParaProperties :: [Element]
        , stFootnotes      :: [Element]
-       , stSectionIds     :: [String]
+       , stSectionIds     :: Set.Set String
        , stExternalLinks  :: M.Map String String
        , stImages         :: M.Map FilePath (String, String, Maybe MimeType, Element, B.ByteString)
        , stListLevel      :: Int
@@ -117,7 +118,7 @@ defaultWriterState = WriterState{
         stTextProperties = []
       , stParaProperties = []
       , stFootnotes      = defaultFootnotes
-      , stSectionIds     = []
+      , stSectionIds     = Set.empty
       , stExternalLinks  = M.empty
       , stImages         = M.empty
       , stListLevel      = -1
@@ -742,7 +743,7 @@ blockToOpenXML opts (Header lev (ident,_,_) lst) = do
   let bookmarkName = if null ident
                         then uniqueIdent lst usedIdents
                         else ident
-  modify $ \s -> s{ stSectionIds = bookmarkName : stSectionIds s }
+  modify $ \s -> s{ stSectionIds = Set.insert bookmarkName $ stSectionIds s }
   id' <- getUniqueId
   let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
                                                ,("w:name",bookmarkName)] ()
