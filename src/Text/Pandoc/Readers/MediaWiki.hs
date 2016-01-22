@@ -1,4 +1,4 @@
-{-# LANGUAGE RelaxedPolyRec, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE RelaxedPolyRec, FlexibleInstances, TypeSynonymInstances, MultiParamTypeClasses #-}
 -- RelaxedPolyRec needed for inlinesBetween on GHC < 7
 {-
   Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
@@ -47,6 +47,8 @@ import Text.Pandoc.Parsing hiding ( nested )
 import Text.Pandoc.Walk ( walk )
 import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead, stringify, trim )
 import Control.Monad
+import Control.Monad.Reader (Reader, runReader, asks, local)
+import Data.Default
 import Data.List (intersperse, intercalate, isPrefixOf )
 import Text.HTML.TagSoup
 import Data.Sequence (viewl, ViewL(..), (<|))
@@ -63,15 +65,9 @@ import Text.Pandoc.Error
 readMediaWiki :: ReaderOptions -- ^ Reader options
               -> String        -- ^ String to parse (assuming @'\n'@ line endings)
               -> Either PandocError Pandoc
-readMediaWiki opts s =
-  readWith parseMediaWiki MWState{ mwOptions = opts
-                                       , mwMaxNestingLevel = 4
-                                       , mwNextLinkNumber  = 1
-                                       , mwCategoryLinks = []
-                                       , mwHeaderMap = M.empty
-                                       , mwIdentifierList = []
-                                       }
-           (s ++ "\n")
+readMediaWiki opts s = fst <$> res
+  where imd = readWithM (returnState parseMediaWiki) def{ mwOptions = opts } (s ++ "\n")
+        res = runReader imd def
 
 data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwMaxNestingLevel :: Int
@@ -81,10 +77,19 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwIdentifierList  :: [String]
                        }
 
-type MWParser = Parser [Char] MWState
+data MWLocal = MWLocal { quoteContext :: QuoteContext }
+
+type MWParser = ParserT [Char] MWState (Reader MWLocal)
+
+instance Default MWLocal where
+  def = MWLocal NoQuote
 
 instance HasReaderOptions MWState where
   extractReaderOptions = mwOptions
+
+instance HasQuoteContext st (Reader MWLocal) where
+  getQuoteContext = asks quoteContext
+  withQuoteContext q = local (\s -> s{quoteContext = q})
 
 instance HasHeaderMap MWState where
   extractHeaderMap     = mwHeaderMap
@@ -93,6 +98,19 @@ instance HasHeaderMap MWState where
 instance HasIdentifierList MWState where
   extractIdentifierList     = mwIdentifierList
   updateIdentifierList f st = st{ mwIdentifierList = f $ mwIdentifierList st }
+
+instance Default MWState where
+  def = defaultMWState
+
+defaultMWState :: MWState
+defaultMWState = MWState
+                 { mwOptions = def
+                 , mwMaxNestingLevel = 4
+                 , mwNextLinkNumber  = 1
+                 , mwCategoryLinks = []
+                 , mwHeaderMap = M.empty
+                 , mwIdentifierList = []
+                 }
 
 --
 -- auxiliary functions
@@ -110,7 +128,7 @@ nested p = do
   return res
 
 specialChars :: [Char]
-specialChars = "'[]<=&*{}|\":\\"
+specialChars = ".-'[]<=&*{}|\":\\"
 
 spaceChars :: [Char]
 spaceChars = " \n\t"
@@ -491,22 +509,22 @@ firstParaToPlain contents =
 --
 
 inline :: MWParser Inlines
-inline =  whitespace
-      <|> url
-      <|> str
-      <|> doubleQuotes
-      <|> strong
-      <|> emph
-      <|> image
-      <|> internalLink
-      <|> externalLink
-      <|> math
-      <|> inlineTag
-      <|> B.singleton <$> charRef
-      <|> inlineHtml
-      <|> (B.rawInline "mediawiki" <$> variable)
-      <|> (B.rawInline "mediawiki" <$> template)
-      <|> special
+inline =  choice [whitespace
+                  , url
+                  , str
+                  , strong
+                  , emph
+                  , image
+                  , internalLink
+                  , externalLink
+                  , math
+                  , inlineTag
+                  , smart
+                  , B.singleton <$> charRef
+                  , inlineHtml
+                  , (B.rawInline "mediawiki" <$> variable)
+                  , (B.rawInline "mediawiki" <$> template)
+                  , special] <?> "inline"
 
 str :: MWParser Inlines
 str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
@@ -663,10 +681,15 @@ strong = B.strong <$> nested (inlinesBetween start end)
     where start = sym "'''" >> lookAhead nonspaceChar
           end   = try $ sym "'''"
 
-doubleQuotes :: MWParser Inlines
-doubleQuotes = B.doubleQuoted . trimInlines . mconcat <$> try
- ((getState >>= guard . readerSmart . mwOptions) *>
-   openDoubleQuote *> manyTill inline closeDoubleQuote )
-    where openDoubleQuote = char '"' <* lookAhead alphaNum
-          closeDoubleQuote = char '"' <* notFollowedBy alphaNum
+smart :: MWParser Inlines
+smart = do
+  getOption readerSmart >>= guard
+  doubleQuotes <|> choice [apostrophe, dash, ellipses]
 
+doubleQuotes :: MWParser Inlines
+doubleQuotes = try $ do
+  doubleQuoteStart
+  contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
+  (withQuoteContext InDoubleQuote doubleQuoteEnd >> return
+       (B.doubleQuoted . trimInlines $ contents))
+   <|> return (B.str "\8220" <> contents)
