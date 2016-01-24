@@ -70,7 +70,8 @@ highlight formatter (_, classes, keyvals) rawCode =
                   startNumber = firstNum,
                   numberLines = any (`elem`
                         ["number","numberLines", "number-lines"]) classes }
-      lcclasses = map (map toLower) classes
+      lcclasses = map (map toLower)
+                     (classes ++ concatMap languagesByExtension classes)
   in  case find (`elem` lcLanguages) lcclasses of
             Nothing
               | numberLines fmtOpts -> Just
