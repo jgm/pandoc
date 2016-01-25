@@ -207,6 +207,12 @@ h1. Attributes
 
 h2[en]{color:red}(foo bar #ident). HTML and CSS attributes are parsed in headers.
 
+h2=. Centered
+
+h2>. Right
+
+h2<>{color:blue}[en]. Justified
+
 as well as *(foo)inline attributes* of %{color:red} all kind%
 
 p{color:green}. and paragraph attributes, and table attributes.

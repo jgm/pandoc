@@ -583,7 +583,18 @@ code2 = do
 
 -- | Html / CSS attributes
 attributes :: Parser [Char] ParserState Attr
-attributes = (foldl (flip ($)) ("",[],[])) `fmap` many attribute
+attributes = (foldl (flip ($)) ("",[],[])) <$>
+  try (do special <- option id specialAttribute
+          attrs <- many attribute
+          return (special : attrs))
+
+specialAttribute :: Parser [Char] ParserState (Attr -> Attr)
+specialAttribute = do
+  alignStr <- ("center" <$ char '=') <|>
+    ("justify" <$ try (string "<>")) <|>
+    ("right" <$ char '>') <|>
+    ("left" <$ char '<')
+  return $ addStyle ("text-align:" ++ alignStr)
 
 attribute :: Parser [Char] ParserState (Attr -> Attr)
 attribute = classIdAttr <|> styleAttr <|> langAttr
@@ -602,7 +613,13 @@ classIdAttr = try $ do -- (class class #id)
 styleAttr :: Parser [Char] ParserState (Attr -> Attr)
 styleAttr = do
   style <- try $ enclosed (char '{') (char '}') anyChar'
-  return $ \(id',classes,keyvals) -> (id',classes,("style",style):keyvals)
+  return $ addStyle style
+
+addStyle :: String -> Attr -> Attr
+addStyle style (id',classes,keyvals) =
+  (id',classes,keyvals')
+  where keyvals' = ("style", style') : [(k,v) | (k,v) <- keyvals, k /= "style"]
+        style' = style ++ ";" ++ concat [v | ("style",v) <- keyvals]
 
 langAttr :: Parser [Char] ParserState (Attr -> Attr)
 langAttr = do
