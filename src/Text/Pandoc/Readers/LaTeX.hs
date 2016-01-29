@@ -435,6 +435,7 @@ isBlockCommand s = s `M.member` blockCommands
 inlineEnvironments :: M.Map String (LP Inlines)
 inlineEnvironments = M.fromList
   [ ("displaymath", mathEnv id Nothing "displaymath")
+  , ("math", math <$> verbEnv "math")
   , ("equation", mathEnv id Nothing "equation")
   , ("equation*", mathEnv id Nothing "equation*")
   , ("gather", mathEnv id (Just "gathered") "gather")
