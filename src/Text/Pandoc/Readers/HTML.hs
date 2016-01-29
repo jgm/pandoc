@@ -43,7 +43,7 @@ import Text.HTML.TagSoup.Match
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
-import Text.Pandoc.Shared ( extractSpaces, renderTags'
+import Text.Pandoc.Shared ( extractSpaces, renderTags', addMetaField
                           , escapeURI, safeRead, mapLeft )
 import Text.Pandoc.Options (ReaderOptions(readerParseRaw, readerTrace)
                            , Extension (Ext_epub_html_exts,
@@ -137,7 +137,11 @@ pHead = pInTags "head" $ pTitle <|> pMetaTag <|> pBaseTag <|> (mempty <$ pAnyTag
              then return mempty
              else do
                let content = fromAttrib "content" mt
-               updateState $ B.setMeta name (B.text content)
+               updateState $ \s ->
+                 let ps = parserState s in
+                 s{ parserState = ps{
+                      stateMeta = addMetaField name (B.text content)
+                                   (stateMeta ps) } }
                return mempty
         pBaseTag = do
           bt <- pSatisfy (~== TagOpen "base" [])
