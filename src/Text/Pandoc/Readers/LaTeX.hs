@@ -422,7 +422,8 @@ inlineCommand = try $ do
            else if parseRaw
                    then return $ rawInline "latex" rawcommand
                    else return mempty
-  lookupListDefault mzero [name',name] inlineCommands
+  (lookupListDefault mzero [name',name] inlineCommands <*
+      optional (try (string "{}")))
     <|> raw
 
 unlessParseRaw :: LP ()
