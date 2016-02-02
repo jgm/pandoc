@@ -53,6 +53,7 @@ instance Modifiable Inlines where
       (Strikeout _)   -> Modifier strikeout
       (Superscript _) -> Modifier superscript
       (Subscript _)   -> Modifier subscript
+      (Link attr _ tgt) -> Modifier $ linkWith attr (fst tgt) (snd tgt)
       (Span attr _)   -> AttrModifier spanWith attr
       _               -> NullModifier
     _ -> NullModifier
@@ -65,6 +66,7 @@ instance Modifiable Inlines where
       (Strikeout lst)   -> fromList lst
       (Superscript lst) -> fromList lst
       (Subscript lst)   -> fromList lst
+      (Link _ lst _)    -> fromList lst
       (Span _ lst)      -> fromList lst
       _        -> ils
     _          -> ils
