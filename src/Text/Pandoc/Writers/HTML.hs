@@ -645,7 +645,7 @@ alignmentToString alignment = case alignment of
                                  AlignLeft    -> "left"
                                  AlignRight   -> "right"
                                  AlignCenter  -> "center"
-                                 AlignDefault -> "left"
+                                 AlignDefault -> ""
 
 tableItemToHtml :: WriterOptions
                 -> (Html -> Html)
@@ -658,7 +658,10 @@ tableItemToHtml opts tag' align' item = do
   let attribs = if writerHtml5 opts
                    then A.style (toValue $ "text-align: " ++ alignStr ++ ";")
                    else A.align (toValue alignStr)
-  return $ (tag' ! attribs $ contents) >> nl opts
+  let tag'' = if null alignStr
+                 then tag'
+                 else tag' ! attribs
+  return $ (tag'' $ contents) >> nl opts
 
 toListItems :: WriterOptions -> [Html] -> [Html]
 toListItems opts items = map (toListItem opts) items ++ [nl opts]
