@@ -36,7 +36,7 @@ import Data.List ( transpose, sortBy, findIndex, intersperse, intercalate )
 import qualified Data.Map as M
 import Data.Scientific (coefficient, base10Exponent)
 import Data.Ord ( comparing )
-import Data.Char ( isSpace, isAlphaNum, toLower )
+import Data.Char ( isSpace, isAlphaNum, toLower, isPunctuation )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojis)
@@ -1554,7 +1554,7 @@ math :: MarkdownParser (F Inlines)
 math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
      <|> (return . B.math <$> (mathInline >>= applyMacros')) <+?>
                ((getOption readerSmart >>= guard) *> (return <$> apostrophe)
-                <* notFollowedBy space)
+                <* notFollowedBy (space <|> satisfy isPunctuation))
 
 -- Parses material enclosed in *s, **s, _s, or __s.
 -- Designed to avoid backtracking.
