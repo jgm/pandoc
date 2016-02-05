@@ -75,6 +75,7 @@ module Text.Pandoc
                , readOrg
                , readLaTeX
                , readHtml
+	       , readMallard
                , readTextile
                , readDocBook
                , readOPML
@@ -137,6 +138,7 @@ import Text.Pandoc.Readers.DocBook
 import Text.Pandoc.Readers.OPML
 import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.HTML
+import Text.Pandoc.Readers.Mallard
 import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Haddock
@@ -240,6 +242,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("org"          , mkStringReader readOrg)
            ,("textile"      , mkStringReader readTextile) -- TODO : textile+lhs
            ,("html"         , mkStringReader readHtml)
+           ,("mallard"      , mkStringReader readMallard)
            ,("latex"        , mkStringReader readLaTeX)
            ,("haddock"      , mkStringReader readHaddock)
            ,("twiki"        , mkStringReader readTWiki)
