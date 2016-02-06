@@ -222,8 +222,8 @@ blockToCustom _ Null = return ""
 
 blockToCustom lua (Plain inlines) = callfunc lua "Plain" inlines
 
-blockToCustom lua (Para [Image _ txt (src,tit)]) =
-  callfunc lua "CaptionedImage" src tit txt
+blockToCustom lua (Para [Image attr txt (src,tit)]) =
+  callfunc lua "CaptionedImage" src tit txt (attrToMap attr)
 
 blockToCustom lua (Para inlines) = callfunc lua "Para" inlines
 
