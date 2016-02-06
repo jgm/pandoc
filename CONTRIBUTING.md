@@ -150,17 +150,35 @@ Tests can be run as follows:
     cabal build
     cabal test
 
+or, if you're using [stack],
+
+    stack init
+    stack test
+
 The test program is `tests/test-pandoc.hs`.
 
-Benchmarks can be enabled by passing the `--enable-benchmarks` flag
-to `cabal configure`, and run using `cabal bench`.
+Benchmarks
+----------
+
+To run benchmarks with cabal:
+
+    cabal configure --enable-benchmarks
+    cabal build
+    cabal bench
+
+With stack:
+
+    stack bench
 
 Using the REPL
 --------------
 
 With a recent version of cabal, you can do `cabal repl` and get
-a ghci REPL for working with pandoc.  We recommend using the following
-`.ghci` file (which can be placed in the source directory):
+a ghci REPL for working with pandoc.  With [stack], use
+`cabal ghci`.
+
+We recommend using the following `.ghci` file (which can be
+placed in the source directory):
 
 ```
 :set -fobject-code
@@ -267,3 +285,5 @@ The library is structured as follows:
 [inprogress]: https://github.com/jgm/pandoc/labels/inprogress
 [more discussion needed]: https://github.com/jgm/pandoc/labels/More%20discussion%20needed
 [more info needed]: https://github.com/jgm/pandoc/labels/More%20info%20needed
+[stack]: https://github.com/commercialhaskell/stack
+
