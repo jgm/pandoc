@@ -11,7 +11,7 @@ https://github.com/jgm/pandoc/wiki/Installing-the-development-version-of-pandoc
 Quick install with stack
 ------------------------
 
-1.  Install [stack](https://github.com/commercialhaskell/stack/wiki/Downloads).
+1.  Install [stack](http://docs.haskellstack.org/en/stable/install_and_upgrade.html).
 
 2.  If you used git to get the pandoc source (as opposed to unpacking
     a release tarball), do
