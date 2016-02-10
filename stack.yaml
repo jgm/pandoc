@@ -8,5 +8,4 @@ flags:
 packages:
 - '.'
 extra-deps:
-- 'aeson-0.11.0.0'
 resolver: lts-5.2

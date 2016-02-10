@@ -13,5 +13,4 @@ packages:
 - '../pandoc-types'
 - '../texmath'
 extra-deps:
-- 'aeson-0.11.0.0'
 resolver: lts-5.2

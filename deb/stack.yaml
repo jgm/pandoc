@@ -15,5 +15,4 @@ packages:
 - '..'
 - 'https://hackage.haskell.org/package/pandoc-citeproc-0.9/pandoc-citeproc-0.9.tar.gz'
 extra-deps:
-- 'aeson-0.11.0.0'
 resolver: lts-5.2
