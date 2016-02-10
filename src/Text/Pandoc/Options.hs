@@ -202,7 +202,6 @@ githubMarkdownExtensions :: Set Extension
 githubMarkdownExtensions = Set.fromList
   [ Ext_pipe_tables
   , Ext_raw_html
-  , Ext_tex_math_single_backslash
   , Ext_fenced_code_blocks
   , Ext_auto_identifiers
   , Ext_ascii_identifiers
