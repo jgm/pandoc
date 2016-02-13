@@ -215,6 +215,7 @@ data Opt = Opt
     , optExtractMedia      :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrace             :: Bool       -- ^ Print debug information
     , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes.
+    , optParseFirst        :: Bool         -- ^ Parse input files before combining
     , optKaTeXStylesheet   :: Maybe String     -- ^ Path to stylesheet for KaTeX
     , optKaTeXJS           :: Maybe String     -- ^ Path to js file for KaTeX
     }
@@ -278,6 +279,7 @@ defaultOpts = Opt
     , optExtractMedia          = Nothing
     , optTrace                 = False
     , optTrackChanges          = AcceptChanges
+    , optParseFirst            = False
     , optKaTeXStylesheet       = Nothing
     , optKaTeXJS               = Nothing
     }
@@ -386,6 +388,11 @@ options =
                      return opt { optTrackChanges = action })
                   "accept|reject|all")
                  "" -- "Accepting or reject MS Word track-changes.""
+
+    , Option "" ["parse-first"]
+                 (NoArg
+                  (\opt -> return opt { optParseFirst = True }))
+                 "" -- "Parse input files before combining"
 
     , Option "" ["extract-media"]
                  (ReqArg
@@ -1117,6 +1124,7 @@ convertWithOpts opts args = do
               , optExtractMedia          = mbExtractMedia
               , optTrace                 = trace
               , optTrackChanges          = trackChanges
+              , optParseFirst            = parseFirst
               , optKaTeXStylesheet       = katexStylesheet
               , optKaTeXJS               = katexJS
              } = opts
@@ -1269,6 +1277,7 @@ convertWithOpts opts args = do
                       , readerDefaultImageExtension = defaultImageExtension
                       , readerTrace = trace
                       , readerTrackChanges = trackChanges
+                      , readerParseFirst   = parseFirst
                       }
 
   when (not (isTextFormat format) && outputFile == "-") $
@@ -1300,8 +1309,6 @@ convertWithOpts opts args = do
       handleIncludes' = if readerName' `elem`  ["latex", "latex+lhs"]
                                then handleIncludes
                                else return . Right
-
-  let parseFirst = True
 
   let sourceToDoc :: [FilePath] -> IO (Pandoc, MediaBag)
       sourceToDoc sources' = fmap handleError $
