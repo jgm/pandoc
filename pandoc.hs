@@ -1301,13 +1301,22 @@ convertWithOpts opts args = do
                                then handleIncludes
                                else return . Right
 
-  (doc, media) <- fmap handleError $
-      case reader of
+  let parseFirst = True
+
+  let sourceToDoc :: [FilePath] -> IO (Pandoc, MediaBag)
+      sourceToDoc sources' = fmap handleError $
+        case reader of
           StringReader r-> do
-            srcs <- convertTabs . intercalate "\n" <$> readSources sources
+            srcs <- convertTabs . intercalate "\n" <$> readSources sources'
             doc <- handleIncludes' srcs
             either (return . Left) (\s -> fmap (,mempty) <$> r readerOpts s) doc
-          ByteStringReader r -> readFiles sources >>= r readerOpts
+          ByteStringReader r -> readFiles sources' >>= r readerOpts
+
+  (doc, media) <-
+    if parseFirst
+    then do pairs <- mapM (\s -> sourceToDoc [s]) sources
+            return (mconcat $ map fst pairs, mconcat $ map snd pairs)
+    else sourceToDoc sources
 
   let writerOptions = def { writerStandalone       = standalone',
                             writerTemplate         = templ,
