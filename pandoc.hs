@@ -1319,11 +1319,14 @@ convertWithOpts opts args = do
             either (return . Left) (\s -> fmap (,mempty) <$> r readerOpts s) doc
           ByteStringReader r -> readFiles sources' >>= r readerOpts
 
-  (doc, media) <-
-    if parseFirst
-    then do pairs <- mapM (\s -> sourceToDoc [s]) sources
-            return (mconcat $ map fst pairs, mconcat $ map snd pairs)
-    else sourceToDoc sources
+  -- We parse first if parseFirst is set OR if the reader is a
+  -- BSReader. So, if it's a StringReader AND not parseFirst, we
+  -- don't.
+  (doc, media) <- case reader of
+    (StringReader _) | not parseFirst -> sourceToDoc sources
+    _                                   -> do
+      pairs <- mapM (\s -> sourceToDoc [s]) sources
+      return (mconcat $ map fst pairs, mconcat $ map snd pairs)
 
   let writerOptions = def { writerStandalone       = standalone',
                             writerTemplate         = templ,
