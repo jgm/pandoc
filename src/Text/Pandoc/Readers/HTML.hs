@@ -445,6 +445,7 @@ pTable = try $ do
   -- fail on empty table
   guard $ not $ null head' && null rows
   let isSinglePlain x = case B.toList x of
+                             []        -> True
                              [Plain _] -> True
                              _         -> False
   let isSimple = all isSinglePlain $ concat (head':rows)
