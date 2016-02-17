@@ -1,87 +1,136 @@
-# This file has been generated -- see https://github.com/hvr/multi-ghc-travis
-language: c
+# Copy these contents into the root directory of your Github project in a file
+# named .travis.yml
+
+# Use new container infrastructure to enable caching
 sudo: false
 
+# Choose a lightweight base image; we provide our own build tools.
+language: c
+
+# Caching so the next build will be fast too.
 cache:
   directories:
-    - $HOME/.cabsnap
-    - $HOME/.cabal/packages
+  - $HOME/.ghc
+  - $HOME/.cabal
+  - $HOME/.stack
 
-before_cache:
-  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/build-reports.log
-  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/00-index.tar
-
+# The different configurations we want to test. We have BUILD=cabal which uses
+# cabal-install, and BUILD=stack which uses Stack. More documentation on each
+# of those below.
+#
+# We set the compiler values here to tell Travis to use a different
+# cache file per set of arguments.
+#
+# If you need to have different apt packages for each combination in the
+# matrix, you can use a line such as:
+#     addons: {apt: {packages: [libfcgi-dev,libgmp-dev]}}
 matrix:
   include:
-    - env: CABALVER=1.16 GHCVER=7.4.2 GHCOPTS=-Werror
-      compiler: ": #GHC 7.4.2"
-      addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.2], sources: [hvr-ghc]}}
-    - env: CABALVER=1.16 GHCVER=7.6.3 GHCOPTS=-Werror
-      compiler: ": #GHC 7.6.3"
-      addons: {apt: {packages: [cabal-install-1.16,ghc-7.6.3], sources: [hvr-ghc]}}
-    - env: CABALVER=1.18 GHCVER=7.8.4 GHCOPTS=-Werror
-      compiler: ": #GHC 7.8.4"
-      addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4], sources: [hvr-ghc]}}
-    - env: CABALVER=1.22 GHCVER=7.10.2 GHCOPTS=-Werror
-      compiler: ": #GHC 7.10.2"
-      addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.2], sources: [hvr-ghc]}}
+  # We grab the appropriate GHC and cabal-install versions from hvr's PPA. See:
+  # https://github.com/hvr/multi-ghc-travis
+  - env: BUILD=cabal GHCVER=7.4.2 CABALVER=1.16
+    compiler: ": #GHC 7.4.2"
+    addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.2], sources: [hvr-ghc]}}
+  - env: BUILD=cabal GHCVER=7.6.3 CABALVER=1.16
+    compiler: ": #GHC 7.6.3"
+    addons: {apt: {packages: [cabal-install-1.16,ghc-7.6.3], sources: [hvr-ghc]}}
+  - env: BUILD=cabal GHCVER=7.8.4 CABALVER=1.18
+    compiler: ": #GHC 7.8.4"
+    addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4], sources: [hvr-ghc]}}
+  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22
+    compiler: ": #GHC 7.10.3"
+    addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3], sources: [hvr-ghc]}}
+
+  # Build with the newest GHC and cabal-install. This is an accepted failure,
+  # see below.
+  - env: BUILD=cabal GHCVER=head  CABALVER=head
+    compiler: ": #GHC HEAD"
+    addons: {apt: {packages: [cabal-install-head,ghc-head], sources: [hvr-ghc]}}
+
+  # The Stack builds. We can pass in arbitrary Stack arguments via the ARGS
+  # variable, such as using --stack-yaml to point to a different file.
+  - env: BUILD=stack ARGS="--resolver lts-3"
+    compiler: ": #stack 7.10.2"
+    addons: {apt: {packages: [ghc-7.10.2], sources: [hvr-ghc]}}
+
+  - env: BUILD=stack ARGS="--resolver lts-5"
+    compiler: ": #stack 7.10.3"
+    addons: {apt: {packages: [ghc-7.10.3], sources: [hvr-ghc]}}
+
+  # Nightly builds are allowed to fail
+  - env: BUILD=stack ARGS="--resolver nightly"
+    compiler: ": #stack nightly"
+    addons: {apt: {packages: [libgmp-dev]}}
+
+  # Build on OS X in addition to Linux
+  - env: BUILD=stack ARGS="--resolver lts-2"
+    compiler: ": #stack 7.8.4 osx"
+    os: osx
+
+  - env: BUILD=stack ARGS="--resolver lts-3"
+    compiler: ": #stack 7.10.2 osx"
+    os: osx
+
+  - env: BUILD=stack ARGS="--resolver lts-5"
+    compiler: ": #stack 7.10.3 osx"
+    os: osx
+
+  - env: BUILD=stack ARGS="--resolver nightly"
+    compiler: ": #stack nightly osx"
+    os: osx
+
+  allow_failures:
+  - env: BUILD=cabal GHCVER=head  CABALVER=head
+  - env: BUILD=stack ARGS="--resolver nightly"
 
 before_install:
- - unset CC
- - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
+# Using compiler above sets CC to an invalid value, so unset it
+- unset CC
+
+# We want to always allow newer versions of packages when building on GHC HEAD
+- CABALARGS=""
+- if [ "x$GHCVER" = "xhead" ]; then CABALARGS=--allow-newer; fi
+
+# Download and unpack the stack executable
+- export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$HOME/.local/bin:$PATH
+- mkdir -p ~/.local/bin
+- |
+  if [ `uname` = "Darwin" ]
+  then
+    curl --insecure -L https://www.stackage.org/stack/osx-x86_64 | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
+  else
+    curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+  fi
 
 install:
- - cabal --version
- - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
- - if [ -f $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz ];
-   then
-     zcat $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz >
-          $HOME/.cabal/packages/hackage.haskell.org/00-index.tar;
-   fi
- - travis_retry cabal update -v
- - sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config
- - cabal install --only-dependencies --enable-tests --enable-benchmarks --dry -v > installplan.txt
- - sed -i -e '1,/^Resolving /d' installplan.txt; cat installplan.txt
+- echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
+- if [ -f configure.ac ]; then autoreconf -i; fi
+- |
+  case "$BUILD" in
+    stack)
+      stack --no-terminal --install-ghc $ARGS test --only-dependencies
+      ;;
+    cabal)
+      cabal --version
+      travis_retry cabal update
+      cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
+      ;;
+  esac
 
-# check whether current requested install-plan matches cached package-db snapshot
- - if diff -u installplan.txt $HOME/.cabsnap/installplan.txt;
-   then
-     echo "cabal build-cache HIT";
-     rm -rfv .ghc;
-     cp -a $HOME/.cabsnap/ghc $HOME/.ghc;
-     cp -a $HOME/.cabsnap/lib $HOME/.cabsnap/share $HOME/.cabsnap/bin $HOME/.cabal/;
-   else
-     echo "cabal build-cache MISS";
-     rm -rf $HOME/.cabsnap;
-     mkdir -p $HOME/.ghc $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin;
-     cabal install --only-dependencies --enable-tests --enable-benchmarks;
-   fi
- 
-# snapshot package-db on cache miss
- - if [ ! -d $HOME/.cabsnap ];
-   then
-      echo "snapshotting package-db to build-cache";
-      mkdir $HOME/.cabsnap;
-      cp -a $HOME/.ghc $HOME/.cabsnap/ghc;
-      cp -a $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin installplan.txt $HOME/.cabsnap/;
-   fi
-
-# Here starts the actual work to be performed for the package under test;
-# any command which exits with a non-zero exit code causes the build to fail.
 script:
- - if [ -f configure.ac ]; then autoreconf -i; fi
- - cabal configure --enable-tests --enable-benchmarks -v2  # -v2 provides useful information for debugging
- - cabal build --ghc-options=$GHCOPTS  # this builds all libraries and executables (including tests/benchmarks)
- - cabal test
- - cabal check
-# Test that a source-distribution can be generated
-# (with cabal >= 1.18 'cabal sdist' would work too):
- - ./dist/setup/setup sdist
-
-# Check that the resulting source distribution can be built & installed.
-# If there are no other `.tar.gz` files in `dist`, this can be even simpler:
-# `cabal install --force-reinstalls dist/*-*.tar.gz`
- - SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz &&
-   (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
-
-# EOF
+- |
+  case "$BUILD" in
+    stack)
+      stack --no-terminal $ARGS test --haddock --no-haddock-deps
+      ;;
+    cabal)
+      cabal configure --enable-tests --enable-benchmarks -v2 --ghc-options="-O0 -Werror"
+      cabal build
+      cabal check || [ "$CABALVER" == "1.16" ]
+      cabal test
+      cabal sdist
+      cabal copy
+      SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz && \
+        (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
+      ;;
+  esac
