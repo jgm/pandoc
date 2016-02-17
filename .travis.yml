@@ -128,9 +128,11 @@ script:
       cabal build
       cabal check || [ "$CABALVER" == "1.16" ]
       cabal test
-      cabal sdist
       cabal copy
+      # cabal sdist fails on cabal 1.16:
+      cabal sdist || [ "$CABALVER" == "1.16" ]
       SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz && \
-        (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
+        (cd dist && cabal install --force-reinstalls "$SRC_TGZ" || \
+            [ "$CABALVER" == "1.16" ])
       ;;
   esac
