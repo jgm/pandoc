@@ -39,7 +39,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
 import Control.Monad ( when, liftM, guard, mzero )
-import Data.List ( findIndex, intersperse, intercalate,
+import Data.List ( find, findIndex, intersperse, intercalate,
                    transpose, sort, deleteFirstsBy, isSuffixOf , nub, union)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
@@ -541,12 +541,16 @@ directive' = do
   body <- option "" $ try $ blanklines >> indentedBlock
   optional blanklines
   let body' = body ++ "\n\n"
-      imgAttr cl = ("", classes, getAtt "width" ++ getAtt "height")
+      imgAttr cl = ("", classes, getAtt "width" ++ getAtt "height" ++ align)
         where
           classes = words $ maybe "" trim $ lookup cl fields
           getAtt k = case lookup k fields of
                        Just v  -> [(k, filter (not . isSpace) v)]
                        Nothing -> []
+          align =
+            let mv = lookup "align" fields
+                     >>= find (`elem` ["center", "right", "left"]) . words
+            in maybe [] (\s -> [("align", s)]) mv
   case label of
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
