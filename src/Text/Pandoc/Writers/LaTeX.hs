@@ -113,12 +113,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
               (fmap (render colwidth) . inlineListToLaTeX)
               meta
   let bookClasses = ["memoir","book","report","scrreprt","scrbook"]
-  let documentClass = case P.parse (do P.skipMany (P.satisfy (/='\\'))
-                                       P.string "\\documentclass"
-                                       P.skipMany (P.satisfy (/='{'))
-                                       P.char '{'
-                                       P.manyTill P.letter (P.char '}')) "template"
-                              template of
+  let documentClass = case P.parse pDocumentClass "template" template of
                               Right r -> r
                               Left _  -> ""
   case lookup "documentclass" (writerVariables options) `mplus`
@@ -1260,3 +1255,23 @@ commonFromBcp47 x = fromIso $ head x
 deNote :: Inline -> Inline
 deNote (Note _) = RawInline (Format "latex") ""
 deNote x = x
+
+pDocumentOptions :: P.Parsec String () [String]
+pDocumentOptions = do
+  P.char '['
+  P.sepBy
+    (P.many $
+     P.spaces *> P.noneOf (" ,]" :: String) <* P.spaces)
+    (P.char ',')
+
+pDocumentClass :: P.Parsec String () String
+pDocumentClass =
+  do P.skipMany (P.satisfy (/='\\'))
+     P.string "\\documentclass"
+     classOptions <- pDocumentOptions <|> return []
+     if ("article" :: String) `elem` classOptions
+       then return "article"
+       else do P.skipMany (P.satisfy (/='{'))
+               P.char '{'
+               P.manyTill P.letter (P.char '}')
+                                   
