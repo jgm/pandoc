@@ -1259,10 +1259,11 @@ deNote x = x
 pDocumentOptions :: P.Parsec String () [String]
 pDocumentOptions = do
   P.char '['
-  P.sepBy
-    (P.many $
-     P.spaces *> P.noneOf (" ,]" :: String) <* P.spaces)
+  opts <- P.sepBy
+    (P.many $ P.spaces *> P.noneOf (" ,]" :: String) <* P.spaces)
     (P.char ',')
+  P.char ']'
+  return opts
 
 pDocumentClass :: P.Parsec String () String
 pDocumentClass =
