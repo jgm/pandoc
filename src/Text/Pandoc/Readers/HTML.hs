@@ -930,14 +930,45 @@ htmlInBalanced :: (Monad m)
                => (Tag String -> Bool)
                -> ParserT String st m String
 htmlInBalanced f = try $ do
-  (TagOpen t _, tag) <- htmlTag f
-  guard $ not $ "/>" `isSuffixOf` tag -- not a self-closing tag
-  let stopper = htmlTag (~== TagClose t)
-  let anytag = snd <$> htmlTag (const True)
-  contents <- many $ notFollowedBy' stopper >>
-                     (htmlInBalanced f <|> anytag <|> count 1 anyChar)
-  endtag <- liftM snd stopper
-  return $ tag ++ concat contents ++ endtag
+  lookAhead (char '<')
+  inp <- getInput
+  let ts = canonicalizeTags $
+        parseTagsOptions parseOptions{ optTagWarning = True,
+                                       optTagPosition = True } inp
+  case ts of
+    (TagPosition sr sc : t@(TagOpen tn _) : rest) -> do
+       guard $ f t
+       guard $ not $ hasTagWarning (t : take 1 rest)
+       case htmlInBalanced' tn (t:rest) of
+            []  -> mzero
+            xs  -> case reverse xs of
+                        (TagClose _ : TagPosition er ec : _) -> do
+                          let ls = er - sr
+                          let cs = ec - sc
+                          lscontents <- concat <$> count ls anyLine
+                          cscontents <- count cs anyChar
+                          (_,closetag) <- htmlTag (~== TagClose tn)
+                          return (lscontents ++ cscontents ++ closetag)
+                        _ -> mzero
+    _ -> mzero
+
+htmlInBalanced' :: String
+                -> [Tag String]
+                -> [Tag String]
+htmlInBalanced' tagname ts = fromMaybe [] $ go 0 ts
+  where go :: Int -> [Tag String] -> Maybe [Tag String]
+        go n (t@(TagOpen tn' _):rest) | tn' == tagname =
+              (t :) <$> go (n + 1) rest
+        go 1 (t@(TagClose tn'):_) | tn' == tagname =
+              return [t]
+        go n (t@(TagClose tn'):rest)  | tn' == tagname =
+              (t :) <$> go (n - 1) rest
+        go n (t:ts') = (t :) <$> go n ts'
+        go n [] = mzero
+
+hasTagWarning :: [Tag String] -> Bool
+hasTagWarning (TagWarning _:_) = True
+hasTagWarning _ = False
 
 -- | Matches a tag meeting a certain condition.
 htmlTag :: Monad m
@@ -946,8 +977,6 @@ htmlTag :: Monad m
 htmlTag f = try $ do
   lookAhead (char '<')
   inp <- getInput
-  let hasTagWarning (TagWarning _:_) = True
-      hasTagWarning _ = False
   let (next : rest) = canonicalizeTags $ parseTagsOptions
                        parseOptions{ optTagWarning = True } inp
   guard $ f next
