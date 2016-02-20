@@ -580,7 +580,7 @@ General writer options
 
 :   Include contents of *FILE*, verbatim, at the end of the document
     body (before the `</body>` tag in HTML, or the
-    `\end{document}` command in LaTeX). This option can be be used
+    `\end{document}` command in LaTeX). This option can be used
     repeatedly to include multiple files. They will be included in the
     order specified.  Implies `--standalone`.
 
@@ -716,7 +716,7 @@ Options affecting specific writers
 
 `-c` *URL*, `--css=`*URL*
 
-:   Link to a CSS style sheet. This option can be be used repeatedly to
+:   Link to a CSS style sheet. This option can be used repeatedly to
     include multiple files. They will be included in the order specified.
 
 `--reference-odt=`*FILE*
@@ -1091,7 +1091,7 @@ Language variables
     in the YAML metadata, according to [BCP 47]. For example:
     `otherlangs: [en-GB, fr]`.
     This is automatically generated from the `lang` attributes
-    in all `span`s and `div`s but can be overriden.
+    in all `span`s and `div`s but can be overridden.
     Currently only used by LaTeX through the generated
     `babel-otherlangs` and `polyglossia-otherlangs` variables.
     The LaTeX writer outputs polyglossia commands in the text but
