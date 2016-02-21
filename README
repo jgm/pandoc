@@ -388,6 +388,14 @@ Reader options
     require different kinds of images.  Currently this option only affects
     the Markdown and LaTeX readers.
 
+`--file-scope`
+
+:   Parse each file individually before combining for multifile
+    documents. This will allow footnotes in different files with the
+    same identifiers to work as expected. If this option is set,
+    footnotes and links will not work across files. Reading binary
+    files (docx, odt, epub) implies `--file-scope`.
+
 `--filter=`*EXECUTABLE*
 
 :   Specify an executable to be used as a filter transforming the
