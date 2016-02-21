@@ -190,6 +190,10 @@ tests =
           "[[./sunset.jpg]]" =?>
           (para $ image "./sunset.jpg" "" "")
 
+      , "Image with explicit file: prefix" =:
+          "[[file:sunrise.jpg]]" =?>
+          (para $ image "sunrise.jpg" "" "")
+
       , "Explicit link" =:
           "[[http://zeitlens.com/][pseudo-random /nonsense/]]" =?>
           (para $ link "http://zeitlens.com/" ""

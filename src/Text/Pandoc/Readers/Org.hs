@@ -1239,37 +1239,37 @@ applyCustomLinkFormat link = do
     formatter <- M.lookup linkType <$> asksF orgStateLinkFormatters
     return $ maybe link ($ drop 1 rest) formatter
 
--- TODO: might be a lot smarter/cleaner to use parsec and ADTs for this kind
--- of parsing.
+-- | Take a link and return a function which produces new inlines when given
+-- description inlines.
 linkToInlinesF :: String -> Inlines -> F Inlines
-linkToInlinesF s =
+linkToInlinesF linkStr =
+  case linkStr of
+    ""      -> pure . B.link mempty ""       -- wiki link (empty by convention)
+    ('#':_) -> pure . B.link linkStr ""      -- document-local fraction
+    _       -> case cleanLinkString linkStr of
+                 (Just cleanedLink) -> if isImageFilename cleanedLink
+                                       then const . pure $ B.image cleanedLink "" ""
+                                       else pure . B.link cleanedLink ""
+                 Nothing -> internalLink linkStr  -- other internal link
+
+-- | Cleanup and canonicalize a string describing a link.  Return @Nothing@ if
+-- the string does not appear to be a link.
+cleanLinkString :: String -> Maybe String
+cleanLinkString s =
   case s of
-    ""      -> pure . B.link "" ""
-    ('#':_) -> pure . B.link s ""
-    _ | isImageFilename s     -> const . pure $ B.image s "" ""
-    _ | isFileLink s          -> pure . B.link (dropLinkType s) ""
-    _ | isUri s               -> pure . B.link s ""
-    _ | isAbsoluteFilePath s  -> pure . B.link ("file://" ++ s) ""
-    _ | isRelativeFilePath s  -> pure . B.link s ""
-    _                         -> internalLink s
-
-isFileLink :: String -> Bool
-isFileLink s = ("file:" `isPrefixOf` s) && not ("file://" `isPrefixOf` s)
-
-dropLinkType :: String -> String
-dropLinkType = tail . snd . break (== ':')
-
-isRelativeFilePath :: String -> Bool
-isRelativeFilePath s = (("./" `isPrefixOf` s) || ("../" `isPrefixOf` s)) &&
-                       (':' `notElem` s)
-
-isUri :: String -> Bool
-isUri s = let (scheme, path) = break (== ':') s
-          in all (\c -> isAlphaNum c || c `elem` (".-" :: String)) scheme
-             && not (null path)
-
-isAbsoluteFilePath :: String -> Bool
-isAbsoluteFilePath = ('/' ==) . head
+    '/':_                  -> Just $ "file://" ++ s  -- absolute path
+    '.':'/':_              -> Just s                 -- relative path
+    '.':'.':'/':_          -> Just s                 -- relative path
+    -- Relative path or URL (file schema)
+    'f':'i':'l':'e':':':s' -> Just $ if ("//" `isPrefixOf` s') then s else s'
+    _ | isUrl s            -> Just s                 -- URL
+    _                      -> Nothing
+ where
+   isUrl :: String -> Bool
+   isUrl cs =
+     let (scheme, path) = break (== ':') cs
+     in all (\c -> isAlphaNum c || c `elem` (".-"::String)) scheme
+          && not (null path)
 
 isImageFilename :: String -> Bool
 isImageFilename filename =
