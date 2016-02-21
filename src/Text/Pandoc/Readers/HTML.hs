@@ -52,9 +52,9 @@ import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
 import qualified Data.Map as M
 import Data.Maybe ( fromMaybe, isJust)
-import Data.List ( intercalate, isInfixOf, isPrefixOf, isSuffixOf )
+import Data.List ( intercalate, isInfixOf, isPrefixOf )
 import Data.Char ( isDigit )
-import Control.Monad ( liftM, guard, when, mzero, void, unless )
+import Control.Monad ( guard, when, mzero, void, unless )
 import Control.Arrow ((***))
 import Control.Applicative ( (<|>) )
 import Data.Monoid (First (..))
@@ -964,7 +964,7 @@ htmlInBalanced' tagname ts = fromMaybe [] $ go 0 ts
         go n (t@(TagClose tn'):rest)  | tn' == tagname =
               (t :) <$> go (n - 1) rest
         go n (t:ts') = (t :) <$> go n ts'
-        go n [] = mzero
+        go _ [] = mzero
 
 hasTagWarning :: [Tag String] -> Bool
 hasTagWarning (TagWarning _:_) = True
