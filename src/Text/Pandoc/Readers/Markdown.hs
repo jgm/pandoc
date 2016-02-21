@@ -61,7 +61,6 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockT
 import Control.Monad
 import System.FilePath (takeExtension, addExtension)
 import Text.HTML.TagSoup
-import Text.HTML.TagSoup.Match (tagOpen)
 import qualified Data.Set as Set
 import Text.Printf (printf)
 import Debug.Trace (trace)
@@ -1052,12 +1051,11 @@ strictHtmlBlock :: MarkdownParser String
 strictHtmlBlock = htmlInBalanced (not . isInlineTag)
 
 rawVerbatimBlock :: MarkdownParser String
-rawVerbatimBlock = try $ do
-  (TagOpen tag _, open) <- htmlTag (tagOpen (flip elem
-                                                  ["pre", "style", "script"])
-                              (const True))
-  contents <- manyTill anyChar (htmlTag (~== TagClose tag))
-  return $ open ++ contents ++ renderTags' [TagClose tag]
+rawVerbatimBlock = htmlInBalanced isVerbTag
+  where isVerbTag (TagOpen "pre" _)    = True
+        isVerbTag (TagOpen "style" _)  = True
+        isVerbTag (TagOpen "script" _) = True
+        isVerbTag _                    = False
 
 rawTeXBlock :: MarkdownParser (F Blocks)
 rawTeXBlock = do
