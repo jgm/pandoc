@@ -1319,14 +1319,16 @@ convertWithOpts opts args = do
             either (return . Left) (\s -> fmap (,mempty) <$> r readerOpts s) doc
           ByteStringReader r -> readFiles sources' >>= r readerOpts
 
-  -- We parse first if fileScope is set OR if the reader is a
-  -- BSReader. So, if it's a StringReader AND not fileScope, we
-  -- don't.
+  -- We parse first if (1) fileScope is set, (2), it's a binary
+  -- reader, or (3) we're reading JSON. This is easier to do of an AND
+  -- of negatives as opposed to an OR of positives, so we do default
+  -- parsing if it's a StringReader AND (fileScope is set AND it's not
+  -- a JSON reader).
   (doc, media) <- case reader of
-    (StringReader _) | not fileScope -> sourceToDoc sources
-    _                                   -> do
-      pairs <- mapM (\s -> sourceToDoc [s]) sources
-      return (mconcat $ map fst pairs, mconcat $ map snd pairs)
+    (StringReader _) | not fileScope && readerName' /= "json" ->
+                         sourceToDoc sources
+    _  -> do pairs <- mapM (\s -> sourceToDoc [s]) sources
+             return (mconcat $ map fst pairs, mconcat $ map snd pairs)
 
   let writerOptions = def { writerStandalone       = standalone',
                             writerTemplate         = templ,
