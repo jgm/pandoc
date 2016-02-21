@@ -117,7 +117,7 @@ plainTitleBlock tit auths dat =
   dat <> cr
 
 yamlMetadataBlock :: Value -> Doc
-yamlMetadataBlock v = "---" $$ (jsonToYaml v) $$ "..."
+yamlMetadataBlock v = "---" $$ (jsonToYaml v) $$ "---"
 
 jsonToYaml :: Value -> Doc
 jsonToYaml (Object hashmap) =

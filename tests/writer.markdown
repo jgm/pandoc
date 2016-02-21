@@ -4,7 +4,7 @@ author:
 - Anonymous
 date: 'July 17, 2006'
 title: Pandoc Test Suite
-...
+---
 
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 markdown test suite.
