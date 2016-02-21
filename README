@@ -628,9 +628,10 @@ Options affecting specific writers
 `--chapters`
 
 :   Treat top-level headers as chapters in LaTeX, ConTeXt, and DocBook
-    output.  When the LaTeX document class is set to `report`, `book`, or
-    `memoir`, this option is implied.  If `beamer` is the output
-    format, top-level headers will become `\part{..}`.
+    output.  When the LaTeX document class is set to `report`, `book`,
+    or `memoir` (unless the `article` option is specified), this
+    option is implied.  If `beamer` is the output format, top-level
+    headers will become `\part{..}`.
 
 `-N`, `--number-sections`
 
