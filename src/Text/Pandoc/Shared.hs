@@ -892,8 +892,10 @@ readDataFileUTF8 userDir fname =
 parseURIReference' :: String -> Maybe URI
 parseURIReference' s =
   case parseURIReference s of
-       Just u | length (uriScheme u) > 2 -> Just u
-       _                                 -> Nothing
+       Just u
+         | length (uriScheme u) > 2  -> Just u
+         | null (uriScheme u)        -> Just u  -- protocol-relative
+       _                             -> Nothing
 
 -- | Fetch an image or other item from the local filesystem or the net.
 -- Returns raw content and maybe mime type.
