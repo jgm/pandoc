@@ -81,7 +81,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Walk
 import Text.Pandoc.Readers.Docx.Parse
 import Text.Pandoc.Readers.Docx.Lists
-import Text.Pandoc.Readers.Docx.Reducible
+import Text.Pandoc.Readers.Docx.Combine
 import Text.Pandoc.Shared
 import Text.Pandoc.MediaBag (insertMedia, MediaBag)
 import Data.List (delete, (\\), intersect)
@@ -167,7 +167,7 @@ bodyPartsToMeta' (bp : bps)
   | (Paragraph pPr parParts) <- bp
   , (c : _)<- intersect (pStyle pPr) (M.keys metaStyles)
   , (Just metaField) <- M.lookup c metaStyles = do
-    inlines <- concatReduce <$> mapM parPartToInlines parParts
+    inlines <- smushInlines <$> mapM parPartToInlines parParts
     remaining <- bodyPartsToMeta' bps
     let
       f (MetaInlines ils) (MetaInlines ils') = MetaBlocks [Para ils, Para ils']
@@ -291,13 +291,13 @@ runToInlines (Run rs runElems)
      Just SubScrpt -> subscript codeString
      _             -> codeString
   | otherwise = do
-    let ils = concatReduce (map runElemToInlines runElems)
+    let ils = smushInlines (map runElemToInlines runElems)
     return $ (runStyleToTransform $ resolveDependentRunStyle rs) ils
 runToInlines (Footnote bps) = do
-  blksList <- concatReduce <$> (mapM bodyPartToBlocks bps)
+  blksList <- smushBlocks <$> (mapM bodyPartToBlocks bps)
   return $ note blksList
 runToInlines (Endnote bps) = do
-  blksList <- concatReduce <$> (mapM bodyPartToBlocks bps)
+  blksList <- smushBlocks <$> (mapM bodyPartToBlocks bps)
   return $ note blksList
 runToInlines (InlineDrawing fp bs ext) = do
   mediaBag <- gets docxMediaBag
@@ -316,19 +316,19 @@ parPartToInlines (PlainRun r) = runToInlines r
 parPartToInlines (Insertion _ author date runs) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
-    AcceptChanges -> concatReduce <$> mapM runToInlines runs
+    AcceptChanges -> smushInlines <$> mapM runToInlines runs
     RejectChanges -> return mempty
     AllChanges    -> do
-      ils <- concatReduce <$> mapM runToInlines runs
+      ils <- smushInlines <$> mapM runToInlines runs
       let attr = ("", ["insertion"], [("author", author), ("date", date)])
       return $ spanWith attr ils
 parPartToInlines (Deletion _ author date runs) = do
   opts <- asks docxOptions
   case readerTrackChanges opts of
     AcceptChanges -> return mempty
-    RejectChanges -> concatReduce <$> mapM runToInlines runs
+    RejectChanges -> smushInlines <$> mapM runToInlines runs
     AllChanges    -> do
-      ils <- concatReduce <$> mapM runToInlines runs
+      ils <- smushInlines <$> mapM runToInlines runs
       let attr = ("", ["deletion"], [("author", author), ("date", date)])
       return $ spanWith attr ils
 parPartToInlines (BookMark _ anchor) | anchor `elem` dummyAnchors =
@@ -361,10 +361,10 @@ parPartToInlines (Drawing fp bs ext) = do
   modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
   return $ imageWith (extentToAttr ext) fp "" ""
 parPartToInlines (InternalHyperLink anchor runs) = do
-  ils <- concatReduce <$> mapM runToInlines runs
+  ils <- smushInlines <$> mapM runToInlines runs
   return $ link ('#' : anchor) "" ils
 parPartToInlines (ExternalHyperLink target runs) = do
-  ils <- concatReduce <$> mapM runToInlines runs
+  ils <- smushInlines <$> mapM runToInlines runs
   return $ link target "" ils
 parPartToInlines (PlainOMath exps) = do
   return $ math $ writeTeX exps
@@ -417,7 +417,7 @@ singleParaToPlain blks = blks
 
 cellToBlocks :: Cell -> DocxContext Blocks
 cellToBlocks (Cell bps) = do
-  blks <- concatReduce <$> mapM bodyPartToBlocks bps
+  blks <- smushBlocks <$> mapM bodyPartToBlocks bps
   return $ fromList $ blocksToDefinitions $ blocksToBullets $ toList blks
 
 rowToBlocksList :: Row -> DocxContext [Blocks]
@@ -479,11 +479,11 @@ bodyPartToBlocks (Paragraph pPr parparts)
     $ concatMap parPartToString parparts
   | Just (style, n) <- pHeading pPr = do
     ils <- local (\s-> s{docxInHeaderBlock=True}) $
-           (concatReduce <$> mapM parPartToInlines parparts)
+           (smushInlines <$> mapM parPartToInlines parparts)
     makeHeaderAnchor $
       headerWith ("", delete style (pStyle pPr), []) n ils
   | otherwise = do
-    ils <- concatReduce <$> mapM parPartToInlines parparts >>=
+    ils <- smushInlines <$> mapM parPartToInlines parparts >>=
            (return . fromList . trimLineBreaks . normalizeSpaces . toList)
     dropIls <- gets docxDropCap
     let ils' = dropIls <> ils
@@ -561,7 +561,7 @@ bodyToOutput :: Body -> DocxContext (Meta, [Block], MediaBag)
 bodyToOutput (Body bps) = do
   let (metabps, blkbps) = sepBodyParts bps
   meta <- bodyPartsToMeta metabps
-  blks <- concatReduce <$> mapM bodyPartToBlocks blkbps
+  blks <- smushBlocks <$> mapM bodyPartToBlocks blkbps
   blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ toList blks
   mediaBag <- gets docxMediaBag
   return $ (meta,
