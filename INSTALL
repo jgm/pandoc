@@ -180,6 +180,10 @@ can be run from any directory and is completely self-contained.
 You can find the pandoc executable in `dist/build/pandoc`.  Copy this wherever
 you please.
 
+Or alternatively with `stack`:
+
+    stack install pandoc --flag pandoc:embed_data_files
+
 [zip-archive]: http://hackage.haskell.org/package/zip-archive
 [highlighting-kate]: http://hackage.haskell.org/package/highlighting-kate
 [blaze-html]: http://hackage.haskell.org/package/blaze-html
