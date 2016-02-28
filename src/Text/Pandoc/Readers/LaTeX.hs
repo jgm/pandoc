@@ -166,10 +166,18 @@ mathInline :: LP String -> LP Inlines
 mathInline p = math <$> (try p >>= applyMacros')
 
 mathChars :: LP String
-mathChars = (concat <$>) $
-  many $
-          many1 (satisfy (\c -> c /= '$' && c /='\\'))
-      <|> (\c -> ['\\',c]) <$> try (char '\\' *> anyChar)
+mathChars =
+  concat <$> many (escapedChar
+               <|> (snd <$> withRaw braced)
+               <|> many1 (satisfy isOrdChar))
+   where escapedChar = try $ do char '\\'
+                                c <- anyChar
+                                return ['\\',c]
+         isOrdChar '$' = False
+         isOrdChar '{' = False
+         isOrdChar '}' = False
+         isOrdChar '\\' = False
+         isOrdChar _ = True
 
 quoted' :: (Inlines -> Inlines) -> LP String -> LP () -> LP Inlines
 quoted' f starter ender = do
