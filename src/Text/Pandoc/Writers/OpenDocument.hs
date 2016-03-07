@@ -106,7 +106,7 @@ increaseIndent :: State WriterState ()
 increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
 
 resetIndent :: State WriterState ()
-resetIndent = modify $ \s -> s { stIndentPara = maximum [(stIndentPara s) - 1, 0] }
+resetIndent = modify $ \s -> s { stIndentPara = max (stIndentPara s - 1) 0 }
 
 inTightList :: State WriterState a -> State WriterState a
 inTightList  f = modify (\s -> s { stTight = True  }) >> f >>= \r ->
