@@ -50,8 +50,7 @@ implemented, [-] means partially implemented):
 * Inlines
 
   - [X] Str
-  - [X] Emph (From italics. `underline` currently read as span. In
-        future, it might optionally be emph as well)
+  - [X] Emph (italics and underline both read as Emph)
   - [X] Strong
   - [X] Strikeout
   - [X] Superscript
@@ -62,11 +61,10 @@ implemented, [-] means partially implemented):
   - [X] Code (styled with `VerbatimChar`)
   - [X] Space
   - [X] LineBreak (these are invisible in Word: entered with Shift-Return)
-  - [ ] Math
+  - [X] Math
   - [X] Link (links to an arbitrary bookmark create a span with the target as
         id and "anchor" class)
-  - [-] Image (Links to path in archive. Future option for
-        data-encoded URI likely.)
+  - [X] Image 
   - [X] Note (Footnotes and Endnotes are silently combined.)
 -}
 
