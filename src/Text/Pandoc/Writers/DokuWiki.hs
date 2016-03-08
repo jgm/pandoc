@@ -452,8 +452,11 @@ inlineToDokuWiki _ (Code _ str) =
 
 inlineToDokuWiki _ (Str str) = return $ escapeString str
 
-inlineToDokuWiki _ (Math _ str) = return $ "$" ++ str ++ "$"
+inlineToDokuWiki _ (Math mathType str) = return $ delim ++ str ++ delim
                                  -- note:  str should NOT be escaped
+  where delim = case mathType of
+                     DisplayMath -> "$$"
+                     InlineMath  -> "$"
 
 inlineToDokuWiki _ (RawInline f str)
   | f == Format "dokuwiki" = return str
