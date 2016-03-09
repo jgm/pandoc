@@ -1372,7 +1372,13 @@ sepPipe = try $ do
 
 -- parse a row, also returning probable alignments for org-table cells
 pipeTableRow :: MarkdownParser (F [Blocks])
-pipeTableRow = do
+pipeTableRow = try $ do
+  scanForPipe
+  raw <- anyLine
+  parseFromString pipeTableRow' (raw ++ "\n")
+
+pipeTableRow' :: MarkdownParser (F [Blocks])
+pipeTableRow' = do
   skipMany spaceChar
   openPipe <- (True <$ char '|') <|> return False
   let cell = mconcat <$>
