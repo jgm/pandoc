@@ -1382,16 +1382,14 @@ pipeTableRow' = do
   skipMany spaceChar
   openPipe <- (True <$ char '|') <|> return False
   let cell = mconcat <$>
-                 many (notFollowedBy (blankline <|> char '|') >> inline)
-  first <- cell
-  rest <- many $ sepPipe *> cell
+                 many (notFollowedBy (blankline <|> oneOf "+|") >> inline)
+  cells <- cell `sepBy1` sepPipe
   -- surrounding pipes needed for a one-column table:
-  guard $ not (null rest && not openPipe)
+  guard $ not (length cells == 1 && not openPipe)
   optional (char '|')
   blankline
-  let cells  = sequence (first:rest)
   return $ do
-    cells' <- cells
+    cells' <- sequence cells
     return $ map
         (\ils ->
            case trimInlines ils of
