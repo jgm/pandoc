@@ -1354,16 +1354,18 @@ pipeTable = try $ do
   nonindentSpaces
   lookAhead nonspaceChar
   (heads,(aligns, seplengths)) <- (,) <$> pipeTableRow <*> pipeBreak
+  let heads' = take (length aligns) <$> heads
   lines' <- many pipeTableRow
+  let lines'' = map (take (length aligns) <$>) lines'
   let maxlength = maximum $
-       map (\x -> length . stringify $ runF x def) (heads : lines')
+       map (\x -> length . stringify $ runF x def) (heads' : lines'')
   numColumns <- getOption readerColumns
   let widths = if maxlength > numColumns
                   then map (\len ->
                            fromIntegral (len + 1) / fromIntegral numColumns)
                              seplengths
                   else replicate (length aligns) 0.0
-  return $ (aligns, widths, heads, sequence lines')
+  return $ (aligns, widths, heads', sequence lines'')
 
 sepPipe :: MarkdownParser ()
 sepPipe = try $ do
@@ -1375,19 +1377,17 @@ pipeTableRow :: MarkdownParser (F [Blocks])
 pipeTableRow = try $ do
   scanForPipe
   raw <- anyLine
-  parseFromString pipeTableRow' (raw ++ "\n")
+  parseFromString pipeTableRow' raw
 
 pipeTableRow' :: MarkdownParser (F [Blocks])
 pipeTableRow' = do
   skipMany spaceChar
   openPipe <- (True <$ char '|') <|> return False
-  let cell = mconcat <$>
-                 many (notFollowedBy (blankline <|> oneOf "+|") >> inline)
-  cells <- cell `sepBy1` sepPipe
+  let cell = mconcat <$> (many (notFollowedBy (char '|') >> inline))
+  cells <- cell `sepEndBy1` (char '|')
   -- surrounding pipes needed for a one-column table:
   guard $ not (length cells == 1 && not openPipe)
-  optional (char '|')
-  blankline
+  spaces >> eof
   return $ do
     cells' <- sequence cells
     return $ map
