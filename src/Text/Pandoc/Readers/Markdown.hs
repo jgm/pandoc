@@ -1376,25 +1376,25 @@ sepPipe = try $ do
 pipeTableRow :: MarkdownParser (F [Blocks])
 pipeTableRow = try $ do
   scanForPipe
-  raw <- anyLine
-  parseFromString pipeTableRow' raw
-
-pipeTableRow' :: MarkdownParser (F [Blocks])
-pipeTableRow' = do
   skipMany spaceChar
   openPipe <- (True <$ char '|') <|> return False
-  let cell = mconcat <$> (many (notFollowedBy (char '|') >> inline))
-  cells <- cell `sepEndBy1` (char '|')
+  -- split into cells
+  let chunk = void (code <|> rawHtmlInline <|> escapedChar <|> rawLaTeXInline')
+       <|> void (noneOf "|\n\r")
+  let cellContents = ((trim . snd) <$> withRaw (many chunk)) >>=
+        parseFromString pipeTableCell
+  cells <- cellContents `sepEndBy1` (char '|')
   -- surrounding pipes needed for a one-column table:
   guard $ not (length cells == 1 && not openPipe)
-  spaces >> eof
-  return $ do
-    cells' <- sequence cells
-    return $ map
-        (\ils ->
-           case trimInlines ils of
-                 ils' | B.isNull ils' -> mempty
-                      | otherwise   -> B.plain $ ils') cells'
+  blankline
+  return $ sequence cells
+
+pipeTableCell :: MarkdownParser (F Blocks)
+pipeTableCell = do
+  result <- many inline
+  if null result
+     then return mempty
+     else return $ B.plain . mconcat <$> sequence result
 
 pipeTableHeaderPart :: Parser [Char] st (Alignment, Int)
 pipeTableHeaderPart = try $ do
