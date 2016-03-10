@@ -1103,7 +1103,7 @@ inlineToOpenXML opts (Link _ txt (src,_)) = do
                         M.insert src i extlinks }
               return i
   return [ mknode "w:hyperlink" [("r:id",id')] contents ]
-inlineToOpenXML opts (Image attr alt (src, tit)) = do
+inlineToOpenXML opts (Image attr alt (src, _)) = do
   -- first, check to see if we've already done this image
   pageWidth <- gets stPrintWidth
   imgs <- gets stImages
@@ -1154,7 +1154,7 @@ inlineToOpenXML opts (Image attr alt (src, tit)) = do
                  mknode "wp:inline" []
                   [ mknode "wp:extent" [("cx",show xemu),("cy",show yemu)] ()
                   , mknode "wp:effectExtent" [("b","0"),("l","0"),("r","0"),("t","0")] ()
-                  , mknode "wp:docPr" [("descr",tit),("id","1"),("name","Picture")] ()
+                  , mknode "wp:docPr" [("descr",stringify alt),("id","1"),("name","Picture")] ()
                   , graphic ]
           let imgext = case mt >>= extensionFromMimeType of
                             Just x    -> '.':x
