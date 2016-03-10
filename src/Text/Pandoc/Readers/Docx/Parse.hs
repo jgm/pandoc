@@ -50,6 +50,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , Row(..)
                                       , Cell(..)
                                       , archiveToDocx
+                                      , archiveToDocxWithWarnings
                                       ) where
 import Codec.Archive.Zip
 import Text.XML.Light
@@ -60,6 +61,7 @@ import Data.Bits ((.|.))
 import qualified Data.ByteString.Lazy as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad.Reader
+import Control.Monad.State
 import Control.Applicative ((<|>))
 import qualified Data.Map as M
 import Text.Pandoc.Compat.Except
@@ -81,16 +83,20 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            }
                deriving Show
 
+data ReaderState = ReaderState { stateWarnings :: [String] }
+                 deriving Show
+                                                  
+
 data DocxError = DocxError | WrongElem
                deriving Show
 
 instance Error DocxError where
   noMsg = WrongElem
 
-type D = ExceptT DocxError (Reader ReaderEnv)
+type D = ExceptT DocxError (ReaderT ReaderEnv (State ReaderState))
 
-runD :: D a -> ReaderEnv -> Either DocxError a
-runD dx re = runReader (runExceptT dx) re
+runD :: D a -> ReaderEnv -> ReaderState -> (Either DocxError a, ReaderState)
+runD dx re rs = runState (runReaderT (runExceptT dx) re) rs
 
 maybeToD :: Maybe a -> D a
 maybeToD (Just a) = return a
@@ -257,7 +263,10 @@ type Author = String
 type ChangeDate = String
 
 archiveToDocx :: Archive -> Either DocxError Docx
-archiveToDocx archive = do
+archiveToDocx archive = fst <$> archiveToDocxWithWarnings archive
+
+archiveToDocxWithWarnings :: Archive -> Either DocxError (Docx, [String])
+archiveToDocxWithWarnings archive = do
   let notes     = archiveToNotes archive
       numbering = archiveToNumbering archive
       rels      = archiveToRelationships archive
@@ -265,8 +274,12 @@ archiveToDocx archive = do
       (styles, parstyles) = archiveToStyles archive
       rEnv =
         ReaderEnv notes numbering rels media Nothing styles parstyles InDocument
-  doc <- runD (archiveToDocument archive) rEnv
-  return $ Docx doc
+      rState = ReaderState { stateWarnings = [] }
+      (eitherDoc, st) = runD (archiveToDocument archive) rEnv rState
+  case eitherDoc of
+    Right doc -> Right (Docx doc, stateWarnings st)
+    Left e    -> Left e
+
 
 
 archiveToDocument :: Archive -> D Document
