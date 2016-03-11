@@ -63,7 +63,7 @@ import Debug.Trace (trace)
 import Text.TeXMath (readMathML, writeTeX)
 import Data.Default (Default (..), def)
 import Control.Monad.Reader (Reader,ask, asks, local, runReader)
-import Network.URI (isURI)
+import Network.URI (URI, parseURIReference, nonStrictRelativeTo)
 import Text.Pandoc.Error
 import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 import Text.Pandoc.Compat.Monoid ((<>))
@@ -103,7 +103,7 @@ data HTMLState =
   HTMLState
   {  parserState :: ParserState,
      noteTable   :: [(String, Blocks)],
-     baseHref    :: Maybe String,
+     baseHref    :: Maybe URI,
      identifiers :: Set.Set String,
      headerMap   :: M.Map Inlines String
   }
@@ -145,15 +145,9 @@ pHead = pInTags "head" $ pTitle <|> pMetaTag <|> pBaseTag <|> (mempty <$ pAnyTag
                return mempty
         pBaseTag = do
           bt <- pSatisfy (~== TagOpen "base" [])
-          let baseH = fromAttrib "href" bt
-          if null baseH
-             then return mempty
-             else do
-               let baseH' = case reverse baseH of
-                                  '/':_ -> baseH
-                                  _     -> baseH ++ "/"
-               updateState $ \st -> st{ baseHref = Just baseH' }
-               return mempty
+          updateState $ \st -> st{ baseHref =
+               parseURIReference $ fromAttrib "href" bt }
+          return mempty
 
 block :: TagParser Blocks
 block = do
@@ -610,9 +604,9 @@ pLink = try $ do
   tag <- pSatisfy $ tagOpenLit "a" (const True)
   mbBaseHref <- baseHref <$> getState
   let url' = fromAttrib "href" tag
-  let url = case (isURI url', mbBaseHref) of
-                 (False, Just h) -> h ++ url'
-                 _               -> url'
+  let url = case (parseURIReference url', mbBaseHref) of
+                 (Just rel, Just bs) -> show (rel `nonStrictRelativeTo` bs)
+                 _                   -> url'
   let title = fromAttrib "title" tag
   let uid = fromAttrib "id" tag
   let cls = words $ fromAttrib "class" tag
@@ -624,9 +618,9 @@ pImage = do
   tag <- pSelfClosing (=="img") (isJust . lookup "src")
   mbBaseHref <- baseHref <$> getState
   let url' = fromAttrib "src" tag
-  let url = case (isURI url', mbBaseHref) of
-                 (False, Just h) -> h ++ url'
-                 _               -> url'
+  let url = case (parseURIReference url', mbBaseHref) of
+                 (Just rel, Just bs) -> show (rel `nonStrictRelativeTo` bs)
+                 _                   -> url'
   let title = fromAttrib "title" tag
   let alt = fromAttrib "alt" tag
   let uid = fromAttrib "id" tag
