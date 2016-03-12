@@ -223,6 +223,14 @@ mkStringReaderWithWarnings r  = StringReader $ \o s ->
 mkBSReader :: (ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag)) -> Reader
 mkBSReader r = ByteStringReader (\o s -> return $ r o s)
 
+mkBSReaderWithWarnings :: (ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag, [String])) -> Reader
+mkBSReaderWithWarnings r = ByteStringReader $ \o s ->
+  case r o s of
+    Left err -> return $ Left err
+    Right (doc, mediaBag, warnings) -> do
+      mapM_ warn warnings
+      return $ Right (doc, mediaBag)
+
 -- | Association list of formats and readers.
 readers :: [(String, Reader)]
 readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
@@ -243,7 +251,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("latex"        , mkStringReader readLaTeX)
            ,("haddock"      , mkStringReader readHaddock)
            ,("twiki"        , mkStringReader readTWiki)
-           ,("docx"         , mkBSReader readDocx)
+           ,("docx"         , mkBSReaderWithWarnings readDocxWithWarnings)
            ,("odt"          , mkBSReader readOdt)
            ,("t2t"          , mkStringReader readTxt2TagsNoMacros)
            ,("epub"         , mkBSReader readEPUB)
