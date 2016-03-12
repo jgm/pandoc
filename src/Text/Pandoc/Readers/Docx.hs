@@ -69,7 +69,8 @@ implemented, [-] means partially implemented):
 -}
 
 module Text.Pandoc.Readers.Docx
-       ( readDocx
+       ( readDocxWithWarnings
+       , readDocx
        ) where
 
 import Codec.Archive.Zip
@@ -96,14 +97,22 @@ import qualified Data.Sequence as Seq (null)
 import Text.Pandoc.Error
 import Text.Pandoc.Compat.Except
 
+readDocxWithWarnings :: ReaderOptions
+                     -> B.ByteString
+                     -> Either PandocError (Pandoc, MediaBag, [String])
+readDocxWithWarnings opts bytes =
+  case archiveToDocxWithWarnings (toArchive bytes) of
+    Right (docx, warnings) -> do
+      (meta, blks, mediaBag) <- docxToOutput opts docx
+      return (Pandoc meta blks, mediaBag, warnings)
+    Left _   -> Left (ParseFailure "couldn't parse docx file")
+
 readDocx :: ReaderOptions
          -> B.ByteString
          -> Either PandocError (Pandoc, MediaBag)
-readDocx opts bytes =
-  case archiveToDocx (toArchive bytes) of
-    Right docx -> (\(meta, blks, mediaBag) -> (Pandoc meta blks, mediaBag))
-                    <$> (docxToOutput opts docx)
-    Left _   -> Left (ParseFailure "couldn't parse docx file")
+readDocx opts bytes = do
+  (pandoc, mediaBag, _) <- readDocxWithWarnings opts bytes
+  return (pandoc, mediaBag)
 
 data DState = DState { docxAnchorMap :: M.Map String String
                      , docxMediaBag      :: MediaBag
