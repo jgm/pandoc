@@ -589,12 +589,14 @@ elemToBodyPart ns element
       sty <- asks envParStyles
       let parstyle = elemToParagraphStyle ns element sty
       parparts <- mapD (elemToParPart ns) (elChildren element)
-      case pNumInfo parstyle of
-       Just (numId, lvl) -> do
-         num <- asks envNumbering
-         let levelInfo = lookupLevel numId lvl num
-         return $ ListItem parstyle numId lvl levelInfo parparts
-       Nothing -> return $ Paragraph parstyle parparts
+      -- Word uses list enumeration for numbered headings, so we only
+      -- want to infer a list from the styles if it is NOT a heading.
+      case pHeading parstyle of
+        Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
+                    num <- asks envNumbering
+                    let levelInfo = lookupLevel numId lvl num
+                    return $ ListItem parstyle numId lvl levelInfo parparts
+        _ -> return $ Paragraph parstyle parparts
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
     let caption' = findChild (elemName ns "w" "tblPr") element
