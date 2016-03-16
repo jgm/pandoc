@@ -169,9 +169,13 @@ tests = [ testGroup "inlines"
             "docx/already_auto_ident.docx"
             "docx/already_auto_ident.native"
           , testCompare
-            "numbered headers automatically made into list"
+            "single numbered item not made into list"
             "docx/numbered_header.docx"
             "docx/numbered_header.native"
+          , testCompare
+            "enumerated headers not made into numbered list"
+            "docx/enumerated_headings.docx"
+            "docx/enumerated_headings.native"
           , testCompare
             "i18n blocks (headers and blockquotes)"
             "docx/i18n_blocks.docx"
