@@ -279,7 +279,29 @@ blockListToConTeXt lst = liftM vcat $ mapM blockToConTeXt lst
 -- | Convert list of inline elements to ConTeXt.
 inlineListToConTeXt :: [Inline]  -- ^ Inlines to convert
                     -> State WriterState Doc
-inlineListToConTeXt lst = liftM hcat $ mapM inlineToConTeXt lst
+inlineListToConTeXt lst = 
+  mapM inlineToConTeXt (fixBreaks $ fixLineInitialSpaces lst)
+    >>= return . hcat
+    -- nonbreaking spaces (~) in ConTeX don't work after line breaks,
+    -- so we turn nbsps after hard breaks to \hspace commands.
+    -- this is mostly used in verse.
+ where fixLineInitialSpaces [] = []
+       fixLineInitialSpaces (LineBreak : Str s@('\160':_) : xs) =
+         LineBreak : fixNbsps s ++ fixLineInitialSpaces xs
+       fixLineInitialSpaces (x:xs) = x : fixLineInitialSpaces xs
+       fixNbsps s = let (ys,zs) = span (=='\160') s
+                    in  [RawInline "context" "\\strut"] ++ replicate (length ys) hspace ++ [Str zs]
+       hspace = RawInline "context" "\\hskip 0.333em "
+       -- linebreaks after blank lines cause problems:
+       fixBreaks [] = []
+       fixBreaks ys@(LineBreak : LineBreak : _) =
+         case span (== LineBreak) ys of
+               (lbs, rest) -> RawInline "context"
+                               ("\\\\[" ++ show (length lbs) ++
+                                "\\baselineskip]") : fixBreaks rest
+       fixBreaks (y:ys) = y : fixBreaks ys
+
+
 
 -- | Convert inline element to ConTeXt
 inlineToConTeXt :: Inline    -- ^ Inline to convert
