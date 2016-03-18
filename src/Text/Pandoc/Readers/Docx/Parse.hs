@@ -717,36 +717,58 @@ elemToExtent drawingElem =
       getDim at = findElement (QName "extent" (Just wp_ns) (Just "wp")) drawingElem
                     >>= findAttr (QName at Nothing Nothing) >>= safeRead
 
-elemToRun :: NameSpaces -> Element -> D Run
-elemToRun ns element
-  | isElem ns "w" "r" element
-  , Just drawingElem <- findChild (elemName ns "w" "drawing") element =
+
+childElemToRun :: NameSpaces -> Element -> D Run
+childElemToRun ns element
+  | isElem ns "w" "drawing" element =
     let a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
-        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) drawingElem
+        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) element
                   >>= findAttr (QName "embed" (lookup "r" ns) (Just "r"))
     in
      case drawing of
        Just s -> expandDrawingId s >>=
-                 (\(fp, bs) -> return $ InlineDrawing fp bs $ elemToExtent drawingElem)
+                 (\(fp, bs) -> return $ InlineDrawing fp bs $ elemToExtent element)
        Nothing -> throwError WrongElem
-elemToRun ns element
-  | isElem ns "w" "r" element
-  , Just ref <- findChild (elemName ns "w" "footnoteReference") element
-  , Just fnId <- findAttr (elemName ns "w" "id") ref = do
+childElemToRun ns element
+  | isElem ns "w" "footnoteReference" element
+  , Just fnId <- findAttr (elemName ns "w" "id") element = do
     notes <- asks envNotes
     case lookupFootnote fnId notes of
       Just e -> do bps <- local (\r -> r {envLocation=InFootnote}) $ mapD (elemToBodyPart ns) (elChildren e)
                    return $ Footnote bps
       Nothing  -> return $ Footnote []
-elemToRun ns element
-  | isElem ns "w" "r" element
-  , Just ref <- findChild (elemName ns "w" "endnoteReference") element
-  , Just enId <- findAttr (elemName ns "w" "id") ref = do
+childElemToRun ns element
+  | isElem ns "w" "endnoteReference" element
+  , Just enId <- findAttr (elemName ns "w" "id") element = do
     notes <- asks envNotes
     case lookupEndnote enId notes of
       Just e -> do bps <- local (\r -> r {envLocation=InEndnote}) $ mapD (elemToBodyPart ns) (elChildren e)
                    return $ Endnote bps
       Nothing  -> return $ Endnote []
+childElemToRun _ _ = throwError WrongElem
+
+elemToRun :: NameSpaces -> Element -> D Run
+elemToRun ns element
+  | isElem ns "w" "r" element
+  , Just altCont <- findChild (elemName ns "mc" "AlternateContent") element =
+    do let choices = findChildren (elemName ns "mc" "Choice") altCont
+           choiceChildren = map head $ filter (not . null) $ map elChildren choices
+       outputs <- mapD (childElemToRun ns) choiceChildren
+       case outputs of
+         r : _ -> return r
+         []    -> throwError WrongElem
+elemToRun ns element
+  | isElem ns "w" "r" element
+  , Just drawingElem <- findChild (elemName ns "w" "drawing") element =
+    childElemToRun ns drawingElem
+elemToRun ns element
+  | isElem ns "w" "r" element
+  , Just ref <- findChild (elemName ns "w" "footnoteReference") element =
+    childElemToRun ns ref
+elemToRun ns element
+  | isElem ns "w" "r" element
+  , Just ref <- findChild (elemName ns "w" "endnoteReference") element =
+    childElemToRun ns ref
 elemToRun ns element
   | isElem ns "w" "r" element = do
     runElems <- elemToRunElems ns element
@@ -955,3 +977,4 @@ elemToRunElems _ _ = throwError WrongElem
 
 setFont :: Maybe Font -> ReaderEnv -> ReaderEnv
 setFont f s = s{envFont = f}
+
