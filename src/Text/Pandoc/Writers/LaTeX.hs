@@ -571,18 +571,21 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- if all null heads
                 then return empty
-                else ($$ "\\midrule\n") `fmap`
-                      (tableRowToLaTeX True aligns widths) heads
+                else do
+                    contents <- (tableRowToLaTeX True aligns widths) heads
+                    return ("\\toprule" $$ contents $$ "\\midrule")
   let endhead = if all null heads
                    then empty
                    else text "\\endhead"
+  let endfirsthead = if all null heads
+                       then empty
+                       else text "\\endfirsthead"
   captionText <- inlineListToLaTeX caption
   let capt = if isEmpty captionText
                 then empty
-                else text "\\caption" <> braces captionText
-                         <> "\\tabularnewline\n\\toprule\n"
-                         <> headers
-                         <> "\\endfirsthead"
+                else text "\\caption" <> braces captionText <> "\\tabularnewline"
+                         $$ headers
+                         $$ endfirsthead
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concat $ map toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
@@ -590,7 +593,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
               braces ("@{}" <> colDescriptors <> "@{}")
               -- the @{} removes extra space at beginning and end
          $$ capt
-         $$ "\\toprule"
+         $$ (if all null heads then "\\toprule" else empty)
          $$ headers
          $$ endhead
          $$ vcat rows'
