@@ -1041,6 +1041,10 @@ as the following:
     `\subtitle`, such as `beamer` or the [KOMA-Script] series (`scrartcl`,
     `scrreprt`, `scrbook`).[^subtitle]
 
+`institute`
+:   author affiliations (in LaTeX and Beamer only).  Can be a
+    list, when there are multiple authors.
+
 `abstract`
 :   document summary, included in LaTeX, ConTeXt, AsciiDoc, and Word docx
 
