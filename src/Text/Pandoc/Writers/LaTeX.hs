@@ -403,7 +403,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
-blockToLaTeX (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
+blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = do
   inNote <- gets stInNote
   modify $ \st -> st{ stInMinipage = True, stNotes = [] }
   capt <- inlineListToLaTeX txt
@@ -415,13 +415,14 @@ blockToLaTeX (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
                    else brackets <$> inlineListToLaTeX (walk deNote txt)
   img <- inlineToLaTeX (Image attr txt (src,tit))
   let footnotes = notesToLaTeX notes
+  figure <- refLabel ident $ cr <>
+            "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
+            ("\\caption" <> captForLof <> braces capt) $$
+            "\\end{figure}" <> cr
   return $ if inNote
               -- can't have figures in notes
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
-              else "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
-                    ("\\caption" <> captForLof <> braces capt) $$
-                    "\\end{figure}" $$
-                    footnotes
+              else figure $$ footnotes
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- writerBeamer `fmap` gets stOptions
@@ -715,9 +716,8 @@ sectionHeader :: Bool    -- True for unnumbered
               -> Int
               -> [Inline]
               -> State WriterState Doc
-sectionHeader unnumbered ref level lst = do
+sectionHeader unnumbered ident level lst = do
   txt <- inlineListToLaTeX lst
-  lab <- text `fmap` toLabel ref
   plain <- stringToLaTeX TextString $ foldl (++) "" $ map stringify lst
   let noNote (Note _) = Str ""
       noNote x        = x
@@ -740,16 +740,6 @@ sectionHeader unnumbered ref level lst = do
   book <- gets stBook
   opts <- gets stOptions
   let level' = if book || writerChapters opts then level - 1 else level
-  internalLinks <- gets stInternalLinks
-  let refLabel x = (if ref `elem` internalLinks
-                       then text "\\hypertarget"
-                                <> braces lab
-                                <> braces x
-                       else x)
-  let headerWith x y = refLabel $ text x <> y <>
-                             if null ref
-                                then empty
-                                else text "\\label" <> braces lab
   let sectionType = case level' of
                           0  | writerBeamer opts -> "part"
                              | otherwise -> "chapter"
@@ -765,15 +755,30 @@ sectionHeader unnumbered ref level lst = do
                   -- needed for \paragraph, \subparagraph in quote environment
                   -- see http://tex.stackexchange.com/questions/169830/
                   else empty
+  stuffing' <- refLabel ident $ text ('\\':sectionType) <> stuffing
   return $ if level' > 5
               then txt
-              else prefix $$
-                   headerWith ('\\':sectionType) stuffing
+              else prefix $$ stuffing'
                    $$ if unnumbered
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
                                 braces txtNoNotes
                          else empty
+
+-- | Append label to x and wrap in hypertarget
+refLabel :: String -> Doc -> State WriterState Doc
+refLabel ident x = do
+  ref <- text `fmap` toLabel ident
+  internalLinks <- gets stInternalLinks
+  let hypertarget y = if ident `elem` internalLinks
+                         then text "\\hypertarget"
+                                <> braces ref
+                                <> braces y
+                         else y
+      label = if null ident
+                 then empty
+                 else text "\\label" <> braces ref
+  return $ hypertarget $ x <> label
 
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
