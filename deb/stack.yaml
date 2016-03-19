@@ -13,7 +13,7 @@ flags:
     debug: false
 packages:
 - '..'
-- 'https://hackage.haskell.org/package/pandoc-citeproc-0.9/pandoc-citeproc-0.9.1.1.tar.gz'
+- 'https://hackage.haskell.org/package/pandoc-citeproc-0.9.1.1/pandoc-citeproc-0.9.1.1.tar.gz'
 extra-deps:
 - 'aeson-0.11.1.1'
 - 'texmath-0.8.5'
