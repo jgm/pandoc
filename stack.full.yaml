@@ -12,4 +12,4 @@ packages:
 - '../pandoc-citeproc'
 - '../pandoc-types'
 - '../texmath'
-resolver: lts-5.2
+resolver: lts-5.8

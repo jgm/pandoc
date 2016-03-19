@@ -12,4 +12,4 @@ extra-deps: []
 # - 'aeson-0.11.0.0'
 # - 'fail-4.9.0.0'
 # - 'pandoc-types-1.16.1'
-resolver: lts-5.2
+resolver: lts-5.8
