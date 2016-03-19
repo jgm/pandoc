@@ -37,6 +37,9 @@ pandoc (1.17)
     trigger syntax highlighting.  For example, `py` will now work as
     well as `python` (jgm/highlighting-kate#83).
 
+  * Added `institute` variable to latex, beamer templates (Fraser
+    Tweedale, Josef Svenningsson).
+
   * Docx reader (Jesse Rosenthal):
 
     + Handle alternate content.  Some word functions (especially graphics)
@@ -110,6 +113,8 @@ pandoc (1.17)
 
   * LaTeX writer:
 
+    + Use image identifier to create a label and hypertarget for
+      figures (Mauro Bieg).
     + Avoid double toprule in headerless table with caption (#2742).
     + Clean up options parser (Jesse Rosenthal).
     + Treat `memoir` template with `article` option as article, instead
