@@ -125,10 +125,7 @@ pandoc (1.17)
       anyway if no positioning is specified).  Now LaTeX emplates can
       control the overall table alignment in a document by setting the
       longtable length variables `LTleft` and `LTright`.  For example,
-
-        \setlength\LTleft\parindent
-        \setlength\LTright\fill
-
+      `\setlength\LTleft\parindent\setlength\LTright\fill`
       will create left-aligned tables that respect paragraph indentation.
 
   * Docx writer: Handle image alt text (#2754, Mauro Bieg).
