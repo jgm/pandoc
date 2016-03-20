@@ -1,23 +1,17 @@
 pandoc (1.17)
 
   * Added `--file-scope` option (Jesse Rosenthal).
-    Traditionally pandoc operates on multiple files by first concatenating
+    By default pandoc operates on multiple files by first concatenating
     them (around extra line breaks) and then processing the joined file. So
     it only parses a multi-file document at the document scope. This has the
-    benefit that footnotes and links can be in different files, but it also
-    introduces some difficulties: (a) it is difficult to join files with
-    footnotes without some sort of preprocessing, which makes it difficult
-    to write academic documents in small pieces; (b) it makes it impossible
-    to process multiple binary input files, which can't be catted; (c) it
-    makes it impossible to process files from different input formats.
-    The `--file-scope` option causes pandoc to parse the files first,
-    and then combine the parsed output, instead of combining before
-    parsing. This makes it impossible to have links across multiple files,
-    and auto-identified headers won't work correctly if headers in multiple
-    files have the same name. On the other hand, footnotes across multiple
-    files will work correctly and will allow more freedom for input formats.
-    `--file-scope` is selected automatically for binary input files (which
-    cannot be concatenated anyway) and for pandoc json.
+    benefit that footnotes and links can be in different files, but for
+    some purposes it is useful to parse the individual files first
+    and then combine their outputs (e.g. when the files use footnotes
+    or links with the same labels).  The `--file-scope` option causes
+    pandoc to parse the files first, and then combine the parsed output,
+    instead of combining before parsing. `--file-scope` is selected
+    automatically for binary input files (which cannot be concatenated)
+    and for pandoc json.
 
   * Add TEI Writer (Chris Forster) and `tei` output format.
 
