@@ -53,12 +53,13 @@ pandoc (1.17)
       links have their spaces removed, and are appropriately smushed
       together (#2689).
 
-  * HTML reader: Fixed behavior of base tag (#2777).
+  * HTML reader:
 
-    + If the base path does not end with slash, the last component
+    + Fixed behavior of base tag (#2777).
+      If the base path does not end with slash, the last component
       will be replaced.  E.g. base = `http://example.com/foo`
       combines with `bar.html` to give `http://example.com/bar.html`.
-    + If the href begins with a slash, the whole path of the base
+      If the href begins with a slash, the whole path of the base
       is replaced.  E.g. base = `http://example.com/foo/` combines
       with `/bar.html` to give `http://example.com/bar.html`.
     + Rewrote `htmlInBalanced`.  This version avoids an exponential
