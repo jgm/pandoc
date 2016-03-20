@@ -19,7 +19,7 @@ pandoc (1.17)
     `--file-scope` is selected automatically for binary input files (which
     cannot be concatenated anyway) and for pandoc json.
 
-  * Add TEI Writer (csforste) and `tei` output format.
+  * Add TEI Writer (Chris Forster) and `tei` output format.
 
   * Added a general `ByteStringReader` with warnings, used by the docx
     reader (API change, Jesse Rosenthal).
