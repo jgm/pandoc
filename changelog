@@ -20,9 +20,9 @@ pandoc (1.17)
 
   * Add `readDocxWithWarnings` (API change, Jesse Rosenthal).
 
-  * Changed type of Shared.uniqueIdent argument from [String] to Set String.
-    This avoids performance problems in documents with many identically
-    named headers (API change, #2671).
+  * Changed type of `Shared.uniqueIdent`'s argument from `[String]`
+    to `Set String.` This avoids performance problems in documents with
+    many identically named headers (API change, #2671).
 
   * Removed `tex_math_single_backslash` from `markdown_github` options
     (#2707).
