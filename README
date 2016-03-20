@@ -22,7 +22,7 @@ markup], [Haddock markup], [OPML], [Emacs Org mode], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
 [DokuWiki markup], [Haddock markup], [EPUB] (v2 or v3),
 [FictionBook2], [Textile], [groff man] pages, [Emacs Org mode],
-[AsciiDoc], [InDesign ICML], [TEI XML], and [Slidy], [Slideous], [DZSlides],
+[AsciiDoc], [InDesign ICML], [TEI Simple], and [Slidy], [Slideous], [DZSlides],
 [reveal.js] or [S5] HTML slide shows. It can also produce [PDF] output
 on systems where LaTeX, ConTeXt, or `wkhtmltopdf` is installed.
 
