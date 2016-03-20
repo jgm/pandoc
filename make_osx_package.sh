@@ -61,6 +61,8 @@ echo Creating OSX package...
 # remove old package first
 rm -rf $BASE.pkg
 
+sed -e "s/PANDOCVERSION/$VERSION/" osx/distribution.xml.in > osx/distribution.xml
+
 pkgbuild --root $DIST/pandoc --identifier net.johnmacfarlane.pandoc --version 1.13 --ownership recommended $DIST/pandoc.pkg
 productbuild --distribution osx/distribution.xml --resources $DIST/Resources --package-path $DIST --version $VERSION --sign "${DEVELOPER_ID_INSTALLER}" $BASE-osx.pkg
 
