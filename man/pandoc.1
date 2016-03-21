@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "January 12, 2016" "pandoc 1.17"
+.TH PANDOC 1 "January 12, 2016" "pandoc 1.17.0.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -18,8 +18,8 @@ reStructuredText, XHTML, HTML5, LaTeX (including \f[C]beamer\f[] slide
 shows), ConTeXt, RTF, OPML, DocBook, OpenDocument, ODT, Word docx, GNU
 Texinfo, MediaWiki markup, DokuWiki markup, Haddock markup, EPUB (v2 or
 v3), FictionBook2, Textile, groff man pages, Emacs Org mode, AsciiDoc,
-InDesign ICML, [TEI XML], and Slidy, Slideous, DZSlides, reveal.js or S5
-HTML slide shows.
+InDesign ICML, TEI Simple, and Slidy, Slideous, DZSlides, reveal.js or
+S5 HTML slide shows.
 It can also produce PDF output on systems where LaTeX, ConTeXt, or
 \f[C]wkhtmltopdf\f[] is installed.
 .PP
@@ -1159,9 +1159,18 @@ You can also override the system default templates for a given output
 format \f[I]FORMAT\f[] by putting a file
 \f[C]templates/default.*FORMAT*\f[] in the user data directory (see
 \f[C]\-\-data\-dir\f[], above).
-\f[I]Exceptions:\f[] For \f[C]odt\f[] output, customize the
-\f[C]default.opendocument\f[] template.
-For \f[C]pdf\f[] output, customize the \f[C]default.latex\f[] template.
+\f[I]Exceptions:\f[]
+.IP \[bu] 2
+For \f[C]odt\f[] output, customize the \f[C]default.opendocument\f[]
+template.
+.IP \[bu] 2
+For \f[C]pdf\f[] output, customize the \f[C]default.latex\f[] template
+(or the \f[C]default.beamer\f[] template, if you use
+\f[C]\-t\ beamer\f[], or the \f[C]default.context\f[] template, if you
+use \f[C]\-t\ context\f[]).
+.IP \[bu] 2
+\f[C]docx\f[] has no template (however, you can use
+\f[C]\-\-reference\-docx\f[] to customize the output).
 .PP
 Templates contain \f[I]variables\f[], which allow for the inclusion of
 arbitrary information at any point in the file.
