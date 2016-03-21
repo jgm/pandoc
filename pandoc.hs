@@ -1327,6 +1327,7 @@ convertWithOpts opts args = do
   (doc, media) <- case reader of
     (StringReader _) | not fileScope && readerName' /= "json" ->
                          sourceToDoc sources
+    _ | null sources -> sourceToDoc sources
     _  -> do pairs <- mapM (\s -> sourceToDoc [s]) sources
              return (mconcat $ map fst pairs, mconcat $ map snd pairs)
 
