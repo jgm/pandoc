@@ -1,3 +1,12 @@
+pandoc (1.17.0.1)
+
+  * File scope is no longer used when there are no input files (i.e.,
+    when input comes from stdin).  Previously file scope was triggered
+    when the `json` reader was specified and input came from `stdin`,
+    and this caused no output to be produced.  (Fix due to Jesse Rosenthal;
+    thanks to Fedor Sheremetyev for calling the bug to our attention.)
+  * Improved documentation of templates (#2797).
+
 pandoc (1.17)
 
   * Added `--file-scope` option (Jesse Rosenthal).
