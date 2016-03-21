@@ -1005,9 +1005,15 @@ where *FORMAT* is the name of the output format. A custom template
 can be specified using the `--template` option.  You can also override
 the system default templates for a given output format *FORMAT*
 by putting a file `templates/default.*FORMAT*` in the user data
-directory (see `--data-dir`, above). *Exceptions:* For `odt` output,
-customize the `default.opendocument` template.  For `pdf` output,
-customize the `default.latex` template.
+directory (see `--data-dir`, above). *Exceptions:*
+
+- For `odt` output, customize the `default.opendocument`
+  template.
+- For `pdf` output, customize the `default.latex` template
+  (or the `default.beamer` template, if you use `-t beamer`,
+  or the `default.context` template, if you use `-t context`).
+- `docx` has no template (however, you can use
+  `--reference-docx` to customize the output).
 
 Templates contain *variables*, which allow for the inclusion of
 arbitrary information at any point in the file. Variables may be set
