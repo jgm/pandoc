@@ -939,7 +939,7 @@ htmlInBalanced f = try $ do
                         (TagClose _ : TagPosition er ec : _) -> do
                           let ls = er - sr
                           let cs = ec - sc
-                          lscontents <- concat <$> count ls anyLine
+                          lscontents <- unlines <$> count ls anyLine
                           cscontents <- count cs anyChar
                           (_,closetag) <- htmlTag (~== TagClose tn)
                           return (lscontents ++ cscontents ++ closetag)
