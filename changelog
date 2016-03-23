@@ -1,3 +1,9 @@
+pandoc (1.17.0.2)
+
+  * Fixed serious regression in `htmlInBalanced`, which caused
+    newlines to be omitted in some raw HTML blocks in Markdown
+    (#2804).
+
 pandoc (1.17.0.1)
 
   * File scope is no longer used when there are no input files (i.e.,
