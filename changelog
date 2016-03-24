@@ -1,3 +1,9 @@
+pandoc (1.17.0.3)
+
+  * Added .tei test files to pandoc.cabal so they'll be included
+    in tarball (#2811).
+  * Updated copyright dates.
+
 pandoc (1.17.0.2)
 
   * Fixed serious regression in `htmlInBalanced`, which caused
