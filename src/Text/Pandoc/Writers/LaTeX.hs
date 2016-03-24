@@ -415,10 +415,10 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = d
                    else brackets <$> inlineListToLaTeX (walk deNote txt)
   img <- inlineToLaTeX (Image attr txt (src,tit))
   let footnotes = notesToLaTeX notes
-  figure <- refLabel ident $ cr <>
+  caption <- refLabel ident ("\\caption" <> captForLof <> braces capt)
+  let figure = cr <>
             "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
-            ("\\caption" <> captForLof <> braces capt) $$
-            "\\end{figure}" <> cr
+            caption $$ "\\end{figure}" <> cr
   return $ if inNote
               -- can't have figures in notes
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
