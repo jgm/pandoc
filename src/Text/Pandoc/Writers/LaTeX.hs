@@ -409,16 +409,20 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = d
   capt <- inlineListToLaTeX txt
   notes <- gets stNotes
   modify $ \st -> st{ stInMinipage = False, stNotes = [] }
+  ref <- text `fmap` toLabel ident
+  internalLinks <- gets stInternalLinks
+
   -- We can't have footnotes in the list of figures, so remove them:
   captForLof <- if null notes
                    then return empty
                    else brackets <$> inlineListToLaTeX (walk deNote txt)
   img <- inlineToLaTeX (Image attr txt (src,tit))
   let footnotes = notesToLaTeX notes
-  caption <- refLabel ident ("\\caption" <> captForLof <> braces capt)
-  let figure = cr <>
+  lab <- labelFor ident
+  let caption = "\\caption" <> captForLof <> braces capt <> lab
+  figure <- hypertarget ident (cr <>
             "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
-            caption $$ "\\end{figure}" <> cr
+            caption $$ "\\end{figure}" <> cr)
   return $ if inNote
               -- can't have figures in notes
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
@@ -755,7 +759,8 @@ sectionHeader unnumbered ident level lst = do
                   -- needed for \paragraph, \subparagraph in quote environment
                   -- see http://tex.stackexchange.com/questions/169830/
                   else empty
-  stuffing' <- refLabel ident $ text ('\\':sectionType) <> stuffing
+  lab <- labelFor ident
+  stuffing' <- hypertarget ident $ text ('\\':sectionType) <> stuffing <> lab
   return $ if level' > 5
               then txt
               else prefix $$ stuffing'
@@ -765,20 +770,22 @@ sectionHeader unnumbered ident level lst = do
                                 braces txtNoNotes
                          else empty
 
--- | Append label to x and wrap in hypertarget
-refLabel :: String -> Doc -> State WriterState Doc
-refLabel ident x = do
+hypertarget :: String -> Doc -> State WriterState Doc
+hypertarget ident x = do
   ref <- text `fmap` toLabel ident
   internalLinks <- gets stInternalLinks
-  let hypertarget y = if ident `elem` internalLinks
-                         then text "\\hypertarget"
-                                <> braces ref
-                                <> braces y
-                         else y
-      label = if null ident
-                 then empty
-                 else text "\\label" <> braces ref
-  return $ hypertarget $ x <> label
+  return $
+    if ident `elem` internalLinks
+       then text "\\hypertarget"
+              <> braces ref
+              <> braces x
+       else x
+
+labelFor :: String -> State WriterState Doc
+labelFor ""    = return empty
+labelFor ident = do
+  ref <- text `fmap` toLabel ident
+  return $ text "\\label" <> braces ref
 
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
