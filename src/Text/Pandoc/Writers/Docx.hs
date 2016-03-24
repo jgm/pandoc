@@ -834,6 +834,15 @@ blockToOpenXML opts (Table caption aligns widths headers rows) = do
     [mknode "w:tbl" []
       ( mknode "w:tblPr" []
         (   mknode "w:tblStyle" [("w:val","TableNormal")] () :
+            mknode "w:tblBorders" []
+            (  mknode "w:top" [("w:val","single"), ("w:sz", "4"), ("w:space", "0"), ("w:color","auto")] () :
+               mknode "w:left" [("w:val","single"), ("w:sz", "4"), ("w:space", "0"), ("w:color","auto")] () :
+               mknode "w:bottom" [("w:val","single"), ("w:sz", "4"), ("w:space", "0"), ("w:color","auto")] () :
+               mknode "w:right" [("w:val","single"), ("w:sz", "4"), ("w:space", "0"), ("w:color","auto")] () :
+               mknode "w:insideH" [("w:val","single"), ("w:sz", "4"), ("w:space", "0"), ("w:color","auto")] () :
+               mknode "w:insideV" [("w:val","single"), ("w:sz", "4"), ("w:space", "0"), ("w:color","auto")] () :
+               []
+            ) :
             mknode "w:tblW" [("w:type", "pct"), ("w:w", show rowwidth)] () :
             mknode "w:tblLook" [("w:firstRow","1") | hasHeader ] () :
           [ mknode "w:tblCaption" [("w:val", captionStr)] ()
