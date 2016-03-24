@@ -153,6 +153,7 @@ Extra-Source-Files:
                  tests/tables.plain
                  tests/tables.markdown
                  tests/tables.mediawiki
+                 tests/tables.tei
                  tests/tables.textile
                  tests/tables.opendocument
                  tests/tables.org
@@ -180,6 +181,7 @@ Extra-Source-Files:
                  tests/writer.rst
                  tests/writer.icml
                  tests/writer.rtf
+                 tests/writer.tei
                  tests/writer.texinfo
                  tests/writer.fb2
                  tests/writer.opml
