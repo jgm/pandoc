@@ -409,8 +409,6 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = d
   capt <- inlineListToLaTeX txt
   notes <- gets stNotes
   modify $ \st -> st{ stInMinipage = False, stNotes = [] }
-  ref <- text `fmap` toLabel ident
-  internalLinks <- gets stInternalLinks
 
   -- We can't have footnotes in the list of figures, so remove them:
   captForLof <- if null notes
