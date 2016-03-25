@@ -1,5 +1,8 @@
 pandoc (1.17.0.3)
 
+  * LaTeX writer: Fixed position of label in figures (#2813).
+    Previously the label wasn't in the right place, and `\ref`
+    wouldn't work properly.
   * Added .tei test files to pandoc.cabal so they'll be included
     in tarball (#2811).
   * Updated copyright dates.
