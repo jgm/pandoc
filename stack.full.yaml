@@ -12,8 +12,9 @@ packages:
 - '../pandoc-citeproc'
 - '../pandoc-types'
 - '../cmark-hs'
+- '../zip-archive'
+- '../texmath'
 extra-deps:
 - 'aeson-0.11.1.1'
 - 'highlighting-kate-0.6.2'
-- 'texmath-0.8.5'
 resolver: lts-5.8
