@@ -1153,6 +1153,7 @@ toPolyglossia ("en":"UK":_)        = ("english", "variant=british")
 toPolyglossia ("en":"US":_)        = ("english", "variant=american")
 toPolyglossia ("grc":_)            = ("greek",   "variant=ancient")
 toPolyglossia ("hsb":_)            = ("usorbian", "")
+toPolyglossia ("la":"x-classic":_) = ("latin",   "variant=classic")
 toPolyglossia ("sl":_)             = ("slovenian", "")
 toPolyglossia x                    = (commonFromBcp47 x, "")
 
@@ -1177,6 +1178,7 @@ toBabel ("fr":"CA":_)        = "canadien"
 toBabel ("fra":"aca":_)      = "acadian"
 toBabel ("grc":_)            = "polutonikogreek"
 toBabel ("hsb":_)            = "uppersorbian"
+toBabel ("la":"x-classic":_) = "classiclatin"
 toBabel ("sl":_)             = "slovene"
 toBabel x                    = commonFromBcp47 x
 
