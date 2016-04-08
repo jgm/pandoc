@@ -538,9 +538,9 @@ General writer options
 
 `--columns=`*NUMBER*
 
-:   Specify length of lines in characters (for text wrapping).
-    This affects only the generated source code, not the layout on
-    the rendered page.
+:   Specify length of lines in characters.  This affects text wrapping
+    in the generated source code (see `--wrap`).  It also affects
+    calculation of column widths for plain text tables (see [Tables] below).
 
 `--toc`, `--table-of-contents`
 
