@@ -971,11 +971,20 @@ htmlTag :: Monad m
 htmlTag f = try $ do
   lookAhead (char '<')
   inp <- getInput
-  let (next : rest) = canonicalizeTags $ parseTagsOptions
-                       parseOptions{ optTagWarning = True } inp
+  let (next : _) = canonicalizeTags $ parseTagsOptions
+                       parseOptions{ optTagWarning = False } inp
   guard $ f next
+  let handleTag tagname = do
+       -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
+       -- should NOT be parsed as an HTML tag, see #2277
+       guard $ not ('.' `elem` tagname)
+       -- <https://example.org> should NOT be a tag either.
+       -- tagsoup will parse it as TagOpen "https:" [("example.org","")]
+       guard $ not (null tagname)
+       guard $ last tagname /= ':'
+       rendered <- manyTill anyChar (char '>')
+       return (next, rendered ++ ">")
   case next of
-       TagWarning _ -> fail "encountered TagWarning"
        TagComment s
          | "<!--" `isPrefixOf` inp -> do
           count (length s + 4) anyChar
@@ -983,13 +992,9 @@ htmlTag f = try $ do
           char '>'
           return (next, "<!--" ++ s ++ "-->")
          | otherwise -> fail "bogus comment mode, HTML5 parse error"
-       _            -> do
-          -- we get a TagWarning on things like
-          -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
-          -- which should NOT be parsed as an HTML tag, see #2277
-          guard $ not $ hasTagWarning rest
-          rendered <- manyTill anyChar (char '>')
-          return (next, rendered ++ ">")
+       TagOpen tagname _attr -> handleTag tagname
+       TagClose tagname -> handleTag tagname
+       _ -> mzero
 
 mkAttr :: [(String, String)] -> Attr
 mkAttr attr = (attribsId, attribsClasses, attribsKV)
