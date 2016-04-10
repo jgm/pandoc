@@ -122,9 +122,6 @@ inList = do
   ctx <- stateParserContext <$> getState
   guard (ctx == ListItemState)
 
-isNull :: F Inlines -> Bool
-isNull ils = B.isNull $ runF ils def
-
 spnl :: Parser [Char] st ()
 spnl = try $ do
   skipSpaces
@@ -188,31 +185,38 @@ charsInBalancedBrackets openBrackets =
 -- document structure
 --
 
-titleLine :: MarkdownParser (F Inlines)
-titleLine = try $ do
+rawTitleBlockLine :: MarkdownParser String
+rawTitleBlockLine = do
   char '%'
   skipSpaces
-  res <- many $ (notFollowedBy newline >> inline)
-             <|> try (endline >> whitespace)
-  newline
+  first <- anyLine
+  rest <- many $ try $ do spaceChar
+                          notFollowedBy blankline
+                          skipSpaces
+                          anyLine
+  return $ trim $ unlines (first:rest)
+
+titleLine :: MarkdownParser (F Inlines)
+titleLine = try $ do
+  raw <- rawTitleBlockLine
+  res <- parseFromString (many inline) raw
   return $ trimInlinesF $ mconcat res
 
 authorsLine :: MarkdownParser (F [Inlines])
 authorsLine = try $ do
-  char '%'
-  skipSpaces
-  authors <- sepEndBy (many (notFollowedBy (satisfy $ \c ->
-                                c == ';' || c == '\n') >> inline))
-                       (char ';' <|>
-                        try (newline >> notFollowedBy blankline >> spaceChar))
-  newline
-  return $ sequence $ filter (not . isNull) $ map (trimInlinesF . mconcat) authors
+  raw <- rawTitleBlockLine
+  let sep = (char ';' <* spaces) <|> newline
+  let pAuthors = sepEndBy
+            (trimInlinesF . mconcat <$> many
+                 (try $ notFollowedBy sep >> inline))
+            sep
+  sequence <$> parseFromString pAuthors raw
 
 dateLine :: MarkdownParser (F Inlines)
 dateLine = try $ do
-  char '%'
-  skipSpaces
-  trimInlinesF . mconcat <$> manyTill inline newline
+  raw <- rawTitleBlockLine
+  res <- parseFromString (many inline) raw
+  return $ trimInlinesF $ mconcat res
 
 titleBlock :: MarkdownParser ()
 titleBlock = pandocTitleBlock <|> mmdTitleBlock

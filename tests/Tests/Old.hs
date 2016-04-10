@@ -57,7 +57,7 @@ tests = [ testGroup "markdown"
               "tables.txt" "tables.native"
             , test "pipe tables" ["-r", "markdown", "-w", "native", "--columns=80"]
               "pipe-tables.txt" "pipe-tables.native"
-            , test "more" ["-r", "markdown", "-w", "native", "-S"]
+            , test "more" ["-r", "markdown", "-w", "native", "-s", "-S"]
               "markdown-reader-more.txt" "markdown-reader-more.native"
             , lhsReaderTest "markdown+lhs"
             ]
