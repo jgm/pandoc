@@ -661,14 +661,14 @@ elemToParPart ns element
   | isElem ns "w" "r" element =
     elemToRun ns element >>= (\r -> return $ PlainRun r)
 elemToParPart ns element
-  | isElem ns "w" "ins" element
+  | isElem ns "w" "ins" element || isElem ns "w" "moveTo" element
   , Just cId <- findAttr (elemName ns "w" "id") element
   , Just cAuthor <- findAttr (elemName ns "w" "author") element
   , Just cDate <- findAttr (elemName ns "w" "date") element = do
     runs <- mapD (elemToRun ns) (elChildren element)
     return $ Insertion cId cAuthor cDate runs
 elemToParPart ns element
-  | isElem ns "w" "del" element
+  | isElem ns "w" "del" element || isElem ns "w" "moveFrom" element
   , Just cId <- findAttr (elemName ns "w" "id") element
   , Just cAuthor <- findAttr (elemName ns "w" "author") element
   , Just cDate <- findAttr (elemName ns "w" "date") element = do
