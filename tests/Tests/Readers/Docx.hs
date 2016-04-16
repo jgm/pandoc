@@ -266,6 +266,18 @@ tests = [ testGroup "inlines"
             "keep deletion (all)"
             "docx/track_changes_deletion.docx"
             "docx/track_changes_deletion_all.native"
+          , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
+            "move text (accept)"
+            "docx/track_changes_move.docx"
+            "docx/track_changes_move_accept.native"
+          , testCompareWithOpts def{readerTrackChanges=RejectChanges}
+            "move text (reject)"
+            "docx/track_changes_move.docx"
+            "docx/track_changes_move_reject.native"
+          , testCompareWithOpts def{readerTrackChanges=AllChanges}
+            "move text (all)"
+            "docx/track_changes_move.docx"
+            "docx/track_changes_move_all.native"
           ]
         , testGroup "media"
           [ testMediaBag
