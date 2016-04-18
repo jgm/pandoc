@@ -9,6 +9,8 @@ packages:
 - '.'
 extra-deps:
 - texmath-0.8.6.1
+- data-default-0.6.0
+- data-default-instances-base-0.1.0
 # to compile against aeson 0.11.0.0:
 # - 'aeson-0.11.0.0'
 # - 'fail-4.9.0.0'
