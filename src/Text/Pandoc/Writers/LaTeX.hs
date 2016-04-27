@@ -508,7 +508,8 @@ blockToLaTeX (RawBlock f x)
 blockToLaTeX (BulletList []) = return empty  -- otherwise latex error
 blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
-  let inc = if incremental then "[<+->]" else ""
+  beamer <- writerBeamer `fmap` gets stOptions
+  let inc = if beamer && incremental then "[<+->]" else ""
   items <- mapM listItemToLaTeX lst
   let spacing = if isTightList lst
                    then text "\\tightlist"
