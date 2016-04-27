@@ -391,6 +391,9 @@ lookupBlockAttribute key =
 
 type BlockProperties = (Int, String)  -- (Indentation, Block-Type)
 
+updateIndent :: BlockProperties -> Int -> BlockProperties
+updateIndent (_, blkType) indent = (indent, blkType)
+
 orgBlock :: OrgParser (F Blocks)
 orgBlock = try $ do
   blockProp@(_, blkType) <- blockHeaderStart
@@ -407,10 +410,22 @@ orgBlock = try $ do
       _         -> withParsed (fmap $ divWithClass blkType)
 
 blockHeaderStart :: OrgParser (Int, String)
-blockHeaderStart = try $ (,) <$> indent <*> blockType
+blockHeaderStart = try $ (,) <$> indentation <*> blockType
  where
-  indent    = length      <$> many spaceChar
   blockType = map toLower <$> (stringAnyCase "#+begin_" *> orgArgWord)
+
+indentation :: OrgParser Int
+indentation = try $ do
+  tabStop  <- getOption readerTabStop
+  s        <- many spaceChar
+  return $ spaceLength tabStop s
+
+spaceLength :: Int -> String -> Int
+spaceLength tabStop s = (sum . map charLen) s
+ where
+  charLen ' '  = 1
+  charLen '\t' = tabStop
+  charLen _    = 0
 
 withRaw'   :: (String   -> F Blocks) -> BlockProperties -> OrgParser (F Blocks)
 withRaw'   f blockProp = (ignHeaders *> (f <$> rawBlockContent blockProp))
@@ -450,7 +465,8 @@ codeBlock blkProp = do
   skipSpaces
   (classes, kv)     <- codeHeaderArgs <|> (mempty <$ ignHeaders)
   id'               <- fromMaybe "" <$> lookupBlockAttribute "name"
-  content           <- rawBlockContent blkProp
+  leadingIndent     <- lookAhead indentation
+  content           <- rawBlockContent (updateIndent blkProp leadingIndent)
   resultsContent    <- followingResultsBlock
   let includeCode    = exportsCode kv
   let includeResults = exportsResults kv
@@ -472,7 +488,7 @@ rawBlockContent (indent, blockType) = try $
   unlines . map commaEscaped <$> manyTill indentedLine blockEnder
  where
    indentedLine = try $ ("" <$ blankline) <|> (indentWith indent *> anyLine)
-   blockEnder = try $ indentWith indent *> stringAnyCase ("#+end_" <> blockType)
+   blockEnder = try $ skipSpaces *> stringAnyCase ("#+end_" <> blockType)
 
 parsedBlockContent :: BlockProperties -> OrgParser (F Blocks)
 parsedBlockContent blkProps = try $ do

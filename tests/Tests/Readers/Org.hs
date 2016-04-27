@@ -1054,6 +1054,33 @@ tests =
                        "  where greeting = \"moin\"\n"
            in codeBlockWith attr' code'
 
+      , "Source block with indented code" =:
+           unlines [ "  #+BEGIN_SRC haskell"
+                   , "    main = putStrLn greeting"
+                   , "      where greeting = \"moin\""
+                   , "  #+END_SRC" ] =?>
+           let attr' = ("", ["haskell"], [])
+               code' = "main = putStrLn greeting\n" ++
+                       "  where greeting = \"moin\"\n"
+           in codeBlockWith attr' code'
+
+      , "Source block with tab-indented code" =:
+           unlines [ "\t#+BEGIN_SRC haskell"
+                   , "\tmain = putStrLn greeting"
+                   , "\t  where greeting = \"moin\""
+                   , "\t#+END_SRC" ] =?>
+           let attr' = ("", ["haskell"], [])
+               code' = "main = putStrLn greeting\n" ++
+                       "  where greeting = \"moin\"\n"
+           in codeBlockWith attr' code'
+
+      , "Empty source block" =:
+           unlines [ "  #+BEGIN_SRC haskell"
+                   , "  #+END_SRC" ] =?>
+           let attr' = ("", ["haskell"], [])
+               code' = ""
+           in codeBlockWith attr' code'
+
       , "Source block between paragraphs" =:
            unlines [ "Low German greeting"
                    , "  #+BEGIN_SRC haskell"
