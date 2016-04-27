@@ -1126,7 +1126,7 @@ toPolyglossiaEnv l =
 
 -- Takes a list of the constituents of a BCP 47 language code and
 -- converts it to a Polyglossia (language, options) tuple
--- http://mirrors.concertpass.com/tex-archive/macros/latex/contrib/polyglossia/polyglossia.pdf
+-- http://mirrors.ctan.org/macros/latex/contrib/polyglossia/polyglossia.pdf
 toPolyglossia :: [String] -> (String, String)
 toPolyglossia ("ar":"DZ":_)        = ("arabic", "locale=algeria")
 toPolyglossia ("ar":"IQ":_)        = ("arabic", "locale=mashriq")
@@ -1154,18 +1154,21 @@ toPolyglossia ("en":"UK":_)        = ("english", "variant=british")
 toPolyglossia ("en":"US":_)        = ("english", "variant=american")
 toPolyglossia ("grc":_)            = ("greek",   "variant=ancient")
 toPolyglossia ("hsb":_)            = ("usorbian", "")
-toPolyglossia ("la":"x-classic":_) = ("latin",   "variant=classic")
+toPolyglossia ("la":"x":"classic":_) = ("latin", "variant=classic")
 toPolyglossia ("sl":_)             = ("slovenian", "")
 toPolyglossia x                    = (commonFromBcp47 x, "")
 
 -- Takes a list of the constituents of a BCP 47 language code and
 -- converts it to a Babel language string.
--- http://mirrors.concertpass.com/tex-archive/macros/latex/required/babel/base/babel.pdf
--- Note that the PDF unfortunately does not contain a complete list of supported languages.
+-- http://mirrors.ctan.org/macros/latex/required/babel/base/babel.pdf
+-- List of supported languages (slightly outdated):
+-- http://tug.ctan.org/language/hyph-utf8/doc/generic/hyph-utf8/hyphenation.pdf
 toBabel :: [String] -> String
 toBabel ("de":"1901":_)      = "german"
 toBabel ("de":"AT":"1901":_) = "austrian"
 toBabel ("de":"AT":_)        = "naustrian"
+toBabel ("de":"CH":"1901":_) = "swissgerman"
+toBabel ("de":"CH":_)        = "nswissgerman"
 toBabel ("de":_)             = "ngerman"
 toBabel ("dsb":_)            = "lowersorbian"
 toBabel ("el":"polyton":_)   = "polutonikogreek"
@@ -1179,7 +1182,7 @@ toBabel ("fr":"CA":_)        = "canadien"
 toBabel ("fra":"aca":_)      = "acadian"
 toBabel ("grc":_)            = "polutonikogreek"
 toBabel ("hsb":_)            = "uppersorbian"
-toBabel ("la":"x-classic":_) = "classiclatin"
+toBabel ("la":"x":"classic":_) = "classiclatin"
 toBabel ("sl":_)             = "slovene"
 toBabel x                    = commonFromBcp47 x
 
@@ -1188,12 +1191,15 @@ toBabel x                    = commonFromBcp47 x
 -- https://tools.ietf.org/html/bcp47#section-2.1
 commonFromBcp47 :: [String] -> String
 commonFromBcp47 [] = ""
-commonFromBcp47 ("pt":"BR":_) = "brazilian"
+commonFromBcp47 ("pt":"BR":_)            = "brazilian"
+commonFromBcp47 ("sr":"Cyrl":_)          = "serbianc"
+commonFromBcp47 ("zh":"Latn":"pinyin":_) = "pinyin"
 commonFromBcp47 x = fromIso $ head x
   where
     fromIso "af"  = "afrikaans"
     fromIso "am"  = "amharic"
     fromIso "ar"  = "arabic"
+    fromIso "as"  = "assamese"
     fromIso "ast" = "asturian"
     fromIso "bg"  = "bulgarian"
     fromIso "bn"  = "bengali"
@@ -1217,12 +1223,13 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "fur" = "friulan"
     fromIso "ga"  = "irish"
     fromIso "gd"  = "scottish"
+    fromIso "gez" = "ethiopic"
     fromIso "gl"  = "galician"
     fromIso "he"  = "hebrew"
     fromIso "hi"  = "hindi"
     fromIso "hr"  = "croatian"
-    fromIso "hy"  = "armenian"
     fromIso "hu"  = "magyar"
+    fromIso "hy"  = "armenian"
     fromIso "ia"  = "interlingua"
     fromIso "id"  = "indonesian"
     fromIso "ie"  = "interlingua"
@@ -1230,6 +1237,7 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "it"  = "italian"
     fromIso "jp"  = "japanese"
     fromIso "km"  = "khmer"
+    fromIso "kmr" = "kurmanji"
     fromIso "kn"  = "kannada"
     fromIso "ko"  = "korean"
     fromIso "la"  = "latin"
@@ -1245,6 +1253,7 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "no"  = "norsk"
     fromIso "nqo" = "nko"
     fromIso "oc"  = "occitan"
+    fromIso "pa"  = "panjabi"
     fromIso "pl"  = "polish"
     fromIso "pms" = "piedmontese"
     fromIso "pt"  = "portuguese"
@@ -1261,6 +1270,7 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "ta"  = "tamil"
     fromIso "te"  = "telugu"
     fromIso "th"  = "thai"
+    fromIso "ti"  = "ethiopic"
     fromIso "tk"  = "turkmen"
     fromIso "tr"  = "turkish"
     fromIso "uk"  = "ukrainian"

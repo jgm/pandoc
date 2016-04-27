@@ -27,7 +27,7 @@
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
-  \usepackage[shorthands=off,ngerman,british,ngerman,spanish,french,main=english]{babel}
+  \usepackage[shorthands=off,ngerman,british,nswissgerman,spanish,french,main=english]{babel}
   \newcommand{\textgerman}[2][]{\foreignlanguage{ngerman}{#2}}
   \newenvironment{german}[1]{\begin{otherlanguage}{ngerman}}{\end{otherlanguage}}
   \newcommand{\textenglish}[2][]{\foreignlanguage{british}{#2}}
