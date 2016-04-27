@@ -223,7 +223,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                       ++ poly ++ "}{##2}}}\n"
                else "\\newcommand{\\text" ++ poly ++ "}[2][]{\\foreignlanguage{"
                       ++ babel ++ "}{#2}}\n" ++
-                    "\\newenvironment{" ++ poly ++ "}[1]{\\begin{otherlanguage}{"
+                    "\\newenvironment{" ++ poly ++ "}[2][]{\\begin{otherlanguage}{"
                       ++ babel ++ "}}{\\end{otherlanguage}}\n"
             )
             -- eliminate duplicates that have same polyglossia name
