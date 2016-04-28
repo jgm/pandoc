@@ -669,8 +669,7 @@ tableCellToLaTeX header (width, align, blocks) = do
                AlignDefault -> "\\raggedright"
   return $ ("\\begin{minipage}" <> valign <>
             braces (text (printf "%.2f\\columnwidth" width)) <>
-            (halign <> "\\strut" <> cr <> cellContents <> cr) <>
-            "\\strut\\end{minipage}") $$
+            (halign <> cr <> cellContents <> cr) <> "\\end{minipage}") $$
             notesToLaTeX notes
 
 notesToLaTeX :: [Doc] -> Doc
