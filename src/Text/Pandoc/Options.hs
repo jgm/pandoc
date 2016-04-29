@@ -357,6 +357,7 @@ data WriterOptions = WriterOptions
   , writerSourceURL        :: Maybe String  -- ^ Absolute URL + directory of 1st source file
   , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
+  , writerDocBook5         :: Bool       -- ^ Produce DocBook5
   , writerHtml5            :: Bool       -- ^ Produce HTML5
   , writerHtmlQTags        :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
   , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
@@ -403,6 +404,7 @@ instance Default WriterOptions where
                       , writerSourceURL        = Nothing
                       , writerUserDataDir      = Nothing
                       , writerCiteMethod       = Citeproc
+                      , writerDocBook5         = False
                       , writerHtml5            = False
                       , writerHtmlQTags        = False
                       , writerBeamer           = False

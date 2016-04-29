@@ -112,7 +112,9 @@ elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) =
                     else elements
       tag = case lvl of
                  n | n == 0           -> "chapter"
-                   | n >= 1 && n <= 5 -> "sect" ++ show n
+                   | n >= 1 && n <= 5 -> if writerDocBook5 opts
+                                              then "section"
+                                              else "sect" ++ show n
                    | otherwise        -> "simplesect"
   in  inTags True tag [("id", writerIdentifierPrefix opts ++ id') |
                        not (null id')] $
@@ -227,9 +229,11 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
 blockToDocbook opts (DefinitionList lst) =
   let attribs = [("spacing", "compact") | isTightList $ concatMap snd lst]
   in  inTags True "variablelist" attribs $ deflistItemsToDocbook opts lst
-blockToDocbook _ (RawBlock f str)
+blockToDocbook opts (RawBlock f str)
   | f == "docbook" = text str -- raw XML block
-  | f == "html"    = text str -- allow html for backwards compatibility
+  | f == "html"    = if writerDocBook5 opts
+                        then empty -- No html in Docbook5
+                        else text str -- allow html for backwards compatibility
   | otherwise      = empty
 blockToDocbook _ HorizontalRule = empty -- not semantic
 blockToDocbook opts (Table caption aligns widths headers rows) =
