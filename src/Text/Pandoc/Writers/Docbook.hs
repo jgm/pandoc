@@ -112,12 +112,15 @@ elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) =
                     else elements
       tag = case lvl of
                  n | n == 0           -> "chapter"
-                   | n >= 1 && n <= 5 -> if writerDocBook5 opts
+                   | n >= 1 && n <= 5 -> if writerDocbook5 opts
                                               then "section"
                                               else "sect" ++ show n
                    | otherwise        -> "simplesect"
-  in  inTags True tag [("id", writerIdentifierPrefix opts ++ id') |
-                       not (null id')] $
+      idAttr = [("id", writerIdentifierPrefix opts ++ id') | not (null id')]
+      nsAttr = if writerDocbook5 opts && lvl == 0 then [("xmlns", "http://docbook.org/ns/docbook")]
+                                      else []
+      attribs = nsAttr ++ idAttr
+  in  inTags True tag attribs $
       inTagsSimple "title" (inlinesToDocbook opts title) $$
       vcat (map (elementToDocbook opts (lvl + 1)) elements')
 
@@ -231,7 +234,7 @@ blockToDocbook opts (DefinitionList lst) =
   in  inTags True "variablelist" attribs $ deflistItemsToDocbook opts lst
 blockToDocbook opts (RawBlock f str)
   | f == "docbook" = text str -- raw XML block
-  | f == "html"    = if writerDocBook5 opts
+  | f == "html"    = if writerDocbook5 opts
                         then empty -- No html in Docbook5
                         else text str -- allow html for backwards compatibility
   | otherwise      = empty

@@ -292,7 +292,7 @@ writers = [
                       , writerHtml5 = True })
   ,("docbook"      , PureStringWriter writeDocbook)
   ,("docbook5"     , PureStringWriter $ \o ->
-     writeDocbook o{ writerDocBook5 = True })
+     writeDocbook o{ writerDocbook5 = True })
   ,("opml"         , PureStringWriter writeOPML)
   ,("opendocument" , PureStringWriter writeOpenDocument)
   ,("latex"        , PureStringWriter writeLaTeX)
