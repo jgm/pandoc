@@ -351,7 +351,9 @@ inlineToDocbook opts (Link attr txt (src, _))
   | otherwise =
       (if isPrefixOf "#" src
             then inTags False "link" $ ("linkend", drop 1 src) : idAndRole attr
-            else inTags False "ulink" $ ("url", src) : idAndRole attr ) $
+            else if writerDocbook5 opts
+                    then inTags False "link" $ ("xlink:href", src) : idAndRole attr
+                    else inTags False "ulink" $ ("url", src) : idAndRole attr ) $
         inlinesToDocbook opts txt
 inlineToDocbook opts (Image attr _ (src, tit)) =
   let titleDoc = if null tit

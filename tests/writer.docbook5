@@ -22,7 +22,8 @@
 <section id="headers">
   <title>Headers</title>
   <section id="level-2-with-an-embedded-link">
-    <title>Level 2 with an <ulink url="/url">embedded link</ulink></title>
+    <title>Level 2 with an <link xlink:href="/url">embedded
+    link</link></title>
     <section id="level-3-with-emphasis">
       <title>Level 3 with <emphasis>emphasis</emphasis></title>
       <section id="level-4">
@@ -940,7 +941,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <emphasis role="strong">is this</emphasis>.
   </para>
   <para>
-    An <emphasis><ulink url="/url">emphasized link</ulink></emphasis>.
+    An <emphasis><link xlink:href="/url">emphasized link</link></emphasis>.
   </para>
   <para>
     <emphasis role="strong"><emphasis>This is strong and
@@ -998,8 +999,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   </para>
   <para>
     Here is some quoted <quote><literal>code</literal></quote> and a
-    <quote><ulink url="http://example.com/?foo=1&amp;bar=2">quoted
-    link</ulink></quote>.
+    <quote><link xlink:href="http://example.com/?foo=1&amp;bar=2">quoted
+    link</link></quote>.
   </para>
   <para>
     Some dashes: one—two — three—four — five.
@@ -1188,58 +1189,58 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <section id="explicit">
     <title>Explicit</title>
     <para>
-      Just a <ulink url="/url/">URL</ulink>.
+      Just a <link xlink:href="/url/">URL</link>.
     </para>
     <para>
-      <ulink url="/url/">URL and title</ulink>.
+      <link xlink:href="/url/">URL and title</link>.
     </para>
     <para>
-      <ulink url="/url/">URL and title</ulink>.
+      <link xlink:href="/url/">URL and title</link>.
     </para>
     <para>
-      <ulink url="/url/">URL and title</ulink>.
+      <link xlink:href="/url/">URL and title</link>.
     </para>
     <para>
-      <ulink url="/url/">URL and title</ulink>
+      <link xlink:href="/url/">URL and title</link>
     </para>
     <para>
-      <ulink url="/url/">URL and title</ulink>
+      <link xlink:href="/url/">URL and title</link>
     </para>
     <para>
-      <ulink url="/url/with_underscore">with_underscore</ulink>
+      <link xlink:href="/url/with_underscore">with_underscore</link>
     </para>
     <para>
       Email link (<email>nobody@nowhere.net</email>)
     </para>
     <para>
-      <ulink url="">Empty</ulink>.
+      <link xlink:href="">Empty</link>.
     </para>
   </section>
   <section id="reference">
     <title>Reference</title>
     <para>
-      Foo <ulink url="/url/">bar</ulink>.
+      Foo <link xlink:href="/url/">bar</link>.
     </para>
     <para>
-      Foo <ulink url="/url/">bar</ulink>.
+      Foo <link xlink:href="/url/">bar</link>.
     </para>
     <para>
-      Foo <ulink url="/url/">bar</ulink>.
+      Foo <link xlink:href="/url/">bar</link>.
     </para>
     <para>
-      With <ulink url="/url/">embedded [brackets]</ulink>.
+      With <link xlink:href="/url/">embedded [brackets]</link>.
     </para>
     <para>
-      <ulink url="/url/">b</ulink> by itself should be a link.
+      <link xlink:href="/url/">b</link> by itself should be a link.
     </para>
     <para>
-      Indented <ulink url="/url">once</ulink>.
+      Indented <link xlink:href="/url">once</link>.
     </para>
     <para>
-      Indented <ulink url="/url">twice</ulink>.
+      Indented <link xlink:href="/url">twice</link>.
     </para>
     <para>
-      Indented <ulink url="/url">thrice</ulink>.
+      Indented <link xlink:href="/url">thrice</link>.
     </para>
     <para>
       This should [not][] be a link.
@@ -1248,35 +1249,35 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
 [not]: /url
 </programlisting>
     <para>
-      Foo <ulink url="/url/">bar</ulink>.
+      Foo <link xlink:href="/url/">bar</link>.
     </para>
     <para>
-      Foo <ulink url="/url/">biz</ulink>.
+      Foo <link xlink:href="/url/">biz</link>.
     </para>
   </section>
   <section id="with-ampersands">
     <title>With ampersands</title>
     <para>
-      Here’s a <ulink url="http://example.com/?foo=1&amp;bar=2">link with an
-      ampersand in the URL</ulink>.
+      Here’s a <link xlink:href="http://example.com/?foo=1&amp;bar=2">link
+      with an ampersand in the URL</link>.
     </para>
     <para>
       Here’s a link with an amersand in the link text:
-      <ulink url="http://att.com/">AT&amp;T</ulink>.
+      <link xlink:href="http://att.com/">AT&amp;T</link>.
     </para>
     <para>
-      Here’s an <ulink url="/script?foo=1&amp;bar=2">inline link</ulink>.
+      Here’s an <link xlink:href="/script?foo=1&amp;bar=2">inline link</link>.
     </para>
     <para>
-      Here’s an <ulink url="/script?foo=1&amp;bar=2">inline link in pointy
-      braces</ulink>.
+      Here’s an <link xlink:href="/script?foo=1&amp;bar=2">inline link in
+      pointy braces</link>.
     </para>
   </section>
   <section id="autolinks">
     <title>Autolinks</title>
     <para>
       With an ampersand:
-      <ulink url="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</ulink>
+      <link xlink:href="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</link>
     </para>
     <itemizedlist spacing="compact">
       <listitem>
@@ -1286,7 +1287,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
       <listitem>
         <para>
-          <ulink url="http://example.com/">http://example.com/</ulink>
+          <link xlink:href="http://example.com/">http://example.com/</link>
         </para>
       </listitem>
       <listitem>
@@ -1301,7 +1302,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     <blockquote>
       <para>
         Blockquoted:
-        <ulink url="http://example.com/">http://example.com/</ulink>
+        <link xlink:href="http://example.com/">http://example.com/</link>
       </para>
     </blockquote>
     <para>
@@ -1362,8 +1363,8 @@ or here: &lt;http://example.com/&gt;
     because it contains a space.[^my note] Here is an inline note.<footnote>
       <para>
         This is <emphasis>easier</emphasis> to type. Inline notes may contain
-        <ulink url="http://google.com">links</ulink> and <literal>]</literal>
-        verbatim characters, as well as [bracketed text].
+        <link xlink:href="http://google.com">links</link> and
+        <literal>]</literal> verbatim characters, as well as [bracketed text].
       </para>
     </footnote>
   </para>
