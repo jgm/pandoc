@@ -675,7 +675,8 @@ tableCellToLaTeX header (width, align, blocks) = do
                AlignDefault -> "\\raggedright"
   return $ ("\\begin{minipage}" <> valign <>
             braces (text (printf "%.2f\\columnwidth" width)) <>
-            (halign <> cr <> cellContents <> cr) <> "\\end{minipage}") $$
+            (halign <> "\\strut" <> cr <> cellContents <> "\\strut" <> cr) <>
+            "\\end{minipage}") $$
             notesToLaTeX notes
 
 notesToLaTeX :: [Doc] -> Doc
@@ -1306,4 +1307,3 @@ pDocumentClass =
        else do P.skipMany (P.satisfy (/='{'))
                P.char '{'
                P.manyTill P.letter (P.char '}')
-                                   
