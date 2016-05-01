@@ -40,7 +40,8 @@ import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
 import Data.Aeson (object, (.=), FromJSON)
 import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse, nub, nubBy )
-import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
+import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit,
+                   ord, isAlphaNum )
 import Data.Maybe ( fromMaybe, isJust, catMaybes )
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
@@ -471,23 +472,27 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
         st <- get
         let params = if writerListings (stOptions st)
                      then (case getListingsLanguage classes of
-                                Just l  -> [ "language=" ++ l ]
+                                Just l  -> [ "language=" ++ mbBraced l ]
                                 Nothing -> []) ++
                           [ "numbers=left" | "numberLines" `elem` classes
                              || "number" `elem` classes
                              || "number-lines" `elem` classes ] ++
                           [ (if key == "startFrom"
                                 then "firstnumber"
-                                else key) ++ "=" ++ attr |
+                                else key) ++ "=" ++ mbBraced attr |
                                 (key,attr) <- keyvalAttr ] ++
                           (if identifier == ""
                                 then []
                                 else [ "label=" ++ ref ])
 
                      else []
+            mbBraced x = if not (all isAlphaNum x)
+                            then "{" <> x <> "}"
+                            else x
             printParams
                 | null params = empty
-                | otherwise   = brackets $ hcat (intersperse ", " (map text params))
+                | otherwise   = brackets $ hcat (intersperse ", "
+                      (map text params))
         return $ flush ("\\begin{lstlisting}" <> printParams $$ text str $$
                  "\\end{lstlisting}") $$ cr
   let highlightedCodeBlock =
