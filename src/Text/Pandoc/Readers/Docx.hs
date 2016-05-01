@@ -100,12 +100,13 @@ import Text.Pandoc.Compat.Except
 readDocxWithWarnings :: ReaderOptions
                      -> B.ByteString
                      -> Either PandocError (Pandoc, MediaBag, [String])
-readDocxWithWarnings opts bytes =
-  case archiveToDocxWithWarnings (toArchive bytes) of
-    Right (docx, warnings) -> do
+readDocxWithWarnings opts bytes
+  | Right archive <- toArchiveOrFail bytes
+  , Right (docx, warnings) <- archiveToDocxWithWarnings archive = do
       (meta, blks, mediaBag) <- docxToOutput opts docx
       return (Pandoc meta blks, mediaBag, warnings)
-    Left _   -> Left (ParseFailure "couldn't parse docx file")
+readDocxWithWarnings _ _ =
+  Left (ParseFailure "couldn't parse docx file")
 
 readDocx :: ReaderOptions
          -> B.ByteString
