@@ -59,7 +59,9 @@ readOdt _ bytes = case bytesToOdt bytes of
 
 --
 bytesToOdt :: B.ByteString -> Either PandocError Pandoc
-bytesToOdt bytes = archiveToOdt $ toArchive bytes
+bytesToOdt bytes = case toArchiveOrFail bytes of
+  Right archive -> archiveToOdt archive
+  Left _        -> Left $ ParseFailure "Couldn't parse odt file."
 
 --
 archiveToOdt :: Archive -> Either PandocError Pandoc
