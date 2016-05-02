@@ -112,10 +112,15 @@ elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) =
                     else elements
       tag = case lvl of
                  n | n == 0           -> "chapter"
-                   | n >= 1 && n <= 5 -> "sect" ++ show n
+                   | n >= 1 && n <= 5 -> if writerDocbook5 opts
+                                              then "section"
+                                              else "sect" ++ show n
                    | otherwise        -> "simplesect"
-  in  inTags True tag [("id", writerIdentifierPrefix opts ++ id') |
-                       not (null id')] $
+      idAttr = [("id", writerIdentifierPrefix opts ++ id') | not (null id')]
+      nsAttr = if writerDocbook5 opts && lvl == 0 then [("xmlns", "http://docbook.org/ns/docbook")]
+                                      else []
+      attribs = nsAttr ++ idAttr
+  in  inTags True tag attribs $
       inTagsSimple "title" (inlinesToDocbook opts title) $$
       vcat (map (elementToDocbook opts (lvl + 1)) elements')
 
@@ -227,9 +232,11 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) =
 blockToDocbook opts (DefinitionList lst) =
   let attribs = [("spacing", "compact") | isTightList $ concatMap snd lst]
   in  inTags True "variablelist" attribs $ deflistItemsToDocbook opts lst
-blockToDocbook _ (RawBlock f str)
+blockToDocbook opts (RawBlock f str)
   | f == "docbook" = text str -- raw XML block
-  | f == "html"    = text str -- allow html for backwards compatibility
+  | f == "html"    = if writerDocbook5 opts
+                        then empty -- No html in Docbook5
+                        else text str -- allow html for backwards compatibility
   | otherwise      = empty
 blockToDocbook _ HorizontalRule = empty -- not semantic
 blockToDocbook opts (Table caption aligns widths headers rows) =
@@ -344,7 +351,9 @@ inlineToDocbook opts (Link attr txt (src, _))
   | otherwise =
       (if isPrefixOf "#" src
             then inTags False "link" $ ("linkend", drop 1 src) : idAndRole attr
-            else inTags False "ulink" $ ("url", src) : idAndRole attr ) $
+            else if writerDocbook5 opts
+                    then inTags False "link" $ ("xlink:href", src) : idAndRole attr
+                    else inTags False "ulink" $ ("url", src) : idAndRole attr ) $
         inlinesToDocbook opts txt
 inlineToDocbook opts (Image attr _ (src, tit)) =
   let titleDoc = if null tit
