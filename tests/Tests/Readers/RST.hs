@@ -109,6 +109,20 @@ tests = [ "line block with blank line" =:
                   )
                   "def func(x):\n  return y"
               )
+        , "Code directive with number-lines, no line specified" =: unlines
+            [ ".. code::python"
+            , "   :number-lines: "
+            , ""
+            , "  def func(x):"
+            , "    return y"
+            ]  =?>
+              ( doc $ codeBlockWith
+                  ( ""
+                  , ["sourceCode", "python", "numberLines"]
+                  , [ ("startFrom", "") ]
+                  )
+                  "def func(x):\n  return y"
+              )
         , testGroup "literal / line / code blocks"
           [ "indented literal block" =: unlines
             [ "::"
