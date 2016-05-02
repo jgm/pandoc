@@ -39,6 +39,7 @@ Data-Files:
                  data/templates/default.html
                  data/templates/default.html5
                  data/templates/default.docbook
+                 data/templates/default.docbook5
                  data/templates/default.tei
                  data/templates/default.beamer
                  data/templates/default.opendocument
@@ -145,6 +146,7 @@ Extra-Source-Files:
                  tests/s5-inserts.html
                  tests/tables.context
                  tests/tables.docbook
+                 tests/tables.docbook5
                  tests/tables.dokuwiki
                  tests/tables.icml
                  tests/tables.html
@@ -168,6 +170,7 @@ Extra-Source-Files:
                  tests/writer.latex
                  tests/writer.context
                  tests/writer.docbook
+                 tests/writer.docbook5
                  tests/writer.html
                  tests/writer.man
                  tests/writer.markdown
