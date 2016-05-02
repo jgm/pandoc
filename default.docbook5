@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article>
+$if(mathml)$
+<article xmlns="http://docbook.org/ns/docbook" version="5.0">
+$else$
+<article xmlns="http://docbook.org/ns/docbook" version="5.0">
+$endif$
+  <info>
+    <title>$title$</title>
+$if(author)$
+    <authorgroup>
+$for(author)$
+      <author>
+        $author$
+      </author>
+$endfor$
+    </authorgroup>
+$endif$
+$if(date)$
+    <date>$date$</date>
+$endif$
+  </info>
+$for(include-before)$
+$include-before$
+$endfor$
+$body$
+$for(include-after)$
+$include-after$
+$endfor$
+</article>
