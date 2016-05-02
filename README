@@ -273,26 +273,26 @@ General options
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
     `man` (groff man), `mediawiki` (MediaWiki markup), `dokuwiki`
     (DokuWiki markup), `textile` (Textile), `org` (Emacs Org mode),
-    `texinfo` (GNU Texinfo), `opml` (OPML), `docbook` (DocBook),
-    `opendocument` (OpenDocument), `odt` (OpenOffice text document),
-    `docx` (Word docx), `haddock` (Haddock markup), `rtf` (rich text
-    format), `epub` (EPUB v2 book), `epub3` (EPUB v3), `fb2`
-    (FictionBook2 e-book), `asciidoc` (AsciiDoc), `icml` (InDesign
-    ICML), `tei` (TEI Simple), `slidy` (Slidy HTML and javascript slide
-    show), `slideous` (Slideous HTML and javascript slide show),
-    `dzslides` (DZSlides HTML5 + javascript slide show), `revealjs`
-    (reveal.js HTML5 + javascript slide show), `s5` (S5 HTML and javascript
-    slide show), or the path of a custom lua writer (see [Custom
-    writers], below). Note that `odt`, `epub`, and
-    `epub3` output will not be directed to *stdout*; an output
-    filename must be specified using the `-o/--output` option. If
-    `+lhs` is appended to `markdown`, `rst`, `latex`, `beamer`,
-    `html`, or `html5`, the output will be rendered as literate
-    Haskell source: see [Literate Haskell
-    support], below.  Markdown syntax
-    extensions can be individually enabled or disabled by appending
-    `+EXTENSION` or `-EXTENSION` to the format name, as described
-    above under `-f`.
+    `texinfo` (GNU Texinfo), `opml` (OPML), `docbook` (DocBook 4),
+    `docbook5` (DocBook 5), `opendocument` (OpenDocument), `odt`
+    (OpenOffice text document), `docx` (Word docx), `haddock`
+    (Haddock markup), `rtf` (rich text format), `epub` (EPUB v2
+    book), `epub3` (EPUB v3), `fb2` (FictionBook2 e-book),
+    `asciidoc` (AsciiDoc), `icml` (InDesign ICML), `tei` (TEI
+    Simple), `slidy` (Slidy HTML and javascript slide show),
+    `slideous` (Slideous HTML and javascript slide show),
+    `dzslides` (DZSlides HTML5 + javascript slide show),
+    `revealjs` (reveal.js HTML5 + javascript slide show), `s5`
+    (S5 HTML and javascript slide show), or the path of a custom
+    lua writer (see [Custom writers], below). Note that `odt`,
+    `epub`, and `epub3` output will not be directed to *stdout*;
+    an output filename must be specified using the `-o/--output`
+    option. If `+lhs` is appended to `markdown`, `rst`, `latex`,
+    `beamer`, `html`, or `html5`, the output will be rendered as
+    literate Haskell source: see [Literate Haskell support],
+    below.  Markdown syntax extensions can be individually
+    enabled or disabled by appending `+EXTENSION` or
+    `-EXTENSION` to the format name, as described above under `-f`.
 
 `-o` *FILE*, `--output=`*FILE*
 
@@ -547,7 +547,7 @@ General writer options
 :   Include an automatically generated table of contents (or, in
     the case of `latex`, `context`, `docx`, and `rst`, an instruction to create
     one) in the output document. This option has no effect on `man`,
-    `docbook`, `slidy`, `slideous`, `s5`, or `odt` output.
+    `docbook`, `docbook5`, `slidy`, `slideous`, `s5`, or `odt` output.
 
 `--toc-depth=`*NUMBER*
 
@@ -909,7 +909,7 @@ Math rendering in HTML
 
 `--mathml`[`=`*URL*]
 
-:   Convert TeX math to [MathML] (in `docbook` as well as `html` and `html5`).
+:   Convert TeX math to [MathML] (in `docbook`, `docbook5`, `html` and `html5`).
     In standalone `html` output, a small javascript (or a link to such a
     script if a *URL* is supplied) will be inserted that allows the MathML to
     be viewed on some browsers.
