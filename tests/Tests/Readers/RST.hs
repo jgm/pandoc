@@ -8,6 +8,7 @@ import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Text.Pandoc.Error
+import qualified Data.Sequence as Seq
 
 rst :: String -> Pandoc
 rst = handleError . readRST def{ readerStandalone = True }
@@ -94,6 +95,20 @@ tests = [ "line block with blank line" =:
                    ("A-1-B_2_C:3:D+4+E.5.F_\n\n" ++
                    ".. _A-1-B_2_C:3:D+4+E.5.F: https://example.com\n") =?>
                    para (link "https://example.com" "" "A-1-B_2_C:3:D+4+E.5.F")
+        , "Code directive with class and number-lines" =: unlines
+            [ ".. code::python"
+            , "   :number-lines: 34"
+            , "   :class: class1 class2 class3"
+            , ""
+            , "  def func(x):"
+            , "    return y"
+            ]  =?>
+              ( doc . Many . Seq.singleton $
+                CodeBlock ( ""
+                          , ["sourceCode", "python", "numberLines", "class1", "class2", "class3"]
+                          , [ ("startFrom", "34") ]
+                          ) "def func(x):\n  return y"
+              )
         , testGroup "literal / line / code blocks"
           [ "indented literal block" =: unlines
             [ "::"
