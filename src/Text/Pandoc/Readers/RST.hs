@@ -586,8 +586,9 @@ directive' = do
                                   case trim top of
                                      ""   -> stateRstDefaultRole def
                                      role -> role })
-        "code" -> codeblock (lookup "number-lines" fields) (trim top) body
-        "code-block" -> codeblock (lookup "number-lines" fields) (trim top) body
+        x | x == "code" || x == "code-block" ->
+          codeblock (words $ fromMaybe [] $ lookup "class" fields)
+                    (lookup "number-lines" fields) (trim top) body
         "aafig" -> do
           let attribs = ("", ["aafig"], map (\(k,v) -> (k, trimr v)) fields)
           return $ B.codeBlockWith attribs $ stripTrailingNewlines body
@@ -713,12 +714,13 @@ toChunks = dropWhile null
            . map (trim . unlines)
            . splitBy (all (`elem` (" \t" :: String))) . lines
 
-codeblock :: Maybe String -> String -> String -> RSTParser Blocks
-codeblock numberLines lang body =
+codeblock :: [String] -> Maybe String -> String -> String -> RSTParser Blocks
+codeblock classes numberLines lang body =
   return $ B.codeBlockWith attribs $ stripTrailingNewlines body
-    where attribs = ("", classes, kvs)
-          classes = "sourceCode" : lang
+    where attribs = ("", classes', kvs)
+          classes' = "sourceCode" : lang
                     : maybe [] (\_ -> ["numberLines"]) numberLines
+                    ++ classes
           kvs     = case numberLines of
                           Just "" -> []
                           Nothing -> []
