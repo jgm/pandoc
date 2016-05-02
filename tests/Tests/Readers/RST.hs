@@ -8,7 +8,6 @@ import Tests.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Text.Pandoc.Error
-import qualified Data.Sequence as Seq
 
 rst :: String -> Pandoc
 rst = handleError . readRST def{ readerStandalone = True }
@@ -103,11 +102,12 @@ tests = [ "line block with blank line" =:
             , "  def func(x):"
             , "    return y"
             ]  =?>
-              ( doc . Many . Seq.singleton $
-                CodeBlock ( ""
-                          , ["sourceCode", "python", "numberLines", "class1", "class2", "class3"]
-                          , [ ("startFrom", "34") ]
-                          ) "def func(x):\n  return y"
+              ( doc $ codeBlockWith
+                  ( ""
+                  , ["sourceCode", "python", "numberLines", "class1", "class2", "class3"]
+                  , [ ("startFrom", "34") ]
+                  )
+                  "def func(x):\n  return y"
               )
         , testGroup "literal / line / code blocks"
           [ "indented literal block" =: unlines
