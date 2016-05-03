@@ -774,9 +774,13 @@ data OrgTableRow = OrgContentRow (F [Blocks])
                  | OrgAlignRow [Alignment]
                  | OrgHlineRow
 
+-- OrgTable is strongly related to the pandoc table ADT.  Using the same
+-- (i.e. pandoc-global) ADT would mean that the reader would break if the
+-- global structure was to be changed, which would be bad.  The final table
+-- should be generated using a builder function.  Column widths aren't
+-- implemented yet, so they are not tracked here.
 data OrgTable = OrgTable
-  { orgTableColumns    :: Int
-  , orgTableAlignments :: [Alignment]
+  { orgTableAlignments :: [Alignment]
   , orgTableHeader     :: [Blocks]
   , orgTableRows       :: [[Blocks]]
   }
@@ -792,7 +796,7 @@ table = try $ do
 orgToPandocTable :: OrgTable
                  -> Inlines
                  -> Blocks
-orgToPandocTable (OrgTable _ aligns heads lns) caption =
+orgToPandocTable (OrgTable aligns heads lns) caption =
   B.table caption (zip aligns $ repeat 0) heads lns
 
 tableStart :: OrgParser Char
@@ -840,20 +844,18 @@ tableHline = try $
 
 rowsToTable :: [OrgTableRow]
             -> F OrgTable
-rowsToTable = foldM (flip rowToContent) zeroTable
-  where zeroTable = OrgTable 0 mempty mempty mempty
+rowsToTable = foldM (flip rowToContent) emptyTable
+ where emptyTable = OrgTable mempty mempty mempty
 
-normalizeTable :: OrgTable
-               -> OrgTable
-normalizeTable (OrgTable cols aligns heads lns) =
-  let aligns' = fillColumns aligns AlignDefault
-      heads'  = if heads == mempty
-                then mempty
-                else fillColumns heads (B.plain mempty)
-      lns'    = map (`fillColumns` B.plain mempty) lns
-      fillColumns base padding = take cols $ base ++ repeat padding
-  in OrgTable cols aligns' heads' lns'
-
+normalizeTable :: OrgTable -> OrgTable
+normalizeTable (OrgTable aligns heads rows) = OrgTable aligns' heads rows
+ where
+   refRow = if heads /= mempty
+            then heads
+            else if rows == mempty then mempty else head rows
+   cols = length refRow
+   fillColumns base padding = take cols $ base ++ repeat padding
+   aligns' = fillColumns aligns AlignDefault
 
 -- One or more horizontal rules after the first content line mark the previous
 -- line as a header.  All other horizontal lines are discarded.
@@ -861,16 +863,10 @@ rowToContent :: OrgTableRow
              -> OrgTable
              -> F OrgTable
 rowToContent OrgHlineRow        t = maybeBodyToHeader t
-rowToContent (OrgAlignRow as)   t = setLongestRow as =<< setAligns as t
+rowToContent (OrgAlignRow as)   t = setAligns as t
 rowToContent (OrgContentRow rf) t = do
   rs <- rf
-  setLongestRow rs =<< appendToBody rs t
-
-setLongestRow :: [a]
-              -> OrgTable
-              -> F OrgTable
-setLongestRow rs t =
-  return t{ orgTableColumns = max (length rs) (orgTableColumns t) }
+  appendToBody rs t
 
 maybeBodyToHeader :: OrgTable
                   -> F OrgTable

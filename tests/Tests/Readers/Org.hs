@@ -1024,10 +1024,10 @@ tests =
                   , "| 1       | One  | foo  |"
                   , "| 2"
                   ] =?>
-          table "" (zip [AlignCenter, AlignRight, AlignDefault] [0, 0, 0])
-                [ plain "Numbers", plain "Text" , plain mempty ]
-                [ [ plain "1"      , plain "One"  , plain "foo"  ]
-                , [ plain "2"      , plain mempty , plain mempty  ]
+          table "" (zip [AlignCenter, AlignRight] [0, 0])
+                [ plain "Numbers", plain "Text" ]
+                [ [ plain "1" , plain "One" , plain "foo" ]
+                , [ plain "2" ]
                 ]
 
       , "Table with caption" =:
