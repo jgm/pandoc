@@ -844,7 +844,7 @@ tableHline = try $
 
 rowsToTable :: [OrgTableRow]
             -> F OrgTable
-rowsToTable = foldM (flip rowToContent) emptyTable
+rowsToTable = foldM rowToContent emptyTable
  where emptyTable = OrgTable mempty mempty mempty
 
 normalizeTable :: OrgTable -> OrgTable
@@ -859,31 +859,31 @@ normalizeTable (OrgTable aligns heads rows) = OrgTable aligns' heads rows
 
 -- One or more horizontal rules after the first content line mark the previous
 -- line as a header.  All other horizontal lines are discarded.
-rowToContent :: OrgTableRow
-             -> OrgTable
+rowToContent :: OrgTable
+             -> OrgTableRow
              -> F OrgTable
-rowToContent OrgHlineRow        t = maybeBodyToHeader t
-rowToContent (OrgAlignRow as)   t = setAligns as t
-rowToContent (OrgContentRow rf) t = do
-  rs <- rf
-  appendToBody rs t
+rowToContent orgTable row =
+  case row of
+    OrgHlineRow       -> return singleRowPromotedToHeader
+    OrgAlignRow as    -> return . setAligns $ as
+    OrgContentRow cs  -> appendToBody cs
+ where
+   singleRowPromotedToHeader :: OrgTable
+   singleRowPromotedToHeader = case orgTable of
+     OrgTable{ orgTableHeader = [], orgTableRows = b:[] } ->
+            orgTable{ orgTableHeader = b , orgTableRows = [] }
+     _   -> orgTable
 
-maybeBodyToHeader :: OrgTable
-                  -> F OrgTable
-maybeBodyToHeader t = case t of
-  OrgTable{ orgTableHeader = [], orgTableRows = b:[] } ->
-         return t{ orgTableHeader = b , orgTableRows = [] }
-  _   -> return t
+   setAligns :: [Alignment] -> OrgTable
+   setAligns aligns = orgTable{ orgTableAlignments = aligns }
 
-appendToBody :: [Blocks]
-             -> OrgTable
-             -> F OrgTable
-appendToBody r t = return t{ orgTableRows = orgTableRows t ++ [r] }
-
-setAligns :: [Alignment]
-          -> OrgTable
-          -> F OrgTable
-setAligns aligns t = return $ t{ orgTableAlignments = aligns }
+   appendToBody :: F [Blocks] -> F OrgTable
+   appendToBody frow = do
+     newRow <- frow
+     let oldRows = orgTableRows orgTable
+     -- NOTE: This is an inefficient O(n) operation.  This should be changed
+     -- if performance ever becomes a problem.
+     return orgTable{ orgTableRows = oldRows ++ [newRow] }
 
 
 --
