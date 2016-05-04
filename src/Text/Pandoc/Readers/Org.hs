@@ -49,7 +49,7 @@ import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 import           Control.Arrow (first)
 import           Control.Monad (foldM, guard, liftM, liftM2, mplus, mzero, when)
 import           Control.Monad.Reader (Reader, runReader, ask, asks, local)
-import           Data.Char (isAlphaNum, toLower)
+import           Data.Char (isAlphaNum, isSpace, toLower)
 import           Data.Default
 import           Data.List (intersperse, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
@@ -1587,8 +1587,8 @@ inlineLaTeX = try $ do
    state :: ParserState
    state = def{ stateOptions = def{ readerParseRaw = True }}
 
-   texMathToPandoc inp = (maybeRight $ readTeX inp) >>=
-                         writePandoc DisplayInline
+   texMathToPandoc :: String -> Maybe [Inline]
+   texMathToPandoc cs = (maybeRight $ readTeX cs) >>= writePandoc DisplayInline
 
 maybeRight :: Either a b -> Maybe b
 maybeRight = either (const Nothing) Just
@@ -1598,9 +1598,11 @@ inlineLaTeXCommand = try $ do
   rest <- getInput
   case runParser rawLaTeXInline def "source" rest of
     Right (RawInline _ cs) -> do
-      let len = length cs
+      -- drop any trailing whitespace, those should not be part of the command
+      let cmdNoSpc = takeWhile (not . isSpace) $ cs
+      let len = length cmdNoSpc
       count len anyChar
-      return cs
+      return cmdNoSpc
     _ -> mzero
 
 smart :: OrgParser (F Inlines)
