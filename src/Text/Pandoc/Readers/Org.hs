@@ -35,6 +35,7 @@ import           Text.Pandoc.Builder ( Inlines, Blocks, HasMeta(..),
                                        trimInlines )
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Compat.Monoid ((<>))
+import           Text.Pandoc.Error
 import           Text.Pandoc.Options
 import qualified Text.Pandoc.Parsing as P
 import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
@@ -56,8 +57,6 @@ import qualified Data.Map as M
 import qualified Data.Set as Set
 import           Data.Maybe (fromMaybe, isJust)
 import           Network.HTTP (urlEncode)
-
-import           Text.Pandoc.Error
 
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: ReaderOptions -- ^ Reader options
@@ -807,18 +806,19 @@ tableRows = try $ many (tableAlignRow <|> tableHline <|> tableContentRow)
 
 tableContentRow :: OrgParser OrgTableRow
 tableContentRow = try $
-  OrgContentRow . sequence <$> (tableStart *> manyTill tableContentCell newline)
+  OrgContentRow . sequence <$> (tableStart *> many1Till tableContentCell newline)
 
 tableContentCell :: OrgParser (F Blocks)
 tableContentCell = try $
-  fmap B.plain . trimInlinesF . mconcat <$> many1Till inline endOfCell
-
-endOfCell :: OrgParser Char
-endOfCell = try $ char '|' <|> lookAhead newline
+  fmap B.plain . trimInlinesF . mconcat <$> manyTill inline endOfCell
 
 tableAlignRow :: OrgParser OrgTableRow
-tableAlignRow = try $
-  OrgAlignRow <$> (tableStart *> manyTill tableAlignCell newline)
+tableAlignRow = try $ do
+  tableStart
+  cells <- many1Till tableAlignCell newline
+  -- Empty rows are regular (i.e. content) rows, not alignment rows.
+  guard $ any (/= AlignDefault) cells
+  return $ OrgAlignRow cells
 
 tableAlignCell :: OrgParser Alignment
 tableAlignCell =
@@ -833,14 +833,18 @@ tableAlignCell =
     where emptyCell = try $ skipSpaces *> endOfCell
 
 tableAlignFromChar :: OrgParser Alignment
-tableAlignFromChar = try $ choice [ char 'l' *> return AlignLeft
-                                  , char 'c' *> return AlignCenter
-                                  , char 'r' *> return AlignRight
-                                  ]
+tableAlignFromChar = try $
+  choice [ char 'l' *> return AlignLeft
+         , char 'c' *> return AlignCenter
+         , char 'r' *> return AlignRight
+         ]
 
 tableHline :: OrgParser OrgTableRow
 tableHline = try $
   OrgHlineRow <$ (tableStart *> char '-' *> anyLine)
+
+endOfCell :: OrgParser Char
+endOfCell = try $ char '|' <|> lookAhead newline
 
 rowsToTable :: [OrgTableRow]
             -> F OrgTable
