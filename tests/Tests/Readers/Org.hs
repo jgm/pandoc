@@ -945,7 +945,7 @@ tests =
 
       , "Empty table" =:
           "||" =?>
-          simpleTable' 1 mempty mempty
+          simpleTable' 1 mempty [[mempty]]
 
       , "Glider Table" =:
           unlines [ "| 1 | 0 | 0 |"
@@ -1000,6 +1000,17 @@ tests =
                 , [ plain "dynamic", plain "Lisp" ]
                 ]
 
+      , "Table with empty cells" =:
+          "|||c|" =?>
+          simpleTable' 3 mempty [[mempty, mempty, plain "c"]]
+
+      , "Table with empty rows" =:
+          unlines [ "| first  |"
+                  , "|        |"
+                  , "| third  |"
+                  ] =?>
+          simpleTable' 1 mempty [[plain "first"], [mempty], [plain "third"]]
+
       , "Table with alignment row" =:
           unlines [ "| Numbers | Text | More |"
                   , "| <c>     | <r>  |      |"
@@ -1028,10 +1039,10 @@ tests =
                   , "| 1       | One  | foo  |"
                   , "| 2"
                   ] =?>
-          table "" (zip [AlignCenter, AlignRight, AlignDefault] [0, 0, 0])
-                [ plain "Numbers", plain "Text" , plain mempty ]
-                [ [ plain "1"      , plain "One"  , plain "foo"  ]
-                , [ plain "2"      , plain mempty , plain mempty  ]
+          table "" (zip [AlignCenter, AlignRight] [0, 0])
+                [ plain "Numbers", plain "Text" ]
+                [ [ plain "1" , plain "One" , plain "foo" ]
+                , [ plain "2" ]
                 ]
 
       , "Table with caption" =:
