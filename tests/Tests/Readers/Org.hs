@@ -328,6 +328,10 @@ tests =
           "\\copy" =?>
           para "©"
 
+      , "MathML symbols, space separated" =:
+          "\\ForAll \\Auml" =?>
+          para "∀ Ä"
+
       , "LaTeX citation" =:
           "\\cite{Coffee}" =?>
           let citation = Citation
