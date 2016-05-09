@@ -1591,21 +1591,26 @@ CSS.
 #### Extension: `implicit_header_references` ####
 
 Pandoc behaves as if reference links have been defined for each header.
-So, instead of
+So, to link to a header
 
-    [header identifiers](#header-identifiers-in-html)
+    # Header identifiers in HTML
 
 you can simply write
 
-    [header identifiers]
+    [Header identifiers in HTML]
 
 or
 
-    [header identifiers][]
+    [Header identifiers in HTML][]
 
 or
 
-    [the section on header identifiers][header identifiers]
+    [the section on header identifiers][header identifiers in
+    HTML]
+
+instead of giving the identifier explicitly:
+
+    [Header identifiers in HTML](#header-identifiers-in-html)
 
 If there are multiple headers with identical text, the corresponding
 reference will link to the first one only, and you will need to use explicit
