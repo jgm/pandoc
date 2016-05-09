@@ -225,7 +225,7 @@ table = do
                          Nothing -> 1.0
   caption <- option mempty tableCaption
   optional rowsep
-  hasheader <- option False $ True <$ (lookAhead (char '!'))
+  hasheader <- option False $ True <$ (lookAhead (skipSpaces *> char '!'))
   (cellspecs',hdr) <- unzip <$> tableRow
   let widths = map ((tableWidth *) . snd) cellspecs'
   let restwidth = tableWidth - sum widths

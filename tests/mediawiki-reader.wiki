@@ -381,6 +381,14 @@ and cheese
 |Orange
 |}Paragraph after the table.
 
+{|
+ !fruit
+ !topping
+ |-
+ |apple
+ |ice cream
+ |}
+
 == notes ==
 
 My note!<ref>This.</ref>
