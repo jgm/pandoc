@@ -170,7 +170,7 @@ blockToOrg (Table caption' _ _ headers rows) =  do
        map ((+2) . numChars) $ transpose (headers' : rawRows)
   -- FIXME: Org doesn't allow blocks with height more than 1.
   let hpipeBlocks blocks = hcat [beg, middle, end]
-        where h      = maximum (map height blocks)
+        where h      = maximum (1 : map height blocks)
               sep'   = lblock 3 $ vcat (map text $ replicate h " | ")
               beg    = lblock 2 $ vcat (map text $ replicate h "| ")
               end    = lblock 2 $ vcat (map text $ replicate h " |")
