@@ -39,7 +39,8 @@ import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
 import Data.Aeson (object, (.=), FromJSON)
-import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse, nub, nubBy )
+import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse,
+                   nub, nubBy, foldl' )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit,
                    ord, isAlphaNum )
 import Data.Maybe ( fromMaybe, isJust, catMaybes )
@@ -725,7 +726,7 @@ sectionHeader :: Bool    -- True for unnumbered
               -> State WriterState Doc
 sectionHeader unnumbered ident level lst = do
   txt <- inlineListToLaTeX lst
-  plain <- stringToLaTeX TextString $ foldl (++) "" $ map stringify lst
+  plain <- stringToLaTeX TextString $ concatMap stringify lst
   let noNote (Note _) = Str ""
       noNote x        = x
   let lstNoNotes = walk noNote lst
@@ -1037,7 +1038,7 @@ citationsToNatbib (c:cs) | citationMode c == AuthorInText = do
 
 citationsToNatbib cits = do
   cits' <- mapM convertOne cits
-  return $ text "\\citetext{" <> foldl combineTwo empty cits' <> text "}"
+  return $ text "\\citetext{" <> foldl' combineTwo empty cits' <> text "}"
   where
     combineTwo a b | isEmpty a = b
                    | otherwise = a <> text "; " <> b
@@ -1086,7 +1087,7 @@ citationsToBiblatex (one:[])
 
 citationsToBiblatex (c:cs) = do
   args <- mapM convertOne (c:cs)
-  return $ text cmd <> foldl (<>) empty args
+  return $ text cmd <> foldl' (<>) empty args
     where
        cmd = case citationMode c of
                   AuthorInText -> "\\textcites"
