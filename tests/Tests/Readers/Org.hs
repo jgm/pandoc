@@ -308,6 +308,10 @@ tests =
           "\\textit{Emphasised}" =?>
           para (emph "Emphasised")
 
+      , "Inline LaTeX command with spaces" =:
+          "\\emph{Emphasis mine}" =?>
+          para (emph "Emphasis mine")
+
       , "Inline LaTeX math symbol" =:
           "\\tau" =?>
           para (emph "τ")

@@ -1581,8 +1581,8 @@ inlineLaTeX = try $ do
 
    parseAsMathMLSym :: String -> Maybe Inlines
    parseAsMathMLSym cs = B.str <$> MathMLEntityMap.getUnicode (clean cs)
-    -- dropWhileEnd would be nice here, but it's not available before base 4.5
-    where clean = reverse . dropWhile (`elem` ("{}" :: String)) . reverse . drop 1
+    -- drop initial backslash and any trailing "{}"
+    where clean = dropWhileEnd (`elem` ("{}" :: String)) . drop 1
 
    state :: ParserState
    state = def{ stateOptions = def{ readerParseRaw = True }}
@@ -1598,12 +1598,17 @@ inlineLaTeXCommand = try $ do
   rest <- getInput
   case runParser rawLaTeXInline def "source" rest of
     Right (RawInline _ cs) -> do
-      -- drop any trailing whitespace, those should not be part of the command
-      let cmdNoSpc = takeWhile (not . isSpace) $ cs
+      -- drop any trailing whitespace, those are not be part of the command as
+      -- far as org mode is concerned.
+      let cmdNoSpc = dropWhileEnd isSpace cs
       let len = length cmdNoSpc
       count len anyChar
       return cmdNoSpc
     _ -> mzero
+
+-- Taken from Data.OldList.
+dropWhileEnd :: (a -> Bool) -> [a] -> [a]
+dropWhileEnd p = foldr (\x xs -> if p x && null xs then [] else x : xs) []
 
 smart :: OrgParser (F Inlines)
 smart = do
