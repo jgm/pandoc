@@ -308,6 +308,10 @@ tests =
           "\\textit{Emphasised}" =?>
           para (emph "Emphasised")
 
+      , "Inline LaTeX command with spaces" =:
+          "\\emph{Emphasis mine}" =?>
+          para (emph "Emphasis mine")
+
       , "Inline LaTeX math symbol" =:
           "\\tau" =?>
           para (emph "τ")
@@ -327,6 +331,10 @@ tests =
       , "MathML copy sign" =:
           "\\copy" =?>
           para "©"
+
+      , "MathML symbols, space separated" =:
+          "\\ForAll \\Auml" =?>
+          para "∀ Ä"
 
       , "LaTeX citation" =:
           "\\cite{Coffee}" =?>
@@ -941,7 +949,7 @@ tests =
 
       , "Empty table" =:
           "||" =?>
-          simpleTable' 1 mempty mempty
+          simpleTable' 1 mempty [[mempty]]
 
       , "Glider Table" =:
           unlines [ "| 1 | 0 | 0 |"
@@ -996,6 +1004,17 @@ tests =
                 , [ plain "dynamic", plain "Lisp" ]
                 ]
 
+      , "Table with empty cells" =:
+          "|||c|" =?>
+          simpleTable' 3 mempty [[mempty, mempty, plain "c"]]
+
+      , "Table with empty rows" =:
+          unlines [ "| first  |"
+                  , "|        |"
+                  , "| third  |"
+                  ] =?>
+          simpleTable' 1 mempty [[plain "first"], [mempty], [plain "third"]]
+
       , "Table with alignment row" =:
           unlines [ "| Numbers | Text | More |"
                   , "| <c>     | <r>  |      |"
@@ -1024,10 +1043,10 @@ tests =
                   , "| 1       | One  | foo  |"
                   , "| 2"
                   ] =?>
-          table "" (zip [AlignCenter, AlignRight, AlignDefault] [0, 0, 0])
-                [ plain "Numbers", plain "Text" , plain mempty ]
-                [ [ plain "1"      , plain "One"  , plain "foo"  ]
-                , [ plain "2"      , plain mempty , plain mempty  ]
+          table "" (zip [AlignCenter, AlignRight] [0, 0])
+                [ plain "Numbers", plain "Text" ]
+                [ [ plain "1" , plain "One" , plain "foo" ]
+                , [ plain "2" ]
                 ]
 
       , "Table with caption" =:
@@ -1052,6 +1071,33 @@ tests =
            let attr' = ("", ["haskell"], [])
                code' = "main = putStrLn greeting\n" ++
                        "  where greeting = \"moin\"\n"
+           in codeBlockWith attr' code'
+
+      , "Source block with indented code" =:
+           unlines [ "  #+BEGIN_SRC haskell"
+                   , "    main = putStrLn greeting"
+                   , "      where greeting = \"moin\""
+                   , "  #+END_SRC" ] =?>
+           let attr' = ("", ["haskell"], [])
+               code' = "main = putStrLn greeting\n" ++
+                       "  where greeting = \"moin\"\n"
+           in codeBlockWith attr' code'
+
+      , "Source block with tab-indented code" =:
+           unlines [ "\t#+BEGIN_SRC haskell"
+                   , "\tmain = putStrLn greeting"
+                   , "\t  where greeting = \"moin\""
+                   , "\t#+END_SRC" ] =?>
+           let attr' = ("", ["haskell"], [])
+               code' = "main = putStrLn greeting\n" ++
+                       "  where greeting = \"moin\"\n"
+           in codeBlockWith attr' code'
+
+      , "Empty source block" =:
+           unlines [ "  #+BEGIN_SRC haskell"
+                   , "  #+END_SRC" ] =?>
+           let attr' = ("", ["haskell"], [])
+               code' = ""
            in codeBlockWith attr' code'
 
       , "Source block between paragraphs" =:

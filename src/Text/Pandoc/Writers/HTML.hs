@@ -855,13 +855,12 @@ inlineToHtml opts inline =
     (Note contents)
       | writerIgnoreNotes opts -> return mempty
       | otherwise              -> do
-                        st <- get
-                        let notes = stNotes st
+                        notes <- gets stNotes
                         let number = (length notes) + 1
                         let ref = show number
                         htmlContents <- blockListToNote opts ref contents
                         -- push contents onto front of notes
-                        put $ st {stNotes = (htmlContents:notes)}
+                        modify $ \st -> st {stNotes = (htmlContents:notes)}
                         let revealSlash = ['/' | writerSlideVariant opts
                                                  == RevealJsSlides]
                         let link = H.a ! A.href (toValue $ "#" ++

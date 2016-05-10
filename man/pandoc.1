@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "January 12, 2016" "pandoc 1.16.0.2"
+.TH PANDOC 1 "January 12, 2016" "pandoc 1.17.0.3"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -18,8 +18,8 @@ reStructuredText, XHTML, HTML5, LaTeX (including \f[C]beamer\f[] slide
 shows), ConTeXt, RTF, OPML, DocBook, OpenDocument, ODT, Word docx, GNU
 Texinfo, MediaWiki markup, DokuWiki markup, Haddock markup, EPUB (v2 or
 v3), FictionBook2, Textile, groff man pages, Emacs Org mode, AsciiDoc,
-InDesign ICML, and Slidy, Slideous, DZSlides, reveal.js or S5 HTML slide
-shows.
+InDesign ICML, TEI Simple, and Slidy, Slideous, DZSlides, reveal.js or
+S5 HTML slide shows.
 It can also produce PDF output on systems where LaTeX, ConTeXt, or
 \f[C]wkhtmltopdf\f[] is installed.
 .PP
@@ -253,11 +253,12 @@ Specify output format.
 (Haddock markup), \f[C]rtf\f[] (rich text format), \f[C]epub\f[] (EPUB
 v2 book), \f[C]epub3\f[] (EPUB v3), \f[C]fb2\f[] (FictionBook2 e\-book),
 \f[C]asciidoc\f[] (AsciiDoc), \f[C]icml\f[] (InDesign ICML),
-\f[C]slidy\f[] (Slidy HTML and javascript slide show), \f[C]slideous\f[]
-(Slideous HTML and javascript slide show), \f[C]dzslides\f[] (DZSlides
-HTML5 + javascript slide show), \f[C]revealjs\f[] (reveal.js HTML5 +
-javascript slide show), \f[C]s5\f[] (S5 HTML and javascript slide show),
-or the path of a custom lua writer (see Custom writers, below).
+\f[C]tei\f[] (TEI Simple), \f[C]slidy\f[] (Slidy HTML and javascript
+slide show), \f[C]slideous\f[] (Slideous HTML and javascript slide
+show), \f[C]dzslides\f[] (DZSlides HTML5 + javascript slide show),
+\f[C]revealjs\f[] (reveal.js HTML5 + javascript slide show), \f[C]s5\f[]
+(S5 HTML and javascript slide show), or the path of a custom lua writer
+(see Custom writers, below).
 Note that \f[C]odt\f[], \f[C]epub\f[], and \f[C]epub3\f[] output will
 not be directed to \f[I]stdout\f[]; an output filename must be specified
 using the \f[C]\-o/\-\-output\f[] option.
@@ -401,6 +402,15 @@ Currently this option only affects the Markdown and LaTeX readers.
 .RS
 .RE
 .TP
+.B \f[C]\-\-file\-scope\f[]
+Parse each file individually before combining for multifile documents.
+This will allow footnotes in different files with the same identifiers
+to work as expected.
+If this option is set, footnotes and links will not work across files.
+Reading binary files (docx, odt, epub) implies \f[C]\-\-file\-scope\f[].
+.RS
+.RE
+.TP
 .B \f[C]\-\-filter=\f[]\f[I]EXECUTABLE\f[]
 Specify an executable to be used as a filter transforming the pandoc AST
 after the input is parsed and before the output is written.
@@ -501,7 +511,7 @@ This option only affects the docx and epub readers.
 .TP
 .B \f[C]\-s\f[], \f[C]\-\-standalone\f[]
 Produce output with an appropriate header and footer (e.g.
-a standalone HTML, LaTeX, or RTF file, not a fragment).
+a standalone HTML, LaTeX, TEI, or RTF file, not a fragment).
 This option is set automatically for \f[C]pdf\f[], \f[C]epub\f[],
 \f[C]epub3\f[], \f[C]fb2\f[], \f[C]docx\f[], and \f[C]odt\f[] output.
 .RS
@@ -582,11 +592,10 @@ rendered page.
 .TP
 .B \f[C]\-\-toc\f[], \f[C]\-\-table\-of\-contents\f[]
 Include an automatically generated table of contents (or, in the case of
-\f[C]latex\f[], \f[C]context\f[], and \f[C]rst\f[], an instruction to
-create one) in the output document.
+\f[C]latex\f[], \f[C]context\f[], \f[C]docx\f[], and \f[C]rst\f[], an
+instruction to create one) in the output document.
 This option has no effect on \f[C]man\f[], \f[C]docbook\f[],
-\f[C]slidy\f[], \f[C]slideous\f[], \f[C]s5\f[], \f[C]docx\f[], or
-\f[C]odt\f[] output.
+\f[C]slidy\f[], \f[C]slideous\f[], \f[C]s5\f[], or \f[C]odt\f[] output.
 .RS
 .RE
 .TP
@@ -642,7 +651,7 @@ Implies \f[C]\-\-standalone\f[].
 Include contents of \f[I]FILE\f[], verbatim, at the end of the document
 body (before the \f[C]</body>\f[] tag in HTML, or the
 \f[C]\\end{document}\f[] command in LaTeX).
-This option can be be used repeatedly to include multiple files.
+This option can be used repeatedly to include multiple files.
 They will be included in the order specified.
 Implies \f[C]\-\-standalone\f[].
 .RS
@@ -702,7 +711,8 @@ ATX headers.
 Treat top\-level headers as chapters in LaTeX, ConTeXt, and DocBook
 output.
 When the LaTeX document class is set to \f[C]report\f[], \f[C]book\f[],
-or \f[C]memoir\f[], this option is implied.
+or \f[C]memoir\f[] (unless the \f[C]article\f[] option is specified),
+this option is implied.
 If \f[C]beamer\f[] is the output format, top\-level headers will become
 \f[C]\\part{..}\f[].
 .RS
@@ -809,7 +819,7 @@ Implies \f[C]\-\-standalone\f[].
 .TP
 .B \f[C]\-c\f[] \f[I]URL\f[], \f[C]\-\-css=\f[]\f[I]URL\f[]
 Link to a CSS style sheet.
-This option can be be used repeatedly to include multiple files.
+This option can be used repeatedly to include multiple files.
 They will be included in the order specified.
 .RS
 .RE
@@ -1149,9 +1159,18 @@ You can also override the system default templates for a given output
 format \f[I]FORMAT\f[] by putting a file
 \f[C]templates/default.*FORMAT*\f[] in the user data directory (see
 \f[C]\-\-data\-dir\f[], above).
-\f[I]Exceptions:\f[] For \f[C]odt\f[] output, customize the
-\f[C]default.opendocument\f[] template.
-For \f[C]pdf\f[] output, customize the \f[C]default.latex\f[] template.
+\f[I]Exceptions:\f[]
+.IP \[bu] 2
+For \f[C]odt\f[] output, customize the \f[C]default.opendocument\f[]
+template.
+.IP \[bu] 2
+For \f[C]pdf\f[] output, customize the \f[C]default.latex\f[] template
+(or the \f[C]default.beamer\f[] template, if you use
+\f[C]\-t\ beamer\f[], or the \f[C]default.context\f[] template, if you
+use \f[C]\-t\ context\f[]).
+.IP \[bu] 2
+\f[C]docx\f[] has no template (however, you can use
+\f[C]\-\-reference\-docx\f[] to customize the output).
 .PP
 Templates contain \f[I]variables\f[], which allow for the inclusion of
 arbitrary information at any point in the file.
@@ -1188,6 +1207,12 @@ document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and Word
 docx; renders in LaTeX only when using a document class that supports
 \f[C]\\subtitle\f[], such as \f[C]beamer\f[] or the KOMA\-Script series
 (\f[C]scrartcl\f[], \f[C]scrreprt\f[], \f[C]scrbook\f[]).
+.RS
+.RE
+.TP
+.B \f[C]institute\f[]
+author affiliations (in LaTeX and Beamer only).
+Can be a list, when there are multiple authors.
 .RS
 .RE
 .TP
@@ -1260,7 +1285,7 @@ a list of other languages used in the document in the YAML metadata,
 according to BCP 47.
 For example: \f[C]otherlangs:\ [en\-GB,\ fr]\f[].
 This is automatically generated from the \f[C]lang\f[] attributes in all
-\f[C]span\f[]s and \f[C]div\f[]s but can be overriden.
+\f[C]span\f[]s and \f[C]div\f[]s but can be overridden.
 Currently only used by LaTeX through the generated
 \f[C]babel\-otherlangs\f[] and \f[C]polyglossia\-otherlangs\f[]
 variables.
@@ -4214,8 +4239,7 @@ variants are supported:
 .RE
 .TP
 .B \f[C]markdown_github\f[] (GitHub\-Flavored Markdown)
-\f[C]pipe_tables\f[], \f[C]raw_html\f[],
-\f[C]tex_math_single_backslash\f[], \f[C]fenced_code_blocks\f[],
+\f[C]pipe_tables\f[], \f[C]raw_html\f[], \f[C]fenced_code_blocks\f[],
 \f[C]auto_identifiers\f[], \f[C]ascii_identifiers\f[],
 \f[C]backtick_code_blocks\f[], \f[C]autolink_bare_uris\f[],
 \f[C]intraword_underscores\f[], \f[C]strikeout\f[],

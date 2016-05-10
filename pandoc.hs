@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP, TupleSections #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Main
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2016 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -79,7 +79,7 @@ type Transform = Pandoc -> Pandoc
 copyrightMessage :: String
 copyrightMessage = intercalate "\n" [
   "",
-  "Copyright (C) 2006-2015 John MacFarlane",
+  "Copyright (C) 2006-2016 John MacFarlane",
   "Web:  http://pandoc.org",
   "This is free software; see the source for copying conditions.",
   "There is no warranty, not even for merchantability or fitness",
@@ -215,6 +215,7 @@ data Opt = Opt
     , optExtractMedia      :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrace             :: Bool       -- ^ Print debug information
     , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes.
+    , optFileScope        :: Bool         -- ^ Parse input files before combining
     , optKaTeXStylesheet   :: Maybe String     -- ^ Path to stylesheet for KaTeX
     , optKaTeXJS           :: Maybe String     -- ^ Path to js file for KaTeX
     }
@@ -278,6 +279,7 @@ defaultOpts = Opt
     , optExtractMedia          = Nothing
     , optTrace                 = False
     , optTrackChanges          = AcceptChanges
+    , optFileScope            = False
     , optKaTeXStylesheet       = Nothing
     , optKaTeXJS               = Nothing
     }
@@ -386,6 +388,11 @@ options =
                      return opt { optTrackChanges = action })
                   "accept|reject|all")
                  "" -- "Accepting or reject MS Word track-changes.""
+
+    , Option "" ["file-scope"]
+                 (NoArg
+                  (\opt -> return opt { optFileScope = True }))
+                 "" -- "Parse input files before combining"
 
     , Option "" ["extract-media"]
                  (ReqArg
@@ -829,7 +836,7 @@ options =
     , Option "" ["mathjax"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = fromMaybe "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" arg
+                      let url' = fromMaybe "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML" arg
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
@@ -1117,6 +1124,7 @@ convertWithOpts opts args = do
               , optExtractMedia          = mbExtractMedia
               , optTrace                 = trace
               , optTrackChanges          = trackChanges
+              , optFileScope            = fileScope
               , optKaTeXStylesheet       = katexStylesheet
               , optKaTeXJS               = katexJS
              } = opts
@@ -1269,6 +1277,7 @@ convertWithOpts opts args = do
                       , readerDefaultImageExtension = defaultImageExtension
                       , readerTrace = trace
                       , readerTrackChanges = trackChanges
+                      , readerFileScope   = fileScope
                       }
 
   when (not (isTextFormat format) && outputFile == "-") $
@@ -1301,13 +1310,26 @@ convertWithOpts opts args = do
                                then handleIncludes
                                else return . Right
 
-  (doc, media) <- fmap handleError $
-      case reader of
+  let sourceToDoc :: [FilePath] -> IO (Pandoc, MediaBag)
+      sourceToDoc sources' = fmap handleError $
+        case reader of
           StringReader r-> do
-            srcs <- convertTabs . intercalate "\n" <$> readSources sources
+            srcs <- convertTabs . intercalate "\n" <$> readSources sources'
             doc <- handleIncludes' srcs
             either (return . Left) (\s -> fmap (,mempty) <$> r readerOpts s) doc
-          ByteStringReader r -> readFiles sources >>= r readerOpts
+          ByteStringReader r -> readFiles sources' >>= r readerOpts
+
+  -- We parse first if (1) fileScope is set, (2), it's a binary
+  -- reader, or (3) we're reading JSON. This is easier to do of an AND
+  -- of negatives as opposed to an OR of positives, so we do default
+  -- parsing if it's a StringReader AND (fileScope is set AND it's not
+  -- a JSON reader).
+  (doc, media) <- case reader of
+    (StringReader _) | not fileScope && readerName' /= "json" ->
+                         sourceToDoc sources
+    _ | null sources -> sourceToDoc sources
+    _  -> do pairs <- mapM (\s -> sourceToDoc [s]) sources
+             return (mconcat $ map fst pairs, mconcat $ map snd pairs)
 
   let writerOptions = def { writerStandalone       = standalone',
                             writerTemplate         = templ,

@@ -50,6 +50,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , Row(..)
                                       , Cell(..)
                                       , archiveToDocx
+                                      , archiveToDocxWithWarnings
                                       ) where
 import Codec.Archive.Zip
 import Text.XML.Light
@@ -60,6 +61,7 @@ import Data.Bits ((.|.))
 import qualified Data.ByteString.Lazy as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad.Reader
+import Control.Monad.State
 import Control.Applicative ((<|>))
 import qualified Data.Map as M
 import Text.Pandoc.Compat.Except
@@ -81,16 +83,20 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            }
                deriving Show
 
+data ReaderState = ReaderState { stateWarnings :: [String] }
+                 deriving Show
+                                                  
+
 data DocxError = DocxError | WrongElem
                deriving Show
 
 instance Error DocxError where
   noMsg = WrongElem
 
-type D = ExceptT DocxError (Reader ReaderEnv)
+type D = ExceptT DocxError (ReaderT ReaderEnv (State ReaderState))
 
-runD :: D a -> ReaderEnv -> Either DocxError a
-runD dx re = runReader (runExceptT dx) re
+runD :: D a -> ReaderEnv -> ReaderState -> (Either DocxError a, ReaderState)
+runD dx re rs = runState (runReaderT (runExceptT dx) re) rs
 
 maybeToD :: Maybe a -> D a
 maybeToD (Just a) = return a
@@ -257,7 +263,10 @@ type Author = String
 type ChangeDate = String
 
 archiveToDocx :: Archive -> Either DocxError Docx
-archiveToDocx archive = do
+archiveToDocx archive = fst <$> archiveToDocxWithWarnings archive
+
+archiveToDocxWithWarnings :: Archive -> Either DocxError (Docx, [String])
+archiveToDocxWithWarnings archive = do
   let notes     = archiveToNotes archive
       numbering = archiveToNumbering archive
       rels      = archiveToRelationships archive
@@ -265,8 +274,12 @@ archiveToDocx archive = do
       (styles, parstyles) = archiveToStyles archive
       rEnv =
         ReaderEnv notes numbering rels media Nothing styles parstyles InDocument
-  doc <- runD (archiveToDocument archive) rEnv
-  return $ Docx doc
+      rState = ReaderState { stateWarnings = [] }
+      (eitherDoc, st) = runD (archiveToDocument archive) rEnv rState
+  case eitherDoc of
+    Right doc -> Right (Docx doc, stateWarnings st)
+    Left e    -> Left e
+
 
 
 archiveToDocument :: Archive -> D Document
@@ -576,12 +589,14 @@ elemToBodyPart ns element
       sty <- asks envParStyles
       let parstyle = elemToParagraphStyle ns element sty
       parparts <- mapD (elemToParPart ns) (elChildren element)
-      case pNumInfo parstyle of
-       Just (numId, lvl) -> do
-         num <- asks envNumbering
-         let levelInfo = lookupLevel numId lvl num
-         return $ ListItem parstyle numId lvl levelInfo parparts
-       Nothing -> return $ Paragraph parstyle parparts
+      -- Word uses list enumeration for numbered headings, so we only
+      -- want to infer a list from the styles if it is NOT a heading.
+      case pHeading parstyle of
+        Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
+                    num <- asks envNumbering
+                    let levelInfo = lookupLevel numId lvl num
+                    return $ ListItem parstyle numId lvl levelInfo parparts
+        _ -> return $ Paragraph parstyle parparts
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
     let caption' = findChild (elemName ns "w" "tblPr") element
@@ -646,14 +661,14 @@ elemToParPart ns element
   | isElem ns "w" "r" element =
     elemToRun ns element >>= (\r -> return $ PlainRun r)
 elemToParPart ns element
-  | isElem ns "w" "ins" element
+  | isElem ns "w" "ins" element || isElem ns "w" "moveTo" element
   , Just cId <- findAttr (elemName ns "w" "id") element
   , Just cAuthor <- findAttr (elemName ns "w" "author") element
   , Just cDate <- findAttr (elemName ns "w" "date") element = do
     runs <- mapD (elemToRun ns) (elChildren element)
     return $ Insertion cId cAuthor cDate runs
 elemToParPart ns element
-  | isElem ns "w" "del" element
+  | isElem ns "w" "del" element || isElem ns "w" "moveFrom" element
   , Just cId <- findAttr (elemName ns "w" "id") element
   , Just cAuthor <- findAttr (elemName ns "w" "author") element
   , Just cDate <- findAttr (elemName ns "w" "date") element = do
@@ -702,36 +717,58 @@ elemToExtent drawingElem =
       getDim at = findElement (QName "extent" (Just wp_ns) (Just "wp")) drawingElem
                     >>= findAttr (QName at Nothing Nothing) >>= safeRead
 
-elemToRun :: NameSpaces -> Element -> D Run
-elemToRun ns element
-  | isElem ns "w" "r" element
-  , Just drawingElem <- findChild (elemName ns "w" "drawing") element =
+
+childElemToRun :: NameSpaces -> Element -> D Run
+childElemToRun ns element
+  | isElem ns "w" "drawing" element =
     let a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
-        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) drawingElem
+        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) element
                   >>= findAttr (QName "embed" (lookup "r" ns) (Just "r"))
     in
      case drawing of
        Just s -> expandDrawingId s >>=
-                 (\(fp, bs) -> return $ InlineDrawing fp bs $ elemToExtent drawingElem)
+                 (\(fp, bs) -> return $ InlineDrawing fp bs $ elemToExtent element)
        Nothing -> throwError WrongElem
-elemToRun ns element
-  | isElem ns "w" "r" element
-  , Just ref <- findChild (elemName ns "w" "footnoteReference") element
-  , Just fnId <- findAttr (elemName ns "w" "id") ref = do
+childElemToRun ns element
+  | isElem ns "w" "footnoteReference" element
+  , Just fnId <- findAttr (elemName ns "w" "id") element = do
     notes <- asks envNotes
     case lookupFootnote fnId notes of
       Just e -> do bps <- local (\r -> r {envLocation=InFootnote}) $ mapD (elemToBodyPart ns) (elChildren e)
                    return $ Footnote bps
       Nothing  -> return $ Footnote []
-elemToRun ns element
-  | isElem ns "w" "r" element
-  , Just ref <- findChild (elemName ns "w" "endnoteReference") element
-  , Just enId <- findAttr (elemName ns "w" "id") ref = do
+childElemToRun ns element
+  | isElem ns "w" "endnoteReference" element
+  , Just enId <- findAttr (elemName ns "w" "id") element = do
     notes <- asks envNotes
     case lookupEndnote enId notes of
       Just e -> do bps <- local (\r -> r {envLocation=InEndnote}) $ mapD (elemToBodyPart ns) (elChildren e)
                    return $ Endnote bps
       Nothing  -> return $ Endnote []
+childElemToRun _ _ = throwError WrongElem
+
+elemToRun :: NameSpaces -> Element -> D Run
+elemToRun ns element
+  | isElem ns "w" "r" element
+  , Just altCont <- findChild (elemName ns "mc" "AlternateContent") element =
+    do let choices = findChildren (elemName ns "mc" "Choice") altCont
+           choiceChildren = map head $ filter (not . null) $ map elChildren choices
+       outputs <- mapD (childElemToRun ns) choiceChildren
+       case outputs of
+         r : _ -> return r
+         []    -> throwError WrongElem
+elemToRun ns element
+  | isElem ns "w" "r" element
+  , Just drawingElem <- findChild (elemName ns "w" "drawing") element =
+    childElemToRun ns drawingElem
+elemToRun ns element
+  | isElem ns "w" "r" element
+  , Just ref <- findChild (elemName ns "w" "footnoteReference") element =
+    childElemToRun ns ref
+elemToRun ns element
+  | isElem ns "w" "r" element
+  , Just ref <- findChild (elemName ns "w" "endnoteReference") element =
+    childElemToRun ns ref
 elemToRun ns element
   | isElem ns "w" "r" element = do
     runElems <- elemToRunElems ns element
@@ -940,3 +977,4 @@ elemToRunElems _ _ = throwError WrongElem
 
 setFont :: Maybe Font -> ReaderEnv -> ReaderEnv
 setFont f s = s{envFont = f}
+

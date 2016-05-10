@@ -122,9 +122,6 @@ inList = do
   ctx <- stateParserContext <$> getState
   guard (ctx == ListItemState)
 
-isNull :: F Inlines -> Bool
-isNull ils = B.isNull $ runF ils def
-
 spnl :: Parser [Char] st ()
 spnl = try $ do
   skipSpaces
@@ -188,31 +185,38 @@ charsInBalancedBrackets openBrackets =
 -- document structure
 --
 
-titleLine :: MarkdownParser (F Inlines)
-titleLine = try $ do
+rawTitleBlockLine :: MarkdownParser String
+rawTitleBlockLine = do
   char '%'
   skipSpaces
-  res <- many $ (notFollowedBy newline >> inline)
-             <|> try (endline >> whitespace)
-  newline
+  first <- anyLine
+  rest <- many $ try $ do spaceChar
+                          notFollowedBy blankline
+                          skipSpaces
+                          anyLine
+  return $ trim $ unlines (first:rest)
+
+titleLine :: MarkdownParser (F Inlines)
+titleLine = try $ do
+  raw <- rawTitleBlockLine
+  res <- parseFromString (many inline) raw
   return $ trimInlinesF $ mconcat res
 
 authorsLine :: MarkdownParser (F [Inlines])
 authorsLine = try $ do
-  char '%'
-  skipSpaces
-  authors <- sepEndBy (many (notFollowedBy (satisfy $ \c ->
-                                c == ';' || c == '\n') >> inline))
-                       (char ';' <|>
-                        try (newline >> notFollowedBy blankline >> spaceChar))
-  newline
-  return $ sequence $ filter (not . isNull) $ map (trimInlinesF . mconcat) authors
+  raw <- rawTitleBlockLine
+  let sep = (char ';' <* spaces) <|> newline
+  let pAuthors = sepEndBy
+            (trimInlinesF . mconcat <$> many
+                 (try $ notFollowedBy sep >> inline))
+            sep
+  sequence <$> parseFromString pAuthors raw
 
 dateLine :: MarkdownParser (F Inlines)
 dateLine = try $ do
-  char '%'
-  skipSpaces
-  trimInlinesF . mconcat <$> manyTill inline newline
+  raw <- rawTitleBlockLine
+  res <- parseFromString (many inline) raw
+  return $ trimInlinesF $ mconcat res
 
 titleBlock :: MarkdownParser ()
 titleBlock = pandocTitleBlock <|> mmdTitleBlock
@@ -1354,16 +1358,18 @@ pipeTable = try $ do
   nonindentSpaces
   lookAhead nonspaceChar
   (heads,(aligns, seplengths)) <- (,) <$> pipeTableRow <*> pipeBreak
+  let heads' = take (length aligns) <$> heads
   lines' <- many pipeTableRow
+  let lines'' = map (take (length aligns) <$>) lines'
   let maxlength = maximum $
-       map (\x -> length . stringify $ runF x def) (heads : lines')
+       map (\x -> length . stringify $ runF x def) (heads' : lines'')
   numColumns <- getOption readerColumns
   let widths = if maxlength > numColumns
                   then map (\len ->
                            fromIntegral (len + 1) / fromIntegral numColumns)
                              seplengths
                   else replicate (length aligns) 0.0
-  return $ (aligns, widths, heads, sequence lines')
+  return $ (aligns, widths, heads', sequence lines'')
 
 sepPipe :: MarkdownParser ()
 sepPipe = try $ do
@@ -1372,25 +1378,27 @@ sepPipe = try $ do
 
 -- parse a row, also returning probable alignments for org-table cells
 pipeTableRow :: MarkdownParser (F [Blocks])
-pipeTableRow = do
+pipeTableRow = try $ do
+  scanForPipe
   skipMany spaceChar
   openPipe <- (True <$ char '|') <|> return False
-  let cell = mconcat <$>
-                 many (notFollowedBy (blankline <|> char '|') >> inline)
-  first <- cell
-  rest <- many $ sepPipe *> cell
+  -- split into cells
+  let chunk = void (code <|> rawHtmlInline <|> escapedChar <|> rawLaTeXInline')
+       <|> void (noneOf "|\n\r")
+  let cellContents = ((trim . snd) <$> withRaw (many chunk)) >>=
+        parseFromString pipeTableCell
+  cells <- cellContents `sepEndBy1` (char '|')
   -- surrounding pipes needed for a one-column table:
-  guard $ not (null rest && not openPipe)
-  optional (char '|')
+  guard $ not (length cells == 1 && not openPipe)
   blankline
-  let cells  = sequence (first:rest)
-  return $ do
-    cells' <- cells
-    return $ map
-        (\ils ->
-           case trimInlines ils of
-                 ils' | B.isNull ils' -> mempty
-                      | otherwise   -> B.plain $ ils') cells'
+  return $ sequence cells
+
+pipeTableCell :: MarkdownParser (F Blocks)
+pipeTableCell = do
+  result <- many inline
+  if null result
+     then return mempty
+     else return $ B.plain . mconcat <$> sequence result
 
 pipeTableHeaderPart :: Parser [Char] st (Alignment, Int)
 pipeTableHeaderPart = try $ do

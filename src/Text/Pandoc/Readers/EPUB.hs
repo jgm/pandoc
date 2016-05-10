@@ -19,7 +19,7 @@ import Text.Pandoc.Compat.Except (MonadError, throwError, runExcept, Except)
 import Text.Pandoc.Compat.Monoid ((<>))
 import Text.Pandoc.MIME (MimeType)
 import qualified Text.Pandoc.Builder as B
-import Codec.Archive.Zip ( Archive (..), toArchive, fromEntry
+import Codec.Archive.Zip ( Archive (..), toArchiveOrFail, fromEntry
                          , findEntryByPath, Entry)
 import qualified Data.ByteString.Lazy as BL (ByteString)
 import System.FilePath ( takeFileName, (</>), dropFileName, normalise
@@ -39,7 +39,9 @@ import Text.Pandoc.Error
 type Items = M.Map String (FilePath, MimeType)
 
 readEPUB :: ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag)
-readEPUB opts bytes = runEPUB (archiveToEPUB opts $ toArchive bytes)
+readEPUB opts bytes = case toArchiveOrFail bytes of
+  Right archive -> runEPUB $ archiveToEPUB opts $ archive
+  Left  _       -> Left $ ParseFailure "Couldn't extract ePub file"
 
 runEPUB :: Except PandocError a -> Either PandocError a
 runEPUB = runExcept

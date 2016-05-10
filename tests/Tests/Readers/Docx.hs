@@ -169,9 +169,13 @@ tests = [ testGroup "inlines"
             "docx/already_auto_ident.docx"
             "docx/already_auto_ident.native"
           , testCompare
-            "numbered headers automatically made into list"
+            "single numbered item not made into list"
             "docx/numbered_header.docx"
             "docx/numbered_header.native"
+          , testCompare
+            "enumerated headers not made into numbered list"
+            "docx/enumerated_headings.docx"
+            "docx/enumerated_headings.native"
           , testCompare
             "i18n blocks (headers and blockquotes)"
             "docx/i18n_blocks.docx"
@@ -262,6 +266,18 @@ tests = [ testGroup "inlines"
             "keep deletion (all)"
             "docx/track_changes_deletion.docx"
             "docx/track_changes_deletion_all.native"
+          , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
+            "move text (accept)"
+            "docx/track_changes_move.docx"
+            "docx/track_changes_move_accept.native"
+          , testCompareWithOpts def{readerTrackChanges=RejectChanges}
+            "move text (reject)"
+            "docx/track_changes_move.docx"
+            "docx/track_changes_move_reject.native"
+          , testCompareWithOpts def{readerTrackChanges=AllChanges}
+            "move text (all)"
+            "docx/track_changes_move.docx"
+            "docx/track_changes_move_all.native"
           ]
         , testGroup "media"
           [ testMediaBag

@@ -35,6 +35,7 @@ import           Text.Pandoc.Builder ( Inlines, Blocks, HasMeta(..),
                                        trimInlines )
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Compat.Monoid ((<>))
+import           Text.Pandoc.Error
 import           Text.Pandoc.Options
 import qualified Text.Pandoc.Parsing as P
 import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
@@ -49,15 +50,13 @@ import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 import           Control.Arrow (first)
 import           Control.Monad (foldM, guard, liftM, liftM2, mplus, mzero, when)
 import           Control.Monad.Reader (Reader, runReader, ask, asks, local)
-import           Data.Char (isAlphaNum, toLower)
+import           Data.Char (isAlphaNum, isSpace, toLower)
 import           Data.Default
 import           Data.List (intersperse, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
 import qualified Data.Set as Set
 import           Data.Maybe (fromMaybe, isJust)
 import           Network.HTTP (urlEncode)
-
-import           Text.Pandoc.Error
 
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: ReaderOptions -- ^ Reader options
@@ -391,6 +390,9 @@ lookupBlockAttribute key =
 
 type BlockProperties = (Int, String)  -- (Indentation, Block-Type)
 
+updateIndent :: BlockProperties -> Int -> BlockProperties
+updateIndent (_, blkType) indent = (indent, blkType)
+
 orgBlock :: OrgParser (F Blocks)
 orgBlock = try $ do
   blockProp@(_, blkType) <- blockHeaderStart
@@ -407,10 +409,22 @@ orgBlock = try $ do
       _         -> withParsed (fmap $ divWithClass blkType)
 
 blockHeaderStart :: OrgParser (Int, String)
-blockHeaderStart = try $ (,) <$> indent <*> blockType
+blockHeaderStart = try $ (,) <$> indentation <*> blockType
  where
-  indent    = length      <$> many spaceChar
   blockType = map toLower <$> (stringAnyCase "#+begin_" *> orgArgWord)
+
+indentation :: OrgParser Int
+indentation = try $ do
+  tabStop  <- getOption readerTabStop
+  s        <- many spaceChar
+  return $ spaceLength tabStop s
+
+spaceLength :: Int -> String -> Int
+spaceLength tabStop s = (sum . map charLen) s
+ where
+  charLen ' '  = 1
+  charLen '\t' = tabStop
+  charLen _    = 0
 
 withRaw'   :: (String   -> F Blocks) -> BlockProperties -> OrgParser (F Blocks)
 withRaw'   f blockProp = (ignHeaders *> (f <$> rawBlockContent blockProp))
@@ -450,7 +464,8 @@ codeBlock blkProp = do
   skipSpaces
   (classes, kv)     <- codeHeaderArgs <|> (mempty <$ ignHeaders)
   id'               <- fromMaybe "" <$> lookupBlockAttribute "name"
-  content           <- rawBlockContent blkProp
+  leadingIndent     <- lookAhead indentation
+  content           <- rawBlockContent (updateIndent blkProp leadingIndent)
   resultsContent    <- followingResultsBlock
   let includeCode    = exportsCode kv
   let includeResults = exportsResults kv
@@ -472,7 +487,7 @@ rawBlockContent (indent, blockType) = try $
   unlines . map commaEscaped <$> manyTill indentedLine blockEnder
  where
    indentedLine = try $ ("" <$ blankline) <|> (indentWith indent *> anyLine)
-   blockEnder = try $ indentWith indent *> stringAnyCase ("#+end_" <> blockType)
+   blockEnder = try $ skipSpaces *> stringAnyCase ("#+end_" <> blockType)
 
 parsedBlockContent :: BlockProperties -> OrgParser (F Blocks)
 parsedBlockContent blkProps = try $ do
@@ -758,9 +773,13 @@ data OrgTableRow = OrgContentRow (F [Blocks])
                  | OrgAlignRow [Alignment]
                  | OrgHlineRow
 
+-- OrgTable is strongly related to the pandoc table ADT.  Using the same
+-- (i.e. pandoc-global) ADT would mean that the reader would break if the
+-- global structure was to be changed, which would be bad.  The final table
+-- should be generated using a builder function.  Column widths aren't
+-- implemented yet, so they are not tracked here.
 data OrgTable = OrgTable
-  { orgTableColumns    :: Int
-  , orgTableAlignments :: [Alignment]
+  { orgTableAlignments :: [Alignment]
   , orgTableHeader     :: [Blocks]
   , orgTableRows       :: [[Blocks]]
   }
@@ -776,7 +795,7 @@ table = try $ do
 orgToPandocTable :: OrgTable
                  -> Inlines
                  -> Blocks
-orgToPandocTable (OrgTable _ aligns heads lns) caption =
+orgToPandocTable (OrgTable aligns heads lns) caption =
   B.table caption (zip aligns $ repeat 0) heads lns
 
 tableStart :: OrgParser Char
@@ -787,18 +806,19 @@ tableRows = try $ many (tableAlignRow <|> tableHline <|> tableContentRow)
 
 tableContentRow :: OrgParser OrgTableRow
 tableContentRow = try $
-  OrgContentRow . sequence <$> (tableStart *> manyTill tableContentCell newline)
+  OrgContentRow . sequence <$> (tableStart *> many1Till tableContentCell newline)
 
 tableContentCell :: OrgParser (F Blocks)
 tableContentCell = try $
-  fmap B.plain . trimInlinesF . mconcat <$> many1Till inline endOfCell
-
-endOfCell :: OrgParser Char
-endOfCell = try $ char '|' <|> lookAhead newline
+  fmap B.plain . trimInlinesF . mconcat <$> manyTill inline endOfCell
 
 tableAlignRow :: OrgParser OrgTableRow
-tableAlignRow = try $
-  OrgAlignRow <$> (tableStart *> manyTill tableAlignCell newline)
+tableAlignRow = try $ do
+  tableStart
+  cells <- many1Till tableAlignCell newline
+  -- Empty rows are regular (i.e. content) rows, not alignment rows.
+  guard $ any (/= AlignDefault) cells
+  return $ OrgAlignRow cells
 
 tableAlignCell :: OrgParser Alignment
 tableAlignCell =
@@ -813,65 +833,61 @@ tableAlignCell =
     where emptyCell = try $ skipSpaces *> endOfCell
 
 tableAlignFromChar :: OrgParser Alignment
-tableAlignFromChar = try $ choice [ char 'l' *> return AlignLeft
-                                  , char 'c' *> return AlignCenter
-                                  , char 'r' *> return AlignRight
-                                  ]
+tableAlignFromChar = try $
+  choice [ char 'l' *> return AlignLeft
+         , char 'c' *> return AlignCenter
+         , char 'r' *> return AlignRight
+         ]
 
 tableHline :: OrgParser OrgTableRow
 tableHline = try $
   OrgHlineRow <$ (tableStart *> char '-' *> anyLine)
 
+endOfCell :: OrgParser Char
+endOfCell = try $ char '|' <|> lookAhead newline
+
 rowsToTable :: [OrgTableRow]
             -> F OrgTable
-rowsToTable = foldM (flip rowToContent) zeroTable
-  where zeroTable = OrgTable 0 mempty mempty mempty
+rowsToTable = foldM rowToContent emptyTable
+ where emptyTable = OrgTable mempty mempty mempty
 
-normalizeTable :: OrgTable
-               -> OrgTable
-normalizeTable (OrgTable cols aligns heads lns) =
-  let aligns' = fillColumns aligns AlignDefault
-      heads'  = if heads == mempty
-                then mempty
-                else fillColumns heads (B.plain mempty)
-      lns'    = map (`fillColumns` B.plain mempty) lns
-      fillColumns base padding = take cols $ base ++ repeat padding
-  in OrgTable cols aligns' heads' lns'
-
+normalizeTable :: OrgTable -> OrgTable
+normalizeTable (OrgTable aligns heads rows) = OrgTable aligns' heads rows
+ where
+   refRow = if heads /= mempty
+            then heads
+            else if rows == mempty then mempty else head rows
+   cols = length refRow
+   fillColumns base padding = take cols $ base ++ repeat padding
+   aligns' = fillColumns aligns AlignDefault
 
 -- One or more horizontal rules after the first content line mark the previous
 -- line as a header.  All other horizontal lines are discarded.
-rowToContent :: OrgTableRow
-             -> OrgTable
+rowToContent :: OrgTable
+             -> OrgTableRow
              -> F OrgTable
-rowToContent OrgHlineRow        t = maybeBodyToHeader t
-rowToContent (OrgAlignRow as)   t = setLongestRow as =<< setAligns as t
-rowToContent (OrgContentRow rf) t = do
-  rs <- rf
-  setLongestRow rs =<< appendToBody rs t
+rowToContent orgTable row =
+  case row of
+    OrgHlineRow       -> return singleRowPromotedToHeader
+    OrgAlignRow as    -> return . setAligns $ as
+    OrgContentRow cs  -> appendToBody cs
+ where
+   singleRowPromotedToHeader :: OrgTable
+   singleRowPromotedToHeader = case orgTable of
+     OrgTable{ orgTableHeader = [], orgTableRows = b:[] } ->
+            orgTable{ orgTableHeader = b , orgTableRows = [] }
+     _   -> orgTable
 
-setLongestRow :: [a]
-              -> OrgTable
-              -> F OrgTable
-setLongestRow rs t =
-  return t{ orgTableColumns = max (length rs) (orgTableColumns t) }
+   setAligns :: [Alignment] -> OrgTable
+   setAligns aligns = orgTable{ orgTableAlignments = aligns }
 
-maybeBodyToHeader :: OrgTable
-                  -> F OrgTable
-maybeBodyToHeader t = case t of
-  OrgTable{ orgTableHeader = [], orgTableRows = b:[] } ->
-         return t{ orgTableHeader = b , orgTableRows = [] }
-  _   -> return t
-
-appendToBody :: [Blocks]
-             -> OrgTable
-             -> F OrgTable
-appendToBody r t = return t{ orgTableRows = orgTableRows t ++ [r] }
-
-setAligns :: [Alignment]
-          -> OrgTable
-          -> F OrgTable
-setAligns aligns t = return $ t{ orgTableAlignments = aligns }
+   appendToBody :: F [Blocks] -> F OrgTable
+   appendToBody frow = do
+     newRow <- frow
+     let oldRows = orgTableRows orgTable
+     -- NOTE: This is an inefficient O(n) operation.  This should be changed
+     -- if performance ever becomes a problem.
+     return orgTable{ orgTableRows = oldRows ++ [newRow] }
 
 
 --
@@ -1565,14 +1581,14 @@ inlineLaTeX = try $ do
 
    parseAsMathMLSym :: String -> Maybe Inlines
    parseAsMathMLSym cs = B.str <$> MathMLEntityMap.getUnicode (clean cs)
-    -- dropWhileEnd would be nice here, but it's not available before base 4.5
-    where clean = reverse . dropWhile (`elem` ("{}" :: String)) . reverse . drop 1
+    -- drop initial backslash and any trailing "{}"
+    where clean = dropWhileEnd (`elem` ("{}" :: String)) . drop 1
 
    state :: ParserState
    state = def{ stateOptions = def{ readerParseRaw = True }}
 
-   texMathToPandoc inp = (maybeRight $ readTeX inp) >>=
-                         writePandoc DisplayInline
+   texMathToPandoc :: String -> Maybe [Inline]
+   texMathToPandoc cs = (maybeRight $ readTeX cs) >>= writePandoc DisplayInline
 
 maybeRight :: Either a b -> Maybe b
 maybeRight = either (const Nothing) Just
@@ -1582,10 +1598,17 @@ inlineLaTeXCommand = try $ do
   rest <- getInput
   case runParser rawLaTeXInline def "source" rest of
     Right (RawInline _ cs) -> do
-      let len = length cs
+      -- drop any trailing whitespace, those are not be part of the command as
+      -- far as org mode is concerned.
+      let cmdNoSpc = dropWhileEnd isSpace cs
+      let len = length cmdNoSpc
       count len anyChar
-      return cs
+      return cmdNoSpc
     _ -> mzero
+
+-- Taken from Data.OldList.
+dropWhileEnd :: (a -> Bool) -> [a] -> [a]
+dropWhileEnd p = foldr (\x xs -> if p x && null xs then [] else x : xs) []
 
 smart :: OrgParser (F Inlines)
 smart = do

@@ -667,7 +667,8 @@ writeEPUB opts doc@(Pandoc meta _) = do
                             ]
                           ]
                      else []
-  let navData = renderHtml $ writeHtml opts'
+  let navData = renderHtml $ writeHtml
+                      opts'{ writerVariables = ("navpage","true"):vars }
             (Pandoc (setMeta "title"
                      (walk removeNote $ fromList $ docTitle' meta) nullMeta)
                (navBlocks ++ landmarks))

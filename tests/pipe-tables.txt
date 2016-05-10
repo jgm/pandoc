@@ -72,3 +72,11 @@ Pipe table with no body:
 | Header |
 | ------ |
 
+Pipe table with tricky cell contents (see #2765):
+
+|               | IP_gene8-_1st| IP_gene8+_1st|
+|:--------------|-------------:|-------------:|
+|IP_gene8-_1st  |     1.0000000|     0.4357325|
+|IP_gene8+_1st  |     0.4357325|     1.0000000|
+|foo`bar|baz`   | and\|escaped |     3.0000000|
+

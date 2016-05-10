@@ -22,7 +22,7 @@ markup], [Haddock markup], [OPML], [Emacs Org mode], [DocBook],
 [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
 [DokuWiki markup], [Haddock markup], [EPUB] (v2 or v3),
 [FictionBook2], [Textile], [groff man] pages, [Emacs Org mode],
-[AsciiDoc], [InDesign ICML], [TEI XML], and [Slidy], [Slideous], [DZSlides],
+[AsciiDoc], [InDesign ICML], [TEI Simple], and [Slidy], [Slideous], [DZSlides],
 [reveal.js] or [S5] HTML slide shows. It can also produce [PDF] output
 on systems where LaTeX, ConTeXt, or `wkhtmltopdf` is installed.
 
@@ -273,26 +273,26 @@ General options
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
     `man` (groff man), `mediawiki` (MediaWiki markup), `dokuwiki`
     (DokuWiki markup), `textile` (Textile), `org` (Emacs Org mode),
-    `texinfo` (GNU Texinfo), `opml` (OPML), `docbook` (DocBook),
-    `opendocument` (OpenDocument), `odt` (OpenOffice text document),
-    `docx` (Word docx), `haddock` (Haddock markup), `rtf` (rich text
-    format), `epub` (EPUB v2 book), `epub3` (EPUB v3), `fb2`
-    (FictionBook2 e-book), `asciidoc` (AsciiDoc), `icml` (InDesign
-    ICML), `tei` (TEI Simple), `slidy` (Slidy HTML and javascript slide
-    show), `slideous` (Slideous HTML and javascript slide show),
-    `dzslides` (DZSlides HTML5 + javascript slide show), `revealjs`
-    (reveal.js HTML5 + javascript slide show), `s5` (S5 HTML and javascript
-    slide show), or the path of a custom lua writer (see [Custom
-    writers], below). Note that `odt`, `epub`, and
-    `epub3` output will not be directed to *stdout*; an output
-    filename must be specified using the `-o/--output` option. If
-    `+lhs` is appended to `markdown`, `rst`, `latex`, `beamer`,
-    `html`, or `html5`, the output will be rendered as literate
-    Haskell source: see [Literate Haskell
-    support], below.  Markdown syntax
-    extensions can be individually enabled or disabled by appending
-    `+EXTENSION` or `-EXTENSION` to the format name, as described
-    above under `-f`.
+    `texinfo` (GNU Texinfo), `opml` (OPML), `docbook` (DocBook 4),
+    `docbook5` (DocBook 5), `opendocument` (OpenDocument), `odt`
+    (OpenOffice text document), `docx` (Word docx), `haddock`
+    (Haddock markup), `rtf` (rich text format), `epub` (EPUB v2
+    book), `epub3` (EPUB v3), `fb2` (FictionBook2 e-book),
+    `asciidoc` (AsciiDoc), `icml` (InDesign ICML), `tei` (TEI
+    Simple), `slidy` (Slidy HTML and javascript slide show),
+    `slideous` (Slideous HTML and javascript slide show),
+    `dzslides` (DZSlides HTML5 + javascript slide show),
+    `revealjs` (reveal.js HTML5 + javascript slide show), `s5`
+    (S5 HTML and javascript slide show), or the path of a custom
+    lua writer (see [Custom writers], below). Note that `odt`,
+    `epub`, and `epub3` output will not be directed to *stdout*;
+    an output filename must be specified using the `-o/--output`
+    option. If `+lhs` is appended to `markdown`, `rst`, `latex`,
+    `beamer`, `html`, or `html5`, the output will be rendered as
+    literate Haskell source: see [Literate Haskell support],
+    below.  Markdown syntax extensions can be individually
+    enabled or disabled by appending `+EXTENSION` or
+    `-EXTENSION` to the format name, as described above under `-f`.
 
 `-o` *FILE*, `--output=`*FILE*
 
@@ -387,6 +387,14 @@ Reader options
     extension.  This allows you to use the same source for formats that
     require different kinds of images.  Currently this option only affects
     the Markdown and LaTeX readers.
+
+`--file-scope`
+
+:   Parse each file individually before combining for multifile
+    documents. This will allow footnotes in different files with the
+    same identifiers to work as expected. If this option is set,
+    footnotes and links will not work across files. Reading binary
+    files (docx, odt, epub) implies `--file-scope`.
 
 `--filter=`*EXECUTABLE*
 
@@ -530,16 +538,16 @@ General writer options
 
 `--columns=`*NUMBER*
 
-:   Specify length of lines in characters (for text wrapping).
-    This affects only the generated source code, not the layout on
-    the rendered page.
+:   Specify length of lines in characters.  This affects text wrapping
+    in the generated source code (see `--wrap`).  It also affects
+    calculation of column widths for plain text tables (see [Tables] below).
 
 `--toc`, `--table-of-contents`
 
 :   Include an automatically generated table of contents (or, in
-    the case of `latex`, `context`, and `rst`, an instruction to create
+    the case of `latex`, `context`, `docx`, and `rst`, an instruction to create
     one) in the output document. This option has no effect on `man`,
-    `docbook`, `slidy`, `slideous`, `s5`, `docx`, or `odt` output.
+    `docbook`, `docbook5`, `slidy`, `slideous`, `s5`, or `odt` output.
 
 `--toc-depth=`*NUMBER*
 
@@ -901,7 +909,7 @@ Math rendering in HTML
 
 `--mathml`[`=`*URL*]
 
-:   Convert TeX math to [MathML] (in `docbook` as well as `html` and `html5`).
+:   Convert TeX math to [MathML] (in `docbook`, `docbook5`, `html` and `html5`).
     In standalone `html` output, a small javascript (or a link to such a
     script if a *URL* is supplied) will be inserted that allows the MathML to
     be viewed on some browsers.
@@ -997,9 +1005,15 @@ where *FORMAT* is the name of the output format. A custom template
 can be specified using the `--template` option.  You can also override
 the system default templates for a given output format *FORMAT*
 by putting a file `templates/default.*FORMAT*` in the user data
-directory (see `--data-dir`, above). *Exceptions:* For `odt` output,
-customize the `default.opendocument` template.  For `pdf` output,
-customize the `default.latex` template.
+directory (see `--data-dir`, above). *Exceptions:*
+
+- For `odt` output, customize the `default.opendocument`
+  template.
+- For `pdf` output, customize the `default.latex` template
+  (or the `default.beamer` template, if you use `-t beamer`,
+  or the `default.context` template, if you use `-t context`).
+- `docx` has no template (however, you can use
+  `--reference-docx` to customize the output).
 
 Templates contain *variables*, which allow for the inclusion of
 arbitrary information at any point in the file. Variables may be set
@@ -1032,6 +1046,10 @@ as the following:
     renders in LaTeX only when using a document class that supports
     `\subtitle`, such as `beamer` or the [KOMA-Script] series (`scrartcl`,
     `scrreprt`, `scrbook`).[^subtitle]
+
+`institute`
+:   author affiliations (in LaTeX and Beamer only).  Can be a
+    list, when there are multiple authors.
 
 `abstract`
 :   document summary, included in LaTeX, ConTeXt, AsciiDoc, and Word docx
@@ -1573,21 +1591,26 @@ CSS.
 #### Extension: `implicit_header_references` ####
 
 Pandoc behaves as if reference links have been defined for each header.
-So, instead of
+So, to link to a header
 
-    [header identifiers](#header-identifiers-in-html)
+    # Header identifiers in HTML
 
 you can simply write
 
-    [header identifiers]
+    [Header identifiers in HTML]
 
 or
 
-    [header identifiers][]
+    [Header identifiers in HTML][]
 
 or
 
-    [the section on header identifiers][header identifiers]
+    [the section on header identifiers][header identifiers in
+    HTML]
+
+instead of giving the identifier explicitly:
+
+    [Header identifiers in HTML](#header-identifiers-in-html)
 
 If there are multiple headers with identical text, the corresponding
 reference will link to the first one only, and you will need to use explicit

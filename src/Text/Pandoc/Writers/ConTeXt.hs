@@ -279,7 +279,17 @@ blockListToConTeXt lst = liftM vcat $ mapM blockToConTeXt lst
 -- | Convert list of inline elements to ConTeXt.
 inlineListToConTeXt :: [Inline]  -- ^ Inlines to convert
                     -> State WriterState Doc
-inlineListToConTeXt lst = liftM hcat $ mapM inlineToConTeXt lst
+inlineListToConTeXt lst = liftM hcat $ mapM inlineToConTeXt $ addStruts lst
+  -- We add a \strut after a line break that precedes a space,
+  -- or the space gets swallowed
+  where addStruts (LineBreak : s : xs) | isSpacey s =
+           LineBreak : RawInline (Format "context") "\\strut " : s :
+             addStruts xs
+        addStruts (x:xs) = x : addStruts xs
+        addStruts [] = []
+        isSpacey Space = True
+        isSpacey (Str ('\160':_)) = True
+        isSpacey _ = False
 
 -- | Convert inline element to ConTeXt
 inlineToConTeXt :: Inline    -- ^ Inline to convert

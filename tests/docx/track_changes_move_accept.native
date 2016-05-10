@@ -1,0 +1,3 @@
+[Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "text."]
+,Para [Str "Here",Space,Str "is",Space,Str "the",Space,Str "text",Space,Str "to",Space,Str "be",Space,Str "moved."]
+,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "more",Space,Str "text."]]

@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
 {-
-Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc
-   Copyright   : Copyright (C) 2006-2015 John MacFarlane
+   Copyright   : Copyright (C) 2006-2016 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -223,6 +223,14 @@ mkStringReaderWithWarnings r  = StringReader $ \o s ->
 mkBSReader :: (ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag)) -> Reader
 mkBSReader r = ByteStringReader (\o s -> return $ r o s)
 
+mkBSReaderWithWarnings :: (ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag, [String])) -> Reader
+mkBSReaderWithWarnings r = ByteStringReader $ \o s ->
+  case r o s of
+    Left err -> return $ Left err
+    Right (doc, mediaBag, warnings) -> do
+      mapM_ warn warnings
+      return $ Right (doc, mediaBag)
+
 -- | Association list of formats and readers.
 readers :: [(String, Reader)]
 readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
@@ -243,7 +251,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("latex"        , mkStringReader readLaTeX)
            ,("haddock"      , mkStringReader readHaddock)
            ,("twiki"        , mkStringReader readTWiki)
-           ,("docx"         , mkBSReader readDocx)
+           ,("docx"         , mkBSReaderWithWarnings readDocxWithWarnings)
            ,("odt"          , mkBSReader readOdt)
            ,("t2t"          , mkStringReader readTxt2TagsNoMacros)
            ,("epub"         , mkBSReader readEPUB)
@@ -283,6 +291,8 @@ writers = [
      writeHtmlString o{ writerSlideVariant = RevealJsSlides
                       , writerHtml5 = True })
   ,("docbook"      , PureStringWriter writeDocbook)
+  ,("docbook5"     , PureStringWriter $ \o ->
+     writeDocbook o{ writerDocbook5 = True })
   ,("opml"         , PureStringWriter writeOPML)
   ,("opendocument" , PureStringWriter writeOpenDocument)
   ,("latex"        , PureStringWriter writeLaTeX)

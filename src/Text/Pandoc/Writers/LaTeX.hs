@@ -39,8 +39,10 @@ import Text.Pandoc.Templates
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
 import Data.Aeson (object, (.=), FromJSON)
-import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse, nub, nubBy )
-import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit, ord )
+import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse,
+                   nub, nubBy, foldl' )
+import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit,
+                   ord, isAlphaNum )
 import Data.Maybe ( fromMaybe, isJust, catMaybes )
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
@@ -223,7 +225,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                       ++ poly ++ "}{##2}}}\n"
                else "\\newcommand{\\text" ++ poly ++ "}[2][]{\\foreignlanguage{"
                       ++ babel ++ "}{#2}}\n" ++
-                    "\\newenvironment{" ++ poly ++ "}[1]{\\begin{otherlanguage}{"
+                    "\\newenvironment{" ++ poly ++ "}[2][]{\\begin{otherlanguage}{"
                       ++ babel ++ "}}{\\end{otherlanguage}}\n"
             )
             -- eliminate duplicates that have same polyglossia name
@@ -403,25 +405,28 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
-blockToLaTeX (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
+blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = do
   inNote <- gets stInNote
   modify $ \st -> st{ stInMinipage = True, stNotes = [] }
   capt <- inlineListToLaTeX txt
   notes <- gets stNotes
   modify $ \st -> st{ stInMinipage = False, stNotes = [] }
+
   -- We can't have footnotes in the list of figures, so remove them:
   captForLof <- if null notes
                    then return empty
                    else brackets <$> inlineListToLaTeX (walk deNote txt)
   img <- inlineToLaTeX (Image attr txt (src,tit))
   let footnotes = notesToLaTeX notes
+  lab <- labelFor ident
+  let caption = "\\caption" <> captForLof <> braces capt <> lab
+  figure <- hypertarget ident (cr <>
+            "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
+            caption $$ "\\end{figure}" <> cr)
   return $ if inNote
               -- can't have figures in notes
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
-              else "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
-                    ("\\caption" <> captForLof <> braces capt) $$
-                    "\\end{figure}" $$
-                    footnotes
+              else figure $$ footnotes
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- writerBeamer `fmap` gets stOptions
@@ -468,23 +473,27 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
         st <- get
         let params = if writerListings (stOptions st)
                      then (case getListingsLanguage classes of
-                                Just l  -> [ "language=" ++ l ]
+                                Just l  -> [ "language=" ++ mbBraced l ]
                                 Nothing -> []) ++
                           [ "numbers=left" | "numberLines" `elem` classes
                              || "number" `elem` classes
                              || "number-lines" `elem` classes ] ++
                           [ (if key == "startFrom"
                                 then "firstnumber"
-                                else key) ++ "=" ++ attr |
+                                else key) ++ "=" ++ mbBraced attr |
                                 (key,attr) <- keyvalAttr ] ++
                           (if identifier == ""
                                 then []
                                 else [ "label=" ++ ref ])
 
                      else []
+            mbBraced x = if not (all isAlphaNum x)
+                            then "{" <> x <> "}"
+                            else x
             printParams
                 | null params = empty
-                | otherwise   = brackets $ hcat (intersperse ", " (map text params))
+                | otherwise   = brackets $ hcat (intersperse ", "
+                      (map text params))
         return $ flush ("\\begin{lstlisting}" <> printParams $$ text str $$
                  "\\end{lstlisting}") $$ cr
   let highlightedCodeBlock =
@@ -505,7 +514,8 @@ blockToLaTeX (RawBlock f x)
 blockToLaTeX (BulletList []) = return empty  -- otherwise latex error
 blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
-  let inc = if incremental then "[<+->]" else ""
+  beamer <- writerBeamer `fmap` gets stOptions
+  let inc = if beamer && incremental then "[<+->]" else ""
   items <- mapM listItemToLaTeX lst
   let spacing = if isTightList lst
                    then text "\\tightlist"
@@ -571,18 +581,21 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
 blockToLaTeX (Table caption aligns widths heads rows) = do
   headers <- if all null heads
                 then return empty
-                else ($$ "\\midrule\n") `fmap`
-                      (tableRowToLaTeX True aligns widths) heads
+                else do
+                    contents <- (tableRowToLaTeX True aligns widths) heads
+                    return ("\\toprule" $$ contents $$ "\\midrule")
   let endhead = if all null heads
                    then empty
                    else text "\\endhead"
+  let endfirsthead = if all null heads
+                       then empty
+                       else text "\\endfirsthead"
   captionText <- inlineListToLaTeX caption
   let capt = if isEmpty captionText
                 then empty
-                else text "\\caption" <> braces captionText
-                         <> "\\tabularnewline\n\\toprule\n"
-                         <> headers
-                         <> "\\endfirsthead"
+                else text "\\caption" <> braces captionText <> "\\tabularnewline"
+                         $$ headers
+                         $$ endfirsthead
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concat $ map toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
@@ -590,7 +603,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
               braces ("@{}" <> colDescriptors <> "@{}")
               -- the @{} removes extra space at beginning and end
          $$ capt
-         $$ "\\toprule"
+         $$ (if all null heads then "\\toprule" else empty)
          $$ headers
          $$ endhead
          $$ vcat rows'
@@ -662,8 +675,7 @@ tableCellToLaTeX header (width, align, blocks) = do
                AlignDefault -> "\\raggedright"
   return $ ("\\begin{minipage}" <> valign <>
             braces (text (printf "%.2f\\columnwidth" width)) <>
-            (halign <> "\\strut" <> cr <> cellContents <> cr) <>
-            "\\strut\\end{minipage}") $$
+            (halign <> cr <> cellContents <> cr) <> "\\end{minipage}") $$
             notesToLaTeX notes
 
 notesToLaTeX :: [Doc] -> Doc
@@ -712,10 +724,9 @@ sectionHeader :: Bool    -- True for unnumbered
               -> Int
               -> [Inline]
               -> State WriterState Doc
-sectionHeader unnumbered ref level lst = do
+sectionHeader unnumbered ident level lst = do
   txt <- inlineListToLaTeX lst
-  lab <- text `fmap` toLabel ref
-  plain <- stringToLaTeX TextString $ foldl (++) "" $ map stringify lst
+  plain <- stringToLaTeX TextString $ concatMap stringify lst
   let noNote (Note _) = Str ""
       noNote x        = x
   let lstNoNotes = walk noNote lst
@@ -737,16 +748,6 @@ sectionHeader unnumbered ref level lst = do
   book <- gets stBook
   opts <- gets stOptions
   let level' = if book || writerChapters opts then level - 1 else level
-  internalLinks <- gets stInternalLinks
-  let refLabel x = (if ref `elem` internalLinks
-                       then text "\\hypertarget"
-                                <> braces lab
-                                <> braces x
-                       else x)
-  let headerWith x y = refLabel $ text x <> y <>
-                             if null ref
-                                then empty
-                                else text "\\label" <> braces lab
   let sectionType = case level' of
                           0  | writerBeamer opts -> "part"
                              | otherwise -> "chapter"
@@ -762,15 +763,33 @@ sectionHeader unnumbered ref level lst = do
                   -- needed for \paragraph, \subparagraph in quote environment
                   -- see http://tex.stackexchange.com/questions/169830/
                   else empty
+  lab <- labelFor ident
+  stuffing' <- hypertarget ident $ text ('\\':sectionType) <> stuffing <> lab
   return $ if level' > 5
               then txt
-              else prefix $$
-                   headerWith ('\\':sectionType) stuffing
+              else prefix $$ stuffing'
                    $$ if unnumbered
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
                                 braces txtNoNotes
                          else empty
+
+hypertarget :: String -> Doc -> State WriterState Doc
+hypertarget ident x = do
+  ref <- text `fmap` toLabel ident
+  internalLinks <- gets stInternalLinks
+  return $
+    if ident `elem` internalLinks
+       then text "\\hypertarget"
+              <> braces ref
+              <> braces x
+       else x
+
+labelFor :: String -> State WriterState Doc
+labelFor ""    = return empty
+labelFor ident = do
+  ref <- text `fmap` toLabel ident
+  return $ text "\\label" <> braces ref
 
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
@@ -1019,7 +1038,7 @@ citationsToNatbib (c:cs) | citationMode c == AuthorInText = do
 
 citationsToNatbib cits = do
   cits' <- mapM convertOne cits
-  return $ text "\\citetext{" <> foldl combineTwo empty cits' <> text "}"
+  return $ text "\\citetext{" <> foldl' combineTwo empty cits' <> text "}"
   where
     combineTwo a b | isEmpty a = b
                    | otherwise = a <> text "; " <> b
@@ -1068,7 +1087,7 @@ citationsToBiblatex (one:[])
 
 citationsToBiblatex (c:cs) = do
   args <- mapM convertOne (c:cs)
-  return $ text cmd <> foldl (<>) empty args
+  return $ text cmd <> foldl' (<>) empty args
     where
        cmd = case citationMode c of
                   AuthorInText -> "\\textcites"
@@ -1112,7 +1131,7 @@ toPolyglossiaEnv l =
 
 -- Takes a list of the constituents of a BCP 47 language code and
 -- converts it to a Polyglossia (language, options) tuple
--- http://mirrors.concertpass.com/tex-archive/macros/latex/contrib/polyglossia/polyglossia.pdf
+-- http://mirrors.ctan.org/macros/latex/contrib/polyglossia/polyglossia.pdf
 toPolyglossia :: [String] -> (String, String)
 toPolyglossia ("ar":"DZ":_)        = ("arabic", "locale=algeria")
 toPolyglossia ("ar":"IQ":_)        = ("arabic", "locale=mashriq")
@@ -1140,17 +1159,21 @@ toPolyglossia ("en":"UK":_)        = ("english", "variant=british")
 toPolyglossia ("en":"US":_)        = ("english", "variant=american")
 toPolyglossia ("grc":_)            = ("greek",   "variant=ancient")
 toPolyglossia ("hsb":_)            = ("usorbian", "")
+toPolyglossia ("la":"x":"classic":_) = ("latin", "variant=classic")
 toPolyglossia ("sl":_)             = ("slovenian", "")
 toPolyglossia x                    = (commonFromBcp47 x, "")
 
 -- Takes a list of the constituents of a BCP 47 language code and
 -- converts it to a Babel language string.
--- http://mirrors.concertpass.com/tex-archive/macros/latex/required/babel/base/babel.pdf
--- Note that the PDF unfortunately does not contain a complete list of supported languages.
+-- http://mirrors.ctan.org/macros/latex/required/babel/base/babel.pdf
+-- List of supported languages (slightly outdated):
+-- http://tug.ctan.org/language/hyph-utf8/doc/generic/hyph-utf8/hyphenation.pdf
 toBabel :: [String] -> String
 toBabel ("de":"1901":_)      = "german"
 toBabel ("de":"AT":"1901":_) = "austrian"
 toBabel ("de":"AT":_)        = "naustrian"
+toBabel ("de":"CH":"1901":_) = "swissgerman"
+toBabel ("de":"CH":_)        = "nswissgerman"
 toBabel ("de":_)             = "ngerman"
 toBabel ("dsb":_)            = "lowersorbian"
 toBabel ("el":"polyton":_)   = "polutonikogreek"
@@ -1164,6 +1187,7 @@ toBabel ("fr":"CA":_)        = "canadien"
 toBabel ("fra":"aca":_)      = "acadian"
 toBabel ("grc":_)            = "polutonikogreek"
 toBabel ("hsb":_)            = "uppersorbian"
+toBabel ("la":"x":"classic":_) = "classiclatin"
 toBabel ("sl":_)             = "slovene"
 toBabel x                    = commonFromBcp47 x
 
@@ -1172,12 +1196,15 @@ toBabel x                    = commonFromBcp47 x
 -- https://tools.ietf.org/html/bcp47#section-2.1
 commonFromBcp47 :: [String] -> String
 commonFromBcp47 [] = ""
-commonFromBcp47 ("pt":"BR":_) = "brazilian"
+commonFromBcp47 ("pt":"BR":_)            = "brazilian"
+commonFromBcp47 ("sr":"Cyrl":_)          = "serbianc"
+commonFromBcp47 ("zh":"Latn":"pinyin":_) = "pinyin"
 commonFromBcp47 x = fromIso $ head x
   where
     fromIso "af"  = "afrikaans"
     fromIso "am"  = "amharic"
     fromIso "ar"  = "arabic"
+    fromIso "as"  = "assamese"
     fromIso "ast" = "asturian"
     fromIso "bg"  = "bulgarian"
     fromIso "bn"  = "bengali"
@@ -1201,12 +1228,13 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "fur" = "friulan"
     fromIso "ga"  = "irish"
     fromIso "gd"  = "scottish"
+    fromIso "gez" = "ethiopic"
     fromIso "gl"  = "galician"
     fromIso "he"  = "hebrew"
     fromIso "hi"  = "hindi"
     fromIso "hr"  = "croatian"
-    fromIso "hy"  = "armenian"
     fromIso "hu"  = "magyar"
+    fromIso "hy"  = "armenian"
     fromIso "ia"  = "interlingua"
     fromIso "id"  = "indonesian"
     fromIso "ie"  = "interlingua"
@@ -1214,6 +1242,7 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "it"  = "italian"
     fromIso "jp"  = "japanese"
     fromIso "km"  = "khmer"
+    fromIso "kmr" = "kurmanji"
     fromIso "kn"  = "kannada"
     fromIso "ko"  = "korean"
     fromIso "la"  = "latin"
@@ -1229,6 +1258,7 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "no"  = "norsk"
     fromIso "nqo" = "nko"
     fromIso "oc"  = "occitan"
+    fromIso "pa"  = "panjabi"
     fromIso "pl"  = "polish"
     fromIso "pms" = "piedmontese"
     fromIso "pt"  = "portuguese"
@@ -1245,6 +1275,7 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "ta"  = "tamil"
     fromIso "te"  = "telugu"
     fromIso "th"  = "thai"
+    fromIso "ti"  = "ethiopic"
     fromIso "tk"  = "turkmen"
     fromIso "tr"  = "turkish"
     fromIso "uk"  = "ukrainian"

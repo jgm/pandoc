@@ -50,8 +50,7 @@ implemented, [-] means partially implemented):
 * Inlines
 
   - [X] Str
-  - [X] Emph (From italics. `underline` currently read as span. In
-        future, it might optionally be emph as well)
+  - [X] Emph (italics and underline both read as Emph)
   - [X] Strong
   - [X] Strikeout
   - [X] Superscript
@@ -62,16 +61,16 @@ implemented, [-] means partially implemented):
   - [X] Code (styled with `VerbatimChar`)
   - [X] Space
   - [X] LineBreak (these are invisible in Word: entered with Shift-Return)
-  - [ ] Math
+  - [X] Math
   - [X] Link (links to an arbitrary bookmark create a span with the target as
         id and "anchor" class)
-  - [-] Image (Links to path in archive. Future option for
-        data-encoded URI likely.)
+  - [X] Image 
   - [X] Note (Footnotes and Endnotes are silently combined.)
 -}
 
 module Text.Pandoc.Readers.Docx
-       ( readDocx
+       ( readDocxWithWarnings
+       , readDocx
        ) where
 
 import Codec.Archive.Zip
@@ -98,14 +97,23 @@ import qualified Data.Sequence as Seq (null)
 import Text.Pandoc.Error
 import Text.Pandoc.Compat.Except
 
+readDocxWithWarnings :: ReaderOptions
+                     -> B.ByteString
+                     -> Either PandocError (Pandoc, MediaBag, [String])
+readDocxWithWarnings opts bytes
+  | Right archive <- toArchiveOrFail bytes
+  , Right (docx, warnings) <- archiveToDocxWithWarnings archive = do
+      (meta, blks, mediaBag) <- docxToOutput opts docx
+      return (Pandoc meta blks, mediaBag, warnings)
+readDocxWithWarnings _ _ =
+  Left (ParseFailure "couldn't parse docx file")
+
 readDocx :: ReaderOptions
          -> B.ByteString
          -> Either PandocError (Pandoc, MediaBag)
-readDocx opts bytes =
-  case archiveToDocx (toArchive bytes) of
-    Right docx -> (\(meta, blks, mediaBag) -> (Pandoc meta blks, mediaBag))
-                    <$> (docxToOutput opts docx)
-    Left _   -> Left (ParseFailure "couldn't parse docx file")
+readDocx opts bytes = do
+  (pandoc, mediaBag, _) <- readDocxWithWarnings opts bytes
+  return (pandoc, mediaBag)
 
 data DState = DState { docxAnchorMap :: M.Map String String
                      , docxMediaBag      :: MediaBag

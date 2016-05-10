@@ -1,5 +1,5 @@
-[Para [Str "spanning",Space,Str "multiple",Space,Str "lines",SoftBreak,Str "%",Space,Str "Author",Space,Str "One",SoftBreak,Str "Author",Space,Str "Two;",Space,Str "Author",Space,Str "Three;",SoftBreak,Str "Author",Space,Str "Four"]
-,Header 1 ("additional-markdown-reader-tests",[],[]) [Str "Additional",Space,Str "markdown",Space,Str "reader",Space,Str "tests"]
+Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",Space,Str "One"],MetaInlines [Str "Author",Space,Str "Two"],MetaInlines [Str "Author",Space,Str "Three"],MetaInlines [Str "Author",Space,Str "Four"]]),("title",MetaInlines [Str "Title",SoftBreak,Str "spanning",Space,Str "multiple",Space,Str "lines"])]})
+[Header 1 ("additional-markdown-reader-tests",[],[]) [Str "Additional",Space,Str "markdown",Space,Str "reader",Space,Str "tests"]
 ,Header 2 ("blank-line-before-url-in-link-reference",[],[]) [Str "Blank",Space,Str "line",Space,Str "before",Space,Str "URL",Space,Str "in",Space,Str "link",Space,Str "reference"]
 ,Para [Link ("",[],[]) [Str "foo"] ("/url",""),Space,Str "and",Space,Link ("",[],[]) [Str "bar"] ("/url","title")]
 ,Header 2 ("raw-context-environments",[],[]) [Str "Raw",Space,Str "ConTeXt",Space,Str "environments"]

@@ -63,7 +63,7 @@ import Debug.Trace (trace)
 import Text.TeXMath (readMathML, writeTeX)
 import Data.Default (Default (..), def)
 import Control.Monad.Reader (Reader,ask, asks, local, runReader)
-import Network.URI (isURI)
+import Network.URI (URI, parseURIReference, nonStrictRelativeTo)
 import Text.Pandoc.Error
 import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 import Text.Pandoc.Compat.Monoid ((<>))
@@ -103,7 +103,7 @@ data HTMLState =
   HTMLState
   {  parserState :: ParserState,
      noteTable   :: [(String, Blocks)],
-     baseHref    :: Maybe String,
+     baseHref    :: Maybe URI,
      identifiers :: Set.Set String,
      headerMap   :: M.Map Inlines String
   }
@@ -145,15 +145,9 @@ pHead = pInTags "head" $ pTitle <|> pMetaTag <|> pBaseTag <|> (mempty <$ pAnyTag
                return mempty
         pBaseTag = do
           bt <- pSatisfy (~== TagOpen "base" [])
-          let baseH = fromAttrib "href" bt
-          if null baseH
-             then return mempty
-             else do
-               let baseH' = case reverse baseH of
-                                  '/':_ -> baseH
-                                  _     -> baseH ++ "/"
-               updateState $ \st -> st{ baseHref = Just baseH' }
-               return mempty
+          updateState $ \st -> st{ baseHref =
+               parseURIReference $ fromAttrib "href" bt }
+          return mempty
 
 block :: TagParser Blocks
 block = do
@@ -610,9 +604,9 @@ pLink = try $ do
   tag <- pSatisfy $ tagOpenLit "a" (const True)
   mbBaseHref <- baseHref <$> getState
   let url' = fromAttrib "href" tag
-  let url = case (isURI url', mbBaseHref) of
-                 (False, Just h) -> h ++ url'
-                 _               -> url'
+  let url = case (parseURIReference url', mbBaseHref) of
+                 (Just rel, Just bs) -> show (rel `nonStrictRelativeTo` bs)
+                 _                   -> url'
   let title = fromAttrib "title" tag
   let uid = fromAttrib "id" tag
   let cls = words $ fromAttrib "class" tag
@@ -624,9 +618,9 @@ pImage = do
   tag <- pSelfClosing (=="img") (isJust . lookup "src")
   mbBaseHref <- baseHref <$> getState
   let url' = fromAttrib "src" tag
-  let url = case (isURI url', mbBaseHref) of
-                 (False, Just h) -> h ++ url'
-                 _               -> url'
+  let url = case (parseURIReference url', mbBaseHref) of
+                 (Just rel, Just bs) -> show (rel `nonStrictRelativeTo` bs)
+                 _                   -> url'
   let title = fromAttrib "title" tag
   let alt = fromAttrib "alt" tag
   let uid = fromAttrib "id" tag
@@ -945,7 +939,7 @@ htmlInBalanced f = try $ do
                         (TagClose _ : TagPosition er ec : _) -> do
                           let ls = er - sr
                           let cs = ec - sc
-                          lscontents <- concat <$> count ls anyLine
+                          lscontents <- unlines <$> count ls anyLine
                           cscontents <- count cs anyChar
                           (_,closetag) <- htmlTag (~== TagClose tn)
                           return (lscontents ++ cscontents ++ closetag)
@@ -977,11 +971,20 @@ htmlTag :: Monad m
 htmlTag f = try $ do
   lookAhead (char '<')
   inp <- getInput
-  let (next : rest) = canonicalizeTags $ parseTagsOptions
-                       parseOptions{ optTagWarning = True } inp
+  let (next : _) = canonicalizeTags $ parseTagsOptions
+                       parseOptions{ optTagWarning = False } inp
   guard $ f next
+  let handleTag tagname = do
+       -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
+       -- should NOT be parsed as an HTML tag, see #2277
+       guard $ not ('.' `elem` tagname)
+       -- <https://example.org> should NOT be a tag either.
+       -- tagsoup will parse it as TagOpen "https:" [("example.org","")]
+       guard $ not (null tagname)
+       guard $ last tagname /= ':'
+       rendered <- manyTill anyChar (char '>')
+       return (next, rendered ++ ">")
   case next of
-       TagWarning _ -> fail "encountered TagWarning"
        TagComment s
          | "<!--" `isPrefixOf` inp -> do
           count (length s + 4) anyChar
@@ -989,13 +992,9 @@ htmlTag f = try $ do
           char '>'
           return (next, "<!--" ++ s ++ "-->")
          | otherwise -> fail "bogus comment mode, HTML5 parse error"
-       _            -> do
-          -- we get a TagWarning on things like
-          -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
-          -- which should NOT be parsed as an HTML tag, see #2277
-          guard $ not $ hasTagWarning rest
-          rendered <- manyTill anyChar (char '>')
-          return (next, rendered ++ ">")
+       TagOpen tagname _attr -> handleTag tagname
+       TagClose tagname -> handleTag tagname
+       _ -> mzero
 
 mkAttr :: [(String, String)] -> Attr
 mkAttr attr = (attribsId, attribsClasses, attribsKV)

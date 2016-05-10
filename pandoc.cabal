@@ -1,10 +1,10 @@
 Name:            pandoc
-Version:         1.17
+Version:         1.17.1
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
 License-File:    COPYING
-Copyright:       (c) 2006-2015 John MacFarlane
+Copyright:       (c) 2006-2016 John MacFarlane
 Author:          John MacFarlane <jgm@berkeley.edu>
 Maintainer:      John MacFarlane <jgm@berkeley.edu>
 Bug-Reports:     https://github.com/jgm/pandoc/issues
@@ -39,6 +39,7 @@ Data-Files:
                  data/templates/default.html
                  data/templates/default.html5
                  data/templates/default.docbook
+                 data/templates/default.docbook5
                  data/templates/default.tei
                  data/templates/default.beamer
                  data/templates/default.opendocument
@@ -145,6 +146,7 @@ Extra-Source-Files:
                  tests/s5-inserts.html
                  tests/tables.context
                  tests/tables.docbook
+                 tests/tables.docbook5
                  tests/tables.dokuwiki
                  tests/tables.icml
                  tests/tables.html
@@ -153,6 +155,7 @@ Extra-Source-Files:
                  tests/tables.plain
                  tests/tables.markdown
                  tests/tables.mediawiki
+                 tests/tables.tei
                  tests/tables.textile
                  tests/tables.opendocument
                  tests/tables.org
@@ -167,6 +170,7 @@ Extra-Source-Files:
                  tests/writer.latex
                  tests/writer.context
                  tests/writer.docbook
+                 tests/writer.docbook5
                  tests/writer.html
                  tests/writer.man
                  tests/writer.markdown
@@ -180,6 +184,7 @@ Extra-Source-Files:
                  tests/writer.rst
                  tests/writer.icml
                  tests/writer.rtf
+                 tests/writer.tei
                  tests/writer.texinfo
                  tests/writer.fb2
                  tests/writer.opml
@@ -255,7 +260,7 @@ Library
                  text >= 0.11 && < 1.3,
                  zip-archive >= 0.2.3.4 && < 0.4,
                  HTTP >= 4000.0.5 && < 4000.4,
-                 texmath >= 0.8.4.1 && < 0.9,
+                 texmath >= 0.8.6.2 && < 0.9,
                  xml >= 1.3.12 && < 1.4,
                  random >= 1 && < 1.2,
                  extensible-exceptions >= 0.1 && < 0.2,
@@ -265,7 +270,7 @@ Library
                  base64-bytestring >= 0.1 && < 1.1,
                  zlib >= 0.5 && < 0.7,
                  highlighting-kate >= 0.6.1 && < 0.7,
-                 data-default >= 0.4 && < 0.6,
+                 data-default >= 0.4 && < 0.7,
                  temporary >= 1.1 && < 1.3,
                  blaze-html >= 0.5 && < 0.9,
                  blaze-markup >= 0.5.1 && < 0.8,

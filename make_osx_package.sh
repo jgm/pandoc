@@ -53,7 +53,7 @@ $LOCALBIN/pandoc --data data -t html5 -s COPYING -o $RESOURCES/license.html
 
 echo Signing pandoc executable...
 
-codesign --force --sign ${DEVELOPER_ID_APPLICATION} $DEST/bin/pandoc
+codesign --force --sign "${DEVELOPER_ID_APPLICATION}" $DEST/bin/pandoc
 # make sure it's valid... returns nonzero exit code if it isn't:
 spctl --assess --type execute $DEST/bin/pandoc
 
@@ -61,8 +61,10 @@ echo Creating OSX package...
 # remove old package first
 rm -rf $BASE.pkg
 
+sed -e "s/PANDOCVERSION/$VERSION/" osx/distribution.xml.in > osx/distribution.xml
+
 pkgbuild --root $DIST/pandoc --identifier net.johnmacfarlane.pandoc --version 1.13 --ownership recommended $DIST/pandoc.pkg
-productbuild --distribution osx/distribution.xml --resources $DIST/Resources --package-path $DIST --version $VERSION --sign ${DEVELOPER_ID_INSTALLER} $BASE-osx.pkg
+productbuild --distribution osx/distribution.xml --resources $DIST/Resources --package-path $DIST --version $VERSION --sign "${DEVELOPER_ID_INSTALLER}" $BASE-osx.pkg
 
 # verify signature
 spctl --assess --type install $BASE-osx.pkg

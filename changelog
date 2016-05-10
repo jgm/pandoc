@@ -1,3 +1,170 @@
+pandoc (1.17.0.3)
+
+  * LaTeX writer: Fixed position of label in figures (#2813).
+    Previously the label wasn't in the right place, and `\ref`
+    wouldn't work properly.
+  * Added .tei test files to pandoc.cabal so they'll be included
+    in tarball (#2811).
+  * Updated copyright dates.
+
+pandoc (1.17.0.2)
+
+  * Fixed serious regression in `htmlInBalanced`, which caused
+    newlines to be omitted in some raw HTML blocks in Markdown
+    (#2804).
+
+pandoc (1.17.0.1)
+
+  * File scope is no longer used when there are no input files (i.e.,
+    when input comes from stdin).  Previously file scope was triggered
+    when the `json` reader was specified and input came from `stdin`,
+    and this caused no output to be produced.  (Fix due to Jesse Rosenthal;
+    thanks to Fedor Sheremetyev for calling the bug to our attention.)
+  * Improved documentation of templates (#2797).
+
+pandoc (1.17)
+
+  * Added `--file-scope` option (Jesse Rosenthal).
+    By default pandoc operates on multiple files by first concatenating
+    them (around extra line breaks) and then processing the joined file. So
+    it only parses a multi-file document at the document scope. This has the
+    benefit that footnotes and links can be in different files, but for
+    some purposes it is useful to parse the individual files first
+    and then combine their outputs (e.g. when the files use footnotes
+    or links with the same labels).  The `--file-scope` option causes
+    pandoc to parse the files first, and then combine the parsed output,
+    instead of combining before parsing. `--file-scope` is selected
+    automatically for binary input files (which cannot be concatenated)
+    and for pandoc json.
+
+  * Add TEI Writer (Chris Forster) and `tei` output format.
+
+  * Added a general `ByteStringReader` with warnings, used by the docx
+    reader (API change, Jesse Rosenthal).
+
+  * Add `readDocxWithWarnings` (API change, Jesse Rosenthal).
+
+  * Changed type of `Shared.uniqueIdent`'s argument from `[String]`
+    to `Set String.` This avoids performance problems in documents with
+    many identically named headers (API change, #2671).
+
+  * Removed `tex_math_single_backslash` from `markdown_github` options
+    (#2707).
+
+  * Make language extensions as well as full language names
+    trigger syntax highlighting.  For example, `py` will now work as
+    well as `python` (jgm/highlighting-kate#83).
+
+  * Added `institute` variable to latex, beamer templates (Fraser
+    Tweedale, Josef Svenningsson).
+
+  * Docx reader (Jesse Rosenthal):
+
+    + Handle alternate content.  Some word functions (especially graphics)
+      give various choices for content so there can be backwards compatibility.
+    + Don't turn numbered headers into lists.
+    + Docx Reader: Add state to the parser, for warnings
+    + Update feature checklist in source code.
+    + Get rid of `Modifiable` typeclass.
+    + Add tests for adjacent hyperlinks.
+    + Add a "Link" modifier to `Reducible`. We want to make sure that
+      links have their spaces removed, and are appropriately smushed
+      together (#2689).
+
+  * HTML reader:
+
+    + Fixed behavior of base tag (#2777).
+      If the base path does not end with slash, the last component
+      will be replaced.  E.g. base = `http://example.com/foo`
+      combines with `bar.html` to give `http://example.com/bar.html`.
+      If the href begins with a slash, the whole path of the base
+      is replaced.  E.g. base = `http://example.com/foo/` combines
+      with `/bar.html` to give `http://example.com/bar.html`.
+    + Rewrote `htmlInBalanced`.  This version avoids an exponential
+      performance problem with `<script>` tags, and it should be faster
+      in general (#2730).
+    + Properly handle an empty cell in a simple table (#2718).
+    + Handle multiple `<meta>` tags with same name.  Put them in a list
+      in the metadata so they are all preserved, rather than (as before)
+      throwing out all but one..
+
+  * Markdown reader:
+
+    + Improved pipe table parsing (#2765).
+    + Allow `+` separators in pipe table cells.  We already allowed
+      them in the header, but not in the body rows, for some reason.
+      This gives compatibility with org-mode tables.
+    + Don't cross line boundary parsing pipe table row.
+      Previously an Emph element could be parsed across the newline
+      at the end of the pipe table row.
+    + Use `htmlInBalanced` for `rawVerbatimBlock`, for better
+      performance (#2730).
+    + Fixed bug with smart quotes around tex math.
+
+  * LaTeX reader:
+
+    + Handle interior `$` characters in math (#2743).  For example,
+      `$$\hbox{$i$}$$`.
+    + `inlineCommand` now gobbles an empty `{}` after any command (#2687).
+      This gives better results when people write e.g. `\TeX{}` in Markdown.
+    + Properly handle LaTeX "math" environment as inline math (#2171).
+
+  * Textile reader: Support `>`, `<`, `=`, `<>` text alignment attributes.
+    Closes #2674.
+
+  * Org reader (Albert Krewinkel):
+
+    + Prefix even empty figure names with "fig:" (#2643).  The
+      convention used by pandoc for figures is to mark them by prefixing
+      the name with `fig:`.  The org reader failed to do this if a figure
+      had no name.
+    + Refactor link-target processing (#2684).
+
+  * ConTeXt writer: Fix whitespace at line beginning in line blocks (#2744).
+    Thanks to @c-foster.
+
+  * HTML writer: Don't include alignment attribute for default table columns.
+    Previously these were given "left" alignment.  Better to leave off
+    alignment attributes altogether (#2694).
+
+  * Markdown writer: Use hyphens for YAML metadata block bottom line, for
+    better compatibility with other Markdown flavors (Henrik Tramberend).
+
+  * LaTeX writer:
+
+    + Use image identifier to create a label and hypertarget for
+      figures (Mauro Bieg).
+    + Avoid double toprule in headerless table with caption (#2742).
+    + Clean up options parser (Jesse Rosenthal).
+    + Treat `memoir` template with `article` option as article, instead
+      of treating all `memoir` templates as books.
+    + Allow more flexible table alignment (Henrik Tramberend, #2665).
+      New default is not to include `[c]` option (which is the default
+      anyway if no positioning is specified).  Now LaTeX emplates can
+      control the overall table alignment in a document by setting the
+      longtable length variables `LTleft` and `LTright`.  For example,
+      `\setlength\LTleft\parindent\setlength\LTright\fill`
+      will create left-aligned tables that respect paragraph indentation.
+
+  * Docx writer: Handle image alt text (#2754, Mauro Bieg).
+
+  * Org writer - pass through RawInline with format "org".
+
+  * DokuWiki writer: use `$$` for display math.
+
+  * Custom writer: Pass attributes parameter to CaptionedImage (#2697).
+
+  * Make protocol-relative URIs work again (#2737).
+
+  * make_osx_package.sh:  Use env variable for developer id certs.
+
+  * Raise `tagsoup` lower bound to 0.13.7 to fix entity-related
+    problems (#2734).
+
+  * Allow `zip-archive` 0.3.
+
+  * Allow `aeson` 0.11.
+
 pandoc (1.16.0.2)
 
   * Depend on deepseq rather than deepseq-generics (fpco/stackage#1096).
