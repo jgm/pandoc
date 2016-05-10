@@ -108,7 +108,11 @@ tests = [ testGroup "markdown"
           , test "reader" ["-r", "docbook", "-w", "native", "-s"]
             "docbook-xref.docbook" "docbook-xref.native"
           ]
-        , testGroup "docbook5"
+          , testGroup "mallard"
+          [ test "reader" ["-r", "mallard", "-w", "native", "-s"]
+            "mallard-reader.mallard" "mallard-reader.native"
+          ]
+         , testGroup "docbook5"
           [ testGroup "writer" $ writerTests "docbook5"
           ]
         , testGroup "native"
