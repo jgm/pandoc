@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, TupleSections #-}
+{-# LANGUAGE CPP, TupleSections, ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -1402,7 +1402,10 @@ convertWithOpts opts args = do
                               _ | html5Output   -> "wkhtmltopdf"
                               _                 -> latexEngine
               -- check for pdf creating program
-              (ec,_,_) <- readProcessWithExitCode pdfprog ["--version"] ""
+              (ec,_,_) <- E.catch
+                          (readProcessWithExitCode pdfprog ["--version"] "")
+                          (\(_ :: E.SomeException) ->
+                              return (ExitFailure 1,"",""))
               when (ec /= ExitSuccess) $
                    err 41 $ pdfprog ++ " not found. " ++
                      pdfprog ++ " is needed for pdf output."
