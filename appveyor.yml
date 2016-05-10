@@ -6,6 +6,7 @@ build: off
 before_test:
 - curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
 - 7z x stack.zip stack.exe
+- git submodule update --init   # to fetch the templates
 
 clone_folder: "c:\\stack"
 environment:
@@ -17,3 +18,10 @@ test_script:
 # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
 # descriptor
 - echo "" | stack --no-terminal test
+
+after_test:
+  - ps: 7z a "pandoc.zip" "$(.\\stack.exe path --local-install-root)\\bin\\pandoc*.exe"
+
+artifacts:
+  - path: pandoc.zip
+    name: exe
