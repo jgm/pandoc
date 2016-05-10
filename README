@@ -14,7 +14,7 @@ Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored Markdown],
 and (subsets of) [Textile], [reStructuredText], [HTML], [LaTeX], [MediaWiki markup], [TWiki
-markup], [Haddock markup], [OPML], [Emacs Org mode], [DocBook],
+markup], [Haddock markup], [OPML], [Emacs Org mode], [DocBook], [Mallard],
 [txt2tags], [EPUB], [ODT] and [Word docx]; and it can write plain text,
 [Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored Markdown],
 [reStructuredText], [XHTML], [HTML5], [LaTeX] (including
@@ -68,6 +68,7 @@ Markdown can be expected to be lossy.
 [ConTeXt]: http://contextgarden.net/
 [RTF]: http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook]: http://docbook.org
+[Mallard]: http://projectmallard.org/
 [txt2tags]: http://txt2tags.org
 [EPUB]: http://idpf.org/epub
 [OPML]: http://dev.opml.org/spec2.html
@@ -245,11 +246,11 @@ General options
     Markdown), `markdown_phpextra` (PHP Markdown Extra),
     `markdown_github` (GitHub-Flavored Markdown),
     `commonmark` (CommonMark Markdown), `textile` (Textile), `rst`
-    (reStructuredText), `html` (HTML), `docbook` (DocBook), `t2t`
-    (txt2tags), `docx` (docx), `odt` (ODT), `epub` (EPUB), `opml` (OPML),
-    `org` (Emacs Org mode), `mediawiki` (MediaWiki markup), `twiki` (TWiki
-    markup), `haddock` (Haddock markup), or `latex` (LaTeX).  If
-    `+lhs` is appended to `markdown`, `rst`, `latex`, or `html`, the
+    (reStructuredText), `html` (HTML), `docbook` (DocBook), `mallard`
+    (Mallard), `t2t` (txt2tags), `docx` (docx), `odt` (ODT), `epub` (EPUB),
+    `opml` (OPML), `org` (Emacs Org mode), `mediawiki` (MediaWiki markup),
+    `twiki` (TWiki markup), `haddock` (Haddock markup), or `latex` (LaTeX).
+    If `+lhs` is appended to `markdown`, `rst`, `latex`, or `html`, the
     input will be treated as literate Haskell source: see [Literate
     Haskell support], below. Markdown
     syntax extensions can be individually enabled or disabled by
@@ -547,7 +548,8 @@ General writer options
 :   Include an automatically generated table of contents (or, in
     the case of `latex`, `context`, `docx`, and `rst`, an instruction to create
     one) in the output document. This option has no effect on `man`,
-    `docbook`, `docbook5`, `slidy`, `slideous`, `s5`, or `odt` output.
+    `docbook`, `mallard`, `docbook5`, `slidy`, `slideous`, `s5`, or `odt`
+    output.
 
 `--toc-depth=`*NUMBER*
 
@@ -712,9 +714,9 @@ Options affecting specific writers
 `--id-prefix=`*STRING*
 
 :   Specify a prefix to be added to all automatically generated identifiers
-    in HTML and DocBook output, and to footnote numbers in Markdown output.
-    This is useful for preventing duplicate identifiers when generating
-    fragments to be included in other pages.
+    in HTML, DocBook, and Mallard output, and to footnote numbers in Markdown
+    output.  This is useful for preventing duplicate identifiers when
+    generating fragments to be included in other pages.
 
 `-T` *STRING*, `--title-prefix=`*STRING*
 
