@@ -52,6 +52,7 @@ import Data.Char ( toLower, toUpper )
 import Data.List ( delete, intercalate, isPrefixOf, isSuffixOf, sort )
 import System.Directory ( getAppUserDataDirectory, findExecutable,
                           doesFileExist, Permissions(..), getPermissions )
+import System.Process ( readProcessWithExitCode )
 import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
@@ -1401,8 +1402,8 @@ convertWithOpts opts args = do
                               _ | html5Output   -> "wkhtmltopdf"
                               _                 -> latexEngine
               -- check for pdf creating program
-              mbPdfProg <- findExecutable pdfprog
-              when (isNothing mbPdfProg) $
+              (ec,_,_) <- readProcessWithExitCode pdfprog ["--version"] ""
+              when (ec /= ExitSuccess) $
                    err 41 $ pdfprog ++ " not found. " ++
                      pdfprog ++ " is needed for pdf output."
 
