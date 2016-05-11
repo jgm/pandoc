@@ -38,6 +38,10 @@ module Text.Pandoc.Readers.Org.ParserState
   , trimInlinesF
   , runF
   , returnF
+  , ExportSettingSetter
+  , exportSubSuperscripts
+  , setExportSubSuperscripts
+  , modifyExportSettings
   ) where
 
 import           Control.Monad (liftM, liftM2)
@@ -70,6 +74,12 @@ type OrgBlockAttributes = M.Map String String
 -- link-type, the corresponding function transforms the given link string.
 type OrgLinkFormatters = M.Map String (String -> String)
 
+-- | Export settings <http://orgmode.org/manual/Export-settings.html>
+-- These settings can be changed via OPTIONS statements.
+data ExportSettings = ExportSettings
+  { exportSubSuperscripts :: Bool -- ^ TeX-like syntax for sub- and superscripts
+  }
+
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
   { orgStateOptions              :: ReaderOptions
@@ -77,6 +87,7 @@ data OrgParserState = OrgParserState
   , orgStateBlockAttributes      :: OrgBlockAttributes
   , orgStateEmphasisCharStack    :: [Char]
   , orgStateEmphasisNewlines     :: Maybe Int
+  , orgStateExportSettings       :: ExportSettings
   , orgStateLastForbiddenCharPos :: Maybe SourcePos
   , orgStateLastPreCharPos       :: Maybe SourcePos
   , orgStateLastStrPos           :: Maybe SourcePos
@@ -119,6 +130,8 @@ instance HasHeaderMap OrgParserState where
   extractHeaderMap = orgStateHeaderMap
   updateHeaderMap  f s = s{ orgStateHeaderMap = f (orgStateHeaderMap s) }
 
+instance Default ExportSettings where
+  def = defaultExportSettings
 
 instance Default OrgParserState where
   def = defaultOrgParserState
@@ -130,6 +143,7 @@ defaultOrgParserState = OrgParserState
   , orgStateBlockAttributes = M.empty
   , orgStateEmphasisCharStack = []
   , orgStateEmphasisNewlines = Nothing
+  , orgStateExportSettings = def
   , orgStateLastForbiddenCharPos = Nothing
   , orgStateLastPreCharPos = Nothing
   , orgStateLastStrPos = Nothing
@@ -142,6 +156,24 @@ defaultOrgParserState = OrgParserState
   , orgStateHeaderMap = M.empty
   }
 
+defaultExportSettings :: ExportSettings
+defaultExportSettings = ExportSettings
+  { exportSubSuperscripts = True
+  }
+
+
+--
+-- Setter for exporting options
+--
+type ExportSettingSetter a = a -> ExportSettings -> ExportSettings
+
+setExportSubSuperscripts :: ExportSettingSetter Bool
+setExportSubSuperscripts val es = es { exportSubSuperscripts = val }
+
+-- | Modify a parser state
+modifyExportSettings :: ExportSettingSetter a -> a -> OrgParserState -> OrgParserState
+modifyExportSettings setter val state =
+  state { orgStateExportSettings = setter val . orgStateExportSettings $ state }
 
 --
 -- Parser state reader

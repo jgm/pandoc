@@ -122,6 +122,25 @@ addToNotesTable note = do
   updateState $ \s -> s{ orgStateNotes' = note:oldnotes }
 
 --
+-- Export Settings
+--
+exportSetting :: OrgParser ()
+exportSetting = choice
+  [ booleanSetting "^" setExportSubSuperscripts
+  ] <?> "export setting"
+
+booleanSetting :: String -> ExportSettingSetter Bool -> OrgParser ()
+booleanSetting str setter = try $ do
+  string str
+  char ':'
+  value <- many nonspaceChar
+  let boolValue = case value of
+                    "nil" -> False
+                    "{}"  -> False
+                    _     -> True
+  updateState $ modifyExportSettings setter boolValue
+
+--
 -- Parser
 --
 parseOrg :: OrgParser Pandoc
@@ -590,8 +609,9 @@ optionLine :: OrgParser ()
 optionLine = try $ do
   key <- metaKey
   case key of
-    "link" -> parseLinkFormat >>= uncurry addLinkFormat
-    _      -> mzero
+    "link"    -> parseLinkFormat >>= uncurry addLinkFormat
+    "options" -> () <$ sepBy spaces exportSetting
+    _         -> mzero
 
 parseLinkFormat :: OrgParser ((String, String -> String))
 parseLinkFormat = try $ do
@@ -1460,7 +1480,9 @@ subOrSuperExpr = try $
  where enclosing (left, right) s = left : s ++ [right]
 
 simpleSubOrSuperString :: OrgParser String
-simpleSubOrSuperString = try $
+simpleSubOrSuperString = try $ do
+  state <- getState
+  guard . exportSubSuperscripts . orgStateExportSettings $ state
   choice [ string "*"
          , mappend <$> option [] ((:[]) <$> oneOf "+-")
                    <*> many1 alphaNum

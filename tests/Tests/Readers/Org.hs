@@ -469,6 +469,12 @@ tests =
                   , "[[expl:foo][bar]]"
                   ] =?>
           (para (link "http://example.com/foo" "" "bar"))
+
+      , "Export option: Disable simple sub/superscript syntax" =:
+          unlines [ "#+OPTIONS: ^:nil"
+                  , "a^b"
+                  ] =?>
+          para "a^b"
       ]
 
   , testGroup "Basic Blocks" $
