@@ -127,11 +127,41 @@ addToNotesTable note = do
 exportSetting :: OrgParser ()
 exportSetting = choice
   [ booleanSetting "^" setExportSubSuperscripts
+  , ignoredSetting "'"
+  , ignoredSetting "*"
+  , ignoredSetting "-"
+  , ignoredSetting ":"
+  , ignoredSetting "<"
+  , ignoredSetting "\\n"
+  , ignoredSetting "arch"
+  , ignoredSetting "author"
+  , ignoredSetting "c"
+  , ignoredSetting "creator"
+  , ignoredSetting "d"
+  , ignoredSetting "date"
+  , ignoredSetting "e"
+  , ignoredSetting "email"
+  , ignoredSetting "f"
+  , ignoredSetting "H"
+  , ignoredSetting "inline"
+  , ignoredSetting "num"
+  , ignoredSetting "p"
+  , ignoredSetting "pri"
+  , ignoredSetting "prop"
+  , ignoredSetting "stat"
+  , ignoredSetting "tags"
+  , ignoredSetting "tasks"
+  , ignoredSetting "tex"
+  , ignoredSetting "timestamp"
+  , ignoredSetting "title"
+  , ignoredSetting "toc"
+  , ignoredSetting "todo"
+  , ignoredSetting "|"
   ] <?> "export setting"
 
 booleanSetting :: String -> ExportSettingSetter Bool -> OrgParser ()
-booleanSetting str setter = try $ do
-  string str
+booleanSetting settingIdentifier setter = try $ do
+  string settingIdentifier
   char ':'
   value <- many nonspaceChar
   let boolValue = case value of
@@ -139,6 +169,9 @@ booleanSetting str setter = try $ do
                     "{}"  -> False
                     _     -> True
   updateState $ modifyExportSettings setter boolValue
+
+ignoredSetting :: String -> OrgParser ()
+ignoredSetting s = try (() <$ string s <* char ':' <* many nonspaceChar)
 
 --
 -- Parser
