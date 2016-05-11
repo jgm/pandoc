@@ -1,6 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
 {-
 Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -31,8 +30,7 @@ Conversion of org-mode formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Org ( readOrg ) where
 
 import qualified Text.Pandoc.Builder as B
-import           Text.Pandoc.Builder ( Inlines, Blocks, HasMeta(..),
-                                       trimInlines )
+import           Text.Pandoc.Builder ( Inlines, Blocks )
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Compat.Monoid ((<>))
 import           Text.Pandoc.Error
@@ -43,20 +41,20 @@ import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
                                             , parseFromString, blanklines
                                             )
 import           Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
+import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Shared (compactify', compactify'DL)
 import           Text.TeXMath (readTeX, writePandoc, DisplayType(..))
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
 import           Control.Arrow (first)
-import           Control.Monad (foldM, guard, liftM, liftM2, mplus, mzero, when)
-import           Control.Monad.Reader (Reader, runReader, ask, asks, local)
+import           Control.Monad (foldM, guard, mplus, mzero, when)
+import           Control.Monad.Reader ( Reader, runReader )
 import           Data.Char (isAlphaNum, isSpace, toLower)
-import           Data.Default
 import           Data.List (intersperse, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
-import qualified Data.Set as Set
 import           Data.Maybe (fromMaybe, isJust)
 import           Network.HTTP (urlEncode)
+
 
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: ReaderOptions -- ^ Reader options
@@ -64,132 +62,12 @@ readOrg :: ReaderOptions -- ^ Reader options
         -> Either PandocError Pandoc
 readOrg opts s = flip runReader def $ readWithM parseOrg def{ orgStateOptions = opts } (s ++ "\n\n")
 
-data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext }
-
+-- | The parser used to read org files.
 type OrgParser = ParserT [Char] OrgParserState (Reader OrgParserLocal)
 
-instance HasIdentifierList OrgParserState where
-  extractIdentifierList = orgStateIdentifiers
-  updateIdentifierList f s = s{ orgStateIdentifiers = f (orgStateIdentifiers s) }
-
-instance HasHeaderMap OrgParserState where
-  extractHeaderMap = orgStateHeaderMap
-  updateHeaderMap  f s = s{ orgStateHeaderMap = f (orgStateHeaderMap s) }
-
-parseOrg :: OrgParser Pandoc
-parseOrg = do
-  blocks' <- parseBlocks
-  st <- getState
-  let meta = runF (orgStateMeta' st) st
-  let removeUnwantedBlocks = dropCommentTrees . filter (/= Null)
-  return $ Pandoc meta $ removeUnwantedBlocks (B.toList $ runF blocks' st)
-
--- | Drop COMMENT headers and the document tree below those headers.
-dropCommentTrees :: [Block] -> [Block]
-dropCommentTrees [] = []
-dropCommentTrees (b:bs) =
-  maybe (b:dropCommentTrees bs)
-        (dropCommentTrees . flip dropUntilHeaderAboveLevel bs)
-        (commentHeaderLevel b)
-
--- | Return the level of a header starting a comment or :noexport: tree and
---  Nothing otherwise.
-commentHeaderLevel :: Block -> Maybe Int
-commentHeaderLevel blk =
-   case blk of
-     (Header level _ ((Str "COMMENT"):_))          -> Just level
-     (Header level _ title) | hasNoExportTag title -> Just level
-     _                                             -> Nothing
- where
-   hasNoExportTag :: [Inline] -> Bool
-   hasNoExportTag = any isNoExportTag
-
-   isNoExportTag :: Inline -> Bool
-   isNoExportTag (Span ("", ["tag"], [("data-tag-name", "noexport")]) []) = True
-   isNoExportTag _ = False
-
--- | Drop blocks until a header on or above the given level is seen
-dropUntilHeaderAboveLevel :: Int -> [Block] -> [Block]
-dropUntilHeaderAboveLevel n = dropWhile (not . isHeaderLevelLowerEq n)
-
-isHeaderLevelLowerEq :: Int -> Block -> Bool
-isHeaderLevelLowerEq n blk =
-  case blk of
-    (Header level _ _) -> n >= level
-    _                  -> False
-
 --
--- Parser State for Org
+-- Functions acting on the parser state
 --
-
-type OrgNoteRecord = (String, F Blocks)
-type OrgNoteTable = [OrgNoteRecord]
-
-type OrgBlockAttributes = M.Map String String
-
-type OrgLinkFormatters = M.Map String (String -> String)
-
--- | Org-mode parser state
-data OrgParserState = OrgParserState
-                      { orgStateOptions              :: ReaderOptions
-                      , orgStateAnchorIds            :: [String]
-                      , orgStateBlockAttributes      :: OrgBlockAttributes
-                      , orgStateEmphasisCharStack    :: [Char]
-                      , orgStateEmphasisNewlines     :: Maybe Int
-                      , orgStateLastForbiddenCharPos :: Maybe SourcePos
-                      , orgStateLastPreCharPos       :: Maybe SourcePos
-                      , orgStateLastStrPos           :: Maybe SourcePos
-                      , orgStateLinkFormatters       :: OrgLinkFormatters
-                      , orgStateMeta                 :: Meta
-                      , orgStateMeta'                :: F Meta
-                      , orgStateNotes'               :: OrgNoteTable
-                      , orgStateParserContext        :: ParserContext
-                      , orgStateIdentifiers          :: Set.Set String
-                      , orgStateHeaderMap            :: M.Map Inlines String
-                      }
-
-instance Default OrgParserLocal where
-  def = OrgParserLocal NoQuote
-
-instance HasReaderOptions OrgParserState where
-  extractReaderOptions = orgStateOptions
-
-instance HasMeta OrgParserState where
-  setMeta field val st =
-    st{ orgStateMeta = setMeta field val $ orgStateMeta st }
-  deleteMeta field st =
-    st{ orgStateMeta = deleteMeta field $ orgStateMeta st }
-
-instance HasLastStrPosition OrgParserState where
-  getLastStrPos = orgStateLastStrPos
-  setLastStrPos pos st = st{ orgStateLastStrPos = Just pos }
-
-instance HasQuoteContext st (Reader OrgParserLocal) where
-  getQuoteContext = asks orgLocalQuoteContext
-  withQuoteContext q = local (\s -> s{orgLocalQuoteContext = q})
-
-instance Default OrgParserState where
-  def = defaultOrgParserState
-
-defaultOrgParserState :: OrgParserState
-defaultOrgParserState = OrgParserState
-                        { orgStateOptions = def
-                        , orgStateAnchorIds = []
-                        , orgStateBlockAttributes = M.empty
-                        , orgStateEmphasisCharStack = []
-                        , orgStateEmphasisNewlines = Nothing
-                        , orgStateLastForbiddenCharPos = Nothing
-                        , orgStateLastPreCharPos = Nothing
-                        , orgStateLastStrPos = Nothing
-                        , orgStateLinkFormatters = M.empty
-                        , orgStateMeta = nullMeta
-                        , orgStateMeta' = return nullMeta
-                        , orgStateNotes' = []
-                        , orgStateParserContext = NullState
-                        , orgStateIdentifiers = Set.empty
-                        , orgStateHeaderMap = M.empty
-                        }
-
 recordAnchorId :: String -> OrgParser ()
 recordAnchorId i = updateState $ \s ->
   s{ orgStateAnchorIds = i : (orgStateAnchorIds s) }
@@ -243,6 +121,108 @@ addToNotesTable note = do
   oldnotes <- orgStateNotes' <$> getState
   updateState $ \s -> s{ orgStateNotes' = note:oldnotes }
 
+--
+-- Export Settings
+--
+exportSetting :: OrgParser ()
+exportSetting = choice
+  [ booleanSetting "^" setExportSubSuperscripts
+  , ignoredSetting "'"
+  , ignoredSetting "*"
+  , ignoredSetting "-"
+  , ignoredSetting ":"
+  , ignoredSetting "<"
+  , ignoredSetting "\\n"
+  , ignoredSetting "arch"
+  , ignoredSetting "author"
+  , ignoredSetting "c"
+  , ignoredSetting "creator"
+  , ignoredSetting "d"
+  , ignoredSetting "date"
+  , ignoredSetting "e"
+  , ignoredSetting "email"
+  , ignoredSetting "f"
+  , ignoredSetting "H"
+  , ignoredSetting "inline"
+  , ignoredSetting "num"
+  , ignoredSetting "p"
+  , ignoredSetting "pri"
+  , ignoredSetting "prop"
+  , ignoredSetting "stat"
+  , ignoredSetting "tags"
+  , ignoredSetting "tasks"
+  , ignoredSetting "tex"
+  , ignoredSetting "timestamp"
+  , ignoredSetting "title"
+  , ignoredSetting "toc"
+  , ignoredSetting "todo"
+  , ignoredSetting "|"
+  ] <?> "export setting"
+
+booleanSetting :: String -> ExportSettingSetter Bool -> OrgParser ()
+booleanSetting settingIdentifier setter = try $ do
+  string settingIdentifier
+  char ':'
+  value <- many nonspaceChar
+  let boolValue = case value of
+                    "nil" -> False
+                    "{}"  -> False
+                    _     -> True
+  updateState $ modifyExportSettings setter boolValue
+
+ignoredSetting :: String -> OrgParser ()
+ignoredSetting s = try (() <$ string s <* char ':' <* many nonspaceChar)
+
+--
+-- Parser
+--
+parseOrg :: OrgParser Pandoc
+parseOrg = do
+  blocks' <- parseBlocks
+  st <- getState
+  let meta = runF (orgStateMeta' st) st
+  let removeUnwantedBlocks = dropCommentTrees . filter (/= Null)
+  return $ Pandoc meta $ removeUnwantedBlocks (B.toList $ runF blocks' st)
+
+-- | Drop COMMENT headers and the document tree below those headers.
+dropCommentTrees :: [Block] -> [Block]
+dropCommentTrees [] = []
+dropCommentTrees (b:bs) =
+  maybe (b:dropCommentTrees bs)
+        (dropCommentTrees . flip dropUntilHeaderAboveLevel bs)
+        (commentHeaderLevel b)
+
+-- | Return the level of a header starting a comment or :noexport: tree and
+--  Nothing otherwise.
+commentHeaderLevel :: Block -> Maybe Int
+commentHeaderLevel blk =
+   case blk of
+     (Header level _ ((Str "COMMENT"):_))          -> Just level
+     (Header level _ title) | hasNoExportTag title -> Just level
+     _                                             -> Nothing
+ where
+   hasNoExportTag :: [Inline] -> Bool
+   hasNoExportTag = any isNoExportTag
+
+   isNoExportTag :: Inline -> Bool
+   isNoExportTag (Span ("", ["tag"], [("data-tag-name", "noexport")]) []) = True
+   isNoExportTag _ = False
+
+-- | Drop blocks until a header on or above the given level is seen
+dropUntilHeaderAboveLevel :: Int -> [Block] -> [Block]
+dropUntilHeaderAboveLevel n = dropWhile (not . isHeaderLevelLowerEq n)
+
+isHeaderLevelLowerEq :: Int -> Block -> Bool
+isHeaderLevelLowerEq n blk =
+  case blk of
+    (Header level _ _) -> n >= level
+    _                  -> False
+
+
+--
+-- Adaptions and specializations of parsing utilities
+--
+
 -- The version Text.Pandoc.Parsing cannot be used, as we need additional parts
 -- of the state saved and restored.
 parseFromString :: OrgParser a -> String -> OrgParser a
@@ -252,35 +232,6 @@ parseFromString parser str' = do
   result <- P.parseFromString parser str'
   updateState $ \s -> s{ orgStateLastPreCharPos = oldLastPreCharPos }
   return result
-
-
---
--- Adaptions and specializations of parsing utilities
---
-
-newtype F a = F { unF :: Reader OrgParserState a
-                } deriving (Monad, Applicative, Functor)
-
-runF :: F a -> OrgParserState -> a
-runF = runReader . unF
-
-askF :: F OrgParserState
-askF = F ask
-
-asksF :: (OrgParserState -> a) -> F a
-asksF f = F $ asks f
-
-instance Monoid a => Monoid (F a) where
-  mempty = return mempty
-  mappend = liftM2 mappend
-  mconcat = fmap mconcat . sequence
-
-trimInlinesF :: F Inlines -> F Inlines
-trimInlinesF = liftM trimInlines
-
-returnF :: a -> OrgParser (F a)
-returnF = return . return
-
 
 -- | Like @Text.Parsec.Char.newline@, but causes additional state changes.
 newline :: OrgParser Char
@@ -691,8 +642,9 @@ optionLine :: OrgParser ()
 optionLine = try $ do
   key <- metaKey
   case key of
-    "link" -> parseLinkFormat >>= uncurry addLinkFormat
-    _      -> mzero
+    "link"    -> parseLinkFormat >>= uncurry addLinkFormat
+    "options" -> () <$ sepBy spaces exportSetting
+    _         -> mzero
 
 parseLinkFormat :: OrgParser ((String, String -> String))
 parseLinkFormat = try $ do
@@ -1561,7 +1513,9 @@ subOrSuperExpr = try $
  where enclosing (left, right) s = left : s ++ [right]
 
 simpleSubOrSuperString :: OrgParser String
-simpleSubOrSuperString = try $
+simpleSubOrSuperString = try $ do
+  state <- getState
+  guard . exportSubSuperscripts . orgStateExportSettings $ state
   choice [ string "*"
          , mappend <$> option [] ((:[]) <$> oneOf "+-")
                    <*> many1 alphaNum
