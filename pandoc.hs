@@ -52,8 +52,13 @@ import Data.Char ( toLower, toUpper )
 import Data.List ( delete, intercalate, isPrefixOf, isSuffixOf, sort )
 import System.Directory ( getAppUserDataDirectory, findExecutable,
                           doesFileExist, Permissions(..), getPermissions )
-import System.Process ( shell, CreateProcess(..), createProcess_,
+import System.Process ( shell, CreateProcess(..),
                         waitForProcess, StdStream(CreatePipe) )
+#if MIN_VERSION_process(1,2,1)
+import System.Process ( createProcess_ )
+#else
+import System.Process.Internals ( createProcess_ )
+#endif
 import System.IO ( stdout, stderr, hClose )
 import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
