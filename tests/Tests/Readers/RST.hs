@@ -94,6 +94,35 @@ tests = [ "line block with blank line" =:
                    ("A-1-B_2_C:3:D+4+E.5.F_\n\n" ++
                    ".. _A-1-B_2_C:3:D+4+E.5.F: https://example.com\n") =?>
                    para (link "https://example.com" "" "A-1-B_2_C:3:D+4+E.5.F")
+        , "Code directive with class and number-lines" =: unlines
+            [ ".. code::python"
+            , "   :number-lines: 34"
+            , "   :class: class1 class2 class3"
+            , ""
+            , "  def func(x):"
+            , "    return y"
+            ]  =?>
+              ( doc $ codeBlockWith
+                  ( ""
+                  , ["sourceCode", "python", "numberLines", "class1", "class2", "class3"]
+                  , [ ("startFrom", "34") ]
+                  )
+                  "def func(x):\n  return y"
+              )
+        , "Code directive with number-lines, no line specified" =: unlines
+            [ ".. code::python"
+            , "   :number-lines: "
+            , ""
+            , "  def func(x):"
+            , "    return y"
+            ]  =?>
+              ( doc $ codeBlockWith
+                  ( ""
+                  , ["sourceCode", "python", "numberLines"]
+                  , [ ("startFrom", "") ]
+                  )
+                  "def func(x):\n  return y"
+              )
         , testGroup "literal / line / code blocks"
           [ "indented literal block" =: unlines
             [ "::"
