@@ -68,8 +68,6 @@ import           Text.Pandoc.Parsing ( HasHeaderMap(..)
 type OrgNoteRecord = (String, F Blocks)
 -- | Table of footnotes
 type OrgNoteTable = [OrgNoteRecord]
--- | Map of org block attributes (e.g. LABEL, CAPTION, NAME, etc)
-type OrgBlockAttributes = M.Map String String
 -- | Map of functions for link transformations.  The map key is refers to the
 -- link-type, the corresponding function transforms the given link string.
 type OrgLinkFormatters = M.Map String (String -> String)
@@ -84,7 +82,6 @@ data ExportSettings = ExportSettings
 data OrgParserState = OrgParserState
   { orgStateOptions              :: ReaderOptions
   , orgStateAnchorIds            :: [String]
-  , orgStateBlockAttributes      :: OrgBlockAttributes
   , orgStateEmphasisCharStack    :: [Char]
   , orgStateEmphasisNewlines     :: Maybe Int
   , orgStateExportSettings       :: ExportSettings
@@ -140,7 +137,6 @@ defaultOrgParserState :: OrgParserState
 defaultOrgParserState = OrgParserState
   { orgStateOptions = def
   , orgStateAnchorIds = []
-  , orgStateBlockAttributes = M.empty
   , orgStateEmphasisCharStack = []
   , orgStateEmphasisNewlines = Nothing
   , orgStateExportSettings = def
