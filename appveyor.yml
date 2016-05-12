@@ -8,8 +8,8 @@ environment:
 cache:
   - "c:\\sr" # stack root, short paths == fewer problems
   - '%LOCALAPPDATA%\Programs\stack' # even less to install...
-    
-build: off
+
+# build: off # this disables automatic builds
 
 install:
   - curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
@@ -30,7 +30,8 @@ test_script:
   - echo "" | stack --no-terminal test
 
 after_test:
-  - ps: 7z a "pandoc.zip" "$(.\\stack.exe path --local-install-root)\\bin\\pandoc*.exe"
+  - ps: |
+      7z a pandoc.zip $(.\stack.exe path --local-install-root)\bin\pandoc*.exe
 
 artifacts:
   - path: pandoc.zip
