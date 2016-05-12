@@ -1,19 +1,37 @@
-cache:
-- "c:\\sr" # stack root, short paths == fewer problems
-
-build: off
-
-before_test:
-- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
-- 7z x stack.zip stack.exe
-
 clone_folder: "c:\\stack"
 environment:
   global:
     STACK_ROOT: "c:\\sr"
+    STACK_YAML: "c:\\stack\\windows\\stack-appveyor.yaml"
+
+
+cache:
+  - "c:\\sr" # stack root, short paths == fewer problems
+  - '%LOCALAPPDATA%\Programs\stack' # even less to install...
+    
+build: off
+
+install:
+  - curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
+  - 7z x stack.zip stack.exe
+  - stack setup > nul
+
+before_test:
+  # the stack install already fails without the templates...
+  - git submodule update --init
+  # set PATH to where the hsb2hs binary is copied to
+  - cmd: set "PATH=%PATH%;%APPDATA%\\local\\bin"
+  - stack install hsb2hs
+
 
 test_script:
-- stack setup > nul
-# The ugly echo "" hack is to avoid complaints about 0 being an invalid file
-# descriptor
-- echo "" | stack --no-terminal test
+  # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
+  # descriptor
+  - echo "" | stack --no-terminal test
+
+after_test:
+  - ps: 7z a "pandoc.zip" "$(.\\stack.exe path --local-install-root)\\bin\\pandoc*.exe"
+
+artifacts:
+  - path: pandoc.zip
+    name: exe

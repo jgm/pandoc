@@ -1,0 +1,20 @@
+flags:
+  pandoc:
+    trypandoc: false
+    https: true
+    embed_data_files: true
+    old-locale: false
+    network-uri: true
+packages:
+- '..'
+extra-deps:
+- 'hsb2hs-0.3.1'
+- 'texmath-0.8.6.2'
+- 'data-default-0.6.0'
+- 'data-default-instances-base-0.1.0'
+- 'preprocessor-tools-1.0.1'
+# to compile against aeson 0.11.0.0:
+# - 'aeson-0.11.0.0'
+# - 'fail-4.9.0.0'
+# - 'pandoc-types-1.16.1'
+resolver: lts-5.8
