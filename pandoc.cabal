@@ -425,8 +425,7 @@ Executable pandoc
                  aeson >= 0.7.0.5 && < 0.12,
                  yaml >= 0.8.8.2 && < 0.9,
                  containers >= 0.1 && < 0.6,
-                 HTTP >= 4000.0.5 && < 4000.4,
-                 process >= 1.0 && < 1.5
+                 HTTP >= 4000.0.5 && < 4000.4
   if flag(network-uri)
      Build-Depends: network-uri >= 2.6 && < 2.7, network >= 2.6
   else
