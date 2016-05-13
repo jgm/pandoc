@@ -52,14 +52,8 @@ import Data.Char ( toLower, toUpper )
 import Data.List ( delete, intercalate, isPrefixOf, isSuffixOf, sort )
 import System.Directory ( getAppUserDataDirectory, findExecutable,
                           doesFileExist, Permissions(..), getPermissions )
-import System.Process ( shell, CreateProcess(..),
-                        waitForProcess, StdStream(CreatePipe) )
-#if MIN_VERSION_process(1,2,1)
-import System.Process ( createProcess_ )
-#else
-import System.Process.Internals ( createProcess_ )
-#endif
-import System.IO ( stdout, stderr, hClose )
+import System.Process ( readProcessWithExitCode )
+import System.IO ( stdout, stderr )
 import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
@@ -1408,8 +1402,11 @@ convertWithOpts opts args = do
                               _ | html5Output   -> "wkhtmltopdf"
                               _                 -> latexEngine
               -- check for pdf creating program
-              progExists <- checkProg pdfprog
-              when (not progExists) $
+              (ec,_,_) <- E.catch
+                          (readProcessWithExitCode pdfprog ["--version"] "")
+                          (\(_ :: E.SomeException) ->
+                              return (ExitFailure 1,"",""))
+              when (ec /= ExitSuccess) $
                    err 41 $ pdfprog ++ " not found. " ++
                      pdfprog ++ " is needed for pdf output."
 
@@ -1431,22 +1428,3 @@ convertWithOpts opts args = do
                 handleEntities = if htmlFormat && ascii
                                     then toEntities
                                     else id
-
--- Check for existence of prog by doing prog --version.
-checkProg :: String -> IO Bool
-checkProg "" = return False
-checkProg prog = E.handle handleErr $ do
-  (_,Just o,Just e,p) <- createProcess_ "system"
-               (shell (prog ++ " --version")){
-                     delegate_ctlc = True,
-                     std_out = CreatePipe,
-                     std_err = CreatePipe
-                     }
-  ec <- waitForProcess p
-  hClose o
-  hClose e
-  if ec == ExitSuccess
-     then return True
-     else return False
- where handleErr :: E.SomeException -> IO Bool
-       handleErr _ = return False
