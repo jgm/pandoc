@@ -5,6 +5,11 @@ flags:
     embed_data_files: true
     old-locale: false
     network-uri: true
+  pandoc-citeproc:
+    bibutils: true
+    embed_data_files: true
+  texmath:
+    network-uri: true
 packages:
 - '..'
 extra-deps:
