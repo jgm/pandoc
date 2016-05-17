@@ -14,6 +14,7 @@ import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Options ( ReaderOptions(..), readerTrace)
 import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
+import Network.URI (unEscapeString)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Compat.Except (MonadError, throwError, runExcept, Except)
 import Text.Pandoc.Compat.Monoid ((<>))
@@ -74,14 +75,15 @@ archiveToEPUB os archive = do
       let docSpan = B.doc $ B.para $ B.spanWith (takeFileName path, [], []) mempty
       return $ docSpan <> doc
     mimeToReader :: MonadError PandocError m => MimeType -> FilePath -> FilePath -> m Pandoc
-    mimeToReader "application/xhtml+xml" (normalise -> root) (normalise -> path) = do
+    mimeToReader "application/xhtml+xml" (unEscapeString -> root)
+                                         (unEscapeString -> path) = do
       fname <- findEntryByPathE (root </> path) archive
       html <- either throwError return .
                 readHtml os' .
                   UTF8.toStringLazy $
                     fromEntry fname
       return $ fixInternalReferences path html
-    mimeToReader s _ path
+    mimeToReader s _ (unEscapeString -> path)
       | s `elem` imageMimes = return $ imageToPandoc path
       | otherwise = return $ mempty
 
