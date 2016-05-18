@@ -37,8 +37,9 @@ import           Text.Pandoc.Error
 import           Text.Pandoc.Options
 import qualified Text.Pandoc.Parsing as P
 import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
-                                            , newline, orderedListMarker
-                                            , parseFromString, blanklines
+                                            , anyLine, blanklines, newline
+                                            , orderedListMarker
+                                            , parseFromString
                                             )
 import           Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import           Text.Pandoc.Readers.Org.ParserState
@@ -247,6 +248,12 @@ blanklines =
        <* updateLastPreCharPos
        <* updateLastForbiddenCharPos
 
+anyLine :: OrgParser String
+anyLine =
+  P.anyLine
+    <* updateLastPreCharPos
+    <* updateLastForbiddenCharPos
+
 -- | Succeeds when we're in list context.
 inList :: OrgParser ()
 inList = do
@@ -304,7 +311,7 @@ stringyMetaAttribute attrCheck = try $ do
   attrName <- map toUpper <$> many1Till nonspaceChar (char ':')
   guard $ attrCheck attrName
   skipSpaces
-  attrValue <- manyTill anyChar newline
+  attrValue <- anyLine
   return (attrName, attrValue)
 
 blockAttributes :: OrgParser BlockAttributes
