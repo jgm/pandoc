@@ -301,8 +301,9 @@ block = choice [ mempty <$ blanklines
 
 -- | Attributes that may be added to figures (like a name or caption).
 data BlockAttributes = BlockAttributes
-  { blockAttrName    :: Maybe String
-  , blockAttrCaption :: Maybe (F Inlines)
+  { blockAttrName      :: Maybe String
+  , blockAttrCaption   :: Maybe (F Inlines)
+  , blockAttrKeyValues :: [(String, String)]
   }
 
 stringyMetaAttribute :: (String -> Bool) -> OrgParser (String, String)
@@ -318,21 +319,25 @@ blockAttributes :: OrgParser BlockAttributes
 blockAttributes = try $ do
   kv <- many (stringyMetaAttribute attrCheck)
   let caption = foldl' (appendValues "CAPTION") Nothing kv
+  let kvAttrs = foldl' (appendValues "ATTR_HTML") Nothing kv
   let name    = lookup "NAME" kv
   caption' <- maybe (return Nothing)
                     (fmap Just . parseFromString parseInlines)
                     caption
+  kvAttrs' <- parseFromString keyValues . (++ "\n") $ fromMaybe mempty kvAttrs
   return $ BlockAttributes
            { blockAttrName = name
            , blockAttrCaption = caption'
+           , blockAttrKeyValues = kvAttrs'
            }
  where
    attrCheck :: String -> Bool
    attrCheck attr =
      case attr of
-       "NAME"    -> True
-       "CAPTION" -> True
-       _         -> False
+       "NAME"      -> True
+       "CAPTION"   -> True
+       "ATTR_HTML" -> True
+       _           -> False
 
    appendValues :: String -> Maybe String -> (String, String) -> Maybe String
    appendValues attrName accValue (key, value) =
@@ -341,6 +346,21 @@ blockAttributes = try $ do
      else case accValue of
             Just acc -> Just $ acc ++ ' ':value
             Nothing  -> Just value
+
+keyValues :: OrgParser [(String, String)]
+keyValues = try $
+  manyTill ((,) <$> key <*> value) newline
+ where
+   key :: OrgParser String
+   key = try $ skipSpaces *> char ':' *> many1 nonspaceChar
+
+   value :: OrgParser String
+   value = skipSpaces *> manyTill anyChar endOfValue
+
+   endOfValue :: OrgParser ()
+   endOfValue =
+     lookAhead $ (() <$ try (many1 spaceChar <* key))
+              <|> () <$ P.newline
 
 
 --
@@ -588,7 +608,6 @@ drawerEnd = try $
 -- Figures
 --
 
-
 -- | Figures (Image on a line by itself, preceded by name and/or caption)
 figure :: OrgParser (F Blocks)
 figure = try $ do
@@ -598,7 +617,9 @@ figure = try $ do
   guard (isImageFilename src)
   let figName    = fromMaybe mempty $ blockAttrName figAttrs
   let figCaption = fromMaybe mempty $ blockAttrCaption figAttrs
-  return $ (B.para . B.image src (withFigPrefix figName) <$> figCaption)
+  let figKeyVals = blockAttrKeyValues figAttrs
+  let attr       = (mempty, mempty, figKeyVals)
+  return $ (B.para . B.imageWith attr src (withFigPrefix figName) <$> figCaption)
  where
    withFigPrefix cs =
      if "fig:" `isPrefixOf` cs
