@@ -284,7 +284,7 @@ block = choice [ mempty <$ blanklines
                , orgBlock
                , figure
                , example
-               , drawer
+               , genericDrawer
                , specialLine
                , header
                , return <$> hline
@@ -582,26 +582,55 @@ exampleCode = B.codeBlockWith ("", ["example"], [])
 exampleLine :: OrgParser String
 exampleLine = try $ skipSpaces *> string ": " *> anyLine
 
--- Drawers for properties or a logbook
-drawer :: OrgParser (F Blocks)
-drawer = try $ do
+
+--
+-- Drawers
+--
+
+-- | A generic drawer which has no special meaning for org-mode.
+genericDrawer :: OrgParser (F Blocks)
+genericDrawer = try $ do
   drawerStart
   manyTill drawerLine (try drawerEnd)
   return mempty
 
 drawerStart :: OrgParser String
 drawerStart = try $
-  skipSpaces *> drawerName <* skipSpaces <* P.newline
- where drawerName = try $  char ':' *> validDrawerName <* char ':'
-       validDrawerName =  stringAnyCase "PROPERTIES"
-                          <|> stringAnyCase "LOGBOOK"
+  skipSpaces *> drawerName <* skipSpaces <* newline
+ where drawerName = char ':' *> manyTill nonspaceChar (char ':')
 
 drawerLine :: OrgParser String
-drawerLine = try anyLine
+drawerLine = anyLine
 
 drawerEnd :: OrgParser String
 drawerEnd = try $
-  skipSpaces *> stringAnyCase ":END:" <* skipSpaces <* P.newline
+  skipSpaces *> stringAnyCase ":END:" <* skipSpaces <* newline
+
+-- | Read a :PROPERTIES: drawer and return the key/value pairs contained
+-- within.
+propertiesDrawer :: OrgParser [(String, String)]
+propertiesDrawer = try $ do
+  drawerType <- drawerStart
+  guard $ map toUpper drawerType == "PROPERTIES"
+  manyTill property (try drawerEnd)
+ where
+   property :: OrgParser (String, String)
+   property = try $ (,) <$> key <*> value
+
+   key :: OrgParser String
+   key = try $ skipSpaces *> char ':' *> many1Till nonspaceChar (char ':')
+
+   value :: OrgParser String
+   value = try $ skipSpaces *> manyTill anyChar (try $ skipSpaces *> P.newline)
+
+keyValuesToAttr :: [(String, String)] -> Attr
+keyValuesToAttr kvs =
+  let
+    id'  = fromMaybe mempty . lookup "id"    $ kvs
+    cls  = fromMaybe mempty . lookup "class" $ kvs
+    kvs' = filter (flip notElem ["id", "class"] . fst) kvs
+  in
+    (id', words cls, kvs')
 
 
 --
@@ -700,29 +729,28 @@ parseFormat = try $ do
 -- | Headers
 header :: OrgParser (F Blocks)
 header = try $ do
-  level <- headerStart
-  title <- manyTill inline (lookAhead headerEnd)
-  tags <- headerEnd
-  let inlns = trimInlinesF . mconcat $ title <> map tagToInlineF tags
-  st <- getState
-  let inlines = runF inlns st
-  attr <- registerHeader nullAttr inlines
+  level    <- headerStart
+  title    <- manyTill inline (lookAhead $ optional headerTags <* P.newline)
+  tags     <- option [] headerTags
+  newline
+  propAttr <- option nullAttr (keyValuesToAttr <$> propertiesDrawer)
+  inlines  <- runF (tagTitle title tags) <$> getState
+  attr     <- registerHeader propAttr inlines
   return $ pure (B.headerWith attr level inlines)
  where
+   tagTitle :: [F Inlines] -> [String] -> F Inlines
+   tagTitle title tags = trimInlinesF . mconcat $ title <> map tagToInlineF tags
+
    tagToInlineF :: String -> F Inlines
    tagToInlineF t = return $ B.spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
 
-headerEnd :: OrgParser [String]
-headerEnd = option [] headerTags <* newline
-
-headerTags :: OrgParser [String]
-headerTags = try $
-  skipSpaces
-  *> char ':'
-  *> many1 tag
-  <* skipSpaces
- where tag = many1 (alphaNum <|> oneOf "@%#_")
-             <* char ':'
+   headerTags :: OrgParser [String]
+   headerTags = try $
+     let tag = many1 (alphaNum <|> oneOf "@%#_") <* char ':'
+     in skipSpaces
+          *> char ':'
+          *> many1 tag
+          <* skipSpaces
 
 headerStart :: OrgParser Int
 headerStart = try $

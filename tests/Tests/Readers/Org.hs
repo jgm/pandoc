@@ -412,17 +412,17 @@ tests =
                   ] =?>
           para "Before" <> para "After"
 
-      , "Drawer start is the only text in first line of a drawer" =:
+      , "Drawer markers must be the only text in the line" =:
           unlines [ "  :LOGBOOK: foo"
-                  , "  :END:"
+                  , "  :END: bar"
                   ] =?>
-          para (":LOGBOOK:" <> space <> "foo" <> softbreak <> ":END:")
+          para (":LOGBOOK: foo" <> softbreak <> ":END: bar")
 
-      , "Drawers with unknown names are just text" =:
+      , "Drawers can be arbitrary" =:
           unlines [ ":FOO:"
                   , ":END:"
                   ] =?>
-          para (":FOO:" <> softbreak <> ":END:")
+          (mempty::Blocks)
 
       , "Anchor reference" =:
           unlines [ "<<link-here>> Target."
@@ -596,6 +596,15 @@ tests =
           mconcat [ headerWith ("exported", [], []) 1 "Exported"
                   , headerWith ("but-this-is", [], []) 2 "But this is"
                   ]
+
+      , "Preferences are treated as header attributes" =:
+          unlines [ "* foo"
+                  , "  :PROPERTIES:"
+                  , "  :id: fubar"
+                  , "  :bar: baz"
+                  , "  :END:"
+                  ] =?>
+          headerWith ("fubar", [], [("bar", "baz")]) 1 "foo"
 
       , "Paragraph starting with an asterisk" =:
           "*five" =?>
