@@ -667,6 +667,17 @@ tests =
           para (image "the-red-queen.jpg" "fig:redqueen"
                       "Used as a metapher in evolutionary biology.")
 
+      , "Figure with HTML attributes" =:
+          unlines [ "#+CAPTION: mah brain just explodid"
+                  , "#+NAME: lambdacat"
+                  , "#+ATTR_HTML: :style color: blue :role button"
+                  , "[[lambdacat.jpg]]"
+                  ] =?>
+          let kv = [("style", "color: blue"), ("role", "button")]
+              name = "fig:lambdacat"
+              caption = "mah brain just explodid"
+          in para (imageWith (mempty, mempty, kv) "lambdacat.jpg" name caption)
+
       , "Footnote" =:
           unlines [ "A footnote[1]"
                   , ""
