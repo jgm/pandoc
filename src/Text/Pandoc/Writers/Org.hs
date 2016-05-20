@@ -137,10 +137,13 @@ blockToOrg (RawBlock f str) | isRawFormat f =
   return $ text str
 blockToOrg (RawBlock _ _) = return empty
 blockToOrg HorizontalRule = return $ blankline $$ "--------------" $$ blankline
-blockToOrg (Header level _ inlines) = do
+blockToOrg (Header level attr inlines) = do
   contents <- inlineListToOrg inlines
   let headerStr = text $ if level > 999 then " " else replicate level '*'
-  return $ headerStr <> " " <> contents <> blankline
+  let drawerStr = if attr == nullAttr
+                  then empty
+                  else cr <> nest (level + 1) (propertiesDrawer attr)
+  return $ headerStr <> " " <> contents <> drawerStr <> blankline
 blockToOrg (CodeBlock (_,classes,_) str) = do
   opts <- stOptions <$> get
   let tabstop = writerTabStop opts
@@ -229,6 +232,22 @@ definitionListItemToOrg (label, defs) = do
   label' <- inlineListToOrg label
   contents <- liftM vcat $ mapM blockListToOrg defs
   return $ hang 3 "-  " $ label' <> " :: " <> (contents <> cr)
+
+-- | Convert list of key/value pairs to Org :PROPERTIES: drawer.
+propertiesDrawer :: Attr -> Doc
+propertiesDrawer (ident, classes, kv) =
+  let
+    drawerStart = text ":PROPERTIES:"
+    drawerEnd   = text ":END:"
+    kv'  = if (classes == mempty) then kv  else ("class", unwords classes):kv
+    kv'' = if (ident == mempty)   then kv' else ("id", ident):kv'
+    properties = vcat $ map kvToOrgProperty kv''
+  in
+    drawerStart <> cr <> properties <> cr <> drawerEnd
+ where
+   kvToOrgProperty :: (String, String) -> Doc
+   kvToOrgProperty (key, value) =
+     text ":" <> text key <> text ": " <> text value <> cr
 
 -- | Convert list of Pandoc block elements to Org.
 blockListToOrg :: [Block]       -- ^ List of block elements
