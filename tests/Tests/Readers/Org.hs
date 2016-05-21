@@ -600,7 +600,7 @@ tests =
       , "Preferences are treated as header attributes" =:
           unlines [ "* foo"
                   , "  :PROPERTIES:"
-                  , "  :id: fubar"
+                  , "  :custom_id: fubar"
                   , "  :bar: baz"
                   , "  :END:"
                   ] =?>

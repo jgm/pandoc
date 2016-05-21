@@ -239,8 +239,8 @@ propertiesDrawer (ident, classes, kv) =
   let
     drawerStart = text ":PROPERTIES:"
     drawerEnd   = text ":END:"
-    kv'  = if (classes == mempty) then kv  else ("class", unwords classes):kv
-    kv'' = if (ident == mempty)   then kv' else ("id", ident):kv'
+    kv'  = if (classes == mempty) then kv  else ("CLASS", unwords classes):kv
+    kv'' = if (ident == mempty)   then kv' else ("CUSTOM_ID", ident):kv'
     properties = vcat $ map kvToOrgProperty kv''
   in
     drawerStart <> cr <> properties <> cr <> drawerEnd

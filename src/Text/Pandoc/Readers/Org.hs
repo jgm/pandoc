@@ -626,9 +626,10 @@ propertiesDrawer = try $ do
 keyValuesToAttr :: [(String, String)] -> Attr
 keyValuesToAttr kvs =
   let
-    id'  = fromMaybe mempty . lookup "id"    $ kvs
-    cls  = fromMaybe mempty . lookup "class" $ kvs
-    kvs' = filter (flip notElem ["id", "class"] . fst) kvs
+    lowerKvs = map (\(k, v) -> (map toLower k, v)) kvs
+    id'  = fromMaybe mempty . lookup "custom_id" $ lowerKvs
+    cls  = fromMaybe mempty . lookup "class"     $ lowerKvs
+    kvs' = filter (flip notElem ["custom_id", "class"] . fst) lowerKvs
   in
     (id', words cls, kvs')
 
