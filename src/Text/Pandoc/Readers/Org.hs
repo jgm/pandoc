@@ -29,27 +29,23 @@ Conversion of org-mode formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Org ( readOrg ) where
 
+import           Text.Pandoc.Readers.Org.ParserState
+import           Text.Pandoc.Readers.Org.Parsing
+
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines, Blocks )
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Compat.Monoid ((<>))
 import           Text.Pandoc.Error
 import           Text.Pandoc.Options
-import qualified Text.Pandoc.Parsing as P
-import           Text.Pandoc.Parsing hiding ( F, unF, askF, asksF, runF
-                                            , anyLine, blanklines, newline
-                                            , orderedListMarker
-                                            , parseFromString
-                                            )
 import           Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
-import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Shared (compactify', compactify'DL)
 import           Text.TeXMath (readTeX, writePandoc, DisplayType(..))
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
 import           Control.Arrow (first)
 import           Control.Monad (foldM, guard, mplus, mzero, when)
-import           Control.Monad.Reader ( Reader, runReader )
+import           Control.Monad.Reader ( runReader )
 import           Data.Char (isAlphaNum, isSpace, toLower, toUpper)
 import           Data.List ( foldl', intersperse, isPrefixOf, isSuffixOf )
 import qualified Data.Map as M
@@ -63,23 +59,12 @@ readOrg :: ReaderOptions -- ^ Reader options
         -> Either PandocError Pandoc
 readOrg opts s = flip runReader def $ readWithM parseOrg def{ orgStateOptions = opts } (s ++ "\n\n")
 
--- | The parser used to read org files.
-type OrgParser = ParserT [Char] OrgParserState (Reader OrgParserLocal)
-
 --
 -- Functions acting on the parser state
 --
 recordAnchorId :: String -> OrgParser ()
 recordAnchorId i = updateState $ \s ->
   s{ orgStateAnchorIds = i : (orgStateAnchorIds s) }
-
-updateLastForbiddenCharPos :: OrgParser ()
-updateLastForbiddenCharPos = getPosition >>= \p ->
-  updateState $ \s -> s{ orgStateLastForbiddenCharPos = Just p}
-
-updateLastPreCharPos :: OrgParser ()
-updateLastPreCharPos = getPosition >>= \p ->
-  updateState $ \s -> s{ orgStateLastPreCharPos = Just p}
 
 pushToInlineCharStack :: Char -> OrgParser ()
 pushToInlineCharStack c = updateState $ \s ->
@@ -259,57 +244,6 @@ isHeaderLevelLowerEq n blk =
 
 
 --
--- Adaptions and specializations of parsing utilities
---
-
--- The version Text.Pandoc.Parsing cannot be used, as we need additional parts
--- of the state saved and restored.
-parseFromString :: OrgParser a -> String -> OrgParser a
-parseFromString parser str' = do
-  oldLastPreCharPos <- orgStateLastPreCharPos <$> getState
-  updateState $ \s -> s{ orgStateLastPreCharPos = Nothing }
-  result <- P.parseFromString parser str'
-  updateState $ \s -> s{ orgStateLastPreCharPos = oldLastPreCharPos }
-  return result
-
--- | Like @Text.Parsec.Char.newline@, but causes additional state changes.
-newline :: OrgParser Char
-newline =
-  P.newline
-       <* updateLastPreCharPos
-       <* updateLastForbiddenCharPos
-
--- | Like @Text.Parsec.Char.blanklines@, but causes additional state changes.
-blanklines :: OrgParser [Char]
-blanklines =
-  P.blanklines
-       <* updateLastPreCharPos
-       <* updateLastForbiddenCharPos
-
-anyLine :: OrgParser String
-anyLine =
-  P.anyLine
-    <* updateLastPreCharPos
-    <* updateLastForbiddenCharPos
-
--- | Succeeds when we're in list context.
-inList :: OrgParser ()
-inList = do
-  ctx <- orgStateParserContext <$> getState
-  guard (ctx == ListItemState)
-
--- | Parse in different context
-withContext :: ParserContext -- ^ New parser context
-            -> OrgParser a   -- ^ Parser to run in that context
-            -> OrgParser a
-withContext context parser = do
-  oldContext <- orgStateParserContext <$> getState
-  updateState $ \s -> s{ orgStateParserContext = context }
-  result <- parser
-  updateState $ \s -> s{ orgStateParserContext = oldContext }
-  return result
-
---
 -- parsing blocks
 --
 
@@ -398,7 +332,7 @@ keyValues = try $
    endOfValue :: OrgParser ()
    endOfValue =
      lookAhead $ (() <$ try (many1 spaceChar <* key))
-              <|> () <$ P.newline
+              <|> () <$ newline
 
 
 --
@@ -675,7 +609,7 @@ propertiesDrawer = try $ do
    key = try $ skipSpaces *> char ':' *> many1Till nonspaceChar (char ':')
 
    value :: OrgParser String
-   value = try $ skipSpaces *> manyTill anyChar (try $ skipSpaces *> P.newline)
+   value = try $ skipSpaces *> manyTill anyChar (try $ skipSpaces *> newline)
 
 keyValuesToAttr :: [(String, String)] -> Attr
 keyValuesToAttr kvs =
@@ -696,7 +630,7 @@ keyValuesToAttr kvs =
 figure :: OrgParser (F Blocks)
 figure = try $ do
   figAttrs <- blockAttributes
-  src <- skipSpaces *> selfTarget <* skipSpaces <* P.newline
+  src <- skipSpaces *> selfTarget <* skipSpaces <* newline
   guard . not . isNothing . blockAttrCaption $ figAttrs
   guard (isImageFilename src)
   let figName    = fromMaybe mempty $ blockAttrName figAttrs
@@ -785,7 +719,7 @@ parseFormat = try $ do
 header :: OrgParser (F Blocks)
 header = try $ do
   level    <- headerStart
-  title    <- manyTill inline (lookAhead $ optional headerTags <* P.newline)
+  title    <- manyTill inline (lookAhead $ optional headerTags <* newline)
   tags     <- option [] headerTags
   newline
   propAttr <- option nullAttr (keyValuesToAttr <$> propertiesDrawer)
@@ -1083,7 +1017,7 @@ definitionListItem parseMarkerGetLength = try $ do
   return $ (,) <$> term' <*> fmap (:[]) contents'
  where
    definitionMarker =
-     spaceChar *> string "::" <* (spaceChar <|> lookAhead P.newline)
+     spaceChar *> string "::" <* (spaceChar <|> lookAhead newline)
 
 
 -- parse raw text for one list item, excluding start marker and continuations
@@ -1559,7 +1493,7 @@ many1TillNOrLessNewlines n p end = try $
    nMoreLines k        cs = try $ (final k cs <|> rest k cs)
                                   >>= uncurry nMoreLines
    final _ cs = (\x -> (Nothing,      cs ++ x)) <$> try finalLine
-   rest  m cs = (\x -> (minus1 <$> m, cs ++ x ++ "\n")) <$> try (manyTill p P.newline)
+   rest  m cs = (\x -> (minus1 <$> m, cs ++ x ++ "\n")) <$> try (manyTill p newline)
    finalLine = try $ manyTill p end
    minus1 k = k - 1
    oneOrMore cs = guard (not $ null cs) *> return cs

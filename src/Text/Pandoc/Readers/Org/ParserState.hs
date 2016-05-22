@@ -29,9 +29,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Define the Org-mode parser state.
 -}
 module Text.Pandoc.Readers.Org.ParserState
-  ( OrgParserState(..)
-  , OrgParserLocal(..)
+  ( OrgParserState (..)
+  , OrgParserLocal (..)
   , OrgNoteRecord
+  , HasReaderOptions (..)
+  , HasQuoteContext (..)
   , F(..)
   , askF
   , asksF
@@ -183,6 +185,7 @@ setExportDrawers val es = es { exportDrawers = val }
 modifyExportSettings :: ExportSettingSetter a -> a -> OrgParserState -> OrgParserState
 modifyExportSettings setter val state =
   state { orgStateExportSettings = setter val . orgStateExportSettings $ state }
+
 
 --
 -- Parser state reader
