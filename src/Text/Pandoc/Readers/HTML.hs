@@ -707,7 +707,7 @@ pCloses tagtype = try $ do
        (TagOpen t' _) | t' `closes` tagtype -> return ()
        (TagClose "ul") | tagtype == "li" -> return ()
        (TagClose "ol") | tagtype == "li" -> return ()
-       (TagClose "dl") | tagtype == "li" -> return ()
+       (TagClose "dl") | tagtype == "dd" -> return ()
        (TagClose "table") | tagtype == "td" -> return ()
        (TagClose "table") | tagtype == "tr" -> return ()
        _ -> mzero
