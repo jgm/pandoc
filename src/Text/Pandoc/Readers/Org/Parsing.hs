@@ -34,10 +34,14 @@ module Text.Pandoc.Readers.Org.Parsing
   , blanklines
   , newline
   , parseFromString
+  , skipSpaces1
   , inList
   , withContext
   , updateLastForbiddenCharPos
   , updateLastPreCharPos
+  , orgArgKey
+  , orgArgWord
+  , orgArgWordChar
   -- * Re-exports from Text.Pandoc.Parser
   , ParserContext (..)
   , many1Till
@@ -133,6 +137,10 @@ parseFromString parser str' = do
   updateState $ \s -> s{ orgStateLastPreCharPos = oldLastPreCharPos }
   return result
 
+-- | Skip one or more tab or space characters.
+skipSpaces1 :: OrgParser ()
+skipSpaces1 = skipMany1 spaceChar
+
 -- | Like @Text.Parsec.Char.newline@, but causes additional state changes.
 newline :: OrgParser Char
 newline =
@@ -180,3 +188,14 @@ updateLastForbiddenCharPos = getPosition >>= \p ->
 updateLastPreCharPos :: OrgParser ()
 updateLastPreCharPos = getPosition >>= \p ->
   updateState $ \s -> s{ orgStateLastPreCharPos = Just p}
+
+orgArgKey :: OrgParser String
+orgArgKey = try $
+  skipSpaces *> char ':'
+             *> many1 orgArgWordChar
+
+orgArgWord :: OrgParser String
+orgArgWord = many1 orgArgWordChar
+
+orgArgWordChar :: OrgParser Char
+orgArgWordChar = alphaNum <|> oneOf "-_"
