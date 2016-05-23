@@ -1,3 +1,197 @@
+pandoc (1.17.1)
+
+* New output format: `docbook5` (Ivo Clarysse).
+
+* `Text.Pandoc.Options`: Add `writerDocBook5` to `WriterOptions`
+  (API change).
+
+* Org writer:
+
+  + Add :PROPERTIES: drawer support (Albert Krewinkel, #1962).
+    This allows header attributes to be added to org documents in the form
+    of `:PROPERTIES:` drawers.  All available attributes are stored as
+    key/value pairs.  This reflects the way the org reader handles
+    `:PROPERTIES:` blocks.
+  + Add drawer capability (Carlos Sosa).  For the implementation of the Drawer
+    element in the Org Writer, we make use of a generic Block container with
+    attributes.  The presence of a `drawer` class defines that the `Div`
+    constructor is a drawer. The first class defines the drawer name to use.
+    The key-value list in the attributes defines the keys to add inside the
+    Drawer.  Lastly, the list of Block elements contains miscellaneous blocks
+    elements to add inside of the Drawer.
+  + Use `CUSTOM_ID` in properties (Albert Krewinkel).  The `ID` property is
+    reserved for internal use by Org-mode and should not be used.
+    The `CUSTOM_ID` property is to be used instead, it is converted to the
+    `ID` property for certain export format.
+
+* LaTeX writer:
+
+  + Ignore `--incremental` unless output format is beamer (#2843).
+  + Fix polyglossia to babel env mapping (Mauro Bieg, #2728).
+    Allow for optional argument in square brackets.
+  + Recognize `la-x-classic` as Classical Latin (Andrew Dunning).
+    This allows one to access the hyphenation patterns in CTAN's
+    hyph-utf8.
+  + Add missing languages from hyph-utf8 (Andrew Dunning).
+  + Improve use of `\strut` with `\minipage` inside tables
+    (Jose Luis Duran).  This improves spacing in multiline
+    tables.
+  + Use `{}` around options containing special chars (#2892).
+  + Avoid lazy `foldl`.
+  + Don't escape underscore in labels (#2921).  Previously they were
+    escaped as `ux5f`.
+
+* HTML writer: Ensure mathjax link is added when math appears in footnote
+  (#2881).  Previously if a document only had math in a footnote, the MathJax
+  link would not be added.
+
+* EPUB writer: set `navpage` variable on nav page.
+  This allows templates to treat it differently.
+
+* DocBook writer:
+
+  + Use docbook5 if `writerDocbook5` is set (Ivo Clarysse).
+  + Properly handle `ulink`/`link` (Ivo Clarysse).
+
+* EPUB reader: Unescape URIs in spine (#2924).
+
+* Docx Reader:
+
+  + Parse `moveTo` and `moveFrom` (Jesse Rosenthal).
+    `moveTo` and `moveFrom` are track-changes tags that are used when a
+    block of text is moved in the document. We now recognize these tags and
+    treat them the same as `insert` and `delete`, respectively. So,
+    `--track-changes=accept` will show the moved version, while
+    `--track-changes=reject` will show the original version.
+  + Tests for track-changes moving (Jesse Rosenthal).
+
+* ODT, EPUB, Docx readers: throw `PandocError` on unzip failure
+  (Jesse Rosenthal) Previously, `readDocx`, `readEPUB`, and `readOdt`
+  would error out if zip-archive failed. We change the archive extraction
+  step from `toArchive` to `toArchiveOrFail`, which returns an Either value.
+
+* Markdown, HTML readers:  be more forgiving about unescaped `&` in
+  HTML (#2410).  We are now more forgiving about parsing invalid HTML with
+  unescaped `&` as raw HTML.  (Previously any unescaped `&`
+  would cause pandoc not to recognize the string as raw HTML.)
+
+* Markdown reader:
+
+  + Fix pandoc title blocks with lines ending in 2 spaces (#2799).
+  + Added `-s` to markdown-reader-more test.
+
+* HTML reader: fixed bug in `pClose`.  This caused exponential parsing
+  behavior in documnets with unclosed tags in `dl`, `dd`, `dt`.
+
+* MediaWiki reader: Allow spaces before `!` in MediaWiki table header
+  (roblabla).
+
+* RST reader: Support `:class:` option for code block in RST reader
+  (Sidharth Kapur).
+
+* Org reader:
+
+  + Stop padding short table rows (Albert Krewinkel).
+    Emacs Org-mode doesn't add any padding to table rows.  The first
+    row (header or first body row) is used to determine the column count,
+    no other magic is performed.
+  + Refactor rows-to-table conversion (Albert Krewinkel).  This refactors
+    the codes conversing a list table lines to an org table ADT.
+    The old code was simplified and is now slightly less ugly.
+  + Fix handling of empty table cells, rows (Albert Krewinkel, #2616).
+    This fixes Org mode parsing of some corner cases regarding empty cells
+    and rows.  Empty cells weren't parsed correctly, e.g. `|||` should be
+    two empty cells, but would be parsed as a single cell containing a pipe
+    character.  Empty rows where parsed as alignment rows and dropped from
+    the output.
+  + Fix spacing after LaTeX-style symbols (Albert Krewinkel).
+    The org-reader was droping space after unescaped LaTeX-style symbol
+    commands: `\ForAll \Auml` resulted in `∀Ä` but should give `∀ Ä`
+    instead.  This seems to be because the LaTeX-reader treats the
+    command-terminating space as part of the command.  Dropping the trailing
+    space from the symbol-command fixes this issue.
+  + Print empty table rows (Albert Krewinkel).  Empty table rows should not
+    be dropped from the output, so row-height is always set to be at least 1.
+  + Move parser state into separate module (Albert Krewinkel).
+   The org reader code has become large and confusing.  Extracting smaller
+   parts into submodules should help to clean things up.
+  + Add support for sub/superscript export options (Albert Krewinkel).
+    Org-mode allows to specify export settings via `#+OPTIONS` lines.
+    Disabling simple sub- and superscripts is one of these export options,
+    this options is now supported.
+  + Parse but ignore export options (Albert Krewinkel). All known export
+    options are parsed but ignored.
+  + Refactor block attribute handling (Albert Krewinkel).
+    A parser state attribute was used to keep track of block attributes
+    defined in meta-lines.  Global state is undesirable, so block attributes
+    are no longer saved as part of the parser state.  Old functions and the
+    respective part of the parser state are removed.
+  + Use custom `anyLine` (Albert Krewinkel).  Additional state
+    changes need to be made after a newline is parsed, otherwise markup may
+    not be recognized correctly.  This fixes a bug where markup after
+    certain block-types would not be recognized.
+  + Add support for `ATTR_HTML` attributes (Albert Krewinkel, #1906).
+    Arbitrary key-value pairs can be added to some block types using a
+    `#+ATTR_HTML` line before the block.  Emacs Org-mode only includes these
+    when exporting to HTML, but since we cannot make this distinction here,
+    the attributes are always added.  The functionality is now supported
+    for figures.
+  + Add `:PROPERTIES:` drawer support (Albert Krewinkel, #1877).
+    Headers can have optional `:PROPERTIES:` drawers associated with them.
+    These drawers contain key/value pairs like the header's `id`.  The
+    reader adds all listed pairs to the header's attributes; `id` and
+    `class` attributes are handled specially to match the way `Attr` are
+    defined.  This also changes behavior of how drawers of unknown type
+    are handled.  Instead of including all unknown drawers, those are not
+    read/exported, thereby matching current Emacs behavior.
+  + Use `CUSTOM_ID` in properties (Albert Krewinkel).  See above on
+    Org writer changes.
+  + Respect drawer export setting (Albert Krewinkel).  The `d` export
+    option can be used to control which drawers are exported
+   and which are discarded.  Basic support for this option is added here.
+  + Ignore leading space in org code blocks (Emanuel Evans, #2862).
+    Also fix up tab handling for leading whitespace in code blocks.
+
+* Added `docbook5` template.
+
+* `--mathjax` improvements:
+
+  + Use new CommonHTML output for MathJax (updated default MathJax URL,
+    #2858).
+  + Change default mathjax setup to use `TeX-AMS_CHTML` configuration.
+    This is designed for cases where the input is always TeX and maximal
+    conformity with TeX is desired.  It seems to be smaller and load faster
+    than what we used before.  See #2858.
+  + Load the full MathJax config to maximize loading speed (KolenCheung).
+
+* Bumped upper version bounds to allow use of latest packages
+  and compilation with ghc 8.
+
+* Require texmath 0.8.6.2.  Closes several texmath-related bugs (#2775,
+  #2310, #2310, #2824).  This fixes behavior of roots, e.g.
+  `\sqrt[3]{x}`, and issues with sub/superscript positioning
+  and matrix column alignment in docx.
+
+* README:
+
+  + Clarified documentation of `implicit_header_references` (#2904).
+  + Improved documentation of `--columns` option.
+
+* Added appveyor setup, with artefacts (Jan Schulz).
+
+* stack.yaml versions: Use proper flags used for texmath, pandoc-citeproc.
+
+* LaTeX template: support for custom font families (vladipus).
+  Needed for correct polyglossia operation with Cyrillic fonts and perhaps
+  can find some other usages.  Example usage in YAML metadata:
+
+        fontfamilies:
+        - name: \cyrillicfont
+          font: Liberation Serif
+        - name: \cyrillicfonttt
+          options: Scale=MatchLowercase
+          font: Liberation
+
 pandoc (1.17.0.3)
 
   * LaTeX writer: Fixed position of label in figures (#2813).
