@@ -110,6 +110,19 @@ isRawFormat f =
 blockToOrg :: Block         -- ^ Block element
            -> State WriterState Doc
 blockToOrg Null = return empty
+blockToOrg (Div ("Drawer",drawer,kvs) bs) = do
+  contents <- blockListToOrg bs
+  let drawerNameTag = if null drawer
+                      then text ":PROPERTIES:"
+                      else ":" <> text (head drawer) <> ":"
+  let keys = vcat $ map (\(k,v) ->
+                       ":" <> text k <> ":"
+                       <> space <> text v) kvs
+  let drawerEndTag = text ":END:"
+  return $ drawerNameTag $$ cr $$ keys $$
+           blankline $$ contents $$
+           blankline $$ drawerEndTag $$
+           blankline
 blockToOrg (Div attrs bs) = do
   contents <- blockListToOrg bs
   let startTag = tagWithAttrs "div" attrs
