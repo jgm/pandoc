@@ -110,6 +110,17 @@ isRawFormat f =
 blockToOrg :: Block         -- ^ Block element
            -> State WriterState Doc
 blockToOrg Null = return empty
+blockToOrg (Div (_,classes@(cls:_),kvs) bs) | "drawer" `elem` classes = do
+  contents <- blockListToOrg bs
+  let drawerNameTag = ":" <> text cls <> ":"
+  let keys = vcat $ map (\(k,v) ->
+                       ":" <> text k <> ":"
+                       <> space <> text v) kvs
+  let drawerEndTag = text ":END:"
+  return $ drawerNameTag $$ cr $$ keys $$
+           blankline $$ contents $$
+           blankline $$ drawerEndTag $$
+           blankline
 blockToOrg (Div attrs bs) = do
   contents <- blockListToOrg bs
   let startTag = tagWithAttrs "div" attrs
@@ -239,8 +250,8 @@ propertiesDrawer (ident, classes, kv) =
   let
     drawerStart = text ":PROPERTIES:"
     drawerEnd   = text ":END:"
-    kv'  = if (classes == mempty) then kv  else ("class", unwords classes):kv
-    kv'' = if (ident == mempty)   then kv' else ("id", ident):kv'
+    kv'  = if (classes == mempty) then kv  else ("CLASS", unwords classes):kv
+    kv'' = if (ident == mempty)   then kv' else ("CUSTOM_ID", ident):kv'
     properties = vcat $ map kvToOrgProperty kv''
   in
     drawerStart <> cr <> properties <> cr <> drawerEnd

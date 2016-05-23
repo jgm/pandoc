@@ -138,7 +138,7 @@ exportSetting = choice
   , ignoredSetting "author"
   , ignoredSetting "c"
   , ignoredSetting "creator"
-  , ignoredSetting "d"
+  , complementableListSetting "d" setExportDrawers
   , ignoredSetting "date"
   , ignoredSetting "e"
   , ignoredSetting "email"
@@ -164,15 +164,53 @@ booleanSetting :: String -> ExportSettingSetter Bool -> OrgParser ()
 booleanSetting settingIdentifier setter = try $ do
   string settingIdentifier
   char ':'
-  value <- many nonspaceChar
-  let boolValue = case value of
-                    "nil" -> False
-                    "{}"  -> False
-                    _     -> True
-  updateState $ modifyExportSettings setter boolValue
+  value <- elispBoolean
+  updateState $ modifyExportSettings setter value
+
+-- | Read an elisp boolean.  Only NIL is treated as false, non-NIL values are
+-- interpreted as true.
+elispBoolean :: OrgParser Bool
+elispBoolean = try $ do
+  value <- many1 nonspaceChar
+  return $ case map toLower value of
+             "nil" -> False
+             "{}"  -> False
+             "()"  -> False
+             _     -> True
+
+-- | A list or a complement list (i.e. a list starting with `not`).
+complementableListSetting :: String
+                          -> ExportSettingSetter (Either [String] [String])
+                          -> OrgParser ()
+complementableListSetting settingIdentifier setter = try $ do
+  _     <- string settingIdentifier <* char ':'
+  value <- choice [ Left <$> complementStringList
+                  , Right <$> stringList
+                  , (\b -> if b then Left [] else Right []) <$> elispBoolean
+                  ]
+  updateState $ modifyExportSettings setter value
+ where
+   -- Read a plain list of strings.
+   stringList :: OrgParser [String]
+   stringList = try $
+     char '('
+       *> sepBy elispString spaces
+       <* char ')'
+
+   -- Read an emacs lisp list specifying a complement set.
+   complementStringList :: OrgParser [String]
+   complementStringList = try $
+     string "(not "
+       *> sepBy elispString spaces
+       <* char ')'
+
+   elispString :: OrgParser String
+   elispString = try $
+     char '"'
+       *> manyTill alphaNum (char '"')
 
 ignoredSetting :: String -> OrgParser ()
-ignoredSetting s = try (() <$ string s <* char ':' <* many nonspaceChar)
+ignoredSetting s = try (() <$ string s <* char ':' <* many1 nonspaceChar)
 
 --
 -- Parser
@@ -588,11 +626,27 @@ exampleLine = try $ skipSpaces *> string ": " *> anyLine
 --
 
 -- | A generic drawer which has no special meaning for org-mode.
+-- Whether or not this drawer is included in the output depends on the drawers
+-- export setting.
 genericDrawer :: OrgParser (F Blocks)
 genericDrawer = try $ do
-  drawerStart
-  manyTill drawerLine (try drawerEnd)
-  return mempty
+  name    <- map toUpper <$> drawerStart
+  content <- manyTill drawerLine (try drawerEnd)
+  state   <- getState
+  -- Include drawer if it is explicitly included in or not explicitly excluded
+  -- from the list of drawers that should be exported.  PROPERTIES drawers are
+  -- never exported.
+  case (exportDrawers . orgStateExportSettings $ state) of
+    _           | name == "PROPERTIES" -> return mempty
+    Left  names | name `elem`    names -> return mempty
+    Right names | name `notElem` names -> return mempty
+    _                                  -> drawerDiv name <$> parseLines content
+ where
+  parseLines :: [String] -> OrgParser (F Blocks)
+  parseLines = parseFromString parseBlocks . (++ "\n") . unlines
+
+  drawerDiv :: String -> F Blocks -> F Blocks
+  drawerDiv drawerName = fmap $ B.divWith (mempty, [drawerName, "drawer"], mempty)
 
 drawerStart :: OrgParser String
 drawerStart = try $
@@ -626,9 +680,10 @@ propertiesDrawer = try $ do
 keyValuesToAttr :: [(String, String)] -> Attr
 keyValuesToAttr kvs =
   let
-    id'  = fromMaybe mempty . lookup "id"    $ kvs
-    cls  = fromMaybe mempty . lookup "class" $ kvs
-    kvs' = filter (flip notElem ["id", "class"] . fst) kvs
+    lowerKvs = map (\(k, v) -> (map toLower k, v)) kvs
+    id'  = fromMaybe mempty . lookup "custom_id" $ lowerKvs
+    cls  = fromMaybe mempty . lookup "class"     $ lowerKvs
+    kvs' = filter (flip notElem ["custom_id", "class"] . fst) lowerKvs
   in
     (id', words cls, kvs')
 

@@ -10,49 +10,49 @@ markdown test suite.
 
 * Headers
   :PROPERTIES:
-  :id: headers
+  :CUSTOM_ID: headers
   :END:
 
 ** Level 2 with an [[/url][embedded link]]
    :PROPERTIES:
-   :id: level-2-with-an-embedded-link
+   :CUSTOM_ID: level-2-with-an-embedded-link
    :END:
 
 *** Level 3 with /emphasis/
     :PROPERTIES:
-    :id: level-3-with-emphasis
+    :CUSTOM_ID: level-3-with-emphasis
     :END:
 
 **** Level 4
      :PROPERTIES:
-     :id: level-4
+     :CUSTOM_ID: level-4
      :END:
 
 ***** Level 5
       :PROPERTIES:
-      :id: level-5
+      :CUSTOM_ID: level-5
       :END:
 
 * Level 1
   :PROPERTIES:
-  :id: level-1
+  :CUSTOM_ID: level-1
   :END:
 
 ** Level 2 with /emphasis/
    :PROPERTIES:
-   :id: level-2-with-emphasis
+   :CUSTOM_ID: level-2-with-emphasis
    :END:
 
 *** Level 3
     :PROPERTIES:
-    :id: level-3
+    :CUSTOM_ID: level-3
     :END:
 
 with no blank line
 
 ** Level 2
    :PROPERTIES:
-   :id: level-2
+   :CUSTOM_ID: level-2
    :END:
 
 with no blank line
@@ -61,7 +61,7 @@ with no blank line
 
 * Paragraphs
   :PROPERTIES:
-  :id: paragraphs
+  :CUSTOM_ID: paragraphs
   :END:
 
 Here's a regular paragraph.
@@ -79,7 +79,7 @@ here.
 
 * Block Quotes
   :PROPERTIES:
-  :id: block-quotes
+  :CUSTOM_ID: block-quotes
   :END:
 
 E-mail style:
@@ -121,7 +121,7 @@ And a following paragraph.
 
 * Code Blocks
   :PROPERTIES:
-  :id: code-blocks
+  :CUSTOM_ID: code-blocks
   :END:
 
 Code:
@@ -148,12 +148,12 @@ And:
 
 * Lists
   :PROPERTIES:
-  :id: lists
+  :CUSTOM_ID: lists
   :END:
 
 ** Unordered
    :PROPERTIES:
-   :id: unordered
+   :CUSTOM_ID: unordered
    :END:
 
 Asterisks tight:
@@ -200,7 +200,7 @@ Minuses loose:
 
 ** Ordered
    :PROPERTIES:
-   :id: ordered
+   :CUSTOM_ID: ordered
    :END:
 
 Tight:
@@ -243,7 +243,7 @@ Multiple paragraphs:
 
 ** Nested
    :PROPERTIES:
-   :id: nested
+   :CUSTOM_ID: nested
    :END:
 
 -  Tab
@@ -277,7 +277,7 @@ Same thing but with paragraphs:
 
 ** Tabs and spaces
    :PROPERTIES:
-   :id: tabs-and-spaces
+   :CUSTOM_ID: tabs-and-spaces
    :END:
 
 -  this is a list item indented with tabs
@@ -290,7 +290,7 @@ Same thing but with paragraphs:
 
 ** Fancy list markers
    :PROPERTIES:
-   :id: fancy-list-markers
+   :CUSTOM_ID: fancy-list-markers
    :END:
 
 2) begins with 2
@@ -331,7 +331,7 @@ B. Williams
 
 * Definition Lists
   :PROPERTIES:
-  :id: definition-lists
+  :CUSTOM_ID: definition-lists
   :END:
 
 Tight using spaces:
@@ -400,7 +400,7 @@ Blank line after term, indented marker, alternate markers:
 
 * HTML Blocks
   :PROPERTIES:
-  :id: html-blocks
+  :CUSTOM_ID: html-blocks
   :END:
 
 Simple block on one line:
@@ -630,7 +630,7 @@ Hr's:
 
 * Inline Markup
   :PROPERTIES:
-  :id: inline-markup
+  :CUSTOM_ID: inline-markup
   :END:
 
 This is /emphasized/, and so /is this/.
@@ -662,7 +662,7 @@ spaces: a\^b c\^d, a~b c~d.
 
 * Smart quotes, ellipses, dashes
   :PROPERTIES:
-  :id: smart-quotes-ellipses-dashes
+  :CUSTOM_ID: smart-quotes-ellipses-dashes
   :END:
 
 "Hello," said the spider. "'Shelob' is my name."
@@ -686,7 +686,7 @@ Ellipses...and...and....
 
 * LaTeX
   :PROPERTIES:
-  :id: latex
+  :CUSTOM_ID: latex
   :END:
 
 -  \cite[22-23]{smith.1899}
@@ -719,7 +719,7 @@ Cat    & 1      \\ \hline
 
 * Special Characters
   :PROPERTIES:
-  :id: special-characters
+  :CUSTOM_ID: special-characters
   :END:
 
 Here is some unicode:
@@ -776,12 +776,12 @@ Minus: -
 
 * Links
   :PROPERTIES:
-  :id: links
+  :CUSTOM_ID: links
   :END:
 
 ** Explicit
    :PROPERTIES:
-   :id: explicit
+   :CUSTOM_ID: explicit
    :END:
 
 Just a [[/url/][URL]].
@@ -804,7 +804,7 @@ Just a [[/url/][URL]].
 
 ** Reference
    :PROPERTIES:
-   :id: reference
+   :CUSTOM_ID: reference
    :END:
 
 Foo [[/url/][bar]].
@@ -835,7 +835,7 @@ Foo [[/url/][biz]].
 
 ** With ampersands
    :PROPERTIES:
-   :id: with-ampersands
+   :CUSTOM_ID: with-ampersands
    :END:
 
 Here's a [[http://example.com/?foo=1&bar=2][link with an ampersand in the
@@ -849,7 +849,7 @@ Here's an [[/script?foo=1&bar=2][inline link in pointy braces]].
 
 ** Autolinks
    :PROPERTIES:
-   :id: autolinks
+   :CUSTOM_ID: autolinks
    :END:
 
 With an ampersand: [[http://example.com/?foo=1&bar=2]]
@@ -874,7 +874,7 @@ Auto-links should not occur here: =<http://example.com/>=
 
 * Images
   :PROPERTIES:
-  :id: images
+  :CUSTOM_ID: images
   :END:
 
 From "Voyage dans la Lune" by Georges Melies (1902):
@@ -888,7 +888,7 @@ Here is a movie [[movie.jpg]] icon.
 
 * Footnotes
   :PROPERTIES:
-  :id: footnotes
+  :CUSTOM_ID: footnotes
   :END:
 
 Here is a footnote reference, [1] and another. [2] This should /not/ be a

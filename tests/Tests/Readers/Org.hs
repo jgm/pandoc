@@ -420,9 +420,10 @@ tests =
 
       , "Drawers can be arbitrary" =:
           unlines [ ":FOO:"
+                  , "/bar/"
                   , ":END:"
                   ] =?>
-          (mempty::Blocks)
+          divWith (mempty, ["FOO", "drawer"], mempty) (para $ emph "bar")
 
       , "Anchor reference" =:
           unlines [ "<<link-here>> Target."
@@ -475,6 +476,28 @@ tests =
                   , "a^b"
                   ] =?>
           para "a^b"
+
+      , "Export option: directly select drawers to be exported" =:
+          unlines [ "#+OPTIONS: d:(\"IMPORTANT\")"
+                  , ":IMPORTANT:"
+                  , "23"
+                  , ":END:"
+                  , ":BORING:"
+                  , "very boring"
+                  , ":END:"
+                  ] =?>
+          divWith (mempty, ["IMPORTANT", "drawer"], mempty) (para "23")
+
+      , "Export option: exclude drawers from being exported" =:
+          unlines [ "#+OPTIONS: d:(not \"BORING\")"
+                  , ":IMPORTANT:"
+                  , "5"
+                  , ":END:"
+                  , ":BORING:"
+                  , "very boring"
+                  , ":END:"
+                  ] =?>
+          divWith (mempty, ["IMPORTANT", "drawer"], mempty) (para "5")
       ]
 
   , testGroup "Basic Blocks" $
@@ -600,7 +623,7 @@ tests =
       , "Preferences are treated as header attributes" =:
           unlines [ "* foo"
                   , "  :PROPERTIES:"
-                  , "  :id: fubar"
+                  , "  :custom_id: fubar"
                   , "  :bar: baz"
                   , "  :END:"
                   ] =?>

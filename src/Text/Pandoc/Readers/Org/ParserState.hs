@@ -39,8 +39,9 @@ module Text.Pandoc.Readers.Org.ParserState
   , runF
   , returnF
   , ExportSettingSetter
-  , exportSubSuperscripts
+  , ExportSettings (..)
   , setExportSubSuperscripts
+  , setExportDrawers
   , modifyExportSettings
   ) where
 
@@ -76,6 +77,10 @@ type OrgLinkFormatters = M.Map String (String -> String)
 -- These settings can be changed via OPTIONS statements.
 data ExportSettings = ExportSettings
   { exportSubSuperscripts :: Bool -- ^ TeX-like syntax for sub- and superscripts
+  , exportDrawers         :: Either [String] [String]
+  -- ^ Specify drawer names which should be exported.  @Left@ names are
+  -- explicitly excluded from the resulting output while @Right@ means that
+  -- only the listed drawer names should be included.
   }
 
 -- | Org-mode parser state
@@ -155,6 +160,7 @@ defaultOrgParserState = OrgParserState
 defaultExportSettings :: ExportSettings
 defaultExportSettings = ExportSettings
   { exportSubSuperscripts = True
+  , exportDrawers = Left ["LOGBOOK"]
   }
 
 
@@ -163,8 +169,15 @@ defaultExportSettings = ExportSettings
 --
 type ExportSettingSetter a = a -> ExportSettings -> ExportSettings
 
+-- | Set export options for sub/superscript parsing.  The short syntax will
+-- not be parsed if this is set set to @False@.
 setExportSubSuperscripts :: ExportSettingSetter Bool
 setExportSubSuperscripts val es = es { exportSubSuperscripts = val }
+
+-- | Set export options for drawers.  See the @exportDrawers@ in ADT
+-- @ExportSettings@ for details.
+setExportDrawers :: ExportSettingSetter (Either [String] [String])
+setExportDrawers val es = es { exportDrawers = val }
 
 -- | Modify a parser state
 modifyExportSettings :: ExportSettingSetter a -> a -> OrgParserState -> OrgParserState
