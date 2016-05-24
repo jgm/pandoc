@@ -194,8 +194,10 @@ fixInlineIRs s (Span as v) =
   Span (fixAttrs s as) v
 fixInlineIRs s (Code as code) =
   Code (fixAttrs s as) code
-fixInlineIRs s (Link attr t ('#':url, tit)) =
-  Link attr t (addHash s url, tit)
+fixInlineIRs s (Link as is ('#':url, tit)) =
+  Link (fixAttrs s as) is (addHash s url, tit)
+fixInlineIRs s (Link as is t) =
+  Link (fixAttrs s as) is t
 fixInlineIRs _ v = v
 
 prependHash :: [String] -> Inline -> Inline
