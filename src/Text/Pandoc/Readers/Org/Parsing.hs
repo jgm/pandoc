@@ -79,6 +79,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , skipMany1
   , spaces
   , anyChar
+  , satisfy
   , string
   , count
   , eof

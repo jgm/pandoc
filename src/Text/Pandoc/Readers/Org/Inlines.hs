@@ -192,15 +192,78 @@ endline = try $ do
 cite :: OrgParser (F Inlines)
 cite = try $ do
   guardEnabled Ext_citations
-  (cs, raw) <- withRaw normalCite
+  (cs, raw) <- withRaw (pandocOrgCite <|> orgRefCite)
   return $ (flip B.cite (B.text raw)) <$> cs
 
-normalCite :: OrgParser (F [Citation])
-normalCite = try $  char '['
-                 *> skipSpaces
-                 *> citeList
-                 <* skipSpaces
-                 <* char ']'
+-- | A citation in Pandoc Org-mode style (@[\@citekey]@).
+pandocOrgCite :: OrgParser (F [Citation])
+pandocOrgCite = try $
+  char '[' *> skipSpaces *> citeList <* skipSpaces <* char ']'
+
+orgRefCite :: OrgParser (F [Citation])
+orgRefCite = try $ normalOrgRefCite <|> (fmap (:[]) <$> linkLikeOrgRefCite)
+
+normalOrgRefCite :: OrgParser (F [Citation])
+normalOrgRefCite = try $ do
+  mode <- orgRefCiteMode
+  sequence <$> sepBy1 (orgRefCiteList mode) (char ',')
+ where
+   -- | A list of org-ref style citation keys, parsed as citation of the given
+   -- citation mode.
+   orgRefCiteList :: CitationMode -> OrgParser (F Citation)
+   orgRefCiteList citeMode = try $ do
+     key <- orgRefCiteKey
+     returnF $ Citation
+      { citationId      = key
+      , citationPrefix  = mempty
+      , citationSuffix  = mempty
+      , citationMode    = citeMode
+      , citationNoteNum = 0
+      , citationHash    = 0
+      }
+
+-- | Read a link-like org-ref style citation.  The citation includes pre and
+-- post text.  However, multiple citations are not possible due to limitations
+-- in the syntax.
+linkLikeOrgRefCite :: OrgParser (F Citation)
+linkLikeOrgRefCite = try $ do
+  _    <- string "[["
+  mode <- orgRefCiteMode
+  key  <- orgRefCiteKey
+  _    <- string "]["
+  pre  <- trimInlinesF . mconcat <$> manyTill inline (try $ string "::")
+  spc  <- option False (True <$ spaceChar)
+  suf  <- trimInlinesF . mconcat <$> manyTill inline (try $ string "]]")
+  return $ do
+    pre' <- pre
+    suf' <- suf
+    return Citation
+      { citationId      = key
+      , citationPrefix  = B.toList pre'
+      , citationSuffix  = B.toList (if spc then B.space <> suf' else suf')
+      , citationMode    = mode
+      , citationNoteNum = 0
+      , citationHash    = 0
+      }
+
+-- | Read a citation key.  The characters allowed in citation keys are taken
+-- from the `org-ref-cite-re` variable in `org-ref.el`.
+orgRefCiteKey :: OrgParser String
+orgRefCiteKey = try . many1 . satisfy $ \c ->
+                  isAlphaNum c || c `elem` ("-_:\\./"::String)
+
+-- | Supported citation types.  Only a small subset of org-ref types is
+-- supported for now.  TODO: rewrite this, use LaTeX reader as template.
+orgRefCiteMode :: OrgParser CitationMode
+orgRefCiteMode =
+  choice $ map (\(s, mode) -> mode <$ try (string s <* char ':'))
+    [ ("cite", AuthorInText)
+    , ("citep", NormalCitation)
+    , ("citep*", NormalCitation)
+    , ("citet", AuthorInText)
+    , ("citet*", AuthorInText)
+    , ("citeyear", SuppressAuthor)
+    ]
 
 citeList :: OrgParser (F [Citation])
 citeList = sequence <$> sepBy1 citation (try $ char ';' *> skipSpaces)
