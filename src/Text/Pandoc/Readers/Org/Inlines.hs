@@ -28,8 +28,8 @@ Parsers for Org-mode inline elements.
 -}
 module Text.Pandoc.Readers.Org.Inlines
   ( inline
+  , inlines
   , addToNotesTable
-  , parseInlines
   , isImageFilename
   , linkTarget
   ) where
@@ -145,8 +145,9 @@ inline =
          ] <* (guard =<< newlinesCountWithinLimits)
   <?> "inline"
 
-parseInlines :: OrgParser (F Inlines)
-parseInlines = trimInlinesF . mconcat <$> many1 inline
+-- | Read the rest of the input as inlines.
+inlines :: OrgParser (F Inlines)
+inlines = trimInlinesF . mconcat <$> many1 inline
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]

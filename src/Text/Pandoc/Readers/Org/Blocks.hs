@@ -116,7 +116,7 @@ blockAttributes = try $ do
   let kvAttrs = foldl' (appendValues "ATTR_HTML") Nothing kv
   let name    = lookup "NAME" kv
   caption' <- maybe (return Nothing)
-                    (fmap Just . parseFromString parseInlines)
+                    (fmap Just . parseFromString inlines)
                     caption
   kvAttrs' <- parseFromString keyValues . (++ "\n") $ fromMaybe mempty kvAttrs
   return $ BlockAttributes
@@ -217,7 +217,7 @@ verseBlock blkProp = try $ do
   ignHeaders
   content <- rawBlockContent blkProp
   fmap B.para . mconcat . intersperse (pure B.linebreak)
-    <$> mapM (parseFromString parseInlines) (map (++ "\n") . lines $ content)
+    <$> mapM (parseFromString inlines) (map (++ "\n") . lines $ content)
 
 exportsCode :: [(String, String)] -> Bool
 exportsCode attrs = not (("rundoc-exports", "none") `elem` attrs
@@ -618,10 +618,10 @@ header = try $ do
   title    <- manyTill inline (lookAhead $ optional headerTags <* newline)
   tags     <- option [] headerTags
   newline
+  let text = tagTitle title tags
   propAttr <- option nullAttr (keyValuesToAttr <$> propertiesDrawer)
-  inlines  <- runF (tagTitle title tags) <$> getState
-  attr     <- registerHeader propAttr inlines
-  return $ pure (B.headerWith attr level inlines)
+  attr     <- registerHeader propAttr (runF text def)
+  return (B.headerWith attr level <$> text)
  where
    tagTitle :: [F Inlines] -> [String] -> F Inlines
    tagTitle title tags = trimInlinesF . mconcat $ title <> map tagToInlineF tags
@@ -799,7 +799,7 @@ noteBlock = try $ do
 -- Paragraphs or Plain text
 paraOrPlain :: OrgParser (F Blocks)
 paraOrPlain = try $ do
-  ils <- parseInlines
+  ils <- inlines
   nl <- option False (newline *> return True)
   -- Read block as paragraph, except if we are in a list context and the block
   -- is directly followed by a list item, in which case the block is read as
@@ -858,7 +858,7 @@ definitionListItem parseMarkerGetLength = try $ do
   line1 <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
   cont <- concat <$> many (listContinuation markerLength)
-  term' <- parseFromString parseInlines term
+  term' <- parseFromString inlines term
   contents' <- parseFromString blocks $ line1 ++ blank ++ cont
   return $ (,) <$> term' <*> fmap (:[]) contents'
  where
