@@ -1293,7 +1293,7 @@ tests =
               ]
           ]
 
-      , "Verse block with newlines" =:
+      , "Verse block with blank lines" =:
           unlines [ "#+BEGIN_VERSE"
                   , "foo"
                   , ""
@@ -1301,6 +1301,20 @@ tests =
                   , "#+END_VERSE"
                   ] =?>
           para ("foo" <> linebreak <> linebreak <> "bar")
+
+      , "Raw block LaTeX" =:
+          unlines [ "#+BEGIN_LaTeX"
+                  , "The category $\\cat{Set}$ is adhesive."
+                  , "#+END_LaTeX"
+                  ] =?>
+          rawBlock "latex" "The category $\\cat{Set}$ is adhesive.\n"
+
+      , "Export block HTML" =:
+          unlines [ "#+BEGIN_export html"
+                  , "<samp>Hello, World!</samp>"
+                  , "#+END_export"
+                  ] =?>
+          rawBlock "html" "<samp>Hello, World!</samp>\n"
 
       , "LaTeX fragment" =:
           unlines [ "\\begin{equation}"

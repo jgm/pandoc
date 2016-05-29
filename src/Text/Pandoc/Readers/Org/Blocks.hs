@@ -168,6 +168,7 @@ orgBlock = try $ do
   blkType <- blockHeaderStart
   ($ blkType) $
     case blkType of
+      "export"  -> exportBlock
       "comment" -> rawBlockLines (const mempty)
       "html"    -> rawBlockLines (return . (B.rawBlock blkType))
       "latex"   -> rawBlockLines (return . (B.rawBlock blkType))
@@ -238,6 +239,14 @@ rawBlockContent blockType = try $ do
 -- | Read but ignore all remaining block headers.
 ignHeaders :: OrgParser ()
 ignHeaders = (() <$ newline) <|> (() <$ anyLine)
+
+-- | Read a block containing code intended for export in specific backends
+-- only.
+exportBlock :: String -> OrgParser (F Blocks)
+exportBlock blockType = try $ do
+  exportType <- skipSpaces *> orgArgWord <* ignHeaders
+  contents   <- rawBlockContent blockType
+  returnF (B.rawBlock (map toLower exportType) contents)
 
 verseBlock :: String -> OrgParser (F Blocks)
 verseBlock blockType = try $ do
