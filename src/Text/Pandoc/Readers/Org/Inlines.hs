@@ -30,13 +30,15 @@ module Text.Pandoc.Readers.Org.Inlines
   ( inline
   , inlines
   , addToNotesTable
-  , isImageFilename
   , linkTarget
   ) where
 
 import           Text.Pandoc.Readers.Org.BlockStarts
 import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Readers.Org.Parsing
+import           Text.Pandoc.Readers.Org.Shared
+                   ( isImageFilename, rundocBlockClass, toRundocAttrib
+                   , translateLang )
 
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines )
@@ -47,34 +49,11 @@ import           Text.Pandoc.Readers.LaTeX ( inlineCommand, rawLaTeXInline )
 import           Text.TeXMath ( readTeX, writePandoc, DisplayType(..) )
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
-import           Control.Arrow ( first )
 import           Control.Monad ( guard, mplus, mzero, when )
 import           Data.Char ( isAlphaNum, isSpace )
-import           Data.List ( isPrefixOf, isSuffixOf )
+import           Data.List ( isPrefixOf )
 import           Data.Maybe ( fromMaybe )
 import qualified Data.Map as M
-
--- | Prefix used for Rundoc classes and arguments.
-rundocPrefix :: String
-rundocPrefix = "rundoc-"
-
--- | The class-name used to mark rundoc blocks.
-rundocBlockClass :: String
-rundocBlockClass = rundocPrefix ++ "block"
-
-toRundocAttrib :: (String, String) -> (String, String)
-toRundocAttrib = first ("rundoc-" ++)
-
-translateLang :: String -> String
-translateLang "C"          = "c"
-translateLang "C++"        = "cpp"
-translateLang "emacs-lisp" = "commonlisp" -- emacs lisp is not supported
-translateLang "js"         = "javascript"
-translateLang "lisp"       = "commonlisp"
-translateLang "R"          = "r"
-translateLang "sh"         = "bash"
-translateLang "sqlite"     = "sql"
-translateLang cs = cs
 
 --
 -- Functions acting on the parser state
@@ -404,15 +383,6 @@ cleanLinkString s =
      let (scheme, path) = break (== ':') cs
      in all (\c -> isAlphaNum c || c `elem` (".-"::String)) scheme
           && not (null path)
-
-isImageFilename :: String -> Bool
-isImageFilename filename =
-  any (\x -> ('.':x)  `isSuffixOf` filename) imageExtensions &&
-  (any (\x -> (x++":") `isPrefixOf` filename) protocols ||
-   ':' `notElem` filename)
- where
-   imageExtensions = [ "jpeg" , "jpg" , "png" , "gif" , "svg" ]
-   protocols = [ "file", "http", "https" ]
 
 internalLink :: String -> Inlines -> F Inlines
 internalLink link title = do
