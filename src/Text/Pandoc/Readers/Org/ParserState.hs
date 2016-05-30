@@ -54,8 +54,7 @@ import           Data.Default (Default(..))
 import qualified Data.Map as M
 import qualified Data.Set as Set
 
-import           Text.Pandoc.Builder ( Inlines, Blocks, HasMeta(..),
-                                       trimInlines )
+import           Text.Pandoc.Builder ( Inlines, Blocks, trimInlines )
 import           Text.Pandoc.Definition ( Meta(..), nullMeta )
 import           Text.Pandoc.Options ( ReaderOptions(..) )
 import           Text.Pandoc.Parsing ( HasHeaderMap(..)
@@ -96,8 +95,7 @@ data OrgParserState = OrgParserState
   , orgStateLastPreCharPos       :: Maybe SourcePos
   , orgStateLastStrPos           :: Maybe SourcePos
   , orgStateLinkFormatters       :: OrgLinkFormatters
-  , orgStateMeta                 :: Meta
-  , orgStateMeta'                :: F Meta
+  , orgStateMeta                 :: F Meta
   , orgStateNotes'               :: OrgNoteTable
   , orgStateParserContext        :: ParserContext
   , orgStateIdentifiers          :: Set.Set String
@@ -111,12 +109,6 @@ instance Default OrgParserLocal where
 
 instance HasReaderOptions OrgParserState where
   extractReaderOptions = orgStateOptions
-
-instance HasMeta OrgParserState where
-  setMeta field val st =
-    st{ orgStateMeta = setMeta field val $ orgStateMeta st }
-  deleteMeta field st =
-    st{ orgStateMeta = deleteMeta field $ orgStateMeta st }
 
 instance HasLastStrPosition OrgParserState where
   getLastStrPos = orgStateLastStrPos
@@ -151,8 +143,7 @@ defaultOrgParserState = OrgParserState
   , orgStateLastPreCharPos = Nothing
   , orgStateLastStrPos = Nothing
   , orgStateLinkFormatters = M.empty
-  , orgStateMeta = nullMeta
-  , orgStateMeta' = return nullMeta
+  , orgStateMeta = return nullMeta
   , orgStateNotes' = []
   , orgStateParserContext = NullState
   , orgStateIdentifiers = Set.empty

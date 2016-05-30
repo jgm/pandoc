@@ -69,7 +69,7 @@ blockList = do
 meta :: OrgParser Meta
 meta = do
   st <- getState
-  return $ runF (orgStateMeta' st) st
+  return $ runF (orgStateMeta st) st
 
 blocks :: OrgParser (F Blocks)
 blocks = mconcat <$> manyTill block eof
@@ -462,12 +462,11 @@ commentLine = commentLineStart *> anyLine *> pure mempty
 
 declarationLine :: OrgParser ()
 declarationLine = try $ do
-  key <- metaKey
-  inlinesF <- metaInlines
+  key   <- metaKey
+  value <- metaInlines
   updateState $ \st ->
-    let meta' = B.setMeta <$> pure key <*> inlinesF <*> pure nullMeta
-    in st { orgStateMeta' = orgStateMeta' st <> meta' }
-  return ()
+    let meta' = B.setMeta key <$> value <*> pure nullMeta
+    in st { orgStateMeta = orgStateMeta st <> meta' }
 
 metaInlines :: OrgParser (F MetaValue)
 metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
