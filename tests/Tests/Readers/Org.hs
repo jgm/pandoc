@@ -300,6 +300,42 @@ tests =
                          , citationHash = 0}
           in (para $ cite [citation] "[see @item1 p. 34-35]")
 
+      , "Org-ref simple citation" =:
+        "cite:pandoc" =?>
+        let citation = Citation
+                       { citationId = "pandoc"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "cite:pandoc")
+
+      , "Org-ref simple citep citation" =:
+        "citep:pandoc" =?>
+        let citation = Citation
+                       { citationId = "pandoc"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = NormalCitation
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "citep:pandoc")
+
+      , "Org-ref extended citation" =:
+        "[[citep:Dominik201408][See page 20::, for example]]" =?>
+        let citation = Citation
+                       { citationId = "Dominik201408"
+                       , citationPrefix = toList "See page 20"
+                       , citationSuffix = toList ", for example"
+                       , citationMode = NormalCitation
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "[[citep:Dominik201408][See page 20::, for example]]")
+
       , "Inline LaTeX symbol" =:
           "\\dots" =?>
           para "…"
