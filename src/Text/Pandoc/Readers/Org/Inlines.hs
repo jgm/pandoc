@@ -127,7 +127,7 @@ inlines = trimInlinesF . mconcat <$> many1 inline
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\"$'()*+-,./:<=>[\\]^_{|}~"
+specialChars = "\"$'()*+-,./:;<=>[\\]^_{|}~"
 
 
 whitespace :: OrgParser (F Inlines)
