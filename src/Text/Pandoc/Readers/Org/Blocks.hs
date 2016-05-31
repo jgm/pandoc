@@ -45,7 +45,7 @@ import           Text.Pandoc.Shared ( compactify', compactify'DL )
 
 import           Control.Arrow ( first )
 import           Control.Monad ( foldM, guard, mzero )
-import           Data.Char ( toLower, toUpper)
+import           Data.Char ( isSpace, toLower, toUpper)
 import           Data.List ( foldl', intersperse, isPrefixOf )
 import qualified Data.Map as M
 import           Data.Maybe ( fromMaybe, isNothing )
@@ -116,7 +116,7 @@ blockAttributes = try $ do
   let kvAttrs = foldl' (appendValues "ATTR_HTML") Nothing kv
   let name    = lookup "NAME" kv
   caption' <- maybe (return Nothing)
-                    (fmap Just . parseFromString parseInlines)
+                    (fmap Just . parseFromString inlines)
                     caption
   kvAttrs' <- parseFromString keyValues . (++ "\n") $ fromMaybe mempty kvAttrs
   return $ BlockAttributes
@@ -161,63 +161,127 @@ keyValues = try $
 -- Org Blocks (#+BEGIN_... / #+END_...)
 --
 
-type BlockProperties = (Int, String)  -- (Indentation, Block-Type)
-
-updateIndent :: BlockProperties -> Int -> BlockProperties
-updateIndent (_, blkType) indent = (indent, blkType)
-
+-- | Read an org-mode block delimited by #+BEGIN_TYPE and #+END_TYPE.
 orgBlock :: OrgParser (F Blocks)
 orgBlock = try $ do
   blockAttrs <- blockAttributes
-  blockProp@(_, blkType) <- blockHeaderStart
-  ($ blockProp) $
+  blkType <- blockHeaderStart
+  ($ blkType) $
     case blkType of
-      "comment" -> withRaw'   (const mempty)
-      "html"    -> withRaw'   (return . (B.rawBlock blkType))
-      "latex"   -> withRaw'   (return . (B.rawBlock blkType))
-      "ascii"   -> withRaw'   (return . (B.rawBlock blkType))
-      "example" -> withRaw'   (return . exampleCode)
-      "quote"   -> withParsed (fmap B.blockQuote)
+      "export"  -> exportBlock
+      "comment" -> rawBlockLines (const mempty)
+      "html"    -> rawBlockLines (return . (B.rawBlock blkType))
+      "latex"   -> rawBlockLines (return . (B.rawBlock blkType))
+      "ascii"   -> rawBlockLines (return . (B.rawBlock blkType))
+      "example" -> rawBlockLines (return . exampleCode)
+      "quote"   -> parseBlockLines (fmap B.blockQuote)
       "verse"   -> verseBlock
       "src"     -> codeBlock blockAttrs
-      _         -> withParsed (fmap $ divWithClass blkType)
-
-blockHeaderStart :: OrgParser (Int, String)
-blockHeaderStart = try $ (,) <$> indentation <*> blockType
+      _         -> parseBlockLines (fmap $ B.divWith (mempty, [blkType], mempty))
  where
-  blockType = map toLower <$> (stringAnyCase "#+begin_" *> orgArgWord)
+   blockHeaderStart :: OrgParser String
+   blockHeaderStart = try $ do
+     skipSpaces
+     blockType <- stringAnyCase "#+begin_" *> orgArgWord
+     return (map toLower blockType)
 
-indentation :: OrgParser Int
-indentation = try $ do
-  tabStop  <- getOption readerTabStop
-  s        <- many spaceChar
-  return $ spaceLength tabStop s
+rawBlockLines :: (String   -> F Blocks) -> String -> OrgParser (F Blocks)
+rawBlockLines f blockType = (ignHeaders *> (f <$> rawBlockContent blockType))
 
-spaceLength :: Int -> String -> Int
-spaceLength tabStop s = (sum . map charLen) s
+parseBlockLines :: (F Blocks -> F Blocks) -> String -> OrgParser (F Blocks)
+parseBlockLines f blockType = (ignHeaders *> (f <$> parsedBlockContent))
  where
-  charLen ' '  = 1
-  charLen '\t' = tabStop
-  charLen _    = 0
+   parsedBlockContent :: OrgParser (F Blocks)
+   parsedBlockContent = try $ do
+     raw <- rawBlockContent blockType
+     parseFromString blocks (raw ++ "\n")
 
-withRaw'   :: (String   -> F Blocks) -> BlockProperties -> OrgParser (F Blocks)
-withRaw'   f blockProp = (ignHeaders *> (f <$> rawBlockContent blockProp))
+-- | Read the raw string content of a block
+rawBlockContent :: String -> OrgParser String
+rawBlockContent blockType = try $ do
+  blkLines <- manyTill rawLine blockEnder
+  tabLen <- getOption readerTabStop
+  return
+    . unlines
+    . stripIndent
+    . map (tabsToSpaces tabLen . commaEscaped)
+    $ blkLines
+ where
+   rawLine :: OrgParser String
+   rawLine = try $ ("" <$ blankline) <|> anyLine
 
-withParsed :: (F Blocks -> F Blocks) -> BlockProperties -> OrgParser (F Blocks)
-withParsed f blockProp = (ignHeaders *> (f <$> parsedBlockContent blockProp))
+   blockEnder :: OrgParser ()
+   blockEnder = try $ skipSpaces <* stringAnyCase ("#+end_" <> blockType)
 
+   stripIndent :: [String] -> [String]
+   stripIndent strs = map (drop (shortestIndent strs)) strs
+
+   shortestIndent :: [String] -> Int
+   shortestIndent = minimum
+                    . map (length . takeWhile isSpace)
+                    . filter (not . null)
+
+   tabsToSpaces :: Int -> String -> String
+   tabsToSpaces _      []         = []
+   tabsToSpaces tabLen cs'@(c:cs) =
+       case c of
+         ' '  -> ' ':tabsToSpaces tabLen cs
+         '\t' -> (take tabLen $ repeat ' ') ++ tabsToSpaces tabLen cs
+         _    -> cs'
+
+   commaEscaped :: String -> String
+   commaEscaped (',':cs@('*':_))     = cs
+   commaEscaped (',':cs@('#':'+':_)) = cs
+   commaEscaped (' ':cs)             = ' ':commaEscaped cs
+   commaEscaped ('\t':cs)            = '\t':commaEscaped cs
+   commaEscaped cs                   = cs
+
+-- | Read but ignore all remaining block headers.
 ignHeaders :: OrgParser ()
 ignHeaders = (() <$ newline) <|> (() <$ anyLine)
 
-divWithClass :: String -> Blocks -> Blocks
-divWithClass cls = B.divWith ("", [cls], [])
+-- | Read a block containing code intended for export in specific backends
+-- only.
+exportBlock :: String -> OrgParser (F Blocks)
+exportBlock blockType = try $ do
+  exportType <- skipSpaces *> orgArgWord <* ignHeaders
+  contents   <- rawBlockContent blockType
+  returnF (B.rawBlock (map toLower exportType) contents)
 
-verseBlock :: BlockProperties -> OrgParser (F Blocks)
-verseBlock blkProp = try $ do
+verseBlock :: String -> OrgParser (F Blocks)
+verseBlock blockType = try $ do
   ignHeaders
-  content <- rawBlockContent blkProp
+  content <- rawBlockContent blockType
   fmap B.para . mconcat . intersperse (pure B.linebreak)
-    <$> mapM (parseFromString parseInlines) (map (++ "\n") . lines $ content)
+    <$> mapM (parseFromString inlines) (map (++ "\n") . lines $ content)
+
+-- | Read a code block and the associated results block if present.  Which of
+-- boths blocks is included in the output is determined using the "exports"
+-- argument in the block header.
+codeBlock :: BlockAttributes -> String -> OrgParser (F Blocks)
+codeBlock blockAttrs blockType = do
+  skipSpaces
+  (classes, kv)     <- codeHeaderArgs <|> (mempty <$ ignHeaders)
+  content           <- rawBlockContent blockType
+  resultsContent    <- trailingResultsBlock
+  let id'            = fromMaybe mempty $ blockAttrName blockAttrs
+  let includeCode    = exportsCode kv
+  let includeResults = exportsResults kv
+  let codeBlck       = B.codeBlockWith ( id', classes, kv ) content
+  let labelledBlck   = maybe (pure codeBlck)
+                             (labelDiv codeBlck)
+                             (blockAttrCaption blockAttrs)
+  let resultBlck     = fromMaybe mempty resultsContent
+  return $
+    (if includeCode    then labelledBlck else mempty) <>
+    (if includeResults then resultBlck   else mempty)
+ where
+   labelDiv :: Blocks -> F Inlines -> F Blocks
+   labelDiv blk value =
+     B.divWith nullAttr <$> (mappend <$> labelledBlock value <*> pure blk)
+
+   labelledBlock :: F Inlines -> F Blocks
+   labelledBlock = fmap (B.plain . B.spanWith ("", ["label"], []))
 
 exportsCode :: [(String, String)] -> Bool
 exportsCode attrs = not (("rundoc-exports", "none") `elem` attrs
@@ -227,57 +291,12 @@ exportsResults :: [(String, String)] -> Bool
 exportsResults attrs = ("rundoc-exports", "results") `elem` attrs
                        || ("rundoc-exports", "both") `elem` attrs
 
-followingResultsBlock :: OrgParser (Maybe (F Blocks))
-followingResultsBlock =
-       optionMaybe (try $ blanklines *> stringAnyCase "#+RESULTS:"
-                                     *> blankline
-                                     *> block)
-
-codeBlock :: BlockAttributes -> BlockProperties -> OrgParser (F Blocks)
-codeBlock blockAttrs blkProp = do
-  skipSpaces
-  (classes, kv)     <- codeHeaderArgs <|> (mempty <$ ignHeaders)
-  leadingIndent     <- lookAhead indentation
-  content           <- rawBlockContent (updateIndent blkProp leadingIndent)
-  resultsContent    <- followingResultsBlock
-  let id'            = fromMaybe mempty $ blockAttrName blockAttrs
-  let includeCode    = exportsCode kv
-  let includeResults = exportsResults kv
-  let codeBlck       = B.codeBlockWith ( id', classes, kv ) content
-  let labelledBlck   = maybe (pure codeBlck)
-                             (labelDiv codeBlck)
-                             (blockAttrCaption blockAttrs)
-  let resultBlck     = fromMaybe mempty resultsContent
-  return $ (if includeCode then labelledBlck else mempty)
-           <> (if includeResults then resultBlck else mempty)
- where
-   labelDiv blk value =
-       B.divWith nullAttr <$> (mappend <$> labelledBlock value
-                                       <*> pure blk)
-   labelledBlock = fmap (B.plain . B.spanWith ("", ["label"], []))
-
-rawBlockContent :: BlockProperties -> OrgParser String
-rawBlockContent (indent, blockType) = try $
-  unlines . map commaEscaped <$> manyTill indentedLine blockEnder
- where
-   indentedLine = try $ ("" <$ blankline) <|> (indentWith indent *> anyLine)
-   blockEnder = try $ skipSpaces *> stringAnyCase ("#+end_" <> blockType)
-
-parsedBlockContent :: BlockProperties -> OrgParser (F Blocks)
-parsedBlockContent blkProps = try $ do
-  raw <- rawBlockContent blkProps
-  parseFromString blocks (raw ++ "\n")
-
--- indent by specified number of spaces (or equiv. tabs)
-indentWith :: Int -> OrgParser String
-indentWith num = do
-  tabStop <- getOption readerTabStop
-  if num < tabStop
-     then count num (char ' ')
-     else choice [ try (count num (char ' '))
-                 , try (char '\t' >> count (num - tabStop) (char ' ')) ]
-
-type SwitchOption = (Char, Maybe String)
+trailingResultsBlock :: OrgParser (Maybe (F Blocks))
+trailingResultsBlock = optionMaybe . try $ do
+  blanklines
+  stringAnyCase "#+RESULTS:"
+  blankline
+  block
 
 -- | Parse code block arguments
 -- TODO: We currently don't handle switches.
@@ -297,8 +316,7 @@ codeHeaderArgs = try $ do
    hasRundocParameters = not . null
    toRundocAttrib = first ("rundoc-" ++)
 
-
-switch :: OrgParser SwitchOption
+switch :: OrgParser (Char, Maybe String)
 switch = try $ simpleSwitch <|> lineNumbersSwitch
  where
    simpleSwitch = (\c -> (c, Nothing)) <$> (oneOf "-+" *> letter)
@@ -334,23 +352,8 @@ orgParamValue :: OrgParser String
 orgParamValue = try $
   skipSpaces
     *> notFollowedBy (char ':' )
-    *> many1 (noneOf "\t\n\r ")
+    *> many1 nonspaceChar
     <* skipSpaces
-
-commaEscaped :: String -> String
-commaEscaped (',':cs@('*':_))     = cs
-commaEscaped (',':cs@('#':'+':_)) = cs
-commaEscaped cs                   = cs
-
-example :: OrgParser (F Blocks)
-example = try $ do
-  return . return . exampleCode =<< unlines <$> many1 exampleLine
-
-exampleCode :: String -> Blocks
-exampleCode = B.codeBlockWith ("", ["example"], [])
-
-exampleLine :: OrgParser String
-exampleLine = try $ exampleLineStart *> anyLine
 
 horizontalRule :: OrgParser (F Blocks)
 horizontalRule = return B.horizontalRule <$ try hline
@@ -444,17 +447,25 @@ figure = try $ do
    selfTarget :: OrgParser String
    selfTarget = try $ char '[' *> linkTarget <* char ']'
 
+--
+-- Examples
+--
+
+-- | Example code marked up by a leading colon.
+example :: OrgParser (F Blocks)
+example = try $ do
+  return . return . exampleCode =<< unlines <$> many1 exampleLine
+ where
+   exampleLine :: OrgParser String
+   exampleLine = try $ exampleLineStart *> anyLine
+
+exampleCode :: String -> Blocks
+exampleCode = B.codeBlockWith ("", ["example"], [])
+
 
 --
 -- Comments, Options and Metadata
 --
-
-addLinkFormat :: String
-              -> (String -> String)
-              -> OrgParser ()
-addLinkFormat key formatter = updateState $ \s ->
-  let fs = orgStateLinkFormatters s
-  in s{ orgStateLinkFormatters = M.insert key formatter fs }
 
 specialLine :: OrgParser (F Blocks)
 specialLine = fmap return . try $ metaLine <|> commentLine
@@ -491,6 +502,14 @@ optionLine = try $ do
     "link"    -> parseLinkFormat >>= uncurry addLinkFormat
     "options" -> () <$ sepBy spaces exportSetting
     _         -> mzero
+
+addLinkFormat :: String
+              -> (String -> String)
+              -> OrgParser ()
+addLinkFormat key formatter = updateState $ \s ->
+  let fs = orgStateLinkFormatters s
+  in s{ orgStateLinkFormatters = M.insert key formatter fs }
+
 
 --
 -- Export Settings
@@ -618,10 +637,10 @@ header = try $ do
   title    <- manyTill inline (lookAhead $ optional headerTags <* newline)
   tags     <- option [] headerTags
   newline
+  let text = tagTitle title tags
   propAttr <- option nullAttr (keyValuesToAttr <$> propertiesDrawer)
-  inlines  <- runF (tagTitle title tags) <$> getState
-  attr     <- registerHeader propAttr inlines
-  return $ pure (B.headerWith attr level inlines)
+  attr     <- registerHeader propAttr (runF text def)
+  return (B.headerWith attr level <$> text)
  where
    tagTitle :: [F Inlines] -> [String] -> F Inlines
    tagTitle title tags = trimInlinesF . mconcat $ title <> map tagToInlineF tags
@@ -799,7 +818,7 @@ noteBlock = try $ do
 -- Paragraphs or Plain text
 paraOrPlain :: OrgParser (F Blocks)
 paraOrPlain = try $ do
-  ils <- parseInlines
+  ils <- inlines
   nl <- option False (newline *> return True)
   -- Read block as paragraph, except if we are in a list context and the block
   -- is directly followed by a list item, in which case the block is read as
@@ -858,7 +877,7 @@ definitionListItem parseMarkerGetLength = try $ do
   line1 <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
   cont <- concat <$> many (listContinuation markerLength)
-  term' <- parseFromString parseInlines term
+  term' <- parseFromString inlines term
   contents' <- parseFromString blocks $ line1 ++ blank ++ cont
   return $ (,) <$> term' <*> fmap (:[]) contents'
  where
@@ -884,7 +903,17 @@ listContinuation markerLength = try $
   notFollowedBy' blankline
   *> (mappend <$> (concat <$> many1 listLine)
               <*> many blankline)
- where listLine = try $ indentWith markerLength *> anyLineNewline
+ where
+   listLine = try $ indentWith markerLength *> anyLineNewline
+
+   -- indent by specified number of spaces (or equiv. tabs)
+   indentWith :: Int -> OrgParser String
+   indentWith num = do
+     tabStop <- getOption readerTabStop
+     if num < tabStop
+       then count num (char ' ')
+       else choice [ try (count num (char ' '))
+                   , try (char '\t' >> count (num - tabStop) (char ' ')) ]
 
 -- | Parse any line, include the final newline in the output.
 anyLineNewline :: OrgParser String
