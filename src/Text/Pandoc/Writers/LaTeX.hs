@@ -1197,7 +1197,9 @@ toBabel x                    = commonFromBcp47 x
 -- https://tools.ietf.org/html/bcp47#section-2.1
 commonFromBcp47 :: [String] -> String
 commonFromBcp47 [] = ""
-commonFromBcp47 ("pt":"BR":_)            = "brazilian"
+commonFromBcp47 ("pt":"BR":_)            = "brazil"
+-- Note: documentation says "brazilian" works too, but it doesn't seem to work
+-- on some systems.  See #2953.
 commonFromBcp47 ("sr":"Cyrl":_)          = "serbianc"
 commonFromBcp47 ("zh":"Latn":"pinyin":_) = "pinyin"
 commonFromBcp47 x = fromIso $ head x
