@@ -97,6 +97,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , try
   , sepBy
   , sepBy1
+  , sepEndBy1
   , option
   , optional
   , optionMaybe
