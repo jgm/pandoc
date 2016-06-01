@@ -19,10 +19,8 @@ pandoc (1.17.1)
     The key-value list in the attributes defines the keys to add inside the
     Drawer.  Lastly, the list of Block elements contains miscellaneous blocks
     elements to add inside of the Drawer.
-  + Use `CUSTOM_ID` in properties (Albert Krewinkel).  The `ID` property is
-    reserved for internal use by Org-mode and should not be used.
-    The `CUSTOM_ID` property is to be used instead, it is converted to the
-    `ID` property for certain export format.
+  + Print empty table rows (Albert Krewinkel).  Empty table rows should not
+    be dropped from the output, so row-height is always set to be at least 1.
 
 * LaTeX writer:
 
@@ -95,14 +93,11 @@ pandoc (1.17.1)
     Emacs Org-mode doesn't add any padding to table rows.  The first
     row (header or first body row) is used to determine the column count,
     no other magic is performed.
-  + Refactor rows-to-table conversion (Albert Krewinkel).  This refactors
-    the codes conversing a list table lines to an org table ADT.
-    The old code was simplified and is now slightly less ugly.
   + Fix handling of empty table cells, rows (Albert Krewinkel, #2616).
     This fixes Org mode parsing of some corner cases regarding empty cells
     and rows.  Empty cells weren't parsed correctly, e.g. `|||` should be
     two empty cells, but would be parsed as a single cell containing a pipe
-    character.  Empty rows where parsed as alignment rows and dropped from
+    character.  Empty rows were parsed as alignment rows and dropped from
     the output.
   + Fix spacing after LaTeX-style symbols (Albert Krewinkel).
     The org-reader was droping space after unescaped LaTeX-style symbol
@@ -110,17 +105,12 @@ pandoc (1.17.1)
     instead.  This seems to be because the LaTeX-reader treats the
     command-terminating space as part of the command.  Dropping the trailing
     space from the symbol-command fixes this issue.
-  + Print empty table rows (Albert Krewinkel).  Empty table rows should not
-    be dropped from the output, so row-height is always set to be at least 1.
-  + Move parser state into separate module (Albert Krewinkel).
-   The org reader code has become large and confusing.  Extracting smaller
-   parts into submodules should help to clean things up.
-  + Add support for sub/superscript export options (Albert Krewinkel).
-    Org-mode allows to specify export settings via `#+OPTIONS` lines.
-    Disabling simple sub- and superscripts is one of these export options,
-    this options is now supported.
-  + Parse but ignore export options (Albert Krewinkel). All known export
-    options are parsed but ignored.
+  + Modularize Org-mode parser (Albert Krewinkel).
+    The org reader code has become large and confusing.  Extracting smaller
+    parts into submodules should help to clean things up.
+  + Refactor rows-to-table conversion (Albert Krewinkel).  This refactors
+    the codes conversing a list table lines to an org table ADT.
+    The old code was simplified and is now slightly less ugly.
   + Refactor block attribute handling (Albert Krewinkel).
     A parser state attribute was used to keep track of block attributes
     defined in meta-lines.  Global state is undesirable, so block attributes
@@ -144,11 +134,11 @@ pandoc (1.17.1)
     defined.  This also changes behavior of how drawers of unknown type
     are handled.  Instead of including all unknown drawers, those are not
     read/exported, thereby matching current Emacs behavior.
-  + Use `CUSTOM_ID` in properties (Albert Krewinkel).  See above on
-    Org writer changes.
-  + Respect drawer export setting (Albert Krewinkel).  The `d` export
-    option can be used to control which drawers are exported
-   and which are discarded.  Basic support for this option is added here.
+  + Add support for `#+OPTIONS` export settings (Albert Krewinkel).
+    Org-mode allows to specify export settings via `#+OPTIONS` lines.
+    Current support is limited to toggling simple sub- and
+    superscripts syntax (`^`) and to selection of drawers to export or
+    discard (`d`). All other known export options are parsed but ignored.
   + Ignore leading space in org code blocks (Emanuel Evans, #2862).
     Also fix up tab handling for leading whitespace in code blocks.
 
