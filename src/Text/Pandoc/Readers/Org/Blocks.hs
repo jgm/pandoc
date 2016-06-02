@@ -501,7 +501,7 @@ exportSetting :: OrgParser ()
 exportSetting = choice
   [ booleanSetting "^" setExportSubSuperscripts
   , booleanSetting "'" setExportSmartQuotes
-  , ignoredSetting "*"
+  , booleanSetting "*" setExportEmphasizedText
   , ignoredSetting "-"
   , ignoredSetting ":"
   , ignoredSetting "<"

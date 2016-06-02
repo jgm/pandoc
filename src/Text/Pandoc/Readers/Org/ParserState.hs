@@ -43,6 +43,7 @@ module Text.Pandoc.Readers.Org.ParserState
   , ExportSettingSetter
   , ExportSettings (..)
   , setExportDrawers
+  , setExportEmphasizedText
   , setExportSmartQuotes
   , setExportSubSuperscripts
   , modifyExportSettings
@@ -83,26 +84,27 @@ data ExportSettings = ExportSettings
   -- ^ Specify drawer names which should be exported.  @Left@ names are
   -- explicitly excluded from the resulting output while @Right@ means that
   -- only the listed drawer names should be included.
+  , exportEmphasizedText  :: Bool -- ^ Parse emphasized text.
   , exportSmartQuotes     :: Bool -- ^ Parse quotes, ellipses, apostrophs smartly
   , exportSubSuperscripts :: Bool -- ^ TeX-like syntax for sub- and superscripts
   }
 
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
-  { orgStateOptions              :: ReaderOptions
-  , orgStateAnchorIds            :: [String]
+  { orgStateAnchorIds            :: [String]
   , orgStateEmphasisCharStack    :: [Char]
   , orgStateEmphasisNewlines     :: Maybe Int
   , orgStateExportSettings       :: ExportSettings
+  , orgStateHeaderMap            :: M.Map Inlines String
+  , orgStateIdentifiers          :: Set.Set String
   , orgStateLastForbiddenCharPos :: Maybe SourcePos
   , orgStateLastPreCharPos       :: Maybe SourcePos
   , orgStateLastStrPos           :: Maybe SourcePos
   , orgStateLinkFormatters       :: OrgLinkFormatters
   , orgStateMeta                 :: F Meta
   , orgStateNotes'               :: OrgNoteTable
+  , orgStateOptions              :: ReaderOptions
   , orgStateParserContext        :: ParserContext
-  , orgStateIdentifiers          :: Set.Set String
-  , orgStateHeaderMap            :: M.Map Inlines String
   }
 
 data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext }
@@ -137,25 +139,26 @@ instance Default OrgParserState where
 
 defaultOrgParserState :: OrgParserState
 defaultOrgParserState = OrgParserState
-  { orgStateOptions = def
-  , orgStateAnchorIds = []
+  { orgStateAnchorIds = []
   , orgStateEmphasisCharStack = []
   , orgStateEmphasisNewlines = Nothing
   , orgStateExportSettings = def
+  , orgStateHeaderMap = M.empty
+  , orgStateIdentifiers = Set.empty
   , orgStateLastForbiddenCharPos = Nothing
   , orgStateLastPreCharPos = Nothing
   , orgStateLastStrPos = Nothing
   , orgStateLinkFormatters = M.empty
   , orgStateMeta = return nullMeta
   , orgStateNotes' = []
+  , orgStateOptions = def
   , orgStateParserContext = NullState
-  , orgStateIdentifiers = Set.empty
-  , orgStateHeaderMap = M.empty
   }
 
 defaultExportSettings :: ExportSettings
 defaultExportSettings = ExportSettings
   { exportDrawers = Left ["LOGBOOK"]
+  , exportEmphasizedText = True
   , exportSmartQuotes = True
   , exportSubSuperscripts = True
   }
@@ -175,13 +178,16 @@ type ExportSettingSetter a = a -> ExportSettings -> ExportSettings
 setExportDrawers :: ExportSettingSetter (Either [String] [String])
 setExportDrawers val es = es { exportDrawers = val }
 
+-- | Set export options for emphasis parsing.
+setExportEmphasizedText :: ExportSettingSetter Bool
+setExportEmphasizedText val es = es { exportEmphasizedText = val }
+
 -- | Set export options for sub/superscript parsing.  The short syntax will
 -- not be parsed if this is set set to @False@.
 setExportSubSuperscripts :: ExportSettingSetter Bool
 setExportSubSuperscripts val es = es { exportSubSuperscripts = val }
 
--- | Set export options for sub/superscript parsing.  The short syntax will
--- not be parsed if this is set set to @False@.
+-- | Set export options for parsing of smart quotes.
 setExportSmartQuotes :: ExportSettingSetter Bool
 setExportSmartQuotes val es = es { exportSmartQuotes = val }
 

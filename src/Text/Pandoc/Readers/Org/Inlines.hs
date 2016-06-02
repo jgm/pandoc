@@ -108,10 +108,7 @@ inline =
          , inlineCodeBlock
          , str
          , endline
-         , emph
-         , strong
-         , strikeout
-         , underline
+         , emphasizedText
          , code
          , math
          , displayMath
@@ -443,6 +440,16 @@ inlineCodeBlock = try $ do
        <* skipSpaces
 
 
+emphasizedText :: OrgParser (F Inlines)
+emphasizedText = do
+  state <- getState
+  guard . exportEmphasizedText . orgStateExportSettings $ state
+  try $ choice
+    [ emph
+    , strong
+    , strikeout
+    , underline
+    ]
 
 enclosedByPair :: Char          -- ^ opening char
                -> Char          -- ^ closing char
