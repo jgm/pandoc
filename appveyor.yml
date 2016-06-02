@@ -13,6 +13,7 @@ cache:
 build: off 
 
 install:
+  - choco install wixtoolset
   - curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
   - 7z x stack.zip stack.exe
   - stack setup > nul
@@ -33,8 +34,14 @@ test_script:
 
 after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
-  - 7z a "pandoc.zip" windows\pandoc.exe"
+  - cd windows
+  - 7z a "pandoc.zip" pandoc.exe"
+  - for /f "tokens=2 delims= " %%a in ('pandoc --version') do ( set "VERSION=%%a" && exit )
+  - candle -dVERSION="%VERSION%" pandoc.wxs
+  - light -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
 
 artifacts:
-  - path: pandoc.zip
+  - path: windows\pandoc.zip
     name: exe
+  - path: windows\pandoc-%VERSION%-windows.msi
+    name: msi
