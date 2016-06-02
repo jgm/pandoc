@@ -730,6 +730,7 @@ smart = do
 
 singleQuoted :: OrgParser (F Inlines)
 singleQuoted = try $ do
+  guard . exportSmartQuotes . orgStateExportSettings =<< getState
   singleQuoteStart
   updatePositions '\''
   withQuoteContext InSingleQuote $
@@ -741,6 +742,7 @@ singleQuoted = try $ do
 -- in the same paragraph.
 doubleQuoted :: OrgParser (F Inlines)
 doubleQuoted = try $ do
+  guard . exportSmartQuotes . orgStateExportSettings =<< getState
   doubleQuoteStart
   updatePositions '"'
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)

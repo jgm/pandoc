@@ -500,7 +500,7 @@ addLinkFormat key formatter = updateState $ \s ->
 exportSetting :: OrgParser ()
 exportSetting = choice
   [ booleanSetting "^" setExportSubSuperscripts
-  , ignoredSetting "'"
+  , booleanSetting "'" setExportSmartQuotes
   , ignoredSetting "*"
   , ignoredSetting "-"
   , ignoredSetting ":"

@@ -29,7 +29,7 @@ module Text.Pandoc.Readers.Org ( readOrg ) where
 
 import           Text.Pandoc.Readers.Org.Blocks ( blockList, meta )
 import           Text.Pandoc.Readers.Org.Parsing ( OrgParser, readWithM )
-import           Text.Pandoc.Readers.Org.ParserState ( OrgParserState (..) )
+import           Text.Pandoc.Readers.Org.ParserState ( optionsToParserState )
 
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Error
@@ -42,7 +42,8 @@ import           Control.Monad.Reader ( runReader )
 readOrg :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
         -> Either PandocError Pandoc
-readOrg opts s = flip runReader def $ readWithM parseOrg def{ orgStateOptions = opts } (s ++ "\n\n")
+readOrg opts s = flip runReader def $
+                 readWithM parseOrg (optionsToParserState opts) (s ++ "\n\n")
 
 --
 -- Parser
