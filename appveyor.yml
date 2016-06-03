@@ -41,8 +41,8 @@ after_test:
   - .\pandoc.exe -s -S ..\COPYING -o COPYING.rtf
   - copy ..\COPYRIGHT COPYRIGHT.txt
   - set WIXPATH "C:\Program Files (x86)\WiX Toolset v3.10\bin"
-  - %WIXPATH%\candle -dVERSION="%VERSION%" -dBINPATH=. pandoc.wxs
-  - %WIXPATH%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
+  - "%WIXPATH%\candle" -dVERSION="%VERSION%" -dBINPATH=. pandoc.wxs
+  - "%WIXPATH%\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
 
 artifacts:
   - path: windows\pandoc.zip
