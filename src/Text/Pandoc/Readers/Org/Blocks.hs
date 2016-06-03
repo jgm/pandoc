@@ -35,6 +35,9 @@ import           Text.Pandoc.Readers.Org.BlockStarts
 import           Text.Pandoc.Readers.Org.Inlines
 import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Readers.Org.Parsing
+import           Text.Pandoc.Readers.Org.Shared
+                   ( isImageFilename, rundocBlockClass, toRundocAttrib
+                   , translateLang )
 
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines, Blocks )
@@ -43,7 +46,6 @@ import           Text.Pandoc.Compat.Monoid ((<>))
 import           Text.Pandoc.Options
 import           Text.Pandoc.Shared ( compactify', compactify'DL )
 
-import           Control.Arrow ( first )
 import           Control.Monad ( foldM, guard, mzero )
 import           Data.Char ( isSpace, toLower, toUpper)
 import           Data.List ( foldl', intersperse, isPrefixOf )
@@ -67,7 +69,7 @@ blockList = do
 meta :: OrgParser Meta
 meta = do
   st <- getState
-  return $ runF (orgStateMeta' st) st
+  return $ runF (orgStateMeta st) st
 
 blocks :: OrgParser (F Blocks)
 blocks = mconcat <$> manyTill block eof
@@ -314,7 +316,6 @@ codeHeaderArgs = try $ do
     else ([ pandocLang ], parameters)
  where
    hasRundocParameters = not . null
-   toRundocAttrib = first ("rundoc-" ++)
 
 switch :: OrgParser (Char, Maybe String)
 switch = try $ simpleSwitch <|> lineNumbersSwitch
@@ -322,25 +323,6 @@ switch = try $ simpleSwitch <|> lineNumbersSwitch
    simpleSwitch = (\c -> (c, Nothing)) <$> (oneOf "-+" *> letter)
    lineNumbersSwitch = (\ls -> ('l', Just ls)) <$>
                        (string "-l \"" *> many1Till nonspaceChar (char '"'))
-
-translateLang :: String -> String
-translateLang "C"          = "c"
-translateLang "C++"        = "cpp"
-translateLang "emacs-lisp" = "commonlisp" -- emacs lisp is not supported
-translateLang "js"         = "javascript"
-translateLang "lisp"       = "commonlisp"
-translateLang "R"          = "r"
-translateLang "sh"         = "bash"
-translateLang "sqlite"     = "sql"
-translateLang cs = cs
-
--- | Prefix used for Rundoc classes and arguments.
-rundocPrefix :: String
-rundocPrefix = "rundoc-"
-
--- | The class-name used to mark rundoc blocks.
-rundocBlockClass :: String
-rundocBlockClass = rundocPrefix ++ "block"
 
 blockOption :: OrgParser (String, String)
 blockOption = try $ do
@@ -480,12 +462,11 @@ commentLine = commentLineStart *> anyLine *> pure mempty
 
 declarationLine :: OrgParser ()
 declarationLine = try $ do
-  key <- metaKey
-  inlinesF <- metaInlines
+  key   <- metaKey
+  value <- metaInlines
   updateState $ \st ->
-    let meta' = B.setMeta <$> pure key <*> inlinesF <*> pure nullMeta
-    in st { orgStateMeta' = orgStateMeta' st <> meta' }
-  return ()
+    let meta' = B.setMeta key <$> value <*> pure nullMeta
+    in st { orgStateMeta = orgStateMeta st <> meta' }
 
 metaInlines :: OrgParser (F MetaValue)
 metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
@@ -519,9 +500,9 @@ addLinkFormat key formatter = updateState $ \s ->
 exportSetting :: OrgParser ()
 exportSetting = choice
   [ booleanSetting "^" setExportSubSuperscripts
-  , ignoredSetting "'"
-  , ignoredSetting "*"
-  , ignoredSetting "-"
+  , booleanSetting "'" setExportSmartQuotes
+  , booleanSetting "*" setExportEmphasizedText
+  , booleanSetting "-" setExportSpecialStrings
   , ignoredSetting ":"
   , ignoredSetting "<"
   , ignoredSetting "\\n"

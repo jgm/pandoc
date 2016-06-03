@@ -42,9 +42,13 @@ module Text.Pandoc.Readers.Org.ParserState
   , returnF
   , ExportSettingSetter
   , ExportSettings (..)
-  , setExportSubSuperscripts
   , setExportDrawers
+  , setExportEmphasizedText
+  , setExportSmartQuotes
+  , setExportSpecialStrings
+  , setExportSubSuperscripts
   , modifyExportSettings
+  , optionsToParserState
   ) where
 
 import           Control.Monad (liftM, liftM2)
@@ -54,8 +58,7 @@ import           Data.Default (Default(..))
 import qualified Data.Map as M
 import qualified Data.Set as Set
 
-import           Text.Pandoc.Builder ( Inlines, Blocks, HasMeta(..),
-                                       trimInlines )
+import           Text.Pandoc.Builder ( Inlines, Blocks, trimInlines )
 import           Text.Pandoc.Definition ( Meta(..), nullMeta )
 import           Text.Pandoc.Options ( ReaderOptions(..) )
 import           Text.Pandoc.Parsing ( HasHeaderMap(..)
@@ -78,30 +81,32 @@ type OrgLinkFormatters = M.Map String (String -> String)
 -- | Export settings <http://orgmode.org/manual/Export-settings.html>
 -- These settings can be changed via OPTIONS statements.
 data ExportSettings = ExportSettings
-  { exportSubSuperscripts :: Bool -- ^ TeX-like syntax for sub- and superscripts
-  , exportDrawers         :: Either [String] [String]
+  { exportDrawers         :: Either [String] [String]
   -- ^ Specify drawer names which should be exported.  @Left@ names are
   -- explicitly excluded from the resulting output while @Right@ means that
   -- only the listed drawer names should be included.
+  , exportEmphasizedText  :: Bool -- ^ Parse emphasized text
+  , exportSmartQuotes     :: Bool -- ^ Parse quotes smartly
+  , exportSpecialStrings  :: Bool -- ^ Parse ellipses and dashes smartly
+  , exportSubSuperscripts :: Bool -- ^ TeX-like syntax for sub- and superscripts
   }
 
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
-  { orgStateOptions              :: ReaderOptions
-  , orgStateAnchorIds            :: [String]
+  { orgStateAnchorIds            :: [String]
   , orgStateEmphasisCharStack    :: [Char]
   , orgStateEmphasisNewlines     :: Maybe Int
   , orgStateExportSettings       :: ExportSettings
+  , orgStateHeaderMap            :: M.Map Inlines String
+  , orgStateIdentifiers          :: Set.Set String
   , orgStateLastForbiddenCharPos :: Maybe SourcePos
   , orgStateLastPreCharPos       :: Maybe SourcePos
   , orgStateLastStrPos           :: Maybe SourcePos
   , orgStateLinkFormatters       :: OrgLinkFormatters
-  , orgStateMeta                 :: Meta
-  , orgStateMeta'                :: F Meta
+  , orgStateMeta                 :: F Meta
   , orgStateNotes'               :: OrgNoteTable
+  , orgStateOptions              :: ReaderOptions
   , orgStateParserContext        :: ParserContext
-  , orgStateIdentifiers          :: Set.Set String
-  , orgStateHeaderMap            :: M.Map Inlines String
   }
 
 data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext }
@@ -111,12 +116,6 @@ instance Default OrgParserLocal where
 
 instance HasReaderOptions OrgParserState where
   extractReaderOptions = orgStateOptions
-
-instance HasMeta OrgParserState where
-  setMeta field val st =
-    st{ orgStateMeta = setMeta field val $ orgStateMeta st }
-  deleteMeta field st =
-    st{ orgStateMeta = deleteMeta field $ orgStateMeta st }
 
 instance HasLastStrPosition OrgParserState where
   getLastStrPos = orgStateLastStrPos
@@ -142,28 +141,34 @@ instance Default OrgParserState where
 
 defaultOrgParserState :: OrgParserState
 defaultOrgParserState = OrgParserState
-  { orgStateOptions = def
-  , orgStateAnchorIds = []
+  { orgStateAnchorIds = []
   , orgStateEmphasisCharStack = []
   , orgStateEmphasisNewlines = Nothing
   , orgStateExportSettings = def
+  , orgStateHeaderMap = M.empty
+  , orgStateIdentifiers = Set.empty
   , orgStateLastForbiddenCharPos = Nothing
   , orgStateLastPreCharPos = Nothing
   , orgStateLastStrPos = Nothing
   , orgStateLinkFormatters = M.empty
-  , orgStateMeta = nullMeta
-  , orgStateMeta' = return nullMeta
+  , orgStateMeta = return nullMeta
   , orgStateNotes' = []
+  , orgStateOptions = def
   , orgStateParserContext = NullState
-  , orgStateIdentifiers = Set.empty
-  , orgStateHeaderMap = M.empty
   }
 
 defaultExportSettings :: ExportSettings
 defaultExportSettings = ExportSettings
-  { exportSubSuperscripts = True
-  , exportDrawers = Left ["LOGBOOK"]
+  { exportDrawers = Left ["LOGBOOK"]
+  , exportEmphasizedText = True
+  , exportSmartQuotes = True
+  , exportSpecialStrings = True
+  , exportSubSuperscripts = True
   }
+
+optionsToParserState :: ReaderOptions -> OrgParserState
+optionsToParserState opts =
+  def { orgStateOptions = opts }
 
 
 --
@@ -171,15 +176,28 @@ defaultExportSettings = ExportSettings
 --
 type ExportSettingSetter a = a -> ExportSettings -> ExportSettings
 
--- | Set export options for sub/superscript parsing.  The short syntax will
--- not be parsed if this is set set to @False@.
-setExportSubSuperscripts :: ExportSettingSetter Bool
-setExportSubSuperscripts val es = es { exportSubSuperscripts = val }
-
 -- | Set export options for drawers.  See the @exportDrawers@ in ADT
 -- @ExportSettings@ for details.
 setExportDrawers :: ExportSettingSetter (Either [String] [String])
 setExportDrawers val es = es { exportDrawers = val }
+
+-- | Set export options for emphasis parsing.
+setExportEmphasizedText :: ExportSettingSetter Bool
+setExportEmphasizedText val es = es { exportEmphasizedText = val }
+
+-- | Set export options for parsing of smart quotes.
+setExportSmartQuotes :: ExportSettingSetter Bool
+setExportSmartQuotes val es = es { exportSmartQuotes = val }
+
+-- | Set export options for parsing of special strings (like em/en dashes or
+-- ellipses).
+setExportSpecialStrings :: ExportSettingSetter Bool
+setExportSpecialStrings val es = es { exportSpecialStrings = val }
+
+-- | Set export options for sub/superscript parsing.  The short syntax will
+-- not be parsed if this is set set to @False@.
+setExportSubSuperscripts :: ExportSettingSetter Bool
+setExportSubSuperscripts val es = es { exportSubSuperscripts = val }
 
 -- | Modify a parser state
 modifyExportSettings :: ExportSettingSetter a -> a -> OrgParserState -> OrgParserState
