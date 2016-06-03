@@ -43,7 +43,7 @@ after_test:
   - |
       set "WIXPATH=C:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
       set VERSION=
-      for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set VERSION=%%b )
+      for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
       echo %VERSION%
       "%WIXPATH%\\candle" -dVERSION=%VERSION% -dBINPATH=. pandoc.wxs
       "%WIXPATH%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
