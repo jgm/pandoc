@@ -3,11 +3,12 @@ environment:
   global:
     STACK_ROOT: "c:\\sr"
     STACK_YAML: "c:\\stack\\windows\\stack-appveyor.yaml"
-
+    WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
 
 cache:
   - "c:\\sr" # stack root, short paths == fewer problems
   - '%LOCALAPPDATA%\Programs\stack' # even less to install...
+  - '%WIXBIN%'
 
 # We don't do a normal C build, but build in test_script via stack
 build: off 
