@@ -11,8 +11,6 @@ flags:
     unicode_collation: false
     test_citeproc: false
     debug: false
-  texmath:
-    network-uri: true
 packages:
 - '..'
 extra-deps:
