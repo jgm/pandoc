@@ -31,6 +31,9 @@ before_test:
 test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
+  - pwd
+  - where stack
+  - echo "" | stack clean
   - echo "" | stack --no-terminal  test
   - echo "" | stack --local-bin-path . install pandoc pandoc-citeproc
 
