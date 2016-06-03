@@ -11,10 +11,10 @@ cache:
   - '%WIXBIN%'
 
 # We don't do a normal C build, but build in test_script via stack
-build: off 
+build: off
 
 install:
-  - choco install wixtoolset
+  - '"%WIXBIN%\\candle -?" || choco install wixtoolset'
   - curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
   - 7z x stack.zip stack.exe
   - stack setup > nul
@@ -37,20 +37,19 @@ test_script:
 after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
   - cd windows
-  - 7z a "pandoc.zip" pandoc.exe"
+  - 7z a "pandoc.zip" pandoc.exe
   - .\pandoc.exe -s -S ..\README -o README.html
   - .\pandoc.exe -s -S ..\COPYING -o COPYING.rtf
   - copy ..\COPYRIGHT COPYRIGHT.txt
   - |
-      set "WIXPATH=C:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
       set VERSION=
       for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
       echo %VERSION%
-      "%WIXPATH%\\candle" -dVERSION=%VERSION% -dBINPATH=. pandoc.wxs
-      "%WIXPATH%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
+      "%WIXBIN%\\candle" -dVERSION=%VERSION% -dBINPATH=. pandoc.wxs
+      "%WIXBIN%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc.msi pandoc.wixobj
 
 artifacts:
   - path: windows\pandoc.zip
     name: exe
-  - path: windows\pandoc-%VERSION%-windows.msi
+  - path: windows\pandoc.msi
     name: msi
