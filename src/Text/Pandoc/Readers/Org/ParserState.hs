@@ -45,6 +45,7 @@ module Text.Pandoc.Readers.Org.ParserState
   , setExportDrawers
   , setExportEmphasizedText
   , setExportSmartQuotes
+  , setExportSpecialStrings
   , setExportSubSuperscripts
   , modifyExportSettings
   , optionsToParserState
@@ -84,8 +85,9 @@ data ExportSettings = ExportSettings
   -- ^ Specify drawer names which should be exported.  @Left@ names are
   -- explicitly excluded from the resulting output while @Right@ means that
   -- only the listed drawer names should be included.
-  , exportEmphasizedText  :: Bool -- ^ Parse emphasized text.
-  , exportSmartQuotes     :: Bool -- ^ Parse quotes, ellipses, apostrophs smartly
+  , exportEmphasizedText  :: Bool -- ^ Parse emphasized text
+  , exportSmartQuotes     :: Bool -- ^ Parse quotes smartly
+  , exportSpecialStrings  :: Bool -- ^ Parse ellipses and dashes smartly
   , exportSubSuperscripts :: Bool -- ^ TeX-like syntax for sub- and superscripts
   }
 
@@ -160,6 +162,7 @@ defaultExportSettings = ExportSettings
   { exportDrawers = Left ["LOGBOOK"]
   , exportEmphasizedText = True
   , exportSmartQuotes = True
+  , exportSpecialStrings = True
   , exportSubSuperscripts = True
   }
 
@@ -182,14 +185,19 @@ setExportDrawers val es = es { exportDrawers = val }
 setExportEmphasizedText :: ExportSettingSetter Bool
 setExportEmphasizedText val es = es { exportEmphasizedText = val }
 
+-- | Set export options for parsing of smart quotes.
+setExportSmartQuotes :: ExportSettingSetter Bool
+setExportSmartQuotes val es = es { exportSmartQuotes = val }
+
+-- | Set export options for parsing of special strings (like em/en dashes or
+-- ellipses).
+setExportSpecialStrings :: ExportSettingSetter Bool
+setExportSpecialStrings val es = es { exportSpecialStrings = val }
+
 -- | Set export options for sub/superscript parsing.  The short syntax will
 -- not be parsed if this is set set to @False@.
 setExportSubSuperscripts :: ExportSettingSetter Bool
 setExportSubSuperscripts val es = es { exportSubSuperscripts = val }
-
--- | Set export options for parsing of smart quotes.
-setExportSmartQuotes :: ExportSettingSetter Bool
-setExportSmartQuotes val es = es { exportSmartQuotes = val }
 
 -- | Modify a parser state
 modifyExportSettings :: ExportSettingSetter a -> a -> OrgParserState -> OrgParserState

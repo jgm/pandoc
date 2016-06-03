@@ -728,8 +728,12 @@ smart = do
   doubleQuoted <|> singleQuoted <|>
     choice (map (return <$>) [orgApostrophe, orgDash, orgEllipses])
   where
-    orgDash = dash <* updatePositions '-'
-    orgEllipses = ellipses <* updatePositions '.'
+    orgDash = do
+      guard =<< getExportSetting exportSpecialStrings
+      dash <* updatePositions '-'
+    orgEllipses = do
+      guard =<< getExportSetting exportSpecialStrings
+      ellipses <* updatePositions '.'
     orgApostrophe =
           (char '\'' <|> char '\8217') <* updateLastPreCharPos
                                        <* updateLastForbiddenCharPos
@@ -737,7 +741,7 @@ smart = do
 
 singleQuoted :: OrgParser (F Inlines)
 singleQuoted = try $ do
-  guard . exportSmartQuotes . orgStateExportSettings =<< getState
+  guard =<< getExportSetting exportSmartQuotes
   singleQuoteStart
   updatePositions '\''
   withQuoteContext InSingleQuote $
@@ -749,7 +753,7 @@ singleQuoted = try $ do
 -- in the same paragraph.
 doubleQuoted :: OrgParser (F Inlines)
 doubleQuoted = try $ do
-  guard . exportSmartQuotes . orgStateExportSettings =<< getState
+  guard =<< getExportSetting exportSmartQuotes
   doubleQuoteStart
   updatePositions '"'
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)

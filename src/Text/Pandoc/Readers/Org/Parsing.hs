@@ -37,6 +37,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , skipSpaces1
   , inList
   , withContext
+  , getExportSetting
   , updateLastForbiddenCharPos
   , updateLastPreCharPos
   , orgArgKey
@@ -174,8 +175,12 @@ withContext context parser = do
   return result
 
 --
--- Parser state update functions
+-- Parser state functions
 --
+
+-- | Get an export setting.
+getExportSetting :: (ExportSettings -> a) -> OrgParser a
+getExportSetting s = s . orgStateExportSettings <$> getState
 
 -- | Set the current position as the last position at which a forbidden char
 -- was found (i.e. a character which is not allowed at the inner border of
@@ -190,13 +195,20 @@ updateLastPreCharPos :: OrgParser ()
 updateLastPreCharPos = getPosition >>= \p ->
   updateState $ \s -> s{ orgStateLastPreCharPos = Just p}
 
+--
+-- Org key-value parsing
+--
+
+-- | Read the key of a plist style key-value list.
 orgArgKey :: OrgParser String
 orgArgKey = try $
   skipSpaces *> char ':'
              *> many1 orgArgWordChar
 
+-- | Read the value of a plist style key-value list.
 orgArgWord :: OrgParser String
 orgArgWord = many1 orgArgWordChar
 
+-- | Chars treated as part of a word in plists.
 orgArgWordChar :: OrgParser Char
 orgArgWordChar = alphaNum <|> oneOf "-_"

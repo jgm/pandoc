@@ -502,7 +502,7 @@ exportSetting = choice
   [ booleanSetting "^" setExportSubSuperscripts
   , booleanSetting "'" setExportSmartQuotes
   , booleanSetting "*" setExportEmphasizedText
-  , ignoredSetting "-"
+  , booleanSetting "-" setExportSpecialStrings
   , ignoredSetting ":"
   , ignoredSetting "<"
   , ignoredSetting "\\n"
