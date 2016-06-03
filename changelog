@@ -123,6 +123,15 @@ pandoc (1.17.1)
       Org-mode allows to specify export settings via `#+OPTIONS` lines.
       Disabling simple sub- and superscripts is one of these export options,
       this options is now supported.
+    + Support special strings export option Parsing of special strings
+      (like `...` as ellipsis or `--` as en dash) can be toggled using the `-`
+      option.
+    + Support emphasized text export option.  Parsing of emphasized text can
+      be toggled using the `*` option.  This influences parsing of text marked
+      as emphasized, strong, strikeout, and underline.  Parsing of inline math,
+      code, and verbatim text is not affected by this option.
+    + Support smart quotes export option.  Reading of smart quotes can be
+      toggled using the `'` option.
     + Parse but ignore export options. All known export options are parsed
       but ignored.
     + Refactor block attribute handling.  A parser state attribute was used
