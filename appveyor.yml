@@ -2,12 +2,12 @@ clone_folder: "c:\\stack"
 environment:
   global:
     STACK_ROOT: "c:\\sr"
-    STACK_YAML: "c:\\stack\\windows\\stack-appveyor.yaml"
+    STACK_YAML: "c:\\stack\\windows\\stack.yaml"
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
 
 cache:
   - "c:\\sr" # stack root, short paths == fewer problems
-  - '%LOCALAPPDATA%\Programs\stack' # even less to install...
+  - "c:\\stack\\stack.exe"
   - '%WIXBIN%'
 
 # We don't do a normal C build, but build in test_script via stack
@@ -15,8 +15,8 @@ build: off
 
 install:
   - '"%WIXBIN%"\candle -? || choco install wixtoolset'
-  - curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
-  - 7z x stack.zip stack.exe
+  - |
+      stack --version || curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386 && 7z x stack.zip stack.exe
   - stack setup > nul
 
 before_test:
@@ -25,14 +25,10 @@ before_test:
   # set PATH to where the hsb2hs binary is copied to
   - cmd: set "PATH=%PATH%;%APPDATA%\\local\\bin"
   - stack install hsb2hs
-  # we'll need this to create the MSI
-  - git clone https://github.com/jgm/pandoc-citeproc
 
 test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
   # descriptor
-  - pwd
-  - where stack
   - echo "" | stack clean
   - echo "" | stack --no-terminal  test
   - echo "" | stack --local-bin-path . install pandoc pandoc-citeproc

@@ -15,6 +15,10 @@ flags:
     network-uri: true
 packages:
 - '..'
-- '../pandoc-citeproc'
 extra-deps:
+- 'hsb2hs-0.3.1'
+- 'data-default-0.6.0'
+- 'data-default-instances-base-0.1.0'
+- 'preprocessor-tools-1.0.1'
+- 'pandoc-citeproc-0.9.1.1'
 resolver: lts-6.1
