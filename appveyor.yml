@@ -40,12 +40,13 @@ after_test:
   - .\pandoc.exe -s -S ..\README -o README.html
   - .\pandoc.exe -s -S ..\COPYING -o COPYING.rtf
   - copy ..\COPYRIGHT COPYRIGHT.txt
-  - set "WIXPATH=C:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
   - |
-      for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( set VERSION=%%b && exit )
-  - echo %VERSION%
-  - '"%WIXPATH%\\candle" -dVERSION="%VERSION%" -dBINPATH=. pandoc.wxs'
-  - '"%WIXPATH%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj'
+      set "WIXPATH=C:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
+      set VERSION=
+      for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set VERSION=%%b )
+      echo %VERSION%
+      "%WIXPATH%\\candle" -dVERSION=%VERSION% -dBINPATH=. pandoc.wxs
+      "%WIXPATH%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
 
 artifacts:
   - path: windows\pandoc.zip
