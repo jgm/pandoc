@@ -37,7 +37,11 @@ after_test:
   - cd windows
   - 7z a "pandoc.zip" pandoc.exe"
   - for /f "tokens=2 delims= " %%a in ('pandoc --version') do ( set "VERSION=%%a" && exit )
-  - candle -dVERSION="%VERSION%" pandoc.wxs
+  - .\pandoc.exe -s -S ..\README -o README.html
+  - .\pandoc.exe -s -S ..\COPYING -o COPYING.rtf
+  - copy ..\COPYRIGHT COPYRIGHT.txt
+  - setx path "%path%;C:\Program Files (x86)\WiX Toolset v3.10\bin"
+  - candle -dVERSION="%VERSION%" -dBINPATH=. pandoc.wxs
   - light -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
 
 artifacts:
