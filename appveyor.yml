@@ -14,7 +14,7 @@ cache:
 build: off
 
 install:
-  - '"%WIXBIN%\\candle -?" || choco install wixtoolset'
+  - '"%WIXBIN%"\candle -? || choco install wixtoolset'
   - curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
   - 7z x stack.zip stack.exe
   - stack setup > nul
