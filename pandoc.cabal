@@ -307,8 +307,8 @@ Library
      other-modules: Text.Pandoc.Data
   if os(windows)
     Cpp-options:      -D_WINDOWS
-  Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
-  Ghc-Prof-Options: -fprof-auto-exported -rtsopts
+  Ghc-Options:   -Wall -fno-warn-unused-do-bind
+  Ghc-Prof-Options: -fprof-auto-exported
   Default-Language: Haskell98
   Other-Extensions:   PatternGuards, OverloadedStrings,
                       ScopedTypeVariables, GeneralizedNewtypeDeriving,
