@@ -11,3 +11,4 @@ package:
 
 clean:
 	vagrant destroy
+	-rm pandoc pandoc-citeproc

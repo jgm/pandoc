@@ -21,7 +21,7 @@ PATH=$LOCAL/bin:$PATH
 
 which hsb2hs || stack install --install-ghc --stack-yaml stack.hsb2hs.yaml
 
-stack install --install-ghc --stack-yaml deb/stack.yaml
+stack install --install-ghc --stack-yaml deb/stack.yaml --local-bin-path deb pandoc pandoc-citeproc
 
 make man/pandoc.1
 # get pandoc-citeproc man page:
@@ -31,16 +31,16 @@ mkdir $TEMPDIR
 curl ${PANDOC_CITEPROC_TARBALL} | tar xzC $TEMPDIR
 PANDOC_CITEPROC_PATH=$TEMPDIR/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}
 
-strip $LOCAL/bin/pandoc
-strip $LOCAL/bin/pandoc-citeproc
+strip deb/pandoc
+strip deb/pandoc-citeproc
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
 mkdir -p $DEST/share/doc/pandoc
 
 mkdir -p $DEST/share/doc/pandoc-citeproc
 find $DIST -type d | xargs chmod 755
-cp $LOCAL/bin/pandoc $DEST/bin/
-cp $LOCAL/bin/pandoc-citeproc $DEST/bin/
+cp deb/pandoc $DEST/bin/
+cp deb/pandoc-citeproc $DEST/bin/
 cp man/pandoc.1 $DEST/share/man/man1/pandoc.1
 gzip -9 $DEST/share/man/man1/pandoc.1
 cp ${PANDOC_CITEPROC_PATH}/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
