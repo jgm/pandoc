@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "January 12, 2016" "pandoc 1.17.0.3"
+.TH PANDOC 1 "June 4, 2016" "pandoc 1.17.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -248,17 +248,17 @@ Specify output format.
 (MediaWiki markup), \f[C]dokuwiki\f[] (DokuWiki markup),
 \f[C]textile\f[] (Textile), \f[C]org\f[] (Emacs Org mode),
 \f[C]texinfo\f[] (GNU Texinfo), \f[C]opml\f[] (OPML), \f[C]docbook\f[]
-(DocBook), \f[C]opendocument\f[] (OpenDocument), \f[C]odt\f[]
-(OpenOffice text document), \f[C]docx\f[] (Word docx), \f[C]haddock\f[]
-(Haddock markup), \f[C]rtf\f[] (rich text format), \f[C]epub\f[] (EPUB
-v2 book), \f[C]epub3\f[] (EPUB v3), \f[C]fb2\f[] (FictionBook2 e\-book),
-\f[C]asciidoc\f[] (AsciiDoc), \f[C]icml\f[] (InDesign ICML),
-\f[C]tei\f[] (TEI Simple), \f[C]slidy\f[] (Slidy HTML and javascript
-slide show), \f[C]slideous\f[] (Slideous HTML and javascript slide
-show), \f[C]dzslides\f[] (DZSlides HTML5 + javascript slide show),
-\f[C]revealjs\f[] (reveal.js HTML5 + javascript slide show), \f[C]s5\f[]
-(S5 HTML and javascript slide show), or the path of a custom lua writer
-(see Custom writers, below).
+(DocBook 4), \f[C]docbook5\f[] (DocBook 5), \f[C]opendocument\f[]
+(OpenDocument), \f[C]odt\f[] (OpenOffice text document), \f[C]docx\f[]
+(Word docx), \f[C]haddock\f[] (Haddock markup), \f[C]rtf\f[] (rich text
+format), \f[C]epub\f[] (EPUB v2 book), \f[C]epub3\f[] (EPUB v3),
+\f[C]fb2\f[] (FictionBook2 e\-book), \f[C]asciidoc\f[] (AsciiDoc),
+\f[C]icml\f[] (InDesign ICML), \f[C]tei\f[] (TEI Simple), \f[C]slidy\f[]
+(Slidy HTML and javascript slide show), \f[C]slideous\f[] (Slideous HTML
+and javascript slide show), \f[C]dzslides\f[] (DZSlides HTML5 +
+javascript slide show), \f[C]revealjs\f[] (reveal.js HTML5 + javascript
+slide show), \f[C]s5\f[] (S5 HTML and javascript slide show), or the
+path of a custom lua writer (see Custom writers, below).
 Note that \f[C]odt\f[], \f[C]epub\f[], and \f[C]epub3\f[] output will
 not be directed to \f[I]stdout\f[]; an output filename must be specified
 using the \f[C]\-o/\-\-output\f[] option.
@@ -584,9 +584,11 @@ Deprecated synonym for \f[C]\-\-wrap=none\f[].
 .RE
 .TP
 .B \f[C]\-\-columns=\f[]\f[I]NUMBER\f[]
-Specify length of lines in characters (for text wrapping).
-This affects only the generated source code, not the layout on the
-rendered page.
+Specify length of lines in characters.
+This affects text wrapping in the generated source code (see
+\f[C]\-\-wrap\f[]).
+It also affects calculation of column widths for plain text tables (see
+Tables below).
 .RS
 .RE
 .TP
@@ -595,7 +597,8 @@ Include an automatically generated table of contents (or, in the case of
 \f[C]latex\f[], \f[C]context\f[], \f[C]docx\f[], and \f[C]rst\f[], an
 instruction to create one) in the output document.
 This option has no effect on \f[C]man\f[], \f[C]docbook\f[],
-\f[C]slidy\f[], \f[C]slideous\f[], \f[C]s5\f[], or \f[C]odt\f[] output.
+\f[C]docbook5\f[], \f[C]slidy\f[], \f[C]slideous\f[], \f[C]s5\f[], or
+\f[C]odt\f[] output.
 .RS
 .RE
 .TP
@@ -1038,8 +1041,8 @@ copy of the script, so it can be cached.
 .RE
 .TP
 .B \f[C]\-\-mathml\f[][\f[C]=\f[]\f[I]URL\f[]]
-Convert TeX math to MathML (in \f[C]docbook\f[] as well as \f[C]html\f[]
-and \f[C]html5\f[]).
+Convert TeX math to MathML (in \f[C]docbook\f[], \f[C]docbook5\f[],
+\f[C]html\f[] and \f[C]html5\f[]).
 In standalone \f[C]html\f[] output, a small javascript (or a link to
 such a script if a \f[I]URL\f[] is supplied) will be inserted that
 allows the MathML to be viewed on some browsers.
@@ -1950,11 +1953,11 @@ treated differently in CSS.
 .SS Extension: \f[C]implicit_header_references\f[]
 .PP
 Pandoc behaves as if reference links have been defined for each header.
-So, instead of
+So, to link to a header
 .IP
 .nf
 \f[C]
-[header\ identifiers](#header\-identifiers\-in\-html)
+#\ Header\ identifiers\ in\ HTML
 \f[]
 .fi
 .PP
@@ -1962,7 +1965,7 @@ you can simply write
 .IP
 .nf
 \f[C]
-[header\ identifiers]
+[Header\ identifiers\ in\ HTML]
 \f[]
 .fi
 .PP
@@ -1970,7 +1973,7 @@ or
 .IP
 .nf
 \f[C]
-[header\ identifiers][]
+[Header\ identifiers\ in\ HTML][]
 \f[]
 .fi
 .PP
@@ -1978,7 +1981,16 @@ or
 .IP
 .nf
 \f[C]
-[the\ section\ on\ header\ identifiers][header\ identifiers]
+[the\ section\ on\ header\ identifiers][header\ identifiers\ in
+HTML]
+\f[]
+.fi
+.PP
+instead of giving the identifier explicitly:
+.IP
+.nf
+\f[C]
+[Header\ identifiers\ in\ HTML](#header\-identifiers\-in\-html)
 \f[]
 .fi
 .PP
@@ -4780,40 +4792,47 @@ Released under the GPL, version 2 or greater.
 This software carries no warranty of any kind.
 (See COPYRIGHT for full copyright and warranty notices.)
 .PP
-Contributors include Aaron Wolen, Albert Krewinkel, Alexander
+Contributors include Aaron Wolen, Albert Krewinkel, Alex Vong, Alexander
 Kondratskiy, Alexander Sulfrian, Alexander V Vershilov, Alfred
 Wechselberger, Andreas Lööw, Andrew Dunning, Antoine Latter, Arata
 Mizuki, Arlo O\[aq]Keeffe, Artyom Kazak, Ben Gamari, Beni
-Cherniavsky\-Paskin, Bjorn Buckwalter, Bradley Kuhn, Brent Yorgey, Bryan
-O\[aq]Sullivan, B.
-Scott Michel, Caleb McDaniel, Calvin Beck, Christoffer Ackelman,
-Christoffer Sawicki, Clare Macrae, Clint Adams, Conal Elliott, Craig S.
-Bosma, Daniel Bergey, Daniel T.
+Cherniavsky\-Paskin, Benoit Schweblin, Bjorn Buckwalter, Bradley Kuhn,
+Brent Yorgey, Bryan O\[aq]Sullivan, B.
+Scott Michel, Caleb McDaniel, Calvin Beck, Carlos Sosa, Chris Black,
+Christian Conkle, Christoffer Ackelman, Christoffer Sawicki, Clare
+Macrae, Clint Adams, Conal Elliott, Craig S.
+Bosma, csforste, Daniel Bergey, Daniel T.
 Staal, David Lazar, David Röthlisberger, Denis Laxalde, Douglas Calvert,
 Douglas F.
-Calvert, Eric Kow, Eric Seidel, Florian Eitel, François Gannaz, Freiric
-Barral, Fyodor Sheremetyev, Gabor Pali, Gavin Beatty, Greg Maslov,
+Calvert, Emanuel Evans, Emily Eisenberg, Eric Kow, Eric Seidel, Florian
+Eitel, François Gannaz, Freiric Barral, Freirich Raabe, Fyodor
+Sheremetyev, Gabor Pali, Gavin Beatty, Gottfried Haider, Greg Maslov,
 Grégory Bataille, Greg Rundlett, gwern, Gwern Branwen, Hans\-Peter
-Deifel, Henry de Valence, Ilya V.
-Portnov, infinity0x, Jaime Marquínez Ferrándiz, James Aspnes, Jamie F.
-Olson, Jan Larres, Jason Ronallo, Jeff Arnold, Jeff Runningen, Jens
-Petersen, Jérémy Bobbio, Jesse Rosenthal, J.
+Deifel, Henrik Tramberend, Henry de Valence, ickc, Ilya V.
+Portnov, infinity0x, Ivo Clarysse, Jaime Marquínez Ferrándiz, James
+Aspnes, Jamie F.
+Olson, Jan Larres, Jan Schulz, Jason Ronallo, Jeff Arnold, Jeff
+Runningen, Jens Petersen, Jérémy Bobbio, Jesse Rosenthal, J.
 Lewis Muir, Joe Hillenbrand, John MacFarlane, Jonas Smedegaard, Jonathan
-Daugherty, Josef Svenningsson, Jose Luis Duran, Julien Cretel, Justin
-Bogner, Kelsey Hightower, Konstantin Zudov, Lars\-Dominik Braun, Luke
-Plant, Mark Szepieniec, Mark Wright, Masayoshi Takahashi, Matej Kollar,
-Mathias Schenner, Matthew Pickering, Matthias C.
+Daugherty, Josef Svenningsson, Jose Luis Duran, Julien Cretel, Juliusz
+Gonera, Justin Bogner, Kelsey Hightower, Kolen Cheung, Konstantin Zudov,
+Kristof Bastiaensen, Lars\-Dominik Braun, Luke Plant, Mark Szepieniec,
+Mark Wright, Martin Linn, Masayoshi Takahashi, Matej Kollar, Mathias
+Schenner, Mathieu Duponchelle, Matthew Eddey, Matthew Pickering,
+Matthias C.
 M.
 Troffaes, Mauro Bieg, Max Bolingbroke, Max Rydahl Andersen, Merijn
-Verstraaten, Michael Snoyman, Michael Thompson, MinRK, Nathan Gass, Neil
-Mayhew, Nick Bart, Nicolas Kaiser, Nikolay Yakimov, nkalvi, Paulo
+Verstraaten, Michael Beaumont, Michael Chladek, Michael Snoyman, Michael
+Thompson, MinRK, Nathan Gass, Neil Mayhew, Nick Bart, Nicolas Kaiser,
+Nikolay Yakimov, nkalvi, Ophir Lifshitz, Pablo Rodríguez, Paulo
 Tanimoto, Paul Rivier, Peter Wang, Philippe Ombredanne, Phillip Alday,
-Puneeth Chaganti, qerub, Ralf Stephan, Recai Oktaş, rodja.trappe,
-RyanGlScott, Scott Morrison, Sergei Trofimovich, Sergey Astanin, Shahbaz
-Youssefi, Shaun Attfield, shreevatsa.public, Simon Hengel, Sumit
-Sahrawat, takahashim, thsutton, Tim Lin, Timothy Humphries, Todd
-Sifleet, Tom Leese, Uli Köhler, Václav Zeman, Viktor Kronvall, Vincent,
-Wikiwide, and Xavier Olive.
+Prayag Verma, Puneeth Chaganti, qerub, Ralf Stephan, Raniere Silva,
+Recai Oktaş, robabla, rodja.trappe, rski, RyanGlScott, Scott Morrison,
+Sergei Trofimovich, Sergey Astanin, Shahbaz Youssefi, Shaun Attfield,
+Sidarth Kapur, shreevatsa.public, Simon Hengel, Sumit Sahrawat,
+takahashim, thsutton, Tim Lin, Timothy Humphries, Tiziano Müller, Thomas
+Hodgson, Todd Sifleet, Tom Leese, Uli Köhler, Václav Zeman, Viktor
+Kronvall, Vincent, Wikiwide, and Xavier Olive.
 .PP
 The Pandoc source code and all documentation may be downloaded
 from <http://pandoc.org>.
