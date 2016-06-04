@@ -21,7 +21,7 @@ PATH=$LOCAL/bin:$PATH
 
 which hsb2hs || stack install --install-ghc --stack-yaml stack.hsb2hs.yaml
 
-stack install --install-ghc --stack-yaml deb/stack.yaml --local-bin-path deb pandoc pandoc-citeproc
+stack install --install-ghc --stack-yaml deb/stack.yaml --local-bin-path . pandoc pandoc-citeproc
 
 make man/pandoc.1
 # get pandoc-citeproc man page:
