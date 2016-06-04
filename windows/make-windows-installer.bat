@@ -18,9 +18,9 @@ if "%VERSION%" == "" (
 )
 echo Detected version %VERSION%
 echo Creating msi...
-candle -dVERSION=%VERSION% -dBINPATH=%BINPATH% pandoc.wxs
+candle -dVERSION=%VERSION% -dBINPATH=%BINPATH% *.wxs -out wixobj\
 if %errorlevel% neq 0 exit /b %errorlevel%
-light  -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc-%VERSION%-windows.msi pandoc.wixobj
+light  -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out pandoc-%VERSION%-windows.msi wixobj\*.wixobj
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo Starting kSign: sign, then quit kSign to complete the build...
 kSign

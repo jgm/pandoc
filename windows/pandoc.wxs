@@ -1,18 +1,16 @@
-<?xml version="1.0"?>
 <?define UpgradeCode = "A68E8EF6-ABB1-4F22-A3C5-68DFDF0AB562" ?>
 <?if $(sys.BUILDARCH)=x64?>
-  <?define ProgFilesFolder="ProgramFiles64Folder"?>
+<?define ProgFilesFolder="ProgramFiles64Folder"?>
 <?else?>
-  <?define ProgFilesFolder="ProgramFilesFolder"?>
+<?define ProgFilesFolder="ProgramFilesFolder"?>
 <?endif?>
-
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*"
   UpgradeCode="$(var.UpgradeCode)" Name="Pandoc $(var.VERSION)"
   Version="$(var.VERSION)" Manufacturer="John MacFarlane"
   Language="1033">
 
-    <Package InstallerVersion="200" Compressed="yes"
+    <Package InstallerVersion="301" Compressed="yes"
     Comments="Windows Installer Package" />
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
     <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
@@ -21,7 +19,6 @@
         Minimum='0.0.0.0'  IncludeMinimum='yes'
         Maximum="99.0.0.0" IncludeMaximum="no" />
     </Upgrade>
-    <Property Id="ARPURLINFOABOUT" Value="http://pandoc.org" />
 
     <InstallExecuteSequence>
       <RemoveExistingProducts After="InstallFinalize"/>
@@ -126,92 +123,63 @@
       </Feature>
     </Feature>
 
+    
+    <!-- Set properties for add/remove programs -->
+    <Property Id="ARPURLINFOABOUT" Value="http://pandoc.org" />
+    <Property Id="ARPHELPLINK" Value="http://pandoc.org" />
+    <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />    <!-- Remove repair -->
+    <Property Id="ARPNOMODIFY" Value="yes" Secure="yes" />    <!-- Remove modify -->
 
+      
+    <!--Needed for WixUI_Advanced-->
+    <Property Id="ApplicationFolderName" Value="Pandoc" />
+    <Property Id="WixAppFolder" Value="WixPerUserFolder" />
+    
+    <!--For Single Package for dual purpose i.e. per User/Machine-->
+    <!--<Property Id="ALLUSERS" Value="2" Secure="yes" />-->
+    <Property Id="MSIINSTALLPERUSER" Value="1" />
+
+    <!--Inform about installed location-->
     <SetProperty Id="ARPINSTALLLOCATION" Value="[APPLICATIONFOLDER]"
                  After="CostFinalize" />
-
     <CustomAction Id="SetExitDialogOptText"
-                  Property="WIXUI_EXITDIALOGOPTIONALTEXT"
-                  Value="[ProductName] was installed in [APPLICATIONFOLDER]. You may need to restart Cmd/Powershell windows before using it." />
+                      Property="WIXUI_EXITDIALOGOPTIONALTEXT"
+                      Value="!(loc.ExitDialogText)" />
+    
+    <!--Offer Per User installs only on workstations (block on servers)-->
+    <SetProperty Id="WixUISupportPerUser" Value="0" Before="FindRelatedProducts">
+      <!--https://msdn.microsoft.com/en-us/library/windows/desktop/aa370329(v=vs.85).aspx-->
+      MsiNTProductType > 1
+    </SetProperty>
+    <SetProperty Id="WixUISupportPerUser" Value="1" Before="FindRelatedProducts" Action="CASupportPerUser">
+      MsiNTProductType = 1
+    </SetProperty>
+    <SetProperty Id="ALLUSERS" Value="1" Before="FindRelatedProducts">
+      MsiNTProductType > 1
+    </SetProperty>
+    <SetProperty Id="ALLUSERS" Value="{}" Before="FindRelatedProducts" Action="CASetPuaPackage">
+      MsiNTProductType = 1
+    </SetProperty>
+    <SetProperty Id="MSIINSTALLPERUSER" Value="1" Before="FindRelatedProducts">
+      MsiNTProductType = 1
+    </SetProperty>
+    <SetProperty Id="WixAppFolder" Value="WixPerMachineFolder" Before="FindRelatedProducts">
+      MsiNTProductType > 1
+    </SetProperty>
 
-    <CustomAction Id="CustomWixSetPerUserFolder"
-                  Property="WixPerUserFolder"
-                  Value="[LocalAppDataFolder][ApplicationFolderName]"
-                  Execute="immediate" />
-
-
-    <InstallExecuteSequence>
-      <Custom Action="CustomWixSetPerUserFolder" After="WixSetDefaultPerUserFolder">
-        ACTION="INSTALL" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))
-      </Custom>
-    </InstallExecuteSequence>
+    <!--Make changes to PATH visible immeidiately-->
+    <CustomActionRef Id="WixBroadcastSettingChange" />
+    <CustomActionRef Id="WixBroadcastEnvironmentChange" />
 
     <InstallUISequence>
       <Custom Action="SetExitDialogOptText" Before="ExecuteAction">
         NOT Installed
       </Custom>
-      <Custom Action="CustomWixSetPerUserFolder" After="WixSetDefaultPerUserFolder">
-        ACTION="INSTALL" AND (ALLUSERS="" OR (ALLUSERS=2 AND (NOT Privileged)))
-      </Custom>
     </InstallUISequence>
-
-    <CustomActionRef Id="WixBroadcastSettingChange" />
-    <CustomActionRef Id="WixBroadcastEnvironmentChange" />
-
-    <Property Id="ApplicationFolderName" Value="Pandoc" />
-    <Property Id="WixAppFolder" Value="WixPerUserFolder" />
-    <Property Id="ALLUSERS" Value="2" Secure="yes" />
-    <Property Id="MSIINSTALLPERUSER" Value="1" />
-
-    <WixVariable Id="WixUILicenseRtf" Value="COPYING.rtf" />
-
-    <UI Id="MyWixUI_Advanced">
-      <UIRef Id="WixUI_Advanced" />
-      <UIRef Id="WixUI_ErrorProgressText" />
-
-      <Publish Dialog="InstallScopeDlg" Control="Next"
-               Event="NewDialog" Value="VerifyReadyDlg"
-               Order="6">WixAppFolder = "WixPerUserFolder"</Publish>
-
-      <Publish Dialog="InstallScopeDlg" Control="Next"
-               Property="APPLICATIONFOLDER"
-               Value="[$(var.ProgFilesFolder)][ApplicationFolderName]"
-               Order="7">WixAppFolder = "WixPerMachineFolder"</Publish>
-
-      <Publish Dialog="InstallScopeDlg" Control="Next"
-               Property="APPLICATIONFOLDER" Value="[LocalAppDataFolder][ApplicationFolderName]"
-               Order="8">WixAppFolder = "WixPerUserFolder"</Publish>
-
-      <Publish Dialog="InstallScopeDlg" Control="Next"
-               Property="MSIINSTALLPERUSER" Value="{}"
-               Order="18">WixAppFolder = "WixPerMachineFolder" AND ALLUSERS = 1</Publish>
-      <Publish Dialog="InstallScopeDlg" Control="Next"
-               Property="MSIINSTALLPERUSER" Value="1"
-               Order="19">WixAppFolder = "WixPerUserFolder" AND ALLUSERS = 2</Publish>
-      <Publish Dialog="InstallScopeDlg" Control="Next"
-               Property="ALLUSERS" Value="2"
-               Order="20">WixAppFolder = "WixPerUserFolder"</Publish>
-
-
-      <Publish Dialog="InstallDirDlg" Control="Next"
-               Event="NewDialog" Value="VerifyReadyDlg"
-               Order="4">
-        WIXUI_DONTVALIDATEPATH OR
-        WIXUI_INSTALLDIR_VALID="1"
-      </Publish>
-
-      <Publish Dialog="VerifyReadyDlg" Control="Back"
-               Event="NewDialog" Value="InstallScopeDlg"
-               Order="11">
-        WixAppFolder = "WixPerUserFolder"
-      </Publish>
-      <Publish Dialog="VerifyReadyDlg" Control="Back"
-               Event="NewDialog" Value="InstallDirDlg"
-               Order="12">
-        WixAppFolder = "WixPerMachineFolder"
-      </Publish>
-    </UI>
-
+    
+    <UIRef Id="WixUI_Advanced_Custom"/>
+    
   </Product>
-
+  
+  
 </Wix>
