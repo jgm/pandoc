@@ -12,13 +12,13 @@ pandoc (1.17.1)
       of `:PROPERTIES:` drawers.  All available attributes are stored as
       key/value pairs.  This reflects the way the org reader handles
       `:PROPERTIES:` blocks.
-    + Add drawer capability (Carlos Sosa).  For the implementation of the Drawer
-      element in the Org Writer, we make use of a generic Block container with
-      attributes.  The presence of a `drawer` class defines that the `Div`
-      constructor is a drawer. The first class defines the drawer name to use.
-      The key-value list in the attributes defines the keys to add inside the
-      Drawer.  Lastly, the list of Block elements contains miscellaneous blocks
-      elements to add inside of the Drawer.
+    + Add drawer capability (Carlos Sosa).  For the implementation of the
+      Drawer element in the Org Writer, we make use of a generic Block
+      container with attributes.  The presence of a `drawer` class defines
+      that the `Div` constructor is a drawer. The first class defines the
+      drawer name to use.  The key-value list in the attributes defines
+      the keys to add inside the Drawer.  Lastly, the list of Block elements
+      contains miscellaneous blocks elements to add inside of the Drawer.
     + Use `CUSTOM_ID` in properties (Albert Krewinkel).  The `ID` property is
       reserved for internal use by Org-mode and should not be used.
       The `CUSTOM_ID` property is to be used instead, it is converted to the
@@ -43,8 +43,8 @@ pandoc (1.17.1)
     + brazilian -> brazil for polyglossia (#2953).
 
   * HTML writer: Ensure mathjax link is added when math appears in footnote
-    (#2881).  Previously if a document only had math in a footnote, the MathJax
-    link would not be added.
+    (#2881).  Previously if a document only had math in a footnote, the
+    MathJax link would not be added.
 
   * EPUB writer: set `navpage` variable on nav page.
     This allows templates to treat it differently.
@@ -217,6 +217,10 @@ pandoc (1.17.1)
           - name: \cyrillicfonttt
             options: Scale=MatchLowercase
             font: Liberation
+
+  * Create unsigned msi as build artifact in appveyor build.
+
+  * On travis, test with ghc 8.0.1; drop testing for ghc 7.4.1.
 
 pandoc (1.17.0.3)
 
