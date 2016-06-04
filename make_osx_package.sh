@@ -27,7 +27,7 @@ which hsb2hs || stack install --stack-yaml=stack.hsb2hs.yaml
 
 echo Building pandoc...
 stack clean
-stack install --stack-yaml=osx/stack.yaml --local-bin-path osx pandoc pandoc-citeproc
+stack install --stack-yaml=osx/stack.yaml --local-bin-path . pandoc pandoc-citeproc
 
 echo Getting man pages...
 make man/pandoc.1

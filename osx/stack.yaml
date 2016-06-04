@@ -11,8 +11,6 @@ flags:
     unicode_collation: false
     test_citeproc: false
     debug: false
-  texmath:
-    network-uri: true
 ghc-options:
   pandoc-citeproc:  '-pgmP cpphs -optP--cpp'
   highlighting-kate: '-pgmP cpphs -optP--cpp'
