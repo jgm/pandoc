@@ -44,8 +44,8 @@ after_test:
       set VERSION=
       for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
       echo %VERSION%
-      "%WIXBIN%\\candle" -dVERSION=%VERSION% -dBINPATH=. pandoc.wxs
-      "%WIXBIN%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -out pandoc.msi pandoc.wixobj
+      "%WIXBIN%\\candle" -dVERSION=%VERSION% -dBINPATH=. *.wxs -out wixobj\
+      "%WIXBIN%\\light" -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out pandoc.msi wixobj\*.wixobj
 
 artifacts:
   - path: windows\pandoc.zip
