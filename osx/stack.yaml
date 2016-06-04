@@ -17,7 +17,7 @@ ghc-options:
 packages:
 - '..'
 extra-deps:
-- 'pandoc-citeproc-0.9.1.1'
+- 'pandoc-citeproc-0.10'
 - 'hsb2hs-0.3.1'
 - 'data-default-0.6.0'
 - 'data-default-instances-base-0.1.0'
