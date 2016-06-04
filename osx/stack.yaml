@@ -18,9 +18,10 @@ ghc-options:
   highlighting-kate: '-pgmP cpphs -optP--cpp'
 packages:
 - '..'
-- 'https://hackage.haskell.org/package/pandoc-citeproc-0.9.1.1/pandoc-citeproc-0.9.1.1.tar.gz'
 extra-deps:
-- 'aeson-0.11.1.1'
-- 'texmath-0.8.5'
-- 'highlighting-kate-0.6.2'
-resolver: lts-5.8
+- 'pandoc-citeproc-0.9.1.1'
+- 'hsb2hs-0.3.1'
+- 'data-default-0.6.0'
+- 'data-default-instances-base-0.1.0'
+- 'preprocessor-tools-1.0.1'
+resolver: lts-6.1

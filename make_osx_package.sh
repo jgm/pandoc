@@ -27,7 +27,7 @@ which hsb2hs || stack install --stack-yaml=stack.hsb2hs.yaml
 
 echo Building pandoc...
 stack clean
-stack install --stack-yaml=osx/stack.yaml
+stack install --stack-yaml=osx/stack.yaml --local-bin-path osx pandoc pandoc-citeproc
 
 echo Getting man pages...
 make man/pandoc.1
@@ -41,7 +41,7 @@ PANDOC_CITEPROC_PATH=$DIST/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
 for f in pandoc pandoc-citeproc; do
-  cp $LOCALBIN/$f $DEST/bin/;
+  cp osx/$f $DEST/bin/;
 done
 cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 cp man/pandoc.1 $DEST/share/man/man1/
@@ -49,7 +49,7 @@ cp man/pandoc.1 $DEST/share/man/man1/
 chown -R $ME:staff $DIST
 
 echo Copying license...
-$LOCALBIN/pandoc --data data -t html5 -s COPYING -o $RESOURCES/license.html
+osx/pandoc --data data -t html5 -s COPYING -o $RESOURCES/license.html
 
 echo Signing pandoc executable...
 
@@ -70,4 +70,4 @@ productbuild --distribution osx/distribution.xml --resources $DIST/Resources --p
 spctl --assess --type install $BASE-osx.pkg
 
 # cleanup
-rm -r $DIST
+rm -r $DIST osx/pandoc osx/pandoc-citeproc
