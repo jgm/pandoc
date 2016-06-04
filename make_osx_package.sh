@@ -51,11 +51,14 @@ chown -R $ME:staff $DIST
 echo Copying license...
 osx/pandoc --data data -t html5 -s COPYING -o $RESOURCES/license.html
 
-echo Signing pandoc executable...
+# Removing executable signing because of a problem that arose in El Capitan
+# "source=obsolete resource envelope"
 
-codesign --force --sign "${DEVELOPER_ID_APPLICATION}" $DEST/bin/pandoc
+#echo Signing pandoc executable...
+
+#codesign --force --sign "${DEVELOPER_ID_APPLICATION}" $DEST/bin/pandoc
 # make sure it's valid... returns nonzero exit code if it isn't:
-spctl --assess --type execute $DEST/bin/pandoc
+#spctl --assess --type execute $DEST/bin/pandoc
 
 echo Creating OSX package...
 # remove old package first
