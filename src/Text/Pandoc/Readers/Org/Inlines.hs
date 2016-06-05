@@ -49,11 +49,13 @@ import           Text.Pandoc.Readers.LaTeX ( inlineCommand, rawLaTeXInline )
 import           Text.TeXMath ( readTeX, writePandoc, DisplayType(..) )
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
-import           Control.Monad ( guard, mplus, mzero, when )
+import           Prelude hiding (sequence)
+import           Control.Monad ( guard, mplus, mzero, when, void )
 import           Data.Char ( isAlphaNum, isSpace )
-import           Data.List ( isPrefixOf )
+import           Data.List ( intersperse, isPrefixOf )
 import           Data.Maybe ( fromMaybe )
 import qualified Data.Map as M
+import           Data.Traversable (sequence)
 
 --
 -- Functions acting on the parser state
@@ -127,7 +129,7 @@ inlines = trimInlinesF . mconcat <$> many1 inline
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\"$'()*+-,./:<=>[\\]^_{|}~"
+specialChars = "\"$'()*+-,./:;<=>[\\]^_{|}~"
 
 
 whitespace :: OrgParser (F Inlines)
@@ -166,19 +168,42 @@ endline = try $ do
   updateLastPreCharPos
   return . return $ B.softbreak
 
+
+--
+-- Citations
+--
+
+-- The state of citations is a bit confusing due to the lack of an official
+-- syntax and multiple syntaxes coexisting.  The pandocOrgCite syntax was the
+-- first to be implemented here and is almost identical to Markdown's citation
+-- syntax.  The org-ref package is in wide use to handle citations, but the
+-- syntax is a bit limiting and not quite as simple to write.  The
+-- semi-offical Org-mode citation syntax is based on John MacFarlane's Pandoc
+-- sytax and Org-oriented enhancements contributed by Richard Lawrence and
+-- others.  It's dubbed Berkeley syntax due the place of activity of its main
+-- contributors.  All this should be consolidated once an official Org-mode
+-- citation syntax has emerged.
+
 cite :: OrgParser (F Inlines)
-cite = try $ do
+cite = try $ berkeleyCite <|> do
   guardEnabled Ext_citations
-  (cs, raw) <- withRaw (pandocOrgCite <|> orgRefCite)
+  (cs, raw) <- withRaw $ choice
+               [ pandocOrgCite
+               , orgRefCite
+               , berkeleyTextualCite
+               ]
   return $ (flip B.cite (B.text raw)) <$> cs
 
--- | A citation in Pandoc Org-mode style (@[\@citekey]@).
+-- | A citation in Pandoc Org-mode style (@[prefix \@citekey suffix]@).
 pandocOrgCite :: OrgParser (F [Citation])
 pandocOrgCite = try $
   char '[' *> skipSpaces *> citeList <* skipSpaces <* char ']'
 
 orgRefCite :: OrgParser (F [Citation])
-orgRefCite = try $ normalOrgRefCite <|> (fmap (:[]) <$> linkLikeOrgRefCite)
+orgRefCite = try $ choice
+  [ normalOrgRefCite
+  , fmap (:[]) <$> linkLikeOrgRefCite
+  ]
 
 normalOrgRefCite :: OrgParser (F [Citation])
 normalOrgRefCite = try $ do
@@ -198,6 +223,100 @@ normalOrgRefCite = try $ do
       , citationNoteNum = 0
       , citationHash    = 0
       }
+
+-- | Read an Berkeley-style Org-mode citation.  Berkeley citation style was
+-- develop and adjusted to Org-mode style by John MacFarlane and Richard
+-- Lawrence, respectively, both philosophers at UC Berkeley.
+berkeleyCite :: OrgParser (F Inlines)
+berkeleyCite = try $ do
+  bcl <- berkeleyCitationList
+  return $ do
+    parens <- berkeleyCiteParens <$> bcl
+    prefix <- berkeleyCiteCommonPrefix <$> bcl
+    suffix <- berkeleyCiteCommonSuffix <$> bcl
+    citationList <- berkeleyCiteCitations <$> bcl
+    if parens
+      then return . toCite . addToFirstAndLast prefix suffix $ citationList
+      else return $ maybe mempty (<> " ") prefix
+                  <> (toListOfCites $ map toInTextMode citationList)
+                  <> maybe mempty (", " <>) suffix
+ where
+   toCite :: [Citation] -> Inlines
+   toCite cs = B.cite cs mempty
+
+   toListOfCites :: [Citation] -> Inlines
+   toListOfCites = mconcat . intersperse ", " . map (\c -> B.cite [c] mempty)
+
+   toInTextMode :: Citation -> Citation
+   toInTextMode c = c { citationMode = AuthorInText }
+
+   addToFirstAndLast :: Maybe Inlines -> Maybe Inlines -> [Citation] -> [Citation]
+   addToFirstAndLast pre suf (c:cs) =
+     let firstCite = maybe c
+                       (\p -> c { citationPrefix = B.toList p <> citationPrefix c })
+                       pre
+         cites = firstCite:cs
+         lc = last cites
+         lastCite = maybe lc
+                      (\s -> lc { citationSuffix = B.toList s <> citationSuffix lc })
+                      suf
+     in init cites ++ [lastCite]
+   addToFirstAndLast _   _   _      = []
+
+data BerkeleyCitationList = BerkeleyCitationList
+  { berkeleyCiteParens :: Bool
+  , berkeleyCiteCommonPrefix :: Maybe Inlines
+  , berkeleyCiteCommonSuffix :: Maybe Inlines
+  , berkeleyCiteCitations :: [Citation]
+  }
+berkeleyCitationList :: OrgParser (F BerkeleyCitationList)
+berkeleyCitationList = try $ do
+  char '['
+  parens <- choice [ False <$ berkeleyBareTag, True <$ berkeleyParensTag ]
+  char ':'
+  skipSpaces
+  commonPrefix <- optionMaybe (try $ citationListPart <* char ';')
+  citations    <- citeList
+  commonSuffix <- optionMaybe (try $ citationListPart)
+  char ']'
+  return (BerkeleyCitationList parens
+    <$> sequence commonPrefix
+    <*> sequence commonSuffix
+    <*> citations)
+ where
+   citationListPart :: OrgParser (F Inlines)
+   citationListPart = fmap (trimInlinesF . mconcat) . try . many1 $ do
+     notFollowedBy' citeKey
+     notFollowedBy (oneOf ";]")
+     inline
+
+berkeleyBareTag :: OrgParser ()
+berkeleyBareTag = try $ void berkeleyBareTag'
+
+berkeleyParensTag :: OrgParser ()
+berkeleyParensTag = try . void $ enclosedByPair '(' ')' berkeleyBareTag'
+
+berkeleyBareTag' :: OrgParser ()
+berkeleyBareTag' = try $ void (string "cite")
+
+berkeleyTextualCite :: OrgParser (F [Citation])
+berkeleyTextualCite = try $ do
+  (suppressAuthor, key) <- citeKey
+  returnF . return $ Citation
+    { citationId      = key
+    , citationPrefix  = mempty
+    , citationSuffix  = mempty
+    , citationMode    = if suppressAuthor then SuppressAuthor else AuthorInText
+    , citationNoteNum = 0
+    , citationHash    = 0
+    }
+
+-- The following is what a Berkeley-style bracketed textual citation parser
+-- would look like.  However, as these citations are a subset of Pandoc's Org
+-- citation style, this isn't used.
+-- berkeleyBracketedTextualCite :: OrgParser (F [Citation])
+-- berkeleyBracketedTextualCite = try . (fmap head) $
+--   enclosedByPair '[' ']' berkeleyTextualCite
 
 -- | Read a link-like org-ref style citation.  The citation includes pre and
 -- post text.  However, multiple citations are not possible due to limitations
@@ -243,7 +362,7 @@ orgRefCiteMode =
     ]
 
 citeList :: OrgParser (F [Citation])
-citeList = sequence <$> sepBy1 citation (try $ char ';' *> skipSpaces)
+citeList = sequence <$> sepEndBy1 citation (try $ char ';' *> skipSpaces)
 
 citation :: OrgParser (F Citation)
 citation = try $ do
