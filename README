@@ -3343,8 +3343,8 @@ pointy braces `<...>`.
 #### Extension: `ascii_identifiers` ####
 
 Causes the identifiers produced by `auto_identifiers` to be pure ASCII.
-Accents are stripped off of accented latin letters, and non-latin
-letters are omitted.
+Accents are stripped off of accented Latin letters corresponding to 
+ASCII letters, and non-ASCII letters and digits are omitted.
 
 #### Extension: `mmd_link_attributes` ####
 
