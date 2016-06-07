@@ -117,7 +117,7 @@ elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) =
                                               else "sect" ++ show n
                    | otherwise        -> "simplesect"
       idAttr = [("id", writerIdentifierPrefix opts ++ id') | not (null id')]
-      nsAttr = if writerDocbook5 opts && lvl == 0 then [("xmlns", "http://docbook.org/ns/docbook")]
+      nsAttr = if writerDocbook5 opts && lvl == 0 then [("xmlns", "http://docbook.org/ns/docbook"),("xmlns:xlink", "http://www.w3.org/1999/xlink")]
                                       else []
       attribs = nsAttr ++ idAttr
   in  inTags True tag attribs $
