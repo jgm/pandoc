@@ -21,8 +21,8 @@
 \usepackage{microtype}
 \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
-\usepackage{hyperref}
-\hypersetup{unicode=true,
+\usepackage[unicode=true]{hyperref}
+\hypersetup{
             pdftitle={Pandoc Test Suite},
             pdfauthor={John MacFarlane; Anonymous},
             pdfborder={0 0 0},
