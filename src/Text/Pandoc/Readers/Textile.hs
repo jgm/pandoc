@@ -384,7 +384,8 @@ inline = do
 
 -- | Inline parsers tried in order
 inlineParsers :: [Parser [Char] ParserState Inlines]
-inlineParsers = [ str
+inlineParsers = [ barelink
+                , str
                 , whitespace
                 , endline
                 , code
@@ -476,6 +477,18 @@ wordChunk = try $ do
                try (notFollowedBy' note *> oneOf markupChars
                      <* lookAhead (noneOf wordBoundaries) ) )
   return $ hd:tl
+
+-- raw URLs are automatically linked
+barelink :: Parser [Char] ParserState Inlines
+barelink = try $ do
+  (rawUrl, escapedUrl) <- (try uri <|> swapEmailAddress)
+  return $ B.link rawUrl "" (B.str escapedUrl)
+
+-- swap rawUrl and escapedUrl here
+swapEmailAddress :: Parser [Char] ParserState (String, String)
+swapEmailAddress = try $ do
+  (rawUrl, escapedUrl) <- try emailAddress
+  return (escapedUrl, rawUrl)
 
 -- | Any string
 str :: Parser [Char] ParserState Inlines
