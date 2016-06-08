@@ -33,7 +33,7 @@ app req respond = do
   let result = case reader $ tabFilter 4 $ T.unpack text of
                     Right doc -> T.pack $ writer doc
                     Left  err -> error (show err)
-  let output = encode $ object [ T.pack "result" .= result
+  let output = encode $ object [ T.pack "html" .= result
                                , T.pack "name" .=
                                   if fromFormat == "markdown_strict"
                                      then T.pack "pandoc (strict)"

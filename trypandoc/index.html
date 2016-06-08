@@ -39,7 +39,7 @@ $(document).ready(function() {
     if (text && text != "") {
        $.getJSON("/cgi-bin/trypandoc", { from: from, to: to, text: text },
          function(res) {
-          $("#results").text(res.result);
+          $("#results").text(res.html);
           $("#version").text(res.version);
           $("#command").text("pandoc --from " + from + " --to " + to);
          });
