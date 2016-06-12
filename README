@@ -352,10 +352,10 @@ Reader options
     or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
     input. Raw HTML can be printed in Markdown, reStructuredText, HTML,
     Slidy, Slideous, DZSlides, reveal.js, and S5 output; raw LaTeX
-    can be printed in Markdown, reStructuredText, LaTeX, and ConTeXt output.
-    The default is for the readers to omit untranslatable HTML codes and
-    LaTeX environments.  (The LaTeX reader does pass through untranslatable
-    LaTeX *commands*, even if `-R` is not specified.)
+    can be printed in Markdown, reStructuredText, Emacs Org mode, LaTeX, and
+    ConTeXt output.  The default is for the readers to omit untranslatable
+    HTML codes and LaTeX environments.  (The LaTeX reader does pass through
+    untranslatable LaTeX *commands*, even if `-R` is not specified.)
 
 `-S`, `--smart`
 
@@ -2819,7 +2819,7 @@ the material between the begin and end tags will be interpreted as raw
 LaTeX, not as Markdown.
 
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
-and ConTeXt.
+Emacs Org mode, and ConTeXt.
 
 LaTeX macros
 ------------
