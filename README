@@ -350,8 +350,8 @@ Reader options
 
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
     or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
-    input. Raw HTML can be printed in Markdown, reStructuredText, HTML,
-    Slidy, Slideous, DZSlides, reveal.js, and S5 output; raw LaTeX
+    input. Raw HTML can be printed in Markdown, reStructuredText, Emacs Org
+    mode, HTML, Slidy, Slideous, DZSlides, reveal.js, and S5 output; raw LaTeX
     can be printed in Markdown, reStructuredText, Emacs Org mode, LaTeX, and
     ConTeXt output.  The default is for the readers to omit untranslatable
     HTML codes and LaTeX environments.  (The LaTeX reader does pass through
@@ -2739,8 +2739,8 @@ Markdown allows it, but it has been made an extension so that it can
 be disabled if desired.)
 
 The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
-DZSlides, EPUB, Markdown, and Textile output, and suppressed in other
-formats.
+DZSlides, EPUB, Markdown, Emacs Org mode, and Textile output, and suppressed
+in other formats.
 
 #### Extension: `markdown_in_html_blocks` ####
 
