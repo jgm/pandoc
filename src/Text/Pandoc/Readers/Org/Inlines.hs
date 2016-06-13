@@ -118,6 +118,7 @@ inline =
          , subscript
          , superscript
          , inlineLaTeX
+         , exportSnippet
          , smart
          , symbol
          ] <* (guard =<< newlinesCountWithinLimits)
@@ -129,7 +130,7 @@ inlines = trimInlinesF . mconcat <$> many1 inline
 
 -- treat these as potentially non-text when parsing inline:
 specialChars :: [Char]
-specialChars = "\"$'()*+-,./:;<=>[\\]^_{|}~"
+specialChars = "\"$'()*+-,./:;<=>@[\\]^_{|}~"
 
 
 whitespace :: OrgParser (F Inlines)
@@ -840,6 +841,13 @@ inlineLaTeXCommand = try $ do
 -- Taken from Data.OldList.
 dropWhileEnd :: (a -> Bool) -> [a] -> [a]
 dropWhileEnd p = foldr (\x xs -> if p x && null xs then [] else x : xs) []
+
+exportSnippet :: OrgParser (F Inlines)
+exportSnippet = try $ do
+  string "@@"
+  format <- many1Till (alphaNum <|> char '-') (char ':')
+  snippet <- manyTill anyChar (try $ string "@@")
+  returnF $ B.rawInline format snippet
 
 smart :: OrgParser (F Inlines)
 smart = do
