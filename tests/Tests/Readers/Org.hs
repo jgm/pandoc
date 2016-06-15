@@ -405,6 +405,10 @@ tests =
           "\\notacommand{foo}" =?>
           para (rawInline "latex" "\\notacommand{foo}")
 
+      , "Export snippet" =:
+          "@@html:<kbd>M-x org-agenda</kbd>@@" =?>
+          para (rawInline "html" "<kbd>M-x org-agenda</kbd>")
+
       , "MathML symbol in LaTeX-style" =:
           "There is a hackerspace in Lübeck, Germany, called nbsp (unicode symbol: '\\nbsp')." =?>
           para ("There is a hackerspace in Lübeck, Germany, called nbsp (unicode symbol: ' ').")

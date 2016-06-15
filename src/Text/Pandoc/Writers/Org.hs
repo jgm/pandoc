@@ -305,9 +305,10 @@ inlineToOrg (Math t str) = do
   return $ if t == InlineMath
               then "$" <> text str <> "$"
               else "$$" <> text str <> "$$"
-inlineToOrg (RawInline f str) | isRawFormat f =
-  return $ text str
-inlineToOrg (RawInline _ _) = return empty
+inlineToOrg (RawInline f@(Format f') str) =
+  return $ if isRawFormat f
+           then text str
+           else "@@" <> text f' <> ":" <> text str <> "@@"
 inlineToOrg (LineBreak) = return (text "\\\\" <> cr)
 inlineToOrg Space = return space
 inlineToOrg SoftBreak = do
