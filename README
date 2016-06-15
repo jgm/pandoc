@@ -13,14 +13,14 @@ Description
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library. It can read
 [Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored Markdown],
-and (subsets of) [Textile], [reStructuredText], [HTML], [LaTeX], [MediaWiki markup], [TWiki
-markup], [Haddock markup], [OPML], [Emacs Org mode], [DocBook],
-[txt2tags], [EPUB], [ODT] and [Word docx]; and it can write plain text,
-[Markdown], [CommonMark], [PHP Markdown Extra], [GitHub-Flavored Markdown],
-[reStructuredText], [XHTML], [HTML5], [LaTeX] (including
-[`beamer`] slide shows), [ConTeXt], [RTF], [OPML], [DocBook],
-[OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki markup],
-[DokuWiki markup], [Haddock markup], [EPUB] (v2 or v3),
+[MultiMarkdown], and (subsets of) [Textile], [reStructuredText], [HTML],
+[LaTeX], [MediaWiki markup], [TWiki markup], [Haddock markup], [OPML], [Emacs
+Org mode], [DocBook], [txt2tags], [EPUB], [ODT] and [Word docx]; and it can
+write plain text, [Markdown], [CommonMark], [PHP Markdown Extra],
+[GitHub-Flavored Markdown], [MultiMarkdown], [reStructuredText], [XHTML],
+[HTML5], [LaTeX] (including [`beamer`] slide shows), [ConTeXt], [RTF], [OPML],
+[DocBook], [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
+markup], [DokuWiki markup], [Haddock markup], [EPUB] (v2 or v3),
 [FictionBook2], [Textile], [groff man] pages, [Emacs Org mode],
 [AsciiDoc], [InDesign ICML], [TEI Simple], and [Slidy], [Slideous], [DZSlides],
 [reveal.js] or [S5] HTML slide shows. It can also produce [PDF] output
@@ -55,6 +55,7 @@ Markdown can be expected to be lossy.
 [CommonMark]: http://commonmark.org
 [PHP Markdown Extra]: https://michelf.ca/projects/php-markdown/extra/
 [GitHub-Flavored Markdown]: https://help.github.com/articles/github-flavored-markdown/
+[MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
 [reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
 [S5]: http://meyerweb.com/eric/tools/s5/
 [Slidy]: http://www.w3.org/Talks/Tools/Slidy/
@@ -242,8 +243,8 @@ General options
 :   Specify input format.  *FORMAT* can be `native` (native Haskell),
     `json` (JSON version of native AST), `markdown` (pandoc's
     extended Markdown), `markdown_strict` (original unextended
-    Markdown), `markdown_phpextra` (PHP Markdown Extra),
-    `markdown_github` (GitHub-Flavored Markdown),
+    Markdown), `markdown_phpextra` (PHP Markdown Extra), `markdown_github`
+    (GitHub-Flavored Markdown), `markdown_mmd` (MultiMarkdown),
     `commonmark` (CommonMark Markdown), `textile` (Textile), `rst`
     (reStructuredText), `html` (HTML), `docbook` (DocBook), `t2t`
     (txt2tags), `docx` (docx), `odt` (ODT), `epub` (EPUB), `opml` (OPML),
@@ -267,8 +268,8 @@ General options
     `json` (JSON version of native AST), `plain` (plain text),
     `markdown` (pandoc's extended Markdown), `markdown_strict`
     (original unextended Markdown), `markdown_phpextra` (PHP Markdown
-    Extra), `markdown_github` (GitHub-Flavored
-    Markdown), `commonmark` (CommonMark Markdown), `rst`
+    Extra), `markdown_github` (GitHub-Flavored Markdown), `markdown_mmd`
+    (MultiMarkdown), `commonmark` (CommonMark Markdown), `rst`
     (reStructuredText), `html` (XHTML), `html5` (HTML5), `latex`
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
     `man` (groff man), `mediawiki` (MediaWiki markup), `dokuwiki`
@@ -349,12 +350,12 @@ Reader options
 
 :   Parse untranslatable HTML codes and LaTeX environments as raw HTML
     or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
-    input. Raw HTML can be printed in Markdown, reStructuredText, HTML,
-    Slidy, Slideous, DZSlides, reveal.js, and S5 output; raw LaTeX
-    can be printed in Markdown, reStructuredText, LaTeX, and ConTeXt output.
-    The default is for the readers to omit untranslatable HTML codes and
-    LaTeX environments.  (The LaTeX reader does pass through untranslatable
-    LaTeX *commands*, even if `-R` is not specified.)
+    input. Raw HTML can be printed in Markdown, reStructuredText, Emacs Org
+    mode, HTML, Slidy, Slideous, DZSlides, reveal.js, and S5 output; raw LaTeX
+    can be printed in Markdown, reStructuredText, Emacs Org mode, LaTeX, and
+    ConTeXt output.  The default is for the readers to omit untranslatable
+    HTML codes and LaTeX environments.  (The LaTeX reader does pass through
+    untranslatable LaTeX *commands*, even if `-R` is not specified.)
 
 `-S`, `--smart`
 
@@ -2738,8 +2739,8 @@ Markdown allows it, but it has been made an extension so that it can
 be disabled if desired.)
 
 The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
-DZSlides, EPUB, Markdown, and Textile output, and suppressed in other
-formats.
+DZSlides, EPUB, Markdown, Emacs Org mode, and Textile output, and suppressed
+in other formats.
 
 #### Extension: `markdown_in_html_blocks` ####
 
@@ -2818,7 +2819,7 @@ the material between the begin and end tags will be interpreted as raw
 LaTeX, not as Markdown.
 
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
-and ConTeXt.
+Emacs Org mode, and ConTeXt.
 
 LaTeX macros
 ------------
