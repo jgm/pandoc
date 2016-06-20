@@ -399,7 +399,7 @@ instance Default WriterOptions where
                       , writerDpi              = 96
                       , writerWrapText         = WrapAuto
                       , writerColumns          = 72
-                      , writerEmailObfuscation = JavascriptObfuscation
+                      , writerEmailObfuscation = NoObfuscation
                       , writerIdentifierPrefix = ""
                       , writerSourceURL        = Nothing
                       , writerUserDataDir      = Nothing

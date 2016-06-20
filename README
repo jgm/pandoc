@@ -708,7 +708,7 @@ Options affecting specific writers
     `none` leaves `mailto:` links as they are.  `javascript` obfuscates
     them using javascript. `references` obfuscates them by printing their
     letters as decimal or hexadecimal character references.  The default
-    is `javascript`.
+    is `none`.
 
 `--id-prefix=`*STRING*
 
