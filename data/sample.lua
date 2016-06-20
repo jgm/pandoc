@@ -170,6 +170,12 @@ function Span(s, attr)
   return "<span" .. attributes(attr) .. ">" .. s .. "</span>"
 end
 
+function RawInline(format, str)
+  if format == "html" then
+    return str
+  end
+end
+
 function Cite(s, cs)
   local ids = {}
   for _,cit in ipairs(cs) do
@@ -305,6 +311,12 @@ function Table(caption, aligns, widths, headers, rows)
   end
   add('</table')
   return table.concat(buffer,'\n')
+end
+
+function RawBlock(format, str)
+  if format == "html" then
+    return str
+  end
 end
 
 function Div(s, attr)
