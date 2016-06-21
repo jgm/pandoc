@@ -236,11 +236,15 @@ berkeleyCite = try $ do
     prefix <- berkeleyCiteCommonPrefix <$> bcl
     suffix <- berkeleyCiteCommonSuffix <$> bcl
     citationList <- berkeleyCiteCitations <$> bcl
-    if parens
-      then return . toCite . addToFirstAndLast prefix suffix $ citationList
-      else return $ maybe mempty (<> " ") prefix
-                  <> (toListOfCites $ map toInTextMode citationList)
-                  <> maybe mempty (", " <>) suffix
+    return $
+      if parens
+      then toCite
+           . maybe id (\p -> alterFirst (prependPrefix p)) prefix
+           . maybe id (\s -> alterLast  (appendSuffix  s)) suffix
+           $ citationList
+      else maybe mempty (<> " ") prefix
+             <> (toListOfCites $ map toInTextMode citationList)
+             <> maybe mempty (", " <>) suffix
  where
    toCite :: [Citation] -> Inlines
    toCite cs = B.cite cs mempty
@@ -251,18 +255,14 @@ berkeleyCite = try $ do
    toInTextMode :: Citation -> Citation
    toInTextMode c = c { citationMode = AuthorInText }
 
-   addToFirstAndLast :: Maybe Inlines -> Maybe Inlines -> [Citation] -> [Citation]
-   addToFirstAndLast pre suf (c:cs) =
-     let firstCite = maybe c
-                       (\p -> c { citationPrefix = B.toList p <> citationPrefix c })
-                       pre
-         cites = firstCite:cs
-         lc = last cites
-         lastCite = maybe lc
-                      (\s -> lc { citationSuffix = B.toList s <> citationSuffix lc })
-                      suf
-     in init cites ++ [lastCite]
-   addToFirstAndLast _   _   _      = []
+   alterFirst, alterLast :: (a -> a) -> [a] -> [a]
+   alterFirst _ []     = []
+   alterFirst f (c:cs) = (f c):cs
+   alterLast  f = reverse . alterFirst f . reverse
+
+   prependPrefix, appendSuffix :: Inlines -> Citation -> Citation
+   prependPrefix pre c = c { citationPrefix = B.toList pre <> citationPrefix c }
+   appendSuffix  suf c = c { citationSuffix = citationSuffix c <> B.toList suf }
 
 data BerkeleyCitationList = BerkeleyCitationList
   { berkeleyCiteParens :: Bool

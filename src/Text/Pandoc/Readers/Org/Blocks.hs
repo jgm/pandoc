@@ -219,7 +219,7 @@ rawBlockContent blockType = try $ do
    stripIndent strs = map (drop (shortestIndent strs)) strs
 
    shortestIndent :: [String] -> Int
-   shortestIndent = minimum
+   shortestIndent = foldr min maxBound
                     . map (length . takeWhile isSpace)
                     . filter (not . null)
 
@@ -727,7 +727,9 @@ normalizeTable (OrgTable aligns heads rows) = OrgTable aligns' heads rows
  where
    refRow = if heads /= mempty
             then heads
-            else if rows == mempty then mempty else head rows
+            else case rows of
+                   (r:_) -> r
+                   _     -> mempty
    cols = length refRow
    fillColumns base padding = take cols $ base ++ repeat padding
    aligns' = fillColumns aligns AlignDefault
