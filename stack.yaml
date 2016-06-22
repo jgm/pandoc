@@ -10,4 +10,5 @@ packages:
 extra-deps:
 - data-default-0.6.0
 - data-default-instances-base-0.1.0
+- texmath-0.8.6.4
 resolver: lts-6.1
