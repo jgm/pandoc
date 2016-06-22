@@ -139,6 +139,11 @@ type DocxContext = ExceptT PandocError (ReaderT DEnv (State DState))
 evalDocxContext :: DocxContext a -> DEnv -> DState -> Either PandocError a
 evalDocxContext ctx env st = flip evalState st . flip runReaderT env . runExceptT $ ctx
 
+addDocxWarning :: String -> DocxContext ()
+addDocxWarning msg = do
+  warnings <- gets docxWarnings
+  modify $ \s -> s {docxWarnings = msg : warnings}
+
 -- This is empty, but we put it in for future-proofing.
 spansToKeep :: [String]
 spansToKeep = []
@@ -321,6 +326,17 @@ extentToAttr (Just (w, h)) =
     showDim d = show (d / 914400) ++ "in"
 extentToAttr _ = nullAttr
 
+blocksToInlinesWarn :: String -> Blocks -> DocxContext Inlines
+blocksToInlinesWarn cmtId blks = do
+  let blkList = toList blks
+      notParaOrPlain :: Block -> Bool
+      notParaOrPlain (Para _) = False
+      notParaOrPlain (Plain _) = False
+      notParaOrPlain _ = True
+  when (not $ null $ filter notParaOrPlain blkList)
+    (addDocxWarning $ "Docx comment " ++ cmtId ++ " will not retain formatting")
+  return $ fromList $ blocksToInlines blkList
+
 parPartToInlines :: ParPart -> DocxContext Inlines
 parPartToInlines (PlainRun r) = runToInlines r
 parPartToInlines (Insertion _ author date runs) = do
@@ -346,8 +362,8 @@ parPartToInlines (CommentStart cmtId author date bodyParts) = do
   case readerTrackChanges opts of
     AllChanges -> do
       blks <- smushBlocks <$> mapM bodyPartToBlocks bodyParts
-      let ils = fromList $ blocksToInlines $ toList blks
-          attr = ("", ["comment-start"], [("id", cmtId), ("author", author), ("date", date)])
+      ils <- blocksToInlinesWarn cmtId blks
+      let attr = ("", ["comment-start"], [("id", cmtId), ("author", author), ("date", date)])
       return $ spanWith attr ils
     _ -> return mempty
 parPartToInlines (CommentEnd cmtId) = do
