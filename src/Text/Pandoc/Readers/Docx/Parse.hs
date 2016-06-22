@@ -73,6 +73,7 @@ import Text.Pandoc.Readers.Docx.Util
 import Data.Char (readLitChar, ord, chr, isDigit)
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
+                           , envComments      :: Comments
                            , envNumbering     :: Numbering
                            , envRelationships :: [Relationship]
                            , envMedia         :: Media
@@ -160,6 +161,9 @@ data Notes = Notes NameSpaces
              (Maybe (M.Map String Element))
            deriving Show
 
+data Comments = Comments NameSpaces (M.Map String Element)
+              deriving Show
+
 data ParIndentation = ParIndentation { leftParIndent :: Maybe Integer
                                      , rightParIndent :: Maybe Integer
                                      , hangingParIndent :: Maybe Integer}
@@ -210,6 +214,8 @@ type Extent = Maybe (Double, Double)
 data ParPart = PlainRun Run
              | Insertion ChangeId Author ChangeDate [Run]
              | Deletion ChangeId Author ChangeDate [Run]
+             | CommentStart CommentId Author CommentDate [BodyPart]
+             | CommentEnd CommentId
              | BookMark BookMarkId Anchor
              | InternalHyperLink Anchor [Run]
              | ExternalHyperLink URL [Run]
@@ -259,8 +265,10 @@ type URL = String
 type BookMarkId = String
 type RelId = String
 type ChangeId = String
+type CommentId = String
 type Author = String
 type ChangeDate = String
+type CommentDate = String
 
 archiveToDocx :: Archive -> Either DocxError Docx
 archiveToDocx archive = fst <$> archiveToDocxWithWarnings archive
@@ -268,12 +276,13 @@ archiveToDocx archive = fst <$> archiveToDocxWithWarnings archive
 archiveToDocxWithWarnings :: Archive -> Either DocxError (Docx, [String])
 archiveToDocxWithWarnings archive = do
   let notes     = archiveToNotes archive
+      comments  = archiveToComments archive
       numbering = archiveToNumbering archive
       rels      = archiveToRelationships archive
       media     = archiveToMedia archive
       (styles, parstyles) = archiveToStyles archive
       rEnv =
-        ReaderEnv notes numbering rels media Nothing styles parstyles InDocument
+        ReaderEnv notes comments numbering rels media Nothing styles parstyles InDocument
       rState = ReaderState { stateWarnings = [] }
       (eitherDoc, st) = runD (archiveToDocument archive) rEnv rState
   case eitherDoc of
@@ -383,6 +392,20 @@ archiveToNotes zf =
       en = enElem >>= (elemToNotes ns "endnote")
   in
    Notes ns fn en
+
+archiveToComments :: Archive -> Comments
+archiveToComments zf =
+  let cmtsElem = findEntryByPath "word/comments.xml" zf
+               >>= (parseXMLDoc . UTF8.toStringLazy . fromEntry)
+      cmts_namespaces = case cmtsElem of
+        Just e -> elemToNameSpaces e
+        Nothing -> []
+      cmts = (elemToComments cmts_namespaces) <$> cmtsElem
+  in
+    case cmts of
+      Just c -> Comments cmts_namespaces c
+      Nothing -> Comments cmts_namespaces M.empty
+               
 
 filePathToRelType :: FilePath -> Maybe DocumentLocation
 filePathToRelType "word/_rels/document.xml.rels" = Just InDocument
@@ -503,6 +526,18 @@ elemToNotes ns notetype element
       in
        Just $ M.fromList $ pairs
 elemToNotes _ _ _ = Nothing
+
+elemToComments :: NameSpaces -> Element -> M.Map String Element
+elemToComments ns element
+  | isElem ns "w" "comments" element =
+      let pairs = mapMaybe
+                  (\e -> findAttr (elemName ns "w" "id") e >>=
+                         (\a -> Just (a, e)))
+                  (findChildren (elemName ns "w" "comment") element)
+      in
+       M.fromList $ pairs
+elemToComments _ _ = M.empty
+
 
 ---------------------------------------------
 ---------------------------------------------
@@ -697,9 +732,30 @@ elemToParPart ns element
     runs <- mapD (elemToRun ns) (elChildren element)
     return $ InternalHyperLink anchor runs
 elemToParPart ns element
+  | isElem ns "w" "commentRangeStart" element
+  , Just cmtId <- findAttr (elemName ns "w" "id") element = do
+      (Comments _ commentMap) <- asks envComments
+      case M.lookup cmtId commentMap of
+        Just cmtElem -> elemToCommentStart ns cmtElem
+        Nothing   -> throwError WrongElem
+elemToParPart ns element
+  | isElem ns "w" "commentRangeEnd" element
+  , Just cmtId <- findAttr (elemName ns "w" "id") element =
+    return $ CommentEnd cmtId
+elemToParPart ns element
   | isElem ns "m" "oMath" element =
     (eitherToD $ readOMML $ showElement element) >>= (return . PlainOMath)
 elemToParPart _ _ = throwError WrongElem
+
+elemToCommentStart :: NameSpaces -> Element -> D ParPart
+elemToCommentStart ns element
+  | isElem ns "w" "comment" element
+  , Just cmtId <- findAttr (elemName ns "w" "id") element
+  , Just cmtAuthor <- findAttr (elemName ns "w" "author") element
+  , Just cmtDate <- findAttr (elemName ns "w" "date") element = do
+      bps <- mapD (elemToBodyPart ns) (elChildren element)
+      return $ CommentStart cmtId cmtAuthor cmtDate bps
+elemToCommentStart _ _ = throwError WrongElem      
 
 lookupFootnote :: String -> Notes -> Maybe Element
 lookupFootnote s (Notes _ fns _) = fns >>= (M.lookup s)

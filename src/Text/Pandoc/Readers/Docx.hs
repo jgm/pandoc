@@ -339,6 +339,22 @@ parPartToInlines (Deletion _ author date runs) = do
       ils <- smushInlines <$> mapM runToInlines runs
       let attr = ("", ["deletion"], [("author", author), ("date", date)])
       return $ spanWith attr ils
+parPartToInlines (CommentStart cmtId author date bodyParts) = do
+  opts <- asks docxOptions
+  case readerTrackChanges opts of
+    AllChanges -> do
+      blks <- smushBlocks <$> mapM bodyPartToBlocks bodyParts
+      let ils = fromList $ blocksToInlines $ toList blks
+          attr = ("", ["comment-start"], [("id", cmtId), ("author", author), ("date", date)])
+      return $ spanWith attr ils
+    _ -> return mempty
+parPartToInlines (CommentEnd cmtId) = do
+  opts <- asks docxOptions
+  case readerTrackChanges opts of
+    AllChanges -> do
+      let attr = ("", ["comment-end"], [("id", cmtId)])
+      return $ spanWith attr mempty
+    _ -> return mempty
 parPartToInlines (BookMark _ anchor) | anchor `elem` dummyAnchors =
   return mempty
 parPartToInlines (BookMark _ anchor) =
