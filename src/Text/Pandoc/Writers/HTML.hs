@@ -483,11 +483,9 @@ blockToHtml opts (Div attr@(ident, classes, kvs) bs) = do
         else addAttrs opts (ident, classes', kvs) $ divtag $ contents'
 blockToHtml opts (RawBlock f str)
   | f == Format "html" = return $ preEscapedString str
-  | f == Format "latex" =
-      case writerHTMLMathMethod opts of
-           MathJax _  -> do modify (\st -> st{ stMath = True })
-                            return $ toHtml str
-           _          -> return mempty
+  | (f == Format "latex" || f == Format "tex") &&
+     allowsMathEnvironments (writerHTMLMathMethod opts) &&
+     isMathEnvironment str = blockToHtml opts $ Plain [Math DisplayMath str]
   | otherwise          = return mempty
 blockToHtml opts (HorizontalRule) = return $ if writerHtml5 opts then H5.hr else H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
@@ -811,13 +809,6 @@ inlineToHtml opts inline =
                          InlineMath  -> m
                          DisplayMath -> brtag >> m >> brtag 
     (RawInline f str)
-      | f == Format "latex" ->
-                          case writerHTMLMathMethod opts of
-                               LaTeXMathML _ -> do modify (\st -> st {stMath = True})
-                                                   return $ toHtml str
-                               MathJax _     -> do modify (\st -> st {stMath = True})
-                                                   return $ toHtml str
-                               _             -> return mempty
       | f == Format "html" -> return $ preEscapedString str
       | otherwise          -> return mempty
     (Link attr txt (s,_)) | "mailto:" `isPrefixOf` s -> do
@@ -915,3 +906,41 @@ renderKaTeX = unlines [
   , " katex.render(texText.data, mathElements[i])"
   , "}}"
   ]
+
+isMathEnvironment :: String -> Bool
+isMathEnvironment s = "\\begin{" `isPrefixOf` s &&
+                         envName `elem` mathmlenvs
+  where envName = takeWhile (/= '}') (drop 7 s)
+        mathmlenvs = [ "align"
+                     , "align*"
+                     , "alignat"
+                     , "alignat*"
+                     , "aligned"
+                     , "alignedat"
+                     , "array"
+                     , "Bmatrix"
+                     , "bmatrix"
+                     , "cases"
+                     , "CD"
+                     , "eqnarray"
+                     , "eqnarray*"
+                     , "equation"
+                     , "equation*"
+                     , "gather"
+                     , "gather*"
+                     , "gathered"
+                     , "matrix"
+                     , "multline"
+                     , "multline*"
+                     , "pmatrix"
+                     , "smallmatrix"
+                     , "split"
+                     , "subarray"
+                     , "Vmatrix"
+                     , "vmatrix" ]
+
+allowsMathEnvironments :: HTMLMathMethod -> Bool
+allowsMathEnvironments (MathJax _) = True
+allowsMathEnvironments (MathML _)  = True
+allowsMathEnvironments (WebTeX _)  = True
+allowsMathEnvironments _           = False
