@@ -102,9 +102,9 @@ readDocxWithWarnings :: ReaderOptions
                      -> Either PandocError (Pandoc, MediaBag, [String])
 readDocxWithWarnings opts bytes
   | Right archive <- toArchiveOrFail bytes
-  , Right (docx, warnings) <- archiveToDocxWithWarnings archive = do
-      (meta, blks, mediaBag) <- docxToOutput opts docx
-      return (Pandoc meta blks, mediaBag, warnings)
+  , Right (docx, parserWarnings) <- archiveToDocxWithWarnings archive = do
+      (meta, blks, mediaBag, warnings) <- docxToOutput opts docx
+      return (Pandoc meta blks, mediaBag, parserWarnings ++ warnings)
 readDocxWithWarnings _ _ =
   Left (ParseFailure "couldn't parse docx file")
 
@@ -118,12 +118,14 @@ readDocx opts bytes = do
 data DState = DState { docxAnchorMap :: M.Map String String
                      , docxMediaBag      :: MediaBag
                      , docxDropCap       :: Inlines
+                     , docxWarnings      :: [String]
                      }
 
 instance Default DState where
   def = DState { docxAnchorMap = M.empty
                , docxMediaBag  = mempty
                , docxDropCap   = mempty
+               , docxWarnings  = []
                }
 
 data DEnv = DEnv { docxOptions  :: ReaderOptions
@@ -581,18 +583,20 @@ rewriteLink' il = return il
 rewriteLinks :: [Block] -> DocxContext [Block]
 rewriteLinks = mapM (walkM rewriteLink')
 
-bodyToOutput :: Body -> DocxContext (Meta, [Block], MediaBag)
+bodyToOutput :: Body -> DocxContext (Meta, [Block], MediaBag, [String])
 bodyToOutput (Body bps) = do
   let (metabps, blkbps) = sepBodyParts bps
   meta <- bodyPartsToMeta metabps
   blks <- smushBlocks <$> mapM bodyPartToBlocks blkbps
   blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ toList blks
   mediaBag <- gets docxMediaBag
+  warnings <- gets docxWarnings
   return $ (meta,
             blks',
-            mediaBag)
+            mediaBag,
+            warnings)
 
-docxToOutput :: ReaderOptions -> Docx -> Either PandocError (Meta, [Block], MediaBag)
+docxToOutput :: ReaderOptions -> Docx -> Either PandocError (Meta, [Block], MediaBag, [String])
 docxToOutput opts (Docx (Document _ body)) =
   let dEnv   = def { docxOptions  = opts} in
    evalDocxContext (bodyToOutput body) dEnv def
