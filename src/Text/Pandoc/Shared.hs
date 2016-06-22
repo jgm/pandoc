@@ -1031,6 +1031,7 @@ blockToInlines (Plain ils) = ils
 blockToInlines (Para ils) = ils
 blockToInlines (CodeBlock attr str) = [Code attr str]
 blockToInlines (RawBlock fmt str) = [RawInline fmt str]
+blockToInlines (BlockQuote blks) = blocksToInlines blks
 blockToInlines (OrderedList _ blkslst) =
   concatMap blocksToInlines blkslst
 blockToInlines (BulletList blkslst) =
