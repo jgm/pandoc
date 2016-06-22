@@ -89,6 +89,8 @@ module Text.Pandoc.Shared (
                      warn,
                      mapLeft,
                      hush,
+                     -- * for squashing blocks
+                     blocksToInlines,
                      -- * Safe read
                      safeRead,
                      -- * Temp directory
@@ -1019,6 +1021,41 @@ collapseFilePath = Posix.joinPath . reverse . foldl go [] . splitDirectories
     isSingleton [x] = Just x
     isSingleton _ = Nothing
     checkPathSeperator = fmap isPathSeparator . isSingleton
+
+---
+--- Squash blocks into inlines
+---
+
+blockToInlines :: Block -> [Inline]
+blockToInlines (Plain ils) = ils
+blockToInlines (Para ils) = ils
+blockToInlines (CodeBlock attr str) = [Code attr str]
+blockToInlines (RawBlock fmt str) = [RawInline fmt str]
+blockToInlines (OrderedList _ blkslst) =
+  concatMap blocksToInlines blkslst
+blockToInlines (BulletList blkslst) =
+  concatMap blocksToInlines blkslst
+blockToInlines (DefinitionList pairslst) =
+  concatMap f pairslst
+  where
+    f (ils, blkslst) = ils ++
+      [Str ":", Space] ++
+      (concatMap blocksToInlines blkslst)
+blockToInlines (Header _ _  ils) = ils
+blockToInlines (HorizontalRule) = []
+blockToInlines (Table _ _ _ headers rows) =
+  intercalate [LineBreak] $ map (concatMap blocksToInlines) tbl
+  where
+    tbl = headers : rows
+blockToInlines (Div _ blks) = blocksToInlines blks
+blockToInlines Null = []
+
+blocksToInlinesWithSep :: [Inline] -> [Block] -> [Inline]
+blocksToInlinesWithSep sep blks = intercalate sep $ map blockToInlines blks
+
+blocksToInlines :: [Block] -> [Inline]
+blocksToInlines = blocksToInlinesWithSep [Space, Str "¶", Space]
+        
 
 --
 -- Safe read
