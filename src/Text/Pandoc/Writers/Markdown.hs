@@ -39,6 +39,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Data.Maybe (fromMaybe)
+import Data.Monoid (Any(..))
 import Data.List ( group, stripPrefix, find, intersperse, transpose, sortBy )
 import Data.Char ( isSpace, isPunctuation, ord, chr )
 import Data.Ord ( comparing )
@@ -436,7 +437,10 @@ blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
                      else blankline <> ": " <> caption' <> blankline
   rawHeaders <- mapM (blockListToMarkdown opts) headers
   rawRows <- mapM (mapM (blockListToMarkdown opts)) rows
-  let isSimple = all (==0) widths
+  let isLineBreak LineBreak = Any True
+      isLineBreak _         = Any False
+  let isSimple = all (==0) widths &&
+                 not ( getAny (query isLineBreak (headers:rows)) )
   let isPlainBlock (Plain _) = True
       isPlainBlock _         = False
   let hasBlocks = not (all isPlainBlock $ concat . concat $ headers:rows)
