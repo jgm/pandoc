@@ -291,6 +291,30 @@ tests = [ testGroup "inlines"
             "move text (all)"
             "docx/track_changes_move.docx"
             "docx/track_changes_move_all.native"
+          , testCompareWithOpts def{readerTrackChanges=AcceptChanges}
+            "comments (accept -- no comments)"
+            "docx/comments.docx"
+            "docx/comments_no_comments.native"
+          , testCompareWithOpts def{readerTrackChanges=RejectChanges}
+            "comments (reject -- comments)"
+            "docx/comments.docx"
+            "docx/comments_no_comments.native"
+          , testCompareWithOpts def{readerTrackChanges=AllChanges}
+            "comments (all comments)"
+            "docx/comments.docx"
+            "docx/comments.native"
+          , testForWarningsWithOpts def{readerTrackChanges=AcceptChanges}
+            "comment warnings (accept -- no warnings)"
+            "docx/comments_warning.docx"
+            []
+          , testForWarningsWithOpts def{readerTrackChanges=RejectChanges}
+            "comment warnings (reject -- no warnings)"
+            "docx/comments_warning.docx"
+            []
+          , testForWarningsWithOpts def{readerTrackChanges=AllChanges}
+            "comment warnings (all)"
+            "docx/comments_warning.docx"
+            ["Docx comment 1 will not retain formatting"]
           ]
         , testGroup "media"
           [ testMediaBag
