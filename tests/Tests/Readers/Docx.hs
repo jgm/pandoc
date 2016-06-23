@@ -57,6 +57,19 @@ testCompareWithOpts opts name docxFile nativeFile =
 testCompare :: String -> FilePath -> FilePath -> Test
 testCompare = testCompareWithOpts def
 
+testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> IO Test
+testForWarningsWithOptsIO opts name docxFile expected = do
+  df <- B.readFile docxFile
+  let (_, _, warns) = handleError $ readDocxWithWarnings opts df
+  return $ test id name (unlines warns, unlines expected)
+
+testForWarningsWithOpts :: ReaderOptions -> String -> FilePath -> [String] -> Test
+testForWarningsWithOpts opts name docxFile expected =
+  buildTest $ testForWarningsWithOptsIO opts name docxFile expected
+
+-- testForWarnings :: String -> FilePath -> [String] -> Test
+-- testForWarnings = testForWarningsWithOpts def
+
 getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
 getMedia archivePath mediaPath = do
   zf <- B.readFile archivePath >>= return . toArchive
