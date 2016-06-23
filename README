@@ -453,11 +453,13 @@ Reader options
 
 `--track-changes=accept`|`reject`|`all`
 
-:   Specifies what to do with insertions and deletions produced by the MS
-    Word "Track Changes" feature.  `accept` (the default), inserts all
-    insertions, and ignores all deletions. `reject` inserts all
-    deletions and ignores insertions. `all` puts in both insertions
-    and deletions, wrapped in spans with `insertion` and `deletion`
+:   Specifies what to do with insertions, deletions, and comments
+    produced by the MS Word "Track Changes" feature.  `accept` (the
+    default), inserts all insertions, and ignores all
+    deletions. `reject` inserts all deletions and ignores
+    insertions. Both `accept` and `reject` ignore comments. `all` puts
+    in insertions, deletions, and comments, wrapped in spans with
+    `insertion`, `deletion`, `comment-start`, and `comment-end`
     classes, respectively. The author and time of change is
     included. `all` is useful for scripting: only accepting changes
     from a certain reviewer, say, or before a certain date. This
