@@ -147,6 +147,7 @@
                       Value="!(loc.ExitDialogText)" />
     
     <!--Offer Per User installs only on workstations (block on servers)-->
+    <!--Unless ALLUSERS=1 is specified on command line-->
     <SetProperty Id="WixUISupportPerUser" Value="0" Before="FindRelatedProducts">
       <!--https://msdn.microsoft.com/en-us/library/windows/desktop/aa370329(v=vs.85).aspx-->
       MsiNTProductType > 1
@@ -158,10 +159,10 @@
       MsiNTProductType > 1
     </SetProperty>
     <SetProperty Id="ALLUSERS" Value="{}" Before="FindRelatedProducts" Action="CASetPuaPackage">
-      MsiNTProductType = 1
+      (NOT ALLUSERS = 1) AND MsiNTProductType = 1
     </SetProperty>
     <SetProperty Id="MSIINSTALLPERUSER" Value="1" Before="FindRelatedProducts">
-      MsiNTProductType = 1
+      (NOT ALLUSERS = 1) AND MsiNTProductType = 1
     </SetProperty>
     <SetProperty Id="WixAppFolder" Value="WixPerMachineFolder" Before="FindRelatedProducts">
       MsiNTProductType > 1
@@ -178,6 +179,8 @@
     </InstallUISequence>
     
     <UIRef Id="WixUI_Advanced_Custom"/>
+    <!--Enable better description when debug logging-->
+    <UIRef Id="WixUI_ErrorProgressText" />
     
   </Product>
   
