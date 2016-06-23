@@ -594,10 +594,12 @@ specialAttribute = do
     ("justify" <$ try (string "<>")) <|>
     ("right" <$ char '>') <|>
     ("left" <$ char '<')
+  notFollowedBy spaceChar
   return $ addStyle ("text-align:" ++ alignStr)
 
 attribute :: Parser [Char] ParserState (Attr -> Attr)
-attribute = classIdAttr <|> styleAttr <|> langAttr
+attribute = try $
+  (classIdAttr <|> styleAttr <|> langAttr) <* notFollowedBy spaceChar
 
 classIdAttr :: Parser [Char] ParserState (Attr -> Attr)
 classIdAttr = try $ do -- (class class #id)

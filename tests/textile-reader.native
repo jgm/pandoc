@@ -146,6 +146,8 @@ Pandoc (Meta {unMeta = fromList []})
  ,[[Plain [Str "joan"]]
   ,[Plain [Str "24"]]
   ,[Plain [Str "f"]]]]
+,Para [Emph [Str "(class#id)",Space,Str "emph"]]
+,Para [Emph [Str "(no",Space,Str "class#id)",Space,Str "emph"]]
 ,Header 1 ("entities",[],[]) [Str "Entities"]
 ,Para [Str "*",LineBreak,Str "&"]
 ,Header 1 ("raw-html",[],[]) [Str "Raw",Space,Str "HTML"]
