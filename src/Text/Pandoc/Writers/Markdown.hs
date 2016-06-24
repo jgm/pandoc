@@ -55,6 +55,7 @@ import qualified Data.HashMap.Strict as H
 import qualified Data.Vector as V
 import qualified Data.Text as T
 import qualified Data.Set as Set
+import Network.HTTP ( urlEncode )
 
 type Notes = [[Block]]
 type Ref   = ([Inline], Target, Attr)
@@ -856,18 +857,22 @@ inlineToMarkdown opts (Str str) = do
   if stPlain st
      then return $ text str
      else return $ text $ escapeString opts str
-inlineToMarkdown opts (Math InlineMath str)
-  | isEnabled Ext_tex_math_dollars opts =
-      return $ "$" <> text str <> "$"
-  | isEnabled Ext_tex_math_single_backslash opts =
-      return $ "\\(" <> text str <> "\\)"
-  | isEnabled Ext_tex_math_double_backslash opts =
-      return $ "\\\\(" <> text str <> "\\\\)"
-  | otherwise = do
-    plain <- gets stPlain
-    inlineListToMarkdown opts $
-      (if plain then makeMathPlainer else id) $
-      texMathToInlines InlineMath str
+inlineToMarkdown opts (Math InlineMath str) =
+  case writerHTMLMathMethod opts of
+       WebTeX url ->
+             inlineToMarkdown opts (Image nullAttr [Str str]
+                 (url ++ urlEncode str, str))
+       _ | isEnabled Ext_tex_math_dollars opts ->
+             return $ "$" <> text str <> "$"
+         | isEnabled Ext_tex_math_single_backslash opts ->
+             return $ "\\(" <> text str <> "\\)"
+         | isEnabled Ext_tex_math_double_backslash opts ->
+             return $ "\\\\(" <> text str <> "\\\\)"
+         | otherwise -> do
+             plain <- gets stPlain
+             inlineListToMarkdown opts $
+               (if plain then makeMathPlainer else id) $
+               texMathToInlines InlineMath str
 inlineToMarkdown opts (Math DisplayMath str)
   | isEnabled Ext_tex_math_dollars opts =
       return $ "$$" <> text str <> "$$"

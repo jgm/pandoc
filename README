@@ -949,6 +949,8 @@ Math rendering in HTML
 :   Render TeX formulas using an external script that converts TeX
     formulas to images. The formula will be concatenated with the URL
     provided. If *URL* is not specified, the Google Chart API will be used.
+    Note:  the `--webtex` option will affect Markdown output
+    as well as HTML.
 
 `--katex`[`=`*URL*]
 
