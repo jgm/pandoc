@@ -191,7 +191,7 @@ parseFormatSpec = parse formatSpec ""
   where formatSpec = do
           name <- formatName
           extMods <- many extMod
-          return (name, foldl (.) id extMods)
+          return (name, \x -> foldl (flip ($)) x extMods)
         formatName = many1 $ noneOf "-+"
         extMod = do
           polarity <- oneOf "-+"
