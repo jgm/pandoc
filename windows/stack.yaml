@@ -19,4 +19,5 @@ extra-deps:
 - 'data-default-instances-base-0.1.0'
 - 'preprocessor-tools-1.0.1'
 - 'pandoc-citeproc-0.10'
+- 'texmath-0.8.6.4'
 resolver: lts-6.1
