@@ -1256,6 +1256,9 @@ LaTeX variables are used when [creating a PDF].
 `toc-depth`
 :   level of section to include in table of contents
 
+`secnumdepth`
+:   numbering depth for sections, if sections are numbered
+
 `lof`, `lot`
 :   include list of figures, list of tables
 
