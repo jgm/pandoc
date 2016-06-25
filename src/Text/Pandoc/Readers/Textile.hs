@@ -63,7 +63,7 @@ import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
 import Text.HTML.TagSoup.Match
 import Data.List ( intercalate )
-import Data.Char ( digitToInt, isUpper)
+import Data.Char ( digitToInt, isUpper )
 import Control.Monad ( guard, liftM, when )
 import Text.Pandoc.Compat.Monoid ((<>))
 import Text.Printf
@@ -540,8 +540,8 @@ image = try $ do
   let attr = case lookup "style" kvs of
                Just stls -> (ident, cls, pickStylesToKVs ["width", "height"] stls)
                Nothing   -> (ident, cls, kvs)
-  src <- manyTill anyChar' (lookAhead $ oneOf "!(")
-  alt <- option "" (try $ (char '(' >> manyTill anyChar' (char ')')))
+  src <- many1 (noneOf " \t\n\r!(")
+  alt <- option "" $ try $ char '(' *> manyTill anyChar (char ')')
   char '!'
   return $ B.imageWith attr src alt (B.str alt)
 
@@ -639,10 +639,7 @@ simpleInline :: Parser [Char] ParserState t           -- ^ surrounding parser
              -> (Inlines -> Inlines)       -- ^ Inline constructor
              -> Parser [Char] ParserState Inlines   -- ^ content parser (to be used repeatedly)
 simpleInline border construct = try $ do
-  st <- getState
-  pos <- getPosition
-  let afterString = stateLastStrPos st == Just pos
-  guard $ not afterString
+  notAfterString
   border *> notFollowedBy (oneOf " \t\n\r")
   attr <- attributes
   body <- trimInlines . mconcat <$>
