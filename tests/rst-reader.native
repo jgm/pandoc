@@ -211,6 +211,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Minus:",Space,Str "-"]
 ,Header 1 ("links",[],[]) [Str "Links"]
 ,Para [Str "Explicit:",Space,Str "a",Space,Link ("",[],[]) [Str "URL"] ("/url/",""),Str "."]
+,Para [Str "Explicit",Space,Str "with",Space,Str "no",Space,Str "label:",Space,Link ("",[],[]) [Str "foo"] ("foo",""),Str "."]
 ,Para [Str "Two",Space,Str "anonymous",Space,Str "links:",Space,Link ("",[],[]) [Str "the",Space,Str "first"] ("/url1/",""),Space,Str "and",Space,Link ("",[],[]) [Str "the",Space,Str "second"] ("/url2/","")]
 ,Para [Str "Reference",Space,Str "links:",Space,Link ("",[],[]) [Str "link1"] ("/url1/",""),Space,Str "and",Space,Link ("",[],[]) [Str "link2"] ("/url2/",""),Space,Str "and",Space,Link ("",[],[]) [Str "link1"] ("/url1/",""),Space,Str "again."]
 ,Para [Str "Here\8217s",Space,Str "a",Space,Link ("",[],[]) [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] ("http://example.com/?foo=1&bar=2",""),Str "."]

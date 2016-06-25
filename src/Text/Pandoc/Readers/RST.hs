@@ -1126,7 +1126,10 @@ explicitLink = try $ do
   skipSpaces
   string "`_"
   optional $ char '_' -- anonymous form
-  return $ B.link (escapeURI $ trim src) "" label'
+  let label'' = if label' == mempty
+                   then B.str src
+                   else label'
+  return $ B.link (escapeURI $ trim src) "" label''
 
 referenceLink :: RSTParser Inlines
 referenceLink = try $ do

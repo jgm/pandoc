@@ -378,6 +378,8 @@ Links
 
 Explicit:  a `URL </url/>`_.
 
+Explicit with no label:  `<foo>`_.
+
 Two anonymous links:  `the first`__ and `the second`__
 
 __ /url1/
