@@ -2,7 +2,7 @@
 stack install --test
 if %errorlevel% neq 0 exit /b %errorlevel%
 for /f "delims=" %%a in ('stack path --local-bin-path') do @set BINPATH=%%a
-%BINPATH%\pandoc.exe -s -S ..\README -o README.html
+%BINPATH%\pandoc.exe -s -S --toc ..\README -o README.html
 if %errorlevel% neq 0 exit /b %errorlevel%
 %BINPATH%\pandoc.exe -s ..\COPYING -t rtf -S -o COPYING.rtf
 if %errorlevel% neq 0 exit /b %errorlevel%
