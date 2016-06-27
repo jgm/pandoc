@@ -98,6 +98,7 @@ block = choice [ mempty <$ blanklines
 -- | Attributes that may be added to figures (like a name or caption).
 data BlockAttributes = BlockAttributes
   { blockAttrName      :: Maybe String
+  , blockAttrLabel     :: Maybe String
   , blockAttrCaption   :: Maybe (F Inlines)
   , blockAttrKeyValues :: [(String, String)]
   }
@@ -117,12 +118,14 @@ blockAttributes = try $ do
   let caption = foldl' (appendValues "CAPTION") Nothing kv
   let kvAttrs = foldl' (appendValues "ATTR_HTML") Nothing kv
   let name    = lookup "NAME" kv
+  let label   = lookup "LABEL" kv
   caption' <- maybe (return Nothing)
                     (fmap Just . parseFromString inlines)
                     caption
   kvAttrs' <- parseFromString keyValues . (++ "\n") $ fromMaybe mempty kvAttrs
   return $ BlockAttributes
            { blockAttrName = name
+           , blockAttrLabel = label
            , blockAttrCaption = caption'
            , blockAttrKeyValues = kvAttrs'
            }
@@ -131,6 +134,7 @@ blockAttributes = try $ do
    attrCheck attr =
      case attr of
        "NAME"      -> True
+       "LABEL"     -> True
        "CAPTION"   -> True
        "ATTR_HTML" -> True
        _           -> False
@@ -415,9 +419,10 @@ figure = try $ do
   guard . not . isNothing . blockAttrCaption $ figAttrs
   guard (isImageFilename src)
   let figName    = fromMaybe mempty $ blockAttrName figAttrs
+  let figLabel   = fromMaybe mempty $ blockAttrLabel figAttrs
   let figCaption = fromMaybe mempty $ blockAttrCaption figAttrs
   let figKeyVals = blockAttrKeyValues figAttrs
-  let attr       = (mempty, mempty, figKeyVals)
+  let attr       = (figLabel, mempty, figKeyVals)
   return $ (B.para . B.imageWith attr src (withFigPrefix figName) <$> figCaption)
  where
    withFigPrefix :: String -> String
