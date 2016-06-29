@@ -559,8 +559,8 @@ inlineCommands = M.fromList $
                            src <- unescapeURL <$> braced
                            mkImage options src)
   , ("enquote", enquote)
-  , ("cite", citation "cite" AuthorInText False)
-  , ("Cite", citation "cite" AuthorInText False)
+  , ("cite", citation "cite" NormalCitation False)
+  , ("Cite", citation "Cite" NormalCitation False)
   , ("citep", citation "citep" NormalCitation False)
   , ("citep*", citation "citep*" NormalCitation False)
   , ("citeal", citation "citeal" NormalCitation False)

@@ -431,7 +431,7 @@ tests =
                          { citationId = "Coffee"
                          , citationPrefix = []
                          , citationSuffix = []
-                         , citationMode = AuthorInText
+                         , citationMode = NormalCitation
                          , citationNoteNum = 0
                          , citationHash = 0}
           in (para . cite [citation] $ rawInline "latex" "\\cite{Coffee}")
