@@ -37,7 +37,7 @@ import Text.Pandoc.Shared ( escapeURI, removeFormatting, trimr, substitute )
 import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Templates ( renderTemplate' )
-import Data.List ( intersect, intercalate, isPrefixOf, transpose, isInfixOf )
+import Data.List ( intercalate, isPrefixOf, transpose, isInfixOf )
 import Data.Text ( breakOnAll, pack )
 import Data.Default (Default(..))
 import Network.URI ( isURI )
@@ -65,8 +65,8 @@ pandocToZimWiki opts (Pandoc meta blocks) = do
               (inlineListToZimWiki opts)
               meta
   body <- blockListToZimWiki opts blocks
-  let header = "Content-Type: text/x-zim-wiki\nWiki-Format: zim 0.4\n"
-  let main = header ++ body
+  --let header = "Content-Type: text/x-zim-wiki\nWiki-Format: zim 0.4\n"
+  let main = body
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts)
                 $ metadata
@@ -82,9 +82,7 @@ escapeString = substitute "__" "''__''" .
                substitute "//" "''//''"
 
 -- | Convert Pandoc block element to ZimWiki.
-blockToZimWiki :: WriterOptions -- ^ Options
-                -> Block         -- ^ Block element
-                -> State WriterState String
+blockToZimWiki :: WriterOptions -> Block -> State WriterState String
 
 blockToZimWiki _ Null = return ""
 
@@ -126,20 +124,9 @@ blockToZimWiki opts (Header level _ inlines) = do
   return $ eqs ++ " " ++ contents ++ " " ++ eqs ++ "\n"
 
 blockToZimWiki _ (CodeBlock (_,classes,_) str) = do
-  let at  = classes `intersect` ["actionscript", "ada", "apache", "applescript", "asm", "asp",
-                       "autoit", "bash", "blitzbasic", "bnf", "c", "c_mac", "caddcl", "cadlisp", "cfdg", "cfm",
-                       "cpp", "cpp-qt", "csharp", "css", "d", "delphi", "diff", "div", "dos", "eiffel", "fortran",
-                       "freebasic", "gml", "groovy", "html4strict", "idl", "ini", "inno", "io", "java", "java5",
-                       "javascript", "latex", "lisp", "lua", "matlab", "mirc", "mpasm", "mysql", "nsis", "objc",
-                       "ocaml", "ocaml-brief", "oobas", "oracle8", "pascal", "perl", "php", "php-brief", "plsql",
-                       "python", "qbasic", "rails", "reg", "robots", "ruby", "sas", "scheme", "sdlbasic",
-                       "smalltalk", "smarty", "sql", "tcl", "", "thinbasic", "tsql", "vb", "vbnet", "vhdl",
-                       "visualfoxpro", "winbatch", "xml", "xpp", "z80"]
-  -- for zim's code plugin
-  return $ "{{{code" ++
-                (case at of
-                      [] -> ">\n"
-                      (x:_) -> ": lang=\"" ++ x ++ "\" linenumbers=\"True\"\n") ++ str ++ "\n}}}\n"
+  return $ case classes of
+		[] 		-> "'''\n" ++ cleanupCode str ++ "\n'''\n" -- no lang block is a quote block
+		(x:_) 	-> "{{{code: lang=\"" ++ x ++ "\" linenumbers=\"True\"\n" ++ str ++ "\n}}}\n"    -- for zim's code plugin, go verbatim on the lang spec
 
 blockToZimWiki opts (BlockQuote blocks) = do
   contents <- blockListToZimWiki opts blocks
@@ -152,7 +139,7 @@ blockToZimWiki opts (Table capt aligns _ headers rows) = do
                       c <- inlineListToZimWiki opts capt
                       return $ "" ++ c ++ "\n"
   headers' <- if all null headers
-                 then return []
+                 then zipWithM (tableItemToZimWiki opts) aligns (rows !! 0)
                  else zipWithM (tableItemToZimWiki opts) aligns headers
   rows' <- mapM (zipWithM (tableItemToZimWiki opts) aligns) rows
   let widths = map (maximum . map length) $ transpose (headers':rows')
@@ -166,10 +153,18 @@ blockToZimWiki opts (Table capt aligns _ headers rows) = do
                             else replicate (x `div` 2) ' ' ++
                                  s ++ replicate (x - x `div` 2) ' '
                  | otherwise -> s
-  let renderRow sep cells = sep ++
-          intercalate sep (zipWith padTo (zip widths aligns) cells) ++ sep
+  let borderCell (width, al) _ =
+                 if al == AlignLeft
+                    then ":"++ replicate (width-1) '-'
+                 	else if al == AlignDefault
+                    	then replicate width '-'
+                    	else if al == AlignRight
+                            then replicate (width-1) '-' ++ ":"
+                            else ":" ++ replicate (width-2) '-' ++ ":"
+  let underheader  = "|" ++ intercalate "|" (zipWith borderCell (zip widths aligns) headers') ++ "|"
+  let renderRow sep cells = sep ++ intercalate sep (zipWith padTo (zip widths aligns) cells) ++ sep
   return $ captionDoc ++
-           (if null headers' then "" else renderRow "^" headers' ++ "\n") ++
+           (if null headers' then "" else renderRow "|" headers' ++ "\n") ++ underheader ++ "\n" ++
            unlines (map (renderRow "|") rows')
 
 blockToZimWiki opts (BulletList items) = do
@@ -219,10 +214,13 @@ indentFromHTML _ str = do
    					modify $ \s -> s{ stIndent = drop olcount (stIndent s) }
    					return "" -- $ "OL-OFF[" ++ newfix ++"]"
    					else 
-   						return $ "** unknown inner HTML "++ str ++"**"
+   						return $ "" -- ** unknown inner HTML "++ str ++"**"
 
 countSubStrs :: String -> String -> Int
 countSubStrs sub str = length $ breakOnAll (pack sub) (pack str)
+
+cleanupCode :: String -> String
+cleanupCode = substitute "<nowiki>" "" . substitute "</nowiki>" "" 
 
 vcat :: [String] -> String
 vcat = intercalate "\n"
