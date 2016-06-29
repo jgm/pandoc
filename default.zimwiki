@@ -1,0 +1,16 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+$if(toc)$
+__TOC__
+
+$endif$
+$body$
+$for(include-after)$
+
+$include-after$
+$endfor$
