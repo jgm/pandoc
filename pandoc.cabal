@@ -21,11 +21,11 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  Emacs Org-Mode, txt2tags, Word Docx, ODT, and Textile, and
                  it can write Markdown, reStructuredText, XHTML, HTML 5,
                  LaTeX, ConTeXt, DocBook, OPML, TEI, OpenDocument, ODT,
-                 Word docx, RTF, MediaWiki, DokuWiki, Textile, groff man
-                 pages, plain text, Emacs Org-Mode, AsciiDoc, Haddock markup,
-                 EPUB (v2 and v3), FictionBook2, InDesign ICML, and several
-                 kinds of HTML/javascript slide shows (S5, Slidy, Slideous,
-                 DZSlides, reveal.js).
+                 Word docx, RTF, MediaWiki, DokuWiki, ZimWiki, Textile,
+                 groff man pages, plain text, Emacs Org-Mode, AsciiDoc,
+                 Haddock markup, EPUB (v2 and v3), FictionBook2, InDesign ICML,
+                 and several kinds of HTML/javascript slide shows (S5, Slidy,
+                 Slideous, DZSlides, reveal.js).
                  .
                  In contrast to most existing tools for converting Markdown
                  to HTML, pandoc has a modular design: it consists of a set of
@@ -55,6 +55,7 @@ Data-Files:
                  data/templates/default.plain
                  data/templates/default.mediawiki
                  data/templates/default.dokuwiki
+                 data/templates/default.zimwiki
                  data/templates/default.rtf
                  data/templates/default.s5
                  data/templates/default.slidy
@@ -148,6 +149,7 @@ Extra-Source-Files:
                  tests/tables.docbook
                  tests/tables.docbook5
                  tests/tables.dokuwiki
+                 tests/tables.zimwiki
                  tests/tables.icml
                  tests/tables.html
                  tests/tables.latex
@@ -189,6 +191,7 @@ Extra-Source-Files:
                  tests/writer.fb2
                  tests/writer.opml
                  tests/writer.dokuwiki
+                 tests/writer.zimwiki
                  tests/writers-lang-and-dir.latex
                  tests/writers-lang-and-dir.context
                  tests/dokuwiki_inline_formatting.dokuwiki

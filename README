@@ -20,11 +20,12 @@ write plain text, [Markdown], [CommonMark], [PHP Markdown Extra],
 [GitHub-Flavored Markdown], [MultiMarkdown], [reStructuredText], [XHTML],
 [HTML5], [LaTeX] (including [`beamer`] slide shows), [ConTeXt], [RTF], [OPML],
 [DocBook], [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
-markup], [DokuWiki markup], [Haddock markup], [EPUB] (v2 or v3),
-[FictionBook2], [Textile], [groff man] pages, [Emacs Org mode],
-[AsciiDoc], [InDesign ICML], [TEI Simple], and [Slidy], [Slideous], [DZSlides],
-[reveal.js] or [S5] HTML slide shows. It can also produce [PDF] output
-on systems where LaTeX, ConTeXt, or `wkhtmltopdf` is installed.
+markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup],
+[EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages,
+[Emacs Org mode], [AsciiDoc], [InDesign ICML], [TEI Simple], and [Slidy],
+[Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows. It can also
+produce [PDF] output on systems where LaTeX, ConTeXt, or `wkhtmltopdf` is
+installed.
 
 Pandoc's enhanced version of Markdown includes syntax for [footnotes],
 [tables], flexible [ordered lists], [definition lists], [fenced code blocks],
@@ -77,6 +78,7 @@ Markdown can be expected to be lossy.
 [Textile]: http://redcloth.org/textile
 [MediaWiki markup]: https://www.mediawiki.org/wiki/Help:Formatting
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
+[ZimWiki markup]: http://zim-wiki.org/manual/Help/Wiki_Syntax.html
 [TWiki markup]: http://twiki.org/cgi-bin/view/TWiki/TextFormattingRules
 [Haddock markup]: https://www.haskell.org/haddock/doc/html/ch03s08.html
 [groff man]: http://developer.apple.com/DOCUMENTATION/Darwin/Reference/ManPages/man7/groff_man.7.html
@@ -272,8 +274,9 @@ General options
     (MultiMarkdown), `commonmark` (CommonMark Markdown), `rst`
     (reStructuredText), `html` (XHTML), `html5` (HTML5), `latex`
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
-    `man` (groff man), `mediawiki` (MediaWiki markup), `dokuwiki`
-    (DokuWiki markup), `textile` (Textile), `org` (Emacs Org mode),
+    `man` (groff man), `mediawiki` (MediaWiki markup),
+    `dokuwiki` (DokuWiki markup), `zimwiki` (ZimWiki markup),
+    `textile` (Textile), `org` (Emacs Org mode),
     `texinfo` (GNU Texinfo), `opml` (OPML), `docbook` (DocBook 4),
     `docbook5` (DocBook 5), `opendocument` (OpenDocument), `odt`
     (OpenOffice text document), `docx` (Word docx), `haddock`
@@ -2646,7 +2649,7 @@ them and they won't be treated as math delimiters.
 TeX math will be printed in all output formats. How it is rendered
 depends on the output format:
 
-Markdown, LaTeX, Emacs Org mode, ConTeXt
+Markdown, LaTeX, Emacs Org mode, ConTeXt, ZimWiki
   ~ It will appear verbatim between `$` characters.
 
 reStructuredText
