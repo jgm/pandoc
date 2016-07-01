@@ -973,7 +973,7 @@ inlineToLaTeX (Image attr _ (source, _)) = do
       source' = if isURI source
                    then source
                    else unEscapeString source
-  source'' <- stringToLaTeX URLString (escapeURI source')
+  source'' <- stringToLaTeX URLString source'
   inHeading <- gets stInHeading
   return $
     (if inHeading then "\\protect\\includegraphics" else "\\includegraphics") <>
