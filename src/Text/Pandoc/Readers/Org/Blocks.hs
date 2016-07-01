@@ -53,6 +53,35 @@ import qualified Data.Map as M
 import           Data.Maybe ( fromMaybe, isNothing )
 import           Network.HTTP ( urlEncode )
 
+--
+-- Org headers
+--
+newtype Tag = Tag { fromTag :: String }
+  deriving (Show, Eq)
+
+-- | Create a tag containing the given string.
+toTag :: String -> Tag
+toTag = Tag
+
+-- | The key (also called name or type) of a property.
+newtype PropertyKey = PropertyKey { fromKey :: String }
+  deriving (Show, Eq, Ord)
+
+-- | Create a property key containing the given string.  Org mode keys are
+-- case insensitive and are hence converted to lower case.
+toPropertyKey :: String -> PropertyKey
+toPropertyKey = PropertyKey . map toLower
+
+-- | The value assigned to a property.
+newtype PropertyValue = PropertyValue { fromValue :: String }
+
+-- | Create a property value containing the given string.
+toPropertyValue :: String -> PropertyValue
+toPropertyValue = PropertyValue
+
+-- | Key/value pairs from a PROPERTIES drawer
+type Properties = [(PropertyKey, PropertyValue)]
+
 
 --
 -- parsing blocks
@@ -381,30 +410,22 @@ drawerEnd = try $
 
 -- | Read a :PROPERTIES: drawer and return the key/value pairs contained
 -- within.
-propertiesDrawer :: OrgParser [(String, String)]
+propertiesDrawer :: OrgParser Properties
 propertiesDrawer = try $ do
   drawerType <- drawerStart
   guard $ map toUpper drawerType == "PROPERTIES"
   manyTill property (try drawerEnd)
  where
-   property :: OrgParser (String, String)
+   property :: OrgParser (PropertyKey, PropertyValue)
    property = try $ (,) <$> key <*> value
 
-   key :: OrgParser String
-   key = try $ skipSpaces *> char ':' *> many1Till nonspaceChar (char ':')
+   key :: OrgParser PropertyKey
+   key = fmap toPropertyKey . try $
+         skipSpaces *> char ':' *> many1Till nonspaceChar (char ':')
 
-   value :: OrgParser String
-   value = try $ skipSpaces *> manyTill anyChar (try $ skipSpaces *> newline)
-
-keyValuesToAttr :: [(String, String)] -> Attr
-keyValuesToAttr kvs =
-  let
-    lowerKvs = map (\(k, v) -> (map toLower k, v)) kvs
-    id'  = fromMaybe mempty . lookup "custom_id" $ lowerKvs
-    cls  = fromMaybe mempty . lookup "class"     $ lowerKvs
-    kvs' = filter (flip notElem ["custom_id", "class"] . fst) lowerKvs
-  in
-    (id', words cls, kvs')
+   value :: OrgParser PropertyValue
+   value = fmap toPropertyValue . try $
+           skipSpaces *> manyTill anyChar (try $ skipSpaces *> newline)
 
 
 --
@@ -624,23 +645,34 @@ header = try $ do
   tags     <- option [] headerTags
   newline
   let text = tagTitle title tags
-  propAttr <- option nullAttr (keyValuesToAttr <$> propertiesDrawer)
+  propAttr <- option nullAttr (propertiesToAttr <$> propertiesDrawer)
   attr     <- registerHeader propAttr (runF text def)
   return (B.headerWith attr level <$> text)
  where
-   tagTitle :: [F Inlines] -> [String] -> F Inlines
+   tagTitle :: [F Inlines] -> [Tag] -> F Inlines
    tagTitle title tags = trimInlinesF . mconcat $ title <> map tagToInlineF tags
 
-   tagToInlineF :: String -> F Inlines
-   tagToInlineF t = return $ B.spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
+   tagToInlineF :: Tag -> F Inlines
+   tagToInlineF t =
+     return $ B.spanWith ("", ["tag"], [("data-tag-name", fromTag t)]) mempty
 
-   headerTags :: OrgParser [String]
+   headerTags :: OrgParser [Tag]
    headerTags = try $
      let tag = many1 (alphaNum <|> oneOf "@%#_") <* char ':'
-     in skipSpaces
-          *> char ':'
-          *> many1 tag
-          <* skipSpaces
+     in map toTag <$> (skipSpaces *> char ':' *> many1 tag <* skipSpaces)
+
+propertiesToAttr :: Properties -> Attr
+propertiesToAttr properties =
+  let
+    toStringPair prop = (fromKey (fst prop), fromValue (snd prop))
+    customIdKey = toPropertyKey "custom_id"
+    classKey    = toPropertyKey "class"
+    id'  = fromMaybe mempty . fmap fromValue . lookup customIdKey $ properties
+    cls  = fromMaybe mempty . fmap fromValue . lookup classKey    $ properties
+    kvs' = map toStringPair . filter ((`notElem` [customIdKey, classKey]) . fst)
+           $ properties
+  in
+    (id', words cls, kvs')
 
 
 --
