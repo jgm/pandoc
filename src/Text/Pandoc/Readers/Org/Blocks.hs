@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards #-}
 {-
 Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -46,7 +47,7 @@ import           Text.Pandoc.Compat.Monoid ((<>))
 import           Text.Pandoc.Options
 import           Text.Pandoc.Shared ( compactify', compactify'DL )
 
-import           Control.Monad ( foldM, guard, mzero )
+import           Control.Monad ( foldM, guard, mzero, void )
 import           Data.Char ( isSpace, toLower, toUpper)
 import           Data.List ( foldl', intersperse, isPrefixOf )
 import qualified Data.Map as M
@@ -82,6 +83,82 @@ toPropertyValue = PropertyValue
 -- | Key/value pairs from a PROPERTIES drawer
 type Properties = [(PropertyKey, PropertyValue)]
 
+-- | Org mode headline (i.e. a document subtree).
+data Headline = Headline
+  { headlineLevel      :: Int
+  , headlineText       :: Inlines
+  , headlineTags       :: [Tag]
+  , headlineProperties :: Properties
+  , headlineContents   :: Blocks
+  , headlineChildren   :: [Headline]
+  }
+
+--
+-- Parsing headlines and subtrees
+--
+
+-- | Read an Org mode headline and its contents (i.e. a document subtree).
+-- @lvl@ gives the minimum acceptable level of the tree.
+headline :: Int -> OrgParser (F Headline)
+headline lvl = try $ do
+  level <- headerStart
+  guard (lvl <= level)
+  title <- trimInlinesF . mconcat <$> manyTill inline endOfTitle
+  tags  <- option [] headerTags
+  newline
+  properties <- option mempty propertiesDrawer
+  contents   <- blocks
+  children   <- many (headline (lvl + 1))
+  return $ do
+    title'    <- title
+    contents' <- contents
+    children' <- sequence children
+    return $ Headline
+      { headlineLevel = level
+      , headlineText = title'
+      , headlineTags = tags
+      , headlineProperties = properties
+      , headlineContents = contents'
+      , headlineChildren = children'
+      }
+ where
+   endOfTitle :: OrgParser ()
+   endOfTitle = void . lookAhead $ optional headerTags *> newline
+
+   headerTags :: OrgParser [Tag]
+   headerTags = try $
+     let tag = many1 (alphaNum <|> oneOf "@%#_") <* char ':'
+     in map toTag <$> (skipSpaces *> char ':' *> many1 tag <* skipSpaces)
+
+-- | Convert an Org mode headline (i.e. a document tree) into pandoc's Blocks
+headlineToBlocks :: Headline -> OrgParser Blocks
+headlineToBlocks (Headline {..}) = do
+  let text        = tagTitle headlineText headlineTags
+  let propAttr    = propertiesToAttr headlineProperties
+  attr           <- registerHeader propAttr headlineText
+  let header      = B.headerWith attr headlineLevel text
+  childrenBlocks <- mconcat <$> sequence (map headlineToBlocks headlineChildren)
+  return $ header <> headlineContents <> childrenBlocks
+
+propertiesToAttr :: Properties -> Attr
+propertiesToAttr properties =
+  let
+    toStringPair prop = (fromKey (fst prop), fromValue (snd prop))
+    customIdKey = toPropertyKey "custom_id"
+    classKey    = toPropertyKey "class"
+    id'  = fromMaybe mempty . fmap fromValue . lookup customIdKey $ properties
+    cls  = fromMaybe mempty . fmap fromValue . lookup classKey    $ properties
+    kvs' = map toStringPair . filter ((`notElem` [customIdKey, classKey]) . fst)
+           $ properties
+  in
+    (id', words cls, kvs')
+
+tagTitle :: Inlines -> [Tag] -> Inlines
+tagTitle title tags = title <> (mconcat $ map tagToInline tags)
+
+tagToInline :: Tag -> Inlines
+tagToInline t = B.spanWith ("", ["tag"], [("data-tag-name", fromTag t)]) mempty
+
 
 --
 -- parsing blocks
@@ -90,9 +167,11 @@ type Properties = [(PropertyKey, PropertyValue)]
 -- | Get a list of blocks.
 blockList :: OrgParser [Block]
 blockList = do
-  blocks' <- blocks
-  st      <- getState
-  return . B.toList $ runF blocks' st
+  initialBlocks  <- blocks
+  headlines      <- sequence <$> manyTill (headline 1) eof
+  st             <- getState
+  headlineBlocks <- fmap mconcat . sequence . map headlineToBlocks $ runF headlines st
+  return . B.toList $ (runF initialBlocks st) <> headlineBlocks
 
 -- | Get the meta information safed in the state.
 meta :: OrgParser Meta
@@ -101,7 +180,7 @@ meta = do
   return $ runF (orgStateMeta st) st
 
 blocks :: OrgParser (F Blocks)
-blocks = mconcat <$> manyTill block eof
+blocks = mconcat <$> manyTill block (void (lookAhead headerStart) <|> eof)
 
 block :: OrgParser (F Blocks)
 block = choice [ mempty <$ blanklines
@@ -111,7 +190,6 @@ block = choice [ mempty <$ blanklines
                , example
                , genericDrawer
                , specialLine
-               , header
                , horizontalRule
                , list
                , latexFragment
@@ -633,47 +711,6 @@ parseFormat = try $ do
    rest            = manyTill anyChar         (eof <|> () <$ oneOf "\n\r")
    tillSpecifier c = manyTill (noneOf "\n\r") (try $ string ('%':c:""))
 
---
--- Headers
---
-
--- | Headers
-header :: OrgParser (F Blocks)
-header = try $ do
-  level    <- headerStart
-  title    <- manyTill inline (lookAhead $ optional headerTags <* newline)
-  tags     <- option [] headerTags
-  newline
-  let text = tagTitle title tags
-  propAttr <- option nullAttr (propertiesToAttr <$> propertiesDrawer)
-  attr     <- registerHeader propAttr (runF text def)
-  return (B.headerWith attr level <$> text)
- where
-   tagTitle :: [F Inlines] -> [Tag] -> F Inlines
-   tagTitle title tags = trimInlinesF . mconcat $ title <> map tagToInlineF tags
-
-   tagToInlineF :: Tag -> F Inlines
-   tagToInlineF t =
-     return $ B.spanWith ("", ["tag"], [("data-tag-name", fromTag t)]) mempty
-
-   headerTags :: OrgParser [Tag]
-   headerTags = try $
-     let tag = many1 (alphaNum <|> oneOf "@%#_") <* char ':'
-     in map toTag <$> (skipSpaces *> char ':' *> many1 tag <* skipSpaces)
-
-propertiesToAttr :: Properties -> Attr
-propertiesToAttr properties =
-  let
-    toStringPair prop = (fromKey (fst prop), fromValue (snd prop))
-    customIdKey = toPropertyKey "custom_id"
-    classKey    = toPropertyKey "class"
-    id'  = fromMaybe mempty . fmap fromValue . lookup customIdKey $ properties
-    cls  = fromMaybe mempty . fmap fromValue . lookup classKey    $ properties
-    kvs' = map toStringPair . filter ((`notElem` [customIdKey, classKey]) . fst)
-           $ properties
-  in
-    (id', words cls, kvs')
-
 
 --
 -- Tables
@@ -838,6 +875,8 @@ noteBlock = try $ do
 -- Paragraphs or Plain text
 paraOrPlain :: OrgParser (F Blocks)
 paraOrPlain = try $ do
+  -- Make sure we are not looking at a headline
+  notFollowedBy' (char '*' *> (oneOf " *"))
   ils <- inlines
   nl <- option False (newline *> return True)
   -- Read block as paragraph, except if we are in a list context and the block
