@@ -114,11 +114,11 @@ blockToZimWiki opts (Para inlines) = do
 blockToZimWiki opts (RawBlock f str)
   | f == Format "zimwiki"  = return str
   | f == Format "html"     = do cont <- indentFromHTML opts str; return cont
-  | otherwise              = return "" -- $ "** unknown raw block "++ show f ++ "=" ++ str ++ " **"
+  | otherwise              = return ""
 
 blockToZimWiki _ HorizontalRule = return "\n----\n"
 
-blockToZimWiki opts (Header level _ inlines) = do 
+blockToZimWiki opts (Header level _ inlines) = do
   contents <- inlineListToZimWiki opts $ removeFormatting inlines   -- emphasis, links etc. not allowed in headers
   let eqs = replicate ( 7 - level ) '='
   return $ eqs ++ " " ++ contents ++ " " ++ eqs ++ "\n"
@@ -204,23 +204,23 @@ indentFromHTML _ str = do
                         let val = drop 10 $ reverse $ drop 1 $ reverse str
                         --let val = take ((length valls) - 2) valls
                         modify $ \s -> s { stItemNum = read val }
-                        return "" -- $ indent ++ val ++ "." -- zim does its own numbering
+                        return ""
                         else if isInfixOf "<ol>" str then do
                                 let olcount=countSubStrs "<ol>" str
                                 modify $ \s -> s { stIndent = stIndent s ++ replicate olcount '\t', stItemNum = 1 }
-                                return "" -- $ "OL-ON[" ++ newfix ++"]"
+                                return ""
                                 else if isInfixOf "</ol>" str then do
                                         let olcount=countSubStrs "/<ol>" str
                                         modify $ \s -> s{ stIndent = drop olcount (stIndent s) }
-                                        return "" -- $ "OL-OFF[" ++ newfix ++"]"
-                                        else 
-                                                return $ "" -- ** unknown inner HTML "++ str ++"**"
+                                        return ""
+                                        else
+                                                return ""
 
 countSubStrs :: String -> String -> Int
 countSubStrs sub str = length $ breakOnAll (pack sub) (pack str)
 
 cleanupCode :: String -> String
-cleanupCode = substitute "<nowiki>" "" . substitute "</nowiki>" "" 
+cleanupCode = substitute "<nowiki>" "" . substitute "</nowiki>" ""
 
 vcat :: [String] -> String
 vcat = intercalate "\n"
