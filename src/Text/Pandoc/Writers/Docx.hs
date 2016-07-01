@@ -1045,6 +1045,7 @@ inlineToOpenXML opts (Math mathType str) = do
   let displayType = if mathType == DisplayMath
                        then DisplayBlock
                        else DisplayInline
+  when (displayType == DisplayBlock) setFirstPara
   case writeOMML displayType <$> readTeX str of
         Right r -> return [r]
         Left  _ -> inlinesToOpenXML opts (texMathToInlines mathType str)
