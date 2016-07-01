@@ -104,6 +104,7 @@ module Text.Pandoc
                , writeMan
                , writeMediaWiki
                , writeDokuWiki
+               , writeZimWiki
                , writeTextile
                , writeRTF
                , writeODT
@@ -164,6 +165,7 @@ import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.RTF
 import Text.Pandoc.Writers.MediaWiki
 import Text.Pandoc.Writers.DokuWiki
+import Text.Pandoc.Writers.ZimWiki
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Org
 import Text.Pandoc.Writers.AsciiDoc
@@ -310,6 +312,7 @@ writers = [
   ,("rst"          , PureStringWriter writeRST)
   ,("mediawiki"    , PureStringWriter writeMediaWiki)
   ,("dokuwiki"     , PureStringWriter writeDokuWiki)
+  ,("zimwiki"      , PureStringWriter writeZimWiki)
   ,("textile"      , PureStringWriter writeTextile)
   ,("rtf"          , IOStringWriter writeRTFWithEmbeddedImages)
   ,("org"          , PureStringWriter writeOrg)

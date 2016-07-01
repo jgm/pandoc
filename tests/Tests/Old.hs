@@ -166,7 +166,7 @@ tests = [ testGroup "markdown"
               "twiki-reader.twiki" "twiki-reader.native" ]
         , testGroup "other writers" $ map (\f -> testGroup f $ writerTests f)
           [ "opendocument" , "context" , "texinfo", "icml", "tei"
-          , "man" , "plain" , "rtf", "org", "asciidoc"
+          , "man" , "plain" , "rtf", "org", "asciidoc", "zimwiki"
           ]
         , testGroup "writers-lang-and-dir"
           [ test "latex" ["-f", "native", "-t", "latex", "-s"]
