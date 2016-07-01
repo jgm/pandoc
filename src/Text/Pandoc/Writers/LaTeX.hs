@@ -317,6 +317,20 @@ toLabel z = go `fmap` stringToLaTeX URLString z
 inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '\\' <> text cmd <> braces contents
 
+-- | Put the given 'Doc' into the named environment
+--
+inEnv :: Doc -> Doc -> Doc
+inEnv name doc = inCmd "begin" name $$ doc $$ inCmd "end" name
+
+-- | Put the given 'Doc' in a suitable alignment environment
+--
+alignEnv :: Alignment -> Doc -> Doc
+alignEnv align doc = case align of
+  AlignLeft    -> inEnv "flushleft" doc
+  AlignRight   -> inEnv "flushright" doc
+  AlignCenter  -> inEnv "center" doc
+  AlignDefault -> doc
+
 toSlides :: [Block] -> State WriterState [Block]
 toSlides bs = do
   opts <- gets stOptions
@@ -953,7 +967,7 @@ inlineToLaTeX (Link _ txt (src, _)) =
                 src' <- stringToLaTeX URLString (escapeURI src)
                 return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
-inlineToLaTeX (Image attr _ (source, _)) = do
+inlineToLaTeX (Image attr@(_, _, kvs) _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True }
   opts <- gets stOptions
   let showDim dir = let d = text (show dir) <> "="
@@ -973,11 +987,16 @@ inlineToLaTeX (Image attr _ (source, _)) = do
       source' = if isURI source
                    then source
                    else unEscapeString source
+      align = case lookup "align" kvs of
+        Just "left"   -> AlignLeft
+        Just "center" -> AlignCenter
+        Just "right"  -> AlignRight
+        _             -> AlignDefault
   source'' <- stringToLaTeX URLString (escapeURI source')
   inHeading <- gets stInHeading
-  return $
-    (if inHeading then "\\protect\\includegraphics" else "\\includegraphics") <>
-    dims <> braces (text source'')
+  let img = (if inHeading then "\\protect\\includegraphics" else "\\includegraphics") <>
+            dims <> braces (text source'')
+  return $ alignEnv align img
 inlineToLaTeX (Note contents) = do
   inMinipage <- gets stInMinipage
   modify (\s -> s{stInNote = True})
