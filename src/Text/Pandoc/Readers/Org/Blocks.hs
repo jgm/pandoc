@@ -137,27 +137,43 @@ headlineToBlocks :: Headline -> OrgParser Blocks
 headlineToBlocks hdln@(Headline {..}) =
   case () of
     _ | any isNoExportTag headlineTags -> return mempty
+    _ | any isArchiveTag  headlineTags -> archivedHeadlineToBlocks hdln
     _ | isCommentTitle headlineText    -> return mempty
-    _                                  -> headlineToHeader hdln
+    _                                  -> headlineToHeaderWithContents hdln
 
 isNoExportTag :: Tag -> Bool
 isNoExportTag = (== toTag "noexport")
 
+isArchiveTag :: Tag -> Bool
+isArchiveTag = (== toTag "ARCHIVE")
+
 -- | Check if the title starts with COMMENT.
 -- FIXME: This accesses builder internals not intended for use in situations
--- as these.  Replace once keyword parsing is supported.
+-- like these.  Replace once keyword parsing is supported.
 isCommentTitle :: Inlines -> Bool
 isCommentTitle xs = (B.Many . S.take 1 . B.unMany) xs == B.str "COMMENT"
 isCommentTitle _  = False
+
+archivedHeadlineToBlocks :: Headline -> OrgParser Blocks
+archivedHeadlineToBlocks hdln = do
+  archivedTreesOption <- getExportSetting exportArchivedTrees
+  case archivedTreesOption of
+    ArchivedTreesNoExport     -> return mempty
+    ArchivedTreesExport       -> headlineToHeaderWithContents hdln
+    ArchivedTreesHeadlineOnly -> headlineToHeader hdln
+
+headlineToHeaderWithContents :: Headline -> OrgParser Blocks
+headlineToHeaderWithContents hdln@(Headline {..}) = do
+  header         <- headlineToHeader hdln
+  childrenBlocks <- mconcat <$> sequence (map headlineToBlocks headlineChildren)
+  return $ header <> headlineContents <> childrenBlocks
 
 headlineToHeader :: Headline -> OrgParser Blocks
 headlineToHeader (Headline {..}) = do
   let text        = tagTitle headlineText headlineTags
   let propAttr    = propertiesToAttr headlineProperties
   attr           <- registerHeader propAttr headlineText
-  let header      = B.headerWith attr headlineLevel text
-  childrenBlocks <- mconcat <$> sequence (map headlineToBlocks headlineChildren)
-  return $ header <> headlineContents <> childrenBlocks
+  return $ B.headerWith attr headlineLevel text
 
 propertiesToAttr :: Properties -> Attr
 propertiesToAttr properties =
@@ -629,7 +645,7 @@ exportSetting = choice
   , ignoredSetting ":"
   , ignoredSetting "<"
   , ignoredSetting "\\n"
-  , ignoredSetting "arch"
+  , archivedTreeSetting "arch" setExportArchivedTrees
   , ignoredSetting "author"
   , ignoredSetting "c"
   , ignoredSetting "creator"
@@ -672,6 +688,27 @@ elispBoolean = try $ do
              "{}"  -> False
              "()"  -> False
              _     -> True
+
+archivedTreeSetting :: String
+                    -> ExportSettingSetter ArchivedTreesOption
+                    -> OrgParser ()
+archivedTreeSetting settingIdentifier setter = try $ do
+  string settingIdentifier
+  char ':'
+  value <- archivedTreesHeadlineSetting <|> archivedTreesBoolean
+  updateState $ modifyExportSettings setter value
+ where
+   archivedTreesHeadlineSetting = try $ do
+     string "headline"
+     lookAhead (newline <|> spaceChar)
+     return ArchivedTreesHeadlineOnly
+
+   archivedTreesBoolean = try $ do
+     exportBool <- elispBoolean
+     return $
+       if exportBool
+       then ArchivedTreesExport
+       else ArchivedTreesNoExport
 
 -- | A list or a complement list (i.e. a list starting with `not`).
 complementableListSetting :: String

@@ -42,6 +42,8 @@ module Text.Pandoc.Readers.Org.ParserState
   , returnF
   , ExportSettingSetter
   , ExportSettings (..)
+  , ArchivedTreesOption (..)
+  , setExportArchivedTrees
   , setExportDrawers
   , setExportEmphasizedText
   , setExportSmartQuotes
@@ -78,10 +80,17 @@ type OrgNoteTable = [OrgNoteRecord]
 -- link-type, the corresponding function transforms the given link string.
 type OrgLinkFormatters = M.Map String (String -> String)
 
+-- | Options for the way archived trees are handled.
+data ArchivedTreesOption =
+    ArchivedTreesExport       -- ^ Export the complete tree
+  | ArchivedTreesNoExport     -- ^ Exclude archived trees from exporting
+  | ArchivedTreesHeadlineOnly -- ^ Export only the headline, discard the contents
+
 -- | Export settings <http://orgmode.org/manual/Export-settings.html>
 -- These settings can be changed via OPTIONS statements.
 data ExportSettings = ExportSettings
-  { exportDrawers         :: Either [String] [String]
+  { exportArchivedTrees   :: ArchivedTreesOption -- ^ How to treat archived trees
+  , exportDrawers         :: Either [String] [String]
   -- ^ Specify drawer names which should be exported.  @Left@ names are
   -- explicitly excluded from the resulting output while @Right@ means that
   -- only the listed drawer names should be included.
@@ -159,7 +168,8 @@ defaultOrgParserState = OrgParserState
 
 defaultExportSettings :: ExportSettings
 defaultExportSettings = ExportSettings
-  { exportDrawers = Left ["LOGBOOK"]
+  { exportArchivedTrees = ArchivedTreesHeadlineOnly
+  , exportDrawers = Left ["LOGBOOK"]
   , exportEmphasizedText = True
   , exportSmartQuotes = True
   , exportSpecialStrings = True
@@ -174,7 +184,14 @@ optionsToParserState opts =
 --
 -- Setter for exporting options
 --
+
+-- This whole section could be scraped if we were using lenses.
+
 type ExportSettingSetter a = a -> ExportSettings -> ExportSettings
+
+-- | Set export options for archived trees.
+setExportArchivedTrees :: ExportSettingSetter ArchivedTreesOption
+setExportArchivedTrees val es = es { exportArchivedTrees = val }
 
 -- | Set export options for drawers.  See the @exportDrawers@ in ADT
 -- @ExportSettings@ for details.
