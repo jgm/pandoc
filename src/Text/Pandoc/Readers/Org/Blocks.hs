@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}
 {-
 Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -52,6 +53,7 @@ import           Data.Char ( isSpace, toLower, toUpper)
 import           Data.List ( foldl', intersperse, isPrefixOf )
 import qualified Data.Map as M
 import           Data.Maybe ( fromMaybe, isNothing )
+import qualified Data.Sequence as S
 import           Network.HTTP ( urlEncode )
 
 --
@@ -132,7 +134,24 @@ headline lvl = try $ do
 
 -- | Convert an Org mode headline (i.e. a document tree) into pandoc's Blocks
 headlineToBlocks :: Headline -> OrgParser Blocks
-headlineToBlocks (Headline {..}) = do
+headlineToBlocks hdln@(Headline {..}) =
+  case () of
+    _ | any isNoExportTag headlineTags -> return mempty
+    _ | isCommentTitle headlineText    -> return mempty
+    _                                  -> headlineToHeader hdln
+
+isNoExportTag :: Tag -> Bool
+isNoExportTag = (== toTag "noexport")
+
+-- | Check if the title starts with COMMENT.
+-- FIXME: This accesses builder internals not intended for use in situations
+-- as these.  Replace once keyword parsing is supported.
+isCommentTitle :: Inlines -> Bool
+isCommentTitle xs = (B.Many . S.take 1 . B.unMany) xs == B.str "COMMENT"
+isCommentTitle _  = False
+
+headlineToHeader :: Headline -> OrgParser Blocks
+headlineToHeader (Headline {..}) = do
   let text        = tagTitle headlineText headlineTags
   let propAttr    = propertiesToAttr headlineProperties
   attr           <- registerHeader propAttr headlineText
