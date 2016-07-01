@@ -148,6 +148,7 @@ isDisplayMath _                    = False
 stripLeadingTrailingSpace :: [Inline] -> [Inline]
 stripLeadingTrailingSpace = go . reverse . go . reverse
   where go (Space:xs) = xs
+        go (SoftBreak:xs) = xs
         go xs         = xs
 
 -- Put display math in its own block (for ODT/DOCX).
