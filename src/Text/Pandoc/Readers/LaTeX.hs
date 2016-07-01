@@ -556,7 +556,7 @@ inlineCommands = M.fromList $
        tok >>= \lab ->
          pure (link url "" lab))
   , ("includegraphics", do options <- option [] keyvals
-                           src <- unescapeURL <$> braced
+                           src <- unescapeURL . removeDoubleQuotes <$> braced
                            mkImage options src)
   , ("enquote", enquote)
   , ("cite", citation "cite" NormalCitation False)
@@ -1396,3 +1396,10 @@ endInclude = do
   co <- braced
   setPosition $ newPos fn (fromMaybe 1 $ safeRead ln) (fromMaybe 1 $ safeRead co)
   return mempty
+
+removeDoubleQuotes :: String -> String
+removeDoubleQuotes ('"':xs) =
+  case reverse xs of
+       '"':ys -> reverse ys
+       _      -> '"':xs
+removeDoubleQuotes xs = xs
