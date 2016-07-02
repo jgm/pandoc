@@ -32,8 +32,9 @@ module Text.Pandoc.Readers.Org.ExportSettings
 import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Readers.Org.Parsing
 
-import           Control.Monad ( void )
+import           Control.Monad ( mzero, void )
 import           Data.Char ( toLower )
+import           Data.Maybe ( listToMaybe )
 
 -- | Read and handle space separated org-mode export settings.
 exportSettings :: OrgParser ()
@@ -61,7 +62,7 @@ exportSetting = choice
   , ignoredSetting "e"
   , ignoredSetting "email"
   , ignoredSetting "f"
-  , ignoredSetting "H"
+  , integerSetting "H" (\val es -> es { exportHeadlineLevels = val })
   , ignoredSetting "inline"
   , ignoredSetting "num"
   , ignoredSetting "p"
@@ -93,6 +94,13 @@ genericExportSetting optionParser settingIdentifier setter = try $ do
 -- | A boolean option, either nil (False) or non-nil (True).
 booleanSetting :: String ->  ExportSettingSetter Bool -> OrgParser ()
 booleanSetting = genericExportSetting elispBoolean
+
+-- | An integer-valued option.
+integerSetting :: String -> ExportSettingSetter Int -> OrgParser ()
+integerSetting = genericExportSetting parseInt
+ where
+   parseInt = try $
+     many1 digit >>= maybe mzero (return . fst) . listToMaybe . reads
 
 -- | Either the string "headline" or an elisp boolean and treated as an
 -- @ArchivedTreesOption@.

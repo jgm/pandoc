@@ -611,6 +611,18 @@ tests =
                   ] =?>
           let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
           in headerWith ("old", [], mempty) 1 ("old" <> tagSpan "ARCHIVE")
+
+      , "Export option: limit headline depth" =:
+          unlines [ "#+OPTIONS: H:2"
+                  , "* section"
+                  , "** subsection"
+                  , "*** list item 1"
+                  , "*** list item 2"
+                  ] =?>
+          mconcat [ headerWith ("section", [], [])    1 "section"
+                  , headerWith ("subsection", [], []) 2 "subsection"
+                  , orderedList [ para "list item 1", para "list item 2" ]
+                  ]
       ]
 
   , testGroup "Basic Blocks" $

@@ -111,7 +111,7 @@ headline lvl = try $ do
   newline
   properties <- option mempty propertiesDrawer
   contents   <- blocks
-  children   <- many (headline (lvl + 1))
+  children   <- many (headline (level + 1))
   return $ do
     title'    <- title
     contents' <- contents
@@ -135,12 +135,14 @@ headline lvl = try $ do
 
 -- | Convert an Org mode headline (i.e. a document tree) into pandoc's Blocks
 headlineToBlocks :: Headline -> OrgParser Blocks
-headlineToBlocks hdln@(Headline {..}) =
+headlineToBlocks hdln@(Headline {..}) = do
+  maxHeadlineLevels <- getExportSetting exportHeadlineLevels
   case () of
-    _ | any isNoExportTag headlineTags -> return mempty
-    _ | any isArchiveTag  headlineTags -> archivedHeadlineToBlocks hdln
-    _ | isCommentTitle headlineText    -> return mempty
-    _                                  -> headlineToHeaderWithContents hdln
+    _ | any isNoExportTag headlineTags     -> return mempty
+    _ | any isArchiveTag  headlineTags     -> archivedHeadlineToBlocks hdln
+    _ | isCommentTitle headlineText        -> return mempty
+    _ | headlineLevel >= maxHeadlineLevels -> headlineToHeaderWithList hdln
+    _                                      -> headlineToHeaderWithContents hdln
 
 isNoExportTag :: Tag -> Bool
 isNoExportTag = (== toTag "noexport")
@@ -162,6 +164,25 @@ archivedHeadlineToBlocks hdln = do
     ArchivedTreesNoExport     -> return mempty
     ArchivedTreesExport       -> headlineToHeaderWithContents hdln
     ArchivedTreesHeadlineOnly -> headlineToHeader hdln
+
+headlineToHeaderWithList :: Headline -> OrgParser Blocks
+headlineToHeaderWithList hdln@(Headline {..}) = do
+  maxHeadlineLevels <- getExportSetting exportHeadlineLevels
+  header        <- headlineToHeader hdln
+  listElements  <- sequence (map headlineToBlocks headlineChildren)
+  let listBlock  = if null listElements
+                   then mempty
+                   else B.orderedList listElements
+  let headerText = if maxHeadlineLevels == headlineLevel
+                   then header
+                   else flattenHeader header
+  return $ headerText <> headlineContents <> listBlock
+ where
+   flattenHeader :: Blocks -> Blocks
+   flattenHeader blks =
+     case B.toList blks of
+       (Header _ _ inlns:_) -> B.para (B.fromList inlns)
+       _                    -> mempty
 
 headlineToHeaderWithContents :: Headline -> OrgParser Blocks
 headlineToHeaderWithContents hdln@(Headline {..}) = do
