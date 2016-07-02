@@ -399,6 +399,7 @@ Library
                    Text.Pandoc.Readers.Odt.Arrows.Utils,
                    Text.Pandoc.Readers.Org.BlockStarts,
                    Text.Pandoc.Readers.Org.Blocks,
+                   Text.Pandoc.Readers.Org.ExportSettings,
                    Text.Pandoc.Readers.Org.Inlines,
                    Text.Pandoc.Readers.Org.ParserState,
                    Text.Pandoc.Readers.Org.Parsing,

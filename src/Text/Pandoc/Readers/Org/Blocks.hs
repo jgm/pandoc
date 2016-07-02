@@ -34,6 +34,7 @@ module Text.Pandoc.Readers.Org.Blocks
   ) where
 
 import           Text.Pandoc.Readers.Org.BlockStarts
+import           Text.Pandoc.Readers.Org.ExportSettings ( exportSettings )
 import           Text.Pandoc.Readers.Org.Inlines
 import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Readers.Org.Parsing
@@ -620,7 +621,7 @@ optionLine = try $ do
   key <- metaKey
   case key of
     "link"    -> parseLinkFormat >>= uncurry addLinkFormat
-    "options" -> () <$ sepBy spaces exportSetting
+    "options" -> exportSettings
     _         -> mzero
 
 addLinkFormat :: String
@@ -629,121 +630,6 @@ addLinkFormat :: String
 addLinkFormat key formatter = updateState $ \s ->
   let fs = orgStateLinkFormatters s
   in s{ orgStateLinkFormatters = M.insert key formatter fs }
-
-
---
--- Export Settings
---
-
--- | Read and process org-mode specific export options.
-exportSetting :: OrgParser ()
-exportSetting = choice
-  [ booleanSetting "^" setExportSubSuperscripts
-  , booleanSetting "'" setExportSmartQuotes
-  , booleanSetting "*" setExportEmphasizedText
-  , booleanSetting "-" setExportSpecialStrings
-  , ignoredSetting ":"
-  , ignoredSetting "<"
-  , ignoredSetting "\\n"
-  , archivedTreeSetting "arch" setExportArchivedTrees
-  , ignoredSetting "author"
-  , ignoredSetting "c"
-  , ignoredSetting "creator"
-  , complementableListSetting "d" setExportDrawers
-  , ignoredSetting "date"
-  , ignoredSetting "e"
-  , ignoredSetting "email"
-  , ignoredSetting "f"
-  , ignoredSetting "H"
-  , ignoredSetting "inline"
-  , ignoredSetting "num"
-  , ignoredSetting "p"
-  , ignoredSetting "pri"
-  , ignoredSetting "prop"
-  , ignoredSetting "stat"
-  , ignoredSetting "tags"
-  , ignoredSetting "tasks"
-  , ignoredSetting "tex"
-  , ignoredSetting "timestamp"
-  , ignoredSetting "title"
-  , ignoredSetting "toc"
-  , ignoredSetting "todo"
-  , ignoredSetting "|"
-  ] <?> "export setting"
-
-booleanSetting :: String -> ExportSettingSetter Bool -> OrgParser ()
-booleanSetting settingIdentifier setter = try $ do
-  string settingIdentifier
-  char ':'
-  value <- elispBoolean
-  updateState $ modifyExportSettings setter value
-
--- | Read an elisp boolean.  Only NIL is treated as false, non-NIL values are
--- interpreted as true.
-elispBoolean :: OrgParser Bool
-elispBoolean = try $ do
-  value <- many1 nonspaceChar
-  return $ case map toLower value of
-             "nil" -> False
-             "{}"  -> False
-             "()"  -> False
-             _     -> True
-
-archivedTreeSetting :: String
-                    -> ExportSettingSetter ArchivedTreesOption
-                    -> OrgParser ()
-archivedTreeSetting settingIdentifier setter = try $ do
-  string settingIdentifier
-  char ':'
-  value <- archivedTreesHeadlineSetting <|> archivedTreesBoolean
-  updateState $ modifyExportSettings setter value
- where
-   archivedTreesHeadlineSetting = try $ do
-     string "headline"
-     lookAhead (newline <|> spaceChar)
-     return ArchivedTreesHeadlineOnly
-
-   archivedTreesBoolean = try $ do
-     exportBool <- elispBoolean
-     return $
-       if exportBool
-       then ArchivedTreesExport
-       else ArchivedTreesNoExport
-
--- | A list or a complement list (i.e. a list starting with `not`).
-complementableListSetting :: String
-                          -> ExportSettingSetter (Either [String] [String])
-                          -> OrgParser ()
-complementableListSetting settingIdentifier setter = try $ do
-  _     <- string settingIdentifier <* char ':'
-  value <- choice [ Left <$> complementStringList
-                  , Right <$> stringList
-                  , (\b -> if b then Left [] else Right []) <$> elispBoolean
-                  ]
-  updateState $ modifyExportSettings setter value
- where
-   -- Read a plain list of strings.
-   stringList :: OrgParser [String]
-   stringList = try $
-     char '('
-       *> sepBy elispString spaces
-       <* char ')'
-
-   -- Read an emacs lisp list specifying a complement set.
-   complementStringList :: OrgParser [String]
-   complementStringList = try $
-     string "(not "
-       *> sepBy elispString spaces
-       <* char ')'
-
-   elispString :: OrgParser String
-   elispString = try $
-     char '"'
-       *> manyTill alphaNum (char '"')
-
-ignoredSetting :: String -> OrgParser ()
-ignoredSetting s = try (() <$ string s <* char ':' <* many1 nonspaceChar)
-
 
 parseLinkFormat :: OrgParser ((String, String -> String))
 parseLinkFormat = try $ do
