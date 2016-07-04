@@ -587,6 +587,42 @@ tests =
                   , ":END:"
                   ] =?>
           divWith (mempty, ["IMPORTANT", "drawer"], mempty) (para "5")
+
+      , "Export option: don't include archive trees" =:
+          unlines [ "#+OPTIONS: arch:nil"
+                  , "* old  :ARCHIVE:"
+                  ] =?>
+          (mempty ::Blocks)
+
+      , "Export option: include complete archive trees" =:
+          unlines [ "#+OPTIONS: arch:t"
+                  , "* old  :ARCHIVE:"
+                  , "  boring"
+                  ] =?>
+          let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
+          in mconcat [ headerWith ("old", [], mempty) 1 ("old" <> tagSpan "ARCHIVE")
+                     , para "boring"
+                     ]
+
+      , "Export option: include archive tree header only" =:
+          unlines [ "#+OPTIONS: arch:headline"
+                  , "* old  :ARCHIVE:"
+                  , "  boring"
+                  ] =?>
+          let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
+          in headerWith ("old", [], mempty) 1 ("old" <> tagSpan "ARCHIVE")
+
+      , "Export option: limit headline depth" =:
+          unlines [ "#+OPTIONS: H:2"
+                  , "* section"
+                  , "** subsection"
+                  , "*** list item 1"
+                  , "*** list item 2"
+                  ] =?>
+          mconcat [ headerWith ("section", [], [])    1 "section"
+                  , headerWith ("subsection", [], []) 2 "subsection"
+                  , orderedList [ para "list item 1", para "list item 2" ]
+                  ]
       ]
 
   , testGroup "Basic Blocks" $

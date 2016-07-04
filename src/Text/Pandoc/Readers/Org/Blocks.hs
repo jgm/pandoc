@@ -1,4 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}
 {-
 Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -32,6 +34,7 @@ module Text.Pandoc.Readers.Org.Blocks
   ) where
 
 import           Text.Pandoc.Readers.Org.BlockStarts
+import           Text.Pandoc.Readers.Org.ExportSettings ( exportSettings )
 import           Text.Pandoc.Readers.Org.Inlines
 import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Readers.Org.Parsing
@@ -46,12 +49,172 @@ import           Text.Pandoc.Compat.Monoid ((<>))
 import           Text.Pandoc.Options
 import           Text.Pandoc.Shared ( compactify', compactify'DL )
 
-import           Control.Monad ( foldM, guard, mzero )
+import           Control.Monad ( foldM, guard, mzero, void )
 import           Data.Char ( isSpace, toLower, toUpper)
 import           Data.List ( foldl', intersperse, isPrefixOf )
 import qualified Data.Map as M
 import           Data.Maybe ( fromMaybe, isNothing )
+import qualified Data.Sequence as S
 import           Network.HTTP ( urlEncode )
+
+--
+-- Org headers
+--
+newtype Tag = Tag { fromTag :: String }
+  deriving (Show, Eq)
+
+-- | Create a tag containing the given string.
+toTag :: String -> Tag
+toTag = Tag
+
+-- | The key (also called name or type) of a property.
+newtype PropertyKey = PropertyKey { fromKey :: String }
+  deriving (Show, Eq, Ord)
+
+-- | Create a property key containing the given string.  Org mode keys are
+-- case insensitive and are hence converted to lower case.
+toPropertyKey :: String -> PropertyKey
+toPropertyKey = PropertyKey . map toLower
+
+-- | The value assigned to a property.
+newtype PropertyValue = PropertyValue { fromValue :: String }
+
+-- | Create a property value containing the given string.
+toPropertyValue :: String -> PropertyValue
+toPropertyValue = PropertyValue
+
+-- | Key/value pairs from a PROPERTIES drawer
+type Properties = [(PropertyKey, PropertyValue)]
+
+-- | Org mode headline (i.e. a document subtree).
+data Headline = Headline
+  { headlineLevel      :: Int
+  , headlineText       :: Inlines
+  , headlineTags       :: [Tag]
+  , headlineProperties :: Properties
+  , headlineContents   :: Blocks
+  , headlineChildren   :: [Headline]
+  }
+
+--
+-- Parsing headlines and subtrees
+--
+
+-- | Read an Org mode headline and its contents (i.e. a document subtree).
+-- @lvl@ gives the minimum acceptable level of the tree.
+headline :: Int -> OrgParser (F Headline)
+headline lvl = try $ do
+  level <- headerStart
+  guard (lvl <= level)
+  title <- trimInlinesF . mconcat <$> manyTill inline endOfTitle
+  tags  <- option [] headerTags
+  newline
+  properties <- option mempty propertiesDrawer
+  contents   <- blocks
+  children   <- many (headline (level + 1))
+  return $ do
+    title'    <- title
+    contents' <- contents
+    children' <- sequence children
+    return $ Headline
+      { headlineLevel = level
+      , headlineText = title'
+      , headlineTags = tags
+      , headlineProperties = properties
+      , headlineContents = contents'
+      , headlineChildren = children'
+      }
+ where
+   endOfTitle :: OrgParser ()
+   endOfTitle = void . lookAhead $ optional headerTags *> newline
+
+   headerTags :: OrgParser [Tag]
+   headerTags = try $
+     let tag = many1 (alphaNum <|> oneOf "@%#_") <* char ':'
+     in map toTag <$> (skipSpaces *> char ':' *> many1 tag <* skipSpaces)
+
+-- | Convert an Org mode headline (i.e. a document tree) into pandoc's Blocks
+headlineToBlocks :: Headline -> OrgParser Blocks
+headlineToBlocks hdln@(Headline {..}) = do
+  maxHeadlineLevels <- getExportSetting exportHeadlineLevels
+  case () of
+    _ | any isNoExportTag headlineTags     -> return mempty
+    _ | any isArchiveTag  headlineTags     -> archivedHeadlineToBlocks hdln
+    _ | isCommentTitle headlineText        -> return mempty
+    _ | headlineLevel >= maxHeadlineLevels -> headlineToHeaderWithList hdln
+    _                                      -> headlineToHeaderWithContents hdln
+
+isNoExportTag :: Tag -> Bool
+isNoExportTag = (== toTag "noexport")
+
+isArchiveTag :: Tag -> Bool
+isArchiveTag = (== toTag "ARCHIVE")
+
+-- | Check if the title starts with COMMENT.
+-- FIXME: This accesses builder internals not intended for use in situations
+-- like these.  Replace once keyword parsing is supported.
+isCommentTitle :: Inlines -> Bool
+isCommentTitle xs = (B.Many . S.take 1 . B.unMany) xs == B.str "COMMENT"
+isCommentTitle _  = False
+
+archivedHeadlineToBlocks :: Headline -> OrgParser Blocks
+archivedHeadlineToBlocks hdln = do
+  archivedTreesOption <- getExportSetting exportArchivedTrees
+  case archivedTreesOption of
+    ArchivedTreesNoExport     -> return mempty
+    ArchivedTreesExport       -> headlineToHeaderWithContents hdln
+    ArchivedTreesHeadlineOnly -> headlineToHeader hdln
+
+headlineToHeaderWithList :: Headline -> OrgParser Blocks
+headlineToHeaderWithList hdln@(Headline {..}) = do
+  maxHeadlineLevels <- getExportSetting exportHeadlineLevels
+  header        <- headlineToHeader hdln
+  listElements  <- sequence (map headlineToBlocks headlineChildren)
+  let listBlock  = if null listElements
+                   then mempty
+                   else B.orderedList listElements
+  let headerText = if maxHeadlineLevels == headlineLevel
+                   then header
+                   else flattenHeader header
+  return $ headerText <> headlineContents <> listBlock
+ where
+   flattenHeader :: Blocks -> Blocks
+   flattenHeader blks =
+     case B.toList blks of
+       (Header _ _ inlns:_) -> B.para (B.fromList inlns)
+       _                    -> mempty
+
+headlineToHeaderWithContents :: Headline -> OrgParser Blocks
+headlineToHeaderWithContents hdln@(Headline {..}) = do
+  header         <- headlineToHeader hdln
+  childrenBlocks <- mconcat <$> sequence (map headlineToBlocks headlineChildren)
+  return $ header <> headlineContents <> childrenBlocks
+
+headlineToHeader :: Headline -> OrgParser Blocks
+headlineToHeader (Headline {..}) = do
+  let text        = tagTitle headlineText headlineTags
+  let propAttr    = propertiesToAttr headlineProperties
+  attr           <- registerHeader propAttr headlineText
+  return $ B.headerWith attr headlineLevel text
+
+propertiesToAttr :: Properties -> Attr
+propertiesToAttr properties =
+  let
+    toStringPair prop = (fromKey (fst prop), fromValue (snd prop))
+    customIdKey = toPropertyKey "custom_id"
+    classKey    = toPropertyKey "class"
+    id'  = fromMaybe mempty . fmap fromValue . lookup customIdKey $ properties
+    cls  = fromMaybe mempty . fmap fromValue . lookup classKey    $ properties
+    kvs' = map toStringPair . filter ((`notElem` [customIdKey, classKey]) . fst)
+           $ properties
+  in
+    (id', words cls, kvs')
+
+tagTitle :: Inlines -> [Tag] -> Inlines
+tagTitle title tags = title <> (mconcat $ map tagToInline tags)
+
+tagToInline :: Tag -> Inlines
+tagToInline t = B.spanWith ("", ["tag"], [("data-tag-name", fromTag t)]) mempty
 
 
 --
@@ -61,9 +224,11 @@ import           Network.HTTP ( urlEncode )
 -- | Get a list of blocks.
 blockList :: OrgParser [Block]
 blockList = do
-  blocks' <- blocks
-  st      <- getState
-  return . B.toList $ runF blocks' st
+  initialBlocks  <- blocks
+  headlines      <- sequence <$> manyTill (headline 1) eof
+  st             <- getState
+  headlineBlocks <- fmap mconcat . sequence . map headlineToBlocks $ runF headlines st
+  return . B.toList $ (runF initialBlocks st) <> headlineBlocks
 
 -- | Get the meta information safed in the state.
 meta :: OrgParser Meta
@@ -72,7 +237,7 @@ meta = do
   return $ runF (orgStateMeta st) st
 
 blocks :: OrgParser (F Blocks)
-blocks = mconcat <$> manyTill block eof
+blocks = mconcat <$> manyTill block (void (lookAhead headerStart) <|> eof)
 
 block :: OrgParser (F Blocks)
 block = choice [ mempty <$ blanklines
@@ -82,7 +247,6 @@ block = choice [ mempty <$ blanklines
                , example
                , genericDrawer
                , specialLine
-               , header
                , horizontalRule
                , list
                , latexFragment
@@ -381,30 +545,22 @@ drawerEnd = try $
 
 -- | Read a :PROPERTIES: drawer and return the key/value pairs contained
 -- within.
-propertiesDrawer :: OrgParser [(String, String)]
+propertiesDrawer :: OrgParser Properties
 propertiesDrawer = try $ do
   drawerType <- drawerStart
   guard $ map toUpper drawerType == "PROPERTIES"
   manyTill property (try drawerEnd)
  where
-   property :: OrgParser (String, String)
+   property :: OrgParser (PropertyKey, PropertyValue)
    property = try $ (,) <$> key <*> value
 
-   key :: OrgParser String
-   key = try $ skipSpaces *> char ':' *> many1Till nonspaceChar (char ':')
+   key :: OrgParser PropertyKey
+   key = fmap toPropertyKey . try $
+         skipSpaces *> char ':' *> many1Till nonspaceChar (char ':')
 
-   value :: OrgParser String
-   value = try $ skipSpaces *> manyTill anyChar (try $ skipSpaces *> newline)
-
-keyValuesToAttr :: [(String, String)] -> Attr
-keyValuesToAttr kvs =
-  let
-    lowerKvs = map (\(k, v) -> (map toLower k, v)) kvs
-    id'  = fromMaybe mempty . lookup "custom_id" $ lowerKvs
-    cls  = fromMaybe mempty . lookup "class"     $ lowerKvs
-    kvs' = filter (flip notElem ["custom_id", "class"] . fst) lowerKvs
-  in
-    (id', words cls, kvs')
+   value :: OrgParser PropertyValue
+   value = fmap toPropertyValue . try $
+           skipSpaces *> manyTill anyChar (try $ skipSpaces *> newline)
 
 
 --
@@ -486,7 +642,7 @@ optionLine = try $ do
   key <- metaKey
   case key of
     "link"    -> parseLinkFormat >>= uncurry addLinkFormat
-    "options" -> () <$ sepBy spaces exportSetting
+    "options" -> exportSettings
     _         -> mzero
 
 addLinkFormat :: String
@@ -495,100 +651,6 @@ addLinkFormat :: String
 addLinkFormat key formatter = updateState $ \s ->
   let fs = orgStateLinkFormatters s
   in s{ orgStateLinkFormatters = M.insert key formatter fs }
-
-
---
--- Export Settings
---
-
--- | Read and process org-mode specific export options.
-exportSetting :: OrgParser ()
-exportSetting = choice
-  [ booleanSetting "^" setExportSubSuperscripts
-  , booleanSetting "'" setExportSmartQuotes
-  , booleanSetting "*" setExportEmphasizedText
-  , booleanSetting "-" setExportSpecialStrings
-  , ignoredSetting ":"
-  , ignoredSetting "<"
-  , ignoredSetting "\\n"
-  , ignoredSetting "arch"
-  , ignoredSetting "author"
-  , ignoredSetting "c"
-  , ignoredSetting "creator"
-  , complementableListSetting "d" setExportDrawers
-  , ignoredSetting "date"
-  , ignoredSetting "e"
-  , ignoredSetting "email"
-  , ignoredSetting "f"
-  , ignoredSetting "H"
-  , ignoredSetting "inline"
-  , ignoredSetting "num"
-  , ignoredSetting "p"
-  , ignoredSetting "pri"
-  , ignoredSetting "prop"
-  , ignoredSetting "stat"
-  , ignoredSetting "tags"
-  , ignoredSetting "tasks"
-  , ignoredSetting "tex"
-  , ignoredSetting "timestamp"
-  , ignoredSetting "title"
-  , ignoredSetting "toc"
-  , ignoredSetting "todo"
-  , ignoredSetting "|"
-  ] <?> "export setting"
-
-booleanSetting :: String -> ExportSettingSetter Bool -> OrgParser ()
-booleanSetting settingIdentifier setter = try $ do
-  string settingIdentifier
-  char ':'
-  value <- elispBoolean
-  updateState $ modifyExportSettings setter value
-
--- | Read an elisp boolean.  Only NIL is treated as false, non-NIL values are
--- interpreted as true.
-elispBoolean :: OrgParser Bool
-elispBoolean = try $ do
-  value <- many1 nonspaceChar
-  return $ case map toLower value of
-             "nil" -> False
-             "{}"  -> False
-             "()"  -> False
-             _     -> True
-
--- | A list or a complement list (i.e. a list starting with `not`).
-complementableListSetting :: String
-                          -> ExportSettingSetter (Either [String] [String])
-                          -> OrgParser ()
-complementableListSetting settingIdentifier setter = try $ do
-  _     <- string settingIdentifier <* char ':'
-  value <- choice [ Left <$> complementStringList
-                  , Right <$> stringList
-                  , (\b -> if b then Left [] else Right []) <$> elispBoolean
-                  ]
-  updateState $ modifyExportSettings setter value
- where
-   -- Read a plain list of strings.
-   stringList :: OrgParser [String]
-   stringList = try $
-     char '('
-       *> sepBy elispString spaces
-       <* char ')'
-
-   -- Read an emacs lisp list specifying a complement set.
-   complementStringList :: OrgParser [String]
-   complementStringList = try $
-     string "(not "
-       *> sepBy elispString spaces
-       <* char ')'
-
-   elispString :: OrgParser String
-   elispString = try $
-     char '"'
-       *> manyTill alphaNum (char '"')
-
-ignoredSetting :: String -> OrgParser ()
-ignoredSetting s = try (() <$ string s <* char ':' <* many1 nonspaceChar)
-
 
 parseLinkFormat :: OrgParser ((String, String -> String))
 parseLinkFormat = try $ do
@@ -611,36 +673,6 @@ parseFormat = try $ do
 
    rest            = manyTill anyChar         (eof <|> () <$ oneOf "\n\r")
    tillSpecifier c = manyTill (noneOf "\n\r") (try $ string ('%':c:""))
-
---
--- Headers
---
-
--- | Headers
-header :: OrgParser (F Blocks)
-header = try $ do
-  level    <- headerStart
-  title    <- manyTill inline (lookAhead $ optional headerTags <* newline)
-  tags     <- option [] headerTags
-  newline
-  let text = tagTitle title tags
-  propAttr <- option nullAttr (keyValuesToAttr <$> propertiesDrawer)
-  attr     <- registerHeader propAttr (runF text def)
-  return (B.headerWith attr level <$> text)
- where
-   tagTitle :: [F Inlines] -> [String] -> F Inlines
-   tagTitle title tags = trimInlinesF . mconcat $ title <> map tagToInlineF tags
-
-   tagToInlineF :: String -> F Inlines
-   tagToInlineF t = return $ B.spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
-
-   headerTags :: OrgParser [String]
-   headerTags = try $
-     let tag = many1 (alphaNum <|> oneOf "@%#_") <* char ':'
-     in skipSpaces
-          *> char ':'
-          *> many1 tag
-          <* skipSpaces
 
 
 --
@@ -806,6 +838,8 @@ noteBlock = try $ do
 -- Paragraphs or Plain text
 paraOrPlain :: OrgParser (F Blocks)
 paraOrPlain = try $ do
+  -- Make sure we are not looking at a headline
+  notFollowedBy' (char '*' *> (oneOf " *"))
   ils <- inlines
   nl <- option False (newline *> return True)
   -- Read block as paragraph, except if we are in a list context and the block

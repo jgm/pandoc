@@ -40,14 +40,8 @@ module Text.Pandoc.Readers.Org.ParserState
   , trimInlinesF
   , runF
   , returnF
-  , ExportSettingSetter
   , ExportSettings (..)
-  , setExportDrawers
-  , setExportEmphasizedText
-  , setExportSmartQuotes
-  , setExportSpecialStrings
-  , setExportSubSuperscripts
-  , modifyExportSettings
+  , ArchivedTreesOption (..)
   , optionsToParserState
   ) where
 
@@ -77,19 +71,6 @@ type OrgNoteTable = [OrgNoteRecord]
 -- | Map of functions for link transformations.  The map key is refers to the
 -- link-type, the corresponding function transforms the given link string.
 type OrgLinkFormatters = M.Map String (String -> String)
-
--- | Export settings <http://orgmode.org/manual/Export-settings.html>
--- These settings can be changed via OPTIONS statements.
-data ExportSettings = ExportSettings
-  { exportDrawers         :: Either [String] [String]
-  -- ^ Specify drawer names which should be exported.  @Left@ names are
-  -- explicitly excluded from the resulting output while @Right@ means that
-  -- only the listed drawer names should be included.
-  , exportEmphasizedText  :: Bool -- ^ Parse emphasized text
-  , exportSmartQuotes     :: Bool -- ^ Parse quotes smartly
-  , exportSpecialStrings  :: Bool -- ^ Parse ellipses and dashes smartly
-  , exportSubSuperscripts :: Bool -- ^ TeX-like syntax for sub- and superscripts
-  }
 
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
@@ -133,9 +114,6 @@ instance HasHeaderMap OrgParserState where
   extractHeaderMap = orgStateHeaderMap
   updateHeaderMap  f s = s{ orgStateHeaderMap = f (orgStateHeaderMap s) }
 
-instance Default ExportSettings where
-  def = defaultExportSettings
-
 instance Default OrgParserState where
   def = defaultOrgParserState
 
@@ -157,52 +135,49 @@ defaultOrgParserState = OrgParserState
   , orgStateParserContext = NullState
   }
 
-defaultExportSettings :: ExportSettings
-defaultExportSettings = ExportSettings
-  { exportDrawers = Left ["LOGBOOK"]
-  , exportEmphasizedText = True
-  , exportSmartQuotes = True
-  , exportSpecialStrings = True
-  , exportSubSuperscripts = True
-  }
-
 optionsToParserState :: ReaderOptions -> OrgParserState
 optionsToParserState opts =
   def { orgStateOptions = opts }
 
-
 --
--- Setter for exporting options
+-- Export Settings
 --
-type ExportSettingSetter a = a -> ExportSettings -> ExportSettings
 
--- | Set export options for drawers.  See the @exportDrawers@ in ADT
--- @ExportSettings@ for details.
-setExportDrawers :: ExportSettingSetter (Either [String] [String])
-setExportDrawers val es = es { exportDrawers = val }
+-- | Options for the way archived trees are handled.
+data ArchivedTreesOption =
+    ArchivedTreesExport       -- ^ Export the complete tree
+  | ArchivedTreesNoExport     -- ^ Exclude archived trees from exporting
+  | ArchivedTreesHeadlineOnly -- ^ Export only the headline, discard the contents
 
--- | Set export options for emphasis parsing.
-setExportEmphasizedText :: ExportSettingSetter Bool
-setExportEmphasizedText val es = es { exportEmphasizedText = val }
+-- | Export settings <http://orgmode.org/manual/Export-settings.html>
+-- These settings can be changed via OPTIONS statements.
+data ExportSettings = ExportSettings
+  { exportArchivedTrees   :: ArchivedTreesOption -- ^ How to treat archived trees
+  , exportDrawers         :: Either [String] [String]
+  -- ^ Specify drawer names which should be exported.  @Left@ names are
+  -- explicitly excluded from the resulting output while @Right@ means that
+  -- only the listed drawer names should be included.
+  , exportEmphasizedText  :: Bool -- ^ Parse emphasized text
+  , exportHeadlineLevels  :: Int
+  -- ^ Maximum depth of headlines, deeper headlines are convert to list
+  , exportSmartQuotes     :: Bool -- ^ Parse quotes smartly
+  , exportSpecialStrings  :: Bool -- ^ Parse ellipses and dashes smartly
+  , exportSubSuperscripts :: Bool -- ^ TeX-like syntax for sub- and superscripts
+  }
 
--- | Set export options for parsing of smart quotes.
-setExportSmartQuotes :: ExportSettingSetter Bool
-setExportSmartQuotes val es = es { exportSmartQuotes = val }
+instance Default ExportSettings where
+  def = defaultExportSettings
 
--- | Set export options for parsing of special strings (like em/en dashes or
--- ellipses).
-setExportSpecialStrings :: ExportSettingSetter Bool
-setExportSpecialStrings val es = es { exportSpecialStrings = val }
-
--- | Set export options for sub/superscript parsing.  The short syntax will
--- not be parsed if this is set set to @False@.
-setExportSubSuperscripts :: ExportSettingSetter Bool
-setExportSubSuperscripts val es = es { exportSubSuperscripts = val }
-
--- | Modify a parser state
-modifyExportSettings :: ExportSettingSetter a -> a -> OrgParserState -> OrgParserState
-modifyExportSettings setter val state =
-  state { orgStateExportSettings = setter val . orgStateExportSettings $ state }
+defaultExportSettings :: ExportSettings
+defaultExportSettings = ExportSettings
+  { exportArchivedTrees = ArchivedTreesHeadlineOnly
+  , exportDrawers = Left ["LOGBOOK"]
+  , exportEmphasizedText = True
+  , exportHeadlineLevels = 3
+  , exportSmartQuotes = True
+  , exportSpecialStrings = True
+  , exportSubSuperscripts = True
+  }
 
 
 --
