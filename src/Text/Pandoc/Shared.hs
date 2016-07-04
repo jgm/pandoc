@@ -150,11 +150,12 @@ import Text.Pandoc.Data (dataFiles)
 import Paths_pandoc (getDataFileName)
 #endif
 #ifdef HTTP_CLIENT
-import Network.HTTP.Client (httpLbs, parseUrl,
-                            responseBody, responseHeaders,
+import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
                             Request(port,host))
 #if MIN_VERSION_http_client(0,4,30)
 import Network.HTTP.Client (parseRequest)
+#else
+import Network.HTTP.Client (parseUrl)
 #endif
 #if MIN_VERSION_http_client(0,4,18)
 import Network.HTTP.Client (newManager)
