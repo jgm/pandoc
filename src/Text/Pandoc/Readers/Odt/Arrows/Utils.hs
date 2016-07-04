@@ -383,49 +383,49 @@ raiseAEmpty       = arr (fromRight (const mempty) >>> Left)
 
 
 -- | Execute the second arrow if the first succeeds
-(>>?) :: (ArrowChoice a, Monoid failure)
+(>>?) :: (ArrowChoice a)
             => FallibleArrow a x       failure success
             -> FallibleArrow a success failure success'
             -> FallibleArrow a x       failure success'
 a >>? b = a >>> Left ^||| b
 
 -- | Execute the lifted second arrow if the first succeeds
-(>>?^) :: (ArrowChoice a, Monoid failure)
+(>>?^) :: (ArrowChoice a)
             => FallibleArrow a x       failure success
             -> (success                     -> success')
             -> FallibleArrow a x       failure success'
 a >>?^ f = a >>^ Left ^|||^ Right . f
 
 -- | Execute the lifted second arrow if the first succeeds
-(>>?^?) :: (ArrowChoice a, Monoid failure)
+(>>?^?) :: (ArrowChoice a)
             => FallibleArrow a x       failure success
             -> (success      -> Either failure success')
             -> FallibleArrow a x       failure success'
 a >>?^? b = a >>> Left ^|||^ b
 
 -- | Execute the second arrow if the lifted first arrow succeeds
-(^>>?) :: (ArrowChoice a, Monoid failure)
+(^>>?) :: (ArrowChoice a)
             => (x            -> Either failure success)
             -> FallibleArrow a success failure success'
             -> FallibleArrow a x       failure success'
 a ^>>? b = a ^>> Left ^||| b
 
 -- | Execute the lifted second arrow if the lifted first arrow succeeds
-(^>>?^) :: (ArrowChoice a, Monoid failure)
+(^>>?^) :: (ArrowChoice a)
             => (x            -> Either failure success)
             -> (success                     -> success')
             -> FallibleArrow a x       failure success'
 a ^>>?^ f = arr $ a >>> right f
 
 -- | Execute the lifted second arrow if the lifted first arrow succeeds
-(^>>?^?) :: (ArrowChoice a, Monoid failure)
+(^>>?^?) :: (ArrowChoice a)
             => (x            -> Either failure success)
             -> (success      -> Either failure success')
             -> FallibleArrow a x       failure success'
 a ^>>?^? f = a ^>> Left ^|||^ f
 
 -- | Execute the second, non-fallible arrow if the first arrow succeeds
-(>>?!) :: (ArrowChoice a, Monoid failure)
+(>>?!) :: (ArrowChoice a)
             => FallibleArrow a x       failure success
             ->               a success         success'
             -> FallibleArrow a x       failure success'
