@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}
+{-# LANGUAGE ViewPatterns #-}
 {-
 Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -54,7 +54,6 @@ import           Data.Char ( isSpace, toLower, toUpper)
 import           Data.List ( foldl', intersperse, isPrefixOf )
 import qualified Data.Map as M
 import           Data.Maybe ( fromMaybe, isNothing )
-import qualified Data.Sequence as S
 import           Network.HTTP ( urlEncode )
 
 --
@@ -142,7 +141,7 @@ headlineToBlocks hdln@(Headline {..}) = do
     _ | any isArchiveTag  headlineTags     -> archivedHeadlineToBlocks hdln
     _ | isCommentTitle headlineText        -> return mempty
     _ | headlineLevel >= maxHeadlineLevels -> headlineToHeaderWithList hdln
-    _                                      -> headlineToHeaderWithContents hdln
+    _ | otherwise                          -> headlineToHeaderWithContents hdln
 
 isNoExportTag :: Tag -> Bool
 isNoExportTag = (== toTag "noexport")
@@ -154,8 +153,8 @@ isArchiveTag = (== toTag "ARCHIVE")
 -- FIXME: This accesses builder internals not intended for use in situations
 -- like these.  Replace once keyword parsing is supported.
 isCommentTitle :: Inlines -> Bool
-isCommentTitle xs = (B.Many . S.take 1 . B.unMany) xs == B.str "COMMENT"
-isCommentTitle _  = False
+isCommentTitle (B.toList -> (Str "COMMENT":_)) = True
+isCommentTitle _                               = False
 
 archivedHeadlineToBlocks :: Headline -> OrgParser Blocks
 archivedHeadlineToBlocks hdln = do
