@@ -1754,17 +1754,17 @@ wikilinkstuff = do
   case elemIndex '|' raw of
     Nothing -> do
       let rawstr = ((reverse . (drop 2) . reverse) raw)
-          srcstr = rawstr ++ "\n"
-          labstr = deiki rawstr ++ "\n"
-      src <- parseFromString (mconcat <$> many (count 1 anyChar)) (init srcstr)
-      lab <- parseFromString (trimInlinesF . mconcat <$> many inline) (init labstr)
+          srcstr = rawstr
+          labstr = deiki rawstr
+      src <- parseFromString (many anyChar) srcstr
+      lab <- parseFromString (trimInlinesF . mconcat <$> many inline) labstr
       return (lab, src)
     Just idx -> do
       let rawstr = ((reverse . (drop 2) . reverse) raw)
-          srcstr = (drop (idx + 1) rawstr) ++ "\n"
-          labstr = deiki (take idx rawstr) ++ "\n"
-      src <- parseFromString (mconcat <$> many (count 1 anyChar)) (init srcstr)
-      lab <- parseFromString (trimInlinesF . mconcat <$> many inline) (init labstr)
+          srcstr = (drop (idx + 1) rawstr)
+          labstr = deiki (take idx rawstr)
+      src <- parseFromString (many anyChar) srcstr
+      lab <- parseFromString (trimInlinesF . mconcat <$> many inline) labstr
       return (lab, src)
 
 wikilink :: MarkdownParser (F Inlines)
