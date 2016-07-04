@@ -300,8 +300,8 @@ Library
   else
      Build-Depends: network >= 2 && < 2.6
   if flag(https)
-     Build-Depends: http-client >= 0.3.2 && < 0.5,
-                    http-client-tls >= 0.2 && < 0.3,
+     Build-Depends: http-client >= 0.5 && < 0.6,
+                    http-client-tls >= 0.3 && < 0.4,
                     http-types >= 0.8 && < 0.10
      cpp-options:   -DHTTP_CLIENT
   if flag(embed_data_files)
