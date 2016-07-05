@@ -405,53 +405,13 @@ Blank line after term, indented marker, alternate markers:
 
 Simple block on one line:
 
-#+BEGIN_HTML
-  <div>
-#+END_HTML
-
 foo
-
-#+BEGIN_HTML
-  </div>
-#+END_HTML
 
 And nested without indentation:
 
-#+BEGIN_HTML
-  <div>
-#+END_HTML
-
-#+BEGIN_HTML
-  <div>
-#+END_HTML
-
-#+BEGIN_HTML
-  <div>
-#+END_HTML
-
 foo
 
-#+BEGIN_HTML
-  </div>
-#+END_HTML
-
-#+BEGIN_HTML
-  </div>
-#+END_HTML
-
-#+BEGIN_HTML
-  <div>
-#+END_HTML
-
 bar
-
-#+BEGIN_HTML
-  </div>
-#+END_HTML
-
-#+BEGIN_HTML
-  </div>
-#+END_HTML
 
 Interpreted markdown in a table:
 
@@ -497,15 +457,7 @@ And this is *strong*
 
 Here's a simple block:
 
-#+BEGIN_HTML
-  <div>
-#+END_HTML
-
 foo
-
-#+BEGIN_HTML
-  </div>
-#+END_HTML
 
 This should be a code block, though:
 
@@ -523,31 +475,7 @@ As should this:
 
 Now, nested:
 
-#+BEGIN_HTML
-  <div>
-#+END_HTML
-
-#+BEGIN_HTML
-  <div>
-#+END_HTML
-
-#+BEGIN_HTML
-  <div>
-#+END_HTML
-
 foo
-
-#+BEGIN_HTML
-  </div>
-#+END_HTML
-
-#+BEGIN_HTML
-  </div>
-#+END_HTML
-
-#+BEGIN_HTML
-  </div>
-#+END_HTML
 
 This should just be an HTML comment:
 
