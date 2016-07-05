@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
 Copyright (C) 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
+                        Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>,
                         and John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
@@ -38,7 +39,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Pretty
 import Text.Pandoc.Templates (renderTemplate')
-import Data.List ( intersect, intersperse, transpose )
+import Data.Char ( toLower )
+import Data.List ( intersect, intersperse, partition, transpose )
 import Control.Monad.State
 
 data WriterState =
@@ -123,12 +125,34 @@ blockToOrg (Div (_,classes@(cls:_),kvs) bs) | "drawer" `elem` classes = do
            blankline
 blockToOrg (Div attrs bs) = do
   contents <- blockListToOrg bs
-  let startTag = tagWithAttrs "div" attrs
-  let endTag = text "</div>"
-  return $ blankline $$ "#+BEGIN_HTML" $$
-           nest 2 startTag $$ "#+END_HTML" $$ blankline $$
-           contents $$ blankline $$ "#+BEGIN_HTML" $$
-           nest 2 endTag $$ "#+END_HTML" $$ blankline
+  let isGreaterBlockClass = (`elem` ["center", "quote"]) . map toLower
+  return $ case attrs of
+    ("", [], []) ->
+      -- nullAttr, treat contents as if it wasn't wrapped
+      blankline $$ contents $$ blankline
+    (ident, [], []) ->
+      -- only an id: add id as an anchor, unwrap the rest
+      blankline $$ "<<" <> text ident <> ">>" $$ contents $$ blankline
+    (ident, classes, kv) ->
+      -- if one class looks like the name of a greater block then output as
+      -- such: The ID, if present, is added via the #+NAME keyword; other
+      -- classes and key-value pairs are kept as #+ATTR_HTML attributes.
+      let
+        (blockTypeCand, classes') = partition isGreaterBlockClass classes
+      in case blockTypeCand of
+        (blockType:classes'') ->
+          blankline $$ attrHtml (ident, classes'' <> classes', kv) $$
+          "#+BEGIN_" <> text blockType $$ contents $$
+          "#+END_" <> text blockType $$ blankline
+        _                     ->
+          -- fallback: wrap in div tags
+          let
+            startTag = tagWithAttrs "div" attrs
+            endTag = text "</div>"
+          in blankline $$ "#+BEGIN_HTML" $$
+             nest 2 startTag $$ "#+END_HTML" $$ blankline $$
+             contents $$ blankline $$ "#+BEGIN_HTML" $$
+             nest 2 endTag $$ "#+END_HTML" $$ blankline
 blockToOrg (Plain inlines) = inlineListToOrg inlines
 -- title beginning with fig: indicates that the image is a figure
 blockToOrg (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
@@ -259,6 +283,16 @@ propertiesDrawer (ident, classes, kv) =
    kvToOrgProperty :: (String, String) -> Doc
    kvToOrgProperty (key, value) =
      text ":" <> text key <> text ": " <> text value <> cr
+
+attrHtml :: Attr -> Doc
+attrHtml (""   , []     , []) = mempty
+attrHtml (ident, classes, kvs) =
+  let
+    name = if (null ident) then mempty else "#+NAME: " <> text ident <> cr
+    keyword = "#+ATTR_HTML"
+    classKv = ("class", unwords classes)
+    kvStrings = map (\(k,v) -> ":" <> k <> " " <> v) (classKv:kvs)
+  in name <> keyword <> ": " <> text (unwords kvStrings) <> cr
 
 -- | Convert list of Pandoc block elements to Org.
 blockListToOrg :: [Block]       -- ^ List of block elements
