@@ -326,13 +326,13 @@ tabFilter tabStop =
 
 -- | Parse a date and convert (if possible) to "YYYY-MM-DD" format. We
 -- limit years to the range 1601-9999 (ISO 8601 accepts greater than
--- or equal to 1583, but MS Word only accepts dates starting 1601.
+-- or equal to 1583, but MS Word only accepts dates starting 1601).
 normalizeDate :: String -> Maybe String
-normalizeDate s = case toGregorian <$> day of
-  Just (y, _, _) | y >= 1601 && y <= 9999 ->
-                     fmap (formatTime defaultTimeLocale "%F") day
-  _ -> Nothing
-  where day = (msum $ map (\fs -> parsetimeWith fs s) formats :: Maybe Day)
+normalizeDate s = fmap (formatTime defaultTimeLocale "%F")
+  (msum $ map (\fs -> parsetimeWith fs s >>= rejectBadYear) formats :: Maybe Day)
+  where rejectBadYear day = case toGregorian day of
+          (y, _, _) | y >= 1601 && y <= 9999 -> Just day
+          _ -> Nothing
         parsetimeWith =
 #if MIN_VERSION_time(1,5,0)
              parseTimeM True defaultTimeLocale
