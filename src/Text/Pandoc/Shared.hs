@@ -335,7 +335,8 @@ normalizeDate s = fmap (formatTime defaultTimeLocale "%F")
              parseTime defaultTimeLocale
 #endif
          formats = ["%x","%m/%d/%Y", "%D","%F", "%d %b %Y",
-                    "%d %B %Y", "%b. %d, %Y", "%B %d, %Y", "%Y"]
+                    "%d %B %Y", "%b. %d, %Y", "%B %d, %Y",
+                    "%Y%m%d", "%Y%m", "%Y"]
 
 --
 -- Pandoc block and inline list processing
