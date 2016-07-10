@@ -440,10 +440,9 @@ writeDocx opts doc@(Pandoc meta _) = do
           ,("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")]
           $ mknode "dc:title" [] (stringify $ docTitle meta)
           : mknode "dc:creator" [] (intercalate "; " (map stringify $ docAuthors meta))
-          : maybe []
-             (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
-                    , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
-                    ]) (normalizeDate $ stringify $ docDate meta)
+          : (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
+                   , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
+                   ]) (formatTime defaultTimeLocale "%FT%XZ" utctime)
   let docPropsEntry = toEntry docPropsPath epochtime $ renderXml docProps
 
   let relsPath = "_rels/.rels"
