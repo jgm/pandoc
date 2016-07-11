@@ -492,7 +492,7 @@ Test-Suite test-pandoc
                   test-framework >= 0.3 && < 0.9,
                   test-framework-hunit >= 0.2 && < 0.4,
                   test-framework-quickcheck2 >= 0.2.9 && < 0.4,
-                  QuickCheck >= 2.4 && < 2.9,
+                  QuickCheck >= 2.4 && < 2.10,
                   HUnit >= 1.2 && < 1.4,
                   containers >= 0.1 && < 0.6,
                   ansi-terminal >= 0.5 && < 0.7,
