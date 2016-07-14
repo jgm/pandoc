@@ -185,6 +185,9 @@ tests =
                       , "3" <> subscript "{}"
                       , "4" <> superscript ("(a(" <> strong "b(c" <> ")d))")
                       ])
+      , "Verbatim text can contain equal signes (=)" =:
+          "=is_subst = True=" =?>
+          para (code "is_subst = True")
 
       , "Image" =:
           "[[./sunset.jpg]]" =?>

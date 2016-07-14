@@ -614,7 +614,7 @@ displayMath = return . B.displayMath <$> choice [ rawMathBetween "\\[" "\\]"
                                                 ]
 
 updatePositions :: Char
-                -> OrgParser (Char)
+                -> OrgParser Char
 updatePositions c = do
   when (c `elem` emphasisPreChars) updateLastPreCharPos
   when (c `elem` emphasisForbiddenBorderChars) updateLastForbiddenCharPos
@@ -637,7 +637,9 @@ verbatimBetween :: Char
                 -> OrgParser String
 verbatimBetween c = try $
   emphasisStart c *>
-  many1TillNOrLessNewlines 1 (noneOf "\n\r") (emphasisEnd c)
+  many1TillNOrLessNewlines 1 verbatimChar (emphasisEnd c)
+ where
+   verbatimChar = noneOf "\n\r" >>= updatePositions
 
 -- | Parses a raw string delimited by @c@ using Org's math rules
 mathStringBetween :: Char
