@@ -11,4 +11,5 @@ extra-deps:
 - data-default-0.6.0
 - http-client-0.5.0
 - http-client-tls-0.3.0
-resolver: lts-6.5
+- data-default-instances-base-0.1.0.1
+resolver: nightly-2016-07-11
