@@ -49,6 +49,13 @@ debpkg: man/pandoc.1
 osxpkg: man/pandoc.1
 	./make_osx_package.sh
 
+winpkg: pandoc-$(version)-windows.msi
+
+pandoc-$(version)-windows.msi:
+	wget 'https://ci.appveyor.com/api/projects/jgm/pandoc/artifacts/windows/pandoc.msi?branch=master' -O pandoc.msi && \
+	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2017.p12 -in pandoc.msi -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
+	rm pandoc.msi
+
 man/pandoc.1: README man/pandoc.1.template
 	pandoc $< -t man -s --template man/pandoc.1.template \
 		--filter man/capitalizeHeaders.hs \
