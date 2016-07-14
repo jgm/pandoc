@@ -432,21 +432,21 @@ a ^>>?^? f = a ^>> Left ^|||^ f
 a >>?! f = a >>> right f
 
 ---
-(>>?%) :: (ArrowChoice a, Monoid f)
+(>>?%) :: (ArrowChoice a)
           => FallibleArrow a x f (b,b')
           -> (b -> b' -> c)
           -> FallibleArrow a x f c
 a >>?% f = a >>?^ (uncurry f)
 
 ---
-(^>>?%) :: (ArrowChoice a, Monoid f)
+(^>>?%) :: (ArrowChoice a)
           => (x -> Either f (b,b'))
           -> (b -> b' -> c)
           -> FallibleArrow a x f c
 a ^>>?% f = arr a >>?^ (uncurry f)
 
 ---
-(>>?%?) :: (ArrowChoice a, Monoid f)
+(>>?%?) :: (ArrowChoice a)
            => FallibleArrow a x f (b,b')
            -> (b -> b' -> (Either f c))
            -> FallibleArrow a x f c

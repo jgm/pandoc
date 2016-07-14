@@ -7,10 +7,10 @@ import Text.Pandoc
 import Tests.Helpers
 import Tests.Arbitrary()
 
-latex :: (ToString a, ToPandoc a) => a -> String
+latex :: (ToPandoc a) => a -> String
 latex = writeLaTeX def{ writerHighlight = True } . toPandoc
 
-latexListing :: (ToString a, ToPandoc a) => a -> String
+latexListing :: (ToPandoc a) => a -> String
 latexListing = writeLaTeX def{ writerListings = True } . toPandoc
 
 {-

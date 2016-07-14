@@ -8,7 +8,7 @@ import Text.Pandoc
 import Tests.Helpers
 import Tests.Arbitrary()
 
-markdown :: (ToString a, ToPandoc a) => a -> String
+markdown :: (ToPandoc a) => a -> String
 markdown = writeMarkdown def . toPandoc
 
 {-
