@@ -3334,8 +3334,6 @@ See the MultiMarkdown documentation for details.  If `pandoc_title_block` or
 `yaml_metadata_block` is enabled, it will take precedence over
 `mmd_title_block`.
 
-[MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
-
 #### Extension: `abbreviations` ####
 
 Parses PHP Markdown Extra abbreviation keys, like
