@@ -277,6 +277,7 @@ definitionListStart :: Parser [Char] ParserState Inlines
 definitionListStart = try $ do
   char '-'
   whitespace
+  notFollowedBy newline
   trimInlines . mconcat <$>
     many1Till inline (try (string ":=")) <* optional whitespace
 
