@@ -18,4 +18,5 @@ extra-deps:
 - pandoc-citeproc-0.10.1
 - http-client-0.5.0
 - http-client-tls-0.3.0
+- 'cmark-0.5.3'
 resolver: lts-6.5

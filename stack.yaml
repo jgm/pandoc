@@ -11,4 +11,5 @@ extra-deps:
 - http-client-0.5.0
 - http-client-tls-0.3.0
 - data-default-instances-base-0.1.0.1
+- cmark-0.5.3
 resolver: nightly-2016-07-11
