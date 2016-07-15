@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "June 4, 2016" "pandoc 1.17.1"
+.TH PANDOC 1 "June 4, 2016" "pandoc 1.17.2"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -10,16 +10,16 @@ pandoc - general markup converter
 Pandoc is a Haskell library for converting from one markup format to
 another, and a command\-line tool that uses this library.
 It can read Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored
-Markdown, and (subsets of) Textile, reStructuredText, HTML, LaTeX,
-MediaWiki markup, TWiki markup, Haddock markup, OPML, Emacs Org mode,
-DocBook, txt2tags, EPUB, ODT and Word docx; and it can write plain text,
-Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored Markdown,
-reStructuredText, XHTML, HTML5, LaTeX (including \f[C]beamer\f[] slide
-shows), ConTeXt, RTF, OPML, DocBook, OpenDocument, ODT, Word docx, GNU
-Texinfo, MediaWiki markup, DokuWiki markup, Haddock markup, EPUB (v2 or
-v3), FictionBook2, Textile, groff man pages, Emacs Org mode, AsciiDoc,
-InDesign ICML, TEI Simple, and Slidy, Slideous, DZSlides, reveal.js or
-S5 HTML slide shows.
+Markdown, MultiMarkdown, and (subsets of) Textile, reStructuredText,
+HTML, LaTeX, MediaWiki markup, TWiki markup, Haddock markup, OPML, Emacs
+Org mode, DocBook, txt2tags, EPUB, ODT and Word docx; and it can write
+plain text, Markdown, CommonMark, PHP Markdown Extra, GitHub\-Flavored
+Markdown, MultiMarkdown, reStructuredText, XHTML, HTML5, LaTeX
+(including \f[C]beamer\f[] slide shows), ConTeXt, RTF, OPML, DocBook,
+OpenDocument, ODT, Word docx, GNU Texinfo, MediaWiki markup, DokuWiki
+markup, ZimWiki markup, Haddock markup, EPUB (v2 or v3), FictionBook2,
+Textile, groff man pages, Emacs Org mode, AsciiDoc, InDesign ICML, TEI
+Simple, and Slidy, Slideous, DZSlides, reveal.js or S5 HTML slide shows.
 It can also produce PDF output on systems where LaTeX, ConTeXt, or
 \f[C]wkhtmltopdf\f[] is installed.
 .PP
@@ -212,12 +212,13 @@ Specify input format.
 Markdown), \f[C]markdown_strict\f[] (original unextended Markdown),
 \f[C]markdown_phpextra\f[] (PHP Markdown Extra),
 \f[C]markdown_github\f[] (GitHub\-Flavored Markdown),
-\f[C]commonmark\f[] (CommonMark Markdown), \f[C]textile\f[] (Textile),
-\f[C]rst\f[] (reStructuredText), \f[C]html\f[] (HTML), \f[C]docbook\f[]
-(DocBook), \f[C]t2t\f[] (txt2tags), \f[C]docx\f[] (docx), \f[C]odt\f[]
-(ODT), \f[C]epub\f[] (EPUB), \f[C]opml\f[] (OPML), \f[C]org\f[] (Emacs
-Org mode), \f[C]mediawiki\f[] (MediaWiki markup), \f[C]twiki\f[] (TWiki
-markup), \f[C]haddock\f[] (Haddock markup), or \f[C]latex\f[] (LaTeX).
+\f[C]markdown_mmd\f[] (MultiMarkdown), \f[C]commonmark\f[] (CommonMark
+Markdown), \f[C]textile\f[] (Textile), \f[C]rst\f[] (reStructuredText),
+\f[C]html\f[] (HTML), \f[C]docbook\f[] (DocBook), \f[C]t2t\f[]
+(txt2tags), \f[C]docx\f[] (docx), \f[C]odt\f[] (ODT), \f[C]epub\f[]
+(EPUB), \f[C]opml\f[] (OPML), \f[C]org\f[] (Emacs Org mode),
+\f[C]mediawiki\f[] (MediaWiki markup), \f[C]twiki\f[] (TWiki markup),
+\f[C]haddock\f[] (Haddock markup), or \f[C]latex\f[] (LaTeX).
 If \f[C]+lhs\f[] is appended to \f[C]markdown\f[], \f[C]rst\f[],
 \f[C]latex\f[], or \f[C]html\f[], the input will be treated as literate
 Haskell source: see Literate Haskell support, below.
@@ -241,24 +242,25 @@ Specify output format.
 \f[C]markdown_strict\f[] (original unextended Markdown),
 \f[C]markdown_phpextra\f[] (PHP Markdown Extra),
 \f[C]markdown_github\f[] (GitHub\-Flavored Markdown),
-\f[C]commonmark\f[] (CommonMark Markdown), \f[C]rst\f[]
-(reStructuredText), \f[C]html\f[] (XHTML), \f[C]html5\f[] (HTML5),
-\f[C]latex\f[] (LaTeX), \f[C]beamer\f[] (LaTeX beamer slide show),
-\f[C]context\f[] (ConTeXt), \f[C]man\f[] (groff man), \f[C]mediawiki\f[]
-(MediaWiki markup), \f[C]dokuwiki\f[] (DokuWiki markup),
-\f[C]textile\f[] (Textile), \f[C]org\f[] (Emacs Org mode),
-\f[C]texinfo\f[] (GNU Texinfo), \f[C]opml\f[] (OPML), \f[C]docbook\f[]
-(DocBook 4), \f[C]docbook5\f[] (DocBook 5), \f[C]opendocument\f[]
-(OpenDocument), \f[C]odt\f[] (OpenOffice text document), \f[C]docx\f[]
-(Word docx), \f[C]haddock\f[] (Haddock markup), \f[C]rtf\f[] (rich text
-format), \f[C]epub\f[] (EPUB v2 book), \f[C]epub3\f[] (EPUB v3),
-\f[C]fb2\f[] (FictionBook2 e\-book), \f[C]asciidoc\f[] (AsciiDoc),
-\f[C]icml\f[] (InDesign ICML), \f[C]tei\f[] (TEI Simple), \f[C]slidy\f[]
-(Slidy HTML and javascript slide show), \f[C]slideous\f[] (Slideous HTML
-and javascript slide show), \f[C]dzslides\f[] (DZSlides HTML5 +
-javascript slide show), \f[C]revealjs\f[] (reveal.js HTML5 + javascript
-slide show), \f[C]s5\f[] (S5 HTML and javascript slide show), or the
-path of a custom lua writer (see Custom writers, below).
+\f[C]markdown_mmd\f[] (MultiMarkdown), \f[C]commonmark\f[] (CommonMark
+Markdown), \f[C]rst\f[] (reStructuredText), \f[C]html\f[] (XHTML),
+\f[C]html5\f[] (HTML5), \f[C]latex\f[] (LaTeX), \f[C]beamer\f[] (LaTeX
+beamer slide show), \f[C]context\f[] (ConTeXt), \f[C]man\f[] (groff
+man), \f[C]mediawiki\f[] (MediaWiki markup), \f[C]dokuwiki\f[] (DokuWiki
+markup), \f[C]zimwiki\f[] (ZimWiki markup), \f[C]textile\f[] (Textile),
+\f[C]org\f[] (Emacs Org mode), \f[C]texinfo\f[] (GNU Texinfo),
+\f[C]opml\f[] (OPML), \f[C]docbook\f[] (DocBook 4), \f[C]docbook5\f[]
+(DocBook 5), \f[C]opendocument\f[] (OpenDocument), \f[C]odt\f[]
+(OpenOffice text document), \f[C]docx\f[] (Word docx), \f[C]haddock\f[]
+(Haddock markup), \f[C]rtf\f[] (rich text format), \f[C]epub\f[] (EPUB
+v2 book), \f[C]epub3\f[] (EPUB v3), \f[C]fb2\f[] (FictionBook2 e\-book),
+\f[C]asciidoc\f[] (AsciiDoc), \f[C]icml\f[] (InDesign ICML),
+\f[C]tei\f[] (TEI Simple), \f[C]slidy\f[] (Slidy HTML and javascript
+slide show), \f[C]slideous\f[] (Slideous HTML and javascript slide
+show), \f[C]dzslides\f[] (DZSlides HTML5 + javascript slide show),
+\f[C]revealjs\f[] (reveal.js HTML5 + javascript slide show), \f[C]s5\f[]
+(S5 HTML and javascript slide show), or the path of a custom lua writer
+(see Custom writers, below).
 Note that \f[C]odt\f[], \f[C]epub\f[], and \f[C]epub3\f[] output will
 not be directed to \f[I]stdout\f[]; an output filename must be specified
 using the \f[C]\-o/\-\-output\f[] option.
@@ -351,9 +353,10 @@ Show usage message.
 Parse untranslatable HTML codes and LaTeX environments as raw HTML or
 LaTeX, instead of ignoring them.
 Affects only HTML and LaTeX input.
-Raw HTML can be printed in Markdown, reStructuredText, HTML, Slidy,
-Slideous, DZSlides, reveal.js, and S5 output; raw LaTeX can be printed
-in Markdown, reStructuredText, LaTeX, and ConTeXt output.
+Raw HTML can be printed in Markdown, reStructuredText, Emacs Org mode,
+HTML, Slidy, Slideous, DZSlides, reveal.js, and S5 output; raw LaTeX can
+be printed in Markdown, reStructuredText, Emacs Org mode, LaTeX, and
+ConTeXt output.
 The default is for the readers to omit untranslatable HTML codes and
 LaTeX environments.
 (The LaTeX reader does pass through untranslatable LaTeX
@@ -486,13 +489,16 @@ Specify the number of spaces per tab (default is 4).
 .RE
 .TP
 .B \f[C]\-\-track\-changes=accept\f[]|\f[C]reject\f[]|\f[C]all\f[]
-Specifies what to do with insertions and deletions produced by the MS
-Word "Track Changes" feature.
+Specifies what to do with insertions, deletions, and comments produced
+by the MS Word "Track Changes" feature.
 \f[C]accept\f[] (the default), inserts all insertions, and ignores all
 deletions.
 \f[C]reject\f[] inserts all deletions and ignores insertions.
-\f[C]all\f[] puts in both insertions and deletions, wrapped in spans
-with \f[C]insertion\f[] and \f[C]deletion\f[] classes, respectively.
+Both \f[C]accept\f[] and \f[C]reject\f[] ignore comments.
+\f[C]all\f[] puts in insertions, deletions, and comments, wrapped in
+spans with \f[C]insertion\f[], \f[C]deletion\f[],
+\f[C]comment\-start\f[], and \f[C]comment\-end\f[] classes,
+respectively.
 The author and time of change is included.
 \f[C]all\f[] is useful for scripting: only accepting changes from a
 certain reviewer, say, or before a certain date.
@@ -800,7 +806,7 @@ documents.
 \f[C]javascript\f[] obfuscates them using javascript.
 \f[C]references\f[] obfuscates them by printing their letters as decimal
 or hexadecimal character references.
-The default is \f[C]javascript\f[].
+The default is \f[C]none\f[].
 .RS
 .RE
 .TP
@@ -1087,6 +1093,8 @@ Render TeX formulas using an external script that converts TeX formulas
 to images.
 The formula will be concatenated with the URL provided.
 If \f[I]URL\f[] is not specified, the Google Chart API will be used.
+Note: the \f[C]\-\-webtex\f[] option will affect Markdown output as well
+as HTML.
 .RS
 .RE
 .TP
@@ -1487,6 +1495,11 @@ include table of contents (can also be set using
 .TP
 .B \f[C]toc\-depth\f[]
 level of section to include in table of contents
+.RS
+.RE
+.TP
+.B \f[C]secnumdepth\f[]
+numbering depth for sections, if sections are numbered
 .RS
 .RE
 .TP
@@ -3280,7 +3293,7 @@ delimiters.
 TeX math will be printed in all output formats.
 How it is rendered depends on the output format:
 .TP
-.B Markdown, LaTeX, Emacs Org mode, ConTeXt
+.B Markdown, LaTeX, Emacs Org mode, ConTeXt, ZimWiki
 It will appear verbatim between \f[C]$\f[] characters.
 .RS
 .RE
@@ -3411,8 +3424,8 @@ it, but it has been made an extension so that it can be disabled if
 desired.)
 .PP
 The raw HTML is passed through unchanged in HTML, S5, Slidy, Slideous,
-DZSlides, EPUB, Markdown, and Textile output, and suppressed in other
-formats.
+DZSlides, EPUB, Markdown, Emacs Org mode, and Textile output, and
+suppressed in other formats.
 .SS Extension: \f[C]markdown_in_html_blocks\f[]
 .PP
 Standard Markdown allows you to include HTML "blocks": blocks of HTML
@@ -3506,7 +3519,7 @@ the material between the begin and end tags will be interpreted as raw
 LaTeX, not as Markdown.
 .PP
 Inline LaTeX is ignored in output formats other than Markdown, LaTeX,
-and ConTeXt.
+Emacs Org mode, and ConTeXt.
 .SS LaTeX macros
 .SS Extension: \f[C]latex_macros\f[]
 .PP
