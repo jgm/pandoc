@@ -1,3 +1,261 @@
+pandoc (1.17.2)
+
+  * Added Zim Wiki writer, template and tests. `zimwiki` is now
+    a valid output format. (Alex Ivkin)
+
+  * Changed email-obfuscation default to no obfuscation (#2988).
+    + `writerEmailObfuscation` in `defaultWriterOptions` is now
+      `NoObfuscation`.
+    + the default for the command-line `--email-obfuscation` option is
+      now `none`.
+
+  * Docbook writer: Declare xlink namespace in Docbook5 output (Ivo Clarysse).
+
+  * Org writer:
+
+    + Support arbitrary raw inlines (Albert Krewinkel).
+      Org mode allows arbitrary raw inlines ("export snippets" in Emacs
+      parlance) to be included as `@@format:raw foreign format text@@`.
+    + Improve Div handling (Albert Krewinkel).  Div blocks handling is
+      changed to make the output look more like idiomatic org mode:
+        - Div-wrapped content is output as-is if the div's attribute is the
+          null attribute.
+        - Div containers with an id but neither classes nor key-value pairs
+          are unwrapped and the id is added as an anchor.
+        - Divs with classes associated with greater block elements are
+          wrapped in a `#+BEGIN`...`#+END` block.
+        - The old behavior for Divs with more complex attributes is kept.
+
+  * HTML writer:  Better support for raw LaTeX environments (#2758).
+    Previously we just passed all raw TeX through when MathJax
+    was used for HTML math.  This passed through too much.
+    With this patch, only raw LaTeX environments that MathJax
+    can handle get passed through.
+    This patch also causes raw LaTeX environments to be treated
+    as math, when possible, with MathML and WebTeX output.
+
+  * Markdown writer:  use raw HTML for simple, pipe tables with linebreaks
+    (#2993).  Markdown line breaks involve a newline, and simple and pipe
+    tables can't contain one.
+
+  * Make --webtex work with the Markdown writer (#1177).
+    This is a convenient option for people using
+    websites whose Markdown flavors don't provide for math.
+
+  * Docx writer:
+
+    + Set paragraph to FirstPara after display math (Jesse Rosenthal).
+      We treat display math like block quotes, and apply FirstParagraph style
+      to paragraphs that follow them. These can be styled as the user
+      wishes. (But, when the user is using indentation, this allows for
+      paragraphs to continue after display math without indentation.)
+    + Use actual creation time as doc prop (Jesse Rosenthal).
+      Previously, we had used the user-supplied date, if available, for Word's
+      document creation metadata. This could lead to weird results, as in
+      cases where the user post-dates a document (so the modification might be
+      prior to the creation). Here we use the actual computer time to set the
+      document creation.
+
+  * LaTeX writer:
+
+    + Don't URI-escape image source (#2825).  Usually this is a local file,
+      and replacing spaces with `%20` ruins things.
+    + Allow 'standout' as a beamer frame option (#3007).
+      `## Slide title {.standout}`.
+
+  * RST reader: Fixed links with no explicit link text.  The link
+    `` `<foo>`_ `` should have `foo` as both its link text and its URL.
+    See RST spec at <http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#embedded-uris-and-aliases>
+    Closes Debian #828167 -- reported by Christian Heller.
+
+  * Textile reader:
+
+    + Fixed attributes (#2984).  Attributes can't be followed by
+      a space.  So, `_(class)emph_` but `_(noclass) emph_`.
+    + Fixed exponential parsing bug (#3020).
+    + Fix overly aggressive interpretation as images (#2998).
+      Spaces are not allowed in the image URL in textile.
+
+  * LaTeX reader:
+
+    + Fix `\cite` so it is a NormalCitation not AuthorInText.
+    + Strip off double quotes around image source if present (#2825).
+      Avoids interpreting these as part of the literal filename.
+
+  * Org reader:
+
+    + Add semicolon to list of special chars (Albert Krewinkel)
+      Semicolons are used as special characters in citations syntax.  This
+      ensures the correct parsing of Pandoc-style citations: `[prefix; @key;
+      suffix]`.  Previously, parsing would have failed unless there was a space
+      or other special character as the last <prefix> character.
+    + Add support for "Berkeley-style" cites (Albert Krewinkel, #1978).
+      A specification for an official Org-mode citation syntax was drafted by
+      Richard Lawrence and enhanced with the help of others on the orgmode
+      mailing list.  Basic support for this citation style is added to the
+      reader.
+    + Support arbitrary raw inlines (Albert Krewinkel).
+      Org mode allows arbitrary raw inlines ("export snippets" in Emacs
+      parlance) to be included as `@@format:raw foreign format text@@`.
+    + Remove partial functions (Albert Krewinkel, #2991).
+      Partial functions like `head` lead to avoidable errors and should be
+      avoided.  They are replaced with total functions.
+    + Support figure labels (Albert Krewinkel, #2496, #2999).
+      Figure labels given as `#+LABEL: thelabel` are used as the ID of the
+      respective image.  This allows e.g. the LaTeX to add proper `\label`
+      markup.
+    + Improve tag and properties type safety (Albert Krewinkel).
+      Specific newtype definitions are used to replace stringly typing of tags
+      and properties.  Type safety is increased while readability is improved.
+    + Parse as headlines, convert to blocks (Albert Krewinkel).
+      Emacs org-mode is based on outline-mode, which treats documents as trees
+      with headlines are nodes.  The reader is refactored to parse into a
+      similar tree structure.  This simplifies transformations acting on
+      document (sub-)trees.
+    * Refactor comment tree handling (Albert Krewinkel).
+      Comment trees were handled after parsing, as pattern matching on lists
+      is easier than matching on sequences.  The new method of reading
+      documents as trees allows for more elegant subtree removal.
+    * Support archived trees export options (Albert Krewinkel).
+      Handling of archived trees can be modified using the `arch` option.
+      Archived trees are either dropped, exported completely, or collapsed to
+      include just the header when the `arch` option is nil, non-nil, or
+      `headline`, respectively.
+    * Put export setting parser into module (Albert Krewinkel).
+      Export option parsing is distinct enough from general block parsing to
+      justify putting it into a separate module.
+    * Support headline levels export setting (Albert Krewinkel).
+      The depths of headlines can be modified using the `H` option.  Deeper
+      headlines will be converted to lists.
+    * Replace ugly code with view pattern (Albert Krewinkel).
+      Some less-than-smart code required a pragma switching of overlapping
+      pattern warnings in order to compile seamlessly.  Using view patterns
+      makes the code easier to read and also doesn't require overlapping
+      pattern checks to be disabled.
+    * Fix parsing of verbatim inlines (Albert Krewinkel, #3016).
+      Org rules for allowed characters before or after markup chars were not
+      checked for verbatim text.  This resultet in wrong parsing outcomes of
+      if the verbatim text contained e.g. space enclosed markup characters as
+      part of the text (`=is_substr = True=`).  Forcing the parser to update
+      the positions of allowed/forbidden markup border characters fixes this.
+
+  * LaTeX template: fix for obscure hyperref/xelatex issue.
+    Here's a minimal case:
+
+        \documentclass[]{article}
+        \usepackage{hyperref}
+        \begin{document}
+        \section{\%á}
+        \end{document}
+
+    Without this change, this fails on the second invocation of xelatex.
+    This affects inputs this like `# %á` with pdf output via xelatex.
+
+  * trypandoc:  call results 'html' instead of 'result'.
+    This is for better compatibility with babelmark2.
+
+  * Document MultiMarkdown as input/output format (Albert Krewinkel, #2973).
+    MultiMarkdown was only mentioned as a supported Markdown dialect but not
+    as a possible input or output format.  A brief mention is added
+    everywhere the other supported markdown dialects are mentioned.
+
+  * Document Org mode as a format containing raw HTML (Albert Krewinkel)
+    Raw HTML is kept when the output format is Emacs Org mode.
+
+  * Implement `RawInline` and `RawBlock` in sample lua custom writer (#2985).
+
+  * Text.Pandoc.Shared:
+
+    + Introduce blocksToInlines function (Jesse Rosenthal).
+      This is a lossy function for converting `[Block] -> [Inline]`. Its main
+      use, at the moment, is for docx comments, which can contain arbitrary
+      blocks (except for footnotes), but which will be converted to spans.
+      This is, at the moment, pretty useless for everything but the basic
+      `Para` and `Plain` comments. It can be improved, but the docx reader
+      should probably emit a warning if the comment contains more than this.
+    + Add BlockQuote to blocksToInlines (Jesse Rosenthal).
+    + Add further formats for `normalizeDate` (Jesse Rosenthal).
+      We want to avoid illegal dates -- in particular years with greater than
+      four digits. We attempt to parse series of digits first as `%Y%m%d`, then
+      `%Y%m`, and finally `%Y`.
+    + `normalizeDate` should reject illegal years (Jesse Rosenthal).
+      We only allow years between 1601 and 9999, inclusive. The ISO 8601
+      actually says that years are supposed to start with 1583, but MS Word
+      only allows 1601-9999. This should stop corrupted word files if the date
+      is out of that range, or is parsed incorrectly.
+    + Improve year sanity check in normalizeDate (Jesse Rosenthal).
+      Previously we parsed a list of dates, took the first one, and then
+      tested its year range. That meant that if the first one failed, we
+      returned nothing, regardless of what the others did. Now we test for
+      sanity before running `msum` over the list of Maybe values. Anything
+      failing the test will be Nothing, so will not be a candidate.
+
+  * Docx reader:
+
+    + Add simple comment functionality. (Jesse Rosenthal).
+      This adds simple track-changes comment parsing to the docx reader. It is
+      turned on with `--track-changes=all`. All comments are converted to
+      inlines, which can list some information. In the future a warning will be
+      added for comments with formatting that seems like it will be excessively
+      denatured.  Note that comments can extend across blocks. For that reason
+      there are two spans: `comment-start` and `comment-end`.  `comment-start`
+      will contain the comment. `comment-end` will always be empty.  The two
+      will be associated by a numeric id.
+    + Enable warnings in top-level reader (Jesse Rosenthal).
+      Previously we had only allowed for warnings in the parser. Now we allow
+      for them in the `Docx.hs` as well. The warnings are simply concatenated.
+    + Add warning for advanced comment formatting. (Jesse Rosenthal).
+      We can't guarantee we'll convert every comment correctly, though we'll
+      do the best we can. This warns if the comment includes something other
+      than Para or Plain.
+    + Add tests for warnings. (Jesse Rosenthal).
+    + Add tests for comments (Jesse Rosenthal).
+      We test for comments, using all track-changes options. Note that we
+      should only output comments if `--track-changes=all`. We also test for
+      emitting warnings if there is complicated formatting.
+
+  * README: update to include track-changes comments. (Jesse Rosenthal)
+
+  * Improved Windows installer - don't ignore properties set on command-line.
+    See #2708.  Needs testing to see if this resolves the issue.
+    Thanks to @nkalvi.
+
+  * Process markdown extensions on command line in L->R order (#2995).
+    Previously they were processed, very unintuitively, in R->L
+    order, so that `markdown-tex_math_dollars+tex_math_dollars`
+    had `tex_math_dollars` disabled.
+
+  * Added `secnumdepth` variable to LaTeX template (#2920).
+
+  * Include table of contents in README.html in Windows package.
+
+  * Writers: treat SoftBreak as space for stripping (Jesse Rosenthal)
+    In Writers.Shared, we strip leading and trailing spaces for display
+    math. Since SoftBreak's are treated as spaces, we should strip those
+    too.
+
+  * beamer, latex templates:  pass biblatexoptions directly in package load.
+    This allows runtime optinos to be used.  Fixes jgm/pandoc-citeproc#201
+
+  * CPP workaround for deprecation of `parseUrl` in http-client.
+
+  * Removed some redundant class constraints.
+
+  * make_oxs_package.sh - use OSX env variable.
+
+  * Added `winpkg` target to Makefile.  This downloads the windows package
+    from appveyor and signs it using the key.
+
+  * Document Org mode as a format containing raw TeX (Albert Krewinkel).
+    Raw TeX is kept verbatim when the output format is Emacs Org mode.
+
+  * Support math with haddock-library >= 1.4.
+
+  * Removed `-rtsopts` from library stanza.  It has no effect, and Hackage
+    wouldn't accept the package.
+
+  * Update library dependency versions.
+
 pandoc (1.17.1)
 
   * New output format: `docbook5` (Ivo Clarysse).
