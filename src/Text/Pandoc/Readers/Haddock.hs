@@ -60,8 +60,10 @@ docHToBlocks d' =
     DocEmphasis _ -> inlineFallback
     DocMonospaced _ -> inlineFallback
     DocBold _ -> inlineFallback
+#if MIN_VERSION_haddock_library(1,4,0)
     DocMathInline _ -> inlineFallback
     DocMathDisplay _ -> inlineFallback
+#endif
     DocHeader h -> B.header (headerLevel h)
                            (docHToInlines False $ headerTitle h)
     DocUnorderedList items -> B.bulletList (map docHToBlocks items)
@@ -109,8 +111,10 @@ docHToInlines isCode d' =
     DocMonospaced (DocString s) -> B.code s
     DocMonospaced d -> docHToInlines True d
     DocBold d -> B.strong (docHToInlines isCode d)
+#if MIN_VERSION_haddock_library(1,4,0)
     DocMathInline s -> B.math s
     DocMathDisplay s -> B.displayMath s
+#endif
     DocHeader _ -> mempty
     DocUnorderedList _ -> mempty
     DocOrderedList _ -> mempty
