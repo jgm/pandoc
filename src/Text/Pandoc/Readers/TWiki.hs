@@ -205,7 +205,7 @@ orderedList :: String -> TWParser B.Blocks
 orderedList prefix = tryMsg "orderedList" $
                      parseList prefix (oneOf "1iIaA") (string ". ")
 
-parseList :: Show a => String -> TWParser Char -> TWParser a -> TWParser B.Blocks
+parseList :: String -> TWParser Char -> TWParser a -> TWParser B.Blocks
 parseList prefix marker delim = do
   (indent, style) <- lookAhead $ string prefix *> listStyle <* delim
   blocks <- many $ parseListItem (prefix ++ indent) (char style <* delim)
@@ -281,7 +281,7 @@ tableParseColumn = char '|' *> skipSpaces *>
 tableEndOfRow :: TWParser Char
 tableEndOfRow = lookAhead (try $ char '|' >> char '\n') >> char '|'
 
-tableColumnContent :: Show a => TWParser a -> TWParser B.Blocks
+tableColumnContent :: TWParser a -> TWParser B.Blocks
 tableColumnContent end = manyTill content (lookAhead $ try end) >>= return . B.plain . mconcat
   where
     content = continuation <|> inline
@@ -351,11 +351,11 @@ linebreak = newline >> notFollowedBy newline >> (lastNewline <|> innerNewline)
   where lastNewline  = eof >> return mempty
         innerNewline = return B.space
 
-between :: (Show b, Monoid c) => TWParser a -> TWParser b -> (TWParser b -> TWParser c) -> TWParser c
+between :: (Monoid c) => TWParser a -> TWParser b -> (TWParser b -> TWParser c) -> TWParser c
 between start end p =
   mconcat <$> try (start >> notFollowedBy whitespace >> many1Till (p end) end)
 
-enclosed :: (Show a, Monoid b) => TWParser a -> (TWParser a -> TWParser b) -> TWParser b
+enclosed :: (Monoid b) => TWParser a -> (TWParser a -> TWParser b) -> TWParser b
 enclosed sep p = between sep (try $ sep <* endMarker) p
   where
     endMarker   = lookAhead $ skip endSpace <|> skip (oneOf ".,!?:)|") <|> eof

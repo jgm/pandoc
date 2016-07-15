@@ -888,7 +888,7 @@ transformInline opts mediaRef  (RawInline fmt raw)
   return $ RawInline fmt (renderTags' tags')
 transformInline _ _ x = return x
 
-(!) :: Node t => (t -> Element) -> [(String, String)] -> t -> Element
+(!) :: (t -> Element) -> [(String, String)] -> t -> Element
 (!) f attrs n = add_attrs (map (\(k,v) -> Attr (unqual k) v) attrs) (f n)
 
 -- | Version of 'ppTopElement' that specifies UTF-8 encoding.

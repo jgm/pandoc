@@ -208,8 +208,7 @@ chomp d = Doc (fromList dl')
         go (Prefixed s d' : xs) = Prefixed s (chomp d') : xs
         go xs = xs
 
-outp :: (IsString a, Monoid a)
-     => Int -> String -> DocState a
+outp :: (IsString a) => Int -> String -> DocState a
 outp off s | off < 0 = do  -- offset < 0 means newline characters
   st' <- get
   let rawpref = prefix st'
@@ -234,8 +233,7 @@ outp off s = do           -- offset >= 0 (0 might be combining char)
 -- | Renders a 'Doc'.  @render (Just n)@ will use
 -- a line length of @n@ to reflow text on breakable spaces.
 -- @render Nothing@ will not reflow text.
-render :: (Monoid a, IsString a)
-       => Maybe Int -> Doc -> a
+render :: (IsString a) => Maybe Int -> Doc -> a
 render linelen doc = fromString . mconcat . reverse . output $
   execState (renderDoc doc) startingState
    where startingState = RenderState{

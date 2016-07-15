@@ -865,7 +865,7 @@ gridTableFooter = blanklines
 ---
 
 -- | Removes the ParsecT layer from the monad transformer stack
-readWithM :: (Monad m, Functor m)
+readWithM :: (Monad m)
           => ParserT [Char] st m a       -- ^ parser
           -> st                       -- ^ initial state
           -> String                   -- ^ input
@@ -891,7 +891,7 @@ readWithWarnings p = readWith $ do
          return (doc, warnings)
 
 -- | Parse a string with @parser@ (for testing).
-testStringWith :: (Show a, Stream [Char] Identity Char)
+testStringWith :: (Show a)
                => ParserT [Char] ParserState Identity a
                -> [Char]
                -> IO ()
@@ -1267,7 +1267,7 @@ addWarning mbpos msg =
     stateWarnings = (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) :
                      stateWarnings st }
 infixr 5 <+?>
-(<+?>) :: (Monoid a, Monad m) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
+(<+?>) :: (Monoid a) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
 a <+?> b = a >>= flip fmap (try b <|> return mempty) . (<>)
 
 extractIdClass :: Attr -> Attr

@@ -285,7 +285,7 @@ table = try $ do
                     (zip aligns (replicate ncolumns 0.0))
                       headerPadded rowsPadded
 
-pad :: (Show a, Monoid a) => Int -> [a] -> [a]
+pad :: (Monoid a) => Int -> [a] -> [a]
 pad n xs = xs ++ (replicate (n - length xs) mempty)
 
 
