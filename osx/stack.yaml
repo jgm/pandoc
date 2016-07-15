@@ -17,8 +17,8 @@ ghc-options:
 packages:
 - '..'
 extra-deps:
-- 'pandoc-citeproc-0.10'
-- 'data-default-0.6.0'
+- 'pandoc-citeproc-0.10.1'
 - 'http-client-0.5.0'
 - 'http-client-tls-0.3.0'
-resolver: lts-6.5
+- 'data-default-instances-base-0.1.0.1'
+resolver: nightly-2016-07-11
