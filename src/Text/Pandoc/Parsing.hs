@@ -871,7 +871,7 @@ readWithM :: (Monad m)
           -> String                   -- ^ input
           -> m (Either PandocError a)
 readWithM parser state input =
-    mapLeft (ParsecError input) <$> runParserT parser state "source" input
+    mapLeft (ParsecError input) `liftM` runParserT parser state "source" input
 
 
 -- | Parse a string with a given parser and state
