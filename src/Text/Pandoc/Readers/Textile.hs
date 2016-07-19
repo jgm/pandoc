@@ -62,7 +62,7 @@ import Text.Pandoc.Shared (trim)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
 import Text.HTML.TagSoup.Match
-import Data.List ( intercalate, transpose )
+import Data.List ( intercalate, transpose, intersperse )
 import Data.Char ( digitToInt, isUpper )
 import Control.Monad ( guard, liftM, when )
 import Text.Pandoc.Compat.Monoid ((<>))
@@ -273,13 +273,20 @@ listStart = genericListStart '*'
 genericListStart :: Char -> Parser [Char] st ()
 genericListStart c = () <$ try (many1 (char c) >> whitespace)
 
-definitionListStart :: Parser [Char] ParserState Inlines
-definitionListStart = try $ do
+basicDLStart :: Parser [Char] ParserState ()
+basicDLStart = do
   char '-'
   whitespace
   notFollowedBy newline
+
+definitionListStart :: Parser [Char] ParserState Inlines
+definitionListStart = try $ do
+  basicDLStart
   trimInlines . mconcat <$>
-    many1Till inline (try (string ":=")) <* optional whitespace
+    many1Till inline
+     (  try (newline *> lookAhead basicDLStart)
+    <|> try (lookAhead (() <$ string ":="))
+     )
 
 listInline :: Parser [Char] ParserState Inlines
 listInline = try (notFollowedBy newline >> inline)
@@ -291,8 +298,8 @@ listInline = try (notFollowedBy newline >> inline)
 -- break.
 definitionListItem :: Parser [Char] ParserState (Inlines, [Blocks])
 definitionListItem = try $ do
-  term <- definitionListStart
-  def' <- multilineDef <|> inlineDef
+  term <- (mconcat . intersperse B.linebreak) <$> many1 definitionListStart
+  def' <- string ":=" *> optional whitespace *> (multilineDef <|> inlineDef)
   return (term, def')
   where inlineDef :: Parser [Char] ParserState [Blocks]
         inlineDef = liftM (\d -> [B.plain d])
