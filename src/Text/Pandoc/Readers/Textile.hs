@@ -62,7 +62,7 @@ import Text.Pandoc.Shared (trim)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
 import Text.HTML.TagSoup.Match
-import Data.List ( intercalate )
+import Data.List ( intercalate, transpose )
 import Data.Char ( digitToInt, isUpper )
 import Control.Monad ( guard, liftM, when )
 import Text.Pandoc.Compat.Monoid ((<>))
@@ -134,7 +134,7 @@ blockParsers = [ codeBlock
                , anyList
                , rawHtmlBlock
                , rawLaTeXBlock'
-               , maybeExplicitBlock "table" table
+               , table
                , maybeExplicitBlock "p" para
                , mempty <$ blanklines
                ]
@@ -328,38 +328,78 @@ para = B.para . trimInlines . mconcat <$> many1 inline
 
 -- Tables
 
+toAlignment :: Char -> Alignment
+toAlignment '<' = AlignLeft
+toAlignment '>' = AlignRight
+toAlignment '=' = AlignCenter
+toAlignment _   = AlignDefault
+
+cellAttributes :: Parser [Char] ParserState (Bool, Alignment)
+cellAttributes = try $ do
+  isHeader <- option False (True <$ char '_')
+  -- we just ignore colspan and rowspan markers:
+  optional $ try $ oneOf "/\\" >> many1 digit
+  -- we pay attention to alignments:
+  alignment <- option AlignDefault $ toAlignment <$> oneOf "<>="
+  -- ignore other attributes for now:
+  _ <- attributes
+  char '.'
+  return (isHeader, alignment)
+
 -- | A table cell spans until a pipe |
-tableCell :: Bool -> Parser [Char] ParserState Blocks
-tableCell headerCell = try $ do
+tableCell :: Parser [Char] ParserState ((Bool, Alignment), Blocks)
+tableCell = try $ do
   char '|'
-  when headerCell $ () <$ string "_."
+  (isHeader, alignment) <- option (False, AlignDefault) $ cellAttributes
   notFollowedBy blankline
   raw <- trim <$>
          many (noneOf "|\n" <|> try (char '\n' <* notFollowedBy blankline))
   content <- mconcat <$> parseFromString (many inline) raw
-  return $ B.plain content
+  return ((isHeader, alignment), B.plain content)
 
 -- | A table row is made of many table cells
-tableRow :: Parser [Char] ParserState [Blocks]
-tableRow = many1 (tableCell False) <* char '|' <* newline
+tableRow :: Parser [Char] ParserState [((Bool, Alignment), Blocks)]
+tableRow = try $ do
+  -- skip optional row attributes
+  optional $ try $ do
+    _ <- attributes
+    char '.'
+    many1 spaceChar
+  many1 tableCell <* char '|' <* blankline
 
-tableHeader :: Parser [Char] ParserState [Blocks]
-tableHeader = many1 (tableCell True) <* char '|' <* newline
-
--- | A table with an optional header. Current implementation can
--- handle tables with and without header, but will parse cells
--- alignment attributes as content.
+-- | A table with an optional header.
 table :: Parser [Char] ParserState Blocks
 table = try $ do
-  headers <- option mempty $ tableHeader
-  rows <- many1 tableRow
+  -- ignore table attributes
+  caption <- option mempty $ try $ do
+    string "table"
+    _ <- attributes
+    char '.'
+    rawcapt <- trim <$> anyLine
+    parseFromString (mconcat <$> many inline) rawcapt
+  rawrows <- many1 $ (skipMany ignorableRow) >> tableRow
+  skipMany ignorableRow
   blanklines
+  let (headers, rows) = case rawrows of
+                             (toprow:rest) | any (fst . fst) toprow ->
+                                (toprow, rest)
+                             _ -> (mempty, rawrows)
   let nbOfCols = max (length headers) (length $ head rows)
-  return $ B.table mempty
-    (zip (replicate nbOfCols AlignDefault) (replicate nbOfCols 0.0))
-    headers
-    rows
+  let aligns = map minimum $ transpose $ map (map (snd . fst)) (headers:rows)
+  return $ B.table caption
+    (zip aligns (replicate nbOfCols 0.0))
+    (map snd headers)
+    (map (map snd) rows)
 
+-- | Ignore markers for cols, thead, tfoot.
+ignorableRow :: Parser [Char] ParserState ()
+ignorableRow = try $ do
+  char '|'
+  oneOf ":^-~"
+  _ <- attributes
+  char '.'
+  _ <- anyLine
+  return ()
 
 -- | Blocks like 'p' and 'table' do not need explicit block tag.
 -- However, they can be used to set HTML/CSS attributes when needed.
