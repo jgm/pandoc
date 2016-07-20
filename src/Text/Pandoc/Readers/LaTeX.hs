@@ -859,8 +859,14 @@ tok = try $ grouped inline <|> inlineCommand <|> str <$> count 1 inlineChar
 opt :: LP Inlines
 opt = bracketed inline
 
+rawopt :: LP String
+rawopt = do
+  contents <- bracketed (many1 (noneOf "]") <|> try (string "\\]"))
+  optional sp
+  return $ "[" ++ contents ++ "]"
+
 skipopts :: LP ()
-skipopts = skipMany (opt *> optional sp)
+skipopts = skipMany rawopt
 
 inlineText :: LP Inlines
 inlineText = str <$> many1 inlineChar
@@ -883,8 +889,9 @@ inlineEnvironment = try $ do
 
 rawEnv :: String -> LP Blocks
 rawEnv name = do
-  let addBegin x = "\\begin{" ++ name ++ "}" ++ x
   parseRaw <- getOption readerParseRaw
+  rawOptions <- mconcat <$> many rawopt
+  let addBegin x = "\\begin{" ++ name ++ "}" ++ rawOptions ++ x
   if parseRaw
      then (rawBlock "latex" . addBegin) <$>
             (withRaw (env name blocks) >>= applyMacros' . snd)
