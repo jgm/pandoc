@@ -562,13 +562,11 @@ directive' = do
         "rubric" -> B.para . B.strong <$> parseInlineFromString top
         _ | label `elem` ["attention","caution","danger","error","hint",
                           "important","note","tip","warning"] ->
-           do let tit = B.para $ B.strong $ B.str label
-              bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
-              return $ B.blockQuote $ tit <> bod
+           do bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
+              return $ B.divWith ("",["admonition", label],[]) bod
         "admonition" ->
-           do tit <- B.para . B.strong <$> parseInlineFromString top
-              bod <- parseFromString parseBlocks body'
-              return $ B.blockQuote $ tit <> bod
+           do bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
+              return $ B.divWith ("",["admonition"],[]) bod
         "sidebar" ->
            do let subtit = maybe "" trim $ lookup "subtitle" fields
               tit <- B.para . B.strong <$> parseInlineFromString
@@ -576,11 +574,11 @@ directive' = do
                                           then ""
                                           else (":  " ++ subtit))
               bod <- parseFromString parseBlocks body'
-              return $ B.blockQuote $ tit <> bod
+              return $ B.divWith ("",["sidebar"],[]) $ tit <> bod
         "topic" ->
            do tit <- B.para . B.strong <$> parseInlineFromString top
               bod <- parseFromString parseBlocks body'
-              return $ tit <> bod
+              return $ B.divWith ("",["topic"],[]) $ tit <> bod
         "default-role" -> mempty <$ updateState (\s ->
                               s { stateRstDefaultRole =
                                   case trim top of
