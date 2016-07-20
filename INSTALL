@@ -95,7 +95,7 @@ Quick install with cabal
 
 The `pandoc.1` man page will be installed automatically.  cabal shows
 you where it is installed: you may need to set your `MANPATH`
-accordingly. If `README` has been modified, the man page can be
+accordingly. If `MANUAL.txt` has been modified, the man page can be
 rebuilt: `make man/pandoc.1`.
 
 The `pandoc-citeproc.1` man page will also be installed automatically.

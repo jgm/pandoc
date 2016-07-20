@@ -57,8 +57,8 @@
 
           <Component Id="Documentation"
                      Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3">
-            <File Id="pandocREADME" Name="Pandoc User's Guide.html"
-                  Source="README.html" KeyPath="yes">
+            <File Id="pandocMANUAL" Name="Pandoc User's Guide.html"
+                  Source="MANUAL.html" KeyPath="yes">
               <Shortcut Id="ApplicationStartMenuShortcut"
                         Directory="ApplicationProgramsFolder"
                         Name="Pandoc User’s Guide" Advertise="yes" />
@@ -123,18 +123,18 @@
       </Feature>
     </Feature>
 
-    
+
     <!-- Set properties for add/remove programs -->
     <Property Id="ARPURLINFOABOUT" Value="http://pandoc.org" />
     <Property Id="ARPHELPLINK" Value="http://pandoc.org" />
     <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />    <!-- Remove repair -->
     <Property Id="ARPNOMODIFY" Value="yes" Secure="yes" />    <!-- Remove modify -->
 
-      
+
     <!--Needed for WixUI_Advanced-->
     <Property Id="ApplicationFolderName" Value="Pandoc" />
     <Property Id="WixAppFolder" Value="WixPerUserFolder" />
-    
+
     <!--For Single Package for dual purpose i.e. per User/Machine-->
     <!--<Property Id="ALLUSERS" Value="2" Secure="yes" />-->
     <Property Id="MSIINSTALLPERUSER" Value="1" />
@@ -145,7 +145,7 @@
     <CustomAction Id="SetExitDialogOptText"
                       Property="WIXUI_EXITDIALOGOPTIONALTEXT"
                       Value="!(loc.ExitDialogText)" />
-    
+
     <!--Offer Per User installs only on workstations (block on servers)-->
     <!--Unless ALLUSERS=1 is specified on command line-->
     <SetProperty Id="WixUISupportPerUser" Value="0" Before="FindRelatedProducts">
@@ -177,12 +177,12 @@
         NOT Installed
       </Custom>
     </InstallUISequence>
-    
+
     <UIRef Id="WixUI_Advanced_Custom"/>
     <!--Enable better description when debug logging-->
     <UIRef Id="WixUI_ErrorProgressText" />
-    
+
   </Product>
-  
-  
+
+
 </Wix>

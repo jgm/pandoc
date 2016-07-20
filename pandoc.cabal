@@ -105,10 +105,10 @@ Data-Files:
                  -- bash completion template
                  data/bash_completion.tpl
                  -- documentation
-                 README, COPYRIGHT
+                 MANUAL.txt, COPYRIGHT
 Extra-Source-Files:
                  -- documentation
-                 INSTALL, BUGS, CONTRIBUTING.md, changelog
+                 INSTALL, BUGS, README.md, CONTRIBUTING.md, changelog
                  man/pandoc.1
                  -- stack build plan
                  stack.yaml

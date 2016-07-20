@@ -873,7 +873,7 @@ readDefaultDataFile fname =
         go as     x    = x : as
 #else
   getDataFileName fname' >>= checkExistence >>= BS.readFile
-    where fname' = if fname == "README" then fname else "data" </> fname
+    where fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
 
 checkExistence :: FilePath -> IO FilePath
 checkExistence fn = do
@@ -1071,7 +1071,7 @@ blocksToInlinesWithSep sep blks = intercalate sep $ map blockToInlines blks
 
 blocksToInlines :: [Block] -> [Inline]
 blocksToInlines = blocksToInlinesWithSep [Space, Str "¶", Space]
-        
+
 
 --
 -- Safe read
