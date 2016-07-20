@@ -19,8 +19,7 @@ TEMPDIR=make_binary_package.tmp.$$
 # We need this for hsb2hs:
 PATH=$LOCAL/bin:$PATH
 
-which hsb2hs || stack install --install-ghc --stack-yaml stack.hsb2hs.yaml
-
+stack install --install-ghc --stack-yaml deb/stack.yaml --local-bin-path . hsb2hs
 stack install --install-ghc --stack-yaml deb/stack.yaml --local-bin-path . pandoc pandoc-citeproc
 
 make man/pandoc.1
