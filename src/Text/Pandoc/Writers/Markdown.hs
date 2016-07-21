@@ -40,7 +40,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Any(..))
-import Data.List ( group, stripPrefix, find, elemIndices, intersperse, transpose, sortBy )
+import Data.List ( group, stripPrefix, find, intersperse, transpose, sortBy )
 import Data.Char ( isSpace, isPunctuation, ord, chr )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
@@ -957,32 +957,26 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
                             isEnabled Ext_shortcut_reference_links opts
   ref <- if useRefLinks then getReference attr txt (src, tit) else return []
   reftext <- inlineListToMarkdown opts ref
-  return $ if useWikilink
-              then let deunder c = if c == '_' then ' ' else c
-                       deiki s = case elemIndices '/' s of
-                                   [] -> map deunder s
-                                   xs -> map deunder (drop ((last xs) + 1) s)
-                       lab = stringify txt
-                       in if deiki src == lab
-                             then "[[" <> text src <> "]]"
-                             else "[[" <> linktext <> "|" <> text src <> "]]"
-              else if useAuto
-                      then if plain
-                              then text srcSuffix
-                              else "<" <> text srcSuffix <> ">"
-                      else if useRefLinks
-                              then let first  = "[" <> linktext <> "]"
-                                       second = if txt == ref
-                                                   then if useShortcutRefLinks
-                                                           then ""
-                                                           else "[]"
-                                                   else "[" <> reftext <> "]"
-                                   in  first <> second
-                              else if plain
-                                      then linktext
-                                      else "[" <> linktext <> "](" <>
-                                           text src <> linktitle <> ")" <>
-                                           linkAttributes opts attr
+  return $
+    let wikilinkString =
+          let deunder c = if c == '_' then ' ' else c
+              deiki s = map deunder $ (reverse . takeWhile (/= '/') . reverse) $ s
+              lab = stringify txt
+          in if deiki src == lab
+                then "[[" <> text src <> "]]"
+                else "[[" <> linktext <> "|" <> text src <> "]]"
+        autoString = if plain then text srcSuffix else "<" <> text srcSuffix <> ">"
+        refLinksString =
+          let first  = "[" <> linktext <> "]"
+              second = if txt == ref
+                          then if useShortcutRefLinks then "" else "[]"
+                          else "[" <> reftext <> "]"
+          in  first <> second
+    in if useWikilink then wikilinkString
+       else if useAuto then autoString
+       else if useRefLinks then refLinksString
+       else if plain then linktext
+       else "[" <> linktext <> "](" <> text src <> linktitle <> ")" <> linkAttributes opts attr
 inlineToMarkdown opts img@(Image attr alternate (source, tit))
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts) &&
