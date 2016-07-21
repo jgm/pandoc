@@ -14,10 +14,13 @@ DIST=`pwd`/$BASE
 DEST=$DIST/usr
 ME=$(whoami)
 COPYRIGHT=$DEST/share/doc/pandoc/copyright
-TEMPDIR=make_binary_package.tmp.$$
 
 # We need this for hsb2hs:
 PATH=$LOCAL/bin:$PATH
+
+mkdir -p $DEST/bin
+mkdir -p $DEST/share/man/man1
+mkdir -p $DEST/share/doc/pandoc
 
 stack install --install-ghc --stack-yaml deb/stack.yaml --local-bin-path . hsb2hs
 stack install --install-ghc --stack-yaml deb/stack.yaml --local-bin-path . pandoc pandoc-citeproc
@@ -25,16 +28,10 @@ stack install --install-ghc --stack-yaml deb/stack.yaml --local-bin-path . pando
 make man/pandoc.1
 # get pandoc-citeproc man page:
 PANDOC_CITEPROC_VERSION=`pandoc-citeproc --version | awk '{print $2;}'`
-PANDOC_CITEPROC_TARBALL=https://hackage.haskell.org/package/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}.tar.gz
-mkdir $TEMPDIR
-curl ${PANDOC_CITEPROC_TARBALL} | tar xzC $TEMPDIR
-PANDOC_CITEPROC_PATH=$TEMPDIR/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}
+curl https://raw.githubusercontent.com/jgm/pandoc-citeproc/${PANDOC_CITEPROC_VERSION}/man/man1/pandoc-citeproc.1 > $DEST/share/man/man1/pandoc-citeproc.1
 
 strip deb/pandoc
 strip deb/pandoc-citeproc
-mkdir -p $DEST/bin
-mkdir -p $DEST/share/man/man1
-mkdir -p $DEST/share/doc/pandoc
 
 mkdir -p $DEST/share/doc/pandoc-citeproc
 find $DIST -type d | xargs chmod 755
@@ -42,13 +39,11 @@ cp deb/pandoc $DEST/bin/
 cp deb/pandoc-citeproc $DEST/bin/
 cp man/pandoc.1 $DEST/share/man/man1/pandoc.1
 gzip -9 $DEST/share/man/man1/pandoc.1
-cp ${PANDOC_CITEPROC_PATH}/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
 cp COPYRIGHT $COPYRIGHT
 echo "" >> $COPYRIGHT
 echo "pandoc-citeproc" >> $COPYRIGHT
 cat $PANDOC_CITEPROC_PATH/LICENSE >> $COPYRIGHT
-rm -rf $TEMPDIR
 
 INSTALLED_SIZE=$(du -B 1024 -s $DEST | awk '{print $1}')
 mkdir $DIST/DEBIAN
