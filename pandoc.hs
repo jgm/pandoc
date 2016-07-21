@@ -209,6 +209,7 @@ data Opt = Opt
     , optLaTeXEngineArgs   :: [String]   -- ^ Flags to pass to the latex-engine
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
+    , optPreferFenced      :: Bool       -- ^ Use fenced code blocks if no attributes in markdown
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
     , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
     , optDefaultImageExtension :: String -- ^ Default image extension
@@ -273,6 +274,7 @@ defaultOpts = Opt
     , optLaTeXEngineArgs       = []
     , optSlideLevel            = Nothing
     , optSetextHeaders         = True
+    , optPreferFenced          = False
     , optAscii                 = False
     , optTeXLigatures          = True
     , optDefaultImageExtension = ""
@@ -587,6 +589,11 @@ options =
                  (NoArg
                   (\opt -> return opt { optSetextHeaders = False } ))
                  "" -- "Use atx-style headers for markdown"
+
+    , Option "" ["prefer-fenced-code-blocks"]
+                 (NoArg
+                  (\opt -> return opt { optPreferFenced = True } ))
+                 "" -- "Use fenced code blocks if no attributes in markdown"
 
     , Option "" ["chapters"]
                  (NoArg
@@ -1118,6 +1125,7 @@ convertWithOpts opts args = do
               , optLaTeXEngineArgs       = latexEngineArgs
               , optSlideLevel            = slideLevel
               , optSetextHeaders         = setextHeaders
+              , optPreferFenced          = preferFenced
               , optAscii                 = ascii
               , optTeXLigatures          = texLigatures
               , optDefaultImageExtension = defaultImageExtension
@@ -1360,6 +1368,7 @@ convertWithOpts opts args = do
                             writerHighlight        = highlight,
                             writerHighlightStyle   = highlightStyle,
                             writerSetextHeaders    = setextHeaders,
+                            writerPreferFenced     = preferFenced,
                             writerTeXLigatures     = texLigatures,
                             writerEpubMetadata     = epubMetadata,
                             writerEpubStylesheet   = epubStylesheet,
