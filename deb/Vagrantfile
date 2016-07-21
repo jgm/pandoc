@@ -69,7 +69,7 @@ Vagrant.configure(2) do |config|
     sudo apt-key add fpco.key
     echo 'deb http://download.fpcomplete.com/ubuntu/precise stable main'|sudo tee /etc/apt/sources.list.d/fpco.list
     sudo apt-get update
-    sudo apt-get install -y stack build-essential debhelper dh-make
+    sudo apt-get install -y stack build-essential debhelper dh-make curl
     sudo cp /vagrant_data/deb/*.pem /etc/ssl/certs/
   SHELL
 end
