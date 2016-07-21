@@ -634,6 +634,9 @@ Options affecting specific writers
 :   Use reference-style links, rather than inline links, in writing Markdown
     or reStructuredText.  By default inline links are used.
 
+`--bullet-list-marker=`*minus|plus|asterisk*
+:   Specify bullet list marker in markdown. The default is `minus`.
+
 `--atx-headers`
 
 :   Use ATX-style headers in Markdown and asciidoc output. The default is

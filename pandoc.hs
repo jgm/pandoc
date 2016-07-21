@@ -208,6 +208,7 @@ data Opt = Opt
     , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
     , optLaTeXEngineArgs   :: [String]   -- ^ Flags to pass to the latex-engine
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
+    , optBulletListMarker  :: Char       -- ^ Bullet list marker in markdown
     , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
     , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
@@ -272,6 +273,7 @@ defaultOpts = Opt
     , optLaTeXEngine           = "pdflatex"
     , optLaTeXEngineArgs       = []
     , optSlideLevel            = Nothing
+    , optBulletListMarker      = '-'
     , optSetextHeaders         = True
     , optAscii                 = False
     , optTeXLigatures          = True
@@ -582,6 +584,19 @@ options =
                  (NoArg
                   (\opt -> return opt { optReferenceLinks = True } ))
                  "" -- "Use reference links in parsing HTML"
+
+    , Option "" ["bullet-list-marker"]
+                 (ReqArg
+                  (\arg opt -> do
+                     marker <- case arg of
+                            "minus"    -> return '-'
+                            "plus"     -> return '+'
+                            "asterisk" -> return '*'
+                            _          -> err 6
+                               ("Unknown bullet list marker: " ++ arg)
+                     return opt { optBulletListMarker = marker })
+                  "minus|plus|asterisk")
+                 "" -- "Marker for bullet list in Markdown"
 
     , Option "" ["atx-headers"]
                  (NoArg
@@ -1117,6 +1132,7 @@ convertWithOpts opts args = do
               , optLaTeXEngine           = latexEngine
               , optLaTeXEngineArgs       = latexEngineArgs
               , optSlideLevel            = slideLevel
+              , optBulletListMarker      = bulletListMarker
               , optSetextHeaders         = setextHeaders
               , optAscii                 = ascii
               , optTeXLigatures          = texLigatures
@@ -1359,6 +1375,7 @@ convertWithOpts opts args = do
                             writerSlideLevel       = slideLevel,
                             writerHighlight        = highlight,
                             writerHighlightStyle   = highlightStyle,
+                            writerBulletListMarker = bulletListMarker,
                             writerSetextHeaders    = setextHeaders,
                             writerTeXLigatures     = texLigatures,
                             writerEpubMetadata     = epubMetadata,
