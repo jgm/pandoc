@@ -43,7 +43,7 @@ gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
 cp COPYRIGHT $COPYRIGHT
 echo "" >> $COPYRIGHT
 echo "pandoc-citeproc" >> $COPYRIGHT
-cat $PANDOC_CITEPROC_PATH/LICENSE >> $COPYRIGHT
+curl https://raw.githubusercontent.com/jgm/pandoc-citeproc/${PANDOC_CITEPROC_VERSION}/LICENSE >> $COPYRIGHT
 
 INSTALLED_SIZE=$(du -B 1024 -s $DEST | awk '{print $1}')
 mkdir $DIST/DEBIAN
