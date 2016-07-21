@@ -32,7 +32,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Markdown ( readMarkdown,
                                       readMarkdownWithWarnings ) where
 
-import Data.List ( transpose, sortBy, elemIndex, elemIndices, findIndex, intersperse, intercalate )
+import Data.List ( transpose, sortBy, findIndex, intersperse, intercalate )
 import qualified Data.Map as M
 import Data.Scientific (coefficient, base10Exponent)
 import Data.Ord ( comparing )
@@ -1742,48 +1742,41 @@ source = do
 linkTitle :: MarkdownParser String
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
 
-wikilinkstuff :: MarkdownParser (F Inlines, String)
-wikilinkstuff = do
+wikilinkInfo :: MarkdownParser (F Inlines, String)
+wikilinkInfo = do
   string "[["
   (_, raw) <- withRaw $ charsInBalancedBrackets 2
   guard $ not $ null raw
   let deunder c = if c == '_' then ' ' else c
-      deiki s = case elemIndices '/' s of
-                  [] -> map deunder s
-                  xs -> map deunder (drop ((last xs) + 1) s)
-  case elemIndex '|' raw of
-    Nothing -> do
-      let rawstr = ((reverse . (drop 2) . reverse) raw)
-          srcstr = rawstr
-          labstr = deiki rawstr
-      src <- parseFromString (many anyChar) srcstr
-      lab <- parseFromString (trimInlinesF . mconcat <$> many inline) labstr
-      return (lab, src)
-    Just idx -> do
-      let rawstr = ((reverse . (drop 2) . reverse) raw)
-          srcstr = (drop (idx + 1) rawstr)
-          labstr = deiki (take idx rawstr)
-      src <- parseFromString (many anyChar) srcstr
-      lab <- parseFromString (trimInlinesF . mconcat <$> many inline) labstr
-      return (lab, src)
+      deiki s = map deunder $ (reverse . takeWhile (/= '/') . reverse) $ s
+      rawstr = (reverse . drop 2 . reverse) raw
+      parseLabelAndSrc l s = do
+        lab <- parseFromString (trimInlinesF . mconcat <$> many inline) l
+        src <- parseFromString (many anyChar) s
+        return (lab, src)
+      (pre, pipe) = span (/= '|') rawstr
+      labstr = deiki pre
+      srcstr = if pipe == [] then pre else drop 1 pipe
+  parseLabelAndSrc labstr srcstr
+
+withDisallowedLinks :: MarkdownParser a -> MarkdownParser a
+withDisallowedLinks action = do
+  st <- getState
+  guard $ stateAllowLinks st
+  setState $ st { stateAllowLinks = False }
+  result <- action
+  setState $ st { stateAllowLinks = True }
+  return result
 
 wikilink :: MarkdownParser (F Inlines)
 wikilink = try $ do
   guardEnabled Ext_ikiwiki_wikilinks
-  st <- getState
-  guard $ stateAllowLinks st
-  setState $ st { stateAllowLinks = False }
-  (lab,src) <- wikilinkstuff
-  setState $ st { stateAllowLinks = True }
+  (lab, src) <- withDisallowedLinks wikilinkInfo
   return $ B.link src "wikilink" <$> lab
 
 link :: MarkdownParser (F Inlines)
 link = try $ do
-  st <- getState
-  guard $ stateAllowLinks st
-  setState $ st{ stateAllowLinks = False }
-  (lab,raw) <- reference
-  setState $ st{ stateAllowLinks = True }
+  (lab,raw) <- withDisallowedLinks reference
   regLink B.linkWith lab <|> referenceLink B.linkWith (lab,raw)
 
 regLink :: (Attr -> String -> String -> Inlines -> Inlines)
