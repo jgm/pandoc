@@ -1,7 +1,7 @@
 *~
 dist/*
-README.*
-!README.Debian
+MANUAL.*
+!MANUAL.txt
 INSTALL.*
 .configure-stamp
 .cabal-sandbox

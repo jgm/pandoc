@@ -37,7 +37,7 @@ after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
   - cd windows
   - 7z a "pandoc.zip" pandoc.exe
-  - .\pandoc.exe -s -S --toc ..\README -o README.html
+  - .\pandoc.exe -s -S --toc ..\MANUAL.txt -o MANUAL.html
   - .\pandoc.exe -s -S ..\COPYING -o COPYING.rtf
   - copy ..\COPYRIGHT COPYRIGHT.txt
   - |

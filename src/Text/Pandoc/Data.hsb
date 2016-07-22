@@ -12,4 +12,4 @@ dataFiles = map (\(fp, contents) ->
   (Posix.joinPath (splitDirectories fp), contents)) dataFiles'
 
 dataFiles' :: [(FilePath, B.ByteString)]
-dataFiles' = ("README", %blob "README") : %blobs "data"
+dataFiles' = ("MANUAL.txt", %blob "MANUAL.txt") : %blobs "data"
