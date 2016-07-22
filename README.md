@@ -92,6 +92,7 @@ Markdown can be expected to be lossy.
 [![stackage LTS package](http://stackage.org/package/pandoc/badge/lts)](http://stackage.org/lts/package/pandoc)
 [![github release](https://img.shields.io/github/release/jgm/pandoc.svg?label=github+release)](https://github.com/jgm/pandoc/releases)
 [![travis build status](https://img.shields.io/travis/jgm/pandoc.svg)](https://travis-ci.org/jgm/pandoc)
+[![appveyor build status]](https://ci.appveyor.com/project/jgm/pandoc)
 
 
 Documentation
