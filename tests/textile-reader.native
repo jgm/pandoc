@@ -25,7 +25,7 @@ Pandoc (Meta {unMeta = fromList []})
 ,CodeBlock ("",[],[]) "    ---- (should be four hyphens)\n\n    sub status {\n        print \"working\";\n    }\n\n    this code block is indented by one tab"
 ,Para [Str "And:"]
 ,CodeBlock ("",[],[]) "        this code block is indented by two tabs\n\n    These should not be escaped:  \\$ \\\\ \\> \\[ \\{"
-,CodeBlock ("",[],[]) "Code block with .bc\n        continued\n    @</\\\n"
+,CodeBlock ("",[],[]) "Code block with .bc\n        continued\n    @</\\"
 ,Para [Str "Inline",Space,Str "code:",Space,Code ("",[],[]) "<tt>",Str ",",Space,Code ("",[],[]) "@",Str "."]
 ,Header 1 ("notextile",[],[]) [Str "Notextile"]
 ,Para [Str "A",Space,Str "block",Space,Str "of",Space,Str "text",Space,Str "can",Space,Str "be",Space,Str "protected",Space,Str "with",Space,Str "notextile",Space,Str ":"]

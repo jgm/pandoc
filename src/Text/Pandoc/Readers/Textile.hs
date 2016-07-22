@@ -161,9 +161,22 @@ codeBlock = codeBlockBc <|> codeBlockPre
 
 codeBlockBc :: Parser [Char] ParserState Blocks
 codeBlockBc = try $ do
-  string "bc. "
-  contents <- manyTill anyLine blanklines
-  return $ B.codeBlock (unlines contents)
+  string "bc."
+  extended <- option False (True <$ char '.')
+  char ' '
+  let starts = ["p", "table", "bq", "bc", "h1", "h2", "h3",
+                "h4", "h5", "h6", "pre", "###", "notextile"]
+  let ender = choice $ map explicitBlockStart starts
+  contents <- if extended
+                 then do
+                   f <- anyLine
+                   rest <- many (notFollowedBy ender *> anyLine)
+                   return (f:rest)
+                 else manyTill anyLine blanklines
+  return $ B.codeBlock (trimTrailingNewlines (unlines contents))
+
+trimTrailingNewlines :: String -> String
+trimTrailingNewlines = reverse . dropWhile (=='\n') . reverse
 
 -- | Code Blocks in Textile are between <pre> and </pre>
 codeBlockPre :: Parser [Char] ParserState Blocks
@@ -408,14 +421,21 @@ ignorableRow = try $ do
   _ <- anyLine
   return ()
 
+explicitBlockStart :: String -> Parser [Char] ParserState ()
+explicitBlockStart name = try $ do
+  string name
+  attributes
+  char '.'
+  optional whitespace
+  optional endline
+
 -- | Blocks like 'p' and 'table' do not need explicit block tag.
 -- However, they can be used to set HTML/CSS attributes when needed.
 maybeExplicitBlock :: String  -- ^ block tag name
                     -> Parser [Char] ParserState Blocks -- ^ implicit block
                     -> Parser [Char] ParserState Blocks
 maybeExplicitBlock name blk = try $ do
-  optional $ try $ string name >> attributes >> char '.' >>
-    optional whitespace >> optional endline
+  optional $ explicitBlockStart name
   blk
 
 
