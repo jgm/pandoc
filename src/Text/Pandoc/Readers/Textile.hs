@@ -594,7 +594,7 @@ link = try $ do
                 then char ']'
                 else lookAhead $ space <|>
                        try (oneOf "!.,;:" *> (space <|> newline))
-  url <- manyTill nonspaceChar stop
+  url <- many1Till nonspaceChar stop
   let name' = if B.toList name == [Str "$"] then B.str url else name
   return $ if attr == nullAttr
               then B.link url "" name'
