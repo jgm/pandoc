@@ -10,8 +10,6 @@ flags:
   pandoc-citeproc:
     bibutils: true
     embed_data_files: true
-  texmath:
-    network-uri: true
 packages:
 - '.'
 - '../pandoc-citeproc'
