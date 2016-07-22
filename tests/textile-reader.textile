@@ -68,6 +68,11 @@ bc. Code block with .bc
         continued
     @</\
 
+bc.. extended code block
+
+        continued
+p. ended by paragraph
+
 Inline code: @<tt>@, <tt>@</tt>.
 
 h1. Notextile
