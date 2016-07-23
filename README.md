@@ -98,7 +98,7 @@ Markdown can be expected to be lossy.
 Documentation
 -------------
 
-The full documentation can be found [online](https://pandoc.org/MANUAL.html)
+The full documentation can be found [online](http://pandoc.org/MANUAL.html)
 and as pandoc-flavored Markdown in the file `MANUAL.txt`.
 
 
