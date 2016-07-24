@@ -23,4 +23,5 @@ extra-deps:
 - 'data-default-instances-base-0.1.0.1'
 - 'cmark-0.5.3.1'
 - 'aeson-pretty-0.8.1'
+- 'texmath-0.8.6.5'
 resolver: nightly-2016-07-11
