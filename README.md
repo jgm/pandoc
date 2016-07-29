@@ -12,10 +12,10 @@ another, and a command-line tool that uses this library. It can read
 Org mode], [DocBook], [txt2tags], [EPUB], [ODT] and [Word docx]; and it can
 write plain text, [Markdown], [CommonMark], [PHP Markdown Extra],
 [GitHub-Flavored Markdown], [MultiMarkdown], [reStructuredText], [XHTML],
-[HTML5], [LaTeX] (including [`beamer`] slide shows), [ConTeXt], [RTF], [OPML],
+[HTML5], [LaTeX] \(including [`beamer`] slide shows\), [ConTeXt], [RTF], [OPML],
 [DocBook], [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
 markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup],
-[EPUB] (v2 or v3), [FictionBook2], [Textile], [groff man] pages,
+[EPUB] \(v2 or v3\), [FictionBook2], [Textile], [groff man] pages,
 [Emacs Org mode], [AsciiDoc], [InDesign ICML], [TEI Simple], and [Slidy],
 [Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows. It can also
 produce [PDF] output on systems where LaTeX, ConTeXt, or `wkhtmltopdf` is
