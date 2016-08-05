@@ -45,7 +45,7 @@ $if(CJKmainfont)$
 $endif$
 \fi
 $if(theme)$
-\usetheme{$theme$}
+\usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
 $endif$
 $if(colortheme)$
 \usecolortheme{$colortheme$}
