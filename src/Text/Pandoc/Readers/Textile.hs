@@ -60,7 +60,7 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isInlineTag )
 import Text.Pandoc.Shared (trim)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
-import Text.HTML.TagSoup (parseTags, innerText, fromAttrib, Tag(..))
+import Text.HTML.TagSoup (fromAttrib, Tag(..))
 import Text.HTML.TagSoup.Match
 import Data.List ( intercalate, transpose, intersperse )
 import Data.Char ( digitToInt, isUpper )
@@ -182,8 +182,7 @@ trimTrailingNewlines = reverse . dropWhile (=='\n') . reverse
 codeBlockPre :: Parser [Char] ParserState Blocks
 codeBlockPre = try $ do
   (t@(TagOpen _ attrs),_) <- htmlTag (tagOpen (=="pre") (const True))
-  result' <- (innerText . parseTags) `fmap` -- remove internal tags
-               manyTill anyChar (htmlTag (tagClose (=="pre")))
+  result' <- manyTill anyChar (htmlTag (tagClose (=="pre")))
   optional blanklines
   -- drop leading newline if any
   let result'' = case result' of
