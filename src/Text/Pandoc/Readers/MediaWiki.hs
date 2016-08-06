@@ -253,7 +253,7 @@ parseAttr = try $ do
   k <- many1 letter
   char '='
   v <- (char '"' >> many1Till (satisfy (/='\n')) (char '"'))
-       <|> many1 nonspaceChar
+       <|> many1 (satisfy $ \c -> not (isSpace c) && c /= '|')
   return (k,v)
 
 tableStart :: MWParser ()
