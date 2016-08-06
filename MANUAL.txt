@@ -1173,6 +1173,10 @@ including all [reveal.js configuration options].
 :   enables on "title pages" for new sections in `beamer`
     documents (default = true).
 
+`beamerarticle`
+:   when true, the `beamerarticle` package is loaded (for
+    producing an article from beamer slides).
+
 [reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
 Variables for LaTeX
