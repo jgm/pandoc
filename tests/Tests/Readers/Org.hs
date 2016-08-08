@@ -1440,6 +1440,14 @@ tests =
                   ] =?>
           para ("foo" <> linebreak <> linebreak <> "bar")
 
+      , "Verse block with varying indentation" =:
+          unlines [ "#+BEGIN_VERSE"
+                  , "  hello darkness"
+                  , "my old friend"
+                  , "#+END_VERSE"
+                  ] =?>
+          para ("\160\160hello darkness" <> linebreak <> "my old friend")
+
       , "Raw block LaTeX" =:
           unlines [ "#+BEGIN_LaTeX"
                   , "The category $\\cat{Set}$ is adhesive."
