@@ -27,13 +27,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Utility functions used in other Pandoc Org modules.
 -}
 module Text.Pandoc.Readers.Org.Shared
-  ( isImageFilename
+  ( cleanLinkString
+  , isImageFilename
   , rundocBlockClass
   , toRundocAttrib
   , translateLang
   ) where
 
 import           Control.Arrow ( first )
+import           Data.Char ( isAlphaNum )
 import           Data.List ( isPrefixOf, isSuffixOf )
 
 
@@ -41,11 +43,30 @@ import           Data.List ( isPrefixOf, isSuffixOf )
 isImageFilename :: String -> Bool
 isImageFilename filename =
   any (\x -> ('.':x)  `isSuffixOf` filename) imageExtensions &&
-  (any (\x -> (x++":") `isPrefixOf` filename) protocols ||
+  (any (\x -> (x ++ "://") `isPrefixOf` filename) protocols ||
    ':' `notElem` filename)
  where
    imageExtensions = [ "jpeg" , "jpg" , "png" , "gif" , "svg" ]
    protocols = [ "file", "http", "https" ]
+
+-- | Cleanup and canonicalize a string describing a link.  Return @Nothing@ if
+-- the string does not appear to be a link.
+cleanLinkString :: String -> Maybe String
+cleanLinkString s =
+  case s of
+    '/':_                  -> Just $ "file://" ++ s  -- absolute path
+    '.':'/':_              -> Just s                 -- relative path
+    '.':'.':'/':_          -> Just s                 -- relative path
+    -- Relative path or URL (file schema)
+    'f':'i':'l':'e':':':s' -> Just $ if ("//" `isPrefixOf` s') then s else s'
+    _ | isUrl s            -> Just s                 -- URL
+    _                      -> Nothing
+ where
+   isUrl :: String -> Bool
+   isUrl cs =
+     let (scheme, path) = break (== ':') cs
+     in all (\c -> isAlphaNum c || c `elem` (".-"::String)) scheme
+          && not (null path)
 
 -- | Prefix used for Rundoc classes and arguments.
 rundocPrefix :: String

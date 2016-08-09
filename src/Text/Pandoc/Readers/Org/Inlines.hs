@@ -37,8 +37,8 @@ import           Text.Pandoc.Readers.Org.BlockStarts
 import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Readers.Org.Parsing
 import           Text.Pandoc.Readers.Org.Shared
-                   ( isImageFilename, rundocBlockClass, toRundocAttrib
-                   , translateLang )
+                   ( cleanLinkString, isImageFilename, rundocBlockClass
+                   , toRundocAttrib, translateLang )
 
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines )
@@ -52,7 +52,7 @@ import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 import           Prelude hiding (sequence)
 import           Control.Monad ( guard, mplus, mzero, when, void )
 import           Data.Char ( isAlphaNum, isSpace )
-import           Data.List ( intersperse, isPrefixOf )
+import           Data.List ( intersperse )
 import           Data.Maybe ( fromMaybe )
 import qualified Data.Map as M
 import           Data.Traversable (sequence)
@@ -435,9 +435,11 @@ explicitOrImageLink = try $ do
   char ']'
   return $ do
     src <- srcF
-    if isImageFilename title
-      then pure $ B.link src "" $ B.image title mempty mempty
-      else linkToInlinesF src =<< title'
+    case cleanLinkString title of
+      Just imgSrc | isImageFilename imgSrc ->
+        pure $ B.link src "" $ B.image imgSrc mempty mempty
+      _ ->
+        linkToInlinesF src =<< title'
 
 selflinkOrImage :: OrgParser (F Inlines)
 selflinkOrImage = try $ do
@@ -481,25 +483,6 @@ linkToInlinesF linkStr =
                                        then const . pure $ B.image cleanedLink "" ""
                                        else pure . B.link cleanedLink ""
                  Nothing -> internalLink linkStr  -- other internal link
-
--- | Cleanup and canonicalize a string describing a link.  Return @Nothing@ if
--- the string does not appear to be a link.
-cleanLinkString :: String -> Maybe String
-cleanLinkString s =
-  case s of
-    '/':_                  -> Just $ "file://" ++ s  -- absolute path
-    '.':'/':_              -> Just s                 -- relative path
-    '.':'.':'/':_          -> Just s                 -- relative path
-    -- Relative path or URL (file schema)
-    'f':'i':'l':'e':':':s' -> Just $ if ("//" `isPrefixOf` s') then s else s'
-    _ | isUrl s            -> Just s                 -- URL
-    _                      -> Nothing
- where
-   isUrl :: String -> Bool
-   isUrl cs =
-     let (scheme, path) = break (== ':') cs
-     in all (\c -> isAlphaNum c || c `elem` (".-"::String)) scheme
-          && not (null path)
 
 internalLink :: String -> Inlines -> F Inlines
 internalLink link title = do

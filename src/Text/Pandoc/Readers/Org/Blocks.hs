@@ -39,8 +39,8 @@ import           Text.Pandoc.Readers.Org.Inlines
 import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Readers.Org.Parsing
 import           Text.Pandoc.Readers.Org.Shared
-                   ( isImageFilename, rundocBlockClass, toRundocAttrib
-                   , translateLang )
+                   ( cleanLinkString, isImageFilename, rundocBlockClass
+                   , toRundocAttrib, translateLang )
 
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines, Blocks )
@@ -571,23 +571,33 @@ figure :: OrgParser (F Blocks)
 figure = try $ do
   figAttrs <- blockAttributes
   src <- skipSpaces *> selfTarget <* skipSpaces <* newline
-  guard . not . isNothing . blockAttrCaption $ figAttrs
-  guard (isImageFilename src)
-  let figName    = fromMaybe mempty $ blockAttrName figAttrs
-  let figLabel   = fromMaybe mempty $ blockAttrLabel figAttrs
-  let figCaption = fromMaybe mempty $ blockAttrCaption figAttrs
-  let figKeyVals = blockAttrKeyValues figAttrs
-  let attr       = (figLabel, mempty, figKeyVals)
-  return $ (B.para . B.imageWith attr src (withFigPrefix figName) <$> figCaption)
+  case cleanLinkString src of
+    Nothing     -> mzero
+    Just imgSrc -> do
+      guard (not . isNothing . blockAttrCaption $ figAttrs)
+      guard (isImageFilename imgSrc)
+      return $ figureBlock figAttrs imgSrc
  where
+   selfTarget :: OrgParser String
+   selfTarget = try $ char '[' *> linkTarget <* char ']'
+
+   figureBlock :: BlockAttributes -> String -> (F Blocks)
+   figureBlock figAttrs imgSrc =
+     let
+       figName    = fromMaybe mempty $ blockAttrName figAttrs
+       figLabel   = fromMaybe mempty $ blockAttrLabel figAttrs
+       figCaption = fromMaybe mempty $ blockAttrCaption figAttrs
+       figKeyVals = blockAttrKeyValues figAttrs
+       attr       = (figLabel, mempty, figKeyVals)
+     in
+       B.para . B.imageWith attr imgSrc (withFigPrefix figName) <$> figCaption
+
    withFigPrefix :: String -> String
    withFigPrefix cs =
      if "fig:" `isPrefixOf` cs
      then cs
      else "fig:" ++ cs
 
-   selfTarget :: OrgParser String
-   selfTarget = try $ char '[' *> linkTarget <* char ']'
 
 --
 -- Examples
