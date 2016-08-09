@@ -219,12 +219,12 @@ tests =
           (para $ link "" "" "New Link")
 
       , "Image link" =:
-          "[[sunset.png][dusk.svg]]" =?>
+          "[[sunset.png][file:dusk.svg]]" =?>
           (para $ link "sunset.png" "" (image "dusk.svg" "" ""))
 
       , "Image link with non-image target" =:
-          "[[http://example.com][logo.png]]" =?>
-          (para $ link "http://example.com" "" (image "logo.png" "" ""))
+          "[[http://example.com][./logo.png]]" =?>
+          (para $ link "http://example.com" "" (image "./logo.png" "" ""))
 
       , "Plain link" =:
           "Posts on http://zeitlens.com/ can be funny at times." =?>
@@ -810,29 +810,29 @@ tests =
         [ "Figure" =:
             unlines [ "#+caption: A very courageous man."
                     , "#+name: goodguy"
-                    , "[[edward.jpg]]"
+                    , "[[file:edward.jpg]]"
                     ] =?>
             para (image "edward.jpg" "fig:goodguy" "A very courageous man.")
 
         , "Figure with no name" =:
             unlines [ "#+caption: I've been through the desert on this"
-                    , "[[horse.png]]"
+                    , "[[file:horse.png]]"
                     ] =?>
             para (image "horse.png" "fig:" "I've been through the desert on this")
 
         , "Figure with `fig:` prefix in name" =:
             unlines [ "#+caption: Used as a metapher in evolutionary biology."
                     , "#+name: fig:redqueen"
-                    , "[[the-red-queen.jpg]]"
+                    , "[[./the-red-queen.jpg]]"
                     ] =?>
-            para (image "the-red-queen.jpg" "fig:redqueen"
+            para (image "./the-red-queen.jpg" "fig:redqueen"
                         "Used as a metapher in evolutionary biology.")
 
         , "Figure with HTML attributes" =:
             unlines [ "#+CAPTION: mah brain just explodid"
                     , "#+NAME: lambdacat"
                     , "#+ATTR_HTML: :style color: blue :role button"
-                    , "[[lambdacat.jpg]]"
+                    , "[[file:lambdacat.jpg]]"
                     ] =?>
             let kv = [("style", "color: blue"), ("role", "button")]
                 name = "fig:lambdacat"
@@ -842,7 +842,7 @@ tests =
         , "Labelled figure" =:
             unlines [ "#+CAPTION: My figure"
                     , "#+LABEL: fig:myfig"
-                    , "[[blub.png]]"
+                    , "[[file:blub.png]]"
                     ] =?>
             let attr = ("fig:myfig", mempty, mempty)
             in para (imageWith attr "blub.png" "fig:" "My figure")
