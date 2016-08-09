@@ -422,7 +422,16 @@ verseBlock blockType = try $ do
   ignHeaders
   content <- rawBlockContent blockType
   fmap B.para . mconcat . intersperse (pure B.linebreak)
-    <$> mapM (parseFromString inlines) (map (++ "\n") . lines $ content)
+    <$> mapM parseVerseLine (lines content)
+ where
+   -- replace initial spaces with nonbreaking spaces to preserve
+   -- indentation, parse the rest as normal inline
+   parseVerseLine :: String -> OrgParser (F Inlines)
+   parseVerseLine cs = do
+     let (initialSpaces, indentedLine) = span isSpace cs
+     let nbspIndent = B.str $ map (const '\160') initialSpaces
+     line <- parseFromString inlines (indentedLine ++ "\n")
+     return (pure nbspIndent <> line)
 
 -- | Read a code block and the associated results block if present.  Which of
 -- boths blocks is included in the output is determined using the "exports"
