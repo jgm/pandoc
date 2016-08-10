@@ -8,6 +8,32 @@ There are also binary installers for Windows and Mac OS X.
 If you are installing the development version from github, see also:
 https://github.com/jgm/pandoc/wiki/Installing-the-development-version-of-pandoc
 
+How to get the source
+---------------------
+
+Source tarballs can be found at
+<https://hackage.haskell.org/package/pandoc>.  The tarball
+for a particular version `VERSION` can be found at
+
+    https://hackage.haskell.org/package/pandoc-VERSION/pandoc-VERSION.tar.gz
+
+**Do not use the automatically generated tarball that can be
+downloaded from pandoc's GitHub releases page.**  It does not
+include some essential template files, which come from a GitHub
+submodule.
+
+If you want the latest development code, you can fetch it
+by cloning the repository:
+
+    git clone https://github.com/jgm/pandoc
+    cd pandoc
+    git submodule update --init   # to fetch the templates
+
+Note:  there may be times when the development code is broken
+or depends on other libraries which must be installed
+separately.  Unless you really know what you're doing, install
+the last released version.
+
 Quick install with stack
 ------------------------
 
