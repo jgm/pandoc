@@ -1164,6 +1164,9 @@ including all [reveal.js configuration options].
 `theme`, `colortheme`, `fonttheme`, `innertheme`, `outertheme`
 :   themes for LaTeX [`beamer`] documents
 
+`themeoptions`
+:   options for LaTeX beamer themes (a list).
+
 `navigation`
 :   controls navigation symbols in `beamer` documents
     (default is `empty` for no navigation symbols; other valid values
