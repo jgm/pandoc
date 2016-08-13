@@ -732,6 +732,12 @@ getUniqueId :: MonadIO m => m String
 -- already in word/document.xml.rel
 getUniqueId = liftIO $ (show . (+ 20) . hashUnique) `fmap` newUnique
 
+
+-- | This will be the "namespace" (along with a colon) for dynamic
+-- classes that will be passed along to paragraphs.
+dynamicClassNS :: String
+dynamicClassNS = "pandoc"
+
 -- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: WriterOptions -> Block -> WS [Element]
 blockToOpenXML _ Null = return []
