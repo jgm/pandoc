@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
-import Data.List ( intercalate, isPrefixOf, isSuffixOf )
+import Data.List ( intercalate, isPrefixOf, isSuffixOf, stripPrefix )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -747,6 +747,13 @@ blockToOpenXML opts (Div (_,["references"],_) bs) = do
   -- We put the Bibliography style on paragraphs after the header
   rest <- withParaPropM (pStyleM "Bibliography") $ blocksToOpenXML opts bs'
   return (header ++ rest)
+blockToOpenXML opts (Div (_, [cls], _) bs) =
+  -- stripPrefix produces a Maybe value, so we can just plug it into
+  -- our dynamic class environment. If it produces a Nothing, it will
+  -- just stay as the default environment.
+  let mDynClass = stripPrefix (dynamicClassNS ++ ":") cls
+  in
+    local (\r -> r{envDynamicClass = mDynClass}) (blocksToOpenXML opts bs)
 blockToOpenXML opts (Div _ bs) = blocksToOpenXML opts bs
 blockToOpenXML opts (Header lev (ident,_,_) lst) = do
   setFirstPara
