@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
-import Data.List ( intercalate, isPrefixOf, isSuffixOf )
+import Data.List ( intercalate, isPrefixOf, isSuffixOf, stripPrefix )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -55,6 +55,7 @@ import Text.TeXMath
 import Text.Pandoc.Readers.Docx.StyleMap
 import Text.Pandoc.Readers.Docx.Util (elemName)
 import Control.Monad.State
+import Control.Monad.Reader
 import Text.Highlighting.Kate
 import Data.Unique (hashUnique, newUnique)
 import System.Random (randomRIO)
@@ -134,7 +135,13 @@ defaultWriterState = WriterState{
       , stTocTitle       = normalizeInlines [Str "Table of Contents"]
       }
 
-type WS a = StateT WriterState IO a
+data WriterEnv = WriterEnv { envDynamicClass :: Maybe String
+                           }
+
+defaultWriterEnv :: WriterEnv
+defaultWriterEnv = WriterEnv { envDynamicClass = Nothing }
+
+type WS a =  ReaderT WriterEnv (StateT WriterState IO) a
 
 mknode :: Node t => String -> [(String,String)] -> t -> Element
 mknode s attrs =
@@ -245,13 +252,16 @@ writeDocx opts doc@(Pandoc meta _) = do
   let tocTitle = fromMaybe (stTocTitle defaultWriterState) $
                     metaValueToInlines <$> lookupMeta "toc-title" meta
 
-  ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = WrapNone} doc')
-                       defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
-                                         , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
-                                         , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
-                                         , stStyleMaps  = styleMaps
-                                         , stTocTitle   = tocTitle
-                                         }
+  ((contents, footnotes), st) <- runStateT
+    (runReaderT
+     (writeOpenXML opts{writerWrapText = WrapNone} doc')
+     defaultWriterEnv)
+    defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
+                      , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
+                      , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
+                      , stStyleMaps  = styleMaps
+                      , stTocTitle   = tocTitle
+                      }
   let epochtime = floor $ utcTimeToPOSIXSeconds utctime
   let imgs = M.elems $ stImages st
 
@@ -722,6 +732,12 @@ getUniqueId :: MonadIO m => m String
 -- already in word/document.xml.rel
 getUniqueId = liftIO $ (show . (+ 20) . hashUnique) `fmap` newUnique
 
+
+-- | This will be the "namespace" (along with a colon) for dynamic
+-- classes that will be passed along to paragraphs.
+dynamicClassNS :: String
+dynamicClassNS = "pandoc"
+
 -- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: WriterOptions -> Block -> WS [Element]
 blockToOpenXML _ Null = return []
@@ -731,6 +747,13 @@ blockToOpenXML opts (Div (_,["references"],_) bs) = do
   -- We put the Bibliography style on paragraphs after the header
   rest <- withParaPropM (pStyleM "Bibliography") $ blocksToOpenXML opts bs'
   return (header ++ rest)
+blockToOpenXML opts (Div (_, [cls], _) bs) =
+  -- stripPrefix produces a Maybe value, so we can just plug it into
+  -- our dynamic class environment. If it produces a Nothing, it will
+  -- just stay as the default environment.
+  let mDynClass = stripPrefix (dynamicClassNS ++ ":") cls
+  in
+    local (\r -> r{envDynamicClass = mDynClass}) (blocksToOpenXML opts bs)
 blockToOpenXML opts (Div _ bs) = blocksToOpenXML opts bs
 blockToOpenXML opts (Header lev (ident,_,_) lst) = do
   setFirstPara
@@ -770,10 +793,12 @@ blockToOpenXML opts (Para lst) = do
                                [Math DisplayMath _] -> True
                                _                    -> False
   bodyTextStyle <- pStyleM "Body Text"
+  mDynClass <- asks envDynamicClass
   let paraProps' = case paraProps of
-        [] | isFirstPara -> [mknode "w:pPr" [] [pCustomStyle "FirstParagraph"]]
-        []               -> [mknode "w:pPr" [] [bodyTextStyle]]
-        ps               -> ps
+        [] | Just cls <- mDynClass -> [mknode "w:pPr" [] [pCustomStyle cls]]
+           | isFirstPara           -> [mknode "w:pPr" [] [pCustomStyle "FirstParagraph"]]
+           | otherwise             -> [mknode "w:pPr" [] [bodyTextStyle]]
+        ps                         -> ps
   modify $ \s -> s { stFirstPara = False }
   contents <- inlinesToOpenXML opts lst
   return [mknode "w:p" [] (paraProps' ++ contents)]
