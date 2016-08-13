@@ -793,10 +793,12 @@ blockToOpenXML opts (Para lst) = do
                                [Math DisplayMath _] -> True
                                _                    -> False
   bodyTextStyle <- pStyleM "Body Text"
+  mDynClass <- asks envDynamicClass
   let paraProps' = case paraProps of
-        [] | isFirstPara -> [mknode "w:pPr" [] [pCustomStyle "FirstParagraph"]]
-        []               -> [mknode "w:pPr" [] [bodyTextStyle]]
-        ps               -> ps
+        [] | Just cls <- mDynClass -> [mknode "w:pPr" [] [pCustomStyle cls]]
+           | isFirstPara           -> [mknode "w:pPr" [] [pCustomStyle "FirstParagraph"]]
+           | otherwise             -> [mknode "w:pPr" [] [bodyTextStyle]]
+        ps                         -> ps
   modify $ \s -> s { stFirstPara = False }
   contents <- inlinesToOpenXML opts lst
   return [mknode "w:p" [] (paraProps' ++ contents)]
