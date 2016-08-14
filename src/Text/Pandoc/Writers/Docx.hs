@@ -722,9 +722,15 @@ getUniqueId :: MonadIO m => m String
 -- already in word/document.xml.rel
 getUniqueId = liftIO $ (show . (+ 20) . hashUnique) `fmap` newUnique
 
+-- | Key for specifying user-defined docx styles.
+dynamicStyleKey :: String
+dynamicStyleKey = "docx-style"
+
 -- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: WriterOptions -> Block -> WS [Element]
 blockToOpenXML _ Null = return []
+blockToOpenXML opts (Div (_,_,kvs) bs) | Just sty <- lookup dynamicStyleKey kvs =
+  withParaPropM (pStyleM sty) $ blocksToOpenXML opts bs
 blockToOpenXML opts (Div (_,["references"],_) bs) = do
   let (hs, bs') = span isHeaderBlock bs
   header <- blocksToOpenXML opts hs
