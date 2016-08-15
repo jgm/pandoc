@@ -3850,9 +3850,9 @@ style `Emphatically`. Similarly,
     Dickinson starts the poem simply:
 
     <div custom-style="Poetry">
-	| A Bird came down the Walk---
-	| He did not know I saw---
-	</div>
+    | A Bird came down the Walk---
+    | He did not know I saw---
+    </div>
 	
 Would style the two contained lines with the `Poetry` paragraph style.
 
