@@ -407,13 +407,21 @@ writeDocx opts doc@(Pandoc meta _) = do
         $ renderXml $ mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
         linkrels
 
-  -- styles We only want to inject paragraph properties that are not
-  -- already in the style map. Note that keys in the stylemap are
-  -- normalized as lowercase.
+  -- styles
+
+  -- We only want to inject paragraph and text properties that
+  -- are not already in the style map. Note that keys in the stylemap
+  -- are normalized as lowercase.
   let newDynamicParaProps = filter
         (\sty -> isNothing $ M.lookup (toLower <$> sty) $ getMap $ sParaStyleMap styleMaps)
         (stDynamicParaProps st)
+
+      newDynamicTextProps = filter
+        (\sty -> isNothing $ M.lookup (toLower <$> sty) $ getMap $ sCharStyleMap styleMaps)
+        (stDynamicTextProps st)
+
   let newstyles = map newParaPropToOpenXml newDynamicParaProps ++
+                  map newTextPropToOpenXml newDynamicTextProps ++
                   (styleToOpenXml styleMaps $ writerHighlightStyle opts) 
   let styledoc' = styledoc{ elContent = modifyContent (elContent styledoc) }
                   where
@@ -521,6 +529,15 @@ newParaPropToOpenXml s =
      , mknode "w:qFormat" [] ()
      ]
 
+newTextPropToOpenXml :: String -> Element
+newTextPropToOpenXml s =
+  let styleId = filter (not . isSpace) s
+  in mknode "w:style" [ ("w:type", "character")
+                      , ("w:customStyle", "1")
+                      , ("w:styleId", styleId)]
+     [ mknode "w:name" [("w:val", s)] ()
+     , mknode "w:basedOn" [("w:val","BodyTextChar")] ()
+     ]
 
 styleToOpenXml :: StyleMaps -> Style -> [Element]
 styleToOpenXml sm style =
