@@ -764,7 +764,7 @@ getUniqueId = liftIO $ (show . (+ 20) . hashUnique) `fmap` newUnique
 
 -- | Key for specifying user-defined docx styles.
 dynamicStyleKey :: String
-dynamicStyleKey = "docx-style"
+dynamicStyleKey = "custom-style"
 
 -- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: WriterOptions -> Block -> WS [Element]
