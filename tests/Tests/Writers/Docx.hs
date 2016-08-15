@@ -13,118 +13,127 @@ import System.FilePath ((</>))
 type Options = (WriterOptions, ReaderOptions)
 
 compareOutput :: Options
-                 -> FilePath
-                 -> IO (Pandoc, Pandoc)
-compareOutput opts nativeFile = do
-  nf <- Prelude.readFile nativeFile
+              -> FilePath
+              -> FilePath
+              -> IO (Pandoc, Pandoc)
+compareOutput opts nativeFileIn nativeFileOut = do
+  nf <- Prelude.readFile nativeFileIn
+  nf' <- Prelude.readFile nativeFileOut
   let wopts = fst opts
   df <- writeDocx wopts{writerUserDataDir = Just (".." </> "data")}
              (handleError $ readNative nf)
   let (p, _) = handleError $ readDocx (snd opts) df
-  return (p, handleError $ readNative nf)
+  return (p, handleError $ readNative nf')
 
-testCompareWithOptsIO :: Options -> String -> FilePath -> IO Test
-testCompareWithOptsIO opts name nativeFile = do
-  (dp, np) <- compareOutput opts nativeFile
+testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO Test
+testCompareWithOptsIO opts name nativeFileIn nativeFileOut = do
+  (dp, np) <- compareOutput opts nativeFileIn nativeFileOut
   return $ test id name (dp, np)
 
-testCompareWithOpts :: Options -> String -> FilePath -> Test
-testCompareWithOpts opts name nativeFile =
-  buildTest $ testCompareWithOptsIO opts name nativeFile
+testCompareWithOpts :: Options -> String -> FilePath -> FilePath -> Test
+testCompareWithOpts opts name nativeFileIn nativeFileOut =
+  buildTest $ testCompareWithOptsIO opts name nativeFileIn nativeFileOut
 
-testCompare :: String -> FilePath -> Test
+roundTripCompareWithOpts :: Options -> String -> FilePath -> Test
+roundTripCompareWithOpts opts name nativeFile =
+  testCompareWithOpts opts name nativeFile nativeFile
+
+testCompare :: String -> FilePath -> FilePath -> Test
 testCompare = testCompareWithOpts def
+
+roundTripCompare :: String -> FilePath -> Test
+roundTripCompare = roundTripCompareWithOpts def
 
 tests :: [Test]
 tests = [ testGroup "inlines"
-          [ testCompare
+          [ roundTripCompare
             "font formatting"
             "docx/inline_formatting_writer.native"
-          , testCompare
+          , roundTripCompare
             "font formatting with character styles"
             "docx/char_styles.native"
-          , testCompare
+          , roundTripCompare
             "hyperlinks"
             "docx/links_writer.native"
-          , testCompare
+          , roundTripCompare
             "inline image"
             "docx/image_no_embed_writer.native"
-          , testCompare
+          , roundTripCompare
             "inline image in links"
             "docx/inline_images_writer.native"
-          , testCompare
+          , roundTripCompare
             "handling unicode input"
             "docx/unicode.native"
-          , testCompare
+          , roundTripCompare
             "literal tabs"
             "docx/tabs.native"
-          , testCompare
+          , roundTripCompare
             "normalizing inlines"
             "docx/normalize.native"
-          , testCompare
+          , roundTripCompare
             "normalizing inlines deep inside blocks"
             "docx/deep_normalize.native"
-          , testCompare
+          , roundTripCompare
             "move trailing spaces outside of formatting"
             "docx/trailing_spaces_in_formatting.native"
-          , testCompare
+          , roundTripCompare
             "inline code (with VerbatimChar style)"
             "docx/inline_code.native"
-          , testCompare
+          , roundTripCompare
             "inline code in subscript and superscript"
             "docx/verbatim_subsuper.native"
           ]
         , testGroup "blocks"
-          [ testCompare
+          [ roundTripCompare
             "headers"
             "docx/headers.native"
-          , testCompare
+          , roundTripCompare
             "headers already having auto identifiers"
             "docx/already_auto_ident.native"
-          , testCompare
+          , roundTripCompare
             "numbered headers automatically made into list"
             "docx/numbered_header.native"
-          , testCompare
+          , roundTripCompare
             "i18n blocks (headers and blockquotes)"
             "docx/i18n_blocks.native"
           -- Continuation does not survive round-trip
-          , testCompare
+          , roundTripCompare
             "lists"
             "docx/lists_writer.native"
-          , testCompare
+          , roundTripCompare
             "definition lists"
             "docx/definition_list.native"
-          , testCompare
+          , roundTripCompare
             "custom defined lists in styles"
             "docx/german_styled_lists.native"
-          , testCompare
+          , roundTripCompare
             "footnotes and endnotes"
             "docx/notes.native"
-          , testCompare
+          , roundTripCompare
             "blockquotes (parsing indent as blockquote)"
             "docx/block_quotes_parse_indent.native"
-          , testCompare
+          , roundTripCompare
             "hanging indents"
             "docx/hanging_indent.native"
           -- tables headers do not survive round-trip, should look into that
-          , testCompare
+          , roundTripCompare
             "tables"
             "docx/tables.native"
-          , testCompare
+          , roundTripCompare
             "tables with lists in cells"
             "docx/table_with_list_cell.native"
-          , testCompare
+          , roundTripCompare
             "code block"
             "docx/codeblock.native"
-          , testCompare
+          , roundTripCompare
             "dropcap paragraphs"
             "docx/drop_cap.native"
           ]
         , testGroup "metadata"
-          [ testCompareWithOpts (def,def{readerStandalone=True})
+          [ roundTripCompareWithOpts (def,def{readerStandalone=True})
             "metadata fields"
             "docx/metadata.native"
-          , testCompareWithOpts (def,def{readerStandalone=True})
+          , roundTripCompareWithOpts (def,def{readerStandalone=True})
             "stop recording metadata with normal text"
             "docx/metadata_after_normal.native"
           ]
