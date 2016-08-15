@@ -38,8 +38,8 @@ roundTripCompareWithOpts :: Options -> String -> FilePath -> Test
 roundTripCompareWithOpts opts name nativeFile =
   testCompareWithOpts opts name nativeFile nativeFile
 
-testCompare :: String -> FilePath -> FilePath -> Test
-testCompare = testCompareWithOpts def
+-- testCompare :: String -> FilePath -> FilePath -> Test
+-- testCompare = testCompareWithOpts def
 
 roundTripCompare :: String -> FilePath -> Test
 roundTripCompare = roundTripCompareWithOpts def
