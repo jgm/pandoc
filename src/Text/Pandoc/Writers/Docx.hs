@@ -110,6 +110,7 @@ data WriterState = WriterState{
        , stStyleMaps      :: StyleMaps
        , stFirstPara      :: Bool
        , stTocTitle       :: [Inline]
+       , stDynamicParaProps :: [String]
        }
 
 defaultWriterState :: WriterState
@@ -132,6 +133,7 @@ defaultWriterState = WriterState{
       , stStyleMaps      = defaultStyleMaps
       , stFirstPara      = False
       , stTocTitle       = normalizeInlines [Str "Table of Contents"]
+      , stDynamicParaProps = []
       }
 
 type WS a = StateT WriterState IO a
@@ -729,8 +731,10 @@ dynamicStyleKey = "docx-style"
 -- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: WriterOptions -> Block -> WS [Element]
 blockToOpenXML _ Null = return []
-blockToOpenXML opts (Div (_,_,kvs) bs) | Just sty <- lookup dynamicStyleKey kvs =
-  withParaPropM (pStyleM sty) $ blocksToOpenXML opts bs
+blockToOpenXML opts (Div (_,_,kvs) bs)
+  | Just sty <- lookup dynamicStyleKey kvs = do
+      modify $ \s -> s{stDynamicParaProps = sty : (stDynamicParaProps s)}
+      withParaPropM (pStyleM sty) $ blocksToOpenXML opts bs
 blockToOpenXML opts (Div (_,["references"],_) bs) = do
   let (hs, bs') = span isHeaderBlock bs
   header <- blocksToOpenXML opts hs
