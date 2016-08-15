@@ -1,4 +1,6 @@
 module Text.Pandoc.Readers.Docx.StyleMap (  StyleMaps(..)
+                                          , alterMap
+                                          , getMap
                                           , defaultStyleMaps
                                           , getStyleMaps
                                           , getStyleId
