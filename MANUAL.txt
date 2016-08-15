@@ -2461,10 +2461,8 @@ when the field contains blank lines:
     ---
     title:  'This is the title: it contains a colon'
     author:
-    - name: Author One
-      affiliation: University of Somewhere
-    - name: Author Two
-      affiliation: University of Nowhere
+    - Author One
+    - Author Two
     tags: [nothing, nothingness]
     abstract: |
       This is the abstract.
@@ -2479,9 +2477,23 @@ equivalent of the Markdown in the `abstract` field:
     <p>This is the abstract.</p>
     <p>It consists of two paragraphs.</p>
 
-Note: The `author` variable in the default templates expects a simple list or
-string.  To use the structured authors in the example, you would need a
-custom template.  For example:
+Variables can contain arbitrary YAML structures, but the template must match
+this structure.  The `author` variable in the default templates expects a
+simple list or string, but can be changed to support more complicated
+structures.  The following combination, for example, would add an affiliation
+to the author if one is given:
+
+    ---
+    title: The document title
+    author:
+    - name: Author One
+      affiliation: University of Somewhere
+    - name: Author Two
+      affiliation: University of Nowhere
+    ...
+
+To use the structured authors in the example above, you would need a custom
+template:
 
     $for(author)$
     $if(author.name)$
