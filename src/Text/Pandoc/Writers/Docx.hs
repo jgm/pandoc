@@ -111,6 +111,7 @@ data WriterState = WriterState{
        , stFirstPara      :: Bool
        , stTocTitle       :: [Inline]
        , stDynamicParaProps :: [String]
+       , stDynamicTextProps :: [String]
        }
 
 defaultWriterState :: WriterState
@@ -134,6 +135,7 @@ defaultWriterState = WriterState{
       , stFirstPara      = False
       , stTocTitle       = normalizeInlines [Str "Table of Contents"]
       , stDynamicParaProps = []
+      , stDynamicTextProps = []
       }
 
 type WS a = StateT WriterState IO a
@@ -1013,6 +1015,7 @@ inlineToOpenXML opts SoftBreak = inlineToOpenXML opts (Str " ")
 inlineToOpenXML opts (Span (ident,classes,kvs) ils)
   | Just sty <- lookup dynamicStyleKey kvs = do
       let kvs' = filter ((dynamicStyleKey, sty)/=) kvs
+      modify $ \s -> s{stDynamicTextProps = sty : (stDynamicTextProps s)}
       withTextProp (rCustomStyle sty) $
         inlineToOpenXML opts (Span (ident,classes,kvs') ils)
   | "insertion" `elem` classes = do
