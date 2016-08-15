@@ -1010,7 +1010,11 @@ inlineToOpenXML :: WriterOptions -> Inline -> WS [Element]
 inlineToOpenXML _ (Str str) = formattedString str
 inlineToOpenXML opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML opts SoftBreak = inlineToOpenXML opts (Str " ")
-inlineToOpenXML opts (Span (_,classes,kvs) ils)
+inlineToOpenXML opts (Span (ident,classes,kvs) ils)
+  | Just sty <- lookup dynamicStyleKey kvs = do
+      let kvs' = filter ((dynamicStyleKey, sty)/=) kvs
+      withTextProp (rCustomStyle sty) $
+        inlineToOpenXML opts (Span (ident,classes,kvs') ils)
   | "insertion" `elem` classes = do
     defaultAuthor <- gets stChangesAuthor
     defaultDate <- gets stChangesDate
