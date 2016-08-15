@@ -64,8 +64,8 @@ import Text.Pandoc.Compat.Monoid ((<>))
 import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
                          extensionFromMimeType)
 import Control.Applicative ((<|>))
-import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
-import Data.Char (ord)
+import Data.Maybe (fromMaybe, mapMaybe, maybeToList, isNothing)
+import Data.Char (ord, isSpace, toLower)
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -405,8 +405,14 @@ writeDocx opts doc@(Pandoc meta _) = do
         $ renderXml $ mknode "Relationships" [("xmlns","http://schemas.openxmlformats.org/package/2006/relationships")]
         linkrels
 
-  -- styles
-  let newstyles = styleToOpenXml styleMaps $ writerHighlightStyle opts
+  -- styles We only want to inject paragraph properties that are not
+  -- already in the style map. Note that keys in the stylemap are
+  -- normalized as lowercase.
+  let newDynamicParaProps = filter
+        (\sty -> isNothing $ M.lookup (toLower <$> sty) $ getMap $ sParaStyleMap styleMaps)
+        (stDynamicParaProps st)
+  let newstyles = map newParaPropToOpenXml newDynamicParaProps ++
+                  (styleToOpenXml styleMaps $ writerHighlightStyle opts) 
   let styledoc' = styledoc{ elContent = modifyContent (elContent styledoc) }
                   where
                     modifyContent
@@ -500,6 +506,19 @@ writeDocx opts doc@(Pandoc meta _) = do
                   imageEntries ++ headerFooterEntries ++
                   miscRelEntries ++ otherMediaEntries
   return $ fromArchive archive
+
+
+newParaPropToOpenXml :: String -> Element
+newParaPropToOpenXml s =
+  let styleId = filter (not . isSpace) s
+  in mknode "w:style" [ ("w:type", "paragraph")
+                      , ("w:customStyle", "1")
+                      , ("w:styleId", styleId)]
+     [ mknode "w:name" [("w:val", s)] ()
+     , mknode "w:basedOn" [("w:val","BodyText")] ()
+     , mknode "w:qFormat" [] ()
+     ]
+
 
 styleToOpenXml :: StyleMaps -> Style -> [Element]
 styleToOpenXml sm style =
