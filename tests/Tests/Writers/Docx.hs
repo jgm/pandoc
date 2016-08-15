@@ -137,5 +137,13 @@ tests = [ testGroup "inlines"
             "stop recording metadata with normal text"
             "docx/metadata_after_normal.native"
           ]
+        , testGroup "customized styles"
+          [ testCompareWithOpts
+            ( def{writerReferenceDocx=Just "docx/custom-style-reference.docx"}
+            , def)
+            "simple customized blocks and inlines"
+            "docx/custom-style-roundtrip-start.native"
+            "docx/custom-style-roundtrip-end.native"
+          ]
 
         ]

@@ -1,0 +1,5 @@
+[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "test",Space,Str "of",Space,Str "custom-styles."]
+,Para [Str "Here",Space,Str "is",Space,Str "something",Space,Span ("",[],[("custom-style","Emphatic")]) [Str "emphasized"],Str ".",Space,Str "And",SoftBreak,Str "here",Space,Str "is",Space,Str "something",Space,Span ("",[],[("custom-style","Strengthened")]) [Str "strong"],Str "."]
+,Div ("",[],[("custom-style","My Block Style")])
+ [Para [Str "One",Space,Str "paragraph",Space,Str "of",Space,Str "text."]
+ ,Para [Str "And",Space,Str "another",Space,Str "paragraph",Space,Str "of",Space,Span ("",[],[("custom-style","Emphatic")]) [Str "really",SoftBreak,Str "cool"],Space,Str "text."]]]
