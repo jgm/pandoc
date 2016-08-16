@@ -939,10 +939,10 @@ usageMessage programName = usageInfo
   (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
   wrapWords 16 78 readers'names ++
      '\n' : replicate 16 ' ' ++
-     "[ *only Pandoc's JSON version of native AST]" ++ "\nOutput formats: " ++
+     "[* only Pandoc's JSON version of native AST]" ++ "\nOutput formats: " ++
   wrapWords 16 78 writers'names ++
      '\n' : replicate 16 ' ' ++
-     "[**for pdf output, use latex or beamer and -o FILENAME.pdf]\nOptions:")
+     "[** for pdf output, use latex or beamer and -o FILENAME.pdf]\nOptions:")
   where
     writers'names = sort $ "json*" : "pdf**" : delete "json" (map fst writers)
     readers'names = sort $ "json*" : delete "json" (map fst readers)
