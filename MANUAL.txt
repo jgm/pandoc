@@ -139,7 +139,8 @@ To convert `hello.html` from HTML to Markdown:
 Supported output formats are listed below under the `-t/--to` option.
 Supported input formats are listed below under the `-f/--from` option. Note
 that the `rst`, `textile`, `latex`, and `html` readers are not complete;
-there are some constructs that they do not parse.
+there are some constructs that they do not parse.  All input and output
+formats can be listed using the `-l/--list-foramts` option.
 
 If the input or output format is not specified explicitly, `pandoc`
 will attempt to guess it from the extensions of
@@ -297,6 +298,10 @@ General options
     below.  Markdown syntax extensions can be individually
     enabled or disabled by appending `+EXTENSION` or
     `-EXTENSION` to the format name, as described above under `-f`.
+
+`-l`, `--list-formats`
+
+:   List the supported input and output formats.
 
 `-o` *FILE*, `--output=`*FILE*
 

@@ -300,6 +300,13 @@ options =
                   "FORMAT")
                  ""
 
+    , Option "l" ["list-formats"]
+                 (NoArg
+                  (\_ -> do
+                     UTF8.hPutStr stdout formatsMessage
+                     exitSuccess ))
+                "" -- "List formats"
+
     , Option "o" ["output"]
                  (ReqArg
                   (\arg opt -> return opt { optOutputFile = arg })
@@ -903,7 +910,7 @@ options =
                      prg <- getProgName
                      defaultDatadir <- getAppUserDataDirectory "pandoc"
                      UTF8.hPutStrLn stdout (prg ++ " " ++ pandocVersion ++
-                       compileInfo ++ "\nDefault user data directory: " ++
+                       compileInfo ++ formatsMessage ++ "\nDefault user data directory: " ++
                        defaultDatadir ++ copyrightMessage)
                      exitSuccess ))
                  "" -- "Print version"
@@ -936,13 +943,17 @@ readMetaValue s = case decode (UTF8.fromString s) of
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
 usageMessage programName = usageInfo
-  (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
+  (programName ++ " [OPTIONS] [FILES]" ++ "\n" ++ formatsMessage ++ "Options:")
+
+-- Returns list of supported formats
+formatsMessage :: String
+formatsMessage = "Input formats:  " ++
   wrapWords 16 78 readers'names ++
      '\n' : replicate 16 ' ' ++
      "[ *only Pandoc's JSON version of native AST]" ++ "\nOutput formats: " ++
   wrapWords 16 78 writers'names ++
      '\n' : replicate 16 ' ' ++
-     "[**for pdf output, use latex or beamer and -o FILENAME.pdf]\nOptions:")
+     "[**for pdf output, use latex or beamer and -o FILENAME.pdf]\n"
   where
     writers'names = sort $ "json*" : "pdf**" : delete "json" (map fst writers)
     readers'names = sort $ "json*" : delete "json" (map fst readers)
