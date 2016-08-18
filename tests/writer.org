@@ -808,9 +808,9 @@ Auto-links should not occur here: =<http://example.com/>=
 From "Voyage dans la Lune" by Georges Melies (1902):
 
 #+CAPTION: lalune
+[[file:lalune.jpg]]
 
-[[lalune.jpg]]
-Here is a movie [[movie.jpg]] icon.
+Here is a movie [[file:movie.jpg]] icon.
 
 --------------
 

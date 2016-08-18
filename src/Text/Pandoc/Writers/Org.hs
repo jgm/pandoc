@@ -39,8 +39,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Pretty
 import Text.Pandoc.Templates (renderTemplate')
-import Data.Char ( toLower )
-import Data.List ( intersect, intersperse, partition, transpose )
+import Data.Char ( isAlphaNum, toLower )
+import Data.List ( isPrefixOf, intersect, intersperse, partition, transpose )
 import Control.Monad.State
 
 data WriterState =
@@ -158,10 +158,9 @@ blockToOrg (Plain inlines) = inlineListToOrg inlines
 blockToOrg (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   capt <- if null txt
              then return empty
-             else (\c -> "#+CAPTION: " <> c <> blankline) `fmap`
-                    inlineListToOrg txt
+             else ("#+CAPTION: " <>) `fmap` inlineListToOrg txt
   img <- inlineToOrg (Image attr txt (src,tit))
-  return $ capt <> img
+  return $ capt $$ img $$ blankline
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
   return $ contents <> blankline
@@ -355,16 +354,34 @@ inlineToOrg (Link _ txt (src, _)) = do
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
              do modify $ \s -> s{ stLinks = True }
-                return $ "[[" <> text x <> "]]"
+                return $ "[[" <> text (orgPath x) <> "]]"
         _ -> do contents <- inlineListToOrg txt
                 modify $ \s -> s{ stLinks = True }
-                return $ "[[" <> text src <> "][" <> contents <> "]]"
+                return $ "[[" <> text (orgPath src) <> "][" <> contents <> "]]"
 inlineToOrg (Image _ _ (source, _)) = do
   modify $ \s -> s{ stImages = True }
-  return $ "[[" <> text source <> "]]"
+  return $ "[[" <> text (orgPath source) <> "]]"
 inlineToOrg (Note contents) = do
   -- add to notes in state
   notes <- get >>= (return . stNotes)
   modify $ \st -> st { stNotes = contents:notes }
   let ref = show $ (length notes) + 1
   return $ " [" <> text ref <> "]"
+
+orgPath :: String -> String
+orgPath src =
+  case src of
+    []                 -> mempty         -- wiki link
+    ('#':xs)           -> xs             -- internal link
+    _ | isUrl src      -> src
+    _ | isFilePath src -> src
+    _                  -> "file:" <> src
+ where
+   isFilePath :: String -> Bool
+   isFilePath cs = any (`isPrefixOf` cs) ["/", "./", "../", "file:"]
+
+   isUrl :: String -> Bool
+   isUrl cs =
+     let (scheme, path) = break (== ':') cs
+     in all (\c -> isAlphaNum c || c `elem` (".-"::String)) scheme
+          && not (null path)
