@@ -809,6 +809,7 @@ From "Voyage dans la Lune" by Georges Melies (1902):
 
 #+CAPTION: lalune
 [[lalune.jpg]]
+
 Here is a movie [[movie.jpg]] icon.
 
 --------------

@@ -160,7 +160,7 @@ blockToOrg (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
              then return empty
              else ("#+CAPTION: " <>) `fmap` inlineListToOrg txt
   img <- inlineToOrg (Image attr txt (src,tit))
-  return $ capt $$ img
+  return $ capt $$ img $$ blankline
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
   return $ contents <> blankline
