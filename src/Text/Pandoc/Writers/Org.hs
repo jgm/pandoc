@@ -158,10 +158,9 @@ blockToOrg (Plain inlines) = inlineListToOrg inlines
 blockToOrg (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   capt <- if null txt
              then return empty
-             else (\c -> "#+CAPTION: " <> c <> blankline) `fmap`
-                    inlineListToOrg txt
+             else ("#+CAPTION: " <>) `fmap` inlineListToOrg txt
   img <- inlineToOrg (Image attr txt (src,tit))
-  return $ capt <> img
+  return $ capt $$ img
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
   return $ contents <> blankline
