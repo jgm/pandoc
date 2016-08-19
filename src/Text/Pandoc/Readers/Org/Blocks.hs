@@ -435,9 +435,11 @@ verseBlock blockType = try $ do
    parseVerseLine :: String -> OrgParser (F Inlines)
    parseVerseLine cs = do
      let (initialSpaces, indentedLine) = span isSpace cs
-     let nbspIndent = B.str $ map (const '\160') initialSpaces
+     let nbspIndent = if null initialSpaces
+                      then mempty
+                      else B.str $ map (const '\160') initialSpaces
      line <- parseFromString inlines (indentedLine ++ "\n")
-     return (pure nbspIndent <> line)
+     return (trimInlinesF $ pure nbspIndent <> line)
 
 -- | Read a code block and the associated results block if present.  Which of
 -- boths blocks is included in the output is determined using the "exports"
