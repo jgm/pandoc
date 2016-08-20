@@ -181,11 +181,7 @@ blockToOrg (Header level attr inlines) = do
 blockToOrg (CodeBlock (_,classes,_) str) = do
   opts <- stOptions <$> get
   let tabstop = writerTabStop opts
-  let at = classes `intersect` ["asymptote", "C", "clojure", "css", "ditaa",
-                    "dot", "emacs-lisp", "gnuplot", "haskell", "js", "latex",
-                    "ledger", "lisp", "matlab", "mscgen", "ocaml", "octave",
-                    "oz", "perl", "plantuml", "python", "R", "ruby", "sass",
-                    "scheme", "screen", "sh", "sql", "sqlite"]
+  let at = map pandocLangToOrg classes `intersect` orgLangIdentifiers
   let (beg, end) = case at of
                       []    -> ("#+BEGIN_EXAMPLE", "#+END_EXAMPLE")
                       (x:_) -> ("#+BEGIN_SRC " ++ x, "#+END_SRC")
@@ -385,3 +381,25 @@ orgPath src =
      let (scheme, path) = break (== ':') cs
      in all (\c -> isAlphaNum c || c `elem` (".-"::String)) scheme
           && not (null path)
+
+-- | Translate from pandoc's programming language identifiers to those used by
+-- org-mode.
+pandocLangToOrg :: String -> String
+pandocLangToOrg cs =
+  case cs of
+    "c"          -> "C"
+    "cpp"        -> "C++"
+    "commonlisp" -> "lisp"
+    "r"          -> "R"
+    "bash"       -> "sh"
+    _            -> cs
+
+-- | List of language identifiers recognized by org-mode.
+orgLangIdentifiers :: [String]
+orgLangIdentifiers =
+  [ "asymptote", "awk", "C", "C++", "clojure", "css", "d", "ditaa", "dot"
+  , "calc", "emacs-lisp", "fortran", "gnuplot", "haskell", "java", "js"
+  , "latex", "ledger", "lisp", "lilypond", "matlab", "mscgen", "ocaml"
+  , "octave", "org", "oz", "perl", "plantuml", "processing", "python", "R"
+  , "ruby", "sass", "scheme", "screen", "sed", "sh", "sql", "sqlite"
+  ]
