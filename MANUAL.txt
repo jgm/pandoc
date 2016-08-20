@@ -3854,7 +3854,7 @@ style `Emphatically`. Similarly,
     | He did not know I saw---
     </div>
 	
-Would style the two contained lines with the `Poetry` paragraph style.
+would style the two contained lines with the `Poetry` paragraph style.
 
 If the styles are not yet in your reference.docx, they will be defined
 in the output file as inheriting from normal text. If they are already
@@ -3865,14 +3865,9 @@ This feature allows for greatest customization in conjunction with
 indented, you can write a filter to apply the styles necessary. If you
 want all italics to be transformed to the `Emphasis` character style
 (perhaps to change their color), you can write a filter which will
-transform all italicized inlines
+transform all italicized inlines to inlines within an `Emphasis`
+custom-style `span`.
 
-    Emph <inlines>
-
-to 
-
-    Span ("", [], [("custom-style", "Emphasis")] <inlines>
-	
 [pandoc filters]: http://pandoc.org/scripting.html
 
 Custom writers
