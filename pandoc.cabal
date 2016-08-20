@@ -268,7 +268,7 @@ Library
                  random >= 1 && < 1.2,
                  extensible-exceptions >= 0.1 && < 0.2,
                  pandoc-types >= 1.16 && < 1.17,
-                 aeson >= 0.7 && < 0.12,
+                 aeson >= 0.7 && < 1.1,
                  tagsoup >= 0.13.7 && < 0.15,
                  base64-bytestring >= 0.1 && < 1.1,
                  zlib >= 0.5 && < 0.7,
@@ -432,7 +432,7 @@ Executable pandoc
                  bytestring >= 0.9 && < 0.11,
                  extensible-exceptions >= 0.1 && < 0.2,
                  highlighting-kate >= 0.6.2 && < 0.7,
-                 aeson >= 0.7.0.5 && < 0.12,
+                 aeson >= 0.7.0.5 && < 1.1,
                  yaml >= 0.8.8.2 && < 0.9,
                  containers >= 0.1 && < 0.6,
                  HTTP >= 4000.0.5 && < 4000.4
