@@ -1475,7 +1475,6 @@ table = try $ do
 
 inline :: MarkdownParser (F Inlines)
 inline = choice [ whitespace
-                , wikilink
                 , bareURL
                 , str
                 , endline
@@ -1483,6 +1482,7 @@ inline = choice [ whitespace
                 , strongOrEmph
                 , note
                 , cite
+                , wikilink  -- before link because of reference links like [text]
                 , link
                 , image
                 , math
