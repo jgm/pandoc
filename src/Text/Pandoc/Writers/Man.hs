@@ -41,7 +41,6 @@ import Data.Maybe (fromMaybe)
 import Text.Pandoc.Pretty
 import Text.Pandoc.Builder (deleteMeta)
 import Control.Monad.State
-import Data.Char ( isDigit )
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes  :: Notes
@@ -62,10 +61,11 @@ pandocToMan opts (Pandoc meta blocks) = do
   let title' = render' titleText
   let setFieldsFromTitle =
        case break (== ' ') title' of
-           (cmdName, rest) -> case reverse cmdName of
-                                   (')':d:'(':xs) | isDigit d ->
-                                     defField "title" (reverse xs) .
-                                     defField "section" [d] .
+           (cmdName, rest) -> case break (=='(') cmdName of
+                                   (xs, '(':ys) | not (null ys) &&
+                                                  last ys == ')' ->
+                                     defField "title" xs .
+                                     defField "section" (init ys) .
                                      case splitBy (=='|') rest of
                                           (ft:hds) ->
                                             defField "footer" (trim ft) .
