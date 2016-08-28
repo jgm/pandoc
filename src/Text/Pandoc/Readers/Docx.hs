@@ -431,21 +431,25 @@ makeHeaderAnchor bs = case viewl $ unMany bs of
 makeHeaderAnchor' :: Block -> DocxContext Block
 -- If there is an anchor already there (an anchor span in the header,
 -- to be exact), we rename and associate the new id with the old one.
-makeHeaderAnchor' (Header n (_, classes, kvs) ils)
+makeHeaderAnchor' (Header n (ident, classes, kvs) ils)
   | (c:_) <- filter isAnchorSpan ils
-  , (Span (ident, ["anchor"], _) cIls) <- c = do
+  , (Span (anchIdent, ["anchor"], _) cIls) <- c = do
     hdrIDMap <- gets docxAnchorMap
-    let newIdent = uniqueIdent ils (Set.fromList $ M.elems hdrIDMap)
+    let newIdent = if null ident
+                   then uniqueIdent ils (Set.fromList $ M.elems hdrIDMap)
+                   else ident
         newIls = concatMap f ils where f il | il == c   = cIls
                                             | otherwise = [il]
-    modify $ \s -> s {docxAnchorMap = M.insert ident newIdent hdrIDMap}
+    modify $ \s -> s {docxAnchorMap = M.insert anchIdent newIdent hdrIDMap}
     return $ Header n (newIdent, classes, kvs) newIls
 -- Otherwise we just give it a name, and register that name (associate
 -- it with itself.)
-makeHeaderAnchor' (Header n (_, classes, kvs) ils) =
+makeHeaderAnchor' (Header n (ident, classes, kvs) ils) =
   do
     hdrIDMap <- gets docxAnchorMap
-    let newIdent = uniqueIdent ils (Set.fromList $ M.elems hdrIDMap)
+    let newIdent = if null ident
+                   then uniqueIdent ils (Set.fromList $ M.elems hdrIDMap)
+                   else ident
     modify $ \s -> s {docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
     return $ Header n (newIdent, classes, kvs) ils
 makeHeaderAnchor' blk = return blk
