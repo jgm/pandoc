@@ -83,7 +83,7 @@ import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Combine
 import Text.Pandoc.Shared
 import Text.Pandoc.MediaBag (insertMedia, MediaBag)
-import Data.List (delete, (\\), intersect)
+import Data.List (delete, intersect)
 import Text.TeXMath (writeTeX)
 import Data.Default (Default)
 import qualified Data.ByteString.Lazy as B
@@ -412,10 +412,9 @@ parPartToInlines (PlainOMath exps) = do
   return $ math $ writeTeX exps
 
 isAnchorSpan :: Inline -> Bool
-isAnchorSpan (Span (_, classes, kvs) ils) =
+isAnchorSpan (Span (_, classes, kvs) _) =
   classes == ["anchor"] &&
-  null kvs &&
-  null ils
+  null kvs
 isAnchorSpan _ = False
 
 dummyAnchors :: [String]
@@ -433,12 +432,14 @@ makeHeaderAnchor' :: Block -> DocxContext Block
 -- If there is an anchor already there (an anchor span in the header,
 -- to be exact), we rename and associate the new id with the old one.
 makeHeaderAnchor' (Header n (_, classes, kvs) ils)
-  | (c:cs) <- filter isAnchorSpan ils
-  , (Span (ident, ["anchor"], _) _) <- c = do
+  | (c:_) <- filter isAnchorSpan ils
+  , (Span (ident, ["anchor"], _) cIls) <- c = do
     hdrIDMap <- gets docxAnchorMap
     let newIdent = uniqueIdent ils (Set.fromList $ M.elems hdrIDMap)
+        newIls = concatMap f ils where f il | il == c   = cIls
+                                            | otherwise = [il]
     modify $ \s -> s {docxAnchorMap = M.insert ident newIdent hdrIDMap}
-    return $ Header n (newIdent, classes, kvs) (ils \\ (c:cs))
+    return $ Header n (newIdent, classes, kvs) newIls
 -- Otherwise we just give it a name, and register that name (associate
 -- it with itself.)
 makeHeaderAnchor' (Header n (_, classes, kvs) ils) =
