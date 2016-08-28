@@ -441,7 +441,7 @@ makeHeaderAnchor' (Header n (ident, classes, kvs) ils)
         newIls = concatMap f ils where f il | il == c   = cIls
                                             | otherwise = [il]
     modify $ \s -> s {docxAnchorMap = M.insert anchIdent newIdent hdrIDMap}
-    return $ Header n (newIdent, classes, kvs) newIls
+    makeHeaderAnchor' $ Header n (newIdent, classes, kvs) newIls
 -- Otherwise we just give it a name, and register that name (associate
 -- it with itself.)
 makeHeaderAnchor' (Header n (ident, classes, kvs) ils) =
