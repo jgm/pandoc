@@ -59,7 +59,7 @@ declarationLine = try $ do
   value <- metaValue key
   updateState $ \st ->
     let meta' = B.setMeta key <$> value <*> pure nullMeta
-    in st { orgStateMeta = orgStateMeta st <> meta' }
+    in st { orgStateMeta = meta' <> orgStateMeta st }
 
 metaKey :: OrgParser String
 metaKey = map toLower <$> many1 (noneOf ": \n\r")

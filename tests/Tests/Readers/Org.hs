@@ -496,6 +496,14 @@ tests =
                   ] =?>
           (mempty::Blocks)
 
+      , "later meta definitions take precedence" =:
+          unlines [ "#+AUTHOR: this will not be used"
+                  , "#+author: Max"
+                  ] =?>
+          let author = MetaInlines [Str "Max"]
+              meta = setMeta "author" (MetaList [author]) $ nullMeta
+          in Pandoc meta mempty
+
       , "Logbook drawer" =:
           unlines [ "  :LogBook:"
                   , "  - State \"DONE\"       from \"TODO\"       [2014-03-03 Mon 11:00]"
