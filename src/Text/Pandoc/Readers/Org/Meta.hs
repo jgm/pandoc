@@ -77,6 +77,7 @@ metaValue key =
     "header-includes" -> (key,) <$> accumulatingList key metaInlines
     "latex_header"    -> (inclKey,) <$>
                          accumulatingList inclKey (metaExportSnippet "latex")
+    "latex_class"     -> ("documentclass",) <$> metaString
     _                 -> (key,) <$> metaString
 
 metaInlines :: OrgParser (F MetaValue)

@@ -503,6 +503,11 @@ tests =
               meta = setMeta "header-includes" inclList nullMeta
           in Pandoc meta mempty
 
+      , "LaTeX_class option is translated to documentclass" =:
+          "#+LATEX_CLASS: article" =?>
+          let meta = setMeta "documentclass" (MetaString "article") nullMeta
+          in Pandoc meta mempty
+
       , "later meta definitions take precedence" =:
           unlines [ "#+AUTHOR: this will not be used"
                   , "#+author: Max"
