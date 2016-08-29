@@ -69,13 +69,21 @@ metaKey = map toLower <$> many1 (noneOf ": \n\r")
 metaValue :: String -> OrgParser (F MetaValue)
 metaValue key = do
   case key of
-    "author" -> metaInlines
+    "author" -> metaInlinesCommaSeparated
     "title"  -> metaInlines
     "date"   -> metaInlines
     _        -> metaString
 
 metaInlines :: OrgParser (F MetaValue)
 metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
+
+metaInlinesCommaSeparated :: OrgParser (F MetaValue)
+metaInlinesCommaSeparated = do
+  authStrs <- (many1 (noneOf ",\n")) `sepBy1` (char ',')
+  newline
+  authors <- mapM (parseFromString inlinesTillNewline . (++ "\n")) authStrs
+  let toMetaInlines = MetaInlines . B.toList
+  return $ MetaList . map toMetaInlines <$> sequence authors
 
 metaString :: OrgParser (F MetaValue)
 metaString =  return . MetaString <$> anyLine

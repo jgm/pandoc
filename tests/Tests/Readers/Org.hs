@@ -467,7 +467,14 @@ tests =
       , "Author" =:
         "#+author: Albert /Emacs-Fanboy/ Krewinkel" =?>
         let author = toList . spcSep $ [ "Albert", emph "Emacs-Fanboy", "Krewinkel" ]
-            meta = setMeta "author" (MetaInlines author) $ nullMeta
+            meta = setMeta "author" (MetaList [MetaInlines author]) $ nullMeta
+        in Pandoc meta mempty
+
+      , "Multiple authors" =:
+        "#+author: James Dewey Watson, Francis Harry Compton Crick " =?>
+        let watson = MetaInlines $ toList "James Dewey Watson"
+            crick = MetaInlines $ toList "Francis Harry Compton Crick"
+            meta = setMeta "author" (MetaList [watson, crick]) $ nullMeta
         in Pandoc meta mempty
 
       , "Date" =:
