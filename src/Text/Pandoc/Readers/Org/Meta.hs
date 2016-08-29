@@ -53,17 +53,17 @@ import           Network.HTTP ( urlEncode )
 metaExport :: OrgParser (F Meta)
 metaExport = do
   st <- getState
-  let withAuthor = extractExportOption exportWithAuthor st
+  let settings = orgStateExportSettings st
+  let withAuthor = exportWithAuthor settings
+  let withEmail  = exportWithEmail settings
   return $ (if withAuthor then id else removeMeta "author")
+         . (if withEmail  then id else removeMeta "email")
         <$> orgStateMeta st
 
 removeMeta :: String -> Meta -> Meta
 removeMeta key meta' =
   let metaMap = unMeta meta'
   in Meta $ M.delete key metaMap
-
-extractExportOption :: (ExportSettings -> a) -> OrgParserState -> a
-extractExportOption ex = ex . orgStateExportSettings
 
 -- | Parse and handle a single line containing meta information
 -- The order, in which blocks are tried, makes sure that we're not looking at

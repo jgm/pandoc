@@ -674,6 +674,12 @@ tests =
                       , "#+AUTHOR: ShyGuy"
                       ] =?>
               Pandoc nullMeta mempty
+
+          , "disable email export" =:
+              unlines [ "#+OPTIONS: email:nil"
+                      , "#+email: no-mail-please@example.com"
+                      ] =?>
+              Pandoc nullMeta mempty
           ]
       ]
 

@@ -60,7 +60,7 @@ exportSetting = choice
   , complementableListSetting "d" (\val es -> es { exportDrawers = val })
   , ignoredSetting "date"
   , ignoredSetting "e"
-  , ignoredSetting "email"
+  , booleanSetting "email" (\val es -> es { exportWithEmail = val })
   , ignoredSetting "f"
   , integerSetting "H" (\val es -> es { exportHeadlineLevels = val })
   , ignoredSetting "inline"
