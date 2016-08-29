@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TupleSections #-}
 {-
 Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -56,9 +57,9 @@ metaLine = mempty <$ metaLineStart <* (optionLine <|> declarationLine)
 declarationLine :: OrgParser ()
 declarationLine = try $ do
   key   <- map toLower <$> metaKey
-  value <- metaValue key
+  (key', value) <- metaValue key
   updateState $ \st ->
-    let meta' = B.setMeta key <$> value <*> pure nullMeta
+    let meta' = B.setMeta key' <$> value <*> pure nullMeta
     in st { orgStateMeta = meta' <> orgStateMeta st }
 
 metaKey :: OrgParser String
@@ -66,13 +67,17 @@ metaKey = map toLower <$> many1 (noneOf ": \n\r")
                       <*  char ':'
                       <*  skipSpaces
 
-metaValue :: String -> OrgParser (F MetaValue)
-metaValue key = do
-  case key of
-    "author" -> metaInlinesCommaSeparated
-    "title"  -> metaInlines
-    "date"   -> metaInlines
-    _        -> metaString
+metaValue :: String -> OrgParser (String, (F MetaValue))
+metaValue key =
+  let inclKey = "header-includes"
+  in case key of
+    "author"          -> (key,) <$> metaInlinesCommaSeparated
+    "title"           -> (key,) <$> metaInlines
+    "date"            -> (key,) <$> metaInlines
+    "header-includes" -> (key,) <$> accumulatingList key metaInlines
+    "latex_header"    -> (inclKey,) <$>
+                         accumulatingList inclKey (metaExportSnippet "latex")
+    _                 -> (key,) <$> metaString
 
 metaInlines :: OrgParser (F MetaValue)
 metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
@@ -88,6 +93,23 @@ metaInlinesCommaSeparated = do
 metaString :: OrgParser (F MetaValue)
 metaString =  return . MetaString <$> anyLine
 
+-- | Read an format specific meta definition
+metaExportSnippet :: String -> OrgParser (F MetaValue)
+metaExportSnippet format =
+  return . MetaInlines . B.toList . B.rawInline format <$> anyLine
+
+-- | Accumulate the result of the @parser@ in a list under @key@.
+accumulatingList :: String
+                 -> OrgParser (F MetaValue)
+                 -> OrgParser (F MetaValue)
+accumulatingList key p = do
+  value <- p
+  meta' <- orgStateMeta <$> getState
+  return $ (\m v -> MetaList (curList m ++ [v])) <$> meta' <*> value
+ where curList m = case lookupMeta key m of
+                     Just (MetaList ms) -> ms
+                     Just x             -> [x]
+                     _                  -> []
 
 --
 -- export options

@@ -496,6 +496,13 @@ tests =
                   ] =?>
           (mempty::Blocks)
 
+      , "LaTeX_headers options are translated to header-includes" =:
+          "#+LaTeX_header: \\usepackage{tikz}" =?>
+          let latexInlines = rawInline "latex" "\\usepackage{tikz}"
+              inclList = MetaList [MetaInlines (toList latexInlines)]
+              meta = setMeta "header-includes" inclList nullMeta
+          in Pandoc meta mempty
+
       , "later meta definitions take precedence" =:
           unlines [ "#+AUTHOR: this will not be used"
                   , "#+author: Max"
