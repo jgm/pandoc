@@ -78,6 +78,10 @@ metaValue key =
     "latex_header"    -> (inclKey,) <$>
                          accumulatingList inclKey (metaExportSnippet "latex")
     "latex_class"     -> ("documentclass",) <$> metaString
+    -- Org-mode expects class options to contain the surrounding brackets,
+    -- pandoc does not.
+    "latex_class_options" -> ("classoption",) <$>
+                             metaModifiedString (filter (`notElem` "[]"))
     _                 -> (key,) <$> metaString
 
 metaInlines :: OrgParser (F MetaValue)
@@ -92,7 +96,10 @@ metaInlinesCommaSeparated = do
   return $ MetaList . map toMetaInlines <$> sequence authors
 
 metaString :: OrgParser (F MetaValue)
-metaString =  return . MetaString <$> anyLine
+metaString = metaModifiedString id
+
+metaModifiedString :: (String -> String) -> OrgParser (F MetaValue)
+metaModifiedString f = return . MetaString . f <$> anyLine
 
 -- | Read an format specific meta definition
 metaExportSnippet :: String -> OrgParser (F MetaValue)

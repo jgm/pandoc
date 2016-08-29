@@ -508,6 +508,11 @@ tests =
           let meta = setMeta "documentclass" (MetaString "article") nullMeta
           in Pandoc meta mempty
 
+      , "LaTeX_class_options is translated to classoption" =:
+          "#+LATEX_CLASS_OPTIONS: [a4paper]" =?>
+          let meta = setMeta "classoption" (MetaString "a4paper") nullMeta
+          in Pandoc meta mempty
+
       , "later meta definitions take precedence" =:
           unlines [ "#+AUTHOR: this will not be used"
                   , "#+author: Max"
