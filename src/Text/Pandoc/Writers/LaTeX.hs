@@ -421,7 +421,7 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = d
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
   figure <- hypertarget ident (cr <>
-            "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
+            "\\begin{figure}" $$ "\\centering" $$ img $$
             caption $$ "\\end{figure}" <> cr)
   return $ if inNote
               -- can't have figures in notes
