@@ -190,6 +190,11 @@ $if(dir)$
   \newenvironment{LTR}{\beginL}{\endL}
 \fi
 $endif$
+
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
 $for(header-includes)$
 $header-includes$
 $endfor$
