@@ -34,8 +34,8 @@ module Text.Pandoc.Readers.Org.Blocks
   ) where
 
 import           Text.Pandoc.Readers.Org.BlockStarts
-import           Text.Pandoc.Readers.Org.ExportSettings ( exportSettings )
 import           Text.Pandoc.Readers.Org.Inlines
+import           Text.Pandoc.Readers.Org.Meta ( metaExport, metaLine )
 import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Readers.Org.Parsing
 import           Text.Pandoc.Readers.Org.Shared
@@ -52,9 +52,7 @@ import           Text.Pandoc.Shared ( compactify', compactify'DL )
 import           Control.Monad ( foldM, guard, mzero, void )
 import           Data.Char ( isSpace, toLower, toUpper)
 import           Data.List ( foldl', intersperse, isPrefixOf )
-import qualified Data.Map as M
 import           Data.Maybe ( fromMaybe, isNothing )
-import           Network.HTTP ( urlEncode )
 
 --
 -- Org headers
@@ -232,8 +230,8 @@ blockList = do
 -- | Get the meta information safed in the state.
 meta :: OrgParser Meta
 meta = do
-  st <- getState
-  return $ runF (orgStateMeta st) st
+  meta' <- metaExport
+  runF meta' <$> getState
 
 blocks :: OrgParser (F Blocks)
 blocks = mconcat <$> manyTill block (void (lookAhead headerStart) <|> eof)
@@ -631,66 +629,8 @@ exampleCode = B.codeBlockWith ("", ["example"], [])
 specialLine :: OrgParser (F Blocks)
 specialLine = fmap return . try $ metaLine <|> commentLine
 
--- The order, in which blocks are tried, makes sure that we're not looking at
--- the beginning of a block, so we don't need to check for it
-metaLine :: OrgParser Blocks
-metaLine = mempty <$ metaLineStart <* (optionLine <|> declarationLine)
-
 commentLine :: OrgParser Blocks
 commentLine = commentLineStart *> anyLine *> pure mempty
-
-declarationLine :: OrgParser ()
-declarationLine = try $ do
-  key   <- metaKey
-  value <- metaInlines
-  updateState $ \st ->
-    let meta' = B.setMeta key <$> value <*> pure nullMeta
-    in st { orgStateMeta = orgStateMeta st <> meta' }
-
-metaInlines :: OrgParser (F MetaValue)
-metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
-
-metaKey :: OrgParser String
-metaKey = map toLower <$> many1 (noneOf ": \n\r")
-                      <*  char ':'
-                      <*  skipSpaces
-
-optionLine :: OrgParser ()
-optionLine = try $ do
-  key <- metaKey
-  case key of
-    "link"    -> parseLinkFormat >>= uncurry addLinkFormat
-    "options" -> exportSettings
-    _         -> mzero
-
-addLinkFormat :: String
-              -> (String -> String)
-              -> OrgParser ()
-addLinkFormat key formatter = updateState $ \s ->
-  let fs = orgStateLinkFormatters s
-  in s{ orgStateLinkFormatters = M.insert key formatter fs }
-
-parseLinkFormat :: OrgParser ((String, String -> String))
-parseLinkFormat = try $ do
-  linkType <- (:) <$> letter <*> many (alphaNum <|> oneOf "-_") <* skipSpaces
-  linkSubst <- parseFormat
-  return (linkType, linkSubst)
-
--- | An ad-hoc, single-argument-only implementation of a printf-style format
--- parser.
-parseFormat :: OrgParser (String -> String)
-parseFormat = try $ do
-  replacePlain <|> replaceUrl <|> justAppend
- where
-   -- inefficient, but who cares
-   replacePlain = try $ (\x -> concat . flip intersperse x)
-                     <$> sequence [tillSpecifier 's', rest]
-   replaceUrl   = try $ (\x -> concat . flip intersperse x . urlEncode)
-                     <$> sequence [tillSpecifier 'h', rest]
-   justAppend   = try $ (++) <$> rest
-
-   rest            = manyTill anyChar         (eof <|> () <$ oneOf "\n\r")
-   tillSpecifier c = manyTill (noneOf "\n\r") (try $ string ('%':c:""))
 
 
 --
@@ -867,9 +807,6 @@ paraOrPlain = try $ do
        *> notFollowedBy (inList *> (() <$ orderedListStart <|> bulletListStart))
        *> return (B.para <$> ils))
     <|>  (return (B.plain <$> ils))
-
-inlinesTillNewline :: OrgParser (F Inlines)
-inlinesTillNewline = trimInlinesF . mconcat <$> manyTill inline newline
 
 
 --
