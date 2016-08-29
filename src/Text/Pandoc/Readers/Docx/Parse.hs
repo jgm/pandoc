@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, FlexibleInstances #-}
 
 {-
-Copyright (C) 2014 Jesse Rosenthal <jrosenthal@jhu.edu>
+Copyright (C) 2014-2016 Jesse Rosenthal <jrosenthal@jhu.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 {- |
  Module : Text.Pandoc.Readers.Docx.Parse
- Copyright : Copyright (C) 2014 Jesse Rosenthal
+ Copyright : Copyright (C) 2014-2016 Jesse Rosenthal
  License : GNU GPL, version 2 or above
 
  Maintainer : Jesse Rosenthal <jrosenthal@jhu.edu>
