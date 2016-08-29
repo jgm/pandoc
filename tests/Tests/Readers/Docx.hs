@@ -182,6 +182,10 @@ tests = [ testGroup "inlines"
             "docx/already_auto_ident.docx"
             "docx/already_auto_ident.native"
           , testCompare
+            "nested anchor spans in header"
+            "docx/nested_anchors_in_header.docx"
+            "docx/nested_anchors_in_header.native"
+          , testCompare
             "single numbered item not made into list"
             "docx/numbered_header.docx"
             "docx/numbered_header.native"
