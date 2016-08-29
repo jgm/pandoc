@@ -82,6 +82,8 @@ metaValue key =
     -- pandoc does not.
     "latex_class_options" -> ("classoption",) <$>
                              metaModifiedString (filter (`notElem` "[]"))
+    "html_head"       -> (inclKey,) <$>
+                         accumulatingList inclKey (metaExportSnippet "html")
     _                 -> (key,) <$> metaString
 
 metaInlines :: OrgParser (F MetaValue)

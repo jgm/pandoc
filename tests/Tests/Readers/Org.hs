@@ -513,6 +513,13 @@ tests =
           let meta = setMeta "classoption" (MetaString "a4paper") nullMeta
           in Pandoc meta mempty
 
+      , "LaTeX_class_options is translated to classoption" =:
+          "#+html_head: <meta/>" =?>
+          let html = rawInline "html" "<meta/>"
+              inclList = MetaList [MetaInlines (toList html)]
+              meta = setMeta "header-includes" inclList nullMeta
+          in Pandoc meta mempty
+
       , "later meta definitions take precedence" =:
           unlines [ "#+AUTHOR: this will not be used"
                   , "#+author: Max"
