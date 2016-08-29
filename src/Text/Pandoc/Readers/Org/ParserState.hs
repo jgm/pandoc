@@ -163,6 +163,7 @@ data ExportSettings = ExportSettings
   , exportSmartQuotes     :: Bool -- ^ Parse quotes smartly
   , exportSpecialStrings  :: Bool -- ^ Parse ellipses and dashes smartly
   , exportSubSuperscripts :: Bool -- ^ TeX-like syntax for sub- and superscripts
+  , exportWithAuthor      :: Bool -- ^ Include author in final meta-data
   }
 
 instance Default ExportSettings where
@@ -177,6 +178,7 @@ defaultExportSettings = ExportSettings
   , exportSmartQuotes = True
   , exportSpecialStrings = True
   , exportSubSuperscripts = True
+  , exportWithAuthor = True
   }
 
 

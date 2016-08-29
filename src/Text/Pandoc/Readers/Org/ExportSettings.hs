@@ -54,7 +54,7 @@ exportSetting = choice
   , ignoredSetting "<"
   , ignoredSetting "\\n"
   , archivedTreeSetting "arch" (\val es -> es { exportArchivedTrees = val })
-  , ignoredSetting "author"
+  , booleanSetting "author" (\val es -> es { exportWithAuthor = val })
   , ignoredSetting "c"
   , ignoredSetting "creator"
   , complementableListSetting "d" (\val es -> es { exportDrawers = val })

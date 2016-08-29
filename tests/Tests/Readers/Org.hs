@@ -668,6 +668,12 @@ tests =
                       , headerWith ("subsection", [], []) 2 "subsection"
                       , orderedList [ para "list item 1", para "list item 2" ]
                       ]
+
+          , "disable author export" =:
+              unlines [ "#+OPTIONS: author:nil"
+                      , "#+AUTHOR: ShyGuy"
+                      ] =?>
+              Pandoc nullMeta mempty
           ]
       ]
 

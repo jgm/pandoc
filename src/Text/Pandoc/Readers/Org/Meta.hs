@@ -29,6 +29,7 @@ Parsers for Org-mode meta declarations.
 -}
 module Text.Pandoc.Readers.Org.Meta
   ( metaLine
+  , metaExport
   ) where
 
 import           Text.Pandoc.Readers.Org.BlockStarts
@@ -47,6 +48,22 @@ import           Data.Char ( toLower )
 import           Data.List ( intersperse )
 import qualified Data.Map as M
 import           Network.HTTP ( urlEncode )
+
+-- | Returns the current meta, respecting export options.
+metaExport :: OrgParser (F Meta)
+metaExport = do
+  st <- getState
+  let withAuthor = extractExportOption exportWithAuthor st
+  return $ (if withAuthor then id else removeMeta "author")
+        <$> orgStateMeta st
+
+removeMeta :: String -> Meta -> Meta
+removeMeta key meta' =
+  let metaMap = unMeta meta'
+  in Meta $ M.delete key metaMap
+
+extractExportOption :: (ExportSettings -> a) -> OrgParserState -> a
+extractExportOption ex = ex . orgStateExportSettings
 
 -- | Parse and handle a single line containing meta information
 -- The order, in which blocks are tried, makes sure that we're not looking at

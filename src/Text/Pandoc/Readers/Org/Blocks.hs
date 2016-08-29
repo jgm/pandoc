@@ -35,7 +35,7 @@ module Text.Pandoc.Readers.Org.Blocks
 
 import           Text.Pandoc.Readers.Org.BlockStarts
 import           Text.Pandoc.Readers.Org.Inlines
-import           Text.Pandoc.Readers.Org.Meta ( metaLine )
+import           Text.Pandoc.Readers.Org.Meta ( metaExport, metaLine )
 import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Readers.Org.Parsing
 import           Text.Pandoc.Readers.Org.Shared
@@ -230,8 +230,8 @@ blockList = do
 -- | Get the meta information safed in the state.
 meta :: OrgParser Meta
 meta = do
-  st <- getState
-  return $ runF (orgStateMeta st) st
+  meta' <- metaExport
+  runF meta' <$> getState
 
 blocks :: OrgParser (F Blocks)
 blocks = mconcat <$> manyTill block (void (lookAhead headerStart) <|> eof)
