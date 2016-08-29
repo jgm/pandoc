@@ -56,7 +56,9 @@ exportSetting = choice
   , archivedTreeSetting "arch" (\val es -> es { exportArchivedTrees = val })
   , booleanSetting "author" (\val es -> es { exportWithAuthor = val })
   , ignoredSetting "c"
-  , ignoredSetting "creator"
+  -- org-mode allows the special value `comment` for creator, which we'll
+  -- interpret as true as it doesn't make sense in the context of Pandoc.
+  , booleanSetting "creator" (\val es -> es { exportWithCreator = val })
   , complementableListSetting "d" (\val es -> es { exportDrawers = val })
   , ignoredSetting "date"
   , ignoredSetting "e"

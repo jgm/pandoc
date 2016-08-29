@@ -54,10 +54,9 @@ metaExport :: OrgParser (F Meta)
 metaExport = do
   st <- getState
   let settings = orgStateExportSettings st
-  let withAuthor = exportWithAuthor settings
-  let withEmail  = exportWithEmail settings
-  return $ (if withAuthor then id else removeMeta "author")
-         . (if withEmail  then id else removeMeta "email")
+  return $ (if exportWithAuthor  settings then id else removeMeta "author")
+         . (if exportWithCreator settings then id else removeMeta "creator")
+         . (if exportWithEmail   settings then id else removeMeta "email")
         <$> orgStateMeta st
 
 removeMeta :: String -> Meta -> Meta

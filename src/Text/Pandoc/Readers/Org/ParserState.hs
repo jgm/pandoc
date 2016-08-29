@@ -164,6 +164,7 @@ data ExportSettings = ExportSettings
   , exportSpecialStrings  :: Bool -- ^ Parse ellipses and dashes smartly
   , exportSubSuperscripts :: Bool -- ^ TeX-like syntax for sub- and superscripts
   , exportWithAuthor      :: Bool -- ^ Include author in final meta-data
+  , exportWithCreator     :: Bool -- ^ Include creator in final meta-data
   , exportWithEmail       :: Bool -- ^ Include email in final meta-data
   }
 
@@ -180,6 +181,7 @@ defaultExportSettings = ExportSettings
   , exportSpecialStrings = True
   , exportSubSuperscripts = True
   , exportWithAuthor = True
+  , exportWithCreator = True
   , exportWithEmail = True
   }
 
