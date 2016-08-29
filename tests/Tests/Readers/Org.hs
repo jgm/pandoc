@@ -478,8 +478,8 @@ tests =
 
       , "Description" =:
         "#+DESCRIPTION: Explanatory text" =?>
-        let description = toList . spcSep $ [ "Explanatory", "text" ]
-            meta = setMeta "description" (MetaInlines description) $ nullMeta
+        let description = "Explanatory text"
+            meta = setMeta "description" (MetaString description) $ nullMeta
         in Pandoc meta mempty
 
       , "Properties drawer" =:

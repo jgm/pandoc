@@ -55,20 +55,35 @@ metaLine = mempty <$ metaLineStart <* (optionLine <|> declarationLine)
 
 declarationLine :: OrgParser ()
 declarationLine = try $ do
-  key   <- metaKey
-  value <- metaInlines
+  key   <- map toLower <$> metaKey
+  value <- metaValue key
   updateState $ \st ->
     let meta' = B.setMeta key <$> value <*> pure nullMeta
     in st { orgStateMeta = orgStateMeta st <> meta' }
-
-metaInlines :: OrgParser (F MetaValue)
-metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
 
 metaKey :: OrgParser String
 metaKey = map toLower <$> many1 (noneOf ": \n\r")
                       <*  char ':'
                       <*  skipSpaces
 
+metaValue :: String -> OrgParser (F MetaValue)
+metaValue key = do
+  case key of
+    "author" -> metaInlines
+    "title"  -> metaInlines
+    "date"   -> metaInlines
+    _        -> metaString
+
+metaInlines :: OrgParser (F MetaValue)
+metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
+
+metaString :: OrgParser (F MetaValue)
+metaString =  return . MetaString <$> anyLine
+
+
+--
+-- export options
+--
 optionLine :: OrgParser ()
 optionLine = try $ do
   key <- metaKey
