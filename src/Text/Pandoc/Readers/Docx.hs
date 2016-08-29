@@ -421,12 +421,7 @@ dummyAnchors :: [String]
 dummyAnchors = ["_GoBack"]
 
 makeHeaderAnchor :: Blocks -> DocxContext Blocks
-makeHeaderAnchor bs = case viewl $ unMany bs of
-  (x :< xs) -> do
-    x' <- (makeHeaderAnchor' x)
-    xs' <- (makeHeaderAnchor $ Many xs)
-    return $ (singleton x') <> xs'
-  EmptyL    -> return mempty
+makeHeaderAnchor bs = traverse makeHeaderAnchor' bs
 
 makeHeaderAnchor' :: Block -> DocxContext Block
 -- If there is an anchor already there (an anchor span in the header,
