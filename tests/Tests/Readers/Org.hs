@@ -602,69 +602,73 @@ tests =
                   ] =?>
           (para (link "http://example.com/foo" "" "bar"))
 
-      , "Export option: Disable simple sub/superscript syntax" =:
-          unlines [ "#+OPTIONS: ^:nil"
-                  , "a^b"
-                  ] =?>
-          para "a^b"
 
-      , "Export option: directly select drawers to be exported" =:
-          unlines [ "#+OPTIONS: d:(\"IMPORTANT\")"
-                  , ":IMPORTANT:"
-                  , "23"
-                  , ":END:"
-                  , ":BORING:"
-                  , "very boring"
-                  , ":END:"
-                  ] =?>
-          divWith (mempty, ["IMPORTANT", "drawer"], mempty) (para "23")
+      , testGroup "export options"
 
-      , "Export option: exclude drawers from being exported" =:
-          unlines [ "#+OPTIONS: d:(not \"BORING\")"
-                  , ":IMPORTANT:"
-                  , "5"
-                  , ":END:"
-                  , ":BORING:"
-                  , "very boring"
-                  , ":END:"
-                  ] =?>
-          divWith (mempty, ["IMPORTANT", "drawer"], mempty) (para "5")
+          [ "disable simple sub/superscript syntax" =:
+              unlines [ "#+OPTIONS: ^:nil"
+                      , "a^b"
+                      ] =?>
+              para "a^b"
 
-      , "Export option: don't include archive trees" =:
-          unlines [ "#+OPTIONS: arch:nil"
-                  , "* old  :ARCHIVE:"
-                  ] =?>
-          (mempty ::Blocks)
+          , "directly select drawers to be exported" =:
+              unlines [ "#+OPTIONS: d:(\"IMPORTANT\")"
+                      , ":IMPORTANT:"
+                      , "23"
+                      , ":END:"
+                      , ":BORING:"
+                      , "very boring"
+                      , ":END:"
+                      ] =?>
+              divWith (mempty, ["IMPORTANT", "drawer"], mempty) (para "23")
 
-      , "Export option: include complete archive trees" =:
-          unlines [ "#+OPTIONS: arch:t"
-                  , "* old  :ARCHIVE:"
-                  , "  boring"
-                  ] =?>
-          let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
-          in mconcat [ headerWith ("old", [], mempty) 1 ("old" <> tagSpan "ARCHIVE")
-                     , para "boring"
-                     ]
+          , "exclude drawers from being exported" =:
+              unlines [ "#+OPTIONS: d:(not \"BORING\")"
+                      , ":IMPORTANT:"
+                      , "5"
+                      , ":END:"
+                      , ":BORING:"
+                      , "very boring"
+                      , ":END:"
+                      ] =?>
+              divWith (mempty, ["IMPORTANT", "drawer"], mempty) (para "5")
 
-      , "Export option: include archive tree header only" =:
-          unlines [ "#+OPTIONS: arch:headline"
-                  , "* old  :ARCHIVE:"
-                  , "  boring"
-                  ] =?>
-          let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
-          in headerWith ("old", [], mempty) 1 ("old" <> tagSpan "ARCHIVE")
+          , "don't include archive trees" =:
+              unlines [ "#+OPTIONS: arch:nil"
+                      , "* old  :ARCHIVE:"
+                      ] =?>
+              (mempty ::Blocks)
 
-      , "Export option: limit headline depth" =:
-          unlines [ "#+OPTIONS: H:2"
-                  , "* section"
-                  , "** subsection"
-                  , "*** list item 1"
-                  , "*** list item 2"
-                  ] =?>
-          mconcat [ headerWith ("section", [], [])    1 "section"
-                  , headerWith ("subsection", [], []) 2 "subsection"
-                  , orderedList [ para "list item 1", para "list item 2" ]
-                  ]
+          , "include complete archive trees" =:
+              unlines [ "#+OPTIONS: arch:t"
+                      , "* old  :ARCHIVE:"
+                      , "  boring"
+                      ] =?>
+              let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
+              in mconcat [ headerWith ("old", [], mempty) 1 ("old" <> tagSpan "ARCHIVE")
+                         , para "boring"
+                         ]
+
+          , "include archive tree header only" =:
+              unlines [ "#+OPTIONS: arch:headline"
+                      , "* old  :ARCHIVE:"
+                      , "  boring"
+                      ] =?>
+              let tagSpan t = spanWith ("", ["tag"], [("data-tag-name", t)]) mempty
+              in headerWith ("old", [], mempty) 1 ("old" <> tagSpan "ARCHIVE")
+
+          , "limit headline depth" =:
+              unlines [ "#+OPTIONS: H:2"
+                      , "* section"
+                      , "** subsection"
+                      , "*** list item 1"
+                      , "*** list item 2"
+                      ] =?>
+              mconcat [ headerWith ("section", [], [])    1 "section"
+                      , headerWith ("subsection", [], []) 2 "subsection"
+                      , orderedList [ para "list item 1", para "list item 2" ]
+                      ]
+          ]
       ]
 
   , testGroup "Basic Blocks" $
