@@ -372,4 +372,6 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  [[Para [Str "And",Space,Str "in",Space,Str "list",Space,Str "items.",Note [Para [Str "In",Space,Str "list."]]]]]
 ,Para [Str "This",Space,Str "paragraph",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "part",Space,Str "of",Space,Str "the",Space,Str "note,",Space,Str "as",Space,Str "it",Space,Str "is",Space,Str "not",SoftBreak,Str "indented."]
 ,Header 1 ("escaped-characters",[],[]) [Str "Escaped",Space,Str "characters"]
-,Para [Str "$",Space,Str "%",Space,Str "&",Space,Str "#",Space,Str "_",Space,Str "{",Space,Str "}"]]
+,Para [Str "$",Space,Str "%",Space,Str "&",Space,Str "#",Space,Str "_",Space,Str "{",Space,Str "}"]
+,Header 1 ("raw-html",[],[]) [Str "Raw",Space,Str "HTML"]
+,RawBlock (Format "html") "  <div class=\"test\">Hello, world!</div>"]

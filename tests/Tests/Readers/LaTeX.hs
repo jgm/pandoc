@@ -115,6 +115,11 @@ tests = [ testGroup "basic"
             concat ["^^"++[i] | i <- hex] =?>
             para (str $ ['p'..'y']++['!'..'&'])
           ]
+        , testGroup "Raw HTML"
+          [ "Raw HTML environment" =:
+            "\\begin{html}<div class='test'>Hello, world!</div>\\end{html}" =?>
+            rawBlock "html" "<div class='test'>Hello, world!</div>"
+          ]
         ]
 
 baseCitation :: Citation
