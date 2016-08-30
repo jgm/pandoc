@@ -93,6 +93,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Sequence (ViewL(..), viewl)
 import qualified Data.Sequence as Seq (null)
+import Data.Traversable (traverse)
 
 import Text.Pandoc.Error
 import Text.Pandoc.Compat.Except
