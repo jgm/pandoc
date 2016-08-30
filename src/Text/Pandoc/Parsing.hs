@@ -186,7 +186,7 @@ import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro,
                                         parseMacroDefinitions)
 import Text.Pandoc.Compat.TagSoupEntity ( lookupEntity )
 import Text.Pandoc.Asciify (toAsciiChar)
-import Text.Pandoc.Compat.Monoid ((<>))
+import Data.Monoid ((<>))
 import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader

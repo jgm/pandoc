@@ -39,7 +39,7 @@ module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
-import Text.Pandoc.Compat.Monoid ((<>))
+import Data.Monoid ((<>))
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )

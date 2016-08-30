@@ -43,7 +43,7 @@ import           Text.Pandoc.Readers.Org.Shared
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines )
 import           Text.Pandoc.Definition
-import           Text.Pandoc.Compat.Monoid ( (<>) )
+import           Data.Monoid ( (<>) )
 import           Text.Pandoc.Options
 import           Text.Pandoc.Readers.LaTeX ( inlineCommand, rawLaTeXInline )
 import           Text.TeXMath ( readTeX, writePandoc, DisplayType(..) )

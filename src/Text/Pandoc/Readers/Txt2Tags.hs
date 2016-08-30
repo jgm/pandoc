@@ -34,7 +34,7 @@ module Text.Pandoc.Readers.Txt2Tags ( readTxt2Tags
 
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder ( Inlines, Blocks, trimInlines )
-import Text.Pandoc.Compat.Monoid ((<>))
+import Data.Monoid ((<>))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (escapeURI,compactify', compactify'DL)

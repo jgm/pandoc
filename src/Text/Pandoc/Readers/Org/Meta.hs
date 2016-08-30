@@ -41,7 +41,7 @@ import           Text.Pandoc.Readers.Org.Parsing
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Blocks, Inlines )
 import           Text.Pandoc.Definition
-import           Text.Pandoc.Compat.Monoid ((<>))
+import           Data.Monoid ((<>))
 
 import           Control.Monad ( mzero )
 import           Data.Char ( toLower )

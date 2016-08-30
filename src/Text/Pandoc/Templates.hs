@@ -98,7 +98,7 @@ import Control.Monad (guard, when)
 import Data.Aeson (ToJSON(..), Value(..))
 import qualified Text.Parsec as P
 import Text.Parsec.Text (Parser)
-import Text.Pandoc.Compat.Monoid ((<>))
+import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)

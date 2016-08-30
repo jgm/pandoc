@@ -34,7 +34,7 @@ import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as BC
 import qualified Data.ByteString as BS
-import Text.Pandoc.Compat.Monoid ((<>))
+import Data.Monoid ((<>))
 import System.Exit (ExitCode (..))
 import System.FilePath
 import System.IO (stderr, stdout)

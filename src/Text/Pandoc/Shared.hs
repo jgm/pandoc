@@ -132,7 +132,7 @@ import System.IO (stderr)
 import System.IO.Temp
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
-import Text.Pandoc.Compat.Monoid ((<>))
+import Data.Monoid ((<>))
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 import Data.ByteString.Base64 (decodeLenient)

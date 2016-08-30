@@ -66,7 +66,7 @@ import Control.Monad.Reader (Reader,ask, asks, local, runReader)
 import Network.URI (URI, parseURIReference, nonStrictRelativeTo)
 import Text.Pandoc.Error
 import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
-import Text.Pandoc.Compat.Monoid ((<>))
+import Data.Monoid ((<>))
 import Text.Parsec.Error
 import qualified Data.Set as Set
 

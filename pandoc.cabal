@@ -418,7 +418,6 @@ Library
                    Text.Pandoc.Compat.Except,
                    Text.Pandoc.Compat.TagSoupEntity,
                    Text.Pandoc.Compat.Directory,
-                   Text.Pandoc.Compat.Monoid,
                    Paths_pandoc
 
   Buildable:       True

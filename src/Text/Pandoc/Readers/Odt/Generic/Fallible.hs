@@ -41,7 +41,7 @@ module Text.Pandoc.Readers.Odt.Generic.Fallible where
 
 import           Control.Applicative
 import           Control.Monad
-import           Text.Pandoc.Compat.Monoid ((<>))
+import           Data.Monoid ((<>))
 import qualified Data.Foldable       as F
 
 -- | Default for now. Will probably become a class at some point.

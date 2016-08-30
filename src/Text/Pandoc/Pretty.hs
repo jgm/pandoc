@@ -80,7 +80,7 @@ import Data.List (intercalate)
 import Data.String
 import Control.Monad.State
 import Data.Char (isSpace)
-import Text.Pandoc.Compat.Monoid ((<>))
+import Data.Monoid ((<>))
 
 data RenderState a = RenderState{
          output       :: [a]        -- ^ In reverse order
