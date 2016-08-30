@@ -80,6 +80,10 @@ newtype PropertyValue = PropertyValue { fromValue :: String }
 toPropertyValue :: String -> PropertyValue
 toPropertyValue = PropertyValue
 
+-- | Check whether the property value is non-nil (i.e. truish).
+isNonNil :: PropertyValue -> Bool
+isNonNil p = map toLower (fromValue p) `notElem` ["()", "{}", "nil"]
+
 -- | Key/value pairs from a PROPERTIES drawer
 type Properties = [(PropertyKey, PropertyValue)]
 
@@ -200,12 +204,16 @@ propertiesToAttr properties =
     toStringPair prop = (fromKey (fst prop), fromValue (snd prop))
     customIdKey = toPropertyKey "custom_id"
     classKey    = toPropertyKey "class"
+    unnumberedKey = toPropertyKey "unnumbered"
+    specialProperties = [customIdKey, classKey, unnumberedKey]
     id'  = fromMaybe mempty . fmap fromValue . lookup customIdKey $ properties
     cls  = fromMaybe mempty . fmap fromValue . lookup classKey    $ properties
-    kvs' = map toStringPair . filter ((`notElem` [customIdKey, classKey]) . fst)
+    kvs' = map toStringPair . filter ((`notElem` specialProperties) . fst)
            $ properties
+    isUnnumbered =
+      fromMaybe False . fmap isNonNil . lookup unnumberedKey $ properties
   in
-    (id', words cls, kvs')
+    (id', words cls ++ (if isUnnumbered then ["unnumbered"] else []), kvs')
 
 tagTitle :: Inlines -> [Tag] -> Inlines
 tagTitle title tags = title <> (mconcat $ map tagToInline tags)

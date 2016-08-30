@@ -818,6 +818,15 @@ tests =
                   ] =?>
           headerWith ("fubar", [], [("bar", "baz")]) 1 "foo"
 
+
+      , "Headers marked with a unnumbered property get a class of the same name" =:
+          unlines [ "* Not numbered"
+                  , "  :PROPERTIES:"
+                  , "  :UNNUMBERED: t"
+                  , "  :END:"
+                  ] =?>
+          headerWith ("not-numbered", ["unnumbered"], []) 1 "Not numbered"
+
       , "Paragraph starting with an asterisk" =:
           "*five" =?>
           para "*five"
