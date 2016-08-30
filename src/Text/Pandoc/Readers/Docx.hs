@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, OverloadedStrings #-}
+{-# LANGUAGE PatternGuards, OverloadedStrings, CPP #-}
 
 {-
 Copyright (C) 2014-2016 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -93,7 +93,9 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Sequence (ViewL(..), viewl)
 import qualified Data.Sequence as Seq (null)
+#if !(MIN_VERSION_base(4,8,0))
 import Data.Traversable (traverse)
+#endif
 
 import Text.Pandoc.Error
 import Text.Pandoc.Compat.Except
