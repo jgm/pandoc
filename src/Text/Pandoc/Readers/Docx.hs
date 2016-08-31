@@ -98,7 +98,7 @@ import Data.Traversable (traverse)
 #endif
 
 import Text.Pandoc.Error
-import Text.Pandoc.Compat.Except
+import Control.Monad.Except
 
 readDocxWithWarnings :: ReaderOptions
                      -> B.ByteString

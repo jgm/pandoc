@@ -11,7 +11,7 @@ import Text.Pandoc.Compat.TagSoupEntity (lookupEntity)
 import Data.Generics
 import Control.Monad.State
 import Data.Default
-import Text.Pandoc.Compat.Except
+import Control.Monad.Except
 import Text.Pandoc.Error
 
 type OPML = ExceptT PandocError (State OPMLState)

@@ -14,7 +14,7 @@ import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 import Text.TeXMath (readMathML, writeTeX)
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Compat.Except
+import Control.Monad.Except
 import Data.Default
 import Data.Foldable (asum)
 

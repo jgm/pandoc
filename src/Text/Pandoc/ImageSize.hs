@@ -59,8 +59,7 @@ import Numeric (showFFloat)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import qualified Data.Map as M
-import Text.Pandoc.Compat.Except
-import Control.Monad.Trans
+import Control.Monad.Except
 import Data.Maybe (fromMaybe)
 
 -- quick and dirty functions to get image sizes

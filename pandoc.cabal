@@ -415,7 +415,6 @@ Library
                    Text.Pandoc.Slides,
                    Text.Pandoc.Highlighting,
                    Text.Pandoc.Compat.Time,
-                   Text.Pandoc.Compat.Except,
                    Text.Pandoc.Compat.TagSoupEntity,
                    Text.Pandoc.Compat.Directory,
                    Paths_pandoc

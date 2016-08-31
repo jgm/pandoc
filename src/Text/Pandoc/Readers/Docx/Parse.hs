@@ -64,7 +64,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Applicative ((<|>))
 import qualified Data.Map as M
-import Text.Pandoc.Compat.Except
+import Control.Monad.Except
 import Text.Pandoc.Shared (safeRead)
 import Text.TeXMath.Readers.OMML (readOMML)
 import Text.Pandoc.Readers.Docx.Fonts (getUnicode, Font(..))
@@ -90,9 +90,6 @@ data ReaderState = ReaderState { stateWarnings :: [String] }
 
 data DocxError = DocxError | WrongElem
                deriving Show
-
-instance Error DocxError where
-  noMsg = WrongElem
 
 type D = ExceptT DocxError (ReaderT ReaderEnv (State ReaderState))
 
