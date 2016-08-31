@@ -43,10 +43,10 @@ import           Control.Arrow
 import           Control.Monad                         ( join, MonadPlus(..) )
 
 import qualified Data.Foldable                    as F
+import           Data.Monoid
 
 import           Text.Pandoc.Readers.Odt.Generic.Fallible
 import           Text.Pandoc.Readers.Odt.Generic.Utils
-import           Data.Monoid
 
 and2 :: (Arrow a) => a b c -> a b c' -> a b (c,c')
 and2 = (&&&)

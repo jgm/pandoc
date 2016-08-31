@@ -17,7 +17,6 @@ import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
 import Network.URI (unEscapeString)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Compat.Except (MonadError, throwError, runExcept, Except)
-import Data.Monoid ((<>))
 import Text.Pandoc.MIME (MimeType)
 import qualified Text.Pandoc.Builder as B
 import Codec.Archive.Zip ( Archive (..), toArchiveOrFail, fromEntry
@@ -31,6 +30,7 @@ import Control.Monad (guard, liftM, when)
 import Data.List (isPrefixOf, isInfixOf)
 import Data.Maybe (mapMaybe, fromMaybe)
 import qualified Data.Map as M (Map, lookup, fromList, elems)
+import Data.Monoid ((<>))
 import Control.DeepSeq (deepseq, NFData)
 
 import Debug.Trace (trace)

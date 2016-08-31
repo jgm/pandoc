@@ -45,7 +45,6 @@ import           Text.Pandoc.Readers.Org.Shared
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines, Blocks )
 import           Text.Pandoc.Definition
-import           Data.Monoid ((<>))
 import           Text.Pandoc.Options
 import           Text.Pandoc.Shared ( compactify', compactify'DL )
 
@@ -53,6 +52,7 @@ import           Control.Monad ( foldM, guard, mzero, void )
 import           Data.Char ( isSpace, toLower, toUpper)
 import           Data.List ( foldl', intersperse, isPrefixOf )
 import           Data.Maybe ( fromMaybe, isNothing )
+import           Data.Monoid ((<>))
 
 --
 -- Org headers

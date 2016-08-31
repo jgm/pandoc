@@ -41,12 +41,12 @@ import           Text.Pandoc.Readers.Org.Parsing
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Blocks, Inlines )
 import           Text.Pandoc.Definition
-import           Data.Monoid ((<>))
 
 import           Control.Monad ( mzero )
 import           Data.Char ( toLower )
 import           Data.List ( intersperse )
 import qualified Data.Map as M
+import           Data.Monoid ((<>))
 import           Network.HTTP ( urlEncode )
 
 -- | Returns the current meta, respecting export options.

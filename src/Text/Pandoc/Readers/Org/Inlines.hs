@@ -43,7 +43,6 @@ import           Text.Pandoc.Readers.Org.Shared
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines )
 import           Text.Pandoc.Definition
-import           Data.Monoid ( (<>) )
 import           Text.Pandoc.Options
 import           Text.Pandoc.Readers.LaTeX ( inlineCommand, rawLaTeXInline )
 import           Text.TeXMath ( readTeX, writePandoc, DisplayType(..) )
@@ -55,6 +54,7 @@ import           Data.Char ( isAlphaNum, isSpace )
 import           Data.List ( intersperse )
 import           Data.Maybe ( fromMaybe )
 import qualified Data.Map as M
+import           Data.Monoid ( (<>) )
 import           Data.Traversable (sequence)
 
 --
