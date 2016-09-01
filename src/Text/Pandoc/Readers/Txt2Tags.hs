@@ -49,7 +49,7 @@ import Control.Monad.Reader (Reader, runReader, asks)
 import Text.Pandoc.Error
 
 import Data.Time.LocalTime (getZonedTime)
-import Text.Pandoc.Compat.Directory(getModificationTime)
+import System.Directory(getModificationTime)
 import Data.Time.Format (formatTime)
 import Text.Pandoc.Compat.Time (defaultTimeLocale)
 import System.IO.Error (catchIOError)
