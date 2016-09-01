@@ -249,7 +249,7 @@ Flag old-locale
   Default:       False
 
 Library
-  Build-Depends: base >= 4.2 && <5,
+  Build-Depends: base >= 4.6 && <5,
                  syb >= 0.1 && < 0.7,
                  containers >= 0.1 && < 0.6,
                  unordered-containers >= 0.2 && < 0.3,
