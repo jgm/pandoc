@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-
 Copyright (C) 2010-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -116,11 +115,7 @@ fromStringLazy :: String -> BL.ByteString
 fromStringLazy = TL.encodeUtf8 . TL.pack
 
 encodePath :: FilePath -> FilePath
-decodeArg :: String -> String
-#if MIN_VERSION_base(4,4,0)
 encodePath = id
+
+decodeArg :: String -> String
 decodeArg = id
-#else
-encodePath = B.unpack . fromString
-decodeArg = toString . B.pack
-#endif
