@@ -38,7 +38,7 @@ module Text.Pandoc.XML ( escapeCharForXML,
 
 import Text.Pandoc.Pretty
 import Data.Char (ord, isAscii, isSpace)
-import Text.Pandoc.Compat.TagSoupEntity (lookupEntity)
+import Text.HTML.TagSoup.Entity (lookupEntity)
 
 -- | Escape one character as needed for XML.
 escapeCharForXML :: Char -> String
@@ -101,7 +101,7 @@ toEntities (c:cs)
 fromEntities :: String -> String
 fromEntities ('&':xs) =
   case lookupEntity ent' of
-        Just c  -> c : fromEntities rest
+        Just c  -> c ++ fromEntities rest
         Nothing -> '&' : fromEntities xs
     where (ent, rest) = case break (\c -> isSpace c || c == ';') xs of
                              (zs,';':ys) -> (zs,ys)

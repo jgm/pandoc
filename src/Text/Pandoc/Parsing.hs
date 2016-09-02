@@ -184,7 +184,7 @@ import Text.Pandoc.Shared
 import qualified Data.Map as M
 import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro,
                                         parseMacroDefinitions)
-import Text.Pandoc.Compat.TagSoupEntity ( lookupEntity )
+import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Text.Pandoc.Asciify (toAsciiChar)
 import Data.Monoid ((<>))
 import Data.Default
@@ -578,8 +578,8 @@ characterReference = try $ do
                   '#':_  -> ent
                   _      -> ent ++ ";"
   case lookupEntity ent' of
-       Just c  -> return c
-       Nothing -> fail "entity not found"
+       Just (c : _)  -> return c
+       _             -> fail "entity not found"
 
 -- | Parses an uppercase roman numeral and returns (UpperRoman, number).
 upperRoman :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)

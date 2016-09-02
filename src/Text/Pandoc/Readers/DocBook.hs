@@ -5,7 +5,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder
 import Text.XML.Light
-import Text.Pandoc.Compat.TagSoupEntity (lookupEntity)
+import Text.HTML.TagSoup.Entity (lookupEntity)
 import Data.Either (rights)
 import Data.Generics
 import Data.Char (isSpace)
@@ -564,7 +564,7 @@ normalizeTree = everywhere (mkT go)
         go xs = xs
 
 convertEntity :: String -> String
-convertEntity e = maybe (map toUpper e) (:[]) (lookupEntity e)
+convertEntity e = maybe (map toUpper e) id (lookupEntity e)
 
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: String -> Element -> String
@@ -916,7 +916,7 @@ elementToStr x = x
 parseInline :: Content -> DB Inlines
 parseInline (Text (CData _ s _)) = return $ text s
 parseInline (CRef ref) =
-  return $ maybe (text $ map toUpper ref) (text . (:[])) $ lookupEntity ref
+  return $ maybe (text $ map toUpper ref) (text) $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
         "equation" -> equation displayMath
