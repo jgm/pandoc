@@ -296,6 +296,7 @@ stringToLaTeX  ctx (x:xs) = do
        ']' -> "{]}" ++ rest  -- optional arguments
        '\'' | ctx == CodeString -> "\\textquotesingle{}" ++ rest
        '\160' -> "~" ++ rest
+       '\x202F' -> "\\," ++ rest
        '\x2026' -> "\\ldots{}" ++ rest
        '\x2018' | ligatures -> "`" ++ rest
        '\x2019' | ligatures -> "'" ++ rest
