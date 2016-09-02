@@ -131,7 +131,8 @@ handleImage' opts tmpdir (Image attr ils (src,tit)) = do
                 return $ Image attr ils (fname,tit)
               _ -> do
                 warn $ "Could not find image `" ++ src ++ "', skipping..."
-                return $ Image attr ils (src,tit)
+                -- return alt text
+                return $ Emph ils
 handleImage' _ _ x = return x
 
 convertImages :: FilePath -> Inline -> IO Inline
