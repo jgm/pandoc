@@ -8,6 +8,9 @@ There are also binary installers for Windows and Mac OS X.
 If you are installing the development version from github, see also:
 https://github.com/jgm/pandoc/wiki/Installing-the-development-version-of-pandoc
 
+Please note that pandoc only supports [GHC] versions 7.8 and
+above. The easiest way to get GHC is by installing the [Haskell platform]
+
 How to get the source
 ---------------------
 
