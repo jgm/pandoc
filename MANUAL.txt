@@ -667,6 +667,11 @@ Options affecting specific writers
     option is implied.  If `beamer` is the output format, top-level
     headers will become `\part{..}`.
 
+`--parts`
+:   Treat top-level headers as parts in LaTeX output.  The second level
+    headers will be chapters, i.e. `--chapters` is implied.  This does not
+    effect the `beamer` output format.
+
 `-N`, `--number-sections`
 
 :   Number section headings in LaTeX, ConTeXt, HTML, or EPUB output.
