@@ -176,7 +176,11 @@ blockToDocbook opts (Div (ident,_,_) [Para lst]) =
      then flush $ nowrap $ inTags False "literallayout" attribs
                          $ inlinesToDocbook opts lst
      else inTags True "para" attribs $ inlinesToDocbook opts lst
-blockToDocbook opts (Div _ bs) = blocksToDocbook opts $ map plainToPara bs
+blockToDocbook opts (Div (ident,_,_) bs) =
+  (if null ident
+      then mempty
+      else selfClosingTag "anchor" [("id", ident)]) $$
+  blocksToDocbook opts (map plainToPara bs)
 blockToDocbook _ (Header _ _ _) = empty -- should not occur after hierarchicalize
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst
 -- title beginning with fig: indicates that the image is a figure
@@ -313,7 +317,10 @@ inlineToDocbook opts (Quoted _ lst) =
   inTagsSimple "quote" $ inlinesToDocbook opts lst
 inlineToDocbook opts (Cite _ lst) =
   inlinesToDocbook opts lst
-inlineToDocbook opts (Span _ ils) =
+inlineToDocbook opts (Span (ident,_,_) ils) =
+  (if null ident
+      then mempty
+      else selfClosingTag "anchor" [("id", ident)]) <>
   inlinesToDocbook opts ils
 inlineToDocbook _ (Code _ str) =
   inTagsSimple "literal" $ text (escapeStringForXML str)
