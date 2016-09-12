@@ -251,7 +251,7 @@ elementToLaTeX :: WriterOptions -> Element -> State WriterState Doc
 elementToLaTeX _ (Blk block) = blockToLaTeX block
 elementToLaTeX opts (Sec level _ (id',classes,_) title' elements) = do
   modify $ \s -> s{stInHeading = True}
-  header' <- sectionHeader ("unnumbered" `elem` classes) id' level title'
+  header' <- sectionHeader ("unnumbered" `elem` classes) ("no-toc" `elem` classes) id' level title'
   modify $ \s -> s{stInHeading = False}
   innerContents <- mapM (elementToLaTeX opts) elements
   return $ vsep (header' : innerContents)
@@ -575,7 +575,7 @@ blockToLaTeX HorizontalRule = return $
   "\\begin{center}\\rule{0.5\\linewidth}{\\linethickness}\\end{center}"
 blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = True}
-  hdr <- sectionHeader ("unnumbered" `elem` classes) id' level lst
+  hdr <- sectionHeader ("unnumbered" `elem` classes) ("no-toc" `elem` classes) id' level lst
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
@@ -721,11 +721,12 @@ defListItemToLaTeX (term, defs) = do
 
 -- | Craft the section header, inserting the secton reference, if supplied.
 sectionHeader :: Bool    -- True for unnumbered
+              -> Bool    -- True for no-toc
               -> [Char]
               -> Int
               -> [Inline]
               -> State WriterState Doc
-sectionHeader unnumbered ident level lst = do
+sectionHeader unnumbered notoc ident level lst = do
   txt <- inlineListToLaTeX lst
   plain <- stringToLaTeX TextString $ concatMap stringify lst
   let noNote (Note _) = Str ""
@@ -765,11 +766,16 @@ sectionHeader unnumbered ident level lst = do
   lab <- labelFor ident
   let star = if unnumbered && level < 4 then text "*" else empty
   let stuffing = star <> optional <> contents
-  stuffing' <- hypertarget ident $ text ('\\':sectionType) <> stuffing <> lab
+  let section = if notoc && not (unnumbered)
+                   then braces (text "\\renewcommand{\\addcontentsline}[3]{}" <>
+                                text ('\\':sectionType) <>
+                                stuffing)
+                   else text ('\\':sectionType) <> stuffing 
+  stuffing' <- hypertarget ident $ section <> lab
   return $ if level' > 5
               then txt
               else prefix $$ stuffing'
-                   $$ if unnumbered
+                   $$ if unnumbered && not notoc
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
                                 braces txtNoNotes
