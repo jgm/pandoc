@@ -35,7 +35,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
-import Data.List ( stripPrefix, isPrefixOf, isSuffixOf )
+import Data.List ( stripPrefix, isPrefixOf )
 import Data.Char ( toLower )
 import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
@@ -60,19 +60,15 @@ writeTEI opts (Pandoc meta blocks) =
                     then Just $ writerColumns opts
                     else Nothing
       render' = render colwidth
-      opts' = if "/book>" `isSuffixOf`
-                      (trimr $ writerTemplate opts)
-                 then opts{ writerChapters = True }
-                 else opts
-      startLvl = if writerChapters opts' then 0 else 1
+      startLvl = if writerChapters opts then 0 else 1
       auths'   = map (authorToTEI opts) $ docAuthors meta
       meta'    = B.setMeta "author" auths' meta
       Just metadata = metaToJSON opts
                  (Just . render colwidth . (vcat .
-                          (map (elementToTEI opts' startLvl)) . hierarchicalize))
-                 (Just . render colwidth . inlinesToTEI opts')
+                          (map (elementToTEI opts startLvl)) . hierarchicalize))
+                 (Just . render colwidth . inlinesToTEI opts)
                  meta'
-      main    = render' $ vcat (map (elementToTEI opts' startLvl) elements)
+      main    = render' $ vcat (map (elementToTEI opts startLvl) elements)
       context = defField "body" main
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML _ -> True
