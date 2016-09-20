@@ -76,6 +76,6 @@ tests = [ testGroup "code blocks"
           , "single quotes" =:
               code "dog's" =?> "\\texttt{dog\\textquotesingle{}s}"
           , "backtick" =:
-              code "`nu?`" =?> "\\texttt{{`}nu?{`}}"
+              code "`nu?`" =?> "\\texttt{\\textasciigrave{}nu?\\textasciigrave{}}"
           ]
         ]

@@ -276,7 +276,7 @@ stringToLaTeX  ctx (x:xs) = do
        '€' -> "\\euro{}" ++ rest
        '{' -> "\\{" ++ rest
        '}' -> "\\}" ++ rest
-       '`' | ctx == CodeString -> "{`}" ++ rest
+       '`' | ctx == CodeString -> "\\textasciigrave{}" ++ rest
        '$' | not isUrl -> "\\$" ++ rest
        '%' -> "\\%" ++ rest
        '&' -> "\\&" ++ rest
