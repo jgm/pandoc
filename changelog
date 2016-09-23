@@ -173,7 +173,9 @@ pandoc (1.17.3)
     + Added `themeoptions` variable (Carsten Gips).
     + Added `beamerarticle` variable.  This causes the `beamerarticle`
       package to be loaded in beamer, to produce an article from beamer slides.
-     (Carsten Gips)
+      (Carsten Gips)
+    + Added support for `fontfamilies` structured variable
+      (Artem Klevtsov).
 
   * LaTeX template: Added dummy definition for `\institute`.
     This isn't a standard command, and we want to avoid a crash when
