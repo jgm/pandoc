@@ -14,11 +14,6 @@ flags:
 packages:
 - '..'
 extra-deps:
-- data-default-0.6.0
-- pandoc-citeproc-0.10.1
 - http-client-0.5.0
 - http-client-tls-0.3.0
-- 'cmark-0.5.3.1'
-- 'aeson-pretty-0.8.1'
-- 'texmath-0.8.6.5'
-resolver: lts-6.5
+resolver: lts-7.0
