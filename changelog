@@ -1,3 +1,229 @@
+pandoc (1.17.3)
+
+  * Textile reader:
+
+    + Support `bc..` extended code blocks (#3037).  Also, remove trailing
+      newline in code blocks (consistently with Markdown reader).
+    + Improve table parsing.  We now handle cell and row attributes, mostly
+      by skipping them.  However, alignments are now handled properly.
+      Since in pandoc alignment is per-column, not per-cell, we
+      try to devine column alignments from cell alignments.
+      Table captions are also now parsed, and textile indicators
+      for thead and tfoot no longer cause parse failure.  (However,
+      a row designated as tfoot will just be a regular row in pandoc.)
+    + Improve definition list parsing.  We now allow multiple terms
+      (which we concatenate with linebreaks).  An exponential parsing
+      bug (#3020) is also fixed.
+    + Disallow empty URL in explicit link (#3036).
+
+  * RST reader:
+
+    + Use Div instead of BlockQuote for admonitions (#3031).
+      The Div has class `admonition` and (if relevant) one of the
+      following:  `attention`, `caution`, `danger`, `error`, `hint`,
+      `important`, `note`, `tip`, `warning`.  **Note:** This will change
+      the rendering of some RST documents!  The word ("Warning", "Attention",
+      etc.) is no longer added; that must be done with CSS or a filter.
+    + A Div is now used for `sidebar` as well.
+
+  * LaTeX reader:
+
+    + More robust parsing of unknown environments (#3026).
+      We no longer fail on things like `^` inside options for tikz.
+    + Be more forgiving of non-standard characters, e.g. `^` outside of math.
+      Some custom environments give these a meaning, so we should try not to
+      fall over when we encounter them.
+    + Drop duplicate `*` in bibtexKeyChars (Albert Krewinkel)
+
+  * MediaWiki reader:
+
+    + Fix for unquoted attribute values in mediawiki tables (#3053).
+      Previously an unquoted attribute value in a table row
+      could cause parsing problems.
+    + Improved treatment of verbatim constructions (#3055).
+      Previously these yielded strings of alternating Code and Space
+      elements; we now incorporate the spaces into the Code.  Emphasis
+      etc. is still possible inside these.
+    + Properly interpret XML tags in pre environments (#3042).  They are meant
+      to be interpreted as literal text.
+
+  * Org reader (Albert Krewinkel):
+
+    + Preserve indentation of verse lines (#3064).  Leading spaces in verse
+      lines are converted to non-breaking spaces, so indentation is preserved.
+    + Ensure image sources are proper links.  Image sources as those in plain
+      images, image links, or figures, must be proper URIs or relative file
+      paths to be recognized as images.  This restriction is now enforced
+      for all image sources.  This also fixes the reader's usage of uncleaned
+      image sources, leading to `file:` prefixes not being deleted from figure
+      images.  Thanks to @bsag for noticing this bug.
+    + Extract meta parsing code to module.  Parsing of meta-data is well
+      separable from other block parsing tasks.  Moving into new module to get
+      small files and clearly arranged code.
+    + Read markup only for special meta keys.  Most meta-keys should be read
+      as normal string values, only a few are interpreted as marked-up text.
+    + Allow multiple, comma-separated authors.  Multiple authors can be specified
+      in the `#+AUTHOR` meta line if they are given as a comma-separated list.
+    + Give precedence to later meta lines.  The last meta-line of any given type
+      is the significant line.  Previously the value of the first line was kept,
+      even if more lines of the same type were encounterd.
+    + Read LaTeX_header as header-includes.  LaTeX-specific header commands
+      can be defined in `#+LaTeX_header` lines.  They are parsed as
+      format-specific inlines to ensure that they will only show up in LaTeX
+      output.
+    + Set documentclass meta from LaTeX_class.
+    + Set classoption meta from LaTeX_class_options.
+    + Read HTML_head as header-includes.  HTML-specific head content can be
+      defined in `#+HTML_head` lines.  They are parsed as format-specific
+      inlines to ensure that they will only show up in HTML output.
+    + Respect `author` export option.  The `author` option controls whether the
+      author should be included in the final markup.  Setting
+      `#+OPTIONS: author:nil` will drop the author from the final meta-data
+      output.
+    + Respect `email` export option.  The `email` option controls whether the
+      email meta-field should be included in the final markup. Setting
+      `#+OPTIONS: email:nil` will drop the email field from the final meta-data
+      output.
+    + Respect `creator` export option.  The `creator` option controls whether
+      the creator meta-field should be included in the final markup.  Setting
+      `#+OPTIONS: creator:nil` will drop the creator field from the final
+      meta-data output.  Org-mode recognizes the special value `comment` for
+      this field, causing the creator to be included in a comment.  This is
+      difficult to translate to Pandoc internals and is hence interpreted the
+      same as other truish values (i.e. the meta field is kept if it's present).
+    + Respect unnumbered header property (#3095).  Sections the `unnumbered`
+      property should, as the name implies, be excluded from the automatic
+      numbering of section provided by some output formats.  The Pandoc
+      convention for this is to add an "unnumbered" class to the header.  The
+      reader treats properties as key-value pairs per default, so a special
+      case is added to translate the above property to a class instead.
+
+  * Docx reader:
+
+    + Use XML convenience functions (Jesse Rosenthal).
+      The functions `isElem` and `elemName` (defined in Docx/Util.hs) make the
+      code a lot cleaner than the original XML.Light functions, but they had
+      been used inconsistently. This puts them in wherever applicable.
+    + Handle anchor spans with content in headers.  Previously, we would only
+      be able to figure out internal links to a header in a docx if the anchor
+      span was empty. We change that to read the inlines out of the first
+      anchor span in a header.
+    + Let headers use exisiting id.  Previously we always generated an id for
+      headers (since they wouldn't bring one from Docx). Now we let it use an
+      existing one if possible. This should allow us to recurs through anchor
+      spans.
+    + Use all anchor spans for header ids.  Previously we only used the first
+      anchor span to affect header ids. This allows us to use all the anchor
+      spans in a header, whether they're nested or not (#3088).
+    + Test for nested anchor spans in header.  This ensures that anchor spans
+      in header with content (or with other anchor spans inside) will resolve
+      to links to a header id properly.
+
+  * DocBook writer:
+
+    + Include an anchor element when a div or span has an id (#3102).
+      Note that DocBook does not have a class attribute, but at least this
+      provides an anchor for internal links.
+
+  * LaTeX writer:
+
+    + Don't use * for unnumbered paragraph, subparagraph.  The starred variants
+      don't exist.  This helps with part of #3058...it gets rid of the spurious
+      `*`s.  But we still have numbers on the 4th and 5th level headers.
+    + Properly escape backticks in verbatim (#3121, Jesse Rosenthal).
+      Otherwise they can cause unintended ligatures like `` ?` ``.
+    + Handle NARRAOW NO-BREAK SPACE into LaTeX (Vaclav Zeman) as `\,`.
+
+  * Text.Pandoc.Error: Fix out of index error in `handleError`
+    (Matthew Pickering).  The fix is to not try to show the exact line when it
+    would cause an out-of-bounds error as a result of included files.
+
+  * Man writer:
+
+    + Allow section numbers that are not a single digit (#3089).
+
+  * Docx Writer:
+
+    + Implement user-defined styles (Jesse Rosenthal).  Divs and Spans
+      with a `custom-style` key in the attributes will apply the corresponding
+      key to the contained blocks or inlines.
+
+  * Org writer (Albert Krewinkel):
+
+    + Remove blank line after figure caption.  Org-mode only treats an image
+      as a figure if it is directly preceded by a caption.
+    + Ensure blank line after figure.  An Org-mode figure should be surrounded
+      by blank lines.  The figure would be recognized regardless, but images
+      in the following line would unintentionally be treated as figures as
+      well.
+    + Ensure link targets are paths or URLs.  Org-mode treats links as
+      document internal searches unless the link target looks like a URL or
+      file path, either relative or absolute.  This change ensures that this
+      is always the case.
+    + Translate language identifiers.  Pandoc and Org-mode use different
+      programming language identifiers.  An additional translation between
+      those identifiers is added to avoid unexpected behavior.  This fixes a
+      problem where language specific source code would sometimes be output
+      as example code.
+
+  * Beamer template:
+
+    + Restore whitespace between paragraphs. This was
+      a regression in the last release (jgm/pandoc-templates#207).
+    + Added `themeoptions` variable (Carsten Gips).
+    + Added `beamerarticle` variable.  This causes the `beamerarticle`
+      package to be loaded in beamer, to produce an article from beamer slides.
+     (Carsten Gips)
+
+  * LaTeX template: Added dummy definition for `\institute`.
+    This isn't a standard command, and we want to avoid a crash when
+    `institute` is used with the default template.
+
+  * Text.Pandoc.PDF:  Don't crash with nonexistent image (#3100).  Instead,
+    emit the alt text, emphasized.  This accords with what the ODT writer
+    currently does.  The user will still get a warning about a nonexistent
+    image.
+
+  * Tell where to get tarball in INSTALL (#3062).
+
+  * Rename README to MANUAL.txt and add GitHub-friendly README.md
+    (Albert Krewinkel).
+
+  * MANUAL.txt:
+
+    + Put note on structured vars in separate paragraph (#2148, Albert
+      Krewinkel).  Make it clearer that structured author variables require a
+      custom template
+    + Note that `--katex` works best with `html5` (#3077).
+    + Fix the LaTeX and EPUB links in manual (Morton Fox).
+
+  * Improve spacing of footnotes in `--help` output (Waldir Pimenta).
+
+  * Allow aeson 1.0.*.
+
+  * Use texmath 0.8.6.5 (#3040).
+
+  * Remove support for GHC < 7.8 (Jesse Rosenthal).
+
+    + Remove Compat.Monoid.
+    + Remove an inline monad compatibility macro.
+    + Remove Text.Pandoc.Compat.Except.
+    + Remove directory compat.
+    + Change constraint on mtl.
+    + Remove unnecessary CPP condition in UTF8.
+    + Bump base lower bound to 4.7.
+    + Remove 7.6 build from .travis.yaml.
+    + Bump supported ghc version in CONTRIBUTING.md.
+    + Add note about GHC version support to INSTALL.
+    + Remove GHC 7.6 from list of tested versions (Albert Krewinkel).
+    + Remove TagSoup compat.
+    + Add EOL note to time compat module.  Because time 1.4 is a boot library
+      for GHC 7.8, we will support the compatibility module as long as we
+      support 7.8. But we should be clear about when we will no longer need it.
+    + Remove blaze-html CPP conditional.
+    + Remove http-client CPP conditionals.
+    + Remove unnecessary CPP in custom Prelude.
+
 pandoc (1.17.2)
 
   * Added Zim Wiki writer, template and tests. `zimwiki` is now
