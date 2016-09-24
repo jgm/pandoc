@@ -18,7 +18,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Readers.TeXMath (texMathToInlines)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Shared (linesToPara, splitBy, fetchItem, warn)
+import Text.Pandoc.Shared (linesToPara, splitBy, warn)
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Pretty
@@ -28,6 +28,10 @@ import Data.Text as Text (breakOnAll, pack)
 import Control.Monad.State
 import Network.URI (isURI)
 import qualified Data.Set as Set
+import Text.Pandoc.Free (runIO)
+import qualified Text.Pandoc.Free as P
+
+type ICMLAction = P.PandocAction ()
 
 type Style = [String]
 type Hyperlink = [(Int, String)]
@@ -40,7 +44,7 @@ data WriterState = WriterState{
   , maxListDepth :: Int
   }
 
-type WS a = StateT WriterState IO a
+type WS a = StateT WriterState ICMLAction a
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{
@@ -121,10 +125,13 @@ subListParName    = "subParagraph"
 footnoteName      = "Footnote"
 citeName          = "Cite"
 
-
 -- | Convert Pandoc document to string in ICML format.
 writeICML :: WriterOptions -> Pandoc -> IO String
-writeICML opts (Pandoc meta blocks) = do
+writeICML opts doc = runIO $ writeICMLPure opts doc
+
+-- | Convert Pandoc document to string in ICML format.
+writeICMLPure :: WriterOptions -> Pandoc -> ICMLAction String
+writeICMLPure opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -531,10 +538,10 @@ styleToStrAttr style =
 -- | Assemble an ICML Image.
 imageICML :: WriterOptions -> Style -> Attr -> Target -> WS Doc
 imageICML opts style attr (src, _) = do
-  res  <- liftIO $ fetchItem (writerSourceURL opts) src
+  res  <- lift $ P.fetchItem (writerSourceURL opts) src
   imgS <- case res of
             Left (_) -> do
-              liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
+              lift $ P.warn $ "Could not find image `" ++ src ++ "', skipping..."
               return def
             Right (img, _) -> do
               case imageSize img of

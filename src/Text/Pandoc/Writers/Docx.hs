@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, PatternGuards, ViewPatterns #-}
+{-# LANGUAGE ScopedTypeVariables, PatternGuards, ViewPatterns, DeriveFunctor #-}
 {-
 Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to docx.
 -}
-module Text.Pandoc.Writers.Docx ( writeDocx ) where
+module Text.Pandoc.Writers.Docx ( writeDocx, writeDocxPure ) where
 import Data.List ( intercalate, isPrefixOf, isSuffixOf )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
@@ -38,7 +38,6 @@ import qualified Data.Set as Set
 import qualified Text.Pandoc.UTF8 as UTF8
 import Codec.Archive.Zip
 import Data.Time.Clock.POSIX
-import System.Environment
 import Text.Pandoc.Compat.Time
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
@@ -57,8 +56,8 @@ import Text.Pandoc.Readers.Docx.Util (elemName)
 import Control.Monad.Reader
 import Control.Monad.State
 import Text.Highlighting.Kate
-import Data.Unique (hashUnique, newUnique)
-import System.Random (randomRIO)
+import Data.Unique (hashUnique)
+import System.Random (randomR)
 import Text.Printf (printf)
 import qualified Control.Exception as E
 import Data.Monoid ((<>))
@@ -67,6 +66,10 @@ import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
 import Control.Applicative ((<|>))
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList, isNothing)
 import Data.Char (ord, isSpace, toLower)
+import Text.Pandoc.Free (PandocAction, runIO)
+import qualified Text.Pandoc.Free as P
+
+type DocxAction = PandocAction ()
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -146,7 +149,7 @@ defaultWriterState = WriterState{
       , stDynamicTextProps = []
       }
 
-type WS = ReaderT WriterEnv (StateT WriterState IO)
+type WS = ReaderT WriterEnv (StateT WriterState (DocxAction))
 
 mknode :: Node t => String -> [(String,String)] -> t -> Element
 mknode s attrs =
@@ -213,19 +216,27 @@ metaValueToInlines (MetaBlocks bs) = query return bs
 metaValueToInlines (MetaBool b) = [Str $ show b]
 metaValueToInlines _ = []
 
--- | Produce an Docx file from a Pandoc document.
+
+
 writeDocx :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO BL.ByteString
-writeDocx opts doc@(Pandoc meta _) = do
+writeDocx opts doc = runIO $ writeDocxPure opts doc
+
+
+-- | Produce an Docx file from a Pandoc document.
+writeDocxPure :: WriterOptions  -- ^ Writer options
+              -> Pandoc         -- ^ Document to convert
+              -> DocxAction BL.ByteString
+writeDocxPure opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let doc' = walk fixDisplayMath $ doc
-  username <- lookup "USERNAME" <$> getEnvironment
-  utctime <- getCurrentTime
-  distArchive <- getDefaultReferenceDocx datadir
+  username <- P.lookupEnv "USERNAME"
+  utctime <- P.getCurrentTime
+  distArchive <- P.getDefaultReferenceDocx datadir
   refArchive <- case writerReferenceDocx opts of
-                     Just f  -> liftM (toArchive . toLazy) $ B.readFile f
-                     Nothing -> getDefaultReferenceDocx datadir
+                     Just f  -> liftM (toArchive . toLazy) $ P.readFileStrict f
+                     Nothing -> P.getDefaultReferenceDocx datadir
 
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
   let wname f qn = qPrefix qn == Just "w" && f (qName qn)
@@ -603,7 +614,7 @@ styleToOpenXml sm style =
                                  $ backgroundColor style )
                              ]
 
-copyChildren :: Archive -> Archive -> String -> Integer -> [String] -> IO Entry
+copyChildren :: Archive -> Archive -> String -> Integer -> [String] -> DocxAction Entry
 copyChildren refArchive distArchive path timestamp elNames = do
   ref  <- parseXml refArchive distArchive path
   dist <- parseXml distArchive distArchive path
@@ -622,7 +633,7 @@ copyChildren refArchive distArchive path timestamp elNames = do
 baseListId :: Int
 baseListId = 1000
 
-mkNumbering :: [ListMarker] -> IO [Element]
+mkNumbering :: [ListMarker] -> DocxAction [Element]
 mkNumbering lists = do
   elts <- mapM mkAbstractNum (ordNub lists)
   return $ elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
@@ -638,9 +649,10 @@ mkNum marker numid =
           map (\lvl -> mknode "w:lvlOverride" [("w:ilvl",show (lvl :: Int))]
               $ mknode "w:startOverride" [("w:val",show start)] ()) [0..6]
 
-mkAbstractNum :: ListMarker -> IO Element
+mkAbstractNum :: ListMarker -> DocxAction Element
 mkAbstractNum marker = do
-  nsid <- randomRIO (0x10000000 :: Integer, 0xFFFFFFFF :: Integer)
+  gen <- P.newStdGen
+  let (nsid, _) = randomR (0x10000000 :: Integer, 0xFFFFFFFF :: Integer) gen
   return $ mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
     $ mknode "w:nsid" [("w:val", printf "%8x" nsid)] ()
     : mknode "w:multiLevelType" [("w:val","multilevel")] ()
@@ -694,6 +706,7 @@ mkLvl marker lvl =
 
 getNumId :: WS Int
 getNumId = (((baseListId - 1) +) . length) `fmap` gets stLists
+
 
 makeTOC :: WriterOptions -> WS [Element]
 makeTOC opts | writerTableOfContents opts = do
@@ -781,10 +794,10 @@ rStyleM styleName = do
   let sty' = getStyleId styleName $ sCharStyleMap styleMaps
   return $ mknode "w:rStyle" [("w:val",sty')] ()
 
-getUniqueId :: MonadIO m => m String
+getUniqueId :: DocxAction String
 -- the + 20 is to ensure that there are no clashes with the rIds
 -- already in word/document.xml.rel
-getUniqueId = liftIO $ (show . (+ 20) . hashUnique) `fmap` newUnique
+getUniqueId = (show . (+ 20) . hashUnique) <$> P.newUnique
 
 -- | Key for specifying user-defined docx styles.
 dynamicStyleKey :: String
@@ -825,7 +838,7 @@ blockToOpenXML' opts (Header lev (ident,_,_) lst) = do
                         then uniqueIdent lst usedIdents
                         else ident
   modify $ \s -> s{ stSectionIds = Set.insert bookmarkName $ stSectionIds s }
-  id' <- getUniqueId
+  id' <- (lift . lift) getUniqueId
   let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
                                                ,("w:name",bookmarkName)] ()
   let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
@@ -1133,7 +1146,7 @@ inlineToOpenXML' opts (Code attrs str) = do
          else unhighlighted
 inlineToOpenXML' opts (Note bs) = do
   notes <- gets stFootnotes
-  notenum <- getUniqueId
+  notenum <- (lift . lift) getUniqueId
   footnoteStyle <- rStyleM "Footnote Reference"
   let notemarker = mknode "w:r" []
                    [ mknode "w:rPr" [] footnoteStyle
@@ -1164,7 +1177,7 @@ inlineToOpenXML' opts (Link _ txt (src,_)) = do
   id' <- case M.lookup src extlinks of
             Just i   -> return i
             Nothing  -> do
-              i <- ("rId"++) `fmap` getUniqueId
+              i <- ("rId"++) `fmap` ((lift . lift) getUniqueId)
               modify $ \st -> st{ stExternalLinks =
                         M.insert src i extlinks }
               return i
@@ -1176,15 +1189,14 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
   case M.lookup src imgs of
     Just (_,_,_,elt,_) -> return [elt]
     Nothing -> do
-      res <- liftIO $
-               fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
+      res <- (lift . lift) $ P.fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
       case res of
         Left (_ :: E.SomeException) -> do
-          liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
+          (lift . lift) $ P.warn ("Could not find image `" ++ src ++ "', skipping...")
           -- emit alt text
           inlinesToOpenXML opts alt
         Right (img, mt) -> do
-          ident <- ("rId"++) `fmap` getUniqueId
+          ident <- ("rId"++) `fmap` ((lift . lift) getUniqueId)
           let (xpt,ypt) = desiredSizeInPoints opts attr
                  (either (const def) id (imageSize img))
           -- 12700 emu = 1 pt
@@ -1262,13 +1274,13 @@ defaultFootnotes = [ mknode "w:footnote"
                        [ mknode "w:r" [] $
                          [ mknode "w:continuationSeparator" [] ()]]]]
 
-parseXml :: Archive -> Archive -> String -> IO Element
+parseXml :: Archive -> Archive -> String -> DocxAction Element
 parseXml refArchive distArchive relpath =
   case findEntryByPath relpath refArchive `mplus`
          findEntryByPath relpath distArchive of
             Nothing -> fail $ relpath ++ " missing in reference docx"
             Just e  -> case parseXMLDoc . UTF8.toStringLazy . fromEntry $ e of
-                       Nothing -> fail $ relpath ++ " corrupt in reference docx"
+                       Nothing -> P.fail $ relpath ++ " corrupt in reference docx"
                        Just d  -> return d
 
 -- | Scales the image to fit the page
