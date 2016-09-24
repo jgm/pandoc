@@ -28,26 +28,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to EPUB.
 -}
-module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
-import Data.IORef ( IORef, newIORef, readIORef, modifyIORef )
+module Text.Pandoc.Writers.EPUB ( writeEPUB, writeEPUBPure ) where
+import Data.IORef ( IORef )
 import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Maybe ( fromMaybe, catMaybes )
 import Data.List ( isPrefixOf, isInfixOf, intercalate )
-import System.Environment ( getEnv )
 import Text.Printf (printf)
 import System.FilePath ( takeExtension, takeFileName )
-import System.FilePath.Glob ( namesMatching )
 import Network.HTTP ( urlEncode )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import qualified Text.Pandoc.UTF8 as UTF8
 import Codec.Archive.Zip ( emptyArchive, addEntryToArchive, eRelativePath, fromEntry                         , Entry, toEntry, fromArchive)
-import Data.Time.Clock.POSIX ( getPOSIXTime )
 import Text.Pandoc.Compat.Time
 import Text.Pandoc.Shared ( renderTags', safeRead, uniqueIdent, trim
-                          , normalizeDate, readDataFile, stringify, warn
-                          , hierarchicalize, fetchItem' )
+                          , normalizeDate, stringify
+                          , hierarchicalize )
 import qualified Text.Pandoc.Shared as S (Element(..))
 import Text.Pandoc.Builder (fromList, setMeta)
 import Text.Pandoc.Options ( WriterOptions(..)
@@ -58,17 +55,19 @@ import Text.Pandoc.Options ( WriterOptions(..)
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walk, walkM, query)
 import Control.Monad.State (modify, get, State, put, evalState)
-import Control.Monad (mplus, liftM, when)
+import Control.Monad (mplus, when)
 import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
                       , strContent, lookupAttr, Node(..), QName(..), parseXML
                       , onlyElems, node, ppElement)
-import Text.Pandoc.UUID (getRandomUUID)
 import Text.Pandoc.Writers.HTML ( writeHtml )
 import Data.Char ( toLower, isDigit, isAlphaNum )
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
-import qualified Control.Exception as E
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.HTML.TagSoup (Tag(TagOpen), fromAttrib, parseTags)
+import Text.Pandoc.Free (PandocAction, runIO)
+import qualified Text.Pandoc.Free as P
+
+type EPUBAction = PandocAction [(FilePath, (FilePath, Maybe Entry))]
 
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section
@@ -143,7 +142,7 @@ removeNote :: Inline -> Inline
 removeNote (Note _) = Str ""
 removeNote x        = x
 
-getEPUBMetadata :: WriterOptions -> Meta -> IO EPUBMetadata
+getEPUBMetadata :: WriterOptions -> Meta -> EPUBAction EPUBMetadata
 getEPUBMetadata opts meta = do
   let md = metadataFromMeta opts meta
   let elts = onlyElems $ parseXML $ writerEpubMetadata opts
@@ -151,7 +150,7 @@ getEPUBMetadata opts meta = do
   let addIdentifier m =
        if null (epubIdentifier m)
           then do
-            randomId <- fmap show getRandomUUID
+            randomId <- fmap show P.newUUID
             return $ m{ epubIdentifier = [Identifier randomId Nothing] }
           else return m
   let addLanguage m =
@@ -159,16 +158,19 @@ getEPUBMetadata opts meta = do
           then case lookup "lang" (writerVariables opts) of
                      Just x  -> return m{ epubLanguage = x }
                      Nothing -> do
-                       localeLang <- E.catch (liftM
-                            (map (\c -> if c == '_' then '-' else c) .
-                             takeWhile (/='.')) $ getEnv "LANG")
-                          (\e -> let _ = (e :: E.SomeException) in return "en-US")
+                       mLang <- P.lookupEnv "LANG"
+                       let localeLang =
+                             case mLang of
+                               Just lang ->
+                                 map (\c -> if c == '_' then '-' else c) $
+                                 takeWhile (/='.') lang
+                               Nothing -> "en-US"
                        return m{ epubLanguage = localeLang }
           else return m
   let fixDate m =
        if null (epubDate m)
           then do
-            currentTime <- getCurrentTime
+            currentTime <- P.getCurrentTime
             return $ m{ epubDate = [ Date{
                              dateText = showDateTimeISO8601 currentTime
                            , dateEvent = Nothing } ] }
@@ -333,10 +335,15 @@ metadataFromMeta opts meta = EPUBMetadata{
 writeEPUB :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> IO B.ByteString
-writeEPUB opts doc@(Pandoc meta _) = do
+writeEPUB opts doc = runIO $ writeEPUBPure opts doc
+
+writeEPUBPure :: WriterOptions  -- ^ Writer options
+              -> Pandoc         -- ^ Document to convert
+              -> EPUBAction B.ByteString
+writeEPUBPure opts doc@(Pandoc meta _) = do
   let version = fromMaybe EPUB2 (writerEpubVersion opts)
   let epub3 = version == EPUB3
-  epochtime <- floor `fmap` getPOSIXTime
+  epochtime <- floor <$> P.getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
   let vars = ("epub3", if epub3 then "true" else "false")
            : ("css", "stylesheet.css")
@@ -361,7 +368,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
                        let cpContent = renderHtml $ writeHtml
                             opts'{ writerVariables = ("coverpage","true"):vars }
                             (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
-                       imgContent <- B.readFile img
+                       imgContent <- P.readFileLazy img
                        return ( [mkEntry "cover.xhtml" cpContent]
                               , [mkEntry coverImage imgContent] )
 
@@ -372,18 +379,18 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let tpEntry = mkEntry "title_page.xhtml" tpContent
 
   -- handle pictures
-  mediaRef <- newIORef []
+  mediaRef <- P.newIORef []
   Pandoc _ blocks <- walkM (transformInline opts' mediaRef) doc >>=
                      walkM (transformBlock opts' mediaRef)
-  picEntries <- (catMaybes . map (snd . snd)) <$> readIORef mediaRef
+  picEntries <- (catMaybes . map (snd . snd)) <$> P.readIORef mediaRef
 
   -- handle fonts
   let matchingGlob f = do
-        xs <- namesMatching f
+        xs <- P.namesMatching f
         when (null xs) $
-          warn $ f ++ " did not match any font files."
+          P.warn $ f ++ " did not match any font files."
         return xs
-  let mkFontEntry f = mkEntry (takeFileName f) `fmap` B.readFile f
+  let mkFontEntry f = mkEntry (takeFileName f) `fmap` P.readFileLazy f
   fontFiles <- concat <$> mapM matchingGlob (writerEpubFonts opts')
   fontEntries <- mapM mkFontEntry fontFiles
 
@@ -520,7 +527,7 @@ writeEPUB opts doc@(Pandoc meta _) = do
   let uuid = case epubIdentifier metadata of
                   (x:_) -> identifierText x  -- use first identifier as UUID
                   []    -> error "epubIdentifier is null"  -- shouldn't happen
-  currentTime <- getCurrentTime
+  currentTime <- P.getCurrentTime
   let contentsData = UTF8.fromStringLazy $ ppTopElement $
         unode "package" ! [("version", case version of
                                              EPUB2 -> "2.0"
@@ -692,10 +699,10 @@ writeEPUB opts doc@(Pandoc meta _) = do
 
   -- stylesheet
   stylesheet <- case epubStylesheet metadata of
-                   Just (StylesheetPath fp)    -> UTF8.readFile fp
+                   Just (StylesheetPath fp)    -> P.readFileUTF8 fp
                    Just (StylesheetContents s) -> return s
                    Nothing -> UTF8.toString `fmap`
-                              readDataFile (writerUserDataDir opts) "epub.css"
+                              P.readDataFile (writerUserDataDir opts) "epub.css"
   let stylesheetEntry = mkEntry "stylesheet.css" $ UTF8.fromStringLazy stylesheet
 
   -- construct archive
@@ -814,7 +821,7 @@ showDateTimeISO8601 = formatTime defaultTimeLocale "%FT%TZ"
 transformTag :: WriterOptions
              -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath, entry) media
              -> Tag String
-             -> IO (Tag String)
+             -> EPUBAction (Tag String)
 transformTag opts mediaRef tag@(TagOpen name attr)
   | name `elem` ["video", "source", "img", "audio"] &&
     lookup "data-external" attr == Nothing = do
@@ -831,34 +838,34 @@ transformTag _ _ tag = return tag
 modifyMediaRef :: WriterOptions
                -> IORef [(FilePath, (FilePath, Maybe Entry))]
                -> FilePath
-               -> IO FilePath
+               -> EPUBAction FilePath
 modifyMediaRef _ _ "" = return ""
 modifyMediaRef opts mediaRef oldsrc = do
-  media <- readIORef mediaRef
+  media <- P.readIORef mediaRef
   case lookup oldsrc media of
          Just (n,_) -> return n
          Nothing    -> do
-           res <- fetchItem' (writerMediaBag opts)
+           res <- P.fetchItem' (writerMediaBag opts)
                     (writerSourceURL opts) oldsrc
            (new, mbEntry) <-
                 case res of
                       Left _        -> do
-                        warn $ "Could not find media `" ++ oldsrc ++ "', skipping..."
+                        P.warn $ "Could not find media `" ++ oldsrc ++ "', skipping..."
                         return (oldsrc, Nothing)
                       Right (img,mbMime) -> do
                         let new = "media/file" ++ show (length media) ++
                                fromMaybe (takeExtension (takeWhile (/='?') oldsrc))
                                  (('.':) <$> (mbMime >>= extensionFromMimeType))
-                        epochtime <- floor `fmap` getPOSIXTime
+                        epochtime <- floor `fmap` P.getPOSIXTime
                         let entry = toEntry new epochtime $ B.fromChunks . (:[]) $ img
                         return (new, Just entry)
-           modifyIORef mediaRef ( (oldsrc, (new, mbEntry)): )
+           P.modifyIORef mediaRef ( (oldsrc, (new, mbEntry)): )
            return new
 
 transformBlock  :: WriterOptions
                 -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath, entry) media
                 -> Block
-                -> IO Block
+                -> EPUBAction Block
 transformBlock opts mediaRef (RawBlock fmt raw)
   | fmt == Format "html" = do
   let tags = parseTags raw
@@ -869,7 +876,7 @@ transformBlock _ _ b = return b
 transformInline  :: WriterOptions
                  -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath) media
                  -> Inline
-                 -> IO Inline
+                 -> EPUBAction Inline
 transformInline opts mediaRef (Image attr lab (src,tit)) = do
     newsrc <- modifyMediaRef opts mediaRef src
     return $ Image attr lab (newsrc, tit)

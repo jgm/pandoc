@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to ODT.
 -}
-module Text.Pandoc.Writers.ODT ( writeODT ) where
+module Text.Pandoc.Writers.ODT ( writeODTPure, writeODT ) where
 import Data.IORef
 import Data.List ( isPrefixOf )
 import Data.Maybe ( fromMaybe )
@@ -38,8 +38,7 @@ import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..) )
-import Text.Pandoc.Shared ( stringify, fetchItem', warn,
-                            getDefaultReferenceODT )
+import Text.Pandoc.Shared ( stringify )
 import Text.Pandoc.ImageSize
 import Text.Pandoc.MIME ( getMimeType, extensionFromMimeType )
 import Text.Pandoc.Definition
@@ -50,28 +49,37 @@ import Control.Monad (liftM)
 import Text.Pandoc.XML
 import Text.Pandoc.Pretty
 import qualified Control.Exception as E
-import Data.Time.Clock.POSIX ( getPOSIXTime )
 import System.FilePath ( takeExtension, takeDirectory, (<.>))
+import Text.Pandoc.Free ( PandocAction, runIO )
+import qualified Text.Pandoc.Free as P
+
+type ODTAction = PandocAction [Entry]
 
 -- | Produce an ODT file from a Pandoc document.
 writeODT :: WriterOptions  -- ^ Writer options
          -> Pandoc         -- ^ Document to convert
          -> IO B.ByteString
-writeODT opts doc@(Pandoc meta _) = do
+writeODT opts doc = runIO $ writeODTPure opts doc
+
+-- | Produce an ODT file from a Pandoc document.
+writeODTPure :: WriterOptions  -- ^ Writer options
+             -> Pandoc         -- ^ Document to convert
+             -> ODTAction B.ByteString
+writeODTPure opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let title = docTitle meta
   refArchive <-
        case writerReferenceODT opts of
-             Just f -> liftM toArchive $ B.readFile f
-             Nothing -> getDefaultReferenceODT datadir
+             Just f -> liftM toArchive $ P.readFileLazy f
+             Nothing -> P.getDefaultReferenceODT datadir
   -- handle formulas and pictures
-  picEntriesRef <- newIORef ([] :: [Entry])
+  picEntriesRef <- P.newIORef ([] :: [Entry])
   doc' <- walkM (transformPicMath opts picEntriesRef) $ walk fixDisplayMath doc
   let newContents = writeOpenDocument opts{writerWrapText = WrapNone} doc'
-  epochtime <- floor `fmap` getPOSIXTime
+  epochtime <- floor `fmap` P.getPOSIXTime
   let contentEntry = toEntry "content.xml" epochtime
                      $ fromStringLazy newContents
-  picEntries <- readIORef picEntriesRef
+  picEntries <- P.readIORef picEntriesRef
   let archive = foldr addEntryToArchive refArchive
                 $ contentEntry : picEntries
   -- construct META-INF/manifest.xml based on archive
@@ -126,18 +134,18 @@ writeODT opts doc@(Pandoc meta _) = do
   return $ fromArchive archive''
 
 -- | transform both Image and Math elements
-transformPicMath :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline
+transformPicMath :: WriterOptions -> IORef [Entry] -> Inline -> ODTAction Inline
 transformPicMath opts entriesRef (Image attr@(id', cls, _) lab (src,t)) = do
-  res <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
+  res <- P.fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case res of
      Left (_ :: E.SomeException) -> do
-       warn $ "Could not find image `" ++ src ++ "', skipping..."
+       P.warn $ "Could not find image `" ++ src ++ "', skipping..."
        return $ Emph lab
      Right (img, mbMimeType) -> do
        (ptX, ptY) <- case imageSize img of
                        Right s  -> return $ sizeInPoints s
                        Left msg -> do
-                         warn $ "Could not determine image size in `" ++
+                         P.warn $ "Could not determine image size in `" ++
                            src ++ "': " ++ msg
                          return (100, 100)
        let dims =
@@ -155,28 +163,28 @@ transformPicMath opts entriesRef (Image attr@(id', cls, _) lab (src,t)) = do
                               Just dim         -> Just $ Inch $ inInch opts dim
                               Nothing          -> Nothing
        let  newattr = (id', cls, dims)
-       entries <- readIORef entriesRef
+       entries <- P.readIORef entriesRef
        let extension = fromMaybe (takeExtension $ takeWhile (/='?') src)
                            (mbMimeType >>= extensionFromMimeType)
        let newsrc = "Pictures/" ++ show (length entries) <.> extension
        let toLazy = B.fromChunks . (:[])
-       epochtime <- floor `fmap` getPOSIXTime
+       epochtime <- floor `fmap` P.getPOSIXTime
        let entry = toEntry newsrc epochtime $ toLazy img
-       modifyIORef entriesRef (entry:)
+       P.modifyIORef entriesRef (entry:)
        return $ Image newattr lab (newsrc, t)
 transformPicMath _ entriesRef (Math t math) = do
-  entries <- readIORef entriesRef
+  entries <- P.readIORef entriesRef
   let dt = if t == InlineMath then DisplayInline else DisplayBlock
   case writeMathML dt <$> readTeX math of
        Left  _ -> return $ Math t math
        Right r -> do
          let conf = useShortEmptyTags (const False) defaultConfigPP
          let mathml = ppcTopElement conf r
-         epochtime <- floor `fmap` getPOSIXTime
+         epochtime <- floor `fmap` P.getPOSIXTime
          let dirname = "Formula-" ++ show (length entries) ++ "/"
          let fname = dirname ++ "content.xml"
          let entry = toEntry fname epochtime (fromStringLazy mathml)
-         modifyIORef entriesRef (entry:)
+         P.modifyIORef entriesRef (entry:)
          return $ RawInline (Format "opendocument") $ render Nothing $
            inTags False "draw:frame" [("text:anchor-type",
                                        if t == DisplayMath
