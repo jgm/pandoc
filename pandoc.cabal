@@ -294,7 +294,7 @@ Library
                  filemanip >= 0.3 && < 0.4,
                  cmark >= 0.5 && < 0.6,
                  doctemplates >= 0.1 && < 0.2,
-                 ghc-prim >= 0.2
+                 free >= 4
   if flag(old-locale)
      Build-Depends: old-locale >= 1 && < 1.1,
                     time >= 1.2 && < 1.5
@@ -385,6 +385,7 @@ Library
                    Text.Pandoc.SelfContained,
                    Text.Pandoc.Process,
                    Text.Pandoc.CSS
+                   Text.Pandoc.Free
   Other-Modules:   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Combine,
                    Text.Pandoc.Readers.Docx.Parse,
