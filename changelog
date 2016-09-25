@@ -166,6 +166,10 @@ pandoc (1.17.3)
       problem where language specific source code would sometimes be output
       as example code.
 
+  * HTML, EPUB, slidy, revealjs templates: Use `<p>` instead of `<h1>` for
+    subtitle, author, date (#3119).  Note that, as a result of this change,
+    authors may need to update CSS.
+
   * Beamer template:
 
     + Restore whitespace between paragraphs. This was
