@@ -51,7 +51,7 @@ $if(title)$
 <div class="slide titlepage">
   <h1 class="title">$title$</h1>
 $if(subtitle)$
-  <h1 class="subtitle">$subtitle$</h1>
+  <p class="subtitle">$subtitle$</p>
 $endif$
 $if(author)$
   <p class="author">
