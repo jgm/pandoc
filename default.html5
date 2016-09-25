@@ -44,13 +44,13 @@ $if(title)$
 <header>
 <h1 class="title">$title$</h1>
 $if(subtitle)$
-<h1 class="subtitle">$subtitle$</h1>
+<p class="subtitle">$subtitle$</p>
 $endif$
 $for(author)$
-<h2 class="author">$author$</h2>
+<p class="author">$author$</p>
 $endfor$
 $if(date)$
-<h3 class="date">$date$</h3>
+<p class="date">$date$</p>
 $endif$
 </header>
 $endif$
