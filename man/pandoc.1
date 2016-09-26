@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "June 4, 2016" "pandoc 1.17.2"
+.TH PANDOC 1 "September 26, 2016" "pandoc 1.17.3"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -1103,6 +1103,7 @@ Use KaTeX to display embedded TeX math in HTML output.
 The \f[I]URL\f[] should point to the \f[C]katex.js\f[] load script.
 If a \f[I]URL\f[] is not provided, a link to the KaTeX CDN will be
 inserted.
+Note: KaTeX seems to work best with \f[C]html5\f[] output.
 .RS
 .RE
 .TP
@@ -1353,6 +1354,11 @@ themes for LaTeX \f[C]beamer\f[] documents
 .RS
 .RE
 .TP
+.B \f[C]themeoptions\f[]
+options for LaTeX beamer themes (a list).
+.RS
+.RE
+.TP
 .B \f[C]navigation\f[]
 controls navigation symbols in \f[C]beamer\f[] documents (default is
 \f[C]empty\f[] for no navigation symbols; other valid values are
@@ -1363,6 +1369,12 @@ controls navigation symbols in \f[C]beamer\f[] documents (default is
 .B \f[C]section\-titles\f[]
 enables on "title pages" for new sections in \f[C]beamer\f[] documents
 (default = true).
+.RS
+.RE
+.TP
+.B \f[C]beamerarticle\f[]
+when true, the \f[C]beamerarticle\f[] package is loaded (for producing
+an article from beamer slides).
 .RS
 .RE
 .SS Variables for LaTeX
@@ -3039,10 +3051,8 @@ This form is necessary when the field contains blank lines:
 \-\-\-
 title:\ \ \[aq]This\ is\ the\ title:\ it\ contains\ a\ colon\[aq]
 author:
-\-\ name:\ Author\ One
-\ \ affiliation:\ University\ of\ Somewhere
-\-\ name:\ Author\ Two
-\ \ affiliation:\ University\ of\ Nowhere
+\-\ Author\ One
+\-\ Author\ Two
 tags:\ [nothing,\ nothingness]
 abstract:\ |
 \ \ This\ is\ the\ abstract.
@@ -3064,11 +3074,29 @@ field:
 \f[]
 .fi
 .PP
-Note: The \f[C]author\f[] variable in the default templates expects a
-simple list or string.
-To use the structured authors in the example, you would need a custom
-template.
-For example:
+Variables can contain arbitrary YAML structures, but the template must
+match this structure.
+The \f[C]author\f[] variable in the default templates expects a simple
+list or string, but can be changed to support more complicated
+structures.
+The following combination, for example, would add an affiliation to the
+author if one is given:
+.IP
+.nf
+\f[C]
+\-\-\-
+title:\ The\ document\ title
+author:
+\-\ name:\ Author\ One
+\ \ affiliation:\ University\ of\ Somewhere
+\-\ name:\ Author\ Two
+\ \ affiliation:\ University\ of\ Nowhere
+\&...
+\f[]
+.fi
+.PP
+To use the structured authors in the example above, you would need a
+custom template:
 .IP
 .nf
 \f[C]
@@ -4772,6 +4800,58 @@ To see a list of language names that pandoc will recognize, type
 \f[C]pandoc\ \-\-version\f[].
 .PP
 To disable highlighting, use the \f[C]\-\-no\-highlight\f[] option.
+.SH CUSTOM STYLES IN DOCX OUTPUT
+.PP
+By default, pandoc\[aq]s docx output applies a predefined set of styles
+for blocks such as paragraphs and block quotes, and uses largely default
+formatting (italics, bold) for inlines.
+This will work for most purposes, especially alongside a
+\f[C]reference.docx\f[] file.
+However, if you need to apply your own styles to blocks, or match a
+preexisting set of styles, pandoc allows you to define custom styles for
+blocks and text using \f[C]div\f[]s and \f[C]span\f[]s, respecitively.
+.PP
+If you define a \f[C]div\f[] or \f[C]span\f[] with the attribute
+\f[C]custom\-style\f[], pandoc will apply your specified style to the
+contained elements.
+So, for example,
+.IP
+.nf
+\f[C]
+<span\ custom\-style="Emphatically">Get\ out,</span>\ he\ said.
+\f[]
+.fi
+.PP
+would produce a docx file with "Get out," styled with character style
+\f[C]Emphatically\f[].
+Similarly,
+.IP
+.nf
+\f[C]
+Dickinson\ starts\ the\ poem\ simply:
+
+<div\ custom\-style="Poetry">
+|\ A\ Bird\ came\ down\ the\ Walk\-\-\-
+|\ He\ did\ not\ know\ I\ saw\-\-\-
+</div>
+\f[]
+.fi
+.PP
+would style the two contained lines with the \f[C]Poetry\f[] paragraph
+style.
+.PP
+If the styles are not yet in your reference.docx, they will be defined
+in the output file as inheriting from normal text.
+If they are already defined, pandoc will not alter the definition.
+.PP
+This feature allows for greatest customization in conjunction with
+pandoc filters.
+If you want all paragraphs after block quotes to be indented, you can
+write a filter to apply the styles necessary.
+If you want all italics to be transformed to the \f[C]Emphasis\f[]
+character style (perhaps to change their color), you can write a filter
+which will transform all italicized inlines to inlines within an
+\f[C]Emphasis\f[] custom\-style \f[C]span\f[].
 .SH CUSTOM WRITERS
 .PP
 Pandoc can be extended with custom writers written in lua.
