@@ -1482,6 +1482,7 @@ inline = choice [ whitespace
                 , strongOrEmph
                 , note
                 , cite
+                , wikilink  -- before link because of reference links like [text]
                 , link
                 , image
                 , math
@@ -1741,13 +1742,41 @@ source = do
 linkTitle :: MarkdownParser String
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
 
-link :: MarkdownParser (F Inlines)
-link = try $ do
+wikilinkInfo :: MarkdownParser (F Inlines, String)
+wikilinkInfo = do
+  string "[["
+  (_, raw) <- withRaw $ charsInBalancedBrackets 2
+  guard $ not $ null raw
+  let deunder c = if c == '_' then ' ' else c
+      deiki s = map deunder $ (reverse . takeWhile (/= '/') . reverse) $ s
+      rawstr = (reverse . drop 2 . reverse) raw
+      parseLabelAndSrc l s = do
+        lab <- parseFromString (trimInlinesF . mconcat <$> many inline) l
+        src <- parseFromString (many anyChar) s
+        return (lab, src)
+      (pre, pipe) = span (/= '|') rawstr
+      labstr = deiki pre
+      srcstr = if pipe == [] then pre else drop 1 pipe
+  parseLabelAndSrc labstr srcstr
+
+withDisallowedLinks :: MarkdownParser a -> MarkdownParser a
+withDisallowedLinks action = do
   st <- getState
   guard $ stateAllowLinks st
-  setState $ st{ stateAllowLinks = False }
-  (lab,raw) <- reference
-  setState $ st{ stateAllowLinks = True }
+  setState $ st { stateAllowLinks = False }
+  result <- action
+  setState $ st { stateAllowLinks = True }
+  return result
+
+wikilink :: MarkdownParser (F Inlines)
+wikilink = try $ do
+  guardEnabled Ext_ikiwiki_wikilinks
+  (lab, src) <- withDisallowedLinks wikilinkInfo
+  return $ B.link src "wikilink" <$> lab
+
+link :: MarkdownParser (F Inlines)
+link = try $ do
+  (lab,raw) <- withDisallowedLinks reference
   regLink B.linkWith lab <|> referenceLink B.linkWith (lab,raw)
 
 regLink :: (Attr -> String -> String -> Inlines -> Inlines)

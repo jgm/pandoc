@@ -3418,6 +3418,17 @@ in several respects:
     we must either disallow lazy wrapping or require a blank line between
     list items.
 
+#### Extension: `ikiwiki_wikilinks` ####
+
+Interpret [ikiwiki](http://ikiwiki.info) wikilink syntax (using double
+square brackets) as constructing an internal link.  For example:
+
+    See the [[introduction]].
+
+or
+
+    See the [[introductory section|introduction]].
+
 Markdown variants
 -----------------
 

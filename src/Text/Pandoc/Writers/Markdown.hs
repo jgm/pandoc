@@ -945,6 +945,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
   let linktitle = if null tit
                      then empty
                      else text $ " \"" ++ tit ++ "\""
+  let useWikilink = isEnabled Ext_ikiwiki_wikilinks opts && tit == "wikilink"
   let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
   let useAuto = isURI src &&
                 case txt of
@@ -956,23 +957,26 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
                             isEnabled Ext_shortcut_reference_links opts
   ref <- if useRefLinks then getReference attr txt (src, tit) else return []
   reftext <- inlineListToMarkdown opts ref
-  return $ if useAuto
-              then if plain
-                      then text srcSuffix
-                      else "<" <> text srcSuffix <> ">"
-              else if useRefLinks
-                      then let first  = "[" <> linktext <> "]"
-                               second = if txt == ref
-                                           then if useShortcutRefLinks
-                                                   then ""
-                                                   else "[]"
-                                           else "[" <> reftext <> "]"
-                           in  first <> second
-                      else if plain
-                              then linktext
-                              else "[" <> linktext <> "](" <>
-                                   text src <> linktitle <> ")" <>
-                                   linkAttributes opts attr
+  return $
+    let wikilinkString =
+          let deunder c = if c == '_' then ' ' else c
+              deiki s = map deunder $ (reverse . takeWhile (/= '/') . reverse) $ s
+              lab = stringify txt
+          in if deiki src == lab
+                then "[[" <> text src <> "]]"
+                else "[[" <> linktext <> "|" <> text src <> "]]"
+        autoString = if plain then text srcSuffix else "<" <> text srcSuffix <> ">"
+        refLinksString =
+          let first  = "[" <> linktext <> "]"
+              second = if txt == ref
+                          then if useShortcutRefLinks then "" else "[]"
+                          else "[" <> reftext <> "]"
+          in  first <> second
+    in if useWikilink then wikilinkString
+       else if useAuto then autoString
+       else if useRefLinks then refLinksString
+       else if plain then linktext
+       else "[" <> linktext <> "](" <> text src <> linktitle <> ")" <> linkAttributes opts attr
 inlineToMarkdown opts img@(Image attr alternate (source, tit))
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts) &&

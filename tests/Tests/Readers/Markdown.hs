@@ -24,6 +24,9 @@ markdownCDL = handleError . readMarkdown def { readerExtensions = Set.insert
 markdownGH :: String -> Pandoc
 markdownGH = handleError . readMarkdown def { readerExtensions = githubMarkdownExtensions }
 
+markdownIkiWiki :: String -> Pandoc
+markdownIkiWiki = handleError . readMarkdown def { readerExtensions = Set.insert Ext_ikiwiki_wikilinks $ readerExtensions def }
+
 infix 4 =:
 (=:) :: ToString c
      => String -> (String, c) -> Test
@@ -442,5 +445,15 @@ tests = [ testGroup "inline code"
                 cite [Citation "cita" [] [Str "foo"] AuthorInText 0 0]
                   (str "@cita" <> space <> str "[foo]")
               )
+          ]
+        , testGroup "ikiwiki_wikilinks"
+          [ "basic ikiwikilink (default)" =:
+              "[[text]]" =?> para ( str "[[text]]" )
+          , test markdownIkiWiki "basic ikiwikilink (+ikiwiki_wikilinks)" $
+              "[[text]]" =?> para ( link "text" "wikilink" (str "text") )
+          , "ikiwikilink (default)" =:
+              "[[text|place]]" =?> para ( str "[[text|place]]")
+          , test markdownIkiWiki "ikiwikilink (+ikiwiki_wikilinks)" $
+              "[[text|place]]" =?> para ( link "place" "wikilink" (str "text") )
           ]
         ]
