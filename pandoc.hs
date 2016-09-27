@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, TupleSections, ScopedTypeVariables #-}
+{-# LANGUAGE CPP, TupleSections, ScopedTypeVariables, PatternGuards #-}
 {-
 Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -1042,9 +1042,24 @@ adjustMetadata metadata d = return $ M.foldWithKey setMeta d metadata
 applyTransforms :: [Transform] -> Pandoc -> IO Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
 
-applyFilters :: [FilePath] -> [String] -> Pandoc -> IO Pandoc
-applyFilters filters args d =
-  foldrM ($) d $ map (flip externalFilter args) filters
+  -- First we check to see if a filter is a path. If it isn't, we
+  -- check to see whether it's in `userdir/filters`. If not, we leave
+  -- it unchanged.
+expandFilterPath :: Maybe FilePath -> FilePath -> IO FilePath
+expandFilterPath mbDatadir fp
+  | '/' `elem` fp = return fp
+  | Just datadir <- mbDatadir = do
+      let filterPath = (datadir </> "filters" </> fp)
+      filterPathExists <- doesFileExist filterPath
+      if filterPathExists
+        then return filterPath
+        else return fp
+  | otherwise = return fp
+
+applyFilters :: Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> IO Pandoc
+applyFilters mbDatadir filters args d = do
+  expandedFilters <- mapM (expandFilterPath mbDatadir) filters
+  foldrM ($) d $ map (flip externalFilter args) expandedFilters
 
 uppercaseFirstLetter :: String -> String
 uppercaseFirstLetter (c:cs) = toUpper c : cs
@@ -1377,7 +1392,7 @@ convertWithOpts opts args = do
   doc' <- (maybe return (extractMedia media) mbExtractMedia >=>
            adjustMetadata metadata >=>
            applyTransforms transforms >=>
-           applyFilters filters' [format]) doc
+           applyFilters datadir filters' [format]) doc
 
   let writeBinary :: B.ByteString -> IO ()
       writeBinary = B.writeFile (UTF8.encodePath outputFile)
