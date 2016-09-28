@@ -62,6 +62,12 @@
 \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
 \fi
 
+% set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+
 \title{Pandoc Test Suite}
 \author{John MacFarlane \and Anonymous}
 \date{July 17, 2006}
