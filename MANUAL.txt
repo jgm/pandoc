@@ -3063,6 +3063,16 @@ For example:
   is to look at the image resolution and the dpi metadata embedded in
   the image file.
 
+Spans
+-----
+
+#### Extension: `bracketed_spans` ####
+
+A bracketed sequence of inlines, as one would use to begin
+a link, will be treated as a span with attributes if it is
+followed immediately by attributes:
+
+    [This is *some text*]{.class key="val"}
 
 Footnotes
 ---------

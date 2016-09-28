@@ -1482,6 +1482,7 @@ inline = choice [ whitespace
                 , strongOrEmph
                 , note
                 , cite
+                , bracketedSpan
                 , link
                 , image
                 , math
@@ -1749,6 +1750,13 @@ link = try $ do
   (lab,raw) <- reference
   setState $ st{ stateAllowLinks = True }
   regLink B.linkWith lab <|> referenceLink B.linkWith (lab,raw)
+
+bracketedSpan :: MarkdownParser (F Inlines)
+bracketedSpan = try $ do
+  guardEnabled Ext_bracketed_spans
+  (lab,_) <- reference
+  attr <- attributes
+  return $ B.spanWith attr <$> lab
 
 regLink :: (Attr -> String -> String -> Inlines -> Inlines)
         -> F Inlines -> MarkdownParser (F Inlines)

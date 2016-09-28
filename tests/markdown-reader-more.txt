@@ -287,3 +287,6 @@ bar
 
 - blah blah blah blah blah blah blah blah blah blah blah blah blah blah 2015.
 
+## Bracketed spans
+
+[*foo* bar baz [link](url)]{.class #id key=val}

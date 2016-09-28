@@ -84,6 +84,7 @@ data Extension =
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
     | Ext_native_spans            -- ^ Use Span inlines for contents of <span>
+    | Ext_bracketed_spans         -- ^ Bracketed spans with attributes
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown
                                   --   iff container has attribute 'markdown'
     | Ext_escaped_line_breaks     -- ^ Treat a backslash at EOL as linebreak
@@ -145,6 +146,7 @@ pandocExtensions = Set.fromList
   , Ext_markdown_in_html_blocks
   , Ext_native_divs
   , Ext_native_spans
+  , Ext_bracketed_spans
   , Ext_escaped_line_breaks
   , Ext_fancy_lists
   , Ext_startnum

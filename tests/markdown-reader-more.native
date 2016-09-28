@@ -163,4 +163,6 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
 ,Para [Link ("",[],[]) [Str "foo2"] ("","")]
 ,Header 2 ("wrapping-shouldnt-introduce-new-list-items",[],[]) [Str "Wrapping",Space,Str "shouldn\8217t",Space,Str "introduce",Space,Str "new",Space,Str "list",Space,Str "items"]
 ,BulletList
- [[Plain [Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "2015."]]]]
+ [[Plain [Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "blah",Space,Str "2015."]]]
+,Header 2 ("bracketed-spans",[],[]) [Str "Bracketed",Space,Str "spans"]
+,Para [Span ("id",["class"],[("key","val")]) [Emph [Str "foo"],Space,Str "bar",Space,Str "baz",Space,Link ("",[],[]) [Str "link"] ("url","")]]]
