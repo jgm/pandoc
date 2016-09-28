@@ -201,6 +201,8 @@ pandoc (1.17.3)
     + Define default figure placement (Václav Haisman), since pandoc
       no longer includes `[htbp]` for figures.  Users with custom templates
       will want to add this. See #3103.
+    + Use footnote package to fix notes in tables (jgm/pandoc-templates#208,
+      Václav Haisman).
 
   * Text.Pandoc.PDF:  Don't crash with nonexistent image (#3100).  Instead,
     emit the alt text, emphasized.  This accords with what the ODT writer
