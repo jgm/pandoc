@@ -1,5 +1,12 @@
 pandoc (1.17.3)
 
+  * Add `bracketed_spans` Markdown extension, enabled by default
+    in pandoc `markdown`.  This allows you to create a native span
+    using this syntax:  `[Here is my span]{#id .class key="val"}`.
+
+  * `Text.Pandoc.Options.Extension` has a new constructor
+    `Ext_brackted_spans` [API change].
+
   * `--filter`:  we now check `$DATADIR/filters` for filters before
     looking in the path (#3127, Jesse Rosenthal, thanks to Jakob
     Voß for the idea).  Filters placed in this directory need not
@@ -590,6 +597,7 @@ pandoc (1.17.1)
 
   * Markdown reader:
 
+    + Added bracket syntax for native spans (#168).
     + Fix pandoc title blocks with lines ending in 2 spaces (#2799).
     + Added `-s` to markdown-reader-more test.
 
