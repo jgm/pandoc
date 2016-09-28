@@ -179,6 +179,9 @@ pandoc (1.17.3)
     subtitle, author, date (#3119).  Note that, as a result of this change,
     authors may need to update CSS.
 
+  * revealjs template:  Added `notes-server` option (jgm/pandoc-templates#212,
+    Yoan Blanc).
+
   * Beamer template:
 
     + Restore whitespace between paragraphs. This was
