@@ -434,9 +434,9 @@ Reader options
 
      1. a specified full or relative path (executable or
      non-executable)
-     
+
      2. `$DATADIR/filters` (executable or non-executable)
-     
+
      3. `$PATH` (executable only)
 
 `-M` *KEY*[`=`*VAL*], `--metadata=`*KEY*[`:`*VAL*]
@@ -3877,7 +3877,7 @@ style `Emphatically`. Similarly,
     | A Bird came down the Walk---
     | He did not know I saw---
     </div>
-	
+
 would style the two contained lines with the `Poetry` paragraph style.
 
 If the styles are not yet in your reference.docx, they will be defined
