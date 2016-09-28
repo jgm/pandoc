@@ -1,5 +1,11 @@
 pandoc (1.17.3)
 
+  * `--filter`:  we now check `$DATADIR/filters` for filters before
+    looking in the path (#3127, Jesse Rosenthal, thanks to Jakob
+    Voß for the idea).  Filters placed in this directory need not
+    be executable; if the extension is `.hs`, `.php`, `.pl`, `.js`,
+    or `.rb`, pandoc will run the right interpreter.
+
   * Textile reader:
 
     + Support `bc..` extended code blocks (#3037).  Also, remove trailing
@@ -133,6 +139,9 @@ pandoc (1.17.3)
     + Properly escape backticks in verbatim (#3121, Jesse Rosenthal).
       Otherwise they can cause unintended ligatures like `` ?` ``.
     + Handle NARRAOW NO-BREAK SPACE into LaTeX (Vaclav Zeman) as `\,`.
+    + Don't include `[htbp]` placement for figures (#3103, Václav Haisman).
+      This allows figure placement defaults to be changed by the user
+      in the template.
 
   * Text.Pandoc.Error: Fix out of index error in `handleError`
     (Matthew Pickering).  The fix is to not try to show the exact line when it
@@ -181,9 +190,14 @@ pandoc (1.17.3)
     + Added support for `fontfamilies` structured variable
       (Artem Klevtsov).
 
-  * LaTeX template: Added dummy definition for `\institute`.
-    This isn't a standard command, and we want to avoid a crash when
-    `institute` is used with the default template.
+  * LaTeX template:
+
+    + Added dummy definition for `\institute`.
+      This isn't a standard command, and we want to avoid a crash when
+      `institute` is used with the default template.
+    + Define default figure placement (Václav Haisman), since pandoc
+      no longer includes `[htbp]` for figures.  Users with custom templates
+      will want to add this. See #3103.
 
   * Text.Pandoc.PDF:  Don't crash with nonexistent image (#3100).  Instead,
     emit the alt text, emphasized.  This accords with what the ODT writer
