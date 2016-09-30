@@ -139,6 +139,7 @@ externalFilter f args' d = do
                                          ".pl"  -> ("perl", f:args')
                                          ".rb"  -> ("ruby", f:args')
                                          ".php" -> ("php", f:args')
+                                         ".js"  -> ("node", f:args')
                                          _      -> (f, args')
                                 else err 85 $ "Filter " ++ f ++ " not found"
       when (f' /= f) $ do
