@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RelaxedPolyRec #-} -- needed for inlinesBetween on GHC < 7
 {-# LANGUAGE ScopedTypeVariables #-}
 {-
@@ -239,8 +240,16 @@ pandocTitleBlock = try $ do
                    $ nullMeta
   updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
 
-yamlMetaBlock :: MarkdownParser (F Blocks)
-yamlMetaBlock = try $ do
+markdownYamlMetaBlock :: MarkdownParser (F Blocks)
+markdownYamlMetaBlock = try $ do
+  meta' <- yamlMetaBlock readMarkdown
+  updateState $ \st -> st{ stateMeta' = stateMeta' st <> (return meta') }
+  return mempty
+
+yamlMetaBlock :: (Stream [Char] m Char, HasReaderOptions st, HasWarnings st)
+              => (ReaderOptions -> String -> Either PandocError Pandoc)
+              -> ParserT [Char] st m Meta
+yamlMetaBlock formatReader = try $ do
   guardEnabled Ext_yaml_metadata_block
   pos <- getPosition
   string "---"
@@ -250,20 +259,21 @@ yamlMetaBlock = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  opts <- stateOptions <$> getState
-  meta' <- case Yaml.decodeEither' $ UTF8.fromString rawYaml of
-                Right (Yaml.Object hashmap) -> return $ return $
+  opts <- extractReaderOptions <$> getState
+  let formatTextReader = formatReader (noHeaderBlockExtensions opts) . T.unpack
+  case Yaml.decodeEither' $ UTF8.fromString rawYaml of
+                Right (Yaml.Object hashmap) -> return $
                          H.foldrWithKey (\k v m ->
                               if ignorable k
                                  then m
-                                 else case yamlToMeta opts v of
+                                 else case yamlToMeta formatTextReader v of
                                         Left _  -> m
                                         Right v' -> B.setMeta (T.unpack k) v' m)
                            nullMeta hashmap
-                Right Yaml.Null -> return $ return nullMeta
+                Right Yaml.Null -> return nullMeta
                 Right _ -> do
                             addWarning (Just pos) "YAML header is not an object"
-                            return $ return nullMeta
+                            return nullMeta
                 Left err' -> do
                          case err' of
                             InvalidYaml (Just YamlParseException{
@@ -282,16 +292,24 @@ yamlMetaBlock = try $ do
                             _ -> addWarning (Just pos)
                                     $ "Could not parse YAML header: " ++
                                         show err'
-                         return $ return nullMeta
-  updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
-  return mempty
+                         return nullMeta
+ where
+    noHeaderBlockExtensions o =
+      o { readerExtensions = readerExtensions o `Set.difference` meta_exts }
+    meta_exts = Set.fromList
+      [ Ext_pandoc_title_block
+      , Ext_mmd_title_block
+      , Ext_yaml_metadata_block
+      ]
 
 -- ignore fields ending with _
 ignorable :: Text -> Bool
 ignorable t = (T.pack "_") `T.isSuffixOf` t
 
-toMetaValue :: ReaderOptions -> Text -> Either PandocError MetaValue
-toMetaValue opts x = toMeta <$> readMarkdown opts' (T.unpack x)
+toMetaValue :: (Text -> Either PandocError Pandoc)
+            -> Text
+            -> Either PandocError MetaValue
+toMetaValue formatReader x = toMeta <$> formatReader x
   where
     toMeta p =
       case p of
@@ -301,33 +319,29 @@ toMetaValue opts x = toMeta <$> readMarkdown opts' (T.unpack x)
          | otherwise         -> MetaInlines xs
         Pandoc _ bs           -> MetaBlocks bs
     endsWithNewline t = T.pack "\n" `T.isSuffixOf` t
-    opts' = opts{readerExtensions=readerExtensions opts `Set.difference` meta_exts}
-    meta_exts = Set.fromList [ Ext_pandoc_title_block
-                             , Ext_mmd_title_block
-                             , Ext_yaml_metadata_block
-                             ]
 
-yamlToMeta :: ReaderOptions -> Yaml.Value -> Either PandocError MetaValue
-yamlToMeta opts (Yaml.String t) = toMetaValue opts t
-yamlToMeta _    (Yaml.Number n)
+yamlToMeta :: (Text -> Either PandocError Pandoc)
+           -> Yaml.Value -> Either PandocError MetaValue
+yamlToMeta fr (Yaml.String t) = toMetaValue fr t
+yamlToMeta _  (Yaml.Number n)
   -- avoid decimal points for numbers that don't need them:
   | base10Exponent n >= 0     = return $ MetaString $ show
                                 $ coefficient n * (10 ^ base10Exponent n)
   | otherwise                 = return $ MetaString $ show n
-yamlToMeta _    (Yaml.Bool b) = return $ MetaBool b
-yamlToMeta opts (Yaml.Array xs) = B.toMetaValue <$> mapM (yamlToMeta opts)
+yamlToMeta _  (Yaml.Bool b) = return $ MetaBool b
+yamlToMeta fr (Yaml.Array xs) = B.toMetaValue <$> mapM (yamlToMeta fr)
                                                   (V.toList xs)
-yamlToMeta opts (Yaml.Object o) = MetaMap <$> H.foldrWithKey (\k v m ->
+yamlToMeta fr (Yaml.Object o) = MetaMap <$> H.foldrWithKey (\k v m ->
                                 if ignorable k
                                    then m
                                    else (do
-                                    v' <- yamlToMeta opts v
+                                    v' <- yamlToMeta fr v
                                     m' <- m
                                     return (M.insert (T.unpack k) v' m')))
                                 (return M.empty) o
 yamlToMeta _ _ = return $ MetaString ""
 
-stopLine :: MarkdownParser ()
+stopLine :: Stream s m Char => ParserT s st m ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
 
 mmdTitleBlock :: MarkdownParser ()
@@ -486,7 +500,7 @@ block = do
   pos <- getPosition
   res <- choice [ mempty <$ blanklines
                , codeBlockFenced
-               , yamlMetaBlock
+               , markdownYamlMetaBlock
                -- note: bulletList needs to be before header because of
                -- the possibility of empty list items: -
                , bulletList
