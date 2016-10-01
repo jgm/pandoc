@@ -35,26 +35,19 @@ module Text.Pandoc.Readers.Markdown ( readMarkdown,
 
 import Data.List ( transpose, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
-import Data.Scientific (coefficient, base10Exponent)
 import Data.Ord ( comparing )
 import Data.Char ( isSpace, isAlphaNum, toLower, isPunctuation )
 import Data.Maybe
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojis)
 import Text.Pandoc.Generic (bottomUp)
-import qualified Data.Text as T
-import Data.Text (Text)
-import qualified Data.Yaml as Yaml
-import Data.Yaml (ParseException(..), YamlException(..), YamlMark(..))
-import qualified Data.HashMap.Strict as H
 import qualified Text.Pandoc.Builder as B
-import qualified Text.Pandoc.UTF8 as UTF8
-import qualified Data.Vector as V
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.YAML (yamlMetaBlock)
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
@@ -245,104 +238,6 @@ markdownYamlMetaBlock = try $ do
   meta' <- yamlMetaBlock readMarkdown
   updateState $ \st -> st{ stateMeta' = stateMeta' st <> (return meta') }
   return mempty
-
-yamlMetaBlock :: (Stream [Char] m Char, HasReaderOptions st, HasWarnings st)
-              => (ReaderOptions -> String -> Either PandocError Pandoc)
-              -> ParserT [Char] st m Meta
-yamlMetaBlock formatReader = try $ do
-  guardEnabled Ext_yaml_metadata_block
-  pos <- getPosition
-  string "---"
-  blankline
-  notFollowedBy blankline  -- if --- is followed by a blank it's an HRULE
-  rawYamlLines <- manyTill anyLine stopLine
-  -- by including --- and ..., we allow yaml blocks with just comments:
-  let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
-  optional blanklines
-  opts <- extractReaderOptions <$> getState
-  let formatTextReader = formatReader (noHeaderBlockExtensions opts) . T.unpack
-  case Yaml.decodeEither' $ UTF8.fromString rawYaml of
-                Right (Yaml.Object hashmap) -> return $
-                         H.foldrWithKey (\k v m ->
-                              if ignorable k
-                                 then m
-                                 else case yamlToMeta formatTextReader v of
-                                        Left _  -> m
-                                        Right v' -> B.setMeta (T.unpack k) v' m)
-                           nullMeta hashmap
-                Right Yaml.Null -> return nullMeta
-                Right _ -> do
-                            addWarning (Just pos) "YAML header is not an object"
-                            return nullMeta
-                Left err' -> do
-                         case err' of
-                            InvalidYaml (Just YamlParseException{
-                                        yamlProblem = problem
-                                      , yamlContext = _ctxt
-                                      , yamlProblemMark = Yaml.YamlMark {
-                                            yamlLine = yline
-                                          , yamlColumn = ycol
-                                      }}) ->
-                                 addWarning (Just $ setSourceLine
-                                    (setSourceColumn pos
-                                       (sourceColumn pos + ycol))
-                                    (sourceLine pos + 1 + yline))
-                                    $ "Could not parse YAML header: " ++
-                                        problem
-                            _ -> addWarning (Just pos)
-                                    $ "Could not parse YAML header: " ++
-                                        show err'
-                         return nullMeta
- where
-    noHeaderBlockExtensions o =
-      o { readerExtensions = readerExtensions o `Set.difference` meta_exts }
-    meta_exts = Set.fromList
-      [ Ext_pandoc_title_block
-      , Ext_mmd_title_block
-      , Ext_yaml_metadata_block
-      ]
-
--- ignore fields ending with _
-ignorable :: Text -> Bool
-ignorable t = (T.pack "_") `T.isSuffixOf` t
-
-toMetaValue :: (Text -> Either PandocError Pandoc)
-            -> Text
-            -> Either PandocError MetaValue
-toMetaValue formatReader x = toMeta <$> formatReader x
-  where
-    toMeta p =
-      case p of
-        Pandoc _ [Plain xs]  -> MetaInlines xs
-        Pandoc _ [Para xs]
-         | endsWithNewline x -> MetaBlocks [Para xs]
-         | otherwise         -> MetaInlines xs
-        Pandoc _ bs           -> MetaBlocks bs
-    endsWithNewline t = T.pack "\n" `T.isSuffixOf` t
-
-yamlToMeta :: (Text -> Either PandocError Pandoc)
-           -> Yaml.Value -> Either PandocError MetaValue
-yamlToMeta fr (Yaml.String t) = toMetaValue fr t
-yamlToMeta _  (Yaml.Number n)
-  -- avoid decimal points for numbers that don't need them:
-  | base10Exponent n >= 0     = return $ MetaString $ show
-                                $ coefficient n * (10 ^ base10Exponent n)
-  | otherwise                 = return $ MetaString $ show n
-yamlToMeta _  (Yaml.Bool b) = return $ MetaBool b
-yamlToMeta fr (Yaml.Array xs) = B.toMetaValue <$> mapM (yamlToMeta fr)
-                                                  (V.toList xs)
-yamlToMeta fr (Yaml.Object o) = MetaMap <$> H.foldrWithKey (\k v m ->
-                                if ignorable k
-                                   then m
-                                   else (do
-                                    v' <- yamlToMeta fr v
-                                    m' <- m
-                                    return (M.insert (T.unpack k) v' m')))
-                                (return M.empty) o
-yamlToMeta _ _ = return $ MetaString ""
-
-stopLine :: Stream s m Char => ParserT s st m ()
-stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
 
 mmdTitleBlock :: MarkdownParser ()
 mmdTitleBlock = try $ do
