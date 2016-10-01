@@ -111,13 +111,11 @@ script:
     cabal)
       cabal configure --enable-tests --enable-benchmarks -v2 --ghc-options="-O0 -Werror"
       cabal build
-      cabal check || [ "$CABALVER" == "1.16" ]
+      cabal check
       cabal test
       cabal copy
-      # cabal sdist fails on cabal 1.16:
-      cabal sdist || [ "$CABALVER" == "1.16" ]
+      cabal sdist
       SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz && \
-        (cd dist && cabal install --enable-tests --force-reinstalls "$SRC_TGZ" || \
-            [ "$CABALVER" == "1.16" ])
+        (cd dist && cabal install --enable-tests --force-reinstalls "$SRC_TGZ")
       ;;
   esac
