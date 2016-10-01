@@ -41,6 +41,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding ((<|>), many, optional, space,
                                    mathDisplay, mathInline)
+import Text.Pandoc.YAML (yamlMetaBlock)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord, isLetter, isAlphaNum )
 import Control.Monad.Trans (lift)
@@ -65,6 +66,7 @@ readLaTeX opts = readWith parseLaTeX def{ stateOptions = opts }
 
 parseLaTeX :: LP Pandoc
 parseLaTeX = do
+  optional latexYamlMetaBlock
   bs <- blocks
   eof
   st <- getState
@@ -73,6 +75,11 @@ parseLaTeX = do
   return $ Pandoc meta bs'
 
 type LP = Parser String ParserState
+
+latexYamlMetaBlock :: LP ()
+latexYamlMetaBlock = try $ do
+  meta' <- yamlMetaBlock readLaTeX
+  updateState $ \st -> st{ stateMeta = stateMeta st <> meta' }
 
 anyControlSeq :: LP String
 anyControlSeq = do
