@@ -830,8 +830,9 @@ Options affecting specific writers
 
 :   Use the specified image as the EPUB cover.  It is recommended
     that the image be less than 1000px in width and height. Note that
-    in a Markdown source document you can also specify `cover-image`
-    in a YAML metadata block (see [EPUB Metadata], below).
+    in a Markdown, RST, Org-mode, or LaTeX source document you can also
+    specify `cover-image` in a YAML metadata block (see [EPUB Metadata],
+    below).
 
 `--epub-metadata=`*FILE*
 
@@ -850,9 +851,10 @@ Options affecting specific writers
     id="BookId">` (a randomly generated UUID). Any of these may be
     overridden by elements in the metadata file.
 
-    Note: if the source document is Markdown, a YAML metadata block
-    in the document can be used instead.  See below under
-    [EPUB Metadata].
+    Note: if the source document supports the `yaml_metadata_block`
+    syntax extension (currently Markdown, RST, Org-mode, and LaTeX), a
+    YAML metadata block in the document can be used instead.  See below
+    under [EPUB Metadata].
 
 `--epub-embed-font=`*FILE*
 
@@ -1081,7 +1083,7 @@ directory (see `--data-dir`, above). *Exceptions:*
   `--reference-docx` to customize the output).
 
 Templates contain *variables*, which allow for the inclusion of
-arbitrary information at any point in the file. Variables may be set
+arbitrary information at any point in the file.  Variables may be set
 within the document using [YAML metadata blocks][Extension:
 `yaml_metadata_block`].  They may also be set at the
 command line using the `-V/--variable` option: variables set in this
@@ -2493,7 +2495,9 @@ will also have "Version 4.0" in the header.
 
 A YAML metadata block is a valid YAML object, delimited by a line of three
 hyphens (`---`) at the top and a line of three hyphens (`---`) or three dots
-(`...`) at the bottom.  A YAML metadata block may occur anywhere in the
+(`...`) at the bottom.  When used as a syntax extension to LaTeX, Org-mode, or
+RST, the YAML block must be at the very beginning of the document.  In
+Markdown formatted text a YAML metadata block may occur anywhere in the
 document, but if it is not at the beginning, it must be preceded by a blank
 line.  (Note that, because of the way pandoc concatenates input files when
 several are provided, you may also keep the metadata in a separate YAML file
@@ -3213,7 +3217,8 @@ Note that `pandoc-citeproc --bib2json` and `pandoc-citeproc --bib2yaml`
 can produce `.json` and `.yaml` files from any of the supported formats.
 
 In-field markup: In BibTeX and BibLaTeX databases, pandoc-citeproc parses
-a subset of LaTeX markup; in CSL YAML databases, pandoc Markdown; and in CSL JSON databases, an [HTML-like markup][CSL markup specs]:
+a subset of LaTeX markup; in CSL YAML databases, pandoc Markdown; and in
+CSL JSON databases, an [HTML-like markup][CSL markup specs]:
 
 `<i>...</i>`
 :   italics
