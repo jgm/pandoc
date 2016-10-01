@@ -34,6 +34,7 @@ module Text.Pandoc.Readers.Org.ParserState
   , OrgNoteRecord
   , HasReaderOptions (..)
   , HasQuoteContext (..)
+  , HasWarnings (..)
   , F(..)
   , askF
   , asksF
@@ -60,6 +61,7 @@ import           Text.Pandoc.Parsing ( HasHeaderMap(..)
                                      , HasLastStrPosition(..)
                                      , HasQuoteContext(..)
                                      , HasReaderOptions(..)
+                                     , HasWarnings(..)
                                      , ParserContext(..)
                                      , QuoteContext(..)
                                      , SourcePos )
@@ -88,6 +90,7 @@ data OrgParserState = OrgParserState
   , orgStateNotes'               :: OrgNoteTable
   , orgStateOptions              :: ReaderOptions
   , orgStateParserContext        :: ParserContext
+  , orgStateWarnings             :: [String]
   }
 
 data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext }
@@ -114,6 +117,10 @@ instance HasHeaderMap OrgParserState where
   extractHeaderMap = orgStateHeaderMap
   updateHeaderMap  f s = s{ orgStateHeaderMap = f (orgStateHeaderMap s) }
 
+instance HasWarnings OrgParserState where
+  getWarnings = orgStateWarnings
+  setWarnings ws st = st { orgStateWarnings = ws }
+
 instance Default OrgParserState where
   def = defaultOrgParserState
 
@@ -133,6 +140,7 @@ defaultOrgParserState = OrgParserState
   , orgStateNotes' = []
   , orgStateOptions = def
   , orgStateParserContext = NullState
+  , orgStateWarnings = []
   }
 
 optionsToParserState :: ReaderOptions -> OrgParserState
