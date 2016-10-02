@@ -585,7 +585,7 @@ image :: MWParser Inlines
 image = try $ do
   sym "[["
   choice imageIdentifiers
-  fname <- many1 (noneOf "|]")
+  fname <- addUnderscores <$> many1 (noneOf "|]")
   _ <- many imageOption
   dims <- try (char '|' *> (sepBy (many digit) (char 'x')) <* string "px")
           <|> return []
