@@ -11,5 +11,6 @@ extra-deps:
 - data-default-0.6.0
 - http-client-0.5.0
 - http-client-tls-0.3.0
+- doctemplates-0.1.0.0
 - cmark-0.5.3.1
 resolver: lts-6.5
