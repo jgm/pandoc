@@ -23,7 +23,7 @@ rm -rf $DIST
 mkdir -p $DIST
 mkdir -p $RESOURCES
 stack setup
-which hsb2hs || stack install --stack-yaml=stack.hsb2hs.yaml
+which hsb2hs || stack install hsb2hs
 
 echo Building pandoc...
 stack clean
