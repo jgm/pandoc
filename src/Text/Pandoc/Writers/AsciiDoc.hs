@@ -51,6 +51,7 @@ import Control.Monad.State
 import qualified Data.Map as M
 import Data.Aeson (Value(String), fromJSON, toJSON, Result(..))
 import qualified Data.Text as T
+import Data.Char (isSpace, isPunctuation)
 
 data WriterState = WriterState { defListMarker :: String
                                , orderedListLevel :: Int
@@ -321,6 +322,8 @@ blockListToAsciiDoc :: WriterOptions -- ^ Options
                     -> State WriterState Doc
 blockListToAsciiDoc opts blocks = cat `fmap` mapM (blockToAsciiDoc opts) blocks
 
+data SpacyLocation = End | Start
+
 -- | Convert list of Pandoc inline elements to asciidoc.
 inlineListToAsciiDoc :: WriterOptions -> [Inline] -> State WriterState Doc
 inlineListToAsciiDoc opts lst = do
@@ -331,14 +334,14 @@ inlineListToAsciiDoc opts lst = do
   return result
  where go [] = return empty
        go (y:x:xs)
-         | not (isSpacy y) = do
-           y' <- if isSpacy x
+         | not (isSpacy End y) = do
+           y' <- if isSpacy Start x
                     then inlineToAsciiDoc opts y
                     else withIntraword $ inlineToAsciiDoc opts y
            x' <- withIntraword $ inlineToAsciiDoc opts x
            xs' <- go xs
            return (y' <> x' <> xs')
-         | not (isSpacy x) = do
+         | not (isSpacy Start x) = do
            y' <- withIntraword $ inlineToAsciiDoc opts y
            xs' <- go (x:xs)
            return (y' <> xs')
@@ -346,10 +349,17 @@ inlineListToAsciiDoc opts lst = do
            x' <- inlineToAsciiDoc opts x
            xs' <- go xs
            return (x' <> xs')
-       isSpacy Space = True
-       isSpacy LineBreak = True
-       isSpacy SoftBreak = True
-       isSpacy _ = False
+       isSpacy :: SpacyLocation -> Inline -> Bool
+       isSpacy _ Space = True
+       isSpacy _ LineBreak = True
+       isSpacy _ SoftBreak = True
+       -- Note that \W characters count as spacy in AsciiDoc
+       -- for purposes of determining interword:
+       isSpacy End (Str xs) = case reverse xs of
+                                   c:_ -> isPunctuation c || isSpace c
+                                   _   -> False
+       isSpacy Start (Str (c:_)) = isPunctuation c || isSpace c
+       isSpacy _ _ = False
 
 setIntraword :: Bool -> State WriterState ()
 setIntraword b = modify $ \st -> st{ intraword = b }
