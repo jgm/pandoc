@@ -12,15 +12,16 @@ flags:
     embed_data_files: true
 # if you are on OSX, stack install cpphs and
 # uncomment the following three lines:
-#ghc-options:
-#  pandoc-citeproc:  '-pgmP cpphs -optP--cpp'
-#  highlighting-kate: '-pgmP cpphs -optP--cpp'
+ghc-options:
+  pandoc-citeproc:  '-pgmP cpphs -optP--cpp'
+  highlighting-kate: '-pgmP cpphs -optP--cpp'
 packages:
 - '.'
 - '../pandoc-citeproc'
 - '../pandoc-types'
+- '../texmath'
 extra-deps:
-- doctemplates-0.1.0.1
+- doctemplates-0.1.0.2
 - http-client-0.5.0
 - http-client-tls-0.3.0
 resolver: lts-7.0
