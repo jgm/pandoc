@@ -92,20 +92,28 @@ listMarkerToId (NumberMarker sty delim n) =
                       OneParen       -> '2'
                       TwoParens      -> '3'
 
-data WriterEnv = WriterEnv{ envRTL :: Bool }
+data WriterEnv = WriterEnv{ envTextProperties :: [Element]
+                          , envParaProperties :: [Element]
+                          , envRTL :: Bool
+                          , envListLevel :: Int
+                          , envListNumId :: Int
+                          }
 
 defaultWriterEnv :: WriterEnv
-defaultWriterEnv = WriterEnv{ envRTL = False }
+defaultWriterEnv = WriterEnv{ envTextProperties = []
+                            , envParaProperties = []
+                            , envRTL = False
+                            , envListLevel = -1
+                            , envListNumId = 1
+                            }
 
 data WriterState = WriterState{
-         stTextProperties :: [Element]
-       , stParaProperties :: [Element]
-       , stFootnotes      :: [Element]
+         stFootnotes      :: [Element]
        , stSectionIds     :: Set.Set String
        , stExternalLinks  :: M.Map String String
        , stImages         :: M.Map FilePath (String, String, Maybe MimeType, Element, B.ByteString)
-       , stListLevel      :: Int
-       , stListNumId      :: Int
+       -- , stListLevel      :: Int
+       -- , stListNumId      :: Int
        , stLists          :: [ListMarker]
        , stInsId          :: Int
        , stDelId          :: Int
@@ -122,14 +130,12 @@ data WriterState = WriterState{
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{
-        stTextProperties = []
-      , stParaProperties = []
-      , stFootnotes      = defaultFootnotes
+        stFootnotes      = defaultFootnotes
       , stSectionIds     = Set.empty
       , stExternalLinks  = M.empty
       , stImages         = M.empty
-      , stListLevel      = -1
-      , stListNumId      = 1
+      -- , stListLevel      = -1
+      -- , stListNumId      = 1
       , stLists          = [NoMarker]
       , stInsId          = 1
       , stDelId          = 1
@@ -809,12 +815,11 @@ blockToOpenXML opts (Plain lst) = withParaProp (pCustomStyle "Compact")
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
   setFirstPara
-  pushParaProp $ pCustomStyle $
-    if null alt
-      then "Figure"
-      else "FigureWithCaption"
-  paraProps <- getParaProps False
-  popParaProp
+  let prop = pCustomStyle $
+        if null alt
+        then "Figure"
+        else "FigureWithCaption"
+  paraProps <- local (\env -> env { envParaProperties = prop : envParaProperties env }) (getParaProps False)
   contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
   captionNode <- withParaProp (pCustomStyle "ImageCaption")
                  $ blockToOpenXML opts (Para alt)
@@ -952,49 +957,36 @@ inlinesToOpenXML :: WriterOptions -> [Inline] -> WS [Element]
 inlinesToOpenXML opts lst = concat `fmap` mapM (inlineToOpenXML opts) lst
 
 withNumId :: Int -> WS a -> WS a
-withNumId numid p = do
-  origNumId <- gets stListNumId
-  modify $ \st -> st{ stListNumId = numid }
-  result <- p
-  modify $ \st -> st{ stListNumId = origNumId }
-  return result
+withNumId numid = local $ \env -> env{ envListNumId = numid }
 
 asList :: WS a -> WS a
-asList p = do
-  origListLevel <- gets stListLevel
-  modify $ \st -> st{ stListLevel = stListLevel st + 1 }
-  result <- p
-  modify $ \st -> st{ stListLevel = origListLevel }
-  return result
+asList = local $ \env -> env{ envListLevel = envListLevel env + 1 }
 
 getTextProps :: WS [Element]
 getTextProps = do
-  props <- gets stTextProperties
+  props <- asks envTextProperties
   return $ if null props
               then []
               else [mknode "w:rPr" [] props]
 
-pushTextProp :: Element -> WS ()
-pushTextProp d = modify $ \s -> s{ stTextProperties = d : stTextProperties s }
+-- pushTextProp :: Element -> WS ()
+-- pushTextProp d = modify $ \s -> s{ stTextProperties = d : stTextProperties s }
 
-popTextProp :: WS ()
-popTextProp = modify $ \s -> s{ stTextProperties = drop 1 $ stTextProperties s }
+-- popTextProp :: WS ()
+-- popTextProp = modify $ \s -> s{ stTextProperties = drop 1 $ stTextProperties s }
 
 withTextProp :: Element -> WS a -> WS a
-withTextProp d p = do
-  pushTextProp d
-  res <- p
-  popTextProp
-  return res
+withTextProp d p =
+  local (\env -> env {envTextProperties = d : envTextProperties env}) p
 
 withTextPropM :: WS Element -> WS a -> WS a
 withTextPropM = (. flip withTextProp) . (>>=)
 
 getParaProps :: Bool -> WS [Element]
 getParaProps displayMathPara = do
-  props <- gets stParaProperties
-  listLevel <- gets stListLevel
-  numid <- gets stListNumId
+  props <- asks envParaProperties
+  listLevel <- asks envListLevel
+  numid <- asks envListNumId
   let listPr = if listLevel >= 0 && not displayMathPara
                   then [ mknode "w:numPr" []
                          [ mknode "w:numId" [("w:val",show numid)] ()
@@ -1005,18 +997,9 @@ getParaProps displayMathPara = do
                 [] -> []
                 ps -> [mknode "w:pPr" [] ps]
 
-pushParaProp :: Element -> WS ()
-pushParaProp d = modify $ \s -> s{ stParaProperties = d : stParaProperties s }
-
-popParaProp :: WS ()
-popParaProp = modify $ \s -> s{ stParaProperties = drop 1 $ stParaProperties s }
-
 withParaProp :: Element -> WS a -> WS a
-withParaProp d p = do
-  pushParaProp d
-  res <- p
-  popParaProp
-  return res
+withParaProp d p =
+  local (\env -> env {envParaProperties = d : envParaProperties env}) p
 
 withParaPropM :: WS Element -> WS a -> WS a
 withParaPropM = (. flip withParaProp) . (>>=)
@@ -1135,14 +1118,12 @@ inlineToOpenXML opts (Note bs) = do
   let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : Space : ils) : xs
       insertNoteRef (Para ils  : xs) = Para  (notemarkerXml : Space : ils) : xs
       insertNoteRef xs               = Para [notemarkerXml] : xs
-  oldListLevel <- gets stListLevel
-  oldParaProperties <- gets stParaProperties
-  oldTextProperties <- gets stTextProperties
-  modify $ \st -> st{ stListLevel = -1, stParaProperties = [], stTextProperties = [] }
-  contents <- withParaPropM (pStyleM "Footnote Text") $ blocksToOpenXML opts
-                $ insertNoteRef bs
-  modify $ \st -> st{ stListLevel = oldListLevel, stParaProperties = oldParaProperties,
-                      stTextProperties = oldTextProperties }
+
+  contents <- local (\env -> env{ envListLevel = -1
+                                , envParaProperties = []
+                                , envTextProperties = [] })
+              (withParaPropM (pStyleM "Footnote Text") $ blocksToOpenXML opts
+                $ insertNoteRef bs)
   let newnote = mknode "w:footnote" [("w:id", notenum)] $ contents
   modify $ \s -> s{ stFootnotes = newnote : notes }
   return [ mknode "w:r" []
@@ -1274,3 +1255,12 @@ fitToPage (x, y) pageWidth
   | x > fromIntegral pageWidth =
     (pageWidth, floor $ ((fromIntegral pageWidth) / x) * y)
   | otherwise = (floor x, floor y)
+
+-- setRTL :: WS a -> WS a
+-- setRTL = do
+--   isRTL <- asks envRTL
+--   if isRTL
+--     then id
+--     else (withParaProp (mknode "w:bidi" [] ()) . withTextProp (mknode "w:rtl" [] ()))
+
+-- setLTR :: WS a -> WS a
