@@ -41,8 +41,13 @@ module Text.Pandoc.Writers.HTML (
   writeSlidy,
   writeSlideous,
   writeDZSlides,
-  writeRevealJs
-  ) where
+  writeRevealJs,
+  defaultWriterState,
+  WriterState,
+  inlineListToHtml,
+  unordList)
+where
+import Text.Pandoc.Definition
 import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.Text (Text)
@@ -91,6 +96,7 @@ import Text.XML.Light (elChildren, unode, unqual)
 import qualified Text.XML.Light as XML
 import Text.XML.Light.Output
 
+-- | State of the writer
 data WriterState = WriterState
     { stNotes        :: [Html]  -- ^ List of notes
     , stMath         :: Bool    -- ^ Math is used in document
@@ -103,6 +109,7 @@ data WriterState = WriterState
     , stSlideVariant :: HTMLSlideVariant
     }
 
+-- | Default state of the writer (e.g. before writing)
 defaultWriterState :: WriterState
 defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
                                   stHighlighting = False, stSecNum = [],
