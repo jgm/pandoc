@@ -1293,8 +1293,8 @@ setLTR x = do
   if isRTL
     then do paraProps <- asks envParaProperties
             textProps <- asks envTextProperties
-            let paraProps' = filter (\e -> (qName . elName) e /= "w:bidi") paraProps
-                textProps' = filter (\e -> (qName . elName) e /= "w:rtl") textProps
+            let paraProps' = filter (\e -> (qName . elName) e /= "bidi") paraProps
+                textProps' = filter (\e -> (qName . elName) e /= "rtl") textProps
             flip local x $ \env -> env { envRTL = False
                                        , envParaProperties = paraProps'
                                        , envTextProperties = textProps'
