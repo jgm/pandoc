@@ -29,7 +29,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to HTML.
 -}
-module Text.Pandoc.Writers.HTML ( writeHtml , writeHtmlString ) where
+module Text.Pandoc.Writers.HTML ( writeHtml ,
+                                  writeHtmlString,
+                                  defaultWriterState,
+                                  WriterState,
+                                  inlineListToHtml,
+                                  unordList)
+where
 import Text.Pandoc.Definition
 import Data.Monoid ((<>))
 import Text.Pandoc.Shared
@@ -70,6 +76,7 @@ import qualified Text.XML.Light as XML
 import System.FilePath (takeExtension)
 import Data.Aeson (Value)
 
+-- | State of the writer
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
     , stMath             :: Bool    -- ^ Math is used in document
@@ -79,6 +86,7 @@ data WriterState = WriterState
     , stElement          :: Bool    -- ^ Processing an Element
     }
 
+-- | Default state of the writer (e.g. before writing)
 defaultWriterState :: WriterState
 defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
                                   stHighlighting = False, stSecNum = [],
@@ -218,6 +226,7 @@ toList listop opts items = do
                else listop $ mconcat $ map (! A.class_ "fragment") items
        else listop $ mconcat items
 
+-- | Construct an Html unordered list from a list of Html
 unordList :: WriterOptions -> [Html] -> Html
 unordList opts = toList H.ul opts . toListItems opts
 
