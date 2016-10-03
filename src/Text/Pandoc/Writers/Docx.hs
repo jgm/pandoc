@@ -718,6 +718,8 @@ makeTOC _ = return []
 -- OpenXML elements (the main document and footnotes).
 writeOpenXML :: WriterOptions -> Pandoc -> WS ([Element], [Element])
 writeOpenXML opts (Pandoc meta blocks) = do
+  isRTL <- asks envRTL
+  (if isRTL then setRTL else id) $ do
   let tit = docTitle meta ++ case lookupMeta "subtitle" meta of
                                   Just (MetaBlocks [Plain xs]) -> LineBreak : xs
                                   _ -> []
@@ -784,10 +786,16 @@ dynamicStyleKey = "custom-style"
 -- | Convert a Pandoc block element to OpenXML.
 blockToOpenXML :: WriterOptions -> Block -> WS [Element]
 blockToOpenXML _ Null = return []
-blockToOpenXML opts (Div (_,_,kvs) bs)
+blockToOpenXML opts (Div (ident,classes,kvs) bs)
   | Just sty <- lookup dynamicStyleKey kvs = do
       modify $ \s -> s{stDynamicParaProps = sty : (stDynamicParaProps s)}
       withParaPropM (pStyleM sty) $ blocksToOpenXML opts bs
+  | Just "rtl" <- lookup "dir" kvs = do
+      let kvs' = filter (("dir", "rtl")/=) kvs
+      setRTL $ blockToOpenXML opts (Div (ident,classes,kvs') bs)
+  | Just "ltr" <- lookup "dir" kvs = do
+      let kvs' = filter (("dir", "ltr")/=) kvs
+      setLTR $ blockToOpenXML opts (Div (ident,classes,kvs') bs)
 blockToOpenXML opts (Div (_,["references"],_) bs) = do
   let (hs, bs') = span isHeaderBlock bs
   header <- blocksToOpenXML opts hs
@@ -1027,6 +1035,12 @@ inlineToOpenXML opts (Span (ident,classes,kvs) ils)
       modify $ \s -> s{stDynamicTextProps = sty : (stDynamicTextProps s)}
       withTextProp (rCustomStyle sty) $
         inlineToOpenXML opts (Span (ident,classes,kvs') ils)
+  | Just "rtl" <- lookup "dir" kvs = do
+      let kvs' = filter (("dir", "rtl")/=) kvs
+      setRTL $ inlineToOpenXML opts (Span (ident,classes,kvs') ils)
+  | Just "ltr" <- lookup "dir" kvs = do
+      let kvs' = filter (("dir", "ltr")/=) kvs
+      setLTR $ inlineToOpenXML opts (Span (ident,classes,kvs') ils)
   | "insertion" `elem` classes = do
     defaultAuthor <- gets stChangesAuthor
     defaultDate <- gets stChangesDate
@@ -1256,11 +1270,30 @@ fitToPage (x, y) pageWidth
     (pageWidth, floor $ ((fromIntegral pageWidth) / x) * y)
   | otherwise = (floor x, floor y)
 
--- setRTL :: WS a -> WS a
--- setRTL = do
---   isRTL <- asks envRTL
---   if isRTL
---     then id
---     else (withParaProp (mknode "w:bidi" [] ()) . withTextProp (mknode "w:rtl" [] ()))
+setRTL :: WS a -> WS a
+setRTL x = do
+  isRTL <- asks envRTL
+  if isRTL
+    then x
+    else flip local x $ \env -> env {
+      envRTL = True
+    , envParaProperties = (mknode "w:bidi" [] ()) : envParaProperties env
+    , envTextProperties = (mknode "w:rtl" [] ()) : envTextProperties env
+    }
 
--- setLTR :: WS a -> WS a
+
+setLTR :: WS a -> WS a
+setLTR x = do
+  isRTL <- asks envRTL
+  if isRTL
+    then do paraProps <- asks envParaProperties
+            textProps <- asks envTextProperties
+            let paraProps' = filter (\e -> (qName . elName) e /= "w:bidi") paraProps
+                textProps' = filter (\e -> (qName . elName) e /= "w:rtl") textProps
+            flip local x $ \env -> env { envRTL = False
+                                       , envParaProperties = paraProps'
+                                       , envTextProperties = textProps'
+                                       }
+    else x
+
+              
