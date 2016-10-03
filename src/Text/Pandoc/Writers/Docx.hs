@@ -261,10 +261,15 @@ writeDocx opts doc@(Pandoc meta _) = do
   let tocTitle = fromMaybe (stTocTitle defaultWriterState) $
                     metaValueToInlines <$> lookupMeta "toc-title" meta
 
+  let isRTL = case lookupMeta "dir" meta of
+        Just (MetaString "rtl")        -> True
+        Just (MetaInlines [Str "rtl"]) -> True
+        _                              -> False
+
   ((contents, footnotes), st) <- runStateT (
     runReaderT
     (writeOpenXML opts{writerWrapText = WrapNone} doc')
-    defaultWriterEnv
+    defaultWriterEnv { envRTL = isRTL }
     ) defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
                         , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
                         , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
@@ -719,7 +724,7 @@ makeTOC _ = return []
 writeOpenXML :: WriterOptions -> Pandoc -> WS ([Element], [Element])
 writeOpenXML opts (Pandoc meta blocks) = do
   isRTL <- asks envRTL
-  (if isRTL then setRTL else id) $ do
+  (if isRTL then (setRTL True) else id) $ do
   let tit = docTitle meta ++ case lookupMeta "subtitle" meta of
                                   Just (MetaBlocks [Plain xs]) -> LineBreak : xs
                                   _ -> []
