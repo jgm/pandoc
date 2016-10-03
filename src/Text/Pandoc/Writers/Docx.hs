@@ -54,6 +54,7 @@ import Text.XML.Light as XML
 import Text.TeXMath
 import Text.Pandoc.Readers.Docx.StyleMap
 import Text.Pandoc.Readers.Docx.Util (elemName)
+import Control.Monad.Reader
 import Control.Monad.State
 import Text.Highlighting.Kate
 import Data.Unique (hashUnique, newUnique)
@@ -90,6 +91,11 @@ listMarkerToId (NumberMarker sty delim n) =
                       Period         -> '1'
                       OneParen       -> '2'
                       TwoParens      -> '3'
+
+data WriterEnv = WriterEnv{ envRTL :: Bool }
+
+defaultWriterEnv :: WriterEnv
+defaultWriterEnv = WriterEnv{ envRTL = False }
 
 data WriterState = WriterState{
          stTextProperties :: [Element]
@@ -138,7 +144,7 @@ defaultWriterState = WriterState{
       , stDynamicTextProps = []
       }
 
-type WS a = StateT WriterState IO a
+type WS = ReaderT WriterEnv (StateT WriterState IO)
 
 mknode :: Node t => String -> [(String,String)] -> t -> Element
 mknode s attrs =
@@ -249,13 +255,16 @@ writeDocx opts doc@(Pandoc meta _) = do
   let tocTitle = fromMaybe (stTocTitle defaultWriterState) $
                     metaValueToInlines <$> lookupMeta "toc-title" meta
 
-  ((contents, footnotes), st) <- runStateT (writeOpenXML opts{writerWrapText = WrapNone} doc')
-                       defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
-                                         , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
-                                         , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
-                                         , stStyleMaps  = styleMaps
-                                         , stTocTitle   = tocTitle
-                                         }
+  ((contents, footnotes), st) <- runStateT (
+    runReaderT
+    (writeOpenXML opts{writerWrapText = WrapNone} doc')
+    defaultWriterEnv
+    ) defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
+                        , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
+                        , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
+                        , stStyleMaps  = styleMaps
+                        , stTocTitle   = tocTitle
+                        }
   let epochtime = floor $ utcTimeToPOSIXSeconds utctime
   let imgs = M.elems $ stImages st
 
