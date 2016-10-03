@@ -797,7 +797,7 @@ blockToOpenXML opts (Div (ident,classes,kvs) bs)
       withParaPropM (pStyleM sty) $ blocksToOpenXML opts bs
   | Just "rtl" <- lookup "dir" kvs = do
       let kvs' = filter (("dir", "rtl")/=) kvs
-      setRTL $ blockToOpenXML opts (Div (ident,classes,kvs') bs)
+      setRTL False $ blockToOpenXML opts (Div (ident,classes,kvs') bs)
   | Just "ltr" <- lookup "dir" kvs = do
       let kvs' = filter (("dir", "ltr")/=) kvs
       setLTR $ blockToOpenXML opts (Div (ident,classes,kvs') bs)
@@ -1042,7 +1042,7 @@ inlineToOpenXML opts (Span (ident,classes,kvs) ils)
         inlineToOpenXML opts (Span (ident,classes,kvs') ils)
   | Just "rtl" <- lookup "dir" kvs = do
       let kvs' = filter (("dir", "rtl")/=) kvs
-      setRTL $ inlineToOpenXML opts (Span (ident,classes,kvs') ils)
+      setRTL False $ inlineToOpenXML opts (Span (ident,classes,kvs') ils)
   | Just "ltr" <- lookup "dir" kvs = do
       let kvs' = filter (("dir", "ltr")/=) kvs
       setLTR $ inlineToOpenXML opts (Span (ident,classes,kvs') ils)
@@ -1275,10 +1275,10 @@ fitToPage (x, y) pageWidth
     (pageWidth, floor $ ((fromIntegral pageWidth) / x) * y)
   | otherwise = (floor x, floor y)
 
-setRTL :: WS a -> WS a
-setRTL x = do
+setRTL :: Bool -> WS a -> WS a
+setRTL topLevel x = do
   isRTL <- asks envRTL
-  if isRTL
+  if isRTL && not topLevel
     then x
     else flip local x $ \env -> env {
       envRTL = True
