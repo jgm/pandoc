@@ -962,7 +962,7 @@ Math rendering in HTML
 
 :   Render TeX formulas using an external script that converts TeX
     formulas to images. The formula will be concatenated with the URL
-    provided. If *URL* is not specified, the Google Chart API will be used.
+    provided. If *URL* is not specified, the CodeCogs will be used.
     Note:  the `--webtex` option will affect Markdown output
     as well as HTML.
 
@@ -2715,7 +2715,7 @@ Docx
 
 FictionBook2
   ~ If the `--webtex` option is used, formulas are rendered as images
-    using Google Charts or other compatible web service, downloaded
+    using CodeCogss or other compatible web service, downloaded
     and embedded in the e-book. Otherwise, they will appear verbatim.
 
 HTML, Slidy, DZSlides, S5, EPUB
@@ -2758,8 +2758,8 @@ HTML, Slidy, DZSlides, S5, EPUB
     6.  If the `--webtex` option is used, TeX formulas will be converted
         to `<img>` tags that link to an external script that converts
         formulas to images. The formula will be URL-encoded and concatenated
-        with the URL provided. If no URL is specified, the Google Chart
-        API will be used (`http://chart.apis.google.com/chart?cht=tx&chl=`).
+        with the URL provided. If no URL is specified, the CodeCogs
+        will be used (`https://latex.codecogs.com/png.latex?`).
 
     7.  If the `--mathjax` option is used, TeX math will be displayed
         between `\(...\)` (for inline math) or `\[...\]` (for display
