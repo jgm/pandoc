@@ -261,16 +261,9 @@ writeDocx opts doc@(Pandoc meta _) = do
   let tocTitle = fromMaybe (stTocTitle defaultWriterState) $
                     metaValueToInlines <$> lookupMeta "toc-title" meta
 
-  let isRTL = case lookupMeta "dir" meta of
-        Just (MetaString "rtl")        -> True
-        Just (MetaInlines [Str "rtl"]) -> True
-        _                              -> False
-
-  ((contents, footnotes), st) <- runStateT (
-    runReaderT
-    (writeOpenXML opts{writerWrapText = WrapNone} doc')
-    defaultWriterEnv { envRTL = isRTL }
-    ) defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
+  ((contents, footnotes), st) <- runStateT 
+    (runReaderT (writeOpenXML opts{writerWrapText = WrapNone} doc') defaultWriterEnv)
+    defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
                         , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
                         , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
                         , stStyleMaps  = styleMaps
@@ -723,8 +716,11 @@ makeTOC _ = return []
 -- OpenXML elements (the main document and footnotes).
 writeOpenXML :: WriterOptions -> Pandoc -> WS ([Element], [Element])
 writeOpenXML opts (Pandoc meta blocks) = do
-  isRTL <- asks envRTL
-  (if isRTL then (setRTL True) else id) $ do
+  let isRTL = case lookupMeta "dir" meta of
+        Just (MetaString "rtl")        -> True
+        Just (MetaInlines [Str "rtl"]) -> True
+        _                              -> False
+  (if isRTL then setRTL else id) $ do
   let tit = docTitle meta ++ case lookupMeta "subtitle" meta of
                                   Just (MetaBlocks [Plain xs]) -> LineBreak : xs
                                   _ -> []
@@ -797,7 +793,7 @@ blockToOpenXML opts (Div (ident,classes,kvs) bs)
       withParaPropM (pStyleM sty) $ blocksToOpenXML opts bs
   | Just "rtl" <- lookup "dir" kvs = do
       let kvs' = filter (("dir", "rtl")/=) kvs
-      setRTL False $ blockToOpenXML opts (Div (ident,classes,kvs') bs)
+      setRTL $ blockToOpenXML opts (Div (ident,classes,kvs') bs)
   | Just "ltr" <- lookup "dir" kvs = do
       let kvs' = filter (("dir", "ltr")/=) kvs
       setLTR $ blockToOpenXML opts (Div (ident,classes,kvs') bs)
@@ -1042,7 +1038,7 @@ inlineToOpenXML opts (Span (ident,classes,kvs) ils)
         inlineToOpenXML opts (Span (ident,classes,kvs') ils)
   | Just "rtl" <- lookup "dir" kvs = do
       let kvs' = filter (("dir", "rtl")/=) kvs
-      setRTL False $ inlineToOpenXML opts (Span (ident,classes,kvs') ils)
+      setRTL $ inlineToOpenXML opts (Span (ident,classes,kvs') ils)
   | Just "ltr" <- lookup "dir" kvs = do
       let kvs' = filter (("dir", "ltr")/=) kvs
       setLTR $ inlineToOpenXML opts (Span (ident,classes,kvs') ils)
@@ -1275,10 +1271,10 @@ fitToPage (x, y) pageWidth
     (pageWidth, floor $ ((fromIntegral pageWidth) / x) * y)
   | otherwise = (floor x, floor y)
 
-setRTL :: Bool -> WS a -> WS a
-setRTL topLevel x = do
+setRTL :: WS a -> WS a
+setRTL x = do
   isRTL <- asks envRTL
-  if isRTL && not topLevel
+  if isRTL
     then x
     else flip local x $ \env -> env {
       envRTL = True
