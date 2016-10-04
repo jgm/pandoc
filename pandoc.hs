@@ -846,7 +846,7 @@ options =
                   (\arg opt ->
                       return opt
                         { optKaTeXJS =
-                           arg <|> Just "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.js"})
+                           arg <|> Just "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.js"})
                   "URL")
                   "" -- Use KaTeX for HTML Math
 
@@ -1150,7 +1150,7 @@ convertWithOpts opts args = do
        mapM_ (UTF8.hPutStrLn stdout) args
        exitSuccess
 
-  let csscdn = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css"
+  let csscdn = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.css"
   let mathMethod =
         case (katexJS, katexStylesheet) of
             (Nothing, _) -> mathMethod'
