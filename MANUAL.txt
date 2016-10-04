@@ -2715,7 +2715,7 @@ Docx
 
 FictionBook2
   ~ If the `--webtex` option is used, formulas are rendered as images
-    using CodeCogss or other compatible web service, downloaded
+    using CodeCogs or other compatible web service, downloaded
     and embedded in the e-book. Otherwise, they will appear verbatim.
 
 HTML, Slidy, DZSlides, S5, EPUB
