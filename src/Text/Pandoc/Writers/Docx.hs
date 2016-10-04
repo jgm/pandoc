@@ -97,6 +97,10 @@ data WriterEnv = WriterEnv{ envTextProperties :: [Element]
                           , envRTL :: Bool
                           , envListLevel :: Int
                           , envListNumId :: Int
+                          , envInDel :: Bool
+                          , envChangesAuthor :: String
+                          , envChangesDate :: String
+
                           }
 
 defaultWriterEnv :: WriterEnv
@@ -105,6 +109,9 @@ defaultWriterEnv = WriterEnv{ envTextProperties = []
                             , envRTL = False
                             , envListLevel = -1
                             , envListNumId = 1
+                            , envInDel = False
+                            , envChangesAuthor  = "unknown"
+                            , envChangesDate    = "1969-12-31T19:00:00Z"
                             }
 
 data WriterState = WriterState{
@@ -115,9 +122,6 @@ data WriterState = WriterState{
        , stLists          :: [ListMarker]
        , stInsId          :: Int
        , stDelId          :: Int
-       , stInDel          :: Bool
-       , stChangesAuthor  :: String
-       , stChangesDate    :: String
        , stPrintWidth     :: Integer
        , stStyleMaps      :: StyleMaps
        , stFirstPara      :: Bool
@@ -135,9 +139,6 @@ defaultWriterState = WriterState{
       , stLists          = [NoMarker]
       , stInsId          = 1
       , stDelId          = 1
-      , stInDel          = False
-      , stChangesAuthor  = "unknown"
-      , stChangesDate    = "1969-12-31T19:00:00Z"
       , stPrintWidth     = 1
       , stStyleMaps      = defaultStyleMaps
       , stFirstPara      = False
@@ -257,14 +258,23 @@ writeDocx opts doc@(Pandoc meta _) = do
   let tocTitle = fromMaybe (stTocTitle defaultWriterState) $
                     metaValueToInlines <$> lookupMeta "toc-title" meta
 
+  let initialSt = defaultWriterState {
+          stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
+        , stStyleMaps  = styleMaps
+        , stTocTitle   = tocTitle
+        }
+
+  let env = defaultWriterEnv {
+          envChangesAuthor = fromMaybe "unknown" username
+        , envChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
+        }
+
+
   ((contents, footnotes), st) <- runStateT 
-    (runReaderT (writeOpenXML opts{writerWrapText = WrapNone} doc') defaultWriterEnv)
-    defaultWriterState{ stChangesAuthor = fromMaybe "unknown" username
-                        , stChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
-                        , stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
-                        , stStyleMaps  = styleMaps
-                        , stTocTitle   = tocTitle
-                        }
+                                 (runReaderT
+                                  (writeOpenXML opts{writerWrapText = WrapNone} doc')
+                                  env)
+                                 initialSt
   let epochtime = floor $ utcTimeToPOSIXSeconds utctime
   let imgs = M.elems $ stImages st
 
@@ -1006,7 +1016,7 @@ withParaPropM = (. flip withParaProp) . (>>=)
 formattedString :: String -> WS [Element]
 formattedString str = do
   props <- getTextProps
-  inDel <- gets stInDel
+  inDel <- asks envInDel
   return [ mknode "w:r" [] $
              props ++
              [ mknode (if inDel then "w:delText" else "w:t")
@@ -1033,8 +1043,8 @@ inlineToOpenXML opts (Span (ident,classes,kvs) ils)
       let kvs' = filter (("dir", "ltr")/=) kvs
       setLTR $ inlineToOpenXML opts (Span (ident,classes,kvs') ils)
   | "insertion" `elem` classes = do
-    defaultAuthor <- gets stChangesAuthor
-    defaultDate <- gets stChangesDate
+    defaultAuthor <- asks envChangesAuthor
+    defaultDate <- asks envChangesDate
     let author = fromMaybe defaultAuthor (lookup "author" kvs)
         date   = fromMaybe defaultDate (lookup "date" kvs)
     insId <- gets stInsId
@@ -1045,15 +1055,13 @@ inlineToOpenXML opts (Span (ident,classes,kvs) ils)
                              ("w:date", date)]
              x ]
   | "deletion" `elem` classes = do
-    defaultAuthor <- gets stChangesAuthor
-    defaultDate <- gets stChangesDate
+    defaultAuthor <- asks envChangesAuthor
+    defaultDate <- asks envChangesDate
     let author = fromMaybe defaultAuthor (lookup "author" kvs)
         date   = fromMaybe defaultDate (lookup "date" kvs)
     delId <- gets stDelId
     modify $ \s -> s{stDelId = (delId + 1)}
-    modify $ \s -> s{stInDel = True}
-    x <- inlinesToOpenXML opts ils
-    modify $ \s -> s{stInDel = False}
+    x <- local (\env -> env {envInDel = True}) (inlinesToOpenXML opts ils)
     return [ mknode "w:del" [("w:id", (show delId)),
                              ("w:author", author),
                              ("w:date", date)]
