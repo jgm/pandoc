@@ -112,8 +112,6 @@ data WriterState = WriterState{
        , stSectionIds     :: Set.Set String
        , stExternalLinks  :: M.Map String String
        , stImages         :: M.Map FilePath (String, String, Maybe MimeType, Element, B.ByteString)
-       -- , stListLevel      :: Int
-       -- , stListNumId      :: Int
        , stLists          :: [ListMarker]
        , stInsId          :: Int
        , stDelId          :: Int
@@ -134,8 +132,6 @@ defaultWriterState = WriterState{
       , stSectionIds     = Set.empty
       , stExternalLinks  = M.empty
       , stImages         = M.empty
-      -- , stListLevel      = -1
-      -- , stListNumId      = 1
       , stLists          = [NoMarker]
       , stInsId          = 1
       , stDelId          = 1
@@ -978,12 +974,6 @@ getTextProps = do
               then []
               else [mknode "w:rPr" [] props]
 
--- pushTextProp :: Element -> WS ()
--- pushTextProp d = modify $ \s -> s{ stTextProperties = d : stTextProperties s }
-
--- popTextProp :: WS ()
--- popTextProp = modify $ \s -> s{ stTextProperties = drop 1 $ stTextProperties s }
-
 withTextProp :: Element -> WS a -> WS a
 withTextProp d p =
   local (\env -> env {envTextProperties = d : envTextProperties env}) p
@@ -1296,5 +1286,3 @@ setLTR x = do
                                        , envTextProperties = textProps'
                                        }
     else x
-
-              
