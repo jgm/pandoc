@@ -386,7 +386,7 @@ getListConstructor ListLevelStyle{..} =
     LltNumbered -> let listNumberStyle = toListNumberStyle listItemFormat
                        listNumberDelim = toListNumberDelim listItemPrefix
                                                            listItemSuffix
-                   in  orderedListWith (1, listNumberStyle, listNumberDelim)
+                   in  orderedListWith (listItemStart, listNumberStyle, listNumberDelim)
   where
     toListNumberStyle  LinfNone      = DefaultStyle
     toListNumberStyle  LinfNumber    = Decimal
