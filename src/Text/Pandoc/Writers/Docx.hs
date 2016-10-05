@@ -100,7 +100,7 @@ data WriterEnv = WriterEnv{ envTextProperties :: [Element]
                           , envInDel :: Bool
                           , envChangesAuthor :: String
                           , envChangesDate :: String
-
+                          , envPrintWidth :: Integer
                           }
 
 defaultWriterEnv :: WriterEnv
@@ -112,6 +112,7 @@ defaultWriterEnv = WriterEnv{ envTextProperties = []
                             , envInDel = False
                             , envChangesAuthor  = "unknown"
                             , envChangesDate    = "1969-12-31T19:00:00Z"
+                            , envPrintWidth     = 1
                             }
 
 data WriterState = WriterState{
@@ -122,7 +123,6 @@ data WriterState = WriterState{
        , stLists          :: [ListMarker]
        , stInsId          :: Int
        , stDelId          :: Int
-       , stPrintWidth     :: Integer
        , stStyleMaps      :: StyleMaps
        , stFirstPara      :: Bool
        , stTocTitle       :: [Inline]
@@ -139,7 +139,6 @@ defaultWriterState = WriterState{
       , stLists          = [NoMarker]
       , stInsId          = 1
       , stDelId          = 1
-      , stPrintWidth     = 1
       , stStyleMaps      = defaultStyleMaps
       , stFirstPara      = False
       , stTocTitle       = normalizeInlines [Str "Table of Contents"]
@@ -259,8 +258,7 @@ writeDocx opts doc@(Pandoc meta _) = do
                     metaValueToInlines <$> lookupMeta "toc-title" meta
 
   let initialSt = defaultWriterState {
-          stPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
-        , stStyleMaps  = styleMaps
+          stStyleMaps  = styleMaps
         , stTocTitle   = tocTitle
         }
 
@@ -273,6 +271,7 @@ writeDocx opts doc@(Pandoc meta _) = do
           envRTL = isRTLmeta
         , envChangesAuthor = fromMaybe "unknown" username
         , envChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
+        , envPrintWidth = (maybe 420 (\x -> quot x 20) pgContentWidth)
         }
 
 
@@ -1171,7 +1170,7 @@ inlineToOpenXML' opts (Link _ txt (src,_)) = do
   return [ mknode "w:hyperlink" [("r:id",id')] contents ]
 inlineToOpenXML' opts (Image attr alt (src, _)) = do
   -- first, check to see if we've already done this image
-  pageWidth <- gets stPrintWidth
+  pageWidth <- asks envPrintWidth
   imgs <- gets stImages
   case M.lookup src imgs of
     Just (_,_,_,elt,_) -> return [elt]
