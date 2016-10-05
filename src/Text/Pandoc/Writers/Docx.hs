@@ -1282,15 +1282,16 @@ fitToPage (x, y) pageWidth
 
 withDirection :: WS a -> WS a
 withDirection x = do
-  isDir <- asks envRTL
+  isRTL <- asks envRTL
   paraProps <- asks envParaProperties
   textProps <- asks envTextProperties
-  -- we have to do this because we don't want to accumulate these
-  -- properties if we have it set while the environment is already
-  -- active.
+  -- We want to clean all bidirection (bidi) and right-to-left (rtl)
+  -- properties from the props first. This is because we don't want
+  -- them to stack up. 
   let paraProps' = filter (\e -> (qName . elName) e /= "bidi") paraProps
       textProps' = filter (\e -> (qName . elName) e /= "rtl") textProps
-  if isDir
+  if isRTL
+    -- if we are going right-to-left, we (re?)add the properties.
     then flip local x $
          \env -> env { envParaProperties = (mknode "w:bidi" [] ()) : paraProps'
                      , envTextProperties = (mknode "w:rtl" [] ()) : textProps'
