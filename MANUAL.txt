@@ -964,7 +964,8 @@ Math rendering in HTML
     formulas to images. The formula will be concatenated with the URL
     provided. If *URL* is not specified, the CodeCogs will be used.
     Note:  the `--webtex` option will affect Markdown output
-    as well as HTML.
+    as well as HTML, which is useful if you're targeting a
+    version of Markdown without native math support.
 
 `--katex`[`=`*URL*]
 
