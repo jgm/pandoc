@@ -3460,7 +3460,7 @@ variants are supported:
 
 `markdown_mmd` (MultiMarkdown)
 :   `pipe_tables`, `raw_html`, `markdown_attribute`, `mmd_link_attributes`,
-    `raw_tex`, `tex_math_double_backslash`, `intraword_underscores`,
+    `tex_math_double_backslash`, `intraword_underscores`,
     `mmd_title_block`, `footnotes`, `definition_lists`,
     `all_symbols_escapable`, `implicit_header_references`,
     `auto_identifiers`, `mmd_header_identifiers`,
