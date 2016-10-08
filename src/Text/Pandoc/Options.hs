@@ -223,7 +223,9 @@ multimarkdownExtensions = Set.fromList
   , Ext_raw_html
   , Ext_markdown_attribute
   , Ext_mmd_link_attributes
-  , Ext_raw_tex
+  -- , Ext_raw_tex
+  -- Note: MMD's raw TeX syntax requires raw TeX to be
+  -- enclosed in HTML comment
   , Ext_tex_math_double_backslash
   , Ext_intraword_underscores
   , Ext_mmd_title_block
