@@ -1,0 +1,8 @@
+.//MANUAL.txt
+.//changelog
+.//man/pandoc.1
+.//src/Text/Pandoc.hs
+.//src/Text/Pandoc/Options.hs
+.//src/Text/Pandoc/Templates.hs
+.//trypandoc/index.html
+.//trypandoc/trypandoc.hs
