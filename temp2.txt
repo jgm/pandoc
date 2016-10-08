@@ -1,8 +1,9 @@
-MANUAL.txt
-changelog
-man/pandoc.1
+# MANUAL.txt
+# changelog
+# man/pandoc.1
+# README.md
 # src/Text/Pandoc.hs
 # src/Text/Pandoc/Options.hs
-src/Text/Pandoc/Templates.hs
-trypandoc/index.html
-trypandoc/trypandoc.hs
+# src/Text/Pandoc/Templates.hs
+# trypandoc/index.html
+# trypandoc/trypandoc.hs
