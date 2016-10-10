@@ -64,11 +64,9 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.template
 		--variable version="pandoc $(version)" \
 		-o $@
 
-README.md: README.md.in MANUAL.txt
-	perl -pe 's/\`make-readme-to-insert-from-MANUAL-Description\`/`head -96 MANUAL.txt | tail -85`/e' README.md.in | sed 's/\]\[[^]]*\]/\]/g' > $@
-	tail -164 MANUAL.txt >> $@
-	
-	
+README.md: MANUAL.txt README.md.in
+	z=$$(grep -n 'Using `pandoc`' $< | cut -f1 -d:); z=`expr $$z - 1`; y=$$(grep -n 'Description' $< | cut -f1 -d:); y=`expr $$z - $$y - 1`; perl -pe 's/\`make-readme-to-insert-from-MANUAL-Description\`/`head -'$$z' $< | tail -'$$y'`/e' README.md.in | sed 's/\]\[[^]]*\]/\]/g' > $@
+	x=$$(grep -n 'Authors' $< | cut -f1 -d:); w=$$(grep --regexp="$$" --count $<); w=`expr $$w - $$x - 1`; tail -$$w $< >> $@
 
 download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
