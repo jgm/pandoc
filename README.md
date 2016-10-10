@@ -1,6 +1,14 @@
 Pandoc
 ======
 
+[![license](https://img.shields.io/badge/license-GPLv2+-brightgreen.svg)](https://www.gnu.org/licenses/gpl.html)
+[![hackage release](https://img.shields.io/hackage/v/pandoc.svg?label=current+release)](http://hackage.haskell.org/package/pandoc)
+[![stackage LTS package](http://stackage.org/package/pandoc/badge/lts)](http://stackage.org/lts/package/pandoc)
+[![github release](https://img.shields.io/github/release/jgm/pandoc.svg?label=github+release)](https://github.com/jgm/pandoc/releases)
+[![travis build status](https://img.shields.io/travis/jgm/pandoc.svg)](https://travis-ci.org/jgm/pandoc)
+[![appveyor build status](https://ci.appveyor.com/api/projects/status/nvqs4ct090igjiqc?svg=true)](https://ci.appveyor.com/project/jgm/pandoc)
+
+
 The universal markup converter
 ------------------------------
 
@@ -86,13 +94,6 @@ Markdown can be expected to be lossy.
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
 [InDesign ICML]: https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf
 [TEI Simple]: https://github.com/TEIC/TEI-Simple
-
-[![license](https://img.shields.io/badge/license-GPLv2+-brightgreen.svg)](https://www.gnu.org/licenses/gpl.html)
-[![hackage release](https://img.shields.io/hackage/v/pandoc.svg?label=current+release)](http://hackage.haskell.org/package/pandoc)
-[![stackage LTS package](http://stackage.org/package/pandoc/badge/lts)](http://stackage.org/lts/package/pandoc)
-[![github release](https://img.shields.io/github/release/jgm/pandoc.svg?label=github+release)](https://github.com/jgm/pandoc/releases)
-[![travis build status](https://img.shields.io/travis/jgm/pandoc.svg)](https://travis-ci.org/jgm/pandoc)
-[![appveyor build status](https://ci.appveyor.com/api/projects/status/nvqs4ct090igjiqc?svg=true)](https://ci.appveyor.com/project/jgm/pandoc)
 
 
 Documentation
