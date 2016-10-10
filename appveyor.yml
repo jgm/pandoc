@@ -38,7 +38,7 @@ after_test:
   - cd windows
   - 7z a "pandoc.zip" pandoc.exe
   - .\pandoc.exe -s -S --toc ..\MANUAL.txt -o MANUAL.html
-  - .\pandoc.exe -s -S ..\COPYING -o COPYING.rtf
+  - .\pandoc.exe -s -S ..\COPYING.md -o COPYING.rtf
   - copy ..\COPYRIGHT COPYRIGHT.txt
   - |
       set VERSION=
