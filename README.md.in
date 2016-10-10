@@ -12,7 +12,7 @@ Pandoc
 The universal markup converter
 ------------------------------
 
-`make-readme-to-insert-from-MANUAL-Description`
+<!-- Description section from the MANUAL.txt will be automatically pasted here -->
 
 
 [footnotes]: http://pandoc.org/MANUAL.html#footnotes
@@ -45,3 +45,4 @@ new issue.
 
 License
 -------
+<!-- Authors section from the MANUAL.txt will be automatically pasted here -->
