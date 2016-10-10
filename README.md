@@ -32,5 +32,3 @@ new issue.
 
 License
 -------
-
-`make-readme-to-insert-from-MANUAL-Authors`

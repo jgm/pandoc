@@ -64,6 +64,12 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.template
 		--variable version="pandoc $(version)" \
 		-o $@
 
+README.markdown: README.md MANUAL.txt
+	perl -pe 's/\`make-readme-to-insert-from-MANUAL-Description\`/`head -96 MANUAL.txt | tail -85`/e' README.md > $@
+	tail -164 MANUAL.txt >> $@
+	
+	
+
 download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
 		jq -r '.[] | .assets | .[] | "\(.download_count)\t\(.name)"'
