@@ -15,18 +15,18 @@ The universal markup converter
 `make-readme-to-insert-from-MANUAL-Description`
 
 
-[ footnotes]: http://pandoc.org/MANUAL.html#footnotes
-[ tables]: http://pandoc.org/MANUAL.html#tables
-[ ordered lists]: http://pandoc.org/MANUAL.html#ordered-lists
-[ definition lists]: http://pandoc.org/MANUAL.html#definition-lists
-[ fenced code blocks]: http://pandoc.org/MANUAL.html#fenced-code-blocks
-[ superscripts and subscripts]: http://pandoc.org/MANUAL.html#superscripts-and-subscripts
-[ strikeout]: http://pandoc.org/MANUAL.html#strikeout
-[ metadata blocks]: http://pandoc.org/MANUAL.html#metadata-blocks
-[ math]: http://pandoc.org/MANUAL.html#math
-[ citations]: http://pandoc.org/MANUAL.html#citations
-[ Markdown inside HTML block elements]: http://pandoc.org/MANUAL.html#extension-markdown_in_html_blocks
-[ Pandoc's Markdown]: http://pandoc.org/MANUAL.html#pandocs-markdown
+[footnotes]: http://pandoc.org/MANUAL.html#footnotes
+[tables]: http://pandoc.org/MANUAL.html#tables
+[ordered lists]: http://pandoc.org/MANUAL.html#ordered-lists
+[definition lists]: http://pandoc.org/MANUAL.html#definition-lists
+[fenced code blocks]: http://pandoc.org/MANUAL.html#fenced-code-blocks
+[superscripts and subscripts]: http://pandoc.org/MANUAL.html#superscripts-and-subscripts
+[strikeout]: http://pandoc.org/MANUAL.html#strikeout
+[metadata blocks]: http://pandoc.org/MANUAL.html#metadata-blocks
+[math]: http://pandoc.org/MANUAL.html#math
+[citations]: http://pandoc.org/MANUAL.html#citations
+[Markdown inside HTML block elements]: http://pandoc.org/MANUAL.html#extension-markdown_in_html_blocks
+[Pandoc's Markdown]: http://pandoc.org/MANUAL.html#pandocs-markdown
 
 Documentation
 -------------
