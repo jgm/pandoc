@@ -346,19 +346,20 @@ blockToMarkdown opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
 blockToMarkdown opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
 blockToMarkdown opts (RawBlock f str)
-  | f == "html" = do
+  | f == "markdown" = return $ text str <> text "\n"
+  | f == "html" && isEnabled Ext_raw_html opts = do
     plain <- gets stPlain
     return $ if plain
                 then empty
                 else if isEnabled Ext_markdown_attribute opts
                         then text (addMarkdownAttribute str) <> text "\n"
                         else text str <> text "\n"
-  | f `elem` ["latex", "tex", "markdown"] = do
+  | f `elem` ["latex", "tex"] && isEnabled Ext_raw_tex opts = do
     plain <- gets stPlain
     return $ if plain
                 then empty
                 else text str <> text "\n"
-blockToMarkdown _ (RawBlock _ _) = return empty
+  | otherwise = return empty
 blockToMarkdown opts HorizontalRule = do
   return $ blankline <> text (replicate (writerColumns opts) '-') <> blankline
 blockToMarkdown opts (Header level attr inlines) = do
@@ -460,9 +461,10 @@ blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
                   | isEnabled Ext_grid_tables opts -> fmap (id,) $
                          gridTable opts (all null headers) aligns widths
                              rawHeaders rawRows
-                  | otherwise -> fmap (id,) $
+                  | isEnabled Ext_raw_html opts -> fmap (id,) $
                          return $ text $ writeHtmlString def
                                 $ Pandoc nullMeta [t]
+                  | otherwise -> return $ (id, text "[TABLE]")
   return $ nst $ tbl $$ blankline $$ caption'' $$ blankline
 blockToMarkdown opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
@@ -680,7 +682,9 @@ blockListToMarkdown opts blocks =
           isListBlock (OrderedList _ _)  = True
           isListBlock (DefinitionList _) = True
           isListBlock _                  = False
-          commentSep                     = RawBlock "html" "<!-- -->\n"
+          commentSep                     = if isEnabled Ext_raw_html opts
+                                              then RawBlock "html" "<!-- -->\n"
+                                              else RawBlock "markdown" "&nbsp;"
 
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
