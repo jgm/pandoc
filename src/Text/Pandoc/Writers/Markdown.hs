@@ -70,23 +70,27 @@ evalMD md env st = evalState (runReaderT md env) st
 data WriterEnv = WriterEnv { envInList         :: Bool
                            , envPlain          :: Bool
                            , envRefShortcutable :: Bool
+                           , envBlockLevel      :: Int
                            }
 
 instance Default WriterEnv
   where def = WriterEnv { envInList         = False
                         , envPlain          = False
                         , envRefShortcutable = True
+                        , envBlockLevel      = 0
                         }
         
 data WriterState = WriterState { stNotes :: Notes
                                , stRefs  :: Refs
                                , stIds   :: Set.Set String
+                               , stNoteNum :: Int
                                }
 
 instance Default WriterState
   where def = WriterState{ stNotes = []
                          , stRefs = []
                          , stIds = Set.empty
+                         , stNoteNum = 1
                          }
 
 -- | Convert Pandoc to Markdown.
@@ -238,9 +242,11 @@ keyToMarkdown opts (label, (src, tit), attr) = do
 
 -- | Return markdown representation of notes.
 notesToMarkdown :: WriterOptions -> [[Block]] -> MD Doc
-notesToMarkdown opts notes =
-  mapM (\(num, note) -> noteToMarkdown opts num note) (zip [1..] notes) >>=
-  return . vsep
+notesToMarkdown opts notes = do
+  n <- gets stNoteNum
+  notes' <- mapM (\(num, note) -> noteToMarkdown opts num note) (zip [n..] notes)
+  modify $ \st -> st { stNoteNum = stNoteNum st + length notes }
+  return $ vsep notes'
 
 -- | Return markdown representation of a note.
 noteToMarkdown :: WriterOptions -> Int -> [Block] -> MD Doc
@@ -335,15 +341,35 @@ beginsWithOrderedListMarker str =
 blockToMarkdown :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> MD Doc
-blockToMarkdown _ Null = return empty
-blockToMarkdown opts (Div attrs ils) = do
+blockToMarkdown opts blk =
+  local (\env -> env {envBlockLevel = envBlockLevel env + 1}) $
+  do doc <- blockToMarkdown' opts blk
+     blkLevel <- asks envBlockLevel
+     if writerReferenceLocation opts == EndOfBlock && blkLevel == 1
+       then do st <- get
+               notes' <- notesToMarkdown opts (reverse $ stNotes st)
+               modify $ \s -> s { stNotes = [] }
+               st' <- get  -- note that the notes may contain refs
+               refs' <- refsToMarkdown opts (reverse $ stRefs st')
+               modify $ \s -> s { stRefs = [] }
+               return $ doc <>
+                 (if isEmpty notes' then empty else blankline <> notes') <>
+                 (if isEmpty refs' then empty else blankline <> refs') <>
+                 (if (isEmpty notes' && isEmpty refs') then empty else blankline)
+       else return doc
+
+blockToMarkdown' :: WriterOptions -- ^ Options
+                -> Block         -- ^ Block element
+                -> MD Doc
+blockToMarkdown' _ Null = return empty
+blockToMarkdown' opts (Div attrs ils) = do
   contents <- blockListToMarkdown opts ils
   return $ if isEnabled Ext_raw_html opts &&
                 isEnabled Ext_markdown_in_html_blocks opts
               then tagWithAttrs "div" attrs <> blankline <>
                       contents <> blankline <> "</div>" <> blankline
               else contents <> blankline
-blockToMarkdown opts (Plain inlines) = do
+blockToMarkdown' opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
   -- escape if para starts with ordered list marker
   isPlain <- asks envPlain
@@ -360,11 +386,11 @@ blockToMarkdown opts (Plain inlines) = do
                      else contents
   return $ contents' <> cr
 -- title beginning with fig: indicates figure
-blockToMarkdown opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
+blockToMarkdown' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
   blockToMarkdown opts (Para [Image attr alt (src,tit)])
-blockToMarkdown opts (Para inlines) =
+blockToMarkdown' opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
-blockToMarkdown opts (RawBlock f str)
+blockToMarkdown' opts (RawBlock f str)
   | f == "markdown" = return $ text str <> text "\n"
   | f == "html" && isEnabled Ext_raw_html opts = do
     plain <- asks envPlain
@@ -379,9 +405,25 @@ blockToMarkdown opts (RawBlock f str)
                 then empty
                 else text str <> text "\n"
   | otherwise = return empty
-blockToMarkdown opts HorizontalRule = do
+blockToMarkdown' opts HorizontalRule = do
   return $ blankline <> text (replicate (writerColumns opts) '-') <> blankline
-blockToMarkdown opts (Header level attr inlines) = do
+blockToMarkdown' opts (Header level attr inlines) = do
+  -- first, if we're putting references at the end of a section, we
+  -- put them here.
+  blkLevel <- asks envBlockLevel
+  refs <- if writerReferenceLocation opts == EndOfSection && blkLevel == 1
+          then do st <- get
+                  notes' <- notesToMarkdown opts (reverse $ stNotes st)
+                  modify $ \s -> s { stNotes = [] }
+                  st' <- get  -- note that the notes may contain refs
+                  refs' <- refsToMarkdown opts (reverse $ stRefs st')
+                  modify $ \s -> s { stRefs = [] }
+                  return $
+                    (if isEmpty notes' then empty else blankline <> notes') <>
+                    (if isEmpty refs' then empty else blankline <> refs') <>
+                    (if (isEmpty notes' && isEmpty refs') then empty else blankline)
+          else return empty
+
   plain <- asks envPlain
   -- we calculate the id that would be used by auto_identifiers
   -- so we know whether to print an explicit identifier
@@ -402,8 +444,7 @@ blockToMarkdown opts (Header level attr inlines) = do
                     then capitalize inlines
                     else inlines
   let setext = writerSetextHeaders opts
-  return $ nowrap
-         $ case level of
+      hdr = nowrap $ case level of
             1 | plain -> blanklines 3 <> contents <> blanklines 2
               | setext ->
                   contents <> attr' <> cr <> text (replicate (offset contents) '=') <>
@@ -416,11 +457,13 @@ blockToMarkdown opts (Header level attr inlines) = do
             _ | plain || isEnabled Ext_literate_haskell opts ->
                 contents <> blankline
             _ -> text (replicate level '#') <> space <> contents <> attr' <> blankline
-blockToMarkdown opts (CodeBlock (_,classes,_) str)
+
+  return $ refs <> hdr
+blockToMarkdown' opts (CodeBlock (_,classes,_) str)
   | "haskell" `elem` classes && "literate" `elem` classes &&
     isEnabled Ext_literate_haskell opts =
   return $ prefixed "> " (text str) <> blankline
-blockToMarkdown opts (CodeBlock attribs str) = return $
+blockToMarkdown' opts (CodeBlock attribs str) = return $
   case attribs == nullAttr of
      False | isEnabled Ext_backtick_code_blocks opts ->
           backticks <> attrs <> cr <> text str <> cr <> backticks <> blankline
@@ -442,7 +485,7 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
                      else case attribs of
                                 (_,(cls:_),_) -> " " <> text cls
                                 _             -> empty
-blockToMarkdown opts (BlockQuote blocks) = do
+blockToMarkdown' opts (BlockQuote blocks) = do
   plain <- asks envPlain
   -- if we're writing literate haskell, put a space before the bird tracks
   -- so they won't be interpreted as lhs...
@@ -451,7 +494,7 @@ blockToMarkdown opts (BlockQuote blocks) = do
                   else if plain then "  " else "> "
   contents <- blockListToMarkdown opts blocks
   return $ (prefixed leader contents) <> blankline
-blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
+blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
   caption' <- inlineListToMarkdown opts caption
   let caption'' = if null caption || not (isEnabled Ext_table_captions opts)
                      then empty
@@ -485,10 +528,10 @@ blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
                                 $ Pandoc nullMeta [t]
                   | otherwise -> return $ (id, text "[TABLE]")
   return $ nst $ tbl $$ blankline $$ caption'' $$ blankline
-blockToMarkdown opts (BulletList items) = do
+blockToMarkdown' opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
   return $ cat contents <> blankline
-blockToMarkdown opts (OrderedList (start,sty,delim) items) = do
+blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
   let start' = if isEnabled Ext_startnum opts then start else 1
   let sty'   = if isEnabled Ext_fancy_lists opts then sty else DefaultStyle
   let delim' = if isEnabled Ext_fancy_lists opts then delim else DefaultDelim
@@ -501,7 +544,7 @@ blockToMarkdown opts (OrderedList (start,sty,delim) items) = do
               mapM (\(item, num) -> orderedListItemToMarkdown opts item num) $
               zip markers' items
   return $ cat contents <> blankline
-blockToMarkdown opts (DefinitionList items) = do
+blockToMarkdown' opts (DefinitionList items) = do
   contents <- inList $ mapM (definitionListItemToMarkdown opts) items
   return $ cat contents <> blankline
 
@@ -1009,7 +1052,7 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
 inlineToMarkdown opts (Note contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
-  let ref = text $ writerIdentifierPrefix opts ++ show (length $ stNotes st)
+  let ref = text $ writerIdentifierPrefix opts ++ show (stNoteNum st + (length $ stNotes st) - 1)
   if isEnabled Ext_footnotes opts
      then return $ "[^" <> ref <> "]"
      else return $ "[" <> ref <> "]"
