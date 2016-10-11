@@ -196,6 +196,7 @@ data Opt = Opt
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optVerbose           :: Bool    -- ^ Verbose diagnostic output
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
+    , optReferenceLocation :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
     , optDpi               :: Int     -- ^ Dpi
     , optWrapText          :: WrapOption  -- ^ Options for wrapping text
     , optColumns           :: Int     -- ^ Line length in characters
@@ -260,6 +261,7 @@ defaultOpts = Opt
     , optIgnoreArgs            = False
     , optVerbose               = False
     , optReferenceLinks        = False
+    , optReferenceLocation     = EndOfDocument
     , optDpi                   = 96
     , optWrapText              = WrapAuto
     , optColumns               = 72
@@ -583,6 +585,19 @@ options =
                  (NoArg
                   (\opt -> return opt { optReferenceLinks = True } ))
                  "" -- "Use reference links in parsing HTML"
+
+    , Option "" ["reference-location"]
+                 (ReqArg
+                  (\arg opt -> do
+                     action <- case arg of
+                            "block"    -> return EndOfBlock
+                            "section"  -> return EndOfSection
+                            "document" -> return EndOfDocument
+                            _        -> err 6
+                               ("Unknown option for reference-location: " ++ arg)
+                     return opt { optReferenceLocation = action })
+                  "block|section|document")
+                 "" -- "Accepting or reject MS Word track-changes.""
 
     , Option "" ["atx-headers"]
                  (NoArg
@@ -1120,6 +1135,7 @@ convertWithOpts opts args = do
               , optIgnoreArgs            = ignoreArgs
               , optVerbose               = verbose
               , optReferenceLinks        = referenceLinks
+              , optReferenceLocation     = referenceLocation
               , optDpi                   = dpi
               , optWrapText              = wrap
               , optColumns               = columns
@@ -1360,6 +1376,7 @@ convertWithOpts opts args = do
                             writerNumberOffset     = numberFrom,
                             writerSectionDivs      = sectionDivs,
                             writerReferenceLinks   = referenceLinks,
+                            writerReferenceLocation = referenceLocation,
                             writerDpi              = dpi,
                             writerWrapText         = wrap,
                             writerColumns          = columns,
