@@ -643,7 +643,9 @@ Options affecting specific writers
 `--reference-links`
 
 :   Use reference-style links, rather than inline links, in writing Markdown
-    or reStructuredText.  By default inline links are used.
+    or reStructuredText.  By default inline links are used.  The
+    placement of link references is affected by the
+    `--reference-location` option.
 
 `--reference-location = block` | `section` | `document`
 
