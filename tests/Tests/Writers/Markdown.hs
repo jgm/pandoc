@@ -11,6 +11,9 @@ import Tests.Arbitrary()
 markdown :: (ToPandoc a) => a -> String
 markdown = writeMarkdown def . toPandoc
 
+markdownWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
+markdownWithOpts opts x = writeMarkdown opts $ toPandoc x
+
 {-
   "my test" =: X =?> Y
 
@@ -36,13 +39,146 @@ tests = [ "indented code after list"
              =: bulletList [ plain "foo" <> bulletList [ plain "bar" ],
                              plain "baz" ]
              =?> "-   foo\n    -   bar\n-   baz\n"
-        ] ++ [shortcutLinkRefsTests]
+        ] ++ [noteTests] ++ [shortcutLinkRefsTests]
+
+{-
+
+Testing with the following text:
+
+First Header
+============
+
+This is a footnote.[^1] And this is a [link](https://www.google.com).
+
+> A note inside a block quote.[^2]
+>
+> A second paragraph.
+
+Second Header
+=============
+
+Some more text.
+
+
+[^1]: Down here.
+
+[^2]: The second note.
+
+-}
+
+noteTestDoc :: Blocks
+noteTestDoc =
+  header 1 "First Header" <>
+  para ("This is a footnote." <>
+        note (para "Down here.") <>
+        " And this is a " <>
+        link "https://www.google.com" "" "link" <>
+        ".") <>
+  blockQuote (para ("A note inside a block quote." <>
+                    note (para "The second note.")) <>
+              para ("A second paragraph.")) <>
+  header 1 "Second Header" <>
+  para "Some more text."
+
+
+
+noteTests :: Test
+noteTests = testGroup "note and reference location"
+  [ test (markdownWithOpts def)
+    "footnotes at the end of a document" $
+    noteTestDoc =?>
+    (unlines $ [ "First Header"
+               , "============"
+               , ""
+               , "This is a footnote.[^1] And this is a [link](https://www.google.com)."
+               , ""
+               , "> A note inside a block quote.[^2]"
+               , ">"
+               , "> A second paragraph."
+               , ""
+               , "Second Header"
+               , "============="
+               , ""
+               , "Some more text."
+               , ""
+               , "[^1]: Down here."
+               , ""
+               , "[^2]: The second note."
+               ])
+  , test (markdownWithOpts def{writerReferenceLocation=EndOfBlock})
+    "footnotes at the end of blocks" $
+    noteTestDoc =?>
+    (unlines $ [ "First Header"
+               , "============"
+               , ""
+               , "This is a footnote.[^1] And this is a [link](https://www.google.com)."
+               , ""
+               , "[^1]: Down here."
+               , ""
+               , "> A note inside a block quote.[^2]"
+               , ">"
+               , "> A second paragraph."
+               , ""
+               , "[^2]: The second note."
+               , ""
+               , "Second Header"
+               , "============="
+               , ""
+               , "Some more text."
+               ])
+  , test (markdownWithOpts def{writerReferenceLocation=EndOfBlock, writerReferenceLinks=True})
+    "footnotes and reference links at the end of blocks" $
+    noteTestDoc =?>
+    (unlines $ [ "First Header"
+               , "============"
+               , ""
+               , "This is a footnote.[^1] And this is a [link]."
+               , ""
+               , "[^1]: Down here."
+               , ""
+               , "  [link]: https://www.google.com"
+               , ""
+               , "> A note inside a block quote.[^2]"
+               , ">"
+               , "> A second paragraph."
+               , ""
+               , "[^2]: The second note."
+               , ""
+               , "Second Header"
+               , "============="
+               , ""
+               , "Some more text."
+               ])
+  , test (markdownWithOpts def{writerReferenceLocation=EndOfSection})
+    "footnotes at the end of section" $
+    noteTestDoc =?>
+    (unlines $ [ "First Header"
+               , "============"
+               , ""
+               , "This is a footnote.[^1] And this is a [link](https://www.google.com)."
+               , ""
+               , "> A note inside a block quote.[^2]"
+               , ">"
+               , "> A second paragraph."
+               , ""
+               , "[^1]: Down here."
+               , ""
+               , "[^2]: The second note."
+               , ""
+               , "Second Header"
+               , "============="
+               , ""
+               , "Some more text."
+               ])
+
+  ]
 
 shortcutLinkRefsTests :: Test
 shortcutLinkRefsTests =
   let infix 4 =:
       (=:) :: (ToString a, ToPandoc a)
-           => String -> (a, String) -> Test
+
+        => String -> (a, String) -> Test
       (=:) = test (writeMarkdown (def {writerReferenceLinks = True}) . toPandoc)
   in testGroup "Shortcut reference links"
      [ "Simple link (shortcutable)"
