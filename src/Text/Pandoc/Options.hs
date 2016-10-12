@@ -45,6 +45,7 @@ module Text.Pandoc.Options ( Extension(..)
                            , WrapOption (..)
                            , WriterOptions (..)
                            , TrackChanges (..)
+                           , ReferenceLocation (..)
                            , def
                            , isEnabled
                            ) where
@@ -336,6 +337,12 @@ data WrapOption = WrapAuto        -- ^ Automatically wrap to width
                 | WrapPreserve    -- ^ Preserve wrapping of input source
                 deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+-- | Locations for footnotes and references in markdown output
+data ReferenceLocation = EndOfBlock    -- ^ End of block
+                       | EndOfSection  -- ^ prior to next section header (or end of document)
+                       | EndOfDocument -- ^ at end of document
+                       deriving (Show, Read, Eq, Data, Typeable, Generic)
+
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerStandalone       :: Bool   -- ^ Include header and footer
@@ -383,6 +390,7 @@ data WriterOptions = WriterOptions
   , writerMediaBag         :: MediaBag       -- ^ Media collected by docx or epub reader
   , writerVerbose          :: Bool           -- ^ Verbose debugging output
   , writerLaTeXArgs        :: [String]       -- ^ Flags to pass to latex-engine
+  , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
   } deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
@@ -430,6 +438,7 @@ instance Default WriterOptions where
                       , writerMediaBag         = mempty
                       , writerVerbose          = False
                       , writerLaTeXArgs        = []
+                      , writerReferenceLocation = EndOfDocument
                       }
 
 -- | Returns True if the given extension is enabled.

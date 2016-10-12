@@ -44,6 +44,7 @@ import Data.List ( group, stripPrefix, find, intersperse, transpose, sortBy )
 import Data.Char ( isSpace, isPunctuation, ord, chr )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
+import Control.Monad.Reader
 import Control.Monad.State
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Readers.TeXMath (texMathToInlines)
@@ -60,30 +61,52 @@ import Network.HTTP ( urlEncode )
 type Notes = [[Block]]
 type Ref   = ([Inline], Target, Attr)
 type Refs  = [Ref]
-data WriterState = WriterState { stNotes           :: Notes
-                               , stRefs            :: Refs
-                               , stRefShortcutable :: Bool
-                               , stInList          :: Bool
-                               , stIds             :: Set.Set String
-                               , stPlain           :: Bool }
+
+type MD = ReaderT WriterEnv (State WriterState)
+
+evalMD :: MD a -> WriterEnv -> WriterState -> a
+evalMD md env st = evalState (runReaderT md env) st
+
+data WriterEnv = WriterEnv { envInList         :: Bool
+                           , envPlain          :: Bool
+                           , envRefShortcutable :: Bool
+                           , envBlockLevel      :: Int
+                           }
+
+instance Default WriterEnv
+  where def = WriterEnv { envInList         = False
+                        , envPlain          = False
+                        , envRefShortcutable = True
+                        , envBlockLevel      = 0
+                        }
+        
+data WriterState = WriterState { stNotes :: Notes
+                               , stRefs  :: Refs
+                               , stIds   :: Set.Set String
+                               , stNoteNum :: Int
+                               }
+
 instance Default WriterState
-  where def = WriterState{ stNotes = [], stRefs = [], stRefShortcutable = True,
-                           stInList = False, stIds = Set.empty, stPlain = False }
+  where def = WriterState{ stNotes = []
+                         , stRefs = []
+                         , stIds = Set.empty
+                         , stNoteNum = 1
+                         }
 
 -- | Convert Pandoc to Markdown.
 writeMarkdown :: WriterOptions -> Pandoc -> String
 writeMarkdown opts document =
-  evalState (pandocToMarkdown opts{
-                  writerWrapText = if isEnabled Ext_hard_line_breaks opts
-                                      then WrapNone
-                                      else writerWrapText opts }
-             document) def
+  evalMD (pandocToMarkdown opts{
+             writerWrapText = if isEnabled Ext_hard_line_breaks opts
+                              then WrapNone
+                              else writerWrapText opts }
+             document) def def
 
 -- | Convert Pandoc to plain text (like markdown, but without links,
 -- pictures, or inline formatting).
 writePlain :: WriterOptions -> Pandoc -> String
 writePlain opts document =
-  evalState (pandocToMarkdown opts document) def{ stPlain = True }
+  evalMD (pandocToMarkdown opts document) def{ envPlain = True } def
 
 pandocTitleBlock :: Doc -> [Doc] -> Doc -> Doc
 pandocTitleBlock tit auths dat =
@@ -146,12 +169,12 @@ jsonToYaml (Number n) = text $ show n
 jsonToYaml _ = empty
 
 -- | Return markdown representation of document.
-pandocToMarkdown :: WriterOptions -> Pandoc -> State WriterState String
+pandocToMarkdown :: WriterOptions -> Pandoc -> MD String
 pandocToMarkdown opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  isPlain <- gets stPlain
+  isPlain <- asks envPlain
   metadata <- metaToJSON opts
                (fmap (render colwidth) . blockListToMarkdown opts)
                (fmap (render colwidth) . inlineListToMarkdown opts)
@@ -201,13 +224,13 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
      else return main
 
 -- | Return markdown representation of reference key table.
-refsToMarkdown :: WriterOptions -> Refs -> State WriterState Doc
+refsToMarkdown :: WriterOptions -> Refs -> MD Doc
 refsToMarkdown opts refs = mapM (keyToMarkdown opts) refs >>= return . vcat
 
 -- | Return markdown representation of a reference key.
 keyToMarkdown :: WriterOptions
               -> Ref
-              -> State WriterState Doc
+              -> MD Doc
 keyToMarkdown opts (label, (src, tit), attr) = do
   label' <- inlineListToMarkdown opts label
   let tit' = if null tit
@@ -218,13 +241,15 @@ keyToMarkdown opts (label, (src, tit), attr) = do
             <> linkAttributes opts attr
 
 -- | Return markdown representation of notes.
-notesToMarkdown :: WriterOptions -> [[Block]] -> State WriterState Doc
-notesToMarkdown opts notes =
-  mapM (\(num, note) -> noteToMarkdown opts num note) (zip [1..] notes) >>=
-  return . vsep
+notesToMarkdown :: WriterOptions -> [[Block]] -> MD Doc
+notesToMarkdown opts notes = do
+  n <- gets stNoteNum
+  notes' <- mapM (\(num, note) -> noteToMarkdown opts num note) (zip [n..] notes)
+  modify $ \st -> st { stNoteNum = stNoteNum st + length notes }
+  return $ vsep notes'
 
 -- | Return markdown representation of a note.
-noteToMarkdown :: WriterOptions -> Int -> [Block] -> State WriterState Doc
+noteToMarkdown :: WriterOptions -> Int -> [Block] -> MD Doc
 noteToMarkdown opts num blocks = do
   contents  <- blockListToMarkdown opts blocks
   let num' = text $ writerIdentifierPrefix opts ++ show num
@@ -261,7 +286,7 @@ tableOfContents :: WriterOptions -> [Block] -> Doc
 tableOfContents opts headers =
   let opts' = opts { writerIgnoreNotes = True }
       contents = BulletList $ map (elementToListItem opts) $ hierarchicalize headers
-  in  evalState (blockToMarkdown opts' contents) def
+  in  evalMD (blockToMarkdown opts' contents) def def
 
 -- | Converts an Element to a list item for a table of contents,
 elementToListItem :: WriterOptions -> Element -> [Block]
@@ -315,19 +340,39 @@ beginsWithOrderedListMarker str =
 -- | Convert Pandoc block element to markdown.
 blockToMarkdown :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
-                -> State WriterState Doc
-blockToMarkdown _ Null = return empty
-blockToMarkdown opts (Div attrs ils) = do
+                -> MD Doc
+blockToMarkdown opts blk =
+  local (\env -> env {envBlockLevel = envBlockLevel env + 1}) $
+  do doc <- blockToMarkdown' opts blk
+     blkLevel <- asks envBlockLevel
+     if writerReferenceLocation opts == EndOfBlock && blkLevel == 1
+       then do st <- get
+               notes' <- notesToMarkdown opts (reverse $ stNotes st)
+               modify $ \s -> s { stNotes = [] }
+               st' <- get  -- note that the notes may contain refs
+               refs' <- refsToMarkdown opts (reverse $ stRefs st')
+               modify $ \s -> s { stRefs = [] }
+               return $ doc <>
+                 (if isEmpty notes' then empty else blankline <> notes') <>
+                 (if isEmpty refs' then empty else blankline <> refs') <>
+                 (if (isEmpty notes' && isEmpty refs') then empty else blankline)
+       else return doc
+
+blockToMarkdown' :: WriterOptions -- ^ Options
+                -> Block         -- ^ Block element
+                -> MD Doc
+blockToMarkdown' _ Null = return empty
+blockToMarkdown' opts (Div attrs ils) = do
   contents <- blockListToMarkdown opts ils
   return $ if isEnabled Ext_raw_html opts &&
                 isEnabled Ext_markdown_in_html_blocks opts
               then tagWithAttrs "div" attrs <> blankline <>
                       contents <> blankline <> "</div>" <> blankline
               else contents <> blankline
-blockToMarkdown opts (Plain inlines) = do
+blockToMarkdown' opts (Plain inlines) = do
   contents <- inlineListToMarkdown opts inlines
   -- escape if para starts with ordered list marker
-  st <- get
+  isPlain <- asks envPlain
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -336,34 +381,50 @@ blockToMarkdown opts (Plain inlines) = do
                              | otherwise                  = x : escapeDelimiter xs
       escapeDelimiter []                                  = []
   let contents' = if isEnabled Ext_all_symbols_escapable opts &&
-                     not (stPlain st) && beginsWithOrderedListMarker rendered
+                     not isPlain && beginsWithOrderedListMarker rendered
                      then text $ escapeDelimiter rendered
                      else contents
   return $ contents' <> cr
 -- title beginning with fig: indicates figure
-blockToMarkdown opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
+blockToMarkdown' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
   blockToMarkdown opts (Para [Image attr alt (src,tit)])
-blockToMarkdown opts (Para inlines) =
+blockToMarkdown' opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
-blockToMarkdown opts (RawBlock f str)
+blockToMarkdown' opts (RawBlock f str)
   | f == "markdown" = return $ text str <> text "\n"
   | f == "html" && isEnabled Ext_raw_html opts = do
-    plain <- gets stPlain
+    plain <- asks envPlain
     return $ if plain
                 then empty
                 else if isEnabled Ext_markdown_attribute opts
                         then text (addMarkdownAttribute str) <> text "\n"
                         else text str <> text "\n"
   | f `elem` ["latex", "tex"] && isEnabled Ext_raw_tex opts = do
-    plain <- gets stPlain
+    plain <- asks envPlain
     return $ if plain
                 then empty
                 else text str <> text "\n"
   | otherwise = return empty
-blockToMarkdown opts HorizontalRule = do
+blockToMarkdown' opts HorizontalRule = do
   return $ blankline <> text (replicate (writerColumns opts) '-') <> blankline
-blockToMarkdown opts (Header level attr inlines) = do
-  plain <- gets stPlain
+blockToMarkdown' opts (Header level attr inlines) = do
+  -- first, if we're putting references at the end of a section, we
+  -- put them here.
+  blkLevel <- asks envBlockLevel
+  refs <- if writerReferenceLocation opts == EndOfSection && blkLevel == 1
+          then do st <- get
+                  notes' <- notesToMarkdown opts (reverse $ stNotes st)
+                  modify $ \s -> s { stNotes = [] }
+                  st' <- get  -- note that the notes may contain refs
+                  refs' <- refsToMarkdown opts (reverse $ stRefs st')
+                  modify $ \s -> s { stRefs = [] }
+                  return $
+                    (if isEmpty notes' then empty else blankline <> notes') <>
+                    (if isEmpty refs' then empty else blankline <> refs') <>
+                    (if (isEmpty notes' && isEmpty refs') then empty else blankline)
+          else return empty
+
+  plain <- asks envPlain
   -- we calculate the id that would be used by auto_identifiers
   -- so we know whether to print an explicit identifier
   ids <- gets stIds
@@ -383,8 +444,7 @@ blockToMarkdown opts (Header level attr inlines) = do
                     then capitalize inlines
                     else inlines
   let setext = writerSetextHeaders opts
-  return $ nowrap
-         $ case level of
+      hdr = nowrap $ case level of
             1 | plain -> blanklines 3 <> contents <> blanklines 2
               | setext ->
                   contents <> attr' <> cr <> text (replicate (offset contents) '=') <>
@@ -397,11 +457,13 @@ blockToMarkdown opts (Header level attr inlines) = do
             _ | plain || isEnabled Ext_literate_haskell opts ->
                 contents <> blankline
             _ -> text (replicate level '#') <> space <> contents <> attr' <> blankline
-blockToMarkdown opts (CodeBlock (_,classes,_) str)
+
+  return $ refs <> hdr
+blockToMarkdown' opts (CodeBlock (_,classes,_) str)
   | "haskell" `elem` classes && "literate" `elem` classes &&
     isEnabled Ext_literate_haskell opts =
   return $ prefixed "> " (text str) <> blankline
-blockToMarkdown opts (CodeBlock attribs str) = return $
+blockToMarkdown' opts (CodeBlock attribs str) = return $
   case attribs == nullAttr of
      False | isEnabled Ext_backtick_code_blocks opts ->
           backticks <> attrs <> cr <> text str <> cr <> backticks <> blankline
@@ -423,8 +485,8 @@ blockToMarkdown opts (CodeBlock attribs str) = return $
                      else case attribs of
                                 (_,(cls:_),_) -> " " <> text cls
                                 _             -> empty
-blockToMarkdown opts (BlockQuote blocks) = do
-  plain <- gets stPlain
+blockToMarkdown' opts (BlockQuote blocks) = do
+  plain <- asks envPlain
   -- if we're writing literate haskell, put a space before the bird tracks
   -- so they won't be interpreted as lhs...
   let leader = if isEnabled Ext_literate_haskell opts
@@ -432,7 +494,7 @@ blockToMarkdown opts (BlockQuote blocks) = do
                   else if plain then "  " else "> "
   contents <- blockListToMarkdown opts blocks
   return $ (prefixed leader contents) <> blankline
-blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
+blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
   caption' <- inlineListToMarkdown opts caption
   let caption'' = if null caption || not (isEnabled Ext_table_captions opts)
                      then empty
@@ -466,10 +528,10 @@ blockToMarkdown opts t@(Table caption aligns widths headers rows) =  do
                                 $ Pandoc nullMeta [t]
                   | otherwise -> return $ (id, text "[TABLE]")
   return $ nst $ tbl $$ blankline $$ caption'' $$ blankline
-blockToMarkdown opts (BulletList items) = do
+blockToMarkdown' opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
   return $ cat contents <> blankline
-blockToMarkdown opts (OrderedList (start,sty,delim) items) = do
+blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
   let start' = if isEnabled Ext_startnum opts then start else 1
   let sty'   = if isEnabled Ext_fancy_lists opts then sty else DefaultStyle
   let delim' = if isEnabled Ext_fancy_lists opts then delim else DefaultDelim
@@ -482,17 +544,12 @@ blockToMarkdown opts (OrderedList (start,sty,delim) items) = do
               mapM (\(item, num) -> orderedListItemToMarkdown opts item num) $
               zip markers' items
   return $ cat contents <> blankline
-blockToMarkdown opts (DefinitionList items) = do
+blockToMarkdown' opts (DefinitionList items) = do
   contents <- inList $ mapM (definitionListItemToMarkdown opts) items
   return $ cat contents <> blankline
 
-inList :: State WriterState a -> State WriterState a
-inList p = do
-  oldInList <- gets stInList
-  modify $ \st -> st{ stInList = True }
-  res <- p
-  modify $ \st -> st{ stInList = oldInList }
-  return res
+inList :: MD a -> MD a
+inList p = local (\env -> env {envInList = True}) p
 
 addMarkdownAttribute :: String -> String
 addMarkdownAttribute s =
@@ -503,7 +560,7 @@ addMarkdownAttribute s =
                                  x /= "markdown"]
        _ -> s
 
-pipeTable :: Bool -> [Alignment] -> [Doc] -> [[Doc]] -> State WriterState Doc
+pipeTable :: Bool -> [Alignment] -> [Doc] -> [[Doc]] -> MD Doc
 pipeTable headless aligns rawHeaders rawRows = do
   let sp = text " "
   let blockFor AlignLeft   x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
@@ -532,7 +589,7 @@ pipeTable headless aligns rawHeaders rawRows = do
   return $ header $$ border $$ body
 
 pandocTable :: WriterOptions -> Bool -> [Alignment] -> [Double]
-            -> [Doc] -> [[Doc]] -> State WriterState Doc
+            -> [Doc] -> [[Doc]] -> MD Doc
 pandocTable opts headless aligns widths rawHeaders rawRows =  do
   let isSimple = all (==0) widths
   let alignHeader alignment = case alignment of
@@ -572,7 +629,7 @@ pandocTable opts headless aligns widths rawHeaders rawRows =  do
   return $ head'' $$ underline $$ body $$ bottom
 
 gridTable :: WriterOptions -> Bool -> [Alignment] -> [Double]
-          -> [Doc] -> [[Doc]] -> State WriterState Doc
+          -> [Doc] -> [[Doc]] -> MD Doc
 gridTable opts headless _aligns widths headers' rawRows =  do
   let numcols = length headers'
   let widths' = if all (==0) widths
@@ -599,7 +656,7 @@ gridTable opts headless _aligns widths headers' rawRows =  do
   return $ border '-' $$ head'' $$ body $$ border '-'
 
 -- | Convert bullet list item (list of blocks) to markdown.
-bulletListItemToMarkdown :: WriterOptions -> [Block] -> State WriterState Doc
+bulletListItemToMarkdown :: WriterOptions -> [Block] -> MD Doc
 bulletListItemToMarkdown opts items = do
   contents <- blockListToMarkdown opts items
   let sps = replicate (writerTabStop opts - 2) ' '
@@ -617,7 +674,7 @@ bulletListItemToMarkdown opts items = do
 orderedListItemToMarkdown :: WriterOptions -- ^ options
                           -> String        -- ^ list item marker
                           -> [Block]       -- ^ list item (list of blocks)
-                          -> State WriterState Doc
+                          -> MD Doc
 orderedListItemToMarkdown opts marker items = do
   contents <- blockListToMarkdown opts items
   let sps = case length marker - writerTabStop opts of
@@ -629,15 +686,15 @@ orderedListItemToMarkdown opts marker items = do
 -- | Convert definition list item (label, list of blocks) to markdown.
 definitionListItemToMarkdown :: WriterOptions
                              -> ([Inline],[[Block]])
-                             -> State WriterState Doc
+                             -> MD Doc
 definitionListItemToMarkdown opts (label, defs) = do
   labelText <- inlineListToMarkdown opts label
   defs' <- mapM (mapM (blockToMarkdown opts)) defs
   if isEnabled Ext_definition_lists opts
      then do
        let tabStop = writerTabStop opts
-       st <- get
-       let leader  = if stPlain st then "   " else ":  "
+       isPlain <- asks envPlain
+       let leader  = if isPlain then "   " else ":  "
        let sps = case writerTabStop opts - 3 of
                       n | n > 0   -> text $ replicate n ' '
                       _           -> text " "
@@ -661,7 +718,7 @@ definitionListItemToMarkdown opts (label, defs) = do
 -- | Convert list of Pandoc block elements to markdown.
 blockListToMarkdown :: WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
-                    -> State WriterState Doc
+                    -> MD Doc
 blockListToMarkdown opts blocks =
   mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
     -- insert comment between list and indented code block, or the
@@ -688,7 +745,7 @@ blockListToMarkdown opts blocks =
 
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
-getReference :: Attr -> [Inline] -> Target -> State WriterState [Inline]
+getReference :: Attr -> [Inline] -> Target -> MD [Inline]
 getReference attr label target = do
   st <- get
   case find (\(_,t,a) -> t == target && a == attr) (stRefs st) of
@@ -706,9 +763,9 @@ getReference attr label target = do
       return label'
 
 -- | Convert list of Pandoc inline elements to markdown.
-inlineListToMarkdown :: WriterOptions -> [Inline] -> State WriterState Doc
+inlineListToMarkdown :: WriterOptions -> [Inline] -> MD Doc
 inlineListToMarkdown opts lst = do
-  inlist <- gets stInList
+  inlist <- asks envInList
   go (if inlist then avoidBadWrapsInList lst else lst)
   where go [] = return empty
         go (i:is) = case i of
@@ -731,9 +788,9 @@ inlineListToMarkdown opts lst = do
             _ -> shortcutable
           where shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go is)
                 unshortcutable = do
-                    iMark <- withState (\s -> s { stRefShortcutable = False })
-                                       (inlineToMarkdown opts i)
-                    modify (\s -> s {stRefShortcutable = True })
+                    iMark <- local
+                             (\env -> env { envRefShortcutable = False })
+                             (inlineToMarkdown opts i)
                     fmap (iMark <>) (go is)
 
 isSp :: Inline -> Bool
@@ -773,22 +830,22 @@ escapeSpaces SoftBreak = Str "\\ "
 escapeSpaces x = x
 
 -- | Convert Pandoc inline element to markdown.
-inlineToMarkdown :: WriterOptions -> Inline -> State WriterState Doc
+inlineToMarkdown :: WriterOptions -> Inline -> MD Doc
 inlineToMarkdown opts (Span attrs ils) = do
-  plain <- gets stPlain
+  plain <- asks envPlain
   contents <- inlineListToMarkdown opts ils
   return $ if not plain &&
               (isEnabled Ext_raw_html opts || isEnabled Ext_native_spans opts)
               then tagWithAttrs "span" attrs <> contents <> text "</span>"
               else contents
 inlineToMarkdown opts (Emph lst) = do
-  plain <- gets stPlain
+  plain <- asks envPlain
   contents <- inlineListToMarkdown opts lst
   return $ if plain
               then "_" <> contents <> "_"
               else "*" <> contents <> "*"
 inlineToMarkdown opts (Strong lst) = do
-  plain <- gets stPlain
+  plain <- asks envPlain
   if plain
      then inlineListToMarkdown opts $ capitalize lst
      else do
@@ -827,7 +884,7 @@ inlineToMarkdown opts (Subscript lst) = do
                                  _ -> contents
                         where toSubscript c = chr (0x2080 + (ord c - 48))
 inlineToMarkdown opts (SmallCaps lst) = do
-  plain <- gets stPlain
+  plain <- asks envPlain
   if not plain &&
      (isEnabled Ext_raw_html opts || isEnabled Ext_native_spans opts)
      then do
@@ -852,13 +909,13 @@ inlineToMarkdown opts (Code attr str) = do
   let attrs      = if isEnabled Ext_inline_code_attributes opts && attr /= nullAttr
                       then attrsToMarkdown attr
                       else empty
-  plain <- gets stPlain
+  plain <- asks envPlain
   if plain
      then return $ text str
      else return $ text (marker ++ spacer ++ str ++ spacer ++ marker) <> attrs
 inlineToMarkdown opts (Str str) = do
-  st <- get
-  if stPlain st
+  isPlain <- asks envPlain
+  if isPlain
      then return $ text str
      else return $ text $ escapeString opts str
 inlineToMarkdown opts (Math InlineMath str) =
@@ -873,7 +930,7 @@ inlineToMarkdown opts (Math InlineMath str) =
          | isEnabled Ext_tex_math_double_backslash opts ->
              return $ "\\\\(" <> text str <> "\\\\)"
          | otherwise -> do
-             plain <- gets stPlain
+             plain <- asks envPlain
              inlineListToMarkdown opts $
                (if plain then makeMathPlainer else id) $
                texMathToInlines InlineMath str
@@ -887,7 +944,7 @@ inlineToMarkdown opts (Math DisplayMath str)
   | otherwise = (\x -> cr <> x <> cr) `fmap`
         inlineListToMarkdown opts (texMathToInlines DisplayMath str)
 inlineToMarkdown opts (RawInline f str) = do
-  plain <- gets stPlain
+  plain <- asks envPlain
   if not plain &&
      ( f == "markdown" ||
        (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex")) ||
@@ -895,7 +952,7 @@ inlineToMarkdown opts (RawInline f str) = do
     then return $ text str
     else return empty
 inlineToMarkdown opts (LineBreak) = do
-  plain <- gets stPlain
+  plain <- asks envPlain
   if plain || isEnabled Ext_hard_line_breaks opts
      then return cr
      else return $
@@ -944,7 +1001,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
     attr /= nullAttr = -- use raw HTML
     return $ text $ trim $ writeHtmlString def $ Pandoc nullMeta [Plain [lnk]]
   | otherwise = do
-  plain <- gets stPlain
+  plain <- asks envPlain
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if null tit
                      then empty
@@ -955,7 +1012,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
                       [Str s] | escapeURI s == srcSuffix -> True
                       _                                  -> False
   let useRefLinks = writerReferenceLinks opts && not useAuto
-  shortcutable <- gets stRefShortcutable
+  shortcutable <- asks envRefShortcutable
   let useShortcutRefLinks = shortcutable &&
                             isEnabled Ext_shortcut_reference_links opts
   ref <- if useRefLinks then getReference attr txt (src, tit) else return []
@@ -983,7 +1040,7 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
     attr /= nullAttr = -- use raw HTML
     return $ text $ trim $ writeHtmlString def $ Pandoc nullMeta [Plain [img]]
   | otherwise = do
-  plain <- gets stPlain
+  plain <- asks envPlain
   let txt = if null alternate || alternate == [Str source]
                                  -- to prevent autolinks
                then [Str ""]
@@ -995,7 +1052,7 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
 inlineToMarkdown opts (Note contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
-  let ref = text $ writerIdentifierPrefix opts ++ show (length $ stNotes st)
+  let ref = text $ writerIdentifierPrefix opts ++ show (stNoteNum st + (length $ stNotes st) - 1)
   if isEnabled Ext_footnotes opts
      then return $ "[^" <> ref <> "]"
      else return $ "[" <> ref <> "]"
