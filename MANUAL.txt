@@ -538,7 +538,7 @@ General writer options
     to inch/centimeters and vice versa. The default is 96dpi.
     Technically, the correct term would be ppi (pixels per inch).
 
-`--wrap=[auto|none|preserve]`
+`--wrap=auto`|`none`|`preserve`
 
 :   Determine how text is wrapped in the output (the source
     code, not the rendered version).  With `auto` (the default),
@@ -647,7 +647,7 @@ Options affecting specific writers
     placement of link references is affected by the
     `--reference-location` option.
 
-`--reference-location = block` | `section` | `document`
+`--reference-location = block`|`section`|`document`
 
 :   Specify whether footnotes (and references, if `reference-links` is
     set) are placed at the end of the current (top-level) block, the
