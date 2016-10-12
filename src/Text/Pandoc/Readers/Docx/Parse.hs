@@ -65,7 +65,7 @@ import Control.Monad.State
 import Control.Applicative ((<|>))
 import qualified Data.Map as M
 import Control.Monad.Except
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Shared (safeRead, filteredFilesFromArchive)
 import Text.TeXMath.Readers.OMML (readOMML)
 import Text.Pandoc.Readers.Docx.Fonts (getUnicode, Font(..))
 import Text.TeXMath (Exp)
@@ -86,7 +86,6 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
 
 data ReaderState = ReaderState { stateWarnings :: [String] }
                  deriving Show
-                                                  
 
 data DocxError = DocxError | WrongElem
                deriving Show
@@ -276,7 +275,7 @@ archiveToDocxWithWarnings archive = do
       comments  = archiveToComments archive
       numbering = archiveToNumbering archive
       rels      = archiveToRelationships archive
-      media     = archiveToMedia archive
+      media     = filteredFilesFromArchive archive filePathIsMedia
       (styles, parstyles) = archiveToStyles archive
       rEnv =
         ReaderEnv notes comments numbering rels media Nothing styles parstyles InDocument
@@ -402,7 +401,6 @@ archiveToComments zf =
     case cmts of
       Just c -> Comments cmts_namespaces c
       Nothing -> Comments cmts_namespaces M.empty
-               
 
 filePathToRelType :: FilePath -> Maybe DocumentLocation
 filePathToRelType "word/_rels/document.xml.rels" = Just InDocument
@@ -424,7 +422,7 @@ filePathToRelationships ar fp | Just relType <- filePathToRelType fp
                               , Just relElems <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry =
   mapMaybe (relElemToRelationship relType) $ elChildren relElems
 filePathToRelationships _ _ = []
-                               
+
 archiveToRelationships :: Archive -> [Relationship]
 archiveToRelationships archive =
   concatMap (filePathToRelationships archive) $ filesInArchive archive
@@ -434,16 +432,6 @@ filePathIsMedia fp =
   let (dir, _) = splitFileName fp
   in
    (dir == "word/media/")
-
-getMediaPair :: Archive -> FilePath -> Maybe (FilePath, B.ByteString)
-getMediaPair zf fp =
-  case findEntryByPath fp zf of
-    Just e -> Just (fp, fromEntry e)
-    Nothing -> Nothing
-
-archiveToMedia :: Archive -> Media
-archiveToMedia zf =
-  mapMaybe (getMediaPair zf) (filter filePathIsMedia (filesInArchive zf))
 
 lookupLevel :: String -> String -> Numbering -> Maybe Level
 lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
@@ -741,7 +729,7 @@ elemToCommentStart ns element
   , Just cmtDate <- findAttr (elemName ns "w" "date") element = do
       bps <- mapD (elemToBodyPart ns) (elChildren element)
       return $ CommentStart cmtId cmtAuthor cmtDate bps
-elemToCommentStart _ _ = throwError WrongElem      
+elemToCommentStart _ _ = throwError WrongElem
 
 lookupFootnote :: String -> Notes -> Maybe Element
 lookupFootnote s (Notes _ fns _) = fns >>= (M.lookup s)

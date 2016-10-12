@@ -67,6 +67,7 @@ module Text.Pandoc.Shared (
                      Element (..),
                      hierarchicalize,
                      uniqueIdent,
+                     inlineListToIdentifier,
                      isHeaderBlock,
                      headerShift,
                      isTightList,
@@ -84,6 +85,7 @@ module Text.Pandoc.Shared (
                      fetchItem',
                      openURL,
                      collapseFilePath,
+                     filteredFilesFromArchive,
                      -- * Error handling
                      err,
                      warn,
@@ -110,6 +112,7 @@ import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, stripPrefix, intercalate )
+import Data.Maybe (mapMaybe)
 import Data.Version ( showVersion )
 import qualified Data.Map as M
 import Network.URI ( escapeURIString, nonStrictRelativeTo,
@@ -1027,6 +1030,19 @@ collapseFilePath = Posix.joinPath . reverse . foldl go [] . splitDirectories
     isSingleton [x] = Just x
     isSingleton _ = Nothing
     checkPathSeperator = fmap isPathSeparator . isSingleton
+
+--
+-- File selection from the archive
+--
+filteredFilesFromArchive :: Archive -> (FilePath -> Bool) -> [(FilePath, BL.ByteString)]
+filteredFilesFromArchive zf f =
+  mapMaybe (fileAndBinary zf) (filter f (filesInArchive zf))
+  where
+    fileAndBinary :: Archive -> FilePath -> Maybe (FilePath, BL.ByteString)
+    fileAndBinary a fp =
+      case findEntryByPath fp a of
+        Just e -> Just (fp, fromEntry e)
+        Nothing -> Nothing
 
 ---
 --- Squash blocks into inlines
