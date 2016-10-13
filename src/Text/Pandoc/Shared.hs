@@ -153,16 +153,8 @@ import Paths_pandoc (getDataFileName)
 #ifdef HTTP_CLIENT
 import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
                             Request(port,host))
-#if MIN_VERSION_http_client(0,4,30)
 import Network.HTTP.Client (parseRequest)
-#else
-import Network.HTTP.Client (parseUrl)
-#endif
-#if MIN_VERSION_http_client(0,4,18)
 import Network.HTTP.Client (newManager)
-#else
-import Network.HTTP.Client (withManager)
-#endif
 import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
@@ -966,11 +958,7 @@ openURL u
     in  return $ Right (decodeLenient contents, Just mime)
 #ifdef HTTP_CLIENT
   | otherwise = withSocketsDo $ E.try $ do
-#if MIN_VERSION_http_client(0,4,30)
      let parseReq = parseRequest
-#else
-     let parseReq = parseUrl
-#endif
      (proxy :: Either E.SomeException String) <- E.try $ getEnv "http_proxy"
      req <- parseReq u
      req' <- case proxy of
@@ -978,11 +966,7 @@ openURL u
                      Right pr -> (parseReq pr >>= \r ->
                                   return $ addProxy (host r) (port r) req)
                                   `mplus` return req
-#if MIN_VERSION_http_client(0,4,18)
      resp <- newManager tlsManagerSettings >>= httpLbs req'
-#else
-     resp <- withManager tlsManagerSettings $ httpLbs req'
-#endif
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 #else
