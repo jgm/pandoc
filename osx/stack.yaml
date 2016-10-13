@@ -17,7 +17,7 @@ ghc-options:
 packages:
 - '..'
 extra-deps:
-- pandoc-citeproc-0.10.1.1
+- pandoc-citeproc-0.10.1.2
 - doctemplates-0.1.0.2
 - texmath-0.8.6.6
 resolver: lts-7.2

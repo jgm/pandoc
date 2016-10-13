@@ -18,6 +18,6 @@ packages:
     commit: 485eb11e9869fcd4c1ca9bcd68d3ccd384230252
 extra-deps:
 - texmath-0.8.6.6
-- pandoc-citeproc-0.10.1.1
+- pandoc-citeproc-0.10.1.2
 - doctemplates-0.1.0.2
 resolver: lts-7.2
