@@ -1298,8 +1298,10 @@ LaTeX variables are used when [creating a PDF].
 :   bibliography to use for resolving references
 
 `biblio-style`
-:   bibliography style, when used with `--natbib` and
-    `--biblatex`.
+:   bibliography style, when used with `--natbib` and `--biblatex`.
+
+`biblio-title`
+:   bibliography title, when used with `--natbib` and `--biblatex`.
 
 `biblatexoptions`
 :   list of options for biblatex.
