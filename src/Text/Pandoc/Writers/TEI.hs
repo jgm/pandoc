@@ -108,7 +108,7 @@ plainToPara :: Block -> Block
 plainToPara (Plain x) = Para x
 plainToPara x         = x
 
--- | Convert a list of pairs of terms and definitions into a TEI 
+-- | Convert a list of pairs of terms and definitions into a TEI
 -- list with labels and items.
 deflistItemsToTEI :: WriterOptions -> [([Inline],[[Block]])] -> Doc
 deflistItemsToTEI opts items =
@@ -167,6 +167,8 @@ blockToTEI opts (Plain lst) = blockToTEI opts $ Para lst
 --           inTagsSimple "textobject" (inTagsSimple "phrase" alt))
 blockToTEI opts (Para lst) =
   inTags False "p" [] $ inlinesToTEI opts lst
+blockToTEI opts (LineBlock lns) =
+  blockToTEI opts $ linesToPara lns
 blockToTEI opts (BlockQuote blocks) =
   inTagsIndented "quote" $ blocksToTEI opts blocks
 blockToTEI _ (CodeBlock (_,classes,_) str) =
@@ -174,7 +176,7 @@ blockToTEI _ (CodeBlock (_,classes,_) str) =
      flush (text (escapeStringForXML str) <> cr <> text "</ab>")
     where lang  = if null langs
                      then ""
-                     else escapeStringForXML (head langs) 
+                     else escapeStringForXML (head langs)
           isLang l    = map toLower l `elem` map (map toLower) languages
           langsFrom s = if isLang s
                            then [s]
@@ -210,7 +212,7 @@ blockToTEI _ HorizontalRule =
   selfClosingTag "milestone" [("unit","undefined"), ("type","separator"),("rendition","line")]
 
 -- | TEI Tables
--- TEI Simple's tables are composed of cells and rows; other 
+-- TEI Simple's tables are composed of cells and rows; other
 -- table info in the AST is here lossily discard.
 blockToTEI opts (Table _ _ _ headers rows) =
   let
@@ -219,8 +221,8 @@ blockToTEI opts (Table _ _ _ headers rows) =
 --               then return empty
 --               else tableRowToTEI opts headers
   in
-    inTags True "table" [] $ 
-    vcat $ [headers'] <> map (tableRowToTEI opts) rows 
+    inTags True "table" [] $
+    vcat $ [headers'] <> map (tableRowToTEI opts) rows
 
 tableRowToTEI :: WriterOptions
                   -> [[Block]]
@@ -276,7 +278,7 @@ inlineToTEI _ (Math t str) =
                    text (str)
     DisplayMath -> inTags True "figure" [("type","math")] $
                    inTags False "formula" [("notation","TeX")] $ text (str)
-      
+
 inlineToTEI _ (RawInline f x) | f == "tei"     = text x
                               | otherwise      = empty
 inlineToTEI _ LineBreak = selfClosingTag "lb" []
@@ -317,4 +319,3 @@ idAndRole (id',cls,_) = ident ++ role
     role  = if null cls
                then []
                else [("role", unwords cls)]
-

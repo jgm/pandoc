@@ -227,6 +227,8 @@ blockToCustom lua (Para [Image attr txt (src,tit)]) =
 
 blockToCustom lua (Para inlines) = callfunc lua "Para" inlines
 
+blockToCustom lua (LineBlock linesList) = callfunc lua "LineBlock" linesList
+
 blockToCustom lua (RawBlock format str) =
   callfunc lua "RawBlock" format str
 

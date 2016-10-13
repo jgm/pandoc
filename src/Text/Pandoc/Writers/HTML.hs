@@ -463,6 +463,13 @@ blockToHtml opts (Para [Image attr txt (s,'f':'i':'g':':':tit)]) = do
 blockToHtml opts (Para lst) = do
   contents <- inlineListToHtml opts lst
   return $ H.p contents
+blockToHtml opts (LineBlock lns) =
+  if writerWrapText opts == WrapNone
+  then blockToHtml opts $ linesToPara lns
+  else do
+    let lf = preEscapedString "\n"
+    htmlLines <- mconcat . intersperse lf <$> mapM (inlineListToHtml opts) lns
+    return $ H.div ! A.style "white-space: pre-line;" $ htmlLines
 blockToHtml opts (Div attr@(ident, classes, kvs) bs) = do
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
@@ -807,7 +814,7 @@ inlineToHtml opts inline =
               let brtag = if writerHtml5 opts then H5.br else H.br
               return  $ case t of
                          InlineMath  -> m
-                         DisplayMath -> brtag >> m >> brtag 
+                         DisplayMath -> brtag >> m >> brtag
     (RawInline f str)
       | f == Format "html" -> return $ preEscapedString str
       | otherwise          -> return mempty

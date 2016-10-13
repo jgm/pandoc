@@ -201,11 +201,12 @@ blockToRST (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   return $ hang 3 ".. " (fig $$ alt $$ classes $$ dims $+$ capt) $$ blankline
 blockToRST (Para inlines)
   | LineBreak `elem` inlines = do -- use line block if LineBreaks
-      lns <- mapM inlineListToRST $ splitBy (==LineBreak) inlines
-      return $ (vcat $ map (hang 2 (text "| ")) lns) <> blankline
+      linesToLineBlock $ splitBy (==LineBreak) inlines
   | otherwise = do
       contents <- inlineListToRST inlines
       return $ contents <> blankline
+blockToRST (LineBlock lns) =
+  linesToLineBlock lns
 blockToRST (RawBlock f@(Format f') str)
   | f == "rst" = return $ text str
   | otherwise  = return $ blankline <> ".. raw:: " <>
@@ -327,6 +328,12 @@ definitionListItemToRST (label, defs) = do
   contents <- liftM vcat $ mapM blockListToRST defs
   tabstop <- get >>= (return . writerTabStop . stOptions)
   return $ label' $$ nest tabstop (nestle contents <> cr)
+
+-- | Format a list of lines as line block.
+linesToLineBlock :: [[Inline]] -> State WriterState Doc
+linesToLineBlock inlineLines = do
+  lns <- mapM inlineListToRST inlineLines
+  return $ (vcat $ map (hang 2 (text "| ")) lns) <> blankline
 
 -- | Convert list of Pandoc block elements to RST.
 blockListToRST' :: Bool

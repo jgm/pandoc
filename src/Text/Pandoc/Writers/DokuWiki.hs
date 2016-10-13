@@ -45,8 +45,8 @@ import Text.Pandoc.Options ( WriterOptions(
                               , writerStandalone
                               , writerTemplate
                               , writerWrapText), WrapOption(..) )
-import Text.Pandoc.Shared ( escapeURI, removeFormatting, camelCaseToHyphenated
-                          , trimr, normalize, substitute  )
+import Text.Pandoc.Shared ( escapeURI, linesToPara, removeFormatting
+                          , camelCaseToHyphenated, trimr, normalize, substitute )
 import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Templates ( renderTemplate' )
@@ -146,6 +146,9 @@ blockToDokuWiki opts (Para inlines) = do
   return $ if useTags
               then "<HTML><p></HTML>" ++ contents ++ "<HTML></p></HTML>"
               else contents ++ if null indent then "\n" else ""
+
+blockToDokuWiki opts (LineBlock lns) =
+  blockToDokuWiki opts $ linesToPara lns
 
 blockToDokuWiki _ (RawBlock f str)
   | f == Format "dokuwiki" = return str

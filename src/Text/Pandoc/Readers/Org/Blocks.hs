@@ -50,7 +50,7 @@ import           Text.Pandoc.Shared ( compactify', compactify'DL )
 
 import           Control.Monad ( foldM, guard, mzero, void )
 import           Data.Char ( isSpace, toLower, toUpper)
-import           Data.List ( foldl', intersperse, isPrefixOf )
+import           Data.List ( foldl', isPrefixOf )
 import           Data.Maybe ( fromMaybe, isNothing )
 import           Data.Monoid ((<>))
 
@@ -427,7 +427,7 @@ verseBlock :: String -> OrgParser (F Blocks)
 verseBlock blockType = try $ do
   ignHeaders
   content <- rawBlockContent blockType
-  fmap B.para . mconcat . intersperse (pure B.linebreak)
+  fmap B.lineBlock . sequence
     <$> mapM parseVerseLine (lines content)
  where
    -- replace initial spaces with nonbreaking spaces to preserve

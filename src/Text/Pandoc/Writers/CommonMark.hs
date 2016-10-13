@@ -33,7 +33,7 @@ module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (isTightList)
+import Text.Pandoc.Shared (isTightList, linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
@@ -94,6 +94,7 @@ blocksToNodes = foldr blockToNodes []
 blockToNodes :: Block -> [Node] -> [Node]
 blockToNodes (Plain xs) = (node PARAGRAPH (inlinesToNodes xs) :)
 blockToNodes (Para xs) = (node PARAGRAPH (inlinesToNodes xs) :)
+blockToNodes (LineBlock lns) = blockToNodes $ linesToPara lns
 blockToNodes (CodeBlock (_,classes,_) xs) =
   (node (CODE_BLOCK (T.pack (unwords classes)) (T.pack xs)) [] :)
 blockToNodes (RawBlock fmt xs)

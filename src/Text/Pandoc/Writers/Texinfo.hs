@@ -145,6 +145,9 @@ blockToTexinfo (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
 blockToTexinfo (Para lst) =
   inlineListToTexinfo lst    -- this is handled differently from Plain in blockListToTexinfo
 
+blockToTexinfo (LineBlock lns) =
+  blockToTexinfo $ linesToPara lns
+
 blockToTexinfo (BlockQuote lst) = do
   contents <- blockListToTexinfo lst
   return $ text "@quotation" $$

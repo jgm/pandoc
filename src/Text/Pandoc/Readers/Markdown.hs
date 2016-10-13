@@ -32,7 +32,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Markdown ( readMarkdown,
                                       readMarkdownWithWarnings ) where
 
-import Data.List ( transpose, sortBy, findIndex, intersperse, intercalate )
+import Data.List ( transpose, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
 import Data.Scientific (coefficient, base10Exponent)
 import Data.Ord ( comparing )
@@ -1106,7 +1106,7 @@ lineBlock = try $ do
   guardEnabled Ext_line_blocks
   lines' <- lineBlockLines >>=
             mapM (parseFromString (trimInlinesF . mconcat <$> many inline))
-  return $ B.para <$> (mconcat $ intersperse (return B.linebreak) lines')
+  return $ B.lineBlock <$> sequence lines'
 
 --
 -- Tables

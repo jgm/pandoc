@@ -137,6 +137,13 @@ blockToAsciiDoc opts (Para inlines) = do
                then text "\\"
                else empty
   return $ esc <> contents <> blankline
+blockToAsciiDoc opts (LineBlock lns) = do
+  let docify line = if null line
+                    then return blankline
+                    else inlineListToAsciiDoc opts line
+  let joinWithLinefeeds = nowrap . mconcat . intersperse cr
+  contents <- joinWithLinefeeds <$> mapM docify lns
+  return $ "[verse]" $$ text "--" $$ contents $$ text "--" $$ blankline
 blockToAsciiDoc _ (RawBlock f s)
   | f == "asciidoc" = return $ text s
   | otherwise       = return empty
@@ -459,4 +466,3 @@ inlineToAsciiDoc opts (Span (ident,_,_) ils) = do
   let identifier = if (null ident) then empty else ("[[" <> text ident <> "]]")
   contents <- inlineListToAsciiDoc opts ils
   return $ identifier <> contents
-

@@ -45,6 +45,8 @@ prettyList ds =
 
 -- | Prettyprint Pandoc block element.
 prettyBlock :: Block -> Doc
+prettyBlock (LineBlock lines') =
+  "LineBlock" $$ prettyList (map (text . show) lines')
 prettyBlock (BlockQuote blocks) =
   "BlockQuote" $$ prettyList (map prettyBlock blocks)
 prettyBlock (OrderedList attribs blockLists) =

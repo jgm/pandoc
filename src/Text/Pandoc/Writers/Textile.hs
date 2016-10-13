@@ -130,6 +130,9 @@ blockToTextile opts (Para inlines) = do
               then "<p>" ++ contents ++ "</p>"
               else contents ++ if null listLevel then "\n" else ""
 
+blockToTextile opts (LineBlock lns) =
+  blockToTextile opts $ linesToPara lns
+
 blockToTextile _ (RawBlock f str)
   | f == Format "html" || f == Format "textile" = return str
   | otherwise                                   = return ""

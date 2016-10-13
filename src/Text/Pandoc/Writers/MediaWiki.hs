@@ -120,6 +120,9 @@ blockToMediaWiki (Para inlines) = do
               then  "<p>" ++ contents ++ "</p>"
               else contents ++ if null lev then "\n" else ""
 
+blockToMediaWiki (LineBlock lns) =
+  blockToMediaWiki $ linesToPara lns
+
 blockToMediaWiki (RawBlock f str)
   | f == Format "mediawiki" = return str
   | f == Format "html"      = return str

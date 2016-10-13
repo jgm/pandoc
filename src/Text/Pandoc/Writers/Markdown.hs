@@ -79,7 +79,7 @@ instance Default WriterEnv
                         , envRefShortcutable = True
                         , envBlockLevel      = 0
                         }
-        
+
 data WriterState = WriterState { stNotes :: Notes
                                , stRefs  :: Refs
                                , stIds   :: Set.Set String
@@ -390,6 +390,12 @@ blockToMarkdown' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
   blockToMarkdown opts (Para [Image attr alt (src,tit)])
 blockToMarkdown' opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
+blockToMarkdown' opts (LineBlock lns) =
+  if isEnabled Ext_line_blocks opts
+  then do
+    mdLines <- mapM (inlineListToMarkdown opts) lns
+    return $ (vcat $ map (hang 2 (text "| ")) mdLines) <> blankline
+  else blockToMarkdown opts $ linesToPara lns
 blockToMarkdown' opts (RawBlock f str)
   | f == "markdown" = return $ text str <> text "\n"
   | f == "html" && isEnabled Ext_raw_html opts = do

@@ -33,7 +33,8 @@ http://zim-wiki.org/manual/Help/Wiki_Syntax.html
 module Text.Pandoc.Writers.ZimWiki ( writeZimWiki ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options ( WriterOptions(writerTableOfContents, writerStandalone, writerTemplate, writerWrapText), WrapOption(..) )
-import Text.Pandoc.Shared ( escapeURI, removeFormatting, trimr, substitute )
+import Text.Pandoc.Shared ( escapeURI, linesToPara, removeFormatting, trimr
+                          , substitute )
 import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Templates ( renderTemplate' )
@@ -110,6 +111,9 @@ blockToZimWiki opts (Para inlines) = do
   -- useTags <- stUseTags <$> get
   contents <- inlineListToZimWiki opts inlines
   return $ contents ++ if null indent then "\n" else ""
+
+blockToZimWiki opts (LineBlock lns) = do
+  blockToZimWiki opts $ linesToPara lns
 
 blockToZimWiki opts (RawBlock f str)
   | f == Format "zimwiki"  = return str

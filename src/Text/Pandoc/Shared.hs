@@ -64,6 +64,7 @@ module Text.Pandoc.Shared (
                      compactify,
                      compactify',
                      compactify'DL,
+                     linesToPara,
                      Element (..),
                      hierarchicalize,
                      uniqueIdent,
@@ -630,6 +631,15 @@ compactify'DL items =
              | otherwise           -> items
            _                       -> items
 
+-- | Combine a list of lines by adding hard linebreaks.
+combineLines :: [[Inline]] -> [Inline]
+combineLines = intercalate [LineBreak]
+
+-- | Convert a list of lines into a paragraph with hard line breaks. This is
+--   useful e.g. for rudimentary support of LineBlock elements in writers.
+linesToPara :: [[Inline]] -> Block
+linesToPara = Para . combineLines
+
 isPara :: Block -> Bool
 isPara (Para _) = True
 isPara _        = False
@@ -1035,6 +1045,7 @@ collapseFilePath = Posix.joinPath . reverse . foldl go [] . splitDirectories
 blockToInlines :: Block -> [Inline]
 blockToInlines (Plain ils) = ils
 blockToInlines (Para ils) = ils
+blockToInlines (LineBlock lns) = combineLines lns
 blockToInlines (CodeBlock attr str) = [Code attr str]
 blockToInlines (RawBlock fmt str) = [RawInline fmt str]
 blockToInlines (BlockQuote blks) = blocksToInlines blks
