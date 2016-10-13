@@ -718,11 +718,14 @@ lineBlockLine = try $ do
   continuations <- many (try $ char ' ' >> anyLine)
   return $ white ++ unwords (line : continuations)
 
+blankLineBlockLine :: Stream [Char] m Char => ParserT [Char] st m Char
+blankLineBlockLine = try (char '|' >> blankline)
+
 -- | Parses an RST-style line block and returns a list of strings.
 lineBlockLines :: Stream [Char] m Char => ParserT [Char] st m [String]
 lineBlockLines = try $ do
-  lines' <- many1 lineBlockLine
-  skipMany1 $ blankline <|> try (char '|' >> blankline)
+  lines' <- many1 (lineBlockLine <|> ((:[]) <$> blankLineBlockLine))
+  skipMany1 $ blankline <|> blankLineBlockLine
   return lines'
 
 -- | Parse a table using 'headerParser', 'rowParser',
