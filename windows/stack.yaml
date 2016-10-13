@@ -15,7 +15,7 @@ packages:
 - '..'
 - location:
     git: https://github.com/jgm/pandoc-types.git
-    commit: 485eb11e9869fcd4c1ca9bcd68d3ccd384230252
+    commit: 6580565f7271eb2d15a4d71c3415316850f47b29
 extra-deps:
 - texmath-0.8.6.6
 - pandoc-citeproc-0.10.1.2
