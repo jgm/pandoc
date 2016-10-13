@@ -153,7 +153,16 @@ import Paths_pandoc (getDataFileName)
 #ifdef HTTP_CLIENT
 import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
                             Request(port,host))
-import Network.HTTP.Client (parseRequest, newManager)
+#if MIN_VERSION_http_client(0,4,30)
+import Network.HTTP.Client (parseRequest)
+#else
+import Network.HTTP.Client (parseUrl)
+#endif
+#if MIN_VERSION_http_client(0,4,18)
+import Network.HTTP.Client (newManager)
+#else
+import Network.HTTP.Client (withManager)
+#endif
 import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
