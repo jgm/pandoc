@@ -275,7 +275,7 @@ writeDocx opts doc@(Pandoc meta _) = do
         }
 
 
-  ((contents, footnotes), st) <- runStateT 
+  ((contents, footnotes), st) <- runStateT
                                  (runReaderT
                                   (writeOpenXML opts{writerWrapText = WrapNone} doc')
                                   env)
@@ -446,7 +446,7 @@ writeDocx opts doc@(Pandoc meta _) = do
 
   let newstyles = map newParaPropToOpenXml newDynamicParaProps ++
                   map newTextPropToOpenXml newDynamicTextProps ++
-                  (styleToOpenXml styleMaps $ writerHighlightStyle opts) 
+                  (styleToOpenXml styleMaps $ writerHighlightStyle opts)
   let styledoc' = styledoc{ elContent = modifyContent (elContent styledoc) }
                   where
                     modifyContent
@@ -859,6 +859,7 @@ blockToOpenXML' opts (Para lst) = do
   modify $ \s -> s { stFirstPara = False }
   contents <- inlinesToOpenXML opts lst
   return [mknode "w:p" [] (paraProps' ++ contents)]
+blockToOpenXML' opts (LineBlock lns) = blockToOpenXML opts $ linesToPara lns
 blockToOpenXML' _ (RawBlock format str)
   | format == Format "openxml" = return [ x | Elem x <- parseXML str ]
   | otherwise                  = return []
@@ -1032,7 +1033,7 @@ setFirstPara =  modify $ \s -> s { stFirstPara = True }
 
 -- | Convert an inline element to OpenXML.
 inlineToOpenXML :: WriterOptions -> Inline -> WS [Element]
-inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il 
+inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il
 
 inlineToOpenXML' :: WriterOptions -> Inline -> WS [Element]
 inlineToOpenXML' _ (Str str) = formattedString str
@@ -1286,7 +1287,7 @@ withDirection x = do
   textProps <- asks envTextProperties
   -- We want to clean all bidirection (bidi) and right-to-left (rtl)
   -- properties from the props first. This is because we don't want
-  -- them to stack up. 
+  -- them to stack up.
   let paraProps' = filter (\e -> (qName . elName) e /= "bidi") paraProps
       textProps' = filter (\e -> (qName . elName) e /= "rtl") textProps
   if isRTL
@@ -1298,5 +1299,3 @@ withDirection x = do
     else flip local x $ \env -> env { envParaProperties = paraProps'
                                     , envTextProperties = textProps'
                                     }
-            
-

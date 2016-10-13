@@ -171,6 +171,8 @@ blockToMan opts (Para inlines) = do
   contents <- liftM vcat $ mapM (inlineListToMan opts) $
     splitSentences inlines
   return $ text ".PP" $$ contents
+blockToMan opts (LineBlock lns) =
+  blockToMan opts $ linesToPara lns
 blockToMan _ (RawBlock f str)
   | f == Format "man" = return $ text str
   | otherwise         = return empty
@@ -367,4 +369,3 @@ inlineToMan _ (Note contents) = do
   notes <- liftM stNotes get
   let ref = show $ (length notes)
   return $ char '[' <> text ref <> char ']'
-

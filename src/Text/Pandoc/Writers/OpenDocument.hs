@@ -33,6 +33,7 @@ module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.XML
+import Text.Pandoc.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Pretty
@@ -291,6 +292,7 @@ blockToOpenDocument o bs
     | Para           b <- bs = if null b
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
+    | LineBlock      b <- bs = blockToOpenDocument o $ linesToPara b
     | Div _ xs         <- bs = blocksToOpenDocument o xs
     | Header     i _ b <- bs = setFirstPara >>
                                (inHeaderTags  i =<< inlinesToOpenDocument o b)

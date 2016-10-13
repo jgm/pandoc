@@ -108,6 +108,8 @@ blockToHaddock opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
 blockToHaddock opts (Para inlines) =
   -- TODO:  if it contains linebreaks, we need to use a @...@ block
   (<> blankline) `fmap` blockToHaddock opts (Plain inlines)
+blockToHaddock opts (LineBlock lns) =
+  blockToHaddock opts $ linesToPara lns
 blockToHaddock _ (RawBlock f str)
   | f == "haddock" = do
       return $ text str <> text "\n"

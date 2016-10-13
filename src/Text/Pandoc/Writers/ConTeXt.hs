@@ -163,6 +163,9 @@ blockToConTeXt (Para [Image attr txt (src,'f':'i':'g':':':_)]) = do
 blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
   return $ contents <> blankline
+blockToConTeXt (LineBlock lns) = do
+  doclines <- nowrap . vcat <$> mapM inlineListToConTeXt lns
+  return $ "\\startlines" $$ doclines $$ "\\stoplines" <> blankline
 blockToConTeXt (BlockQuote lst) = do
   contents <- blockListToConTeXt lst
   return $ "\\startblockquote" $$ nest 0 contents $$ "\\stopblockquote" <> blankline
@@ -467,4 +470,3 @@ fromBcp47 x               = fromIso $ head x
     fromIso "vi" = "vn"
     fromIso "zh" = "cn"
     fromIso l    = l
-

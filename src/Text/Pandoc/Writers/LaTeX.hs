@@ -437,6 +437,8 @@ blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
      else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
 blockToLaTeX (Para lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
+blockToLaTeX (LineBlock lns) = do
+  blockToLaTeX $ linesToPara lns
 blockToLaTeX (BlockQuote lst) = do
   beamer <- writerBeamer `fmap` gets stOptions
   case lst of

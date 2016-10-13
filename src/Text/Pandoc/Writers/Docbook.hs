@@ -198,6 +198,8 @@ blockToDocbook opts (Para [Image attr txt (src,'f':'i':'g':':':_)]) =
 blockToDocbook opts (Para lst)
   | hasLineBreaks lst = flush $ nowrap $ inTagsSimple "literallayout" $ inlinesToDocbook opts lst
   | otherwise         = inTagsIndented "para" $ inlinesToDocbook opts lst
+blockToDocbook opts (LineBlock lns) =
+  blockToDocbook opts $ linesToPara lns
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" $ blocksToDocbook opts blocks
 blockToDocbook _ (CodeBlock (_,classes,_) str) =
@@ -385,4 +387,3 @@ idAndRole (id',cls,_) = ident ++ role
     role  = if null cls
                then []
                else [("role", unwords cls)]
-

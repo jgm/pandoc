@@ -2,7 +2,7 @@
 
 {- |
    Module      : Text.Pandoc.Writers.ICML
-   Copyright   : Copyright (C) 2013 github.com/mb21
+   Copyright   : Copyright (C) 2013-2016 github.com/mb21
    License     : GNU GPL, version 2 or above
 
    Stability   : alpha
@@ -18,7 +18,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Readers.TeXMath (texMathToInlines)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Shared (splitBy, fetchItem, warn)
+import Text.Pandoc.Shared (linesToPara, splitBy, fetchItem, warn)
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Pretty
@@ -297,6 +297,8 @@ blockToICML opts style (Para img@[Image _ txt (_,'f':'i':'g':':':_)]) = do
   caption <- parStyle opts (imgCaptionName:style) txt
   return $ intersperseBrs [figure, caption]
 blockToICML opts style (Para lst) = parStyle opts (paragraphName:style) lst
+blockToICML opts style (LineBlock lns) =
+  blockToICML opts style $ linesToPara lns
 blockToICML opts style (CodeBlock _ str) = parStyle opts (codeBlockName:style) $ [Str str]
 blockToICML _ _ (RawBlock f str)
   | f == Format "icml" = return $ text str

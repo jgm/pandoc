@@ -46,7 +46,8 @@ import qualified Text.XML.Light.Cursor as XC
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
-import Text.Pandoc.Shared (orderedListMarkers, isHeaderBlock, capitalize)
+import Text.Pandoc.Shared (orderedListMarkers, isHeaderBlock, capitalize,
+                           linesToPara)
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
@@ -323,6 +324,7 @@ blockToXml (RawBlock _ s) = return . spaceBeforeAfter .
                             map (el "p" . el "code") . lines $ s
 blockToXml (Div _ bs) = cMapM blockToXml bs
 blockToXml (BlockQuote bs) = liftM (list . el "cite") $ cMapM blockToXml bs
+blockToXml (LineBlock lns) = blockToXml $ linesToPara lns
 blockToXml (OrderedList a bss) = do
     state <- get
     let pmrk = parentListMarker state

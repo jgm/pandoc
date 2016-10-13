@@ -164,6 +164,17 @@ blockToOrg (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
   return $ contents <> blankline
+blockToOrg (LineBlock lns) = do
+  let splitStanza [] = []
+      splitStanza xs = case break (== mempty) xs of
+        (l, [])  -> l : []
+        (l, _:r) -> l : splitStanza r
+  let joinWithLinefeeds  = nowrap . mconcat . intersperse cr
+  let joinWithBlankLines = mconcat . intersperse blankline
+  let prettyfyStanza ls  = joinWithLinefeeds <$> mapM inlineListToOrg ls
+  contents <- joinWithBlankLines <$> mapM prettyfyStanza (splitStanza lns)
+  return $ blankline $$ "#+BEGIN_VERSE" $$
+           nest 2 contents $$ "#+END_VERSE" <> blankline
 blockToOrg (RawBlock "html" str) =
   return $ blankline $$ "#+BEGIN_HTML" $$
            nest 2 (text str) $$ "#+END_HTML" $$ blankline

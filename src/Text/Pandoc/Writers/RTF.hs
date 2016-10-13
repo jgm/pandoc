@@ -233,6 +233,8 @@ blockToRTF indent alignment (Plain lst) =
   rtfCompact indent 0 alignment $ inlineListToRTF lst
 blockToRTF indent alignment (Para lst) =
   rtfPar indent 0 alignment $ inlineListToRTF lst
+blockToRTF indent alignment (LineBlock lns) =
+  blockToRTF indent alignment $ linesToPara lns
 blockToRTF indent alignment (BlockQuote lst) =
   concatMap (blockToRTF (indent + indentIncrement) alignment) lst
 blockToRTF indent _ (CodeBlock _ str) =
