@@ -11,8 +11,6 @@ packages:
     git: https://github.com/jgm/pandoc-types.git
     commit: 485eb11e9869fcd4c1ca9bcd68d3ccd384230252
 extra-deps:
-- http-client-0.5.0
-- http-client-tls-0.3.0
 - doctemplates-0.1.0.2
 - texmath-0.8.6.6
 resolver: lts-7.2
