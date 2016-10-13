@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables, MultiWayIf #-}
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -204,15 +204,10 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                              _ -> blocks
                    else blocks
   body <- blockListToMarkdown opts blocks'
-  st <- get
-  notes' <- notesToMarkdown opts (reverse $ stNotes st)
-  st' <- get  -- note that the notes may contain refs
-  refs' <- refsToMarkdown opts (reverse $ stRefs st')
+  notesAndRefs' <- notesAndRefs opts
   let render' :: Doc -> String
       render' = render colwidth
-  let main = render' $ body <>
-               (if isEmpty notes' then empty else blankline <> notes') <>
-               (if isEmpty refs' then empty else blankline <> refs')
+  let main = render' $ body <> notesAndRefs'
   let context  = defField "toc" (render' toc)
                $ defField "body" main
                $ (if isNullMeta meta
@@ -337,6 +332,23 @@ beginsWithOrderedListMarker str =
          Left  _  -> False
          Right _  -> True
 
+notesAndRefs :: WriterOptions -> MD Doc
+notesAndRefs opts = do
+  notes' <- reverse <$> gets stNotes >>= notesToMarkdown opts
+  modify $ \s -> s { stNotes = [] }
+  refs' <- reverse <$> gets stRefs >>= refsToMarkdown opts
+  modify $ \s -> s { stRefs = [] }
+
+  let endSpacing =
+        if | writerReferenceLocation opts == EndOfDocument -> empty
+           | isEmpty notes' && isEmpty refs' -> empty
+           | otherwise -> blankline
+  
+  return $
+    (if isEmpty notes' then empty else blankline <> notes') <>
+    (if isEmpty refs' then empty else blankline <> refs') <>
+    endSpacing
+
 -- | Convert Pandoc block element to markdown.
 blockToMarkdown :: WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
@@ -346,16 +358,7 @@ blockToMarkdown opts blk =
   do doc <- blockToMarkdown' opts blk
      blkLevel <- asks envBlockLevel
      if writerReferenceLocation opts == EndOfBlock && blkLevel == 1
-       then do st <- get
-               notes' <- notesToMarkdown opts (reverse $ stNotes st)
-               modify $ \s -> s { stNotes = [] }
-               st' <- get  -- note that the notes may contain refs
-               refs' <- refsToMarkdown opts (reverse $ stRefs st')
-               modify $ \s -> s { stRefs = [] }
-               return $ doc <>
-                 (if isEmpty notes' then empty else blankline <> notes') <>
-                 (if isEmpty refs' then empty else blankline <> refs') <>
-                 (if (isEmpty notes' && isEmpty refs') then empty else blankline)
+       then notesAndRefs opts >>= (\d -> return $ doc <> d)
        else return doc
 
 blockToMarkdown' :: WriterOptions -- ^ Options
@@ -418,16 +421,7 @@ blockToMarkdown' opts (Header level attr inlines) = do
   -- put them here.
   blkLevel <- asks envBlockLevel
   refs <- if writerReferenceLocation opts == EndOfSection && blkLevel == 1
-          then do st <- get
-                  notes' <- notesToMarkdown opts (reverse $ stNotes st)
-                  modify $ \s -> s { stNotes = [] }
-                  st' <- get  -- note that the notes may contain refs
-                  refs' <- refsToMarkdown opts (reverse $ stRefs st')
-                  modify $ \s -> s { stRefs = [] }
-                  return $
-                    (if isEmpty notes' then empty else blankline <> notes') <>
-                    (if isEmpty refs' then empty else blankline <> refs') <>
-                    (if (isEmpty notes' && isEmpty refs') then empty else blankline)
+          then notesAndRefs opts
           else return empty
 
   plain <- asks envPlain
