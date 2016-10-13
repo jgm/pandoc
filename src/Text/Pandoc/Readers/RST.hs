@@ -39,7 +39,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
 import Control.Monad ( when, liftM, guard, mzero )
-import Data.List ( findIndex, intersperse, intercalate,
+import Data.List ( findIndex, intercalate,
                    transpose, sort, deleteFirstsBy, isSuffixOf , nub, union)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
@@ -228,7 +228,7 @@ lineBlock :: RSTParser Blocks
 lineBlock = try $ do
   lines' <- lineBlockLines
   lines'' <- mapM parseInlineFromString lines'
-  return $ B.para (mconcat $ intersperse B.linebreak lines'')
+  return $ B.lineBlock lines''
 
 --
 -- paragraph block

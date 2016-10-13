@@ -592,8 +592,6 @@ checkInMeta p = do
   when accepts p
   return mempty
 
-
-
 addMeta :: ToMetaValue a => String -> a -> DB ()
 addMeta field val = modify (setMeta field val)
 
@@ -612,7 +610,7 @@ isBlockElement (Elem e) = qName (elName e) `elem` blocktags
            "important","caution","note","tip","warning","qandadiv",
            "question","answer","abstract","itemizedlist","orderedlist",
            "variablelist","article","book","table","informaltable",
-           "informalexample",
+           "informalexample", "linegroup",
            "screen","programlisting","example","calloutlist"]
 isBlockElement _ = False
 
@@ -779,6 +777,7 @@ parseBlock (Elem e) =
         "informaltable" -> parseTable
         "informalexample" -> divWith ("", ["informalexample"], []) <$>
                              getBlocks e
+        "linegroup" -> lineBlock <$> lineItems
         "literallayout" -> codeBlockWithLang
         "screen" -> codeBlockWithLang
         "programlisting" -> codeBlockWithLang
@@ -900,6 +899,7 @@ parseBlock (Elem e) =
                      let ident = attrValue "id" e
                      modify $ \st -> st{ dbSectionLevel = n - 1 }
                      return $ headerWith (ident,[],[]) n' headerText <> b
+         lineItems = mapM getInlines $ filterChildren (named "line") e
          metaBlock = acceptingMetadata (getBlocks e) >> return mempty
 
 getInlines :: Element -> DB Inlines

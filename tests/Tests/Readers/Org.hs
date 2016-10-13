@@ -1490,14 +1490,11 @@ tests =
           mconcat
           [ para $ spcSep [ "The", "first", "lines", "of"
                           , "Goethe's", emph "Faust" <> ":"]
-          , para $ mconcat
-              [ spcSep [ "Habe", "nun,", "ach!", "Philosophie," ]
-              , linebreak
-              , spcSep [ "Juristerei", "und", "Medizin," ]
-              , linebreak
-              , spcSep [ "Und", "leider", "auch", "Theologie!" ]
-              , linebreak
-              , spcSep [ "Durchaus", "studiert,", "mit", "heißem", "Bemühn." ]
+          , lineBlock
+              [ "Habe nun, ach! Philosophie,"
+              , "Juristerei und Medizin,"
+              , "Und leider auch Theologie!"
+              , "Durchaus studiert, mit heißem Bemühn."
               ]
           ]
 
@@ -1508,7 +1505,7 @@ tests =
                   , "bar"
                   , "#+END_VERSE"
                   ] =?>
-          para ("foo" <> linebreak <> linebreak <> "bar")
+          lineBlock [ "foo", mempty, "bar" ]
 
       , "Verse block with varying indentation" =:
           unlines [ "#+BEGIN_VERSE"
@@ -1516,7 +1513,7 @@ tests =
                   , "my old friend"
                   , "#+END_VERSE"
                   ] =?>
-          para ("\160\160hello darkness" <> linebreak <> "my old friend")
+          lineBlock [ "\160\160hello darkness", "my old friend" ]
 
       , "Raw block LaTeX" =:
           unlines [ "#+BEGIN_LaTeX"
