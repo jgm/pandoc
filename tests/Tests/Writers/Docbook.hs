@@ -5,7 +5,7 @@ import Test.Framework
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Tests.Helpers
-import Tests.Arbitrary()
+import Text.Pandoc.Arbitrary()
 
 docbook :: (ToPandoc a) => a -> String
 docbook = writeDocbook def{ writerWrapText = WrapNone } . toPandoc

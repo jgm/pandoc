@@ -5,7 +5,7 @@ import Test.Framework
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Tests.Helpers
-import Tests.Arbitrary()
+import Text.Pandoc.Arbitrary()
 
 latex :: (ToPandoc a) => a -> String
 latex = writeLaTeX def{ writerHighlight = True } . toPandoc

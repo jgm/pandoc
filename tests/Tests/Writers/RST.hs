@@ -5,7 +5,7 @@ import Test.Framework
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Tests.Helpers
-import Tests.Arbitrary()
+import Text.Pandoc.Arbitrary()
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)

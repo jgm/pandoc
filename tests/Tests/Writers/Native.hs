@@ -4,7 +4,7 @@ import Test.Framework
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Tests.Helpers
-import Tests.Arbitrary()
+import Text.Pandoc.Arbitrary()
 
 p_write_rt :: Pandoc -> Bool
 p_write_rt d =

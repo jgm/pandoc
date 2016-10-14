@@ -4,7 +4,7 @@ import Test.Framework
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Tests.Helpers
-import Tests.Arbitrary()
+import Text.Pandoc.Arbitrary()
 
 asciidoc :: (ToPandoc a) => a -> String
 asciidoc = writeAsciiDoc def{ writerWrapText = WrapNone } . toPandoc

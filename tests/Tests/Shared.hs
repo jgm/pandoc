@@ -4,7 +4,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Test.Framework
 import Tests.Helpers
-import Tests.Arbitrary()
+import Text.Pandoc.Arbitrary()
 import Test.Framework.Providers.HUnit
 import Test.HUnit ( assertBool, (@?=) )
 import Text.Pandoc.Builder

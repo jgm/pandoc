@@ -498,7 +498,6 @@ Test-Suite test-pandoc
                   zip-archive >= 0.2.3.4 && < 0.4
   Other-Modules:  Tests.Old
                   Tests.Helpers
-                  Tests.Arbitrary
                   Tests.Shared
                   Tests.Walk
                   Tests.Readers.LaTeX

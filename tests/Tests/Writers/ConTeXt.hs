@@ -5,7 +5,7 @@ import Test.Framework
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Tests.Helpers
-import Tests.Arbitrary()
+import Text.Pandoc.Arbitrary()
 
 context :: (ToPandoc a) => a -> String
 context = writeConTeXt def . toPandoc
