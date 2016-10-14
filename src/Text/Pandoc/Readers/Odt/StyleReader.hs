@@ -76,8 +76,9 @@ import           Control.Applicative hiding ( liftA, liftA2, liftA3 )
 import qualified Data.Foldable                                as F
 import qualified Data.Map                                     as M
 import qualified Data.Set                                     as S
-import           Data.List                                           ( unfoldr )
+import           Data.Char                                           ( isDigit )
 import           Data.Default
+import           Data.List                                           ( unfoldr )
 import           Data.Maybe
 
 import qualified Text.XML.Light                               as XML
@@ -390,6 +391,7 @@ data ListLevelStyle = ListLevelStyle { listLevelType  :: ListLevelType
                                      , listItemPrefix :: Maybe String
                                      , listItemSuffix :: Maybe String
                                      , listItemFormat :: ListItemNumberFormat
+                                     , listItemStart  :: Int
                                      }
   deriving ( Eq, Ord )
 
@@ -578,25 +580,31 @@ readListLevelStyles namespace elementName levelType =
 readListLevelStyle :: ListLevelType -> StyleReader _x (Int, ListLevelStyle)
 readListLevelStyle levelType =      readAttr NsText "level"
                                >>?! keepingTheValue
-                                    ( liftA4 toListLevelStyle
-                                      ( returnV  levelType             )
-                                      ( findAttr' NsStyle "num-prefix" )
-                                      ( findAttr' NsStyle "num-suffix" )
-                                      ( getAttr   NsStyle "num-format" )
+                                    ( liftA5 toListLevelStyle
+                                      ( returnV  levelType              )
+                                      ( findAttr' NsStyle "num-prefix"  )
+                                      ( findAttr' NsStyle "num-suffix"  )
+                                      ( getAttr   NsStyle "num-format"  )
+                                      ( findAttr' NsText  "start-value" )
                                     )
   where
-  toListLevelStyle _ p s LinfNone         = ListLevelStyle LltBullet p s LinfNone
-  toListLevelStyle _ p s f@(LinfString _) = ListLevelStyle LltBullet p s f
-  toListLevelStyle t p s f                = ListLevelStyle t      p s f
+  toListLevelStyle _ p s LinfNone b         = ListLevelStyle LltBullet p s LinfNone (startValue b)
+  toListLevelStyle _ p s f@(LinfString _) b = ListLevelStyle LltBullet p s f (startValue b)
+  toListLevelStyle t p s f b                = ListLevelStyle t      p s f (startValue b)
+  startValue (Just "") = 1
+  startValue (Just v)  = if all isDigit v
+                           then read v
+                           else 1
+  startValue Nothing   = 1
 
 --
 chooseMostSpecificListLevelStyle :: S.Set ListLevelStyle -> Maybe ListLevelStyle
 chooseMostSpecificListLevelStyle ls | ls == mempty = Nothing
                                     | otherwise    = Just ( F.foldr1 select ls )
   where
-   select ( ListLevelStyle       t1            p1          s1          f1 )
-          ( ListLevelStyle       t2            p2          s2          f2 )
-        =   ListLevelStyle (select' t1 t2) (p1 <|> p2) (s1 <|> s2) (selectLinf f1 f2)
+   select ( ListLevelStyle       t1            p1          s1          f1          b1 )
+          ( ListLevelStyle       t2            p2          s2          f2          _ )
+        =   ListLevelStyle (select' t1 t2) (p1 <|> p2) (s1 <|> s2) (selectLinf f1 f2) b1
    select' LltNumbered _           = LltNumbered
    select' _           LltNumbered = LltNumbered
    select' _           _           = LltBullet
