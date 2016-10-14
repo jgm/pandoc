@@ -591,6 +591,7 @@ readListLevelStyle levelType =      readAttr NsText "level"
   toListLevelStyle _ p s LinfNone b         = ListLevelStyle LltBullet p s LinfNone (startValue b)
   toListLevelStyle _ p s f@(LinfString _) b = ListLevelStyle LltBullet p s f (startValue b)
   toListLevelStyle t p s f b                = ListLevelStyle t      p s f (startValue b)
+  startValue (Just "") = 1
   startValue (Just v)  = if all isDigit v
                            then read v
                            else 1
