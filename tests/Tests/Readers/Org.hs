@@ -916,6 +916,12 @@ tests =
                     ] =?>
             let attr = ("fig:myfig", mempty, mempty)
             in para (imageWith attr "blub.png" "fig:" "My figure")
+
+        , "Figure with empty caption" =:
+            unlines [ "#+CAPTION:"
+                    , "[[file:guess.jpg]]"
+                    ] =?>
+            para (image "guess.jpg" "fig:" "")
         ]
 
       , "Footnote" =:
