@@ -93,12 +93,12 @@ install:
 - |
   case "$BUILD" in
     stack)
-      stack --no-terminal --install-ghc $ARGS test --only-dependencies
+    stack --no-terminal --install-ghc $ARGS --flags 'aeson:fast' test --only-dependencies
       ;;
     cabal)
       cabal --version
       travis_retry cabal update
-      cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
+      cabal install --only-dependencies -ffast --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
       ;;
   esac
 
@@ -106,7 +106,7 @@ script:
 - |
   case "$BUILD" in
     stack)
-    stack --no-terminal $ARGS test --haddock --no-haddock-deps --ghc-options="-Wall -fno-warn-unused-do-bind -Werror"
+    stack --no-terminal $ARGS --flags 'aeson:fast' test --haddock --no-haddock-deps --ghc-options="-Wall -fno-warn-unused-do-bind -Werror"
       ;;
     cabal)
       cabal configure --enable-tests --enable-benchmarks -v2 --ghc-options="-O0 -Werror"
