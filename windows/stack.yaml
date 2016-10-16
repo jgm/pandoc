@@ -13,10 +13,8 @@ flags:
     debug: false
 packages:
 - '..'
-- location:
-    git: https://github.com/jgm/pandoc-types.git
-    commit: 6580565f7271eb2d15a4d71c3415316850f47b29
 extra-deps:
+- pandoc-types-1.17
 - texmath-0.8.6.6
 - pandoc-citeproc-0.10.1.2
 - doctemplates-0.1.0.2
