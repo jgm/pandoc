@@ -776,17 +776,13 @@ read_frame_text_box :: InlineMatcher
 read_frame_text_box = matchingElement NsDraw "text-box"
                       $ proc blocks -> do
                          paragraphs <- (matchChildContent' [ read_paragraph ]) -< blocks
-                         case toList paragraphs of
-                           (p : [])  ->                 -- require only a single paragraph
-                             arr read_img_with_caption -< p
-                           _         ->
-                             arr fromList              -< []
+                         arr read_img_with_caption                             -< toList paragraphs
 
-read_img_with_caption :: Block -> Inlines
-read_img_with_caption (Para ((Image attr _ target) : txt)) =
-  singleton (Image attr txt target)                     -- override caption with the text that follows
+read_img_with_caption :: [Block] -> Inlines
+read_img_with_caption ((Para ((Image attr _ target) : txt)) : _) =
+  singleton (Image attr txt target)             -- override caption with the text that follows
 read_img_with_caption _ =
-  fromList []
+  mempty
 
 ----------------------
 -- Internal links
