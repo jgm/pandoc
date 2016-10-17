@@ -163,4 +163,13 @@ tests = [ "line block with blank line" =:
             =?> para (codeWith ("", ["lhs", "haskell", "sourceCode"], []) "text")
           , "unknown role" =: ":unknown:`text`" =?> para (str "text")
           ]
+        , testGroup "footnotes"
+          [ "remove space before note" =: unlines
+            [ "foo [1]_"
+            , ""
+            , ".. [1]"
+            , "   bar"
+            ] =?>
+            (para $ "foo" <> (note $ para "bar"))
+          ]
         ]
