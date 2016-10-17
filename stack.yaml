@@ -7,11 +7,8 @@ flags:
     network-uri: true
 packages:
 - '.'
-- location:
-    git: https://github.com/jgm/pandoc-types.git
-    commit: 7a8482efc2f8627fe83a2ad2a306961483b25011
 extra-deps:
 - doctemplates-0.1.0.2
 - texmath-0.8.6.6
-#- pandoc-types-1.17.0.1
+- pandoc-types-1.17.0.2
 resolver: lts-7.2
