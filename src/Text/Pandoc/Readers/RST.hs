@@ -949,7 +949,8 @@ table = gridTable False <|> simpleTable False <|>
 --
 
 inline :: RSTParser Inlines
-inline = choice [ whitespace
+inline = choice [ note          -- can start with whitespace, so try before ws
+                , whitespace
                 , link
                 , str
                 , endline
@@ -958,7 +959,6 @@ inline = choice [ whitespace
                 , code
                 , subst
                 , interpretedRole
-                , note
                 , smart
                 , hyphens
                 , escapedChar
@@ -1174,6 +1174,7 @@ subst = try $ do
 
 note :: RSTParser Inlines
 note = try $ do
+  optional whitespace
   ref <- noteMarker
   char '_'
   state <- getState
