@@ -543,6 +543,10 @@ read_plain_text =  fst ^&&& read_plain_text' >>% recover
     extractText (XML.Text cData) = succeedWith (XML.cdData cData)
     extractText         _        = failEmpty
 
+read_text_seq :: InlineMatcher
+read_text_seq  = matchingElement NsText "sequence"
+                 $ matchChildContent [] read_plain_text
+
 
 -- specifically. I honor that, although the current implementation of '(<>)'
 -- for 'Inlines' in "Text.Pandoc.Builder" will collaps them agein.
@@ -591,7 +595,8 @@ read_paragraph    = matchingElement NsText "p"
                                         , read_reference_start
                                         , read_bookmark_ref
                                         , read_reference_ref
-                                        , read_frame
+                                        , read_maybe_nested_img_frame
+                                        , read_text_seq
                                         ] read_plain_text
 
 
@@ -616,7 +621,7 @@ read_header       = matchingElement NsText "h"
                                   , read_reference_start
                                   , read_bookmark_ref
                                   , read_reference_ref
-                                  , read_frame
+                                  , read_maybe_nested_img_frame
                                   ] read_plain_text
               ) -< blocks
   anchor   <- getHeaderAnchor -< children
@@ -726,18 +731,26 @@ read_table_cell    = matchingElement NsTable "table-cell"
 ----------------------
 
 --
-read_frame  :: InlineMatcher
-read_frame   = matchingElement NsDraw "frame"
-               $ proc blocks -> do
-                  w          <- ( findAttr' NsSVG "width" ) -< ()
-                  h          <- ( findAttr' NsSVG "height" ) -< ()
-                  attr       <- arr (uncurry image_attributes) -< (w, h)
-                  titleNodes <- ( matchChildContent' [ read_frame_title ] ) -< blocks
-                  title      <- arr inlineListToIdentifier -< (toList titleNodes)
-                  src        <-  matchChildContent' [ read_image_src ] -< blocks
-                  resource   <- lookupResource -< src
-                  _          <- updateMediaWithResource -< resource
-                  arr (uncurry4 imageWith ) -< (attr, src, title, mempty)
+read_maybe_nested_img_frame  :: InlineMatcher
+read_maybe_nested_img_frame   = matchingElement NsDraw "frame"
+                                $ proc blocks -> do
+                                   img <- (findChild' NsDraw "image") -< ()
+                                   case img of
+                                     Just _  ->  read_frame                                 -< blocks
+                                     Nothing ->  matchChildContent' [ read_frame_text_box ] -< blocks
+
+read_frame :: OdtReaderSafe Inlines Inlines
+read_frame =
+  proc blocks -> do
+   w          <- ( findAttr' NsSVG "width" )                 -< ()
+   h          <- ( findAttr' NsSVG "height" )                -< ()
+   titleNodes <- ( matchChildContent' [ read_frame_title ] ) -< blocks
+   src        <-  matchChildContent' [ read_image_src ]      -< blocks
+   resource   <- lookupResource                              -< src
+   _          <- updateMediaWithResource                     -< resource
+   alt        <- (matchChildContent [] read_plain_text)      -< blocks
+   arr (uncurry4 imageWith ) -<
+                (image_attributes w h, src, inlineListToIdentifier (toList titleNodes), alt)
 
 image_attributes :: Maybe String -> Maybe String -> Attr
 image_attributes x y =
@@ -749,17 +762,31 @@ image_attributes x y =
 
 read_image_src :: (Namespace, ElementName, OdtReader Anchor Anchor)
 read_image_src = matchingElement NsDraw "image"
-                   $ proc _ -> do
-                       imgSrc <- findAttr NsXLink "href" -< ()
-                       case imgSrc of
-                          Right src -> returnV src -<< ()
-                          Left _    -> returnV "" -< ()
+                 $ proc _ -> do
+                    imgSrc <- findAttr NsXLink "href" -< ()
+                    case imgSrc of
+                      Right src -> returnV src -<< ()
+                      Left _    -> returnV ""  -< ()
 
 read_frame_title :: InlineMatcher
 read_frame_title = matchingElement NsSVG "title"
                    $ (matchChildContent [] read_plain_text)
 
+read_frame_text_box :: InlineMatcher
+read_frame_text_box = matchingElement NsDraw "text-box"
+                      $ proc blocks -> do
+                         paragraphs <- (matchChildContent' [ read_paragraph ]) -< blocks
+                         case toList paragraphs of
+                           (p : [])  ->                 -- require only a single paragraph
+                             arr read_img_with_caption -< p
+                           _         ->
+                             arr fromList              -< []
 
+read_img_with_caption :: Block -> Inlines
+read_img_with_caption (Para ((Image attr _ target) : txt)) =
+  singleton (Image attr txt target)                     -- override caption with the text that follows
+read_img_with_caption _ =
+  fromList []
 
 ----------------------
 -- Internal links
