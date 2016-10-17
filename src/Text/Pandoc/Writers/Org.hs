@@ -373,7 +373,7 @@ inlineToOrg (Note contents) = do
   notes <- get >>= (return . stNotes)
   modify $ \st -> st { stNotes = contents:notes }
   let ref = show $ (length notes) + 1
-  return $ " [" <> text ref <> "]"
+  return $ "[" <> text ref <> "]"
 
 orgPath :: String -> String
 orgPath src =

@@ -819,15 +819,15 @@ Here is a movie [[file:movie.jpg]] icon.
   :CUSTOM_ID: footnotes
   :END:
 
-Here is a footnote reference, [1] and another. [2] This should /not/ be a
+Here is a footnote reference,[1] and another.[2] This should /not/ be a
 footnote reference, because it contains a space.[\^my note] Here is an inline
-note. [3]
+note.[3]
 
 #+BEGIN_QUOTE
-  Notes can go in quotes. [4]
+  Notes can go in quotes.[4]
 #+END_QUOTE
 
-1. And in list items. [5]
+1. And in list items.[5]
 
 This paragraph should not be part of the note, as it is not indented.
 
