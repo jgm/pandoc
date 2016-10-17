@@ -1039,10 +1039,7 @@ filteredFilesFromArchive zf f =
   mapMaybe (fileAndBinary zf) (filter f (filesInArchive zf))
   where
     fileAndBinary :: Archive -> FilePath -> Maybe (FilePath, BL.ByteString)
-    fileAndBinary a fp =
-      case findEntryByPath fp a of
-        Just e -> Just (fp, fromEntry e)
-        Nothing -> Nothing
+    fileAndBinary a fp = findEntryByPath fp a >>= \e -> Just (fp, fromEntry e)
 
 ---
 --- Squash blocks into inlines
