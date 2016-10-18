@@ -42,6 +42,7 @@ module Text.Pandoc.Readers.Odt.ContentReader
 import           Control.Arrow
 import           Control.Applicative    hiding ( liftA, liftA2, liftA3 )
 
+import qualified Data.ByteString.Lazy   as B
 import qualified Data.Map               as M
 import           Data.List                     ( find )
 import           Data.Maybe
@@ -50,6 +51,7 @@ import qualified Text.XML.Light         as XML
 
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Builder
+import           Text.Pandoc.MediaBag (insertMedia, MediaBag)
 import           Text.Pandoc.Shared
 
 import           Text.Pandoc.Readers.Odt.Base
@@ -68,6 +70,7 @@ import qualified Data.Set as Set
 --------------------------------------------------------------------------------
 
 type Anchor = String
+type Media = [(FilePath, B.ByteString)]
 
 data ReaderState
    = ReaderState { -- | A collection of styles read somewhere else.
@@ -87,14 +90,17 @@ data ReaderState
                    -- | A map from internal anchor names to "pretty" ones.
                    -- The mapping is a purely cosmetic one.
                  , bookmarkAnchors  :: M.Map Anchor Anchor
-
+                   -- | A map of files / binary data from the archive
+                 , envMedia         :: Media
+                   -- | Hold binary resources used in the document
+                 , odtMediaBag      :: MediaBag
 --               , sequences
 --               , trackedChangeIDs
                  }
   deriving ( Show )
 
-readerState :: Styles -> ReaderState
-readerState styles = ReaderState styles [] 0 Nothing M.empty
+readerState :: Styles -> Media -> ReaderState
+readerState styles media = ReaderState styles [] 0 Nothing M.empty media mempty
 
 --
 pushStyle'  :: Style -> ReaderState -> ReaderState
@@ -133,6 +139,16 @@ putPrettyAnchor ugly pretty state@ReaderState{..}
 --
 usedAnchors :: ReaderState -> [Anchor]
 usedAnchors ReaderState{..} = M.elems bookmarkAnchors
+
+getMediaBag :: ReaderState -> MediaBag
+getMediaBag ReaderState{..} = odtMediaBag
+
+getMediaEnv :: ReaderState -> Media
+getMediaEnv ReaderState{..} = envMedia
+
+insertMedia' :: (FilePath, B.ByteString) -> ReaderState ->  ReaderState
+insertMedia' (fp, bs) state@ReaderState{..}
+  = state { odtMediaBag = insertMedia fp Nothing bs odtMediaBag }
 
 --------------------------------------------------------------------------------
 -- Reader type and associated tools
@@ -190,6 +206,22 @@ popStyle =     keepingTheValue (
 getCurrentListLevel :: OdtReaderSafe _x ListLevel
 getCurrentListLevel = getExtraState >>^ currentListLevel
 
+--
+updateMediaWithResource :: OdtReaderSafe (FilePath, B.ByteString) (FilePath, B.ByteString)
+updateMediaWithResource = keepingTheValue (
+                 (keepingTheValue getExtraState
+                  >>% insertMedia'
+                  )
+                 >>> setExtraState
+               )
+           >>^ fst
+
+lookupResource :: OdtReaderSafe String (FilePath, B.ByteString)
+lookupResource = proc target -> do
+    state <- getExtraState -< ()
+    case lookup target (getMediaEnv state) of
+      Just bs -> returnV (target, bs) -<< ()
+      Nothing -> returnV ("", B.empty) -< ()
 
 type AnchorPrefix = String
 
@@ -511,6 +543,10 @@ read_plain_text =  fst ^&&& read_plain_text' >>% recover
     extractText (XML.Text cData) = succeedWith (XML.cdData cData)
     extractText         _        = failEmpty
 
+read_text_seq :: InlineMatcher
+read_text_seq  = matchingElement NsText "sequence"
+                 $ matchChildContent [] read_plain_text
+
 
 -- specifically. I honor that, although the current implementation of '(<>)'
 -- for 'Inlines' in "Text.Pandoc.Builder" will collaps them agein.
@@ -559,6 +595,8 @@ read_paragraph    = matchingElement NsText "p"
                                         , read_reference_start
                                         , read_bookmark_ref
                                         , read_reference_ref
+                                        , read_maybe_nested_img_frame
+                                        , read_text_seq
                                         ] read_plain_text
 
 
@@ -583,6 +621,7 @@ read_header       = matchingElement NsText "h"
                                   , read_reference_start
                                   , read_bookmark_ref
                                   , read_reference_ref
+                                  , read_maybe_nested_img_frame
                                   ] read_plain_text
               ) -< blocks
   anchor   <- getHeaderAnchor -< children
@@ -688,6 +727,64 @@ read_table_cell    = matchingElement NsTable "table-cell"
                                           ]
 
 ----------------------
+-- Images
+----------------------
+
+--
+read_maybe_nested_img_frame  :: InlineMatcher
+read_maybe_nested_img_frame   = matchingElement NsDraw "frame"
+                                $ proc blocks -> do
+                                   img <- (findChild' NsDraw "image") -< ()
+                                   case img of
+                                     Just _  ->  read_frame                                 -< blocks
+                                     Nothing ->  matchChildContent' [ read_frame_text_box ] -< blocks
+
+read_frame :: OdtReaderSafe Inlines Inlines
+read_frame =
+  proc blocks -> do
+   w          <- ( findAttr' NsSVG "width" )                 -< ()
+   h          <- ( findAttr' NsSVG "height" )                -< ()
+   titleNodes <- ( matchChildContent' [ read_frame_title ] ) -< blocks
+   src        <-  matchChildContent' [ read_image_src ]      -< blocks
+   resource   <- lookupResource                              -< src
+   _          <- updateMediaWithResource                     -< resource
+   alt        <- (matchChildContent [] read_plain_text)      -< blocks
+   arr (uncurry4 imageWith ) -<
+                (image_attributes w h, src, inlineListToIdentifier (toList titleNodes), alt)
+
+image_attributes :: Maybe String -> Maybe String -> Attr
+image_attributes x y =
+  ( "", [], (dim "width" x) ++ (dim "height" y))
+  where
+    dim _ (Just "")   = []
+    dim name (Just v) = [(name, v)]
+    dim _ Nothing     = []
+
+read_image_src :: (Namespace, ElementName, OdtReader Anchor Anchor)
+read_image_src = matchingElement NsDraw "image"
+                 $ proc _ -> do
+                    imgSrc <- findAttr NsXLink "href" -< ()
+                    case imgSrc of
+                      Right src -> returnV src -<< ()
+                      Left _    -> returnV ""  -< ()
+
+read_frame_title :: InlineMatcher
+read_frame_title = matchingElement NsSVG "title"
+                   $ (matchChildContent [] read_plain_text)
+
+read_frame_text_box :: InlineMatcher
+read_frame_text_box = matchingElement NsDraw "text-box"
+                      $ proc blocks -> do
+                         paragraphs <- (matchChildContent' [ read_paragraph ]) -< blocks
+                         arr read_img_with_caption                             -< toList paragraphs
+
+read_img_with_caption :: [Block] -> Inlines
+read_img_with_caption ((Para ((Image attr _ target) : txt)) : _) =
+  singleton (Image attr txt target)             -- override caption with the text that follows
+read_img_with_caption _ =
+  mempty
+
+----------------------
 -- Internal links
 ----------------------
 
@@ -783,8 +880,11 @@ read_text = matchChildContent' [ read_header
                                ]
             >>^ doc
 
-read_body :: OdtReader _x Pandoc
+read_body :: OdtReader _x (Pandoc, MediaBag)
 read_body = executeIn NsOffice "body"
           $ executeIn NsOffice "text"
-          $ liftAsSuccess read_text
-
+          $ liftAsSuccess
+          $ proc inlines -> do
+             txt   <- read_text     -< inlines
+             state <- getExtraState -< ()
+             returnA                -< (txt, getMediaBag state)
