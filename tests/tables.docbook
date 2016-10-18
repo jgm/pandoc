@@ -430,3 +430,33 @@
     </tbody>
   </tgroup>
 </informaltable>
+<para>
+  Table with empty entries:
+</para>
+<informaltable>
+  <tgroup cols="1">
+    <tbody>
+      <row>
+        <entry></entry>
+      </row>
+      <row>
+        <entry/>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+<para>
+  Table with multiblock entry:
+</para>
+<informaltable>
+  <tgroup cols="1">
+    <tbody>
+      <row>
+        <entry>
+          <para>Para 1</para>
+          <para>Para 2</para>
+        </entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
