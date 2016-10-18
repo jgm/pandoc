@@ -288,7 +288,9 @@ blockAttributes = try $ do
   let kvAttrs = foldl' (appendValues "ATTR_HTML") Nothing kv
   let name    = lookup "NAME" kv
   let label   = lookup "LABEL" kv
-  caption' <- mapM (parseFromString inlines . (++ "\n")) caption
+  caption' <- case caption of
+                   Nothing -> return Nothing
+                   Just s  -> Just <$> parseFromString inlines (s ++ "\n")
   kvAttrs' <- parseFromString keyValues . (++ "\n") $ fromMaybe mempty kvAttrs
   return $ BlockAttributes
            { blockAttrName = name
