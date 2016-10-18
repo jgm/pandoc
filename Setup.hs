@@ -18,18 +18,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import Distribution.Simple
 import Distribution.Simple.PreProcess
-import Distribution.Simple.Setup (ConfigFlags(..))
+import Distribution.Simple.Setup (ConfigFlags(..), CopyFlags(..), fromFlag)
 import Distribution.PackageDescription (PackageDescription(..), FlagName(..))
 import Distribution.Simple.Utils ( rawSystemExitCode, findProgramVersion )
 import System.Exit
-import Distribution.Verbosity ( Verbosity )
 import Distribution.Simple.Utils (info, notice, installOrdinaryFiles)
-import Distribution.Simple.Setup
 import Distribution.Simple.Program (simpleProgram, Program(..))
 import Distribution.Simple.LocalBuildInfo
-import Data.Version
 import Control.Monad (when)
-import qualified Control.Exception as E
 
 main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
