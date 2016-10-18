@@ -713,9 +713,8 @@ maybeAddAnchorFrom anchorReader =
   >>>
   proc (inlines, fAnchorElem) -> do
   case fAnchorElem of
-    Right anchorElem ->
-      arr (anchorElem <>) -<< inlines
-    Left _ -> returnA -< inlines
+    Right anchorElem -> returnA -< anchorElem
+    Left _           -> returnA -< inlines
   where
     toAnchorElem :: Anchor -> Inlines
     toAnchorElem anchorID = spanWith (anchorID, [], []) mempty
