@@ -3,7 +3,7 @@ Version:         1.17.3
 Cabal-Version:   >= 1.10
 Build-Type:      Custom
 License:         GPL
-License-File:    COPYING
+License-File:    COPYING.md
 Copyright:       (c) 2006-2016 John MacFarlane
 Author:          John MacFarlane <jgm@berkeley.edu>
 Maintainer:      John MacFarlane <jgm@berkeley.edu>

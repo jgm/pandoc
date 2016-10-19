@@ -49,7 +49,7 @@ cp man/pandoc.1 $DEST/share/man/man1/
 chown -R $ME:staff $DIST
 
 echo Copying license...
-$OSX/pandoc --data data -t html5 -s COPYING -o $RESOURCES/license.html
+$OSX/pandoc --data data -t html5 -s COPYING.md -o $RESOURCES/license.html
 
 # Removing executable signing because of a problem that arose in El Capitan
 # "source=obsolete resource envelope"
