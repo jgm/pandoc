@@ -1,6 +1,14 @@
 Pandoc
 ======
 
+[![license](https://img.shields.io/badge/license-GPLv2+-brightgreen.svg)](https://www.gnu.org/licenses/gpl.html)
+[![hackage release](https://img.shields.io/hackage/v/pandoc.svg?label=current+release)](http://hackage.haskell.org/package/pandoc)
+[![stackage LTS package](http://stackage.org/package/pandoc/badge/lts)](http://stackage.org/lts/package/pandoc)
+[![github release](https://img.shields.io/github/release/jgm/pandoc.svg?label=github+release)](https://github.com/jgm/pandoc/releases)
+[![travis build status](https://img.shields.io/travis/jgm/pandoc.svg)](https://travis-ci.org/jgm/pandoc)
+[![appveyor build status](https://ci.appveyor.com/api/projects/status/nvqs4ct090igjiqc?svg=true)](https://ci.appveyor.com/project/jgm/pandoc)
+
+
 The universal markup converter
 ------------------------------
 
@@ -21,12 +29,13 @@ markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup],
 produce [PDF] output on systems where LaTeX, ConTeXt, or `wkhtmltopdf` is
 installed.
 
-Pandoc's enhanced version of Markdown includes syntax for footnotes, tables,
-flexible ordered lists, definition lists, fenced code blocks, superscripts and
-subscripts, strikeout, metadata blocks, automatic tables of contents, embedded
-LaTeX math, citations, and Markdown inside HTML block elements. (These
-enhancements, described in the manual under *pandoc's Markdown*, can be
-disabled using the `markdown_strict` input or output format.)
+Pandoc's enhanced version of Markdown includes syntax for [footnotes],
+[tables], flexible [ordered lists], [definition lists], [fenced code blocks],
+[superscripts and subscripts], [strikeout], [metadata blocks], automatic tables of
+contents, embedded LaTeX [math], [citations], and [Markdown inside HTML block
+elements]. (These enhancements, described
+further under [Pandoc's Markdown], can be disabled using the
+`markdown_strict` input or output format.)
 
 In contrast to most existing tools for converting Markdown to HTML, which
 use regex substitutions, pandoc has a modular design: it consists of a
@@ -87,13 +96,21 @@ Markdown can be expected to be lossy.
 [InDesign ICML]: https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf
 [TEI Simple]: https://github.com/TEIC/TEI-Simple
 
-[![license](https://img.shields.io/badge/license-GPLv2+-brightgreen.svg)](https://www.gnu.org/licenses/gpl.html)
-[![hackage release](https://img.shields.io/hackage/v/pandoc.svg?label=current+release)](http://hackage.haskell.org/package/pandoc)
-[![stackage LTS package](http://stackage.org/package/pandoc/badge/lts)](http://stackage.org/lts/package/pandoc)
-[![github release](https://img.shields.io/github/release/jgm/pandoc.svg?label=github+release)](https://github.com/jgm/pandoc/releases)
-[![travis build status](https://img.shields.io/travis/jgm/pandoc.svg)](https://travis-ci.org/jgm/pandoc)
-[![appveyor build status](https://ci.appveyor.com/api/projects/status/nvqs4ct090igjiqc?svg=true)](https://ci.appveyor.com/project/jgm/pandoc)
 
+
+
+[footnotes]: http://pandoc.org/MANUAL.html#footnotes
+[tables]: http://pandoc.org/MANUAL.html#tables
+[ordered lists]: http://pandoc.org/MANUAL.html#ordered-lists
+[definition lists]: http://pandoc.org/MANUAL.html#definition-lists
+[fenced code blocks]: http://pandoc.org/MANUAL.html#fenced-code-blocks
+[superscripts and subscripts]: http://pandoc.org/MANUAL.html#superscripts-and-subscripts
+[strikeout]: http://pandoc.org/MANUAL.html#strikeout
+[metadata blocks]: http://pandoc.org/MANUAL.html#metadata-blocks
+[math]: http://pandoc.org/MANUAL.html#math
+[citations]: http://pandoc.org/MANUAL.html#citations
+[Markdown inside HTML block elements]: http://pandoc.org/MANUAL.html#extension-markdown_in_html_blocks
+[Pandoc's Markdown]: http://pandoc.org/MANUAL.html#pandocs-markdown
 
 Documentation
 -------------
@@ -116,5 +133,163 @@ License
 © 2006-2016 John MacFarlane (jgm@berkeley.edu). Released under the
 [GPL], version 2 or greater.  This software carries no warranty of
 any kind.  (See COPYRIGHT for full copyright and warranty notices.)
+
+Contributors include
+Aaron Wolen,
+Albert Krewinkel,
+Alex Vong,
+Alexander Kondratskiy,
+Alexander Sulfrian,
+Alexander V Vershilov,
+Alfred Wechselberger,
+Andreas Lööw,
+Andrew Dunning,
+Antoine Latter,
+Arata Mizuki,
+Arlo O'Keeffe,
+Artyom Kazak,
+Ben Gamari,
+Beni Cherniavsky-Paskin,
+Benoit Schweblin,
+Bjorn Buckwalter,
+Bradley Kuhn,
+Brent Yorgey,
+Bryan O'Sullivan,
+B. Scott Michel,
+Caleb McDaniel,
+Calvin Beck,
+Carlos Sosa,
+Chris Black,
+Christian Conkle,
+Christoffer Ackelman,
+Christoffer Sawicki,
+Clare Macrae,
+Clint Adams,
+Conal Elliott,
+Craig S. Bosma,
+csforste,
+Daniel Bergey,
+Daniel T. Staal,
+David Lazar,
+David Röthlisberger,
+Denis Laxalde,
+Douglas Calvert,
+Douglas F. Calvert,
+Emanuel Evans,
+Emily Eisenberg,
+Eric Kow,
+Eric Seidel,
+Florian Eitel,
+François Gannaz,
+Freiric Barral,
+Freirich Raabe,
+Fyodor Sheremetyev,
+Gabor Pali,
+Gavin Beatty,
+Gottfried Haider,
+Greg Maslov,
+Grégory Bataille,
+Greg Rundlett,
+gwern,
+Gwern Branwen,
+Hans-Peter Deifel,
+Henrik Tramberend,
+Henry de Valence,
+ickc,
+Ilya V. Portnov,
+infinity0x,
+Ivo Clarysse,
+Jaime Marquínez Ferrándiz,
+James Aspnes,
+Jamie F. Olson,
+Jan Larres,
+Jan Schulz,
+Jason Ronallo,
+Jeff Arnold,
+Jeff Runningen,
+Jens Petersen,
+Jérémy Bobbio,
+Jesse Rosenthal,
+J. Lewis Muir,
+Joe Hillenbrand,
+John MacFarlane,
+Jonas Smedegaard,
+Jonathan Daugherty,
+Josef Svenningsson,
+Jose Luis Duran,
+Julien Cretel,
+Juliusz Gonera,
+Justin Bogner,
+Kelsey Hightower,
+Kolen Cheung,
+Konstantin Zudov,
+Kristof Bastiaensen,
+Lars-Dominik Braun,
+Luke Plant,
+Mark Szepieniec,
+Mark Wright,
+Martin Linn,
+Masayoshi Takahashi,
+Matej Kollar,
+Mathias Schenner,
+Mathieu Duponchelle,
+Matthew Eddey,
+Matthew Pickering,
+Matthias C. M. Troffaes,
+Mauro Bieg,
+Max Bolingbroke,
+Max Rydahl Andersen,
+Merijn Verstraaten,
+Michael Beaumont,
+Michael Chladek,
+Michael Snoyman,
+Michael Thompson,
+MinRK,
+Nathan Gass,
+Neil Mayhew,
+Nick Bart,
+Nicolas Kaiser,
+Nikolay Yakimov,
+nkalvi,
+Ophir Lifshitz,
+Pablo Rodríguez,
+Paulo Tanimoto,
+Paul Rivier,
+Peter Wang,
+Philippe Ombredanne,
+Phillip Alday,
+Prayag Verma,
+Puneeth Chaganti,
+qerub,
+Ralf Stephan,
+Raniere Silva,
+Recai Oktaş,
+robabla,
+rodja.trappe,
+rski,
+RyanGlScott,
+Scott Morrison,
+Sergei Trofimovich,
+Sergey Astanin,
+Shahbaz Youssefi,
+Shaun Attfield,
+Sidarth Kapur,
+shreevatsa.public,
+Simon Hengel,
+Sumit Sahrawat,
+takahashim,
+thsutton,
+Tim Lin,
+Timothy Humphries,
+Tiziano Müller,
+Thomas Hodgson,
+Todd Sifleet,
+Tom Leese,
+Uli Köhler,
+Václav Zeman,
+Viktor Kronvall,
+Vincent,
+Wikiwide, and
+Xavier Olive.
 
 [GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
