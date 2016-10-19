@@ -87,7 +87,8 @@ writeLaTeX options document =
                 stOptions = options, stVerbInNote = False,
                 stTable = False, stStrikeout = False,
                 stUrl = False, stGraphics = False,
-                stLHS = False, stBook = writerChapters options,
+                stLHS = False,
+                stBook = writerTopLevelDivision options < Section,
                 stCsquotes = False, stHighlighting = False,
                 stIncremental = writerIncremental options,
                 stInternalLinks = [], stUsesEuro = False }
@@ -750,25 +751,26 @@ sectionHeader unnumbered ident level lst = do
                          <> braces (text plain))
   book <- gets stBook
   opts <- gets stOptions
-  let level' = case level of
-                 1 | writerParts opts            -> 0
-                   | writerBeamer opts           -> 0
-                   | book || writerChapters opts -> 1
-                   | otherwise                   -> 2
-                 _ | writerParts opts            -> level - 1
-                   | book || writerChapters opts -> level
-                   | otherwise                   -> level + 1
+  let topLevelDivision = min (if book then Chapter else Section)
+                             (writerTopLevelDivision opts)
+  let level' = if writerBeamer opts && topLevelDivision < Section
+               -- beamer has parts but no chapters
+               then if level == 1 then -1 else level - 1
+               else case topLevelDivision of
+                 Part    -> level - 2
+                 Chapter -> level - 1
+                 Section -> level
   let sectionType = case level' of
-                          0  -> "part"
-                          1  -> "chapter"
-                          2  -> "section"
-                          3  -> "subsection"
-                          4  -> "subsubsection"
-                          5  -> "paragraph"
-                          6  -> "subparagraph"
+                          -1 -> "part"
+                          0  -> "chapter"
+                          1  -> "section"
+                          2  -> "subsection"
+                          3  -> "subsubsection"
+                          4  -> "paragraph"
+                          5  -> "subparagraph"
                           _  -> ""
   inQuote <- gets stInQuote
-  let prefix = if inQuote && level' >= 5
+  let prefix = if inQuote && level' >= 4
                   then text "\\mbox{}%"
                   -- needed for \paragraph, \subparagraph in quote environment
                   -- see http://tex.stackexchange.com/questions/169830/
@@ -777,7 +779,7 @@ sectionHeader unnumbered ident level lst = do
   let star = if unnumbered && level < 4 then text "*" else empty
   let stuffing = star <> optional <> contents
   stuffing' <- hypertarget ident $ text ('\\':sectionType) <> stuffing <> lab
-  return $ if level' > 6
+  return $ if level' > 5
               then txt
               else prefix $$ stuffing'
                    $$ if unnumbered

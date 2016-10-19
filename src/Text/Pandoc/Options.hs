@@ -43,6 +43,7 @@ module Text.Pandoc.Options ( Extension(..)
                            , HTMLSlideVariant (..)
                            , EPUBVersion (..)
                            , WrapOption (..)
+                           , Division (..)
                            , WriterOptions (..)
                            , TrackChanges (..)
                            , ReferenceLocation (..)
@@ -337,6 +338,12 @@ data WrapOption = WrapAuto        -- ^ Automatically wrap to width
                 | WrapPreserve    -- ^ Preserve wrapping of input source
                 deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+-- | Options defining the type of top-level headers.
+data Division = Part              -- ^ Top-level headers become parts
+              | Chapter           -- ^ Top-level headers become chapters
+              | Section           -- ^ Top-level headers become sections
+              deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
+
 -- | Locations for footnotes and references in markdown output
 data ReferenceLocation = EndOfBlock    -- ^ End of block
                        | EndOfSection  -- ^ prior to next section header (or end of document)
@@ -373,8 +380,7 @@ data WriterOptions = WriterOptions
   , writerHtmlQTags        :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
   , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
   , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
-  , writerChapters         :: Bool       -- ^ Use "chapter" for top-level sects
-  , writerParts            :: Bool       -- ^ Use "part" for top-level sects in LaTeX
+  , writerTopLevelDivision :: Division   -- ^ Type of top-level divisions
   , writerListings         :: Bool       -- ^ Use listings package for code
   , writerHighlight        :: Bool       -- ^ Highlight source code
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
@@ -422,8 +428,7 @@ instance Default WriterOptions where
                       , writerHtmlQTags        = False
                       , writerBeamer           = False
                       , writerSlideLevel       = Nothing
-                      , writerChapters         = False
-                      , writerParts            = False
+                      , writerTopLevelDivision = Section
                       , writerListings         = False
                       , writerHighlight        = False
                       , writerHighlightStyle   = pygments

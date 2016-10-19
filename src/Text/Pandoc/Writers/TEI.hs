@@ -60,7 +60,10 @@ writeTEI opts (Pandoc meta blocks) =
                     then Just $ writerColumns opts
                     else Nothing
       render' = render colwidth
-      startLvl = if writerChapters opts then 0 else 1
+      startLvl = case writerTopLevelDivision opts of
+                   Part    -> -1
+                   Chapter -> 0
+                   Section -> 1
       auths'   = map (authorToTEI opts) $ docAuthors meta
       meta'    = B.setMeta "author" auths' meta
       Just metadata = metaToJSON opts
@@ -86,8 +89,10 @@ elementToTEI opts lvl (Sec _ _num (id',_,_) title elements) =
   let elements' = if null elements
                     then [Blk (Para [])]
                     else elements
+      -- level numbering correspond to LaTeX internals
       divType = case lvl of
-                 n | n == 0           -> "chapter"
+                 n | n == -1          -> "part"
+                   | n == 0           -> "chapter"
                    | n >= 1 && n <= 5 -> "level" ++ show n
                    | otherwise        -> "section"
   in inTags True "div" [("type", divType) | not (null id')] $

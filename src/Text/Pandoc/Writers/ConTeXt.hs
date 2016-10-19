@@ -83,9 +83,10 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                               ]
   let context =   defField "toc" (writerTableOfContents options)
                 $ defField "placelist" (intercalate ("," :: String) $
-                     take (writerTOCDepth options + if writerChapters options
-                                                       then 0
-                                                       else 1)
+                     take (writerTOCDepth options +
+                           if writerTopLevelDivision options < Section
+                           then 0
+                           else 1)
                        ["chapter","section","subsection","subsubsection",
                         "subsubsubsection","subsubsubsubsection"])
                 $ defField "body" main
@@ -412,7 +413,7 @@ inlineToConTeXt (Span (_,_,kvs) ils) = do
                        Nothing -> txt
   fmap (wrapLang . wrapDir) $ inlineListToConTeXt ils
 
--- | Craft the section header, inserting the secton reference, if supplied.
+-- | Craft the section header, inserting the section reference, if supplied.
 sectionHeader :: Attr
               -> Int
               -> [Inline]
@@ -421,21 +422,26 @@ sectionHeader (ident,classes,_) hdrLevel lst = do
   contents <- inlineListToConTeXt lst
   st <- get
   let opts = stOptions st
-  let level' = if writerChapters opts then hdrLevel - 1 else hdrLevel
+  let level' = case writerTopLevelDivision opts of
+                 Part    -> hdrLevel - 2
+                 Chapter -> hdrLevel - 1
+                 Section -> hdrLevel
   let ident' = toLabel ident
   let (section, chapter) = if "unnumbered" `elem` classes
                               then (text "subject", text "title")
                               else (text "section", text "chapter")
-  return $ if level' >= 1 && level' <= 5
-               then char '\\'
-                    <> text (concat (replicate (level' - 1) "sub"))
-                    <> section
-                    <> (if (not . null) ident' then brackets (text ident') else empty)
-                    <> braces contents
-                    <> blankline
-               else if level' == 0
-                       then char '\\' <> chapter <> braces contents
-                       else contents <> blankline
+  return $ case level' of
+             -1                   -> text "\\part" <> braces contents
+             0                    -> char '\\' <> chapter <> braces contents
+             n | n >= 1 && n <= 5 -> char '\\'
+                                     <> text (concat (replicate (n - 1) "sub"))
+                                     <> section
+                                     <> (if (not . null) ident'
+                                         then brackets (text ident')
+                                         else empty)
+                                     <> braces contents
+                                     <> blankline
+             _                    -> contents <> blankline
 
 fromBcp47' :: String -> String
 fromBcp47' = fromBcp47 . splitBy (=='-')
