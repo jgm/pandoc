@@ -87,7 +87,8 @@ writeLaTeX options document =
                 stOptions = options, stVerbInNote = False,
                 stTable = False, stStrikeout = False,
                 stUrl = False, stGraphics = False,
-                stLHS = False, stBook = writerChapters options,
+                stLHS = False,
+                stBook = writerTopLevelDivision options < Section,
                 stCsquotes = False, stHighlighting = False,
                 stIncremental = writerIncremental options,
                 stInternalLinks = [], stUsesEuro = False }
@@ -750,10 +751,18 @@ sectionHeader unnumbered ident level lst = do
                          <> braces (text plain))
   book <- gets stBook
   opts <- gets stOptions
-  let level' = if book || writerChapters opts then level - 1 else level
+  let topLevelDivision = min (if book then Chapter else Section)
+                             (writerTopLevelDivision opts)
+  let level' = if writerBeamer opts && topLevelDivision < Section
+               -- beamer has parts but no chapters
+               then if level == 1 then -1 else level - 1
+               else case topLevelDivision of
+                 Part    -> level - 2
+                 Chapter -> level - 1
+                 Section -> level
   let sectionType = case level' of
-                          0  | writerBeamer opts -> "part"
-                             | otherwise -> "chapter"
+                          -1 -> "part"
+                          0  -> "chapter"
                           1  -> "section"
                           2  -> "subsection"
                           3  -> "subsubsection"

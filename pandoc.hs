@@ -183,7 +183,7 @@ data Opt = Opt
     , optHtmlQTags         :: Bool    -- ^ Use <q> tags in HTML
     , optHighlight         :: Bool    -- ^ Highlight source code
     , optHighlightStyle    :: Style   -- ^ Style to use for highlighted code
-    , optChapters          :: Bool    -- ^ Use chapter for top-level sects
+    , optTopLevelDivision  :: Division -- ^ Type of the top-level divisions
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optReferenceDocx     :: Maybe FilePath -- ^ Path of reference.docx
@@ -248,7 +248,7 @@ defaultOpts = Opt
     , optHtmlQTags             = False
     , optHighlight             = True
     , optHighlightStyle        = pygments
-    , optChapters              = False
+    , optTopLevelDivision      = Section
     , optHTMLMathMethod        = PlainMath
     , optReferenceODT          = Nothing
     , optReferenceDocx         = Nothing
@@ -606,8 +606,18 @@ options =
 
     , Option "" ["chapters"]
                  (NoArg
-                  (\opt -> return opt { optChapters = True }))
+                  (\opt -> do warn $ "--chapters is deprecated. " ++
+                                     "Use --top-level-divison=chapter instead."
+                              return opt { optTopLevelDivision = Chapter }))
                  "" -- "Use chapter for top-level sections in LaTeX, DocBook"
+
+    , Option "" ["top-level-division"]
+                 (ReqArg
+                  (\arg opt -> case safeRead (uppercaseFirstLetter arg) of
+                      Just dvsn -> return opt { optTopLevelDivision = dvsn }
+                      _         -> err 76 "could not parse top-level division")
+                   "[section|chapter|part]")
+                 "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
 
     , Option "N" ["number-sections"]
                  (NoArg
@@ -1122,7 +1132,7 @@ convertWithOpts opts args = do
               , optHtmlQTags             = htmlQTags
               , optHighlight             = highlight
               , optHighlightStyle        = highlightStyle
-              , optChapters              = chapters
+              , optTopLevelDivision      = topLevelDivision
               , optHTMLMathMethod        = mathMethod'
               , optReferenceODT          = referenceODT
               , optReferenceDocx         = referenceDocx
@@ -1386,7 +1396,7 @@ convertWithOpts opts args = do
                             writerUserDataDir      = datadir,
                             writerHtml5            = html5,
                             writerHtmlQTags        = htmlQTags,
-                            writerChapters         = chapters,
+                            writerTopLevelDivision = topLevelDivision,
                             writerListings         = listings,
                             writerBeamer           = False,
                             writerSlideLevel       = slideLevel,

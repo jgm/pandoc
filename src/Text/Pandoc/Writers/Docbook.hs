@@ -79,12 +79,16 @@ writeDocbook opts (Pandoc meta blocks) =
       colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-      render' = render colwidth
-      opts' = if "/book>" `isSuffixOf`
-                      (trimr $ writerTemplate opts)
-                 then opts{ writerChapters = True }
-                 else opts
-      startLvl = if writerChapters opts' then 0 else 1
+      render'  = render colwidth
+      opts'    = if ("/book>" `isSuffixOf` (trimr $ writerTemplate opts) &&
+                     writerTopLevelDivision opts >= Section)
+                    then opts{ writerTopLevelDivision = Chapter }
+                    else opts
+      -- The numbering here follows LaTeX's internal numbering
+      startLvl = case writerTopLevelDivision opts' of
+                   Part    -> -1
+                   Chapter -> 0
+                   Section -> 1
       auths'   = map (authorToDocbook opts) $ docAuthors meta
       meta'    = B.setMeta "author" auths' meta
       Just metadata = metaToJSON opts
@@ -111,11 +115,12 @@ elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) =
                     then [Blk (Para [])]
                     else elements
       tag = case lvl of
-                 n | n == 0           -> "chapter"
-                   | n >= 1 && n <= 5 -> if writerDocbook5 opts
+                 -1                   -> "part"
+                 0                    -> "chapter"
+                 n | n >= 1 && n <= 5 -> if writerDocbook5 opts
                                               then "section"
                                               else "sect" ++ show n
-                   | otherwise        -> "simplesect"
+                 _                    -> "simplesect"
       idAttr = [("id", writerIdentifierPrefix opts ++ id') | not (null id')]
       nsAttr = if writerDocbook5 opts && lvl == 0 then [("xmlns", "http://docbook.org/ns/docbook"),("xmlns:xlink", "http://www.w3.org/1999/xlink")]
                                       else []
