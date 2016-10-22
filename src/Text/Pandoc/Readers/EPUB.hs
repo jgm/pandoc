@@ -109,7 +109,9 @@ iq _ = []
 
 -- Remove relative paths
 renameImages :: FilePath -> Inline -> Inline
-renameImages root (Image attr a (url, b)) = Image attr a (collapseFilePath (root </> url), b)
+renameImages root img@(Image attr a (url, b))
+  | "data:" `isPrefixOf` url = img
+  | otherwise                = Image attr a (collapseFilePath (root </> url), b)
 renameImages _ x = x
 
 imageToPandoc :: FilePath -> Pandoc
