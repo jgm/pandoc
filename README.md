@@ -1,6 +1,14 @@
 Pandoc
 ======
 
+[![license](https://img.shields.io/badge/license-GPLv2+-brightgreen.svg)](https://www.gnu.org/licenses/gpl.html)
+[![hackage release](https://img.shields.io/hackage/v/pandoc.svg?label=current+release)](http://hackage.haskell.org/package/pandoc)
+[![stackage LTS package](http://stackage.org/package/pandoc/badge/lts)](http://stackage.org/lts/package/pandoc)
+[![github release](https://img.shields.io/github/release/jgm/pandoc.svg?label=github+release)](https://github.com/jgm/pandoc/releases)
+[![travis build status](https://img.shields.io/travis/jgm/pandoc.svg)](https://travis-ci.org/jgm/pandoc)
+[![appveyor build status](https://ci.appveyor.com/api/projects/status/nvqs4ct090igjiqc?svg=true)](https://ci.appveyor.com/project/jgm/pandoc)
+
+
 The universal markup converter
 ------------------------------
 
@@ -21,12 +29,13 @@ markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup],
 produce [PDF] output on systems where LaTeX, ConTeXt, or `wkhtmltopdf` is
 installed.
 
-Pandoc's enhanced version of Markdown includes syntax for footnotes, tables,
-flexible ordered lists, definition lists, fenced code blocks, superscripts and
-subscripts, strikeout, metadata blocks, automatic tables of contents, embedded
-LaTeX math, citations, and Markdown inside HTML block elements. (These
-enhancements, described in the manual under *pandoc's Markdown*, can be
-disabled using the `markdown_strict` input or output format.)
+Pandoc's enhanced version of Markdown includes syntax for [footnotes],
+[tables], flexible [ordered lists], [definition lists], [fenced code blocks],
+[superscripts and subscripts], [strikeout], [metadata blocks], automatic tables of
+contents, embedded LaTeX [math], [citations], and [Markdown inside HTML block
+elements]. (These enhancements, described
+further under [Pandoc's Markdown], can be disabled using the
+`markdown_strict` input or output format.)
 
 In contrast to most existing tools for converting Markdown to HTML, which
 use regex substitutions, pandoc has a modular design: it consists of a
@@ -87,13 +96,21 @@ Markdown can be expected to be lossy.
 [InDesign ICML]: https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf
 [TEI Simple]: https://github.com/TEIC/TEI-Simple
 
-[![license](https://img.shields.io/badge/license-GPLv2+-brightgreen.svg)](https://www.gnu.org/licenses/gpl.html)
-[![hackage release](https://img.shields.io/hackage/v/pandoc.svg?label=current+release)](http://hackage.haskell.org/package/pandoc)
-[![stackage LTS package](http://stackage.org/package/pandoc/badge/lts)](http://stackage.org/lts/package/pandoc)
-[![github release](https://img.shields.io/github/release/jgm/pandoc.svg?label=github+release)](https://github.com/jgm/pandoc/releases)
-[![travis build status](https://img.shields.io/travis/jgm/pandoc.svg)](https://travis-ci.org/jgm/pandoc)
-[![appveyor build status](https://ci.appveyor.com/api/projects/status/nvqs4ct090igjiqc?svg=true)](https://ci.appveyor.com/project/jgm/pandoc)
 
+
+
+[footnotes]: http://pandoc.org/MANUAL.html#footnotes
+[tables]: http://pandoc.org/MANUAL.html#tables
+[ordered lists]: http://pandoc.org/MANUAL.html#ordered-lists
+[definition lists]: http://pandoc.org/MANUAL.html#definition-lists
+[fenced code blocks]: http://pandoc.org/MANUAL.html#fenced-code-blocks
+[superscripts and subscripts]: http://pandoc.org/MANUAL.html#superscripts-and-subscripts
+[strikeout]: http://pandoc.org/MANUAL.html#strikeout
+[metadata blocks]: http://pandoc.org/MANUAL.html#metadata-blocks
+[math]: http://pandoc.org/MANUAL.html#math
+[citations]: http://pandoc.org/MANUAL.html#citations
+[Markdown inside HTML block elements]: http://pandoc.org/MANUAL.html#extension-markdown_in_html_blocks
+[Pandoc's Markdown]: http://pandoc.org/MANUAL.html#pandocs-markdown
 
 Documentation
 -------------
