@@ -3332,6 +3332,12 @@ in pandoc, but may be enabled by adding `+EXTENSION` to the format
 name, where `EXTENSION` is the name of the extension.  Thus, for
 example, `markdown+hard_line_breaks` is Markdown with hard line breaks.
 
+#### Extension: `angle_brackets_escapable` ####
+
+Allow `<` and `>` to be backslash-escaped, as they can be in
+GitHub flavored Markdown but not original Markdown.  This is
+implied by pandoc's default `all_symbols_escapable`.
+
 #### Extension: `lists_without_preceding_blankline` ####
 
 Allow a list to occur right after a paragraph, with no intervening
@@ -3475,7 +3481,7 @@ variants are supported:
 :   `pipe_tables`, `raw_html`, `fenced_code_blocks`, `auto_identifiers`,
     `ascii_identifiers`, `backtick_code_blocks`, `autolink_bare_uris`,
     `intraword_underscores`, `strikeout`, `hard_line_breaks`, `emoji`,
-    `shortcut_reference_links`.
+    `shortcut_reference_links`, `angle_brackets_escapable`.
 
 `markdown_mmd` (MultiMarkdown)
 :   `pipe_tables`, `raw_html`, `markdown_attribute`, `mmd_link_attributes`,

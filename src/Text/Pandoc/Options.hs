@@ -101,6 +101,7 @@ data Extension =
                                -- space between items, and disallow laziness
     | Ext_example_lists       -- ^ Markdown-style numbered examples
     | Ext_all_symbols_escapable  -- ^ Make all non-alphanumerics escapable
+    | Ext_angle_brackets_escapable  -- ^ Make < and > escapable
     | Ext_intraword_underscores  -- ^ Treat underscore inside word as literal
     | Ext_blank_before_blockquote -- ^ Require blank line before a blockquote
     | Ext_blank_before_header     -- ^ Require blank line before a header
@@ -204,7 +205,8 @@ phpMarkdownExtraExtensions = Set.fromList
 
 githubMarkdownExtensions :: Set Extension
 githubMarkdownExtensions = Set.fromList
-  [ Ext_pipe_tables
+  [ Ext_angle_brackets_escapable
+  , Ext_pipe_tables
   , Ext_raw_html
   , Ext_fenced_code_blocks
   , Ext_auto_identifiers
