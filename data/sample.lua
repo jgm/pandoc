@@ -206,6 +206,11 @@ function HorizontalRule()
   return "<hr/>"
 end
 
+function LineBlock(ls)
+  return '<div style="white-space: pre-line;">' .. table.concat(ls, '\n') ..
+         '</div>'
+end
+
 function CodeBlock(s, attr)
   -- If code block has class 'dot', pipe the contents through dot
   -- and base64, and include the base64-encoded png as a data: URL.
