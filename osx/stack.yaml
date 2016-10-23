@@ -19,5 +19,5 @@ packages:
 extra-deps:
 - doctemplates-0.1.0.2
 - pandoc-types-1.17.0.4
-- pandoc-citeproc-0.10.1.2
+- pandoc-citeproc-0.10.1.3
 resolver: lts-7.4
