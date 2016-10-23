@@ -1828,7 +1828,9 @@ autoLink = try $ do
   -- final punctuation.  for example:  in `<http://hi---there>`,
   -- the URI parser will stop before the dashes.
   extra <- fromEntities <$> manyTill nonspaceChar (char '>')
-  return $ return $ B.link (src ++ escapeURI extra) "" (B.str $ orig ++ extra)
+  attr  <- option nullAttr $ try $
+            guardEnabled Ext_link_attributes >> attributes
+  return $ return $ B.linkWith attr (src ++ escapeURI extra) "" (B.str $ orig ++ extra)
 
 image :: MarkdownParser (F Inlines)
 image = try $ do
