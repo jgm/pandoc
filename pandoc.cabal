@@ -442,6 +442,9 @@ Executable pandoc
   Ghc-Prof-Options: -fprof-auto-exported -rtsopts -with-rtsopts=-K16m
   if os(windows)
     Cpp-options:      -D_WINDOWS
+  else
+    Build-Depends:  unix >= 2.4 && < 2.8
+
   Default-Language: Haskell98
   Other-Extensions: PatternGuards, OverloadedStrings,
                     ScopedTypeVariables, GeneralizedNewtypeDeriving,

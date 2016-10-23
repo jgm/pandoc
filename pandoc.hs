@@ -74,6 +74,10 @@ import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
 import Paths_pandoc (getDataDir)
 import Text.Printf (printf)
 import Text.Pandoc.Error
+#ifndef _WINDOWS
+import System.Posix.Terminal (queryTerminal)
+import System.Posix.IO (stdOutput)
+#endif
 
 type Transform = Pandoc -> Pandoc
 
@@ -1357,7 +1361,12 @@ convertWithOpts opts args = do
                       , readerFileScope   = fileScope
                       }
 
-  when (not (isTextFormat format) && outputFile == "-") $
+#ifdef _WINDOWS
+  let istty = True
+#else
+  istty <- queryTerminal stdOutput
+#endif
+  when (istty && not (isTextFormat format) && outputFile == "-") $
     err 5 $ "Cannot write " ++ format ++ " output to stdout.\n" ++
             "Specify an output file using the -o option."
 
@@ -1457,8 +1466,9 @@ convertWithOpts opts args = do
            applyTransforms transforms >=>
            applyFilters datadir filters' [format]) doc
 
-  let writeBinary :: B.ByteString -> IO ()
-      writeBinary = B.writeFile (UTF8.encodePath outputFile)
+  let writeFnBinary :: FilePath -> B.ByteString -> IO ()
+      writeFnBinary "-" = B.putStr
+      writeFnBinary f   = B.writeFile (UTF8.encodePath f)
 
   let writerFn :: FilePath -> String -> IO ()
       writerFn "-" = UTF8.putStr
@@ -1466,7 +1476,7 @@ convertWithOpts opts args = do
 
   case writer of
     IOStringWriter f -> f writerOptions doc' >>= writerFn outputFile
-    IOByteStringWriter f -> f writerOptions doc' >>= writeBinary
+    IOByteStringWriter f -> f writerOptions doc' >>= writeFnBinary outputFile
     PureStringWriter f
       | pdfOutput -> do
               -- make sure writer is latex or beamer or context or html5
@@ -1486,7 +1496,7 @@ convertWithOpts opts args = do
 
               res <- makePDF pdfprog f writerOptions doc'
               case res of
-                   Right pdf -> writeBinary pdf
+                   Right pdf -> writeFnBinary outputFile pdf
                    Left err' -> do
                      B.hPutStr stderr err'
                      B.hPut stderr $ B.pack [10]
