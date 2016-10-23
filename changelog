@@ -1,5 +1,11 @@
 pandoc (1.17.3)
 
+  * Added `--list-input-formats`, `--list-output-formats`,
+    `--list-extensions`, `--list-highlight-languages`, and
+    `--list-highlight-styles` (#3173).  Removed list of highlighting
+    languages from `--version` output.  Removed list of input and output
+    formats from default `--help` output.
+
   * Added `--reference-location=block|section|document` option
     (Jesse Rosenthal).  This determines whether Markdown link references
     and footnotes are placed at the end of the document, the end of the
