@@ -1,17 +1,76 @@
 pandoc (1.17.3)
 
+  * Added `--reference-location=block|section|document` option
+    (Jesse Rosenthal).  This determines whether Markdown link references
+    and footnotes are placed at the end of the document, the end of the
+    section, or the end of the top-level block.
+
+  * Added `--top-level-division=section|chapter|part` (Albert Krewinkel).
+    This determines what a level-1 header corresponds to in LaTeX,
+    ConTeXt, DocBook, and TEI output.  The default is `section`.
+    The `--chapters` option has been deprecated in favor of
+    `--top-level-division=chapter`.
+
+  * Added `LineBlock` constructor for `Block` (Albert Krewinkel).  This
+    is now used in parsing RST and Markdown line blocks, DocBook
+    `linegroup`/`line` combinations, and Org-mode `VERSE` blocks.
+    Previously `Para` blocks with hard linebreaks were used.  `LineBlock`s
+    are handled specially in the following ouput formats: AsciiDoc
+    (as `[verse]` blocks), ConTeXt (`\startlines`/`\endlines`),
+    HTML (`div` with a style), Markdown (line blocks if `line_blocks`
+    is enabled), Org-mode (`VERSE` blocks), RST (line blocks). In
+    other output formats, a paragraph with hard linebreaks is emitted.
+
+  * Changed JSON output format (Jesse Rosenthal).  Previously we used
+    generically generated JSON, but this was subject to change depending
+    on the version of aeson pandoc was compiled with.  To ensure stability,
+    we switched to using manually written ToJSON and FromJSON
+    instances, and encoding the API version.  **Note:**  pandoc filter
+    libraries will need to be revised to handle the format change.
+    Here is a summary of the essential changes:
+
+    + The toplevel JSON format is now `{"pandoc-api-version" :
+      [MAJ, MIN, REV], "meta" : META, "blocks": BLOCKS}`
+      instead of `[{"unMeta": META}, [BLOCKS]]`.
+      Decoding fails if the major and minor version numbers don't
+      match.
+    + Leaf nodes no longer have an empty array for their "c" value.
+      Thus, for example, a `Space` is encoded as `{"t":"Space"}`
+      rather than `{"t":"Space","c":[]}` as before.
+
+  * Removed `tests/Tests/Arbitrary.hs` and added a `Text.Pandoc.Arbitrary`
+    module to pandoc-types (Jesse Rosenthal).  This makes it easier
+    to use QuickCheck with pandoc types outside of pandoc itself.
+
   * Add `bracketed_spans` Markdown extension, enabled by default
     in pandoc `markdown`.  This allows you to create a native span
     using this syntax:  `[Here is my span]{#id .class key="val"}`.
 
-  * `Text.Pandoc.Options.Extension` has a new constructor
-    `Ext_brackted_spans` [API change].
+  * Added `angle_brackets_escapable` Markdown extension (#2846).
+    This is needed because github flavored Markdown has a slightly
+    different set of escapable symbols than original Markdown;
+    it includes angle brackets.
+
+  * `Text.Pandoc.Options`:
+
+    + `Extension` has new constructors `Ext_brackted_spans` and
+      `Ext_angle_brackets_escapable` [API change].
+    + Added `ReferenceLocation` type [API change] (Jesse Rosenthal).
+    + Added `writerReferenceLocation` field to `WriterOptions` (Jesse
+      Rosenthal).
 
   * `--filter`:  we now check `$DATADIR/filters` for filters before
     looking in the path (#3127, Jesse Rosenthal, thanks to Jakob
     Voß for the idea).  Filters placed in this directory need not
     be executable; if the extension is `.hs`, `.php`, `.pl`, `.js`,
     or `.rb`, pandoc will run the right interpreter.
+
+  * For `--webtex`, replace deprecated Google Chart API by CodeCogs as
+    default (Kolen Cheung).
+
+  * Removed `raw_tex` extension from `markdown_mmd` defaults (Kolen Cheung).
+
+  * Execute .js filters with node (Jakob Voß).
 
   * Textile reader:
 
@@ -38,6 +97,15 @@ pandoc (1.17.3)
       the rendering of some RST documents!  The word ("Warning", "Attention",
       etc.) is no longer added; that must be done with CSS or a filter.
     + A Div is now used for `sidebar` as well.
+    + Skip whitespace before note (Jesse Rosenthal, #3163).  RST requires a
+      space before a footnote marker. We discard those spaces so that footnotes
+      will be adjacent to the text that comes before it. This is in line with
+      what rst2latex does.
+    + Allow empty lines when parsing line blocks (Albert Krewinkel).
+
+  * Markdown reader:
+
+    + Allow empty lines when parsing line blocks (Albert Krewinkel).
 
   * LaTeX reader:
 
@@ -60,6 +128,9 @@ pandoc (1.17.3)
     + Properly interpret XML tags in pre environments (#3042).  They are meant
       to be interpreted as literal text.
 
+  * EPUB reader:  don't add root path to data: URIs (#3150).
+    Thanks to @lep for the bug report and patch.
+
   * Org reader (Albert Krewinkel):
 
     + Preserve indentation of verse lines (#3064).  Leading spaces in verse
@@ -68,18 +139,20 @@ pandoc (1.17.3)
       images, image links, or figures, must be proper URIs or relative file
       paths to be recognized as images.  This restriction is now enforced
       for all image sources.  This also fixes the reader's usage of uncleaned
-      image sources, leading to `file:` prefixes not being deleted from figure
-      images.  Thanks to @bsag for noticing this bug.
+      image sources, leading to `file:` prefixes not being deleted from
+      figure images.  Thanks to @bsag for noticing this bug.
+    + Trim verse lines properly (Albert Krewinkel).
     + Extract meta parsing code to module.  Parsing of meta-data is well
-      separable from other block parsing tasks.  Moving into new module to get
-      small files and clearly arranged code.
+      separable from other block parsing tasks.  Moving into new module to
+      get small files and clearly arranged code.
     + Read markup only for special meta keys.  Most meta-keys should be read
       as normal string values, only a few are interpreted as marked-up text.
-    + Allow multiple, comma-separated authors.  Multiple authors can be specified
-      in the `#+AUTHOR` meta line if they are given as a comma-separated list.
-    + Give precedence to later meta lines.  The last meta-line of any given type
-      is the significant line.  Previously the value of the first line was kept,
-      even if more lines of the same type were encounterd.
+    + Allow multiple, comma-separated authors.  Multiple authors can be
+      specified in the `#+AUTHOR` meta line if they are given as a
+      comma-separated list.
+    + Give precedence to later meta lines.  The last meta-line of any given
+      type is the significant line.  Previously the value of the first line
+      was kept, even if more lines of the same type were encounterd.
     + Read LaTeX_header as header-includes.  LaTeX-specific header commands
       can be defined in `#+LaTeX_header` lines.  They are parsed as
       format-specific inlines to ensure that they will only show up in LaTeX
@@ -89,38 +162,44 @@ pandoc (1.17.3)
     + Read HTML_head as header-includes.  HTML-specific head content can be
       defined in `#+HTML_head` lines.  They are parsed as format-specific
       inlines to ensure that they will only show up in HTML output.
-    + Respect `author` export option.  The `author` option controls whether the
-      author should be included in the final markup.  Setting
+    + Respect `author` export option.  The `author` option controls whether
+      the author should be included in the final markup.  Setting
       `#+OPTIONS: author:nil` will drop the author from the final meta-data
       output.
     + Respect `email` export option.  The `email` option controls whether the
       email meta-field should be included in the final markup. Setting
-      `#+OPTIONS: email:nil` will drop the email field from the final meta-data
-      output.
+      `#+OPTIONS: email:nil` will drop the email field from the final
+      meta-data output.
     + Respect `creator` export option.  The `creator` option controls whether
       the creator meta-field should be included in the final markup.  Setting
       `#+OPTIONS: creator:nil` will drop the creator field from the final
       meta-data output.  Org-mode recognizes the special value `comment` for
       this field, causing the creator to be included in a comment.  This is
       difficult to translate to Pandoc internals and is hence interpreted the
-      same as other truish values (i.e. the meta field is kept if it's present).
+      same as other truish values (i.e. the meta field is kept if it's
+      present).
     + Respect unnumbered header property (#3095).  Sections the `unnumbered`
       property should, as the name implies, be excluded from the automatic
       numbering of section provided by some output formats.  The Pandoc
       convention for this is to add an "unnumbered" class to the header.  The
       reader treats properties as key-value pairs per default, so a special
       case is added to translate the above property to a class instead.
+    + Allow figure with empty caption (Albert Krewinkel, #3161).
+      A `#+CAPTION` attribute before an image is enough to turn an image into
+      a figure. This wasn't the case because the `parseFromString` function,
+      which processes the caption value, would fail on empty values. Adding
+      a newline character to the caption value fixes this.
 
   * Docx reader:
 
     + Use XML convenience functions (Jesse Rosenthal).
-      The functions `isElem` and `elemName` (defined in Docx/Util.hs) make the
-      code a lot cleaner than the original XML.Light functions, but they had
-      been used inconsistently. This puts them in wherever applicable.
+      The functions `isElem` and `elemName` (defined in Docx/Util.hs) make
+      the code a lot cleaner than the original XML.Light functions, but they
+      had been used inconsistently. This puts them in wherever applicable.
     + Handle anchor spans with content in headers.  Previously, we would only
-      be able to figure out internal links to a header in a docx if the anchor
-      span was empty. We change that to read the inlines out of the first
-      anchor span in a header.
+      be able to figure out internal links to a header in a docx if the
+      anchor span was empty. We change that to read the inlines out of the
+      first anchor span in a header.
     + Let headers use exisiting id.  Previously we always generated an id for
       headers (since they wouldn't bring one from Docx). Now we let it use an
       existing one if possible. This should allow us to recurs through anchor
@@ -132,6 +211,21 @@ pandoc (1.17.3)
       in header with content (or with other anchor spans inside) will resolve
       to links to a header id properly.
 
+  * ODT reader (Hubert Plociniczak)
+
+    + Include list's starting value.  Previously the starting value of
+      the lists' items has been hardcoded to 1. In reality ODT's list
+      style definition can provide a new starting value in one of its
+      attributes.
+    + Infer caption from the text following the image.
+      Frame can contain other frames with the text boxes.
+    + Add `fig:` to title for Image with a caption (as expected
+      by pandoc's writers).
+    + Basic support for images in ODT documents.
+    + Don't duplicate text for anchors (#3143).  When creating an anchor
+      element we were adding its representation as well as the original
+      content, leading to text duplication.
+
   * DocBook writer:
 
     + Include an anchor element when a div or span has an id (#3102).
@@ -140,9 +234,10 @@ pandoc (1.17.3)
 
   * LaTeX writer:
 
-    + Don't use * for unnumbered paragraph, subparagraph.  The starred variants
-      don't exist.  This helps with part of #3058...it gets rid of the spurious
-      `*`s.  But we still have numbers on the 4th and 5th level headers.
+    + Don't use * for unnumbered paragraph, subparagraph.  The starred
+      variants don't exist.  This helps with part of #3058...it gets rid of
+      the spurious `*`s.  But we still have numbers on the 4th and 5th level
+      headers.
     + Properly escape backticks in verbatim (#3121, Jesse Rosenthal).
       Otherwise they can cause unintended ligatures like `` ?` ``.
     + Handle NARRAOW NO-BREAK SPACE into LaTeX (Vaclav Zeman) as `\,`.
@@ -150,19 +245,38 @@ pandoc (1.17.3)
       This allows figure placement defaults to be changed by the user
       in the template.
 
-  * Text.Pandoc.Error: Fix out of index error in `handleError`
-    (Matthew Pickering).  The fix is to not try to show the exact line when it
-    would cause an out-of-bounds error as a result of included files.
+  * TEI writer: remove heuristic to detect book template (Albert Krewinkel).
+    TEI doesn't have `<book>` elements but only generic `<divN>` division
+    elements. Checking the template for a trailing `</book>` is nonsensical.
+
+  * MediaWiki writer:  transform filename with underscores in images (#3052).
+    `foo bar.jpg` becomes `foo_bar.jpg`. This was already done
+    for internal links, but it also needs to happen for images.
 
   * Man writer:
 
     + Allow section numbers that are not a single digit (#3089).
+
+  * AsciiDoc writer: avoid unnecessary use of "unconstrained" emphasis
+    (#3068).  In AsciiDoc, you must use a special form of emphasis
+    (double `__`) for intraword emphasis.  Pandoc was previously using
+    this more than necessary.
+
+  * EPUB writer:  use stringify instead of plain writer for metadata
+    (#3066).  This means that underscores won't be used for emphasis,
+    or CAPS for bold.  The metadata fields will just have unadorned
+    text.
 
   * Docx Writer:
 
     + Implement user-defined styles (Jesse Rosenthal).  Divs and Spans
       with a `custom-style` key in the attributes will apply the corresponding
       key to the contained blocks or inlines.
+    + Add ReaderT env to the docx writer (Jesse Rosenthal).
+    + Clean up and streamline RTL behavior (Jesse Rosenthal, #3140).
+      You can set `dir: rtl` in YAML metadata, or use `-M dir=rtl`
+      on the command line.  For finer-grained control, you can set
+      the `dir` attribute in Div or Span elements.
 
   * Org writer (Albert Krewinkel):
 
@@ -181,13 +295,24 @@ pandoc (1.17.3)
       those identifiers is added to avoid unexpected behavior.  This fixes a
       problem where language specific source code would sometimes be output
       as example code.
+    + Drop space before footnote markers (Albert Krewinkel, #3162).
+      The writer no longer adds an extra space before footnote markers.
+
+  * Markdown writer:
+
+    + Don't emit HTML for tables unless `raw_html` extension is set (#3154).
+      Emit `[TABLE]` if no suitable table formats are enabled and raw HTML
+      is disabled.
+    + Check for the `raw_html` extension before emiting a raw HTML block.
+    + Abstract out note/ref function (Jesse Rosenthal).
+    + Add ReaderT monad for environment variables (Jesse Rosenthal).
 
   * HTML, EPUB, slidy, revealjs templates: Use `<p>` instead of `<h1>` for
     subtitle, author, date (#3119).  Note that, as a result of this change,
     authors may need to update CSS.
 
-  * revealjs template:  Added `notes-server` option (jgm/pandoc-templates#212,
-    Yoan Blanc).
+  * revealjs template:  Added `notes-server` option
+    (jgm/pandoc-templates#212, Yoan Blanc).
 
   * Beamer template:
 
@@ -195,8 +320,8 @@ pandoc (1.17.3)
       a regression in the last release (jgm/pandoc-templates#207).
     + Added `themeoptions` variable (Carsten Gips).
     + Added `beamerarticle` variable.  This causes the `beamerarticle`
-      package to be loaded in beamer, to produce an article from beamer slides.
-      (Carsten Gips)
+      package to be loaded in beamer, to produce an article from beamer
+      slides.  (Carsten Gips)
     + Added support for `fontfamilies` structured variable
       (Artem Klevtsov).
 
@@ -211,6 +336,16 @@ pandoc (1.17.3)
     + Use footnote package to fix notes in tables (jgm/pandoc-templates#208,
       Václav Haisman).
 
+  * Moved template compiling/rendering code to a separate library.
+    `doctemplates`.  This allows the pandoc templating system to be
+    used independently.
+
+  * Text.Pandoc.Error: Fix out of index error in `handleError`
+    (Matthew Pickering).  The fix is to not try to show the exact line when
+    it would cause an out-of-bounds error as a result of included files.
+
+  * Text.Pandoc.Shared: Add `linesToBlock` function (Albert Krewinkel).
+
   * Text.Pandoc.PDF:  Don't crash with nonexistent image (#3100).  Instead,
     emit the alt text, emphasized.  This accords with what the ODT writer
     currently does.  The user will still get a warning about a nonexistent
@@ -219,7 +354,9 @@ pandoc (1.17.3)
   * Tell where to get tarball in INSTALL (#3062).
 
   * Rename README to MANUAL.txt and add GitHub-friendly README.md
-    (Albert Krewinkel).
+    (Albert Krewinkel, Kolen Cheung).
+
+  * Replace COPYING with Markdown version COPYING.md from GNU (Kolen Cheung).
 
   * MANUAL.txt:
 
@@ -228,12 +365,19 @@ pandoc (1.17.3)
       custom template
     + Note that `--katex` works best with `html5` (#3077).
     + Fix the LaTeX and EPUB links in manual (Morton Fox).
+    + Document `biblio-title` variable.
 
   * Improve spacing of footnotes in `--help` output (Waldir Pimenta).
 
-  * Allow aeson 1.0.*.
+  * Update KaTeX to v0.6.0 (Kolen Cheung).
 
-  * Use texmath 0.8.6.5 (#3040).
+  * Allow latest dependencies.
+
+  * Use texmath 0.8.6.6 (#3040).
+
+  * Allow http-client 0.4.30, which is the version in stackage lts.
+    Previously we required 0.5.
+    Remove CPP conditionals for earlier versions.
 
   * Remove support for GHC < 7.8 (Jesse Rosenthal).
 
@@ -251,9 +395,9 @@ pandoc (1.17.3)
     + Remove TagSoup compat.
     + Add EOL note to time compat module.  Because time 1.4 is a boot library
       for GHC 7.8, we will support the compatibility module as long as we
-      support 7.8. But we should be clear about when we will no longer need it.
+      support 7.8. But we should be clear about when we will no longer need
+      it.
     + Remove blaze-html CPP conditional.
-    + Remove http-client CPP conditionals.
     + Remove unnecessary CPP in custom Prelude.
 
 pandoc (1.17.2)
