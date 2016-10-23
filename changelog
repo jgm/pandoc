@@ -27,6 +27,11 @@ pandoc (1.17.3)
     is enabled), Org-mode (`VERSE` blocks), RST (line blocks). In
     other output formats, a paragraph with hard linebreaks is emitted.
 
+  * Allow binary formats to be written to stdout (but not to tty) (#2677).
+    Only works on posix, since we use the unix library to check whether
+    output is to tty.  On Windows, pandoc works as before and always requires
+    an output file parameter for binary formats.
+
   * Changed JSON output format (Jesse Rosenthal).  Previously we used
     generically generated JSON, but this was subject to change depending
     on the version of aeson pandoc was compiled with.  To ensure stability,
@@ -259,9 +264,10 @@ pandoc (1.17.3)
     `foo bar.jpg` becomes `foo_bar.jpg`. This was already done
     for internal links, but it also needs to happen for images.
 
-  * Man writer:
+  * ICML writer: replace partial function (!!) in table handling (#3175,
+    Mauro Bieg).
 
-    + Allow section numbers that are not a single digit (#3089).
+  * Man writer: allow section numbers that are not a single digit (#3089).
 
   * AsciiDoc writer: avoid unnecessary use of "unconstrained" emphasis
     (#3068).  In AsciiDoc, you must use a special form of emphasis
@@ -352,10 +358,18 @@ pandoc (1.17.3)
 
   * Text.Pandoc.Shared: Add `linesToBlock` function (Albert Krewinkel).
 
+  * Text.Pandoc.Parsing.emailAddress: tighten up parsing of email
+    addresses.  Technically `**@user` is a valid email address, but if we
+    allow things like this, we get bad results in markdown flavors
+    that autolink raw email addresses (see #2940).  So we exclude a few
+    valid email addresses in order to avoid these more common bad cases.
+
   * Text.Pandoc.PDF:  Don't crash with nonexistent image (#3100).  Instead,
     emit the alt text, emphasized.  This accords with what the ODT writer
     currently does.  The user will still get a warning about a nonexistent
     image.
+
+  * Fix example in API documentation (#3176, Thomas Weißschuh).
 
   * Tell where to get tarball in INSTALL (#3062).
 
