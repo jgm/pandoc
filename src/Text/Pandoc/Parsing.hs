@@ -178,7 +178,7 @@ import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Parsec hiding (token)
 import Text.Parsec.Pos (newPos)
 import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
-                   isHexDigit, isSpace )
+                   isHexDigit, isSpace, isPunctuation )
 import Data.List ( intercalate, transpose, isSuffixOf )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
@@ -405,9 +405,18 @@ emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
        domain            = intercalate "." <$> (subdomain `sepby1` dot)
        dot               = char '.'
        subdomain         = many1 $ alphaNum <|> innerPunct
-       innerPunct        = try (satisfy (\c -> isEmailPunct c || c == '@') <*
-                                 notFollowedBy space)
-       emailWord         = many1 $ satisfy isEmailChar
+       -- this excludes some valid email addresses, since an
+       -- email could contain e.g. '__', but gives better results
+       -- for our purposes, when combined with markdown parsing:
+       innerPunct        = try (satisfy (\c -> isEmailPunct c || c == '@')
+                                 <* notFollowedBy space
+                                 <* notFollowedBy (satisfy isPunctuation))
+       -- technically an email address could begin with a symbol,
+       -- but allowing this creates too many problems.
+       -- See e.g. https://github.com/jgm/pandoc/issues/2940
+       emailWord         = do x <- satisfy isAlphaNum
+                              xs <- many (satisfy isEmailChar)
+                              return (x:xs)
        isEmailChar c     = isAlphaNum c || isEmailPunct c
        isEmailPunct c    = c `elem` "!\"#$%&'*+-/=?^_{|}~;"
        -- note: sepBy1 from parsec consumes input when sep

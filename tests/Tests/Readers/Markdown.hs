@@ -185,6 +185,11 @@ tests = [ testGroup "inline code"
             "<\n\na>" =?>
             para (text "<") <> para (text "a>")
           ]
+        , testGroup "raw email addresses"
+          [ test markdownGH "issue 2940" $
+            "**@user**" =?>
+            para (strong (text "@user"))
+          ]
         , testGroup "emoji"
           [ test markdownGH "emoji symbols" $
             ":smile: and :+1:" =?> para (text "😄 and 👍")
