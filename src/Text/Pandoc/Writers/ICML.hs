@@ -323,13 +323,13 @@ blockToICML opts style (Table caption aligns widths headers rows) =
                   else length $ head rows
       rowsToICML [] _ = return empty
       rowsToICML (col:rest) rowNr =
-        liftM2 ($$) (colsToICML col rowNr (0::Int)) $ rowsToICML rest (rowNr+1)
-      colsToICML [] _ _ = return empty
-      colsToICML (cell:rest) rowNr colNr = do
+        liftM2 ($$) (colsToICML col aligns rowNr (0::Int)) $ rowsToICML rest (rowNr+1)
+      colsToICML [] _ _ _ = return empty
+      colsToICML _ [] _ _ = return empty
+      colsToICML (cell:rest) (alig:restAligns) rowNr colNr = do
         let stl  = if rowNr == 0 && not noHeader
                       then tableHeaderName:style'
                       else style'
-            alig = aligns !! colNr
             stl' | alig == AlignLeft = alignLeftName : stl
                  | alig == AlignRight = alignRightName : stl
                  | alig == AlignCenter = alignCenterName : stl
@@ -337,7 +337,7 @@ blockToICML opts style (Table caption aligns widths headers rows) =
         c <- blocksToICML opts stl' cell
         let cl = return $ inTags True "Cell"
                    [("Name", show colNr ++":"++ show rowNr), ("AppliedCellStyle","CellStyle/Cell")] c
-        liftM2 ($$) cl $ colsToICML rest rowNr (colNr+1)
+        liftM2 ($$) cl $ colsToICML rest restAligns rowNr (colNr+1)
   in  do
       let tabl = if noHeader
                     then rows
