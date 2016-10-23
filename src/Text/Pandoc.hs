@@ -40,9 +40,9 @@ inline links:
 > import Text.Pandoc.Error (handleError)
 >
 > markdownToRST :: String -> String
-> markdownToRST = handleError .
+> markdownToRST =
 >   writeRST def {writerReferenceLinks = True} .
->   readMarkdown def
+>   handleError . readMarkdown def
 >
 > main = getContents >>= putStrLn . markdownToRST
 
