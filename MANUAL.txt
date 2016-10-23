@@ -262,7 +262,8 @@ General options
     `markdown-pipe_tables+hard_line_breaks` is pandoc's Markdown
     without pipe tables and with hard line breaks. See [Pandoc's
     Markdown], below, for a list of extensions and
-    their names.
+    their names.  See `--list-input-formats` and `--list-extensions`,
+    below.
 
 `-t` *FORMAT*, `-w` *FORMAT*, `--to=`*FORMAT*, `--write=`*FORMAT*
 
@@ -297,6 +298,7 @@ General options
     below.  Markdown syntax extensions can be individually
     enabled or disabled by appending `+EXTENSION` or
     `-EXTENSION` to the format name, as described above under `-f`.
+    See `--list-output-formats` and `--list-extensions`, below.
 
 `-o` *FILE*, `--output=`*FILE*
 
@@ -337,6 +339,30 @@ General options
 
 :   Give verbose debugging output.  Currently this only has an effect
     with PDF output.
+
+`--list-input-formats`
+
+:   List supported input formats, one per line.
+
+`--list-output-formats`
+
+:   List supported output formats, one per line.
+
+`--list-extensions`
+
+:   List supported Markdown extensions, one per line, followed
+    by a `+` or `-` indicating whether it is enabled by default
+    in pandoc's Markdown.
+
+`--list-highlight-languages`
+
+:   List supported languages for syntax highlighting, one per
+    line.
+
+`--list-highlight-styles`
+
+:   List supported styles for syntax highlighting, one per line.
+    See `--highlight-style`.
 
 `-v`, `--version`
 
@@ -583,6 +609,7 @@ General writer options
     Options are `pygments` (the default), `kate`, `monochrome`,
     `espresso`, `zenburn`, `haddock`, and `tango`.  For more information
     on syntax highlighting in pandoc, see [Syntax highlighting], below.
+    See also `--list-highlight-styles`.
 
 `-H` *FILE*, `--include-in-header=`*FILE*
 

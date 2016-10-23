@@ -48,8 +48,9 @@ import System.Environment ( getArgs, getProgName )
 import System.Exit ( ExitCode (..), exitSuccess )
 import System.FilePath
 import System.Console.GetOpt
+import qualified Data.Set as Set
 import Data.Char ( toLower, toUpper )
-import Data.List ( delete, intercalate, isPrefixOf, isSuffixOf, sort )
+import Data.List ( intercalate, isPrefixOf, isSuffixOf, sort )
 import System.Directory ( getAppUserDataDirectory, findExecutable,
                           doesFileExist, Permissions(..), getPermissions )
 import System.IO ( stdout, stderr )
@@ -88,10 +89,7 @@ copyrightMessage = intercalate "\n" [
 compileInfo :: String
 compileInfo =
   "\nCompiled with texmath " ++
-  VERSION_texmath ++ ", highlighting-kate " ++ VERSION_highlighting_kate ++
-   ".\nSyntax highlighting is supported for the following languages:\n    " ++
-       wrapWords 4 78
-       [map toLower l | l <- languages, l /= "Alert" && l /= "Alert_indent"]
+  VERSION_texmath ++ ", highlighting-kate " ++ VERSION_highlighting_kate
 
 -- | Converts a list of strings into a single string with the items printed as
 -- comma separated words in lines with a maximum line length.
@@ -157,6 +155,16 @@ externalFilter f args' d = do
  where filterException :: E.SomeException -> IO a
        filterException e = err 83 $ "Error running filter " ++ f ++ "\n" ++
                                        show e
+
+highlightingStyles :: [(String, Style)]
+highlightingStyles =
+  [("pygments", pygments),
+   ("tango", tango),
+   ("espresso", espresso),
+   ("zenburn", zenburn),
+   ("kate", kate),
+   ("monochrome", monochrome),
+   ("haddock", haddock)]
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -517,17 +525,9 @@ options =
     , Option "" ["highlight-style"]
                 (ReqArg
                  (\arg opt -> do
-                   newStyle <- case map toLower arg of
-                                     "pygments"   -> return pygments
-                                     "tango"      -> return tango
-                                     "espresso"   -> return espresso
-                                     "zenburn"    -> return zenburn
-                                     "kate"       -> return kate
-                                     "monochrome" -> return monochrome
-                                     "haddock"    -> return haddock
-                                     _            -> err 39 $
-                                         "Unknown style :" ++ arg
-                   return opt{ optHighlightStyle = newStyle })
+                   case lookup (map toLower arg) highlightingStyles of
+                         Just s -> return opt{ optHighlightStyle = s }
+                         Nothing -> err 39 $ "Unknown style: " ++ arg)
                  "STYLE")
                  "" -- "Style for highlighted code"
 
@@ -918,10 +918,55 @@ options =
                      let allopts = unwords (concatMap optnames options)
                      UTF8.hPutStrLn stdout $ printf tpl allopts
                          (unwords (map fst readers))
-                         (unwords ("pdf": map fst writers))
+                         (unwords (map fst writers))
                          ddir
                      exitSuccess ))
                  "" -- "Print bash completion script"
+
+    , Option "" ["list-input-formats"]
+                 (NoArg
+                  (\_ -> do
+                     let readers'names = sort (map fst readers)
+                     mapM_ (UTF8.hPutStrLn stdout) readers'names
+                     exitSuccess ))
+                 ""
+
+    , Option "" ["list-output-formats"]
+                 (NoArg
+                  (\_ -> do
+                     let writers'names = sort (map fst writers)
+                     mapM_ (UTF8.hPutStrLn stdout) writers'names
+                     exitSuccess ))
+                 ""
+
+    , Option "" ["list-extensions"]
+                 (NoArg
+                  (\_ -> do
+                     let showExt x = drop 4 (show x) ++
+                                       if x `Set.member` pandocExtensions
+                                          then " +"
+                                          else " -"
+                     mapM_ (UTF8.hPutStrLn stdout . showExt)
+                               ([minBound..maxBound] :: [Extension])
+                     exitSuccess ))
+                 ""
+
+    , Option "" ["list-highlight-languages"]
+                 (NoArg
+                  (\_ -> do
+                     let langs = [map toLower l | l <- languages,
+                                   l /= "Alert" && l /= "Alert_indent"]
+                     mapM_ (UTF8.hPutStrLn stdout) langs
+                     exitSuccess ))
+                 ""
+
+    , Option "" ["list-highlight-styles"]
+                 (NoArg
+                  (\_ -> do
+                     mapM_ (UTF8.hPutStrLn stdout) $
+                           map fst highlightingStyles
+                     exitSuccess ))
+                 ""
 
     , Option "v" ["version"]
                  (NoArg
@@ -961,17 +1006,7 @@ readMetaValue s = case decode (UTF8.fromString s) of
 
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String
-usageMessage programName = usageInfo
-  (programName ++ " [OPTIONS] [FILES]" ++ "\nInput formats:  " ++
-  wrapWords 16 78 readers'names ++
-     '\n' : replicate 16 ' ' ++
-     "[* only Pandoc's JSON version of native AST]" ++ "\nOutput formats: " ++
-  wrapWords 16 78 writers'names ++
-     '\n' : replicate 16 ' ' ++
-     "[** for pdf output, use latex or beamer and -o FILENAME.pdf]\nOptions:")
-  where
-    writers'names = sort $ "json*" : "pdf**" : delete "json" (map fst writers)
-    readers'names = sort $ "json*" : delete "json" (map fst readers)
+usageMessage programName = usageInfo (programName ++ " [OPTIONS] [FILES]")
 
 -- Determine default reader based on source file extensions
 defaultReaderName :: String -> [FilePath] -> String
