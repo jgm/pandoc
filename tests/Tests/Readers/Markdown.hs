@@ -7,9 +7,7 @@ import Tests.Helpers
 import Text.Pandoc.Arbitrary()
 import Text.Pandoc.Builder
 import qualified Data.Set as Set
--- import Text.Pandoc.Shared ( normalize )
 import Text.Pandoc
-import Text.Pandoc.Error
 
 markdown :: String -> Pandoc
 markdown = handleError . readMarkdown def

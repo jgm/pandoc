@@ -5,18 +5,13 @@ import Text.Pandoc.Options
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
 import Tests.Helpers
 import Test.Framework
---import Test.HUnit (assertBool)
---import Test.Framework.Providers.HUnit
 import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.Readers.Odt
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
---import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
---import Codec.Archive.Zip
-
+import Text.Pandoc.Error
 
 tests :: [Test]
 tests = testsComparingToMarkdown ++ testsComparingToNative

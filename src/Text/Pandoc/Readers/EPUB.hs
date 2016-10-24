@@ -10,8 +10,9 @@ module Text.Pandoc.Readers.EPUB
 
 import Text.XML.Light
 import Text.Pandoc.Definition hiding (Attr)
-import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Readers.HTML (readHtml)
+import Text.Pandoc.Error
+import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Options ( ReaderOptions(..), readerTrace)
 import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
 import Network.URI (unEscapeString)
@@ -34,8 +35,6 @@ import Data.Monoid ((<>))
 import Control.DeepSeq (deepseq, NFData)
 
 import Debug.Trace (trace)
-
-import Text.Pandoc.Error
 
 type Items = M.Map String (FilePath, MimeType)
 

@@ -73,7 +73,6 @@ import Control.Applicative ((<|>))
 import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
 import Paths_pandoc (getDataDir)
 import Text.Printf (printf)
-import Text.Pandoc.Error
 #ifndef _WINDOWS
 import System.Posix.Terminal (queryTerminal)
 import System.Posix.IO (stdOutput)

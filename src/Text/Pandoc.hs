@@ -37,7 +37,6 @@ inline links:
 
 > module Main where
 > import Text.Pandoc
-> import Text.Pandoc.Error (handleError)
 >
 > markdownToRST :: String -> String
 > markdownToRST =
@@ -60,6 +59,8 @@ module Text.Pandoc
                , module Text.Pandoc.Generic
                -- * Options
                , module Text.Pandoc.Options
+               -- * Error handling
+               , module Text.Pandoc.Error
                -- * Lists of readers and writers
                , readers
                , writers

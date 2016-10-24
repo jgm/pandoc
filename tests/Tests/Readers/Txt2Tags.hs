@@ -7,7 +7,6 @@ import Tests.Helpers
 import Text.Pandoc.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
-import Text.Pandoc.Error
 import Data.List (intersperse)
 import Text.Pandoc.Readers.Txt2Tags
 
