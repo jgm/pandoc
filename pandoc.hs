@@ -611,7 +611,7 @@ options =
     , Option "" ["chapters"]
                  (NoArg
                   (\opt -> do warn $ "--chapters is deprecated. " ++
-                                     "Use --top-level-divison=chapter instead."
+                                     "Use --top-level-division=chapter instead."
                               return opt { optTopLevelDivision = Chapter }))
                  "" -- "Use chapter for top-level sections in LaTeX, DocBook"
 
