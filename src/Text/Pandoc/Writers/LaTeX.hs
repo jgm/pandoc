@@ -43,7 +43,7 @@ import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse,
                    nub, nubBy, foldl' )
 import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit,
                    ord, isAlphaNum )
-import Data.Maybe ( fromMaybe, isJust, catMaybes )
+import Data.Maybe ( fromMaybe, isJust, catMaybes, isNothing )
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
 import Control.Monad.State
@@ -411,7 +411,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
-blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = do
+blockToLaTeX (Para [Image attr@(ident, _, attrs) txt (src,'f':'i':'g':':':tit)]) = do
   inNote <- gets stInNote
   modify $ \st -> st{ stInMinipage = True, stNotes = [] }
   capt <- inlineListToLaTeX txt
@@ -426,8 +426,12 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = d
   let footnotes = notesToLaTeX notes
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
+  let maybePos =  (lookup "pandoc-pos" attrs) >>= imagePos
+  let opts = if isNothing maybePos
+               then ""
+               else brackets $ toPosition $ maybePos
   figure <- hypertarget ident (cr <>
-            "\\begin{figure}" $$ "\\centering" $$ img $$
+            "\\begin{figure}" <> opts $$ "\\centering" $$ img $$
             caption $$ "\\end{figure}" <> cr)
   return $ if inNote
               -- can't have figures in notes
@@ -1338,3 +1342,8 @@ pDocumentClass =
        else do P.skipMany (P.satisfy (/='{'))
                P.char '{'
                P.manyTill P.letter (P.char '}')
+
+toPosition :: Maybe ImagePos -> Doc
+toPosition ( Just Here ) = text "h"
+toPosition ( Just Page ) = text "p"
+toPosition _             = text ""

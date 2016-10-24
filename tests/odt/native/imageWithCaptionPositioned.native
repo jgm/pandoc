@@ -1,0 +1,1 @@
+[Para [Str "Text",Space,Str "before"],Para [Image ("",[],[("pandoc-pos","here"),("width","2.0835in"),("height","2.0835in")]) [Str "Abbildung",Space,Str "1:",Space,Str "Image",Space,Str "caption"] ("Pictures/10000000000000FA000000FAD6A15225.jpg","fig:")],Para [Str "Text",Space,Str "after"],Para []]
