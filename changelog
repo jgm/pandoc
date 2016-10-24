@@ -62,6 +62,8 @@ pandoc (1.17.3)
     different set of escapable symbols than original Markdown;
     it includes angle brackets.
 
+  * Export `Text.Pandoc.Error` in `Text.Pandoc`.
+
   * `Text.Pandoc.Options`:
 
     + `Extension` has new constructors `Ext_brackted_spans` and
