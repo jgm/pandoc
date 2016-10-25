@@ -2,7 +2,6 @@
 dist/*
 MANUAL.*
 !MANUAL.txt
-INSTALL.*
 .configure-stamp
 .cabal-sandbox
 cabal.sandbox.config
