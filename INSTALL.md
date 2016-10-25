@@ -178,9 +178,6 @@ The easiest way to build pandoc from source is to use [stack]:
 
     The `pandoc-citeproc.1` man page will also be installed automatically.
 
-[GHC]: http://www.haskell.org/ghc/
-[Haskell platform]: http://hackage.haskell.org/platform/
-[cabal-install]: http://hackage.haskell.org/trac/hackage/wiki/CabalInstall
 
 ### Custom cabal method
 
@@ -338,4 +335,5 @@ install --test --stack-yaml stack.full.yaml`.
 [openSUSE]: https://software.opensuse.org/package/pandoc
 [source tarball]: http://hackage.haskell.org/package/pandoc
 [stack]: http://docs.haskellstack.org/en/stable/install_and_upgrade.html
+[cabal-install]: http://hackage.haskell.org/trac/hackage/wiki/CabalInstall
 [uninstaller]: https://raw.githubusercontent.com/jgm/pandoc/master/osx/uninstall-pandoc.pl
