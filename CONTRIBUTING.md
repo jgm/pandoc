@@ -124,7 +124,7 @@ Please follow these guidelines:
     below under [Tests](#tests).)  If you are adding a new writer or reader,
     you must include tests.
 
-7.  If you are adding a new feature, include updates to the README and MANUAL.
+7.  If you are adding a new feature, include updates to MANUAL.txt.
 
 8.  All code must be released under the general license governing pandoc
     (GPL v2).
@@ -152,7 +152,7 @@ Tests can be run as follows:
 
 or, if you're using [stack],
 
-    stack init
+    stack setup
     stack test
 
 The test program is `tests/test-pandoc.hs`.
