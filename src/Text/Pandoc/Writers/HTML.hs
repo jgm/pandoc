@@ -278,15 +278,13 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
   let slide = writerSlideVariant opts /= NoSlides && level <= slideLevel
   let num' = zipWith (+) num (writerNumberOffset opts ++ repeat 0)
   modify $ \st -> st{stSecNum = num'}  -- update section number
-  -- always use level 1 for slide titles
-  let level' = if slide then 1 else level
   let titleSlide = slide && level < slideLevel
   header' <- if title' == [Str "\0"]  -- marker for hrule
                 then return mempty
                 else do
                   modify (\st -> st{ stElement = True})
                   res <- blockToHtml opts
-                           (Header level' (id',classes,keyvals) title')
+                           (Header level (id',classes,keyvals) title')
                   modify (\st -> st{ stElement = False})
                   return res
 
