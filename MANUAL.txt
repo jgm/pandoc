@@ -1237,6 +1237,14 @@ including all [reveal.js configuration options].
 :   when true, the `beamerarticle` package is loaded (for
     producing an article from beamer slides).
 
+`colorlinks`
+:   add color to link text; automatically enabled if any of `linkcolor`, `citecolor`,
+    `urlcolor`, or `toccolor` are set (for beamer only).
+
+`linkcolor`, `citecolor`, `urlcolor`, `toccolor`
+:   color for internal links, citation links, external links, and links in table
+    of contents: uses any of the [predefined LaTeX colors] (for beamer only).
+
 [reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
 Variables for LaTeX
