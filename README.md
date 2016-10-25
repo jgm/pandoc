@@ -112,12 +112,19 @@ Markdown can be expected to be lossy.
 [Markdown inside HTML block elements]: http://pandoc.org/MANUAL.html#extension-markdown_in_html_blocks
 [Pandoc's Markdown]: http://pandoc.org/MANUAL.html#pandocs-markdown
 
+Installing
+----------
+
+Here's [how to install pandoc](INSTALL.md).
+
 Documentation
 -------------
 
-The full documentation can be found [online](http://pandoc.org/MANUAL.html)
-and as pandoc-flavored Markdown in the file `MANUAL.txt`.
-
+Pandoc's website contains a full [User's Guide](https://pandoc.org/MANUAL.html).
+It is also available [here](MANUAL.txt) as pandoc-flavored Markdown.
+The website also contains some [examples of the use of
+pandoc](https://pandoc.org/demos.html) and a limited [online
+demo](https://pandoc.org/try).
 
 Contributing
 ------------
