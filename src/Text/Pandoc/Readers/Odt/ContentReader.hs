@@ -44,7 +44,7 @@ import           Control.Applicative    hiding ( liftA, liftA2, liftA3 )
 
 import qualified Data.ByteString.Lazy   as B
 import qualified Data.Map               as M
-import           Data.List                     ( find )
+import           Data.List                     ( find, intercalate )
 import           Data.Maybe
 
 import qualified Text.XML.Light         as XML
@@ -263,8 +263,13 @@ getHeaderAnchor = proc title -> do
 --------------------------------------------------------------------------------
 
 --
-readStyleByName :: OdtReader _x Style
-readStyleByName = findAttr NsText "style-name" >>? getStyleByName
+readStyleByName :: OdtReader _x (StyleName, Style)
+readStyleByName =
+  findAttr NsText "style-name" >>? keepingTheValue getStyleByName >>^ liftE
+  where
+    liftE :: (StyleName, Fallible Style) -> Fallible (StyleName, Style)
+    liftE (name, Right v) = Right (name, v)
+    liftE (_, Left v)     = Left v
 
 --
 isStyleToTrace :: OdtReader Style Bool
@@ -275,7 +280,10 @@ withNewStyle :: OdtReaderSafe x Inlines -> OdtReaderSafe x Inlines
 withNewStyle a = proc x -> do
   fStyle <- readStyleByName -< ()
   case fStyle of
-    Right style -> do
+    Right (styleName, _) | isCodeStyle styleName -> do
+      inlines <- a -< x
+      arr inlineCode -<< inlines
+    Right (_, style) -> do
       mFamily    <- arr styleFamily -< style
       fTextProps <- arr ( maybeToChoice
                         . textProperties
@@ -301,7 +309,13 @@ withNewStyle a = proc x -> do
             Left _ -> a -< x
         Left _     -> a -< x
     Left _         -> a -< x
+  where
+    isCodeStyle :: StyleName -> Bool
+    isCodeStyle "Source_Text" = True
+    isCodeStyle _              = False
 
+    inlineCode :: Inlines -> Inlines
+    inlineCode = code . intercalate "" . map stringify . toList
 
 type PropertyTriple = (ReaderState, TextProperties, Maybe StyleFamily)
 type InlineModifier = Inlines -> Inlines
@@ -327,7 +341,7 @@ modifierFromStyleDiff propertyTriple  =
         let getVPos = Just . verticalPosition
         in  case lookupPreviousValueM getVPos triple of
               Nothing      -> ignore
-              Just oldVPos -> getVPosModifier' (oldVPos,verticalPosition textProps)
+              Just oldVPos -> getVPosModifier' (oldVPos, verticalPosition textProps)
 
     getVPosModifier' (oldVPos , newVPos   ) | oldVPos == newVPos = ignore
     getVPosModifier' ( _      , VPosSub   )                      = subscript
@@ -401,7 +415,7 @@ constructPara reader = proc blocks -> do
   fStyle <- readStyleByName -< blocks
   case fStyle of
     Left   _    -> reader -< blocks
-    Right style -> do
+    Right (_, style) -> do
       let modifier = getParaModifier style
       blocks' <- reader -< blocks
       arr modifier -<< blocks'
