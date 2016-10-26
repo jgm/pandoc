@@ -91,7 +91,7 @@ copyrightMessage = intercalate "\n" [
 
 compileInfo :: String
 compileInfo =
-  "\nCompiled with texmath " ++
+  "\nCompiled with pandoc-types " ++ VERSION_pandoc_types ++ ", texmath " ++
   VERSION_texmath ++ ", highlighting-kate " ++ VERSION_highlighting_kate
 
 -- | Converts a list of strings into a single string with the items printed as
