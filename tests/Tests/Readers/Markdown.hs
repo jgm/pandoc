@@ -34,7 +34,10 @@ testBareLink (inp, ils) =
        inp (inp, doc $ para ils)
 
 autolink :: String -> Inlines
-autolink s = link s "" (str s)
+autolink = autolinkWith nullAttr
+
+autolinkWith :: Attr -> String -> Inlines
+autolinkWith attr s = linkWith attr s "" (str s)
 
 bareLinkTests :: [(String, Inlines)]
 bareLinkTests =
@@ -217,6 +220,12 @@ tests = [ testGroup "inline code"
           , "a partial URL (#2277)" =:
             "<www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>" =?>
             para (text "<www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>")
+          , "with some attributes" =:
+            "<http://foo.bar>{#i .j .z k=v}" =?>
+            para (autolinkWith ("i", ["j", "z"], [("k", "v")]) "http://foo.bar")
+          , "with some attributes and spaces" =:
+            "<http://foo.bar> {#i .j .z k=v}" =?>
+            para (autolink "http://foo.bar" <> space <> text "{#i .j .z k=v}")
           ]
         , testGroup "links"
           [ "no autolink inside link" =:
