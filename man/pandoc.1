@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "September 26, 2016" "pandoc 1.17.3"
+.TH PANDOC 1 "October 26, 2016" "pandoc 1.18"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -28,8 +28,8 @@ tables, flexible ordered lists, definition lists, fenced code blocks,
 superscripts and subscripts, strikeout, metadata blocks, automatic
 tables of contents, embedded LaTeX math, citations, and Markdown inside
 HTML block elements.
-(These enhancements, described below under Pandoc\[aq]s Markdown, can be
-disabled using the \f[C]markdown_strict\f[] input or output format.)
+(These enhancements, described further under Pandoc\[aq]s Markdown, can
+be disabled using the \f[C]markdown_strict\f[] input or output format.)
 .PP
 In contrast to most existing tools for converting Markdown to HTML,
 which use regex substitutions, pandoc has a modular design: it consists
@@ -231,6 +231,8 @@ strict Markdown with footnotes and definition lists enabled, and
 without pipe tables and with hard line breaks.
 See Pandoc\[aq]s Markdown, below, for a list of extensions and their
 names.
+See \f[C]\-\-list\-input\-formats\f[] and \f[C]\-\-list\-extensions\f[],
+below.
 .RS
 .RE
 .TP
@@ -271,6 +273,8 @@ support, below.
 Markdown syntax extensions can be individually enabled or disabled by
 appending \f[C]+EXTENSION\f[] or \f[C]\-EXTENSION\f[] to the format
 name, as described above under \f[C]\-f\f[].
+See \f[C]\-\-list\-output\-formats\f[] and
+\f[C]\-\-list\-extensions\f[], below.
 .RS
 .RE
 .TP
@@ -335,6 +339,34 @@ To enable bash completion with pandoc, add this to your
 .B \f[C]\-\-verbose\f[]
 Give verbose debugging output.
 Currently this only has an effect with PDF output.
+.RS
+.RE
+.TP
+.B \f[C]\-\-list\-input\-formats\f[]
+List supported input formats, one per line.
+.RS
+.RE
+.TP
+.B \f[C]\-\-list\-output\-formats\f[]
+List supported output formats, one per line.
+.RS
+.RE
+.TP
+.B \f[C]\-\-list\-extensions\f[]
+List supported Markdown extensions, one per line, followed by a
+\f[C]+\f[] or \f[C]\-\f[] indicating whether it is enabled by default in
+pandoc\[aq]s Markdown.
+.RS
+.RE
+.TP
+.B \f[C]\-\-list\-highlight\-languages\f[]
+List supported languages for syntax highlighting, one per line.
+.RS
+.RE
+.TP
+.B \f[C]\-\-list\-highlight\-styles\f[]
+List supported styles for syntax highlighting, one per line.
+See \f[C]\-\-highlight\-style\f[].
 .RS
 .RE
 .TP
@@ -448,11 +480,19 @@ Those who would prefer to write filters in python can use the module
 There are also pandoc filter libraries in PHP, perl, and
 javascript/node.js.
 .PP
-Note that the \f[I]EXECUTABLE\f[] will be sought in the user\[aq]s
-\f[C]PATH\f[], and not in the working directory, if no directory is
-provided.
+If no directory is provided pandoc will look for executable or
+non\-executable filters in the director \f[C]$DATADIR/filters\f[], and
+then for executable filters in the user\[aq]s \f[C]PATH\f[].
 If you want to run a script in the working directory, preface the
 filename with \f[C]\&./\f[].
+.PP
+In order of preference, pandoc will look for filters in
+.IP "1." 3
+a specified full or relative path (executable or non\-executable)
+.IP "2." 3
+\f[C]$DATADIR/filters\f[] (executable or non\-executable)
+.IP "3." 3
+\f[C]$PATH\f[] (executable only)
 .RE
 .TP
 .B \f[C]\-M\f[] \f[I]KEY\f[][\f[C]=\f[]\f[I]VAL\f[]], \f[C]\-\-metadata=\f[]\f[I]KEY\f[][\f[C]:\f[]\f[I]VAL\f[]]
@@ -571,7 +611,7 @@ Technically, the correct term would be ppi (pixels per inch).
 .RS
 .RE
 .TP
-.B \f[C]\-\-wrap=[auto|none|preserve]\f[]
+.B \f[C]\-\-wrap=auto\f[]|\f[C]none\f[]|\f[C]preserve\f[]
 Determine how text is wrapped in the output (the source code, not the
 rendered version).
 With \f[C]auto\f[] (the default), pandoc will attempt to wrap lines to
@@ -629,6 +669,7 @@ Options are \f[C]pygments\f[] (the default), \f[C]kate\f[],
 \f[C]haddock\f[], and \f[C]tango\f[].
 For more information on syntax highlighting in pandoc, see Syntax
 highlighting, below.
+See also \f[C]\-\-list\-highlight\-styles\f[].
 .RS
 .RE
 .TP
@@ -706,6 +747,17 @@ instead of UTF\-8 when this option is selected).
 Use reference\-style links, rather than inline links, in writing
 Markdown or reStructuredText.
 By default inline links are used.
+The placement of link references is affected by the
+\f[C]\-\-reference\-location\f[] option.
+.RS
+.RE
+.TP
+.B \f[C]\-\-reference\-location\ =\ block\f[]|\f[C]section\f[]|\f[C]document\f[]
+Specify whether footnotes (and references, if \f[C]reference\-links\f[]
+is set) are placed at the end of the current (top\-level) block, the
+current section, or the document.
+The default is \f[C]document\f[].
+Currently only affects the markdown writer.
 .RS
 .RE
 .TP
@@ -717,13 +769,23 @@ ATX headers.
 .RE
 .TP
 .B \f[C]\-\-chapters\f[]
-Treat top\-level headers as chapters in LaTeX, ConTeXt, and DocBook
-output.
+Deprecated synonym for \f[C]\-\-top\-level\-division=chapter\f[].
+.RS
+.RE
+.TP
+.B \f[C]\-\-top\-level\-division=[section|chapter|part]\f[]
+Treat top\-level headers as the given division type in LaTeX, ConTeXt,
+DocBook, and TEI output.
+The hierarchy order is part, chapter, then section; all headers are
+shifted such that the top\-level header becomes the specified type.
+The default is \f[C]section\f[].
 When the LaTeX document class is set to \f[C]report\f[], \f[C]book\f[],
 or \f[C]memoir\f[] (unless the \f[C]article\f[] option is specified),
-this option is implied.
-If \f[C]beamer\f[] is the output format, top\-level headers will become
-\f[C]\\part{..}\f[].
+\f[C]chapter\f[] is implied as the setting for this option.
+If \f[C]beamer\f[] is the output format, specifying either
+\f[C]chapter\f[] or \f[C]part\f[] will cause top\-level headers to
+become \f[C]\\part{..}\f[], while second\-level headers remain as their
+default type.
 .RS
 .RE
 .TP
@@ -1094,7 +1156,8 @@ to images.
 The formula will be concatenated with the URL provided.
 If \f[I]URL\f[] is not specified, the CodeCogs will be used.
 Note: the \f[C]\-\-webtex\f[] option will affect Markdown output as well
-as HTML.
+as HTML, which is useful if you\[aq]re targeting a version of Markdown
+without native math support.
 .RS
 .RE
 .TP
@@ -1377,6 +1440,20 @@ when true, the \f[C]beamerarticle\f[] package is loaded (for producing
 an article from beamer slides).
 .RS
 .RE
+.TP
+.B \f[C]colorlinks\f[]
+add color to link text; automatically enabled if any of
+\f[C]linkcolor\f[], \f[C]citecolor\f[], \f[C]urlcolor\f[], or
+\f[C]toccolor\f[] are set (for beamer only).
+.RS
+.RE
+.TP
+.B \f[C]linkcolor\f[], \f[C]citecolor\f[], \f[C]urlcolor\f[], \f[C]toccolor\f[]
+color for internal links, citation links, external links, and links in
+table of contents: uses any of the predefined LaTeX colors (for beamer
+only).
+.RS
+.RE
 .SS Variables for LaTeX
 .PP
 LaTeX variables are used when creating a PDF.
@@ -1527,6 +1604,12 @@ bibliography to use for resolving references
 .TP
 .B \f[C]biblio\-style\f[]
 bibliography style, when used with \f[C]\-\-natbib\f[] and
+\f[C]\-\-biblatex\f[].
+.RS
+.RE
+.TP
+.B \f[C]biblio\-title\f[]
+bibliography title, when used with \f[C]\-\-natbib\f[] and
 \f[C]\-\-biblatex\f[].
 .RS
 .RE
@@ -3376,8 +3459,8 @@ It will be rendered using OMML math markup.
 .TP
 .B FictionBook2
 If the \f[C]\-\-webtex\f[] option is used, formulas are rendered as
-images using CodeCogs or other compatible web service, downloaded
-and embedded in the e\-book.
+images using CodeCogs or other compatible web service, downloaded and
+embedded in the e\-book.
 Otherwise, they will appear verbatim.
 .RS
 .RE
@@ -3815,6 +3898,18 @@ identifier (LaTeX \f[C]\\caption\f[]), or both (HTML).
 When no \f[C]width\f[] or \f[C]height\f[] attributes are specified, the
 fallback is to look at the image resolution and the dpi metadata
 embedded in the image file.
+.SS Spans
+.SS Extension: \f[C]bracketed_spans\f[]
+.PP
+A bracketed sequence of inlines, as one would use to begin a link, will
+be treated as a span with attributes if it is followed immediately by
+attributes:
+.IP
+.nf
+\f[C]
+[This\ is\ *some\ text*]{.class\ key="val"}
+\f[]
+.fi
 .SS Footnotes
 .SS Extension: \f[C]footnotes\f[]
 .PP
@@ -4158,6 +4253,11 @@ pandoc, but may be enabled by adding \f[C]+EXTENSION\f[] to the format
 name, where \f[C]EXTENSION\f[] is the name of the extension.
 Thus, for example, \f[C]markdown+hard_line_breaks\f[] is Markdown with
 hard line breaks.
+.SS Extension: \f[C]angle_brackets_escapable\f[]
+.PP
+Allow \f[C]<\f[] and \f[C]>\f[] to be backslash\-escaped, as they can be
+in GitHub flavored Markdown but not original Markdown.
+This is implied by pandoc\[aq]s default \f[C]all_symbols_escapable\f[].
 .SS Extension: \f[C]lists_without_preceding_blankline\f[]
 .PP
 Allow a list to occur right after a paragraph, with no intervening blank
@@ -4297,15 +4397,15 @@ variants are supported:
 \f[C]backtick_code_blocks\f[], \f[C]autolink_bare_uris\f[],
 \f[C]intraword_underscores\f[], \f[C]strikeout\f[],
 \f[C]hard_line_breaks\f[], \f[C]emoji\f[],
-\f[C]shortcut_reference_links\f[].
+\f[C]shortcut_reference_links\f[], \f[C]angle_brackets_escapable\f[].
 .RS
 .RE
 .TP
 .B \f[C]markdown_mmd\f[] (MultiMarkdown)
 \f[C]pipe_tables\f[], \f[C]raw_html\f[], \f[C]markdown_attribute\f[],
-\f[C]mmd_link_attributes\f[],
-\f[C]tex_math_double_backslash\f[], \f[C]intraword_underscores\f[],
-\f[C]mmd_title_block\f[], \f[C]footnotes\f[], \f[C]definition_lists\f[],
+\f[C]mmd_link_attributes\f[], \f[C]tex_math_double_backslash\f[],
+\f[C]intraword_underscores\f[], \f[C]mmd_title_block\f[],
+\f[C]footnotes\f[], \f[C]definition_lists\f[],
 \f[C]all_symbols_escapable\f[], \f[C]implicit_header_references\f[],
 \f[C]auto_identifiers\f[], \f[C]mmd_header_identifiers\f[],
 \f[C]shortcut_reference_links\f[].
@@ -4880,7 +4980,7 @@ pandoc\ \-\-print\-default\-data\-file\ sample.lua
 .fi
 .SH AUTHORS
 .PP
-© 2006\-2015 John MacFarlane (jgm\@berkeley.edu).
+© 2006\-2016 John MacFarlane (jgm\@berkeley.edu).
 Released under the GPL, version 2 or greater.
 This software carries no warranty of any kind.
 (See COPYRIGHT for full copyright and warranty notices.)
