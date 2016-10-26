@@ -1,4 +1,4 @@
-pandoc (1.17.3)
+pandoc (1.18)
 
   * Added `--list-input-formats`, `--list-output-formats`,
     `--list-extensions`, `--list-highlight-languages`, and
