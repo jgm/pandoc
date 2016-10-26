@@ -16,8 +16,10 @@ ghc-options:
   highlighting-kate: '-pgmP cpphs -optP--cpp'
 packages:
 - '..'
+- location:
+    git: https://github.com/jgm/pandoc-citeproc.git
+    commit: 1fb0ac09952ea69dac528652165d9d65313b77d4
 extra-deps:
 - doctemplates-0.1.0.2
 - pandoc-types-1.17.0.4
-- pandoc-citeproc-0.10.2.1
 resolver: lts-7.5
