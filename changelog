@@ -62,7 +62,9 @@ pandoc (1.18)
     different set of escapable symbols than original Markdown;
     it includes angle brackets.
 
-  * Export `Text.Pandoc.Error` in `Text.Pandoc`.
+  * Export `Text.Pandoc.Error` in `Text.Pandoc` [API change].
+
+  * Print highlighting-kate version in `--version`.
 
   * `Text.Pandoc.Options`:
 
@@ -119,6 +121,7 @@ pandoc (1.18)
   * Markdown reader:
 
     + Allow empty lines when parsing line blocks (Albert Krewinkel).
+    + Allow attributes on autolinks (#3183, Daniele D'Orazio).
 
   * LaTeX reader:
 
@@ -338,6 +341,7 @@ pandoc (1.18)
       slides.  (Carsten Gips)
     + Added support for `fontfamilies` structured variable
       (Artem Klevtsov).
+    + Added hypersetup options (Jake Zimmerman).
 
   * LaTeX template:
 
@@ -450,13 +454,15 @@ pandoc (1.17.2)
           wrapped in a `#+BEGIN`...`#+END` block.
         - The old behavior for Divs with more complex attributes is kept.
 
-  * HTML writer:  Better support for raw LaTeX environments (#2758).
-    Previously we just passed all raw TeX through when MathJax
-    was used for HTML math.  This passed through too much.
-    With this patch, only raw LaTeX environments that MathJax
-    can handle get passed through.
-    This patch also causes raw LaTeX environments to be treated
-    as math, when possible, with MathML and WebTeX output.
+  * HTML writer:
+
+    + Better support for raw LaTeX environments (#2758).
+      Previously we just passed all raw TeX through when MathJax was used for
+      HTML math.  This passed through too much.  With this patch, only raw
+      LaTeX environments that MathJax can handle get passed through.
+      This patch also causes raw LaTeX environments to be treated
+      as math, when possible, with MathML and WebTeX output.
+    + In slide shows, don't change slide title to level 1 header (#2221).
 
   * Markdown writer:  use raw HTML for simple, pipe tables with linebreaks
     (#2993).  Markdown line breaks involve a newline, and simple and pipe
@@ -666,6 +672,9 @@ pandoc (1.17.2)
   * Removed some redundant class constraints.
 
   * make_oxs_package.sh - use OSX env variable.
+
+  * Replaced INSTALL with INSTALL.md, incorporating INSTALL and the
+    old installing page from website.
 
   * Added `winpkg` target to Makefile.  This downloads the windows package
     from appveyor and signs it using the key.
