@@ -392,7 +392,7 @@ inlineToOpenDocument o ils
     Subscript   l -> withTextStyle Sub    $ inlinesToOpenDocument o l
     SmallCaps   l -> withTextStyle SmallC $ inlinesToOpenDocument o l
     Quoted    t l -> inQuotes t <$> inlinesToOpenDocument o l
-    Code      _ s -> withTextStyle Pre $ inTextStyle $ preformatted s
+    Code      _ s -> inlinedCode $ preformatted s
     Math      t s -> inlinesToOpenDocument o (texMathToInlines t s)
     Cite      _ l -> inlinesToOpenDocument o l
     RawInline f s -> if f == Format "opendocument"
@@ -403,6 +403,7 @@ inlineToOpenDocument o ils
     Note        l  -> mkNote l
     where
       preformatted s = handleSpaces $ escapeStringForXML s
+      inlinedCode s = return $ inTags False "text:span" [("text:style-name", "Source_Text")] s
       mkLink   s t = inTags False "text:a" [ ("xlink:type" , "simple")
                                            , ("xlink:href" , s       )
                                            , ("office:name", t       )

@@ -237,6 +237,13 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.2">
       style:font-name-complex="Courier New"
       style:font-size-complex="10pt" />
     </style:style>
+    <style:style style:name="Source_Text" style:family="text">
+      <style:text-properties style:font-name="Courier New"
+      fo:font-size="10pt" style:font-name-asian="Courier New"
+      style:font-size-asian="10pt"
+      style:font-name-complex="Courier New"
+      style:font-size-complex="10pt" />
+    </style:style>
     <style:style style:name="Definition_20_Term"
     style:display-name="Definition Term" style:family="paragraph"
     style:parent-style-name="Standard"
@@ -381,6 +388,7 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.2">
       style:font-name-asian="Courier New"
       style:font-name-complex="Courier New" />
     </style:style>
+
     <style:style style:name="Internet_20_link"
     style:display-name="Internet link" style:family="text">
       <style:text-properties fo:color="#000080"
