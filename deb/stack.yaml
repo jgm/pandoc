@@ -15,7 +15,7 @@ packages:
 - '..'
 - location:
     git: https://github.com/jgm/pandoc-citeproc.git
-    commit: 1fb0ac09952ea69dac528652165d9d65313b77d4
+    commit: 11308615a5b7adb76ba511c1b701fadf6186d0b1
 extra-deps:
 - doctemplates-0.1.0.2
 - pandoc-types-1.17.0.4
