@@ -38,6 +38,7 @@ import Text.Pandoc.Builder (setMeta, fromList)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
+import Text.Pandoc.YAML (yamlMetaBlock)
 import Control.Monad ( when, liftM, guard, mzero )
 import Data.List ( findIndex, intercalate,
                    transpose, sort, deleteFirstsBy, isSuffixOf , nub, union)
@@ -141,8 +142,14 @@ metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
                                                 factorSemi (Str ys)
        factorSemi x                   = [x]
 
+rstYamlMetaBlock :: RSTParser ()
+rstYamlMetaBlock = try $ do
+  meta' <- yamlMetaBlock readRST
+  updateState $ \st -> st{ stateMeta = stateMeta st <> meta' }
+
 parseRST :: RSTParser Pandoc
 parseRST = do
+  optional rstYamlMetaBlock
   optional blanklines -- skip blank lines at beginning of file
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes

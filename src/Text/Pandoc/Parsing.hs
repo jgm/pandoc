@@ -78,6 +78,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              HasIdentifierList (..),
                              HasMacros (..),
                              HasLastStrPosition (..),
+                             HasWarnings (..),
                              defaultParserState,
                              HeaderType (..),
                              ParserContext (..),
@@ -1008,6 +1009,14 @@ instance HasLastStrPosition ParserState where
   setLastStrPos pos st = st{ stateLastStrPos = Just pos }
   getLastStrPos st     = stateLastStrPos st
 
+class HasWarnings st where
+  getWarnings :: st -> [String]
+  setWarnings :: [String] -> st -> st
+
+instance HasWarnings ParserState where
+  getWarnings = stateWarnings
+  setWarnings ws st = st { stateWarnings = ws }
+
 defaultParserState :: ParserState
 defaultParserState =
     ParserState { stateOptions         = def,
@@ -1273,11 +1282,12 @@ applyMacros' target = do
      else return target
 
 -- | Append a warning to the log.
-addWarning :: Maybe SourcePos -> String -> Parser [Char] ParserState ()
+addWarning :: (HasWarnings st, Stream [Char] m Char)
+           => Maybe SourcePos -> String -> ParserT [Char] st m ()
 addWarning mbpos msg =
-  updateState $ \st -> st{
-    stateWarnings = (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) :
-                     stateWarnings st }
+  updateState $ \st -> (flip setWarnings) st $
+    (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) : getWarnings st
+
 infixr 5 <+?>
 (<+?>) :: (Monoid a) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
 a <+?> b = a >>= flip fmap (try b <|> return mempty) . (<>)

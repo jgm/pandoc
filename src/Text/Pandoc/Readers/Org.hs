@@ -27,15 +27,19 @@ Conversion of org-mode formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Org ( readOrg ) where
 
-import           Text.Pandoc.Readers.Org.Blocks ( blockList, meta )
-import           Text.Pandoc.Readers.Org.Parsing ( OrgParser, readWithM )
-import           Text.Pandoc.Readers.Org.ParserState ( optionsToParserState )
+import Text.Pandoc.Readers.Org.Blocks ( blockList, meta )
+import Text.Pandoc.Readers.Org.Parsing ( OrgParser, optional, readWithM, try
+                                       , updateState )
+import Text.Pandoc.Readers.Org.ParserState ( OrgParserState ( orgStateMeta )
+                                           , optionsToParserState )
 
-import           Text.Pandoc.Definition
-import           Text.Pandoc.Error
-import           Text.Pandoc.Options
+import Text.Pandoc.Definition
+import Text.Pandoc.Error
+import Text.Pandoc.Options
+import Text.Pandoc.YAML ( yamlMetaBlock )
 
-import           Control.Monad.Reader ( runReader )
+import Data.Monoid ( (<>) )
+import Control.Monad.Reader ( runReader )
 
 
 -- | Parse org-mode string and return a Pandoc document.
@@ -43,13 +47,24 @@ readOrg :: ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
         -> Either PandocError Pandoc
 readOrg opts s = flip runReader def $
-                 readWithM parseOrg (optionsToParserState opts) (s ++ "\n\n")
+  readWithM parseOrg
+            (optionsToParserState opts)
+            (s ++ "\n\n")
 
 --
 -- Parser
 --
 parseOrg :: OrgParser Pandoc
 parseOrg = do
+  optional orgYamlMetaBlock
   blocks' <- blockList
   meta'   <- meta
   return $ Pandoc meta' blocks'
+
+--
+-- YAML Block
+--
+orgYamlMetaBlock :: OrgParser ()
+orgYamlMetaBlock = try $ do
+  meta' <- yamlMetaBlock readOrg
+  updateState $ \st -> st{ orgStateMeta = orgStateMeta st <> (return meta') }

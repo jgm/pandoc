@@ -412,6 +412,7 @@ Library
                    Text.Pandoc.Emoji,
                    Text.Pandoc.Parsing,
                    Text.Pandoc.UUID,
+                   Text.Pandoc.YAML,
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Slides,
                    Text.Pandoc.Highlighting,
