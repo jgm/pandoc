@@ -2719,6 +2719,10 @@ To write small caps, you can use an HTML span tag:
 (The semicolon is optional and there may be space after the
 colon.) This will work in all output formats that support small caps.
 
+Alternatively, you can also use the new `bracketed_spans` syntax:
+
+    [Small caps]{style="font-variant:small-caps;"}
+
 Math
 ----
 
