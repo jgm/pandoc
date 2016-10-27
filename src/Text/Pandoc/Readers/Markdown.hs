@@ -1758,7 +1758,13 @@ bracketedSpan = try $ do
   guardEnabled Ext_bracketed_spans
   (lab,_) <- reference
   attr <- attributes
-  return $ B.spanWith attr <$> lab
+  let (_,_,keyvals) = attr
+  case lookup "style" keyvals of
+       Just s | 
+            map toLower (filter (`notElem` " \t;") s) ==
+                 "font-variant:small-caps"
+         -> return $ B.smallcaps <$> lab
+       _ -> return $ B.spanWith attr <$> lab
 
 regLink :: (Attr -> String -> String -> Inlines -> Inlines)
         -> F Inlines -> MarkdownParser (F Inlines)
