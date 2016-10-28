@@ -1758,9 +1758,9 @@ bracketedSpan = try $ do
   guardEnabled Ext_bracketed_spans
   (lab,_) <- reference
   attr <- attributes
-  let (_,_,keyvals) = attr
+  let (ident,classes,keyvals) = attr
   case lookup "style" keyvals of
-       Just s | 
+       Just s | null ident && null classes &&
             map toLower (filter (`notElem` " \t;") s) ==
                  "font-variant:small-caps"
          -> return $ B.smallcaps <$> lab
