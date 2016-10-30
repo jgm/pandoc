@@ -205,6 +205,7 @@ data ExportSettings = ExportSettings
   , exportWithAuthor      :: Bool -- ^ Include author in final meta-data
   , exportWithCreator     :: Bool -- ^ Include creator in final meta-data
   , exportWithEmail       :: Bool -- ^ Include email in final meta-data
+  , exportWithTodoKeywords :: Bool -- ^ Keep TODO keywords in headers
   }
 
 instance Default ExportSettings where
@@ -222,6 +223,7 @@ defaultExportSettings = ExportSettings
   , exportWithAuthor = True
   , exportWithCreator = True
   , exportWithEmail = True
+  , exportWithTodoKeywords = True
   }
 
 

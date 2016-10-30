@@ -685,6 +685,12 @@ tests =
                       , "#+email: no-mail-please@example.com"
                       ] =?>
               Pandoc nullMeta mempty
+
+          , "disable inclusion of todo keywords" =:
+              unlines [ "#+OPTIONS: todo:nil"
+                      , "** DONE todo export"
+                      ] =?>
+              headerWith ("todo-export", [], []) 2 "todo export"
           ]
       ]
 

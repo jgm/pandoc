@@ -77,7 +77,7 @@ exportSetting = choice
   , ignoredSetting "timestamp"
   , ignoredSetting "title"
   , ignoredSetting "toc"
-  , ignoredSetting "todo"
+  , booleanSetting "todo" (\val es -> es { exportWithTodoKeywords = val })
   , ignoredSetting "|"
   ] <?> "export setting"
 
