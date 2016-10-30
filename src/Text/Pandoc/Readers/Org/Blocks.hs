@@ -90,6 +90,7 @@ type Properties = [(PropertyKey, PropertyValue)]
 -- | Org mode headline (i.e. a document subtree).
 data Headline = Headline
   { headlineLevel      :: Int
+  , headlineTodoMarker :: Maybe TodoMarker
   , headlineText       :: Inlines
   , headlineTags       :: [Tag]
   , headlineProperties :: Properties
@@ -107,6 +108,7 @@ headline :: Int -> OrgParser (F Headline)
 headline lvl = try $ do
   level <- headerStart
   guard (lvl <= level)
+  todoKw <- optionMaybe todoKeyword
   title <- trimInlinesF . mconcat <$> manyTill inline endOfTitle
   tags  <- option [] headerTags
   newline
@@ -119,6 +121,7 @@ headline lvl = try $ do
     children' <- sequence children
     return $ Headline
       { headlineLevel = level
+      , headlineTodoMarker = todoKw
       , headlineText = title'
       , headlineTags = tags
       , headlineProperties = properties
@@ -193,10 +196,26 @@ headlineToHeaderWithContents hdln@(Headline {..}) = do
 
 headlineToHeader :: Headline -> OrgParser Blocks
 headlineToHeader (Headline {..}) = do
-  let text        = tagTitle headlineText headlineTags
+  let todoText    = case headlineTodoMarker of
+                      Just kw -> todoKeywordToInlines kw <> B.space
+                      Nothing -> mempty
+  let text        = tagTitle (todoText <> headlineText) headlineTags
   let propAttr    = propertiesToAttr headlineProperties
   attr           <- registerHeader propAttr headlineText
   return $ B.headerWith attr headlineLevel text
+
+todoKeyword :: OrgParser TodoMarker
+todoKeyword = try $ do
+  taskStates <- activeTodoMarkers <$> getState
+  let kwParser tdm = try $ (tdm <$ string (todoMarkerName tdm) <* spaceChar)
+  choice (map kwParser taskStates)
+
+todoKeywordToInlines :: TodoMarker -> Inlines
+todoKeywordToInlines tdm =
+  let todoText  = todoMarkerName tdm
+      todoState = map toLower . show $ todoMarkerState tdm
+      classes = [todoState, todoText]
+  in B.spanWith (mempty, classes, mempty) (B.str todoText)
 
 propertiesToAttr :: Properties -> Attr
 propertiesToAttr properties =

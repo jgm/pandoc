@@ -42,11 +42,11 @@ import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Blocks, Inlines )
 import           Text.Pandoc.Definition
 
-import           Control.Monad ( mzero )
+import           Control.Monad ( mzero, void )
 import           Data.Char ( toLower )
 import           Data.List ( intersperse )
 import qualified Data.Map as M
-import           Data.Monoid ((<>))
+import           Data.Monoid ( (<>) )
 import           Network.HTTP ( urlEncode )
 
 -- | Returns the current meta, respecting export options.
@@ -144,8 +144,11 @@ optionLine :: OrgParser ()
 optionLine = try $ do
   key <- metaKey
   case key of
-    "link"    -> parseLinkFormat >>= uncurry addLinkFormat
-    "options" -> exportSettings
+    "link"     -> parseLinkFormat >>= uncurry addLinkFormat
+    "options"  -> exportSettings
+    "todo"     -> todoSequence >>= updateState . registerTodoSequence
+    "seq_todo" -> todoSequence >>= updateState . registerTodoSequence
+    "typ_todo" -> todoSequence >>= updateState . registerTodoSequence
     _         -> mzero
 
 addLinkFormat :: String
@@ -179,3 +182,35 @@ parseFormat = try $ do
 
 inlinesTillNewline :: OrgParser (F Inlines)
 inlinesTillNewline = trimInlinesF . mconcat <$> manyTill inline newline
+
+--
+-- ToDo Sequences and Keywords
+--
+todoSequence :: OrgParser TodoSequence
+todoSequence = try $ do
+  todoKws <- todoKeywords
+  doneKws <- optionMaybe $ todoDoneSep *> todoKeywords
+  newline
+  -- There must be at least one DONE keyword. The last TODO keyword is taken if
+  -- necessary.
+  case doneKws of
+    Just done  -> return $ keywordsToSequence todoKws done
+    Nothing    -> case reverse todoKws of
+                    []     -> mzero  -- no keywords present
+                    (x:xs) -> return $ keywordsToSequence (reverse xs) [x]
+
+ where
+   todoKeywords :: OrgParser [String]
+   todoKeywords = try $
+     let keyword = many1 nonspaceChar <* skipSpaces
+         endOfKeywords = todoDoneSep <|> void newline
+     in manyTill keyword (lookAhead endOfKeywords)
+
+   todoDoneSep :: OrgParser ()
+   todoDoneSep = void . try $ skipSpaces *> char '|' <* skipSpaces1
+
+   keywordsToSequence :: [String] -> [String] -> TodoSequence
+   keywordsToSequence todo done =
+     let todoMarkers = map (TodoMarker Todo) todo
+         doneMarkers = map (TodoMarker Done) done
+     in todoMarkers ++ doneMarkers

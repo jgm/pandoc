@@ -34,6 +34,11 @@ module Text.Pandoc.Readers.Org.ParserState
   , OrgNoteRecord
   , HasReaderOptions (..)
   , HasQuoteContext (..)
+  , TodoMarker (..)
+  , TodoSequence
+  , TodoState (..)
+  , activeTodoMarkers
+  , registerTodoSequence
   , F(..)
   , askF
   , asksF
@@ -72,6 +77,20 @@ type OrgNoteTable = [OrgNoteRecord]
 -- link-type, the corresponding function transforms the given link string.
 type OrgLinkFormatters = M.Map String (String -> String)
 
+-- | The states in which a todo item can be
+data TodoState = Todo | Done
+  deriving (Eq, Ord, Show)
+
+-- | A ToDo keyword like @TODO@ or @DONE@.
+data TodoMarker = TodoMarker
+  { todoMarkerState :: TodoState
+  , todoMarkerName  :: String
+  }
+  deriving (Show, Eq)
+
+-- | Collection of todo markers in the order in which items should progress
+type TodoSequence = [TodoMarker]
+
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
   { orgStateAnchorIds            :: [String]
@@ -88,6 +107,7 @@ data OrgParserState = OrgParserState
   , orgStateNotes'               :: OrgNoteTable
   , orgStateOptions              :: ReaderOptions
   , orgStateParserContext        :: ParserContext
+  , orgStateTodoSequences        :: [TodoSequence]
   }
 
 data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext }
@@ -133,11 +153,30 @@ defaultOrgParserState = OrgParserState
   , orgStateNotes' = []
   , orgStateOptions = def
   , orgStateParserContext = NullState
+  , orgStateTodoSequences = []
   }
 
 optionsToParserState :: ReaderOptions -> OrgParserState
 optionsToParserState opts =
   def { orgStateOptions = opts }
+
+registerTodoSequence :: TodoSequence -> OrgParserState -> OrgParserState
+registerTodoSequence todoSeq st =
+  let curSeqs = orgStateTodoSequences st
+  in st{ orgStateTodoSequences = todoSeq : curSeqs }
+
+-- | Get the current todo/done sequences. If no custom todo sequences have been
+-- defined, return a list containing just the default todo/done sequence.
+activeTodoSequences :: OrgParserState -> [TodoSequence]
+activeTodoSequences st =
+  let curSeqs = orgStateTodoSequences st
+  in if null curSeqs
+     then [[ TodoMarker Todo "TODO" , TodoMarker Done "DONE" ]]
+     else curSeqs
+
+activeTodoMarkers :: OrgParserState -> TodoSequence
+activeTodoMarkers = concat . activeTodoSequences
+
 
 --
 -- Export Settings
