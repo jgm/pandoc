@@ -1625,6 +1625,15 @@ tests =
                   ] =?>
           rawBlock "html" "\n<span>boring</span>\n\n"
 
+      , "Accept `ATTR_HTML` attributes for generic block" =:
+          unlines [ "#+ATTR_HTML: :title hello, world :id test :class fun code"
+                  , "#+BEGIN_TEST"
+                  , "nonsense"
+                  , "#+END_TEST"
+                  ] =?>
+          let attr = ("test", ["fun", "code", "TEST"], [("title", "hello, world")])
+          in divWith attr (para "nonsense")
+
       , "Non-letter chars in source block parameters" =:
           unlines [ "#+BEGIN_SRC C :tangle xxxx.c :city Zürich"
                   , "code body"

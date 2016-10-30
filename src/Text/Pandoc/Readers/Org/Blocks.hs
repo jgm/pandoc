@@ -294,6 +294,17 @@ data BlockAttributes = BlockAttributes
   , blockAttrKeyValues :: [(String, String)]
   }
 
+-- | Convert BlockAttributes into pandoc Attr
+attrFromBlockAttributes :: BlockAttributes -> Attr
+attrFromBlockAttributes (BlockAttributes{..}) =
+  let
+    ident   = fromMaybe mempty $ lookup "id" blockAttrKeyValues
+    classes = case lookup "class" blockAttrKeyValues of
+                Nothing     -> []
+                Just clsStr -> words clsStr
+    kv      = filter ((`notElem` ["id", "class"]) . fst) blockAttrKeyValues
+  in (ident, classes, kv)
+
 stringyMetaAttribute :: (String -> Bool) -> OrgParser (String, String)
 stringyMetaAttribute attrCheck = try $ do
   metaLineStart
@@ -364,23 +375,25 @@ orgBlock = try $ do
   blockAttrs <- blockAttributes
   blkType <- blockHeaderStart
   ($ blkType) $
-    case blkType of
+    case (map toLower blkType) of
       "export"  -> exportBlock
       "comment" -> rawBlockLines (const mempty)
-      "html"    -> rawBlockLines (return . (B.rawBlock blkType))
-      "latex"   -> rawBlockLines (return . (B.rawBlock blkType))
-      "ascii"   -> rawBlockLines (return . (B.rawBlock blkType))
+      "html"    -> rawBlockLines (return . B.rawBlock (lowercase blkType))
+      "latex"   -> rawBlockLines (return . B.rawBlock (lowercase blkType))
+      "ascii"   -> rawBlockLines (return . B.rawBlock (lowercase blkType))
       "example" -> rawBlockLines (return . exampleCode)
       "quote"   -> parseBlockLines (fmap B.blockQuote)
       "verse"   -> verseBlock
       "src"     -> codeBlock blockAttrs
-      _         -> parseBlockLines (fmap $ B.divWith (mempty, [blkType], mempty))
+      _         -> parseBlockLines $
+                   let (ident, classes, kv) = attrFromBlockAttributes blockAttrs
+                   in fmap $ B.divWith (ident, classes ++ [blkType], kv)
  where
    blockHeaderStart :: OrgParser String
-   blockHeaderStart = try $ do
-     skipSpaces
-     blockType <- stringAnyCase "#+begin_" *> orgArgWord
-     return (map toLower blockType)
+   blockHeaderStart = try $ skipSpaces *> stringAnyCase "#+begin_" *> orgArgWord
+
+   lowercase :: String -> String
+   lowercase = map toLower
 
 rawBlockLines :: (String   -> F Blocks) -> String -> OrgParser (F Blocks)
 rawBlockLines f blockType = (ignHeaders *> (f <$> rawBlockContent blockType))
