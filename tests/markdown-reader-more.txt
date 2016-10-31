@@ -28,6 +28,14 @@
 \stop[a2]
 \stop[a2]
 
+## Raw LaTeX environments
+
+\begin{center}
+\begin{tikzpicture}[baseline={([yshift=+-.5ex]current bounding box.center)}, level distance=24pt]
+\Tree [.{S} [.NP John\index{i} ] [.VP [.V likes ] [.NP himself\index{i,*j} ]]]
+\end{tikzpicture}
+\end{center}
+
 ## URLs with spaces and punctuation
 
 [foo](/bar and baz)
