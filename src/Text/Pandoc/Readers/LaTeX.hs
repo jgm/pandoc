@@ -861,7 +861,8 @@ opt = bracketed inline
 
 rawopt :: LP String
 rawopt = do
-  contents <- bracketed (many1 (noneOf "]") <|> try (string "\\]"))
+  contents <- bracketed (many1 (noneOf "[]") <|> try (string "\\]") <|>
+                   try (string "\\[") <|> rawopt)
   optional sp
   return $ "[" ++ contents ++ "]"
 
