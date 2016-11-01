@@ -695,7 +695,7 @@ read_citation     = matchingElement NsText "bibliography-mark"
                         ( findAttrWithDefault NsText "identifier" ""     )
                         ( readAttrWithDefault NsText "number" 0          )
                       )
-                      ( matchChildContent [] read_plain_text                 )
+                      ( matchChildContent [] read_plain_text             )
   where
    makeCitation :: String -> Int -> [Citation]
    makeCitation citeId num = [Citation citeId [] [] NormalCitation num 0]
@@ -708,9 +708,16 @@ read_citation     = matchingElement NsText "bibliography-mark"
 --
 read_table        :: BlockMatcher
 read_table         = matchingElement NsTable "table"
-                     $ liftA (simpleTable [])
+                     $ liftA simpleTable'
                      $ matchChildContent'  [ read_table_row
                                            ]
+
+-- | A simple table without a caption or headers
+-- | Infers the number of headers from rows
+simpleTable' :: [[Blocks]] -> Blocks
+simpleTable' []         = simpleTable [] []
+simpleTable' (x : rest) = simpleTable (fmap (const defaults) x) (x : rest)
+  where defaults = fromList []
 
 --
 read_table_row    :: ElementMatcher [[Blocks]]
