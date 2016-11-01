@@ -523,6 +523,7 @@ inlineCommands = M.fromList $
   , ("copyright", lit "©")
   , ("textasciicircum", lit "^")
   , ("textasciitilde", lit "~")
+  , ("H", try $ tok >>= accent hungarumlaut)
   , ("`", option (str "`") $ try $ tok >>= accent grave)
   , ("'", option (str "'") $ try $ tok >>= accent acute)
   , ("^", option (str "^") $ try $ tok >>= accent circ)
@@ -761,6 +762,21 @@ umlaut 'i' = "ï"
 umlaut 'o' = "ö"
 umlaut 'u' = "ü"
 umlaut c   = [c]
+
+hungarumlaut :: Char -> String
+hungarumlaut 'A' = "A̋"
+hungarumlaut 'E' = "E̋"
+hungarumlaut 'I' = "I̋"
+hungarumlaut 'O' = "Ő"
+hungarumlaut 'U' = "Ű"
+hungarumlaut 'Y' = "ӳ"
+hungarumlaut 'a' = "a̋"
+hungarumlaut 'e' = "e̋"
+hungarumlaut 'i' = "i̋"
+hungarumlaut 'o' = "ő"
+hungarumlaut 'u' = "ű"
+hungarumlaut 'y' = "ӳ"
+hungarumlaut c   = [c]
 
 dot :: Char -> String
 dot 'C' = "Ċ"
