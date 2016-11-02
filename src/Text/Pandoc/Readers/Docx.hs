@@ -317,10 +317,10 @@ runToInlines (Footnote bps) = do
 runToInlines (Endnote bps) = do
   blksList <- smushBlocks <$> (mapM bodyPartToBlocks bps)
   return $ note blksList
-runToInlines (InlineDrawing fp bs ext) = do
+runToInlines (InlineDrawing fp title alt bs ext) = do
   mediaBag <- gets docxMediaBag
   modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
-  return $ imageWith (extentToAttr ext) fp "" ""
+  return $ imageWith (extentToAttr ext) fp title $ text alt
 
 extentToAttr :: Extent -> Attr
 extentToAttr (Just (w, h)) =
@@ -401,10 +401,10 @@ parPartToInlines (BookMark _ anchor) =
     unless inHdrBool
       (modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap})
     return $ spanWith (newAnchor, ["anchor"], []) mempty
-parPartToInlines (Drawing fp bs ext) = do
+parPartToInlines (Drawing fp title alt bs ext) = do
   mediaBag <- gets docxMediaBag
   modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
-  return $ imageWith (extentToAttr ext) fp "" ""
+  return $ imageWith (extentToAttr ext) fp title $ text alt
 parPartToInlines (InternalHyperLink anchor runs) = do
   ils <- smushInlines <$> mapM runToInlines runs
   return $ link ('#' : anchor) "" ils
