@@ -18,7 +18,8 @@ attrToNSPair (Attr (QName s _ (Just "xmlns")) val) = Just (s, val)
 attrToNSPair _ = Nothing
 
 elemName :: NameSpaces -> String -> String -> QName
-elemName ns prefix name = QName name (lookup prefix ns) (Just prefix)
+elemName ns prefix name =
+  QName name (lookup prefix ns) (if null prefix then Nothing else Just prefix)
 
 isElem :: NameSpaces -> String -> String -> Element -> Bool
 isElem ns prefix name element =
