@@ -949,8 +949,8 @@ verbatimEnv' = fmap snd <$>
   withRaw $ try $ do
              string "\\begin"
              name <- braced'
-             guard $ name `elem` ["verbatim", "Verbatim", "lstlisting",
-                                  "minted", "alltt", "comment"]
+             guard $ name `elem` ["verbatim", "Verbatim", "BVerbatim",
+                                  "lstlisting", "minted", "alltt", "comment"]
              manyTill anyChar (try $ string $ "\\end{" ++ name ++ "}")
 
 blob' :: IncludeParser
@@ -1105,14 +1105,8 @@ environments = M.fromList
         verbEnv "code"))
   , ("comment", mempty <$ verbEnv "comment")
   , ("verbatim", codeBlock <$> verbEnv "verbatim")
-  , ("Verbatim",   do options <- option [] keyvals
-                      let kvs = [ (if k == "firstnumber"
-                                      then "startFrom"
-                                      else k, v) | (k,v) <- options ]
-                      let classes = [ "numberLines" |
-                                      lookup "numbers" options == Just "left" ]
-                      let attr = ("",classes,kvs)
-                      codeBlockWith attr <$> verbEnv "Verbatim")
+  , ("Verbatim", fancyverbEnv "Verbatim")
+  , ("BVerbatim", fancyverbEnv "BVerbatim")
   , ("lstlisting", do options <- option [] keyvals
                       let kvs = [ (if k == "firstnumber"
                                       then "startFrom"
@@ -1222,6 +1216,17 @@ verbEnv name = do
   let endEnv = try $ controlSeq "end" *> braced >>= guard . (== name)
   res <- manyTill anyChar endEnv
   return $ stripTrailingNewlines res
+
+fancyverbEnv :: String -> LP Blocks
+fancyverbEnv name = do
+  options <- option [] keyvals
+  let kvs = [ (if k == "firstnumber"
+                  then "startFrom"
+                  else k, v) | (k,v) <- options ]
+  let classes = [ "numberLines" |
+                  lookup "numbers" options == Just "left" ]
+  let attr = ("",classes,kvs)
+  codeBlockWith attr <$> verbEnv name
 
 orderedList' :: LP Blocks
 orderedList' = do
