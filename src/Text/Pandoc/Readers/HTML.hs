@@ -666,15 +666,18 @@ mathMLToTeXMath s = writeTeX <$> readMathML s
 pMath :: Bool -> TagParser Inlines
 pMath inCase = try $ do
   open@(TagOpen _ attr) <- pSatisfy $ tagOpen (=="math") (const True)
-  unless (inCase) (guard (maybe False  (== mathMLNamespace) (lookup "xmlns" attr)))
+  -- we'll assume math tags are MathML unless specially marked
+  -- otherwise...
+  unless inCase $
+    guard (maybe True (== mathMLNamespace) (lookup "xmlns" attr))
   contents <- manyTill pAnyTag (pSatisfy (~== TagClose "math"))
-  let math = mathMLToTeXMath $
-              (renderTags $ [open] ++ contents ++ [TagClose "math"])
-  let constructor =
-        maybe B.math (\x -> if (x == "inline") then B.math else B.displayMath)
-          (lookup "display" attr)
-  return $ either (const mempty)
-            (\x -> if null x then mempty else constructor x) math
+  case mathMLToTeXMath (renderTags $ [open] ++ contents ++ [TagClose "math"]) of
+       Left _   -> return $ B.spanWith ("",["math"],attr) $ B.text $
+                             innerText contents
+       Right [] -> return mempty
+       Right x  -> return $ case lookup "display" attr of
+                                 Just "block" -> B.displayMath x
+                                 _            -> B.math x
 
 pInlinesInTags :: String -> (Inlines -> Inlines)
                -> TagParser Inlines
