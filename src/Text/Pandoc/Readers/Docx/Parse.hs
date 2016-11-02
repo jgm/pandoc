@@ -645,18 +645,23 @@ expandDrawingId s = do
         Nothing -> throwError DocxError
     Nothing -> throwError DocxError
 
+getTitleAndAlt :: NameSpaces -> Element -> (String, String)
+getTitleAndAlt ns element =
+  let mbDocPr = findChild (elemName ns "wp" "inline") element >>=
+                findChild (elemName ns "wp" "docPr")
+      title = case mbDocPr >>= findAttr (elemName ns "" "title") of
+                Just title' -> title'
+                Nothing     -> ""
+      alt = case mbDocPr >>= findAttr (elemName ns "" "descr") of
+              Just alt' -> alt'
+              Nothing   -> ""
+  in (title, alt)
+
 elemToParPart :: NameSpaces -> Element -> D ParPart
 elemToParPart ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChild (elemName ns "w" "drawing") element =
-    let mbDocPr = findChild (elemName ns "wp" "inline") drawingElem >>=
-                  findChild (elemName ns "wp" "docPr")
-        alt = case mbDocPr >>= findAttr (elemName ns "" "descr") of
-                Just alt' -> alt'
-                Nothing   -> ""
-        title = case mbDocPr >>= findAttr (elemName ns "" "title") of
-                Just title' -> title'
-                Nothing     -> ""
+    let (title, alt) = getTitleAndAlt ns drawingElem
         a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
         drawing = findElement (QName "blip" (Just a_ns) (Just "a")) element
                   >>= findAttr (elemName ns "r" "embed")
@@ -760,14 +765,7 @@ elemToExtent drawingElem =
 childElemToRun :: NameSpaces -> Element -> D Run
 childElemToRun ns element
   | isElem ns "w" "drawing" element =
-    let mbDocPr = findChild (elemName ns "wp" "inline") element >>=
-                  findChild (elemName ns "wp" "docPr")
-        alt = case mbDocPr >>= findAttr (elemName ns "" "descr") of
-                Just alt' -> alt'
-                Nothing   -> ""
-        title = case mbDocPr >>= findAttr (elemName ns "" "title") of
-                Just title' -> title'
-                Nothing     -> ""
+    let (title, alt) = getTitleAndAlt ns element
         a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
         drawing = findElement (QName "blip" (Just a_ns) (Just "a")) element
                   >>= findAttr (QName "embed" (lookup "r" ns) (Just "r"))
