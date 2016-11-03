@@ -618,7 +618,7 @@ options =
                  (ReqArg
                   (\arg opt -> case safeRead (uppercaseFirstLetter arg) of
                       Just dvsn -> return opt { optTopLevelDivision = dvsn }
-                      _         -> err 76 "could not parse top-level division")
+                      _         -> err 76 "Top-level division must be section, chapter, or part")
                    "[section|chapter|part]")
                  "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
 
