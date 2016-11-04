@@ -312,7 +312,7 @@ withNewStyle a = proc x -> do
   where
     isCodeStyle :: StyleName -> Bool
     isCodeStyle "Source_Text" = True
-    isCodeStyle _              = False
+    isCodeStyle _             = False
 
     inlineCode :: Inlines -> Inlines
     inlineCode = code . intercalate "" . map stringify . toList
@@ -415,12 +415,18 @@ constructPara reader = proc blocks -> do
   fStyle <- readStyleByName -< blocks
   case fStyle of
     Left   _    -> reader -< blocks
+    Right (styleName, _) | isTableCaptionStyle styleName -> do
+      blocks' <- reader   -< blocks
+      arr tableCaptionP  -< blocks'
     Right (_, style) -> do
       let modifier = getParaModifier style
-      blocks' <- reader -< blocks
-      arr modifier -<< blocks'
-
-
+      blocks' <- reader   -<  blocks
+      arr modifier        -<< blocks'
+  where
+    isTableCaptionStyle :: StyleName -> Bool
+    isTableCaptionStyle "Table" = True
+    isTableCaptionStyle _       = False
+    tableCaptionP b = divWith ("", ["caption"], []) b
 
 type ListConstructor = [Blocks] -> Blocks
 
@@ -904,6 +910,15 @@ read_text = matchChildContent' [ read_header
                                ]
             >>^ doc
 
+post_process :: Pandoc -> Pandoc
+post_process (Pandoc m blocks) =
+  Pandoc m (post_process' blocks)
+
+post_process' :: [Block] -> [Block]
+post_process' ((Table _ a w h r) : (Div ("", ["caption"], _) [Para inlines] ) : xs) =
+  (Table inlines a w h r) : ( post_process' xs )
+post_process' bs = bs
+
 read_body :: OdtReader _x (Pandoc, MediaBag)
 read_body = executeIn NsOffice "body"
           $ executeIn NsOffice "text"
@@ -911,4 +926,4 @@ read_body = executeIn NsOffice "body"
           $ proc inlines -> do
              txt   <- read_text     -< inlines
              state <- getExtraState -< ()
-             returnA                -< (txt, getMediaBag state)
+             returnA                -< (post_process txt, getMediaBag state)
