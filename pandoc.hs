@@ -1019,6 +1019,8 @@ defaultReaderName fallback (x:xs) =
     ".xhtml"    -> "html"
     ".html"     -> "html"
     ".htm"      -> "html"
+    ".md"       -> "markdown"
+    ".markdown" -> "markdown"
     ".tex"      -> "latex"
     ".latex"    -> "latex"
     ".ltx"      -> "latex"
@@ -1375,6 +1377,8 @@ convertWithOpts opts args = do
       readSource src = case parseURI src of
                             Just u | uriScheme u `elem` ["http:","https:"] ->
                                        readURI src
+                                   | uriScheme u == "file:" ->
+                                       UTF8.readFile (uriPath u)
                             _       -> UTF8.readFile src
       readURI src = do
         res <- openURL src
