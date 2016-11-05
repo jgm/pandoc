@@ -1774,7 +1774,8 @@ referenceLink :: (Attr -> String -> String -> Inlines -> Inlines)
 referenceLink constructor (lab, raw) = do
   sp <- (True <$ lookAhead (char ' ')) <|> return False
   (_,raw') <- option (mempty, "") $
-      lookAhead (try (spnl >> normalCite >> return (mempty, "")))
+      lookAhead (try (guardEnabled Ext_citations >>
+                      spnl >> normalCite >> return (mempty, "")))
       <|>
       try (spnl >> reference)
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
