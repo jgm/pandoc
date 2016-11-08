@@ -733,14 +733,16 @@ sectionHeader :: Bool    -- True for unnumbered
 sectionHeader unnumbered ident level lst = do
   txt <- inlineListToLaTeX lst
   plain <- stringToLaTeX TextString $ concatMap stringify lst
-  let noNote (Note _) = Str ""
-      noNote x        = x
-  let lstNoNotes = walk noNote lst
+  let removeInvalidInline (Note _)      = []
+      removeInvalidInline (Span (id', _, _) _) | not (null id') = []
+      removeInvalidInline (Image _ _ _) = []
+      removeInvalidInline x             = [x]
+  let lstNoNotes = foldr (mappend . (\x -> walkM removeInvalidInline x)) mempty lst
   txtNoNotes <- inlineListToLaTeX lstNoNotes
   -- footnotes in sections don't work (except for starred variants)
   -- unless you specify an optional argument:
   -- \section[mysec]{mysec\footnote{blah}}
-  optional <- if unnumbered || lstNoNotes == lst
+  optional <- if unnumbered || lstNoNotes == lst || lstNoNotes == []
                  then return empty
                  else do
                    return $ brackets txtNoNotes
