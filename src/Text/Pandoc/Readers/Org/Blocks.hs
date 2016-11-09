@@ -618,7 +618,8 @@ propertiesDrawer = try $ do
 -- Figures
 --
 
--- | Figures (Image on a line by itself, preceded by name and/or caption)
+-- | Figures or an image paragraph (i.e. an image on a line by itself). Only
+-- images with a caption attribute are interpreted as figures.
 figure :: OrgParser (F Blocks)
 figure = try $ do
   figAttrs <- blockAttributes
@@ -626,23 +627,24 @@ figure = try $ do
   case cleanLinkString src of
     Nothing     -> mzero
     Just imgSrc -> do
-      guard (not . isNothing . blockAttrCaption $ figAttrs)
       guard (isImageFilename imgSrc)
-      return $ figureBlock figAttrs imgSrc
+      let isFigure = not . isNothing $ blockAttrCaption figAttrs
+      return $ imageBlock isFigure figAttrs imgSrc
  where
    selfTarget :: OrgParser String
    selfTarget = try $ char '[' *> linkTarget <* char ']'
 
-   figureBlock :: BlockAttributes -> String -> (F Blocks)
-   figureBlock figAttrs imgSrc =
+   imageBlock :: Bool -> BlockAttributes -> String -> F Blocks
+   imageBlock isFigure figAttrs imgSrc =
      let
        figName    = fromMaybe mempty $ blockAttrName figAttrs
        figLabel   = fromMaybe mempty $ blockAttrLabel figAttrs
        figCaption = fromMaybe mempty $ blockAttrCaption figAttrs
        figKeyVals = blockAttrKeyValues figAttrs
        attr       = (figLabel, mempty, figKeyVals)
+       figTitle   = (if isFigure then withFigPrefix else id) figName
      in
-       B.para . B.imageWith attr imgSrc (withFigPrefix figName) <$> figCaption
+       B.para . B.imageWith attr imgSrc figTitle <$> figCaption
 
    withFigPrefix :: String -> String
    withFigPrefix cs =

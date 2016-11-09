@@ -196,6 +196,12 @@ tests =
           "[[file:sunrise.jpg]]" =?>
           (para $ image "sunrise.jpg" "" "")
 
+      , "Image with html attributes" =:
+          unlines [ "#+ATTR_HTML: :width 50%"
+                  , "[[file:guinea-pig.gif]]"
+                  ] =?>
+          (para $ imageWith ("", [], [("width", "50%")]) "guinea-pig.gif" "" "")
+
       , "Explicit link" =:
           "[[http://zeitlens.com/][pseudo-random /nonsense/]]" =?>
           (para $ link "http://zeitlens.com/" ""
