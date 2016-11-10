@@ -660,10 +660,12 @@ getTitleAndAlt ns element =
 elemToParPart :: NameSpaces -> Element -> D ParPart
 elemToParPart ns element
   | isElem ns "w" "r" element
-  , Just drawingElem <- findChild (elemName ns "w" "drawing") element =
-    let (title, alt) = getTitleAndAlt ns drawingElem
+  , Just drawingElem <- findChild (elemName ns "w" "drawing") element
+  , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
+  , Just picElem <- findElement (QName "pic" (Just pic_ns) (Just "pic")) drawingElem
+  = let (title, alt) = getTitleAndAlt ns drawingElem
         a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
-        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) element
+        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) picElem
                   >>= findAttr (elemName ns "r" "embed")
     in
      case drawing of
@@ -764,10 +766,12 @@ elemToExtent drawingElem =
 
 childElemToRun :: NameSpaces -> Element -> D Run
 childElemToRun ns element
-  | isElem ns "w" "drawing" element =
-    let (title, alt) = getTitleAndAlt ns element
+  | isElem ns "w" "drawing" element
+  , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
+  , Just picElem <- findElement (QName "pic" (Just pic_ns) (Just "pic")) element
+  = let (title, alt) = getTitleAndAlt ns element
         a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
-        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) element
+        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) picElem
                   >>= findAttr (QName "embed" (lookup "r" ns) (Just "r"))
     in
      case drawing of
