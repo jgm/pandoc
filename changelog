@@ -261,6 +261,9 @@ pandoc (1.18)
       This allows figure placement defaults to be changed by the user
       in the template.
 
+  * HTML writer (slide show formats): In slide shows, don't change slide title
+    to level 1 header (#2221).
+
   * TEI writer: remove heuristic to detect book template (Albert Krewinkel).
     TEI doesn't have `<book>` elements but only generic `<divN>` division
     elements. Checking the template for a trailing `</book>` is nonsensical.
@@ -462,7 +465,6 @@ pandoc (1.17.2)
       LaTeX environments that MathJax can handle get passed through.
       This patch also causes raw LaTeX environments to be treated
       as math, when possible, with MathML and WebTeX output.
-    + In slide shows, don't change slide title to level 1 header (#2221).
 
   * Markdown writer:  use raw HTML for simple, pipe tables with linebreaks
     (#2993).  Markdown line breaks involve a newline, and simple and pipe
