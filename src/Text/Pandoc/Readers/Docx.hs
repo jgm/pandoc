@@ -321,6 +321,7 @@ runToInlines (InlineDrawing fp title alt bs ext) = do
   mediaBag <- gets docxMediaBag
   modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
   return $ imageWith (extentToAttr ext) fp title $ text alt
+runToInlines InlineChart = return $ spanWith ("", ["chart"], []) $ text "[CHART]"
 
 extentToAttr :: Extent -> Attr
 extentToAttr (Just (w, h)) =
@@ -405,6 +406,8 @@ parPartToInlines (Drawing fp title alt bs ext) = do
   mediaBag <- gets docxMediaBag
   modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
   return $ imageWith (extentToAttr ext) fp title $ text alt
+parPartToInlines Chart = do
+  return $ spanWith ("", ["chart"], []) $ text "[CHART]"
 parPartToInlines (InternalHyperLink anchor runs) = do
   ils <- smushInlines <$> mapM runToInlines runs
   return $ link ('#' : anchor) "" ils

@@ -216,6 +216,7 @@ data ParPart = PlainRun Run
              | InternalHyperLink Anchor [Run]
              | ExternalHyperLink URL [Run]
              | Drawing FilePath String String B.ByteString Extent -- title, alt
+             | Chart                                              -- placeholder for now
              | PlainOMath [Exp]
              deriving Show
 
@@ -223,6 +224,7 @@ data Run = Run RunStyle [RunElem]
          | Footnote [BodyPart]
          | Endnote [BodyPart]
          | InlineDrawing FilePath String String B.ByteString Extent -- title, alt
+         | InlineChart          -- placeholder
            deriving Show
 
 data RunElem = TextRun String | LnBrk | Tab | SoftHyphen | NoBreakHyphen
@@ -682,6 +684,13 @@ elemToParPart ns element
        -- Todo: check out title and attr for deprecated format.
        Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp "" "" bs Nothing)
        Nothing -> throwError WrongElem
+-- Chart
+elemToParPart ns element
+  | isElem ns "w" "r" element
+  , Just drawingElem <- findChild (elemName ns "w" "drawing") element
+  , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/chart"
+  , Just _ <- findElement (QName "chart" (Just c_ns) (Just "c")) drawingElem
+  = return Chart                       
 elemToParPart ns element
   | isElem ns "w" "r" element =
     elemToRun ns element >>= (\r -> return $ PlainRun r)
@@ -778,6 +787,11 @@ childElemToRun ns element
        Just s -> expandDrawingId s >>=
                  (\(fp, bs) -> return $ InlineDrawing fp title alt bs $ elemToExtent element)
        Nothing -> throwError WrongElem
+childElemToRun ns element
+  | isElem ns "w" "drawing" element
+  , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/chart"
+  , Just _ <- findElement (QName "chart" (Just c_ns) (Just "c")) element
+  = return InlineChart
 childElemToRun ns element
   | isElem ns "w" "footnoteReference" element
   , Just fnId <- findAttr (elemName ns "w" "id") element = do
