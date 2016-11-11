@@ -139,6 +139,7 @@ inlineToNodes :: Inline -> [Node] -> [Node]
 inlineToNodes (Str s) = (node (TEXT (T.pack s)) [] :)
 inlineToNodes Space   = (node (TEXT (T.pack " ")) [] :)
 inlineToNodes LineBreak = (node LINEBREAK [] :)
+inlineToNodes PageBreak = id
 inlineToNodes SoftBreak = (node SOFTBREAK [] :)
 inlineToNodes (Emph xs) = (node EMPH (inlinesToNodes xs) :)
 inlineToNodes (Strong xs) = (node STRONG (inlinesToNodes xs) :)

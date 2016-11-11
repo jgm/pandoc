@@ -461,6 +461,7 @@ inlineToRST SoftBreak = do
         WrapPreserve  -> return cr
         WrapAuto      -> return space
         WrapNone      -> return space
+inlineToRST PageBreak = return $ ".. pagebreak::"
 -- autolink
 inlineToRST (Link _ [Str str] (src, _))
   | isURI src &&

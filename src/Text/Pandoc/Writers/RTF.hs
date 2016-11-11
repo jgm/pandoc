@@ -350,8 +350,9 @@ inlineToRTF (Cite _ lst) = inlineListToRTF lst
 inlineToRTF (RawInline f str)
   | f == Format "rtf" = str
   | otherwise         = ""
-inlineToRTF (LineBreak) = "\\line "
+inlineToRTF LineBreak = "\\line "
 inlineToRTF SoftBreak = " "
+inlineToRTF PageBreak = "\\page "
 inlineToRTF Space = " "
 inlineToRTF (Link _ text (src, _)) =
   "{\\field{\\*\\fldinst{HYPERLINK \"" ++ (codeStringToRTF src) ++

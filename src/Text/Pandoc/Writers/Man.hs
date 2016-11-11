@@ -342,8 +342,9 @@ inlineToMan opts (Math DisplayMath str) = do
 inlineToMan _ (RawInline f str)
   | f == Format "man" = return $ text str
   | otherwise         = return empty
-inlineToMan _ (LineBreak) = return $
+inlineToMan _ LineBreak = return $
   cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
+inlineToMan _ PageBreak = return empty
 inlineToMan _ SoftBreak = return space
 inlineToMan _ Space = return space
 inlineToMan opts (Link _ txt (src, _)) = do

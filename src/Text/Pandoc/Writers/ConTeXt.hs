@@ -346,6 +346,7 @@ inlineToConTeXt SoftBreak = do
                WrapAuto     -> space
                WrapNone     -> space
                WrapPreserve -> cr
+inlineToConTeXt PageBreak = return empty
 inlineToConTeXt Space = return space
 -- Handle HTML-like internal document references to sections
 inlineToConTeXt (Link _ txt (('#' : ref), _)) = do
