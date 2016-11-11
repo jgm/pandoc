@@ -437,6 +437,8 @@ inlineToTexinfo SoftBreak = do
       WrapPreserve -> return cr
 inlineToTexinfo Space = return space
 
+inlineToTexinfo PageBreak = return $ text "@page"
+
 inlineToTexinfo (Link _ txt (src@('#':_), _)) = do
   contents <- escapeCommas $ inlineListToTexinfo txt
   return $ text "@ref" <>

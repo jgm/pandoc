@@ -1100,6 +1100,7 @@ inlineToOpenXML' opts (Strikeout lst) =
   withTextProp (mknode "w:strike" [] ())
   $ inlinesToOpenXML opts lst
 inlineToOpenXML' _ LineBreak = return [br]
+inlineToOpenXML' _ PageBreak = return [pageBreak]
 inlineToOpenXML' _ (RawInline f str)
   | f == Format "openxml" = return [ x | Elem x <- parseXML str ]
   | otherwise            = return []
@@ -1247,7 +1248,13 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
                return [imgElt]
 
 br :: Element
-br = mknode "w:r" [] [mknode "w:br" [("w:type","textWrapping")] () ]
+br = breakElement "textWrapping"
+
+pageBreak :: Element
+pageBreak = breakElement "page"
+
+breakElement :: String -> Element
+breakElement kind = mknode "w:r" [] [mknode "w:br" [("w:type",kind)] () ]
 
 -- Word will insert these footnotes into the settings.xml file
 -- (whether or not they're visible in the document). If they're in the

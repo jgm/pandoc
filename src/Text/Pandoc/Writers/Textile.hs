@@ -435,7 +435,9 @@ inlineToTextile opts (RawInline f str)
      isEnabled Ext_raw_tex opts                 = return str
   | otherwise                                   = return ""
 
-inlineToTextile _ (LineBreak) = return "\n"
+inlineToTextile _ LineBreak = return "\n"
+
+inlineToTextile _ PageBreak = return mempty
 
 inlineToTextile _ SoftBreak = return " "
 

@@ -356,6 +356,9 @@ inlineToDocbook opts (Math t str)
 inlineToDocbook _ (RawInline f x) | f == "html" || f == "docbook" = text x
                                   | otherwise                     = empty
 inlineToDocbook _ LineBreak = text "\n"
+-- currently ignore, would require the option to add custom
+-- styles to the document
+inlineToDocbook _ PageBreak = empty
 inlineToDocbook _ Space = space
 -- because we use \n for LineBreak, we can't do soft breaks:
 inlineToDocbook _ SoftBreak = space

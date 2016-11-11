@@ -411,7 +411,8 @@ inlineToAsciiDoc _ (Math DisplayMath str) =
 inlineToAsciiDoc _ (RawInline f s)
   | f == "asciidoc" = return $ text s
   | otherwise       = return empty
-inlineToAsciiDoc _ (LineBreak) = return $ " +" <> cr
+inlineToAsciiDoc _ LineBreak = return $ " +" <> cr
+inlineToAsciiDoc _ PageBreak = return empty
 inlineToAsciiDoc _ Space = return space
 inlineToAsciiDoc opts SoftBreak =
   case writerWrapText opts of

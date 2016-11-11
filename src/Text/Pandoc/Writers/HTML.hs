@@ -705,6 +705,7 @@ inlineToHtml opts inline =
                                        WrapPreserve -> preEscapedString "\n"
     (LineBreak)      -> return $ (if writerHtml5 opts then H5.br else H.br)
                                  <> strToHtml "\n"
+    (PageBreak)      -> return mempty
     (Span (id',classes,kvs) ils)
                      -> inlineListToHtml opts ils >>=
                            return . addAttrs opts attr' . H.span

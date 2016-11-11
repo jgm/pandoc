@@ -326,7 +326,8 @@ inlineToHaddock _ (RawInline f str)
   | f == "haddock" = return $ text str
   | otherwise = return empty
 -- no line break in haddock (see above on CodeBlock)
-inlineToHaddock _ (LineBreak) = return cr
+inlineToHaddock _ LineBreak = return cr
+inlineToHaddock _ PageBreak = return empty
 inlineToHaddock opts SoftBreak =
   case writerWrapText opts of
        WrapAuto     -> return space
