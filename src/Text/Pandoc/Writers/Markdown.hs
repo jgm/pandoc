@@ -71,6 +71,7 @@ data WriterEnv = WriterEnv { envInList         :: Bool
                            , envPlain          :: Bool
                            , envRefShortcutable :: Bool
                            , envBlockLevel      :: Int
+                           , envEscapeSpaces   :: Bool
                            }
 
 instance Default WriterEnv
@@ -78,6 +79,7 @@ instance Default WriterEnv
                         , envPlain          = False
                         , envRefShortcutable = True
                         , envBlockLevel      = 0
+                        , envEscapeSpaces    = False
                         }
 
 data WriterState = WriterState { stNotes :: Notes
@@ -823,12 +825,6 @@ isRight :: Either a b -> Bool
 isRight (Right _) = True
 isRight (Left  _) = False
 
-escapeSpaces :: Inline -> Inline
-escapeSpaces (Str s) = Str $ substitute " " "\\ " s
-escapeSpaces Space = Str "\\ "
-escapeSpaces SoftBreak = Str "\\ "
-escapeSpaces x = x
-
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: WriterOptions -> Inline -> MD Doc
 inlineToMarkdown opts (Span attrs ils) = do
@@ -858,31 +854,33 @@ inlineToMarkdown opts (Strikeout lst) = do
               else if isEnabled Ext_raw_html opts
                        then "<s>" <> contents <> "</s>"
                        else contents
-inlineToMarkdown opts (Superscript lst) = do
-  contents <- inlineListToMarkdown opts $ walk escapeSpaces lst
-  return $ if isEnabled Ext_superscript opts
-              then "^" <> contents <> "^"
-              else if isEnabled Ext_raw_html opts
-                       then "<sup>" <> contents <> "</sup>"
-                       else case (render Nothing contents) of
-                                 ds | all (\d -> d >= '0' && d <= '9') ds
-                                   -> text (map toSuperscript ds)
-                                 _ -> contents
-                        where toSuperscript '1' = '\x00B9'
-                              toSuperscript '2' = '\x00B2'
-                              toSuperscript '3' = '\x00B3'
-                              toSuperscript c = chr (0x2070 + (ord c - 48))
-inlineToMarkdown opts (Subscript lst) = do
-  contents <- inlineListToMarkdown opts $ walk escapeSpaces lst
-  return $ if isEnabled Ext_subscript opts
-              then "~" <> contents <> "~"
-              else if isEnabled Ext_raw_html opts
-                       then "<sub>" <> contents <> "</sub>"
-                       else case (render Nothing contents) of
-                                 ds | all (\d -> d >= '0' && d <= '9') ds
-                                   -> text (map toSubscript ds)
-                                 _ -> contents
-                        where toSubscript c = chr (0x2080 + (ord c - 48))
+inlineToMarkdown opts (Superscript lst) =
+  local (\env -> env {envEscapeSpaces = True}) $ do
+    contents <- inlineListToMarkdown opts lst
+    return $ if isEnabled Ext_superscript opts
+                then "^" <> contents <> "^"
+                else if isEnabled Ext_raw_html opts
+                         then "<sup>" <> contents <> "</sup>"
+                         else case (render Nothing contents) of
+                                   ds | all (\d -> d >= '0' && d <= '9') ds
+                                     -> text (map toSuperscript ds)
+                                   _ -> contents
+                          where toSuperscript '1' = '\x00B9'
+                                toSuperscript '2' = '\x00B2'
+                                toSuperscript '3' = '\x00B3'
+                                toSuperscript c = chr (0x2070 + (ord c - 48))
+inlineToMarkdown opts (Subscript lst) =
+  local (\env -> env {envEscapeSpaces = True}) $ do
+    contents <- inlineListToMarkdown opts lst
+    return $ if isEnabled Ext_subscript opts
+                then "~" <> contents <> "~"
+                else if isEnabled Ext_raw_html opts
+                         then "<sub>" <> contents <> "</sub>"
+                         else case (render Nothing contents) of
+                                   ds | all (\d -> d >= '0' && d <= '9') ds
+                                     -> text (map toSubscript ds)
+                                   _ -> contents
+                          where toSubscript c = chr (0x2080 + (ord c - 48))
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- asks envPlain
   if not plain &&
@@ -959,12 +957,16 @@ inlineToMarkdown opts (LineBreak) = do
           if isEnabled Ext_escaped_line_breaks opts
              then "\\" <> cr
              else "  " <> cr
-inlineToMarkdown _ Space = return space
-inlineToMarkdown opts SoftBreak = return $
-  case writerWrapText opts of
-       WrapNone     -> space
-       WrapAuto     -> space
-       WrapPreserve -> cr
+inlineToMarkdown _ Space = do
+  escapeSpaces <- asks envEscapeSpaces
+  return $ if escapeSpaces then "\\ " else space
+inlineToMarkdown opts SoftBreak = do
+  escapeSpaces <- asks envEscapeSpaces
+  let space' = if escapeSpaces then "\\ " else space
+  return $ case writerWrapText opts of
+                WrapNone     -> space'
+                WrapAuto     -> space'
+                WrapPreserve -> cr
 inlineToMarkdown opts (Cite [] lst) = inlineListToMarkdown opts lst
 inlineToMarkdown opts (Cite (c:cs) lst)
   | not (isEnabled Ext_citations opts) = inlineListToMarkdown opts lst
