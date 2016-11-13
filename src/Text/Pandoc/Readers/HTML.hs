@@ -599,19 +599,31 @@ pLineBreak = do
   pSelfClosing (=="br") (const True)
   return B.linebreak
 
+-- Unlike fromAttrib from tagsoup, this distinguishes
+-- between a missing attribute and an attribute with empty content.
+maybeFromAttrib :: String -> Tag String -> Maybe String
+maybeFromAttrib name (TagOpen _ attrs) = lookup name attrs
+maybeFromAttrib _ _ = Nothing
+
 pLink :: TagParser Inlines
 pLink = try $ do
   tag <- pSatisfy $ tagOpenLit "a" (const True)
-  mbBaseHref <- baseHref <$> getState
-  let url' = fromAttrib "href" tag
-  let url = case (parseURIReference url', mbBaseHref) of
-                 (Just rel, Just bs) -> show (rel `nonStrictRelativeTo` bs)
-                 _                   -> url'
   let title = fromAttrib "title" tag
-  let uid = fromAttrib "id" tag
+  -- take id from id attribute if present, otherwise name
+  let uid = maybe (fromAttrib "name" tag) id $ maybeFromAttrib "id" tag
   let cls = words $ fromAttrib "class" tag
   lab <- trimInlines . mconcat <$> manyTill inline (pCloses "a")
-  return $ B.linkWith (uid, cls, []) (escapeURI url) title lab
+  -- check for href; if href, then a link, otherwise a span
+  case maybeFromAttrib "href" tag of
+       Nothing   ->
+         return $ B.spanWith (uid, cls, []) lab
+       Just url' -> do
+         mbBaseHref <- baseHref <$> getState
+         let url = case (parseURIReference url', mbBaseHref) of
+                        (Just rel, Just bs) ->
+                          show (rel `nonStrictRelativeTo` bs)
+                        _                   -> url'
+         return $ B.linkWith (uid, cls, []) (escapeURI url) title lab
 
 pImage :: TagParser Inlines
 pImage = do

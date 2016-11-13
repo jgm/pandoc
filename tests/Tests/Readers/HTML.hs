@@ -26,4 +26,8 @@ tests = [ testGroup "base tag"
             "<head><base href=\"http://www.w3schools.com/images/\" ></head><body><img src=\"http://example.com/stickman.gif\" alt=\"Stickman\"></head>" =?>
             plain (image "http://example.com/stickman.gif" "" (text "Stickman"))
           ]
+        , testGroup "anchors"
+          [ test html "anchor without href" $ "<a name=\"anchor\"/>" =?>
+            plain (spanWith ("anchor",[],[]) mempty)
+          ]
         ]
