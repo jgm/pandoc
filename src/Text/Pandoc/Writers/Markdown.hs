@@ -632,12 +632,13 @@ pandocTable opts headless aligns widths rawHeaders rawRows =  do
 
 gridTable :: WriterOptions -> Bool -> [Alignment] -> [Double]
           -> [Doc] -> [[Doc]] -> MD Doc
-gridTable opts headless _aligns widths headers' rawRows =  do
+gridTable opts headless aligns widths headers' rawRows =  do
   let numcols = length headers'
   let widths' = if all (==0) widths
                    then replicate numcols (1.0 / fromIntegral numcols)
                    else widths
-  let widthsInChars = map (floor . (fromIntegral (writerColumns opts) *)) widths'
+  let widthsInChars = map
+         ((\x -> x - 1) . floor . (fromIntegral (writerColumns opts) *)) widths'
   let hpipeBlocks blocks = hcat [beg, middle, end]
         where h       = maximum (1 : map height blocks)
               sep'    = lblock 3 $ vcat (map text $ replicate h " | ")
@@ -647,15 +648,34 @@ gridTable opts headless _aligns widths headers' rawRows =  do
   let makeRow = hpipeBlocks . zipWith lblock widthsInChars
   let head' = makeRow headers'
   let rows' = map (makeRow . map chomp) rawRows
-  let border ch = char '+' <> char ch <>
-                  (hcat $ intersperse (char ch <> char '+' <> char ch) $
-                          map (\l -> text $ replicate l ch) widthsInChars) <>
-                  char ch <> char '+'
-  let body = vcat $ intersperse (border '-') rows'
+  let borderpart ch align widthInChars =
+        let widthInChars' = if widthInChars < 1 then 1 else widthInChars
+        in (if (align == AlignLeft || align == AlignCenter)
+               then char ':'
+               else char ch) <>
+           text (replicate widthInChars' ch) <>
+           (if (align == AlignRight || align == AlignCenter)
+               then char ':'
+               else char ch)
+  let border ch aligns' widthsInChars' =
+        char '+' <>
+        hcat (intersperse (char '+') (zipWith (borderpart ch)
+                aligns' widthsInChars')) <> char '+'
+  let body = vcat $ intersperse (border '-' (repeat AlignDefault) widthsInChars)
+                    rows'
   let head'' = if headless
                   then empty
-                  else head' $$ border '='
-  return $ border '-' $$ head'' $$ body $$ border '-'
+                  else head' $$ border '=' aligns widthsInChars
+  if headless
+     then return $
+           border '-' aligns widthsInChars $$
+           body $$
+           border '-' (repeat AlignDefault) widthsInChars
+     else return $
+           border '-' (repeat AlignDefault) widthsInChars $$
+           head'' $$
+           body $$
+           border '-' (repeat AlignDefault) widthsInChars
 
 itemEndsWithTightList :: [Block] -> Bool
 itemEndsWithTightList bs =

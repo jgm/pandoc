@@ -1271,14 +1271,22 @@ gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
   splitStringByIndices (init indices) $ trimr line
 
-gridPart :: Char -> Parser [Char] st (Int, Int)
+gridPart :: Char -> Parser [Char] st ((Int, Int), Alignment)
 gridPart ch = do
+  leftColon <- option False (True <$ char ':')
   dashes <- many1 (char ch)
+  rightColon <- option False (True <$ char ':')
   char '+'
-  let lengthDashes = length dashes
-  return (lengthDashes, lengthDashes + 1)
+  let lengthDashes = length dashes + (if leftColon then 1 else 0) +
+                       (if rightColon then 1 else 0)
+  let alignment = case (leftColon, rightColon) of
+                       (True, True)   -> AlignCenter
+                       (True, False)  -> AlignLeft
+                       (False, True)  -> AlignRight
+                       (False, False) -> AlignDefault
+  return ((lengthDashes, lengthDashes + 1), alignment)
 
-gridDashedLines :: Char -> Parser [Char] st [(Int,Int)]
+gridDashedLines :: Char -> Parser [Char] st [((Int, Int), Alignment)]
 gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
 
 removeFinalBar :: String -> String
@@ -1296,19 +1304,17 @@ gridTableHeader headless = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
   rawContent  <- if headless
-                    then return $ repeat ""
-                    else many1
-                         (notFollowedBy (gridTableSep '=') >> char '|' >>
-                           many1Till anyChar newline)
-  if headless
-     then return ()
-     else gridTableSep '=' >> return ()
-  let lines'   = map snd dashes
+                    then return []
+                    else many1 (try (char '|' >> anyLine))
+  underDashes <- if headless
+                    then return dashes
+                    else gridDashedLines '='
+  guard $ length dashes == length underDashes
+  let lines'   = map (snd . fst) underDashes
   let indices  = scanl (+) 0 lines'
-  let aligns   = replicate (length lines') AlignDefault
-  -- RST does not have a notion of alignments
+  let aligns   = map snd underDashes
   let rawHeads = if headless
-                    then replicate (length dashes) ""
+                    then replicate (length underDashes) ""
                     else map (unlines . map trim) $ transpose
                        $ map (gridTableSplitLine indices) rawContent
   heads <- fmap sequence $ mapM (parseFromString parseBlocks . trim) rawHeads
@@ -1317,7 +1323,7 @@ gridTableHeader headless = try $ do
 gridTableRawLine :: [Int] -> MarkdownParser [String]
 gridTableRawLine indices = do
   char '|'
-  line <- many1Till anyChar newline
+  line <- anyLine
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
