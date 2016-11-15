@@ -657,19 +657,23 @@ gridTable opts headless _aligns widths headers' rawRows =  do
                   else head' $$ border '='
   return $ border '-' $$ head'' $$ body $$ border '-'
 
+itemEndsWithTightList :: [Block] -> Bool
+itemEndsWithTightList bs =
+  case bs of
+        [Plain _, BulletList xs]    -> isTightList xs
+        [Plain _, OrderedList _ xs] -> isTightList xs
+        _ -> False
+
 -- | Convert bullet list item (list of blocks) to markdown.
 bulletListItemToMarkdown :: WriterOptions -> [Block] -> MD Doc
-bulletListItemToMarkdown opts items = do
-  contents <- blockListToMarkdown opts items
+bulletListItemToMarkdown opts bs = do
+  contents <- blockListToMarkdown opts bs
   let sps = replicate (writerTabStop opts - 2) ' '
   let start = text ('-' : ' ' : sps)
-  -- remove trailing blank line if it is a tight list
-  let contents' = case reverse items of
-                       (BulletList xs:_) | isTightList xs ->
-                            chomp contents <> cr
-                       (OrderedList _ xs:_) | isTightList xs ->
-                            chomp contents <> cr
-                       _ -> contents
+  -- remove trailing blank line if item ends with a tight list
+  let contents' = if itemEndsWithTightList bs
+                     then chomp contents <> cr
+                     else contents
   return $ hang (writerTabStop opts) start $ contents' <> cr
 
 -- | Convert ordered list item (a list of blocks) to markdown.
@@ -677,13 +681,17 @@ orderedListItemToMarkdown :: WriterOptions -- ^ options
                           -> String        -- ^ list item marker
                           -> [Block]       -- ^ list item (list of blocks)
                           -> MD Doc
-orderedListItemToMarkdown opts marker items = do
-  contents <- blockListToMarkdown opts items
+orderedListItemToMarkdown opts marker bs = do
+  contents <- blockListToMarkdown opts bs
   let sps = case length marker - writerTabStop opts of
                    n | n > 0 -> text $ replicate n ' '
                    _         -> text " "
   let start = text marker <> sps
-  return $ hang (writerTabStop opts) start $ contents <> cr
+  -- remove trailing blank line if item ends with a tight list
+  let contents' = if itemEndsWithTightList bs
+                     then chomp contents <> cr
+                     else contents
+  return $ hang (writerTabStop opts) start $ contents' <> cr
 
 -- | Convert definition list item (label, list of blocks) to markdown.
 definitionListItemToMarkdown :: WriterOptions

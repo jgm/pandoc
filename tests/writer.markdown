@@ -210,7 +210,6 @@ Here’s another:
     -   Fee
     -   Fie
     -   Foe
-
 3.  Third
 
 Same thing but with paragraphs:

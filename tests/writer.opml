@@ -35,7 +35,7 @@
   </outline>
   <outline text="Ordered" _note="Tight:&#10;&#10;1.  First&#10;2.  Second&#10;3.  Third&#10;&#10;and:&#10;&#10;1.  One&#10;2.  Two&#10;3.  Three&#10;&#10;Loose using tabs:&#10;&#10;1.  First&#10;&#10;2.  Second&#10;&#10;3.  Third&#10;&#10;and using spaces:&#10;&#10;1.  One&#10;&#10;2.  Two&#10;&#10;3.  Three&#10;&#10;Multiple paragraphs:&#10;&#10;1.  Item 1, graf one.&#10;&#10;    Item 1. graf two. The quick brown fox jumped over the lazy&#10;    dog’s back.&#10;&#10;2.  Item 2.&#10;&#10;3.  Item 3.&#10;&#10;">
   </outline>
-  <outline text="Nested" _note="-   Tab&#10;    -   Tab&#10;        -   Tab&#10;&#10;Here’s another:&#10;&#10;1.  First&#10;2.  Second:&#10;    -   Fee&#10;    -   Fie&#10;    -   Foe&#10;&#10;3.  Third&#10;&#10;Same thing but with paragraphs:&#10;&#10;1.  First&#10;&#10;2.  Second:&#10;&#10;    -   Fee&#10;    -   Fie&#10;    -   Foe&#10;&#10;3.  Third&#10;&#10;">
+  <outline text="Nested" _note="-   Tab&#10;    -   Tab&#10;        -   Tab&#10;&#10;Here’s another:&#10;&#10;1.  First&#10;2.  Second:&#10;    -   Fee&#10;    -   Fie&#10;    -   Foe&#10;3.  Third&#10;&#10;Same thing but with paragraphs:&#10;&#10;1.  First&#10;&#10;2.  Second:&#10;&#10;    -   Fee&#10;    -   Fie&#10;    -   Foe&#10;&#10;3.  Third&#10;&#10;">
   </outline>
   <outline text="Tabs and spaces" _note="-   this is a list item indented with tabs&#10;&#10;-   this is a list item indented with spaces&#10;&#10;    -   this is an example list item indented with tabs&#10;&#10;    -   this is an example list item indented with spaces&#10;&#10;">
   </outline>
