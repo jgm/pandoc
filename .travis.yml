@@ -1,5 +1,5 @@
-# Copy these contents into the root directory of your Github project in a file
-# named .travis.yml
+# This .travis.yml is modified from the sample at
+# https://docs.haskellstack.org/en/stable/GUIDE/#travis-with-caching
 
 # Use new container infrastructure to enable caching
 sudo: false
