@@ -27,7 +27,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
-module Text.Pandoc.Writers.RTF ( writeRTF, writeRTFWithEmbeddedImages ) where
+module Text.Pandoc.Writers.RTF ( writeRTF
+                               , writeRTFWithEmbeddedImages
+                               , writeRTFWithEmbeddedImagesPure
+                               ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
@@ -41,13 +44,15 @@ import qualified Data.ByteString as B
 import qualified Data.Map as M
 import Text.Printf ( printf )
 import Text.Pandoc.ImageSize
+import Text.Pandoc.Free (PandocAction, runIO)
+import qualified Text.Pandoc.Free as P
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file,
 -- or a MediaBag, or the internet.
 -- If file not found or filetype not jpeg or png, leave the inline unchanged.
-rtfEmbedImage :: WriterOptions -> Inline -> IO Inline
+rtfEmbedImage :: WriterOptions -> Inline -> PandocAction Inline
 rtfEmbedImage opts x@(Image attr _ (src,_)) = do
-  result <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
+  result <- P.fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case result of
        Right (imgdata, Just mime)
          | mime == "image/jpeg" || mime == "image/png" -> do
@@ -58,7 +63,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = do
                              _            -> error "Unknown file type"
          sizeSpec <- case imageSize imgdata of
                              Left msg -> do
-                               warn $ "Could not determine image size in `" ++
+                               P.warn $ "Could not determine image size in `" ++
                                  src ++ "': " ++ msg
                                return ""
                              Right sz -> return $ "\\picw" ++ show xpx ++
@@ -80,6 +85,10 @@ rtfEmbedImage _ x = return x
 -- images embedded as encoded binary data.
 writeRTFWithEmbeddedImages :: WriterOptions -> Pandoc -> IO String
 writeRTFWithEmbeddedImages options doc =
+  runIO $ writeRTF options `fmap` walkM (rtfEmbedImage options) doc
+
+writeRTFWithEmbeddedImagesPure :: WriterOptions -> Pandoc -> PandocAction String
+writeRTFWithEmbeddedImagesPure options doc =
   writeRTF options `fmap` walkM (rtfEmbedImage options) doc
 
 -- | Convert Pandoc to a string in rich text format.
