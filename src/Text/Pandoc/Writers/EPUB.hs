@@ -66,8 +66,6 @@ import Text.HTML.TagSoup (Tag(TagOpen), fromAttrib, parseTags)
 import Text.Pandoc.Free (PandocAction, runIO)
 import qualified Text.Pandoc.Free as P
 
-type EPUBAction = PandocAction [(FilePath, (FilePath, Maybe Entry))]
-
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section
 -- number is different from the index number, which will be used
@@ -77,7 +75,7 @@ data Chapter = Chapter (Maybe [Int]) [Block]
 data EPUBState = EPUBState { stMediaPaths :: [(FilePath, (FilePath, Maybe Entry))]
                            }
 
-type E = StateT EPUBState EPUBAction                 
+type E = StateT EPUBState PandocAction                 
 
 data EPUBMetadata = EPUBMetadata{
     epubIdentifier         :: [Identifier]
@@ -343,7 +341,7 @@ writeEPUB opts doc = runIO $ writeEPUBPure opts doc
 
 writeEPUBPure :: WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
-          -> EPUBAction B.ByteString
+          -> PandocAction B.ByteString
 writeEPUBPure opts doc =
   let initState = EPUBState { stMediaPaths = []
                             }
@@ -398,7 +396,7 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
   picEntries <- (catMaybes . map (snd . snd)) <$> (gets stMediaPaths)
   -- handle fonts
   let matchingGlob f = do
-        xs <- lift $ P.namesMatching f
+        xs <- lift $ P.glob f
         when (null xs) $
           lift $ P.warn $ f ++ " did not match any font files."
         return xs
