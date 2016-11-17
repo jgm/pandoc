@@ -34,6 +34,8 @@ module Text.Pandoc.Free ( PandocActionF(..)
                         , PandocAction
                         , runIO
                         , runTest
+                        , TestState(..)
+                        , TestEnv(..)
                         , liftF
                         --
                         , lookupEnv
@@ -60,7 +62,7 @@ import qualified Control.Monad as M (fail)
 import System.Random (StdGen, next)
 import qualified System.Random as IO (newStdGen)
 import Codec.Archive.Zip (Archive, fromArchive)
-import Data.Unique (Unique, hashUnique, newUnique)
+import Data.Unique (hashUnique)
 import qualified Data.Unique as IO (newUnique)
 import qualified Text.Pandoc.Shared as IO ( fetchItem
                                           , fetchItem'
