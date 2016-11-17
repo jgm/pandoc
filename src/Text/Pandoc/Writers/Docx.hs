@@ -56,7 +56,6 @@ import Text.Pandoc.Readers.Docx.Util (elemName)
 import Control.Monad.Reader
 import Control.Monad.State
 import Text.Highlighting.Kate
-import Data.Unique (hashUnique)
 import System.Random (randomR)
 import Text.Printf (printf)
 import qualified Control.Exception as E
@@ -68,8 +67,6 @@ import Data.Maybe (fromMaybe, mapMaybe, maybeToList, isNothing)
 import Data.Char (ord, isSpace, toLower)
 import Text.Pandoc.Free (PandocAction, runIO)
 import qualified Text.Pandoc.Free as P
-
-type DocxAction = PandocAction ()
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -149,7 +146,7 @@ defaultWriterState = WriterState{
       , stDynamicTextProps = []
       }
 
-type WS = ReaderT WriterEnv (StateT WriterState (DocxAction))
+type WS = ReaderT WriterEnv (StateT WriterState (PandocAction))
 
 mknode :: Node t => String -> [(String,String)] -> t -> Element
 mknode s attrs =
@@ -227,7 +224,7 @@ writeDocx opts doc = runIO $ writeDocxPure opts doc
 -- | Produce an Docx file from a Pandoc document.
 writeDocxPure :: WriterOptions  -- ^ Writer options
               -> Pandoc         -- ^ Document to convert
-              -> DocxAction BL.ByteString
+              -> PandocAction BL.ByteString
 writeDocxPure opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let doc' = walk fixDisplayMath $ doc
@@ -614,7 +611,7 @@ styleToOpenXml sm style =
                                  $ backgroundColor style )
                              ]
 
-copyChildren :: Archive -> Archive -> String -> Integer -> [String] -> DocxAction Entry
+copyChildren :: Archive -> Archive -> String -> Integer -> [String] -> PandocAction Entry
 copyChildren refArchive distArchive path timestamp elNames = do
   ref  <- parseXml refArchive distArchive path
   dist <- parseXml distArchive distArchive path
@@ -633,7 +630,7 @@ copyChildren refArchive distArchive path timestamp elNames = do
 baseListId :: Int
 baseListId = 1000
 
-mkNumbering :: [ListMarker] -> DocxAction [Element]
+mkNumbering :: [ListMarker] -> PandocAction [Element]
 mkNumbering lists = do
   elts <- mapM mkAbstractNum (ordNub lists)
   return $ elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
@@ -649,7 +646,7 @@ mkNum marker numid =
           map (\lvl -> mknode "w:lvlOverride" [("w:ilvl",show (lvl :: Int))]
               $ mknode "w:startOverride" [("w:val",show start)] ()) [0..6]
 
-mkAbstractNum :: ListMarker -> DocxAction Element
+mkAbstractNum :: ListMarker -> PandocAction Element
 mkAbstractNum marker = do
   gen <- P.newStdGen
   let (nsid, _) = randomR (0x10000000 :: Integer, 0xFFFFFFFF :: Integer) gen
@@ -794,10 +791,10 @@ rStyleM styleName = do
   let sty' = getStyleId styleName $ sCharStyleMap styleMaps
   return $ mknode "w:rStyle" [("w:val",sty')] ()
 
-getUniqueId :: DocxAction String
+getUniqueId :: PandocAction String
 -- the + 20 is to ensure that there are no clashes with the rIds
 -- already in word/document.xml.rel
-getUniqueId = (show . (+ 20) . hashUnique) <$> P.newUnique
+getUniqueId = (show . (+ 20)) <$> P.newUniqueHash
 
 -- | Key for specifying user-defined docx styles.
 dynamicStyleKey :: String
@@ -1274,7 +1271,7 @@ defaultFootnotes = [ mknode "w:footnote"
                        [ mknode "w:r" [] $
                          [ mknode "w:continuationSeparator" [] ()]]]]
 
-parseXml :: Archive -> Archive -> String -> DocxAction Element
+parseXml :: Archive -> Archive -> String -> PandocAction Element
 parseXml refArchive distArchive relpath =
   case findEntryByPath relpath refArchive `mplus`
          findEntryByPath relpath distArchive of

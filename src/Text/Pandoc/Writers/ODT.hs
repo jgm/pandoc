@@ -53,12 +53,10 @@ import System.FilePath ( takeExtension, takeDirectory, (<.>))
 import Text.Pandoc.Free ( PandocAction, runIO )
 import qualified Text.Pandoc.Free as P
 
-type ODTAction = PandocAction [Entry]
-
 data ODTState = ODTState { stEntries :: [Entry]
                          }
 
-type O = StateT ODTState ODTAction
+type O = StateT ODTState PandocAction
 
 -- | Produce an ODT file from a Pandoc document.
 writeODT :: WriterOptions  -- ^ Writer options
@@ -68,7 +66,7 @@ writeODT opts doc = runIO $ writeODTPure opts doc
 
 writeODTPure :: WriterOptions
              -> Pandoc
-             -> ODTAction B.ByteString
+             -> PandocAction B.ByteString
 writeODTPure opts doc =
   let initState = ODTState{ stEntries = []
                           }

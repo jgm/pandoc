@@ -28,10 +28,8 @@ import Data.Text as Text (breakOnAll, pack)
 import Control.Monad.State
 import Network.URI (isURI)
 import qualified Data.Set as Set
-import Text.Pandoc.Free (runIO)
+import Text.Pandoc.Free (runIO, PandocAction)
 import qualified Text.Pandoc.Free as P
-
-type ICMLAction = P.PandocAction ()
 
 type Style = [String]
 type Hyperlink = [(Int, String)]
@@ -44,7 +42,7 @@ data WriterState = WriterState{
   , maxListDepth :: Int
   }
 
-type WS a = StateT WriterState ICMLAction a
+type WS a = StateT WriterState PandocAction a
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{
@@ -130,7 +128,7 @@ writeICML :: WriterOptions -> Pandoc -> IO String
 writeICML opts doc = runIO $ writeICMLPure opts doc
 
 -- | Convert Pandoc document to string in ICML format.
-writeICMLPure :: WriterOptions -> Pandoc -> ICMLAction String
+writeICMLPure :: WriterOptions -> Pandoc -> PandocAction String
 writeICMLPure opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
