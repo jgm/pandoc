@@ -123,6 +123,7 @@ module Text.Pandoc
                -- * Miscellaneous
                , getReader
                , getWriter
+               , getDefaultExtensions
                , ToJsonFilter(..)
                , pandocVersion
              ) where
