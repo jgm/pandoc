@@ -76,8 +76,13 @@ instance Show ImageMode where
 writeFB2 :: WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
          -> IO String        -- ^ FictionBook2 document (not encoded yet)
-writeFB2 opts (Pandoc meta blocks) = flip evalStateT newFB $ do
-     modify (\s -> s { writerOptions = opts })
+writeFB2 opts doc = flip evalStateT newFB $ pandocToFB2 opts doc
+
+pandocToFB2 :: WriterOptions
+            -> Pandoc
+            -> FBM String
+pandocToFB2 opts (Pandoc meta blocks) = do
+     modify (\s -> s { writerOptions = opts { writerOptions = opts } })
      desc <- description meta
      fp <- frontpage meta
      secs <- renderSections 1 blocks
@@ -94,7 +99,6 @@ writeFB2 opts (Pandoc meta blocks) = flip evalStateT newFB $ do
           xlink = "http://www.w3.org/1999/xlink"
       in  [ uattr "xmlns" xmlns
           , attr ("xmlns", "l") xlink ]
-
 
 frontpage :: Meta -> FBM [Content]
 frontpage meta' = do
@@ -250,11 +254,13 @@ fetchImage href link = do
                      , uattr "content-type" imgtype]
                    , txt imgdata )
     _ -> return (Left ('#':href))
-  where
-   nothingOnError :: (IO B.ByteString) -> (IO (Maybe B.ByteString))
-   nothingOnError action = liftM Just action `E.catch` omnihandler
-   omnihandler :: E.SomeException -> IO (Maybe B.ByteString)
-   omnihandler _ = return Nothing
+
+
+nothingOnError :: (IO B.ByteString) -> (IO (Maybe B.ByteString))
+nothingOnError action = liftM Just action `E.catch` omnihandler
+
+omnihandler :: E.SomeException -> IO (Maybe B.ByteString)
+omnihandler _ = return Nothing
 
 -- | Extract mime type and encoded data from the Data URI.
 readDataURI :: String -- ^ URI
