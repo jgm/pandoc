@@ -94,53 +94,59 @@ writeFB2 opts (Pandoc meta blocks) = flip evalStateT newFB $ do
           xlink = "http://www.w3.org/1999/xlink"
       in  [ uattr "xmlns" xmlns
           , attr ("xmlns", "l") xlink ]
-  --
-  frontpage :: Meta -> FBM [Content]
-  frontpage meta' = do
-      t <- cMapM toXml . docTitle $ meta'
-      return $
-        [ el "title" (el "p" t)
-        , el "annotation" (map (el "p" . cMap plain)
-                           (docAuthors meta' ++ [docDate meta']))
-        ]
-  description :: Meta -> FBM Content
-  description meta' = do
-      bt <- booktitle meta'
-      let as = authors meta'
-      dd <- docdate meta'
-      return $ el "description"
-         [ el "title-info" (bt ++ as ++ dd)
-         , el "document-info" [ el "program-used" "pandoc" ] -- FIXME: +version
-         ]
-  booktitle :: Meta -> FBM [Content]
-  booktitle meta' = do
-      t <- cMapM toXml . docTitle $ meta'
-      return $ if null t
-               then []
-               else [ el "book-title" t ]
-  authors :: Meta -> [Content]
-  authors meta' = cMap author (docAuthors meta')
-  author :: [Inline] -> [Content]
-  author ss =
-      let ws = words . cMap plain $ ss
-          email = (el "email") `fmap` (take 1 $ filter ('@' `elem`) ws)
-          ws' = filter ('@' `notElem`) ws
-          names = case ws' of
-                    (nickname:[]) -> [ el "nickname" nickname ]
-                    (fname:lname:[]) -> [ el "first-name" fname
-                                       , el "last-name" lname ]
-                    (fname:rest) -> [ el "first-name" fname
-                                   , el "middle-name" (concat . init $ rest)
-                                   , el "last-name" (last rest) ]
-                    ([]) -> []
-      in  list $ el "author" (names ++ email)
-  docdate :: Meta -> FBM [Content]
-  docdate meta' = do
-      let ss = docDate meta'
-      d <- cMapM toXml ss
-      return $ if null d
-               then []
-               else [el "date" d]
+
+
+frontpage :: Meta -> FBM [Content]
+frontpage meta' = do
+  t <- cMapM toXml . docTitle $ meta'
+  return $
+    [ el "title" (el "p" t)
+    , el "annotation" (map (el "p" . cMap plain)
+                       (docAuthors meta' ++ [docDate meta']))
+    ]
+
+description :: Meta -> FBM Content
+description meta' = do
+  bt <- booktitle meta'
+  let as = authors meta'
+  dd <- docdate meta'
+  return $ el "description"
+    [ el "title-info" (bt ++ as ++ dd)
+    , el "document-info" [ el "program-used" "pandoc" ] -- FIXME: +version
+    ]
+
+booktitle :: Meta -> FBM [Content]
+booktitle meta' = do
+  t <- cMapM toXml . docTitle $ meta'
+  return $ if null t
+           then []
+           else [ el "book-title" t ]
+
+authors :: Meta -> [Content]
+authors meta' = cMap author (docAuthors meta')
+
+author :: [Inline] -> [Content]
+author ss =
+  let ws = words . cMap plain $ ss
+      email = (el "email") `fmap` (take 1 $ filter ('@' `elem`) ws)
+      ws' = filter ('@' `notElem`) ws
+      names = case ws' of
+                (nickname:[]) -> [ el "nickname" nickname ]
+                (fname:lname:[]) -> [ el "first-name" fname
+                                    , el "last-name" lname ]
+                (fname:rest) -> [ el "first-name" fname
+                                , el "middle-name" (concat . init $ rest)
+                                , el "last-name" (last rest) ]
+                ([]) -> []
+  in  list $ el "author" (names ++ email)
+
+docdate :: Meta -> FBM [Content]
+docdate meta' = do
+  let ss = docDate meta'
+  d <- cMapM toXml ss
+  return $ if null d
+           then []
+           else [el "date" d]
 
 -- | Divide the stream of blocks into sections and convert to XML
 -- representation.
