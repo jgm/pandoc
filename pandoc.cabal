@@ -236,6 +236,10 @@ Flag trypandoc
   Description:   Build trypandoc cgi executable.
   Default:       False
 
+Flag weigh-pandoc
+  Description:   Build weigh-pandoc to measure memory usage.
+  Default:       False
+
 Flag https
   Description:   Enable support for downloading of resources over https.
   Default:       True
@@ -471,6 +475,22 @@ Executable trypandoc
     Buildable:     True
   else
     Buildable:     False
+
+Executable weigh-pandoc
+  Main-Is:         weigh-pandoc.hs
+  Hs-Source-Dirs:  benchmark
+  if impl(ghc < 7.10)
+     Hs-Source-Dirs: prelude
+     Other-Modules:  Prelude
+  if flag(weigh-pandoc)
+     Build-Depends:   pandoc,
+                      base >= 4.2 && < 5,
+                      weigh >= 0.0 && < 0.1
+     Buildable:       True
+  else
+    Buildable:     False
+  Ghc-Options:   -rtsopts -Wall -fno-warn-unused-do-bind
+  Default-Language: Haskell98
 
 Test-Suite test-pandoc
   Type:           exitcode-stdio-1.0
