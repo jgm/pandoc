@@ -28,26 +28,23 @@ FictionBook is an XML-based e-book format. For more information see:
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
 import Control.Monad.State (StateT, evalStateT, get, modify)
-import Control.Monad.State (liftM, liftM2, liftIO)
+import Control.Monad.State (liftM, liftIO)
 import Data.ByteString.Base64 (encode)
 import Data.Char (toLower, isSpace, isAscii, isControl)
 import Data.List (intersperse, intercalate, isPrefixOf, stripPrefix)
 import Data.Either (lefts, rights)
-import Network.Browser (browse, request, setAllowRedirects, setOutHandler)
-import Network.HTTP (catchIO_, getRequest, getHeaders, getResponseBody)
-import Network.HTTP (lookupHeader, HeaderName(..), urlEncode)
-import Network.URI (isURI, unEscapeString)
-import System.FilePath (takeExtension)
+import Network.HTTP (urlEncode)
+import Network.URI (isURI)
 import Text.XML.Light
-import qualified Control.Exception as E
-import qualified Data.ByteString as B
 import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
+import qualified Data.ByteString.Char8 as B8
+
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
 import Text.Pandoc.Shared (orderedListMarkers, isHeaderBlock, capitalize,
-                           linesToPara)
+                           linesToPara, fetchItem)
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
@@ -237,16 +234,11 @@ fetchImage href link = do
               then return (Just (mime',base64))
               else return Nothing
        (True, Just _) -> return Nothing  -- not base64-encoded
-       (True, Nothing) -> fetchURL link
-       (False, _) -> do
-        d <- nothingOnError $ B.readFile (unEscapeString link)
-        let t = case map toLower (takeExtension link) of
-                  ".png" -> Just "image/png"
-                  ".jpg" -> Just "image/jpeg"
-                  ".jpeg" -> Just "image/jpeg"
-                  ".jpe" -> Just "image/jpeg"
-                  _ -> Nothing  -- only PNG and JPEG are supported in FB2
-        return $ liftM2 (,) t (liftM (toStr . encode) d)
+       _               -> do
+         response <- fetchItem Nothing link
+         case response of
+           Right (bs, Just mime) -> return $ Just (mime, B8.unpack $ encode bs)
+           _                     -> return $ Nothing
   case mbimg of
     Just (imgtype, imgdata) -> do
         return . Right $ el "binary"
@@ -255,12 +247,6 @@ fetchImage href link = do
                    , txt imgdata )
     _ -> return (Left ('#':href))
 
-
-nothingOnError :: (IO B.ByteString) -> (IO (Maybe B.ByteString))
-nothingOnError action = liftM Just action `E.catch` omnihandler
-
-omnihandler :: E.SomeException -> IO (Maybe B.ByteString)
-omnihandler _ = return Nothing
 
 -- | Extract mime type and encoded data from the Data URI.
 readDataURI :: String -- ^ URI
@@ -297,24 +283,6 @@ isMimeType s =
    types =  ["text","image","audio","video","application","message","multipart"]
    valid c = isAscii c && not (isControl c) && not (isSpace c) &&
              c `notElem` "()<>@,;:\\\"/[]?="
-
--- | Fetch URL, return its Content-Type and binary data on success.
-fetchURL :: String -> IO (Maybe (String, String))
-fetchURL url = do
-  flip catchIO_ (return Nothing) $ do
-     r <- browse $ do
-           setOutHandler (const (return ()))
-           setAllowRedirects True
-           liftM snd . request . getRequest $ url
-     let content_type = lookupHeader HdrContentType (getHeaders r)
-     content <- liftM (Just . toStr . encode . toBS) . getResponseBody $ Right r
-     return $ liftM2 (,) content_type content
-
-toBS :: String -> B.ByteString
-toBS = B.pack . map (toEnum . fromEnum)
-
-toStr :: B.ByteString -> String
-toStr = map (toEnum . fromEnum) . B.unpack
 
 footnoteID :: Int -> String
 footnoteID i = "n" ++ (show i)
