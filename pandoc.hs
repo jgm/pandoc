@@ -975,7 +975,10 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     defaultDatadir <- getAppUserDataDirectory "pandoc"
+                     defaultDatadir <- E.catch
+                            (getAppUserDataDirectory "pandoc")
+                            (\e -> let _ = (e :: E.SomeException)
+                                   in  return "")
                      UTF8.hPutStrLn stdout (prg ++ " " ++ pandocVersion ++
                        compileInfo ++ "\nDefault user data directory: " ++
                        defaultDatadir ++ copyrightMessage)
