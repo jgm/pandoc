@@ -894,7 +894,7 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
                     [ mknode "w:tcBorders" []
                       $ mknode "w:bottom" [("w:val","single")] ()
                     , mknode "w:vAlign" [("w:val","bottom")] () ]
-  let emptyCell = [mknode "w:p" [] [pCustomStyle "Compact"]]
+  let emptyCell = [mknode "w:p" [] [mknode "w:pPr" [] [pCustomStyle "Compact"]]]
   let mkcell border contents = mknode "w:tc" []
                             $ [ borderProps | border ] ++
                             if null contents
