@@ -858,10 +858,17 @@ inlineToMarkdown :: WriterOptions -> Inline -> MD Doc
 inlineToMarkdown opts (Span attrs ils) = do
   plain <- asks envPlain
   contents <- inlineListToMarkdown opts ils
-  return $ if not plain &&
-              (isEnabled Ext_raw_html opts || isEnabled Ext_native_spans opts)
-              then tagWithAttrs "span" attrs <> contents <> text "</span>"
-              else contents
+  return $ case plain of
+                True -> contents
+                False | isEnabled Ext_bracketed_spans opts ->
+                        "[" <> contents <> "]" <>
+                          if attrs == nullAttr
+                             then "{}"
+                             else linkAttributes opts attrs
+                      | isEnabled Ext_raw_html opts ||
+                        isEnabled Ext_native_spans opts ->
+                        tagWithAttrs "span" attrs <> contents <> text "</span>"
+                      | otherwise -> contents
 inlineToMarkdown opts (Emph lst) = do
   plain <- asks envPlain
   contents <- inlineListToMarkdown opts lst
