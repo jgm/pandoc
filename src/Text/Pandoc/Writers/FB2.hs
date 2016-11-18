@@ -25,10 +25,10 @@ FictionBook is an XML-based e-book format. For more information see:
 <http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1>
 
 -}
-module Text.Pandoc.Writers.FB2 (writeFB2)  where
+module Text.Pandoc.Writers.FB2 (writeFB2, writeFB2Pure)  where
 
-import Control.Monad.State (StateT, evalStateT, get, modify)
-import Control.Monad.State (liftM, liftIO)
+import Control.Monad.State (StateT, evalStateT, get, modify, lift)
+import Control.Monad.State (liftM)
 import Data.ByteString.Base64 (encode)
 import Data.Char (toLower, isSpace, isAscii, isControl)
 import Data.List (intersperse, intercalate, isPrefixOf, stripPrefix)
@@ -44,7 +44,9 @@ import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
 import Text.Pandoc.Shared (orderedListMarkers, isHeaderBlock, capitalize,
-                           linesToPara, fetchItem)
+                           linesToPara)
+import Text.Pandoc.Free (PandocAction, runIO)
+import qualified Text.Pandoc.Free as P
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
@@ -57,7 +59,7 @@ data FbRenderState = FbRenderState
     } deriving (Show)
 
 -- | FictionBook building monad.
-type FBM = StateT FbRenderState IO
+type FBM = StateT FbRenderState PandocAction
 
 newFB :: FbRenderState
 newFB = FbRenderState { footnotes = [], imagesToFetch = []
@@ -73,7 +75,12 @@ instance Show ImageMode where
 writeFB2 :: WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
          -> IO String        -- ^ FictionBook2 document (not encoded yet)
-writeFB2 opts doc = flip evalStateT newFB $ pandocToFB2 opts doc
+writeFB2 opts doc = runIO $ writeFB2Pure opts doc
+
+writeFB2Pure :: WriterOptions
+             -> Pandoc       
+             -> PandocAction String    
+writeFB2Pure opts doc = flip evalStateT newFB $ pandocToFB2 opts doc
 
 pandocToFB2 :: WriterOptions
             -> Pandoc
@@ -85,7 +92,7 @@ pandocToFB2 opts (Pandoc meta blocks) = do
      secs <- renderSections 1 blocks
      let body = el "body" $ fp ++ secs
      notes <- renderFootnotes
-     (imgs,missing) <- liftM imagesToFetch get >>= \s -> liftIO (fetchImages s)
+     (imgs,missing) <- liftM imagesToFetch get >>= \s -> lift (fetchImages s)
      let body' = replaceImagesWithAlt missing body
      let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body'] ++ notes ++ imgs)
      return $ xml_head ++ (showContent fb2_xml) ++ "\n"
@@ -217,14 +224,14 @@ renderFootnotes = do
 
 -- | Fetch images and encode them for the FictionBook XML.
 -- Return image data and a list of hrefs of the missing images.
-fetchImages :: [(String,String)] -> IO ([Content],[String])
+fetchImages :: [(String,String)] -> PandocAction ([Content],[String])
 fetchImages links = do
     imgs <- mapM (uncurry fetchImage) links
     return $ (rights imgs, lefts imgs)
 
 -- | Fetch image data from disk or from network and make a <binary> XML section.
 -- Return either (Left hrefOfMissingImage) or (Right xmlContent).
-fetchImage :: String -> String -> IO (Either String Content)
+fetchImage :: String -> String -> PandocAction (Either String Content)
 fetchImage href link = do
   mbimg <-
       case (isURI link, readDataURI link) of
@@ -235,7 +242,7 @@ fetchImage href link = do
               else return Nothing
        (True, Just _) -> return Nothing  -- not base64-encoded
        _               -> do
-         response <- fetchItem Nothing link
+         response <- P.fetchItem Nothing link
          case response of
            Right (bs, Just mime) -> return $ Just (mime, B8.unpack $ encode bs)
            _                     -> return $ Nothing
