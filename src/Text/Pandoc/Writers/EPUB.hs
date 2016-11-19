@@ -711,7 +711,7 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
 
   -- stylesheet
   stylesheet <- case epubStylesheet metadata of
-                   Just (StylesheetPath fp)    -> lift $ P.readFileUTF8 fp
+                   Just (StylesheetPath fp)    -> UTF8.toStringLazy <$> (lift $ P.readFileLazy fp)
                    Just (StylesheetContents s) -> return s
                    Nothing -> UTF8.toString `fmap`
                               (lift $ P.readDataFile (writerUserDataDir opts) "epub.css")

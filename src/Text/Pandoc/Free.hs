@@ -46,7 +46,6 @@ module Text.Pandoc.Free ( PandocActionF(..)
                         , newStdGen
                         , newUniqueHash
                         , readFileLazy
-                        , readFileUTF8
                         , readDataFile
                         , fetchItem
                         , fetchItem'
@@ -79,7 +78,6 @@ import qualified Data.ByteString.Lazy as BL
 import Control.Monad.Free
 import qualified Control.Exception as E
 import qualified System.Environment as IO (lookupEnv)
-import qualified Text.Pandoc.UTF8 as UTF8 (readFile, toString)
 import System.FilePath.Glob (match, compile)
 import System.FilePath ((</>))
 import qualified System.FilePath.Glob as IO (glob)
@@ -97,7 +95,6 @@ data PandocActionF nxt =
   | NewStdGen (StdGen -> nxt)
   | NewUniqueHash (Int -> nxt)
   | ReadFileLazy FilePath (BL.ByteString -> nxt)
-  | ReadFileUTF8 FilePath (String -> nxt)
   | ReadDataFile (Maybe FilePath) FilePath (B.ByteString -> nxt)
   | FetchItem (Maybe String) (String)
     (Either E.SomeException (B.ByteString, Maybe MimeType) -> nxt)
@@ -134,9 +131,6 @@ newUniqueHash = liftF $ NewUniqueHash id
 readFileLazy :: FilePath -> PandocAction BL.ByteString
 readFileLazy fp = liftF $ ReadFileLazy fp id
 
-readFileUTF8 :: FilePath -> PandocAction String
-readFileUTF8 fp = liftF $ ReadFileUTF8 fp id
-
 readDataFile :: Maybe FilePath -> FilePath -> PandocAction B.ByteString
 readDataFile mfp fp = liftF $ ReadDataFile mfp fp id
 
@@ -172,7 +166,6 @@ runIO (Free (GetDefaultReferenceODT mfp f)) =
 runIO (Free (NewStdGen f)) = IO.newStdGen >>= runIO . f
 runIO (Free (NewUniqueHash f)) = hashUnique <$> IO.newUnique >>= runIO . f
 runIO (Free (ReadFileLazy fp f)) = BL.readFile fp >>= runIO . f
-runIO (Free (ReadFileUTF8 fp f)) = UTF8.readFile fp >>= runIO . f
 runIO (Free (ReadDataFile mfp fp f)) = IO.readDataFile mfp fp >>= runIO . f
 runIO (Free (Fail s)) = M.fail s
 runIO (Free (FetchItem sourceUrl nm f)) =
@@ -240,11 +233,6 @@ runTest (Free (ReadFileLazy fp f)) = do
   fps <- asks envFiles
   case lookup fp fps of
     Just bs -> return (BL.fromStrict bs) >>= runTest . f
-    Nothing -> error "openFile: does not exist"
-runTest (Free (ReadFileUTF8 fp f)) = do
-  fps <- asks envFiles
-  case lookup fp fps of
-    Just bs -> return (UTF8.toString bs) >>= runTest . f
     Nothing -> error "openFile: does not exist"
 -- A few different cases of readDataFile to reimplement, for when
 -- there is no filepath and it falls through to readDefaultDataFile
