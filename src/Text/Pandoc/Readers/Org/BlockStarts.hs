@@ -113,12 +113,12 @@ noteMarker = try $ do
                 <*> many1Till (noneOf "\n\r\t ") (char ']')
          ]
 
-  -- | Succeeds if the parser is at the end of a block.
+-- | Succeeds if the parser is at the end of a block.
 endOfBlock :: OrgParser ()
 endOfBlock = lookAhead . try $ do
     void blankline <|> anyBlockStart <|> void noteMarker
  where
-   -- | Succeeds if there is a new block starting at this position.
+   -- Succeeds if there is a new block starting at this position.
    anyBlockStart :: OrgParser ()
    anyBlockStart = try . choice $
      [ exampleLineStart
