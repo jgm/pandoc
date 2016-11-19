@@ -964,9 +964,11 @@ parseInline (Elem e) =
             content <- dbContent <$> get
             let linkend = attrValue "linkend" e
             let title = case attrValue "endterm" e of
-                            ""      -> maybe "???" xrefTitleByElem (findElementById linkend content)
-                            endterm -> maybe "???" strContent (findElementById endterm content)
-            return $ link ('#' : linkend) "" (singleton (Str title))
+                            ""      -> maybe "???" xrefTitleByElem
+                                         (findElementById linkend content)
+                            endterm -> maybe "???" strContent
+                                         (findElementById endterm content)
+            return $ link ('#' : linkend) "" (text title)
         "email" -> return $ link ("mailto:" ++ strContent e) ""
                           $ str $ strContent e
         "uri" -> return $ link (strContent e) "" $ str $ strContent e
@@ -1050,4 +1052,4 @@ parseInline (Elem e) =
           where
             xrefLabel = attrValue "xreflabel" el
             descendantContent name = maybe "???" strContent
-                                   . findElement (QName name Nothing Nothing)
+                                   . filterElementName (\n -> qName n == name)
