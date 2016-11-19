@@ -53,6 +53,7 @@ import Text.Pandoc.Options ( WriterOptions(..)
                            , ObfuscationMethod(NoObfuscation) )
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walk, walkM, query)
+import Text.Pandoc.UUID (getUUID)
 import Control.Monad.State (modify, get, gets, State, StateT, put, evalState, evalStateT, lift)
 import Control.Monad (mplus, when)
 import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
@@ -152,7 +153,7 @@ getEPUBMetadata opts meta = do
   let addIdentifier m =
        if null (epubIdentifier m)
           then do
-            randomId <- fmap show (lift P.newUUID)
+            randomId <- (show . getUUID) <$> lift P.newStdGen
             return $ m{ epubIdentifier = [Identifier randomId Nothing] }
           else return m
   let addLanguage m =
