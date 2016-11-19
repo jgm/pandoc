@@ -68,10 +68,9 @@ import qualified Text.Pandoc.Shared as IO ( fetchItem
                                           , warn
                                           , readDataFile)
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
-import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
-import qualified Data.Time.Clock.POSIX as IO (getPOSIXTime)
 import Text.Pandoc.Compat.Time (UTCTime)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
+import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds, POSIXTime )
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
@@ -89,7 +88,6 @@ import Data.Typeable
 data PandocActionF nxt =
   LookupEnv String (Maybe String -> nxt)
   | GetCurrentTime (UTCTime -> nxt)
-  | GetPOSIXTime (POSIXTime -> nxt)
   | GetDefaultReferenceDocx (Maybe FilePath) (Archive -> nxt)
   | GetDefaultReferenceODT (Maybe FilePath) (Archive -> nxt)
   | NewStdGen (StdGen -> nxt)
@@ -114,7 +112,7 @@ getCurrentTime :: PandocAction UTCTime
 getCurrentTime = liftF $ GetCurrentTime id
 
 getPOSIXTime :: PandocAction POSIXTime
-getPOSIXTime = liftF $ GetPOSIXTime id
+getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 
 getDefaultReferenceDocx :: Maybe FilePath -> PandocAction Archive
 getDefaultReferenceDocx fp = liftF $ GetDefaultReferenceDocx fp id
@@ -158,7 +156,6 @@ glob s = liftF $ Glob s id
 runIO :: PandocAction nxt -> IO nxt
 runIO (Free (LookupEnv s f)) = IO.lookupEnv s >>= runIO . f
 runIO (Free (GetCurrentTime f)) = IO.getCurrentTime >>= runIO . f
-runIO (Free (GetPOSIXTime f)) = IO.getPOSIXTime >>= runIO . f
 runIO (Free (GetDefaultReferenceDocx mfp f)) =
   IO.getDefaultReferenceDocx mfp >>= runIO . f
 runIO (Free (GetDefaultReferenceODT mfp f)) =
@@ -211,8 +208,6 @@ runTest (Free (LookupEnv s f)) = do
   return (lookup s env) >>= runTest . f
 runTest (Free (GetCurrentTime f)) =
   asks envTime >>= runTest . f
-runTest (Free (GetPOSIXTime f)) =
-  (utcTimeToPOSIXSeconds <$> asks envTime) >>= runTest . f
 runTest (Free (GetDefaultReferenceDocx _ f)) =
   asks envReferenceDocx >>= runTest . f
 runTest (Free (GetDefaultReferenceODT _ f)) =
