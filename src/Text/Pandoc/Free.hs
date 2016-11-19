@@ -45,7 +45,6 @@ module Text.Pandoc.Free ( PandocActionF(..)
                         , getDefaultReferenceODT
                         , newStdGen
                         , newUniqueHash
-                        , readFileStrict
                         , readFileLazy
                         , readFileUTF8
                         , readDataFile
@@ -97,7 +96,6 @@ data PandocActionF nxt =
   | GetDefaultReferenceODT (Maybe FilePath) (Archive -> nxt)
   | NewStdGen (StdGen -> nxt)
   | NewUniqueHash (Int -> nxt)
-  | ReadFileStrict FilePath (B.ByteString -> nxt)
   | ReadFileLazy FilePath (BL.ByteString -> nxt)
   | ReadFileUTF8 FilePath (String -> nxt)
   | ReadDataFile (Maybe FilePath) FilePath (B.ByteString -> nxt)
@@ -132,9 +130,6 @@ newStdGen = liftF $ NewStdGen id
 
 newUniqueHash :: PandocAction Int
 newUniqueHash = liftF $ NewUniqueHash id
-
-readFileStrict :: FilePath -> PandocAction B.ByteString
-readFileStrict fp = liftF $ ReadFileStrict fp id
 
 readFileLazy :: FilePath -> PandocAction BL.ByteString
 readFileLazy fp = liftF $ ReadFileLazy fp id
@@ -176,7 +171,6 @@ runIO (Free (GetDefaultReferenceODT mfp f)) =
   IO.getDefaultReferenceODT mfp >>= runIO . f
 runIO (Free (NewStdGen f)) = IO.newStdGen >>= runIO . f
 runIO (Free (NewUniqueHash f)) = hashUnique <$> IO.newUnique >>= runIO . f
-runIO (Free (ReadFileStrict fp f)) = B.readFile fp >>= runIO . f
 runIO (Free (ReadFileLazy fp f)) = BL.readFile fp >>= runIO . f
 runIO (Free (ReadFileUTF8 fp f)) = UTF8.readFile fp >>= runIO . f
 runIO (Free (ReadDataFile mfp fp f)) = IO.readDataFile mfp fp >>= runIO . f
@@ -242,11 +236,6 @@ runTest (Free (NewUniqueHash f)) = do
       modify $ \st -> st { stUniqStore = us }
       return u >>= runTest . f
     _ -> M.fail "uniq store ran out of elements"
-runTest (Free (ReadFileStrict fp f)) = do
-  fps <- asks envFiles
-  case lookup fp fps of
-    Just bs -> return bs >>= runTest . f
-    Nothing -> error "openFile: does not exist"
 runTest (Free (ReadFileLazy fp f)) = do
   fps <- asks envFiles
   case lookup fp fps of
@@ -269,7 +258,7 @@ runTest (Free (ReadDataFile Nothing "reference.odt" f)) = do
     runTest . f
 runTest (Free (ReadDataFile Nothing fname f)) = do
   let fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
-  runTest (readFileStrict fname') >>= runTest . f
+  runTest (BL.toStrict <$> readFileLazy fname') >>= runTest . f
 runTest (Free (ReadDataFile (Just userDir) fname f)) = do
   userDirFiles <- asks envUserDataDir
   case lookup (userDir </> fname) userDirFiles of
