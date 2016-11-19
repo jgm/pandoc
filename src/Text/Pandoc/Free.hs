@@ -45,7 +45,6 @@ module Text.Pandoc.Free ( PandocActionF(..)
                         , getDefaultReferenceODT
                         , newStdGen
                         , newUniqueHash
-                        , newUUID
                         , readFileStrict
                         , readFileLazy
                         , readFileUTF8
@@ -81,8 +80,6 @@ import qualified Data.ByteString.Lazy as BL
 import Control.Monad.Free
 import qualified Control.Exception as E
 import qualified System.Environment as IO (lookupEnv)
-import Text.Pandoc.UUID
-import qualified Text.Pandoc.UUID as IO (getRandomUUID)
 import qualified Text.Pandoc.UTF8 as UTF8 (readFile, toString)
 import System.FilePath.Glob (match, compile)
 import System.FilePath ((</>))
@@ -100,7 +97,6 @@ data PandocActionF nxt =
   | GetDefaultReferenceODT (Maybe FilePath) (Archive -> nxt)
   | NewStdGen (StdGen -> nxt)
   | NewUniqueHash (Int -> nxt)
-  | NewUUID (UUID -> nxt)
   | ReadFileStrict FilePath (B.ByteString -> nxt)
   | ReadFileLazy FilePath (BL.ByteString -> nxt)
   | ReadFileUTF8 FilePath (String -> nxt)
@@ -136,9 +132,6 @@ newStdGen = liftF $ NewStdGen id
 
 newUniqueHash :: PandocAction Int
 newUniqueHash = liftF $ NewUniqueHash id
-
-newUUID :: PandocAction UUID
-newUUID = liftF $ NewUUID id
 
 readFileStrict :: FilePath -> PandocAction B.ByteString
 readFileStrict fp = liftF $ ReadFileStrict fp id
@@ -183,7 +176,6 @@ runIO (Free (GetDefaultReferenceODT mfp f)) =
   IO.getDefaultReferenceODT mfp >>= runIO . f
 runIO (Free (NewStdGen f)) = IO.newStdGen >>= runIO . f
 runIO (Free (NewUniqueHash f)) = hashUnique <$> IO.newUnique >>= runIO . f
-runIO (Free (NewUUID f))   = IO.getRandomUUID >>= runIO . f
 runIO (Free (ReadFileStrict fp f)) = B.readFile fp >>= runIO . f
 runIO (Free (ReadFileLazy fp f)) = BL.readFile fp >>= runIO . f
 runIO (Free (ReadFileUTF8 fp f)) = UTF8.readFile fp >>= runIO . f
@@ -250,14 +242,6 @@ runTest (Free (NewUniqueHash f)) = do
       modify $ \st -> st { stUniqStore = us }
       return u >>= runTest . f
     _ -> M.fail "uniq store ran out of elements"
-runTest (Free (NewUUID f)) = do
-  word8s <- gets stWord8Store
-  case word8s of
-    -- note we use f' because f is a param of the function
-    a:b:c:d:e:f':g:h:i:j:k:l:m:n:o:p:remaining -> do
-      modify $ \st -> st { stWord8Store = remaining }
-      return (UUID a b c d e f' g h i j k l m n o p) >>= runTest . f
-    _ -> M.fail "word8 supply was not infinite"
 runTest (Free (ReadFileStrict fp f)) = do
   fps <- asks envFiles
   case lookup fp fps of
