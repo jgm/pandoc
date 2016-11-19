@@ -1084,6 +1084,8 @@ environments = M.fromList
   [ ("document", env "document" blocks <* skipMany anyChar)
   , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
   , ("letter", env "letter" letterContents)
+  , ("minipage", env "minipage" $
+         skipopts *> optional tok *> blocks)
   , ("figure", env "figure" $
          resetCaption *> skipopts *> blocks >>= addImageCaption)
   , ("center", env "center" blocks)
