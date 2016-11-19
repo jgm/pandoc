@@ -44,7 +44,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared ( fixDisplayMath )
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
-import Control.Monad (liftM)
 import Control.Monad.State
 import Text.Pandoc.XML
 import Text.Pandoc.Pretty
