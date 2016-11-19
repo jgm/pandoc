@@ -232,7 +232,7 @@ writeDocxPure opts doc@(Pandoc meta _) = do
   utctime <- P.getCurrentTime
   distArchive <- P.getDefaultReferenceDocx datadir
   refArchive <- case writerReferenceDocx opts of
-                     Just f  -> liftM (toArchive . toLazy) $ P.readFileStrict f
+                     Just f  -> toArchive <$> P.readFileLazy f
                      Nothing -> P.getDefaultReferenceDocx datadir
 
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
