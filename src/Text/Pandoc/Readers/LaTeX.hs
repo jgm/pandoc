@@ -340,6 +340,7 @@ blockCommands = M.fromList $
   , ("closing", skipopts *> closing)
   --
   , ("hrule", pure horizontalRule)
+  , ("strut", pure mempty)
   , ("rule", skipopts *> tok *> tok *> pure horizontalRule)
   , ("item", skipopts *> looseItem)
   , ("documentclass", skipopts *> braced *> preamble)
@@ -1085,7 +1086,7 @@ environments = M.fromList
   , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
   , ("letter", env "letter" letterContents)
   , ("minipage", env "minipage" $
-         skipopts *> optional tok *> blocks)
+         skipopts *> spaces' *> optional braced *> spaces' *> blocks)
   , ("figure", env "figure" $
          resetCaption *> skipopts *> blocks >>= addImageCaption)
   , ("center", env "center" blocks)
@@ -1370,7 +1371,9 @@ hline = try $ do
     -- booktabs rules:
     controlSeq "toprule" <|>
     controlSeq "bottomrule" <|>
-    controlSeq "midrule"
+    controlSeq "midrule" <|>
+    controlSeq "endhead" <|>
+    controlSeq "endfirsthead"
   spaces'
   optional $ bracketed (many1 (satisfy (/=']')))
   return ()
@@ -1381,13 +1384,17 @@ lbreak = () <$ try (spaces' *>
                     spaces')
 
 amp :: LP ()
-amp = () <$ try (spaces' *> char '&')
+amp = () <$ try (spaces' *> char '&' <* spaces')
 
 parseTableRow :: Int  -- ^ number of columns
               -> LP [Blocks]
 parseTableRow cols = try $ do
   let tableCellInline = notFollowedBy (amp <|> lbreak) >> inline
-  let tableCell = (plain . trimInlines . mconcat) <$> many tableCellInline
+  let minipage = try $ controlSeq "begin" *> string "{minipage}" *>
+          env "minipage"
+          (skipopts *> spaces' *> optional braced *> spaces' *> blocks)
+  let tableCell = minipage <|>
+            ((plain . trimInlines . mconcat) <$> many tableCellInline)
   cells' <- sepBy1 tableCell amp
   let numcells = length cells'
   guard $ numcells <= cols && numcells >= 1
@@ -1410,7 +1417,9 @@ simpTable hasWidthParameter = try $ do
   optional lbreak
   spaces'
   skipMany hline
+  spaces'
   header' <- option [] $ try (parseTableRow cols <* lbreak <* many1 hline)
+  spaces'
   rows <- sepEndBy (parseTableRow cols) (lbreak <* optional (skipMany hline))
   spaces'
   optional $ controlSeq "caption" *> skipopts *> setCaption
