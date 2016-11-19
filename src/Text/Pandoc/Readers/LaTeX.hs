@@ -1088,7 +1088,7 @@ environments = M.fromList
          resetCaption *> skipopts *> blocks >>= addImageCaption)
   , ("center", env "center" blocks)
   , ("longtable",  env "longtable" $
-         resetCaption *> skipopts *> blocks >>= addTableCaption)
+         resetCaption *> simpTable False >>= addTableCaption)
   , ("table",  env "table" $
          resetCaption *> skipopts *> blocks >>= addTableCaption)
   , ("tabular*", env "tabular" $ simpTable True)
@@ -1374,7 +1374,9 @@ hline = try $ do
   return ()
 
 lbreak :: LP ()
-lbreak = () <$ try (spaces' *> controlSeq "\\" <* spaces')
+lbreak = () <$ try (spaces' *>
+                    (controlSeq "\\" <|> controlSeq "tabularnewline") <*
+                    spaces')
 
 amp :: LP ()
 amp = () <$ try (spaces' *> char '&')
@@ -1402,9 +1404,15 @@ simpTable hasWidthParameter = try $ do
   skipopts
   aligns <- parseAligns
   let cols = length aligns
-  optional hline
-  header' <- option [] $ try (parseTableRow cols <* lbreak <* hline)
-  rows <- sepEndBy (parseTableRow cols) (lbreak <* optional hline)
+  optional $ controlSeq "caption" *> skipopts *> setCaption
+  optional lbreak
+  spaces'
+  skipMany hline
+  header' <- option [] $ try (parseTableRow cols <* lbreak <* many1 hline)
+  rows <- sepEndBy (parseTableRow cols) (lbreak <* optional (skipMany hline))
+  spaces'
+  optional $ controlSeq "caption" *> skipopts *> setCaption
+  optional lbreak
   spaces'
   let header'' = if null header'
                     then replicate cols mempty
