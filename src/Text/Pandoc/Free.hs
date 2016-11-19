@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFunctor, DeriveDataTypeable #-}
 
 {-
 Copyright (C) 2016 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -90,6 +90,7 @@ import qualified System.FilePath.Glob as IO (glob)
 import Control.Monad.State hiding (fail)
 import Control.Monad.Reader hiding (fail)
 import Data.Word (Word8)
+import Data.Typeable
 
 data PandocActionF nxt =
   LookupEnv String (Maybe String -> nxt)
@@ -219,7 +220,7 @@ data TestEnv = TestEnv { envEnv :: [(String, String)]
                        }
 
 data TestException = TestException
-  deriving (Show)
+  deriving (Show, Typeable)
 
 instance E.Exception TestException
 
