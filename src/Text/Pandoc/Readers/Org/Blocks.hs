@@ -623,7 +623,7 @@ propertiesDrawer = try $ do
 figure :: OrgParser (F Blocks)
 figure = try $ do
   figAttrs <- blockAttributes
-  src <- skipSpaces *> selfTarget <* skipSpaces <* newline
+  src <- skipSpaces *> selfTarget <* skipSpaces <* endOfParagraph
   case cleanLinkString src of
     Nothing     -> mzero
     Just imgSrc -> do
@@ -651,6 +651,10 @@ figure = try $ do
      if "fig:" `isPrefixOf` cs
      then cs
      else "fig:" ++ cs
+
+-- | Succeeds if looking at the end of the current paragraph
+endOfParagraph :: OrgParser ()
+endOfParagraph = try $ skipSpaces *> newline *> endOfBlock
 
 
 --

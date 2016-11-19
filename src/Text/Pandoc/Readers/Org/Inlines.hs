@@ -33,7 +33,7 @@ module Text.Pandoc.Readers.Org.Inlines
   , linkTarget
   ) where
 
-import           Text.Pandoc.Readers.Org.BlockStarts
+import           Text.Pandoc.Readers.Org.BlockStarts ( endOfBlock, noteMarker )
 import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Readers.Org.Parsing
 import           Text.Pandoc.Readers.Org.Shared
@@ -152,18 +152,7 @@ str = return . B.str <$> many1 (noneOf $ specialChars ++ "\n\r ")
 endline :: OrgParser (F Inlines)
 endline = try $ do
   newline
-  notFollowedBy blankline
-  notFollowedBy' exampleLineStart
-  notFollowedBy' hline
-  notFollowedBy' noteMarker
-  notFollowedBy' tableStart
-  notFollowedBy' drawerStart
-  notFollowedBy' headerStart
-  notFollowedBy' metaLineStart
-  notFollowedBy' latexEnvStart
-  notFollowedBy' commentLineStart
-  notFollowedBy' bulletListStart
-  notFollowedBy' orderedListStart
+  notFollowedBy' endOfBlock
   decEmphasisNewlinesCount
   guard =<< newlinesCountWithinLimits
   updateLastPreCharPos

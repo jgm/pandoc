@@ -37,9 +37,11 @@ module Text.Pandoc.Readers.Org.BlockStarts
   , commentLineStart
   , bulletListStart
   , orderedListStart
+  , endOfBlock
   ) where
 
-import           Text.Pandoc.Readers.Org.Parsing
+import Control.Monad ( void )
+import Text.Pandoc.Readers.Org.Parsing
 
 -- | Horizontal Line (five -- dashes or more)
 hline :: OrgParser ()
@@ -110,3 +112,25 @@ noteMarker = try $ do
          , (++) <$> string "fn:"
                 <*> many1Till (noneOf "\n\r\t ") (char ']')
          ]
+
+  -- | Succeeds if the parser is at the end of a block.
+endOfBlock :: OrgParser ()
+endOfBlock = lookAhead . try $ do
+    void blankline <|> anyBlockStart <|> void noteMarker
+ where
+   -- | Succeeds if there is a new block starting at this position.
+   anyBlockStart :: OrgParser ()
+   anyBlockStart = try . choice $
+     [ exampleLineStart
+     , hline
+     , metaLineStart
+     , commentLineStart
+     , void noteMarker
+     , void tableStart
+     , void drawerStart
+     , void headerStart
+     , void latexEnvStart
+     , void bulletListStart
+     , void orderedListStart
+     ]
+

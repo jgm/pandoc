@@ -188,19 +188,29 @@ tests =
           "=is_subst = True=" =?>
           para (code "is_subst = True")
 
-      , "Image" =:
-          "[[./sunset.jpg]]" =?>
-          (para $ image "./sunset.jpg" "" "")
+      , testGroup "Images"
+        [ "Image" =:
+            "[[./sunset.jpg]]" =?>
+            (para $ image "./sunset.jpg" "" "")
 
-      , "Image with explicit file: prefix" =:
-          "[[file:sunrise.jpg]]" =?>
-          (para $ image "sunrise.jpg" "" "")
+        , "Image with explicit file: prefix" =:
+            "[[file:sunrise.jpg]]" =?>
+            (para $ image "sunrise.jpg" "" "")
 
-      , "Image with html attributes" =:
-          unlines [ "#+ATTR_HTML: :width 50%"
-                  , "[[file:guinea-pig.gif]]"
-                  ] =?>
-          (para $ imageWith ("", [], [("width", "50%")]) "guinea-pig.gif" "" "")
+        , "Multiple images within a paragraph" =:
+            unlines [ "[[file:sunrise.jpg]]"
+                    , "[[file:sunset.jpg]]"
+                    ] =?>
+            (para $ (image "sunrise.jpg" "" "")
+                 <> softbreak
+                 <> (image "sunset.jpg" "" ""))
+
+        , "Image with html attributes" =:
+            unlines [ "#+ATTR_HTML: :width 50%"
+                    , "[[file:guinea-pig.gif]]"
+                    ] =?>
+            (para $ imageWith ("", [], [("width", "50%")]) "guinea-pig.gif" "" "")
+        ]
 
       , "Explicit link" =:
           "[[http://zeitlens.com/][pseudo-random /nonsense/]]" =?>
