@@ -29,13 +29,12 @@ UUID generation using Version 4 (random method) described
 in RFC4122. See http://tools.ietf.org/html/rfc4122
 -}
 
-module Text.Pandoc.UUID ( UUID(..), getRandomUUID ) where
+module Text.Pandoc.UUID ( UUID(..), getRandomUUID, getUUID ) where
 
 import Text.Printf ( printf )
-import System.Random ( randomIO )
+import System.Random ( RandomGen, randoms, getStdGen )
 import Data.Word
 import Data.Bits ( setBit, clearBit )
-import Control.Monad ( liftM )
 
 data UUID = UUID Word8 Word8 Word8 Word8 Word8 Word8 Word8 Word8
                  Word8 Word8 Word8 Word8 Word8 Word8 Word8 Word8
@@ -64,14 +63,16 @@ instance Show UUID where
    printf "%02x" o ++
    printf "%02x" p
 
-getRandomUUID :: IO UUID
-getRandomUUID = do
-  let getRN :: a -> IO Word8
-      getRN _ = liftM fromIntegral (randomIO :: IO Int)
-  [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] <- mapM getRN ([1..16] :: [Int])
+getUUID :: RandomGen g => g -> UUID
+getUUID gen = 
+  let [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] = take 16 $ randoms gen :: [Word8]
   -- set variant
-  let i' = i `setBit` 7 `clearBit` 6
+      i' = i `setBit` 7 `clearBit` 6
   -- set version (0100 for random)
-  let g' = g `clearBit` 7 `setBit` 6 `clearBit` 5 `clearBit` 4
-  return $ UUID a b c d e f g' h i' j k l m n o p
+      g' = g `clearBit` 7 `setBit` 6 `clearBit` 5 `clearBit` 4
+  in
+    UUID a b c d e f g' h i' j k l m n o p
+
+getRandomUUID :: IO UUID
+getRandomUUID = getUUID <$> getStdGen
 
