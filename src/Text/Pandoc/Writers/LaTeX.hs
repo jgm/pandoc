@@ -635,7 +635,14 @@ tableRowToLaTeX header aligns widths cols = do
   -- scale factor compensates for extra space between columns
   -- so the whole table isn't larger than columnwidth
   let scaleFactor = 0.97 ** fromIntegral (length aligns)
-  let widths' = map (scaleFactor *) widths
+  let isSimple [Plain _] = True
+      isSimple [Para  _] = True
+      isSimple _         = False
+  -- simple tables have to have simple cells:
+  let widths' = if not (all isSimple cols)
+                   then replicate (length aligns)
+                          (0.97 / fromIntegral (length aligns))
+                   else map (scaleFactor *) widths
   cells <- mapM (tableCellToLaTeX header) $ zip3 widths' aligns cols
   return $ hsep (intersperse "&" cells) <> "\\tabularnewline"
 
