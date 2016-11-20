@@ -423,7 +423,8 @@ inlineCommand = try $ do
   star <- option "" (string "*")
   let name' = name ++ star
   let raw = do
-        rawargs <- withRaw (skipopts *> option "" dimenarg *> many braced)
+        rawargs <- withRaw
+               (skipangles *> skipopts *> option "" dimenarg *> many braced)
         let rawcommand = '\\' : name ++ star ++ snd rawargs
         transformed <- applyMacros' rawcommand
         if transformed /= rawcommand
@@ -885,6 +886,17 @@ rawopt = do
 
 skipopts :: LP ()
 skipopts = skipMany rawopt
+
+-- opts in angle brackets are used in beamer
+rawangle :: LP ()
+rawangle = try $ do
+  char '<'
+  skipMany (noneOf ">")
+  char '>'
+  return ()
+
+skipangles :: LP ()
+skipangles = skipMany rawangle
 
 inlineText :: LP Inlines
 inlineText = str <$> many1 inlineChar
