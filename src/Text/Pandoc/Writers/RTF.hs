@@ -29,7 +29,6 @@ Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
 module Text.Pandoc.Writers.RTF ( writeRTF
                                , writeRTFWithEmbeddedImages
-                               , writeRTFWithEmbeddedImagesPure
                                ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -44,13 +43,13 @@ import qualified Data.ByteString as B
 import qualified Data.Map as M
 import Text.Printf ( printf )
 import Text.Pandoc.ImageSize
-import Text.Pandoc.Free (PandocAction, runIO)
-import qualified Text.Pandoc.Free as P
+import Text.Pandoc.Class (PandocMonad)
+import qualified Text.Pandoc.Class as P
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file,
 -- or a MediaBag, or the internet.
 -- If file not found or filetype not jpeg or png, leave the inline unchanged.
-rtfEmbedImage :: WriterOptions -> Inline -> PandocAction Inline
+rtfEmbedImage :: PandocMonad m => WriterOptions -> Inline -> m Inline
 rtfEmbedImage opts x@(Image attr _ (src,_)) = do
   result <- P.fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case result of
@@ -83,12 +82,8 @@ rtfEmbedImage _ x = return x
 
 -- | Convert Pandoc to a string in rich text format, with
 -- images embedded as encoded binary data.
-writeRTFWithEmbeddedImages :: WriterOptions -> Pandoc -> IO String
+writeRTFWithEmbeddedImages :: PandocMonad m => WriterOptions -> Pandoc -> m String
 writeRTFWithEmbeddedImages options doc =
-  runIO $ writeRTF options `fmap` walkM (rtfEmbedImage options) doc
-
-writeRTFWithEmbeddedImagesPure :: WriterOptions -> Pandoc -> PandocAction String
-writeRTFWithEmbeddedImagesPure options doc =
   writeRTF options `fmap` walkM (rtfEmbedImage options) doc
 
 -- | Convert Pandoc to a string in rich text format.

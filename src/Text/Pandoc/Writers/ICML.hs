@@ -28,8 +28,8 @@ import Data.Text as Text (breakOnAll, pack)
 import Control.Monad.State
 import Network.URI (isURI)
 import qualified Data.Set as Set
-import Text.Pandoc.Free (runIO, PandocAction)
-import qualified Text.Pandoc.Free as P
+import Text.Pandoc.Class (PandocMonad)
+import qualified Text.Pandoc.Class as P
 
 type Style = [String]
 type Hyperlink = [(Int, String)]
@@ -42,7 +42,7 @@ data WriterState = WriterState{
   , maxListDepth :: Int
   }
 
-type WS a = StateT WriterState PandocAction a
+type WS m = StateT WriterState m
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{
@@ -124,12 +124,8 @@ footnoteName      = "Footnote"
 citeName          = "Cite"
 
 -- | Convert Pandoc document to string in ICML format.
-writeICML :: WriterOptions -> Pandoc -> IO String
-writeICML opts doc = runIO $ writeICMLPure opts doc
-
--- | Convert Pandoc document to string in ICML format.
-writeICMLPure :: WriterOptions -> Pandoc -> PandocAction String
-writeICMLPure opts (Pandoc meta blocks) = do
+writeICML :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeICML opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -288,13 +284,13 @@ hyperlinksToDoc (x:xs) = hyp x $$ hyperlinksToDoc xs
 
 
 -- | Convert a list of Pandoc blocks to ICML.
-blocksToICML :: WriterOptions -> Style -> [Block] -> WS Doc
+blocksToICML :: PandocMonad m => WriterOptions -> Style -> [Block] -> WS m Doc
 blocksToICML opts style lst = do
   docs <- mapM (blockToICML opts style) lst
   return $ intersperseBrs docs
 
 -- | Convert a Pandoc block element to ICML.
-blockToICML :: WriterOptions -> Style -> Block -> WS Doc
+blockToICML :: PandocMonad m => WriterOptions -> Style -> Block -> WS m Doc
 blockToICML opts style (Plain lst) = parStyle opts style lst
 -- title beginning with fig: indicates that the image is a figure
 blockToICML opts style (Para img@[Image _ txt (_,'f':'i':'g':':':_)]) = do
@@ -364,7 +360,7 @@ blockToICML opts style (Div _ lst) = blocksToICML opts style lst
 blockToICML _ _ Null = return empty
 
 -- | Convert a list of lists of blocks to ICML list items.
-listItemsToICML :: WriterOptions -> String -> Style -> Maybe ListAttributes -> [[Block]] -> WS Doc
+listItemsToICML :: PandocMonad m => WriterOptions -> String -> Style -> Maybe ListAttributes -> [[Block]] -> WS m Doc
 listItemsToICML _ _ _ _ [] = return empty
 listItemsToICML opts listType style attribs (first:rest) = do
   st <- get
@@ -379,7 +375,7 @@ listItemsToICML opts listType style attribs (first:rest) = do
   return $ intersperseBrs docs
 
 -- | Convert a list of blocks to ICML list items.
-listItemToICML :: WriterOptions -> Style -> Bool-> Maybe ListAttributes -> [Block] -> WS Doc
+listItemToICML :: PandocMonad m => WriterOptions -> Style -> Bool-> Maybe ListAttributes -> [Block] -> WS m Doc
 listItemToICML opts style isFirst attribs item =
   let makeNumbStart (Just (beginsWith, numbStl, _)) =
         let doN DefaultStyle = []
@@ -406,7 +402,7 @@ listItemToICML opts style isFirst attribs item =
            return $ intersperseBrs (f : r)
          else blocksToICML opts stl' item
 
-definitionListItemToICML :: WriterOptions -> Style -> ([Inline],[[Block]]) -> WS Doc
+definitionListItemToICML :: PandocMonad m => WriterOptions -> Style -> ([Inline],[[Block]]) -> WS m Doc
 definitionListItemToICML opts style (term,defs) = do
   term' <- parStyle opts (defListTermName:style) term
   defs' <- mapM (blocksToICML opts (defListDefName:style)) defs
@@ -414,11 +410,11 @@ definitionListItemToICML opts style (term,defs) = do
 
 
 -- | Convert a list of inline elements to ICML.
-inlinesToICML :: WriterOptions -> Style -> [Inline] -> WS Doc
+inlinesToICML :: PandocMonad m => WriterOptions -> Style -> [Inline] -> WS m Doc
 inlinesToICML opts style lst = vcat `fmap` mapM (inlineToICML opts style) (mergeSpaces lst)
 
 -- | Convert an inline element to ICML.
-inlineToICML :: WriterOptions -> Style -> Inline -> WS Doc
+inlineToICML :: PandocMonad m => WriterOptions -> Style -> Inline -> WS m Doc
 inlineToICML _    style (Str str) = charStyle style $ text $ escapeStringForXML str
 inlineToICML opts style (Emph lst) = inlinesToICML opts (emphName:style) lst
 inlineToICML opts style (Strong lst) = inlinesToICML opts (strongName:style) lst
@@ -458,7 +454,7 @@ inlineToICML opts style (Note lst) = footnoteToICML opts style lst
 inlineToICML opts style (Span _ lst) = inlinesToICML opts style lst
 
 -- | Convert a list of block elements to an ICML footnote.
-footnoteToICML :: WriterOptions -> Style -> [Block] -> WS Doc
+footnoteToICML :: PandocMonad m => WriterOptions -> Style -> [Block] -> WS m Doc
 footnoteToICML opts style lst =
   let insertTab (Para ls) = blockToICML opts (footnoteName:style) $ Para $ (Str "\t"):ls
       insertTab block     = blockToICML opts (footnoteName:style) block
@@ -489,7 +485,7 @@ intersperseBrs :: [Doc] -> Doc
 intersperseBrs = vcat . intersperse (selfClosingTag "Br" []) . filter (not . isEmpty)
 
 -- | Wrap a list of inline elements in an ICML Paragraph Style
-parStyle :: WriterOptions -> Style -> [Inline] -> WS Doc
+parStyle :: PandocMonad m => WriterOptions -> Style -> [Inline] -> WS m Doc
 parStyle opts style lst =
   let slipIn x y = if null y
                       then x
@@ -513,7 +509,7 @@ parStyle opts style lst =
       state $ \st -> (cont, st{ blockStyles = Set.insert stlStr $ blockStyles st })
 
 -- | Wrap a Doc in an ICML Character Style.
-charStyle :: Style -> Doc -> WS Doc
+charStyle :: PandocMonad m => Style -> Doc -> WS m Doc
 charStyle style content =
   let (stlStr, attrs) = styleToStrAttr style
       doc = inTags True "CharacterStyleRange" attrs $ inTagsSimple "Content" $ flush content
@@ -535,7 +531,7 @@ styleToStrAttr style =
   in  (stlStr, attrs)
 
 -- | Assemble an ICML Image.
-imageICML :: WriterOptions -> Style -> Attr -> Target -> WS Doc
+imageICML :: PandocMonad m => WriterOptions -> Style -> Attr -> Target -> WS m Doc
 imageICML opts style attr (src, _) = do
   res  <- lift $ P.fetchItem (writerSourceURL opts) src
   imgS <- case res of

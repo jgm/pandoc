@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to EPUB.
 -}
-module Text.Pandoc.Writers.EPUB ( writeEPUB, writeEPUBPure ) where
+module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
 import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Maybe ( fromMaybe, catMaybes )
@@ -64,8 +64,8 @@ import Data.Char ( toLower, isDigit, isAlphaNum )
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.HTML.TagSoup (Tag(TagOpen), fromAttrib, parseTags)
-import Text.Pandoc.Free (PandocAction, runIO)
-import qualified Text.Pandoc.Free as P
+import Text.Pandoc.Class (PandocMonad)
+import qualified Text.Pandoc.Class as P
 
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section
@@ -76,7 +76,7 @@ data Chapter = Chapter (Maybe [Int]) [Block]
 data EPUBState = EPUBState { stMediaPaths :: [(FilePath, (FilePath, Maybe Entry))]
                            }
 
-type E = StateT EPUBState PandocAction                 
+type E m = StateT EPUBState m
 
 data EPUBMetadata = EPUBMetadata{
     epubIdentifier         :: [Identifier]
@@ -145,7 +145,7 @@ removeNote :: Inline -> Inline
 removeNote (Note _) = Str ""
 removeNote x        = x
 
-getEPUBMetadata :: WriterOptions -> Meta -> E EPUBMetadata
+getEPUBMetadata :: PandocMonad m => WriterOptions -> Meta -> E m EPUBMetadata
 getEPUBMetadata opts meta = do
   let md = metadataFromMeta opts meta
   let elts = onlyElems $ parseXML $ writerEpubMetadata opts
@@ -335,23 +335,20 @@ metadataFromMeta opts meta = EPUBMetadata{
                               _          -> Nothing
 
 -- | Produce an EPUB file from a Pandoc document.
-writeEPUB :: WriterOptions  -- ^ Writer options
+writeEPUB :: PandocMonad m
+          => WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
-          -> IO B.ByteString
-writeEPUB opts doc = runIO $ writeEPUBPure opts doc
-
-writeEPUBPure :: WriterOptions  -- ^ Writer options
-          -> Pandoc         -- ^ Document to convert
-          -> PandocAction B.ByteString
-writeEPUBPure opts doc =
+          -> m B.ByteString
+writeEPUB opts doc =
   let initState = EPUBState { stMediaPaths = []
                             }
   in
     evalStateT (pandocToEPUB opts doc) initState
 
-pandocToEPUB :: WriterOptions  
-              -> Pandoc        
-              -> E B.ByteString
+pandocToEPUB :: PandocMonad m
+             => WriterOptions  
+             -> Pandoc        
+             -> E m B.ByteString
 pandocToEPUB opts doc@(Pandoc meta _) = do
   let version = fromMaybe EPUB2 (writerEpubVersion opts)
   let epub3 = version == EPUB3
@@ -829,10 +826,11 @@ metadataElement version md currentTime =
 showDateTimeISO8601 :: UTCTime -> String
 showDateTimeISO8601 = formatTime defaultTimeLocale "%FT%TZ"
 
-transformTag :: WriterOptions
+transformTag :: PandocMonad m
+             => WriterOptions
              -- -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath, entry) media
              -> Tag String
-             -> E (Tag String)
+             -> E m (Tag String)
 transformTag opts tag@(TagOpen name attr)
   | name `elem` ["video", "source", "img", "audio"] &&
     lookup "data-external" attr == Nothing = do
@@ -846,9 +844,10 @@ transformTag opts tag@(TagOpen name attr)
   return $ TagOpen name attr'
 transformTag _ tag = return tag
 
-modifyMediaRef :: WriterOptions
+modifyMediaRef :: PandocMonad m
+               => WriterOptions
                -> FilePath
-               -> E FilePath
+               -> E m FilePath
 modifyMediaRef _ "" = return ""
 modifyMediaRef opts oldsrc = do
   media <- gets stMediaPaths
@@ -872,10 +871,11 @@ modifyMediaRef opts oldsrc = do
            modify $ \st -> st{ stMediaPaths = (oldsrc, (new, mbEntry)):media}
            return new
 
-transformBlock  :: WriterOptions
+transformBlock  :: PandocMonad m
+                => WriterOptions
                 -- -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath, entry) media
                 -> Block
-                -> E Block
+                -> E m Block
 transformBlock opts (RawBlock fmt raw)
   | fmt == Format "html" = do
   let tags = parseTags raw
@@ -883,10 +883,11 @@ transformBlock opts (RawBlock fmt raw)
   return $ RawBlock fmt (renderTags' tags')
 transformBlock _ b = return b
 
-transformInline  :: WriterOptions
+transformInline  :: PandocMonad m
+                 => WriterOptions
                  -- -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath) media
                  -> Inline
-                 -> E Inline
+                 -> E m Inline
 transformInline opts (Image attr lab (src,tit)) = do
     newsrc <- modifyMediaRef opts src
     return $ Image attr lab (newsrc, tit)

@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to ODT.
 -}
-module Text.Pandoc.Writers.ODT ( writeODTPure, writeODT ) where
+module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Data.List ( isPrefixOf )
 import Data.Maybe ( fromMaybe )
 import Text.XML.Light.Output
@@ -49,33 +49,30 @@ import Text.Pandoc.XML
 import Text.Pandoc.Pretty
 import qualified Control.Exception as E
 import System.FilePath ( takeExtension, takeDirectory, (<.>))
-import Text.Pandoc.Free ( PandocAction, runIO )
-import qualified Text.Pandoc.Free as P
+import Text.Pandoc.Class ( PandocMonad )
+import qualified Text.Pandoc.Class as P
 
 data ODTState = ODTState { stEntries :: [Entry]
                          }
 
-type O = StateT ODTState PandocAction
+type O m = StateT ODTState m
 
 -- | Produce an ODT file from a Pandoc document.
-writeODT :: WriterOptions  -- ^ Writer options
+writeODT :: PandocMonad m
+         => WriterOptions  -- ^ Writer options
          -> Pandoc         -- ^ Document to convert
-         -> IO B.ByteString
-writeODT opts doc = runIO $ writeODTPure opts doc
-
-writeODTPure :: WriterOptions
-             -> Pandoc
-             -> PandocAction B.ByteString
-writeODTPure opts doc =
+         -> m B.ByteString
+writeODT  opts doc =
   let initState = ODTState{ stEntries = []
                           }
   in
     evalStateT (pandocToODT opts doc) initState
 
 -- | Produce an ODT file from a Pandoc document.
-pandocToODT :: WriterOptions  -- ^ Writer options
+pandocToODT :: PandocMonad m
+            => WriterOptions  -- ^ Writer options
             -> Pandoc         -- ^ Document to convert
-            -> O B.ByteString
+            -> O m B.ByteString
 pandocToODT opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let title = docTitle meta
@@ -145,7 +142,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
   return $ fromArchive archive''
 
 -- | transform both Image and Math elements
-transformPicMath :: WriterOptions ->Inline -> O Inline
+transformPicMath :: PandocMonad m => WriterOptions ->Inline -> O m Inline
 transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = do
   res <- lift $ P.fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case res of
