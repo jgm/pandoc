@@ -46,10 +46,11 @@ import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines, Blocks )
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Options
-import           Text.Pandoc.Shared ( compactify', compactify'DL )
+import           Text.Pandoc.Shared ( compactify', compactify'DL, safeRead )
 
 import           Control.Monad ( foldM, guard, mzero, void )
 import           Data.Char ( isSpace, toLower, toUpper)
+import           Data.Default ( Default )
 import           Data.List ( foldl', isPrefixOf )
 import           Data.Maybe ( fromMaybe, isNothing )
 import           Data.Monoid ((<>))
@@ -687,18 +688,24 @@ commentLine = commentLineStart *> anyLine *> pure mempty
 --
 -- Tables
 --
+data ColumnProperty = ColumnProperty
+  { columnAlignment :: Maybe Alignment
+  , columnRelWidth  :: Maybe Int
+  } deriving (Show, Eq)
+
+instance Default ColumnProperty where
+  def = ColumnProperty Nothing Nothing
 
 data OrgTableRow = OrgContentRow (F [Blocks])
-                 | OrgAlignRow [Alignment]
+                 | OrgAlignRow [ColumnProperty]
                  | OrgHlineRow
 
 -- OrgTable is strongly related to the pandoc table ADT.  Using the same
 -- (i.e. pandoc-global) ADT would mean that the reader would break if the
 -- global structure was to be changed, which would be bad.  The final table
--- should be generated using a builder function.  Column widths aren't
--- implemented yet, so they are not tracked here.
+-- should be generated using a builder function.
 data OrgTable = OrgTable
-  { orgTableAlignments :: [Alignment]
+  { orgTableColumnProperties :: [ColumnProperty]
   , orgTableHeader     :: [Blocks]
   , orgTableRows       :: [[Blocks]]
   }
@@ -715,8 +722,20 @@ table = try $ do
 orgToPandocTable :: OrgTable
                  -> Inlines
                  -> Blocks
-orgToPandocTable (OrgTable aligns heads lns) caption =
-  B.table caption (zip aligns $ repeat 0) heads lns
+orgToPandocTable (OrgTable colProps heads lns) caption =
+  let totalWidth = if any (not . isNothing) (map columnRelWidth colProps)
+                   then Just . sum $ map (fromMaybe 1 . columnRelWidth) colProps
+                   else Nothing
+  in B.table caption (map (convertColProp totalWidth) colProps) heads lns
+ where
+   convertColProp :: Maybe Int -> ColumnProperty -> (Alignment, Double)
+   convertColProp totalWidth colProp =
+     let
+       align' = fromMaybe AlignDefault $ columnAlignment colProp
+       width' = fromMaybe 0 $ (\w t -> (fromIntegral w / fromIntegral t))
+                              <$> (columnRelWidth colProp)
+                              <*> totalWidth
+     in (align', width')
 
 tableRows :: OrgParser [OrgTableRow]
 tableRows = try $ many (tableAlignRow <|> tableHline <|> tableContentRow)
@@ -732,22 +751,22 @@ tableContentCell = try $
 tableAlignRow :: OrgParser OrgTableRow
 tableAlignRow = try $ do
   tableStart
-  cells <- many1Till tableAlignCell newline
+  colProps <- many1Till columnPropertyCell newline
   -- Empty rows are regular (i.e. content) rows, not alignment rows.
-  guard $ any (/= AlignDefault) cells
-  return $ OrgAlignRow cells
+  guard $ any (/= def) colProps
+  return $ OrgAlignRow colProps
 
-tableAlignCell :: OrgParser Alignment
-tableAlignCell =
-  choice [ try $ emptyCell *> return AlignDefault
-         , try $ skipSpaces
-                   *> char '<'
-                   *> tableAlignFromChar
-                   <* many digit
-                   <* char '>'
-                   <* emptyCell
-         ] <?> "alignment info"
-    where emptyCell = try $ skipSpaces *> endOfCell
+columnPropertyCell :: OrgParser ColumnProperty
+columnPropertyCell = emptyCell <|> propCell <?> "alignment info"
+ where
+   emptyCell = ColumnProperty Nothing Nothing <$ (try $ skipSpaces *> endOfCell)
+   propCell = try $ ColumnProperty
+                 <$> (skipSpaces
+                      *> char '<'
+                      *> optionMaybe tableAlignFromChar)
+                 <*> (optionMaybe (many1 digit >>= safeRead)
+                      <* char '>'
+                      <* emptyCell)
 
 tableAlignFromChar :: OrgParser Alignment
 tableAlignFromChar = try $
@@ -769,7 +788,8 @@ rowsToTable = foldM rowToContent emptyTable
  where emptyTable = OrgTable mempty mempty mempty
 
 normalizeTable :: OrgTable -> OrgTable
-normalizeTable (OrgTable aligns heads rows) = OrgTable aligns' heads rows
+normalizeTable (OrgTable colProps heads rows) =
+  OrgTable colProps' heads rows
  where
    refRow = if heads /= mempty
             then heads
@@ -778,7 +798,7 @@ normalizeTable (OrgTable aligns heads rows) = OrgTable aligns' heads rows
                    _     -> mempty
    cols = length refRow
    fillColumns base padding = take cols $ base ++ repeat padding
-   aligns' = fillColumns aligns AlignDefault
+   colProps' = fillColumns colProps def
 
 -- One or more horizontal rules after the first content line mark the previous
 -- line as a header.  All other horizontal lines are discarded.
@@ -788,7 +808,7 @@ rowToContent :: OrgTable
 rowToContent orgTable row =
   case row of
     OrgHlineRow       -> return singleRowPromotedToHeader
-    OrgAlignRow as    -> return . setAligns $ as
+    OrgAlignRow props -> return . setProperties $ props
     OrgContentRow cs  -> appendToBody cs
  where
    singleRowPromotedToHeader :: OrgTable
@@ -797,8 +817,8 @@ rowToContent orgTable row =
             orgTable{ orgTableHeader = b , orgTableRows = [] }
      _   -> orgTable
 
-   setAligns :: [Alignment] -> OrgTable
-   setAligns aligns = orgTable{ orgTableAlignments = aligns }
+   setProperties :: [ColumnProperty] -> OrgTable
+   setProperties ps = orgTable{ orgTableColumnProperties = ps }
 
    appendToBody :: F [Blocks] -> F OrgTable
    appendToBody frow = do

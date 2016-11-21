@@ -116,7 +116,7 @@ noteMarker = try $ do
 -- | Succeeds if the parser is at the end of a block.
 endOfBlock :: OrgParser ()
 endOfBlock = lookAhead . try $ do
-    void blankline <|> anyBlockStart <|> void noteMarker
+    void blankline <|> anyBlockStart
  where
    -- Succeeds if there is a new block starting at this position.
    anyBlockStart :: OrgParser ()
