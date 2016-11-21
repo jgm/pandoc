@@ -1111,19 +1111,22 @@ adjustMetadata metadata d = return $ M.foldWithKey setMeta d metadata
 applyTransforms :: [Transform] -> Pandoc -> IO Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
 
-  -- First we check to see if a filter is a path. If it isn't, we
-  -- check to see whether it's in `userdir/filters`. If not, we leave
-  -- it unchanged.
+  -- First we check to see if a filter is found.  If not, and if it's
+  -- not an absolute path, we check to see whether it's in `userdir/filters`.
+  -- If not, we leave it unchanged.
 expandFilterPath :: Maybe FilePath -> FilePath -> IO FilePath
-expandFilterPath mbDatadir fp
-  | '/' `elem` fp = return fp
-  | Just datadir <- mbDatadir = do
-      let filterPath = (datadir </> "filters" </> fp)
-      filterPathExists <- doesFileExist filterPath
-      if filterPathExists
-        then return filterPath
-        else return fp
-  | otherwise = return fp
+expandFilterPath mbDatadir fp = do
+  fpExists <- doesFileExist fp
+  if fpExists
+     then return fp
+     else case mbDatadir of
+               Just datadir | isRelative fp -> do
+                 let filterPath = (datadir </> "filters" </> fp)
+                 filterPathExists <- doesFileExist filterPath
+                 if filterPathExists
+                    then return filterPath
+                    else return fp
+               _ -> return fp
 
 applyFilters :: Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> IO Pandoc
 applyFilters mbDatadir filters args d = do

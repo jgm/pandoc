@@ -426,7 +426,7 @@ Reader options
     footnotes and links will not work across files. Reading binary
     files (docx, odt, epub) implies `--file-scope`.
 
-`--filter=`*EXECUTABLE*
+`--filter=`*PROGRAM*
 
 :   Specify an executable to be used as a filter transforming the
     pandoc AST after the input is parsed and before the output is
@@ -449,12 +449,6 @@ Reader options
     module [`pandocfilters`], installable from PyPI. There are also
     pandoc filter libraries in [PHP], [perl], and
     [javascript/node.js].
-
-    If no directory is provided pandoc will look for executable or
-    non-executable filters in the director `$DATADIR/filters`, and
-    then for executable filters in the user's `PATH`. If you want to
-    run a script in the working directory, preface the filename with
-    `./`.
 
     In order of preference, pandoc will look for filters in
 
