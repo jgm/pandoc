@@ -115,46 +115,33 @@ isTextFormat s = s `notElem` ["odt","docx","epub","epub3"]
 
 externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
 externalFilter f args' d = do
-      mbexe <- if '/' `elem` f
-                  -- don't check PATH if filter name has a path
-                  then return Nothing
-                  -- we catch isDoesNotExistError because this will
-                  -- be triggered if PATH not set:
-                  else E.catch (findExecutable f)
-                                 (\e -> if isDoesNotExistError e
-                                           then return Nothing
-                                           else throwIO e)
-      (f', args'') <- case mbexe of
-                           Just x  -> return (x, args')
-                           Nothing -> do
-                             exists <- doesFileExist f
-                             if exists
-                                then do
-                                  isExecutable <- executable `fmap`
-                                                    getPermissions f
-                                  return $
-                                    case map toLower $ takeExtension f of
-                                         _ | isExecutable -> (f, args')
-                                         ".py"  -> ("python", f:args')
-                                         ".hs"  -> ("runhaskell", f:args')
-                                         ".pl"  -> ("perl", f:args')
-                                         ".rb"  -> ("ruby", f:args')
-                                         ".php" -> ("php", f:args')
-                                         ".js"  -> ("node", f:args')
-                                         _      -> (f, args')
-                                else err 85 $ "Filter " ++ f ++ " not found"
-      when (f' /= f) $ do
-          mbExe <- findExecutable f'
-          when (isNothing mbExe) $
-            err 83 $ "Error running filter " ++ f ++ "\n" ++
-                      show f' ++ " not found in path."
-      (exitcode, outbs, errbs) <- E.handle filterException $
-                                    pipeProcess Nothing f' args'' $ encode d
-      unless (B.null errbs) $ B.hPutStr stderr errbs
-      case exitcode of
-           ExitSuccess    -> return $ either error id $ eitherDecode' outbs
-           ExitFailure ec -> err 83 $ "Error running filter " ++ f ++ "\n" ++
-                                       "Filter returned error status " ++ show ec
+  exists <- doesFileExist f
+  isExecutable <- if exists
+                     then executable <$> getPermissions f
+                     else return True
+  let (f', args'') = if exists
+                        then case map toLower (takeExtension f) of
+                                  _ | isExecutable -> ("." </> f, args')
+                                  ".py"  -> ("python", f:args')
+                                  ".hs"  -> ("runhaskell", f:args')
+                                  ".pl"  -> ("perl", f:args')
+                                  ".rb"  -> ("ruby", f:args')
+                                  ".php" -> ("php", f:args')
+                                  ".js"  -> ("node", f:args')
+                                  _      -> (f, args')
+                        else (f, args')
+  unless (exists && isExecutable) $ do
+    mbExe <- findExecutable f'
+    when (isNothing mbExe) $
+      err 83 $ "Error running filter " ++ f ++  ":\n" ++
+               "Could not find executable '" ++ f' ++ "'."
+  (exitcode, outbs, errbs) <- E.handle filterException $
+                              pipeProcess Nothing f' args'' $ encode d
+  unless (B.null errbs) $ B.hPutStr stderr errbs
+  case exitcode of
+       ExitSuccess    -> return $ either error id $ eitherDecode' outbs
+       ExitFailure ec -> err 83 $ "Error running filter " ++ f ++ "\n" ++
+                                  "Filter returned error status " ++ show ec
  where filterException :: E.SomeException -> IO a
        filterException e = err 83 $ "Error running filter " ++ f ++ "\n" ++
                                        show e
