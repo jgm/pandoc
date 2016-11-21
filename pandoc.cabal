@@ -384,7 +384,6 @@ Library
                    Text.Pandoc.SelfContained,
                    Text.Pandoc.Process,
                    Text.Pandoc.CSS,
-                   Text.Pandoc.Free,
                    Text.Pandoc.Class
   Other-Modules:   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Combine,
