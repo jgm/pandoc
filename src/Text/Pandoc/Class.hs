@@ -67,7 +67,7 @@ import Control.Monad.Reader hiding (fail)
 import Data.Word (Word8)
 import Data.Typeable
 
-class Monad m => PandocMonad m where
+class (Functor m, Applicative m, Monad m) => PandocMonad m where
   lookupEnv :: String -> m (Maybe String)
   getCurrentTime :: m UTCTime
   getDefaultReferenceDocx :: Maybe FilePath -> m Archive
