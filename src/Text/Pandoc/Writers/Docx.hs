@@ -1115,7 +1115,9 @@ inlineToOpenXML' opts (Math mathType str) = do
   when (displayType == DisplayBlock) setFirstPara
   case writeOMML displayType <$> readTeX str of
         Right r -> return [r]
-        Left  _ -> inlinesToOpenXML opts (texMathToInlines mathType str)
+        Left  e -> do
+          warn $ "Cannot convert the following TeX math, skipping:\n" ++ str
+          inlinesToOpenXML opts (texMathToInlines mathType str)
 inlineToOpenXML' opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Code attrs str) = do
   let unhighlighted = intercalate [br] `fmap`
@@ -1180,7 +1182,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
                fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
       case res of
         Left (_ :: E.SomeException) -> do
-          liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
+          warn $ "Could not find image `" ++ src ++ "', skipping..."
           -- emit alt text
           inlinesToOpenXML opts alt
         Right (img, mt) -> do

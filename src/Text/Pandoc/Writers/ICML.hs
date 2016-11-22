@@ -534,13 +534,13 @@ imageICML opts style attr (src, _) = do
   res  <- liftIO $ fetchItem (writerSourceURL opts) src
   imgS <- case res of
             Left (_) -> do
-              liftIO $ warn $ "Could not find image `" ++ src ++ "', skipping..."
+              warn $ "Could not find image `" ++ src ++ "', skipping..."
               return def
             Right (img, _) -> do
               case imageSize img of
                 Right size -> return size
                 Left msg   -> do
-                  return $ warn $ "Could not determine image size in `" ++
+                  warn $ "Could not determine image size in `" ++
                     src ++ "': " ++ msg
                   return def
   let (ow, oh) = sizeInPoints imgS

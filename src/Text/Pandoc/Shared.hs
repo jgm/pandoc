@@ -127,6 +127,7 @@ import Text.Pandoc.MIME (MimeType, getMimeType)
 import System.FilePath ( (</>), takeExtension, dropExtension)
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
+import Control.Monad.Trans (MonadIO (..))
 import qualified Control.Exception as E
 import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
@@ -974,7 +975,7 @@ openURL u
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 #else
   | otherwise = E.try $ getBodyAndMimeType `fmap` browse
-              (do S.liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
+              (do liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
                   setOutHandler $ const (return ())
                   setAllowRedirects True
                   request (getRequest' u'))
@@ -997,10 +998,10 @@ err exitCode msg = do
   exitWith $ ExitFailure exitCode
   return undefined
 
-warn :: String -> IO ()
-warn msg = do
+warn :: MonadIO m => String -> m ()
+warn msg = liftIO $ do
   name <- getProgName
-  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+  UTF8.hPutStrLn stderr $ "[" ++ name ++ " warning] " ++ msg
 
 mapLeft :: (a -> b) -> Either a c -> Either b c
 mapLeft f (Left x) = Left (f x)
