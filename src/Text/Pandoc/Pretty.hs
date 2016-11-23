@@ -76,8 +76,9 @@ module Text.Pandoc.Pretty (
 
 where
 import Data.Sequence (Seq, fromList, (<|), singleton, mapWithIndex, viewl, ViewL(..))
+import qualified Data.Sequence as Seq
 import Data.Foldable (toList)
-import Data.List (intercalate)
+import Data.List (intersperse)
 import Data.String
 import Control.Monad.State
 import Data.Char (isSpace)
@@ -121,7 +122,7 @@ isBlank _              = False
 
 -- | True if the document is empty.
 isEmpty :: Doc -> Bool
-isEmpty = null . toList . unDoc
+isEmpty = Seq.null . unDoc
 
 -- | The empty document.
 empty :: Doc
@@ -271,10 +272,15 @@ renderList (BeforeNonBlank d : xs) =
           | otherwise -> renderDoc d >> renderList xs
     []                -> renderList xs
 
+renderList [BlankLines _] = return ()
+
+renderList (BlankLines m : BlankLines n : xs) =
+  renderList (BlankLines (max m n) : xs)
+
 renderList (BlankLines num : xs) = do
   st <- get
   case output st of
-     _ | newlines st > num || null xs -> return ()
+     _ | newlines st > num -> return ()
        | otherwise -> replicateM_ (1 + num - newlines st) (outp (-1) "\n")
   renderList xs
 
@@ -321,27 +327,29 @@ renderList (Block i1 s1 : Block i2 s2  : xs) =
 renderList (Block i1 s1 : BreakingSpace : Block i2 s2 : xs) =
   renderList (mergeBlocks True (IsBlock i1 s1) (IsBlock i2 s2) : xs)
 
-renderList (Block width lns : xs) = do
+renderList (Block _width lns : xs) = do
   st <- get
   let oldPref = prefix st
   case column st - realLength oldPref of
         n | n > 0 -> modify $ \s -> s{ prefix = oldPref ++ replicate n ' ' }
         _         -> return ()
-  renderDoc $ blockToDoc width lns
+  renderList $ intersperse CarriageReturn (map (Text 0) lns)
   modify $ \s -> s{ prefix = oldPref }
   renderList xs
 
 mergeBlocks :: Bool -> IsBlock -> IsBlock -> D
 mergeBlocks addSpace (IsBlock w1 lns1) (IsBlock w2 lns2) =
   Block (w1 + w2 + if addSpace then 1 else 0) $
-     zipWith (\l1 l2 -> pad w1 l1 ++ l2) (lns1 ++ empties) (map sp lns2 ++ empties)
-    where empties = replicate (abs $ length lns1 - length lns2) ""
+     zipWith (\l1 l2 -> pad w1 l1 ++ l2) lns1' (map sp lns2')
+    where (lns1', lns2') = case (length lns1, length lns2) of
+                                (x, y) | x > y -> (lns1,
+                                                   lns2 ++ replicate (x - y) "")
+                                       | x < y -> (lns1 ++ replicate (y - x) "",
+                                                   lns2)
+                                       | otherwise -> (lns1, lns2)
           pad n s = s ++ replicate (n - realLength s) ' '
           sp "" = ""
           sp xs = if addSpace then (' ' : xs) else xs
-
-blockToDoc :: Int -> [String] -> Doc
-blockToDoc _ lns = text $ intercalate "\n" lns
 
 offsetOf :: D -> Int
 offsetOf (Text o _)       = o
@@ -453,7 +461,7 @@ chop n cs = case break (=='\n') cs of
                   (xs, ys)     -> if len <= n
                                      then case ys of
                                              []     -> [xs]
-                                             (_:[]) -> [xs, ""]
+                                             ['\n'] -> [xs]
                                              (_:zs) -> xs : chop n zs
                                      else take n xs : chop n (drop n xs ++ ys)
                                    where len = realLength xs
