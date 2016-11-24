@@ -180,6 +180,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, warn, mapLeft, pandocVersion)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Error
+import Text.Pandoc.Class (runIOorExplode)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
@@ -270,17 +271,23 @@ writers :: [ ( String, Writer ) ]
 writers = [
    ("native"       , PureStringWriter writeNative)
   ,("json"         , PureStringWriter writeJSON)
-  ,("docx"         , IOByteStringWriter writeDocx)
-  ,("odt"          , IOByteStringWriter writeODT)
-  ,("epub"         , IOByteStringWriter $ \o ->
-                      writeEPUB o{ writerEpubVersion = Just EPUB2 })
-  ,("epub3"        , IOByteStringWriter $ \o ->
-                       writeEPUB o{ writerEpubVersion = Just EPUB3 })
-  ,("fb2"          , IOStringWriter writeFB2)
+  ,("docx"         , IOByteStringWriter $ \o doc ->
+                      runIOorExplode $ writeDocx o doc)
+  ,("odt"          , IOByteStringWriter $ \o doc ->
+                      runIOorExplode $ writeODT o doc)
+  ,("epub"         , IOByteStringWriter $ \o doc ->
+                      runIOorExplode $
+                      writeEPUB o{ writerEpubVersion = Just EPUB2 } doc)
+  ,("epub3"        , IOByteStringWriter $ \o doc ->
+                      runIOorExplode $ 
+                      writeEPUB o{ writerEpubVersion = Just EPUB3 } doc)
+  ,("fb2"          , IOStringWriter $ \o doc ->
+                      runIOorExplode $ writeFB2 o doc)
   ,("html"         , PureStringWriter writeHtmlString)
   ,("html5"        , PureStringWriter $ \o ->
      writeHtmlString o{ writerHtml5 = True })
-  ,("icml"         , IOStringWriter writeICML)
+  ,("icml"         , IOStringWriter $ \o doc ->
+                      runIOorExplode $ writeICML o doc)
   ,("s5"           , PureStringWriter $ \o ->
      writeHtmlString o{ writerSlideVariant = S5Slides
                       , writerTableOfContents = False })
@@ -316,7 +323,8 @@ writers = [
   ,("dokuwiki"     , PureStringWriter writeDokuWiki)
   ,("zimwiki"      , PureStringWriter writeZimWiki)
   ,("textile"      , PureStringWriter writeTextile)
-  ,("rtf"          , IOStringWriter writeRTFWithEmbeddedImages)
+  ,("rtf"          , IOStringWriter $ \o doc ->
+                      runIOorExplode $ writeRTFWithEmbeddedImages o doc)
   ,("org"          , PureStringWriter writeOrg)
   ,("asciidoc"     , PureStringWriter writeAsciiDoc)
   ,("haddock"      , PureStringWriter writeHaddock)
