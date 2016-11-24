@@ -105,7 +105,7 @@ getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 
 -- We can add to this as we go
 data PandocExecutionError = PandocFileReadError String
-  deriving Show
+  deriving (Show, Typeable)
 
 -- Nothing in this for now, but let's put it there anyway.
 data PandocStateIO = PandocStateIO
@@ -174,10 +174,7 @@ data TestEnv = TestEnv { envEnv :: [(String, String)]
                        , envFontFiles :: [FilePath]
                        }
 
-data TestException = TestException
-  deriving (Show, Typeable)
-
-instance E.Exception TestException
+instance E.Exception PandocExecutionError
 
 newtype PandocPure a = PandocPure {
   unPandocPure :: ExceptT PandocExecutionError
@@ -230,7 +227,7 @@ instance PandocMonad PandocPure where
     fps <- asks envFiles
     case lookup fp fps of
       Just bs -> return (Right (bs, getMimeType fp))
-      Nothing -> return (Left $ E.toException TestException)
+      Nothing -> return (Left $ E.toException $ PandocFileReadError "oops")
 
   fetchItem' media sourceUrl nm = do
     case lookupMedia nm media of
