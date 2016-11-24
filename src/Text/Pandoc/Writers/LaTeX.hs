@@ -1111,8 +1111,9 @@ citationsToBiblatex (c:cs) = do
   return $ text cmd <> foldl' (<>) empty args
     where
        cmd = case citationMode c of
-                  AuthorInText -> "\\textcites"
-                  _            -> "\\autocites"
+                  SuppressAuthor -> "\\autocites*"
+                  AuthorInText   -> "\\textcites"
+                  NormalCitation -> "\\autocites"
        convertOne Citation { citationId = k
                            , citationPrefix = p
                            , citationSuffix = s
