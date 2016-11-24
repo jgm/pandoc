@@ -9,6 +9,7 @@ import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Error
 import System.FilePath ((</>))
+import Text.Pandoc.Class (runIOorExplode)
 
 type Options = (WriterOptions, ReaderOptions)
 
@@ -20,7 +21,7 @@ compareOutput opts nativeFileIn nativeFileOut = do
   nf <- Prelude.readFile nativeFileIn
   nf' <- Prelude.readFile nativeFileOut
   let wopts = fst opts
-  df <- writeDocx wopts{writerUserDataDir = Just (".." </> "data")}
+  df <- runIOorExplode $ writeDocx wopts{writerUserDataDir = Just (".." </> "data")}
              (handleError $ readNative nf)
   let (p, _) = handleError $ readDocx (snd opts) df
   return (p, handleError $ readNative nf')
