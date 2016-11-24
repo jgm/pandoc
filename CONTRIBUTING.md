@@ -14,16 +14,16 @@ for anything relevant.
 Make sure you can reproduce the bug with the latest released version of pandoc
 (or, even better, the development version).
 
-Your report should give detailed instructions for how to reproduce the problem,
-including
+Your report should give detailed, *reproducible* instructions, including
 
+  * the pandoc version (check using `pandoc -v`)
   * the exact command line used
   * the exact input used
   * the output received
   * the output you expected instead
 
 A small test case (just a few lines) is ideal.  If your input is large,
-try to whittle it down to the minimum necessary to illustrate the problem.
+try to whittle it down to a *minimum working example*.
 
 Out of scope?
 -------------
@@ -59,22 +59,22 @@ tags. These are used to indicate the *difficulty* and *nature* of a
 bug. There is not yet a way to indicate priority. An up to date
 summary of issues can be found [here](https://github.com/jgm/pandoc/labels).
 
-* [enhancement] -- A feature which would be desirable. We recommend
+* [enhancement] — A feature which would be desirable. We recommend
   you discuss any proposed enhancement on pandoc-discuss before
   writing code.
-* [bug] -- A problem which needs to be fixed.
-* [minor] -- The fix should only be a couple of lines.
-* [major] -- The fix might require structural changes or in depth knowledge of
+* [bug] — A problem which needs to be fixed.
+* [minor] — The fix should only be a couple of lines.
+* [major] — The fix might require structural changes or in depth knowledge of
 the code base.
-* [reader] -- A request to add a new input format.
-* [writer] -- A request to add a new output format.
-* [docs]   -- A discrepency or ambiguity in the documentation.
-* [inprogress] -- Someone is actively working on or planning to work on the
+* [reader] — A request to add a new input format.
+* [writer] — A request to add a new output format.
+* [docs]   — A discrepency or ambiguity in the documentation.
+* [inprogress] — Someone is actively working on or planning to work on the
   ticket.
-* [more discussion needed] -- It is unclear what the correct approach
+* [more discussion needed] — It is unclear what the correct approach
   to solving the ticket is. Before starting on tickets such as this it
   would be advisable to post on the ticket.
-* [more info needed] -- We require more information from a user before
+* [more info needed] — We require more information from a user before
   we can classify a report properly.
 
 Have an idea for a new feature?
