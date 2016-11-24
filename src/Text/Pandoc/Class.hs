@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveFunctor, DeriveDataTypeable, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE DeriveFunctor, DeriveDataTypeable, TypeSynonymInstances,
+FlexibleInstances, GeneralizedNewtypeDeriving, FlexibleContexts #-}
 
 {-
 Copyright (C) 2016 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -31,10 +32,14 @@ Typeclass for pandoc readers and writers, allowing both IO and pure instances.
 -}
 
 module Text.Pandoc.Class ( PandocMonad(..)
-                         , Testing
                          , TestState(..)
                          , TestEnv(..)
                          , getPOSIXTime
+                         , PandocIO(..)
+                         , PandocPure(..)
+                         , PandocExecutionError(..)
+                         , runIO
+                         , runIOorExplode
                          ) where
 
 import Prelude hiding (readFile, fail)
@@ -64,10 +69,13 @@ import System.FilePath ((</>))
 import qualified System.FilePath.Glob as IO (glob)
 import Control.Monad.State hiding (fail)
 import Control.Monad.Reader hiding (fail)
+import Control.Monad.Except hiding (fail)
 import Data.Word (Word8)
 import Data.Typeable
+import Data.Default
+import System.IO.Error
 
-class (Functor m, Applicative m, Monad m) => PandocMonad m where
+class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => PandocMonad m where
   lookupEnv :: String -> m (Maybe String)
   getCurrentTime :: m UTCTime
   getDefaultReferenceDocx :: Maybe FilePath -> m Archive
@@ -75,14 +83,16 @@ class (Functor m, Applicative m, Monad m) => PandocMonad m where
   newStdGen :: m StdGen
   newUniqueHash :: m Int
   readFileLazy :: FilePath -> m BL.ByteString
-  readDataFile :: Maybe FilePath -> FilePath -> m B.ByteString
-  fetchItem :: Maybe String ->
-               String -> 
-               m (Either E.SomeException (B.ByteString, Maybe MimeType))
-  fetchItem' :: MediaBag ->
-                Maybe String ->
-                String -> 
-                m (Either E.SomeException (B.ByteString, Maybe MimeType))
+  readDataFile :: Maybe FilePath
+               -> FilePath
+               -> m B.ByteString
+  fetchItem :: Maybe String
+            -> String
+            -> m (Either E.SomeException (B.ByteString, Maybe MimeType))
+  fetchItem' :: MediaBag
+             -> Maybe String
+             -> String
+             -> m (Either E.SomeException (B.ByteString, Maybe MimeType))
   warn :: String -> m ()
   fail :: String -> m b
   glob :: String -> m [FilePath]
@@ -92,22 +102,55 @@ class (Functor m, Applicative m, Monad m) => PandocMonad m where
 getPOSIXTime :: (PandocMonad m) => m POSIXTime
 getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 
-instance PandocMonad IO where  
-  lookupEnv = IO.lookupEnv
-  getCurrentTime = IO.getCurrentTime
-  getDefaultReferenceDocx = IO.getDefaultReferenceDocx
-  getDefaultReferenceODT = IO.getDefaultReferenceODT
-  newStdGen = IO.newStdGen
-  newUniqueHash = hashUnique <$> IO.newUnique
-  readFileLazy = BL.readFile
-  readDataFile = IO.readDataFile
+
+-- We can add to this as we go
+data PandocExecutionError = PandocFileReadError String
+  deriving Show
+
+-- Nothing in this for now, but let's put it there anyway.
+data PandocStateIO = PandocStateIO
+  deriving Show
+
+instance Default PandocStateIO where
+  def = PandocStateIO
+
+runIO :: PandocIO a -> IO (Either PandocExecutionError a)
+runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
+
+runIOorExplode :: PandocIO a -> IO a
+runIOorExplode ma = do
+  eitherVal <- runIO ma
+  case eitherVal of
+    Right x -> return x
+    Left (PandocFileReadError s) -> error s
+
+newtype PandocIO a = PandocIO {
+  unPandocIO :: ExceptT PandocExecutionError (StateT PandocStateIO IO) a
+  } deriving (MonadIO, Functor, Applicative, Monad, MonadError PandocExecutionError)
+
+instance PandocMonad PandocIO where  
+  lookupEnv = liftIO . IO.lookupEnv
+  getCurrentTime = liftIO IO.getCurrentTime
+  getDefaultReferenceDocx = liftIO . IO.getDefaultReferenceDocx
+  getDefaultReferenceODT = liftIO . IO.getDefaultReferenceODT
+  newStdGen = liftIO IO.newStdGen
+  newUniqueHash = hashUnique <$> (liftIO IO.newUnique)
+  readFileLazy s = do
+    eitherBS <- liftIO (tryIOError $ BL.readFile s)
+    case eitherBS of
+      Right bs -> return bs
+      Left _ -> throwError $ PandocFileReadError $ "file not found: " ++ s
+  -- TODO: Make this more sensitive to the different sorts of failure
+  readDataFile mfp fname = do
+    eitherBS <- liftIO (tryIOError $ IO.readDataFile mfp fname)
+    case eitherBS of
+      Right bs -> return bs
+      Left _ -> throwError $ PandocFileReadError $ "file not found: " ++ fname
   fail = M.fail
-  fetchItem = IO.fetchItem
-  fetchItem' = IO.fetchItem'
-  warn = IO.warn
-  glob = IO.glob
-
-
+  fetchItem ms s = liftIO $ IO.fetchItem ms s
+  fetchItem' mb ms s = liftIO $ IO.fetchItem' mb ms s
+  warn = liftIO . IO.warn
+  glob = liftIO . IO.glob
 
 data TestState = TestState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
@@ -136,9 +179,12 @@ data TestException = TestException
 
 instance E.Exception TestException
 
-type Testing = ReaderT TestEnv (State TestState)
+newtype PandocPure a = PandocPure {
+  unPandocPure :: ExceptT PandocExecutionError
+                  (ReaderT TestEnv (State TestState)) a
+  } deriving (Functor, Applicative, Monad, MonadReader TestEnv, MonadState TestState, MonadError PandocExecutionError)
 
-instance PandocMonad Testing where
+instance PandocMonad PandocPure where
   lookupEnv s = do
     env <- asks envEnv
     return (lookup s env)
@@ -162,13 +208,11 @@ instance PandocMonad Testing where
         modify $ \st -> st { stUniqStore = us }
         return u
       _ -> M.fail "uniq store ran out of elements"
-
   readFileLazy fp =   do
     fps <- asks envFiles
     case lookup fp fps of
       Just bs -> return (BL.fromStrict bs)
-      Nothing -> error "openFile: does not exist"
-
+      Nothing -> throwError $ PandocFileReadError "file not in state"
   readDataFile Nothing "reference.docx" = do
     (B.concat . BL.toChunks . fromArchive) <$> (getDefaultReferenceDocx Nothing)
   readDataFile Nothing "reference.odt" = do
@@ -181,9 +225,7 @@ instance PandocMonad Testing where
     case lookup (userDir </> fname) userDirFiles of
       Just bs -> return bs
       Nothing -> readDataFile Nothing fname
-
   fail = M.fail
-
   fetchItem _ fp = do
     fps <- asks envFiles
     case lookup fp fps of
