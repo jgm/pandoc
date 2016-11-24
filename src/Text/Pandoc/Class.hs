@@ -40,13 +40,14 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , PandocExecutionError(..)
                          , runIO
                          , runIOorExplode
+                         , runPure
                          ) where
 
 import Prelude hiding (readFile, fail)
 import qualified Control.Monad as M (fail)
-import System.Random (StdGen, next)
+import System.Random (StdGen, next, mkStdGen)
 import qualified System.Random as IO (newStdGen)
-import Codec.Archive.Zip (Archive, fromArchive)
+import Codec.Archive.Zip (Archive, fromArchive, emptyArchive)
 import Data.Unique (hashUnique)
 import qualified Data.Unique as IO (newUnique)
 import qualified Text.Pandoc.Shared as IO ( fetchItem
@@ -58,7 +59,9 @@ import qualified Text.Pandoc.Shared as IO ( fetchItem
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
 import Text.Pandoc.Compat.Time (UTCTime)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
-import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds, POSIXTime )
+import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
+                             , posixSecondsToUTCTime
+                             , POSIXTime )
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
@@ -164,6 +167,13 @@ data TestState = TestState { stStdGen     :: StdGen
                                                    -- once, e.g. [1..]
                            }
 
+instance Default TestState where
+  def = TestState { stStdGen = mkStdGen 1848
+                  , stWord8Store = [1..]
+                  , stWarnings = []
+                  , stUniqStore = [1..]
+                  }
+
 data TestEnv = TestEnv { envEnv :: [(String, String)]
                        , envTime :: UTCTime
                        , envReferenceDocx :: Archive
@@ -174,12 +184,28 @@ data TestEnv = TestEnv { envEnv :: [(String, String)]
                        , envFontFiles :: [FilePath]
                        }
 
+-- We have to figure this out a bit more. But let's put some empty
+-- values in for the time being.
+instance Default TestEnv where
+  def = TestEnv { envEnv = [("USER", "pandoc-user")]
+                , envTime = posixSecondsToUTCTime 0
+                , envReferenceDocx = emptyArchive
+                , envReferenceODT = emptyArchive
+                , envFiles = []
+                , envUserDataDir = []
+                , envCabalDataDir = []
+                , envFontFiles = []
+                }
+
 instance E.Exception PandocExecutionError
 
 newtype PandocPure a = PandocPure {
   unPandocPure :: ExceptT PandocExecutionError
                   (ReaderT TestEnv (State TestState)) a
   } deriving (Functor, Applicative, Monad, MonadReader TestEnv, MonadState TestState, MonadError PandocExecutionError)
+
+runPure :: PandocPure a -> Either PandocExecutionError a
+runPure x = flip evalState def $ flip runReaderT def $ runExceptT $ unPandocPure x
 
 instance PandocMonad PandocPure where
   lookupEnv s = do
