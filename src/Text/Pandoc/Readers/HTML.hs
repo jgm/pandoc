@@ -435,17 +435,20 @@ pTable = try $ do
   rowsLs <- many pTBody
   rows'  <- pOptInTag "tfoot" $ many pTr
   TagClose _ <- pSatisfy (~== TagClose "table")
-  let rows = (concat rowsLs) ++ rows'
+  let rows'' = (concat rowsLs) ++ rows'
   -- fail on empty table
-  guard $ not $ null head' && null rows
+  guard $ not $ null head' && null rows''
   let isSinglePlain x = case B.toList x of
                              []        -> True
                              [Plain _] -> True
                              _         -> False
-  let isSimple = all isSinglePlain $ concat (head':rows)
-  let cols = length $ if null head' then head rows else head'
-  -- fail if there are colspans or rowspans
-  guard $ all (\r -> length r == cols) rows
+  let isSimple = all isSinglePlain $ concat (head':rows'')
+  let cols = length $ if null head' then head rows'' else head'
+  -- add empty cells to short rows
+  let addEmpties r = case length r - cols of
+                           n | n > 1 -> r ++ replicate n []
+                             | otherwise -> r
+  let rows = addEmpties rows''
   let aligns = replicate cols AlignDefault
   let widths = if null widths'
                   then if isSimple
@@ -471,10 +474,17 @@ pColgroup = try $ do
   skipMany pBlank
   manyTill pCol (pCloses "colgroup" <|> eof) <* skipMany pBlank
 
+noColOrRowSpans :: Tag String -> Bool
+noColOrRowSpans t = isNullOrOne "colspan" && isNullOrOne "rowspan"
+  where isNullOrOne x = case fromAttrib x t of
+                              ""  -> True
+                              "1" -> True
+                              _   -> False
+
 pCell :: String -> TagParser [Blocks]
 pCell celltype = try $ do
   skipMany pBlank
-  res <- pInTags celltype block
+  res <- pInTags' celltype noColOrRowSpans block
   skipMany pBlank
   return [res]
 
@@ -695,10 +705,13 @@ pInlinesInTags :: String -> (Inlines -> Inlines)
                -> TagParser Inlines
 pInlinesInTags tagtype f = extractSpaces f <$> pInTags tagtype inline
 
-pInTags :: (Monoid a) => String -> TagParser a
-        -> TagParser a
-pInTags tagtype parser = try $ do
-  pSatisfy (~== TagOpen tagtype [])
+pInTags :: (Monoid a) => String -> TagParser a -> TagParser a
+pInTags tagtype parser = pInTags' tagtype (const True) parser
+
+pInTags' :: (Monoid a) => String -> (Tag String -> Bool) -> TagParser a
+                       -> TagParser a
+pInTags' tagtype tagtest parser = try $ do
+  pSatisfy (\t -> t ~== TagOpen tagtype [] && tagtest t)
   mconcat <$> manyTill parser (pCloses tagtype <|> eof)
 
 -- parses p, preceeded by an optional opening tag
