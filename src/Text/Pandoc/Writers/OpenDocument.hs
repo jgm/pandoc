@@ -336,7 +336,7 @@ blockToOpenDocument o bs
         mapM_ addParaStyle . newPara $ paraHStyles ++ paraStyles
         captionDoc <- if null c
                       then return empty
-                      else withParagraphStyle o "TableCaption" [Para c]
+                      else withParagraphStyle o "Table" [Para c]
         th <- if all null h
                  then return empty
                  else colHeadsToOpenDocument o name (map fst paraHStyles) h
