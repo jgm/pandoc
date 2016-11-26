@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables, FlexibleInstances, GADTs #-}
 {-
 Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -63,7 +63,8 @@ module Text.Pandoc
                , module Text.Pandoc.Error
                -- * Lists of readers and writers
                , readers
-               , writers
+               -- , writers
+               , writers'
                -- * Readers: converting /to/ Pandoc format
                , Reader (..)
                , mkStringReader
@@ -87,7 +88,8 @@ module Text.Pandoc
                , readTxt2TagsNoMacros
                , readEPUB
                -- * Writers: converting /from/ Pandoc format
-              , Writer (..)
+              -- , Writer (..)
+               , Writer'(..)
                , writeNative
                , writeJSON
                , writeMarkdown
@@ -122,7 +124,8 @@ module Text.Pandoc
                , module Text.Pandoc.Templates
                -- * Miscellaneous
                , getReader
-               , getWriter
+               -- , getWriter
+               , getWriter'
                , getDefaultExtensions
                , ToJsonFilter(..)
                , pandocVersion
@@ -180,7 +183,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, warn, mapLeft, pandocVersion)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Error
-import Text.Pandoc.Class (runIOorExplode)
+import Text.Pandoc.Class (PandocMonad)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
@@ -262,74 +265,137 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("epub"         , mkBSReader readEPUB)
            ]
 
-data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
-            | IOStringWriter     (WriterOptions -> Pandoc -> IO String)
-            | IOByteStringWriter (WriterOptions -> Pandoc -> IO BL.ByteString)
+-- data Writer = PureStringWriter   (WriterOptions -> Pandoc -> String)
+--             | IOStringWriter     (WriterOptions -> Pandoc -> IO String)
+--             | IOByteStringWriter (WriterOptions -> Pandoc -> IO BL.ByteString)
+
+-- -- | Association list of formats and writers.
+-- writers :: [ ( String, Writer ) ]
+-- writers = [
+--    ("native"       , PureStringWriter writeNative)
+--   ,("json"         , PureStringWriter writeJSON)
+--   ,("docx"         , IOByteStringWriter $ \o doc ->
+--                       runIOorExplode $ writeDocx o doc)
+--   ,("odt"          , IOByteStringWriter $ \o doc ->
+--                       runIOorExplode $ writeODT o doc)
+--   ,("epub"         , IOByteStringWriter $ \o doc ->
+--                       runIOorExplode $
+--                       writeEPUB o{ writerEpubVersion = Just EPUB2 } doc)
+--   ,("epub3"        , IOByteStringWriter $ \o doc ->
+--                       runIOorExplode $ 
+--                       writeEPUB o{ writerEpubVersion = Just EPUB3 } doc)
+--   ,("fb2"          , IOStringWriter $ \o doc ->
+--                       runIOorExplode $ writeFB2 o doc)
+--   ,("html"         , PureStringWriter writeHtmlString)
+--   ,("html5"        , PureStringWriter $ \o ->
+--      writeHtmlString o{ writerHtml5 = True })
+--   ,("icml"         , IOStringWriter $ \o doc ->
+--                       runIOorExplode $ writeICML o doc)
+--   ,("s5"           , PureStringWriter $ \o ->
+--      writeHtmlString o{ writerSlideVariant = S5Slides
+--                       , writerTableOfContents = False })
+--   ,("slidy"        , PureStringWriter $ \o ->
+--      writeHtmlString o{ writerSlideVariant = SlidySlides })
+--   ,("slideous"     , PureStringWriter $ \o ->
+--      writeHtmlString o{ writerSlideVariant = SlideousSlides })
+--   ,("dzslides"     , PureStringWriter $ \o ->
+--      writeHtmlString o{ writerSlideVariant = DZSlides
+--                       , writerHtml5 = True })
+--   ,("revealjs"      , PureStringWriter $ \o ->
+--      writeHtmlString o{ writerSlideVariant = RevealJsSlides
+--                       , writerHtml5 = True })
+--   ,("docbook"      , PureStringWriter writeDocbook)
+--   ,("docbook5"     , PureStringWriter $ \o ->
+--      writeDocbook o{ writerDocbook5 = True })
+--   ,("opml"         , PureStringWriter writeOPML)
+--   ,("opendocument" , PureStringWriter writeOpenDocument)
+--   ,("latex"        , PureStringWriter writeLaTeX)
+--   ,("beamer"       , PureStringWriter $ \o ->
+--      writeLaTeX o{ writerBeamer = True })
+--   ,("context"      , PureStringWriter writeConTeXt)
+--   ,("texinfo"      , PureStringWriter writeTexinfo)
+--   ,("man"          , PureStringWriter writeMan)
+--   ,("markdown"     , PureStringWriter writeMarkdown)
+--   ,("markdown_strict" , PureStringWriter writeMarkdown)
+--   ,("markdown_phpextra" , PureStringWriter writeMarkdown)
+--   ,("markdown_github" , PureStringWriter writeMarkdown)
+--   ,("markdown_mmd" , PureStringWriter writeMarkdown)
+--   ,("plain"        , PureStringWriter writePlain)
+--   ,("rst"          , PureStringWriter writeRST)
+--   ,("mediawiki"    , PureStringWriter writeMediaWiki)
+--   ,("dokuwiki"     , PureStringWriter writeDokuWiki)
+--   ,("zimwiki"      , PureStringWriter writeZimWiki)
+--   ,("textile"      , PureStringWriter writeTextile)
+--   ,("rtf"          , IOStringWriter $ \o doc ->
+--                       runIOorExplode $ writeRTFWithEmbeddedImages o doc)
+--   ,("org"          , PureStringWriter writeOrg)
+--   ,("asciidoc"     , PureStringWriter writeAsciiDoc)
+--   ,("haddock"      , PureStringWriter writeHaddock)
+--   ,("commonmark"   , PureStringWriter writeCommonMark)
+--   ,("tei"          , PureStringWriter writeTEI)
+--   ]
+
+data Writer' m = StringWriter' (WriterOptions -> Pandoc -> m String)
+               | ByteStringWriter' (WriterOptions -> Pandoc -> m BL.ByteString)
 
 -- | Association list of formats and writers.
-writers :: [ ( String, Writer ) ]
-writers = [
-   ("native"       , PureStringWriter writeNative)
-  ,("json"         , PureStringWriter writeJSON)
-  ,("docx"         , IOByteStringWriter $ \o doc ->
-                      runIOorExplode $ writeDocx o doc)
-  ,("odt"          , IOByteStringWriter $ \o doc ->
-                      runIOorExplode $ writeODT o doc)
-  ,("epub"         , IOByteStringWriter $ \o doc ->
-                      runIOorExplode $
-                      writeEPUB o{ writerEpubVersion = Just EPUB2 } doc)
-  ,("epub3"        , IOByteStringWriter $ \o doc ->
-                      runIOorExplode $ 
-                      writeEPUB o{ writerEpubVersion = Just EPUB3 } doc)
-  ,("fb2"          , IOStringWriter $ \o doc ->
-                      runIOorExplode $ writeFB2 o doc)
-  ,("html"         , PureStringWriter writeHtmlString)
-  ,("html5"        , PureStringWriter $ \o ->
+writers' :: PandocMonad m => [ ( String, Writer' m) ]
+writers' = [
+   ("native"       , StringWriter' writeNative)
+  ,("json"         , StringWriter' $ \o d -> return $ writeJSON o d)
+  ,("docx"         , ByteStringWriter' writeDocx)
+  ,("odt"          , ByteStringWriter' writeODT)
+  ,("epub"         , ByteStringWriter' $ \o ->
+                      writeEPUB o{ writerEpubVersion = Just EPUB2 })
+  ,("epub3"        , ByteStringWriter' $ \o ->
+                      writeEPUB o{ writerEpubVersion = Just EPUB3 })
+  ,("fb2"          , StringWriter' writeFB2)
+  ,("html"         , StringWriter' writeHtmlString)
+  ,("html5"        , StringWriter' $ \o ->
      writeHtmlString o{ writerHtml5 = True })
-  ,("icml"         , IOStringWriter $ \o doc ->
-                      runIOorExplode $ writeICML o doc)
-  ,("s5"           , PureStringWriter $ \o ->
+  ,("icml"         , StringWriter' writeICML)
+  ,("s5"           , StringWriter' $ \o ->
      writeHtmlString o{ writerSlideVariant = S5Slides
                       , writerTableOfContents = False })
-  ,("slidy"        , PureStringWriter $ \o ->
+  ,("slidy"        , StringWriter' $ \o ->
      writeHtmlString o{ writerSlideVariant = SlidySlides })
-  ,("slideous"     , PureStringWriter $ \o ->
+  ,("slideous"     , StringWriter' $ \o ->
      writeHtmlString o{ writerSlideVariant = SlideousSlides })
-  ,("dzslides"     , PureStringWriter $ \o ->
+  ,("dzslides"     , StringWriter' $ \o ->
      writeHtmlString o{ writerSlideVariant = DZSlides
                       , writerHtml5 = True })
-  ,("revealjs"      , PureStringWriter $ \o ->
+  ,("revealjs"      , StringWriter' $ \o ->
      writeHtmlString o{ writerSlideVariant = RevealJsSlides
                       , writerHtml5 = True })
-  ,("docbook"      , PureStringWriter writeDocbook)
-  ,("docbook5"     , PureStringWriter $ \o ->
+  ,("docbook"      , StringWriter' writeDocbook)
+  ,("docbook5"     , StringWriter' $ \o ->
      writeDocbook o{ writerDocbook5 = True })
-  ,("opml"         , PureStringWriter writeOPML)
-  ,("opendocument" , PureStringWriter writeOpenDocument)
-  ,("latex"        , PureStringWriter writeLaTeX)
-  ,("beamer"       , PureStringWriter $ \o ->
+  ,("opml"         , StringWriter' writeOPML)
+  ,("opendocument" , StringWriter' writeOpenDocument)
+  ,("latex"        , StringWriter' writeLaTeX)
+  ,("beamer"       , StringWriter' $ \o ->
      writeLaTeX o{ writerBeamer = True })
-  ,("context"      , PureStringWriter writeConTeXt)
-  ,("texinfo"      , PureStringWriter writeTexinfo)
-  ,("man"          , PureStringWriter writeMan)
-  ,("markdown"     , PureStringWriter writeMarkdown)
-  ,("markdown_strict" , PureStringWriter writeMarkdown)
-  ,("markdown_phpextra" , PureStringWriter writeMarkdown)
-  ,("markdown_github" , PureStringWriter writeMarkdown)
-  ,("markdown_mmd" , PureStringWriter writeMarkdown)
-  ,("plain"        , PureStringWriter writePlain)
-  ,("rst"          , PureStringWriter writeRST)
-  ,("mediawiki"    , PureStringWriter writeMediaWiki)
-  ,("dokuwiki"     , PureStringWriter writeDokuWiki)
-  ,("zimwiki"      , PureStringWriter writeZimWiki)
-  ,("textile"      , PureStringWriter writeTextile)
-  ,("rtf"          , IOStringWriter $ \o doc ->
-                      runIOorExplode $ writeRTFWithEmbeddedImages o doc)
-  ,("org"          , PureStringWriter writeOrg)
-  ,("asciidoc"     , PureStringWriter writeAsciiDoc)
-  ,("haddock"      , PureStringWriter writeHaddock)
-  ,("commonmark"   , PureStringWriter writeCommonMark)
-  ,("tei"          , PureStringWriter writeTEI)
+  ,("context"      , StringWriter' writeConTeXt)
+  ,("texinfo"      , StringWriter' writeTexinfo)
+  ,("man"          , StringWriter' writeMan)
+  ,("markdown"     , StringWriter' writeMarkdown)
+  ,("markdown_strict" , StringWriter' writeMarkdown)
+  ,("markdown_phpextra" , StringWriter' writeMarkdown)
+  ,("markdown_github" , StringWriter' writeMarkdown)
+  ,("markdown_mmd" , StringWriter' writeMarkdown)
+  ,("plain"        , StringWriter' writePlain)
+  ,("rst"          , StringWriter' writeRST)
+  ,("mediawiki"    , StringWriter' writeMediaWiki)
+  ,("dokuwiki"     , StringWriter' writeDokuWiki)
+  ,("zimwiki"      , StringWriter' writeZimWiki)
+  ,("textile"      , StringWriter' writeTextile)
+  ,("rtf"          , StringWriter' $ \o ->
+     writeRTFWithEmbeddedImages o)
+  ,("org"          , StringWriter' writeOrg)
+  ,("asciidoc"     , StringWriter' writeAsciiDoc)
+  ,("haddock"      , StringWriter' writeHaddock)
+  ,("commonmark"   , StringWriter' writeCommonMark)
+  ,("tei"          , StringWriter' writeTEI)
   ]
 
 getDefaultExtensions :: String -> Set Extension
@@ -368,20 +434,34 @@ getReader s =
                                             getDefaultExtensions readerName }
 
 -- | Retrieve writer based on formatSpec (format+extensions).
-getWriter :: String -> Either String Writer
-getWriter s
+-- getWriter :: String -> Either String Writer
+-- getWriter s
+--   = case parseFormatSpec s of
+--          Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
+--          Right (writerName, setExts) ->
+--              case lookup writerName writers of
+--                      Nothing -> Left $ "Unknown writer: " ++ writerName
+--                      Just (PureStringWriter r) -> Right $ PureStringWriter $
+--                              \o -> r o{ writerExtensions = setExts $
+--                                               getDefaultExtensions writerName }
+--                      Just (IOStringWriter r) -> Right $ IOStringWriter $
+--                              \o -> r o{ writerExtensions = setExts $
+--                                               getDefaultExtensions writerName }
+--                      Just (IOByteStringWriter r) -> Right $ IOByteStringWriter $
+--                              \o -> r o{ writerExtensions = setExts $
+--                                               getDefaultExtensions writerName }
+
+getWriter' :: PandocMonad m => String -> Either String (Writer' m)
+getWriter' s
   = case parseFormatSpec s of
          Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
          Right (writerName, setExts) ->
-             case lookup writerName writers of
+             case lookup writerName writers' of
                      Nothing -> Left $ "Unknown writer: " ++ writerName
-                     Just (PureStringWriter r) -> Right $ PureStringWriter $
+                     Just (StringWriter' r) -> Right $ StringWriter' $
                              \o -> r o{ writerExtensions = setExts $
                                               getDefaultExtensions writerName }
-                     Just (IOStringWriter r) -> Right $ IOStringWriter $
-                             \o -> r o{ writerExtensions = setExts $
-                                              getDefaultExtensions writerName }
-                     Just (IOByteStringWriter r) -> Right $ IOByteStringWriter $
+                     Just (ByteStringWriter' r) -> Right $ ByteStringWriter' $
                              \o -> r o{ writerExtensions = setExts $
                                               getDefaultExtensions writerName }
 

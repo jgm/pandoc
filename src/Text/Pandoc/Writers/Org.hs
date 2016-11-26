@@ -42,6 +42,7 @@ import Text.Pandoc.Templates (renderTemplate')
 import Data.Char ( isAlphaNum, toLower )
 import Data.List ( isPrefixOf, intersect, intersperse, partition, transpose )
 import Control.Monad.State
+import Text.Pandoc.Class (PandocMonad)
 
 data WriterState =
   WriterState { stNotes     :: [[Block]]
@@ -52,8 +53,8 @@ data WriterState =
               }
 
 -- | Convert Pandoc to Org.
-writeOrg :: WriterOptions -> Pandoc -> String
-writeOrg opts document =
+writeOrg :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeOrg opts document = return $
   let st = WriterState { stNotes = [], stLinks = False,
                          stImages = False, stHasMath = False,
                          stOptions = opts }

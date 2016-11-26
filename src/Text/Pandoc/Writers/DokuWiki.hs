@@ -55,6 +55,7 @@ import Network.URI ( isURI )
 import Control.Monad ( zipWithM )
 import Control.Monad.State ( modify, State, get, evalState )
 import Control.Monad.Reader ( ReaderT, runReaderT, ask, local )
+import Text.Pandoc.Class (PandocMonad)
 
 data WriterState = WriterState {
     stNotes     :: Bool            -- True if there are notes
@@ -77,8 +78,8 @@ instance Default WriterEnvironment where
 type DokuWiki = ReaderT WriterEnvironment (State WriterState)
 
 -- | Convert Pandoc to DokuWiki.
-writeDokuWiki :: WriterOptions -> Pandoc -> String
-writeDokuWiki opts document =
+writeDokuWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeDokuWiki opts document = return $
   runDokuWiki (pandocToDokuWiki opts $ normalize document)
 
 runDokuWiki :: DokuWiki a -> a

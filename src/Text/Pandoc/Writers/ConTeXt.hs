@@ -43,6 +43,7 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Templates ( renderTemplate' )
 import Network.URI ( isURI, unEscapeString )
+import Text.Pandoc.Class (PandocMonad)
 
 data WriterState =
   WriterState { stNextRef          :: Int  -- number of next URL reference
@@ -54,8 +55,8 @@ orderedListStyles :: [Char]
 orderedListStyles = cycle "narg"
 
 -- | Convert Pandoc to ConTeXt.
-writeConTeXt :: WriterOptions -> Pandoc -> String
-writeConTeXt options document =
+writeConTeXt :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeConTeXt options document = return $
   let defaultWriterState = WriterState { stNextRef = 1
                                        , stOrderedListLevel = 0
                                        , stOptions = options

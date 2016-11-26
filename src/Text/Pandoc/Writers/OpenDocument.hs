@@ -47,6 +47,7 @@ import qualified Data.Map as Map
 import Text.Pandoc.Writers.Shared
 import Data.List (sortBy)
 import Data.Ord (comparing)
+import Text.Pandoc.Class (PandocMonad)
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -190,8 +191,8 @@ handleSpaces s
         rm        [] = empty
 
 -- | Convert Pandoc document to string in OpenDocument format.
-writeOpenDocument :: WriterOptions -> Pandoc -> String
-writeOpenDocument opts (Pandoc meta blocks) =
+writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeOpenDocument opts (Pandoc meta blocks) = return $
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing

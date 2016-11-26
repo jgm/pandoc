@@ -44,6 +44,7 @@ import Text.Pandoc.ImageSize
 import Network.URI ( isURI, unEscapeString )
 import System.FilePath
 import qualified Data.Set as Set
+import Text.Pandoc.Class ( PandocMonad )
 
 data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
@@ -60,8 +61,8 @@ data WriterState =
  -}
 
 -- | Convert Pandoc to Texinfo.
-writeTexinfo :: WriterOptions -> Pandoc -> String
-writeTexinfo options document =
+writeTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeTexinfo options document = return $
   evalState (pandocToTexinfo options $ wrapTop document) $
   WriterState { stStrikeout = False, stSuperscript = False,
                 stEscapeComma = False, stSubscript = False,

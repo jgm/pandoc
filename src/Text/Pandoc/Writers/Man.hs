@@ -41,14 +41,15 @@ import Data.Maybe (fromMaybe)
 import Text.Pandoc.Pretty
 import Text.Pandoc.Builder (deleteMeta)
 import Control.Monad.State
+import Text.Pandoc.Class (PandocMonad)
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes  :: Notes
                                , stHasTables :: Bool }
 
 -- | Convert Pandoc to Man.
-writeMan :: WriterOptions -> Pandoc -> String
-writeMan opts document = evalState (pandocToMan opts document) (WriterState [] False)
+writeMan :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeMan opts document = return $ evalState (pandocToMan opts document) (WriterState [] False)
 
 -- | Return groff man representation of document.
 pandocToMan :: WriterOptions -> Pandoc -> State WriterState String

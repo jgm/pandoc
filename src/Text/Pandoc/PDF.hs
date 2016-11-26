@@ -60,6 +60,7 @@ import qualified Codec.Picture as JP
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
+import Text.Pandoc.Class (PandocIO, runIOorExplode)
 
 #ifdef _WINDOWS
 changePathSeparators :: FilePath -> FilePath
@@ -68,7 +69,7 @@ changePathSeparators = intercalate "/" . splitDirectories
 
 makePDF :: String              -- ^ pdf creator (pdflatex, lualatex,
                                -- xelatex, context, wkhtmltopdf)
-        -> (WriterOptions -> Pandoc -> String)  -- ^ writer
+        -> (WriterOptions -> Pandoc -> PandocIO String)  -- ^ writer
         -> WriterOptions       -- ^ options
         -> Pandoc              -- ^ document
         -> IO (Either ByteString ByteString)
@@ -93,12 +94,12 @@ makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = do
                  ,("margin-left", fromMaybe (Just "1.25in")
                             (getField "margin-left" meta'))
                  ]
-  let source = writer opts doc
+  source <- runIOorExplode $ writer opts doc
   html2pdf (writerVerbose opts) args source
 makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
   doc' <- handleImages opts tmpdir doc
-  let source = writer opts doc'
-      args   = writerLaTeXArgs opts
+  source <- runIOorExplode $ writer opts doc'
+  let args   = writerLaTeXArgs opts
   case takeBaseName program of
      "context" -> context2pdf (writerVerbose opts) tmpdir source
      prog | prog `elem` ["pdflatex", "lualatex", "xelatex"]

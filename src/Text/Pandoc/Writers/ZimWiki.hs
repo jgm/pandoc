@@ -45,6 +45,7 @@ import Network.URI ( isURI )
 import Control.Monad ( zipWithM )
 import Control.Monad.State ( modify, State, get, evalState )
 --import Control.Monad.Reader ( ReaderT, runReaderT, ask, local )
+import Text.Pandoc.Class ( PandocMonad )
 
 data WriterState = WriterState {
     stItemNum   :: Int,
@@ -55,8 +56,8 @@ instance Default WriterState where
   def = WriterState { stItemNum = 1, stIndent = "" }
 
 -- | Convert Pandoc to ZimWiki.
-writeZimWiki :: WriterOptions -> Pandoc -> String
-writeZimWiki opts document = evalState (pandocToZimWiki opts document) (WriterState 1 "")
+writeZimWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeZimWiki opts document = return $ evalState (pandocToZimWiki opts document) (WriterState 1 "")
 
 -- | Return ZimWiki representation of document.
 pandocToZimWiki :: WriterOptions -> Pandoc -> State WriterState String

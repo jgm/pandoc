@@ -41,6 +41,7 @@ import Text.Pandoc.XML ( escapeStringForXML )
 import Data.List ( intercalate )
 import Control.Monad.State
 import Data.Char ( isSpace )
+import Text.Pandoc.Class ( PandocMonad )
 
 data WriterState = WriterState {
     stNotes     :: [String]        -- Footnotes
@@ -50,8 +51,8 @@ data WriterState = WriterState {
   }
 
 -- | Convert Pandoc to Textile.
-writeTextile :: WriterOptions -> Pandoc -> String
-writeTextile opts document =
+writeTextile :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeTextile opts document = return $
   evalState (pandocToTextile opts document)
             WriterState { stNotes = [], stListLevel = [], stStartNum = Nothing,
                           stUseTags = False }

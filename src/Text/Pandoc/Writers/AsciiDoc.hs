@@ -52,6 +52,7 @@ import qualified Data.Map as M
 import Data.Aeson (Value(String), fromJSON, toJSON, Result(..))
 import qualified Data.Text as T
 import Data.Char (isSpace, isPunctuation)
+import Text.Pandoc.Class (PandocMonad)
 
 data WriterState = WriterState { defListMarker :: String
                                , orderedListLevel :: Int
@@ -60,8 +61,8 @@ data WriterState = WriterState { defListMarker :: String
                                }
 
 -- | Convert Pandoc to AsciiDoc.
-writeAsciiDoc :: WriterOptions -> Pandoc -> String
-writeAsciiDoc opts document =
+writeAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeAsciiDoc opts document = return $
   evalState (pandocToAsciiDoc opts document) WriterState{
       defListMarker = "::"
     , orderedListLevel = 1

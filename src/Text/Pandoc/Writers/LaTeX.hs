@@ -54,6 +54,7 @@ import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock,
                                  toListingsLanguage)
+import Text.Pandoc.Class (PandocMonad)
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
@@ -78,8 +79,8 @@ data WriterState =
               }
 
 -- | Convert Pandoc to LaTeX.
-writeLaTeX :: WriterOptions -> Pandoc -> String
-writeLaTeX options document =
+writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeLaTeX options document = return $
   evalState (pandocToLaTeX options document) $
   WriterState { stInNote = False, stInQuote = False,
                 stInMinipage = False, stInHeading = False,

@@ -55,7 +55,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walk, walkM, query)
 import Text.Pandoc.UUID (getUUID)
 import Control.Monad.State (modify, get, gets, State, StateT, put, evalState, evalStateT, lift)
-import Control.Monad (mplus, when)
+import Control.Monad (mplus, when, zipWithM)
 import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
                       , strContent, lookupAttr, Node(..), QName(..), parseXML
                       , onlyElems, node, ppElement)
@@ -374,17 +374,17 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                      Nothing   -> return ([],[])
                      Just img  -> do
                        let coverImage = "media/" ++ takeFileName img
-                       let cpContent = renderHtml $ writeHtml
+                       cpContent <- renderHtml <$> (lift $  writeHtml
                             opts'{ writerVariables = ("coverpage","true"):vars }
-                            (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
+                            (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"]))
                        imgContent <- lift $ P.readFileLazy img
                        return ( [mkEntry "cover.xhtml" cpContent]
                               , [mkEntry coverImage imgContent] )
 
   -- title page
-  let tpContent = renderHtml $ writeHtml opts'{
-                      writerVariables = ("titlepage","true"):vars }
-                      (Pandoc meta [])
+  tpContent <- renderHtml <$> (lift $ writeHtml opts'{
+                                  writerVariables = ("titlepage","true"):vars }
+                               (Pandoc meta []))
   let tpEntry = mkEntry "title_page.xhtml" tpContent
 
   -- handle pictures
@@ -482,20 +482,20 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                          Chapter mbnum $ walk fixInternalReferences bs)
                  chapters'
 
-  let chapToEntry :: Int -> Chapter -> Entry
-      chapToEntry num (Chapter mbnum bs) = mkEntry (showChapter num)
-        $ renderHtml
-        $ writeHtml opts'{ writerNumberOffset =
-            fromMaybe [] mbnum }
-        $ case bs of
-              (Header _ _ xs : _) ->
-                 -- remove notes or we get doubled footnotes
-                 Pandoc (setMeta "title" (walk removeNote $ fromList xs)
-                            nullMeta) bs
-              _                   ->
-                 Pandoc nullMeta bs
+  let chapToEntry :: PandocMonad m => Int -> Chapter -> m Entry
+      chapToEntry num (Chapter mbnum bs) =
+       (mkEntry (showChapter num) . renderHtml) <$>
+        (writeHtml opts'{ writerNumberOffset =
+                          fromMaybe [] mbnum }
+         $ case bs of
+             (Header _ _ xs : _) ->
+               -- remove notes or we get doubled footnotes
+               Pandoc (setMeta "title" (walk removeNote $ fromList xs)
+                        nullMeta) bs
+             _                   ->
+               Pandoc nullMeta bs)
 
-  let chapterEntries = zipWith chapToEntry [1..] chapters
+  chapterEntries <- lift $ zipWithM chapToEntry [1..] chapters
 
   -- incredibly inefficient (TODO):
   let containsMathML ent = epub3 &&
@@ -679,11 +679,11 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                             ]
                           ]
                      else []
-  let navData = renderHtml $ writeHtml
+  navData <- renderHtml <$> (lift $ writeHtml
                       opts'{ writerVariables = ("navpage","true"):vars }
             (Pandoc (setMeta "title"
                      (walk removeNote $ fromList $ docTitle' meta) nullMeta)
-               (navBlocks ++ landmarks))
+               (navBlocks ++ landmarks)))
   let navEntry = mkEntry "nav.xhtml" navData
 
   -- mimetype

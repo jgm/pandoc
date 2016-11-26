@@ -68,6 +68,7 @@ import Text.XML.Light (unode, elChildren, unqual)
 import qualified Text.XML.Light as XML
 import System.FilePath (takeExtension)
 import Data.Aeson (Value)
+import Text.Pandoc.Class (PandocMonad)
 
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
@@ -99,8 +100,8 @@ nl opts = if writerWrapText opts == WrapNone
              else preEscapedString "\n"
 
 -- | Convert Pandoc document to Html string.
-writeHtmlString :: WriterOptions -> Pandoc -> String
-writeHtmlString opts d =
+writeHtmlString :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeHtmlString opts d = return $
   let (body, context) = evalState (pandocToHtml opts d) defaultWriterState
   in  case writerTemplate opts of
            Nothing  -> renderHtml body
@@ -108,8 +109,8 @@ writeHtmlString opts d =
                          defField "body" (renderHtml body) context
 
 -- | Convert Pandoc document to Html structure.
-writeHtml :: WriterOptions -> Pandoc -> Html
-writeHtml opts d =
+writeHtml :: PandocMonad m => WriterOptions -> Pandoc -> m Html
+writeHtml opts d = return $
   let (body, context) = evalState (pandocToHtml opts d) defaultWriterState
   in  case writerTemplate opts of
            Nothing  -> body

@@ -47,6 +47,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.TeXMath
 import qualified Text.XML.Light as Xml
 import Data.Generics (everywhere, mkT)
+import Text.Pandoc.Class (PandocMonad)
 
 -- | Convert list of authors to a docbook <author> section
 authorToDocbook :: WriterOptions -> [Inline] -> B.Inlines
@@ -73,8 +74,8 @@ authorToDocbook opts name' =
                   inTagsSimple "surname" (text $ escapeStringForXML lastname)
 
 -- | Convert Pandoc document to string in Docbook format.
-writeDocbook :: WriterOptions -> Pandoc -> String
-writeDocbook opts (Pandoc meta blocks) =
+writeDocbook :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeDocbook opts (Pandoc meta blocks) = return $
   let elements = hierarchicalize blocks
       colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts

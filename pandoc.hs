@@ -77,6 +77,7 @@ import Text.Printf (printf)
 import System.Posix.Terminal (queryTerminal)
 import System.Posix.IO (stdOutput)
 #endif
+import Text.Pandoc.Class (runIOorExplode, PandocIO)
 
 type Transform = Pandoc -> Pandoc
 
@@ -914,7 +915,7 @@ options =
                      let allopts = unwords (concatMap optnames options)
                      UTF8.hPutStrLn stdout $ printf tpl allopts
                          (unwords (map fst readers))
-                         (unwords (map fst writers))
+                         (unwords (map fst (writers' :: [(String, Writer' PandocIO)])))
                          (unwords $ map fst highlightingStyles)
                          ddir
                      exitSuccess ))
@@ -931,7 +932,7 @@ options =
     , Option "" ["list-output-formats"]
                  (NoArg
                   (\_ -> do
-                     let writers'names = sort (map fst writers)
+                     let writers'names = sort (map fst (writers' :: [(String, Writer' PandocIO)]))
                      mapM_ (UTF8.hPutStrLn stdout) writers'names
                      exitSuccess ))
                  ""
@@ -1268,10 +1269,12 @@ convertWithOpts opts args = do
   let laTeXInput = "latex" `isPrefixOf` readerName' ||
                     "beamer" `isPrefixOf` readerName'
 
+                      
+  -- disabling the custom writer for now
   writer <- if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName
-               then return $ IOStringWriter $ writeCustom writerName
-               else case getWriter writerName' of
+               then error "custom writers disabled for now"
+               else case getWriter' writerName' of
                          Left e  -> err 9 $
                            if format == "pdf"
                               then e ++
@@ -1477,9 +1480,9 @@ convertWithOpts opts args = do
       writerFn f   = UTF8.writeFile f
 
   case writer of
-    IOStringWriter f -> f writerOptions doc' >>= writerFn outputFile
-    IOByteStringWriter f -> f writerOptions doc' >>= writeFnBinary outputFile
-    PureStringWriter f
+    -- StringWriter f -> f writerOptions doc' >>= writerFn outputFile
+    ByteStringWriter' f -> (runIOorExplode $ f writerOptions doc') >>= writeFnBinary outputFile
+    StringWriter' f
       | pdfOutput -> do
               -- make sure writer is latex or beamer or context or html5
               unless (laTeXOutput || conTeXtOutput || html5Output) $
@@ -1503,14 +1506,14 @@ convertWithOpts opts args = do
                      B.hPutStr stderr err'
                      B.hPut stderr $ B.pack [10]
                      err 43 "Error producing PDF"
-      | otherwise -> selfcontain (f writerOptions doc' ++
-                                  ['\n' | not standalone'])
-                      >>= writerFn outputFile . handleEntities
-          where htmlFormat = format `elem`
-                  ["html","html5","s5","slidy","slideous","dzslides","revealjs"]
-                selfcontain = if selfContained && htmlFormat
-                                 then makeSelfContained writerOptions
-                                 else return
-                handleEntities = if htmlFormat && ascii
-                                    then toEntities
-                                    else id
+      | otherwise -> do
+              let htmlFormat = format `elem`
+                    ["html","html5","s5","slidy","slideous","dzslides","revealjs"]
+                  selfcontain = if selfContained && htmlFormat
+                                then makeSelfContained writerOptions
+                                else return
+                  handleEntities = if htmlFormat && ascii
+                                   then toEntities
+                                   else id
+              output <- runIOorExplode $ f writerOptions doc'
+              selfcontain (output ++ ['\n' | not standalone']) >>= writerFn outputFile . handleEntities

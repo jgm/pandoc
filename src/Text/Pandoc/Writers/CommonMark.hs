@@ -39,26 +39,27 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import CMark
 import qualified Data.Text as T
-import Control.Monad.Identity (runIdentity, Identity)
 import Control.Monad.State (runState, State, modify, get)
 import Text.Pandoc.Walk (walkM)
+import Text.Pandoc.Class (PandocMonad)
+import Data.Foldable (foldrM)
 
 -- | Convert Pandoc to CommonMark.
-writeCommonMark :: WriterOptions -> Pandoc -> String
-writeCommonMark opts (Pandoc meta blocks) = rendered
-  where main = runIdentity $ blocksToCommonMark opts (blocks' ++ notes')
-        (blocks', notes) = runState (walkM processNotes blocks) []
-        notes' = if null notes
-                    then []
-                    else [OrderedList (1, Decimal, Period) $ reverse notes]
-        metadata = runIdentity $ metaToJSON opts
-                     (blocksToCommonMark opts)
-                     (inlinesToCommonMark opts)
-                     meta
-        context = defField "body" main $ metadata
-        rendered = case writerTemplate opts of
-                        Nothing  -> main
-                        Just tpl -> renderTemplate' tpl context
+writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeCommonMark opts (Pandoc meta blocks) = do
+  let (blocks', notes) = runState (walkM processNotes blocks) []
+      notes' = if null notes
+               then []
+               else [OrderedList (1, Decimal, Period) $ reverse notes]
+  main <-  blocksToCommonMark opts (blocks' ++ notes')                    
+  metadata <- metaToJSON opts
+              (blocksToCommonMark opts)
+              (inlinesToCommonMark opts)
+              meta
+  let context = defField "body" main $ metadata
+  return $ case writerTemplate opts of
+             Nothing  -> main
+             Just tpl -> renderTemplate' tpl context
 
 processNotes :: Inline -> State [[Block]] Inline
 processNotes (Note bs) = do
@@ -70,16 +71,19 @@ processNotes x = return x
 node :: NodeType -> [Node] -> Node
 node = Node Nothing
 
-blocksToCommonMark :: WriterOptions -> [Block] -> Identity String
-blocksToCommonMark opts bs = return $
-  T.unpack $ nodeToCommonmark cmarkOpts colwidth
-           $ node DOCUMENT (blocksToNodes bs)
-   where cmarkOpts = [optHardBreaks | isEnabled Ext_hard_line_breaks opts]
-         colwidth = if writerWrapText opts == WrapAuto
-                       then Just $ writerColumns opts
-                       else Nothing
+blocksToCommonMark :: PandocMonad m => WriterOptions -> [Block] -> m String
+blocksToCommonMark opts bs = do
+  let cmarkOpts = [optHardBreaks | isEnabled Ext_hard_line_breaks opts]
+      colwidth = if writerWrapText opts == WrapAuto
+                 then Just $ writerColumns opts
+                 else Nothing
+  nodes <- blocksToNodes bs
+  return $
+    T.unpack $
+    nodeToCommonmark cmarkOpts colwidth $
+    node DOCUMENT nodes
 
-inlinesToCommonMark :: WriterOptions -> [Inline] -> Identity String
+inlinesToCommonMark :: PandocMonad m => WriterOptions -> [Inline] -> m String
 inlinesToCommonMark opts ils = return $
   T.unpack $ nodeToCommonmark cmarkOpts colwidth
            $ node PARAGRAPH (inlinesToNodes ils)
@@ -88,39 +92,44 @@ inlinesToCommonMark opts ils = return $
                        then Just $ writerColumns opts
                        else Nothing
 
-blocksToNodes :: [Block] -> [Node]
-blocksToNodes = foldr blockToNodes []
+blocksToNodes :: PandocMonad m => [Block] -> m [Node]
+blocksToNodes = foldrM blockToNodes []
 
-blockToNodes :: Block -> [Node] -> [Node]
-blockToNodes (Plain xs) = (node PARAGRAPH (inlinesToNodes xs) :)
-blockToNodes (Para xs) = (node PARAGRAPH (inlinesToNodes xs) :)
-blockToNodes (LineBlock lns) = blockToNodes $ linesToPara lns
-blockToNodes (CodeBlock (_,classes,_) xs) =
-  (node (CODE_BLOCK (T.pack (unwords classes)) (T.pack xs)) [] :)
-blockToNodes (RawBlock fmt xs)
-  | fmt == Format "html" = (node (HTML_BLOCK (T.pack xs)) [] :)
-  | otherwise = (node (CUSTOM_BLOCK (T.pack xs) (T.empty)) [] :)
-blockToNodes (BlockQuote bs) =
-  (node BLOCK_QUOTE (blocksToNodes bs) :)
-blockToNodes (BulletList items) =
-  (node (LIST ListAttributes{
-               listType = BULLET_LIST,
-               listDelim = PERIOD_DELIM,
-               listTight = isTightList items,
-               listStart = 1 }) (map (node ITEM . blocksToNodes) items) :)
-blockToNodes (OrderedList (start, _sty, delim) items) =
-  (node (LIST ListAttributes{
-               listType = ORDERED_LIST,
-               listDelim = case delim of
-                                OneParen  -> PAREN_DELIM
-                                TwoParens -> PAREN_DELIM
-                                _         -> PERIOD_DELIM,
-               listTight = isTightList items,
-               listStart = start }) (map (node ITEM . blocksToNodes) items) :)
-blockToNodes HorizontalRule = (node THEMATIC_BREAK [] :)
-blockToNodes (Header lev _ ils) = (node (HEADING lev) (inlinesToNodes ils) :)
-blockToNodes (Div _ bs) = (blocksToNodes bs ++)
-blockToNodes (DefinitionList items) = blockToNodes (BulletList items')
+blockToNodes :: PandocMonad m => Block -> [Node] -> m [Node]
+blockToNodes (Plain xs) ns = return (node PARAGRAPH (inlinesToNodes xs) : ns)
+blockToNodes (Para xs) ns = return (node PARAGRAPH (inlinesToNodes xs) : ns)
+blockToNodes (LineBlock lns) ns = blockToNodes (linesToPara lns) ns
+blockToNodes (CodeBlock (_,classes,_) xs) ns = return $
+  (node (CODE_BLOCK (T.pack (unwords classes)) (T.pack xs)) [] : ns)
+blockToNodes (RawBlock fmt xs) ns
+  | fmt == Format "html" = return (node (HTML_BLOCK (T.pack xs)) [] : ns)
+  | otherwise = return (node (CUSTOM_BLOCK (T.pack xs) (T.empty)) [] : ns)
+blockToNodes (BlockQuote bs) ns = do
+  nodes <- blocksToNodes bs
+  return (node BLOCK_QUOTE nodes : ns)
+blockToNodes (BulletList items) ns = do
+  nodes <- mapM blocksToNodes items
+  return (node (LIST ListAttributes{
+                   listType = BULLET_LIST,
+                   listDelim = PERIOD_DELIM,
+                   listTight = isTightList items,
+                   listStart = 1 }) (map (node ITEM) nodes) : ns)
+blockToNodes (OrderedList (start, _sty, delim) items) ns = do
+  nodes <- mapM blocksToNodes items
+  return (node (LIST ListAttributes{
+                   listType = ORDERED_LIST,
+                   listDelim = case delim of
+                                 OneParen  -> PAREN_DELIM
+                                 TwoParens -> PAREN_DELIM
+                                 _         -> PERIOD_DELIM,
+                   listTight = isTightList items,
+                   listStart = start }) (map (node ITEM) nodes) : ns)
+blockToNodes HorizontalRule ns = return (node THEMATIC_BREAK [] : ns)
+blockToNodes (Header lev _ ils) ns = return (node (HEADING lev) (inlinesToNodes ils) : ns)
+blockToNodes (Div _ bs) ns = do
+  nodes <- blocksToNodes bs
+  return (nodes ++ ns)
+blockToNodes (DefinitionList items) ns = blockToNodes (BulletList items') ns
   where items' = map dlToBullet items
         dlToBullet (term, ((Para xs : ys) : zs))  =
           Para (term ++ [LineBreak] ++ xs) : ys ++ concat zs
@@ -128,9 +137,10 @@ blockToNodes (DefinitionList items) = blockToNodes (BulletList items')
           Plain (term ++ [LineBreak] ++ xs) : ys ++ concat zs
         dlToBullet (term, xs) =
           Para term : concat xs
-blockToNodes t@(Table _ _ _ _ _) =
-  (node (HTML_BLOCK (T.pack $! writeHtmlString def $! Pandoc nullMeta [t])) [] :)
-blockToNodes Null = id
+blockToNodes t@(Table _ _ _ _ _) ns = do
+  s <- writeHtmlString def $! Pandoc nullMeta [t]
+  return (node (HTML_BLOCK (T.pack $! s)) [] : ns)
+blockToNodes Null ns = return ns
 
 inlinesToNodes :: [Inline] -> [Node]
 inlinesToNodes  = foldr inlineToNodes []

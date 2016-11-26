@@ -42,6 +42,7 @@ import Data.List ( intersect, intercalate )
 import Network.URI ( isURI )
 import Control.Monad.Reader
 import Control.Monad.State
+import Text.Pandoc.Class (PandocMonad)
 
 data WriterState = WriterState {
     stNotes     :: Bool            -- True if there are notes
@@ -57,8 +58,8 @@ data WriterReader = WriterReader {
 type MediaWikiWriter = ReaderT WriterReader (State WriterState)
 
 -- | Convert Pandoc to MediaWiki.
-writeMediaWiki :: WriterOptions -> Pandoc -> String
-writeMediaWiki opts document =
+writeMediaWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeMediaWiki opts document = return $
   let initialState = WriterState { stNotes = False, stOptions = opts }
       env = WriterReader { options = opts, listLevel = [], useTags = False }
   in  evalState (runReaderT (pandocToMediaWiki document) env) initialState

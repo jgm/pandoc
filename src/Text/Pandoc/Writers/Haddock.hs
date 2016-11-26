@@ -42,6 +42,7 @@ import Control.Monad.State
 import Text.Pandoc.Readers.TeXMath (texMathToInlines)
 import Network.URI (isURI)
 import Data.Default
+import Text.Pandoc.Class (PandocMonad)
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes :: Notes }
@@ -49,8 +50,8 @@ instance Default WriterState
   where def = WriterState{ stNotes = [] }
 
 -- | Convert Pandoc to Haddock.
-writeHaddock :: WriterOptions -> Pandoc -> String
-writeHaddock opts document =
+writeHaddock :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeHaddock opts document = return $
   evalState (pandocToHaddock opts{
                   writerWrapText = writerWrapText opts } document) def
 
