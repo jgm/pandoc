@@ -107,7 +107,7 @@ increaseIndent :: State WriterState ()
 increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
 
 resetIndent :: State WriterState ()
-resetIndent = modify $ \s -> s { stIndentPara = (stIndentPara s) - 1 }
+resetIndent = modify $ \s -> s { stIndentPara = max (stIndentPara s - 1) 0 }
 
 inTightList :: State WriterState a -> State WriterState a
 inTightList  f = modify (\s -> s { stTight = True  }) >> f >>= \r ->
@@ -315,8 +315,7 @@ blockToOpenDocument o bs
                            setInDefinitionList False
                            return r
       preformatted  s = (flush . vcat) <$> mapM (inPreformattedTags . escapeStringForXML) (lines s)
-      mkBlockQuote  b = do increaseIndent
-                           i <- paraStyle "Quotations" []
+      mkBlockQuote  b = do i <- paraStyle "Quotations" []
                            inBlockQuote o i (map plainToPara b)
       orderedList a b = do (ln,pn) <- newOrderedListStyle (isTightList b) a
                            inTags True "text:list" [ ("text:style-name", "L" ++ show ln)]
