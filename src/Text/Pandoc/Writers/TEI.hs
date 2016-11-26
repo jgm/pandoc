@@ -36,6 +36,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
 import Data.List ( stripPrefix, isPrefixOf )
+import Data.Maybe ( fromMaybe )
 import Data.Char ( toLower )
 import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
@@ -60,7 +61,7 @@ writeTEI opts (Pandoc meta blocks) =
                     then Just $ writerColumns opts
                     else Nothing
       render' = render colwidth
-      startLvl = case writerTopLevelDivision opts of
+      startLvl = case fromMaybe Section (writerTopLevelDivision opts) of
                    Part    -> -1
                    Chapter -> 0
                    Section -> 1

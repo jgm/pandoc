@@ -238,7 +238,7 @@ tests = [ testGroup "line blocks"
 
               docbookTopLevelDiv :: (ToPandoc a) => Division -> a -> String
               docbookTopLevelDiv division =
-                docbookWithOpts def{ writerTopLevelDivision = division }
+                docbookWithOpts def{ writerTopLevelDivision = Just division }
             in
             [ test (docbookTopLevelDiv Section) "sections as top-level" $ headers =?>
               unlines [ "<sect1>"

@@ -382,7 +382,7 @@ data WriterOptions = WriterOptions
   , writerHtmlQTags        :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
   , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
   , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
-  , writerTopLevelDivision :: Division   -- ^ Type of top-level divisions
+  , writerTopLevelDivision :: Maybe Division -- ^ Type of top-level divisions
   , writerListings         :: Bool       -- ^ Use listings package for code
   , writerHighlight        :: Bool       -- ^ Highlight source code
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
@@ -430,7 +430,7 @@ instance Default WriterOptions where
                       , writerHtmlQTags        = False
                       , writerBeamer           = False
                       , writerSlideLevel       = Nothing
-                      , writerTopLevelDivision = Section
+                      , writerTopLevelDivision = Nothing
                       , writerListings         = False
                       , writerHighlight        = False
                       , writerHighlightStyle   = pygments

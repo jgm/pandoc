@@ -181,7 +181,7 @@ data Opt = Opt
     , optHtmlQTags         :: Bool    -- ^ Use <q> tags in HTML
     , optHighlight         :: Bool    -- ^ Highlight source code
     , optHighlightStyle    :: Style   -- ^ Style to use for highlighted code
-    , optTopLevelDivision  :: Division -- ^ Type of the top-level divisions
+    , optTopLevelDivision  :: Maybe Division -- ^ Type of the top-level divisions
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optReferenceDocx     :: Maybe FilePath -- ^ Path of reference.docx
@@ -246,7 +246,7 @@ defaultOpts = Opt
     , optHtmlQTags             = False
     , optHighlight             = True
     , optHighlightStyle        = pygments
-    , optTopLevelDivision      = Section
+    , optTopLevelDivision      = Nothing
     , optHTMLMathMethod        = PlainMath
     , optReferenceODT          = Nothing
     , optReferenceDocx         = Nothing
@@ -598,13 +598,13 @@ options =
                  (NoArg
                   (\opt -> do warn $ "--chapters is deprecated. " ++
                                      "Use --top-level-division=chapter instead."
-                              return opt { optTopLevelDivision = Chapter }))
+                              return opt { optTopLevelDivision = Just Chapter }))
                  "" -- "Use chapter for top-level sections in LaTeX, DocBook"
 
     , Option "" ["top-level-division"]
                  (ReqArg
                   (\arg opt -> case safeRead (uppercaseFirstLetter arg) of
-                      Just dvsn -> return opt { optTopLevelDivision = dvsn }
+                      Just dvsn -> return opt { optTopLevelDivision = Just dvsn }
                       _         -> err 76 "Top-level division must be section, chapter, or part")
                    "[section|chapter|part]")
                  "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
