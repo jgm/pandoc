@@ -39,6 +39,7 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( stripPrefix, isPrefixOf, intercalate, isSuffixOf )
 import Data.Char ( toLower )
+import Data.Maybe ( fromMaybe, isNothing )
 import Data.Monoid ( Any(..) )
 import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
@@ -81,11 +82,11 @@ writeDocbook opts (Pandoc meta blocks) =
                     else Nothing
       render'  = render colwidth
       opts'    = if ("/book>" `isSuffixOf` (trimr $ writerTemplate opts) &&
-                     writerTopLevelDivision opts >= Section)
-                    then opts{ writerTopLevelDivision = Chapter }
+                     isNothing (writerTopLevelDivision opts))
+                    then opts{ writerTopLevelDivision = Just Chapter }
                     else opts
       -- The numbering here follows LaTeX's internal numbering
-      startLvl = case writerTopLevelDivision opts' of
+      startLvl = case fromMaybe Section (writerTopLevelDivision opts') of
                    Part    -> -1
                    Chapter -> 0
                    Section -> 1

@@ -37,7 +37,7 @@ import Text.Pandoc.Walk (query)
 import Text.Printf ( printf )
 import Data.List ( intercalate, intersperse )
 import Data.Char ( ord )
-import Data.Maybe ( catMaybes )
+import Data.Maybe ( catMaybes, fromMaybe )
 import Control.Monad.State
 import Text.Pandoc.Pretty
 import Text.Pandoc.ImageSize
@@ -84,9 +84,10 @@ pandocToConTeXt options (Pandoc meta blocks) = do
   let context =   defField "toc" (writerTableOfContents options)
                 $ defField "placelist" (intercalate ("," :: String) $
                      take (writerTOCDepth options +
-                           if writerTopLevelDivision options < Section
-                           then 0
-                           else 1)
+                           case writerTopLevelDivision options of
+                             Just Part    -> 0
+                             Just Chapter -> 0
+                             _            -> 1)
                        ["chapter","section","subsection","subsubsection",
                         "subsubsubsection","subsubsubsubsection"])
                 $ defField "body" main
@@ -422,7 +423,7 @@ sectionHeader (ident,classes,_) hdrLevel lst = do
   contents <- inlineListToConTeXt lst
   st <- get
   let opts = stOptions st
-  let level' = case writerTopLevelDivision opts of
+  let level' = case fromMaybe Section (writerTopLevelDivision opts) of
                  Part    -> hdrLevel - 2
                  Chapter -> hdrLevel - 1
                  Section -> hdrLevel

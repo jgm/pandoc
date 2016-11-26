@@ -90,11 +90,11 @@ tests = [ testGroup "code blocks"
 
               latexTopLevelDiv :: (ToPandoc a) => Division -> a -> String
               latexTopLevelDiv division =
-                latexWithOpts def{ writerTopLevelDivision = division }
+                latexWithOpts def{ writerTopLevelDivision = Just division }
 
               beamerTopLevelDiv :: (ToPandoc a) => Division -> a -> String
               beamerTopLevelDiv division =
-                latexWithOpts def { writerTopLevelDivision = division
+                latexWithOpts def { writerTopLevelDivision = Just division
                                   , writerBeamer = True }
             in
             [ test (latexTopLevelDiv Section) "sections as top-level" $ headers =?>
