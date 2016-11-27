@@ -219,25 +219,27 @@ blockToTexinfo (Header 0 _ lst) = do
   return $ text "@node Top" $$
            text "@top " <> txt <> blankline
 
-blockToTexinfo (Header level _ lst) = do
-  node <- inlineListForNode lst
-  txt <- inlineListToTexinfo lst
-  idsUsed <- gets stIdentifiers
-  let id' = uniqueIdent lst idsUsed
-  modify $ \st -> st{ stIdentifiers = Set.insert id' idsUsed }
-  sec <- seccmd level
-  return $ if (level > 0) && (level <= 4)
-              then blankline <> text "@node " <> node $$
-                   text sec <> txt $$
-                   text "@anchor" <> braces (text $ '#':id')
-              else txt
-  where
-    seccmd :: PandocMonad m => Int -> TI m String
-    seccmd 1 = return "@chapter "
-    seccmd 2 = return "@section "
-    seccmd 3 = return "@subsection "
-    seccmd 4 = return "@subsubsection "
-    seccmd _ = throwError $ PandocSomeError "illegal seccmd level"
+blockToTexinfo (Header level _ lst)
+  | level < 1 || level > 4 = blockToTexinfo (Para lst)
+  | otherwise = do
+    node <- inlineListForNode lst
+    txt <- inlineListToTexinfo lst
+    idsUsed <- gets stIdentifiers
+    let id' = uniqueIdent lst idsUsed
+    modify $ \st -> st{ stIdentifiers = Set.insert id' idsUsed }
+    sec <- seccmd level
+    return $ if (level > 0) && (level <= 4)
+                then blankline <> text "@node " <> node $$
+                     text sec <> txt $$
+                     text "@anchor" <> braces (text $ '#':id')
+                else txt
+    where
+      seccmd :: PandocMonad m => Int -> TI m String
+      seccmd 1 = return "@chapter "
+      seccmd 2 = return "@section "
+      seccmd 3 = return "@subsection "
+      seccmd 4 = return "@subsubsection "
+      seccmd _ = throwError $ PandocSomeError "illegal seccmd level"
 
 blockToTexinfo (Table caption aligns widths heads rows) = do
   headers <- if all null heads
