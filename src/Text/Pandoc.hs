@@ -64,7 +64,7 @@ module Text.Pandoc
                -- * Lists of readers and writers
                , readers
                -- , writers
-               , writers'
+               , writers
                -- * Readers: converting /to/ Pandoc format
                , Reader (..)
                , mkStringReader
@@ -88,8 +88,7 @@ module Text.Pandoc
                , readTxt2TagsNoMacros
                , readEPUB
                -- * Writers: converting /from/ Pandoc format
-              -- , Writer (..)
-               , Writer'(..)
+               , Writer(..)
                , writeNative
                , writeJSON
                , writeMarkdown
@@ -124,8 +123,7 @@ module Text.Pandoc
                , module Text.Pandoc.Templates
                -- * Miscellaneous
                , getReader
-               -- , getWriter
-               , getWriter'
+               , getWriter
                , getDefaultExtensions
                , ToJsonFilter(..)
                , pandocVersion
@@ -335,67 +333,67 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
 --   ,("tei"          , PureStringWriter writeTEI)
 --   ]
 
-data Writer' m = StringWriter' (WriterOptions -> Pandoc -> m String)
-               | ByteStringWriter' (WriterOptions -> Pandoc -> m BL.ByteString)
+data Writer m = StringWriter (WriterOptions -> Pandoc -> m String)
+              | ByteStringWriter (WriterOptions -> Pandoc -> m BL.ByteString)
 
 -- | Association list of formats and writers.
-writers' :: PandocMonad m => [ ( String, Writer' m) ]
-writers' = [
-   ("native"       , StringWriter' writeNative)
-  ,("json"         , StringWriter' $ \o d -> return $ writeJSON o d)
-  ,("docx"         , ByteStringWriter' writeDocx)
-  ,("odt"          , ByteStringWriter' writeODT)
-  ,("epub"         , ByteStringWriter' $ \o ->
+writers :: PandocMonad m => [ ( String, Writer m) ]
+writers = [
+   ("native"       , StringWriter writeNative)
+  ,("json"         , StringWriter $ \o d -> return $ writeJSON o d)
+  ,("docx"         , ByteStringWriter writeDocx)
+  ,("odt"          , ByteStringWriter writeODT)
+  ,("epub"         , ByteStringWriter $ \o ->
                       writeEPUB o{ writerEpubVersion = Just EPUB2 })
-  ,("epub3"        , ByteStringWriter' $ \o ->
+  ,("epub3"        , ByteStringWriter $ \o ->
                       writeEPUB o{ writerEpubVersion = Just EPUB3 })
-  ,("fb2"          , StringWriter' writeFB2)
-  ,("html"         , StringWriter' writeHtmlString)
-  ,("html5"        , StringWriter' $ \o ->
+  ,("fb2"          , StringWriter writeFB2)
+  ,("html"         , StringWriter writeHtmlString)
+  ,("html5"        , StringWriter $ \o ->
      writeHtmlString o{ writerHtml5 = True })
-  ,("icml"         , StringWriter' writeICML)
-  ,("s5"           , StringWriter' $ \o ->
+  ,("icml"         , StringWriter writeICML)
+  ,("s5"           , StringWriter $ \o ->
      writeHtmlString o{ writerSlideVariant = S5Slides
                       , writerTableOfContents = False })
-  ,("slidy"        , StringWriter' $ \o ->
+  ,("slidy"        , StringWriter $ \o ->
      writeHtmlString o{ writerSlideVariant = SlidySlides })
-  ,("slideous"     , StringWriter' $ \o ->
+  ,("slideous"     , StringWriter $ \o ->
      writeHtmlString o{ writerSlideVariant = SlideousSlides })
-  ,("dzslides"     , StringWriter' $ \o ->
+  ,("dzslides"     , StringWriter $ \o ->
      writeHtmlString o{ writerSlideVariant = DZSlides
                       , writerHtml5 = True })
-  ,("revealjs"      , StringWriter' $ \o ->
+  ,("revealjs"      , StringWriter $ \o ->
      writeHtmlString o{ writerSlideVariant = RevealJsSlides
                       , writerHtml5 = True })
-  ,("docbook"      , StringWriter' writeDocbook)
-  ,("docbook5"     , StringWriter' $ \o ->
+  ,("docbook"      , StringWriter writeDocbook)
+  ,("docbook5"     , StringWriter $ \o ->
      writeDocbook o{ writerDocbook5 = True })
-  ,("opml"         , StringWriter' writeOPML)
-  ,("opendocument" , StringWriter' writeOpenDocument)
-  ,("latex"        , StringWriter' writeLaTeX)
-  ,("beamer"       , StringWriter' $ \o ->
+  ,("opml"         , StringWriter writeOPML)
+  ,("opendocument" , StringWriter writeOpenDocument)
+  ,("latex"        , StringWriter writeLaTeX)
+  ,("beamer"       , StringWriter $ \o ->
      writeLaTeX o{ writerBeamer = True })
-  ,("context"      , StringWriter' writeConTeXt)
-  ,("texinfo"      , StringWriter' writeTexinfo)
-  ,("man"          , StringWriter' writeMan)
-  ,("markdown"     , StringWriter' writeMarkdown)
-  ,("markdown_strict" , StringWriter' writeMarkdown)
-  ,("markdown_phpextra" , StringWriter' writeMarkdown)
-  ,("markdown_github" , StringWriter' writeMarkdown)
-  ,("markdown_mmd" , StringWriter' writeMarkdown)
-  ,("plain"        , StringWriter' writePlain)
-  ,("rst"          , StringWriter' writeRST)
-  ,("mediawiki"    , StringWriter' writeMediaWiki)
-  ,("dokuwiki"     , StringWriter' writeDokuWiki)
-  ,("zimwiki"      , StringWriter' writeZimWiki)
-  ,("textile"      , StringWriter' writeTextile)
-  ,("rtf"          , StringWriter' $ \o ->
+  ,("context"      , StringWriter writeConTeXt)
+  ,("texinfo"      , StringWriter writeTexinfo)
+  ,("man"          , StringWriter writeMan)
+  ,("markdown"     , StringWriter writeMarkdown)
+  ,("markdown_strict" , StringWriter writeMarkdown)
+  ,("markdown_phpextra" , StringWriter writeMarkdown)
+  ,("markdown_github" , StringWriter writeMarkdown)
+  ,("markdown_mmd" , StringWriter writeMarkdown)
+  ,("plain"        , StringWriter writePlain)
+  ,("rst"          , StringWriter writeRST)
+  ,("mediawiki"    , StringWriter writeMediaWiki)
+  ,("dokuwiki"     , StringWriter writeDokuWiki)
+  ,("zimwiki"      , StringWriter writeZimWiki)
+  ,("textile"      , StringWriter writeTextile)
+  ,("rtf"          , StringWriter $ \o ->
      writeRTFWithEmbeddedImages o)
-  ,("org"          , StringWriter' writeOrg)
-  ,("asciidoc"     , StringWriter' writeAsciiDoc)
-  ,("haddock"      , StringWriter' writeHaddock)
-  ,("commonmark"   , StringWriter' writeCommonMark)
-  ,("tei"          , StringWriter' writeTEI)
+  ,("org"          , StringWriter writeOrg)
+  ,("asciidoc"     , StringWriter writeAsciiDoc)
+  ,("haddock"      , StringWriter writeHaddock)
+  ,("commonmark"   , StringWriter writeCommonMark)
+  ,("tei"          , StringWriter writeTEI)
   ]
 
 getDefaultExtensions :: String -> Set Extension
@@ -433,35 +431,17 @@ getReader s =
                                   r o{ readerExtensions = setExts $
                                             getDefaultExtensions readerName }
 
--- | Retrieve writer based on formatSpec (format+extensions).
--- getWriter :: String -> Either String Writer
--- getWriter s
---   = case parseFormatSpec s of
---          Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
---          Right (writerName, setExts) ->
---              case lookup writerName writers of
---                      Nothing -> Left $ "Unknown writer: " ++ writerName
---                      Just (PureStringWriter r) -> Right $ PureStringWriter $
---                              \o -> r o{ writerExtensions = setExts $
---                                               getDefaultExtensions writerName }
---                      Just (IOStringWriter r) -> Right $ IOStringWriter $
---                              \o -> r o{ writerExtensions = setExts $
---                                               getDefaultExtensions writerName }
---                      Just (IOByteStringWriter r) -> Right $ IOByteStringWriter $
---                              \o -> r o{ writerExtensions = setExts $
---                                               getDefaultExtensions writerName }
-
-getWriter' :: PandocMonad m => String -> Either String (Writer' m)
-getWriter' s
+getWriter :: PandocMonad m => String -> Either String (Writer m)
+getWriter s
   = case parseFormatSpec s of
          Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
          Right (writerName, setExts) ->
-             case lookup writerName writers' of
+             case lookup writerName writers of
                      Nothing -> Left $ "Unknown writer: " ++ writerName
-                     Just (StringWriter' r) -> Right $ StringWriter' $
+                     Just (StringWriter r) -> Right $ StringWriter $
                              \o -> r o{ writerExtensions = setExts $
                                               getDefaultExtensions writerName }
-                     Just (ByteStringWriter' r) -> Right $ ByteStringWriter' $
+                     Just (ByteStringWriter r) -> Right $ ByteStringWriter $
                              \o -> r o{ writerExtensions = setExts $
                                               getDefaultExtensions writerName }
 

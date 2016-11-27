@@ -915,7 +915,7 @@ options =
                      let allopts = unwords (concatMap optnames options)
                      UTF8.hPutStrLn stdout $ printf tpl allopts
                          (unwords (map fst readers))
-                         (unwords (map fst (writers' :: [(String, Writer' PandocIO)])))
+                         (unwords (map fst (writers :: [(String, Writer PandocIO)])))
                          (unwords $ map fst highlightingStyles)
                          ddir
                      exitSuccess ))
@@ -932,7 +932,7 @@ options =
     , Option "" ["list-output-formats"]
                  (NoArg
                   (\_ -> do
-                     let writers'names = sort (map fst (writers' :: [(String, Writer' PandocIO)]))
+                     let writers'names = sort (map fst (writers :: [(String, Writer PandocIO)]))
                      mapM_ (UTF8.hPutStrLn stdout) writers'names
                      exitSuccess ))
                  ""
@@ -1274,7 +1274,7 @@ convertWithOpts opts args = do
   writer <- if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName
                then error "custom writers disabled for now"
-               else case getWriter' writerName' of
+               else case getWriter writerName' of
                          Left e  -> err 9 $
                            if format == "pdf"
                               then e ++
@@ -1481,8 +1481,8 @@ convertWithOpts opts args = do
 
   case writer of
     -- StringWriter f -> f writerOptions doc' >>= writerFn outputFile
-    ByteStringWriter' f -> (runIOorExplode $ f writerOptions doc') >>= writeFnBinary outputFile
-    StringWriter' f
+    ByteStringWriter f -> (runIOorExplode $ f writerOptions doc') >>= writeFnBinary outputFile
+    StringWriter f
       | pdfOutput -> do
               -- make sure writer is latex or beamer or context or html5
               unless (laTeXOutput || conTeXtOutput || html5Output) $
