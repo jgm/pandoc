@@ -925,6 +925,10 @@ fetchItem sourceURL s =
           case parseURIReference' s' of
                Just u' -> openURL $ show $ u' `nonStrictRelativeTo` u
                Nothing -> openURL s' -- will throw error
+       (Nothing, s'@('/':'/':_)) ->  -- protocol-relative URI
+          case parseURIReference' s' of
+               Just u' -> openURL $ show $ u' `nonStrictRelativeTo` httpcolon
+               Nothing -> openURL s' -- will throw error
        (Nothing, s') ->
           case parseURI s' of  -- requires absolute URI
                -- We don't want to treat C:/ as a scheme:
@@ -935,6 +939,11 @@ fetchItem sourceURL s =
   where readLocalFile f = do
           cont <- BS.readFile f
           return (cont, mime)
+        httpcolon = URI{ uriScheme = "http:",
+                         uriAuthority = Nothing,
+                         uriPath = "",
+                         uriQuery = "",
+                         uriFragment = "" }
         dropFragmentAndQuery = takeWhile (\c -> c /= '?' && c /= '#')
         fp = unEscapeString $ dropFragmentAndQuery s
         mime = case takeExtension fp of
