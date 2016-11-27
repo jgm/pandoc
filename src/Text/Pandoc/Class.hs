@@ -139,7 +139,13 @@ runIOorExplode ma = do
 
 newtype PandocIO a = PandocIO {
   unPandocIO :: ExceptT PandocExecutionError (StateT PandocStateIO IO) a
-  } deriving (MonadIO, Functor, Applicative, Monad, MonadState PandocStateIO, MonadError PandocExecutionError)
+  } deriving ( MonadIO
+             , Functor
+             , Applicative
+             , Monad
+             , MonadState PandocStateIO
+             , MonadError PandocExecutionError
+             )
 
 instance PandocMonad PandocIO where
   lookupEnv = liftIO . IO.lookupEnv
@@ -219,7 +225,13 @@ instance E.Exception PandocExecutionError
 newtype PandocPure a = PandocPure {
   unPandocPure :: ExceptT PandocExecutionError
                   (ReaderT PureEnv (State PureState)) a
-  } deriving (Functor, Applicative, Monad, MonadReader PureEnv, MonadState PureState, MonadError PandocExecutionError)
+  } deriving ( Functor
+             , Applicative
+             , Monad
+             , MonadReader PureEnv
+             , MonadState PureState
+             , MonadError PandocExecutionError
+             )
 
 runPure :: PandocPure a -> Either PandocExecutionError a
 runPure x = flip evalState def $ flip runReaderT def $ runExceptT $ unPandocPure x
