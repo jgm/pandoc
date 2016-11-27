@@ -43,7 +43,7 @@ module Text.Pandoc.Options ( Extension(..)
                            , HTMLSlideVariant (..)
                            , EPUBVersion (..)
                            , WrapOption (..)
-                           , Division (..)
+                           , TopLevelDivision (..)
                            , WriterOptions (..)
                            , TrackChanges (..)
                            , ReferenceLocation (..)
@@ -341,10 +341,12 @@ data WrapOption = WrapAuto        -- ^ Automatically wrap to width
                 deriving (Show, Read, Eq, Data, Typeable, Generic)
 
 -- | Options defining the type of top-level headers.
-data Division = Part              -- ^ Top-level headers become parts
-              | Chapter           -- ^ Top-level headers become chapters
-              | Section           -- ^ Top-level headers become sections
-              deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
+data TopLevelDivision = TopLevelPart      -- ^ Top-level headers become parts
+                      | TopLevelChapter   -- ^ Top-level headers become chapters
+                      | TopLevelSection   -- ^ Top-level headers become sections
+                      | TopLevelDefault   -- ^ Top-level type is determined via
+                                          --   heuristics
+                      deriving (Show, Read, Eq, Data, Typeable, Generic)
 
 -- | Locations for footnotes and references in markdown output
 data ReferenceLocation = EndOfBlock    -- ^ End of block
@@ -382,7 +384,7 @@ data WriterOptions = WriterOptions
   , writerHtmlQTags        :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
   , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
   , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
-  , writerTopLevelDivision :: Maybe Division -- ^ Type of top-level divisions
+  , writerTopLevelDivision :: TopLevelDivision -- ^ Type of top-level divisions
   , writerListings         :: Bool       -- ^ Use listings package for code
   , writerHighlight        :: Bool       -- ^ Highlight source code
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
@@ -430,7 +432,7 @@ instance Default WriterOptions where
                       , writerHtmlQTags        = False
                       , writerBeamer           = False
                       , writerSlideLevel       = Nothing
-                      , writerTopLevelDivision = Nothing
+                      , writerTopLevelDivision = TopLevelDefault
                       , writerListings         = False
                       , writerHighlight        = False
                       , writerHighlightStyle   = pygments

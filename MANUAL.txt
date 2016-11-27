@@ -684,17 +684,18 @@ Options affecting specific writers
 
 :   Deprecated synonym for `--top-level-division=chapter`.
 
-`--top-level-division=[section|chapter|part]`
+`--top-level-division=[default|section|chapter|part]`
 
 :   Treat top-level headers as the given division type in LaTeX, ConTeXt,
     DocBook, and  TEI output. The hierarchy order is part, chapter, then section;
     all headers are shifted such that the top-level header becomes the specified
-    type.  The default is `section`. When the LaTeX document class is set to
-    `report`, `book`, or `memoir` (unless the `article` option is specified),
-    `chapter` is implied as the setting for this option.  If `beamer` is the
-    output format, specifying either `chapter` or `part` will cause top-level
-    headers to become `\part{..}`, while second-level headers remain as their
-    default type.
+    type. The default behavior is to determine the best division type via
+    heuristics: unless other conditions apply, `section` is chosen. When the
+    LaTeX document class is set to `report`, `book`, or `memoir` (unless the
+    `article` option is specified), `chapter` is implied as the setting for this
+    option. If `beamer` is the output format, specifying either `chapter` or
+    `part` will cause top-level headers to become `\part{..}`, while
+    second-level headers remain as their default type.
 
 `-N`, `--number-sections`
 

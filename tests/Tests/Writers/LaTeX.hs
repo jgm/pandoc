@@ -88,44 +88,63 @@ tests = [ testGroup "code blocks"
                       <> header 2 (text "header2")
                       <> header 3 (text "header3")
 
-              latexTopLevelDiv :: (ToPandoc a) => Division -> a -> String
+              latexTopLevelDiv :: (ToPandoc a) => TopLevelDivision -> a -> String
               latexTopLevelDiv division =
-                latexWithOpts def{ writerTopLevelDivision = Just division }
+                latexWithOpts def{ writerTopLevelDivision = division }
 
-              beamerTopLevelDiv :: (ToPandoc a) => Division -> a -> String
+              beamerTopLevelDiv :: (ToPandoc a)
+                                => TopLevelDivision -> a -> String
               beamerTopLevelDiv division =
-                latexWithOpts def { writerTopLevelDivision = Just division
+                latexWithOpts def { writerTopLevelDivision = division
                                   , writerBeamer = True }
             in
-            [ test (latexTopLevelDiv Section) "sections as top-level" $ headers =?>
+            [ test (latexTopLevelDiv TopLevelSection)
+                   "sections as top-level" $ headers =?>
               unlines [ "\\section{header1}\n"
                       , "\\subsection{header2}\n"
                       , "\\subsubsection{header3}"
                       ]
-            , test (latexTopLevelDiv Chapter) "chapters as top-level" $ headers =?>
+            , test (latexTopLevelDiv TopLevelChapter)
+                   "chapters as top-level" $ headers =?>
               unlines [ "\\chapter{header1}\n"
                       , "\\section{header2}\n"
                       , "\\subsection{header3}"
                       ]
-            , test (latexTopLevelDiv Part) "parts as top-level" $ headers =?>
+            , test (latexTopLevelDiv TopLevelPart)
+                   "parts as top-level" $ headers =?>
               unlines [ "\\part{header1}\n"
                       , "\\chapter{header2}\n"
                       , "\\section{header3}"
                       ]
-            , test (beamerTopLevelDiv Section) "sections as top-level in beamer" $ headers =?>
+            , test (latexTopLevelDiv TopLevelDefault)
+                   "default top-level" $ headers =?>
               unlines [ "\\section{header1}\n"
                       , "\\subsection{header2}\n"
                       , "\\subsubsection{header3}"
                       ]
-            , test (beamerTopLevelDiv Chapter) "chapters are as part in beamer" $ headers =?>
+            , test (beamerTopLevelDiv TopLevelSection)
+                   "sections as top-level in beamer" $ headers =?>
+              unlines [ "\\section{header1}\n"
+                      , "\\subsection{header2}\n"
+                      , "\\subsubsection{header3}"
+                      ]
+            , test (beamerTopLevelDiv TopLevelChapter)
+                   "chapters are as part in beamer" $ headers =?>
               unlines [ "\\part{header1}\n"
                       , "\\section{header2}\n"
                       , "\\subsection{header3}"
                       ]
-            , test (beamerTopLevelDiv Part) "parts as top-level in beamer" $ headers =?>
+            , test (beamerTopLevelDiv TopLevelPart)
+                   "parts as top-level in beamer" $ headers =?>
               unlines [ "\\part{header1}\n"
                       , "\\section{header2}\n"
                       , "\\subsection{header3}"
+                      ]
+            , test (beamerTopLevelDiv TopLevelDefault)
+                   "default top-level in beamer" $ headers =?>
+              unlines [ "\\section{header1}\n"
+                      , "\\subsection{header2}\n"
+                      , "\\subsubsection{header3}"
                       ]
             ]
           ]

@@ -181,7 +181,7 @@ data Opt = Opt
     , optHtmlQTags         :: Bool    -- ^ Use <q> tags in HTML
     , optHighlight         :: Bool    -- ^ Highlight source code
     , optHighlightStyle    :: Style   -- ^ Style to use for highlighted code
-    , optTopLevelDivision  :: Maybe Division -- ^ Type of the top-level divisions
+    , optTopLevelDivision  :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceODT      :: Maybe FilePath -- ^ Path of reference.odt
     , optReferenceDocx     :: Maybe FilePath -- ^ Path of reference.docx
@@ -246,7 +246,7 @@ defaultOpts = Opt
     , optHtmlQTags             = False
     , optHighlight             = True
     , optHighlightStyle        = pygments
-    , optTopLevelDivision      = Nothing
+    , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath
     , optReferenceODT          = Nothing
     , optReferenceDocx         = Nothing
@@ -598,14 +598,17 @@ options =
                  (NoArg
                   (\opt -> do warn $ "--chapters is deprecated. " ++
                                      "Use --top-level-division=chapter instead."
-                              return opt { optTopLevelDivision = Just Chapter }))
+                              return opt { optTopLevelDivision = TopLevelChapter }))
                  "" -- "Use chapter for top-level sections in LaTeX, DocBook"
 
     , Option "" ["top-level-division"]
                  (ReqArg
-                  (\arg opt -> case safeRead (uppercaseFirstLetter arg) of
-                      Just dvsn -> return opt { optTopLevelDivision = Just dvsn }
-                      _         -> err 76 "Top-level division must be section, chapter, or part")
+                  (\arg opt -> do
+                      let tldName = "TopLevel" ++ uppercaseFirstLetter arg
+                      case safeRead tldName of
+                        Just tlDiv -> return opt { optTopLevelDivision = tlDiv }
+                        _       -> err 76 ("Top-level division must be " ++
+                                           "section,  chapter, part, or default"))
                    "[section|chapter|part]")
                  "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
 

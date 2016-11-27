@@ -236,11 +236,13 @@ tests = [ testGroup "line blocks"
                       <> header 2 (text "header2")
                       <> header 3 (text "header3")
 
-              docbookTopLevelDiv :: (ToPandoc a) => Division -> a -> String
+              docbookTopLevelDiv :: (ToPandoc a)
+                                 => TopLevelDivision -> a -> String
               docbookTopLevelDiv division =
-                docbookWithOpts def{ writerTopLevelDivision = Just division }
+                docbookWithOpts def{ writerTopLevelDivision = division }
             in
-            [ test (docbookTopLevelDiv Section) "sections as top-level" $ headers =?>
+            [ test (docbookTopLevelDiv TopLevelSection) "sections as top-level" $
+              headers =?>
               unlines [ "<sect1>"
                       , "  <title>header1</title>"
                       , "  <sect2>"
@@ -253,7 +255,8 @@ tests = [ testGroup "line blocks"
                       , "  </sect2>"
                       , "</sect1>"
                       ]
-            , test (docbookTopLevelDiv Chapter) "chapters as top-level" $ headers =?>
+            , test (docbookTopLevelDiv TopLevelChapter) "chapters as top-level" $
+              headers =?>
               unlines [ "<chapter>"
                       , "  <title>header1</title>"
                       , "  <sect1>"
@@ -266,7 +269,8 @@ tests = [ testGroup "line blocks"
                       , "  </sect1>"
                       , "</chapter>"
                       ]
-            , test (docbookTopLevelDiv Part) "parts as top-level" $ headers =?>
+            , test (docbookTopLevelDiv TopLevelPart) "parts as top-level" $
+              headers =?>
               unlines [ "<part>"
                       , "  <title>header1</title>"
                       , "  <chapter>"
@@ -278,6 +282,20 @@ tests = [ testGroup "line blocks"
                       , "    </sect1>"
                       , "  </chapter>"
                       , "</part>"
+                      ]
+            , test (docbookTopLevelDiv TopLevelDefault) "default top-level" $
+              headers =?>
+              unlines [ "<sect1>"
+                      , "  <title>header1</title>"
+                      , "  <sect2>"
+                      , "    <title>header2</title>"
+                      , "    <sect3>"
+                      , "      <title>header3</title>"
+                      , "      <para>"
+                      , "      </para>"
+                      , "    </sect3>"
+                      , "  </sect2>"
+                      , "</sect1>"
                       ]
             ]
           ]

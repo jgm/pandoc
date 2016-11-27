@@ -39,7 +39,6 @@ import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Readers.TeXMath
 import Data.List ( stripPrefix, isPrefixOf, intercalate, isSuffixOf )
 import Data.Char ( toLower )
-import Data.Maybe ( fromMaybe, isNothing )
 import Data.Monoid ( Any(..) )
 import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
@@ -82,14 +81,15 @@ writeDocbook opts (Pandoc meta blocks) =
                     else Nothing
       render'  = render colwidth
       opts'    = if ("/book>" `isSuffixOf` (trimr $ writerTemplate opts) &&
-                     isNothing (writerTopLevelDivision opts))
-                    then opts{ writerTopLevelDivision = Just Chapter }
+                     TopLevelDefault == writerTopLevelDivision opts)
+                    then opts{ writerTopLevelDivision = TopLevelChapter }
                     else opts
       -- The numbering here follows LaTeX's internal numbering
-      startLvl = case fromMaybe Section (writerTopLevelDivision opts') of
-                   Part    -> -1
-                   Chapter -> 0
-                   Section -> 1
+      startLvl = case writerTopLevelDivision opts' of
+                   TopLevelPart    -> -1
+                   TopLevelChapter -> 0
+                   TopLevelSection -> 1
+                   TopLevelDefault -> 1
       auths'   = map (authorToDocbook opts) $ docAuthors meta
       meta'    = B.setMeta "author" auths' meta
       Just metadata = metaToJSON opts
