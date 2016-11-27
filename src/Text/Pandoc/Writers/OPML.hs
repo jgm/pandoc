@@ -97,6 +97,6 @@ elementToOPML opts (Sec _ _num _ title elements) = do
         then return []
         else do blks <- mapM fromBlk blocks
                 writeMarkdown def $ Pandoc nullMeta blks
-  let attrs = [("text", htmlIls)] ++ [("_note", md)]
+  let attrs = [("text", htmlIls)] ++ [("_note", md) | not (null blocks)]
   o <- mapM (elementToOPML opts) rest
   return $ inTags True "outline" attrs $ vcat o
