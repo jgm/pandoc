@@ -31,10 +31,12 @@ pandoc (1.19)
     It is now possible to overwrite this implicitly set top-level division
     via the `top-level-division` command line parameter.
 
-  * Text.Pandoc.Options [API change] (#3197): The type of the
-    `writerTopLevelDivision` field in of the `WriterOptions` data type is
-    altered from `Division` to `Maybe Division`. The field's default value
-    is changed from `Section` to `Nothing`.
+  * Text.Pandoc.Options [API change] (#3197): `Division` has been
+    renamed `TopLevelDivision`.  The `Section`, `Chapter`, and `Part`
+    constructors were renamed to `TopLevelSection`, `TopLevelChapter`, and
+    `TopLevelPart`, respectively. An additional `TopLevelDefault`
+    constructor was added, which is now also the new default value of the
+    `writerTopLevelDivision` field in `WriterOptions`.
 
   * Improved error if they give wrong arg to `--top-level-division`.
 
@@ -225,6 +227,10 @@ pandoc (1.19)
     + Fixed XML markup for empty cells (#3238).  Previously the Compact
       style wasn't being applied properly to empty cells.
 
+  * HTML writer:
+
+    + Updated `renderHtml` import from blaze-html.
+
   * Text.Pandoc.Pretty:
 
     + Fixed some bugs that caused blank lines in tables (#3251).
@@ -233,7 +239,13 @@ pandoc (1.19)
     + Add exported function `minOffet` [API change] (Björn Peemöller).
     + Added error message for illegal call to `block` (Björn Peemöller).
 
-  * Text.Pandoc.Shared: Put `warn` in MonadIO.
+  * Text.Pandoc.Shared:
+
+    + Put `warn` in MonadIO.
+    + `fetchItem`:  Better handling of protocol-relative URL (#2635).
+      If URL starts with `//` and there is no "base URL" (as there
+      would be if a URL were used on the command line), then default
+      to http:.
 
   * Export Text.Pandoc.getDefaultExtensions [API change] (#3178).
 
