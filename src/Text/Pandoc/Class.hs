@@ -97,6 +97,7 @@ class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => 
              -> String
              -> m (Either E.SomeException (B.ByteString, Maybe MimeType))
   warn :: String -> m ()
+  getWarnings :: m [String]
   fail :: String -> m b
   glob :: String -> m [FilePath]
 
@@ -113,11 +114,11 @@ data PandocExecutionError = PandocFileReadError FilePath
                           deriving (Show, Typeable)
 
 -- Nothing in this for now, but let's put it there anyway.
-data PandocStateIO = PandocStateIO
+data PandocStateIO = PandocStateIO { ioStWarnings :: [String] }
   deriving Show
 
 instance Default PandocStateIO where
-  def = PandocStateIO
+  def = PandocStateIO { ioStWarnings = [] }
 
 runIO :: PandocIO a -> IO (Either PandocExecutionError a)
 runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
@@ -156,7 +157,10 @@ instance PandocMonad PandocIO where
   fail = M.fail
   fetchItem ms s = liftIO $ IO.fetchItem ms s
   fetchItem' mb ms s = liftIO $ IO.fetchItem' mb ms s
-  warn = liftIO . IO.warn
+  warn msg = do
+    modify $ \st -> st{ioStWarnings = msg : ioStWarnings st}
+    liftIO $ IO.warn msg
+  getWarnings = gets ioStWarnings
   glob = liftIO . IO.glob
 
 data TestState = TestState { stStdGen     :: StdGen
@@ -265,6 +269,8 @@ instance PandocMonad PandocPure where
       Just (mime, bs) -> return (Right (B.concat $ BL.toChunks bs, Just mime))
 
   warn s =  modify $ \st -> st { stWarnings = s : stWarnings st }
+
+  getWarnings = gets stWarnings
 
   glob s = do
     fontFiles <- asks envFontFiles
