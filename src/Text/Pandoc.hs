@@ -59,6 +59,8 @@ module Text.Pandoc
                , module Text.Pandoc.Generic
                -- * Options
                , module Text.Pandoc.Options
+               -- * Typeclass
+               , module Text.Pandoc.Class
                -- * Error handling
                , module Text.Pandoc.Error
                -- * Lists of readers and writers
