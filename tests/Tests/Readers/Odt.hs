@@ -41,7 +41,7 @@ newtype NoNormPandoc = NoNormPandoc {unNoNorm :: Pandoc}
   deriving ( Show )
 
 instance ToString NoNormPandoc where
-  toString d = writeNative def{ writerTemplate = s } $ toPandoc d
+  toString d = purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
                   NoNormPandoc (Pandoc (Meta m) _)
                     | M.null m  -> Nothing

@@ -10,7 +10,7 @@ import Text.Pandoc.Arbitrary()
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> Test
-(=:) = test (writeRST def{ writerHighlight = True } . toPandoc)
+(=:) = test (purely (writeRST def{ writerHighlight = True }) . toPandoc)
 
 tests :: [Test]
 tests = [ testGroup "rubrics"
@@ -47,7 +47,7 @@ tests = [ testGroup "rubrics"
               [ "foo"
               , "==="]
           -- note: heading normalization is only done in standalone mode
-          , test (writeRST def{ writerTemplate = Just "$body$\n" } . toPandoc)
+          , test (purely (writeRST def{ writerTemplate = Just "$body$\n" }) . toPandoc)
             "heading levels" $
               header 1 (text "Header 1") <>
               header 3 (text "Header 2") <>
@@ -77,7 +77,7 @@ tests = [ testGroup "rubrics"
               , ""
               , "Header 2"
               , "--------"]
-          , test (writeRST def{ writerTemplate = Just "$body$\n" } . toPandoc)
+          , test (purely (writeRST def{ writerTemplate = Just "$body$\n" }) . toPandoc)
             "minimal heading levels" $
               header 2 (text "Header 1") <>
               header 3 (text "Header 2") <>

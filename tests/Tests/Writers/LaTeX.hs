@@ -14,7 +14,7 @@ latexListing :: (ToPandoc a) => a -> String
 latexListing = latexWithOpts def{ writerListings = True }
 
 latexWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-latexWithOpts opts = writeLaTeX opts . toPandoc
+latexWithOpts opts = purely (writeLaTeX opts) . toPandoc
 
 {-
   "my test" =: X =?> Y

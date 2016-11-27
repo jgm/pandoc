@@ -11,7 +11,7 @@ import Text.Pandoc.Arbitrary()
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> Test
-(=:) = test (writePlain def . toPandoc)
+(=:) = test (purely (writePlain def) . toPandoc)
 
 
 tests :: [Test]

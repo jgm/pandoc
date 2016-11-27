@@ -9,10 +9,10 @@ import Tests.Helpers
 import Text.Pandoc.Arbitrary()
 
 markdown :: (ToPandoc a) => a -> String
-markdown = writeMarkdown def . toPandoc
+markdown = purely (writeMarkdown def) . toPandoc
 
 markdownWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-markdownWithOpts opts x = writeMarkdown opts $ toPandoc x
+markdownWithOpts opts x = purely (writeMarkdown opts) $ toPandoc x
 
 {-
   "my test" =: X =?> Y
@@ -179,7 +179,7 @@ shortcutLinkRefsTests =
       (=:) :: (ToString a, ToPandoc a)
 
         => String -> (a, String) -> Test
-      (=:) = test (writeMarkdown (def {writerReferenceLinks = True}) . toPandoc)
+      (=:) = test (purely (writeMarkdown def{writerReferenceLinks = True}) . toPandoc)
   in testGroup "Shortcut reference links"
      [ "Simple link (shortcutable)"
            =: (para (link "/url" "title" "foo"))

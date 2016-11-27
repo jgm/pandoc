@@ -22,7 +22,7 @@ which is in turn shorthand for
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> Test
-(=:) = test (writeTEI def . toPandoc)
+(=:) = test (purely (writeTEI def) . toPandoc)
 
 tests :: [Test]
 tests = [ testGroup "block elements"

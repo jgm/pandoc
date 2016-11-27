@@ -11,7 +11,7 @@ docbook :: (ToPandoc a) => a -> String
 docbook = docbookWithOpts def{ writerWrapText = WrapNone }
 
 docbookWithOpts :: ToPandoc a => WriterOptions -> a -> String
-docbookWithOpts opts = writeDocbook opts . toPandoc
+docbookWithOpts opts = purely (writeDocbook opts) . toPandoc
 
 {-
   "my test" =: X =?> Y
