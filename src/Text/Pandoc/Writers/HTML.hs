@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings, CPP, ViewPatterns, ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-deprecations #-}
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -62,7 +61,7 @@ import qualified Text.Blaze.Html5 as H5
 #endif
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
-import Text.Blaze.Renderer.String (renderHtml)
+import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.TeXMath
 import Text.XML.Light.Output
 import Text.XML.Light (unode, elChildren, unqual)
