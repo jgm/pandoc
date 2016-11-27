@@ -64,7 +64,8 @@ import Data.Char ( toLower, isDigit, isAlphaNum )
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.HTML.TagSoup (Tag(TagOpen), fromAttrib, parseTags)
-import Text.Pandoc.Class (PandocMonad)
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
 import qualified Text.Pandoc.Class as P
 
 -- A Chapter includes a list of blocks and maybe a section
@@ -532,9 +533,9 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
 
   let tocTitle = fromMaybe plainTitle $
                    metaValueToString <$> lookupMeta "toc-title" meta
-  let uuid = case epubIdentifier metadata of
-                  (x:_) -> identifierText x  -- use first identifier as UUID
-                  []    -> error "epubIdentifier is null"  -- shouldn't happen
+  uuid <- case epubIdentifier metadata of
+            (x:_) -> return $ identifierText x  -- use first identifier as UUID
+            []    -> throwError $ PandocShouldNeverHappenError "epubIdentifier is null"  -- shouldn't happen
   currentTime <- lift $ P.getCurrentTime
   let contentsData = UTF8.fromStringLazy $ ppTopElement $
         unode "package" ! [("version", case version of
@@ -590,8 +591,9 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
 
   let tocLevel = writerTOCDepth opts
 
-  let navPointNode :: (Int -> String -> String -> [Element] -> Element)
-                   -> S.Element -> State Int Element
+  let navPointNode :: PandocMonad m
+                   => (Int -> String -> String -> [Element] -> Element)
+                   -> S.Element -> StateT Int m Element
       navPointNode formatter (S.Sec _ nums (ident,_,_) ils children) = do
         n <- get
         modify (+1)
@@ -601,15 +603,15 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
         let tit = if writerNumberSections opts && not (null nums)
                      then showNums nums ++ " " ++ tit'
                      else tit'
-        let src = case lookup ident reftable of
-                       Just x  -> x
-                       Nothing -> error (ident ++ " not found in reftable")
+        src <- case lookup ident reftable of
+                 Just x  -> return x
+                 Nothing -> throwError $ PandocSomeError $ ident ++ " not found in reftable"
         let isSec (S.Sec lev _ _ _ _) = lev <= tocLevel
             isSec _                 = False
         let subsecs = filter isSec children
         subs <- mapM (navPointNode formatter) subsecs
         return $ formatter n tit src subs
-      navPointNode _ (S.Blk _) = error "navPointNode encountered Blk"
+      navPointNode _ (S.Blk _) = throwError $ PandocSomeError "navPointNode encountered Blk"
 
   let navMapFormatter :: Int -> String -> String -> [Element] -> Element
       navMapFormatter n tit src subs = unode "navPoint" !
@@ -622,6 +624,7 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                   [ unode "navLabel" $ unode "text" (stringify $ docTitle' meta)
                   , unode "content" ! [("src","title_page.xhtml")] $ () ]
 
+  navMap <- lift $ evalStateT (mapM (navPointNode navMapFormatter) secs) 1
   let tocData = UTF8.fromStringLazy $ ppTopElement $
         unode "ncx" ! [("version","2005-1")
                        ,("xmlns","http://www.daisy.org/z3986/2005/ncx/")] $
@@ -640,7 +643,7 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                                             ("content", toId img)] $ ()]
           , unode "docTitle" $ unode "text" $ plainTitle
           , unode "navMap" $
-              tpNode : evalState (mapM (navPointNode navMapFormatter) secs) 1
+              tpNode : navMap
           ]
   let tocEntry = mkEntry "toc.ncx" tocData
 
@@ -654,11 +657,12 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                                                  (_:_) -> [unode "ol" ! [("class","toc")] $ subs]
 
   let navtag = if epub3 then "nav" else "div"
+  tocBlocks <- lift $ evalStateT (mapM (navPointNode navXhtmlFormatter) secs) 1
   let navBlocks = [RawBlock (Format "html") $ ppElement $
                    unode navtag ! ([("epub:type","toc") | epub3] ++
                                    [("id","toc")]) $
                     [ unode "h1" ! [("id","toc-title")] $ tocTitle
-                    , unode "ol" ! [("class","toc")] $ evalState (mapM (navPointNode navXhtmlFormatter) secs) 1]]
+                    , unode "ol" ! [("class","toc")] $ tocBlocks ]]
   let landmarks = if epub3
                      then [RawBlock (Format "html") $ ppElement $
                             unode "nav" ! [("epub:type","landmarks")

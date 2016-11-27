@@ -44,7 +44,8 @@ import Text.Pandoc.ImageSize
 import Network.URI ( isURI, unEscapeString )
 import System.FilePath
 import qualified Data.Set as Set
-import Text.Pandoc.Class ( PandocMonad )
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class ( PandocMonad, PandocExecutionError(..) )
 
 data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
@@ -60,10 +61,12 @@ data WriterState =
  - generated .texi files don't work when run through texi2dvi
  -}
 
+type TI m = StateT WriterState m
+
 -- | Convert Pandoc to Texinfo.
 writeTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeTexinfo options document = return $
-  evalState (pandocToTexinfo options $ wrapTop document) $
+writeTexinfo options document = 
+  evalStateT (pandocToTexinfo options $ wrapTop document) $
   WriterState { stStrikeout = False, stSuperscript = False,
                 stEscapeComma = False, stSubscript = False,
                 stIdentifiers = Set.empty, stOptions = options}
@@ -73,7 +76,7 @@ wrapTop :: Pandoc -> Pandoc
 wrapTop (Pandoc meta blocks) =
   Pandoc meta (Header 0 nullAttr (docTitle meta) : blocks)
 
-pandocToTexinfo :: WriterOptions -> Pandoc -> State WriterState String
+pandocToTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> TI m String
 pandocToTexinfo options (Pandoc meta blocks) = do
   let titlePage = not $ all null
                       $ docTitle meta : docDate meta : docAuthors meta
@@ -111,7 +114,7 @@ stringToTexinfo = escapeStringUsing texinfoEscapes
                          , ('\x2019', "'")
                          ]
 
-escapeCommas :: State WriterState Doc -> State WriterState Doc
+escapeCommas :: PandocMonad m => TI m Doc -> TI m Doc
 escapeCommas parser = do
   oldEscapeComma <- gets stEscapeComma
   modify $ \st -> st{ stEscapeComma = True }
@@ -124,8 +127,9 @@ inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '@' <> text cmd <> braces contents
 
 -- | Convert Pandoc block element to Texinfo.
-blockToTexinfo :: Block     -- ^ Block to convert
-               -> State WriterState Doc
+blockToTexinfo :: PandocMonad m
+               => Block     -- ^ Block to convert
+               -> TI m Doc
 
 blockToTexinfo Null = return empty
 
@@ -221,17 +225,19 @@ blockToTexinfo (Header level _ lst) = do
   idsUsed <- gets stIdentifiers
   let id' = uniqueIdent lst idsUsed
   modify $ \st -> st{ stIdentifiers = Set.insert id' idsUsed }
+  sec <- seccmd level
   return $ if (level > 0) && (level <= 4)
               then blankline <> text "@node " <> node $$
-                   text (seccmd level) <> txt $$
+                   text sec <> txt $$
                    text "@anchor" <> braces (text $ '#':id')
               else txt
   where
-    seccmd 1 = "@chapter "
-    seccmd 2 = "@section "
-    seccmd 3 = "@subsection "
-    seccmd 4 = "@subsubsection "
-    seccmd _ = error "illegal seccmd level"
+    seccmd :: PandocMonad m => Int -> TI m String
+    seccmd 1 = return "@chapter "
+    seccmd 2 = return "@section "
+    seccmd 3 = return "@subsection "
+    seccmd 4 = return "@subsubsection "
+    seccmd _ = throwError $ PandocSomeError "illegal seccmd level"
 
 blockToTexinfo (Table caption aligns widths heads rows) = do
   headers <- if all null heads
@@ -257,28 +263,32 @@ blockToTexinfo (Table caption aligns widths heads rows) = do
                    inCmd "caption" captionText $$
                    text "@end float"
 
-tableHeadToTexinfo :: [Alignment]
+tableHeadToTexinfo :: PandocMonad m
+                   => [Alignment]
                    -> [[Block]]
-                   -> State WriterState Doc
+                   -> TI m Doc
 tableHeadToTexinfo = tableAnyRowToTexinfo "@headitem "
 
-tableRowToTexinfo :: [Alignment]
+tableRowToTexinfo :: PandocMonad m
+                  => [Alignment]
                   -> [[Block]]
-                  -> State WriterState Doc
+                  -> TI m Doc
 tableRowToTexinfo = tableAnyRowToTexinfo "@item "
 
-tableAnyRowToTexinfo :: String
+tableAnyRowToTexinfo :: PandocMonad m
+                     => String
                      -> [Alignment]
                      -> [[Block]]
-                     -> State WriterState Doc
+                     -> TI m Doc
 tableAnyRowToTexinfo itemtype aligns cols =
   zipWithM alignedBlock aligns cols >>=
   return . (text itemtype $$) . foldl (\row item -> row $$
   (if isEmpty row then empty else text " @tab ") <> item) empty
 
-alignedBlock :: Alignment
+alignedBlock :: PandocMonad m
+             => Alignment
              -> [Block]
-             -> State WriterState Doc
+             -> TI m Doc
 -- XXX @flushleft and @flushright text won't get word wrapped.  Since word
 -- wrapping is more important than alignment, we ignore the alignment.
 alignedBlock _ = blockListToTexinfo
@@ -293,8 +303,9 @@ alignedBlock _ col = blockListToTexinfo col
 -}
 
 -- | Convert Pandoc block elements to Texinfo.
-blockListToTexinfo :: [Block]
-                   -> State WriterState Doc
+blockListToTexinfo :: PandocMonad m
+                   => [Block]
+                   -> TI m Doc
 blockListToTexinfo [] = return empty
 blockListToTexinfo (x:xs) = do
   x' <- blockToTexinfo x
@@ -336,15 +347,17 @@ collectNodes level (x:xs) =
     _ ->
       collectNodes level xs
 
-makeMenuLine :: Block
-             -> State WriterState Doc
+makeMenuLine :: PandocMonad m
+             => Block
+             -> TI m Doc
 makeMenuLine (Header _ _ lst) = do
   txt <- inlineListForNode lst
   return $ text "* " <> txt <> text "::"
-makeMenuLine _ = error "makeMenuLine called with non-Header block"
+makeMenuLine _ = throwError $ PandocSomeError "makeMenuLine called with non-Header block"
 
-listItemToTexinfo :: [Block]
-                  -> State WriterState Doc
+listItemToTexinfo :: PandocMonad m
+                  => [Block]
+                  -> TI m Doc
 listItemToTexinfo lst = do
   contents <- blockListToTexinfo lst
   let spacer = case reverse lst of
@@ -352,8 +365,9 @@ listItemToTexinfo lst = do
                     _          -> empty
   return $ text "@item" $$ contents <> spacer
 
-defListItemToTexinfo :: ([Inline], [[Block]])
-                     -> State WriterState Doc
+defListItemToTexinfo :: PandocMonad m
+                     => ([Inline], [[Block]])
+                     -> TI m Doc
 defListItemToTexinfo (term, defs) = do
     term' <- inlineListToTexinfo term
     let defToTexinfo bs = do d <- blockListToTexinfo bs
@@ -364,13 +378,15 @@ defListItemToTexinfo (term, defs) = do
     return $ text "@item " <> term' $+$ vcat defs'
 
 -- | Convert list of inline elements to Texinfo.
-inlineListToTexinfo :: [Inline]  -- ^ Inlines to convert
-                  -> State WriterState Doc
+inlineListToTexinfo :: PandocMonad m
+                    => [Inline]  -- ^ Inlines to convert
+                    -> TI m Doc
 inlineListToTexinfo lst = mapM inlineToTexinfo lst >>= return . hcat
 
 -- | Convert list of inline elements to Texinfo acceptable for a node name.
-inlineListForNode :: [Inline]  -- ^ Inlines to convert
-                  -> State WriterState Doc
+inlineListForNode :: PandocMonad m
+                  => [Inline]  -- ^ Inlines to convert
+                  -> TI m Doc
 inlineListForNode = return . text . stringToTexinfo .
                     filter (not . disallowedInNode) . stringify
 
@@ -379,8 +395,9 @@ disallowedInNode :: Char -> Bool
 disallowedInNode c = c `elem` (".,:()" :: String)
 
 -- | Convert inline element to Texinfo
-inlineToTexinfo :: Inline    -- ^ Inline to convert
-                -> State WriterState Doc
+inlineToTexinfo :: PandocMonad m
+                => Inline    -- ^ Inline to convert
+                -> TI m Doc
 
 inlineToTexinfo (Span _ lst) =
   inlineListToTexinfo lst

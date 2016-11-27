@@ -43,7 +43,8 @@ import qualified Data.ByteString as B
 import qualified Data.Map as M
 import Text.Printf ( printf )
 import Text.Pandoc.ImageSize
-import Text.Pandoc.Class (PandocMonad)
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
 import qualified Text.Pandoc.Class as P
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file,
@@ -56,10 +57,10 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = do
        Right (imgdata, Just mime)
          | mime == "image/jpeg" || mime == "image/png" -> do
          let bytes = map (printf "%02x") $ B.unpack imgdata
-         let filetype = case mime of
-                             "image/jpeg" -> "\\jpegblip"
-                             "image/png"  -> "\\pngblip"
-                             _            -> error "Unknown file type"
+         filetype <- case mime of
+                       "image/jpeg" -> return "\\jpegblip"
+                       "image/png"  -> return "\\pngblip"
+                       _            -> throwError $ PandocSomeError "Unknown file type"
          sizeSpec <- case imageSize imgdata of
                              Left msg -> do
                                P.warn $ "Could not determine image size in `" ++

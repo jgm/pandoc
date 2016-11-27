@@ -68,7 +68,8 @@ import Text.XML.Light (unode, elChildren, unqual)
 import qualified Text.XML.Light as XML
 import System.FilePath (takeExtension)
 import Data.Aeson (Value)
-import Text.Pandoc.Class (PandocMonad)
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
 
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
@@ -101,26 +102,27 @@ nl opts = if writerWrapText opts == WrapNone
 
 -- | Convert Pandoc document to Html string.
 writeHtmlString :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeHtmlString opts d = return $
-  let (body, context) = evalState (pandocToHtml opts d) defaultWriterState
-  in  case writerTemplate opts of
-           Nothing  -> renderHtml body
-           Just tpl -> renderTemplate' tpl $
-                         defField "body" (renderHtml body) context
+writeHtmlString opts d = do
+  (body, context) <- evalStateT (pandocToHtml opts d) defaultWriterState
+  return $ case writerTemplate opts of
+             Nothing  -> renderHtml body
+             Just tpl -> renderTemplate' tpl $
+                           defField "body" (renderHtml body) context
 
 -- | Convert Pandoc document to Html structure.
 writeHtml :: PandocMonad m => WriterOptions -> Pandoc -> m Html
-writeHtml opts d = return $
-  let (body, context) = evalState (pandocToHtml opts d) defaultWriterState
-  in  case writerTemplate opts of
-           Nothing  -> body
-           Just tpl -> renderTemplate' tpl $
-                         defField "body" (renderHtml body) context
+writeHtml opts d = do
+  (body, context) <- evalStateT (pandocToHtml opts d) defaultWriterState
+  return $ case writerTemplate opts of
+             Nothing  -> renderHtml body
+             Just tpl -> renderTemplate' tpl $
+                           defField "body" (renderHtml body) context
 
 -- result is (title, authors, date, toc, body, new variables)
-pandocToHtml :: WriterOptions
+pandocToHtml :: PandocMonad m
+             => WriterOptions
              -> Pandoc
-             -> State WriterState (Html, Value)
+             -> StateT WriterState m (Html, Value)
 pandocToHtml opts (Pandoc meta blocks) = do
   metadata <- metaToJSON opts
               (fmap renderHtml . blockListToHtml opts)
@@ -222,7 +224,7 @@ defList :: WriterOptions -> [Html] -> Html
 defList opts items = toList H.dl opts (items ++ [nl opts])
 
 -- | Construct table of contents from list of elements.
-tableOfContents :: WriterOptions -> [Element] -> State WriterState (Maybe Html)
+tableOfContents :: PandocMonad m => WriterOptions -> [Element] -> StateT WriterState m (Maybe Html)
 tableOfContents _ [] = return Nothing
 tableOfContents opts sects = do
   let opts'        = opts { writerIgnoreNotes = True }
@@ -238,7 +240,7 @@ showSecNum = concat . intersperse "." . map show
 
 -- | Converts an Element to a list item for a table of contents,
 -- retrieving the appropriate identifier from state.
-elementToListItem :: WriterOptions -> Element -> State WriterState (Maybe Html)
+elementToListItem :: PandocMonad m => WriterOptions -> Element -> StateT WriterState m (Maybe Html)
 -- Don't include the empty headers created in slide shows
 -- shows when an hrule is used to separate slides without a new title:
 elementToListItem _ (Sec _ _ _ [Str "\0"] _) = return Nothing
@@ -266,7 +268,7 @@ elementToListItem opts (Sec lev num (id',classes,_) headerText subsecs)
 elementToListItem _ _ = return Nothing
 
 -- | Convert an Element to Html.
-elementToHtml :: Int -> WriterOptions -> Element -> State WriterState Html
+elementToHtml :: PandocMonad m => Int -> WriterOptions -> Element -> StateT WriterState m Html
 elementToHtml _slideLevel opts (Blk block) = blockToHtml opts block
 elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elements) = do
   let slide = writerSlideVariant opts /= NoSlides && level <= slideLevel
@@ -347,9 +349,9 @@ parseMailto s = do
        _ -> fail "not a mailto: URL"
 
 -- | Obfuscate a "mailto:" link.
-obfuscateLink :: WriterOptions -> Attr -> Html -> String -> Html
+obfuscateLink :: PandocMonad m => WriterOptions -> Attr -> Html -> String -> m Html
 obfuscateLink opts attr txt s | writerEmailObfuscation opts == NoObfuscation =
-  addAttrs opts attr $ H.a ! A.href (toValue s) $ txt
+  return $ addAttrs opts attr $ H.a ! A.href (toValue s) $ txt
 obfuscateLink opts attr (renderHtml -> txt) s =
   let meth = writerEmailObfuscation opts
       s' = map toLower (take 7 s) ++ drop 7 s
@@ -365,9 +367,11 @@ obfuscateLink opts attr (renderHtml -> txt) s =
           in  case meth of
                 ReferenceObfuscation ->
                      -- need to use preEscapedString or &'s are escaped to &amp; in URL
+                     return $
                      preEscapedString $ "<a href=\"" ++ (obfuscateString s')
                      ++ "\" class=\"email\">" ++ (obfuscateString txt) ++ "</a>"
                 JavascriptObfuscation ->
+                     return $
                      (H.script ! A.type_ "text/javascript" $
                      preEscapedString ("\n<!--\nh='" ++
                      obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++
@@ -375,8 +379,8 @@ obfuscateLink opts attr (renderHtml -> txt) s =
                      "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\" clas'+'s=\"em' + 'ail\">'+" ++
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) >>
                      H.noscript (preEscapedString $ obfuscateString altText)
-                _ -> error $ "Unknown obfuscation method: " ++ show meth
-        _ -> addAttrs opts attr $ H.a ! A.href (toValue s) $ toHtml txt  -- malformed email
+                _ -> throwError $ PandocSomeError $ "Unknown obfuscation method: " ++ show meth
+        _ -> return $ addAttrs opts attr $ H.a ! A.href (toValue s) $ toHtml txt  -- malformed email
 
 -- | Obfuscate character as entity.
 obfuscateChar :: Char -> String
@@ -435,7 +439,7 @@ treatAsImage fp =
   in  null ext || ext `elem` imageExts
 
 -- | Convert Pandoc block element to HTML.
-blockToHtml :: WriterOptions -> Block -> State WriterState Html
+blockToHtml :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
 blockToHtml _ Null = return mempty
 blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 -- title beginning with fig: indicates that the image is a figure
@@ -625,11 +629,12 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
               else tbl ! A.style (toValue $ "width:" ++
                               show (round (totalWidth * 100) :: Int) ++ "%;")
 
-tableRowToHtml :: WriterOptions
+tableRowToHtml :: PandocMonad m
+               => WriterOptions
                -> [Alignment]
                -> Int
                -> [[Block]]
-               -> State WriterState Html
+               -> StateT WriterState m Html
 tableRowToHtml opts aligns rownum cols' = do
   let mkcell = if rownum == 0 then H.th else H.td
   let rowclass = case rownum of
@@ -649,11 +654,12 @@ alignmentToString alignment = case alignment of
                                  AlignCenter  -> "center"
                                  AlignDefault -> ""
 
-tableItemToHtml :: WriterOptions
+tableItemToHtml :: PandocMonad m
+                => WriterOptions
                 -> (Html -> Html)
                 -> Alignment
                 -> [Block]
-                -> State WriterState Html
+                -> StateT WriterState m Html
 tableItemToHtml opts tag' align' item = do
   contents <- blockListToHtml opts item
   let alignStr = alignmentToString align'
@@ -671,12 +677,12 @@ toListItems opts items = map (toListItem opts) items ++ [nl opts]
 toListItem :: WriterOptions -> Html -> Html
 toListItem opts item = nl opts >> H.li item
 
-blockListToHtml :: WriterOptions -> [Block] -> State WriterState Html
+blockListToHtml :: PandocMonad m => WriterOptions -> [Block] -> StateT WriterState m Html
 blockListToHtml opts lst =
   fmap (mconcat . intersperse (nl opts)) $ mapM (blockToHtml opts) lst
 
 -- | Convert list of Pandoc inline elements to HTML.
-inlineListToHtml :: WriterOptions -> [Inline] -> State WriterState Html
+inlineListToHtml :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m Html
 inlineListToHtml opts lst =
   mapM (inlineToHtml opts) lst >>= return . mconcat
 
@@ -695,7 +701,7 @@ annotateMML e tex = math (unode "semantics" [cs, unode "annotation" (annotAttrs,
 
 
 -- | Convert Pandoc inline element to HTML.
-inlineToHtml :: WriterOptions -> Inline -> State WriterState Html
+inlineToHtml :: PandocMonad m => WriterOptions -> Inline -> StateT WriterState m Html
 inlineToHtml opts inline =
   case inline of
     (Str str)        -> return $ strToHtml str
@@ -818,7 +824,7 @@ inlineToHtml opts inline =
       | otherwise          -> return mempty
     (Link attr txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
-                        return $ obfuscateLink opts attr linkText s
+                        lift $ obfuscateLink opts attr linkText s
     (Link attr txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
                         let s' = case s of
@@ -878,7 +884,7 @@ inlineToHtml opts inline =
                                     then result ! customAttribute "data-cites" (toValue citationIds)
                                     else result
 
-blockListToNote :: WriterOptions -> String -> [Block] -> State WriterState Html
+blockListToNote :: PandocMonad m => WriterOptions -> String -> [Block] -> StateT WriterState m Html
 blockListToNote opts ref blocks =
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.

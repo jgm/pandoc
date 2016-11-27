@@ -39,13 +39,14 @@ import Text.XML.Light
 import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
 import qualified Data.ByteString.Char8 as B8
+import Control.Monad.Except (throwError)
 
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
 import Text.Pandoc.Shared (orderedListMarkers, isHeaderBlock, capitalize,
                            linesToPara)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
 import qualified Text.Pandoc.Class as P
 
 -- | Data to be written at the end of the document:
@@ -348,7 +349,7 @@ blockToXml (DefinitionList defs) =
       needsBreak (Plain ins) = LineBreak `notElem` ins
       needsBreak _ = True
 blockToXml (Header _ _ _) = -- should never happen, see renderSections
-                          error "unexpected header in section text"
+                          throwError $ PandocShouldNeverHappenError "unexpected header in section text"
 blockToXml HorizontalRule = return
                             [ el "empty-line" ()
                             , el "p" (txt (replicate 10 '—'))

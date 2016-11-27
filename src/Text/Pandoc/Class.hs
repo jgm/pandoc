@@ -107,8 +107,10 @@ getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 
 
 -- We can add to this as we go
-data PandocExecutionError = PandocFileReadError String
-  deriving (Show, Typeable)
+data PandocExecutionError = PandocFileReadError FilePath
+                          | PandocShouldNeverHappenError String
+                          | PandocSomeError String
+                          deriving (Show, Typeable)
 
 -- Nothing in this for now, but let's put it there anyway.
 data PandocStateIO = PandocStateIO
@@ -125,7 +127,9 @@ runIOorExplode ma = do
   eitherVal <- runIO ma
   case eitherVal of
     Right x -> return x
-    Left (PandocFileReadError s) -> error s
+    Left (PandocFileReadError fp) -> error $ "promple reading " ++ fp
+    Left (PandocShouldNeverHappenError s) -> error s
+    Left (PandocSomeError s) -> error s
 
 newtype PandocIO a = PandocIO {
   unPandocIO :: ExceptT PandocExecutionError (StateT PandocStateIO IO) a
@@ -142,13 +146,13 @@ instance PandocMonad PandocIO where
     eitherBS <- liftIO (tryIOError $ BL.readFile s)
     case eitherBS of
       Right bs -> return bs
-      Left _ -> throwError $ PandocFileReadError $ "file not found: " ++ s
+      Left _ -> throwError $ PandocFileReadError s
   -- TODO: Make this more sensitive to the different sorts of failure
   readDataFile mfp fname = do
     eitherBS <- liftIO (tryIOError $ IO.readDataFile mfp fname)
     case eitherBS of
       Right bs -> return bs
-      Left _ -> throwError $ PandocFileReadError $ "file not found: " ++ fname
+      Left _ -> throwError $ PandocFileReadError fname
   fail = M.fail
   fetchItem ms s = liftIO $ IO.fetchItem ms s
   fetchItem' mb ms s = liftIO $ IO.fetchItem' mb ms s
@@ -235,7 +239,7 @@ instance PandocMonad PandocPure where
     fps <- asks envFiles
     case lookup fp fps of
       Just bs -> return (BL.fromStrict bs)
-      Nothing -> throwError $ PandocFileReadError "file not in state"
+      Nothing -> throwError $ PandocFileReadError fp
   readDataFile Nothing "reference.docx" = do
     (B.concat . BL.toChunks . fromArchive) <$> (getDefaultReferenceDocx Nothing)
   readDataFile Nothing "reference.odt" = do
@@ -253,7 +257,7 @@ instance PandocMonad PandocPure where
     fps <- asks envFiles
     case lookup fp fps of
       Just bs -> return (Right (bs, getMimeType fp))
-      Nothing -> return (Left $ E.toException $ PandocFileReadError "oops")
+      Nothing -> return (Left $ E.toException $ PandocFileReadError fp)
 
   fetchItem' media sourceUrl nm = do
     case lookupMedia nm media of

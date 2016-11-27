@@ -40,7 +40,8 @@ import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import Text.Pandoc.Pretty
 import Text.Pandoc.Compat.Time
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad)
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
 
 -- | Convert Pandoc document to string in OPML format.
 writeOPML :: PandocMonad m => WriterOptions -> Pandoc -> m String
@@ -82,15 +83,20 @@ convertDate ils = maybe "" showDateTimeRFC822 $
 elementToOPML :: PandocMonad m => WriterOptions -> Element -> m Doc
 elementToOPML _ (Blk _) = return empty
 elementToOPML opts (Sec _ _num _ title elements) = do
-  let isBlk (Blk _) = True
+  let isBlk :: Element -> Bool
+      isBlk (Blk _) = True
       isBlk _     = False
-      fromBlk (Blk x) = x
-      fromBlk _ = error "fromBlk called on non-block"
+
+      fromBlk :: PandocMonad m => Element -> m Block
+      fromBlk (Blk x) = return x
+      fromBlk _ = throwError $ PandocSomeError "fromBlk called on non-block"
+
       (blocks, rest) = span isBlk elements
   htmlIls <- writeHtmlInlines title
   md <- if null blocks
         then return []
-        else writeMarkdown def $ Pandoc nullMeta $ map fromBlk blocks
+        else do blks <- mapM fromBlk blocks
+                writeMarkdown def $ Pandoc nullMeta blks
   let attrs = [("text", htmlIls)] ++ [("_note", md)]
   o <- mapM (elementToOPML opts) rest
   return $ inTags True "outline" attrs $ vcat o

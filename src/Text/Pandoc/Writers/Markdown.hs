@@ -46,6 +46,7 @@ import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Monad.Except (throwError)
 import Text.Pandoc.Writers.HTML (writeHtmlString)
 import Text.Pandoc.Readers.TeXMath (texMathToInlines)
 import Text.HTML.TagSoup (parseTags, isTagText, Tag(..))
@@ -57,7 +58,7 @@ import qualified Data.Vector as V
 import qualified Data.Text as T
 import qualified Data.Set as Set
 import Network.HTTP ( urlEncode )
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
 
 type Notes = [[Block]]
 type Ref   = ([Inline], Target, Attr)
@@ -800,14 +801,14 @@ getReference attr label target = do
   case find (\(_,t,a) -> t == target && a == attr) (stRefs st) of
     Just (ref, _, _) -> return ref
     Nothing       -> do
-      let label' = case find (\(l,_,_) -> l == label) (stRefs st) of
-                      Just _ -> -- label is used; generate numerical label
-                             case find (\n -> notElem [Str (show n)]
-                                                      (map (\(l,_,_) -> l) (stRefs st)))
-                                       [1..(10000 :: Integer)] of
-                                  Just x  -> [Str (show x)]
-                                  Nothing -> error "no unique label"
-                      Nothing -> label
+      label' <- case find (\(l,_,_) -> l == label) (stRefs st) of
+                  Just _ -> -- label is used; generate numerical label
+                    case find (\n -> notElem [Str (show n)]
+                                     (map (\(l,_,_) -> l) (stRefs st)))
+                         [1..(10000 :: Integer)] of
+                      Just x  -> return [Str (show x)]
+                      Nothing -> throwError $ PandocSomeError "no unique label"
+                  Nothing -> return label
       modify (\s -> s{ stRefs = (label', target, attr) : stRefs st })
       return label'
 
