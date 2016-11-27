@@ -213,14 +213,16 @@ parseFormatSpec = parse formatSpec ""
                         '-'  -> Set.delete ext
                         _    -> Set.insert ext
 
+-- TODO: when we get the PandocMonad stuff all sorted out,
+-- we can simply these types considerably.  Errors/MediaBag can be
+-- part of the monad's internal state.
+data Reader m = StringReader (ReaderOptions -> String -> m (Either PandocError Pandoc))
+              | ByteStringReader (ReaderOptions -> BL.ByteString -> m (Either PandocError (Pandoc,MediaBag)))
 
-data Reader = StringReader (ReaderOptions -> String -> IO (Either PandocError Pandoc))
-              | ByteStringReader (ReaderOptions -> BL.ByteString -> IO (Either PandocError (Pandoc,MediaBag)))
-
-mkStringReader :: (ReaderOptions -> String -> Either PandocError Pandoc) -> Reader
+mkStringReader :: (ReaderOptions -> String -> Either PandocError Pandoc) -> Reader IO
 mkStringReader r = StringReader (\o s -> return $ r o s)
 
-mkStringReaderWithWarnings :: (ReaderOptions -> String -> Either PandocError (Pandoc, [String])) -> Reader
+mkStringReaderWithWarnings :: (ReaderOptions -> String -> Either PandocError (Pandoc, [String])) -> Reader IO
 mkStringReaderWithWarnings r  = StringReader $ \o s ->
   case r o s of
     Left err -> return $ Left err
@@ -228,10 +230,10 @@ mkStringReaderWithWarnings r  = StringReader $ \o s ->
       mapM_ warn warnings
       return (Right doc)
 
-mkBSReader :: (ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag)) -> Reader
+mkBSReader :: (ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag)) -> Reader IO
 mkBSReader r = ByteStringReader (\o s -> return $ r o s)
 
-mkBSReaderWithWarnings :: (ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag, [String])) -> Reader
+mkBSReaderWithWarnings :: (ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag, [String])) -> Reader IO
 mkBSReaderWithWarnings r = ByteStringReader $ \o s ->
   case r o s of
     Left err -> return $ Left err
@@ -240,7 +242,7 @@ mkBSReaderWithWarnings r = ByteStringReader $ \o s ->
       return $ Right (doc, mediaBag)
 
 -- | Association list of formats and readers.
-readers :: [(String, Reader)]
+readers :: [(String, Reader IO)]
 readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
            ,("json"         , mkStringReader readJSON )
            ,("markdown"     , mkStringReaderWithWarnings readMarkdownWithWarnings)
@@ -349,7 +351,7 @@ getDefaultExtensions "epub"            = Set.fromList [Ext_raw_html,
 getDefaultExtensions _                 = Set.fromList [Ext_auto_identifiers]
 
 -- | Retrieve reader based on formatSpec (format+extensions).
-getReader :: String -> Either String Reader
+getReader :: String -> Either String (Reader IO)
 getReader s =
   case parseFormatSpec s of
        Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
