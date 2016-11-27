@@ -64,7 +64,7 @@ implemented, [-] means partially implemented):
   - [X] Math
   - [X] Link (links to an arbitrary bookmark create a span with the target as
         id and "anchor" class)
-  - [X] Image 
+  - [X] Image
   - [X] Note (Footnotes and Endnotes are silently combined.)
 -}
 
@@ -559,7 +559,7 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
                                    ]
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
   return $ divWith ("", ["list-item"], kvs) blks
-bodyPartToBlocks (ListItem pPr _ _ _ parparts) = 
+bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
   let pPr' = pPr {pStyle = "ListParagraph": (pStyle pPr)}
   in
     bodyPartToBlocks $ Paragraph pPr' parparts

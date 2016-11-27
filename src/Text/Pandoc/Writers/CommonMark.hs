@@ -51,7 +51,7 @@ writeCommonMark opts (Pandoc meta blocks) = do
       notes' = if null notes
                then []
                else [OrderedList (1, Decimal, Period) $ reverse notes]
-  main <-  blocksToCommonMark opts (blocks' ++ notes')                    
+  main <-  blocksToCommonMark opts (blocks' ++ notes')
   metadata <- metaToJSON opts
               (blocksToCommonMark opts)
               (inlinesToCommonMark opts)

@@ -135,7 +135,7 @@ newtype PandocIO a = PandocIO {
   unPandocIO :: ExceptT PandocExecutionError (StateT PandocStateIO IO) a
   } deriving (MonadIO, Functor, Applicative, Monad, MonadError PandocExecutionError)
 
-instance PandocMonad PandocIO where  
+instance PandocMonad PandocIO where
   lookupEnv = liftIO . IO.lookupEnv
   getCurrentTime = liftIO IO.getCurrentTime
   getDefaultReferenceDocx = liftIO . IO.getDefaultReferenceDocx

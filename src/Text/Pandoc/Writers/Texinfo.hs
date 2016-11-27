@@ -65,7 +65,7 @@ type TI m = StateT WriterState m
 
 -- | Convert Pandoc to Texinfo.
 writeTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeTexinfo options document = 
+writeTexinfo options document =
   evalStateT (pandocToTexinfo options $ wrapTop document) $
   WriterState { stStrikeout = False, stSuperscript = False,
                 stEscapeComma = False, stSubscript = False,

@@ -64,7 +64,7 @@ instance Show UUID where
    printf "%02x" p
 
 getUUID :: RandomGen g => g -> UUID
-getUUID gen = 
+getUUID gen =
   let [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] = take 16 $ randoms gen :: [Word8]
   -- set variant
       i' = i `setBit` 7 `clearBit` 6

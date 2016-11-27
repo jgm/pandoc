@@ -1269,7 +1269,7 @@ convertWithOpts opts args = do
   let laTeXInput = "latex" `isPrefixOf` readerName' ||
                     "beamer" `isPrefixOf` readerName'
 
-                      
+
   -- disabling the custom writer for now
   writer <- if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName

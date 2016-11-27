@@ -347,8 +347,8 @@ writeEPUB opts doc =
     evalStateT (pandocToEPUB opts doc) initState
 
 pandocToEPUB :: PandocMonad m
-             => WriterOptions  
-             -> Pandoc        
+             => WriterOptions
+             -> Pandoc
              -> E m B.ByteString
 pandocToEPUB opts doc@(Pandoc meta _) = do
   let version = fromMaybe EPUB2 (writerEpubVersion opts)

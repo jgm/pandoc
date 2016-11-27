@@ -690,7 +690,7 @@ elemToParPart ns element
   , Just drawingElem <- findChild (elemName ns "w" "drawing") element
   , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/chart"
   , Just _ <- findElement (QName "chart" (Just c_ns) (Just "c")) drawingElem
-  = return Chart                       
+  = return Chart
 elemToParPart ns element
   | isElem ns "w" "r" element =
     elemToRun ns element >>= (\r -> return $ PlainRun r)

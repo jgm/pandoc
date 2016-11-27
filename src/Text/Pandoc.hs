@@ -282,7 +282,7 @@ readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
 --                       runIOorExplode $
 --                       writeEPUB o{ writerEpubVersion = Just EPUB2 } doc)
 --   ,("epub3"        , IOByteStringWriter $ \o doc ->
---                       runIOorExplode $ 
+--                       runIOorExplode $
 --                       writeEPUB o{ writerEpubVersion = Just EPUB3 } doc)
 --   ,("fb2"          , IOStringWriter $ \o doc ->
 --                       runIOorExplode $ writeFB2 o doc)
