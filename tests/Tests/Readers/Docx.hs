@@ -14,6 +14,7 @@ import qualified Data.Map as M
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Codec.Archive.Zip
 import Text.Pandoc.Error
+import Text.Pandoc.Class (runIOorExplode)
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure
@@ -43,7 +44,8 @@ compareOutput opts docxFile nativeFile = do
   df <- B.readFile docxFile
   nf <- Prelude.readFile nativeFile
   let (p, _) = handleError $ readDocx opts df
-  return $ (noNorm p, noNorm (handleError $ readNative nf))
+  df' <- runIOorExplode $ readNative nf
+  return $ (noNorm p, noNorm $ handleError df')
 
 testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO Test
 testCompareWithOptsIO opts name docxFile nativeFile = do

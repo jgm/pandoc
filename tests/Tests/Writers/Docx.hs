@@ -21,10 +21,12 @@ compareOutput opts nativeFileIn nativeFileOut = do
   nf <- Prelude.readFile nativeFileIn
   nf' <- Prelude.readFile nativeFileOut
   let wopts = fst opts
-  df <- runIOorExplode $ writeDocx wopts{writerUserDataDir = Just (".." </> "data")}
-             (handleError $ readNative nf)
+  df <- runIOorExplode $ do
+            d <- handleError <$> readNative nf
+            writeDocx wopts{writerUserDataDir = Just (".." </> "data")} d
+  df' <- handleError <$> runIOorExplode (readNative nf')
   let (p, _) = handleError $ readDocx (snd opts) df
-  return (p, handleError $ readNative nf')
+  return (p, df')
 
 testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO Test
 testCompareWithOptsIO opts name nativeFileIn nativeFileOut = do

@@ -183,7 +183,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, warn, mapLeft, pandocVersion)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, runIOorExplode)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
@@ -243,7 +243,7 @@ mkBSReaderWithWarnings r = ByteStringReader $ \o s ->
 
 -- | Association list of formats and readers.
 readers :: [(String, Reader IO)]
-readers = [ ("native"       , StringReader $ \_ s -> return $ readNative s)
+readers = [ ("native"       , StringReader $ \_ s -> runIOorExplode (readNative s))
            ,("json"         , mkStringReader readJSON )
            ,("markdown"     , mkStringReaderWithWarnings readMarkdownWithWarnings)
            ,("markdown_strict" , mkStringReaderWithWarnings readMarkdownWithWarnings)
