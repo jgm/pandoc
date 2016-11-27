@@ -56,13 +56,14 @@ import qualified Text.Pandoc.Shared as IO ( fetchItem
                                           , getDefaultReferenceODT
                                           , warn
                                           , readDataFile)
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
 import Text.Pandoc.Compat.Time (UTCTime)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
 import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
                              , posixSecondsToUTCTime
                              , POSIXTime )
 import Text.Pandoc.MIME (MimeType, getMimeType)
+import Text.Pandoc.MediaBag (MediaBag)
+import qualified Text.Pandoc.MediaBag as MB
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Control.Exception as E
@@ -100,6 +101,7 @@ class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => 
   getWarnings :: m [String]
   fail :: String -> m b
   glob :: String -> m [FilePath]
+  insertMedia :: FilePath -> Maybe MimeType -> BL.ByteString -> m ()
 
 --Some functions derived from Primitives:
 
@@ -114,11 +116,14 @@ data PandocExecutionError = PandocFileReadError FilePath
                           deriving (Show, Typeable)
 
 -- Nothing in this for now, but let's put it there anyway.
-data PandocStateIO = PandocStateIO { ioStWarnings :: [String] }
-  deriving Show
+data PandocStateIO = PandocStateIO { ioStWarnings :: [String]
+                                   , ioStMediaBag :: MediaBag
+                                   } deriving Show
 
 instance Default PandocStateIO where
-  def = PandocStateIO { ioStWarnings = [] }
+  def = PandocStateIO { ioStWarnings = []
+                      , ioStMediaBag = mempty
+                      }
 
 runIO :: PandocIO a -> IO (Either PandocExecutionError a)
 runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
@@ -134,7 +139,7 @@ runIOorExplode ma = do
 
 newtype PandocIO a = PandocIO {
   unPandocIO :: ExceptT PandocExecutionError (StateT PandocStateIO IO) a
-  } deriving (MonadIO, Functor, Applicative, Monad, MonadError PandocExecutionError)
+  } deriving (MonadIO, Functor, Applicative, Monad, MonadState PandocStateIO, MonadError PandocExecutionError)
 
 instance PandocMonad PandocIO where
   lookupEnv = liftIO . IO.lookupEnv
@@ -162,6 +167,8 @@ instance PandocMonad PandocIO where
     liftIO $ IO.warn msg
   getWarnings = gets ioStWarnings
   glob = liftIO . IO.glob
+  insertMedia fp mime bs =
+    modify $ \st -> st{ioStMediaBag = MB.insertMedia fp mime bs (ioStMediaBag st) }
 
 data TestState = TestState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
@@ -173,6 +180,7 @@ data TestState = TestState { stStdGen     :: StdGen
                                                    -- contain every
                                                    -- element at most
                                                    -- once, e.g. [1..]
+                           , stMediaBag   :: MediaBag
                            }
 
 instance Default TestState where
@@ -180,6 +188,7 @@ instance Default TestState where
                   , stWord8Store = [1..]
                   , stWarnings = []
                   , stUniqStore = [1..]
+                  , stMediaBag = mempty
                   }
 
 data TestEnv = TestEnv { envEnv :: [(String, String)]
@@ -264,7 +273,7 @@ instance PandocMonad PandocPure where
       Nothing -> return (Left $ E.toException $ PandocFileReadError fp)
 
   fetchItem' media sourceUrl nm = do
-    case lookupMedia nm media of
+    case MB.lookupMedia nm media of
       Nothing -> fetchItem sourceUrl nm
       Just (mime, bs) -> return (Right (B.concat $ BL.toChunks bs, Just mime))
 
@@ -275,3 +284,6 @@ instance PandocMonad PandocPure where
   glob s = do
     fontFiles <- asks envFontFiles
     return (filter (match (compile s)) fontFiles)
+
+  insertMedia fp mime bs =
+    modify $ \st -> st{stMediaBag = MB.insertMedia fp mime bs (stMediaBag st) }
