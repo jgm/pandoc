@@ -32,8 +32,8 @@ Typeclass for pandoc readers and writers, allowing both IO and pure instances.
 -}
 
 module Text.Pandoc.Class ( PandocMonad(..)
-                         , TestState(..)
-                         , TestEnv(..)
+                         , PureState(..)
+                         , PureEnv(..)
                          , getPOSIXTime
                          , PandocIO(..)
                          , PandocPure(..)
@@ -170,7 +170,7 @@ instance PandocMonad PandocIO where
   insertMedia fp mime bs =
     modify $ \st -> st{ioStMediaBag = MB.insertMedia fp mime bs (ioStMediaBag st) }
 
-data TestState = TestState { stStdGen     :: StdGen
+data PureState = PureState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
                                                      -- inifinite,
                                                      -- i.e. [1..]
@@ -183,15 +183,15 @@ data TestState = TestState { stStdGen     :: StdGen
                            , stMediaBag   :: MediaBag
                            }
 
-instance Default TestState where
-  def = TestState { stStdGen = mkStdGen 1848
+instance Default PureState where
+  def = PureState { stStdGen = mkStdGen 1848
                   , stWord8Store = [1..]
                   , stWarnings = []
                   , stUniqStore = [1..]
                   , stMediaBag = mempty
                   }
 
-data TestEnv = TestEnv { envEnv :: [(String, String)]
+data PureEnv = PureEnv { envEnv :: [(String, String)]
                        , envTime :: UTCTime
                        , envReferenceDocx :: Archive
                        , envReferenceODT :: Archive
@@ -203,8 +203,8 @@ data TestEnv = TestEnv { envEnv :: [(String, String)]
 
 -- We have to figure this out a bit more. But let's put some empty
 -- values in for the time being.
-instance Default TestEnv where
-  def = TestEnv { envEnv = [("USER", "pandoc-user")]
+instance Default PureEnv where
+  def = PureEnv { envEnv = [("USER", "pandoc-user")]
                 , envTime = posixSecondsToUTCTime 0
                 , envReferenceDocx = emptyArchive
                 , envReferenceODT = emptyArchive
@@ -218,8 +218,8 @@ instance E.Exception PandocExecutionError
 
 newtype PandocPure a = PandocPure {
   unPandocPure :: ExceptT PandocExecutionError
-                  (ReaderT TestEnv (State TestState)) a
-  } deriving (Functor, Applicative, Monad, MonadReader TestEnv, MonadState TestState, MonadError PandocExecutionError)
+                  (ReaderT PureEnv (State PureState)) a
+  } deriving (Functor, Applicative, Monad, MonadReader PureEnv, MonadState PureState, MonadError PandocExecutionError)
 
 runPure :: PandocPure a -> Either PandocExecutionError a
 runPure x = flip evalState def $ flip runReaderT def $ runExceptT $ unPandocPure x
