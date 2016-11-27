@@ -1121,7 +1121,8 @@ inlineToOpenXML' opts (Math mathType str) = do
   case writeOMML displayType <$> readTeX str of
         Right r -> return [r]
         Left  e -> do
-          warn $ "Cannot convert the following TeX math, skipping:\n" ++ str ++
+          (lift . lift) $ P.warn $
+                 "Cannot convert the following TeX math, skipping:\n" ++ str ++
                  "\n" ++ e
           inlinesToOpenXML opts (texMathToInlines mathType str)
 inlineToOpenXML' opts (Cite _ lst) = inlinesToOpenXML opts lst

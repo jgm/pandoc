@@ -18,7 +18,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Readers.TeXMath (texMathToInlines)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Shared (linesToPara, splitBy, warn)
+import Text.Pandoc.Shared (linesToPara, splitBy)
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Pretty
@@ -542,7 +542,7 @@ imageICML opts style attr (src, _) = do
               case imageSize img of
                 Right size -> return size
                 Left msg   -> do
-                  warn $ "Could not determine image size in `" ++
+                  lift $ P.warn $ "Could not determine image size in `" ++
                     src ++ "': " ++ msg
                   return def
   let (ow, oh) = sizeInPoints imgS
