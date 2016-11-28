@@ -112,6 +112,7 @@ getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 -- We can add to this as we go
 data PandocExecutionError = PandocFileReadError FilePath
                           | PandocShouldNeverHappenError String
+                          | PandocParseError String
                           | PandocSomeError String
                           deriving (Show, Typeable)
 
@@ -133,8 +134,9 @@ runIOorExplode ma = do
   eitherVal <- runIO ma
   case eitherVal of
     Right x -> return x
-    Left (PandocFileReadError fp) -> error $ "promple reading " ++ fp
+    Left (PandocFileReadError fp) -> error $ "problem reading " ++ fp
     Left (PandocShouldNeverHappenError s) -> error s
+    Left (PandocParseError s) -> error $ "parse error" ++ s
     Left (PandocSomeError s) -> error s
 
 newtype PandocIO a = PandocIO {
