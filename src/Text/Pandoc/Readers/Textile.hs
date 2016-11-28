@@ -68,18 +68,23 @@ import Control.Monad ( guard, liftM, when )
 import Data.Monoid ((<>))
 import Text.Printf
 import Debug.Trace (trace)
-import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Control.Monad.Except (throwError)
 
 -- | Parse a Textile text and return a Pandoc document.
-readTextile :: ReaderOptions -- ^ Reader options
+readTextile :: PandocMonad m
+            => ReaderOptions -- ^ Reader options
             -> String       -- ^ String to parse (assuming @'\n'@ line endings)
-            -> Either PandocError Pandoc
-readTextile opts s =
-  (readWith parseTextile) def{ stateOptions = opts } (s ++ "\n\n")
+            -> m Pandoc
+readTextile opts s = do
+  parsed <- readWithM parseTextile def{ stateOptions = opts } (s ++ "\n\n")
+  case parsed of
+     Right result -> return result
+     Left _ -> throwError $ PandocParseError "textile parse error"
 
 
 -- | Generate a Pandoc ADT from a textile document
-parseTextile :: Parser [Char] ParserState Pandoc
+parseTextile :: PandocMonad m => ParserT [Char] ParserState m Pandoc
 parseTextile = do
   -- textile allows raw HTML and does smart punctuation by default,
   -- but we do not enable smart punctuation unless it is explicitly
@@ -103,10 +108,10 @@ parseTextile = do
   blocks <- parseBlocks
   return $ Pandoc nullMeta (B.toList blocks) -- FIXME
 
-noteMarker :: Parser [Char] ParserState [Char]
+noteMarker :: PandocMonad m => ParserT [Char] ParserState m [Char]
 noteMarker = skipMany spaceChar >> string "fn" >> manyTill digit (char '.')
 
-noteBlock :: Parser [Char] ParserState [Char]
+noteBlock :: PandocMonad m => ParserT [Char] ParserState m [Char]
 noteBlock = try $ do
   startPos <- getPosition
   ref <- noteMarker
@@ -121,11 +126,11 @@ noteBlock = try $ do
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
 -- | Parse document blocks
-parseBlocks :: Parser [Char] ParserState Blocks
+parseBlocks :: PandocMonad m => ParserT [Char] ParserState m Blocks
 parseBlocks = mconcat <$> manyTill block eof
 
 -- | Block parsers list tried in definition order
-blockParsers :: [Parser [Char] ParserState Blocks]
+blockParsers :: PandocMonad m => [ParserT [Char] ParserState m Blocks]
 blockParsers = [ codeBlock
                , header
                , blockQuote
@@ -140,7 +145,7 @@ blockParsers = [ codeBlock
                ]
 
 -- | Any block in the order of definition of blockParsers
-block :: Parser [Char] ParserState Blocks
+block :: PandocMonad m => ParserT [Char] ParserState m Blocks
 block = do
   res <- choice blockParsers <?> "block"
   pos <- getPosition
@@ -150,16 +155,16 @@ block = do
            (take 60 $ show $ B.toList res)) (return ())
   return res
 
-commentBlock :: Parser [Char] ParserState Blocks
+commentBlock :: PandocMonad m => ParserT [Char] ParserState m Blocks
 commentBlock = try $ do
   string "###."
   manyTill anyLine blanklines
   return mempty
 
-codeBlock :: Parser [Char] ParserState Blocks
+codeBlock :: PandocMonad m => ParserT [Char] ParserState m Blocks
 codeBlock = codeBlockBc <|> codeBlockPre
 
-codeBlockBc :: Parser [Char] ParserState Blocks
+codeBlockBc :: PandocMonad m => ParserT [Char] ParserState m Blocks
 codeBlockBc = try $ do
   string "bc."
   extended <- option False (True <$ char '.')
@@ -179,7 +184,7 @@ trimTrailingNewlines :: String -> String
 trimTrailingNewlines = reverse . dropWhile (=='\n') . reverse
 
 -- | Code Blocks in Textile are between <pre> and </pre>
-codeBlockPre :: Parser [Char] ParserState Blocks
+codeBlockPre :: PandocMonad m => ParserT [Char] ParserState m Blocks
 codeBlockPre = try $ do
   (t@(TagOpen _ attrs),_) <- htmlTag (tagOpen (=="pre") (const True))
   result' <- manyTill anyChar (htmlTag (tagClose (=="pre")))
@@ -198,7 +203,7 @@ codeBlockPre = try $ do
   return $ B.codeBlockWith (ident,classes,kvs) result'''
 
 -- | Header of the form "hN. content" with N in 1..6
-header :: Parser [Char] ParserState Blocks
+header :: PandocMonad m => ParserT [Char] ParserState m Blocks
 header = try $ do
   char 'h'
   level <- digitToInt <$> oneOf "123456"
@@ -210,14 +215,14 @@ header = try $ do
   return $ B.headerWith attr' level name
 
 -- | Blockquote of the form "bq. content"
-blockQuote :: Parser [Char] ParserState Blocks
+blockQuote :: PandocMonad m => ParserT [Char] ParserState m Blocks
 blockQuote = try $ do
   string "bq" >> attributes >> char '.' >> whitespace
   B.blockQuote <$> para
 
 -- Horizontal rule
 
-hrule :: Parser [Char] st Blocks
+hrule :: PandocMonad m => ParserT [Char] st m Blocks
 hrule = try $ do
   skipSpaces
   start <- oneOf "-*"
@@ -232,39 +237,39 @@ hrule = try $ do
 -- | Can be a bullet list or an ordered list. This implementation is
 -- strict in the nesting, sublist must start at exactly "parent depth
 -- plus one"
-anyList :: Parser [Char] ParserState Blocks
+anyList :: PandocMonad m => ParserT [Char] ParserState m Blocks
 anyList = try $ anyListAtDepth 1 <* blanklines
 
 -- | This allow one type of list to be nested into an other type,
 -- provided correct nesting
-anyListAtDepth :: Int -> Parser [Char] ParserState Blocks
+anyListAtDepth :: PandocMonad m => Int -> ParserT [Char] ParserState m Blocks
 anyListAtDepth depth = choice [ bulletListAtDepth depth,
                                 orderedListAtDepth depth,
                                 definitionList ]
 
 -- | Bullet List of given depth, depth being the number of leading '*'
-bulletListAtDepth :: Int -> Parser [Char] ParserState Blocks
+bulletListAtDepth :: PandocMonad m => Int -> ParserT [Char] ParserState m Blocks
 bulletListAtDepth depth = try $ B.bulletList  <$> many1 (bulletListItemAtDepth depth)
 
 -- | Bullet List Item of given depth, depth being the number of
 -- leading '*'
-bulletListItemAtDepth :: Int -> Parser [Char] ParserState Blocks
+bulletListItemAtDepth :: PandocMonad m => Int -> ParserT [Char] ParserState m Blocks
 bulletListItemAtDepth = genericListItemAtDepth '*'
 
 -- | Ordered List of given depth, depth being the number of
 -- leading '#'
-orderedListAtDepth :: Int -> Parser [Char] ParserState Blocks
+orderedListAtDepth :: PandocMonad m => Int -> ParserT [Char] ParserState m Blocks
 orderedListAtDepth depth = try $ do
   items <- many1 (orderedListItemAtDepth depth)
   return $ B.orderedList items
 
 -- | Ordered List Item of given depth, depth being the number of
 -- leading '#'
-orderedListItemAtDepth :: Int -> Parser [Char] ParserState Blocks
+orderedListItemAtDepth :: PandocMonad m => Int -> ParserT [Char] ParserState m Blocks
 orderedListItemAtDepth = genericListItemAtDepth '#'
 
 -- | Common implementation of list items
-genericListItemAtDepth :: Char -> Int -> Parser [Char] ParserState Blocks
+genericListItemAtDepth :: PandocMonad m => Char -> Int -> ParserT [Char] ParserState m Blocks
 genericListItemAtDepth c depth = try $ do
   count depth (char c) >> attributes >> whitespace
   p <- mconcat <$> many listInline
@@ -273,25 +278,25 @@ genericListItemAtDepth c depth = try $ do
   return $ (B.plain p) <> sublist
 
 -- | A definition list is a set of consecutive definition items
-definitionList :: Parser [Char] ParserState Blocks
+definitionList :: PandocMonad m => ParserT [Char] ParserState m Blocks
 definitionList = try $ B.definitionList <$> many1 definitionListItem
 
 -- | List start character.
-listStart :: Parser [Char] ParserState ()
+listStart :: PandocMonad m => ParserT [Char] ParserState m ()
 listStart = genericListStart '*'
         <|> () <$ genericListStart '#'
         <|> () <$ definitionListStart
 
-genericListStart :: Char -> Parser [Char] st ()
+genericListStart :: PandocMonad m => Char -> ParserT [Char] st m ()
 genericListStart c = () <$ try (many1 (char c) >> whitespace)
 
-basicDLStart :: Parser [Char] ParserState ()
+basicDLStart :: PandocMonad m => ParserT [Char] ParserState m ()
 basicDLStart = do
   char '-'
   whitespace
   notFollowedBy newline
 
-definitionListStart :: Parser [Char] ParserState Inlines
+definitionListStart :: PandocMonad m => ParserT [Char] ParserState m Inlines
 definitionListStart = try $ do
   basicDLStart
   trimInlines . mconcat <$>
@@ -300,7 +305,7 @@ definitionListStart = try $ do
     <|> try (lookAhead (() <$ string ":="))
      )
 
-listInline :: Parser [Char] ParserState Inlines
+listInline :: PandocMonad m => ParserT [Char] ParserState m Inlines
 listInline = try (notFollowedBy newline >> inline)
          <|> try (endline <* notFollowedBy listStart)
 
@@ -308,15 +313,15 @@ listInline = try (notFollowedBy newline >> inline)
 -- the term defined, then spaces and ":=". The definition follows, on
 -- the same single line, or spaned on multiple line, after a line
 -- break.
-definitionListItem :: Parser [Char] ParserState (Inlines, [Blocks])
+definitionListItem :: PandocMonad m => ParserT [Char] ParserState m (Inlines, [Blocks])
 definitionListItem = try $ do
   term <- (mconcat . intersperse B.linebreak) <$> many1 definitionListStart
   def' <- string ":=" *> optional whitespace *> (multilineDef <|> inlineDef)
   return (term, def')
-  where inlineDef :: Parser [Char] ParserState [Blocks]
+  where inlineDef :: PandocMonad m => ParserT [Char] ParserState m [Blocks]
         inlineDef = liftM (\d -> [B.plain d])
                     $ optional whitespace >> (trimInlines . mconcat <$> many listInline) <* newline
-        multilineDef :: Parser [Char] ParserState [Blocks]
+        multilineDef :: PandocMonad m => ParserT [Char] ParserState m [Blocks]
         multilineDef = try $ do
           optional whitespace >> newline
           s <- many1Till anyChar (try (string "=:" >> newline))
@@ -327,7 +332,7 @@ definitionListItem = try $ do
 -- raw content
 
 -- | A raw Html Block, optionally followed by blanklines
-rawHtmlBlock :: Parser [Char] ParserState Blocks
+rawHtmlBlock :: PandocMonad m => ParserT [Char] ParserState m Blocks
 rawHtmlBlock = try $ do
   skipMany spaceChar
   (_,b) <- htmlTag isBlockTag
@@ -335,14 +340,14 @@ rawHtmlBlock = try $ do
   return $ B.rawBlock "html" b
 
 -- | Raw block of LaTeX content
-rawLaTeXBlock' :: Parser [Char] ParserState Blocks
+rawLaTeXBlock' :: PandocMonad m => ParserT [Char] ParserState m Blocks
 rawLaTeXBlock' = do
   guardEnabled Ext_raw_tex
   B.rawBlock "latex" <$> (rawLaTeXBlock <* spaces)
 
 
 -- | In textile, paragraphs are separated by blank lines.
-para :: Parser [Char] ParserState Blocks
+para :: PandocMonad m => ParserT [Char] ParserState m Blocks
 para = B.para . trimInlines . mconcat <$> many1 inline
 
 -- Tables
@@ -353,7 +358,7 @@ toAlignment '>' = AlignRight
 toAlignment '=' = AlignCenter
 toAlignment _   = AlignDefault
 
-cellAttributes :: Parser [Char] ParserState (Bool, Alignment)
+cellAttributes :: PandocMonad m => ParserT [Char] ParserState m (Bool, Alignment)
 cellAttributes = try $ do
   isHeader <- option False (True <$ char '_')
   -- we just ignore colspan and rowspan markers:
@@ -366,7 +371,7 @@ cellAttributes = try $ do
   return (isHeader, alignment)
 
 -- | A table cell spans until a pipe |
-tableCell :: Parser [Char] ParserState ((Bool, Alignment), Blocks)
+tableCell :: PandocMonad m => ParserT [Char] ParserState m ((Bool, Alignment), Blocks)
 tableCell = try $ do
   char '|'
   (isHeader, alignment) <- option (False, AlignDefault) $ cellAttributes
@@ -377,7 +382,7 @@ tableCell = try $ do
   return ((isHeader, alignment), B.plain content)
 
 -- | A table row is made of many table cells
-tableRow :: Parser [Char] ParserState [((Bool, Alignment), Blocks)]
+tableRow :: PandocMonad m => ParserT [Char] ParserState m [((Bool, Alignment), Blocks)]
 tableRow = try $ do
   -- skip optional row attributes
   optional $ try $ do
@@ -387,7 +392,7 @@ tableRow = try $ do
   many1 tableCell <* char '|' <* blankline
 
 -- | A table with an optional header.
-table :: Parser [Char] ParserState Blocks
+table :: PandocMonad m => ParserT [Char] ParserState m Blocks
 table = try $ do
   -- ignore table attributes
   caption <- option mempty $ try $ do
@@ -411,7 +416,7 @@ table = try $ do
     (map (map snd) rows)
 
 -- | Ignore markers for cols, thead, tfoot.
-ignorableRow :: Parser [Char] ParserState ()
+ignorableRow :: PandocMonad m => ParserT [Char] ParserState m ()
 ignorableRow = try $ do
   char '|'
   oneOf ":^-~"
@@ -420,7 +425,7 @@ ignorableRow = try $ do
   _ <- anyLine
   return ()
 
-explicitBlockStart :: String -> Parser [Char] ParserState ()
+explicitBlockStart :: PandocMonad m => String -> ParserT [Char] ParserState m ()
 explicitBlockStart name = try $ do
   string name
   attributes
@@ -430,9 +435,10 @@ explicitBlockStart name = try $ do
 
 -- | Blocks like 'p' and 'table' do not need explicit block tag.
 -- However, they can be used to set HTML/CSS attributes when needed.
-maybeExplicitBlock :: String  -- ^ block tag name
-                    -> Parser [Char] ParserState Blocks -- ^ implicit block
-                    -> Parser [Char] ParserState Blocks
+maybeExplicitBlock :: PandocMonad m
+                   => String  -- ^ block tag name
+                   -> ParserT [Char] ParserState m Blocks -- ^ implicit block
+                   -> ParserT [Char] ParserState m Blocks
 maybeExplicitBlock name blk = try $ do
   optional $ explicitBlockStart name
   blk
@@ -445,12 +451,12 @@ maybeExplicitBlock name blk = try $ do
 
 
 -- | Any inline element
-inline :: Parser [Char] ParserState Inlines
+inline :: PandocMonad m => ParserT [Char] ParserState m Inlines
 inline = do
     choice inlineParsers <?> "inline"
 
 -- | Inline parsers tried in order
-inlineParsers :: [Parser [Char] ParserState Inlines]
+inlineParsers :: PandocMonad m => [ParserT [Char] ParserState m Inlines]
 inlineParsers = [ str
                 , whitespace
                 , endline
@@ -470,7 +476,7 @@ inlineParsers = [ str
                 ]
 
 -- | Inline markups
-inlineMarkup :: Parser [Char] ParserState Inlines
+inlineMarkup :: PandocMonad m => ParserT [Char] ParserState m Inlines
 inlineMarkup = choice [ simpleInline (string "??") (B.cite [])
                       , simpleInline (string "**") B.strong
                       , simpleInline (string "__") B.emph
@@ -484,29 +490,29 @@ inlineMarkup = choice [ simpleInline (string "??") (B.cite [])
                       ]
 
 -- | Trademark, registered, copyright
-mark :: Parser [Char] st Inlines
+mark :: PandocMonad m => ParserT [Char] st m Inlines
 mark = try $ char '(' >> (try tm <|> try reg <|> copy)
 
-reg :: Parser [Char] st Inlines
+reg :: PandocMonad m => ParserT [Char] st m Inlines
 reg = do
   oneOf "Rr"
   char ')'
   return $ B.str "\174"
 
-tm :: Parser [Char] st Inlines
+tm :: PandocMonad m => ParserT [Char] st m Inlines
 tm = do
   oneOf "Tt"
   oneOf "Mm"
   char ')'
   return $ B.str "\8482"
 
-copy :: Parser [Char] st Inlines
+copy :: PandocMonad m => ParserT [Char] st m Inlines
 copy = do
   oneOf "Cc"
   char ')'
   return $ B.str "\169"
 
-note :: Parser [Char] ParserState Inlines
+note :: PandocMonad m => ParserT [Char] ParserState m Inlines
 note = try $ do
   ref <- (char '[' *> many1 digit <* char ']')
   notes <- stateNotes <$> getState
@@ -530,13 +536,13 @@ wordBoundaries :: [Char]
 wordBoundaries = markupChars ++ stringBreakers
 
 -- | Parse a hyphened sequence of words
-hyphenedWords :: Parser [Char] ParserState String
+hyphenedWords :: PandocMonad m => ParserT [Char] ParserState m String
 hyphenedWords = do
   x <- wordChunk
   xs <-  many (try $ char '-' >> wordChunk)
   return $ intercalate "-" (x:xs)
 
-wordChunk :: Parser [Char] ParserState String
+wordChunk :: PandocMonad m => ParserT [Char] ParserState m String
 wordChunk = try $ do
   hd <- noneOf wordBoundaries
   tl <- many ( (noneOf wordBoundaries) <|>
@@ -545,7 +551,7 @@ wordChunk = try $ do
   return $ hd:tl
 
 -- | Any string
-str :: Parser [Char] ParserState Inlines
+str :: PandocMonad m => ParserT [Char] ParserState m Inlines
 str = do
   baseStr <- hyphenedWords
   -- RedCloth compliance : if parsed word is uppercase and immediatly
@@ -558,11 +564,11 @@ str = do
   return $ B.str fullStr
 
 -- | Some number of space chars
-whitespace :: Parser [Char] st Inlines
+whitespace :: PandocMonad m => ParserT [Char] st m Inlines
 whitespace = many1 spaceChar >> return B.space <?> "whitespace"
 
 -- | In Textile, an isolated endline character is a line break
-endline :: Parser [Char] ParserState Inlines
+endline :: PandocMonad m => ParserT [Char] ParserState m Inlines
 endline = try $ do
   newline
   notFollowedBy blankline
@@ -570,18 +576,18 @@ endline = try $ do
   notFollowedBy rawHtmlBlock
   return B.linebreak
 
-rawHtmlInline :: Parser [Char] ParserState Inlines
+rawHtmlInline :: PandocMonad m => ParserT [Char] ParserState m Inlines
 rawHtmlInline = B.rawInline "html" . snd <$> htmlTag isInlineTag
 
 -- | Raw LaTeX Inline
-rawLaTeXInline' :: Parser [Char] ParserState Inlines
+rawLaTeXInline' :: PandocMonad m => ParserT [Char] ParserState m Inlines
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
   B.singleton <$> rawLaTeXInline
 
 -- | Textile standard link syntax is "label":target. But we
 -- can also have ["label":target].
-link :: Parser [Char] ParserState Inlines
+link :: PandocMonad m => ParserT [Char] ParserState m Inlines
 link = try $ do
   bracketed <- (True <$ char '[') <|> return False
   char '"' *> notFollowedBy (oneOf " \t\n\r")
@@ -600,7 +606,7 @@ link = try $ do
               else B.spanWith attr $ B.link url "" name'
 
 -- | image embedding
-image :: Parser [Char] ParserState Inlines
+image :: PandocMonad m => ParserT [Char] ParserState m Inlines
 image = try $ do
   char '!' >> notFollowedBy space
   (ident, cls, kvs) <- attributes
@@ -612,50 +618,50 @@ image = try $ do
   char '!'
   return $ B.imageWith attr src alt (B.str alt)
 
-escapedInline :: Parser [Char] ParserState Inlines
+escapedInline :: PandocMonad m => ParserT [Char] ParserState m Inlines
 escapedInline = escapedEqs <|> escapedTag
 
-escapedEqs :: Parser [Char] ParserState Inlines
+escapedEqs :: PandocMonad m => ParserT [Char] ParserState m Inlines
 escapedEqs = B.str <$>
   (try $ string "==" *> manyTill anyChar' (try $ string "=="))
 
 -- | literal text escaped btw <notextile> tags
-escapedTag :: Parser [Char] ParserState Inlines
+escapedTag :: PandocMonad m => ParserT [Char] ParserState m Inlines
 escapedTag = B.str <$>
   (try $ string "<notextile>" *>
          manyTill anyChar' (try $ string "</notextile>"))
 
 -- | Any special symbol defined in wordBoundaries
-symbol :: Parser [Char] ParserState Inlines
+symbol :: PandocMonad m => ParserT [Char] ParserState m Inlines
 symbol = B.str . singleton <$> (notFollowedBy newline *>
                                 notFollowedBy rawHtmlBlock *>
                                 oneOf wordBoundaries)
 
 -- | Inline code
-code :: Parser [Char] ParserState Inlines
+code :: PandocMonad m => ParserT [Char] ParserState m Inlines
 code = code1 <|> code2
 
 -- any character except a newline before a blank line
-anyChar' :: Parser [Char] ParserState Char
+anyChar' :: PandocMonad m => ParserT [Char] ParserState m Char
 anyChar' =
   satisfy (/='\n') <|> (try $ char '\n' <* notFollowedBy blankline)
 
-code1 :: Parser [Char] ParserState Inlines
+code1 :: PandocMonad m => ParserT [Char] ParserState m Inlines
 code1 = B.code <$> surrounded (char '@') anyChar'
 
-code2 :: Parser [Char] ParserState Inlines
+code2 :: PandocMonad m => ParserT [Char] ParserState m Inlines
 code2 = do
   htmlTag (tagOpen (=="tt") null)
   B.code <$> manyTill anyChar' (try $ htmlTag $ tagClose (=="tt"))
 
 -- | Html / CSS attributes
-attributes :: Parser [Char] ParserState Attr
+attributes :: PandocMonad m => ParserT [Char] ParserState m Attr
 attributes = (foldl (flip ($)) ("",[],[])) <$>
   try (do special <- option id specialAttribute
           attrs <- many attribute
           return (special : attrs))
 
-specialAttribute :: Parser [Char] ParserState (Attr -> Attr)
+specialAttribute :: PandocMonad m => ParserT [Char] ParserState m (Attr -> Attr)
 specialAttribute = do
   alignStr <- ("center" <$ char '=') <|>
     ("justify" <$ try (string "<>")) <|>
@@ -664,11 +670,11 @@ specialAttribute = do
   notFollowedBy spaceChar
   return $ addStyle ("text-align:" ++ alignStr)
 
-attribute :: Parser [Char] ParserState (Attr -> Attr)
+attribute :: PandocMonad m => ParserT [Char] ParserState m (Attr -> Attr)
 attribute = try $
   (classIdAttr <|> styleAttr <|> langAttr) <* notFollowedBy spaceChar
 
-classIdAttr :: Parser [Char] ParserState (Attr -> Attr)
+classIdAttr :: PandocMonad m => ParserT [Char] ParserState m (Attr -> Attr)
 classIdAttr = try $ do -- (class class #id)
   char '('
   ws <- words `fmap` manyTill anyChar' (char ')')
@@ -679,7 +685,7 @@ classIdAttr = try $ do -- (class class #id)
        classes'                -> return $ \(_,_,keyvals) ->
                                              ("",classes',keyvals)
 
-styleAttr :: Parser [Char] ParserState (Attr -> Attr)
+styleAttr :: PandocMonad m => ParserT [Char] ParserState m (Attr -> Attr)
 styleAttr = do
   style <- try $ enclosed (char '{') (char '}') anyChar'
   return $ addStyle style
@@ -690,21 +696,23 @@ addStyle style (id',classes,keyvals) =
   where keyvals' = ("style", style') : [(k,v) | (k,v) <- keyvals, k /= "style"]
         style' = style ++ ";" ++ concat [v | ("style",v) <- keyvals]
 
-langAttr :: Parser [Char] ParserState (Attr -> Attr)
+langAttr :: PandocMonad m => ParserT [Char] ParserState m (Attr -> Attr)
 langAttr = do
   lang <- try $ enclosed (char '[') (char ']') alphaNum
   return $ \(id',classes,keyvals) -> (id',classes,("lang",lang):keyvals)
 
 -- | Parses material surrounded by a parser.
-surrounded :: Parser [Char] st t   -- ^ surrounding parser
-            -> Parser [Char] st a    -- ^ content parser (to be used repeatedly)
-            -> Parser [Char] st [a]
+surrounded :: PandocMonad m
+           => ParserT [Char] st m t   -- ^ surrounding parser
+           -> ParserT [Char] st m a   -- ^ content parser (to be used repeatedly)
+           -> ParserT [Char] st m [a]
 surrounded border =
   enclosed (border *> notFollowedBy (oneOf " \t\n\r")) (try border)
 
-simpleInline :: Parser [Char] ParserState t           -- ^ surrounding parser
-             -> (Inlines -> Inlines)       -- ^ Inline constructor
-             -> Parser [Char] ParserState Inlines   -- ^ content parser (to be used repeatedly)
+simpleInline :: PandocMonad m
+             => ParserT [Char] ParserState m t        -- ^ surrounding parser
+             -> (Inlines -> Inlines)                  -- ^ Inline constructor
+             -> ParserT [Char] ParserState m Inlines  -- ^ content parser (to be used repeatedly)
 simpleInline border construct = try $ do
   notAfterString
   border *> notFollowedBy (oneOf " \t\n\r")
@@ -718,7 +726,7 @@ simpleInline border construct = try $ do
            then body
            else B.spanWith attr body
 
-groupedInlineMarkup :: Parser [Char] ParserState Inlines
+groupedInlineMarkup :: PandocMonad m => ParserT [Char] ParserState m Inlines
 groupedInlineMarkup = try $ do
     char '['
     sp1 <- option mempty $ B.space <$ whitespace

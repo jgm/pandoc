@@ -49,18 +49,29 @@ import qualified Text.Pandoc.Builder as B
 import Data.Sequence (viewr, ViewR(..))
 import Data.Char (toLower, isHexDigit, isSpace)
 import Data.Monoid ((<>))
-import Text.Pandoc.Error
+import Control.Monad.Except (throwError)
+import Control.Monad.Trans (lift)
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import qualified Text.Pandoc.Class as P
 
 -- | Parse reStructuredText string and return Pandoc document.
-readRST :: ReaderOptions -- ^ Reader options
+readRST :: PandocMonad m
+        => ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-        -> Either PandocError Pandoc
-readRST opts s = (readWith parseRST) def{ stateOptions = opts } (s ++ "\n\n")
+        -> m Pandoc
+readRST opts s = do
+  parsed <- (readWithM parseRST) def{ stateOptions = opts } (s ++ "\n\n")
+  case parsed of
+    Right result -> return result
+    Left _       -> throwError $ PandocParseError "error parsing rst"
 
-readRSTWithWarnings :: ReaderOptions -> String -> Either PandocError (Pandoc, [String])
-readRSTWithWarnings opts s = (readWithWarnings parseRST) def{ stateOptions = opts } (s ++ "\n\n")
+readRSTWithWarnings :: PandocMonad m
+                    => ReaderOptions -- ^ Reader options
+                    -> String        -- ^ String to parse (assuming @'\n'@ line endings)
+                    -> m Pandoc
+readRSTWithWarnings = readRST 
 
-type RSTParser = Parser [Char] ParserState
+type RSTParser m = ParserT [Char] ParserState m
 
 --
 -- Constants and data structure definitions
@@ -141,7 +152,7 @@ metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
                                                 factorSemi (Str ys)
        factorSemi x                   = [x]
 
-parseRST :: RSTParser Pandoc
+parseRST :: PandocMonad m => RSTParser m Pandoc
 parseRST = do
   optional blanklines -- skip blank lines at beginning of file
   startPos <- getPosition
@@ -168,10 +179,10 @@ parseRST = do
 -- parsing blocks
 --
 
-parseBlocks :: RSTParser Blocks
+parseBlocks :: PandocMonad m => RSTParser m Blocks
 parseBlocks = mconcat <$> manyTill block eof
 
-block :: RSTParser Blocks
+block :: PandocMonad m => RSTParser m Blocks
 block = choice [ codeBlock
                , blockQuote
                , fieldList
@@ -191,7 +202,7 @@ block = choice [ codeBlock
 -- field list
 --
 
-rawFieldListItem :: Int -> RSTParser (String, String)
+rawFieldListItem :: Monad m => Int -> RSTParser m (String, String)
 rawFieldListItem minIndent = try $ do
   indent <- length <$> many (char ' ')
   guard $ indent >= minIndent
@@ -204,7 +215,7 @@ rawFieldListItem minIndent = try $ do
   let raw = (if null first then "" else (first ++ "\n")) ++ rest ++ "\n"
   return (name, raw)
 
-fieldListItem :: Int -> RSTParser (Inlines, [Blocks])
+fieldListItem :: PandocMonad m => Int -> RSTParser m (Inlines, [Blocks])
 fieldListItem minIndent = try $ do
   (name, raw) <- rawFieldListItem minIndent
   term <- parseInlineFromString name
@@ -212,7 +223,7 @@ fieldListItem minIndent = try $ do
   optional blanklines
   return (term, [contents])
 
-fieldList :: RSTParser Blocks
+fieldList :: PandocMonad m => RSTParser m Blocks
 fieldList = try $ do
   indent <- length <$> lookAhead (many spaceChar)
   items <- many1 $ fieldListItem indent
@@ -224,7 +235,7 @@ fieldList = try $ do
 -- line block
 --
 
-lineBlock :: RSTParser Blocks
+lineBlock :: PandocMonad m => RSTParser m Blocks
 lineBlock = try $ do
   lines' <- lineBlockLines
   lines'' <- mapM parseInlineFromString lines'
@@ -235,7 +246,7 @@ lineBlock = try $ do
 --
 
 -- note: paragraph can end in a :: starting a code block
-para :: RSTParser Blocks
+para :: PandocMonad m => RSTParser m Blocks
 para = try $ do
   result <- trimInlines . mconcat <$> many1 inline
   option (B.plain result) $ try $ do
@@ -248,18 +259,18 @@ para = try $ do
                          <> raw
          _ -> return (B.para result)
 
-plain :: RSTParser Blocks
+plain :: PandocMonad m => RSTParser m Blocks
 plain = B.plain . trimInlines . mconcat <$> many1 inline
 
 --
 -- header blocks
 --
 
-header :: RSTParser Blocks
+header :: PandocMonad m => RSTParser m Blocks
 header = doubleHeader <|> singleHeader <?> "header"
 
 -- a header with lines on top and bottom
-doubleHeader :: RSTParser Blocks
+doubleHeader :: PandocMonad m => RSTParser m Blocks
 doubleHeader = try $ do
   c <- oneOf underlineChars
   rest <- many (char c)  -- the top line
@@ -285,7 +296,7 @@ doubleHeader = try $ do
   return $ B.headerWith attr level txt
 
 -- a header with line on the bottom only
-singleHeader :: RSTParser Blocks
+singleHeader :: PandocMonad m => RSTParser m Blocks
 singleHeader = try $ do
   notFollowedBy' whitespace
   txt <- trimInlines . mconcat <$> many1 (do {notFollowedBy blankline; inline})
@@ -309,7 +320,7 @@ singleHeader = try $ do
 -- hrule block
 --
 
-hrule :: Parser [Char] st Blocks
+hrule :: Monad m => ParserT [Char] st m Blocks
 hrule = try $ do
   chr <- oneOf underlineChars
   count 3 (char chr)
@@ -323,14 +334,14 @@ hrule = try $ do
 --
 
 -- read a line indented by a given string
-indentedLine :: String -> Parser [Char] st [Char]
+indentedLine :: Monad m => String -> ParserT [Char] st m [Char]
 indentedLine indents = try $ do
   string indents
   anyLine
 
 -- one or more indented lines, possibly separated by blank lines.
 -- any amount of indentation will work.
-indentedBlock :: Parser [Char] st [Char]
+indentedBlock :: Monad m => ParserT [Char] st m [Char]
 indentedBlock = try $ do
   indents <- lookAhead $ many1 spaceChar
   lns <- many1 $ try $ do b <- option "" blanklines
@@ -339,24 +350,24 @@ indentedBlock = try $ do
   optional blanklines
   return $ unlines lns
 
-quotedBlock :: Parser [Char] st [Char]
+quotedBlock :: Monad m => ParserT [Char] st m [Char]
 quotedBlock = try $ do
     quote <- lookAhead $ oneOf "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
     lns <- many1 $ lookAhead (char quote) >> anyLine
     optional blanklines
     return $ unlines lns
 
-codeBlockStart :: Parser [Char] st Char
+codeBlockStart :: Monad m => ParserT [Char] st m Char
 codeBlockStart = string "::" >> blankline >> blankline
 
-codeBlock :: Parser [Char] st Blocks
+codeBlock :: Monad m => ParserT [Char] st m Blocks
 codeBlock = try $ codeBlockStart >> codeBlockBody
 
-codeBlockBody :: Parser [Char] st Blocks
+codeBlockBody :: Monad m => ParserT [Char] st m Blocks
 codeBlockBody = try $ B.codeBlock . stripTrailingNewlines <$>
                 (indentedBlock <|> quotedBlock)
 
-lhsCodeBlock :: RSTParser Blocks
+lhsCodeBlock :: Monad m => RSTParser m Blocks
 lhsCodeBlock = try $ do
   getPosition >>= guard . (==1) . sourceColumn
   guardEnabled Ext_literate_haskell
@@ -366,14 +377,14 @@ lhsCodeBlock = try $ do
   return $ B.codeBlockWith ("", ["sourceCode", "literate", "haskell"], [])
          $ intercalate "\n" lns
 
-latexCodeBlock :: Parser [Char] st [[Char]]
+latexCodeBlock :: Monad m => ParserT [Char] st m [[Char]]
 latexCodeBlock = try $ do
   try (latexBlockLine "\\begin{code}")
   many1Till anyLine (try $ latexBlockLine "\\end{code}")
  where
   latexBlockLine s = skipMany spaceChar >> string s >> blankline
 
-birdCodeBlock :: Parser [Char] st [[Char]]
+birdCodeBlock :: Monad m => ParserT [Char] st m [[Char]]
 birdCodeBlock = filterSpace <$> many1 birdTrackLine
   where filterSpace lns =
             -- if (as is normal) there is always a space after >, drop it
@@ -381,14 +392,14 @@ birdCodeBlock = filterSpace <$> many1 birdTrackLine
                then map (drop 1) lns
                else lns
 
-birdTrackLine :: Parser [Char] st [Char]
+birdTrackLine :: Monad m => ParserT [Char] st m [Char]
 birdTrackLine = char '>' >> anyLine
 
 --
 -- block quotes
 --
 
-blockQuote :: RSTParser Blocks
+blockQuote :: PandocMonad m => RSTParser m Blocks
 blockQuote = do
   raw <- indentedBlock
   -- parse the extracted block, which may contain various block elements:
@@ -399,10 +410,10 @@ blockQuote = do
 -- list blocks
 --
 
-list :: RSTParser Blocks
+list :: PandocMonad m => RSTParser m Blocks
 list = choice [ bulletList, orderedList, definitionList ] <?> "list"
 
-definitionListItem :: RSTParser (Inlines, [Blocks])
+definitionListItem :: PandocMonad m => RSTParser m (Inlines, [Blocks])
 definitionListItem = try $ do
   -- avoid capturing a directive or comment
   notFollowedBy (try $ char '.' >> char '.')
@@ -412,11 +423,11 @@ definitionListItem = try $ do
   contents <- parseFromString parseBlocks $ raw ++ "\n"
   return (term, [contents])
 
-definitionList :: RSTParser Blocks
+definitionList :: PandocMonad m => RSTParser m Blocks
 definitionList = B.definitionList <$> many1 definitionListItem
 
 -- parses bullet list start and returns its length (inc. following whitespace)
-bulletListStart :: Parser [Char] st Int
+bulletListStart :: Monad m => ParserT [Char] st m Int
 bulletListStart = try $ do
   notFollowedBy' hrule  -- because hrules start out just like lists
   marker <- oneOf bulletListMarkers
@@ -424,16 +435,16 @@ bulletListStart = try $ do
   return $ length (marker:white)
 
 -- parses ordered list start and returns its length (inc following whitespace)
-orderedListStart :: ListNumberStyle
+orderedListStart :: Monad m => ListNumberStyle
                  -> ListNumberDelim
-                 -> RSTParser Int
+                 -> RSTParser m Int
 orderedListStart style delim = try $ do
   (_, markerLen) <- withHorizDisplacement (orderedListMarker style delim)
   white <- many1 spaceChar
   return $ markerLen + length white
 
 -- parse a line of a list item
-listLine :: Int -> RSTParser [Char]
+listLine :: Monad m => Int -> RSTParser m [Char]
 listLine markerLength = try $ do
   notFollowedBy blankline
   indentWith markerLength
@@ -441,7 +452,7 @@ listLine markerLength = try $ do
   return $ line ++ "\n"
 
 -- indent by specified number of spaces (or equiv. tabs)
-indentWith :: Int -> RSTParser [Char]
+indentWith :: Monad m => Int -> RSTParser m [Char]
 indentWith num = do
   tabStop <- getOption readerTabStop
   if (num < tabStop)
@@ -450,8 +461,8 @@ indentWith num = do
                    (try (char '\t' >> count (num - tabStop) (char ' '))) ]
 
 -- parse raw text for one list item, excluding start marker and continuations
-rawListItem :: RSTParser Int
-            -> RSTParser (Int, [Char])
+rawListItem :: Monad m => RSTParser m Int
+            -> RSTParser m (Int, [Char])
 rawListItem start = try $ do
   markerLength <- start
   firstLine <- anyLine
@@ -461,14 +472,15 @@ rawListItem start = try $ do
 -- continuation of a list item - indented and separated by blankline or
 -- (in compact lists) endline.
 -- Note: nested lists are parsed as continuations.
-listContinuation :: Int -> RSTParser [Char]
+listContinuation :: Monad m => Int -> RSTParser m [Char]
 listContinuation markerLength = try $ do
   blanks <- many1 blankline
   result <- many1 (listLine markerLength)
   return $ blanks ++ concat result
 
-listItem :: RSTParser Int
-         -> RSTParser Blocks
+listItem :: PandocMonad m
+         => RSTParser m Int
+         -> RSTParser m Blocks
 listItem start = try $ do
   (markerLength, first) <- rawListItem start
   rest <- many (listContinuation markerLength)
@@ -490,21 +502,21 @@ listItem start = try $ do
                 [Para xs, DefinitionList ys] -> B.fromList [Plain xs, DefinitionList ys]
                 _         -> parsed
 
-orderedList :: RSTParser Blocks
+orderedList :: PandocMonad m => RSTParser m Blocks
 orderedList = try $ do
   (start, style, delim) <- lookAhead (anyOrderedListMarker <* spaceChar)
   items <- many1 (listItem (orderedListStart style delim))
   let items' = compactify' items
   return $ B.orderedListWith (start, style, delim) items'
 
-bulletList :: RSTParser Blocks
+bulletList :: PandocMonad m => RSTParser m Blocks
 bulletList = B.bulletList . compactify' <$> many1 (listItem bulletListStart)
 
 --
 -- directive (e.g. comment, container, compound-paragraph)
 --
 
-comment :: RSTParser Blocks
+comment :: Monad m => RSTParser m Blocks
 comment = try $ do
   string ".."
   skipMany1 spaceChar <|> (() <$ lookAhead newline)
@@ -513,11 +525,11 @@ comment = try $ do
   optional indentedBlock
   return mempty
 
-directiveLabel :: RSTParser String
+directiveLabel :: Monad m => RSTParser m String
 directiveLabel = map toLower
   <$> many1Till (letter <|> char '-') (try $ string "::")
 
-directive :: RSTParser Blocks
+directive :: PandocMonad m => RSTParser m Blocks
 directive = try $ do
   string ".."
   directive'
@@ -526,7 +538,7 @@ directive = try $ do
 -- date
 -- include
 -- title
-directive' :: RSTParser Blocks
+directive' :: PandocMonad m => RSTParser m Blocks
 directive' = do
   skipMany1 spaceChar
   label <- directiveLabel
@@ -614,13 +626,13 @@ directive' = do
             return $ B.divWith attrs children
         other     -> do
             pos <- getPosition
-            addWarning (Just pos) $ "ignoring unknown directive: " ++ other
+            P.addWarningWithPos (Just pos) $ "ignoring unknown directive: " ++ other
             return mempty
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,
 --    change Text.Pandoc.Definition.Format to fix
-addNewRole :: String -> [(String, String)] -> RSTParser Blocks
+addNewRole :: PandocMonad m => String -> [(String, String)] -> RSTParser m Blocks
 addNewRole roleString fields = do
     (role, parentRole) <- parseFromString inheritedRole roleString
     customRoles <- stateRstCustomRoles <$> getState
@@ -642,20 +654,20 @@ addNewRole roleString fields = do
 
     -- warn about syntax we ignore
     flip mapM_ fields $ \(key, _) -> case key of
-        "language" -> when (baseRole /= "code") $ addWarning Nothing $
+        "language" -> when (baseRole /= "code") $ lift $ P.warn $
             "ignoring :language: field because the parent of role :" ++
             role ++ ": is :" ++ baseRole ++ ": not :code:"
-        "format" -> when (baseRole /= "raw") $ addWarning Nothing $
+        "format" -> when (baseRole /= "raw") $ lift $ P.warn $
             "ignoring :format: field because the parent of role :" ++
             role ++ ": is :" ++ baseRole ++ ": not :raw:"
-        _ -> addWarning Nothing $ "ignoring unknown field :" ++ key ++
+        _ -> lift $ P.warn $ "ignoring unknown field :" ++ key ++
              ": in definition of role :" ++ role ++ ": in"
     when (parentRole == "raw" && countKeys "format" > 1) $
-        addWarning Nothing $
+        lift $ P.warn $
         "ignoring :format: fields after the first in the definition of role :"
         ++ role ++": in"
     when (parentRole == "code" && countKeys "language" > 1) $
-        addWarning Nothing $
+        lift $ P.warn $
         "ignoring :language: fields after the first in the definition of role :"
         ++ role ++": in"
 
@@ -700,7 +712,7 @@ extractUnicodeChar s = maybe Nothing (\c -> Just (c,rest)) mbc
   where (ds,rest) = span isHexDigit s
         mbc = safeRead ('\'':'\\':'x':ds ++ "'")
 
-extractCaption :: RSTParser (Inlines, Blocks)
+extractCaption :: PandocMonad m => RSTParser m (Inlines, Blocks)
 extractCaption = do
   capt <- trimInlines . mconcat <$> many inline
   legend <- optional blanklines >> (mconcat <$> many block)
@@ -712,7 +724,7 @@ toChunks = dropWhile null
            . map (trim . unlines)
            . splitBy (all (`elem` (" \t" :: String))) . lines
 
-codeblock :: [String] -> Maybe String -> String -> String -> RSTParser Blocks
+codeblock :: [String] -> Maybe String -> String -> String -> RSTParser m Blocks
 codeblock classes numberLines lang body =
   return $ B.codeBlockWith attribs $ stripTrailingNewlines body
     where attribs = ("", classes', kvs)
@@ -728,7 +740,7 @@ codeblock classes numberLines lang body =
 --- note block
 ---
 
-noteBlock :: RSTParser [Char]
+noteBlock :: Monad m => RSTParser m [Char]
 noteBlock = try $ do
   startPos <- getPosition
   string ".."
@@ -747,7 +759,7 @@ noteBlock = try $ do
   -- return blanks so line count isn't affected
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
-noteMarker :: RSTParser [Char]
+noteMarker :: Monad m => RSTParser m [Char]
 noteMarker = do
   char '['
   res <- many1 digit
@@ -760,13 +772,13 @@ noteMarker = do
 -- reference key
 --
 
-quotedReferenceName :: RSTParser Inlines
+quotedReferenceName :: PandocMonad m => RSTParser m Inlines
 quotedReferenceName = try $ do
   char '`' >> notFollowedBy (char '`') -- `` means inline code!
   label' <- trimInlines . mconcat <$> many1Till inline (char '`')
   return label'
 
-unquotedReferenceName :: RSTParser Inlines
+unquotedReferenceName :: PandocMonad m => RSTParser m Inlines
 unquotedReferenceName = try $ do
   label' <- trimInlines . mconcat <$> many1Till inline (lookAhead $ char ':')
   return label'
@@ -775,24 +787,24 @@ unquotedReferenceName = try $ do
 -- plus isolated (no two adjacent) internal hyphens, underscores,
 -- periods, colons and plus signs; no whitespace or other characters
 -- are allowed.
-simpleReferenceName' :: Parser [Char] st String
+simpleReferenceName' :: Monad m => ParserT [Char] st m String
 simpleReferenceName' = do
   x <- alphaNum
   xs <- many $  alphaNum
             <|> (try $ oneOf "-_:+." <* lookAhead alphaNum)
   return (x:xs)
 
-simpleReferenceName :: Parser [Char] st Inlines
+simpleReferenceName :: Monad m => ParserT [Char] st m Inlines
 simpleReferenceName = do
   raw <- simpleReferenceName'
   return $ B.str raw
 
-referenceName :: RSTParser Inlines
+referenceName :: PandocMonad m => RSTParser m Inlines
 referenceName = quotedReferenceName <|>
                 (try $ simpleReferenceName <* lookAhead (char ':')) <|>
                 unquotedReferenceName
 
-referenceKey :: RSTParser [Char]
+referenceKey :: PandocMonad m => RSTParser m [Char]
 referenceKey = do
   startPos <- getPosition
   choice [substKey, anonymousKey, regularKey]
@@ -801,7 +813,7 @@ referenceKey = do
   -- return enough blanks to replace key
   return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
 
-targetURI :: Parser [Char] st [Char]
+targetURI :: Monad m => ParserT [Char] st m [Char]
 targetURI = do
   skipSpaces
   optional newline
@@ -810,7 +822,7 @@ targetURI = do
   blanklines
   return $ escapeURI $ trim $ contents
 
-substKey :: RSTParser ()
+substKey :: PandocMonad m => RSTParser m ()
 substKey = try $ do
   string ".."
   skipMany1 spaceChar
@@ -828,7 +840,7 @@ substKey = try $ do
   let key = toKey $ stripFirstAndLast ref
   updateState $ \s -> s{ stateSubstitutions = M.insert key il $ stateSubstitutions s }
 
-anonymousKey :: RSTParser ()
+anonymousKey :: Monad m => RSTParser m ()
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
   src <- targetURI
@@ -842,7 +854,7 @@ stripTicks = reverse . stripTick . reverse . stripTick
   where stripTick ('`':xs) = xs
         stripTick xs = xs
 
-regularKey :: RSTParser ()
+regularKey :: PandocMonad m => RSTParser m ()
 regularKey = try $ do
   string ".. _"
   (_,ref) <- withRaw referenceName
@@ -869,31 +881,31 @@ regularKey = try $ do
 -- Grid tables TODO:
 --  - column spans
 
-dashedLine :: Char -> Parser [Char] st (Int, Int)
+dashedLine :: Monad m => Char -> ParserT [Char] st m (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many (char ' ')
   return (length dashes, length $ dashes ++ sp)
 
-simpleDashedLines :: Char -> Parser [Char] st [(Int,Int)]
+simpleDashedLines :: Monad m => Char -> ParserT [Char] st m [(Int,Int)]
 simpleDashedLines ch = try $ many1 (dashedLine ch)
 
 -- Parse a table row separator
-simpleTableSep :: Char -> RSTParser Char
+simpleTableSep :: Monad m => Char -> RSTParser m Char
 simpleTableSep ch = try $ simpleDashedLines ch >> newline
 
 -- Parse a table footer
-simpleTableFooter :: RSTParser [Char]
+simpleTableFooter :: Monad m => RSTParser m [Char]
 simpleTableFooter = try $ simpleTableSep '=' >> blanklines
 
 -- Parse a raw line and split it into chunks by indices.
-simpleTableRawLine :: [Int] -> RSTParser [String]
+simpleTableRawLine :: Monad m => [Int] -> RSTParser m [String]
 simpleTableRawLine indices = do
   line <- many1Till anyChar newline
   return (simpleTableSplitLine indices line)
 
 -- Parse a table row and return a list of blocks (columns).
-simpleTableRow :: [Int] -> RSTParser [[Block]]
+simpleTableRow :: PandocMonad m => [Int] -> RSTParser m [[Block]]
 simpleTableRow indices = do
   notFollowedBy' simpleTableFooter
   firstLine <- simpleTableRawLine indices
@@ -906,8 +918,9 @@ simpleTableSplitLine indices line =
   map trim
   $ tail $ splitByIndices (init indices) line
 
-simpleTableHeader :: Bool  -- ^ Headerless table
-                  -> RSTParser ([[Block]], [Alignment], [Int])
+simpleTableHeader :: PandocMonad m
+                  => Bool  -- ^ Headerless table
+                  -> RSTParser m ([[Block]], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   optional blanklines
   rawContent  <- if headless
@@ -926,8 +939,9 @@ simpleTableHeader headless = try $ do
   return (heads, aligns, indices)
 
 -- Parse a simple table.
-simpleTable :: Bool  -- ^ Headerless table
-            -> RSTParser Blocks
+simpleTable :: PandocMonad m
+            => Bool  -- ^ Headerless table
+            -> RSTParser m Blocks
 simpleTable headless = do
   Table c a _w h l <- tableWith (simpleTableHeader headless) simpleTableRow sep simpleTableFooter
   -- Simple tables get 0s for relative column widths (i.e., use default)
@@ -935,12 +949,13 @@ simpleTable headless = do
  where
   sep = return () -- optional (simpleTableSep '-')
 
-gridTable :: Bool -- ^ Headerless table
-          -> RSTParser Blocks
+gridTable :: PandocMonad m
+          => Bool -- ^ Headerless table
+          -> RSTParser m Blocks
 gridTable headerless = B.singleton
   <$> gridTableWith (B.toList <$> parseBlocks) headerless
 
-table :: RSTParser Blocks
+table :: PandocMonad m => RSTParser m Blocks
 table = gridTable False <|> simpleTable False <|>
         gridTable True  <|> simpleTable True <?> "table"
 
@@ -948,7 +963,7 @@ table = gridTable False <|> simpleTable False <|>
 -- inline
 --
 
-inline :: RSTParser Inlines
+inline :: PandocMonad m => RSTParser m Inlines
 inline = choice [ note          -- can start with whitespace, so try before ws
                 , whitespace
                 , link
@@ -964,29 +979,29 @@ inline = choice [ note          -- can start with whitespace, so try before ws
                 , escapedChar
                 , symbol ] <?> "inline"
 
-parseInlineFromString :: String -> RSTParser Inlines
+parseInlineFromString :: PandocMonad m => String -> RSTParser m Inlines
 parseInlineFromString = parseFromString (trimInlines . mconcat <$> many inline)
 
-hyphens :: RSTParser Inlines
+hyphens :: Monad m => RSTParser m Inlines
 hyphens = do
   result <- many1 (char '-')
   optional endline
   -- don't want to treat endline after hyphen or dash as a space
   return $ B.str result
 
-escapedChar :: Parser [Char] st Inlines
+escapedChar :: Monad m => ParserT [Char] st m Inlines
 escapedChar = do c <- escaped anyChar
                  return $ if c == ' '  -- '\ ' is null in RST
                              then mempty
                              else B.str [c]
 
-symbol :: RSTParser Inlines
+symbol :: Monad m => RSTParser m Inlines
 symbol = do
   result <- oneOf specialChars
   return $ B.str [result]
 
 -- parses inline code, between codeStart and codeEnd
-code :: RSTParser Inlines
+code :: Monad m => RSTParser m Inlines
 code = try $ do
   string "``"
   result <- manyTill anyChar (try (string "``"))
@@ -994,7 +1009,7 @@ code = try $ do
          $ trim $ unwords $ lines result
 
 -- succeeds only if we're not right after a str (ie. in middle of word)
-atStart :: RSTParser a -> RSTParser a
+atStart :: Monad m => RSTParser m a -> RSTParser m a
 atStart p = do
   pos <- getPosition
   st <- getState
@@ -1002,11 +1017,11 @@ atStart p = do
   guard $ stateLastStrPos st /= Just pos
   p
 
-emph :: RSTParser Inlines
+emph :: PandocMonad m => RSTParser m Inlines
 emph = B.emph . trimInlines . mconcat <$>
          enclosed (atStart $ char '*') (char '*') inline
 
-strong :: RSTParser Inlines
+strong :: PandocMonad m => RSTParser m Inlines
 strong = B.strong . trimInlines . mconcat <$>
           enclosed (atStart $ string "**") (try $ string "**") inline
 
@@ -1018,12 +1033,12 @@ strong = B.strong . trimInlines . mconcat <$>
 --  - Classes are silently discarded in addNewRole
 --  - Lacks sensible implementation for title-reference (which is the default)
 --  - Allows direct use of the :raw: role, rST only allows inherited use.
-interpretedRole :: RSTParser Inlines
+interpretedRole :: PandocMonad m => RSTParser m Inlines
 interpretedRole = try $ do
   (role, contents) <- roleBefore <|> roleAfter
   renderRole contents Nothing role nullAttr
 
-renderRole :: String -> Maybe String -> String -> Attr -> RSTParser Inlines
+renderRole :: PandocMonad m => String -> Maybe String -> String -> Attr -> RSTParser m Inlines
 renderRole contents fmt role attr = case role of
     "sup"  -> return $ B.superscript $ B.str contents
     "superscript" -> return $ B.superscript $ B.str contents
@@ -1050,7 +1065,7 @@ renderRole contents fmt role attr = case role of
                 renderRole contents newFmt newRole newAttr
             Nothing -> do
                 pos <- getPosition
-                addWarning (Just pos) $ "ignoring unknown role :" ++ custom ++ ": in"
+                P.addWarningWithPos (Just pos) $ "ignoring unknown role :" ++ custom ++ ": in"
                 return $ B.str contents -- Undefined role
  where
    titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour
@@ -1063,31 +1078,31 @@ renderRole contents fmt role attr = case role of
 addClass :: String -> Attr -> Attr
 addClass c (ident, classes, keyValues) = (ident, union classes [c], keyValues)
 
-roleName :: RSTParser String
+roleName :: PandocMonad m => RSTParser m String
 roleName = many1 (letter <|> char '-')
 
-roleMarker :: RSTParser String
+roleMarker :: PandocMonad m => RSTParser m String
 roleMarker = char ':' *> roleName <* char ':'
 
-roleBefore :: RSTParser (String,String)
+roleBefore :: PandocMonad m => RSTParser m (String,String)
 roleBefore = try $ do
   role <- roleMarker
   contents <- unmarkedInterpretedText
   return (role,contents)
 
-roleAfter :: RSTParser (String,String)
+roleAfter :: PandocMonad m => RSTParser m (String,String)
 roleAfter = try $ do
   contents <- unmarkedInterpretedText
   role <- roleMarker <|> (stateRstDefaultRole <$> getState)
   return (role,contents)
 
-unmarkedInterpretedText :: RSTParser [Char]
+unmarkedInterpretedText :: PandocMonad m => RSTParser m [Char]
 unmarkedInterpretedText = enclosed (atStart $ char '`') (char '`') anyChar
 
-whitespace :: RSTParser Inlines
+whitespace :: PandocMonad m => RSTParser m Inlines
 whitespace = B.space <$ skipMany1 spaceChar <?> "whitespace"
 
-str :: RSTParser Inlines
+str :: Monad m => RSTParser m Inlines
 str = do
   let strChar = noneOf ("\t\n " ++ specialChars)
   result <- many1 strChar
@@ -1095,7 +1110,7 @@ str = do
   return $ B.str result
 
 -- an endline character that can be treated as a space, not a structural break
-endline :: RSTParser Inlines
+endline :: Monad m => RSTParser m Inlines
 endline = try $ do
   newline
   notFollowedBy blankline
@@ -1111,10 +1126,10 @@ endline = try $ do
 -- links
 --
 
-link :: RSTParser Inlines
+link :: PandocMonad m => RSTParser m Inlines
 link = choice [explicitLink, referenceLink, autoLink]  <?> "link"
 
-explicitLink :: RSTParser Inlines
+explicitLink :: PandocMonad m => RSTParser m Inlines
 explicitLink = try $ do
   char '`'
   notFollowedBy (char '`') -- `` marks start of inline code
@@ -1143,7 +1158,7 @@ explicitLink = try $ do
                           _ -> return (src, "", nullAttr)
   return $ B.linkWith attr (escapeURI src') tit label''
 
-referenceLink :: RSTParser Inlines
+referenceLink :: PandocMonad m => RSTParser m Inlines
 referenceLink = try $ do
   (label',ref) <- withRaw (quotedReferenceName <|> simpleReferenceName) <*
                    char '_'
@@ -1169,20 +1184,20 @@ referenceLink = try $ do
   when (isAnonKey key) $ updateState $ \s -> s{ stateKeys = M.delete key keyTable }
   return $ B.linkWith attr src tit label'
 
-autoURI :: RSTParser Inlines
+autoURI :: Monad m => RSTParser m Inlines
 autoURI = do
   (orig, src) <- uri
   return $ B.link src "" $ B.str orig
 
-autoEmail :: RSTParser Inlines
+autoEmail :: Monad m => RSTParser m Inlines
 autoEmail = do
   (orig, src) <- emailAddress
   return $ B.link src "" $ B.str orig
 
-autoLink :: RSTParser Inlines
+autoLink :: PandocMonad m => RSTParser m Inlines
 autoLink = autoURI <|> autoEmail
 
-subst :: RSTParser Inlines
+subst :: PandocMonad m => RSTParser m Inlines
 subst = try $ do
   (_,ref) <- withRaw $ enclosed (char '|') (char '|') inline
   state <- getState
@@ -1196,7 +1211,7 @@ subst = try $ do
          return mempty
        Just target -> return target
 
-note :: RSTParser Inlines
+note :: PandocMonad m => RSTParser m Inlines
 note = try $ do
   optional whitespace
   ref <- noteMarker
@@ -1224,20 +1239,20 @@ note = try $ do
       updateState $ \st -> st{ stateNotes = newnotes }
       return $ B.note contents
 
-smart :: RSTParser Inlines
+smart :: PandocMonad m => RSTParser m Inlines
 smart = do
   getOption readerSmart >>= guard
   doubleQuoted <|> singleQuoted <|>
     choice [apostrophe, dash, ellipses]
 
-singleQuoted :: RSTParser Inlines
+singleQuoted :: PandocMonad m => RSTParser m Inlines
 singleQuoted = try $ do
   singleQuoteStart
   withQuoteContext InSingleQuote $
     B.singleQuoted . trimInlines . mconcat <$>
       many1Till inline singleQuoteEnd
 
-doubleQuoted :: RSTParser Inlines
+doubleQuoted :: PandocMonad m => RSTParser m Inlines
 doubleQuoted = try $ do
   doubleQuoteStart
   withQuoteContext InDoubleQuote $

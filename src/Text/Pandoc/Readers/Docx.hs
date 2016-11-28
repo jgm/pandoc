@@ -82,7 +82,7 @@ import Text.Pandoc.Readers.Docx.Parse
 import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Combine
 import Text.Pandoc.Shared
-import Text.Pandoc.MediaBag (insertMedia, MediaBag)
+import Text.Pandoc.MediaBag (MediaBag)
 import Data.List (delete, intersect)
 import Text.TeXMath (writeTeX)
 import Data.Default (Default)
@@ -96,27 +96,28 @@ import qualified Data.Sequence as Seq (null)
 #if !(MIN_VERSION_base(4,8,0))
 import Data.Traversable (traverse)
 #endif
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import qualified Text.Pandoc.Class as P
 
-import Text.Pandoc.Error
-import Control.Monad.Except
-
-readDocxWithWarnings :: ReaderOptions
-                     -> B.ByteString
-                     -> Either PandocError (Pandoc, MediaBag, [String])
-readDocxWithWarnings opts bytes
+readDocx :: PandocMonad m
+         => ReaderOptions
+         -> B.ByteString
+         -> m Pandoc
+readDocx opts bytes
   | Right archive <- toArchiveOrFail bytes
   , Right (docx, parserWarnings) <- archiveToDocxWithWarnings archive = do
-      (meta, blks, mediaBag, warnings) <- docxToOutput opts docx
-      return (Pandoc meta blks, mediaBag, parserWarnings ++ warnings)
-readDocxWithWarnings _ _ =
-  Left (ParseFailure "couldn't parse docx file")
+      mapM_ P.warn parserWarnings
+      (meta, blks) <- docxToOutput opts docx
+      return $ Pandoc meta blks
+readDocx _ _ =
+  throwError $ PandocSomeError "couldn't parse docx file"
 
-readDocx :: ReaderOptions
+readDocxWithWarnings :: PandocMonad m
+         => ReaderOptions
          -> B.ByteString
-         -> Either PandocError (Pandoc, MediaBag)
-readDocx opts bytes = do
-  (pandoc, mediaBag, _) <- readDocxWithWarnings opts bytes
-  return (pandoc, mediaBag)
+         -> m Pandoc
+readDocxWithWarnings = readDocx
 
 data DState = DState { docxAnchorMap :: M.Map String String
                      , docxMediaBag      :: MediaBag
@@ -137,15 +138,10 @@ data DEnv = DEnv { docxOptions  :: ReaderOptions
 instance Default DEnv where
   def = DEnv def False
 
-type DocxContext = ExceptT PandocError (ReaderT DEnv (State DState))
+type DocxContext m = ReaderT DEnv (StateT DState m)
 
-evalDocxContext :: DocxContext a -> DEnv -> DState -> Either PandocError a
-evalDocxContext ctx env st = flip evalState st . flip runReaderT env . runExceptT $ ctx
-
-addDocxWarning :: String -> DocxContext ()
-addDocxWarning msg = do
-  warnings <- gets docxWarnings
-  modify $ \s -> s {docxWarnings = msg : warnings}
+evalDocxContext :: PandocMonad m => DocxContext m a -> DEnv -> DState -> m a
+evalDocxContext ctx env st = flip evalStateT st $ flip runReaderT env $ ctx
 
 -- This is empty, but we put it in for future-proofing.
 spansToKeep :: [String]
@@ -179,7 +175,7 @@ isEmptyPar (Paragraph _ parParts) =
     isEmptyElem _           = True
 isEmptyPar _ = False
 
-bodyPartsToMeta' :: [BodyPart] -> DocxContext (M.Map String MetaValue)
+bodyPartsToMeta' :: PandocMonad m => [BodyPart] -> DocxContext m (M.Map String MetaValue)
 bodyPartsToMeta' [] = return M.empty
 bodyPartsToMeta' (bp : bps)
   | (Paragraph pPr parParts) <- bp
@@ -195,7 +191,7 @@ bodyPartsToMeta' (bp : bps)
     return $ M.insertWith f metaField (MetaInlines (toList inlines)) remaining
 bodyPartsToMeta' (_ : bps) = bodyPartsToMeta' bps
 
-bodyPartsToMeta :: [BodyPart] -> DocxContext Meta
+bodyPartsToMeta :: PandocMonad m => [BodyPart] -> DocxContext m Meta
 bodyPartsToMeta bps = do
   mp <- bodyPartsToMeta' bps
   let mp' =
@@ -297,7 +293,7 @@ runStyleToTransform rPr
       emph . (runStyleToTransform rPr {rUnderline = Nothing})
   | otherwise = id
 
-runToInlines :: Run -> DocxContext Inlines
+runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
 runToInlines (Run rs runElems)
   | Just (s, _) <- rStyle rs
   , s `elem` codeStyles =
@@ -318,8 +314,7 @@ runToInlines (Endnote bps) = do
   blksList <- smushBlocks <$> (mapM bodyPartToBlocks bps)
   return $ note blksList
 runToInlines (InlineDrawing fp title alt bs ext) = do
-  mediaBag <- gets docxMediaBag
-  modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
+  (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) fp title $ text alt
 runToInlines InlineChart = return $ spanWith ("", ["chart"], []) $ text "[CHART]"
 
@@ -330,7 +325,7 @@ extentToAttr (Just (w, h)) =
     showDim d = show (d / 914400) ++ "in"
 extentToAttr _ = nullAttr
 
-blocksToInlinesWarn :: String -> Blocks -> DocxContext Inlines
+blocksToInlinesWarn :: PandocMonad m => String -> Blocks -> DocxContext m Inlines
 blocksToInlinesWarn cmtId blks = do
   let blkList = toList blks
       notParaOrPlain :: Block -> Bool
@@ -338,10 +333,10 @@ blocksToInlinesWarn cmtId blks = do
       notParaOrPlain (Plain _) = False
       notParaOrPlain _ = True
   when (not $ null $ filter notParaOrPlain blkList)
-    (addDocxWarning $ "Docx comment " ++ cmtId ++ " will not retain formatting")
+    ((lift . lift) $ P.warn $ "Docx comment " ++ cmtId ++ " will not retain formatting")
   return $ fromList $ blocksToInlines blkList
 
-parPartToInlines :: ParPart -> DocxContext Inlines
+parPartToInlines :: PandocMonad m => ParPart -> DocxContext m Inlines
 parPartToInlines (PlainRun r) = runToInlines r
 parPartToInlines (Insertion _ author date runs) = do
   opts <- asks docxOptions
@@ -403,8 +398,7 @@ parPartToInlines (BookMark _ anchor) =
       (modify $ \s -> s { docxAnchorMap = M.insert anchor newAnchor anchorMap})
     return $ spanWith (newAnchor, ["anchor"], []) mempty
 parPartToInlines (Drawing fp title alt bs ext) = do
-  mediaBag <- gets docxMediaBag
-  modify $ \s -> s { docxMediaBag = insertMedia fp Nothing bs mediaBag }
+  (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) fp title $ text alt
 parPartToInlines Chart = do
   return $ spanWith ("", ["chart"], []) $ text "[CHART]"
@@ -426,10 +420,10 @@ isAnchorSpan _ = False
 dummyAnchors :: [String]
 dummyAnchors = ["_GoBack"]
 
-makeHeaderAnchor :: Blocks -> DocxContext Blocks
+makeHeaderAnchor :: PandocMonad m => Blocks -> DocxContext m Blocks
 makeHeaderAnchor bs = traverse makeHeaderAnchor' bs
 
-makeHeaderAnchor' :: Block -> DocxContext Block
+makeHeaderAnchor' :: PandocMonad m => Block -> DocxContext m Block
 -- If there is an anchor already there (an anchor span in the header,
 -- to be exact), we rename and associate the new id with the old one.
 makeHeaderAnchor' (Header n (ident, classes, kvs) ils)
@@ -463,12 +457,12 @@ singleParaToPlain blks
       singleton $ Plain ils
 singleParaToPlain blks = blks
 
-cellToBlocks :: Cell -> DocxContext Blocks
+cellToBlocks :: PandocMonad m => Cell -> DocxContext m Blocks
 cellToBlocks (Cell bps) = do
   blks <- smushBlocks <$> mapM bodyPartToBlocks bps
   return $ fromList $ blocksToDefinitions $ blocksToBullets $ toList blks
 
-rowToBlocksList :: Row -> DocxContext [Blocks]
+rowToBlocksList :: PandocMonad m => Row -> DocxContext m [Blocks]
 rowToBlocksList (Row cells) = do
   blksList <- mapM cellToBlocks cells
   return $ map singleParaToPlain blksList
@@ -518,7 +512,7 @@ parStyleToTransform pPr
          False -> parStyleToTransform pPr'
 parStyleToTransform _ = id
 
-bodyPartToBlocks :: BodyPart -> DocxContext Blocks
+bodyPartToBlocks :: PandocMonad m => BodyPart -> DocxContext m Blocks
 bodyPartToBlocks (Paragraph pPr parparts)
   | not $ null $ codeDivs `intersect` (pStyle pPr) =
     return
@@ -597,7 +591,7 @@ bodyPartToBlocks (OMathPara e) = do
 
 
 -- replace targets with generated anchors.
-rewriteLink' :: Inline -> DocxContext Inline
+rewriteLink' :: PandocMonad m => Inline -> DocxContext m Inline
 rewriteLink' l@(Link attr ils ('#':target, title)) = do
   anchorMap <- gets docxAnchorMap
   return $ case M.lookup target anchorMap of
@@ -605,23 +599,21 @@ rewriteLink' l@(Link attr ils ('#':target, title)) = do
     Nothing        -> l
 rewriteLink' il = return il
 
-rewriteLinks :: [Block] -> DocxContext [Block]
+rewriteLinks :: PandocMonad m => [Block] -> DocxContext m [Block]
 rewriteLinks = mapM (walkM rewriteLink')
 
-bodyToOutput :: Body -> DocxContext (Meta, [Block], MediaBag, [String])
+bodyToOutput :: PandocMonad m => Body -> DocxContext m (Meta, [Block])
 bodyToOutput (Body bps) = do
   let (metabps, blkbps) = sepBodyParts bps
   meta <- bodyPartsToMeta metabps
   blks <- smushBlocks <$> mapM bodyPartToBlocks blkbps
   blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ toList blks
-  mediaBag <- gets docxMediaBag
-  warnings <- gets docxWarnings
-  return $ (meta,
-            blks',
-            mediaBag,
-            warnings)
+  return $ (meta, blks')
 
-docxToOutput :: ReaderOptions -> Docx -> Either PandocError (Meta, [Block], MediaBag, [String])
+docxToOutput :: PandocMonad m
+             => ReaderOptions
+             -> Docx
+             -> m (Meta, [Block])
 docxToOutput opts (Docx (Document _ body)) =
   let dEnv   = def { docxOptions  = opts} in
    evalDocxContext (bodyToOutput body) dEnv def

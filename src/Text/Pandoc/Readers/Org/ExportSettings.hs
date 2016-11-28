@@ -37,14 +37,14 @@ import           Data.Char ( toLower )
 import           Data.Maybe ( listToMaybe )
 
 -- | Read and handle space separated org-mode export settings.
-exportSettings :: OrgParser ()
+exportSettings :: Monad m => OrgParser m ()
 exportSettings = void $ sepBy spaces exportSetting
 
 -- | Setter function for export settings.
 type ExportSettingSetter a = a -> ExportSettings -> ExportSettings
 
 -- | Read and process a single org-mode export option.
-exportSetting :: OrgParser ()
+exportSetting :: Monad m => OrgParser m ()
 exportSetting = choice
   [ booleanSetting "^" (\val es -> es { exportSubSuperscripts = val })
   , booleanSetting "'" (\val es -> es { exportSmartQuotes = val })
@@ -81,10 +81,11 @@ exportSetting = choice
   , ignoredSetting "|"
   ] <?> "export setting"
 
-genericExportSetting :: OrgParser a
+genericExportSetting :: Monad m
+                     => OrgParser m a
                      -> String
                      -> ExportSettingSetter a
-                     -> OrgParser ()
+                     -> OrgParser m ()
 genericExportSetting optionParser settingIdentifier setter = try $ do
   _     <- string settingIdentifier *> char ':'
   value <- optionParser
@@ -94,11 +95,11 @@ genericExportSetting optionParser settingIdentifier setter = try $ do
      st { orgStateExportSettings = setter val . orgStateExportSettings $ st }
 
 -- | A boolean option, either nil (False) or non-nil (True).
-booleanSetting :: String ->  ExportSettingSetter Bool -> OrgParser ()
+booleanSetting :: Monad m => String ->  ExportSettingSetter Bool -> OrgParser m ()
 booleanSetting = genericExportSetting elispBoolean
 
 -- | An integer-valued option.
-integerSetting :: String -> ExportSettingSetter Int -> OrgParser ()
+integerSetting :: Monad m => String -> ExportSettingSetter Int -> OrgParser m ()
 integerSetting = genericExportSetting parseInt
  where
    parseInt = try $
@@ -106,9 +107,10 @@ integerSetting = genericExportSetting parseInt
 
 -- | Either the string "headline" or an elisp boolean and treated as an
 -- @ArchivedTreesOption@.
-archivedTreeSetting :: String
+archivedTreeSetting :: Monad m
+                    => String
                     -> ExportSettingSetter ArchivedTreesOption
-                    -> OrgParser ()
+                    -> OrgParser m ()
 archivedTreeSetting =
   genericExportSetting $ archivedTreesHeadlineSetting <|> archivedTreesBoolean
  where
@@ -125,9 +127,10 @@ archivedTreeSetting =
        else ArchivedTreesNoExport
 
 -- | A list or a complement list (i.e. a list starting with `not`).
-complementableListSetting :: String
+complementableListSetting :: Monad m
+                          => String
                           -> ExportSettingSetter (Either [String] [String])
-                          -> OrgParser ()
+                          -> OrgParser m ()
 complementableListSetting = genericExportSetting $ choice
   [ Left  <$> complementStringList
   , Right <$> stringList
@@ -135,31 +138,31 @@ complementableListSetting = genericExportSetting $ choice
   ]
  where
    -- Read a plain list of strings.
-   stringList :: OrgParser [String]
+   stringList :: Monad m => OrgParser m [String]
    stringList = try $
      char '('
        *> sepBy elispString spaces
        <* char ')'
 
    -- Read an emacs lisp list specifying a complement set.
-   complementStringList :: OrgParser [String]
+   complementStringList :: Monad m => OrgParser m [String]
    complementStringList = try $
      string "(not "
        *> sepBy elispString spaces
        <* char ')'
 
-   elispString :: OrgParser String
+   elispString :: Monad m => OrgParser m String
    elispString = try $
      char '"'
        *> manyTill alphaNum (char '"')
 
 -- | Read but ignore the export setting.
-ignoredSetting :: String -> OrgParser ()
+ignoredSetting :: Monad m => String -> OrgParser m ()
 ignoredSetting s = try (() <$ string s <* char ':' <* many1 nonspaceChar)
 
 -- | Read an elisp boolean.  Only NIL is treated as false, non-NIL values are
 -- interpreted as true.
-elispBoolean :: OrgParser Bool
+elispBoolean :: Monad m => OrgParser m Bool
 elispBoolean = try $ do
   value <- many1 nonspaceChar
   return $ case map toLower value of

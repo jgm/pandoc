@@ -31,24 +31,30 @@ import           Text.Pandoc.Readers.Org.Blocks ( blockList, meta )
 import           Text.Pandoc.Readers.Org.Parsing ( OrgParser, readWithM )
 import           Text.Pandoc.Readers.Org.ParserState ( optionsToParserState )
 
+import           Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
 import           Text.Pandoc.Definition
-import           Text.Pandoc.Error
 import           Text.Pandoc.Options
 
-import           Control.Monad.Reader ( runReader )
+import           Control.Monad.Except ( throwError )
+import           Control.Monad.Reader ( runReaderT )
 
 
 -- | Parse org-mode string and return a Pandoc document.
-readOrg :: ReaderOptions -- ^ Reader options
+readOrg :: PandocMonad m
+        => ReaderOptions -- ^ Reader options
         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-        -> Either PandocError Pandoc
-readOrg opts s = flip runReader def $
-                 readWithM parseOrg (optionsToParserState opts) (s ++ "\n\n")
+        -> m Pandoc
+readOrg opts s = do
+  parsed <- flip runReaderT def $
+            readWithM parseOrg (optionsToParserState opts) (s ++ "\n\n")
+  case parsed of
+    Right result -> return result
+    Left  _      -> throwError $ PandocParseError "problem parsing org"
 
 --
 -- Parser
 --
-parseOrg :: OrgParser Pandoc
+parseOrg :: PandocMonad m => OrgParser m Pandoc
 parseOrg = do
   blocks' <- blockList
   meta'   <- meta

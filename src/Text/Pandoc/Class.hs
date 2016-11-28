@@ -35,6 +35,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , PureState(..)
                          , PureEnv(..)
                          , getPOSIXTime
+                         , addWarningWithPos
                          , PandocIO(..)
                          , PandocPure(..)
                          , PandocExecutionError(..)
@@ -57,6 +58,7 @@ import qualified Text.Pandoc.Shared as IO ( fetchItem
                                           , warn
                                           , readDataFile)
 import Text.Pandoc.Compat.Time (UTCTime)
+import Text.Pandoc.Parsing (ParserT, ParserState, SourcePos)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
 import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
                              , posixSecondsToUTCTime
@@ -109,6 +111,14 @@ class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => 
 getPOSIXTime :: (PandocMonad m) => m POSIXTime
 getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 
+addWarningWithPos :: PandocMonad m
+                  => Maybe SourcePos
+                  -> String
+                  -> ParserT [Char] ParserState m ()
+addWarningWithPos mbpos msg =
+  lift $
+  warn $
+  msg ++ maybe "" (\pos -> " " ++ show pos) mbpos
 
 -- We can add to this as we go
 data PandocExecutionError = PandocFileReadError FilePath

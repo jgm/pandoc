@@ -13,8 +13,9 @@ import Control.Monad.State
 import Data.Default
 import Control.Monad.Except
 import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
 
-type OPML = ExceptT PandocError (State OPMLState)
+type OPML m = StateT OPMLState m
 
 data OPMLState = OPMLState{
                         opmlSectionLevel :: Int
@@ -30,12 +31,14 @@ instance Default OPMLState where
                  , opmlDocDate = mempty
                   }
 
-readOPML :: ReaderOptions -> String -> Either PandocError Pandoc
-readOPML _ inp  = setTitle (opmlDocTitle st')
-                   . setAuthors (opmlDocAuthors st')
-                   . setDate (opmlDocDate st')
-                   . doc . mconcat <$> bs
-  where (bs, st') = flip runState def . runExceptT $ (mapM parseBlock $ normalizeTree $ parseXML inp)
+readOPML :: PandocMonad m => ReaderOptions -> String -> m Pandoc
+readOPML _ inp  = do
+  (bs, st') <- flip runStateT def (mapM parseBlock $ normalizeTree $ parseXML inp)
+  return $
+    setTitle (opmlDocTitle st') $
+    setAuthors (opmlDocAuthors st') $
+    setDate (opmlDocDate st') $
+    doc $ mconcat bs
 
 -- normalize input, consolidating adjacent Text and CRef elements
 normalizeTree :: [Content] -> [Content]
@@ -62,21 +65,22 @@ attrValue attr elt =
     Just z  -> z
     Nothing -> ""
 
-exceptT :: Either PandocError a -> OPML a
-exceptT = either throwError return
+-- exceptT :: PandocMonad m => Either PandocExecutionError a -> OPML m a
+-- exceptT = either throwError return
 
-asHtml :: String -> OPML Inlines
-asHtml s = (\(Pandoc _ bs) -> case bs of
+asHtml :: PandocMonad m => String -> OPML m Inlines
+asHtml s =
+  (\(Pandoc _ bs) -> case bs of
                                 [Plain ils] -> fromList ils
-                                _ -> mempty) <$> exceptT (readHtml def s)
+                                _ -> mempty) <$> (lift $ readHtml def s)
 
-asMarkdown :: String -> OPML Blocks
-asMarkdown s = (\(Pandoc _ bs) -> fromList bs) <$> exceptT (readMarkdown def s)
+asMarkdown :: PandocMonad m => String -> OPML m Blocks
+asMarkdown s = (\(Pandoc _ bs) -> fromList bs) <$> (lift $ readMarkdown def s)
 
-getBlocks :: Element -> OPML Blocks
+getBlocks :: PandocMonad m => Element -> OPML m Blocks
 getBlocks e =  mconcat <$> (mapM parseBlock $ elContent e)
 
-parseBlock :: Content -> OPML Blocks
+parseBlock :: PandocMonad m => Content -> OPML m Blocks
 parseBlock (Elem e) =
   case qName (elName e) of
         "ownerName"    -> mempty <$ modify (\st ->

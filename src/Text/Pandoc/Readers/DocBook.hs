@@ -13,10 +13,9 @@ import Control.Monad.State
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 import Text.TeXMath (readMathML, writeTeX)
-import Text.Pandoc.Error (PandocError)
-import Control.Monad.Except
 import Data.Default
 import Data.Foldable (asum)
+import Text.Pandoc.Class (PandocMonad)
 
 {-
 
@@ -502,7 +501,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] ?asciidoc-br? - line break from asciidoc docbook output
 -}
 
-type DB = ExceptT PandocError (State DBState)
+type DB m = StateT DBState m
 
 data DBState = DBState{ dbSectionLevel :: Int
                       , dbQuoteType    :: QuoteType
@@ -523,10 +522,11 @@ instance Default DBState where
                , dbContent = [] }
 
 
-readDocBook :: ReaderOptions -> String -> Either PandocError Pandoc
-readDocBook _ inp  = (\blocks -> Pandoc (dbMeta st') (toList . mconcat $ blocks)) <$>  bs
-  where (bs , st') = flip runState (def{ dbContent = tree }) . runExceptT . mapM parseBlock $ tree
-        tree = normalizeTree . parseXML . handleInstructions $ inp
+readDocBook :: PandocMonad m => ReaderOptions -> String -> m Pandoc
+readDocBook _ inp = do
+  let tree = normalizeTree . parseXML . handleInstructions $ inp
+  (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock $ tree
+  return $ Pandoc (dbMeta st') (toList . mconcat $ bs)        
 
 -- We treat <?asciidoc-br?> specially (issue #1236), converting it
 -- to <br/>, since xml-light doesn't parse the instruction correctly.
@@ -538,7 +538,7 @@ handleInstructions xs = case break (=='<') xs of
                              ([], '<':zs) -> '<' : handleInstructions zs
                              (ys, zs) -> ys ++ handleInstructions zs
 
-getFigure :: Element -> DB Blocks
+getFigure :: PandocMonad m => Element -> DB m Blocks
 getFigure e = do
   tit <- case filterChild (named "title") e of
               Just t -> getInlines t
@@ -579,20 +579,20 @@ named s e = qName (elName e) == s
 
 --
 
-acceptingMetadata :: DB a -> DB a
+acceptingMetadata :: PandocMonad m => DB m a -> DB m a
 acceptingMetadata p = do
   modify (\s -> s { dbAcceptsMeta = True } )
   res <- p
   modify (\s -> s { dbAcceptsMeta = False })
   return res
 
-checkInMeta :: Monoid a => DB () -> DB a
+checkInMeta :: (PandocMonad m, Monoid a) => DB m () -> DB m a
 checkInMeta p = do
   accepts <- dbAcceptsMeta <$> get
   when accepts p
   return mempty
 
-addMeta :: ToMetaValue a => String -> a -> DB ()
+addMeta :: PandocMonad m => ToMetaValue a => String -> a -> DB m ()
 addMeta field val = modify (setMeta field val)
 
 instance HasMeta DBState where
@@ -631,7 +631,7 @@ addToStart toadd bs =
 -- function that is used by both mediaobject (in parseBlock)
 -- and inlinemediaobject (in parseInline)
 -- A DocBook mediaobject is a wrapper around a set of alternative presentations
-getMediaobject :: Element -> DB Inlines
+getMediaobject :: PandocMonad m => Element -> DB m Inlines
 getMediaobject e = do
   (imageUrl, attr) <-
     case filterChild (named "imageobject") e of
@@ -658,11 +658,11 @@ getMediaobject e = do
                             else (return figTitle, "fig:")
   liftM (imageWith attr imageUrl title) caption
 
-getBlocks :: Element -> DB Blocks
+getBlocks :: PandocMonad m => Element -> DB m Blocks
 getBlocks e =  mconcat <$> (mapM parseBlock $ elContent e)
 
 
-parseBlock :: Content -> DB Blocks
+parseBlock :: PandocMonad m => Content -> DB m Blocks
 parseBlock (Text (CData CDataRaw _ _)) = return mempty -- DOCTYPE
 parseBlock (Text (CData _ s _)) = if all isSpace s
                                      then return mempty
@@ -902,7 +902,7 @@ parseBlock (Elem e) =
          lineItems = mapM getInlines $ filterChildren (named "line") e
          metaBlock = acceptingMetadata (getBlocks e) >> return mempty
 
-getInlines :: Element -> DB Inlines
+getInlines :: PandocMonad m => Element -> DB m Inlines
 getInlines e' = (trimInlines . mconcat) <$> (mapM parseInline $ elContent e')
 
 strContentRecursive :: Element -> String
@@ -913,7 +913,7 @@ elementToStr :: Content -> Content
 elementToStr (Elem e') = Text $ CData CDataText (strContentRecursive e') Nothing
 elementToStr x = x
 
-parseInline :: Content -> DB Inlines
+parseInline :: PandocMonad m => Content -> DB m Inlines
 parseInline (Text (CData _ s _)) = return $ text s
 parseInline (CRef ref) =
   return $ maybe (text $ map toUpper ref) (text) $ lookupEntity ref

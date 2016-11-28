@@ -37,11 +37,12 @@ import Data.Text (unpack, pack)
 import Data.List (groupBy)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad)
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
-readCommonMark :: ReaderOptions -> String -> Either PandocError Pandoc
-readCommonMark opts = Right . nodeToPandoc . commonmarkToNode opts' . pack
+readCommonMark :: PandocMonad m => ReaderOptions -> String -> m Pandoc
+readCommonMark opts s = return $
+  nodeToPandoc $ commonmarkToNode opts' $ pack s
   where opts' = if readerSmart opts
                    then [optNormalize, optSmart]
                    else [optNormalize]

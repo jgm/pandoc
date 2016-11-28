@@ -46,13 +46,12 @@ import Data.Maybe (fromMaybe)
 import Control.Monad (void, guard, when)
 import Data.Default
 import Control.Monad.Reader (Reader, runReader, asks)
-import Text.Pandoc.Error
 
-import Data.Time.LocalTime (getZonedTime)
-import System.Directory(getModificationTime)
 import Data.Time.Format (formatTime)
 import Text.Pandoc.Compat.Time (defaultTimeLocale)
-import System.IO.Error (catchIOError)
+import Control.Monad.Except (throwError, catchError)
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import qualified Text.Pandoc.Class as P
 
 type T2T = ParserT String ParserState (Reader T2TMeta)
 
@@ -69,26 +68,42 @@ instance Default T2TMeta where
     def = T2TMeta "" "" "" ""
 
 -- | Get the meta information required by Txt2Tags macros
-getT2TMeta :: [FilePath] -> FilePath -> IO T2TMeta
-getT2TMeta inps out = do
-    curDate <- formatTime defaultTimeLocale "%F" <$> getZonedTime
+getT2TMeta :: PandocMonad m => m T2TMeta
+getT2TMeta = do
+    mbInps <- P.getInputFiles
+    let inps = case mbInps of
+                  Just x  -> x
+                  Nothing -> []
+    mbOutp <- P.getOutputFile
+    let outp = case mbOutp of
+                 Just x -> x
+                 Nothing -> ""
+    curDate <- formatTime defaultTimeLocale "%F" <$> P.getZonedTime
     let getModTime = fmap (formatTime defaultTimeLocale "%T") .
-                       getModificationTime
+                       P.getModificationTime
     curMtime <- case inps of
-                  [] -> formatTime defaultTimeLocale "%T" <$> getZonedTime
-                  _ -> catchIOError
+                  [] -> formatTime defaultTimeLocale "%T" <$> P.getZonedTime
+                  _ -> catchError
                         (maximum <$> mapM getModTime inps)
                         (const (return ""))
-    return $ T2TMeta curDate curMtime (intercalate ", " inps) out
+    return $ T2TMeta curDate curMtime (intercalate ", " inps) outp
 
 -- | Read Txt2Tags from an input string returning a Pandoc document
-readTxt2Tags :: T2TMeta -> ReaderOptions -> String -> Either PandocError Pandoc
-readTxt2Tags t opts s = flip runReader t $ readWithM parseT2T (def {stateOptions = opts}) (s ++ "\n\n")
+readTxt2Tags :: PandocMonad m
+             => ReaderOptions
+             -> String
+             -> m Pandoc
+readTxt2Tags opts s = do
+  meta <- getT2TMeta
+  let parsed = flip runReader meta $ readWithM parseT2T (def {stateOptions = opts}) (s ++ "\n\n")
+  case parsed of
+    Right result -> return $ result
+    Left _      -> throwError $ PandocParseError "error parsing t2t"
 
 -- | Read Txt2Tags (ignoring all macros) from an input string returning
 -- a Pandoc document
-readTxt2TagsNoMacros :: ReaderOptions -> String -> Either PandocError Pandoc
-readTxt2TagsNoMacros = readTxt2Tags def
+readTxt2TagsNoMacros :: PandocMonad m => ReaderOptions -> String -> m Pandoc
+readTxt2TagsNoMacros = readTxt2Tags
 
 parseT2T :: T2T Pandoc
 parseT2T = do

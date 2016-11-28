@@ -11,13 +11,12 @@ module Text.Pandoc.Readers.EPUB
 import Text.XML.Light
 import Text.Pandoc.Definition hiding (Attr)
 import Text.Pandoc.Readers.HTML (readHtml)
-import Text.Pandoc.Error
 import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Options ( ReaderOptions(..), readerTrace)
 import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
 import Network.URI (unEscapeString)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
-import Control.Monad.Except (MonadError, throwError, runExcept, Except)
+import Control.Monad.Except (throwError)
 import Text.Pandoc.MIME (MimeType)
 import qualified Text.Pandoc.Builder as B
 import Codec.Archive.Zip ( Archive (..), toArchiveOrFail, fromEntry
@@ -33,23 +32,25 @@ import Data.Maybe (mapMaybe, fromMaybe)
 import qualified Data.Map as M (Map, lookup, fromList, elems)
 import Data.Monoid ((<>))
 import Control.DeepSeq (deepseq, NFData)
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import qualified Text.Pandoc.Class as P
 
 import Debug.Trace (trace)
 
 type Items = M.Map String (FilePath, MimeType)
 
-readEPUB :: ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag)
+readEPUB :: PandocMonad m => ReaderOptions -> BL.ByteString -> m Pandoc
 readEPUB opts bytes = case toArchiveOrFail bytes of
-  Right archive -> runEPUB $ archiveToEPUB opts $ archive
-  Left  _       -> Left $ ParseFailure "Couldn't extract ePub file"
+  Right archive -> archiveToEPUB opts $ archive
+  Left  _       -> throwError $ PandocParseError "Couldn't extract ePub file"
 
-runEPUB :: Except PandocError a -> Either PandocError a
-runEPUB = runExcept
+-- runEPUB :: Except PandocError a -> Either PandocError a
+-- runEPUB = runExcept
 
 -- Note that internal reference are aggresively normalised so that all ids
 -- are of the form "filename#id"
 --
-archiveToEPUB :: (MonadError PandocError m) => ReaderOptions -> Archive -> m (Pandoc, MediaBag)
+archiveToEPUB :: (PandocMonad m) => ReaderOptions -> Archive -> m Pandoc
 archiveToEPUB os archive = do
   -- root is path to folder with manifest file in
   (root, content) <- getManifest archive
@@ -63,24 +64,21 @@ archiveToEPUB os archive = do
       foldM' (\a b -> ((a <>) . walk (prependHash escapedSpine))
         `liftM` parseSpineElem root b) mempty spine
   let ast = coverDoc <> (Pandoc meta bs)
-  let mediaBag = fetchImages (M.elems items) root archive ast
-  return $ (ast, mediaBag)
+  P.setMediaBag $ fetchImages (M.elems items) root archive ast
+  return ast
   where
     os' = os {readerParseRaw = True}
-    parseSpineElem :: MonadError PandocError m => FilePath -> (FilePath, MimeType) -> m Pandoc
+    parseSpineElem :: PandocMonad m => FilePath -> (FilePath, MimeType) -> m Pandoc
     parseSpineElem (normalise -> r) (normalise -> path, mime) = do
       when (readerTrace os) (traceM path)
       doc <- mimeToReader mime r path
       let docSpan = B.doc $ B.para $ B.spanWith (takeFileName path, [], []) mempty
       return $ docSpan <> doc
-    mimeToReader :: MonadError PandocError m => MimeType -> FilePath -> FilePath -> m Pandoc
+    mimeToReader :: PandocMonad m => MimeType -> FilePath -> FilePath -> m Pandoc
     mimeToReader "application/xhtml+xml" (unEscapeString -> root)
                                          (unEscapeString -> path) = do
       fname <- findEntryByPathE (root </> path) archive
-      html <- either throwError return .
-                readHtml os' .
-                  UTF8.toStringLazy $
-                    fromEntry fname
+      html <- readHtml os' . UTF8.toStringLazy $ fromEntry fname
       return $ fixInternalReferences path html
     mimeToReader s _ (unEscapeString -> path)
       | s `elem` imageMimes = return $ imageToPandoc path
@@ -121,7 +119,7 @@ imageMimes = ["image/gif", "image/jpeg", "image/png"]
 
 type CoverImage = FilePath
 
-parseManifest :: (MonadError PandocError m) => Element -> m (Maybe CoverImage, Items)
+parseManifest :: (PandocMonad m) => Element -> m (Maybe CoverImage, Items)
 parseManifest content = do
   manifest <- findElementE (dfName "manifest") content
   let items = findChildren (dfName "item") manifest
@@ -137,7 +135,7 @@ parseManifest content = do
       mime <- findAttrE (emptyName "media-type") e
       return (uid, (href, mime))
 
-parseSpine :: MonadError PandocError m => Items -> Element -> m [(FilePath, MimeType)]
+parseSpine :: PandocMonad m => Items -> Element -> m [(FilePath, MimeType)]
 parseSpine is e = do
   spine <- findElementE (dfName "spine") e
   let itemRefs = findChildren (dfName "itemref") spine
@@ -148,7 +146,7 @@ parseSpine is e = do
       guard linear
       findAttr (emptyName "idref") ref
 
-parseMeta :: MonadError PandocError m => Element -> m Meta
+parseMeta :: PandocMonad m => Element -> m Meta
 parseMeta content = do
   meta <- findElementE (dfName "metadata") content
   let dcspace (QName _ (Just "http://purl.org/dc/elements/1.1/") (Just "dc")) = True
@@ -166,7 +164,7 @@ renameMeta :: String -> String
 renameMeta "creator" = "author"
 renameMeta s = s
 
-getManifest :: MonadError PandocError m => Archive -> m (String, Element)
+getManifest :: PandocMonad m => Archive -> m (String, Element)
 getManifest archive = do
   metaEntry <- findEntryByPathE ("META-INF" </> "container.xml") archive
   docElem <- (parseXMLDocE . UTF8.toStringLazy . fromEntry) metaEntry
@@ -268,18 +266,18 @@ emptyName s = QName s Nothing Nothing
 
 -- Convert Maybe interface to Either
 
-findAttrE :: MonadError PandocError m => QName -> Element -> m String
+findAttrE :: PandocMonad m => QName -> Element -> m String
 findAttrE q e = mkE "findAttr" $ findAttr q e
 
-findEntryByPathE :: MonadError PandocError m => FilePath -> Archive -> m Entry
+findEntryByPathE :: PandocMonad m => FilePath -> Archive -> m Entry
 findEntryByPathE (normalise -> path) a =
   mkE ("No entry on path: " ++ path) $ findEntryByPath path a
 
-parseXMLDocE :: MonadError PandocError m => String -> m Element
+parseXMLDocE :: PandocMonad m => String -> m Element
 parseXMLDocE doc = mkE "Unable to parse XML doc" $ parseXMLDoc doc
 
-findElementE :: MonadError PandocError m => QName -> Element -> m Element
+findElementE :: PandocMonad m => QName -> Element -> m Element
 findElementE e x = mkE ("Unable to find element: " ++ show e) $ findElement e x
 
-mkE :: MonadError PandocError m => String -> Maybe a -> m a
-mkE s = maybe (throwError . ParseFailure $ s) return
+mkE :: PandocMonad m => String -> Maybe a -> m a
+mkE s = maybe (throwError . PandocParseError $ s) return

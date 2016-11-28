@@ -30,7 +30,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of twiki text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.TWiki ( readTWiki
-                                 , readTWikiWithWarnings
                                  ) where
 
 import Text.Pandoc.Definition
@@ -48,17 +47,25 @@ import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F
 import Text.Pandoc.Error
 
--- | Read twiki from an input string and return a Pandoc document.
-readTWiki :: ReaderOptions -- ^ Reader options
-          -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-          -> Either PandocError Pandoc
-readTWiki opts s =
-  (readWith parseTWiki) def{ stateOptions = opts } (s ++ "\n\n")
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import qualified Text.Pandoc.Class as P
 
-readTWikiWithWarnings :: ReaderOptions -- ^ Reader options
+-- | Read twiki from an input string and return a Pandoc document.
+readTWiki :: PandocMonad m
+          => ReaderOptions
+          -> String
+          -> m Pandoc
+readTWiki opts s = case readTWikiWithWarnings' opts s of
+  Right (doc, warns) -> do
+    mapM_ P.warn warns
+    return doc
+  Left _ -> throwError $ PandocParseError "couldn't parse TWiki"
+
+readTWikiWithWarnings' :: ReaderOptions -- ^ Reader options
                       -> String        -- ^ String to parse (assuming @'\n'@ line endings)
                       -> Either PandocError (Pandoc, [String])
-readTWikiWithWarnings opts s =
+readTWikiWithWarnings' opts s =
   (readWith parseTWikiWithWarnings) def{ stateOptions = opts } (s ++ "\n\n")
  where parseTWikiWithWarnings = do
          doc <- parseTWiki
