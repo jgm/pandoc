@@ -67,7 +67,7 @@ import qualified Data.Map as M
 import Control.Monad.Except
 import Text.Pandoc.Shared (safeRead, filteredFilesFromArchive)
 import Text.TeXMath.Readers.OMML (readOMML)
-import Text.Pandoc.Readers.Docx.Fonts (getUnicode, Font(..))
+import Text.TeXMath.Unicode.Fonts (getUnicode, stringToFont, Font(..))
 import Text.TeXMath (Exp)
 import Text.Pandoc.Readers.Docx.Util
 import Data.Char (readLitChar, ord, chr, isDigit)
@@ -1020,10 +1020,6 @@ getSymChar ns element
     lowerFromPrivate ('F':xs) = '0':xs
     lowerFromPrivate xs = xs
 getSymChar _ _ = TextRun ""
-
-stringToFont :: String -> Maybe Font
-stringToFont "Symbol" = Just Symbol
-stringToFont _ = Nothing
 
 elemToRunElems :: NameSpaces -> Element -> D [RunElem]
 elemToRunElems ns element

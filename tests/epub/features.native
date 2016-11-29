@@ -75,6 +75,7 @@
  ,Div ("content-mathml-001.xhtml#mathml-027",["section","ctest"],[])
   [Header 2 ("",[],[]) [Span ("",["nature"],[]) [Str "[REQUIRED]"],SoftBreak,Span ("",["test-id"],[]) [Str "mathml-027"],Str "Elementary",Space,Str "math:",Space,Str "long",Space,Str "division",Space,Str "notation"]
   ,Para [Str "Tests",Space,Str "whether",Space,Code ("",[],[]) "mlongdiv",Space,Str "elements",Space,Str "(from",Space,Str "elementary",Space,Str "math)",Space,Str "are",Space,Str "supported."]
+  ,Plain [Span ("",["math"],[("xmlns","http://www.w3.org/1998/Math/MathML")]) [SoftBreak,Str "3",SoftBreak,Str "435.3",SoftBreak,Str "1306",SoftBreak,Str "12",SoftBreak,Str "10",SoftBreak,Str "9",SoftBreak,Str "16",SoftBreak,Str "15",SoftBreak,Str "1.0",SoftBreak,Str "9",SoftBreak,Str "1",SoftBreak]]
   ,Para [Str "The",Space,Str "test",Space,Str "passes",Space,Str "if",Space,Str "the",Space,Str "rendering",Space,Str "looks",Space,Str "like",Space,Str "the",Space,Str "following",Space,Str "image:",Space,Str "."]]]
 ,Para [Span ("content-switch-001.xhtml",[],[]) []]
 ,Div ("content-switch-001.xhtml#epub-switch",["section"],[])
