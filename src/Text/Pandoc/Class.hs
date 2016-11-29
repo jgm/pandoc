@@ -101,6 +101,7 @@ class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => 
   getWarnings :: m [String]
   fail :: String -> m b
   glob :: String -> m [FilePath]
+  setMediaBag :: MediaBag -> m ()
   insertMedia :: FilePath -> Maybe MimeType -> BL.ByteString -> m ()
 
 --Some functions derived from Primitives:
@@ -175,6 +176,8 @@ instance PandocMonad PandocIO where
     liftIO $ IO.warn msg
   getWarnings = gets ioStWarnings
   glob = liftIO . IO.glob
+  setMediaBag mb =
+    modify $ \st -> st{ioStMediaBag = mb}
   insertMedia fp mime bs =
     modify $ \st -> st{ioStMediaBag = MB.insertMedia fp mime bs (ioStMediaBag st) }
 
@@ -298,6 +301,9 @@ instance PandocMonad PandocPure where
   glob s = do
     fontFiles <- asks envFontFiles
     return (filter (match (compile s)) fontFiles)
+
+  setMediaBag mb =
+    modify $ \st -> st{stMediaBag = mb}
 
   insertMedia fp mime bs =
     modify $ \st -> st{stMediaBag = MB.insertMedia fp mime bs (stMediaBag st) }
