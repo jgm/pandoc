@@ -3,7 +3,9 @@
 , GeneralizedNewtypeDeriving
 , TypeSynonymInstances
 , MultiParamTypeClasses
-, FlexibleInstances #-}
+, FlexibleInstances
+, IncoherentInstances #-}
+
 {-
 Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
