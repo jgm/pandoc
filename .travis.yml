@@ -4,8 +4,8 @@
 # Use new container infrastructure to enable caching
 sudo: false
 
-# Choose a lightweight base image; we provide our own build tools.
-language: c
+# Do not choose a language; we provide our own build tools.
+language: generic
 
 # Caching so the next build will be fast too.
 cache:
