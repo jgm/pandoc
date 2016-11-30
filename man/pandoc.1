@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "October 26, 2016" "pandoc 1.18"
+.TH PANDOC 1 "November 30, 2016" "pandoc 1.19"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -446,7 +446,7 @@ Reading binary files (docx, odt, epub) implies \f[C]\-\-file\-scope\f[].
 .RS
 .RE
 .TP
-.B \f[C]\-\-filter=\f[]\f[I]EXECUTABLE\f[]
+.B \f[C]\-\-filter=\f[]\f[I]PROGRAM\f[]
 Specify an executable to be used as a filter transforming the pandoc AST
 after the input is parsed and before the output is written.
 The executable should read JSON from stdin and write JSON to stdout.
@@ -479,12 +479,6 @@ Those who would prefer to write filters in python can use the module
 \f[C]pandocfilters\f[], installable from PyPI.
 There are also pandoc filter libraries in PHP, perl, and
 javascript/node.js.
-.PP
-If no directory is provided pandoc will look for executable or
-non\-executable filters in the director \f[C]$DATADIR/filters\f[], and
-then for executable filters in the user\[aq]s \f[C]PATH\f[].
-If you want to run a script in the working directory, preface the
-filename with \f[C]\&./\f[].
 .PP
 In order of preference, pandoc will look for filters in
 .IP "1." 3
@@ -773,12 +767,13 @@ Deprecated synonym for \f[C]\-\-top\-level\-division=chapter\f[].
 .RS
 .RE
 .TP
-.B \f[C]\-\-top\-level\-division=[section|chapter|part]\f[]
+.B \f[C]\-\-top\-level\-division=[default|section|chapter|part]\f[]
 Treat top\-level headers as the given division type in LaTeX, ConTeXt,
 DocBook, and TEI output.
 The hierarchy order is part, chapter, then section; all headers are
 shifted such that the top\-level header becomes the specified type.
-The default is \f[C]section\f[].
+The default behavior is to determine the best division type via
+heuristics: unless other conditions apply, \f[C]section\f[] is chosen.
 When the LaTeX document class is set to \f[C]report\f[], \f[C]book\f[],
 or \f[C]memoir\f[] (unless the \f[C]article\f[] option is specified),
 \f[C]chapter\f[] is implied as the setting for this option.
@@ -2277,8 +2272,9 @@ Currently, the only output formats that uses this information are HTML
 and LaTeX.
 If highlighting is supported for your output format and language, then
 the code block above will appear highlighted, with numbered lines.
-(To see which languages are supported, do \f[C]pandoc\ \-\-version\f[].)
-Otherwise, the code block above will appear as follows:
+(To see which languages are supported, type
+\f[C]pandoc\ \-\-list\-highlight\-languages\f[].) Otherwise, the code
+block above will appear as follows:
 .IP
 .nf
 \f[C]
@@ -2913,9 +2909,31 @@ The row of \f[C]=\f[]s separates the header from the table body, and can
 be omitted for a headerless table.
 The cells of grid tables may contain arbitrary block elements (multiple
 paragraphs, code blocks, lists, etc.).
-Alignments are not supported, nor are cells that span multiple columns
-or rows.
+Cells that span multiple columns or rows are not supported.
 Grid tables can be created easily using Emacs table mode.
+.PP
+Alignments can be specified as with pipe tables, by putting colons at
+the boundaries of the separator line after the header:
+.IP
+.nf
+\f[C]
++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+
+|\ Right\ \ \ \ \ \ \ \ \ |\ Left\ \ \ \ \ \ \ \ \ \ |\ Centered\ \ \ \ \ \ \ \ \ \ \ |
++==============:+:==============+:==================:+
+|\ Bananas\ \ \ \ \ \ \ |\ $1.34\ \ \ \ \ \ \ \ \ |\ built\-in\ wrapper\ \ \ |
++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+
+\f[]
+.fi
+.PP
+For headerless tables, the colons go on the top line instead:
+.IP
+.nf
+\f[C]
++\-\-\-\-\-\-\-\-\-\-\-\-\-\-:+:\-\-\-\-\-\-\-\-\-\-\-\-\-\-+:\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-:+
+|\ Right\ \ \ \ \ \ \ \ \ |\ Left\ \ \ \ \ \ \ \ \ \ |\ Centered\ \ \ \ \ \ \ \ \ \ \ |
++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+
+\f[]
+.fi
 .SS Extension: \f[C]pipe_tables\f[]
 .PP
 Pipe tables look like this:
@@ -4898,14 +4916,16 @@ Pandoc will automatically highlight syntax in fenced code blocks that
 are marked with a language name.
 The Haskell library highlighting\-kate is used for highlighting, which
 works in HTML, Docx, and LaTeX/PDF output.
+To see a list of language names that pandoc will recognize, type
+\f[C]pandoc\ \-\-list\-highlight\-languages\f[].
+.PP
 The color scheme can be selected using the \f[C]\-\-highlight\-style\f[]
 option.
 The default color scheme is \f[C]pygments\f[], which imitates the
-default color scheme used by the Python library pygments, but pygments
-is not actually used to do the highlighting.
-.PP
-To see a list of language names that pandoc will recognize, type
-\f[C]pandoc\ \-\-version\f[].
+default color scheme used by the Python library pygments (though
+pygments is not actually used to do the highlighting).
+To see a list of highlight styles, type
+\f[C]pandoc\ \-\-list\-hightlight\-styles\f[].
 .PP
 To disable highlighting, use the \f[C]\-\-no\-highlight\f[] option.
 .SH CUSTOM STYLES IN DOCX OUTPUT
