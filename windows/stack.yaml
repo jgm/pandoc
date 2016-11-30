@@ -16,10 +16,8 @@ packages:
 - location:
     git: https://github.com/jgm/pandoc-citeproc.git
     commit: b48cd833dd2356581d86d952d32fb14361ea79c4
-- location:
-    git: https://github.com/jgm/texmath.git
-    commit: 716614e6854a0a25f630896b247d9ff9b55e1995
 extra-deps:
+- texmath-0.9
 - doctemplates-0.1.0.2
 - pandoc-types-1.17.0.4
 resolver: lts-7.9
