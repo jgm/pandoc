@@ -39,6 +39,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , PandocIO(..)
                          , PandocPure(..)
                          , PandocExecutionError(..)
+                         , FileInfo(..)
                          , runIO
                          , runIOorExplode
                          , runPure
@@ -73,6 +74,7 @@ import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
 import System.FilePath ((</>))
 import qualified System.FilePath.Glob as IO (glob)
+import qualified System.Directory as IO (getModificationTime)
 import Control.Monad.State hiding (fail)
 import Control.Monad.Reader hiding (fail)
 import Control.Monad.Except hiding (fail)
@@ -80,6 +82,8 @@ import Data.Word (Word8)
 import Data.Typeable
 import Data.Default
 import System.IO.Error
+import Data.Map (Map)
+import qualified Data.Map as M
 
 class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => PandocMonad m where
   lookupEnv :: String -> m (Maybe String)
@@ -105,6 +109,8 @@ class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => 
   glob :: String -> m [FilePath]
   setMediaBag :: MediaBag -> m ()
   insertMedia :: FilePath -> Maybe MimeType -> BL.ByteString -> m ()
+  getModificationTime :: FilePath -> m UTCTime
+  
 
 --Some functions derived from Primitives:
 
@@ -190,6 +196,11 @@ instance PandocMonad PandocIO where
     modify $ \st -> st{ioStMediaBag = mb}
   insertMedia fp mime bs =
     modify $ \st -> st{ioStMediaBag = MB.insertMedia fp mime bs (ioStMediaBag st) }
+  getModificationTime fp = do
+    eitherMtime <- liftIO (tryIOError $ IO.getModificationTime fp)
+    case eitherMtime of
+      Right mtime -> return mtime
+      Left _ -> throwError $ PandocFileReadError fp
 
 data PureState = PureState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
@@ -210,15 +221,26 @@ instance Default PureState where
                   , stWarnings = []
                   , stUniqStore = [1..]
                   , stMediaBag = mempty
+
+
                   }
+data FileInfo = FileInfo { infoFileMTime :: UTCTime
+                         , infoFileContents :: B.ByteString
+                         }
+
+newtype FileTree = FileTree {unFileTree :: M.Map FilePath FileInfo}
+  deriving (Monoid)
+
+getFileInfo :: FilePath -> FileTree -> Maybe FileInfo
+getFileInfo fp tree = M.lookup fp $ unFileTree tree
 
 data PureEnv = PureEnv { envEnv :: [(String, String)]
                        , envTime :: UTCTime
                        , envReferenceDocx :: Archive
                        , envReferenceODT :: Archive
-                       , envFiles :: [(FilePath, B.ByteString)]
-                       , envUserDataDir :: [(FilePath, B.ByteString)]
-                       , envCabalDataDir :: [(FilePath, B.ByteString)]
+                       , envFiles :: FileTree
+                       , envUserDataDir :: FileTree
+                       , envCabalDataDir :: FileTree
                        , envFontFiles :: [FilePath]
                        }
 
@@ -229,9 +251,9 @@ instance Default PureEnv where
                 , envTime = posixSecondsToUTCTime 0
                 , envReferenceDocx = emptyArchive
                 , envReferenceODT = emptyArchive
-                , envFiles = []
-                , envUserDataDir = []
-                , envCabalDataDir = []
+                , envFiles = mempty
+                , envUserDataDir = mempty
+                , envCabalDataDir = mempty
                 , envFontFiles = []
                 }
 
@@ -277,7 +299,7 @@ instance PandocMonad PandocPure where
       _ -> M.fail "uniq store ran out of elements"
   readFileLazy fp =   do
     fps <- asks envFiles
-    case lookup fp fps of
+    case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return (BL.fromStrict bs)
       Nothing -> throwError $ PandocFileReadError fp
   readDataFile Nothing "reference.docx" = do
@@ -289,13 +311,13 @@ instance PandocMonad PandocPure where
     BL.toStrict <$> (readFileLazy fname')
   readDataFile (Just userDir) fname = do
     userDirFiles <- asks envUserDataDir
-    case lookup (userDir </> fname) userDirFiles of
+    case infoFileContents <$> (getFileInfo (userDir </> fname) userDirFiles) of
       Just bs -> return bs
       Nothing -> readDataFile Nothing fname
   fail = M.fail
   fetchItem _ fp = do
     fps <- asks envFiles
-    case lookup fp fps of
+    case infoFileContents <$> (getFileInfo fp fps) of
       Just bs -> return (Right (bs, getMimeType fp))
       Nothing -> return (Left $ E.toException $ PandocFileReadError fp)
 
@@ -317,3 +339,9 @@ instance PandocMonad PandocPure where
 
   insertMedia fp mime bs =
     modify $ \st -> st{stMediaBag = MB.insertMedia fp mime bs (stMediaBag st) }
+
+  getModificationTime fp = do
+    fps <- asks envFiles
+    case infoFileMTime <$> (getFileInfo fp fps) of
+      Just tm -> return tm
+      Nothing -> throwError $ PandocFileReadError fp
