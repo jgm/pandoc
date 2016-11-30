@@ -31,12 +31,20 @@ pandoc (1.19)
     It is now possible to overwrite this implicitly set top-level division
     via the `top-level-division` command line parameter.
 
-  * Text.Pandoc.Options [API change] (#3197): `Division` has been
-    renamed `TopLevelDivision`.  The `Section`, `Chapter`, and `Part`
-    constructors were renamed to `TopLevelSection`, `TopLevelChapter`, and
-    `TopLevelPart`, respectively. An additional `TopLevelDefault`
-    constructor was added, which is now also the new default value of the
-    `writerTopLevelDivision` field in `WriterOptions`.
+  * Text.Pandoc.Options [API changes]:
+
+    + Removed `writerStandalone` field in `WriterOptions`,
+      made `writerTemplate` a `Maybe` value.  Previously setting
+      `writerStandalone = True` did nothing unless a template was
+      provided in writerTemplate.  Now a fragment will be generated
+      if `writerTemplate` is `Nothing`; otherwise, the specified
+      template will be used and standalone output generated.
+    + `Division` has been renamed `TopLevelDivision` (#3197).
+      The `Section`, `Chapter`, and `Part` constructors were
+      renamed to `TopLevelSection`, `TopLevelChapter`, and
+      `TopLevelPart`, respectively. An additional `TopLevelDefault`
+      constructor was added, which is now also the new default value of the
+      `writerTopLevelDivision` field in `WriterOptions`.
 
   * Improved error if they give wrong arg to `--top-level-division`.
 
