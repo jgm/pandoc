@@ -27,10 +27,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Portability : portable
 
 Conversion of a 'Pandoc' document to a string representation.
-
-Note:  If @writerStandalone@ is @False@, only the document body
-is represented; otherwise, the full 'Pandoc' document, including the
-metadata.
 -}
 module Text.Pandoc.Writers.Native ( writeNative )
 where
@@ -75,8 +71,8 @@ writeNative opts (Pandoc meta blocks) =
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-      withHead = if writerStandalone opts
-                    then \bs -> text ("Pandoc (" ++ show meta ++ ")") $$
+      withHead = case writerTemplate opts of
+                      Just _  -> \bs -> text ("Pandoc (" ++ show meta ++ ")") $$
                                   bs $$ cr
-                    else id
+                      Nothing -> id
   in  render colwidth $ withHead $ prettyList $ map prettyBlock blocks

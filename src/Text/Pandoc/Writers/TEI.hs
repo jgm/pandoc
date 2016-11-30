@@ -78,9 +78,9 @@ writeTEI opts (Pandoc meta blocks) =
                                         MathML _ -> True
                                         _        -> False)
               $ metadata
-  in  if writerStandalone opts
-         then renderTemplate' (writerTemplate opts) context
-         else main
+  in  case writerTemplate opts of
+           Nothing  -> main
+           Just tpl -> renderTemplate' tpl context
 
 -- | Convert an Element to TEI.
 elementToTEI :: WriterOptions -> Int -> Element -> Doc

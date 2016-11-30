@@ -78,9 +78,9 @@ pandocToOrg (Pandoc meta blocks) = do
   let context = defField "body" main
               $ defField "math" hasMath
               $ metadata
-  if writerStandalone opts
-     then return $ renderTemplate' (writerTemplate opts) context
-     else return main
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> return $ renderTemplate' tpl context
 
 -- | Return Org representation of notes.
 notesToOrg :: [[Block]] -> State WriterState Doc

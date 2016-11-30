@@ -184,17 +184,17 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let title' = maybe empty text $ getField "title" metadata
   let authors' = maybe [] (map text) $ getField "author" metadata
   let date' = maybe empty text $ getField "date" metadata
-  let titleblock = case writerStandalone opts of
-                        True | isPlain ->
-                                plainTitleBlock title' authors' date'
-                             | isEnabled Ext_yaml_metadata_block opts ->
-                                 yamlMetadataBlock metadata
-                             | isEnabled Ext_pandoc_title_block opts ->
-                                 pandocTitleBlock title' authors' date'
-                             | isEnabled Ext_mmd_title_block opts ->
-                                 mmdTitleBlock metadata
-                             | otherwise -> empty
-                        False -> empty
+  let titleblock = case writerTemplate opts of
+                        Just _ | isPlain ->
+                                 plainTitleBlock title' authors' date'
+                               | isEnabled Ext_yaml_metadata_block opts ->
+                                   yamlMetadataBlock metadata
+                               | isEnabled Ext_pandoc_title_block opts ->
+                                   pandocTitleBlock title' authors' date'
+                               | isEnabled Ext_mmd_title_block opts ->
+                                   mmdTitleBlock metadata
+                               | otherwise -> empty
+                        Nothing -> empty
   let headerBlocks = filter isHeaderBlock blocks
   let toc = if writerTableOfContents opts
                then tableOfContents opts headerBlocks
@@ -216,9 +216,9 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                      then id
                      else defField "titleblock" (render' titleblock))
                $ metadata
-  if writerStandalone opts
-     then return $ renderTemplate' (writerTemplate opts) context
-     else return main
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> return $ renderTemplate' tpl context
 
 -- | Return markdown representation of reference key table.
 refsToMarkdown :: WriterOptions -> Refs -> MD Doc

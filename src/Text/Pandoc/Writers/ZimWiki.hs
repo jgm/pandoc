@@ -32,7 +32,7 @@ http://zim-wiki.org/manual/Help/Wiki_Syntax.html
 
 module Text.Pandoc.Writers.ZimWiki ( writeZimWiki ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Options ( WriterOptions(writerTableOfContents, writerStandalone, writerTemplate, writerWrapText), WrapOption(..) )
+import Text.Pandoc.Options ( WriterOptions(writerTableOfContents, writerTemplate, writerWrapText), WrapOption(..) )
 import Text.Pandoc.Shared ( escapeURI, linesToPara, removeFormatting, trimr
                           , substitute )
 import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
@@ -71,9 +71,9 @@ pandocToZimWiki opts (Pandoc meta blocks) = do
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts)
                 $ metadata
-  if writerStandalone opts
-     then return $ renderTemplate' (writerTemplate opts) context
-     else return main
+  case writerTemplate opts of
+       Just tpl -> return $ renderTemplate' tpl context
+       Nothing  -> return main
 
 -- | Escape special characters for ZimWiki.
 escapeString :: String -> String

@@ -356,8 +356,7 @@ data ReferenceLocation = EndOfBlock    -- ^ End of block
 
 -- | Options for writers
 data WriterOptions = WriterOptions
-  { writerStandalone       :: Bool   -- ^ Include header and footer
-  , writerTemplate         :: String -- ^ Template to use in standalone mode
+  { writerTemplate         :: Maybe String -- ^ Template to use
   , writerVariables        :: [(String, String)] -- ^ Variables to set in template
   , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents  :: Bool   -- ^ Include table of contents
@@ -405,8 +404,7 @@ data WriterOptions = WriterOptions
   } deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
-  def = WriterOptions { writerStandalone       = False
-                      , writerTemplate         = ""
+  def = WriterOptions { writerTemplate         = Nothing
                       , writerVariables        = []
                       , writerTabStop          = 4
                       , writerTableOfContents  = False

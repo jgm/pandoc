@@ -49,6 +49,7 @@ import Data.Aeson (FromJSON(..), fromJSON, ToJSON (..), Value(Object), Result(..
 import Text.Pandoc.UTF8 (toStringLazy)
 import qualified Data.Traversable as Traversable
 import Data.List ( groupBy )
+import Data.Maybe ( isJust )
 
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -62,7 +63,7 @@ metaToJSON :: Monad m
            -> Meta
            -> m Value
 metaToJSON opts blockWriter inlineWriter (Meta metamap)
-  | writerStandalone opts = do
+  | isJust (writerTemplate opts) = do
     let baseContext = foldl (\acc (x,y) -> setField x y acc) (Object H.empty)
                       $ writerVariables opts
     renderedMap <- Traversable.mapM

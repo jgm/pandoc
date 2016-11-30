@@ -202,11 +202,9 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
   Lua.close lua
   setForeignEncoding enc
   let body = rendered
-  if writerStandalone opts
-     then do
-       let context' = setField "body" body context
-       return $ renderTemplate' (writerTemplate opts) context'
-     else return body
+  case writerTemplate opts of
+       Nothing  -> return body
+       Just tpl -> return $ renderTemplate' tpl $ setField "body" body context
 
 docToCustom :: LuaState -> WriterOptions -> Pandoc -> IO String
 docToCustom lua opts (Pandoc (Meta metamap) blocks) = do

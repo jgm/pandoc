@@ -1292,18 +1292,18 @@ convertWithOpts opts args = do
   let standalone' = standalone || not (isTextFormat format) || pdfOutput
 
   templ <- case templatePath of
-                _ | not standalone' -> return ""
+                _ | not standalone' -> return Nothing
                 Nothing -> do
                            deftemp <- getDefaultTemplate datadir format
                            case deftemp of
                                  Left e   -> throwIO e
-                                 Right t  -> return t
+                                 Right t  -> return (Just t)
                 Just tp -> do
                            -- strip off extensions
                            let tp' = case takeExtension tp of
                                           ""   -> tp <.> format
                                           _    -> tp
-                           E.catch (UTF8.readFile tp')
+                           Just <$> E.catch (UTF8.readFile tp')
                              (\e -> if isDoesNotExistError e
                                        then E.catch
                                              (readDataFileUTF8 datadir
@@ -1416,8 +1416,7 @@ convertWithOpts opts args = do
     _  -> do pairs <- mapM (\s -> sourceToDoc [s]) sources
              return (mconcat $ map fst pairs, mconcat $ map snd pairs)
 
-  let writerOptions = def { writerStandalone       = standalone',
-                            writerTemplate         = templ,
+  let writerOptions = def { writerTemplate         = templ,
                             writerVariables        = variables'',
                             writerTabStop          = tabStop,
                             writerTableOfContents  = toc,

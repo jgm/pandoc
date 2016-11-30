@@ -93,9 +93,9 @@ pandocToTexinfo options (Pandoc meta blocks) = do
               $ defField "superscript" (stSuperscript st)
               $ defField "strikeout" (stStrikeout st)
               $ metadata
-  if writerStandalone options
-     then return $ renderTemplate' (writerTemplate options) context
-     else return body
+  case writerTemplate options of
+       Nothing  -> return body
+       Just tpl -> return $ renderTemplate' tpl context
 
 -- | Escape things as needed for Texinfo.
 stringToTexinfo :: String -> String

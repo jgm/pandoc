@@ -57,11 +57,11 @@ class ToString a where
   toString :: a -> String
 
 instance ToString Pandoc where
-  toString d = writeNative def{ writerStandalone = s } $ toPandoc d
+  toString d = writeNative def{ writerTemplate = s } $ toPandoc d
    where s = case d of
                   (Pandoc (Meta m) _)
-                    | M.null m  -> False
-                    | otherwise -> True
+                    | M.null m  -> Nothing
+                    | otherwise -> Just "" -- need this to get meta output
 
 instance ToString Blocks where
   toString = writeNative def . toPandoc

@@ -8,7 +8,7 @@ import Text.Pandoc.Arbitrary()
 
 p_write_rt :: Pandoc -> Bool
 p_write_rt d =
-  read (writeNative def{ writerStandalone = True } d) == d
+  read (writeNative def{ writerTemplate = Just "" } d) == d
 
 p_write_blocks_rt :: [Block] -> Bool
 p_write_blocks_rt bs = length bs > 20 ||

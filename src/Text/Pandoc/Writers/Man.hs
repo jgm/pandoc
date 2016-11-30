@@ -88,9 +88,9 @@ pandocToMan opts (Pandoc meta blocks) = do
               $ defField "hyphenate" True
               $ defField "pandoc-version" pandocVersion
               $ metadata
-  if writerStandalone opts
-     then return $ renderTemplate' (writerTemplate opts) context
-     else return main
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> return $ renderTemplate' tpl context
 
 -- | Return man representation of notes.
 notesToMan :: WriterOptions -> [[Block]] -> State WriterState Doc

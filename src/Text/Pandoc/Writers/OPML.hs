@@ -56,9 +56,9 @@ writeOPML opts (Pandoc meta blocks) =
                       meta'
       main     = render colwidth $ vcat (map (elementToOPML opts) elements)
       context = defField "body" main metadata
-  in  if writerStandalone opts
-         then renderTemplate' (writerTemplate opts) context
-         else main
+  in  case writerTemplate opts of
+           Nothing  -> main
+           Just tpl -> renderTemplate' tpl context
 
 writeHtmlInlines :: [Inline] -> String
 writeHtmlInlines ils = trim $ writeHtmlString def

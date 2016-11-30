@@ -79,9 +79,9 @@ pandocToMediaWiki (Pandoc meta blocks) = do
   let main = body ++ notes
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts) metadata
-  return $ if writerStandalone opts
-     then renderTemplate' (writerTemplate opts) context
-     else main
+  return $ case writerTemplate opts of
+                Nothing  -> main
+                Just tpl -> renderTemplate' tpl context
 
 -- | Escape special characters for MediaWiki.
 escapeString :: String -> String

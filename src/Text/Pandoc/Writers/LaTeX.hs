@@ -109,7 +109,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let isInternalLink (Link _ _ ('#':xs,_))  = [xs]
       isInternalLink _                      = []
   modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
-  let template = writerTemplate options
+  let template = maybe "" id $ writerTemplate options
   -- set stBook depending on documentclass
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
@@ -246,9 +246,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                       Just "rtl" -> True
                                       _          -> False)
         $ context
-  return $ if writerStandalone options
-              then renderTemplate' template context'
-              else main
+  return $ case writerTemplate options of
+                Nothing  -> main
+                Just tpl -> renderTemplate' tpl context'
 
 -- | Convert Elements to LaTeX
 elementToLaTeX :: WriterOptions -> Element -> State WriterState Doc

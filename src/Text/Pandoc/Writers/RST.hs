@@ -81,9 +81,9 @@ pandocToRST (Pandoc meta blocks) = do
                 (fmap (render colwidth) . blockListToRST)
                 (fmap (trimr . render colwidth) . inlineListToRST)
                 $ deleteMeta "title" $ deleteMeta "subtitle" meta
-  body <- blockListToRST' True $ if writerStandalone opts
-                                    then normalizeHeadings 1 blocks
-                                    else blocks
+  body <- blockListToRST' True $ case writerTemplate opts of
+                                      Just _  -> normalizeHeadings 1 blocks
+                                      Nothing -> blocks
   notes <- liftM (reverse . stNotes) get >>= notesToRST
   -- note that the notes may contain refs, so we do them first
   refs <- liftM (reverse . stLinks) get >>= refsToRST
@@ -99,9 +99,9 @@ pandocToRST (Pandoc meta blocks) = do
               $ defField "math" hasMath
               $ defField "rawtex" rawTeX
               $ metadata
-  if writerStandalone opts
-     then return $ renderTemplate' (writerTemplate opts) context
-     else return main
+  case writerTemplate opts of
+       Nothing  -> return main
+       Just tpl -> return $ renderTemplate' tpl context
   where
     normalizeHeadings lev (Header l a i:bs) =
       Header lev a i:normalizeHeadings (lev+1) cont ++ normalizeHeadings lev bs'

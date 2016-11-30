@@ -47,8 +47,7 @@ tests = [ testGroup "rubrics"
               [ "foo"
               , "==="]
           -- note: heading normalization is only done in standalone mode
-          , test (writeRST def{ writerStandalone = True,
-                                writerTemplate = "$body$\n" } . toPandoc)
+          , test (writeRST def{ writerTemplate = Just "$body$\n" } . toPandoc)
             "heading levels" $
               header 1 (text "Header 1") <>
               header 3 (text "Header 2") <>
@@ -78,8 +77,7 @@ tests = [ testGroup "rubrics"
               , ""
               , "Header 2"
               , "--------"]
-          , test (writeRST def{ writerStandalone = True,
-                                writerTemplate = "$body$\n" } . toPandoc)
+          , test (writeRST def{ writerTemplate = Just "$body$\n" } . toPandoc)
             "minimal heading levels" $
               header 2 (text "Header 1") <>
               header 3 (text "Header 2") <>

@@ -102,17 +102,19 @@ nl opts = if writerWrapText opts == WrapNone
 writeHtmlString :: WriterOptions -> Pandoc -> String
 writeHtmlString opts d =
   let (body, context) = evalState (pandocToHtml opts d) defaultWriterState
-  in  if writerStandalone opts
-         then inTemplate opts context body
-         else renderHtml body
+  in  case writerTemplate opts of
+           Nothing  -> renderHtml body
+           Just tpl -> renderTemplate' tpl $
+                         defField "body" (renderHtml body) context
 
 -- | Convert Pandoc document to Html structure.
 writeHtml :: WriterOptions -> Pandoc -> Html
 writeHtml opts d =
   let (body, context) = evalState (pandocToHtml opts d) defaultWriterState
-  in  if writerStandalone opts
-         then inTemplate opts context body
-         else body
+  in  case writerTemplate opts of
+           Nothing  -> body
+           Just tpl -> renderTemplate' tpl $
+                         defField "body" (renderHtml body) context
 
 -- result is (title, authors, date, toc, body, new variables)
 pandocToHtml :: WriterOptions
@@ -193,14 +195,6 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "html5" (writerHtml5 opts) $
                   metadata
   return (thebody, context)
-
-inTemplate :: TemplateTarget a
-           => WriterOptions
-           -> Value
-           -> Html
-           -> a
-inTemplate opts context body = renderTemplate' (writerTemplate opts)
-                             $ defField "body" (renderHtml body) context
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
 prefixedId :: WriterOptions -> String -> Attribute

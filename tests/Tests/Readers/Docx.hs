@@ -26,11 +26,11 @@ noNorm :: Pandoc -> NoNormPandoc
 noNorm = NoNormPandoc
 
 instance ToString NoNormPandoc where
-  toString d = writeNative def{ writerStandalone = s } $ toPandoc d
+  toString d = writeNative def{ writerTemplate = s } $ toPandoc d
    where s = case d of
                   NoNormPandoc (Pandoc (Meta m) _)
-                    | M.null m  -> False
-                    | otherwise -> True
+                    | M.null m  -> Nothing
+                    | otherwise -> Just "" -- need this to get meta output
 
 instance ToPandoc NoNormPandoc where
   toPandoc = unNoNorm

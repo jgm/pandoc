@@ -80,7 +80,8 @@ writeDocbook opts (Pandoc meta blocks) =
                     then Just $ writerColumns opts
                     else Nothing
       render'  = render colwidth
-      opts'    = if ("/book>" `isSuffixOf` (trimr $ writerTemplate opts) &&
+      opts'    = if (maybe False (("/book>" `isSuffixOf`) . trimr)
+                            (writerTemplate opts) &&
                      TopLevelDefault == writerTopLevelDivision opts)
                     then opts{ writerTopLevelDivision = TopLevelChapter }
                     else opts
@@ -103,9 +104,9 @@ writeDocbook opts (Pandoc meta blocks) =
                                         MathML _ -> True
                                         _        -> False)
               $ metadata
-  in  if writerStandalone opts
-         then renderTemplate' (writerTemplate opts) context
-         else main
+  in  case writerTemplate opts of
+           Nothing   -> main
+           Just tpl  -> renderTemplate' tpl context
 
 -- | Convert an Element to Docbook.
 elementToDocbook :: WriterOptions -> Int -> Element -> Doc

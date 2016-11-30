@@ -77,7 +77,7 @@ writeFB2 :: WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
          -> IO String        -- ^ FictionBook2 document (not encoded yet)
 writeFB2 opts (Pandoc meta blocks) = flip evalStateT newFB $ do
-     modify (\s -> s { writerOptions = opts { writerStandalone = True } })
+     modify (\s -> s { writerOptions = opts })
      desc <- description meta
      fp <- frontpage meta
      secs <- renderSections 1 blocks

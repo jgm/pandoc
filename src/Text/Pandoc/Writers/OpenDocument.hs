@@ -196,9 +196,9 @@ writeOpenDocument opts (Pandoc meta blocks) =
       context = defField "body" body
               $ defField "automatic-styles" (render' automaticStyles)
               $ metadata
-  in  if writerStandalone opts
-         then renderTemplate' (writerTemplate opts) context
-         else body
+  in  case writerTemplate opts of
+           Nothing  -> body
+           Just tpl -> renderTemplate' tpl context
 
 withParagraphStyle :: WriterOptions -> String -> [Block] -> State WriterState Doc
 withParagraphStyle  o s (b:bs)

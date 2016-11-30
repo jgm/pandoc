@@ -342,7 +342,6 @@ writeEPUB opts doc@(Pandoc meta _) = do
            : ("css", "stylesheet.css")
            : writerVariables opts
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
-                  , writerStandalone = True
                   , writerSectionDivs = True
                   , writerHtml5 = epub3
                   , writerVariables = vars
