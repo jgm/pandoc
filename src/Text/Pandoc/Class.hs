@@ -35,6 +35,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , PureState(..)
                          , PureEnv(..)
                          , getPOSIXTime
+                         , getZonedTime
                          , addWarningWithPos
                          , PandocIO(..)
                          , PandocPure(..)
@@ -64,6 +65,8 @@ import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
 import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
                              , posixSecondsToUTCTime
                              , POSIXTime )
+import Data.Time.LocalTime (TimeZone, ZonedTime, utcToZonedTime, utc)
+import qualified Data.Time.LocalTime as IO (getCurrentTimeZone)
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import Text.Pandoc.MediaBag (MediaBag)
 import qualified Text.Pandoc.MediaBag as MB
@@ -82,12 +85,12 @@ import Data.Word (Word8)
 import Data.Typeable
 import Data.Default
 import System.IO.Error
-import Data.Map (Map)
 import qualified Data.Map as M
 
 class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => PandocMonad m where
   lookupEnv :: String -> m (Maybe String)
   getCurrentTime :: m UTCTime
+  getCurrentTimeZone :: m TimeZone
   getDefaultReferenceDocx :: Maybe FilePath -> m Archive
   getDefaultReferenceODT :: Maybe FilePath -> m Archive
   newStdGen :: m StdGen
@@ -116,6 +119,12 @@ class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => 
 
 getPOSIXTime :: (PandocMonad m) => m POSIXTime
 getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
+
+getZonedTime :: (PandocMonad m) => m ZonedTime
+getZonedTime = do
+  t <- getCurrentTime
+  tz <- getCurrentTimeZone
+  return $ utcToZonedTime tz t
 
 addWarningWithPos :: PandocMonad m
                   => Maybe SourcePos
@@ -169,6 +178,7 @@ newtype PandocIO a = PandocIO {
 instance PandocMonad PandocIO where
   lookupEnv = liftIO . IO.lookupEnv
   getCurrentTime = liftIO IO.getCurrentTime
+  getCurrentTimeZone = liftIO IO.getCurrentTimeZone
   getDefaultReferenceDocx = liftIO . IO.getDefaultReferenceDocx
   getDefaultReferenceODT = liftIO . IO.getDefaultReferenceODT
   newStdGen = liftIO IO.newStdGen
@@ -236,6 +246,7 @@ getFileInfo fp tree = M.lookup fp $ unFileTree tree
 
 data PureEnv = PureEnv { envEnv :: [(String, String)]
                        , envTime :: UTCTime
+                       , envTimeZone :: TimeZone
                        , envReferenceDocx :: Archive
                        , envReferenceODT :: Archive
                        , envFiles :: FileTree
@@ -249,6 +260,7 @@ data PureEnv = PureEnv { envEnv :: [(String, String)]
 instance Default PureEnv where
   def = PureEnv { envEnv = [("USER", "pandoc-user")]
                 , envTime = posixSecondsToUTCTime 0
+                , envTimeZone = utc
                 , envReferenceDocx = emptyArchive
                 , envReferenceODT = emptyArchive
                 , envFiles = mempty
@@ -279,6 +291,8 @@ instance PandocMonad PandocPure where
     return (lookup s env)
 
   getCurrentTime = asks envTime
+
+  getCurrentTimeZone = asks envTimeZone
 
   getDefaultReferenceDocx _ = asks envReferenceDocx
 
