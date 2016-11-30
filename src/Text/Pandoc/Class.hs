@@ -110,9 +110,15 @@ class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => 
   getWarnings :: m [String]
   fail :: String -> m b
   glob :: String -> m [FilePath]
+  getModificationTime :: FilePath -> m UTCTime
+  -- The following are common to all instantiations of the monad, up
+  -- to the record names, so I'd like to work out a better way to deal
+  -- with it.
   setMediaBag :: MediaBag -> m ()
   insertMedia :: FilePath -> Maybe MimeType -> BL.ByteString -> m ()
-  getModificationTime :: FilePath -> m UTCTime
+  getInputFiles :: m (Maybe [FilePath])
+  getOutputFile :: m (Maybe FilePath)
+
   
 
 --Some functions derived from Primitives:
@@ -152,8 +158,16 @@ instance Default PandocStateIO where
                       , ioStMediaBag = mempty
                       }
 
+data PandocEnvIO = PandocEnvIO { ioEnvInputFiles :: Maybe [FilePath]
+                               , ioEnvOutputFile :: Maybe FilePath
+                               }
+instance Default PandocEnvIO where
+  def = PandocEnvIO { ioEnvInputFiles = Nothing -- stdin
+                    , ioEnvOutputFile = Nothing -- stdout
+                    }
+
 runIO :: PandocIO a -> IO (Either PandocExecutionError a)
-runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
+runIO ma = flip evalStateT def $ flip runReaderT def $ runExceptT $ unPandocIO ma
 
 runIOorExplode :: PandocIO a -> IO a
 runIOorExplode ma = do
@@ -166,11 +180,12 @@ runIOorExplode ma = do
     Left (PandocSomeError s) -> error s
 
 newtype PandocIO a = PandocIO {
-  unPandocIO :: ExceptT PandocExecutionError (StateT PandocStateIO IO) a
+  unPandocIO :: ExceptT PandocExecutionError (ReaderT PandocEnvIO (StateT PandocStateIO IO)) a
   } deriving ( MonadIO
              , Functor
              , Applicative
              , Monad
+             , MonadReader PandocEnvIO
              , MonadState PandocStateIO
              , MonadError PandocExecutionError
              )
@@ -202,15 +217,20 @@ instance PandocMonad PandocIO where
     liftIO $ IO.warn msg
   getWarnings = gets ioStWarnings
   glob = liftIO . IO.glob
-  setMediaBag mb =
-    modify $ \st -> st{ioStMediaBag = mb}
-  insertMedia fp mime bs =
-    modify $ \st -> st{ioStMediaBag = MB.insertMedia fp mime bs (ioStMediaBag st) }
   getModificationTime fp = do
     eitherMtime <- liftIO (tryIOError $ IO.getModificationTime fp)
     case eitherMtime of
       Right mtime -> return mtime
       Left _ -> throwError $ PandocFileReadError fp
+  -- Common functions
+  setMediaBag mb =
+    modify $ \st -> st{ioStMediaBag = mb}
+  insertMedia fp mime bs =
+    modify $ \st -> st{ioStMediaBag = MB.insertMedia fp mime bs (ioStMediaBag st) }
+  getInputFiles = asks ioEnvInputFiles
+  getOutputFile = asks ioEnvOutputFile
+      
+
 
 data PureState = PureState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
@@ -253,6 +273,8 @@ data PureEnv = PureEnv { envEnv :: [(String, String)]
                        , envUserDataDir :: FileTree
                        , envCabalDataDir :: FileTree
                        , envFontFiles :: [FilePath]
+                       , envInputFiles :: Maybe [FilePath]
+                       , envOutputFile :: Maybe FilePath
                        }
 
 -- We have to figure this out a bit more. But let's put some empty
@@ -267,6 +289,8 @@ instance Default PureEnv where
                 , envUserDataDir = mempty
                 , envCabalDataDir = mempty
                 , envFontFiles = []
+                , envInputFiles = Nothing
+                , envOutputFile = Nothing
                 }
 
 instance E.Exception PandocExecutionError
@@ -348,14 +372,26 @@ instance PandocMonad PandocPure where
     fontFiles <- asks envFontFiles
     return (filter (match (compile s)) fontFiles)
 
+  getModificationTime fp = do
+    fps <- asks envFiles
+    case infoFileMTime <$> (getFileInfo fp fps) of
+      Just tm -> return tm
+      Nothing -> throwError $ PandocFileReadError fp
+
+  -- Common files
+
   setMediaBag mb =
     modify $ \st -> st{stMediaBag = mb}
 
   insertMedia fp mime bs =
     modify $ \st -> st{stMediaBag = MB.insertMedia fp mime bs (stMediaBag st) }
 
-  getModificationTime fp = do
-    fps <- asks envFiles
-    case infoFileMTime <$> (getFileInfo fp fps) of
-      Just tm -> return tm
-      Nothing -> throwError $ PandocFileReadError fp
+  getInputFiles = asks envInputFiles
+
+  getOutputFile = asks envOutputFile
+
+    
+
+    
+
+    
