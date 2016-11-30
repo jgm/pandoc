@@ -40,6 +40,10 @@ pandoc (1.19)
 
   * Improved error if they give wrong arg to `--top-level-division`.
 
+  * Use new module from texmath to lookup MS font codepoints in Docx
+    reader.  Removed unexported module Text.Pandoc.Readers.Docx.Fonts.
+    Its code now lives in texmath (0.9).
+
   * DocBook reader: Fixed xref lookup (#3243).
     It previously only worked when the qnames lacked the docbook
     namespace URI.
