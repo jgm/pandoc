@@ -77,7 +77,9 @@ import Text.Printf (printf)
 import System.Posix.Terminal (queryTerminal)
 import System.Posix.IO (stdOutput)
 #endif
-import Text.Pandoc.Class (runIOorExplode, PandocIO)
+import Control.Monad.Trans
+import Text.Pandoc.Class (runIOorExplode, PandocMonad, PandocIO)
+import qualified Text.Pandoc.Class as P
 
 type Transform = Pandoc -> Pandoc
 
@@ -1285,11 +1287,9 @@ convertWithOpts opts args = do
                               else e
                          Right w -> return w
 
-  reader <- if "t2t" == readerName'
-              then (mkStringReader .
-                    readTxt2Tags) <$>
-                      getT2TMeta sources outputFile
-              else case getReader readerName' of
+  -- TODO: we have to get the input and the output into the state for
+  -- the sake of the text2tags reader. 
+  reader <-  case getReader readerName' of
                 Right r  -> return r
                 Left e   -> err 7 e'
                   where e' = case readerName' of
@@ -1374,19 +1374,26 @@ convertWithOpts opts args = do
     err 5 $ "Cannot write " ++ format ++ " output to stdout.\n" ++
             "Specify an output file using the -o option."
 
-  let readSources [] = mapM readSource ["-"]
-      readSources srcs = mapM readSource srcs
-      readSource "-" = UTF8.getContents
+  let readSource :: MonadIO m => FilePath -> m String
+      readSource "-" = liftIO UTF8.getContents
       readSource src = case parseURI src of
                             Just u | uriScheme u `elem` ["http:","https:"] ->
                                        readURI src
                                    | uriScheme u == "file:" ->
-                                       UTF8.readFile (uriPath u)
-                            _       -> UTF8.readFile src
+                                       liftIO $ UTF8.readFile (uriPath u)
+                            _       -> liftIO $ UTF8.readFile src
+
+
+
+      readSources :: MonadIO m => [FilePath] -> m [String]
+      readSources [] = mapM readSource ["-"]
+      readSources srcs = mapM readSource srcs
+
+      readURI :: MonadIO m => FilePath -> m String
       readURI src = do
-        res <- openURL src
+        res <- liftIO $ openURL src
         case res of
-             Left e        -> throwIO e
+             Left e        -> liftIO $ throwIO e
              Right (bs,_)  -> return $ UTF8.toString bs
 
   let readFiles [] = error "Cannot read archive from stdin"
