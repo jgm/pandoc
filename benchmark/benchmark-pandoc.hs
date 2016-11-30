@@ -20,7 +20,6 @@ import Criterion.Main
 import Criterion.Types (Config(..))
 import Data.Maybe (mapMaybe)
 import Debug.Trace (trace)
-import Text.Pandoc.Error
 
 readerBench :: Pandoc
             -> (String, ReaderOptions -> String -> IO (Either PandocError Pandoc))
