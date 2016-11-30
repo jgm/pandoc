@@ -86,7 +86,6 @@ module Text.Pandoc
                , readJSON
                , readTWiki
                , readTxt2Tags
-               , readTxt2TagsNoMacros
                , readEPUB
                -- * Writers: converting /from/ Pandoc format
                , Writer(..)
@@ -179,8 +178,7 @@ import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Writers.TEI
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (safeRead, warn, mapLeft, pandocVersion)
-import Text.Pandoc.MediaBag (MediaBag)
+import Text.Pandoc.Shared (safeRead, mapLeft, pandocVersion)
 import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad, runIOorExplode, PandocExecutionError(..))
 import Data.Aeson
@@ -266,7 +264,7 @@ readers = [ ("native"       , StringReader $ \_ s -> readNative s)
            ,("twiki"        , StringReader readTWiki)
            ,("docx"         , ByteStringReader readDocx)
            ,("odt"          , ByteStringReader readOdt)
-           -- ,("t2t"          , mkStringReader readTxt2TagsNoMacros)
+           ,("t2t"          , StringReader readTxt2Tags)
            ,("epub"         , ByteStringReader readEPUB)
            ]
 

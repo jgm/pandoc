@@ -29,7 +29,7 @@ Conversion of txt2tags formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Txt2Tags ( readTxt2Tags
                                     , getT2TMeta
                                     , T2TMeta (..)
-                                    , readTxt2TagsNoMacros)
+                                    )
                                     where
 
 import qualified Text.Pandoc.Builder as B
@@ -102,8 +102,8 @@ readTxt2Tags opts s = do
 
 -- | Read Txt2Tags (ignoring all macros) from an input string returning
 -- a Pandoc document
-readTxt2TagsNoMacros :: PandocMonad m => ReaderOptions -> String -> m Pandoc
-readTxt2TagsNoMacros = readTxt2Tags
+-- readTxt2TagsNoMacros :: PandocMonad m => ReaderOptions -> String -> m Pandoc
+-- readTxt2TagsNoMacros = readTxt2Tags
 
 parseT2T :: T2T Pandoc
 parseT2T = do
