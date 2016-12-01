@@ -2,15 +2,15 @@ pandoc (1.19)
 
   * Changed resolution of filter paths.
 
-    -   We now first treat the argument of `--filter` as a full (absolute
-        or relative) path, looking for a program there. If it's found, we
-        run it.
-    -   If not, and if it is a simple program name or a relative path, we
-        try resolving it relative to `$DATADIR/filters`.
-    -   If this fails, then we treat it as a program name and look in the
-        user's PATH.
-    -   Removed a hardcoded '/' that may have caused problems with
-        Windows paths.
+    + We now first treat the argument of `--filter` as a full (absolute
+      or relative) path, looking for a program there. If it's found, we
+      run it.
+    + If not, and if it is a simple program name or a relative path, we
+      try resolving it relative to `$DATADIR/filters`.
+    + If this fails, then we treat it as a program name and look in the
+      user's PATH.
+    + Removed a hardcoded '/' that may have caused problems with
+      Windows paths.
 
     Previously if you did `--filter foo` and you had `foo` in your path and
     also an executable `foo` in your working directory, the one in the path
@@ -32,18 +32,18 @@ pandoc (1.19)
 
   * Text.Pandoc.Options \[API changes\]:
 
-    -   Removed `writerStandalone` field in `WriterOptions`, made
-        `writerTemplate` a `Maybe` value. Previously setting
-        `writerStandalone = True` did nothing unless a template was provided
-        in writerTemplate. Now a fragment will be generated if
-        `writerTemplate` is `Nothing`; otherwise, the specified template
-        will be used and standalone output generated.
-    -   `Division` has been renamed `TopLevelDivision` (#3197). The
-        `Section`, `Chapter`, and `Part` constructors were renamed to
-        `TopLevelSection`, `TopLevelChapter`, and
-        `TopLevelPart`, respectively. An additional `TopLevelDefault`
-        constructor was added, which is now also the new default value of
-        the `writerTopLevelDivision` field in `WriterOptions`.
+    + Removed `writerStandalone` field in `WriterOptions`, made
+      `writerTemplate` a `Maybe` value. Previously setting
+      `writerStandalone = True` did nothing unless a template was provided
+      in writerTemplate. Now a fragment will be generated if
+      `writerTemplate` is `Nothing`; otherwise, the specified template
+      will be used and standalone output generated.
+    + `Division` has been renamed `TopLevelDivision` (#3197). The
+      `Section`, `Chapter`, and `Part` constructors were renamed to
+      `TopLevelSection`, `TopLevelChapter`, and
+      `TopLevelPart`, respectively. An additional `TopLevelDefault`
+      constructor was added, which is now also the new default value of
+      the `writerTopLevelDivision` field in `WriterOptions`.
 
   * Improved error if they give wrong arg to `--top-level-division`.
 
@@ -56,64 +56,64 @@ pandoc (1.19)
 
   * HTML reader:
 
-    -   Improved table parsing (#3027). We now check explicitly for non-1
-        rowspan or colspan attributes, and fail when we encounter them.
-        Previously we checked that each row had the same number of cells,
-        but that could be true even with rowspans/colspans. And there are
-        cases where it isn't true in tables that we can handle fine -- e.g.
-        when a tr element is empty. So now we just pad rows with empty cells
-        when needed.
-    -   Treat `<math>` as MathML by default unless something else is
-        explicitly specified in xmlns. Provided it parses as MathML,
-        of course. Also fixed default which should be to inline math if no
-        display attribute is used.
-    -   Only treat "a" element as link if it has href (#3226). Otherwise
-        treat as span.
+    + Improved table parsing (#3027). We now check explicitly for non-1
+      rowspan or colspan attributes, and fail when we encounter them.
+      Previously we checked that each row had the same number of cells,
+      but that could be true even with rowspans/colspans. And there are
+      cases where it isn't true in tables that we can handle fine -- e.g.
+      when a tr element is empty. So now we just pad rows with empty cells
+      when needed.
+    + Treat `<math>` as MathML by default unless something else is
+      explicitly specified in xmlns. Provided it parses as MathML,
+      of course. Also fixed default which should be to inline math if no
+      display attribute is used.
+    + Only treat "a" element as link if it has href (#3226). Otherwise
+      treat as span.
 
   * Docx reader (Jesse Rosenthal):
 
-    -   Add a placeholder value for CHART. We wrap `[CHART]` in a
-        `<span class="chart">`. Note that it maps to inlines because, in
-        docx, anything in a drawing tag can be part of a larger paragraph.
-    -   Be more specific in parsing images We not only want `w:drawing`,
-        because that could also include charts. Now we specify
-        `w:drawing/pic:pic`. This shouldn't change behavior at all, but it's
-        a first step toward allowing other sorts of drawing data as well.
-    -   Abstract out function to avoid code repetition.
-    -   Update tests for img title and alt (#3204).
-    -   Handle Alt text and titles in images. We use the "description" field
-        as alt text and the "title" field as title. These can be accessed
-        through the "Format Picture" dialog in Word.
-    -   Docx reader utils: handle empty namespace in `elemName`. Previously,
-        if given an empty namespace `(elemName ns "" "foo")` `elemName`
-        would output a QName with a `Just ""` namespace. This is never what
-        we want. Now we output a `Nothing`. If someone *does* want a
-        `Just ""` in the namespace, they can enter the QName
-        value explicitly.
+    + Add a placeholder value for CHART. We wrap `[CHART]` in a
+      `<span class="chart">`. Note that it maps to inlines because, in
+      docx, anything in a drawing tag can be part of a larger paragraph.
+    + Be more specific in parsing images We not only want `w:drawing`,
+      because that could also include charts. Now we specify
+      `w:drawing/pic:pic`. This shouldn't change behavior at all, but it's
+      a first step toward allowing other sorts of drawing data as well.
+    + Abstract out function to avoid code repetition.
+    + Update tests for img title and alt (#3204).
+    + Handle Alt text and titles in images. We use the "description" field
+      as alt text and the "title" field as title. These can be accessed
+      through the "Format Picture" dialog in Word.
+    + Docx reader utils: handle empty namespace in `elemName`. Previously,
+      if given an empty namespace `(elemName ns "" "foo")` `elemName`
+      would output a QName with a `Just ""` namespace. This is never what
+      we want. Now we output a `Nothing`. If someone *does* want a
+      `Just ""` in the namespace, they can enter the QName
+      value explicitly.
 
   * ODT reader/writer:
 
-    -   Inline code when text has a special style (Hubert Plociniczak). When
-        a piece of text has a text `Source_Text` then we assume that this is
-        a piece of the document that represents a code that needs to
-        be inlined. Adapted the writer to also reflect that change.
-        Previously it was just writing a 'preformatted' text using a
-        non-distinguishable font style. Code blocks are still not recognized
-        by the ODT reader. That's a separate issue.
-    -   Infer table's caption from the paragraph (#3224,
-        Hubert Plociniczak). ODT's reader always put empty captions for the
-        parsed tables. This commit
+    + Inline code when text has a special style (Hubert Plociniczak). When
+      a piece of text has a text `Source_Text` then we assume that this is
+      a piece of the document that represents a code that needs to
+      be inlined. Adapted the writer to also reflect that change.
+      Previously it was just writing a 'preformatted' text using a
+      non-distinguishable font style. Code blocks are still not recognized
+      by the ODT reader. That's a separate issue.
+    + Infer table's caption from the paragraph (#3224,
+      Hubert Plociniczak). ODT's reader always put empty captions for the
+      parsed tables. This commit
 
-    1.  checks paragraphs that follow the table definition
-    2.  treats specially a paragraph with a style named 'Table'
-    3.  does some postprocessing of the paragraphs that combines tables
-        followed immediately by captions
+        1.  checks paragraphs that follow the table definition
+        2.  treats specially a paragraph with a style named 'Table'
+        3.  does some postprocessing of the paragraphs that combines tables
+            followed immediately by captions
 
-    The ODT writer used the `TableCaption` style for the caption paragraph.
-    This commit follows the OpenOffice approach which allows for appending
-    captions to table but uses a built-in style named `Table` instead of
-    `TableCaption`. Users of a custom `reference.odt` should change the
-    style's name from `TableCaption` to `Table`.
+	The ODT writer used the `TableCaption` style for the caption
+	paragraph.  This commit follows the OpenOffice approach which allows
+	for appending captions to table but uses a built-in style named
+	`Table` instead of `TableCaption`. Users of a custom `reference.odt`
+	should change the style's name from `TableCaption` to `Table`.
 
   * ODT reader: Infer tables' header props from rows (#3199,
     Hubert Plociniczak). ODT reader simply provided an empty header list
@@ -123,7 +123,7 @@ pandoc (1.19)
 
   * Markdown reader:
 
-    -   Allow reference link labels starting with `@...` if `citations`
+    +   Allow reference link labels starting with `@...` if `citations`
         extension disabled (#3209). Example: in
 
             \[link text\]\[@a\]
@@ -132,7 +132,7 @@ pandoc (1.19)
         a citation. Previously this happened whether or not the `citations`
         extension was enabled. Now it happens only if the `citations`
         extension is enabled.
-    -   Allow alignments to be specified in Markdown grid tables. For
+    +   Allow alignments to be specified in Markdown grid tables. For
         example,
 
             +-------+---------------+--------------------+
@@ -141,32 +141,31 @@ pandoc (1.19)
             | Bananas | $1.34         | built-in wrapper |
             +-------+---------------+--------------------+
 
-    -   Allow Small Caps elements to be created using bracketed spans (as
+    +   Allow Small Caps elements to be created using bracketed spans (as
         they already can be using HTML-syntax spans) (#3191, Kolen Cheung).
 
   * LaTeX reader:
 
-    -   Don't treat `\vspace` and `\hspace` as block commands (#3256).
-        Fixed an error which came up, for example, with `\vspace` inside
-        a caption. (Captions expect inlines.)
-    -   Improved table handling. We can now parse all of the tables emitted
-        by pandoc in our tests. The only thing we don't get yet are
-        alignments and column widths in more complex tables. See #2669.
-    -   Limited support for minipage.
-    -   Allow for `[]`s inside LaTeX optional args. Fixes cases like:
-
-    -   Handle BVerbatim from fancyvrb (#3203).
-    -   Handle hungarumlaut (#3201).
-    -   Allow beamer-style `<...>` options in raw LaTeX (also in Markdown)
-        (#3184). This allows use of things like `\only<2,3>{my content}` in
-        Markdown that is going to be converted to beamer.
+    + Don't treat `\vspace` and `\hspace` as block commands (#3256).
+      Fixed an error which came up, for example, with `\vspace` inside
+      a caption. (Captions expect inlines.)
+    + Improved table handling. We can now parse all of the tables emitted
+      by pandoc in our tests. The only thing we don't get yet are
+      alignments and column widths in more complex tables. See #2669.
+    + Limited support for minipage.
+    + Allow for `[]`s inside LaTeX optional args. Fixes cases like:
+    + Handle BVerbatim from fancyvrb (#3203).
+    + Handle hungarumlaut (#3201).
+    + Allow beamer-style `<...>` options in raw LaTeX (also in Markdown)
+      (#3184). This allows use of things like `\only<2,3>{my content}` in
+      Markdown that is going to be converted to beamer.
 
   * Use pre-wrap for code in dzslides template (Nicolas Porcel). Otherwise
     overly long code will appear on every slide.
 
   * Org reader (Albert Krewinkel):
 
-    -   Respect column width settings (#3246). Table column properties can
+    +   Respect column width settings (#3246). Table column properties can
         optionally specify a column's width with which it is displayed in
         the buffer. Some exporters, notably the ODT exporter in org-mode
         v9.0, use these values to calculate relative column widths. The org
@@ -174,7 +173,7 @@ pandoc (1.19)
         LaTeX and HTML exporters in Emacs don't support this feature yet,
         which should be kept in mind by users who use the column
         widths parameters.
-    -   Allow HTML attribs on non-figure images (#3222). Images which are
+    +   Allow HTML attribs on non-figure images (#3222). Images which are
         the only element in a paragraph can still be given HTML attributes,
         even if the image does not have a caption and is hence not a figure.
         The following will add set the `width` attribute of the image to
@@ -185,16 +184,16 @@ pandoc (1.19)
 
             \[\[file:image.jpg\]\]
 
-    -   Support `ATTR_HTML` for special blocks (#3182). Special
+    +   Support `ATTR_HTML` for special blocks (#3182). Special
         blocks (i.e. blocks with unrecognized names) can be prefixed with an
         `ATTR_HTML` block attribute. The attributes defined in that
         meta-directive are added to the `Div` which is used to represent the
         special block.
-    -   Support the `todo` export option. The `todo` export option allows to
+    +   Support the `todo` export option. The `todo` export option allows to
         toggle the inclusion of TODO keywords in the output. Setting this to
         `nil` causes TODO keywords to be dropped from headlines. The default
         is to include the keywords.
-    -   Add support for todo-markers. Headlines can have optional
+    +   Add support for todo-markers. Headlines can have optional
         todo-markers which can be controlled via the `#+TODO`, `#+SEQ_TODO`,
         or `#+TYP_TODO` meta directive. Multiple such directives can be
         given, each adding a new set of recognized todo-markers. If no
@@ -207,57 +206,57 @@ pandoc (1.19)
 
   * LaTeX writer:
 
-    -   Use `\autocites*` when "suppress-author" citation used.
-    -   Ensure that simple tables have simple cells (#2666). If cells
-        contain more than a single Plain or Para, then we need to set
-        nonzero widths and put contents into minipages.
-    -   Remove invalid inlines in sections (#3218, Hubert Plociniczak).
+    + Use `\autocites*` when "suppress-author" citation used.
+    + Ensure that simple tables have simple cells (#2666). If cells
+      contain more than a single Plain or Para, then we need to set
+      nonzero widths and put contents into minipages.
+    + Remove invalid inlines in sections (#3218, Hubert Plociniczak).
 
   * Markdown writer:
 
-    -   Fix calculation of column widths for aligned multiline tables
-        (#1911, Björn Peemöller). This also fixes excessive CPU and memory
-        usage for tables when `--columns` is set in such a way that cells
-        must be very tiny. Now cells are guaranteed to be big enough so that
-        single words don't need to line break, even if this pushes the line
-        length above the column width.
-    -   Use bracketed form for native spans when `bracketed_spans`
-        enabled (#3229).
-    -   Fixed inconsistent spacing issue (#3232). Previously a tight bullet
-        sublist got rendered with a blank line after, while a tight ordered
-        sublist did not. Now we don't get the blank line in either case.
-    -   Fix escaping of spaces in super/subscript (#3225). Previously two
-        backslashes were inserted, which gave a literal backslash.
-    -   Adjust widths in Markdown grid tables so that they match
-        on round-trip.
+    + Fix calculation of column widths for aligned multiline tables
+      (#1911, Björn Peemöller). This also fixes excessive CPU and memory
+      usage for tables when `--columns` is set in such a way that cells
+      must be very tiny. Now cells are guaranteed to be big enough so that
+      single words don't need to line break, even if this pushes the line
+      length above the column width.
+    + Use bracketed form for native spans when `bracketed_spans`
+      enabled (#3229).
+    + Fixed inconsistent spacing issue (#3232). Previously a tight bullet
+      sublist got rendered with a blank line after, while a tight ordered
+      sublist did not. Now we don't get the blank line in either case.
+    + Fix escaping of spaces in super/subscript (#3225). Previously two
+      backslashes were inserted, which gave a literal backslash.
+    + Adjust widths in Markdown grid tables so that they match
+      on round-trip.
 
   * Docx writer:
 
-    -   Give full detail when there are errors converting tex math.
-    -   Handle title text in images (Jesse Rosenthal). We already handled
-        alt text. This just puts the image "title" into the docx
-        "title" attr.
-    -   Fixed XML markup for empty cells (#3238). Previously the Compact
-        style wasn't being applied properly to empty cells.
+    + Give full detail when there are errors converting tex math.
+    + Handle title text in images (Jesse Rosenthal). We already handled
+      alt text. This just puts the image "title" into the docx
+      "title" attr.
+    + Fixed XML markup for empty cells (#3238). Previously the Compact
+      style wasn't being applied properly to empty cells.
 
   * HTML writer:
 
-    -   Updated `renderHtml` import from blaze-html.
+    + Updated `renderHtml` import from blaze-html.
 
   * Text.Pandoc.Pretty:
 
-    -   Fixed some bugs that caused blank lines in tables (#3251). The bugs
-        caused spurious blank lines in grid tables when we had things like
-        `blankline $$ blankline`.
-    -   Add exported function `minOffet` \[API change\] (Björn Peemöller).
-    -   Added error message for illegal call to `block` (Björn Peemöller).
+    + Fixed some bugs that caused blank lines in tables (#3251). The bugs
+      caused spurious blank lines in grid tables when we had things like
+      `blankline $$ blankline`.
+    + Add exported function `minOffet` \[API change\] (Björn Peemöller).
+    + Added error message for illegal call to `block` (Björn Peemöller).
 
   * Text.Pandoc.Shared:
 
-    -   Put `warn` in MonadIO.
-    -   `fetchItem`: Better handling of protocol-relative URL (#2635). If
-        URL starts with `//` and there is no "base URL" (as there would be
-        if a URL were used on the command line), then default to http:.
+    + Put `warn` in MonadIO.
+    + `fetchItem`: Better handling of protocol-relative URL (#2635). If
+      URL starts with `//` and there is no "base URL" (as there would be
+      if a URL were used on the command line), then default to http:.
 
   * Export Text.Pandoc.getDefaultExtensions \[API change\] (#3178).
 
