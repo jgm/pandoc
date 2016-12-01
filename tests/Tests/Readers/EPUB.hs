@@ -7,10 +7,12 @@ import Test.Framework.Providers.HUnit
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Readers.EPUB
 import Text.Pandoc.MediaBag (MediaBag, mediaDirectory)
-import Text.Pandoc.Error
+import qualified Text.Pandoc.Class as P
 
 getMediaBag :: FilePath -> IO MediaBag
-getMediaBag fp = snd . handleError . readEPUB def <$> BL.readFile fp
+getMediaBag fp = do
+  bs <- BL.readFile fp
+  snd <$> (P.runIOorExplode $ P.withMediaBag $ readEPUB def bs)
 
 testMediaBag :: FilePath -> [(String, String, Int)] -> IO ()
 testMediaBag fp bag = do

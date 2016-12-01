@@ -9,7 +9,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 
 latex :: String -> Pandoc
-latex = handleError . readLaTeX def
+latex = purely $ readLaTeX def
 
 infix 4 =:
 (=:) :: ToString c

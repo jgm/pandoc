@@ -19,7 +19,6 @@ import Prelude hiding ( readFile )
 import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Printf
-import Text.Pandoc.Error
 import Tests.Helpers (purely)
 
 readFileUTF8 :: FilePath -> IO String
@@ -197,7 +196,7 @@ lhsReaderTest format =
   testWithNormalize normalizer "lhs" ["-r", format, "-w", "native"]
     ("lhs-test" <.> format) norm
    where normalizer = purely $ \nat -> do
-                           d <- handleError <$> readNative nat
+                           d <- readNative nat
                            writeNative def $ normalize d
          norm = if format == "markdown+lhs"
                    then "lhs-test-markdown.native"

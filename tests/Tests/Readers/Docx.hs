@@ -13,8 +13,8 @@ import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Codec.Archive.Zip
-import Text.Pandoc.Error
 import Text.Pandoc.Class (runIOorExplode)
+import qualified Text.Pandoc.Class as P
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure
@@ -43,9 +43,9 @@ compareOutput :: ReaderOptions
 compareOutput opts docxFile nativeFile = do
   df <- B.readFile docxFile
   nf <- Prelude.readFile nativeFile
-  let (p, _) = handleError $ readDocx opts df
+  p <- runIOorExplode $ readDocx opts df
   df' <- runIOorExplode $ readNative nf
-  return $ (noNorm p, noNorm $ handleError df')
+  return $ (noNorm p, noNorm df')
 
 testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO Test
 testCompareWithOptsIO opts name docxFile nativeFile = do
@@ -62,7 +62,7 @@ testCompare = testCompareWithOpts def
 testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> IO Test
 testForWarningsWithOptsIO opts name docxFile expected = do
   df <- B.readFile docxFile
-  let (_, _, warns) = handleError $ readDocxWithWarnings opts df
+  warns <-  runIOorExplode (readDocx opts df >> P.getWarnings)
   return $ test id name (unlines warns, unlines expected)
 
 testForWarningsWithOpts :: ReaderOptions -> String -> FilePath -> [String] -> Test
@@ -95,7 +95,7 @@ compareMediaPathIO mediaPath mediaBag docxPath = do
 compareMediaBagIO :: FilePath -> IO Bool
 compareMediaBagIO docxFile = do
     df <- B.readFile docxFile
-    let (_, mb) = handleError $ readDocx def df
+    mb <- runIOorExplode (readDocx def df >> P.getMediaBag)
     bools <- mapM
              (\(fp, _, _) -> compareMediaPathIO fp mb docxFile)
              (mediaDirectory mb)

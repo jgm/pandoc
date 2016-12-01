@@ -10,8 +10,10 @@ import Text.Pandoc
 import Data.List (intersperse)
 import Text.Pandoc.Readers.Txt2Tags
 
+
 t2t :: String -> Pandoc
-t2t = handleError . readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def
+-- t2t = handleError . readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def
+t2t = purely $ readTxt2Tags def
 
 infix 4 =:
 (=:) :: ToString c

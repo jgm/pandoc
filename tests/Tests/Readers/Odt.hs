@@ -5,7 +5,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Definition
-import Text.Pandoc.Class (runIOorExplode)
+import Text.Pandoc.Class (runIOorExplode, runIO, withMediaBag)
 import Tests.Helpers
 import Test.Framework
 import qualified Data.ByteString.Lazy as B
@@ -63,17 +63,16 @@ compareOdtToNative   :: TestCreator
 compareOdtToNative opts odtPath nativePath = do
    nativeFile   <- Prelude.readFile nativePath
    odtFile      <- B.readFile       odtPath
-   native       <- getNoNormVia id  "native" <$>
-                      runIOorExplode (readNative nativeFile)
-   let odt      =  getNoNormVia fst "odt"      $ readOdt      opts odtFile
+   native       <- getNoNormVia id  "native" <$> runIO (readNative nativeFile)
+   odt          <- getNoNormVia id  "odt"    <$> runIO (readOdt  opts odtFile)
    return (odt,native)
 
 compareOdtToMarkdown :: TestCreator
 compareOdtToMarkdown opts odtPath markdownPath = do
    markdownFile <- Prelude.readFile markdownPath
    odtFile      <- B.readFile       odtPath
-   let markdown =  getNoNormVia id  "markdown" $ readMarkdown opts markdownFile
-   let odt      =  getNoNormVia fst "odt"      $ readOdt      opts odtFile
+   markdown     <- getNoNormVia id "markdown" <$> runIO (readMarkdown opts markdownFile)
+   odt          <- getNoNormVia id "odt"      <$> runIO (readOdt      opts odtFile)
    return (odt,markdown)
 
 

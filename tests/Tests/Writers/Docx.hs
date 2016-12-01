@@ -7,7 +7,6 @@ import Tests.Helpers
 import Test.Framework
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Docx
-import Text.Pandoc.Error
 import System.FilePath ((</>))
 import Text.Pandoc.Class (runIOorExplode)
 
@@ -22,10 +21,10 @@ compareOutput opts nativeFileIn nativeFileOut = do
   nf' <- Prelude.readFile nativeFileOut
   let wopts = fst opts
   df <- runIOorExplode $ do
-            d <- handleError <$> readNative nf
+            d <- readNative nf
             writeDocx wopts{writerUserDataDir = Just (".." </> "data")} d
-  df' <- handleError <$> runIOorExplode (readNative nf')
-  let (p, _) = handleError $ readDocx (snd opts) df
+  df' <- runIOorExplode (readNative nf')
+  p <- runIOorExplode $ readDocx (snd opts) df
   return (p, df')
 
 testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO Test

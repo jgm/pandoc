@@ -9,10 +9,10 @@ import Text.Pandoc
 import Data.List (intersperse)
 
 org :: String -> Pandoc
-org = handleError . readOrg def
+org = purely $ readOrg def
 
 orgSmart :: String -> Pandoc
-orgSmart = handleError . readOrg def { readerSmart = True }
+orgSmart = purely $ readOrg def { readerSmart = True }
 
 infix 4 =:
 (=:) :: ToString c
