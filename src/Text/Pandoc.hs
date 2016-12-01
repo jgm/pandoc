@@ -180,7 +180,7 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, mapLeft, pandocVersion)
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad, runIOorExplode, PandocExecutionError(..))
+import Text.Pandoc.Class (PandocMonad, runIOorExplode)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
@@ -387,7 +387,7 @@ class ToJSONFilter a => ToJsonFilter a
         toJsonFilter = toJSONFilter
 
 readJSON :: ReaderOptions -> String -> Either PandocError Pandoc
-readJSON _ = mapLeft ParseFailure . eitherDecode' . UTF8.fromStringLazy
+readJSON _ = mapLeft PandocParseError . eitherDecode' . UTF8.fromStringLazy
 
 writeJSON :: WriterOptions -> Pandoc -> String
 writeJSON _ = UTF8.toStringLazy . encode

@@ -51,7 +51,8 @@ import Data.Char (toLower, isHexDigit, isSpace)
 import Data.Monoid ((<>))
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 
 -- | Parse reStructuredText string and return Pandoc document.

@@ -65,7 +65,8 @@ import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.HTML.TagSoup (Tag(TagOpen), fromAttrib, parseTags)
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 
 -- A Chapter includes a list of blocks and maybe a section

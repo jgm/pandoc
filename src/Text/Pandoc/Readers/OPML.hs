@@ -13,7 +13,7 @@ import Control.Monad.State
 import Data.Default
 import Control.Monad.Except
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Class (PandocMonad)
 
 type OPML m = StateT OPMLState m
 
@@ -65,7 +65,7 @@ attrValue attr elt =
     Just z  -> z
     Nothing -> ""
 
--- exceptT :: PandocMonad m => Either PandocExecutionError a -> OPML m a
+-- exceptT :: PandocMonad m => Either PandocError a -> OPML m a
 -- exceptT = either throwError return
 
 asHtml :: PandocMonad m => String -> OPML m Inlines

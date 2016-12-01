@@ -58,7 +58,8 @@ import Data.Maybe (fromMaybe)
 import Text.Printf (printf)
 import Debug.Trace (trace)
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Error(PandocError(..))
+import Text.Pandoc.Class (PandocMonad)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: PandocMonad m

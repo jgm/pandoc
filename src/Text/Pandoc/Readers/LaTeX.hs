@@ -57,7 +57,7 @@ import Text.Pandoc.Highlighting (fromListingsLanguage)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Error
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..), PandocPure)
+import Text.Pandoc.Class (PandocMonad, PandocPure)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
@@ -939,7 +939,7 @@ type IncludeParser = ParserT String [String] IO String
 
 -- | Replace "include" commands with file contents.
 handleIncludes :: String -> IO (Either PandocError String)
-handleIncludes s =  mapLeft (ParsecError s) <$> runParserT includeParser' [] "input" s
+handleIncludes s =  mapLeft (PandocParsecError s) <$> runParserT includeParser' [] "input" s
 
 includeParser' :: IncludeParser
 includeParser' =

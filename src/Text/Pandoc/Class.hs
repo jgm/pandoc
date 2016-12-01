@@ -39,7 +39,6 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , addWarningWithPos
                          , PandocIO(..)
                          , PandocPure(..)
-                         , PandocExecutionError(..)
                          , FileInfo(..)
                          , runIO
                          , runIOorExplode
@@ -83,12 +82,12 @@ import Control.Monad.State hiding (fail)
 import Control.Monad.Reader hiding (fail)
 import Control.Monad.Except hiding (fail)
 import Data.Word (Word8)
-import Data.Typeable
 import Data.Default
 import System.IO.Error
 import qualified Data.Map as M
+import Text.Pandoc.Error
 
-class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => PandocMonad m where
+class (Functor m, Applicative m, Monad m, MonadError PandocError m) => PandocMonad m where
   lookupEnv :: String -> m (Maybe String)
   getCurrentTime :: m UTCTime
   getCurrentTimeZone :: m TimeZone
@@ -143,12 +142,6 @@ addWarningWithPos mbpos msg =
   warn $
   msg ++ maybe "" (\pos -> " " ++ show pos) mbpos
 
--- We can add to this as we go
-data PandocExecutionError = PandocFileReadError FilePath
-                          | PandocShouldNeverHappenError String
-                          | PandocParseError String
-                          | PandocSomeError String
-                          deriving (Show, Typeable)
 
 -- Nothing in this for now, but let's put it there anyway.
 data PandocStateIO = PandocStateIO { ioStWarnings :: [String]
@@ -168,35 +161,35 @@ instance Default PandocEnvIO where
                     , ioEnvOutputFile = Nothing -- stdout
                     }
 
-runIO :: PandocIO a -> IO (Either PandocExecutionError a)
+runIO :: PandocIO a -> IO (Either PandocError a)
 runIO ma = flip evalStateT def $ flip runReaderT def $ runExceptT $ unPandocIO ma
 
 withMediaBag :: PandocMonad m => m a ->  m (a, MediaBag)
 withMediaBag ma = ((,)) <$> ma <*> getMediaBag
 
 runIOorExplode :: PandocIO a -> IO a
-runIOorExplode ma = do
-  eitherVal <- runIO ma
-  case eitherVal of
-    Right x -> return x
-    Left (PandocFileReadError fp) -> error $ "problem reading " ++ fp
-    Left (PandocShouldNeverHappenError s) -> error s
-    Left (PandocParseError s) -> error $ "parse error" ++ s
-    Left (PandocSomeError s) -> error s
+runIOorExplode ma = handleError <$> runIO ma
+  -- eitherVal <- runIO ma
+  -- case eitherVal of
+  --   Right x -> return x
+  --   Left (PandocFileReadError fp) -> error $ "problem reading " ++ fp
+  --   Left (PandocShouldNeverHappenError s) -> error s
+  --   Left (PandocParseError s) -> error $ "parse error" ++ s
+  --   Left (PandocSomeError s) -> error s
 
     
 
 
 
 newtype PandocIO a = PandocIO {
-  unPandocIO :: ExceptT PandocExecutionError (ReaderT PandocEnvIO (StateT PandocStateIO IO)) a
+  unPandocIO :: ExceptT PandocError (ReaderT PandocEnvIO (StateT PandocStateIO IO)) a
   } deriving ( MonadIO
              , Functor
              , Applicative
              , Monad
              , MonadReader PandocEnvIO
              , MonadState PandocStateIO
-             , MonadError PandocExecutionError
+             , MonadError PandocError
              )
 
 instance PandocMonad PandocIO where
@@ -303,20 +296,18 @@ instance Default PureEnv where
                 , envOutputFile = Nothing
                 }
 
-instance E.Exception PandocExecutionError
-
 newtype PandocPure a = PandocPure {
-  unPandocPure :: ExceptT PandocExecutionError
+  unPandocPure :: ExceptT PandocError
                   (ReaderT PureEnv (State PureState)) a
   } deriving ( Functor
              , Applicative
              , Monad
              , MonadReader PureEnv
              , MonadState PureState
-             , MonadError PandocExecutionError
+             , MonadError PandocError
              )
 
-runPure :: PandocPure a -> Either PandocExecutionError a
+runPure :: PandocPure a -> Either PandocError a
 runPure x = flip evalState def $ flip runReaderT def $ runExceptT $ unPandocPure x
 
 instance PandocMonad PandocPure where

@@ -50,7 +50,8 @@ import Control.Monad.Reader (Reader, runReader, asks)
 import Data.Time.Format (formatTime)
 import Text.Pandoc.Compat.Time (defaultTimeLocale)
 import Control.Monad.Except (throwError, catchError)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 
 type T2T = ParserT String ParserState (Reader T2TMeta)

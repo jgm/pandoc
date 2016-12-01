@@ -46,7 +46,8 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
 import Text.Pandoc.Shared (orderedListMarkers, isHeaderBlock, capitalize,
                            linesToPara)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 
 -- | Data to be written at the end of the document:

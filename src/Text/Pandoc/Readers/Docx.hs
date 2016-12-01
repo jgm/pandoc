@@ -96,8 +96,9 @@ import qualified Data.Sequence as Seq (null)
 #if !(MIN_VERSION_base(4,8,0))
 import Data.Traversable (traverse)
 #endif
+import Text.Pandoc.Error
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 
 readDocx :: PandocMonad m

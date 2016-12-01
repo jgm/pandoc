@@ -45,7 +45,8 @@ import Network.URI ( isURI, unEscapeString )
 import System.FilePath
 import qualified Data.Set as Set
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class ( PandocMonad, PandocExecutionError(..) )
+import Text.Pandoc.Error
+import Text.Pandoc.Class ( PandocMonad)
 
 data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout

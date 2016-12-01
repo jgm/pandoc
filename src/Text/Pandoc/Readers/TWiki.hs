@@ -48,7 +48,7 @@ import qualified Data.Foldable as F
 import Text.Pandoc.Error
 
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 
 -- | Read twiki from an input string and return a Pandoc document.

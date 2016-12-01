@@ -41,8 +41,9 @@ import Data.Maybe (fromMaybe)
 import Text.Pandoc.Pretty
 import Text.Pandoc.Builder (deleteMeta)
 import Control.Monad.State
+import Text.Pandoc.Error
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Class (PandocMonad)
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes  :: Notes

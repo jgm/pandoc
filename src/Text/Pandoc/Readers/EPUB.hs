@@ -32,7 +32,8 @@ import Data.Maybe (mapMaybe, fromMaybe)
 import qualified Data.Map as M (Map, lookup, fromList, elems)
 import Data.Monoid ((<>))
 import Control.DeepSeq (deepseq, NFData)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 
 import Debug.Trace (trace)

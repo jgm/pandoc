@@ -58,7 +58,8 @@ import qualified Data.Vector as V
 import qualified Data.Text as T
 import qualified Data.Set as Set
 import Network.HTTP ( urlEncode )
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad)
 
 type Notes = [[Block]]
 type Ref   = ([Inline], Target, Attr)

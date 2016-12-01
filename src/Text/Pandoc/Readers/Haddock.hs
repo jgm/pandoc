@@ -25,8 +25,9 @@ import Text.Pandoc.Options
 import Documentation.Haddock.Parser
 import Documentation.Haddock.Types
 import Debug.Trace (trace)
+import Text.Pandoc.Error
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Class (PandocMonad)
 
 
 -- | Parse Haddock markup and return a 'Pandoc' document.
@@ -40,7 +41,7 @@ readHaddock opts s = case readHaddockEither opts s of
 
 readHaddockEither :: ReaderOptions -- ^ Reader options
                   -> String        -- ^ String to parse
-                  -> Either PandocExecutionError Pandoc
+                  -> Either PandocError Pandoc
 readHaddockEither opts =
 #if MIN_VERSION_haddock_library(1,2,0)
   Right . B.doc . docHToBlocks . trace' . _doc . parseParas

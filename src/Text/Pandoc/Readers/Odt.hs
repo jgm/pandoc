@@ -41,7 +41,7 @@ import           System.FilePath
 
 import           Control.Monad.Except (throwError)
 
-import           Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import           Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Error
@@ -78,7 +78,7 @@ readOdt' _ bytes = bytesToOdt bytes-- of
 bytesToOdt :: B.ByteString -> Either PandocError (Pandoc, MediaBag)
 bytesToOdt bytes = case toArchiveOrFail bytes of
   Right archive -> archiveToOdt archive
-  Left _        -> Left $ ParseFailure "Couldn't parse odt file."
+  Left _        -> Left $ PandocParseError "Couldn't parse odt file."
 
 --
 archiveToOdt :: Archive -> Either PandocError (Pandoc, MediaBag)
@@ -99,7 +99,7 @@ archiveToOdt archive
 
   | otherwise
     -- Not very detailed, but I don't think more information would be helpful
-  = Left $ ParseFailure "Couldn't parse odt file."
+  = Left $ PandocParseError "Couldn't parse odt file."
     where
       filePathIsOdtMedia :: FilePath -> Bool
       filePathIsOdtMedia fp =

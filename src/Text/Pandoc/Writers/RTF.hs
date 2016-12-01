@@ -44,7 +44,8 @@ import qualified Data.Map as M
 import Text.Printf ( printf )
 import Text.Pandoc.ImageSize
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file,

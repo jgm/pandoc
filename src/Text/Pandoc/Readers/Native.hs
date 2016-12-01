@@ -65,5 +65,5 @@ readInlines :: String -> Either PandocError [Inline]
 readInlines s = maybe ((:[]) <$> readInline s) Right (safeRead s)
 
 readInline :: String -> Either PandocError Inline
-readInline s = maybe (Left . ParseFailure $ "Could not read: " ++ s) Right (safeRead s)
+readInline s = maybe (Left . PandocParseError $ "Could not read: " ++ s) Right (safeRead s)
 

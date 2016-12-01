@@ -68,7 +68,8 @@ import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 import Data.Monoid ((<>))
 import Text.Parsec.Error
 import qualified Data.Set as Set
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad)
 import Control.Monad.Except (throwError)
 
 

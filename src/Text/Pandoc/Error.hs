@@ -33,17 +33,24 @@ module Text.Pandoc.Error (PandocError(..), handleError) where
 
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
-import GHC.Generics (Generic)
 import Data.Generics (Typeable)
 import Control.Exception (Exception)
 
 type Input = String
 
-data PandocError = -- | Generic parse failure
-                   ParseFailure String
-                 -- | Error thrown by a Parsec parser
-                 | ParsecError Input ParseError
-                 deriving (Show, Typeable, Generic)
+data PandocError = PandocFileReadError FilePath
+                 | PandocShouldNeverHappenError String
+                 | PandocSomeError String
+                 | PandocParseError String
+                 | PandocParsecError Input ParseError
+                 deriving (Show, Typeable)
+
+
+-- data PandocError = -- | Generic parse failure
+--                    ParseFailure String
+--                  -- | Error thrown by a Parsec parser
+--                  | ParsecError Input ParseError
+--                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
 
@@ -52,8 +59,11 @@ handleError :: Either PandocError a -> a
 handleError (Right r) = r
 handleError (Left err) =
   case err of
-    ParseFailure string -> error string
-    ParsecError input err' ->
+    PandocFileReadError fp -> error $ "problem reading " ++ fp
+    PandocShouldNeverHappenError s -> error s
+    PandocSomeError s -> error s
+    PandocParseError s -> error s
+    PandocParsecError input err' ->
         let errPos = errorPos err'
             errLine = sourceLine errPos
             errColumn = sourceColumn errPos

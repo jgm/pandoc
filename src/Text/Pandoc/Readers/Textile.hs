@@ -68,7 +68,8 @@ import Control.Monad ( guard, liftM, when )
 import Data.Monoid ((<>))
 import Text.Printf
 import Debug.Trace (trace)
-import Text.Pandoc.Class (PandocMonad, PandocExecutionError(..))
+import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad)
 import Control.Monad.Except (throwError)
 
 -- | Parse a Textile text and return a Pandoc document.
