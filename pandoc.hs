@@ -70,7 +70,6 @@ import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
-import Text.Pandoc.Readers.Txt2Tags (getT2TMeta)
 import Paths_pandoc (getDataDir)
 import Text.Printf (printf)
 #ifndef _WINDOWS
@@ -78,8 +77,7 @@ import System.Posix.Terminal (queryTerminal)
 import System.Posix.IO (stdOutput)
 #endif
 import Control.Monad.Trans
-import Text.Pandoc.Class (runIOorExplode, PandocMonad, PandocIO)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Class (runIOorExplode, withMediaBag, PandocIO)
 
 type Transform = Pandoc -> Pandoc
 
@@ -916,7 +914,7 @@ options =
                            map ("--" ++) longs
                      let allopts = unwords (concatMap optnames options)
                      UTF8.hPutStrLn stdout $ printf tpl allopts
-                         (unwords (map fst readers))
+                         (unwords (map fst (readers :: [(String, Reader PandocIO)])))
                          (unwords (map fst (writers :: [(String, Writer PandocIO)])))
                          (unwords $ map fst highlightingStyles)
                          ddir
@@ -926,7 +924,7 @@ options =
     , Option "" ["list-input-formats"]
                  (NoArg
                   (\_ -> do
-                     let readers'names = sort (map fst readers)
+                     let readers'names = sort (map fst (readers :: [(String, Reader PandocIO)]))
                      mapM_ (UTF8.hPutStrLn stdout) readers'names
                      exitSuccess ))
                  ""
@@ -1410,13 +1408,16 @@ convertWithOpts opts args = do
                                else return . Right
 
   let sourceToDoc :: [FilePath] -> IO (Pandoc, MediaBag)
-      sourceToDoc sources' = fmap handleError $
+      sourceToDoc sources' = 
         case reader of
           StringReader r-> do
             srcs <- convertTabs . intercalate "\n" <$> readSources sources'
             doc <- handleIncludes' srcs
-            either (return . Left) (\s -> fmap (,mempty) <$> r readerOpts s) doc
-          ByteStringReader r -> readFiles sources' >>= r readerOpts
+            case doc of
+              Right doc' -> runIOorExplode $ withMediaBag $ r readerOpts doc'
+              Left e -> error $ show e
+          ByteStringReader r -> readFiles sources' >>=
+                                (\bs -> runIOorExplode $ withMediaBag $ r readerOpts bs)
 
   -- We parse first if (1) fileScope is set, (2), it's a binary
   -- reader, or (3) we're reading JSON. This is easier to do of an AND

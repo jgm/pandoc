@@ -44,6 +44,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , runIO
                          , runIOorExplode
                          , runPure
+                         , withMediaBag
                          ) where
 
 import Prelude hiding (readFile, fail)
@@ -115,6 +116,7 @@ class (Functor m, Applicative m, Monad m, MonadError PandocExecutionError m) => 
   -- to the record names, so I'd like to work out a better way to deal
   -- with it.
   setMediaBag :: MediaBag -> m ()
+  getMediaBag :: m MediaBag
   insertMedia :: FilePath -> Maybe MimeType -> BL.ByteString -> m ()
   getInputFiles :: m (Maybe [FilePath])
   getOutputFile :: m (Maybe FilePath)
@@ -169,6 +171,9 @@ instance Default PandocEnvIO where
 runIO :: PandocIO a -> IO (Either PandocExecutionError a)
 runIO ma = flip evalStateT def $ flip runReaderT def $ runExceptT $ unPandocIO ma
 
+withMediaBag :: PandocMonad m => m a ->  m (a, MediaBag)
+withMediaBag ma = ((,)) <$> ma <*> getMediaBag
+
 runIOorExplode :: PandocIO a -> IO a
 runIOorExplode ma = do
   eitherVal <- runIO ma
@@ -178,6 +183,10 @@ runIOorExplode ma = do
     Left (PandocShouldNeverHappenError s) -> error s
     Left (PandocParseError s) -> error $ "parse error" ++ s
     Left (PandocSomeError s) -> error s
+
+    
+
+
 
 newtype PandocIO a = PandocIO {
   unPandocIO :: ExceptT PandocExecutionError (ReaderT PandocEnvIO (StateT PandocStateIO IO)) a
@@ -225,6 +234,7 @@ instance PandocMonad PandocIO where
   -- Common functions
   setMediaBag mb =
     modify $ \st -> st{ioStMediaBag = mb}
+  getMediaBag = gets ioStMediaBag
   insertMedia fp mime bs =
     modify $ \st -> st{ioStMediaBag = MB.insertMedia fp mime bs (ioStMediaBag st) }
   getInputFiles = asks ioEnvInputFiles
@@ -382,6 +392,8 @@ instance PandocMonad PandocPure where
 
   setMediaBag mb =
     modify $ \st -> st{stMediaBag = mb}
+
+  getMediaBag = gets stMediaBag
 
   insertMedia fp mime bs =
     modify $ \st -> st{stMediaBag = MB.insertMedia fp mime bs (stMediaBag st) }
