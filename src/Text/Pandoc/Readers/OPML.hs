@@ -11,8 +11,6 @@ import Text.HTML.TagSoup.Entity (lookupEntity)
 import Data.Generics
 import Control.Monad.State
 import Data.Default
-import Control.Monad.Except
-import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad)
 
 type OPML m = StateT OPMLState m
