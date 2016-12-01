@@ -518,7 +518,8 @@ Test-Suite test-pandoc
                   containers >= 0.1 && < 0.6,
                   ansi-terminal >= 0.5 && < 0.7,
                   executable-path >= 0.0 && < 0.1,
-                  zip-archive >= 0.2.3.4 && < 0.4
+                  zip-archive >= 0.2.3.4 && < 0.4,
+                  mtl >= 2.2 && < 2.3
   Other-Modules:  Tests.Old
                   Tests.Helpers
                   Tests.Shared

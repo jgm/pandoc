@@ -32,6 +32,7 @@ Typeclass for pandoc readers and writers, allowing both IO and pure instances.
 -}
 
 module Text.Pandoc.Class ( PandocMonad(..)
+                         , CommonState(..)
                          , PureState(..)
                          , PureEnv(..)
                          , getPOSIXTime
