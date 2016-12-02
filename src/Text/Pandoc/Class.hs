@@ -114,13 +114,10 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m, MonadState C
   fail :: String -> m b
   glob :: String -> m [FilePath]
   getModificationTime :: FilePath -> m UTCTime
-  -- The following are common to all instantiations of the monad, up
-  -- to the record names, so I'd like to work out a better way to deal
-  -- with it.
 
   
 
---Some functions derived from Primitives:
+-- Functions defined for all PandocMonad instances
 
 warn :: PandocMonad m => String -> m ()
 warn msg = modify $ \st -> st{stWarnings = msg : stWarnings st}
@@ -144,11 +141,6 @@ getInputFiles = gets stInputFiles
 getOutputFile :: PandocMonad m => m (Maybe FilePath)
 getOutputFile = gets stOutputFile
 
-  
-
-
-
-
 getPOSIXTime :: (PandocMonad m) => m POSIXTime
 getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 
@@ -167,6 +159,11 @@ addWarningWithPos mbpos msg =
   warn $
   msg ++ maybe "" (\pos -> " " ++ show pos) mbpos
 
+--
+
+-- All PandocMonad instances should be an instance MonadState of this
+-- datatype:
+
 data CommonState = CommonState { stWarnings :: [String]
                                , stMediaBag :: MediaBag
                                , stInputFiles :: Maybe [FilePath]
@@ -180,8 +177,6 @@ instance Default CommonState where
                     , stOutputFile = Nothing
                     }
 
--- Nothing in this for now, but let's put it there anyway.
-
 runIO :: PandocIO a -> IO (Either PandocError a)
 runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
 
@@ -190,14 +185,6 @@ withMediaBag ma = ((,)) <$> ma <*> getMediaBag
 
 runIOorExplode :: PandocIO a -> IO a
 runIOorExplode ma = handleError <$> runIO ma
-  -- eitherVal <- runIO ma
-  -- case eitherVal of
-  --   Right x -> return x
-  --   Left (PandocFileReadError fp) -> error $ "problem reading " ++ fp
-  --   Left (PandocShouldNeverHappenError s) -> error s
-  --   Left (PandocParseError s) -> error $ "parse error" ++ s
-  --   Left (PandocSomeError s) -> error s
-
 
 newtype PandocIO a = PandocIO {
   unPandocIO :: ExceptT PandocError (StateT CommonState IO) a
@@ -299,9 +286,6 @@ runPure x = flip evalState def $
             flip evalStateT def $
             runExceptT $
             unPandocPure x
-
--- setPureState :: PureState -> PandocPure ()
--- setPureState st = PandocPure $ lift $ lift $ lift $ put st
 
 instance PandocMonad PandocPure where
   lookupEnv s = PandocPure $ do
