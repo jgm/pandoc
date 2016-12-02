@@ -77,7 +77,7 @@ import System.Posix.Terminal (queryTerminal)
 import System.Posix.IO (stdOutput)
 #endif
 import Control.Monad.Trans
-import Text.Pandoc.Class (runIOorExplode, withMediaBag, PandocIO)
+import Text.Pandoc.Class (withMediaBag, PandocIO)
 
 type Transform = Pandoc -> Pandoc
 
