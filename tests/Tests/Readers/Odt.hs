@@ -5,7 +5,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Readers.Native
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Definition
-import Text.Pandoc.Class (runIOorExplode, runIO, withMediaBag)
+import Text.Pandoc.Class (runIO)
 import Tests.Helpers
 import Test.Framework
 import qualified Data.ByteString.Lazy as B
