@@ -115,7 +115,7 @@ writeHtml :: PandocMonad m => WriterOptions -> Pandoc -> m Html
 writeHtml opts d = do
   (body, context) <- evalStateT (pandocToHtml opts d) defaultWriterState
   return $ case writerTemplate opts of
-             Nothing  -> renderHtml body
+             Nothing  -> body
              Just tpl -> renderTemplate' tpl $
                            defField "body" (renderHtml body) context
 
