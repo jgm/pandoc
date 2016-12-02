@@ -4,7 +4,6 @@
 , TypeSynonymInstances
 , MultiParamTypeClasses
 , FlexibleInstances
-, OverlappingInstances
 , IncoherentInstances #-}
 
 {-
