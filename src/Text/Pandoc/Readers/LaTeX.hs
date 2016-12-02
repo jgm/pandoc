@@ -68,7 +68,7 @@ readLaTeX opts ltx = do
   parsed <- readWithM parseLaTeX def{ stateOptions = opts } ltx
   case parsed of
     Right result -> return result
-    Left _ -> throwError $ PandocParseError "parsing error"
+    Left e -> throwError e
 
 parseLaTeX :: PandocMonad m => LP m Pandoc
 parseLaTeX = do

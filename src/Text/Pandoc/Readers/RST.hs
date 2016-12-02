@@ -51,7 +51,6 @@ import Data.Char (toLower, isHexDigit, isSpace)
 import Data.Monoid ((<>))
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
-import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 
@@ -64,7 +63,7 @@ readRST opts s = do
   parsed <- (readWithM parseRST) def{ stateOptions = opts } (s ++ "\n\n")
   case parsed of
     Right result -> return result
-    Left _       -> throwError $ PandocParseError "error parsing rst"
+    Left e       -> throwError e
 
 readRSTWithWarnings :: PandocMonad m
                     => ReaderOptions -- ^ Reader options

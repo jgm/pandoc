@@ -64,7 +64,7 @@ readOdt opts bytes = case readOdt' opts bytes of
   Right (doc, mb) -> do
     P.setMediaBag mb
     return doc
-  Left _ -> throwError $ PandocParseError "couldn't parse odt"
+  Left e -> throwError e
 
 --
 readOdt' :: ReaderOptions

@@ -68,7 +68,6 @@ import Control.Monad ( guard, liftM, when )
 import Data.Monoid ((<>))
 import Text.Printf
 import Debug.Trace (trace)
-import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad)
 import Control.Monad.Except (throwError)
 
@@ -81,7 +80,7 @@ readTextile opts s = do
   parsed <- readWithM parseTextile def{ stateOptions = opts } (s ++ "\n\n")
   case parsed of
      Right result -> return result
-     Left _ -> throwError $ PandocParseError "textile parse error"
+     Left e -> throwError e
 
 
 -- | Generate a Pandoc ADT from a textile document

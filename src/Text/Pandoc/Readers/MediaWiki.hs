@@ -58,7 +58,6 @@ import Data.Maybe (fromMaybe)
 import Text.Printf (printf)
 import Debug.Trace (trace)
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Error(PandocError(..))
 import Text.Pandoc.Class (PandocMonad)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
@@ -77,7 +76,7 @@ readMediaWiki opts s = do
             (s ++ "\n")
   case parsed of
     Right result -> return result
-    Left _ -> throwError $ PandocParseError "problem parsing mediawiki"
+    Left e -> throwError e
 
 data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwMaxNestingLevel :: Int

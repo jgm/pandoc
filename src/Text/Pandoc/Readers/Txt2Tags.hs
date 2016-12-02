@@ -50,7 +50,6 @@ import Control.Monad.Reader (Reader, runReader, asks)
 import Data.Time.Format (formatTime)
 import Text.Pandoc.Compat.Time (defaultTimeLocale)
 import Control.Monad.Except (throwError, catchError)
-import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 
@@ -99,7 +98,7 @@ readTxt2Tags opts s = do
   let parsed = flip runReader meta $ readWithM parseT2T (def {stateOptions = opts}) (s ++ "\n\n")
   case parsed of
     Right result -> return $ result
-    Left _      -> throwError $ PandocParseError "error parsing t2t"
+    Left e      -> throwError e
 
 -- | Read Txt2Tags (ignoring all macros) from an input string returning
 -- a Pandoc document

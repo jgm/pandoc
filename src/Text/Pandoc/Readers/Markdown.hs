@@ -68,7 +68,6 @@ import Debug.Trace (trace)
 import Data.Monoid ((<>))
 import Control.Monad.Trans (lift)
 import Control.Monad.Except (throwError, catchError)
-import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P 
 
@@ -83,7 +82,7 @@ readMarkdown opts s = do
   parsed <- (readWithM parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
   case parsed of
     Right result -> return result
-    Left _ -> throwError $ PandocParseError "markdown parse error"
+    Left e -> throwError e
 
 -- | Read markdown from an input string and return a pair of a Pandoc document
 -- and a list of warnings.

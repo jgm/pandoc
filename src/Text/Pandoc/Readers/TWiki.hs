@@ -60,7 +60,7 @@ readTWiki opts s = case readTWikiWithWarnings' opts s of
   Right (doc, warns) -> do
     mapM_ P.warn warns
     return doc
-  Left _ -> throwError $ PandocParseError "couldn't parse TWiki"
+  Left e -> throwError e
 
 readTWikiWithWarnings' :: ReaderOptions -- ^ Reader options
                       -> String        -- ^ String to parse (assuming @'\n'@ line endings)
