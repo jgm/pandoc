@@ -108,7 +108,6 @@ import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
 import Text.Pandoc.Builder (Inlines, Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
-import System.Environment (getProgName)
 import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
@@ -1002,15 +1001,13 @@ openURL u
 
 err :: Int -> String -> IO a
 err exitCode msg = do
-  name <- getProgName
-  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+  UTF8.hPutStrLn stderr msg
   exitWith $ ExitFailure exitCode
   return undefined
 
 warn :: MonadIO m => String -> m ()
 warn msg = liftIO $ do
-  name <- getProgName
-  UTF8.hPutStrLn stderr $ "[" ++ name ++ " warning] " ++ msg
+  UTF8.hPutStrLn stderr $ "[warning] " ++ msg
 
 mapLeft :: (a -> b) -> Either a c -> Either b c
 mapLeft f (Left x) = Left (f x)
