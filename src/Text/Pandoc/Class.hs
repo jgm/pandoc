@@ -36,8 +36,8 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , PureState(..)
                          , getPOSIXTime
                          , getZonedTime
-                         , addWarning
-                         , addWarningWithPos
+                         , warning
+                         , warningWithPos
                          , getWarnings
                          , getMediaBag
                          , setMediaBag
@@ -121,8 +121,8 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m, MonadState C
 
 -- Functions defined for all PandocMonad instances
 
-addWarning :: PandocMonad m => String -> m ()
-addWarning msg = modify $ \st -> st{stWarnings = msg : stWarnings st}
+warning :: PandocMonad m => String -> m ()
+warning msg = modify $ \st -> st{stWarnings = msg : stWarnings st}
 
 getWarnings :: PandocMonad m => m [String]
 getWarnings = gets stWarnings
@@ -152,14 +152,12 @@ getZonedTime = do
   tz <- getCurrentTimeZone
   return $ utcToZonedTime tz t
 
-addWarningWithPos :: PandocMonad m
-                  => Maybe SourcePos
-                  -> String
-                  -> ParserT [Char] ParserState m ()
-addWarningWithPos mbpos msg =
-  lift $
-  addWarning $
-  msg ++ maybe "" (\pos -> " " ++ show pos) mbpos
+warningWithPos :: PandocMonad m
+               => Maybe SourcePos
+               -> String
+               -> ParserT [Char] ParserState m ()
+warningWithPos mbpos msg =
+  lift $ warning $ msg ++ maybe "" (\pos -> " " ++ show pos) mbpos
 
 --
 

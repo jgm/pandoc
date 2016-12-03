@@ -147,13 +147,13 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = do
   res <- lift $ P.fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
   case res of
      Left (_ :: E.SomeException) -> do
-       lift $ P.addWarning $ "Could not find image `" ++ src ++ "', skipping..."
+       lift $ P.warning $ "Could not find image `" ++ src ++ "', skipping..."
        return $ Emph lab
      Right (img, mbMimeType) -> do
        (ptX, ptY) <- case imageSize img of
                        Right s  -> return $ sizeInPoints s
                        Left msg -> do
-                         lift $ P.addWarning $ "Could not determine image size in `" ++
+                         lift $ P.warning $ "Could not determine image size in `" ++
                            src ++ "': " ++ msg
                          return (100, 100)
        let dims =

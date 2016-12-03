@@ -398,7 +398,7 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
   let matchingGlob f = do
         xs <- lift $ P.glob f
         when (null xs) $
-          lift $ P.addWarning $ f ++ " did not match any font files."
+          lift $ P.warning $ f ++ " did not match any font files."
         return xs
   let mkFontEntry f = mkEntry (takeFileName f) `fmap` (lift $ P.readFileLazy f)
   fontFiles <- concat <$> mapM matchingGlob (writerEpubFonts opts')
@@ -864,7 +864,7 @@ modifyMediaRef opts oldsrc = do
            (new, mbEntry) <-
                 case res of
                       Left _        -> do
-                        lift $ P.addWarning $ "Could not find media `" ++ oldsrc ++ "', skipping..."
+                        lift $ P.warning $ "Could not find media `" ++ oldsrc ++ "', skipping..."
                         return (oldsrc, Nothing)
                       Right (img,mbMime) -> do
                         let new = "media/file" ++ show (length media) ++

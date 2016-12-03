@@ -626,7 +626,7 @@ directive' = do
             return $ B.divWith attrs children
         other     -> do
             pos <- getPosition
-            P.addWarningWithPos (Just pos) $ "ignoring unknown directive: " ++ other
+            P.warningWithPos (Just pos) $ "ignoring unknown directive: " ++ other
             return mempty
 
 -- TODO:
@@ -654,20 +654,20 @@ addNewRole roleString fields = do
 
     -- warn about syntax we ignore
     flip mapM_ fields $ \(key, _) -> case key of
-        "language" -> when (baseRole /= "code") $ lift $ P.addWarning $
+        "language" -> when (baseRole /= "code") $ lift $ P.warning $
             "ignoring :language: field because the parent of role :" ++
             role ++ ": is :" ++ baseRole ++ ": not :code:"
-        "format" -> when (baseRole /= "raw") $ lift $ P.addWarning $
+        "format" -> when (baseRole /= "raw") $ lift $ P.warning $
             "ignoring :format: field because the parent of role :" ++
             role ++ ": is :" ++ baseRole ++ ": not :raw:"
-        _ -> lift $ P.addWarning $ "ignoring unknown field :" ++ key ++
+        _ -> lift $ P.warning $ "ignoring unknown field :" ++ key ++
              ": in definition of role :" ++ role ++ ": in"
     when (parentRole == "raw" && countKeys "format" > 1) $
-        lift $ P.addWarning $
+        lift $ P.warning $
         "ignoring :format: fields after the first in the definition of role :"
         ++ role ++": in"
     when (parentRole == "code" && countKeys "language" > 1) $
-        lift $ P.addWarning $
+        lift $ P.warning $
         "ignoring :language: fields after the first in the definition of role :"
         ++ role ++": in"
 
@@ -1065,7 +1065,7 @@ renderRole contents fmt role attr = case role of
                 renderRole contents newFmt newRole newAttr
             Nothing -> do
                 pos <- getPosition
-                P.addWarningWithPos (Just pos) $ "ignoring unknown role :" ++ custom ++ ": in"
+                P.warningWithPos (Just pos) $ "ignoring unknown role :" ++ custom ++ ": in"
                 return $ B.str contents -- Undefined role
  where
    titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour

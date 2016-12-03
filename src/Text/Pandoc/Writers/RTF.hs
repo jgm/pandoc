@@ -36,7 +36,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Walk
-import Text.Pandoc.Class (addWarning)
+import Text.Pandoc.Class (warning)
 import Data.List ( isSuffixOf, intercalate )
 import Data.Char ( ord, chr, isDigit )
 import qualified Data.ByteString as B
@@ -64,7 +64,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = do
                        _            -> throwError $ PandocSomeError "Unknown file type"
          sizeSpec <- case imageSize imgdata of
                              Left msg -> do
-                               addWarning $ "Could not determine image size in `" ++
+                               warning $ "Could not determine image size in `" ++
                                  src ++ "': " ++ msg
                                return ""
                              Right sz -> return $ "\\picw" ++ show xpx ++
@@ -78,17 +78,17 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = do
                     concat bytes ++ "}"
          if B.null imgdata
             then do
-              addWarning $ "Image " ++ src ++ " contained no data, skipping."
+              warning $ "Image " ++ src ++ " contained no data, skipping."
               return x
             else return $ RawInline (Format "rtf") raw
          | otherwise -> do
-           addWarning $ "Image " ++ src ++ " is not a jpeg or png, skipping."
+           warning $ "Image " ++ src ++ " is not a jpeg or png, skipping."
            return x
        Right (_, Nothing) -> do
-         addWarning $ "Could not determine image type for " ++ src ++ ", skipping."
+         warning $ "Could not determine image type for " ++ src ++ ", skipping."
          return x
        Left e -> do
-         addWarning $ "Could not fetch image " ++ src ++ "\n" ++ show e
+         warning $ "Could not fetch image " ++ src ++ "\n" ++ show e
          return x
 rtfEmbedImage _ x = return x
 

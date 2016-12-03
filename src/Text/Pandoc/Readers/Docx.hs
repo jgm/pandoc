@@ -108,7 +108,7 @@ readDocx :: PandocMonad m
 readDocx opts bytes
   | Right archive <- toArchiveOrFail bytes
   , Right (docx, parserWarnings) <- archiveToDocxWithWarnings archive = do
-      mapM_ P.addWarning parserWarnings
+      mapM_ P.warning parserWarnings
       (meta, blks) <- docxToOutput opts docx
       return $ Pandoc meta blks
 readDocx _ _ =
@@ -334,7 +334,7 @@ blocksToInlinesWarn cmtId blks = do
       notParaOrPlain (Plain _) = False
       notParaOrPlain _ = True
   when (not $ null $ filter notParaOrPlain blkList)
-    ((lift . lift) $ P.addWarning $ "Docx comment " ++ cmtId ++ " will not retain formatting")
+    ((lift . lift) $ P.warning $ "Docx comment " ++ cmtId ++ " will not retain formatting")
   return $ fromList $ blocksToInlines blkList
 
 parPartToInlines :: PandocMonad m => ParPart -> DocxContext m Inlines
