@@ -45,32 +45,19 @@ import Data.Maybe (fromMaybe)
 import Text.HTML.TagSoup
 import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F
-import Text.Pandoc.Error
-
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad)
-import qualified Text.Pandoc.Class as P
 
 -- | Read twiki from an input string and return a Pandoc document.
 readTWiki :: PandocMonad m
           => ReaderOptions
           -> String
           -> m Pandoc
-readTWiki opts s = case readTWikiWithWarnings' opts s of
-  Right (doc, warns) -> do
-    mapM_ P.warning warns
-    return doc
-  Left e -> throwError e
+readTWiki opts s =
+  case (readWith parseTWiki) def{ stateOptions = opts } (s ++ "\n\n") of
+       Left e  -> throwError e
+       Right d -> return d
 
-readTWikiWithWarnings' :: ReaderOptions -- ^ Reader options
-                      -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-                      -> Either PandocError (Pandoc, [String])
-readTWikiWithWarnings' opts s =
-  (readWith parseTWikiWithWarnings) def{ stateOptions = opts } (s ++ "\n\n")
- where parseTWikiWithWarnings = do
-         doc <- parseTWiki
-         warnings <- stateWarnings <$> getState
-         return (doc, warnings)
 
 type TWParser = Parser [Char] ParserState
 
