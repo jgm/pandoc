@@ -960,7 +960,7 @@ include = do
   mconcat <$> forM fs' (\f -> do
     containers <- stateContainers <$> getState
     when (f `elem` containers) $
-      throwError $ PandocParseError $ "Include file loop in " ++ f
+      throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
     updateState $ \s -> s{ stateContainers = f : stateContainers s }
     contents <- lift $ readTeXFile f
     setPosition $ newPos f 1 1
