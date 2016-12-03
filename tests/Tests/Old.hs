@@ -261,7 +261,7 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
   let normPath = norm
-  let options = ["--data-dir", ".." </> "data"] ++ [inpPath] ++ opts
+  let options = ["--quiet", "--data-dir", ".." </> "data"] ++ [inpPath] ++ opts
   let cmd = pandocPath ++ " " ++ unwords options
   let findDynlibDir [] = Nothing
       findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"

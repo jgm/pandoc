@@ -197,6 +197,7 @@ data Opt = Opt
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optVerbose           :: Bool    -- ^ Verbose diagnostic output
+    , optQuiet             :: Bool    -- ^ Suppress warnings
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optReferenceLocation :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
     , optDpi               :: Int     -- ^ Dpi
@@ -262,6 +263,7 @@ defaultOpts = Opt
     , optDumpArgs              = False
     , optIgnoreArgs            = False
     , optVerbose               = False
+    , optQuiet                 = False
     , optReferenceLinks        = False
     , optReferenceLocation     = EndOfDocument
     , optDpi                   = 96
@@ -904,6 +906,11 @@ options =
                   (\opt -> return opt { optVerbose = True }))
                  "" -- "Verbose diagnostic output."
 
+    , Option "" ["quiet"]
+                 (NoArg
+                  (\opt -> return opt { optQuiet = True }))
+                 "" -- "Suppress warnings."
+
     , Option "" ["bash-completion"]
                  (NoArg
                   (\_ -> do
@@ -1188,6 +1195,7 @@ convertWithOpts opts args = do
               , optDumpArgs              = dumpArgs
               , optIgnoreArgs            = ignoreArgs
               , optVerbose               = verbose
+              , optQuiet                 = quiet
               , optReferenceLinks        = referenceLinks
               , optReferenceLocation     = referenceLocation
               , optDpi                   = dpi
@@ -1407,6 +1415,11 @@ convertWithOpts opts args = do
                                then handleIncludes
                                else return . Right
 
+  let runIO' = runIOorExplode .
+               (if quiet
+                   then id
+                   else withWarningsToStderr)
+
   let sourceToDoc :: [FilePath] -> IO (Pandoc, MediaBag)
       sourceToDoc sources' = 
         case reader of
@@ -1414,14 +1427,12 @@ convertWithOpts opts args = do
             srcs <- convertTabs . intercalate "\n" <$> readSources sources'
             doc <- handleIncludes' srcs
             case doc of
-              Right doc' -> runIOorExplode $ withMediaBag
-                                           $ withWarningsToStderr
-                                           $ r readerOpts doc'
+              Right doc' -> runIO' $ withMediaBag
+                                   $ r readerOpts doc'
               Left e -> error $ show e
           ByteStringReader r -> readFiles sources' >>=
-                                (\bs -> runIOorExplode $ withMediaBag
-                                                       $ withWarningsToStderr
-                                                       $ r readerOpts bs)
+                                (\bs -> runIO' $ withMediaBag
+                                               $ r readerOpts bs)
 
   -- We parse first if (1) fileScope is set, (2), it's a binary
   -- reader, or (3) we're reading JSON. This is easier to do of an AND
@@ -1493,8 +1504,7 @@ convertWithOpts opts args = do
 
   case writer of
     -- StringWriter f -> f writerOptions doc' >>= writerFn outputFile
-    ByteStringWriter f -> (runIOorExplode $ withWarningsToStderr
-                                          $ f writerOptions doc')
+    ByteStringWriter f -> (runIO' $ f writerOptions doc')
                                           >>= writeFnBinary outputFile
     StringWriter f
       | pdfOutput -> do
@@ -1529,6 +1539,5 @@ convertWithOpts opts args = do
                   handleEntities = if htmlFormat && ascii
                                    then toEntities
                                    else id
-              output <- runIOorExplode $ withWarningsToStderr
-                                       $ f writerOptions doc'
+              output <- runIO' $ f writerOptions doc'
               selfcontain (output ++ ['\n' | not standalone']) >>= writerFn outputFile . handleEntities

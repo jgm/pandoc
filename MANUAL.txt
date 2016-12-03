@@ -340,6 +340,10 @@ General options
 :   Give verbose debugging output.  Currently this only has an effect
     with PDF output.
 
+`--quiet`
+
+:   Suppress warning messages.
+
 `--list-input-formats`
 
 :   List supported input formats, one per line.
