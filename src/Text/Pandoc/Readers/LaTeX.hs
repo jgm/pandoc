@@ -32,7 +32,6 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
                                    inlineCommand,
-                                   handleIncludes
                                  ) where
 
 import Text.Pandoc.Definition
@@ -48,16 +47,15 @@ import Control.Monad
 import Text.Pandoc.Builder
 import Control.Applicative ((<|>), many, optional)
 import Data.Maybe (fromMaybe, maybeToList)
-import System.Environment (getEnv)
 import System.FilePath (replaceExtension, (</>), takeExtension, addExtension)
 import Data.List (intercalate)
 import qualified Data.Map as M
-import qualified Control.Exception as E
 import Text.Pandoc.Highlighting (fromListingsLanguage)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Error
-import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocPure)
+import Control.Monad.Except (throwError, catchError)
+import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileLazy,
+                          warning)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
@@ -258,6 +256,7 @@ block :: PandocMonad m => LP m Blocks
 block = (mempty <$ comment)
     <|> (mempty <$ ((spaceChar <|> newline) *> spaces))
     <|> environment
+    <|> include
     <|> macro
     <|> blockCommand
     <|> paragraph
@@ -353,8 +352,6 @@ blockCommands = M.fromList $
   , ("documentclass", skipopts *> braced *> preamble)
   , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
   , ("caption", skipopts *> setCaption)
-  , ("PandocStartInclude", startInclude)
-  , ("PandocEndInclude", endInclude)
   , ("bibliography", mempty <$ (skipopts *> braced >>=
                                 addMeta "bibliography" . splitBibs))
   , ("addbibresource", mempty <$ (skipopts *> braced >>=
@@ -935,50 +932,7 @@ rawEnv name = do
 
 ----
 
-type IncludeParser = ParserT String [String] IO String
-
--- | Replace "include" commands with file contents.
-handleIncludes :: String -> IO (Either PandocError String)
-handleIncludes s =  mapLeft (PandocParsecError s) <$> runParserT includeParser' [] "input" s
-
-includeParser' :: IncludeParser
-includeParser' =
-  concat <$> many (comment' <|> escaped' <|> blob' <|> include'
-                   <|> startMarker' <|> endMarker'
-                   <|> verbCmd' <|> verbatimEnv' <|> backslash')
-
-comment' :: IncludeParser
-comment' = do
-  char '%'
-  xs <- manyTill anyChar newline
-  return ('%':xs ++ "\n")
-
-escaped' :: IncludeParser
-escaped' = try $ string "\\%" <|> string "\\\\"
-
-verbCmd' :: IncludeParser
-verbCmd' = fmap snd <$>
-  withRaw $ try $ do
-             string "\\verb"
-             c <- anyChar
-             manyTill anyChar (char c)
-
-verbatimEnv' :: IncludeParser
-verbatimEnv' = fmap snd <$>
-  withRaw $ try $ do
-             string "\\begin"
-             name <- braced'
-             guard $ name `elem` ["verbatim", "Verbatim", "BVerbatim",
-                                  "lstlisting", "minted", "alltt", "comment"]
-             manyTill anyChar (try $ string $ "\\end{" ++ name ++ "}")
-
-blob' :: IncludeParser
-blob' = try $ many1 (noneOf "\\%")
-
-backslash' :: IncludeParser
-backslash' = string "\\"
-
-braced' :: IncludeParser
+braced' :: PandocMonad m => LP m String
 braced' = try $ char '{' *> manyTill (satisfy (/='}')) (char '}')
 
 maybeAddExtension :: String -> FilePath -> FilePath
@@ -987,8 +941,8 @@ maybeAddExtension ext fp =
      then addExtension fp ext
      else fp
 
-include' :: IncludeParser
-include' = do
+include :: PandocMonad m => LP m Blocks
+include = do
   fs' <- try $ do
               char '\\'
               name <- try (string "include")
@@ -1000,55 +954,37 @@ include' = do
               return $ if name == "usepackage"
                           then map (maybeAddExtension ".sty") fs
                           else map (maybeAddExtension ".tex") fs
-  pos <- getPosition
-  containers <- getState
-  let fn = case containers of
-                (f':_) -> f'
-                []     -> "input"
+  oldPos <- getPosition
+  oldInput <- getInput
   -- now process each include file in order...
-  rest <- getInput
-  results' <- forM fs' (\f -> do
+  mconcat <$> forM fs' (\f -> do
+    containers <- stateContainers <$> getState
     when (f `elem` containers) $
-      fail "Include file loop!"
+      throwError $ PandocParseError $ "Include file loop in " ++ f
+    updateState $ \s -> s{ stateContainers = f : stateContainers s }
     contents <- lift $ readTeXFile f
-    return $ "\\PandocStartInclude{" ++ f ++ "}" ++
-             contents ++ "\\PandocEndInclude{" ++
-             fn ++ "}{" ++ show (sourceLine pos) ++ "}{"
-             ++ show (sourceColumn pos) ++ "}")
-  setInput $ concat results' ++ rest
-  return ""
+    setPosition $ newPos f 1 1
+    setInput contents
+    bs <- blocks
+    setInput oldInput
+    setPosition oldPos
+    updateState $ \s -> s{ stateContainers = tail $ stateContainers s }
+    return bs)
 
-startMarker' :: IncludeParser
-startMarker' = try $ do
-  string "\\PandocStartInclude"
-  fn <- braced'
-  updateState (fn:)
-  setPosition $ newPos fn 1 1
-  return $ "\\PandocStartInclude{" ++ fn ++ "}"
-
-endMarker' :: IncludeParser
-endMarker' = try $ do
-  string "\\PandocEndInclude"
-  fn <- braced'
-  ln <- braced'
-  co <- braced'
-  updateState tail
-  setPosition $ newPos fn (fromMaybe 1 $ safeRead ln) (fromMaybe 1 $ safeRead co)
-  return $ "\\PandocEndInclude{" ++ fn ++ "}{" ++ ln ++ "}{" ++
-               co ++ "}"
-
-readTeXFile :: FilePath -> IO String
+readTeXFile :: PandocMonad m => FilePath -> m String
 readTeXFile f = do
-  texinputs <- E.catch (getEnv "TEXINPUTS") $ \(_ :: E.SomeException) ->
-                   return "."
-  let ds = splitBy (==':') texinputs
-  readFileFromDirs ds f
+  texinputs <- fromMaybe "." <$> lookupEnv "TEXINPUTS"
+  readFileFromDirs (splitBy (==':') texinputs) f
 
-readFileFromDirs :: [FilePath] -> FilePath -> IO String
-readFileFromDirs [] _ = return ""
-readFileFromDirs (d:ds) f =
-  E.catch (UTF8.readFile $ d </> f) $ \(_ :: E.SomeException) ->
-    readFileFromDirs ds f
+readFileFromDirs :: PandocMonad m => [FilePath] -> FilePath -> m String
+readFileFromDirs ds f =
+  mconcat <$> mapM (\d -> readFileLazy' (d </> f)) ds
+
+readFileLazy' :: PandocMonad m => FilePath -> m String
+readFileLazy' f = catchError (UTF8.toStringLazy <$> readFileLazy f) $
+  \(e :: PandocError) -> do
+    warning $ "Could not load include file " ++ f ++ ", skipping.\n" ++ show e
+    return ""
 
 ----
 
@@ -1448,20 +1384,6 @@ simpTable hasWidthParameter = try $ do
                     else header'
   lookAhead $ controlSeq "end" -- make sure we're at end
   return $ table mempty (zip aligns (repeat 0)) header'' rows
-
-startInclude :: PandocMonad m => LP m Blocks
-startInclude = do
-  fn <- braced
-  setPosition $ newPos fn 1 1
-  return mempty
-
-endInclude :: PandocMonad m => LP m Blocks
-endInclude = do
-  fn <- braced
-  ln <- braced
-  co <- braced
-  setPosition $ newPos fn (fromMaybe 1 $ safeRead ln) (fromMaybe 1 $ safeRead co)
-  return mempty
 
 removeDoubleQuotes :: String -> String
 removeDoubleQuotes ('"':xs) =

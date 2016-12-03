@@ -929,6 +929,7 @@ data ParserState = ParserState
       -- roles), 3) Additional classes (rest of Attr is unused)).
       stateCaption         :: Maybe Inlines, -- ^ Caption in current environment
       stateInHtmlBlock     :: Maybe String,  -- ^ Tag type of HTML block being parsed
+      stateContainers      :: [String],      -- ^ parent include files
       stateMarkdownAttribute :: Bool         -- ^ True if in markdown=1 context
     }
 
@@ -1024,6 +1025,7 @@ defaultParserState =
                   stateRstCustomRoles  = M.empty,
                   stateCaption         = Nothing,
                   stateInHtmlBlock     = Nothing,
+                  stateContainers      = [],
                   stateMarkdownAttribute = False
                   }
 

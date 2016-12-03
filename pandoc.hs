@@ -34,7 +34,6 @@ import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Walk (walk)
-import Text.Pandoc.Readers.LaTeX (handleIncludes)
 import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
                             safeRead, headerShift, normalize, err, warn,
                             openURL )
@@ -1410,11 +1409,6 @@ convertWithOpts opts args = do
                                  then 0
                                  else tabStop)
 
-  let handleIncludes' :: String -> IO (Either PandocError String)
-      handleIncludes' = if readerName' `elem`  ["latex", "latex+lhs"]
-                               then handleIncludes
-                               else return . Right
-
   let runIO' = runIOorExplode .
                (if quiet
                    then id
@@ -1424,12 +1418,8 @@ convertWithOpts opts args = do
       sourceToDoc sources' = 
         case reader of
           StringReader r-> do
-            srcs <- convertTabs . intercalate "\n" <$> readSources sources'
-            doc <- handleIncludes' srcs
-            case doc of
-              Right doc' -> runIO' $ withMediaBag
-                                   $ r readerOpts doc'
-              Left e -> error $ show e
+            doc <- convertTabs . intercalate "\n" <$> readSources sources'
+            runIO' $ withMediaBag $ r readerOpts doc
           ByteStringReader r -> readFiles sources' >>=
                                 (\bs -> runIO' $ withMediaBag
                                                $ r readerOpts bs)
