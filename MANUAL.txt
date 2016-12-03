@@ -284,11 +284,11 @@ General options
     (Haddock markup), `rtf` (rich text format), `epub` (EPUB v2
     book), `epub3` (EPUB v3), `fb2` (FictionBook2 e-book),
     `asciidoc` (AsciiDoc), `icml` (InDesign ICML), `tei` (TEI
-    Simple), `slidy` (Slidy HTML and javascript slide show),
-    `slideous` (Slideous HTML and javascript slide show),
-    `dzslides` (DZSlides HTML5 + javascript slide show),
-    `revealjs` (reveal.js HTML5 + javascript slide show), `s5`
-    (S5 HTML and javascript slide show), or the path of a custom
+    Simple), `slidy` (Slidy HTML and JavaScript slide show),
+    `slideous` (Slideous HTML and JavaScript slide show),
+    `dzslides` (DZSlides HTML5 + JavaScript slide show),
+    `revealjs` (reveal.js HTML5 + JavaScript slide show), `s5`
+    (S5 HTML and JavaScript slide show), or the path of a custom
     lua writer (see [Custom writers], below). Note that `odt`,
     `epub`, and `epub3` output will not be directed to *stdout*;
     an output filename must be specified using the `-o/--output`
@@ -609,7 +609,7 @@ General writer options
 
 :   Include contents of *FILE*, verbatim, at the end of the header.
     This can be used, for example, to include special
-    CSS or javascript in HTML documents.  This option can be used
+    CSS or JavaScript in HTML documents.  This option can be used
     repeatedly to include multiple files in the header.  They will be
     included in the order specified.  Implies `--standalone`.
 
@@ -657,7 +657,7 @@ Options affecting specific writers
 
 `--ascii`
 
-:   Use only ascii characters in output.  Currently supported only
+:   Use only ASCII characters in output.  Currently supported only
     for HTML output (which uses numerical entities instead of
     UTF-8 when this option is selected).
 
@@ -677,7 +677,7 @@ Options affecting specific writers
 
 `--atx-headers`
 
-:   Use ATX-style headers in Markdown and asciidoc output. The default is
+:   Use ATX-style headers in Markdown and AsciiDoc output. The default is
     to use setext-style headers for levels 1-2, and then ATX headers.
 
 `--chapters`
@@ -761,7 +761,7 @@ Options affecting specific writers
 
 :   Specify a method for obfuscating `mailto:` links in HTML documents.
     `none` leaves `mailto:` links as they are.  `javascript` obfuscates
-    them using javascript. `references` obfuscates them by printing their
+    them using JavaScript. `references` obfuscates them by printing their
     letters as decimal or hexadecimal character references.  The default
     is `none`.
 
@@ -966,7 +966,7 @@ Math rendering in HTML
 `--mathml`[`=`*URL*]
 
 :   Convert TeX math to [MathML] (in `docbook`, `docbook5`, `html` and `html5`).
-    In standalone `html` output, a small javascript (or a link to such a
+    In standalone `html` output, a small JavaScript (or a link to such a
     script if a *URL* is supplied) will be inserted that allows the MathML to
     be viewed on some browsers.
 
@@ -1665,7 +1665,7 @@ If the `--section-divs` option is specified, then each section will
 be wrapped in a `div` (or a `section`, if `--html5` was specified),
 and the identifier will be attached to the enclosing `<div>`
 (or `<section>`) tag rather than the header itself. This allows entire
-sections to be manipulated using javascript or treated differently in
+sections to be manipulated using JavaScript or treated differently in
 CSS.
 
 #### Extension: `implicit_header_references` ####
@@ -2009,7 +2009,7 @@ and this one:
 
 Unlike standard Markdown, pandoc allows ordered list items to be marked
 with uppercase and lowercase letters and roman numerals, in addition to
-arabic numerals. List markers may be enclosed in parentheses or followed by a
+Arabic numerals. List markers may be enclosed in parentheses or followed by a
 single right-parentheses or period. They must be separated from the
 text that follows by at least one space, and, if the list marker is a
 capital letter with a period, by at least two spaces.[^2]
@@ -2774,13 +2774,13 @@ Textile
   ~ It will be rendered inside `<span class="math">` tags.
 
 RTF, OpenDocument, ODT
-  ~ It will be rendered, if possible, using unicode characters,
+  ~ It will be rendered, if possible, using Unicode characters,
     and will otherwise appear verbatim.
 
 DocBook
   ~ If the `--mathml` flag is used, it will be rendered using MathML
     in an `inlineequation` or `informalequation` tag.  Otherwise it
-    will be rendered, if possible, using unicode characters.
+    will be rendered, if possible, using Unicode characters.
 
 Docx
   ~ It will be rendered using OMML math markup.
@@ -2794,7 +2794,7 @@ HTML, Slidy, DZSlides, S5, EPUB
   ~ The way math is rendered in HTML will depend on the
     command-line options selected:
 
-    1.  The default is to render TeX math as far as possible using unicode
+    1.  The default is to render TeX math as far as possible using Unicode
         characters, as with RTF, DocBook, and OpenDocument output. Formulas
         are put inside a `span` with `class="math"`, so that they may be
         styled differently from the surrounding text if needed.
@@ -3471,7 +3471,7 @@ pointy braces `<...>`.
 #### Extension: `ascii_identifiers` ####
 
 Causes the identifiers produced by `auto_identifiers` to be pure ASCII.
-Accents are stripped off of accented latin letters, and non-latin
+Accents are stripped off of accented Latin letters, and non-Latin
 letters are omitted.
 
 #### Extension: `mmd_link_attributes` ####
@@ -3563,7 +3563,7 @@ other than Markdown:
 Producing slide shows with pandoc
 =================================
 
-You can use pandoc to produce an HTML + javascript slide presentation
+You can use pandoc to produce an HTML + JavaScript slide presentation
 that can be viewed via a web browser.  There are five ways to do this,
 using [S5], [DZSlides], [Slidy], [Slideous], or [reveal.js].
 You can also produce a PDF slide show using LaTeX [`beamer`].
@@ -3602,19 +3602,19 @@ Here's the Markdown source for a simple slide show, `habits.txt`:
     - Get in bed
     - Count sheep
 
-To produce an HTML/javascript slide show, simply type
+To produce an HTML/JavaScript slide show, simply type
 
     pandoc -t FORMAT -s habits.txt -o habits.html
 
 where `FORMAT` is either `s5`, `slidy`, `slideous`, `dzslides`, or `revealjs`.
 
 For Slidy, Slideous, reveal.js, and S5, the file produced by pandoc with the
-`-s/--standalone` option embeds a link to javascripts and CSS files, which are
+`-s/--standalone` option embeds a link to JavaScript and CSS files, which are
 assumed to be available at the relative path `s5/default` (for S5), `slideous`
 (for Slideous), `reveal.js` (for reveal.js), or at the Slidy website at
 `w3.org` (for Slidy).  (These paths can be changed by setting the `slidy-url`,
 `slideous-url`, `revealjs-url`, or `s5-url` variables; see [Variables for slides],
-above.) For DZSlides, the (relatively short) javascript and css are included in
+above.) For DZSlides, the (relatively short) JavaScript and CSS are included in
 the file by default.
 
 With all HTML slide formats, the `--self-contained` option can be used to
