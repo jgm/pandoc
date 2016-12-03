@@ -1851,7 +1851,7 @@ This is equivalent to:
     ```
 
 If the `fenced_code_attributes` extension is disabled, but
-input contains class attribute(s) for the codeblock, the first
+input contains class attribute(s) for the code block, the first
 class attribute will be printed after the opening fence as a bare
 word.
 
@@ -3934,7 +3934,7 @@ The color scheme can be selected using the `--highlight-style` option.
 The default color scheme is `pygments`, which imitates the default color
 scheme used by the Python library pygments (though pygments is not actually
 used to do the highlighting).  To see a list of highlight styles,
-type `pandoc --list-hightlight-styles`.
+type `pandoc --list-highlight-styles`.
 
 To disable highlighting, use the `--no-highlight` option.
 
@@ -3949,7 +3949,7 @@ formatting (italics, bold) for inlines. This will work for most
 purposes, especially alongside a `reference.docx` file. However, if you
 need to apply your own styles to blocks, or match a preexisting set of
 styles, pandoc allows you to define custom styles for blocks and text
-using `div`s and `span`s, respecitively.
+using `div`s and `span`s, respectively.
 
 If you define a `div` or `span` with the attribute `custom-style`,
 pandoc will apply your specified style to the contained elements. So,
