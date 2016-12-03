@@ -19,7 +19,9 @@ texMathToInlines mt inp = do
   res <- convertMath writePandoc mt inp
   case res of
        Right (Just ils)  -> return ils
-       Right (Nothing)   -> return [mkFallback mt inp]
+       Right (Nothing)   -> do
+         warn $ "Could not render TeX math as unicode, rendering as raw TeX:\n" ++ inp
+         return [mkFallback mt inp]
        Left il           -> return [il]
 
 mkFallback :: MathType -> String -> Inline
