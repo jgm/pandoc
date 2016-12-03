@@ -51,6 +51,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , runIOorExplode
                          , runPure
                          , withMediaBag
+                         , withWarningsToStderr
                          ) where
 
 import Prelude hiding (readFile, fail)
@@ -64,7 +65,8 @@ import qualified Text.Pandoc.Shared as IO ( fetchItem
                                           , fetchItem'
                                           , getDefaultReferenceDocx
                                           , getDefaultReferenceODT
-                                          , readDataFile)
+                                          , readDataFile
+                                          , warn)
 import Text.Pandoc.Compat.Time (UTCTime)
 import Text.Pandoc.Parsing (ParserT, ParserState, SourcePos)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
@@ -119,6 +121,8 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m, MonadState C
 
 -- Functions defined for all PandocMonad instances
 
+-- TODO should we rename this to avoid conflict with the like-named
+-- function from Shared?  Perhaps "addWarning"?
 warn :: PandocMonad m => String -> m ()
 warn msg = modify $ \st -> st{stWarnings = msg : stWarnings st}
 
@@ -182,6 +186,12 @@ runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
 
 withMediaBag :: PandocMonad m => m a ->  m (a, MediaBag)
 withMediaBag ma = ((,)) <$> ma <*> getMediaBag
+
+withWarningsToStderr :: PandocIO a -> PandocIO a
+withWarningsToStderr f = do
+  x <- f
+  getWarnings >>= mapM_ IO.warn
+  return x
 
 runIOorExplode :: PandocIO a -> IO a
 runIOorExplode ma = handleError <$> runIO ma
