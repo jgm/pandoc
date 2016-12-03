@@ -39,7 +39,7 @@ import Text.Pandoc.Options
 import Data.List ( intersperse, transpose )
 import Text.Pandoc.Pretty
 import Control.Monad.State
-import Text.Pandoc.Readers.TeXMath (texMathToInlines)
+import Text.Pandoc.Writers.Math (texMathToInlines)
 import Network.URI (isURI)
 import Data.Default
 import Text.Pandoc.Class (PandocMonad)
@@ -51,12 +51,13 @@ instance Default WriterState
 
 -- | Convert Pandoc to Haddock.
 writeHaddock :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeHaddock opts document = return $
-  evalState (pandocToHaddock opts{
+writeHaddock opts document =
+  evalStateT (pandocToHaddock opts{
                   writerWrapText = writerWrapText opts } document) def
 
 -- | Return haddock representation of document.
-pandocToHaddock :: WriterOptions -> Pandoc -> State WriterState String
+pandocToHaddock :: PandocMonad m
+                => WriterOptions -> Pandoc -> StateT WriterState m String
 pandocToHaddock opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
@@ -79,7 +80,8 @@ pandocToHaddock opts (Pandoc meta blocks) = do
           Just tpl -> return $ renderTemplate' tpl context
 
 -- | Return haddock representation of notes.
-notesToHaddock :: WriterOptions -> [[Block]] -> State WriterState Doc
+notesToHaddock :: PandocMonad m
+               => WriterOptions -> [[Block]] -> StateT WriterState m Doc
 notesToHaddock opts notes =
   if null notes
      then return empty
@@ -93,9 +95,10 @@ escapeString = escapeStringUsing haddockEscapes
   where haddockEscapes = backslashEscapes "\\/'`\"@<"
 
 -- | Convert Pandoc block element to haddock.
-blockToHaddock :: WriterOptions -- ^ Options
-                -> Block         -- ^ Block element
-                -> State WriterState Doc
+blockToHaddock :: PandocMonad m
+               => WriterOptions -- ^ Options
+               -> Block         -- ^ Block element
+               -> StateT WriterState m Doc
 blockToHaddock _ Null = return empty
 blockToHaddock opts (Div _ ils) = do
   contents <- blockListToHaddock opts ils
@@ -168,8 +171,9 @@ blockToHaddock opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToHaddock opts) items
   return $ cat contents <> blankline
 
-pandocTable :: WriterOptions -> Bool -> [Alignment] -> [Double]
-            -> [Doc] -> [[Doc]] -> State WriterState Doc
+pandocTable :: PandocMonad m
+            => WriterOptions -> Bool -> [Alignment] -> [Double]
+            -> [Doc] -> [[Doc]] -> StateT WriterState m Doc
 pandocTable opts headless aligns widths rawHeaders rawRows =  do
   let isSimple = all (==0) widths
   let alignHeader alignment = case alignment of
@@ -208,8 +212,9 @@ pandocTable opts headless aligns widths rawHeaders rawRows =  do
                   else border
   return $ head'' $$ underline $$ body $$ bottom
 
-gridTable :: WriterOptions -> Bool -> [Alignment] -> [Double]
-          -> [Doc] -> [[Doc]] -> State WriterState Doc
+gridTable :: PandocMonad m
+          => WriterOptions -> Bool -> [Alignment] -> [Double]
+          -> [Doc] -> [[Doc]] -> StateT WriterState m Doc
 gridTable opts headless _aligns widths headers' rawRows =  do
   let numcols = length headers'
   let widths' = if all (==0) widths
@@ -236,7 +241,8 @@ gridTable opts headless _aligns widths headers' rawRows =  do
   return $ border '-' $$ head'' $$ body $$ border '-'
 
 -- | Convert bullet list item (list of blocks) to haddock
-bulletListItemToHaddock :: WriterOptions -> [Block] -> State WriterState Doc
+bulletListItemToHaddock :: PandocMonad m
+                        => WriterOptions -> [Block] -> StateT WriterState m Doc
 bulletListItemToHaddock opts items = do
   contents <- blockListToHaddock opts items
   let sps = replicate (writerTabStop opts - 2) ' '
@@ -251,10 +257,11 @@ bulletListItemToHaddock opts items = do
   return $ hang (writerTabStop opts) start $ contents' <> cr
 
 -- | Convert ordered list item (a list of blocks) to haddock
-orderedListItemToHaddock :: WriterOptions -- ^ options
-                          -> String        -- ^ list item marker
-                          -> [Block]       -- ^ list item (list of blocks)
-                          -> State WriterState Doc
+orderedListItemToHaddock :: PandocMonad m
+                         => WriterOptions -- ^ options
+                         -> String        -- ^ list item marker
+                         -> [Block]       -- ^ list item (list of blocks)
+                         -> StateT WriterState m Doc
 orderedListItemToHaddock opts marker items = do
   contents <- blockListToHaddock opts items
   let sps = case length marker - writerTabStop opts of
@@ -264,9 +271,10 @@ orderedListItemToHaddock opts marker items = do
   return $ hang (writerTabStop opts) start $ contents <> cr
 
 -- | Convert definition list item (label, list of blocks) to haddock
-definitionListItemToHaddock :: WriterOptions
-                             -> ([Inline],[[Block]])
-                             -> State WriterState Doc
+definitionListItemToHaddock :: PandocMonad m
+                            => WriterOptions
+                            -> ([Inline],[[Block]])
+                            -> StateT WriterState m Doc
 definitionListItemToHaddock opts (label, defs) = do
   labelText <- inlineListToHaddock opts label
   defs' <- mapM (mapM (blockToHaddock opts)) defs
@@ -274,19 +282,22 @@ definitionListItemToHaddock opts (label, defs) = do
   return $ nowrap (brackets labelText) <> cr <> contents <> cr
 
 -- | Convert list of Pandoc block elements to haddock
-blockListToHaddock :: WriterOptions -- ^ Options
-                    -> [Block]       -- ^ List of block elements
-                    -> State WriterState Doc
+blockListToHaddock :: PandocMonad m
+                   => WriterOptions -- ^ Options
+                   -> [Block]       -- ^ List of block elements
+                   -> StateT WriterState m Doc
 blockListToHaddock opts blocks =
   mapM (blockToHaddock opts) blocks >>= return . cat
 
 -- | Convert list of Pandoc inline elements to haddock.
-inlineListToHaddock :: WriterOptions -> [Inline] -> State WriterState Doc
+inlineListToHaddock :: PandocMonad m
+                    => WriterOptions -> [Inline] -> StateT WriterState m Doc
 inlineListToHaddock opts lst =
   mapM (inlineToHaddock opts) lst >>= return . cat
 
 -- | Convert Pandoc inline element to haddock.
-inlineToHaddock :: WriterOptions -> Inline -> State WriterState Doc
+inlineToHaddock :: PandocMonad m
+                => WriterOptions -> Inline -> StateT WriterState m Doc
 inlineToHaddock opts (Span (ident,_,_) ils) = do
   contents <- inlineListToHaddock opts ils
   if not (null ident) && null ils
@@ -322,7 +333,7 @@ inlineToHaddock opts (Math mt str) = do
   let adjust x = case mt of
                       DisplayMath -> cr <> x <> cr
                       InlineMath  -> x
-  adjust `fmap` (inlineListToHaddock opts $ texMathToInlines mt str)
+  adjust <$> (lift (texMathToInlines mt str) >>= inlineListToHaddock opts)
 inlineToHaddock _ (RawInline f str)
   | f == "haddock" = return $ text str
   | otherwise = return empty

@@ -45,7 +45,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Shared hiding (Element)
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Pandoc.Options
-import Text.Pandoc.Readers.TeXMath
+import Text.Pandoc.Writers.Math
 import Text.Pandoc.Highlighting ( highlight )
 import Text.Pandoc.Walk
 import Text.XML.Light as XML
@@ -1114,17 +1114,11 @@ inlineToOpenXML' opts (Quoted quoteType lst) =
                             SingleQuote -> ("\x2018", "\x2019")
                             DoubleQuote -> ("\x201C", "\x201D")
 inlineToOpenXML' opts (Math mathType str) = do
-  let displayType = if mathType == DisplayMath
-                       then DisplayBlock
-                       else DisplayInline
-  when (displayType == DisplayBlock) setFirstPara
-  case writeOMML displayType <$> readTeX str of
-        Right r -> return [r]
-        Left  e -> do
-          (lift . lift) $ P.warn $
-                 "Cannot convert the following TeX math, skipping:\n" ++ str ++
-                 "\n" ++ e
-          inlinesToOpenXML opts (texMathToInlines mathType str)
+  when (mathType == DisplayMath) setFirstPara
+  res <- (lift . lift) (convertMath writeOMML mathType str)
+  case res of
+       Right r -> return [r]
+       Left il -> inlineToOpenXML' opts il
 inlineToOpenXML' opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Code attrs str) = do
   let unhighlighted = intercalate [br] `fmap`

@@ -16,7 +16,7 @@ into InDesign with File -> Place.
 module Text.Pandoc.Writers.ICML (writeICML) where
 import Text.Pandoc.Definition
 import Text.Pandoc.XML
-import Text.Pandoc.Readers.TeXMath (texMathToInlines)
+import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Shared (linesToPara, splitBy)
 import Text.Pandoc.Options
@@ -435,7 +435,8 @@ inlineToICML opts style SoftBreak =
 inlineToICML _ style LineBreak = charStyle style $ text lineSeparator
 inlineToICML _ _ PageBreak = return empty
 inlineToICML opts style (Math mt str) =
-  cat <$> mapM (inlineToICML opts style) (texMathToInlines mt str)
+  lift (texMathToInlines mt str) >>=
+    (fmap cat . mapM (inlineToICML opts style))
 inlineToICML _ _ (RawInline f str)
   | f == Format "icml" = return $ text str
   | otherwise          = return empty

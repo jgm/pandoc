@@ -34,7 +34,7 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
-import Text.Pandoc.Readers.TeXMath
+import Text.Pandoc.Writers.Math
 import Text.Printf ( printf )
 import Data.List ( stripPrefix, intersperse, intercalate )
 import Data.Maybe (fromMaybe)
@@ -342,9 +342,9 @@ inlineToMan _ (Str str@('.':_)) =
   return $ afterBreak "\\&" <> text (escapeString str)
 inlineToMan _ (Str str) = return $ text $ escapeString str
 inlineToMan opts (Math InlineMath str) =
-  inlineListToMan opts $ texMathToInlines InlineMath str
+  lift (texMathToInlines InlineMath str) >>= inlineListToMan opts
 inlineToMan opts (Math DisplayMath str) = do
-  contents <- inlineListToMan opts $ texMathToInlines DisplayMath str
+  contents <- lift (texMathToInlines DisplayMath str) >>= inlineListToMan opts
   return $ cr <> text ".RS" $$ contents $$ text ".RE"
 inlineToMan _ (RawInline f str)
   | f == Format "man" = return $ text str

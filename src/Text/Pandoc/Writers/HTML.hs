@@ -36,7 +36,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Templates
-import Text.Pandoc.Readers.TeXMath
+import Text.Pandoc.Writers.Math
 import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting ( highlight, styleToCss,
                                   formatHtmlInline, formatHtmlBlock )
@@ -794,17 +794,14 @@ inlineToHtml opts inline =
                          InlineMath -> preEscapedString $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
                          DisplayMath -> preEscapedString $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
            MathML _ -> do
-              let dt = if t == InlineMath
-                          then DisplayInline
-                          else DisplayBlock
               let conf = useShortEmptyTags (const False)
                            defaultConfigPP
-              case writeMathML dt <$> readTeX str of
+              res <- lift $ convertMath writeMathML t str
+              case res of
                     Right r  -> return $ preEscapedString $
                         ppcElement conf (annotateMML r str)
-                    Left _   -> inlineListToHtml opts
-                        (texMathToInlines t str) >>=
-                        return .  (H.span ! A.class_ mathClass)
+                    Left il  -> (H.span ! A.class_ mathClass) <$>
+                                   inlineToHtml opts il
            MathJax _ -> return $ H.span ! A.class_ mathClass $ toHtml $
               case t of
                 InlineMath  -> "\\(" ++ str ++ "\\)"
@@ -814,7 +811,7 @@ inlineToHtml opts inline =
                         InlineMath -> str
                         DisplayMath -> "\\displaystyle " ++ str)
            PlainMath -> do
-              x <- inlineListToHtml opts (texMathToInlines t str)
+              x <- lift (texMathToInlines t str) >>= inlineListToHtml opts
               let m = H.span ! A.class_ mathClass $ x
               let brtag = if writerHtml5 opts then H5.br else H.br
               return  $ case t of
