@@ -322,8 +322,7 @@ writers = [
   ,("dokuwiki"     , StringWriter writeDokuWiki)
   ,("zimwiki"      , StringWriter writeZimWiki)
   ,("textile"      , StringWriter writeTextile)
-  ,("rtf"          , StringWriter $ \o ->
-     writeRTFWithEmbeddedImages o)
+  ,("rtf"          , StringWriter writeRTF)
   ,("org"          , StringWriter writeOrg)
   ,("asciidoc"     , StringWriter writeAsciiDoc)
   ,("haddock"      , StringWriter writeHaddock)

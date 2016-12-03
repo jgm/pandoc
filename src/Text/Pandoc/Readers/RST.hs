@@ -654,20 +654,20 @@ addNewRole roleString fields = do
 
     -- warn about syntax we ignore
     flip mapM_ fields $ \(key, _) -> case key of
-        "language" -> when (baseRole /= "code") $ lift $ P.warn $
+        "language" -> when (baseRole /= "code") $ lift $ P.addWarning $
             "ignoring :language: field because the parent of role :" ++
             role ++ ": is :" ++ baseRole ++ ": not :code:"
-        "format" -> when (baseRole /= "raw") $ lift $ P.warn $
+        "format" -> when (baseRole /= "raw") $ lift $ P.addWarning $
             "ignoring :format: field because the parent of role :" ++
             role ++ ": is :" ++ baseRole ++ ": not :raw:"
-        _ -> lift $ P.warn $ "ignoring unknown field :" ++ key ++
+        _ -> lift $ P.addWarning $ "ignoring unknown field :" ++ key ++
              ": in definition of role :" ++ role ++ ": in"
     when (parentRole == "raw" && countKeys "format" > 1) $
-        lift $ P.warn $
+        lift $ P.addWarning $
         "ignoring :format: fields after the first in the definition of role :"
         ++ role ++": in"
     when (parentRole == "code" && countKeys "language" > 1) $
-        lift $ P.warn $
+        lift $ P.addWarning $
         "ignoring :language: fields after the first in the definition of role :"
         ++ role ++": in"
 

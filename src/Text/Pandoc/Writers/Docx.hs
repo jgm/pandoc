@@ -1182,7 +1182,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
       res <- (lift . lift) $ P.fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
       case res of
         Left (_ :: E.SomeException) -> do
-          (lift . lift) $ P.warn ("Could not find image `" ++ src ++ "', skipping...")
+          (lift . lift) $ P.addWarning ("Could not find image `" ++ src ++ "', skipping...")
           -- emit alt text
           inlinesToOpenXML opts alt
         Right (img, mt) -> do

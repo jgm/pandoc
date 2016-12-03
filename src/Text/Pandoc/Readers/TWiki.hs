@@ -58,7 +58,7 @@ readTWiki :: PandocMonad m
           -> m Pandoc
 readTWiki opts s = case readTWikiWithWarnings' opts s of
   Right (doc, warns) -> do
-    mapM_ P.warn warns
+    mapM_ P.addWarning warns
     return doc
   Left e -> throwError e
 

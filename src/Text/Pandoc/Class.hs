@@ -36,14 +36,14 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , PureState(..)
                          , getPOSIXTime
                          , getZonedTime
-                         , warn
+                         , addWarning
+                         , addWarningWithPos
                          , getWarnings
                          , getMediaBag
                          , setMediaBag
                          , insertMedia
                          , getInputFiles
                          , getOutputFile
-                         , addWarningWithPos
                          , PandocIO(..)
                          , PandocPure(..)
                          , FileInfo(..)
@@ -121,10 +121,8 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m, MonadState C
 
 -- Functions defined for all PandocMonad instances
 
--- TODO should we rename this to avoid conflict with the like-named
--- function from Shared?  Perhaps "addWarning"?
-warn :: PandocMonad m => String -> m ()
-warn msg = modify $ \st -> st{stWarnings = msg : stWarnings st}
+addWarning :: PandocMonad m => String -> m ()
+addWarning msg = modify $ \st -> st{stWarnings = msg : stWarnings st}
 
 getWarnings :: PandocMonad m => m [String]
 getWarnings = gets stWarnings
@@ -160,7 +158,7 @@ addWarningWithPos :: PandocMonad m
                   -> ParserT [Char] ParserState m ()
 addWarningWithPos mbpos msg =
   lift $
-  warn $
+  addWarning $
   msg ++ maybe "" (\pos -> " " ++ show pos) mbpos
 
 --

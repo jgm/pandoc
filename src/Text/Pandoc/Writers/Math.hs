@@ -20,7 +20,7 @@ texMathToInlines mt inp = do
   case res of
        Right (Just ils)  -> return ils
        Right (Nothing)   -> do
-         warn $ "Could not render TeX math as unicode, rendering as raw TeX:\n" ++ inp
+         addWarning $ "Could not render TeX math as unicode, rendering as raw TeX:\n" ++ inp
          return [mkFallback mt inp]
        Left il           -> return [il]
 
@@ -40,7 +40,7 @@ convertMath writer mt str = do
   case writer dt <$> readTeX str of
        Right r  -> return (Right r)
        Left e   -> do
-         warn $ "Could not convert TeX math, rendering as raw TeX:\n" ++
+         addWarning $ "Could not convert TeX math, rendering as raw TeX:\n" ++
                  str ++ "\n" ++ e
          return (Left $ mkFallback mt str)
    where dt = case mt of

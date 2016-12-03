@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
 module Text.Pandoc.Writers.RTF ( writeRTF
-                               , writeRTFWithEmbeddedImages
                                ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -37,6 +36,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Walk
+import Text.Pandoc.Class (addWarning)
 import Data.List ( isSuffixOf, intercalate )
 import Data.Char ( ord, chr, isDigit )
 import qualified Data.ByteString as B
@@ -64,7 +64,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = do
                        _            -> throwError $ PandocSomeError "Unknown file type"
          sizeSpec <- case imageSize imgdata of
                              Left msg -> do
-                               P.warn $ "Could not determine image size in `" ++
+                               addWarning $ "Could not determine image size in `" ++
                                  src ++ "': " ++ msg
                                return ""
                              Right sz -> return $ "\\picw" ++ show xpx ++
@@ -76,23 +76,27 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = do
                                       (xpt, ypt) = desiredSizeInPoints opts attr sz
          let raw = "{\\pict" ++ filetype ++ sizeSpec ++ "\\bin " ++
                     concat bytes ++ "}"
-         return $ if B.null imgdata
-                     then x
-                     else RawInline (Format "rtf") raw
-       _ -> return x
+         if B.null imgdata
+            then do
+              addWarning $ "Image " ++ src ++ " contained no data, skipping."
+              return x
+            else return $ RawInline (Format "rtf") raw
+         | otherwise -> do
+           addWarning $ "Image " ++ src ++ " is not a jpeg or png, skipping."
+           return x
+       Right (_, Nothing) -> do
+         addWarning $ "Could not determine image type for " ++ src ++ ", skipping."
+         return x
+       Left e -> do
+         addWarning $ "Could not fetch image " ++ src ++ "\n" ++ show e
+         return x
 rtfEmbedImage _ x = return x
-
--- | Convert Pandoc to a string in rich text format, with
--- images embedded as encoded binary data.  TODO get rid of this,
--- we don't need it now that we have writeRTF in PandocMonad.
-writeRTFWithEmbeddedImages :: PandocMonad m
-                           => WriterOptions -> Pandoc -> m String
-writeRTFWithEmbeddedImages options doc =
-  writeRTF options =<< walkM (rtfEmbedImage options) doc
 
 -- | Convert Pandoc to a string in rich text format.
 writeRTF :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeRTF options (Pandoc meta@(Meta metamap) blocks) = do
+writeRTF options doc = do
+  -- handle images
+  Pandoc meta@(Meta metamap) blocks <- walkM (rtfEmbedImage options) doc
   let spacer = not $ all null $ docTitle meta : docDate meta : docAuthors meta
   let toPlain (MetaBlocks [Para ils]) = MetaInlines ils
       toPlain x = x
