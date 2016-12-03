@@ -190,7 +190,7 @@ withWarningsToStderr f = do
   return x
 
 runIOorExplode :: PandocIO a -> IO a
-runIOorExplode ma = handleError <$> runIO ma
+runIOorExplode ma = runIO ma >>= handleError
 
 newtype PandocIO a = PandocIO {
   unPandocIO :: ExceptT PandocError (StateT CommonState IO) a
