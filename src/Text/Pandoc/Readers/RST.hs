@@ -29,10 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion from reStructuredText to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.RST (
-                                readRST,
-                                readRSTWithWarnings
-                               ) where
+module Text.Pandoc.Readers.RST ( readRST ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (setMeta, fromList)
 import Text.Pandoc.Shared
@@ -64,12 +61,6 @@ readRST opts s = do
   case parsed of
     Right result -> return result
     Left e       -> throwError e
-
-readRSTWithWarnings :: PandocMonad m
-                    => ReaderOptions -- ^ Reader options
-                    -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-                    -> m Pandoc
-readRSTWithWarnings = readRST 
 
 type RSTParser m = ParserT [Char] ParserState m
 
