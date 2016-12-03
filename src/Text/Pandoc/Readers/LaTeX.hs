@@ -977,14 +977,18 @@ readTeXFile f = do
   readFileFromDirs (splitBy (==':') texinputs) f
 
 readFileFromDirs :: PandocMonad m => [FilePath] -> FilePath -> m String
-readFileFromDirs ds f =
-  mconcat <$> mapM (\d -> readFileLazy' (d </> f)) ds
-
-readFileLazy' :: PandocMonad m => FilePath -> m String
-readFileLazy' f = catchError (UTF8.toStringLazy <$> readFileLazy f) $
-  \(e :: PandocError) -> do
-    warning $ "Could not load include file " ++ f ++ ", skipping.\n" ++ show e
+readFileFromDirs [] f = do
+    warning $ "Could not load include file " ++ f ++ ", skipping."
     return ""
+readFileFromDirs (d:ds) f = do
+  res <- readFileLazy' (d </> f)
+  case res of
+       Right s -> return s
+       Left _  -> readFileFromDirs ds f
+
+readFileLazy' :: PandocMonad m => FilePath -> m (Either PandocError String)
+readFileLazy' f = catchError ((Right . UTF8.toStringLazy) <$> readFileLazy f) $
+  \(e :: PandocError) -> return (Left e)
 
 ----
 
