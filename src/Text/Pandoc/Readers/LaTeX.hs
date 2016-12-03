@@ -1219,6 +1219,7 @@ preamble = mempty <$> manyTill preambleBlock beginDoc
         preambleBlock =  void comment
                      <|> void sp
                      <|> void blanklines
+                     <|> void include
                      <|> void macro
                      <|> void blockCommand
                      <|> void anyControlSeq
