@@ -434,7 +434,10 @@ include = try $ do
   string ".. include::"
   skipMany spaceChar
   f <- trim <$> anyLine
-  -- TODO options
+  fields <- many $ rawFieldListItem 3
+  -- options
+  let (startLine :: Maybe Int) = lookup "start-line" fields >>= safeRead
+  let (endLine :: Maybe Int) = lookup "end-line" fields >>= safeRead
   guard $ not (null f)
   oldPos <- getPosition
   oldInput <- getInput
@@ -448,8 +451,11 @@ include = try $ do
                    Left _e -> do
                      lift $ warning $ "Could not read include file " ++ f ++ "."
                      return ""
+  let contents' = unlines $ maybe id (drop . (\x -> x - 1)) startLine
+                          $ maybe id (take . (\x -> x - 1)) endLine
+                          $ lines contents
   setPosition $ newPos f 1 1
-  setInput contents
+  setInput contents'
   bs <- optional blanklines >> (mconcat <$> many block)
   setInput oldInput
   setPosition oldPos
