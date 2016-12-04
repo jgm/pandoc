@@ -72,7 +72,7 @@ $if(author-meta)$
             pdfauthor={$author-meta$},
 $endif$
 $if(keywords)$
-            pdfkeywords={$for(keywords)$$keywords$$sep$; $endfor$},
+            pdfkeywords={$for(keywords)$$keywords$$sep$, $endfor$},
 $endif$
 $if(colorlinks)$
             colorlinks=true,
