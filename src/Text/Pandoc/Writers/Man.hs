@@ -300,10 +300,6 @@ blockListToMan opts blocks =
 
 -- | Convert list of Pandoc inline elements to man.
 inlineListToMan :: WriterOptions -> [Inline] -> State WriterState Doc
--- if list starts with ., insert a zero-width character \& so it
--- won't be interpreted as markup if it falls at the beginning of a line.
-inlineListToMan opts lst@(Str ('.':_) : _) = mapM (inlineToMan opts) lst >>=
-  (return . (text "\\&" <>)  . hcat)
 inlineListToMan opts lst = mapM (inlineToMan opts) lst >>= (return . hcat)
 
 -- | Convert Pandoc inline element to man.
@@ -335,6 +331,8 @@ inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
 inlineToMan _ (Code _ str) =
   return $ text $ "\\f[C]" ++ escapeCode str ++ "\\f[]"
+inlineToMan _ (Str str@('.':_)) =
+  return $ afterBreak "\\&" <> text (escapeString str)
 inlineToMan _ (Str str) = return $ text $ escapeString str
 inlineToMan opts (Math InlineMath str) =
   inlineListToMan opts $ texMathToInlines InlineMath str
