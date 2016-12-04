@@ -405,28 +405,25 @@ blockQuote = do
 From RST docs:
 The following options are recognized:
 
-start-line : integer
-Only the content starting from this line will be included. (As usual in Python, the first line has index 0 and negative values count from the end.)
-end-line : integer
-Only the content up to (but excluding) this line will be included.
-start-after : text to find in the external data file
-Only the content after the first occurrence of the specified text will be included.
-end-before : text to find in the external data file
-Only the content before the first occurrence of the specified text (but after any after text) will be included.
-literal : flag (empty)
-The entire included text is inserted into the document as a single literal block.
-code : formal language (optional)
-The argument and the content of the included file are passed to the code directive (useful for program listings). (New in Docutils 0.9)
-number-lines : [start line number]
-Precede every code line with a line number. The optional argument is the number of the first line (defaut 1). Works only with code or literal. (New in Docutils 0.9)
-encoding : name of text encoding
+[x] start-line : integer
+[x] end-line : integer
+[ ] start-after : text to find in the external data file
+   Only the content after the first occurrence of the specified text will be included.
+[ ] end-before : text to find in the external data file
+    Only the content before the first occurrence of the specified text (but after any after text) will be included.
+  Combining start/end-line and start-after/end-before is possible. The text markers will be searched in the specified lines (further limiting the included content).
+[ ] literal : flag (empty)
+    The entire included text is inserted into the document as a single literal block.
+[ ] code : formal language (optional)
+   The argument and the content of the included file are passed to the code directive (useful for program listings). (New in Docutils 0.9)
+[ ] number-lines : [start line number]
+    Precede every code line with a line number. The optional argument is the number of the first line (defaut 1). Works only with code or literal. (New in Docutils 0.9)
+[ ] encoding : name of text encoding
 The text encoding of the external data file. Defaults to the document's input_encoding.
-tab-width : integer
+[ ] tab-width : integer
 Number of spaces for hard tab expansion. A negative value prevents expansion of hard tabs. Defaults to the tab_width configuration setting.
-With code or literal the common options :class: and :name: are recognized as well.
-
-Combining start/end-line and start-after/end-before is possible. The text markers will be searched in the specified lines (further limiting the included content).
-
+[ ] class (common option) - with code or literal
+[ ] name (common option) - with code or literal
 -}
 
 include :: PandocMonad m => RSTParser m Blocks
@@ -451,9 +448,19 @@ include = try $ do
                    Left _e -> do
                      lift $ warning $ "Could not read include file " ++ f ++ "."
                      return ""
-  let contents' = unlines $ maybe id (drop . (\x -> x - 1)) startLine
-                          $ maybe id (take . (\x -> x - 1)) endLine
-                          $ lines contents
+  let contentLines = lines contents
+  let numLines = length contentLines
+  let startLine' = case startLine of
+                        Nothing            -> 1
+                        Just x | x >= 0    -> x
+                               | otherwise -> numLines + x -- negative from end
+  let endLine' = case endLine of
+                        Nothing            -> numLines + 1
+                        Just x | x >= 0    -> x
+                               | otherwise -> numLines + x -- negative from end
+  let contents' = unlines $ drop (startLine' - 1)
+                          $ take (endLine' - 1)
+                          $ contentLines
   setPosition $ newPos f 1 1
   setInput contents'
   bs <- optional blanklines >> (mconcat <$> many block)
