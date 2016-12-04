@@ -76,7 +76,7 @@ import System.Posix.Terminal (queryTerminal)
 import System.Posix.IO (stdOutput)
 #endif
 import Control.Monad.Trans
-import Text.Pandoc.Class (withMediaBag, PandocIO, withWarningsToStderr)
+import Text.Pandoc.Class (withMediaBag, PandocIO, getWarnings)
 
 type Transform = Pandoc -> Pandoc
 
@@ -197,6 +197,7 @@ data Opt = Opt
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optVerbose           :: Bool    -- ^ Verbose diagnostic output
     , optQuiet             :: Bool    -- ^ Suppress warnings
+    , optFailIfWarnings    :: Bool    -- ^ Fail on warnings
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optReferenceLocation :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
     , optDpi               :: Int     -- ^ Dpi
@@ -263,6 +264,7 @@ defaultOpts = Opt
     , optIgnoreArgs            = False
     , optVerbose               = False
     , optQuiet                 = False
+    , optFailIfWarnings        = False
     , optReferenceLinks        = False
     , optReferenceLocation     = EndOfDocument
     , optDpi                   = 96
@@ -910,6 +912,11 @@ options =
                   (\opt -> return opt { optQuiet = True }))
                  "" -- "Suppress warnings."
 
+    , Option "" ["fail-if-warnings"]
+                 (NoArg
+                  (\opt -> return opt { optFailIfWarnings = True }))
+                 "" -- "Exit with error status if there were  warnings."
+
     , Option "" ["bash-completion"]
                  (NoArg
                   (\_ -> do
@@ -1195,6 +1202,7 @@ convertWithOpts opts args = do
               , optIgnoreArgs            = ignoreArgs
               , optVerbose               = verbose
               , optQuiet                 = quiet
+              , optFailIfWarnings        = failIfWarnings
               , optReferenceLinks        = referenceLinks
               , optReferenceLocation     = referenceLocation
               , optDpi                   = dpi
@@ -1409,10 +1417,17 @@ convertWithOpts opts args = do
                                  then 0
                                  else tabStop)
 
-  let runIO' = runIOorExplode .
-               (if quiet
-                   then id
-                   else withWarningsToStderr)
+  let runIO' f = do
+        (res, warnings) <- runIOorExplode $ do
+                             x <- f
+                             ws <- getWarnings
+                             return (x, ws)
+        when (not (null warnings)) $ do
+          unless quiet $
+            mapM_ warn warnings
+          when failIfWarnings $
+            err 3 "Failing because there were warnings."
+        return res
 
   let sourceToDoc :: [FilePath] -> IO (Pandoc, MediaBag)
       sourceToDoc sources' = 

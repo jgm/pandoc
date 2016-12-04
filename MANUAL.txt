@@ -344,6 +344,10 @@ General options
 
 :   Suppress warning messages.
 
+`--fail-if-warnings`
+
+:   Exit with error status if there are any warnings.
+
 `--list-input-formats`
 
 :   List supported input formats, one per line.
