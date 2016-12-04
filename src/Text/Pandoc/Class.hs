@@ -34,6 +34,10 @@ Typeclass for pandoc readers and writers, allowing both IO and pure instances.
 module Text.Pandoc.Class ( PandocMonad(..)
                          , CommonState(..)
                          , PureState(..)
+                         , getPureState
+                         , getsPureState
+                         , putPureState
+                         , modifyPureState
                          , getPOSIXTime
                          , getZonedTime
                          , warning
@@ -266,6 +270,21 @@ instance Default PureState where
                   , stCabalDataDir = mempty
                   , stFontFiles = []
                   }
+
+
+getPureState :: PandocPure PureState
+getPureState = PandocPure $ lift $ lift $ get
+
+getsPureState :: (PureState -> a) -> PandocPure a
+getsPureState f = f <$> getPureState
+
+putPureState :: PureState -> PandocPure ()
+putPureState ps= PandocPure $ lift $ lift $ put ps
+
+modifyPureState :: (PureState -> PureState) -> PandocPure ()
+modifyPureState f = PandocPure $ lift $ lift $ modify f
+  
+        
 data FileInfo = FileInfo { infoFileMTime :: UTCTime
                          , infoFileContents :: B.ByteString
                          }
@@ -294,33 +313,33 @@ runPure x = flip evalState def $
             unPandocPure x
 
 instance PandocMonad PandocPure where
-  lookupEnv s = PandocPure $ do
-    env <- lift $ lift $ gets stEnv
+  lookupEnv s = do
+    env <- getsPureState stEnv
     return (lookup s env)
 
-  getCurrentTime = PandocPure $ lift $ lift $ gets stTime
+  getCurrentTime = getsPureState stTime
 
-  getCurrentTimeZone = PandocPure $ lift $ lift $ gets stTimeZone
+  getCurrentTimeZone = getsPureState stTimeZone
 
-  getDefaultReferenceDocx _ = PandocPure $ lift $ lift $ gets stReferenceDocx
+  getDefaultReferenceDocx _ = getsPureState stReferenceDocx
 
-  getDefaultReferenceODT _ = PandocPure $ lift $ lift $ gets stReferenceODT
+  getDefaultReferenceODT _ = getsPureState stReferenceODT
 
-  newStdGen = PandocPure $ do
-    g <- lift $ lift $ gets stStdGen
+  newStdGen = do
+    g <- getsPureState stStdGen
     let (_, nxtGen) = next g
-    lift $ lift $ modify $ \st -> st { stStdGen = nxtGen }
+    modifyPureState $ \st -> st { stStdGen = nxtGen }
     return g
 
-  newUniqueHash = PandocPure $ do
-    uniqs <- lift $ lift $ gets stUniqStore
+  newUniqueHash = do
+    uniqs <- getsPureState stUniqStore
     case uniqs of
       u : us -> do
-        lift $ lift $ modify $ \st -> st { stUniqStore = us }
+        modifyPureState $ \st -> st { stUniqStore = us }
         return u
       _ -> M.fail "uniq store ran out of elements"
-  readFileLazy fp = PandocPure $ do
-    fps <- lift $ lift $ gets stFiles
+  readFileLazy fp = do
+    fps <- getsPureState stFiles
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return (BL.fromStrict bs)
       Nothing -> throwError $ PandocFileReadError fp
@@ -331,14 +350,14 @@ instance PandocMonad PandocPure where
   readDataFile Nothing fname = do
     let fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
     BL.toStrict <$> (readFileLazy fname')
-  readDataFile (Just userDir) fname = PandocPure $ do
-    userDirFiles <- lift $ lift $ gets stUserDataDir
+  readDataFile (Just userDir) fname = do
+    userDirFiles <- getsPureState stUserDataDir
     case infoFileContents <$> (getFileInfo (userDir </> fname) userDirFiles) of
       Just bs -> return bs
-      Nothing -> unPandocPure $ readDataFile Nothing fname
+      Nothing -> readDataFile Nothing fname
   fail = M.fail
-  fetchItem _ fp = PandocPure $ do
-    fps <- lift $ lift $ gets stFiles
+  fetchItem _ fp = do
+    fps <- getsPureState stFiles
     case infoFileContents <$> (getFileInfo fp fps) of
       Just bs -> return (Right (bs, getMimeType fp))
       Nothing -> return (Left $ E.toException $ PandocFileReadError fp)
@@ -348,12 +367,12 @@ instance PandocMonad PandocPure where
       Nothing -> fetchItem sourceUrl nm
       Just (mime, bs) -> return (Right (B.concat $ BL.toChunks bs, Just mime))
 
-  glob s = PandocPure $ do
-    fontFiles <- lift $ lift $ gets stFontFiles
+  glob s = do
+    fontFiles <- getsPureState stFontFiles
     return (filter (match (compile s)) fontFiles)
 
-  getModificationTime fp = PandocPure $ do
-    fps <- lift $ lift $ gets stFiles
+  getModificationTime fp = do
+    fps <- getsPureState stFiles
     case infoFileMTime <$> (getFileInfo fp fps) of
       Just tm -> return tm
       Nothing -> throwError $ PandocFileReadError fp
