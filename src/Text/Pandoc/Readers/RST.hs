@@ -39,7 +39,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Error
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad ( when, liftM, guard, mzero )
-import Data.List ( findIndex, intercalate,
+import Data.List ( findIndex, intercalate, isInfixOf,
                    transpose, sort, deleteFirstsBy, isSuffixOf , nub, union)
 import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Map as M
@@ -405,8 +405,6 @@ blockQuote = do
 Unsupported options for include:
 tab-width
 encoding
-start-after: text to find
-end-before: text to find
 -}
 
 include :: PandocMonad m => RSTParser m Blocks
@@ -441,9 +439,17 @@ include = try $ do
                         Nothing            -> numLines + 1
                         Just x | x >= 0    -> x
                                | otherwise -> numLines + x -- negative from end
-  let contents' = unlines $ drop (startLine' - 1)
-                          $ take (endLine' - 1)
-                          $ contentLines
+  let contentLines' =   drop (startLine' - 1)
+                      $ take (endLine' - 1)
+                      $ contentLines
+  let contentLines'' = (case trim <$> lookup "end-before" fields of
+                             Just patt -> takeWhile (not . (patt `isInfixOf`))
+                             Nothing   -> id) .
+                       (case trim <$> lookup "start-after" fields of
+                             Just patt -> drop 1 .
+                                            dropWhile (not . (patt `isInfixOf`))
+                             Nothing   -> id) $ contentLines'
+  let contents' = unlines contentLines''
   case lookup "code" fields of
        Just lang -> do
          let numberLines = lookup "number-lines" fields
