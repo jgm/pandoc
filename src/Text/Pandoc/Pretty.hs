@@ -45,6 +45,7 @@ module Text.Pandoc.Pretty (
      , hang
      , beforeNonBlank
      , nowrap
+     , afterBreak
      , offset
      , minOffset
      , height
@@ -101,6 +102,7 @@ data D = Text Int String
        | BeforeNonBlank Doc
        | Flush Doc
        | BreakingSpace
+       | AfterBreak String
        | CarriageReturn
        | NewLine
        | BlankLines Int  -- number of blank lines
@@ -306,6 +308,7 @@ renderList (BreakingSpace : BreakingSpace : xs) = renderList (BreakingSpace:xs)
 renderList (BreakingSpace : xs) = do
   let isText (Text _ _)       = True
       isText (Block _ _)      = True
+      isText (AfterBreak _)   = True
       isText _                = False
   let isBreakingSpace BreakingSpace = True
       isBreakingSpace _             = False
@@ -320,6 +323,13 @@ renderList (BreakingSpace : xs) = do
         _  -> do
           outp 1 " "
           renderList xs'
+
+renderList (AfterBreak s : xs) = do
+  st <- get
+  if newlines st > 0
+     then outp (realLength s) s
+     else return ()
+  renderList xs
 
 renderList (Block i1 s1 : Block i2 s2  : xs) =
   renderList (mergeBlocks False (IsBlock i1 s1) (IsBlock i2 s2) : xs)
@@ -421,6 +431,11 @@ nowrap :: Doc -> Doc
 nowrap doc = Doc $ mapWithIndex replaceSpace $ unDoc doc
   where replaceSpace _ BreakingSpace = Text 1 " "
         replaceSpace _ x = x
+
+-- | Content to print only if it comes at the beginning of a line,
+-- to be used e.g. for escaping line-initial `.` in groff man.
+afterBreak :: String -> Doc
+afterBreak s = Doc $ singleton (AfterBreak s)
 
 -- | Returns the width of a 'Doc'.
 offset :: Doc -> Int
