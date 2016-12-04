@@ -241,30 +241,30 @@ data PureState = PureState { stStdGen     :: StdGen
                                                    -- contain every
                                                    -- element at most
                                                    -- once, e.g. [1..]
-                           , envEnv :: [(String, String)]
-                           , envTime :: UTCTime
-                           , envTimeZone :: TimeZone
-                           , envReferenceDocx :: Archive
-                           , envReferenceODT :: Archive
-                           , envFiles :: FileTree
-                           , envUserDataDir :: FileTree
-                           , envCabalDataDir :: FileTree
-                           , envFontFiles :: [FilePath]   
+                           , stEnv :: [(String, String)]
+                           , stTime :: UTCTime
+                           , stTimeZone :: TimeZone
+                           , stReferenceDocx :: Archive
+                           , stReferenceODT :: Archive
+                           , stFiles :: FileTree
+                           , stUserDataDir :: FileTree
+                           , stCabalDataDir :: FileTree
+                           , stFontFiles :: [FilePath]   
                            }
 
 instance Default PureState where
   def = PureState { stStdGen = mkStdGen 1848
                   , stWord8Store = [1..]
                   , stUniqStore = [1..]
-                  , envEnv = [("USER", "pandoc-user")]
-                  , envTime = posixSecondsToUTCTime 0
-                  , envTimeZone = utc
-                  , envReferenceDocx = emptyArchive
-                  , envReferenceODT = emptyArchive
-                  , envFiles = mempty
-                  , envUserDataDir = mempty
-                  , envCabalDataDir = mempty
-                  , envFontFiles = []
+                  , stEnv = [("USER", "pandoc-user")]
+                  , stTime = posixSecondsToUTCTime 0
+                  , stTimeZone = utc
+                  , stReferenceDocx = emptyArchive
+                  , stReferenceODT = emptyArchive
+                  , stFiles = mempty
+                  , stUserDataDir = mempty
+                  , stCabalDataDir = mempty
+                  , stFontFiles = []
                   }
 data FileInfo = FileInfo { infoFileMTime :: UTCTime
                          , infoFileContents :: B.ByteString
@@ -295,16 +295,16 @@ runPure x = flip evalState def $
 
 instance PandocMonad PandocPure where
   lookupEnv s = PandocPure $ do
-    env <- lift $ lift $ gets envEnv
+    env <- lift $ lift $ gets stEnv
     return (lookup s env)
 
-  getCurrentTime = PandocPure $ lift $ lift $ gets envTime
+  getCurrentTime = PandocPure $ lift $ lift $ gets stTime
 
-  getCurrentTimeZone = PandocPure $ lift $ lift $ gets envTimeZone
+  getCurrentTimeZone = PandocPure $ lift $ lift $ gets stTimeZone
 
-  getDefaultReferenceDocx _ = PandocPure $ lift $ lift $ gets envReferenceDocx
+  getDefaultReferenceDocx _ = PandocPure $ lift $ lift $ gets stReferenceDocx
 
-  getDefaultReferenceODT _ = PandocPure $ lift $ lift $ gets envReferenceODT
+  getDefaultReferenceODT _ = PandocPure $ lift $ lift $ gets stReferenceODT
 
   newStdGen = PandocPure $ do
     g <- lift $ lift $ gets stStdGen
@@ -320,7 +320,7 @@ instance PandocMonad PandocPure where
         return u
       _ -> M.fail "uniq store ran out of elements"
   readFileLazy fp = PandocPure $ do
-    fps <- lift $ lift $ gets envFiles
+    fps <- lift $ lift $ gets stFiles
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return (BL.fromStrict bs)
       Nothing -> throwError $ PandocFileReadError fp
@@ -332,13 +332,13 @@ instance PandocMonad PandocPure where
     let fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
     BL.toStrict <$> (readFileLazy fname')
   readDataFile (Just userDir) fname = PandocPure $ do
-    userDirFiles <- lift $ lift $ gets envUserDataDir
+    userDirFiles <- lift $ lift $ gets stUserDataDir
     case infoFileContents <$> (getFileInfo (userDir </> fname) userDirFiles) of
       Just bs -> return bs
       Nothing -> unPandocPure $ readDataFile Nothing fname
   fail = M.fail
   fetchItem _ fp = PandocPure $ do
-    fps <- lift $ lift $ gets envFiles
+    fps <- lift $ lift $ gets stFiles
     case infoFileContents <$> (getFileInfo fp fps) of
       Just bs -> return (Right (bs, getMimeType fp))
       Nothing -> return (Left $ E.toException $ PandocFileReadError fp)
@@ -349,11 +349,11 @@ instance PandocMonad PandocPure where
       Just (mime, bs) -> return (Right (B.concat $ BL.toChunks bs, Just mime))
 
   glob s = PandocPure $ do
-    fontFiles <- lift $ lift $ gets envFontFiles
+    fontFiles <- lift $ lift $ gets stFontFiles
     return (filter (match (compile s)) fontFiles)
 
   getModificationTime fp = PandocPure $ do
-    fps <- lift $ lift $ gets envFiles
+    fps <- lift $ lift $ gets stFiles
     case infoFileMTime <$> (getFileInfo fp fps) of
       Just tm -> return tm
       Nothing -> throwError $ PandocFileReadError fp
