@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-
@@ -35,6 +36,8 @@ import Text.Pandoc.Builder (setMeta, fromList)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
+import Text.Pandoc.Error
+import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad ( when, liftM, guard, mzero )
 import Data.List ( findIndex, intercalate,
                    transpose, sort, deleteFirstsBy, isSuffixOf , nub, union)
@@ -46,9 +49,9 @@ import qualified Text.Pandoc.Builder as B
 import Data.Sequence (viewr, ViewR(..))
 import Data.Char (toLower, isHexDigit, isSpace)
 import Data.Monoid ((<>))
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Trans (lift)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, warning, readFileLazy)
 import qualified Text.Pandoc.Class as P
 
 -- | Parse reStructuredText string and return Pandoc document.
@@ -177,6 +180,7 @@ block :: PandocMonad m => RSTParser m Blocks
 block = choice [ codeBlock
                , blockQuote
                , fieldList
+               , include
                , directive
                , comment
                , header
@@ -396,6 +400,65 @@ blockQuote = do
   -- parse the extracted block, which may contain various block elements:
   contents <- parseFromString parseBlocks $ raw ++ "\n\n"
   return $ B.blockQuote contents
+
+{-
+From RST docs:
+The following options are recognized:
+
+start-line : integer
+Only the content starting from this line will be included. (As usual in Python, the first line has index 0 and negative values count from the end.)
+end-line : integer
+Only the content up to (but excluding) this line will be included.
+start-after : text to find in the external data file
+Only the content after the first occurrence of the specified text will be included.
+end-before : text to find in the external data file
+Only the content before the first occurrence of the specified text (but after any after text) will be included.
+literal : flag (empty)
+The entire included text is inserted into the document as a single literal block.
+code : formal language (optional)
+The argument and the content of the included file are passed to the code directive (useful for program listings). (New in Docutils 0.9)
+number-lines : [start line number]
+Precede every code line with a line number. The optional argument is the number of the first line (defaut 1). Works only with code or literal. (New in Docutils 0.9)
+encoding : name of text encoding
+The text encoding of the external data file. Defaults to the document's input_encoding.
+tab-width : integer
+Number of spaces for hard tab expansion. A negative value prevents expansion of hard tabs. Defaults to the tab_width configuration setting.
+With code or literal the common options :class: and :name: are recognized as well.
+
+Combining start/end-line and start-after/end-before is possible. The text markers will be searched in the specified lines (further limiting the included content).
+
+-}
+
+include :: PandocMonad m => RSTParser m Blocks
+include = try $ do
+  string ".. include::"
+  skipMany spaceChar
+  f <- trim <$> anyLine
+  -- TODO options
+  guard $ not (null f)
+  oldPos <- getPosition
+  oldInput <- getInput
+  containers <- stateContainers <$> getState
+  when (f `elem` containers) $
+    throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
+  updateState $ \s -> s{ stateContainers = f : stateContainers s }
+  res <- lift $ readFileLazy' f
+  contents <- case res of
+                   Right x -> return x
+                   Left _e -> do
+                     lift $ warning $ "Could not read include file " ++ f ++ "."
+                     return ""
+  setPosition $ newPos f 1 1
+  setInput contents
+  bs <- optional blanklines >> (mconcat <$> many block)
+  setInput oldInput
+  setPosition oldPos
+  updateState $ \s -> s{ stateContainers = tail $ stateContainers s }
+  return bs
+
+readFileLazy' :: PandocMonad m => FilePath -> m (Either PandocError String)
+readFileLazy' f = catchError ((Right . UTF8.toStringLazy) <$> readFileLazy f) $
+  \(e :: PandocError) -> return (Left e)
 
 --
 -- list blocks
