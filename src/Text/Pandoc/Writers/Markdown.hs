@@ -858,7 +858,7 @@ avoidBadWrapsInList (x:xs) = x : avoidBadWrapsInList xs
 
 isOrderedListMarker :: String -> Bool
 isOrderedListMarker xs = (last xs `elem` ['.',')']) &&
-              isRight (runParserT (anyOrderedListMarker >> eof)
+              isRight (runParser (anyOrderedListMarker >> eof)
                        defaultParserState "" xs)
 
 isRight :: Either a b -> Bool
