@@ -146,6 +146,28 @@ tests = [ testGroup "code blocks"
                       , "\\subsection{header2}\n"
                       , "\\subsubsection{header3}"
                       ]
+            , test (latexTopLevelDiv TopLevelPart)
+                   "part top-level, section not in toc" $
+                   (   headerWith ("", ["unnumbered"], []) 1 (text "header1")
+                    <> headerWith ("", ["unnumbered"], []) 2 (text "header2")
+                    <> headerWith ("", ["unnumbered"], []) 3 (text "header3")
+                    <> headerWith ("", ["unnumbered"], []) 4 (text "header4")
+                    <> headerWith ("", ["unnumbered"], []) 5 (text "header5")
+                    <> headerWith ("", ["unnumbered"], []) 6 (text "header6"))
+                   =?>
+              unlines [ "\\part*{header1}"
+                      , "\\addcontentsline{toc}{part}{header1}\n"
+                      , "\\chapter*{header2}"
+                      , "\\addcontentsline{toc}{chapter}{header2}\n"
+                      , "\\section*{header3}"
+                      , "\\addcontentsline{toc}{section}{header3}\n"
+                      , "\\subsection*{header4}"
+                      , "\\addcontentsline{toc}{subsection}{header4}\n"
+                      , "\\subsubsection*{header5}"
+                      , "\\addcontentsline{toc}{subsubsection}{header5}\n"
+                      , "\\paragraph{header6}"
+                      , "\\addcontentsline{toc}{paragraph}{header6}"
+                      ]
             ]
           ]
         ]
