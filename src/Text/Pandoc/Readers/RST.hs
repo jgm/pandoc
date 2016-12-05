@@ -696,7 +696,7 @@ directive' = do
             return $ B.divWith attrs children
         other     -> do
             pos <- getPosition
-            P.warningWithPos (Just pos) $ "ignoring unknown directive: " ++ other
+            P.warningWithPos pos $ "ignoring unknown directive: " ++ other
             return mempty
 
 -- TODO:
@@ -1135,7 +1135,7 @@ renderRole contents fmt role attr = case role of
                 renderRole contents newFmt newRole newAttr
             Nothing -> do
                 pos <- getPosition
-                P.warningWithPos (Just pos) $ "ignoring unknown role :" ++ custom ++ ": in"
+                P.warningWithPos pos $ "ignoring unknown role :" ++ custom ++ ": in"
                 return $ B.str contents -- Undefined role
  where
    titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour

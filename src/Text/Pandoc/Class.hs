@@ -72,7 +72,7 @@ import qualified Text.Pandoc.Shared as IO ( fetchItem
                                           , readDataFile
                                           , warn)
 import Text.Pandoc.Compat.Time (UTCTime)
-import Text.Pandoc.Parsing (ParserT, ParserState, SourcePos)
+import Text.Pandoc.Parsing (ParserT, SourcePos)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
 import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
                              , posixSecondsToUTCTime
@@ -121,7 +121,7 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m, MonadState C
   glob :: String -> m [FilePath]
   getModificationTime :: FilePath -> m UTCTime
 
-  
+
 
 -- Functions defined for all PandocMonad instances
 
@@ -157,11 +157,10 @@ getZonedTime = do
   return $ utcToZonedTime tz t
 
 warningWithPos :: PandocMonad m
-               => Maybe SourcePos
+               => SourcePos
                -> String
-               -> ParserT [Char] ParserState m ()
-warningWithPos mbpos msg =
-  lift $ warning $ msg ++ maybe "" (\pos -> " " ++ show pos) mbpos
+               -> ParserT s st m ()
+warningWithPos pos msg = lift $ warning $ msg ++ " " ++ show pos
 
 --
 
@@ -377,9 +376,20 @@ instance PandocMonad PandocPure where
       Just tm -> return tm
       Nothing -> throwError $ PandocFileReadError fp
 
-
-    
-
-    
-
-    
+{-
+instance PandocMonad m => PandocMonad (ParserT s st m) where
+  lookupEnv = lift . lookupEnv
+  getCurrentTime = lift . getCurrentTime
+  getCurrentTimeZone = lift . getCurrentTimeZone
+  getDefaultReferenceDocx = lift . getDefaultReferenceDocx
+  getDefaultReferenceODT = lift . getDefaultReferenceODT
+  newStdGen = lift . newStdGen
+  newUniqueHash = lift . newUniqueHash
+  readFileLazy = lift . readFileLazy
+  readDataFile mbuserdir = lift . readDataFile mbuserdir
+  fail = lift . fail
+  fetchItem media = lift . fetchItem media
+  fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
+  glob = lift . glob
+  getModificationTime = lift . getModificationTime
+-}

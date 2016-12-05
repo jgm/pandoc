@@ -238,7 +238,7 @@ inline = (mempty <$ comment)
      <|> (str . (:[]) <$> tildeEscape)
      <|> (do res <- oneOf "#&~^'`\"[]"
              pos <- getPosition
-             warningWithPos (Just pos) ("Parsing unescaped '" ++ [res] ++ "'")
+             warningWithPos pos ("Parsing unescaped '" ++ [res] ++ "'")
              return $ str [res])
 
 inlines :: PandocMonad m => LP m Inlines

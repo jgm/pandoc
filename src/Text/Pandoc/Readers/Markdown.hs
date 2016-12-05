@@ -280,7 +280,7 @@ yamlMetaBlock = try $ do
                   ) nullMeta hashmap
                 Right Yaml.Null -> return nullMeta
                 Right _ -> do
-                            P.warningWithPos (Just pos) "YAML header is not an object"
+                            P.warningWithPos pos "YAML header is not an object"
                             return nullMeta
                 Left err' -> do
                          case err' of
@@ -291,13 +291,13 @@ yamlMetaBlock = try $ do
                                             yamlLine = yline
                                           , yamlColumn = ycol
                                       }}) ->
-                                 P.warningWithPos (Just $ setSourceLine
+                                 P.warningWithPos (setSourceLine
                                     (setSourceColumn pos
                                        (sourceColumn pos + ycol))
                                     (sourceLine pos + 1 + yline))
                                     $ "Could not parse YAML header: " ++
                                         problem
-                            _ -> P.warningWithPos (Just pos)
+                            _ -> P.warningWithPos pos
                                     $ "Could not parse YAML header: " ++
                                         show err'
                          return nullMeta
@@ -420,7 +420,7 @@ referenceKey = try $ do
   let oldkeys = stateKeys st
   let key = toKey raw
   case M.lookup key oldkeys of
-    Just _  -> P.warningWithPos (Just pos) $ "Duplicate link reference `" ++ raw ++ "'"
+    Just _  -> P.warningWithPos pos $ "Duplicate link reference `" ++ raw ++ "'"
     Nothing -> return ()
   updateState $ \s -> s { stateKeys = M.insert key (target, attr') oldkeys }
   return $ return mempty
@@ -486,7 +486,7 @@ noteBlock = try $ do
   let newnote = (ref, parsed)
   oldnotes <- stateNotes' <$> getState
   case lookup ref oldnotes of
-    Just _  -> P.warningWithPos (Just pos) $ "Duplicate note reference `" ++ ref ++ "'"
+    Just _  -> P.warningWithPos pos $ "Duplicate note reference `" ++ ref ++ "'"
     Nothing -> return ()
   updateState $ \s -> s { stateNotes' = newnote : oldnotes }
   return mempty
