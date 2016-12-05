@@ -30,8 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Markdown ( readMarkdown,
-                                      readMarkdownWithWarnings ) where
+module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
 
 import Data.List ( transpose, sortBy, findIndex, intercalate )
 import qualified Data.Map as M
@@ -83,14 +82,6 @@ readMarkdown opts s = do
   case parsed of
     Right result -> return result
     Left e -> throwError e
-
--- | Read markdown from an input string and return a pair of a Pandoc document
--- and a list of warnings.
-readMarkdownWithWarnings :: PandocMonad m
-                         => ReaderOptions -- ^ Reader options
-                         -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-                         -> m Pandoc
-readMarkdownWithWarnings = readMarkdown
 
 trimInlinesF :: F Inlines -> F Inlines
 trimInlinesF = liftM trimInlines
