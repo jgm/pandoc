@@ -376,15 +376,14 @@ instance PandocMonad PandocPure where
       Just tm -> return tm
       Nothing -> throwError $ PandocFileReadError fp
 
-{-
 instance PandocMonad m => PandocMonad (ParserT s st m) where
   lookupEnv = lift . lookupEnv
-  getCurrentTime = lift . getCurrentTime
-  getCurrentTimeZone = lift . getCurrentTimeZone
+  getCurrentTime = lift getCurrentTime
+  getCurrentTimeZone = lift getCurrentTimeZone
   getDefaultReferenceDocx = lift . getDefaultReferenceDocx
   getDefaultReferenceODT = lift . getDefaultReferenceODT
-  newStdGen = lift . newStdGen
-  newUniqueHash = lift . newUniqueHash
+  newStdGen = lift newStdGen
+  newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
   readDataFile mbuserdir = lift . readDataFile mbuserdir
   fail = lift . fail
@@ -392,4 +391,3 @@ instance PandocMonad m => PandocMonad (ParserT s st m) where
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
   getModificationTime = lift . getModificationTime
--}
