@@ -50,7 +50,6 @@ import Data.Sequence (viewr, ViewR(..))
 import Data.Char (toLower, isHexDigit, isSpace)
 import Data.Monoid ((<>))
 import Control.Monad.Except (throwError, catchError)
-import Control.Monad.Trans (lift)
 import Text.Pandoc.Class (PandocMonad, warning, readFileLazy)
 import qualified Text.Pandoc.Class as P
 
@@ -423,11 +422,11 @@ include = try $ do
   when (f `elem` containers) $
     throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
   updateState $ \s -> s{ stateContainers = f : stateContainers s }
-  res <- lift $ readFileLazy' f
+  res <- readFileLazy' f
   contents <- case res of
                    Right x -> return x
                    Left _e -> do
-                     lift $ warning $ "Could not read include file " ++ f ++ "."
+                     warning $ "Could not read include file " ++ f ++ "."
                      return ""
   let contentLines = lines contents
   let numLines = length contentLines
@@ -724,20 +723,20 @@ addNewRole roleString fields = do
 
     -- warn about syntax we ignore
     flip mapM_ fields $ \(key, _) -> case key of
-        "language" -> when (baseRole /= "code") $ lift $ P.warning $
+        "language" -> when (baseRole /= "code") $ P.warning $
             "ignoring :language: field because the parent of role :" ++
             role ++ ": is :" ++ baseRole ++ ": not :code:"
-        "format" -> when (baseRole /= "raw") $ lift $ P.warning $
+        "format" -> when (baseRole /= "raw") $ P.warning $
             "ignoring :format: field because the parent of role :" ++
             role ++ ": is :" ++ baseRole ++ ": not :raw:"
-        _ -> lift $ P.warning $ "ignoring unknown field :" ++ key ++
+        _ -> P.warning $ "ignoring unknown field :" ++ key ++
              ": in definition of role :" ++ role ++ ": in"
     when (parentRole == "raw" && countKeys "format" > 1) $
-        lift $ P.warning $
+        P.warning $
         "ignoring :format: fields after the first in the definition of role :"
         ++ role ++": in"
     when (parentRole == "code" && countKeys "language" > 1) $
-        lift $ P.warning $
+        P.warning $
         "ignoring :language: fields after the first in the definition of role :"
         ++ role ++": in"
 
