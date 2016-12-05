@@ -55,7 +55,7 @@ import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Error
 import Control.Monad.Except (throwError, catchError)
 import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileLazy,
-                          warning)
+                          warning, warningWithPos)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
@@ -236,9 +236,10 @@ inline = (mempty <$ comment)
      <|> mathInline  (char '$' *> mathChars <* char '$')
      <|> (guardEnabled Ext_literate_haskell *> char '|' *> doLHSverb)
      <|> (str . (:[]) <$> tildeEscape)
-     <|> (str . (:[]) <$> oneOf "[]")
-     <|> (str . (:[]) <$> oneOf "#&~^'`\"[]") -- TODO print warning?
-     -- <|> (str <$> count 1 (satisfy (\c -> c /= '\\' && c /='\n' && c /='}' && c /='{'))) -- eat random leftover characters
+     <|> (do res <- oneOf "#&~^'`\"[]"
+             pos <- getPosition
+             warningWithPos (Just pos) ("Parsing unescaped '" ++ [res] ++ "'")
+             return $ str [res])
 
 inlines :: PandocMonad m => LP m Inlines
 inlines = mconcat <$> many (notFollowedBy (char '}') *> inline)
