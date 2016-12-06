@@ -445,10 +445,10 @@ pTable = try $ do
   let isSimple = all isSinglePlain $ concat (head':rows'')
   let cols = length $ if null head' then head rows'' else head'
   -- add empty cells to short rows
-  let addEmpties r = case length r - cols of
-                           n | n > 1 -> r ++ replicate n []
+  let addEmpties r = case cols - length r of
+                           n | n > 0 -> r ++ replicate n mempty
                              | otherwise -> r
-  let rows = addEmpties rows''
+  let rows = map addEmpties rows''
   let aligns = replicate cols AlignDefault
   let widths = if null widths'
                   then if isSimple
