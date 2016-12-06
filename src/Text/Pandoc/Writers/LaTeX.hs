@@ -682,8 +682,8 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
-  let toHeaders hs = do contents <- (tableRowToLaTeX True aligns widths) hs
-                        return ("\\toprule" $$ contents $$ "\\midrule")
+  let toHeaders hs = do contents <- (tableHeaderRowToLaTeX True aligns widths) hs
+                        return ("\\toprule\\TableHeaderRowStyle" $$ contents $$ "\\midrule")
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
   captionText <- inlineListToLaTeX caption
@@ -704,7 +704,8 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concat $ map toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
-  return $ "\\begin{longtable}[]" <>
+  return $ "\\BeforeTableStyle"
+         $$ "\\begin{longtable}[]" <>
               braces ("@{}" <> colDescriptors <> "@{}")
               -- the @{} removes extra space at beginning and end
          $$ capt
@@ -748,6 +749,31 @@ tableRowToLaTeX header aligns widths cols = do
                    else map (scaleFactor *) widths
   cells <- mapM (tableCellToLaTeX header) $ zip3 widths' aligns cols
   return $ hsep (intersperse "&" cells) <> "\\tabularnewline"
+
+tableHeaderRowToLaTeX :: PandocMonad m
+                => Bool
+                -> [Alignment]
+                -> [Double]
+                -> [[Block]]
+                -> LW m Doc
+tableHeaderRowToLaTeX header aligns widths cols = do
+  -- scale factor compensates for extra space between columns
+  -- so the whole table isn't larger than columnwidth
+  let scaleFactor = 0.97 ** fromIntegral (length aligns)
+  let isSimple [Plain _] = True
+      isSimple [Para  _] = True
+      isSimple []        = True
+      isSimple _         = False
+  -- simple tables have to have simple cells:
+  let widths' = if not (all isSimple cols)
+                   then replicate (length aligns)
+                          (0.97 / fromIntegral (length aligns))
+                   else map (scaleFactor *) widths
+  cells <- mapM (tableCellToLaTeX header) $ zip3 widths' aligns cols
+  return $ ( "{\\TableHeaderItemStyle " <> 
+              hsep (intersperse "} & {\\TableHeaderItemStyle" cells) <>
+             "}\\tabularnewline"
+           )
 
 -- For simple latex tables (without minipages or parboxes),
 -- we need to go to some lengths to get line breaks working:
