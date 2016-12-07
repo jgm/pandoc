@@ -1131,8 +1131,14 @@ explicitLink = try $ do
   (src',tit,attr) <- case reverse src of
                           '_':xs -> do
                             keyTable <- stateKeys <$> getState
-                            case M.lookup (toKey (reverse xs)) keyTable of
-                                 Nothing -> fail "no corresponding key"
+                            let key = toKey $ reverse xs
+                            case M.lookup key keyTable of
+                                 Nothing -> do
+                                   pos <- getPosition
+                                   addWarning (Just pos) $
+                                     "Could not find reference for " ++
+                                       show key
+                                   return ("","",nullAttr)
                                  Just ((s,t),a) -> return (s,t,a)
                           _ -> return (src, "", nullAttr)
   return $ B.linkWith attr (escapeURI src') tit label''
@@ -1152,7 +1158,12 @@ referenceLink = try $ do
                       then mzero
                       else return (head anonKeys)
   ((src,tit), attr) <- case M.lookup key keyTable of
-                         Nothing  -> fail "no corresponding key"
+                         Nothing  -> do
+                           pos <- getPosition
+                           addWarning (Just pos) $
+                             "Could not find reference for " ++
+                               show key
+                           return (("",""),nullAttr)
                          Just val -> return val
   -- if anonymous link, remove key so it won't be used again
   when (isAnonKey key) $ updateState $ \s -> s{ stateKeys = M.delete key keyTable }
@@ -1176,8 +1187,13 @@ subst = try $ do
   (_,ref) <- withRaw $ enclosed (char '|') (char '|') inline
   state <- getState
   let substTable = stateSubstitutions state
-  case M.lookup (toKey $ stripFirstAndLast ref) substTable of
-       Nothing     -> fail "no corresponding key"
+  let key = toKey $ stripFirstAndLast ref
+  case M.lookup key substTable of
+       Nothing     -> do
+         pos <- getPosition
+         addWarning (Just pos) $
+           "Could not find reference for " ++ show key
+         return mempty
        Just target -> return target
 
 note :: RSTParser Inlines
@@ -1188,7 +1204,11 @@ note = try $ do
   state <- getState
   let notes = stateNotes state
   case lookup ref notes of
-    Nothing   -> fail "note not found"
+    Nothing   -> do
+      pos <- getPosition
+      addWarning (Just pos) $
+        "Could not find note for " ++ show ref
+      return mempty
     Just raw  -> do
       -- We temporarily empty the note list while parsing the note,
       -- so that we don't get infinite loops with notes inside notes...
