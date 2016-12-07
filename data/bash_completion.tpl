@@ -75,4 +75,4 @@ _pandoc()
 
 }
 
-complete -F _pandoc pandoc
+complete -o filenames -o bashdefault -F _pandoc pandoc
