@@ -68,7 +68,7 @@ _pandoc()
              ;;
          *)
              local IFS=$'\n'
-             COMPREPLY=( $(compgen -X '' -f ${cur}) )
+             COMPREPLY=( $(compgen -X '' -f "${cur}") )
              return 0
              ;;
     esac
