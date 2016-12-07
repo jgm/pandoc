@@ -69,6 +69,7 @@ import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 import Data.Monoid ((<>))
 import Text.Parsec.Error
 import qualified Data.Set as Set
+import Debug.Trace (traceShowId)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ReaderOptions -- ^ Reader options
@@ -422,7 +423,6 @@ pTable = try $ do
   TagOpen _ _ <- pSatisfy (~== TagOpen "table" [])
   skipMany pBlank
   caption <- option mempty $ pInTags "caption" inline <* skipMany pBlank
-  -- TODO actually read these and take width information from them
   widths' <- (mconcat <$> many1 pColgroup) <|> many pCol
   let pTh = option [] $ pInTags "tr" (pCell "th")
       pTr = try $ skipMany pBlank >> pInTags "tr" (pCell "td" <|> pCell "th")
@@ -450,7 +450,7 @@ pTable = try $ do
                              | otherwise -> r
   let rows = map addEmpties rows''
   let aligns = replicate cols AlignDefault
-  let widths = if null widths'
+  let widths = if null (traceShowId widths')
                   then if isSimple
                        then replicate cols 0
                        else replicate cols (1.0 / fromIntegral cols)
@@ -464,6 +464,11 @@ pCol = try $ do
   optional $ pSatisfy (~== TagClose "col")
   skipMany pBlank
   return $ case lookup "width" attribs of
+           Nothing -> case lookup "style" attribs of
+               Just ('w':'i':'d':'t':'h':':':xs) | '%' `elem` xs ->
+                 fromMaybe 0.0 $ safeRead ('0':'.':filter
+                   (`notElem` " \t\r\n%'\";") xs)
+               _ -> 0.0
            Just x | not (null x) && last x == '%' ->
              fromMaybe 0.0 $ safeRead ('0':'.':init x)
            _ -> 0.0
