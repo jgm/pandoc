@@ -390,6 +390,8 @@ Reference links:  `link1`_ and `link2`_ and link1_ again.
 .. _link1: /url1/
 .. _`link2`: /url2/
 
+Another `style of reference link <link1_>`_.
+
 Here's a `link with an ampersand in the URL`_.
 
 Here's a link with an amersand in the link text: `AT&T </url/>`_.

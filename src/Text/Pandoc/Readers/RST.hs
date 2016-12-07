@@ -1120,14 +1120,22 @@ explicitLink = try $ do
   notFollowedBy (char '`') -- `` marks start of inline code
   label' <- trimInlines . mconcat <$>
              manyTill (notFollowedBy (char '`') >> inline) (char '<')
-  src <- manyTill (noneOf ">\n") (char '>')
+  src <- trim <$> manyTill (noneOf ">\n") (char '>')
   skipSpaces
   string "`_"
   optional $ char '_' -- anonymous form
   let label'' = if label' == mempty
                    then B.str src
                    else label'
-  return $ B.link (escapeURI $ trim src) "" label''
+  -- `link <google_>` is a reference link to _google!
+  (src',tit,attr) <- case reverse src of
+                          '_':xs -> do
+                            keyTable <- stateKeys <$> getState
+                            case M.lookup (toKey (reverse xs)) keyTable of
+                                 Nothing -> fail "no corresponding key"
+                                 Just ((s,t),a) -> return (s,t,a)
+                          _ -> return (src, "", nullAttr)
+  return $ B.linkWith attr (escapeURI src') tit label''
 
 referenceLink :: RSTParser Inlines
 referenceLink = try $ do

@@ -214,6 +214,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Explicit",Space,Str "with",Space,Str "no",Space,Str "label:",Space,Link ("",[],[]) [Str "foo"] ("foo",""),Str "."]
 ,Para [Str "Two",Space,Str "anonymous",Space,Str "links:",Space,Link ("",[],[]) [Str "the",Space,Str "first"] ("/url1/",""),Space,Str "and",Space,Link ("",[],[]) [Str "the",Space,Str "second"] ("/url2/","")]
 ,Para [Str "Reference",Space,Str "links:",Space,Link ("",[],[]) [Str "link1"] ("/url1/",""),Space,Str "and",Space,Link ("",[],[]) [Str "link2"] ("/url2/",""),Space,Str "and",Space,Link ("",[],[]) [Str "link1"] ("/url1/",""),Space,Str "again."]
+,Para [Str "Another",Space,Link ("",[],[]) [Str "style",Space,Str "of",Space,Str "reference",Space,Str "link"] ("/url1/",""),Str "."]
 ,Para [Str "Here\8217s",Space,Str "a",Space,Link ("",[],[]) [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] ("http://example.com/?foo=1&bar=2",""),Str "."]
 ,Para [Str "Here\8217s",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "amersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text:",Space,Link ("",[],[]) [Str "AT&T"] ("/url/",""),Str "."]
 ,Para [Str "Autolinks:",Space,Link ("",[],[]) [Str "http://example.com/?foo=1&bar=2"] ("http://example.com/?foo=1&bar=2",""),Space,Str "and",Space,Link ("",[],[]) [Str "nobody@nowhere.net"] ("mailto:nobody@nowhere.net",""),Str "."]
