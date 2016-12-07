@@ -478,7 +478,7 @@ options =
                     case safeRead ("Wrap" ++ uppercaseFirstLetter arg) of
                           Just o   -> return opt { optWrapText = o }
                           Nothing  -> err 77 "--wrap must be auto, none, or preserve")
-                 "[auto|none|preserve]")
+                 "auto|none|preserve")
                  "" -- "Option for wrapping text in output"
 
     , Option "" ["columns"]
@@ -609,7 +609,7 @@ options =
                         Just tlDiv -> return opt { optTopLevelDivision = tlDiv }
                         _       -> err 76 ("Top-level division must be " ++
                                            "section,  chapter, part, or default"))
-                   "[section|chapter|part]")
+                   "section|chapter|part")
                  "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
 
     , Option "N" ["number-sections"]
@@ -912,6 +912,7 @@ options =
                      UTF8.hPutStrLn stdout $ printf tpl allopts
                          (unwords (map fst readers))
                          (unwords (map fst writers))
+                         (unwords $ map fst highlightingStyles)
                          ddir
                      exitSuccess ))
                  "" -- "Print bash completion script"
