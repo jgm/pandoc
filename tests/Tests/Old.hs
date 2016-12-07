@@ -6,7 +6,8 @@ import Test.HUnit ( assertBool )
 import System.Environment.Executable (getExecutablePath)
 import System.IO ( openTempFile, stderr )
 import System.Process ( runProcess, waitForProcess )
-import System.FilePath ( (</>), (<.>), takeDirectory, splitDirectories, joinPath )
+import System.FilePath ( (</>), (<.>), takeDirectory, splitDirectories,
+                         joinPath )
 import System.Directory
 import System.Exit
 import Data.Algorithm.Diff
@@ -260,9 +261,17 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
   let normPath = norm
   let options = ["--data-dir", ".." </> "data"] ++ [inpPath] ++ opts
   let cmd = pandocPath ++ " " ++ unwords options
+  let findDynlibDir [] = Nothing
+      findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
+      findDynlibDir (_:xs) = findDynlibDir xs
+  let mbDynlibDir = findDynlibDir (reverse $ splitDirectories pandocPath)
+  let dynlibEnv = case mbDynlibDir of
+                       Nothing  -> []
+                       Just d   -> [("DYLD_LIBRARY_PATH", d),
+                                    ("LD_LIBRARY_PATH", d)]
+  let env = dynlibEnv ++ [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]
   ph <- runProcess pandocPath options Nothing
-        (Just [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]) Nothing (Just hOut)
-        (Just stderr)
+        (Just env) Nothing (Just hOut) (Just stderr)
   ec <- waitForProcess ph
   result  <- if ec == ExitSuccess
                 then do
