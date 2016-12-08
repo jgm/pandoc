@@ -11,11 +11,11 @@ _ Tag templates
 
 _ 'make dist' to generate tarball
 
-_ Generate Windows package and copy to directory.
+_ Generate Windows package (make winpkg)
 
-_ Generate Mac OSX package.
+_ Generate Mac OSX package (make osxpkg)
 
-_ Generate Ubuntu/Debian deb package (cd deb; make package).
+_ Generate Ubuntu/Debian deb package (make debpkg)
 
 - Add release on github (use 'make changes_github' and upload files)
 
