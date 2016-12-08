@@ -200,7 +200,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                         Nothing -> empty
   let headerBlocks = filter isHeaderBlock blocks
   toc <- if writerTableOfContents opts
-         then liftPandoc $ tableOfContents opts headerBlocks
+         then tableOfContents opts headerBlocks
          else return empty
   -- Strip off final 'references' header if markdown citations enabled
   let blocks' = if isEnabled Ext_citations opts
@@ -533,7 +533,7 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
                              rawHeaders rawRows
                   | isEnabled Ext_raw_html opts -> fmap (id,) $
                          text <$>
-                         (liftPandoc $ writeHtmlString def $ Pandoc nullMeta [t])
+                         (writeHtmlString def $ Pandoc nullMeta [t])
                   | otherwise -> return $ (id, text "[TABLE]")
   return $ nst $ tbl $$ blankline $$ caption'' $$ blankline
 blockToMarkdown' opts (BulletList items) = do
@@ -985,7 +985,7 @@ inlineToMarkdown opts (Math InlineMath str) =
              return $ "\\\\(" <> text str <> "\\\\)"
          | otherwise -> do
              plain <- asks envPlain
-             (liftPandoc (texMathToInlines InlineMath str)) >>=
+             texMathToInlines InlineMath str >>=
                inlineListToMarkdown opts .
                  (if plain then makeMathPlainer else id)
 inlineToMarkdown opts (Math DisplayMath str) =
@@ -1000,8 +1000,7 @@ inlineToMarkdown opts (Math DisplayMath str) =
         | isEnabled Ext_tex_math_double_backslash opts ->
             return $ "\\\\[" <> text str <> "\\\\]"
         | otherwise -> (\x -> cr <> x <> cr) `fmap`
-            (liftPandoc (texMathToInlines DisplayMath str) >>=
-              inlineListToMarkdown opts)
+            texMathToInlines DisplayMath str >>= inlineListToMarkdown opts
 inlineToMarkdown opts (RawInline f str) = do
   plain <- asks envPlain
   if not plain &&
@@ -1063,7 +1062,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
-    (text . trim) <$> (liftPandoc $ writeHtmlString def $ Pandoc nullMeta [Plain [lnk]])
+    (text . trim) <$> writeHtmlString def (Pandoc nullMeta [Plain [lnk]])
   | otherwise = do
   plain <- asks envPlain
   linktext <- inlineListToMarkdown opts txt
@@ -1102,7 +1101,7 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
-    (text . trim) <$> (liftPandoc $ writeHtmlString def $ Pandoc nullMeta [Plain [img]])
+    (text . trim) <$> writeHtmlString def (Pandoc nullMeta [Plain [img]])
   | otherwise = do
   plain <- asks envPlain
   let txt = if null alternate || alternate == [Str source]
@@ -1127,5 +1126,3 @@ makeMathPlainer = walk go
   go (Emph xs) = Span nullAttr xs
   go x = x
 
-liftPandoc :: PandocMonad m => m a -> MD m a
-liftPandoc = lift . lift
