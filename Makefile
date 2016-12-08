@@ -2,36 +2,20 @@ version=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 
 quick:
-	cabal --ignore-sandbox configure --enable-tests -fembed_data_files --disable-optimization
-	cabal build
+	stack install --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4'
 
 full:
-	cabal configure --enable-tests --enable-optimization -ftrypandoc -fembed_data_files --enable-benchmarks
-	cabal build
-	cabal haddock
-
-deps:
-	cabal install --only-dependencies --enable-tests -ftrypandoc -fembed_data_files --enable-benchmarks
-
-prof:
-	cabal configure --enable-library-profiling --enable-executable-profiling --enable-optimization --enable-tests
-	cabal build
+	stack install --flag 'pandoc:embed_data_files' --test --test-arguments='-j4' --pedantic
+	stack haddock
 
 test:
-	cabal test
+	stack test --test-arguments='-j4'
 
 bench:
-	cabal bench
+	stack bench
 
 changes_github:
 	pandoc --filter extract-changes.hs changelog -t markdown_github | pbcopy
-
-install: full
-	cabal copy
-	cabal register
-
-stack:
-	stack install --test --stack-yaml stack.full.yaml
 
 dist: man/pandoc.1
 	cabal sdist
@@ -66,6 +50,6 @@ download_stats:
 		jq -r '.[] | .assets | .[] | "\(.download_count)\t\(.name)"'
 
 clean:
-	cabal clean
+	stack clean
 
 .PHONY: deps quick full install clean test bench changes_github osxpkg dist prof download_stats
