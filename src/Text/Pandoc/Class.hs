@@ -252,7 +252,7 @@ data PureState = PureState { stStdGen     :: StdGen
                            , stFiles :: FileTree
                            , stUserDataDir :: FileTree
                            , stCabalDataDir :: FileTree
-                           , stFontFiles :: [FilePath]   
+                           , stFontFiles :: [FilePath]
                            }
 
 instance Default PureState where
@@ -282,8 +282,8 @@ putPureState ps= PandocPure $ lift $ lift $ put ps
 
 modifyPureState :: (PureState -> PureState) -> PandocPure ()
 modifyPureState f = PandocPure $ lift $ lift $ modify f
-  
-        
+
+
 data FileInfo = FileInfo { infoFileMTime :: UTCTime
                          , infoFileContents :: B.ByteString
                          }
