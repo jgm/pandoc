@@ -568,7 +568,8 @@ bodyPartToBlocks (Tbl _ _ _ []) =
 bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
   let caption = text cap
       (hdr, rows) = case firstRowFormatting look of
-        True -> (Just r, rs)
+        True | null rs -> (Nothing, [r])
+             | otherwise -> (Just r, rs)
         False -> (Nothing, r:rs)
   hdrCells <- case hdr of
     Just r' -> rowToBlocksList r'

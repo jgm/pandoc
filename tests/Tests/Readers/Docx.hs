@@ -242,6 +242,10 @@ tests = [ testGroup "inlines"
             "docx/table_with_list_cell.docx"
             "docx/table_with_list_cell.native"
           , testCompare
+            "tables with one row"
+            "docx/table_one_row.docx"
+            "docx/table_one_row.native"
+          , testCompare
             "code block"
             "docx/codeblock.docx"
             "docx/codeblock.native"
