@@ -50,8 +50,7 @@ import Data.Sequence (viewr, ViewR(..))
 import Data.Char (toLower, isHexDigit, isSpace)
 import Data.Monoid ((<>))
 import Control.Monad.Except (throwError, catchError)
-import Text.Pandoc.Class (PandocMonad, warning, readFileLazy)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Class (PandocMonad, warning, readFileLazy, warningWithPos)
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: PandocMonad m
@@ -695,7 +694,7 @@ directive' = do
             return $ B.divWith attrs children
         other     -> do
             pos <- getPosition
-            P.warningWithPos pos $ "ignoring unknown directive: " ++ other
+            warningWithPos pos $ "ignoring unknown directive: " ++ other
             return mempty
 
 -- TODO:
@@ -723,20 +722,20 @@ addNewRole roleString fields = do
 
     -- warn about syntax we ignore
     flip mapM_ fields $ \(key, _) -> case key of
-        "language" -> when (baseRole /= "code") $ P.warning $
+        "language" -> when (baseRole /= "code") $ warning $
             "ignoring :language: field because the parent of role :" ++
             role ++ ": is :" ++ baseRole ++ ": not :code:"
-        "format" -> when (baseRole /= "raw") $ P.warning $
+        "format" -> when (baseRole /= "raw") $ warning $
             "ignoring :format: field because the parent of role :" ++
             role ++ ": is :" ++ baseRole ++ ": not :raw:"
-        _ -> P.warning $ "ignoring unknown field :" ++ key ++
+        _ -> warning $ "ignoring unknown field :" ++ key ++
              ": in definition of role :" ++ role ++ ": in"
     when (parentRole == "raw" && countKeys "format" > 1) $
-        P.warning $
+        warning $
         "ignoring :format: fields after the first in the definition of role :"
         ++ role ++": in"
     when (parentRole == "code" && countKeys "language" > 1) $
-        P.warning $
+        warning $
         "ignoring :language: fields after the first in the definition of role :"
         ++ role ++": in"
 
@@ -1134,7 +1133,7 @@ renderRole contents fmt role attr = case role of
                 renderRole contents newFmt newRole newAttr
             Nothing -> do
                 pos <- getPosition
-                P.warningWithPos pos $ "ignoring unknown role :" ++ custom ++ ": in"
+                warningWithPos pos $ "ignoring unknown role :" ++ custom ++ ": in"
                 return $ B.str contents -- Undefined role
  where
    titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour
@@ -1219,7 +1218,7 @@ explicitLink = try $ do
                             case M.lookup key keyTable of
                                  Nothing -> do
                                    pos <- getPosition
-                                   addWarning (Just pos) $
+                                   warningWithPos pos $
                                      "Could not find reference for " ++
                                        show key
                                    return ("","",nullAttr)
@@ -1244,7 +1243,7 @@ referenceLink = try $ do
   ((src,tit), attr) <- case M.lookup key keyTable of
                          Nothing  -> do
                            pos <- getPosition
-                           addWarning (Just pos) $
+                           warningWithPos pos $
                              "Could not find reference for " ++
                                show key
                            return (("",""),nullAttr)
@@ -1275,7 +1274,7 @@ subst = try $ do
   case M.lookup key substTable of
        Nothing     -> do
          pos <- getPosition
-         addWarning (Just pos) $
+         warningWithPos pos $
            "Could not find reference for " ++ show key
          return mempty
        Just target -> return target
@@ -1290,7 +1289,7 @@ note = try $ do
   case lookup ref notes of
     Nothing   -> do
       pos <- getPosition
-      addWarning (Just pos) $
+      warningWithPos pos $
         "Could not find note for " ++ show ref
       return mempty
     Just raw  -> do
