@@ -4,7 +4,6 @@ module Tests.Readers.Txt2Tags (tests) where
 import Text.Pandoc.Definition
 import Test.Framework
 import Tests.Helpers
-import Control.Monad.State
 import Text.Pandoc.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
@@ -15,7 +14,8 @@ import Text.Pandoc.Class
 t2t :: String -> Pandoc
 -- t2t = handleError . readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def
 t2t = purely $ \s -> do
-  put def { stInputFiles = Just ["in"]
+  putCommonState
+      def { stInputFiles = Just ["in"]
           , stOutputFile = Just "out"
           }
   readTxt2Tags def s

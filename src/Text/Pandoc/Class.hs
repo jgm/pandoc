@@ -98,7 +98,7 @@ import System.IO.Error
 import qualified Data.Map as M
 import Text.Pandoc.Error
 
-class (Functor m, Applicative m, Monad m, MonadError PandocError m, MonadState CommonState m) => PandocMonad m where
+class (Functor m, Applicative m, Monad m, MonadError PandocError m) => PandocMonad m where
   lookupEnv :: String -> m (Maybe String)
   getCurrentTime :: m UTCTime
   getCurrentTimeZone :: m TimeZone
@@ -120,32 +120,39 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m, MonadState C
   fail :: String -> m b
   glob :: String -> m [FilePath]
   getModificationTime :: FilePath -> m UTCTime
+  getCommonState :: m CommonState
+  putCommonState :: CommonState -> m ()
 
+  getsCommonState :: (CommonState -> a) -> m a
+  getsCommonState f = f <$> getCommonState
 
+  modifyCommonState :: (CommonState -> CommonState) -> m ()
+  modifyCommonState f = getCommonState >>= putCommonState . f
 
 -- Functions defined for all PandocMonad instances
 
 warning :: PandocMonad m => String -> m ()
-warning msg = modify $ \st -> st{stWarnings = msg : stWarnings st}
+warning msg = modifyCommonState $ \st -> st{stWarnings = msg : stWarnings st}
 
 getWarnings :: PandocMonad m => m [String]
-getWarnings = gets stWarnings
+getWarnings = getsCommonState stWarnings
 
 setMediaBag :: PandocMonad m => MediaBag -> m ()
-setMediaBag mb = modify $ \st -> st{stMediaBag = mb}
+setMediaBag mb = modifyCommonState $ \st -> st{stMediaBag = mb}
 
 getMediaBag :: PandocMonad m => m MediaBag
-getMediaBag = gets stMediaBag
+getMediaBag = getsCommonState stMediaBag
 
 insertMedia :: PandocMonad m => FilePath -> Maybe MimeType -> BL.ByteString -> m ()
 insertMedia fp mime bs =
-    modify $ \st -> st{stMediaBag = MB.insertMedia fp mime bs (stMediaBag st) }
+    modifyCommonState $ \st ->
+      st{stMediaBag = MB.insertMedia fp mime bs (stMediaBag st) }
 
 getInputFiles :: PandocMonad m => m (Maybe [FilePath])
-getInputFiles = gets stInputFiles
+getInputFiles = getsCommonState stInputFiles
 
 getOutputFile :: PandocMonad m => m (Maybe FilePath)
-getOutputFile = gets stOutputFile
+getOutputFile = getsCommonState stOutputFile
 
 getPOSIXTime :: (PandocMonad m) => m POSIXTime
 getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
@@ -163,9 +170,6 @@ warningWithPos :: PandocMonad m
 warningWithPos pos msg = lift $ warning $ msg ++ " " ++ show pos
 
 --
-
--- All PandocMonad instances should be an instance MonadState of this
--- datatype:
 
 data CommonState = CommonState { stWarnings :: [String]
                                , stMediaBag :: MediaBag
@@ -201,7 +205,6 @@ newtype PandocIO a = PandocIO {
              , Functor
              , Applicative
              , Monad
-             , MonadState CommonState
              , MonadError PandocError
              )
 
@@ -233,7 +236,8 @@ instance PandocMonad PandocIO where
     case eitherMtime of
       Right mtime -> return mtime
       Left _ -> throwError $ PandocFileReadError fp
-
+  getCommonState = PandocIO $ lift get
+  putCommonState x = PandocIO $ lift $ put x
 
 data PureState = PureState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
@@ -301,7 +305,6 @@ newtype PandocPure a = PandocPure {
   } deriving ( Functor
              , Applicative
              , Monad
-             , MonadState CommonState
              , MonadError PandocError
              )
 
@@ -376,6 +379,9 @@ instance PandocMonad PandocPure where
       Just tm -> return tm
       Nothing -> throwError $ PandocFileReadError fp
 
+  getCommonState = PandocPure $ lift $ get
+  putCommonState x = PandocPure $ lift $ put x
+
 instance PandocMonad m => PandocMonad (ParserT s st m) where
   lookupEnv = lift . lookupEnv
   getCurrentTime = lift getCurrentTime
@@ -391,3 +397,6 @@ instance PandocMonad m => PandocMonad (ParserT s st m) where
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
   getModificationTime = lift . getModificationTime
+  getCommonState = lift getCommonState
+  putCommonState = lift . putCommonState
+
