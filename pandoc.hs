@@ -44,7 +44,7 @@ import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Process (pipeProcess)
 import Text.Highlighting.Kate ( languages, Style, tango, pygments,
          espresso, zenburn, kate, haddock, monochrome )
-import System.Environment ( getArgs, getProgName )
+import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( ExitCode (..), exitSuccess )
 import System.FilePath
 import System.Console.GetOpt
@@ -135,8 +135,10 @@ externalFilter f args' d = do
     when (isNothing mbExe) $
       err 83 $ "Error running filter " ++ f ++  ":\n" ++
                "Could not find executable '" ++ f' ++ "'."
+  env <- getEnvironment
+  let env' = Just $ ("PANDOC_VERSION", pandocVersion) : env
   (exitcode, outbs, errbs) <- E.handle filterException $
-                              pipeProcess Nothing f' args'' $ encode d
+                              pipeProcess env' f' args'' $ encode d
   unless (B.null errbs) $ B.hPutStr stderr errbs
   case exitcode of
        ExitSuccess    -> return $ either error id $ eitherDecode' outbs
