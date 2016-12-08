@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveFunctor, DeriveDataTypeable, TypeSynonymInstances,
-FlexibleInstances, GeneralizedNewtypeDeriving, FlexibleContexts,
-MultiParamTypeClasses, UndecidableInstances #-}
+FlexibleInstances, GeneralizedNewtypeDeriving, FlexibleContexts #-}
 
 {-
 Copyright (C) 2016 Jesse Rosenthal <jrosenthal@jhu.edu>
