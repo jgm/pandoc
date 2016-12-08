@@ -69,7 +69,6 @@ import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 import Data.Monoid ((<>))
 import Text.Parsec.Error
 import qualified Data.Set as Set
-import Debug.Trace (traceShowId)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: ReaderOptions -- ^ Reader options
@@ -450,7 +449,7 @@ pTable = try $ do
                              | otherwise -> r
   let rows = map addEmpties rows''
   let aligns = replicate cols AlignDefault
-  let widths = if null (traceShowId widths')
+  let widths = if null widths'
                   then if isSimple
                        then replicate cols 0
                        else replicate cols (1.0 / fromIntegral cols)
