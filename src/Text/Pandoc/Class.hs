@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveFunctor, DeriveDataTypeable, TypeSynonymInstances,
-FlexibleInstances, GeneralizedNewtypeDeriving, FlexibleContexts #-}
+FlexibleInstances, GeneralizedNewtypeDeriving, FlexibleContexts,
+MultiParamTypeClasses, UndecidableInstances #-}
 
 {-
 Copyright (C) 2016 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -91,6 +92,9 @@ import System.FilePath ((</>))
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
 import Control.Monad.State hiding (fail)
+import Control.Monad.Reader (ReaderT)
+import Control.Monad.Writer (WriterT)
+import Control.Monad.RWS (RWST)
 import Control.Monad.Except hiding (fail)
 import Data.Word (Word8)
 import Data.Default
@@ -98,7 +102,8 @@ import System.IO.Error
 import qualified Data.Map as M
 import Text.Pandoc.Error
 
-class (Functor m, Applicative m, Monad m, MonadError PandocError m) => PandocMonad m where
+class (Functor m, Applicative m, Monad m, MonadError PandocError m)
+      => PandocMonad m where
   lookupEnv :: String -> m (Maybe String)
   getCurrentTime :: m UTCTime
   getCurrentTimeZone :: m TimeZone
@@ -383,6 +388,78 @@ instance PandocMonad PandocPure where
   putCommonState x = PandocPure $ lift $ put x
 
 instance PandocMonad m => PandocMonad (ParserT s st m) where
+  lookupEnv = lift . lookupEnv
+  getCurrentTime = lift getCurrentTime
+  getCurrentTimeZone = lift getCurrentTimeZone
+  getDefaultReferenceDocx = lift . getDefaultReferenceDocx
+  getDefaultReferenceODT = lift . getDefaultReferenceODT
+  newStdGen = lift newStdGen
+  newUniqueHash = lift newUniqueHash
+  readFileLazy = lift . readFileLazy
+  readDataFile mbuserdir = lift . readDataFile mbuserdir
+  fail = lift . fail
+  fetchItem media = lift . fetchItem media
+  fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
+  glob = lift . glob
+  getModificationTime = lift . getModificationTime
+  getCommonState = lift getCommonState
+  putCommonState = lift . putCommonState
+
+instance PandocMonad m => PandocMonad (ReaderT r m) where
+  lookupEnv = lift . lookupEnv
+  getCurrentTime = lift getCurrentTime
+  getCurrentTimeZone = lift getCurrentTimeZone
+  getDefaultReferenceDocx = lift . getDefaultReferenceDocx
+  getDefaultReferenceODT = lift . getDefaultReferenceODT
+  newStdGen = lift newStdGen
+  newUniqueHash = lift newUniqueHash
+  readFileLazy = lift . readFileLazy
+  readDataFile mbuserdir = lift . readDataFile mbuserdir
+  fail = lift . fail
+  fetchItem media = lift . fetchItem media
+  fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
+  glob = lift . glob
+  getModificationTime = lift . getModificationTime
+  getCommonState = lift getCommonState
+  putCommonState = lift . putCommonState
+
+instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
+  lookupEnv = lift . lookupEnv
+  getCurrentTime = lift getCurrentTime
+  getCurrentTimeZone = lift getCurrentTimeZone
+  getDefaultReferenceDocx = lift . getDefaultReferenceDocx
+  getDefaultReferenceODT = lift . getDefaultReferenceODT
+  newStdGen = lift newStdGen
+  newUniqueHash = lift newUniqueHash
+  readFileLazy = lift . readFileLazy
+  readDataFile mbuserdir = lift . readDataFile mbuserdir
+  fail = lift . fail
+  fetchItem media = lift . fetchItem media
+  fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
+  glob = lift . glob
+  getModificationTime = lift . getModificationTime
+  getCommonState = lift getCommonState
+  putCommonState = lift . putCommonState
+
+instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
+  lookupEnv = lift . lookupEnv
+  getCurrentTime = lift getCurrentTime
+  getCurrentTimeZone = lift getCurrentTimeZone
+  getDefaultReferenceDocx = lift . getDefaultReferenceDocx
+  getDefaultReferenceODT = lift . getDefaultReferenceODT
+  newStdGen = lift newStdGen
+  newUniqueHash = lift newUniqueHash
+  readFileLazy = lift . readFileLazy
+  readDataFile mbuserdir = lift . readDataFile mbuserdir
+  fail = lift . fail
+  fetchItem media = lift . fetchItem media
+  fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
+  glob = lift . glob
+  getModificationTime = lift . getModificationTime
+  getCommonState = lift getCommonState
+  putCommonState = lift . putCommonState
+
+instance PandocMonad m => PandocMonad (StateT st m) where
   lookupEnv = lift . lookupEnv
   getCurrentTime = lift getCurrentTime
   getCurrentTimeZone = lift getCurrentTimeZone
