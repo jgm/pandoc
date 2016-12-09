@@ -42,9 +42,9 @@ Version of 'System.Process.readProcessWithExitCode' that uses lazy bytestrings
 instead of strings and allows setting environment variables.
 
 @readProcessWithExitCode@ creates an external process, reads its
-standard output and standard error strictly, waits until the process
-terminates, and then returns the 'ExitCode' of the process,
-the standard output, and the standard error.
+standard output strictly, waits until the process
+terminates, and then returns the 'ExitCode' of the process
+and the standard output.  stderr is inherited from the parent.
 
 If an asynchronous exception is thrown to the thread executing
 @readProcessWithExitCode@, the forked process will be terminated and
@@ -57,24 +57,20 @@ pipeProcess
     -> FilePath                 -- ^ Filename of the executable (see 'proc' for details)
     -> [String]                 -- ^ any arguments
     -> BL.ByteString            -- ^ standard input
-    -> IO (ExitCode,BL.ByteString,BL.ByteString) -- ^ exitcode, stdout, stderr
+    -> IO (ExitCode,BL.ByteString) -- ^ exitcode, stdout
 pipeProcess mbenv cmd args input =
     mask $ \restore -> do
-      (Just inh, Just outh, Just errh, pid) <- createProcess (proc cmd args)
+      (Just inh, Just outh, Nothing, pid) <- createProcess (proc cmd args)
                                                    { env     = mbenv,
                                                      std_in  = CreatePipe,
                                                      std_out = CreatePipe,
-                                                     std_err = CreatePipe }
+                                                     std_err = Inherit }
       flip onException
-        (do hClose inh; hClose outh; hClose errh;
+        (do hClose inh; hClose outh;
             terminateProcess pid; waitForProcess pid) $ restore $ do
         -- fork off a thread to start consuming stdout
         out <- BL.hGetContents outh
         waitOut <- forkWait $ evaluate $ BL.length out
-
-        -- fork off a thread to start consuming stderr
-        err <- BL.hGetContents errh
-        waitErr <- forkWait $ evaluate $ BL.length err
 
         -- now write and flush any input
         let writeInput = do
@@ -87,15 +83,13 @@ pipeProcess mbenv cmd args input =
 
         -- wait on the output
         waitOut
-        waitErr
 
         hClose outh
-        hClose errh
 
         -- wait on the process
         ex <- waitForProcess pid
 
-        return (ex, out, err)
+        return (ex, out)
 
 forkWait :: IO a -> IO (IO a)
 forkWait a = do

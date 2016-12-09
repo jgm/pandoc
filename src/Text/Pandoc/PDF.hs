@@ -37,7 +37,7 @@ import qualified Data.ByteString as BS
 import Data.Monoid ((<>))
 import System.Exit (ExitCode (..))
 import System.FilePath
-import System.IO (stderr, stdout)
+import System.IO (stdout)
 import System.IO.Temp (withTempFile)
 import System.Directory
 import Data.Digest.Pure.SHA (showDigest, sha1)
@@ -247,11 +247,10 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
       putStrLn $ "[makePDF] Contents of " ++ file' ++ ":"
       B.readFile file' >>= B.putStr
       putStr "\n"
-    (exit, out, err) <- pipeProcess (Just env'') program programArgs BL.empty
+    (exit, out) <- pipeProcess (Just env'') program programArgs BL.empty
     when verbose $ do
       putStrLn $ "[makePDF] Run #" ++ show runNumber
       B.hPutStr stdout out
-      B.hPutStr stderr err
       putStr "\n"
     if runNumber <= numRuns
        then runTeXProgram verbose program args (runNumber + 1) numRuns tmpDir source
@@ -264,7 +263,7 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
                    -- See https://github.com/jgm/pandoc/issues/1192.
                    then (Just . B.fromChunks . (:[])) `fmap` BS.readFile pdfFile
                    else return Nothing
-         return (exit, out <> err, pdf)
+         return (exit, out, pdf)
 
 html2pdf  :: Bool         -- ^ Verbose output
           -> [String]     -- ^ Args to wkhtmltopdf
@@ -286,12 +285,10 @@ html2pdf verbose args source = do
     putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
     B.readFile file >>= B.putStr
     putStr "\n"
-  (exit, out, err) <- pipeProcess (Just env') "wkhtmltopdf"
-                              programArgs BL.empty
+  (exit, out) <- pipeProcess (Just env') "wkhtmltopdf" programArgs BL.empty
   removeFile file
   when verbose $ do
     B.hPutStr stdout out
-    B.hPutStr stderr err
     putStr "\n"
   pdfExists <- doesFileExist pdfFile
   mbPdf <- if pdfExists
@@ -303,9 +300,8 @@ html2pdf verbose args source = do
               removeFile pdfFile
               return res
             else return Nothing
-  let log' = out <> err
   return $ case (exit, mbPdf) of
-             (ExitFailure _, _)      -> Left log'
+             (ExitFailure _, _)      -> Left out
              (ExitSuccess, Nothing)  -> Left ""
              (ExitSuccess, Just pdf) -> Right pdf
 
@@ -341,10 +337,9 @@ context2pdf verbose tmpDir source = inDirectory tmpDir $ do
     putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
     B.readFile file >>= B.putStr
     putStr "\n"
-  (exit, out, err) <- pipeProcess (Just env'') "context" programArgs BL.empty
+  (exit, out) <- pipeProcess (Just env'') "context" programArgs BL.empty
   when verbose $ do
     B.hPutStr stdout out
-    B.hPutStr stderr err
     putStr "\n"
   let pdfFile = replaceExtension file ".pdf"
   pdfExists <- doesFileExist pdfFile
@@ -354,10 +349,9 @@ context2pdf verbose tmpDir source = inDirectory tmpDir $ do
             -- See https://github.com/jgm/pandoc/issues/1192.
             then (Just . B.fromChunks . (:[])) `fmap` BS.readFile pdfFile
             else return Nothing
-  let log' = out <> err
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do
-          let logmsg = extractConTeXtMsg log'
+          let logmsg = extractConTeXtMsg out
           return $ Left logmsg
        (ExitSuccess, Nothing)  -> return $ Left ""
        (ExitSuccess, Just pdf) -> return $ Right pdf

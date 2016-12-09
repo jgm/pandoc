@@ -137,9 +137,8 @@ externalFilter f args' d = do
                "Could not find executable '" ++ f' ++ "'."
   env <- getEnvironment
   let env' = Just $ ("PANDOC_VERSION", pandocVersion) : env
-  (exitcode, outbs, errbs) <- E.handle filterException $
+  (exitcode, outbs) <- E.handle filterException $
                               pipeProcess env' f' args'' $ encode d
-  unless (B.null errbs) $ B.hPutStr stderr errbs
   case exitcode of
        ExitSuccess    -> return $ either error id $ eitherDecode' outbs
        ExitFailure ec -> err 83 $ "Error running filter " ++ f ++ "\n" ++
