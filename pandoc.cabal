@@ -97,7 +97,6 @@ Data-Files:
                  data/epub.css
                  -- data for LaTeXMathML writer
                  data/LaTeXMathML.js
-                 data/MathMLinHTML.js
                  -- data for dzslides writer
                  data/dzslides/template.html
                  -- sample lua custom writer
