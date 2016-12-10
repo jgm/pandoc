@@ -598,13 +598,6 @@ options =
                   (\opt -> return opt { optSetextHeaders = False } ))
                  "" -- "Use atx-style headers for markdown"
 
-    , Option "" ["chapters"]
-                 (NoArg
-                  (\opt -> do warn $ "--chapters is deprecated. " ++
-                                     "Use --top-level-division=chapter instead."
-                              return opt { optTopLevelDivision = TopLevelChapter }))
-                 "" -- "Use chapter for top-level sections in LaTeX, DocBook"
-
     , Option "" ["top-level-division"]
                  (ReqArg
                   (\arg opt -> do

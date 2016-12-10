@@ -690,10 +690,6 @@ Options affecting specific writers
 :   Use ATX-style headers in Markdown and AsciiDoc output. The default is
     to use setext-style headers for levels 1-2, and then ATX headers.
 
-`--chapters`
-
-:   Deprecated synonym for `--top-level-division=chapter`.
-
 `--top-level-division=[default|section|chapter|part]`
 
 :   Treat top-level headers as the given division type in LaTeX, ConTeXt,
