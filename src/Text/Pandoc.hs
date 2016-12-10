@@ -59,7 +59,10 @@ module Text.Pandoc
                -- * Options
                , module Text.Pandoc.Options
                -- * Typeclass
-               , module Text.Pandoc.Class
+               , PandocMonad
+               , runIO
+               , runPure
+               , runIOorExplode
                -- * Error handling
                , module Text.Pandoc.Error
                -- * Lists of readers and writers
@@ -177,7 +180,7 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, mapLeft, pandocVersion)
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad, runIOorExplode)
+import Text.Pandoc.Class
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
