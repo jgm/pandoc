@@ -21,9 +21,9 @@ compareOutput opts nativeFileIn nativeFileOut = do
   nf' <- Prelude.readFile nativeFileOut
   let wopts = fst opts
   df <- runIOorExplode $ do
-            d <- readNative nf
+            d <- readNative def nf
             writeDocx wopts{writerUserDataDir = Just (".." </> "data")} d
-  df' <- runIOorExplode (readNative nf')
+  df' <- runIOorExplode (readNative def nf')
   p <- runIOorExplode $ readDocx (snd opts) df
   return (p, df')
 

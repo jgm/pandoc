@@ -32,6 +32,7 @@ module Text.Pandoc.Readers.Native ( readNative ) where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Options (ReaderOptions)
 
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error
@@ -48,9 +49,10 @@ import Text.Pandoc.Class
 -- > Pandoc nullMeta [Plain [Str "hi"]]
 --
 readNative :: PandocMonad m
-           => String      -- ^ String to parse (assuming @'\n'@ line endings)
+           => ReaderOptions
+           -> String      -- ^ String to parse (assuming @'\n'@ line endings)
            -> m Pandoc
-readNative s =
+readNative _ s =
   case maybe (Pandoc nullMeta <$> readBlocks s) Right (safeRead s) of
     Right doc -> return doc
     Left _    -> throwError $ PandocParseError "couldn't read native"

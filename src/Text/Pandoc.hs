@@ -238,7 +238,7 @@ data Reader m = StringReader (ReaderOptions -> String -> m Pandoc)
 
 -- | Association list of formats and readers.
 readers :: PandocMonad m => [(String, Reader m)]
-readers = [ ("native"       , StringReader $ \_ s -> readNative s)
+readers = [ ("native"       , StringReader readNative)
            ,("json"         , StringReader $ \o s ->
                                                case readJSON o s of
                                                  Right doc -> return doc

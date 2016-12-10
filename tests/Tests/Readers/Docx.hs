@@ -44,7 +44,7 @@ compareOutput opts docxFile nativeFile = do
   df <- B.readFile docxFile
   nf <- Prelude.readFile nativeFile
   p <- runIOorExplode $ readDocx opts df
-  df' <- runIOorExplode $ readNative nf
+  df' <- runIOorExplode $ readNative def nf
   return $ (noNorm p, noNorm df')
 
 testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO Test

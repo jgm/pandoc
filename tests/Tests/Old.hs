@@ -196,7 +196,7 @@ lhsReaderTest format =
   testWithNormalize normalizer "lhs" ["-r", format, "-w", "native"]
     ("lhs-test" <.> format) norm
    where normalizer = purely $ \nat -> do
-                           d <- readNative nat
+                           d <- readNative def nat
                            writeNative def $ normalize d
          norm = if format == "markdown+lhs"
                    then "lhs-test-markdown.native"

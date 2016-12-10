@@ -63,7 +63,7 @@ compareOdtToNative   :: TestCreator
 compareOdtToNative opts odtPath nativePath = do
    nativeFile   <- Prelude.readFile nativePath
    odtFile      <- B.readFile       odtPath
-   native       <- getNoNormVia id  "native" <$> runIO (readNative nativeFile)
+   native       <- getNoNormVia id  "native" <$> runIO (readNative def nativeFile)
    odt          <- getNoNormVia id  "odt"    <$> runIO (readOdt  opts odtFile)
    return (odt,native)
 
