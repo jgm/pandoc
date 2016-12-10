@@ -193,6 +193,23 @@ placed in the source directory):
 :set -XOverloadedStrings
 ```
 
+Profiling
+---------
+
+To use the GHC profiler with cabal:
+
+    cabal clean
+    cabal install --enable-library-profiling --enable-executable-profiling
+    pandoc +RTS -p -RTS [file]...
+    less pandoc.prof
+
+With stack:
+
+    stack clean
+    stack install --profile
+    pandoc +RTS -p -RTS [file]...
+    less pandoc.prof
+
 The code
 --------
 

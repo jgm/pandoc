@@ -1,6 +1,0 @@
-To use the GHC profiler:
-
-cabal clean
-cabal install --enable-library-profiling --enable-executable-profiling
-pandoc +RTS -p -RTS [file]...
-less pandoc.prof
