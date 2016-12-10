@@ -1463,7 +1463,7 @@ convertWithOpts opts args = do
   -- We parse first if (1) fileScope is set, (2), it's a binary
   -- reader, or (3) we're reading JSON. This is easier to do of an AND
   -- of negatives as opposed to an OR of positives, so we do default
-  -- parsing if it's a StringReader AND (fileScope is set AND it's not
+  -- parsing if it's a StringReader AND (fileScope is not set AND it's not
   -- a JSON reader).
   (doc, media) <- case reader of
     (StringReader _) | not fileScope && readerName' /= "json" ->
