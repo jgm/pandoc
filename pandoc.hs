@@ -469,13 +469,6 @@ options =
                   "NUMBER")
                  "" -- "Dpi (default 96)"
 
-    , Option "" ["no-wrap"]
-                 (NoArg
-                  (\opt -> do warn $ "--no-wrap is deprecated. " ++
-                                     "Use --wrap=none or --wrap=preserve instead."
-                              return opt { optWrapText = WrapNone }))
-                 ""
-
     , Option "" ["wrap"]
                  (ReqArg
                   (\arg opt ->

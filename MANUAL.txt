@@ -578,10 +578,6 @@ General writer options
     will be nonsemantic newlines in the output as well).
     Automatic wrapping does not currently work in HTML output.
 
-`--no-wrap`
-
-:   Deprecated synonym for `--wrap=none`.
-
 `--columns=`*NUMBER*
 
 :   Specify length of lines in characters.  This affects text wrapping
