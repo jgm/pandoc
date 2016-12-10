@@ -176,6 +176,11 @@ With stack:
 
     stack bench
 
+You can also build pandoc with the `weigh-pandoc` flag and
+run `weigh-pandoc` to get some statistics on memory usage.
+(Eventually this should be incorporated into the benchmark
+suite.)
+
 Using the REPL
 --------------
 
