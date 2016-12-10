@@ -58,8 +58,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , withWarningsToStderr
                          ) where
 
-import Prelude hiding (readFile, fail)
-import qualified Control.Monad as M (fail)
+import Prelude hiding (readFile)
 import System.Random (StdGen, next, mkStdGen)
 import qualified System.Random as IO (newStdGen)
 import Codec.Archive.Zip (Archive, fromArchive, emptyArchive)
@@ -90,11 +89,12 @@ import System.FilePath.Glob (match, compile)
 import System.FilePath ((</>))
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
-import Control.Monad.State hiding (fail)
+import Control.Monad as M (fail)
 import Control.Monad.Reader (ReaderT)
+import Control.Monad.State
+import Control.Monad.Except
 import Control.Monad.Writer (WriterT)
 import Control.Monad.RWS (RWST)
-import Control.Monad.Except hiding (fail)
 import Data.Word (Word8)
 import Data.Default
 import System.IO.Error
@@ -121,7 +121,7 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
              -> Maybe String
              -> String
              -> m (Either E.SomeException (B.ByteString, Maybe MimeType))
-  fail :: String -> m b
+  -- fail :: String -> m b
   glob :: String -> m [FilePath]
   getModificationTime :: FilePath -> m UTCTime
   getCommonState :: m CommonState
@@ -231,7 +231,7 @@ instance PandocMonad PandocIO where
     case eitherBS of
       Right bs -> return bs
       Left _ -> throwError $ PandocFileReadError fname
-  fail = M.fail
+  -- fail = M.fail
   fetchItem ms s = liftIO $ IO.fetchItem ms s
   fetchItem' mb ms s = liftIO $ IO.fetchItem' mb ms s
   glob = liftIO . IO.glob
@@ -361,7 +361,7 @@ instance PandocMonad PandocPure where
     case infoFileContents <$> (getFileInfo (userDir </> fname) userDirFiles) of
       Just bs -> return bs
       Nothing -> readDataFile Nothing fname
-  fail = M.fail
+  -- fail = M.fail
   fetchItem _ fp = do
     fps <- getsPureState stFiles
     case infoFileContents <$> (getFileInfo fp fps) of
@@ -396,7 +396,7 @@ instance PandocMonad m => PandocMonad (ParserT s st m) where
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  fail = lift . fail
+  -- fail = lift . fail
   fetchItem media = lift . fetchItem media
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
@@ -414,7 +414,7 @@ instance PandocMonad m => PandocMonad (ReaderT r m) where
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  fail = lift . fail
+  -- fail = lift . fail
   fetchItem media = lift . fetchItem media
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
@@ -432,7 +432,7 @@ instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  fail = lift . fail
+  -- fail = lift . fail
   fetchItem media = lift . fetchItem media
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
@@ -450,7 +450,7 @@ instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  fail = lift . fail
+  -- fail = lift . fail
   fetchItem media = lift . fetchItem media
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
@@ -468,7 +468,7 @@ instance PandocMonad m => PandocMonad (StateT st m) where
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  fail = lift . fail
+  -- fail = lift . fail
   fetchItem media = lift . fetchItem media
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob

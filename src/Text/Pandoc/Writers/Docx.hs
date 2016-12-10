@@ -1276,7 +1276,7 @@ parseXml refArchive distArchive relpath =
          findEntryByPath relpath distArchive of
             Nothing -> fail $ relpath ++ " missing in reference docx"
             Just e  -> case parseXMLDoc . UTF8.toStringLazy . fromEntry $ e of
-                       Nothing -> P.fail $ relpath ++ " corrupt in reference docx"
+                       Nothing -> fail $ relpath ++ " corrupt in reference docx"
                        Just d  -> return d
 
 -- | Scales the image to fit the page
