@@ -42,6 +42,7 @@ import System.Directory (createDirectoryIfMissing)
 import qualified Data.Map as M
 import qualified Data.ByteString.Lazy as BL
 import Control.Monad (when)
+import Control.Monad.Trans (MonadIO(..))
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Maybe (fromMaybe)
@@ -88,11 +89,14 @@ mediaDirectory (MediaBag mediamap) =
 
 -- | Extract contents of MediaBag to a given directory.  Print informational
 -- messages if 'verbose' is true.
-extractMediaBag :: Bool
+-- TODO: eventually we may want to put this into PandocMonad
+-- In PandocPure, it could write to the fake file system...
+extractMediaBag :: MonadIO m
+                => Bool
                 -> FilePath
                 -> MediaBag
-                -> IO ()
-extractMediaBag verbose dir (MediaBag mediamap) = do
+                -> m ()
+extractMediaBag verbose dir (MediaBag mediamap) = liftIO $ do
   sequence_ $ M.foldWithKey
      (\fp (_ ,contents) ->
         ((writeMedia verbose dir (Posix.joinPath fp, contents)):)) [] mediamap
