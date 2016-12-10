@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "November 30, 2016" "pandoc 1.19"
+.TH PANDOC 1 "December 10, 2016" "pandoc 1.19.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -257,11 +257,11 @@ markup), \f[C]zimwiki\f[] (ZimWiki markup), \f[C]textile\f[] (Textile),
 (Haddock markup), \f[C]rtf\f[] (rich text format), \f[C]epub\f[] (EPUB
 v2 book), \f[C]epub3\f[] (EPUB v3), \f[C]fb2\f[] (FictionBook2 e\-book),
 \f[C]asciidoc\f[] (AsciiDoc), \f[C]icml\f[] (InDesign ICML),
-\f[C]tei\f[] (TEI Simple), \f[C]slidy\f[] (Slidy HTML and javascript
-slide show), \f[C]slideous\f[] (Slideous HTML and javascript slide
-show), \f[C]dzslides\f[] (DZSlides HTML5 + javascript slide show),
-\f[C]revealjs\f[] (reveal.js HTML5 + javascript slide show), \f[C]s5\f[]
-(S5 HTML and javascript slide show), or the path of a custom lua writer
+\f[C]tei\f[] (TEI Simple), \f[C]slidy\f[] (Slidy HTML and JavaScript
+slide show), \f[C]slideous\f[] (Slideous HTML and JavaScript slide
+show), \f[C]dzslides\f[] (DZSlides HTML5 + JavaScript slide show),
+\f[C]revealjs\f[] (reveal.js HTML5 + JavaScript slide show), \f[C]s5\f[]
+(S5 HTML and JavaScript slide show), or the path of a custom lua writer
 (see Custom writers, below).
 Note that \f[C]odt\f[], \f[C]epub\f[], and \f[C]epub3\f[] output will
 not be directed to \f[I]stdout\f[]; an output filename must be specified
@@ -669,7 +669,7 @@ See also \f[C]\-\-list\-highlight\-styles\f[].
 .TP
 .B \f[C]\-H\f[] \f[I]FILE\f[], \f[C]\-\-include\-in\-header=\f[]\f[I]FILE\f[]
 Include contents of \f[I]FILE\f[], verbatim, at the end of the header.
-This can be used, for example, to include special CSS or javascript in
+This can be used, for example, to include special CSS or JavaScript in
 HTML documents.
 This option can be used repeatedly to include multiple files in the
 header.
@@ -731,7 +731,7 @@ Use \f[C]<q>\f[] tags for quotes in HTML.
 .RE
 .TP
 .B \f[C]\-\-ascii\f[]
-Use only ascii characters in output.
+Use only ASCII characters in output.
 Currently supported only for HTML output (which uses numerical entities
 instead of UTF\-8 when this option is selected).
 .RS
@@ -756,7 +756,7 @@ Currently only affects the markdown writer.
 .RE
 .TP
 .B \f[C]\-\-atx\-headers\f[]
-Use ATX\-style headers in Markdown and asciidoc output.
+Use ATX\-style headers in Markdown and AsciiDoc output.
 The default is to use setext\-style headers for levels 1\-2, and then
 ATX headers.
 .RS
@@ -792,7 +792,7 @@ Sections with class \f[C]unnumbered\f[] will never be numbered, even if
 .RS
 .RE
 .TP
-.B \f[C]\-\-number\-offset=\f[]\f[I]NUMBER\f[][\f[C],\f[]\f[I]NUMBER\f[]\f[C],\f[]\f[I]\&...\f[]]
+.B \f[C]\-\-number\-offset=\f[]\f[I]NUMBER\f[][\f[C],\f[]\f[I]NUMBER\f[]\f[C],\f[]\f[I]...\f[]]
 Offset for section headings in HTML output (ignored in other output
 formats).
 The first number is added to the section number for top\-level headers,
@@ -860,7 +860,7 @@ See Header identifiers, below.
 Specify a method for obfuscating \f[C]mailto:\f[] links in HTML
 documents.
 \f[C]none\f[] leaves \f[C]mailto:\f[] links as they are.
-\f[C]javascript\f[] obfuscates them using javascript.
+\f[C]javascript\f[] obfuscates them using JavaScript.
 \f[C]references\f[] obfuscates them by printing their letters as decimal
 or hexadecimal character references.
 The default is \f[C]none\f[].
@@ -901,6 +901,12 @@ for a file \f[C]reference.odt\f[] in the user data directory (see
 \f[C]\-\-data\-dir\f[]).
 If this is not found either, sensible defaults will be used.
 .RS
+.PP
+To produce a custom \f[C]reference.odt\f[], first get a copy of the
+default \f[C]reference.odt\f[]:
+\f[C]pandoc\ \-\-print\-default\-data\-file\ reference.odt\ >\ custom\-reference.odt\f[].
+Then open \f[C]custom\-reference.docx\f[] in LibreOffice, modify the
+styles as you wish, and save the file.
 .RE
 .TP
 .B \f[C]\-\-reference\-docx=\f[]\f[I]FILE\f[]
@@ -914,14 +920,21 @@ If no reference docx is specified on the command line, pandoc will look
 for a file \f[C]reference.docx\f[] in the user data directory (see
 \f[C]\-\-data\-dir\f[]).
 If this is not found either, sensible defaults will be used.
-The following styles are used by pandoc: [paragraph] Normal, Body Text,
-First Paragraph, Compact, Title, Subtitle, Author, Date, Abstract,
+.RS
+.PP
+To produce a custom \f[C]reference.docx\f[], first get a copy of the
+default \f[C]reference.docx\f[]:
+\f[C]pandoc\ \-\-print\-default\-data\-file\ reference.docx\ >\ custom\-reference.docx\f[].
+Then open \f[C]custom\-reference.docx\f[] in Word, modify the styles as
+you wish, and save the file.
+For best results, do not make changes to this file other than modifying
+the styles used by pandoc: [paragraph] Normal, Body Text, First
+Paragraph, Compact, Title, Subtitle, Author, Date, Abstract,
 Bibliography, Heading 1, Heading 2, Heading 3, Heading 4, Heading 5,
 Heading 6, Block Text, Footnote Text, Definition Term, Definition,
 Caption, Table Caption, Image Caption, Figure, Figure With Caption, TOC
 Heading; [character] Default Paragraph Font, Body Text Char, Verbatim
 Char, Footnote Reference, Hyperlink; [table] Normal Table.
-.RS
 .RE
 .TP
 .B \f[C]\-\-epub\-stylesheet=\f[]\f[I]FILE\f[]
@@ -1106,7 +1119,7 @@ copy of the script, so it can be cached.
 .B \f[C]\-\-mathml\f[][\f[C]=\f[]\f[I]URL\f[]]
 Convert TeX math to MathML (in \f[C]docbook\f[], \f[C]docbook5\f[],
 \f[C]html\f[] and \f[C]html5\f[]).
-In standalone \f[C]html\f[] output, a small javascript (or a link to
+In standalone \f[C]html\f[] output, a small JavaScript (or a link to
 such a script if a \f[I]URL\f[] is supplied) will be inserted that
 allows the MathML to be viewed on some browsers.
 .RS
@@ -2051,7 +2064,7 @@ will be wrapped in a \f[C]div\f[] (or a \f[C]section\f[], if
 \f[C]\-\-html5\f[] was specified), and the identifier will be attached
 to the enclosing \f[C]<div>\f[] (or \f[C]<section>\f[]) tag rather than
 the header itself.
-This allows entire sections to be manipulated using javascript or
+This allows entire sections to be manipulated using JavaScript or
 treated differently in CSS.
 .SS Extension: \f[C]implicit_header_references\f[]
 .PP
@@ -2308,8 +2321,8 @@ qsort\ []\ =\ []
 .fi
 .PP
 If the \f[C]fenced_code_attributes\f[] extension is disabled, but input
-contains class attribute(s) for the codeblock, the first class attribute
-will be printed after the opening fence as a bare word.
+contains class attribute(s) for the code block, the first class
+attribute will be printed after the opening fence as a bare word.
 .PP
 To prevent all highlighting, use the \f[C]\-\-no\-highlight\f[] flag.
 To set the highlighting style, use \f[C]\-\-highlight\-style\f[].
@@ -2503,7 +2516,7 @@ and this one:
 .PP
 Unlike standard Markdown, pandoc allows ordered list items to be marked
 with uppercase and lowercase letters and roman numerals, in addition to
-arabic numerals.
+Arabic numerals.
 List markers may be enclosed in parentheses or followed by a single
 right\-parentheses or period.
 They must be separated from the text that follows by at least one space,
@@ -3466,7 +3479,7 @@ It will be rendered inside \f[C]<span\ class="math">\f[] tags.
 .RE
 .TP
 .B RTF, OpenDocument, ODT
-It will be rendered, if possible, using unicode characters, and will
+It will be rendered, if possible, using Unicode characters, and will
 otherwise appear verbatim.
 .RS
 .RE
@@ -3474,7 +3487,7 @@ otherwise appear verbatim.
 .B DocBook
 If the \f[C]\-\-mathml\f[] flag is used, it will be rendered using
 MathML in an \f[C]inlineequation\f[] or \f[C]informalequation\f[] tag.
-Otherwise it will be rendered, if possible, using unicode characters.
+Otherwise it will be rendered, if possible, using Unicode characters.
 .RS
 .RE
 .TP
@@ -3496,7 +3509,7 @@ The way math is rendered in HTML will depend on the command\-line
 options selected:
 .RS
 .IP "1." 3
-The default is to render TeX math as far as possible using unicode
+The default is to render TeX math as far as possible using Unicode
 characters, as with RTF, DocBook, and OpenDocument output.
 Formulas are put inside a \f[C]span\f[] with \f[C]class="math"\f[], so
 that they may be styled differently from the surrounding text if needed.
@@ -4367,7 +4380,7 @@ braces \f[C]<...>\f[].
 .PP
 Causes the identifiers produced by \f[C]auto_identifiers\f[] to be pure
 ASCII.
-Accents are stripped off of accented latin letters, and non\-latin
+Accents are stripped off of accented Latin letters, and non\-Latin
 letters are omitted.
 .SS Extension: \f[C]mmd_link_attributes\f[]
 .PP
@@ -4456,7 +4469,7 @@ than Markdown:
 example.)
 .SH PRODUCING SLIDE SHOWS WITH PANDOC
 .PP
-You can use pandoc to produce an HTML + javascript slide presentation
+You can use pandoc to produce an HTML + JavaScript slide presentation
 that can be viewed via a web browser.
 There are five ways to do this, using S5, DZSlides, Slidy, Slideous, or
 reveal.js.
@@ -4501,7 +4514,7 @@ Here\[aq]s the Markdown source for a simple slide show,
 \f[]
 .fi
 .PP
-To produce an HTML/javascript slide show, simply type
+To produce an HTML/JavaScript slide show, simply type
 .IP
 .nf
 \f[C]
@@ -4513,7 +4526,7 @@ where \f[C]FORMAT\f[] is either \f[C]s5\f[], \f[C]slidy\f[],
 \f[C]slideous\f[], \f[C]dzslides\f[], or \f[C]revealjs\f[].
 .PP
 For Slidy, Slideous, reveal.js, and S5, the file produced by pandoc with
-the \f[C]\-s/\-\-standalone\f[] option embeds a link to javascripts and
+the \f[C]\-s/\-\-standalone\f[] option embeds a link to JavaScript and
 CSS files, which are assumed to be available at the relative path
 \f[C]s5/default\f[] (for S5), \f[C]slideous\f[] (for Slideous),
 \f[C]reveal.js\f[] (for reveal.js), or at the Slidy website at
@@ -4521,7 +4534,7 @@ CSS files, which are assumed to be available at the relative path
 (These paths can be changed by setting the \f[C]slidy\-url\f[],
 \f[C]slideous\-url\f[], \f[C]revealjs\-url\f[], or \f[C]s5\-url\f[]
 variables; see Variables for slides, above.) For DZSlides, the
-(relatively short) javascript and css are included in the file by
+(relatively short) JavaScript and CSS are included in the file by
 default.
 .PP
 With all HTML slide formats, the \f[C]\-\-self\-contained\f[] option can
@@ -4925,7 +4938,7 @@ The default color scheme is \f[C]pygments\f[], which imitates the
 default color scheme used by the Python library pygments (though
 pygments is not actually used to do the highlighting).
 To see a list of highlight styles, type
-\f[C]pandoc\ \-\-list\-hightlight\-styles\f[].
+\f[C]pandoc\ \-\-list\-highlight\-styles\f[].
 .PP
 To disable highlighting, use the \f[C]\-\-no\-highlight\f[] option.
 .SH CUSTOM STYLES IN DOCX OUTPUT
@@ -4937,7 +4950,7 @@ This will work for most purposes, especially alongside a
 \f[C]reference.docx\f[] file.
 However, if you need to apply your own styles to blocks, or match a
 preexisting set of styles, pandoc allows you to define custom styles for
-blocks and text using \f[C]div\f[]s and \f[C]span\f[]s, respecitively.
+blocks and text using \f[C]div\f[]s and \f[C]span\f[]s, respectively.
 .PP
 If you define a \f[C]div\f[] or \f[C]span\f[] with the attribute
 \f[C]custom\-style\f[], pandoc will apply your specified style to the
