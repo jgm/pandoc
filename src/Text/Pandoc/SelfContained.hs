@@ -40,6 +40,7 @@ import System.FilePath (takeExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
+import Control.Monad.Trans (MonadIO(..))
 import Text.Pandoc.Shared (renderTags', err, fetchItem', warn, trim)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.MIME (MimeType)
@@ -171,8 +172,8 @@ getDataURI media sourceURL mimetype src = do
 
 -- | Convert HTML into self-contained HTML, incorporating images,
 -- scripts, and CSS using data: URIs.
-makeSelfContained :: WriterOptions -> String -> IO String
-makeSelfContained opts inp = do
+makeSelfContained :: MonadIO m => WriterOptions -> String -> m String
+makeSelfContained opts inp = liftIO $ do
   let tags = parseTags inp
   out' <- mapM (convertTag (writerMediaBag opts) (writerSourceURL opts)) tags
   return $ renderTags' out'
