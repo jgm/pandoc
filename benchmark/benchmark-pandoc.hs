@@ -22,14 +22,15 @@ import Data.Maybe (mapMaybe)
 import Debug.Trace (trace)
 
 readerBench :: Pandoc
-            -> (String, ReaderOptions -> String -> IO (Either PandocError Pandoc))
+            -> (String, ReaderOptions -> String -> Pandoc)
             -> Maybe Benchmark
 readerBench doc (name, reader) =
   case lookup name writers of
-       Just (PureStringWriter writer) ->
-         let inp = writer def{ writerWrapText = WrapAuto} doc
-         in return $ bench (name ++ " reader") $ nfIO $
-                 (fmap handleError <$> reader def{ readerSmart = True }) inp
+       Just (StringWriter writer) ->
+         let inp = either (error . show) id $ runPure
+                       $ writer def{ writerWrapText = WrapAuto} doc
+         in return $ bench (name ++ " reader") $ nf
+                 (reader def{ readerSmart = True }) inp
        _ -> trace ("\nCould not find writer for " ++ name ++ "\n") Nothing
 
 writerBench :: Pandoc
@@ -42,11 +43,13 @@ main :: IO ()
 main = do
   inp <- readFile "tests/testsuite.txt"
   let opts = def{ readerSmart = True }
-  let doc = handleError $ readMarkdown opts inp
-  let readers' = [(n,r) | (n, StringReader r) <- readers]
+  let doc = either (error . show) id $ runPure $ readMarkdown opts inp
+  let readers' = [(n, \o -> either (error . show) id . runPure . r o)
+                        | (n, StringReader r) <- readers]
   let readerBs = mapMaybe (readerBench doc)
                  $ filter (\(n,_) -> n /="haddock") readers'
-  let writers' = [(n,w) | (n, PureStringWriter w) <- writers]
+  let writers' = [(n, \o -> either (error . show) id . runPure . w o)
+                        | (n, StringWriter w) <- writers]
   let writerBs = map (writerBench doc)
                  $ writers'
   defaultMainWith defaultConfig{ timeLimit = 6.0 }

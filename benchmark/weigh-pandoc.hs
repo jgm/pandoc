@@ -7,7 +7,7 @@ main = do
   mainWith $ do
     func "Pandoc document" id doc
     mapM_
-      (\(n,r) -> weighReader doc n (handleError . r def{ readerSmart = True }))
+      (\(n,r) -> weighReader doc n (either (error . show) id . runPure . r def{ readerSmart = True }))
       [("markdown", readMarkdown)
       ,("html", readHtml)
       ,("docbook", readDocBook)
@@ -15,7 +15,7 @@ main = do
       ,("commonmark", readCommonMark)
       ]
     mapM_
-      (\(n,w) -> weighWriter doc n (w def))
+      (\(n,w) -> weighWriter doc n (either (error . show) id . runPure . w def))
       [("markdown", writeMarkdown)
       ,("html", writeHtmlString)
       ,("docbook", writeDocbook)
@@ -29,8 +29,8 @@ weighWriter doc name writer = func (name ++ " writer") writer doc
 weighReader :: Pandoc -> String -> (String -> Pandoc) -> Weigh ()
 weighReader doc name reader = do
   case lookup name writers of
-       Just (PureStringWriter writer) ->
-         let inp = writer def{ writerWrapText = WrapAuto} doc
+       Just (StringWriter writer) ->
+         let inp = either (error . show) id $ runPure $ writer def{ writerWrapText = WrapAuto} doc
          in func (name ++ " reader") reader inp
        _ -> return () -- no writer for reader
 
