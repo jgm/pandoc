@@ -1353,6 +1353,48 @@ convertWithOpts opts args = do
                       , readerFileScope   = fileScope
                       }
 
+  let writerOptions = def { writerTemplate         = templ,
+                            writerVariables        = variables'',
+                            writerTabStop          = tabStop,
+                            writerTableOfContents  = toc,
+                            writerHTMLMathMethod   = mathMethod,
+                            writerIncremental      = incremental,
+                            writerCiteMethod       = citeMethod,
+                            writerIgnoreNotes      = False,
+                            writerNumberSections   = numberSections,
+                            writerNumberOffset     = numberFrom,
+                            writerSectionDivs      = sectionDivs,
+                            writerReferenceLinks   = referenceLinks,
+                            writerReferenceLocation = referenceLocation,
+                            writerDpi              = dpi,
+                            writerWrapText         = wrap,
+                            writerColumns          = columns,
+                            writerEmailObfuscation = obfuscationMethod,
+                            writerIdentifierPrefix = idPrefix,
+                            writerSourceURL        = sourceURL,
+                            writerUserDataDir      = datadir,
+                            writerHtml5            = html5,
+                            writerHtmlQTags        = htmlQTags,
+                            writerTopLevelDivision = topLevelDivision,
+                            writerListings         = listings,
+                            writerBeamer           = False,
+                            writerSlideLevel       = slideLevel,
+                            writerHighlight        = highlight,
+                            writerHighlightStyle   = highlightStyle,
+                            writerSetextHeaders    = setextHeaders,
+                            writerTeXLigatures     = texLigatures,
+                            writerEpubMetadata     = epubMetadata,
+                            writerEpubStylesheet   = epubStylesheet,
+                            writerEpubFonts        = epubFonts,
+                            writerEpubChapterLevel = epubChapterLevel,
+                            writerTOCDepth         = epubTOCDepth,
+                            writerReferenceDoc     = referenceDoc,
+                            writerMediaBag         = mempty,
+                            writerVerbose          = verbose,
+                            writerLaTeXArgs        = latexEngineArgs
+                          }
+
+
 #ifdef _WINDOWS
   let istty = True
 #else
@@ -1426,47 +1468,6 @@ convertWithOpts opts args = do
     _  -> do pairs <- mapM (\s -> sourceToDoc [s]) sources
              return (mconcat $ map fst pairs, mconcat $ map snd pairs)
 
-  let writerOptions = def { writerTemplate         = templ,
-                            writerVariables        = variables'',
-                            writerTabStop          = tabStop,
-                            writerTableOfContents  = toc,
-                            writerHTMLMathMethod   = mathMethod,
-                            writerIncremental      = incremental,
-                            writerCiteMethod       = citeMethod,
-                            writerIgnoreNotes      = False,
-                            writerNumberSections   = numberSections,
-                            writerNumberOffset     = numberFrom,
-                            writerSectionDivs      = sectionDivs,
-                            writerReferenceLinks   = referenceLinks,
-                            writerReferenceLocation = referenceLocation,
-                            writerDpi              = dpi,
-                            writerWrapText         = wrap,
-                            writerColumns          = columns,
-                            writerEmailObfuscation = obfuscationMethod,
-                            writerIdentifierPrefix = idPrefix,
-                            writerSourceURL        = sourceURL,
-                            writerUserDataDir      = datadir,
-                            writerHtml5            = html5,
-                            writerHtmlQTags        = htmlQTags,
-                            writerTopLevelDivision = topLevelDivision,
-                            writerListings         = listings,
-                            writerBeamer           = False,
-                            writerSlideLevel       = slideLevel,
-                            writerHighlight        = highlight,
-                            writerHighlightStyle   = highlightStyle,
-                            writerSetextHeaders    = setextHeaders,
-                            writerTeXLigatures     = texLigatures,
-                            writerEpubMetadata     = epubMetadata,
-                            writerEpubStylesheet   = epubStylesheet,
-                            writerEpubFonts        = epubFonts,
-                            writerEpubChapterLevel = epubChapterLevel,
-                            writerTOCDepth         = epubTOCDepth,
-                            writerReferenceDoc     = referenceDoc,
-                            writerMediaBag         = media,
-                            writerVerbose          = verbose,
-                            writerLaTeXArgs        = latexEngineArgs
-                          }
-
 
   doc' <- (maybe return (extractMedia media) mbExtractMedia >=>
            adjustMetadata metadata >=>
@@ -1481,9 +1482,10 @@ convertWithOpts opts args = do
       writerFn "-" = UTF8.putStr
       writerFn f   = UTF8.writeFile f
 
+  let writerOptions' = writerOptions{ writerMediaBag = media }
   case writer of
     -- StringWriter f -> f writerOptions doc' >>= writerFn outputFile
-    ByteStringWriter f -> (runIO' $ f writerOptions doc')
+    ByteStringWriter f -> (runIO' $ f writerOptions' doc')
                                           >>= writeFnBinary outputFile
     StringWriter f
       | pdfOutput -> do
@@ -1502,7 +1504,7 @@ convertWithOpts opts args = do
                    err 41 $ pdfprog ++ " not found. " ++
                      pdfprog ++ " is needed for pdf output."
 
-              res <- makePDF pdfprog f writerOptions doc'
+              res <- makePDF pdfprog f writerOptions' doc'
               case res of
                    Right pdf -> writeFnBinary outputFile pdf
                    Left err' -> do
@@ -1513,10 +1515,10 @@ convertWithOpts opts args = do
               let htmlFormat = format `elem`
                     ["html","html5","s5","slidy","slideous","dzslides","revealjs"]
                   selfcontain = if selfContained && htmlFormat
-                                then makeSelfContained writerOptions
+                                then makeSelfContained writerOptions'
                                 else return
                   handleEntities = if htmlFormat && ascii
                                    then toEntities
                                    else id
-              output <- runIO' $ f writerOptions doc'
+              output <- runIO' $ f writerOptions' doc'
               selfcontain (output ++ ['\n' | not standalone']) >>= writerFn outputFile . handleEntities
