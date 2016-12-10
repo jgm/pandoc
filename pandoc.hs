@@ -1224,7 +1224,10 @@ convertWithOpts opts args = do
   let filters' = if needsCiteproc then "pandoc-citeproc" : filters
                                   else filters
 
-  let sources = if ignoreArgs then [] else args
+  let sources = case args of
+                     []  -> ["-"]
+                     xs | ignoreArgs -> ["-"]
+                        | otherwise  -> xs
 
   datadir <- case mbDataDir of
                   Nothing   -> E.catch
@@ -1404,7 +1407,12 @@ convertWithOpts opts args = do
     err 5 $ "Cannot write " ++ format ++ " output to stdout.\n" ++
             "Specify an output file using the -o option."
 
-  let readSource :: MonadIO m => FilePath -> m String
+
+  let convertTabs = tabFilter (if preserveTabs || readerName' == "t2t"
+                                 then 0
+                                 else tabStop)
+
+      readSource :: MonadIO m => FilePath -> m String
       readSource "-" = liftIO UTF8.getContents
       readSource src = case parseURI src of
                             Just u | uriScheme u `elem` ["http:","https:"] ->
@@ -1413,12 +1421,6 @@ convertWithOpts opts args = do
                                        liftIO $ UTF8.readFile (uriPath u)
                             _       -> liftIO $ UTF8.readFile src
 
-
-
-      readSources :: MonadIO m => [FilePath] -> m [String]
-      readSources [] = mapM readSource ["-"]
-      readSources srcs = mapM readSource srcs
-
       readURI :: MonadIO m => FilePath -> m String
       readURI src = do
         res <- liftIO $ openURL src
@@ -1426,13 +1428,16 @@ convertWithOpts opts args = do
              Left e        -> liftIO $ throwIO e
              Right (bs,_)  -> return $ UTF8.toString bs
 
-  let readFiles [] = error "Cannot read archive from stdin"
-      readFiles [x] = B.readFile x
-      readFiles (x:xs) = mapM_ (warn . ("Ignoring: " ++)) xs >> B.readFile x
+      readSources :: MonadIO m => [FilePath] -> m String
+      readSources srcs = convertTabs . intercalate "\n" <$>
+                            mapM readSource srcs
 
-  let convertTabs = tabFilter (if preserveTabs || readerName' == "t2t"
-                                 then 0
-                                 else tabStop)
+  let readFiles :: MonadIO m => [FilePath] -> m B.ByteString
+      readFiles [] = error "Cannot read archive from stdin"
+      readFiles [x] = liftIO $ B.readFile x
+      readFiles (x:xs) = do
+        mapM_ (warn . ("Ignoring: " ++)) xs
+        liftIO $ B.readFile x
 
   let runIO' f = do
         (res, warnings) <- runIOorExplode $ do
@@ -1447,14 +1452,12 @@ convertWithOpts opts args = do
         return res
 
   let sourceToDoc :: [FilePath] -> IO (Pandoc, MediaBag)
-      sourceToDoc sources' = 
-        case reader of
-          StringReader r-> do
-            doc <- convertTabs . intercalate "\n" <$> readSources sources'
-            runIO' $ withMediaBag $ r readerOpts doc
-          ByteStringReader r -> readFiles sources' >>=
-                                (\bs -> runIO' $ withMediaBag
-                                               $ r readerOpts bs)
+      sourceToDoc sources' = runIO' $
+         case reader of
+              StringReader r -> readSources sources' >>=
+                   withMediaBag . r readerOpts
+              ByteStringReader r -> readFiles sources' >>=
+                   withMediaBag . r readerOpts
 
   -- We parse first if (1) fileScope is set, (2), it's a binary
   -- reader, or (3) we're reading JSON. This is easier to do of an AND
