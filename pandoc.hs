@@ -1413,29 +1413,9 @@ convertWithOpts opts args = do
                                  then 0
                                  else tabStop)
 
-      readSource :: MonadIO m => FilePath -> m String
-      readSource "-" = liftIO UTF8.getContents
-      readSource src = case parseURI src of
-                            Just u | uriScheme u `elem` ["http:","https:"] ->
-                                       readURI src
-                                   | uriScheme u == "file:" ->
-                                       liftIO $ UTF8.readFile (uriPath u)
-                            _       -> liftIO $ UTF8.readFile src
-
-      readURI :: MonadIO m => FilePath -> m String
-      readURI src = do
-        res <- liftIO $ openURL src
-        case res of
-             Left e        -> liftIO $ throwIO e
-             Right (bs,_)  -> return $ UTF8.toString bs
-
       readSources :: MonadIO m => [FilePath] -> m String
       readSources srcs = convertTabs . intercalate "\n" <$>
                             mapM readSource srcs
-
-      readFile' :: MonadIO m => FilePath -> m B.ByteString
-      readFile' "-" = liftIO $ B.getContents
-      readFile' f   = liftIO $ B.readFile f
 
   let runIO' :: PandocIO a -> IO a
       runIO' f = do
@@ -1471,14 +1451,6 @@ convertWithOpts opts args = do
            adjustMetadata metadata >=>
            applyTransforms transforms >=>
            applyFilters datadir filters' [format]) doc
-
-  let writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
-      writeFnBinary "-" = liftIO . B.putStr
-      writeFnBinary f   = liftIO . B.writeFile (UTF8.encodePath f)
-
-  let writerFn :: MonadIO m => FilePath -> String -> m ()
-      writerFn "-" = liftIO . UTF8.putStr
-      writerFn f   = liftIO . UTF8.writeFile f
 
   let writerOptions' = writerOptions{ writerMediaBag = media }
   case writer of
@@ -1520,3 +1492,33 @@ convertWithOpts opts args = do
                                    else id
               output <- runIO' $ f writerOptions' doc'
               selfcontain (output ++ ['\n' | not standalone']) >>= writerFn outputFile . handleEntities
+
+readSource :: MonadIO m => FilePath -> m String
+readSource "-" = liftIO UTF8.getContents
+readSource src = case parseURI src of
+                      Just u | uriScheme u `elem` ["http:","https:"] ->
+                                 readURI src
+                             | uriScheme u == "file:" ->
+                                 liftIO $ UTF8.readFile (uriPath u)
+                      _       -> liftIO $ UTF8.readFile src
+
+readURI :: MonadIO m => FilePath -> m String
+readURI src = do
+  res <- liftIO $ openURL src
+  case res of
+       Left e        -> liftIO $ throwIO e
+       Right (bs,_)  -> return $ UTF8.toString bs
+
+readFile' :: MonadIO m => FilePath -> m B.ByteString
+readFile' "-" = liftIO $ B.getContents
+readFile' f   = liftIO $ B.readFile f
+
+writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
+writeFnBinary "-" = liftIO . B.putStr
+writeFnBinary f   = liftIO . B.writeFile (UTF8.encodePath f)
+
+writerFn :: MonadIO m => FilePath -> String -> m ()
+writerFn "-" = liftIO . UTF8.putStr
+writerFn f   = liftIO . UTF8.writeFile f
+
+
