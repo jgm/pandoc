@@ -378,12 +378,6 @@ getWriter s
                              \o -> r o{ writerExtensions = setExts $
                                               getDefaultExtensions writerName }
 
-{-# DEPRECATED toJsonFilter "Use 'toJSONFilter' from 'Text.Pandoc.JSON' instead" #-}
--- | Deprecated.  Use @toJSONFilter@ from @Text.Pandoc.JSON@ instead.
-class ToJSONFilter a => ToJsonFilter a
-  where toJsonFilter :: a -> IO ()
-        toJsonFilter = toJSONFilter
-
 readJSON :: ReaderOptions -> String -> Either PandocError Pandoc
 readJSON _ = mapLeft PandocParseError . eitherDecode' . UTF8.fromStringLazy
 
