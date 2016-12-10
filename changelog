@@ -1,3 +1,68 @@
+pandoc (1.19.1)
+
+  * Set `PANDOC_VERSION` environment variable for filters (#2640).
+    This allows filters to check the pandoc version that produced
+    the JSON they are receiving.
+
+  * Docx reader: Ensure one-row tables don't have header (#3285,
+    Jesse Rosenthal).  Tables in MS Word are set by default to have
+    special first-row formatting, which pandoc uses to determine whether
+    or not they have a header. This means that one-row tables will, by
+    default, have only a header -- which we imagine is not what people
+    want. This change ensures that a one-row table is not understood to
+    be a header only.  Note that this means that it is impossible to
+    produce a header-only table from docx, even though it is legal
+    pandoc. But we believe that in nearly all cases, it will be an
+    accidental (and unwelcome) result
+
+  * HTML reader:
+
+    + Fixed some bad regressions in HTML table parser (#3280).
+      This regression leads to the introduction of empty rows
+      in some circumstances.
+    + Understand `style=width:` as well as `width` in `col` (#3286).
+
+  * RST reader:
+
+    + Print warnings when keys, substitition, notes not found.
+      Previously the parsers failed and we got raw text.  Now we get a
+      link with an empty URL, or empty inlines in the case of a note or
+      substitution.
+
+    + Fix hyperlink aliases (#3283).
+
+  * Man writer: Ensure that periods are escaped at beginning of line
+    (#3270).
+
+  * LaTeX writer: Fix unnumbered headers when used with `--top-level`
+    (#3272, Albert Krewinkel).  Fix interaction of top-level divisions
+    `part` or `chapter` with unnumbered headers when emitting LaTeX.  Headers
+    are ensured to be written using stared commands (like `\subsection*{}`).
+
+  * LaTeX template: use comma not semicolon to separate keywords for
+    `pdfkeywords`.  Thanks to Wandmalfarbe.
+
+  * Markdown writer: Fixed incorrect word wrapping (#3277).  Previously pandoc
+    would sometimes wrap lines too early due to this bug.
+
+  * Text.Pandoc.Pretty:  Added `afterBreak` [API change].  This makes it
+    possible to insert escape codes for content that needs escaping at the
+    beginning of a line.
+
+  * Removed old MathMLInHTML.js from 2004, which should no longer
+    be needed for MathML with modern browsers.
+
+  * Fixed tests with dynamic linking (#2709).
+
+  * Makefile: Use stack instead of cabal for targets.  This is just
+    a convenience for developers.
+
+  * Fixed bash completion of filenames with space (#2749).
+
+  * MANUAL: improved documentation on how to create a custom `reference.docx`.
+
+  * Fix minor spelling typos in the manual (#3273, Anthony Geoghegan)
+
 pandoc (1.19)
 
   * Changed resolution of filter paths.
