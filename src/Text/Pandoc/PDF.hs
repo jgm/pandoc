@@ -55,6 +55,7 @@ import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..))
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Process (pipeProcess)
+import Control.Monad.Trans (MonadIO(..))
 import qualified Data.ByteString.Lazy as BL
 import qualified Codec.Picture as JP
 #ifdef _WINDOWS
@@ -67,13 +68,14 @@ changePathSeparators :: FilePath -> FilePath
 changePathSeparators = intercalate "/" . splitDirectories
 #endif
 
-makePDF :: String              -- ^ pdf creator (pdflatex, lualatex,
+makePDF :: MonadIO m
+        => String              -- ^ pdf creator (pdflatex, lualatex,
                                -- xelatex, context, wkhtmltopdf)
         -> (WriterOptions -> Pandoc -> PandocIO String)  -- ^ writer
         -> WriterOptions       -- ^ options
         -> Pandoc              -- ^ document
-        -> IO (Either ByteString ByteString)
-makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = do
+        -> m (Either ByteString ByteString)
+makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = liftIO $ do
   let mathArgs = case writerHTMLMathMethod opts of
                  -- with MathJax, wait til all math is rendered:
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
@@ -96,7 +98,7 @@ makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = do
                  ]
   source <- runIOorExplode $ writer opts doc
   html2pdf (writerVerbose opts) args source
-makePDF program writer opts doc = withTempDir "tex2pdf." $ \tmpdir -> do
+makePDF program writer opts doc = liftIO $ withTempDir "tex2pdf." $ \tmpdir -> do
   doc' <- handleImages opts tmpdir doc
   source <- runIOorExplode $ writer opts doc'
   let args   = writerLaTeXArgs opts
