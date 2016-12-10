@@ -28,7 +28,7 @@ debpkg: man/pandoc.1
 	make -C deb
 
 osxpkg: man/pandoc.1
-	./make_osx_package.sh
+	./osx/make_osx_package.sh
 
 winpkg: pandoc-$(version)-windows.msi
 
