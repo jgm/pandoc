@@ -124,13 +124,11 @@ module Text.Pandoc
                , getReader
                , getWriter
                , getDefaultExtensions
-               , ToJsonFilter(..)
                , pandocVersion
              ) where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
-import Text.Pandoc.JSON
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.CommonMark
 import Text.Pandoc.Readers.MediaWiki
