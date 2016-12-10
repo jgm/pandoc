@@ -141,7 +141,7 @@ tests = [ testGroup "inlines"
           ]
         , testGroup "customized styles"
           [ testCompareWithOpts
-            ( def{writerReferenceDocx=Just "docx/custom-style-reference.docx"}
+            ( def{writerReferenceDoc=Just "docx/custom-style-reference.docx"}
             , def)
             "simple customized blocks and inlines"
             "docx/custom-style-roundtrip-start.native"

@@ -77,7 +77,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let title = docTitle meta
   refArchive <-
-       case writerReferenceODT opts of
+       case writerReferenceDoc opts of
              Just f -> liftM toArchive $ lift $ P.readFileLazy f
              Nothing -> lift $ P.getDefaultReferenceODT datadir
   -- handle formulas and pictures

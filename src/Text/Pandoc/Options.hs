@@ -395,8 +395,7 @@ data WriterOptions = WriterOptions
   , writerEpubFonts        :: [FilePath] -- ^ Paths to fonts to embed
   , writerEpubChapterLevel :: Int            -- ^ Header level for chapters (separate files)
   , writerTOCDepth         :: Int            -- ^ Number of levels to include in TOC
-  , writerReferenceODT     :: Maybe FilePath -- ^ Path to reference ODT if specified
-  , writerReferenceDocx    :: Maybe FilePath -- ^ Path to reference DOCX if specified
+  , writerReferenceDoc     :: Maybe FilePath -- ^ Path to reference document if specified
   , writerMediaBag         :: MediaBag       -- ^ Media collected by docx or epub reader
   , writerVerbose          :: Bool           -- ^ Verbose debugging output
   , writerLaTeXArgs        :: [String]       -- ^ Flags to pass to latex-engine
@@ -442,8 +441,7 @@ instance Default WriterOptions where
                       , writerEpubFonts        = []
                       , writerEpubChapterLevel = 1
                       , writerTOCDepth         = 3
-                      , writerReferenceODT     = Nothing
-                      , writerReferenceDocx    = Nothing
+                      , writerReferenceDoc     = Nothing
                       , writerMediaBag         = mempty
                       , writerVerbose          = False
                       , writerLaTeXArgs        = []
