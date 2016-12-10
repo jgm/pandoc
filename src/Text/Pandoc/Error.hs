@@ -34,6 +34,7 @@ module Text.Pandoc.Error (PandocError(..), handleError) where
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
 import Data.Generics (Typeable)
+import GHC.Generics (Generic)
 import Control.Exception (Exception)
 import Text.Pandoc.Shared (err)
 
@@ -44,7 +45,7 @@ data PandocError = PandocFileReadError FilePath
                  | PandocSomeError String
                  | PandocParseError String
                  | PandocParsecError Input ParseError
-                 deriving (Show, Typeable)
+                 deriving (Show, Typeable, Generic)
 
 
 -- data PandocError = -- | Generic parse failure
