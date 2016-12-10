@@ -1277,12 +1277,12 @@ convertWithOpts opts args = do
                                "an output file with .pdf extension " ++
                                "(pandoc -t latex -o filename.pdf)."
                               else e
-                         Right w -> return w
+                         Right w -> return (w :: Writer PandocIO)
 
   -- TODO: we have to get the input and the output into the state for
-  -- the sake of the text2tags reader. 
+  -- the sake of the text2tags reader.
   reader <-  case getReader readerName' of
-                Right r  -> return r
+                Right r  -> return (r :: Reader PandocIO)
                 Left e   -> err 7 e'
                   where e' = case readerName' of
                                   "pdf" -> e ++
@@ -1433,12 +1433,9 @@ convertWithOpts opts args = do
       readSources srcs = convertTabs . intercalate "\n" <$>
                             mapM readSource srcs
 
-  let readFiles :: MonadIO m => [FilePath] -> m B.ByteString
-      readFiles [] = error "Cannot read archive from stdin"
-      readFiles [x] = liftIO $ B.readFile x
-      readFiles (x:xs) = do
-        mapM_ (warn . ("Ignoring: " ++)) xs
-        liftIO $ B.readFile x
+      readFile' :: MonadIO m => FilePath -> m B.ByteString
+      readFile' "-" = liftIO $ B.getContents
+      readFile' f   = liftIO $ B.readFile f
 
   let runIO' :: PandocIO a -> IO a
       runIO' f = do
@@ -1453,26 +1450,22 @@ convertWithOpts opts args = do
             err 3 "Failing because there were warnings."
         return res
 
-  let sourceToDoc :: [FilePath] -> IO (Pandoc, MediaBag)
-      sourceToDoc sources' = runIO' $
+  let sourceToDoc :: [FilePath] -> PandocIO (Pandoc, MediaBag)
+      sourceToDoc sources' =
          case reader of
-              StringReader r -> readSources sources' >>=
-                   withMediaBag . r readerOpts
-              ByteStringReader r -> readFiles sources' >>=
-                   withMediaBag . r readerOpts
+              StringReader r
+                | fileScope || readerName' == "json" -> do
+                    pairs <- mapM
+                      (readSource >=> withMediaBag . r readerOpts) sources
+                    return (mconcat (map fst pairs), mconcat (map snd pairs))
+                | otherwise ->
+                     readSources sources' >>= withMediaBag . r readerOpts
+              ByteStringReader r -> do
+                pairs <- mapM (readFile' >=>
+                                 withMediaBag . r readerOpts) sources
+                return (mconcat (map fst pairs), mconcat (map snd pairs))
 
-  -- We parse first if (1) fileScope is set, (2), it's a binary
-  -- reader, or (3) we're reading JSON. This is easier to do of an AND
-  -- of negatives as opposed to an OR of positives, so we do default
-  -- parsing if it's a StringReader AND (fileScope is not set AND it's not
-  -- a JSON reader).
-  (doc, media) <- case reader of
-    (StringReader _) | not fileScope && readerName' /= "json" ->
-                         sourceToDoc sources
-    _ | null sources -> sourceToDoc sources
-    _  -> do pairs <- mapM (\s -> sourceToDoc [s]) sources
-             return (mconcat $ map fst pairs, mconcat $ map snd pairs)
-
+  (doc, media) <- runIO' $ sourceToDoc sources
 
   doc' <- (maybe return (extractMedia media) mbExtractMedia >=>
            adjustMetadata metadata >=>
