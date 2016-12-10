@@ -1079,7 +1079,7 @@ defaultWriterName x =
 
 -- Transformations of a Pandoc document post-parsing:
 
-extractMedia :: MediaBag -> FilePath -> Pandoc -> IO Pandoc
+extractMedia :: MonadIO m => MediaBag -> FilePath -> Pandoc -> m Pandoc
 extractMedia media dir d =
   case [fp | (fp, _, _) <- mediaDirectory media] of
         []  -> return d
@@ -1092,10 +1092,10 @@ adjustImagePath dir paths (Image attr lab (src, tit))
    | src `elem` paths = Image attr lab (dir ++ "/" ++ src, tit)
 adjustImagePath _ _ x = x
 
-adjustMetadata :: M.Map String MetaValue -> Pandoc -> IO Pandoc
+adjustMetadata :: Monad m => M.Map String MetaValue -> Pandoc -> m Pandoc
 adjustMetadata metadata d = return $ M.foldWithKey setMeta d metadata
 
-applyTransforms :: [Transform] -> Pandoc -> IO Pandoc
+applyTransforms :: Monad m => [Transform] -> Pandoc -> m Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
 
   -- First we check to see if a filter is found.  If not, and if it's
@@ -1445,53 +1445,53 @@ convertWithOpts opts args = do
                                  withMediaBag . r readerOpts) sources
                 return (mconcat (map fst pairs), mconcat (map snd pairs))
 
-  (doc, media) <- runIO' $ sourceToDoc sources
+  runIO' $ do
+    (doc, media) <- sourceToDoc sources
+    doc' <- (maybe return (extractMedia media) mbExtractMedia >=>
+              adjustMetadata metadata >=>
+              applyTransforms transforms >=>
+              applyFilters datadir filters' [format]) doc
 
-  doc' <- (maybe return (extractMedia media) mbExtractMedia >=>
-           adjustMetadata metadata >=>
-           applyTransforms transforms >=>
-           applyFilters datadir filters' [format]) doc
+    let writerOptions' = writerOptions{ writerMediaBag = media }
+    case writer of
+      -- StringWriter f -> f writerOptions doc' >>= writerFn outputFile
+      ByteStringWriter f -> f writerOptions' doc' >>= writeFnBinary outputFile
+      StringWriter f
+        | pdfOutput -> do
+                -- make sure writer is latex or beamer or context or html5
+                unless (laTeXOutput || conTeXtOutput || html5Output) $
+                  err 47 $ "cannot produce pdf output with " ++ format ++
+                           " writer"
 
-  let writerOptions' = writerOptions{ writerMediaBag = media }
-  case writer of
-    -- StringWriter f -> f writerOptions doc' >>= writerFn outputFile
-    ByteStringWriter f -> (runIO' $ f writerOptions' doc')
-                                          >>= writeFnBinary outputFile
-    StringWriter f
-      | pdfOutput -> do
-              -- make sure writer is latex or beamer or context or html5
-              unless (laTeXOutput || conTeXtOutput || html5Output) $
-                err 47 $ "cannot produce pdf output with " ++ format ++
-                         " writer"
+                let pdfprog = case () of
+                                _ | conTeXtOutput -> "context"
+                                _ | html5Output   -> "wkhtmltopdf"
+                                _                 -> latexEngine
+                -- check for pdf creating program
+                mbPdfProg <- liftIO $ findExecutable pdfprog
+                when (isNothing mbPdfProg) $
+                     err 41 $ pdfprog ++ " not found. " ++
+                       pdfprog ++ " is needed for pdf output."
 
-              let pdfprog = case () of
-                              _ | conTeXtOutput -> "context"
-                              _ | html5Output   -> "wkhtmltopdf"
-                              _                 -> latexEngine
-              -- check for pdf creating program
-              mbPdfProg <- findExecutable pdfprog
-              when (isNothing mbPdfProg) $
-                   err 41 $ pdfprog ++ " not found. " ++
-                     pdfprog ++ " is needed for pdf output."
-
-              res <- makePDF pdfprog f writerOptions' doc'
-              case res of
-                   Right pdf -> writeFnBinary outputFile pdf
-                   Left err' -> do
-                     B.hPutStr stderr err'
-                     B.hPut stderr $ B.pack [10]
-                     err 43 "Error producing PDF"
-      | otherwise -> do
-              let htmlFormat = format `elem`
-                    ["html","html5","s5","slidy","slideous","dzslides","revealjs"]
-                  selfcontain = if selfContained && htmlFormat
-                                then makeSelfContained writerOptions'
-                                else return
-                  handleEntities = if htmlFormat && ascii
-                                   then toEntities
-                                   else id
-              output <- runIO' $ f writerOptions' doc'
-              selfcontain (output ++ ['\n' | not standalone']) >>= writerFn outputFile . handleEntities
+                res <- makePDF pdfprog f writerOptions' doc'
+                case res of
+                     Right pdf -> writeFnBinary outputFile pdf
+                     Left err' -> liftIO $ do
+                       B.hPutStr stderr err'
+                       B.hPut stderr $ B.pack [10]
+                       err 43 "Error producing PDF"
+        | otherwise -> do
+                let htmlFormat = format `elem`
+                      ["html","html5","s5","slidy","slideous","dzslides","revealjs"]
+                    selfcontain = if selfContained && htmlFormat
+                                  then makeSelfContained writerOptions'
+                                  else return
+                    handleEntities = if htmlFormat && ascii
+                                     then toEntities
+                                     else id
+                output <- f writerOptions' doc'
+                selfcontain (output ++ ['\n' | not standalone']) >>=
+                    writerFn outputFile . handleEntities
 
 readSource :: MonadIO m => FilePath -> m String
 readSource "-" = liftIO UTF8.getContents
