@@ -999,8 +999,8 @@ openURL u
 -- Error reporting
 --
 
-err :: Int -> String -> IO a
-err exitCode msg = do
+err :: MonadIO m => Int -> String -> m a
+err exitCode msg = liftIO $ do
   UTF8.hPutStrLn stderr msg
   exitWith $ ExitFailure exitCode
   return undefined
