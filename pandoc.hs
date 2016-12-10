@@ -113,8 +113,8 @@ wrapWords indent c = wrap' (c - indent) (c - indent)
 isTextFormat :: String -> Bool
 isTextFormat s = s `notElem` ["odt","docx","epub","epub3"]
 
-externalFilter :: FilePath -> [String] -> Pandoc -> IO Pandoc
-externalFilter f args' d = do
+externalFilter :: MonadIO m => FilePath -> [String] -> Pandoc -> m Pandoc
+externalFilter f args' d = liftIO $ do
   exists <- doesFileExist f
   isExecutable <- if exists
                      then executable <$> getPermissions f
@@ -1101,8 +1101,8 @@ applyTransforms transforms d = return $ foldr ($) d transforms
   -- First we check to see if a filter is found.  If not, and if it's
   -- not an absolute path, we check to see whether it's in `userdir/filters`.
   -- If not, we leave it unchanged.
-expandFilterPath :: Maybe FilePath -> FilePath -> IO FilePath
-expandFilterPath mbDatadir fp = do
+expandFilterPath :: MonadIO m => Maybe FilePath -> FilePath -> m FilePath
+expandFilterPath mbDatadir fp = liftIO $ do
   fpExists <- doesFileExist fp
   if fpExists
      then return fp
@@ -1115,7 +1115,8 @@ expandFilterPath mbDatadir fp = do
                     else return fp
                _ -> return fp
 
-applyFilters :: Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> IO Pandoc
+applyFilters :: MonadIO m
+             => Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> m Pandoc
 applyFilters mbDatadir filters args d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
   foldrM ($) d $ map (flip externalFilter args) expandedFilters
@@ -1478,13 +1479,13 @@ convertWithOpts opts args = do
            applyTransforms transforms >=>
            applyFilters datadir filters' [format]) doc
 
-  let writeFnBinary :: FilePath -> B.ByteString -> IO ()
-      writeFnBinary "-" = B.putStr
-      writeFnBinary f   = B.writeFile (UTF8.encodePath f)
+  let writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
+      writeFnBinary "-" = liftIO . B.putStr
+      writeFnBinary f   = liftIO . B.writeFile (UTF8.encodePath f)
 
-  let writerFn :: FilePath -> String -> IO ()
-      writerFn "-" = UTF8.putStr
-      writerFn f   = UTF8.writeFile f
+  let writerFn :: MonadIO m => FilePath -> String -> m ()
+      writerFn "-" = liftIO . UTF8.putStr
+      writerFn f   = liftIO . UTF8.writeFile f
 
   let writerOptions' = writerOptions{ writerMediaBag = media }
   case writer of
