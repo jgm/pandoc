@@ -141,7 +141,7 @@ defaultWriterState = WriterState{
       , stDelId          = 1
       , stStyleMaps      = defaultStyleMaps
       , stFirstPara      = False
-      , stTocTitle       = normalizeInlines [Str "Table of Contents"]
+      , stTocTitle       = [Str "Table of Contents"]
       , stDynamicParaProps = []
       , stDynamicTextProps = []
       }
@@ -207,7 +207,7 @@ isValidChar (ord -> c)
   | otherwise                     = False
 
 metaValueToInlines :: MetaValue -> [Inline]
-metaValueToInlines (MetaString s) = normalizeInlines [Str s]
+metaValueToInlines (MetaString s) = [Str s]
 metaValueToInlines (MetaInlines ils) = ils
 metaValueToInlines (MetaBlocks bs) = query return bs
 metaValueToInlines (MetaBool b) = [Str $ show b]

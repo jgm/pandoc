@@ -744,7 +744,7 @@ addNewRole roleString fields = do
           M.insert role (baseRole, fmt, attr) customRoles
     }
 
-    return $ B.singleton Null
+    return mempty
   where
     countKeys k = length . filter (== k) . map fst $ fields
     inheritedRole =

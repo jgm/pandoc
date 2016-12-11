@@ -88,7 +88,7 @@ tests =
             para "1970-01-01"
       , "Macros: Mod Time" =:
           "%%mtime" =?>
-            para ""
+            para (str "")
       , "Macros: Infile" =:
           "%%infile" =?>
             para "in"

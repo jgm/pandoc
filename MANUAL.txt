@@ -478,11 +478,6 @@ Reader options
     underlying document (which is accessible from filters and may be
     printed in some output formats).
 
-`--normalize`
-
-:   Normalize the document after reading:  merge adjacent
-    `Str` or `Emph` elements, for example, and remove repeated `Space`s.
-
 `-p`, `--preserve-tabs`
 
 :   Preserve tabs instead of converting them to spaces (the default).

@@ -17,7 +17,7 @@ import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2
 import Test.HUnit (assertBool)
-import Text.Pandoc.Shared (normalize, trimr)
+import Text.Pandoc.Shared (trimr)
 import Text.Pandoc.Options
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Test.QuickCheck.Property as QP
@@ -81,10 +81,10 @@ class ToPandoc a where
   toPandoc :: a -> Pandoc
 
 instance ToPandoc Pandoc where
-  toPandoc = normalize
+  toPandoc = id
 
 instance ToPandoc Blocks where
-  toPandoc = normalize . doc
+  toPandoc = doc
 
 instance ToPandoc Inlines where
-  toPandoc = normalize . doc . plain
+  toPandoc = doc . plain

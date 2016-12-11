@@ -447,9 +447,13 @@ inlineMarkup p f c special = try $ do
       lastChar <- anyChar
       end <- many1 (char c)
       let parser inp = parseFromString (mconcat <$> many p) inp
-      let start' = special (drop 2 start)
+      let start' = case drop 2 start of
+                          "" -> mempty
+                          xs -> special xs
       body' <- parser (middle ++ [lastChar])
-      let end' = special (drop 2 end)
+      let end' = case drop 2 end of
+                          "" -> mempty
+                          xs -> special xs
       return $ f (start' <> body' <> end')
     Nothing -> do -- Either bad or case such as *****
       guard (l >= 5)

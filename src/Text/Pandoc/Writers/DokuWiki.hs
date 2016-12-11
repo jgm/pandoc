@@ -45,7 +45,7 @@ import Text.Pandoc.Options ( WriterOptions(
                               , writerTemplate
                               , writerWrapText), WrapOption(..) )
 import Text.Pandoc.Shared ( escapeURI, linesToPara, removeFormatting
-                          , camelCaseToHyphenated, trimr, normalize, substitute )
+                          , camelCaseToHyphenated, trimr, substitute )
 import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Templates ( renderTemplate' )
@@ -80,7 +80,7 @@ type DokuWiki = ReaderT WriterEnvironment (State WriterState)
 -- | Convert Pandoc to DokuWiki.
 writeDokuWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
 writeDokuWiki opts document = return $
-  runDokuWiki (pandocToDokuWiki opts $ normalize document)
+  runDokuWiki (pandocToDokuWiki opts document)
 
 runDokuWiki :: DokuWiki a -> a
 runDokuWiki = flip evalState def . flip runReaderT def
@@ -394,9 +394,16 @@ blockListToDokuWiki :: WriterOptions -- ^ Options
                     -> DokuWiki String
 blockListToDokuWiki opts blocks = do
   backSlash <- stBackSlashLB <$> ask
+  let blocks' = consolidateRawBlocks blocks
   if backSlash
-    then (backSlashLineBreaks . vcat) <$> mapM (blockToDokuWiki opts) blocks
-    else vcat <$> mapM (blockToDokuWiki opts) blocks
+    then (backSlashLineBreaks . vcat) <$> mapM (blockToDokuWiki opts) blocks'
+    else vcat <$> mapM (blockToDokuWiki opts) blocks'
+
+consolidateRawBlocks :: [Block] -> [Block]
+consolidateRawBlocks [] = []
+consolidateRawBlocks (RawBlock f1 b1 : RawBlock f2 b2 : xs)
+  | f1 == f2 = consolidateRawBlocks (RawBlock f1 (b1 ++ "\n" ++ b2) : xs)
+consolidateRawBlocks (x:xs) = x : consolidateRawBlocks xs
 
 -- | Convert list of Pandoc inline elements to DokuWiki.
 inlineListToDokuWiki :: WriterOptions -> [Inline] -> DokuWiki String

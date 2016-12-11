@@ -1525,7 +1525,7 @@ tests =
                    , ""
                    , "#+RESULTS:"
                    , ": 65" ] =?>
-           rawBlock "html" ""
+           (mempty :: Blocks)
 
       , "Source block with toggling header arguments" =:
         unlines [ "#+BEGIN_SRC sh :noeval"

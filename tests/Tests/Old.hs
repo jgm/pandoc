@@ -11,15 +11,10 @@ import System.FilePath ( (</>), (<.>), takeDirectory, splitDirectories,
 import System.Directory
 import System.Exit
 import Data.Algorithm.Diff
-import Text.Pandoc.Shared ( normalize )
-import Text.Pandoc.Options
-import Text.Pandoc.Writers.Native ( writeNative )
-import Text.Pandoc.Readers.Native ( readNative )
 import Prelude hiding ( readFile )
 import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Printf
-import Tests.Helpers (purely)
 
 readFileUTF8 :: FilePath -> IO String
 readFileUTF8 f = B.readFile f >>= return . toStringLazy
@@ -193,12 +188,9 @@ lhsWriterTests format
 
 lhsReaderTest :: String -> Test
 lhsReaderTest format =
-  testWithNormalize normalizer "lhs" ["-r", format, "-w", "native"]
+  test "lhs" ["-r", format, "-w", "native"]
     ("lhs-test" <.> format) norm
-   where normalizer = purely $ \nat -> do
-                           d <- readNative def nat
-                           writeNative def $ normalize d
-         norm = if format == "markdown+lhs"
+   where norm = if format == "markdown+lhs"
                    then "lhs-test-markdown.native"
                    else "lhs-test.native"
 

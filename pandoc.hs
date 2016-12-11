@@ -35,7 +35,7 @@ import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
-                            safeRead, headerShift, normalize, err, warn,
+                            safeRead, headerShift, err, warn,
                             openURL )
 import Text.Pandoc.MediaBag ( mediaDirectory, extractMediaBag, MediaBag )
 import Text.Pandoc.XML ( toEntities )
@@ -730,12 +730,6 @@ options =
                   (\arg opt -> return opt { optFilters = arg : optFilters opt })
                   "PROGRAM")
                  "" -- "External JSON filter"
-
-    , Option "" ["normalize"]
-                 (NoArg
-                  (\opt -> return opt { optTransforms =
-                                   normalize : optTransforms opt } ))
-                 "" -- "Normalize the Pandoc AST"
 
     , Option "p" ["preserve-tabs"]
                  (NoArg
