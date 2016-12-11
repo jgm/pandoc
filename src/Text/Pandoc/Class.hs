@@ -121,7 +121,6 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
              -> Maybe String
              -> String
              -> m (Either E.SomeException (B.ByteString, Maybe MimeType))
-  -- fail :: String -> m b
   glob :: String -> m [FilePath]
   getModificationTime :: FilePath -> m UTCTime
   getCommonState :: m CommonState
@@ -231,7 +230,6 @@ instance PandocMonad PandocIO where
     case eitherBS of
       Right bs -> return bs
       Left _ -> throwError $ PandocFileReadError fname
-  -- fail = M.fail
   fetchItem ms s = liftIO $ IO.fetchItem ms s
   fetchItem' mb ms s = liftIO $ IO.fetchItem' mb ms s
   glob = liftIO . IO.glob
@@ -361,7 +359,6 @@ instance PandocMonad PandocPure where
     case infoFileContents <$> (getFileInfo (userDir </> fname) userDirFiles) of
       Just bs -> return bs
       Nothing -> readDataFile Nothing fname
-  -- fail = M.fail
   fetchItem _ fp = do
     fps <- getsPureState stFiles
     case infoFileContents <$> (getFileInfo fp fps) of
@@ -396,7 +393,6 @@ instance PandocMonad m => PandocMonad (ParserT s st m) where
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  -- fail = lift . fail
   fetchItem media = lift . fetchItem media
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
@@ -414,7 +410,6 @@ instance PandocMonad m => PandocMonad (ReaderT r m) where
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  -- fail = lift . fail
   fetchItem media = lift . fetchItem media
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
@@ -432,7 +427,6 @@ instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  -- fail = lift . fail
   fetchItem media = lift . fetchItem media
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
@@ -450,7 +444,6 @@ instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  -- fail = lift . fail
   fetchItem media = lift . fetchItem media
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
@@ -468,7 +461,6 @@ instance PandocMonad m => PandocMonad (StateT st m) where
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  -- fail = lift . fail
   fetchItem media = lift . fetchItem media
   fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
