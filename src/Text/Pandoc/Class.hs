@@ -46,6 +46,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , getMediaBag
                          , setMediaBag
                          , insertMedia
+                         , fetchItem
                          , getInputFiles
                          , getOutputFile
                          , PandocIO(..)
@@ -64,27 +65,28 @@ import qualified System.Random as IO (newStdGen)
 import Codec.Archive.Zip (Archive, fromArchive, emptyArchive)
 import Data.Unique (hashUnique)
 import qualified Data.Unique as IO (newUnique)
-import qualified Text.Pandoc.Shared as IO ( fetchItem
-                                          , fetchItem'
-                                          , readDataFile
-                                          , warn)
+import qualified Text.Pandoc.Shared as IO ( readDataFile
+                                          , warn
+                                          , openURL )
 import Text.Pandoc.Compat.Time (UTCTime)
 import Text.Pandoc.Parsing (ParserT, SourcePos)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
+import Text.Pandoc.MIME (MimeType, getMimeType)
 import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
                              , posixSecondsToUTCTime
                              , POSIXTime )
 import Data.Time.LocalTime (TimeZone, ZonedTime, utcToZonedTime, utc)
+import Network.URI ( escapeURIString, nonStrictRelativeTo,
+                     unEscapeString, parseURIReference, isAllowedInURI,
+                     parseURI, URI(..) )
 import qualified Data.Time.LocalTime as IO (getCurrentTimeZone)
-import Text.Pandoc.MIME (MimeType, getMimeType)
-import Text.Pandoc.MediaBag (MediaBag)
+import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
 import qualified Text.Pandoc.MediaBag as MB
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import qualified Control.Exception as E
 import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
-import System.FilePath ((</>))
+import System.FilePath ((</>), takeExtension, dropExtension)
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
 import Control.Monad as M (fail)
@@ -106,17 +108,12 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   getCurrentTimeZone :: m TimeZone
   newStdGen :: m StdGen
   newUniqueHash :: m Int
+  openURL :: String -> m (B.ByteString, Maybe MimeType)
   readFileLazy :: FilePath -> m BL.ByteString
+  readFileStrict :: FilePath -> m B.ByteString
   readDataFile :: Maybe FilePath
                -> FilePath
                -> m B.ByteString
-  fetchItem :: Maybe String
-            -> String
-            -> m (Either E.SomeException (B.ByteString, Maybe MimeType))
-  fetchItem' :: MediaBag
-             -> Maybe String
-             -> String
-             -> m (Either E.SomeException (B.ByteString, Maybe MimeType))
   glob :: String -> m [FilePath]
   getModificationTime :: FilePath -> m UTCTime
   getCommonState :: m CommonState
@@ -213,8 +210,19 @@ instance PandocMonad PandocIO where
   getCurrentTimeZone = liftIO IO.getCurrentTimeZone
   newStdGen = liftIO IO.newStdGen
   newUniqueHash = hashUnique <$> (liftIO IO.newUnique)
+  openURL u = do
+    eitherRes <- liftIO $ (tryIOError $ IO.openURL u)
+    case eitherRes of
+          Right (Right res) -> return res
+          Right (Left _)    -> throwError $ PandocFileReadError u
+          Left  _           -> throwError $ PandocFileReadError u
   readFileLazy s = do
     eitherBS <- liftIO (tryIOError $ BL.readFile s)
+    case eitherBS of
+      Right bs -> return bs
+      Left _ -> throwError $ PandocFileReadError s
+  readFileStrict s = do
+    eitherBS <- liftIO (tryIOError $ B.readFile s)
     case eitherBS of
       Right bs -> return bs
       Left _ -> throwError $ PandocFileReadError s
@@ -224,8 +232,6 @@ instance PandocMonad PandocIO where
     case eitherBS of
       Right bs -> return bs
       Left _ -> throwError $ PandocFileReadError fname
-  fetchItem ms s = liftIO $ IO.fetchItem ms s
-  fetchItem' mb ms s = liftIO $ IO.fetchItem' mb ms s
   glob = liftIO . IO.glob
   getModificationTime fp = do
     eitherMtime <- liftIO (tryIOError $ IO.getModificationTime fp)
@@ -234,6 +240,64 @@ instance PandocMonad PandocIO where
       Left _ -> throwError $ PandocFileReadError fp
   getCommonState = PandocIO $ lift get
   putCommonState x = PandocIO $ lift $ put x
+
+
+-- | Specialized version of parseURIReference that disallows
+-- single-letter schemes.  Reason:  these are usually windows absolute
+-- paths.
+parseURIReference' :: String -> Maybe URI
+parseURIReference' s =
+  case parseURIReference s of
+       Just u
+         | length (uriScheme u) > 2  -> Just u
+         | null (uriScheme u)        -> Just u  -- protocol-relative
+       _                             -> Nothing
+
+-- | Fetch an image or other item from the local filesystem or the net.
+-- Returns raw content and maybe mime type.
+fetchItem :: PandocMonad m
+          => Maybe String
+          -> String
+          -> m (B.ByteString, Maybe MimeType)
+fetchItem sourceURL s = do
+  mediabag <- getMediaBag
+  case lookupMedia s mediabag of
+       Just (mime, bs) -> return $ (BL.toStrict bs, Just mime)
+       Nothing ->
+        case (sourceURL >>= parseURIReference' .
+                             ensureEscaped, ensureEscaped s) of
+          (Just u, s') -> -- try fetching from relative path at source
+             case parseURIReference' s' of
+                  Just u' -> openURL $ show $ u' `nonStrictRelativeTo` u
+                  Nothing -> openURL s' -- will throw error
+          (Nothing, s'@('/':'/':_)) ->  -- protocol-relative URI
+             case parseURIReference' s' of
+                  Just u' -> openURL $ show $ u' `nonStrictRelativeTo` httpcolon
+                  Nothing -> openURL s' -- will throw error
+          (Nothing, s') ->
+             case parseURI s' of  -- requires absolute URI
+                  -- We don't want to treat C:/ as a scheme:
+                  Just u' | length (uriScheme u') > 2 -> openURL (show u')
+                  Just u' | uriScheme u' == "file:" ->
+                       readLocalFile $ dropWhile (=='/') (uriPath u')
+                  _ -> readLocalFile fp -- get from local file system
+         where readLocalFile f = do
+                 cont <- readFileStrict f
+                 return (cont, mime)
+               httpcolon = URI{ uriScheme = "http:",
+                                uriAuthority = Nothing,
+                                uriPath = "",
+                                uriQuery = "",
+                                uriFragment = "" }
+               dropFragmentAndQuery = takeWhile (\c -> c /= '?' && c /= '#')
+               fp = unEscapeString $ dropFragmentAndQuery s
+               mime = case takeExtension fp of
+                           ".gz" -> getMimeType $ dropExtension fp
+                           ".svgz" -> getMimeType $ dropExtension fp ++ ".svg"
+                           x     -> getMimeType x
+               ensureEscaped = escapeURIString isAllowedInURI . map convertSlash
+               convertSlash '\\' = '/'
+               convertSlash x    = x
 
 data PureState = PureState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
@@ -332,10 +396,16 @@ instance PandocMonad PandocPure where
         modifyPureState $ \st -> st { stUniqStore = us }
         return u
       _ -> M.fail "uniq store ran out of elements"
+  openURL _ = undefined -- TODO
   readFileLazy fp = do
     fps <- getsPureState stFiles
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return (BL.fromStrict bs)
+      Nothing -> throwError $ PandocFileReadError fp
+  readFileStrict fp = do
+    fps <- getsPureState stFiles
+    case infoFileContents <$> getFileInfo fp fps of
+      Just bs -> return bs
       Nothing -> throwError $ PandocFileReadError fp
   readDataFile Nothing "reference.docx" = do
     (B.concat . BL.toChunks . fromArchive) <$> getsPureState stReferenceDocx
@@ -343,22 +413,12 @@ instance PandocMonad PandocPure where
     (B.concat . BL.toChunks . fromArchive) <$> getsPureState stReferenceODT
   readDataFile Nothing fname = do
     let fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
-    BL.toStrict <$> (readFileLazy fname')
+    readFileStrict fname'
   readDataFile (Just userDir) fname = do
     userDirFiles <- getsPureState stUserDataDir
     case infoFileContents <$> (getFileInfo (userDir </> fname) userDirFiles) of
       Just bs -> return bs
       Nothing -> readDataFile Nothing fname
-  fetchItem _ fp = do
-    fps <- getsPureState stFiles
-    case infoFileContents <$> (getFileInfo fp fps) of
-      Just bs -> return (Right (bs, getMimeType fp))
-      Nothing -> return (Left $ E.toException $ PandocFileReadError fp)
-
-  fetchItem' media sourceUrl nm = do
-    case MB.lookupMedia nm media of
-      Nothing -> fetchItem sourceUrl nm
-      Just (mime, bs) -> return (Right (B.concat $ BL.toChunks bs, Just mime))
 
   glob s = do
     fontFiles <- getsPureState stFontFiles
@@ -379,10 +439,10 @@ instance PandocMonad m => PandocMonad (ParserT s st m) where
   getCurrentTimeZone = lift getCurrentTimeZone
   newStdGen = lift newStdGen
   newUniqueHash = lift newUniqueHash
+  openURL = lift . openURL
   readFileLazy = lift . readFileLazy
+  readFileStrict = lift . readFileStrict
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  fetchItem media = lift . fetchItem media
-  fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
@@ -394,10 +454,10 @@ instance PandocMonad m => PandocMonad (ReaderT r m) where
   getCurrentTimeZone = lift getCurrentTimeZone
   newStdGen = lift newStdGen
   newUniqueHash = lift newUniqueHash
+  openURL = lift . openURL
   readFileLazy = lift . readFileLazy
+  readFileStrict = lift . readFileStrict
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  fetchItem media = lift . fetchItem media
-  fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
@@ -409,10 +469,10 @@ instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
   getCurrentTimeZone = lift getCurrentTimeZone
   newStdGen = lift newStdGen
   newUniqueHash = lift newUniqueHash
+  openURL = lift . openURL
   readFileLazy = lift . readFileLazy
+  readFileStrict = lift . readFileStrict
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  fetchItem media = lift . fetchItem media
-  fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
@@ -424,10 +484,10 @@ instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
   getCurrentTimeZone = lift getCurrentTimeZone
   newStdGen = lift newStdGen
   newUniqueHash = lift newUniqueHash
+  openURL = lift . openURL
   readFileLazy = lift . readFileLazy
+  readFileStrict = lift . readFileStrict
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  fetchItem media = lift . fetchItem media
-  fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
@@ -439,10 +499,10 @@ instance PandocMonad m => PandocMonad (StateT st m) where
   getCurrentTimeZone = lift getCurrentTimeZone
   newStdGen = lift newStdGen
   newUniqueHash = lift newUniqueHash
+  openURL = lift . openURL
   readFileLazy = lift . readFileLazy
+  readFileStrict = lift . readFileStrict
   readDataFile mbuserdir = lift . readDataFile mbuserdir
-  fetchItem media = lift . fetchItem media
-  fetchItem' media sourceUrl = lift . fetchItem' media sourceUrl
   glob = lift . glob
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
