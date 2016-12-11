@@ -53,7 +53,7 @@ import Control.Monad
 import Data.Bits
 import Data.Binary
 import Data.Binary.Get
-import Text.Pandoc.Shared (safeRead, hush)
+import Text.Pandoc.Shared (safeRead)
 import Data.Default (Default)
 import Numeric (showFFloat)
 import Text.Pandoc.Definition
@@ -240,7 +240,7 @@ pngSize img = do
                 ([w1,w2,w3,w4,h1,h2,h3,h4] :: [Integer]) -> return
                     ((shift w1 24) + (shift w2 16) + (shift w3 8) + w4,
                      (shift h1 24) + (shift h2 16) + (shift h3 8) + h4)
-                _ -> (hush . Left) "PNG parse error"
+                _ -> Nothing -- "PNG parse error"
   let (dpix, dpiy) = findpHYs rest''
   return $ ImageSize { pxX  = x, pxY = y, dpiX = dpix, dpiY = dpiy }
 
@@ -269,7 +269,7 @@ gifSize img = do
                           dpiX = 72,
                           dpiY = 72
                           }
-       _             -> (hush . Left) "GIF parse error"
+       _             -> Nothing -- "GIF parse error"
 
 jpegSize :: ByteString -> Either String ImageSize
 jpegSize img =

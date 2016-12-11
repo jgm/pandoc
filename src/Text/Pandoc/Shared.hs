@@ -88,7 +88,6 @@ module Text.Pandoc.Shared (
                      err,
                      warn,
                      mapLeft,
-                     hush,
                      -- * for squashing blocks
                      blocksToInlines,
                      -- * Safe read
@@ -862,10 +861,6 @@ warn msg = liftIO $ do
 mapLeft :: (a -> b) -> Either a c -> Either b c
 mapLeft f (Left x) = Left (f x)
 mapLeft _ (Right x) = Right x
-
-hush :: Either a b -> Maybe b
-hush (Left _) = Nothing
-hush (Right x) = Just x
 
 -- | Remove intermediate "." and ".." directories from a path.
 --
