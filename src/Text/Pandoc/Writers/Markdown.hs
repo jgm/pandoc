@@ -979,15 +979,19 @@ inlineToMarkdown opts (Math InlineMath str) =
              inlineListToMarkdown opts $
                (if plain then makeMathPlainer else id) $
                texMathToInlines InlineMath str
-inlineToMarkdown opts (Math DisplayMath str)
-  | isEnabled Ext_tex_math_dollars opts =
-      return $ "$$" <> text str <> "$$"
-  | isEnabled Ext_tex_math_single_backslash opts =
-      return $ "\\[" <> text str <> "\\]"
-  | isEnabled Ext_tex_math_double_backslash opts =
-      return $ "\\\\[" <> text str <> "\\\\]"
-  | otherwise = (\x -> cr <> x <> cr) `fmap`
-        inlineListToMarkdown opts (texMathToInlines DisplayMath str)
+inlineToMarkdown opts (Math DisplayMath str) =
+  case writerHTMLMathMethod opts of
+      WebTeX url -> (\x -> blankline <> x <> blankline) `fmap`
+             inlineToMarkdown opts (Image nullAttr [Str str]
+                    (url ++ urlEncode str, str))
+      _ | isEnabled Ext_tex_math_dollars opts ->
+            return $ "$$" <> text str <> "$$"
+        | isEnabled Ext_tex_math_single_backslash opts ->
+            return $ "\\[" <> text str <> "\\]"
+        | isEnabled Ext_tex_math_double_backslash opts ->
+            return $ "\\\\[" <> text str <> "\\\\]"
+        | otherwise -> (\x -> cr <> x <> cr) `fmap`
+              inlineListToMarkdown opts (texMathToInlines DisplayMath str)
 inlineToMarkdown opts (RawInline f str) = do
   plain <- asks envPlain
   if not plain &&
