@@ -224,10 +224,11 @@ writeDocx opts doc@(Pandoc meta _) = do
   let doc' = walk fixDisplayMath $ doc
   username <- P.lookupEnv "USERNAME"
   utctime <- P.getCurrentTime
-  distArchive <- P.getDefaultReferenceDocx datadir
+  distArchive <- (toArchive . BL.fromStrict) <$>
+                      P.readDataFile datadir "reference.docx"
   refArchive <- case writerReferenceDoc opts of
                      Just f  -> toArchive <$> P.readFileLazy f
-                     Nothing -> P.getDefaultReferenceDocx datadir
+                     Nothing -> return distArchive
 
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
   let wname f qn = qPrefix qn == Just "w" && f (qName qn)

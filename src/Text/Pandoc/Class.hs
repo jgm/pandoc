@@ -66,8 +66,6 @@ import Data.Unique (hashUnique)
 import qualified Data.Unique as IO (newUnique)
 import qualified Text.Pandoc.Shared as IO ( fetchItem
                                           , fetchItem'
-                                          , getDefaultReferenceDocx
-                                          , getDefaultReferenceODT
                                           , readDataFile
                                           , warn)
 import Text.Pandoc.Compat.Time (UTCTime)
@@ -106,8 +104,6 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   lookupEnv :: String -> m (Maybe String)
   getCurrentTime :: m UTCTime
   getCurrentTimeZone :: m TimeZone
-  getDefaultReferenceDocx :: Maybe FilePath -> m Archive
-  getDefaultReferenceODT :: Maybe FilePath -> m Archive
   newStdGen :: m StdGen
   newUniqueHash :: m Int
   readFileLazy :: FilePath -> m BL.ByteString
@@ -215,8 +211,6 @@ instance PandocMonad PandocIO where
   lookupEnv = liftIO . IO.lookupEnv
   getCurrentTime = liftIO IO.getCurrentTime
   getCurrentTimeZone = liftIO IO.getCurrentTimeZone
-  getDefaultReferenceDocx = liftIO . IO.getDefaultReferenceDocx
-  getDefaultReferenceODT = liftIO . IO.getDefaultReferenceODT
   newStdGen = liftIO IO.newStdGen
   newUniqueHash = hashUnique <$> (liftIO IO.newUnique)
   readFileLazy s = do
@@ -325,10 +319,6 @@ instance PandocMonad PandocPure where
 
   getCurrentTimeZone = getsPureState stTimeZone
 
-  getDefaultReferenceDocx _ = getsPureState stReferenceDocx
-
-  getDefaultReferenceODT _ = getsPureState stReferenceODT
-
   newStdGen = do
     g <- getsPureState stStdGen
     let (_, nxtGen) = next g
@@ -348,9 +338,9 @@ instance PandocMonad PandocPure where
       Just bs -> return (BL.fromStrict bs)
       Nothing -> throwError $ PandocFileReadError fp
   readDataFile Nothing "reference.docx" = do
-    (B.concat . BL.toChunks . fromArchive) <$> (getDefaultReferenceDocx Nothing)
+    (B.concat . BL.toChunks . fromArchive) <$> getsPureState stReferenceDocx
   readDataFile Nothing "reference.odt" = do
-    (B.concat . BL.toChunks . fromArchive) <$> (getDefaultReferenceODT Nothing)
+    (B.concat . BL.toChunks . fromArchive) <$> getsPureState stReferenceODT
   readDataFile Nothing fname = do
     let fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
     BL.toStrict <$> (readFileLazy fname')
@@ -387,8 +377,6 @@ instance PandocMonad m => PandocMonad (ParserT s st m) where
   lookupEnv = lift . lookupEnv
   getCurrentTime = lift getCurrentTime
   getCurrentTimeZone = lift getCurrentTimeZone
-  getDefaultReferenceDocx = lift . getDefaultReferenceDocx
-  getDefaultReferenceODT = lift . getDefaultReferenceODT
   newStdGen = lift newStdGen
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
@@ -404,8 +392,6 @@ instance PandocMonad m => PandocMonad (ReaderT r m) where
   lookupEnv = lift . lookupEnv
   getCurrentTime = lift getCurrentTime
   getCurrentTimeZone = lift getCurrentTimeZone
-  getDefaultReferenceDocx = lift . getDefaultReferenceDocx
-  getDefaultReferenceODT = lift . getDefaultReferenceODT
   newStdGen = lift newStdGen
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
@@ -421,8 +407,6 @@ instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
   lookupEnv = lift . lookupEnv
   getCurrentTime = lift getCurrentTime
   getCurrentTimeZone = lift getCurrentTimeZone
-  getDefaultReferenceDocx = lift . getDefaultReferenceDocx
-  getDefaultReferenceODT = lift . getDefaultReferenceODT
   newStdGen = lift newStdGen
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
@@ -438,8 +422,6 @@ instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
   lookupEnv = lift . lookupEnv
   getCurrentTime = lift getCurrentTime
   getCurrentTimeZone = lift getCurrentTimeZone
-  getDefaultReferenceDocx = lift . getDefaultReferenceDocx
-  getDefaultReferenceODT = lift . getDefaultReferenceODT
   newStdGen = lift newStdGen
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
@@ -455,8 +437,6 @@ instance PandocMonad m => PandocMonad (StateT st m) where
   lookupEnv = lift . lookupEnv
   getCurrentTime = lift getCurrentTime
   getCurrentTimeZone = lift getCurrentTimeZone
-  getDefaultReferenceDocx = lift . getDefaultReferenceDocx
-  getDefaultReferenceODT = lift . getDefaultReferenceODT
   newStdGen = lift newStdGen
   newUniqueHash = lift newUniqueHash
   readFileLazy = lift . readFileLazy
