@@ -15,7 +15,7 @@ bench:
 	stack bench
 
 changes_github:
-	pandoc --filter extract-changes.hs changelog -t markdown_github | pbcopy
+	pandoc --filter tools/extract-changes.hs changelog -t markdown_github | pbcopy
 
 dist: man/pandoc.1
 	cabal sdist
