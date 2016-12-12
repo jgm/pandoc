@@ -396,7 +396,7 @@ instance PandocMonad PandocPure where
         modifyPureState $ \st -> st { stUniqStore = us }
         return u
       _ -> M.fail "uniq store ran out of elements"
-  openURL _ = undefined -- TODO
+  openURL _ = throwError $ PandocSomeError "Cannot open URL in PandocPure"
   readFileLazy fp = do
     fps <- getsPureState stFiles
     case infoFileContents <$> getFileInfo fp fps of
