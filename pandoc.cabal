@@ -383,7 +383,7 @@ Library
                    Text.Pandoc.XML,
                    Text.Pandoc.SelfContained,
                    Text.Pandoc.Process,
-                   Text.Pandoc.CSS,
+                   Text.Pandoc.MIME,
                    Text.Pandoc.Class
   Other-Modules:   Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Combine,
@@ -411,7 +411,7 @@ Library
                    Text.Pandoc.Readers.Org.Shared,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Asciify,
-                   Text.Pandoc.MIME,
+                   Text.Pandoc.CSS,
                    Text.Pandoc.Emoji,
                    Text.Pandoc.Parsing,
                    Text.Pandoc.UUID,
