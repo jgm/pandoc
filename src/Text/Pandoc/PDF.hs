@@ -49,8 +49,7 @@ import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk (walkM)
-import Text.Pandoc.Shared (fetchItem', warn, withTempDir, inDirectory,
-                           stringify)
+import Text.Pandoc.Shared (warn, withTempDir, inDirectory, stringify)
 import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..))
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
@@ -61,7 +60,7 @@ import qualified Codec.Picture as JP
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
-import Text.Pandoc.Class (PandocIO, runIOorExplode)
+import Text.Pandoc.Class (PandocIO, runIOorExplode, fetchItem, setMediaBag, runIO)
 
 #ifdef _WINDOWS
 changePathSeparators :: FilePath -> FilePath
@@ -123,7 +122,9 @@ handleImage' opts tmpdir (Image attr ils (src,tit)) = do
     if exists
        then return $ Image attr ils (src,tit)
        else do
-         res <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
+         res <- runIO $ do
+                  setMediaBag $ writerMediaBag opts
+                  fetchItem (writerSourceURL opts) src
          case res of
               Right (contents, Just mime) -> do
                 let ext = fromMaybe (takeExtension src) $

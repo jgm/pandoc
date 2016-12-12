@@ -39,7 +39,7 @@ import Text.XML.Light
 import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
 import qualified Data.ByteString.Char8 as B8
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, catchError)
 
 
 import Text.Pandoc.Definition
@@ -241,10 +241,18 @@ fetchImage href link = do
               else return Nothing
        (True, Just _) -> return Nothing  -- not base64-encoded
        _               -> do
-         response <- P.fetchItem Nothing link
-         case response of
-           Right (bs, Just mime) -> return $ Just (mime, B8.unpack $ encode bs)
-           _                     -> return $ Nothing
+         catchError (do (bs, mbmime) <- P.fetchItem Nothing link
+                        case mbmime of
+                             Nothing -> do
+                               P.warning ("Could not determine mime type for "
+                                         ++ link)
+                               return Nothing
+                             Just mime -> return $ Just (mime,
+                                                      B8.unpack $ encode bs))
+                    (\e ->
+                       do P.warning ("Could not fetch " ++ link ++
+                                      ":\n" ++ show e)
+                          return Nothing)
   case mbimg of
     Just (imgtype, imgdata) -> do
         return . Right $ el "binary"

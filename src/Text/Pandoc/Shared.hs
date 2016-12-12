@@ -79,8 +79,6 @@ module Text.Pandoc.Shared (
                      getDefaultReferenceODT,
                      readDataFile,
                      readDataFileUTF8,
-                     fetchItem,
-                     fetchItem',
                      openURL,
                      collapseFilePath,
                      filteredFilesFromArchive,
@@ -100,7 +98,6 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
 import Text.Pandoc.Builder (Inlines, Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -111,15 +108,13 @@ import Data.List ( find, stripPrefix, intercalate )
 import Data.Maybe (mapMaybe)
 import Data.Version ( showVersion )
 import qualified Data.Map as M
-import Network.URI ( escapeURIString, nonStrictRelativeTo,
-                     unEscapeString, parseURIReference, isAllowedInURI,
-                     parseURI, URI(..) )
+import Network.URI ( escapeURIString, unEscapeString )
 import qualified Data.Set as Set
 import System.Directory
 import System.FilePath (splitDirectories, isPathSeparator)
 import qualified System.FilePath.Posix as Posix
-import Text.Pandoc.MIME (MimeType, getMimeType)
-import System.FilePath ( (</>), takeExtension, dropExtension)
+import Text.Pandoc.MIME (MimeType)
+import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import Control.Monad.Trans (MonadIO (..))
@@ -751,64 +746,6 @@ readDataFile (Just userDir) fname = do
 readDataFileUTF8 :: Maybe FilePath -> FilePath -> IO String
 readDataFileUTF8 userDir fname =
   UTF8.toString `fmap` readDataFile userDir fname
-
--- | Specialized version of parseURIReference that disallows
--- single-letter schemes.  Reason:  these are usually windows absolute
--- paths.
-parseURIReference' :: String -> Maybe URI
-parseURIReference' s =
-  case parseURIReference s of
-       Just u
-         | length (uriScheme u) > 2  -> Just u
-         | null (uriScheme u)        -> Just u  -- protocol-relative
-       _                             -> Nothing
-
--- | Fetch an image or other item from the local filesystem or the net.
--- Returns raw content and maybe mime type.
-fetchItem :: Maybe String -> String
-          -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
-fetchItem sourceURL s =
-  case (sourceURL >>= parseURIReference' . ensureEscaped, ensureEscaped s) of
-       (Just u, s') -> -- try fetching from relative path at source
-          case parseURIReference' s' of
-               Just u' -> openURL $ show $ u' `nonStrictRelativeTo` u
-               Nothing -> openURL s' -- will throw error
-       (Nothing, s'@('/':'/':_)) ->  -- protocol-relative URI
-          case parseURIReference' s' of
-               Just u' -> openURL $ show $ u' `nonStrictRelativeTo` httpcolon
-               Nothing -> openURL s' -- will throw error
-       (Nothing, s') ->
-          case parseURI s' of  -- requires absolute URI
-               -- We don't want to treat C:/ as a scheme:
-               Just u' | length (uriScheme u') > 2 -> openURL (show u')
-               Just u' | uriScheme u' == "file:" ->
-                    E.try $ readLocalFile $ dropWhile (=='/') (uriPath u')
-               _ -> E.try $ readLocalFile fp -- get from local file system
-  where readLocalFile f = do
-          cont <- BS.readFile f
-          return (cont, mime)
-        httpcolon = URI{ uriScheme = "http:",
-                         uriAuthority = Nothing,
-                         uriPath = "",
-                         uriQuery = "",
-                         uriFragment = "" }
-        dropFragmentAndQuery = takeWhile (\c -> c /= '?' && c /= '#')
-        fp = unEscapeString $ dropFragmentAndQuery s
-        mime = case takeExtension fp of
-                    ".gz" -> getMimeType $ dropExtension fp
-                    ".svgz" -> getMimeType $ dropExtension fp ++ ".svg"
-                    x     -> getMimeType x
-        ensureEscaped = escapeURIString isAllowedInURI . map convertSlash
-        convertSlash '\\' = '/'
-        convertSlash x    = x
-
--- | Like 'fetchItem', but also looks for items in a 'MediaBag'.
-fetchItem' :: MediaBag -> Maybe String -> String
-           -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
-fetchItem' media sourceURL s = do
-  case lookupMedia s media of
-       Nothing -> fetchItem sourceURL s
-       Just (mime, bs) -> return $ Right (BS.concat $ toChunks bs, Just mime)
 
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))

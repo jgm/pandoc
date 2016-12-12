@@ -41,7 +41,7 @@ import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
 import Control.Monad.Trans (MonadIO(..))
-import Text.Pandoc.Shared (renderTags', err, fetchItem', warn, trim)
+import Text.Pandoc.Shared (renderTags', err, warn, trim)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.UTF8 (toString)
@@ -51,6 +51,7 @@ import Control.Applicative ((<|>))
 import Text.Parsec (runParserT, ParsecT)
 import qualified Text.Parsec as P
 import Control.Monad.Trans (lift)
+import Text.Pandoc.Class (fetchItem, runIO, setMediaBag)
 
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c
@@ -144,7 +145,8 @@ getDataURI :: MediaBag -> Maybe String -> MimeType -> String
 getDataURI _ _ _ src@('d':'a':'t':'a':':':_) = return src  -- already data: uri
 getDataURI media sourceURL mimetype src = do
   let ext = map toLower $ takeExtension src
-  fetchResult <- fetchItem' media sourceURL src
+  fetchResult <- runIO $ do setMediaBag media
+                            fetchItem sourceURL src
   (raw, respMime) <- case fetchResult of
                           Left msg -> err 67 $ "Could not fetch " ++ src ++
                                                "\n" ++ show msg

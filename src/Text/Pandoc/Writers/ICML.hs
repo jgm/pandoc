@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings, FlexibleContexts, ScopedTypeVariables #-}
 
 {- |
    Module      : Text.Pandoc.Writers.ICML
@@ -15,6 +15,7 @@ into InDesign with File -> Place.
 -}
 module Text.Pandoc.Writers.ICML (writeICML) where
 import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.XML
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
@@ -26,6 +27,7 @@ import Text.Pandoc.ImageSize
 import Data.List (isPrefixOf, isInfixOf, stripPrefix, intersperse)
 import Data.Text as Text (breakOnAll, pack)
 import Control.Monad.State
+import Control.Monad.Except (runExceptT)
 import Network.URI (isURI)
 import qualified Data.Set as Set
 import Text.Pandoc.Class (PandocMonad)
@@ -534,9 +536,9 @@ styleToStrAttr style =
 -- | Assemble an ICML Image.
 imageICML :: PandocMonad m => WriterOptions -> Style -> Attr -> Target -> WS m Doc
 imageICML opts style attr (src, _) = do
-  res  <- lift $ P.fetchItem (writerSourceURL opts) src
+  res  <- runExceptT $ lift $ P.fetchItem (writerSourceURL opts) src
   imgS <- case res of
-            Left (_) -> do
+            Left (_ :: PandocError) -> do
               lift $ P.warning $ "Could not find image `" ++ src ++ "', skipping..."
               return def
             Right (img, _) -> do

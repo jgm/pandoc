@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -43,7 +44,7 @@ import qualified Data.ByteString as B
 import qualified Data.Map as M
 import Text.Printf ( printf )
 import Text.Pandoc.ImageSize
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, runExceptT, lift)
 import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
@@ -53,7 +54,7 @@ import qualified Text.Pandoc.Class as P
 -- If file not found or filetype not jpeg or png, leave the inline unchanged.
 rtfEmbedImage :: PandocMonad m => WriterOptions -> Inline -> m Inline
 rtfEmbedImage opts x@(Image attr _ (src,_)) = do
-  result <- P.fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
+  result <- runExceptT $ lift $ P.fetchItem (writerSourceURL opts) src
   case result of
        Right (imgdata, Just mime)
          | mime == "image/jpeg" || mime == "image/png" -> do
@@ -87,7 +88,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = do
        Right (_, Nothing) -> do
          warning $ "Could not determine image type for " ++ src ++ ", skipping."
          return x
-       Left e -> do
+       Left ( e :: PandocError ) -> do
          warning $ "Could not fetch image " ++ src ++ "\n" ++ show e
          return x
 rtfEmbedImage _ x = return x

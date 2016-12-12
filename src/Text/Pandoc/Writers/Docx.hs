@@ -48,6 +48,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Highlighting ( highlight )
 import Text.Pandoc.Walk
+import Text.Pandoc.Error (PandocError)
 import Text.XML.Light as XML
 import Text.TeXMath
 import Text.Pandoc.Readers.Docx.StyleMap
@@ -55,9 +56,9 @@ import Text.Pandoc.Readers.Docx.Util (elemName)
 import Control.Monad.Reader
 import Control.Monad.State
 import Skylighting
+import Control.Monad.Except (runExceptT)
 import System.Random (randomR)
 import Text.Printf (printf)
-import qualified Control.Exception as E
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
@@ -1180,10 +1181,10 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
   case M.lookup src imgs of
     Just (_,_,_,elt,_) -> return [elt]
     Nothing -> do
-      res <- (lift . lift) $ P.fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
+      res <- runExceptT $ lift (P.fetchItem (writerSourceURL opts) src)
       case res of
-        Left (_ :: E.SomeException) -> do
-          (lift . lift) $ P.warning ("Could not find image `" ++ src ++ "', skipping...")
+        Left (_ :: PandocError) -> do
+          P.warning ("Could not find image `" ++ src ++ "', skipping...")
           -- emit alt text
           inlinesToOpenXML opts alt
         Right (img, mt) -> do

@@ -45,9 +45,10 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared ( fixDisplayMath )
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
 import Control.Monad.State
+import Control.Monad.Except (runExceptT)
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.XML
 import Text.Pandoc.Pretty
-import qualified Control.Exception as E
 import System.FilePath ( takeExtension, takeDirectory, (<.>))
 import Text.Pandoc.Class ( PandocMonad )
 import qualified Text.Pandoc.Class as P
@@ -145,9 +146,9 @@ pandocToODT opts doc@(Pandoc meta _) = do
 -- | transform both Image and Math elements
 transformPicMath :: PandocMonad m => WriterOptions ->Inline -> O m Inline
 transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = do
-  res <- lift $ P.fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
+  res <- runExceptT $ lift $ P.fetchItem (writerSourceURL opts) src
   case res of
-     Left (_ :: E.SomeException) -> do
+     Left (_ :: PandocError) -> do
        lift $ P.warning $ "Could not find image `" ++ src ++ "', skipping..."
        return $ Emph lab
      Right (img, mbMimeType) -> do

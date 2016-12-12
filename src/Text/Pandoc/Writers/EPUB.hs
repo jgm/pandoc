@@ -64,7 +64,7 @@ import Data.Char ( toLower, isDigit, isAlphaNum )
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.HTML.TagSoup (Tag(TagOpen), fromAttrib, parseTags)
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, catchError)
 import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
@@ -858,23 +858,20 @@ modifyMediaRef opts oldsrc = do
   media <- gets stMediaPaths
   case lookup oldsrc media of
          Just (n,_) -> return n
-         Nothing    -> do
-           res <- lift $ P.fetchItem' (writerMediaBag opts)
-                    (writerSourceURL opts) oldsrc
-           (new, mbEntry) <-
-                case res of
-                      Left _        -> do
-                        lift $ P.warning $ "Could not find media `" ++ oldsrc ++ "', skipping..."
-                        return (oldsrc, Nothing)
-                      Right (img,mbMime) -> do
-                        let new = "media/file" ++ show (length media) ++
-                               fromMaybe (takeExtension (takeWhile (/='?') oldsrc))
-                                 (('.':) <$> (mbMime >>= extensionFromMimeType))
-                        epochtime <- floor `fmap` lift P.getPOSIXTime
-                        let entry = toEntry new epochtime $ B.fromChunks . (:[]) $ img
-                        return (new, Just entry)
-           modify $ \st -> st{ stMediaPaths = (oldsrc, (new, mbEntry)):media}
-           return new
+         Nothing    -> catchError
+           (do (img, mbMime) <- P.fetchItem (writerSourceURL opts) oldsrc
+               let new = "media/file" ++ show (length media) ++
+                    fromMaybe (takeExtension (takeWhile (/='?') oldsrc))
+                      (('.':) <$> (mbMime >>= extensionFromMimeType))
+               epochtime <- floor `fmap` lift P.getPOSIXTime
+               let entry = toEntry new epochtime $ B.fromChunks . (:[]) $ img
+               modify $ \st -> st{ stMediaPaths =
+                            (oldsrc, (new, Just entry)):media}
+               return new)
+           (\e -> do
+                P.warning $ "Could not find media `" ++ oldsrc ++
+                    "', skipping...\n" ++ show e
+                return oldsrc)
 
 transformBlock  :: PandocMonad m
                 => WriterOptions
