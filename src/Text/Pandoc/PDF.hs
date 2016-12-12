@@ -74,7 +74,8 @@ makePDF :: String              -- ^ pdf creator (pdflatex, lualatex,
         -> IO (Either ByteString ByteString)
 makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = do
   let mathArgs = case writerHTMLMathMethod opts of
-                 -- with MathJax, wait til all math is rendered:
+                 -- with javascript based renderers, wait til all math is rendered:
+                      LaTeXMathML,
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
                                     "--window-status", "mathjax_loaded"]
                       _ -> []
