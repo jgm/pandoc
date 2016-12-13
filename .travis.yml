@@ -63,9 +63,9 @@ matrix:
     compiler: ": #stack 8.0.1 osx"
     os: osx
 
-  - env: BUILD=stack ARGS="--resolver nightly"
-    compiler: ": #stack nightly osx"
-    os: osx
+  # - env: BUILD=stack ARGS="--resolver nightly"
+  #   compiler: ": #stack nightly osx"
+  #   os: osx
 
   allow_failures:
   - env: BUILD=cabal GHCVER=head  CABALVER=head
