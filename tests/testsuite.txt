@@ -13,7 +13,7 @@ John Gruber's markdown test suite.
 
 ### Level 3 with *emphasis*
 
-#### Level 4
+#### Level 4 with a '.' (dot)
 
 ##### Level 5
 

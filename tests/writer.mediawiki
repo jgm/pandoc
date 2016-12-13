@@ -9,7 +9,7 @@ This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 
 === Level 3 with ''emphasis'' ===
 
-==== Level 4 ====
+==== Level 4 with a '.' (dot) ====
 
 ===== Level 5 =====
 

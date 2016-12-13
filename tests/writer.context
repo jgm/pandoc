@@ -65,7 +65,7 @@ markdown test suite.
 
 \subsubsection[level-3-with-emphasis]{Level 3 with {\em emphasis}}
 
-\subsubsubsection[level-4]{Level 4}
+\subsubsubsection[level-4-with-a-dot]{Level 4 with a '.' (dot)}
 
 \subsubsubsubsection[level-5]{Level 5}
 

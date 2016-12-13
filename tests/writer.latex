@@ -88,7 +88,7 @@ link}}{Level 2 with an embedded link}}\label{level-2-with-an-embedded-link}
 \subsubsection{\texorpdfstring{Level 3 with
 \emph{emphasis}}{Level 3 with emphasis}}\label{level-3-with-emphasis}
 
-\paragraph{Level 4}\label{level-4}
+\paragraph{Level 4 with a '.' (dot)}\label{level-4-with-a-dot}
 
 \subparagraph{Level 5}\label{level-5}
 

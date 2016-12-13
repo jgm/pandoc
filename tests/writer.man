@@ -8,7 +8,7 @@ Most of them are adapted from John Gruber's markdown test suite.
 .SH Headers
 .SS Level 2 with an embedded link (/url)
 .SS Level 3 with \f[I]emphasis\f[]
-.SS Level 4
+.SS Level 4 with a \[aq].\[aq] (dot)
 .SS Level 5
 .SH Level 1
 .SS Level 2 with \f[I]emphasis\f[]

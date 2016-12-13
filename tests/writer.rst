@@ -28,8 +28,8 @@ Level 2 with an `embedded link </url>`__
 Level 3 with *emphasis*
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Level 4
-^^^^^^^
+Level 4 with a '.' (dot)
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Level 5
 '''''''

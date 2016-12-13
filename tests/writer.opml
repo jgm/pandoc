@@ -9,7 +9,7 @@
 <outline text="Headers">
   <outline text="Level 2 with an &lt;a href=&quot;/url&quot;&gt;embedded link&lt;/a&gt;">
     <outline text="Level 3 with &lt;em&gt;emphasis&lt;/em&gt;">
-      <outline text="Level 4">
+      <outline text="Level 4 with a '.' (dot)">
         <outline text="Level 5">
         </outline>
       </outline>
