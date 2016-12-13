@@ -160,6 +160,7 @@ namesOfTestsComparingToNative   = [ "blockquote"
                                   , "simpleTableWithCaption"
 --                                , "table"
                                   , "textMixedStyles"
+                                  , "tableWithContents"
                                   , "unicode"
                                   , "unorderedList"
                                   ]
