@@ -571,23 +571,25 @@ bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
         True | null rs -> (Nothing, [r])
              | otherwise -> (Just r, rs)
         False -> (Nothing, r:rs)
+
+  cells <- mapM rowToBlocksList rows        
+
+  let width = case cells of
+        r':_ -> length r'
+        -- shouldn't happen
+        []   -> 0               
+
   hdrCells <- case hdr of
     Just r' -> rowToBlocksList r'
-    Nothing -> return []
+    Nothing -> return $ replicate width mempty
 
-  cells <- mapM rowToBlocksList rows
-
-  let size = case null hdrCells of
-        True -> length $ head cells
-        False -> length $ hdrCells
-      --
       -- The two following variables (horizontal column alignment and
       -- relative column widths) go to the default at the
       -- moment. Width information is in the TblGrid field of the Tbl,
       -- so should be possible. Alignment might be more difficult,
       -- since there doesn't seem to be a column entity in docx.
-      alignments = replicate size AlignDefault
-      widths = replicate size 0 :: [Double]
+  let alignments = replicate width AlignDefault
+      widths = replicate width 0 :: [Double]
 
   return $ table caption (zip alignments widths) hdrCells cells
 bodyPartToBlocks (OMathPara e) = do
