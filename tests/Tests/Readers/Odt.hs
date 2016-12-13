@@ -159,6 +159,7 @@ namesOfTestsComparingToNative   = [ "blockquote"
                                   , "simpleTable"
                                   , "simpleTableWithCaption"
 --                                , "table"
+                                  , "tableWithContents"
                                   , "unicode"
                                   , "unorderedList"
                                   ]
