@@ -1,0 +1,5 @@
+[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "simple",Space,Str "text"]
+,Para []
+,Para [Str "that",Space,Str "is",Space,Str "both",Space,Emph [Str "italic",Space],Strong [Str "bold",Space],Emph [Str "underlined",Space],Str "and",Space,Str "the",Space,Emph [Strong [Str "first",Space,Str "two"]],Space,Str "and",Space,Str "the",Space,Emph [Strong [Str "last",Space,Str "two",Space]],Space,Str "and",Space,Strong [Strikeout [Str "bold",Space,Str "and",Space,Str "line",Space,Str "through"]]]
+,Para []
+,Para [Str "And",Space,Str "with",Space,Superscript [Emph [Str "superscripts"]]]]
