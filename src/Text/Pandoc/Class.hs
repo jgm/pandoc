@@ -100,6 +100,7 @@ import Data.Default
 import System.IO.Error
 import qualified Data.Map as M
 import Text.Pandoc.Error
+import Data.Monoid
 
 class (Functor m, Applicative m, Monad m, MonadError PandocError m)
       => PandocMonad m where
@@ -166,6 +167,29 @@ warningWithPos :: PandocMonad m
 warningWithPos pos msg = lift $ warning $ msg ++ " " ++ show pos
 
 --
+
+newtype DeferredMediaPath = DeferredMediaPath {unDefer :: String}
+                          deriving (Show, Eq)
+
+data DeferredMediaBag = DeferredMediaBag MediaBag [DeferredMediaPath]
+                      deriving (Show)
+
+instance Monoid DeferredMediaBag where
+  mempty = DeferredMediaBag mempty mempty
+  mappend (DeferredMediaBag mb lst) (DeferredMediaBag mb' lst') =
+    DeferredMediaBag (mb <> mb') (lst <> lst')
+
+getDeferredMedia :: PandocMonad m => DeferredMediaBag -> m MediaBag
+getDeferredMedia (DeferredMediaBag mb defMedia) = do
+  fetchedMedia <- mapM (\dfp -> fetchItem Nothing (unDefer dfp)) defMedia
+  return $ foldr
+    (\(dfp, (bs, mbMime)) mb' ->
+       MB.insertMedia (unDefer dfp) mbMime (BL.fromStrict bs) mb')
+    mb
+    (zip defMedia fetchedMedia)
+
+dropDeferredMedia :: DeferredMediaBag -> MediaBag
+dropDeferredMedia (DeferredMediaBag mb _) = mb
 
 data CommonState = CommonState { stWarnings :: [String]
                                , stMediaBag :: MediaBag
