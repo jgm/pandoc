@@ -191,7 +191,7 @@ instance Monoid DeferredMediaBag where
 fetchDeferredMedia' :: PandocMonad m => m MediaBag
 fetchDeferredMedia' = do
   (DeferredMediaBag mb defMedia) <- getsCommonState stDeferredMediaBag
-  fetchedMedia <- mapM (\dfp -> fetchItem Nothing (unDefer dfp)) defMedia
+  fetchedMedia <- mapM (\dfp -> downloadOrRead Nothing (unDefer dfp)) defMedia
   return $ foldr
     (\(dfp, (bs, mbMime)) mb' ->
        MB.insertMedia (unDefer dfp) mbMime (BL.fromStrict bs) mb')
@@ -298,44 +298,50 @@ fetchItem :: PandocMonad m
           -> String
           -> m (B.ByteString, Maybe MimeType)
 fetchItem sourceURL s = do
-  mediabag <- dropDeferredMedia <$> getsCommonState stDeferredMediaBag
+  mediabag <- getMediaBag
   case lookupMedia s mediabag of
-       Just (mime, bs) -> return $ (BL.toStrict bs, Just mime)
-       Nothing ->
-        case (sourceURL >>= parseURIReference' .
-                             ensureEscaped, ensureEscaped s) of
-          (Just u, s') -> -- try fetching from relative path at source
-             case parseURIReference' s' of
-                  Just u' -> openURL $ show $ u' `nonStrictRelativeTo` u
-                  Nothing -> openURL s' -- will throw error
-          (Nothing, s'@('/':'/':_)) ->  -- protocol-relative URI
-             case parseURIReference' s' of
-                  Just u' -> openURL $ show $ u' `nonStrictRelativeTo` httpcolon
-                  Nothing -> openURL s' -- will throw error
-          (Nothing, s') ->
-             case parseURI s' of  -- requires absolute URI
-                  -- We don't want to treat C:/ as a scheme:
-                  Just u' | length (uriScheme u') > 2 -> openURL (show u')
-                  Just u' | uriScheme u' == "file:" ->
-                       readLocalFile $ dropWhile (=='/') (uriPath u')
-                  _ -> readLocalFile fp -- get from local file system
-         where readLocalFile f = do
-                 cont <- readFileStrict f
-                 return (cont, mime)
-               httpcolon = URI{ uriScheme = "http:",
-                                uriAuthority = Nothing,
-                                uriPath = "",
-                                uriQuery = "",
-                                uriFragment = "" }
-               dropFragmentAndQuery = takeWhile (\c -> c /= '?' && c /= '#')
-               fp = unEscapeString $ dropFragmentAndQuery s
-               mime = case takeExtension fp of
-                           ".gz" -> getMimeType $ dropExtension fp
-                           ".svgz" -> getMimeType $ dropExtension fp ++ ".svg"
-                           x     -> getMimeType x
-               ensureEscaped = escapeURIString isAllowedInURI . map convertSlash
-               convertSlash '\\' = '/'
-               convertSlash x    = x
+    Just (mime, bs) -> return $ (BL.toStrict bs, Just mime)
+    Nothing -> downloadOrRead sourceURL s
+
+downloadOrRead :: PandocMonad m
+               => Maybe String
+               -> String
+               -> m (B.ByteString, Maybe MimeType)
+downloadOrRead sourceURL s = do
+  case (sourceURL >>= parseURIReference' .
+                       ensureEscaped, ensureEscaped s) of
+    (Just u, s') -> -- try fetching from relative path at source
+       case parseURIReference' s' of
+            Just u' -> openURL $ show $ u' `nonStrictRelativeTo` u
+            Nothing -> openURL s' -- will throw error
+    (Nothing, s'@('/':'/':_)) ->  -- protocol-relative URI
+       case parseURIReference' s' of
+            Just u' -> openURL $ show $ u' `nonStrictRelativeTo` httpcolon
+            Nothing -> openURL s' -- will throw error
+    (Nothing, s') ->
+       case parseURI s' of  -- requires absolute URI
+            -- We don't want to treat C:/ as a scheme:
+            Just u' | length (uriScheme u') > 2 -> openURL (show u')
+            Just u' | uriScheme u' == "file:" ->
+                 readLocalFile $ dropWhile (=='/') (uriPath u')
+            _ -> readLocalFile fp -- get from local file system
+   where readLocalFile f = do
+           cont <- readFileStrict f
+           return (cont, mime)
+         httpcolon = URI{ uriScheme = "http:",
+                          uriAuthority = Nothing,
+                          uriPath = "",
+                          uriQuery = "",
+                          uriFragment = "" }
+         dropFragmentAndQuery = takeWhile (\c -> c /= '?' && c /= '#')
+         fp = unEscapeString $ dropFragmentAndQuery s
+         mime = case takeExtension fp of
+                     ".gz" -> getMimeType $ dropExtension fp
+                     ".svgz" -> getMimeType $ dropExtension fp ++ ".svg"
+                     x     -> getMimeType x
+         ensureEscaped = escapeURIString isAllowedInURI . map convertSlash
+         convertSlash '\\' = '/'
+         convertSlash x    = x
 
 data PureState = PureState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
