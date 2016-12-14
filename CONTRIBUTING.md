@@ -55,27 +55,33 @@ Fixing bugs from the issue tracker
 ----------------------------------
 
 Almost all the bugs on the issue tracker have one or more associated
-tags. These are used to indicate the *difficulty* and *nature* of a
+tags. These are used to indicate the *complexity* and *nature* of a
 bug. There is not yet a way to indicate priority. An up to date
 summary of issues can be found [here](https://github.com/jgm/pandoc/labels).
 
+* [beginner-friendly] — The perfect starting point for new contributors. The
+  issue is generic and can be resolved without deep knowledge of the code
+  base.
 * [enhancement] — A feature which would be desirable. We recommend
   you discuss any proposed enhancement on pandoc-discuss before
   writing code.
 * [bug] — A problem which needs to be fixed.
-* [minor] — The fix should only be a couple of lines.
-* [major] — The fix might require structural changes or in depth knowledge of
-the code base.
-* [reader] — A request to add a new input format.
-* [writer] — A request to add a new output format.
-* [docs]   — A discrepency or ambiguity in the documentation.
-* [inprogress] — Someone is actively working on or planning to work on the
+* [complexity:low] — The fix should only be a couple of lines.
+* [complexity:high] — The fix might require structural changes or in depth
+  knowledge of the code base.
+* [new:reader] — A request to add a new input format.
+* [new:writer] — A request to add a new output format.
+* [docs] — A discrepency,  or ambiguity in the documentation.
+* [status:in-progress] — Someone is actively working on or planning to work on the
   ticket.
-* [more discussion needed] — It is unclear what the correct approach
+* [status:more-discussion-needed] — It is unclear what the correct approach
   to solving the ticket is. Before starting on tickets such as this it
   would be advisable to post on the ticket.
-* [more info needed] — We require more information from a user before
+* [status:more-info-needed] — We require more information from a user before
   we can classify a report properly.
+
+Issues related to a specific format are tagged accordingly, e.g. feature request
+or bug reports related to Markdown are labelled with [format:markdown].
 
 Have an idea for a new feature?
 -------------------------------
@@ -275,15 +281,17 @@ The library is structured as follows:
 [EditorConfig]: http://editorconfig.org/
 [Haskell platform]: http://www.haskell.org/platform/
 [hsb2hs]: http://hackage.haskell.org/package/hsb2hs
+[beginner-friendly]: https://github.com/jgm/pandoc/labels/beginner-friendly
 [enhancement]: https://github.com/jgm/pandoc/labels/enhancement
 [bug]: https://github.com/jgm/pandoc/labels/bug
-[minor]: https://github.com/jgm/pandoc/labels/Minor
-[major]: https://github.com/jgm/pandoc/labels/Major
-[reader]: https://github.com/jgm/pandoc/labels/Reader
-[writer]: https://github.com/jgm/pandoc/labels/Writer
+[complexity:low]: https://github.com/jgm/pandoc/labels/complexity:low
+[complexity:high]: https://github.com/jgm/pandoc/labels/complexity:high
 [docs]: https://github.com/jgm/pandoc/labels/docs
-[inprogress]: https://github.com/jgm/pandoc/labels/inprogress
-[more discussion needed]: https://github.com/jgm/pandoc/labels/More%20discussion%20needed
-[more info needed]: https://github.com/jgm/pandoc/labels/More%20info%20needed
+[format:markdown]: https://github.com/jgm/pandoc/labels/format:markdown
+[new:reader]: https://github.com/jgm/pandoc/labels/new:reader
+[new:writer]: https://github.com/jgm/pandoc/labels/new:writer
+[status:in-progress]: https://github.com/jgm/pandoc/labels/status:in-progress
+[status:more-discussion-needed]: https://github.com/jgm/pandoc/labels/status:more-discussion-needed
+[status:more-info-needed]: https://github.com/jgm/pandoc/labels/status:more-info-needed
 [stack]: https://github.com/commercialhaskell/stack
 
