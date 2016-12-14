@@ -135,15 +135,17 @@ getWarnings :: PandocMonad m => m [String]
 getWarnings = getsCommonState stWarnings
 
 setMediaBag :: PandocMonad m => MediaBag -> m ()
-setMediaBag mb = modifyCommonState $ \st -> st{stMediaBag = mb}
+setMediaBag mb = modifyCommonState $
+                 \st -> st{stDeferredMediaBag = DeferredMediaBag mb mempty}
 
 getMediaBag :: PandocMonad m => m MediaBag
-getMediaBag = getsCommonState stMediaBag
+getMediaBag = fetchDeferredMedia >> (dropDeferredMedia <$> getsCommonState stDeferredMediaBag)
 
 insertMedia :: PandocMonad m => FilePath -> Maybe MimeType -> BL.ByteString -> m ()
-insertMedia fp mime bs =
-    modifyCommonState $ \st ->
-      st{stMediaBag = MB.insertMedia fp mime bs (stMediaBag st) }
+insertMedia fp mime bs = do
+  (DeferredMediaBag mb dm) <- getsCommonState stDeferredMediaBag
+  let mb' = MB.insertMedia fp mime bs mb
+  modifyCommonState $ \st -> st{stDeferredMediaBag =DeferredMediaBag mb' dm }
 
 getInputFiles :: PandocMonad m => m (Maybe [FilePath])
 getInputFiles = getsCommonState stInputFiles
@@ -179,8 +181,9 @@ instance Monoid DeferredMediaBag where
   mappend (DeferredMediaBag mb lst) (DeferredMediaBag mb' lst') =
     DeferredMediaBag (mb <> mb') (lst <> lst')
 
-getDeferredMedia :: PandocMonad m => DeferredMediaBag -> m MediaBag
-getDeferredMedia (DeferredMediaBag mb defMedia) = do
+fetchDeferredMedia' :: PandocMonad m => m MediaBag
+fetchDeferredMedia' = do
+  (DeferredMediaBag mb defMedia) <- getsCommonState stDeferredMediaBag
   fetchedMedia <- mapM (\dfp -> fetchItem Nothing (unDefer dfp)) defMedia
   return $ foldr
     (\(dfp, (bs, mbMime)) mb' ->
@@ -188,18 +191,22 @@ getDeferredMedia (DeferredMediaBag mb defMedia) = do
     mb
     (zip defMedia fetchedMedia)
 
+fetchDeferredMedia :: PandocMonad m => m ()
+fetchDeferredMedia = fetchDeferredMedia' >>= setMediaBag
+
 dropDeferredMedia :: DeferredMediaBag -> MediaBag
 dropDeferredMedia (DeferredMediaBag mb _) = mb
 
+
 data CommonState = CommonState { stWarnings :: [String]
-                               , stMediaBag :: MediaBag
+                               , stDeferredMediaBag :: DeferredMediaBag
                                , stInputFiles :: Maybe [FilePath]
                                , stOutputFile :: Maybe FilePath
                                }
 
 instance Default CommonState where
   def = CommonState { stWarnings = []
-                    , stMediaBag = mempty
+                    , stDeferredMediaBag = mempty
                     , stInputFiles = Nothing
                     , stOutputFile = Nothing
                     }
@@ -284,7 +291,7 @@ fetchItem :: PandocMonad m
           -> String
           -> m (B.ByteString, Maybe MimeType)
 fetchItem sourceURL s = do
-  mediabag <- getMediaBag
+  mediabag <- dropDeferredMedia <$> getsCommonState stDeferredMediaBag
   case lookupMedia s mediabag of
        Just (mime, bs) -> return $ (BL.toStrict bs, Just mime)
        Nothing ->
