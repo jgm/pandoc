@@ -102,6 +102,7 @@ import System.IO.Error
 import qualified Data.Map as M
 import Text.Pandoc.Error
 import Data.Monoid
+import Data.Maybe (catMaybes)
 
 class (Functor m, Applicative m, Monad m, MonadError PandocError m)
       => PandocMonad m where
@@ -188,15 +189,27 @@ instance Monoid DeferredMediaBag where
   mappend (DeferredMediaBag mb lst) (DeferredMediaBag mb' lst') =
     DeferredMediaBag (mb <> mb') (lst <> lst')
 
+    
+-- the internal function for downloading individual items. We want to
+-- catch errors and return a Nothing with a warning, so we can
+-- continue without erroring out.
+fetchMediaItem :: PandocMonad m
+               => DeferredMediaPath
+               -> m (Maybe (FilePath, B.ByteString, Maybe MimeType))
+fetchMediaItem dfp =
+  (do (bs, mbmime) <- downloadOrRead Nothing (unDefer dfp)
+      return $ Just $ (unDefer dfp, bs, mbmime))
+  `catchError`
+  (const $ do warning ("Couldn't access media at " ++ unDefer dfp)
+              return Nothing)
+
 fetchDeferredMedia' :: PandocMonad m => m MediaBag
 fetchDeferredMedia' = do
   (DeferredMediaBag mb defMedia) <- getsCommonState stDeferredMediaBag
-  fetchedMedia <- mapM (\dfp -> downloadOrRead Nothing (unDefer dfp)) defMedia
+  fetchedMedia <- catMaybes <$> mapM fetchMediaItem defMedia
   return $ foldr
-    (\(dfp, (bs, mbMime)) mb' ->
-       MB.insertMedia (unDefer dfp) mbMime (BL.fromStrict bs) mb')
-    mb
-    (zip defMedia fetchedMedia)
+    (\(fp, bs, mbMime) mb' -> MB.insertMedia fp mbMime (BL.fromStrict bs) mb')
+    mb fetchedMedia
 
 fetchDeferredMedia :: PandocMonad m => m ()
 fetchDeferredMedia = fetchDeferredMedia' >>= setMediaBag
