@@ -46,6 +46,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , getMediaBag
                          , setMediaBag
                          , insertMedia
+                         , insertDeferredMedia
                          , fetchItem
                          , getInputFiles
                          , getOutputFile
@@ -146,6 +147,12 @@ insertMedia fp mime bs = do
   (DeferredMediaBag mb dm) <- getsCommonState stDeferredMediaBag
   let mb' = MB.insertMedia fp mime bs mb
   modifyCommonState $ \st -> st{stDeferredMediaBag =DeferredMediaBag mb' dm }
+
+insertDeferredMedia :: PandocMonad m => FilePath -> m ()
+insertDeferredMedia fp = do
+  (DeferredMediaBag mb dm) <- getsCommonState stDeferredMediaBag
+  modifyCommonState $
+    \st -> st{stDeferredMediaBag = DeferredMediaBag mb ((DeferredMediaPath fp) : dm)}
 
 getInputFiles :: PandocMonad m => m (Maybe [FilePath])
 getInputFiles = getsCommonState stInputFiles
