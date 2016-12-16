@@ -568,6 +568,7 @@ General writer options
     preserve the wrapping from the source document (that is,
     where there are nonsemantic newlines in the source, there
     will be nonsemantic newlines in the output as well).
+    Automatic wrapping does not currently work in HTML output.
 
 `--no-wrap`
 
