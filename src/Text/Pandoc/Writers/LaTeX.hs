@@ -640,6 +640,7 @@ tableRowToLaTeX header aligns widths cols = do
   let scaleFactor = 0.97 ** fromIntegral (length aligns)
   let isSimple [Plain _] = True
       isSimple [Para  _] = True
+      isSimple []        = True
       isSimple _         = False
   -- simple tables have to have simple cells:
   let widths' = if not (all isSimple cols)
