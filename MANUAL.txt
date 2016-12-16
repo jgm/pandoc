@@ -563,7 +563,7 @@ General writer options
 :   Determine how text is wrapped in the output (the source
     code, not the rendered version).  With `auto` (the default),
     pandoc will attempt to wrap lines to the column width specified by
-    `--columns` (default 80).  With `none`, pandoc will not wrap
+    `--columns` (default 72).  With `none`, pandoc will not wrap
     lines at all.  With `preserve`, pandoc will attempt to
     preserve the wrapping from the source document (that is,
     where there are nonsemantic newlines in the source, there
