@@ -92,7 +92,7 @@ notesToOrg notes =
 noteToOrg :: Int -> [Block] -> State WriterState Doc
 noteToOrg num note = do
   contents <- blockListToOrg note
-  let marker = "[" ++ show num ++ "] "
+  let marker = "[fn:" ++ show num ++ "] "
   return $ hang (length marker) (text marker) contents
 
 -- | Escape special characters for Org.
@@ -373,7 +373,7 @@ inlineToOrg (Note contents) = do
   notes <- get >>= (return . stNotes)
   modify $ \st -> st { stNotes = contents:notes }
   let ref = show $ (length notes) + 1
-  return $ "[" <> text ref <> "]"
+  return $ "[fn:" <> text ref <> "]"
 
 orgPath :: String -> String
 orgPath src =
