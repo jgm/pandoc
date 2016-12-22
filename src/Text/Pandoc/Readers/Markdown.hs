@@ -54,7 +54,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.XML (fromEntities)
-import Text.Pandoc.Parsing hiding (tableWith)
+import Text.Pandoc.Parsing hiding (tableWith, newline)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
 import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
                                   isTextTag, isCommentTag )
@@ -66,8 +66,11 @@ import Text.Printf (printf)
 import Debug.Trace (trace)
 import Data.Monoid ((<>))
 import Text.Pandoc.Error
+import qualified Text.Parsec.Char (newline)
 
 type MarkdownParser = Parser [Char] ParserState
+
+newline = Text.Parsec.Char.newline <|> (char '\x85' >> return '\n')
 
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: ReaderOptions -- ^ Reader options
@@ -110,6 +113,7 @@ isBlank :: Char -> Bool
 isBlank ' '  = True
 isBlank '\t' = True
 isBlank '\n' = True
+isBlank '\x85' = True
 isBlank _    = False
 
 --
@@ -127,7 +131,7 @@ spnl = try $ do
   skipSpaces
   optional newline
   skipSpaces
-  notFollowedBy (char '\n')
+  notFollowedBy newline
 
 indentSpaces :: MarkdownParser String
 indentSpaces = try $ do
@@ -157,7 +161,7 @@ atMostSpaces n
 litChar :: MarkdownParser Char
 litChar = escapedChar'
        <|> characterReference
-       <|> noneOf "\n"
+       <|> noneOf "\n\x85"
        <|> try (newline >> notFollowedBy blankline >> return ' ')
 
 -- | Parse a sequence of inline elements between square brackets,
@@ -177,7 +181,7 @@ charsInBalancedBrackets openBrackets =
   <|> ((  (() <$ code)
      <|> (() <$ (escapedChar'))
      <|> (newline >> notFollowedBy blankline)
-     <|> skipMany1 (noneOf "[]`\n\\")
+     <|> skipMany1 (noneOf "[]`\n\x85\\")
      <|> (() <$ count 1 (oneOf "`\\"))
       ) >> charsInBalancedBrackets openBrackets)
 
@@ -418,7 +422,7 @@ quotedTitle c = try $ do
   char c
   notFollowedBy spaces
   let pEnder = try $ char c >> notFollowedBy (satisfy isAlphaNum)
-  let regChunk = many1 (noneOf ['\\','\n','&',c]) <|> count 1 litChar
+  let regChunk = many1 (noneOf ['\\','\n','\x85','&',c]) <|> count 1 litChar
   let nestedChunk = (\x -> [c] ++ x ++ [c]) <$> quotedTitle c
   unwords . words . concat <$> manyTill (nestedChunk <|> regChunk) pEnder
 
@@ -432,7 +436,7 @@ abbrevKey = do
     char '*'
     reference
     char ':'
-    skipMany (satisfy (/= '\n'))
+    skipMany (satisfy (\c -> c /= '\n' && c /= '\x85'))
     blanklines
     return $ return mempty
 
@@ -657,7 +661,7 @@ keyValAttr = try $ do
   char '='
   val <- enclosed (char '"') (char '"') litChar
      <|> enclosed (char '\'') (char '\'') litChar
-     <|> many (escapedChar' <|> noneOf " \t\n\r}")
+     <|> many (escapedChar' <|> noneOf " \t\n\x85\r}")
   return $ \(id',cs,kvs) ->
     case key of
          "id"    -> (val,cs,kvs)
@@ -824,7 +828,7 @@ listLine = try $ do
 
 listLineCommon :: MarkdownParser String
 listLineCommon = concat <$> manyTill
-              (  many1 (satisfy $ \c -> c /= '\n' && c /= '<')
+              (  many1 (satisfy $ \c -> c /= '\n' && c /= '\x85' && c /= '<')
              <|> liftM snd (htmlTag isCommentTag)
              <|> count 1 anyChar
               ) newline
@@ -1175,7 +1179,7 @@ tableFooter = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> blanklines
 
 -- Parse a table separator - dashed line.
 tableSep :: MarkdownParser Char
-tableSep = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> char '\n'
+tableSep = try $ skipNonindentSpaces >> many1 (dashedLine '-') >> newline
 
 -- Parse a raw line and split it into chunks by indices.
 rawTableLine :: [Int]
@@ -1390,7 +1394,7 @@ pipeTableRow = try $ do
   openPipe <- (True <$ char '|') <|> return False
   -- split into cells
   let chunk = void (code <|> rawHtmlInline <|> escapedChar <|> rawLaTeXInline')
-       <|> void (noneOf "|\n\r")
+       <|> void (noneOf "|\n\x85\r")
   let cellContents = ((trim . snd) <$> withRaw (many chunk)) >>=
         parseFromString pipeTableCell
   cells <- cellContents `sepEndBy1` (char '|')
@@ -1425,7 +1429,7 @@ pipeTableHeaderPart = try $ do
 scanForPipe :: Parser [Char] st ()
 scanForPipe = do
   inp <- getInput
-  case break (\c -> c == '\n' || c == '|') inp of
+  case break (\c -> c == '\n' || c == '\x85' || c == '|') inp of
        (_,'|':_) -> return ()
        _         -> mzero
 
@@ -1522,9 +1526,12 @@ escapedChar = do
   result <- escapedChar'
   case result of
        ' '   -> return $ return $ B.str "\160" -- "\ " is a nonbreaking space
-       '\n'  -> guardEnabled Ext_escaped_line_breaks >>
-                return (return B.linebreak)  -- "\[newline]" is a linebreak
+       '\n'  -> handleEol
+       '\x85'-> handleEol
        _     -> return $ return $ B.str [result]
+
+  where handleEol = guardEnabled Ext_escaped_line_breaks >>
+                    return (return B.linebreak)  -- "\[newline]" is a linebreak
 
 ltSign :: MarkdownParser (F Inlines)
 ltSign = do
@@ -1546,7 +1553,7 @@ exampleRef = try $ do
 
 symbol :: MarkdownParser (F Inlines)
 symbol = do
-  result <- noneOf "<\\\n\t "
+  result <- noneOf "<\\\n\x85\t "
          <|> try (do lookAhead $ char '\\'
                      notFollowedBy' (() <$ rawTeXBlock)
                      char '\\')
@@ -1557,8 +1564,8 @@ code :: MarkdownParser (F Inlines)
 code = try $ do
   starts <- many1 (char '`')
   skipSpaces
-  result <- many1Till (many1 (noneOf "`\n") <|> many1 (char '`') <|>
-                       (char '\n' >> notFollowedBy' blankline >> return " "))
+  result <- many1Till (many1 (noneOf "`\n\x85") <|> many1 (char '`') <|>
+                       (newline >> notFollowedBy' blankline >> return " "))
                       (try (skipSpaces >> count (length starts) (char '`') >>
                       notFollowedBy (char '`')))
   attr <- option ([],[],[]) (try $ guardEnabled Ext_inline_code_attributes >>
@@ -1666,7 +1673,7 @@ whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"
         regsp = skipMany spaceChar >> return B.space
 
 nonEndline :: Parser [Char] st Char
-nonEndline = satisfy (/='\n')
+nonEndline = satisfy (\c -> c /= '\n' && c /= '\x85')
 
 str :: MarkdownParser (F Inlines)
 str = do
@@ -1678,7 +1685,7 @@ str = do
      then case likelyAbbrev result of
                []        -> return $ return $ B.str result
                xs        -> choice (map (\x ->
-                               try (string x >> oneOf " \n" >>
+                               try (string x >> oneOf " \n\x85" >>
                                     lookAhead alphaNum >>
                                     return (return $ B.str
                                                   $ result ++ spacesToNbr x ++ "\160"))) xs)
