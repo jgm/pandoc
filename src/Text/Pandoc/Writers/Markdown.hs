@@ -1000,7 +1000,7 @@ inlineToMarkdown opts (Math DisplayMath str) =
         | isEnabled Ext_tex_math_double_backslash opts ->
             return $ "\\\\[" <> text str <> "\\\\]"
         | otherwise -> (\x -> cr <> x <> cr) `fmap`
-            texMathToInlines DisplayMath str >>= inlineListToMarkdown opts
+            (texMathToInlines DisplayMath str >>= inlineListToMarkdown opts)
 inlineToMarkdown opts (RawInline f str) = do
   plain <- asks envPlain
   if not plain &&
