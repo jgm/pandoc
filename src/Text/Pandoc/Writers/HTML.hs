@@ -451,9 +451,14 @@ blockToHtml opts (Para [Image attr txt (s,'f':'i':'g':':':tit)]) = do
                     [nl opts, img, capt, nl opts]
               else H.div ! A.class_ "figure" $ mconcat
                     [nl opts, img, nl opts, capt, nl opts]
-blockToHtml opts (Para lst) = do
-  contents <- inlineListToHtml opts lst
-  return $ H.p contents
+blockToHtml opts (Para lst)
+  | isEmptyRaw lst = return mempty
+  | otherwise = do
+      contents <- inlineListToHtml opts lst
+      return $ H.p contents
+  where
+    isEmptyRaw [RawInline f _] = f /= (Format "html")
+    isEmptyRaw _                 = False
 blockToHtml opts (LineBlock lns) =
   if writerWrapText opts == WrapNone
   then blockToHtml opts $ linesToPara lns
