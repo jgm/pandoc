@@ -149,7 +149,8 @@ tests = [ testGroup "inline code"
                 (codeWith ("",["javascript"],[]) "document.write(\"Hello\");")
           , "with attribute space" =:
             "`*` {.haskell .special x=\"7\"}"
-            =?> para (codeWith ("",["haskell","special"],[("x","7")]) "*")
+            =?> para (code "*" <> space <> str "{.haskell" <> space <>
+                      str ".special" <> space <> str "x=\"7\"}")
           ]
         , testGroup "emph and strong"
           [ "two strongs in emph" =:

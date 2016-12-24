@@ -1561,8 +1561,8 @@ code = try $ do
                        (char '\n' >> notFollowedBy' blankline >> return " "))
                       (try (skipSpaces >> count (length starts) (char '`') >>
                       notFollowedBy (char '`')))
-  attr <- option ([],[],[]) (try $ guardEnabled Ext_inline_code_attributes >>
-                                   optional whitespace >> attributes)
+  attr <- option ([],[],[]) (try $ guardEnabled Ext_inline_code_attributes
+                                   >> attributes)
   return $ return $ B.codeWith attr $ trim $ concat result
 
 math :: MarkdownParser (F Inlines)
