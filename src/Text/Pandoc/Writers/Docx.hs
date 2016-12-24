@@ -49,19 +49,19 @@ import Text.Pandoc.Options
 import Text.Pandoc.Readers.TeXMath
 import Text.Pandoc.Highlighting ( highlight )
 import Text.Pandoc.Walk
-import Text.Highlighting.Kate.Types ()
 import Text.XML.Light as XML
 import Text.TeXMath
 import Text.Pandoc.Readers.Docx.StyleMap
 import Text.Pandoc.Readers.Docx.Util (elemName)
 import Control.Monad.Reader
 import Control.Monad.State
-import Text.Highlighting.Kate
+import Skylighting
 import Data.Unique (hashUnique, newUnique)
 import System.Random (randomRIO)
 import Text.Printf (printf)
 import qualified Control.Exception as E
 import Data.Monoid ((<>))
+import qualified Data.Text as T
 import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
                          extensionFromMimeType)
 import Control.Applicative ((<|>))
@@ -1127,7 +1127,7 @@ inlineToOpenXML' opts (Code attrs str) = do
       toHlTok (toktype,tok) = mknode "w:r" []
                                [ mknode "w:rPr" []
                                  [ rCustomStyle (show toktype) ]
-                               , mknode "w:t" [("xml:space","preserve")] tok ]
+                               , mknode "w:t" [("xml:space","preserve")] (T.unpack tok) ]
   withTextProp (rCustomStyle "VerbatimChar")
     $ if writerHighlight opts
          then case highlight formatOpenXML attrs str of

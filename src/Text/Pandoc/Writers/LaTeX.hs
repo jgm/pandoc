@@ -508,7 +508,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
         case highlight formatLaTeXBlock ("",classes,keyvalAttr) str of
                Nothing -> rawCodeBlock
                Just  h -> modify (\st -> st{ stHighlighting = True }) >>
-                          return (flush $ linkAnchor $$ text h)
+                          return (flush $ linkAnchor $$ text (T.unpack h))
   case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
          "literate" `elem` classes                      -> lhsCodeBlock
@@ -916,7 +916,7 @@ inlineToLaTeX (Code (_,classes,_) str) = do
            case highlight formatLaTeXInline ("",classes,[]) str of
                   Nothing -> rawCode
                   Just  h -> modify (\st -> st{ stHighlighting = True }) >>
-                             return (text h)
+                             return (text (T.unpack h))
          rawCode = liftM (text . (\s -> "\\texttt{" ++ escapeSpaces s ++ "}"))
                           $ stringToLaTeX CodeString str
            where

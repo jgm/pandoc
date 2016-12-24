@@ -42,7 +42,7 @@ import Text.Pandoc.MediaBag ( mediaDirectory, extractMediaBag, MediaBag )
 import Text.Pandoc.XML ( toEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Process (pipeProcess)
-import Text.Highlighting.Kate ( languages, Style, tango, pygments,
+import Skylighting ( defaultSyntaxMap, Syntax(..), Style, tango, pygments,
          espresso, zenburn, kate, haddock, monochrome )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( ExitCode (..), exitSuccess )
@@ -92,7 +92,7 @@ copyrightMessage = intercalate "\n" [
 compileInfo :: String
 compileInfo =
   "\nCompiled with pandoc-types " ++ VERSION_pandoc_types ++ ", texmath " ++
-  VERSION_texmath ++ ", highlighting-kate " ++ VERSION_highlighting_kate
+  VERSION_texmath ++ ", skylighting " ++ VERSION_skylighting
 
 -- | Converts a list of strings into a single string with the items printed as
 -- comma separated words in lines with a maximum line length.
@@ -950,8 +950,11 @@ options =
     , Option "" ["list-highlight-languages"]
                  (NoArg
                   (\_ -> do
-                     let langs = [map toLower l | l <- languages,
-                                   l /= "Alert" && l /= "Alert_indent"]
+                     let langs = [ T.unpack (T.toLower (sShortname s))
+                                 | s <- M.elems defaultSyntaxMap
+                                 , sShortname s `notElem`
+                                    [T.pack "Alert", T.pack "Alert_indent"]
+                                 ]
                      mapM_ (UTF8.hPutStrLn stdout) langs
                      exitSuccess ))
                  ""

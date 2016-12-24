@@ -248,7 +248,7 @@ The library is structured as follows:
     cabal flag is used.  It is generated from `src/Text/Pandoc/Data.hsb` using
     the preprocessor [hsb2hs].
   - `Text.Pandoc.Highlighting` contains the interface to the
-    highlighting-kate library, which is used for code syntax highlighting.
+    skylighting library, which is used for code syntax highlighting.
   - `Text.Pandoc.ImageSize` is a utility module containing functions for
     calculating image sizes from the contents of image files.
   - `Text.Pandoc.MIME` contains functions for associating MIME types

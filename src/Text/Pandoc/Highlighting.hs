@@ -50,15 +50,20 @@ module Text.Pandoc.Highlighting ( languages
                                 ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (safeRead)
-import Text.Highlighting.Kate
-import Data.List (find)
+import Skylighting
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
 import qualified Data.Map as M
 import Control.Applicative ((<|>))
+import Control.Monad
+import qualified Data.Text as T
 
-lcLanguages :: [String]
-lcLanguages = map (map toLower) languages
+languages :: [String]
+languages = [T.unpack (T.toLower (sName s)) | s <- M.elems defaultSyntaxMap]
+
+languagesByExtension :: String -> [String]
+languagesByExtension ext =
+  [T.unpack (T.toLower (sName s)) | s <- syntaxesByExtension defaultSyntaxMap ext]
 
 highlight :: (FormatOptions -> [SourceLine] -> a) -- ^ Formatter
           -> Attr   -- ^ Attributes of the CodeBlock
@@ -70,19 +75,24 @@ highlight formatter (_, classes, keyvals) rawCode =
                   startNumber = firstNum,
                   numberLines = any (`elem`
                         ["number","numberLines", "number-lines"]) classes }
-      lcclasses = map (map toLower)
-                     (classes ++ concatMap languagesByExtension classes)
-  in  case find (`elem` lcLanguages) lcclasses of
+      tokenizeOpts = TokenizerConfig{ syntaxMap = defaultSyntaxMap
+                                    , traceOutput = False }
+      classes' = map T.pack classes
+      rawCode' = T.pack rawCode
+  in  case msum (map (\l -> lookupSyntax l defaultSyntaxMap) classes') of
             Nothing
               | numberLines fmtOpts -> Just
                               $ formatter fmtOpts{ codeClasses = [],
-                                                   containerClasses = classes }
-                              $ map (\ln -> [(NormalTok, ln)]) $ lines rawCode
+                                                   containerClasses = classes' }
+                              $ map (\ln -> [(NormalTok, ln)]) $ T.lines rawCode'
               | otherwise  -> Nothing
-            Just language  -> Just
-                              $ formatter fmtOpts{ codeClasses = [language],
-                                                   containerClasses = classes }
-                              $ highlightAs language rawCode
+            Just syntax  ->
+              case tokenize tokenizeOpts syntax rawCode' of
+                   Right slines -> Just $
+                         formatter fmtOpts{ codeClasses =
+                                               [T.toLower (sShortname syntax)],
+                                            containerClasses = classes' } slines
+                   Left _ -> Nothing
 
 -- Functions for correlating latex listings package's language names
 -- with highlighting-kate language names:
