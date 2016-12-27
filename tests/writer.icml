@@ -470,7 +470,7 @@
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header4">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>Level 4</Content>
+    <Content>Level 4 with a '.' (dot)</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />

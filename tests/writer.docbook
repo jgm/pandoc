@@ -26,8 +26,8 @@
     <title>Level 2 with an <ulink url="/url">embedded link</ulink></title>
     <sect3 id="level-3-with-emphasis">
       <title>Level 3 with <emphasis>emphasis</emphasis></title>
-      <sect4 id="level-4">
-        <title>Level 4</title>
+      <sect4 id="level-4-with-a-dot">
+        <title>Level 4 with a '.' (dot)</title>
         <sect5 id="level-5">
           <title>Level 5</title>
           <para>

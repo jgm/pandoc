@@ -26,8 +26,8 @@
     link</link></title>
     <section id="level-3-with-emphasis">
       <title>Level 3 with <emphasis>emphasis</emphasis></title>
-      <section id="level-4">
-        <title>Level 4</title>
+      <section id="level-4-with-a-dot">
+        <title>Level 4 with a '.' (dot)</title>
         <section id="level-5">
           <title>Level 5</title>
           <para>

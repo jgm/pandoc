@@ -20,9 +20,9 @@ Level 2 with an link:/url[embedded link]
 Level 3 with _emphasis_
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-[[level-4]]
-Level 4
-+++++++
+[[level-4-with-a-dot]]
+Level 4 with a '.' (dot)
+++++++++++++++++++++++++
 
 [[level-5]]
 Level 5

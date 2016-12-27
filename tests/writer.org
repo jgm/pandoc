@@ -23,9 +23,9 @@ markdown test suite.
     :CUSTOM_ID: level-3-with-emphasis
     :END:
 
-**** Level 4
+**** Level 4 with a '.' (dot)
      :PROPERTIES:
-     :CUSTOM_ID: level-4
+     :CUSTOM_ID: level-4-with-a-dot
      :END:
 
 ***** Level 5

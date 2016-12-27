@@ -867,7 +867,8 @@ of them are adapted from John Gruber’s markdown test suite.</text:p>
 link</text:span></text:a></text:h>
 <text:h text:style-name="Heading_20_3" text:outline-level="3">Level 3 with
 <text:span text:style-name="T1">emphasis</text:span></text:h>
-<text:h text:style-name="Heading_20_4" text:outline-level="4">Level 4</text:h>
+<text:h text:style-name="Heading_20_4" text:outline-level="4">Level 4 with a
+'.' (dot)</text:h>
 <text:h text:style-name="Heading_20_5" text:outline-level="5">Level 5</text:h>
 <text:h text:style-name="Heading_20_1" text:outline-level="1">Level 1</text:h>
 <text:h text:style-name="Heading_20_2" text:outline-level="2">Level 2 with

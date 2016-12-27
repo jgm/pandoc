@@ -81,12 +81,12 @@ markdown test suite.
 @subsection Level 3 with @emph{emphasis}
 @anchor{#level-3-with-emphasis}
 @menu
-* Level 4::
+* Level 4 with a '' dot::
 @end menu
 
-@node Level 4
-@subsubsection Level 4
-@anchor{#level-4}
+@node Level 4 with a '' dot
+@subsubsection Level 4 with a '.' (dot)
+@anchor{#level-4-with-a-dot}
 Level 5
 
 @node Level 1

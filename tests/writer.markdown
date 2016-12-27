@@ -19,7 +19,7 @@ Level 2 with an [embedded link](/url)
 
 ### Level 3 with *emphasis*
 
-#### Level 4
+#### Level 4 with a '.' (dot) {#level-4-with-a-dot}
 
 ##### Level 5
 

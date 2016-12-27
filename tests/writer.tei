@@ -27,7 +27,7 @@ Gruber’s markdown test suite.</p>
     <div type="level3">
       <head>Level 3 with <hi rendition="simple:italic">emphasis</hi></head>
       <div type="level4">
-        <head>Level 4</head>
+        <head>Level 4 with a '.' (dot)</head>
         <div type="level5">
           <head>Level 5</head>
           <p></p>
