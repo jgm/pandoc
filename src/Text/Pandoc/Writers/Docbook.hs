@@ -123,7 +123,10 @@ elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) =
                                               then "section"
                                               else "sect" ++ show n
                  _                    -> "simplesect"
-      idAttr = [("id", writerIdentifierPrefix opts ++ id') | not (null id')]
+      idName = if writerDocbook5 opts
+                 then "xml:id"
+                 else "id"
+      idAttr = [(idName, writerIdentifierPrefix opts ++ id') | not (null id')]
       nsAttr = if writerDocbook5 opts && lvl == 0 then [("xmlns", "http://docbook.org/ns/docbook"),("xmlns:xlink", "http://www.w3.org/1999/xlink")]
                                       else []
       attribs = nsAttr ++ idAttr

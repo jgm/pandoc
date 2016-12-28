@@ -19,16 +19,16 @@
   This is a set of tests for pandoc. Most of them are adapted from John
   Gruber’s markdown test suite.
 </para>
-<section id="headers">
+<section xml:id="headers">
   <title>Headers</title>
-  <section id="level-2-with-an-embedded-link">
+  <section xml:id="level-2-with-an-embedded-link">
     <title>Level 2 with an <link xlink:href="/url">embedded
     link</link></title>
-    <section id="level-3-with-emphasis">
+    <section xml:id="level-3-with-emphasis">
       <title>Level 3 with <emphasis>emphasis</emphasis></title>
-      <section id="level-4">
+      <section xml:id="level-4">
         <title>Level 4</title>
-        <section id="level-5">
+        <section xml:id="level-5">
           <title>Level 5</title>
           <para>
           </para>
@@ -37,25 +37,25 @@
     </section>
   </section>
 </section>
-<section id="level-1">
+<section xml:id="level-1">
   <title>Level 1</title>
-  <section id="level-2-with-emphasis">
+  <section xml:id="level-2-with-emphasis">
     <title>Level 2 with <emphasis>emphasis</emphasis></title>
-    <section id="level-3">
+    <section xml:id="level-3">
       <title>Level 3</title>
       <para>
         with no blank line
       </para>
     </section>
   </section>
-  <section id="level-2">
+  <section xml:id="level-2">
     <title>Level 2</title>
     <para>
       with no blank line
     </para>
   </section>
 </section>
-<section id="paragraphs">
+<section xml:id="paragraphs">
   <title>Paragraphs</title>
   <para>
     Here’s a regular paragraph.
@@ -71,7 +71,7 @@
 <literallayout>There should be a hard line break
 here.</literallayout>
 </section>
-<section id="block-quotes">
+<section xml:id="block-quotes">
   <title>Block Quotes</title>
   <para>
     E-mail style:
@@ -126,7 +126,7 @@ sub status {
     And a following paragraph.
   </para>
 </section>
-<section id="code-blocks">
+<section xml:id="code-blocks">
   <title>Code Blocks</title>
   <para>
     Code:
@@ -149,9 +149,9 @@ this code block is indented by one tab
 These should not be escaped:  \$ \\ \&gt; \[ \{
 </programlisting>
 </section>
-<section id="lists">
+<section xml:id="lists">
   <title>Lists</title>
-  <section id="unordered">
+  <section xml:id="unordered">
     <title>Unordered</title>
     <para>
       Asterisks tight:
@@ -274,7 +274,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
     </itemizedlist>
   </section>
-  <section id="ordered">
+  <section xml:id="ordered">
     <title>Ordered</title>
     <para>
       Tight:
@@ -381,7 +381,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
     </orderedlist>
   </section>
-  <section id="nested">
+  <section xml:id="nested">
     <title>Nested</title>
     <itemizedlist spacing="compact">
       <listitem>
@@ -479,7 +479,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
     </orderedlist>
   </section>
-  <section id="tabs-and-spaces">
+  <section xml:id="tabs-and-spaces">
     <title>Tabs and spaces</title>
     <itemizedlist>
       <listitem>
@@ -506,7 +506,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
     </itemizedlist>
   </section>
-  <section id="fancy-list-markers">
+  <section xml:id="fancy-list-markers">
     <title>Fancy list markers</title>
     <orderedlist numeration="arabic">
       <listitem override="2">
@@ -611,7 +611,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     </para>
   </section>
 </section>
-<section id="definition-lists">
+<section xml:id="definition-lists">
   <title>Definition Lists</title>
   <para>
     Tight using spaces:
@@ -857,7 +857,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     </varlistentry>
   </variablelist>
 </section>
-<section id="html-blocks">
+<section xml:id="html-blocks">
   <title>HTML Blocks</title>
   <para>
     Simple block on one line:
@@ -930,7 +930,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     Hr’s:
   </para>
 </section>
-<section id="inline-markup">
+<section xml:id="inline-markup">
   <title>Inline Markup</title>
   <para>
     This is <emphasis>emphasized</emphasis>, and so <emphasis>is
@@ -980,7 +980,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     spaces: a^b c^d, a~b c~d.
   </para>
 </section>
-<section id="smart-quotes-ellipses-dashes">
+<section xml:id="smart-quotes-ellipses-dashes">
   <title>Smart quotes, ellipses, dashes</title>
   <para>
     <quote>Hello,</quote> said the spider. <quote><quote>Shelob</quote> is my
@@ -1012,7 +1012,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     Ellipses…and…and….
   </para>
 </section>
-<section id="latex">
+<section xml:id="latex">
   <title>LaTeX</title>
   <itemizedlist spacing="compact">
     <listitem>
@@ -1088,7 +1088,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     Here’s a LaTeX table:
   </para>
 </section>
-<section id="special-characters">
+<section xml:id="special-characters">
   <title>Special Characters</title>
   <para>
     Here is some unicode:
@@ -1184,9 +1184,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     Minus: -
   </para>
 </section>
-<section id="links">
+<section xml:id="links">
   <title>Links</title>
-  <section id="explicit">
+  <section xml:id="explicit">
     <title>Explicit</title>
     <para>
       Just a <link xlink:href="/url/">URL</link>.
@@ -1216,7 +1216,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <link xlink:href="">Empty</link>.
     </para>
   </section>
-  <section id="reference">
+  <section xml:id="reference">
     <title>Reference</title>
     <para>
       Foo <link xlink:href="/url/">bar</link>.
@@ -1255,7 +1255,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       Foo <link xlink:href="/url/">biz</link>.
     </para>
   </section>
-  <section id="with-ampersands">
+  <section xml:id="with-ampersands">
     <title>With ampersands</title>
     <para>
       Here’s a <link xlink:href="http://example.com/?foo=1&amp;bar=2">link
@@ -1273,7 +1273,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       pointy braces</link>.
     </para>
   </section>
-  <section id="autolinks">
+  <section xml:id="autolinks">
     <title>Autolinks</title>
     <para>
       With an ampersand:
@@ -1314,7 +1314,7 @@ or here: &lt;http://example.com/&gt;
 </programlisting>
   </section>
 </section>
-<section id="images">
+<section xml:id="images">
   <title>Images</title>
   <para>
     From <quote>Voyage dans la Lune</quote> by Georges Melies (1902):
@@ -1336,7 +1336,7 @@ or here: &lt;http://example.com/&gt;
     </inlinemediaobject> icon.
   </para>
 </section>
-<section id="footnotes">
+<section xml:id="footnotes">
   <title>Footnotes</title>
   <para>
     Here is a footnote reference,<footnote>
