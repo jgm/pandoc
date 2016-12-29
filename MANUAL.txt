@@ -3377,6 +3377,14 @@ In this example, the document will contain a citation for `item3`
 only, but the bibliography will contain entries for `item1`, `item2`, and
 `item3`.
 
+It is possible to create a bibliography with all the citations, 
+whether or not they appear in the document, by using a wildcard:
+
+    ---
+    nocite: |
+      '@*'
+    ...
+
 For LaTeX or PDF output, you can also use [`natbib`] or [`biblatex`]
 to render bibliography. In order to do so, specify bibliography files as
 outlined above, and add `--natbib` or `--biblatex` argument to `pandoc`
@@ -4093,7 +4101,7 @@ Hubert Plociniczak,
 Ilya V. Portnov,
 Ivo Clarysse,
 J. Lewis Muir,
-Jaime Marquínez Ferrándiz,
+Jaime Marquínez Ferrándiz,
 Jakob Voß,
 James Aspnes,
 Jamie F. Olson,
