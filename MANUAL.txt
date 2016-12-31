@@ -3382,7 +3382,7 @@ whether or not they appear in the document, by using a wildcard:
 
     ---
     nocite: |
-      '@*'
+      @*
     ...
 
 For LaTeX or PDF output, you can also use [`natbib`] or [`biblatex`]
