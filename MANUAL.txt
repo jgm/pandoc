@@ -3377,7 +3377,7 @@ In this example, the document will contain a citation for `item3`
 only, but the bibliography will contain entries for `item1`, `item2`, and
 `item3`.
 
-It is possible to create a bibliography with all the citations, 
+It is possible to create a bibliography with all the citations,
 whether or not they appear in the document, by using a wildcard:
 
     ---
@@ -4101,7 +4101,7 @@ Hubert Plociniczak,
 Ilya V. Portnov,
 Ivo Clarysse,
 J. Lewis Muir,
-Jaime Marquínez Ferrándiz,
+Jaime Marquínez Ferrándiz,
 Jakob Voß,
 James Aspnes,
 Jamie F. Olson,
