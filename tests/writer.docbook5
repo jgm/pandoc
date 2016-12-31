@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE article>
-<article xmlns="http://docbook.org/ns/docbook" version="5.0">
+<article
+  xmlns="http://docbook.org/ns/docbook" version="5.0"
+  xmlns:xlink="http://www.w3.org/1999/xlink" >
   <info>
     <title>Pandoc Test Suite</title>
     <authorgroup>
