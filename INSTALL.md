@@ -160,16 +160,16 @@ The easiest way to build pandoc from source is to use [stack]:
     use the locale-sensitive unicode collation algorithm instead,
     specify the `unicode_collation` flag:
 
-       cabal install pandoc-citeproc -funicode_collation
+        cabal install pandoc-citeproc -funicode_collation
 
     Note that this requires the `text-icu` library, which in turn
     depends on the C library `icu4c`.  Installation directions
     vary by platform.  Here is how it might work on OSX with homebrew:
 
-       brew install icu4c
-       cabal install --extra-lib-dirs=/usr/local/Cellar/icu4c/51.1/lib \
-         --extra-include-dirs=/usr/local/Cellar/icu4c/51.1/include \
-         -funicode_collation text-icu pandoc-citeproc
+        brew install icu4c
+        cabal install --extra-lib-dirs=/usr/local/Cellar/icu4c/51.1/lib \
+          --extra-include-dirs=/usr/local/Cellar/icu4c/51.1/include \
+          -funicode_collation text-icu pandoc-citeproc
 
 6.  The `pandoc.1` man page will be installed automatically.  cabal shows
     you where it is installed: you may need to set your `MANPATH`
