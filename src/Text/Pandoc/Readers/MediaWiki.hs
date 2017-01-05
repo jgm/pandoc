@@ -671,9 +671,6 @@ strong = B.strong <$> nested (inlinesBetween start end)
           end   = try $ sym "'''"
 
 doubleQuotes :: MWParser Inlines
-doubleQuotes = B.doubleQuoted . trimInlines . mconcat <$> try
- ((getState >>= guard . readerSmart . mwOptions) *>
-   openDoubleQuote *> manyTill inline closeDoubleQuote )
-    where openDoubleQuote = char '"' <* lookAhead alphaNum
-          closeDoubleQuote = char '"' <* notFollowedBy alphaNum
-
+doubleQuotes = B.doubleQuoted <$> nested (inlinesBetween openDoubleQuote closeDoubleQuote)
+    where openDoubleQuote = sym "\"" >> lookAhead nonspaceChar
+          closeDoubleQuote = try $ sym "\""
