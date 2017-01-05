@@ -647,6 +647,9 @@ emphasisStart c = try $ do
   char c
   lookAhead (noneOf emphasisForbiddenBorderChars)
   pushToInlineCharStack c
+  -- nested inlines are allowed, so mark this position as one which might be
+  -- followed by another inline.
+  updateLastPreCharPos
   return c
 
 -- | Parses the closing character of emphasis

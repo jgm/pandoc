@@ -47,6 +47,10 @@ tests =
           "/*strength*/" =?>
           para (emph . strong $ "strength")
 
+      , "Emphasized Strong preceded by space" =:
+          " */super/*" =?>
+          para (strong . emph $ "super")
+
       , "Strikeout" =:
           "+Kill Bill+" =?>
           para (strikeout . spcSep $ [ "Kill", "Bill" ])
