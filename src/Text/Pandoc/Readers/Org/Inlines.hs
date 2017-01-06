@@ -198,21 +198,22 @@ orgRefCite = try $ choice
 normalOrgRefCite :: OrgParser (F [Citation])
 normalOrgRefCite = try $ do
   mode <- orgRefCiteMode
-  sequence <$> sepBy1 (orgRefCiteList mode) (char ',')
- where
-   -- | A list of org-ref style citation keys, parsed as citation of the given
-   -- citation mode.
-   orgRefCiteList :: CitationMode -> OrgParser (F Citation)
-   orgRefCiteList citeMode = try $ do
-     key <- orgRefCiteKey
-     returnF $ Citation
-      { citationId      = key
-      , citationPrefix  = mempty
-      , citationSuffix  = mempty
-      , citationMode    = citeMode
-      , citationNoteNum = 0
-      , citationHash    = 0
-      }
+  -- | org-ref style citation key, parsed into a citation of the given mode
+  let orgRefCiteItem :: OrgParser (F Citation)
+      orgRefCiteItem = try $ do
+        key <- orgRefCiteKey
+        returnF $ Citation
+          { citationId      = key
+          , citationPrefix  = mempty
+          , citationSuffix  = mempty
+          , citationMode    = mode
+          , citationNoteNum = 0
+          , citationHash    = 0
+          }
+  firstCitation <- orgRefCiteItem
+  moreCitations <- many (try $ char ',' *> orgRefCiteItem)
+  return . sequence $ firstCitation : moreCitations
+    where
 
 -- | Read an Berkeley-style Org-mode citation.  Berkeley citation style was
 -- develop and adjusted to Org-mode style by John MacFarlane and Richard

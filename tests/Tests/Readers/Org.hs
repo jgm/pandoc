@@ -334,6 +334,18 @@ tests =
                        }
         in (para $ cite [citation] "cite:pandoc")
 
+      , "Org-ref simple citation succeeded by comma" =:
+        "cite:pandoc," =?>
+        let citation = Citation
+                       { citationId = "pandoc"
+                       , citationPrefix = mempty
+                       , citationSuffix = mempty
+                       , citationMode = AuthorInText
+                       , citationNoteNum = 0
+                       , citationHash = 0
+                       }
+        in (para $ cite [citation] "cite:pandoc" <> str ",")
+
       , "Org-ref simple citep citation" =:
         "citep:pandoc" =?>
         let citation = Citation
