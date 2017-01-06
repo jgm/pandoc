@@ -198,7 +198,7 @@ orgRefCite = try $ choice
 normalOrgRefCite :: OrgParser (F [Citation])
 normalOrgRefCite = try $ do
   mode <- orgRefCiteMode
-  -- | org-ref style citation key, parsed into a citation of the given mode
+  -- org-ref style citation key, parsed into a citation of the given mode
   let orgRefCiteItem :: OrgParser (F Citation)
       orgRefCiteItem = try $ do
         key <- orgRefCiteKey
