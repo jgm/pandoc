@@ -28,13 +28,13 @@ $else$
 $endif$
 $endfor$
 $if(subtitle)$
-  <h1 class="subtitle">$subtitle$</h1>
+  <p class="subtitle">$subtitle$</p>
 $endif$
 $for(author)$
-  <h2 class="author">$author$</h2>
+  <p class="author">$author$</p>
 $endfor$
 $for(creator)$
-  <h2 class="$creator.role$">$creator.text$</h2>
+  <p class="$creator.role$">$creator.text$</p>
 $endfor$
 $if(publisher)$
   <p class="publisher">$publisher$</p>

@@ -63,13 +63,13 @@ $if(title)$
 <section>
   <h1 class="title">$title$</h1>
 $if(subtitle)$
-  <h1 class="subtitle">$subtitle$</h1>
+  <p class="subtitle">$subtitle$</p>
 $endif$
 $for(author)$
-  <h2 class="author">$author$</h2>
+  <p class="author">$author$</p>
 $endfor$
 $if(date)$
-  <h3 class="date">$date$</h3>
+  <p class="date">$date$</p>
 $endif$
 </section>
 $endif$
@@ -228,6 +228,10 @@ $endif$
         dependencies: [
           { src: '$revealjs-url$/lib/js/classList.js', condition: function() { return !document.body.classList; } },
           { src: '$revealjs-url$/plugin/zoom-js/zoom.js', async: true },
+    $if(notes-server)$
+          { src: '$revealjs-url$/socket.io/socker.io.js', async: true },
+          { src: '$revealjs-url$/plugin/notes-server/client.js', async: true },
+    $endif$
           { src: '$revealjs-url$/plugin/notes/notes.js', async: true }
         ]
       });
