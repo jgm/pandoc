@@ -282,7 +282,7 @@ Library
                  blaze-markup >= 0.5.1 && < 0.8,
                  yaml >= 0.8.8.2 && < 0.9,
                  scientific >= 0.2 && < 0.4,
-                 vector >= 0.10 && < 0.12,
+                 vector >= 0.10 && < 0.13,
                  hslua >= 0.3 && < 0.5,
                  binary >= 0.5 && < 0.9,
                  SHA >= 1.6 && < 1.7,
