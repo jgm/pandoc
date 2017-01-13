@@ -8,6 +8,7 @@ Pandoc
 [![travis build status](https://img.shields.io/travis/jgm/pandoc/master.svg?label=travis+build)](https://travis-ci.org/jgm/pandoc)
 [![appveyor build status](https://ci.appveyor.com/api/projects/status/nvqs4ct090igjiqc?svg=true)](https://ci.appveyor.com/project/jgm/pandoc)
 [![license](https://img.shields.io/badge/license-GPLv2+-lightgray.svg)](https://www.gnu.org/licenses/gpl.html)
+[![pandoc-discuss on google groups](https://img.shields.io/badge/pandoc-discuss-red.svg?style=social)](https://groups.google.com/forum/#!forum/pandoc-discuss)
 
 
 The universal markup converter
