@@ -3,6 +3,7 @@ Pandoc
 
 [![github release](https://img.shields.io/github/release/jgm/pandoc.svg?label=current+release)](https://github.com/jgm/pandoc/releases)
 [![hackage release](https://img.shields.io/hackage/v/pandoc.svg?label=hackage)](http://hackage.haskell.org/package/pandoc)
+[![homebrew](https://img.shields.io/homebrew/v/pandoc.svg)](http://brewformulas.org/Pandoc)
 [![stackage LTS package](http://stackage.org/package/pandoc/badge/lts)](http://stackage.org/lts/package/pandoc)
 [![travis build status](https://img.shields.io/travis/jgm/pandoc/master.svg?label=travis+build)](https://travis-ci.org/jgm/pandoc)
 [![appveyor build status](https://ci.appveyor.com/api/projects/status/nvqs4ct090igjiqc?svg=true)](https://ci.appveyor.com/project/jgm/pandoc)
