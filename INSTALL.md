@@ -61,7 +61,7 @@
         sudo dpkg -i $DEB
 
     where `$DEB` is the path to the downloaded deb, will
-    will install the `pandoc` and `pandoc-citeproc` executables
+    install the `pandoc` and `pandoc-citeproc` executables
     and man pages.  If you use an RPM-based distro, you may be
     able to install this deb using `alien`, or try
 
