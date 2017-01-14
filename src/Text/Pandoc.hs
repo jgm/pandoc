@@ -336,7 +336,8 @@ getDefaultExtensions "markdown_github" = githubMarkdownExtensions
 getDefaultExtensions "markdown"        = pandocExtensions
 getDefaultExtensions "plain"           = plainExtensions
 getDefaultExtensions "org"             = extensionsFromList
-                                          [Ext_citations, Ext_auto_identifiers]
+                                          [Ext_citations,
+                                           Ext_auto_identifiers]
 getDefaultExtensions "textile"         = extensionsFromList
                                           [Ext_auto_identifiers]
 getDefaultExtensions "html"            = extensionsFromList
@@ -349,6 +350,12 @@ getDefaultExtensions "epub"            = extensionsFromList
                                            Ext_native_divs,
                                            Ext_native_spans,
                                            Ext_epub_html_exts]
+getDefaultExtensions "latex"           = extensionsFromList
+                                          [Ext_smart,
+                                           Ext_auto_identifiers]
+getDefaultExtensions "context"         = extensionsFromList
+                                          [Ext_smart,
+                                           Ext_auto_identifiers]
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]
 

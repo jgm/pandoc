@@ -112,7 +112,6 @@ convertWithOpts opts args = do
               , optSectionDivs           = sectionDivs
               , optIncremental           = incremental
               , optSelfContained         = selfContained
-              , optSmart                 = smart
               , optOldDashes             = oldDashes
               , optHtml5                 = html5
               , optHtmlQTags             = htmlQTags
@@ -212,10 +211,6 @@ convertWithOpts opts args = do
   let conTeXtOutput = format == "context"
   let html5Output = format == "html5"
 
-  let laTeXInput = "latex" `isPrefixOf` readerName' ||
-                    "beamer" `isPrefixOf` readerName'
-
-
   -- disabling the custom writer for now
   writer <- if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName
@@ -295,11 +290,15 @@ convertWithOpts opts args = do
                                                      uriFragment = "" }
                                 _ -> Nothing
 
-  let readerOpts = def{ readerSmart = if laTeXInput
-                                         then texLigatures
-                                         else smart || (texLigatures &&
-                                               (laTeXOutput || conTeXtOutput))
-                      , readerStandalone = standalone'
+  {- TODO - smart is now an extension, but we should prob make
+   - texligatures one too...
+  let smartExt = if laTeXInput
+                    then texLigatures
+                    else smart || (texLigatures &&
+                                   (laTeXOutput || conTeXtOutput))
+  -}
+
+  let readerOpts = def{ readerStandalone = standalone'
                       , readerParseRaw = parseRaw
                       , readerColumns = columns
                       , readerTabStop = tabStop
@@ -547,7 +546,6 @@ data Opt = Opt
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
-    , optSmart             :: Bool    -- ^ Use smart typography
     , optOldDashes         :: Bool    -- ^ Parse dashes like pandoc <=1.8.2.1
     , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
     , optHtmlQTags         :: Bool    -- ^ Use <q> tags in HTML
@@ -613,7 +611,6 @@ defaultOpts = Opt
     , optSectionDivs           = False
     , optIncremental           = False
     , optSelfContained         = False
-    , optSmart                 = False
     , optOldDashes             = False
     , optHtml5                 = False
     , optHtmlQTags             = False
@@ -692,15 +689,9 @@ options =
                   (\opt -> return opt { optParseRaw = True }))
                  "" -- "Parse untranslatable HTML codes and LaTeX environments as raw"
 
-    , Option "S" ["smart"]
-                 (NoArg
-                  (\opt -> return opt { optSmart = True }))
-                 "" -- "Use smart quotes, dashes, and ellipses"
-
     , Option "" ["old-dashes"]
                  (NoArg
-                  (\opt -> return opt { optSmart = True
-                                      , optOldDashes = True }))
+                  (\opt -> return opt { optOldDashes = True }))
                  "" -- "Use smart quotes, dashes, and ellipses"
 
     , Option "" ["base-header-level"]

@@ -43,7 +43,7 @@ import Text.Pandoc.Class (PandocMonad)
 readCommonMark :: PandocMonad m => ReaderOptions -> String -> m Pandoc
 readCommonMark opts s = return $
   nodeToPandoc $ commonmarkToNode opts' $ pack s
-  where opts' = if readerSmart opts
+  where opts' = if extensionEnabled Ext_smart (readerExtensions opts)
                    then [optNormalize, optSmart]
                    else [optNormalize]
 

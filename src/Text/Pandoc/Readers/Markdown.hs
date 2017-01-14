@@ -1590,7 +1590,7 @@ code = try $ do
 math :: PandocMonad m => MarkdownParser m (F Inlines)
 math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
      <|> (return . B.math <$> (mathInline >>= applyMacros')) <+?>
-               ((getOption readerSmart >>= guard) *> (return <$> apostrophe)
+               (guardEnabled Ext_smart *> (return <$> apostrophe)
                 <* notFollowedBy (space <|> satisfy isPunctuation))
 
 -- Parses material enclosed in *s, **s, _s, or __s.
@@ -1697,7 +1697,7 @@ str = do
   result <- many1 alphaNum
   updateLastStrPos
   let spacesToNbr = map (\c -> if c == ' ' then '\160' else c)
-  isSmart <- getOption readerSmart
+  isSmart <- extensionEnabled Ext_smart <$> getOption readerExtensions
   if isSmart
      then case likelyAbbrev result of
                []        -> return $ return $ B.str result
@@ -2104,7 +2104,7 @@ citation = try $ do
 
 smart :: PandocMonad m => MarkdownParser m (F Inlines)
 smart = do
-  getOption readerSmart >>= guard
+  guardEnabled Ext_smart
   doubleQuoted <|> singleQuoted <|>
     choice (map (return <$>) [apostrophe, dash, ellipses])
 

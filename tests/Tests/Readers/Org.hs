@@ -12,7 +12,8 @@ org :: String -> Pandoc
 org = purely $ readOrg def
 
 orgSmart :: String -> Pandoc
-orgSmart = purely $ readOrg def { readerSmart = True }
+orgSmart = purely $ readOrg def { readerExtensions =
+                     enableExtension Ext_smart $ readerExtensions def }
 
 infix 4 =:
 (=:) :: ToString c

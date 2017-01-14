@@ -841,7 +841,7 @@ exportSnippet = try $ do
 
 smart :: PandocMonad m => OrgParser m (F Inlines)
 smart = do
-  getOption readerSmart >>= guard
+  guardEnabled Ext_smart
   doubleQuoted <|> singleQuoted <|>
     choice (map (return <$>) [orgApostrophe, orgDash, orgEllipses])
   where

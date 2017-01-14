@@ -1309,7 +1309,7 @@ note = try $ do
 
 smart :: PandocMonad m => RSTParser m Inlines
 smart = do
-  getOption readerSmart >>= guard
+  guardEnabled Ext_smart
   doubleQuoted <|> singleQuoted <|>
     choice [apostrophe, dash, ellipses]
 

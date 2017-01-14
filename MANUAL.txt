@@ -394,15 +394,6 @@ Reader options
     HTML codes and LaTeX environments.  (The LaTeX reader does pass through
     untranslatable LaTeX *commands*, even if `-R` is not specified.)
 
-`-S`, `--smart`
-
-:   Produce typographically correct output, converting straight quotes
-    to curly quotes, `---` to em-dashes, `--` to en-dashes, and
-    `...` to ellipses. Nonbreaking spaces are inserted after certain
-    abbreviations, such as "Mr." (Note: This option is selected automatically
-    when the output format is `latex` or `context`, unless `--no-tex-ligatures`
-    is used.  It has no effect for `latex` input.)
-
 `--old-dashes`
 
 :   Selects the pandoc <= 1.8.2.1 behavior for parsing smart dashes: `-` before
@@ -721,12 +712,12 @@ Options affecting specific writers
     than parsing ligatures for quotation marks and dashes.  In
     writing LaTeX or ConTeXt, print unicode quotation mark and
     dash characters literally, rather than converting them to
-    the standard ASCII TeX ligatures.  Note: normally `--smart`
-    is selected automatically for LaTeX and ConTeXt output, but
-    it must be specified explicitly if `--no-tex-ligatures` is
+    the standard ASCII TeX ligatures.  Note: normally the `smart`
+    extension is selected automatically for LaTeX and ConTeXt output,
+    but it must be specified explicitly if `--no-tex-ligatures` is
     selected. If you use literal curly quotes, dashes, and
     ellipses in your source, then you may want to use
-    `--no-tex-ligatures` without `--smart`.
+    `--no-tex-ligatures` without `+smart`.
 
 `--listings`
 
@@ -2639,20 +2630,6 @@ two trailing spaces on a line.
 
 Backslash escapes do not work in verbatim contexts.
 
-Smart punctuation
------------------
-
-#### Extension ####
-
-If the `--smart` option is specified, pandoc will produce typographically
-correct output, converting straight quotes to curly quotes, `---` to
-em-dashes, `--` to en-dashes, and `...` to ellipses. Nonbreaking spaces
-are inserted after certain abbreviations, such as "Mr."
-
-Note:  if your LaTeX template or any included header file call for the
-[`csquotes`] package, pandoc will detect this automatically and use
-`\enquote{...}` for quoted text.
-
 Inline formatting
 -----------------
 
@@ -3409,6 +3386,20 @@ The following Markdown syntax extensions are not enabled by default
 in pandoc, but may be enabled by adding `+EXTENSION` to the format
 name, where `EXTENSION` is the name of the extension.  Thus, for
 example, `markdown+hard_line_breaks` is Markdown with hard line breaks.
+
+#### Extension: `smart` ####
+
+Produce typographically correct output, converting straight
+quotes to curly quotes, `---` to em-dashes, `--` to en-dashes,
+and `...` to ellipses. Nonbreaking spaces are inserted after
+certain abbreviations, such as "Mr." (Note: This option is
+selected automatically when the output format is `latex` or
+`context`, unless `--no-tex-ligatures` is used.  It has no
+effect for `latex` input.)
+
+Note:  if your LaTeX template or any included header file call
+for the [`csquotes`] package, pandoc will detect this
+automatically and use `\enquote{...}` for quoted text.
 
 #### Extension: `angle_brackets_escapable` ####
 

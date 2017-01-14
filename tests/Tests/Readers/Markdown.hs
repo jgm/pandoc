@@ -12,7 +12,8 @@ markdown :: String -> Pandoc
 markdown = purely $ readMarkdown def
 
 markdownSmart :: String -> Pandoc
-markdownSmart = purely $  readMarkdown def { readerSmart = True }
+markdownSmart = purely $  readMarkdown def { readerExtensions =
+                             enableExtension Ext_smart $ readerExtensions def }
 
 markdownCDL :: String -> Pandoc
 markdownCDL = purely $ readMarkdown def { readerExtensions = enableExtension

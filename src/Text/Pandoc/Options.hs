@@ -54,7 +54,6 @@ import GHC.Generics (Generic)
 
 data ReaderOptions = ReaderOptions{
          readerExtensions      :: Extensions  -- ^ Syntax extensions
-       , readerSmart           :: Bool -- ^ Smart punctuation
        , readerStandalone      :: Bool -- ^ Standalone document with header
        , readerParseRaw        :: Bool -- ^ Parse raw HTML, LaTeX
        , readerColumns         :: Int  -- ^ Number of columns in terminal
@@ -74,7 +73,6 @@ data ReaderOptions = ReaderOptions{
 instance Default ReaderOptions
   where def = ReaderOptions{
                  readerExtensions            = pandocExtensions
-               , readerSmart                 = False
                , readerStandalone            = False
                , readerParseRaw              = False
                , readerColumns               = 80

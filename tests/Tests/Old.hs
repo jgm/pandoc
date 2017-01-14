@@ -47,13 +47,13 @@ tests = [ testGroup "markdown"
           [ testGroup "writer"
             $ writerTests "markdown" ++ lhsWriterTests "markdown"
           , testGroup "reader"
-            [ test "basic" ["-r", "markdown", "-w", "native", "-s", "-S"]
+            [ test "basic" ["-r", "markdown+smart", "-w", "native", "-s"]
               "testsuite.txt" "testsuite.native"
             , test "tables" ["-r", "markdown", "-w", "native", "--columns=80"]
               "tables.txt" "tables.native"
             , test "pipe tables" ["-r", "markdown", "-w", "native", "--columns=80"]
               "pipe-tables.txt" "pipe-tables.native"
-            , test "more" ["-r", "markdown", "-w", "native", "-s", "-S"]
+            , test "more" ["-r", "markdown+smart", "-w", "native", "-s"]
               "markdown-reader-more.txt" "markdown-reader-more.native"
             , lhsReaderTest "markdown+lhs"
             ]
@@ -65,8 +65,8 @@ tests = [ testGroup "markdown"
         , testGroup "rst"
           [ testGroup "writer" (writerTests "rst" ++ lhsWriterTests "rst")
           , testGroup "reader"
-            [ test "basic" ["-r", "rst", "-w", "native",
-              "-s", "-S", "--columns=80"] "rst-reader.rst" "rst-reader.native"
+            [ test "basic" ["-r", "rst+smart", "-w", "native",
+              "-s", "--columns=80"] "rst-reader.rst" "rst-reader.native"
             , test "tables" ["-r", "rst", "-w", "native", "--columns=80"]
               "tables.rst" "tables-rstsubset.native"
             , lhsReaderTest "rst+lhs"

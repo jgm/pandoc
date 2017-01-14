@@ -1105,15 +1105,11 @@ registerHeader (ident,classes,kvs) header' = do
           updateState $ updateHeaderMap $ insert' header' ident
         return (ident,classes,kvs)
 
--- | Fail unless we're in "smart typography" mode.
-failUnlessSmart :: (Stream s m a, HasReaderOptions st) => ParserT s st m ()
-failUnlessSmart = getOption readerSmart >>= guard
-
 smartPunctuation :: (HasReaderOptions st, HasLastStrPosition st, HasQuoteContext st m, Stream s m Char)
                  => ParserT s st m Inlines
                  -> ParserT s st m Inlines
 smartPunctuation inlineParser = do
-  failUnlessSmart
+  guardEnabled Ext_smart
   choice [ quoted inlineParser, apostrophe, dash, ellipses ]
 
 apostrophe :: Stream s m Char => ParserT s st m Inlines

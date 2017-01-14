@@ -187,7 +187,7 @@ mathChars =
 quoted' :: PandocMonad m => (Inlines -> Inlines) -> LP m String -> LP m () -> LP m Inlines
 quoted' f starter ender = do
   startchs <- starter
-  smart <- getOption readerSmart
+  smart <- extensionEnabled Ext_smart <$> getOption readerExtensions
   if smart
      then do
        ils <- many (notFollowedBy ender >> inline)
@@ -209,7 +209,7 @@ doubleQuote = do
 
 singleQuote :: PandocMonad m => LP m Inlines
 singleQuote = do
-  smart <- getOption readerSmart
+  smart <- extensionEnabled Ext_smart <$> getOption readerExtensions
   if smart
      then quoted' singleQuoted (string "`") (try $ char '\'' >> notFollowedBy letter)
       <|> quoted' singleQuoted (string "‘") (try $ char '’' >> notFollowedBy letter)

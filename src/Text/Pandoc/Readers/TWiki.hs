@@ -476,7 +476,7 @@ symbol = count 1 nonspaceChar >>= return . B.str
 
 smart :: TWParser B.Inlines
 smart = do
-  getOption readerSmart >>= guard
+  guardEnabled Ext_smart
   doubleQuoted <|> singleQuoted <|>
     choice [ apostrophe
            , dash
