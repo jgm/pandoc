@@ -394,12 +394,6 @@ Reader options
     HTML codes and LaTeX environments.  (The LaTeX reader does pass through
     untranslatable LaTeX *commands*, even if `-R` is not specified.)
 
-`--old-dashes`
-
-:   Selects the pandoc <= 1.8.2.1 behavior for parsing smart dashes: `-` before
-    a numeral is an en-dash, and `--` is an em-dash.  This option is selected
-    automatically for `textile` input.
-
 `--base-header-level=`*NUMBER*
 
 :   Specify the base level for headers (defaults to 1).
@@ -3400,6 +3394,13 @@ effect for `latex` input.)
 Note:  if your LaTeX template or any included header file call
 for the [`csquotes`] package, pandoc will detect this
 automatically and use `\enquote{...}` for quoted text.
+
+#### Extension: `old_dashes` ####
+
+Selects the pandoc <= 1.8.2.1 behavior for parsing smart dashes:
+`-` before a numeral is an en-dash, and `--` is an em-dash.
+This option only has an effect if `smart` is enabled. It is
+selected automatically for `textile` input.
 
 #### Extension: `angle_brackets_escapable` ####
 

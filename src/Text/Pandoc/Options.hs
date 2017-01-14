@@ -58,9 +58,6 @@ data ReaderOptions = ReaderOptions{
        , readerParseRaw        :: Bool -- ^ Parse raw HTML, LaTeX
        , readerColumns         :: Int  -- ^ Number of columns in terminal
        , readerTabStop         :: Int  -- ^ Tab stop
-       , readerOldDashes       :: Bool -- ^ Use pandoc <= 1.8.2.1 behavior
-                                       --   in parsing dashes; -- is em-dash;
-                                       --   - before numerial is en-dash
        , readerApplyMacros     :: Bool -- ^ Apply macros to TeX math
        , readerIndentedCodeClasses :: [String] -- ^ Default classes for
                                        -- indented code blocks
@@ -77,7 +74,6 @@ instance Default ReaderOptions
                , readerParseRaw              = False
                , readerColumns               = 80
                , readerTabStop               = 4
-               , readerOldDashes             = False
                , readerApplyMacros           = True
                , readerIndentedCodeClasses   = []
                , readerDefaultImageExtension = ""

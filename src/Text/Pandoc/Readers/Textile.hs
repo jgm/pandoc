@@ -91,9 +91,7 @@ parseTextile = do
   -- asked for, for better conversion to other light markup formats
   oldOpts <- stateOptions `fmap` getState
   updateState $ \state -> state{ stateOptions =
-                                   oldOpts{ readerParseRaw = True
-                                          , readerOldDashes = True
-                                          } }
+                                   oldOpts{ readerParseRaw = True } }
   many blankline
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes

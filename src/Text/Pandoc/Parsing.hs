@@ -1183,7 +1183,7 @@ ellipses = try (string "..." >> return (B.str "\8230"))
 dash :: (HasReaderOptions st, Stream s m Char)
      => ParserT s st m Inlines
 dash = try $ do
-  oldDashes <- getOption readerOldDashes
+  oldDashes <- extensionEnabled Ext_old_dashes <$> getOption readerExtensions
   if oldDashes
      then do
        char '-'

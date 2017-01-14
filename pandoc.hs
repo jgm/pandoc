@@ -112,7 +112,6 @@ convertWithOpts opts args = do
               , optSectionDivs           = sectionDivs
               , optIncremental           = incremental
               , optSelfContained         = selfContained
-              , optOldDashes             = oldDashes
               , optHtml5                 = html5
               , optHtmlQTags             = htmlQTags
               , optHighlight             = highlight
@@ -302,7 +301,6 @@ convertWithOpts opts args = do
                       , readerParseRaw = parseRaw
                       , readerColumns = columns
                       , readerTabStop = tabStop
-                      , readerOldDashes = oldDashes
                       , readerIndentedCodeClasses = codeBlockClasses
                       , readerApplyMacros = not laTeXOutput
                       , readerDefaultImageExtension = defaultImageExtension
@@ -546,7 +544,6 @@ data Opt = Opt
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
-    , optOldDashes         :: Bool    -- ^ Parse dashes like pandoc <=1.8.2.1
     , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
     , optHtmlQTags         :: Bool    -- ^ Use <q> tags in HTML
     , optHighlight         :: Bool    -- ^ Highlight source code
@@ -611,7 +608,6 @@ defaultOpts = Opt
     , optSectionDivs           = False
     , optIncremental           = False
     , optSelfContained         = False
-    , optOldDashes             = False
     , optHtml5                 = False
     , optHtmlQTags             = False
     , optHighlight             = True
@@ -688,11 +684,6 @@ options =
                  (NoArg
                   (\opt -> return opt { optParseRaw = True }))
                  "" -- "Parse untranslatable HTML codes and LaTeX environments as raw"
-
-    , Option "" ["old-dashes"]
-                 (NoArg
-                  (\opt -> return opt { optOldDashes = True }))
-                 "" -- "Use smart quotes, dashes, and ellipses"
 
     , Option "" ["base-header-level"]
                  (ReqArg

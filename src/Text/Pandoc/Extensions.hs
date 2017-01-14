@@ -131,6 +131,7 @@ data Extension =
     | Ext_epub_html_exts      -- ^ Recognise the EPUB extended version of HTML
     | Ext_shortcut_reference_links -- ^ Shortcut reference links
     | Ext_smart               -- ^ "Smart" quotes, apostrophes, ellipses, dashes
+    | Ext_old_dashes          -- ^ -- = em, - before number = en
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
 pandocExtensions :: Extensions

@@ -338,8 +338,6 @@ getDefaultExtensions "plain"           = plainExtensions
 getDefaultExtensions "org"             = extensionsFromList
                                           [Ext_citations,
                                            Ext_auto_identifiers]
-getDefaultExtensions "textile"         = extensionsFromList
-                                          [Ext_auto_identifiers]
 getDefaultExtensions "html"            = extensionsFromList
                                           [Ext_auto_identifiers,
                                            Ext_native_divs,
@@ -355,6 +353,10 @@ getDefaultExtensions "latex"           = extensionsFromList
                                            Ext_auto_identifiers]
 getDefaultExtensions "context"         = extensionsFromList
                                           [Ext_smart,
+                                           Ext_auto_identifiers]
+getDefaultExtensions "textile"         = extensionsFromList
+                                          [Ext_old_dashes,
+                                           Ext_smart,
                                            Ext_auto_identifiers]
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]
