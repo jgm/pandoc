@@ -29,6 +29,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Data structures and functions for representing markup extensions.
 -}
 module Text.Pandoc.Extensions ( Extension(..)
+                              , Extensions
+                              , emptyExtensions
+                              , extensionsFromList
+                              , extensionEnabled
+                              , enableExtension
+                              , disableExtension
                               , pandocExtensions
                               , plainExtensions
                               , strictExtensions
@@ -36,15 +42,29 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , githubMarkdownExtensions
                               , multimarkdownExtensions )
 where
-import Data.LargeWord (Word256)
-import Data.Bits ()
-import Data.Set (Set)
-import qualified Data.Set as Set
+import Data.Word (Word64)
+import Data.Bits (testBit, setBit, clearBit)
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
-newtype Extensions = Extensions { unExtensions :: Word256 }
+newtype Extensions = Extensions Word64
+  deriving (Show, Read, Eq, Ord, Bounded, Data, Typeable, Generic)
+
+extensionsFromList :: [Extension] -> Extensions
+extensionsFromList = foldr enableExtension emptyExtensions
+
+emptyExtensions :: Extensions
+emptyExtensions = Extensions 0
+
+extensionEnabled :: Extension -> Extensions -> Bool
+extensionEnabled x (Extensions exts) = testBit exts (fromEnum x)
+
+enableExtension :: Extension -> Extensions -> Extensions
+enableExtension x (Extensions exts) = Extensions (setBit exts (fromEnum x))
+
+disableExtension :: Extension -> Extensions -> Extensions
+disableExtension x (Extensions exts) = Extensions (clearBit exts (fromEnum x))
 
 -- | Individually selectable syntax extensions.
 data Extension =
@@ -112,8 +132,8 @@ data Extension =
     | Ext_shortcut_reference_links -- ^ Shortcut reference links
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
-pandocExtensions :: Set Extension
-pandocExtensions = Set.fromList
+pandocExtensions :: Extensions
+pandocExtensions = extensionsFromList
   [ Ext_footnotes
   , Ext_inline_notes
   , Ext_pandoc_title_block
@@ -157,8 +177,8 @@ pandocExtensions = Set.fromList
   , Ext_shortcut_reference_links
   ]
 
-plainExtensions :: Set Extension
-plainExtensions = Set.fromList
+plainExtensions :: Extensions
+plainExtensions = extensionsFromList
   [ Ext_table_captions
   , Ext_implicit_figures
   , Ext_simple_tables
@@ -175,8 +195,8 @@ plainExtensions = Set.fromList
   , Ext_strikeout
   ]
 
-phpMarkdownExtraExtensions :: Set Extension
-phpMarkdownExtraExtensions = Set.fromList
+phpMarkdownExtraExtensions :: Extensions
+phpMarkdownExtraExtensions = extensionsFromList
   [ Ext_footnotes
   , Ext_pipe_tables
   , Ext_raw_html
@@ -190,8 +210,8 @@ phpMarkdownExtraExtensions = Set.fromList
   , Ext_shortcut_reference_links
   ]
 
-githubMarkdownExtensions :: Set Extension
-githubMarkdownExtensions = Set.fromList
+githubMarkdownExtensions :: Extensions
+githubMarkdownExtensions = extensionsFromList
   [ Ext_angle_brackets_escapable
   , Ext_pipe_tables
   , Ext_raw_html
@@ -208,8 +228,8 @@ githubMarkdownExtensions = Set.fromList
   , Ext_shortcut_reference_links
   ]
 
-multimarkdownExtensions :: Set Extension
-multimarkdownExtensions = Set.fromList
+multimarkdownExtensions :: Extensions
+multimarkdownExtensions = extensionsFromList
   [ Ext_pipe_tables
   , Ext_raw_html
   , Ext_markdown_attribute
@@ -237,8 +257,8 @@ multimarkdownExtensions = Set.fromList
   , Ext_subscript
   ]
 
-strictExtensions :: Set Extension
-strictExtensions = Set.fromList
+strictExtensions :: Extensions
+strictExtensions = extensionsFromList
   [ Ext_raw_html
   , Ext_shortcut_reference_links
   ]

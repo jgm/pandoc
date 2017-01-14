@@ -47,7 +47,6 @@ import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( ExitCode (..), exitSuccess )
 import System.FilePath
 import System.Console.GetOpt
-import qualified Data.Set as Set
 import Data.Char ( toLower, toUpper )
 import Data.List ( intercalate, isPrefixOf, isSuffixOf, sort )
 import System.Directory ( getAppUserDataDirectory, findExecutable,
@@ -1295,7 +1294,7 @@ options =
                  (NoArg
                   (\_ -> do
                      let showExt x = drop 4 (show x) ++
-                                       if x `Set.member` pandocExtensions
+                                       if extensionEnabled x pandocExtensions
                                           then " +"
                                           else " -"
                      mapM_ (UTF8.hPutStrLn stdout . showExt)

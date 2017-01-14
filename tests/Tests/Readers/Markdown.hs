@@ -6,7 +6,6 @@ import Test.Framework
 import Tests.Helpers
 import Text.Pandoc.Arbitrary()
 import Text.Pandoc.Builder
-import qualified Data.Set as Set
 import Text.Pandoc
 
 markdown :: String -> Pandoc
@@ -16,7 +15,7 @@ markdownSmart :: String -> Pandoc
 markdownSmart = purely $  readMarkdown def { readerSmart = True }
 
 markdownCDL :: String -> Pandoc
-markdownCDL = purely $ readMarkdown def { readerExtensions = Set.insert
+markdownCDL = purely $ readMarkdown def { readerExtensions = enableExtension
                  Ext_compact_definition_lists $ readerExtensions def }
 
 markdownGH :: String -> Pandoc
@@ -30,7 +29,7 @@ infix 4 =:
 testBareLink :: (String, Inlines) -> Test
 testBareLink (inp, ils) =
   test (purely $ readMarkdown def{ readerExtensions =
-             Set.fromList [Ext_autolink_bare_uris, Ext_raw_html] })
+             extensionsFromList [Ext_autolink_bare_uris, Ext_raw_html] })
        inp (inp, doc $ para ils)
 
 autolink :: String -> Inlines
@@ -303,7 +302,7 @@ tests = [ testGroup "inline code"
             =?> para (note (para "See [^1]"))
           ]
         , testGroup "lhs"
-          [ test (purely $ readMarkdown def{ readerExtensions = Set.insert
+          [ test (purely $ readMarkdown def{ readerExtensions = enableExtension
                        Ext_literate_haskell $ readerExtensions def })
               "inverse bird tracks and html" $
               "> a\n\n< b\n\n<div>\n"

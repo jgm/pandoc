@@ -45,17 +45,15 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , isEnabled
                            ) where
 import Text.Pandoc.Extensions
-import qualified Data.Set as Set
 import Data.Default
 import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.MediaBag (MediaBag)
 import Data.Data (Data)
-import Data.Set (Set)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
 data ReaderOptions = ReaderOptions{
-         readerExtensions      :: Set Extension  -- ^ Syntax extensions
+         readerExtensions      :: Extensions  -- ^ Syntax extensions
        , readerSmart           :: Bool -- ^ Smart punctuation
        , readerStandalone      :: Bool -- ^ Standalone document with header
        , readerParseRaw        :: Bool -- ^ Parse raw HTML, LaTeX
@@ -165,7 +163,7 @@ data WriterOptions = WriterOptions
   , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
   , writerNumberOffset     :: [Int]  -- ^ Starting number for section, subsection, ...
   , writerSectionDivs      :: Bool   -- ^ Put sections in div tags in HTML
-  , writerExtensions       :: Set Extension -- ^ Markdown extensions that can be used
+  , writerExtensions       :: Extensions -- ^ Markdown extensions that can be used
   , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
   , writerDpi              :: Int    -- ^ Dpi for pixel to/from inch/cm conversions
   , writerWrapText         :: WrapOption  -- ^ Option for wrapping text
@@ -248,4 +246,4 @@ instance Default WriterOptions where
 
 -- | Returns True if the given extension is enabled.
 isEnabled :: Extension -> WriterOptions -> Bool
-isEnabled ext opts = ext `Set.member` (writerExtensions opts)
+isEnabled ext opts = ext `extensionEnabled` (writerExtensions opts)

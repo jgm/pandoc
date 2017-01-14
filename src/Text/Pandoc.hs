@@ -184,15 +184,13 @@ import Text.Pandoc.Class
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
-import Data.Set (Set)
-import qualified Data.Set as Set
 import Text.Parsec
 import Text.Parsec.Error
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad.Except (throwError)
 
 parseFormatSpec :: String
-                -> Either ParseError (String, Set Extension -> Set Extension)
+                -> Either ParseError (String, Extensions -> Extensions)
 parseFormatSpec = parse formatSpec ""
   where formatSpec = do
           name <- formatName
@@ -208,8 +206,8 @@ parseFormatSpec = parse formatSpec ""
                          | name == "lhs" -> return Ext_literate_haskell
                          | otherwise -> fail $ "Unknown extension: " ++ name
           return $ case polarity of
-                        '-'  -> Set.delete ext
-                        _    -> Set.insert ext
+                        '-'  -> disableExtension ext
+                        _    -> enableExtension ext
 
 -- TODO: when we get the PandocMonad stuff all sorted out,
 -- we can simply these types considerably.  Errors/MediaBag can be
@@ -330,25 +328,29 @@ writers = [
   ,("tei"          , StringWriter writeTEI)
   ]
 
-getDefaultExtensions :: String -> Set Extension
+getDefaultExtensions :: String -> Extensions
 getDefaultExtensions "markdown_strict" = strictExtensions
 getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
 getDefaultExtensions "markdown_mmd" = multimarkdownExtensions
 getDefaultExtensions "markdown_github" = githubMarkdownExtensions
 getDefaultExtensions "markdown"        = pandocExtensions
 getDefaultExtensions "plain"           = plainExtensions
-getDefaultExtensions "org"             = Set.fromList [Ext_citations,
-                                                       Ext_auto_identifiers]
-getDefaultExtensions "textile"         = Set.fromList [Ext_auto_identifiers]
-getDefaultExtensions "html"            = Set.fromList [Ext_auto_identifiers,
-                                                       Ext_native_divs,
-                                                       Ext_native_spans]
+getDefaultExtensions "org"             = extensionsFromList
+                                          [Ext_citations, Ext_auto_identifiers]
+getDefaultExtensions "textile"         = extensionsFromList
+                                          [Ext_auto_identifiers]
+getDefaultExtensions "html"            = extensionsFromList
+                                          [Ext_auto_identifiers,
+                                           Ext_native_divs,
+                                           Ext_native_spans]
 getDefaultExtensions "html5"           = getDefaultExtensions "html"
-getDefaultExtensions "epub"            = Set.fromList [Ext_raw_html,
-                                                       Ext_native_divs,
-                                                       Ext_native_spans,
-                                                       Ext_epub_html_exts]
-getDefaultExtensions _                 = Set.fromList [Ext_auto_identifiers]
+getDefaultExtensions "epub"            = extensionsFromList
+                                          [Ext_raw_html,
+                                           Ext_native_divs,
+                                           Ext_native_spans,
+                                           Ext_epub_html_exts]
+getDefaultExtensions _                 = extensionsFromList
+                                          [Ext_auto_identifiers]
 
 -- | Retrieve reader based on formatSpec (format+extensions).
 getReader :: PandocMonad m => String -> Either String (Reader m)

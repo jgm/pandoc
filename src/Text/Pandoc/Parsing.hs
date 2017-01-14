@@ -1031,11 +1031,11 @@ defaultParserState =
 
 -- | Succeed only if the extension is enabled.
 guardEnabled :: (Stream s m a,  HasReaderOptions st) => Extension -> ParserT s st m ()
-guardEnabled ext = getOption readerExtensions >>= guard . Set.member ext
+guardEnabled ext = getOption readerExtensions >>= guard . extensionEnabled ext
 
 -- | Succeed only if the extension is disabled.
 guardDisabled :: (Stream s m a, HasReaderOptions st) => Extension -> ParserT s st m ()
-guardDisabled ext = getOption readerExtensions >>= guard . not . Set.member ext
+guardDisabled ext = getOption readerExtensions >>= guard . not . extensionEnabled ext
 
 -- | Update the position on which the last string ended.
 updateLastStrPos :: (Stream s m a, HasLastStrPosition st) => ParserT s st m ()
@@ -1090,10 +1090,10 @@ registerHeader (ident,classes,kvs) header' = do
   ids <- extractIdentifierList <$> getState
   exts <- getOption readerExtensions
   let insert' = M.insertWith (\_new old -> old)
-  if null ident && Ext_auto_identifiers `Set.member` exts
+  if null ident && Ext_auto_identifiers `extensionEnabled` exts
      then do
        let id' = uniqueIdent (B.toList header') ids
-       let id'' = if Ext_ascii_identifiers `Set.member` exts
+       let id'' = if Ext_ascii_identifiers `extensionEnabled` exts
                      then catMaybes $ map toAsciiChar id'
                      else id'
        updateState $ updateIdentifierList $ Set.insert id'

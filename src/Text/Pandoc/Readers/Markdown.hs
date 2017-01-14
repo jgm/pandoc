@@ -61,7 +61,6 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockT
 import Control.Monad
 import System.FilePath (takeExtension, addExtension)
 import Text.HTML.TagSoup
-import qualified Data.Set as Set
 import Text.Printf (printf)
 import Debug.Trace (trace)
 import Data.Monoid ((<>))
@@ -310,11 +309,11 @@ toMetaValue opts x = toMeta <$> readMarkdown opts' (T.unpack x)
          | otherwise         -> MetaInlines xs
         Pandoc _ bs           -> MetaBlocks bs
     endsWithNewline t = T.pack "\n" `T.isSuffixOf` t
-    opts' = opts{readerExtensions=readerExtensions opts `Set.difference` meta_exts}
-    meta_exts = Set.fromList [ Ext_pandoc_title_block
-                             , Ext_mmd_title_block
-                             , Ext_yaml_metadata_block
-                             ]
+    opts' = opts{readerExtensions =
+                  disableExtension Ext_pandoc_title_block $
+                  disableExtension Ext_mmd_title_block $
+                  disableExtension Ext_yaml_metadata_block $
+                  readerExtensions opts }
 
 yamlToMeta :: PandocMonad m => ReaderOptions -> Yaml.Value -> m MetaValue
 yamlToMeta opts (Yaml.String t) = toMetaValue opts t
@@ -534,8 +533,9 @@ header = setextHeader <|> atxHeader <?> "header"
 atxChar :: PandocMonad m => MarkdownParser m Char
 atxChar = do
   exts <- getOption readerExtensions
-  return $ if Set.member Ext_literate_haskell exts
-    then '=' else '#'
+  return $ if extensionEnabled Ext_literate_haskell exts
+              then '='
+              else '#'
 
 atxHeader :: PandocMonad m => MarkdownParser m (F Blocks)
 atxHeader = try $ do
@@ -1013,7 +1013,7 @@ para = try $ do
               result' <- result
               case B.toList result' of
                    [Image attr alt (src,tit)]
-                     | Ext_implicit_figures `Set.member` exts ->
+                     | Ext_implicit_figures `extensionEnabled` exts ->
                         -- the fig: at beginning of title indicates a figure
                         return $ B.para $ B.singleton
                                $ Image attr alt (src,'f':'i':'g':':':tit)
