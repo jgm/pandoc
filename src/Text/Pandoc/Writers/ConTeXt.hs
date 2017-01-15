@@ -111,7 +111,7 @@ toContextDir _            = ""
 -- | escape things as needed for ConTeXt
 escapeCharForConTeXt :: WriterOptions -> Char -> String
 escapeCharForConTeXt opts ch =
- let ligatures = writerTeXLigatures opts in
+ let ligatures = isEnabled Ext_smart opts in
  case ch of
     '{'    -> "\\{"
     '}'    -> "\\}"

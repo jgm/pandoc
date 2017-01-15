@@ -272,7 +272,7 @@ stringToLaTeX  _     []     = return ""
 stringToLaTeX  ctx (x:xs) = do
   opts <- gets stOptions
   rest <- stringToLaTeX ctx xs
-  let ligatures = writerTeXLigatures opts && ctx == TextString
+  let ligatures = isEnabled Ext_smart opts && ctx == TextString
   let isUrl = ctx == URLString
   when (x == '€') $
      modify $ \st -> st{ stUsesEuro = True }
@@ -938,11 +938,11 @@ inlineToLaTeX (Quoted qt lst) = do
        let inner = s1 <> contents <> s2
        return $ case qt of
                 DoubleQuote ->
-                   if writerTeXLigatures opts
+                   if isEnabled Ext_smart opts
                       then text "``" <> inner <> text "''"
                       else char '\x201C' <> inner <> char '\x201D'
                 SingleQuote ->
-                   if writerTeXLigatures opts
+                   if isEnabled Ext_smart opts
                       then char '`' <> inner <> char '\''
                       else char '\x2018' <> inner <> char '\x2019'
 inlineToLaTeX (Str str) = liftM text $ stringToLaTeX TextString str

@@ -697,20 +697,6 @@ Options affecting specific writers
     be numbered "1.5", specify `--number-offset=1,4`.
     Offsets are 0 by default.  Implies `--number-sections`.
 
-`--no-tex-ligatures`
-
-:   Do not use the TeX ligatures for quotation marks, apostrophes,
-    and dashes (`` `...' ``, ` ``..'' `, `--`, `---`) when
-    writing or reading LaTeX or ConTeXt.  In reading LaTeX,
-    parse the characters `` ` ``, `'`, and `-` literally, rather
-    than parsing ligatures for quotation marks and dashes.  In
-    writing LaTeX or ConTeXt, print unicode quotation mark and
-    dash characters literally, rather than converting them to
-    the standard ASCII TeX ligatures.  Note: If you use literal
-    curly quotes, dashes, and ellipses in your source, then you
-    may want to use disable the `smart` extension in your
-    source format.
-
 `--listings`
 
 :   Use the [`listings`] package for LaTeX code blocks
@@ -3185,15 +3171,23 @@ Typography
 
 Interpret straight quotes as curly quotes, `---` as em-dashes,
 `--` as en-dashes, and `...` as ellipses. Nonbreaking spaces are
-inserted after certain abbreviations, such as "Mr."
+inserted after certain abbreviations, such as "Mr."  This
+option currently affects the input formats `markdown`,
+`commonmark`, `latex`, `mediawiki`, `org`, `rst`, and `twiki`,
+and the output formats `markdown`, `latex`, and `context`.
 
 Note: If you are *writing* Markdown, then the `smart` extension
 has the reverse effect: what would have been curly quotes comes
 out straight.
 
-If your LaTeX template or any included header file call
-for the [`csquotes`] package, pandoc will detect this
-automatically and use `\enquote{...}` for quoted text.
+In LaTeX, `smart` means to use the standard TeX ligatures
+for quotation marks (` `` ` and ` '' ` for double quotes,
+`` ` `` and `` ' `` for single quotes) and dashes (`--` for
+en-dash and `---` for em-dash).  If `smart` is disabled,
+then in reading LaTeX pandoc will parse these characters
+literally.  In writing LaTeX, enabling `smart` tells pandoc
+to use the ligatures when possible; if `smart` is disabled
+pandoc will use unicode quotation mark and dash characters.
 
 Citations
 ---------

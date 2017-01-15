@@ -146,7 +146,6 @@ convertWithOpts opts args = do
               , optSlideLevel            = slideLevel
               , optSetextHeaders         = setextHeaders
               , optAscii                 = ascii
-              , optTeXLigatures          = texLigatures
               , optDefaultImageExtension = defaultImageExtension
               , optExtractMedia          = mbExtractMedia
               , optTrace                 = trace
@@ -330,7 +329,6 @@ convertWithOpts opts args = do
                             writerHighlight        = highlight,
                             writerHighlightStyle   = highlightStyle,
                             writerSetextHeaders    = setextHeaders,
-                            writerTeXLigatures     = texLigatures,
                             writerEpubMetadata     = epubMetadata,
                             writerEpubStylesheet   = epubStylesheet,
                             writerEpubFonts        = epubFonts,
@@ -570,7 +568,6 @@ data Opt = Opt
     , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
-    , optTeXLigatures      :: Bool       -- ^ Use TeX ligatures for quotes/dashes
     , optDefaultImageExtension :: String -- ^ Default image extension
     , optExtractMedia      :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrace             :: Bool       -- ^ Print debug information
@@ -634,7 +631,6 @@ defaultOpts = Opt
     , optSlideLevel            = Nothing
     , optSetextHeaders         = True
     , optAscii                 = False
-    , optTeXLigatures          = True
     , optDefaultImageExtension = ""
     , optExtractMedia          = Nothing
     , optTrace                 = False
@@ -954,11 +950,6 @@ options =
                            _      -> err 57 "could not parse number-offset")
                  "NUMBERS")
                  "" -- "Starting number for sections, subsections, etc."
-
-    , Option "" ["no-tex-ligatures"]
-                 (NoArg
-                  (\opt -> return opt { optTeXLigatures = False }))
-                 "" -- "Don't use tex ligatures for quotes, dashes"
 
     , Option "" ["listings"]
                  (NoArg

@@ -178,7 +178,6 @@ data WriterOptions = WriterOptions
   , writerHighlight        :: Bool       -- ^ Highlight source code
   , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
   , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
-  , writerTeXLigatures     :: Bool       -- ^ Use tex ligatures quotes, dashes in latex
   , writerEpubVersion      :: Maybe EPUBVersion -- ^ Nothing or EPUB version
   , writerEpubMetadata     :: String     -- ^ Metadata to include in EPUB
   , writerEpubStylesheet   :: Maybe String -- ^ EPUB stylesheet specified at command line
@@ -224,7 +223,6 @@ instance Default WriterOptions where
                       , writerHighlight        = False
                       , writerHighlightStyle   = pygments
                       , writerSetextHeaders    = True
-                      , writerTeXLigatures     = True
                       , writerEpubVersion      = Nothing
                       , writerEpubMetadata     = ""
                       , writerEpubStylesheet   = Nothing
