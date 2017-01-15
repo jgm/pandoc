@@ -75,7 +75,7 @@ Simple table indented two spaces:
 Multiline table with caption:
 
 {|
-|+ Here's the caption. It may span multiple lines.
+|+ Here’s the caption. It may span multiple lines.
 !align="center" width="15%"| Centered Header
 !width="13%"| Left Aligned
 !align="right" width="16%"| Right Aligned
@@ -89,7 +89,7 @@ Multiline table with caption:
 |align="center"| Second
 | row
 |align="right"| 5.0
-| Here's another one. Note the blank line between rows.
+| Here’s another one. Note the blank line between rows.
 |}
 
 Multiline table without caption:
@@ -108,7 +108,7 @@ Multiline table without caption:
 |align="center"| Second
 | row
 |align="right"| 5.0
-| Here's another one. Note the blank line between rows.
+| Here’s another one. Note the blank line between rows.
 |}
 
 Table without column headers:
@@ -141,6 +141,6 @@ Multiline table without column headers:
 |align="center"| Second
 | row
 |align="right"| 5.0
-| Here's another one. Note the blank line between rows.
+| Here’s another one. Note the blank line between rows.
 |}
 

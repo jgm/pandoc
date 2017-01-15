@@ -8,8 +8,11 @@ import Text.Pandoc
 import Tests.Helpers
 import Text.Pandoc.Arbitrary()
 
+defopts :: WriterOptions
+defopts = def{ writerExtensions = pandocExtensions }
+
 markdown :: (ToPandoc a) => a -> String
-markdown = purely (writeMarkdown def) . toPandoc
+markdown = purely (writeMarkdown defopts) . toPandoc
 
 markdownWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
 markdownWithOpts opts x = purely (writeMarkdown opts) $ toPandoc x
@@ -84,7 +87,7 @@ noteTestDoc =
 
 noteTests :: Test
 noteTests = testGroup "note and reference location"
-  [ test (markdownWithOpts def)
+  [ test (markdownWithOpts defopts)
     "footnotes at the end of a document" $
     noteTestDoc =?>
     (unlines $ [ "First Header"
@@ -105,7 +108,7 @@ noteTests = testGroup "note and reference location"
                , ""
                , "[^2]: The second note."
                ])
-  , test (markdownWithOpts def{writerReferenceLocation=EndOfBlock})
+  , test (markdownWithOpts defopts{writerReferenceLocation=EndOfBlock})
     "footnotes at the end of blocks" $
     noteTestDoc =?>
     (unlines $ [ "First Header"
@@ -126,7 +129,7 @@ noteTests = testGroup "note and reference location"
                , ""
                , "Some more text."
                ])
-  , test (markdownWithOpts def{writerReferenceLocation=EndOfBlock, writerReferenceLinks=True})
+  , test (markdownWithOpts defopts{writerReferenceLocation=EndOfBlock, writerReferenceLinks=True})
     "footnotes and reference links at the end of blocks" $
     noteTestDoc =?>
     (unlines $ [ "First Header"
@@ -149,7 +152,7 @@ noteTests = testGroup "note and reference location"
                , ""
                , "Some more text."
                ])
-  , test (markdownWithOpts def{writerReferenceLocation=EndOfSection})
+  , test (markdownWithOpts defopts{writerReferenceLocation=EndOfSection})
     "footnotes at the end of section" $
     noteTestDoc =?>
     (unlines $ [ "First Header"
@@ -179,7 +182,7 @@ shortcutLinkRefsTests =
       (=:) :: (ToString a, ToPandoc a)
 
         => String -> (a, String) -> Test
-      (=:) = test (purely (writeMarkdown def{writerReferenceLinks = True}) . toPandoc)
+      (=:) = test (purely (writeMarkdown defopts{writerReferenceLinks = True}) . toPandoc)
   in testGroup "Shortcut reference links"
      [ "Simple link (shortcutable)"
            =: (para (link "/url" "title" "foo"))

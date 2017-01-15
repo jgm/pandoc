@@ -97,7 +97,7 @@
     <cell><p>Second</p></cell>
     <cell><p>row</p></cell>
     <cell><p>5.0</p></cell>
-    <cell><p>Here's another one. Note the blank line between rows.</p></cell>
+    <cell><p>Here’s another one. Note the blank line between rows.</p></cell>
   </row>
 </table>
 <p>Multiline table without caption:</p>
@@ -118,7 +118,7 @@
     <cell><p>Second</p></cell>
     <cell><p>row</p></cell>
     <cell><p>5.0</p></cell>
-    <cell><p>Here's another one. Note the blank line between rows.</p></cell>
+    <cell><p>Here’s another one. Note the blank line between rows.</p></cell>
   </row>
 </table>
 <p>Table without column headers:</p>
@@ -166,6 +166,6 @@
     <cell><p>Second</p></cell>
     <cell><p>row</p></cell>
     <cell><p>5.0</p></cell>
-    <cell><p>Here's another one. Note the blank line between rows.</p></cell>
+    <cell><p>Here’s another one. Note the blank line between rows.</p></cell>
   </row>
 </table>

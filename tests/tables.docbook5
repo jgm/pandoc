@@ -222,7 +222,7 @@
 </para>
 <table>
   <title>
-    Here's the caption. It may span multiple lines.
+    Here’s the caption. It may span multiple lines.
   </title>
   <tgroup cols="4">
     <colspec colwidth="15*" align="center" />
@@ -271,7 +271,7 @@
           5.0
         </entry>
         <entry>
-          Here's another one. Note the blank line between rows.
+          Here’s another one. Note the blank line between rows.
         </entry>
       </row>
     </tbody>
@@ -328,7 +328,7 @@
           5.0
         </entry>
         <entry>
-          Here's another one. Note the blank line between rows.
+          Here’s another one. Note the blank line between rows.
         </entry>
       </row>
     </tbody>
@@ -424,7 +424,7 @@
           5.0
         </entry>
         <entry>
-          Here's another one. Note the blank line between rows.
+          Here’s another one. Note the blank line between rows.
         </entry>
       </row>
     </tbody>

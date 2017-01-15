@@ -47,13 +47,13 @@ tests = [ testGroup "markdown"
           [ testGroup "writer"
             $ writerTests "markdown" ++ lhsWriterTests "markdown"
           , testGroup "reader"
-            [ test "basic" ["-r", "markdown+smart", "-w", "native", "-s"]
+            [ test "basic" ["-r", "markdown", "-w", "native", "-s"]
               "testsuite.txt" "testsuite.native"
             , test "tables" ["-r", "markdown", "-w", "native", "--columns=80"]
               "tables.txt" "tables.native"
             , test "pipe tables" ["-r", "markdown", "-w", "native", "--columns=80"]
               "pipe-tables.txt" "pipe-tables.native"
-            , test "more" ["-r", "markdown+smart", "-w", "native", "-s"]
+            , test "more" ["-r", "markdown", "-w", "native", "-s"]
               "markdown-reader-more.txt" "markdown-reader-more.native"
             , lhsReaderTest "markdown+lhs"
             ]

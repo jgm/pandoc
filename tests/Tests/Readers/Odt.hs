@@ -1,18 +1,16 @@
 module Tests.Readers.Odt (tests) where
 
 import Control.Monad ( liftM )
-import Text.Pandoc.Options
-import Text.Pandoc.Readers.Native
-import Text.Pandoc.Readers.Markdown
-import Text.Pandoc.Definition
+import Text.Pandoc
 import Text.Pandoc.Class (runIO)
 import Tests.Helpers
 import Test.Framework
 import qualified Data.ByteString.Lazy as B
-import Text.Pandoc.Readers.Odt
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
-import Text.Pandoc.Error
+
+defopts :: ReaderOptions
+defopts = def{ readerExtensions = getDefaultExtensions "odt" }
 
 tests :: [Test]
 tests = testsComparingToMarkdown ++ testsComparingToNative
@@ -71,7 +69,9 @@ compareOdtToMarkdown :: TestCreator
 compareOdtToMarkdown opts odtPath markdownPath = do
    markdownFile <- Prelude.readFile markdownPath
    odtFile      <- B.readFile       odtPath
-   markdown     <- getNoNormVia id "markdown" <$> runIO (readMarkdown opts markdownFile)
+   markdown     <- getNoNormVia id "markdown" <$>
+                      runIO (readMarkdown def{ readerExtensions = pandocExtensions }
+                              markdownFile)
    odt          <- getNoNormVia id "odt"      <$> runIO (readOdt      opts odtFile)
    return (odt,markdown)
 
@@ -81,7 +81,7 @@ createTest :: TestCreator
            -> FilePath -> FilePath
            -> Test
 createTest   creator name path1 path2 =
-  buildTest $ liftM (test id name) (creator def path1 path2)
+  buildTest $ liftM (test id name) (creator defopts path1 path2)
 
 {-
 --

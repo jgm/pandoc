@@ -9,18 +9,20 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 
 markdown :: String -> Pandoc
-markdown = purely $ readMarkdown def
+markdown = purely $ readMarkdown def { readerExtensions =
+                            disableExtension Ext_smart pandocExtensions }
 
 markdownSmart :: String -> Pandoc
 markdownSmart = purely $  readMarkdown def { readerExtensions =
-                             enableExtension Ext_smart $ readerExtensions def }
+                             enableExtension Ext_smart pandocExtensions }
 
 markdownCDL :: String -> Pandoc
 markdownCDL = purely $ readMarkdown def { readerExtensions = enableExtension
-                 Ext_compact_definition_lists $ readerExtensions def }
+                 Ext_compact_definition_lists pandocExtensions }
 
 markdownGH :: String -> Pandoc
-markdownGH = purely $ readMarkdown def { readerExtensions = githubMarkdownExtensions }
+markdownGH = purely $ readMarkdown def {
+                readerExtensions = githubMarkdownExtensions }
 
 infix 4 =:
 (=:) :: ToString c
@@ -304,7 +306,7 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "lhs"
           [ test (purely $ readMarkdown def{ readerExtensions = enableExtension
-                       Ext_literate_haskell $ readerExtensions def })
+                       Ext_literate_haskell pandocExtensions })
               "inverse bird tracks and html" $
               "> a\n\n< b\n\n<div>\n"
               =?> codeBlockWith ("",["sourceCode","literate","haskell"],[]) "a"

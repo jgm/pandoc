@@ -289,14 +289,6 @@ convertWithOpts opts args = do
                                                      uriFragment = "" }
                                 _ -> Nothing
 
-  {- TODO - smart is now an extension, but we should prob make
-   - texligatures one too...
-  let smartExt = if laTeXInput
-                    then texLigatures
-                    else smart || (texLigatures &&
-                                   (laTeXOutput || conTeXtOutput))
-  -}
-
   let readerOpts = def{ readerStandalone = standalone'
                       , readerParseRaw = parseRaw
                       , readerColumns = columns

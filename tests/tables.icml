@@ -476,14 +476,14 @@
   <Cell Name="3:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-        <Content>Here's another one. Note the blank line between rows.</Content>
+        <Content>Here’s another one. Note the blank line between rows.</Content>
       </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
 </Table>
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TableCaption">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Content>Here's the caption. It may span multiple lines.</Content>
+    <Content>Here’s the caption. It may span multiple lines.</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
@@ -578,7 +578,7 @@
   <Cell Name="3:2" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar &gt; LeftAlign">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-        <Content>Here's another one. Note the blank line between rows.</Content>
+        <Content>Here’s another one. Note the blank line between rows.</Content>
       </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>
@@ -748,7 +748,7 @@
   <Cell Name="3:1" AppliedCellStyle="CellStyle/Cell">
     <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/TablePar">
       <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-        <Content>Here's another one. Note the blank line between rows.</Content>
+        <Content>Here’s another one. Note the blank line between rows.</Content>
       </CharacterStyleRange>
     </ParagraphStyleRange>
   </Cell>

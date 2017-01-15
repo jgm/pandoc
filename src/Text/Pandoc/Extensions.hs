@@ -177,6 +177,7 @@ pandocExtensions = extensionsFromList
   , Ext_implicit_header_references
   , Ext_line_blocks
   , Ext_shortcut_reference_links
+  , Ext_smart
   ]
 
 plainExtensions :: Extensions

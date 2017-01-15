@@ -1,7 +1,6 @@
 module Tests.Readers.Docx (tests) where
 
-import Text.Pandoc.Options
-import Text.Pandoc.Readers.Native
+import Text.Pandoc
 import Text.Pandoc.Definition
 import Tests.Helpers
 import Test.Framework
@@ -25,6 +24,9 @@ data NoNormPandoc = NoNormPandoc {unNoNorm :: Pandoc}
 
 noNorm :: Pandoc -> NoNormPandoc
 noNorm = NoNormPandoc
+
+defopts :: ReaderOptions
+defopts = def{ readerExtensions = getDefaultExtensions "docx" }
 
 instance ToString NoNormPandoc where
   toString d = purely (writeNative def{ writerTemplate = s }) $ toPandoc d
@@ -57,7 +59,7 @@ testCompareWithOpts opts name docxFile nativeFile =
   buildTest $ testCompareWithOptsIO opts name docxFile nativeFile
 
 testCompare :: String -> FilePath -> FilePath -> Test
-testCompare = testCompareWithOpts def
+testCompare = testCompareWithOpts defopts
 
 testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> IO Test
 testForWarningsWithOptsIO opts name docxFile expected = do
@@ -70,7 +72,7 @@ testForWarningsWithOpts opts name docxFile expected =
   buildTest $ testForWarningsWithOptsIO opts name docxFile expected
 
 -- testForWarnings :: String -> FilePath -> [String] -> Test
--- testForWarnings = testForWarningsWithOpts def
+-- testForWarnings = testForWarningsWithOpts defopts
 
 getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
 getMedia archivePath mediaPath = do
@@ -95,7 +97,7 @@ compareMediaPathIO mediaPath mediaBag docxPath = do
 compareMediaBagIO :: FilePath -> IO Bool
 compareMediaBagIO docxFile = do
     df <- B.readFile docxFile
-    mb <- runIOorExplode (readDocx def df >> P.getMediaBag)
+    mb <- runIOorExplode (readDocx defopts df >> P.getMediaBag)
     bools <- mapM
              (\(fp, _, _) -> compareMediaPathIO fp mb docxFile)
              (mediaDirectory mb)

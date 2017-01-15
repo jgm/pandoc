@@ -47,12 +47,12 @@ Multiline table with caption:
 | First       | row        | 12.0         | Example of a row that      |
 |             |            |              | spans multiple lines.      |
 +-------------+------------+--------------+----------------------------+
-| Second      | row        | 5.0          | Here's another one. Note   |
+| Second      | row        | 5.0          | Here’s another one. Note   |
 |             |            |              | the blank line between     |
 |             |            |              | rows.                      |
 +-------------+------------+--------------+----------------------------+
 
-Table: Here's the caption. It may span multiple lines.
+Table: Here’s the caption. It may span multiple lines.
 
 Multiline table without caption:
 
@@ -63,7 +63,7 @@ Multiline table without caption:
 | First       | row        | 12.0         | Example of a row that      |
 |             |            |              | spans multiple lines.      |
 +-------------+------------+--------------+----------------------------+
-| Second      | row        | 5.0          | Here's another one. Note   |
+| Second      | row        | 5.0          | Here’s another one. Note   |
 |             |            |              | the blank line between     |
 |             |            |              | rows.                      |
 +-------------+------------+--------------+----------------------------+
@@ -84,7 +84,7 @@ Multiline table without column headers:
 | First       | row        | 12.0         | Example of a row that      |
 |             |            |              | spans multiple lines.      |
 +-------------+------------+--------------+----------------------------+
-| Second      | row        | 5.0          | Here's another one. Note   |
+| Second      | row        | 5.0          | Here’s another one. Note   |
 |             |            |              | the blank line between     |
 |             |            |              | rows.                      |
 +-------------+------------+--------------+----------------------------+
