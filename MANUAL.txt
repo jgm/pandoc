@@ -3198,7 +3198,9 @@ will be numbered sequentially.
 
 The footnotes themselves need not be placed at the end of the
 document.  They may appear anywhere except inside other block elements
-(lists, block quotes, tables, etc.).
+(lists, block quotes, tables, etc.).  Each footnote should be
+separated from surrounding content (including other footnotes)
+by blank lines.
 
 #### Extension: `inline_notes` ####
 
