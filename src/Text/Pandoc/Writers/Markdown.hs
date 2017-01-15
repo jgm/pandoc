@@ -280,7 +280,10 @@ escapeString opts = escapeStringUsing markdownEscapes
                 (if isEnabled Ext_tex_math_dollars opts
                     then ('$':)
                     else id) $
-                "\\`*_[]#"
+                "\\`*_[]#" ++
+                if isEnabled Ext_smart opts
+                   then "\"'"
+                   else ""
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: PandocMonad m => WriterOptions -> [Block] -> m Doc
@@ -949,10 +952,14 @@ inlineToMarkdown opts (SmallCaps lst) = do
      else inlineListToMarkdown opts $ capitalize lst
 inlineToMarkdown opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
-  return $ "‘" <> contents <> "’"
+  return $ if isEnabled Ext_smart opts
+              then "'" <> contents <> "'"
+              else "‘" <> contents <> "’"
 inlineToMarkdown opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMarkdown opts lst
-  return $ "“" <> contents <> "”"
+  return $ if isEnabled Ext_smart opts
+              then "\"" <> contents <> "\""
+              else "“" <> contents <> "”"
 inlineToMarkdown opts (Code attr str) = do
   let tickGroups = filter (\s -> '`' `elem` s) $ group str
   let longest    = if null tickGroups
@@ -969,9 +976,13 @@ inlineToMarkdown opts (Code attr str) = do
      else return $ text (marker ++ spacer ++ str ++ spacer ++ marker) <> attrs
 inlineToMarkdown opts (Str str) = do
   isPlain <- asks envPlain
-  if isPlain
-     then return $ text str
-     else return $ text $ escapeString opts str
+  let str' = (if isEnabled Ext_smart opts
+                 then unsmartify opts
+                 else id) $
+              if isPlain
+                 then str
+                 else escapeString opts str
+  return $ text str'
 inlineToMarkdown opts (Math InlineMath str) =
   case writerHTMLMathMethod opts of
        WebTeX url ->
@@ -1125,4 +1136,16 @@ makeMathPlainer = walk go
   where
   go (Emph xs) = Span nullAttr xs
   go x = x
+
+unsmartify :: WriterOptions -> String -> String
+unsmartify opts ('\8217':xs) = '\'' : unsmartify opts xs
+unsmartify opts ('\8230':xs) = "..." ++ unsmartify opts xs
+unsmartify opts ('\8211':xs)
+  | isEnabled Ext_old_dashes opts = '-' : unsmartify opts xs
+  | otherwise                     = "--" ++ unsmartify opts xs
+unsmartify opts ('\8212':xs)
+  | isEnabled Ext_old_dashes opts = "--" ++ unsmartify opts xs
+  | otherwise                     = "---" ++ unsmartify opts xs
+unsmartify opts (x:xs) = x : unsmartify opts xs
+unsmartify _ [] = []
 

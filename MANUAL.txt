@@ -3383,17 +3383,18 @@ example, `markdown+hard_line_breaks` is Markdown with hard line breaks.
 
 #### Extension: `smart` ####
 
-Produce typographically correct output, converting straight
-quotes to curly quotes, `---` to em-dashes, `--` to en-dashes,
-and `...` to ellipses. Nonbreaking spaces are inserted after
-certain abbreviations, such as "Mr." (Note: This option is
-selected automatically when the output format is `latex` or
-`context`, unless `--no-tex-ligatures` is used.  It has no
-effect for `latex` input.)
+Interpret straight quotes as curly quotes, `---` as em-dashes,
+`--` as en-dashes, and `...` as ellipses. Nonbreaking spaces are
+inserted after certain abbreviations, such as "Mr."
 
-Note:  if your LaTeX template or any included header file call
-for the [`csquotes`] package, pandoc will detect this
-automatically and use `\enquote{...}` for quoted text.
+Notes:
+
+  * This extension option is selected automatically when the
+    output format is `latex` or `context`, unless
+    `--no-tex-ligatures` is used.  It has no effect for `latex` input.
+  * If your LaTeX template or any included header file call
+    for the [`csquotes`] package, pandoc will detect this
+    automatically and use `\enquote{...}` for quoted text.
 
 #### Extension: `old_dashes` ####
 
