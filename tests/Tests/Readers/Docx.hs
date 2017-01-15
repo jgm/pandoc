@@ -1,13 +1,11 @@
 module Tests.Readers.Docx (tests) where
 
 import Text.Pandoc
-import Text.Pandoc.Definition
 import Tests.Helpers
 import Test.Framework
 import Test.HUnit (assertBool)
 import Test.Framework.Providers.HUnit
 import qualified Data.ByteString.Lazy as B
-import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
