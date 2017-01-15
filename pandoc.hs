@@ -335,7 +335,6 @@ convertWithOpts opts args = do
                             writerEpubChapterLevel = epubChapterLevel,
                             writerTOCDepth         = epubTOCDepth,
                             writerReferenceDoc     = referenceDoc,
-                            writerMediaBag         = mempty,
                             writerVerbose          = verbose,
                             writerLaTeXArgs        = latexEngineArgs
                           }
@@ -394,10 +393,9 @@ convertWithOpts opts args = do
               applyTransforms transforms >=>
               applyFilters datadir filters' [format]) doc
 
-    let writerOptions' = writerOptions{ writerMediaBag = media }
     case writer of
       -- StringWriter f -> f writerOptions doc' >>= writerFn outputFile
-      ByteStringWriter f -> f writerOptions' doc' >>= writeFnBinary outputFile
+      ByteStringWriter f -> f writerOptions doc' >>= writeFnBinary outputFile
       StringWriter f
         | pdfOutput -> do
                 -- make sure writer is latex or beamer or context or html5
@@ -415,7 +413,7 @@ convertWithOpts opts args = do
                      err 41 $ pdfprog ++ " not found. " ++
                        pdfprog ++ " is needed for pdf output."
 
-                res <- makePDF pdfprog f writerOptions' doc'
+                res <- makePDF pdfprog f writerOptions media doc'
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> liftIO $ do
@@ -426,12 +424,12 @@ convertWithOpts opts args = do
                 let htmlFormat = format `elem`
                       ["html","html5","s5","slidy","slideous","dzslides","revealjs"]
                     selfcontain = if selfContained && htmlFormat
-                                  then makeSelfContained writerOptions'
+                                  then makeSelfContained writerOptions media
                                   else return
                     handleEntities = if htmlFormat && ascii
                                      then toEntities
                                      else id
-                output <- f writerOptions' doc'
+                output <- f writerOptions doc'
                 selfcontain (output ++ ['\n' | not standalone']) >>=
                     writerFn outputFile . handleEntities
 

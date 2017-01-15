@@ -48,6 +48,7 @@ import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
+import Text.Pandoc.MediaBag
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Shared (warn, withTempDir, inDirectory, stringify)
 import Text.Pandoc.Writers.Shared (getField, metaToJSON)
@@ -72,9 +73,10 @@ makePDF :: MonadIO m
                                -- xelatex, context, wkhtmltopdf)
         -> (WriterOptions -> Pandoc -> PandocIO String)  -- ^ writer
         -> WriterOptions       -- ^ options
+        -> MediaBag            -- ^ media
         -> Pandoc              -- ^ document
         -> m (Either ByteString ByteString)
-makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = liftIO $ do
+makePDF "wkhtmltopdf" writer opts _mediabag doc@(Pandoc meta _) = liftIO $ do
   let mathArgs = case writerHTMLMathMethod opts of
                  -- with MathJax, wait til all math is rendered:
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
@@ -97,33 +99,37 @@ makePDF "wkhtmltopdf" writer opts doc@(Pandoc meta _) = liftIO $ do
                  ]
   source <- runIOorExplode $ writer opts doc
   html2pdf (writerVerbose opts) args source
-makePDF program writer opts doc = liftIO $ withTempDir "tex2pdf." $ \tmpdir -> do
-  doc' <- handleImages opts tmpdir doc
-  source <- runIOorExplode $ writer opts doc'
-  let args   = writerLaTeXArgs opts
-  case takeBaseName program of
-     "context" -> context2pdf (writerVerbose opts) tmpdir source
-     prog | prog `elem` ["pdflatex", "lualatex", "xelatex"]
-         -> tex2pdf' (writerVerbose opts) args tmpdir program source
-     _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
+makePDF program writer opts mediabag doc =
+  liftIO $ withTempDir "tex2pdf." $ \tmpdir -> do
+    doc' <- handleImages opts mediabag tmpdir doc
+    source <- runIOorExplode $ writer opts doc'
+    let args   = writerLaTeXArgs opts
+    case takeBaseName program of
+       "context" -> context2pdf (writerVerbose opts) tmpdir source
+       prog | prog `elem` ["pdflatex", "lualatex", "xelatex"]
+           -> tex2pdf' (writerVerbose opts) args tmpdir program source
+       _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
 
 handleImages :: WriterOptions
+             -> MediaBag
              -> FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
              -> IO Pandoc
-handleImages opts tmpdir = walkM (convertImages tmpdir) <=< walkM (handleImage' opts tmpdir)
+handleImages opts mediabag tmpdir =
+  walkM (convertImages tmpdir) <=< walkM (handleImage' opts mediabag tmpdir)
 
 handleImage' :: WriterOptions
+             -> MediaBag
              -> FilePath
              -> Inline
              -> IO Inline
-handleImage' opts tmpdir (Image attr ils (src,tit)) = do
+handleImage' opts mediabag tmpdir (Image attr ils (src,tit)) = do
     exists <- doesFileExist src
     if exists
        then return $ Image attr ils (src,tit)
        else do
          res <- runIO $ do
-                  setMediaBag $ writerMediaBag opts
+                  setMediaBag mediabag
                   fetchItem (writerSourceURL opts) src
          case res of
               Right (contents, Just mime) -> do
@@ -137,7 +143,7 @@ handleImage' opts tmpdir (Image attr ils (src,tit)) = do
                 warn $ "Could not find image `" ++ src ++ "', skipping..."
                 -- return alt text
                 return $ Emph ils
-handleImage' _ _ x = return x
+handleImage' _ _ _ x = return x
 
 convertImages :: FilePath -> Inline -> IO Inline
 convertImages tmpdir (Image attr ils (src, tit)) = do

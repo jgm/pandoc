@@ -174,8 +174,8 @@ getDataURI media sourceURL mimetype src = do
 
 -- | Convert HTML into self-contained HTML, incorporating images,
 -- scripts, and CSS using data: URIs.
-makeSelfContained :: MonadIO m => WriterOptions -> String -> m String
-makeSelfContained opts inp = liftIO $ do
+makeSelfContained :: MonadIO m => WriterOptions -> MediaBag -> String -> m String
+makeSelfContained opts mediabag inp = liftIO $ do
   let tags = parseTags inp
-  out' <- mapM (convertTag (writerMediaBag opts) (writerSourceURL opts)) tags
+  out' <- mapM (convertTag mediabag (writerSourceURL opts)) tags
   return $ renderTags' out'
