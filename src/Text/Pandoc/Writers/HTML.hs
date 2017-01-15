@@ -510,7 +510,7 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
          Nothing -> return $ addAttrs opts (id',classes,keyvals)
                            $ H.pre $ H.code $ toHtml adjCode
          Just  h -> modify (\st -> st{ stHighlighting = True }) >>
-                    return (addAttrs opts (id',[],keyvals) h)
+                    return (addAttrs opts (id',[],keyvals) $ H.div ! A.class_ "sourceCode" $ h)
 blockToHtml opts (BlockQuote blocks) =
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental;
