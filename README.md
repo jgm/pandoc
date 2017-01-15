@@ -1,12 +1,14 @@
 Pandoc
 ======
 
-[![license](https://img.shields.io/badge/license-GPLv2+-brightgreen.svg)](https://www.gnu.org/licenses/gpl.html)
-[![hackage release](https://img.shields.io/hackage/v/pandoc.svg?label=current+release)](http://hackage.haskell.org/package/pandoc)
+[![github release](https://img.shields.io/github/release/jgm/pandoc.svg?label=current+release)](https://github.com/jgm/pandoc/releases)
+[![hackage release](https://img.shields.io/hackage/v/pandoc.svg?label=hackage)](http://hackage.haskell.org/package/pandoc)
+[![homebrew](https://img.shields.io/homebrew/v/pandoc.svg)](http://brewformulas.org/Pandoc)
 [![stackage LTS package](http://stackage.org/package/pandoc/badge/lts)](http://stackage.org/lts/package/pandoc)
-[![github release](https://img.shields.io/github/release/jgm/pandoc.svg?label=github+release)](https://github.com/jgm/pandoc/releases)
-[![travis build status](https://img.shields.io/travis/jgm/pandoc.svg)](https://travis-ci.org/jgm/pandoc)
+[![travis build status](https://img.shields.io/travis/jgm/pandoc/master.svg?label=travis+build)](https://travis-ci.org/jgm/pandoc)
 [![appveyor build status](https://ci.appveyor.com/api/projects/status/nvqs4ct090igjiqc?svg=true)](https://ci.appveyor.com/project/jgm/pandoc)
+[![license](https://img.shields.io/badge/license-GPLv2+-lightgray.svg)](https://www.gnu.org/licenses/gpl.html)
+[![pandoc-discuss on google groups](https://img.shields.io/badge/pandoc-discuss-red.svg?style=social)](https://groups.google.com/forum/#!forum/pandoc-discuss)
 
 
 The universal markup converter
