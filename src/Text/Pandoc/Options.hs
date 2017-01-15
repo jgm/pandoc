@@ -64,7 +64,6 @@ data ReaderOptions = ReaderOptions{
        , readerDefaultImageExtension :: String -- ^ Default extension for images
        , readerTrace           :: Bool -- ^ Print debugging info
        , readerTrackChanges    :: TrackChanges
-       , readerFileScope      :: Bool -- ^ Parse before combining
 } deriving (Show, Read, Data, Typeable, Generic)
 
 instance Default ReaderOptions
@@ -79,7 +78,6 @@ instance Default ReaderOptions
                , readerDefaultImageExtension = ""
                , readerTrace                 = False
                , readerTrackChanges          = AcceptChanges
-               , readerFileScope             = False
                }
 
 --

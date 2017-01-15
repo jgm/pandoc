@@ -297,7 +297,6 @@ convertWithOpts opts args = do
                       , readerDefaultImageExtension = defaultImageExtension
                       , readerTrace = trace
                       , readerTrackChanges = trackChanges
-                      , readerFileScope   = fileScope
                       }
 
   let writerOptions = def { writerTemplate         = templ,
