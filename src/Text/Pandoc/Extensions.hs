@@ -42,14 +42,13 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , githubMarkdownExtensions
                               , multimarkdownExtensions )
 where
-import Data.Word (Word64)
 import Data.Bits (testBit, setBit, clearBit)
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
-newtype Extensions = Extensions Word64
-  deriving (Show, Read, Eq, Ord, Bounded, Data, Typeable, Generic)
+newtype Extensions = Extensions Integer
+  deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
 extensionsFromList :: [Extension] -> Extensions
 extensionsFromList = foldr enableExtension emptyExtensions
