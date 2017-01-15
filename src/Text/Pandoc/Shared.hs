@@ -400,8 +400,10 @@ removeFormatting = query go . walk deNote
         go (Math _ x)   = [Str x]
         go LineBreak    = [Space]
         go _            = []
-        deNote (Note _) = Str ""
-        deNote x        = x
+
+deNote :: Inline -> Inline
+deNote (Note _) = Str ""
+deNote x        = x
 
 -- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link
@@ -417,8 +419,6 @@ stringify = query go . walk deNote
         go (RawInline (Format "html") ('<':'b':'r':_)) = " " -- see #2105
         go LineBreak = " "
         go _ = ""
-        deNote (Note _) = Str ""
-        deNote x = x
 
 -- | Bring all regular text in a pandoc structure to uppercase.
 --
