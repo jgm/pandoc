@@ -306,7 +306,6 @@ convertWithOpts opts args = do
                             writerHTMLMathMethod   = mathMethod,
                             writerIncremental      = incremental,
                             writerCiteMethod       = citeMethod,
-                            writerIgnoreNotes      = False,
                             writerNumberSections   = numberSections,
                             writerNumberOffset     = numberFrom,
                             writerSectionDivs      = sectionDivs,

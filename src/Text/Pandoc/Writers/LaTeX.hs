@@ -1318,10 +1318,6 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "vi"  = "vietnamese"
     fromIso _     = ""
 
-deNote :: Inline -> Inline
-deNote (Note _) = RawInline (Format "latex") ""
-deNote x = x
-
 pDocumentOptions :: P.Parsec String () [String]
 pDocumentOptions = do
   P.char '['

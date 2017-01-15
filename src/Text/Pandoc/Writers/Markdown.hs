@@ -288,9 +288,8 @@ escapeString opts = escapeStringUsing markdownEscapes
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: PandocMonad m => WriterOptions -> [Block] -> m Doc
 tableOfContents opts headers =
-  let opts' = opts { writerIgnoreNotes = True }
-      contents = BulletList $ map (elementToListItem opts) $ hierarchicalize headers
-  in  evalMD (blockToMarkdown opts' contents) def def
+  let contents = BulletList $ map (elementToListItem opts) $ hierarchicalize headers
+  in  evalMD (blockToMarkdown opts contents) def def
 
 -- | Converts an Element to a list item for a table of contents,
 elementToListItem :: WriterOptions -> Element -> [Block]
@@ -299,8 +298,9 @@ elementToListItem opts (Sec lev _nums (ident,_,_) headerText subsecs)
     [ BulletList (map (elementToListItem opts) subsecs) |
       not (null subsecs) && lev < writerTOCDepth opts ]
    where headerLink = if null ident
-                         then headerText
-                         else [Link nullAttr headerText ('#':ident, "")]
+                         then walk deNote headerText
+                         else [Link nullAttr (walk deNote headerText)
+                                 ('#':ident, "")]
 elementToListItem _ (Blk _) = []
 
 attrsToMarkdown :: Attr -> Doc

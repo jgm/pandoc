@@ -56,6 +56,7 @@ module Text.Pandoc.Shared (
                      normalizeSpaces,
                      extractSpaces,
                      removeFormatting,
+                     deNote,
                      stringify,
                      capitalize,
                      compactify,

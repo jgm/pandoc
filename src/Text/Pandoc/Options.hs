@@ -151,7 +151,6 @@ data WriterOptions = WriterOptions
   , writerSlideVariant     :: HTMLSlideVariant -- ^ Are we writing S5, Slidy or Slideous?
   , writerIncremental      :: Bool   -- ^ True if lists should be incremental
   , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
-  , writerIgnoreNotes      :: Bool   -- ^ Ignore footnotes (used in making toc)
   , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
   , writerNumberOffset     :: [Int]  -- ^ Starting number for section, subsection, ...
   , writerSectionDivs      :: Bool   -- ^ Put sections in div tags in HTML
@@ -197,7 +196,6 @@ instance Default WriterOptions where
                       , writerSlideVariant     = NoSlides
                       , writerIncremental      = False
                       , writerHTMLMathMethod   = PlainMath
-                      , writerIgnoreNotes      = False
                       , writerNumberSections   = False
                       , writerNumberOffset     = [0,0,0,0,0,0]
                       , writerSectionDivs      = False

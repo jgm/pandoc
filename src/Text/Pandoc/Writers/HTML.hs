@@ -30,6 +30,7 @@ Conversion of 'Pandoc' documents to HTML.
 -}
 module Text.Pandoc.Writers.HTML ( writeHtml , writeHtmlString ) where
 import Text.Pandoc.Definition
+import Text.Pandoc.Walk
 import Data.Monoid ((<>))
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
@@ -228,8 +229,7 @@ defList opts items = toList H.dl opts (items ++ [nl opts])
 tableOfContents :: PandocMonad m => WriterOptions -> [Element] -> StateT WriterState m (Maybe Html)
 tableOfContents _ [] = return Nothing
 tableOfContents opts sects = do
-  let opts'        = opts { writerIgnoreNotes = True }
-  contents  <- mapM (elementToListItem opts') sects
+  contents  <- mapM (elementToListItem opts) sects
   let tocList = catMaybes contents
   return $ if null tocList
               then Nothing
@@ -253,7 +253,7 @@ elementToListItem opts (Sec lev num (id',classes,_) headerText subsecs)
                    then (H.span ! A.class_ "toc-section-number"
                         $ toHtml $ showSecNum num') >> preEscapedString " "
                    else mempty
-  txt <- liftM (sectnum >>) $ inlineListToHtml opts headerText
+  txt <- liftM (sectnum >>) $ inlineListToHtml opts $ walk deNote headerText
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
   let subList = if null subHeads
                    then mempty
@@ -852,9 +852,7 @@ inlineToHtml opts inline =
                                          imgAttrsToHtml opts attr
                         return $ foldl (!) H5.embed attributes
                         -- note:  null title included, as in Markdown.pl
-    (Note contents)
-      | writerIgnoreNotes opts -> return mempty
-      | otherwise              -> do
+    (Note contents) -> do
                         notes <- gets stNotes
                         let number = (length notes) + 1
                         let ref = show number
