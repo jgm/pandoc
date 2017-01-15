@@ -69,7 +69,7 @@ data ReaderOptions = ReaderOptions{
 
 instance Default ReaderOptions
   where def = ReaderOptions{
-                 readerExtensions            = pandocExtensions
+                 readerExtensions            = emptyExtensions
                , readerStandalone            = False
                , readerParseRaw              = False
                , readerColumns               = 80
@@ -204,7 +204,7 @@ instance Default WriterOptions where
                       , writerNumberSections   = False
                       , writerNumberOffset     = [0,0,0,0,0,0]
                       , writerSectionDivs      = False
-                      , writerExtensions       = pandocExtensions
+                      , writerExtensions       = emptyExtensions
                       , writerReferenceLinks   = False
                       , writerDpi              = 96
                       , writerWrapText         = WrapAuto
