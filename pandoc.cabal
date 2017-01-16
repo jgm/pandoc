@@ -525,7 +525,6 @@ Test-Suite test-pandoc
   Other-Modules:  Tests.Old
                   Tests.Helpers
                   Tests.Shared
-                  Tests.Walk
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML
                   Tests.Readers.Markdown
