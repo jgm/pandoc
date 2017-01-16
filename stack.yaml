@@ -7,8 +7,13 @@ flags:
     network-uri: true
 packages:
 - '.'
+- location:
+    git: https://github.com/jgm/pandoc-types.git
+    commit: 973394685aad945ccd92a86bf76e5c644e72e127
+- location:
+    git: https://github.com/jgm/texmath.git
+    commit: 31273683a376e97848028e4619f28ab8c03c88af
 extra-deps:
-- texmath-0.9
 - doctemplates-0.1.0.2
 - pandoc-types-1.17.0.4
 - skylighting-0.1.1.1
