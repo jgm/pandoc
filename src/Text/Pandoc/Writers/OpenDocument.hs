@@ -35,7 +35,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.XML
 import Text.Pandoc.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Readers.Odt.StyleReader
+import Text.Pandoc.Readers.Odt.StyleReader hiding (listStyle)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Pretty
 import Text.Printf ( printf )
@@ -392,9 +392,9 @@ blockToOpenDocument o bs
       paragraph inlines                                     = inParagraphTags =<< inlinesToOpenDocument o inlines
 
       paraWithBreak :: PandocMonad m => ParaBreak -> [Inline] -> OD m Doc
-      paraWithBreak breakKind bs = do
+      paraWithBreak breakKind bs' = do
         pn <- paraBreakStyle breakKind
-        withParagraphStyle o ("P" ++ show pn) [Para bs]
+        withParagraphStyle o ("P" ++ show pn) [Para bs']
 
 colHeadsToOpenDocument :: PandocMonad m
                        => WriterOptions -> String -> [String] -> [[Block]]
