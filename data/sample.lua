@@ -174,6 +174,7 @@ function RawInline(format, str)
   if format == "html" then
     return str
   end
+  return ''
 end
 
 function Cite(s, cs)
@@ -322,6 +323,7 @@ function RawBlock(format, str)
   if format == "html" then
     return str
   end
+  return ''
 end
 
 function Div(s, attr)
