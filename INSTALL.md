@@ -77,7 +77,7 @@
 
   - If the version in your repository is too old and you cannot
     use the deb we provide, you can install from source, using the
-    instructions below under [Installing from source].
+    instructions below under [Compiling from source].
     Note that most distros have the Haskell platform in their
     package repositories.  For example, on Debian/Ubuntu,
     you can install it with `apt-get install haskell-platform`.
