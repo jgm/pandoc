@@ -80,16 +80,17 @@ before_install:
 # We want to always allow newer versions of packages when building on GHC HEAD
 - CABALARGS=""
 - if [ "x$GHCVER" = "xhead" ]; then CABALARGS=--allow-newer; fi
-
-# Download and unpack the stack executable
 - export PATH=$PATH:/opt/happy/1.19.5/bin/:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$HOME/.local/bin
-- mkdir -p ~/.local/bin
+# Download and unpack the stack executable
 - |
-  if [ `uname` = "Darwin" ]
-  then
-    curl --insecure -L https://www.stackage.org/stack/osx-x86_64 | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
-  else
-    curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+  if [[ $BUILD == "stack" ]]; then
+    mkdir -p ~/.local/bin
+    if [ `uname` = "Darwin" ]
+    then
+      curl --insecure -L https://www.stackage.org/stack/osx-x86_64 | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
+    else
+      curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+    fi
   fi
 
 install:
