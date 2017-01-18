@@ -173,6 +173,8 @@ end
 function RawInline(format, str)
   if format == "html" then
     return str
+  else
+    return ''
   end
 end
 
@@ -321,6 +323,8 @@ end
 function RawBlock(format, str)
   if format == "html" then
     return str
+  else
+    return ''
   end
 end
 
