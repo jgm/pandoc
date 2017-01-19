@@ -423,7 +423,8 @@ defListItem = try $ do
   terms <- mconcat . intersperse B.linebreak <$> many defListTerm
   -- we allow dd with no dt, or dt with no dd
   defs  <- if B.isNull terms
-              then notFollowedBy (try $ string ":<math>") *>
+              then notFollowedBy
+                    (try $ skipMany1 (char ':') >> string "<math>") *>
                        many1 (listItem ':')
               else many (listItem ':')
   return (terms, defs)
@@ -519,7 +520,7 @@ str :: MWParser Inlines
 str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
 
 math :: MWParser Inlines
-math = (B.displayMath . trim <$> try (char ':' >> charsInTags "math"))
+math = (B.displayMath . trim <$> try (many1 (char ':') >> charsInTags "math"))
    <|> (B.math . trim <$> charsInTags "math")
    <|> (B.displayMath . trim <$> try (dmStart *> manyTill anyChar dmEnd))
    <|> (B.math . trim <$> try (mStart *> manyTill (satisfy (/='\n')) mEnd))
