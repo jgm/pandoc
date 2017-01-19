@@ -602,9 +602,10 @@ General writer options
 
 :   Specifies the coloring style to be used in highlighted source code.
     Options are `pygments` (the default), `kate`, `monochrome`,
-    `espresso`, `zenburn`, `haddock`, and `tango`.  For more information
-    on syntax highlighting in pandoc, see [Syntax highlighting], below.
-    See also `--list-highlight-styles`.
+    `breezeDark`, `espresso`, `zenburn`, `haddock`, and `tango`.
+    For more information on syntax highlighting in pandoc, see
+    [Syntax highlighting], below.  See also
+    `--list-highlight-styles`.
 
 `-H` *FILE*, `--include-in-header=`*FILE*
 

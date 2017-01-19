@@ -156,6 +156,7 @@ highlightingStyles =
    ("zenburn", zenburn),
    ("kate", kate),
    ("monochrome", monochrome),
+   ("breezeDark", breezeDark),
    ("haddock", haddock)]
 
 -- | Data structure for command line options.
