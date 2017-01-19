@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ViewPatterns #-}
 {-
-Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Readers.Org.Options
-   Copyright   : Copyright (C) 2014-2016 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -35,7 +35,7 @@ module Text.Pandoc.Readers.Org.Blocks
 
 import           Text.Pandoc.Readers.Org.BlockStarts
 import           Text.Pandoc.Readers.Org.Inlines
-import           Text.Pandoc.Readers.Org.Meta ( metaExport, metaLine )
+import           Text.Pandoc.Readers.Org.Meta ( metaExport, metaKey, metaLine )
 import           Text.Pandoc.Readers.Org.ParserState
 import           Text.Pandoc.Readers.Org.Parsing
 import           Text.Pandoc.Readers.Org.Shared
@@ -679,7 +679,15 @@ exampleCode = B.codeBlockWith ("", ["example"], [])
 --
 
 specialLine :: OrgParser (F Blocks)
-specialLine = fmap return . try $ metaLine <|> commentLine
+specialLine = fmap return . try $ rawExportLine <|> metaLine <|> commentLine
+
+rawExportLine :: OrgParser Blocks
+rawExportLine = try $ do
+  metaLineStart
+  key <- metaKey
+  if key `elem` ["latex", "html", "texinfo", "beamer"]
+    then B.rawBlock key <$> anyLine
+    else mzero
 
 commentLine :: OrgParser Blocks
 commentLine = commentLineStart *> anyLine *> pure mempty

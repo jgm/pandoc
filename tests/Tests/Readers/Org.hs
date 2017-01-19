@@ -1605,6 +1605,18 @@ tests =
                   ] =?>
           rawBlock "latex" "The category $\\cat{Set}$ is adhesive.\n"
 
+      , "Raw LaTeX line" =:
+          "#+LATEX: \\let\\foo\\bar" =?>
+          rawBlock "latex" "\\let\\foo\\bar"
+
+      , "Raw Beamer line" =:
+          "#+beamer: \\pause" =?>
+          rawBlock "beamer" "\\pause"
+
+      , "Raw HTML line" =:
+          "#+HTML: <aside>not important</aside>" =?>
+          rawBlock "html" "<aside>not important</aside>"
+
       , "Export block HTML" =:
           unlines [ "#+BEGIN_export html"
                   , "<samp>Hello, World!</samp>"
