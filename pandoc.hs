@@ -43,7 +43,7 @@ import Text.Pandoc.XML ( toEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
 import Text.Pandoc.Process (pipeProcess)
 import Skylighting ( defaultSyntaxMap, Syntax(..), Style, tango, pygments,
-         espresso, zenburn, kate, haddock, monochrome )
+         espresso, zenburn, kate, haddock, breezeDark, monochrome )
 import System.Environment ( getArgs, getProgName, getEnvironment )
 import System.Exit ( ExitCode (..), exitSuccess )
 import System.FilePath
@@ -156,7 +156,7 @@ highlightingStyles =
    ("zenburn", zenburn),
    ("kate", kate),
    ("monochrome", monochrome),
-   ("breezeDark", breezeDark),
+   ("breezedark", breezeDark),
    ("haddock", haddock)]
 
 -- | Data structure for command line options.
