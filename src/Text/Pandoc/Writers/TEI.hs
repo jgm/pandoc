@@ -284,6 +284,7 @@ inlineToTEI _ (Math t str) =
 inlineToTEI _ (RawInline f x) | f == "tei"     = text x
                               | otherwise      = empty
 inlineToTEI _ LineBreak = selfClosingTag "lb" []
+inlineToTEI _ PageBreak = selfClosingTag "pb" []
 inlineToTEI _ Space = space
 -- because we use \n for LineBreak, we can't do soft breaks:
 inlineToTEI _ SoftBreak = space

@@ -317,7 +317,9 @@ inlineToZimWiki opts (RawInline f str)
   | f == Format "html"     = do cont <- indentFromHTML opts str; return cont
   | otherwise              = return ""
 
-inlineToZimWiki _ (LineBreak) = return "\n" -- was \\\\
+inlineToZimWiki _ LineBreak = return "\n" -- was \\\\
+
+inlineToZimWiki _ PageBreak = return mempty
 
 inlineToZimWiki opts SoftBreak =
   case writerWrapText opts of

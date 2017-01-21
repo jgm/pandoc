@@ -345,7 +345,7 @@ notesAndRefs opts = do
         if | writerReferenceLocation opts == EndOfDocument -> empty
            | isEmpty notes' && isEmpty refs' -> empty
            | otherwise -> blankline
-  
+
   return $
     (if isEmpty notes' then empty else blankline <> notes') <>
     (if isEmpty refs' then empty else blankline <> refs') <>
@@ -1018,6 +1018,7 @@ inlineToMarkdown opts SoftBreak = do
                 WrapNone     -> space'
                 WrapAuto     -> space'
                 WrapPreserve -> cr
+inlineToMarkdown _ PageBreak = return empty
 inlineToMarkdown opts (Cite [] lst) = inlineListToMarkdown opts lst
 inlineToMarkdown opts (Cite (c:cs) lst)
   | not (isEnabled Ext_citations opts) = inlineListToMarkdown opts lst

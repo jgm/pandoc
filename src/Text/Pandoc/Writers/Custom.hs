@@ -310,6 +310,8 @@ inlineToCustom lua (RawInline format str) =
 
 inlineToCustom lua (LineBreak) = callfunc lua "LineBreak"
 
+inlineToCustom lua (PageBreak) = callfunc lua "PageBreak"
+
 inlineToCustom lua (Link attr txt (src,tit)) =
   callfunc lua "Link" txt src tit (attrToMap attr)
 

@@ -402,7 +402,9 @@ inlineToMediaWiki (RawInline f str)
   | f == Format "html"      = return str
   | otherwise               = return ""
 
-inlineToMediaWiki (LineBreak) = return "<br />\n"
+inlineToMediaWiki LineBreak = return "<br />\n"
+
+inlineToMediaWiki PageBreak = return mempty
 
 inlineToMediaWiki SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
