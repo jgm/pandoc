@@ -52,7 +52,6 @@ import Text.Pandoc.Error (PandocError)
 import Text.XML.Light as XML
 import Text.TeXMath
 import Text.Pandoc.Readers.Docx.StyleMap
-import Text.Pandoc.Readers.Docx.Util (elemName)
 import Control.Monad.Reader
 import Control.Monad.State
 import Skylighting
@@ -450,18 +449,11 @@ writeDocx opts doc@(Pandoc meta _) = do
 
   let newstyles = map newParaPropToOpenXml newDynamicParaProps ++
                   map newTextPropToOpenXml newDynamicTextProps ++
-                  (styleToOpenXml styleMaps $ writerHighlightStyle opts)
-  let styledoc' = styledoc{ elContent = modifyContent (elContent styledoc) }
-                  where
-                    modifyContent
-                      | writerHighlight opts = (++ map Elem newstyles)
-                      | otherwise = filter notTokStyle
-                    notTokStyle (Elem el) = notStyle el || notTokId el
-                    notTokStyle _         = True
-                    notStyle = (/= elemName' "style") . elName
-                    notTokId = maybe True (`notElem` tokStys) . findAttr (elemName' "styleId")
-                    tokStys  = "SourceCode" : map show (enumFromTo KeywordTok NormalTok)
-                    elemName' = elemName (sNameSpaces styleMaps) "w"
+                  (case writerHighlightStyle opts of
+                        Nothing   -> []
+                        Just sty  -> (styleToOpenXml styleMaps sty))
+  let styledoc' = styledoc{ elContent = elContent styledoc ++
+                                           map Elem newstyles }
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
 
   -- construct word/numbering.xml
@@ -1130,11 +1122,9 @@ inlineToOpenXML' opts (Code attrs str) = do
                                  [ rCustomStyle (show toktype) ]
                                , mknode "w:t" [("xml:space","preserve")] (T.unpack tok) ]
   withTextProp (rCustomStyle "VerbatimChar")
-    $ if writerHighlight opts
-         then case highlight formatOpenXML attrs str of
-               Nothing  -> unhighlighted
-               Just h   -> return h
-         else unhighlighted
+    $ case writerHighlightStyle opts >> highlight formatOpenXML attrs str of
+           Just h   -> return h
+           Nothing  -> unhighlighted
 inlineToOpenXML' opts (Note bs) = do
   notes <- gets stFootnotes
   notenum <- (lift . lift) getUniqueId
@@ -1248,9 +1238,6 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
 
 br :: Element
 br = breakElement "textWrapping"
-
-pageBreak :: Element
-pageBreak = breakElement "page"
 
 breakElement :: String -> Element
 breakElement kind = mknode "w:r" [] [mknode "w:br" [("w:type",kind)] () ]

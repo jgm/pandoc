@@ -114,7 +114,6 @@ convertWithOpts opts args = do
               , optSelfContained         = selfContained
               , optHtml5                 = html5
               , optHtmlQTags             = htmlQTags
-              , optHighlight             = highlight
               , optHighlightStyle        = highlightStyle
               , optTopLevelDivision      = topLevelDivision
               , optHTMLMathMethod        = mathMethod'
@@ -324,7 +323,6 @@ convertWithOpts opts args = do
                             writerListings         = listings,
                             writerBeamer           = False,
                             writerSlideLevel       = slideLevel,
-                            writerHighlight        = highlight,
                             writerHighlightStyle   = highlightStyle,
                             writerSetextHeaders    = setextHeaders,
                             writerEpubMetadata     = epubMetadata,
@@ -532,8 +530,7 @@ data Opt = Opt
     , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
     , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
     , optHtmlQTags         :: Bool    -- ^ Use <q> tags in HTML
-    , optHighlight         :: Bool    -- ^ Highlight source code
-    , optHighlightStyle    :: Style   -- ^ Style to use for highlighted code
+    , optHighlightStyle    :: Maybe Style   -- ^ Style to use for highlighted code
     , optTopLevelDivision  :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceDoc      :: Maybe FilePath -- ^ Path of reference doc
@@ -595,8 +592,7 @@ defaultOpts = Opt
     , optSelfContained         = False
     , optHtml5                 = False
     , optHtmlQTags             = False
-    , optHighlight             = True
-    , optHighlightStyle        = pygments
+    , optHighlightStyle        = Just pygments
     , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath
     , optReferenceDoc          = Nothing
@@ -836,14 +832,14 @@ options =
 
     , Option "" ["no-highlight"]
                 (NoArg
-                 (\opt -> return opt { optHighlight = False }))
+                 (\opt -> return opt { optHighlightStyle = Nothing }))
                  "" -- "Don't highlight source code"
 
     , Option "" ["highlight-style"]
                 (ReqArg
                  (\arg opt -> do
                    case lookup (map toLower arg) highlightingStyles of
-                         Just s -> return opt{ optHighlightStyle = s }
+                         Just s -> return opt{ optHighlightStyle = Just s }
                          Nothing -> err 39 $ "Unknown style: " ++ arg)
                  "STYLE")
                  "" -- "Style for highlighted code"

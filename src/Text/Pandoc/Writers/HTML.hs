@@ -179,8 +179,10 @@ pandocToHtml opts (Pandoc meta blocks) = do
                                         | otherwise -> mempty
                                  Nothing -> mempty
   let context =   (if stHighlighting st
-                      then defField "highlighting-css"
-                             (styleToCss $ writerHighlightStyle opts)
+                      then case writerHighlightStyle opts of
+                                Just sty -> defField "highlighting-css"
+                                              (styleToCss sty)
+                                Nothing  -> id
                       else id) $
                   (if stMath st
                       then defField "math" (renderHtml math)
@@ -509,8 +511,9 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
       adjCode  = if tolhs
                     then unlines . map ("> " ++) . lines $ rawCode
                     else rawCode
-      hlCode   = if writerHighlight opts -- check highlighting options
-                    then highlight formatHtmlBlock (id',classes',keyvals) adjCode
+      hlCode   = if isJust (writerHighlightStyle opts)
+                    then highlight formatHtmlBlock
+                            (id',classes',keyvals) adjCode
                     else Nothing
   case hlCode of
          Nothing -> return $ addAttrs opts (id',classes,keyvals)
@@ -702,7 +705,8 @@ annotateMML e tex = math (unode "semantics" [cs, unode "annotation" (annotAttrs,
 
 
 -- | Convert Pandoc inline element to HTML.
-inlineToHtml :: PandocMonad m => WriterOptions -> Inline -> StateT WriterState m Html
+inlineToHtml :: PandocMonad m
+             => WriterOptions -> Inline -> StateT WriterState m Html
 inlineToHtml opts inline =
   case inline of
     (Str str)        -> return $ strToHtml str
@@ -739,8 +743,9 @@ inlineToHtml opts inline =
                                modify $ \st -> st{ stHighlighting = True }
                                return $ addAttrs opts (id',[],keyvals) h
                         where (id',_,keyvals) = attr
-                              hlCode = if writerHighlight opts
-                                          then highlight formatHtmlInline attr str
+                              hlCode = if isJust (writerHighlightStyle opts)
+                                          then highlight formatHtmlInline
+                                                   attr str
                                           else Nothing
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . H.del

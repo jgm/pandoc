@@ -171,8 +171,8 @@ data WriterOptions = WriterOptions
   , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
   , writerTopLevelDivision :: TopLevelDivision -- ^ Type of top-level divisions
   , writerListings         :: Bool       -- ^ Use listings package for code
-  , writerHighlight        :: Bool       -- ^ Highlight source code
-  , writerHighlightStyle   :: Style      -- ^ Style to use for highlighting
+  , writerHighlightStyle   :: Maybe Style  -- ^ Style to use for highlighting
+                                           -- (Nothing = no highlighting)
   , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
   , writerEpubVersion      :: Maybe EPUBVersion -- ^ Nothing or EPUB version
   , writerEpubMetadata     :: String     -- ^ Metadata to include in EPUB
@@ -214,8 +214,7 @@ instance Default WriterOptions where
                       , writerSlideLevel       = Nothing
                       , writerTopLevelDivision = TopLevelDefault
                       , writerListings         = False
-                      , writerHighlight        = False
-                      , writerHighlightStyle   = pygments
+                      , writerHighlightStyle   = Just pygments
                       , writerSetextHeaders    = True
                       , writerEpubVersion      = Nothing
                       , writerEpubMetadata     = ""

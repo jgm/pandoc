@@ -31,7 +31,7 @@ tests :: [Test]
 tests = [ testGroup "inline code"
           [ "basic" =: code "@&" =?> "<code>@&amp;</code>"
           , "haskell" =: codeWith ("",["haskell"],[]) ">>="
-            =?> "<code class=\"haskell\">&gt;&gt;=</code>"
+            =?> "<code class=\"sourceCode haskell\"><span class=\"fu\">&gt;&gt;=</span></code>"
           , "nolanguage" =: codeWith ("",["nolanguage"],[]) ">>="
             =?> "<code class=\"nolanguage\">&gt;&gt;=</code>"
           ]

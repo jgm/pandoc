@@ -188,8 +188,11 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "listings" (writerListings options || stLHS st) $
                   defField "beamer" (writerBeamer options) $
                   (if stHighlighting st
-                      then defField "highlighting-macros" (styleToLaTeX
-                                $ writerHighlightStyle options )
+                      then case writerHighlightStyle options of
+                                Just sty ->
+                                   defField "highlighting-macros"
+                                      (styleToLaTeX sty)
+                                Nothing -> id
                       else id) $
                   (case writerCiteMethod options of
                          Natbib   -> defField "biblio-title" biblioTitle .
@@ -512,10 +515,11 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                           return (flush $ linkAnchor $$ text (T.unpack h))
   case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
-         "literate" `elem` classes                      -> lhsCodeBlock
-       | writerListings opts                            -> listingsCodeBlock
-       | writerHighlight opts && not (null classes)     -> highlightedCodeBlock
-       | otherwise                                      -> rawCodeBlock
+         "literate" `elem` classes           -> lhsCodeBlock
+       | writerListings opts                 -> listingsCodeBlock
+       | not (null classes) && isJust (writerHighlightStyle opts)
+                                             -> highlightedCodeBlock
+       | otherwise                           -> rawCodeBlock
 blockToLaTeX (RawBlock f x)
   | f == Format "latex" || f == Format "tex"
                         = return $ text x
@@ -904,7 +908,8 @@ inlineToLaTeX (Code (_,classes,_) str) = do
   inHeading <- gets stInHeading
   case () of
      _ | writerListings opts  && not inHeading      -> listingsCode
-       | writerHighlight opts && not (null classes) -> highlightCode
+       | isJust (writerHighlightStyle opts) && not (null classes)
+                                                    -> highlightCode
        | otherwise                                  -> rawCode
    where listingsCode = do
            inNote <- gets stInNote

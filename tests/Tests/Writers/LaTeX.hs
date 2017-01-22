@@ -8,7 +8,7 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 latex :: (ToPandoc a) => a -> String
-latex = latexWithOpts def{ writerHighlight = True }
+latex = latexWithOpts def
 
 latexListing :: (ToPandoc a) => a -> String
 latexListing = latexWithOpts def{ writerListings = True }

@@ -10,7 +10,7 @@ import Text.Pandoc.Arbitrary()
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> Test
-(=:) = test (purely (writeRST def{ writerHighlight = True }) . toPandoc)
+(=:) = test (purely (writeRST def . toPandoc))
 
 tests :: [Test]
 tests = [ testGroup "rubrics"
