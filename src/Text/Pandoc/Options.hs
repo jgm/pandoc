@@ -47,7 +47,6 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
 import Text.Pandoc.Extensions
 import Data.Default
 import Text.Pandoc.Highlighting (Style, pygments)
-import Text.Pandoc.MediaBag (MediaBag)
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
@@ -182,7 +181,6 @@ data WriterOptions = WriterOptions
   , writerEpubChapterLevel :: Int            -- ^ Header level for chapters (separate files)
   , writerTOCDepth         :: Int            -- ^ Number of levels to include in TOC
   , writerReferenceDoc     :: Maybe FilePath -- ^ Path to reference document if specified
-  , writerMediaBag         :: MediaBag       -- ^ Media collected by docx or epub reader
   , writerVerbose          :: Bool           -- ^ Verbose debugging output
   , writerLaTeXArgs        :: [String]       -- ^ Flags to pass to latex-engine
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
@@ -226,7 +224,6 @@ instance Default WriterOptions where
                       , writerEpubChapterLevel = 1
                       , writerTOCDepth         = 3
                       , writerReferenceDoc     = Nothing
-                      , writerMediaBag         = mempty
                       , writerVerbose          = False
                       , writerLaTeXArgs        = []
                       , writerReferenceLocation = EndOfDocument
