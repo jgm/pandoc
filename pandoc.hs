@@ -35,8 +35,7 @@ import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8, readDataFile,
-                            safeRead, headerShift, err, warn,
-                            openURL )
+                            safeRead, headerShift, err, openURL )
 import Text.Pandoc.MediaBag ( mediaDirectory, extractMediaBag, MediaBag )
 import Text.Pandoc.XML ( toEntities )
 import Text.Pandoc.SelfContained ( makeSelfContained )
@@ -75,7 +74,7 @@ import System.Posix.Terminal (queryTerminal)
 import System.Posix.IO (stdOutput)
 #endif
 import Control.Monad.Trans
-import Text.Pandoc.Class (withMediaBag, PandocIO, getWarnings)
+import Text.Pandoc.Class (withMediaBag, PandocIO, getLog, setVerbosity)
 
 main :: IO ()
 main = do
@@ -354,14 +353,14 @@ convertWithOpts opts args = do
 
   let runIO' :: PandocIO a -> IO a
       runIO' f = do
-        (res, warnings) <- runIOorExplode $ do
+        (res, reports) <- runIOorExplode $ do
+                             setVerbosity verbosity
                              x <- f
-                             ws <- getWarnings
-                             return (x, ws)
-        when (not (null warnings)) $ do
-          --  TODO make these streaming
-          when (verbosity >= WARNING) $ mapM_ warn warnings
-          when failIfWarnings $
+                             rs <- getLog
+                             return (x, rs)
+        let isWarning (WARNING, _) = True
+            isWarning _            = False
+        when (failIfWarnings && any isWarning reports) $
             err 3 "Failing because there were warnings."
         return res
 

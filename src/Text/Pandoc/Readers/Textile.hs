@@ -64,11 +64,10 @@ import Text.HTML.TagSoup (fromAttrib, Tag(..))
 import Text.HTML.TagSoup.Match
 import Data.List ( intercalate, transpose, intersperse )
 import Data.Char ( digitToInt, isUpper )
-import Control.Monad ( guard, liftM, when )
+import Control.Monad ( guard, liftM )
 import Data.Monoid ((<>))
 import Text.Printf
-import Debug.Trace (trace)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 import Control.Monad.Except (throwError)
 
 -- | Parse a Textile text and return a Pandoc document.
@@ -147,10 +146,8 @@ block :: PandocMonad m => ParserT [Char] ParserState m Blocks
 block = do
   res <- choice blockParsers <?> "block"
   pos <- getPosition
-  tr <- (== DEBUG) <$> getOption readerVerbosity
-  when tr $
-    trace (printf "line %d: %s" (sourceLine pos)
-           (take 60 $ show $ B.toList res)) (return ())
+  report DEBUG $ printf "line %d: %s" (sourceLine pos)
+                          (take 60 $ show $ B.toList res)
   return res
 
 commentBlock :: PandocMonad m => ParserT [Char] ParserState m Blocks

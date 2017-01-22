@@ -62,11 +62,10 @@ import Control.Monad
 import System.FilePath (takeExtension, addExtension)
 import Text.HTML.TagSoup
 import Text.Printf (printf)
-import Debug.Trace (trace)
 import Data.Monoid ((<>))
 import Control.Monad.Trans (lift)
 import Control.Monad.Except (throwError, catchError)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P 
 
 type MarkdownParser m = ParserT [Char] ParserState m
@@ -490,7 +489,6 @@ parseBlocks = mconcat <$> manyTill block eof
 
 block :: PandocMonad m => MarkdownParser m (F Blocks)
 block = do
-  tr <- (== DEBUG) <$> getOption readerVerbosity
   pos <- getPosition
   res <- choice [ mempty <$ blanklines
                , codeBlockFenced
@@ -517,10 +515,8 @@ block = do
                , para
                , plain
                ] <?> "block"
-  when tr $ do
-    st <- getState
-    trace (printf "line %d: %s" (sourceLine pos)
-           (take 60 $ show $ B.toList $ runF res st)) (return ())
+  report DEBUG $ printf "line %d: %s" (sourceLine pos)
+                   (take 60 $ show $ B.toList $ runF res defaultParserState)
   return res
 
 --

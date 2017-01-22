@@ -42,7 +42,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , getZonedTime
                          , warning
                          , warningWithPos
-                         , getWarnings
+                         , report
                          , getLog
                          , setVerbosity
                          , getMediaBag
@@ -59,7 +59,6 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , runIOorExplode
                          , runPure
                          , withMediaBag
-                         , withWarningsToStderr
                          ) where
 
 import Prelude hiding (readFile)
@@ -69,8 +68,8 @@ import Codec.Archive.Zip (Archive, fromArchive, emptyArchive)
 import Data.Unique (hashUnique)
 import qualified Data.Unique as IO (newUnique)
 import qualified Text.Pandoc.Shared as IO ( readDataFile
-                                          , warn
                                           , openURL )
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Compat.Time (UTCTime)
 import Text.Pandoc.Options (Verbosity(..))
 import Text.Pandoc.Parsing (ParserT, SourcePos)
@@ -102,10 +101,12 @@ import Control.Monad.RWS (RWST)
 import Data.Word (Word8)
 import Data.Default
 import System.IO.Error
+import System.IO (stderr)
 import qualified Data.Map as M
 import Text.Pandoc.Error
 import Data.Monoid
 import Data.Maybe (catMaybes)
+import Text.Printf (printf)
 
 class (Functor m, Applicative m, Monad m, MonadError PandocError m)
       => PandocMonad m where
@@ -131,13 +132,7 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   modifyCommonState :: (CommonState -> CommonState) -> m ()
   modifyCommonState f = getCommonState >>= putCommonState . f
 
-  -- Can be overridden when you want log to be written to
-  -- stderr in a streaming fashion
-  report :: Verbosity -> String -> m ()
-  report level msg = do
-    verbosity <- getsCommonState stVerbosity
-    when (level >= verbosity) $
-       modifyCommonState $ \st -> st{ stLog = (level, msg) : stLog st }
+  logOutput :: Verbosity -> String -> m ()
 
 -- Functions defined for all PandocMonad instances
 
@@ -146,7 +141,7 @@ setVerbosity verbosity =
   modifyCommonState $ \st -> st{ stVerbosity = verbosity }
 
 getLog :: PandocMonad m => m [(Verbosity, String)]
-getLog = getsCommonState stLog
+getLog = reverse <$> getsCommonState stLog
 
 warning :: PandocMonad m => String -> m ()
 warning msg = report WARNING msg
@@ -157,11 +152,13 @@ warningWithPos :: PandocMonad m
                -> ParserT s st m ()
 warningWithPos pos msg = lift $ warning $ msg ++ " " ++ show pos
 
--- TODO get rid of this?
-getWarnings :: PandocMonad m => m [String]
-getWarnings = do
-  logs <- getLog
-  return [s | (WARNING, s) <- logs]
+report :: PandocMonad m => Verbosity -> String -> m ()
+report level msg = do
+  verbosity <- getsCommonState stVerbosity
+  when (level <= verbosity) $ do
+    logOutput verbosity msg
+    unless (level == DEBUG) $
+      modifyCommonState $ \st -> st{ stLog = (level, msg) : stLog st }
 
 setMediaBag :: PandocMonad m => MediaBag -> m ()
 setMediaBag mb = modifyCommonState $
@@ -255,12 +252,6 @@ runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
 withMediaBag :: PandocMonad m => m a ->  m (a, MediaBag)
 withMediaBag ma = ((,)) <$> ma <*> getMediaBag
 
-withWarningsToStderr :: PandocIO a -> PandocIO a
-withWarningsToStderr f = do
-  x <- f
-  getWarnings >>= mapM_ IO.warn
-  return x
-
 runIOorExplode :: PandocIO a -> IO a
 runIOorExplode ma = runIO ma >>= handleError
 
@@ -309,7 +300,8 @@ instance PandocMonad PandocIO where
       Left _ -> throwError $ PandocFileReadError fp
   getCommonState = PandocIO $ lift get
   putCommonState x = PandocIO $ lift $ put x
-
+  logOutput level msg =
+    liftIO $ UTF8.hPutStrLn stderr $ printf "%-7s %s" (show level) msg
 
 -- | Specialized version of parseURIReference that disallows
 -- single-letter schemes.  Reason:  these are usually windows absolute
@@ -508,6 +500,8 @@ instance PandocMonad PandocPure where
   getCommonState = PandocPure $ lift $ get
   putCommonState x = PandocPure $ lift $ put x
 
+  logOutput _level _msg = return ()
+
 instance PandocMonad m => PandocMonad (ParserT s st m) where
   lookupEnv = lift . lookupEnv
   getCurrentTime = lift getCurrentTime
@@ -522,6 +516,7 @@ instance PandocMonad m => PandocMonad (ParserT s st m) where
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
+  logOutput lvl = lift . logOutput lvl
 
 instance PandocMonad m => PandocMonad (ReaderT r m) where
   lookupEnv = lift . lookupEnv
@@ -537,6 +532,7 @@ instance PandocMonad m => PandocMonad (ReaderT r m) where
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
+  logOutput lvl = lift . logOutput lvl
 
 instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
   lookupEnv = lift . lookupEnv
@@ -552,6 +548,7 @@ instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
+  logOutput lvl = lift . report lvl
 
 instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
   lookupEnv = lift . lookupEnv
@@ -567,6 +564,7 @@ instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
+  logOutput lvl = lift . logOutput lvl
 
 instance PandocMonad m => PandocMonad (StateT st m) where
   lookupEnv = lift . lookupEnv
@@ -582,4 +580,5 @@ instance PandocMonad m => PandocMonad (StateT st m) where
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
+  logOutput lvl = lift . logOutput lvl
 

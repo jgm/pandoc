@@ -45,7 +45,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
 import Text.Pandoc.Shared ( extractSpaces, renderTags', addMetaField
                           , escapeURI, safeRead )
-import Text.Pandoc.Options (ReaderOptions(readerParseRaw, readerVerbosity),
+import Text.Pandoc.Options (ReaderOptions(readerParseRaw),
                             Verbosity(..), Extension (Ext_epub_html_exts,
                                Ext_native_divs, Ext_native_spans))
 import Text.Pandoc.Parsing hiding ((<|>))
@@ -54,12 +54,11 @@ import qualified Data.Map as M
 import Data.Maybe ( fromMaybe, isJust)
 import Data.List ( intercalate, isInfixOf, isPrefixOf )
 import Data.Char ( isDigit )
-import Control.Monad ( guard, when, mzero, void, unless )
+import Control.Monad ( guard, mzero, void, unless )
 import Control.Arrow ((***))
 import Control.Applicative ( (<|>) )
 import Data.Monoid (First (..))
 import Text.Printf (printf)
-import Debug.Trace (trace)
 import Text.TeXMath (readMathML, writeTeX)
 import Data.Default (Default (..), def)
 import Control.Monad.Reader (ask, asks, local, ReaderT, runReaderT, lift)
@@ -69,7 +68,7 @@ import Data.Monoid ((<>))
 import Text.Parsec.Error
 import qualified Data.Set as Set
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 import Control.Monad.Except (throwError)
 
 
@@ -96,8 +95,6 @@ readHtml opts inp = do
   case result of
     Right doc -> return doc
     Left  err -> throwError $ PandocParseError $ getError err
-         
-  where 
 
 replaceNotes :: PandocMonad m => [Block] -> TagParser m [Block]
 replaceNotes = walkM replaceNotes'
@@ -160,7 +157,6 @@ pHead = pInTags "head" $ pTitle <|> pMetaTag <|> pBaseTag <|> (mempty <$ pAnyTag
 
 block :: PandocMonad m => TagParser m Blocks
 block = do
-  tr <- (== DEBUG) <$> getOption readerVerbosity
   pos <- getPosition
   res <- choice
             [ eSection
@@ -181,8 +177,8 @@ block = do
             , pPlain
             , pRawHtmlBlock
             ]
-  when tr $ trace (printf "line %d: %s" (sourceLine pos)
-             (take 60 $ show $ B.toList res)) (return ())
+  report DEBUG $ printf "line %d: %s"
+                  (sourceLine pos) (take 60 $ show $ B.toList res)
   return res
 
 namespaces :: PandocMonad m => [(String, TagParser m Inlines)]

@@ -56,9 +56,8 @@ import qualified Data.Set as Set
 import Data.Char (isDigit, isSpace)
 import Data.Maybe (fromMaybe)
 import Text.Printf (printf)
-import Debug.Trace (trace)
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: PandocMonad m
@@ -194,7 +193,6 @@ parseMediaWiki = do
 
 block :: PandocMonad m => MWParser m Blocks
 block = do
-  tr <- (== DEBUG) <$> getOption readerVerbosity
   pos <- getPosition
   res <- mempty <$ skipMany1 blankline
      <|> table
@@ -208,9 +206,8 @@ block = do
      <|> blockTag
      <|> (B.rawBlock "mediawiki" <$> template)
      <|> para
-  when tr $
-    trace (printf "line %d: %s" (sourceLine pos)
-           (take 60 $ show $ B.toList res)) (return ())
+  report DEBUG $ printf "line %d: %s" (sourceLine pos)
+                    (take 60 $ show $ B.toList res)
   return res
 
 para :: PandocMonad m => MWParser m Blocks
