@@ -438,8 +438,6 @@ inlineToTextile opts (RawInline f str)
 
 inlineToTextile _ LineBreak = return "\n"
 
-inlineToTextile _ PageBreak = return mempty
-
 inlineToTextile _ SoftBreak = return " "
 
 inlineToTextile _ Space = return " "

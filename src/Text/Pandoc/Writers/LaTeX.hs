@@ -961,7 +961,6 @@ inlineToLaTeX SoftBreak = do
        WrapAuto     -> return space
        WrapNone     -> return space
        WrapPreserve -> return cr
-inlineToLaTeX PageBreak = return $ "\\clearpage{}"
 inlineToLaTeX Space = return space
 inlineToLaTeX (Link _ txt ('#':ident, _)) = do
   contents <- inlineListToLaTeX txt

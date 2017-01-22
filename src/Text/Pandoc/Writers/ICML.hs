@@ -435,7 +435,6 @@ inlineToICML opts style SoftBreak =
        WrapNone     -> charStyle style space
        WrapPreserve -> charStyle style cr
 inlineToICML _ style LineBreak = charStyle style $ text lineSeparator
-inlineToICML _ _ PageBreak = return empty
 inlineToICML opts style (Math mt str) =
   lift (texMathToInlines mt str) >>=
     (fmap cat . mapM (inlineToICML opts style))

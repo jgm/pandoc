@@ -320,8 +320,6 @@ inlineToZimWiki opts (RawInline f str)
 
 inlineToZimWiki _ LineBreak = return "\n" -- was \\\\
 
-inlineToZimWiki _ PageBreak = return mempty
-
 inlineToZimWiki opts SoftBreak =
   case writerWrapText opts of
        WrapNone     -> return " "

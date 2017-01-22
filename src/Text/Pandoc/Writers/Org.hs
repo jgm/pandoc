@@ -351,7 +351,6 @@ inlineToOrg (RawInline f@(Format f') str) =
            then text str
            else "@@" <> text f' <> ":" <> text str <> "@@"
 inlineToOrg LineBreak = return (text "\\\\" <> cr)
-inlineToOrg PageBreak = return empty
 inlineToOrg Space = return space
 inlineToOrg SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)

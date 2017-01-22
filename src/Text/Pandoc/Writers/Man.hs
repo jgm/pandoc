@@ -351,7 +351,6 @@ inlineToMan _ (RawInline f str)
   | otherwise         = return empty
 inlineToMan _ LineBreak = return $
   cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
-inlineToMan _ PageBreak = return empty
 inlineToMan _ SoftBreak = return space
 inlineToMan _ Space = return space
 inlineToMan opts (Link _ txt (src, _)) = do

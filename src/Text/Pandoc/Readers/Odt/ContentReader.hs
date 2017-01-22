@@ -381,9 +381,9 @@ getParaModifier :: Style -> ParaModifier
 getParaModifier Style{..} | Just props <- paraProperties styleProperties
                           , isBlockQuote (indentation props)
                                          (margin_left props)
-                          = pageBreakMaybe (paraProperties styleProperties) blockQuote
+                          = blockQuote
                           | otherwise
-                          = pageBreakMaybe (paraProperties styleProperties) id
+                          = id
   where
   isBlockQuote mIndent mMargin
     | LengthValueMM indent <- mIndent
@@ -408,19 +408,7 @@ getParaModifier Style{..} | Just props <- paraProperties styleProperties
 
     | otherwise
      = False
-  pageBreakMaybe :: Maybe ParaProperties -> ParaModifier -> ParaModifier
-  pageBreakMaybe (Just props) modifier = insertPageBreak (page_break props) modifier
-  pageBreakMaybe Nothing      modifier = modifier
 
-  insertPageBreak :: ParaBreak -> ParaModifier -> ParaModifier
-  insertPageBreak PageAfter modifier  =
-    \x -> (fromList (toList (modifier x) ++ [Para (toList pageBreak)]))
-  insertPageBreak PageBefore modifier =
-    \x -> (fromList (Para (toList pageBreak) : toList (modifier x)))
-  insertPageBreak PageBoth modifier   =
-    \x -> (fromList ((Para (toList pageBreak) : toList (modifier x)) ++ [Para (toList pageBreak)]))
-  insertPageBreak _  modifier         =
-    modifier
 --
 constructPara :: OdtReaderSafe Blocks Blocks -> OdtReaderSafe Blocks Blocks
 constructPara reader = proc blocks -> do
@@ -905,6 +893,7 @@ read_reference_ref :: InlineMatcher
 read_reference_ref = matchingElement NsText "reference-ref"
                     $    maybeInAnchorRef
                      <<< matchChildContent [] read_plain_text
+
 
 ----------------------
 -- Entry point

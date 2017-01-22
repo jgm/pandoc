@@ -405,8 +405,6 @@ inlineToMediaWiki (RawInline f str)
 
 inlineToMediaWiki LineBreak = return "<br />\n"
 
-inlineToMediaWiki PageBreak = return mempty
-
 inlineToMediaWiki SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   case wrapText of

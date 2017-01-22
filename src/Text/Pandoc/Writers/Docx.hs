@@ -1106,7 +1106,6 @@ inlineToOpenXML' opts (Strikeout lst) =
   withTextProp (mknode "w:strike" [] ())
   $ inlinesToOpenXML opts lst
 inlineToOpenXML' _ LineBreak = return [br]
-inlineToOpenXML' _ PageBreak = return [pageBreak]
 inlineToOpenXML' _ (RawInline f str)
   | f == Format "openxml" = return [ x | Elem x <- parseXML str ]
   | otherwise            = return []

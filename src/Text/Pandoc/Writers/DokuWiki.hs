@@ -475,8 +475,6 @@ inlineToDokuWiki _ (RawInline f str)
 
 inlineToDokuWiki _ LineBreak = return "\\\\\n"
 
-inlineToDokuWiki _ PageBreak = return mempty
-
 inlineToDokuWiki opts SoftBreak =
   case writerWrapText opts of
        WrapNone     -> return " "

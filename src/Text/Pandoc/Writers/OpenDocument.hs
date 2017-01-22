@@ -35,7 +35,6 @@ import Text.Pandoc.Options
 import Text.Pandoc.XML
 import Text.Pandoc.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Readers.Odt.StyleReader hiding (listStyle)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Pretty
 import Text.Printf ( printf )
@@ -319,7 +318,9 @@ blockToOpenDocument o bs
                                   else inParagraphTags =<< inlinesToOpenDocument o b
     | Para [Image attr c (s,'f':'i':'g':':':t)] <- bs
                              = figure attr c s t
-    | Para           b <- bs = paragraph b
+    | Para           b <- bs = if null b
+                                  then return empty
+                                  else inParagraphTags =<< inlinesToOpenDocument o b
     | LineBlock      b <- bs = blockToOpenDocument o $ linesToPara b
     | Div _ xs         <- bs = blocksToOpenDocument o xs
     | Header     i _ b <- bs = setFirstPara >>
@@ -379,22 +380,6 @@ blockToOpenDocument o bs
         imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image attr caption (source,title)]]
         captionDoc <- withParagraphStyle o "FigureCaption" [Para caption]
         return $ imageDoc $$ captionDoc
-
-      endsWithPageBreak []          = False
-      endsWithPageBreak [PageBreak] = True
-      endsWithPageBreak (_ : xs)    = endsWithPageBreak xs
-
-      paragraph :: PandocMonad m => [Inline] -> OD m Doc
-      paragraph []                                          = return empty
-      paragraph (PageBreak : rest) | endsWithPageBreak rest = paraWithBreak PageBoth rest
-      paragraph (PageBreak : rest)                          = paraWithBreak PageBefore rest
-      paragraph inlines | endsWithPageBreak inlines         = paraWithBreak PageAfter inlines
-      paragraph inlines                                     = inParagraphTags =<< inlinesToOpenDocument o inlines
-
-      paraWithBreak :: PandocMonad m => ParaBreak -> [Inline] -> OD m Doc
-      paraWithBreak breakKind bs' = do
-        pn <- paraBreakStyle breakKind
-        withParagraphStyle o ("P" ++ show pn) [Para bs']
 
 colHeadsToOpenDocument :: PandocMonad m
                        => WriterOptions -> String -> [String] -> [[Block]]
@@ -594,12 +579,6 @@ paraStyle attrs = do
                     selfClosingTag "style:paragraph-properties" attributes
   addParaStyle $ inTags True "style:style" (styleAttr ++ attrs) paraProps
   return pn
-
-paraBreakStyle :: PandocMonad m => ParaBreak -> OD m Int
-paraBreakStyle PageBefore = paraStyle "Text_20_body" [("fo:break-before", "page")]
-paraBreakStyle PageAfter  = paraStyle "Text_20_body" [("fo:break-after", "page")]
-paraBreakStyle PageBoth   = paraStyle "Text_20_body" [("fo:break-before", "page"), ("fo:break-after", "page")]
-paraBreakStyle AutoNone   = paraStyle "Text_20_body" []
 
 paraListStyle :: PandocMonad m => Int -> OD m Int
 paraListStyle l = paraStyle

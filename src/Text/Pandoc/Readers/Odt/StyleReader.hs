@@ -43,7 +43,6 @@ module Text.Pandoc.Readers.Odt.StyleReader
 , TextProperties       (..)
 , ParaProperties       (..)
 , VerticalTextPosition (..)
-, ParaBreak            (..)
 , ListItemNumberFormat (..)
 , ListLevel
 , ListStyle            (..)
@@ -274,7 +273,6 @@ instance Default TextProperties where
 data ParaProperties   = PropP { paraNumbering :: ParaNumbering
                               , indentation   :: LengthOrPercent
                               , margin_left   :: LengthOrPercent
-                              , page_break    :: ParaBreak
                               }
   deriving ( Eq, Show )
 
@@ -282,7 +280,6 @@ instance Default ParaProperties where
   def =                 PropP { paraNumbering = NumberingNone
                               , indentation   = def
                               , margin_left   = def
-                              , page_break    = AutoNone
                               }
 
 ----
@@ -315,9 +312,6 @@ instance Lookupable UnderlineMode where
 
 
 data ParaNumbering = NumberingNone | NumberingKeep | NumberingRestart Int
-  deriving ( Eq, Show )
-
-data ParaBreak = AutoNone | PageBefore | PageAfter | PageBoth
   deriving ( Eq, Show )
 
 data LengthOrPercent = LengthValueMM Int | PercentValue Int
@@ -539,20 +533,16 @@ readLineMode modeAttr styleAttr = proc x -> do
 readParaProperties :: StyleReader _x ParaProperties
 readParaProperties =
    executeIn NsStyle "paragraph-properties" $ liftAsSuccess
-     ( liftA4 PropP
+     ( liftA3 PropP
        ( liftA2 readNumbering
-         ( isSet'              NsText   "number-lines"            )
-         ( readAttr'           NsText   "line-number"             )
+         ( isSet'           NsText   "number-lines"           )
+         ( readAttr'        NsText   "line-number"            )
        )
        ( liftA2 readIndentation
-         ( isSetWithDefault    NsStyle  "auto-text-indent" False  )
-         ( getAttr             NsXSL_FO "text-indent"             )
+         ( isSetWithDefault NsStyle  "auto-text-indent" False )
+         ( getAttr          NsXSL_FO "text-indent"            )
        )
-       (   getAttr             NsXSL_FO "margin-left"             )
-       ( liftA2 readPageBreak
-         ( findAttrWithDefault NsXSL_FO "break-before"     "auto" )
-         ( findAttrWithDefault NsXSL_FO "break-after"      "auto" )
-       )
+       (   getAttr          NsXSL_FO "margin-left"            )
      )
   where readNumbering (Just True) (Just n) = NumberingRestart n
         readNumbering (Just True)  _       = NumberingKeep
@@ -560,11 +550,6 @@ readParaProperties =
 
         readIndentation False indent = indent
         readIndentation True  _      = def
-
-        readPageBreak "page" "page" = PageBoth
-        readPageBreak "page" _      = PageBefore
-        readPageBreak _      "page" = PageAfter
-        readPageBreak _      _      = AutoNone
 
 ----
 -- List styles
