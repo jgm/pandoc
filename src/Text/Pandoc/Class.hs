@@ -43,6 +43,8 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , warning
                          , warningWithPos
                          , getWarnings
+                         , getLog
+                         , setVerbosity
                          , getMediaBag
                          , setMediaBag
                          , insertMedia
@@ -70,6 +72,7 @@ import qualified Text.Pandoc.Shared as IO ( readDataFile
                                           , warn
                                           , openURL )
 import Text.Pandoc.Compat.Time (UTCTime)
+import Text.Pandoc.Options (Verbosity(..))
 import Text.Pandoc.Parsing (ParserT, SourcePos)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType)
@@ -128,20 +131,55 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   modifyCommonState :: (CommonState -> CommonState) -> m ()
   modifyCommonState f = getCommonState >>= putCommonState . f
 
+  -- Can be overridden when you want log to be written to
+  -- stderr in a streaming fashion
+  report :: Verbosity -> String -> m ()
+  report level msg = do
+    verbosity <- getsCommonState stVerbosity
+    when (level >= verbosity) $
+       modifyCommonState $ \st -> st{ stLog = (level, msg) : stLog st }
+
 -- Functions defined for all PandocMonad instances
 
-warning :: PandocMonad m => String -> m ()
-warning msg = modifyCommonState $ \st -> st{stWarnings = msg : stWarnings st}
+setVerbosity :: PandocMonad m => Verbosity -> m ()
+setVerbosity verbosity =
+  modifyCommonState $ \st -> st{ stVerbosity = verbosity }
 
+getLog :: PandocMonad m => m [(Verbosity, String)]
+getLog = getsCommonState stLog
+
+warning :: PandocMonad m => String -> m ()
+warning msg = report WARNING msg
+
+warningWithPos :: PandocMonad m
+               => SourcePos
+               -> String
+               -> ParserT s st m ()
+warningWithPos pos msg = lift $ warning $ msg ++ " " ++ show pos
+
+-- TODO get rid of this?
 getWarnings :: PandocMonad m => m [String]
-getWarnings = getsCommonState stWarnings
+getWarnings = do
+  logs <- getLog
+  return [s | (WARNING, s) <- logs]
 
 setMediaBag :: PandocMonad m => MediaBag -> m ()
 setMediaBag mb = modifyCommonState $
                  \st -> st{stDeferredMediaBag = DeferredMediaBag mb mempty}
 
 getMediaBag :: PandocMonad m => m MediaBag
-getMediaBag = fetchDeferredMedia >> (dropDeferredMedia <$> getsCommonState stDeferredMediaBag)
+getMediaBag = do
+  fetchDeferredMedia
+  DeferredMediaBag mb' _ <- getsCommonState stDeferredMediaBag
+  return mb'
+
+fetchDeferredMedia :: PandocMonad m => m ()
+fetchDeferredMedia = do
+  (DeferredMediaBag mb defMedia) <- getsCommonState stDeferredMediaBag
+  fetchedMedia <- catMaybes <$> mapM fetchMediaItem defMedia
+  setMediaBag $ foldr
+    (\(fp, bs, mbMime) mb' -> MB.insertMedia fp mbMime (BL.fromStrict bs) mb')
+    mb fetchedMedia
 
 insertMedia :: PandocMonad m => FilePath -> Maybe MimeType -> BL.ByteString -> m ()
 insertMedia fp mime bs = do
@@ -170,12 +208,6 @@ getZonedTime = do
   tz <- getCurrentTimeZone
   return $ utcToZonedTime tz t
 
-warningWithPos :: PandocMonad m
-               => SourcePos
-               -> String
-               -> ParserT s st m ()
-warningWithPos pos msg = lift $ warning $ msg ++ " " ++ show pos
-
 --
 
 newtype DeferredMediaPath = DeferredMediaPath {unDefer :: String}
@@ -189,7 +221,6 @@ instance Monoid DeferredMediaBag where
   mappend (DeferredMediaBag mb lst) (DeferredMediaBag mb' lst') =
     DeferredMediaBag (mb <> mb') (lst <> lst')
 
-    
 -- the internal function for downloading individual items. We want to
 -- catch errors and return a Nothing with a warning, so we can
 -- continue without erroring out.
@@ -203,32 +234,19 @@ fetchMediaItem dfp =
   (const $ do warning ("Couldn't access media at " ++ unDefer dfp)
               return Nothing)
 
-fetchDeferredMedia' :: PandocMonad m => m MediaBag
-fetchDeferredMedia' = do
-  (DeferredMediaBag mb defMedia) <- getsCommonState stDeferredMediaBag
-  fetchedMedia <- catMaybes <$> mapM fetchMediaItem defMedia
-  return $ foldr
-    (\(fp, bs, mbMime) mb' -> MB.insertMedia fp mbMime (BL.fromStrict bs) mb')
-    mb fetchedMedia
-
-fetchDeferredMedia :: PandocMonad m => m ()
-fetchDeferredMedia = fetchDeferredMedia' >>= setMediaBag
-
-dropDeferredMedia :: DeferredMediaBag -> MediaBag
-dropDeferredMedia (DeferredMediaBag mb _) = mb
-
-
-data CommonState = CommonState { stWarnings :: [String]
+data CommonState = CommonState { stLog        :: [(Verbosity, String)]
                                , stDeferredMediaBag :: DeferredMediaBag
                                , stInputFiles :: Maybe [FilePath]
                                , stOutputFile :: Maybe FilePath
+                               , stVerbosity  :: Verbosity
                                }
 
 instance Default CommonState where
-  def = CommonState { stWarnings = []
+  def = CommonState { stLog = []
                     , stDeferredMediaBag = mempty
                     , stInputFiles = Nothing
                     , stOutputFile = Nothing
+                    , stVerbosity = WARNING
                     }
 
 runIO :: PandocIO a -> IO (Either PandocError a)
