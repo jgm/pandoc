@@ -24,7 +24,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Documentation.Haddock.Parser
 import Documentation.Haddock.Types
-import Debug.Trace (trace)
 import Text.Pandoc.Error
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad)
@@ -42,15 +41,12 @@ readHaddock opts s = case readHaddockEither opts s of
 readHaddockEither :: ReaderOptions -- ^ Reader options
                   -> String        -- ^ String to parse
                   -> Either PandocError Pandoc
-readHaddockEither opts =
+readHaddockEither _opts =
 #if MIN_VERSION_haddock_library(1,2,0)
-  Right . B.doc . docHToBlocks . trace' . _doc . parseParas
+  Right . B.doc . docHToBlocks . _doc . parseParas
 #else
-  Right .  B.doc . docHToBlocks . trace' . parseParas
+  Right .  B.doc . docHToBlocks . parseParas
 #endif
-  where trace' x = if readerVerbosity opts == DEBUG
-                      then trace (show x) x
-                      else x
 
 docHToBlocks :: DocH String Identifier -> Blocks
 docHToBlocks d' =

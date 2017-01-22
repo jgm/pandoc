@@ -62,7 +62,6 @@ data ReaderOptions = ReaderOptions{
        , readerIndentedCodeClasses :: [String] -- ^ Default classes for
                                        -- indented code blocks
        , readerDefaultImageExtension :: String -- ^ Default extension for images
-       , readerVerbosity       :: Verbosity -- ^ Verbosity level
        , readerTrackChanges    :: TrackChanges
 } deriving (Show, Read, Data, Typeable, Generic)
 
@@ -76,7 +75,6 @@ instance Default ReaderOptions
                , readerApplyMacros           = True
                , readerIndentedCodeClasses   = []
                , readerDefaultImageExtension = ""
-               , readerVerbosity             = ERROR
                , readerTrackChanges          = AcceptChanges
                }
 
@@ -186,7 +184,6 @@ data WriterOptions = WriterOptions
   , writerEpubChapterLevel :: Int            -- ^ Header level for chapters (separate files)
   , writerTOCDepth         :: Int            -- ^ Number of levels to include in TOC
   , writerReferenceDoc     :: Maybe FilePath -- ^ Path to reference document if specified
-  , writerVerbosity        :: Verbosity      -- ^ Verbose debugging output
   , writerLaTeXArgs        :: [String]       -- ^ Flags to pass to latex-engine
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
   } deriving (Show, Data, Typeable, Generic)
@@ -228,7 +225,6 @@ instance Default WriterOptions where
                       , writerEpubChapterLevel = 1
                       , writerTOCDepth         = 3
                       , writerReferenceDoc     = Nothing
-                      , writerVerbosity        = WARNING
                       , writerLaTeXArgs        = []
                       , writerReferenceLocation = EndOfDocument
                       }

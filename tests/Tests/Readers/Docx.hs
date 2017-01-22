@@ -62,7 +62,8 @@ testCompare = testCompareWithOpts defopts
 testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> IO Test
 testForWarningsWithOptsIO opts name docxFile expected = do
   df <- B.readFile docxFile
-  warns <-  runIOorExplode (readDocx opts df >> P.getWarnings)
+  logs <-  runIOorExplode (readDocx opts df >> P.getLog)
+  let warns = [s | (WARNING, s) <- logs]
   return $ test id name (unlines warns, unlines expected)
 
 testForWarningsWithOpts :: ReaderOptions -> String -> FilePath -> [String] -> Test

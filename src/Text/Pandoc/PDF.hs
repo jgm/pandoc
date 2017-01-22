@@ -74,10 +74,11 @@ makePDF :: MonadIO m
                                -- xelatex, context, wkhtmltopdf)
         -> (WriterOptions -> Pandoc -> PandocIO String)  -- ^ writer
         -> WriterOptions       -- ^ options
+        -> Verbosity           -- ^ verbosity level
         -> MediaBag            -- ^ media
         -> Pandoc              -- ^ document
         -> m (Either ByteString ByteString)
-makePDF "wkhtmltopdf" writer opts _mediabag doc@(Pandoc meta _) = liftIO $ do
+makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = liftIO $ do
   let mathArgs = case writerHTMLMathMethod opts of
                  -- with MathJax, wait til all math is rendered:
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
@@ -99,16 +100,16 @@ makePDF "wkhtmltopdf" writer opts _mediabag doc@(Pandoc meta _) = liftIO $ do
                             (getField "margin-left" meta'))
                  ]
   source <- runIOorExplode $ writer opts doc
-  html2pdf (writerVerbosity opts) args source
-makePDF program writer opts mediabag doc =
+  html2pdf verbosity args source
+makePDF program writer opts verbosity mediabag doc =
   liftIO $ withTempDir "tex2pdf." $ \tmpdir -> do
     doc' <- handleImages opts mediabag tmpdir doc
     source <- runIOorExplode $ writer opts doc'
     let args   = writerLaTeXArgs opts
     case takeBaseName program of
-       "context" -> context2pdf (writerVerbosity opts) tmpdir source
+       "context" -> context2pdf verbosity tmpdir source
        prog | prog `elem` ["pdflatex", "lualatex", "xelatex"]
-           -> tex2pdf' (writerVerbosity opts) args tmpdir program source
+           -> tex2pdf' verbosity args tmpdir program source
        _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
 
 handleImages :: WriterOptions

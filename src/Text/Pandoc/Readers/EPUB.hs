@@ -12,7 +12,7 @@ import Text.XML.Light
 import Text.Pandoc.Definition hiding (Attr)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Walk (walk, query)
-import Text.Pandoc.Options ( ReaderOptions(..), readerVerbosity, Verbosity(..))
+import Text.Pandoc.Options ( ReaderOptions(..), Verbosity(..))
 import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
 import Network.URI (unEscapeString)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
@@ -26,17 +26,15 @@ import System.FilePath ( takeFileName, (</>), dropFileName, normalise
                        , dropFileName
                        , splitFileName )
 import qualified Text.Pandoc.UTF8 as UTF8 (toStringLazy)
-import Control.Monad (guard, liftM, when)
+import Control.Monad (guard, liftM)
 import Data.List (isPrefixOf, isInfixOf)
 import Data.Maybe (mapMaybe, fromMaybe)
 import qualified Data.Map as M (Map, lookup, fromList, elems)
 import Data.Monoid ((<>))
 import Control.DeepSeq (deepseq, NFData)
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
-
-import Debug.Trace (trace)
 
 type Items = M.Map String (FilePath, MimeType)
 
@@ -71,7 +69,7 @@ archiveToEPUB os archive = do
     os' = os {readerParseRaw = True}
     parseSpineElem :: PandocMonad m => FilePath -> (FilePath, MimeType) -> m Pandoc
     parseSpineElem (normalise -> r) (normalise -> path, mime) = do
-      when (readerVerbosity os == DEBUG) (traceM path)
+      report DEBUG ("parseSpineElem called with path " ++ show path)
       doc <- mimeToReader mime r path
       let docSpan = B.doc $ B.para $ B.spanWith (takeFileName path, [], []) mempty
       return $ docSpan <> doc
@@ -240,9 +238,6 @@ foldM' f z (x:xs) = do
 
 uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (a, b, c) = f a b c
-
-traceM :: Monad m => String -> m ()
-traceM = flip trace (return ())
 
 -- Utility
 

@@ -291,7 +291,6 @@ convertWithOpts opts args = do
                       , readerIndentedCodeClasses = codeBlockClasses
                       , readerApplyMacros = not laTeXOutput
                       , readerDefaultImageExtension = defaultImageExtension
-                      , readerVerbosity = verbosity
                       , readerTrackChanges = trackChanges
                       }
 
@@ -328,7 +327,6 @@ convertWithOpts opts args = do
                             writerEpubChapterLevel = epubChapterLevel,
                             writerTOCDepth         = epubTOCDepth,
                             writerReferenceDoc     = referenceDoc,
-                            writerVerbosity        = verbosity,
                             writerLaTeXArgs        = latexEngineArgs
                           }
 
@@ -406,7 +404,7 @@ convertWithOpts opts args = do
                      err 41 $ pdfprog ++ " not found. " ++
                        pdfprog ++ " is needed for pdf output."
 
-                res <- makePDF pdfprog f writerOptions media doc'
+                res <- makePDF pdfprog f writerOptions verbosity media doc'
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> liftIO $ do
