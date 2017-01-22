@@ -125,8 +125,7 @@ convertWithOpts opts args = do
               , optTOCDepth              = epubTOCDepth
               , optDumpArgs              = dumpArgs
               , optIgnoreArgs            = ignoreArgs
-              , optVerbose               = verbose
-              , optQuiet                 = quiet
+              , optVerbosity             = verbosity
               , optFailIfWarnings        = failIfWarnings
               , optReferenceLinks        = referenceLinks
               , optReferenceLocation     = referenceLocation
@@ -147,7 +146,6 @@ convertWithOpts opts args = do
               , optAscii                 = ascii
               , optDefaultImageExtension = defaultImageExtension
               , optExtractMedia          = mbExtractMedia
-              , optTrace                 = trace
               , optTrackChanges          = trackChanges
               , optFileScope            = fileScope
               , optKaTeXStylesheet       = katexStylesheet
@@ -294,7 +292,7 @@ convertWithOpts opts args = do
                       , readerIndentedCodeClasses = codeBlockClasses
                       , readerApplyMacros = not laTeXOutput
                       , readerDefaultImageExtension = defaultImageExtension
-                      , readerTrace = trace
+                      , readerVerbosity = verbosity
                       , readerTrackChanges = trackChanges
                       }
 
@@ -331,7 +329,7 @@ convertWithOpts opts args = do
                             writerEpubChapterLevel = epubChapterLevel,
                             writerTOCDepth         = epubTOCDepth,
                             writerReferenceDoc     = referenceDoc,
-                            writerVerbose          = verbose,
+                            writerVerbosity        = verbosity,
                             writerLaTeXArgs        = latexEngineArgs
                           }
 
@@ -361,8 +359,8 @@ convertWithOpts opts args = do
                              ws <- getWarnings
                              return (x, ws)
         when (not (null warnings)) $ do
-          unless quiet $
-            mapM_ warn warnings
+          --  TODO make these streaming
+          when (verbosity >= WARNING) $ mapM_ warn warnings
           when failIfWarnings $
             err 3 "Failing because there were warnings."
         return res
@@ -541,8 +539,7 @@ data Opt = Opt
     , optTOCDepth          :: Int     -- ^ Number of levels to include in TOC
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
-    , optVerbose           :: Bool    -- ^ Verbose diagnostic output
-    , optQuiet             :: Bool    -- ^ Suppress warnings
+    , optVerbosity         :: Verbosity  -- ^ Verbosity of diagnostic output
     , optFailIfWarnings    :: Bool    -- ^ Fail on warnings
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optReferenceLocation :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
@@ -563,7 +560,6 @@ data Opt = Opt
     , optAscii             :: Bool       -- ^ Use ascii characters only in html
     , optDefaultImageExtension :: String -- ^ Default image extension
     , optExtractMedia      :: Maybe FilePath -- ^ Path to extract embedded media
-    , optTrace             :: Bool       -- ^ Print debug information
     , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes.
     , optFileScope        :: Bool         -- ^ Parse input files before combining
     , optKaTeXStylesheet   :: Maybe String     -- ^ Path to stylesheet for KaTeX
@@ -603,8 +599,7 @@ defaultOpts = Opt
     , optTOCDepth              = 3
     , optDumpArgs              = False
     , optIgnoreArgs            = False
-    , optVerbose               = False
-    , optQuiet                 = False
+    , optVerbosity             = WARNING
     , optFailIfWarnings        = False
     , optReferenceLinks        = False
     , optReferenceLocation     = EndOfDocument
@@ -625,9 +620,8 @@ defaultOpts = Opt
     , optAscii                 = False
     , optDefaultImageExtension = ""
     , optExtractMedia          = Nothing
-    , optTrace                 = False
     , optTrackChanges          = AcceptChanges
-    , optFileScope            = False
+    , optFileScope             = False
     , optKaTeXStylesheet       = Nothing
     , optKaTeXJS               = Nothing
     }
@@ -1186,7 +1180,7 @@ options =
 
     , Option "" ["trace"]
                  (NoArg
-                  (\opt -> return opt { optTrace = True }))
+                  (\opt -> return opt { optVerbosity = DEBUG }))
                  "" -- "Turn on diagnostic tracing in readers."
 
     , Option "" ["dump-args"]
@@ -1201,12 +1195,12 @@ options =
 
     , Option "" ["verbose"]
                  (NoArg
-                  (\opt -> return opt { optVerbose = True }))
+                  (\opt -> return opt { optVerbosity = INFO }))
                  "" -- "Verbose diagnostic output."
 
     , Option "" ["quiet"]
                  (NoArg
-                  (\opt -> return opt { optQuiet = True }))
+                  (\opt -> return opt { optVerbosity = ERROR }))
                  "" -- "Suppress warnings."
 
     , Option "" ["fail-if-warnings"]

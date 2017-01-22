@@ -45,8 +45,8 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
 import Text.Pandoc.Shared ( extractSpaces, renderTags', addMetaField
                           , escapeURI, safeRead )
-import Text.Pandoc.Options (ReaderOptions(readerParseRaw, readerTrace)
-                           , Extension (Ext_epub_html_exts,
+import Text.Pandoc.Options (ReaderOptions(readerParseRaw, readerVerbosity),
+                            Verbosity(..), Extension (Ext_epub_html_exts,
                                Ext_native_divs, Ext_native_spans))
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
@@ -160,7 +160,7 @@ pHead = pInTags "head" $ pTitle <|> pMetaTag <|> pBaseTag <|> (mempty <$ pAnyTag
 
 block :: PandocMonad m => TagParser m Blocks
 block = do
-  tr <- getOption readerTrace
+  tr <- (== DEBUG) <$> getOption readerVerbosity
   pos <- getPosition
   res <- choice
             [ eSection

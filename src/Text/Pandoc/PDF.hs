@@ -52,7 +52,8 @@ import Text.Pandoc.MediaBag
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Shared (warn, withTempDir, inDirectory, stringify)
 import Text.Pandoc.Writers.Shared (getField, metaToJSON)
-import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..))
+import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..),
+          Verbosity(..))
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Process (pipeProcess)
 import Control.Monad.Trans (MonadIO(..))
@@ -98,16 +99,16 @@ makePDF "wkhtmltopdf" writer opts _mediabag doc@(Pandoc meta _) = liftIO $ do
                             (getField "margin-left" meta'))
                  ]
   source <- runIOorExplode $ writer opts doc
-  html2pdf (writerVerbose opts) args source
+  html2pdf (writerVerbosity opts) args source
 makePDF program writer opts mediabag doc =
   liftIO $ withTempDir "tex2pdf." $ \tmpdir -> do
     doc' <- handleImages opts mediabag tmpdir doc
     source <- runIOorExplode $ writer opts doc'
     let args   = writerLaTeXArgs opts
     case takeBaseName program of
-       "context" -> context2pdf (writerVerbose opts) tmpdir source
+       "context" -> context2pdf (writerVerbosity opts) tmpdir source
        prog | prog `elem` ["pdflatex", "lualatex", "xelatex"]
-           -> tex2pdf' (writerVerbose opts) args tmpdir program source
+           -> tex2pdf' (writerVerbosity opts) args tmpdir program source
        _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
 
 handleImages :: WriterOptions
@@ -174,17 +175,17 @@ convertImage tmpdir fname =
     mime = getMimeType fname
     doNothing = return (Right fname)
 
-tex2pdf' :: Bool                            -- ^ Verbose output
+tex2pdf' :: Verbosity                       -- ^ Verbosity level
          -> [String]                        -- ^ Arguments to the latex-engine
          -> FilePath                        -- ^ temp directory for output
          -> String                          -- ^ tex program
          -> String                          -- ^ tex source
          -> IO (Either ByteString ByteString)
-tex2pdf' verbose args tmpDir program source = do
+tex2pdf' verbosity args tmpDir program source = do
   let numruns = if "\\tableofcontents" `isInfixOf` source
                    then 3  -- to get page numbers
                    else 2  -- 1 run won't give you PDF bookmarks
-  (exit, log', mbPdf) <- runTeXProgram verbose program args 1 numruns tmpDir source
+  (exit, log', mbPdf) <- runTeXProgram verbosity program args 1 numruns tmpDir source
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do
           let logmsg = extractMsg log'
@@ -222,9 +223,9 @@ extractConTeXtMsg log' = do
 -- Run a TeX program on an input bytestring and return (exit code,
 -- contents of stdout, contents of produced PDF if any).  Rerun
 -- a fixed number of times to resolve references.
-runTeXProgram :: Bool -> String -> [String] -> Int -> Int -> FilePath -> String
-              -> IO (ExitCode, ByteString, Maybe ByteString)
-runTeXProgram verbose program args runNumber numRuns tmpDir source = do
+runTeXProgram :: Verbosity -> String -> [String] -> Int -> Int -> FilePath
+              -> String -> IO (ExitCode, ByteString, Maybe ByteString)
+runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
     let file = tmpDir </> "input.tex"
     exists <- doesFileExist file
     unless exists $ UTF8.writeFile file source
@@ -244,7 +245,7 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
           $ lookup "TEXINPUTS" env'
     let env'' = ("TEXINPUTS", texinputs) :
                   [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
-    when (verbose && runNumber == 1) $ do
+    when (verbosity >= INFO && runNumber == 1) $ do
       putStrLn "[makePDF] temp dir:"
       putStrLn tmpDir'
       putStrLn "[makePDF] Command line:"
@@ -257,12 +258,12 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
       B.readFile file' >>= B.putStr
       putStr "\n"
     (exit, out) <- pipeProcess (Just env'') program programArgs BL.empty
-    when verbose $ do
+    when (verbosity >= INFO) $ do
       putStrLn $ "[makePDF] Run #" ++ show runNumber
       B.hPutStr stdout out
       putStr "\n"
     if runNumber <= numRuns
-       then runTeXProgram verbose program args (runNumber + 1) numRuns tmpDir source
+       then runTeXProgram verbosity program args (runNumber + 1) numRuns tmpDir source
        else do
          let pdfFile = replaceDirectory (replaceExtension file ".pdf") tmpDir
          pdfExists <- doesFileExist pdfFile
@@ -274,17 +275,17 @@ runTeXProgram verbose program args runNumber numRuns tmpDir source = do
                    else return Nothing
          return (exit, out, pdf)
 
-html2pdf  :: Bool         -- ^ Verbose output
+html2pdf  :: Verbosity    -- ^ Verbosity level
           -> [String]     -- ^ Args to wkhtmltopdf
           -> String       -- ^ HTML5 source
           -> IO (Either ByteString ByteString)
-html2pdf verbose args source = do
+html2pdf verbosity args source = do
   file <- withTempFile "." "html2pdf.html" $ \fp _ -> return fp
   pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
   UTF8.writeFile file source
   let programArgs = args ++ [file, pdfFile]
   env' <- getEnvironment
-  when verbose $ do
+  when (verbosity >= INFO) $ do
     putStrLn "[makePDF] Command line:"
     putStrLn $ "wkhtmltopdf" ++ " " ++ unwords (map show programArgs)
     putStr "\n"
@@ -296,7 +297,7 @@ html2pdf verbose args source = do
     putStr "\n"
   (exit, out) <- pipeProcess (Just env') "wkhtmltopdf" programArgs BL.empty
   removeFile file
-  when verbose $ do
+  when (verbosity >= INFO) $ do
     B.hPutStr stdout out
     putStr "\n"
   pdfExists <- doesFileExist pdfFile
@@ -314,11 +315,11 @@ html2pdf verbose args source = do
              (ExitSuccess, Nothing)  -> Left ""
              (ExitSuccess, Just pdf) -> Right pdf
 
-context2pdf :: Bool         -- ^ Verbose output
+context2pdf :: Verbosity    -- ^ Verbosity level
             -> FilePath     -- ^ temp directory for output
             -> String       -- ^ ConTeXt source
             -> IO (Either ByteString ByteString)
-context2pdf verbose tmpDir source = inDirectory tmpDir $ do
+context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
   let file = "input.tex"
   UTF8.writeFile file source
 #ifdef _WINDOWS
@@ -334,7 +335,7 @@ context2pdf verbose tmpDir source = inDirectory tmpDir $ do
         $ lookup "TEXINPUTS" env'
   let env'' = ("TEXINPUTS", texinputs) :
                 [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
-  when verbose $ do
+  when (verbosity >= INFO) $ do
     putStrLn "[makePDF] temp dir:"
     putStrLn tmpDir'
     putStrLn "[makePDF] Command line:"
@@ -347,7 +348,7 @@ context2pdf verbose tmpDir source = inDirectory tmpDir $ do
     B.readFile file >>= B.putStr
     putStr "\n"
   (exit, out) <- pipeProcess (Just env'') "context" programArgs BL.empty
-  when verbose $ do
+  when (verbosity >= INFO) $ do
     B.hPutStr stdout out
     putStr "\n"
   let pdfFile = replaceExtension file ".pdf"

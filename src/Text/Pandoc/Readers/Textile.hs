@@ -147,7 +147,7 @@ block :: PandocMonad m => ParserT [Char] ParserState m Blocks
 block = do
   res <- choice blockParsers <?> "block"
   pos <- getPosition
-  tr <- getOption readerTrace
+  tr <- (== DEBUG) <$> getOption readerVerbosity
   when tr $
     trace (printf "line %d: %s" (sourceLine pos)
            (take 60 $ show $ B.toList res)) (return ())

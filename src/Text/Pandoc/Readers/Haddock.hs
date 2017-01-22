@@ -48,7 +48,7 @@ readHaddockEither opts =
 #else
   Right .  B.doc . docHToBlocks . trace' . parseParas
 #endif
-  where trace' x = if readerTrace opts
+  where trace' x = if readerVerbosity opts == DEBUG
                       then trace (show x) x
                       else x
 

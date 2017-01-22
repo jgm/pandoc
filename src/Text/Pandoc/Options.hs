@@ -37,6 +37,7 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , HTMLSlideVariant (..)
                            , EPUBVersion (..)
                            , WrapOption (..)
+                           , Verbosity (..)
                            , TopLevelDivision (..)
                            , WriterOptions (..)
                            , TrackChanges (..)
@@ -61,7 +62,7 @@ data ReaderOptions = ReaderOptions{
        , readerIndentedCodeClasses :: [String] -- ^ Default classes for
                                        -- indented code blocks
        , readerDefaultImageExtension :: String -- ^ Default extension for images
-       , readerTrace           :: Bool -- ^ Print debugging info
+       , readerVerbosity       :: Verbosity -- ^ Verbosity level
        , readerTrackChanges    :: TrackChanges
 } deriving (Show, Read, Data, Typeable, Generic)
 
@@ -75,7 +76,7 @@ instance Default ReaderOptions
                , readerApplyMacros           = True
                , readerIndentedCodeClasses   = []
                , readerDefaultImageExtension = ""
-               , readerTrace                 = False
+               , readerVerbosity             = ERROR
                , readerTrackChanges          = AcceptChanges
                }
 
@@ -141,6 +142,10 @@ data ReferenceLocation = EndOfBlock    -- ^ End of block
                        | EndOfDocument -- ^ at end of document
                        deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+-- | Verbosity level.
+data Verbosity = ERROR | WARNING | INFO | DEBUG
+     deriving (Show, Read, Eq, Data, Enum, Ord, Bounded, Typeable, Generic)
+
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerTemplate         :: Maybe String -- ^ Template to use
@@ -181,7 +186,7 @@ data WriterOptions = WriterOptions
   , writerEpubChapterLevel :: Int            -- ^ Header level for chapters (separate files)
   , writerTOCDepth         :: Int            -- ^ Number of levels to include in TOC
   , writerReferenceDoc     :: Maybe FilePath -- ^ Path to reference document if specified
-  , writerVerbose          :: Bool           -- ^ Verbose debugging output
+  , writerVerbosity        :: Verbosity      -- ^ Verbose debugging output
   , writerLaTeXArgs        :: [String]       -- ^ Flags to pass to latex-engine
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
   } deriving (Show, Data, Typeable, Generic)
@@ -223,7 +228,7 @@ instance Default WriterOptions where
                       , writerEpubChapterLevel = 1
                       , writerTOCDepth         = 3
                       , writerReferenceDoc     = Nothing
-                      , writerVerbose          = False
+                      , writerVerbosity        = WARNING
                       , writerLaTeXArgs        = []
                       , writerReferenceLocation = EndOfDocument
                       }

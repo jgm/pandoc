@@ -12,7 +12,7 @@ import Text.XML.Light
 import Text.Pandoc.Definition hiding (Attr)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Walk (walk, query)
-import Text.Pandoc.Options ( ReaderOptions(..), readerTrace)
+import Text.Pandoc.Options ( ReaderOptions(..), readerVerbosity, Verbosity(..))
 import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
 import Network.URI (unEscapeString)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
@@ -71,7 +71,7 @@ archiveToEPUB os archive = do
     os' = os {readerParseRaw = True}
     parseSpineElem :: PandocMonad m => FilePath -> (FilePath, MimeType) -> m Pandoc
     parseSpineElem (normalise -> r) (normalise -> path, mime) = do
-      when (readerTrace os) (traceM path)
+      when (readerVerbosity os == DEBUG) (traceM path)
       doc <- mimeToReader mime r path
       let docSpan = B.doc $ B.para $ B.spanWith (takeFileName path, [], []) mempty
       return $ docSpan <> doc

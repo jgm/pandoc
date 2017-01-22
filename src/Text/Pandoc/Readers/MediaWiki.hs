@@ -194,7 +194,7 @@ parseMediaWiki = do
 
 block :: PandocMonad m => MWParser m Blocks
 block = do
-  tr <- getOption readerTrace
+  tr <- (== DEBUG) <$> getOption readerVerbosity
   pos <- getPosition
   res <- mempty <$ skipMany1 blankline
      <|> table

@@ -490,7 +490,7 @@ parseBlocks = mconcat <$> manyTill block eof
 
 block :: PandocMonad m => MarkdownParser m (F Blocks)
 block = do
-  tr <- getOption readerTrace
+  tr <- (== DEBUG) <$> getOption readerVerbosity
   pos <- getPosition
   res <- choice [ mempty <$ blanklines
                , codeBlockFenced
