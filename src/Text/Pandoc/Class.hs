@@ -548,7 +548,7 @@ instance (PandocMonad m, Monoid w) => PandocMonad (WriterT w m) where
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
-  logOutput lvl = lift . report lvl
+  logOutput lvl = lift . logOutput lvl
 
 instance (PandocMonad m, Monoid w) => PandocMonad (RWST r w st m) where
   lookupEnv = lift . lookupEnv
