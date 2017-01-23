@@ -41,8 +41,11 @@ import Text.Printf ( printf )
 import Control.Arrow ( (***), (>>>) )
 import Control.Monad.State hiding ( when )
 import Data.Char (chr)
+import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Text.Pandoc.Writers.Shared
+import Data.List (sortBy)
+import Data.Ord (comparing)
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -58,8 +61,8 @@ data WriterState =
                 , stTableStyles   :: [Doc]
                 , stParaStyles    :: [Doc]
                 , stListStyles    :: [(Int, [Doc])]
-                , stTextStyles    :: [Doc]
-                , stTextStyleAttr :: Map.Map TextStyle [(String,String)]
+                , stTextStyles    :: Map.Map (Set.Set TextStyle) (String, Doc)
+                , stTextStyleAttr :: Set.Set TextStyle
                 , stIndentPara    :: Int
                 , stInDefinition  :: Bool
                 , stTight         :: Bool
@@ -73,8 +76,8 @@ defaultWriterState =
                 , stTableStyles   = []
                 , stParaStyles    = []
                 , stListStyles    = []
-                , stTextStyles    = []
-                , stTextStyleAttr = Map.empty
+                , stTextStyles    = Map.empty
+                , stTextStyleAttr = Set.empty
                 , stIndentPara    = 0
                 , stInDefinition  = False
                 , stTight         = False
@@ -94,14 +97,13 @@ addNote i = modify $ \s -> s { stNotes = i : stNotes s }
 addParaStyle :: Doc -> State WriterState ()
 addParaStyle i = modify $ \s -> s { stParaStyles = i : stParaStyles s }
 
-addTextStyle :: Doc -> State WriterState ()
-addTextStyle i = modify $ \s -> s { stTextStyles = i : stTextStyles s }
+addTextStyle :: Set.Set TextStyle -> (String, Doc) -> State WriterState ()
+addTextStyle attrs i = modify $ \s ->
+  s { stTextStyles = Map.insert attrs i (stTextStyles s) }
 
-addTextStyleAttr :: (TextStyle, [(String,String)]) -> State WriterState ()
-addTextStyleAttr (ts, xs) = modify $ \s -> s { stTextStyleAttr = Map.insert ts xs (stTextStyleAttr s) }
-
-rmTextStyleAttr :: TextStyle -> State WriterState ()
-rmTextStyleAttr ts = modify $ \s -> s { stTextStyleAttr = Map.delete ts (stTextStyleAttr s) }
+addTextStyleAttr :: TextStyle -> State WriterState ()
+addTextStyleAttr t = modify $ \s ->
+  s { stTextStyleAttr = Set.insert t (stTextStyleAttr s) }
 
 increaseIndent :: State WriterState ()
 increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
@@ -136,20 +138,33 @@ inSpanTags :: String -> Doc -> Doc
 inSpanTags s = inTags False "text:span" [("text:style-name",s)]
 
 withTextStyle :: TextStyle -> State WriterState a -> State WriterState a
-withTextStyle s f = addTextStyleAttr (s,textStyleAttr s) >>
-                    f >>= \r -> rmTextStyleAttr s >> return r
+withTextStyle s f = do
+  oldTextStyleAttr <- gets stTextStyleAttr
+  addTextStyleAttr s
+  res <- f
+  modify $ \st -> st{ stTextStyleAttr = oldTextStyleAttr }
+  return res
 
 inTextStyle :: Doc -> State WriterState Doc
 inTextStyle d = do
   at <- gets stTextStyleAttr
-  if Map.null at
+  if Set.null at
      then return d
      else do
-       tn <- (+) 1 . length  <$> gets stTextStyles
-       addTextStyle $ inTags False "style:style" [("style:name"  , "T" ++ show tn)
-                                                 ,("style:family", "text"        )]
-                    $ selfClosingTag "style:text-properties" (concatMap snd $ Map.toList at)
-       return $ inTags False "text:span" [("text:style-name","T" ++ show tn)] d
+       styles <- gets stTextStyles
+       case Map.lookup at styles of
+            Just (styleName, _) -> return $
+              inTags False "text:span" [("text:style-name",styleName)] d
+            Nothing -> do
+              let styleName = "T" ++ show (Map.size styles + 1)
+              addTextStyle at (styleName,
+                     inTags False "style:style"
+                       [("style:name", styleName)
+                       ,("style:family", "text")]
+                    $ selfClosingTag "style:text-properties"
+                       (concatMap textStyleAttr (Set.toList at)))
+              return $ inTags False
+                  "text:span" [("text:style-name",styleName)] d
 
 inHeaderTags :: Int -> Doc -> State WriterState Doc
 inHeaderTags i d =
@@ -188,7 +203,9 @@ writeOpenDocument opts (Pandoc meta blocks) =
                   meta
            b <- render' `fmap` blocksToOpenDocument opts blocks
            return (b, m)
-      styles   = stTableStyles s ++ stParaStyles s ++ stTextStyles s
+      styles   = stTableStyles s ++ stParaStyles s ++
+                     map snd (reverse $ sortBy (comparing fst) $
+                        Map.elems (stTextStyles s))
       listStyle (n,l) = inTags True "text:list-style"
                           [("style:name", "L" ++ show n)] (vcat l)
       listStyles  = map listStyle (stListStyles s)
@@ -371,20 +388,40 @@ tableItemToOpenDocument o tn (n,i) =
 
 -- | Convert a list of inline elements to OpenDocument.
 inlinesToOpenDocument :: WriterOptions -> [Inline] -> State WriterState Doc
-inlinesToOpenDocument o l = hcat <$> mapM (inlineToOpenDocument o) l
+inlinesToOpenDocument o l = hcat <$> toChunks o l
+
+toChunks :: WriterOptions -> [Inline] -> State WriterState [Doc]
+toChunks _ [] = return []
+toChunks o (x : xs)
+  | isChunkable x = do
+        contents <- (inTextStyle . hcat) =<<
+                     mapM (inlineToOpenDocument o) (x:ys)
+        rest <- toChunks o zs
+        return (contents : rest)
+  | otherwise     = do
+        contents <- inlineToOpenDocument o x
+        rest <- toChunks o xs
+        return (contents : rest)
+  where (ys, zs) = span isChunkable xs
+
+isChunkable :: Inline -> Bool
+isChunkable (Str _) = True
+isChunkable Space   = True
+isChunkable SoftBreak = True
+isChunkable _ = False
 
 -- | Convert an inline element to OpenDocument.
 inlineToOpenDocument :: WriterOptions -> Inline -> State WriterState Doc
 inlineToOpenDocument o ils
   = case ils of
-    Space         -> inTextStyle space
+    Space         -> return space
     SoftBreak
      | writerWrapText o == WrapPreserve
-                  -> inTextStyle (preformatted "\n")
-     | otherwise  -> inTextStyle space
+                  -> return $ preformatted "\n"
+     | otherwise  -> return $ space
     Span _ xs     -> inlinesToOpenDocument o xs
     LineBreak     -> return $ selfClosingTag "text:line-break" []
-    Str         s -> inTextStyle $ handleSpaces $ escapeStringForXML s
+    Str         s -> return $ handleSpaces $ escapeStringForXML s
     Emph        l -> withTextStyle Italic $ inlinesToOpenDocument o l
     Strong      l -> withTextStyle Bold   $ inlinesToOpenDocument o l
     Strikeout   l -> withTextStyle Strike $ inlinesToOpenDocument o l
