@@ -682,7 +682,7 @@ exampleCode = B.codeBlockWith ("", ["example"], [])
 specialLine :: PandocMonad m => OrgParser m (F Blocks)
 specialLine = fmap return . try $ rawExportLine <|> metaLine <|> commentLine
 
-rawExportLine :: PnadocMonad m => OrgParser m Blocks
+rawExportLine :: PandocMonad m => OrgParser m Blocks
 rawExportLine = try $ do
   metaLineStart
   key <- metaKey

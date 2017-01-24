@@ -206,7 +206,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                   meta
            b <- render' `fmap` blocksToOpenDocument opts blocks
            return (b, m)
-      styles   = stTableStyles s ++ stParaStyles s ++
+  let styles   = stTableStyles s ++ stParaStyles s ++
                      map snd (reverse $ sortBy (comparing fst) $
                         Map.elems (stTextStyles s))
       listStyle (n,l) = inTags True "text:list-style"
@@ -559,7 +559,7 @@ tableStyle num wcs =
 paraStyle :: PandocMonad m => [(String,String)] -> OD m Int
 paraStyle attrs = do
   pn <- (+)   1 . length       <$> gets stParaStyles
-  i  <- (*) 0.5 . fromIntegral <$> gets stIndentPara :: State WriterState Double
+  i  <- (*) (0.5 :: Double) . fromIntegral <$> gets stIndentPara
   b  <- gets stInDefinition
   t  <- gets stTight
   let styleAttr = [ ("style:name"             , "P" ++ show pn)
