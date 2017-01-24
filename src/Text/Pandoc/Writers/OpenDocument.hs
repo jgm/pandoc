@@ -226,7 +226,7 @@ withParagraphStyle _ _ [] = return empty
 
 inPreformattedTags :: String -> State WriterState Doc
 inPreformattedTags s = do
-  n <- paraStyle "Preformatted_20_Text" []
+  n <- paraStyle [("style:parent-style-name","Preformatted_20_Text")]
   return . inParagraphTagsWithStyle ("P" ++ show n) . handleSpaces $ s
 
 orderedListToOpenDocument :: WriterOptions -> Int -> [[Block]] -> State WriterState Doc
@@ -287,7 +287,8 @@ deflistItemToOpenDocument o (t,d) = do
 inBlockQuote :: WriterOptions -> Int -> [Block] -> State WriterState Doc
 inBlockQuote  o i (b:bs)
     | BlockQuote l <- b = do increaseIndent
-                             ni <- paraStyle "Quotations" []
+                             ni <- paraStyle
+                                   [("style:parent-style-name","Quotations")]
                              go =<< inBlockQuote o ni (map plainToPara l)
     | Para       l <- b = do go =<< inParagraphTagsWithStyle ("P" ++ show  i) <$> inlinesToOpenDocument o l
     | otherwise         = do go =<< blockToOpenDocument o b
@@ -333,7 +334,8 @@ blockToOpenDocument o bs
                            return r
       preformatted  s = (flush . vcat) <$> mapM (inPreformattedTags . escapeStringForXML) (lines s)
       mkBlockQuote  b = do increaseIndent
-                           i <- paraStyle "Quotations" []
+                           i <- paraStyle
+                                 [("style:parent-style-name","Quotations")]
                            inBlockQuote o i (map plainToPara b)
       orderedList a b = do (ln,pn) <- newOrderedListStyle (isTightList b) a
                            inTags True "text:list" [ ("text:style-name", "L" ++ show ln)]
@@ -536,15 +538,14 @@ tableStyle num wcs =
         columnStyles   = map colStyle wcs
     in  table $$ vcat columnStyles $$ cellStyle
 
-paraStyle :: String -> [(String,String)] -> State WriterState Int
-paraStyle parent attrs = do
+paraStyle :: [(String,String)] -> State WriterState Int
+paraStyle attrs = do
   pn <- (+)   1 . length       <$> gets stParaStyles
   i  <- (*) 0.5 . fromIntegral <$> gets stIndentPara :: State WriterState Double
   b  <- gets stInDefinition
   t  <- gets stTight
   let styleAttr = [ ("style:name"             , "P" ++ show pn)
-                  , ("style:family"           , "paragraph"   )
-                  , ("style:parent-style-name", parent        )]
+                  , ("style:family"           , "paragraph"   )]
       indentVal = flip (++) "in" . show $ if b then (max 0.5 i) else i
       tight     = if t then [ ("fo:margin-top"          , "0in"    )
                             , ("fo:margin-bottom"       , "0in"    )]
@@ -562,7 +563,9 @@ paraStyle parent attrs = do
   return pn
 
 paraListStyle :: Int -> State WriterState Int
-paraListStyle l = paraStyle "Text_20_body" [("style:list-style-name", "L" ++ show l )]
+paraListStyle l = paraStyle
+  [("style:parent-style-name","Text_20_body")
+  ,("style:list-style-name", "L" ++ show l )]
 
 paraTableStyles :: String -> Int -> [Alignment] -> [(String, Doc)]
 paraTableStyles _ _ [] = []
