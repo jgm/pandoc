@@ -97,6 +97,9 @@ $for(bibliography)$
 \addbibresource{$bibliography$}
 $endfor$
 $endif$
+$if(verbatim-in-note)$
+\usepackage{fancyvrb}
+$endif$
 \hypersetup{
 $if(title-meta)$
             pdftitle={$title-meta$},
@@ -116,6 +119,10 @@ $else$
             pdfborder={0 0 0},
 $endif$
             breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+$if(verbatim-in-note)$
+\VerbatimFootnotes % allows verbatim text in footnotes
+$endif$
 $if(listings)$
 \usepackage{listings}
 $endif$
@@ -124,10 +131,6 @@ $if(lhs)$
 $endif$
 $if(highlighting-macros)$
 $highlighting-macros$
-$endif$
-$if(verbatim-in-note)$
-\usepackage{fancyvrb}
-\VerbatimFootnotes % allows verbatim text in footnotes
 $endif$
 $if(tables)$
 \usepackage{longtable,booktabs}
