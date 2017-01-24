@@ -22,6 +22,7 @@
 \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
 \PassOptionsToPackage{hyphens}{url} % url is loaded by hyperref
+\usepackage{fancyvrb}
 \usepackage[unicode=true]{hyperref}
 \hypersetup{
             pdftitle={Pandoc Test Suite},
@@ -29,7 +30,6 @@
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
-\usepackage{fancyvrb}
 \VerbatimFootnotes % allows verbatim text in footnotes
 \usepackage{graphicx,grffile}
 \makeatletter
