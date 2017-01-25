@@ -51,6 +51,7 @@ module Text.Pandoc.Highlighting ( languages
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (safeRead)
 import Skylighting
+import qualified Data.Set as Set
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
 import qualified Data.Map as M
@@ -95,7 +96,7 @@ highlight formatter (_, classes, keyvals) rawCode =
                    Left _ -> Nothing
 
 -- Functions for correlating latex listings package's language names
--- with highlighting-kate language names:
+-- with skylighting language names:
 
 langToListingsMap :: M.Map String String
 langToListingsMap = M.fromList langsList
@@ -105,60 +106,108 @@ listingsToLangMap = M.fromList $ map switch langsList
   where switch (a,b) = (b,a)
 
 langsList :: [(String, String)]
-langsList =    [("ada","Ada")
-               ,("java","Java")
-               ,("prolog","Prolog")
-               ,("python","Python")
-               ,("gnuassembler","Assembler")
-               ,("commonlisp","Lisp")
-               ,("r","R")
-               ,("awk","Awk")
-               ,("bash","bash")
-               ,("makefile","make")
-               ,("c","C")
-               ,("matlab","Matlab")
-               ,("ruby","Ruby")
-               ,("cpp","C++")
-               ,("ocaml","Caml")
-               ,("modula2","Modula-2")
-               ,("sql","SQL")
-               ,("eiffel","Eiffel")
-               ,("tcl","tcl")
-               ,("erlang","erlang")
-               ,("verilog","Verilog")
-               ,("fortran","Fortran")
-               ,("vhdl","VHDL")
-               ,("pascal","Pascal")
-               ,("perl","Perl")
-               ,("xml","XML")
-               ,("haskell","Haskell")
-               ,("php","PHP")
-               ,("xslt","XSLT")
-               ,("html","HTML")
-               ,("gap","GAP")
-               ]
+langsList =
+  [("abap","ABAP"),
+  ("acm","ACM"),
+  ("acmscript","ACMscript"),
+  ("acsl","ACSL"),
+  ("ada","Ada"),
+  ("algol","Algol"),
+  ("ant","Ant"),
+  ("assembler","Assembler"),
+  ("gnuassembler","Assembler"),
+  ("awk","Awk"),
+  ("bash","bash"),
+  ("monobasic","Basic"),
+  ("purebasic","Basic"),
+  ("c","C"),
+  ("cpp","C++"),
+  ("c++","C++"),
+  ("ocaml","Caml"),
+  ("cil","CIL"),
+  ("clean","Clean"),
+  ("cobol","Cobol"),
+  ("comal80","Comal80"),
+  ("command.com","command.com"),
+  ("comsol","Comsol"),
+  ("csh","csh"),
+  ("delphi","Delphi"),
+  ("elan","Elan"),
+  ("erlang","erlang"),
+  ("euphoria","Euphoria"),
+  ("fortran","Fortran"),
+  ("gap","GAP"),
+  ("gcl","GCL"),
+  ("gnuplot","Gnuplot"),
+  ("hansl","hansl"),
+  ("haskell","Haskell"),
+  ("html","HTML"),
+  ("idl","IDL"),
+  ("inform","inform"),
+  ("java","Java"),
+  ("jvmis","JVMIS"),
+  ("ksh","ksh"),
+  ("lingo","Lingo"),
+  ("lisp","Lisp"),
+  ("commonlisp","Lisp"),
+  ("llvm","LLVM"),
+  ("logo","Logo"),
+  ("lua","Lua"),
+  ("make","make"),
+  ("makefile","make"),
+  ("mathematica","Mathematica"),
+  ("matlab","Matlab"),
+  ("mercury","Mercury"),
+  ("metapost","MetaPost"),
+  ("miranda","Miranda"),
+  ("mizar","Mizar"),
+  ("ml","ML"),
+  ("modula2","Modula-2"),
+  ("mupad","MuPAD"),
+  ("nastran","NASTRAN"),
+  ("oberon2","Oberon-2"),
+  ("ocl","OCL"),
+  ("octave","Octave"),
+  ("oz","Oz"),
+  ("pascal","Pascal"),
+  ("perl","Perl"),
+  ("php","PHP"),
+  ("pli","PL/I"),
+  ("plasm","Plasm"),
+  ("postscript","PostScript"),
+  ("pov","POV"),
+  ("prolog","Prolog"),
+  ("promela","Promela"),
+  ("pstricks","PSTricks"),
+  ("python","Python"),
+  ("r","R"),
+  ("reduce","Reduce"),
+  ("rexx","Rexx"),
+  ("rsl","RSL"),
+  ("ruby","Ruby"),
+  ("s","S"),
+  ("sas","SAS"),
+  ("scala","Scala"),
+  ("scilab","Scilab"),
+  ("sh","sh"),
+  ("shelxl","SHELXL"),
+  ("simula","Simula"),
+  ("sparql","SPARQL"),
+  ("sql","SQL"),
+  ("tcl","tcl"),
+  ("tex","TeX"),
+  ("latex","TeX"),
+  ("vbscript","VBScript"),
+  ("verilog","Verilog"),
+  ("vhdl","VHDL"),
+  ("vrml","VRML"),
+  ("xml","XML"),
+  ("xslt","XSLT")]
 
-listingsLangs :: [String]
-listingsLangs = ["Ada","Java","Prolog","Algol","JVMIS","Promela",
-                 "Ant","ksh","Python","Assembler","Lisp","R","Awk",
-                 "Logo","Reduce","bash","make","Rexx","Basic",
-                 "Mathematica","RSL","C","Matlab","Ruby","C++",
-                 "Mercury","S","Caml","MetaPost","SAS","Clean",
-                 "Miranda","Scilab","Cobol","Mizar","sh","Comal",
-                 "ML","SHELXL","csh","Modula-2","Simula","Delphi",
-                 "MuPAD","SQL","Eiffel","NASTRAN","tcl","Elan",
-                 "Oberon-2","TeX","erlang","OCL","VBScript","Euphoria",
-                 "Octave","Verilog","Fortran","Oz","VHDL","GCL",
-                 "Pascal","VRML","Gnuplot","Perl","XML","Haskell",
-                 "PHP","XSLT","HTML","PL/I","GAP"]
-
--- Determine listings language name from highlighting-kate language name.
+-- | Determine listings language name from skylighting language name.
 toListingsLanguage :: String -> Maybe String
-toListingsLanguage lang = (if lang `elem` listingsLangs
-                              then Just lang
-                              else Nothing) <|>
-                             M.lookup (map toLower lang) langToListingsMap
+toListingsLanguage lang = M.lookup (map toLower lang) langToListingsMap
 
--- Determine highlighting-kate language name from listings language name.
+-- | Determine skylighting language name from listings language name.
 fromListingsLanguage :: String -> Maybe String
 fromListingsLanguage lang = M.lookup lang listingsToLangMap
