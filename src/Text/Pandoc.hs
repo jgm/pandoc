@@ -99,8 +99,10 @@ module Text.Pandoc
                , writeLaTeX
                , writeConTeXt
                , writeTexinfo
-               , writeHtml
-               , writeHtmlString
+               , writeHtml4
+               , writeHtml4String
+               , writeHtml5
+               , writeHtml5String
                , writeICML
                , writeDocbook
                , writeOPML
@@ -281,23 +283,21 @@ writers = [
   ,("epub3"        , ByteStringWriter $ \o ->
                       writeEPUB o{ writerEpubVersion = Just EPUB3 })
   ,("fb2"          , StringWriter writeFB2)
-  ,("html"         , StringWriter writeHtmlString)
-  ,("html5"        , StringWriter $ \o ->
-     writeHtmlString o{ writerHtml5 = True })
+  ,("html"         , StringWriter writeHtml5String)
+  ,("html4"        , StringWriter writeHtml4String)
+  ,("html5"        , StringWriter writeHtml5String)
   ,("icml"         , StringWriter writeICML)
   ,("s5"           , StringWriter $ \o ->
-     writeHtmlString o{ writerSlideVariant = S5Slides
-                      , writerTableOfContents = False })
+     writeHtml4String o{ writerSlideVariant = S5Slides
+                       , writerTableOfContents = False })
   ,("slidy"        , StringWriter $ \o ->
-     writeHtmlString o{ writerSlideVariant = SlidySlides })
+     writeHtml4String o{ writerSlideVariant = SlidySlides })
   ,("slideous"     , StringWriter $ \o ->
-     writeHtmlString o{ writerSlideVariant = SlideousSlides })
+     writeHtml4String o{ writerSlideVariant = SlideousSlides })
   ,("dzslides"     , StringWriter $ \o ->
-     writeHtmlString o{ writerSlideVariant = DZSlides
-                      , writerHtml5 = True })
+     writeHtml5String o{ writerSlideVariant = DZSlides })
   ,("revealjs"      , StringWriter $ \o ->
-     writeHtmlString o{ writerSlideVariant = RevealJsSlides
-                      , writerHtml5 = True })
+     writeHtml5String o{ writerSlideVariant = RevealJsSlides })
   ,("docbook"      , StringWriter writeDocbook)
   ,("docbook5"     , StringWriter $ \o ->
      writeDocbook o{ writerDocbook5 = True })
@@ -342,6 +342,7 @@ getDefaultExtensions "html"            = extensionsFromList
                                           [Ext_auto_identifiers,
                                            Ext_native_divs,
                                            Ext_native_spans]
+getDefaultExtensions "html4"           = getDefaultExtensions "html"
 getDefaultExtensions "html5"           = getDefaultExtensions "html"
 getDefaultExtensions "epub"            = extensionsFromList
                                           [Ext_raw_html,

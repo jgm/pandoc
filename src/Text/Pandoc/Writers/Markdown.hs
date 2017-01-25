@@ -47,7 +47,7 @@ import Text.Pandoc.Pretty
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Writers.HTML (writeHtmlString)
+import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.HTML.TagSoup (parseTags, isTagText, Tag(..))
 import Network.URI (isURI)
@@ -536,7 +536,7 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
                              rawHeaders rawRows
                   | isEnabled Ext_raw_html opts -> fmap (id,) $
                          text <$>
-                         (writeHtmlString def $ Pandoc nullMeta [t])
+                         (writeHtml5String def $ Pandoc nullMeta [t])
                   | otherwise -> return $ (id, text "[TABLE]")
   return $ nst $ tbl $$ blankline $$ caption'' $$ blankline
 blockToMarkdown' opts (BulletList items) = do
@@ -1072,7 +1072,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
-    (text . trim) <$> writeHtmlString def (Pandoc nullMeta [Plain [lnk]])
+    (text . trim) <$> writeHtml5String def (Pandoc nullMeta [Plain [lnk]])
   | otherwise = do
   plain <- asks envPlain
   linktext <- inlineListToMarkdown opts txt
@@ -1111,7 +1111,7 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
-    (text . trim) <$> writeHtmlString def (Pandoc nullMeta [Plain [img]])
+    (text . trim) <$> writeHtml5String def (Pandoc nullMeta [Plain [img]])
   | otherwise = do
   plain <- asks envPlain
   let txt = if null alternate || alternate == [Str source]

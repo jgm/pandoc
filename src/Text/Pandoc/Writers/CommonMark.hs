@@ -31,7 +31,7 @@ CommonMark:  <http://commonmark.org>
 -}
 module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
-import Text.Pandoc.Writers.HTML (writeHtmlString)
+import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (isTightList, linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
@@ -138,7 +138,7 @@ blockToNodes (DefinitionList items) ns = blockToNodes (BulletList items') ns
         dlToBullet (term, xs) =
           Para term : concat xs
 blockToNodes t@(Table _ _ _ _ _) ns = do
-  s <- writeHtmlString def $! Pandoc nullMeta [t]
+  s <- writeHtml5String def $! Pandoc nullMeta [t]
   return (node (HTML_BLOCK (T.pack $! s)) [] : ns)
 blockToNodes Null ns = return ns
 

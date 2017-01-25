@@ -28,7 +28,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to HTML.
 -}
-module Text.Pandoc.Writers.HTML ( writeHtml , writeHtmlString ) where
+module Text.Pandoc.Writers.HTML (
+  writeHtml4, writeHtml4String,
+  writeHtml5, writeHtml5String ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Data.Monoid ((<>))
@@ -80,12 +82,13 @@ data WriterState = WriterState
     , stHighlighting     :: Bool    -- ^ Syntax highlighting is used
     , stSecNum           :: [Int]   -- ^ Number of current section
     , stElement          :: Bool    -- ^ Processing an Element
+    , stHtml5            :: Bool    -- ^ Use HTML5
     }
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
                                   stHighlighting = False, stSecNum = [],
-                                  stElement = False}
+                                  stElement = False, stHtml5 = False}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -102,19 +105,35 @@ nl opts = if writerWrapText opts == WrapNone
              then mempty
              else preEscapedString "\n"
 
--- | Convert Pandoc document to Html string.
-writeHtmlString :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeHtmlString opts d = do
-  (body, context) <- evalStateT (pandocToHtml opts d) defaultWriterState
+-- | Convert Pandoc document to Html 5 string.
+writeHtml5String :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeHtml5String = writeHtmlString' True
+
+-- | Convert Pandoc document to Html 5 structure.
+writeHtml5 :: PandocMonad m => WriterOptions -> Pandoc -> m Html
+writeHtml5 = writeHtml' True
+
+-- | Convert Pandoc document to Html 4 string.
+writeHtml4String :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeHtml4String = writeHtmlString' False
+
+-- | Convert Pandoc document to Html 4 structure.
+writeHtml4 :: PandocMonad m => WriterOptions -> Pandoc -> m Html
+writeHtml4 = writeHtml' False
+
+writeHtmlString' :: PandocMonad m => Bool -> WriterOptions -> Pandoc -> m String
+writeHtmlString' html5 opts d = do
+  (body, context) <- evalStateT (pandocToHtml opts d)
+                      defaultWriterState{ stHtml5 = html5 }
   return $ case writerTemplate opts of
              Nothing  -> renderHtml body
              Just tpl -> renderTemplate' tpl $
                            defField "body" (renderHtml body) context
 
--- | Convert Pandoc document to Html structure.
-writeHtml :: PandocMonad m => WriterOptions -> Pandoc -> m Html
-writeHtml opts d = do
-  (body, context) <- evalStateT (pandocToHtml opts d) defaultWriterState
+writeHtml' :: PandocMonad m => Bool -> WriterOptions -> Pandoc -> m Html
+writeHtml' html5 opts d = do
+  (body, context) <- evalStateT (pandocToHtml opts d)
+                      defaultWriterState{ stHtml5 = html5 }
   return $ case writerTemplate opts of
              Nothing  -> body
              Just tpl -> renderTemplate' tpl $
@@ -144,8 +163,8 @@ pandocToHtml opts (Pandoc meta blocks) = do
   blocks' <- liftM (mconcat . intersperse (nl opts)) $
                  mapM (elementToHtml slideLevel opts) sects
   st <- get
-  let notes = reverse (stNotes st)
-  let thebody = blocks' >> footnoteSection opts notes
+  notes <- footnoteSection opts (reverse (stNotes st))
+  let thebody = blocks' >> notes
   let  math = case writerHTMLMathMethod opts of
                       LaTeXMathML (Just url) ->
                          H.script ! A.src (toValue url)
@@ -172,7 +191,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          (H.link ! A.rel "stylesheet" ! A.href (toValue css)) <>
                          (H.script ! A.type_ "text/javascript" $ toHtml renderKaTeX)
                       _ -> case lookup "mathml-script" (writerVariables opts) of
-                                 Just s | not (writerHtml5 opts) ->
+                                 Just s | not (stHtml5 st) ->
                                    H.script ! A.type_ "text/javascript"
                                       $ preEscapedString
                                        ("/*<![CDATA[*/\n" ++ s ++ "/*]]>*/\n")
@@ -199,7 +218,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "slideous-url" ("slideous" :: String) $
                   defField "revealjs-url" ("reveal.js" :: String) $
                   defField "s5-url" ("s5/default" :: String) $
-                  defField "html5" (writerHtml5 opts) $
+                  defField "html5" (stHtml5 st) $
                   metadata
   return (thebody, context)
 
@@ -277,6 +296,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
   let slide = writerSlideVariant opts /= NoSlides && level <= slideLevel
   let num' = zipWith (+) num (writerNumberOffset opts ++ repeat 0)
   modify $ \st -> st{stSecNum = num'}  -- update section number
+  html5 <- gets stHtml5
   let titleSlide = slide && level < slideLevel
   header' <- if title' == [Str "\0"]  -- marker for hrule
                 then return mempty
@@ -307,10 +327,10 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
   let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
   let classes' = ["titleslide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
-                               not (writerHtml5 opts) ] ++
+                               not html5 ] ++
                   ["level" ++ show level | slide || writerSectionDivs opts ]
                   ++ classes
-  let secttag  = if writerHtml5 opts
+  let secttag  = if html5
                     then H5.section
                     else H.div
   let attr = (id',classes',keyvals)
@@ -327,19 +347,22 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
-footnoteSection :: WriterOptions -> [Html] -> Html
-footnoteSection opts notes =
-  if null notes
-     then mempty
-     else nl opts >> (container
-          $ nl opts >> hrtag >> nl opts >>
-            H.ol (mconcat notes >> nl opts) >> nl opts)
-   where container x = if writerHtml5 opts
-                          then H5.section ! A.class_ "footnotes" $ x
-                          else if writerSlideVariant opts /= NoSlides
-                               then H.div ! A.class_ "footnotes slide" $ x
-                               else H.div ! A.class_ "footnotes" $ x
-         hrtag = if writerHtml5 opts then H5.hr else H.hr
+footnoteSection :: PandocMonad m
+                => WriterOptions -> [Html] -> StateT WriterState m Html
+footnoteSection opts notes = do
+  html5 <- gets stHtml5
+  let hrtag = if html5 then H5.hr else H.hr
+  let container x = if html5
+                       then H5.section ! A.class_ "footnotes" $ x
+                       else if writerSlideVariant opts /= NoSlides
+                            then H.div ! A.class_ "footnotes slide" $ x
+                            else H.div ! A.class_ "footnotes" $ x
+  return $
+    if null notes
+       then mempty
+       else nl opts >> (container
+            $ nl opts >> hrtag >> nl opts >>
+              H.ol (mconcat notes >> nl opts) >> nl opts)
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: String -> Maybe (String, String)
@@ -448,13 +471,14 @@ blockToHtml opts (Plain lst) = inlineListToHtml opts lst
 -- title beginning with fig: indicates that the image is a figure
 blockToHtml opts (Para [Image attr txt (s,'f':'i':'g':':':tit)]) = do
   img <- inlineToHtml opts (Image attr txt (s,tit))
-  let tocapt = if writerHtml5 opts
+  html5 <- gets stHtml5
+  let tocapt = if html5
                   then H5.figcaption
                   else H.p ! A.class_ "caption"
   capt <- if null txt
              then return mempty
              else tocapt `fmap` inlineListToHtml opts txt
-  return $ if writerHtml5 opts
+  return $ if html5
               then H5.figure $ mconcat
                     [nl opts, img, capt, nl opts]
               else H.div ! A.class_ "figure" $ mconcat
@@ -475,12 +499,13 @@ blockToHtml opts (LineBlock lns) =
     htmlLines <- mconcat . intersperse lf <$> mapM (inlineListToHtml opts) lns
     return $ H.div ! A.style "white-space: pre-line;" $ htmlLines
 blockToHtml opts (Div attr@(ident, classes, kvs) bs) = do
+  html5 <- gets stHtml5
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
   let opts' = if speakerNotes then opts{ writerIncremental = False } else opts
   contents <- blockListToHtml opts' bs
   let contents' = nl opts >> contents >> nl opts
-  let (divtag, classes') = if writerHtml5 opts && "section" `elem` classes
+  let (divtag, classes') = if html5 && "section" `elem` classes
                               then (H5.section, filter (/= "section") classes)
                               else (H.div, classes)
   return $
@@ -498,7 +523,9 @@ blockToHtml opts (RawBlock f str)
      allowsMathEnvironments (writerHTMLMathMethod opts) &&
      isMathEnvironment str = blockToHtml opts $ Plain [Math DisplayMath str]
   | otherwise          = return mempty
-blockToHtml opts (HorizontalRule) = return $ if writerHtml5 opts then H5.hr else H.hr
+blockToHtml _ (HorizontalRule) = do
+  html5 <- gets stHtml5
+  return $ if html5 then H5.hr else H.hr
 blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
   let tolhs = isEnabled Ext_literate_haskell opts &&
                 any (\c -> map toLower c == "haskell") classes &&
@@ -564,6 +591,7 @@ blockToHtml opts (BulletList lst) = do
   return $ unordList opts contents
 blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   contents <- mapM (blockListToHtml opts) lst
+  html5 <- gets stHtml5
   let numstyle' = case numstyle of
                        Example -> "decimal"
                        _       -> camelCaseToHyphenated $ show numstyle
@@ -574,7 +602,7 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
                     then [A.class_ "example"]
                     else []) ++
                 (if numstyle /= DefaultStyle
-                   then if writerHtml5 opts
+                   then if html5
                            then [A.type_ $
                                  case numstyle of
                                       Decimal    -> "1"
@@ -603,6 +631,7 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
                    else do
                      cs <- inlineListToHtml opts capt
                      return $ H.caption cs >> nl opts
+  html5 <- gets stHtml5
   let percent w = show (truncate (100*w) :: Integer) ++ "%"
   let coltags = if all (== 0.0) widths
                    then mempty
@@ -610,7 +639,7 @@ blockToHtml opts (Table capt aligns widths headers rows') = do
                      H.colgroup $ do
                        nl opts
                        mapM_ (\w -> do
-                            if writerHtml5 opts
+                            if html5
                                then H.col ! A.style (toValue $ "width: " ++
                                                       percent w)
                                else H.col ! A.width (toValue $ percent w)
@@ -666,8 +695,9 @@ tableItemToHtml :: PandocMonad m
                 -> StateT WriterState m Html
 tableItemToHtml opts tag' align' item = do
   contents <- blockListToHtml opts item
+  html5 <- gets stHtml5
   let alignStr = alignmentToString align'
-  let attribs = if writerHtml5 opts
+  let attribs = if html5
                    then A.style (toValue $ "text-align: " ++ alignStr ++ ";")
                    else A.align (toValue alignStr)
   let tag'' = if null alignStr
@@ -707,7 +737,8 @@ annotateMML e tex = math (unode "semantics" [cs, unode "annotation" (annotAttrs,
 -- | Convert Pandoc inline element to HTML.
 inlineToHtml :: PandocMonad m
              => WriterOptions -> Inline -> StateT WriterState m Html
-inlineToHtml opts inline =
+inlineToHtml opts inline = do
+  html5 <- gets stHtml5
   case inline of
     (Str str)        -> return $ strToHtml str
     (Space)          -> return $ strToHtml " "
@@ -715,7 +746,7 @@ inlineToHtml opts inline =
                                        WrapNone     -> preEscapedString " "
                                        WrapAuto     -> preEscapedString " "
                                        WrapPreserve -> preEscapedString "\n"
-    (LineBreak)      -> return $ (if writerHtml5 opts then H5.br else H.br)
+    (LineBreak)      -> return $ (if html5 then H5.br else H.br)
                                  <> strToHtml "\n"
     (Span (id',classes,kvs) ils)
                      -> inlineListToHtml opts ils >>=
@@ -784,12 +815,12 @@ inlineToHtml opts inline =
                        InlineMath -> H.span ! A.class_ mathClass $ m
                        DisplayMath -> H.div ! A.class_ mathClass $ m
            WebTeX url -> do
-              let imtag = if writerHtml5 opts then H5.img else H.img
+              let imtag = if html5 then H5.img else H.img
               let m = imtag ! A.style "vertical-align:middle"
                             ! A.src (toValue $ url ++ urlEncode str)
                             ! A.alt (toValue str)
                             ! A.title (toValue str)
-              let brtag = if writerHtml5 opts then H5.br else H.br
+              let brtag = if html5 then H5.br else H.br
               return $ case t of
                         InlineMath  -> m
                         DisplayMath -> brtag >> m >> brtag
@@ -817,7 +848,7 @@ inlineToHtml opts inline =
            PlainMath -> do
               x <- lift (texMathToInlines t str) >>= inlineListToHtml opts
               let m = H.span ! A.class_ mathClass $ x
-              let brtag = if writerHtml5 opts then H5.br else H.br
+              let brtag = if html5 then H5.br else H.br
               return  $ case t of
                          InlineMath  -> m
                          DisplayMath -> brtag >> m >> brtag
@@ -847,7 +878,7 @@ inlineToHtml opts inline =
                                          [A.title $ toValue tit | not (null tit)] ++
                                          [A.alt $ toValue alternate' | not (null txt)] ++
                                          imgAttrsToHtml opts attr
-                        let tag = if writerHtml5 opts then H5.img else H.img
+                        let tag = if html5 then H5.img else H.img
                         return $ foldl (!) tag attributes
                         -- note:  null title included, as in Markdown.pl
     (Image attr _ (s,tit)) -> do
@@ -880,7 +911,7 @@ inlineToHtml opts inline =
     (Cite cits il)-> do contents <- inlineListToHtml opts il
                         let citationIds = unwords $ map citationId cits
                         let result = H.span ! A.class_ "citation" $ contents
-                        return $ if writerHtml5 opts
+                        return $ if html5
                                     then result ! customAttribute "data-cites" (toValue citationIds)
                                     else result
 

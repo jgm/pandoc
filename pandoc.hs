@@ -111,7 +111,6 @@ convertWithOpts opts args = do
               , optSectionDivs           = sectionDivs
               , optIncremental           = incremental
               , optSelfContained         = selfContained
-              , optHtml5                 = html5
               , optHtmlQTags             = htmlQTags
               , optHighlightStyle        = highlightStyle
               , optTopLevelDivision      = topLevelDivision
@@ -188,13 +187,11 @@ convertWithOpts opts args = do
                                       (if any isURI sources
                                           then "html"
                                           else "markdown") sources
-                          "html4"  -> "html"
                           x        -> x
 
   let writerName' = case map toLower writerName of
                           []        -> defaultWriterName outputFile
                           "epub2"   -> "epub"
-                          "html4"   -> "html"
                           x         -> x
   let format = takeWhile (`notElem` ['+','-'])
                        $ takeFileName writerName'  -- in case path to lua script
@@ -203,7 +200,7 @@ convertWithOpts opts args = do
 
   let laTeXOutput = format `elem` ["latex", "beamer"]
   let conTeXtOutput = format == "context"
-  let html5Output = format == "html5"
+  let html5Output = format == "html5" || format == "html"
 
   -- disabling the custom writer for now
   writer <- if ".lua" `isSuffixOf` format
@@ -313,7 +310,6 @@ convertWithOpts opts args = do
                             writerIdentifierPrefix = idPrefix,
                             writerSourceURL        = sourceURL,
                             writerUserDataDir      = datadir,
-                            writerHtml5            = html5,
                             writerHtmlQTags        = htmlQTags,
                             writerTopLevelDivision = topLevelDivision,
                             writerListings         = listings,
@@ -413,7 +409,7 @@ convertWithOpts opts args = do
                        err 43 "Error producing PDF"
         | otherwise -> do
                 let htmlFormat = format `elem`
-                      ["html","html5","s5","slidy","slideous","dzslides","revealjs"]
+                      ["html","html4","html5","s5","slidy","slideous","dzslides","revealjs"]
                     selfcontain = if selfContained && htmlFormat
                                   then makeSelfContained writerOptions media
                                   else return
@@ -523,7 +519,6 @@ data Opt = Opt
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
-    , optHtml5             :: Bool    -- ^ Produce HTML5 in HTML
     , optHtmlQTags         :: Bool    -- ^ Use <q> tags in HTML
     , optHighlightStyle    :: Maybe Style   -- ^ Style to use for highlighted code
     , optTopLevelDivision  :: TopLevelDivision -- ^ Type of the top-level divisions
@@ -583,7 +578,6 @@ defaultOpts = Opt
     , optSectionDivs           = False
     , optIncremental           = False
     , optSelfContained         = False
-    , optHtml5                 = False
     , optHtmlQTags             = False
     , optHighlightStyle        = Just pygments
     , optTopLevelDivision      = TopLevelDefault

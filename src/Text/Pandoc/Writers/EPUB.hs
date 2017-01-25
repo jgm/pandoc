@@ -59,7 +59,7 @@ import Control.Monad (mplus, when, zipWithM)
 import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
                       , strContent, lookupAttr, Node(..), QName(..), parseXML
                       , onlyElems, node, ppElement)
-import Text.Pandoc.Writers.HTML ( writeHtml )
+import Text.Pandoc.Writers.HTML ( writeHtml4, writeHtml5 )
 import Data.Char ( toLower, isDigit, isAlphaNum )
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
@@ -361,13 +361,15 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
            : writerVariables opts
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerSectionDivs = True
-                  , writerHtml5 = epub3
                   , writerVariables = vars
                   , writerHTMLMathMethod =
                        if epub3
                           then MathML Nothing
                           else writerHTMLMathMethod opts
                   , writerWrapText = WrapAuto }
+  let writeHtml = if epub3
+                     then writeHtml5
+                     else writeHtml4
   metadata <- getEPUBMetadata opts' meta
 
   -- cover page
@@ -376,7 +378,7 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                      Nothing   -> return ([],[])
                      Just img  -> do
                        let coverImage = "media/" ++ takeFileName img
-                       cpContent <- renderHtml <$> (lift $  writeHtml
+                       cpContent <- renderHtml <$> (lift $ writeHtml
                             opts'{ writerVariables = ("coverpage","true"):vars }
                             (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"]))
                        imgContent <- lift $ P.readFileLazy img
@@ -484,8 +486,7 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                          Chapter mbnum $ walk fixInternalReferences bs)
                  chapters'
 
-  let chapToEntry :: PandocMonad m => Int -> Chapter -> m Entry
-      chapToEntry num (Chapter mbnum bs) =
+  let chapToEntry num (Chapter mbnum bs) =
        (mkEntry (showChapter num) . renderHtml) <$>
         (writeHtml opts'{ writerNumberOffset =
                           fromMaybe [] mbnum }

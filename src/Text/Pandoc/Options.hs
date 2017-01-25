@@ -168,7 +168,6 @@ data WriterOptions = WriterOptions
   , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
   , writerDocbook5         :: Bool       -- ^ Produce DocBook5
-  , writerHtml5            :: Bool       -- ^ Produce HTML5
   , writerHtmlQTags        :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
   , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
   , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
@@ -210,7 +209,6 @@ instance Default WriterOptions where
                       , writerUserDataDir      = Nothing
                       , writerCiteMethod       = Citeproc
                       , writerDocbook5         = False
-                      , writerHtml5            = False
                       , writerHtmlQTags        = False
                       , writerBeamer           = False
                       , writerSlideLevel       = Nothing

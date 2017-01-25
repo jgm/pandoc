@@ -35,7 +35,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Writers.HTML (writeHtmlString)
+import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import Text.Pandoc.Pretty
 import Text.Pandoc.Compat.Time
@@ -65,7 +65,7 @@ writeOPML opts (Pandoc meta blocks) = do
 
 writeHtmlInlines :: PandocMonad m => [Inline] -> m String
 writeHtmlInlines ils =
-  trim <$> (writeHtmlString def $ Pandoc nullMeta [Plain ils])
+  trim <$> (writeHtml5String def $ Pandoc nullMeta [Plain ils])
 
 -- date format: RFC 822: Thu, 14 Jul 2005 23:41:05 GMT
 showDateTimeRFC822 :: UTCTime -> String

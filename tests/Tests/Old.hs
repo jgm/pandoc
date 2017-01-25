@@ -81,16 +81,17 @@ tests = [ testGroup "markdown"
             ]
           ]
         , testGroup "html"
-          [ testGroup "writer" (writerTests "html" ++ lhsWriterTests "html")
+          [ testGroup "writer" (writerTests "html4" ++ writerTests "html5" ++
+                                lhsWriterTests "html")
           , test "reader" ["-r", "html", "-w", "native", "-s"]
             "html-reader.html" "html-reader.native"
           ]
         , testGroup "s5"
           [ s5WriterTest "basic" ["-s"] "s5"
           , s5WriterTest "fancy" ["-s","-m","-i"] "s5"
-          , s5WriterTest "fragment" [] "html"
+          , s5WriterTest "fragment" [] "html4"
           , s5WriterTest "inserts"  ["-s", "-H", "insert",
-            "-B", "insert", "-A", "insert", "-c", "main.css"] "html"
+            "-B", "insert", "-A", "insert", "-c", "main.css"] "html4"
           ]
         , testGroup "textile"
           [ testGroup "writer" $ writerTests "textile"

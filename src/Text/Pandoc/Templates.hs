@@ -60,6 +60,7 @@ getDefaultTemplate user writer = do
        "docx"   -> return $ Right ""
        "fb2"    -> return $ Right ""
        "odt"    -> getDefaultTemplate user "opendocument"
+       "html"   -> getDefaultTemplate user "html5"
        "markdown_strict"   -> getDefaultTemplate user "markdown"
        "multimarkdown"     -> getDefaultTemplate user "markdown"
        "markdown_github"   -> getDefaultTemplate user "markdown"
