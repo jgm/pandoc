@@ -51,11 +51,9 @@ module Text.Pandoc.Highlighting ( languages
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (safeRead)
 import Skylighting
-import qualified Data.Set as Set
 import Data.Maybe (fromMaybe)
 import Data.Char (toLower)
 import qualified Data.Map as M
-import Control.Applicative ((<|>))
 import Control.Monad
 import qualified Data.Text as T
 
