@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to Docbook XML.
 -}
-module Text.Pandoc.Writers.Docbook ( writeDocbook) where
+module Text.Pandoc.Writers.Docbook ( writeDocbook4, writeDocbook5 ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.XML
 import Text.Pandoc.Shared
@@ -48,9 +48,15 @@ import Text.TeXMath
 import qualified Text.XML.Light as Xml
 import Data.Generics (everywhere, mkT)
 import Text.Pandoc.Class (PandocMonad)
+import Control.Monad.Reader
+
+data DocBookVersion = DocBook4 | DocBook5
+     deriving (Eq, Show)
+
+type DB = ReaderT DocBookVersion
 
 -- | Convert list of authors to a docbook <author> section
-authorToDocbook :: PandocMonad m => WriterOptions -> [Inline] -> m B.Inlines
+authorToDocbook :: PandocMonad m => WriterOptions -> [Inline] -> DB m B.Inlines
 authorToDocbook opts name' = do
   name <- render Nothing <$> inlinesToDocbook opts name'
   let colwidth = if writerWrapText opts == WrapAuto
@@ -73,8 +79,16 @@ authorToDocbook opts name' = do
                in inTagsSimple "firstname" (text $ escapeStringForXML firstname) $$
                   inTagsSimple "surname" (text $ escapeStringForXML lastname)
 
+writeDocbook4 :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeDocbook4 opts d =
+  runReaderT (writeDocbook opts d) DocBook4
+
+writeDocbook5 :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeDocbook5 opts d =
+  runReaderT (writeDocbook opts d) DocBook5
+
 -- | Convert Pandoc document to string in Docbook format.
-writeDocbook :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeDocbook :: PandocMonad m => WriterOptions -> Pandoc -> DB m String
 writeDocbook opts (Pandoc meta blocks) = do
   let elements = hierarchicalize blocks
   let colwidth = if writerWrapText opts == WrapAuto
@@ -100,7 +114,7 @@ writeDocbook opts (Pandoc meta blocks) = do
                             hierarchicalize))
                  (fmap (render colwidth) . inlinesToDocbook opts')
                  meta'
-  main <- (render' . vcat) <$> mapM (elementToDocbook opts' startLvl) elements
+  main <- (render' . vcat) <$> (mapM (elementToDocbook opts' startLvl) elements)
   let context = defField "body" main
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML _ -> True
@@ -111,9 +125,10 @@ writeDocbook opts (Pandoc meta blocks) = do
            Just tpl  -> renderTemplate' tpl context
 
 -- | Convert an Element to Docbook.
-elementToDocbook :: PandocMonad m => WriterOptions -> Int -> Element -> m Doc
+elementToDocbook :: PandocMonad m => WriterOptions -> Int -> Element -> DB m Doc
 elementToDocbook opts _   (Blk block) = blockToDocbook opts block
 elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) = do
+  version <- ask
   -- Docbook doesn't allow sections with no content, so insert some if needed
   let elements' = if null elements
                     then [Blk (Para [])]
@@ -121,15 +136,15 @@ elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) = do
       tag = case lvl of
                  -1                   -> "part"
                  0                    -> "chapter"
-                 n | n >= 1 && n <= 5 -> if writerDocbook5 opts
+                 n | n >= 1 && n <= 5 -> if version == DocBook5
                                               then "section"
                                               else "sect" ++ show n
                  _                    -> "simplesect"
-      idName = if writerDocbook5 opts
+      idName = if version == DocBook5
                  then "xml:id"
                  else "id"
       idAttr = [(idName, writerIdentifierPrefix opts ++ id') | not (null id')]
-      nsAttr = if writerDocbook5 opts && lvl == 0 then [("xmlns", "http://docbook.org/ns/docbook"),("xmlns:xlink", "http://www.w3.org/1999/xlink")]
+      nsAttr = if version == DocBook5 && lvl == 0 then [("xmlns", "http://docbook.org/ns/docbook"),("xmlns:xlink", "http://www.w3.org/1999/xlink")]
                                       else []
       attribs = nsAttr ++ idAttr
   contents <- mapM (elementToDocbook opts (lvl + 1)) elements'
@@ -138,7 +153,7 @@ elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) = do
       inTagsSimple "title" title' $$ vcat contents
 
 -- | Convert a list of Pandoc blocks to Docbook.
-blocksToDocbook :: PandocMonad m => WriterOptions -> [Block] -> m Doc
+blocksToDocbook :: PandocMonad m => WriterOptions -> [Block] -> DB m Doc
 blocksToDocbook opts = fmap vcat . mapM (blockToDocbook opts)
 
 -- | Auxiliary function to convert Plain block to Para.
@@ -149,13 +164,13 @@ plainToPara x         = x
 -- | Convert a list of pairs of terms and definitions into a list of
 -- Docbook varlistentrys.
 deflistItemsToDocbook :: PandocMonad m
-                      => WriterOptions -> [([Inline],[[Block]])] -> m Doc
+                      => WriterOptions -> [([Inline],[[Block]])] -> DB m Doc
 deflistItemsToDocbook opts items =
   vcat <$> mapM (\(term, defs) -> deflistItemToDocbook opts term defs) items
 
 -- | Convert a term and a list of blocks into a Docbook varlistentry.
 deflistItemToDocbook :: PandocMonad m
-                     => WriterOptions -> [Inline] -> [[Block]] -> m Doc
+                     => WriterOptions -> [Inline] -> [[Block]] -> DB m Doc
 deflistItemToDocbook opts term defs = do
   term' <- inlinesToDocbook opts term
   def' <- blocksToDocbook opts $ concatMap (map plainToPara) defs
@@ -164,11 +179,11 @@ deflistItemToDocbook opts term defs = do
       inTagsIndented "listitem" def'
 
 -- | Convert a list of lists of blocks to a list of Docbook list items.
-listItemsToDocbook :: PandocMonad m => WriterOptions -> [[Block]] -> m Doc
+listItemsToDocbook :: PandocMonad m => WriterOptions -> [[Block]] -> DB m Doc
 listItemsToDocbook opts items = vcat <$> mapM (listItemToDocbook opts) items
 
 -- | Convert a list of blocks into a Docbook list item.
-listItemToDocbook :: PandocMonad m => WriterOptions -> [Block] -> m Doc
+listItemToDocbook :: PandocMonad m => WriterOptions -> [Block] -> DB m Doc
 listItemToDocbook opts item =
   inTagsIndented "listitem" <$> blocksToDocbook opts (map plainToPara item)
 
@@ -182,7 +197,7 @@ imageToDocbook _ attr src = selfClosingTag "imagedata" $
                     Nothing -> []
 
 -- | Convert a Pandoc block element to Docbook.
-blockToDocbook :: PandocMonad m => WriterOptions -> Block -> m Doc
+blockToDocbook :: PandocMonad m => WriterOptions -> Block -> DB m Doc
 blockToDocbook _ Null = return empty
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
@@ -260,9 +275,11 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) = do
 blockToDocbook opts (DefinitionList lst) = do
   let attribs = [("spacing", "compact") | isTightList $ concatMap snd lst]
   inTags True "variablelist" attribs <$> deflistItemsToDocbook opts lst
-blockToDocbook opts (RawBlock f str)
+blockToDocbook _ (RawBlock f str)
   | f == "docbook" = return $ text str -- raw XML block
-  | f == "html"    = if writerDocbook5 opts
+  | f == "html"    = do
+                     version <- ask
+                     if version == DocBook5
                         then return empty -- No html in Docbook5
                         else return $ text str -- allow html for backwards compatibility
   | otherwise      = return empty
@@ -306,23 +323,23 @@ alignmentToString alignment = case alignment of
 tableRowToDocbook :: PandocMonad m
                   => WriterOptions
                   -> [[Block]]
-                  -> m Doc
+                  -> DB m Doc
 tableRowToDocbook opts cols =
   (inTagsIndented "row" . vcat) <$> mapM (tableItemToDocbook opts) cols
 
 tableItemToDocbook :: PandocMonad m
                    => WriterOptions
                    -> [Block]
-                   -> m Doc
+                   -> DB m Doc
 tableItemToDocbook opts item =
   (inTags True "entry" [] . vcat) <$> mapM (blockToDocbook opts) item
 
 -- | Convert a list of inline elements to Docbook.
-inlinesToDocbook :: PandocMonad m => WriterOptions -> [Inline] -> m Doc
+inlinesToDocbook :: PandocMonad m => WriterOptions -> [Inline] -> DB m Doc
 inlinesToDocbook opts lst = hcat <$> mapM (inlineToDocbook opts) lst
 
 -- | Convert an inline element to Docbook.
-inlineToDocbook :: PandocMonad m => WriterOptions -> Inline -> m Doc
+inlineToDocbook :: PandocMonad m => WriterOptions -> Inline -> DB m Doc
 inlineToDocbook _ (Str str) = return $ text $ escapeStringForXML str
 inlineToDocbook opts (Emph lst) =
   inTagsSimple "emphasis" <$> inlinesToDocbook opts lst
@@ -385,10 +402,11 @@ inlineToDocbook opts (Link attr txt (src, _))
            _             -> do contents <- inlinesToDocbook opts txt
                                return $ contents <+>
                                           char '(' <> emailLink <> char ')'
-  | otherwise =
+  | otherwise = do
+      version <- ask
       (if isPrefixOf "#" src
             then inTags False "link" $ ("linkend", drop 1 src) : idAndRole attr
-            else if writerDocbook5 opts
+            else if version == DocBook5
                     then inTags False "link" $ ("xlink:href", src) : idAndRole attr
                     else inTags False "ulink" $ ("url", src) : idAndRole attr )
         <$> inlinesToDocbook opts txt

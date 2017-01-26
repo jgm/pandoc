@@ -104,7 +104,8 @@ module Text.Pandoc
                , writeHtml5
                , writeHtml5String
                , writeICML
-               , writeDocbook
+               , writeDocbook4
+               , writeDocbook5
                , writeOPML
                , writeOpenDocument
                , writeMan
@@ -298,9 +299,9 @@ writers = [
      writeHtml5String o{ writerSlideVariant = DZSlides })
   ,("revealjs"      , StringWriter $ \o ->
      writeHtml5String o{ writerSlideVariant = RevealJsSlides })
-  ,("docbook"      , StringWriter writeDocbook)
-  ,("docbook5"     , StringWriter $ \o ->
-     writeDocbook o{ writerDocbook5 = True })
+  ,("docbook"      , StringWriter writeDocbook5)
+  ,("docbook4"     , StringWriter writeDocbook4)
+  ,("docbook5"     , StringWriter writeDocbook5)
   ,("opml"         , StringWriter writeOPML)
   ,("opendocument" , StringWriter writeOpenDocument)
   ,("latex"        , StringWriter writeLaTeX)

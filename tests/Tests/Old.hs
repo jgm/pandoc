@@ -99,7 +99,7 @@ tests = [ testGroup "markdown"
             "textile-reader.textile" "textile-reader.native"
           ]
         , testGroup "docbook"
-          [ testGroup "writer" $ writerTests "docbook"
+          [ testGroup "writer" $ writerTests "docbook4"
           , test "reader" ["-r", "docbook", "-w", "native", "-s"]
             "docbook-reader.docbook" "docbook-reader.native"
           , test "reader" ["-r", "docbook", "-w", "native", "-s"]
