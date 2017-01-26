@@ -101,7 +101,7 @@ If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
 line between each) and used as input.  Output goes to *stdout* by
 default (though output to *stdout* is disabled for the `odt`, `docx`,
-`epub`, and `epub3` output formats).  For output to a file, use the
+`epub2`, and `epub3` output formats).  For output to a file, use the
 `-o` option:
 
     pandoc -o output.html input.txt
@@ -273,7 +273,7 @@ General options
     (original unextended Markdown), `markdown_phpextra` (PHP Markdown
     Extra), `markdown_github` (GitHub-Flavored Markdown), `markdown_mmd`
     (MultiMarkdown), `commonmark` (CommonMark Markdown), `rst`
-    (reStructuredText), `html` (XHTML), `html5` (HTML5), `latex`
+    (reStructuredText), `html4` (XHTML4), `html` or `html5` (HTML5), `latex`
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
     `man` (groff man), `mediawiki` (MediaWiki markup),
     `dokuwiki` (DokuWiki markup), `zimwiki` (ZimWiki markup),
@@ -281,7 +281,7 @@ General options
     `texinfo` (GNU Texinfo), `opml` (OPML), `docbook` (DocBook 4),
     `docbook5` (DocBook 5), `opendocument` (OpenDocument), `odt`
     (OpenOffice text document), `docx` (Word docx), `haddock`
-    (Haddock markup), `rtf` (rich text format), `epub` (EPUB v2
+    (Haddock markup), `rtf` (rich text format), `epub` or `epub2` (EPUB v2
     book), `epub3` (EPUB v3), `fb2` (FictionBook2 e-book),
     `asciidoc` (AsciiDoc), `icml` (InDesign ICML), `tei` (TEI
     Simple), `slidy` (Slidy HTML and JavaScript slide show),
@@ -293,7 +293,7 @@ General options
     `epub`, and `epub3` output will not be directed to *stdout*;
     an output filename must be specified using the `-o/--output`
     option. If `+lhs` is appended to `markdown`, `rst`, `latex`,
-    `beamer`, `html`, or `html5`, the output will be rendered as
+    `beamer`, `html4`, or `html5`, the output will be rendered as
     literate Haskell source: see [Literate Haskell support],
     below.  Markdown syntax extensions can be individually
     enabled or disabled by appending `+EXTENSION` or
@@ -626,7 +626,7 @@ Options affecting specific writers
     images, and videos. The resulting file should be "self-contained,"
     in the sense that it needs no external files and no net access to be
     displayed properly by a browser. This option works only with HTML output
-    formats, including `html`, `html5`, `html+lhs`, `html5+lhs`, `s5`,
+    formats, including `html4`, `html5`, `html+lhs`, `html5+lhs`, `s5`,
     `slidy`, `slideous`, `dzslides`, and `revealjs`. Scripts, images, and
     stylesheets at absolute URLs will be downloaded; those at relative URLs
     will be sought relative to the working directory (if the first source
@@ -947,10 +947,11 @@ Math rendering in HTML
 
 `--mathml`[`=`*URL*]
 
-:   Convert TeX math to [MathML] (in `docbook`, `docbook5`, `html` and `html5`).
-    In standalone `html` output, a small JavaScript (or a link to such a
-    script if a *URL* is supplied) will be inserted that allows the MathML to
-    be viewed on some browsers.
+:   Convert TeX math to [MathML] (in `docbook`, `docbook5`,
+    `html4` and `html5`).  In standalone HTML output, a small
+    JavaScript (or a link to such a script if a *URL* is
+    supplied) will be inserted that allows the MathML to be
+    viewed on some browsers.
 
 `--jsmath`[`=`*URL*]
 
@@ -1647,7 +1648,7 @@ Note, however, that this method of providing links to sections works
 only in HTML, LaTeX, and ConTeXt formats.
 
 If the `--section-divs` option is specified, then each section will
-be wrapped in a `div` (or a `section`, if `--html5` was specified),
+be wrapped in a `div` (or a `section`, if `html5` was specified),
 and the identifier will be attached to the enclosing `<div>`
 (or `<section>`) tag rather than the header itself. This allows entire
 sections to be manipulated using JavaScript or treated differently in
@@ -3891,7 +3892,7 @@ Literate Haskell support
 
 If you append `+lhs` (or `+literate_haskell`) to an appropriate input or output
 format (`markdown`, `markdown_strict`, `rst`, or `latex` for input or output;
-`beamer`, `html` or `html5` for output only), pandoc will treat the document as
+`beamer`, `html4` or `html5` for output only), pandoc will treat the document as
 literate Haskell source. This means that
 
   - In Markdown input, "bird track" sections will be parsed as Haskell

@@ -66,7 +66,7 @@ Data-Files:
                  data/templates/default.haddock
                  data/templates/default.textile
                  data/templates/default.org
-                 data/templates/default.epub
+                 data/templates/default.epub2
                  data/templates/default.epub3
                  -- source files for reference.docx
                  data/docx/[Content_Types].xml

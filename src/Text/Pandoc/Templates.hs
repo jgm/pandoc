@@ -61,6 +61,7 @@ getDefaultTemplate user writer = do
        "fb2"    -> return $ Right ""
        "odt"    -> getDefaultTemplate user "opendocument"
        "html"   -> getDefaultTemplate user "html5"
+       "epub"   -> getDefaultTemplate user "epub2"
        "markdown_strict"   -> getDefaultTemplate user "markdown"
        "multimarkdown"     -> getDefaultTemplate user "markdown"
        "markdown_github"   -> getDefaultTemplate user "markdown"

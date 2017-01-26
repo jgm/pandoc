@@ -115,7 +115,8 @@ module Text.Pandoc
                , writeRTF
                , writeODT
                , writeDocx
-               , writeEPUB
+               , writeEPUB2
+               , writeEPUB3
                , writeFB2
                , writeOrg
                , writeAsciiDoc
@@ -278,10 +279,9 @@ writers = [
   ,("json"         , StringWriter $ \o d -> return $ writeJSON o d)
   ,("docx"         , ByteStringWriter writeDocx)
   ,("odt"          , ByteStringWriter writeODT)
-  ,("epub"         , ByteStringWriter $ \o ->
-                      writeEPUB o{ writerEpubVersion = Just EPUB2 })
-  ,("epub3"        , ByteStringWriter $ \o ->
-                      writeEPUB o{ writerEpubVersion = Just EPUB3 })
+  ,("epub"         , ByteStringWriter writeEPUB2)
+  ,("epub2"        , ByteStringWriter writeEPUB2)
+  ,("epub3"        , ByteStringWriter writeEPUB3)
   ,("fb2"          , StringWriter writeFB2)
   ,("html"         , StringWriter writeHtml5String)
   ,("html4"        , StringWriter writeHtml4String)
@@ -349,6 +349,8 @@ getDefaultExtensions "epub"            = extensionsFromList
                                            Ext_native_divs,
                                            Ext_native_spans,
                                            Ext_epub_html_exts]
+getDefaultExtensions "epub2"           = getDefaultExtensions "epub"
+getDefaultExtensions "epub3"           = getDefaultExtensions "epub"
 getDefaultExtensions "latex"           = extensionsFromList
                                           [Ext_smart,
                                            Ext_auto_identifiers]

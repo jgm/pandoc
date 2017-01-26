@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' documents to EPUB.
 -}
-module Text.Pandoc.Writers.EPUB ( writeEPUB ) where
+module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
 import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Maybe ( fromMaybe, catMaybes )
@@ -75,8 +75,9 @@ import qualified Text.Pandoc.Class as P
 -- in filenames, chapter0003.xhtml.
 data Chapter = Chapter (Maybe [Int]) [Block]
 
-data EPUBState = EPUBState { stMediaPaths :: [(FilePath, (FilePath, Maybe Entry))]
-                           }
+data EPUBState = EPUBState {
+        stMediaPaths  :: [(FilePath, (FilePath, Maybe Entry))]
+      }
 
 type E m = StateT EPUBState m
 
@@ -336,16 +337,32 @@ metadataFromMeta opts meta = EPUBMetadata{
                               Just "rtl" -> Just RTL
                               _          -> Nothing
 
--- | Produce an EPUB file from a Pandoc document.
-writeEPUB :: PandocMonad m
+-- | Produce an EPUB2 file from a Pandoc document.
+writeEPUB2 :: PandocMonad m
           => WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> m B.ByteString
-writeEPUB opts doc =
+writeEPUB2 = writeEPUB EPUB2
+
+-- | Produce an EPUB3 file from a Pandoc document.
+writeEPUB3 :: PandocMonad m
+          => WriterOptions  -- ^ Writer options
+          -> Pandoc         -- ^ Document to convert
+          -> m B.ByteString
+writeEPUB3 = writeEPUB EPUB3
+
+-- | Produce an EPUB file from a Pandoc document.
+writeEPUB :: PandocMonad m
+          => EPUBVersion
+          -> WriterOptions  -- ^ Writer options
+          -> Pandoc         -- ^ Document to convert
+          -> m B.ByteString
+writeEPUB epubVersion opts doc =
   let initState = EPUBState { stMediaPaths = []
                             }
   in
-    evalStateT (pandocToEPUB opts doc) initState
+    evalStateT (pandocToEPUB opts{ writerEpubVersion = Just epubVersion } doc)
+      initState
 
 pandocToEPUB :: PandocMonad m
              => WriterOptions
@@ -353,7 +370,7 @@ pandocToEPUB :: PandocMonad m
              -> E m B.ByteString
 pandocToEPUB opts doc@(Pandoc meta _) = do
   let version = fromMaybe EPUB2 (writerEpubVersion opts)
-  let epub3 = version == EPUB3
+  let epub3 = writerEpubVersion opts == Just EPUB3
   epochtime <- floor <$> lift P.getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
   let vars = ("epub3", if epub3 then "true" else "false")
