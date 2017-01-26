@@ -1157,6 +1157,7 @@ environments = M.fromList
   , ("align*", mathEnv para (Just "aligned") "align*")
   , ("alignat", mathEnv para (Just "aligned") "alignat")
   , ("alignat*", mathEnv para (Just "aligned") "alignat*")
+  , ("html", (rawBlock "html") <$> verbEnv "html")
   ]
 
 letterContents :: LP Blocks

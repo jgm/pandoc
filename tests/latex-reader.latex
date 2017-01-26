@@ -845,4 +845,10 @@ indented.
 
 \$ \% \& \# \_ \{ \}
 
+\section{Raw HTML}
+
+\begin{html}
+  <div class="test">Hello, world!</div>
+\end{html}
+
 \end{document}
