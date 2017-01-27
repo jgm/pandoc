@@ -24,6 +24,7 @@ import Criterion.Main
 import Criterion.Types (Config(..))
 import Data.Maybe (mapMaybe)
 import Debug.Trace (trace)
+import System.Environment (getArgs)
 
 readerBench :: Pandoc
             -> (String, ReaderOptions -> String -> Pandoc)
@@ -45,6 +46,21 @@ writerBench doc (name, writer) = bench (name ++ " writer") $ nf
 
 main :: IO ()
 main = do
+  args <- getArgs
+  let matchReader (n, StringReader _) =
+        case args of
+             [] -> True
+             [x] -> x == n
+             (x:y:_) -> x == n && y == "reader"
+      matchReader (_, _) = False
+  let matchWriter (n, StringWriter _) =
+        case args of
+             [] -> True
+             [x] -> x == n
+             (x:y:_) -> x == n && y == "writer"
+      matchWriter (_, _) = False
+  let matchedReaders = filter matchReader readers
+  let matchedWriters = filter matchWriter writers
   inp <- readFile "tests/testsuite.txt"
   lalune <- B.readFile "tests/lalune.jpg"
   movie <- B.readFile "tests/movie.jpg"
@@ -58,12 +74,12 @@ main = do
   let doc = either (error . show) id $ runPure $ readMarkdown opts inp
   let readers' = [(n, \o d ->
              either (error . show) id $ runPure $ r o d)
-                        | (n, StringReader r) <- readers]
+                        | (n, StringReader r) <- matchedReaders]
   let readerBs = mapMaybe (readerBench doc)
                  $ filter (\(n,_) -> n /="haddock") readers'
   let writers' = [(n, \o d ->
                    either (error . show) id $ runPure $ setupFakeFiles >> w o d)
-                        | (n, StringWriter w) <- writers]
+                        | (n, StringWriter w) <- matchedWriters]
   let writerBs = map (writerBench doc)
                  $ writers'
   defaultMainWith defaultConfig{ timeLimit = 6.0 }
