@@ -909,12 +909,12 @@ orderedList = try $ do
                      atMostSpaces (tabStop - (endpos - startpos))
                      return res )
   start' <- option 1 $ guardEnabled Ext_startnum >> return start
-  return $ B.orderedListWith (start', style, delim) <$> fmap compactify' items
+  return $ B.orderedListWith (start', style, delim) <$> fmap compactify items
 
 bulletList :: PandocMonad m => MarkdownParser m (F Blocks)
 bulletList = do
   items <- fmap sequence $ many1 $ listItem  bulletListStart
-  return $ B.bulletList <$> fmap compactify' items
+  return $ B.bulletList <$> fmap compactify items
 
 -- definition lists
 
@@ -972,7 +972,7 @@ compactDefinitionList :: PandocMonad m => MarkdownParser m (F Blocks)
 compactDefinitionList = do
   guardEnabled Ext_compact_definition_lists
   items <- fmap sequence $ many1 $ definitionListItem True
-  return $ B.definitionList <$> fmap compactify'DL items
+  return $ B.definitionList <$> fmap compactifyDL items
 
 normalDefinitionList :: PandocMonad m => MarkdownParser m (F Blocks)
 normalDefinitionList = do
@@ -1349,7 +1349,7 @@ gridTableRow indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
                transpose colLines
-  fmap compactify' <$> fmap sequence (mapM (parseFromString parseBlocks) cols)
+  fmap compactify <$> fmap sequence (mapM (parseFromString parseBlocks) cols)
 
 removeOneLeadingSpace :: [String] -> [String]
 removeOneLeadingSpace xs =

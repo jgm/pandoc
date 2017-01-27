@@ -9,11 +9,11 @@ import Text.Pandoc.Builder
 import System.FilePath.Posix (joinPath)
 
 tests :: [Test]
-tests = [ testGroup "compactify'DL"
-          [ testCase "compactify'DL with empty def" $
-              assertBool "compactify'DL"
+tests = [ testGroup "compactifyDL"
+          [ testCase "compactifyDL with empty def" $
+              assertBool "compactifyDL"
               (let x = [(str "word", [para (str "def"), mempty])]
-               in  compactify'DL x == x)
+               in  compactifyDL x == x)
           ]
         , testGroup "collapseFilePath" testCollapse
         ]

@@ -59,8 +59,8 @@ module Text.Pandoc.Shared (
                      deNote,
                      stringify,
                      capitalize,
-                     compactify',
-                     compactify'DL,
+                     compactify,
+                     compactifyDL,
                      linesToPara,
                      Element (..),
                      hierarchicalize,
@@ -434,10 +434,10 @@ capitalize = walk go
 -- | Change final list item from @Para@ to @Plain@ if the list contains
 -- no other @Para@ blocks.  Like compactify, but operates on @Blocks@ rather
 -- than @[Block]@.
-compactify' :: [Blocks]  -- ^ List of list items (each a list of blocks)
+compactify :: [Blocks]  -- ^ List of list items (each a list of blocks)
            -> [Blocks]
-compactify' [] = []
-compactify' items =
+compactify [] = []
+compactify items =
   let (others, final) = (init items, last items)
   in  case reverse (B.toList final) of
            (Para a:xs) -> case [Para x | Para x <- concatMap B.toList items] of
@@ -446,9 +446,9 @@ compactify' items =
                             _   -> items
            _      -> items
 
--- | Like @compactify'@, but acts on items of definition lists.
-compactify'DL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
-compactify'DL items =
+-- | Like @compactify@, but acts on items of definition lists.
+compactifyDL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
+compactifyDL items =
   let defs = concatMap snd items
   in  case reverse (concatMap B.toList defs) of
            (Para x:xs)

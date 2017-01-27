@@ -868,7 +868,7 @@ removeOneLeadingSpace xs =
          startsWithSpace (y:_) = y == ' '
 
 compactifyCell :: Blocks -> Blocks
-compactifyCell bs = head $ compactify' [bs]
+compactifyCell bs = head $ compactify [bs]
 
 -- | Parse footer for a grid table.
 gridTableFooter :: Stream s m Char => ParserT s ParserState m [Char]

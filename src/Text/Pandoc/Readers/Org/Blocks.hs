@@ -47,7 +47,7 @@ import           Text.Pandoc.Builder ( Inlines, Blocks )
 import           Text.Pandoc.Class (PandocMonad)
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Options
-import           Text.Pandoc.Shared ( compactify', compactify'DL, safeRead )
+import           Text.Pandoc.Shared ( compactify, compactifyDL, safeRead )
 
 import           Control.Monad ( foldM, guard, mzero, void )
 import           Data.Char ( isSpace, toLower, toUpper)
@@ -898,16 +898,16 @@ list = choice [ definitionList, bulletList, orderedList ] <?> "list"
 
 definitionList :: PandocMonad m => OrgParser m (F Blocks)
 definitionList = try $ do n <- lookAhead (bulletListStart' Nothing)
-                          fmap B.definitionList . fmap compactify'DL . sequence
+                          fmap B.definitionList . fmap compactifyDL . sequence
                             <$> many1 (definitionListItem $ bulletListStart' (Just n))
 
 bulletList :: PandocMonad m => OrgParser m (F Blocks)
 bulletList = try $ do n <- lookAhead (bulletListStart' Nothing)
-                      fmap B.bulletList . fmap compactify' . sequence
+                      fmap B.bulletList . fmap compactify . sequence
                         <$> many1 (listItem (bulletListStart' $ Just n))
 
 orderedList :: PandocMonad m => OrgParser m (F Blocks)
-orderedList = fmap B.orderedList . fmap compactify' . sequence
+orderedList = fmap B.orderedList . fmap compactify . sequence
               <$> many1 (listItem orderedListStart)
 
 bulletListStart' :: Monad m => Maybe Int -> OrgParser m Int

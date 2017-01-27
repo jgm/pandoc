@@ -37,7 +37,7 @@ import Text.Pandoc.Builder ( Inlines, Blocks, trimInlines )
 import Data.Monoid ((<>))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (escapeURI,compactify', compactify'DL)
+import Text.Pandoc.Shared (escapeURI,compactify, compactifyDL)
 import Text.Pandoc.Parsing hiding (space, spaces, uri, macro)
 import Data.Char (toLower)
 import Data.List (transpose, intersperse, intercalate)
@@ -225,16 +225,16 @@ list :: T2T Blocks
 list = choice [bulletList, orderedList, definitionList]
 
 bulletList :: T2T Blocks
-bulletList = B.bulletList . compactify'
+bulletList = B.bulletList . compactify
              <$> many1 (listItem bulletListStart parseBlocks)
 
 orderedList :: T2T Blocks
-orderedList = B.orderedList . compactify'
+orderedList = B.orderedList . compactify
               <$> many1 (listItem orderedListStart parseBlocks)
 
 definitionList :: T2T Blocks
 definitionList = try $ do
-  B.definitionList . compactify'DL <$>
+  B.definitionList . compactifyDL <$>
     many1 (listItem definitionListStart definitionListEnd)
 
 definitionListEnd :: T2T (Inlines, [Blocks])

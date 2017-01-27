@@ -574,11 +574,11 @@ orderedList :: PandocMonad m => RSTParser m Blocks
 orderedList = try $ do
   (start, style, delim) <- lookAhead (anyOrderedListMarker <* spaceChar)
   items <- many1 (listItem (orderedListStart style delim))
-  let items' = compactify' items
+  let items' = compactify items
   return $ B.orderedListWith (start, style, delim) items'
 
 bulletList :: PandocMonad m => RSTParser m Blocks
-bulletList = B.bulletList . compactify' <$> many1 (listItem bulletListStart)
+bulletList = B.bulletList . compactify <$> many1 (listItem bulletListStart)
 
 --
 -- directive (e.g. comment, container, compound-paragraph)
