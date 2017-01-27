@@ -973,13 +973,13 @@ simpleTableRawLine indices = do
   return (simpleTableSplitLine indices line)
 
 -- Parse a table row and return a list of blocks (columns).
-simpleTableRow :: PandocMonad m => [Int] -> RSTParser m [[Block]]
+simpleTableRow :: PandocMonad m => [Int] -> RSTParser m [Blocks]
 simpleTableRow indices = do
   notFollowedBy' simpleTableFooter
   firstLine <- simpleTableRawLine indices
   colLines  <- return [] -- TODO
   let cols = map unlines . transpose $ firstLine : colLines
-  mapM (parseFromString (B.toList . mconcat <$> many plain)) cols
+  mapM (parseFromString (mconcat <$> many plain)) cols
 
 simpleTableSplitLine :: [Int] -> String -> [String]
 simpleTableSplitLine indices line =
@@ -988,7 +988,7 @@ simpleTableSplitLine indices line =
 
 simpleTableHeader :: PandocMonad m
                   => Bool  -- ^ Headerless table
-                  -> RSTParser m ([[Block]], [Alignment], [Int])
+                  -> RSTParser m ([Blocks], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   optional blanklines
   rawContent  <- if headless
@@ -1002,7 +1002,7 @@ simpleTableHeader headless = try $ do
   let rawHeads = if headless
                     then replicate (length dashes) ""
                     else simpleTableSplitLine indices rawContent
-  heads <- mapM (parseFromString (B.toList . mconcat <$> many plain)) $
+  heads <- mapM (parseFromString (mconcat <$> many plain)) $
              map trim rawHeads
   return (heads, aligns, indices)
 
@@ -1011,17 +1011,22 @@ simpleTable :: PandocMonad m
             => Bool  -- ^ Headerless table
             -> RSTParser m Blocks
 simpleTable headless = do
-  Table c a _w h l <- tableWith (simpleTableHeader headless) simpleTableRow sep simpleTableFooter
+  tbl <- tableWith (simpleTableHeader headless) simpleTableRow
+              sep simpleTableFooter
   -- Simple tables get 0s for relative column widths (i.e., use default)
-  return $ B.singleton $ Table c a (replicate (length a) 0) h l
+  case B.toList tbl of
+       [Table c a _w h l]  -> return $ B.singleton $
+                                 Table c a (replicate (length a) 0) h l
+       _ -> do
+         warning "tableWith returned something unexpected"
+         return tbl -- TODO error?
  where
   sep = return () -- optional (simpleTableSep '-')
 
 gridTable :: PandocMonad m
           => Bool -- ^ Headerless table
           -> RSTParser m Blocks
-gridTable headerless = B.singleton
-  <$> gridTableWith (B.toList <$> parseBlocks) headerless
+gridTable headerless = gridTableWith parseBlocks headerless
 
 table :: PandocMonad m => RSTParser m Blocks
 table = gridTable False <|> simpleTable False <|>

@@ -59,7 +59,6 @@ module Text.Pandoc.Shared (
                      deNote,
                      stringify,
                      capitalize,
-                     compactify,
                      compactify',
                      compactify'DL,
                      linesToPara,
@@ -431,22 +430,6 @@ capitalize = walk go
   where go :: Inline -> Inline
         go (Str s) = Str (T.unpack $ T.toUpper $ T.pack s)
         go x       = x
-
--- | Change final list item from @Para@ to @Plain@ if the list contains
--- no other @Para@ blocks.
-compactify :: [[Block]]  -- ^ List of list items (each a list of blocks)
-           -> [[Block]]
-compactify [] = []
-compactify items =
-  case (init items, last items) of
-       (_,[])          -> items
-       (others, final) ->
-            case last final of
-                 Para a -> case (filter isPara $ concat items) of
-                                -- if this is only Para, change to Plain
-                                [_] -> others ++ [init final ++ [Plain a]]
-                                _   -> items
-                 _      -> items
 
 -- | Change final list item from @Para@ to @Plain@ if the list contains
 -- no other @Para@ blocks.  Like compactify, but operates on @Blocks@ rather

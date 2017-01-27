@@ -740,11 +740,11 @@ lineBlockLines = try $ do
 -- | Parse a table using 'headerParser', 'rowParser',
 -- 'lineParser', and 'footerParser'.
 tableWith :: Stream s m Char
-          => ParserT s ParserState m ([[Block]], [Alignment], [Int])
-          -> ([Int] -> ParserT s ParserState m [[Block]])
+          => ParserT s ParserState m ([Blocks], [Alignment], [Int])
+          -> ([Int] -> ParserT s ParserState m [Blocks])
           -> ParserT s ParserState m sep
           -> ParserT s ParserState m end
-          -> ParserT s ParserState m Block
+          -> ParserT s ParserState m Blocks
 tableWith headerParser rowParser lineParser footerParser = try $ do
     (heads, aligns, indices) <- headerParser
     lines' <- rowParser indices `sepEndBy1` lineParser
@@ -753,7 +753,7 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
     let widths = if (indices == [])
                     then replicate (length aligns) 0.0
                     else widthsFromIndices numColumns indices
-    return $ Table [] aligns widths heads lines'
+    return $ B.table mempty (zip aligns widths) heads lines'
 
 -- Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
@@ -787,9 +787,9 @@ widthsFromIndices numColumns' indices =
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
 gridTableWith :: Stream [Char] m Char
-              => ParserT [Char] ParserState m [Block]   -- ^ Block list parser
+              => ParserT [Char] ParserState m Blocks   -- ^ Block list parser
               -> Bool                                -- ^ Headerless table
-              -> ParserT [Char] ParserState m Block
+              -> ParserT [Char] ParserState m Blocks
 gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
@@ -818,8 +818,8 @@ gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 -- | Parse header for a grid table.
 gridTableHeader :: Stream [Char] m Char
                 => Bool -- ^ Headerless table
-                -> ParserT [Char] ParserState m [Block]
-                -> ParserT [Char] ParserState m ([[Block]], [Alignment], [Int])
+                -> ParserT [Char] ParserState m Blocks
+                -> ParserT [Char] ParserState m ([Blocks], [Alignment], [Int])
 gridTableHeader headless blocks = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
@@ -850,9 +850,9 @@ gridTableRawLine indices = do
 
 -- | Parse row of grid table.
 gridTableRow :: Stream [Char]  m Char
-             => ParserT [Char] ParserState m [Block]
+             => ParserT [Char] ParserState m Blocks
              -> [Int]
-             -> ParserT [Char] ParserState m [[Block]]
+             -> ParserT [Char] ParserState m [Blocks]
 gridTableRow blocks indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
@@ -867,8 +867,8 @@ removeOneLeadingSpace xs =
    where startsWithSpace ""     = True
          startsWithSpace (y:_) = y == ' '
 
-compactifyCell :: [Block] -> [Block]
-compactifyCell bs = head $ compactify [bs]
+compactifyCell :: Blocks -> Blocks
+compactifyCell bs = head $ compactify' [bs]
 
 -- | Parse footer for a grid table.
 gridTableFooter :: Stream s m Char => ParserT s ParserState m [Char]
