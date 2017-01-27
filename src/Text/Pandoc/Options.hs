@@ -175,7 +175,6 @@ data WriterOptions = WriterOptions
   , writerHighlightStyle   :: Maybe Style  -- ^ Style to use for highlighting
                                            -- (Nothing = no highlighting)
   , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
-  , writerEpubVersion      :: Maybe EPUBVersion -- ^ Nothing or EPUB version
   , writerEpubMetadata     :: String     -- ^ Metadata to include in EPUB
   , writerEpubStylesheet   :: Maybe String -- ^ EPUB stylesheet specified at command line
   , writerEpubFonts        :: [FilePath] -- ^ Paths to fonts to embed
@@ -214,7 +213,6 @@ instance Default WriterOptions where
                       , writerListings         = False
                       , writerHighlightStyle   = Just pygments
                       , writerSetextHeaders    = True
-                      , writerEpubVersion      = Nothing
                       , writerEpubMetadata     = ""
                       , writerEpubStylesheet   = Nothing
                       , writerEpubFonts        = []

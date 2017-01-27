@@ -29,8 +29,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to HTML.
 -}
 module Text.Pandoc.Writers.HTML (
-  writeHtml4, writeHtml4String,
-  writeHtml5, writeHtml5String ) where
+  writeHtml4,
+  writeHtml4String,
+  writeHtml5,
+  writeHtml5String,
+  writeHtmlStringForEPUB
+  ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Data.Monoid ((<>))
@@ -83,12 +87,14 @@ data WriterState = WriterState
     , stSecNum           :: [Int]   -- ^ Number of current section
     , stElement          :: Bool    -- ^ Processing an Element
     , stHtml5            :: Bool    -- ^ Use HTML5
+    , stEPUBVersion      :: Maybe EPUBVersion -- ^ EPUB version if for epub
     }
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
                                   stHighlighting = False, stSecNum = [],
-                                  stElement = False, stHtml5 = False}
+                                  stElement = False, stHtml5 = False,
+                                  stEPUBVersion = Nothing}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -120,6 +126,18 @@ writeHtml4String = writeHtmlString' False
 -- | Convert Pandoc document to Html 4 structure.
 writeHtml4 :: PandocMonad m => WriterOptions -> Pandoc -> m Html
 writeHtml4 = writeHtml' False
+
+-- | Convert Pandoc document to Html appropriate for an epub version.
+writeHtmlStringForEPUB :: PandocMonad m
+                       => EPUBVersion -> WriterOptions -> Pandoc -> m String
+writeHtmlStringForEPUB version opts d = do
+  (body, context) <- evalStateT (pandocToHtml opts d)
+                      defaultWriterState{ stHtml5 = version == EPUB3,
+                                          stEPUBVersion = Just version }
+  return $ case writerTemplate opts of
+             Nothing  -> renderHtml body
+             Just tpl -> renderTemplate' tpl $
+                           defField "body" (renderHtml body) context
 
 writeHtmlString' :: PandocMonad m => Bool -> WriterOptions -> Pandoc -> m String
 writeHtmlString' html5 opts d = do
@@ -892,6 +910,7 @@ inlineToHtml opts inline = do
                         let number = (length notes) + 1
                         let ref = show number
                         htmlContents <- blockListToNote opts ref contents
+                        epubVersion <- gets stEPUBVersion
                         -- push contents onto front of notes
                         modify $ \st -> st {stNotes = (htmlContents:notes)}
                         let revealSlash = ['/' | writerSlideVariant opts
@@ -901,11 +920,11 @@ inlineToHtml opts inline = do
                                          writerIdentifierPrefix opts ++ "fn" ++ ref)
                                        ! A.class_ "footnoteRef"
                                        ! prefixedId opts ("fnref" ++ ref)
-                                       $ (if isJust (writerEpubVersion opts)
+                                       $ (if isJust epubVersion
                                              then id
                                              else H.sup)
                                        $ toHtml ref
-                        return $ case writerEpubVersion opts of
+                        return $ case epubVersion of
                                       Just EPUB3 -> link ! customAttribute "epub:type" "noteref"
                                       _          -> link
     (Cite cits il)-> do contents <- inlineListToHtml opts il
@@ -933,7 +952,8 @@ blockListToNote opts ref blocks =
                                                  Plain backlink]
   in  do contents <- blockListToHtml opts blocks'
          let noteItem = H.li ! (prefixedId opts ("fn" ++ ref)) $ contents
-         let noteItem' = case writerEpubVersion opts of
+         epubVersion <- gets stEPUBVersion
+         let noteItem' = case epubVersion of
                               Just EPUB3 -> noteItem ! customAttribute "epub:type" "footnote"
                               _          -> noteItem
          return $ nl opts >> noteItem'

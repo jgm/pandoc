@@ -59,10 +59,9 @@ import Control.Monad (mplus, when, zipWithM)
 import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
                       , strContent, lookupAttr, Node(..), QName(..), parseXML
                       , onlyElems, node, ppElement)
-import Text.Pandoc.Writers.HTML ( writeHtml4, writeHtml5 )
+import Text.Pandoc.Writers.HTML ( writeHtmlStringForEPUB )
 import Data.Char ( toLower, isDigit, isAlphaNum )
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
-import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Text.HTML.TagSoup (Tag(TagOpen), fromAttrib, parseTags)
 import Control.Monad.Except (throwError, catchError)
 import Text.Pandoc.Error
@@ -361,16 +360,18 @@ writeEPUB epubVersion opts doc =
   let initState = EPUBState { stMediaPaths = []
                             }
   in
-    evalStateT (pandocToEPUB opts{ writerEpubVersion = Just epubVersion } doc)
+    evalStateT (pandocToEPUB epubVersion opts doc)
       initState
 
 pandocToEPUB :: PandocMonad m
-             => WriterOptions
+             => EPUBVersion
+             -> WriterOptions
              -> Pandoc
              -> E m B.ByteString
-pandocToEPUB opts doc@(Pandoc meta _) = do
-  let version = fromMaybe EPUB2 (writerEpubVersion opts)
-  let epub3 = writerEpubVersion opts == Just EPUB3
+pandocToEPUB version opts doc@(Pandoc meta _) = do
+  let epub3 = version == EPUB3
+  let writeHtml o = fmap UTF8.fromStringLazy .
+                         writeHtmlStringForEPUB version o
   epochtime <- floor <$> lift P.getPOSIXTime
   let mkEntry path content = toEntry path epochtime content
   let vars = ("epub3", if epub3 then "true" else "false")
@@ -384,9 +385,6 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                           then MathML Nothing
                           else writerHTMLMathMethod opts
                   , writerWrapText = WrapAuto }
-  let writeHtml = if epub3
-                     then writeHtml5
-                     else writeHtml4
   metadata <- getEPUBMetadata opts' meta
 
   -- cover page
@@ -395,17 +393,17 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                      Nothing   -> return ([],[])
                      Just img  -> do
                        let coverImage = "media/" ++ takeFileName img
-                       cpContent <- renderHtml <$> (lift $ writeHtml
+                       cpContent <- lift $ writeHtml
                             opts'{ writerVariables = ("coverpage","true"):vars }
-                            (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"]))
+                            (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
                        imgContent <- lift $ P.readFileLazy img
                        return ( [mkEntry "cover.xhtml" cpContent]
                               , [mkEntry coverImage imgContent] )
 
   -- title page
-  tpContent <- renderHtml <$> (lift $ writeHtml opts'{
+  tpContent <- lift $ writeHtml opts'{
                                   writerVariables = ("titlepage","true"):vars }
-                               (Pandoc meta []))
+                               (Pandoc meta [])
   let tpEntry = mkEntry "title_page.xhtml" tpContent
 
   -- handle pictures
@@ -504,9 +502,8 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                  chapters'
 
   let chapToEntry num (Chapter mbnum bs) =
-       (mkEntry (showChapter num) . renderHtml) <$>
-        (writeHtml opts'{ writerNumberOffset =
-                          fromMaybe [] mbnum }
+       mkEntry (showChapter num) <$>
+        (writeHtml opts'{ writerNumberOffset = fromMaybe [] mbnum }
          $ case bs of
              (Header _ _ xs : _) ->
                -- remove notes or we get doubled footnotes
@@ -702,11 +699,10 @@ pandocToEPUB opts doc@(Pandoc meta _) = do
                             ]
                           ]
                      else []
-  navData <- renderHtml <$> (lift $ writeHtml
-                      opts'{ writerVariables = ("navpage","true"):vars }
+  navData <- lift $ writeHtml opts'{ writerVariables = ("navpage","true"):vars }
             (Pandoc (setMeta "title"
                      (walk removeNote $ fromList $ docTitle' meta) nullMeta)
-               (navBlocks ++ landmarks)))
+               (navBlocks ++ landmarks))
   let navEntry = mkEntry "nav.xhtml" navData
 
   -- mimetype
