@@ -33,7 +33,12 @@ module Text.Pandoc.Writers.HTML (
   writeHtml4String,
   writeHtml5,
   writeHtml5String,
-  writeHtmlStringForEPUB
+  writeHtmlStringForEPUB,
+  writeS5,
+  writeSlidy,
+  writeSlideous,
+  writeDZSlides,
+  writeRevealJs
   ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
@@ -88,13 +93,15 @@ data WriterState = WriterState
     , stElement          :: Bool    -- ^ Processing an Element
     , stHtml5            :: Bool    -- ^ Use HTML5
     , stEPUBVersion      :: Maybe EPUBVersion -- ^ EPUB version if for epub
+    , stSlideVariant     :: HTMLSlideVariant
     }
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
                                   stHighlighting = False, stSecNum = [],
                                   stElement = False, stHtml5 = False,
-                                  stEPUBVersion = Nothing}
+                                  stEPUBVersion = Nothing,
+                                  stSlideVariant = NoSlides}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -113,45 +120,79 @@ nl opts = if writerWrapText opts == WrapNone
 
 -- | Convert Pandoc document to Html 5 string.
 writeHtml5String :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeHtml5String = writeHtmlString' True
+writeHtml5String = writeHtmlString'
+                      defaultWriterState{ stHtml5 = True }
 
 -- | Convert Pandoc document to Html 5 structure.
 writeHtml5 :: PandocMonad m => WriterOptions -> Pandoc -> m Html
-writeHtml5 = writeHtml' True
+writeHtml5 = writeHtml' defaultWriterState{ stHtml5 = True }
 
 -- | Convert Pandoc document to Html 4 string.
 writeHtml4String :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeHtml4String = writeHtmlString' False
+writeHtml4String = writeHtmlString'
+                      defaultWriterState{ stHtml5 = False }
 
 -- | Convert Pandoc document to Html 4 structure.
 writeHtml4 :: PandocMonad m => WriterOptions -> Pandoc -> m Html
-writeHtml4 = writeHtml' False
+writeHtml4 = writeHtml' defaultWriterState{ stHtml5 = False }
 
 -- | Convert Pandoc document to Html appropriate for an epub version.
 writeHtmlStringForEPUB :: PandocMonad m
                        => EPUBVersion -> WriterOptions -> Pandoc -> m String
-writeHtmlStringForEPUB version opts d = do
-  (body, context) <- evalStateT (pandocToHtml opts d)
+writeHtmlStringForEPUB version = writeHtmlString'
                       defaultWriterState{ stHtml5 = version == EPUB3,
                                           stEPUBVersion = Just version }
+
+-- | Convert Pandoc document to Reveal JS HTML slide show.
+writeRevealJs :: PandocMonad m
+              => WriterOptions -> Pandoc -> m String
+writeRevealJs = writeHtmlSlideShow' RevealJsSlides
+
+-- | Convert Pandoc document to S5 HTML slide show.
+writeS5 :: PandocMonad m
+        => WriterOptions -> Pandoc -> m String
+writeS5 = writeHtmlSlideShow' S5Slides
+
+-- | Convert Pandoc document to Slidy HTML slide show.
+writeSlidy :: PandocMonad m
+           => WriterOptions -> Pandoc -> m String
+writeSlidy = writeHtmlSlideShow' SlidySlides
+
+-- | Convert Pandoc document to Slideous HTML slide show.
+writeSlideous :: PandocMonad m
+              => WriterOptions -> Pandoc -> m String
+writeSlideous = writeHtmlSlideShow' SlideousSlides
+
+-- | Convert Pandoc document to DZSlides HTML slide show.
+writeDZSlides :: PandocMonad m
+              => WriterOptions -> Pandoc -> m String
+writeDZSlides = writeHtmlSlideShow' DZSlides
+
+writeHtmlSlideShow' :: PandocMonad m
+                    => HTMLSlideVariant -> WriterOptions -> Pandoc -> m String
+writeHtmlSlideShow' variant = writeHtmlString'
+    defaultWriterState{ stSlideVariant = variant
+                      , stHtml5 = case variant of
+                                       RevealJsSlides -> True
+                                       S5Slides       -> False
+                                       SlidySlides    -> False
+                                       DZSlides       -> True
+                                       SlideousSlides -> False
+                                       NoSlides       -> False
+                      }
+
+writeHtmlString' :: PandocMonad m
+                 => WriterState -> WriterOptions -> Pandoc -> m String
+writeHtmlString' st opts d = do
+  (body, context) <- evalStateT (pandocToHtml opts d) st
   return $ case writerTemplate opts of
              Nothing  -> renderHtml body
              Just tpl -> renderTemplate' tpl $
                            defField "body" (renderHtml body) context
 
-writeHtmlString' :: PandocMonad m => Bool -> WriterOptions -> Pandoc -> m String
-writeHtmlString' html5 opts d = do
-  (body, context) <- evalStateT (pandocToHtml opts d)
-                      defaultWriterState{ stHtml5 = html5 }
-  return $ case writerTemplate opts of
-             Nothing  -> renderHtml body
-             Just tpl -> renderTemplate' tpl $
-                           defField "body" (renderHtml body) context
-
-writeHtml' :: PandocMonad m => Bool -> WriterOptions -> Pandoc -> m Html
-writeHtml' html5 opts d = do
-  (body, context) <- evalStateT (pandocToHtml opts d)
-                      defaultWriterState{ stHtml5 = html5 }
+writeHtml' :: PandocMonad m => WriterState -> WriterOptions -> Pandoc -> m Html
+writeHtml' st opts d = do
+  (body, context) <- evalStateT (pandocToHtml opts d) st
   return $ case writerTemplate opts of
              Nothing  -> body
              Just tpl -> renderTemplate' tpl $
@@ -171,11 +212,12 @@ pandocToHtml opts (Pandoc meta blocks) = do
   let authsMeta = map stringifyHTML $ docAuthors meta
   let dateMeta  = stringifyHTML $ docDate meta
   let slideLevel = fromMaybe (getSlideLevel blocks) $ writerSlideLevel opts
+  slideVariant <- gets stSlideVariant
   let sects = hierarchicalize $
-              if writerSlideVariant opts == NoSlides
+              if slideVariant == NoSlides
                  then blocks
                  else prepSlides slideLevel blocks
-  toc <- if writerTableOfContents opts
+  toc <- if writerTableOfContents opts && slideVariant /= S5Slides
             then tableOfContents opts sects
             else return Nothing
   blocks' <- liftM (mconcat . intersperse (nl opts)) $
@@ -195,7 +237,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                       MathJax url ->
                          H.script ! A.src (toValue url)
                                   ! A.type_ "text/javascript"
-                                  $ case writerSlideVariant opts of
+                                  $ case slideVariant of
                                          SlideousSlides ->
                                             preEscapedString
                                             "MathJax.Hub.Queue([\"Typeset\",MathJax.Hub]);"
@@ -247,21 +289,30 @@ prefixedId opts s =
     ""       -> mempty
     _        -> A.id $ toValue $ writerIdentifierPrefix opts ++ s
 
-toList :: (Html -> Html) -> WriterOptions -> ([Html] -> Html)
+toList :: PandocMonad m
+       => (Html -> Html)
+       -> WriterOptions
+       -> [Html]
+       -> StateT WriterState m Html
 toList listop opts items = do
-    if (writerIncremental opts)
-       then if (writerSlideVariant opts /= RevealJsSlides)
-               then (listop $ mconcat items) ! A.class_ "incremental"
-               else listop $ mconcat $ map (! A.class_ "fragment") items
-       else listop $ mconcat items
+    slideVariant <- gets stSlideVariant
+    return $
+      if (writerIncremental opts)
+         then if (slideVariant /= RevealJsSlides)
+                 then (listop $ mconcat items) ! A.class_ "incremental"
+                 else listop $ mconcat $ map (! A.class_ "fragment") items
+         else listop $ mconcat items
 
-unordList :: WriterOptions -> [Html] -> Html
+unordList :: PandocMonad m
+          => WriterOptions -> [Html] -> StateT WriterState m Html
 unordList opts = toList H.ul opts . toListItems opts
 
-ordList :: WriterOptions -> [Html] -> Html
+ordList :: PandocMonad m
+        => WriterOptions -> [Html] -> StateT WriterState m Html
 ordList opts = toList H.ol opts . toListItems opts
 
-defList :: WriterOptions -> [Html] -> Html
+defList :: PandocMonad m
+        => WriterOptions -> [Html] -> StateT WriterState m Html
 defList opts items = toList H.dl opts (items ++ [nl opts])
 
 -- | Construct table of contents from list of elements.
@@ -270,9 +321,9 @@ tableOfContents _ [] = return Nothing
 tableOfContents opts sects = do
   contents  <- mapM (elementToListItem opts) sects
   let tocList = catMaybes contents
-  return $ if null tocList
-              then Nothing
-              else Just $ unordList opts tocList
+  if null tocList
+     then return Nothing
+     else Just <$> unordList opts tocList
 
 -- | Convert section number to string
 showSecNum :: [Int] -> String
@@ -294,11 +345,12 @@ elementToListItem opts (Sec lev num (id',classes,_) headerText subsecs)
                    else mempty
   txt <- liftM (sectnum >>) $ inlineListToHtml opts $ walk deNote headerText
   subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
-  let subList = if null subHeads
-                   then mempty
-                   else unordList opts subHeads
+  subList <- if null subHeads
+                then return mempty
+                else unordList opts subHeads
   -- in reveal.js, we need #/apples, not #apples:
-  let revealSlash = ['/' | writerSlideVariant opts == RevealJsSlides]
+  slideVariant <- gets stSlideVariant
+  let revealSlash = ['/' | slideVariant== RevealJsSlides]
   return $ Just
          $ if null id'
               then (H.a $ toHtml txt) >> subList
@@ -311,7 +363,8 @@ elementToListItem _ _ = return Nothing
 elementToHtml :: PandocMonad m => Int -> WriterOptions -> Element -> StateT WriterState m Html
 elementToHtml _slideLevel opts (Blk block) = blockToHtml opts block
 elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elements) = do
-  let slide = writerSlideVariant opts /= NoSlides && level <= slideLevel
+  slideVariant <- gets stSlideVariant
+  let slide = slideVariant /= NoSlides && level <= slideLevel
   let num' = zipWith (+) num (writerNumberOffset opts ++ repeat 0)
   modify $ \st -> st{stSecNum = num'}  -- update section number
   html5 <- gets stHtml5
@@ -329,7 +382,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
       isSec (Blk _)         = False
   let isPause (Blk x) = x == Para [Str ".",Space,Str ".",Space,Str "."]
       isPause _       = False
-  let fragmentClass = case writerSlideVariant opts of
+  let fragmentClass = case slideVariant of
                            RevealJsSlides  -> "fragment"
                            _               -> "incremental"
   let inDiv xs = Blk (RawBlock (Format "html") ("<div class=\""
@@ -353,7 +406,7 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
                     else H.div
   let attr = (id',classes',keyvals)
   return $ if titleSlide
-              then (if writerSlideVariant opts == RevealJsSlides
+              then (if slideVariant == RevealJsSlides
                        then H5.section
                        else id) $ mconcat $
                        (addAttrs opts attr $ secttag $ header') : innerContents
@@ -369,10 +422,11 @@ footnoteSection :: PandocMonad m
                 => WriterOptions -> [Html] -> StateT WriterState m Html
 footnoteSection opts notes = do
   html5 <- gets stHtml5
+  slideVariant <- gets stSlideVariant
   let hrtag = if html5 then H5.hr else H.hr
   let container x = if html5
                        then H5.section ! A.class_ "footnotes" $ x
-                       else if writerSlideVariant opts /= NoSlides
+                       else if slideVariant /= NoSlides
                             then H.div ! A.class_ "footnotes slide" $ x
                             else H.div ! A.class_ "footnotes" $ x
   return $
@@ -526,9 +580,10 @@ blockToHtml opts (Div attr@(ident, classes, kvs) bs) = do
   let (divtag, classes') = if html5 && "section" `elem` classes
                               then (H5.section, filter (/= "section") classes)
                               else (H.div, classes)
+  slideVariant <- gets stSlideVariant
   return $
      if speakerNotes
-        then case writerSlideVariant opts of
+        then case slideVariant of
                   RevealJsSlides -> addAttrs opts' attr $ H5.aside $ contents'
                   DZSlides       -> (addAttrs opts' attr $ H5.div $ contents')
                                       ! (H5.customAttribute "role" "note")
@@ -565,11 +620,12 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                            $ H.pre $ H.code $ toHtml adjCode
          Just  h -> modify (\st -> st{ stHighlighting = True }) >>
                     return (addAttrs opts (id',[],keyvals) h)
-blockToHtml opts (BlockQuote blocks) =
+blockToHtml opts (BlockQuote blocks) = do
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental;
   -- otherwise incremental
-  if writerSlideVariant opts /= NoSlides
+  slideVariant <- gets stSlideVariant
+  if slideVariant /= NoSlides
      then let inc = not (writerIncremental opts) in
           case blocks of
              [BulletList lst]  -> blockToHtml (opts {writerIncremental = inc})
@@ -606,7 +662,7 @@ blockToHtml opts (Header level attr@(_,classes,_) lst) = do
               _ -> H.p contents'
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (blockListToHtml opts) lst
-  return $ unordList opts contents
+  unordList opts contents
 blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   contents <- mapM (blockListToHtml opts) lst
   html5 <- gets stHtml5
@@ -632,7 +688,8 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
                            else [A.style $ toValue $ "list-style-type: " ++
                                    numstyle']
                    else [])
-  return $ foldl (!) (ordList opts contents) attribs
+  l <- ordList opts contents
+  return $ foldl (!) l attribs
 blockToHtml opts (DefinitionList lst) = do
   contents <- mapM (\(term, defs) ->
                   do term' <- if null term
@@ -642,7 +699,7 @@ blockToHtml opts (DefinitionList lst) = do
                                     blockListToHtml opts) defs
                      return $ mconcat $ nl opts : term' : nl opts :
                                         intersperse (nl opts) defs') lst
-  return $ defList opts contents
+  defList opts contents
 blockToHtml opts (Table capt aligns widths headers rows') = do
   captionDoc <- if null capt
                    then return mempty
@@ -878,9 +935,10 @@ inlineToHtml opts inline = do
                         lift $ obfuscateLink opts attr linkText s
     (Link attr txt (s,tit)) -> do
                         linkText <- inlineListToHtml opts txt
+                        slideVariant <- gets stSlideVariant
                         let s' = case s of
-                                      '#':xs | writerSlideVariant opts ==
-                                            RevealJsSlides -> '#':'/':xs
+                                      '#':xs | slideVariant == RevealJsSlides
+                                        -> '#':'/':xs
                                       _ -> s
                         let link = H.a ! A.href (toValue s') $ linkText
                         let link' = if txt == [Str (unEscapeString s)]
@@ -913,8 +971,8 @@ inlineToHtml opts inline = do
                         epubVersion <- gets stEPUBVersion
                         -- push contents onto front of notes
                         modify $ \st -> st {stNotes = (htmlContents:notes)}
-                        let revealSlash = ['/' | writerSlideVariant opts
-                                                 == RevealJsSlides]
+                        slideVariant <- gets stSlideVariant
+                        let revealSlash = ['/' | slideVariant == RevealJsSlides]
                         let link = H.a ! A.href (toValue $ "#" ++
                                          revealSlash ++
                                          writerIdentifierPrefix opts ++ "fn" ++ ref)

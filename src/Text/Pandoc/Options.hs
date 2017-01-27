@@ -150,7 +150,6 @@ data WriterOptions = WriterOptions
   , writerVariables        :: [(String, String)] -- ^ Variables to set in template
   , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents  :: Bool   -- ^ Include table of contents
-  , writerSlideVariant     :: HTMLSlideVariant -- ^ Are we writing S5, Slidy or Slideous?
   , writerIncremental      :: Bool   -- ^ True if lists should be incremental
   , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
   , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
@@ -190,7 +189,6 @@ instance Default WriterOptions where
                       , writerVariables        = []
                       , writerTabStop          = 4
                       , writerTableOfContents  = False
-                      , writerSlideVariant     = NoSlides
                       , writerIncremental      = False
                       , writerHTMLMathMethod   = PlainMath
                       , writerNumberSections   = False

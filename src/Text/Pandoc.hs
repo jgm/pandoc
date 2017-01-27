@@ -103,6 +103,11 @@ module Text.Pandoc
                , writeHtml4String
                , writeHtml5
                , writeHtml5String
+               , writeRevealJs
+               , writeS5
+               , writeSlidy
+               , writeSlideous
+               , writeDZSlides
                , writeICML
                , writeDocbook4
                , writeDocbook5
@@ -288,17 +293,11 @@ writers = [
   ,("html4"        , StringWriter writeHtml4String)
   ,("html5"        , StringWriter writeHtml5String)
   ,("icml"         , StringWriter writeICML)
-  ,("s5"           , StringWriter $ \o ->
-     writeHtml4String o{ writerSlideVariant = S5Slides
-                       , writerTableOfContents = False })
-  ,("slidy"        , StringWriter $ \o ->
-     writeHtml4String o{ writerSlideVariant = SlidySlides })
-  ,("slideous"     , StringWriter $ \o ->
-     writeHtml4String o{ writerSlideVariant = SlideousSlides })
-  ,("dzslides"     , StringWriter $ \o ->
-     writeHtml5String o{ writerSlideVariant = DZSlides })
-  ,("revealjs"      , StringWriter $ \o ->
-     writeHtml5String o{ writerSlideVariant = RevealJsSlides })
+  ,("s5"           , StringWriter writeS5)
+  ,("slidy"        , StringWriter writeSlidy)
+  ,("slideous"     , StringWriter writeSlideous)
+  ,("dzslides"     , StringWriter writeDZSlides)
+  ,("revealjs"     , StringWriter writeRevealJs)
   ,("docbook"      , StringWriter writeDocbook5)
   ,("docbook4"     , StringWriter writeDocbook4)
   ,("docbook5"     , StringWriter writeDocbook5)
