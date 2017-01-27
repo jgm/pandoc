@@ -558,6 +558,7 @@ benchmark benchmark-pandoc
      Hs-Source-Dirs: prelude
      Other-Modules:  Prelude
   Build-Depends:   pandoc,
+                   time, bytestring, containers,
                    base >= 4.2 && < 5,
                    syb >= 0.1 && < 0.7,
                    criterion >= 1.0 && < 1.2

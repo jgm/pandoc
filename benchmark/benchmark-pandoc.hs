@@ -16,6 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 import Text.Pandoc
+import Text.Pandoc.Class hiding (getCurrentTime)
+import Data.Time (getCurrentTime)
+import qualified Data.ByteString as B
+import qualified Data.Map as Map
 import Criterion.Main
 import Criterion.Types (Config(..))
 import Data.Maybe (mapMaybe)
@@ -30,7 +34,7 @@ readerBench doc (name, reader) =
          let inp = either (error . show) id $ runPure
                        $ writer def{ writerWrapText = WrapAuto} doc
          in return $ bench (name ++ " reader") $ nf
-                 (reader def{ readerSmart = True }) inp
+                 (reader def) inp
        _ -> trace ("\nCould not find writer for " ++ name ++ "\n") Nothing
 
 writerBench :: Pandoc
@@ -42,13 +46,23 @@ writerBench doc (name, writer) = bench (name ++ " writer") $ nf
 main :: IO ()
 main = do
   inp <- readFile "tests/testsuite.txt"
-  let opts = def{ readerSmart = True }
+  lalune <- B.readFile "tests/lalune.jpg"
+  movie <- B.readFile "tests/movie.jpg"
+  time <- getCurrentTime
+  let setupFakeFiles = modifyPureState $ \st -> st{ stFiles =
+                        FileTree $ Map.fromList [
+                           ("lalune.jpg", FileInfo time lalune),
+                           ("movie.jpg", FileInfo time movie)
+                           ]}
+  let opts = def
   let doc = either (error . show) id $ runPure $ readMarkdown opts inp
-  let readers' = [(n, \o -> either (error . show) id . runPure . r o)
+  let readers' = [(n, \o d ->
+             either (error . show) id $ runPure $ r o d)
                         | (n, StringReader r) <- readers]
   let readerBs = mapMaybe (readerBench doc)
                  $ filter (\(n,_) -> n /="haddock") readers'
-  let writers' = [(n, \o -> either (error . show) id . runPure . w o)
+  let writers' = [(n, \o d ->
+                   either (error . show) id $ runPure $ setupFakeFiles >> w o d)
                         | (n, StringWriter w) <- writers]
   let writerBs = map (writerBench doc)
                  $ writers'
