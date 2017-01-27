@@ -54,6 +54,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , getOutputFile
                          , PandocIO(..)
                          , PandocPure(..)
+                         , FileTree(..)
                          , FileInfo(..)
                          , runIO
                          , runIOorExplode
