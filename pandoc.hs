@@ -313,7 +313,6 @@ convertWithOpts opts args = do
                             writerHtmlQTags        = htmlQTags,
                             writerTopLevelDivision = topLevelDivision,
                             writerListings         = listings,
-                            writerBeamer           = False,
                             writerSlideLevel       = slideLevel,
                             writerHighlightStyle   = highlightStyle,
                             writerSetextHeaders    = setextHeaders,

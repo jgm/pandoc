@@ -97,6 +97,7 @@ module Text.Pandoc
                , writePlain
                , writeRST
                , writeLaTeX
+               , writeBeamer
                , writeConTeXt
                , writeTexinfo
                , writeHtml4
@@ -304,8 +305,7 @@ writers = [
   ,("opml"         , StringWriter writeOPML)
   ,("opendocument" , StringWriter writeOpenDocument)
   ,("latex"        , StringWriter writeLaTeX)
-  ,("beamer"       , StringWriter $ \o ->
-     writeLaTeX o{ writerBeamer = True })
+  ,("beamer"       , StringWriter writeBeamer)
   ,("context"      , StringWriter writeConTeXt)
   ,("texinfo"      , StringWriter writeTexinfo)
   ,("man"          , StringWriter writeMan)

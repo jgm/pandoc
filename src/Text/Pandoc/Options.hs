@@ -167,7 +167,6 @@ data WriterOptions = WriterOptions
   , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
   , writerCiteMethod       :: CiteMethod -- ^ How to print cites
   , writerHtmlQTags        :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
-  , writerBeamer           :: Bool       -- ^ Produce beamer LaTeX slide show
   , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
   , writerTopLevelDivision :: TopLevelDivision -- ^ Type of top-level divisions
   , writerListings         :: Bool       -- ^ Use listings package for code
@@ -205,7 +204,6 @@ instance Default WriterOptions where
                       , writerUserDataDir      = Nothing
                       , writerCiteMethod       = Citeproc
                       , writerHtmlQTags        = False
-                      , writerBeamer           = False
                       , writerSlideLevel       = Nothing
                       , writerTopLevelDivision = TopLevelDefault
                       , writerListings         = False
