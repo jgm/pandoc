@@ -89,8 +89,7 @@ $if(verbatim-in-note)$
 \VerbatimFootnotes % allows verbatim text in footnotes
 $endif$
 $if(geometry)$
-% With mag ≠ 1000, no truedimen and hyperref, hyperref should be loaded before
-% geometry. Otherwise the resulted PDF size will become wrong.
+% hyperref should be loaded before geometry
 \usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
 $endif$
 $if(lang)$
