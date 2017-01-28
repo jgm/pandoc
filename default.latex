@@ -25,11 +25,9 @@ $if(mathspec)$
   \ifxetex
     \usepackage{mathspec}
   \else
-    \usepackage{fontspec}
     \usepackage{unicode-math}
   \fi
 $else$
-  \usepackage{fontspec}
   \usepackage{unicode-math}
 $endif$
   \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
