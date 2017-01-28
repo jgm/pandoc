@@ -219,33 +219,8 @@ parseFormatSpec = parse formatSpec ""
                         '-'  -> disableExtension ext
                         _    -> enableExtension ext
 
--- TODO: when we get the PandocMonad stuff all sorted out,
--- we can simply these types considerably.  Errors/MediaBag can be
--- part of the monad's internal state.
 data Reader m = StringReader (ReaderOptions -> String -> m Pandoc)
               | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)
-
--- mkStringReader :: (ReaderOptions -> String -> Either PandocError Pandoc) -> Reader IO
--- mkStringReader r = StringReader (\o s -> return $ r o s)
-
--- mkStringReaderWithWarnings :: (ReaderOptions -> String -> Either PandocError (Pandoc, [String])) -> Reader IO
--- mkStringReaderWithWarnings r  = StringReader $ \o s ->
---   case r o s of
---     Left err -> return $ Left err
---     Right (doc, warnings) -> do
---       mapM_ warn warnings
---       return (Right doc)
-
--- mkBSReader :: (ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag)) -> Reader IO
--- mkBSReader r = ByteStringReader (\o s -> return $ r o s)
-
--- mkBSReaderWithWarnings :: (ReaderOptions -> BL.ByteString -> Either PandocError (Pandoc, MediaBag, [String])) -> Reader IO
--- mkBSReaderWithWarnings r = ByteStringReader $ \o s ->
---   case r o s of
---     Left err -> return $ Left err
---     Right (doc, mediaBag, warnings) -> do
---       mapM_ warn warnings
---       return $ Right (doc, mediaBag)
 
 -- | Association list of formats and readers.
 readers :: PandocMonad m => [(String, Reader m)]
