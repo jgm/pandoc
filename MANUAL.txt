@@ -1,6 +1,6 @@
 % Pandoc User's Guide
 % John MacFarlane
-% December 10, 2016
+% January 29, 2017
 
 Synopsis
 ========
@@ -4120,6 +4120,7 @@ Jens Petersen,
 Jesse Rosenthal,
 Joe Hillenbrand,
 John MacFarlane,
+John Muccigrosso,
 Jonas Smedegaard,
 Jonathan Daugherty,
 Jose Luis Duran,
@@ -4130,7 +4131,6 @@ Justin Bogner,
 Jérémy Bobbio,
 Kelsey Hightower,
 Kolen Cheung,
-KolenCheung,
 Konstantin Zudov,
 Kristof Bastiaensen,
 Lars-Dominik Braun,
@@ -4194,10 +4194,13 @@ Uli Köhler,
 Václav Zeman,
 Viktor Kronvall,
 Vincent,
+Václav Haisman,
 Václav Zeman,
+Wandmalfarbe,
 Waldir Pimenta,
 Wikiwide,
 Xavier Olive,
+bumper314,
 csforste,
 infinity0x,
 nkalvi,
@@ -4208,6 +4211,7 @@ rodja.trappe,
 rski,
 shreevatsa.public,
 takahashim,
+tgkokk,
 thsutton.
 
 [GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
