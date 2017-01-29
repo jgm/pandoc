@@ -1,3 +1,124 @@
+pandoc (1.19.2)
+
+  * Use skylighting library instead of highlighting-kate for syntax
+    highlighting. Skylighting is faster and more accurate (#3363).
+    Later we'll be able to add features like warning messages, dynamic
+    loading of xml syntax definitions, and dynamic loading of themes.
+
+  * Added a new highlight style, `breezeDark`.
+
+  * Text.Pandoc.Highlighting: Update list of `listings` languages (#3374).
+    This allows more languages to be used when using the `--listings`
+    option.
+
+  * OpenDocument writer:
+
+    + Small refactoring.  Removed separate 'parent' parameter in paraStyle.
+    + Don't profilerate text styles unnecessarily (#3371).
+      This change makes the writer create only as many temporary
+      text styles as are absolutely necessary. It also consolidates
+      adjacent nodes with the same style.
+
+  * Org reader (Albert Krewinkel):
+
+    + Allow short hand for single-line raw blocks (Albert Krewinkel,
+      #3366).  Single-line raw blocks can be given via `#+FORMAT: raw line`,
+      where `FORMAT` must be one of `latex`, `beamer`, `html`, or `texinfo`.
+    + Accept org-ref citations followed by commas (Albert Krewinkel).
+      Bugfix for an issue which, whenever the citation was immediately
+      followed by a comma, prevented correct parsing of org-ref citations.
+    + Ensure emphasis markup can be nested.  Nested emphasis markup (e.g.
+      `/*strong and emphasized*/`) was interpreted incorrectly in that the
+      inner markup was not recognized.
+    + Remove pipe char irking the haddock coverage tool (Albert Krewinkel).
+
+  * Docx reader: Empty header should be list of lists (Jesse Rosenthal).
+    In the past, the docx reader wrote an empty header as an empty list. It
+    should have the same width as a row (and be filled with empty cells).
+
+  * MediaWiki reader:
+
+    + Improved handling of display math (#3362).  Sometimes display math is
+      indented with more than one colon.  Previously we handled these cases
+      badly, generating definition lists and missing the math.
+    + Fix quotation mark parsing (#3336, tgkokk).  Change MediaWiki reader's
+      behavior when the smart option is parsed to match other readers'
+      behavior.
+
+  * Markdown reader:
+
+    + Fixed `-f markdown_github-hard_line_breaks+escaped_line_breaks`
+      (#3341).  Previously this did not properly enable escaped line breaks.
+    + Disallow space between inline code and attributes (#3326, #3323,
+      Mauro Bieg).
+
+  * DocBook5 writer: make id attribute xml:id, fixes #3329 (#3330, Mauro Bieg).
+
+  * Added some test cases for ODT reader (#3306, #3308, Hubert Plociniczak).
+
+  * LaTeX writer: allow tables with empty cells to count as "plain."
+    This addresses a problem of too-wide tables when empty cells
+    are used.  Thanks to Joost Kremers for reporting the issue.
+
+  * Org writer: prefix footnote numbers with `fn:` (Albert Krewinkel).
+    Unprefixed numbers where used by older org-mode versions, but are no
+    longer supported.
+
+  * HTML writer: don't process pars with empty RawInline, (#1040, #3327,
+    Mauro Bieg).
+
+  * Markdown writer: Fix display math with `--webtex` (#3298).
+
+  * Fix sample.lua so it properly handles raw blocks/inlines (#3358,
+    bumper314).
+
+  * Templates:
+
+    + default.latex: Moved geometry after hyperref (Václav Haisman).
+      Otherwise PDF sizes can be wrong in some circumstances.
+    + Copied a few changes from default.latex to default.beamer
+      (Wandmalfarbe).
+    + default.latex, default.beamer: Changed position of `\VerbatimNotes`
+      and `fancyvrb`.  This fixes hyperlinks on footnotes in documents
+      that contain verbatim in notes (#3361).  (Note: the beamer template
+      was updated to match the LaTeX template, but at this point verbatim
+      in notes seems not to work in beamer.)
+    + default.latex: Allow passing `microtypeoptions` to microtype
+      (Václav Haisman).
+    + default.latex: Add hyphen option to url package.
+    + default.docbook5: Fix namespace declarations (Mauro Bieg).
+
+  * Moved `make_osx_package.sh` to `osx/` directory.
+
+  * Travis continuous integration:
+
+    + Fix false positives with dist build.
+    + Speed improvements (Kolen Cheung, #3304, #3357).
+
+  * MANUAL.txt:
+
+    + Clarify that blank space is needed around footnotes (#3352).
+    + Fixed typo (#3351, Alexey Rogechev).
+    + Note that `--wrap=auto` does not work in HTML output.
+    + Default `--columns` width is 72, not 80.
+    + Fixed broken links (#3316, Kolen Cheung).
+    + Document usage of `@*` in nocite section (#3333, John Muccigrosso).
+
+  * INSTALL.md:
+
+    + Indent code so it's properly formatted (#3335, Bheesham Persaud).
+    + Added instructions for extracting binary from OSX, Windows packages.
+
+  * CONTRIBUTING.md: Describe labels currently used in issue tracker
+    (Albert Krewinkel).  The labels have changed over time, the list of
+    labels is updated to reflect the current set of labels used in the
+    issue tracker.
+
+  * Rearrange and extend badges in README (Albert Krewinkel, #3354)
+
+  * Bumped version bounds for dependencies.
+
+
 pandoc (1.19.1)
 
   * Set `PANDOC_VERSION` environment variable for filters (#2640).
