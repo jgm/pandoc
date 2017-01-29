@@ -35,7 +35,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.XML
 import Text.Pandoc.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Readers.TeXMath
+import Text.Pandoc.Writers.Math
 import Text.Pandoc.Pretty
 import Text.Printf ( printf )
 import Control.Arrow ( (***), (>>>) )
@@ -46,6 +46,7 @@ import qualified Data.Map as Map
 import Text.Pandoc.Writers.Shared
 import Data.List (sortBy)
 import Data.Ord (comparing)
+import Text.Pandoc.Class (PandocMonad)
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -55,6 +56,8 @@ plainToPara x = x
 --
 -- OpenDocument writer
 --
+
+type OD m = StateT WriterState m
 
 data WriterState =
     WriterState { stNotes         :: [Doc]
@@ -88,40 +91,40 @@ defaultWriterState =
 when :: Bool -> Doc -> Doc
 when p a = if p then a else empty
 
-addTableStyle :: Doc -> State WriterState ()
+addTableStyle :: PandocMonad m => Doc -> OD m ()
 addTableStyle i = modify $ \s -> s { stTableStyles = i : stTableStyles s }
 
-addNote :: Doc -> State WriterState ()
+addNote :: PandocMonad m => Doc -> OD m ()
 addNote i = modify $ \s -> s { stNotes = i : stNotes s }
 
-addParaStyle :: Doc -> State WriterState ()
+addParaStyle :: PandocMonad m => Doc -> OD m ()
 addParaStyle i = modify $ \s -> s { stParaStyles = i : stParaStyles s }
 
-addTextStyle :: Set.Set TextStyle -> (String, Doc) -> State WriterState ()
+addTextStyle :: PandocMonad m => Set.Set TextStyle -> (String, Doc) -> OD m ()
 addTextStyle attrs i = modify $ \s ->
   s { stTextStyles = Map.insert attrs i (stTextStyles s) }
 
-addTextStyleAttr :: TextStyle -> State WriterState ()
+addTextStyleAttr :: PandocMonad m => TextStyle -> OD m ()
 addTextStyleAttr t = modify $ \s ->
   s { stTextStyleAttr = Set.insert t (stTextStyleAttr s) }
 
-increaseIndent :: State WriterState ()
+increaseIndent :: PandocMonad m => OD m ()
 increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
 
-resetIndent :: State WriterState ()
+resetIndent :: PandocMonad m => OD m ()
 resetIndent = modify $ \s -> s { stIndentPara = (stIndentPara s) - 1 }
 
-inTightList :: State WriterState a -> State WriterState a
+inTightList :: PandocMonad m => OD m a -> OD m a
 inTightList  f = modify (\s -> s { stTight = True  }) >> f >>= \r ->
                  modify (\s -> s { stTight = False }) >> return r
 
-setInDefinitionList :: Bool -> State WriterState ()
+setInDefinitionList :: PandocMonad m => Bool -> OD m ()
 setInDefinitionList b = modify $  \s -> s { stInDefinition = b }
 
-setFirstPara :: State WriterState ()
+setFirstPara :: PandocMonad m => OD m ()
 setFirstPara =  modify $  \s -> s { stFirstPara = True }
 
-inParagraphTags :: Doc -> State WriterState Doc
+inParagraphTags :: PandocMonad m => Doc -> OD m Doc
 inParagraphTags d | isEmpty d = return empty
 inParagraphTags d = do
   b <- gets stFirstPara
@@ -137,7 +140,7 @@ inParagraphTagsWithStyle sty = inTags False "text:p" [("text:style-name", sty)]
 inSpanTags :: String -> Doc -> Doc
 inSpanTags s = inTags False "text:span" [("text:style-name",s)]
 
-withTextStyle :: TextStyle -> State WriterState a -> State WriterState a
+withTextStyle :: PandocMonad m => TextStyle -> OD m a -> OD m a
 withTextStyle s f = do
   oldTextStyleAttr <- gets stTextStyleAttr
   addTextStyleAttr s
@@ -145,7 +148,7 @@ withTextStyle s f = do
   modify $ \st -> st{ stTextStyleAttr = oldTextStyleAttr }
   return res
 
-inTextStyle :: Doc -> State WriterState Doc
+inTextStyle :: PandocMonad m => Doc -> OD m Doc
 inTextStyle d = do
   at <- gets stTextStyleAttr
   if Set.null at
@@ -166,7 +169,7 @@ inTextStyle d = do
               return $ inTags False
                   "text:span" [("text:style-name",styleName)] d
 
-inHeaderTags :: Int -> Doc -> State WriterState Doc
+inHeaderTags :: PandocMonad m => Int -> Doc -> OD m Doc
 inHeaderTags i d =
   return $ inTags False "text:h" [ ("text:style-name", "Heading_20_" ++ show i)
                                  , ("text:outline-level", show i)] d
@@ -189,13 +192,13 @@ handleSpaces s
         rm        [] = empty
 
 -- | Convert Pandoc document to string in OpenDocument format.
-writeOpenDocument :: WriterOptions -> Pandoc -> String
-writeOpenDocument opts (Pandoc meta blocks) =
+writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeOpenDocument opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-      render' = render colwidth
-      ((body, metadata),s) = flip runState
+  let render' = render colwidth
+  ((body, metadata),s) <- flip runStateT
         defaultWriterState $ do
            m <- metaToJSON opts
                   (fmap (render colwidth) . blocksToOpenDocument opts)
@@ -203,38 +206,41 @@ writeOpenDocument opts (Pandoc meta blocks) =
                   meta
            b <- render' `fmap` blocksToOpenDocument opts blocks
            return (b, m)
-      styles   = stTableStyles s ++ stParaStyles s ++
+  let styles   = stTableStyles s ++ stParaStyles s ++
                      map snd (reverse $ sortBy (comparing fst) $
                         Map.elems (stTextStyles s))
       listStyle (n,l) = inTags True "text:list-style"
                           [("style:name", "L" ++ show n)] (vcat l)
-      listStyles  = map listStyle (stListStyles s)
-      automaticStyles = vcat $ reverse $ styles ++ listStyles
-      context = defField "body" body
+  let listStyles  = map listStyle (stListStyles s)
+  let automaticStyles = vcat $ reverse $ styles ++ listStyles
+  let context = defField "body" body
               $ defField "automatic-styles" (render' automaticStyles)
               $ metadata
-  in  case writerTemplate opts of
-           Nothing  -> body
-           Just tpl -> renderTemplate' tpl context
+  return $ case writerTemplate opts of
+                Nothing  -> body
+                Just tpl -> renderTemplate' tpl context
 
-withParagraphStyle :: WriterOptions -> String -> [Block] -> State WriterState Doc
+withParagraphStyle :: PandocMonad m
+                   => WriterOptions -> String -> [Block] -> OD m Doc
 withParagraphStyle  o s (b:bs)
     | Para l <- b = go =<< inParagraphTagsWithStyle s <$> inlinesToOpenDocument o l
     | otherwise   = go =<< blockToOpenDocument o b
     where go i = (<>) i <$>  withParagraphStyle o s bs
 withParagraphStyle _ _ [] = return empty
 
-inPreformattedTags :: String -> State WriterState Doc
+inPreformattedTags :: PandocMonad m => String -> OD m Doc
 inPreformattedTags s = do
   n <- paraStyle [("style:parent-style-name","Preformatted_20_Text")]
   return . inParagraphTagsWithStyle ("P" ++ show n) . handleSpaces $ s
 
-orderedListToOpenDocument :: WriterOptions -> Int -> [[Block]] -> State WriterState Doc
+orderedListToOpenDocument :: PandocMonad m
+                          => WriterOptions -> Int -> [[Block]] -> OD m Doc
 orderedListToOpenDocument o pn bs =
     vcat . map (inTagsIndented "text:list-item") <$>
     mapM (orderedItemToOpenDocument o pn . map plainToPara) bs
 
-orderedItemToOpenDocument :: WriterOptions -> Int -> [Block] -> State WriterState Doc
+orderedItemToOpenDocument :: PandocMonad m
+                          => WriterOptions -> Int -> [Block] -> OD m Doc
 orderedItemToOpenDocument  o n (b:bs)
     | OrderedList a l <- b = newLevel a l
     | Para          l <- b = go =<< inParagraphTagsWithStyle ("P" ++ show n) <$> inlinesToOpenDocument o l
@@ -254,7 +260,8 @@ isTightList (b:_)
     | Plain {} : _ <- b = True
     | otherwise         = False
 
-newOrderedListStyle :: Bool -> ListAttributes -> State WriterState (Int,Int)
+newOrderedListStyle :: PandocMonad m
+                    => Bool -> ListAttributes -> OD m (Int,Int)
 newOrderedListStyle b a = do
   ln <- (+) 1 . length  <$> gets stListStyles
   let nbs = orderedListLevelStyle a (ln, [])
@@ -262,7 +269,8 @@ newOrderedListStyle b a = do
   modify $ \s -> s { stListStyles = nbs : stListStyles s }
   return (ln,pn)
 
-bulletListToOpenDocument :: WriterOptions -> [[Block]] -> State WriterState Doc
+bulletListToOpenDocument :: PandocMonad m
+                         => WriterOptions -> [[Block]] -> OD m Doc
 bulletListToOpenDocument o b = do
   ln <- (+) 1 . length <$> gets stListStyles
   (pn,ns) <- if isTightList b then inTightList (bulletListStyle ln) else bulletListStyle ln
@@ -270,11 +278,13 @@ bulletListToOpenDocument o b = do
   is <- listItemsToOpenDocument ("P" ++ show pn) o b
   return $ inTags True "text:list" [("text:style-name", "L" ++ show ln)] is
 
-listItemsToOpenDocument :: String -> WriterOptions -> [[Block]] -> State WriterState Doc
+listItemsToOpenDocument :: PandocMonad m
+                        => String -> WriterOptions -> [[Block]] -> OD m Doc
 listItemsToOpenDocument s o is =
     vcat . map (inTagsIndented "text:list-item") <$> mapM (withParagraphStyle o s . map plainToPara) is
 
-deflistItemToOpenDocument :: WriterOptions -> ([Inline],[[Block]]) -> State WriterState Doc
+deflistItemToOpenDocument :: PandocMonad m
+                          => WriterOptions -> ([Inline],[[Block]]) -> OD m Doc
 deflistItemToOpenDocument o (t,d) = do
   let ts = if isTightList d
            then "Definition_20_Term_20_Tight"       else "Definition_20_Term"
@@ -284,7 +294,8 @@ deflistItemToOpenDocument o (t,d) = do
   d' <- liftM vcat $ mapM (withParagraphStyle o ds . (map plainToPara)) d
   return $ t' $$ d'
 
-inBlockQuote :: WriterOptions -> Int -> [Block] -> State WriterState Doc
+inBlockQuote :: PandocMonad m
+             => WriterOptions -> Int -> [Block] -> OD m Doc
 inBlockQuote  o i (b:bs)
     | BlockQuote l <- b = do increaseIndent
                              ni <- paraStyle
@@ -296,11 +307,11 @@ inBlockQuote  o i (b:bs)
 inBlockQuote     _ _ [] =  resetIndent >> return empty
 
 -- | Convert a list of Pandoc blocks to OpenDocument.
-blocksToOpenDocument :: WriterOptions -> [Block] -> State WriterState Doc
+blocksToOpenDocument :: PandocMonad m => WriterOptions -> [Block] -> OD m Doc
 blocksToOpenDocument o b = vcat <$> mapM (blockToOpenDocument o) b
 
 -- | Convert a Pandoc block element to OpenDocument.
-blockToOpenDocument :: WriterOptions -> Block -> State WriterState Doc
+blockToOpenDocument :: PandocMonad m => WriterOptions -> Block -> OD m Doc
 blockToOpenDocument o bs
     | Plain          b <- bs = if null b
                                   then return empty
@@ -370,17 +381,23 @@ blockToOpenDocument o bs
         captionDoc <- withParagraphStyle o "FigureCaption" [Para caption]
         return $ imageDoc $$ captionDoc
 
-colHeadsToOpenDocument :: WriterOptions -> String -> [String] -> [[Block]] -> State WriterState Doc
+colHeadsToOpenDocument :: PandocMonad m
+                       => WriterOptions -> String -> [String] -> [[Block]]
+                       -> OD m Doc
 colHeadsToOpenDocument o tn ns hs =
     inTagsIndented "table:table-header-rows" . inTagsIndented "table:table-row" . vcat <$>
     mapM (tableItemToOpenDocument o tn) (zip ns hs)
 
-tableRowToOpenDocument :: WriterOptions -> String -> [String] -> [[Block]] -> State WriterState Doc
+tableRowToOpenDocument :: PandocMonad m
+                       => WriterOptions -> String -> [String] -> [[Block]]
+                       -> OD m Doc
 tableRowToOpenDocument o tn ns cs =
     inTagsIndented "table:table-row" . vcat <$>
     mapM (tableItemToOpenDocument o tn) (zip ns cs)
 
-tableItemToOpenDocument :: WriterOptions -> String -> (String,[Block])-> State WriterState Doc
+tableItemToOpenDocument :: PandocMonad m
+                        => WriterOptions -> String -> (String,[Block])
+                        -> OD m Doc
 tableItemToOpenDocument o tn (n,i) =
   let a = [ ("table:style-name" , tn ++ ".A1" )
           , ("office:value-type", "string"     )
@@ -389,10 +406,10 @@ tableItemToOpenDocument o tn (n,i) =
       withParagraphStyle o n (map plainToPara i)
 
 -- | Convert a list of inline elements to OpenDocument.
-inlinesToOpenDocument :: WriterOptions -> [Inline] -> State WriterState Doc
+inlinesToOpenDocument :: PandocMonad m => WriterOptions -> [Inline] -> OD m Doc
 inlinesToOpenDocument o l = hcat <$> toChunks o l
 
-toChunks :: WriterOptions -> [Inline] -> State WriterState [Doc]
+toChunks :: PandocMonad m => WriterOptions -> [Inline] -> OD m [Doc]
 toChunks _ [] = return []
 toChunks o (x : xs)
   | isChunkable x = do
@@ -413,7 +430,7 @@ isChunkable SoftBreak = True
 isChunkable _ = False
 
 -- | Convert an inline element to OpenDocument.
-inlineToOpenDocument :: WriterOptions -> Inline -> State WriterState Doc
+inlineToOpenDocument :: PandocMonad m => WriterOptions -> Inline -> OD m Doc
 inlineToOpenDocument o ils
   = case ils of
     Space         -> return space
@@ -432,7 +449,8 @@ inlineToOpenDocument o ils
     SmallCaps   l -> withTextStyle SmallC $ inlinesToOpenDocument o l
     Quoted    t l -> inQuotes t <$> inlinesToOpenDocument o l
     Code      _ s -> inlinedCode $ preformatted s
-    Math      t s -> inlinesToOpenDocument o (texMathToInlines t s)
+    Math      t s -> lift (texMathToInlines t s) >>=
+                         inlinesToOpenDocument o
     Cite      _ l -> inlinesToOpenDocument o l
     RawInline f s -> if f == Format "opendocument"
                        then return $ text s
@@ -473,18 +491,18 @@ inlineToOpenDocument o ils
         addNote nn
         return nn
 
-bulletListStyle :: Int -> State WriterState (Int,(Int,[Doc]))
-bulletListStyle l =
-    let doStyles  i = inTags True "text:list-level-style-bullet"
-                      [ ("text:level"      , show (i + 1)       )
-                      , ("text:style-name" , "Bullet_20_Symbols")
-                      , ("style:num-suffix", "."                )
-                      , ("text:bullet-char", [bulletList !! i]  )
-                      ] (listLevelStyle (1 + i))
-        bulletList  = map chr $ cycle [8226,8227,8259]
-        listElStyle = map doStyles [0..9]
-    in  do pn <- paraListStyle l
-           return (pn, (l, listElStyle))
+bulletListStyle :: PandocMonad m => Int -> OD m (Int,(Int,[Doc]))
+bulletListStyle l = do
+  let doStyles  i = inTags True "text:list-level-style-bullet"
+                    [ ("text:level"      , show (i + 1)       )
+                    , ("text:style-name" , "Bullet_20_Symbols")
+                    , ("style:num-suffix", "."                )
+                    , ("text:bullet-char", [bulletList !! i]  )
+                    ] (listLevelStyle (1 + i))
+      bulletList  = map chr $ cycle [8226,8227,8259]
+      listElStyle = map doStyles [0..9]
+  pn <- paraListStyle l
+  return (pn, (l, listElStyle))
 
 orderedListLevelStyle :: ListAttributes -> (Int, [Doc]) -> (Int,[Doc])
 orderedListLevelStyle (s,n, d) (l,ls) =
@@ -538,10 +556,10 @@ tableStyle num wcs =
         columnStyles   = map colStyle wcs
     in  table $$ vcat columnStyles $$ cellStyle
 
-paraStyle :: [(String,String)] -> State WriterState Int
+paraStyle :: PandocMonad m => [(String,String)] -> OD m Int
 paraStyle attrs = do
   pn <- (+)   1 . length       <$> gets stParaStyles
-  i  <- (*) 0.5 . fromIntegral <$> gets stIndentPara :: State WriterState Double
+  i  <- (*) (0.5 :: Double) . fromIntegral <$> gets stIndentPara
   b  <- gets stInDefinition
   t  <- gets stTight
   let styleAttr = [ ("style:name"             , "P" ++ show pn)
@@ -562,7 +580,7 @@ paraStyle attrs = do
   addParaStyle $ inTags True "style:style" (styleAttr ++ attrs) paraProps
   return pn
 
-paraListStyle :: Int -> State WriterState Int
+paraListStyle :: PandocMonad m => Int -> OD m Int
 paraListStyle l = paraStyle
   [("style:parent-style-name","Text_20_body")
   ,("style:list-style-name", "L" ++ show l )]

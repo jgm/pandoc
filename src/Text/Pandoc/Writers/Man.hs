@@ -34,24 +34,27 @@ import Text.Pandoc.Templates
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
-import Text.Pandoc.Readers.TeXMath
+import Text.Pandoc.Writers.Math
 import Text.Printf ( printf )
 import Data.List ( stripPrefix, intersperse, intercalate )
 import Data.Maybe (fromMaybe)
 import Text.Pandoc.Pretty
 import Text.Pandoc.Builder (deleteMeta)
 import Control.Monad.State
+import Text.Pandoc.Error
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad)
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes  :: Notes
                                , stHasTables :: Bool }
 
 -- | Convert Pandoc to Man.
-writeMan :: WriterOptions -> Pandoc -> String
-writeMan opts document = evalState (pandocToMan opts document) (WriterState [] False)
+writeMan :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeMan opts document = evalStateT (pandocToMan opts document) (WriterState [] False)
 
 -- | Return groff man representation of document.
-pandocToMan :: WriterOptions -> Pandoc -> State WriterState String
+pandocToMan :: PandocMonad m => WriterOptions -> Pandoc -> StateT WriterState m String
 pandocToMan opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
@@ -93,7 +96,7 @@ pandocToMan opts (Pandoc meta blocks) = do
        Just tpl -> return $ renderTemplate' tpl context
 
 -- | Return man representation of notes.
-notesToMan :: WriterOptions -> [[Block]] -> State WriterState Doc
+notesToMan :: PandocMonad m => WriterOptions -> [[Block]] -> StateT WriterState m Doc
 notesToMan opts notes =
   if null notes
      then return empty
@@ -101,7 +104,7 @@ notesToMan opts notes =
           return . (text ".SH NOTES" $$) . vcat
 
 -- | Return man representation of a note.
-noteToMan :: WriterOptions -> Int -> [Block] -> State WriterState Doc
+noteToMan :: PandocMonad m => WriterOptions -> Int -> [Block] -> StateT WriterState m Doc
 noteToMan opts num note = do
   contents <- blockListToMan opts note
   let marker = cr <> text ".SS " <> brackets (text (show num))
@@ -160,9 +163,10 @@ splitSentences xs =
   in  if null rest then [sent] else sent : splitSentences rest
 
 -- | Convert Pandoc block element to man.
-blockToMan :: WriterOptions -- ^ Options
-                -> Block         -- ^ Block element
-                -> State WriterState Doc
+blockToMan :: PandocMonad m
+           => WriterOptions -- ^ Options
+           -> Block         -- ^ Block element
+           -> StateT WriterState m Doc
 blockToMan _ Null = return empty
 blockToMan opts (Div _ bs) = blockListToMan opts bs
 blockToMan opts (Plain inlines) =
@@ -236,7 +240,7 @@ blockToMan opts (DefinitionList items) = do
   return (vcat contents)
 
 -- | Convert bullet list item (list of blocks) to man.
-bulletListItemToMan :: WriterOptions -> [Block] -> State WriterState Doc
+bulletListItemToMan :: PandocMonad m => WriterOptions -> [Block] -> StateT WriterState m Doc
 bulletListItemToMan _ [] = return empty
 bulletListItemToMan opts ((Para first):rest) =
   bulletListItemToMan opts ((Plain first):rest)
@@ -254,11 +258,12 @@ bulletListItemToMan opts (first:rest) = do
   return $ text "\\[bu] .RS 2" $$ first' $$ rest' $$ text ".RE"
 
 -- | Convert ordered list item (a list of blocks) to man.
-orderedListItemToMan :: WriterOptions -- ^ options
-                          -> String   -- ^ order marker for list item
-                          -> Int      -- ^ number of spaces to indent
-                          -> [Block]  -- ^ list item (list of blocks)
-                          -> State WriterState Doc
+orderedListItemToMan :: PandocMonad m
+                     => WriterOptions -- ^ options
+                     -> String   -- ^ order marker for list item
+                     -> Int      -- ^ number of spaces to indent
+                     -> [Block]  -- ^ list item (list of blocks)
+                     -> StateT WriterState m Doc
 orderedListItemToMan _ _ _ [] = return empty
 orderedListItemToMan opts num indent ((Para first):rest) =
   orderedListItemToMan opts num indent ((Plain first):rest)
@@ -273,18 +278,19 @@ orderedListItemToMan opts num indent (first:rest) = do
   return $ first'' $$ rest''
 
 -- | Convert definition list item (label, list of blocks) to man.
-definitionListItemToMan :: WriterOptions
-                             -> ([Inline],[[Block]])
-                             -> State WriterState Doc
+definitionListItemToMan :: PandocMonad m
+                        => WriterOptions
+                        -> ([Inline],[[Block]])
+                        -> StateT WriterState m Doc
 definitionListItemToMan opts (label, defs) = do
   labelText <- inlineListToMan opts label
   contents <- if null defs
                  then return empty
                  else liftM vcat $ forM defs $ \blocks -> do
-                        let (first, rest) = case blocks of
-                              ((Para x):y) -> (Plain x,y)
-                              (x:y)        -> (x,y)
-                              []           -> error "blocks is null"
+                        (first, rest) <- case blocks of
+                          ((Para x):y) -> return (Plain x,y)
+                          (x:y)        -> return (x,y)
+                          []           -> throwError $ PandocSomeError "blocks is null"
                         rest' <- liftM vcat $
                                   mapM (\item -> blockToMan opts item) rest
                         first' <- blockToMan opts first
@@ -292,18 +298,19 @@ definitionListItemToMan opts (label, defs) = do
   return $ text ".TP" $$ nowrap (text ".B " <> labelText) $$ contents
 
 -- | Convert list of Pandoc block elements to man.
-blockListToMan :: WriterOptions -- ^ Options
-                    -> [Block]       -- ^ List of block elements
-                    -> State WriterState Doc
+blockListToMan :: PandocMonad m
+               => WriterOptions -- ^ Options
+               -> [Block]       -- ^ List of block elements
+               -> StateT WriterState m Doc
 blockListToMan opts blocks =
   mapM (blockToMan opts) blocks >>= (return . vcat)
 
 -- | Convert list of Pandoc inline elements to man.
-inlineListToMan :: WriterOptions -> [Inline] -> State WriterState Doc
+inlineListToMan :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m Doc
 inlineListToMan opts lst = mapM (inlineToMan opts) lst >>= (return . hcat)
 
 -- | Convert Pandoc inline element to man.
-inlineToMan :: WriterOptions -> Inline -> State WriterState Doc
+inlineToMan :: PandocMonad m => WriterOptions -> Inline -> StateT WriterState m Doc
 inlineToMan opts (Span _ ils) = inlineListToMan opts ils
 inlineToMan opts (Emph lst) = do
   contents <- inlineListToMan opts lst
@@ -335,14 +342,14 @@ inlineToMan _ (Str str@('.':_)) =
   return $ afterBreak "\\&" <> text (escapeString str)
 inlineToMan _ (Str str) = return $ text $ escapeString str
 inlineToMan opts (Math InlineMath str) =
-  inlineListToMan opts $ texMathToInlines InlineMath str
+  lift (texMathToInlines InlineMath str) >>= inlineListToMan opts
 inlineToMan opts (Math DisplayMath str) = do
-  contents <- inlineListToMan opts $ texMathToInlines DisplayMath str
+  contents <- lift (texMathToInlines DisplayMath str) >>= inlineListToMan opts
   return $ cr <> text ".RS" $$ contents $$ text ".RE"
 inlineToMan _ (RawInline f str)
   | f == Format "man" = return $ text str
   | otherwise         = return empty
-inlineToMan _ (LineBreak) = return $
+inlineToMan _ LineBreak = return $
   cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
 inlineToMan _ SoftBreak = return space
 inlineToMan _ Space = return space

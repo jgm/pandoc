@@ -1,19 +1,17 @@
 module Tests.Readers.Docx (tests) where
 
-import Text.Pandoc.Options
-import Text.Pandoc.Readers.Native
-import Text.Pandoc.Definition
+import Text.Pandoc
 import Tests.Helpers
 import Test.Framework
 import Test.HUnit (assertBool)
 import Test.Framework.Providers.HUnit
 import qualified Data.ByteString.Lazy as B
-import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Codec.Archive.Zip
-import Text.Pandoc.Error
+import Text.Pandoc.Class (runIOorExplode)
+import qualified Text.Pandoc.Class as P
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure
@@ -25,8 +23,11 @@ data NoNormPandoc = NoNormPandoc {unNoNorm :: Pandoc}
 noNorm :: Pandoc -> NoNormPandoc
 noNorm = NoNormPandoc
 
+defopts :: ReaderOptions
+defopts = def{ readerExtensions = getDefaultExtensions "docx" }
+
 instance ToString NoNormPandoc where
-  toString d = writeNative def{ writerTemplate = s } $ toPandoc d
+  toString d = purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
                   NoNormPandoc (Pandoc (Meta m) _)
                     | M.null m  -> Nothing
@@ -42,8 +43,9 @@ compareOutput :: ReaderOptions
 compareOutput opts docxFile nativeFile = do
   df <- B.readFile docxFile
   nf <- Prelude.readFile nativeFile
-  let (p, _) = handleError $ readDocx opts df
-  return $ (noNorm p, noNorm (handleError $ readNative nf))
+  p <- runIOorExplode $ readDocx opts df
+  df' <- runIOorExplode $ readNative def nf
+  return $ (noNorm p, noNorm df')
 
 testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO Test
 testCompareWithOptsIO opts name docxFile nativeFile = do
@@ -55,12 +57,13 @@ testCompareWithOpts opts name docxFile nativeFile =
   buildTest $ testCompareWithOptsIO opts name docxFile nativeFile
 
 testCompare :: String -> FilePath -> FilePath -> Test
-testCompare = testCompareWithOpts def
+testCompare = testCompareWithOpts defopts
 
 testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> IO Test
 testForWarningsWithOptsIO opts name docxFile expected = do
   df <- B.readFile docxFile
-  let (_, _, warns) = handleError $ readDocxWithWarnings opts df
+  logs <-  runIOorExplode (readDocx opts df >> P.getLog)
+  let warns = [s | (WARNING, s) <- logs]
   return $ test id name (unlines warns, unlines expected)
 
 testForWarningsWithOpts :: ReaderOptions -> String -> FilePath -> [String] -> Test
@@ -68,7 +71,7 @@ testForWarningsWithOpts opts name docxFile expected =
   buildTest $ testForWarningsWithOptsIO opts name docxFile expected
 
 -- testForWarnings :: String -> FilePath -> [String] -> Test
--- testForWarnings = testForWarningsWithOpts def
+-- testForWarnings = testForWarningsWithOpts defopts
 
 getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
 getMedia archivePath mediaPath = do
@@ -93,7 +96,7 @@ compareMediaPathIO mediaPath mediaBag docxPath = do
 compareMediaBagIO :: FilePath -> IO Bool
 compareMediaBagIO docxFile = do
     df <- B.readFile docxFile
-    let (_, mb) = handleError $ readDocx def df
+    mb <- runIOorExplode (readDocx defopts df >> P.getMediaBag)
     bools <- mapM
              (\(fp, _, _) -> compareMediaPathIO fp mb docxFile)
              (mediaDirectory mb)

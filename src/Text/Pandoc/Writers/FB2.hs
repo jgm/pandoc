@@ -27,27 +27,28 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
-import Control.Monad.State (StateT, evalStateT, get, modify)
-import Control.Monad.State (liftM, liftM2, liftIO)
+import Control.Monad.State (StateT, evalStateT, get, modify, lift)
+import Control.Monad.State (liftM)
 import Data.ByteString.Base64 (encode)
 import Data.Char (toLower, isSpace, isAscii, isControl)
 import Data.List (intersperse, intercalate, isPrefixOf, stripPrefix)
 import Data.Either (lefts, rights)
-import Network.Browser (browse, request, setAllowRedirects, setOutHandler)
-import Network.HTTP (catchIO_, getRequest, getHeaders, getResponseBody)
-import Network.HTTP (lookupHeader, HeaderName(..), urlEncode)
-import Network.URI (isURI, unEscapeString)
-import System.FilePath (takeExtension)
+import Network.HTTP (urlEncode)
+import Network.URI (isURI)
 import Text.XML.Light
-import qualified Control.Exception as E
-import qualified Data.ByteString as B
 import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
+import qualified Data.ByteString.Char8 as B8
+import Control.Monad.Except (throwError, catchError)
+
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
 import Text.Pandoc.Shared (orderedListMarkers, isHeaderBlock, capitalize,
                            linesToPara)
+import Text.Pandoc.Error
+import Text.Pandoc.Class (PandocMonad)
+import qualified Text.Pandoc.Class as P
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
@@ -60,7 +61,7 @@ data FbRenderState = FbRenderState
     } deriving (Show)
 
 -- | FictionBook building monad.
-type FBM = StateT FbRenderState IO
+type FBM m = StateT FbRenderState m
 
 newFB :: FbRenderState
 newFB = FbRenderState { footnotes = [], imagesToFetch = []
@@ -73,17 +74,24 @@ instance Show ImageMode where
     show InlineImage = "inlineImageType"
 
 -- | Produce an FB2 document from a 'Pandoc' document.
-writeFB2 :: WriterOptions    -- ^ conversion options
+writeFB2 :: PandocMonad m
+         => WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
-         -> IO String        -- ^ FictionBook2 document (not encoded yet)
-writeFB2 opts (Pandoc meta blocks) = flip evalStateT newFB $ do
+         -> m String        -- ^ FictionBook2 document (not encoded yet)
+writeFB2 opts doc = flip evalStateT newFB $ pandocToFB2 opts doc
+
+pandocToFB2 :: PandocMonad m
+            => WriterOptions
+            -> Pandoc
+            -> FBM m String
+pandocToFB2 opts (Pandoc meta blocks) = do
      modify (\s -> s { writerOptions = opts })
      desc <- description meta
      fp <- frontpage meta
      secs <- renderSections 1 blocks
      let body = el "body" $ fp ++ secs
      notes <- renderFootnotes
-     (imgs,missing) <- liftM imagesToFetch get >>= \s -> liftIO (fetchImages s)
+     (imgs,missing) <- liftM imagesToFetch get >>= \s -> lift (fetchImages s)
      let body' = replaceImagesWithAlt missing body
      let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body'] ++ notes ++ imgs)
      return $ xml_head ++ (showContent fb2_xml) ++ "\n"
@@ -94,62 +102,67 @@ writeFB2 opts (Pandoc meta blocks) = flip evalStateT newFB $ do
           xlink = "http://www.w3.org/1999/xlink"
       in  [ uattr "xmlns" xmlns
           , attr ("xmlns", "l") xlink ]
-  --
-  frontpage :: Meta -> FBM [Content]
-  frontpage meta' = do
-      t <- cMapM toXml . docTitle $ meta'
-      return $
-        [ el "title" (el "p" t)
-        , el "annotation" (map (el "p" . cMap plain)
-                           (docAuthors meta' ++ [docDate meta']))
-        ]
-  description :: Meta -> FBM Content
-  description meta' = do
-      bt <- booktitle meta'
-      let as = authors meta'
-      dd <- docdate meta'
-      return $ el "description"
-         [ el "title-info" (bt ++ as ++ dd)
-         , el "document-info" [ el "program-used" "pandoc" ] -- FIXME: +version
-         ]
-  booktitle :: Meta -> FBM [Content]
-  booktitle meta' = do
-      t <- cMapM toXml . docTitle $ meta'
-      return $ if null t
-               then []
-               else [ el "book-title" t ]
-  authors :: Meta -> [Content]
-  authors meta' = cMap author (docAuthors meta')
-  author :: [Inline] -> [Content]
-  author ss =
-      let ws = words . cMap plain $ ss
-          email = (el "email") `fmap` (take 1 $ filter ('@' `elem`) ws)
-          ws' = filter ('@' `notElem`) ws
-          names = case ws' of
-                    (nickname:[]) -> [ el "nickname" nickname ]
-                    (fname:lname:[]) -> [ el "first-name" fname
-                                       , el "last-name" lname ]
-                    (fname:rest) -> [ el "first-name" fname
-                                   , el "middle-name" (concat . init $ rest)
-                                   , el "last-name" (last rest) ]
-                    ([]) -> []
-      in  list $ el "author" (names ++ email)
-  docdate :: Meta -> FBM [Content]
-  docdate meta' = do
-      let ss = docDate meta'
-      d <- cMapM toXml ss
-      return $ if null d
-               then []
-               else [el "date" d]
+
+frontpage :: PandocMonad m => Meta -> FBM m [Content]
+frontpage meta' = do
+  t <- cMapM toXml . docTitle $ meta'
+  return $
+    [ el "title" (el "p" t)
+    , el "annotation" (map (el "p" . cMap plain)
+                       (docAuthors meta' ++ [docDate meta']))
+    ]
+
+description :: PandocMonad m => Meta -> FBM m Content
+description meta' = do
+  bt <- booktitle meta'
+  let as = authors meta'
+  dd <- docdate meta'
+  return $ el "description"
+    [ el "title-info" (bt ++ as ++ dd)
+    , el "document-info" [ el "program-used" "pandoc" ] -- FIXME: +version
+    ]
+
+booktitle :: PandocMonad m => Meta -> FBM m [Content]
+booktitle meta' = do
+  t <- cMapM toXml . docTitle $ meta'
+  return $ if null t
+           then []
+           else [ el "book-title" t ]
+
+authors :: Meta -> [Content]
+authors meta' = cMap author (docAuthors meta')
+
+author :: [Inline] -> [Content]
+author ss =
+  let ws = words . cMap plain $ ss
+      email = (el "email") `fmap` (take 1 $ filter ('@' `elem`) ws)
+      ws' = filter ('@' `notElem`) ws
+      names = case ws' of
+                (nickname:[]) -> [ el "nickname" nickname ]
+                (fname:lname:[]) -> [ el "first-name" fname
+                                    , el "last-name" lname ]
+                (fname:rest) -> [ el "first-name" fname
+                                , el "middle-name" (concat . init $ rest)
+                                , el "last-name" (last rest) ]
+                ([]) -> []
+  in  list $ el "author" (names ++ email)
+
+docdate :: PandocMonad m => Meta -> FBM m [Content]
+docdate meta' = do
+  let ss = docDate meta'
+  d <- cMapM toXml ss
+  return $ if null d
+           then []
+           else [el "date" d]
 
 -- | Divide the stream of blocks into sections and convert to XML
 -- representation.
-renderSections :: Int -> [Block] -> FBM [Content]
+renderSections :: PandocMonad m => Int -> [Block] -> FBM m [Content]
 renderSections level blocks = do
     let secs = splitSections level blocks
     mapM (renderSection level) secs
 
-renderSection :: Int -> ([Inline], [Block]) -> FBM Content
+renderSection :: PandocMonad m => Int -> ([Inline], [Block]) -> FBM m Content
 renderSection level (ttl, body) = do
     title <- if null ttl
             then return []
@@ -196,7 +209,7 @@ splitSections level blocks = reverse $ revSplit (reverse blocks)
   sameLevel _ = False
 
 -- | Make another FictionBook body with footnotes.
-renderFootnotes :: FBM [Content]
+renderFootnotes :: PandocMonad m => FBM m [Content]
 renderFootnotes = do
   fns <- footnotes `liftM` get
   if null fns
@@ -210,14 +223,14 @@ renderFootnotes = do
 
 -- | Fetch images and encode them for the FictionBook XML.
 -- Return image data and a list of hrefs of the missing images.
-fetchImages :: [(String,String)] -> IO ([Content],[String])
+fetchImages :: PandocMonad m => [(String,String)] -> m ([Content],[String])
 fetchImages links = do
     imgs <- mapM (uncurry fetchImage) links
     return $ (rights imgs, lefts imgs)
 
 -- | Fetch image data from disk or from network and make a <binary> XML section.
 -- Return either (Left hrefOfMissingImage) or (Right xmlContent).
-fetchImage :: String -> String -> IO (Either String Content)
+fetchImage :: PandocMonad m => String -> String -> m (Either String Content)
 fetchImage href link = do
   mbimg <-
       case (isURI link, readDataURI link) of
@@ -227,16 +240,19 @@ fetchImage href link = do
               then return (Just (mime',base64))
               else return Nothing
        (True, Just _) -> return Nothing  -- not base64-encoded
-       (True, Nothing) -> fetchURL link
-       (False, _) -> do
-        d <- nothingOnError $ B.readFile (unEscapeString link)
-        let t = case map toLower (takeExtension link) of
-                  ".png" -> Just "image/png"
-                  ".jpg" -> Just "image/jpeg"
-                  ".jpeg" -> Just "image/jpeg"
-                  ".jpe" -> Just "image/jpeg"
-                  _ -> Nothing  -- only PNG and JPEG are supported in FB2
-        return $ liftM2 (,) t (liftM (toStr . encode) d)
+       _               -> do
+         catchError (do (bs, mbmime) <- P.fetchItem Nothing link
+                        case mbmime of
+                             Nothing -> do
+                               P.warning ("Could not determine mime type for "
+                                         ++ link)
+                               return Nothing
+                             Just mime -> return $ Just (mime,
+                                                      B8.unpack $ encode bs))
+                    (\e ->
+                       do P.warning ("Could not fetch " ++ link ++
+                                      ":\n" ++ show e)
+                          return Nothing)
   case mbimg of
     Just (imgtype, imgdata) -> do
         return . Right $ el "binary"
@@ -244,11 +260,7 @@ fetchImage href link = do
                      , uattr "content-type" imgtype]
                    , txt imgdata )
     _ -> return (Left ('#':href))
-  where
-   nothingOnError :: (IO B.ByteString) -> (IO (Maybe B.ByteString))
-   nothingOnError action = liftM Just action `E.catch` omnihandler
-   omnihandler :: E.SomeException -> IO (Maybe B.ByteString)
-   omnihandler _ = return Nothing
+
 
 -- | Extract mime type and encoded data from the Data URI.
 readDataURI :: String -- ^ URI
@@ -286,24 +298,6 @@ isMimeType s =
    valid c = isAscii c && not (isControl c) && not (isSpace c) &&
              c `notElem` "()<>@,;:\\\"/[]?="
 
--- | Fetch URL, return its Content-Type and binary data on success.
-fetchURL :: String -> IO (Maybe (String, String))
-fetchURL url = do
-  flip catchIO_ (return Nothing) $ do
-     r <- browse $ do
-           setOutHandler (const (return ()))
-           setAllowRedirects True
-           liftM snd . request . getRequest $ url
-     let content_type = lookupHeader HdrContentType (getHeaders r)
-     content <- liftM (Just . toStr . encode . toBS) . getResponseBody $ Right r
-     return $ liftM2 (,) content_type content
-
-toBS :: String -> B.ByteString
-toBS = B.pack . map (toEnum . fromEnum)
-
-toStr :: B.ByteString -> String
-toStr = map (toEnum . fromEnum) . B.unpack
-
 footnoteID :: Int -> String
 footnoteID i = "n" ++ (show i)
 
@@ -311,7 +305,7 @@ linkID :: Int -> String
 linkID i = "l" ++ (show i)
 
 -- | Convert a block-level Pandoc's element to FictionBook XML representation.
-blockToXml :: Block -> FBM [Content]
+blockToXml :: PandocMonad m => Block -> FBM m [Content]
 blockToXml (Plain ss) = cMapM toXml ss  -- FIXME: can lead to malformed FB2
 blockToXml (Para [Math DisplayMath formula]) = insertMath NormalImage formula
 -- title beginning with fig: indicates that the image is a figure
@@ -364,7 +358,7 @@ blockToXml (DefinitionList defs) =
       needsBreak (Plain ins) = LineBreak `notElem` ins
       needsBreak _ = True
 blockToXml (Header _ _ _) = -- should never happen, see renderSections
-                          error "unexpected header in section text"
+                          throwError $ PandocShouldNeverHappenError "unexpected header in section text"
 blockToXml HorizontalRule = return
                             [ el "empty-line" ()
                             , el "p" (txt (replicate 10 '—'))
@@ -375,11 +369,11 @@ blockToXml (Table caption aligns _ headers rows) = do
     c <- return . el "emphasis" =<< cMapM toXml caption
     return [el "table" (hd : bd), el "p" c]
     where
-      mkrow :: String -> [TableCell] -> [Alignment] -> FBM Content
+      mkrow :: PandocMonad m => String -> [TableCell] -> [Alignment] -> FBM m Content
       mkrow tag cells aligns' =
         (el "tr") `liftM` (mapM (mkcell tag) (zip cells aligns'))
       --
-      mkcell :: String -> (TableCell, Alignment) -> FBM Content
+      mkcell :: PandocMonad m => String -> (TableCell, Alignment) -> FBM m Content
       mkcell tag (cell, align) = do
         cblocks <- cMapM blockToXml cell
         return $ el tag ([align_attr align], cblocks)
@@ -423,7 +417,7 @@ indent = indentBlock
                     in  intercalate [LineBreak] $ map ((Str spacer):) lns
 
 -- | Convert a Pandoc's Inline element to FictionBook XML representation.
-toXml :: Inline -> FBM [Content]
+toXml :: PandocMonad m => Inline -> FBM m [Content]
 toXml (Str s) = return [txt s]
 toXml (Span _ ils) = cMapM toXml ils
 toXml (Emph ss) = list `liftM` wrap "emphasis" ss
@@ -474,7 +468,7 @@ toXml (Note bs) = do
                            , uattr "type" "note" ]
                          , fn_ref )
 
-insertMath :: ImageMode -> String -> FBM [Content]
+insertMath :: PandocMonad m => ImageMode -> String -> FBM m [Content]
 insertMath immode formula = do
   htmlMath <- return . writerHTMLMathMethod . writerOptions =<< get
   case htmlMath of
@@ -485,7 +479,7 @@ insertMath immode formula = do
        insertImage immode img
     _ -> return [el "code" formula]
 
-insertImage :: ImageMode -> Inline -> FBM [Content]
+insertImage :: PandocMonad m => ImageMode -> Inline -> FBM m [Content]
 insertImage immode (Image _ alt (url,ttl)) = do
   images <- imagesToFetch `liftM` get
   let n = 1 + length images
@@ -551,7 +545,7 @@ replaceImagesWithAlt missingHrefs body =
 
 
 -- | Wrap all inlines with an XML tag (given its unqualified name).
-wrap :: String -> [Inline] -> FBM Content
+wrap :: PandocMonad m => String -> [Inline] -> FBM m Content
 wrap tagname inlines = el tagname `liftM` cMapM toXml inlines
 
 -- " Create a singleton list.

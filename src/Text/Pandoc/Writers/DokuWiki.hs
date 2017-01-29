@@ -45,7 +45,7 @@ import Text.Pandoc.Options ( WriterOptions(
                               , writerTemplate
                               , writerWrapText), WrapOption(..) )
 import Text.Pandoc.Shared ( escapeURI, linesToPara, removeFormatting
-                          , camelCaseToHyphenated, trimr, normalize, substitute )
+                          , camelCaseToHyphenated, trimr, substitute )
 import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Templates ( renderTemplate' )
@@ -55,6 +55,7 @@ import Network.URI ( isURI )
 import Control.Monad ( zipWithM )
 import Control.Monad.State ( modify, State, get, evalState )
 import Control.Monad.Reader ( ReaderT, runReaderT, ask, local )
+import Text.Pandoc.Class (PandocMonad)
 
 data WriterState = WriterState {
     stNotes     :: Bool            -- True if there are notes
@@ -77,9 +78,9 @@ instance Default WriterEnvironment where
 type DokuWiki = ReaderT WriterEnvironment (State WriterState)
 
 -- | Convert Pandoc to DokuWiki.
-writeDokuWiki :: WriterOptions -> Pandoc -> String
-writeDokuWiki opts document =
-  runDokuWiki (pandocToDokuWiki opts $ normalize document)
+writeDokuWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeDokuWiki opts document = return $
+  runDokuWiki (pandocToDokuWiki opts document)
 
 runDokuWiki :: DokuWiki a -> a
 runDokuWiki = flip evalState def . flip runReaderT def
@@ -393,9 +394,16 @@ blockListToDokuWiki :: WriterOptions -- ^ Options
                     -> DokuWiki String
 blockListToDokuWiki opts blocks = do
   backSlash <- stBackSlashLB <$> ask
+  let blocks' = consolidateRawBlocks blocks
   if backSlash
-    then (backSlashLineBreaks . vcat) <$> mapM (blockToDokuWiki opts) blocks
-    else vcat <$> mapM (blockToDokuWiki opts) blocks
+    then (backSlashLineBreaks . vcat) <$> mapM (blockToDokuWiki opts) blocks'
+    else vcat <$> mapM (blockToDokuWiki opts) blocks'
+
+consolidateRawBlocks :: [Block] -> [Block]
+consolidateRawBlocks [] = []
+consolidateRawBlocks (RawBlock f1 b1 : RawBlock f2 b2 : xs)
+  | f1 == f2 = consolidateRawBlocks (RawBlock f1 (b1 ++ "\n" ++ b2) : xs)
+consolidateRawBlocks (x:xs) = x : consolidateRawBlocks xs
 
 -- | Convert list of Pandoc inline elements to DokuWiki.
 inlineListToDokuWiki :: WriterOptions -> [Inline] -> DokuWiki String
@@ -465,7 +473,7 @@ inlineToDokuWiki _ (RawInline f str)
   | f == Format "html"     = return $ "<html>" ++ str ++ "</html>"
   | otherwise              = return ""
 
-inlineToDokuWiki _ (LineBreak) = return "\\\\\n"
+inlineToDokuWiki _ LineBreak = return "\\\\\n"
 
 inlineToDokuWiki opts SoftBreak =
   case writerWrapText opts of

@@ -8,8 +8,8 @@ flags:
 packages:
 - '.'
 extra-deps:
-- texmath-0.9
 - doctemplates-0.1.0.2
 - pandoc-types-1.17.0.4
 - skylighting-0.1.1.2
+- texmath-0.9
 resolver: lts-7.14

@@ -3,6 +3,7 @@
 
 module Tests.Helpers ( test
                      , (=?>)
+                     , purely
                      , property
                      , ToString(..)
                      , ToPandoc(..)
@@ -11,11 +12,12 @@ module Tests.Helpers ( test
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (Inlines, Blocks, doc, plain)
+import Text.Pandoc.Class
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2
 import Test.HUnit (assertBool)
-import Text.Pandoc.Shared (normalize, trimr)
+import Text.Pandoc.Shared (trimr)
 import Text.Pandoc.Options
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Test.QuickCheck.Property as QP
@@ -49,6 +51,9 @@ vividize (Second s) = "+ " ++ s
 property :: QP.Testable a => TestName -> a -> Test
 property = testProperty
 
+purely :: (b -> PandocPure a) -> b -> a
+purely f = either (error . show) id . runPure . f
+
 infix 5 =?>
 (=?>) :: a -> b -> (a,b)
 x =?> y = (x, y)
@@ -57,17 +62,17 @@ class ToString a where
   toString :: a -> String
 
 instance ToString Pandoc where
-  toString d = writeNative def{ writerTemplate = s } $ toPandoc d
+  toString d = purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
                   (Pandoc (Meta m) _)
                     | M.null m  -> Nothing
                     | otherwise -> Just "" -- need this to get meta output
 
 instance ToString Blocks where
-  toString = writeNative def . toPandoc
+  toString = purely (writeNative def) . toPandoc
 
 instance ToString Inlines where
-  toString = trimr . writeNative def . toPandoc
+  toString = trimr . purely (writeNative def) . toPandoc
 
 instance ToString String where
   toString = id
@@ -76,10 +81,10 @@ class ToPandoc a where
   toPandoc :: a -> Pandoc
 
 instance ToPandoc Pandoc where
-  toPandoc = normalize
+  toPandoc = id
 
 instance ToPandoc Blocks where
-  toPandoc = normalize . doc
+  toPandoc = doc
 
 instance ToPandoc Inlines where
-  toPandoc = normalize . doc . plain
+  toPandoc = doc . plain

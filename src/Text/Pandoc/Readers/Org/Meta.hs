@@ -41,6 +41,7 @@ import           Text.Pandoc.Readers.Org.Parsing
 
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Blocks, Inlines )
+import           Text.Pandoc.Class ( PandocMonad )
 import           Text.Pandoc.Definition
 
 import           Control.Monad ( mzero, void )
@@ -51,7 +52,7 @@ import           Data.Monoid ( (<>) )
 import           Network.HTTP ( urlEncode )
 
 -- | Returns the current meta, respecting export options.
-metaExport :: OrgParser (F Meta)
+metaExport :: Monad m => OrgParser m (F Meta)
 metaExport = do
   st <- getState
   let settings = orgStateExportSettings st
@@ -68,10 +69,10 @@ removeMeta key meta' =
 -- | Parse and handle a single line containing meta information
 -- The order, in which blocks are tried, makes sure that we're not looking at
 -- the beginning of a block, so we don't need to check for it
-metaLine :: OrgParser Blocks
+metaLine :: PandocMonad m => OrgParser m Blocks
 metaLine = mempty <$ metaLineStart <* (optionLine <|> declarationLine)
 
-declarationLine :: OrgParser ()
+declarationLine :: PandocMonad m => OrgParser m ()
 declarationLine = try $ do
   key   <- map toLower <$> metaKey
   (key', value) <- metaValue key
@@ -79,12 +80,12 @@ declarationLine = try $ do
     let meta' = B.setMeta key' <$> value <*> pure nullMeta
     in st { orgStateMeta = meta' <> orgStateMeta st }
 
-metaKey :: OrgParser String
+metaKey :: Monad m => OrgParser m String
 metaKey = map toLower <$> many1 (noneOf ": \n\r")
                       <*  char ':'
                       <*  skipSpaces
 
-metaValue :: String -> OrgParser (String, (F MetaValue))
+metaValue :: PandocMonad m => String -> OrgParser m (String, (F MetaValue))
 metaValue key =
   let inclKey = "header-includes"
   in case key of
@@ -103,10 +104,10 @@ metaValue key =
                          accumulatingList inclKey (metaExportSnippet "html")
     _                 -> (key,) <$> metaString
 
-metaInlines :: OrgParser (F MetaValue)
+metaInlines :: PandocMonad m => OrgParser m (F MetaValue)
 metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
 
-metaInlinesCommaSeparated :: OrgParser (F MetaValue)
+metaInlinesCommaSeparated :: PandocMonad m => OrgParser m (F MetaValue)
 metaInlinesCommaSeparated = do
   authStrs <- (many1 (noneOf ",\n")) `sepBy1` (char ',')
   newline
@@ -114,21 +115,21 @@ metaInlinesCommaSeparated = do
   let toMetaInlines = MetaInlines . B.toList
   return $ MetaList . map toMetaInlines <$> sequence authors
 
-metaString :: OrgParser (F MetaValue)
+metaString :: Monad m => OrgParser m (F MetaValue)
 metaString = metaModifiedString id
 
-metaModifiedString :: (String -> String) -> OrgParser (F MetaValue)
+metaModifiedString :: Monad m => (String -> String) -> OrgParser m (F MetaValue)
 metaModifiedString f = return . MetaString . f <$> anyLine
 
 -- | Read an format specific meta definition
-metaExportSnippet :: String -> OrgParser (F MetaValue)
+metaExportSnippet :: Monad m => String -> OrgParser m (F MetaValue)
 metaExportSnippet format =
   return . MetaInlines . B.toList . B.rawInline format <$> anyLine
 
 -- | Accumulate the result of the @parser@ in a list under @key@.
-accumulatingList :: String
-                 -> OrgParser (F MetaValue)
-                 -> OrgParser (F MetaValue)
+accumulatingList :: Monad m => String
+                 -> OrgParser m (F MetaValue)
+                 -> OrgParser m (F MetaValue)
 accumulatingList key p = do
   value <- p
   meta' <- orgStateMeta <$> getState
@@ -141,7 +142,7 @@ accumulatingList key p = do
 --
 -- export options
 --
-optionLine :: OrgParser ()
+optionLine :: Monad m => OrgParser m ()
 optionLine = try $ do
   key <- metaKey
   case key of
@@ -152,14 +153,14 @@ optionLine = try $ do
     "typ_todo" -> todoSequence >>= updateState . registerTodoSequence
     _         -> mzero
 
-addLinkFormat :: String
+addLinkFormat :: Monad m => String
               -> (String -> String)
-              -> OrgParser ()
+              -> OrgParser m ()
 addLinkFormat key formatter = updateState $ \s ->
   let fs = orgStateLinkFormatters s
   in s{ orgStateLinkFormatters = M.insert key formatter fs }
 
-parseLinkFormat :: OrgParser ((String, String -> String))
+parseLinkFormat :: Monad m => OrgParser m ((String, String -> String))
 parseLinkFormat = try $ do
   linkType <- (:) <$> letter <*> many (alphaNum <|> oneOf "-_") <* skipSpaces
   linkSubst <- parseFormat
@@ -167,7 +168,7 @@ parseLinkFormat = try $ do
 
 -- | An ad-hoc, single-argument-only implementation of a printf-style format
 -- parser.
-parseFormat :: OrgParser (String -> String)
+parseFormat :: Monad m => OrgParser m (String -> String)
 parseFormat = try $ do
   replacePlain <|> replaceUrl <|> justAppend
  where
@@ -181,13 +182,13 @@ parseFormat = try $ do
    rest            = manyTill anyChar         (eof <|> () <$ oneOf "\n\r")
    tillSpecifier c = manyTill (noneOf "\n\r") (try $ string ('%':c:""))
 
-inlinesTillNewline :: OrgParser (F Inlines)
+inlinesTillNewline :: PandocMonad m => OrgParser m (F Inlines)
 inlinesTillNewline = trimInlinesF . mconcat <$> manyTill inline newline
 
 --
 -- ToDo Sequences and Keywords
 --
-todoSequence :: OrgParser TodoSequence
+todoSequence :: Monad m => OrgParser m TodoSequence
 todoSequence = try $ do
   todoKws <- todoKeywords
   doneKws <- optionMaybe $ todoDoneSep *> todoKeywords
@@ -201,13 +202,13 @@ todoSequence = try $ do
                     (x:xs) -> return $ keywordsToSequence (reverse xs) [x]
 
  where
-   todoKeywords :: OrgParser [String]
+   todoKeywords :: Monad m => OrgParser m [String]
    todoKeywords = try $
      let keyword = many1 nonspaceChar <* skipSpaces
          endOfKeywords = todoDoneSep <|> void newline
      in manyTill keyword (lookAhead endOfKeywords)
 
-   todoDoneSep :: OrgParser ()
+   todoDoneSep :: Monad m => OrgParser m ()
    todoDoneSep = void . try $ skipSpaces *> char '|' <* skipSpaces1
 
    keywordsToSequence :: [String] -> [String] -> TodoSequence

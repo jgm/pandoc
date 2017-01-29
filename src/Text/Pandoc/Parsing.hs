@@ -3,7 +3,9 @@
 , GeneralizedNewtypeDeriving
 , TypeSynonymInstances
 , MultiParamTypeClasses
-, FlexibleInstances #-}
+, FlexibleInstances
+, IncoherentInstances #-}
+
 {-
 Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -65,7 +67,6 @@ module Text.Pandoc.Parsing ( anyLine,
                              widthsFromIndices,
                              gridTableWith,
                              readWith,
-                             readWithWarnings,
                              readWithM,
                              testStringWith,
                              guardEnabled,
@@ -163,7 +164,6 @@ module Text.Pandoc.Parsing ( anyLine,
                              setSourceColumn,
                              setSourceLine,
                              newPos,
-                             addWarning,
                              (<+?>),
                              extractIdClass
                              )
@@ -740,11 +740,11 @@ lineBlockLines = try $ do
 -- | Parse a table using 'headerParser', 'rowParser',
 -- 'lineParser', and 'footerParser'.
 tableWith :: Stream s m Char
-          => ParserT s ParserState m ([[Block]], [Alignment], [Int])
-          -> ([Int] -> ParserT s ParserState m [[Block]])
+          => ParserT s ParserState m ([Blocks], [Alignment], [Int])
+          -> ([Int] -> ParserT s ParserState m [Blocks])
           -> ParserT s ParserState m sep
           -> ParserT s ParserState m end
-          -> ParserT s ParserState m Block
+          -> ParserT s ParserState m Blocks
 tableWith headerParser rowParser lineParser footerParser = try $ do
     (heads, aligns, indices) <- headerParser
     lines' <- rowParser indices `sepEndBy1` lineParser
@@ -753,7 +753,7 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
     let widths = if (indices == [])
                     then replicate (length aligns) 0.0
                     else widthsFromIndices numColumns indices
-    return $ Table [] aligns widths heads lines'
+    return $ B.table mempty (zip aligns widths) heads lines'
 
 -- Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
@@ -787,9 +787,9 @@ widthsFromIndices numColumns' indices =
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
 gridTableWith :: Stream [Char] m Char
-              => ParserT [Char] ParserState m [Block]   -- ^ Block list parser
+              => ParserT [Char] ParserState m Blocks   -- ^ Block list parser
               -> Bool                                -- ^ Headerless table
-              -> ParserT [Char] ParserState m Block
+              -> ParserT [Char] ParserState m Blocks
 gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
@@ -818,8 +818,8 @@ gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 -- | Parse header for a grid table.
 gridTableHeader :: Stream [Char] m Char
                 => Bool -- ^ Headerless table
-                -> ParserT [Char] ParserState m [Block]
-                -> ParserT [Char] ParserState m ([[Block]], [Alignment], [Int])
+                -> ParserT [Char] ParserState m Blocks
+                -> ParserT [Char] ParserState m ([Blocks], [Alignment], [Int])
 gridTableHeader headless blocks = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
@@ -850,9 +850,9 @@ gridTableRawLine indices = do
 
 -- | Parse row of grid table.
 gridTableRow :: Stream [Char]  m Char
-             => ParserT [Char] ParserState m [Block]
+             => ParserT [Char] ParserState m Blocks
              -> [Int]
-             -> ParserT [Char] ParserState m [[Block]]
+             -> ParserT [Char] ParserState m [Blocks]
 gridTableRow blocks indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
@@ -867,7 +867,7 @@ removeOneLeadingSpace xs =
    where startsWithSpace ""     = True
          startsWithSpace (y:_) = y == ' '
 
-compactifyCell :: [Block] -> [Block]
+compactifyCell :: Blocks -> Blocks
 compactifyCell bs = head $ compactify [bs]
 
 -- | Parse footer for a grid table.
@@ -883,7 +883,7 @@ readWithM :: (Monad m)
           -> String                   -- ^ input
           -> m (Either PandocError a)
 readWithM parser state input =
-    mapLeft (ParsecError input) `liftM` runParserT parser state "source" input
+    mapLeft (PandocParsecError input) `liftM` runParserT parser state "source" input
 
 
 -- | Parse a string with a given parser and state
@@ -892,15 +892,6 @@ readWith :: Parser [Char] st a
          -> String
          -> Either PandocError a
 readWith p t inp = runIdentity $ readWithM p t inp
-
-readWithWarnings :: Parser [Char] ParserState a
-                    -> ParserState
-                    -> String
-                    -> Either PandocError (a, [String])
-readWithWarnings p = readWith $ do
-         doc <- p
-         warnings <- stateWarnings <$> getState
-         return (doc, warnings)
 
 -- | Parse a string with @parser@ (for testing).
 testStringWith :: (Show a)
@@ -938,8 +929,8 @@ data ParserState = ParserState
       -- roles), 3) Additional classes (rest of Attr is unused)).
       stateCaption         :: Maybe Inlines, -- ^ Caption in current environment
       stateInHtmlBlock     :: Maybe String,  -- ^ Tag type of HTML block being parsed
-      stateMarkdownAttribute :: Bool,        -- ^ True if in markdown=1 context
-      stateWarnings        :: [String]       -- ^ Warnings generated by the parser
+      stateContainers      :: [String],      -- ^ parent include files
+      stateMarkdownAttribute :: Bool         -- ^ True if in markdown=1 context
     }
 
 instance Default ParserState where
@@ -1034,16 +1025,17 @@ defaultParserState =
                   stateRstCustomRoles  = M.empty,
                   stateCaption         = Nothing,
                   stateInHtmlBlock     = Nothing,
-                  stateMarkdownAttribute = False,
-                  stateWarnings        = []}
+                  stateContainers      = [],
+                  stateMarkdownAttribute = False
+                  }
 
 -- | Succeed only if the extension is enabled.
 guardEnabled :: (Stream s m a,  HasReaderOptions st) => Extension -> ParserT s st m ()
-guardEnabled ext = getOption readerExtensions >>= guard . Set.member ext
+guardEnabled ext = getOption readerExtensions >>= guard . extensionEnabled ext
 
 -- | Succeed only if the extension is disabled.
 guardDisabled :: (Stream s m a, HasReaderOptions st) => Extension -> ParserT s st m ()
-guardDisabled ext = getOption readerExtensions >>= guard . not . Set.member ext
+guardDisabled ext = getOption readerExtensions >>= guard . not . extensionEnabled ext
 
 -- | Update the position on which the last string ended.
 updateLastStrPos :: (Stream s m a, HasLastStrPosition st) => ParserT s st m ()
@@ -1098,10 +1090,10 @@ registerHeader (ident,classes,kvs) header' = do
   ids <- extractIdentifierList <$> getState
   exts <- getOption readerExtensions
   let insert' = M.insertWith (\_new old -> old)
-  if null ident && Ext_auto_identifiers `Set.member` exts
+  if null ident && Ext_auto_identifiers `extensionEnabled` exts
      then do
        let id' = uniqueIdent (B.toList header') ids
-       let id'' = if Ext_ascii_identifiers `Set.member` exts
+       let id'' = if Ext_ascii_identifiers `extensionEnabled` exts
                      then catMaybes $ map toAsciiChar id'
                      else id'
        updateState $ updateIdentifierList $ Set.insert id'
@@ -1113,15 +1105,11 @@ registerHeader (ident,classes,kvs) header' = do
           updateState $ updateHeaderMap $ insert' header' ident
         return (ident,classes,kvs)
 
--- | Fail unless we're in "smart typography" mode.
-failUnlessSmart :: (Stream s m a, HasReaderOptions st) => ParserT s st m ()
-failUnlessSmart = getOption readerSmart >>= guard
-
 smartPunctuation :: (HasReaderOptions st, HasLastStrPosition st, HasQuoteContext st m, Stream s m Char)
                  => ParserT s st m Inlines
                  -> ParserT s st m Inlines
 smartPunctuation inlineParser = do
-  failUnlessSmart
+  guardEnabled Ext_smart
   choice [ quoted inlineParser, apostrophe, dash, ellipses ]
 
 apostrophe :: Stream s m Char => ParserT s st m Inlines
@@ -1195,7 +1183,7 @@ ellipses = try (string "..." >> return (B.str "\8230"))
 dash :: (HasReaderOptions st, Stream s m Char)
      => ParserT s st m Inlines
 dash = try $ do
-  oldDashes <- getOption readerOldDashes
+  oldDashes <- extensionEnabled Ext_old_dashes <$> getOption readerExtensions
   if oldDashes
      then do
        char '-'
@@ -1272,12 +1260,6 @@ applyMacros' target = do
              return $ applyMacros macros target
      else return target
 
--- | Append a warning to the log.
-addWarning :: Maybe SourcePos -> String -> Parser [Char] ParserState ()
-addWarning mbpos msg =
-  updateState $ \st -> st{
-    stateWarnings = (msg ++ maybe "" (\pos -> " " ++ show pos) mbpos) :
-                     stateWarnings st }
 infixr 5 <+?>
 (<+?>) :: (Monoid a) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
 a <+?> b = a >>= flip fmap (try b <|> return mempty) . (<>)

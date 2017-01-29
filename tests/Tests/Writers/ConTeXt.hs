@@ -8,10 +8,10 @@ import Tests.Helpers
 import Text.Pandoc.Arbitrary()
 
 context :: (ToPandoc a) => a -> String
-context = writeConTeXt def . toPandoc
+context = purely (writeConTeXt def) . toPandoc
 
 context' :: (ToPandoc a) => a -> String
-context' = writeConTeXt def{ writerWrapText = WrapNone } . toPandoc
+context' = purely (writeConTeXt def{ writerWrapText = WrapNone }) . toPandoc
 
 {-
   "my test" =: X =?> Y

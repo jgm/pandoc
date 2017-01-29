@@ -7,7 +7,7 @@ import Tests.Helpers
 import Text.Pandoc.Arbitrary()
 
 asciidoc :: (ToPandoc a) => a -> String
-asciidoc = writeAsciiDoc def{ writerWrapText = WrapNone } . toPandoc
+asciidoc = purely (writeAsciiDoc def{ writerWrapText = WrapNone }) . toPandoc
 
 tests :: [Test]
 tests = [ testGroup "emphasis"

@@ -11,15 +11,10 @@ import System.FilePath ( (</>), (<.>), takeDirectory, splitDirectories,
 import System.Directory
 import System.Exit
 import Data.Algorithm.Diff
-import Text.Pandoc.Shared ( normalize )
-import Text.Pandoc.Options
-import Text.Pandoc.Writers.Native ( writeNative )
-import Text.Pandoc.Readers.Native ( readNative )
 import Prelude hiding ( readFile )
 import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 (toStringLazy)
 import Text.Printf
-import Text.Pandoc.Error
 
 readFileUTF8 :: FilePath -> IO String
 readFileUTF8 f = B.readFile f >>= return . toStringLazy
@@ -52,13 +47,13 @@ tests = [ testGroup "markdown"
           [ testGroup "writer"
             $ writerTests "markdown" ++ lhsWriterTests "markdown"
           , testGroup "reader"
-            [ test "basic" ["-r", "markdown", "-w", "native", "-s", "-S"]
+            [ test "basic" ["-r", "markdown", "-w", "native", "-s"]
               "testsuite.txt" "testsuite.native"
             , test "tables" ["-r", "markdown", "-w", "native", "--columns=80"]
               "tables.txt" "tables.native"
             , test "pipe tables" ["-r", "markdown", "-w", "native", "--columns=80"]
               "pipe-tables.txt" "pipe-tables.native"
-            , test "more" ["-r", "markdown", "-w", "native", "-s", "-S"]
+            , test "more" ["-r", "markdown", "-w", "native", "-s"]
               "markdown-reader-more.txt" "markdown-reader-more.native"
             , lhsReaderTest "markdown+lhs"
             ]
@@ -70,8 +65,8 @@ tests = [ testGroup "markdown"
         , testGroup "rst"
           [ testGroup "writer" (writerTests "rst" ++ lhsWriterTests "rst")
           , testGroup "reader"
-            [ test "basic" ["-r", "rst", "-w", "native",
-              "-s", "-S", "--columns=80"] "rst-reader.rst" "rst-reader.native"
+            [ test "basic" ["-r", "rst+smart", "-w", "native",
+              "-s", "--columns=80"] "rst-reader.rst" "rst-reader.native"
             , test "tables" ["-r", "rst", "-w", "native", "--columns=80"]
               "tables.rst" "tables-rstsubset.native"
             , lhsReaderTest "rst+lhs"
@@ -86,16 +81,17 @@ tests = [ testGroup "markdown"
             ]
           ]
         , testGroup "html"
-          [ testGroup "writer" (writerTests "html" ++ lhsWriterTests "html")
+          [ testGroup "writer" (writerTests "html4" ++ writerTests "html5" ++
+                                lhsWriterTests "html")
           , test "reader" ["-r", "html", "-w", "native", "-s"]
             "html-reader.html" "html-reader.native"
           ]
         , testGroup "s5"
           [ s5WriterTest "basic" ["-s"] "s5"
           , s5WriterTest "fancy" ["-s","-m","-i"] "s5"
-          , s5WriterTest "fragment" [] "html"
+          , s5WriterTest "fragment" [] "html4"
           , s5WriterTest "inserts"  ["-s", "-H", "insert",
-            "-B", "insert", "-A", "insert", "-c", "main.css"] "html"
+            "-B", "insert", "-A", "insert", "-c", "main.css"] "html4"
           ]
         , testGroup "textile"
           [ testGroup "writer" $ writerTests "textile"
@@ -103,7 +99,7 @@ tests = [ testGroup "markdown"
             "textile-reader.textile" "textile-reader.native"
           ]
         , testGroup "docbook"
-          [ testGroup "writer" $ writerTests "docbook"
+          [ testGroup "writer" $ writerTests "docbook4"
           , test "reader" ["-r", "docbook", "-w", "native", "-s"]
             "docbook-reader.docbook" "docbook-reader.native"
           , test "reader" ["-r", "docbook", "-w", "native", "-s"]
@@ -193,10 +189,9 @@ lhsWriterTests format
 
 lhsReaderTest :: String -> Test
 lhsReaderTest format =
-  testWithNormalize normalizer "lhs" ["-r", format, "-w", "native"]
+  test "lhs" ["-r", format, "-w", "native"]
     ("lhs-test" <.> format) norm
-   where normalizer = writeNative def . normalize . handleError . readNative
-         norm = if format == "markdown+lhs"
+   where norm = if format == "markdown+lhs"
                    then "lhs-test-markdown.native"
                    else "lhs-test.native"
 
@@ -259,7 +254,7 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
   let normPath = norm
-  let options = ["--data-dir", ".." </> "data"] ++ [inpPath] ++ opts
+  let options = ["--quiet", "--data-dir", ".." </> "data"] ++ [inpPath] ++ opts
   let cmd = pandocPath ++ " " ++ unwords options
   let findDynlibDir [] = Nothing
       findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"

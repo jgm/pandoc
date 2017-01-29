@@ -24,23 +24,29 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Documentation.Haddock.Parser
 import Documentation.Haddock.Types
-import Debug.Trace (trace)
-
 import Text.Pandoc.Error
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad)
+
 
 -- | Parse Haddock markup and return a 'Pandoc' document.
-readHaddock :: ReaderOptions -- ^ Reader options
-            -> String        -- ^ String to parse
-            -> Either PandocError Pandoc
-readHaddock opts =
+readHaddock :: PandocMonad m
+            => ReaderOptions
+            -> String
+            -> m Pandoc
+readHaddock opts s = case readHaddockEither opts s of
+  Right result -> return result
+  Left e       -> throwError e
+
+readHaddockEither :: ReaderOptions -- ^ Reader options
+                  -> String        -- ^ String to parse
+                  -> Either PandocError Pandoc
+readHaddockEither _opts =
 #if MIN_VERSION_haddock_library(1,2,0)
-  Right . B.doc . docHToBlocks . trace' . _doc . parseParas
+  Right . B.doc . docHToBlocks . _doc . parseParas
 #else
-  Right .  B.doc . docHToBlocks . trace' . parseParas
+  Right .  B.doc . docHToBlocks . parseParas
 #endif
-  where trace' x = if readerTrace opts
-                      then trace (show x) x
-                      else x
 
 docHToBlocks :: DocH String Identifier -> Blocks
 docHToBlocks d' =

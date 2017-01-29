@@ -44,7 +44,7 @@ import Control.Monad ( void )
 import Text.Pandoc.Readers.Org.Parsing
 
 -- | Horizontal Line (five -- dashes or more)
-hline :: OrgParser ()
+hline :: Monad m => OrgParser m ()
 hline = try $ do
   skipSpaces
   string "-----"
@@ -54,58 +54,59 @@ hline = try $ do
   return ()
 
 -- | Read the start of a header line, return the header level
-headerStart :: OrgParser Int
+headerStart :: Monad m => OrgParser m Int
 headerStart = try $
   (length <$> many1 (char '*')) <* many1 (char ' ') <* updateLastPreCharPos
 
-tableStart :: OrgParser Char
+tableStart :: Monad m => OrgParser m Char
 tableStart = try $ skipSpaces *> char '|'
 
-latexEnvStart :: OrgParser String
+latexEnvStart :: Monad m => OrgParser m String
 latexEnvStart = try $ do
   skipSpaces *> string "\\begin{"
              *> latexEnvName
              <* string "}"
              <* blankline
  where
-   latexEnvName :: OrgParser String
+   latexEnvName :: Monad m => OrgParser m String
    latexEnvName = try $ mappend <$> many1 alphaNum <*> option "" (string "*")
 
 
 -- | Parses bullet list marker.
-bulletListStart :: OrgParser ()
+bulletListStart :: Monad m => OrgParser m ()
 bulletListStart = try $
   choice
   [ () <$ skipSpaces  <* oneOf "+-" <* skipSpaces1
   , () <$ skipSpaces1 <* char '*'   <* skipSpaces1
   ]
 
-genericListStart :: OrgParser String
-                 -> OrgParser Int
+genericListStart :: Monad m
+                 => OrgParser m String
+                 -> OrgParser m Int
 genericListStart listMarker = try $
   (+) <$> (length <$> many spaceChar)
       <*> (length <$> listMarker <* many1 spaceChar)
 
-orderedListStart :: OrgParser Int
+orderedListStart :: Monad m => OrgParser m Int
 orderedListStart = genericListStart orderedListMarker
   -- Ordered list markers allowed in org-mode
   where orderedListMarker = mappend <$> many1 digit <*> (pure <$> oneOf ".)")
 
-drawerStart :: OrgParser String
+drawerStart :: Monad m => OrgParser m String
 drawerStart = try $
   skipSpaces *> drawerName <* skipSpaces <* newline
  where drawerName = char ':' *> manyTill nonspaceChar (char ':')
 
-metaLineStart :: OrgParser ()
+metaLineStart :: Monad m => OrgParser m ()
 metaLineStart = try $ skipSpaces <* string "#+"
 
-commentLineStart :: OrgParser ()
+commentLineStart :: Monad m => OrgParser m ()
 commentLineStart = try $ skipSpaces <* string "# "
 
-exampleLineStart :: OrgParser ()
+exampleLineStart :: Monad m => OrgParser m ()
 exampleLineStart = () <$ try (skipSpaces *> string ": ")
 
-noteMarker :: OrgParser String
+noteMarker :: Monad m => OrgParser m String
 noteMarker = try $ do
   char '['
   choice [ many1Till digit (char ']')
@@ -114,12 +115,12 @@ noteMarker = try $ do
          ]
 
 -- | Succeeds if the parser is at the end of a block.
-endOfBlock :: OrgParser ()
+endOfBlock :: Monad m => OrgParser m ()
 endOfBlock = lookAhead . try $ do
     void blankline <|> anyBlockStart
  where
    -- Succeeds if there is a new block starting at this position.
-   anyBlockStart :: OrgParser ()
+   anyBlockStart :: Monad m => OrgParser m ()
    anyBlockStart = try . choice $
      [ exampleLineStart
      , hline

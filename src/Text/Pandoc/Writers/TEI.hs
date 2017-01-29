@@ -41,6 +41,7 @@ import Text.Pandoc.Highlighting ( languages, languagesByExtension )
 import Text.Pandoc.Pretty
 import Text.Pandoc.ImageSize
 import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class ( PandocMonad )
 
 -- | Convert list of authors to a docbook <author> section
 authorToTEI :: WriterOptions -> [Inline] -> B.Inlines
@@ -53,8 +54,8 @@ authorToTEI opts name' =
       inTagsSimple "author" (text $ escapeStringForXML name)
 
 -- | Convert Pandoc document to string in Docbook format.
-writeTEI :: WriterOptions -> Pandoc -> String
-writeTEI opts (Pandoc meta blocks) =
+writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeTEI opts (Pandoc meta blocks) = return $
   let elements = hierarchicalize blocks
       colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts

@@ -55,11 +55,14 @@ getDefaultTemplate :: (Maybe FilePath) -- ^ User data directory to search first
 getDefaultTemplate user writer = do
   let format = takeWhile (`notElem` ("+-" :: String)) writer  -- strip off extensions
   case format of
-       "native" -> return $ Right ""
-       "json"   -> return $ Right ""
-       "docx"   -> return $ Right ""
-       "fb2"    -> return $ Right ""
-       "odt"    -> getDefaultTemplate user "opendocument"
+       "native"  -> return $ Right ""
+       "json"    -> return $ Right ""
+       "docx"    -> return $ Right ""
+       "fb2"     -> return $ Right ""
+       "odt"     -> getDefaultTemplate user "opendocument"
+       "html"    -> getDefaultTemplate user "html5"
+       "docbook" -> getDefaultTemplate user "docbook5"
+       "epub"    -> getDefaultTemplate user "epub2"
        "markdown_strict"   -> getDefaultTemplate user "markdown"
        "multimarkdown"     -> getDefaultTemplate user "markdown"
        "markdown_github"   -> getDefaultTemplate user "markdown"

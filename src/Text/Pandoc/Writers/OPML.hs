@@ -35,34 +35,37 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Writers.HTML (writeHtmlString)
+import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import Text.Pandoc.Pretty
 import Text.Pandoc.Compat.Time
 import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Error
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad)
 
 -- | Convert Pandoc document to string in OPML format.
-writeOPML :: WriterOptions -> Pandoc -> String
-writeOPML opts (Pandoc meta blocks) =
+writeOPML :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeOPML opts (Pandoc meta blocks) = do
   let elements = hierarchicalize blocks
       colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
       meta' = B.setMeta "date" (B.str $ convertDate $ docDate meta) meta
-      Just metadata = metaToJSON opts
-                      (Just . writeMarkdown def . Pandoc nullMeta)
-                      (Just . trimr . writeMarkdown def . Pandoc nullMeta .
-                         (\ils -> [Plain ils]))
-                      meta'
-      main     = render colwidth $ vcat (map (elementToOPML opts) elements)
-      context = defField "body" main metadata
-  in  case writerTemplate opts of
-           Nothing  -> main
-           Just tpl -> renderTemplate' tpl context
+  metadata <- metaToJSON opts
+              (writeMarkdown def . Pandoc nullMeta)
+              (\ils -> trimr <$> (writeMarkdown def $ Pandoc nullMeta [Plain ils]))
+              meta'
+  main <- (render colwidth . vcat) <$> (mapM (elementToOPML opts) elements)
+  let context = defField "body" main metadata
+  return $ case writerTemplate opts of
+             Nothing  -> main
+             Just tpl -> renderTemplate' tpl context
 
-writeHtmlInlines :: [Inline] -> String
-writeHtmlInlines ils = trim $ writeHtmlString def
-                            $ Pandoc nullMeta [Plain ils]
+
+writeHtmlInlines :: PandocMonad m => [Inline] -> m String
+writeHtmlInlines ils =
+  trim <$> (writeHtml5String def $ Pandoc nullMeta [Plain ils])
 
 -- date format: RFC 822: Thu, 14 Jul 2005 23:41:05 GMT
 showDateTimeRFC822 :: UTCTime -> String
@@ -78,17 +81,23 @@ convertDate ils = maybe "" showDateTimeRFC822 $
   defaultTimeLocale "%F" =<< (normalizeDate $ stringify ils)
 
 -- | Convert an Element to OPML.
-elementToOPML :: WriterOptions -> Element -> Doc
-elementToOPML _ (Blk _) = empty
-elementToOPML opts (Sec _ _num _ title elements) =
-  let isBlk (Blk _) = True
+elementToOPML :: PandocMonad m => WriterOptions -> Element -> m Doc
+elementToOPML _ (Blk _) = return empty
+elementToOPML opts (Sec _ _num _ title elements) = do
+  let isBlk :: Element -> Bool
+      isBlk (Blk _) = True
       isBlk _     = False
-      fromBlk (Blk x) = x
-      fromBlk _ = error "fromBlk called on non-block"
+
+      fromBlk :: PandocMonad m => Element -> m Block
+      fromBlk (Blk x) = return x
+      fromBlk _ = throwError $ PandocSomeError "fromBlk called on non-block"
+
       (blocks, rest) = span isBlk elements
-      attrs = [("text", writeHtmlInlines title)] ++
-              [("_note", writeMarkdown def (Pandoc nullMeta
-                              (map fromBlk blocks)))
-                | not (null blocks)]
-  in  inTags True "outline" attrs $
-      vcat (map (elementToOPML opts) rest)
+  htmlIls <- writeHtmlInlines title
+  md <- if null blocks
+        then return []
+        else do blks <- mapM fromBlk blocks
+                writeMarkdown def $ Pandoc nullMeta blks
+  let attrs = [("text", htmlIls)] ++ [("_note", md) | not (null blocks)]
+  o <- mapM (elementToOPML opts) rest
+  return $ inTags True "outline" attrs $ vcat o

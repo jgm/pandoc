@@ -51,7 +51,7 @@ module Text.Pandoc.Readers.Org.ParserState
   ) where
 
 import           Control.Monad (liftM, liftM2)
-import           Control.Monad.Reader (Reader, runReader, ask, asks, local)
+import           Control.Monad.Reader (Reader, runReader, ReaderT, ask, asks, local)
 
 import           Data.Default (Default(..))
 import qualified Data.Map as M
@@ -122,7 +122,7 @@ instance HasLastStrPosition OrgParserState where
   getLastStrPos = orgStateLastStrPos
   setLastStrPos pos st = st{ orgStateLastStrPos = Just pos }
 
-instance HasQuoteContext st (Reader OrgParserLocal) where
+instance Monad m => HasQuoteContext st (ReaderT OrgParserLocal m) where
   getQuoteContext = asks orgLocalQuoteContext
   withQuoteContext q = local (\s -> s{orgLocalQuoteContext = q})
 

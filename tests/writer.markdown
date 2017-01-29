@@ -6,7 +6,7 @@ date: 'July 17, 2006'
 title: Pandoc Test Suite
 ---
 
-This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
+This is a set of tests for pandoc. Most of them are adapted from John Gruber's
 markdown test suite.
 
 ------------------------------------------------------------------------------
@@ -43,13 +43,13 @@ with no blank line
 Paragraphs
 ==========
 
-Here’s a regular paragraph.
+Here's a regular paragraph.
 
 In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
 Because a hard-wrapped line in the middle of a paragraph looked like a list
 item.
 
-Here’s one with a bullet. \* criminey.
+Here's one with a bullet. \* criminey.
 
 There should be a hard line break\
 here.
@@ -190,7 +190,7 @@ Multiple paragraphs:
 
 1.  Item 1, graf one.
 
-    Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
+    Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
 
 2.  Item 2.
 
@@ -203,7 +203,7 @@ Nested
     -   Tab
         -   Tab
 
-Here’s another:
+Here's another:
 
 1.  First
 2.  Second:
@@ -409,7 +409,7 @@ And this is **strong**
 </tr>
 </table>
 <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
-Here’s a simple block:
+Here's a simple block:
 
 <div>
 
@@ -466,7 +466,7 @@ Code:
 
     <hr />
 
-Hr’s:
+Hr's:
 
 <hr>
 <hr />
@@ -513,22 +513,22 @@ spaces: a\^b c\^d, a\~b c\~d.
 Smart quotes, ellipses, dashes
 ==============================
 
-“Hello,” said the spider. “‘Shelob’ is my name.”
+"Hello," said the spider. "'Shelob' is my name."
 
-‘A’, ‘B’, and ‘C’ are letters.
+'A', 'B', and 'C' are letters.
 
-‘Oak,’ ‘elm,’ and ‘beech’ are names of trees. So is ‘pine.’
+'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'
 
-‘He said, “I want to go.”’ Were you alive in the 70’s?
+'He said, "I want to go."' Were you alive in the 70's?
 
-Here is some quoted ‘`code`’ and a “[quoted
-link](http://example.com/?foo=1&bar=2)”.
+Here is some quoted '`code`' and a "[quoted
+link](http://example.com/?foo=1&bar=2)".
 
-Some dashes: one—two — three—four — five.
+Some dashes: one---two --- three---four --- five.
 
-Dashes between numbers: 5–7, 255–66, 1987–1999.
+Dashes between numbers: 5--7, 255--66, 1987--1999.
 
-Ellipses…and…and….
+Ellipses...and...and....
 
 ------------------------------------------------------------------------------
 
@@ -541,19 +541,19 @@ LaTeX
 -   $\alpha \wedge \omega$
 -   $223$
 -   $p$-Tree
--   Here’s some display math:
+-   Here's some display math:
     $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
--   Here’s one that has a line break in it: $\alpha + \omega \times x^2$.
+-   Here's one that has a line break in it: $\alpha + \omega \times x^2$.
 
-These shouldn’t be math:
+These shouldn't be math:
 
 -   To get the famous equation, write `$e = mc^2$`.
--   \$22,000 is a *lot* of money. So is \$34,000. (It worked if “lot” is
+-   \$22,000 is a *lot* of money. So is \$34,000. (It worked if "lot" is
     emphasized.)
 -   Shoes (\$20) and socks (\$5).
 -   Escaped `$`: \$73 *this should be emphasized* 23\$.
 
-Here’s a LaTeX table:
+Here's a LaTeX table:
 
 \begin{tabular}{|l|l|}\hline
 Animal & Number \\ \hline
@@ -672,14 +672,14 @@ Foo [biz](/url/ "Title with "quote" inside").
 With ampersands
 ---------------
 
-Here’s a [link with an ampersand in the URL](http://example.com/?foo=1&bar=2).
+Here's a [link with an ampersand in the URL](http://example.com/?foo=1&bar=2).
 
-Here’s a link with an amersand in the link text:
+Here's a link with an amersand in the link text:
 [AT&T](http://att.com/ "AT&T").
 
-Here’s an [inline link](/script?foo=1&bar=2).
+Here's an [inline link](/script?foo=1&bar=2).
 
-Here’s an [inline link in pointy braces](/script?foo=1&bar=2).
+Here's an [inline link in pointy braces](/script?foo=1&bar=2).
 
 Autolinks
 ---------
@@ -703,7 +703,7 @@ Auto-links should not occur here: `<http://example.com/>`
 Images
 ======
 
-From “Voyage dans la Lune” by Georges Melies (1902):
+From "Voyage dans la Lune" by Georges Melies (1902):
 
 ![lalune](lalune.jpg "Voyage dans la Lune")
 
@@ -727,7 +727,7 @@ This paragraph should not be part of the note, as it is not indented.
 [^1]: Here is the footnote. It can go anywhere after the footnote reference.
     It need not be placed at the end of the document.
 
-[^2]: Here’s the long note. This one contains multiple blocks.
+[^2]: Here's the long note. This one contains multiple blocks.
 
     Subsequent blocks are indented to show that they belong to the footnote
     (as with list items).

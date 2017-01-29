@@ -29,7 +29,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Conversion of 'Pandoc' format into LaTeX.
 -}
-module Text.Pandoc.Writers.LaTeX ( writeLaTeX ) where
+module Text.Pandoc.Writers.LaTeX (
+    writeLaTeX
+  , writeBeamer
+  ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Shared
@@ -54,6 +57,7 @@ import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock,
                                  toListingsLanguage)
+import Text.Pandoc.Class (PandocMonad)
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
@@ -75,26 +79,46 @@ data WriterState =
               , stIncremental   :: Bool          -- true if beamer lists should be displayed bit by bit
               , stInternalLinks :: [String]      -- list of internal link targets
               , stUsesEuro      :: Bool          -- true if euro symbol used
+              , stBeamer        :: Bool          -- produce beamer
               }
 
+startingState :: WriterOptions -> WriterState
+startingState options = WriterState {
+                  stInNote = False
+                , stInQuote = False
+                , stInMinipage = False
+                , stInHeading = False
+                , stNotes = []
+                , stOLLevel = 1
+                , stOptions = options
+                , stVerbInNote = False
+                , stTable = False
+                , stStrikeout = False
+                , stUrl = False
+                , stGraphics = False
+                , stLHS = False
+                , stBook = (case writerTopLevelDivision options of
+                                 TopLevelPart    -> True
+                                 TopLevelChapter -> True
+                                 _               -> False)
+                , stCsquotes = False
+                , stHighlighting = False
+                , stIncremental = writerIncremental options
+                , stInternalLinks = []
+                , stUsesEuro = False
+                , stBeamer = False }
+
 -- | Convert Pandoc to LaTeX.
-writeLaTeX :: WriterOptions -> Pandoc -> String
-writeLaTeX options document =
+writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeLaTeX options document = return $
   evalState (pandocToLaTeX options document) $
-  WriterState { stInNote = False, stInQuote = False,
-                stInMinipage = False, stInHeading = False,
-                stNotes = [], stOLLevel = 1,
-                stOptions = options, stVerbInNote = False,
-                stTable = False, stStrikeout = False,
-                stUrl = False, stGraphics = False,
-                stLHS = False,
-                stBook = (case writerTopLevelDivision options of
-                           TopLevelPart    -> True
-                           TopLevelChapter -> True
-                           _               -> False),
-                stCsquotes = False, stHighlighting = False,
-                stIncremental = writerIncremental options,
-                stInternalLinks = [], stUsesEuro = False }
+    startingState options
+
+-- | Convert Pandoc to LaTeX Beamer.
+writeBeamer :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeBeamer options document = return $
+  evalState (pandocToLaTeX options document) $
+    (startingState options){ stBeamer = True }
 
 pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
 pandocToLaTeX options (Pandoc meta blocks) = do
@@ -143,7 +167,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                else case last blocks' of
                                  Header 1 _ il -> (init blocks', il)
                                  _             -> (blocks', [])
-  blocks''' <- if writerBeamer options
+  beamer <- gets stBeamer
+  blocks''' <- if beamer
                   then toSlides blocks''
                   else return blocks''
   body <- mapM (elementToLaTeX options) $ hierarchicalize blocks'''
@@ -170,7 +195,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "body" main $
                   defField "title-meta" titleMeta $
                   defField "author-meta" (intercalate "; " authorsMeta) $
-                  defField "documentclass" (if writerBeamer options
+                  defField "documentclass" (if beamer
                                                then ("beamer" :: String)
                                                else if stBook st
                                                     then "book"
@@ -185,10 +210,13 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "book-class" (stBook st) $
                   defField "euro" (stUsesEuro st) $
                   defField "listings" (writerListings options || stLHS st) $
-                  defField "beamer" (writerBeamer options) $
+                  defField "beamer" beamer $
                   (if stHighlighting st
-                      then defField "highlighting-macros" (styleToLaTeX
-                                $ writerHighlightStyle options )
+                      then case writerHighlightStyle options of
+                                Just sty ->
+                                   defField "highlighting-macros"
+                                      (styleToLaTeX sty)
+                                Nothing -> id
                       else id) $
                   (case writerCiteMethod options of
                          Natbib   -> defField "biblio-title" biblioTitle .
@@ -271,7 +299,7 @@ stringToLaTeX  _     []     = return ""
 stringToLaTeX  ctx (x:xs) = do
   opts <- gets stOptions
   rest <- stringToLaTeX ctx xs
-  let ligatures = writerTeXLigatures opts && ctx == TextString
+  let ligatures = isEnabled Ext_smart opts && ctx == TextString
   let isUrl = ctx == URLString
   when (x == '€') $
      modify $ \st -> st{ stUsesEuro = True }
@@ -384,7 +412,7 @@ blockToLaTeX :: Block     -- ^ Block to convert
              -> State WriterState Doc
 blockToLaTeX Null = return empty
 blockToLaTeX (Div (identifier,classes,kvs) bs) = do
-  beamer <- writerBeamer `fmap` gets stOptions
+  beamer <- gets stBeamer
   ref <- toLabel identifier
   let linkAnchor = if null identifier
                       then empty
@@ -435,7 +463,7 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = d
               else figure $$ footnotes
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
-  beamer <- writerBeamer `fmap` gets stOptions
+  beamer <- gets stBeamer
   if beamer
      then blockToLaTeX (RawBlock "latex" "\\pause")
      else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
@@ -444,7 +472,7 @@ blockToLaTeX (Para lst) =
 blockToLaTeX (LineBlock lns) = do
   blockToLaTeX $ linesToPara lns
 blockToLaTeX (BlockQuote lst) = do
-  beamer <- writerBeamer `fmap` gets stOptions
+  beamer <- gets stBeamer
   case lst of
        [b] | beamer && isListBlock b -> do
          oldIncremental <- gets stIncremental
@@ -511,10 +539,11 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                           return (flush $ linkAnchor $$ text (T.unpack h))
   case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
-         "literate" `elem` classes                      -> lhsCodeBlock
-       | writerListings opts                            -> listingsCodeBlock
-       | writerHighlight opts && not (null classes)     -> highlightedCodeBlock
-       | otherwise                                      -> rawCodeBlock
+         "literate" `elem` classes           -> lhsCodeBlock
+       | writerListings opts                 -> listingsCodeBlock
+       | not (null classes) && isJust (writerHighlightStyle opts)
+                                             -> highlightedCodeBlock
+       | otherwise                           -> rawCodeBlock
 blockToLaTeX (RawBlock f x)
   | f == Format "latex" || f == Format "tex"
                         = return $ text x
@@ -522,7 +551,7 @@ blockToLaTeX (RawBlock f x)
 blockToLaTeX (BulletList []) = return empty  -- otherwise latex error
 blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
-  beamer <- writerBeamer `fmap` gets stOptions
+  beamer <- gets stBeamer
   let inc = if beamer && incremental then "[<+->]" else ""
   items <- mapM listItemToLaTeX lst
   let spacing = if isTightList lst
@@ -767,7 +796,8 @@ sectionHeader unnumbered ident level lst = do
   let topLevelDivision = if book && writerTopLevelDivision opts == TopLevelDefault
                          then TopLevelChapter
                          else writerTopLevelDivision opts
-  let level' = if writerBeamer opts &&
+  beamer <- gets stBeamer
+  let level' = if beamer &&
                   topLevelDivision `elem` [TopLevelPart, TopLevelChapter]
                -- beamer has parts but no chapters
                then if level == 1 then -1 else level - 1
@@ -903,7 +933,8 @@ inlineToLaTeX (Code (_,classes,_) str) = do
   inHeading <- gets stInHeading
   case () of
      _ | writerListings opts  && not inHeading      -> listingsCode
-       | writerHighlight opts && not (null classes) -> highlightCode
+       | isJust (writerHighlightStyle opts) && not (null classes)
+                                                    -> highlightCode
        | otherwise                                  -> rawCode
    where listingsCode = do
            inNote <- gets stInNote
@@ -937,11 +968,11 @@ inlineToLaTeX (Quoted qt lst) = do
        let inner = s1 <> contents <> s2
        return $ case qt of
                 DoubleQuote ->
-                   if writerTeXLigatures opts
+                   if isEnabled Ext_smart opts
                       then text "``" <> inner <> text "''"
                       else char '\x201C' <> inner <> char '\x201D'
                 SingleQuote ->
-                   if writerTeXLigatures opts
+                   if isEnabled Ext_smart opts
                       then char '`' <> inner <> char '\''
                       else char '\x2018' <> inner <> char '\x2019'
 inlineToLaTeX (Str str) = liftM text $ stringToLaTeX TextString str
@@ -1016,9 +1047,9 @@ inlineToLaTeX (Note contents) = do
                    (CodeBlock _ _ : _) -> cr
                    _                   -> empty
   let noteContents = nest 2 contents' <> optnl
-  opts <- gets stOptions
+  beamer <- gets stBeamer
   -- in beamer slides, display footnote from current overlay forward
-  let beamerMark = if writerBeamer opts
+  let beamerMark = if beamer
                       then text "<.->"
                       else empty
   modify $ \st -> st{ stNotes = noteContents : stNotes st }
@@ -1315,10 +1346,6 @@ commonFromBcp47 x = fromIso $ head x
     fromIso "ur"  = "urdu"
     fromIso "vi"  = "vietnamese"
     fromIso _     = ""
-
-deNote :: Inline -> Inline
-deNote (Note _) = RawInline (Format "latex") ""
-deNote x = x
 
 pDocumentOptions :: P.Parsec String () [String]
 pDocumentOptions = do

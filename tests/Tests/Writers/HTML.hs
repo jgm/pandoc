@@ -8,7 +8,7 @@ import Tests.Helpers
 import Text.Pandoc.Arbitrary()
 
 html :: (ToPandoc a) => a -> String
-html = writeHtmlString def{ writerWrapText = WrapNone } . toPandoc
+html = purely (writeHtml4String def{ writerWrapText = WrapNone }) . toPandoc
 
 {-
   "my test" =: X =?> Y
@@ -31,7 +31,7 @@ tests :: [Test]
 tests = [ testGroup "inline code"
           [ "basic" =: code "@&" =?> "<code>@&amp;</code>"
           , "haskell" =: codeWith ("",["haskell"],[]) ">>="
-            =?> "<code class=\"haskell\">&gt;&gt;=</code>"
+            =?> "<code class=\"sourceCode haskell\"><span class=\"fu\">&gt;&gt;=</span></code>"
           , "nolanguage" =: codeWith ("",["nolanguage"],[]) ">>="
             =?> "<code class=\"nolanguage\">&gt;&gt;=</code>"
           ]

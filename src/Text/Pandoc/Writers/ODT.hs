@@ -29,7 +29,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to ODT.
 -}
 module Text.Pandoc.Writers.ODT ( writeODT ) where
-import Data.IORef
 import Data.List ( isPrefixOf )
 import Data.Maybe ( fromMaybe )
 import Text.XML.Light.Output
@@ -38,40 +37,59 @@ import qualified Data.ByteString.Lazy as B
 import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..) )
-import Text.Pandoc.Shared ( stringify, fetchItem', warn,
-                            getDefaultReferenceODT )
+import Text.Pandoc.Shared ( stringify )
 import Text.Pandoc.ImageSize
 import Text.Pandoc.MIME ( getMimeType, extensionFromMimeType )
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared ( fixDisplayMath )
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
-import Control.Monad (liftM)
+import Control.Monad.State
+import Control.Monad.Except (runExceptT)
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.XML
 import Text.Pandoc.Pretty
-import qualified Control.Exception as E
-import Data.Time.Clock.POSIX ( getPOSIXTime )
 import System.FilePath ( takeExtension, takeDirectory, (<.>))
+import Text.Pandoc.Class ( PandocMonad )
+import qualified Text.Pandoc.Class as P
+
+data ODTState = ODTState { stEntries :: [Entry]
+                         }
+
+type O m = StateT ODTState m
 
 -- | Produce an ODT file from a Pandoc document.
-writeODT :: WriterOptions  -- ^ Writer options
+writeODT :: PandocMonad m
+         => WriterOptions  -- ^ Writer options
          -> Pandoc         -- ^ Document to convert
-         -> IO B.ByteString
-writeODT opts doc@(Pandoc meta _) = do
+         -> m B.ByteString
+writeODT  opts doc =
+  let initState = ODTState{ stEntries = []
+                          }
+  in
+    evalStateT (pandocToODT opts doc) initState
+
+-- | Produce an ODT file from a Pandoc document.
+pandocToODT :: PandocMonad m
+            => WriterOptions  -- ^ Writer options
+            -> Pandoc         -- ^ Document to convert
+            -> O m B.ByteString
+pandocToODT opts doc@(Pandoc meta _) = do
   let datadir = writerUserDataDir opts
   let title = docTitle meta
   refArchive <-
-       case writerReferenceODT opts of
-             Just f -> liftM toArchive $ B.readFile f
-             Nothing -> getDefaultReferenceODT datadir
+       case writerReferenceDoc opts of
+             Just f -> liftM toArchive $ lift $ P.readFileLazy f
+             Nothing -> lift $ (toArchive . B.fromStrict) <$>
+                                P.readDataFile datadir "reference.odt"
   -- handle formulas and pictures
-  picEntriesRef <- newIORef ([] :: [Entry])
-  doc' <- walkM (transformPicMath opts picEntriesRef) $ walk fixDisplayMath doc
-  let newContents = writeOpenDocument opts{writerWrapText = WrapNone} doc'
-  epochtime <- floor `fmap` getPOSIXTime
+  -- picEntriesRef <- P.newIORef ([] :: [Entry])
+  doc' <- walkM (transformPicMath opts) $ walk fixDisplayMath doc
+  newContents <- lift $ writeOpenDocument opts{writerWrapText = WrapNone} doc'
+  epochtime <- floor `fmap` (lift P.getPOSIXTime)
   let contentEntry = toEntry "content.xml" epochtime
                      $ fromStringLazy newContents
-  picEntries <- readIORef picEntriesRef
+  picEntries <- gets stEntries
   let archive = foldr addEntryToArchive refArchive
                 $ contentEntry : picEntries
   -- construct META-INF/manifest.xml based on archive
@@ -126,18 +144,18 @@ writeODT opts doc@(Pandoc meta _) = do
   return $ fromArchive archive''
 
 -- | transform both Image and Math elements
-transformPicMath :: WriterOptions -> IORef [Entry] -> Inline -> IO Inline
-transformPicMath opts entriesRef (Image attr@(id', cls, _) lab (src,t)) = do
-  res <- fetchItem' (writerMediaBag opts) (writerSourceURL opts) src
+transformPicMath :: PandocMonad m => WriterOptions ->Inline -> O m Inline
+transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = do
+  res <- runExceptT $ lift $ P.fetchItem (writerSourceURL opts) src
   case res of
-     Left (_ :: E.SomeException) -> do
-       warn $ "Could not find image `" ++ src ++ "', skipping..."
+     Left (_ :: PandocError) -> do
+       lift $ P.warning $ "Could not find image `" ++ src ++ "', skipping..."
        return $ Emph lab
      Right (img, mbMimeType) -> do
        (ptX, ptY) <- case imageSize img of
                        Right s  -> return $ sizeInPoints s
                        Left msg -> do
-                         warn $ "Could not determine image size in `" ++
+                         lift $ P.warning $ "Could not determine image size in `" ++
                            src ++ "': " ++ msg
                          return (100, 100)
        let dims =
@@ -155,28 +173,28 @@ transformPicMath opts entriesRef (Image attr@(id', cls, _) lab (src,t)) = do
                               Just dim         -> Just $ Inch $ inInch opts dim
                               Nothing          -> Nothing
        let  newattr = (id', cls, dims)
-       entries <- readIORef entriesRef
+       entries <- gets stEntries
        let extension = fromMaybe (takeExtension $ takeWhile (/='?') src)
                            (mbMimeType >>= extensionFromMimeType)
        let newsrc = "Pictures/" ++ show (length entries) <.> extension
        let toLazy = B.fromChunks . (:[])
-       epochtime <- floor `fmap` getPOSIXTime
+       epochtime <- floor `fmap` (lift P.getPOSIXTime)
        let entry = toEntry newsrc epochtime $ toLazy img
-       modifyIORef entriesRef (entry:)
+       modify $ \st -> st{ stEntries = entry : entries }
        return $ Image newattr lab (newsrc, t)
-transformPicMath _ entriesRef (Math t math) = do
-  entries <- readIORef entriesRef
+transformPicMath _ (Math t math) = do
+  entries <- gets stEntries
   let dt = if t == InlineMath then DisplayInline else DisplayBlock
   case writeMathML dt <$> readTeX math of
        Left  _ -> return $ Math t math
        Right r -> do
          let conf = useShortEmptyTags (const False) defaultConfigPP
          let mathml = ppcTopElement conf r
-         epochtime <- floor `fmap` getPOSIXTime
+         epochtime <- floor `fmap` (lift $ P.getPOSIXTime)
          let dirname = "Formula-" ++ show (length entries) ++ "/"
          let fname = dirname ++ "content.xml"
          let entry = toEntry fname epochtime (fromStringLazy mathml)
-         modifyIORef entriesRef (entry:)
+         modify $ \st -> st{ stEntries = entry : entries }
          return $ RawInline (Format "opendocument") $ render Nothing $
            inTags False "draw:frame" [("text:anchor-type",
                                        if t == DisplayMath
@@ -189,4 +207,4 @@ transformPicMath _ entriesRef (Math t math) = do
                                         , ("xlink:show", "embed")
                                         , ("xlink:actuate", "onLoad")]
 
-transformPicMath _ _ x = return x
+transformPicMath _ x = return x

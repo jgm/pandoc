@@ -663,7 +663,7 @@ read_list         = matchingElement NsText "list"
 --
 read_list_item   :: ElementMatcher [Blocks]
 read_list_item    = matchingElement NsText "list-item"
-                    $ liftA (compactify'.(:[]))
+                    $ liftA (compactify.(:[]))
                       ( matchChildContent' [ read_paragraph
                                            , read_header
                                            , read_list
@@ -749,7 +749,7 @@ read_table_row     = matchingElement NsTable "table-row"
 --
 read_table_cell   :: ElementMatcher [Blocks]
 read_table_cell    = matchingElement NsTable "table-cell"
-                     $ liftA (compactify'.(:[]))
+                     $ liftA (compactify.(:[]))
                      $ matchChildContent' [ read_paragraph
                                           ]
 

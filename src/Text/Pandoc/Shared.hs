@@ -55,15 +55,12 @@ module Text.Pandoc.Shared (
                      orderedListMarkers,
                      normalizeSpaces,
                      extractSpaces,
-                     normalize,
-                     normalizeInlines,
-                     normalizeBlocks,
                      removeFormatting,
+                     deNote,
                      stringify,
                      capitalize,
                      compactify,
-                     compactify',
-                     compactify'DL,
+                     compactifyDL,
                      linesToPara,
                      Element (..),
                      hierarchicalize,
@@ -82,8 +79,6 @@ module Text.Pandoc.Shared (
                      getDefaultReferenceODT,
                      readDataFile,
                      readDataFileUTF8,
-                     fetchItem,
-                     fetchItem',
                      openURL,
                      collapseFilePath,
                      filteredFilesFromArchive,
@@ -91,7 +86,6 @@ module Text.Pandoc.Shared (
                      err,
                      warn,
                      mapLeft,
-                     hush,
                      -- * for squashing blocks
                      blocksToInlines,
                      -- * Safe read
@@ -104,11 +98,9 @@ module Text.Pandoc.Shared (
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
 import Text.Pandoc.Builder (Inlines, Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
-import System.Environment (getProgName)
 import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
@@ -116,15 +108,13 @@ import Data.List ( find, stripPrefix, intercalate )
 import Data.Maybe (mapMaybe)
 import Data.Version ( showVersion )
 import qualified Data.Map as M
-import Network.URI ( escapeURIString, nonStrictRelativeTo,
-                     unEscapeString, parseURIReference, isAllowedInURI,
-                     parseURI, URI(..) )
+import Network.URI ( escapeURIString, unEscapeString )
 import qualified Data.Set as Set
 import System.Directory
 import System.FilePath (splitDirectories, isPathSeparator)
 import qualified System.FilePath.Posix as Posix
-import Text.Pandoc.MIME (MimeType, getMimeType)
-import System.FilePath ( (</>), takeExtension, dropExtension)
+import Text.Pandoc.MIME (MimeType)
+import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
 import Control.Monad.Trans (MonadIO (..))
@@ -399,153 +389,6 @@ extractSpaces f is =
                     _                -> mempty in
   (left <> f (B.trimInlines . B.Many $ contents) <> right)
 
--- | Normalize @Pandoc@ document, consolidating doubled 'Space's,
--- combining adjacent 'Str's and 'Emph's, remove 'Null's and
--- empty elements, etc.
-normalize :: Pandoc -> Pandoc
-normalize (Pandoc (Meta meta) blocks) =
-  Pandoc (Meta $ M.map go meta) (normalizeBlocks blocks)
-  where go (MetaInlines xs) = MetaInlines $ normalizeInlines xs
-        go (MetaBlocks xs)  = MetaBlocks  $ normalizeBlocks xs
-        go (MetaList ms)    = MetaList $ map go ms
-        go (MetaMap m)      = MetaMap $ M.map go m
-        go x                = x
-
-normalizeBlocks :: [Block] -> [Block]
-normalizeBlocks (Null : xs) = normalizeBlocks xs
-normalizeBlocks (Div attr bs : xs) =
-  Div attr (normalizeBlocks bs) : normalizeBlocks xs
-normalizeBlocks (BlockQuote bs : xs) =
-  case normalizeBlocks bs of
-       []    -> normalizeBlocks xs
-       bs'   -> BlockQuote bs' : normalizeBlocks xs
-normalizeBlocks (BulletList [] : xs) = normalizeBlocks xs
-normalizeBlocks (BulletList items : xs) =
-  BulletList (map normalizeBlocks items) : normalizeBlocks xs
-normalizeBlocks (OrderedList _ [] : xs) = normalizeBlocks xs
-normalizeBlocks (OrderedList attr items : xs) =
-  OrderedList attr (map normalizeBlocks items) : normalizeBlocks xs
-normalizeBlocks (DefinitionList [] : xs) = normalizeBlocks xs
-normalizeBlocks (DefinitionList items : xs) =
-  DefinitionList (map go items) : normalizeBlocks xs
-  where go (ils, bs) = (normalizeInlines ils, map normalizeBlocks bs)
-normalizeBlocks (RawBlock _ "" : xs) = normalizeBlocks xs
-normalizeBlocks (RawBlock f x : xs) =
-   case normalizeBlocks xs of
-        (RawBlock f' x' : rest) | f' == f ->
-          RawBlock f (x ++ ('\n':x')) : rest
-        rest -> RawBlock f x : rest
-normalizeBlocks (Para ils : xs) =
-  case normalizeInlines ils of
-       []   -> normalizeBlocks xs
-       ils' -> Para ils' : normalizeBlocks xs
-normalizeBlocks (Plain ils : xs) =
-  case normalizeInlines ils of
-       []   -> normalizeBlocks xs
-       ils' -> Plain ils' : normalizeBlocks xs
-normalizeBlocks (Header lev attr ils : xs) =
-  Header lev attr (normalizeInlines ils) : normalizeBlocks xs
-normalizeBlocks (Table capt aligns widths hdrs rows : xs) =
-  Table (normalizeInlines capt) aligns widths
-    (map normalizeBlocks hdrs) (map (map normalizeBlocks) rows)
-  : normalizeBlocks xs
-normalizeBlocks (x:xs) = x : normalizeBlocks xs
-normalizeBlocks [] = []
-
-normalizeInlines :: [Inline] -> [Inline]
-normalizeInlines (Str x : ys) =
-  case concat (x : map fromStr strs) of
-        ""     -> rest
-        n      -> Str n : rest
-   where
-     (strs, rest)  = span isStr $ normalizeInlines ys
-     isStr (Str _) = True
-     isStr _       = False
-     fromStr (Str z) = z
-     fromStr _       = error "normalizeInlines - fromStr - not a Str"
-normalizeInlines (Space : SoftBreak : ys) =
-  SoftBreak : normalizeInlines ys
-normalizeInlines (Space : ys) =
-  if null rest
-     then []
-     else Space : rest
-   where isSp Space = True
-         isSp _     = False
-         rest       = dropWhile isSp $ normalizeInlines ys
-normalizeInlines (Emph xs : zs) =
-  case normalizeInlines zs of
-       (Emph ys : rest) -> normalizeInlines $
-         Emph (normalizeInlines $ xs ++ ys) : rest
-       rest -> case normalizeInlines xs of
-                    []  -> rest
-                    xs' -> Emph xs' : rest
-normalizeInlines (Strong xs : zs) =
-  case normalizeInlines zs of
-       (Strong ys : rest) -> normalizeInlines $
-         Strong (normalizeInlines $ xs ++ ys) : rest
-       rest -> case normalizeInlines xs of
-                    []  -> rest
-                    xs' -> Strong xs' : rest
-normalizeInlines (Subscript xs : zs) =
-  case normalizeInlines zs of
-       (Subscript ys : rest) -> normalizeInlines $
-         Subscript (normalizeInlines $ xs ++ ys) : rest
-       rest -> case normalizeInlines xs of
-                    []  -> rest
-                    xs' -> Subscript xs' : rest
-normalizeInlines (Superscript xs : zs) =
-  case normalizeInlines zs of
-       (Superscript ys : rest) -> normalizeInlines $
-         Superscript (normalizeInlines $ xs ++ ys) : rest
-       rest -> case normalizeInlines xs of
-                    []  -> rest
-                    xs' -> Superscript xs' : rest
-normalizeInlines (SmallCaps xs : zs) =
-  case normalizeInlines zs of
-       (SmallCaps ys : rest) -> normalizeInlines $
-         SmallCaps (normalizeInlines $ xs ++ ys) : rest
-       rest -> case normalizeInlines xs of
-                    []  -> rest
-                    xs' -> SmallCaps xs' : rest
-normalizeInlines (Strikeout xs : zs) =
-  case normalizeInlines zs of
-       (Strikeout ys : rest) -> normalizeInlines $
-         Strikeout (normalizeInlines $ xs ++ ys) : rest
-       rest -> case normalizeInlines xs of
-                    []  -> rest
-                    xs' -> Strikeout xs' : rest
-normalizeInlines (RawInline _ [] : ys) = normalizeInlines ys
-normalizeInlines (RawInline f xs : zs) =
-  case normalizeInlines zs of
-       (RawInline f' ys : rest) | f == f' -> normalizeInlines $
-         RawInline f (xs ++ ys) : rest
-       rest -> RawInline f xs : rest
-normalizeInlines (Code _ "" : ys) = normalizeInlines ys
-normalizeInlines (Code attr xs : zs) =
-  case normalizeInlines zs of
-       (Code attr' ys : rest) | attr == attr' -> normalizeInlines $
-         Code attr (xs ++ ys) : rest
-       rest -> Code attr xs : rest
--- allow empty spans, they may carry identifiers etc.
--- normalizeInlines (Span _ [] : ys) = normalizeInlines ys
-normalizeInlines (Span attr xs : zs) =
-  case normalizeInlines zs of
-       (Span attr' ys : rest) | attr == attr' -> normalizeInlines $
-         Span attr (normalizeInlines $ xs ++ ys) : rest
-       rest -> Span attr (normalizeInlines xs) : rest
-normalizeInlines (Note bs : ys) = Note (normalizeBlocks bs) :
-  normalizeInlines ys
-normalizeInlines (Quoted qt ils : ys) =
-  Quoted qt (normalizeInlines ils) : normalizeInlines ys
-normalizeInlines (Link attr ils t : ys) =
-  Link attr (normalizeInlines ils) t : normalizeInlines ys
-normalizeInlines (Image attr ils t : ys) =
-  Image attr (normalizeInlines ils) t : normalizeInlines ys
-normalizeInlines (Cite cs ils : ys) =
-  Cite cs (normalizeInlines ils) : normalizeInlines ys
-normalizeInlines (x : xs) = x : normalizeInlines xs
-normalizeInlines [] = []
-
 -- | Extract inlines, removing formatting.
 removeFormatting :: Walkable Inline a => a -> [Inline]
 removeFormatting = query go . walk deNote
@@ -557,8 +400,10 @@ removeFormatting = query go . walk deNote
         go (Math _ x)   = [Str x]
         go LineBreak    = [Space]
         go _            = []
-        deNote (Note _) = Str ""
-        deNote x        = x
+
+deNote :: Inline -> Inline
+deNote (Note _) = Str ""
+deNote x        = x
 
 -- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link
@@ -574,8 +419,6 @@ stringify = query go . walk deNote
         go (RawInline (Format "html") ('<':'b':'r':_)) = " " -- see #2105
         go LineBreak = " "
         go _ = ""
-        deNote (Note _) = Str ""
-        deNote x = x
 
 -- | Bring all regular text in a pandoc structure to uppercase.
 --
@@ -589,28 +432,12 @@ capitalize = walk go
         go x       = x
 
 -- | Change final list item from @Para@ to @Plain@ if the list contains
--- no other @Para@ blocks.
-compactify :: [[Block]]  -- ^ List of list items (each a list of blocks)
-           -> [[Block]]
-compactify [] = []
-compactify items =
-  case (init items, last items) of
-       (_,[])          -> items
-       (others, final) ->
-            case last final of
-                 Para a -> case (filter isPara $ concat items) of
-                                -- if this is only Para, change to Plain
-                                [_] -> others ++ [init final ++ [Plain a]]
-                                _   -> items
-                 _      -> items
-
--- | Change final list item from @Para@ to @Plain@ if the list contains
 -- no other @Para@ blocks.  Like compactify, but operates on @Blocks@ rather
 -- than @[Block]@.
-compactify' :: [Blocks]  -- ^ List of list items (each a list of blocks)
+compactify :: [Blocks]  -- ^ List of list items (each a list of blocks)
            -> [Blocks]
-compactify' [] = []
-compactify' items =
+compactify [] = []
+compactify items =
   let (others, final) = (init items, last items)
   in  case reverse (B.toList final) of
            (Para a:xs) -> case [Para x | Para x <- concatMap B.toList items] of
@@ -619,9 +446,9 @@ compactify' items =
                             _   -> items
            _      -> items
 
--- | Like @compactify'@, but acts on items of definition lists.
-compactify'DL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
-compactify'DL items =
+-- | Like @compactify@, but acts on items of definition lists.
+compactifyDL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
+compactifyDL items =
   let defs = concatMap snd items
   in  case reverse (concatMap B.toList defs) of
            (Para x:xs)
@@ -904,64 +731,6 @@ readDataFileUTF8 :: Maybe FilePath -> FilePath -> IO String
 readDataFileUTF8 userDir fname =
   UTF8.toString `fmap` readDataFile userDir fname
 
--- | Specialized version of parseURIReference that disallows
--- single-letter schemes.  Reason:  these are usually windows absolute
--- paths.
-parseURIReference' :: String -> Maybe URI
-parseURIReference' s =
-  case parseURIReference s of
-       Just u
-         | length (uriScheme u) > 2  -> Just u
-         | null (uriScheme u)        -> Just u  -- protocol-relative
-       _                             -> Nothing
-
--- | Fetch an image or other item from the local filesystem or the net.
--- Returns raw content and maybe mime type.
-fetchItem :: Maybe String -> String
-          -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
-fetchItem sourceURL s =
-  case (sourceURL >>= parseURIReference' . ensureEscaped, ensureEscaped s) of
-       (Just u, s') -> -- try fetching from relative path at source
-          case parseURIReference' s' of
-               Just u' -> openURL $ show $ u' `nonStrictRelativeTo` u
-               Nothing -> openURL s' -- will throw error
-       (Nothing, s'@('/':'/':_)) ->  -- protocol-relative URI
-          case parseURIReference' s' of
-               Just u' -> openURL $ show $ u' `nonStrictRelativeTo` httpcolon
-               Nothing -> openURL s' -- will throw error
-       (Nothing, s') ->
-          case parseURI s' of  -- requires absolute URI
-               -- We don't want to treat C:/ as a scheme:
-               Just u' | length (uriScheme u') > 2 -> openURL (show u')
-               Just u' | uriScheme u' == "file:" ->
-                    E.try $ readLocalFile $ dropWhile (=='/') (uriPath u')
-               _ -> E.try $ readLocalFile fp -- get from local file system
-  where readLocalFile f = do
-          cont <- BS.readFile f
-          return (cont, mime)
-        httpcolon = URI{ uriScheme = "http:",
-                         uriAuthority = Nothing,
-                         uriPath = "",
-                         uriQuery = "",
-                         uriFragment = "" }
-        dropFragmentAndQuery = takeWhile (\c -> c /= '?' && c /= '#')
-        fp = unEscapeString $ dropFragmentAndQuery s
-        mime = case takeExtension fp of
-                    ".gz" -> getMimeType $ dropExtension fp
-                    ".svgz" -> getMimeType $ dropExtension fp ++ ".svg"
-                    x     -> getMimeType x
-        ensureEscaped = escapeURIString isAllowedInURI . map convertSlash
-        convertSlash '\\' = '/'
-        convertSlash x    = x
-
--- | Like 'fetchItem', but also looks for items in a 'MediaBag'.
-fetchItem' :: MediaBag -> Maybe String -> String
-           -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
-fetchItem' media sourceURL s = do
-  case lookupMedia s media of
-       Nothing -> fetchItem sourceURL s
-       Just (mime, bs) -> return $ Right (BS.concat $ toChunks bs, Just mime)
-
 -- | Read from a URL and return raw data and maybe mime type.
 openURL :: String -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
 openURL u
@@ -1000,25 +769,19 @@ openURL u
 -- Error reporting
 --
 
-err :: Int -> String -> IO a
-err exitCode msg = do
-  name <- getProgName
-  UTF8.hPutStrLn stderr $ name ++ ": " ++ msg
+err :: MonadIO m => Int -> String -> m a
+err exitCode msg = liftIO $ do
+  UTF8.hPutStrLn stderr msg
   exitWith $ ExitFailure exitCode
   return undefined
 
 warn :: MonadIO m => String -> m ()
 warn msg = liftIO $ do
-  name <- getProgName
-  UTF8.hPutStrLn stderr $ "[" ++ name ++ " warning] " ++ msg
+  UTF8.hPutStrLn stderr $ "[warning] " ++ msg
 
 mapLeft :: (a -> b) -> Either a c -> Either b c
 mapLeft f (Left x) = Left (f x)
 mapLeft _ (Right x) = Right x
-
-hush :: Either a b -> Maybe b
-hush (Left _) = Nothing
-hush (Right x) = Just x
 
 -- | Remove intermediate "." and ".." directories from a path.
 --

@@ -8,13 +8,16 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 latex :: (ToPandoc a) => a -> String
-latex = latexWithOpts def{ writerHighlight = True }
+latex = latexWithOpts def
 
 latexListing :: (ToPandoc a) => a -> String
 latexListing = latexWithOpts def{ writerListings = True }
 
 latexWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-latexWithOpts opts = writeLaTeX opts . toPandoc
+latexWithOpts opts = purely (writeLaTeX opts) . toPandoc
+
+beamerWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
+beamerWithOpts opts = purely (writeBeamer opts) . toPandoc
 
 {-
   "my test" =: X =?> Y
@@ -95,8 +98,7 @@ tests = [ testGroup "code blocks"
               beamerTopLevelDiv :: (ToPandoc a)
                                 => TopLevelDivision -> a -> String
               beamerTopLevelDiv division =
-                latexWithOpts def { writerTopLevelDivision = division
-                                  , writerBeamer = True }
+                beamerWithOpts def { writerTopLevelDivision = division }
             in
             [ test (latexTopLevelDiv TopLevelSection)
                    "sections as top-level" $ headers =?>

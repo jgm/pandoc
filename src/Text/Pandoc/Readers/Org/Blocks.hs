@@ -44,9 +44,10 @@ import           Text.Pandoc.Readers.Org.Shared
 
 import qualified Text.Pandoc.Builder as B
 import           Text.Pandoc.Builder ( Inlines, Blocks )
+import           Text.Pandoc.Class (PandocMonad)
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Options
-import           Text.Pandoc.Shared ( compactify', compactify'DL, safeRead )
+import           Text.Pandoc.Shared ( compactify, compactifyDL, safeRead )
 
 import           Control.Monad ( foldM, guard, mzero, void )
 import           Data.Char ( isSpace, toLower, toUpper)
@@ -105,7 +106,7 @@ data Headline = Headline
 
 -- | Read an Org mode headline and its contents (i.e. a document subtree).
 -- @lvl@ gives the minimum acceptable level of the tree.
-headline :: Int -> OrgParser (F Headline)
+headline :: PandocMonad m => Int -> OrgParser m (F Headline)
 headline lvl = try $ do
   level <- headerStart
   guard (lvl <= level)
@@ -130,16 +131,16 @@ headline lvl = try $ do
       , headlineChildren = children'
       }
  where
-   endOfTitle :: OrgParser ()
+   endOfTitle :: Monad m => OrgParser m ()
    endOfTitle = void . lookAhead $ optional headerTags *> newline
 
-   headerTags :: OrgParser [Tag]
+   headerTags :: Monad m => OrgParser m [Tag]
    headerTags = try $
      let tag = many1 (alphaNum <|> oneOf "@%#_") <* char ':'
      in map toTag <$> (skipSpaces *> char ':' *> many1 tag <* skipSpaces)
 
 -- | Convert an Org mode headline (i.e. a document tree) into pandoc's Blocks
-headlineToBlocks :: Headline -> OrgParser Blocks
+headlineToBlocks :: Monad m => Headline -> OrgParser m Blocks
 headlineToBlocks hdln@(Headline {..}) = do
   maxHeadlineLevels <- getExportSetting exportHeadlineLevels
   case () of
@@ -162,7 +163,7 @@ isCommentTitle :: Inlines -> Bool
 isCommentTitle (B.toList -> (Str "COMMENT":_)) = True
 isCommentTitle _                               = False
 
-archivedHeadlineToBlocks :: Headline -> OrgParser Blocks
+archivedHeadlineToBlocks :: Monad m => Headline -> OrgParser m Blocks
 archivedHeadlineToBlocks hdln = do
   archivedTreesOption <- getExportSetting exportArchivedTrees
   case archivedTreesOption of
@@ -170,7 +171,7 @@ archivedHeadlineToBlocks hdln = do
     ArchivedTreesExport       -> headlineToHeaderWithContents hdln
     ArchivedTreesHeadlineOnly -> headlineToHeader hdln
 
-headlineToHeaderWithList :: Headline -> OrgParser Blocks
+headlineToHeaderWithList :: Monad m => Headline -> OrgParser m Blocks
 headlineToHeaderWithList hdln@(Headline {..}) = do
   maxHeadlineLevels <- getExportSetting exportHeadlineLevels
   header        <- headlineToHeader hdln
@@ -189,13 +190,13 @@ headlineToHeaderWithList hdln@(Headline {..}) = do
        (Header _ _ inlns:_) -> B.para (B.fromList inlns)
        _                    -> mempty
 
-headlineToHeaderWithContents :: Headline -> OrgParser Blocks
+headlineToHeaderWithContents :: Monad m => Headline -> OrgParser m Blocks
 headlineToHeaderWithContents hdln@(Headline {..}) = do
   header         <- headlineToHeader hdln
   childrenBlocks <- mconcat <$> sequence (map headlineToBlocks headlineChildren)
   return $ header <> headlineContents <> childrenBlocks
 
-headlineToHeader :: Headline -> OrgParser Blocks
+headlineToHeader :: Monad m => Headline -> OrgParser m Blocks
 headlineToHeader (Headline {..}) = do
   exportTodoKeyword <- getExportSetting exportWithTodoKeywords
   let todoText    = if exportTodoKeyword
@@ -208,7 +209,7 @@ headlineToHeader (Headline {..}) = do
   attr           <- registerHeader propAttr headlineText
   return $ B.headerWith attr headlineLevel text
 
-todoKeyword :: OrgParser TodoMarker
+todoKeyword :: Monad m => OrgParser m TodoMarker
 todoKeyword = try $ do
   taskStates <- activeTodoMarkers <$> getState
   let kwParser tdm = try $ (tdm <$ string (todoMarkerName tdm) <* spaceChar)
@@ -250,7 +251,7 @@ tagToInline t = B.spanWith ("", ["tag"], [("data-tag-name", fromTag t)]) mempty
 --
 
 -- | Get a list of blocks.
-blockList :: OrgParser [Block]
+blockList :: PandocMonad m => OrgParser m [Block]
 blockList = do
   initialBlocks  <- blocks
   headlines      <- sequence <$> manyTill (headline 1) eof
@@ -259,15 +260,15 @@ blockList = do
   return . B.toList $ (runF initialBlocks st) <> headlineBlocks
 
 -- | Get the meta information safed in the state.
-meta :: OrgParser Meta
+meta :: Monad m => OrgParser m Meta
 meta = do
   meta' <- metaExport
   runF meta' <$> getState
 
-blocks :: OrgParser (F Blocks)
+blocks :: PandocMonad m => OrgParser m (F Blocks)
 blocks = mconcat <$> manyTill block (void (lookAhead headerStart) <|> eof)
 
-block :: OrgParser (F Blocks)
+block :: PandocMonad m => OrgParser m (F Blocks)
 block = choice [ mempty <$ blanklines
                , table
                , orgBlock
@@ -306,7 +307,7 @@ attrFromBlockAttributes (BlockAttributes{..}) =
     kv      = filter ((`notElem` ["id", "class"]) . fst) blockAttrKeyValues
   in (ident, classes, kv)
 
-stringyMetaAttribute :: (String -> Bool) -> OrgParser (String, String)
+stringyMetaAttribute :: Monad m => (String -> Bool) -> OrgParser m (String, String)
 stringyMetaAttribute attrCheck = try $ do
   metaLineStart
   attrName <- map toUpper <$> many1Till nonspaceChar (char ':')
@@ -315,7 +316,7 @@ stringyMetaAttribute attrCheck = try $ do
   attrValue <- anyLine
   return (attrName, attrValue)
 
-blockAttributes :: OrgParser BlockAttributes
+blockAttributes :: PandocMonad m => OrgParser m BlockAttributes
 blockAttributes = try $ do
   kv <- many (stringyMetaAttribute attrCheck)
   let caption = foldl' (appendValues "CAPTION") Nothing kv
@@ -350,17 +351,17 @@ blockAttributes = try $ do
             Just acc -> Just $ acc ++ ' ':value
             Nothing  -> Just value
 
-keyValues :: OrgParser [(String, String)]
+keyValues :: Monad m => OrgParser m [(String, String)]
 keyValues = try $
   manyTill ((,) <$> key <*> value) newline
  where
-   key :: OrgParser String
+   key :: Monad m => OrgParser m String
    key = try $ skipSpaces *> char ':' *> many1 nonspaceChar
 
-   value :: OrgParser String
+   value :: Monad m => OrgParser m String
    value = skipSpaces *> manyTill anyChar endOfValue
 
-   endOfValue :: OrgParser ()
+   endOfValue :: Monad m => OrgParser m ()
    endOfValue =
      lookAhead $ (() <$ try (many1 spaceChar <* key))
               <|> () <$ newline
@@ -371,7 +372,7 @@ keyValues = try $
 --
 
 -- | Read an org-mode block delimited by #+BEGIN_TYPE and #+END_TYPE.
-orgBlock :: OrgParser (F Blocks)
+orgBlock :: PandocMonad m => OrgParser m (F Blocks)
 orgBlock = try $ do
   blockAttrs <- blockAttributes
   blkType <- blockHeaderStart
@@ -390,25 +391,25 @@ orgBlock = try $ do
                    let (ident, classes, kv) = attrFromBlockAttributes blockAttrs
                    in fmap $ B.divWith (ident, classes ++ [blkType], kv)
  where
-   blockHeaderStart :: OrgParser String
+   blockHeaderStart :: Monad m => OrgParser m String
    blockHeaderStart = try $ skipSpaces *> stringAnyCase "#+begin_" *> orgArgWord
 
    lowercase :: String -> String
    lowercase = map toLower
 
-rawBlockLines :: (String   -> F Blocks) -> String -> OrgParser (F Blocks)
+rawBlockLines :: Monad m => (String   -> F Blocks) -> String -> OrgParser m (F Blocks)
 rawBlockLines f blockType = (ignHeaders *> (f <$> rawBlockContent blockType))
 
-parseBlockLines :: (F Blocks -> F Blocks) -> String -> OrgParser (F Blocks)
+parseBlockLines :: PandocMonad m => (F Blocks -> F Blocks) -> String -> OrgParser m (F Blocks)
 parseBlockLines f blockType = (ignHeaders *> (f <$> parsedBlockContent))
  where
-   parsedBlockContent :: OrgParser (F Blocks)
+   parsedBlockContent :: PandocMonad m => OrgParser m (F Blocks)
    parsedBlockContent = try $ do
      raw <- rawBlockContent blockType
      parseFromString blocks (raw ++ "\n")
 
 -- | Read the raw string content of a block
-rawBlockContent :: String -> OrgParser String
+rawBlockContent :: Monad m => String -> OrgParser m String
 rawBlockContent blockType = try $ do
   blkLines <- manyTill rawLine blockEnder
   tabLen <- getOption readerTabStop
@@ -418,10 +419,10 @@ rawBlockContent blockType = try $ do
     . map (tabsToSpaces tabLen . commaEscaped)
     $ blkLines
  where
-   rawLine :: OrgParser String
+   rawLine :: Monad m => OrgParser m String
    rawLine = try $ ("" <$ blankline) <|> anyLine
 
-   blockEnder :: OrgParser ()
+   blockEnder :: Monad m => OrgParser m ()
    blockEnder = try $ skipSpaces <* stringAnyCase ("#+end_" <> blockType)
 
    stripIndent :: [String] -> [String]
@@ -448,18 +449,18 @@ rawBlockContent blockType = try $ do
    commaEscaped cs                   = cs
 
 -- | Read but ignore all remaining block headers.
-ignHeaders :: OrgParser ()
+ignHeaders :: Monad m => OrgParser m ()
 ignHeaders = (() <$ newline) <|> (() <$ anyLine)
 
 -- | Read a block containing code intended for export in specific backends
 -- only.
-exportBlock :: String -> OrgParser (F Blocks)
+exportBlock :: Monad m => String -> OrgParser m (F Blocks)
 exportBlock blockType = try $ do
   exportType <- skipSpaces *> orgArgWord <* ignHeaders
   contents   <- rawBlockContent blockType
   returnF (B.rawBlock (map toLower exportType) contents)
 
-verseBlock :: String -> OrgParser (F Blocks)
+verseBlock :: PandocMonad m => String -> OrgParser m (F Blocks)
 verseBlock blockType = try $ do
   ignHeaders
   content <- rawBlockContent blockType
@@ -468,7 +469,7 @@ verseBlock blockType = try $ do
  where
    -- replace initial spaces with nonbreaking spaces to preserve
    -- indentation, parse the rest as normal inline
-   parseVerseLine :: String -> OrgParser (F Inlines)
+   parseVerseLine :: PandocMonad m => String -> OrgParser m (F Inlines)
    parseVerseLine cs = do
      let (initialSpaces, indentedLine) = span isSpace cs
      let nbspIndent = if null initialSpaces
@@ -480,7 +481,7 @@ verseBlock blockType = try $ do
 -- | Read a code block and the associated results block if present.  Which of
 -- boths blocks is included in the output is determined using the "exports"
 -- argument in the block header.
-codeBlock :: BlockAttributes -> String -> OrgParser (F Blocks)
+codeBlock :: PandocMonad m => BlockAttributes -> String -> OrgParser m (F Blocks)
 codeBlock blockAttrs blockType = do
   skipSpaces
   (classes, kv)     <- codeHeaderArgs <|> (mempty <$ ignHeaders)
@@ -513,7 +514,7 @@ exportsResults :: [(String, String)] -> Bool
 exportsResults attrs = ("rundoc-exports", "results") `elem` attrs
                        || ("rundoc-exports", "both") `elem` attrs
 
-trailingResultsBlock :: OrgParser (Maybe (F Blocks))
+trailingResultsBlock :: PandocMonad m => OrgParser m (Maybe (F Blocks))
 trailingResultsBlock = optionMaybe . try $ do
   blanklines
   stringAnyCase "#+RESULTS:"
@@ -522,7 +523,7 @@ trailingResultsBlock = optionMaybe . try $ do
 
 -- | Parse code block arguments
 -- TODO: We currently don't handle switches.
-codeHeaderArgs :: OrgParser ([String], [(String, String)])
+codeHeaderArgs :: Monad m => OrgParser m ([String], [(String, String)])
 codeHeaderArgs = try $ do
   language   <- skipSpaces *> orgArgWord
   _          <- skipSpaces *> (try $ switch `sepBy` (many1 spaceChar))
@@ -537,27 +538,27 @@ codeHeaderArgs = try $ do
  where
    hasRundocParameters = not . null
 
-switch :: OrgParser (Char, Maybe String)
+switch :: Monad m => OrgParser m (Char, Maybe String)
 switch = try $ simpleSwitch <|> lineNumbersSwitch
  where
    simpleSwitch = (\c -> (c, Nothing)) <$> (oneOf "-+" *> letter)
    lineNumbersSwitch = (\ls -> ('l', Just ls)) <$>
                        (string "-l \"" *> many1Till nonspaceChar (char '"'))
 
-blockOption :: OrgParser (String, String)
+blockOption :: Monad m => OrgParser m (String, String)
 blockOption = try $ do
   argKey <- orgArgKey
   paramValue <- option "yes" orgParamValue
   return (argKey, paramValue)
 
-orgParamValue :: OrgParser String
+orgParamValue :: Monad m => OrgParser m String
 orgParamValue = try $
   skipSpaces
     *> notFollowedBy (char ':' )
     *> many1 nonspaceChar
     <* skipSpaces
 
-horizontalRule :: OrgParser (F Blocks)
+horizontalRule :: Monad m => OrgParser m (F Blocks)
 horizontalRule = return B.horizontalRule <$ try hline
 
 
@@ -568,7 +569,7 @@ horizontalRule = return B.horizontalRule <$ try hline
 -- | A generic drawer which has no special meaning for org-mode.
 -- Whether or not this drawer is included in the output depends on the drawers
 -- export setting.
-genericDrawer :: OrgParser (F Blocks)
+genericDrawer :: PandocMonad m => OrgParser m (F Blocks)
 genericDrawer = try $ do
   name    <- map toUpper <$> drawerStart
   content <- manyTill drawerLine (try drawerEnd)
@@ -582,35 +583,35 @@ genericDrawer = try $ do
     Right names | name `notElem` names -> return mempty
     _                                  -> drawerDiv name <$> parseLines content
  where
-  parseLines :: [String] -> OrgParser (F Blocks)
+  parseLines :: PandocMonad m => [String] -> OrgParser m (F Blocks)
   parseLines = parseFromString blocks . (++ "\n") . unlines
 
   drawerDiv :: String -> F Blocks -> F Blocks
   drawerDiv drawerName = fmap $ B.divWith (mempty, [drawerName, "drawer"], mempty)
 
-drawerLine :: OrgParser String
+drawerLine :: Monad m => OrgParser m String
 drawerLine = anyLine
 
-drawerEnd :: OrgParser String
+drawerEnd :: Monad m => OrgParser m String
 drawerEnd = try $
   skipSpaces *> stringAnyCase ":END:" <* skipSpaces <* newline
 
 -- | Read a :PROPERTIES: drawer and return the key/value pairs contained
 -- within.
-propertiesDrawer :: OrgParser Properties
+propertiesDrawer :: Monad m => OrgParser m Properties
 propertiesDrawer = try $ do
   drawerType <- drawerStart
   guard $ map toUpper drawerType == "PROPERTIES"
   manyTill property (try drawerEnd)
  where
-   property :: OrgParser (PropertyKey, PropertyValue)
+   property :: Monad m => OrgParser m (PropertyKey, PropertyValue)
    property = try $ (,) <$> key <*> value
 
-   key :: OrgParser PropertyKey
+   key :: Monad m => OrgParser m PropertyKey
    key = fmap toPropertyKey . try $
          skipSpaces *> char ':' *> many1Till nonspaceChar (char ':')
 
-   value :: OrgParser PropertyValue
+   value :: Monad m => OrgParser m PropertyValue
    value = fmap toPropertyValue . try $
            skipSpaces *> manyTill anyChar (try $ skipSpaces *> newline)
 
@@ -621,7 +622,7 @@ propertiesDrawer = try $ do
 
 -- | Figures or an image paragraph (i.e. an image on a line by itself). Only
 -- images with a caption attribute are interpreted as figures.
-figure :: OrgParser (F Blocks)
+figure :: PandocMonad m => OrgParser m (F Blocks)
 figure = try $ do
   figAttrs <- blockAttributes
   src <- skipSpaces *> selfTarget <* skipSpaces <* endOfParagraph
@@ -632,7 +633,7 @@ figure = try $ do
       let isFigure = not . isNothing $ blockAttrCaption figAttrs
       return $ imageBlock isFigure figAttrs imgSrc
  where
-   selfTarget :: OrgParser String
+   selfTarget :: PandocMonad m => OrgParser m String
    selfTarget = try $ char '[' *> linkTarget <* char ']'
 
    imageBlock :: Bool -> BlockAttributes -> String -> F Blocks
@@ -654,7 +655,7 @@ figure = try $ do
      else "fig:" ++ cs
 
 -- | Succeeds if looking at the end of the current paragraph
-endOfParagraph :: OrgParser ()
+endOfParagraph :: Monad m => OrgParser m ()
 endOfParagraph = try $ skipSpaces *> newline *> endOfBlock
 
 
@@ -663,11 +664,11 @@ endOfParagraph = try $ skipSpaces *> newline *> endOfBlock
 --
 
 -- | Example code marked up by a leading colon.
-example :: OrgParser (F Blocks)
+example :: Monad m => OrgParser m (F Blocks)
 example = try $ do
   return . return . exampleCode =<< unlines <$> many1 exampleLine
  where
-   exampleLine :: OrgParser String
+   exampleLine :: Monad m => OrgParser m String
    exampleLine = try $ exampleLineStart *> anyLine
 
 exampleCode :: String -> Blocks
@@ -678,10 +679,10 @@ exampleCode = B.codeBlockWith ("", ["example"], [])
 -- Comments, Options and Metadata
 --
 
-specialLine :: OrgParser (F Blocks)
+specialLine :: PandocMonad m => OrgParser m (F Blocks)
 specialLine = fmap return . try $ rawExportLine <|> metaLine <|> commentLine
 
-rawExportLine :: OrgParser Blocks
+rawExportLine :: PandocMonad m => OrgParser m Blocks
 rawExportLine = try $ do
   metaLineStart
   key <- metaKey
@@ -689,7 +690,7 @@ rawExportLine = try $ do
     then B.rawBlock key <$> anyLine
     else mzero
 
-commentLine :: OrgParser Blocks
+commentLine :: Monad m => OrgParser m Blocks
 commentLine = commentLineStart *> anyLine *> pure mempty
 
 
@@ -718,7 +719,7 @@ data OrgTable = OrgTable
   , orgTableRows       :: [[Blocks]]
   }
 
-table :: OrgParser (F Blocks)
+table :: PandocMonad m => OrgParser m (F Blocks)
 table = try $ do
   blockAttrs <- blockAttributes
   lookAhead tableStart
@@ -745,18 +746,18 @@ orgToPandocTable (OrgTable colProps heads lns) caption =
                               <*> totalWidth
      in (align', width')
 
-tableRows :: OrgParser [OrgTableRow]
+tableRows :: PandocMonad m => OrgParser m [OrgTableRow]
 tableRows = try $ many (tableAlignRow <|> tableHline <|> tableContentRow)
 
-tableContentRow :: OrgParser OrgTableRow
+tableContentRow :: PandocMonad m => OrgParser m OrgTableRow
 tableContentRow = try $
   OrgContentRow . sequence <$> (tableStart *> many1Till tableContentCell newline)
 
-tableContentCell :: OrgParser (F Blocks)
+tableContentCell :: PandocMonad m => OrgParser m (F Blocks)
 tableContentCell = try $
   fmap B.plain . trimInlinesF . mconcat <$> manyTill inline endOfCell
 
-tableAlignRow :: OrgParser OrgTableRow
+tableAlignRow :: Monad m => OrgParser m OrgTableRow
 tableAlignRow = try $ do
   tableStart
   colProps <- many1Till columnPropertyCell newline
@@ -764,7 +765,7 @@ tableAlignRow = try $ do
   guard $ any (/= def) colProps
   return $ OrgAlignRow colProps
 
-columnPropertyCell :: OrgParser ColumnProperty
+columnPropertyCell :: Monad m => OrgParser m ColumnProperty
 columnPropertyCell = emptyCell <|> propCell <?> "alignment info"
  where
    emptyCell = ColumnProperty Nothing Nothing <$ (try $ skipSpaces *> endOfCell)
@@ -776,18 +777,18 @@ columnPropertyCell = emptyCell <|> propCell <?> "alignment info"
                       <* char '>'
                       <* emptyCell)
 
-tableAlignFromChar :: OrgParser Alignment
+tableAlignFromChar :: Monad m => OrgParser m Alignment
 tableAlignFromChar = try $
   choice [ char 'l' *> return AlignLeft
          , char 'c' *> return AlignCenter
          , char 'r' *> return AlignRight
          ]
 
-tableHline :: OrgParser OrgTableRow
+tableHline :: Monad m => OrgParser m OrgTableRow
 tableHline = try $
   OrgHlineRow <$ (tableStart *> char '-' *> anyLine)
 
-endOfCell :: OrgParser Char
+endOfCell :: Monad m => OrgParser m Char
 endOfCell = try $ char '|' <|> lookAhead newline
 
 rowsToTable :: [OrgTableRow]
@@ -840,7 +841,7 @@ rowToContent orgTable row =
 --
 -- LaTeX fragments
 --
-latexFragment :: OrgParser (F Blocks)
+latexFragment :: Monad m => OrgParser m (F Blocks)
 latexFragment = try $ do
   envName <- latexEnvStart
   content <- mconcat <$> manyTill anyLineNewline (latexEnd envName)
@@ -851,7 +852,7 @@ latexFragment = try $ do
                               , "\\end{", e, "}\n"
                               ]
 
-latexEnd :: String -> OrgParser ()
+latexEnd :: Monad m => String -> OrgParser m ()
 latexEnd envName = try $
   () <$ skipSpaces
      <* string ("\\end{" ++ envName ++ "}")
@@ -861,7 +862,7 @@ latexEnd envName = try $
 --
 -- Footnote defintions
 --
-noteBlock :: OrgParser (F Blocks)
+noteBlock :: PandocMonad m => OrgParser m (F Blocks)
 noteBlock = try $ do
   ref <- noteMarker <* skipSpaces
   content <- mconcat <$> blocksTillHeaderOrNote
@@ -873,7 +874,7 @@ noteBlock = try $ do
                           <|> () <$ lookAhead headerStart)
 
 -- Paragraphs or Plain text
-paraOrPlain :: OrgParser (F Blocks)
+paraOrPlain :: PandocMonad m => OrgParser m (F Blocks)
 paraOrPlain = try $ do
   -- Make sure we are not looking at a headline
   notFollowedBy' (char '*' *> (oneOf " *"))
@@ -892,24 +893,24 @@ paraOrPlain = try $ do
 -- list blocks
 --
 
-list :: OrgParser (F Blocks)
+list :: PandocMonad m => OrgParser m (F Blocks)
 list = choice [ definitionList, bulletList, orderedList ] <?> "list"
 
-definitionList :: OrgParser (F Blocks)
+definitionList :: PandocMonad m => OrgParser m (F Blocks)
 definitionList = try $ do n <- lookAhead (bulletListStart' Nothing)
-                          fmap B.definitionList . fmap compactify'DL . sequence
+                          fmap B.definitionList . fmap compactifyDL . sequence
                             <$> many1 (definitionListItem $ bulletListStart' (Just n))
 
-bulletList :: OrgParser (F Blocks)
+bulletList :: PandocMonad m => OrgParser m (F Blocks)
 bulletList = try $ do n <- lookAhead (bulletListStart' Nothing)
-                      fmap B.bulletList . fmap compactify' . sequence
+                      fmap B.bulletList . fmap compactify . sequence
                         <$> many1 (listItem (bulletListStart' $ Just n))
 
-orderedList :: OrgParser (F Blocks)
-orderedList = fmap B.orderedList . fmap compactify' . sequence
+orderedList :: PandocMonad m => OrgParser m (F Blocks)
+orderedList = fmap B.orderedList . fmap compactify . sequence
               <$> many1 (listItem orderedListStart)
 
-bulletListStart' :: Maybe Int -> OrgParser Int
+bulletListStart' :: Monad m => Maybe Int -> OrgParser m Int
 -- returns length of bulletList prefix, inclusive of marker
 bulletListStart' Nothing  = do ind <- length <$> many spaceChar
                                oneOf (bullets $ ind == 0)
@@ -925,8 +926,9 @@ bulletListStart' (Just n) = do count (n-1) spaceChar
 bullets :: Bool -> String
 bullets unindented = if unindented then "+-" else "*+-"
 
-definitionListItem :: OrgParser Int
-                   -> OrgParser (F (Inlines, [Blocks]))
+definitionListItem :: PandocMonad m
+                   => OrgParser m Int
+                   -> OrgParser m (F (Inlines, [Blocks]))
 definitionListItem parseMarkerGetLength = try $ do
   markerLength <- parseMarkerGetLength
   term <- manyTill (noneOf "\n\r") (try definitionMarker)
@@ -942,8 +944,9 @@ definitionListItem parseMarkerGetLength = try $ do
 
 
 -- parse raw text for one list item, excluding start marker and continuations
-listItem :: OrgParser Int
-         -> OrgParser (F Blocks)
+listItem :: PandocMonad m
+         => OrgParser m Int
+         -> OrgParser m (F Blocks)
 listItem start = try . withContext ListItemState $ do
   markerLength <- try start
   firstLine <- anyLineNewline
@@ -953,8 +956,8 @@ listItem start = try . withContext ListItemState $ do
 
 -- continuation of a list item - indented and separated by blankline or endline.
 -- Note: nested lists are parsed as continuations.
-listContinuation :: Int
-                 -> OrgParser String
+listContinuation :: Monad m => Int
+                 -> OrgParser m String
 listContinuation markerLength = try $
   notFollowedBy' blankline
   *> (mappend <$> (concat <$> many1 listLine)
@@ -963,7 +966,7 @@ listContinuation markerLength = try $
    listLine = try $ indentWith markerLength *> anyLineNewline
 
    -- indent by specified number of spaces (or equiv. tabs)
-   indentWith :: Int -> OrgParser String
+   indentWith :: Monad m => Int -> OrgParser m String
    indentWith num = do
      tabStop <- getOption readerTabStop
      if num < tabStop
@@ -972,5 +975,5 @@ listContinuation markerLength = try $
                    , try (char '\t' >> count (num - tabStop) (char ' ')) ]
 
 -- | Parse any line, include the final newline in the output.
-anyLineNewline :: OrgParser String
+anyLineNewline :: Monad m => OrgParser m String
 anyLineNewline = (++ "\n") <$> anyLine

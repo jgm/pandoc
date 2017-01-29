@@ -32,7 +32,6 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
                                    inlineCommand,
-                                   handleIncludes
                                  ) where
 
 import Text.Pandoc.Definition
@@ -48,22 +47,28 @@ import Control.Monad
 import Text.Pandoc.Builder
 import Control.Applicative ((<|>), many, optional)
 import Data.Maybe (fromMaybe, maybeToList)
-import System.Environment (getEnv)
 import System.FilePath (replaceExtension, (</>), takeExtension, addExtension)
 import Data.List (intercalate)
 import qualified Data.Map as M
-import qualified Control.Exception as E
 import Text.Pandoc.Highlighting (fromListingsLanguage)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Error
+import Control.Monad.Except (throwError, catchError)
+import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileLazy,
+                          warning, warningWithPos)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
-readLaTeX :: ReaderOptions -- ^ Reader options
+readLaTeX :: PandocMonad m
+          => ReaderOptions -- ^ Reader options
           -> String        -- ^ String to parse (assumes @'\n'@ line endings)
-          -> Either PandocError Pandoc
-readLaTeX opts = readWith parseLaTeX def{ stateOptions = opts }
+          -> m Pandoc
+readLaTeX opts ltx = do
+  parsed <- readWithM parseLaTeX def{ stateOptions = opts } ltx
+  case parsed of
+    Right result -> return result
+    Left e -> throwError e
 
-parseLaTeX :: LP Pandoc
+parseLaTeX :: PandocMonad m => LP m Pandoc
 parseLaTeX = do
   bs <- blocks
   eof
@@ -72,9 +77,9 @@ parseLaTeX = do
   let (Pandoc _ bs') = doc bs
   return $ Pandoc meta bs'
 
-type LP = Parser String ParserState
+type LP m = ParserT String ParserState m
 
-anyControlSeq :: LP String
+anyControlSeq :: PandocMonad m => LP m String
 anyControlSeq = do
   char '\\'
   next <- option '\n' anyChar
@@ -83,7 +88,7 @@ anyControlSeq = do
        c | isLetter c -> (c:) <$> (many letter <* optional sp)
          | otherwise  -> return [c]
 
-controlSeq :: String -> LP String
+controlSeq :: PandocMonad m => String -> LP m String
 controlSeq name = try $ do
   char '\\'
   case name of
@@ -92,26 +97,26 @@ controlSeq name = try $ do
         cs   -> string cs <* notFollowedBy letter <* optional sp
   return name
 
-dimenarg :: LP String
+dimenarg :: PandocMonad m => LP m String
 dimenarg = try $ do
   ch  <- option "" $ string "="
   num <- many1 digit
   dim <- oneOfStrings ["pt","pc","in","bp","cm","mm","dd","cc","sp"]
   return $ ch ++ num ++ dim
 
-sp :: LP ()
+sp :: PandocMonad m => LP m ()
 sp = whitespace <|> endline
 
-whitespace :: LP ()
+whitespace :: PandocMonad m => LP m ()
 whitespace = skipMany1 $ satisfy (\c -> c == ' ' || c == '\t')
 
-endline :: LP ()
+endline :: PandocMonad m => LP m ()
 endline = try (newline >> lookAhead anyChar >> notFollowedBy blankline)
 
 isLowerHex :: Char -> Bool
 isLowerHex x = x >= '0' && x <= '9' || x >= 'a' && x <= 'f'
 
-tildeEscape :: LP Char
+tildeEscape :: PandocMonad m => LP m Char
 tildeEscape = try $ do
   string "^^"
   c <- satisfy (\x -> x >= '\0' && x <= '\128')
@@ -124,29 +129,29 @@ tildeEscape = try $ do
              | otherwise           -> return $ chr (x + 64)
      else return $ chr $ read ('0':'x':c:d)
 
-comment :: LP ()
+comment :: PandocMonad m => LP m ()
 comment = do
   char '%'
   skipMany (satisfy (/='\n'))
   optional newline
   return ()
 
-bgroup :: LP ()
+bgroup :: PandocMonad m => LP m ()
 bgroup = try $ do
   skipMany (spaceChar <|> try (newline <* notFollowedBy blankline))
   () <$ char '{'
      <|> () <$ controlSeq "bgroup"
      <|> () <$ controlSeq "begingroup"
 
-egroup :: LP ()
+egroup :: PandocMonad m => LP m ()
 egroup = () <$ char '}'
      <|> () <$ controlSeq "egroup"
      <|> () <$ controlSeq "endgroup"
 
-grouped :: Monoid a => LP a -> LP a
+grouped :: PandocMonad m => Monoid a => LP m a -> LP m a
 grouped parser = try $ bgroup *> (mconcat <$> manyTill parser egroup)
 
-braced :: LP String
+braced :: PandocMonad m => LP m String
 braced = bgroup *> (concat <$> manyTill
          (  many1 (satisfy (\c -> c /= '\\' && c /= '}' && c /= '{'))
         <|> try (string "\\}")
@@ -156,16 +161,16 @@ braced = bgroup *> (concat <$> manyTill
         <|> count 1 anyChar
          ) egroup)
 
-bracketed :: Monoid a => LP a -> LP a
+bracketed :: PandocMonad m => Monoid a => LP m a -> LP m a
 bracketed parser = try $ char '[' *> (mconcat <$> manyTill parser (char ']'))
 
-mathDisplay :: LP String -> LP Inlines
+mathDisplay :: PandocMonad m => LP m String -> LP m Inlines
 mathDisplay p = displayMath <$> (try p >>= applyMacros' . trim)
 
-mathInline :: LP String -> LP Inlines
+mathInline :: PandocMonad m => LP m String -> LP m Inlines
 mathInline p = math <$> (try p >>= applyMacros')
 
-mathChars :: LP String
+mathChars :: PandocMonad m => LP m String
 mathChars =
   concat <$> many (escapedChar
                <|> (snd <$> withRaw braced)
@@ -179,10 +184,10 @@ mathChars =
          isOrdChar '\\' = False
          isOrdChar _ = True
 
-quoted' :: (Inlines -> Inlines) -> LP String -> LP () -> LP Inlines
+quoted' :: PandocMonad m => (Inlines -> Inlines) -> LP m String -> LP m () -> LP m Inlines
 quoted' f starter ender = do
   startchs <- starter
-  smart <- getOption readerSmart
+  smart <- extensionEnabled Ext_smart <$> getOption readerExtensions
   if smart
      then do
        ils <- many (notFollowedBy ender >> inline)
@@ -194,7 +199,7 @@ quoted' f starter ender = do
                               _     -> startchs)
      else lit startchs
 
-doubleQuote :: LP Inlines
+doubleQuote :: PandocMonad m => LP m Inlines
 doubleQuote = do
   quoted' doubleQuoted (try $ string "``") (void $ try $ string "''")
    <|> quoted' doubleQuoted (string "“")        (void $ char '”')
@@ -202,15 +207,15 @@ doubleQuote = do
    <|> quoted' doubleQuoted (try $ string "\"`") (void $ try $ string "\"'")
    <|> quoted' doubleQuoted (string "\"")       (void $ char '"')
 
-singleQuote :: LP Inlines
+singleQuote :: PandocMonad m => LP m Inlines
 singleQuote = do
-  smart <- getOption readerSmart
+  smart <- extensionEnabled Ext_smart <$> getOption readerExtensions
   if smart
      then quoted' singleQuoted (string "`") (try $ char '\'' >> notFollowedBy letter)
       <|> quoted' singleQuoted (string "‘") (try $ char '’' >> notFollowedBy letter)
      else str <$> many1 (oneOf "`\'‘’")
 
-inline :: LP Inlines
+inline :: PandocMonad m => LP m Inlines
 inline = (mempty <$ comment)
      <|> (space  <$ whitespace)
      <|> (softbreak <$ endline)
@@ -231,14 +236,15 @@ inline = (mempty <$ comment)
      <|> mathInline  (char '$' *> mathChars <* char '$')
      <|> (guardEnabled Ext_literate_haskell *> char '|' *> doLHSverb)
      <|> (str . (:[]) <$> tildeEscape)
-     <|> (str . (:[]) <$> oneOf "[]")
-     <|> (str . (:[]) <$> oneOf "#&~^'`\"[]") -- TODO print warning?
-     -- <|> (str <$> count 1 (satisfy (\c -> c /= '\\' && c /='\n' && c /='}' && c /='{'))) -- eat random leftover characters
+     <|> (do res <- oneOf "#&~^'`\"[]"
+             pos <- getPosition
+             warningWithPos pos ("Parsing unescaped '" ++ [res] ++ "'")
+             return $ str [res])
 
-inlines :: LP Inlines
+inlines :: PandocMonad m => LP m Inlines
 inlines = mconcat <$> many (notFollowedBy (char '}') *> inline)
 
-inlineGroup :: LP Inlines
+inlineGroup :: PandocMonad m => LP m Inlines
 inlineGroup = do
   ils <- grouped inline
   if isNull ils
@@ -247,10 +253,11 @@ inlineGroup = do
           -- we need the span so we can detitlecase bibtex entries;
           -- we need to know when something is {C}apitalized
 
-block :: LP Blocks
+block :: PandocMonad m => LP m Blocks
 block = (mempty <$ comment)
     <|> (mempty <$ ((spaceChar <|> newline) *> spaces))
     <|> environment
+    <|> include
     <|> macro
     <|> blockCommand
     <|> paragraph
@@ -258,10 +265,10 @@ block = (mempty <$ comment)
     <|> (mempty <$ char '&')  -- loose & in table environment
 
 
-blocks :: LP Blocks
+blocks :: PandocMonad m => LP m Blocks
 blocks = mconcat <$> many block
 
-getRawCommand :: String -> LP String
+getRawCommand :: PandocMonad m => String -> LP m String
 getRawCommand name' = do
   rawargs <- withRaw (many (try (optional sp *> opt)) *>
                       option "" (try (optional sp *> dimenarg)) *>
@@ -273,7 +280,7 @@ lookupListDefault d = (fromMaybe d .) . lookupList
   where
   lookupList l m = msum $ map (`M.lookup` m) l
 
-blockCommand :: LP Blocks
+blockCommand :: PandocMonad m => LP m Blocks
 blockCommand = try $ do
   name <- anyControlSeq
   guard $ name /= "begin" && name /= "end"
@@ -291,21 +298,21 @@ inBrackets :: Inlines -> Inlines
 inBrackets x = str "[" <> x <> str "]"
 
 -- eat an optional argument and one or more arguments in braces
-ignoreInlines :: String -> (String, LP Inlines)
+ignoreInlines :: PandocMonad m => String -> (String, LP m Inlines)
 ignoreInlines name = (name, doraw <|> (mempty <$ optargs))
   where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
         doraw = (rawInline "latex" . (contseq ++) . snd) <$>
                  (getOption readerParseRaw >>= guard >> withRaw optargs)
 
-ignoreBlocks :: String -> (String, LP Blocks)
+ignoreBlocks :: PandocMonad m => String -> (String, LP m Blocks)
 ignoreBlocks name = (name, doraw <|> (mempty <$ optargs))
   where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
         doraw = (rawBlock "latex" . (contseq ++) . snd) <$>
                  (getOption readerParseRaw >>= guard >> withRaw optargs)
 
-blockCommands :: M.Map String (LP Blocks)
+blockCommands :: PandocMonad m => M.Map String (LP m Blocks)
 blockCommands = M.fromList $
   [ ("par", mempty <$ skipopts)
   , ("title", mempty <$ (skipopts *>
@@ -346,8 +353,6 @@ blockCommands = M.fromList $
   , ("documentclass", skipopts *> braced *> preamble)
   , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
   , ("caption", skipopts *> setCaption)
-  , ("PandocStartInclude", startInclude)
-  , ("PandocEndInclude", endInclude)
   , ("bibliography", mempty <$ (skipopts *> braced >>=
                                 addMeta "bibliography" . splitBibs))
   , ("addbibresource", mempty <$ (skipopts *> braced >>=
@@ -370,14 +375,14 @@ blockCommands = M.fromList $
   , "newpage"
   ]
 
-addMeta :: ToMetaValue a => String -> a -> LP ()
+addMeta :: PandocMonad m => ToMetaValue a => String -> a -> LP m ()
 addMeta field val = updateState $ \st ->
   st{ stateMeta = addMetaField field val $ stateMeta st }
 
 splitBibs :: String -> [Inlines]
 splitBibs = map (str . flip replaceExtension "bib" . trim) . splitBy (==',')
 
-setCaption :: LP Blocks
+setCaption :: PandocMonad m => LP m Blocks
 setCaption = do
   ils <- tok
   mblabel <- option Nothing $
@@ -389,10 +394,10 @@ setCaption = do
   updateState $ \st -> st{ stateCaption = Just ils' }
   return mempty
 
-resetCaption :: LP ()
+resetCaption :: PandocMonad m => LP m ()
 resetCaption = updateState $ \st -> st{ stateCaption = Nothing }
 
-authors :: LP ()
+authors :: PandocMonad m => LP m ()
 authors = try $ do
   char '{'
   let oneAuthor = mconcat <$>
@@ -403,7 +408,7 @@ authors = try $ do
   char '}'
   addMeta "author" (map trimInlines auths)
 
-section :: Attr -> Int -> LP Blocks
+section :: PandocMonad m => Attr -> Int -> LP m Blocks
 section (ident, classes, kvs) lvl = do
   hasChapters <- stateHasChapters `fmap` getState
   let lvl' = if hasChapters then lvl + 1 else lvl
@@ -413,7 +418,7 @@ section (ident, classes, kvs) lvl = do
   attr' <- registerHeader (lab, classes, kvs) contents
   return $ headerWith attr' lvl' contents
 
-inlineCommand :: LP Inlines
+inlineCommand :: PandocMonad m => LP m Inlines
 inlineCommand = try $ do
   name <- anyControlSeq
   guard $ name /= "begin" && name /= "end"
@@ -435,14 +440,14 @@ inlineCommand = try $ do
       optional (try (string "{}")))
     <|> raw
 
-unlessParseRaw :: LP ()
+unlessParseRaw :: PandocMonad m => LP m ()
 unlessParseRaw = getOption readerParseRaw >>= guard . not
 
 isBlockCommand :: String -> Bool
-isBlockCommand s = s `M.member` blockCommands
+isBlockCommand s = s `M.member` (blockCommands :: M.Map String (LP PandocPure Blocks))
 
 
-inlineEnvironments :: M.Map String (LP Inlines)
+inlineEnvironments :: PandocMonad m => M.Map String (LP m Inlines)
 inlineEnvironments = M.fromList
   [ ("displaymath", mathEnv id Nothing "displaymath")
   , ("math", math <$> verbEnv "math")
@@ -460,7 +465,7 @@ inlineEnvironments = M.fromList
   , ("alignat*", mathEnv id (Just "aligned") "alignat*")
   ]
 
-inlineCommands :: M.Map String (LP Inlines)
+inlineCommands :: PandocMonad m => M.Map String (LP m Inlines)
 inlineCommands = M.fromList $
   [ ("emph", extractSpaces emph <$> tok)
   , ("textit", extractSpaces emph <$> tok)
@@ -621,7 +626,7 @@ inlineCommands = M.fromList $
   -- in which case they will appear as raw latex blocks:
   [ "index" ]
 
-mkImage :: [(String, String)] -> String -> LP Inlines
+mkImage :: PandocMonad m => [(String, String)] -> String -> LP m Inlines
 mkImage options src = do
    let replaceTextwidth (k,v) = case numUnit v of
                                   Just (num, "\\textwidth") -> (k, showFl (num * 100) ++ "%")
@@ -645,7 +650,7 @@ unescapeURL ('\\':x:xs) | isEscapable x = x:unescapeURL xs
 unescapeURL (x:xs) = x:unescapeURL xs
 unescapeURL [] = ""
 
-enquote :: LP Inlines
+enquote :: PandocMonad m => LP m Inlines
 enquote = do
   skipopts
   context <- stateQuoteContext <$> getState
@@ -653,18 +658,18 @@ enquote = do
      then singleQuoted <$> withQuoteContext InSingleQuote tok
      else doubleQuoted <$> withQuoteContext InDoubleQuote tok
 
-doverb :: LP Inlines
+doverb :: PandocMonad m => LP m Inlines
 doverb = do
   marker <- anyChar
   code <$> manyTill (satisfy (/='\n')) (char marker)
 
-doLHSverb :: LP Inlines
+doLHSverb :: PandocMonad m => LP m Inlines
 doLHSverb = codeWith ("",["haskell"],[]) <$> manyTill (satisfy (/='\n')) (char '|')
 
-lit :: String -> LP Inlines
+lit :: String -> LP m Inlines
 lit = pure . str
 
-accent :: (Char -> String) -> Inlines -> LP Inlines
+accent :: (Char -> String) -> Inlines -> LP m Inlines
 accent f ils =
   case toList ils of
        (Str (x:xs) : ys) -> return $ fromList (Str (f x ++ xs) : ys)
@@ -870,53 +875,53 @@ breve 'U' = "Ŭ"
 breve 'u' = "ŭ"
 breve c   = [c]
 
-tok :: LP Inlines
+tok :: PandocMonad m => LP m Inlines
 tok = try $ grouped inline <|> inlineCommand <|> str <$> count 1 inlineChar
 
-opt :: LP Inlines
+opt :: PandocMonad m => LP m Inlines
 opt = bracketed inline
 
-rawopt :: LP String
+rawopt :: PandocMonad m => LP m String
 rawopt = do
   contents <- bracketed (many1 (noneOf "[]") <|> try (string "\\]") <|>
                    try (string "\\[") <|> rawopt)
   optional sp
   return $ "[" ++ contents ++ "]"
 
-skipopts :: LP ()
+skipopts :: PandocMonad m => LP m ()
 skipopts = skipMany rawopt
 
 -- opts in angle brackets are used in beamer
-rawangle :: LP ()
+rawangle :: PandocMonad m => LP m ()
 rawangle = try $ do
   char '<'
   skipMany (noneOf ">")
   char '>'
   return ()
 
-skipangles :: LP ()
+skipangles :: PandocMonad m => LP m ()
 skipangles = skipMany rawangle
 
-inlineText :: LP Inlines
+inlineText :: PandocMonad m => LP m Inlines
 inlineText = str <$> many1 inlineChar
 
-inlineChar :: LP Char
+inlineChar :: PandocMonad m => LP m Char
 inlineChar = noneOf "\\$%&~#{}^'`\"‘’“”-[] \t\n"
 
-environment :: LP Blocks
+environment :: PandocMonad m => LP m Blocks
 environment = do
   controlSeq "begin"
   name <- braced
   M.findWithDefault mzero name environments
     <|> rawEnv name
 
-inlineEnvironment :: LP Inlines
+inlineEnvironment :: PandocMonad m => LP m Inlines
 inlineEnvironment = try $ do
   controlSeq "begin"
   name <- braced
   M.findWithDefault mzero name inlineEnvironments
 
-rawEnv :: String -> LP Blocks
+rawEnv :: PandocMonad m => String -> LP m Blocks
 rawEnv name = do
   parseRaw <- getOption readerParseRaw
   rawOptions <- mconcat <$> many rawopt
@@ -928,50 +933,7 @@ rawEnv name = do
 
 ----
 
-type IncludeParser = ParserT String [String] IO String
-
--- | Replace "include" commands with file contents.
-handleIncludes :: String -> IO (Either PandocError String)
-handleIncludes s =  mapLeft (ParsecError s) <$> runParserT includeParser' [] "input" s
-
-includeParser' :: IncludeParser
-includeParser' =
-  concat <$> many (comment' <|> escaped' <|> blob' <|> include'
-                   <|> startMarker' <|> endMarker'
-                   <|> verbCmd' <|> verbatimEnv' <|> backslash')
-
-comment' :: IncludeParser
-comment' = do
-  char '%'
-  xs <- manyTill anyChar newline
-  return ('%':xs ++ "\n")
-
-escaped' :: IncludeParser
-escaped' = try $ string "\\%" <|> string "\\\\"
-
-verbCmd' :: IncludeParser
-verbCmd' = fmap snd <$>
-  withRaw $ try $ do
-             string "\\verb"
-             c <- anyChar
-             manyTill anyChar (char c)
-
-verbatimEnv' :: IncludeParser
-verbatimEnv' = fmap snd <$>
-  withRaw $ try $ do
-             string "\\begin"
-             name <- braced'
-             guard $ name `elem` ["verbatim", "Verbatim", "BVerbatim",
-                                  "lstlisting", "minted", "alltt", "comment"]
-             manyTill anyChar (try $ string $ "\\end{" ++ name ++ "}")
-
-blob' :: IncludeParser
-blob' = try $ many1 (noneOf "\\%")
-
-backslash' :: IncludeParser
-backslash' = string "\\"
-
-braced' :: IncludeParser
+braced' :: PandocMonad m => LP m String
 braced' = try $ char '{' *> manyTill (satisfy (/='}')) (char '}')
 
 maybeAddExtension :: String -> FilePath -> FilePath
@@ -980,8 +942,8 @@ maybeAddExtension ext fp =
      then addExtension fp ext
      else fp
 
-include' :: IncludeParser
-include' = do
+include :: PandocMonad m => LP m Blocks
+include = do
   fs' <- try $ do
               char '\\'
               name <- try (string "include")
@@ -993,59 +955,45 @@ include' = do
               return $ if name == "usepackage"
                           then map (maybeAddExtension ".sty") fs
                           else map (maybeAddExtension ".tex") fs
-  pos <- getPosition
-  containers <- getState
-  let fn = case containers of
-                (f':_) -> f'
-                []     -> "input"
+  oldPos <- getPosition
+  oldInput <- getInput
   -- now process each include file in order...
-  rest <- getInput
-  results' <- forM fs' (\f -> do
+  mconcat <$> forM fs' (\f -> do
+    containers <- stateContainers <$> getState
     when (f `elem` containers) $
-      fail "Include file loop!"
+      throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
+    updateState $ \s -> s{ stateContainers = f : stateContainers s }
     contents <- lift $ readTeXFile f
-    return $ "\\PandocStartInclude{" ++ f ++ "}" ++
-             contents ++ "\\PandocEndInclude{" ++
-             fn ++ "}{" ++ show (sourceLine pos) ++ "}{"
-             ++ show (sourceColumn pos) ++ "}")
-  setInput $ concat results' ++ rest
-  return ""
+    setPosition $ newPos f 1 1
+    setInput contents
+    bs <- blocks
+    setInput oldInput
+    setPosition oldPos
+    updateState $ \s -> s{ stateContainers = tail $ stateContainers s }
+    return bs)
 
-startMarker' :: IncludeParser
-startMarker' = try $ do
-  string "\\PandocStartInclude"
-  fn <- braced'
-  updateState (fn:)
-  setPosition $ newPos fn 1 1
-  return $ "\\PandocStartInclude{" ++ fn ++ "}"
-
-endMarker' :: IncludeParser
-endMarker' = try $ do
-  string "\\PandocEndInclude"
-  fn <- braced'
-  ln <- braced'
-  co <- braced'
-  updateState tail
-  setPosition $ newPos fn (fromMaybe 1 $ safeRead ln) (fromMaybe 1 $ safeRead co)
-  return $ "\\PandocEndInclude{" ++ fn ++ "}{" ++ ln ++ "}{" ++
-               co ++ "}"
-
-readTeXFile :: FilePath -> IO String
+readTeXFile :: PandocMonad m => FilePath -> m String
 readTeXFile f = do
-  texinputs <- E.catch (getEnv "TEXINPUTS") $ \(_ :: E.SomeException) ->
-                   return "."
-  let ds = splitBy (==':') texinputs
-  readFileFromDirs ds f
+  texinputs <- fromMaybe "." <$> lookupEnv "TEXINPUTS"
+  readFileFromDirs (splitBy (==':') texinputs) f
 
-readFileFromDirs :: [FilePath] -> FilePath -> IO String
-readFileFromDirs [] _ = return ""
-readFileFromDirs (d:ds) f =
-  E.catch (UTF8.readFile $ d </> f) $ \(_ :: E.SomeException) ->
-    readFileFromDirs ds f
+readFileFromDirs :: PandocMonad m => [FilePath] -> FilePath -> m String
+readFileFromDirs [] f = do
+    warning $ "Could not load include file " ++ f ++ ", skipping."
+    return ""
+readFileFromDirs (d:ds) f = do
+  res <- readFileLazy' (d </> f)
+  case res of
+       Right s -> return s
+       Left _  -> readFileFromDirs ds f
+
+readFileLazy' :: PandocMonad m => FilePath -> m (Either PandocError String)
+readFileLazy' f = catchError ((Right . UTF8.toStringLazy) <$> readFileLazy f) $
+  \(e :: PandocError) -> return (Left e)
 
 ----
 
-keyval :: LP (String, String)
+keyval :: PandocMonad m => LP m (String, String)
 keyval = try $ do
   key <- many1 alphaNum
   val <- option "" $ char '=' >> many1 (alphaNum <|> char '.' <|> char '\\')
@@ -1055,25 +1003,25 @@ keyval = try $ do
   return (key, val)
 
 
-keyvals :: LP [(String, String)]
+keyvals :: PandocMonad m => LP m [(String, String)]
 keyvals = try $ char '[' *> manyTill keyval (char ']')
 
-alltt :: String -> LP Blocks
+alltt :: PandocMonad m => String -> LP m Blocks
 alltt t = walk strToCode <$> parseFromString blocks
   (substitute " " "\\ " $ substitute "%" "\\%" $
    intercalate "\\\\\n" $ lines t)
   where strToCode (Str s) = Code nullAttr s
         strToCode x       = x
 
-rawLaTeXBlock :: LP String
+rawLaTeXBlock :: PandocMonad m => LP m String
 rawLaTeXBlock = snd <$> try (withRaw (environment <|> blockCommand))
 
-rawLaTeXInline :: LP Inline
+rawLaTeXInline :: PandocMonad m => LP m Inline
 rawLaTeXInline = do
   raw <- (snd <$> withRaw inlineCommand) <|> (snd <$> withRaw blockCommand)
   RawInline "latex" <$> applyMacros' raw
 
-addImageCaption :: Blocks -> LP Blocks
+addImageCaption :: PandocMonad m => Blocks -> LP m Blocks
 addImageCaption = walkM go
   where go (Image attr alt (src,tit)) = do
           mbcapt <- stateCaption <$> getState
@@ -1082,7 +1030,7 @@ addImageCaption = walkM go
                Nothing  -> Image attr alt (src,tit)
         go x = return x
 
-addTableCaption :: Blocks -> LP Blocks
+addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
   where go (Table c als ws hs rs) = do
           mbcapt <- stateCaption <$> getState
@@ -1091,7 +1039,7 @@ addTableCaption = walkM go
                Nothing  -> Table c als ws hs rs
         go x = return x
 
-environments :: M.Map String (LP Blocks)
+environments :: PandocMonad m => M.Map String (LP m Blocks)
 environments = M.fromList
   [ ("document", env "document" blocks <* skipMany anyChar)
   , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
@@ -1159,7 +1107,7 @@ environments = M.fromList
   , ("alignat*", mathEnv para (Just "aligned") "alignat*")
   ]
 
-letterContents :: LP Blocks
+letterContents :: PandocMonad m => LP m Blocks
 letterContents = do
   bs <- blocks
   st <- getState
@@ -1170,7 +1118,7 @@ letterContents = do
                   _ -> mempty
   return $ addr <> bs -- sig added by \closing
 
-closing :: LP Blocks
+closing :: PandocMonad m => LP m Blocks
 closing = do
   contents <- tok
   st <- getState
@@ -1184,17 +1132,17 @@ closing = do
                   _ -> mempty
   return $ para (trimInlines contents) <> sigs
 
-item :: LP Blocks
+item :: PandocMonad m => LP m Blocks
 item = blocks *> controlSeq "item" *> skipopts *> blocks
 
-looseItem :: LP Blocks
+looseItem :: PandocMonad m => LP m Blocks
 looseItem = do
   ctx <- stateParserContext `fmap` getState
   if ctx == ListItemState
      then mzero
      else return mempty
 
-descItem :: LP (Inlines, [Blocks])
+descItem :: PandocMonad m => LP m (Inlines, [Blocks])
 descItem = do
   blocks -- skip blocks before item
   controlSeq "item"
@@ -1203,12 +1151,12 @@ descItem = do
   bs <- blocks
   return (ils, [bs])
 
-env :: String -> LP a -> LP a
+env :: PandocMonad m => String -> LP m a -> LP m a
 env name p = p <*
   (try (controlSeq "end" *> braced >>= guard . (== name))
     <?> ("\\end{" ++ name ++ "}"))
 
-listenv :: String -> LP a -> LP a
+listenv :: PandocMonad m => String -> LP m a -> LP m a
 listenv name p = try $ do
   oldCtx <- stateParserContext `fmap` getState
   updateState $ \st -> st{ stateParserContext = ListItemState }
@@ -1216,14 +1164,14 @@ listenv name p = try $ do
   updateState $ \st -> st{ stateParserContext = oldCtx }
   return res
 
-mathEnv :: (Inlines -> a) -> Maybe String -> String -> LP a
+mathEnv :: PandocMonad m => (Inlines -> a) -> Maybe String -> String -> LP m a
 mathEnv f innerEnv name = f <$> mathDisplay (inner <$> verbEnv name)
    where inner x = case innerEnv of
                       Nothing -> x
                       Just y  -> "\\begin{" ++ y ++ "}\n" ++ x ++
                                     "\\end{" ++ y ++ "}"
 
-verbEnv :: String -> LP String
+verbEnv :: PandocMonad m => String -> LP m String
 verbEnv name = do
   skipopts
   optional blankline
@@ -1231,7 +1179,7 @@ verbEnv name = do
   res <- manyTill anyChar endEnv
   return $ stripTrailingNewlines res
 
-fancyverbEnv :: String -> LP Blocks
+fancyverbEnv :: PandocMonad m => String -> LP m Blocks
 fancyverbEnv name = do
   options <- option [] keyvals
   let kvs = [ (if k == "firstnumber"
@@ -1242,7 +1190,7 @@ fancyverbEnv name = do
   let attr = ("",classes,kvs)
   codeBlockWith attr <$> verbEnv name
 
-orderedList' :: LP Blocks
+orderedList' :: PandocMonad m => LP m Blocks
 orderedList' = do
   optional sp
   (_, style, delim) <- option (1, DefaultStyle, DefaultDelim) $
@@ -1259,19 +1207,20 @@ orderedList' = do
   bs <- listenv "enumerate" (many item)
   return $ orderedListWith (start, style, delim) bs
 
-paragraph :: LP Blocks
+paragraph :: PandocMonad m => LP m Blocks
 paragraph = do
   x <- trimInlines . mconcat <$> many1 inline
   if x == mempty
      then return mempty
      else return $ para x
 
-preamble :: LP Blocks
+preamble :: PandocMonad m => LP m Blocks
 preamble = mempty <$> manyTill preambleBlock beginDoc
   where beginDoc = lookAhead $ try $ controlSeq "begin" *> string "{document}"
         preambleBlock =  void comment
                      <|> void sp
                      <|> void blanklines
+                     <|> void include
                      <|> void macro
                      <|> void blockCommand
                      <|> void anyControlSeq
@@ -1292,7 +1241,7 @@ addSuffix s ks@(_:_) =
   in  init ks ++ [k {citationSuffix = citationSuffix k ++ s}]
 addSuffix _ _ = []
 
-simpleCiteArgs :: LP [Citation]
+simpleCiteArgs :: PandocMonad m => LP m [Citation]
 simpleCiteArgs = try $ do
   first  <- optionMaybe $ toList <$> opt
   second <- optionMaybe $ toList <$> opt
@@ -1312,7 +1261,7 @@ simpleCiteArgs = try $ do
                         }
   return $ addPrefix pre $ addSuffix suf $ map conv keys
 
-citationLabel :: LP String
+citationLabel :: PandocMonad m => LP m String
 citationLabel  = optional sp *>
   (many1 (satisfy isBibtexKeyChar)
           <* optional sp
@@ -1320,7 +1269,7 @@ citationLabel  = optional sp *>
           <* optional sp)
   where isBibtexKeyChar c = isAlphaNum c || c `elem` (".:;?!`'()/*@_+=-[]" :: String)
 
-cites :: CitationMode -> Bool -> LP [Citation]
+cites :: PandocMonad m => CitationMode -> Bool -> LP m [Citation]
 cites mode multi = try $ do
   cits <- if multi
              then many1 simpleCiteArgs
@@ -1332,12 +1281,12 @@ cites mode multi = try $ do
                              []       -> []
         _            -> map (\a -> a {citationMode = mode}) cs
 
-citation :: String -> CitationMode -> Bool -> LP Inlines
+citation :: PandocMonad m => String -> CitationMode -> Bool -> LP m Inlines
 citation name mode multi = do
   (c,raw) <- withRaw $ cites mode multi
   return $ cite c (rawInline "latex" $ "\\" ++ name ++ raw)
 
-complexNatbibCitation :: CitationMode -> LP Inlines
+complexNatbibCitation :: PandocMonad m => CitationMode -> LP m Inlines
 complexNatbibCitation mode = try $ do
   let ils = (toList . trimInlines . mconcat) <$>
               many (notFollowedBy (oneOf "\\};") >> inline)
@@ -1359,7 +1308,7 @@ complexNatbibCitation mode = try $ do
 
 -- tables
 
-parseAligns :: LP [Alignment]
+parseAligns :: PandocMonad m => LP m [Alignment]
 parseAligns = try $ do
   char '{'
   let maybeBar = skipMany $ sp <|> () <$ char '|' <|> () <$ (char '@' >> braced)
@@ -1375,7 +1324,7 @@ parseAligns = try $ do
   spaces
   return aligns'
 
-hline :: LP ()
+hline :: PandocMonad m => LP m ()
 hline = try $ do
   spaces'
   controlSeq "hline" <|>
@@ -1389,16 +1338,16 @@ hline = try $ do
   optional $ bracketed (many1 (satisfy (/=']')))
   return ()
 
-lbreak :: LP ()
+lbreak :: PandocMonad m => LP m ()
 lbreak = () <$ try (spaces' *>
                     (controlSeq "\\" <|> controlSeq "tabularnewline") <*
                     spaces')
 
-amp :: LP ()
+amp :: PandocMonad m => LP m ()
 amp = () <$ try (spaces' *> char '&' <* spaces')
 
-parseTableRow :: Int  -- ^ number of columns
-              -> LP [Blocks]
+parseTableRow :: PandocMonad m => Int  -- ^ number of columns
+              -> LP m [Blocks]
 parseTableRow cols = try $ do
   let tableCellInline = notFollowedBy (amp <|> lbreak) >> inline
   let minipage = try $ controlSeq "begin" *> string "{minipage}" *>
@@ -1415,10 +1364,10 @@ parseTableRow cols = try $ do
   spaces'
   return cells''
 
-spaces' :: LP ()
+spaces' :: PandocMonad m => LP m ()
 spaces' = spaces *> skipMany (comment *> spaces)
 
-simpTable :: Bool -> LP Blocks
+simpTable :: PandocMonad m => Bool -> LP m Blocks
 simpTable hasWidthParameter = try $ do
   when hasWidthParameter $ () <$ (spaces' >> tok)
   skipopts
@@ -1441,20 +1390,6 @@ simpTable hasWidthParameter = try $ do
                     else header'
   lookAhead $ controlSeq "end" -- make sure we're at end
   return $ table mempty (zip aligns (repeat 0)) header'' rows
-
-startInclude :: LP Blocks
-startInclude = do
-  fn <- braced
-  setPosition $ newPos fn 1 1
-  return mempty
-
-endInclude :: LP Blocks
-endInclude = do
-  fn <- braced
-  ln <- braced
-  co <- braced
-  setPosition $ newPos fn (fromMaybe 1 $ safeRead ln) (fromMaybe 1 $ safeRead co)
-  return mempty
 
 removeDoubleQuotes :: String -> String
 removeDoubleQuotes ('"':xs) =

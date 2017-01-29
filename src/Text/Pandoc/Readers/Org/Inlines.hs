@@ -47,9 +47,11 @@ import           Text.Pandoc.Options
 import           Text.Pandoc.Readers.LaTeX ( inlineCommand, rawLaTeXInline )
 import           Text.TeXMath ( readTeX, writePandoc, DisplayType(..) )
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
+import           Text.Pandoc.Class (PandocMonad)
 
 import           Prelude hiding (sequence)
 import           Control.Monad ( guard, mplus, mzero, when, void )
+import           Control.Monad.Trans ( lift )
 import           Data.Char ( isAlphaNum, isSpace )
 import           Data.List ( intersperse )
 import           Data.Maybe ( fromMaybe )
@@ -60,46 +62,46 @@ import           Data.Traversable (sequence)
 --
 -- Functions acting on the parser state
 --
-recordAnchorId :: String -> OrgParser ()
+recordAnchorId :: PandocMonad m => String -> OrgParser m ()
 recordAnchorId i = updateState $ \s ->
   s{ orgStateAnchorIds = i : (orgStateAnchorIds s) }
 
-pushToInlineCharStack :: Char -> OrgParser ()
+pushToInlineCharStack :: PandocMonad m => Char -> OrgParser m ()
 pushToInlineCharStack c = updateState $ \s ->
   s{ orgStateEmphasisCharStack = c:orgStateEmphasisCharStack s }
 
-popInlineCharStack :: OrgParser ()
+popInlineCharStack :: PandocMonad m => OrgParser m ()
 popInlineCharStack = updateState $ \s ->
   s{ orgStateEmphasisCharStack = drop 1 . orgStateEmphasisCharStack $ s }
 
-surroundingEmphasisChar :: OrgParser [Char]
+surroundingEmphasisChar :: PandocMonad m => OrgParser m [Char]
 surroundingEmphasisChar =
   take 1 . drop 1 . orgStateEmphasisCharStack <$> getState
 
-startEmphasisNewlinesCounting :: Int -> OrgParser ()
+startEmphasisNewlinesCounting :: PandocMonad m => Int -> OrgParser m ()
 startEmphasisNewlinesCounting maxNewlines = updateState $ \s ->
   s{ orgStateEmphasisNewlines = Just maxNewlines }
 
-decEmphasisNewlinesCount :: OrgParser ()
+decEmphasisNewlinesCount :: PandocMonad m => OrgParser m ()
 decEmphasisNewlinesCount = updateState $ \s ->
   s{ orgStateEmphasisNewlines = (\n -> n - 1) <$> orgStateEmphasisNewlines s }
 
-newlinesCountWithinLimits :: OrgParser Bool
+newlinesCountWithinLimits :: PandocMonad m => OrgParser m Bool
 newlinesCountWithinLimits = do
   st <- getState
   return $ ((< 0) <$> orgStateEmphasisNewlines st) /= Just True
 
-resetEmphasisNewlines :: OrgParser ()
+resetEmphasisNewlines :: PandocMonad m => OrgParser m ()
 resetEmphasisNewlines = updateState $ \s ->
   s{ orgStateEmphasisNewlines = Nothing }
 
-addToNotesTable :: OrgNoteRecord -> OrgParser ()
+addToNotesTable :: PandocMonad m => OrgNoteRecord -> OrgParser m ()
 addToNotesTable note = do
   oldnotes <- orgStateNotes' <$> getState
   updateState $ \s -> s{ orgStateNotes' = note:oldnotes }
 
 -- | Parse a single Org-mode inline element
-inline :: OrgParser (F Inlines)
+inline :: PandocMonad m => OrgParser m (F Inlines)
 inline =
   choice [ whitespace
          , linebreak
@@ -125,7 +127,7 @@ inline =
   <?> "inline"
 
 -- | Read the rest of the input as inlines.
-inlines :: OrgParser (F Inlines)
+inlines :: PandocMonad m => OrgParser m (F Inlines)
 inlines = trimInlinesF . mconcat <$> many1 inline
 
 -- treat these as potentially non-text when parsing inline:
@@ -133,23 +135,23 @@ specialChars :: [Char]
 specialChars = "\"$'()*+-,./:;<=>@[\\]^_{|}~"
 
 
-whitespace :: OrgParser (F Inlines)
+whitespace :: PandocMonad m => OrgParser m (F Inlines)
 whitespace = pure B.space <$ skipMany1 spaceChar
                           <* updateLastPreCharPos
                           <* updateLastForbiddenCharPos
              <?> "whitespace"
 
-linebreak :: OrgParser (F Inlines)
+linebreak :: PandocMonad m => OrgParser m (F Inlines)
 linebreak = try $ pure B.linebreak <$ string "\\\\" <* skipSpaces <* newline
 
-str :: OrgParser (F Inlines)
+str :: PandocMonad m => OrgParser m (F Inlines)
 str = return . B.str <$> many1 (noneOf $ specialChars ++ "\n\r ")
       <* updateLastStrPos
 
 -- | An endline character that can be treated as a space, not a structural
 -- break.  This should reflect the values of the Emacs variable
 -- @org-element-pagaraph-separate@.
-endline :: OrgParser (F Inlines)
+endline :: PandocMonad m => OrgParser m (F Inlines)
 endline = try $ do
   newline
   notFollowedBy' endOfBlock
@@ -174,7 +176,7 @@ endline = try $ do
 -- contributors.  All this should be consolidated once an official Org-mode
 -- citation syntax has emerged.
 
-cite :: OrgParser (F Inlines)
+cite :: PandocMonad m => OrgParser m (F Inlines)
 cite = try $ berkeleyCite <|> do
   guardEnabled Ext_citations
   (cs, raw) <- withRaw $ choice
@@ -185,40 +187,41 @@ cite = try $ berkeleyCite <|> do
   return $ (flip B.cite (B.text raw)) <$> cs
 
 -- | A citation in Pandoc Org-mode style (@[prefix \@citekey suffix]@).
-pandocOrgCite :: OrgParser (F [Citation])
+pandocOrgCite :: PandocMonad m => OrgParser m (F [Citation])
 pandocOrgCite = try $
   char '[' *> skipSpaces *> citeList <* skipSpaces <* char ']'
 
-orgRefCite :: OrgParser (F [Citation])
+orgRefCite :: PandocMonad m => OrgParser m (F [Citation])
 orgRefCite = try $ choice
   [ normalOrgRefCite
   , fmap (:[]) <$> linkLikeOrgRefCite
   ]
 
-normalOrgRefCite :: OrgParser (F [Citation])
+normalOrgRefCite :: PandocMonad m => OrgParser m (F [Citation])
 normalOrgRefCite = try $ do
   mode <- orgRefCiteMode
-  -- org-ref style citation key, parsed into a citation of the given mode
-  let orgRefCiteItem :: OrgParser (F Citation)
-      orgRefCiteItem = try $ do
-        key <- orgRefCiteKey
-        returnF $ Citation
-          { citationId      = key
-          , citationPrefix  = mempty
-          , citationSuffix  = mempty
-          , citationMode    = mode
-          , citationNoteNum = 0
-          , citationHash    = 0
-          }
-  firstCitation <- orgRefCiteItem
-  moreCitations <- many (try $ char ',' *> orgRefCiteItem)
+  firstCitation <- orgRefCiteList mode
+  moreCitations <- many (try $ char ',' *> orgRefCiteList mode)
   return . sequence $ firstCitation : moreCitations
-    where
+ where
+  -- | A list of org-ref style citation keys, parsed as citation of the given
+  -- citation mode.
+  orgRefCiteList :: PandocMonad m => CitationMode -> OrgParser m (F Citation)
+  orgRefCiteList citeMode = try $ do
+    key <- orgRefCiteKey
+    returnF $ Citation
+     { citationId      = key
+     , citationPrefix  = mempty
+     , citationSuffix  = mempty
+     , citationMode    = citeMode
+     , citationNoteNum = 0
+     , citationHash    = 0
+     }
 
 -- | Read an Berkeley-style Org-mode citation.  Berkeley citation style was
 -- develop and adjusted to Org-mode style by John MacFarlane and Richard
 -- Lawrence, respectively, both philosophers at UC Berkeley.
-berkeleyCite :: OrgParser (F Inlines)
+berkeleyCite :: PandocMonad m => OrgParser m (F Inlines)
 berkeleyCite = try $ do
   bcl <- berkeleyCitationList
   return $ do
@@ -260,7 +263,7 @@ data BerkeleyCitationList = BerkeleyCitationList
   , berkeleyCiteCommonSuffix :: Maybe Inlines
   , berkeleyCiteCitations :: [Citation]
   }
-berkeleyCitationList :: OrgParser (F BerkeleyCitationList)
+berkeleyCitationList :: PandocMonad m => OrgParser m (F BerkeleyCitationList)
 berkeleyCitationList = try $ do
   char '['
   parens <- choice [ False <$ berkeleyBareTag, True <$ berkeleyParensTag ]
@@ -275,22 +278,22 @@ berkeleyCitationList = try $ do
     <*> sequence commonSuffix
     <*> citations)
  where
-   citationListPart :: OrgParser (F Inlines)
+   citationListPart :: PandocMonad m => OrgParser m (F Inlines)
    citationListPart = fmap (trimInlinesF . mconcat) . try . many1 $ do
      notFollowedBy' citeKey
      notFollowedBy (oneOf ";]")
      inline
 
-berkeleyBareTag :: OrgParser ()
+berkeleyBareTag :: PandocMonad m => OrgParser m ()
 berkeleyBareTag = try $ void berkeleyBareTag'
 
-berkeleyParensTag :: OrgParser ()
+berkeleyParensTag :: PandocMonad m => OrgParser m ()
 berkeleyParensTag = try . void $ enclosedByPair '(' ')' berkeleyBareTag'
 
-berkeleyBareTag' :: OrgParser ()
+berkeleyBareTag' :: PandocMonad m => OrgParser m ()
 berkeleyBareTag' = try $ void (string "cite")
 
-berkeleyTextualCite :: OrgParser (F [Citation])
+berkeleyTextualCite :: PandocMonad m => OrgParser m (F [Citation])
 berkeleyTextualCite = try $ do
   (suppressAuthor, key) <- citeKey
   returnF . return $ Citation
@@ -305,14 +308,14 @@ berkeleyTextualCite = try $ do
 -- The following is what a Berkeley-style bracketed textual citation parser
 -- would look like.  However, as these citations are a subset of Pandoc's Org
 -- citation style, this isn't used.
--- berkeleyBracketedTextualCite :: OrgParser (F [Citation])
+-- berkeleyBracketedTextualCite :: PandocMonad m => OrgParser m (F [Citation])
 -- berkeleyBracketedTextualCite = try . (fmap head) $
 --   enclosedByPair '[' ']' berkeleyTextualCite
 
 -- | Read a link-like org-ref style citation.  The citation includes pre and
 -- post text.  However, multiple citations are not possible due to limitations
 -- in the syntax.
-linkLikeOrgRefCite :: OrgParser (F Citation)
+linkLikeOrgRefCite :: PandocMonad m => OrgParser m (F Citation)
 linkLikeOrgRefCite = try $ do
   _    <- string "[["
   mode <- orgRefCiteMode
@@ -335,13 +338,13 @@ linkLikeOrgRefCite = try $ do
 
 -- | Read a citation key.  The characters allowed in citation keys are taken
 -- from the `org-ref-cite-re` variable in `org-ref.el`.
-orgRefCiteKey :: OrgParser String
+orgRefCiteKey :: PandocMonad m => OrgParser m String
 orgRefCiteKey = try . many1 . satisfy $ \c ->
                   isAlphaNum c || c `elem` ("-_:\\./"::String)
 
 -- | Supported citation types.  Only a small subset of org-ref types is
 -- supported for now.  TODO: rewrite this, use LaTeX reader as template.
-orgRefCiteMode :: OrgParser CitationMode
+orgRefCiteMode :: PandocMonad m => OrgParser m CitationMode
 orgRefCiteMode =
   choice $ map (\(s, mode) -> mode <$ try (string s <* char ':'))
     [ ("cite", AuthorInText)
@@ -352,10 +355,10 @@ orgRefCiteMode =
     , ("citeyear", SuppressAuthor)
     ]
 
-citeList :: OrgParser (F [Citation])
+citeList :: PandocMonad m => OrgParser m (F [Citation])
 citeList = sequence <$> sepEndBy1 citation (try $ char ';' *> skipSpaces)
 
-citation :: OrgParser (F Citation)
+citation :: PandocMonad m => OrgParser m (F Citation)
 citation = try $ do
   pref <- prefix
   (suppress_author, key) <- citeKey
@@ -384,10 +387,10 @@ citation = try $ do
               then (B.space <>) <$> rest
               else rest
 
-footnote :: OrgParser (F Inlines)
+footnote :: PandocMonad m => OrgParser m (F Inlines)
 footnote = try $ inlineNote <|> referencedNote
 
-inlineNote :: OrgParser (F Inlines)
+inlineNote :: PandocMonad m => OrgParser m (F Inlines)
 inlineNote = try $ do
   string "[fn:"
   ref <- many alphaNum
@@ -397,7 +400,7 @@ inlineNote = try $ do
        addToNotesTable ("fn:" ++ ref, note)
   return $ B.note <$> note
 
-referencedNote :: OrgParser (F Inlines)
+referencedNote :: PandocMonad m => OrgParser m (F Inlines)
 referencedNote = try $ do
   ref <- noteMarker
   return $ do
@@ -409,14 +412,14 @@ referencedNote = try $ do
         let contents' = runF contents st{ orgStateNotes' = [] }
         return $ B.note contents'
 
-linkOrImage :: OrgParser (F Inlines)
+linkOrImage :: PandocMonad m => OrgParser m (F Inlines)
 linkOrImage = explicitOrImageLink
               <|> selflinkOrImage
               <|> angleLink
               <|> plainLink
               <?> "link or image"
 
-explicitOrImageLink :: OrgParser (F Inlines)
+explicitOrImageLink :: PandocMonad m => OrgParser m (F Inlines)
 explicitOrImageLink = try $ do
   char '['
   srcF   <- applyCustomLinkFormat =<< possiblyEmptyLinkTarget
@@ -431,30 +434,30 @@ explicitOrImageLink = try $ do
       _ ->
         linkToInlinesF src =<< title'
 
-selflinkOrImage :: OrgParser (F Inlines)
+selflinkOrImage :: PandocMonad m => OrgParser m (F Inlines)
 selflinkOrImage = try $ do
   src <- char '[' *> linkTarget <* char ']'
   return $ linkToInlinesF src (B.str src)
 
-plainLink :: OrgParser (F Inlines)
+plainLink :: PandocMonad m => OrgParser m (F Inlines)
 plainLink = try $ do
   (orig, src) <- uri
   returnF $ B.link src "" (B.str orig)
 
-angleLink :: OrgParser (F Inlines)
+angleLink :: PandocMonad m => OrgParser m (F Inlines)
 angleLink = try $ do
   char '<'
   link <- plainLink
   char '>'
   return link
 
-linkTarget :: OrgParser String
+linkTarget :: PandocMonad m => OrgParser m String
 linkTarget = enclosedByPair '[' ']' (noneOf "\n\r[]")
 
-possiblyEmptyLinkTarget :: OrgParser String
+possiblyEmptyLinkTarget :: PandocMonad m => OrgParser m String
 possiblyEmptyLinkTarget = try linkTarget <|> ("" <$ string "[]")
 
-applyCustomLinkFormat :: String -> OrgParser (F String)
+applyCustomLinkFormat :: String -> OrgParser m (F String)
 applyCustomLinkFormat link = do
   let (linkType, rest) = break (== ':') link
   return $ do
@@ -487,7 +490,7 @@ internalLink link title = do
 -- @anchor-id@ contains spaces, we are more restrictive in what is accepted as
 -- an anchor.
 
-anchor :: OrgParser (F Inlines)
+anchor :: PandocMonad m => OrgParser m (F Inlines)
 anchor =  try $ do
   anchorId <- parseAnchor
   recordAnchorId anchorId
@@ -509,7 +512,7 @@ solidify = map replaceSpecialChar
            | otherwise       = '-'
 
 -- | Parses an inline code block and marks it as an babel block.
-inlineCodeBlock :: OrgParser (F Inlines)
+inlineCodeBlock :: PandocMonad m => OrgParser m (F Inlines)
 inlineCodeBlock = try $ do
   string "src_"
   lang <- many1 orgArgWordChar
@@ -519,13 +522,13 @@ inlineCodeBlock = try $ do
   let attrKeyVal  = map toRundocAttrib (("language", lang) : opts)
   returnF $ B.codeWith ("", attrClasses, attrKeyVal) inlineCode
  where
-   inlineBlockOption :: OrgParser (String, String)
+   inlineBlockOption :: PandocMonad m => OrgParser m (String, String)
    inlineBlockOption = try $ do
      argKey <- orgArgKey
      paramValue <- option "yes" orgInlineParamValue
      return (argKey, paramValue)
 
-   orgInlineParamValue :: OrgParser String
+   orgInlineParamValue :: PandocMonad m => OrgParser m String
    orgInlineParamValue = try $
      skipSpaces
        *> notFollowedBy (char ':')
@@ -533,7 +536,7 @@ inlineCodeBlock = try $ do
        <* skipSpaces
 
 
-emphasizedText :: OrgParser (F Inlines)
+emphasizedText :: PandocMonad m => OrgParser m (F Inlines)
 emphasizedText = do
   state <- getState
   guard . exportEmphasizedText . orgStateExportSettings $ state
@@ -544,60 +547,63 @@ emphasizedText = do
     , underline
     ]
 
-enclosedByPair :: Char          -- ^ opening char
+enclosedByPair :: PandocMonad m
+               => Char          -- ^ opening char
                -> Char          -- ^ closing char
-               -> OrgParser a   -- ^ parser
-               -> OrgParser [a]
+               -> OrgParser m a   -- ^ parser
+               -> OrgParser m [a]
 enclosedByPair s e p = char s *> many1Till p (char e)
 
-emph      :: OrgParser (F Inlines)
+emph      :: PandocMonad m => OrgParser m (F Inlines)
 emph      = fmap B.emph         <$> emphasisBetween '/'
 
-strong    :: OrgParser (F Inlines)
+strong    :: PandocMonad m => OrgParser m (F Inlines)
 strong    = fmap B.strong       <$> emphasisBetween '*'
 
-strikeout :: OrgParser (F Inlines)
+strikeout :: PandocMonad m => OrgParser m (F Inlines)
 strikeout = fmap B.strikeout    <$> emphasisBetween '+'
 
 -- There is no underline, so we use strong instead.
-underline :: OrgParser (F Inlines)
+underline :: PandocMonad m => OrgParser m (F Inlines)
 underline = fmap B.strong       <$> emphasisBetween '_'
 
-verbatim  :: OrgParser (F Inlines)
+verbatim  :: PandocMonad m => OrgParser m (F Inlines)
 verbatim  = return . B.code     <$> verbatimBetween '='
 
-code      :: OrgParser (F Inlines)
+code      :: PandocMonad m => OrgParser m (F Inlines)
 code      = return . B.code     <$> verbatimBetween '~'
 
-subscript   :: OrgParser (F Inlines)
+subscript   :: PandocMonad m => OrgParser m (F Inlines)
 subscript   = fmap B.subscript   <$> try (char '_' *> subOrSuperExpr)
 
-superscript :: OrgParser (F Inlines)
+superscript :: PandocMonad m => OrgParser m (F Inlines)
 superscript = fmap B.superscript <$> try (char '^' *> subOrSuperExpr)
 
-math      :: OrgParser (F Inlines)
+math      :: PandocMonad m => OrgParser m (F Inlines)
 math      = return . B.math      <$> choice [ math1CharBetween '$'
                                             , mathStringBetween '$'
                                             , rawMathBetween "\\(" "\\)"
                                             ]
 
-displayMath :: OrgParser (F Inlines)
+displayMath :: PandocMonad m => OrgParser m (F Inlines)
 displayMath = return . B.displayMath <$> choice [ rawMathBetween "\\[" "\\]"
                                                 , rawMathBetween "$$"  "$$"
                                                 ]
 
-updatePositions :: Char
-                -> OrgParser Char
+updatePositions :: PandocMonad m
+                => Char
+                -> OrgParser m Char
 updatePositions c = do
   when (c `elem` emphasisPreChars) updateLastPreCharPos
   when (c `elem` emphasisForbiddenBorderChars) updateLastForbiddenCharPos
   return c
 
-symbol :: OrgParser (F Inlines)
+symbol :: PandocMonad m => OrgParser m (F Inlines)
 symbol = return . B.str . (: "") <$> (oneOf specialChars >>= updatePositions)
 
-emphasisBetween :: Char
-                -> OrgParser (F Inlines)
+emphasisBetween :: PandocMonad m
+                => Char
+                -> OrgParser m (F Inlines)
 emphasisBetween c = try $ do
   startEmphasisNewlinesCounting emphasisAllowedNewlines
   res <- enclosedInlines (emphasisStart c) (emphasisEnd c)
@@ -606,8 +612,9 @@ emphasisBetween c = try $ do
        resetEmphasisNewlines
   return res
 
-verbatimBetween :: Char
-                -> OrgParser String
+verbatimBetween :: PandocMonad m
+                => Char
+                -> OrgParser m String
 verbatimBetween c = try $
   emphasisStart c *>
   many1TillNOrLessNewlines 1 verbatimChar (emphasisEnd c)
@@ -615,8 +622,9 @@ verbatimBetween c = try $
    verbatimChar = noneOf "\n\r" >>= updatePositions
 
 -- | Parses a raw string delimited by @c@ using Org's math rules
-mathStringBetween :: Char
-                  -> OrgParser String
+mathStringBetween :: PandocMonad m
+                  => Char
+                  -> OrgParser m String
 mathStringBetween c = try $ do
   mathStart c
   body <- many1TillNOrLessNewlines mathAllowedNewlines
@@ -626,8 +634,9 @@ mathStringBetween c = try $ do
   return $ body ++ [final]
 
 -- | Parse a single character between @c@ using math rules
-math1CharBetween :: Char
-                -> OrgParser String
+math1CharBetween :: PandocMonad m
+                 => Char
+                -> OrgParser m String
 math1CharBetween c = try $ do
   char c
   res <- noneOf $ c:mathForbiddenBorderChars
@@ -635,13 +644,14 @@ math1CharBetween c = try $ do
   eof <|> () <$ lookAhead (oneOf mathPostChars)
   return [res]
 
-rawMathBetween :: String
+rawMathBetween :: PandocMonad m
+               => String
                -> String
-               -> OrgParser String
+               -> OrgParser m String
 rawMathBetween s e = try $ string s *> manyTill anyChar (try $ string e)
 
 -- | Parses the start (opening character) of emphasis
-emphasisStart :: Char -> OrgParser Char
+emphasisStart :: PandocMonad m => Char -> OrgParser m Char
 emphasisStart c = try $ do
   guard =<< afterEmphasisPreChar
   guard =<< notAfterString
@@ -654,7 +664,7 @@ emphasisStart c = try $ do
   return c
 
 -- | Parses the closing character of emphasis
-emphasisEnd :: Char -> OrgParser Char
+emphasisEnd :: PandocMonad m => Char -> OrgParser m Char
 emphasisEnd c = try $ do
   guard =<< notAfterForbiddenBorderChar
   char c
@@ -665,11 +675,11 @@ emphasisEnd c = try $ do
  where acceptablePostChars =
            surroundingEmphasisChar >>= \x -> oneOf (x ++ emphasisPostChars)
 
-mathStart :: Char -> OrgParser Char
+mathStart :: PandocMonad m => Char -> OrgParser m Char
 mathStart c = try $
   char c <* notFollowedBy' (oneOf (c:mathForbiddenBorderChars))
 
-mathEnd :: Char -> OrgParser Char
+mathEnd :: PandocMonad m => Char -> OrgParser m Char
 mathEnd c = try $ do
   res <- noneOf (c:mathForbiddenBorderChars)
   char c
@@ -677,15 +687,15 @@ mathEnd c = try $ do
   return res
 
 
-enclosedInlines :: OrgParser a
-                -> OrgParser b
-                -> OrgParser (F Inlines)
+enclosedInlines :: PandocMonad m => OrgParser m a
+                -> OrgParser m b
+                -> OrgParser m (F Inlines)
 enclosedInlines start end = try $
   trimInlinesF . mconcat <$> enclosed start end inline
 
-enclosedRaw :: OrgParser a
-            -> OrgParser b
-            -> OrgParser String
+enclosedRaw :: PandocMonad m => OrgParser m a
+            -> OrgParser m b
+            -> OrgParser m String
 enclosedRaw start end = try $
   start *> (onSingleLine <|> spanningTwoLines)
  where onSingleLine = try $ many1Till (noneOf "\n\r") end
@@ -694,10 +704,10 @@ enclosedRaw start end = try $
 
 -- | Like many1Till, but parses at most @n+1@ lines.  @p@ must not consume
 --   newlines.
-many1TillNOrLessNewlines :: Int
-                         -> OrgParser Char
-                         -> OrgParser a
-                         -> OrgParser String
+many1TillNOrLessNewlines :: PandocMonad m => Int
+                         -> OrgParser m Char
+                         -> OrgParser m a
+                         -> OrgParser m String
 many1TillNOrLessNewlines n p end = try $
   nMoreLines (Just n) mempty >>= oneOrMore
  where
@@ -746,21 +756,21 @@ mathAllowedNewlines :: Int
 mathAllowedNewlines = 2
 
 -- | Whether we are right behind a char allowed before emphasis
-afterEmphasisPreChar :: OrgParser Bool
+afterEmphasisPreChar :: PandocMonad m => OrgParser m Bool
 afterEmphasisPreChar = do
   pos <- getPosition
   lastPrePos <- orgStateLastPreCharPos <$> getState
   return . fromMaybe True $ (== pos) <$> lastPrePos
 
 -- | Whether the parser is right after a forbidden border char
-notAfterForbiddenBorderChar :: OrgParser Bool
+notAfterForbiddenBorderChar :: PandocMonad m => OrgParser m Bool
 notAfterForbiddenBorderChar = do
   pos <- getPosition
   lastFBCPos <- orgStateLastForbiddenCharPos <$> getState
   return $ lastFBCPos /= Just pos
 
 -- | Read a sub- or superscript expression
-subOrSuperExpr :: OrgParser (F Inlines)
+subOrSuperExpr :: PandocMonad m => OrgParser m (F Inlines)
 subOrSuperExpr = try $
   choice [ id                   <$> charsInBalanced '{' '}' (noneOf "\n\r")
          , enclosing ('(', ')') <$> charsInBalanced '(' ')' (noneOf "\n\r")
@@ -768,7 +778,7 @@ subOrSuperExpr = try $
          ] >>= parseFromString (mconcat <$> many inline)
  where enclosing (left, right) s = left : s ++ [right]
 
-simpleSubOrSuperString :: OrgParser String
+simpleSubOrSuperString :: PandocMonad m => OrgParser m String
 simpleSubOrSuperString = try $ do
   state <- getState
   guard . exportSubSuperscripts . orgStateExportSettings $ state
@@ -777,17 +787,18 @@ simpleSubOrSuperString = try $ do
                    <*> many1 alphaNum
          ]
 
-inlineLaTeX :: OrgParser (F Inlines)
+inlineLaTeX :: PandocMonad m => OrgParser m (F Inlines)
 inlineLaTeX = try $ do
   cmd <- inlineLaTeXCommand
+  ils <- (lift . lift) $ parseAsInlineLaTeX cmd
   maybe mzero returnF $
-     parseAsMath cmd `mplus` parseAsMathMLSym cmd `mplus` parseAsInlineLaTeX cmd
+     parseAsMath cmd `mplus` parseAsMathMLSym cmd `mplus` ils
  where
    parseAsMath :: String -> Maybe Inlines
    parseAsMath cs = B.fromList <$> texMathToPandoc cs
 
-   parseAsInlineLaTeX :: String -> Maybe Inlines
-   parseAsInlineLaTeX cs = maybeRight $ runParser inlineCommand state "" cs
+   parseAsInlineLaTeX :: PandocMonad m => String -> m (Maybe Inlines)
+   parseAsInlineLaTeX cs = maybeRight <$> runParserT inlineCommand state "" cs
 
    parseAsMathMLSym :: String -> Maybe Inlines
    parseAsMathMLSym cs = B.str <$> MathMLEntityMap.getUnicode (clean cs)
@@ -803,10 +814,11 @@ inlineLaTeX = try $ do
 maybeRight :: Either a b -> Maybe b
 maybeRight = either (const Nothing) Just
 
-inlineLaTeXCommand :: OrgParser String
+inlineLaTeXCommand :: PandocMonad m => OrgParser m String
 inlineLaTeXCommand = try $ do
   rest <- getInput
-  case runParser rawLaTeXInline def "source" rest of
+  parsed <- (lift . lift) $ runParserT rawLaTeXInline def "source" rest
+  case parsed of
     Right (RawInline _ cs) -> do
       -- drop any trailing whitespace, those are not be part of the command as
       -- far as org mode is concerned.
@@ -820,16 +832,16 @@ inlineLaTeXCommand = try $ do
 dropWhileEnd :: (a -> Bool) -> [a] -> [a]
 dropWhileEnd p = foldr (\x xs -> if p x && null xs then [] else x : xs) []
 
-exportSnippet :: OrgParser (F Inlines)
+exportSnippet :: PandocMonad m => OrgParser m (F Inlines)
 exportSnippet = try $ do
   string "@@"
   format <- many1Till (alphaNum <|> char '-') (char ':')
   snippet <- manyTill anyChar (try $ string "@@")
   returnF $ B.rawInline format snippet
 
-smart :: OrgParser (F Inlines)
+smart :: PandocMonad m => OrgParser m (F Inlines)
 smart = do
-  getOption readerSmart >>= guard
+  guardEnabled Ext_smart
   doubleQuoted <|> singleQuoted <|>
     choice (map (return <$>) [orgApostrophe, orgDash, orgEllipses])
   where
@@ -844,7 +856,7 @@ smart = do
                                        <* updateLastForbiddenCharPos
                                        *> return (B.str "\x2019")
 
-singleQuoted :: OrgParser (F Inlines)
+singleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 singleQuoted = try $ do
   guard =<< getExportSetting exportSmartQuotes
   singleQuoteStart
@@ -856,7 +868,7 @@ singleQuoted = try $ do
 -- doubleQuoted will handle regular double-quoted sections, as well
 -- as dialogues with an open double-quote without a close double-quote
 -- in the same paragraph.
-doubleQuoted :: OrgParser (F Inlines)
+doubleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 doubleQuoted = try $ do
   guard =<< getExportSetting exportSmartQuotes
   doubleQuoteStart

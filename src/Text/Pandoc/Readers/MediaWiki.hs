@@ -56,23 +56,26 @@ import qualified Data.Set as Set
 import Data.Char (isDigit, isSpace)
 import Data.Maybe (fromMaybe)
 import Text.Printf (printf)
-import Debug.Trace (trace)
-
-import Text.Pandoc.Error
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad, report)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
-readMediaWiki :: ReaderOptions -- ^ Reader options
+readMediaWiki :: PandocMonad m
+              => ReaderOptions -- ^ Reader options
               -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-              -> Either PandocError Pandoc
-readMediaWiki opts s =
-  readWith parseMediaWiki MWState{ mwOptions = opts
-                                       , mwMaxNestingLevel = 4
-                                       , mwNextLinkNumber  = 1
-                                       , mwCategoryLinks = []
-                                       , mwHeaderMap = M.empty
-                                       , mwIdentifierList = Set.empty
-                                       }
-           (s ++ "\n")
+              -> m Pandoc
+readMediaWiki opts s = do
+  parsed <- readWithM parseMediaWiki MWState{ mwOptions = opts
+                                            , mwMaxNestingLevel = 4
+                                            , mwNextLinkNumber  = 1
+                                            , mwCategoryLinks = []
+                                            , mwHeaderMap = M.empty
+                                            , mwIdentifierList = Set.empty
+                                            }
+            (s ++ "\n")
+  case parsed of
+    Right result -> return result
+    Left e -> throwError e
 
 data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwMaxNestingLevel :: Int
@@ -82,7 +85,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwIdentifierList  :: Set.Set String
                        }
 
-type MWParser = Parser [Char] MWState
+type MWParser m = ParserT [Char] MWState m
 
 instance HasReaderOptions MWState where
   extractReaderOptions = mwOptions
@@ -101,7 +104,7 @@ instance HasIdentifierList MWState where
 
 -- This is used to prevent exponential blowups for things like:
 -- ''a'''a''a'''a''a'''a''a'''a
-nested :: MWParser a -> MWParser a
+nested :: PandocMonad m => MWParser m a -> MWParser m a
 nested p = do
   nestlevel <- mwMaxNestingLevel `fmap` getState
   guard $ nestlevel > 0
@@ -116,7 +119,7 @@ specialChars = "'[]<=&*{}|\":\\"
 spaceChars :: [Char]
 spaceChars = " \n\t"
 
-sym :: String -> MWParser ()
+sym :: PandocMonad m => String -> MWParser m ()
 sym s = () <$ try (string s)
 
 newBlockTags :: [String]
@@ -137,10 +140,10 @@ eitherBlockOrInline :: [String]
 eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
                                "map", "area", "object"]
 
-htmlComment :: MWParser ()
+htmlComment :: PandocMonad m => MWParser m ()
 htmlComment = () <$ htmlTag isCommentTag
 
-inlinesInTags :: String -> MWParser Inlines
+inlinesInTags :: PandocMonad m => String -> MWParser m Inlines
 inlinesInTags tag = try $ do
   (_,raw) <- htmlTag (~== TagOpen tag [])
   if '/' `elem` raw   -- self-closing tag
@@ -148,7 +151,7 @@ inlinesInTags tag = try $ do
      else trimInlines . mconcat <$>
             manyTill inline (htmlTag (~== TagClose tag))
 
-blocksInTags :: String -> MWParser Blocks
+blocksInTags :: PandocMonad m => String -> MWParser m Blocks
 blocksInTags tag = try $ do
   (_,raw) <- htmlTag (~== TagOpen tag [])
   let closer = if tag == "li"
@@ -162,7 +165,7 @@ blocksInTags tag = try $ do
      then return mempty
      else mconcat <$> manyTill block closer
 
-charsInTags :: String -> MWParser [Char]
+charsInTags :: PandocMonad m => String -> MWParser m [Char]
 charsInTags tag = try $ do
   (_,raw) <- htmlTag (~== TagOpen tag [])
   if '/' `elem` raw   -- self-closing tag
@@ -173,7 +176,7 @@ charsInTags tag = try $ do
 -- main parser
 --
 
-parseMediaWiki :: MWParser Pandoc
+parseMediaWiki :: PandocMonad m => MWParser m Pandoc
 parseMediaWiki = do
   bs <- mconcat <$> many block
   spaces
@@ -188,9 +191,8 @@ parseMediaWiki = do
 -- block parsers
 --
 
-block :: MWParser Blocks
+block :: PandocMonad m => MWParser m Blocks
 block = do
-  tr <- getOption readerTrace
   pos <- getPosition
   res <- mempty <$ skipMany1 blankline
      <|> table
@@ -204,19 +206,18 @@ block = do
      <|> blockTag
      <|> (B.rawBlock "mediawiki" <$> template)
      <|> para
-  when tr $
-    trace (printf "line %d: %s" (sourceLine pos)
-           (take 60 $ show $ B.toList res)) (return ())
+  report DEBUG $ printf "line %d: %s" (sourceLine pos)
+                    (take 60 $ show $ B.toList res)
   return res
 
-para :: MWParser Blocks
+para :: PandocMonad m => MWParser m Blocks
 para = do
   contents <- trimInlines . mconcat <$> many1 inline
   if F.all (==Space) contents
      then return mempty
      else return $ B.para contents
 
-table :: MWParser Blocks
+table :: PandocMonad m => MWParser m Blocks
 table = do
   tableStart
   styles <- option [] parseAttrs <* blankline
@@ -244,10 +245,10 @@ table = do
                           else (replicate cols mempty, hdr:rows')
   return $ B.table caption cellspecs headers rows
 
-parseAttrs :: MWParser [(String,String)]
+parseAttrs :: PandocMonad m => MWParser m [(String,String)]
 parseAttrs = many1 parseAttr
 
-parseAttr :: MWParser (String, String)
+parseAttr :: PandocMonad m => MWParser m (String, String)
 parseAttr = try $ do
   skipMany spaceChar
   k <- many1 letter
@@ -256,17 +257,17 @@ parseAttr = try $ do
        <|> many1 (satisfy $ \c -> not (isSpace c) && c /= '|')
   return (k,v)
 
-tableStart :: MWParser ()
+tableStart :: PandocMonad m => MWParser m ()
 tableStart = try $ guardColumnOne *> skipSpaces *> sym "{|"
 
-tableEnd :: MWParser ()
+tableEnd :: PandocMonad m => MWParser m ()
 tableEnd = try $ guardColumnOne *> skipSpaces *> sym "|}"
 
-rowsep :: MWParser ()
+rowsep :: PandocMonad m => MWParser m ()
 rowsep = try $ guardColumnOne *> skipSpaces *> sym "|-" <*
                optional parseAttr <* blanklines
 
-cellsep :: MWParser ()
+cellsep :: PandocMonad m => MWParser m ()
 cellsep = try $
              (guardColumnOne *> skipSpaces <*
                  (  (char '|' <* notFollowedBy (oneOf "-}+"))
@@ -276,7 +277,7 @@ cellsep = try $
             <|> (() <$ try (string "||"))
             <|> (() <$ try (string "!!"))
 
-tableCaption :: MWParser Inlines
+tableCaption :: PandocMonad m => MWParser m Inlines
 tableCaption = try $ do
   guardColumnOne
   skipSpaces
@@ -284,10 +285,10 @@ tableCaption = try $ do
   optional (try $ parseAttr *> skipSpaces *> char '|' *> skipSpaces)
   (trimInlines . mconcat) <$> many (notFollowedBy (cellsep <|> rowsep) *> inline)
 
-tableRow :: MWParser [((Alignment, Double), Blocks)]
+tableRow :: PandocMonad m => MWParser m [((Alignment, Double), Blocks)]
 tableRow = try $ skipMany htmlComment *> many tableCell
 
-tableCell :: MWParser ((Alignment, Double), Blocks)
+tableCell :: PandocMonad m => MWParser m ((Alignment, Double), Blocks)
 tableCell = try $ do
   cellsep
   skipMany spaceChar
@@ -313,7 +314,7 @@ parseWidth s =
        ('%':ds) | all isDigit ds -> safeRead ('0':'.':reverse ds)
        _ -> Nothing
 
-template :: MWParser String
+template :: PandocMonad m => MWParser m String
 template = try $ do
   string "{{"
   notFollowedBy (char '{')
@@ -322,7 +323,7 @@ template = try $ do
   contents <- manyTill chunk (try $ string "}}")
   return $ "{{" ++ concat contents ++ "}}"
 
-blockTag :: MWParser Blocks
+blockTag :: PandocMonad m => MWParser m Blocks
 blockTag = do
   (tag, _) <- lookAhead $ htmlTag isBlockTag'
   case tag of
@@ -341,7 +342,7 @@ trimCode :: String -> String
 trimCode ('\n':xs) = stripTrailingNewlines xs
 trimCode xs        = stripTrailingNewlines xs
 
-syntaxhighlight :: String -> [Attribute String] -> MWParser Blocks
+syntaxhighlight :: PandocMonad m => String -> [Attribute String] -> MWParser m Blocks
 syntaxhighlight tag attrs = try $ do
   let mblang = lookup "lang" attrs
   let mbstart = lookup "start" attrs
@@ -351,13 +352,13 @@ syntaxhighlight tag attrs = try $ do
   contents <- charsInTags tag
   return $ B.codeBlockWith ("",classes,kvs) $ trimCode contents
 
-hrule :: MWParser Blocks
+hrule :: PandocMonad m => MWParser m Blocks
 hrule = B.horizontalRule <$ try (string "----" *> many (char '-') *> newline)
 
-guardColumnOne :: MWParser ()
+guardColumnOne :: PandocMonad m => MWParser m ()
 guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
 
-preformatted :: MWParser Blocks
+preformatted :: PandocMonad m => MWParser m Blocks
 preformatted = try $ do
   guardColumnOne
   char ' '
@@ -388,7 +389,7 @@ encode = B.fromList . normalizeCode . B.toList . walk strToCode
           normalizeCode $ (Code a1 (x ++ y)) : zs
         normalizeCode (x:xs) = x : normalizeCode xs
 
-header :: MWParser Blocks
+header :: PandocMonad m => MWParser m Blocks
 header = try $ do
   guardColumnOne
   eqs <- many1 (char '=')
@@ -398,13 +399,13 @@ header = try $ do
   attr <- registerHeader nullAttr contents
   return $ B.headerWith attr lev contents
 
-bulletList :: MWParser Blocks
+bulletList :: PandocMonad m => MWParser m Blocks
 bulletList = B.bulletList <$>
    (   many1 (listItem '*')
    <|> (htmlTag (~== TagOpen "ul" []) *> spaces *> many (listItem '*' <|> li) <*
         optional (htmlTag (~== TagClose "ul"))) )
 
-orderedList :: MWParser Blocks
+orderedList :: PandocMonad m => MWParser m Blocks
 orderedList =
        (B.orderedList <$> many1 (listItem '#'))
    <|> try
@@ -415,10 +416,10 @@ orderedList =
            let start = fromMaybe 1 $ safeRead $ fromAttrib "start" tag
            return $ B.orderedListWith (start, DefaultStyle, DefaultDelim) items)
 
-definitionList :: MWParser Blocks
+definitionList :: PandocMonad m => MWParser m Blocks
 definitionList = B.definitionList <$> many1 defListItem
 
-defListItem :: MWParser (Inlines, [Blocks])
+defListItem :: PandocMonad m => MWParser m (Inlines, [Blocks])
 defListItem = try $ do
   terms <- mconcat . intersperse B.linebreak <$> many defListTerm
   -- we allow dd with no dt, or dt with no dd
@@ -429,27 +430,27 @@ defListItem = try $ do
               else many (listItem ':')
   return (terms, defs)
 
-defListTerm  :: MWParser Inlines
+defListTerm  :: PandocMonad m => MWParser m Inlines
 defListTerm = char ';' >> skipMany spaceChar >> anyLine >>=
   parseFromString (trimInlines . mconcat <$> many inline)
 
-listStart :: Char -> MWParser ()
+listStart :: PandocMonad m => Char -> MWParser m ()
 listStart c = char c *> notFollowedBy listStartChar
 
-listStartChar :: MWParser Char
+listStartChar :: PandocMonad m => MWParser m Char
 listStartChar = oneOf "*#;:"
 
-anyListStart :: MWParser Char
+anyListStart :: PandocMonad m => MWParser m Char
 anyListStart =  char '*'
             <|> char '#'
             <|> char ':'
             <|> char ';'
 
-li :: MWParser Blocks
+li :: PandocMonad m => MWParser m Blocks
 li = lookAhead (htmlTag (~== TagOpen "li" [])) *>
      (firstParaToPlain <$> blocksInTags "li") <* spaces
 
-listItem :: Char -> MWParser Blocks
+listItem :: PandocMonad m => Char -> MWParser m Blocks
 listItem c = try $ do
   extras <- many (try $ char c <* lookAhead listStartChar)
   if null extras
@@ -475,10 +476,10 @@ listItem c = try $ do
 -- }}
 -- * next list item
 -- which seems to be valid mediawiki.
-listChunk :: MWParser String
+listChunk :: PandocMonad m => MWParser m String
 listChunk = template <|> count 1 anyChar
 
-listItem' :: Char -> MWParser Blocks
+listItem' :: PandocMonad m => Char -> MWParser m Blocks
 listItem' c = try $ do
   listStart c
   skipMany spaceChar
@@ -498,7 +499,7 @@ firstParaToPlain contents =
 -- inline parsers
 --
 
-inline :: MWParser Inlines
+inline :: PandocMonad m => MWParser m Inlines
 inline =  whitespace
       <|> url
       <|> str
@@ -516,10 +517,10 @@ inline =  whitespace
       <|> (B.rawInline "mediawiki" <$> template)
       <|> special
 
-str :: MWParser Inlines
+str :: PandocMonad m => MWParser m Inlines
 str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
 
-math :: MWParser Inlines
+math :: PandocMonad m => MWParser m Inlines
 math = (B.displayMath . trim <$> try (many1 (char ':') >> charsInTags "math"))
    <|> (B.math . trim <$> charsInTags "math")
    <|> (B.displayMath . trim <$> try (dmStart *> manyTill anyChar dmEnd))
@@ -529,13 +530,13 @@ math = (B.displayMath . trim <$> try (many1 (char ':') >> charsInTags "math"))
        mStart  = string "\\("
        mEnd    = try (string "\\)")
 
-variable :: MWParser String
+variable :: PandocMonad m => MWParser m String
 variable = try $ do
   string "{{{"
   contents <- manyTill anyChar (try $ string "}}}")
   return $ "{{{" ++ contents ++ "}}}"
 
-inlineTag :: MWParser Inlines
+inlineTag :: PandocMonad m => MWParser m Inlines
 inlineTag = do
   (tag, _) <- lookAhead $ htmlTag isInlineTag'
   case tag of
@@ -557,18 +558,18 @@ inlineTag = do
        TagOpen "hask" _ -> B.codeWith ("",["haskell"],[]) <$> charsInTags "hask"
        _ -> B.rawInline "html" . snd <$> htmlTag (~== tag)
 
-special :: MWParser Inlines
+special :: PandocMonad m => MWParser m Inlines
 special = B.str <$> count 1 (notFollowedBy' (htmlTag isBlockTag') *>
                              oneOf specialChars)
 
-inlineHtml :: MWParser Inlines
+inlineHtml :: PandocMonad m => MWParser m Inlines
 inlineHtml = B.rawInline "html" . snd <$> htmlTag isInlineTag'
 
-whitespace :: MWParser Inlines
+whitespace :: PandocMonad m => MWParser m Inlines
 whitespace = B.space <$ (skipMany1 spaceChar <|> htmlComment)
          <|> B.softbreak <$ endline
 
-endline :: MWParser ()
+endline :: PandocMonad m => MWParser m ()
 endline = () <$ try (newline <*
                      notFollowedBy spaceChar <*
                      notFollowedBy newline <*
@@ -577,12 +578,12 @@ endline = () <$ try (newline <*
                      notFollowedBy' header <*
                      notFollowedBy anyListStart)
 
-imageIdentifiers :: [MWParser ()]
+imageIdentifiers :: PandocMonad m => [MWParser m ()]
 imageIdentifiers = [sym (identifier ++ ":") | identifier <- identifiers]
     where identifiers = ["File", "Image", "Archivo", "Datei", "Fichier",
                          "Bild"]
 
-image :: MWParser Inlines
+image :: PandocMonad m => MWParser m Inlines
 image = try $ do
   sym "[["
   choice imageIdentifiers
@@ -600,7 +601,7 @@ image = try $ do
            <|> try (char '|' *> (mconcat <$> manyTill inline (sym "]]")))
   return $ B.imageWith attr fname ("fig:" ++ stringify caption) caption
 
-imageOption :: MWParser String
+imageOption :: PandocMonad m => MWParser m String
 imageOption = try $ char '|' *> opt
   where
     opt = try (oneOfStrings [ "border", "thumbnail", "frameless"
@@ -619,7 +620,7 @@ collapseUnderscores (x:xs) = x : collapseUnderscores xs
 addUnderscores :: String -> String
 addUnderscores = collapseUnderscores . intercalate "_" . words
 
-internalLink :: MWParser Inlines
+internalLink :: PandocMonad m => MWParser m Inlines
 internalLink = try $ do
   sym "[["
   pagename <- unwords . words <$> many (noneOf "|]")
@@ -637,7 +638,7 @@ internalLink = try $ do
        return mempty
      else return link
 
-externalLink :: MWParser Inlines
+externalLink :: PandocMonad m => MWParser m Inlines
 externalLink = try $ do
   char '['
   (_, src) <- uri
@@ -649,29 +650,29 @@ externalLink = try $ do
               return $ B.str $ show num
   return $ B.link src "" lab
 
-url :: MWParser Inlines
+url :: PandocMonad m => MWParser m Inlines
 url = do
   (orig, src) <- uri
   return $ B.link src "" (B.str orig)
 
 -- | Parses a list of inlines between start and end delimiters.
-inlinesBetween :: (Show b) => MWParser a -> MWParser b -> MWParser Inlines
+inlinesBetween :: (PandocMonad m, Show b) => MWParser m a -> MWParser m b -> MWParser m Inlines
 inlinesBetween start end =
   (trimInlines . mconcat) <$> try (start >> many1Till inner end)
     where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)
           innerSpace = try $ whitespace <* notFollowedBy' end
 
-emph :: MWParser Inlines
+emph :: PandocMonad m => MWParser m Inlines
 emph = B.emph <$> nested (inlinesBetween start end)
     where start = sym "''" >> lookAhead nonspaceChar
           end   = try $ notFollowedBy' (() <$ strong) >> sym "''"
 
-strong :: MWParser Inlines
+strong :: PandocMonad m => MWParser m Inlines
 strong = B.strong <$> nested (inlinesBetween start end)
     where start = sym "'''" >> lookAhead nonspaceChar
           end   = try $ sym "'''"
 
-doubleQuotes :: MWParser Inlines
+doubleQuotes :: PandocMonad m => MWParser m Inlines
 doubleQuotes = B.doubleQuoted <$> nested (inlinesBetween openDoubleQuote closeDoubleQuote)
     where openDoubleQuote = sym "\"" >> lookAhead nonspaceChar
           closeDoubleQuote = try $ sym "\""

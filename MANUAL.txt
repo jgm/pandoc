@@ -101,7 +101,7 @@ If no *input-file* is specified, input is read from *stdin*.
 Otherwise, the *input-files* are concatenated (with a blank
 line between each) and used as input.  Output goes to *stdout* by
 default (though output to *stdout* is disabled for the `odt`, `docx`,
-`epub`, and `epub3` output formats).  For output to a file, use the
+`epub2`, and `epub3` output formats).  For output to a file, use the
 `-o` option:
 
     pandoc -o output.html input.txt
@@ -273,15 +273,15 @@ General options
     (original unextended Markdown), `markdown_phpextra` (PHP Markdown
     Extra), `markdown_github` (GitHub-Flavored Markdown), `markdown_mmd`
     (MultiMarkdown), `commonmark` (CommonMark Markdown), `rst`
-    (reStructuredText), `html` (XHTML), `html5` (HTML5), `latex`
+    (reStructuredText), `html4` (XHTML4), `html` or `html5` (HTML5), `latex`
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
     `man` (groff man), `mediawiki` (MediaWiki markup),
     `dokuwiki` (DokuWiki markup), `zimwiki` (ZimWiki markup),
     `textile` (Textile), `org` (Emacs Org mode),
-    `texinfo` (GNU Texinfo), `opml` (OPML), `docbook` (DocBook 4),
-    `docbook5` (DocBook 5), `opendocument` (OpenDocument), `odt`
-    (OpenOffice text document), `docx` (Word docx), `haddock`
-    (Haddock markup), `rtf` (rich text format), `epub` (EPUB v2
+    `texinfo` (GNU Texinfo), `opml` (OPML), `docbook` or `docbook4`
+    (DocBook 4), `docbook5` (DocBook 5), `opendocument` (OpenDocument),
+    `odt` (OpenOffice text document), `docx` (Word docx), `haddock`
+    (Haddock markup), `rtf` (rich text format), `epub` or `epub2` (EPUB v2
     book), `epub3` (EPUB v3), `fb2` (FictionBook2 e-book),
     `asciidoc` (AsciiDoc), `icml` (InDesign ICML), `tei` (TEI
     Simple), `slidy` (Slidy HTML and JavaScript slide show),
@@ -293,7 +293,7 @@ General options
     `epub`, and `epub3` output will not be directed to *stdout*;
     an output filename must be specified using the `-o/--output`
     option. If `+lhs` is appended to `markdown`, `rst`, `latex`,
-    `beamer`, `html`, or `html5`, the output will be rendered as
+    `beamer`, `html4`, or `html5`, the output will be rendered as
     literate Haskell source: see [Literate Haskell support],
     below.  Markdown syntax extensions can be individually
     enabled or disabled by appending `+EXTENSION` or
@@ -340,6 +340,14 @@ General options
 :   Give verbose debugging output.  Currently this only has an effect
     with PDF output.
 
+`--quiet`
+
+:   Suppress warning messages.
+
+`--fail-if-warnings`
+
+:   Exit with error status if there are any warnings.
+
 `--list-input-formats`
 
 :   List supported input formats, one per line.
@@ -385,21 +393,6 @@ Reader options
     ConTeXt output.  The default is for the readers to omit untranslatable
     HTML codes and LaTeX environments.  (The LaTeX reader does pass through
     untranslatable LaTeX *commands*, even if `-R` is not specified.)
-
-`-S`, `--smart`
-
-:   Produce typographically correct output, converting straight quotes
-    to curly quotes, `---` to em-dashes, `--` to en-dashes, and
-    `...` to ellipses. Nonbreaking spaces are inserted after certain
-    abbreviations, such as "Mr." (Note: This option is selected automatically
-    when the output format is `latex` or `context`, unless `--no-tex-ligatures`
-    is used.  It has no effect for `latex` input.)
-
-`--old-dashes`
-
-:   Selects the pandoc <= 1.8.2.1 behavior for parsing smart dashes: `-` before
-    a numeral is an en-dash, and `--` is an em-dash.  This option is selected
-    automatically for `textile` input.
 
 `--base-header-level=`*NUMBER*
 
@@ -469,11 +462,6 @@ Reader options
     But unlike `--variable`, `--metadata` affects the metadata of the
     underlying document (which is accessible from filters and may be
     printed in some output formats).
-
-`--normalize`
-
-:   Normalize the document after reading:  merge adjacent
-    `Str` or `Emph` elements, for example, and remove repeated `Space`s.
 
 `-p`, `--preserve-tabs`
 
@@ -570,10 +558,6 @@ General writer options
     will be nonsemantic newlines in the output as well).
     Automatic wrapping does not currently work in HTML output.
 
-`--no-wrap`
-
-:   Deprecated synonym for `--wrap=none`.
-
 `--columns=`*NUMBER*
 
 :   Specify length of lines in characters.  This affects text wrapping
@@ -585,7 +569,7 @@ General writer options
 :   Include an automatically generated table of contents (or, in
     the case of `latex`, `context`, `docx`, and `rst`, an instruction to create
     one) in the output document. This option has no effect on `man`,
-    `docbook`, `docbook5`, `slidy`, `slideous`, `s5`, or `odt` output.
+    `docbook4`, `docbook5`, `slidy`, `slideous`, `s5`, or `odt` output.
 
 `--toc-depth=`*NUMBER*
 
@@ -642,7 +626,7 @@ Options affecting specific writers
     images, and videos. The resulting file should be "self-contained,"
     in the sense that it needs no external files and no net access to be
     displayed properly by a browser. This option works only with HTML output
-    formats, including `html`, `html5`, `html+lhs`, `html5+lhs`, `s5`,
+    formats, including `html4`, `html5`, `html+lhs`, `html5+lhs`, `s5`,
     `slidy`, `slideous`, `dzslides`, and `revealjs`. Scripts, images, and
     stylesheets at absolute URLs will be downloaded; those at relative URLs
     will be sought relative to the working directory (if the first source
@@ -682,10 +666,6 @@ Options affecting specific writers
 :   Use ATX-style headers in Markdown and AsciiDoc output. The default is
     to use setext-style headers for levels 1-2, and then ATX headers.
 
-`--chapters`
-
-:   Deprecated synonym for `--top-level-division=chapter`.
-
 `--top-level-division=[default|section|chapter|part]`
 
 :   Treat top-level headers as the given division type in LaTeX, ConTeXt,
@@ -716,22 +696,6 @@ Options affecting specific writers
     If your document starts with a level-2 header which you want to
     be numbered "1.5", specify `--number-offset=1,4`.
     Offsets are 0 by default.  Implies `--number-sections`.
-
-`--no-tex-ligatures`
-
-:   Do not use the TeX ligatures for quotation marks, apostrophes,
-    and dashes (`` `...' ``, ` ``..'' `, `--`, `---`) when
-    writing or reading LaTeX or ConTeXt.  In reading LaTeX,
-    parse the characters `` ` ``, `'`, and `-` literally, rather
-    than parsing ligatures for quotation marks and dashes.  In
-    writing LaTeX or ConTeXt, print unicode quotation mark and
-    dash characters literally, rather than converting them to
-    the standard ASCII TeX ligatures.  Note: normally `--smart`
-    is selected automatically for LaTeX and ConTeXt output, but
-    it must be specified explicitly if `--no-tex-ligatures` is
-    selected. If you use literal curly quotes, dashes, and
-    ellipses in your source, then you may want to use
-    `--no-tex-ligatures` without `--smart`.
 
 `--listings`
 
@@ -786,35 +750,20 @@ Options affecting specific writers
 :   Link to a CSS style sheet. This option can be used repeatedly to
     include multiple files. They will be included in the order specified.
 
-`--reference-odt=`*FILE*
+`--reference-doc=`*FILE*
 
-:   Use the specified file as a style reference in producing an ODT.
-    For best results, the reference ODT should be a modified version
-    of an ODT produced using pandoc.  The contents of the reference ODT
-    are ignored, but its stylesheets are used in the new ODT. If no
-    reference ODT is specified on the command line, pandoc will look
-    for a file `reference.odt` in the user data directory (see
-    `--data-dir`). If this is not found either, sensible defaults will be
-    used.
+:   Use the specified file as a style reference in producing a
+    docx or ODT file.
 
-    To produce a custom `reference.odt`, first get a copy of
-    the default `reference.odt`: `pandoc
-    --print-default-data-file reference.odt >
-    custom-reference.odt`.  Then open `custom-reference.docx` in
-    LibreOffice, modify the styles as you wish, and save the
-    file.
-
-`--reference-docx=`*FILE*
-
-:   Use the specified file as a style reference in producing a docx file.
-    For best results, the reference docx should be a modified version
-    of a docx file produced using pandoc.  The contents of the reference docx
-    are ignored, but its stylesheets and document properties (including
-    margins, page size, header, and footer) are used in the new docx. If no
-    reference docx is specified on the command line, pandoc will look
-    for a file `reference.docx` in the user data directory (see
-    `--data-dir`). If this is not found either, sensible defaults will be
-    used.
+    Docx: For best results, the reference docx should be a modified
+    version of a docx file produced using pandoc.  The contents
+    of the reference docx are ignored, but its stylesheets and
+    document properties (including margins, page size, header,
+    and footer) are used in the new docx. If no reference docx
+    is specified on the command line, pandoc will look for a
+    file `reference.docx` in the user data directory (see
+    `--data-dir`). If this is not found either, sensible
+    defaults will be used.
 
     To produce a custom `reference.docx`, first get a copy of
     the default `reference.docx`: `pandoc
@@ -822,15 +771,30 @@ Options affecting specific writers
     custom-reference.docx`.  Then open `custom-reference.docx`
     in Word, modify the styles as you wish, and save the file.
     For best results, do not make changes to this file other
-    than modifying the styles used by pandoc: [paragraph] Normal,
-    Body Text, First Paragraph, Compact, Title, Subtitle,
-    Author, Date, Abstract, Bibliography, Heading 1, Heading 2,
-    Heading 3, Heading 4, Heading 5, Heading 6, Block Text,
-    Footnote Text, Definition Term, Definition, Caption, Table
-    Caption, Image Caption, Figure, Figure With Caption, TOC
-    Heading; [character] Default Paragraph Font, Body Text Char,
-    Verbatim Char, Footnote Reference, Hyperlink; [table] Normal
-    Table.
+    than modifying the styles used by pandoc: [paragraph]
+    Normal, Body Text, First Paragraph, Compact, Title,
+    Subtitle, Author, Date, Abstract, Bibliography, Heading 1,
+    Heading 2, Heading 3, Heading 4, Heading 5, Heading 6, Block
+    Text, Footnote Text, Definition Term, Definition, Caption,
+    Table Caption, Image Caption, Figure, Figure With Caption,
+    TOC Heading; [character] Default Paragraph Font, Body Text
+    Char, Verbatim Char, Footnote Reference, Hyperlink; [table]
+    Normal Table.
+
+    ODT: For best results, the reference ODT should be a modified
+    version of an ODT produced using pandoc.  The contents of
+    the reference ODT are ignored, but its stylesheets are used
+    in the new ODT. If no reference ODT is specified on the
+    command line, pandoc will look for a file `reference.odt` in
+    the user data directory (see `--data-dir`). If this is not
+    found either, sensible defaults will be used.
+
+    To produce a custom `reference.odt`, first get a copy of
+    the default `reference.odt`: `pandoc
+    --print-default-data-file reference.odt >
+    custom-reference.odt`.  Then open `custom-reference.docx` in
+    LibreOffice, modify the styles as you wish, and save the
+    file.
 
 `--epub-stylesheet=`*FILE*
 
@@ -983,10 +947,11 @@ Math rendering in HTML
 
 `--mathml`[`=`*URL*]
 
-:   Convert TeX math to [MathML] (in `docbook`, `docbook5`, `html` and `html5`).
-    In standalone `html` output, a small JavaScript (or a link to such a
-    script if a *URL* is supplied) will be inserted that allows the MathML to
-    be viewed on some browsers.
+:   Convert TeX math to [MathML] (in `docbook4`, `docbook5`,
+    `html4` and `html5`).  In standalone HTML output, a small
+    JavaScript (or a link to such a script if a *URL* is
+    supplied) will be inserted that allows the MathML to be
+    viewed on some browsers.
 
 `--jsmath`[`=`*URL*]
 
@@ -1091,7 +1056,7 @@ directory (see `--data-dir`, above). *Exceptions:*
   (or the `default.beamer` template, if you use `-t beamer`,
   or the `default.context` template, if you use `-t context`).
 - `docx` has no template (however, you can use
-  `--reference-docx` to customize the output).
+  `--reference-doc` to customize the output).
 
 Templates contain *variables*, which allow for the inclusion of
 arbitrary information at any point in the file. Variables may be set
@@ -1683,7 +1648,7 @@ Note, however, that this method of providing links to sections works
 only in HTML, LaTeX, and ConTeXt formats.
 
 If the `--section-divs` option is specified, then each section will
-be wrapped in a `div` (or a `section`, if `--html5` was specified),
+be wrapped in a `div` (or a `section`, if `html5` was specified),
 and the identifier will be attached to the enclosing `<div>`
 (or `<section>`) tag rather than the header itself. This allows entire
 sections to be manipulated using JavaScript or treated differently in
@@ -2644,20 +2609,6 @@ two trailing spaces on a line.
 
 Backslash escapes do not work in verbatim contexts.
 
-Smart punctuation
------------------
-
-#### Extension ####
-
-If the `--smart` option is specified, pandoc will produce typographically
-correct output, converting straight quotes to curly quotes, `---` to
-em-dashes, `--` to en-dashes, and `...` to ellipses. Nonbreaking spaces
-are inserted after certain abbreviations, such as "Mr."
-
-Note:  if your LaTeX template or any included header file call for the
-[`csquotes`] package, pandoc will detect this automatically and use
-`\enquote{...}` for quoted text.
-
 Inline formatting
 -----------------
 
@@ -3214,6 +3165,30 @@ they cannot contain multiple paragraphs).  The syntax is as follows:
 
 Inline and regular footnotes may be mixed freely.
 
+Typography
+----------
+
+#### Extension: `smart` ####
+
+Interpret straight quotes as curly quotes, `---` as em-dashes,
+`--` as en-dashes, and `...` as ellipses. Nonbreaking spaces are
+inserted after certain abbreviations, such as "Mr."  This
+option currently affects the input formats `markdown`,
+`commonmark`, `latex`, `mediawiki`, `org`, `rst`, and `twiki`,
+and the output formats `markdown`, `latex`, and `context`.
+
+Note: If you are *writing* Markdown, then the `smart` extension
+has the reverse effect: what would have been curly quotes comes
+out straight.
+
+In LaTeX, `smart` means to use the standard TeX ligatures
+for quotation marks (` `` ` and ` '' ` for double quotes,
+`` ` `` and `` ' `` for single quotes) and dashes (`--` for
+en-dash and `---` for em-dash).  If `smart` is disabled,
+then in reading LaTeX pandoc will parse these characters
+literally.  In writing LaTeX, enabling `smart` tells pandoc
+to use the ligatures when possible; if `smart` is disabled
+pandoc will use unicode quotation mark and dash characters.
 
 Citations
 ---------
@@ -3414,6 +3389,13 @@ The following Markdown syntax extensions are not enabled by default
 in pandoc, but may be enabled by adding `+EXTENSION` to the format
 name, where `EXTENSION` is the name of the extension.  Thus, for
 example, `markdown+hard_line_breaks` is Markdown with hard line breaks.
+
+#### Extension: `old_dashes` ####
+
+Selects the pandoc <= 1.8.2.1 behavior for parsing smart dashes:
+`-` before a numeral is an en-dash, and `--` is an em-dash.
+This option only has an effect if `smart` is enabled. It is
+selected automatically for `textile` input.
 
 #### Extension: `angle_brackets_escapable` ####
 
@@ -3910,7 +3892,7 @@ Literate Haskell support
 
 If you append `+lhs` (or `+literate_haskell`) to an appropriate input or output
 format (`markdown`, `markdown_strict`, `rst`, or `latex` for input or output;
-`beamer`, `html` or `html5` for output only), pandoc will treat the document as
+`beamer`, `html4` or `html5` for output only), pandoc will treat the document as
 literate Haskell source. This means that
 
   - In Markdown input, "bird track" sections will be parsed as Haskell

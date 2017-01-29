@@ -39,6 +39,10 @@ import qualified Data.ByteString.Lazy                  as B
 
 import           System.FilePath
 
+import           Control.Monad.Except (throwError)
+
+import           Text.Pandoc.Class (PandocMonad)
+import qualified Text.Pandoc.Class as P
 import           Text.Pandoc.Definition
 import           Text.Pandoc.Error
 import           Text.Pandoc.Options
@@ -52,11 +56,21 @@ import           Text.Pandoc.Readers.Odt.Generic.XMLConverter
 import           Text.Pandoc.Readers.Odt.Generic.Fallible
 import           Text.Pandoc.Shared (filteredFilesFromArchive)
 
---
-readOdt :: ReaderOptions
+readOdt :: PandocMonad m
+        => ReaderOptions
         -> B.ByteString
-        -> Either PandocError (Pandoc, MediaBag)
-readOdt _ bytes = bytesToOdt bytes-- of
+        -> m Pandoc
+readOdt opts bytes = case readOdt' opts bytes of
+  Right (doc, mb) -> do
+    P.setMediaBag mb
+    return doc
+  Left e -> throwError e
+
+--
+readOdt' :: ReaderOptions
+         -> B.ByteString
+         -> Either PandocError (Pandoc, MediaBag)
+readOdt' _ bytes = bytesToOdt bytes-- of
 --                    Right (pandoc, mediaBag) -> Right (pandoc , mediaBag)
 --                    Left  err                -> Left err
 
@@ -64,7 +78,7 @@ readOdt _ bytes = bytesToOdt bytes-- of
 bytesToOdt :: B.ByteString -> Either PandocError (Pandoc, MediaBag)
 bytesToOdt bytes = case toArchiveOrFail bytes of
   Right archive -> archiveToOdt archive
-  Left _        -> Left $ ParseFailure "Couldn't parse odt file."
+  Left _        -> Left $ PandocParseError "Couldn't parse odt file."
 
 --
 archiveToOdt :: Archive -> Either PandocError (Pandoc, MediaBag)
@@ -85,7 +99,7 @@ archiveToOdt archive
 
   | otherwise
     -- Not very detailed, but I don't think more information would be helpful
-  = Left $ ParseFailure "Couldn't parse odt file."
+  = Left $ PandocParseError "Couldn't parse odt file."
     where
       filePathIsOdtMedia :: FilePath -> Bool
       filePathIsOdtMedia fp =

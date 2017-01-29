@@ -9,10 +9,11 @@ import Text.Pandoc
 import Data.List (intersperse)
 
 org :: String -> Pandoc
-org = handleError . readOrg def
-
+org = purely $ readOrg def{ readerExtensions = getDefaultExtensions "org" }
+  
 orgSmart :: String -> Pandoc
-orgSmart = handleError . readOrg def { readerSmart = True }
+orgSmart = purely $ readOrg def { readerExtensions =
+                     enableExtension Ext_smart $ getDefaultExtensions "org" }
 
 infix 4 =:
 (=:) :: ToString c
@@ -1525,7 +1526,7 @@ tests =
                    , ""
                    , "#+RESULTS:"
                    , ": 65" ] =?>
-           rawBlock "html" ""
+           (mempty :: Blocks)
 
       , "Source block with toggling header arguments" =:
         unlines [ "#+BEGIN_SRC sh :noeval"

@@ -8,10 +8,17 @@ import Text.Pandoc.Arbitrary()
 import Text.Pandoc.Builder
 import Text.Pandoc
 import Data.List (intersperse)
-import Text.Pandoc.Readers.Txt2Tags
+import Text.Pandoc.Class
+
 
 t2t :: String -> Pandoc
-t2t = handleError . readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def
+-- t2t = handleError . readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def
+t2t = purely $ \s -> do
+  putCommonState
+      def { stInputFiles = Just ["in"]
+          , stOutputFile = Just "out"
+          }
+  readTxt2Tags def s
 
 infix 4 =:
 (=:) :: ToString c
@@ -78,10 +85,10 @@ tests =
 
       , "Macros: Date" =:
           "%%date" =?>
-            para "date"
+            para "1970-01-01"
       , "Macros: Mod Time" =:
           "%%mtime" =?>
-            para "mtime"
+            para (str "")
       , "Macros: Infile" =:
           "%%infile" =?>
             para "in"

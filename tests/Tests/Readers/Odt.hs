@@ -1,17 +1,16 @@
 module Tests.Readers.Odt (tests) where
 
 import Control.Monad ( liftM )
-import Text.Pandoc.Options
-import Text.Pandoc.Readers.Native
-import Text.Pandoc.Readers.Markdown
-import Text.Pandoc.Definition
+import Text.Pandoc
+import Text.Pandoc.Class (runIO)
 import Tests.Helpers
 import Test.Framework
 import qualified Data.ByteString.Lazy as B
-import Text.Pandoc.Readers.Odt
 import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
-import Text.Pandoc.Error
+
+defopts :: ReaderOptions
+defopts = def{ readerExtensions = getDefaultExtensions "odt" }
 
 tests :: [Test]
 tests = testsComparingToMarkdown ++ testsComparingToNative
@@ -41,7 +40,7 @@ newtype NoNormPandoc = NoNormPandoc {unNoNorm :: Pandoc}
   deriving ( Show )
 
 instance ToString NoNormPandoc where
-  toString d = writeNative def{ writerTemplate = s } $ toPandoc d
+  toString d = purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
                   NoNormPandoc (Pandoc (Meta m) _)
                     | M.null m  -> Nothing
@@ -62,16 +61,18 @@ compareOdtToNative   :: TestCreator
 compareOdtToNative opts odtPath nativePath = do
    nativeFile   <- Prelude.readFile nativePath
    odtFile      <- B.readFile       odtPath
-   let native   =  getNoNormVia id  "native"   $ readNative        nativeFile
-   let odt      =  getNoNormVia fst "odt"      $ readOdt      opts odtFile
+   native       <- getNoNormVia id  "native" <$> runIO (readNative def nativeFile)
+   odt          <- getNoNormVia id  "odt"    <$> runIO (readOdt  opts odtFile)
    return (odt,native)
 
 compareOdtToMarkdown :: TestCreator
 compareOdtToMarkdown opts odtPath markdownPath = do
    markdownFile <- Prelude.readFile markdownPath
    odtFile      <- B.readFile       odtPath
-   let markdown =  getNoNormVia id  "markdown" $ readMarkdown opts markdownFile
-   let odt      =  getNoNormVia fst "odt"      $ readOdt      opts odtFile
+   markdown     <- getNoNormVia id "markdown" <$>
+                      runIO (readMarkdown def{ readerExtensions = pandocExtensions }
+                              markdownFile)
+   odt          <- getNoNormVia id "odt"      <$> runIO (readOdt      opts odtFile)
    return (odt,markdown)
 
 
@@ -80,7 +81,7 @@ createTest :: TestCreator
            -> FilePath -> FilePath
            -> Test
 createTest   creator name path1 path2 =
-  buildTest $ liftM (test id name) (creator def path1 path2)
+  buildTest $ liftM (test id name) (creator defopts path1 path2)
 
 {-
 --

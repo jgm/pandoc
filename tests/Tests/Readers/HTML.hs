@@ -9,7 +9,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc
 
 html :: String -> Pandoc
-html = handleError . readHtml def
+html = purely $ readHtml def
 
 tests :: [Test]
 tests = [ testGroup "base tag"

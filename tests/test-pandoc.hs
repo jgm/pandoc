@@ -26,14 +26,12 @@ import qualified Tests.Writers.Docx
 import qualified Tests.Writers.RST
 import qualified Tests.Writers.TEI
 import qualified Tests.Shared
-import qualified Tests.Walk
 import Text.Pandoc.Shared (inDirectory)
 import System.Environment (getArgs)
 
 tests :: [Test]
 tests = [ testGroup "Old" Tests.Old.tests
         , testGroup "Shared" Tests.Shared.tests
-        , testGroup "Walk" Tests.Walk.tests
         , testGroup "Writers"
           [ testGroup "Native" Tests.Writers.Native.tests
           , testGroup "ConTeXt" Tests.Writers.ConTeXt.tests

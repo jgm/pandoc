@@ -176,6 +176,11 @@ With stack:
 
     stack bench
 
+You can also build pandoc with the `weigh-pandoc` flag and
+run `weigh-pandoc` to get some statistics on memory usage.
+(Eventually this should be incorporated into the benchmark
+suite.)
+
 Using the REPL
 --------------
 
@@ -192,6 +197,23 @@ placed in the source directory):
 :set -XScopedTypeVariables
 :set -XOverloadedStrings
 ```
+
+Profiling
+---------
+
+To use the GHC profiler with cabal:
+
+    cabal clean
+    cabal install --enable-library-profiling --enable-executable-profiling
+    pandoc +RTS -p -RTS [file]...
+    less pandoc.prof
+
+With stack:
+
+    stack clean
+    stack install --profile
+    pandoc +RTS -p -RTS [file]...
+    less pandoc.prof
 
 The code
 --------

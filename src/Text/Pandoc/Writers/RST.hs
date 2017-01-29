@@ -44,6 +44,7 @@ import Network.URI (isURI)
 import Text.Pandoc.Pretty
 import Control.Monad.State
 import Data.Char (isSpace, toLower)
+import Text.Pandoc.Class (PandocMonad)
 
 type Refs = [([Inline], Target)]
 
@@ -58,8 +59,8 @@ data WriterState =
               }
 
 -- | Convert Pandoc to RST.
-writeRST :: WriterOptions -> Pandoc -> String
-writeRST opts document =
+writeRST :: PandocMonad m => WriterOptions -> Pandoc -> m String
+writeRST opts document = return $
   let st = WriterState { stNotes = [], stLinks = [],
                          stImages = [], stHasMath = False,
                          stHasRawTeX = False, stOptions = opts,

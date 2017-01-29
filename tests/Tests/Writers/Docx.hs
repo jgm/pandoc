@@ -7,8 +7,8 @@ import Tests.Helpers
 import Test.Framework
 import Text.Pandoc.Readers.Docx
 import Text.Pandoc.Writers.Docx
-import Text.Pandoc.Error
 import System.FilePath ((</>))
+import Text.Pandoc.Class (runIOorExplode)
 
 type Options = (WriterOptions, ReaderOptions)
 
@@ -20,10 +20,12 @@ compareOutput opts nativeFileIn nativeFileOut = do
   nf <- Prelude.readFile nativeFileIn
   nf' <- Prelude.readFile nativeFileOut
   let wopts = fst opts
-  df <- writeDocx wopts{writerUserDataDir = Just (".." </> "data")}
-             (handleError $ readNative nf)
-  let (p, _) = handleError $ readDocx (snd opts) df
-  return (p, handleError $ readNative nf')
+  df <- runIOorExplode $ do
+            d <- readNative def nf
+            writeDocx wopts{writerUserDataDir = Just (".." </> "data")} d
+  df' <- runIOorExplode (readNative def nf')
+  p <- runIOorExplode $ readDocx (snd opts) df
+  return (p, df')
 
 testCompareWithOptsIO :: Options -> String -> FilePath -> FilePath -> IO Test
 testCompareWithOptsIO opts name nativeFileIn nativeFileOut = do
@@ -139,7 +141,7 @@ tests = [ testGroup "inlines"
           ]
         , testGroup "customized styles"
           [ testCompareWithOpts
-            ( def{writerReferenceDocx=Just "docx/custom-style-reference.docx"}
+            ( def{writerReferenceDoc=Just "docx/custom-style-reference.docx"}
             , def)
             "simple customized blocks and inlines"
             "docx/custom-style-roundtrip-start.native"

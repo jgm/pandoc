@@ -29,7 +29,7 @@ Conversion of txt2tags formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Txt2Tags ( readTxt2Tags
                                     , getT2TMeta
                                     , T2TMeta (..)
-                                    , readTxt2TagsNoMacros)
+                                    )
                                     where
 
 import qualified Text.Pandoc.Builder as B
@@ -37,7 +37,7 @@ import Text.Pandoc.Builder ( Inlines, Blocks, trimInlines )
 import Data.Monoid ((<>))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (escapeURI,compactify', compactify'DL)
+import Text.Pandoc.Shared (escapeURI,compactify, compactifyDL)
 import Text.Pandoc.Parsing hiding (space, spaces, uri, macro)
 import Data.Char (toLower)
 import Data.List (transpose, intersperse, intercalate)
@@ -46,13 +46,12 @@ import Data.Maybe (fromMaybe)
 import Control.Monad (void, guard, when)
 import Data.Default
 import Control.Monad.Reader (Reader, runReader, asks)
-import Text.Pandoc.Error
 
-import Data.Time.LocalTime (getZonedTime)
-import System.Directory(getModificationTime)
 import Data.Time.Format (formatTime)
 import Text.Pandoc.Compat.Time (defaultTimeLocale)
-import System.IO.Error (catchIOError)
+import Control.Monad.Except (throwError, catchError)
+import Text.Pandoc.Class (PandocMonad)
+import qualified Text.Pandoc.Class as P
 
 type T2T = ParserT String ParserState (Reader T2TMeta)
 
@@ -69,26 +68,42 @@ instance Default T2TMeta where
     def = T2TMeta "" "" "" ""
 
 -- | Get the meta information required by Txt2Tags macros
-getT2TMeta :: [FilePath] -> FilePath -> IO T2TMeta
-getT2TMeta inps out = do
-    curDate <- formatTime defaultTimeLocale "%F" <$> getZonedTime
+getT2TMeta :: PandocMonad m => m T2TMeta
+getT2TMeta = do
+    mbInps <- P.getInputFiles
+    let inps = case mbInps of
+                  Just x  -> x
+                  Nothing -> []
+    mbOutp <- P.getOutputFile
+    let outp = case mbOutp of
+                 Just x -> x
+                 Nothing -> ""
+    curDate <- formatTime defaultTimeLocale "%F" <$> P.getZonedTime
     let getModTime = fmap (formatTime defaultTimeLocale "%T") .
-                       getModificationTime
+                       P.getModificationTime
     curMtime <- case inps of
-                  [] -> formatTime defaultTimeLocale "%T" <$> getZonedTime
-                  _ -> catchIOError
+                  [] -> formatTime defaultTimeLocale "%T" <$> P.getZonedTime
+                  _ -> catchError
                         (maximum <$> mapM getModTime inps)
                         (const (return ""))
-    return $ T2TMeta curDate curMtime (intercalate ", " inps) out
+    return $ T2TMeta curDate curMtime (intercalate ", " inps) outp
 
 -- | Read Txt2Tags from an input string returning a Pandoc document
-readTxt2Tags :: T2TMeta -> ReaderOptions -> String -> Either PandocError Pandoc
-readTxt2Tags t opts s = flip runReader t $ readWithM parseT2T (def {stateOptions = opts}) (s ++ "\n\n")
+readTxt2Tags :: PandocMonad m
+             => ReaderOptions
+             -> String
+             -> m Pandoc
+readTxt2Tags opts s = do
+  meta <- getT2TMeta
+  let parsed = flip runReader meta $ readWithM parseT2T (def {stateOptions = opts}) (s ++ "\n\n")
+  case parsed of
+    Right result -> return $ result
+    Left e      -> throwError e
 
 -- | Read Txt2Tags (ignoring all macros) from an input string returning
 -- a Pandoc document
-readTxt2TagsNoMacros :: ReaderOptions -> String -> Either PandocError Pandoc
-readTxt2TagsNoMacros = readTxt2Tags def
+-- readTxt2TagsNoMacros :: PandocMonad m => ReaderOptions -> String -> m Pandoc
+-- readTxt2TagsNoMacros = readTxt2Tags
 
 parseT2T :: T2T Pandoc
 parseT2T = do
@@ -210,16 +225,16 @@ list :: T2T Blocks
 list = choice [bulletList, orderedList, definitionList]
 
 bulletList :: T2T Blocks
-bulletList = B.bulletList . compactify'
+bulletList = B.bulletList . compactify
              <$> many1 (listItem bulletListStart parseBlocks)
 
 orderedList :: T2T Blocks
-orderedList = B.orderedList . compactify'
+orderedList = B.orderedList . compactify
               <$> many1 (listItem orderedListStart parseBlocks)
 
 definitionList :: T2T Blocks
 definitionList = try $ do
-  B.definitionList . compactify'DL <$>
+  B.definitionList . compactifyDL <$>
     many1 (listItem definitionListStart definitionListEnd)
 
 definitionListEnd :: T2T (Inlines, [Blocks])
@@ -432,9 +447,13 @@ inlineMarkup p f c special = try $ do
       lastChar <- anyChar
       end <- many1 (char c)
       let parser inp = parseFromString (mconcat <$> many p) inp
-      let start' = special (drop 2 start)
+      let start' = case drop 2 start of
+                          "" -> mempty
+                          xs -> special xs
       body' <- parser (middle ++ [lastChar])
-      let end' = special (drop 2 end)
+      let end' = case drop 2 end of
+                          "" -> mempty
+                          xs -> special xs
       return $ f (start' <> body' <> end')
     Nothing -> do -- Either bad or case such as *****
       guard (l >= 5)

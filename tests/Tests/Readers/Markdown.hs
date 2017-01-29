@@ -6,21 +6,23 @@ import Test.Framework
 import Tests.Helpers
 import Text.Pandoc.Arbitrary()
 import Text.Pandoc.Builder
-import qualified Data.Set as Set
 import Text.Pandoc
 
 markdown :: String -> Pandoc
-markdown = handleError . readMarkdown def
+markdown = purely $ readMarkdown def { readerExtensions =
+                            disableExtension Ext_smart pandocExtensions }
 
 markdownSmart :: String -> Pandoc
-markdownSmart = handleError . readMarkdown def { readerSmart = True }
+markdownSmart = purely $  readMarkdown def { readerExtensions =
+                             enableExtension Ext_smart pandocExtensions }
 
 markdownCDL :: String -> Pandoc
-markdownCDL = handleError . readMarkdown def { readerExtensions = Set.insert
-                 Ext_compact_definition_lists $ readerExtensions def }
+markdownCDL = purely $ readMarkdown def { readerExtensions = enableExtension
+                 Ext_compact_definition_lists pandocExtensions }
 
 markdownGH :: String -> Pandoc
-markdownGH = handleError . readMarkdown def { readerExtensions = githubMarkdownExtensions }
+markdownGH = purely $ readMarkdown def {
+                readerExtensions = githubMarkdownExtensions }
 
 infix 4 =:
 (=:) :: ToString c
@@ -29,8 +31,8 @@ infix 4 =:
 
 testBareLink :: (String, Inlines) -> Test
 testBareLink (inp, ils) =
-  test (handleError . readMarkdown def{ readerExtensions =
-             Set.fromList [Ext_autolink_bare_uris, Ext_raw_html] })
+  test (purely $ readMarkdown def{ readerExtensions =
+             extensionsFromList [Ext_autolink_bare_uris, Ext_raw_html] })
        inp (inp, doc $ para ils)
 
 autolink :: String -> Inlines
@@ -303,8 +305,8 @@ tests = [ testGroup "inline code"
             =?> para (note (para "See [^1]"))
           ]
         , testGroup "lhs"
-          [ test (handleError . readMarkdown def{ readerExtensions = Set.insert
-                       Ext_literate_haskell $ readerExtensions def })
+          [ test (purely $ readMarkdown def{ readerExtensions = enableExtension
+                       Ext_literate_haskell pandocExtensions })
               "inverse bird tracks and html" $
               "> a\n\n< b\n\n<div>\n"
               =?> codeBlockWith ("",["sourceCode","literate","haskell"],[]) "a"
