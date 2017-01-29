@@ -26,7 +26,7 @@ _ Update website, including short description of changes ('make changes')
 
 _ Announce on pandoc-announce, pandoc-discuss
 
-_ on server, 'cabal install --enable-tests -ftrypandoc'
+_ on server, stack install --flag 'pandoc:trypandoc'
   and then 'cd trypandoc; sudo make install'
 
 _ recompile gitit
