@@ -57,9 +57,6 @@ $endif$
 \usepackage[$for(microtypeoptions)$$microtypeoptions$$sep$,$endfor$]{microtype}
 \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
-$if(geometry)$
-\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
-$endif$
 \PassOptionsToPackage{hyphens}{url} % url is loaded by hyperref
 $if(verbatim-in-note)$
 \usepackage{fancyvrb}
@@ -90,6 +87,9 @@ $endif$
 \urlstyle{same}  % don't use monospace font for urls
 $if(verbatim-in-note)$
 \VerbatimFootnotes % allows verbatim text in footnotes
+$endif$
+$if(geometry)$
+\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
 $endif$
 $if(lang)$
 \ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
