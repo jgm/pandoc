@@ -10,7 +10,6 @@ import Network.HTTP.Types.URI (queryToQueryText)
 import Text.Pandoc
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Shared (tabFilter)
-import Text.Highlighting.Kate (pygments)
 import Data.Aeson
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -51,8 +50,7 @@ writerOpts :: WriterOptions
 writerOpts = def { writerReferenceLinks = True,
                    writerEmailObfuscation = NoObfuscation,
                    writerHTMLMathMethod = MathJax "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML",
-                   writerHighlight = True,
-                   writerHighlightStyle = pygments }
+                   writerHighlight = True }
 
 readerOpts :: ReaderOptions
 readerOpts = def { readerParseRaw = True,

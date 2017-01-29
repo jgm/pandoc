@@ -468,7 +468,7 @@ Executable trypandoc
      Other-Modules:  Prelude
   default-language: Haskell2010
   if flag(trypandoc)
-    Build-Depends: base, aeson, pandoc, skylighting,
+    Build-Depends: base, aeson, pandoc,
                    text, wai-extra, wai >= 0.3, http-types
     Buildable:     True
   else
