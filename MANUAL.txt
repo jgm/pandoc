@@ -281,8 +281,8 @@ General options
     `texinfo` (GNU Texinfo), `opml` (OPML), `docbook` or `docbook4`
     (DocBook 4), `docbook5` (DocBook 5), `opendocument` (OpenDocument),
     `odt` (OpenOffice text document), `docx` (Word docx), `haddock`
-    (Haddock markup), `rtf` (rich text format), `epub` or `epub2` (EPUB v2
-    book), `epub3` (EPUB v3), `fb2` (FictionBook2 e-book),
+    (Haddock markup), `rtf` (rich text format), `epub2` (EPUB v2 book),
+    `epub` or `epub3` (EPUB v3), `fb2` (FictionBook2 e-book),
     `asciidoc` (AsciiDoc), `icml` (InDesign ICML), `tei` (TEI
     Simple), `slidy` (Slidy HTML and JavaScript slide show),
     `slideous` (Slideous HTML and JavaScript slide show),

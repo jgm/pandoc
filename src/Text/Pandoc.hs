@@ -261,7 +261,7 @@ writers = [
   ,("json"         , StringWriter $ \o d -> return $ writeJSON o d)
   ,("docx"         , ByteStringWriter writeDocx)
   ,("odt"          , ByteStringWriter writeODT)
-  ,("epub"         , ByteStringWriter writeEPUB2)
+  ,("epub"         , ByteStringWriter writeEPUB3)
   ,("epub2"        , ByteStringWriter writeEPUB2)
   ,("epub3"        , ByteStringWriter writeEPUB3)
   ,("fb2"          , StringWriter writeFB2)

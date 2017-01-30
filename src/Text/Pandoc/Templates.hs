@@ -62,7 +62,7 @@ getDefaultTemplate user writer = do
        "odt"     -> getDefaultTemplate user "opendocument"
        "html"    -> getDefaultTemplate user "html5"
        "docbook" -> getDefaultTemplate user "docbook5"
-       "epub"    -> getDefaultTemplate user "epub2"
+       "epub"    -> getDefaultTemplate user "epub3"
        "markdown_strict"   -> getDefaultTemplate user "markdown"
        "multimarkdown"     -> getDefaultTemplate user "markdown"
        "markdown_github"   -> getDefaultTemplate user "markdown"
