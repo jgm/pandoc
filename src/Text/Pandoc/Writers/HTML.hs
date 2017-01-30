@@ -944,21 +944,25 @@ inlineToHtml opts inline = do
                         return $ if null tit
                                     then link''
                                     else link'' ! A.title (toValue tit)
-    (Image attr txt (s,tit)) | treatAsImage s -> do
-                        let alternate' = stringify txt
-                        let attributes = [A.src $ toValue s] ++
-                                         [A.title $ toValue tit | not (null tit)] ++
-                                         [A.alt $ toValue alternate' | not (null txt)] ++
-                                         imgAttrsToHtml opts attr
-                        let tag = if html5 then H5.img else H.img
-                        return $ foldl (!) tag attributes
-                        -- note:  null title included, as in Markdown.pl
+    (Image (ident, cls, kvs) txt (s,tit)) | treatAsImage s -> do
+                        let alternate   = [A.alt $ toValue $ stringify txt | not (null txt)]
+                            title       = [A.title $ toValue tit | not (null tit)]
+                            attr        = (ident, cls, filter notTemp kvs)
+                              where
+                                notTemp (k,_) = k /= "data-svg-png-fallback"
+                            imageAttrs  = imgAttrsToHtml opts attr
+                            imgTag path = foldl (!) tag ([A.src $ toValue path] ++ title ++ alternate ++ imageAttrs)
+                              where
+                                tag   = if html5 then H5.img else H.img
+                        return $ case lookup "data-svg-png-fallback" kvs of
+                                   Just pngFallback -> foldl (!) H.object ([A.data_ $ toValue s] ++ title ++ imageAttrs)
+                                                         (imgTag pngFallback)
+                                   _ -> imgTag s
     (Image attr _ (s,tit)) -> do
                         let attributes = [A.src $ toValue s] ++
                                          [A.title $ toValue tit | not (null tit)] ++
                                          imgAttrsToHtml opts attr
                         return $ foldl (!) H5.embed attributes
-                        -- note:  null title included, as in Markdown.pl
     (Note contents) -> do
                         notes <- gets stNotes
                         let number = (length notes) + 1
