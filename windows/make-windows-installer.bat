@@ -2,9 +2,9 @@
 stack install --test
 if %errorlevel% neq 0 exit /b %errorlevel%
 for /f "delims=" %%a in ('stack path --local-bin-path') do @set BINPATH=%%a
-%BINPATH%\pandoc.exe -s -S --toc ..\MANUAL.txt -o MANUAL.html
+%BINPATH%\pandoc.exe -s --toc ..\MANUAL.txt -o MANUAL.html
 if %errorlevel% neq 0 exit /b %errorlevel%
-%BINPATH%\pandoc.exe -s ..\COPYING.md -t rtf -S -o COPYING.rtf
+%BINPATH%\pandoc.exe -s ..\COPYING.md -t rtf -o COPYING.rtf
 if %errorlevel% neq 0 exit /b %errorlevel%
 copy ..\COPYRIGHT COPYRIGHT.txt
 for /f "tokens=1-2 delims= " %%a in ('%BINPATH%\pandoc.exe --version') do (
