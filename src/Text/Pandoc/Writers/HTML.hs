@@ -230,10 +230,6 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          H.script ! A.src (toValue url)
                                   ! A.type_ "text/javascript"
                                   $ mempty
-                      MathML (Just url) ->
-                         H.script ! A.src (toValue url)
-                                  ! A.type_ "text/javascript"
-                                  $ mempty
                       MathJax url ->
                          H.script ! A.src (toValue url)
                                   ! A.type_ "text/javascript"
@@ -903,7 +899,7 @@ inlineToHtml opts inline = do
               return $ case t of
                          InlineMath -> preEscapedString $ "<EQ ENV=\"math\">" ++ str ++ "</EQ>"
                          DisplayMath -> preEscapedString $ "<EQ ENV=\"displaymath\">" ++ str ++ "</EQ>"
-           MathML _ -> do
+           MathML -> do
               let conf = useShortEmptyTags (const False)
                            defaultConfigPP
               res <- lift $ convertMath writeMathML t str
@@ -1061,6 +1057,6 @@ isMathEnvironment s = "\\begin{" `isPrefixOf` s &&
 
 allowsMathEnvironments :: HTMLMathMethod -> Bool
 allowsMathEnvironments (MathJax _) = True
-allowsMathEnvironments (MathML _)  = True
+allowsMathEnvironments (MathML)    = True
 allowsMathEnvironments (WebTeX _)  = True
 allowsMathEnvironments _           = False

@@ -76,8 +76,8 @@ writeTEI opts (Pandoc meta blocks) = return $
       main    = render' $ vcat (map (elementToTEI opts startLvl) elements)
       context = defField "body" main
               $ defField "mathml" (case writerHTMLMathMethod opts of
-                                        MathML _ -> True
-                                        _        -> False)
+                                        MathML -> True
+                                        _      -> False)
               $ metadata
   in  case writerTemplate opts of
            Nothing  -> main

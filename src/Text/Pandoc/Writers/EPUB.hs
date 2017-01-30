@@ -382,7 +382,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                   , writerVariables = vars
                   , writerHTMLMathMethod =
                        if epub3
-                          then MathML Nothing
+                          then MathML
                           else writerHTMLMathMethod opts
                   , writerWrapText = WrapAuto }
   metadata <- getEPUBMetadata opts' meta

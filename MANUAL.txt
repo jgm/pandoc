@@ -945,13 +945,10 @@ Math rendering in HTML
     several pages, it is much better to link to a copy of the script,
     so it can be cached.
 
-`--mathml`[`=`*URL*]
+`--mathml`
 
 :   Convert TeX math to [MathML] (in `docbook4`, `docbook5`,
-    `html4` and `html5`).  In standalone HTML output, a small
-    JavaScript (or a link to such a script if a *URL* is
-    supplied) will be inserted that allows the MathML to be
-    viewed on some browsers.
+    `html4` and `html5`).
 
 `--jsmath`[`=`*URL*]
 

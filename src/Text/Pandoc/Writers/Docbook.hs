@@ -117,8 +117,8 @@ writeDocbook opts (Pandoc meta blocks) = do
   main <- (render' . vcat) <$> (mapM (elementToDocbook opts' startLvl) elements)
   let context = defField "body" main
               $ defField "mathml" (case writerHTMLMathMethod opts of
-                                        MathML _ -> True
-                                        _        -> False)
+                                        MathML -> True
+                                        _      -> False)
               $ metadata
   return $ case writerTemplate opts of
            Nothing   -> main
@@ -421,8 +421,8 @@ inlineToDocbook opts (Note contents) =
   inTagsIndented "footnote" <$> blocksToDocbook opts contents
 
 isMathML :: HTMLMathMethod -> Bool
-isMathML (MathML _) = True
-isMathML _          = False
+isMathML MathML = True
+isMathML _      = False
 
 idAndRole :: Attr -> [(String, String)]
 idAndRole (id',cls,_) = ident ++ role
