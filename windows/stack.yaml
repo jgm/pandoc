@@ -15,7 +15,7 @@ packages:
 - '..'
 - location:
     git: https://github.com/jgm/pandoc-citeproc.git
-    commit: 6810dfbd1a5e87b5857923ae6150ead46c137fc4
+    commit: 9c8e86cf16fc3188836a15ee76d5b70c5315bdb8
   extra-dep: true
 extra-deps:
 - texmath-0.9
