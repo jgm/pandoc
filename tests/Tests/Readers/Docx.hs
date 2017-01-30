@@ -6,11 +6,9 @@ import Test.Framework
 import Test.HUnit (assertBool)
 import Test.Framework.Providers.HUnit
 import qualified Data.ByteString.Lazy as B
-import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Codec.Archive.Zip
-import Text.Pandoc.Class (runIOorExplode)
 import qualified Text.Pandoc.Class as P
 
 -- We define a wrapper around pandoc that doesn't normalize in the

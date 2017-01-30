@@ -2,11 +2,9 @@ module Tests.Readers.Odt (tests) where
 
 import Control.Monad ( liftM )
 import Text.Pandoc
-import Text.Pandoc.Class (runIO)
 import Tests.Helpers
 import Test.Framework
 import qualified Data.ByteString.Lazy as B
-import Text.Pandoc.Writers.Native (writeNative)
 import qualified Data.Map as M
 
 defopts :: ReaderOptions
