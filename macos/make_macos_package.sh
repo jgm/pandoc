@@ -24,6 +24,7 @@ mkdir -p $DIST
 mkdir -p $RESOURCES
 stack setup
 which hsb2hs || stack install hsb2hs
+which cpphs  || stack install cpphs
 
 echo Building pandoc...
 stack clean
