@@ -1,13 +1,13 @@
 #!/bin/bash -e
 
 LOCALBIN=$HOME/.local/bin
-DIST=`pwd`/osx_package
-OSX=`pwd`/osx
+DIST=`pwd`/macos_package
+MACOS=`pwd`/macos
 VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 RESOURCES=$DIST/Resources
 ROOT=$DIST/pandoc
 DEST=$ROOT/usr/local
-SCRIPTS=$OSX/osx-resources
+SCRIPTS=$MACOS/macos-resources
 BASE=pandoc-$VERSION
 ME=$(whoami)
 PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
@@ -16,7 +16,7 @@ DEVELOPER_ID_INSTALLER=${DEVELOPER_ID_INSTALLER:-Developer ID Installer: John Ma
 
 # We need this for hsb2hs:
 PATH=$LOCALBIN:$PATH
-export MACOSX_DEPLOYMENT_TARGET=10.7
+export MACMACOS_DEPLOYMENT_TARGET=10.7
 
 # echo Removing old files...
 rm -rf $DIST
@@ -27,7 +27,7 @@ which hsb2hs || stack install hsb2hs
 
 echo Building pandoc...
 stack clean
-stack install --stack-yaml=$OSX/stack.yaml --local-bin-path . pandoc pandoc-citeproc
+stack install --stack-yaml=$MACOS/stack.yaml --local-bin-path . pandoc pandoc-citeproc
 
 echo Getting man pages...
 make man/pandoc.1
@@ -41,7 +41,7 @@ PANDOC_CITEPROC_PATH=$DIST/pandoc-citeproc-${PANDOC_CITEPROC_VERSION}
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
 for f in pandoc pandoc-citeproc; do
-  cp $OSX/$f $DEST/bin/;
+  cp $MACOS/$f $DEST/bin/;
 done
 cp $PANDOC_CITEPROC_PATH/man/man1/pandoc-citeproc.1 $DEST/share/man/man1/
 cp man/pandoc.1 $DEST/share/man/man1/
@@ -49,7 +49,7 @@ cp man/pandoc.1 $DEST/share/man/man1/
 chown -R $ME:staff $DIST
 
 echo Copying license...
-$OSX/pandoc --data data -t html5 -s COPYING.md -o $RESOURCES/license.html
+$MACOS/pandoc --data data -t html5 -s COPYING.md -o $RESOURCES/license.html
 
 # Removing executable signing because of a problem that arose in El Capitan
 # "source=obsolete resource envelope"
@@ -60,17 +60,15 @@ $OSX/pandoc --data data -t html5 -s COPYING.md -o $RESOURCES/license.html
 # make sure it's valid... returns nonzero exit code if it isn't:
 #spctl --assess --type execute $DEST/bin/pandoc
 
-echo Creating OSX package...
-# remove old package first
-rm -rf $BASE.pkg
+echo Creating MacOS package...
 
-sed -e "s/PANDOCVERSION/$VERSION/" $OSX/distribution.xml.in > $OSX/distribution.xml
+sed -e "s/PANDOCVERSION/$VERSION/" $MACOS/distribution.xml.in > $MACOS/distribution.xml
 
 pkgbuild --root $DIST/pandoc --identifier net.johnmacfarlane.pandoc --version 1.13 --ownership recommended $DIST/pandoc.pkg
-productbuild --distribution $OSX/distribution.xml --resources $DIST/Resources --package-path $DIST --version $VERSION --sign "${DEVELOPER_ID_INSTALLER}" $BASE-osx.pkg
+productbuild --distribution $MACOS/distribution.xml --resources $DIST/Resources --package-path $DIST --version $VERSION --sign "${DEVELOPER_ID_INSTALLER}" $BASE-MacOS.pkg
 
 # verify signature
-spctl --assess --type install $BASE-osx.pkg
+spctl --assess --type install $BASE-MacOS.pkg
 
 # cleanup
-rm -r $DIST $OSX/pandoc $OSX/pandoc-citeproc
+rm -r $DIST $MACOS/pandoc $MACOS/pandoc-citeproc
