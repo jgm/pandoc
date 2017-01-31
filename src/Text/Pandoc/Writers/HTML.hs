@@ -933,9 +933,11 @@ inlineToHtml opts inline = do
                         linkText <- inlineListToHtml opts txt
                         slideVariant <- gets stSlideVariant
                         let s' = case s of
-                                      '#':xs | slideVariant == RevealJsSlides
-                                        -> '#':'/':xs
-                                      _ -> s
+                                   '#':xs -> let prefix = if slideVariant == RevealJsSlides
+                                                             then "/"
+                                                             else writerIdentifierPrefix opts
+                                             in  '#' : prefix ++ xs
+                                   _ -> s
                         let link = H.a ! A.href (toValue s') $ linkText
                         let link' = if txt == [Str (unEscapeString s)]
                                        then link ! A.class_ "uri"
