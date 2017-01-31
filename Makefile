@@ -27,8 +27,8 @@ dist: man/pandoc.1
 debpkg: man/pandoc.1
 	make -C deb
 
-osxpkg: man/pandoc.1
-	./osx/make_osx_package.sh
+macospkg: man/pandoc.1
+	./macos/make_macos_package.sh
 
 winpkg: pandoc-$(version)-windows.msi
 
@@ -52,4 +52,4 @@ download_stats:
 clean:
 	stack clean
 
-.PHONY: deps quick full install clean test bench changes_github osxpkg dist prof download_stats
+.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats

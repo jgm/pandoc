@@ -19,7 +19,7 @@
         copy /y "%TEMP%\pandoc\pandoc-citeproc.exe" C:\Utils\Console\
         rmdir /s /q "%TEMP%\pandoc\"
 
-## Mac OS X
+## MacOS
 
   - There is a package installer at pandoc's [download page].
     If you later want to uninstall the package, you can do so
@@ -27,7 +27,7 @@
     and running it with `perl uninstall-pandoc.pl`.
 
   - It is possible to extract the pandoc and pandoc-citeproc
-    executables from the osx pkg file, if you'd rather not run
+    executables from the MacOS pkg file, if you'd rather not run
     the installer.  To do this (for the version 1.19.1 package):
 
         mkdir pandoc-extract
