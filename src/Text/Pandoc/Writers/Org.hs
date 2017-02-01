@@ -46,8 +46,6 @@ import Text.Pandoc.Class (PandocMonad)
 
 data WriterState =
   WriterState { stNotes     :: [[Block]]
-              , stLinks     :: Bool
-              , stImages    :: Bool
               , stHasMath   :: Bool
               , stOptions   :: WriterOptions
               }
@@ -55,8 +53,8 @@ data WriterState =
 -- | Convert Pandoc to Org.
 writeOrg :: PandocMonad m => WriterOptions -> Pandoc -> m String
 writeOrg opts document = return $
-  let st = WriterState { stNotes = [], stLinks = False,
-                         stImages = False, stHasMath = False,
+  let st = WriterState { stNotes = [],
+                         stHasMath = False,
                          stOptions = opts }
   in evalState (pandocToOrg document) st
 
@@ -361,13 +359,10 @@ inlineToOrg SoftBreak = do
 inlineToOrg (Link _ txt (src, _)) = do
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
-             do modify $ \s -> s{ stLinks = True }
-                return $ "[[" <> text (orgPath x) <> "]]"
+             do return $ "[[" <> text (orgPath x) <> "]]"
         _ -> do contents <- inlineListToOrg txt
-                modify $ \s -> s{ stLinks = True }
                 return $ "[[" <> text (orgPath src) <> "][" <> contents <> "]]"
 inlineToOrg (Image _ _ (source, _)) = do
-  modify $ \s -> s{ stImages = True }
   return $ "[[" <> text (orgPath source) <> "]]"
 inlineToOrg (Note contents) = do
   -- add to notes in state
