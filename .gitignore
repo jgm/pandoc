@@ -1,4 +1,5 @@
 *~
+deb/.vagrant
 dist/*
 MANUAL.*
 !MANUAL.txt
