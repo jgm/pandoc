@@ -71,7 +71,6 @@ pandocToOrg (Pandoc meta blocks) = do
                meta
   body <- blockListToOrg blocks
   notes <- liftM (reverse . stNotes) get >>= notesToOrg
-  -- note that the notes may contain refs, so we do them first
   hasMath <- liftM stHasMath get
   let main = render colwidth $ foldl ($+$) empty $ [body, notes]
   let context = defField "body" main
