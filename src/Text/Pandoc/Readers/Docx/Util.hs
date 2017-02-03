@@ -3,6 +3,9 @@ module Text.Pandoc.Readers.Docx.Util (
                                       , elemName
                                       , isElem
                                       , elemToNameSpaces
+                                      , findChildByName
+                                      , findChildrenByName
+                                      , findAttrByName
                                       ) where
 
 import Text.XML.Light
@@ -23,5 +26,22 @@ elemName ns prefix name =
 
 isElem :: NameSpaces -> String -> String -> Element -> Bool
 isElem ns prefix name element =
-  qName (elName element) == name &&
-  qURI (elName element) == lookup prefix ns
+  let ns' = ns ++ elemToNameSpaces element
+  in qName (elName element) == name &&
+     qURI (elName element) == lookup prefix ns'
+
+findChildByName :: NameSpaces -> String -> String -> Element -> Maybe Element
+findChildByName ns pref name el =
+  let ns' = ns ++ elemToNameSpaces el
+  in  findChild (elemName ns' pref name) el
+
+findChildrenByName :: NameSpaces -> String -> String -> Element -> [Element]
+findChildrenByName ns pref name el =
+  let ns' = ns ++ elemToNameSpaces el
+  in  findChildren (elemName ns' pref name) el
+
+findAttrByName :: NameSpaces -> String -> String -> Element -> Maybe String
+findAttrByName ns pref name el =
+  let ns' = ns ++ elemToNameSpaces el
+  in  findAttr (elemName ns' pref name) el
+
