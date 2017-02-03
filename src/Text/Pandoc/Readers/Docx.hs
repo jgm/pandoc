@@ -411,6 +411,9 @@ parPartToInlines (ExternalHyperLink target runs) = do
   return $ link target "" ils
 parPartToInlines (PlainOMath exps) = do
   return $ math $ writeTeX exps
+parPartToInlines (SmartTag runs) = do
+  ils <- smushInlines <$> mapM runToInlines runs
+  return ils
 
 isAnchorSpan :: Inline -> Bool
 isAnchorSpan (Span (_, classes, kvs) _) =
