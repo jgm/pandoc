@@ -218,6 +218,7 @@ data ParPart = PlainRun Run
              | Drawing FilePath String String B.ByteString Extent -- title, alt
              | Chart                                              -- placeholder for now
              | PlainOMath [Exp]
+             | SmartTag [Run]
              deriving Show
 
 data Run = Run RunStyle [RunElem]
@@ -708,6 +709,10 @@ elemToParPart ns element
   , Just cDate <- findAttr (elemName ns "w" "date") element = do
     runs <- mapD (elemToRun ns) (elChildren element)
     return $ Deletion cId cAuthor cDate runs
+elemToParPart ns element
+  | isElem ns "w" "smartTag" element = do
+    runs <- mapD (elemToRun ns) (elChildren element)
+    return $ SmartTag runs
 elemToParPart ns element
   | isElem ns "w" "bookmarkStart" element
   , Just bmId <- findAttr (elemName ns "w" "id") element
