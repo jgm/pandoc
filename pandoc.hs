@@ -1283,6 +1283,10 @@ options =
 
     ]
 
+-- TODO: possibly add code to give a more informative message
+-- if people try to use options that have been removed in 2.0,
+-- e.g. --smart/-S, --old-dashes, --no-wrap, --chapters,
+-- --reference-docx, --reference-odt
 
 addMetadata :: String -> MetaValue -> M.Map String MetaValue
             -> M.Map String MetaValue
