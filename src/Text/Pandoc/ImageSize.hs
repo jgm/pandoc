@@ -27,10 +27,12 @@ Maintainer  : John MacFarlane <jgm@berkeley.edu>
 Stability   : alpha
 Portability : portable
 
-Functions for determining the size of a PNG, JPEG, or GIF image.
+Functions for determining the type, position and the size of a PNG, JPEG, or GIF image.
 -}
 module Text.Pandoc.ImageSize ( ImageType(..)
+                             , ImagePos(..)
                              , imageType
+                             , imagePos
                              , imageSize
                              , sizeInPixels
                              , sizeInPoints
@@ -66,6 +68,7 @@ import Data.Maybe (fromMaybe)
 -- algorithms borrowed from wwwis.pl
 
 data ImageType = Png | Gif | Jpeg | Pdf | Eps deriving Show
+data ImagePos  = Here | Top | Bottom | Page deriving Show
 data Direction = Width | Height
 instance Show Direction where
   show Width  = "width"
@@ -104,6 +107,13 @@ imageType img = case B.take 4 img of
                        | (B.take 4 $ B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
                                         -> return Eps
                      _                  -> mzero
+
+imagePos :: String -> Maybe ImagePos
+imagePos "here"   = Just Here
+imagePos "top"    = Just Top
+imagePos "bottom" = Just Bottom
+imagePos "page"   = Just Page
+imagePos _        = Nothing
 
 imageSize :: ByteString -> Either String ImageSize
 imageSize img =

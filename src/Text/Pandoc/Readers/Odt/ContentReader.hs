@@ -761,13 +761,15 @@ read_table_cell    = matchingElement NsTable "table-cell"
 read_maybe_nested_img_frame  :: InlineMatcher
 read_maybe_nested_img_frame   = matchingElement NsDraw "frame"
                                 $ proc blocks -> do
-                                   img <- (findChild' NsDraw "image") -< ()
+                                   img  <- ( findChild' NsDraw "image" )      -< ()
+                                   pos0 <- ( findAttr' NsText "anchor-type" ) -< () -- we want the position of the outer frame always
+                                   pos  <- arr image_pos_from_anchor_type     -< pos0
                                    case img of
-                                     Just _  ->  read_frame                                 -< blocks
-                                     Nothing ->  matchChildContent' [ read_frame_text_box ] -< blocks
+                                     Just _  ->  read_frame pos                                 -<< blocks
+                                     Nothing ->  matchChildContent' [ read_frame_text_box pos ] -<< blocks
 
-read_frame :: OdtReaderSafe Inlines Inlines
-read_frame =
+read_frame :: Maybe String -> OdtReaderSafe Inlines Inlines
+read_frame pos =
   proc blocks -> do
    w          <- ( findAttr' NsSVG "width" )                 -< ()
    h          <- ( findAttr' NsSVG "height" )                -< ()
@@ -777,15 +779,21 @@ read_frame =
    _          <- updateMediaWithResource                     -< resource
    alt        <- (matchChildContent [] read_plain_text)      -< blocks
    arr (uncurry4 imageWith ) -<
-                (image_attributes w h, src, inlineListToIdentifier (toList titleNodes), alt)
+                (image_attributes w h pos, src, inlineListToIdentifier (toList titleNodes), alt)
 
-image_attributes :: Maybe String -> Maybe String -> Attr
-image_attributes x y =
-  ( "", [], (dim "width" x) ++ (dim "height" y))
+image_attributes :: Maybe String -> Maybe String -> Maybe String -> Attr
+image_attributes x y p =
+  ( "", [], (dim "width" x) ++ (dim "height" y) ++ (dim "pandoc-pos" p))
   where
     dim _ (Just "")   = []
     dim name (Just v) = [(name, v)]
     dim _ Nothing     = []
+
+image_pos_from_anchor_type :: Maybe String -> Maybe String
+image_pos_from_anchor_type (Just "as-char") = Just "here"
+image_pos_from_anchor_type (Just "page")    = Just "page"
+image_pos_from_anchor_type _                = Nothing
+
 
 read_image_src :: (Namespace, ElementName, OdtReader Anchor Anchor)
 read_image_src = matchingElement NsDraw "image"
@@ -799,21 +807,25 @@ read_frame_title :: InlineMatcher
 read_frame_title = matchingElement NsSVG "title"
                    $ (matchChildContent [] read_plain_text)
 
-read_frame_text_box :: InlineMatcher
-read_frame_text_box = matchingElement NsDraw "text-box"
-                      $ proc blocks -> do
-                         paragraphs <- (matchChildContent' [ read_paragraph ]) -< blocks
-                         arr read_img_with_caption                             -< toList paragraphs
+read_frame_text_box :: (Maybe String) -> InlineMatcher
+read_frame_text_box pos = matchingElement NsDraw "text-box"
+                          $ proc blocks -> do
+                            paragraphs <- (matchChildContent' [ read_paragraph ]) -< blocks
+                            arr (read_img_with_caption pos)                       -< toList paragraphs
 
-read_img_with_caption :: [Block] -> Inlines
-read_img_with_caption ((Para ((Image attr alt (src,title)) : [])) : _) =
-  singleton (Image attr alt (src, 'f':'i':'g':':':title))   -- no text, default caption
-read_img_with_caption ((Para ((Image attr _ (src,title)) : txt)) : _) =
-  singleton (Image attr txt (src, 'f':'i':'g':':':title) )  -- override caption with the text that follows
-read_img_with_caption  ( (Para (_ : xs)) : ys) =
-  read_img_with_caption ((Para xs) : ys)
-read_img_with_caption _ =
+read_img_with_caption :: Maybe String -> [Block] -> Inlines
+read_img_with_caption  p((Para ((Image attr alt (src,title)) : [])) : _) =
+  singleton (Image (append_to_attrs "pandoc-pos" p attr) alt (src, 'f':'i':'g':':':title))   -- no text, default caption
+read_img_with_caption p ((Para ((Image attr _ (src,title)) : txt)) : _) =
+  singleton (Image (append_to_attrs "pandoc-pos" p attr) txt (src, 'f':'i':'g':':':title) )  -- override caption with the text that follows
+read_img_with_caption p ( (Para (_ : xs)) : ys ) =
+  read_img_with_caption p ((Para xs) : ys)
+read_img_with_caption _ _ =
   mempty
+
+append_to_attrs :: String -> Maybe String -> Attr -> Attr
+append_to_attrs name (Just v) (ident, clazz, props) = (ident, clazz, (name, v) : props)
+append_to_attrs _ Nothing attr0 = attr0
 
 ----------------------
 -- Internal links
