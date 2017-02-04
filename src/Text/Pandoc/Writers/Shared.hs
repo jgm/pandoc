@@ -35,10 +35,12 @@ module Text.Pandoc.Writers.Shared (
                      , defField
                      , tagWithAttrs
                      , fixDisplayMath
+                     , unsmartify
                      )
 where
 import Text.Pandoc.Definition
 import Text.Pandoc.Pretty
+import Text.Pandoc.Options
 import Text.Pandoc.XML (escapeStringForXML)
 import Control.Monad (liftM)
 import Text.Pandoc.Options (WriterOptions(..))
@@ -167,3 +169,16 @@ fixDisplayMath (Para lst)
        groupBy (\x y -> (isDisplayMath x && isDisplayMath y) ||
                          not (isDisplayMath x || isDisplayMath y)) lst
 fixDisplayMath x = x
+
+unsmartify :: WriterOptions -> String -> String
+unsmartify opts ('\8217':xs) = '\'' : unsmartify opts xs
+unsmartify opts ('\8230':xs) = "..." ++ unsmartify opts xs
+unsmartify opts ('\8211':xs)
+  | isEnabled Ext_old_dashes opts = '-' : unsmartify opts xs
+  | otherwise                     = "--" ++ unsmartify opts xs
+unsmartify opts ('\8212':xs)
+  | isEnabled Ext_old_dashes opts = "--" ++ unsmartify opts xs
+  | otherwise                     = "---" ++ unsmartify opts xs
+unsmartify opts (x:xs) = x : unsmartify opts xs
+unsmartify _ [] = []
+
