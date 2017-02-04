@@ -255,7 +255,7 @@ blockToOrg (DefinitionList items) = do
 bulletListItemToOrg :: [Block] -> State WriterState Doc
 bulletListItemToOrg items = do
   contents <- blockListToOrg items
-  return $ hang 3 "-  " (contents <> cr)
+  return $ hang 2 "- " (contents <> cr)
 
 -- | Convert ordered list item (a list of blocks) to Org.
 orderedListItemToOrg :: String   -- ^ marker for list item
@@ -270,7 +270,7 @@ definitionListItemToOrg :: ([Inline], [[Block]]) -> State WriterState Doc
 definitionListItemToOrg (label, defs) = do
   label' <- inlineListToOrg label
   contents <- liftM vcat $ mapM blockListToOrg defs
-  return $ hang 3 "-  " $ label' <> " :: " <> (contents <> cr)
+  return $ hang 2 "- " $ label' <> " :: " <> (contents <> cr)
 
 -- | Convert list of key/value pairs to Org :PROPERTIES: drawer.
 propertiesDrawer :: Attr -> Doc
