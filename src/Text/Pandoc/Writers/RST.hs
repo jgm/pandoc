@@ -432,14 +432,25 @@ inlineToRST (Subscript lst) = do
 inlineToRST (SmallCaps lst) = inlineListToRST lst
 inlineToRST (Quoted SingleQuote lst) = do
   contents <- inlineListToRST lst
-  return $ "‘" <> contents <> "’"
+  opts <- gets stOptions
+  if isEnabled Ext_smart opts
+     then return $ "'" <> contents <> "'"
+     else return $ "‘" <> contents <> "’"
 inlineToRST (Quoted DoubleQuote lst) = do
   contents <- inlineListToRST lst
-  return $ "“" <> contents <> "”"
+  opts <- gets stOptions
+  if isEnabled Ext_smart opts
+     then return $ "\"" <> contents <> "\""
+     else return $ "“" <> contents <> "”"
 inlineToRST (Cite _  lst) =
   inlineListToRST lst
 inlineToRST (Code _ str) = return $ "``" <> text str <> "``"
-inlineToRST (Str str) = return $ text $ escapeString str
+inlineToRST (Str str) = do
+  opts <- gets stOptions
+  let str' = if isEnabled Ext_smart opts
+                then unsmartify opts str
+                else str
+  return $ text $ escapeString str'
 inlineToRST (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath

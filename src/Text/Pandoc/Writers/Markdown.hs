@@ -1136,15 +1136,3 @@ makeMathPlainer = walk go
   go (Emph xs) = Span nullAttr xs
   go x = x
 
-unsmartify :: WriterOptions -> String -> String
-unsmartify opts ('\8217':xs) = '\'' : unsmartify opts xs
-unsmartify opts ('\8230':xs) = "..." ++ unsmartify opts xs
-unsmartify opts ('\8211':xs)
-  | isEnabled Ext_old_dashes opts = '-' : unsmartify opts xs
-  | otherwise                     = "--" ++ unsmartify opts xs
-unsmartify opts ('\8212':xs)
-  | isEnabled Ext_old_dashes opts = "--" ++ unsmartify opts xs
-  | otherwise                     = "---" ++ unsmartify opts xs
-unsmartify opts (x:xs) = x : unsmartify opts xs
-unsmartify _ [] = []
-
