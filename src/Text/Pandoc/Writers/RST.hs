@@ -161,8 +161,22 @@ pictToRST (label, (attr, src, _, mbtarget)) = do
                  Just t  -> "   :target: " <> text t
 
 -- | Escape special characters for RST.
-escapeString :: String -> String
-escapeString = escapeStringUsing (backslashEscapes "`\\|*_")
+escapeString :: WriterOptions -> String -> String
+escapeString _  [] = []
+escapeString opts (c:cs) =
+  case c of
+       _ | c `elem` ['\\','`','*','_','|'] -> '\\':c:escapeString opts cs
+       '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString opts cs
+       '"' | isEnabled Ext_smart opts -> '\\':'"':escapeString opts cs
+       '-' | isEnabled Ext_smart opts ->
+              case cs of
+                   '-':_ -> '\\':'-':escapeString opts cs
+                   _ -> '-':escapeString opts cs
+       '.' | isEnabled Ext_smart opts ->
+              case cs of
+                   '.':'.':rest -> '\\':'.':'.':'.':escapeString opts rest
+                   _ -> '.':escapeString opts cs
+       _ -> c : escapeString opts cs
 
 titleToRST :: [Inline] -> [Inline] -> State WriterState Doc
 titleToRST [] _ = return empty
@@ -447,10 +461,10 @@ inlineToRST (Cite _  lst) =
 inlineToRST (Code _ str) = return $ "``" <> text str <> "``"
 inlineToRST (Str str) = do
   opts <- gets stOptions
-  let str' = if isEnabled Ext_smart opts
-                then unsmartify opts str
-                else str
-  return $ text $ escapeString str'
+  return $ text $
+    (if isEnabled Ext_smart opts
+        then unsmartify opts
+        else id) $ escapeString opts str
 inlineToRST (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
