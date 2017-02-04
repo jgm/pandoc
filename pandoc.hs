@@ -124,7 +124,7 @@ convertWithOpts opts args = do
               , optVariables             = variables
               , optMetadata              = metadata
               , optTableOfContents       = toc
-              , optTransforms            = transforms
+              , optBaseHeaderLevel       = baseHeaderLevel
               , optTemplate              = templatePath
               , optOutputFile            = outputFile
               , optNumberSections        = numberSections
@@ -354,6 +354,10 @@ convertWithOpts opts args = do
             "Specify an output file using the -o option."
 
 
+  let transforms = if baseHeaderLevel > 1
+                      then [headerShift (baseHeaderLevel - 1)]
+                      else []
+
   let convertTabs = tabFilter (if preserveTabs || readerName' == "t2t"
                                  then 0
                                  else tabStop)
@@ -526,7 +530,7 @@ data Opt = Opt
     , optWriter            :: String  -- ^ Writer format
     , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
     , optTableOfContents   :: Bool    -- ^ Include table of contents
-    , optTransforms        :: [Transform]  -- ^ Doc transforms to apply
+    , optBaseHeaderLevel   :: Int     -- ^ Base header level
     , optTemplate          :: Maybe FilePath  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optMetadata          :: M.Map String MetaValue -- ^ Metadata fields to set
@@ -585,7 +589,7 @@ defaultOpts = Opt
     , optWriter                = ""    -- null for default writer
     , optParseRaw              = False
     , optTableOfContents       = False
-    , optTransforms            = []
+    , optBaseHeaderLevel       = 1
     , optTemplate              = Nothing
     , optVariables             = []
     , optMetadata              = M.empty
@@ -671,13 +675,10 @@ options =
                  (ReqArg
                   (\arg opt ->
                       case safeRead arg of
-                           Just t | t > 0 -> do
-                               let oldTransforms = optTransforms opt
-                               let shift = t - 1
-                               return opt{ optTransforms =
-                                           headerShift shift : oldTransforms }
+                           Just t | t > 0 && t < 6 -> do
+                               return opt{ optBaseHeaderLevel = t }
                            _              -> err 19
-                                       "base-header-level must be a number > 0")
+                                       "base-header-level must be 1-5")
                   "NUMBER")
                  "" -- "Headers base level"
 
