@@ -101,7 +101,7 @@ addDeprecationNote "--smart" =
     "For example: pandoc -f markdown+smart -t markdown-smart.") :)
 addDeprecationNote "-S" = addDeprecationNote "--smart"
 addDeprecationNote "--old-dashes" =
-  ("--old-dashes has been removed." :)
+  ("--old-dashes has been removed.  Use +old_dashes extension instead." :)
 addDeprecationNote "--no-wrap" =
   ("--no-wrap has been removed.  Use --wrap=none instead." :)
 addDeprecationNote "--chapters" =
