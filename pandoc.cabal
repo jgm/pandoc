@@ -525,6 +525,7 @@ Test-Suite test-pandoc
                   zip-archive >= 0.2.3.4 && < 0.4,
                   mtl >= 2.2 && < 2.3
   Other-Modules:  Tests.Old
+                  Tests.Command
                   Tests.Helpers
                   Tests.Shared
                   Tests.Readers.LaTeX
