@@ -133,7 +133,7 @@ convertWithOpts opts args = do
               , optIncremental           = incremental
               , optSelfContained         = selfContained
               , optHtmlQTags             = htmlQTags
-              , optHighlightStyle        = highlightStyle
+              , optHighlightStyle        = mbHighlightStyle
               , optTopLevelDivision      = topLevelDivision
               , optHTMLMathMethod        = mathMethod'
               , optReferenceDoc          = referenceDoc
@@ -308,6 +308,8 @@ convertWithOpts opts args = do
                       , readerDefaultImageExtension = defaultImageExtension
                       , readerTrackChanges = trackChanges
                       }
+
+  highlightStyle <- lookupHighlightStyle mbHighlightStyle
 
   let writerOptions = def { writerTemplate         = templ,
                             writerVariables        = variables'',
@@ -534,14 +536,14 @@ data Opt = Opt
     , optTemplate          :: Maybe FilePath  -- ^ Custom template
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optMetadata          :: M.Map String MetaValue -- ^ Metadata fields to set
-    , optOutputFile        :: String  -- ^ Name of output file
+    , optOutputFile        :: FilePath  -- ^ Name of output file
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optNumberOffset      :: [Int]   -- ^ Starting number for sections
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
     , optHtmlQTags         :: Bool    -- ^ Use <q> tags in HTML
-    , optHighlightStyle    :: Maybe Style   -- ^ Style to use for highlighted code
+    , optHighlightStyle    :: Maybe String -- ^ Style to use for highlighted code
     , optTopLevelDivision  :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceDoc      :: Maybe FilePath -- ^ Path of reference doc
@@ -600,7 +602,7 @@ defaultOpts = Opt
     , optIncremental           = False
     , optSelfContained         = False
     , optHtmlQTags             = False
-    , optHighlightStyle        = Just pygments
+    , optHighlightStyle        = Just "pygments"
     , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath
     , optReferenceDoc          = Nothing
@@ -840,10 +842,7 @@ options =
 
     , Option "" ["highlight-style"]
                 (ReqArg
-                 (\arg opt -> do
-                   case lookup (map toLower arg) highlightingStyles of
-                         Just s -> return opt{ optHighlightStyle = Just s }
-                         Nothing -> err 39 $ "Unknown style: " ++ arg)
+                 (\arg opt -> return opt{ optHighlightStyle = Just arg })
                  "STYLE")
                  "" -- "Style for highlighted code"
 
@@ -1475,4 +1474,9 @@ writerFn :: MonadIO m => FilePath -> String -> m ()
 writerFn "-" = liftIO . UTF8.putStr
 writerFn f   = liftIO . UTF8.writeFile f
 
-
+lookupHighlightStyle :: Maybe String -> IO (Maybe Style)
+lookupHighlightStyle Nothing = return Nothing
+lookupHighlightStyle (Just s) =
+  case lookup (map toLower s) highlightingStyles of
+       Just sty -> return (Just sty)
+       Nothing  -> err 68 $ "Unknown highlight-style " ++ s
