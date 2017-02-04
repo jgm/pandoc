@@ -1,46 +1,17 @@
 module Tests.Old (tests) where
 
+import Tests.Helpers hiding (test)
 import Test.Framework (testGroup, Test )
 import Test.Framework.Providers.HUnit
 import Test.HUnit ( assertBool )
-import System.Environment.Executable (getExecutablePath)
 import System.IO ( openTempFile, stderr )
 import System.Process ( runProcess, waitForProcess )
-import System.FilePath ( (</>), (<.>), takeDirectory, splitDirectories,
-                         joinPath )
+import System.FilePath ( (</>), (<.>), splitDirectories, joinPath )
 import System.Directory
 import System.Exit
 import Data.Algorithm.Diff
 import Prelude hiding ( readFile )
-import qualified Data.ByteString.Lazy as B
-import Text.Pandoc.UTF8 (toStringLazy)
-import Text.Printf
-
-readFileUTF8 :: FilePath -> IO String
-readFileUTF8 f = B.readFile f >>= return . toStringLazy
-
-data TestResult = TestPassed
-                | TestError ExitCode
-                | TestFailed String FilePath [Diff String]
-     deriving (Eq)
-
-instance Show TestResult where
-  show TestPassed     = "PASSED"
-  show (TestError ec) = "ERROR " ++ show ec
-  show (TestFailed cmd file d) = '\n' : dash ++
-                                 "\n--- " ++ file ++
-                                 "\n+++ " ++ cmd ++ "\n" ++ showDiff (1,1) d ++
-                                 dash
-    where dash = replicate 72 '-'
-
-showDiff :: (Int,Int) -> [Diff String] -> String
-showDiff _ []             = ""
-showDiff (l,r) (First ln : ds) =
-  printf "+%4d " l ++ ln ++ "\n" ++ showDiff (l+1,r) ds
-showDiff (l,r) (Second ln : ds) =
-  printf "-%4d " r ++ ln ++ "\n" ++ showDiff (l,r+1) ds
-showDiff (l,r) (Both _ _ : ds) =
-  showDiff (l+1,r+1) ds
+import qualified Text.Pandoc.UTF8 as UTF8
 
 tests :: [Test]
 tests = [ testGroup "markdown"
@@ -175,7 +146,7 @@ tests = [ testGroup "markdown"
 
 -- makes sure file is fully closed after reading
 readFile' :: FilePath -> IO String
-readFile' f = do s <- readFileUTF8 f
+readFile' f = do s <- UTF8.readFile f
                  return $! (length s `seq` s)
 
 lhsWriterTests :: String -> [Test]
@@ -242,15 +213,7 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
   -- find pandoc executable relative to test-pandoc
   -- First, try in same directory (e.g. if both in ~/.cabal/bin)
   -- Second, try ../pandoc (e.g. if in dist/XXX/build/test-pandoc)
-  pandocPath <- do
-    testExePath <- getExecutablePath
-    let testExeDir = takeDirectory testExePath
-    found <- doesFileExist (testExeDir </> "pandoc")
-    return $ if found
-                then testExeDir </> "pandoc"
-                else case splitDirectories testExeDir of
-                           [] -> error "test-pandoc: empty testExeDir"
-                           xs -> joinPath (init xs) </> "pandoc" </> "pandoc"
+  pandocPath <- findPandoc
   (outputPath, hOut) <- openTempFile "" "pandoc-test"
   let inpPath = inp
   let normPath = norm
