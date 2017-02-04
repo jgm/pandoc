@@ -1,10 +1,10 @@
 module Tests.Command (findPandoc, runTest, tests)
 where
 
+import Tests.Helpers
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit ( assertBool )
-import System.Environment.Executable (getExecutablePath)
 import System.FilePath ( (</>), takeDirectory, splitDirectories,
                          joinPath )
 import System.Process
@@ -14,46 +14,8 @@ import Text.Pandoc
 import Data.Algorithm.Diff
 import Prelude hiding ( readFile )
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Printf
 import Data.List (isSuffixOf)
 import Text.Pandoc.Shared (trimr)
-
-data TestResult = TestPassed
-                | TestError ExitCode
-                | TestFailed String FilePath [Diff String]
-     deriving (Eq)
-
-instance Show TestResult where
-  show TestPassed     = "PASSED"
-  show (TestError ec) = "ERROR " ++ show ec
-  show (TestFailed cmd file d) = '\n' : dash ++
-                                 "\n--- " ++ file ++
-                                 "\n+++ " ++ cmd ++ "\n" ++ showDiff (1,1) d ++
-                                 dash
-    where dash = replicate 72 '-'
-
-showDiff :: (Int,Int) -> [Diff String] -> String
-showDiff _ []             = ""
-showDiff (l,r) (First ln : ds) =
-  printf "+%4d " l ++ ln ++ "\n" ++ showDiff (l+1,r) ds
-showDiff (l,r) (Second ln : ds) =
-  printf "-%4d " r ++ ln ++ "\n" ++ showDiff (l,r+1) ds
-showDiff (l,r) (Both _ _ : ds) =
-  showDiff (l+1,r+1) ds
-
--- | Find pandoc executable relative to test-pandoc
--- First, try in same directory (e.g. if both in ~/.cabal/bin)
--- Second, try ../pandoc (e.g. if in dist/XXX/build/test-pandoc)
-findPandoc :: IO FilePath
-findPandoc = do
-  testExePath <- getExecutablePath
-  let testExeDir = takeDirectory testExePath
-  found <- doesFileExist (testExeDir </> "pandoc")
-  return $ if found
-              then testExeDir </> "pandoc"
-              else case splitDirectories testExeDir of
-                         [] -> error "test-pandoc: empty testExeDir"
-                         xs -> joinPath (init xs) </> "pandoc" </> "pandoc"
 
 -- | Run a test with normalize function, return True if test passed.
 runTest :: String    -- ^ Title of test

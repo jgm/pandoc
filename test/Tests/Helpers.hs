@@ -2,6 +2,9 @@
 -- Utility functions for the test suite.
 
 module Tests.Helpers ( test
+                     , TestResult(..)
+                     , showDiff
+                     , findPandoc
                      , (=?>)
                      , purely
                      , property
@@ -20,9 +23,14 @@ import Test.HUnit (assertBool)
 import Text.Pandoc.Shared (trimr)
 import Text.Pandoc.Options
 import Text.Pandoc.Writers.Native (writeNative)
+import Text.Printf
+import System.Environment.Executable (getExecutablePath)
 import qualified Test.QuickCheck.Property as QP
 import Data.Algorithm.Diff
 import qualified Data.Map as M
+import System.Exit
+import System.Directory
+import System.FilePath
 
 test :: (ToString a, ToString b, ToString c)
      => (a -> b)  -- ^ function to test
@@ -42,6 +50,44 @@ test fn name (input, expected) =
            diff = getDiff expected' actual'
            dashes "" = replicate 72 '-'
            dashes x  = replicate (72 - length x - 5) '-' ++ " " ++ x ++ " ---"
+
+data TestResult = TestPassed
+                | TestError ExitCode
+                | TestFailed String FilePath [Diff String]
+     deriving (Eq)
+
+instance Show TestResult where
+  show TestPassed     = "PASSED"
+  show (TestError ec) = "ERROR " ++ show ec
+  show (TestFailed cmd file d) = '\n' : dash ++
+                                 "\n--- " ++ file ++
+                                 "\n+++ " ++ cmd ++ "\n" ++ showDiff (1,1) d ++
+                                 dash
+    where dash = replicate 72 '-'
+
+showDiff :: (Int,Int) -> [Diff String] -> String
+showDiff _ []             = ""
+showDiff (l,r) (First ln : ds) =
+  printf "+%4d " l ++ ln ++ "\n" ++ showDiff (l+1,r) ds
+showDiff (l,r) (Second ln : ds) =
+  printf "-%4d " r ++ ln ++ "\n" ++ showDiff (l,r+1) ds
+showDiff (l,r) (Both _ _ : ds) =
+  showDiff (l+1,r+1) ds
+
+-- | Find pandoc executable relative to test-pandoc
+-- First, try in same directory (e.g. if both in ~/.cabal/bin)
+-- Second, try ../pandoc (e.g. if in dist/XXX/build/test-pandoc)
+findPandoc :: IO FilePath
+findPandoc = do
+  testExePath <- getExecutablePath
+  let testExeDir = takeDirectory testExePath
+  found <- doesFileExist (testExeDir </> "pandoc")
+  return $ if found
+              then testExeDir </> "pandoc"
+              else case splitDirectories testExeDir of
+                         [] -> error "test-pandoc: empty testExeDir"
+                         xs -> joinPath (init xs) </> "pandoc" </> "pandoc"
+
 
 vividize :: Diff String -> String
 vividize (Both s _) = "  " ++ s
