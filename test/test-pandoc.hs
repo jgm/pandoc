@@ -62,4 +62,4 @@ main :: IO ()
 main = do
   setLocaleEncoding utf8
   args <- getArgs
-  inDirectory "tests" $ defaultMainWithArgs tests args
+  inDirectory "test" $ defaultMainWithArgs tests args
