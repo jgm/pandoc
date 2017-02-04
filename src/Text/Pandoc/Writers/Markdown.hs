@@ -267,23 +267,27 @@ noteToMarkdown opts num blocks = do
 
 -- | Escape special characters for Markdown.
 escapeString :: WriterOptions -> String -> String
-escapeString opts = escapeStringUsing markdownEscapes
-  where markdownEscapes = ('<', "&lt;") : ('>', "&gt;") :
-                          backslashEscapes specialChars
-        specialChars =
-                (if isEnabled Ext_superscript opts
-                    then ('^':)
-                    else id) .
-                (if isEnabled Ext_subscript opts
-                    then ('~':)
-                    else id) .
-                (if isEnabled Ext_tex_math_dollars opts
-                    then ('$':)
-                    else id) $
-                "\\`*_[]#" ++
-                if isEnabled Ext_smart opts
-                   then "\"'"
-                   else ""
+escapeString _  [] = []
+escapeString opts (c:cs) =
+  case c of
+       '<'   -> "&lt;" ++ escapeString opts cs
+       '>'   -> "&gt;" ++ escapeString opts cs
+       _ | c `elem` ['\\','`','*','_','[',']','#'] ->
+              '\\':c:escapeString opts cs
+       '^' | isEnabled Ext_superscript opts -> '\\':'^':escapeString opts cs
+       '~' | isEnabled Ext_subscript opts -> '\\':'~':escapeString opts cs
+       '$' | isEnabled Ext_tex_math_dollars opts -> '\\':'$':escapeString opts cs
+       '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString opts cs
+       '"' | isEnabled Ext_smart opts -> '\\':'"':escapeString opts cs
+       '-' | isEnabled Ext_smart opts ->
+              case cs of
+                   '-':_ -> '\\':'-':escapeString opts cs
+                   _ -> '-':escapeString opts cs
+       '.' | isEnabled Ext_smart opts ->
+              case cs of
+                   '.':'.':rest -> '\\':'.':'.':'.':escapeString opts rest
+                   _ -> '.':escapeString opts cs
+       _ -> c : escapeString opts cs
 
 -- | Construct table of contents from list of header blocks.
 tableOfContents :: PandocMonad m => WriterOptions -> [Block] -> m Doc
