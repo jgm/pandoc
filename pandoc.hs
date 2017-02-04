@@ -137,8 +137,8 @@ convertWithOpts opts args = do
               , optTopLevelDivision      = topLevelDivision
               , optHTMLMathMethod        = mathMethod'
               , optReferenceDoc          = referenceDoc
-              , optEpubStylesheet        = epubStylesheet
-              , optEpubMetadata          = epubMetadata
+              , optEpubStylesheet        = mbEpubStylesheet
+              , optEpubMetadata          = mbEpubMetadata
               , optEpubFonts             = epubFonts
               , optEpubChapterLevel      = epubChapterLevel
               , optTOCDepth              = epubTOCDepth
@@ -175,6 +175,14 @@ convertWithOpts opts args = do
     do UTF8.hPutStrLn stdout outputFile
        mapM_ (UTF8.hPutStrLn stdout) args
        exitSuccess
+
+  epubStylesheet <- case mbEpubStylesheet of
+                         Nothing -> return Nothing
+                         Just fp -> Just <$> UTF8.readFile fp
+
+  epubMetadata <- case mbEpubMetadata of
+                         Nothing -> return Nothing
+                         Just fp -> Just <$> UTF8.readFile fp
 
   let csscdn = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.css"
   let mathMethod =
@@ -547,8 +555,8 @@ data Opt = Opt
     , optTopLevelDivision  :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceDoc      :: Maybe FilePath -- ^ Path of reference doc
-    , optEpubStylesheet    :: Maybe String   -- ^ EPUB stylesheet
-    , optEpubMetadata      :: String  -- ^ EPUB metadata
+    , optEpubStylesheet    :: Maybe FilePath   -- ^ EPUB stylesheet
+    , optEpubMetadata      :: Maybe FilePath   -- ^ EPUB metadata
     , optEpubFonts         :: [FilePath] -- ^ EPUB fonts to embed
     , optEpubChapterLevel  :: Int     -- ^ Header level at which to split chapters
     , optTOCDepth          :: Int     -- ^ Number of levels to include in TOC
@@ -607,7 +615,7 @@ defaultOpts = Opt
     , optHTMLMathMethod        = PlainMath
     , optReferenceDoc          = Nothing
     , optEpubStylesheet        = Nothing
-    , optEpubMetadata          = ""
+    , optEpubMetadata          = Nothing
     , optEpubFonts             = []
     , optEpubChapterLevel      = 1
     , optTOCDepth              = 3
@@ -1024,9 +1032,7 @@ options =
 
     , Option "" ["epub-stylesheet"]
                  (ReqArg
-                  (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     return opt { optEpubStylesheet = Just text })
+                  (\arg opt -> return opt { optEpubStylesheet = Just arg })
                   "FILENAME")
                  "" -- "Path of epub.css"
 
@@ -1040,9 +1046,7 @@ options =
 
     , Option "" ["epub-metadata"]
                  (ReqArg
-                  (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     return opt { optEpubMetadata = text })
+                  (\arg opt -> return opt { optEpubMetadata = Just arg })
                   "FILENAME")
                  "" -- "Path of epub metadata file"
 
