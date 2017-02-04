@@ -5,6 +5,7 @@ module Main where
 import Test.Framework
 import GHC.IO.Encoding
 import qualified Tests.Old
+import qualified Tests.Command
 import qualified Tests.Readers.LaTeX
 import qualified Tests.Readers.Markdown
 import qualified Tests.Readers.Org
@@ -31,6 +32,7 @@ import System.Environment (getArgs)
 
 tests :: [Test]
 tests = [ testGroup "Old" Tests.Old.tests
+        , testGroup "Command" Tests.Command.tests
         , testGroup "Shared" Tests.Shared.tests
         , testGroup "Writers"
           [ testGroup "Native" Tests.Writers.Native.tests
