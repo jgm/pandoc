@@ -82,15 +82,36 @@ main = do
   rawArgs <- map UTF8.decodeArg <$> getArgs
   prg <- getProgName
 
-  let (actions, args, errors) = getOpt Permute options rawArgs
+  let (actions, args, unrecognizedOpts, errors) =
+           getOpt' Permute options rawArgs
 
-  unless (null errors) $
-     err 2 $ concat $ errors ++
-        ["Try " ++ prg ++ " --help for more information."]
+  let unknownOptionErrors = foldr addDeprecationNote [] unrecognizedOpts
+
+  unless (null errors && null unknownOptionErrors) $
+     err 2 $ concat errors ++ unlines unknownOptionErrors ++
+        ("Try " ++ prg ++ " --help for more information.")
 
   -- thread option data structure through all supplied option actions
   opts <- foldl (>>=) (return defaultOpts) actions
   convertWithOpts opts args
+
+addDeprecationNote :: String -> [String] -> [String]
+addDeprecationNote "--smart" =
+  (("--smart has been removed.  Use +smart or -smart extension instead.\n" ++
+    "For example: pandoc -f markdown+smart -t markdown-smart.") :)
+addDeprecationNote "-S" = addDeprecationNote "--smart"
+addDeprecationNote "--old-dashes" =
+  ("--old-dashes has been removed." :)
+addDeprecationNote "--no-wrap" =
+  ("--no-wrap has been removed.  Use --wrap=none instead." :)
+addDeprecationNote "--chapters" =
+  ("--chapters has been removed. Use --top-level-division=chapter instead." :)
+addDeprecationNote "--reference-docx" =
+  ("--reference-docx has been removed. Use --reference-doc instead." :)
+addDeprecationNote "--reference-odt" =
+  ("--reference-odt has been removed. Use --reference-doc instead." :)
+addDeprecationNote x =
+  (("Unknown option " ++ x ++ ".") :)
 
 convertWithOpts :: Opt -> [FilePath] -> IO ()
 convertWithOpts opts args = do
@@ -1282,11 +1303,6 @@ options =
                  "" -- "Show help"
 
     ]
-
--- TODO: possibly add code to give a more informative message
--- if people try to use options that have been removed in 2.0,
--- e.g. --smart/-S, --old-dashes, --no-wrap, --chapters,
--- --reference-docx, --reference-odt
 
 addMetadata :: String -> MetaValue -> M.Map String MetaValue
             -> M.Map String MetaValue
