@@ -31,8 +31,8 @@ import Text.Pandoc.Shared (inDirectory)
 import System.Environment (getArgs)
 
 tests :: [Test]
-tests = [ testGroup "Old" Tests.Old.tests
-        , testGroup "Command" Tests.Command.tests
+tests = [ Tests.Command.tests
+        , testGroup "Old" Tests.Old.tests
         , testGroup "Shared" Tests.Shared.tests
         , testGroup "Writers"
           [ testGroup "Native" Tests.Writers.Native.tests
