@@ -63,6 +63,7 @@ module Text.Pandoc
                , runIO
                , runPure
                , runIOorExplode
+               , setVerbosity
                -- * Error handling
                , module Text.Pandoc.Error
                -- * Lists of readers and writers
