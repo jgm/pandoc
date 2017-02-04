@@ -150,7 +150,7 @@ removeNote x        = x
 getEPUBMetadata :: PandocMonad m => WriterOptions -> Meta -> E m EPUBMetadata
 getEPUBMetadata opts meta = do
   let md = metadataFromMeta opts meta
-  let elts = onlyElems $ parseXML $ writerEpubMetadata opts
+  let elts = maybe [] (onlyElems . parseXML) $ writerEpubMetadata opts
   let md' = foldr addMetadataFromXML md elts
   let addIdentifier m =
        if null (epubIdentifier m)
