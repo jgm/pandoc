@@ -523,9 +523,6 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                                 else [ "label=" ++ ref ])
 
                      else []
-            mbBraced x = if not (all isAlphaNum x)
-                            then "{" <> x <> "}"
-                            else x
             printParams
                 | null params = empty
                 | otherwise   = brackets $ hcat (intersperse ", "
@@ -937,12 +934,15 @@ inlineToLaTeX (Code (_,classes,_) str) = do
                                                     -> highlightCode
        | otherwise                                  -> rawCode
    where listingsCode = do
+           let listingsopt = case getListingsLanguage classes of
+                                  Just l -> "[language=" ++ mbBraced l ++ "]"
+                                  Nothing -> ""
            inNote <- gets stInNote
            when inNote $ modify $ \s -> s{ stVerbInNote = True }
            let chr = case "!\"&'()*,-./:;?@_" \\ str of
                           (c:_) -> c
                           []    -> '!'
-           return $ text $ "\\lstinline" ++ [chr] ++ str ++ [chr]
+           return $ text $ "\\lstinline" ++ listingsopt ++ [chr] ++ str ++ [chr]
          highlightCode = do
            case highlight formatLaTeXInline ("",classes,[]) str of
                   Nothing -> rawCode
@@ -1166,6 +1166,11 @@ citationsToBiblatex _ = return empty
 getListingsLanguage :: [String] -> Maybe String
 getListingsLanguage [] = Nothing
 getListingsLanguage (x:xs) = toListingsLanguage x <|> getListingsLanguage xs
+
+mbBraced :: String -> String
+mbBraced x = if not (all isAlphaNum x)
+                then "{" <> x <> "}"
+                else x
 
 -- Extract a key from divs and spans
 extract :: String -> Block -> [String]
