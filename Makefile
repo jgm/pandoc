@@ -1,5 +1,6 @@
 version=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
+BRANCH?=master
 
 quick:
 	stack install --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4'
@@ -33,7 +34,7 @@ macospkg: man/pandoc.1
 winpkg: pandoc-$(version)-windows.msi
 
 pandoc-$(version)-windows.msi:
-	wget 'https://ci.appveyor.com/api/projects/jgm/pandoc/artifacts/windows/pandoc.msi?branch=master' -O pandoc.msi && \
+	wget 'https://ci.appveyor.com/api/projects/jgm/pandoc/artifacts/windows/pandoc.msi?branch=$(BRANCH)' -O pandoc.msi && \
 	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2017.p12 -in pandoc.msi -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
 	rm pandoc.msi
 
