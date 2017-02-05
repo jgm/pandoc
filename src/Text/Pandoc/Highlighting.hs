@@ -28,7 +28,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Exports functions for syntax highlighting.
 -}
 
-module Text.Pandoc.Highlighting ( languages
+module Text.Pandoc.Highlighting ( highlightingStyles
+                                , languages
                                 , languagesByExtension
                                 , highlight
                                 , formatLaTeXInline
@@ -56,6 +57,17 @@ import Data.Char (toLower)
 import qualified Data.Map as M
 import Control.Monad
 import qualified Data.Text as T
+
+highlightingStyles :: [(String, Style)]
+highlightingStyles =
+  [("pygments", pygments),
+   ("tango", tango),
+   ("espresso", espresso),
+   ("zenburn", zenburn),
+   ("kate", kate),
+   ("monochrome", monochrome),
+   ("breezedark", breezeDark),
+   ("haddock", haddock)]
 
 languages :: [String]
 languages = [T.unpack (T.toLower (sName s)) | s <- M.elems defaultSyntaxMap]

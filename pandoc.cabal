@@ -297,6 +297,10 @@ Library
                  cmark >= 0.5 && < 0.6,
                  doctemplates >= 0.1 && < 0.2,
                  free >= 4
+  if os(windows)
+    Cpp-options:      -D_WINDOWS
+  else
+    Build-Depends:  unix >= 2.4 && < 2.8
   if flag(old-locale)
      Build-Depends: old-locale >= 1 && < 1.1,
                     time >= 1.2 && < 1.5
@@ -330,6 +334,7 @@ Library
      Other-Modules:  Prelude
 
   Exposed-Modules: Text.Pandoc,
+                   Text.Pandoc.App,
                    Text.Pandoc.Options,
                    Text.Pandoc.Extensions,
                    Text.Pandoc.Pretty,
@@ -386,6 +391,7 @@ Library
                    Text.Pandoc.Templates,
                    Text.Pandoc.XML,
                    Text.Pandoc.SelfContained,
+                   Text.Pandoc.Highlighting,
                    Text.Pandoc.Process,
                    Text.Pandoc.MIME,
                    Text.Pandoc.Class
@@ -421,7 +427,6 @@ Library
                    Text.Pandoc.UUID,
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Slides,
-                   Text.Pandoc.Highlighting,
                    Text.Pandoc.Compat.Time,
                    Paths_pandoc
 
@@ -448,10 +453,6 @@ Executable pandoc
      Build-Depends: network >= 2 && < 2.6
   Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -fprof-auto-exported -rtsopts -with-rtsopts=-K16m
-  if os(windows)
-    Cpp-options:      -D_WINDOWS
-  else
-    Build-Depends:  unix >= 2.4 && < 2.8
 
   Default-Language: Haskell98
   Other-Extensions: PatternGuards, OverloadedStrings,
