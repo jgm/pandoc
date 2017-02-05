@@ -115,79 +115,27 @@ addDeprecationNote x =
 
 convertWithOpts :: Opt -> [FilePath] -> IO ()
 convertWithOpts opts args = do
-  let Opt    {  optTabStop               = tabStop
-              , optPreserveTabs          = preserveTabs
-              , optStandalone            = standalone
-              , optReader                = readerName
-              , optWriter                = writerName
-              , optParseRaw              = parseRaw
-              , optVariables             = variables
-              , optMetadata              = metadata
-              , optTableOfContents       = toc
-              , optBaseHeaderLevel       = baseHeaderLevel
-              , optTemplate              = templatePath
-              , optOutputFile            = outputFile
-              , optNumberSections        = numberSections
-              , optNumberOffset          = numberFrom
-              , optSectionDivs           = sectionDivs
-              , optIncremental           = incremental
-              , optSelfContained         = selfContained
-              , optHtmlQTags             = htmlQTags
-              , optHighlightStyle        = mbHighlightStyle
-              , optTopLevelDivision      = topLevelDivision
-              , optHTMLMathMethod        = mathMethod'
-              , optReferenceDoc          = referenceDoc
-              , optEpubStylesheet        = mbEpubStylesheet
-              , optEpubMetadata          = mbEpubMetadata
-              , optEpubFonts             = epubFonts
-              , optEpubChapterLevel      = epubChapterLevel
-              , optTOCDepth              = epubTOCDepth
-              , optDumpArgs              = dumpArgs
-              , optIgnoreArgs            = ignoreArgs
-              , optVerbosity             = verbosity
-              , optFailIfWarnings        = failIfWarnings
-              , optReferenceLinks        = referenceLinks
-              , optReferenceLocation     = referenceLocation
-              , optDpi                   = dpi
-              , optWrapText              = wrap
-              , optColumns               = columns
-              , optFilters               = filters
-              , optEmailObfuscation      = obfuscationMethod
-              , optIdentifierPrefix      = idPrefix
-              , optIndentedCodeClasses   = codeBlockClasses
-              , optDataDir               = mbDataDir
-              , optCiteMethod            = citeMethod
-              , optListings              = listings
-              , optLaTeXEngine           = latexEngine
-              , optLaTeXEngineArgs       = latexEngineArgs
-              , optSlideLevel            = slideLevel
-              , optSetextHeaders         = setextHeaders
-              , optAscii                 = ascii
-              , optDefaultImageExtension = defaultImageExtension
-              , optExtractMedia          = mbExtractMedia
-              , optTrackChanges          = trackChanges
-              , optFileScope            = fileScope
-              , optKaTeXStylesheet       = katexStylesheet
-              , optKaTeXJS               = katexJS
-             } = opts
+  let outputFile = optOutputFile opts
+  let filters = optFilters opts
+  let verbosity = optVerbosity opts
 
-  when dumpArgs $
+  when (optDumpArgs opts) $
     do UTF8.hPutStrLn stdout outputFile
        mapM_ (UTF8.hPutStrLn stdout) args
        exitSuccess
 
-  epubStylesheet <- case mbEpubStylesheet of
+  epubStylesheet <- case optEpubStylesheet opts of
                          Nothing -> return Nothing
                          Just fp -> Just <$> UTF8.readFile fp
 
-  epubMetadata <- case mbEpubMetadata of
+  epubMetadata <- case optEpubMetadata opts of
                          Nothing -> return Nothing
                          Just fp -> Just <$> UTF8.readFile fp
 
   let csscdn = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.css"
   let mathMethod =
-        case (katexJS, katexStylesheet) of
-            (Nothing, _) -> mathMethod'
+        case (optKaTeXJS opts, optKaTeXStylesheet opts) of
+            (Nothing, _) -> optHTMLMathMethod opts
             (Just js, ss) -> KaTeX js (fromMaybe csscdn ss)
 
 
@@ -200,30 +148,30 @@ convertWithOpts opts args = do
 
   let sources = case args of
                      []  -> ["-"]
-                     xs | ignoreArgs -> ["-"]
+                     xs | optIgnoreArgs opts -> ["-"]
                         | otherwise  -> xs
 
-  datadir <- case mbDataDir of
+  datadir <- case optDataDir opts of
                   Nothing   -> E.catch
                                  (Just <$> getAppUserDataDirectory "pandoc")
                                  (\e -> let _ = (e :: E.SomeException)
                                         in  return Nothing)
-                  Just _    -> return mbDataDir
+                  Just _    -> return $ optDataDir opts
 
   -- assign reader and writer based on options and filenames
-  let readerName' = case map toLower readerName of
+  let readerName = case map toLower (optReader opts) of
                           []       -> defaultReaderName
                                       (if any isURI sources
                                           then "html"
                                           else "markdown") sources
                           x        -> x
 
-  let writerName' = case map toLower writerName of
+  let writerName = case map toLower (optWriter opts) of
                           []        -> defaultWriterName outputFile
                           "epub2"   -> "epub"
                           x         -> x
   let format = takeWhile (`notElem` ['+','-'])
-                       $ takeFileName writerName'  -- in case path to lua script
+                       $ takeFileName writerName  -- in case path to lua script
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
@@ -235,7 +183,7 @@ convertWithOpts opts args = do
   writer <- if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName
                then error "custom writers disabled for now"
-               else case getWriter writerName' of
+               else case getWriter writerName of
                          Left e  -> err 9 $
                            if format == "pdf"
                               then e ++
@@ -248,20 +196,20 @@ convertWithOpts opts args = do
 
   -- TODO: we have to get the input and the output into the state for
   -- the sake of the text2tags reader.
-  reader <-  case getReader readerName' of
+  reader <-  case getReader readerName of
                 Right r  -> return (r :: Reader PandocIO)
                 Left e   -> err 7 e'
-                  where e' = case readerName' of
+                  where e' = case readerName of
                                   "pdf" -> e ++
                                      "\nPandoc can convert to PDF, but not from PDF."
                                   "doc" -> e ++
                                      "\nPandoc can convert from DOCX, but not from DOC.\nTry using Word to save your DOC file as DOCX, and convert that with pandoc."
                                   _ -> e
 
-  let standalone' = standalone || not (isTextFormat format) || pdfOutput
+  let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
 
-  templ <- case templatePath of
-                _ | not standalone' -> return Nothing
+  templ <- case optTemplate opts of
+                _ | not standalone -> return Nothing
                 Nothing -> do
                            deftemp <- getDefaultTemplate datadir format
                            case deftemp of
@@ -281,13 +229,43 @@ convertWithOpts opts args = do
                                                      in throwIO e')
                                        else throwIO e)
 
-  variables' <- case mathMethod of
-                      LaTeXMathML Nothing -> do
-                         s <- readDataFileUTF8 datadir "LaTeXMathML.js"
-                         return $ ("mathml-script", s) : variables
-                      _ -> return variables
+  let addStringAsVariable varname s vars = return $ (varname, s) : vars
 
-  variables'' <- if format == "dzslides"
+  let addContentsAsVariable varname fp vars = do
+             s <- UTF8.readFile fp
+             return $ (varname, s) : vars
+
+  -- note: this reverses the list constructed in option parsing,
+  -- which in turn was reversed from the command-line order,
+  -- so we end up with the correct order in the variable list:
+  let withList _ [] vars = return vars
+      withList f (x:xs) vars = f x vars >>= withList f xs
+
+  variables <- return (optVariables opts)
+      >>=
+      withList (addContentsAsVariable "include-before")
+               (optIncludeBeforeBody opts)
+      >>=
+      withList (addContentsAsVariable "include-after")
+               (optIncludeAfterBody opts)
+      >>=
+      withList (addContentsAsVariable "header-includes")
+               (optIncludeInHeader opts)
+      >>=
+      withList (addStringAsVariable "css") (optCss opts)
+      >>=
+      maybe return (addStringAsVariable "title-prefix") (optTitlePrefix opts)
+      >>=
+      maybe return (addStringAsVariable "epub-cover-image")
+                   (optEpubCoverImage opts)
+      >>=
+      (\vars -> case mathMethod of
+                     LaTeXMathML Nothing -> do
+                        s <- readDataFileUTF8 datadir "LaTeXMathML.js"
+                        return $ ("mathml-script", s) : vars
+                     _ -> return vars)
+      >>=
+      (\vars ->  if format == "dzslides"
                     then do
                         dztempl <- readDataFileUTF8 datadir
                                      ("dzslides" </> "template.html")
@@ -295,8 +273,8 @@ convertWithOpts opts args = do
                         let dzcore = unlines
                                    $ dropWhile (not . (dzline `isPrefixOf`))
                                    $ lines dztempl
-                        return $ ("dzslides-core", dzcore) : variables'
-                    else return variables'
+                        return $ ("dzslides-core", dzcore) : vars
+                    else return vars)
 
   let sourceURL = case sources of
                     []    -> Nothing
@@ -307,50 +285,51 @@ convertWithOpts opts args = do
                                                      uriFragment = "" }
                                 _ -> Nothing
 
-  let readerOpts = def{ readerStandalone = standalone'
-                      , readerParseRaw = parseRaw
-                      , readerColumns = columns
-                      , readerTabStop = tabStop
-                      , readerIndentedCodeClasses = codeBlockClasses
+  let readerOpts = def{ readerStandalone = standalone
+                      , readerParseRaw = optParseRaw opts
+                      , readerColumns = optColumns opts
+                      , readerTabStop = optTabStop opts
+                      , readerIndentedCodeClasses = optIndentedCodeClasses opts
                       , readerApplyMacros = not laTeXOutput
-                      , readerDefaultImageExtension = defaultImageExtension
-                      , readerTrackChanges = trackChanges
+                      , readerDefaultImageExtension =
+                         optDefaultImageExtension opts
+                      , readerTrackChanges = optTrackChanges opts
                       }
 
-  highlightStyle <- lookupHighlightStyle mbHighlightStyle
+  highlightStyle <- lookupHighlightStyle $ optHighlightStyle opts
 
   let writerOptions = def { writerTemplate         = templ,
-                            writerVariables        = variables'',
-                            writerTabStop          = tabStop,
-                            writerTableOfContents  = toc,
+                            writerVariables        = variables,
+                            writerTabStop          = optTabStop opts,
+                            writerTableOfContents  = optTableOfContents opts,
                             writerHTMLMathMethod   = mathMethod,
-                            writerIncremental      = incremental,
-                            writerCiteMethod       = citeMethod,
-                            writerNumberSections   = numberSections,
-                            writerNumberOffset     = numberFrom,
-                            writerSectionDivs      = sectionDivs,
-                            writerReferenceLinks   = referenceLinks,
-                            writerReferenceLocation = referenceLocation,
-                            writerDpi              = dpi,
-                            writerWrapText         = wrap,
-                            writerColumns          = columns,
-                            writerEmailObfuscation = obfuscationMethod,
-                            writerIdentifierPrefix = idPrefix,
+                            writerIncremental      = optIncremental opts,
+                            writerCiteMethod       = optCiteMethod opts,
+                            writerNumberSections   = optNumberSections opts,
+                            writerNumberOffset     = optNumberOffset opts,
+                            writerSectionDivs      = optSectionDivs opts,
+                            writerReferenceLinks   = optReferenceLinks opts,
+                            writerReferenceLocation = optReferenceLocation opts,
+                            writerDpi              = optDpi opts,
+                            writerWrapText         = optWrapText opts,
+                            writerColumns          = optColumns opts,
+                            writerEmailObfuscation = optEmailObfuscation opts,
+                            writerIdentifierPrefix = optIdentifierPrefix opts,
                             writerSourceURL        = sourceURL,
                             writerUserDataDir      = datadir,
-                            writerHtmlQTags        = htmlQTags,
-                            writerTopLevelDivision = topLevelDivision,
-                            writerListings         = listings,
-                            writerSlideLevel       = slideLevel,
+                            writerHtmlQTags        = optHtmlQTags opts,
+                            writerTopLevelDivision = optTopLevelDivision opts,
+                            writerListings         = optListings opts,
+                            writerSlideLevel       = optSlideLevel opts,
                             writerHighlightStyle   = highlightStyle,
-                            writerSetextHeaders    = setextHeaders,
+                            writerSetextHeaders    = optSetextHeaders opts,
                             writerEpubMetadata     = epubMetadata,
                             writerEpubStylesheet   = epubStylesheet,
-                            writerEpubFonts        = epubFonts,
-                            writerEpubChapterLevel = epubChapterLevel,
-                            writerTOCDepth         = epubTOCDepth,
-                            writerReferenceDoc     = referenceDoc,
-                            writerLaTeXArgs        = latexEngineArgs
+                            writerEpubFonts        = optEpubFonts opts,
+                            writerEpubChapterLevel = optEpubChapterLevel opts,
+                            writerTOCDepth         = optTOCDepth opts,
+                            writerReferenceDoc     = optReferenceDoc opts,
+                            writerLaTeXArgs        = optLaTeXEngineArgs opts
                           }
 
 
@@ -364,13 +343,13 @@ convertWithOpts opts args = do
             "Specify an output file using the -o option."
 
 
-  let transforms = if baseHeaderLevel > 1
-                      then [headerShift (baseHeaderLevel - 1)]
-                      else []
+  let transforms = case optBaseHeaderLevel opts of
+                        x | x > 1 -> [headerShift (x - 1)]
+                          | otherwise -> []
 
-  let convertTabs = tabFilter (if preserveTabs || readerName' == "t2t"
+  let convertTabs = tabFilter (if optPreserveTabs opts || readerName == "t2t"
                                  then 0
-                                 else tabStop)
+                                 else optTabStop opts)
 
       readSources :: MonadIO m => [FilePath] -> m String
       readSources srcs = convertTabs . intercalate "\n" <$>
@@ -385,7 +364,7 @@ convertWithOpts opts args = do
                              return (x, rs)
         let isWarning (WARNING, _) = True
             isWarning _            = False
-        when (failIfWarnings && any isWarning reports) $
+        when (optFailIfWarnings opts && any isWarning reports) $
             err 3 "Failing because there were warnings."
         return res
 
@@ -393,7 +372,7 @@ convertWithOpts opts args = do
       sourceToDoc sources' =
          case reader of
               StringReader r
-                | fileScope || readerName' == "json" -> do
+                | optFileScope opts || readerName == "json" -> do
                     pairs <- mapM
                       (readSource >=> withMediaBag . r readerOpts) sources
                     return (mconcat (map fst pairs), mconcat (map snd pairs))
@@ -406,8 +385,8 @@ convertWithOpts opts args = do
 
   runIO' $ do
     (doc, media) <- sourceToDoc sources
-    doc' <- (maybe return (extractMedia media) mbExtractMedia >=>
-              adjustMetadata metadata >=>
+    doc' <- (maybe return (extractMedia media) (optExtractMedia opts) >=>
+              adjustMetadata (optMetadata opts) >=>
               applyTransforms transforms >=>
               applyFilters datadir filters' [format]) doc
 
@@ -424,7 +403,7 @@ convertWithOpts opts args = do
                 let pdfprog = case () of
                                 _ | conTeXtOutput -> "context"
                                 _ | html5Output   -> "wkhtmltopdf"
-                                _                 -> latexEngine
+                                _                 -> optLaTeXEngine opts
                 -- check for pdf creating program
                 mbPdfProg <- liftIO $ findExecutable pdfprog
                 when (isNothing mbPdfProg) $
@@ -441,14 +420,14 @@ convertWithOpts opts args = do
         | otherwise -> do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy","slideous","dzslides","revealjs"]
-                    selfcontain = if selfContained && htmlFormat
+                    selfcontain = if optSelfContained opts && htmlFormat
                                   then makeSelfContained writerOptions media
                                   else return
-                    handleEntities = if htmlFormat && ascii
+                    handleEntities = if htmlFormat && optAscii opts
                                      then toEntities
                                      else id
                 output <- f writerOptions doc'
-                selfcontain (output ++ ['\n' | not standalone']) >>=
+                selfcontain (output ++ ['\n' | not standalone]) >>=
                     writerFn outputFile . handleEntities
 
 type Transform = Pandoc -> Pandoc
@@ -559,6 +538,7 @@ data Opt = Opt
     , optEpubMetadata      :: Maybe FilePath   -- ^ EPUB metadata
     , optEpubFonts         :: [FilePath] -- ^ EPUB fonts to embed
     , optEpubChapterLevel  :: Int     -- ^ Header level at which to split chapters
+    , optEpubCoverImage    :: Maybe FilePath -- ^ Cover image for epub
     , optTOCDepth          :: Int     -- ^ Number of levels to include in TOC
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
@@ -587,6 +567,11 @@ data Opt = Opt
     , optFileScope        :: Bool         -- ^ Parse input files before combining
     , optKaTeXStylesheet   :: Maybe String     -- ^ Path to stylesheet for KaTeX
     , optKaTeXJS           :: Maybe String     -- ^ Path to js file for KaTeX
+    , optTitlePrefix       :: Maybe String     -- ^ Prefix for title
+    , optCss               :: [FilePath]       -- ^ CSS files to link to
+    , optIncludeBeforeBody :: [FilePath]       -- ^ Files to include before
+    , optIncludeAfterBody  :: [FilePath]       -- ^ Files to include after body
+    , optIncludeInHeader   :: [FilePath]       -- ^ Files to include in header
     }
 
 -- | Defaults for command-line options.
@@ -618,6 +603,7 @@ defaultOpts = Opt
     , optEpubMetadata          = Nothing
     , optEpubFonts             = []
     , optEpubChapterLevel      = 1
+    , optEpubCoverImage        = Nothing
     , optTOCDepth              = 3
     , optDumpArgs              = False
     , optIgnoreArgs            = False
@@ -646,6 +632,11 @@ defaultOpts = Opt
     , optFileScope             = False
     , optKaTeXStylesheet       = Nothing
     , optKaTeXJS               = Nothing
+    , optTitlePrefix           = Nothing
+    , optCss                   = []
+    , optIncludeBeforeBody     = []
+    , optIncludeAfterBody      = []
+    , optIncludeInHeader       = []
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -856,34 +847,25 @@ options =
 
     , Option "H" ["include-in-header"]
                  (ReqArg
-                  (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     -- add new ones to end, so they're included in order specified
-                     let newvars = optVariables opt ++ [("header-includes",text)]
-                     return opt { optVariables = newvars,
-                                  optStandalone = True })
+                  (\arg opt -> return opt{ optIncludeInHeader =
+                                              arg : optIncludeInHeader opt,
+                                            optStandalone = True })
                   "FILENAME")
                  "" -- "File to include at end of header (implies -s)"
 
     , Option "B" ["include-before-body"]
                  (ReqArg
-                  (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     -- add new ones to end, so they're included in order specified
-                     let newvars = optVariables opt ++ [("include-before",text)]
-                     return opt { optVariables = newvars,
-                                  optStandalone = True })
+                  (\arg opt -> return opt{ optIncludeBeforeBody =
+                                              arg : optIncludeBeforeBody opt,
+                                           optStandalone = True })
                   "FILENAME")
                  "" -- "File to include before document body"
 
     , Option "A" ["include-after-body"]
                  (ReqArg
-                  (\arg opt -> do
-                     text <- UTF8.readFile arg
-                     -- add new ones to end, so they're included in order specified
-                     let newvars = optVariables opt ++ [("include-after",text)]
-                     return opt { optVariables = newvars,
-                                  optStandalone = True })
+                  (\arg opt -> return opt{ optIncludeAfterBody =
+                                              arg : optIncludeAfterBody opt,
+                                           optStandalone = True })
                   "FILENAME")
                  "" -- "File to include after document body"
 
@@ -1015,11 +997,8 @@ options =
 
     , Option "c" ["css"]
                  (ReqArg
-                  (\arg opt -> do
-                     -- add new link to end, so it is included in proper order
-                     let newvars = optVariables opt ++ [("css",arg)]
-                     return opt { optVariables = newvars,
-                                  optStandalone = True })
+                  (\arg opt -> return opt{ optCss = arg : optCss opt })
+                  -- add new link to end, so it is included in proper order
                   "URL")
                  "" -- "Link to CSS style sheet"
 
