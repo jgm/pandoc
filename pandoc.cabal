@@ -448,6 +448,8 @@ Executable pandoc
      Build-Depends: network >= 2 && < 2.6
   Ghc-Options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind
   Ghc-Prof-Options: -fprof-auto-exported -rtsopts -with-rtsopts=-K16m
+  if os(darwin)
+    cpp-options:      -stdlib=libstdc++
   if os(windows)
     Cpp-options:      -D_WINDOWS
   else
