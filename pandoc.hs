@@ -159,17 +159,16 @@ convertWithOpts opts args = do
                   Just _    -> return $ optDataDir opts
 
   -- assign reader and writer based on options and filenames
-  let readerName = case map toLower (optReader opts) of
-                          []       -> defaultReaderName
+  let readerName = case optReader opts of
+                          Nothing -> defaultReaderName
                                       (if any isURI sources
                                           then "html"
                                           else "markdown") sources
-                          x        -> x
+                          Just x  -> map toLower x
 
-  let writerName = case map toLower (optWriter opts) of
-                          []        -> defaultWriterName outputFile
-                          "epub2"   -> "epub"
-                          x         -> x
+  let writerName = case optWriter opts of
+                          Nothing   -> defaultWriterName outputFile
+                          Just x    -> map toLower x
   let format = takeWhile (`notElem` ['+','-'])
                        $ takeFileName writerName  -- in case path to lua script
 
@@ -515,8 +514,8 @@ data Opt = Opt
     { optTabStop           :: Int     -- ^ Number of spaces per tab
     , optPreserveTabs      :: Bool    -- ^ Preserve tabs instead of converting to spaces
     , optStandalone        :: Bool    -- ^ Include header, footer
-    , optReader            :: String  -- ^ Reader format
-    , optWriter            :: String  -- ^ Writer format
+    , optReader            :: Maybe String  -- ^ Reader format
+    , optWriter            :: Maybe String  -- ^ Writer format
     , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
     , optTableOfContents   :: Bool    -- ^ Include table of contents
     , optBaseHeaderLevel   :: Int     -- ^ Base header level
@@ -580,8 +579,8 @@ defaultOpts = Opt
     { optTabStop               = 4
     , optPreserveTabs          = False
     , optStandalone            = False
-    , optReader                = ""    -- null for default reader
-    , optWriter                = ""    -- null for default writer
+    , optReader                = Nothing
+    , optWriter                = Nothing
     , optParseRaw              = False
     , optTableOfContents       = False
     , optBaseHeaderLevel       = 1
@@ -645,13 +644,13 @@ options :: [OptDescr (Opt -> IO Opt)]
 options =
     [ Option "fr" ["from","read"]
                  (ReqArg
-                  (\arg opt -> return opt { optReader = arg })
+                  (\arg opt -> return opt { optReader = Just arg })
                   "FORMAT")
                  ""
 
     , Option "tw" ["to","write"]
                  (ReqArg
-                  (\arg opt -> return opt { optWriter = arg })
+                  (\arg opt -> return opt { optWriter = Just arg })
                   "FORMAT")
                  ""
 
