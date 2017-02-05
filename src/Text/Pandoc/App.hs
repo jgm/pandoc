@@ -71,7 +71,7 @@ import System.Posix.Terminal (queryTerminal)
 import System.Posix.IO (stdOutput)
 #endif
 import Control.Monad.Trans
-import Text.Pandoc.Class (withMediaBag, PandocIO, getLog, setVerbosity)
+import Text.Pandoc.Class (withMediaBag, PandocIO, getLog)
 
 convertWithOpts :: Opt -> [FilePath] -> IO ()
 convertWithOpts opts args = do
