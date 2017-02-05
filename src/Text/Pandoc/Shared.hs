@@ -146,13 +146,13 @@ import Paths_pandoc (getDataFileName)
 #endif
 #ifdef HTTP_CLIENT
 import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
-                            Request(port,host))
+                            Request(port,host,requestHeaders))
 import Network.HTTP.Client (parseRequest)
 import Network.HTTP.Client (newManager)
 import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
-import Network.HTTP.Types.Header ( hContentType)
+import Network.HTTP.Types.Header ( hContentType, hUserAgent)
 import Network (withSocketsDo)
 #else
 import Network.URI (parseURI)
@@ -742,13 +742,21 @@ openURL u
   | otherwise = withSocketsDo $ E.try $ do
      let parseReq = parseRequest
      (proxy :: Either E.SomeException String) <- E.try $ getEnv "http_proxy"
+     (useragent :: Either E.SomeException String) <- E.try $ getEnv "USER_AGENT"
      req <- parseReq u
      req' <- case proxy of
                      Left _   -> return req
                      Right pr -> (parseReq pr >>= \r ->
                                   return $ addProxy (host r) (port r) req)
                                   `mplus` return req
-     resp <- newManager tlsManagerSettings >>= httpLbs req'
+     req'' <- case useragent of
+                     Left _ -> return req'
+                     Right ua -> do
+                                   let headers = requestHeaders req'
+                                   let useragentheader = (hUserAgent, B8.pack ua)
+                                   let headers' = useragentheader:headers
+                                   return $ req' {requestHeaders = headers'}
+     resp <- newManager tlsManagerSettings >>= httpLbs req''
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 #else
