@@ -120,6 +120,11 @@ pandoc will fetch the content using HTTP:
 
     pandoc -f html -t markdown http://www.fsf.org
 
+It is possible to supply a custom User-Agent string when requesting a
+document from a URL, by setting an environment variable:
+
+    USER_AGENT="Mozilla/5.0" pandoc -f html -t markdown http://www.fsf.org
+
 If multiple input files are given, `pandoc` will concatenate them all (with
 blank lines between them) before parsing. This feature is disabled for
  binary input formats such as `EPUB`, `odt`, and `docx`.
