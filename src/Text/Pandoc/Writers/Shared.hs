@@ -43,7 +43,6 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Options
 import Text.Pandoc.XML (escapeStringForXML)
 import Control.Monad (liftM)
-import Text.Pandoc.Options (WriterOptions(..))
 import qualified Data.HashMap.Strict as H
 import qualified Data.Map as M
 import qualified Data.Text as T
