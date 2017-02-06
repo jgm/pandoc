@@ -63,7 +63,7 @@ import qualified Control.Exception as E
 import Control.Exception.Extensible ( throwIO )
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad
-import Control.Monad.IO.Class
+import Control.Monad.Trans
 import Data.Maybe (fromMaybe, isNothing, isJust)
 import Data.Foldable (foldrM)
 import Network.URI (parseURI, isURI, URI(..))
