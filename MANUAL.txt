@@ -1188,6 +1188,12 @@ Variables for slides
 Variables are available for [producing slide shows with pandoc],
 including all [reveal.js configuration options].
 
+`titlegraphic`
+:   title graphic for Beamer documents
+
+`logo`
+:   logo for Beamer documents
+
 `slidy-url`
 :   base URL for Slidy documents (defaults to
     `http://www.w3.org/Talks/Tools/Slidy2`)
