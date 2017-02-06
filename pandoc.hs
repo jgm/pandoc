@@ -44,7 +44,6 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import System.Environment
 import System.FilePath (takeBaseName)
 import Data.Maybe (fromMaybe)
-import Text.Pandoc.Shared (err)
 import qualified Data.Text as T
 import qualified Control.Exception as E
 import qualified Data.ByteString as BS
