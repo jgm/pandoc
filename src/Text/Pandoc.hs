@@ -336,6 +336,7 @@ getDefaultExtensions "context"         = extensionsFromList
 getDefaultExtensions "textile"         = extensionsFromList
                                           [Ext_old_dashes,
                                            Ext_smart,
+                                           Ext_raw_html,
                                            Ext_auto_identifiers]
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]

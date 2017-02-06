@@ -806,7 +806,8 @@ inlineLaTeX = try $ do
     where clean = dropWhileEnd (`elem` ("{}" :: String)) . drop 1
 
    state :: ParserState
-   state = def{ stateOptions = def{ readerParseRaw = True }}
+   state = def{ stateOptions = def{ readerExtensions =
+                    enableExtension Ext_raw_tex (readerExtensions def) } }
 
    texMathToPandoc :: String -> Maybe [Inline]
    texMathToPandoc cs = (maybeRight $ readTeX cs) >>= writePandoc DisplayInline

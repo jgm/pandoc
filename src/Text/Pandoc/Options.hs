@@ -55,7 +55,6 @@ import GHC.Generics (Generic)
 data ReaderOptions = ReaderOptions{
          readerExtensions      :: Extensions  -- ^ Syntax extensions
        , readerStandalone      :: Bool -- ^ Standalone document with header
-       , readerParseRaw        :: Bool -- ^ Parse raw HTML, LaTeX
        , readerColumns         :: Int  -- ^ Number of columns in terminal
        , readerTabStop         :: Int  -- ^ Tab stop
        , readerApplyMacros     :: Bool -- ^ Apply macros to TeX math
@@ -69,7 +68,6 @@ instance Default ReaderOptions
   where def = ReaderOptions{
                  readerExtensions            = emptyExtensions
                , readerStandalone            = False
-               , readerParseRaw              = False
                , readerColumns               = 80
                , readerTabStop               = 4
                , readerApplyMacros           = True
