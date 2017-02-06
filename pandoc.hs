@@ -33,7 +33,5 @@ module Main where
 import Text.Pandoc.App (defaultOpts, convertWithOpts, parseOptions, options)
 
 main :: IO ()
-main = do
-  (opts, args) <- parseOptions options defaultOpts
-  convertWithOpts opts args
+main = parseOptions options defaultOpts >>= convertWithOpts
 

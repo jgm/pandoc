@@ -82,7 +82,7 @@ import System.Posix.Terminal (queryTerminal)
 import System.Posix.IO (stdOutput)
 #endif
 
-parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO (Opt, [FilePath])
+parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
   rawArgs <- map UTF8.decodeArg <$> getArgs
   prg <- getProgName
@@ -98,10 +98,11 @@ parseOptions options' defaults = do
 
   -- thread option data structure through all supplied option actions
   opts <- foldl (>>=) (return defaults) actions
-  return (opts, args)
+  return (opts{ optInputFiles = args })
 
-convertWithOpts :: Opt -> [FilePath] -> IO ()
-convertWithOpts opts args = do
+convertWithOpts :: Opt -> IO ()
+convertWithOpts opts = do
+  let args = optInputFiles opts
   let outputFile = optOutputFile opts
   let filters = optFilters opts
   let verbosity = optVerbosity opts
@@ -469,6 +470,7 @@ data Opt = Opt
     , optVariables         :: [(String,String)] -- ^ Template variables to set
     , optMetadata          :: [(String, String)] -- ^ Metadata fields to set
     , optOutputFile        :: FilePath  -- ^ Name of output file
+    , optInputFiles        :: [FilePath] -- ^ Names of input files
     , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
     , optNumberOffset      :: [Int]   -- ^ Starting number for sections
     , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
@@ -534,6 +536,7 @@ defaultOpts = Opt
     , optVariables             = []
     , optMetadata              = []
     , optOutputFile            = "-"    -- "-" means stdout
+    , optInputFiles            = []
     , optNumberSections        = False
     , optNumberOffset          = [0,0,0,0,0,0]
     , optSectionDivs           = False
