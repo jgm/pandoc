@@ -182,21 +182,23 @@ By default, pandoc will use LaTeX to convert it to PDF:
 
 Production of a PDF requires that a LaTeX engine be installed (see
 `--latex-engine`, below), and assumes that the following LaTeX packages
-are available: [`amsfonts`], [`amsmath`], [`lm`],
+are available: [`amsfonts`], [`amsmath`], [`lm`], [`unicode-math`],
 [`ifxetex`], [`ifluatex`], [`eurosym`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
-[`booktabs`], [`graphicx`] and [`grffile`] (if the
-document contains images), [`hyperref`], [`ulem`],
-[`geometry`] (with the `geometry` variable set), [`setspace`] (with
-`linestretch`), and [`babel`] (with `lang`). The use of `xelatex` or
-`lualatex` as the LaTeX engine requires [`fontspec`]; `xelatex` uses
-[`mathspec`], [`polyglossia`] (with `lang`), [`xecjk`], and
-[`bidi`] (with the `dir` variable set). The [`upquote`] and
-[`microtype`] packages are used if available, and [`csquotes`] will
-be used for [smart punctuation] if added to the template or included in
-any header file. The [`natbib`], [`biblatex`], [`bibtex`], and [`biber`]
-packages can optionally be used for [citation rendering]. These are
-included with all recent versions of [TeX Live].
+[`booktabs`], [`graphicx`] and [`grffile`] (if the document
+contains images), [`hyperref`], [`ulem`], [`geometry`] (with the
+`geometry` variable set), [`setspace`] (with `linestretch`), and
+[`babel`] (with `lang`).  The use of `xelatex` or `lualatex` as
+the LaTeX engine requires [`fontspec`].  `xelatex` uses
+[`polyglossia`] (with `lang`), [`xecjk`], and [`bidi`] (with the
+`dir` variable set). If the `mathspec` variable is set,
+`xelatex` will use [`mathspec`] instead of [`unicode-math`].
+The [`upquote`] and [`microtype`] packages are used if
+available, and [`csquotes`] will be used for [smart punctuation]
+if added to the template or included in any header file. The
+[`natbib`], [`biblatex`], [`bibtex`], and [`biber`] packages can
+optionally be used for [citation rendering]. These are included
+with all recent versions of [TeX Live].
 
 Alternatively, pandoc can use ConTeXt or `wkhtmltopdf` to create a PDF.
 To do this, specify an output file with a `.pdf` extension,
@@ -228,6 +230,7 @@ will affect the output, as will `--css`.
 [`babel`]: https://ctan.org/pkg/babel
 [`bidi`]: https://ctan.org/pkg/bidi
 [`mathspec`]: https://ctan.org/pkg/mathspec
+[`unicode-math`]: https://ctan.org/pkg/unicode-math
 [`polyglossia`]: https://ctan.org/pkg/polyglossia
 [`fontspec`]: https://ctan.org/pkg/fontspec
 [`upquote`]: https://ctan.org/pkg/upquote
