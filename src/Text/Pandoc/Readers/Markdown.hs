@@ -359,10 +359,6 @@ kvPair allowEmpty = try $ do
 
 parseMarkdown :: PandocMonad m => MarkdownParser m Pandoc
 parseMarkdown = do
-  -- markdown allows raw HTML
-  updateState $ \state -> state { stateOptions =
-                let oldOpts = stateOptions state in
-                    oldOpts{ readerParseRaw = True } }
   optional titleBlock
   blocks <- parseBlocks
   st <- getState

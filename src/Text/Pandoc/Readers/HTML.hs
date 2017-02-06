@@ -45,9 +45,9 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
 import Text.Pandoc.Shared ( extractSpaces, renderTags', addMetaField
                           , escapeURI, safeRead )
-import Text.Pandoc.Options (ReaderOptions(readerParseRaw),
-                            Verbosity(..), Extension (Ext_epub_html_exts,
-                               Ext_native_divs, Ext_native_spans))
+import Text.Pandoc.Options (ReaderOptions(readerExtensions), extensionEnabled,
+                               Verbosity(..), Extension (Ext_epub_html_exts,
+                               Ext_raw_html, Ext_native_divs, Ext_native_spans))
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
 import qualified Data.Map as M
@@ -367,8 +367,8 @@ pDiv = try $ do
 pRawHtmlBlock :: PandocMonad m => TagParser m Blocks
 pRawHtmlBlock = do
   raw <- pHtmlBlock "script" <|> pHtmlBlock "style" <|> pRawTag
-  parseRaw <- getOption readerParseRaw
-  if parseRaw && not (null raw)
+  exts <- getOption readerExtensions
+  if extensionEnabled Ext_raw_html exts && not (null raw)
      then return $ B.rawBlock "html" raw
      else return mempty
 
@@ -690,8 +690,8 @@ pRawHtmlInline = do
             <|> if inplain
                    then pSatisfy (not . isBlockTag)
                    else pSatisfy isInlineTag
-  parseRaw <- getOption readerParseRaw
-  if parseRaw
+  exts <- getOption readerExtensions
+  if extensionEnabled Ext_raw_html exts
      then return $ B.rawInline "html" $ renderTags' [result]
      else return mempty
 

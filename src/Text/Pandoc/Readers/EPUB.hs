@@ -13,6 +13,7 @@ import Text.Pandoc.Definition hiding (Attr)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Options ( ReaderOptions(..), Verbosity(..))
+import Text.Pandoc.Extensions (enableExtension, Extension(Ext_raw_html))
 import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
 import Network.URI (unEscapeString)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
@@ -66,7 +67,7 @@ archiveToEPUB os archive = do
   P.setMediaBag $ fetchImages (M.elems items) root archive ast
   return ast
   where
-    os' = os {readerParseRaw = True}
+    os' = os {readerExtensions = enableExtension Ext_raw_html (readerExtensions os)}
     parseSpineElem :: PandocMonad m => FilePath -> (FilePath, MimeType) -> m Pandoc
     parseSpineElem (normalise -> r) (normalise -> path, mime) = do
       report DEBUG ("parseSpineElem called with path " ++ show path)

@@ -85,12 +85,6 @@ readTextile opts s = do
 -- | Generate a Pandoc ADT from a textile document
 parseTextile :: PandocMonad m => ParserT [Char] ParserState m Pandoc
 parseTextile = do
-  -- textile allows raw HTML and does smart punctuation by default,
-  -- but we do not enable smart punctuation unless it is explicitly
-  -- asked for, for better conversion to other light markup formats
-  oldOpts <- stateOptions `fmap` getState
-  updateState $ \state -> state{ stateOptions =
-                                   oldOpts{ readerParseRaw = True } }
   many blankline
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes

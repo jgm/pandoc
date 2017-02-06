@@ -90,7 +90,7 @@ parseOptions options' defaults = do
   let (actions, args, unrecognizedOpts, errors) =
            getOpt' Permute options' rawArgs
 
-  let unknownOptionErrors = foldr handelUnrecognizedOption [] unrecognizedOpts
+  let unknownOptionErrors = foldr handleUnrecognizedOption [] unrecognizedOpts
 
   unless (null errors && null unknownOptionErrors) $
      err 2 $ concat errors ++ unlines unknownOptionErrors ++
@@ -273,7 +273,6 @@ convertWithOpts opts = do
                                 _ -> Nothing
 
   let readerOpts = def{ readerStandalone = standalone
-                      , readerParseRaw = optParseRaw opts
                       , readerColumns = optColumns opts
                       , readerTabStop = optTabStop opts
                       , readerIndentedCodeClasses = optIndentedCodeClasses opts
@@ -463,7 +462,6 @@ data Opt = Opt
     , optStandalone        :: Bool    -- ^ Include header, footer
     , optReader            :: Maybe String  -- ^ Reader format
     , optWriter            :: Maybe String  -- ^ Writer format
-    , optParseRaw          :: Bool    -- ^ Parse unconvertable HTML and TeX
     , optTableOfContents   :: Bool    -- ^ Include table of contents
     , optBaseHeaderLevel   :: Int     -- ^ Base header level
     , optTemplate          :: Maybe FilePath  -- ^ Custom template
@@ -529,7 +527,6 @@ defaultOpts = Opt
     , optStandalone            = False
     , optReader                = Nothing
     , optWriter                = Nothing
-    , optParseRaw              = False
     , optTableOfContents       = False
     , optBaseHeaderLevel       = 1
     , optTemplate              = Nothing
@@ -776,11 +773,6 @@ options =
                   (\arg opt -> return opt { optDataDir = Just arg })
                  "DIRECTORY") -- "Directory containing pandoc data files."
                 ""
-
-    , Option "R" ["parse-raw"]
-                 (NoArg
-                  (\opt -> return opt { optParseRaw = True }))
-                 "" -- "Parse untranslatable HTML codes and LaTeX environments as raw"
 
     , Option "" ["base-header-level"]
                  (ReqArg
@@ -1403,22 +1395,25 @@ compileInfo =
   "\nCompiled with pandoc-types " ++ VERSION_pandoc_types ++ ", texmath " ++
   VERSION_texmath ++ ", skylighting " ++ VERSION_skylighting
 
-handelUnrecognizedOption :: String -> [String] -> [String]
-handelUnrecognizedOption "--smart" =
-  (("--smart has been removed.  Use +smart or -smart extension instead.\n" ++
+handleUnrecognizedOption :: String -> [String] -> [String]
+handleUnrecognizedOption "--smart" =
+  (("--smart/-S has been removed.  Use +smart or -smart extension instead.\n" ++
     "For example: pandoc -f markdown+smart -t markdown-smart.") :)
-handelUnrecognizedOption "-S" = handelUnrecognizedOption "--smart"
-handelUnrecognizedOption "--old-dashes" =
+handleUnrecognizedOption "-S" = handleUnrecognizedOption "--smart"
+handleUnrecognizedOption "--old-dashes" =
   ("--old-dashes has been removed.  Use +old_dashes extension instead." :)
-handelUnrecognizedOption "--no-wrap" =
+handleUnrecognizedOption "--no-wrap" =
   ("--no-wrap has been removed.  Use --wrap=none instead." :)
-handelUnrecognizedOption "--chapters" =
+handleUnrecognizedOption "--chapters" =
   ("--chapters has been removed. Use --top-level-division=chapter instead." :)
-handelUnrecognizedOption "--reference-docx" =
+handleUnrecognizedOption "--reference-docx" =
   ("--reference-docx has been removed. Use --reference-doc instead." :)
-handelUnrecognizedOption "--reference-odt" =
+handleUnrecognizedOption "--reference-odt" =
   ("--reference-odt has been removed. Use --reference-doc instead." :)
-handelUnrecognizedOption x =
+handleUnrecognizedOption "--parse-raw" =
+  (("--parse-raw/-R has been removed. Use +raw_html or +raw_tex extension.\n") :)
+handleUnrecognizedOption "-R" = handleUnrecognizedOption "--parse-raw"
+handleUnrecognizedOption x =
   (("Unknown option " ++ x ++ ".") :)
 
 uppercaseFirstLetter :: String -> String

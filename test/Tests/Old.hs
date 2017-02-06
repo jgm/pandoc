@@ -46,7 +46,7 @@ tests = [ testGroup "markdown"
         , testGroup "latex"
           [ testGroup "writer" (writerTests "latex" ++ lhsWriterTests "latex")
           , testGroup "reader"
-            [ test "basic" ["-r", "latex", "-w", "native", "-s", "-R"]
+            [ test "basic" ["-r", "latex+raw_tex", "-w", "native", "-s"]
               "latex-reader.latex" "latex-reader.native"
             , lhsReaderTest "latex+lhs"
             ]

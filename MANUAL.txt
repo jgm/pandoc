@@ -391,17 +391,6 @@ General options
 Reader options
 --------------
 
-`-R`, `--parse-raw`
-
-:   Parse untranslatable HTML codes and LaTeX environments as raw HTML
-    or LaTeX, instead of ignoring them.  Affects only HTML and LaTeX
-    input. Raw HTML can be printed in Markdown, reStructuredText, Emacs Org
-    mode, HTML, Slidy, Slideous, DZSlides, reveal.js, and S5 output; raw LaTeX
-    can be printed in Markdown, reStructuredText, Emacs Org mode, LaTeX, and
-    ConTeXt output.  The default is for the readers to omit untranslatable
-    HTML codes and LaTeX environments.  (The LaTeX reader does pass through
-    untranslatable LaTeX *commands*, even if `-R` is not specified.)
-
 `--base-header-level=`*NUMBER*
 
 :   Specify the base level for headers (defaults to 1).

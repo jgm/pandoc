@@ -303,14 +303,18 @@ ignoreInlines name = (name, doraw <|> (mempty <$ optargs))
   where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
         doraw = (rawInline "latex" . (contseq ++) . snd) <$>
-                 (getOption readerParseRaw >>= guard >> withRaw optargs)
+                 (do exts <- getOption readerExtensions
+                     guard $ extensionEnabled Ext_raw_tex exts
+                     withRaw optargs)
 
 ignoreBlocks :: PandocMonad m => String -> (String, LP m Blocks)
 ignoreBlocks name = (name, doraw <|> (mempty <$ optargs))
   where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
         doraw = (rawBlock "latex" . (contseq ++) . snd) <$>
-                 (getOption readerParseRaw >>= guard >> withRaw optargs)
+                 (do exts <- getOption readerExtensions
+                     guard $ extensionEnabled Ext_raw_tex exts
+                     withRaw optargs)
 
 blockCommands :: PandocMonad m => M.Map String (LP m Blocks)
 blockCommands = M.fromList $
@@ -423,7 +427,7 @@ inlineCommand = try $ do
   name <- anyControlSeq
   guard $ name /= "begin" && name /= "end"
   guard $ not $ isBlockCommand name
-  parseRaw <- getOption readerParseRaw
+  exts <- getOption readerExtensions
   star <- option "" (string "*")
   let name' = name ++ star
   let raw = do
@@ -433,7 +437,7 @@ inlineCommand = try $ do
         transformed <- applyMacros' rawcommand
         if transformed /= rawcommand
            then parseFromString inlines transformed
-           else if parseRaw
+           else if extensionEnabled Ext_raw_tex exts
                    then return $ rawInline "latex" rawcommand
                    else return mempty
   (lookupListDefault mzero [name',name] inlineCommands <*
@@ -441,7 +445,8 @@ inlineCommand = try $ do
     <|> raw
 
 unlessParseRaw :: PandocMonad m => LP m ()
-unlessParseRaw = getOption readerParseRaw >>= guard . not
+unlessParseRaw = getOption readerExtensions >>=
+                 guard . not . extensionEnabled Ext_raw_tex
 
 isBlockCommand :: String -> Bool
 isBlockCommand s = s `M.member` (blockCommands :: M.Map String (LP PandocPure Blocks))
@@ -923,10 +928,10 @@ inlineEnvironment = try $ do
 
 rawEnv :: PandocMonad m => String -> LP m Blocks
 rawEnv name = do
-  parseRaw <- getOption readerParseRaw
+  exts <- getOption readerExtensions
   rawOptions <- mconcat <$> many rawopt
   let addBegin x = "\\begin{" ++ name ++ "}" ++ rawOptions ++ x
-  if parseRaw
+  if extensionEnabled Ext_raw_tex exts
      then (rawBlock "latex" . addBegin) <$>
             (withRaw (env name blocks) >>= applyMacros' . snd)
      else env name blocks
