@@ -960,22 +960,24 @@ include = do
               return $ if name == "usepackage"
                           then map (maybeAddExtension ".sty") fs
                           else map (maybeAddExtension ".tex") fs
+  mconcat <$> mapM insertIncludedFile fs'
+
+insertIncludedFile :: PandocMonad m => FilePath -> LP m Blocks
+insertIncludedFile f = do
   oldPos <- getPosition
   oldInput <- getInput
-  -- now process each include file in order...
-  mconcat <$> forM fs' (\f -> do
-    containers <- stateContainers <$> getState
-    when (f `elem` containers) $
-      throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
-    updateState $ \s -> s{ stateContainers = f : stateContainers s }
-    contents <- lift $ readTeXFile f
-    setPosition $ newPos f 1 1
-    setInput contents
-    bs <- blocks
-    setInput oldInput
-    setPosition oldPos
-    updateState $ \s -> s{ stateContainers = tail $ stateContainers s }
-    return bs)
+  containers <- stateContainers <$> getState
+  when (f `elem` containers) $
+    throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
+  updateState $ \s -> s{ stateContainers = f : stateContainers s }
+  contents <- lift $ readTeXFile f
+  setPosition $ newPos f 1 1
+  setInput contents
+  bs <- blocks
+  setInput oldInput
+  setPosition oldPos
+  updateState $ \s -> s{ stateContainers = tail $ stateContainers s }
+  return bs
 
 readTeXFile :: PandocMonad m => FilePath -> m String
 readTeXFile f = do
