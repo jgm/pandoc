@@ -46,7 +46,7 @@ import Text.Printf ( printf )
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Data.Sequence (viewr, ViewR(..))
-import Data.Char (toLower, isHexDigit, isSpace)
+import Data.Char (toLower, isHexDigit, isSpace, toUpper)
 import Data.Monoid ((<>))
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad, warning, readFileFromDirs,
@@ -633,12 +633,14 @@ directive' = do
         "highlights" -> B.blockQuote <$> parseFromString parseBlocks body'
         "rubric" -> B.para . B.strong <$> parseInlineFromString top
         _ | label `elem` ["attention","caution","danger","error","hint",
-                          "important","note","tip","warning"] ->
+                          "important","note","tip","warning","admonition"] ->
            do bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
-              return $ B.divWith ("",["admonition", label],[]) bod
-        "admonition" ->
-           do bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
-              return $ B.divWith ("",["admonition"],[]) bod
+              let lab = case label of
+                             "admonition" -> mempty
+                             (l:ls) -> B.divWith ("",["admonition-title"],[])
+                                          (B.para (B.str (toUpper l : ls)))
+                             [] -> mempty
+              return $ B.divWith ("",[label],[]) (lab <> bod)
         "sidebar" ->
            do let subtit = maybe "" trim $ lookup "subtitle" fields
               tit <- B.para . B.strong <$> parseInlineFromString
