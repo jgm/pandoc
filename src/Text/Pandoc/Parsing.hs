@@ -112,6 +112,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              token,
                              (<+?>),
                              extractIdClass,
+                             insertIncludedFile,
                              -- * Re-exports from Text.Pandoc.Parsec
                              Stream,
                              runParser,
@@ -187,6 +188,7 @@ import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro,
 import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Text.Pandoc.Asciify (toAsciiChar)
 import Data.Monoid ((<>))
+import Text.Pandoc.Class (PandocMonad, readFileFromDirs)
 import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader
@@ -194,6 +196,7 @@ import Control.Monad.Identity
 import Data.Maybe (catMaybes)
 
 import Text.Pandoc.Error
+import Control.Monad.Except
 
 type Parser t s = Parsec t s
 
@@ -1274,3 +1277,23 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
                Just cl -> words cl
                Nothing -> cls
     kvs'  = filter (\(k,_) -> k /= "id" || k /= "class") kvs
+
+insertIncludedFile :: PandocMonad m
+                   => ParserT String ParserState m Blocks
+                   -> [FilePath] -> FilePath
+                   -> ParserT String ParserState m Blocks
+insertIncludedFile blocks dirs f = do
+  oldPos <- getPosition
+  oldInput <- getInput
+  containers <- stateContainers <$> getState
+  when (f `elem` containers) $
+    throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
+  updateState $ \s -> s{ stateContainers = f : stateContainers s }
+  contents <- readFileFromDirs dirs f
+  setPosition $ newPos f 1 1
+  setInput contents
+  bs <- blocks
+  setInput oldInput
+  setPosition oldPos
+  updateState $ \s -> s{ stateContainers = tail $ stateContainers s }
+  return bs
