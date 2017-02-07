@@ -1,4 +1,4 @@
-version=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
+version?=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 BRANCH?=master
 
