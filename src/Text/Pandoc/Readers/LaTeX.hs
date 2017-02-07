@@ -40,22 +40,20 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding ((<|>), many, optional, space,
                                    mathDisplay, mathInline)
-import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Char ( chr, ord, isLetter, isAlphaNum )
-import Control.Monad.Trans (lift)
 import Control.Monad
 import Text.Pandoc.Builder
 import Control.Applicative ((<|>), many, optional)
 import Data.Maybe (fromMaybe, maybeToList)
-import System.FilePath (replaceExtension, (</>), takeExtension, addExtension)
+import System.FilePath (replaceExtension, takeExtension, addExtension)
 import Data.List (intercalate)
 import qualified Data.Map as M
 import Text.Pandoc.Highlighting (fromListingsLanguage)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Error
-import Control.Monad.Except (throwError, catchError)
-import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileLazy,
-                          warning, warningWithPos)
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv,
+                          warningWithPos, readFileFromDirs)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
@@ -960,17 +958,18 @@ include = do
               return $ if name == "usepackage"
                           then map (maybeAddExtension ".sty") fs
                           else map (maybeAddExtension ".tex") fs
-  mconcat <$> mapM insertIncludedFile fs'
+  dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
+  mconcat <$> mapM (insertIncludedFile dirs) fs'
 
-insertIncludedFile :: PandocMonad m => FilePath -> LP m Blocks
-insertIncludedFile f = do
+insertIncludedFile :: PandocMonad m => [FilePath] -> FilePath -> LP m Blocks
+insertIncludedFile dirs f = do
   oldPos <- getPosition
   oldInput <- getInput
   containers <- stateContainers <$> getState
   when (f `elem` containers) $
     throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
   updateState $ \s -> s{ stateContainers = f : stateContainers s }
-  contents <- lift $ readTeXFile f
+  contents <- readFileFromDirs dirs f
   setPosition $ newPos f 1 1
   setInput contents
   bs <- blocks
@@ -978,25 +977,6 @@ insertIncludedFile f = do
   setPosition oldPos
   updateState $ \s -> s{ stateContainers = tail $ stateContainers s }
   return bs
-
-readTeXFile :: PandocMonad m => FilePath -> m String
-readTeXFile f = do
-  texinputs <- fromMaybe "." <$> lookupEnv "TEXINPUTS"
-  readFileFromDirs (splitBy (==':') texinputs) f
-
-readFileFromDirs :: PandocMonad m => [FilePath] -> FilePath -> m String
-readFileFromDirs [] f = do
-    warning $ "Could not load include file " ++ f ++ ", skipping."
-    return ""
-readFileFromDirs (d:ds) f = do
-  res <- readFileLazy' (d </> f)
-  case res of
-       Right s -> return s
-       Left _  -> readFileFromDirs ds f
-
-readFileLazy' :: PandocMonad m => FilePath -> m (Either PandocError String)
-readFileLazy' f = catchError ((Right . UTF8.toStringLazy) <$> readFileLazy f) $
-  \(e :: PandocError) -> return (Left e)
 
 ----
 

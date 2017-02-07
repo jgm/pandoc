@@ -110,6 +110,8 @@ module Text.Pandoc.Parsing ( anyLine,
                              askF,
                              asksF,
                              token,
+                             (<+?>),
+                             extractIdClass,
                              -- * Re-exports from Text.Pandoc.Parsec
                              Stream,
                              runParser,
@@ -163,9 +165,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              sourceLine,
                              setSourceColumn,
                              setSourceLine,
-                             newPos,
-                             (<+?>),
-                             extractIdClass
+                             newPos
                              )
 where
 
