@@ -48,10 +48,11 @@ import Data.Maybe (fromMaybe, maybeToList)
 import System.FilePath (replaceExtension, takeExtension, addExtension)
 import Data.List (intercalate)
 import qualified Data.Map as M
-import Text.Pandoc.Highlighting (fromListingsLanguage)
+import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, warningWithPos )
+import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, warningWithPos,
+          readFileFromDirs)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
@@ -357,6 +358,8 @@ blockCommands = M.fromList $
                                 addMeta "bibliography" . splitBibs))
   , ("addbibresource", mempty <$ (skipopts *> braced >>=
                                 addMeta "bibliography" . splitBibs))
+  -- includes
+  , ("lstinputlisting", inputListing)
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
@@ -959,6 +962,34 @@ include = do
   dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
   mconcat <$> mapM (insertIncludedFile blocks dirs) fs'
 
+inputListing :: PandocMonad m => LP m Blocks
+inputListing = do
+  options <- option [] keyvals
+  f <- filter (/='"') <$> braced
+  dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
+  codeLines <- lines <$> readFileFromDirs dirs f
+  let (ident,classes,kvs) = parseListingsOptions options
+  let language = case lookup "language" options >>= fromListingsLanguage of
+                      Just l -> [l]
+                      Nothing -> take 1 $ languagesByExtension (takeExtension f)
+  let firstline = fromMaybe 1 $ lookup "firstline" options >>= safeRead
+  let lastline = fromMaybe (length codeLines) $
+                       lookup "lastline" options >>= safeRead
+  let codeContents = intercalate "\n" $ take (1 + lastline - firstline) $
+                       drop (firstline - 1) codeLines
+  return $ codeBlockWith (ident,ordNub (classes ++ language),kvs) codeContents
+
+parseListingsOptions :: [(String, String)] -> Attr
+parseListingsOptions options =
+  let kvs = [ (if k == "firstnumber"
+                  then "startFrom"
+                  else k, v) | (k,v) <- options ]
+      classes = [ "numberLines" |
+                  lookup "numbers" options == Just "left" ]
+             ++ maybeToList (lookup "language" options
+                     >>= fromListingsLanguage)
+  in  (fromMaybe "" (lookup "label" options), classes, kvs)
+
 ----
 
 keyval :: PandocMonad m => LP m (String, String)
@@ -1037,15 +1068,7 @@ environments = M.fromList
   , ("verbatim", codeBlock <$> verbEnv "verbatim")
   , ("Verbatim", fancyverbEnv "Verbatim")
   , ("BVerbatim", fancyverbEnv "BVerbatim")
-  , ("lstlisting", do options <- option [] keyvals
-                      let kvs = [ (if k == "firstnumber"
-                                      then "startFrom"
-                                      else k, v) | (k,v) <- options ]
-                      let classes = [ "numberLines" |
-                                      lookup "numbers" options == Just "left" ]
-                                 ++ maybeToList (lookup "language" options
-                                         >>= fromListingsLanguage)
-                      let attr = (fromMaybe "" (lookup "label" options),classes,kvs)
+  , ("lstlisting", do attr <- parseListingsOptions <$> option [] keyvals
                       codeBlockWith attr <$> verbEnv "lstlisting")
   , ("minted",     do options <- option [] keyvals
                       lang <- grouped (many1 $ satisfy (/='}'))
