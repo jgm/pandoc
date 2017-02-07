@@ -44,6 +44,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , warningWithPos
                          , report
                          , getLog
+                         , readFileFromDirs
                          , setVerbosity
                          , getMediaBag
                          , setMediaBag
@@ -205,6 +206,15 @@ getZonedTime = do
   t <- getCurrentTime
   tz <- getCurrentTimeZone
   return $ utcToZonedTime tz t
+
+-- | Read file, checking in any number of directories.
+readFileFromDirs :: PandocMonad m => [FilePath] -> FilePath -> m String
+readFileFromDirs [] f = do
+    warning $ "Could not load include file " ++ f ++ ", skipping."
+    return ""
+readFileFromDirs (d:ds) f = catchError
+    (UTF8.toStringLazy <$> readFileLazy (d </> f))
+    (\_ -> readFileFromDirs ds f)
 
 --
 
