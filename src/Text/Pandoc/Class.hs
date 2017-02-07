@@ -40,11 +40,11 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , modifyPureState
                          , getPOSIXTime
                          , getZonedTime
+                         , readFileFromDirs
                          , warning
                          , warningWithPos
                          , report
                          , getLog
-                         , readFileFromDirs
                          , setVerbosity
                          , getMediaBag
                          , setMediaBag
@@ -74,7 +74,7 @@ import qualified Text.Pandoc.Shared as IO ( readDataFile
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Compat.Time (UTCTime)
 import Text.Pandoc.Options (Verbosity(..))
-import Text.Pandoc.Parsing (ParserT, SourcePos)
+import Text.Parsec (ParsecT, SourcePos)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
@@ -151,7 +151,7 @@ warning msg = report WARNING msg
 warningWithPos :: PandocMonad m
                => SourcePos
                -> String
-               -> ParserT s st m ()
+               -> ParsecT s st m ()
 warningWithPos pos msg = lift $ warning $ msg ++ " " ++ show pos
 
 report :: PandocMonad m => Verbosity -> String -> m ()
@@ -513,7 +513,7 @@ instance PandocMonad PandocPure where
 
   logOutput _level _msg = return ()
 
-instance PandocMonad m => PandocMonad (ParserT s st m) where
+instance PandocMonad m => PandocMonad (ParsecT s st m) where
   lookupEnv = lift . lookupEnv
   getCurrentTime = lift getCurrentTime
   getCurrentTimeZone = lift getCurrentTimeZone

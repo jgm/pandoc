@@ -37,7 +37,6 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
 import Text.Pandoc.Error
-import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad ( when, liftM, guard, mzero )
 import Data.List ( findIndex, intercalate, isInfixOf,
                    transpose, sort, deleteFirstsBy, isSuffixOf , nub, union)
@@ -49,8 +48,9 @@ import qualified Text.Pandoc.Builder as B
 import Data.Sequence (viewr, ViewR(..))
 import Data.Char (toLower, isHexDigit, isSpace)
 import Data.Monoid ((<>))
-import Control.Monad.Except (throwError, catchError)
-import Text.Pandoc.Class (PandocMonad, warning, readFileLazy, warningWithPos)
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Class (PandocMonad, warning, readFileFromDirs,
+                          warningWithPos)
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: PandocMonad m
@@ -421,12 +421,7 @@ include = try $ do
   when (f `elem` containers) $
     throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
   updateState $ \s -> s{ stateContainers = f : stateContainers s }
-  res <- readFileLazy' f
-  contents <- case res of
-                   Right x -> return x
-                   Left _e -> do
-                     warning $ "Could not read include file " ++ f ++ "."
-                     return ""
+  contents <- readFileFromDirs ["."] f
   let contentLines = lines contents
   let numLines = length contentLines
   let startLine' = case startLine of
@@ -470,9 +465,6 @@ include = try $ do
                                          tail $ stateContainers s }
                            return bs
 
-readFileLazy' :: PandocMonad m => FilePath -> m (Either PandocError String)
-readFileLazy' f = catchError ((Right . UTF8.toStringLazy) <$> readFileLazy f) $
-  \(e :: PandocError) -> return (Left e)
 
 --
 -- list blocks

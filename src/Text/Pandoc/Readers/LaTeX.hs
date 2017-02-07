@@ -50,10 +50,8 @@ import Data.List (intercalate)
 import qualified Data.Map as M
 import Text.Pandoc.Highlighting (fromListingsLanguage)
 import Text.Pandoc.ImageSize (numUnit, showFl)
-import Text.Pandoc.Error
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv,
-                          warningWithPos, readFileFromDirs)
+import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, warningWithPos )
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
@@ -959,24 +957,7 @@ include = do
                           then map (maybeAddExtension ".sty") fs
                           else map (maybeAddExtension ".tex") fs
   dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
-  mconcat <$> mapM (insertIncludedFile dirs) fs'
-
-insertIncludedFile :: PandocMonad m => [FilePath] -> FilePath -> LP m Blocks
-insertIncludedFile dirs f = do
-  oldPos <- getPosition
-  oldInput <- getInput
-  containers <- stateContainers <$> getState
-  when (f `elem` containers) $
-    throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
-  updateState $ \s -> s{ stateContainers = f : stateContainers s }
-  contents <- readFileFromDirs dirs f
-  setPosition $ newPos f 1 1
-  setInput contents
-  bs <- blocks
-  setInput oldInput
-  setPosition oldPos
-  updateState $ \s -> s{ stateContainers = tail $ stateContainers s }
-  return bs
+  mconcat <$> mapM (insertIncludedFile blocks dirs) fs'
 
 ----
 
