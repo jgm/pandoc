@@ -73,7 +73,7 @@ import qualified Text.Pandoc.Shared as IO ( readDataFile
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Compat.Time (UTCTime)
 import Text.Pandoc.Options (Verbosity(..))
-import Text.Parsec (ParsecT, SourcePos)
+import Text.Parsec (ParsecT, SourcePos, getPosition)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
