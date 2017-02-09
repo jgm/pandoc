@@ -49,7 +49,6 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , getMediaBag
                          , setMediaBag
                          , insertMedia
-                         , insertDeferredMedia
                          , fetchItem
                          , getInputFiles
                          , getOutputFile
@@ -106,8 +105,6 @@ import System.IO.Error
 import System.IO (stderr)
 import qualified Data.Map as M
 import Text.Pandoc.Error
-import Data.Monoid
-import Data.Maybe (catMaybes)
 import Text.Printf (printf)
 
 class (Functor m, Applicative m, Monad m, MonadError PandocError m)
@@ -163,34 +160,16 @@ report level msg = do
       modifyCommonState $ \st -> st{ stLog = (level, msg) : stLog st }
 
 setMediaBag :: PandocMonad m => MediaBag -> m ()
-setMediaBag mb = modifyCommonState $
-                 \st -> st{stDeferredMediaBag = DeferredMediaBag mb mempty}
+setMediaBag mb = modifyCommonState $ \st -> st{stMediaBag = mb}
 
 getMediaBag :: PandocMonad m => m MediaBag
-getMediaBag = do
-  fetchDeferredMedia
-  DeferredMediaBag mb' _ <- getsCommonState stDeferredMediaBag
-  return mb'
-
-fetchDeferredMedia :: PandocMonad m => m ()
-fetchDeferredMedia = do
-  (DeferredMediaBag mb defMedia) <- getsCommonState stDeferredMediaBag
-  fetchedMedia <- catMaybes <$> mapM fetchMediaItem defMedia
-  setMediaBag $ foldr
-    (\(fp, bs, mbMime) mb' -> MB.insertMedia fp mbMime (BL.fromStrict bs) mb')
-    mb fetchedMedia
+getMediaBag = getsCommonState stMediaBag
 
 insertMedia :: PandocMonad m => FilePath -> Maybe MimeType -> BL.ByteString -> m ()
 insertMedia fp mime bs = do
-  (DeferredMediaBag mb dm) <- getsCommonState stDeferredMediaBag
+  mb <- getsCommonState stMediaBag
   let mb' = MB.insertMedia fp mime bs mb
-  modifyCommonState $ \st -> st{stDeferredMediaBag =DeferredMediaBag mb' dm }
-
-insertDeferredMedia :: PandocMonad m => FilePath -> m ()
-insertDeferredMedia fp = do
-  (DeferredMediaBag mb dm) <- getsCommonState stDeferredMediaBag
-  modifyCommonState $
-    \st -> st{stDeferredMediaBag = DeferredMediaBag mb ((DeferredMediaPath fp) : dm)}
+  modifyCommonState $ \st -> st{stMediaBag = mb' }
 
 getInputFiles :: PandocMonad m => m (Maybe [FilePath])
 getInputFiles = getsCommonState stInputFiles
@@ -218,32 +197,8 @@ readFileFromDirs (d:ds) f = catchError
 
 --
 
-newtype DeferredMediaPath = DeferredMediaPath {unDefer :: String}
-                          deriving (Show, Eq)
-
-data DeferredMediaBag = DeferredMediaBag MediaBag [DeferredMediaPath]
-                      deriving (Show)
-
-instance Monoid DeferredMediaBag where
-  mempty = DeferredMediaBag mempty mempty
-  mappend (DeferredMediaBag mb lst) (DeferredMediaBag mb' lst') =
-    DeferredMediaBag (mb <> mb') (lst <> lst')
-
--- the internal function for downloading individual items. We want to
--- catch errors and return a Nothing with a warning, so we can
--- continue without erroring out.
-fetchMediaItem :: PandocMonad m
-               => DeferredMediaPath
-               -> m (Maybe (FilePath, B.ByteString, Maybe MimeType))
-fetchMediaItem dfp =
-  (do (bs, mbmime) <- downloadOrRead Nothing (unDefer dfp)
-      return $ Just $ (unDefer dfp, bs, mbmime))
-  `catchError`
-  (const $ do warning ("Couldn't access media at " ++ unDefer dfp)
-              return Nothing)
-
 data CommonState = CommonState { stLog        :: [(Verbosity, String)]
-                               , stDeferredMediaBag :: DeferredMediaBag
+                               , stMediaBag   :: MediaBag
                                , stInputFiles :: Maybe [FilePath]
                                , stOutputFile :: Maybe FilePath
                                , stVerbosity  :: Verbosity
@@ -251,7 +206,7 @@ data CommonState = CommonState { stLog        :: [(Verbosity, String)]
 
 instance Default CommonState where
   def = CommonState { stLog = []
-                    , stDeferredMediaBag = mempty
+                    , stMediaBag = mempty
                     , stInputFiles = Nothing
                     , stOutputFile = Nothing
                     , stVerbosity = WARNING
