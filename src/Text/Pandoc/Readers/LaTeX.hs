@@ -296,7 +296,7 @@ inBrackets x = str "[" <> x <> str "]"
 
 -- eat an optional argument and one or more arguments in braces
 ignoreInlines :: PandocMonad m => String -> (String, LP m Inlines)
-ignoreInlines name = (name, doraw <|> (mempty <$ optargs))
+ignoreInlines name = (name, doraw <|> (optargs >> ignore name))
   where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
         doraw = (rawInline "latex" . (contseq ++) . snd) <$>
@@ -304,8 +304,14 @@ ignoreInlines name = (name, doraw <|> (mempty <$ optargs))
                      guard $ extensionEnabled Ext_raw_tex exts
                      withRaw optargs)
 
+ignore :: (Monoid a, PandocMonad m) => String -> LP m a
+ignore name = do
+  pos <- getPosition
+  warningWithPos pos $ "Skipped \\" ++ name ++ " and its arguments"
+  return mempty
+
 ignoreBlocks :: PandocMonad m => String -> (String, LP m Blocks)
-ignoreBlocks name = (name, doraw <|> (mempty <$ optargs))
+ignoreBlocks name = (name, doraw <|> (optargs >> ignore name))
   where optargs = skipopts *> skipMany (try $ optional sp *> braced)
         contseq = '\\':name
         doraw = (rawBlock "latex" . (contseq ++) . snd) <$>
@@ -438,7 +444,7 @@ inlineCommand = try $ do
            then parseFromString inlines transformed
            else if extensionEnabled Ext_raw_tex exts
                    then return $ rawInline "latex" rawcommand
-                   else return mempty
+                   else ignore name
   (lookupListDefault mzero [name',name] inlineCommands <*
       optional (try (string "{}")))
     <|> raw
@@ -489,7 +495,7 @@ inlineCommands = M.fromList $
   , ("sim", lit "~")
   , ("label", unlessParseRaw >> (inBrackets <$> tok))
   , ("ref", unlessParseRaw >> (inBrackets <$> tok))
-  , ("noindent", unlessParseRaw >> return mempty)
+  , ("noindent", unlessParseRaw >> ignore "noindent")
   , ("textgreek", tok)
   , ("sep", lit ",")
   , ("cref", unlessParseRaw >> (inBrackets <$> tok))  -- from cleveref.sty
