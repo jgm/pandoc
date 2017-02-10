@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, OverloadedStrings #-}
 {-
 Copyright (C) 2016-17 John MacFarlane <jgm@berkeley.edu>
 
@@ -32,6 +32,7 @@ and info messages.
 module Text.Pandoc.Logging (
     Verbosity(..)
   , LogMessage(..)
+  , showLogMessage
   , messageVerbosity
   ) where
 
@@ -39,18 +40,25 @@ import Text.Parsec.Pos
 import Data.Data (Data)
 import Data.Generics (Typeable)
 import GHC.Generics (Generic)
+import qualified Data.Text as Text
+import Data.Aeson
+import Text.Pandoc.Definition
 
 -- | Verbosity level.
 data Verbosity = ERROR | WARNING | INFO | DEBUG
      deriving (Show, Read, Eq, Data, Enum, Ord, Bounded, Typeable, Generic)
 
+instance ToJSON Verbosity where
+  toJSON x = toJSON (show x)
+
 data LogMessage =
     SkippedInput String SourcePos
-  | NotRendered String
   | YamlSectionNotAnObject SourcePos
   | DuplicateLinkReference String SourcePos
   | DuplicateNoteReference String SourcePos
   | ParsingUnescaped String SourcePos
+  | InlineNotRendered Inline
+  | BlockNotRendered Block
   | DocxCommentWillNotRetainFormatting String
   | CouldNotFetchResource String String
   | CouldNotDetermineImageSize String
@@ -58,15 +66,100 @@ data LogMessage =
   | CouldNotConvertTeXMath String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
+instance ToJSON LogMessage where
+  toJSON x = object $ "verbosity" .= toJSON (messageVerbosity x) :
+    case x of
+      SkippedInput s pos ->
+           ["type" .= String "SkippedInput",
+            "contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= sourceLine pos,
+            "column" .= sourceColumn pos]
+      YamlSectionNotAnObject pos ->
+           ["type" .= String "YamlSectionNotAnObject",
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      DuplicateLinkReference s pos ->
+           ["type" .= String "DuplicateLinkReference",
+            "contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      DuplicateNoteReference s pos ->
+           ["type" .= String "DuplicateNoteReference",
+            "contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      ParsingUnescaped s pos ->
+           ["type" .= String "ParsingUnescaped",
+            "contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      InlineNotRendered il ->
+           ["type" .= String "InlineNotRendered",
+            "contents" .= toJSON il]
+      BlockNotRendered bl ->
+           ["type" .= String "BlockNotRendered",
+            "contents" .= toJSON bl]
+      DocxCommentWillNotRetainFormatting s ->
+           ["type" .= String "DocxCommentWillNotRetainFormatting",
+            "commentId" .= Text.pack s]
+      CouldNotFetchResource fp s ->
+           ["type" .= String "CouldNotFetchResource",
+            "path" .= Text.pack fp,
+            "message" .= Text.pack s]
+      CouldNotDetermineImageSize fp ->
+           ["type" .= String "CouldNotDetermineImageSize",
+            "path" .= Text.pack fp]
+      CouldNotDetermineMimeType fp ->
+           ["type" .= String "CouldNotDetermineMimeType",
+            "path" .= Text.pack fp]
+      CouldNotConvertTeXMath s ->
+           ["type" .= String "CouldNotConvertTeXMath",
+            "contents" .= Text.pack s]
+
+showLogMessage :: LogMessage -> String
+showLogMessage msg =
+  case msg of
+       SkippedInput s pos ->
+         "Skipped '" ++ s ++ "' at " ++ show pos
+       YamlSectionNotAnObject pos ->
+         "YAML metadata section is not an object at " ++ show pos
+       DuplicateLinkReference s pos ->
+         "Duplicate link reference '" ++ s ++ "' at " ++ show pos
+       DuplicateNoteReference s pos ->
+         "Duplicate note reference '" ++ s ++ "' at " ++ show pos
+       ParsingUnescaped s pos ->
+         "Parsing unescaped '" ++ s ++ "' at " ++ show pos
+       InlineNotRendered il ->
+         "Not rendering " ++ show il
+       BlockNotRendered bl ->
+         "Not rendering " ++ show bl
+       DocxCommentWillNotRetainFormatting s ->
+         "Docx comment with id '" ++ s ++ "' will not retain formatting"
+       CouldNotFetchResource fp s ->
+         "Could not fetch resource '" ++ fp ++ "'" ++
+           if null s then "" else (": " ++ s)
+       CouldNotDetermineImageSize fp ->
+         "Could not determine image size for '" ++ fp ++ "'"
+       CouldNotDetermineMimeType fp ->
+         "Could not determine mime type for '" ++ fp ++ "'"
+       CouldNotConvertTeXMath s ->
+         "Could not convert TeX math '" ++ s ++ "', rendering as TeX"
+
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
   case msg of
        SkippedInput{} -> INFO
-       NotRendered{} -> INFO
        YamlSectionNotAnObject{} -> WARNING
        DuplicateLinkReference{} -> WARNING
        DuplicateNoteReference{} -> WARNING
        ParsingUnescaped{} -> INFO
+       InlineNotRendered{} -> INFO
+       BlockNotRendered{} -> INFO
        DocxCommentWillNotRetainFormatting{} -> INFO
        CouldNotFetchResource{} -> WARNING
        CouldNotDetermineImageSize{} -> WARNING
