@@ -13,7 +13,6 @@ import Text.Pandoc.Definition hiding (Attr)
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Options ( ReaderOptions(..))
-import Text.Pandoc.Logging (Verbosity(..))
 import Text.Pandoc.Extensions (enableExtension, Extension(Ext_raw_html))
 import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
 import Network.URI (unEscapeString)
@@ -35,7 +34,7 @@ import qualified Data.Map as M (Map, lookup, fromList, elems)
 import Data.Monoid ((<>))
 import Control.DeepSeq (deepseq, NFData)
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 
 type Items = M.Map String (FilePath, MimeType)
@@ -71,7 +70,6 @@ archiveToEPUB os archive = do
     os' = os {readerExtensions = enableExtension Ext_raw_html (readerExtensions os)}
     parseSpineElem :: PandocMonad m => FilePath -> (FilePath, MimeType) -> m Pandoc
     parseSpineElem (normalise -> r) (normalise -> path, mime) = do
-      report DEBUG ("parseSpineElem called with path " ++ show path)
       doc <- mimeToReader mime r path
       let docSpan = B.doc $ B.para $ B.spanWith (takeFileName path, [], []) mempty
       return $ docSpan <> doc

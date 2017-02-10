@@ -48,7 +48,7 @@ import Text.Pandoc.Shared ( extractSpaces, renderTags', addMetaField
 import Text.Pandoc.Options (ReaderOptions(readerExtensions), extensionEnabled,
                                Extension (Ext_epub_html_exts,
                                Ext_raw_html, Ext_native_divs, Ext_native_spans))
-import Text.Pandoc.Logging (Verbosity(..))
+import Text.Pandoc.Logging
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
 import qualified Data.Map as M
@@ -59,7 +59,6 @@ import Control.Monad ( guard, mzero, void, unless )
 import Control.Arrow ((***))
 import Control.Applicative ( (<|>) )
 import Data.Monoid (First (..))
-import Text.Printf (printf)
 import Text.TeXMath (readMathML, writeTeX)
 import Data.Default (Default (..), def)
 import Control.Monad.Reader (ask, asks, local, ReaderT, runReaderT, lift)
@@ -69,7 +68,7 @@ import Data.Monoid ((<>))
 import Text.Parsec.Error
 import qualified Data.Set as Set
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad, report, warningWithPos)
+import Text.Pandoc.Class (PandocMonad, report)
 import Control.Monad.Except (throwError)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
@@ -177,8 +176,7 @@ block = do
             , pPlain
             , pRawHtmlBlock
             ]
-  report DEBUG $ printf "line %d: %s"
-                  (sourceLine pos) (take 60 $ show $ B.toList res)
+  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
   return res
 
 namespaces :: PandocMonad m => [(String, TagParser m Inlines)]
@@ -378,7 +376,7 @@ ignore raw = do
   -- raw can be null for tags like <!DOCTYPE>; see paRawTag
   -- in this case we don't want a warning:
   unless (null raw) $
-    warningWithPos pos $ "Skipped " ++ raw
+    report $ SkippedContent raw pos
   return mempty
 
 pHtmlBlock :: PandocMonad m => String -> TagParser m String

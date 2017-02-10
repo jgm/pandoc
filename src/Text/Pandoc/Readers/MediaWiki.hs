@@ -41,7 +41,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import Data.Monoid ((<>))
 import Text.Pandoc.Options
-import Text.Pandoc.Logging (Verbosity(..))
+import Text.Pandoc.Logging
 import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
 import Text.Pandoc.Parsing hiding ( nested )
@@ -56,7 +56,6 @@ import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Char (isDigit, isSpace)
 import Data.Maybe (fromMaybe)
-import Text.Printf (printf)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad, report)
 
@@ -207,8 +206,7 @@ block = do
      <|> blockTag
      <|> (B.rawBlock "mediawiki" <$> template)
      <|> para
-  report DEBUG $ printf "line %d: %s" (sourceLine pos)
-                    (take 60 $ show $ B.toList res)
+  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
   return res
 
 para :: PandocMonad m => MWParser m Blocks

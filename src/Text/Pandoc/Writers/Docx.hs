@@ -65,8 +65,9 @@ import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
 import Control.Applicative ((<|>))
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList, isNothing)
 import Data.Char (ord, isSpace, toLower)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Logging
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -1173,7 +1174,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
       res <- runExceptT $ lift (P.fetchItem (writerSourceURL opts) src)
       case res of
         Left (_ :: PandocError) -> do
-          P.warning ("Could not find image `" ++ src ++ "', skipping...")
+          report $ CouldNotFetchResource src ""
           -- emit alt text
           inlinesToOpenXML opts alt
         Right (img, mt) -> do

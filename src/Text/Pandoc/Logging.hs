@@ -52,31 +52,35 @@ instance ToJSON Verbosity where
   toJSON x = toJSON (show x)
 
 data LogMessage =
-    SkippedInput String SourcePos
-  | YamlSectionNotAnObject SourcePos
+    SkippedContent String SourcePos
+  | CouldNotParseYamlMetadata String SourcePos
   | DuplicateLinkReference String SourcePos
   | DuplicateNoteReference String SourcePos
+  | ReferenceNotFound String SourcePos
   | ParsingUnescaped String SourcePos
+  | CouldNotLoadIncludeFile String SourcePos
+  | ParsingTrace String SourcePos
   | InlineNotRendered Inline
   | BlockNotRendered Block
-  | DocxCommentWillNotRetainFormatting String
+  | DocxParserWarning String
   | CouldNotFetchResource String String
-  | CouldNotDetermineImageSize String
+  | CouldNotDetermineImageSize String String
   | CouldNotDetermineMimeType String
-  | CouldNotConvertTeXMath String
+  | CouldNotConvertTeXMath String String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
   toJSON x = object $ "verbosity" .= toJSON (messageVerbosity x) :
     case x of
-      SkippedInput s pos ->
-           ["type" .= String "SkippedInput",
+      SkippedContent s pos ->
+           ["type" .= String "SkippedContent",
             "contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= sourceLine pos,
             "column" .= sourceColumn pos]
-      YamlSectionNotAnObject pos ->
+      CouldNotParseYamlMetadata s pos ->
            ["type" .= String "YamlSectionNotAnObject",
+            "message" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
@@ -92,75 +96,114 @@ instance ToJSON LogMessage where
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
+      ReferenceNotFound s pos ->
+           ["type" .= String "ReferenceNotFound",
+            "contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
       ParsingUnescaped s pos ->
            ["type" .= String "ParsingUnescaped",
             "contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
+      CouldNotLoadIncludeFile fp pos ->
+           ["type" .= String "CouldNotLoadIncludeFile",
+            "path" .= Text.pack fp,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      ParsingTrace s pos ->
+           ["type" .= String "ParsingTrace",
+            "contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= sourceLine pos,
+            "column" .= sourceColumn pos]
       InlineNotRendered il ->
            ["type" .= String "InlineNotRendered",
             "contents" .= toJSON il]
       BlockNotRendered bl ->
            ["type" .= String "BlockNotRendered",
             "contents" .= toJSON bl]
-      DocxCommentWillNotRetainFormatting s ->
-           ["type" .= String "DocxCommentWillNotRetainFormatting",
-            "commentId" .= Text.pack s]
+      DocxParserWarning s ->
+           ["type" .= String "DocxParserWarning",
+            "contents" .= Text.pack s]
       CouldNotFetchResource fp s ->
            ["type" .= String "CouldNotFetchResource",
             "path" .= Text.pack fp,
             "message" .= Text.pack s]
-      CouldNotDetermineImageSize fp ->
+      CouldNotDetermineImageSize fp s ->
            ["type" .= String "CouldNotDetermineImageSize",
-            "path" .= Text.pack fp]
+            "path" .= Text.pack fp,
+            "message" .= Text.pack s]
       CouldNotDetermineMimeType fp ->
            ["type" .= String "CouldNotDetermineMimeType",
             "path" .= Text.pack fp]
-      CouldNotConvertTeXMath s ->
+      CouldNotConvertTeXMath s msg ->
            ["type" .= String "CouldNotConvertTeXMath",
-            "contents" .= Text.pack s]
+            "contents" .= Text.pack s,
+            "message" .= Text.pack msg]
+
+showPos :: SourcePos -> String
+showPos pos = sn ++ "line " ++
+     show (sourceLine pos) ++ " column " ++ show (sourceColumn pos)
+  where sn = if sourceName pos == "source" || sourceName pos == ""
+                then ""
+                else sourceName pos ++ " "
 
 showLogMessage :: LogMessage -> String
 showLogMessage msg =
   case msg of
-       SkippedInput s pos ->
-         "Skipped '" ++ s ++ "' at " ++ show pos
-       YamlSectionNotAnObject pos ->
-         "YAML metadata section is not an object at " ++ show pos
+       SkippedContent s pos ->
+         "Skipped '" ++ s ++ "' at " ++ showPos pos
+       CouldNotParseYamlMetadata s pos ->
+         "Could not parse YAML metadata at " ++ showPos pos ++
+           if null s then "" else (": " ++ s)
        DuplicateLinkReference s pos ->
-         "Duplicate link reference '" ++ s ++ "' at " ++ show pos
+         "Duplicate link reference '" ++ s ++ "' at " ++ showPos pos
        DuplicateNoteReference s pos ->
-         "Duplicate note reference '" ++ s ++ "' at " ++ show pos
+         "Duplicate note reference '" ++ s ++ "' at " ++ showPos pos
+       ReferenceNotFound s pos ->
+         "Reference not found for '" ++ s ++ "' at " ++ showPos pos
        ParsingUnescaped s pos ->
-         "Parsing unescaped '" ++ s ++ "' at " ++ show pos
+         "Parsing unescaped '" ++ s ++ "' at " ++ showPos pos
+       CouldNotLoadIncludeFile fp pos ->
+         "Could not load include file '" ++ fp ++ "' at " ++ showPos pos
+       ParsingTrace s pos ->
+         "Parsing trace at " ++ showPos pos ++ ": " ++ s
        InlineNotRendered il ->
          "Not rendering " ++ show il
        BlockNotRendered bl ->
          "Not rendering " ++ show bl
-       DocxCommentWillNotRetainFormatting s ->
-         "Docx comment with id '" ++ s ++ "' will not retain formatting"
+       DocxParserWarning s ->
+         "Docx parser warning: " ++ s
        CouldNotFetchResource fp s ->
          "Could not fetch resource '" ++ fp ++ "'" ++
            if null s then "" else (": " ++ s)
-       CouldNotDetermineImageSize fp ->
-         "Could not determine image size for '" ++ fp ++ "'"
+       CouldNotDetermineImageSize fp s ->
+         "Could not determine image size for '" ++ fp ++ "'" ++
+           if null s then "" else (": " ++ s)
        CouldNotDetermineMimeType fp ->
          "Could not determine mime type for '" ++ fp ++ "'"
-       CouldNotConvertTeXMath s ->
-         "Could not convert TeX math '" ++ s ++ "', rendering as TeX"
+       CouldNotConvertTeXMath s m ->
+         "Could not convert TeX math '" ++ s ++ "', rendering as TeX" ++
+           if null m then "" else (':':'\n':m)
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
   case msg of
-       SkippedInput{} -> INFO
-       YamlSectionNotAnObject{} -> WARNING
+       SkippedContent{} -> INFO
+       CouldNotParseYamlMetadata{} -> WARNING
        DuplicateLinkReference{} -> WARNING
        DuplicateNoteReference{} -> WARNING
+       ReferenceNotFound{} -> WARNING
+       CouldNotLoadIncludeFile{} -> WARNING
        ParsingUnescaped{} -> INFO
+       ParsingTrace{} -> DEBUG
        InlineNotRendered{} -> INFO
        BlockNotRendered{} -> INFO
-       DocxCommentWillNotRetainFormatting{} -> INFO
+       DocxParserWarning{} -> WARNING
        CouldNotFetchResource{} -> WARNING
        CouldNotDetermineImageSize{} -> WARNING
        CouldNotDetermineMimeType{} -> WARNING

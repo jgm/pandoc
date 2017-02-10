@@ -188,7 +188,8 @@ import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro,
 import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Text.Pandoc.Asciify (toAsciiChar)
 import Data.Monoid ((<>))
-import Text.Pandoc.Class (PandocMonad, readFileFromDirs)
+import Text.Pandoc.Class (PandocMonad, readFileFromDirs, report)
+import Text.Pandoc.Logging
 import Data.Default
 import qualified Data.Set as Set
 import Control.Monad.Reader
@@ -1289,7 +1290,12 @@ insertIncludedFile blocks dirs f = do
   when (f `elem` containers) $
     throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
   updateState $ \s -> s{ stateContainers = f : stateContainers s }
-  contents <- readFileFromDirs dirs f
+  mbcontents <- readFileFromDirs dirs f
+  contents <- case mbcontents of
+                   Just s -> return s
+                   Nothing -> do
+                     report $ CouldNotLoadIncludeFile f oldPos
+                     return ""
   setPosition $ newPos f 1 1
   setInput contents
   bs <- blocks

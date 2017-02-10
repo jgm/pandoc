@@ -41,13 +41,13 @@ import qualified Text.XML.Light.Cursor as XC
 import qualified Data.ByteString.Char8 as B8
 import Control.Monad.Except (throwError, catchError)
 
-
+import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
 import Text.Pandoc.Shared (orderedListMarkers, isHeaderBlock, capitalize,
                            linesToPara)
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 
 -- | Data to be written at the end of the document:
@@ -244,14 +244,12 @@ fetchImage href link = do
          catchError (do (bs, mbmime) <- P.fetchItem Nothing link
                         case mbmime of
                              Nothing -> do
-                               P.warning ("Could not determine mime type for "
-                                         ++ link)
+                               report $ CouldNotDetermineMimeType link
                                return Nothing
                              Just mime -> return $ Just (mime,
                                                       B8.unpack $ encode bs))
                     (\e ->
-                       do P.warning ("Could not fetch " ++ link ++
-                                      ":\n" ++ show e)
+                       do report $ CouldNotFetchResource link (show e)
                           return Nothing)
   case mbimg of
     Just (imgtype, imgdata) -> do

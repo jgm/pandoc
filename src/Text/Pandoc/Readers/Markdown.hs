@@ -51,7 +51,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Vector as V
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import Text.Pandoc.Options
-import Text.Pandoc.Logging (Verbosity(..))
+import Text.Pandoc.Logging
 import Text.Pandoc.Shared
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.XML (fromEntities)
@@ -62,12 +62,10 @@ import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockT
 import Control.Monad
 import System.FilePath (takeExtension, addExtension)
 import Text.HTML.TagSoup
-import Text.Printf (printf)
 import Data.Monoid ((<>))
 import Control.Monad.Trans (lift)
 import Control.Monad.Except (throwError, catchError)
 import Text.Pandoc.Class (PandocMonad, report)
-import qualified Text.Pandoc.Class as P 
 
 type MarkdownParser m = ParserT [Char] ParserState m
 
@@ -270,7 +268,8 @@ yamlMetaBlock = try $ do
                   ) nullMeta hashmap
                 Right Yaml.Null -> return nullMeta
                 Right _ -> do
-                            P.warningWithPos pos "YAML header is not an object"
+                            report $ CouldNotParseYamlMetadata "not an object"
+                               pos
                             return nullMeta
                 Left err' -> do
                          case err' of
@@ -281,15 +280,13 @@ yamlMetaBlock = try $ do
                                             yamlLine = yline
                                           , yamlColumn = ycol
                                       }}) ->
-                                 P.warningWithPos (setSourceLine
+                                 report $ CouldNotParseYamlMetadata
+                                    problem (setSourceLine
                                     (setSourceColumn pos
                                        (sourceColumn pos + ycol))
                                     (sourceLine pos + 1 + yline))
-                                    $ "Could not parse YAML header: " ++
-                                        problem
-                            _ -> P.warningWithPos pos
-                                    $ "Could not parse YAML header: " ++
-                                        show err'
+                            _ -> report $ CouldNotParseYamlMetadata
+                                    (show err') pos
                          return nullMeta
   updateState $ \st -> st{ stateMeta' = stateMeta' st <> (return meta') }
   return mempty
@@ -406,7 +403,7 @@ referenceKey = try $ do
   let oldkeys = stateKeys st
   let key = toKey raw
   case M.lookup key oldkeys of
-    Just _  -> P.warningWithPos pos $ "Duplicate link reference `" ++ raw ++ "'"
+    Just _  -> report $ DuplicateLinkReference raw pos
     Nothing -> return ()
   updateState $ \s -> s { stateKeys = M.insert key (target, attr') oldkeys }
   return $ return mempty
@@ -472,7 +469,7 @@ noteBlock = try $ do
   let newnote = (ref, parsed)
   oldnotes <- stateNotes' <$> getState
   case lookup ref oldnotes of
-    Just _  -> P.warningWithPos pos $ "Duplicate note reference `" ++ ref ++ "'"
+    Just _  -> report $ DuplicateNoteReference ref pos
     Nothing -> return ()
   updateState $ \s -> s { stateNotes' = newnote : oldnotes }
   return mempty
@@ -512,8 +509,8 @@ block = do
                , para
                , plain
                ] <?> "block"
-  report DEBUG $ printf "line %d: %s" (sourceLine pos)
-                   (take 60 $ show $ B.toList $ runF res defaultParserState)
+  report $ ParsingTrace
+    (take 60 $ show $ B.toList $ runF res defaultParserState) pos
   return res
 
 --

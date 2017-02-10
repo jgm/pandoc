@@ -50,8 +50,9 @@ import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.XML
 import Text.Pandoc.Pretty
 import System.FilePath ( takeExtension, takeDirectory, (<.>))
-import Text.Pandoc.Class ( PandocMonad )
+import Text.Pandoc.Class ( PandocMonad, report )
 import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Logging
 
 data ODTState = ODTState { stEntries :: [Entry]
                          }
@@ -149,14 +150,13 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = do
   res <- runExceptT $ lift $ P.fetchItem (writerSourceURL opts) src
   case res of
      Left (_ :: PandocError) -> do
-       lift $ P.warning $ "Could not find image `" ++ src ++ "', skipping..."
+       report $ CouldNotFetchResource src ""
        return $ Emph lab
      Right (img, mbMimeType) -> do
        (ptX, ptY) <- case imageSize img of
                        Right s  -> return $ sizeInPoints s
                        Left msg -> do
-                         lift $ P.warning $ "Could not determine image size in `" ++
-                           src ++ "': " ++ msg
+                         report $ CouldNotDetermineImageSize src msg
                          return (100, 100)
        let dims =
              case (getDim Width, getDim Height) of

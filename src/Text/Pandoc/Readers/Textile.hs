@@ -56,8 +56,8 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Options
-import Text.Pandoc.Logging (Verbosity(..))
 import Text.Pandoc.Parsing
+import Text.Pandoc.Logging
 import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isInlineTag )
 import Text.Pandoc.Shared (trim)
 import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
@@ -67,7 +67,6 @@ import Data.List ( intercalate, transpose, intersperse )
 import Data.Char ( digitToInt, isUpper )
 import Control.Monad ( guard, liftM )
 import Data.Monoid ((<>))
-import Text.Printf
 import Text.Pandoc.Class (PandocMonad, report)
 import Control.Monad.Except (throwError)
 
@@ -141,8 +140,7 @@ block :: PandocMonad m => ParserT [Char] ParserState m Blocks
 block = do
   res <- choice blockParsers <?> "block"
   pos <- getPosition
-  report DEBUG $ printf "line %d: %s" (sourceLine pos)
-                          (take 60 $ show $ B.toList res)
+  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
   return res
 
 commentBlock :: PandocMonad m => ParserT [Char] ParserState m Blocks
