@@ -938,12 +938,20 @@ inlineEnvironment = try $ do
 rawEnv :: PandocMonad m => String -> LP m Blocks
 rawEnv name = do
   exts <- getOption readerExtensions
+  let parseRaw = extensionEnabled Ext_raw_tex exts
   rawOptions <- mconcat <$> many rawopt
-  let addBegin x = "\\begin{" ++ name ++ "}" ++ rawOptions ++ x
-  if extensionEnabled Ext_raw_tex exts
-     then (rawBlock "latex" . addBegin) <$>
-            (withRaw (env name blocks) >>= applyMacros' . snd)
-     else env name blocks
+  let beginCommand = "\\begin{" ++ name ++ "}" ++ rawOptions
+  unless parseRaw $ do
+    pos1 <- getPosition
+    warningWithPos pos1 $ "Skipped " ++ beginCommand
+  (bs, raw) <- withRaw $ env name blocks
+  raw' <- applyMacros' raw
+  if parseRaw
+     then return $ rawBlock "latex" $ beginCommand ++ raw'
+     else do
+       pos2 <- getPosition
+       warningWithPos pos2 $ "Skipped \\end{" ++ name ++ "}"
+       return bs
 
 ----
 
