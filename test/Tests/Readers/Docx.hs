@@ -61,7 +61,7 @@ testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> 
 testForWarningsWithOptsIO opts name docxFile expected = do
   df <- B.readFile docxFile
   logs <-  runIOorExplode (readDocx opts df >> P.getLog)
-  let warns = [s | (WARNING, s) <- logs]
+  let warns = [m | DocxParserWarning m <- logs]
   return $ test id name (unlines warns, unlines expected)
 
 testForWarningsWithOpts :: ReaderOptions -> String -> FilePath -> [String] -> Test

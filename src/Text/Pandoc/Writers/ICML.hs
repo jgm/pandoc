@@ -30,7 +30,8 @@ import Control.Monad.State
 import Control.Monad.Except (runExceptT)
 import Network.URI (isURI)
 import qualified Data.Set as Set
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 import qualified Text.Pandoc.Class as P
 
 type Style = [String]
@@ -538,14 +539,13 @@ imageICML opts style attr (src, _) = do
   res  <- runExceptT $ lift $ P.fetchItem (writerSourceURL opts) src
   imgS <- case res of
             Left (_ :: PandocError) -> do
-              lift $ P.warning $ "Could not find image `" ++ src ++ "', skipping..."
+              report $ CouldNotFetchResource src ""
               return def
             Right (img, _) -> do
               case imageSize img of
                 Right size -> return size
                 Left msg   -> do
-                  lift $ P.warning $ "Could not determine image size in `" ++
-                    src ++ "': " ++ msg
+                  report $ CouldNotDetermineImageSize src msg
                   return def
   let (ow, oh) = sizeInPoints imgS
       (imgWidth, imgHeight) = desiredSizeInPoints opts attr imgS

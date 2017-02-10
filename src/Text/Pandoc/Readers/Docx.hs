@@ -100,6 +100,7 @@ import Text.Pandoc.Error
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Logging
 
 readDocx :: PandocMonad m
          => ReaderOptions
@@ -108,12 +109,13 @@ readDocx :: PandocMonad m
 readDocx opts bytes
   | Right archive <- toArchiveOrFail bytes
   , Right (docx, parserWarnings) <- archiveToDocxWithWarnings archive = do
-      mapM_ P.warning parserWarnings
+      mapM_ (P.report . DocxParserWarning) parserWarnings
       (meta, blks) <- docxToOutput opts docx
       return $ Pandoc meta blks
 readDocx _ _ =
   throwError $ PandocSomeError "couldn't parse docx file"
 
+-- TODO remove this for 2.0:
 readDocxWithWarnings :: PandocMonad m
          => ReaderOptions
          -> B.ByteString
@@ -333,8 +335,9 @@ blocksToInlinesWarn cmtId blks = do
       notParaOrPlain (Para _) = False
       notParaOrPlain (Plain _) = False
       notParaOrPlain _ = True
-  when (not $ null $ filter notParaOrPlain blkList)
-    ((lift . lift) $ P.warning $ "Docx comment " ++ cmtId ++ " will not retain formatting")
+  when (not $ null $ filter notParaOrPlain blkList) $
+    lift $ P.report $ DocxParserWarning $
+      "Docx comment " ++ cmtId ++ " will not retain formatting"
   return $ fromList $ blocksToInlines blkList
 
 parPartToInlines :: PandocMonad m => ParPart -> DocxContext m Inlines

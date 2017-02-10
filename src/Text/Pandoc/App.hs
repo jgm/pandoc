@@ -348,8 +348,7 @@ convertWithOpts opts = do
                              x <- f
                              rs <- getLog
                              return (x, rs)
-        let isWarning (WARNING, _) = True
-            isWarning _            = False
+        let isWarning msg = messageVerbosity msg == WARNING
         when (optFailIfWarnings opts && any isWarning reports) $
             err 3 "Failing because there were warnings."
         return res

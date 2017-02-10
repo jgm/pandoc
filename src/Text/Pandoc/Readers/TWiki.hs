@@ -35,11 +35,10 @@ module Text.Pandoc.Readers.TWiki ( readTWiki
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Options
-import Text.Pandoc.Logging (Verbosity(..))
+import Text.Pandoc.Logging
 import Text.Pandoc.Parsing hiding (enclosed, macro, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Control.Monad
-import Text.Printf (printf)
 import Text.Pandoc.XML (fromEntities)
 import Data.Maybe (fromMaybe)
 import Text.HTML.TagSoup
@@ -133,8 +132,7 @@ block = do
          <|> blockElements
          <|> para
   skipMany blankline
-  report DEBUG $ printf "line %d: %s" (sourceLine pos)
-                   (take 60 $ show $ B.toList res)
+  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
   return res
 
 blockElements :: PandocMonad m => TWParser m B.Blocks

@@ -6,6 +6,7 @@ where
 
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
+import Text.Pandoc.Logging
 import Text.TeXMath (Exp, writePandoc, DisplayType(..), readTeX)
 
 -- | Converts a raw TeX math formula to a list of 'Pandoc' inlines.
@@ -20,7 +21,7 @@ texMathToInlines mt inp = do
   case res of
        Right (Just ils)  -> return ils
        Right (Nothing)   -> do
-         warning $ "Could not render TeX math as unicode, rendering as raw TeX:\n" ++ inp
+         report $ CouldNotConvertTeXMath inp ""
          return [mkFallback mt inp]
        Left il           -> return [il]
 
@@ -40,8 +41,7 @@ convertMath writer mt str = do
   case writer dt <$> readTeX str of
        Right r  -> return (Right r)
        Left e   -> do
-         warning $ "Could not convert TeX math, rendering as raw TeX:\n" ++
-                 str ++ "\n" ++ e
+         report $ CouldNotConvertTeXMath str e
          return (Left $ mkFallback mt str)
    where dt = case mt of
                    DisplayMath -> DisplayBlock

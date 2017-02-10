@@ -37,7 +37,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Walk
-import Text.Pandoc.Class (warning)
+import Text.Pandoc.Logging
 import Data.List ( isSuffixOf, intercalate )
 import Data.Char ( ord, chr, isDigit )
 import qualified Data.ByteString as B
@@ -46,7 +46,7 @@ import Text.Printf ( printf )
 import Text.Pandoc.ImageSize
 import Control.Monad.Except (throwError, runExceptT, lift)
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file,
@@ -65,8 +65,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = do
                        _            -> throwError $ PandocSomeError "Unknown file type"
          sizeSpec <- case imageSize imgdata of
                              Left msg -> do
-                               warning $ "Could not determine image size in `" ++
-                                 src ++ "': " ++ msg
+                               report $ CouldNotDetermineImageSize src msg
                                return ""
                              Right sz -> return $ "\\picw" ++ show xpx ++
                                         "\\pich" ++ show ypx ++
@@ -79,17 +78,17 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = do
                     concat bytes ++ "}"
          if B.null imgdata
             then do
-              warning $ "Image " ++ src ++ " contained no data, skipping."
+              report $ CouldNotFetchResource src "image contained no data"
               return x
             else return $ RawInline (Format "rtf") raw
          | otherwise -> do
-           warning $ "Image " ++ src ++ " is not a jpeg or png, skipping."
+           report $ CouldNotFetchResource src "image is not a jpeg or png"
            return x
        Right (_, Nothing) -> do
-         warning $ "Could not determine image type for " ++ src ++ ", skipping."
+         report $ CouldNotDetermineMimeType src
          return x
        Left ( e :: PandocError ) -> do
-         warning $ "Could not fetch image " ++ src ++ "\n" ++ show e
+         report $ CouldNotFetchResource src (show e)
          return x
 rtfEmbedImage _ x = return x
 

@@ -36,6 +36,7 @@ import Text.Pandoc.Builder (setMeta, fromList)
 import Text.Pandoc.Shared
 import Text.Pandoc.Parsing
 import Text.Pandoc.Options
+import Text.Pandoc.Logging
 import Text.Pandoc.Error
 import Control.Monad ( when, liftM, guard, mzero )
 import Data.List ( findIndex, intercalate, isInfixOf,
@@ -49,8 +50,7 @@ import Data.Sequence (viewr, ViewR(..))
 import Data.Char (toLower, isHexDigit, isSpace, toUpper)
 import Data.Monoid ((<>))
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, warning, readFileFromDirs,
-                          warningWithPos)
+import Text.Pandoc.Class (PandocMonad, report, readFileFromDirs)
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: PandocMonad m
@@ -421,8 +421,12 @@ include = try $ do
   when (f `elem` containers) $
     throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
   updateState $ \s -> s{ stateContainers = f : stateContainers s }
-  contents <- readFileFromDirs ["."] f
-  let contentLines = lines contents
+  mbContents <- readFileFromDirs ["."] f
+  contentLines <- case mbContents of
+                       Just s -> return $ lines s
+                       Nothing -> do
+                         report $ CouldNotLoadIncludeFile f oldPos
+                         return []
   let numLines = length contentLines
   let startLine' = case startLine of
                         Nothing            -> 1
@@ -688,7 +692,7 @@ directive' = do
             return $ B.divWith attrs children
         other     -> do
             pos <- getPosition
-            warningWithPos pos $ "ignoring unknown directive: " ++ other
+            report $ SkippedContent (".. " ++ other) pos
             return mempty
 
 -- TODO:
@@ -696,6 +700,7 @@ directive' = do
 --    change Text.Pandoc.Definition.Format to fix
 addNewRole :: PandocMonad m => String -> [(String, String)] -> RSTParser m Blocks
 addNewRole roleString fields = do
+    pos <- getPosition
     (role, parentRole) <- parseFromString inheritedRole roleString
     customRoles <- stateRstCustomRoles <$> getState
     let getBaseRole (r, f, a) roles =
@@ -716,22 +721,18 @@ addNewRole roleString fields = do
 
     -- warn about syntax we ignore
     flip mapM_ fields $ \(key, _) -> case key of
-        "language" -> when (baseRole /= "code") $ warning $
-            "ignoring :language: field because the parent of role :" ++
-            role ++ ": is :" ++ baseRole ++ ": not :code:"
-        "format" -> when (baseRole /= "raw") $ warning $
-            "ignoring :format: field because the parent of role :" ++
-            role ++ ": is :" ++ baseRole ++ ": not :raw:"
-        _ -> warning $ "ignoring unknown field :" ++ key ++
-             ": in definition of role :" ++ role ++ ": in"
+        "language" -> when (baseRole /= "code") $ report $
+            SkippedContent ":language: [because parent of role is not :code:]"
+               pos
+        "format" -> when (baseRole /= "raw") $ report $
+            SkippedContent ":format: [because parent of role is not :raw:]" pos
+        _ -> report $ SkippedContent (":" ++ key ++ ":") pos
     when (parentRole == "raw" && countKeys "format" > 1) $
-        warning $
-        "ignoring :format: fields after the first in the definition of role :"
-        ++ role ++": in"
+        report $ SkippedContent ":format: [after first in definition of role]"
+                  pos
     when (parentRole == "code" && countKeys "language" > 1) $
-        warning $
-        "ignoring :language: fields after the first in the definition of role :"
-        ++ role ++": in"
+        report $ SkippedContent
+          ":language: [after first in definition of role]" pos
 
     updateState $ \s -> s {
         stateRstCustomRoles =
@@ -1011,9 +1012,9 @@ simpleTable headless = do
   case B.toList tbl of
        [Table c a _w h l]  -> return $ B.singleton $
                                  Table c a (replicate (length a) 0) h l
-       _ -> do
-         warning "tableWith returned something unexpected"
-         return tbl -- TODO error?
+       _ ->
+         throwError $ PandocShouldNeverHappenError
+            "tableWith returned something unexpected"
  where
   sep = return () -- optional (simpleTableSep '-')
 
@@ -1132,7 +1133,7 @@ renderRole contents fmt role attr = case role of
                 renderRole contents newFmt newRole newAttr
             Nothing -> do
                 pos <- getPosition
-                warningWithPos pos $ "ignoring unknown role :" ++ custom ++ ": in"
+                report $ SkippedContent (":" ++ custom ++ ":") pos
                 return $ B.str contents -- Undefined role
  where
    titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour
@@ -1217,9 +1218,7 @@ explicitLink = try $ do
                             case M.lookup key keyTable of
                                  Nothing -> do
                                    pos <- getPosition
-                                   warningWithPos pos $
-                                     "Could not find reference for " ++
-                                       show key
+                                   report $ ReferenceNotFound (show key) pos
                                    return ("","",nullAttr)
                                  Just ((s,t),a) -> return (s,t,a)
                           _ -> return (src, "", nullAttr)
@@ -1242,9 +1241,7 @@ referenceLink = try $ do
   ((src,tit), attr) <- case M.lookup key keyTable of
                          Nothing  -> do
                            pos <- getPosition
-                           warningWithPos pos $
-                             "Could not find reference for " ++
-                               show key
+                           report $ ReferenceNotFound (show key) pos
                            return (("",""),nullAttr)
                          Just val -> return val
   -- if anonymous link, remove key so it won't be used again
@@ -1273,8 +1270,7 @@ subst = try $ do
   case M.lookup key substTable of
        Nothing     -> do
          pos <- getPosition
-         warningWithPos pos $
-           "Could not find reference for " ++ show key
+         report $ ReferenceNotFound (show key) pos
          return mempty
        Just target -> return target
 
@@ -1288,8 +1284,7 @@ note = try $ do
   case lookup ref notes of
     Nothing   -> do
       pos <- getPosition
-      warningWithPos pos $
-        "Could not find note for " ++ show ref
+      report $ ReferenceNotFound (show ref) pos
       return mempty
     Just raw  -> do
       -- We temporarily empty the note list while parsing the note,

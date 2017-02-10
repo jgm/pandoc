@@ -38,6 +38,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Shared
 import Text.Pandoc.Options
+import Text.Pandoc.Logging
 import Text.Pandoc.Parsing hiding ((<|>), many, optional, space,
                                    mathDisplay, mathInline)
 import Data.Char ( chr, ord, isLetter, isAlphaNum )
@@ -51,7 +52,7 @@ import qualified Data.Map as M
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, warningWithPos,
+import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, report,
           readFileFromDirs)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
@@ -235,7 +236,7 @@ inline = (mempty <$ comment)
      <|> (str . (:[]) <$> tildeEscape)
      <|> (do res <- oneOf "#&~^'`\"[]"
              pos <- getPosition
-             warningWithPos pos ("Parsing unescaped '" ++ [res] ++ "'")
+             report $ ParsingUnescaped [res] pos
              return $ str [res])
 
 inlines :: PandocMonad m => LP m Inlines
@@ -312,7 +313,7 @@ optargs = snd <$> withRaw (skipopts *> skipMany (try $ optional sp *> braced))
 ignore :: (Monoid a, PandocMonad m) => String -> ParserT s u m a
 ignore raw = do
   pos <- getPosition
-  warningWithPos pos $ "Skipped " ++ raw
+  report $ SkippedContent raw pos
   return mempty
 
 ignoreBlocks :: PandocMonad m => String -> (String, LP m Blocks)
@@ -943,14 +944,14 @@ rawEnv name = do
   let beginCommand = "\\begin{" ++ name ++ "}" ++ rawOptions
   unless parseRaw $ do
     pos1 <- getPosition
-    warningWithPos pos1 $ "Skipped " ++ beginCommand
+    report $ SkippedContent beginCommand pos1
   (bs, raw) <- withRaw $ env name blocks
   raw' <- applyMacros' raw
   if parseRaw
      then return $ rawBlock "latex" $ beginCommand ++ raw'
      else do
        pos2 <- getPosition
-       warningWithPos pos2 $ "Skipped \\end{" ++ name ++ "}"
+       report $ SkippedContent ("\\end{" ++ name ++ "}") pos2
        return bs
 
 ----
@@ -982,10 +983,16 @@ include = do
 
 inputListing :: PandocMonad m => LP m Blocks
 inputListing = do
+  pos <- getPosition
   options <- option [] keyvals
   f <- filter (/='"') <$> braced
   dirs <- (splitBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
-  codeLines <- lines <$> readFileFromDirs dirs f
+  mbCode <- readFileFromDirs dirs f
+  codeLines <- case mbCode of
+                      Just s -> return $ lines s
+                      Nothing -> do
+                        report $ CouldNotLoadIncludeFile f pos
+                        return []
   let (ident,classes,kvs) = parseListingsOptions options
   let language = case lookup "language" options >>= fromListingsLanguage of
                       Just l -> [l]

@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to EPUB.
 -}
 module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
+import Text.Pandoc.Logging
 import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Maybe ( fromMaybe, catMaybes )
@@ -65,7 +66,7 @@ import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.HTML.TagSoup (Tag(TagOpen), fromAttrib, parseTags)
 import Control.Monad.Except (throwError, catchError)
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 
 -- A Chapter includes a list of blocks and maybe a section
@@ -415,7 +416,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   let matchingGlob f = do
         xs <- lift $ P.glob f
         when (null xs) $
-          lift $ P.warning $ f ++ " did not match any font files."
+          report $ CouldNotFetchResource f "glob did not match any font files"
         return xs
   let mkFontEntry f = mkEntry (takeFileName f) `fmap` (lift $ P.readFileLazy f)
   fontFiles <- concat <$> mapM matchingGlob (writerEpubFonts opts')
@@ -883,8 +884,7 @@ modifyMediaRef opts oldsrc = do
                             (oldsrc, (new, Just entry)):media}
                return new)
            (\e -> do
-                P.warning $ "Could not find media `" ++ oldsrc ++
-                    "', skipping...\n" ++ show e
+                report $ CouldNotFetchResource oldsrc (show e)
                 return oldsrc)
 
 transformBlock  :: PandocMonad m
