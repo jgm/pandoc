@@ -392,6 +392,7 @@ Library
                    Text.Pandoc.XML,
                    Text.Pandoc.SelfContained,
                    Text.Pandoc.Highlighting,
+                   Text.Pandoc.Logging,
                    Text.Pandoc.Process,
                    Text.Pandoc.MIME,
                    Text.Pandoc.Class
