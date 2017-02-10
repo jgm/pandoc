@@ -82,7 +82,8 @@ import System.FilePath (takeExtension)
 import Data.Aeson (Value)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 
 data WriterState = WriterState
     { stNotes            :: [Html]  -- ^ List of notes
@@ -591,7 +592,9 @@ blockToHtml opts (RawBlock f str)
   | (f == Format "latex" || f == Format "tex") &&
      allowsMathEnvironments (writerHTMLMathMethod opts) &&
      isMathEnvironment str = blockToHtml opts $ Plain [Math DisplayMath str]
-  | otherwise          = return mempty
+  | otherwise          = do
+      report $ BlockNotRendered (RawBlock f str)
+      return mempty
 blockToHtml _ (HorizontalRule) = do
   html5 <- gets stHtml5
   return $ if html5 then H5.hr else H.hr
@@ -925,7 +928,9 @@ inlineToHtml opts inline = do
                          DisplayMath -> brtag >> m >> brtag
     (RawInline f str)
       | f == Format "html" -> return $ preEscapedString str
-      | otherwise          -> return mempty
+      | otherwise          -> do
+          report $ InlineNotRendered inline
+          return mempty
     (Link attr txt (s,_)) | "mailto:" `isPrefixOf` s -> do
                         linkText <- inlineListToHtml opts txt
                         lift $ obfuscateLink opts attr linkText s
