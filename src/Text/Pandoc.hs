@@ -58,6 +58,8 @@ module Text.Pandoc
                , module Text.Pandoc.Generic
                -- * Options
                , module Text.Pandoc.Options
+               -- * Logging
+               , module Text.Pandoc.Logging
                -- * Typeclass
                , PandocMonad
                , runIO
@@ -189,6 +191,7 @@ import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Writers.TEI
 import Text.Pandoc.Templates
 import Text.Pandoc.Options
+import Text.Pandoc.Logging
 import Text.Pandoc.Shared (safeRead, mapLeft, pandocVersion)
 import Text.Pandoc.Error
 import Text.Pandoc.Class

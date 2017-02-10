@@ -41,6 +41,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import Data.Monoid ((<>))
 import Text.Pandoc.Options
+import Text.Pandoc.Logging (Verbosity(..))
 import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isCommentTag )
 import Text.Pandoc.XML ( fromEntities )
 import Text.Pandoc.Parsing hiding ( nested )

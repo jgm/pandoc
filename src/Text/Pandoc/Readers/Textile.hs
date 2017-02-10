@@ -56,6 +56,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Options
+import Text.Pandoc.Logging (Verbosity(..))
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isInlineTag )
 import Text.Pandoc.Shared (trim)

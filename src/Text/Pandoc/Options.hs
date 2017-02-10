@@ -37,7 +37,6 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , HTMLSlideVariant (..)
                            , EPUBVersion (..)
                            , WrapOption (..)
-                           , Verbosity (..)
                            , TopLevelDivision (..)
                            , WriterOptions (..)
                            , TrackChanges (..)
@@ -137,10 +136,6 @@ data ReferenceLocation = EndOfBlock    -- ^ End of block
                        | EndOfSection  -- ^ prior to next section header (or end of document)
                        | EndOfDocument -- ^ at end of document
                        deriving (Show, Read, Eq, Data, Typeable, Generic)
-
--- | Verbosity level.
-data Verbosity = ERROR | WARNING | INFO | DEBUG
-     deriving (Show, Read, Eq, Data, Enum, Ord, Bounded, Typeable, Generic)
 
 -- | Options for writers
 data WriterOptions = WriterOptions

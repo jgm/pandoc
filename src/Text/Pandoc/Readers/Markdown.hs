@@ -51,6 +51,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Vector as V
 import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
 import Text.Pandoc.Options
+import Text.Pandoc.Logging (Verbosity(..))
 import Text.Pandoc.Shared
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.XML (fromEntities)

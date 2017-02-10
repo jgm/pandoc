@@ -29,7 +29,9 @@ This module provides a standard way to deal with possible errors encounted
 during parsing.
 
 -}
-module Text.Pandoc.Error (PandocError(..), handleError) where
+module Text.Pandoc.Error (
+  PandocError(..),
+  handleError) where
 
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
@@ -46,13 +48,6 @@ data PandocError = PandocFileReadError FilePath
                  | PandocParseError String
                  | PandocParsecError Input ParseError
                  deriving (Show, Typeable, Generic)
-
-
--- data PandocError = -- | Generic parse failure
---                    ParseFailure String
---                  -- | Error thrown by a Parsec parser
---                  | ParsecError Input ParseError
---                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
 

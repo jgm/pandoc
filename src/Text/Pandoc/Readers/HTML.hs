@@ -46,8 +46,9 @@ import Text.Pandoc.Builder (Blocks, Inlines, trimInlines, HasMeta(..))
 import Text.Pandoc.Shared ( extractSpaces, renderTags', addMetaField
                           , escapeURI, safeRead )
 import Text.Pandoc.Options (ReaderOptions(readerExtensions), extensionEnabled,
-                               Verbosity(..), Extension (Ext_epub_html_exts,
+                               Extension (Ext_epub_html_exts,
                                Ext_raw_html, Ext_native_divs, Ext_native_spans))
+import Text.Pandoc.Logging (Verbosity(..))
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Walk
 import qualified Data.Map as M

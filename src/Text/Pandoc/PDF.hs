@@ -52,8 +52,8 @@ import Text.Pandoc.MediaBag
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Shared (warn, withTempDir, inDirectory, stringify)
 import Text.Pandoc.Writers.Shared (getField, metaToJSON)
-import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..),
-          Verbosity(..))
+import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..))
+import Text.Pandoc.Logging (Verbosity(..))
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Process (pipeProcess)
 import Control.Monad.Trans (MonadIO(..))

@@ -35,6 +35,7 @@ module Text.Pandoc.Readers.TWiki ( readTWiki
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Options
+import Text.Pandoc.Logging (Verbosity(..))
 import Text.Pandoc.Parsing hiding (enclosed, macro, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Control.Monad
