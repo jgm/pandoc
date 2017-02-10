@@ -296,28 +296,32 @@ inBrackets x = str "[" <> x <> str "]"
 
 -- eat an optional argument and one or more arguments in braces
 ignoreInlines :: PandocMonad m => String -> (String, LP m Inlines)
-ignoreInlines name = (name, doraw <|> (optargs >> ignore name))
-  where optargs = skipopts *> skipMany (try $ optional sp *> braced)
-        contseq = '\\':name
-        doraw = (rawInline "latex" . (contseq ++) . snd) <$>
-                 (do exts <- getOption readerExtensions
-                     guard $ extensionEnabled Ext_raw_tex exts
-                     withRaw optargs)
+ignoreInlines name = (name, p)
+  where
+    p = do oa <- optargs
+           let rawCommand = '\\':name ++ oa
+           let doraw = guardRaw >> return (rawInline "latex" rawCommand)
+           doraw <|> ignore rawCommand
 
-ignore :: (Monoid a, PandocMonad m) => String -> LP m a
-ignore name = do
+guardRaw :: PandocMonad m => LP m ()
+guardRaw = getOption readerExtensions >>= guard . extensionEnabled Ext_raw_tex
+
+optargs :: PandocMonad m => LP m String
+optargs = snd <$> withRaw (skipopts *> skipMany (try $ optional sp *> braced))
+
+ignore :: (Monoid a, PandocMonad m) => String -> ParserT s u m a
+ignore raw = do
   pos <- getPosition
-  warningWithPos pos $ "Skipped \\" ++ name ++ " and its arguments"
+  warningWithPos pos $ "Skipped " ++ raw
   return mempty
 
 ignoreBlocks :: PandocMonad m => String -> (String, LP m Blocks)
-ignoreBlocks name = (name, doraw <|> (optargs >> ignore name))
-  where optargs = skipopts *> skipMany (try $ optional sp *> braced)
-        contseq = '\\':name
-        doraw = (rawBlock "latex" . (contseq ++) . snd) <$>
-                 (do exts <- getOption readerExtensions
-                     guard $ extensionEnabled Ext_raw_tex exts
-                     withRaw optargs)
+ignoreBlocks name = (name, p)
+  where
+    p = do oa <- optargs
+           let rawCommand = '\\':name ++ oa
+           let doraw = guardRaw >> return (rawBlock "latex" rawCommand)
+           doraw <|> ignore rawCommand
 
 blockCommands :: PandocMonad m => M.Map String (LP m Blocks)
 blockCommands = M.fromList $
@@ -444,7 +448,7 @@ inlineCommand = try $ do
            then parseFromString inlines transformed
            else if extensionEnabled Ext_raw_tex exts
                    then return $ rawInline "latex" rawcommand
-                   else ignore name
+                   else ignore rawcommand
   (lookupListDefault mzero [name',name] inlineCommands <*
       optional (try (string "{}")))
     <|> raw
