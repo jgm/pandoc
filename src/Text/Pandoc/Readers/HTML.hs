@@ -68,9 +68,8 @@ import Data.Monoid ((<>))
 import Text.Parsec.Error
 import qualified Data.Set as Set
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad, report, warningWithPos)
 import Control.Monad.Except (throwError)
-
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: PandocMonad m
@@ -370,7 +369,16 @@ pRawHtmlBlock = do
   exts <- getOption readerExtensions
   if extensionEnabled Ext_raw_html exts && not (null raw)
      then return $ B.rawBlock "html" raw
-     else return mempty
+     else ignore raw
+
+ignore :: (Monoid a, PandocMonad m) => String -> TagParser m a
+ignore raw = do
+  pos <- getPosition
+  -- raw can be null for tags like <!DOCTYPE>; see paRawTag
+  -- in this case we don't want a warning:
+  unless (null raw) $
+    warningWithPos pos $ "Skipped " ++ raw
+  return mempty
 
 pHtmlBlock :: PandocMonad m => String -> TagParser m String
 pHtmlBlock t = try $ do
@@ -691,9 +699,10 @@ pRawHtmlInline = do
                    then pSatisfy (not . isBlockTag)
                    else pSatisfy isInlineTag
   exts <- getOption readerExtensions
+  let raw = renderTags' [result]
   if extensionEnabled Ext_raw_html exts
-     then return $ B.rawInline "html" $ renderTags' [result]
-     else return mempty
+     then return $ B.rawInline "html" raw
+     else ignore raw
 
 mathMLToTeXMath :: String -> Either String String
 mathMLToTeXMath s = writeTeX <$> readMathML s
