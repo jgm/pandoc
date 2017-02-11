@@ -37,4 +37,3 @@ import Text.Pandoc.App (convertWithOpts, defaultOpts, options, parseOptions)
 
 main :: IO ()
 main = parseOptions options defaultOpts >>= convertWithOpts
-

@@ -69,6 +69,7 @@ import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, getLog, withMediaBag)
 import Text.Pandoc.Highlighting (highlightingStyles)
+import Text.Pandoc.Lua ( runLuaFilter )
 import Text.Pandoc.MediaBag (MediaBag, extractMediaBag, mediaDirectory)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
@@ -389,6 +390,7 @@ convertWithOpts opts = do
     doc' <- (maybe return (extractMedia media) (optExtractMedia opts) >=>
               return . flip (foldr addMetadata) (optMetadata opts) >=>
               applyTransforms transforms >=>
+              applyLuaFilters datadir (optLuaFilters opts) [format] >=>
               applyFilters datadir filters' [format]) doc
 
     case writer of
@@ -514,6 +516,7 @@ data Opt = Opt
     , optWrapText              :: WrapOption  -- ^ Options for wrapping text
     , optColumns               :: Int     -- ^ Line length in characters
     , optFilters               :: [FilePath] -- ^ Filters to apply
+    , optLuaFilters            :: [FilePath] -- ^ Lua filters to apply
     , optEmailObfuscation      :: ObfuscationMethod
     , optIdentifierPrefix      :: String
     , optIndentedCodeClasses   :: [String] -- ^ Default classes for indented code blocks
@@ -580,6 +583,7 @@ defaultOpts = Opt
     , optWrapText              = WrapAuto
     , optColumns               = 72
     , optFilters               = []
+    , optLuaFilters            = []
     , optEmailObfuscation      = NoObfuscation
     , optIdentifierPrefix      = ""
     , optIndentedCodeClasses   = []
@@ -725,6 +729,12 @@ expandFilterPath mbDatadir fp = liftIO $ do
                     else return fp
                _ -> return fp
 
+applyLuaFilters :: MonadIO m
+                => Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> m Pandoc
+applyLuaFilters mbDatadir filters args d = do
+  expandedFilters <- mapM (expandFilterPath mbDatadir) filters
+  foldrM ($) d $ map (flip runLuaFilter args) expandedFilters
+
 applyFilters :: MonadIO m
              => Maybe FilePath -> [FilePath] -> [String] -> Pandoc -> m Pandoc
 applyFilters mbDatadir filters args d = do
@@ -813,6 +823,12 @@ options =
                   (\arg opt -> return opt { optFilters = arg : optFilters opt })
                   "PROGRAM")
                  "" -- "External JSON filter"
+
+    , Option "" ["lua-filter"]
+                 (ReqArg
+                  (\arg opt -> return opt { optLuaFilters = arg : optLuaFilters opt })
+                  "SCRIPTPATH")
+                 "" -- "Lua filter"
 
     , Option "p" ["preserve-tabs"]
                  (NoArg
