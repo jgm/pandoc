@@ -356,6 +356,12 @@ General options
 
 :   Exit with error status if there are any warnings.
 
+`--log=`*FILE*
+
+:   Write log messages in machine-readable JSON format to
+    *FILE*.  All messages above DEBUG level will be written,
+    regardless of verbosity settings (`--verbose`, `--quiet`).
+
 `--list-input-formats`
 
 :   List supported input formats, one per line.
