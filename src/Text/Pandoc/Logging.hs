@@ -32,6 +32,7 @@ and info messages.
 module Text.Pandoc.Logging (
     Verbosity(..)
   , LogMessage(..)
+  , logMessagesToJSON
   , showLogMessage
   , messageVerbosity
   ) where
@@ -43,6 +44,9 @@ import GHC.Generics (Generic)
 import qualified Data.Text as Text
 import Data.Aeson
 import Text.Pandoc.Definition
+import Data.Aeson.Encode.Pretty (encodePretty', keyOrder,
+                                 defConfig, Config(..))
+import qualified Data.ByteString.Lazy as BL
 
 -- | Verbosity level.
 data Verbosity = ERROR | WARNING | INFO | DEBUG
@@ -151,6 +155,12 @@ showPos pos = sn ++ "line " ++
   where sn = if sourceName pos == "source" || sourceName pos == ""
                 then ""
                 else sourceName pos ++ " "
+
+logMessagesToJSON :: [LogMessage] -> BL.ByteString
+logMessagesToJSON ms =
+  encodePretty' defConfig{ confCompare =
+      keyOrder [ "type", "verbosity", "contents", "message", "path",
+                 "source", "line", "column" ] } ms
 
 showLogMessage :: LogMessage -> String
 showLogMessage msg =
