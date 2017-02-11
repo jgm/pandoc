@@ -146,8 +146,8 @@ report msg = do
   let level = messageVerbosity msg
   when (level <= verbosity) $ do
     logOutput msg
-    unless (level == DEBUG) $
-      modifyCommonState $ \st -> st{ stLog = msg : stLog st }
+  unless (level == DEBUG) $
+    modifyCommonState $ \st -> st{ stLog = msg : stLog st }
 
 setMediaBag :: PandocMonad m => MediaBag -> m ()
 setMediaBag mb = modifyCommonState $ \st -> st{stMediaBag = mb}
