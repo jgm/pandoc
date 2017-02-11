@@ -71,6 +71,7 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString as BS
 import qualified Data.Map as M
 import Data.Aeson (eitherDecode', encode)
+import Data.Aeson.Encode.Pretty (encodePretty)
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import qualified Data.Text as T
@@ -348,6 +349,9 @@ convertWithOpts opts = do
                              x <- f
                              rs <- getLog
                              return (x, rs)
+        case optLogFile opts of
+             Nothing -> return ()
+             Just logfile -> B.writeFile logfile (encodePretty reports)
         let isWarning msg = messageVerbosity msg == WARNING
         when (optFailIfWarnings opts && any isWarning reports) $
             err 3 "Failing because there were warnings."
@@ -487,6 +491,7 @@ data Opt = Opt
     , optDumpArgs          :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
     , optVerbosity         :: Verbosity  -- ^ Verbosity of diagnostic output
+    , optLogFile           :: Maybe FilePath -- ^ File to write JSON log output
     , optFailIfWarnings    :: Bool    -- ^ Fail on warnings
     , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
     , optReferenceLocation :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
@@ -552,6 +557,7 @@ defaultOpts = Opt
     , optDumpArgs              = False
     , optIgnoreArgs            = False
     , optVerbosity             = WARNING
+    , optLogFile               = Nothing
     , optFailIfWarnings        = False
     , optReferenceLinks        = False
     , optReferenceLocation     = EndOfDocument
@@ -1288,6 +1294,12 @@ options =
                  (NoArg
                   (\opt -> return opt { optFailIfWarnings = True }))
                  "" -- "Exit with error status if there were  warnings."
+
+    , Option "" ["log"]
+                 (ReqArg
+                  (\arg opt -> return opt{ optLogFile = Just arg })
+                "FILE")
+                "" -- "Log messages in JSON format to this file."
 
     , Option "" ["bash-completion"]
                  (NoArg
