@@ -53,9 +53,8 @@ import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad, report, readFileFromDirs)
 
 -- TODO:
--- [ ] .. line-block
 -- [ ] .. parsed-literal
--- [ ] .. table
+-- [ ] :widths: attribute in .. table
 -- [ ] .. csv-table
 -- [ ] .. list-table
 
@@ -240,6 +239,11 @@ lineBlock = try $ do
   lines' <- lineBlockLines
   lines'' <- mapM parseInlineFromString lines'
   return $ B.lineBlock lines''
+
+lineBlockDirective :: PandocMonad m => String -> RSTParser m Blocks
+lineBlockDirective body = do
+  lines' <- mapM parseInlineFromString $ lines $ stripTrailingNewlines body
+  return $ B.lineBlock lines'
 
 --
 -- paragraph block
@@ -627,6 +631,7 @@ directive' = do
                        Nothing -> []
   case label of
         "table" -> tableDirective top fields body'
+        "line-block" -> lineBlockDirective body'
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
         "container" -> parseFromString parseBlocks body'
