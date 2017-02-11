@@ -548,8 +548,7 @@ listItem :: PandocMonad m
 listItem start = try $ do
   (markerLength, first) <- rawListItem start
   rest <- many (listContinuation markerLength)
-  blanks <- choice [ try (many blankline <* lookAhead start),
-                     many1 blankline ]  -- whole list must end with blank.
+  skipMany1 blankline <|> () <$ lookAhead start
   -- parsing with ListItemState forces markers at beginning of lines to
   -- count as list item markers, even if not separated by blank space.
   -- see definition of "endline"
@@ -557,7 +556,7 @@ listItem start = try $ do
   let oldContext = stateParserContext state
   setState $ state {stateParserContext = ListItemState}
   -- parse the extracted block, which may itself contain block elements
-  parsed <- parseFromString parseBlocks $ concat (first:rest) ++ blanks
+  parsed <- parseFromString parseBlocks $ concat (first:rest) ++ "\n"
   updateState (\st -> st {stateParserContext = oldContext})
   return $ case B.toList parsed of
                 [Para xs] -> B.singleton $ Plain xs
