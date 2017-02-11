@@ -76,7 +76,6 @@ import qualified Data.Yaml as Yaml
 import qualified Data.Text as T
 import System.Console.GetOpt
 import Text.Pandoc.Class (withMediaBag, PandocIO, getLog)
-import Text.Pandoc.Logging (logMessagesToJSON)
 import Paths_pandoc (getDataDir)
 #ifndef _WINDOWS
 import System.Posix.Terminal (queryTerminal)
@@ -351,7 +350,7 @@ convertWithOpts opts = do
                              return (x, rs)
         case optLogFile opts of
              Nothing -> return ()
-             Just logfile -> B.writeFile logfile (logMessagesToJSON reports)
+             Just logfile -> B.writeFile logfile (encodeLogMessages reports)
         let isWarning msg = messageVerbosity msg == WARNING
         when (optFailIfWarnings opts && any isWarning reports) $
             err 3 "Failing because there were warnings."

@@ -32,7 +32,7 @@ and info messages.
 module Text.Pandoc.Logging (
     Verbosity(..)
   , LogMessage(..)
-  , logMessagesToJSON
+  , encodeLogMessages
   , showLogMessage
   , messageVerbosity
   ) where
@@ -156,8 +156,8 @@ showPos pos = sn ++ "line " ++
                 then ""
                 else sourceName pos ++ " "
 
-logMessagesToJSON :: [LogMessage] -> BL.ByteString
-logMessagesToJSON ms =
+encodeLogMessages :: [LogMessage] -> BL.ByteString
+encodeLogMessages ms =
   encodePretty' defConfig{ confCompare =
       keyOrder [ "type", "verbosity", "contents", "message", "path",
                  "source", "line", "column" ] } ms
