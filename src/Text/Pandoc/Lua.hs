@@ -15,8 +15,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua
@@ -30,13 +32,15 @@ Pandoc lua utils.
 -}
 module Text.Pandoc.Lua ( runLuaFilter ) where
 
+import Control.Monad ( (>=>) )
 import Control.Monad.Trans ( MonadIO(..) )
-import Data.Aeson ( ToJSON(..), fromJSON, Value, Result(..) )
+import Data.Aeson ( FromJSON(..), ToJSON(..), Result(..), Value, fromJSON )
 import Data.Text ( pack, unpack )
 import Data.Text.Encoding ( decodeUtf8 )
 import Scripting.Lua ( StackValue(..) )
 import Scripting.Lua.Aeson ()
-import Text.Pandoc.Definition ( Pandoc )
+import Text.Pandoc.Definition ( Block(..), Inline(..), Pandoc(..) )
+import Text.Pandoc.Walk
 
 import qualified Scripting.Lua as Lua
 import qualified Scripting.Lua as LuaAeson
@@ -53,18 +57,47 @@ runLuaFilter filterPath args pd = liftIO $ do
       error luaErrMsg
     else do
       Lua.call lua 0 0
-      doc <- Lua.callfunc lua "run_filter" pd (map pack args)
+      Lua.push lua (map pack args)
+      Lua.setglobal lua "PandocParameters"
+      doc <- luaFilter (undefined::Pandoc) lua "filter_doc"   >=>
+             luaFilter (undefined::Block)  lua "filter_block" >=>
+             luaFilter (undefined::Inline) lua "filter_inline" $
+             pd
       Lua.close lua
       return doc
+
+luaFilter :: forall a. (StackValue a, Walkable a Pandoc)
+          => a -> Lua.LuaState -> String -> Pandoc -> IO Pandoc
+luaFilter _ lua luaFn x = do
+  fnExists <- isLuaFunction lua luaFn
+  if fnExists
+    then walkM (Lua.callfunc lua luaFn :: a -> IO a) x
+    else return x
+
+isLuaFunction :: Lua.LuaState -> String -> IO Bool
+isLuaFunction lua fnName = do
+  Lua.getglobal lua fnName
+  ltype <- Lua.ltype lua (-1)
+  Lua.pop lua (-1)
+  return $ ltype == Lua.TFUNCTION
+
+maybeFromJson :: (FromJSON a) => Maybe Value -> Maybe a
+maybeFromJson mv = fromJSON <$> mv >>= \case
+  Success x -> Just x
+  _         -> Nothing
 
 instance StackValue Pandoc where
   push lua = Lua.push lua . toJSON
   peek lua i = maybeFromJson <$> peek lua i
   valuetype _ = Lua.TTABLE
 
-maybeFromJson :: Maybe Value -> Maybe Pandoc
-maybeFromJson = \case
-  Nothing -> Nothing
-  Just v  -> case fromJSON v of
-    Success pd -> Just pd
-    _          -> Nothing
+instance StackValue Block where
+  push lua = Lua.push lua . toJSON
+  peek lua i = maybeFromJson <$> peek lua i
+  valuetype _ = Lua.TTABLE
+
+instance StackValue Inline where
+  push lua = Lua.push lua . toJSON
+  peek lua i = maybeFromJson <$> peek lua i
+  valuetype _ = Lua.TTABLE
+
