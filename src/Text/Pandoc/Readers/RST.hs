@@ -52,6 +52,13 @@ import Data.Monoid ((<>))
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad, report, readFileFromDirs)
 
+-- TODO:
+-- [ ] .. line-block
+-- [ ] .. parsed-literal
+-- [ ] .. table
+-- [ ] .. csv-table
+-- [ ] .. list-table
+
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: PandocMonad m
         => ReaderOptions -- ^ Reader options
@@ -597,10 +604,6 @@ directive = try $ do
   string ".."
   directive'
 
--- TODO: line-block, parsed-literal, table, csv-table, list-table
--- date
--- include
--- title
 directive' :: PandocMonad m => RSTParser m Blocks
 directive' = do
   skipMany1 spaceChar
@@ -623,6 +626,7 @@ directive' = do
                        Just v  -> [(k, filter (not . isSpace) v)]
                        Nothing -> []
   case label of
+        "table" -> tableDirective top fields body'
         "raw" -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
         "role" -> addNewRole top $ map (\(k,v) -> (k, trim v)) fields
         "container" -> parseFromString parseBlocks body'
@@ -693,6 +697,19 @@ directive' = do
             pos <- getPosition
             report $ SkippedContent (".. " ++ other) pos
             return mempty
+
+tableDirective :: PandocMonad m
+               => String -> [(String, String)] -> String -> RSTParser m Blocks
+tableDirective top _fields body = do
+  bs <- parseFromString parseBlocks body
+  case B.toList bs of
+       [Table _ aligns' widths' header' rows'] -> do
+         title <- parseFromString (trimInlines . mconcat <$> many inline) top
+         -- TODO widths
+         -- align is not applicable since we can't represent whole table align
+         return $ B.singleton $ Table (B.toList title)
+                                  aligns' widths' header' rows'
+       bs -> return mempty
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,
