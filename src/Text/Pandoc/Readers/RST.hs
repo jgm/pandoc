@@ -709,7 +709,7 @@ tableDirective top _fields body = do
          -- align is not applicable since we can't represent whole table align
          return $ B.singleton $ Table (B.toList title)
                                   aligns' widths' header' rows'
-       bs -> return mempty
+       _ -> return mempty
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,

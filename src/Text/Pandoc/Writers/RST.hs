@@ -266,9 +266,6 @@ blockToRST (BlockQuote blocks) = do
   return $ (nest tabstop contents) <> blankline
 blockToRST (Table caption _ widths headers rows) =  do
   caption' <- inlineListToRST caption
-  let caption'' = if null caption
-                     then empty
-                     else blankline <> text "Table: " <> caption'
   headers' <- mapM blockListToRST headers
   rawRows <- mapM (mapM blockListToRST) rows
   -- let isSimpleCell [Plain _] = True
@@ -299,7 +296,11 @@ blockToRST (Table caption _ widths headers rows) =  do
   let head'' = if all null headers
                   then empty
                   else head' $$ border '='
-  return $ border '-' $$ head'' $$ body $$ border '-' $$ caption'' $$ blankline
+  let tbl = border '-' $$ head'' $$ body $$ border '-'
+  return $ if null caption
+              then tbl $$ blankline
+              else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl $$
+                   blankline
 blockToRST (BulletList items) = do
   contents <- mapM bulletListItemToRST items
   -- ensure that sublists have preceding blank line
