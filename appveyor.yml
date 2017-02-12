@@ -2,7 +2,7 @@ clone_folder: "c:\\stack"
 environment:
   global:
     STACK_ROOT: "c:\\sr"
-    STACK_YAML: "c:\\stack\\windows\\stack.yaml"
+    STACK_YAML: "c:\\stack\\stack.pkg.yaml"
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
 
 cache:
