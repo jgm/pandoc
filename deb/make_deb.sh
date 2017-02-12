@@ -22,8 +22,8 @@ mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
 mkdir -p $DEST/share/doc/pandoc
 
-stack install --install-ghc --stack-yaml deb/stack.yaml --local-bin-path . hsb2hs
-stack install --install-ghc --stack-yaml deb/stack.yaml --local-bin-path . pandoc pandoc-citeproc
+stack install --install-ghc --stack-yaml stack.pkg.yaml --local-bin-path . hsb2hs
+stack install --install-ghc --stack-yaml stack.pkg.yaml --local-bin-path . pandoc pandoc-citeproc
 
 make man/pandoc.1
 # get pandoc-citeproc man page:
