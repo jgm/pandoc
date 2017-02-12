@@ -28,7 +28,7 @@ which cpphs  || stack install cpphs
 
 echo Building pandoc...
 stack clean
-stack install --stack-yaml=$MACOS/stack.yaml --local-bin-path . pandoc pandoc-citeproc
+stack install --stack-yaml=stack.pkg.yaml --local-bin-path . pandoc pandoc-citeproc
 
 echo Getting man pages...
 make man/pandoc.1
