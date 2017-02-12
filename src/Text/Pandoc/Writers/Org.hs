@@ -374,7 +374,7 @@ orgPath :: String -> String
 orgPath src =
   case src of
     []                 -> mempty         -- wiki link
-    ('#':xs)           -> xs             -- internal link
+    ('#':_)            -> src            -- internal link
     _ | isUrl src      -> src
     _ | isFilePath src -> src
     _                  -> "file:" <> src
