@@ -15,28 +15,28 @@ DEST=$DIST/usr
 ME=$(whoami)
 COPYRIGHT=$DEST/share/doc/pandoc/copyright
 
-# We need this for hsb2hs:
 PATH=$LOCAL/bin:$PATH
 
+mkdir -p $LOCAL/bin
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
 mkdir -p $DEST/share/doc/pandoc
 
-stack install --install-ghc --stack-yaml stack.pkg.yaml --local-bin-path . hsb2hs
-stack install --install-ghc --stack-yaml stack.pkg.yaml --local-bin-path . pandoc pandoc-citeproc
+stack install --install-ghc --stack-yaml stack.pkg.yaml --local-bin-path $LOCAL/bin hsb2hs
+stack install --install-ghc --stack-yaml stack.pkg.yaml --local-bin-path $LOCAL/bin pandoc pandoc-citeproc
 
 make man/pandoc.1
 # get pandoc-citeproc man page:
 PANDOC_CITEPROC_VERSION=`pandoc-citeproc --version | awk '{print $2;}'`
 curl https://raw.githubusercontent.com/jgm/pandoc-citeproc/${PANDOC_CITEPROC_VERSION}/man/man1/pandoc-citeproc.1 > $DEST/share/man/man1/pandoc-citeproc.1
 
-strip deb/pandoc
-strip deb/pandoc-citeproc
 
 mkdir -p $DEST/share/doc/pandoc-citeproc
 find $DIST -type d | xargs chmod 755
-cp deb/pandoc $DEST/bin/
-cp deb/pandoc-citeproc $DEST/bin/
+strip $LOCAL/bin/pandoc
+strip $LOCAL/bin/pandoc-citeproc
+cp $LOCAL/bin/pandoc $DEST/bin/
+cp $LOCAL/bin/pandoc-citeproc $DEST/bin/
 cp man/pandoc.1 $DEST/share/man/man1/pandoc.1
 gzip -9 $DEST/share/man/man1/pandoc.1
 gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
