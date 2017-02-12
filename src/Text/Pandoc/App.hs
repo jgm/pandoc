@@ -230,6 +230,11 @@ convertWithOpts opts = do
 
   variables <- return (optVariables opts)
       >>=
+      (\vars -> return $ ("outputfile", optOutputFile opts) : vars)
+      >>=
+      withList (addStringAsVariable "sourcefile")
+               (optInputFiles opts)
+      >>=
       withList (addContentsAsVariable "include-before")
                (optIncludeBeforeBody opts)
       >>=
