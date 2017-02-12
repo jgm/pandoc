@@ -320,6 +320,9 @@ Library
      cpp-options:   -DEMBED_DATA_FILES
      Build-Tools:   hsb2hs >= 0.3.1
      other-modules: Text.Pandoc.Data
+     if os(darwin)
+        Build-Tools:   cpphs >= 1.19
+        ghc-options:   -pgmP cpphs -optP --cpp
   if os(windows)
     Cpp-options:      -D_WINDOWS
   Ghc-Options:   -Wall -fno-warn-unused-do-bind
