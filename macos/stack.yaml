@@ -11,9 +11,9 @@ flags:
     unicode_collation: false
     test_citeproc: false
     debug: false
-ghc-options:
-  pandoc-citeproc:  '-pgmP cpphs -optP--cpp'
-  highlighting-kate: '-pgmP cpphs -optP--cpp'
+# ghc-options:
+#   pandoc-citeproc:  '-pgmP cpphs -optP--cpp'
+#   highlighting-kate: '-pgmP cpphs -optP--cpp'
 packages:
 - '..'
 - location:
