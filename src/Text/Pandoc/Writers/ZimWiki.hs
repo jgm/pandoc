@@ -50,15 +50,16 @@ import qualified Data.Map as Map
 data WriterState = WriterState {
     stItemNum   :: Int,
     stIndent    :: String,         -- Indent after the marker at the beginning of list items
-    stInTable   :: Bool            -- Inside a table
+    stInTable   :: Bool,           -- Inside a table
+    stInLink    :: Bool            -- Inside a link description
   }
 
 instance Default WriterState where
-  def = WriterState { stItemNum = 1, stIndent = "", stInTable = False }
+  def = WriterState { stItemNum = 1, stIndent = "", stInTable = False, stInLink = False }
 
 -- | Convert Pandoc to ZimWiki.
 writeZimWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeZimWiki opts document = return $ evalState (pandocToZimWiki opts document) (WriterState 1 "" False)
+writeZimWiki opts document = return $ evalState (pandocToZimWiki opts document) def
 
 -- | Return ZimWiki representation of document.
 pandocToZimWiki :: WriterOptions -> Pandoc -> State WriterState String
@@ -316,9 +317,13 @@ inlineToZimWiki _ (Code _ str) = return $ "''" ++ str ++ "''"
 
 inlineToZimWiki _ (Str str) = do
   inTable <- stInTable <$> get
+  inLink  <- stInLink  <$> get
   if inTable
       then return $ substitute "|" "\\|" . escapeString $ str 
-      else return $ escapeString str
+      else
+          if inLink
+          then return $ str
+          else return $ escapeString str
 
 inlineToZimWiki _ (Math mathType str) = return $ delim ++ str ++ delim   -- note:  str should NOT be escaped
   where delim = case mathType of
@@ -347,7 +352,9 @@ inlineToZimWiki _ Space = return " "
 
 inlineToZimWiki opts (Link _ txt (src, _)) = do
   inTable <- stInTable <$> get
-  label <- inlineListToZimWiki opts txt
+  modify $ \s -> s { stInLink = True }
+  label <- inlineListToZimWiki opts $ removeFormatting txt -- zim does not allow formatting in link text, it takes the text verbatim, no need to escape it
+  modify $ \s -> s { stInLink = False }
   let label'= if inTable
             then "" -- no label is allowed in a table
             else "|"++label
@@ -373,9 +380,9 @@ inlineToZimWiki opts (Image attr alt (source, tit)) = do
   return $ "{{" ++ prefix ++ source ++ imageDims opts attr ++ txt ++ "}}"
 
 inlineToZimWiki opts (Note contents) = do
+  -- no concept of notes in zim wiki, use a text block
   contents' <- blockListToZimWiki opts contents
-  return $ "((" ++ contents' ++ "))"
-  -- note - may not work for notes with multiple blocks
+  return $ " **{Note:** " ++ trimr contents' ++ "**}**"
 
 imageDims :: WriterOptions -> Attr -> String
 imageDims opts attr = go (toPx $ dimension Width attr) (toPx $ dimension Height attr)
