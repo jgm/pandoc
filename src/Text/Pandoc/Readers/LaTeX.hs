@@ -47,7 +47,7 @@ import Text.Pandoc.Builder
 import Control.Applicative ((<|>), many, optional)
 import Data.Maybe (fromMaybe, maybeToList)
 import System.FilePath (replaceExtension, takeExtension, addExtension)
-import Data.List (intercalate)
+import Data.List (intercalate, unzip3)
 import qualified Data.Map as M
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
@@ -1324,7 +1324,7 @@ complexNatbibCitation mode = try $ do
 
 -- tables
 
-parseAligns :: PandocMonad m => LP m [Alignment]
+parseAligns :: PandocMonad m => LP m [(String, Alignment, String)]
 parseAligns = try $ do
   char '{'
   let maybeBar = skipMany $ sp <|> () <$ char '|' <|> () <$ (char '@' >> braced)
@@ -1334,11 +1334,21 @@ parseAligns = try $ do
   let rAlign = AlignRight <$ char 'r'
   let parAlign = AlignLeft <$ (char 'p' >> braced)
   let alignChar = cAlign <|> lAlign <|> rAlign <|> parAlign
-  aligns' <- sepEndBy alignChar maybeBar
+  let alignPrefix = char '>' >> braced
+  let alignSuffix = char '<' >> braced
+  let alignSpec = do
+        spaces
+        pref <- option "" alignPrefix
+        spaces
+        ch <- alignChar
+        spaces
+        suff <- option "" alignSuffix
+        return (pref, ch, suff)
+  aligns' <- sepEndBy alignSpec maybeBar
   spaces
   char '}'
   spaces
-  return aligns'
+  return $ aligns'
 
 hline :: PandocMonad m => LP m ()
 hline = try $ do
@@ -1362,16 +1372,25 @@ lbreak = () <$ try (spaces' *>
 amp :: PandocMonad m => LP m ()
 amp = () <$ try (spaces' *> char '&' <* spaces')
 
-parseTableRow :: PandocMonad m => Int  -- ^ number of columns
+parseTableRow :: PandocMonad m
+              => Int  -- ^ number of columns
+              -> [String] -- ^ prefixes
+              -> [String] -- ^ suffixes
               -> LP m [Blocks]
-parseTableRow cols = try $ do
-  let tableCellInline = notFollowedBy (amp <|> lbreak) >> inline
+parseTableRow cols prefixes suffixes = try $ do
+  let tableCellRaw = many (notFollowedBy
+                       (amp <|> lbreak <|>
+                         (() <$ try (string "\\end"))) >> anyChar)
   let minipage = try $ controlSeq "begin" *> string "{minipage}" *>
           env "minipage"
           (skipopts *> spaces' *> optional braced *> spaces' *> blocks)
   let tableCell = minipage <|>
-            ((plain . trimInlines . mconcat) <$> many tableCellInline)
-  cells' <- sepBy1 tableCell amp
+            ((plain . trimInlines . mconcat) <$> many inline)
+  rawcells <- sepBy1 tableCellRaw amp
+  guard $ length rawcells == cols
+  let rawcells' = zipWith3 (\c p s -> p ++ trim c ++ s)
+                      rawcells prefixes suffixes
+  cells' <- mapM (parseFromString tableCell) rawcells'
   let numcells = length cells'
   guard $ numcells <= cols && numcells >= 1
   guard $ cells' /= [mempty]
@@ -1387,16 +1406,18 @@ simpTable :: PandocMonad m => Bool -> LP m Blocks
 simpTable hasWidthParameter = try $ do
   when hasWidthParameter $ () <$ (spaces' >> tok)
   skipopts
-  aligns <- parseAligns
+  (prefixes, aligns, suffixes) <- unzip3 <$> parseAligns
   let cols = length aligns
   optional $ controlSeq "caption" *> skipopts *> setCaption
   optional lbreak
   spaces'
   skipMany hline
   spaces'
-  header' <- option [] $ try (parseTableRow cols <* lbreak <* many1 hline)
+  header' <- option [] $ try (parseTableRow cols prefixes suffixes <*
+                                   lbreak <* many1 hline)
   spaces'
-  rows <- sepEndBy (parseTableRow cols) (lbreak <* optional (skipMany hline))
+  rows <- sepEndBy (parseTableRow cols prefixes suffixes)
+                    (lbreak <* optional (skipMany hline))
   spaces'
   optional $ controlSeq "caption" *> skipopts *> setCaption
   optional lbreak
