@@ -327,6 +327,7 @@ ignoreBlocks name = (name, p)
 blockCommands :: PandocMonad m => M.Map String (LP m Blocks)
 blockCommands = M.fromList $
   [ ("par", mempty <$ skipopts)
+  , ("parbox",  braced >> grouped blocks)
   , ("title", mempty <$ (skipopts *>
                           (grouped inline >>= addMeta "title")
                       <|> (grouped block >>= addMeta "title")))
