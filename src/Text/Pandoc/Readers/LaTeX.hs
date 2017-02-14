@@ -47,7 +47,7 @@ import Text.Pandoc.Builder
 import Control.Applicative ((<|>), many, optional)
 import Data.Maybe (fromMaybe, maybeToList)
 import System.FilePath (replaceExtension, takeExtension, addExtension)
-import Data.List (intercalate, unzip3)
+import Data.List (intercalate)
 import qualified Data.Map as M
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
