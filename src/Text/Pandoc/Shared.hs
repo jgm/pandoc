@@ -261,24 +261,22 @@ camelCaseToHyphenated (a:rest) = (toLower a):(camelCaseToHyphenated rest)
 
 -- | Convert number < 4000 to uppercase roman numeral.
 toRomanNumeral :: Int -> String
-toRomanNumeral x =
-  if x >= 4000 || x < 0
-     then "?"
-     else case x of
-              _ | x >= 1000 -> "M" ++ toRomanNumeral (x - 1000)
-              _ | x >= 900  -> "CM" ++ toRomanNumeral (x - 900)
-              _ | x >= 500  -> "D" ++ toRomanNumeral (x - 500)
-              _ | x >= 400  -> "CD" ++ toRomanNumeral (x - 400)
-              _ | x >= 100  -> "C" ++ toRomanNumeral (x - 100)
-              _ | x >= 90   -> "XC" ++ toRomanNumeral (x - 90)
-              _ | x >= 50   -> "L"  ++ toRomanNumeral (x - 50)
-              _ | x >= 40   -> "XL" ++ toRomanNumeral (x - 40)
-              _ | x >= 10   -> "X" ++ toRomanNumeral (x - 10)
-              _ | x == 9    -> "IX"
-              _ | x >= 5    -> "V" ++ toRomanNumeral (x - 5)
-              _ | x == 4    -> "IV"
-              _ | x >= 1    -> "I" ++ toRomanNumeral (x - 1)
-              _             -> ""
+toRomanNumeral x
+  | x >= 4000 || x < 0 = "?"
+  | x >= 1000 = "M" ++ toRomanNumeral (x - 1000)
+  | x >= 900  = "CM" ++ toRomanNumeral (x - 900)
+  | x >= 500  = "D" ++ toRomanNumeral (x - 500)
+  | x >= 400  = "CD" ++ toRomanNumeral (x - 400)
+  | x >= 100  = "C" ++ toRomanNumeral (x - 100)
+  | x >= 90   = "XC" ++ toRomanNumeral (x - 90)
+  | x >= 50   = "L"  ++ toRomanNumeral (x - 50)
+  | x >= 40   = "XL" ++ toRomanNumeral (x - 40)
+  | x >= 10   = "X" ++ toRomanNumeral (x - 10)
+  | x == 9    = "IX"
+  | x >= 5    = "V" ++ toRomanNumeral (x - 5)
+  | x == 4    = "IV"
+  | x >= 1    = "I" ++ toRomanNumeral (x - 1)
+  | otherwise = ""
 
 -- | Escape whitespace and some punctuation characters in URI.
 escapeURI :: String -> String
