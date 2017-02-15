@@ -61,6 +61,7 @@ data LogMessage =
   | DuplicateLinkReference String SourcePos
   | DuplicateNoteReference String SourcePos
   | ReferenceNotFound String SourcePos
+  | CircularReference String SourcePos
   | ParsingUnescaped String SourcePos
   | CouldNotLoadIncludeFile String SourcePos
   | ParsingTrace String SourcePos
@@ -102,6 +103,12 @@ instance ToJSON LogMessage where
             "column" .= toJSON (sourceColumn pos)]
       ReferenceNotFound s pos ->
            ["type" .= String "ReferenceNotFound",
+            "contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      CircularReference s pos ->
+           ["type" .= String "CircularReference",
             "contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
@@ -176,6 +183,8 @@ showLogMessage msg =
          "Duplicate note reference '" ++ s ++ "' at " ++ showPos pos
        ReferenceNotFound s pos ->
          "Reference not found for '" ++ s ++ "' at " ++ showPos pos
+       CircularReference s pos ->
+         "Circular reference '" ++ s ++ "' at " ++ showPos pos
        ParsingUnescaped s pos ->
          "Parsing unescaped '" ++ s ++ "' at " ++ showPos pos
        CouldNotLoadIncludeFile fp pos ->
@@ -208,6 +217,7 @@ messageVerbosity msg =
        DuplicateLinkReference{} -> WARNING
        DuplicateNoteReference{} -> WARNING
        ReferenceNotFound{} -> WARNING
+       CircularReference{} -> WARNING
        CouldNotLoadIncludeFile{} -> WARNING
        ParsingUnescaped{} -> INFO
        ParsingTrace{} -> DEBUG
