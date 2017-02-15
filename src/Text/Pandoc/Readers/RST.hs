@@ -1232,42 +1232,52 @@ explicitLink = try $ do
                    then B.str src
                    else label'
   -- `link <google_>` is a reference link to _google!
-  (src',tit,attr) <- case reverse src of
-                          '_':xs -> do
-                            keyTable <- stateKeys <$> getState
-                            let key = toKey $ reverse xs
-                            case M.lookup key keyTable of
-                                 Nothing -> do
-                                   pos <- getPosition
-                                   report $ ReferenceNotFound (show key) pos
-                                   return ("","",nullAttr)
-                                 Just ((s,t),a) -> return (s,t,a)
-                          _ -> return (src, "", nullAttr)
+  ((src',tit),attr) <- case reverse src of
+                          '_':xs -> lookupKey [] (toKey (reverse xs))
+                          _ -> return ((src, ""), nullAttr)
   return $ B.linkWith attr (escapeURI src') tit label''
 
 referenceLink :: PandocMonad m => RSTParser m Inlines
 referenceLink = try $ do
   (label',ref) <- withRaw (quotedReferenceName <|> simpleReferenceName) <*
                    char '_'
-  state <- getState
-  let keyTable = stateKeys state
   let isAnonKey (Key ('_':_)) = True
       isAnonKey _             = False
+  state <- getState
+  let keyTable = stateKeys state
   key <- option (toKey $ stripTicks ref) $
                 do char '_'
                    let anonKeys = sort $ filter isAnonKey $ M.keys keyTable
-                   if null anonKeys
-                      then mzero
-                      else return (head anonKeys)
-  ((src,tit), attr) <- case M.lookup key keyTable of
-                         Nothing  -> do
-                           pos <- getPosition
-                           report $ ReferenceNotFound (show key) pos
-                           return (("",""),nullAttr)
-                         Just val -> return val
+                   case anonKeys of
+                        [] -> mzero
+                        (k:_) -> return k
+  ((src,tit), attr) <- lookupKey [] key
   -- if anonymous link, remove key so it won't be used again
   when (isAnonKey key) $ updateState $ \s -> s{ stateKeys = M.delete key keyTable }
   return $ B.linkWith attr src tit label'
+
+-- We keep a list of oldkeys so we can detect lookup loops.
+lookupKey :: PandocMonad m
+          => [Key] -> Key -> RSTParser m ((String, String), Attr)
+lookupKey oldkeys key = do
+  pos <- getPosition
+  state <- getState
+  let keyTable = stateKeys state
+  case M.lookup key keyTable of
+       Nothing  -> do
+         let Key key' = key
+         report $ ReferenceNotFound key' pos
+         return (("",""),nullAttr)
+       -- check for keys of the form link_, which need to be resolved:
+       Just ((u@(_:_),""),_) | last u == '_' -> do
+         let rawkey = init u
+         let newkey = toKey rawkey
+         if newkey `elem` oldkeys
+            then do
+              report $ CircularReference rawkey pos
+              return (("",""),nullAttr)
+            else lookupKey (key:oldkeys) newkey
+       Just val -> return val
 
 autoURI :: Monad m => RSTParser m Inlines
 autoURI = do
@@ -1305,7 +1315,7 @@ note = try $ do
   case lookup ref notes of
     Nothing   -> do
       pos <- getPosition
-      report $ ReferenceNotFound (show ref) pos
+      report $ ReferenceNotFound ref pos
       return mempty
     Just raw  -> do
       -- We temporarily empty the note list while parsing the note,
