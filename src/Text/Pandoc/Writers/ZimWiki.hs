@@ -18,11 +18,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.ZimWiki
-   Copyright   : Copyright (C) 2008-2015 John MacFarlane, 2016 Alex Ivkin
+   Copyright   : Copyright (C) 2008-2015 John MacFarlane, 2017 Alex Ivkin
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Alex Ivkin <alex@ivkin.net>
-   Stability   : alpha
+   Stability   : beta
    Portability : portable
 
 Conversion of 'Pandoc' documents to ZimWiki markup.
@@ -44,20 +44,22 @@ import Data.Default (Default(..))
 import Network.URI ( isURI )
 import Control.Monad ( zipWithM )
 import Control.Monad.State ( modify, State, get, evalState )
---import Control.Monad.Reader ( ReaderT, runReaderT, ask, local )
 import Text.Pandoc.Class ( PandocMonad )
+import qualified Data.Map as Map
 
 data WriterState = WriterState {
     stItemNum   :: Int,
-    stIndent    :: String          -- Indent after the marker at the beginning of list items
+    stIndent    :: String,         -- Indent after the marker at the beginning of list items
+    stInTable   :: Bool,           -- Inside a table
+    stInLink    :: Bool            -- Inside a link description
   }
 
 instance Default WriterState where
-  def = WriterState { stItemNum = 1, stIndent = "" }
+  def = WriterState { stItemNum = 1, stIndent = "", stInTable = False, stInLink = False }
 
 -- | Convert Pandoc to ZimWiki.
 writeZimWiki :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeZimWiki opts document = return $ evalState (pandocToZimWiki opts document) (WriterState 1 "")
+writeZimWiki opts document = return $ evalState (pandocToZimWiki opts document) def
 
 -- | Return ZimWiki representation of document.
 pandocToZimWiki :: WriterOptions -> Pandoc -> State WriterState String
@@ -129,9 +131,15 @@ blockToZimWiki opts (Header level _ inlines) = do
   return $ eqs ++ " " ++ contents ++ " " ++ eqs ++ "\n"
 
 blockToZimWiki _ (CodeBlock (_,classes,_) str) = do
+  -- Remap languages into the gtksourceview2 convention that ZimWiki source code plugin is using
+  let langal = [("javascript", "js"), ("bash", "sh"), ("winbatch", "dosbatch")]
+  let langmap = Map.fromList langal
   return $ case classes of
-                []              -> "'''\n" ++ cleanupCode str ++ "\n'''\n" -- no lang block is a quote block
-                (x:_)   -> "{{{code: lang=\"" ++ x ++ "\" linenumbers=\"True\"\n" ++ str ++ "\n}}}\n"    -- for zim's code plugin, go verbatim on the lang spec
+                []      -> "'''\n" ++ cleanupCode str ++ "\n'''\n"   -- turn no lang block into a quote block
+                (x:_)   -> "{{{code: lang=\"" ++
+                        (case Map.lookup x langmap of
+                                Nothing -> x
+                                Just y -> y) ++ "\" linenumbers=\"True\"\n" ++ str ++ "\n}}}\n"  -- for zim's code plugin, go verbatim on the lang spec
 
 blockToZimWiki opts (BlockQuote blocks) = do
   contents <- blockListToZimWiki opts blocks
@@ -145,7 +153,7 @@ blockToZimWiki opts (Table capt aligns _ headers rows) = do
                       return $ "" ++ c ++ "\n"
   headers' <- if all null headers
                  then zipWithM (tableItemToZimWiki opts) aligns (rows !! 0)
-                 else zipWithM (tableItemToZimWiki opts) aligns headers
+                 else mapM (inlineListToZimWiki opts) (map removeFormatting headers)  -- emphasis, links etc. are not allowed in table headers
   rows' <- mapM (zipWithM (tableItemToZimWiki opts) aligns) rows
   let widths = map (maximum . map length) $ transpose (headers':rows')
   let padTo (width, al) s =
@@ -167,10 +175,10 @@ blockToZimWiki opts (Table capt aligns _ headers rows) = do
                             then replicate (width-1) '-' ++ ":"
                             else ":" ++ replicate (width-2) '-' ++ ":"
   let underheader  = "|" ++ intercalate "|" (zipWith borderCell (zip widths aligns) headers') ++ "|"
-  let renderRow sep cells = sep ++ intercalate sep (zipWith padTo (zip widths aligns) cells) ++ sep
+  let renderRow cells = "|" ++ intercalate "|" (zipWith padTo (zip widths aligns) cells) ++ "|"
   return $ captionDoc ++
-           (if null headers' then "" else renderRow "|" headers' ++ "\n") ++ underheader ++ "\n" ++
-           unlines (map (renderRow "|") rows')
+           (if null headers' then "" else renderRow headers' ++ "\n") ++ underheader ++ "\n" ++
+           unlines (map renderRow rows')
 
 blockToZimWiki opts (BulletList items) = do
   indent <- stIndent <$> get
@@ -255,7 +263,9 @@ tableItemToZimWiki opts align' item = do
                  (if align' == AlignLeft || align' == AlignCenter
                      then "  "
                      else "")
-  contents <- blockListToZimWiki opts item -- local (\s -> s { stBackSlashLB = True }) $
+  modify $ \s -> s { stInTable = True }
+  contents <- blockListToZimWiki opts item
+  modify $ \s -> s { stInTable = False }
   return $ mkcell contents
 
 -- | Convert list of Pandoc block elements to ZimWiki.
@@ -305,7 +315,15 @@ inlineToZimWiki opts (Cite _  lst) = inlineListToZimWiki opts lst
 
 inlineToZimWiki _ (Code _ str) = return $ "''" ++ str ++ "''"
 
-inlineToZimWiki _ (Str str) = return $ escapeString str
+inlineToZimWiki _ (Str str) = do
+  inTable <- stInTable <$> get
+  inLink  <- stInLink  <$> get
+  if inTable
+      then return $ substitute "|" "\\|" . escapeString $ str 
+      else
+          if inLink
+          then return $ str
+          else return $ escapeString str
 
 inlineToZimWiki _ (Math mathType str) = return $ delim ++ str ++ delim   -- note:  str should NOT be escaped
   where delim = case mathType of
@@ -318,7 +336,11 @@ inlineToZimWiki opts (RawInline f str)
   | f == Format "html"     = do cont <- indentFromHTML opts str; return cont
   | otherwise              = return ""
 
-inlineToZimWiki _ LineBreak = return "\n" -- was \\\\
+inlineToZimWiki _ LineBreak = do
+  inTable <- stInTable <$> get
+  if inTable
+      then return "\\n"
+      else return "\n"
 
 inlineToZimWiki opts SoftBreak =
   case writerWrapText opts of
@@ -329,30 +351,38 @@ inlineToZimWiki opts SoftBreak =
 inlineToZimWiki _ Space = return " "
 
 inlineToZimWiki opts (Link _ txt (src, _)) = do
-  label <- inlineListToZimWiki opts txt
+  inTable <- stInTable <$> get
+  modify $ \s -> s { stInLink = True }
+  label <- inlineListToZimWiki opts $ removeFormatting txt -- zim does not allow formatting in link text, it takes the text verbatim, no need to escape it
+  modify $ \s -> s { stInLink = False }
+  let label'= if inTable
+            then "" -- no label is allowed in a table
+            else "|"++label
   case txt of
      [Str s] | "mailto:" `isPrefixOf` src -> return $ "<" ++ s ++ ">"
              | escapeURI s == src -> return src
      _  -> if isURI src
-              then return $ "[[" ++ src  ++ "|" ++ label ++ "]]"
-              else return $ "[[" ++ src' ++ "|" ++ label ++ "]]"
+              then return $ "[[" ++ src  ++ label' ++ "]]"
+              else return $ "[[" ++ src' ++ label' ++ "]]"
                      where src' = case src of
                                      '/':xs -> xs  -- with leading / it's a
                                      _      -> src -- link to a help page
 inlineToZimWiki opts (Image attr alt (source, tit)) = do
   alt' <- inlineListToZimWiki opts alt
-  let txt = case (tit, alt) of
-              ("", []) -> ""
-              ("", _ ) -> "|" ++ alt'
-              (_ , _ ) -> "|" ++ tit
+  inTable <- stInTable <$> get
+  let txt = case (tit, alt, inTable) of
+              ("",[], _) -> ""
+              ("", _, False ) -> "|" ++ alt'
+              (_ , _, False ) -> "|" ++ tit
+              (_ , _, True ) -> ""
       -- Relative links fail isURI and receive a colon
       prefix = if isURI source then "" else ":"
   return $ "{{" ++ prefix ++ source ++ imageDims opts attr ++ txt ++ "}}"
 
 inlineToZimWiki opts (Note contents) = do
+  -- no concept of notes in zim wiki, use a text block
   contents' <- blockListToZimWiki opts contents
-  return $ "((" ++ contents' ++ "))"
-  -- note - may not work for notes with multiple blocks
+  return $ " **{Note:** " ++ trimr contents' ++ "**}**"
 
 imageDims :: WriterOptions -> Attr -> String
 imageDims opts attr = go (toPx $ dimension Width attr) (toPx $ dimension Height attr)

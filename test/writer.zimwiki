@@ -606,8 +606,7 @@ Here is a movie {{:movie.jpg|movie}} icon.
 
 ====== Footnotes ======
 
-Here is a footnote reference,((Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.
-)) and another.((Here’s the long note. This one contains multiple blocks.
+Here is a footnote reference, **{Note:** Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.**}** and another. **{Note:** Here’s the long note. This one contains multiple blocks.
 
 Subsequent blocks are indented to show that they belong to the footnote (as with list items).
 
@@ -615,13 +614,10 @@ Subsequent blocks are indented to show that they belong to the footnote (as with
   { <code> }
 '''
 
-If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
-)) This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note.((This is //easier// to type. Inline notes may contain [[http://google.com|links]] and '']'' verbatim characters, as well as [bracketed text].
-))
+If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.**}** This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note. **{Note:** This is //easier// to type. Inline notes may contain [[http://google.com|links]] and '']'' verbatim characters, as well as [bracketed text].**}**
 
-> Notes can go in quotes.((In quote.
-> ))
+> Notes can go in quotes. **{Note:** In quote.**}**
 
-	1. And in list items.((In list.))
+	1. And in list items. **{Note:** In list.**}**
 
 This paragraph should not be part of the note, as it is not indented.
