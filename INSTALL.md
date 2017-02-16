@@ -62,7 +62,9 @@
 
     where `$DEB` is the path to the downloaded deb, will
     install the `pandoc` and `pandoc-citeproc` executables
-    and man pages.  If you use an RPM-based distro, you may be
+    and man pages.
+
+  - If you use an RPM-based distro, you may be
     able to install this deb using `alien`, or try
 
         ar p $DEB data.tar.gz | sudo tar xvz --strip-components 2 -C /usr/local
