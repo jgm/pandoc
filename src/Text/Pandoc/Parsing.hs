@@ -73,11 +73,14 @@ module Text.Pandoc.Parsing ( anyLine,
                              guardDisabled,
                              updateLastStrPos,
                              notAfterString,
+                             logMessage,
+                             reportLogMessages,
                              ParserState (..),
                              HasReaderOptions (..),
                              HasHeaderMap (..),
                              HasIdentifierList (..),
                              HasMacros (..),
+                             HasLogMessages (..),
                              HasLastStrPosition (..),
                              defaultParserState,
                              HeaderType (..),
@@ -934,6 +937,7 @@ data ParserState = ParserState
       stateCaption         :: Maybe Inlines, -- ^ Caption in current environment
       stateInHtmlBlock     :: Maybe String,  -- ^ Tag type of HTML block being parsed
       stateContainers      :: [String],      -- ^ parent include files
+      stateLogMessages     :: [LogMessage],  -- ^ log messages
       stateMarkdownAttribute :: Bool         -- ^ True if in markdown=1 context
     }
 
@@ -1003,6 +1007,14 @@ instance HasLastStrPosition ParserState where
   setLastStrPos pos st = st{ stateLastStrPos = Just pos }
   getLastStrPos st     = stateLastStrPos st
 
+class HasLogMessages st where
+  addLogMessage :: LogMessage -> st -> st
+  getLogMessages :: st -> [LogMessage]
+
+instance HasLogMessages ParserState where
+  addLogMessage msg st = st{ stateLogMessages = msg : stateLogMessages st }
+  getLogMessages st = reverse $ stateLogMessages st
+
 defaultParserState :: ParserState
 defaultParserState =
     ParserState { stateOptions         = def,
@@ -1030,8 +1042,21 @@ defaultParserState =
                   stateCaption         = Nothing,
                   stateInHtmlBlock     = Nothing,
                   stateContainers      = [],
+                  stateLogMessages     = [],
                   stateMarkdownAttribute = False
                   }
+
+-- | Add a log message.
+logMessage :: (Stream s m a, HasLogMessages st)
+           => LogMessage -> ParserT s st m ()
+logMessage msg = updateState (addLogMessage msg)
+
+-- | Report all the accumulated log messages, according to verbosity level.
+reportLogMessages :: (PandocMonad m, Stream s m a, HasLogMessages st)
+                  => ParserT s st m ()
+reportLogMessages = do
+  msgs <- getLogMessages <$> getState
+  mapM_ report msgs
 
 -- | Succeed only if the extension is enabled.
 guardEnabled :: (Stream s m a,  HasReaderOptions st) => Extension -> ParserT s st m ()
