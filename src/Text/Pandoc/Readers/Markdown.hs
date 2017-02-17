@@ -268,7 +268,8 @@ yamlMetaBlock = try $ do
                   ) nullMeta hashmap
                 Right Yaml.Null -> return nullMeta
                 Right _ -> do
-                            report $ CouldNotParseYamlMetadata "not an object"
+                            logMessage $
+                               CouldNotParseYamlMetadata "not an object"
                                pos
                             return nullMeta
                 Left err' -> do
@@ -280,12 +281,12 @@ yamlMetaBlock = try $ do
                                             yamlLine = yline
                                           , yamlColumn = ycol
                                       }}) ->
-                                 report $ CouldNotParseYamlMetadata
+                                 logMessage $ CouldNotParseYamlMetadata
                                     problem (setSourceLine
                                     (setSourceColumn pos
                                        (sourceColumn pos + ycol))
                                     (sourceLine pos + 1 + yline))
-                            _ -> report $ CouldNotParseYamlMetadata
+                            _ -> logMessage $ CouldNotParseYamlMetadata
                                     (show err') pos
                          return nullMeta
   updateState $ \st -> st{ stateMeta' = stateMeta' st <> (return meta') }
@@ -364,6 +365,7 @@ parseMarkdown = do
   let Pandoc _ bs = B.doc $ runF blocks st
   eastAsianLineBreaks <- option False $
                     True <$ guardEnabled Ext_east_asian_line_breaks
+  reportLogMessages
   return $ (if eastAsianLineBreaks
                then bottomUp softBreakFilter
                else id) $ Pandoc meta bs
@@ -403,7 +405,7 @@ referenceKey = try $ do
   let oldkeys = stateKeys st
   let key = toKey raw
   case M.lookup key oldkeys of
-    Just _  -> report $ DuplicateLinkReference raw pos
+    Just _  -> logMessage $ DuplicateLinkReference raw pos
     Nothing -> return ()
   updateState $ \s -> s { stateKeys = M.insert key (target, attr') oldkeys }
   return $ return mempty
@@ -469,7 +471,7 @@ noteBlock = try $ do
   let newnote = (ref, parsed)
   oldnotes <- stateNotes' <$> getState
   case lookup ref oldnotes of
-    Just _  -> report $ DuplicateNoteReference ref pos
+    Just _  -> logMessage $ DuplicateNoteReference ref pos
     Nothing -> return ()
   updateState $ \s -> s { stateNotes' = newnote : oldnotes }
   return mempty
