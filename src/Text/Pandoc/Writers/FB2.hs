@@ -312,8 +312,9 @@ blockToXml (Para [Image atr alt (src,'f':'i':'g':':':tit)]) =
 blockToXml (Para ss) = liftM (list . el "p") $ cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code") . lines $ s
-blockToXml (RawBlock _ s) = return . spaceBeforeAfter .
-                            map (el "p" . el "code") . lines $ s
+blockToXml b@(RawBlock _ _) = do
+  report $ BlockNotRendered b
+  return []
 blockToXml (Div _ bs) = cMapM blockToXml bs
 blockToXml (BlockQuote bs) = liftM (list . el "cite") $ cMapM blockToXml bs
 blockToXml (LineBlock lns) = blockToXml $ linesToPara lns
@@ -436,7 +437,9 @@ toXml Space = return [txt " "]
 toXml SoftBreak = return [txt " "]
 toXml LineBreak = return [el "empty-line" ()]
 toXml (Math _ formula) = insertMath InlineImage formula
-toXml (RawInline _ _) = return []  -- raw TeX and raw HTML are suppressed
+toXml il@(RawInline _ _) = do
+  report $ InlineNotRendered il
+  return []  -- raw TeX and raw HTML are suppressed
 toXml (Link _ text (url,ttl)) = do
   fns <- footnotes `liftM` get
   let n = 1 + length fns
@@ -567,7 +570,7 @@ plain Space = " "
 plain SoftBreak = " "
 plain LineBreak = "\n"
 plain (Math _ s) = s
-plain (RawInline _ s) = s
+plain (RawInline _ _) = ""
 plain (Link _ text (url,_)) = concat (map plain text ++ [" <", url, ">"])
 plain (Image _ alt _) = concat (map plain alt)
 plain (Note _) = ""  -- FIXME
