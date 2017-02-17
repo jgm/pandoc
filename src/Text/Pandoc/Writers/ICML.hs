@@ -304,9 +304,11 @@ blockToICML opts style (Para lst) = parStyle opts (paragraphName:style) lst
 blockToICML opts style (LineBlock lns) =
   blockToICML opts style $ linesToPara lns
 blockToICML opts style (CodeBlock _ str) = parStyle opts (codeBlockName:style) $ [Str str]
-blockToICML _ _ (RawBlock f str)
+blockToICML _ _ b@(RawBlock f str)
   | f == Format "icml" = return $ text str
-  | otherwise          = return empty
+  | otherwise          = do
+      report $ BlockNotRendered b
+      return empty
 blockToICML opts style (BlockQuote blocks) = blocksToICML opts (blockQuoteName:style) blocks
 blockToICML opts style (OrderedList attribs lst) = listItemsToICML opts orderedListName style (Just attribs) lst
 blockToICML opts style (BulletList lst) = listItemsToICML opts bulletListName style Nothing lst
@@ -439,9 +441,11 @@ inlineToICML _ style LineBreak = charStyle style $ text lineSeparator
 inlineToICML opts style (Math mt str) =
   lift (texMathToInlines mt str) >>=
     (fmap cat . mapM (inlineToICML opts style))
-inlineToICML _ _ (RawInline f str)
+inlineToICML _ _ il@(RawInline f str)
   | f == Format "icml" = return $ text str
-  | otherwise          = return empty
+  | otherwise          = do
+      report $ InlineNotRendered il
+      return empty
 inlineToICML opts style (Link _ lst (url, title)) = do
   content <- inlinesToICML opts (linkName:style) lst
   state $ \st ->

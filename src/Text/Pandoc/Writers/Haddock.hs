@@ -42,7 +42,8 @@ import Control.Monad.State
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Network.URI (isURI)
 import Data.Default
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes :: Notes }
@@ -114,10 +115,12 @@ blockToHaddock opts (Para inlines) =
   (<> blankline) `fmap` blockToHaddock opts (Plain inlines)
 blockToHaddock opts (LineBlock lns) =
   blockToHaddock opts $ linesToPara lns
-blockToHaddock _ (RawBlock f str)
+blockToHaddock _ b@(RawBlock f str)
   | f == "haddock" = do
       return $ text str <> text "\n"
-  | otherwise = return empty
+  | otherwise = do
+    report $ BlockNotRendered b
+    return empty
 blockToHaddock opts HorizontalRule =
   return $ blankline <> text (replicate (writerColumns opts) '_') <> blankline
 blockToHaddock opts (Header level (ident,_,_) inlines) = do
@@ -334,9 +337,11 @@ inlineToHaddock opts (Math mt str) = do
                       DisplayMath -> cr <> x <> cr
                       InlineMath  -> x
   adjust <$> (lift (texMathToInlines mt str) >>= inlineListToHaddock opts)
-inlineToHaddock _ (RawInline f str)
+inlineToHaddock _ il@(RawInline f str)
   | f == "haddock" = return $ text str
-  | otherwise = return empty
+  | otherwise = do
+    report $ InlineNotRendered il
+    return empty
 -- no line break in haddock (see above on CodeBlock)
 inlineToHaddock _ LineBreak = return cr
 inlineToHaddock opts SoftBreak =

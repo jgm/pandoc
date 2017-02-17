@@ -46,7 +46,8 @@ import System.FilePath
 import qualified Data.Set as Set
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error
-import Text.Pandoc.Class ( PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 
 data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
@@ -166,11 +167,13 @@ blockToTexinfo (CodeBlock _ str) = do
            flush (text str) $$
            text "@end verbatim" <> blankline
 
-blockToTexinfo (RawBlock f str)
+blockToTexinfo b@(RawBlock f str)
   | f == "texinfo" = return $ text str
   | f == "latex" || f == "tex" =
                       return $ text "@tex" $$ text str $$ text "@end tex"
-  | otherwise      = return empty
+  | otherwise      = do
+      report $ BlockNotRendered b
+      return empty
 
 blockToTexinfo (BulletList lst) = do
   items <- mapM listItemToTexinfo lst
@@ -444,11 +447,13 @@ inlineToTexinfo (Cite _ lst) =
   inlineListToTexinfo lst
 inlineToTexinfo (Str str) = return $ text (stringToTexinfo str)
 inlineToTexinfo (Math _ str) = return $ inCmd "math" $ text str
-inlineToTexinfo (RawInline f str)
+inlineToTexinfo il@(RawInline f str)
   | f == "latex" || f == "tex" =
                       return $ text "@tex" $$ text str $$ text "@end tex"
   | f == "texinfo" =  return $ text str
-  | otherwise      =  return empty
+  | otherwise      =  do
+      report $ InlineNotRendered il
+      return empty
 inlineToTexinfo (LineBreak) = return $ text "@*" <> cr
 inlineToTexinfo SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)

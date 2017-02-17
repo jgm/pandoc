@@ -59,7 +59,8 @@ import qualified Data.Text as T
 import qualified Data.Set as Set
 import Network.HTTP ( urlEncode )
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 
 type Notes = [[Block]]
 type Ref   = ([Inline], Target, Attr)
@@ -414,7 +415,7 @@ blockToMarkdown' opts (LineBlock lns) =
     mdLines <- mapM (inlineListToMarkdown opts) lns
     return $ (vcat $ map (hang 2 (text "| ")) mdLines) <> blankline
   else blockToMarkdown opts $ linesToPara lns
-blockToMarkdown' opts (RawBlock f str)
+blockToMarkdown' opts b@(RawBlock f str)
   | f == "markdown" = return $ text str <> text "\n"
   | f == "html" && isEnabled Ext_raw_html opts = do
     plain <- asks envPlain
@@ -428,7 +429,9 @@ blockToMarkdown' opts (RawBlock f str)
     return $ if plain
                 then empty
                 else text str <> text "\n"
-  | otherwise = return empty
+  | otherwise = do
+      report $ BlockNotRendered b
+      return empty
 blockToMarkdown' opts HorizontalRule = do
   return $ blankline <> text (replicate (writerColumns opts) '-') <> blankline
 blockToMarkdown' opts (Header level attr inlines) = do
@@ -1016,14 +1019,16 @@ inlineToMarkdown opts (Math DisplayMath str) =
             return $ "\\\\[" <> text str <> "\\\\]"
         | otherwise -> (\x -> cr <> x <> cr) `fmap`
             (texMathToInlines DisplayMath str >>= inlineListToMarkdown opts)
-inlineToMarkdown opts (RawInline f str) = do
+inlineToMarkdown opts il@(RawInline f str) = do
   plain <- asks envPlain
   if not plain &&
      ( f == "markdown" ||
        (isEnabled Ext_raw_tex opts && (f == "latex" || f == "tex")) ||
        (isEnabled Ext_raw_html opts && f == "html") )
     then return $ text str
-    else return empty
+    else do
+      report $ InlineNotRendered il
+      return empty
 inlineToMarkdown opts (LineBreak) = do
   plain <- asks envPlain
   if plain || isEnabled Ext_hard_line_breaks opts

@@ -46,7 +46,8 @@ import qualified Data.Map as Map
 import Text.Pandoc.Writers.Shared
 import Data.List (sortBy)
 import Data.Ord (comparing)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -335,7 +336,9 @@ blockToOpenDocument o bs
                                 [ ("text:style-name", "Horizontal_20_Line") ])
     | RawBlock f     s <- bs = if f == Format "opendocument"
                                   then return $ text s
-                                  else return empty
+                                  else do
+                                    report $ BlockNotRendered bs
+                                    return empty
     | Null             <- bs = return empty
     | otherwise              = return empty
     where
@@ -454,7 +457,9 @@ inlineToOpenDocument o ils
     Cite      _ l -> inlinesToOpenDocument o l
     RawInline f s -> if f == Format "opendocument"
                        then return $ text s
-                       else return empty
+                       else do
+                         report $ InlineNotRendered ils
+                         return empty
     Link _ l (s,t) ->  mkLink s t <$> inlinesToOpenDocument o l
     Image attr _ (s,t) -> mkImg attr s t
     Note        l  -> mkNote l

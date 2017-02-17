@@ -859,9 +859,11 @@ blockToOpenXML' opts (Para lst) = do
   contents <- inlinesToOpenXML opts lst
   return [mknode "w:p" [] (paraProps' ++ contents)]
 blockToOpenXML' opts (LineBlock lns) = blockToOpenXML opts $ linesToPara lns
-blockToOpenXML' _ (RawBlock format str)
+blockToOpenXML' _ b@(RawBlock format str)
   | format == Format "openxml" = return [ x | Elem x <- parseXML str ]
-  | otherwise                  = return []
+  | otherwise                  = do
+      report $ BlockNotRendered b
+      return []
 blockToOpenXML' opts (BlockQuote blocks) = do
   p <- withParaPropM (pStyleM "Block Text") $ blocksToOpenXML opts blocks
   setFirstPara
@@ -1099,9 +1101,11 @@ inlineToOpenXML' opts (Strikeout lst) =
   withTextProp (mknode "w:strike" [] ())
   $ inlinesToOpenXML opts lst
 inlineToOpenXML' _ LineBreak = return [br]
-inlineToOpenXML' _ (RawInline f str)
+inlineToOpenXML' _ il@(RawInline f str)
   | f == Format "openxml" = return [ x | Elem x <- parseXML str ]
-  | otherwise            = return []
+  | otherwise             = do
+      report $ InlineNotRendered il
+      return []
 inlineToOpenXML' opts (Quoted quoteType lst) =
   inlinesToOpenXML opts $ [Str open] ++ lst ++ [Str close]
     where (open, close) = case quoteType of

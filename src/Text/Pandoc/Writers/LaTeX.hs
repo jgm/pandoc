@@ -39,6 +39,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
+import Text.Pandoc.Logging
 import Text.Printf ( printf )
 import Network.URI ( isURI, unEscapeString )
 import Data.Aeson (object, (.=), FromJSON)
@@ -57,7 +58,7 @@ import Text.Pandoc.Slides
 import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
                                  formatLaTeXInline, formatLaTeXBlock,
                                  toListingsLanguage)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
@@ -110,17 +111,20 @@ startingState options = WriterState {
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeLaTeX options document = return $
-  evalState (pandocToLaTeX options document) $
+writeLaTeX options document =
+  evalStateT (pandocToLaTeX options document) $
     startingState options
 
 -- | Convert Pandoc to LaTeX Beamer.
 writeBeamer :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeBeamer options document = return $
-  evalState (pandocToLaTeX options document) $
+writeBeamer options document =
+  evalStateT (pandocToLaTeX options document) $
     (startingState options){ stBeamer = True }
 
-pandocToLaTeX :: WriterOptions -> Pandoc -> State WriterState String
+type LW m = StateT WriterState m
+
+pandocToLaTeX :: PandocMonad m
+              => WriterOptions -> Pandoc -> LW m String
 pandocToLaTeX options (Pandoc meta blocks) = do
   -- Strip off final 'references' header if --natbib or --biblatex
   let method = writerCiteMethod options
@@ -279,7 +283,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                 Just tpl -> renderTemplate' tpl context'
 
 -- | Convert Elements to LaTeX
-elementToLaTeX :: WriterOptions -> Element -> State WriterState Doc
+elementToLaTeX :: PandocMonad m => WriterOptions -> Element -> LW m Doc
 elementToLaTeX _ (Blk block) = blockToLaTeX block
 elementToLaTeX opts (Sec level _ (id',classes,_) title' elements) = do
   modify $ \s -> s{stInHeading = True}
@@ -294,7 +298,7 @@ data StringContext = TextString
                    deriving (Eq)
 
 -- escape things as needed for LaTeX
-stringToLaTeX :: StringContext -> String -> State WriterState String
+stringToLaTeX :: PandocMonad m => StringContext -> String -> LW m String
 stringToLaTeX  _     []     = return ""
 stringToLaTeX  ctx (x:xs) = do
   opts <- gets stOptions
@@ -339,7 +343,7 @@ stringToLaTeX  ctx (x:xs) = do
        '\x2013' | ligatures -> "--" ++ rest
        _        -> x : rest
 
-toLabel :: String -> State WriterState String
+toLabel :: PandocMonad m => String -> LW m String
 toLabel z = go `fmap` stringToLaTeX URLString z
  where go [] = ""
        go (x:xs)
@@ -351,14 +355,14 @@ toLabel z = go `fmap` stringToLaTeX URLString z
 inCmd :: String -> Doc -> Doc
 inCmd cmd contents = char '\\' <> text cmd <> braces contents
 
-toSlides :: [Block] -> State WriterState [Block]
+toSlides :: PandocMonad m => [Block] -> LW m [Block]
 toSlides bs = do
   opts <- gets stOptions
   let slideLevel = fromMaybe (getSlideLevel bs) $ writerSlideLevel opts
   let bs' = prepSlides slideLevel bs
   concat `fmap` (mapM (elementToBeamer slideLevel) $ hierarchicalize bs')
 
-elementToBeamer :: Int -> Element -> State WriterState [Block]
+elementToBeamer :: PandocMonad m => Int -> Element -> LW m [Block]
 elementToBeamer _slideLevel (Blk b) = return [b]
 elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
   | lvl >  slideLevel = do
@@ -408,8 +412,9 @@ isLineBreakOrSpace Space = True
 isLineBreakOrSpace _ = False
 
 -- | Convert Pandoc block element to LaTeX.
-blockToLaTeX :: Block     -- ^ Block to convert
-             -> State WriterState Doc
+blockToLaTeX :: PandocMonad m
+             => Block     -- ^ Block to convert
+             -> LW m Doc
 blockToLaTeX Null = return empty
 blockToLaTeX (Div (identifier,classes,kvs) bs) = do
   beamer <- gets stBeamer
@@ -541,10 +546,12 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
        | not (null classes) && isJust (writerHighlightStyle opts)
                                              -> highlightedCodeBlock
        | otherwise                           -> rawCodeBlock
-blockToLaTeX (RawBlock f x)
+blockToLaTeX b@(RawBlock f x)
   | f == Format "latex" || f == Format "tex"
                         = return $ text x
-  | otherwise           = return empty
+  | otherwise           = do
+      report $ BlockNotRendered b
+      return empty
 blockToLaTeX (BulletList []) = return empty  -- otherwise latex error
 blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
@@ -652,14 +659,15 @@ toColDescriptor align =
          AlignCenter  -> "c"
          AlignDefault -> "l"
 
-blockListToLaTeX :: [Block] -> State WriterState Doc
+blockListToLaTeX :: PandocMonad m => [Block] -> LW m Doc
 blockListToLaTeX lst = vsep `fmap` mapM blockToLaTeX lst
 
-tableRowToLaTeX :: Bool
+tableRowToLaTeX :: PandocMonad m
+                => Bool
                 -> [Alignment]
                 -> [Double]
                 -> [[Block]]
-                -> State WriterState Doc
+                -> LW m Doc
 tableRowToLaTeX header aligns widths cols = do
   -- scale factor compensates for extra space between columns
   -- so the whole table isn't larger than columnwidth
@@ -700,8 +708,8 @@ displayMathToInline :: Inline -> Inline
 displayMathToInline (Math DisplayMath x) = Math InlineMath x
 displayMathToInline x = x
 
-tableCellToLaTeX :: Bool -> (Double, Alignment, [Block])
-                 -> State WriterState Doc
+tableCellToLaTeX :: PandocMonad m => Bool -> (Double, Alignment, [Block])
+                 -> LW m Doc
 tableCellToLaTeX _      (0,     _,     blocks) =
   blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
 tableCellToLaTeX header (width, align, blocks) = do
@@ -734,7 +742,7 @@ notesToLaTeX ns = (case length ns of
                      $ map (\x -> "\\footnotetext" <> braces x)
                      $ reverse ns)
 
-listItemToLaTeX :: [Block] -> State WriterState Doc
+listItemToLaTeX :: PandocMonad m => [Block] -> LW m Doc
 listItemToLaTeX lst
   -- we need to put some text before a header if it's the first
   -- element in an item. This will look ugly in LaTeX regardless, but
@@ -744,7 +752,7 @@ listItemToLaTeX lst
   | otherwise = blockListToLaTeX lst >>= return .  (text "\\item" $$) .
                       (nest 2)
 
-defListItemToLaTeX :: ([Inline], [[Block]]) -> State WriterState Doc
+defListItemToLaTeX :: PandocMonad m => ([Inline], [[Block]]) -> LW m Doc
 defListItemToLaTeX (term, defs) = do
     term' <- inlineListToLaTeX term
     -- put braces around term if it contains an internal link,
@@ -762,11 +770,12 @@ defListItemToLaTeX (term, defs) = do
        "\\item" <> brackets term'' $$ def'
 
 -- | Craft the section header, inserting the secton reference, if supplied.
-sectionHeader :: Bool    -- True for unnumbered
+sectionHeader :: PandocMonad m
+              => Bool    -- True for unnumbered
               -> [Char]
               -> Int
               -> [Inline]
-              -> State WriterState Doc
+              -> LW m Doc
 sectionHeader unnumbered ident level lst = do
   txt <- inlineListToLaTeX lst
   plain <- stringToLaTeX TextString $ concatMap stringify lst
@@ -831,7 +840,7 @@ sectionHeader unnumbered ident level lst = do
                                 braces txtNoNotes
                          else empty
 
-hypertarget :: String -> Doc -> State WriterState Doc
+hypertarget :: PandocMonad m => String -> Doc -> LW m Doc
 hypertarget ident x = do
   ref <- text `fmap` toLabel ident
   internalLinks <- gets stInternalLinks
@@ -842,15 +851,16 @@ hypertarget ident x = do
               <> braces x
        else x
 
-labelFor :: String -> State WriterState Doc
+labelFor :: PandocMonad m => String -> LW m Doc
 labelFor ""    = return empty
 labelFor ident = do
   ref <- text `fmap` toLabel ident
   return $ text "\\label" <> braces ref
 
 -- | Convert list of inline elements to LaTeX.
-inlineListToLaTeX :: [Inline]  -- ^ Inlines to convert
-                  -> State WriterState Doc
+inlineListToLaTeX :: PandocMonad m
+                  => [Inline]  -- ^ Inlines to convert
+                  -> LW m Doc
 inlineListToLaTeX lst =
   mapM inlineToLaTeX (fixBreaks $ fixLineInitialSpaces lst)
     >>= return . hcat
@@ -878,8 +888,9 @@ isQuoted (Quoted _ _) = True
 isQuoted _ = False
 
 -- | Convert inline element to LaTeX
-inlineToLaTeX :: Inline    -- ^ Inline to convert
-              -> State WriterState Doc
+inlineToLaTeX :: PandocMonad m
+              => Inline    -- ^ Inline to convert
+              -> LW m Doc
 inlineToLaTeX (Span (id',classes,kvs) ils) = do
   ref <- toLabel id'
   let linkAnchor = if null id'
@@ -980,10 +991,12 @@ inlineToLaTeX (Math InlineMath str) =
   return $ "\\(" <> text str <> "\\)"
 inlineToLaTeX (Math DisplayMath str) =
   return $ "\\[" <> text str <> "\\]"
-inlineToLaTeX (RawInline f str)
+inlineToLaTeX il@(RawInline f str)
   | f == Format "latex" || f == Format "tex"
                         = return $ text str
-  | otherwise           = return empty
+  | otherwise           = do
+      report $ InlineNotRendered il
+      return empty
 inlineToLaTeX (LineBreak) = return $ "\\\\" <> cr
 inlineToLaTeX SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
@@ -1066,7 +1079,7 @@ protectCode (x@(Code _ _) : xs) = ltx "\\mbox{" : x : ltx "}" : xs
   where ltx = RawInline (Format "latex")
 protectCode (x : xs) = x : protectCode xs
 
-citationsToNatbib :: [Citation] -> State WriterState Doc
+citationsToNatbib :: PandocMonad m => [Citation] -> LW m Doc
 citationsToNatbib (one:[])
   = citeCommand c p s k
   where
@@ -1113,12 +1126,14 @@ citationsToNatbib cits = do
                SuppressAuthor -> citeCommand "citeyear" p s k
                NormalCitation -> citeCommand "citealp"  p s k
 
-citeCommand :: String -> [Inline] -> [Inline] -> String -> State WriterState Doc
+citeCommand :: PandocMonad m
+            => String -> [Inline] -> [Inline] -> String -> LW m Doc
 citeCommand c p s k = do
   args <- citeArguments p s k
   return $ text ("\\" ++ c) <> args
 
-citeArguments :: [Inline] -> [Inline] -> String -> State WriterState Doc
+citeArguments :: PandocMonad m
+              => [Inline] -> [Inline] -> String -> LW m Doc
 citeArguments p s k = do
   let s' = case s of
         (Str (x:[]) : r) | isPunctuation x -> dropWhile (== Space) r
@@ -1132,7 +1147,7 @@ citeArguments p s k = do
                      (_   , _    ) -> brackets pdoc <> brackets sdoc
   return $ optargs <> braces (text k)
 
-citationsToBiblatex :: [Citation] -> State WriterState Doc
+citationsToBiblatex :: PandocMonad m => [Citation] -> LW m Doc
 citationsToBiblatex (one:[])
   = citeCommand cmd p s k
     where

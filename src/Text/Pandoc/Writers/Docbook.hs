@@ -47,7 +47,8 @@ import qualified Text.Pandoc.Builder as B
 import Text.TeXMath
 import qualified Text.XML.Light as Xml
 import Data.Generics (everywhere, mkT)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 import Control.Monad.Reader
 
 data DocBookVersion = DocBook4 | DocBook5
@@ -275,14 +276,16 @@ blockToDocbook opts (OrderedList (start, numstyle, _) (first:rest)) = do
 blockToDocbook opts (DefinitionList lst) = do
   let attribs = [("spacing", "compact") | isTightList $ concatMap snd lst]
   inTags True "variablelist" attribs <$> deflistItemsToDocbook opts lst
-blockToDocbook _ (RawBlock f str)
+blockToDocbook _ b@(RawBlock f str)
   | f == "docbook" = return $ text str -- raw XML block
   | f == "html"    = do
                      version <- ask
                      if version == DocBook5
                         then return empty -- No html in Docbook5
                         else return $ text str -- allow html for backwards compatibility
-  | otherwise      = return empty
+  | otherwise      = do
+      report $ BlockNotRendered b
+      return empty
 blockToDocbook _ HorizontalRule = return empty -- not semantic
 blockToDocbook opts (Table caption aligns widths headers rows) = do
   captionDoc <- if null caption
@@ -384,9 +387,11 @@ inlineToDocbook opts (Math t str)
            removeAttr e = e{ Xml.elAttribs = [] }
            fixNS' qname = qname{ Xml.qPrefix = Just "mml" }
            fixNS = everywhere (mkT fixNS')
-inlineToDocbook _ (RawInline f x)
+inlineToDocbook _ il@(RawInline f x)
   | f == "html" || f == "docbook" = return $ text x
-  | otherwise                     = return empty
+  | otherwise                     = do
+      report $ InlineNotRendered il
+      return empty
 inlineToDocbook _ LineBreak = return $ text "\n"
 -- currently ignore, would require the option to add custom
 -- styles to the document

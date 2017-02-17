@@ -43,7 +43,8 @@ import Text.Pandoc.Builder (deleteMeta)
 import Control.Monad.State
 import Text.Pandoc.Error
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes  :: Notes
@@ -177,9 +178,11 @@ blockToMan opts (Para inlines) = do
   return $ text ".PP" $$ contents
 blockToMan opts (LineBlock lns) =
   blockToMan opts $ linesToPara lns
-blockToMan _ (RawBlock f str)
+blockToMan _ b@(RawBlock f str)
   | f == Format "man" = return $ text str
-  | otherwise         = return empty
+  | otherwise         = do
+      report $ BlockNotRendered b
+      return empty
 blockToMan _ HorizontalRule = return $ text ".PP" $$ text "   *   *   *   *   *"
 blockToMan opts (Header level _ inlines) = do
   contents <- inlineListToMan opts inlines
@@ -346,9 +349,11 @@ inlineToMan opts (Math InlineMath str) =
 inlineToMan opts (Math DisplayMath str) = do
   contents <- lift (texMathToInlines DisplayMath str) >>= inlineListToMan opts
   return $ cr <> text ".RS" $$ contents $$ text ".RE"
-inlineToMan _ (RawInline f str)
+inlineToMan _ il@(RawInline f str)
   | f == Format "man" = return $ text str
-  | otherwise         = return empty
+  | otherwise         = do
+      report $ InlineNotRendered il
+      return empty
 inlineToMan _ LineBreak = return $
   cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
 inlineToMan _ SoftBreak = return space
