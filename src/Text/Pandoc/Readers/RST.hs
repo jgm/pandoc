@@ -50,7 +50,7 @@ import Data.Sequence (viewr, ViewR(..))
 import Data.Char (toLower, isHexDigit, isSpace, toUpper)
 import Data.Monoid ((<>))
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, report, readFileFromDirs)
+import Text.Pandoc.Class (PandocMonad, readFileFromDirs)
 
 -- TODO:
 -- [ ] .. parsed-literal
@@ -171,6 +171,7 @@ parseRST = do
   let (blocks', meta') = if standalone
                             then titleTransform (blocks, meta)
                             else (blocks, meta)
+  reportLogMessages
   return $ Pandoc meta' blocks'
 
 --
@@ -436,7 +437,7 @@ include = try $ do
   contentLines <- case mbContents of
                        Just s -> return $ lines s
                        Nothing -> do
-                         report $ CouldNotLoadIncludeFile f oldPos
+                         logMessage $ CouldNotLoadIncludeFile f oldPos
                          return []
   let numLines = length contentLines
   let startLine' = case startLine of
@@ -700,7 +701,7 @@ directive' = do
             return $ B.divWith attrs children
         other     -> do
             pos <- getPosition
-            report $ SkippedContent (".. " ++ other) pos
+            logMessage $ SkippedContent (".. " ++ other) pos
             return mempty
 
 tableDirective :: PandocMonad m
@@ -742,17 +743,17 @@ addNewRole roleString fields = do
 
     -- warn about syntax we ignore
     flip mapM_ fields $ \(key, _) -> case key of
-        "language" -> when (baseRole /= "code") $ report $
+        "language" -> when (baseRole /= "code") $ logMessage $
             SkippedContent ":language: [because parent of role is not :code:]"
                pos
-        "format" -> when (baseRole /= "raw") $ report $
+        "format" -> when (baseRole /= "raw") $ logMessage $
             SkippedContent ":format: [because parent of role is not :raw:]" pos
-        _ -> report $ SkippedContent (":" ++ key ++ ":") pos
+        _ -> logMessage $ SkippedContent (":" ++ key ++ ":") pos
     when (parentRole == "raw" && countKeys "format" > 1) $
-        report $ SkippedContent ":format: [after first in definition of role]"
+        logMessage $ SkippedContent ":format: [after first in definition of role]"
                   pos
     when (parentRole == "code" && countKeys "language" > 1) $
-        report $ SkippedContent
+        logMessage $ SkippedContent
           ":language: [after first in definition of role]" pos
 
     updateState $ \s -> s {
@@ -1154,7 +1155,7 @@ renderRole contents fmt role attr = case role of
                 renderRole contents newFmt newRole newAttr
             Nothing -> do
                 pos <- getPosition
-                report $ SkippedContent (":" ++ custom ++ ":") pos
+                logMessage $ SkippedContent (":" ++ custom ++ ":") pos
                 return $ B.str contents -- Undefined role
  where
    titleRef ref = return $ B.str ref -- FIXME: Not a sensible behaviour
@@ -1266,7 +1267,7 @@ lookupKey oldkeys key = do
   case M.lookup key keyTable of
        Nothing  -> do
          let Key key' = key
-         report $ ReferenceNotFound key' pos
+         logMessage $ ReferenceNotFound key' pos
          return (("",""),nullAttr)
        -- check for keys of the form link_, which need to be resolved:
        Just ((u@(_:_),""),_) | last u == '_' -> do
@@ -1274,7 +1275,7 @@ lookupKey oldkeys key = do
          let newkey = toKey rawkey
          if newkey `elem` oldkeys
             then do
-              report $ CircularReference rawkey pos
+              logMessage $ CircularReference rawkey pos
               return (("",""),nullAttr)
             else lookupKey (key:oldkeys) newkey
        Just val -> return val
@@ -1301,7 +1302,7 @@ subst = try $ do
   case M.lookup key substTable of
        Nothing     -> do
          pos <- getPosition
-         report $ ReferenceNotFound (show key) pos
+         logMessage $ ReferenceNotFound (show key) pos
          return mempty
        Just target -> return target
 
@@ -1315,7 +1316,7 @@ note = try $ do
   case lookup ref notes of
     Nothing   -> do
       pos <- getPosition
-      report $ ReferenceNotFound ref pos
+      logMessage $ ReferenceNotFound ref pos
       return mempty
     Just raw  -> do
       -- We temporarily empty the note list while parsing the note,
