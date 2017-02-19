@@ -7,5 +7,6 @@ flags:
     network-uri: true
 packages:
 - '.'
-extra-deps: []
+extra-deps:
+- skylighting-0.2
 resolver: lts-8.0
