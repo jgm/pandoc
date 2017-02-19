@@ -47,6 +47,7 @@ data PandocError = PandocFileReadError FilePath
                  | PandocSomeError String
                  | PandocParseError String
                  | PandocParsecError Input ParseError
+                 | PandocMakePDFError String
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -71,4 +72,5 @@ handleError (Left e) =
                                         ,"^"]
                         else ""
         in  err 65 $ "\nError at " ++ show  err' ++ errorInFile
+    PandocMakePDFError s -> err 65 s
 
