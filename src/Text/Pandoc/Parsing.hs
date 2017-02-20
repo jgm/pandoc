@@ -1052,8 +1052,7 @@ logMessage :: (Stream s m a, HasLogMessages st)
 logMessage msg = updateState (addLogMessage msg)
 
 -- | Report all the accumulated log messages, according to verbosity level.
-reportLogMessages :: (PandocMonad m, Stream s m a, HasLogMessages st)
-                  => ParserT s st m ()
+reportLogMessages :: (PandocMonad m, HasLogMessages st) => ParserT s st m ()
 reportLogMessages = do
   msgs <- getLogMessages <$> getState
   mapM_ report msgs
