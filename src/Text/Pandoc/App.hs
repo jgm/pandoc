@@ -337,7 +337,7 @@ convertWithOpts opts = do
                                  then 0
                                  else optTabStop opts)
 
-      readSources :: MonadIO m => [FilePath] -> m String
+      readSources :: (Functor m, MonadIO m) => [FilePath] -> m String
       readSources srcs = convertTabs . intercalate "\n" <$>
                             mapM readSource srcs
 
