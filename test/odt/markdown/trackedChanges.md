@@ -1,1 +1,0 @@
-Some text with and inserted text.

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+$if(mathml)$
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook EBNF Module V1.1CR1//EN"
+                  "http://www.oasis-open.org/docbook/xml/mathml/1.1CR1/dbmathml.dtd">
+$else$
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+                  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+$endif$
+<article>
+  <articleinfo>
+    <title>$title$</title>
+$if(author)$
+    <authorgroup>
+$for(author)$
+      <author>
+        $author$
+      </author>
+$endfor$
+    </authorgroup>
+$endif$
+$if(date)$
+    <date>$date$</date>
+$endif$
+  </articleinfo>
+$for(include-before)$
+$include-before$
+$endfor$
+$body$
+$for(include-after)$
+$include-after$
+$endfor$
+</article>

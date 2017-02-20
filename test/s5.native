@@ -1,8 +1,0 @@
-Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Sam",Space,Str "Smith"],MetaInlines [Str "Jen",Space,Str "Jones"]]),("date",MetaInlines [Str "July",Space,Str "15,",Space,Str "2006"]),("title",MetaInlines [Str "My",Space,Str "S5",Space,Str "Document"])]})
-[Header 1 ("first-slide",[],[]) [Str "First",Space,Str "slide"]
-,BulletList
- [[Plain [Str "first",Space,Str "bullet"]]
- ,[Plain [Str "second",Space,Str "bullet"]]]
-,Header 1 ("math",[],[]) [Str "Math"]
-,BulletList
- [[Plain [Math InlineMath "\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}"]]]]

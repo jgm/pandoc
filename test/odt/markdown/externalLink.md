@@ -1,1 +1,0 @@
-Here comes an [external link](http://example.com/) to example.com.

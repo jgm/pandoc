@@ -1,2 +1,0 @@
-[Header 1 ("anchor-header",[],[]) [Str "Anchor",Space,Str "Header"]
-,Para [Str "A",Space,Link ("",[],[]) [Str "link"] ("#anchor-header","")]]

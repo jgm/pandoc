@@ -1,1 +1,0 @@
-Here comes text that was ~~striken out~~.

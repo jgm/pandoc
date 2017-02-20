@@ -1,7 +1,0 @@
-[Para [Str "Regular",Space,Str "text",Space,Emph [Str "italics"],Space,Strong [Str "bold",Space,Emph [Str "bold",Space,Str "italics"]],Str "."]
-,Para [Str "This",Space,Str "is",Space,SmallCaps [Str "Small",Space,Str "Caps"],Str ",",Space,Str "and",Space,Str "this",Space,Str "is",Space,Strikeout [Str "strikethrough"],Str "."]
-,Para [Str "Some",Space,Str "people",Space,Str "use",Space,Span ("",[],[("underline","single")]) [Str "single",Space,Str "underlines",Space,Str "for",Space,Emph [Str "emphasis"]],Str "."]
-,Para [Str "Above",Space,Str "the",Space,Str "line",Space,Str "is",Space,Superscript [Str "superscript"],Space,Str "and",Space,Str "below",Space,Str "the",Space,Str "line",Space,Str "is",Space,Subscript [Str "subscript"],Str "."]
-,Para [Str "A",Space,Str "line",LineBreak,Str "break."]
-,Para [Str "hello",Space,Str "//",Space,Str "world",Space,Str "**",Space,Str "from",Space,Str "__",Space,Str "me"]
-,Para [Code ("",[],[]) "hello // world ** from __ me"]]
