@@ -38,10 +38,6 @@ matrix:
     compiler: ": #GHC 7.10.3"
     addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3,happy-1.19.5], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal GHCVER=8.0.1 CABALVER=1.24
-    compiler: ": #GHC 8.0.1"
-    addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.1,happy-1.19.5], sources: [hvr-ghc]}}
-
   - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24
     compiler: ": #GHC 8.0.2"
     addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2,happy-1.19.5], sources: [hvr-ghc]}}
@@ -72,7 +68,6 @@ matrix:
   #   os: osx
 
   allow_failures:
-  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24
   - env: BUILD=cabal GHCVER=7.8.4 CABALVER=1.18
   - env: BUILD=cabal GHCVER=head  CABALVER=head
   - env: BUILD=stack ARGS="--resolver nightly"
