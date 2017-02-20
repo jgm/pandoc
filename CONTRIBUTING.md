@@ -215,28 +215,30 @@ With stack:
     pandoc +RTS -p -RTS [file]...
     less pandoc.prof
 
+Templates
+---------
+
+The default templates live in `data/templates`, which is a git
+subtree linked to <https://github.com/jgm/pandoc-templates.git>.
+The purpose of maintaining a separate repository is to allow
+people to maintain variant templates as a fork.
+
+You can modify the templates and submit patches without worrying
+much about this: when these patches are merged, we will
+push them to the main templates repository by doing
+
+    git subtree push --prefix=data/templates templates master
+
+where `templates` is a remote pointing to the templates
+repository.
+
 The code
 --------
 
 Pandoc has a publicly accessible git repository on
 github: <http://github.com/jgm/pandoc>.  To get a local copy of the source:
 
-    git clone git://github.com/jgm/pandoc.git
-
-Note:  after cloning the repository (and in the future after pulling from it),
-you should do
-
-    git submodule update --init
-
-to pull in changes to the templates (`data/templates/`).  You can automate this
-by creating a file `.git/hooks/post-merge` with the contents:
-
-    #!/bin/sh
-    git submodule update --init
-
-and making it executable:
-
-    chmod +x .git/hooks/post-merge
+    git clone https://github.com/jgm/pandoc.git
 
 The source for the main pandoc program is `pandoc.hs`.  The source for
 the pandoc library is in `src/`, the source for the tests is in

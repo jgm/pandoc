@@ -112,7 +112,6 @@ Or you can fetch the development code by cloning the repository:
 
     git clone https://github.com/jgm/pandoc
     cd pandoc
-    git submodule update --init   # to fetch the templates
 
 Note:  there may be times when the development code is broken
 or depends on other libraries which must be installed
@@ -158,13 +157,6 @@ The easiest way to build pandoc from source is to use [stack]:
     as above, but without the 'pandoc':
 
         cabal install
-
-    Note: If you obtained the source from the git repository (rather
-    than a release tarball), you'll need to do
-
-        git submodule update --init
-
-    to fetch the contents of `data/templates` before `cabal install`.
 
 4.  Make sure the `$CABALDIR/bin` directory is in your path.  You should
     now be able to run `pandoc`:
@@ -329,14 +321,13 @@ maximal build method would be
     git clone https://github.com/jgm/cmark-hs
     git clone https://github.com/jgm/zip-archive
     cd pandoc
-    git submodule update --init
     stack install --test --install-ghc --stack-yaml stack.full.yaml
 
 To pull in the latest changes, after you've done this and there have been
 changes in the repositories:  Visit each repository in pandoc-build
 (pandoc-types, texmath, pandoc-citeproc, pandoc, zip-archive, cmark-hs) and do
-`git pull`.  In the pandoc repo, also do `git submodule update` and `stack
-install --test --stack-yaml stack.full.yaml`.
+`git pull`.  In the pandoc repo, also do `stack install --test
+--stack-yaml stack.full.yaml`.
 
 
 [Arch]: https://www.archlinux.org/packages/community/x86_64/pandoc/
