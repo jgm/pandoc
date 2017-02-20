@@ -953,17 +953,28 @@ inlineToHtml opts inline = do
                                     else link'' ! A.title (toValue tit)
     (Image attr txt (s,tit)) | treatAsImage s -> do
                         let alternate' = stringify txt
-                        let attributes = [A.src $ toValue s] ++
-                                         [A.title $ toValue tit | not (null tit)] ++
-                                         [A.alt $ toValue alternate' | not (null txt)] ++
-                                         imgAttrsToHtml opts attr
+                        slideVariant <- gets stSlideVariant
+                        let isReveal = slideVariant == RevealJsSlides
+                        let attributes =
+                              -- reveal.js uses data-src for lazy loading
+                              (if isReveal
+                                  then customAttribute "data-src" $ toValue s
+                                  else A.src $ toValue s) :
+                              [A.title $ toValue tit | not (null tit)] ++
+                              [A.alt $ toValue alternate' | not (null txt)] ++
+                              imgAttrsToHtml opts attr
                         let tag = if html5 then H5.img else H.img
                         return $ foldl (!) tag attributes
                         -- note:  null title included, as in Markdown.pl
     (Image attr _ (s,tit)) -> do
-                        let attributes = [A.src $ toValue s] ++
-                                         [A.title $ toValue tit | not (null tit)] ++
-                                         imgAttrsToHtml opts attr
+                        slideVariant <- gets stSlideVariant
+                        let isReveal = slideVariant == RevealJsSlides
+                        let attributes =
+                              (if isReveal
+                                  then customAttribute "data-src" $ toValue s
+                                  else A.src $ toValue s) :
+                              [A.title $ toValue tit | not (null tit)] ++
+                              imgAttrsToHtml opts attr
                         return $ foldl (!) H5.embed attributes
                         -- note:  null title included, as in Markdown.pl
     (Note contents) -> do

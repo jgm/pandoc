@@ -73,7 +73,7 @@ convertTag media sourceURL t@(TagOpen tagname as)
        as' <- mapM processAttribute as
        return $ TagOpen tagname as'
   where processAttribute (x,y) =
-           if x == "src" || x == "href" || x == "poster"
+           if x == "src" || x == "data-src" || x == "href" || x == "poster"
               then do
                 enc <- getDataURI media sourceURL (fromAttrib "type" t) y
                 return (x, enc)
