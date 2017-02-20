@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article>
+<article
+  xmlns="http://docbook.org/ns/docbook" version="5.0"
+$if(mathml)$
+  xmlns:mml="http://www.w3.org/1998/Math/MathML"
+$endif$
+  xmlns:xlink="http://www.w3.org/1999/xlink" >
+  <info>
+    <title>$title$</title>
+$if(author)$
+    <authorgroup>
+$for(author)$
+      <author>
+        $author$
+      </author>
+$endfor$
+    </authorgroup>
+$endif$
+$if(date)$
+    <date>$date$</date>
+$endif$
+  </info>
+$for(include-before)$
+$include-before$
+$endfor$
+$body$
+$for(include-after)$
+$include-after$
+$endfor$
+</article>

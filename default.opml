@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>$title$</title>
+    <dateModified>$date$</dateModified>
+    <ownerName>$for(author)$$author$$sep$; $endfor$</ownerName>
+  </head>
+  <body>
+$body$
+  </body>
+</opml>
