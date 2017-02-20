@@ -1092,7 +1092,7 @@ instance HasHeaderMap HTMLState where
 
 -- This signature should be more general
 -- MonadReader HTMLLocal m => HasQuoteContext st m
-instance PandocMonad m => HasQuoteContext st (ReaderT HTMLLocal m) where
+instance PandocMonad m => HasQuoteContext HTMLState (ReaderT HTMLLocal m) where
   getQuoteContext = asks quoteContext
   withQuoteContext q = local (\s -> s{quoteContext = q})
 
