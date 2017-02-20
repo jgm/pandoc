@@ -1,0 +1,30 @@
+{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+$if(title)$
+{\pard \qc \f0 \sa180 \li0 \fi0 \b \fs36 $title$\par}
+$endif$
+$for(author)$
+{\pard \qc \f0 \sa180 \li0 \fi0  $author$\par}
+$endfor$
+$if(date)$
+{\pard \qc \f0 \sa180 \li0 \fi0  $date$\par}
+$endif$
+$if(spacer)$
+{\pard \ql \f0 \sa180 \li0 \fi0 \par}
+$endif$
+$if(toc)$
+$toc$
+$endif$
+$for(include-before)$
+$include-before$
+$endfor$
+$body$
+$for(include-after)$
+$include-after$
+$endfor$
+}

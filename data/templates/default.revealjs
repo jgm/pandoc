@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html$if(lang)$ lang="$lang$"$endif$$if(dir)$ dir="$dir$"$endif$>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+$for(author-meta)$
+  <meta name="author" content="$author-meta$">
+$endfor$
+$if(date-meta)$
+  <meta name="dcterms.date" content="$date-meta$">
+$endif$
+$if(keywords)$
+  <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
+$endif$
+  <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="$revealjs-url$/css/reveal.css">
+  <style type="text/css">code{white-space: pre;}</style>
+$if(quotes)$
+  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
+$endif$
+$if(highlighting-css)$
+  <style type="text/css">
+$highlighting-css$
+  </style>
+$endif$
+$if(theme)$
+  <link rel="stylesheet" href="$revealjs-url$/css/theme/$theme$.css" id="theme">
+$else$
+  <link rel="stylesheet" href="$revealjs-url$/css/theme/black.css" id="theme">
+$endif$
+$for(css)$
+  <link rel="stylesheet" href="$css$"/>
+$endfor$
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? '$revealjs-url$/css/print/pdf.css' : '$revealjs-url$/css/print/paper.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+  </script>
+  <!--[if lt IE 9]>
+  <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
+  <![endif]-->
+$if(math)$
+  $math$
+$endif$
+$for(header-includes)$
+  $header-includes$
+$endfor$
+</head>
+<body>
+$for(include-before)$
+$include-before$
+$endfor$
+  <div class="reveal">
+    <div class="slides">
+
+$if(title)$
+<section>
+  <h1 class="title">$title$</h1>
+$if(subtitle)$
+  <p class="subtitle">$subtitle$</p>
+$endif$
+$for(author)$
+  <p class="author">$author$</p>
+$endfor$
+$if(date)$
+  <p class="date">$date$</p>
+$endif$
+</section>
+$endif$
+$if(toc)$
+<section id="$idprefix$TOC">
+$toc$
+</section>
+$endif$
+
+$body$
+    </div>
+  </div>
+
+  <script src="$revealjs-url$/lib/js/head.min.js"></script>
+  <script src="$revealjs-url$/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+$if(controls)$
+        // Display controls in the bottom right corner
+        controls: $controls$,
+$endif$
+$if(progress)$
+        // Display a presentation progress bar
+        progress: $progress$,
+$endif$
+$if(slideNumber)$
+        // Display the page number of the current slide
+        slideNumber: $slideNumber$,
+$endif$
+$if(history)$
+        // Push each slide change to the browser history
+        history: $history$,
+$endif$
+$if(keyboard)$
+        // Enable keyboard shortcuts for navigation
+        keyboard: $keyboard$,
+$endif$
+$if(overview)$
+        // Enable the slide overview mode
+        overview: $overview$,
+$endif$
+$if(center)$
+        // Vertical centering of slides
+        center: $center$,
+$endif$
+$if(touch)$
+        // Enables touch navigation on devices with touch input
+        touch: $touch$,
+$endif$
+$if(loop)$
+        // Loop the presentation
+        loop: $loop$,
+$endif$
+$if(rtl)$
+        // Change the presentation direction to be RTL
+        rtl: $rtl$,
+$endif$
+$if(fragments)$
+        // Turns fragments on and off globally
+        fragments: $fragments$,
+$endif$
+$if(embedded)$
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: $embedded$,
+$endif$
+$if(help)$
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: $help$,
+$endif$
+$if(showNotes)$
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: $showNotes$,
+$endif$
+$if(autoSlide)$
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: $autoSlide$,
+$endif$
+$if(autoSlideStoppable)$
+        // Stop auto-sliding after user input
+        autoSlideStoppable: $autoSlideStoppable$,
+$endif$
+$if(mouseWheel)$
+        // Enable slide navigation via mouse wheel
+        mouseWheel: $mouseWheel$,
+$endif$
+$if(hideAddressBar)$
+        // Hides the address bar on mobile devices
+        hideAddressBar: $hideAddressBar$,
+$endif$
+$if(previewLinks)$
+        // Opens links in an iframe preview overlay
+        previewLinks: $previewLinks$,
+$endif$
+$if(transition)$
+        // Transition style
+        transition: '$transition$', // none/fade/slide/convex/concave/zoom
+$endif$
+$if(transitionSpeed)$
+        // Transition speed
+        transitionSpeed: '$transitionSpeed$', // default/fast/slow
+$endif$
+$if(backgroundTransition)$
+        // Transition style for full page slide backgrounds
+        backgroundTransition: '$backgroundTransition$', // none/fade/slide/convex/concave/zoom
+$endif$
+$if(viewDistance)$
+        // Number of slides away from the current that are visible
+        viewDistance: $viewDistance$,
+$endif$
+$if(parallaxBackgroundImage)$
+        // Parallax background image
+        parallaxBackgroundImage: '$parallaxBackgroundImage$', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
+$endif$
+$if(parallaxBackgroundSize)$
+        // Parallax background size
+        parallaxBackgroundSize: '$parallaxBackgroundSize$', // CSS syntax, e.g. "2100px 900px"
+$endif$
+$if(parallaxBackgroundHorizontal)$
+        // Amount to move parallax background (horizontal and vertical) on slide change
+        // Number, e.g. 100
+        parallaxBackgroundHorizontal: $parallaxBackgroundHorizontal$,
+$endif$
+$if(parallaxBackgroundVertical)$
+        parallaxBackgroundVertical: $parallaxBackgroundVertical$,
+$endif$
+$if(width)$
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: $width$,
+$endif$
+$if(height)$
+        height: $height$,
+$endif$
+$if(margin)$
+        // Factor of the display size that should remain empty around the content
+        margin: $margin$,
+$endif$
+$if(minScale)$
+        // Bounds for smallest/largest possible scale to apply to content
+        minScale: $minScale$,
+$endif$
+$if(maxScale)$
+        maxScale: $maxScale$,
+$endif$
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: '$revealjs-url$/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '$revealjs-url$/plugin/zoom-js/zoom.js', async: true },
+    $if(notes-server)$
+          { src: '$revealjs-url$/socket.io/socker.io.js', async: true },
+          { src: '$revealjs-url$/plugin/notes-server/client.js', async: true },
+    $endif$
+          { src: '$revealjs-url$/plugin/notes/notes.js', async: true }
+        ]
+      });
+    </script>
+  $for(include-after)$
+  $include-after$
+  $endfor$
+  </body>
+</html>

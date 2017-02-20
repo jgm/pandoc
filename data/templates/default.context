@@ -1,0 +1,146 @@
+$if(context-lang)$
+\mainlanguage[$context-lang$]
+$endif$
+$if(context-dir)$
+\setupalign[$context-dir$]
+\setupdirections[bidi=on,method=two]
+$endif$
+% Enable hyperlinks
+\setupinteraction
+  [state=start,
+$if(title)$
+  title={$title$},
+$endif$
+$if(subtitle)$
+  subtitle={$subtitle$},
+$endif$
+$if(author)$
+  author={$for(author)$$author$$sep$; $endfor$},
+$endif$
+$if(keywords)$
+  keyword={$for(keywords)$$keywords$$sep$; $endfor$},
+$endif$
+  style=$linkstyle$,
+  color=$linkcolor$,
+  contrastcolor=$linkcontrastcolor$]
+% make chapter, section bookmarks visible when opening document
+\placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
+\setupinteractionscreen[option=bookmark]
+\setuptagging[state=start]
+
+$if(papersize)$
+\setuppapersize[$for(papersize)$$papersize$$sep$,$endfor$]
+$endif$
+$if(layout)$
+\setuplayout[$for(layout)$$layout$$sep$,$endfor$]
+$endif$
+$if(pagenumbering)$
+\setuppagenumbering[$for(pagenumbering)$$pagenumbering$$sep$,$endfor$]
+$endif$
+% use microtypography
+\definefontfeature[default][default][script=latn, protrusion=quality, expansion=quality, itlc=yes, textitalics=yes, onum=yes, pnum=yes]
+\definefontfeature[smallcaps][script=latn, protrusion=quality, expansion=quality, smcp=yes, onum=yes, pnum=yes]
+\setupalign[hz,hanging]
+\setupitaliccorrection[global, always]
+\setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
+\usemodule[simplefonts$if(fontsize)$,$fontsize$$endif$]
+\setmainfontfallback[DejaVu Serif][range={greekandcoptic, greekextended}, force=yes, rscale=auto]
+$if(mainfont)$
+\setmainfont[$mainfont$]
+$endif$
+$if(sansfont)$
+\setsansfont[$sansfont$][rscale=auto]
+$endif$
+$if(monofont)$
+\setmonofont[$monofont$][features=none, rscale=auto]
+$endif$
+$if(mathfont)$
+\setmathfont[$mathfont$][rscale=auto]
+$endif$
+\setupwhitespace[$if(whitespace)$$whitespace$$else$medium$endif$]
+$if(indenting)$
+\setupindenting[$for(indenting)$$indenting$$sep$,$endfor$]
+$endif$
+$if(interlinespace)$
+\setupinterlinespace[$for(interlinespace)$$interlinespace$$sep$,$endfor$]
+$endif$
+
+\setuphead[chapter]            [style=\tfd,header=empty]
+\setuphead[section]            [style=\tfc]
+\setuphead[subsection]         [style=\tfb]
+\setuphead[subsubsection]      [style=\bf]
+\setuphead[subsubsubsection]   [style=\sc]
+\setuphead[subsubsubsubsection][style=\it]
+
+$if(headertext)$
+\setupheadertexts$for(headertext)$[$headertext$]$endfor$
+$endif$
+$if(footertext)$
+\setupfootertexts$for(footertext)$[$footertext$]$endfor$
+$endif$
+$if(number-sections)$
+$else$
+\setuphead[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][number=no]
+$endif$
+
+\definedescription
+  [description]
+  [headstyle=bold, style=normal, location=hanging, width=broad, margin=1cm, alternative=hanging]
+
+\setupitemize[autointro]    % prevent orphan list intro
+\setupitemize[indentnext=no]
+
+\setupfloat[figure][default={here,nonumber}]
+\setupfloat[table][default={here,nonumber}]
+
+\setupthinrules[width=15em] % width of horizontal rules
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+\starttext
+$if(title)$
+\startalignment[middle]
+  {\tfd $title$}
+$if(subtitle)$
+  \smallskip
+  {\tfa $subtitle$}
+$endif$
+$if(author)$
+  \smallskip
+  {\tfa $for(author)$$author$$sep$\crlf $endfor$}
+$endif$
+$if(date)$
+  \smallskip
+  {\tfa $date$}
+$endif$
+  \bigskip
+\stopalignment
+$endif$
+$if(abstract)$
+\midaligned{\it Abstract}
+\startnarrower[2*middle]
+$abstract$
+\stopnarrower
+\blank[big]
+$endif$
+$for(include-before)$
+$include-before$
+$endfor$
+$if(toc)$
+\completecontent
+$endif$
+$if(lot)$
+\completelistoftables
+$endif$
+$if(lof)$
+\completelistoffigures
+$endif$
+
+$body$
+
+$for(include-after)$
+$include-after$
+$endfor$
+\stoptext
