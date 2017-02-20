@@ -960,7 +960,7 @@ class HasQuoteContext st m where
   getQuoteContext :: (Stream s m t) => ParsecT s st m QuoteContext
   withQuoteContext :: QuoteContext -> ParsecT s st m a -> ParsecT s st m a
 
-instance Monad m => HasQuoteContext ParserState m where
+instance PandocMonad m => HasQuoteContext ParserState m where
   getQuoteContext = stateQuoteContext <$> getState
   withQuoteContext context parser = do
     oldState <- getState
