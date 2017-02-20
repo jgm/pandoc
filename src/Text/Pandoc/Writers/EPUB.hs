@@ -35,7 +35,7 @@ import qualified Data.Set as Set
 import Data.Maybe ( fromMaybe, catMaybes )
 import Data.List ( isPrefixOf, isInfixOf, intercalate )
 import Text.Printf (printf)
-import System.FilePath ( takeExtension, takeFileName )
+import System.FilePath ( dropExtension, takeExtension, takeFileName )
 import Network.HTTP ( urlEncode )
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
@@ -904,9 +904,19 @@ transformInline  :: PandocMonad m
                  -- -> IORef [(FilePath, (FilePath, Maybe Entry))] -- ^ (oldpath, newpath) media
                  -> Inline
                  -> E m Inline
-transformInline opts (Image attr lab (src,tit)) = do
+transformInline opts (Image (ident, cls, kvs) lab (src,tit)) = do
+    pngFallback <- catchError (do
+      if takeExtension src == ".svg"
+         then do
+           let pngPath = dropExtension src ++ ".png"
+           _ <- P.fetchItem (writerSourceURL opts) pngPath -- this raises an error if the file does not exist
+           newPngPath <- modifyMediaRef opts pngPath
+           P.insertMedia newPngPath Nothing B8.empty
+           return [("data-svg-png-fallback", newPngPath)]
+         else return []
+      ) (\_ -> return [])
     newsrc <- modifyMediaRef opts src
-    return $ Image attr lab (newsrc, tit)
+    return $ Image (ident, cls, pngFallback ++ kvs) lab (newsrc, tit)
 transformInline opts (x@(Math t m))
   | WebTeX url <- writerHTMLMathMethod opts = do
     newsrc <- modifyMediaRef opts (url ++ urlEncode m)
