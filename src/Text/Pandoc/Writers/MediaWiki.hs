@@ -434,8 +434,8 @@ inlineToMediaWiki (Image attr alt (source, tit)) = do
 inlineToMediaWiki (Note contents) = do
   contents' <- blockListToMediaWiki contents
   modify (\s -> s { stNotes = True })
-  return $ "<ref>" ++ contents' ++ "</ref>"
-  -- note - may not work for notes with multiple blocks
+  return $ "<ref>" ++ stripTrailingNewlines contents' ++ "</ref>"
+  -- note - does not work for notes with multiple blocks
 
 highlightingLangs :: Set.Set String
 highlightingLangs = Set.fromList [
