@@ -219,7 +219,7 @@ para = do
 table :: PandocMonad m => MWParser m Blocks
 table = do
   tableStart
-  styles <- option [] parseAttrs <* blankline
+  styles <- option [] parseAttrs <* blanklines
   let tableWidth = case lookup "width" styles of
                          Just w  -> fromMaybe 1.0 $ parseWidth w
                          Nothing -> 1.0
