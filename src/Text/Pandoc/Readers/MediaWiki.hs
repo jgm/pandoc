@@ -264,7 +264,7 @@ tableEnd = try $ guardColumnOne *> skipSpaces *> sym "|}"
 
 rowsep :: PandocMonad m => MWParser m ()
 rowsep = try $ guardColumnOne *> skipSpaces *> sym "|-" <*
-               optional parseAttr <* blanklines
+               many (char '-') <* optional parseAttr <* blanklines
 
 cellsep :: PandocMonad m => MWParser m ()
 cellsep = try $
