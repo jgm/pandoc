@@ -469,13 +469,13 @@ Ellipses…and…and….
 = LaTeX =
 
 * 
-* <math>2+2=4</math>
-* <math>x \in y</math>
-* <math>\alpha \wedge \omega</math>
-* <math>223</math>
-* <math>p</math>-Tree
-* Here’s some display math: <math>\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
-* Here’s one that has a line break in it: <math>\alpha + \omega \times x^2</math>.
+* <math display="inline">2+2=4</math>
+* <math display="inline">x \in y</math>
+* <math display="inline">\alpha \wedge \omega</math>
+* <math display="inline">223</math>
+* <math display="inline">p</math>-Tree
+* Here’s some display math: <math display="block">\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
+* Here’s one that has a line break in it: <math display="inline">\alpha + \omega \times x^2</math>.
 
 These shouldn’t be math:
 

@@ -388,8 +388,11 @@ inlineToMediaWiki (Code _ str) =
 
 inlineToMediaWiki (Str str) = return $ escapeString str
 
-inlineToMediaWiki (Math _ str) = return $ "<math>" ++ str ++ "</math>"
-                               -- note:  str should NOT be escaped
+inlineToMediaWiki (Math mt str) = return $
+  "<math display=\"" ++
+  (if mt == DisplayMath then "block" else "inline") ++
+  "\">" ++ str ++ "</math>"
+  -- note:  str should NOT be escaped
 
 inlineToMediaWiki (RawInline f str)
   | f == Format "mediawiki" = return str
