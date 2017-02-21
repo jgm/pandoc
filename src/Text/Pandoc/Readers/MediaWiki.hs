@@ -292,9 +292,11 @@ tableCell = try $ do
   attrs <- option [] $ try $ parseAttrs <* skipSpaces <* char '|' <*
                                  notFollowedBy (char '|')
   skipMany spaceChar
+  pos' <- getPosition
   ls <- concat <$> many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *>
                      ((snd <$> withRaw table) <|> count 1 anyChar))
-  bs <- parseFromString (mconcat <$> many block) ls
+  bs <- parseFromString (do setPosition pos'
+                            mconcat <$> many block) ls
   let align = case lookup "align" attrs of
                     Just "left"   -> AlignLeft
                     Just "right"  -> AlignRight
@@ -428,8 +430,13 @@ defListItem = try $ do
   return (terms, defs)
 
 defListTerm  :: PandocMonad m => MWParser m Inlines
-defListTerm = char ';' >> skipMany spaceChar >> anyLine >>=
-  parseFromString (trimInlines . mconcat <$> many inline)
+defListTerm = do
+  guardColumnOne
+  char ';'
+  skipMany spaceChar
+  pos' <- getPosition
+  anyLine >>= parseFromString (do setPosition pos'
+                                  trimInlines . mconcat <$> many inline)
 
 listStart :: PandocMonad m => Char -> MWParser m ()
 listStart c = char c *> notFollowedBy listStartChar
@@ -438,10 +445,7 @@ listStartChar :: PandocMonad m => MWParser m Char
 listStartChar = oneOf "*#;:"
 
 anyListStart :: PandocMonad m => MWParser m Char
-anyListStart =  char '*'
-            <|> char '#'
-            <|> char ':'
-            <|> char ';'
+anyListStart = guardColumnOne >> oneOf "*#:;"
 
 li :: PandocMonad m => MWParser m Blocks
 li = lookAhead (htmlTag (~== TagOpen "li" [])) *>
@@ -449,16 +453,19 @@ li = lookAhead (htmlTag (~== TagOpen "li" [])) *>
 
 listItem :: PandocMonad m => Char -> MWParser m Blocks
 listItem c = try $ do
+  guardColumnOne
   extras <- many (try $ char c <* lookAhead listStartChar)
   if null extras
      then listItem' c
      else do
        skipMany spaceChar
+       pos' <- getPosition
        first <- concat <$> manyTill listChunk newline
        rest <- many
                 (try $ string extras *> lookAhead listStartChar *>
                        (concat <$> manyTill listChunk newline))
-       contents <- parseFromString (many1 $ listItem' c)
+       contents <- parseFromString (do setPosition pos'
+                                       many1 $ listItem' c)
                           (unlines (first : rest))
        case c of
            '*'  -> return $ B.bulletList contents
@@ -480,10 +487,12 @@ listItem' :: PandocMonad m => Char -> MWParser m Blocks
 listItem' c = try $ do
   listStart c
   skipMany spaceChar
+  pos' <- getPosition
   first <- concat <$> manyTill listChunk newline
   rest <- many (try $ char c *> lookAhead listStartChar *>
                    (concat <$> manyTill listChunk newline))
-  parseFromString (firstParaToPlain . mconcat <$> many1 block)
+  parseFromString (do setPosition pos'
+                      firstParaToPlain . mconcat <$> many1 block)
       $ unlines $ first : rest
 
 firstParaToPlain :: Blocks -> Blocks
