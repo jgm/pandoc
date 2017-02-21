@@ -219,7 +219,9 @@ para = do
 table :: PandocMonad m => MWParser m Blocks
 table = do
   tableStart
-  styles <- option [] parseAttrs <* blanklines
+  styles <- option [] parseAttrs
+  skipMany spaceChar
+  optional blanklines
   let tableWidth = case lookup "width" styles of
                          Just w  -> fromMaybe 1.0 $ parseWidth w
                          Nothing -> 1.0
@@ -267,14 +269,10 @@ rowsep = try $ guardColumnOne *> skipSpaces *> sym "|-" <*
                many (char '-') <* optional parseAttr <* blanklines
 
 cellsep :: PandocMonad m => MWParser m ()
-cellsep = try $
-             (guardColumnOne *> skipSpaces <*
-                 (  (char '|' <* notFollowedBy (oneOf "-}+"))
-                <|> (char '!')
-                 )
-             )
-            <|> (() <$ try (string "||"))
-            <|> (() <$ try (string "!!"))
+cellsep = try $ do
+  skipSpaces
+  (char '|' *> notFollowedBy (oneOf "-}+") *> optional (char '|'))
+    <|> (char '!' *> optional (char '!'))
 
 tableCaption :: PandocMonad m => MWParser m Inlines
 tableCaption = try $ do
