@@ -39,6 +39,7 @@ module Text.Pandoc.ImageSize ( ImageType(..)
                              , Direction(..)
                              , dimension
                              , inInch
+                             , inPixel
                              , inPoints
                              , numUnit
                              , showInInch
@@ -58,6 +59,8 @@ import Data.Default (Default)
 import Numeric (showFFloat)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
+import qualified Text.Pandoc.UTF8 as UTF8
+import qualified Text.XML.Light as Xml
 import qualified Data.Map as M
 import Control.Monad.Except
 import Data.Maybe (fromMaybe)
@@ -65,7 +68,7 @@ import Data.Maybe (fromMaybe)
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
 
-data ImageType = Png | Gif | Jpeg | Pdf | Eps deriving Show
+data ImageType = Png | Gif | Jpeg | Svg | Pdf | Eps deriving Show
 data Direction = Width | Height
 instance Show Direction where
   show Width  = "width"
@@ -100,17 +103,25 @@ imageType img = case B.take 4 img of
                      "\xff\xd8\xff\xe0" -> return Jpeg  -- JFIF
                      "\xff\xd8\xff\xe1" -> return Jpeg  -- Exif
                      "%PDF"             -> return Pdf
+                     "<svg"             -> return Svg
+                     "<?xm"
+                       | "<svg " == (B.take 5 $ last $ B.groupBy openingTag $ B.drop 7 img)
+                                        -> return Svg
                      "%!PS"
                        | (B.take 4 $ B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
                                         -> return Eps
                      _                  -> mzero
+  where
+    -- B.groupBy openingTag matches first "<svg" or "<html" but not "<!--"
+    openingTag x y = x == '<' && y /= '!'
 
-imageSize :: ByteString -> Either String ImageSize
-imageSize img =
+imageSize :: WriterOptions -> ByteString -> Either String ImageSize
+imageSize opts img =
   case imageType img of
        Just Png  -> mbToEither "could not determine PNG size" $ pngSize img
        Just Gif  -> mbToEither "could not determine GIF size" $ gifSize img
        Just Jpeg -> jpegSize img
+       Just Svg  -> mbToEither "could not determine SVG size" $ svgSize opts img
        Just Eps  -> mbToEither "could not determine EPS size" $ epsSize img
        Just Pdf  -> Left "could not determine PDF size" -- TODO
        Nothing   -> Left "could not determine image type"
@@ -161,6 +172,16 @@ inInch opts dim =
     (Inch a)       -> a
     (Percent _)    -> 0
 
+inPixel :: WriterOptions -> Dimension -> Integer
+inPixel opts dim =
+  case dim of
+    (Pixel a)      -> a
+    (Centimeter a) -> floor $ dpi * a * 0.3937007874 :: Integer
+    (Inch a)       -> floor $ dpi * a :: Integer
+    _              -> 0
+  where
+    dpi = fromIntegral $ writerDpi opts
+
 -- | Convert a Dimension to a String denoting its equivalent in inches, for example "2.00000".
 -- Note: Dimensions in percentages are converted to the empty string.
 showInInch :: WriterOptions -> Dimension -> String
@@ -170,14 +191,8 @@ showInInch opts dim = showFl $ inInch opts dim
 -- | Convert a Dimension to a String denoting its equivalent in pixels, for example "600".
 -- Note: Dimensions in percentages are converted to the empty string.
 showInPixel :: WriterOptions -> Dimension -> String
-showInPixel opts dim =
-  case dim of
-    (Pixel a)      -> show a
-    (Centimeter a) -> show (floor $ dpi * a * 0.3937007874 :: Int)
-    (Inch a)       -> show (floor $ dpi * a :: Int)
-    (Percent _)    -> ""
-  where
-    dpi = fromIntegral $ writerDpi opts
+showInPixel _ (Percent _) = ""
+showInPixel opts dim = show $ inPixel opts dim
 
 -- | Maybe split a string into a leading number and trailing unit, e.g. "3cm" to Just (3.0, "cm")
 numUnit :: String -> Maybe (Double, String)
@@ -195,13 +210,11 @@ dimension dir (_, _, kvs) =
     Width  -> extractDim "width"
     Height -> extractDim "height"
   where
-    extractDim key =
-      case lookup key kvs of
-        Just str ->
-          case numUnit str of
-            Just (num, unit) -> toDim num unit
-            Nothing -> Nothing
-        Nothing  -> Nothing
+    extractDim key = lookup key kvs >>= lengthToDim
+
+lengthToDim :: String -> Maybe Dimension
+lengthToDim s = numUnit s >>= uncurry toDim
+  where
     toDim a "cm"   = Just $ Centimeter a
     toDim a "mm"   = Just $ Centimeter (a / 10)
     toDim a "in"   = Just $ Inch a
@@ -209,6 +222,8 @@ dimension dir (_, _, kvs) =
     toDim a "%"    = Just $ Percent a
     toDim a "px"   = Just $ Pixel (floor a::Integer)
     toDim a ""     = Just $ Pixel (floor a::Integer)
+    toDim a "pt"   = Just $ Inch (a / 72)
+    toDim a "pc"   = Just $ Inch (a / 6)
     toDim _ _      = Nothing
 
 epsSize :: ByteString -> Maybe ImageSize
@@ -270,6 +285,22 @@ gifSize img = do
                           dpiY = 72
                           }
        _             -> Nothing -- "GIF parse error"
+
+svgSize :: WriterOptions -> ByteString -> Maybe ImageSize
+svgSize opts img = do
+  doc <- Xml.parseXMLDoc $ UTF8.toString img
+  let dpi = fromIntegral $ writerDpi opts
+  let dirToInt dir = do
+        dim <- Xml.findAttrBy (== Xml.QName dir Nothing Nothing) doc >>= lengthToDim
+        return $ inPixel opts dim
+  w <- dirToInt "width"
+  h <- dirToInt "height"
+  return ImageSize {
+    pxX  = w
+  , pxY  = h
+  , dpiX = dpi
+  , dpiY = dpi
+  }
 
 jpegSize :: ByteString -> Either String ImageSize
 jpegSize img =

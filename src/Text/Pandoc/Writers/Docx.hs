@@ -1184,7 +1184,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
         Right (img, mt) -> do
           ident <- ("rId"++) `fmap` ((lift . lift) getUniqueId)
           let (xpt,ypt) = desiredSizeInPoints opts attr
-                 (either (const def) id (imageSize img))
+                 (either (const def) id (imageSize opts img))
           -- 12700 emu = 1 pt
           let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) (pageWidth * 12700)
           let cNvPicPr = mknode "pic:cNvPicPr" [] $
@@ -1228,6 +1228,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
                                               Just Gif  -> ".gif"
                                               Just Pdf  -> ".pdf"
                                               Just Eps  -> ".eps"
+                                              Just Svg  -> ".svg"
                                               Nothing   -> ""
           if null imgext
              then -- without an extension there is no rule for content type

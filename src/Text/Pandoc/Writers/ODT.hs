@@ -153,7 +153,7 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = do
        report $ CouldNotFetchResource src ""
        return $ Emph lab
      Right (img, mbMimeType) -> do
-       (ptX, ptY) <- case imageSize img of
+       (ptX, ptY) <- case imageSize opts img of
                        Right s  -> return $ sizeInPoints s
                        Left msg -> do
                          report $ CouldNotDetermineImageSize src msg
