@@ -715,9 +715,11 @@ Options affecting specific writers
     slides (for `beamer`, `s5`, `slidy`, `slideous`, `dzslides`).  Headers
     above this level in the hierarchy are used to divide the
     slide show into sections; headers below this level create
-    subheads within a slide.  The default is to set the slide level
-    based on the contents of the document; see
-    [Structuring the slide show].
+    subheads within a slide.  Note that content that is
+    not contained under slide-level headers will not appear in
+    the slide show.  The default is to set the slide level based
+    on the contents of the document; see [Structuring the slide
+    show].
 
 `--section-divs`
 
@@ -3670,6 +3672,9 @@ rules:
   * Headers *above* the slide level in the hierarchy create
     "title slides," which just contain the section title
     and help to break the slide show into sections.
+
+  * Content *above* the slide level will not appear in the slide
+    show.
 
   * A title page is constructed automatically from the document's title
     block, if present.  (In the case of beamer, this can be disabled
