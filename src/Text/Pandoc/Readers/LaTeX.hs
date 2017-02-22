@@ -435,7 +435,7 @@ section (ident, classes, kvs) lvl = do
 
 inlineCommand :: PandocMonad m => LP m Inlines
 inlineCommand = try $ do
-  name <- anyControlSeq
+  (name, raw') <- withRaw anyControlSeq
   guard $ name /= "begin" && name /= "end"
   guard $ not $ isBlockCommand name
   exts <- getOption readerExtensions
@@ -444,7 +444,7 @@ inlineCommand = try $ do
   let raw = do
         rawargs <- withRaw
                (skipangles *> skipopts *> option "" dimenarg *> many braced)
-        let rawcommand = '\\' : name ++ star ++ snd rawargs
+        let rawcommand = raw' ++ star ++ snd rawargs
         transformed <- applyMacros' rawcommand
         if transformed /= rawcommand
            then parseFromString inlines transformed
