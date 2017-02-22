@@ -1228,6 +1228,7 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
                                               Just Gif  -> ".gif"
                                               Just Pdf  -> ".pdf"
                                               Just Eps  -> ".eps"
+                                              Just Svg  -> ".svg"
                                               Nothing   -> ""
           if null imgext
              then -- without an extension there is no rule for content type
