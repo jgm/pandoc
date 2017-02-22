@@ -115,13 +115,13 @@ imageType img = case B.take 4 img of
     -- B.groupBy openingTag matches first "<svg" or "<html" but not "<!--"
     openingTag x y = x == '<' && y /= '!'
 
-imageSize :: ByteString -> Either String ImageSize
-imageSize img =
+imageSize :: WriterOptions -> ByteString -> Either String ImageSize
+imageSize opts img =
   case imageType img of
        Just Png  -> mbToEither "could not determine PNG size" $ pngSize img
        Just Gif  -> mbToEither "could not determine GIF size" $ gifSize img
        Just Jpeg -> jpegSize img
-       Just Svg  -> mbToEither "could not determine SVG size" $ svgSize img
+       Just Svg  -> mbToEither "could not determine SVG size" $ svgSize opts img
        Just Eps  -> mbToEither "could not determine EPS size" $ epsSize img
        Just Pdf  -> Left "could not determine PDF size" -- TODO
        Nothing   -> Left "could not determine image type"
@@ -286,10 +286,9 @@ gifSize img = do
                           }
        _             -> Nothing -- "GIF parse error"
 
-svgSize :: ByteString -> Maybe ImageSize
-svgSize img = do
+svgSize :: WriterOptions -> ByteString -> Maybe ImageSize
+svgSize opts img = do
   doc <- Xml.parseXMLDoc $ UTF8.toString img
-  let opts = def --TODO: use proper opts instead of def, which simply contains dpi=72
   let dpi = fromIntegral $ writerDpi opts
   let dirToInt dir = do
         dim <- Xml.findAttrBy (== Xml.QName dir Nothing Nothing) doc >>= lengthToDim

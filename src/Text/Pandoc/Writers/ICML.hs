@@ -546,7 +546,7 @@ imageICML opts style attr (src, _) = do
               report $ CouldNotFetchResource src ""
               return def
             Right (img, _) -> do
-              case imageSize img of
+              case imageSize opts img of
                 Right size -> return size
                 Left msg   -> do
                   report $ CouldNotDetermineImageSize src msg

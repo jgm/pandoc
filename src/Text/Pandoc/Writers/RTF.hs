@@ -63,7 +63,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = do
                        "image/jpeg" -> return "\\jpegblip"
                        "image/png"  -> return "\\pngblip"
                        _            -> throwError $ PandocSomeError "Unknown file type"
-         sizeSpec <- case imageSize imgdata of
+         sizeSpec <- case imageSize opts imgdata of
                              Left msg -> do
                                report $ CouldNotDetermineImageSize src msg
                                return ""
