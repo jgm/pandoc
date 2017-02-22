@@ -168,6 +168,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("emb","chemical/x-embl-dl-nucleotide")
            ,("embl","chemical/x-embl-dl-nucleotide")
            ,("emf","image/x-emf")
+           ,("emz","application/x-msmetafile")
            ,("eml","message/rfc822")
            ,("ent","chemical/x-ncbi-asn1-ascii")
            ,("eot","application/vnd.ms-fontobject")
