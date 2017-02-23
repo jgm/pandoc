@@ -3072,6 +3072,10 @@ nonbreaking space after the image:
 
     ![This image won't be a figure](/url/of/image.png)\ 
 
+Note that in reveal.js slide shows, an image in a paragraph
+by itself that has the `stretch` class will fill the screen,
+and the caption and figure tags will be omitted.
+
 #### Extension: `link_attributes` ####
 
 Attributes can be set on links and images:

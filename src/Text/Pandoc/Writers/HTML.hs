@@ -533,12 +533,10 @@ treatAsImage fp =
       ext  = map toLower $ drop 1 $ takeExtension path
   in  null ext || ext `elem` imageExts
 
--- | Convert Pandoc block element to HTML.
-blockToHtml :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
-blockToHtml _ Null = return mempty
-blockToHtml opts (Plain lst) = inlineListToHtml opts lst
--- title beginning with fig: indicates that the image is a figure
-blockToHtml opts (Para [Image attr txt (s,'f':'i':'g':':':tit)]) = do
+figure :: PandocMonad m
+       => WriterOptions -> Attr -> [Inline] -> (String, String)
+       -> StateT WriterState m Html
+figure opts attr txt (s,tit) = do
   img <- inlineToHtml opts (Image attr txt (s,tit))
   html5 <- gets stHtml5
   let tocapt = if html5
@@ -552,6 +550,23 @@ blockToHtml opts (Para [Image attr txt (s,'f':'i':'g':':':tit)]) = do
                     [nl opts, img, capt, nl opts]
               else H.div ! A.class_ "figure" $ mconcat
                     [nl opts, img, nl opts, capt, nl opts]
+
+-- | Convert Pandoc block element to HTML.
+blockToHtml :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
+blockToHtml _ Null = return mempty
+blockToHtml opts (Plain lst) = inlineListToHtml opts lst
+blockToHtml opts (Para [Image attr@(_,classes,_) txt (src,tit)])
+  | "stretch" `elem` classes = do
+  slideVariant <- gets stSlideVariant
+  case slideVariant of
+       RevealJsSlides ->
+         -- a "stretched" image in reveal.js must be a direct child
+         -- of the slide container
+         inlineToHtml opts (Image attr txt (src, tit))
+       _ -> figure opts attr txt (src, tit)
+-- title beginning with fig: indicates that the image is a figure
+blockToHtml opts (Para [Image attr txt (s,'f':'i':'g':':':tit)]) =
+  figure opts attr txt (s,tit)
 blockToHtml opts (Para lst)
   | isEmptyRaw lst = return mempty
   | otherwise = do
