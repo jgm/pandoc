@@ -62,7 +62,8 @@ import qualified Codec.Picture as JP
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
-import Text.Pandoc.Class (PandocIO, runIOorExplode, fetchItem, setMediaBag, runIO)
+import Text.Pandoc.Class (PandocIO, runIOorExplode, fetchItem,
+           setVerbosity, setMediaBag, runIO)
 
 #ifdef _WINDOWS
 changePathSeparators :: FilePath -> FilePath
@@ -99,12 +100,16 @@ makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = liftIO $ do
                  ,("margin-left", fromMaybe (Just "1.25in")
                             (getField "margin-left" meta'))
                  ]
-  source <- runIOorExplode $ writer opts doc
+  source <- runIOorExplode $ do
+              setVerbosity verbosity
+              writer opts doc
   html2pdf verbosity args source
 makePDF program writer opts verbosity mediabag doc =
   liftIO $ withTempDir "tex2pdf." $ \tmpdir -> do
-    doc' <- handleImages opts mediabag tmpdir doc
-    source <- runIOorExplode $ writer opts doc'
+    doc' <- handleImages verbosity opts mediabag tmpdir doc
+    source <- runIOorExplode $ do
+                setVerbosity verbosity
+                writer opts doc'
     let args   = writerLaTeXArgs opts
     case takeBaseName program of
        "context" -> context2pdf verbosity tmpdir source
@@ -112,25 +117,29 @@ makePDF program writer opts verbosity mediabag doc =
            -> tex2pdf' verbosity args tmpdir program source
        _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
 
-handleImages :: WriterOptions
+handleImages :: Verbosity
+             -> WriterOptions
              -> MediaBag
              -> FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
              -> IO Pandoc
-handleImages opts mediabag tmpdir =
-  walkM (convertImages tmpdir) <=< walkM (handleImage' opts mediabag tmpdir)
+handleImages verbosity opts mediabag tmpdir =
+  walkM (convertImages tmpdir) <=<
+          walkM (handleImage' verbosity opts mediabag tmpdir)
 
-handleImage' :: WriterOptions
+handleImage' :: Verbosity
+             -> WriterOptions
              -> MediaBag
              -> FilePath
              -> Inline
              -> IO Inline
-handleImage' opts mediabag tmpdir (Image attr ils (src,tit)) = do
+handleImage' verbosity opts mediabag tmpdir (Image attr ils (src,tit)) = do
     exists <- doesFileExist src
     if exists
        then return $ Image attr ils (src,tit)
        else do
          res <- runIO $ do
+                  setVerbosity verbosity
                   setMediaBag mediabag
                   fetchItem (writerSourceURL opts) src
          case res of
@@ -145,7 +154,7 @@ handleImage' opts mediabag tmpdir (Image attr ils (src,tit)) = do
                 warn $ "Could not find image `" ++ src ++ "', skipping..."
                 -- return alt text
                 return $ Emph ils
-handleImage' _ _ _ x = return x
+handleImage' _ _ _ _ x = return x
 
 convertImages :: FilePath -> Inline -> IO Inline
 convertImages tmpdir (Image attr ils (src, tit)) = do
