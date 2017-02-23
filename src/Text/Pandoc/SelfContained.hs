@@ -40,9 +40,7 @@ import System.FilePath (takeExtension, takeDirectory, (</>))
 import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
 import qualified Data.ByteString.Lazy as L
-import Control.Monad.Trans (MonadIO(..))
-import Text.Pandoc.Shared (renderTags', err, warn, trim)
-import Text.Pandoc.MediaBag (MediaBag)
+import Text.Pandoc.Shared (renderTags', trim)
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.UTF8 (toString)
 import Text.Pandoc.Options (WriterOptions(..))
@@ -50,8 +48,11 @@ import Data.List (isPrefixOf)
 import Control.Applicative ((<|>))
 import Text.Parsec (runParserT, ParsecT)
 import qualified Text.Parsec as P
+import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
-import Text.Pandoc.Class (fetchItem, runIO, setMediaBag)
+import Text.Pandoc.Class (fetchItem, PandocMonad(..), report)
+import Text.Pandoc.Error
+import Text.Pandoc.Logging
 
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c
@@ -66,8 +67,8 @@ makeDataURI mime raw =
                    then mime ++ ";charset=utf-8"
                    else mime  -- mime type already has charset
 
-convertTag :: MediaBag -> Maybe String -> Tag String -> IO (Tag String)
-convertTag media sourceURL t@(TagOpen tagname as)
+convertTag :: PandocMonad m => Maybe String -> Tag String -> m (Tag String)
+convertTag sourceURL t@(TagOpen tagname as)
   | tagname `elem`
      ["img", "embed", "video", "input", "audio", "source", "track"] = do
        as' <- mapM processAttribute as
@@ -75,55 +76,57 @@ convertTag media sourceURL t@(TagOpen tagname as)
   where processAttribute (x,y) =
            if x == "src" || x == "data-src" || x == "href" || x == "poster"
               then do
-                enc <- getDataURI media sourceURL (fromAttrib "type" t) y
+                enc <- getDataURI sourceURL (fromAttrib "type" t) y
                 return (x, enc)
               else return (x,y)
-convertTag media sourceURL t@(TagOpen "script" as) =
+convertTag sourceURL t@(TagOpen "script" as) =
   case fromAttrib "src" t of
        []     -> return t
        src    -> do
-           enc <- getDataURI media sourceURL (fromAttrib "type" t) src
+           enc <- getDataURI sourceURL (fromAttrib "type" t) src
            return $ TagOpen "script" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
-convertTag media sourceURL t@(TagOpen "link" as) =
+convertTag sourceURL t@(TagOpen "link" as) =
   case fromAttrib "href" t of
        []  -> return t
        src -> do
-           enc <- getDataURI media sourceURL (fromAttrib "type" t) src
+           enc <- getDataURI sourceURL (fromAttrib "type" t) src
            return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"])
-convertTag _ _ t = return t
+convertTag _ t = return t
 
-cssURLs :: MediaBag -> Maybe String -> FilePath -> ByteString
-        -> IO ByteString
-cssURLs media sourceURL d orig = do
-  res <- runParserT (parseCSSUrls media sourceURL d) () "css" orig
+cssURLs :: PandocMonad m
+        => Maybe String -> FilePath -> ByteString -> m ByteString
+cssURLs sourceURL d orig = do
+  res <- runParserT (parseCSSUrls sourceURL d) () "css" orig
   case res of
-       Left e    -> warn ("Could not parse CSS: " ++ show e) >> return orig
+       Left e    -> do
+         report $ CouldNotParseCSS (show e)
+         return orig
        Right bs  -> return bs
 
-parseCSSUrls :: MediaBag -> Maybe String -> FilePath
-             -> ParsecT ByteString () IO ByteString
-parseCSSUrls media sourceURL d = B.concat <$> P.many
-    (pCSSWhite <|> pCSSComment <|> pCSSUrl media sourceURL d <|> pCSSOther)
+parseCSSUrls :: PandocMonad m
+             => Maybe String -> FilePath -> ParsecT ByteString () m ByteString
+parseCSSUrls sourceURL d = B.concat <$> P.many
+    (pCSSWhite <|> pCSSComment <|> pCSSUrl sourceURL d <|> pCSSOther)
 
 -- Note: some whitespace in CSS is significant, so we can't collapse it!
-pCSSWhite :: ParsecT ByteString () IO ByteString
+pCSSWhite :: PandocMonad m => ParsecT ByteString () m ByteString
 pCSSWhite = B.singleton <$> P.space <* P.spaces
 
-pCSSComment :: ParsecT ByteString () IO ByteString
+pCSSComment :: PandocMonad m => ParsecT ByteString () m ByteString
 pCSSComment = P.try $ do
   P.string "/*"
   P.manyTill P.anyChar (P.try (P.string "*/"))
   return B.empty
 
-pCSSOther :: ParsecT ByteString () IO ByteString
+pCSSOther :: PandocMonad m => ParsecT ByteString () m ByteString
 pCSSOther = do
   (B.pack <$> P.many1 (P.noneOf "u/ \n\r\t")) <|>
     (B.singleton <$> P.char 'u') <|>
     (B.singleton <$> P.char '/')
 
-pCSSUrl :: MediaBag -> Maybe String -> FilePath
-        -> ParsecT ByteString () IO ByteString
-pCSSUrl media sourceURL d = P.try $ do
+pCSSUrl :: PandocMonad m
+        => Maybe String -> FilePath -> ParsecT ByteString () m ByteString
+pCSSUrl sourceURL d = P.try $ do
   P.string "url("
   P.spaces
   quote <- P.option Nothing (Just <$> P.oneOf "\"'")
@@ -136,30 +139,24 @@ pCSSUrl media sourceURL d = P.try $ do
       '#':_ -> return fallback
       'd':'a':'t':'a':':':_ -> return fallback
       u ->  do let url' = if isURI u then u else d </> u
-               enc <- lift $ getDataURI media sourceURL "" url'
+               enc <- lift $ getDataURI sourceURL "" url'
                return (B.pack $ "url(" ++ enc ++ ")")
 
 
-getDataURI :: MediaBag -> Maybe String -> MimeType -> String
-       -> IO String
-getDataURI _ _ _ src@('d':'a':'t':'a':':':_) = return src  -- already data: uri
-getDataURI media sourceURL mimetype src = do
+getDataURI :: PandocMonad m => Maybe String -> MimeType -> String -> m String
+getDataURI _ _ src@('d':'a':'t':'a':':':_) = return src  -- already data: uri
+getDataURI sourceURL mimetype src = do
   let ext = map toLower $ takeExtension src
-  fetchResult <- runIO $ do setMediaBag media
-                            fetchItem sourceURL src
-  (raw, respMime) <- case fetchResult of
-                          Left msg -> err 67 $ "Could not fetch " ++ src ++
-                                               "\n" ++ show msg
-                          Right x  -> return x
+  (raw, respMime) <- fetchItem sourceURL src
   let raw' = if ext == ".gz"
                 then B.concat $ L.toChunks $ Gzip.decompress $ L.fromChunks
                       $ [raw]
                 else raw
-  let mime = case (mimetype, respMime) of
-                  ("",Nothing) -> error
+  mime <- case (mimetype, respMime) of
+                  ("",Nothing) -> throwError $ PandocSomeError
                          $ "Could not determine mime type for `" ++ src ++ "'"
-                  (x, Nothing) -> x
-                  (_, Just x ) -> x
+                  (x, Nothing) -> return x
+                  (_, Just x ) -> return x
   let cssSourceURL = case parseURI src of
                           Just u
                             | uriScheme u `elem` ["http:","https:"] ->
@@ -168,14 +165,14 @@ getDataURI media sourceURL mimetype src = do
                                                uriFragment = "" }
                           _ -> Nothing
   result <- if mime == "text/css"
-               then cssURLs media cssSourceURL (takeDirectory src) raw'
+               then cssURLs cssSourceURL (takeDirectory src) raw'
                else return raw'
   return $ makeDataURI mime result
 
 -- | Convert HTML into self-contained HTML, incorporating images,
 -- scripts, and CSS using data: URIs.
-makeSelfContained :: MonadIO m => WriterOptions -> MediaBag -> String -> m String
-makeSelfContained opts mediabag inp = liftIO $ do
+makeSelfContained :: PandocMonad m => WriterOptions -> String -> m String
+makeSelfContained opts inp = do
   let tags = parseTags inp
-  out' <- mapM (convertTag mediabag (writerSourceURL opts)) tags
+  out' <- mapM (convertTag (writerSourceURL opts)) tags
   return $ renderTags' out'

@@ -72,6 +72,8 @@ data LogMessage =
   | CouldNotDetermineImageSize String String
   | CouldNotDetermineMimeType String
   | CouldNotConvertTeXMath String String
+  | CouldNotParseCSS String
+  | Fetching String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -155,6 +157,12 @@ instance ToJSON LogMessage where
            ["type" .= String "CouldNotConvertTeXMath",
             "contents" .= Text.pack s,
             "message" .= Text.pack msg]
+      CouldNotParseCSS msg ->
+           ["type" .= String "CouldNotParseCSS",
+            "message" .= Text.pack msg]
+      Fetching fp ->
+           ["type" .= String "CouldNotParseCSS",
+            "path" .= Text.pack fp]
 
 showPos :: SourcePos -> String
 showPos pos = sn ++ "line " ++
@@ -208,6 +216,10 @@ showLogMessage msg =
        CouldNotConvertTeXMath s m ->
          "Could not convert TeX math '" ++ s ++ "', rendering as TeX" ++
            if null m then "" else (':':'\n':m)
+       CouldNotParseCSS m ->
+         "Could not parse CSS" ++ if null m then "" else (':':'\n':m)
+       Fetching fp ->
+         "Fetching " ++ fp ++ "..."
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -228,5 +240,5 @@ messageVerbosity msg =
        CouldNotDetermineImageSize{} -> WARNING
        CouldNotDetermineMimeType{} -> WARNING
        CouldNotConvertTeXMath{} -> WARNING
-
-
+       CouldNotParseCSS{} -> WARNING
+       Fetching{} -> INFO

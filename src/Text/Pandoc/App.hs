@@ -409,7 +409,7 @@ convertWithOpts opts = do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy","slideous","dzslides","revealjs"]
                     selfcontain = if optSelfContained opts && htmlFormat
-                                  then makeSelfContained writerOptions media
+                                  then makeSelfContained writerOptions
                                   else return
                     handleEntities = if htmlFormat && optAscii opts
                                      then toEntities
