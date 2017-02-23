@@ -39,10 +39,11 @@ import Data.Generics (Typeable)
 import GHC.Generics (Generic)
 import Control.Exception (Exception)
 import Text.Pandoc.Shared (err)
+import System.IO.Error (IOError)
 
 type Input = String
 
-data PandocError = PandocFileReadError FilePath
+data PandocError = PandocIOError String IOError
                  | PandocShouldNeverHappenError String
                  | PandocSomeError String
                  | PandocParseError String
@@ -57,7 +58,7 @@ handleError :: Either PandocError a -> IO a
 handleError (Right r) = return r
 handleError (Left e) =
   case e of
-    PandocFileReadError fp -> err 61 $ "problem reading " ++ fp
+    PandocIOError _ err' -> ioError err'
     PandocShouldNeverHappenError s -> err 62 s
     PandocSomeError s -> err 63 s
     PandocParseError s -> err 64 s
