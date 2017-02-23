@@ -124,6 +124,7 @@ import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Compat.Time
 import Data.Time.Clock.POSIX
 import System.IO (stderr)
+import System.IO.Error
 import System.IO.Temp
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
          renderOptions)
@@ -730,17 +731,19 @@ readDataFileUTF8 userDir fname =
   UTF8.toString `fmap` readDataFile userDir fname
 
 -- | Read from a URL and return raw data and maybe mime type.
-openURL :: String -> IO (Either E.SomeException (BS.ByteString, Maybe MimeType))
+openURL :: String -> IO (BS.ByteString, Maybe MimeType)
 openURL u
   | Just u'' <- stripPrefix "data:" u =
     let mime     = takeWhile (/=',') u''
         contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u''
-    in  return $ Right (decodeLenient contents, Just mime)
+    in  return (decodeLenient contents, Just mime)
 #ifdef HTTP_CLIENT
-  | otherwise = withSocketsDo $ E.try $ do
+  | otherwise = withSocketsDo $ do
      let parseReq = parseRequest
-     (proxy :: Either E.SomeException String) <- E.try $ getEnv "http_proxy"
-     (useragent :: Either E.SomeException String) <- E.try $ getEnv "USER_AGENT"
+     (proxy :: Either IOError String) <-
+        tryIOError $ getEnv "http_proxy"
+     (useragent :: Either IOError String) <-
+        tryIOError $ getEnv "USER_AGENT"
      req <- parseReq u
      req' <- case proxy of
                      Left _   -> return req
@@ -758,7 +761,7 @@ openURL u
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
 #else
-  | otherwise = E.try $ getBodyAndMimeType `fmap` browse
+  | otherwise = getBodyAndMimeType `fmap` browse
               (do liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
                   setOutHandler $ const (return ())
                   setAllowRedirects True
