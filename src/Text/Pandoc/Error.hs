@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, CPP #-}
 {-
 Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -39,7 +39,10 @@ import Data.Generics (Typeable)
 import GHC.Generics (Generic)
 import Control.Exception (Exception)
 import Text.Pandoc.Shared (err)
-import System.IO.Error (IOError)
+#if MIN_VERSION_base(4,9,0)
+import qualified System.IO.Error (IOError, ioError)
+#else
+#endif
 
 type Input = String
 
