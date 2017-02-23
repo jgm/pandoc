@@ -115,9 +115,7 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   openURL :: String -> m (B.ByteString, Maybe MimeType)
   readFileLazy :: FilePath -> m BL.ByteString
   readFileStrict :: FilePath -> m B.ByteString
-  readDataFile :: Maybe FilePath
-               -> FilePath
-               -> m B.ByteString
+  readDataFile :: Maybe FilePath -> FilePath -> m B.ByteString
   glob :: String -> m [FilePath]
   getModificationTime :: FilePath -> m UTCTime
   getCommonState :: m CommonState
@@ -218,40 +216,25 @@ newtype PandocIO a = PandocIO {
              , MonadError PandocError
              )
 
+liftIOError :: (String -> IO a) -> String -> PandocIO a
+liftIOError f u = do
+  res <- liftIO $ tryIOError $ f u
+  case res of
+         Left e -> throwError $ PandocIOError u e
+         Right r -> return r
+
 instance PandocMonad PandocIO where
   lookupEnv = liftIO . IO.lookupEnv
   getCurrentTime = liftIO IO.getCurrentTime
   getCurrentTimeZone = liftIO IO.getCurrentTimeZone
   newStdGen = liftIO IO.newStdGen
   newUniqueHash = hashUnique <$> (liftIO IO.newUnique)
-  openURL u = do
-    eitherRes <- liftIO $ (tryIOError $ IO.openURL u)
-    case eitherRes of
-          Right (Right res) -> return res
-          Right (Left _)    -> throwError $ PandocFileReadError u
-          Left  _           -> throwError $ PandocFileReadError u
-  readFileLazy s = do
-    eitherBS <- liftIO (tryIOError $ BL.readFile s)
-    case eitherBS of
-      Right bs -> return bs
-      Left _ -> throwError $ PandocFileReadError s
-  readFileStrict s = do
-    eitherBS <- liftIO (tryIOError $ B.readFile s)
-    case eitherBS of
-      Right bs -> return bs
-      Left _ -> throwError $ PandocFileReadError s
-  -- TODO: Make this more sensitive to the different sorts of failure
-  readDataFile mfp fname = do
-    eitherBS <- liftIO (tryIOError $ IO.readDataFile mfp fname)
-    case eitherBS of
-      Right bs -> return bs
-      Left _ -> throwError $ PandocFileReadError fname
+  openURL u = liftIOError IO.openURL u
+  readFileLazy s = liftIOError BL.readFile s
+  readFileStrict s = liftIOError B.readFile s
+  readDataFile mfp fname = liftIOError (IO.readDataFile mfp) fname
   glob = liftIO . IO.glob
-  getModificationTime fp = do
-    eitherMtime <- liftIO (tryIOError $ IO.getModificationTime fp)
-    case eitherMtime of
-      Right mtime -> return mtime
-      Left _ -> throwError $ PandocFileReadError fp
+  getModificationTime fp = liftIOError IO.getModificationTime fp
   getCommonState = PandocIO $ lift get
   putCommonState x = PandocIO $ lift $ put x
   logOutput msg =
@@ -304,8 +287,8 @@ downloadOrRead sourceURL s = do
                  readLocalFile $ dropWhile (=='/') (uriPath u')
             _ -> readLocalFile fp -- get from local file system
    where readLocalFile f = do
-           cont <- readFileStrict f
-           return (cont, mime)
+             cont <- readFileStrict f
+             return (cont, mime)
          httpcolon = URI{ uriScheme = "http:",
                           uriAuthority = Nothing,
                           uriPath = "",
@@ -418,17 +401,20 @@ instance PandocMonad PandocPure where
         modifyPureState $ \st -> st { stUniqStore = us }
         return u
       _ -> M.fail "uniq store ran out of elements"
-  openURL _ = throwError $ PandocSomeError "Cannot open URL in PandocPure"
+  openURL u = throwError $ PandocIOError u $
+                 userError "Cannot open URL in PandocPure"
   readFileLazy fp = do
     fps <- getsPureState stFiles
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return (BL.fromStrict bs)
-      Nothing -> throwError $ PandocFileReadError fp
+      Nothing -> throwError $ PandocIOError fp
+                      (userError "File not found in PureState")
   readFileStrict fp = do
     fps <- getsPureState stFiles
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return bs
-      Nothing -> throwError $ PandocFileReadError fp
+      Nothing -> throwError $ PandocIOError fp
+                       (userError "File not found in PureState")
   readDataFile Nothing "reference.docx" = do
     (B.concat . BL.toChunks . fromArchive) <$> getsPureState stReferenceDocx
   readDataFile Nothing "reference.odt" = do
@@ -450,7 +436,8 @@ instance PandocMonad PandocPure where
     fps <- getsPureState stFiles
     case infoFileMTime <$> (getFileInfo fp fps) of
       Just tm -> return tm
-      Nothing -> throwError $ PandocFileReadError fp
+      Nothing -> throwError $ PandocIOError fp
+                    (userError "Can't get modification time")
 
   getCommonState = PandocPure $ lift $ get
   putCommonState x = PandocPure $ lift $ put x

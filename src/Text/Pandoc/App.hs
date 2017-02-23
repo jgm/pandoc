@@ -725,11 +725,7 @@ readSource src = case parseURI src of
                       _       -> liftIO $ UTF8.readFile src
 
 readURI :: MonadIO m => FilePath -> m String
-readURI src = do
-  res <- liftIO $ openURL src
-  case res of
-       Left e        -> liftIO $ throwIO e
-       Right (bs,_)  -> return $ UTF8.toString bs
+readURI src = liftIO $ (UTF8.toString . fst) <$> openURL src
 
 readFile' :: MonadIO m => FilePath -> m B.ByteString
 readFile' "-" = liftIO $ B.getContents
