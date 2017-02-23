@@ -229,7 +229,9 @@ instance PandocMonad PandocIO where
   getCurrentTimeZone = liftIO IO.getCurrentTimeZone
   newStdGen = liftIO IO.newStdGen
   newUniqueHash = hashUnique <$> (liftIO IO.newUnique)
-  openURL u = liftIOError IO.openURL u
+  openURL u = do
+    report $ Fetching u
+    liftIOError IO.openURL u
   readFileLazy s = liftIOError BL.readFile s
   readFileStrict s = liftIOError B.readFile s
   readDataFile mfp fname = liftIOError (IO.readDataFile mfp) fname
