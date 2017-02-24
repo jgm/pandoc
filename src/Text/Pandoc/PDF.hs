@@ -346,11 +346,6 @@ context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
 #endif
   let programArgs = "--batchmode" : [file]
   env' <- getEnvironment
-  let sep = [searchPathSeparator]
-  let texinputs = maybe (".." ++ sep) ((".." ++ sep) ++)
-        $ lookup "TEXINPUTS" env'
-  let env'' = ("TEXINPUTS", texinputs) :
-                [(k,v) | (k,v) <- env', k /= "TEXINPUTS"]
   when (verbosity >= INFO) $ do
     putStrLn "[makePDF] temp dir:"
     putStrLn tmpDir'
@@ -358,12 +353,12 @@ context2pdf verbosity tmpDir source = inDirectory tmpDir $ do
     putStrLn $ "context" ++ " " ++ unwords (map show programArgs)
     putStr "\n"
     putStrLn "[makePDF] Environment:"
-    mapM_ print env''
+    mapM_ print env'
     putStr "\n"
     putStrLn $ "[makePDF] Contents of " ++ file ++ ":"
     B.readFile file >>= B.putStr
     putStr "\n"
-  (exit, out) <- pipeProcess (Just env'') "context" programArgs BL.empty
+  (exit, out) <- pipeProcess (Just env') "context" programArgs BL.empty
   when (verbosity >= INFO) $ do
     B.hPutStr stdout out
     putStr "\n"
