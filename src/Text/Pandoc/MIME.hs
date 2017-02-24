@@ -244,7 +244,7 @@ mimeTypesList = -- List borrowed from happstack-server.
            ,("jpeg","image/jpeg")
            ,("jfif","image/jpeg")
            ,("jpg","image/jpeg")
-           ,("js","application/x-javascript")
+           ,("js","application/javascript")
            ,("kar","audio/midi")
            ,("key","application/pgp-keys")
            ,("kil","application/x-killustrator")

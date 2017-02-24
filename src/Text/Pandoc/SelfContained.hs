@@ -67,12 +67,12 @@ makeDataURI (mime, raw) =
                    then mime ++ ";charset=utf-8"
                    else mime  -- mime type already has charset
 
-convertTag :: PandocMonad m => Maybe String -> Tag String -> m (Tag String)
+convertTag :: PandocMonad m => Maybe String -> Tag String -> m [Tag String]
 convertTag sourceURL t@(TagOpen tagname as)
   | tagname `elem`
      ["img", "embed", "video", "input", "audio", "source", "track"] = do
        as' <- mapM processAttribute as
-       return $ TagOpen tagname as'
+       return [TagOpen tagname as']
   where processAttribute (x,y) =
            if x == "src" || x == "data-src" || x == "href" || x == "poster"
               then do
@@ -81,17 +81,43 @@ convertTag sourceURL t@(TagOpen tagname as)
               else return (x,y)
 convertTag sourceURL t@(TagOpen "script" as) =
   case fromAttrib "src" t of
-       []     -> return t
+       []     -> return [t]
        src    -> do
-           enc <- getDataURI sourceURL (fromAttrib "type" t) src
-           return $ TagOpen "script" (("src",enc) : [(x,y) | (x,y) <- as, x /= "src"])
+           let typeAttr = fromAttrib "type" t
+           res <- getData sourceURL typeAttr src
+           case res of
+                Left dataUri -> return [TagOpen "script"
+                     (("src",dataUri) : [(x,y) | (x,y) <- as, x /= "src"])]
+                Right (mime, bs)
+                  | (mime == "text/javascript" ||
+                     mime == "application/javascript" ||
+                     mime == "application/x-javascript") &&
+                     not ("</" `B.isInfixOf` bs) ->
+                     return [
+                       TagOpen "script" [("type", typeAttr)|not (null typeAttr)]
+                     , TagText (toString bs)
+                     , TagClose "script" ]
+                  | otherwise -> return [TagOpen "script"
+                     (("src",makeDataURI (mime, bs)) :
+                       [(x,y) | (x,y) <- as, x /= "src"])]
 convertTag sourceURL t@(TagOpen "link" as) =
   case fromAttrib "href" t of
-       []  -> return t
+       []  -> return [t]
        src -> do
-           enc <- getDataURI sourceURL (fromAttrib "type" t) src
-           return $ TagOpen "link" (("href",enc) : [(x,y) | (x,y) <- as, x /= "href"])
-convertTag _ t = return t
+           res <- getData sourceURL (fromAttrib "type" t) src
+           case res of
+                Left dataUri -> return [TagOpen "link"
+                     (("href",dataUri) : [(x,y) | (x,y) <- as, x /= "href"])]
+                Right (mime, bs)
+                  | mime == "text/css" && not ("</" `B.isInfixOf` bs) ->
+                     return [
+                       TagOpen "style" [("type", "text/css")]
+                     , TagText (toString bs)
+                     , TagClose "style" ]
+                  | otherwise -> return [TagOpen "link"
+                     (("href",makeDataURI (mime, bs)) :
+                       [(x,y) | (x,y) <- as, x /= "href"])]
+convertTag _ t = return [t]
 
 cssURLs :: PandocMonad m
         => Maybe String -> FilePath -> ByteString -> m ByteString
@@ -184,5 +210,5 @@ getData sourceURL mimetype src = do
 makeSelfContained :: PandocMonad m => WriterOptions -> String -> m String
 makeSelfContained opts inp = do
   let tags = parseTags inp
-  out' <- mapM (convertTag (writerSourceURL opts)) tags
+  out' <- concat <$> mapM (convertTag (writerSourceURL opts)) tags
   return $ renderTags' out'
