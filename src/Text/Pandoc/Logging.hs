@@ -70,11 +70,11 @@ data LogMessage =
   | DocxParserWarning String
   | CouldNotFetchResource String String
   | CouldNotDetermineImageSize String String
+  | CouldNotConvertImage String String
   | CouldNotDetermineMimeType String
   | CouldNotConvertTeXMath String String
   | CouldNotParseCSS String
   | Fetching String
-  | UsingResourceFrom FilePath FilePath
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -151,6 +151,10 @@ instance ToJSON LogMessage where
            ["type" .= String "CouldNotDetermineImageSize",
             "path" .= Text.pack fp,
             "message" .= Text.pack s]
+      CouldNotConvertImage fp s ->
+           ["type" .= String "CouldNotConvertImage",
+            "path" .= Text.pack fp,
+            "message" .= Text.pack s]
       CouldNotDetermineMimeType fp ->
            ["type" .= String "CouldNotDetermineMimeType",
             "path" .= Text.pack fp]
@@ -164,10 +168,6 @@ instance ToJSON LogMessage where
       Fetching fp ->
            ["type" .= String "CouldNotParseCSS",
             "path" .= Text.pack fp]
-      UsingResourceFrom resource dir ->
-           ["type" .= String "UsingResourceFrom",
-            "resource" .= Text.pack resource,
-            "path" .= Text.pack dir]
 
 showPos :: SourcePos -> String
 showPos pos = sn ++ "line " ++
@@ -216,6 +216,9 @@ showLogMessage msg =
        CouldNotDetermineImageSize fp s ->
          "Could not determine image size for '" ++ fp ++ "'" ++
            if null s then "" else (": " ++ s)
+       CouldNotConvertImage fp s ->
+         "Could not convert image '" ++ fp ++ "'" ++
+           if null s then "" else (": " ++ s)
        CouldNotDetermineMimeType fp ->
          "Could not determine mime type for '" ++ fp ++ "'"
        CouldNotConvertTeXMath s m ->
@@ -225,8 +228,6 @@ showLogMessage msg =
          "Could not parse CSS" ++ if null m then "" else (':':'\n':m)
        Fetching fp ->
          "Fetching " ++ fp ++ "..."
-       UsingResourceFrom fp dir ->
-         "Using " ++ fp ++ " from " ++ dir
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -245,8 +246,8 @@ messageVerbosity msg =
        DocxParserWarning{} -> WARNING
        CouldNotFetchResource{} -> WARNING
        CouldNotDetermineImageSize{} -> WARNING
+       CouldNotConvertImage{} -> WARNING
        CouldNotDetermineMimeType{} -> WARNING
        CouldNotConvertTeXMath{} -> WARNING
        CouldNotParseCSS{} -> WARNING
        Fetching{} -> INFO
-       UsingResourceFrom{} -> INFO
