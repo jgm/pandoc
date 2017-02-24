@@ -48,14 +48,13 @@ import Text.Pandoc.Options
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Highlighting ( highlight )
 import Text.Pandoc.Walk
-import Text.Pandoc.Error (PandocError)
 import Text.XML.Light as XML
 import Text.TeXMath
 import Text.Pandoc.Readers.Docx.StyleMap
 import Control.Monad.Reader
 import Control.Monad.State
 import Skylighting
-import Control.Monad.Except (runExceptT)
+import Control.Monad.Except (catchError)
 import System.Random (randomR)
 import Text.Printf (printf)
 import Data.Monoid ((<>))
@@ -68,6 +67,7 @@ import Data.Char (ord, isSpace, toLower)
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Logging
+import Text.Pandoc.Error
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -1175,72 +1175,82 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
   case M.lookup src imgs of
     Just (_,_,_,elt,_) -> return [elt]
     Nothing -> do
-      res <- runExceptT $ lift (P.fetchItem (writerSourceURL opts) src)
-      case res of
-        Left (_ :: PandocError) -> do
-          report $ CouldNotFetchResource src ""
-          -- emit alt text
-          inlinesToOpenXML opts alt
-        Right (img, mt) -> do
-          ident <- ("rId"++) `fmap` ((lift . lift) getUniqueId)
-          let (xpt,ypt) = desiredSizeInPoints opts attr
-                 (either (const def) id (imageSize opts img))
-          -- 12700 emu = 1 pt
-          let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) (pageWidth * 12700)
-          let cNvPicPr = mknode "pic:cNvPicPr" [] $
-                           mknode "a:picLocks" [("noChangeArrowheads","1"),("noChangeAspect","1")] ()
-          let nvPicPr  = mknode "pic:nvPicPr" []
-                          [ mknode "pic:cNvPr"
-                              [("descr",src),("id","0"),("name","Picture")] ()
-                          , cNvPicPr ]
-          let blipFill = mknode "pic:blipFill" []
-                           [ mknode "a:blip" [("r:embed",ident)] ()
-                           , mknode "a:stretch" [] $ mknode "a:fillRect" [] () ]
-          let xfrm =    mknode "a:xfrm" []
-                          [ mknode "a:off" [("x","0"),("y","0")] ()
-                          , mknode "a:ext" [("cx",show xemu),("cy",show yemu)] () ]
-          let prstGeom = mknode "a:prstGeom" [("prst","rect")] $
-                           mknode "a:avLst" [] ()
-          let ln =      mknode "a:ln" [("w","9525")]
-                          [ mknode "a:noFill" [] ()
-                          , mknode "a:headEnd" [] ()
-                          , mknode "a:tailEnd" [] () ]
-          let spPr =    mknode "pic:spPr" [("bwMode","auto")]
-                          [xfrm, prstGeom, mknode "a:noFill" [] (), ln]
-          let graphic = mknode "a:graphic" [] $
-                          mknode "a:graphicData" [("uri","http://schemas.openxmlformats.org/drawingml/2006/picture")]
-                            [ mknode "pic:pic" []
-                              [ nvPicPr
-                              , blipFill
-                              , spPr ] ]
-          let imgElt = mknode "w:r" [] $
-               mknode "w:drawing" [] $
-                 mknode "wp:inline" []
-                  [ mknode "wp:extent" [("cx",show xemu),("cy",show yemu)] ()
-                  , mknode "wp:effectExtent" [("b","0"),("l","0"),("r","0"),("t","0")] ()
-                  , mknode "wp:docPr" [("descr",stringify alt), ("title", title), ("id","1"),("name","Picture")] ()
-                  , graphic ]
-          let imgext = case mt >>= extensionFromMimeType of
-                            Just x    -> '.':x
-                            Nothing   -> case imageType img of
-                                              Just Png  -> ".png"
-                                              Just Jpeg -> ".jpeg"
-                                              Just Gif  -> ".gif"
-                                              Just Pdf  -> ".pdf"
-                                              Just Eps  -> ".eps"
-                                              Just Svg  -> ".svg"
-                                              Nothing   -> ""
-          if null imgext
-             then -- without an extension there is no rule for content type
-               inlinesToOpenXML opts alt -- return alt to avoid corrupted docx
-             else do
-               let imgpath = "media/" ++ ident ++ imgext
-               let mbMimeType = mt <|> getMimeType imgpath
-               -- insert mime type to use in constructing [Content_Types].xml
-               modify $ \st -> st{ stImages =
-                   M.insert src (ident, imgpath, mbMimeType, imgElt, img)
-                           $ stImages st }
-               return [imgElt]
+      catchError
+        (do (img, mt) <- P.fetchItem (writerSourceURL opts) src
+            ident <- ("rId"++) `fmap` ((lift . lift) getUniqueId)
+            let (xpt,ypt) = desiredSizeInPoints opts attr
+                   (either (const def) id (imageSize opts img))
+            -- 12700 emu = 1 pt
+            let (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700)
+                                    (pageWidth * 12700)
+            let cNvPicPr = mknode "pic:cNvPicPr" [] $
+                             mknode "a:picLocks" [("noChangeArrowheads","1")
+                                                 ,("noChangeAspect","1")] ()
+            let nvPicPr  = mknode "pic:nvPicPr" []
+                            [ mknode "pic:cNvPr"
+                                [("descr",src),("id","0"),("name","Picture")] ()
+                            , cNvPicPr ]
+            let blipFill = mknode "pic:blipFill" []
+                             [ mknode "a:blip" [("r:embed",ident)] ()
+                             , mknode "a:stretch" [] $
+                               mknode "a:fillRect" [] () ]
+            let xfrm =    mknode "a:xfrm" []
+                            [ mknode "a:off" [("x","0"),("y","0")] ()
+                            , mknode "a:ext" [("cx",show xemu)
+                                             ,("cy",show yemu)] () ]
+            let prstGeom = mknode "a:prstGeom" [("prst","rect")] $
+                             mknode "a:avLst" [] ()
+            let ln =      mknode "a:ln" [("w","9525")]
+                            [ mknode "a:noFill" [] ()
+                            , mknode "a:headEnd" [] ()
+                            , mknode "a:tailEnd" [] () ]
+            let spPr =    mknode "pic:spPr" [("bwMode","auto")]
+                            [xfrm, prstGeom, mknode "a:noFill" [] (), ln]
+            let graphic = mknode "a:graphic" [] $
+                            mknode "a:graphicData"
+                              [("uri","http://schemas.openxmlformats.org/drawingml/2006/picture")]
+                              [ mknode "pic:pic" []
+                                [ nvPicPr
+                                , blipFill
+                                , spPr ] ]
+            let imgElt = mknode "w:r" [] $
+                 mknode "w:drawing" [] $
+                   mknode "wp:inline" []
+                    [ mknode "wp:extent" [("cx",show xemu),("cy",show yemu)] ()
+                    , mknode "wp:effectExtent"
+                         [("b","0"),("l","0"),("r","0"),("t","0")] ()
+                    , mknode "wp:docPr" [("descr",stringify alt)
+                                        ,("title", title)
+                                        ,("id","1")
+                                        ,("name","Picture")] ()
+                    , graphic ]
+            let imgext = case mt >>= extensionFromMimeType of
+                              Just x    -> '.':x
+                              Nothing   -> case imageType img of
+                                                Just Png  -> ".png"
+                                                Just Jpeg -> ".jpeg"
+                                                Just Gif  -> ".gif"
+                                                Just Pdf  -> ".pdf"
+                                                Just Eps  -> ".eps"
+                                                Just Svg  -> ".svg"
+                                                Nothing   -> ""
+            if null imgext
+               then -- without an extension there is no rule for content type
+                 inlinesToOpenXML opts alt -- return alt to avoid corrupted docx
+               else do
+                 let imgpath = "media/" ++ ident ++ imgext
+                 let mbMimeType = mt <|> getMimeType imgpath
+                 -- insert mime type to use in constructing [Content_Types].xml
+                 modify $ \st -> st{ stImages =
+                     M.insert src (ident, imgpath, mbMimeType, imgElt, img)
+                             $ stImages st }
+                 return [imgElt])
+        (\e -> do case e of
+                      PandocIOError _ e' ->
+                        report $ CouldNotFetchResource src (show e')
+                      e' -> report $ CouldNotFetchResource src (show e')
+                  -- emit alt text
+                  inlinesToOpenXML opts alt)
 
 br :: Element
 br = breakElement "textWrapping"

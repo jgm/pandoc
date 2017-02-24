@@ -53,7 +53,7 @@ import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, report,
-          readFileFromDirs)
+          readFileFromDirs, setResourcePath)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
@@ -372,6 +372,7 @@ blockCommands = M.fromList $
                                 addMeta "bibliography" . splitBibs))
   -- includes
   , ("lstinputlisting", inputListing)
+  , ("graphicspath", graphicsPath)
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
@@ -389,6 +390,12 @@ blockCommands = M.fromList $
   , "markboth", "markright", "markleft"
   , "newpage"
   ]
+
+graphicsPath :: PandocMonad m => LP m Blocks
+graphicsPath = do
+  ps <- bgroup *> (manyTill braced egroup)
+  setResourcePath (".":ps)
+  return mempty
 
 addMeta :: PandocMonad m => ToMetaValue a => String -> a -> LP m ()
 addMeta field val = updateState $ \st ->
