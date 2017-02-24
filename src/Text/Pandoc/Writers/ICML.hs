@@ -15,7 +15,7 @@ into InDesign with File -> Place.
 -}
 module Text.Pandoc.Writers.ICML (writeICML) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError)
+import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.XML
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
@@ -27,7 +27,7 @@ import Text.Pandoc.ImageSize
 import Data.List (isPrefixOf, isInfixOf, stripPrefix, intersperse)
 import Data.Text as Text (breakOnAll, pack)
 import Control.Monad.State
-import Control.Monad.Except (runExceptT)
+import Control.Monad.Except (catchError)
 import Network.URI (isURI)
 import qualified Data.Set as Set
 import Text.Pandoc.Class (PandocMonad, report)
@@ -540,17 +540,19 @@ styleToStrAttr style =
 -- | Assemble an ICML Image.
 imageICML :: PandocMonad m => WriterOptions -> Style -> Attr -> Target -> WS m Doc
 imageICML opts style attr (src, _) = do
-  res  <- runExceptT $ lift $ P.fetchItem (writerSourceURL opts) src
-  imgS <- case res of
-            Left (_ :: PandocError) -> do
-              report $ CouldNotFetchResource src ""
-              return def
-            Right (img, _) -> do
+  imgS <- catchError
+          (do (img, _) <- P.fetchItem (writerSourceURL opts) src
               case imageSize opts img of
                 Right size -> return size
                 Left msg   -> do
                   report $ CouldNotDetermineImageSize src msg
-                  return def
+                  return def)
+           (\e -> do
+               case e of
+                    PandocIOError _ e' ->
+                      report $ CouldNotFetchResource src (show e')
+                    e' -> report $ CouldNotFetchResource src (show e')
+               return def)
   let (ow, oh) = sizeInPoints imgS
       (imgWidth, imgHeight) = desiredSizeInPoints opts attr imgS
       hw = showFl $ ow / 2

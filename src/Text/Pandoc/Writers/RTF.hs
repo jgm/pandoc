@@ -44,7 +44,7 @@ import qualified Data.ByteString as B
 import qualified Data.Map as M
 import Text.Printf ( printf )
 import Text.Pandoc.ImageSize
-import Control.Monad.Except (throwError, runExceptT, lift)
+import Control.Monad.Except (throwError, catchError)
 import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
@@ -53,43 +53,50 @@ import qualified Text.Pandoc.Class as P
 -- or a MediaBag, or the internet.
 -- If file not found or filetype not jpeg or png, leave the inline unchanged.
 rtfEmbedImage :: PandocMonad m => WriterOptions -> Inline -> m Inline
-rtfEmbedImage opts x@(Image attr _ (src,_)) = do
-  result <- runExceptT $ lift $ P.fetchItem (writerSourceURL opts) src
-  case result of
-       Right (imgdata, Just mime)
-         | mime == "image/jpeg" || mime == "image/png" -> do
-         let bytes = map (printf "%02x") $ B.unpack imgdata
-         filetype <- case mime of
-                       "image/jpeg" -> return "\\jpegblip"
-                       "image/png"  -> return "\\pngblip"
-                       _            -> throwError $ PandocSomeError "Unknown file type"
-         sizeSpec <- case imageSize opts imgdata of
-                             Left msg -> do
-                               report $ CouldNotDetermineImageSize src msg
-                               return ""
-                             Right sz -> return $ "\\picw" ++ show xpx ++
-                                        "\\pich" ++ show ypx ++
-                                        "\\picwgoal" ++ show (floor (xpt * 20) :: Integer)
-                                        ++ "\\pichgoal" ++ show (floor (ypt * 20) :: Integer)
-                                -- twip = 1/1440in = 1/20pt
-                                where (xpx, ypx) = sizeInPixels sz
-                                      (xpt, ypt) = desiredSizeInPoints opts attr sz
-         let raw = "{\\pict" ++ filetype ++ sizeSpec ++ "\\bin " ++
-                    concat bytes ++ "}"
-         if B.null imgdata
-            then do
-              report $ CouldNotFetchResource src "image contained no data"
-              return x
-            else return $ RawInline (Format "rtf") raw
-         | otherwise -> do
-           report $ CouldNotFetchResource src "image is not a jpeg or png"
-           return x
-       Right (_, Nothing) -> do
-         report $ CouldNotDetermineMimeType src
-         return x
-       Left ( e :: PandocError ) -> do
-         report $ CouldNotFetchResource src (show e)
-         return x
+rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
+  (do result <- P.fetchItem (writerSourceURL opts) src
+      case result of
+           (imgdata, Just mime)
+             | mime == "image/jpeg" || mime == "image/png" -> do
+             let bytes = map (printf "%02x") $ B.unpack imgdata
+             filetype <-
+                case mime of
+                     "image/jpeg" -> return "\\jpegblip"
+                     "image/png"  -> return "\\pngblip"
+                     _            -> throwError $
+                                         PandocShouldNeverHappenError $
+                                         "Unknown file type " ++ mime
+             sizeSpec <-
+                case imageSize opts imgdata of
+                     Left msg -> do
+                       report $ CouldNotDetermineImageSize src msg
+                       return ""
+                     Right sz -> return $ "\\picw" ++ show xpx ++
+                                "\\pich" ++ show ypx ++
+                                "\\picwgoal" ++ show (floor (xpt * 20) :: Integer)
+                                ++ "\\pichgoal" ++ show (floor (ypt * 20) :: Integer)
+                        -- twip = 1/1440in = 1/20pt
+                        where (xpx, ypx) = sizeInPixels sz
+                              (xpt, ypt) = desiredSizeInPoints opts attr sz
+             let raw = "{\\pict" ++ filetype ++ sizeSpec ++ "\\bin " ++
+                        concat bytes ++ "}"
+             if B.null imgdata
+                then do
+                  report $ CouldNotFetchResource src "image contained no data"
+                  return x
+                else return $ RawInline (Format "rtf") raw
+             | otherwise -> do
+               report $ CouldNotFetchResource src "image is not a jpeg or png"
+               return x
+           (_, Nothing) -> do
+             report $ CouldNotDetermineMimeType src
+             return x)
+  (\e -> do
+     case e of
+          PandocIOError _ e' ->
+           report $ CouldNotFetchResource src (show e')
+          e' -> report $ CouldNotFetchResource src (show e')
+     return x)
 rtfEmbedImage _ x = return x
 
 -- | Convert Pandoc to a string in rich text format.

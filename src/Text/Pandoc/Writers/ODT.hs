@@ -45,8 +45,8 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared ( fixDisplayMath )
 import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
 import Control.Monad.State
-import Control.Monad.Except (runExceptT)
-import Text.Pandoc.Error (PandocError)
+import Control.Monad.Except (catchError)
+import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.XML
 import Text.Pandoc.Pretty
 import System.FilePath ( takeExtension, takeDirectory, (<.>))
@@ -146,13 +146,8 @@ pandocToODT opts doc@(Pandoc meta _) = do
 
 -- | transform both Image and Math elements
 transformPicMath :: PandocMonad m => WriterOptions ->Inline -> O m Inline
-transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = do
-  res <- runExceptT $ lift $ P.fetchItem (writerSourceURL opts) src
-  case res of
-     Left (_ :: PandocError) -> do
-       report $ CouldNotFetchResource src ""
-       return $ Emph lab
-     Right (img, mbMimeType) -> do
+transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
+   (do (img, mbMimeType) <- P.fetchItem (writerSourceURL opts) src
        (ptX, ptY) <- case imageSize opts img of
                        Right s  -> return $ sizeInPoints s
                        Left msg -> do
@@ -181,7 +176,14 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = do
        epochtime <- floor `fmap` (lift P.getPOSIXTime)
        let entry = toEntry newsrc epochtime $ toLazy img
        modify $ \st -> st{ stEntries = entry : entries }
-       return $ Image newattr lab (newsrc, t)
+       return $ Image newattr lab (newsrc, t))
+   (\e -> do
+       case e of
+            PandocIOError _ e' ->
+               report $ CouldNotFetchResource src (show e')
+            e' -> report $ CouldNotFetchResource src (show e')
+       return $ Emph lab)
+
 transformPicMath _ (Math t math) = do
   entries <- gets stEntries
   let dt = if t == InlineMath then DisplayInline else DisplayBlock
