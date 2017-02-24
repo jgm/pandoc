@@ -180,7 +180,7 @@ The easiest way to build pandoc from source is to use [stack]:
 
     Note that this requires the `text-icu` library, which in turn
     depends on the C library `icu4c`.  Installation directions
-    vary by platform.  Here is how it might work on OSX with homebrew:
+    vary by platform.  Here is how it might work on MacOS with homebrew:
 
         brew install icu4c
         cabal install --extra-lib-dirs=/usr/local/Cellar/icu4c/51.1/lib \
@@ -351,4 +351,4 @@ changes in the repositories:  Visit each repository in pandoc-build
 [source tarball]: http://hackage.haskell.org/package/pandoc
 [stack]: http://docs.haskellstack.org/en/stable/install_and_upgrade.html
 [cabal-install]: http://hackage.haskell.org/trac/hackage/wiki/CabalInstall
-[uninstaller]: https://raw.githubusercontent.com/jgm/pandoc/master/osx/uninstall-pandoc.pl
+[uninstaller]: https://raw.githubusercontent.com/jgm/pandoc/master/macos/uninstall-pandoc.pl
