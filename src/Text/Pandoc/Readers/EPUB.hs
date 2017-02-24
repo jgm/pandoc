@@ -16,7 +16,6 @@ import Text.Pandoc.Options ( ReaderOptions(..))
 import Text.Pandoc.Extensions (enableExtension, Extension(Ext_raw_html))
 import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
 import Network.URI (unEscapeString)
-import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.MIME (MimeType)
 import qualified Text.Pandoc.Builder as B
@@ -34,8 +33,7 @@ import qualified Data.Map as M (Map, lookup, fromList, elems)
 import Data.Monoid ((<>))
 import Control.DeepSeq (deepseq, NFData)
 import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Class (PandocMonad, insertMedia)
 
 type Items = M.Map String (FilePath, MimeType)
 
@@ -64,7 +62,7 @@ archiveToEPUB os archive = do
       foldM' (\a b -> ((a <>) . walk (prependHash escapedSpine))
         `liftM` parseSpineElem root b) mempty spine
   let ast = coverDoc <> (Pandoc meta bs)
-  P.setMediaBag $ fetchImages (M.elems items) root archive ast
+  fetchImages (M.elems items) root archive ast
   return ast
   where
     os' = os {readerExtensions = enableExtension Ext_raw_html (readerExtensions os)}
@@ -85,14 +83,14 @@ archiveToEPUB os archive = do
 
 -- paths should be absolute when this function is called
 -- renameImages should do this
-fetchImages :: [(FilePath, MimeType)]
+fetchImages :: PandocMonad m
+            => [(FilePath, MimeType)]
             -> FilePath -- ^ Root
             -> Archive
             -> Pandoc
-            -> MediaBag
+            -> m ()
 fetchImages mimes root arc (query iq -> links) =
-    foldr (uncurry3 insertMedia) mempty
-      (mapMaybe getEntry links)
+    mapM_ (uncurry3 insertMedia) (mapMaybe getEntry links)
   where
     getEntry link =
         let abslink = normalise (root </> link) in
