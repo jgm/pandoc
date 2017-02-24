@@ -84,7 +84,6 @@ module Text.Pandoc.Shared (
                      filteredFilesFromArchive,
                      -- * Error handling
                      err,
-                     warn,
                      mapLeft,
                      -- * for squashing blocks
                      blocksToInlines,
@@ -783,10 +782,6 @@ err exitCode msg = liftIO $ do
   UTF8.hPutStrLn stderr msg
   exitWith $ ExitFailure exitCode
   return undefined
-
-warn :: MonadIO m => String -> m ()
-warn msg = liftIO $ do
-  UTF8.hPutStrLn stderr $ "[warning] " ++ msg
 
 mapLeft :: (a -> b) -> Either a c -> Either b c
 mapLeft f (Left x) = Left (f x)

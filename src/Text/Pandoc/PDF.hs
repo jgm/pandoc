@@ -50,7 +50,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.MediaBag
 import Text.Pandoc.Walk (walkM)
-import Text.Pandoc.Shared (warn, withTempDir, inDirectory, stringify)
+import Text.Pandoc.Shared (withTempDir, inDirectory, stringify)
 import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..))
 import Text.Pandoc.Logging (Verbosity(..))
@@ -62,8 +62,9 @@ import qualified Codec.Picture as JP
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
-import Text.Pandoc.Class (PandocIO, runIOorExplode, fetchItem,
+import Text.Pandoc.Class (PandocIO, runIOorExplode, fetchItem, report,
            setVerbosity, setMediaBag, runIO)
+import Text.Pandoc.Logging
 
 #ifdef _WINDOWS
 changePathSeparators :: FilePath -> FilePath
@@ -124,7 +125,7 @@ handleImages :: Verbosity
              -> Pandoc        -- ^ document
              -> IO Pandoc
 handleImages verbosity opts mediabag tmpdir =
-  walkM (convertImages tmpdir) <=<
+  walkM (convertImages verbosity tmpdir) <=<
           walkM (handleImage' verbosity opts mediabag tmpdir)
 
 handleImage' :: Verbosity
@@ -151,20 +152,26 @@ handleImage' verbosity opts mediabag tmpdir (Image attr ils (src,tit)) = do
                 BS.writeFile fname contents
                 return $ Image attr ils (fname,tit)
               _ -> do
-                warn $ "Could not find image `" ++ src ++ "', skipping..."
+                runIO $ do
+                  setVerbosity verbosity
+                  report $ CouldNotFetchResource src "skipping..."
                 -- return alt text
                 return $ Emph ils
 handleImage' _ _ _ _ x = return x
 
-convertImages :: FilePath -> Inline -> IO Inline
-convertImages tmpdir (Image attr ils (src, tit)) = do
+convertImages :: Verbosity -> FilePath -> Inline -> IO Inline
+convertImages verbosity tmpdir (Image attr ils (src, tit)) = do
   img <- convertImage tmpdir src
   newPath <-
     case img of
-      Left e -> src <$ warn e
+      Left e -> do
+        runIO $ do
+          setVerbosity verbosity
+          report $ CouldNotConvertImage src e
+        return src
       Right fp -> return fp
   return (Image attr ils (newPath, tit))
-convertImages _ x = return x
+convertImages _ _ x = return x
 
 -- Convert formats which do not work well in pdf to png
 convertImage :: FilePath -> FilePath -> IO (Either String FilePath)
@@ -175,8 +182,7 @@ convertImage tmpdir fname =
     Just "application/pdf" -> doNothing
     _ -> JP.readImage fname >>= \res ->
           case res of
-               Left _    -> return $ Left $ "Unable to convert `" ++
-                               fname ++ "' for use with pdflatex."
+               Left e    -> return $ Left e
                Right img ->
                  E.catch (Right fileOut <$ JP.savePngImage fileOut img) $
                      \(e :: E.SomeException) -> return (Left (show e))

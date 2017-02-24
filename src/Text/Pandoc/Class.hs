@@ -324,10 +324,7 @@ withPaths :: PandocMonad m => [FilePath] -> (FilePath -> m a) -> FilePath -> m a
 withPaths [] _ fp = throwError $ PandocIOError fp
                        (userError "file not found in resource path")
 withPaths (p:ps) action fp =
-  catchError (do res <- action (p </> fp)
-                 when (p /= ".") $
-                   report $ UsingResourceFrom fp p
-                 return res)
+  catchError (action (p </> fp))
              (\_ -> withPaths ps action fp)
 
 data PureState = PureState { stStdGen     :: StdGen
