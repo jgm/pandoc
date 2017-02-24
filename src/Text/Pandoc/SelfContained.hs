@@ -57,8 +57,8 @@ import Text.Pandoc.Logging
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c
 
-makeDataURI :: String -> ByteString -> String
-makeDataURI mime raw =
+makeDataURI :: (MimeType, ByteString) -> String
+makeDataURI (mime, raw) =
   if textual
      then "data:" ++ mime' ++ "," ++ escapeURIString isOk (toString raw)
      else "data:" ++ mime' ++ ";base64," ++ toString (encode raw)
@@ -142,10 +142,18 @@ pCSSUrl sourceURL d = P.try $ do
                enc <- lift $ getDataURI sourceURL "" url'
                return (B.pack $ "url(" ++ enc ++ ")")
 
-
 getDataURI :: PandocMonad m => Maybe String -> MimeType -> String -> m String
-getDataURI _ _ src@('d':'a':'t':'a':':':_) = return src  -- already data: uri
 getDataURI sourceURL mimetype src = do
+  res <- getData sourceURL mimetype src
+  case res of
+       Left uri -> return uri
+       Right x  -> return $ makeDataURI x
+
+getData :: PandocMonad m
+        => Maybe String -> MimeType -> String
+        -> m (Either String (MimeType, ByteString))
+getData _ _ src@('d':'a':'t':'a':':':_) = return $ Left src-- already data: uri
+getData sourceURL mimetype src = do
   let ext = map toLower $ takeExtension src
   (raw, respMime) <- fetchItem sourceURL src
   let raw' = if ext == ".gz"
@@ -167,7 +175,9 @@ getDataURI sourceURL mimetype src = do
   result <- if mime == "text/css"
                then cssURLs cssSourceURL (takeDirectory src) raw'
                else return raw'
-  return $ makeDataURI mime result
+  return $ Right (mime, result)
+
+
 
 -- | Convert HTML into self-contained HTML, incorporating images,
 -- scripts, and CSS using data: URIs.
