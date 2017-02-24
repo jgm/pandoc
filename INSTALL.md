@@ -281,10 +281,10 @@ the `-t` option:
 
 If you add a new feature to pandoc, please add tests as well, following
 the pattern of the existing tests. The test suite code is in
-`tests/test-pandoc.hs`. If you are adding a new reader or writer, it is
-probably easiest to add some data files to the `tests` directory, and
-modify `tests/Tests/Old.hs`. Otherwise, it is better to modify the module
-under the `tests/Tests` hierarchy corresponding to the pandoc module you
+`test/test-pandoc.hs`. If you are adding a new reader or writer, it is
+probably easiest to add some data files to the `test` directory, and
+modify `test/Tests/Old.hs`. Otherwise, it is better to modify the module
+under the `test/Tests` hierarchy corresponding to the pandoc module you
 are changing.
 
 ### Running benchmarks

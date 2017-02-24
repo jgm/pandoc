@@ -3,7 +3,7 @@ import Text.Pandoc
 
 main :: IO ()
 main = do
-  doc <- read <$> readFile "tests/testsuite.native"
+  doc <- read <$> readFile "test/testsuite.native"
   mainWith $ do
     func "Pandoc document" id doc
     mapM_

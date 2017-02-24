@@ -57,7 +57,7 @@ Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/Org.hs
-tests/Tests/Readers/Org.hs
+test/Tests/Readers/Org.hs
 Copyright (C) 2014-2015 Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
