@@ -74,6 +74,7 @@ data LogMessage =
   | CouldNotConvertTeXMath String String
   | CouldNotParseCSS String
   | Fetching String
+  | UsingResourceFrom FilePath FilePath
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -163,6 +164,10 @@ instance ToJSON LogMessage where
       Fetching fp ->
            ["type" .= String "CouldNotParseCSS",
             "path" .= Text.pack fp]
+      UsingResourceFrom resource dir ->
+           ["type" .= String "UsingResourceFrom",
+            "resource" .= Text.pack resource,
+            "path" .= Text.pack dir]
 
 showPos :: SourcePos -> String
 showPos pos = sn ++ "line " ++
@@ -220,6 +225,8 @@ showLogMessage msg =
          "Could not parse CSS" ++ if null m then "" else (':':'\n':m)
        Fetching fp ->
          "Fetching " ++ fp ++ "..."
+       UsingResourceFrom fp dir ->
+         "Using " ++ fp ++ " from " ++ dir
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -242,3 +249,4 @@ messageVerbosity msg =
        CouldNotConvertTeXMath{} -> WARNING
        CouldNotParseCSS{} -> WARNING
        Fetching{} -> INFO
+       UsingResourceFrom{} -> INFO

@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveFunctor, DeriveDataTypeable, TypeSynonymInstances,
-FlexibleInstances, GeneralizedNewtypeDeriving, FlexibleContexts #-}
+FlexibleInstances, GeneralizedNewtypeDeriving, FlexibleContexts,
+StandaloneDeriving #-}
 
 {-
 Copyright (C) 2016 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -50,6 +51,8 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , fetchItem
                          , getInputFiles
                          , getOutputFile
+                         , setResourcePath
+                         , getResourcePath
                          , PandocIO(..)
                          , PandocPure(..)
                          , FileTree(..)
@@ -88,7 +91,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified System.Environment as IO (lookupEnv)
 import System.FilePath.Glob (match, compile)
-import System.FilePath ((</>), takeExtension, dropExtension)
+import System.FilePath ((</>), takeExtension, dropExtension, isRelative)
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Directory as IO (getModificationTime)
 import Control.Monad as M (fail)
@@ -165,6 +168,12 @@ getInputFiles = getsCommonState stInputFiles
 getOutputFile :: PandocMonad m => m (Maybe FilePath)
 getOutputFile = getsCommonState stOutputFile
 
+setResourcePath :: PandocMonad m => [FilePath] -> m ()
+setResourcePath ps = modifyCommonState $ \st -> st{stResourcePath = ps}
+
+getResourcePath :: PandocMonad m => m [FilePath]
+getResourcePath = getsCommonState stResourcePath
+
 getPOSIXTime :: (PandocMonad m) => m POSIXTime
 getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 
@@ -183,11 +192,12 @@ readFileFromDirs (d:ds) f = catchError
 
 --
 
-data CommonState = CommonState { stLog        :: [LogMessage]
-                               , stMediaBag   :: MediaBag
-                               , stInputFiles :: Maybe [FilePath]
-                               , stOutputFile :: Maybe FilePath
-                               , stVerbosity  :: Verbosity
+data CommonState = CommonState { stLog          :: [LogMessage]
+                               , stMediaBag     :: MediaBag
+                               , stInputFiles   :: Maybe [FilePath]
+                               , stOutputFile   :: Maybe FilePath
+                               , stResourcePath :: [FilePath]
+                               , stVerbosity    :: Verbosity
                                }
 
 instance Default CommonState where
@@ -195,6 +205,7 @@ instance Default CommonState where
                     , stMediaBag = mempty
                     , stInputFiles = Nothing
                     , stOutputFile = Nothing
+                    , stResourcePath = ["."]
                     , stVerbosity = WARNING
                     }
 
@@ -289,7 +300,10 @@ downloadOrRead sourceURL s = do
                  readLocalFile $ dropWhile (=='/') (uriPath u')
             _ -> readLocalFile fp -- get from local file system
    where readLocalFile f = do
-             cont <- readFileStrict f
+             resourcePath <- getResourcePath
+             cont <- if isRelative f
+                        then withPaths resourcePath readFileStrict f
+                        else readFileStrict f
              return (cont, mime)
          httpcolon = URI{ uriScheme = "http:",
                           uriAuthority = Nothing,
@@ -305,6 +319,16 @@ downloadOrRead sourceURL s = do
          ensureEscaped = escapeURIString isAllowedInURI . map convertSlash
          convertSlash '\\' = '/'
          convertSlash x    = x
+
+withPaths :: PandocMonad m => [FilePath] -> (FilePath -> m a) -> FilePath -> m a
+withPaths [] _ fp = throwError $ PandocIOError fp
+                       (userError "file not found in resource path")
+withPaths (p:ps) action fp =
+  catchError (do res <- action (p </> fp)
+                 when (p /= ".") $
+                   report $ UsingResourceFrom fp p
+                 return res)
+             (\_ -> withPaths ps action fp)
 
 data PureState = PureState { stStdGen     :: StdGen
                            , stWord8Store :: [Word8] -- should be
