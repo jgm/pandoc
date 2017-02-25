@@ -795,25 +795,32 @@ blockToOpenXML opts blk = withDirection $ blockToOpenXML' opts blk
 
 blockToOpenXML' :: (PandocMonad m) => WriterOptions -> Block -> WS m [Element]
 blockToOpenXML' _ Null = return []
-blockToOpenXML' opts (Div (ident,classes,kvs) bs)
-  | Just sty <- lookup dynamicStyleKey kvs = do
-      modify $ \s -> s{stDynamicParaProps = sty : (stDynamicParaProps s)}
-      withParaPropM (pStyleM sty) $ blocksToOpenXML opts bs
-  | Just "rtl" <- lookup "dir" kvs = do
-      let kvs' = filter (("dir", "rtl")/=) kvs
-      local (\env -> env { envRTL = True }) $
-        blockToOpenXML opts (Div (ident,classes,kvs') bs)
-  | Just "ltr" <- lookup "dir" kvs = do
-      let kvs' = filter (("dir", "ltr")/=) kvs
-      local (\env -> env { envRTL = False }) $
-        blockToOpenXML opts (Div (ident,classes,kvs') bs)
-blockToOpenXML' opts (Div (_,["references"],_) bs) = do
-  let (hs, bs') = span isHeaderBlock bs
-  header <- blocksToOpenXML opts hs
-  -- We put the Bibliography style on paragraphs after the header
-  rest <- withParaPropM (pStyleM "Bibliography") $ blocksToOpenXML opts bs'
-  return (header ++ rest)
-blockToOpenXML' opts (Div _ bs) = blocksToOpenXML opts bs
+blockToOpenXML' opts (Div (ident,classes,kvs) bs) = do
+  stylemod <- case lookup dynamicStyleKey kvs of
+                   Just sty -> do
+                      modify $ \s ->
+                        s{stDynamicParaProps = sty : (stDynamicParaProps s)}
+                      return $ withParaPropM (pStyleM sty)
+                   _ -> return id
+  dirmod <- case lookup "dir" kvs of
+                 Just "rtl" -> return $ local (\env -> env { envRTL = True })
+                 Just "ltr" -> return $ local (\env -> env { envRTL = False })
+                 _ -> return id
+  let (hs, bs') = if "references" `elem` classes
+                     then span isHeaderBlock bs
+                     else ([], bs)
+  let bibmod = if "references" `elem` classes
+                  then withParaPropM (pStyleM "Bibliography")
+                  else id
+  header <- dirmod $ stylemod $ blocksToOpenXML opts hs
+  contents <- dirmod $ bibmod $ stylemod $ blocksToOpenXML opts bs'
+  id' <- getUniqueId
+  let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
+                                               ,("w:name",ident)] ()
+  let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
+  if null ident
+     then return $ header ++ contents
+     else return $ bookmarkStart : header ++ contents ++ [bookmarkEnd]
 blockToOpenXML' opts (Header lev (ident,_,_) lst) = do
   setFirstPara
   paraProps <- withParaPropM (pStyleM ("Heading "++show lev)) $
@@ -824,11 +831,12 @@ blockToOpenXML' opts (Header lev (ident,_,_) lst) = do
                         then uniqueIdent lst usedIdents
                         else ident
   modify $ \s -> s{ stSectionIds = Set.insert bookmarkName $ stSectionIds s }
-  id' <- (lift . lift) getUniqueId
+  id' <- getUniqueId
   let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
                                                ,("w:name",bookmarkName)] ()
   let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
-  return [mknode "w:p" [] (paraProps ++ [bookmarkStart, bookmarkEnd] ++ contents)]
+  return [mknode "w:p" [] (paraProps ++ [bookmarkStart] ++ contents
+                          ++ [bookmarkEnd])]
 blockToOpenXML' opts (Plain lst) = withParaProp (pCustomStyle "Compact")
   $ blockToOpenXML opts (Para lst)
 -- title beginning with fig: indicates that the image is a figure
