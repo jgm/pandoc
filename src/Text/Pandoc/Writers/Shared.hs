@@ -89,9 +89,12 @@ metaToJSON' blockWriter inlineWriter (Meta metamap) = do
 -- of the original JSON object itself, prior to addition of variables.
 addVariablesToJSON :: WriterOptions -> Value -> Value
 addVariablesToJSON opts metadata =
-  foldl (\acc (x,y) -> resetField x y acc)
-       (defField "meta-json" (toStringLazy $ encode metadata) metadata)
+  foldl (\acc (x,y) -> setField x y acc)
+       (defField "meta-json" (toStringLazy $ encode metadata) (Object mempty))
        (writerVariables opts)
+    `combineMetadata` metadata
+  where combineMetadata (Object o1) (Object o2) = Object $ H.union o1 o2
+        combineMetadata x _           = x
 
 metaValueToJSON :: Monad m
                 => ([Block] -> m String)
