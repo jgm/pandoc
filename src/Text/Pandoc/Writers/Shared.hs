@@ -30,6 +30,8 @@ Shared utility functions for pandoc writers.
 -}
 module Text.Pandoc.Writers.Shared (
                        metaToJSON
+                     , metaToJSON'
+                     , addVariablesToJSON
                      , getField
                      , setField
                      , resetField
@@ -57,23 +59,39 @@ import Data.Maybe ( isJust )
 -- of variables, specified at the command line or in the writer.
 -- Variables overwrite metadata fields with the same names.
 -- If multiple variables are set with the same name, a list is
--- assigned.
+-- assigned.  Does nothing if 'writerTemplate' is Nothing.
 metaToJSON :: Monad m
            => WriterOptions
            -> ([Block] -> m String)
            -> ([Inline] -> m String)
            -> Meta
            -> m Value
-metaToJSON opts blockWriter inlineWriter (Meta metamap)
-  | isJust (writerTemplate opts) = do
-    renderedMap <- Traversable.mapM
-                   (metaValueToJSON blockWriter inlineWriter)
-                   metamap
-    let metadata = M.foldWithKey defField (Object H.empty) renderedMap
-    return $ foldl (\acc (x,y) -> resetField x y acc)
-             (defField "meta-json" (toStringLazy $ encode metadata) metadata)
-             (writerVariables opts)
+metaToJSON opts blockWriter inlineWriter meta
+  | isJust (writerTemplate opts) =
+    addVariablesToJSON opts <$> metaToJSON' blockWriter inlineWriter meta
   | otherwise = return (Object H.empty)
+
+-- | Like 'metaToJSON', but does not include variables and is
+-- not sensitive to 'writerTemplate'.
+metaToJSON' :: Monad m
+           => ([Block] -> m String)
+           -> ([Inline] -> m String)
+           -> Meta
+           -> m Value
+metaToJSON' blockWriter inlineWriter (Meta metamap) = do
+  renderedMap <- Traversable.mapM
+                 (metaValueToJSON blockWriter inlineWriter)
+                 metamap
+  return $ M.foldWithKey defField (Object H.empty) renderedMap
+
+-- | Add variables to JSON object, replacing any existing values.
+-- Also include @meta-json@, a field containing a string representation
+-- of the original JSON object itself, prior to addition of variables.
+addVariablesToJSON :: WriterOptions -> Value -> Value
+addVariablesToJSON opts metadata =
+  foldl (\acc (x,y) -> resetField x y acc)
+       (defField "meta-json" (toStringLazy $ encode metadata) metadata)
+       (writerVariables opts)
 
 metaValueToJSON :: Monad m
                 => ([Block] -> m String)
