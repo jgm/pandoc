@@ -2826,7 +2826,9 @@ HTML, Slidy, DZSlides, S5, EPUB
     6.  If the `--webtex` option is used, TeX formulas will be converted
         to `<img>` tags that link to an external script that converts
         formulas to images. The formula will be URL-encoded and concatenated
-        with the URL provided. If no URL is specified, the CodeCogs
+        with the URL provided. For SVG images you can for example use
+        `--webtex https://latex.codecogs.com/svg.latex?`.
+        If no URL is specified, the CodeCogs URL generating PNGs
         will be used (`https://latex.codecogs.com/png.latex?`).
 
     7.  If the `--mathjax` option is used, TeX math will be displayed
