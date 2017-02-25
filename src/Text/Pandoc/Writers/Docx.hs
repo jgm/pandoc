@@ -1,4 +1,5 @@
-{-# LANGUAGE ScopedTypeVariables, PatternGuards, ViewPatterns, DeriveFunctor #-}
+{-# LANGUAGE ScopedTypeVariables, PatternGuards, ViewPatterns, DeriveFunctor,
+   ScopedTypeVariables, RankNTypes #-}
 {-
 Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -1048,50 +1049,62 @@ inlineToOpenXML' :: PandocMonad m => WriterOptions -> Inline -> WS m [Element]
 inlineToOpenXML' _ (Str str) = formattedString str
 inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
-inlineToOpenXML' opts (Span (ident,classes,kvs) ils)
-  | Just sty <- lookup dynamicStyleKey kvs = do
-      let kvs' = filter ((dynamicStyleKey, sty)/=) kvs
-      modify $ \s -> s{stDynamicTextProps = sty : (stDynamicTextProps s)}
-      withTextProp (rCustomStyle sty) $
-        inlineToOpenXML opts (Span (ident,classes,kvs') ils)
-  | Just "rtl" <- lookup "dir" kvs = do
-      let kvs' = filter (("dir", "rtl")/=) kvs
-      local (\env -> env { envRTL = True }) $
-        inlineToOpenXML opts (Span (ident,classes,kvs') ils)
-  | Just "ltr" <- lookup "dir" kvs = do
-      let kvs' = filter (("dir", "ltr")/=) kvs
-      local (\env -> env { envRTL = False }) $
-        inlineToOpenXML opts (Span (ident,classes,kvs') ils)
-  | "insertion" `elem` classes = do
-    defaultAuthor <- asks envChangesAuthor
-    defaultDate <- asks envChangesDate
-    let author = fromMaybe defaultAuthor (lookup "author" kvs)
-        date   = fromMaybe defaultDate (lookup "date" kvs)
-    insId <- gets stInsId
-    modify $ \s -> s{stInsId = (insId + 1)}
-    x <- inlinesToOpenXML opts ils
-    return [ mknode "w:ins" [("w:id", (show insId)),
-                             ("w:author", author),
-                             ("w:date", date)]
-             x ]
-  | "deletion" `elem` classes = do
-    defaultAuthor <- asks envChangesAuthor
-    defaultDate <- asks envChangesDate
-    let author = fromMaybe defaultAuthor (lookup "author" kvs)
-        date   = fromMaybe defaultDate (lookup "date" kvs)
-    delId <- gets stDelId
-    modify $ \s -> s{stDelId = (delId + 1)}
-    x <- local (\env -> env {envInDel = True}) (inlinesToOpenXML opts ils)
-    return [ mknode "w:del" [("w:id", (show delId)),
-                             ("w:author", author),
-                             ("w:date", date)]
-             x ]
-  | otherwise = do
-    let off x = withTextProp (mknode x [("w:val","0")] ())
-    ((if "csl-no-emph" `elem` classes then off "w:i" else id) .
-     (if "csl-no-strong" `elem` classes then off "w:b" else id) .
-     (if "csl-no-smallcaps" `elem` classes then off "w:smallCaps" else id))
-      $ inlinesToOpenXML opts ils
+inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
+  stylemod <- case lookup dynamicStyleKey kvs of
+                   Just sty -> do
+                      modify $ \s ->
+                        s{stDynamicTextProps = sty : (stDynamicTextProps s)}
+                      return $ withTextProp (rCustomStyle sty)
+                   _ -> return id
+  let dirmod = case lookup "dir" kvs of
+                 Just "rtl" -> local (\env -> env { envRTL = True })
+                 Just "ltr" -> local (\env -> env { envRTL = False })
+                 _ -> id
+  let off x = withTextProp (mknode x [("w:val","0")] ())
+  let pmod =  (if "csl-no-emph" `elem` classes then off "w:i" else id) .
+              (if "csl-no-strong" `elem` classes then off "w:b" else id) .
+              (if "csl-no-smallcaps" `elem` classes
+                  then off "w:smallCaps"
+                  else id)
+  insmod <- if "insertion" `elem` classes
+               then do
+                 defaultAuthor <- asks envChangesAuthor
+                 defaultDate <- asks envChangesDate
+                 let author = fromMaybe defaultAuthor (lookup "author" kvs)
+                     date   = fromMaybe defaultDate (lookup "date" kvs)
+                 insId <- gets stInsId
+                 modify $ \s -> s{stInsId = (insId + 1)}
+                 return $ \f -> do
+                   x <- f
+                   return $ [ mknode "w:ins"
+                              [("w:id", (show insId)),
+                              ("w:author", author),
+                              ("w:date", date)] x]
+               else return id
+  delmod <- if "insertion" `elem` classes
+               then do
+                 defaultAuthor <- asks envChangesAuthor
+                 defaultDate <- asks envChangesDate
+                 let author = fromMaybe defaultAuthor (lookup "author" kvs)
+                     date   = fromMaybe defaultDate (lookup "date" kvs)
+                 insId <- gets stInsId
+                 modify $ \s -> s{stInsId = (insId + 1)}
+                 return $ \f -> do
+                   x <- f
+                   return [mknode "w:ins"
+                           [("w:id", (show insId)),
+                           ("w:author", author),
+                           ("w:date", date)] x]
+               else return id
+  contents <- insmod $ delmod $ dirmod $ stylemod $ pmod
+                     $ inlinesToOpenXML opts ils
+  id' <- getUniqueId
+  let bookmarkStart = mknode "w:bookmarkStart" [("w:id", id')
+                                               ,("w:name",ident)] ()
+  let bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
+  return $ if null ident
+              then contents
+              else bookmarkStart : contents ++ [bookmarkEnd]
 inlineToOpenXML' opts (Strong lst) =
   withTextProp (mknode "w:b" [] ()) $ inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Emph lst) =
