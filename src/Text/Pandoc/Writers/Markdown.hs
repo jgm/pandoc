@@ -159,8 +159,7 @@ jsonToYaml (Object hashmap) =
                  | otherwise      -> (k' <> ":") $$ x
                (k', Object _, x)  -> (k' <> ":") $$ nest 2 x
                (_, String "", _)  -> empty
-               (k', _, x)  | k == "meta-json"  -> empty
-                           | otherwise -> k' <> ":" <> space <> hang 2 "" x)
+               (k', _, x)         -> k' <> ":" <> space <> hang 2 "" x)
        $ sortBy (comparing fst) $ H.toList hashmap
 jsonToYaml (Array vec) =
   vcat $ map (\v -> hang 2 "- " (jsonToYaml v)) $ V.toList vec
@@ -181,7 +180,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                     then Just $ writerColumns opts
                     else Nothing
   isPlain <- asks envPlain
-  metadata <- metaToJSON opts
+  metadata <- metaToJSON'
                (fmap (render colwidth) . blockListToMarkdown opts)
                (fmap (render colwidth) . inlineListToMarkdown opts)
                meta
@@ -219,7 +218,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                $ (if isNullMeta meta
                      then id
                      else defField "titleblock" (render' titleblock))
-               $ metadata
+               $ addVariablesToJSON opts metadata
   case writerTemplate opts of
        Nothing  -> return main
        Just tpl -> return $ renderTemplate' tpl context
