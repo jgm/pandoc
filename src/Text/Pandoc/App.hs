@@ -233,7 +233,11 @@ convertWithOpts opts = do
       (\vars -> return $ ("outputfile", optOutputFile opts) : vars)
       >>=
       withList (addStringAsVariable "sourcefile")
-               (optInputFiles opts)
+               (reverse $ optInputFiles opts)
+               -- we reverse this list because, unlike
+               -- the other option lists here, it is
+               -- not reversed when parsed from CLI arguments.
+               -- See withList, above.
       >>=
       withList (addContentsAsVariable "include-before")
                (optIncludeBeforeBody opts)
