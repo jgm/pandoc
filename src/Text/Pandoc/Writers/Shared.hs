@@ -32,6 +32,7 @@ module Text.Pandoc.Writers.Shared (
                        metaToJSON
                      , getField
                      , setField
+                     , resetField
                      , defField
                      , tagWithAttrs
                      , fixDisplayMath
@@ -65,13 +66,13 @@ metaToJSON :: Monad m
            -> m Value
 metaToJSON opts blockWriter inlineWriter (Meta metamap)
   | isJust (writerTemplate opts) = do
-    let baseContext = foldl (\acc (x,y) -> setField x y acc) (Object H.empty)
-                      $ writerVariables opts
     renderedMap <- Traversable.mapM
                    (metaValueToJSON blockWriter inlineWriter)
                    metamap
-    let metadata = M.foldWithKey defField baseContext renderedMap
-    return $ defField "meta-json" (toStringLazy $ encode metadata) metadata
+    let metadata = M.foldWithKey defField (Object H.empty) renderedMap
+    return $ foldl (\acc (x,y) -> resetField x y acc)
+             (defField "meta-json" (toStringLazy $ encode metadata) metadata)
+             (writerVariables opts)
   | otherwise = return (Object H.empty)
 
 metaValueToJSON :: Monad m
@@ -115,6 +116,18 @@ setField field val (Object hashmap) =
                 Success xs  -> toJSON $ xs ++ [newval]
                 _           -> toJSON [oldval, newval]
 setField _ _  x = x
+
+resetField :: ToJSON a
+           => String
+           -> a
+           -> Value
+           -> Value
+-- | Reset a field of a JSON object.  If the field already has a value,
+-- the new value replaces it.
+-- This is a utility function to be used in preparing template contexts.
+resetField field val (Object hashmap) =
+  Object $ H.insert (T.pack field) (toJSON val) hashmap
+resetField _ _  x = x
 
 defField :: ToJSON a
          => String
