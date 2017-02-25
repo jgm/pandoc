@@ -388,6 +388,7 @@ blockCommands = M.fromList $
   , "ignore"
   , "hyperdef"
   , "markboth", "markright", "markleft"
+  , "hspace", "vspace"
   , "newpage"
   ]
 
