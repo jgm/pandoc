@@ -52,7 +52,8 @@ import qualified Data.Map as M
 import Data.Aeson (Value(String), fromJSON, toJSON, Result(..))
 import qualified Data.Text as T
 import Data.Char (isSpace, isPunctuation)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 
 data WriterState = WriterState { defListMarker :: String
                                , orderedListLevel :: Int
@@ -62,16 +63,18 @@ data WriterState = WriterState { defListMarker :: String
 
 -- | Convert Pandoc to AsciiDoc.
 writeAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeAsciiDoc opts document = return $
-  evalState (pandocToAsciiDoc opts document) WriterState{
+writeAsciiDoc opts document =
+  evalStateT (pandocToAsciiDoc opts document) WriterState{
       defListMarker = "::"
     , orderedListLevel = 1
     , bulletListLevel = 1
     , intraword = False
     }
 
+type ADW = StateT WriterState
+
 -- | Return asciidoc representation of document.
-pandocToAsciiDoc :: WriterOptions -> Pandoc -> State WriterState String
+pandocToAsciiDoc :: PandocMonad m => WriterOptions -> Pandoc -> ADW m String
 pandocToAsciiDoc opts (Pandoc meta blocks) = do
   let titleblock = not $ null (docTitle meta) && null (docAuthors meta) &&
                          null (docDate meta)
@@ -123,9 +126,10 @@ beginsWithOrderedListMarker str =
          Right _  -> True
 
 -- | Convert Pandoc block element to asciidoc.
-blockToAsciiDoc :: WriterOptions -- ^ Options
+blockToAsciiDoc :: PandocMonad m
+                => WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
-                -> State WriterState Doc
+                -> ADW m Doc
 blockToAsciiDoc _ Null = return empty
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
@@ -146,9 +150,11 @@ blockToAsciiDoc opts (LineBlock lns) = do
   let joinWithLinefeeds = nowrap . mconcat . intersperse cr
   contents <- joinWithLinefeeds <$> mapM docify lns
   return $ "[verse]" $$ text "--" $$ contents $$ text "--" $$ blankline
-blockToAsciiDoc _ (RawBlock f s)
+blockToAsciiDoc _ b@(RawBlock f s)
   | f == "asciidoc" = return $ text s
-  | otherwise       = return empty
+  | otherwise         = do
+      report $ BlockNotRendered b
+      return empty
 blockToAsciiDoc _ HorizontalRule =
   return $ blankline <> text "'''''" <> blankline
 blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
@@ -269,9 +275,10 @@ blockToAsciiDoc opts (Div (ident,_,_) bs) = do
   return $ identifier $$ contents
 
 -- | Convert bullet list item (list of blocks) to asciidoc.
-bulletListItemToAsciiDoc :: WriterOptions -> [Block] -> State WriterState Doc
+bulletListItemToAsciiDoc :: PandocMonad m
+                         => WriterOptions -> [Block] -> ADW m Doc
 bulletListItemToAsciiDoc opts blocks = do
-  let addBlock :: Doc -> Block -> State WriterState Doc
+  let addBlock :: PandocMonad m => Doc -> Block -> ADW m Doc
       addBlock d b | isEmpty d    = chomp `fmap` blockToAsciiDoc opts b
       addBlock d b@(BulletList _) = do x <- blockToAsciiDoc opts b
                                        return $ d <> cr <> chomp x
@@ -287,13 +294,13 @@ bulletListItemToAsciiDoc opts blocks = do
   return $ marker <> text " " <> contents <> cr
 
 -- | Convert ordered list item (a list of blocks) to asciidoc.
-orderedListItemToAsciiDoc :: WriterOptions -- ^ options
+orderedListItemToAsciiDoc :: PandocMonad m
+                          => WriterOptions -- ^ options
                           -> String        -- ^ list item marker
                           -> [Block]       -- ^ list item (list of blocks)
-                          -> State WriterState Doc
+                          -> ADW m Doc
 orderedListItemToAsciiDoc opts marker blocks = do
-  let addBlock :: Doc -> Block -> State WriterState Doc
-      addBlock d b | isEmpty d    = chomp `fmap` blockToAsciiDoc opts b
+  let addBlock d b | isEmpty d    = chomp `fmap` blockToAsciiDoc opts b
       addBlock d b@(BulletList _) = do x <- blockToAsciiDoc opts b
                                        return $ d <> cr <> chomp x
       addBlock d b@(OrderedList _ _) = do x <- blockToAsciiDoc opts b
@@ -307,9 +314,10 @@ orderedListItemToAsciiDoc opts marker blocks = do
   return $ text marker <> text " " <> contents <> cr
 
 -- | Convert definition list item (label, list of blocks) to asciidoc.
-definitionListItemToAsciiDoc :: WriterOptions
+definitionListItemToAsciiDoc :: PandocMonad m
+                             => WriterOptions
                              -> ([Inline],[[Block]])
-                             -> State WriterState Doc
+                             -> ADW m Doc
 definitionListItemToAsciiDoc opts (label, defs) = do
   labelText <- inlineListToAsciiDoc opts label
   marker <- defListMarker `fmap` get
@@ -317,7 +325,7 @@ definitionListItemToAsciiDoc opts (label, defs) = do
      then modify (\st -> st{ defListMarker = ";;"})
      else modify (\st -> st{ defListMarker = "::"})
   let divider = cr <> text "+" <> cr
-  let defsToAsciiDoc :: [Block] -> State WriterState Doc
+  let defsToAsciiDoc :: PandocMonad m => [Block] -> ADW m Doc
       defsToAsciiDoc ds = (vcat . intersperse divider . map chomp)
            `fmap` mapM (blockToAsciiDoc opts) ds
   defs' <- mapM defsToAsciiDoc defs
@@ -326,15 +334,16 @@ definitionListItemToAsciiDoc opts (label, defs) = do
   return $ labelText <> text marker <> cr <> contents <> cr
 
 -- | Convert list of Pandoc block elements to asciidoc.
-blockListToAsciiDoc :: WriterOptions -- ^ Options
+blockListToAsciiDoc :: PandocMonad m
+                    => WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
-                    -> State WriterState Doc
+                    -> ADW m Doc
 blockListToAsciiDoc opts blocks = cat `fmap` mapM (blockToAsciiDoc opts) blocks
 
 data SpacyLocation = End | Start
 
 -- | Convert list of Pandoc inline elements to asciidoc.
-inlineListToAsciiDoc :: WriterOptions -> [Inline] -> State WriterState Doc
+inlineListToAsciiDoc :: PandocMonad m => WriterOptions -> [Inline] -> ADW m Doc
 inlineListToAsciiDoc opts lst = do
   oldIntraword <- gets intraword
   setIntraword False
@@ -370,14 +379,14 @@ inlineListToAsciiDoc opts lst = do
        isSpacy Start (Str (c:_)) = isPunctuation c || isSpace c
        isSpacy _ _ = False
 
-setIntraword :: Bool -> State WriterState ()
+setIntraword :: PandocMonad m => Bool -> ADW m ()
 setIntraword b = modify $ \st -> st{ intraword = b }
 
-withIntraword :: State WriterState a -> State WriterState a
+withIntraword :: PandocMonad m => ADW m a -> ADW m a
 withIntraword p = setIntraword True *> p <* setIntraword False
 
 -- | Convert Pandoc inline element to asciidoc.
-inlineToAsciiDoc :: WriterOptions -> Inline -> State WriterState Doc
+inlineToAsciiDoc :: PandocMonad m => WriterOptions -> Inline -> ADW m Doc
 inlineToAsciiDoc opts (Emph lst) = do
   contents <- inlineListToAsciiDoc opts lst
   isIntraword <- gets intraword
@@ -409,8 +418,11 @@ inlineToAsciiDoc _ (Math InlineMath str) =
   return $ "latexmath:[$" <> text str <> "$]"
 inlineToAsciiDoc _ (Math DisplayMath str) =
   return $ "latexmath:[\\[" <> text str <> "\\]]"
-inlineToAsciiDoc _ (RawInline f s)
+inlineToAsciiDoc _ il@(RawInline f s)
   | f == "asciidoc" = return $ text s
+  | otherwise         = do
+      report $ InlineNotRendered il
+      return empty
   | otherwise       = return empty
 inlineToAsciiDoc _ LineBreak = return $ " +" <> cr
 inlineToAsciiDoc _ Space = return space
