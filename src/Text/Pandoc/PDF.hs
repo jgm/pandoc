@@ -38,7 +38,7 @@ import Data.Monoid ((<>))
 import System.Exit (ExitCode (..))
 import System.FilePath
 import System.IO (stdout)
-import System.IO.Temp (withTempFile)
+import System.IO.Temp (withTempFile, withTempDirectory)
 import System.Directory
 import Data.Digest.Pure.SHA (showDigest, sha1)
 import System.Environment
@@ -104,8 +104,11 @@ makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = liftIO $ do
               setVerbosity verbosity
               writer opts doc
   html2pdf verbosity args source
-makePDF program writer opts verbosity mediabag doc =
-  liftIO $ withTempDir "tex2pdf." $ \tmpdir -> do
+makePDF program writer opts verbosity mediabag doc = do
+  let withTemp = if takeBaseName program == "context"
+                    then withTempDirectory "."
+                    else withTempDir
+  liftIO $ withTemp "tex2pdf." $ \tmpdir -> do
     doc' <- handleImages verbosity opts mediabag tmpdir doc
     source <- runIOorExplode $ do
                 setVerbosity verbosity
