@@ -128,8 +128,8 @@ data WriterState = WriterState{
        , stStyleMaps      :: StyleMaps
        , stFirstPara      :: Bool
        , stTocTitle       :: [Inline]
-       , stDynamicParaProps :: [String]
-       , stDynamicTextProps :: [String]
+       , stDynamicParaProps :: Set.Set String
+       , stDynamicTextProps :: Set.Set String
        }
 
 defaultWriterState :: WriterState
@@ -144,8 +144,8 @@ defaultWriterState = WriterState{
       , stStyleMaps      = defaultStyleMaps
       , stFirstPara      = False
       , stTocTitle       = [Str "Table of Contents"]
-      , stDynamicParaProps = []
-      , stDynamicTextProps = []
+      , stDynamicParaProps = Set.empty
+      , stDynamicTextProps = Set.empty
       }
 
 type WS m = ReaderT WriterEnv (StateT WriterState m)
@@ -443,11 +443,11 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- are normalized as lowercase.
   let newDynamicParaProps = filter
         (\sty -> isNothing $ M.lookup (toLower <$> sty) $ getMap $ sParaStyleMap styleMaps)
-        (stDynamicParaProps st)
+        (Set.toList $ stDynamicParaProps st)
 
       newDynamicTextProps = filter
         (\sty -> isNothing $ M.lookup (toLower <$> sty) $ getMap $ sCharStyleMap styleMaps)
-        (stDynamicTextProps st)
+        (Set.toList $ stDynamicTextProps st)
 
   let newstyles = map newParaPropToOpenXml newDynamicParaProps ++
                   map newTextPropToOpenXml newDynamicTextProps ++
@@ -800,7 +800,8 @@ blockToOpenXML' opts (Div (ident,classes,kvs) bs) = do
   stylemod <- case lookup dynamicStyleKey kvs of
                    Just sty -> do
                       modify $ \s ->
-                        s{stDynamicParaProps = sty : (stDynamicParaProps s)}
+                        s{stDynamicParaProps = Set.insert sty
+                             (stDynamicParaProps s)}
                       return $ withParaPropM (pStyleM sty)
                    _ -> return id
   dirmod <- case lookup "dir" kvs of
@@ -1053,7 +1054,8 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
   stylemod <- case lookup dynamicStyleKey kvs of
                    Just sty -> do
                       modify $ \s ->
-                        s{stDynamicTextProps = sty : (stDynamicTextProps s)}
+                        s{stDynamicTextProps = Set.insert sty
+                              (stDynamicTextProps s)}
                       return $ withTextProp (rCustomStyle sty)
                    _ -> return id
   let dirmod = case lookup "dir" kvs of
