@@ -60,7 +60,7 @@ import Data.Maybe ( isJust )
 -- Variables overwrite metadata fields with the same names.
 -- If multiple variables are set with the same name, a list is
 -- assigned.  Does nothing if 'writerTemplate' is Nothing.
-metaToJSON :: Monad m
+metaToJSON :: (Functor m, Monad m)
            => WriterOptions
            -> ([Block] -> m String)
            -> ([Inline] -> m String)
