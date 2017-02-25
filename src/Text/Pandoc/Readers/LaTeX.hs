@@ -445,7 +445,6 @@ inlineCommand :: PandocMonad m => LP m Inlines
 inlineCommand = try $ do
   (name, raw') <- withRaw anyControlSeq
   guard $ name /= "begin" && name /= "end"
-  guard $ not $ isBlockCommand name
   exts <- getOption readerExtensions
   star <- option "" (string "*")
   let name' = name ++ star
@@ -461,7 +460,7 @@ inlineCommand = try $ do
                    else ignore rawcommand
   (lookupListDefault mzero [name',name] inlineCommands <*
       optional (try (string "{}")))
-    <|> raw
+    <|> (guard (not (isBlockCommand name)) >> raw)
 
 unlessParseRaw :: PandocMonad m => LP m ()
 unlessParseRaw = getOption readerExtensions >>=
@@ -648,7 +647,10 @@ inlineCommands = M.fromList $
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
-  [ "index" ]
+  [ "index"
+  , "hspace"
+  , "vspace"
+  ]
 
 mkImage :: PandocMonad m => [(String, String)] -> String -> LP m Inlines
 mkImage options src = do
