@@ -61,9 +61,9 @@ main = do
       matchWriter (_, _) = False
   let matchedReaders = filter matchReader readers
   let matchedWriters = filter matchWriter writers
-  inp <- readFile "tests/testsuite.txt"
-  lalune <- B.readFile "tests/lalune.jpg"
-  movie <- B.readFile "tests/movie.jpg"
+  inp <- readFile "test/testsuite.txt"
+  lalune <- B.readFile "test/lalune.jpg"
+  movie <- B.readFile "test/movie.jpg"
   time <- getCurrentTime
   let setupFakeFiles = modifyPureState $ \st -> st{ stFiles =
                         FileTree $ Map.fromList [

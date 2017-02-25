@@ -161,7 +161,7 @@ or, if you're using [stack],
     stack setup
     stack test
 
-The test program is `tests/test-pandoc.hs`.
+The test program is `test/test-pandoc.hs`.
 
 Benchmarks
 ----------
@@ -242,7 +242,7 @@ github: <http://github.com/jgm/pandoc>.  To get a local copy of the source:
 
 The source for the main pandoc program is `pandoc.hs`.  The source for
 the pandoc library is in `src/`, the source for the tests is in
-`tests/`, and the source for the benchmarks is in `benchmark/`.
+`test/`, and the source for the benchmarks is in `benchmark/`.
 
 The modules `Text.Pandoc.Definition`, `Text.Pandoc.Builder`, and
 `Text.Pandoc.Generic` are in a separate library `pandoc-types`.  The code can
