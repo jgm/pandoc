@@ -411,7 +411,10 @@ convertWithOpts opts = do
                     selfcontain = if optSelfContained opts && htmlFormat
                                   then makeSelfContained writerOptions
                                   else return
-                    handleEntities = if htmlFormat && optAscii opts
+                    handleEntities = if (htmlFormat ||
+                                         format == "docbook4" ||
+                                         format == "docbook5" ||
+                                         format == "docbook") && optAscii opts
                                      then toEntities
                                      else id
                 output <- f writerOptions doc'
