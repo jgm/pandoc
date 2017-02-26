@@ -38,6 +38,7 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Options
 import Text.Pandoc.Logging
 import Text.Pandoc.Error
+import Text.Pandoc.ImageSize (lengthToDim, scaleDimension)
 import Control.Monad ( when, liftM, guard, mzero )
 import Data.List ( findIndex, intercalate, isInfixOf,
                    transpose, sort, deleteFirstsBy, isSuffixOf , nub, union)
@@ -624,12 +625,31 @@ directive' = do
   body <- option "" $ try $ blanklines >> indentedBlock
   optional blanklines
   let body' = body ++ "\n\n"
-      imgAttr cl = ("", classes, getAtt "width" ++ getAtt "height")
+      imgAttr cl = ("", classes, widthAttr ++ heightAttr)
         where
-          classes = words $ maybe "" trim $ lookup cl fields
-          getAtt k = case lookup k fields of
-                       Just v  -> [(k, filter (not . isSpace) v)]
-                       Nothing -> []
+          classes = words $ maybe "" trim (lookup cl fields) ++
+                      maybe "" (\x -> "align-" ++ trim x)
+                        (lookup "align" fields)
+          scale = case trim <$> lookup "scale" fields of
+                       Just v  -> case reverse v of
+                                       '%':vv ->
+                                         case safeRead (reverse vv) of
+                                              Just (percent :: Double)
+                                                      -> percent / 100.0
+                                              Nothing -> 1.0
+                                       _ ->
+                                         case safeRead v of
+                                              Just (s :: Double) -> s
+                                              Nothing -> 1.0
+                       Nothing -> 1.0
+          widthAttr = maybe [] (\x -> [("width",
+                                        show $ scaleDimension scale x)])
+                        $ lookup "width" fields >>=
+                          (lengthToDim . filter (not . isSpace))
+          heightAttr = maybe [] (\x -> [("height",
+                                         show $ scaleDimension scale x)])
+                        $ lookup "height" fields >>=
+                          (lengthToDim . filter (not . isSpace))
   case label of
         "table" -> tableDirective top fields body'
         "line-block" -> lineBlockDirective body'
