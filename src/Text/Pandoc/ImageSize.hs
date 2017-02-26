@@ -38,6 +38,8 @@ module Text.Pandoc.ImageSize ( ImageType(..)
                              , Dimension(..)
                              , Direction(..)
                              , dimension
+                             , lengthToDim
+                             , scaleDimension
                              , inInch
                              , inPixel
                              , inPoints
@@ -78,6 +80,7 @@ data Dimension = Pixel Integer
                | Centimeter Double
                | Inch Double
                | Percent Double
+
 instance Show Dimension where
   show (Pixel a)      = show   a ++ "px"
   show (Centimeter a) = showFl a ++ "cm"
@@ -201,6 +204,15 @@ numUnit s =
   in  case safeRead nums of
         Just n  -> Just (n, unit)
         Nothing -> Nothing
+
+-- | Scale a dimension by a factor.
+scaleDimension :: Double -> Dimension -> Dimension
+scaleDimension factor dim =
+  case dim of
+        Pixel x      -> Pixel (round $ factor * fromIntegral x)
+        Centimeter x -> Centimeter (factor * x)
+        Inch x       -> Inch (factor * x)
+        Percent x    -> Percent (factor * x)
 
 -- | Read a Dimension from an Attr attribute.
 -- `dimension Width attr` might return `Just (Pixel 3)` or for example `Just (Centimeter 2.0)`, etc.
