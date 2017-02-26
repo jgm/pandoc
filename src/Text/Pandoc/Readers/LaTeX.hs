@@ -445,22 +445,22 @@ inlineCommand :: PandocMonad m => LP m Inlines
 inlineCommand = try $ do
   (name, raw') <- withRaw anyControlSeq
   guard $ name /= "begin" && name /= "end"
-  exts <- getOption readerExtensions
   star <- option "" (string "*")
   let name' = name ++ star
   let raw = do
+        guard $ not (isBlockCommand name)
         rawargs <- withRaw
-               (skipangles *> skipopts *> option "" dimenarg *> many braced)
+                (skipangles *> skipopts *> option "" dimenarg *> many braced)
         let rawcommand = raw' ++ star ++ snd rawargs
         transformed <- applyMacros' rawcommand
+        exts <- getOption readerExtensions
         if transformed /= rawcommand
            then parseFromString inlines transformed
            else if extensionEnabled Ext_raw_tex exts
                    then return $ rawInline "latex" rawcommand
                    else ignore rawcommand
-  (lookupListDefault mzero [name',name] inlineCommands <*
+  (lookupListDefault raw [name',name] inlineCommands <*
       optional (try (string "{}")))
-    <|> (guard (not (isBlockCommand name)) >> raw)
 
 unlessParseRaw :: PandocMonad m => LP m ()
 unlessParseRaw = getOption readerExtensions >>=
@@ -508,7 +508,6 @@ inlineCommands = M.fromList $
   , ("sim", lit "~")
   , ("label", unlessParseRaw >> (inBrackets <$> tok))
   , ("ref", unlessParseRaw >> (inBrackets <$> tok))
-  , ("noindent", unlessParseRaw >> ignore "noindent")
   , ("textgreek", tok)
   , ("sep", lit ",")
   , ("cref", unlessParseRaw >> (inBrackets <$> tok))  -- from cleveref.sty
