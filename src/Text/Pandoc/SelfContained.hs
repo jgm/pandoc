@@ -69,6 +69,8 @@ makeDataURI (mime, raw) =
 
 convertTags :: PandocMonad m => Maybe String -> [Tag String] -> m [Tag String]
 convertTags _ [] = return []
+convertTags sourceURL (t@TagOpen{}:ts)
+  | fromAttrib "data-external" t == "1" = (t:) <$> convertTags sourceURL ts
 convertTags sourceURL (t@(TagOpen tagname as):ts)
   | tagname `elem`
      ["img", "embed", "video", "input", "audio", "source", "track"] = do

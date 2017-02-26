@@ -634,11 +634,14 @@ Options affecting specific writers
     stylesheets at absolute URLs will be downloaded; those at relative URLs
     will be sought relative to the working directory (if the first source
     file is local) or relative to the base URL (if the first source
-    file is remote).  Limitation: resources that are loaded dynamically
-    through JavaScript cannot be incorporated; as a result, `--self-contained`
-    does not work with `--mathjax`, and some advanced features (e.g.
-    zoom or speaker notes) may not work in an offline "self-contained"
-    `reveal.js` slide show.
+    file is remote).  Elements with the attribute
+    `data-external="1"` will be left alone; the documents they
+    link to will not be incorporated in the document.
+    Limitation: resources that are loaded dynamically through
+    JavaScript cannot be incorporated; as a result,
+    `--self-contained` does not work with `--mathjax`, and some
+    advanced features (e.g.  zoom or speaker notes) may not work
+    in an offline "self-contained" `reveal.js` slide show.
 
 `--html-q-tags`
 
