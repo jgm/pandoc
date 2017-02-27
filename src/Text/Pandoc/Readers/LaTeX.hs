@@ -337,6 +337,8 @@ blockCommands = M.fromList $
   , ("address", mempty <$ (skipopts *> tok >>= addMeta "address"))
   , ("signature", mempty <$ (skipopts *> authors))
   , ("date", mempty <$ (skipopts *> tok >>= addMeta "date"))
+  -- Koma-script metadata commands
+  , ("dedication", mempty <$ (skipopts *> tok >>= addMeta "dedication"))
   -- sectioning
   , ("chapter", updateState (\s -> s{ stateHasChapters = True })
                       *> section nullAttr 0)
