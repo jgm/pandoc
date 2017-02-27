@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="pandoc">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <meta name="author" content="John MacFarlane">
-  <meta name="author" content="Anonymous">
-  <meta name="dcterms.date" content="2006-07-17">
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="John MacFarlane" />
+  <meta name="author" content="Anonymous" />
+  <meta name="dcterms.date" content="2006-07-17" />
   <title>Pandoc Test Suite</title>
   <style type="text/css">code{white-space: pre;}</style>
   <!--[if lt IE 9]>
