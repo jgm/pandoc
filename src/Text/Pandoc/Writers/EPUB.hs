@@ -98,13 +98,9 @@ data EPUBMetadata = EPUBMetadata{
   , epubCoverage           :: Maybe String
   , epubRights             :: Maybe String
   , epubCoverImage         :: Maybe String
-  , epubStylesheet         :: Maybe Stylesheet
+  , epubStylesheets        :: [FilePath]
   , epubPageDirection      :: Maybe ProgressionDirection
   } deriving Show
-
-data Stylesheet = StylesheetPath FilePath
-                | StylesheetContents String
-                deriving Show
 
 data Date = Date{
     dateText               :: String
@@ -240,6 +236,10 @@ metaValueToString (MetaBool True) = "true"
 metaValueToString (MetaBool False) = "false"
 metaValueToString _ = ""
 
+metaValueToPaths:: MetaValue -> [FilePath]
+metaValueToPaths (MetaList xs) = map metaValueToString xs
+metaValueToPaths x = [metaValueToString x]
+
 getList :: String -> Meta -> (MetaValue -> a) -> [a]
 getList s meta handleMetaValue =
   case lookupMeta s meta of
@@ -307,7 +307,7 @@ metadataFromMeta opts meta = EPUBMetadata{
     , epubCoverage           = coverage
     , epubRights             = rights
     , epubCoverImage         = coverImage
-    , epubStylesheet         = stylesheet
+    , epubStylesheets        = stylesheets
     , epubPageDirection      = pageDirection
     }
   where identifiers = getIdentifier meta
@@ -328,9 +328,9 @@ metadataFromMeta opts meta = EPUBMetadata{
         rights = metaValueToString <$> lookupMeta "rights" meta
         coverImage = lookup "epub-cover-image" (writerVariables opts) `mplus`
              (metaValueToString <$> lookupMeta "cover-image" meta)
-        stylesheet = (StylesheetContents <$> writerEpubStylesheet opts) `mplus`
-                     ((StylesheetPath . metaValueToString) <$>
-                       lookupMeta "stylesheet" meta)
+        stylesheets = maybe [] id
+                        (metaValueToPaths <$> lookupMeta "stylesheet" meta) ++
+                      [f | ("css",f) <- writerVariables opts]
         pageDirection = case map toLower . metaValueToString <$>
                              lookupMeta "page-progression-direction" meta of
                               Just "ltr" -> Just LTR
@@ -374,10 +374,21 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
   let writeHtml o = fmap UTF8.fromStringLazy .
                          writeHtmlStringForEPUB version o
   epochtime <- floor <$> lift P.getPOSIXTime
+  metadata <- getEPUBMetadata opts meta
   let mkEntry path content = toEntry path epochtime content
+
+  -- stylesheet
+  stylesheets <- case epubStylesheets metadata of
+                      [] -> (\x -> [B.fromChunks [x]]) <$>
+                             P.readDataFile (writerUserDataDir opts) "epub.css"
+                      fs -> mapM P.readFileLazy fs
+  let stylesheetEntries = zipWith
+        (\bs n -> mkEntry ("stylesheet" ++ show n ++ ".css") bs)
+        stylesheets [(1 :: Int)..]
+
   let vars = ("epub3", if epub3 then "true" else "false")
-           : ("css", "stylesheet.css")
-           : writerVariables opts
+           : map (\e -> ("css", eRelativePath e)) stylesheetEntries
+           ++ [(x,y) | (x,y) <- writerVariables opts, x /= "css"]
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerSectionDivs = True
                   , writerVariables = vars
@@ -386,7 +397,6 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                           then MathML
                           else writerHTMLMathMethod opts
                   , writerWrapText = WrapAuto }
-  metadata <- getEPUBMetadata opts' meta
 
   -- cover page
   (cpgEntry, cpicEntry) <-
@@ -564,13 +574,14 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
           , unode "manifest" $
              [ unode "item" ! [("id","ncx"), ("href","toc.ncx")
                               ,("media-type","application/x-dtbncx+xml")] $ ()
-             , unode "item" ! [("id","style"), ("href","stylesheet.css")
-                              ,("media-type","text/css")] $ ()
              , unode "item" ! ([("id","nav")
                                ,("href","nav.xhtml")
                                ,("media-type","application/xhtml+xml")] ++
                                [("properties","nav") | epub3 ]) $ ()
              ] ++
+             [ (unode "item" ! [("id","style"), ("href",fp)
+                              ,("media-type","text/css")] $ ()) |
+                          fp <- map eRelativePath stylesheetEntries ] ++
              map chapterNode (cpgEntry ++ (tpEntry : chapterEntries)) ++
              (case cpicEntry of
                     []    -> []
@@ -725,19 +736,12 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
             unode "option" ! [("name","specified-fonts")] $ "true"
   let appleEntry = mkEntry "META-INF/com.apple.ibooks.display-options.xml" apple
 
-  -- stylesheet
-  stylesheet <- case epubStylesheet metadata of
-                   Just (StylesheetPath fp)    -> UTF8.toStringLazy <$> (lift $ P.readFileLazy fp)
-                   Just (StylesheetContents s) -> return s
-                   Nothing -> UTF8.toString `fmap`
-                              (lift $ P.readDataFile (writerUserDataDir opts) "epub.css")
-  let stylesheetEntry = mkEntry "stylesheet.css" $ UTF8.fromStringLazy stylesheet
-
   -- construct archive
   let archive = foldr addEntryToArchive emptyArchive
-                 (mimetypeEntry : containerEntry : appleEntry : stylesheetEntry : tpEntry :
+                 (mimetypeEntry : containerEntry : appleEntry : tpEntry :
                   contentsEntry : tocEntry : navEntry :
-                  (picEntries ++ cpicEntry ++ cpgEntry ++ chapterEntries ++ fontEntries))
+                  (stylesheetEntries ++ picEntries ++ cpicEntry ++
+                   cpgEntry ++ chapterEntries ++ fontEntries))
   return $ fromArchive archive
 
 metadataElement :: EPUBVersion -> EPUBMetadata -> UTCTime -> Element

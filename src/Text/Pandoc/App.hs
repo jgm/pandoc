@@ -112,10 +112,6 @@ convertWithOpts opts = do
        mapM_ (UTF8.hPutStrLn stdout) args
        exitSuccess
 
-  epubStylesheet <- case optEpubStylesheet opts of
-                         Nothing -> return Nothing
-                         Just fp -> Just <$> UTF8.readFile fp
-
   epubMetadata <- case optEpubMetadata opts of
                          Nothing -> return Nothing
                          Just fp -> Just <$> UTF8.readFile fp
@@ -319,7 +315,6 @@ convertWithOpts opts = do
                             writerHighlightStyle   = highlightStyle,
                             writerSetextHeaders    = optSetextHeaders opts,
                             writerEpubMetadata     = epubMetadata,
-                            writerEpubStylesheet   = epubStylesheet,
                             writerEpubFonts        = optEpubFonts opts,
                             writerEpubChapterLevel = optEpubChapterLevel opts,
                             writerTOCDepth         = optTOCDepth opts,
@@ -493,7 +488,6 @@ data Opt = Opt
     , optTopLevelDivision  :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
     , optReferenceDoc      :: Maybe FilePath -- ^ Path of reference doc
-    , optEpubStylesheet    :: Maybe FilePath   -- ^ EPUB stylesheet
     , optEpubMetadata      :: Maybe FilePath   -- ^ EPUB metadata
     , optEpubFonts         :: [FilePath] -- ^ EPUB fonts to embed
     , optEpubChapterLevel  :: Int     -- ^ Header level at which to split chapters
@@ -559,7 +553,6 @@ defaultOpts = Opt
     , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath
     , optReferenceDoc          = Nothing
-    , optEpubStylesheet        = Nothing
     , optEpubMetadata          = Nothing
     , optEpubFonts             = []
     , optEpubChapterLevel      = 1
@@ -1118,12 +1111,6 @@ options =
                   "FILENAME")
                  "" -- "Path of custom reference doc"
 
-    , Option "" ["epub-stylesheet"]
-                 (ReqArg
-                  (\arg opt -> return opt { optEpubStylesheet = Just arg })
-                  "FILENAME")
-                 "" -- "Path of epub.css"
-
     , Option "" ["epub-cover-image"]
                  (ReqArg
                   (\arg opt ->
@@ -1430,6 +1417,8 @@ handleUnrecognizedOption "--reference-odt" =
   ("--reference-odt has been removed. Use --reference-doc instead." :)
 handleUnrecognizedOption "--parse-raw" =
   (("--parse-raw/-R has been removed. Use +raw_html or +raw_tex extension.\n") :)
+handleUnrecognizedOption "--epub-stylesheet" =
+  (("--epub-stylesheet has been removed. Use --css instead.\n") :)
 handleUnrecognizedOption "-R" = handleUnrecognizedOption "--parse-raw"
 handleUnrecognizedOption x =
   (("Unknown option " ++ x ++ ".") :)

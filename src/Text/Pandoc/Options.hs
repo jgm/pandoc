@@ -167,7 +167,6 @@ data WriterOptions = WriterOptions
                                            -- (Nothing = no highlighting)
   , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
   , writerEpubMetadata     :: Maybe String -- ^ Metadata to include in EPUB
-  , writerEpubStylesheet   :: Maybe String -- ^ EPUB stylesheet specified at command line
   , writerEpubFonts        :: [FilePath] -- ^ Paths to fonts to embed
   , writerEpubChapterLevel :: Int            -- ^ Header level for chapters (separate files)
   , writerTOCDepth         :: Int            -- ^ Number of levels to include in TOC
@@ -203,7 +202,6 @@ instance Default WriterOptions where
                       , writerHighlightStyle   = Just pygments
                       , writerSetextHeaders    = True
                       , writerEpubMetadata     = Nothing
-                      , writerEpubStylesheet   = Nothing
                       , writerEpubFonts        = []
                       , writerEpubChapterLevel = 1
                       , writerTOCDepth         = 3

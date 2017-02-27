@@ -758,6 +758,12 @@ Options affecting specific writers
 :   Link to a CSS style sheet. This option can be used repeatedly to
     include multiple files. They will be included in the order specified.
 
+    A stylesheet is required for generating EPUB.  If none is
+    provided using this option (or the `stylesheet` metadata
+    field), pandoc will look for a file `epub.css` in the
+    user data directory (see `--data-dir`).  If it is not
+    found there, sensible defaults will be used.
+
 `--reference-doc=`*FILE*
 
 :   Use the specified file as a style reference in producing a
@@ -804,13 +810,6 @@ Options affecting specific writers
     LibreOffice, modify the styles as you wish, and save the
     file.
 
-`--epub-stylesheet=`*FILE*
-
-:   Use the specified CSS file to style the EPUB.  If no stylesheet
-    is specified, pandoc will look for a file `epub.css` in the
-    user data directory (see `--data-dir`).  If it is not
-    found there, sensible defaults will be used.
-
 `--epub-cover-image=`*FILE*
 
 :   Use the specified image as the EPUB cover.  It is recommended
@@ -847,7 +846,7 @@ Options affecting specific writers
     line, be sure to escape them or put the whole filename in single quotes,
     to prevent them from being interpreted by the shell. To use the
     embedded fonts, you will need to add declarations like the following
-    to your CSS (see `--epub-stylesheet`):
+    to your CSS (see `--css`):
 
         @font-face {
         font-family: DejaVuSans;
