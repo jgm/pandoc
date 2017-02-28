@@ -158,12 +158,15 @@ parseRST = do
   -- go through once just to get list of reference keys and notes
   -- docMinusKeys is the raw document with blanks where the keys were...
   docMinusKeys <- concat <$>
-                  manyTill (referenceKey <|> noteBlock <|> lineClump) eof
+                  manyTill (referenceKey <|> noteBlock <|> headerBlock <|>
+                            lineClump) eof
   setInput docMinusKeys
   setPosition startPos
   st' <- getState
   let reversedNotes = stateNotes st'
-  updateState $ \s -> s { stateNotes = reverse reversedNotes }
+  updateState $ \s -> s { stateNotes = reverse reversedNotes
+                        , stateHeaders = mempty
+                        , stateIdentifiers = mempty }
   -- now parse it for real...
   blocks <- B.toList <$> parseBlocks
   standalone <- getOption readerStandalone
@@ -277,7 +280,21 @@ header = doubleHeader <|> singleHeader <?> "header"
 
 -- a header with lines on top and bottom
 doubleHeader :: PandocMonad m => RSTParser m Blocks
-doubleHeader = try $ do
+doubleHeader = do
+  (txt, c) <- doubleHeader'
+  -- check to see if we've had this kind of header before.
+  -- if so, get appropriate level.  if not, add to list.
+  state <- getState
+  let headerTable = stateHeaderTable state
+  let (headerTable',level) = case findIndex (== DoubleHeader c) headerTable of
+        Just ind -> (headerTable, ind + 1)
+        Nothing -> (headerTable ++ [DoubleHeader c], (length headerTable) + 1)
+  setState (state { stateHeaderTable = headerTable' })
+  attr <- registerHeader nullAttr txt
+  return $ B.headerWith attr level txt
+
+doubleHeader' :: PandocMonad m => RSTParser m (Inlines, Char)
+doubleHeader' = try $ do
   c <- oneOf underlineChars
   rest <- many (char c)  -- the top line
   let lenTop = length (c:rest)
@@ -290,20 +307,23 @@ doubleHeader = try $ do
   blankline              -- spaces and newline
   count lenTop (char c)  -- the bottom line
   blanklines
-  -- check to see if we've had this kind of header before.
-  -- if so, get appropriate level.  if not, add to list.
+  return (txt, c)
+
+-- a header with line on the bottom only
+singleHeader :: PandocMonad m => RSTParser m Blocks
+singleHeader = do
+  (txt, c) <- singleHeader'
   state <- getState
   let headerTable = stateHeaderTable state
-  let (headerTable',level) = case findIndex (== DoubleHeader c) headerTable of
+  let (headerTable',level) = case findIndex (== SingleHeader c) headerTable of
         Just ind -> (headerTable, ind + 1)
-        Nothing -> (headerTable ++ [DoubleHeader c], (length headerTable) + 1)
+        Nothing -> (headerTable ++ [SingleHeader c], (length headerTable) + 1)
   setState (state { stateHeaderTable = headerTable' })
   attr <- registerHeader nullAttr txt
   return $ B.headerWith attr level txt
 
--- a header with line on the bottom only
-singleHeader :: PandocMonad m => RSTParser m Blocks
-singleHeader = try $ do
+singleHeader' :: PandocMonad m => RSTParser m (Inlines, Char)
+singleHeader' = try $ do
   notFollowedBy' whitespace
   txt <- trimInlines . mconcat <$> many1 (do {notFollowedBy blankline; inline})
   pos <- getPosition
@@ -313,14 +333,7 @@ singleHeader = try $ do
   count (len - 1) (char c)
   many (char c)
   blanklines
-  state <- getState
-  let headerTable = stateHeaderTable state
-  let (headerTable',level) = case findIndex (== SingleHeader c) headerTable of
-        Just ind -> (headerTable, ind + 1)
-        Nothing -> (headerTable ++ [SingleHeader c], (length headerTable) + 1)
-  setState (state { stateHeaderTable = headerTable' })
-  attr <- registerHeader nullAttr txt
-  return $ B.headerWith attr level txt
+  return (txt, c)
 
 --
 -- hrule block
@@ -968,6 +981,17 @@ regularKey = try $ do
   let key = toKey $ stripTicks ref
   --TODO: parse width, height, class and name attributes
   updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $ stateKeys s }
+
+headerBlock :: PandocMonad m => RSTParser m [Char]
+headerBlock = do
+  ((txt, _), raw) <- withRaw (doubleHeader' <|> singleHeader')
+  (ident,_,_) <- registerHeader nullAttr txt
+  let key = toKey (stringify txt)
+  --TODO: parse width, height, class and name attributes
+  updateState $ \s -> s { stateKeys = M.insert key (('#':ident,""), nullAttr)
+                          $ stateKeys s }
+  return raw
+
 
 --
 -- tables
