@@ -77,7 +77,7 @@ summary of issues can be found [here](https://github.com/jgm/pandoc/labels).
   knowledge of the code base.
 * [new:reader] — A request to add a new input format.
 * [new:writer] — A request to add a new output format.
-* [docs] — A discrepency,  or ambiguity in the documentation.
+* [docs] — A discrepancy,  or ambiguity in the documentation.
 * [status:in-progress] — Someone is actively working on or planning to work on the
   ticket.
 * [status:more-discussion-needed] — It is unclear what the correct approach
@@ -291,7 +291,7 @@ The library is structured as follows:
     the needs of pandoc.
   - `Text.Pandoc.SelfContained` contains functions for making an HTML
     file "self-contained," by importing remotely linked images, CSS,
-    and javascript and turning them into `data:` URLs.
+    and JavaScript and turning them into `data:` URLs.
   - `Text.Pandoc.Shared` is a grab-bag of shared utility functions.
   - `Text.Pandoc.Writers.Shared` contains utilities used in writers only.
   - `Text.Pandoc.Slides` contains functions for splitting a markdown document
