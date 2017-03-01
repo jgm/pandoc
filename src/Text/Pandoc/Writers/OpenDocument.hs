@@ -476,8 +476,6 @@ inlineToOpenDocument o ils
                let getDims [] = []
                    getDims (("width", w) :xs) = ("svg:width", w)  : getDims xs
                    getDims (("height", h):xs) = ("svg:height", h) : getDims xs
-                   getDims (x@("style:rel-width", _) :xs) = x : getDims xs
-                   getDims (x@("style:rel-height", _):xs) = x : getDims xs
                    getDims (_:xs) =                             getDims xs
                return $ inTags False "draw:frame"
                         (("draw:name", "img" ++ show id') : getDims kvs) $

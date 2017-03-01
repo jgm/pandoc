@@ -156,8 +156,8 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
        let dims =
              case (getDim Width, getDim Height) of
                (Just w, Just h)              -> [("width", show w), ("height", show h)]
-               (Just w@(Percent _), Nothing) -> [("width", show w), ("style:rel-height", "scale")]
-               (Nothing, Just h@(Percent _)) -> [("style:rel-width", "scale"), ("height", show h)]
+               (Just w@(Percent p), Nothing) -> [("width", show w), ("height", show (p / ratio) ++ "%")]
+               (Nothing, Just h@(Percent p)) -> [("width", show (p * ratio) ++ "%"), ("height", show h)]
                (Just w@(Inch i), Nothing)    -> [("width", show w), ("height", show (i / ratio) ++ "in")]
                (Nothing, Just h@(Inch i))    -> [("width", show (i * ratio) ++ "in"), ("height", show h)]
                _                             -> [("width", show ptX ++ "pt"), ("height", show ptY ++ "pt")]
