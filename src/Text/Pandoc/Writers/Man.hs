@@ -82,10 +82,10 @@ pandocToMan opts (Pandoc meta blocks) = do
               (fmap (render colwidth) . inlineListToMan opts)
               $ deleteMeta "title" meta
   body <- blockListToMan opts blocks
-  notes <- liftM stNotes get
+  notes <- gets stNotes
   notes' <- notesToMan opts (reverse notes)
   let main = render' $ body $$ notes' $$ text ""
-  hasTables <- liftM stHasTables get
+  hasTables <- gets stHasTables
   let context = defField "body" main
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
@@ -376,6 +376,6 @@ inlineToMan opts (Image attr alternate (source, tit)) = do
 inlineToMan _ (Note contents) = do
   -- add to notes in state
   modify $ \st -> st{ stNotes = contents : stNotes st }
-  notes <- liftM stNotes get
+  notes <- gets stNotes
   let ref = show $ (length notes)
   return $ char '[' <> text ref <> char ']'

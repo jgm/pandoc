@@ -63,7 +63,7 @@ pandocToTextile opts (Pandoc meta blocks) = do
   metadata <- metaToJSON opts (blockListToTextile opts)
                  (inlineListToTextile opts) meta
   body <- blockListToTextile opts blocks
-  notes <- liftM (unlines . reverse . stNotes) get
+  notes <- gets $ unlines . reverse . stNotes
   let main = body ++ if null notes then "" else ("\n\n" ++ notes)
   let context = defField "body" main metadata
   case writerTemplate opts of
@@ -72,7 +72,7 @@ pandocToTextile opts (Pandoc meta blocks) = do
 
 withUseTags :: State WriterState a -> State WriterState a
 withUseTags action = do
-  oldUseTags <- liftM stUseTags get
+  oldUseTags <- gets stUseTags
   modify $ \s -> s { stUseTags = True }
   result <- action
   modify $ \s -> s { stUseTags = oldUseTags }
@@ -124,8 +124,8 @@ blockToTextile opts (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   return $ im ++ "\n" ++ capt
 
 blockToTextile opts (Para inlines) = do
-  useTags <- liftM stUseTags get
-  listLevel <- liftM stListLevel get
+  useTags <- gets stUseTags
+  listLevel <- gets stListLevel
   contents <- inlineListToTextile opts inlines
   return $ if useTags
               then "<p>" ++ contents ++ "</p>"
@@ -212,7 +212,7 @@ blockToTextile opts (Table capt aligns widths headers rows') = do
             "<tbody>\n" ++ unlines body' ++ "</tbody>\n</table>\n"
 
 blockToTextile opts x@(BulletList items) = do
-  oldUseTags <- liftM stUseTags get
+  oldUseTags <- gets stUseTags
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
@@ -220,13 +220,13 @@ blockToTextile opts x@(BulletList items) = do
         return $ "<ul>\n" ++ vcat contents ++ "\n</ul>\n"
      else do
         modify $ \s -> s { stListLevel = stListLevel s ++ "*" }
-        level <- get >>= return . length . stListLevel
+        level <- gets $ length . stListLevel
         contents <- mapM (listItemToTextile opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s) }
         return $ vcat contents ++ (if level > 1 then "" else "\n")
 
 blockToTextile opts x@(OrderedList attribs@(start, _, _) items) = do
-  oldUseTags <- liftM stUseTags get
+  oldUseTags <- gets stUseTags
   let useTags = oldUseTags || not (isSimpleList x)
   if useTags
      then do
@@ -238,7 +238,7 @@ blockToTextile opts x@(OrderedList attribs@(start, _, _) items) = do
                          , stStartNum = if start > 1
                                            then Just start
                                            else Nothing }
-        level <- get >>= return . length . stListLevel
+        level <- gets $ length . stListLevel
         contents <- mapM (listItemToTextile opts) items
         modify $ \s -> s { stListLevel = init (stListLevel s),
                            stStartNum = Nothing }
@@ -265,7 +265,7 @@ listAttribsToString (startnum, numstyle, _) =
 listItemToTextile :: WriterOptions -> [Block] -> State WriterState String
 listItemToTextile opts items = do
   contents <- blockListToTextile opts items
-  useTags <- get >>= return . stUseTags
+  useTags <- gets stUseTags
   if useTags
      then return $ "<li>" ++ contents ++ "</li>"
      else do
@@ -477,7 +477,7 @@ inlineToTextile opts (Image attr@(_, cls, _) alt (source, tit)) = do
   return $ "!" ++ classes ++ styles ++ source ++ txt ++ "!"
 
 inlineToTextile opts (Note contents) = do
-  curNotes <- liftM stNotes get
+  curNotes <- gets stNotes
   let newnum = length curNotes + 1
   contents' <- blockListToTextile opts contents
   let thisnote = "fn" ++ show newnum ++ ". " ++ contents' ++ "\n"

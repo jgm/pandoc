@@ -61,7 +61,7 @@ writeOrg opts document = return $
 -- | Return Org representation of document.
 pandocToOrg :: Pandoc -> State WriterState String
 pandocToOrg (Pandoc meta blocks) = do
-  opts <- liftM stOptions get
+  opts <- gets stOptions
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -70,8 +70,8 @@ pandocToOrg (Pandoc meta blocks) = do
                (fmap (render colwidth) . inlineListToOrg)
                meta
   body <- blockListToOrg blocks
-  notes <- liftM (reverse . stNotes) get >>= notesToOrg
-  hasMath <- liftM stHasMath get
+  notes <- gets (reverse . stNotes) >>= notesToOrg
+  hasMath <- gets stHasMath
   let main = render colwidth $ foldl ($+$) empty $ [body, notes]
   let context = defField "body" main
               $ defField "math" hasMath
@@ -188,7 +188,7 @@ blockToOrg (Header level attr inlines) = do
                   else cr <> nest (level + 1) (propertiesDrawer attr)
   return $ headerStr <> " " <> contents <> drawerStr <> blankline
 blockToOrg (CodeBlock (_,classes,_) str) = do
-  opts <- stOptions <$> get
+  opts <- gets stOptions
   let tabstop = writerTabStop opts
   let at = map pandocLangToOrg classes `intersect` orgLangIdentifiers
   let (beg, end) = case at of
@@ -365,7 +365,7 @@ inlineToOrg (Image _ _ (source, _)) = do
   return $ "[[" <> text (orgPath source) <> "]]"
 inlineToOrg (Note contents) = do
   -- add to notes in state
-  notes <- get >>= (return . stNotes)
+  notes <- gets stNotes
   modify $ \st -> st { stNotes = contents:notes }
   let ref = show $ (length notes) + 1
   return $ "[fn:" <> text ref <> "]"
