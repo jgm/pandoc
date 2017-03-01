@@ -70,7 +70,7 @@ writeRST opts document = return $
 -- | Return RST representation of document.
 pandocToRST :: Pandoc -> State WriterState String
 pandocToRST (Pandoc meta blocks) = do
-  opts <- liftM stOptions get
+  opts <- gets stOptions
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -85,12 +85,12 @@ pandocToRST (Pandoc meta blocks) = do
   body <- blockListToRST' True $ case writerTemplate opts of
                                       Just _  -> normalizeHeadings 1 blocks
                                       Nothing -> blocks
-  notes <- liftM (reverse . stNotes) get >>= notesToRST
+  notes <- gets (reverse . stNotes) >>= notesToRST
   -- note that the notes may contain refs, so we do them first
-  refs <- liftM (reverse . stLinks) get >>= refsToRST
-  pics <- liftM (reverse . stImages) get >>= pictRefsToRST
-  hasMath <- liftM stHasMath get
-  rawTeX <- liftM stHasRawTeX get
+  refs <- gets (reverse . stLinks) >>= refsToRST
+  pics <- gets (reverse . stImages) >>= pictRefsToRST
+  hasMath <- gets stHasMath
+  rawTeX <- gets stHasRawTeX
   let main = render colwidth $ foldl ($+$) empty $ [body, notes, refs, pics]
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents opts)
@@ -245,7 +245,7 @@ blockToRST (Header level (name,classes,_) inlines) = do
                     | otherwise    = ":class: " <> text (unwords classes)
           return $ nowrap $ hang 3 ".. " (rub $$ name' $$ cls) $$ blankline
 blockToRST (CodeBlock (_,classes,kvs) str) = do
-  opts <- stOptions <$> get
+  opts <- gets stOptions
   let tabstop = writerTabStop opts
   let startnum = maybe "" (\x -> " " <> text x) $ lookup "startFrom" kvs
   let numberlines = if "numberLines" `elem` classes
@@ -261,7 +261,7 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
              (lang:_) -> (".. code:: " <> text lang) $$ numberlines)
           $+$ nest tabstop (text str) $$ blankline
 blockToRST (BlockQuote blocks) = do
-  tabstop <- get >>= (return . writerTabStop . stOptions)
+  tabstop <- gets $ writerTabStop . stOptions
   contents <- blockListToRST blocks
   return $ (nest tabstop contents) <> blankline
 blockToRST (Table caption _ widths headers rows) =  do
@@ -274,7 +274,7 @@ blockToRST (Table caption _ widths headers rows) =  do
   --     isSimpleCell _         = False
   -- let isSimple = all (==0) widths && all (all isSimpleCell) rows
   let numChars = maximum . map offset
-  opts <- get >>= return . stOptions
+  opts <- gets stOptions
   let widthsInChars =
        if all (== 0) widths
           then map ((+2) . numChars) $ transpose (headers' : rawRows)
@@ -342,7 +342,7 @@ definitionListItemToRST :: ([Inline], [[Block]]) -> State WriterState Doc
 definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
   contents <- liftM vcat $ mapM blockListToRST defs
-  tabstop <- get >>= (return . writerTabStop . stOptions)
+  tabstop <- gets $ writerTabStop . stOptions
   return $ label' $$ nest tabstop (nestle contents <> cr)
 
 -- | Format a list of lines as line block.
@@ -483,7 +483,7 @@ inlineToRST (RawInline f x)
 inlineToRST (LineBreak) = return cr -- there's no line break in RST (see Para)
 inlineToRST Space = return space
 inlineToRST SoftBreak = do
-  wrapText <- gets (writerWrapText . stOptions)
+  wrapText <- gets $ writerWrapText . stOptions
   case wrapText of
         WrapPreserve  -> return cr
         WrapAuto      -> return space
@@ -500,10 +500,10 @@ inlineToRST (Link _ [Image attr alt (imgsrc,imgtit)] (src, _tit)) = do
   label <- registerImage attr alt (imgsrc,imgtit) (Just src)
   return $ "|" <> label <> "|"
 inlineToRST (Link _ txt (src, tit)) = do
-  useReferenceLinks <- get >>= return . writerReferenceLinks . stOptions
+  useReferenceLinks <- gets $ writerReferenceLinks . stOptions
   linktext <- inlineListToRST $ normalizeSpaces txt
   if useReferenceLinks
-    then do refs <- get >>= return . stLinks
+    then do refs <- gets stLinks
             case lookup txt refs of
                  Just (src',tit') ->
                    if src == src' && tit == tit'
@@ -526,7 +526,7 @@ inlineToRST (Note contents) = do
 
 registerImage :: Attr -> [Inline] -> Target -> Maybe String -> State WriterState Doc
 registerImage attr alt (src,tit) mbtarget = do
-  pics <- get >>= return . stImages
+  pics <- gets stImages
   txt <- case lookup alt pics of
                Just (a,s,t,mbt) | (a,s,t,mbt) == (attr,src,tit,mbtarget)
                  -> return alt

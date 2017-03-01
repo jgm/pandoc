@@ -53,7 +53,7 @@ import Data.List ( intersect, intercalate, isPrefixOf, transpose )
 import Data.Default (Default(..))
 import Network.URI ( isURI )
 import Control.Monad ( zipWithM )
-import Control.Monad.State ( modify, State, get, evalState )
+import Control.Monad.State ( modify, State, gets, evalState )
 import Control.Monad.Reader ( ReaderT, runReaderT, ask, local )
 import Text.Pandoc.Class (PandocMonad)
 
@@ -93,7 +93,7 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
               (inlineListToDokuWiki opts)
               meta
   body <- blockListToDokuWiki opts blocks
-  notesExist <- stNotes <$> get
+  notesExist <- gets stNotes
   let notes = if notesExist
                  then "" -- TODO Was "\n<references />" Check whether I can really remove this:
                          -- if it is definitely to do with footnotes, can remove this whole bit

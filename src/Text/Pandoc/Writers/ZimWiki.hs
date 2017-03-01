@@ -43,7 +43,7 @@ import Data.Text ( breakOnAll, pack )
 import Data.Default (Default(..))
 import Network.URI ( isURI )
 import Control.Monad ( zipWithM )
-import Control.Monad.State ( modify, State, get, evalState )
+import Control.Monad.State ( modify, State, gets, evalState )
 import Text.Pandoc.Class ( PandocMonad )
 import qualified Data.Map as Map
 
@@ -110,8 +110,8 @@ blockToZimWiki opts (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   return $ "{{" ++ prefix ++ src ++ imageDims opts attr ++ opt ++ "}}\n"
 
 blockToZimWiki opts (Para inlines) = do
-  indent <- stIndent <$> get
-  -- useTags <- stUseTags <$> get
+  indent <- gets stIndent
+  -- useTags <- gets stUseTags
   contents <- inlineListToZimWiki opts inlines
   return $ contents ++ if null indent then "\n" else ""
 
@@ -181,14 +181,14 @@ blockToZimWiki opts (Table capt aligns _ headers rows) = do
            unlines (map renderRow rows')
 
 blockToZimWiki opts (BulletList items) = do
-  indent <- stIndent <$> get
+  indent <- gets stIndent
   modify $ \s -> s { stIndent = stIndent s ++ "\t" }
   contents <- (mapM (listItemToZimWiki opts) items)
   modify $ \s -> s{ stIndent = indent } -- drop 1 (stIndent s) }
   return $ vcat contents ++ if null indent then "\n" else ""
 
 blockToZimWiki opts (OrderedList _ items) = do
-  indent <- stIndent <$> get
+  indent <- gets stIndent
   modify $ \s -> s { stIndent = stIndent s ++ "\t", stItemNum = 1 }
   contents <- (mapM (orderedListItemToZimWiki opts) items)
   modify $ \s -> s{ stIndent = indent } -- drop 1 (stIndent s) }
@@ -202,14 +202,14 @@ definitionListItemToZimWiki :: WriterOptions -> ([Inline],[[Block]]) -> State Wr
 definitionListItemToZimWiki opts (label, items) = do
   labelText <- inlineListToZimWiki opts label
   contents <- mapM (blockListToZimWiki opts) items
-  indent <- stIndent <$> get
+  indent <- gets stIndent
   return $ indent ++ "* **" ++ labelText ++ "** " ++ concat contents
 
 -- Auxiliary functions for lists:
 indentFromHTML :: WriterOptions -> String -> State WriterState String
 indentFromHTML _ str = do
-   indent <- stIndent  <$> get
-   itemnum <- stItemNum  <$> get
+   indent <- gets stIndent
+   itemnum <- gets stItemNum
    if isInfixOf "<li>" str then return $ indent ++ show itemnum ++ "."
         else if isInfixOf "</li>" str then return "\n"
                 else if isInfixOf "<li value=" str then do
@@ -242,15 +242,15 @@ vcat = intercalate "\n"
 listItemToZimWiki :: WriterOptions -> [Block] -> State WriterState String
 listItemToZimWiki opts items = do
   contents <- blockListToZimWiki opts items
-  indent <- stIndent <$> get
+  indent <- gets stIndent
   return $ indent ++ "* " ++ contents
 
 -- | Convert ordered list item (list of blocks) to ZimWiki.
 orderedListItemToZimWiki :: WriterOptions -> [Block] -> State WriterState String
 orderedListItemToZimWiki opts items = do
   contents <- blockListToZimWiki opts items
-  indent <- stIndent <$> get
-  itemnum <- stItemNum  <$> get
+  indent <- gets stIndent
+  itemnum <- gets stItemNum
   --modify $ \s -> s { stItemNum = itemnum + 1 } -- this is not strictly necessary for zim as zim does its own renumbering
   return $ indent ++ show itemnum ++ ". " ++ contents
 
@@ -316,8 +316,8 @@ inlineToZimWiki opts (Cite _  lst) = inlineListToZimWiki opts lst
 inlineToZimWiki _ (Code _ str) = return $ "''" ++ str ++ "''"
 
 inlineToZimWiki _ (Str str) = do
-  inTable <- stInTable <$> get
-  inLink  <- stInLink  <$> get
+  inTable <- gets stInTable
+  inLink  <- gets stInLink
   if inTable
       then return $ substitute "|" "\\|" . escapeString $ str 
       else
@@ -337,7 +337,7 @@ inlineToZimWiki opts (RawInline f str)
   | otherwise              = return ""
 
 inlineToZimWiki _ LineBreak = do
-  inTable <- stInTable <$> get
+  inTable <- gets stInTable
   if inTable
       then return "\\n"
       else return "\n"
@@ -351,7 +351,7 @@ inlineToZimWiki opts SoftBreak =
 inlineToZimWiki _ Space = return " "
 
 inlineToZimWiki opts (Link _ txt (src, _)) = do
-  inTable <- stInTable <$> get
+  inTable <- gets stInTable
   modify $ \s -> s { stInLink = True }
   label <- inlineListToZimWiki opts $ removeFormatting txt -- zim does not allow formatting in link text, it takes the text verbatim, no need to escape it
   modify $ \s -> s { stInLink = False }
@@ -369,7 +369,7 @@ inlineToZimWiki opts (Link _ txt (src, _)) = do
                                      _      -> src -- link to a help page
 inlineToZimWiki opts (Image attr alt (source, tit)) = do
   alt' <- inlineListToZimWiki opts alt
-  inTable <- stInTable <$> get
+  inTable <- gets stInTable
   let txt = case (tit, alt, inTable) of
               ("",[], _) -> ""
               ("", _, False ) -> "|" ++ alt'

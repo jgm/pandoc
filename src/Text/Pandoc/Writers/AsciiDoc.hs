@@ -286,7 +286,7 @@ bulletListItemToAsciiDoc opts blocks = do
                                           return $ d <> cr <> chomp x
       addBlock d b = do x <- blockToAsciiDoc opts b
                         return $ d <> cr <> text "+" <> cr <> chomp x
-  lev <- bulletListLevel `fmap` get
+  lev <- gets bulletListLevel
   modify $ \s -> s{ bulletListLevel = lev + 1 }
   contents <- foldM addBlock empty blocks
   modify $ \s -> s{ bulletListLevel = lev }
@@ -307,7 +307,7 @@ orderedListItemToAsciiDoc opts marker blocks = do
                                           return $ d <> cr <> chomp x
       addBlock d b = do x <- blockToAsciiDoc opts b
                         return $ d <> cr <> text "+" <> cr <> chomp x
-  lev <- orderedListLevel `fmap` get
+  lev <- gets orderedListLevel
   modify $ \s -> s{ orderedListLevel = lev + 1 }
   contents <- foldM addBlock empty blocks
   modify $ \s -> s{ orderedListLevel = lev }
@@ -320,7 +320,7 @@ definitionListItemToAsciiDoc :: PandocMonad m
                              -> ADW m Doc
 definitionListItemToAsciiDoc opts (label, defs) = do
   labelText <- inlineListToAsciiDoc opts label
-  marker <- defListMarker `fmap` get
+  marker <- gets defListMarker
   if marker == "::"
      then modify (\st -> st{ defListMarker = ";;"})
      else modify (\st -> st{ defListMarker = "::"})
