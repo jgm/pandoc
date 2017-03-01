@@ -375,6 +375,8 @@ blockCommands = M.fromList $
   -- includes
   , ("lstinputlisting", inputListing)
   , ("graphicspath", graphicsPath)
+  -- hyperlink
+  , ("hypertarget", braced >> grouped block)
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
@@ -645,6 +647,7 @@ inlineCommands = M.fromList $
                    <|> citation "citeauthor" AuthorInText False)
   , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
                           addMeta "nocite"))
+  , ("hypertarget", braced >> tok)
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
