@@ -44,6 +44,7 @@ import Data.List ( group, stripPrefix, find, intersperse, transpose, sortBy )
 import Data.Char ( isSpace, isPunctuation, ord, chr )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
+import Control.Monad (zipWithM)
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Except (throwError)
@@ -514,10 +515,8 @@ blockToMarkdown' opts (BlockQuote blocks) = do
 blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
   caption' <- inlineListToMarkdown opts caption
   let caption'' = if null caption || not (isEnabled Ext_table_captions opts)
-                     then empty
-                     else blankline <> ": " <> caption' <> blankline
-  rawHeaders <- mapM (blockListToMarkdown opts) headers
-  rawRows <- mapM (mapM (blockListToMarkdown opts)) rows
+                     then blankline
+                     else blankline $$ (": " <> caption') $$ blankline
   let isLineBreak LineBreak = Any True
       isLineBreak _         = Any False
   let isSimple = all (==0) widths &&
@@ -525,34 +524,52 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
   let isPlainBlock (Plain _) = True
       isPlainBlock _         = False
   let hasBlocks = not (all isPlainBlock $ concat . concat $ headers:rows)
-  (nst,tbl) <- case True of
-                _ | isSimple &&
-                    isEnabled Ext_simple_tables opts -> fmap (nest 2,) $
-                         pandocTable opts (all null headers) aligns widths
-                             rawHeaders rawRows
-                  | isSimple &&
-                    isEnabled Ext_pipe_tables opts -> fmap (id,) $
-                         pipeTable (all null headers) aligns rawHeaders rawRows
-                  | not hasBlocks &&
-                    isEnabled Ext_multiline_tables opts -> fmap (nest 2,) $
-                         pandocTable opts (all null headers) aligns widths
-                             rawHeaders rawRows
-                  | isEnabled Ext_grid_tables opts -> do
-                      let numcols = length headers
-                      let widths' = if all (==0) widths
-                                       then replicate numcols
-                                              (1.0 / fromIntegral numcols)
-                                       else widths
-                      let widthsInChars = map ((\x -> x - 3) . floor .
-                             (fromIntegral (writerColumns opts) *)) widths'
-                      fmap (id,) $
-                         gridTable (all null headers) aligns widthsInChars
-                             rawHeaders rawRows
-                  | isEnabled Ext_raw_html opts -> fmap (id,) $
-                         text <$>
-                         (writeHtml5String def $ Pandoc nullMeta [t])
-                  | otherwise -> return $ (id, text "[TABLE]")
-  return $ nst $ tbl $$ blankline $$ caption'' $$ blankline
+  rawHeaders <- mapM (blockListToMarkdown opts) headers
+  rawRows <- mapM (mapM (blockListToMarkdown opts)) rows
+  (nst,tbl) <-
+     case True of
+          _ | isSimple &&
+              isEnabled Ext_simple_tables opts -> fmap (nest 2,) $
+                   pandocTable opts (all null headers) aligns widths
+                       rawHeaders rawRows
+            | isSimple &&
+              isEnabled Ext_pipe_tables opts -> fmap (id,) $
+                   pipeTable (all null headers) aligns rawHeaders rawRows
+            | not hasBlocks &&
+              isEnabled Ext_multiline_tables opts -> fmap (nest 2,) $
+                   pandocTable opts (all null headers) aligns widths
+                       rawHeaders rawRows
+            | isEnabled Ext_grid_tables opts &&
+               writerColumns opts >= 8 * length headers -> do
+                let numcols = length headers
+                let widths' = if all (==0) widths
+                                 then replicate numcols
+                                        (1.0 / fromIntegral numcols)
+                                 else widths
+                let widthsInChars = map ((\x -> x - 3) . floor .
+                       (fromIntegral (writerColumns opts) *)) widths'
+                rawHeaders' <- zipWithM
+                    blockListToMarkdown
+                    (map (\w -> opts{writerColumns =
+                              min (w - 2) (writerColumns opts)})
+                       widthsInChars)
+                    headers
+                rawRows' <- mapM
+                     (\cs -> zipWithM
+                       blockListToMarkdown
+                       (map (\w -> opts{writerColumns =
+                                 min (w - 2) (writerColumns opts)})
+                        widthsInChars)
+                       cs)
+                     rows
+                fmap (id,) $
+                   gridTable (all null headers) aligns widthsInChars
+                       rawHeaders' rawRows'
+            | isEnabled Ext_raw_html opts -> fmap (id,) $
+                   text <$>
+                   (writeHtml5String def $ Pandoc nullMeta [t])
+            | otherwise -> return $ (id, text "[TABLE]")
+  return $ nst $ tbl $$ caption'' $$ blankline
 blockToMarkdown' opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
   return $ cat contents <> blankline
