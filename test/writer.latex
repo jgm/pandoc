@@ -77,34 +77,44 @@ markdown test suite.
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Headers}\label{headers}
+\hypertarget{headers}{%
+\section{Headers}\label{headers}}
 
+\hypertarget{level-2-with-an-embedded-link}{%
 \subsection{\texorpdfstring{Level 2 with an \href{/url}{embedded
-link}}{Level 2 with an embedded link}}\label{level-2-with-an-embedded-link}
+link}}{Level 2 with an embedded link}}\label{level-2-with-an-embedded-link}}
 
+\hypertarget{level-3-with-emphasis}{%
 \subsubsection{\texorpdfstring{Level 3 with
-\emph{emphasis}}{Level 3 with emphasis}}\label{level-3-with-emphasis}
+\emph{emphasis}}{Level 3 with emphasis}}\label{level-3-with-emphasis}}
 
-\paragraph{Level 4}\label{level-4}
+\hypertarget{level-4}{%
+\paragraph{Level 4}\label{level-4}}
 
-\subparagraph{Level 5}\label{level-5}
+\hypertarget{level-5}{%
+\subparagraph{Level 5}\label{level-5}}
 
-\section{Level 1}\label{level-1}
+\hypertarget{level-1}{%
+\section{Level 1}\label{level-1}}
 
+\hypertarget{level-2-with-emphasis}{%
 \subsection{\texorpdfstring{Level 2 with
-\emph{emphasis}}{Level 2 with emphasis}}\label{level-2-with-emphasis}
+\emph{emphasis}}{Level 2 with emphasis}}\label{level-2-with-emphasis}}
 
-\subsubsection{Level 3}\label{level-3}
+\hypertarget{level-3}{%
+\subsubsection{Level 3}\label{level-3}}
 
 with no blank line
 
-\subsection{Level 2}\label{level-2}
+\hypertarget{level-2}{%
+\subsection{Level 2}\label{level-2}}
 
 with no blank line
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Paragraphs}\label{paragraphs}
+\hypertarget{paragraphs}{%
+\section{Paragraphs}\label{paragraphs}}
 
 Here's a regular paragraph.
 
@@ -119,7 +129,8 @@ here.
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Block Quotes}\label{block-quotes}
+\hypertarget{block-quotes}{%
+\section{Block Quotes}\label{block-quotes}}
 
 E-mail style:
 
@@ -164,7 +175,8 @@ And a following paragraph.
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Code Blocks}\label{code-blocks}
+\hypertarget{code-blocks}{%
+\section{Code Blocks}\label{code-blocks}}
 
 Code:
 
@@ -188,9 +200,11 @@ These should not be escaped:  \$ \\ \> \[ \{
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Lists}\label{lists}
+\hypertarget{lists}{%
+\section{Lists}\label{lists}}
 
-\subsection{Unordered}\label{unordered}
+\hypertarget{unordered}{%
+\subsection{Unordered}\label{unordered}}
 
 Asterisks tight:
 
@@ -261,7 +275,8 @@ Minuses loose:
   Minus 3
 \end{itemize}
 
-\subsection{Ordered}\label{ordered}
+\hypertarget{ordered}{%
+\subsection{Ordered}\label{ordered}}
 
 Tight:
 
@@ -327,7 +342,8 @@ Multiple paragraphs:
   Item 3.
 \end{enumerate}
 
-\subsection{Nested}\label{nested}
+\hypertarget{nested}{%
+\subsection{Nested}\label{nested}}
 
 \begin{itemize}
 \tightlist
@@ -392,7 +408,8 @@ Same thing but with paragraphs:
   Third
 \end{enumerate}
 
-\subsection{Tabs and spaces}\label{tabs-and-spaces}
+\hypertarget{tabs-and-spaces}{%
+\subsection{Tabs and spaces}\label{tabs-and-spaces}}
 
 \begin{itemize}
 \item
@@ -408,7 +425,8 @@ Same thing but with paragraphs:
   \end{itemize}
 \end{itemize}
 
-\subsection{Fancy list markers}\label{fancy-list-markers}
+\hypertarget{fancy-list-markers}{%
+\subsection{Fancy list markers}\label{fancy-list-markers}}
 
 \begin{enumerate}
 \def\labelenumi{(\arabic{enumi})}
@@ -496,7 +514,8 @@ B. Williams
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Definition Lists}\label{definition-lists}
+\hypertarget{definition-lists}{%
+\section{Definition Lists}\label{definition-lists}}
 
 Tight using spaces:
 
@@ -599,7 +618,8 @@ orange fruit
 \end{enumerate}
 \end{description}
 
-\section{HTML Blocks}\label{html-blocks}
+\hypertarget{html-blocks}{%
+\section{HTML Blocks}\label{html-blocks}}
 
 Simple block on one line:
 
@@ -661,7 +681,8 @@ Hr's:
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Inline Markup}\label{inline-markup}
+\hypertarget{inline-markup}{%
+\section{Inline Markup}\label{inline-markup}}
 
 This is \emph{emphasized}, and so \emph{is this}.
 
@@ -693,7 +714,8 @@ spaces: a\^{}b c\^{}d, a\textasciitilde{}b c\textasciitilde{}d.
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Smart quotes, ellipses, dashes}\label{smart-quotes-ellipses-dashes}
+\hypertarget{smart-quotes-ellipses-dashes}{%
+\section{Smart quotes, ellipses, dashes}\label{smart-quotes-ellipses-dashes}}
 
 ``Hello,'' said the spider. ``\,`Shelob' is my name.''
 
@@ -714,7 +736,8 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{LaTeX}\label{latex}
+\hypertarget{latex}{%
+\section{LaTeX}\label{latex}}
 
 \begin{itemize}
 \tightlist
@@ -762,7 +785,8 @@ Cat    & 1      \\ \hline
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Special Characters}\label{special-characters}
+\hypertarget{special-characters}{%
+\section{Special Characters}\label{special-characters}}
 
 Here is some unicode:
 
@@ -824,9 +848,11 @@ Minus: -
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Links}\label{links}
+\hypertarget{links}{%
+\section{Links}\label{links}}
 
-\subsection{Explicit}\label{explicit}
+\hypertarget{explicit}{%
+\subsection{Explicit}\label{explicit}}
 
 Just a \href{/url/}{URL}.
 
@@ -846,7 +872,8 @@ Just a \href{/url/}{URL}.
 
 \href{}{Empty}.
 
-\subsection{Reference}\label{reference}
+\hypertarget{reference}{%
+\subsection{Reference}\label{reference}}
 
 Foo \href{/url/}{bar}.
 
@@ -874,7 +901,8 @@ Foo \href{/url/}{bar}.
 
 Foo \href{/url/}{biz}.
 
-\subsection{With ampersands}\label{with-ampersands}
+\hypertarget{with-ampersands}{%
+\subsection{With ampersands}\label{with-ampersands}}
 
 Here's a \href{http://example.com/?foo=1\&bar=2}{link with an ampersand in the
 URL}.
@@ -886,7 +914,8 @@ Here's an \href{/script?foo=1\&bar=2}{inline link}.
 
 Here's an \href{/script?foo=1\&bar=2}{inline link in pointy braces}.
 
-\subsection{Autolinks}\label{autolinks}
+\hypertarget{autolinks}{%
+\subsection{Autolinks}\label{autolinks}}
 
 With an ampersand: \url{http://example.com/?foo=1\&bar=2}
 
@@ -916,7 +945,8 @@ or here: <http://example.com/>
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Images}\label{images}
+\hypertarget{images}{%
+\section{Images}\label{images}}
 
 From ``Voyage dans la Lune'' by Georges Melies (1902):
 
@@ -930,7 +960,8 @@ Here is a movie \includegraphics{movie.jpg} icon.
 
 \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
 
-\section{Footnotes}\label{footnotes}
+\hypertarget{footnotes}{%
+\section{Footnotes}\label{footnotes}}
 
 Here is a footnote reference,\footnote{Here is the footnote. It can go
   anywhere after the footnote reference. It need not be placed at the end of

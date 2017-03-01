@@ -418,11 +418,7 @@ blockToLaTeX :: PandocMonad m
 blockToLaTeX Null = return empty
 blockToLaTeX (Div (identifier,classes,kvs) bs) = do
   beamer <- gets stBeamer
-  ref <- toLabel identifier
-  let linkAnchor = if null identifier
-                      then empty
-                      else "\\hypertarget" <> braces (text ref) <>
-                             braces empty
+  linkAnchor <- hypertarget True identifier empty
   let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
   let wrapDir = case lookup "dir" kvs of
                   Just "rtl" -> align "RTL"
@@ -459,13 +455,13 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = d
   let footnotes = notesToLaTeX notes
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
-  figure <- hypertarget ident (cr <>
-            "\\begin{figure}" $$ "\\centering" $$ img $$
-            caption $$ "\\end{figure}" <> cr)
+  let figure = cr <> "\\begin{figure}" $$ "\\centering" $$ img $$
+              caption $$ "\\end{figure}" <> cr
+  figure' <- hypertarget True ident figure
   return $ if inNote
               -- can't have figures in notes
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
-              else figure $$ footnotes
+              else figure' $$ footnotes
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- gets stBeamer
@@ -493,11 +489,8 @@ blockToLaTeX (BlockQuote lst) = do
          return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
 blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
-  ref <- toLabel identifier
-  let linkAnchor = if null identifier
-                      then empty
-                      else "\\hypertarget" <> braces (text ref) <>
-                                braces ("\\label" <> braces (text ref))
+  lab <- labelFor identifier
+  linkAnchor <- hypertarget True identifier lab
   let lhsCodeBlock = do
         modify $ \s -> s{ stLHS = True }
         return $ flush (linkAnchor $$ "\\begin{code}" $$ text str $$
@@ -512,6 +505,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                  text str $$ text ("\\end{" ++ env ++ "}")) <> cr
   let listingsCodeBlock = do
         st <- get
+        ref <- toLabel identifier
         let params = if writerListings (stOptions st)
                      then (case getListingsLanguage classes of
                                 Just l  -> [ "language=" ++ mbBraced l ]
@@ -830,7 +824,8 @@ sectionHeader unnumbered ident level lst = do
   lab <- labelFor ident
   let star = if unnumbered && level' < 4 then text "*" else empty
   let stuffing = star <> optional <> contents
-  stuffing' <- hypertarget ident $ text ('\\':sectionType) <> stuffing <> lab
+  stuffing' <- hypertarget True ident $
+                  text ('\\':sectionType) <> stuffing <> lab
   return $ if level' > 5
               then txt
               else prefix $$ stuffing'
@@ -840,16 +835,13 @@ sectionHeader unnumbered ident level lst = do
                                 braces txtNoNotes
                          else empty
 
-hypertarget :: PandocMonad m => String -> Doc -> LW m Doc
-hypertarget ident x = do
+hypertarget :: PandocMonad m => Bool -> String -> Doc -> LW m Doc
+hypertarget _ "" x    = return x
+hypertarget addnewline ident x = do
   ref <- text `fmap` toLabel ident
-  internalLinks <- gets stInternalLinks
-  return $
-    if ident `elem` internalLinks
-       then text "\\hypertarget"
+  return $ text "\\hypertarget"
               <> braces ref
-              <> braces x
-       else x
+              <> braces ((if addnewline then ("%" <> cr) else empty) <> x)
 
 labelFor :: PandocMonad m => String -> LW m Doc
 labelFor ""    = return empty
@@ -892,11 +884,7 @@ inlineToLaTeX :: PandocMonad m
               => Inline    -- ^ Inline to convert
               -> LW m Doc
 inlineToLaTeX (Span (id',classes,kvs) ils) = do
-  ref <- toLabel id'
-  let linkAnchor = if null id'
-                      then empty
-                      else "\\protect\\hypertarget" <> braces (text ref) <>
-                             braces empty
+  linkAnchor <- hypertarget False id' empty
   let cmds = ["textup" | "csl-no-emph" `elem` classes] ++
              ["textnormal" | "csl-no-strong" `elem` classes ||
                              "csl-no-smallcaps" `elem` classes] ++
@@ -908,7 +896,9 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
                             in  ["text" ++ l ++ ops]
                 Nothing  -> [])
   contents <- inlineListToLaTeX ils
-  return $ linkAnchor <>
+  return $ (if null id'
+               then empty
+               else "\\protect" <> linkAnchor) <>
            if null cmds
               then braces contents
               else foldr inCmd contents cmds

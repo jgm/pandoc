@@ -84,7 +84,8 @@
 
 \begin{document}
 
-\section{Empty Divs and Spans}\label{empty-divs-and-spans}
+\hypertarget{empty-divs-and-spans}{%
+\section{Empty Divs and Spans}\label{empty-divs-and-spans}}
 
 Some text and
 
@@ -94,7 +95,8 @@ and more text.
 
 Next paragraph with a {span} and a word-thatincludesa{span}right?
 
-\section{Directionality}\label{directionality}
+\hypertarget{directionality}{%
+\section{Directionality}\label{directionality}}
 
 Some text and
 
@@ -111,7 +113,8 @@ and a ltr div. with a \RL{rtl span}.
 Next paragraph with a \RL{rtl span} and a
 word-that-includesa\LR{ltrspan}right?
 
-\section{Languages}\label{languages}
+\hypertarget{languages}{%
+\section{Languages}\label{languages}}
 
 Some text and
 
@@ -128,7 +131,8 @@ word-that-includesa\textgerman[variant=swiss]{Swiss German span}right?
 
 Some \textspanish{Spanish text}.
 
-\section{Combined}\label{combined}
+\hypertarget{combined}{%
+\section{Combined}\label{combined}}
 
 Some text and
 

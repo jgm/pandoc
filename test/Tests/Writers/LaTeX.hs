@@ -58,7 +58,7 @@ tests = [ testGroup "code blocks"
           [ "unnumbered header" =:
             headerWith ("foo",["unnumbered"],[]) 1
               (text "Header 1" <> note (plain $ text "note")) =?>
-            "\\section*{\\texorpdfstring{Header 1\\footnote{note}}{Header 1}}\\label{foo}\n\\addcontentsline{toc}{section}{Header 1}\n"
+            "\\hypertarget{foo}{%\n\\section*{\\texorpdfstring{Header 1\\footnote{note}}{Header 1}}\\label{foo}}\n\\addcontentsline{toc}{section}{Header 1}\n"
           , "in list item" =:
             bulletList [header 2 (text "foo")] =?>
             "\\begin{itemize}\n\\item ~\n  \\subsection{foo}\n\\end{itemize}"
