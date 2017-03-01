@@ -537,8 +537,16 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
                     isEnabled Ext_multiline_tables opts -> fmap (nest 2,) $
                          pandocTable opts (all null headers) aligns widths
                              rawHeaders rawRows
-                  | isEnabled Ext_grid_tables opts -> fmap (id,) $
-                         gridTable opts (all null headers) aligns widths
+                  | isEnabled Ext_grid_tables opts -> do
+                      let numcols = length headers
+                      let widths' = if all (==0) widths
+                                       then replicate numcols
+                                              (1.0 / fromIntegral numcols)
+                                       else widths
+                      let widthsInChars = map ((\x -> x - 3) . floor .
+                             (fromIntegral (writerColumns opts) *)) widths'
+                      fmap (id,) $
+                         gridTable (all null headers) aligns widthsInChars
                              rawHeaders rawRows
                   | isEnabled Ext_raw_html opts -> fmap (id,) $
                          text <$>
@@ -657,15 +665,9 @@ pandocTable opts headless aligns widths rawHeaders rawRows = do
                   else border
   return $ head'' $$ underline $$ body $$ bottom
 
-gridTable :: PandocMonad m => WriterOptions -> Bool -> [Alignment] -> [Double]
+gridTable :: PandocMonad m => Bool -> [Alignment] -> [Int]
           -> [Doc] -> [[Doc]] -> MD m Doc
-gridTable opts headless aligns widths headers' rawRows =  do
-  let numcols = length headers'
-  let widths' = if all (==0) widths
-                   then replicate numcols (1.0 / fromIntegral numcols)
-                   else widths
-  let widthsInChars = map
-         ((\x -> x - 3) . floor . (fromIntegral (writerColumns opts) *)) widths'
+gridTable headless aligns widthsInChars headers' rawRows =  do
   let hpipeBlocks blocks = hcat [beg, middle, end]
         where h       = maximum (1 : map height blocks)
               sep'    = lblock 3 $ vcat (map text $ replicate h " | ")
