@@ -1029,22 +1029,29 @@ simpleTableFooter = try $ simpleTableSep '=' >> blanklines
 
 -- Parse a raw line and split it into chunks by indices.
 simpleTableRawLine :: Monad m => [Int] -> RSTParser m [String]
-simpleTableRawLine indices = do
-  line <- many1Till anyChar newline
-  return (simpleTableSplitLine indices line)
+simpleTableRawLine indices = simpleTableSplitLine indices <$> anyLine
+
+simpleTableRawLineWithEmptyCell :: Monad m => [Int] -> RSTParser m [String]
+simpleTableRawLineWithEmptyCell indices = try $ do
+  cs <- simpleTableRawLine indices
+  let isEmptyCell = all (\c -> c == ' ' || c == '\t')
+  guard $ any isEmptyCell cs
+  return cs
 
 -- Parse a table row and return a list of blocks (columns).
 simpleTableRow :: PandocMonad m => [Int] -> RSTParser m [Blocks]
 simpleTableRow indices = do
   notFollowedBy' simpleTableFooter
   firstLine <- simpleTableRawLine indices
-  colLines  <- return [] -- TODO
-  let cols = map unlines . transpose $ firstLine : colLines
-  mapM (parseFromString (mconcat <$> many plain)) cols
+  conLines  <- many $ simpleTableRawLineWithEmptyCell indices
+  let cols = map unlines . transpose $ firstLine : conLines ++
+                                 [replicate (length indices) ""
+                                   | not (null conLines)]
+  mapM (parseFromString parseBlocks) cols
 
 simpleTableSplitLine :: [Int] -> String -> [String]
 simpleTableSplitLine indices line =
-  map trim
+  map trimr
   $ tail $ splitByIndices (init indices) line
 
 simpleTableHeader :: PandocMonad m
@@ -1125,7 +1132,8 @@ hyphens = do
 
 escapedChar :: Monad m => ParserT [Char] st m Inlines
 escapedChar = do c <- escaped anyChar
-                 return $ if c == ' '  -- '\ ' is null in RST
+                 return $ if c == ' ' || c == '\n' || c == '\r'
+                             -- '\ ' is null in RST
                              then mempty
                              else B.str [c]
 
