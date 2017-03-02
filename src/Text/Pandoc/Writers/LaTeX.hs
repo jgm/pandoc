@@ -490,7 +490,10 @@ blockToLaTeX (BlockQuote lst) = do
 blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   lab <- labelFor identifier
-  linkAnchor <- hypertarget True identifier lab
+  linkAnchor' <- hypertarget True identifier lab
+  let linkAnchor = if isEmpty linkAnchor'
+                      then empty
+                      else linkAnchor' <> "%"
   let lhsCodeBlock = do
         modify $ \s -> s{ stLHS = True }
         return $ flush (linkAnchor $$ "\\begin{code}" $$ text str $$
