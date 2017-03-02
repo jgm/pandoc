@@ -1401,7 +1401,7 @@ pipeTableRow = try $ do
   skipMany spaceChar
   openPipe <- (True <$ char '|') <|> return False
   -- split into cells
-  let chunk = void (code <|> rawHtmlInline <|> escapedChar <|> rawLaTeXInline')
+  let chunk = void (code <|> math <|> rawHtmlInline <|> escapedChar <|> rawLaTeXInline')
        <|> void (noneOf "|\n\r")
   let cellContents = ((trim . snd) <$> withRaw (many chunk)) >>=
         parseFromString pipeTableCell
