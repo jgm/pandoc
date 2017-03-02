@@ -418,7 +418,14 @@ blockToLaTeX :: PandocMonad m
 blockToLaTeX Null = return empty
 blockToLaTeX (Div (identifier,classes,kvs) bs) = do
   beamer <- gets stBeamer
-  linkAnchor <- hypertarget True identifier empty
+  linkAnchor' <- hypertarget True identifier empty
+  -- see #2704 for the motivation for adding \leavevmode:
+  let linkAnchor =
+       case bs of
+            Para _ : _
+              | not (isEmpty linkAnchor')
+              -> "\\leavevmode" <> linkAnchor' <> "%"
+            _ -> linkAnchor'
   let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
   let wrapDir = case lookup "dir" kvs of
                   Just "rtl" -> align "RTL"
