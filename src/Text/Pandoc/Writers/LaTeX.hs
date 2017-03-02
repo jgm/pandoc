@@ -841,7 +841,9 @@ hypertarget addnewline ident x = do
   ref <- text `fmap` toLabel ident
   return $ text "\\hypertarget"
               <> braces ref
-              <> braces ((if addnewline then ("%" <> cr) else empty) <> x)
+              <> braces ((if addnewline && not (isEmpty x)
+                             then ("%" <> cr)
+                             else empty) <> x)
 
 labelFor :: PandocMonad m => String -> LW m Doc
 labelFor ""    = return empty
