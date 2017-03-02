@@ -44,7 +44,6 @@ import Data.List ( group, stripPrefix, find, intersperse, transpose, sortBy )
 import Data.Char ( isSpace, isPunctuation, ord, chr )
 import Data.Ord ( comparing )
 import Text.Pandoc.Pretty
-import Control.Monad (zipWithM)
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Except (throwError)
