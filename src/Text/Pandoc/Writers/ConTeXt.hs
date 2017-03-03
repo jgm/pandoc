@@ -202,9 +202,9 @@ blockToConTeXt (BulletList lst) = do
 blockToConTeXt (OrderedList (start, style', delim) lst) = do
     st <- get
     let level = stOrderedListLevel st
-    put $ st {stOrderedListLevel = level + 1}
+    put st {stOrderedListLevel = level + 1}
     contents <- mapM listItemToConTeXt lst
-    put $ st {stOrderedListLevel = level}
+    put st {stOrderedListLevel = level}
     let start' = if start == 1 then "" else "start=" ++ show start
     let delim' = case delim of
                         DefaultDelim -> ""
