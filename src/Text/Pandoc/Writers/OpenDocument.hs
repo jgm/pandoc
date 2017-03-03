@@ -242,18 +242,17 @@ orderedListToOpenDocument o pn bs =
 
 orderedItemToOpenDocument :: PandocMonad m
                           => WriterOptions -> Int -> [Block] -> OD m Doc
-orderedItemToOpenDocument  o n (b:bs)
-    | OrderedList a l <- b = go =<< newLevel a l
-    | Para          l <- b = go =<< inParagraphTagsWithStyle ("P" ++ show n) <$> inlinesToOpenDocument o l
-    | otherwise            = go =<< blockToOpenDocument o b
-    where
-      go i = ($$) i <$> orderedItemToOpenDocument o n bs
-      newLevel a l = do
-        nn <- length <$> gets stParaStyles
-        ls <- head   <$> gets stListStyles
-        modify $ \s -> s { stListStyles = orderedListLevelStyle a ls : tail (stListStyles s) }
-        inTagsIndented "text:list" <$> orderedListToOpenDocument o nn l
-orderedItemToOpenDocument  _ _ [] = return empty
+orderedItemToOpenDocument  o n bs = vcat <$> mapM go bs
+ where go (OrderedList a l) = newLevel a l
+       go (Para          l) = inParagraphTagsWithStyle ("P" ++ show n) <$>
+                                inlinesToOpenDocument o l
+       go b                 = blockToOpenDocument o b
+       newLevel a l = do
+         nn <- length <$> gets stParaStyles
+         ls <- head   <$> gets stListStyles
+         modify $ \s -> s { stListStyles = orderedListLevelStyle a ls :
+                                 drop 1 (stListStyles s) }
+         inTagsIndented "text:list" <$> orderedListToOpenDocument o nn l
 
 isTightList :: [[Block]] -> Bool
 isTightList []          = False
