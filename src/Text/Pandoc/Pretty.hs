@@ -466,7 +466,7 @@ height = length . lines . render Nothing
 
 block :: (String -> String) -> Int -> Doc -> Doc
 block filler width d
-  | width < 1 && not (isEmpty d) = error "Text.Pandoc.Pretty.block: width < 1"
+  | width < 1 && not (isEmpty d) = block filler 1 d
   | otherwise                    = Doc $ singleton $ Block width $ map filler
                                  $ chop width $ render (Just width) d
 
