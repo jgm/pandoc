@@ -923,6 +923,7 @@ data ParserState = ParserState
       stateNotes'          :: NoteTable',    -- ^ List of notes (parsed bodies)
       stateMeta            :: Meta,          -- ^ Document metadata
       stateMeta'           :: F Meta,        -- ^ Document metadata
+      stateCitations       :: M.Map String String, -- ^ RST-style citations
       stateHeaderTable     :: [HeaderType],  -- ^ Ordered list of header types used
       stateHeaders         :: M.Map Inlines String, -- ^ List of headers and ids (used for implicit ref links)
       stateIdentifiers     :: Set.Set String, -- ^ Header identifiers used
@@ -1030,6 +1031,7 @@ defaultParserState =
                   stateNotes'          = [],
                   stateMeta            = nullMeta,
                   stateMeta'           = return nullMeta,
+                  stateCitations       = M.empty,
                   stateHeaderTable     = [],
                   stateHeaders         = M.empty,
                   stateIdentifiers     = Set.empty,

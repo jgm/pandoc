@@ -158,8 +158,8 @@ parseRST = do
   -- go through once just to get list of reference keys and notes
   -- docMinusKeys is the raw document with blanks where the keys were...
   docMinusKeys <- concat <$>
-                  manyTill (referenceKey <|> noteBlock <|> headerBlock <|>
-                            lineClump) eof
+                  manyTill (referenceKey <|> noteBlock <|> citationBlock <|>
+                            headerBlock <|> lineClump) eof
   setInput docMinusKeys
   setPosition startPos
   st' <- getState
@@ -169,6 +169,12 @@ parseRST = do
                         , stateIdentifiers = mempty }
   -- now parse it for real...
   blocks <- B.toList <$> parseBlocks
+  citations <- (sort . M.toList . stateCitations) <$> getState
+  citationItems <- mapM parseCitation citations
+  let refBlock = if null citationItems
+                    then []
+                    else [Div ("citations",[],[]) $
+                            B.toList $ B.definitionList citationItems]
   standalone <- getOption readerStandalone
   state <- getState
   let meta = stateMeta state
@@ -176,7 +182,15 @@ parseRST = do
                             then titleTransform (blocks, meta)
                             else (blocks, meta)
   reportLogMessages
-  return $ Pandoc meta' blocks'
+  return $ Pandoc meta' (blocks' ++ refBlock)
+
+parseCitation :: PandocMonad m
+              => (String, String) -> RSTParser m (Inlines, [Blocks])
+parseCitation (ref, raw) = do
+  contents <- parseFromString parseBlocks raw
+  return $ (B.spanWith (ref, ["citation-label"], []) (B.str ref),
+           [contents])
+
 
 --
 -- parsing blocks
@@ -860,22 +874,43 @@ codeblock classes numberLines lang body =
 
 noteBlock :: Monad m => RSTParser m [Char]
 noteBlock = try $ do
+  (ref, raw, replacement) <- noteBlock' noteMarker
+  updateState $ \s -> s { stateNotes = (ref, raw) : stateNotes s }
+  -- return blanks so line count isn't affected
+  return replacement
+
+citationBlock :: Monad m => RSTParser m [Char]
+citationBlock = try $ do
+  (ref, raw, replacement) <- noteBlock' citationMarker
+  updateState $ \s ->
+     s { stateCitations = M.insert ref raw (stateCitations s),
+         stateKeys = M.insert (toKey ref) (('#':ref,""), ("",["citation"],[]))
+                               (stateKeys s) }
+  -- return blanks so line count isn't affected
+  return replacement
+
+noteBlock' :: Monad m
+           => RSTParser m String -> RSTParser m (String, String, String)
+noteBlock' marker = try $ do
   startPos <- getPosition
   string ".."
   spaceChar >> skipMany spaceChar
-  ref <- noteMarker
+  ref <- marker
   first <- (spaceChar >> skipMany spaceChar >> anyLine)
         <|> (newline >> return "")
   blanks <- option "" blanklines
   rest <- option "" indentedBlock
   endPos <- getPosition
   let raw = first ++ "\n" ++ blanks ++ rest ++ "\n"
-  let newnote = (ref, raw)
-  st <- getState
-  let oldnotes = stateNotes st
-  updateState $ \s -> s { stateNotes = newnote : oldnotes }
-  -- return blanks so line count isn't affected
-  return $ replicate (sourceLine endPos - sourceLine startPos) '\n'
+  let replacement =replicate (sourceLine endPos - sourceLine startPos) '\n'
+  return (ref, raw, replacement)
+
+citationMarker :: Monad m => RSTParser m [Char]
+citationMarker = do
+  char '['
+  res <- simpleReferenceName'
+  char ']'
+  return res
 
 noteMarker :: Monad m => RSTParser m [Char]
 noteMarker = do
@@ -913,9 +948,7 @@ simpleReferenceName' = do
   return (x:xs)
 
 simpleReferenceName :: Monad m => ParserT [Char] st m Inlines
-simpleReferenceName = do
-  raw <- simpleReferenceName'
-  return $ B.str raw
+simpleReferenceName = B.str <$> simpleReferenceName'
 
 referenceName :: PandocMonad m => RSTParser m Inlines
 referenceName = quotedReferenceName <|>
@@ -1290,9 +1323,16 @@ explicitLink = try $ do
                           _ -> return ((src, ""), nullAttr)
   return $ B.linkWith attr (escapeURI src') tit label''
 
+citationName :: PandocMonad m => RSTParser m Inlines
+citationName = do
+  raw <- citationMarker
+  return $ B.str $ "[" ++ raw ++ "]"
+
 referenceLink :: PandocMonad m => RSTParser m Inlines
 referenceLink = try $ do
-  (label',ref) <- withRaw (quotedReferenceName <|> simpleReferenceName) <*
+  (label',ref) <- withRaw (quotedReferenceName
+                          <|> simpleReferenceName
+                          <|> citationName) <*
                    char '_'
   let isAnonKey (Key ('_':_)) = True
       isAnonKey _             = False
