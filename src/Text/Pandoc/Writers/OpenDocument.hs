@@ -243,7 +243,7 @@ orderedListToOpenDocument o pn bs =
 orderedItemToOpenDocument :: PandocMonad m
                           => WriterOptions -> Int -> [Block] -> OD m Doc
 orderedItemToOpenDocument  o n (b:bs)
-    | OrderedList a l <- b = newLevel a l
+    | OrderedList a l <- b = go =<< newLevel a l
     | Para          l <- b = go =<< inParagraphTagsWithStyle ("P" ++ show n) <$> inlinesToOpenDocument o l
     | otherwise            = go =<< blockToOpenDocument o b
     where
