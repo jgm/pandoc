@@ -63,6 +63,7 @@ Markdown can be expected to be lossy.
 [Slideous]: http://goessner.net/articles/slideous/
 [HTML]: http://www.w3.org/html/
 [HTML5]: http://www.w3.org/TR/html5/
+[polyglot markup]: https://www.w3.org/TR/html-polyglot/
 [XHTML]: http://www.w3.org/TR/xhtml1/
 [LaTeX]: http://latex-project.org
 [`beamer`]: https://ctan.org/pkg/beamer
@@ -281,7 +282,8 @@ General options
     (original unextended Markdown), `markdown_phpextra` (PHP Markdown
     Extra), `markdown_github` (GitHub-Flavored Markdown), `markdown_mmd`
     (MultiMarkdown), `commonmark` (CommonMark Markdown), `rst`
-    (reStructuredText), `html4` (XHTML4), `html` or `html5` (HTML5), `latex`
+    (reStructuredText), `html4` (XHTML4), `html` or `html5`
+    (HTML5/XHTML [polyglot markup]), `latex`
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
     `man` (groff man), `mediawiki` (MediaWiki markup),
     `dokuwiki` (DokuWiki markup), `zimwiki` (ZimWiki markup),
