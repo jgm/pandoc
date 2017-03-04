@@ -250,9 +250,18 @@ instance PandocMonad PandocIO where
   getModificationTime fp = liftIOError IO.getModificationTime fp
   getCommonState = PandocIO $ lift get
   putCommonState x = PandocIO $ lift $ put x
-  logOutput msg =
-    liftIO $ UTF8.hPutStrLn stderr $ printf "%-7s %s"
-      (show (messageVerbosity msg)) (showLogMessage msg)
+  logOutput msg = liftIO $ do
+    UTF8.hPutStr stderr $ printf "%-7s " (show (messageVerbosity msg))
+    hangingIndent 2 $ lines $ showLogMessage msg
+
+hangingIndent :: Int -> [String] -> IO ()
+hangingIndent _level [] = return ()
+hangingIndent level (l:ls) = do
+  UTF8.hPutStrLn stderr l
+  mapM_ go ls
+  where go l' = do UTF8.hPutStr stderr ind
+                   UTF8.hPutStrLn stderr l'
+        ind = replicate level ' '
 
 -- | Specialized version of parseURIReference that disallows
 -- single-letter schemes.  Reason:  these are usually windows absolute
