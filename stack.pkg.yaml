@@ -18,5 +18,5 @@ packages:
     commit: 8309142e2529e7c82277b93a2c911df5a63f65ca
   extra-dep: false
 extra-deps:
-- skylighting-0.3
+- skylighting-0.3.1
 resolver: lts-8.2
