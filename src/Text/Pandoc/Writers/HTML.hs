@@ -186,18 +186,25 @@ writeHtmlString' :: PandocMonad m
                  => WriterState -> WriterOptions -> Pandoc -> m String
 writeHtmlString' st opts d = do
   (body, context) <- evalStateT (pandocToHtml opts d) st
+  -- check for empty pagetitle
+  context' <-
+     case getField "pagetitle" context of
+          Just (s :: String) | not (null s) -> return context
+          _ -> do
+            report $ NoTitleElement "Untitled"
+            return $ resetField "pagetitle" ("Untitled" :: String) context
   return $ case writerTemplate opts of
              Nothing  -> renderHtml body
              Just tpl -> renderTemplate' tpl $
-                           defField "body" (renderHtml body) context
+                           defField "body" (renderHtml body) context'
 
 writeHtml' :: PandocMonad m => WriterState -> WriterOptions -> Pandoc -> m Html
 writeHtml' st opts d = do
-  (body, context) <- evalStateT (pandocToHtml opts d) st
-  return $ case writerTemplate opts of
-             Nothing  -> body
-             Just tpl -> renderTemplate' tpl $
-                           defField "body" (renderHtml body) context
+  case writerTemplate opts of
+       Just _ -> preEscapedString <$> writeHtmlString' st opts d
+       Nothing  -> do
+        (body, _) <- evalStateT (pandocToHtml opts d) st
+        return body
 
 -- result is (title, authors, date, toc, body, new variables)
 pandocToHtml :: PandocMonad m
@@ -267,7 +274,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   maybe id (defField "toc" . renderHtml) toc $
                   defField "author-meta" authsMeta $
                   maybe id (defField "date-meta") (normalizeDate dateMeta) $
-                  defField "pagetitle" (stringifyHTML $ docTitle meta) $
+                  defField "pagetitle" (stringifyHTML (docTitle meta)) $
                   defField "idprefix" (writerIdentifierPrefix opts) $
                   -- these should maybe be set in pandoc.hs
                   defField "slidy-url"
