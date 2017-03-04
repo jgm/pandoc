@@ -15,13 +15,16 @@ $if(keywords)$
   <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$" />
 $endif$
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
-  <style type="text/css">code{white-space: pre;} .smallcaps{font-variant: small-caps;}</style>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      .smallcaps{font-variant: small-caps;}
+$if(quotes)$
+      q { quotes: "“" "”" "‘" "’"; }
+$endif$
+  </style>
   <!-- configuration parameters -->
   <meta name="defaultView" content="slideshow" />
   <meta name="controlVis" content="hidden" />
-$if(quotes)$
-  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
-$endif$
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$

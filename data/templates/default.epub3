@@ -5,12 +5,13 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <title>$pagetitle$</title>
-  <style type="text/css">.smallcaps{font-variant: small-caps;}</style>
-$if(quotes)$
   <style type="text/css">
-    q { quotes: "“" "”" "‘" "’"; }
-  </style>
+      code{white-space: pre-wrap;}
+      .smallcaps{font-variant: small-caps;}
+$if(quotes)$
+      q { quotes: "“" "”" "‘" "’"; }
 $endif$
+  </style>
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$

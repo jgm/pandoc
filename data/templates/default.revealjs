@@ -17,10 +17,13 @@ $endif$
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
   <link rel="stylesheet" href="$revealjs-url$/css/reveal.css">
-  <style type="text/css">code{white-space: pre;} .smallcaps{font-variant: small-caps;}</style>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      .smallcaps{font-variant: small-caps;}
 $if(quotes)$
-  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
+      q { quotes: "“" "”" "‘" "’"; }
 $endif$
+  </style>
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$

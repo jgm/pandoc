@@ -6,7 +6,13 @@
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
   <title>$pagetitle$</title>
-  <style type="text/css">.smallcaps{font-variant: small-caps;}</style>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      .smallcaps{font-variant: small-caps;}
+$if(quotes)$
+      q { quotes: "“" "”" "‘" "’"; }
+$endif$
+  </style>
 $if(highlighting-css)$
   <style type="text/css">
 $highlighting-css$
