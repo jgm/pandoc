@@ -684,9 +684,11 @@ pSpan = try $ do
   guardEnabled Ext_native_spans
   TagOpen _ attr <- lookAhead $ pSatisfy $ tagOpen (=="span") (const True)
   contents <- pInTags "span" inline
-  let isSmallCaps = fontVariant == "small-caps"
+  let isSmallCaps = fontVariant == "small-caps" || "smallcaps" `elem` classes
                     where styleAttr   = fromMaybe "" $ lookup "style" attr
                           fontVariant = fromMaybe "" $ pickStyleAttrProps ["font-variant"] styleAttr
+                          classes     = fromMaybe [] $
+                                          words <$> lookup "class" attr
   let tag = if isSmallCaps then B.smallcaps else B.spanWith (mkAttr attr)
   return $ tag contents
 
