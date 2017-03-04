@@ -1,5 +1,6 @@
 version?=$(shell grep '^Version:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
+sourcefiles=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
 
 quick:
@@ -14,6 +15,9 @@ test:
 
 bench:
 	stack bench
+
+refactor:
+	./tools/refactor.sh $(sourcefiles)
 
 changes_github:
 	pandoc --filter extract-changes.hs changelog -t markdown_github | sed -e 's/\\#/#/g' | pbcopy
@@ -53,4 +57,4 @@ download_stats:
 clean:
 	stack clean
 
-.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats
+.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats refactor
