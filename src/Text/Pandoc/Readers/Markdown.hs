@@ -1780,13 +1780,21 @@ bracketedSpan = try $ do
   guardEnabled Ext_bracketed_spans
   (lab,_) <- reference
   attr <- attributes
-  let (ident,classes,keyvals) = attr
-  case lookup "style" keyvals of
-       Just s | null ident && null classes &&
-            map toLower (filter (`notElem` " \t;") s) ==
-                 "font-variant:small-caps"
-         -> return $ B.smallcaps <$> lab
-       _ -> return $ B.spanWith attr <$> lab
+  return $ if isSmallCaps attr
+              then B.smallcaps <$> lab
+              else B.spanWith attr <$> lab
+
+-- | We treat a span as SmallCaps if class is "smallcaps" (and
+-- no other attributes are set or if style is "font-variant:small-caps"
+-- (and no other attributes are set).
+isSmallCaps :: Attr -> Bool
+isSmallCaps ("",["smallcaps"],[]) = True
+isSmallCaps ("",[],kvs) =
+  case lookup "style" kvs of
+       Just s -> map toLower (filter (`notElem` " \t;") s) ==
+                    "font-variant:small-caps"
+       Nothing -> False
+isSmallCaps _ = False
 
 regLink :: PandocMonad m
         => (Attr -> String -> String -> Inlines -> Inlines)
@@ -1930,12 +1938,9 @@ spanHtml = try $ do
   let ident = fromMaybe "" $ lookup "id" attrs
   let classes = maybe [] words $ lookup "class" attrs
   let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
-  case lookup "style" keyvals of
-       Just s | null ident && null classes &&
-            map toLower (filter (`notElem` " \t;") s) ==
-                 "font-variant:small-caps"
-         -> return $ B.smallcaps <$> contents
-       _ -> return $ B.spanWith (ident, classes, keyvals) <$> contents
+  return $ if isSmallCaps (ident, classes, keyvals)
+              then B.smallcaps <$> contents
+              else B.spanWith (ident, classes, keyvals) <$> contents
 
 divHtml :: PandocMonad m => MarkdownParser m (F Blocks)
 divHtml = try $ do
