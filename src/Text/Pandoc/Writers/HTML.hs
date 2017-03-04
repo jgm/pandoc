@@ -880,7 +880,7 @@ inlineToHtml opts inline = do
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . H.del
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=
-                         return . (H.span ! A.style "font-variant: small-caps;")
+                         return . (H.span ! A.class_ "smallcaps")
     (Superscript lst) -> inlineListToHtml opts lst >>= return . H.sup
     (Subscript lst)   -> inlineListToHtml opts lst >>= return . H.sub
     (Quoted quoteType lst) ->
