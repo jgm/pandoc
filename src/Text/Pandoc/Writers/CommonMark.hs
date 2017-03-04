@@ -162,7 +162,7 @@ inlineToNodes (Subscript xs) =
   ((node (HTML_INLINE (T.pack "<sub>")) [] : inlinesToNodes xs ++
    [node (HTML_INLINE (T.pack "</sub>")) []]) ++ )
 inlineToNodes (SmallCaps xs) =
-  ((node (HTML_INLINE (T.pack "<span style=\"font-variant:small-caps;\">")) []
+  ((node (HTML_INLINE (T.pack "<span class=\"smallcaps\">")) []
     : inlinesToNodes xs ++
     [node (HTML_INLINE (T.pack "</span>")) []]) ++ )
 inlineToNodes (Link _ ils (url,tit)) =
