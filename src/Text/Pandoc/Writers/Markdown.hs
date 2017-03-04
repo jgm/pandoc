@@ -973,8 +973,7 @@ inlineToMarkdown opts (SmallCaps lst) = do
      (isEnabled Ext_raw_html opts || isEnabled Ext_native_spans opts)
      then do
        contents <- inlineListToMarkdown opts lst
-       return $ tagWithAttrs "span"
-                 ("",[],[("style","font-variant:small-caps;")])
+       return $ tagWithAttrs "span" ("",["smallcaps"],[])
              <> contents <> text "</span>"
      else inlineListToMarkdown opts $ capitalize lst
 inlineToMarkdown opts (Quoted SingleQuote lst) = do
