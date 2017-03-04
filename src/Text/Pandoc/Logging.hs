@@ -75,6 +75,7 @@ data LogMessage =
   | CouldNotConvertTeXMath String String
   | CouldNotParseCSS String
   | Fetching String
+  | NoTitleElement String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -168,6 +169,9 @@ instance ToJSON LogMessage where
       Fetching fp ->
            ["type" .= String "CouldNotParseCSS",
             "path" .= Text.pack fp]
+      NoTitleElement fallback ->
+           ["type" .= String "NoTitleElement",
+            "fallback" .= Text.pack fallback]
 
 showPos :: SourcePos -> String
 showPos pos = sn ++ "line " ++
@@ -228,6 +232,10 @@ showLogMessage msg =
          "Could not parse CSS" ++ if null m then "" else (':':'\n':m)
        Fetching fp ->
          "Fetching " ++ fp ++ "..."
+       NoTitleElement fallback ->
+         "This document format requires a nonempty <title> element.\n" ++
+         "Please specify either 'title' or 'pagetitle' in the metadata.\n" ++
+         "Falling back to '" ++ fallback ++ "'"
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -251,3 +259,4 @@ messageVerbosity msg =
        CouldNotConvertTeXMath{} -> WARNING
        CouldNotParseCSS{} -> WARNING
        Fetching{} -> INFO
+       NoTitleElement{} -> WARNING
