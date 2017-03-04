@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, TupleSections, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE CPP, TupleSections, ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -224,9 +224,8 @@ convertWithOpts opts = do
   let withList _ [] vars = return vars
       withList f (x:xs) vars = f x vars >>= withList f xs
 
-  variables <- return (optVariables opts)
-      >>=
-      (\vars -> return $ ("outputfile", optOutputFile opts) : vars)
+  variables <-
+      return (("outputfile", optOutputFile opts) : optVariables opts)
       >>=
       withList (addStringAsVariable "sourcefile")
                (reverse $ optInputFiles opts)
@@ -707,7 +706,7 @@ expandFilterPath mbDatadir fp = liftIO $ do
      then return fp
      else case mbDatadir of
                Just datadir | isRelative fp -> do
-                 let filterPath = (datadir </> "filters" </> fp)
+                 let filterPath = datadir </> "filters" </> fp
                  filterPathExists <- doesFileExist filterPath
                  if filterPathExists
                     then return filterPath
@@ -733,7 +732,7 @@ readURI :: MonadIO m => FilePath -> m String
 readURI src = liftIO $ (UTF8.toString . fst) <$> openURL src
 
 readFile' :: MonadIO m => FilePath -> m B.ByteString
-readFile' "-" = liftIO $ B.getContents
+readFile' "-" = liftIO B.getContents
 readFile' f   = liftIO $ B.readFile f
 
 writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
@@ -783,7 +782,7 @@ options =
                  (ReqArg
                   (\arg opt ->
                       case safeRead arg of
-                           Just t | t > 0 && t < 6 -> do
+                           Just t | t > 0 && t < 6 ->
                                return opt{ optBaseHeaderLevel = t }
                            _              -> err 19
                                        "base-header-level must be 1-5")
@@ -1353,8 +1352,7 @@ options =
     , Option "" ["list-highlight-styles"]
                  (NoArg
                   (\_ -> do
-                     mapM_ (UTF8.hPutStrLn stdout) $
-                           map fst highlightingStyles
+                     mapM_ (UTF8.hPutStrLn stdout . fst) highlightingStyles
                      exitSuccess ))
                  ""
 
@@ -1416,9 +1414,9 @@ handleUnrecognizedOption "--reference-docx" =
 handleUnrecognizedOption "--reference-odt" =
   ("--reference-odt has been removed. Use --reference-doc instead." :)
 handleUnrecognizedOption "--parse-raw" =
-  (("--parse-raw/-R has been removed. Use +raw_html or +raw_tex extension.\n") :)
+  ("--parse-raw/-R has been removed. Use +raw_html or +raw_tex extension.\n" :)
 handleUnrecognizedOption "--epub-stylesheet" =
-  (("--epub-stylesheet has been removed. Use --css instead.\n") :)
+  ("--epub-stylesheet has been removed. Use --css instead.\n" :)
 handleUnrecognizedOption "-R" = handleUnrecognizedOption "--parse-raw"
 handleUnrecognizedOption x =
   (("Unknown option " ++ x ++ ".") :)
@@ -1438,4 +1436,3 @@ splitField s =
   case break (`elem` ":=") s of
        (k,_:v) -> (k,v)
        (k,[])  -> (k,"true")
-
