@@ -17,7 +17,10 @@ bench:
 	stack bench
 
 refactor:
-	./tools/refactor.sh $(sourcefiles)
+	for f in $(sourcefiles); do echo $$f; hlint --refactor --refactor-options='-i' --cpp-file=`stack path --dist-dir`/build/autogen/cabal_macros.h $$f >/dev/null ; perl -i'' -ne 'if (/./) { print "\n" x $$n, $$_; $$n = 0 } else { $$n++ }' $$f; done
+
+reformat:
+	for f in $(sourcefiles); do echo $$f; stylish-haskell -i $$f ; done
 
 changes_github:
 	pandoc --filter extract-changes.hs changelog -t markdown_github | sed -e 's/\\#/#/g' | pbcopy
@@ -57,4 +60,4 @@ download_stats:
 clean:
 	stack clean
 
-.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats refactor
+.PHONY: deps quick full install clean test bench changes_github macospkg dist prof download_stats refactor reformat
