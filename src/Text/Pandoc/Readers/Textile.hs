@@ -51,24 +51,24 @@ TODO : refactor common patterns across readers :
 
 
 module Text.Pandoc.Readers.Textile ( readTextile) where
+import Control.Monad (guard, liftM)
+import Control.Monad.Except (throwError)
+import Data.Char (digitToInt, isUpper)
+import Data.List (intercalate, intersperse, transpose)
+import Data.Monoid ((<>))
+import Text.HTML.TagSoup (Tag (..), fromAttrib)
+import Text.HTML.TagSoup.Match
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.CSS
 import Text.Pandoc.Definition
-import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
-import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
-import Text.Pandoc.Logging
-import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isInlineTag )
+import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
+import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared (trim)
-import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
-import Text.HTML.TagSoup (fromAttrib, Tag(..))
-import Text.HTML.TagSoup.Match
-import Data.List ( intercalate, transpose, intersperse )
-import Data.Char ( digitToInt, isUpper )
-import Control.Monad ( guard, liftM )
-import Data.Monoid ((<>))
-import Text.Pandoc.Class (PandocMonad, report)
-import Control.Monad.Except (throwError)
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: PandocMonad m
@@ -79,7 +79,7 @@ readTextile opts s = do
   parsed <- readWithM parseTextile def{ stateOptions = opts } (s ++ "\n\n")
   case parsed of
      Right result -> return result
-     Left e -> throwError e
+     Left e       -> throwError e
 
 
 -- | Generate a Pandoc ADT from a textile document
@@ -505,8 +505,8 @@ note = try $ do
   ref <- (char '[' *> many1 digit <* char ']')
   notes <- stateNotes <$> getState
   case lookup ref notes of
-    Nothing   -> fail "note not found"
-    Just raw  -> B.note <$> parseFromString parseBlocks raw
+    Nothing  -> fail "note not found"
+    Just raw -> B.note <$> parseFromString parseBlocks raw
 
 -- | Special chars
 markupChars :: [Char]

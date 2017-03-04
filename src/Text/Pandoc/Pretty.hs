@@ -1,4 +1,5 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, CPP #-}
+{-# LANGUAGE CPP                        #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
 Copyright (C) 2010-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -76,22 +77,23 @@ module Text.Pandoc.Pretty (
      )
 
 where
-import Data.Sequence (Seq, fromList, (<|), singleton, mapWithIndex, viewl, ViewL(..))
-import qualified Data.Sequence as Seq
-import Data.Foldable (toList)
-import Data.List (intersperse)
-import Data.String
 import Control.Monad.State
 import Data.Char (isSpace)
+import Data.Foldable (toList)
+import Data.List (intersperse)
 import Data.Monoid ((<>))
+import Data.Sequence (Seq, ViewL (..), fromList, mapWithIndex, singleton, viewl,
+                      (<|))
+import qualified Data.Sequence as Seq
+import Data.String
 
 data RenderState a = RenderState{
-         output       :: [a]        -- ^ In reverse order
-       , prefix       :: String
-       , usePrefix    :: Bool
-       , lineLength   :: Maybe Int  -- ^ 'Nothing' means no wrapping
-       , column       :: Int
-       , newlines     :: Int        -- ^ Number of preceding newlines
+         output     :: [a]        -- ^ In reverse order
+       , prefix     :: String
+       , usePrefix  :: Bool
+       , lineLength :: Maybe Int  -- ^ 'Nothing' means no wrapping
+       , column     :: Int
+       , newlines   :: Int        -- ^ Number of preceding newlines
        }
 
 type DocState a = State (RenderState a) ()
@@ -184,21 +186,21 @@ nestle :: Doc -> Doc
 nestle (Doc d) = Doc $ go d
   where go x = case viewl x of
                (BlankLines _ :< rest) -> go rest
-               (NewLine :< rest)   -> go rest
-               _                   -> x
+               (NewLine :< rest)      -> go rest
+               _                      -> x
 
 -- | Chomps trailing blank space off of a 'Doc'.
 chomp :: Doc -> Doc
 chomp d = Doc (fromList dl')
   where dl = toList (unDoc d)
         dl' = reverse $ go $ reverse dl
-        go [] = []
-        go (BreakingSpace : xs) = go xs
+        go []                    = []
+        go (BreakingSpace : xs)  = go xs
         go (CarriageReturn : xs) = go xs
-        go (NewLine : xs) = go xs
-        go (BlankLines _ : xs) = go xs
-        go (Prefixed s d' : xs) = Prefixed s (chomp d') : xs
-        go xs = xs
+        go (NewLine : xs)        = go xs
+        go (BlankLines _ : xs)   = go xs
+        go (Prefixed s d' : xs)  = Prefixed s (chomp d') : xs
+        go xs                    = xs
 
 outp :: (IsString a) => Int -> String -> DocState a
 outp off s | off < 0 = do  -- offset < 0 means newline characters
@@ -306,10 +308,10 @@ renderList (BreakingSpace : NewLine : xs) = renderList (NewLine:xs)
 renderList (BreakingSpace : BlankLines n : xs) = renderList (BlankLines n:xs)
 renderList (BreakingSpace : BreakingSpace : xs) = renderList (BreakingSpace:xs)
 renderList (BreakingSpace : xs) = do
-  let isText (Text _ _)       = True
-      isText (Block _ _)      = True
-      isText (AfterBreak _)   = True
-      isText _                = False
+  let isText (Text _ _)     = True
+      isText (Block _ _)    = True
+      isText (AfterBreak _) = True
+      isText _              = False
   let isBreakingSpace BreakingSpace = True
       isBreakingSpace _             = False
   let xs' = dropWhile isBreakingSpace xs
@@ -342,7 +344,7 @@ renderList (Block _width lns : xs) = do
   let oldPref = prefix st
   case column st - realLength oldPref of
         n | n > 0 -> modify $ \s -> s{ prefix = oldPref ++ replicate n ' ' }
-        _         -> return ()
+        _ -> return ()
   renderList $ intersperse CarriageReturn (map (Text 0) lns)
   modify $ \s -> s{ prefix = oldPref }
   renderList xs
@@ -362,10 +364,10 @@ mergeBlocks addSpace (IsBlock w1 lns1) (IsBlock w2 lns2) =
           sp xs = if addSpace then (' ' : xs) else xs
 
 offsetOf :: D -> Int
-offsetOf (Text o _)       = o
-offsetOf (Block w _)      = w
-offsetOf BreakingSpace    = 1
-offsetOf _                = 0
+offsetOf (Text o _)    = o
+offsetOf (Block w _)   = w
+offsetOf BreakingSpace = 1
+offsetOf _             = 0
 
 -- | A literal string.
 text :: String -> Doc
@@ -430,7 +432,7 @@ beforeNonBlank d = Doc $ singleton (BeforeNonBlank d)
 nowrap :: Doc -> Doc
 nowrap doc = Doc $ mapWithIndex replaceSpace $ unDoc doc
   where replaceSpace _ BreakingSpace = Text 1 " "
-        replaceSpace _ x = x
+        replaceSpace _ x             = x
 
 -- | Content to print only if it comes at the beginning of a line,
 -- to be used e.g. for escaping line-initial `.` in groff man.
@@ -440,8 +442,8 @@ afterBreak s = Doc $ singleton (AfterBreak s)
 -- | Returns the width of a 'Doc'.
 offset :: Doc -> Int
 offset d = case map realLength . lines . render Nothing $ d of
-                []    -> 0
-                os    -> maximum os
+                [] -> 0
+                os -> maximum os
 
 -- | Returns the minimal width of a 'Doc' when reflowed at breakable spaces.
 minOffset :: Doc -> Int

@@ -29,30 +29,30 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to ODT.
 -}
 module Text.Pandoc.Writers.ODT ( writeODT ) where
-import Data.List ( isPrefixOf )
-import Data.Maybe ( fromMaybe )
-import Text.XML.Light.Output
-import Text.TeXMath
-import qualified Data.ByteString.Lazy as B
-import Text.Pandoc.UTF8 ( fromStringLazy )
 import Codec.Archive.Zip
-import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..) )
-import Text.Pandoc.Shared ( stringify )
-import Text.Pandoc.ImageSize
-import Text.Pandoc.MIME ( getMimeType, extensionFromMimeType )
-import Text.Pandoc.Definition
-import Text.Pandoc.Walk
-import Text.Pandoc.Writers.Shared ( fixDisplayMath )
-import Text.Pandoc.Writers.OpenDocument ( writeOpenDocument )
-import Control.Monad.State
 import Control.Monad.Except (catchError)
-import Text.Pandoc.Error (PandocError(..))
-import Text.Pandoc.XML
-import Text.Pandoc.Pretty
-import System.FilePath ( takeExtension, takeDirectory, (<.>))
-import Text.Pandoc.Class ( PandocMonad, report )
+import Control.Monad.State
+import qualified Data.ByteString.Lazy as B
+import Data.List (isPrefixOf)
+import Data.Maybe (fromMaybe)
+import System.FilePath (takeDirectory, takeExtension, (<.>))
+import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError (..))
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
+import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
+import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared (stringify)
+import Text.Pandoc.UTF8 (fromStringLazy)
+import Text.Pandoc.Walk
+import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
+import Text.Pandoc.Writers.Shared (fixDisplayMath)
+import Text.Pandoc.XML
+import Text.TeXMath
+import Text.XML.Light.Output
 
 data ODTState = ODTState { stEntries :: [Entry]
                          }

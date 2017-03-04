@@ -33,38 +33,38 @@ module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
                                       , listParagraphDivs
                                       ) where
 
-import Text.Pandoc.JSON
-import Text.Pandoc.Generic (bottomUp)
-import Text.Pandoc.Shared (trim)
 import Control.Monad
 import Data.List
 import Data.Maybe
+import Text.Pandoc.Generic (bottomUp)
+import Text.Pandoc.JSON
+import Text.Pandoc.Shared (trim)
 
 isListItem :: Block -> Bool
 isListItem (Div (_, classes, _) _) | "list-item" `elem` classes = True
-isListItem _ = False
+isListItem _                       = False
 
 getLevel :: Block -> Maybe Integer
 getLevel (Div (_, _, kvs) _) =  liftM read $ lookup "level" kvs
-getLevel _ = Nothing
+getLevel _                   = Nothing
 
 getLevelN :: Block -> Integer
 getLevelN b = case getLevel b of
-  Just n -> n
+  Just n  -> n
   Nothing -> -1
 
 getNumId :: Block -> Maybe Integer
 getNumId (Div (_, _, kvs) _) =  liftM read $ lookup "num-id" kvs
-getNumId _ = Nothing
+getNumId _                   = Nothing
 
 getNumIdN :: Block -> Integer
 getNumIdN b = case getNumId b of
-  Just n -> n
+  Just n  -> n
   Nothing -> -1
 
 getText :: Block -> Maybe String
 getText (Div (_, _, kvs) _) = lookup "text" kvs
-getText _ = Nothing
+getText _                   = Nothing
 
 data ListType = Itemized | Enumerated ListAttributes
 
@@ -162,7 +162,7 @@ flatToBullets elems = flatToBullets' (-1) elems
 
 singleItemHeaderToHeader :: Block -> Block
 singleItemHeaderToHeader (OrderedList _ [[h@(Header _ _ _)]]) = h
-singleItemHeaderToHeader blk = blk
+singleItemHeaderToHeader blk                                  = blk
 
 
 blocksToBullets :: [Block] -> [Block]
@@ -173,8 +173,8 @@ blocksToBullets blks =
 
 plainParaInlines :: Block -> [Inline]
 plainParaInlines (Plain ils) = ils
-plainParaInlines (Para ils) = ils
-plainParaInlines _ = []
+plainParaInlines (Para ils)  = ils
+plainParaInlines _           = []
 
 blocksToDefinitions' :: [([Inline], [[Block]])] -> [Block] -> [Block] -> [Block]
 blocksToDefinitions' []     acc [] = reverse acc
@@ -194,7 +194,7 @@ blocksToDefinitions' defAcc acc
   | (not . null) defAcc && "Definition"  `elem` classes2 =
     let remainingAttr2 = (ident2, delete "Definition" classes2, kvs2)
         defItems2 = case remainingAttr2 == ("", [], []) of
-          True -> blks2
+          True  -> blks2
           False -> [Div remainingAttr2 blks2]
         ((defTerm, defItems):defs) = defAcc
         defAcc' = case null defItems of
@@ -211,12 +211,12 @@ removeListDivs' :: Block -> [Block]
 removeListDivs' (Div (ident, classes, kvs) blks)
   | "list-item" `elem` classes =
     case delete "list-item" classes of
-      [] -> blks
+      []       -> blks
       classes' -> [Div (ident, classes', kvs) $ blks]
 removeListDivs' (Div (ident, classes, kvs) blks)
   | not $ null $ listParagraphDivs `intersect` classes =
     case classes \\ listParagraphDivs of
-      [] -> blks
+      []       -> blks
       classes' -> [Div (ident, classes', kvs) blks]
 removeListDivs' blk = [blk]
 

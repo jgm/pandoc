@@ -33,31 +33,31 @@ module Text.Pandoc.Readers.Org.Inlines
   , linkTarget
   ) where
 
-import           Text.Pandoc.Readers.Org.BlockStarts ( endOfBlock, noteMarker )
-import           Text.Pandoc.Readers.Org.ParserState
-import           Text.Pandoc.Readers.Org.Parsing
-import           Text.Pandoc.Readers.Org.Shared
-                   ( cleanLinkString, isImageFilename, rundocBlockClass
-                   , toRundocAttrib, translateLang )
+import Text.Pandoc.Readers.Org.BlockStarts (endOfBlock, noteMarker)
+import Text.Pandoc.Readers.Org.ParserState
+import Text.Pandoc.Readers.Org.Parsing
+import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
+                                       rundocBlockClass, toRundocAttrib,
+                                       translateLang)
 
+import Text.Pandoc.Builder (Inlines)
 import qualified Text.Pandoc.Builder as B
-import           Text.Pandoc.Builder ( Inlines )
-import           Text.Pandoc.Definition
-import           Text.Pandoc.Options
-import           Text.Pandoc.Readers.LaTeX ( inlineCommand, rawLaTeXInline )
-import           Text.TeXMath ( readTeX, writePandoc, DisplayType(..) )
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.Options
+import Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
+import Text.TeXMath (DisplayType (..), readTeX, writePandoc)
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
-import           Text.Pandoc.Class (PandocMonad)
 
-import           Prelude hiding (sequence)
-import           Control.Monad ( guard, mplus, mzero, when, void )
-import           Control.Monad.Trans ( lift )
-import           Data.Char ( isAlphaNum, isSpace )
-import           Data.List ( intersperse )
-import           Data.Maybe ( fromMaybe )
+import Control.Monad (guard, mplus, mzero, void, when)
+import Control.Monad.Trans (lift)
+import Data.Char (isAlphaNum, isSpace)
+import Data.List (intersperse)
 import qualified Data.Map as M
-import           Data.Monoid ( (<>) )
-import           Data.Traversable (sequence)
+import Data.Maybe (fromMaybe)
+import Data.Monoid ((<>))
+import Data.Traversable (sequence)
+import Prelude hiding (sequence)
 
 --
 -- Functions acting on the parser state
@@ -258,10 +258,10 @@ berkeleyCite = try $ do
    appendSuffix  suf c = c { citationSuffix = citationSuffix c <> B.toList suf }
 
 data BerkeleyCitationList = BerkeleyCitationList
-  { berkeleyCiteParens :: Bool
+  { berkeleyCiteParens       :: Bool
   , berkeleyCiteCommonPrefix :: Maybe Inlines
   , berkeleyCiteCommonSuffix :: Maybe Inlines
-  , berkeleyCiteCitations :: [Citation]
+  , berkeleyCiteCitations    :: [Citation]
   }
 berkeleyCitationList :: PandocMonad m => OrgParser m (F BerkeleyCitationList)
 berkeleyCitationList = try $ do

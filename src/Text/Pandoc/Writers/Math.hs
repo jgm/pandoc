@@ -7,7 +7,7 @@ where
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
-import Text.TeXMath (Exp, writePandoc, DisplayType(..), readTeX)
+import Text.TeXMath (DisplayType (..), Exp, readTeX, writePandoc)
 
 -- | Converts a raw TeX math formula to a list of 'Pandoc' inlines.
 -- Defaults to raw formula between @$@ or @$$@ characters if entire formula

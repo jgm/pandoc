@@ -31,10 +31,10 @@ in RFC4122. See http://tools.ietf.org/html/rfc4122
 
 module Text.Pandoc.UUID ( UUID(..), getRandomUUID, getUUID ) where
 
-import Text.Printf ( printf )
-import System.Random ( RandomGen, randoms, getStdGen )
+import Data.Bits (clearBit, setBit)
 import Data.Word
-import Data.Bits ( setBit, clearBit )
+import System.Random (RandomGen, getStdGen, randoms)
+import Text.Printf (printf)
 
 data UUID = UUID Word8 Word8 Word8 Word8 Word8 Word8 Word8 Word8
                  Word8 Word8 Word8 Word8 Word8 Word8 Word8 Word8

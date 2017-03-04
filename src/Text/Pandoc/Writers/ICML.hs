@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings, FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {- |
    Module      : Text.Pandoc.Writers.ICML
@@ -14,25 +16,25 @@ InCopy is the companion word-processor to Adobe InDesign and ICML documents can 
 into InDesign with File -> Place.
 -}
 module Text.Pandoc.Writers.ICML (writeICML) where
+import Control.Monad.Except (catchError)
+import Control.Monad.State
+import Data.List (intersperse, isInfixOf, isPrefixOf, stripPrefix)
+import qualified Data.Set as Set
+import Data.Text as Text (breakOnAll, pack)
+import Network.URI (isURI)
+import Text.Pandoc.Class (PandocMonad, report)
+import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError(..))
-import Text.Pandoc.XML
+import Text.Pandoc.Error (PandocError (..))
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared (linesToPara, splitBy)
+import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Shared (linesToPara, splitBy)
-import Text.Pandoc.Options
-import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Pretty
-import Text.Pandoc.ImageSize
-import Data.List (isPrefixOf, isInfixOf, stripPrefix, intersperse)
-import Data.Text as Text (breakOnAll, pack)
-import Control.Monad.State
-import Control.Monad.Except (catchError)
-import Network.URI (isURI)
-import qualified Data.Set as Set
-import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Logging
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.XML
 
 type Style = [String]
 type Hyperlink = [(Int, String)]
@@ -384,11 +386,11 @@ listItemToICML :: PandocMonad m => WriterOptions -> Style -> Bool-> Maybe ListAt
 listItemToICML opts style isFirst attribs item =
   let makeNumbStart (Just (beginsWith, numbStl, _)) =
         let doN DefaultStyle = []
-            doN LowerRoman = [lowerRomanName]
-            doN UpperRoman = [upperRomanName]
-            doN LowerAlpha = [lowerAlphaName]
-            doN UpperAlpha = [upperAlphaName]
-            doN _ = []
+            doN LowerRoman   = [lowerRomanName]
+            doN UpperRoman   = [upperRomanName]
+            doN LowerAlpha   = [lowerAlphaName]
+            doN UpperAlpha   = [upperAlphaName]
+            doN _            = []
             bw = if beginsWith > 1
                     then [beginsWithName ++ show beginsWith]
                     else []
@@ -483,9 +485,9 @@ mergeSpaces (x:xs) = x : (mergeSpaces xs)
 mergeSpaces []     = []
 
 isSp :: Inline -> Bool
-isSp Space = True
+isSp Space     = True
 isSp SoftBreak = True
-isSp _ = False
+isSp _         = False
 
 -- | Intersperse line breaks
 intersperseBrs :: [Doc] -> Doc

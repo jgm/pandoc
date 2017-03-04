@@ -29,21 +29,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' format into ConTeXt.
 -}
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Options
-import Text.Pandoc.Walk (query)
-import Text.Printf ( printf )
-import Data.List ( intercalate, intersperse )
-import Data.Char ( ord )
-import Data.Maybe ( catMaybes )
 import Control.Monad.State
-import Text.Pandoc.Pretty
-import Text.Pandoc.ImageSize
-import Text.Pandoc.Templates ( renderTemplate' )
-import Network.URI ( isURI, unEscapeString )
+import Data.Char (ord)
+import Data.List (intercalate, intersperse)
+import Data.Maybe (catMaybes)
+import Network.URI (isURI, unEscapeString)
 import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Walk (query)
+import Text.Pandoc.Writers.Shared
+import Text.Printf (printf)
 
 data WriterState =
   WriterState { stNextRef          :: Int  -- number of next URL reference
@@ -113,22 +113,22 @@ escapeCharForConTeXt :: WriterOptions -> Char -> String
 escapeCharForConTeXt opts ch =
  let ligatures = isEnabled Ext_smart opts in
  case ch of
-    '{'    -> "\\{"
-    '}'    -> "\\}"
-    '\\'   -> "\\letterbackslash{}"
-    '$'    -> "\\$"
-    '|'    -> "\\letterbar{}"
-    '%'    -> "\\letterpercent{}"
-    '~'    -> "\\lettertilde{}"
-    '#'    -> "\\#"
-    '['    -> "{[}"
-    ']'    -> "{]}"
-    '\160' -> "~"
+    '{'      -> "\\{"
+    '}'      -> "\\}"
+    '\\'     -> "\\letterbackslash{}"
+    '$'      -> "\\$"
+    '|'      -> "\\letterbar{}"
+    '%'      -> "\\letterpercent{}"
+    '~'      -> "\\lettertilde{}"
+    '#'      -> "\\#"
+    '['      -> "{[}"
+    ']'      -> "{]}"
+    '\160'   -> "~"
     '\x2014' | ligatures -> "---"
     '\x2013' | ligatures -> "--"
     '\x2019' | ligatures -> "'"
     '\x2026' -> "\\ldots{}"
-    x      -> [x]
+    x        -> [x]
 
 -- | Escape string for ConTeXt
 stringToConTeXt :: WriterOptions -> String -> String
@@ -293,9 +293,9 @@ inlineListToConTeXt lst = liftM hcat $ mapM inlineToConTeXt $ addStruts lst
              addStruts xs
         addStruts (x:xs) = x : addStruts xs
         addStruts [] = []
-        isSpacey Space = True
+        isSpacey Space            = True
         isSpacey (Str ('\160':_)) = True
-        isSpacey _ = False
+        isSpacey _                = False
 
 -- | Convert inline element to ConTeXt
 inlineToConTeXt :: Inline    -- ^ Inline to convert
@@ -398,7 +398,7 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   let codeBlock x@(CodeBlock _ _) = [x]
-      codeBlock _ = []
+      codeBlock _                 = []
   let codeBlocks = query codeBlock contents
   return $ if null codeBlocks
               then text "\\footnote{" <> nest 2 contents' <> char '}'

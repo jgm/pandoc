@@ -1,21 +1,20 @@
 module Tests.Command (findPandoc, runTest, tests)
 where
 
-import Tests.Helpers
-import Test.Framework
-import Test.Framework.Providers.HUnit
-import Test.HUnit ( assertBool )
-import System.FilePath ( (</>), takeDirectory, splitDirectories,
-                         joinPath )
-import System.Process
+import Data.Algorithm.Diff
+import Data.List (isSuffixOf)
+import Prelude hiding (readFile)
 import System.Directory
 import System.Exit
+import System.FilePath (joinPath, splitDirectories, takeDirectory, (</>))
+import System.Process
+import Test.Framework
+import Test.Framework.Providers.HUnit
+import Test.HUnit (assertBool)
+import Tests.Helpers
 import Text.Pandoc
-import Data.Algorithm.Diff
-import Prelude hiding ( readFile )
-import qualified Text.Pandoc.UTF8 as UTF8
-import Data.List (isSuffixOf)
 import Text.Pandoc.Shared (trimr)
+import qualified Text.Pandoc.UTF8 as UTF8
 
 -- | Run a test with normalize function, return True if test passed.
 runTest :: String    -- ^ Title of test
@@ -25,9 +24,9 @@ runTest :: String    -- ^ Title of test
         -> Test
 runTest testname cmd inp norm = testCase testname $ do
   let cmd' = cmd ++ " --quiet --data-dir ../data"
-  let findDynlibDir [] = Nothing
+  let findDynlibDir []           = Nothing
       findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
-      findDynlibDir (_:xs) = findDynlibDir xs
+      findDynlibDir (_:xs)       = findDynlibDir xs
   let mbDynlibDir = findDynlibDir (reverse $ splitDirectories $
                                    takeDirectory $ takeWhile (/=' ') cmd)
   let dynlibEnv = case mbDynlibDir of
@@ -58,15 +57,15 @@ tests = buildTest $ do
 
 isCodeBlock :: Block -> Bool
 isCodeBlock (CodeBlock _ _) = True
-isCodeBlock _ = False
+isCodeBlock _               = False
 
 extractCode :: Block -> String
 extractCode (CodeBlock _ code) = code
-extractCode _ = ""
+extractCode _                  = ""
 
 dropPercent :: String -> String
 dropPercent ('%':xs) = dropWhile (== ' ') xs
-dropPercent xs = xs
+dropPercent xs       = xs
 
 runCommandTest :: FilePath -> (Int, String) -> IO Test
 runCommandTest pandocpath (num, code) = do

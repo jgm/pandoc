@@ -25,14 +25,14 @@ foldOrElse v xs = foldr (orElse v) v xs
 
 eitherToMaybe :: Either a b -> Maybe b
 eitherToMaybe (Right x) = Just x
-eitherToMaybe _ = Nothing
+eitherToMaybe _         = Nothing
 
 -- | takes a list of keys/properties and a CSS string and
 -- returns the corresponding key-value-pairs.
 pickStylesToKVs :: [String] -> String -> [(String, String)]
 pickStylesToKVs props styleAttr =
   case parse styleAttrParser "" styleAttr of
-    Left _ -> []
+    Left _       -> []
     Right styles -> filter (\s -> fst s `elem` props) styles
 
 -- | takes a list of key/property synonyms and a CSS string and maybe

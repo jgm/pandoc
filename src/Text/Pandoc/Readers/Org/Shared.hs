@@ -34,9 +34,9 @@ module Text.Pandoc.Readers.Org.Shared
   , translateLang
   ) where
 
-import           Control.Arrow ( first )
-import           Data.Char ( isAlphaNum )
-import           Data.List ( isPrefixOf, isSuffixOf )
+import Control.Arrow (first)
+import Data.Char (isAlphaNum)
+import Data.List (isPrefixOf, isSuffixOf)
 
 
 -- | Check whether the given string looks like the path to of URL of an image.
@@ -59,7 +59,7 @@ cleanLinkString s =
     '.':'.':'/':_          -> Just s                 -- relative path
     -- Relative path or URL (file schema)
     'f':'i':'l':'e':':':s' -> Just $ if ("//" `isPrefixOf` s') then s else s'
-    _ | isUrl s            -> Just s                 -- URL
+    _                      | isUrl s            -> Just s                 -- URL
     _                      -> Nothing
  where
    isUrl :: String -> Bool

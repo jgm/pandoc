@@ -1,14 +1,14 @@
 module Tests.Writers.Docx (tests) where
 
-import Text.Pandoc.Options
-import Text.Pandoc.Readers.Native
-import Text.Pandoc.Definition
-import Tests.Helpers
-import Test.Framework
-import Text.Pandoc.Readers.Docx
-import Text.Pandoc.Writers.Docx
 import System.FilePath ((</>))
+import Test.Framework
+import Tests.Helpers
 import Text.Pandoc.Class (runIOorExplode)
+import Text.Pandoc.Definition
+import Text.Pandoc.Options
+import Text.Pandoc.Readers.Docx
+import Text.Pandoc.Readers.Native
+import Text.Pandoc.Writers.Docx
 
 type Options = (WriterOptions, ReaderOptions)
 

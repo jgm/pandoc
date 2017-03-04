@@ -1,12 +1,12 @@
 module Tests.Shared (tests) where
 
-import Text.Pandoc.Shared
-import Test.Framework
-import Text.Pandoc.Arbitrary()
-import Test.Framework.Providers.HUnit
-import Test.HUnit ( assertBool, (@?=) )
-import Text.Pandoc.Builder
 import System.FilePath.Posix (joinPath)
+import Test.Framework
+import Test.Framework.Providers.HUnit
+import Test.HUnit (assertBool, (@?=))
+import Text.Pandoc.Arbitrary ()
+import Text.Pandoc.Builder
+import Text.Pandoc.Shared
 
 tests :: [Test]
 tests = [ testGroup "compactifyDL"

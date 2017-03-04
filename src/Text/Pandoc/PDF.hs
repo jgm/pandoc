@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings, CPP, ScopedTypeVariables #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2012-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,39 +32,39 @@ Conversion of LaTeX documents to PDF.
 -}
 module Text.Pandoc.PDF ( makePDF ) where
 
+import qualified Codec.Picture as JP
+import qualified Control.Exception as E
+import Control.Monad (unless, when, (<=<))
+import Control.Monad.Trans (MonadIO (..))
+import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BC
-import qualified Data.ByteString as BS
+import Data.Digest.Pure.SHA (sha1, showDigest)
+import Data.List (isInfixOf)
+import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
+import System.Directory
+import System.Environment
 import System.Exit (ExitCode (..))
 import System.FilePath
 import System.IO (stdout)
-import System.IO.Temp (withTempFile, withTempDirectory)
-import System.Directory
-import Data.Digest.Pure.SHA (showDigest, sha1)
-import System.Environment
-import Control.Monad (unless, when, (<=<))
-import qualified Control.Exception as E
-import Data.List (isInfixOf)
-import Data.Maybe (fromMaybe)
-import qualified Text.Pandoc.UTF8 as UTF8
+import System.IO.Temp (withTempDirectory, withTempFile)
 import Text.Pandoc.Definition
 import Text.Pandoc.MediaBag
-import Text.Pandoc.Walk (walkM)
-import Text.Pandoc.Shared (withTempDir, inDirectory, stringify)
-import Text.Pandoc.Writers.Shared (getField, metaToJSON)
-import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..))
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
+import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
 import Text.Pandoc.Process (pipeProcess)
-import Control.Monad.Trans (MonadIO(..))
-import qualified Data.ByteString.Lazy as BL
-import qualified Codec.Picture as JP
+import Text.Pandoc.Shared (inDirectory, stringify, withTempDir)
+import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Walk (walkM)
+import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
-import Text.Pandoc.Class (PandocIO, runIOorExplode, fetchItem, report,
-           setVerbosity, setMediaBag, runIO)
+import Text.Pandoc.Class (PandocIO, fetchItem, report, runIO, runIOorExplode,
+                          setMediaBag, setVerbosity)
 import Text.Pandoc.Logging
 
 #ifdef _WINDOWS

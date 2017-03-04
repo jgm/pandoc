@@ -1,5 +1,6 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables,
-             PatternGuards #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE PatternGuards       #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -33,32 +34,31 @@ module Text.Pandoc.Writers.LaTeX (
     writeLaTeX
   , writeBeamer
   ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Walk
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Options
-import Text.Pandoc.Templates
-import Text.Pandoc.Logging
-import Text.Printf ( printf )
-import Network.URI ( isURI, unEscapeString )
-import Data.Aeson (object, (.=), FromJSON)
-import Data.List ( (\\), isInfixOf, stripPrefix, intercalate, intersperse,
-                   nub, nubBy, foldl' )
-import Data.Char ( toLower, isPunctuation, isAscii, isLetter, isDigit,
-                   ord, isAlphaNum )
-import Data.Maybe ( fromMaybe, isJust, catMaybes )
-import qualified Data.Text as T
 import Control.Applicative ((<|>))
 import Control.Monad.State
-import qualified Text.Parsec as P
-import Text.Pandoc.Pretty
-import Text.Pandoc.ImageSize
-import Text.Pandoc.Slides
-import Text.Pandoc.Highlighting (highlight, styleToLaTeX,
-                                 formatLaTeXInline, formatLaTeXBlock,
-                                 toListingsLanguage)
+import Data.Aeson (FromJSON, object, (.=))
+import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isPunctuation, ord,
+                  toLower)
+import Data.List (foldl', intercalate, intersperse, isInfixOf, nub, nubBy,
+                  stripPrefix, (\\))
+import Data.Maybe (catMaybes, fromMaybe, isJust)
+import qualified Data.Text as T
+import Network.URI (isURI, unEscapeString)
 import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
+                                 styleToLaTeX, toListingsLanguage)
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
+import Text.Pandoc.Slides
+import Text.Pandoc.Templates
+import Text.Pandoc.Walk
+import Text.Pandoc.Writers.Shared
+import qualified Text.Parsec as P
+import Text.Printf (printf)
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
@@ -131,11 +131,11 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let blocks' = if method == Biblatex || method == Natbib
                    then case reverse blocks of
                              (Div (_,["references"],_) _):xs -> reverse xs
-                             _ -> blocks
+                             _                               -> blocks
                    else blocks
   -- see if there are internal links
-  let isInternalLink (Link _ _ ('#':xs,_))  = [xs]
-      isInternalLink _                      = []
+  let isInternalLink (Link _ _ ('#':xs,_)) = [xs]
+      isInternalLink _                     = []
   modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
   let template = maybe "" id $ writerTemplate options
   -- set stBook depending on documentclass
@@ -408,8 +408,8 @@ isListBlock _                  = False
 isLineBreakOrSpace :: Inline -> Bool
 isLineBreakOrSpace LineBreak = True
 isLineBreakOrSpace SoftBreak = True
-isLineBreakOrSpace Space = True
-isLineBreakOrSpace _ = False
+isLineBreakOrSpace Space     = True
+isLineBreakOrSpace _         = False
 
 -- | Convert Pandoc block element to LaTeX.
 blockToLaTeX :: PandocMonad m
@@ -584,10 +584,10 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
                        Example      -> "\\arabic" <> braces x
                        DefaultStyle -> "\\arabic" <> braces x
   let todelim x = case numdelim of
-                       OneParen    -> x <> ")"
-                       TwoParens   -> parens x
-                       Period      -> x <> "."
-                       _           -> x <> "."
+                       OneParen  -> x <> ")"
+                       TwoParens -> parens x
+                       Period    -> x <> "."
+                       _         -> x <> "."
   let enum = text $ "enum" ++ map toLower (toRomanNumeral oldlevel)
   let stylecommand = if numstyle == DefaultStyle && numdelim == DefaultDelim
                         then empty
@@ -710,7 +710,7 @@ fixLineBreaks' ils = case splitBy (== LineBreak) ils of
 -- math breaks in simple tables.
 displayMathToInline :: Inline -> Inline
 displayMathToInline (Math DisplayMath x) = Math InlineMath x
-displayMathToInline x = x
+displayMathToInline x                    = x
 
 tableCellToLaTeX :: PandocMonad m => Bool -> (Double, Alignment, [Block])
                  -> LW m Doc
@@ -783,10 +783,10 @@ sectionHeader :: PandocMonad m
 sectionHeader unnumbered ident level lst = do
   txt <- inlineListToLaTeX lst
   plain <- stringToLaTeX TextString $ concatMap stringify lst
-  let removeInvalidInline (Note _)      = []
+  let removeInvalidInline (Note _)             = []
       removeInvalidInline (Span (id', _, _) _) | not (null id') = []
-      removeInvalidInline (Image _ _ _) = []
-      removeInvalidInline x             = [x]
+      removeInvalidInline (Image _ _ _)        = []
+      removeInvalidInline x                    = [x]
   let lstNoNotes = foldr (mappend . (\x -> walkM removeInvalidInline x)) mempty lst
   txtNoNotes <- inlineListToLaTeX lstNoNotes
   -- footnotes in sections don't work (except for starred variants)
@@ -889,7 +889,7 @@ inlineListToLaTeX lst =
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
-isQuoted _ = False
+isQuoted _            = False
 
 -- | Convert inline element to LaTeX
 inlineToLaTeX :: PandocMonad m
@@ -1092,8 +1092,8 @@ citationsToNatbib (one:[])
              }
       = one
     c = case m of
-             AuthorInText     -> "citet"
-             SuppressAuthor  -> "citeyearpar"
+             AuthorInText   -> "citet"
+             SuppressAuthor -> "citeyearpar"
              NormalCitation -> "citep"
 
 citationsToNatbib cits
@@ -1140,7 +1140,7 @@ citeArguments p s k = do
   let s' = case s of
         (Str (x:[]) : r) | isPunctuation x -> dropWhile (== Space) r
         (Str (x:xs) : r) | isPunctuation x -> Str xs : r
-        _                                  -> s
+        _                -> s
   pdoc <- inlineListToLaTeX p
   sdoc <- inlineListToLaTeX s'
   let optargs = case (isEmpty pdoc, isEmpty sdoc) of
@@ -1181,7 +1181,7 @@ citationsToBiblatex _ = return empty
 
 -- Determine listings language from list of class attributes.
 getListingsLanguage :: [String] -> Maybe String
-getListingsLanguage [] = Nothing
+getListingsLanguage []     = Nothing
 getListingsLanguage (x:xs) = toListingsLanguage x <|> getListingsLanguage xs
 
 mbBraced :: String -> String
@@ -1253,27 +1253,27 @@ toPolyglossia x                    = (commonFromBcp47 x, "")
 -- List of supported languages (slightly outdated):
 -- http://tug.ctan.org/language/hyph-utf8/doc/generic/hyph-utf8/hyphenation.pdf
 toBabel :: [String] -> String
-toBabel ("de":"1901":_)      = "german"
-toBabel ("de":"AT":"1901":_) = "austrian"
-toBabel ("de":"AT":_)        = "naustrian"
-toBabel ("de":"CH":"1901":_) = "swissgerman"
-toBabel ("de":"CH":_)        = "nswissgerman"
-toBabel ("de":_)             = "ngerman"
-toBabel ("dsb":_)            = "lowersorbian"
-toBabel ("el":"polyton":_)   = "polutonikogreek"
-toBabel ("en":"AU":_)        = "australian"
-toBabel ("en":"CA":_)        = "canadian"
-toBabel ("en":"GB":_)        = "british"
-toBabel ("en":"NZ":_)        = "newzealand"
-toBabel ("en":"UK":_)        = "british"
-toBabel ("en":"US":_)        = "american"
-toBabel ("fr":"CA":_)        = "canadien"
-toBabel ("fra":"aca":_)      = "acadian"
-toBabel ("grc":_)            = "polutonikogreek"
-toBabel ("hsb":_)            = "uppersorbian"
+toBabel ("de":"1901":_)        = "german"
+toBabel ("de":"AT":"1901":_)   = "austrian"
+toBabel ("de":"AT":_)          = "naustrian"
+toBabel ("de":"CH":"1901":_)   = "swissgerman"
+toBabel ("de":"CH":_)          = "nswissgerman"
+toBabel ("de":_)               = "ngerman"
+toBabel ("dsb":_)              = "lowersorbian"
+toBabel ("el":"polyton":_)     = "polutonikogreek"
+toBabel ("en":"AU":_)          = "australian"
+toBabel ("en":"CA":_)          = "canadian"
+toBabel ("en":"GB":_)          = "british"
+toBabel ("en":"NZ":_)          = "newzealand"
+toBabel ("en":"UK":_)          = "british"
+toBabel ("en":"US":_)          = "american"
+toBabel ("fr":"CA":_)          = "canadien"
+toBabel ("fra":"aca":_)        = "acadian"
+toBabel ("grc":_)              = "polutonikogreek"
+toBabel ("hsb":_)              = "uppersorbian"
 toBabel ("la":"x":"classic":_) = "classiclatin"
-toBabel ("sl":_)             = "slovene"
-toBabel x                    = commonFromBcp47 x
+toBabel ("sl":_)               = "slovene"
+toBabel x                      = commonFromBcp47 x
 
 -- Takes a list of the constituents of a BCP 47 language code
 -- and converts it to a string shared by Babel and Polyglossia.

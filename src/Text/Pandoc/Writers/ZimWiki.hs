@@ -31,27 +31,27 @@ http://zim-wiki.org/manual/Help/Wiki_Syntax.html
 -}
 
 module Text.Pandoc.Writers.ZimWiki ( writeZimWiki ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Options ( WriterOptions(writerTableOfContents, writerTemplate, writerWrapText), WrapOption(..) )
-import Text.Pandoc.Shared ( escapeURI, linesToPara, removeFormatting, trimr
-                          , substitute )
-import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
-import Text.Pandoc.ImageSize
-import Text.Pandoc.Templates ( renderTemplate' )
-import Data.List ( intercalate, isPrefixOf, transpose, isInfixOf )
-import Data.Text ( breakOnAll, pack )
-import Data.Default (Default(..))
-import Network.URI ( isURI )
-import Control.Monad ( zipWithM )
-import Control.Monad.State ( modify, State, gets, evalState )
-import Text.Pandoc.Class ( PandocMonad )
+import Control.Monad (zipWithM)
+import Control.Monad.State (State, evalState, gets, modify)
+import Data.Default (Default (..))
+import Data.List (intercalate, isInfixOf, isPrefixOf, transpose)
 import qualified Data.Map as Map
+import Data.Text (breakOnAll, pack)
+import Network.URI (isURI)
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
+import Text.Pandoc.Shared (escapeURI, linesToPara, removeFormatting, substitute,
+                           trimr)
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Writers.Shared (defField, metaToJSON)
 
 data WriterState = WriterState {
-    stItemNum   :: Int,
-    stIndent    :: String,         -- Indent after the marker at the beginning of list items
-    stInTable   :: Bool,           -- Inside a table
-    stInLink    :: Bool            -- Inside a link description
+    stItemNum :: Int,
+    stIndent  :: String,         -- Indent after the marker at the beginning of list items
+    stInTable :: Bool,           -- Inside a table
+    stInLink  :: Bool            -- Inside a link description
   }
 
 instance Default WriterState where
@@ -139,7 +139,7 @@ blockToZimWiki _ (CodeBlock (_,classes,_) str) = do
                 (x:_)   -> "{{{code: lang=\"" ++
                         (case Map.lookup x langmap of
                                 Nothing -> x
-                                Just y -> y) ++ "\" linenumbers=\"True\"\n" ++ str ++ "\n}}}\n"  -- for zim's code plugin, go verbatim on the lang spec
+                                Just y  -> y) ++ "\" linenumbers=\"True\"\n" ++ str ++ "\n}}}\n"  -- for zim's code plugin, go verbatim on the lang spec
 
 blockToZimWiki opts (BlockQuote blocks) = do
   contents <- blockListToZimWiki opts blocks
@@ -319,7 +319,7 @@ inlineToZimWiki _ (Str str) = do
   inTable <- gets stInTable
   inLink  <- gets stInLink
   if inTable
-      then return $ substitute "|" "\\|" . escapeString $ str 
+      then return $ substitute "|" "\\|" . escapeString $ str
       else
           if inLink
           then return $ str
@@ -371,10 +371,10 @@ inlineToZimWiki opts (Image attr alt (source, tit)) = do
   alt' <- inlineListToZimWiki opts alt
   inTable <- gets stInTable
   let txt = case (tit, alt, inTable) of
-              ("",[], _) -> ""
+              ("",[], _)      -> ""
               ("", _, False ) -> "|" ++ alt'
               (_ , _, False ) -> "|" ++ tit
-              (_ , _, True ) -> ""
+              (_ , _, True )  -> ""
       -- Relative links fail isURI and receive a colon
       prefix = if isURI source then "" else ":"
   return $ "{{" ++ prefix ++ source ++ imageDims opts attr ++ txt ++ "}}"
@@ -389,7 +389,7 @@ imageDims opts attr = go (toPx $ dimension Width attr) (toPx $ dimension Height 
   where
     toPx = fmap (showInPixel opts) . checkPct
     checkPct (Just (Percent _)) = Nothing
-    checkPct maybeDim = maybeDim
+    checkPct maybeDim           = maybeDim
     go (Just w) Nothing  = "?" ++ w
     go (Just w) (Just h) = "?" ++ w ++ "x" ++ h
     go Nothing  (Just h) = "?0x" ++ h

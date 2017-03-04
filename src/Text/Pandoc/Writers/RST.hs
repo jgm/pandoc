@@ -31,20 +31,20 @@ Conversion of 'Pandoc' documents to reStructuredText.
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
 module Text.Pandoc.Writers.RST ( writeRST ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.ImageSize
-import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Builder (deleteMeta)
-import Data.Maybe (fromMaybe)
-import Data.List ( isPrefixOf, stripPrefix, intersperse, transpose )
-import Network.URI (isURI)
-import Text.Pandoc.Pretty
 import Control.Monad.State
 import Data.Char (isSpace, toLower)
+import Data.List (intersperse, isPrefixOf, stripPrefix, transpose)
+import Data.Maybe (fromMaybe)
+import Network.URI (isURI)
+import Text.Pandoc.Builder (deleteMeta)
 import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Writers.Shared
 
 type Refs = [([Inline], Target)]
 
@@ -76,7 +76,7 @@ pandocToRST (Pandoc meta blocks) = do
                     else Nothing
   let subtit = case lookupMeta "subtitle" meta of
                     Just (MetaBlocks [Plain xs]) -> xs
-                    _ -> []
+                    _                            -> []
   title <- titleToRST (docTitle meta) subtit
   metadata <- metaToJSON opts
                 (fmap (render colwidth) . blockListToRST)
@@ -108,7 +108,7 @@ pandocToRST (Pandoc meta blocks) = do
       Header lev a i:normalizeHeadings (lev+1) cont ++ normalizeHeadings lev bs'
       where (cont,bs') = break (headerLtEq l) bs
             headerLtEq level (Header l' _ _) = l' <= level
-            headerLtEq _ _ = False
+            headerLtEq _ _                   = False
     normalizeHeadings lev (b:bs) = b:normalizeHeadings lev bs
     normalizeHeadings _   []     = []
 
@@ -171,11 +171,11 @@ escapeString opts (c:cs) =
        '-' | isEnabled Ext_smart opts ->
               case cs of
                    '-':_ -> '\\':'-':escapeString opts cs
-                   _ -> '-':escapeString opts cs
+                   _     -> '-':escapeString opts cs
        '.' | isEnabled Ext_smart opts ->
               case cs of
                    '.':'.':rest -> '\\':'.':'.':'.':escapeString opts rest
-                   _ -> '.':escapeString opts cs
+                   _            -> '.':escapeString opts cs
        _ -> c : escapeString opts cs
 
 titleToRST :: [Inline] -> [Inline] -> State WriterState Doc
@@ -412,19 +412,19 @@ inlineListToRST lst =
         okBeforeComplex (Str (c:_)) = isSpace c || c `elem` ("-:/'\"<([{–—" :: String)
         okBeforeComplex _ = False
         isComplex :: Inline -> Bool
-        isComplex (Emph _) = True
-        isComplex (Strong _) = True
-        isComplex (SmallCaps _) = True
-        isComplex (Strikeout _) = True
+        isComplex (Emph _)        = True
+        isComplex (Strong _)      = True
+        isComplex (SmallCaps _)   = True
+        isComplex (Strikeout _)   = True
         isComplex (Superscript _) = True
-        isComplex (Subscript _) = True
-        isComplex (Link _ _ _) = True
-        isComplex (Image _ _ _) = True
-        isComplex (Code _ _) = True
-        isComplex (Math _ _) = True
-        isComplex (Cite _ (x:_)) = isComplex x
-        isComplex (Span _ (x:_)) = isComplex x
-        isComplex _ = False
+        isComplex (Subscript _)   = True
+        isComplex (Link _ _ _)    = True
+        isComplex (Image _ _ _)   = True
+        isComplex (Code _ _)      = True
+        isComplex (Math _ _)      = True
+        isComplex (Cite _ (x:_))  = isComplex x
+        isComplex (Span _ (x:_))  = isComplex x
+        isComplex _               = False
 
 -- | Convert Pandoc inline element to RST.
 inlineToRST :: Inline -> State WriterState Doc
@@ -485,9 +485,9 @@ inlineToRST Space = return space
 inlineToRST SoftBreak = do
   wrapText <- gets $ writerWrapText . stOptions
   case wrapText of
-        WrapPreserve  -> return cr
-        WrapAuto      -> return space
-        WrapNone      -> return space
+        WrapPreserve -> return cr
+        WrapAuto     -> return space
+        WrapNone     -> return space
 -- autolink
 inlineToRST (Link _ [Str str] (src, _))
   | isURI src &&

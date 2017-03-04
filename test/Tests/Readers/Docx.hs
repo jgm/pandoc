@@ -1,15 +1,15 @@
 module Tests.Readers.Docx (tests) where
 
-import Text.Pandoc
-import Tests.Helpers
-import Test.Framework
-import Test.HUnit (assertBool)
-import Test.Framework.Providers.HUnit
+import Codec.Archive.Zip
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
-import Codec.Archive.Zip
+import Test.Framework
+import Test.Framework.Providers.HUnit
+import Test.HUnit (assertBool)
+import Tests.Helpers
+import Text.Pandoc
 import qualified Text.Pandoc.Class as P
+import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 
 -- We define a wrapper around pandoc that doesn't normalize in the
 -- tests. Since we do our own normalization, we want to make sure

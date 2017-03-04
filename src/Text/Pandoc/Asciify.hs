@@ -30,8 +30,8 @@ ascii equivalents (used in constructing HTML identifiers).
 -}
 module Text.Pandoc.Asciify (toAsciiChar)
 where
-import qualified Data.Map as M
 import Data.Char (isAscii)
+import qualified Data.Map as M
 
 toAsciiChar :: Char -> Maybe Char
 toAsciiChar c | isAscii c = Just c

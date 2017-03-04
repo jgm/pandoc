@@ -1,11 +1,11 @@
 module Tests.Readers.Odt (tests) where
 
-import Control.Monad ( liftM )
-import Text.Pandoc
-import Tests.Helpers
-import Test.Framework
+import Control.Monad (liftM)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
+import Test.Framework
+import Tests.Helpers
+import Text.Pandoc
 
 defopts :: ReaderOptions
 defopts = def{ readerExtensions = getDefaultExtensions "odt" }

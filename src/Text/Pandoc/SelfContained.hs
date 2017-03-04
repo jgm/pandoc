@@ -31,28 +31,28 @@ offline, by incorporating linked images, CSS, and scripts into
 the HTML using data URIs.
 -}
 module Text.Pandoc.SelfContained ( makeSelfContained ) where
-import Text.HTML.TagSoup
-import Network.URI (isURI, escapeURIString, URI(..), parseURI)
-import Data.ByteString.Base64
-import qualified Data.ByteString.Char8 as B
-import Data.ByteString (ByteString)
-import System.FilePath (takeExtension, takeDirectory, (</>))
-import Data.Char (toLower, isAscii, isAlphaNum)
 import Codec.Compression.GZip as Gzip
-import qualified Data.ByteString.Lazy as L
-import Text.Pandoc.Shared (renderTags', trim)
-import Text.Pandoc.MIME (MimeType)
-import Text.Pandoc.UTF8 (toString)
-import Text.Pandoc.Options (WriterOptions(..))
-import Data.List (isPrefixOf)
 import Control.Applicative ((<|>))
-import Text.Parsec (runParserT, ParsecT)
-import qualified Text.Parsec as P
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
-import Text.Pandoc.Class (fetchItem, PandocMonad(..), report)
+import Data.ByteString (ByteString)
+import Data.ByteString.Base64
+import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Lazy as L
+import Data.Char (isAlphaNum, isAscii, toLower)
+import Data.List (isPrefixOf)
+import Network.URI (URI (..), escapeURIString, isURI, parseURI)
+import System.FilePath (takeDirectory, takeExtension, (</>))
+import Text.HTML.TagSoup
+import Text.Pandoc.Class (PandocMonad (..), fetchItem, report)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
+import Text.Pandoc.MIME (MimeType)
+import Text.Pandoc.Options (WriterOptions (..))
+import Text.Pandoc.Shared (renderTags', trim)
+import Text.Pandoc.UTF8 (toString)
+import Text.Parsec (ParsecT, runParserT)
+import qualified Text.Parsec as P
 
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c

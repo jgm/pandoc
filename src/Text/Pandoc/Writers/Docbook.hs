@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings, PatternGuards #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternGuards     #-}
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -29,27 +30,27 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to Docbook XML.
 -}
 module Text.Pandoc.Writers.Docbook ( writeDocbook4, writeDocbook5 ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.XML
-import Text.Pandoc.Shared
-import Text.Pandoc.Walk
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Options
-import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Writers.Math
-import Data.List ( stripPrefix, isPrefixOf, intercalate, isSuffixOf )
-import Data.Char ( toLower )
-import Data.Monoid ( Any(..) )
-import Text.Pandoc.Highlighting ( languages, languagesByExtension )
-import Text.Pandoc.Pretty
-import Text.Pandoc.ImageSize
+import Control.Monad.Reader
+import Data.Char (toLower)
+import Data.Generics (everywhere, mkT)
+import Data.List (intercalate, isPrefixOf, isSuffixOf, stripPrefix)
+import Data.Monoid (Any (..))
 import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Highlighting (languages, languagesByExtension)
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Walk
+import Text.Pandoc.Writers.Math
+import Text.Pandoc.Writers.Shared
+import Text.Pandoc.XML
 import Text.TeXMath
 import qualified Text.XML.Light as Xml
-import Data.Generics (everywhere, mkT)
-import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Logging
-import Control.Monad.Reader
 
 data DocBookVersion = DocBook4 | DocBook5
      deriving (Eq, Show)
@@ -122,8 +123,8 @@ writeDocbook opts (Pandoc meta blocks) = do
                                         _      -> False)
               $ metadata
   return $ case writerTemplate opts of
-           Nothing   -> main
-           Just tpl  -> renderTemplate' tpl context
+           Nothing  -> main
+           Just tpl -> renderTemplate' tpl context
 
 -- | Convert an Element to Docbook.
 elementToDocbook :: PandocMonad m => WriterOptions -> Int -> Element -> DB m Doc
@@ -311,16 +312,16 @@ hasLineBreaks = getAny . query isLineBreak . walk removeNote
   where
     removeNote :: Inline -> Inline
     removeNote (Note _) = Str ""
-    removeNote x = x
+    removeNote x        = x
     isLineBreak :: Inline -> Any
     isLineBreak LineBreak = Any True
-    isLineBreak _ = Any False
+    isLineBreak _         = Any False
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
-                                 AlignLeft -> "left"
-                                 AlignRight -> "right"
-                                 AlignCenter -> "center"
+                                 AlignLeft    -> "left"
+                                 AlignRight   -> "right"
+                                 AlignCenter  -> "center"
                                  AlignDefault -> "left"
 
 tableRowToDocbook :: PandocMonad m

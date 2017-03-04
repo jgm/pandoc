@@ -49,14 +49,14 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , fromListingsLanguage
                                 , toListingsLanguage
                                 ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Shared (safeRead)
-import Skylighting
-import Data.Maybe (fromMaybe)
+import Control.Monad
 import Data.Char (toLower)
 import qualified Data.Map as M
-import Control.Monad
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
+import Skylighting
+import Text.Pandoc.Definition
+import Text.Pandoc.Shared (safeRead)
 
 highlightingStyles :: [(String, Style)]
 highlightingStyles =

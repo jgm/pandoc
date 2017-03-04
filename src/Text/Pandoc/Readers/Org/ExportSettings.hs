@@ -29,12 +29,12 @@ module Text.Pandoc.Readers.Org.ExportSettings
   ( exportSettings
   ) where
 
-import           Text.Pandoc.Readers.Org.ParserState
-import           Text.Pandoc.Readers.Org.Parsing
+import Text.Pandoc.Readers.Org.ParserState
+import Text.Pandoc.Readers.Org.Parsing
 
-import           Control.Monad ( mzero, void )
-import           Data.Char ( toLower )
-import           Data.Maybe ( listToMaybe )
+import Control.Monad (mzero, void)
+import Data.Char (toLower)
+import Data.Maybe (listToMaybe)
 
 -- | Read and handle space separated org-mode export settings.
 exportSettings :: Monad m => OrgParser m ()

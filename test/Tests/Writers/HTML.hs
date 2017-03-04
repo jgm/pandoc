@@ -2,10 +2,10 @@
 module Tests.Writers.HTML (tests) where
 
 import Test.Framework
-import Text.Pandoc.Builder
-import Text.Pandoc
 import Tests.Helpers
-import Text.Pandoc.Arbitrary()
+import Text.Pandoc
+import Text.Pandoc.Arbitrary ()
+import Text.Pandoc.Builder
 
 html :: (ToPandoc a) => a -> String
 html = purely (writeHtml4String def{ writerWrapText = WrapNone }) . toPandoc

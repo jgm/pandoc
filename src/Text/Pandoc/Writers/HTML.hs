@@ -1,4 +1,7 @@
-{-# LANGUAGE OverloadedStrings, CPP, ViewPatterns, ScopedTypeVariables #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns        #-}
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -40,61 +43,61 @@ module Text.Pandoc.Writers.HTML (
   writeDZSlides,
   writeRevealJs
   ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Walk
-import Data.Monoid ((<>))
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Options
-import Text.Pandoc.ImageSize
-import Text.Pandoc.Templates
-import Text.Pandoc.Writers.Math
-import Text.Pandoc.Slides
-import Text.Pandoc.Highlighting ( highlight, styleToCss,
-                                  formatHtmlInline, formatHtmlBlock )
-import Text.Pandoc.XML (fromEntities, escapeStringForXML)
-import Network.URI ( parseURIReference, URI(..), unEscapeString )
-import Network.HTTP ( urlEncode )
-import Numeric ( showHex )
-import Data.Char ( ord, toLower )
-import Data.List ( isPrefixOf, intersperse )
-import Data.String ( fromString )
-import Data.Maybe ( catMaybes, fromMaybe, isJust )
 import Control.Monad.State
-import Text.Blaze.Html hiding(contents)
+import Data.Char (ord, toLower)
+import Data.List (intersperse, isPrefixOf)
+import Data.Maybe (catMaybes, fromMaybe, isJust)
+import Data.Monoid ((<>))
+import Data.String (fromString)
+import Network.HTTP (urlEncode)
+import Network.URI (URI (..), parseURIReference, unEscapeString)
+import Numeric (showHex)
+import Text.Blaze.Html hiding (contents)
+import Text.Pandoc.Definition
+import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
+                                 styleToCss)
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Options
+import Text.Pandoc.Shared
+import Text.Pandoc.Slides
+import Text.Pandoc.Templates
+import Text.Pandoc.Walk
+import Text.Pandoc.Writers.Math
+import Text.Pandoc.Writers.Shared
+import Text.Pandoc.XML (escapeStringForXML, fromEntities)
 #if MIN_VERSION_blaze_markup(0,6,3)
 #else
-import Text.Blaze.Internal(preEscapedString)
+import Text.Blaze.Internal (preEscapedString)
 #endif
 #if MIN_VERSION_blaze_html(0,5,1)
 import qualified Text.Blaze.XHtml5 as H5
 #else
 import qualified Text.Blaze.Html5 as H5
 #endif
+import Control.Monad.Except (throwError)
+import Data.Aeson (Value)
+import System.FilePath (takeExtension)
+import Text.Blaze.Html.Renderer.String (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
-import Text.Blaze.Html.Renderer.String (renderHtml)
-import Text.TeXMath
-import Text.XML.Light.Output
-import Text.XML.Light (unode, elChildren, unqual)
-import qualified Text.XML.Light as XML
-import System.FilePath (takeExtension)
-import Data.Aeson (Value)
-import Control.Monad.Except (throwError)
-import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Error
 import Text.Pandoc.Logging
+import Text.TeXMath
+import Text.XML.Light (elChildren, unode, unqual)
+import qualified Text.XML.Light as XML
+import Text.XML.Light.Output
 
 data WriterState = WriterState
-    { stNotes            :: [Html]  -- ^ List of notes
-    , stMath             :: Bool    -- ^ Math is used in document
-    , stQuotes           :: Bool    -- ^ <q> tag is used
-    , stHighlighting     :: Bool    -- ^ Syntax highlighting is used
-    , stSecNum           :: [Int]   -- ^ Number of current section
-    , stElement          :: Bool    -- ^ Processing an Element
-    , stHtml5            :: Bool    -- ^ Use HTML5
-    , stEPUBVersion      :: Maybe EPUBVersion -- ^ EPUB version if for epub
-    , stSlideVariant     :: HTMLSlideVariant
+    { stNotes        :: [Html]  -- ^ List of notes
+    , stMath         :: Bool    -- ^ Math is used in document
+    , stQuotes       :: Bool    -- ^ <q> tag is used
+    , stHighlighting :: Bool    -- ^ Syntax highlighting is used
+    , stSecNum       :: [Int]   -- ^ Number of current section
+    , stElement      :: Bool    -- ^ Processing an Element
+    , stHtml5        :: Bool    -- ^ Use HTML5
+    , stEPUBVersion  :: Maybe EPUBVersion -- ^ EPUB version if for epub
+    , stSlideVariant :: HTMLSlideVariant
     }
 
 defaultWriterState :: WriterState
@@ -290,8 +293,8 @@ pandocToHtml opts (Pandoc meta blocks) = do
 prefixedId :: WriterOptions -> String -> Attribute
 prefixedId opts s =
   case s of
-    ""       -> mempty
-    _        -> A.id $ toValue $ writerIdentifierPrefix opts ++ s
+    "" -> mempty
+    _  -> A.id $ toValue $ writerIdentifierPrefix opts ++ s
 
 toList :: PandocMonad m
        => (Html -> Html)
@@ -387,8 +390,8 @@ elementToHtml slideLevel opts (Sec level num (id',classes,keyvals) title' elemen
   let isPause (Blk x) = x == Para [Str ".",Space,Str ".",Space,Str "."]
       isPause _       = False
   let fragmentClass = case slideVariant of
-                           RevealJsSlides  -> "fragment"
-                           _               -> "incremental"
+                           RevealJsSlides -> "fragment"
+                           _              -> "incremental"
   let inDiv xs = Blk (RawBlock (Format "html") ("<div class=\""
                        ++ fragmentClass ++ "\">")) :
                    (xs ++ [Blk (RawBlock (Format "html") "</div>")])
@@ -515,7 +518,7 @@ imgAttrsToHtml opts attr =
     kvs' = filter isNotDim kvs
     isNotDim ("width", _)  = False
     isNotDim ("height", _) = False
-    isNotDim _ = True
+    isNotDim _             = True
 
 dimensionsToAttrList :: WriterOptions -> Attr -> [(String, String)]
 dimensionsToAttrList opts attr = (go Width) ++ (go Height)
@@ -581,7 +584,7 @@ blockToHtml opts (Para lst)
       return $ H.p contents
   where
     isEmptyRaw [RawInline f _] = f /= (Format "html")
-    isEmptyRaw _                 = False
+    isEmptyRaw _               = False
 blockToHtml opts (LineBlock lns) =
   if writerWrapText opts == WrapNone
   then blockToHtml opts $ linesToPara lns
@@ -767,9 +770,9 @@ tableRowToHtml :: PandocMonad m
 tableRowToHtml opts aligns rownum cols' = do
   let mkcell = if rownum == 0 then H.th else H.td
   let rowclass = case rownum of
-                      0                  -> "header"
+                      0 -> "header"
                       x | x `rem` 2 == 1 -> "odd"
-                      _                  -> "even"
+                      _ -> "even"
   cols'' <- sequence $ zipWith
             (\alignment item -> tableItemToHtml opts mkcell alignment item)
             aligns cols'
@@ -821,9 +824,9 @@ annotateMML :: XML.Element -> String -> XML.Element
 annotateMML e tex = math (unode "semantics" [cs, unode "annotation" (annotAttrs, tex)])
   where
     cs = case elChildren e of
-          [] -> unode "mrow" ()
+          []  -> unode "mrow" ()
           [x] -> x
-          xs -> unode "mrow" xs
+          xs  -> unode "mrow" xs
     math childs = XML.Element q as [XML.Elem childs] l
       where
         (XML.Element q as _ l) = e
@@ -908,7 +911,7 @@ inlineToHtml opts inline = do
            JsMath _ -> do
               let m = preEscapedString str
               return $ case t of
-                       InlineMath -> H.span ! A.class_ mathClass $ m
+                       InlineMath  -> H.span ! A.class_ mathClass $ m
                        DisplayMath -> H.div ! A.class_ mathClass $ m
            WebTeX url -> do
               let imtag = if html5 then H5.img else H.img
@@ -939,7 +942,7 @@ inlineToHtml opts inline = do
                 DisplayMath -> "\\[" ++ str ++ "\\]"
            KaTeX _ _ -> return $ H.span ! A.class_ mathClass $
               toHtml (case t of
-                        InlineMath -> str
+                        InlineMath  -> str
                         DisplayMath -> "\\displaystyle " ++ str)
            PlainMath -> do
               x <- lift (texMathToInlines t str) >>= inlineListToHtml opts

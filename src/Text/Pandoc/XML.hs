@@ -36,18 +36,18 @@ module Text.Pandoc.XML ( escapeCharForXML,
                          toEntities,
                          fromEntities ) where
 
-import Text.Pandoc.Pretty
-import Data.Char (ord, isAscii, isSpace)
+import Data.Char (isAscii, isSpace, ord)
 import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.Pretty
 
 -- | Escape one character as needed for XML.
 escapeCharForXML :: Char -> String
 escapeCharForXML x = case x of
-                       '&'    -> "&amp;"
-                       '<'    -> "&lt;"
-                       '>'    -> "&gt;"
-                       '"'    -> "&quot;"
-                       c      -> [c]
+                       '&' -> "&amp;"
+                       '<' -> "&lt;"
+                       '>' -> "&gt;"
+                       '"' -> "&quot;"
+                       c   -> [c]
 
 -- | Escape string as needed for XML.  Entity references are not preserved.
 escapeStringForXML :: String -> String
@@ -108,8 +108,8 @@ fromEntities ('&':xs) =
                              (zs,    ys) -> (zs,ys)
           ent' = case ent of
                       '#':'X':ys -> '#':'x':ys  -- workaround tagsoup bug
-                      '#':_ -> ent
-                      _     -> ent ++ ";"
+                      '#':_      -> ent
+                      _          -> ent ++ ";"
 
 fromEntities (x:xs) = x : fromEntities xs
 fromEntities [] = []

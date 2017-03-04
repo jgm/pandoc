@@ -32,35 +32,35 @@ module Text.Pandoc.Readers.Txt2Tags ( readTxt2Tags
                                     )
                                     where
 
-import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Builder ( Inlines, Blocks, trimInlines )
+import Data.Char (toLower)
+import Data.List (intercalate, intersperse, transpose)
+import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (escapeURI,compactify, compactifyDL)
-import Text.Pandoc.Parsing hiding (space, spaces, uri, macro)
-import Data.Char (toLower)
-import Data.List (transpose, intersperse, intercalate)
-import Data.Maybe (fromMaybe)
+import Text.Pandoc.Parsing hiding (macro, space, spaces, uri)
+import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI)
 --import Network.URI (isURI) -- Not sure whether to use this function
-import Control.Monad (void, guard, when)
+import Control.Monad (guard, void, when)
+import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Default
-import Control.Monad.Reader (Reader, runReader, asks)
 
+import Control.Monad.Except (catchError, throwError)
 import Data.Time.Format (formatTime)
-import Text.Pandoc.Compat.Time (defaultTimeLocale)
-import Control.Monad.Except (throwError, catchError)
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Compat.Time (defaultTimeLocale)
 
 type T2T = ParserT String ParserState (Reader T2TMeta)
 
 -- | An object for the T2T macros meta information
 -- the contents of each field is simply substituted verbatim into the file
 data  T2TMeta = T2TMeta {
-                 date :: String -- ^ Current date
-               , mtime :: String -- ^ Last modification time of infile
-               , infile :: FilePath -- ^ Input file
+                 date    :: String -- ^ Current date
+               , mtime   :: String -- ^ Last modification time of infile
+               , infile  :: FilePath -- ^ Input file
                , outfile :: FilePath -- ^ Output file
                } deriving Show
 
@@ -76,7 +76,7 @@ getT2TMeta = do
                   Nothing -> []
     mbOutp <- P.getOutputFile
     let outp = case mbOutp of
-                 Just x -> x
+                 Just x  -> x
                  Nothing -> ""
     curDate <- formatTime defaultTimeLocale "%F" <$> P.getZonedTime
     let getModTime = fmap (formatTime defaultTimeLocale "%T") .
@@ -98,7 +98,7 @@ readTxt2Tags opts s = do
   let parsed = flip runReader meta $ readWithM parseT2T (def {stateOptions = opts}) (s ++ "\n\n")
   case parsed of
     Right result -> return $ result
-    Left e      -> throwError e
+    Left e       -> throwError e
 
 -- | Read Txt2Tags (ignoring all macros) from an input string returning
 -- a Pandoc document

@@ -31,18 +31,18 @@ CommonMark:  <http://commonmark.org>
 -}
 module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
-import Text.Pandoc.Writers.HTML (writeHtml5String)
+import CMark
+import Control.Monad.State (State, get, modify, runState)
+import Data.Foldable (foldrM)
+import qualified Data.Text as T
+import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
+import Text.Pandoc.Options
 import Text.Pandoc.Shared (isTightList, linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Options
-import CMark
-import qualified Data.Text as T
-import Control.Monad.State (runState, State, modify, get)
 import Text.Pandoc.Walk (walkM)
-import Text.Pandoc.Class (PandocMonad)
-import Data.Foldable (foldrM)
+import Text.Pandoc.Writers.HTML (writeHtml5String)
+import Text.Pandoc.Writers.Shared
 
 -- | Convert Pandoc to CommonMark.
 writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m String

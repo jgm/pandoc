@@ -8,8 +8,8 @@ module Text.Pandoc.Readers.Docx.Util (
                                       , findAttrByName
                                       ) where
 
-import Text.XML.Light
 import Data.Maybe (mapMaybe)
+import Text.XML.Light
 
 type NameSpaces = [(String, String)]
 
@@ -18,7 +18,7 @@ elemToNameSpaces = mapMaybe attrToNSPair . elAttribs
 
 attrToNSPair :: Attr -> Maybe (String, String)
 attrToNSPair (Attr (QName s _ (Just "xmlns")) val) = Just (s, val)
-attrToNSPair _ = Nothing
+attrToNSPair _                                     = Nothing
 
 elemName :: NameSpaces -> String -> String -> QName
 elemName ns prefix name =

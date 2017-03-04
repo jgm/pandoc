@@ -1,4 +1,7 @@
-{-# LANGUAGE CPP, TupleSections, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE PatternGuards       #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 {-
 Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,7 +33,7 @@ Parses command-line options and calls the appropriate readers and
 writers.
 -}
 module Main where
-import Text.Pandoc.App (defaultOpts, convertWithOpts, parseOptions, options)
+import Text.Pandoc.App (convertWithOpts, defaultOpts, options, parseOptions)
 
 main :: IO ()
 main = parseOptions options defaultOpts >>= convertWithOpts

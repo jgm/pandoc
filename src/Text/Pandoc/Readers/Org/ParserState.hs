@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 {-
 Copyright (C) 2014-2016 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -50,24 +50,20 @@ module Text.Pandoc.Readers.Org.ParserState
   , optionsToParserState
   ) where
 
-import           Control.Monad (liftM, liftM2)
-import           Control.Monad.Reader (Reader, runReader, ReaderT, ask, asks, local)
+import Control.Monad (liftM, liftM2)
+import Control.Monad.Reader (Reader, ReaderT, ask, asks, local, runReader)
 
-import           Data.Default (Default(..))
+import Data.Default (Default (..))
 import qualified Data.Map as M
 import qualified Data.Set as Set
 
-import           Text.Pandoc.Builder ( Inlines, Blocks, trimInlines )
-import           Text.Pandoc.Definition ( Meta(..), nullMeta )
-import           Text.Pandoc.Options ( ReaderOptions(..) )
-import           Text.Pandoc.Parsing ( HasHeaderMap(..)
-                                     , HasIdentifierList(..)
-                                     , HasLastStrPosition(..)
-                                     , HasQuoteContext(..)
-                                     , HasReaderOptions(..)
-                                     , ParserContext(..)
-                                     , QuoteContext(..)
-                                     , SourcePos )
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import Text.Pandoc.Definition (Meta (..), nullMeta)
+import Text.Pandoc.Options (ReaderOptions (..))
+import Text.Pandoc.Parsing (HasHeaderMap (..), HasIdentifierList (..),
+                            HasLastStrPosition (..), HasQuoteContext (..),
+                            HasReaderOptions (..), ParserContext (..),
+                            QuoteContext (..), SourcePos)
 
 -- | An inline note / footnote containing the note key and its (inline) value.
 type OrgNoteRecord = (String, F Blocks)
@@ -191,20 +187,20 @@ data ArchivedTreesOption =
 -- | Export settings <http://orgmode.org/manual/Export-settings.html>
 -- These settings can be changed via OPTIONS statements.
 data ExportSettings = ExportSettings
-  { exportArchivedTrees   :: ArchivedTreesOption -- ^ How to treat archived trees
-  , exportDrawers         :: Either [String] [String]
+  { exportArchivedTrees    :: ArchivedTreesOption -- ^ How to treat archived trees
+  , exportDrawers          :: Either [String] [String]
   -- ^ Specify drawer names which should be exported.  @Left@ names are
   -- explicitly excluded from the resulting output while @Right@ means that
   -- only the listed drawer names should be included.
-  , exportEmphasizedText  :: Bool -- ^ Parse emphasized text
-  , exportHeadlineLevels  :: Int
+  , exportEmphasizedText   :: Bool -- ^ Parse emphasized text
+  , exportHeadlineLevels   :: Int
   -- ^ Maximum depth of headlines, deeper headlines are convert to list
-  , exportSmartQuotes     :: Bool -- ^ Parse quotes smartly
-  , exportSpecialStrings  :: Bool -- ^ Parse ellipses and dashes smartly
-  , exportSubSuperscripts :: Bool -- ^ TeX-like syntax for sub- and superscripts
-  , exportWithAuthor      :: Bool -- ^ Include author in final meta-data
-  , exportWithCreator     :: Bool -- ^ Include creator in final meta-data
-  , exportWithEmail       :: Bool -- ^ Include email in final meta-data
+  , exportSmartQuotes      :: Bool -- ^ Parse quotes smartly
+  , exportSpecialStrings   :: Bool -- ^ Parse ellipses and dashes smartly
+  , exportSubSuperscripts  :: Bool -- ^ TeX-like syntax for sub- and superscripts
+  , exportWithAuthor       :: Bool -- ^ Include author in final meta-data
+  , exportWithCreator      :: Bool -- ^ Include creator in final meta-data
+  , exportWithEmail        :: Bool -- ^ Include email in final meta-data
   , exportWithTodoKeywords :: Bool -- ^ Keep TODO keywords in headers
   }
 

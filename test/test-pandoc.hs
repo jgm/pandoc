@@ -2,34 +2,34 @@
 
 module Main where
 
-import Test.Framework
 import GHC.IO.Encoding
-import qualified Tests.Old
+import System.Environment (getArgs)
+import Test.Framework
 import qualified Tests.Command
+import qualified Tests.Old
+import qualified Tests.Readers.Docx
+import qualified Tests.Readers.EPUB
+import qualified Tests.Readers.HTML
 import qualified Tests.Readers.LaTeX
 import qualified Tests.Readers.Markdown
-import qualified Tests.Readers.Org
-import qualified Tests.Readers.HTML
-import qualified Tests.Readers.RST
-import qualified Tests.Readers.Docx
 import qualified Tests.Readers.Odt
+import qualified Tests.Readers.Org
+import qualified Tests.Readers.RST
 import qualified Tests.Readers.Txt2Tags
-import qualified Tests.Readers.EPUB
+import qualified Tests.Shared
+import qualified Tests.Writers.AsciiDoc
 import qualified Tests.Writers.ConTeXt
-import qualified Tests.Writers.LaTeX
-import qualified Tests.Writers.HTML
 import qualified Tests.Writers.Docbook
-import qualified Tests.Writers.Native
+import qualified Tests.Writers.Docx
+import qualified Tests.Writers.HTML
+import qualified Tests.Writers.LaTeX
 import qualified Tests.Writers.Markdown
+import qualified Tests.Writers.Native
 import qualified Tests.Writers.Org
 import qualified Tests.Writers.Plain
-import qualified Tests.Writers.AsciiDoc
-import qualified Tests.Writers.Docx
 import qualified Tests.Writers.RST
 import qualified Tests.Writers.TEI
-import qualified Tests.Shared
 import Text.Pandoc.Shared (inDirectory)
-import System.Environment (getArgs)
 
 tests :: [Test]
 tests = [ Tests.Command.tests

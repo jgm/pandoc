@@ -1,4 +1,6 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE PatternGuards     #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 {-
 Copyright (C) 2014-2016 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -53,24 +55,24 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , archiveToDocxWithWarnings
                                       ) where
 import Codec.Archive.Zip
-import Text.XML.Light
-import Data.Maybe
-import Data.List
-import System.FilePath
-import Data.Bits ((.|.))
-import qualified Data.ByteString.Lazy as B
-import qualified Text.Pandoc.UTF8 as UTF8
+import Control.Applicative ((<|>))
+import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
-import Control.Applicative ((<|>))
+import Data.Bits ((.|.))
+import qualified Data.ByteString.Lazy as B
+import Data.Char (chr, isDigit, ord, readLitChar)
+import Data.List
 import qualified Data.Map as M
-import Control.Monad.Except
-import Text.Pandoc.Shared (safeRead, filteredFilesFromArchive)
-import Text.TeXMath.Readers.OMML (readOMML)
-import Text.TeXMath.Unicode.Fonts (getUnicode, stringToFont, Font(..))
-import Text.TeXMath (Exp)
+import Data.Maybe
+import System.FilePath
 import Text.Pandoc.Readers.Docx.Util
-import Data.Char (readLitChar, ord, chr, isDigit)
+import Text.Pandoc.Shared (filteredFilesFromArchive, safeRead)
+import qualified Text.Pandoc.UTF8 as UTF8
+import Text.TeXMath (Exp)
+import Text.TeXMath.Readers.OMML (readOMML)
+import Text.TeXMath.Unicode.Fonts (Font (..), getUnicode, stringToFont)
+import Text.XML.Light
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envComments      :: Comments
@@ -97,7 +99,7 @@ runD dx re rs = runState (runReaderT (runExceptT dx) re) rs
 
 maybeToD :: Maybe a -> D a
 maybeToD (Just a) = return a
-maybeToD Nothing = throwError DocxError
+maybeToD Nothing  = throwError DocxError
 
 eitherToD :: Either a b -> D b
 eitherToD (Right b) = return b
@@ -160,12 +162,12 @@ data Notes = Notes NameSpaces
 data Comments = Comments NameSpaces (M.Map String Element)
               deriving Show
 
-data ParIndentation = ParIndentation { leftParIndent :: Maybe Integer
-                                     , rightParIndent :: Maybe Integer
+data ParIndentation = ParIndentation { leftParIndent    :: Maybe Integer
+                                     , rightParIndent   :: Maybe Integer
                                      , hangingParIndent :: Maybe Integer}
                       deriving Show
 
-data ParagraphStyle = ParagraphStyle { pStyle :: [String]
+data ParagraphStyle = ParagraphStyle { pStyle      :: [String]
                                      , indentation :: Maybe ParIndentation
                                      , dropCap     :: Bool
                                      , pHeading    :: Maybe (String, Int)
@@ -234,19 +236,19 @@ data RunElem = TextRun String | LnBrk | Tab | SoftHyphen | NoBreakHyphen
 data VertAlign = BaseLn | SupScrpt | SubScrpt
                deriving Show
 
-data RunStyle = RunStyle { isBold :: Maybe Bool
-                         , isItalic :: Maybe Bool
+data RunStyle = RunStyle { isBold      :: Maybe Bool
+                         , isItalic    :: Maybe Bool
                          , isSmallCaps :: Maybe Bool
-                         , isStrike :: Maybe Bool
-                         , rVertAlign :: Maybe VertAlign
-                         , rUnderline :: Maybe String
-                         , rStyle :: Maybe CharStyle}
+                         , isStrike    :: Maybe Bool
+                         , rVertAlign  :: Maybe VertAlign
+                         , rUnderline  :: Maybe String
+                         , rStyle      :: Maybe CharStyle}
                 deriving Show
 
-data ParStyleData = ParStyleData { headingLev :: Maybe (String, Int)
+data ParStyleData = ParStyleData { headingLev   :: Maybe (String, Int)
                                  , isBlockQuote :: Maybe Bool
-                                 , numInfo :: Maybe (String, String)
-                                 , psStyle :: Maybe ParStyle}
+                                 , numInfo      :: Maybe (String, String)
+                                 , psStyle      :: Maybe ParStyle}
                     deriving Show
 
 defaultRunStyle :: RunStyle
@@ -381,10 +383,10 @@ archiveToNotes zf =
       enElem = findEntryByPath "word/endnotes.xml" zf
                >>= (parseXMLDoc . UTF8.toStringLazy . fromEntry)
       fn_namespaces = case fnElem of
-        Just e -> elemToNameSpaces e
+        Just e  -> elemToNameSpaces e
         Nothing -> []
       en_namespaces = case enElem of
-        Just e -> elemToNameSpaces e
+        Just e  -> elemToNameSpaces e
         Nothing -> []
       ns = unionBy (\x y -> fst x == fst y) fn_namespaces en_namespaces
       fn = fnElem >>= (elemToNotes ns "footnote")
@@ -397,19 +399,19 @@ archiveToComments zf =
   let cmtsElem = findEntryByPath "word/comments.xml" zf
                >>= (parseXMLDoc . UTF8.toStringLazy . fromEntry)
       cmts_namespaces = case cmtsElem of
-        Just e -> elemToNameSpaces e
+        Just e  -> elemToNameSpaces e
         Nothing -> []
       cmts = (elemToComments cmts_namespaces) <$> cmtsElem
   in
     case cmts of
-      Just c -> Comments cmts_namespaces c
+      Just c  -> Comments cmts_namespaces c
       Nothing -> Comments cmts_namespaces M.empty
 
 filePathToRelType :: FilePath -> Maybe DocumentLocation
-filePathToRelType "word/_rels/document.xml.rels" = Just InDocument
+filePathToRelType "word/_rels/document.xml.rels"  = Just InDocument
 filePathToRelType "word/_rels/footnotes.xml.rels" = Just InFootnote
-filePathToRelType "word/_rels/endnotes.xml.rels" = Just InEndnote
-filePathToRelType _ = Nothing
+filePathToRelType "word/_rels/endnotes.xml.rels"  = Just InEndnote
+filePathToRelType _                               = Nothing
 
 relElemToRelationship :: DocumentLocation -> Element -> Maybe Relationship
 relElemToRelationship relType element | qName (elName element) == "Relationship" =
@@ -616,12 +618,12 @@ elemToBodyPart ns element
                    >>= findAttrByName ns "w" "val"
         caption = (fromMaybe "" caption')
         grid' = case findChildByName ns "w" "tblGrid" element of
-          Just g -> elemToTblGrid ns g
+          Just g  -> elemToTblGrid ns g
           Nothing -> return []
         tblLook' = case findChildByName ns "w" "tblPr" element >>=
                           findChildByName ns "w" "tblLook"
                      of
-                       Just l -> elemToTblLook ns l
+                       Just l  -> elemToTblLook ns l
                        Nothing -> return defaultTblLook
 
     grid <- grid'
@@ -741,7 +743,7 @@ elemToParPart ns element
       (Comments _ commentMap) <- asks envComments
       case M.lookup cmtId commentMap of
         Just cmtElem -> elemToCommentStart ns cmtElem
-        Nothing   -> throwError WrongElem
+        Nothing      -> throwError WrongElem
 elemToParPart ns element
   | isElem ns "w" "commentRangeEnd" element
   , Just cmtId <- findAttrByName ns "w" "id" element =
@@ -771,7 +773,7 @@ elemToExtent :: Element -> Extent
 elemToExtent drawingElem =
   case (getDim "cx", getDim "cy") of
     (Just w, Just h) -> Just (w, h)
-    _ -> Nothing
+    _                -> Nothing
     where
       wp_ns  = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
       getDim at = findElement (QName "extent" (Just wp_ns) (Just "wp")) drawingElem
@@ -1023,7 +1025,7 @@ getSymChar ns element
     getCodepoint = findAttrByName ns "w" "char" element
     getFont = stringToFont =<< findAttrByName ns "w" "font" element
     lowerFromPrivate ('F':xs) = '0':xs
-    lowerFromPrivate xs = xs
+    lowerFromPrivate xs       = xs
 getSymChar _ _ = TextRun ""
 
 elemToRunElems :: NameSpaces -> Element -> D [RunElem]

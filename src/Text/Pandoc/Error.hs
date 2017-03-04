@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric      #-}
 {-
 Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -33,12 +34,12 @@ module Text.Pandoc.Error (
   PandocError(..),
   handleError) where
 
-import Text.Parsec.Error
-import Text.Parsec.Pos hiding (Line)
+import Control.Exception (Exception)
 import Data.Generics (Typeable)
 import GHC.Generics (Generic)
-import Control.Exception (Exception)
 import Text.Pandoc.Shared (err)
+import Text.Parsec.Error
+import Text.Parsec.Pos hiding (Line)
 
 type Input = String
 

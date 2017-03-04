@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings, PatternGuards #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternGuards     #-}
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -29,19 +30,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to Docbook XML.
 -}
 module Text.Pandoc.Writers.TEI (writeTEI) where
-import Text.Pandoc.Definition
-import Text.Pandoc.XML
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Options
-import Text.Pandoc.Templates (renderTemplate')
-import Data.List ( stripPrefix, isPrefixOf )
-import Data.Char ( toLower )
-import Text.Pandoc.Highlighting ( languages, languagesByExtension )
-import Text.Pandoc.Pretty
-import Text.Pandoc.ImageSize
+import Data.Char (toLower)
+import Data.List (isPrefixOf, stripPrefix)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class ( PandocMonad )
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.Highlighting (languages, languagesByExtension)
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Writers.Shared
+import Text.Pandoc.XML
 
 -- | Convert list of authors to a docbook <author> section
 authorToTEI :: WriterOptions -> [Inline] -> B.Inlines

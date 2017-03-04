@@ -37,25 +37,25 @@ that it has omitted the construct.
 AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc) where
+import Control.Monad.State
+import Data.Aeson (Result (..), Value (String), fromJSON, toJSON)
+import Data.Char (isPunctuation, isSpace)
+import Data.List (intercalate, intersperse, stripPrefix)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
+import qualified Data.Text as T
+import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
-import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, space)
-import Data.Maybe (fromMaybe)
-import Data.List ( stripPrefix, intersperse, intercalate )
 import Text.Pandoc.Pretty
-import Text.Pandoc.ImageSize
-import Control.Monad.State
-import qualified Data.Map as M
-import Data.Aeson (Value(String), fromJSON, toJSON, Result(..))
-import qualified Data.Text as T
-import Data.Char (isSpace, isPunctuation)
-import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Logging
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Writers.Shared
 
-data WriterState = WriterState { defListMarker :: String
+data WriterState = WriterState { defListMarker    :: String
                                , orderedListLevel :: Int
                                , bulletListLevel  :: Int
                                , intraword        :: Bool
@@ -122,8 +122,8 @@ olMarker = do (start, style', delim) <- anyOrderedListMarker
 beginsWithOrderedListMarker :: String -> Bool
 beginsWithOrderedListMarker str =
   case runParser olMarker defaultParserState "para start" (take 10 str) of
-         Left  _  -> False
-         Right _  -> True
+         Left  _ -> False
+         Right _ -> True
 
 -- | Convert Pandoc block element to asciidoc.
 blockToAsciiDoc :: PandocMonad m
@@ -169,11 +169,11 @@ blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
             then
               identifier $$ contents $$
               (case level of
-               1  -> text $ replicate len '-'
-               2  -> text $ replicate len '~'
-               3  -> text $ replicate len '^'
-               4  -> text $ replicate len '+'
-               _  -> empty) <> blankline
+               1 -> text $ replicate len '-'
+               2 -> text $ replicate len '~'
+               3 -> text $ replicate len '^'
+               4 -> text $ replicate len '+'
+               _ -> empty) <> blankline
             else
               identifier $$ text (replicate level '=') <> space <> contents <> blankline)
 blockToAsciiDoc _ (CodeBlock (_,classes,_) str) = return $ (flush $
@@ -428,9 +428,9 @@ inlineToAsciiDoc _ LineBreak = return $ " +" <> cr
 inlineToAsciiDoc _ Space = return space
 inlineToAsciiDoc opts SoftBreak =
   case writerWrapText opts of
-       WrapAuto -> return space
+       WrapAuto     -> return space
        WrapPreserve -> return cr
-       WrapNone -> return space
+       WrapNone     -> return space
 inlineToAsciiDoc opts (Cite _ lst) = inlineListToAsciiDoc opts lst
 inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
 -- relative:  link:downloads/foo.zip[download foo.zip]
@@ -444,7 +444,7 @@ inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
   let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
   let useAuto = case txt of
                       [Str s] | escapeURI s == srcSuffix -> True
-                      _                                  -> False
+                      _       -> False
   return $ if useAuto
               then text srcSuffix
               else prefix <> text src <> "[" <> linktext <> "]"

@@ -1,13 +1,13 @@
 module Tests.Readers.EPUB (tests) where
 
-import Text.Pandoc.Options
-import Test.Framework
-import Test.HUnit (assertBool)
-import Test.Framework.Providers.HUnit
 import qualified Data.ByteString.Lazy as BL
-import Text.Pandoc.Readers.EPUB
-import Text.Pandoc.MediaBag (MediaBag, mediaDirectory)
+import Test.Framework
+import Test.Framework.Providers.HUnit
+import Test.HUnit (assertBool)
 import qualified Text.Pandoc.Class as P
+import Text.Pandoc.MediaBag (MediaBag, mediaDirectory)
+import Text.Pandoc.Options
+import Text.Pandoc.Readers.EPUB
 
 getMediaBag :: FilePath -> IO MediaBag
 getMediaBag fp = do

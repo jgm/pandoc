@@ -40,7 +40,7 @@ module Text.Pandoc.Readers.Org.BlockStarts
   , endOfBlock
   ) where
 
-import Control.Monad ( void )
+import Control.Monad (void)
 import Text.Pandoc.Readers.Org.Parsing
 
 -- | Horizontal Line (five -- dashes or more)

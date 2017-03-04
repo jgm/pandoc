@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE ViewPatterns     #-}
 {-
 Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -33,28 +33,28 @@ module Text.Pandoc.Readers.Org.Blocks
   , meta
   ) where
 
-import           Text.Pandoc.Readers.Org.BlockStarts
-import           Text.Pandoc.Readers.Org.Inlines
-import           Text.Pandoc.Readers.Org.Meta ( metaExport, metaKey, metaLine )
-import           Text.Pandoc.Readers.Org.ParserState
-import           Text.Pandoc.Readers.Org.Parsing
-import           Text.Pandoc.Readers.Org.Shared
-                   ( cleanLinkString, isImageFilename, rundocBlockClass
-                   , toRundocAttrib, translateLang )
+import Text.Pandoc.Readers.Org.BlockStarts
+import Text.Pandoc.Readers.Org.Inlines
+import Text.Pandoc.Readers.Org.Meta (metaExport, metaKey, metaLine)
+import Text.Pandoc.Readers.Org.ParserState
+import Text.Pandoc.Readers.Org.Parsing
+import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
+                                       rundocBlockClass, toRundocAttrib,
+                                       translateLang)
 
+import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import           Text.Pandoc.Builder ( Inlines, Blocks )
-import           Text.Pandoc.Class (PandocMonad)
-import           Text.Pandoc.Definition
-import           Text.Pandoc.Options
-import           Text.Pandoc.Shared ( compactify, compactifyDL, safeRead )
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.Options
+import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)
 
-import           Control.Monad ( foldM, guard, mzero, void )
-import           Data.Char ( isSpace, toLower, toUpper)
-import           Data.Default ( Default )
-import           Data.List ( foldl', isPrefixOf )
-import           Data.Maybe ( fromMaybe, isNothing )
-import           Data.Monoid ((<>))
+import Control.Monad (foldM, guard, mzero, void)
+import Data.Char (isSpace, toLower, toUpper)
+import Data.Default (Default)
+import Data.List (foldl', isPrefixOf)
+import Data.Maybe (fromMaybe, isNothing)
+import Data.Monoid ((<>))
 
 --
 -- Org headers
@@ -581,7 +581,7 @@ genericDrawer = try $ do
     _           | name == "PROPERTIES" -> return mempty
     Left  names | name `elem`    names -> return mempty
     Right names | name `notElem` names -> return mempty
-    _                                  -> drawerDiv name <$> parseLines content
+    _           -> drawerDiv name <$> parseLines content
  where
   parseLines :: PandocMonad m => [String] -> OrgParser m (F Blocks)
   parseLines = parseFromString blocks . (++ "\n") . unlines
@@ -715,8 +715,8 @@ data OrgTableRow = OrgContentRow (F [Blocks])
 -- should be generated using a builder function.
 data OrgTable = OrgTable
   { orgTableColumnProperties :: [ColumnProperty]
-  , orgTableHeader     :: [Blocks]
-  , orgTableRows       :: [[Blocks]]
+  , orgTableHeader           :: [Blocks]
+  , orgTableRows             :: [[Blocks]]
   }
 
 table :: PandocMonad m => OrgParser m (F Blocks)

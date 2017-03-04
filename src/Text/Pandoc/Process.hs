@@ -29,13 +29,13 @@ ByteString variant of 'readProcessWithExitCode'.
 -}
 module Text.Pandoc.Process (pipeProcess)
 where
-import System.Process
-import System.Exit (ExitCode (..))
+import Control.Concurrent (forkIO, newEmptyMVar, putMVar, takeMVar)
 import Control.Exception
-import System.IO (hClose, hFlush)
-import Control.Concurrent (putMVar, takeMVar, newEmptyMVar, forkIO)
 import Control.Monad (unless)
 import qualified Data.ByteString.Lazy as BL
+import System.Exit (ExitCode (..))
+import System.IO (hClose, hFlush)
+import System.Process
 
 {- |
 Version of 'System.Process.readProcessWithExitCode' that uses lazy bytestrings

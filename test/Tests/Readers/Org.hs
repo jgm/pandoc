@@ -1,16 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Org (tests) where
 
-import Text.Pandoc.Definition
+import Data.List (intersperse)
 import Test.Framework
 import Tests.Helpers
-import Text.Pandoc.Builder
 import Text.Pandoc
-import Data.List (intersperse)
+import Text.Pandoc.Builder
 
 org :: String -> Pandoc
 org = purely $ readOrg def{ readerExtensions = getDefaultExtensions "org" }
-  
+
 orgSmart :: String -> Pandoc
 orgSmart = purely $ readOrg def { readerExtensions =
                      enableExtension Ext_smart $ getDefaultExtensions "org" }

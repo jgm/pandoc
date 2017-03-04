@@ -30,30 +30,30 @@ Conversion of 'Pandoc' documents to MediaWiki markup.
 MediaWiki:  <http://www.mediawiki.org/wiki/MediaWiki>
 -}
 module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Pretty (render)
-import Text.Pandoc.ImageSize
-import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.XML ( escapeStringForXML )
-import Data.List ( intercalate )
-import qualified Data.Set as Set
-import Network.URI ( isURI )
 import Control.Monad.Reader
 import Control.Monad.State
+import Data.List (intercalate)
+import qualified Data.Set as Set
+import Network.URI (isURI)
 import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty (render)
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Writers.Shared
+import Text.Pandoc.XML (escapeStringForXML)
 
 data WriterState = WriterState {
-    stNotes     :: Bool            -- True if there are notes
-  , stOptions   :: WriterOptions   -- writer options
+    stNotes   :: Bool            -- True if there are notes
+  , stOptions :: WriterOptions   -- writer options
   }
 
 data WriterReader = WriterReader {
-    options     :: WriterOptions -- Writer options
-  , listLevel   :: String        -- String at beginning of list items, e.g. "**"
-  , useTags     :: Bool          -- True if we should use HTML tags because we're in a complex list
+    options   :: WriterOptions -- Writer options
+  , listLevel :: String        -- String at beginning of list items, e.g. "**"
+  , useTags   :: Bool          -- True if we should use HTML tags because we're in a complex list
   }
 
 type MediaWikiWriter = ReaderT WriterReader (State WriterState)
@@ -253,18 +253,18 @@ isSimpleListItem :: [Block] -> Bool
 isSimpleListItem []  = True
 isSimpleListItem [x] =
   case x of
-       Plain _           -> True
-       Para  _           -> True
-       BulletList _      -> isSimpleList x
-       OrderedList _ _   -> isSimpleList x
-       DefinitionList _  -> isSimpleList x
-       _                 -> False
+       Plain _          -> True
+       Para  _          -> True
+       BulletList _     -> isSimpleList x
+       OrderedList _ _  -> isSimpleList x
+       DefinitionList _ -> isSimpleList x
+       _                -> False
 isSimpleListItem [x, y] | isPlainOrPara x =
   case y of
-       BulletList _      -> isSimpleList y
-       OrderedList _ _   -> isSimpleList y
-       DefinitionList _  -> isSimpleList y
-       _                 -> False
+       BulletList _     -> isSimpleList y
+       OrderedList _ _  -> isSimpleList y
+       DefinitionList _ -> isSimpleList y
+       _                -> False
 isSimpleListItem _ = False
 
 isPlainOrPara :: Block -> Bool
@@ -322,7 +322,7 @@ imageToMediaWiki attr = do
   let (_, cls, _) = attr
       toPx = fmap (showInPixel opts) . checkPct
       checkPct (Just (Percent _)) = Nothing
-      checkPct maybeDim = maybeDim
+      checkPct maybeDim           = maybeDim
       go (Just w) Nothing  = '|':w ++ "px"
       go (Just w) (Just h) = '|':w ++ "x" ++ h ++ "px"
       go Nothing  (Just h) = "|x" ++ h ++ "px"

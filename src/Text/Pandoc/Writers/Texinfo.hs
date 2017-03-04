@@ -29,25 +29,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' format into Texinfo.
 -}
 module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Templates (renderTemplate')
-import Text.Printf ( printf )
-import Data.List ( transpose, maximumBy )
-import Data.Ord ( comparing )
-import Data.Char ( chr, ord )
-import Control.Monad.State
-import Text.Pandoc.Pretty
-import Text.Pandoc.ImageSize
-import Network.URI ( isURI, unEscapeString )
-import System.FilePath
-import qualified Data.Set as Set
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Error
+import Control.Monad.State
+import Data.Char (chr, ord)
+import Data.List (maximumBy, transpose)
+import Data.Ord (comparing)
+import qualified Data.Set as Set
+import Network.URI (isURI, unEscapeString)
+import System.FilePath
 import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Error
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Writers.Shared
+import Text.Printf (printf)
 
 data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout

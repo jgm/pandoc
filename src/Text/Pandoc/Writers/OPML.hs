@@ -29,20 +29,20 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to OPML XML.
 -}
 module Text.Pandoc.Writers.OPML ( writeOPML) where
+import Control.Monad.Except (throwError)
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Compat.Time
 import Text.Pandoc.Definition
-import Text.Pandoc.XML
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Shared
+import Text.Pandoc.Error
 import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
-import Text.Pandoc.Pretty
-import Text.Pandoc.Compat.Time
-import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Error
-import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Writers.Shared
+import Text.Pandoc.XML
 
 -- | Convert Pandoc document to string in OPML format.
 writeOPML :: PandocMonad m => WriterOptions -> Pandoc -> m String
@@ -86,7 +86,7 @@ elementToOPML _ (Blk _) = return empty
 elementToOPML opts (Sec _ _num _ title elements) = do
   let isBlk :: Element -> Bool
       isBlk (Blk _) = True
-      isBlk _     = False
+      isBlk _       = False
 
       fromBlk :: PandocMonad m => Element -> m Block
       fromBlk (Blk x) = return x

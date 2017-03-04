@@ -2,10 +2,10 @@
 module Tests.Writers.TEI (tests) where
 
 import Test.Framework
-import Text.Pandoc.Builder
-import Text.Pandoc
 import Tests.Helpers
-import Text.Pandoc.Arbitrary()
+import Text.Pandoc
+import Text.Pandoc.Arbitrary ()
+import Text.Pandoc.Builder
 
 {-
   "my test" =: X =?> Y

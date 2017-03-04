@@ -1,4 +1,6 @@
-{-# LANGUAGE PatternGuards, OverloadedStrings, CPP #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternGuards     #-}
 
 {-
 Copyright (C) 2014-2016 Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -74,32 +76,32 @@ module Text.Pandoc.Readers.Docx
        ) where
 
 import Codec.Archive.Zip
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Builder
-import Text.Pandoc.Walk
-import Text.Pandoc.Readers.Docx.Parse
-import Text.Pandoc.Readers.Docx.Lists
-import Text.Pandoc.Readers.Docx.Combine
-import Text.Pandoc.Shared
-import Text.Pandoc.MediaBag (MediaBag)
-import Data.List (delete, intersect)
-import Text.TeXMath (writeTeX)
-import Data.Default (Default)
-import qualified Data.ByteString.Lazy as B
-import qualified Data.Map as M
-import qualified Data.Set as Set
 import Control.Monad.Reader
 import Control.Monad.State
-import Data.Sequence (ViewL(..), viewl)
+import qualified Data.ByteString.Lazy as B
+import Data.Default (Default)
+import Data.List (delete, intersect)
+import qualified Data.Map as M
+import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq (null)
+import qualified Data.Set as Set
+import Text.Pandoc.Builder
+-- import Text.Pandoc.Definition
+import Text.Pandoc.MediaBag (MediaBag)
+import Text.Pandoc.Options
+import Text.Pandoc.Readers.Docx.Combine
+import Text.Pandoc.Readers.Docx.Lists
+import Text.Pandoc.Readers.Docx.Parse
+import Text.Pandoc.Shared
+import Text.Pandoc.Walk
+import Text.TeXMath (writeTeX)
 #if !(MIN_VERSION_base(4,8,0))
 import Data.Traversable (traverse)
 #endif
-import Text.Pandoc.Error
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Error
 import Text.Pandoc.Logging
 
 readDocx :: PandocMonad m
@@ -123,9 +125,9 @@ readDocxWithWarnings :: PandocMonad m
 readDocxWithWarnings = readDocx
 
 data DState = DState { docxAnchorMap :: M.Map String String
-                     , docxMediaBag      :: MediaBag
-                     , docxDropCap       :: Inlines
-                     , docxWarnings      :: [String]
+                     , docxMediaBag  :: MediaBag
+                     , docxDropCap   :: Inlines
+                     , docxWarnings  :: [String]
                      }
 
 instance Default DState where
@@ -135,7 +137,7 @@ instance Default DState where
                , docxWarnings  = []
                }
 
-data DEnv = DEnv { docxOptions  :: ReaderOptions
+data DEnv = DEnv { docxOptions       :: ReaderOptions
                  , docxInHeaderBlock :: Bool }
 
 instance Default DEnv where
@@ -173,7 +175,7 @@ isEmptyPar (Paragraph _ parParts) =
   all isEmptyParPart parParts
   where
     isEmptyParPart (PlainRun (Run _ runElems)) = all isEmptyElem runElems
-    isEmptyParPart _ = False
+    isEmptyParPart _                           = False
     isEmptyElem (TextRun s) = trim s == ""
     isEmptyElem _           = True
 isEmptyPar _ = False
@@ -207,7 +209,7 @@ fixAuthors :: MetaValue -> MetaValue
 fixAuthors (MetaBlocks blks) =
   MetaList $ map g $ filter f blks
     where f (Para _) = True
-          f _          = False
+          f _        = False
           g (Para ils) = MetaInlines ils
           g _          = MetaInlines []
 fixAuthors mv = mv
@@ -219,28 +221,28 @@ codeDivs :: [String]
 codeDivs = ["SourceCode"]
 
 runElemToInlines :: RunElem -> Inlines
-runElemToInlines (TextRun s) = text s
-runElemToInlines (LnBrk) = linebreak
-runElemToInlines (Tab) = space
-runElemToInlines (SoftHyphen) = text "\xad"
+runElemToInlines (TextRun s)     = text s
+runElemToInlines (LnBrk)         = linebreak
+runElemToInlines (Tab)           = space
+runElemToInlines (SoftHyphen)    = text "\xad"
 runElemToInlines (NoBreakHyphen) = text "\x2011"
 
 runElemToString :: RunElem -> String
-runElemToString (TextRun s) = s
-runElemToString (LnBrk) = ['\n']
-runElemToString (Tab) = ['\t']
-runElemToString (SoftHyphen) = ['\xad']
+runElemToString (TextRun s)     = s
+runElemToString (LnBrk)         = ['\n']
+runElemToString (Tab)           = ['\t']
+runElemToString (SoftHyphen)    = ['\xad']
 runElemToString (NoBreakHyphen) = ['\x2011']
 
 runToString :: Run -> String
 runToString (Run _ runElems) = concatMap runElemToString runElems
-runToString _ = ""
+runToString _                = ""
 
 parPartToString :: ParPart -> String
-parPartToString (PlainRun run) = runToString run
+parPartToString (PlainRun run)             = runToString run
 parPartToString (InternalHyperLink _ runs) = concatMap runToString runs
 parPartToString (ExternalHyperLink _ runs) = concatMap runToString runs
-parPartToString _ = ""
+parPartToString _                          = ""
 
 blacklistedCharStyles :: [String]
 blacklistedCharStyles = ["Hyperlink"]
@@ -332,9 +334,9 @@ blocksToInlinesWarn :: PandocMonad m => String -> Blocks -> DocxContext m Inline
 blocksToInlinesWarn cmtId blks = do
   let blkList = toList blks
       notParaOrPlain :: Block -> Bool
-      notParaOrPlain (Para _) = False
+      notParaOrPlain (Para _)  = False
       notParaOrPlain (Plain _) = False
-      notParaOrPlain _ = True
+      notParaOrPlain _         = True
   when (not $ null $ filter notParaOrPlain blkList) $
     lift $ P.report $ DocxParserWarning $
       "Docx comment " ++ cmtId ++ " will not retain formatting"
@@ -508,14 +510,14 @@ parStyleToTransform pPr
     let pPr' = pPr { indentation = Nothing }
     in
      case (left - hang) > 0 of
-       True -> blockQuote . (parStyleToTransform pPr')
+       True  -> blockQuote . (parStyleToTransform pPr')
        False -> parStyleToTransform pPr'
   | null (pStyle pPr),
     Just left <- indentation pPr >>= leftParIndent =
       let pPr' = pPr { indentation = Nothing }
       in
        case left > 0 of
-         True -> blockQuote . (parStyleToTransform pPr')
+         True  -> blockQuote . (parStyleToTransform pPr')
          False -> parStyleToTransform pPr'
 parStyleToTransform _ = id
 
@@ -542,7 +544,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
       else do modify $ \s -> s { docxDropCap = mempty }
               return $ case isNull ils' of
                 True -> mempty
-                _ -> parStyleToTransform pPr $ para ils'
+                _    -> parStyleToTransform pPr $ para ils'
 bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   let
     kvs = case levelInfo of
@@ -573,12 +575,12 @@ bodyPartToBlocks (Tbl cap _ look (r:rs)) = do
              | otherwise -> (Just r, rs)
         False -> (Nothing, r:rs)
 
-  cells <- mapM rowToBlocksList rows        
+  cells <- mapM rowToBlocksList rows
 
   let width = case cells of
         r':_ -> length r'
         -- shouldn't happen
-        []   -> 0               
+        []   -> 0
 
   hdrCells <- case hdr of
     Just r' -> rowToBlocksList r'

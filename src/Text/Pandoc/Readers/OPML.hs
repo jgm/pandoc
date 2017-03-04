@@ -1,17 +1,16 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Text.Pandoc.Readers.OPML ( readOPML ) where
+import Control.Monad.State
 import Data.Char (toUpper)
-import Text.Pandoc.Options
-import Text.Pandoc.Definition
+import Data.Default
+import Data.Generics
+import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Options
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
 import Text.XML.Light
-import Text.HTML.TagSoup.Entity (lookupEntity)
-import Data.Generics
-import Control.Monad.State
-import Data.Default
-import Text.Pandoc.Class (PandocMonad)
 
 type OPML m = StateT OPMLState m
 
@@ -70,7 +69,7 @@ asHtml :: PandocMonad m => String -> OPML m Inlines
 asHtml s =
   (\(Pandoc _ bs) -> case bs of
                                 [Plain ils] -> fromList ils
-                                _ -> mempty) <$> (lift $ readHtml def s)
+                                _           -> mempty) <$> (lift $ readHtml def s)
 
 asMarkdown :: PandocMonad m => String -> OPML m Blocks
 asMarkdown s = (\(Pandoc _ bs) -> fromList bs) <$> (lift $ readMarkdown def s)

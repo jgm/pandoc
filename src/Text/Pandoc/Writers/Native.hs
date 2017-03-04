@@ -30,11 +30,11 @@ Conversion of a 'Pandoc' document to a string representation.
 -}
 module Text.Pandoc.Writers.Native ( writeNative )
 where
-import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..) )
-import Data.List ( intersperse )
-import Text.Pandoc.Definition
-import Text.Pandoc.Pretty
+import Data.List (intersperse)
 import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
+import Text.Pandoc.Pretty
 
 prettyList :: [Doc] -> Doc
 prettyList ds =

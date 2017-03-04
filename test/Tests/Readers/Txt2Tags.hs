@@ -1,15 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Txt2Tags (tests) where
 
-import Text.Pandoc.Definition
+import Data.List (intersperse)
 import Test.Framework
 import Tests.Helpers
-import Text.Pandoc.Arbitrary()
-import Text.Pandoc.Builder
 import Text.Pandoc
-import Data.List (intersperse)
+import Text.Pandoc.Arbitrary ()
+import Text.Pandoc.Builder
 import Text.Pandoc.Class
-
 
 t2t :: String -> Pandoc
 -- t2t = handleError . readTxt2Tags (T2TMeta "date" "mtime" "in" "out") def

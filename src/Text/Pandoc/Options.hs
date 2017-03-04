@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric      #-}
 {-
 Copyright (C) 2012-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -44,23 +45,23 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , def
                            , isEnabled
                            ) where
-import Text.Pandoc.Extensions
-import Data.Default
-import Text.Pandoc.Highlighting (Style, pygments)
 import Data.Data (Data)
+import Data.Default
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
+import Text.Pandoc.Extensions
+import Text.Pandoc.Highlighting (Style, pygments)
 
 data ReaderOptions = ReaderOptions{
-         readerExtensions      :: Extensions  -- ^ Syntax extensions
-       , readerStandalone      :: Bool -- ^ Standalone document with header
-       , readerColumns         :: Int  -- ^ Number of columns in terminal
-       , readerTabStop         :: Int  -- ^ Tab stop
-       , readerApplyMacros     :: Bool -- ^ Apply macros to TeX math
-       , readerIndentedCodeClasses :: [String] -- ^ Default classes for
+         readerExtensions            :: Extensions  -- ^ Syntax extensions
+       , readerStandalone            :: Bool -- ^ Standalone document with header
+       , readerColumns               :: Int  -- ^ Number of columns in terminal
+       , readerTabStop               :: Int  -- ^ Tab stop
+       , readerApplyMacros           :: Bool -- ^ Apply macros to TeX math
+       , readerIndentedCodeClasses   :: [String] -- ^ Default classes for
                                        -- indented code blocks
        , readerDefaultImageExtension :: String -- ^ Default extension for images
-       , readerTrackChanges    :: TrackChanges
+       , readerTrackChanges          :: TrackChanges
 } deriving (Show, Read, Data, Typeable, Generic)
 
 instance Default ReaderOptions
@@ -139,39 +140,39 @@ data ReferenceLocation = EndOfBlock    -- ^ End of block
 
 -- | Options for writers
 data WriterOptions = WriterOptions
-  { writerTemplate         :: Maybe String -- ^ Template to use
-  , writerVariables        :: [(String, String)] -- ^ Variables to set in template
-  , writerTabStop          :: Int    -- ^ Tabstop for conversion btw spaces and tabs
-  , writerTableOfContents  :: Bool   -- ^ Include table of contents
-  , writerIncremental      :: Bool   -- ^ True if lists should be incremental
-  , writerHTMLMathMethod   :: HTMLMathMethod  -- ^ How to print math in HTML
-  , writerNumberSections   :: Bool   -- ^ Number sections in LaTeX
-  , writerNumberOffset     :: [Int]  -- ^ Starting number for section, subsection, ...
-  , writerSectionDivs      :: Bool   -- ^ Put sections in div tags in HTML
-  , writerExtensions       :: Extensions -- ^ Markdown extensions that can be used
-  , writerReferenceLinks   :: Bool   -- ^ Use reference links in writing markdown, rst
-  , writerDpi              :: Int    -- ^ Dpi for pixel to/from inch/cm conversions
-  , writerWrapText         :: WrapOption  -- ^ Option for wrapping text
-  , writerColumns          :: Int    -- ^ Characters in a line (for text wrapping)
-  , writerEmailObfuscation :: ObfuscationMethod -- ^ How to obfuscate emails
-  , writerIdentifierPrefix :: String -- ^ Prefix for section & note ids in HTML
+  { writerTemplate          :: Maybe String -- ^ Template to use
+  , writerVariables         :: [(String, String)] -- ^ Variables to set in template
+  , writerTabStop           :: Int    -- ^ Tabstop for conversion btw spaces and tabs
+  , writerTableOfContents   :: Bool   -- ^ Include table of contents
+  , writerIncremental       :: Bool   -- ^ True if lists should be incremental
+  , writerHTMLMathMethod    :: HTMLMathMethod  -- ^ How to print math in HTML
+  , writerNumberSections    :: Bool   -- ^ Number sections in LaTeX
+  , writerNumberOffset      :: [Int]  -- ^ Starting number for section, subsection, ...
+  , writerSectionDivs       :: Bool   -- ^ Put sections in div tags in HTML
+  , writerExtensions        :: Extensions -- ^ Markdown extensions that can be used
+  , writerReferenceLinks    :: Bool   -- ^ Use reference links in writing markdown, rst
+  , writerDpi               :: Int    -- ^ Dpi for pixel to/from inch/cm conversions
+  , writerWrapText          :: WrapOption  -- ^ Option for wrapping text
+  , writerColumns           :: Int    -- ^ Characters in a line (for text wrapping)
+  , writerEmailObfuscation  :: ObfuscationMethod -- ^ How to obfuscate emails
+  , writerIdentifierPrefix  :: String -- ^ Prefix for section & note ids in HTML
                                      -- and for footnote marks in markdown
-  , writerSourceURL        :: Maybe String  -- ^ Absolute URL + directory of 1st source file
-  , writerUserDataDir      :: Maybe FilePath -- ^ Path of user data directory
-  , writerCiteMethod       :: CiteMethod -- ^ How to print cites
-  , writerHtmlQTags        :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
-  , writerSlideLevel       :: Maybe Int  -- ^ Force header level of slides
-  , writerTopLevelDivision :: TopLevelDivision -- ^ Type of top-level divisions
-  , writerListings         :: Bool       -- ^ Use listings package for code
-  , writerHighlightStyle   :: Maybe Style  -- ^ Style to use for highlighting
+  , writerSourceURL         :: Maybe String  -- ^ Absolute URL + directory of 1st source file
+  , writerUserDataDir       :: Maybe FilePath -- ^ Path of user data directory
+  , writerCiteMethod        :: CiteMethod -- ^ How to print cites
+  , writerHtmlQTags         :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
+  , writerSlideLevel        :: Maybe Int  -- ^ Force header level of slides
+  , writerTopLevelDivision  :: TopLevelDivision -- ^ Type of top-level divisions
+  , writerListings          :: Bool       -- ^ Use listings package for code
+  , writerHighlightStyle    :: Maybe Style  -- ^ Style to use for highlighting
                                            -- (Nothing = no highlighting)
-  , writerSetextHeaders    :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
-  , writerEpubMetadata     :: Maybe String -- ^ Metadata to include in EPUB
-  , writerEpubFonts        :: [FilePath] -- ^ Paths to fonts to embed
-  , writerEpubChapterLevel :: Int            -- ^ Header level for chapters (separate files)
-  , writerTOCDepth         :: Int            -- ^ Number of levels to include in TOC
-  , writerReferenceDoc     :: Maybe FilePath -- ^ Path to reference document if specified
-  , writerLaTeXArgs        :: [String]       -- ^ Flags to pass to latex-engine
+  , writerSetextHeaders     :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
+  , writerEpubMetadata      :: Maybe String -- ^ Metadata to include in EPUB
+  , writerEpubFonts         :: [FilePath] -- ^ Paths to fonts to embed
+  , writerEpubChapterLevel  :: Int            -- ^ Header level for chapters (separate files)
+  , writerTOCDepth          :: Int            -- ^ Number of levels to include in TOC
+  , writerReferenceDoc      :: Maybe FilePath -- ^ Path to reference document if specified
+  , writerLaTeXArgs         :: [String]       -- ^ Flags to pass to latex-engine
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
   } deriving (Show, Data, Typeable, Generic)
 

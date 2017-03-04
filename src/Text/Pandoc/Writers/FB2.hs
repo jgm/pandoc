@@ -27,37 +27,37 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
-import Control.Monad.State (StateT, evalStateT, get, modify, lift)
+import Control.Monad.Except (catchError, throwError)
+import Control.Monad.State (StateT, evalStateT, get, lift, modify)
 import Control.Monad.State (liftM)
 import Data.ByteString.Base64 (encode)
-import Data.Char (toLower, isSpace, isAscii, isControl)
-import Data.List (intersperse, intercalate, isPrefixOf, stripPrefix)
+import qualified Data.ByteString.Char8 as B8
+import Data.Char (isAscii, isControl, isSpace, toLower)
 import Data.Either (lefts, rights)
+import Data.List (intercalate, intersperse, isPrefixOf, stripPrefix)
 import Network.HTTP (urlEncode)
 import Network.URI (isURI)
 import Text.XML.Light
 import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
-import qualified Data.ByteString.Char8 as B8
-import Control.Monad.Except (throwError, catchError)
 
-import Text.Pandoc.Logging
-import Text.Pandoc.Definition
-import Text.Pandoc.Options (WriterOptions(..), HTMLMathMethod(..), def)
-import Text.Pandoc.Shared (orderedListMarkers, isHeaderBlock, capitalize,
-                           linesToPara)
-import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Definition
+import Text.Pandoc.Error
+import Text.Pandoc.Logging
+import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
+import Text.Pandoc.Shared (capitalize, isHeaderBlock, linesToPara,
+                           orderedListMarkers)
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
 data FbRenderState = FbRenderState
-    { footnotes :: [ (Int, String, [Content]) ]  -- ^ #, ID, text
-    , imagesToFetch :: [ (String, String) ]  -- ^ filename, URL or path
-    , parentListMarker :: String  -- ^ list marker of the parent ordered list
+    { footnotes         :: [ (Int, String, [Content]) ]  -- ^ #, ID, text
+    , imagesToFetch     :: [ (String, String) ]  -- ^ filename, URL or path
+    , parentListMarker  :: String  -- ^ list marker of the parent ordered list
     , parentBulletLevel :: Int  -- ^ nesting level of the unordered list
-    , writerOptions :: WriterOptions
+    , writerOptions     :: WriterOptions
     } deriving (Show)
 
 -- | FictionBook building monad.
@@ -188,7 +188,7 @@ split cond xs = let (b,a) = break cond xs
 
 isLineBreak :: Inline -> Bool
 isLineBreak LineBreak = True
-isLineBreak _ = False
+isLineBreak _         = False
 
 -- | Divide the stream of block elements into sections: [(title, blocks)].
 splitSections :: Int -> [Block] -> [([Inline], [Block])]
@@ -206,7 +206,7 @@ splitSections level blocks = reverse $ revSplit (reverse blocks)
               _ -> ([], before)
     in (header, reverse lastsec) : revSplit prevblocks
   sameLevel (Header n _ _) = n == level
-  sameLevel _ = False
+  sameLevel _              = False
 
 -- | Make another FictionBook body with footnotes.
 renderFootnotes :: PandocMonad m => FBM m [Content]
@@ -353,9 +353,9 @@ blockToXml (DefinitionList defs) =
               blocks ++ [Plain [LineBreak]]
           else
               blocks
-      needsBreak (Para _) = False
+      needsBreak (Para _)    = False
       needsBreak (Plain ins) = LineBreak `notElem` ins
-      needsBreak _ = True
+      needsBreak _           = True
 blockToXml (Header _ _ _) = -- should never happen, see renderSections
                           throwError $ PandocShouldNeverHappenError "unexpected header in section text"
 blockToXml HorizontalRule = return
@@ -378,9 +378,9 @@ blockToXml (Table caption aligns _ headers rows) = do
         return $ el tag ([align_attr align], cblocks)
       --
       align_attr a = Attr (QName "align" Nothing Nothing) (align_str a)
-      align_str AlignLeft = "left"
-      align_str AlignCenter = "center"
-      align_str AlignRight = "right"
+      align_str AlignLeft    = "left"
+      align_str AlignCenter  = "center"
+      align_str AlignRight   = "right"
       align_str AlignDefault = "left"
 blockToXml Null = return []
 
@@ -488,7 +488,7 @@ insertImage immode (Image _ alt (url,ttl)) = do
   modify (\s -> s { imagesToFetch = (fname, url) : images })
   let ttlattr = case (immode, null ttl) of
                   (NormalImage, False) -> [ uattr "title" ttl ]
-                  _ -> []
+                  _                    -> []
   return . list $
          el "image" $
             [ attr ("l","href") ('#':fname)
@@ -512,11 +512,11 @@ replaceImagesWithAlt missingHrefs body =
                  else c
         in  case XC.nextDF c' of
               (Just cnext) -> replaceAll cnext
-              Nothing -> c'  -- end of document
+              Nothing      -> c'  -- end of document
   --
     isImage :: Content -> Bool
     isImage (Elem e) = (elName e) == (uname "image")
-    isImage _ = False
+    isImage _        = False
   --
     isMissing (Elem img@(Element _ _ _ _)) =
         let imgAttrs = elAttribs img
@@ -555,25 +555,25 @@ list = (:[])
 
 -- | Convert an 'Inline' to plaintext.
 plain :: Inline -> String
-plain (Str s) = s
-plain (Emph ss) = concat (map plain ss)
-plain (Span _ ss) = concat (map plain ss)
-plain (Strong ss) = concat (map plain ss)
-plain (Strikeout ss) = concat (map plain ss)
-plain (Superscript ss) = concat (map plain ss)
-plain (Subscript ss) = concat (map plain ss)
-plain (SmallCaps ss) = concat (map plain ss)
-plain (Quoted _ ss) = concat (map plain ss)
-plain (Cite _ ss) = concat (map plain ss)  -- FIXME
-plain (Code _ s) = s
-plain Space = " "
-plain SoftBreak = " "
-plain LineBreak = "\n"
-plain (Math _ s) = s
-plain (RawInline _ _) = ""
+plain (Str s)               = s
+plain (Emph ss)             = concat (map plain ss)
+plain (Span _ ss)           = concat (map plain ss)
+plain (Strong ss)           = concat (map plain ss)
+plain (Strikeout ss)        = concat (map plain ss)
+plain (Superscript ss)      = concat (map plain ss)
+plain (Subscript ss)        = concat (map plain ss)
+plain (SmallCaps ss)        = concat (map plain ss)
+plain (Quoted _ ss)         = concat (map plain ss)
+plain (Cite _ ss)           = concat (map plain ss)  -- FIXME
+plain (Code _ s)            = s
+plain Space                 = " "
+plain SoftBreak             = " "
+plain LineBreak             = "\n"
+plain (Math _ s)            = s
+plain (RawInline _ _)       = ""
 plain (Link _ text (url,_)) = concat (map plain text ++ [" <", url, ">"])
-plain (Image _ alt _) = concat (map plain alt)
-plain (Note _) = ""  -- FIXME
+plain (Image _ alt _)       = concat (map plain alt)
+plain (Note _)              = ""  -- FIXME
 
 -- | Create an XML element.
 el :: (Node t)

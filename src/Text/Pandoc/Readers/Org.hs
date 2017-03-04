@@ -27,17 +27,17 @@ Conversion of org-mode formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Org ( readOrg ) where
 
-import           Text.Pandoc.Readers.Org.Blocks ( blockList, meta )
-import           Text.Pandoc.Readers.Org.Parsing ( OrgParser, readWithM )
-import           Text.Pandoc.Readers.Org.ParserState ( optionsToParserState )
+import Text.Pandoc.Readers.Org.Blocks (blockList, meta)
+import Text.Pandoc.Readers.Org.ParserState (optionsToParserState)
+import Text.Pandoc.Readers.Org.Parsing (OrgParser, readWithM)
 
-import           Text.Pandoc.Class (PandocMonad)
-import           Text.Pandoc.Definition
-import           Text.Pandoc.Error
-import           Text.Pandoc.Options
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.Error
+import Text.Pandoc.Options
 
-import           Control.Monad.Except ( throwError )
-import           Control.Monad.Reader ( runReaderT )
+import Control.Monad.Except (throwError)
+import Control.Monad.Reader (runReaderT)
 
 
 -- | Parse org-mode string and return a Pandoc document.

@@ -1,4 +1,5 @@
-{-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -34,26 +35,25 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    inlineCommand,
                                  ) where
 
-import Text.Pandoc.Definition
-import Text.Pandoc.Walk
-import Text.Pandoc.Shared
-import Text.Pandoc.Options
-import Text.Pandoc.Logging
-import Text.Pandoc.Parsing hiding ((<|>), many, optional, space,
-                                   mathDisplay, mathInline)
-import Data.Char ( chr, ord, isLetter, isAlphaNum )
+import Control.Applicative (many, optional, (<|>))
 import Control.Monad
-import Text.Pandoc.Builder
-import Control.Applicative ((<|>), many, optional)
-import Data.Maybe (fromMaybe, maybeToList)
-import System.FilePath (replaceExtension, takeExtension, addExtension)
+import Control.Monad.Except (throwError)
+import Data.Char (chr, isAlphaNum, isLetter, ord)
 import Data.List (intercalate)
 import qualified Data.Map as M
+import Data.Maybe (fromMaybe, maybeToList)
+import System.FilePath (addExtension, replaceExtension, takeExtension)
+import Text.Pandoc.Builder
+import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileFromDirs,
+                          report, setResourcePath)
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
-import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, report,
-          readFileFromDirs, setResourcePath)
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Parsing hiding (many, mathDisplay, mathInline, optional,
+                            space, (<|>))
+import Text.Pandoc.Shared
+import Text.Pandoc.Walk
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m
@@ -64,7 +64,7 @@ readLaTeX opts ltx = do
   parsed <- readWithM parseLaTeX def{ stateOptions = opts } ltx
   case parsed of
     Right result -> return result
-    Left e -> throwError e
+    Left e       -> throwError e
 
 parseLaTeX :: PandocMonad m => LP m Pandoc
 parseLaTeX = do
@@ -90,9 +90,9 @@ controlSeq :: PandocMonad m => String -> LP m String
 controlSeq name = try $ do
   char '\\'
   case name of
-        ""   -> mzero
+        ""  -> mzero
         [c] | not (isLetter c) -> string [c]
-        cs   -> string cs <* notFollowedBy letter <* optional sp
+        cs  -> string cs <* notFollowedBy letter <* optional sp
   return name
 
 dimenarg :: PandocMonad m => LP m String
@@ -176,11 +176,11 @@ mathChars =
    where escapedChar = try $ do char '\\'
                                 c <- anyChar
                                 return ['\\',c]
-         isOrdChar '$' = False
-         isOrdChar '{' = False
-         isOrdChar '}' = False
+         isOrdChar '$'  = False
+         isOrdChar '{'  = False
+         isOrdChar '}'  = False
          isOrdChar '\\' = False
-         isOrdChar _ = True
+         isOrdChar _    = True
 
 quoted' :: PandocMonad m => (Inlines -> Inlines) -> LP m String -> LP m () -> LP m Inlines
 quoted' f starter ender = do
@@ -192,9 +192,9 @@ quoted' f starter ender = do
        (ender >> return (f (mconcat ils))) <|>
             (<> mconcat ils) <$>
                     lit (case startchs of
-                              "``"  -> "“"
-                              "`"   -> "‘"
-                              _     -> startchs)
+                              "``" -> "“"
+                              "`"  -> "‘"
+                              _    -> startchs)
      else lit startchs
 
 doubleQuote :: PandocMonad m => LP m Inlines
@@ -1155,7 +1155,7 @@ closing = do
   st <- getState
   let extractInlines (MetaBlocks [Plain ys]) = ys
       extractInlines (MetaBlocks [Para ys ]) = ys
-      extractInlines _          = []
+      extractInlines _                       = []
   let sigs = case lookupMeta "author" (stateMeta st) of
                   Just (MetaList xs) ->
                     para $ trimInlines $ fromList $
@@ -1263,8 +1263,8 @@ preamble = mempty <$> manyTill preambleBlock beginDoc
 -- citations
 
 addPrefix :: [Inline] -> [Citation] -> [Citation]
-addPrefix p (k:ks)   = k {citationPrefix = p ++ citationPrefix k} : ks
-addPrefix _ _ = []
+addPrefix p (k:ks) = k {citationPrefix = p ++ citationPrefix k} : ks
+addPrefix _ _      = []
 
 addSuffix :: [Inline] -> [Citation] -> [Citation]
 addSuffix s ks@(_:_) =

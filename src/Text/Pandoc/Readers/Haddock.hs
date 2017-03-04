@@ -14,19 +14,19 @@ module Text.Pandoc.Readers.Haddock
     ( readHaddock
     ) where
 
-import Text.Pandoc.Builder (Blocks, Inlines)
-import qualified Text.Pandoc.Builder as B
-import Data.Monoid ((<>))
-import Text.Pandoc.Shared (trim, splitBy)
+import Control.Monad.Except (throwError)
 import Data.List (intersperse, stripPrefix)
 import Data.Maybe (fromMaybe)
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
+import Data.Monoid ((<>))
 import Documentation.Haddock.Parser
 import Documentation.Haddock.Types
-import Text.Pandoc.Error
-import Control.Monad.Except (throwError)
+import Text.Pandoc.Builder (Blocks, Inlines)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.Error
+import Text.Pandoc.Options
+import Text.Pandoc.Shared (splitBy, trim)
 
 
 -- | Parse Haddock markup and return a 'Pandoc' document.
@@ -96,7 +96,7 @@ docHToBlocks d' =
         isPlain (Plain _) = True
         isPlain _         = False
         extractContents (Plain xs) = xs
-        extractContents _ = []
+        extractContents _          = []
 
 docHToInlines :: Bool -> DocH String Identifier -> Inlines
 docHToInlines isCode d' =

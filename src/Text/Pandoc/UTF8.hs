@@ -45,16 +45,16 @@ module Text.Pandoc.UTF8 ( readFile
 
 where
 
-import System.IO hiding (readFile, writeFile, getContents,
-                          putStr, putStrLn, hPutStr, hPutStrLn, hGetContents)
-import Prelude hiding (readFile, writeFile, getContents, putStr, putStrLn)
-import qualified System.IO as IO
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.Text.Encoding as T
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
+import Prelude hiding (getContents, putStr, putStrLn, readFile, writeFile)
+import System.IO hiding (getContents, hGetContents, hPutStr, hPutStrLn, putStr,
+                  putStrLn, readFile, writeFile)
+import qualified System.IO as IO
 
 readFile :: FilePath -> IO String
 readFile f = do
@@ -90,13 +90,13 @@ hGetContents = fmap toString . B.hGetContents
 -- no-break space, so if the string begins with this  we strip it off.
 dropBOM :: String -> String
 dropBOM ('\xFEFF':xs) = xs
-dropBOM xs = xs
+dropBOM xs            = xs
 
 filterCRs :: String -> String
 filterCRs ('\r':'\n':xs) = '\n': filterCRs xs
-filterCRs ('\r':xs) = '\n' : filterCRs xs
-filterCRs (x:xs) = x : filterCRs xs
-filterCRs []     = []
+filterCRs ('\r':xs)      = '\n' : filterCRs xs
+filterCRs (x:xs)         = x : filterCRs xs
+filterCRs []             = []
 
 -- | Convert UTF8-encoded ByteString to String, also
 -- removing '\r' characters.

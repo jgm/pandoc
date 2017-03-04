@@ -1,4 +1,5 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 -- Utility functions for the test suite.
 
 module Tests.Helpers ( test
@@ -13,24 +14,24 @@ module Tests.Helpers ( test
                      )
                      where
 
-import Text.Pandoc.Definition
-import Text.Pandoc.Builder (Inlines, Blocks, doc, plain)
-import Text.Pandoc.Class
+import Data.Algorithm.Diff
+import qualified Data.Map as M
+import System.Directory
+import System.Environment.Executable (getExecutablePath)
+import System.Exit
+import System.FilePath
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2
 import Test.HUnit (assertBool)
-import Text.Pandoc.Shared (trimr)
+import qualified Test.QuickCheck.Property as QP
+import Text.Pandoc.Builder (Blocks, Inlines, doc, plain)
+import Text.Pandoc.Class
+import Text.Pandoc.Definition
 import Text.Pandoc.Options
+import Text.Pandoc.Shared (trimr)
 import Text.Pandoc.Writers.Native (writeNative)
 import Text.Printf
-import System.Environment.Executable (getExecutablePath)
-import qualified Test.QuickCheck.Property as QP
-import Data.Algorithm.Diff
-import qualified Data.Map as M
-import System.Exit
-import System.Directory
-import System.FilePath
 
 test :: (ToString a, ToString b, ToString c)
      => (a -> b)  -- ^ function to test

@@ -1,4 +1,6 @@
-{-# LANGUAGE ScopedTypeVariables, FlexibleInstances, GADTs #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -143,65 +145,65 @@ module Text.Pandoc
                , pandocVersion
              ) where
 
-import Text.Pandoc.Definition
-import Text.Pandoc.Generic
-import Text.Pandoc.Readers.Markdown
-import Text.Pandoc.Readers.CommonMark
-import Text.Pandoc.Readers.MediaWiki
-import Text.Pandoc.Readers.RST
-import Text.Pandoc.Readers.Org
-import Text.Pandoc.Readers.DocBook
-import Text.Pandoc.Readers.OPML
-import Text.Pandoc.Readers.LaTeX
-import Text.Pandoc.Readers.HTML
-import Text.Pandoc.Readers.Textile
-import Text.Pandoc.Readers.Native
-import Text.Pandoc.Readers.Haddock
-import Text.Pandoc.Readers.TWiki
-import Text.Pandoc.Readers.Docx
-import Text.Pandoc.Readers.Odt
-import Text.Pandoc.Readers.Txt2Tags
-import Text.Pandoc.Readers.EPUB
-import Text.Pandoc.Writers.Native
-import Text.Pandoc.Writers.Markdown
-import Text.Pandoc.Writers.RST
-import Text.Pandoc.Writers.LaTeX
-import Text.Pandoc.Writers.ConTeXt
-import Text.Pandoc.Writers.Texinfo
-import Text.Pandoc.Writers.HTML
-import Text.Pandoc.Writers.ODT
-import Text.Pandoc.Writers.Docx
-import Text.Pandoc.Writers.EPUB
-import Text.Pandoc.Writers.FB2
-import Text.Pandoc.Writers.ICML
-import Text.Pandoc.Writers.Docbook
-import Text.Pandoc.Writers.OPML
-import Text.Pandoc.Writers.OpenDocument
-import Text.Pandoc.Writers.Man
-import Text.Pandoc.Writers.RTF
-import Text.Pandoc.Writers.MediaWiki
-import Text.Pandoc.Writers.DokuWiki
-import Text.Pandoc.Writers.ZimWiki
-import Text.Pandoc.Writers.Textile
-import Text.Pandoc.Writers.Org
-import Text.Pandoc.Writers.AsciiDoc
-import Text.Pandoc.Writers.Haddock
-import Text.Pandoc.Writers.CommonMark
-import Text.Pandoc.Writers.Custom
-import Text.Pandoc.Writers.TEI
-import Text.Pandoc.Templates
-import Text.Pandoc.Options
-import Text.Pandoc.Logging
-import Text.Pandoc.Shared (safeRead, mapLeft, pandocVersion)
-import Text.Pandoc.Error
-import Text.Pandoc.Class
+import Control.Monad.Except (throwError)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
+import Text.Pandoc.Class
+import Text.Pandoc.Definition
+import Text.Pandoc.Error
+import Text.Pandoc.Generic
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Readers.CommonMark
+import Text.Pandoc.Readers.DocBook
+import Text.Pandoc.Readers.Docx
+import Text.Pandoc.Readers.EPUB
+import Text.Pandoc.Readers.Haddock
+import Text.Pandoc.Readers.HTML
+import Text.Pandoc.Readers.LaTeX
+import Text.Pandoc.Readers.Markdown
+import Text.Pandoc.Readers.MediaWiki
+import Text.Pandoc.Readers.Native
+import Text.Pandoc.Readers.Odt
+import Text.Pandoc.Readers.OPML
+import Text.Pandoc.Readers.Org
+import Text.Pandoc.Readers.RST
+import Text.Pandoc.Readers.Textile
+import Text.Pandoc.Readers.TWiki
+import Text.Pandoc.Readers.Txt2Tags
+import Text.Pandoc.Shared (mapLeft, pandocVersion, safeRead)
+import Text.Pandoc.Templates
+import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Writers.AsciiDoc
+import Text.Pandoc.Writers.CommonMark
+import Text.Pandoc.Writers.ConTeXt
+import Text.Pandoc.Writers.Custom
+import Text.Pandoc.Writers.Docbook
+import Text.Pandoc.Writers.Docx
+import Text.Pandoc.Writers.DokuWiki
+import Text.Pandoc.Writers.EPUB
+import Text.Pandoc.Writers.FB2
+import Text.Pandoc.Writers.Haddock
+import Text.Pandoc.Writers.HTML
+import Text.Pandoc.Writers.ICML
+import Text.Pandoc.Writers.LaTeX
+import Text.Pandoc.Writers.Man
+import Text.Pandoc.Writers.Markdown
+import Text.Pandoc.Writers.MediaWiki
+import Text.Pandoc.Writers.Native
+import Text.Pandoc.Writers.ODT
+import Text.Pandoc.Writers.OpenDocument
+import Text.Pandoc.Writers.OPML
+import Text.Pandoc.Writers.Org
+import Text.Pandoc.Writers.RST
+import Text.Pandoc.Writers.RTF
+import Text.Pandoc.Writers.TEI
+import Text.Pandoc.Writers.Texinfo
+import Text.Pandoc.Writers.Textile
+import Text.Pandoc.Writers.ZimWiki
 import Text.Parsec
 import Text.Parsec.Error
-import qualified Text.Pandoc.UTF8 as UTF8
-import Control.Monad.Except (throwError)
 
 parseFormatSpec :: String
                 -> Either ParseError (String, Extensions -> Extensions)
@@ -220,8 +222,8 @@ parseFormatSpec = parse formatSpec ""
                          | name == "lhs" -> return Ext_literate_haskell
                          | otherwise -> fail $ "Unknown extension: " ++ name
           return $ case polarity of
-                        '-'  -> disableExtension ext
-                        _    -> enableExtension ext
+                        '-' -> disableExtension ext
+                        _   -> enableExtension ext
 
 data Reader m = StringReader (ReaderOptions -> String -> m Pandoc)
               | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)

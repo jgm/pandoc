@@ -1,4 +1,7 @@
-{-# LANGUAGE PatternGuards, CPP, ScopedTypeVariables, ViewPatterns, FlexibleContexts #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE PatternGuards       #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-
 Copyright (C) 2010-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -29,45 +32,44 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to EPUB.
 -}
 module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
-import Text.Pandoc.Logging
-import qualified Data.Map as M
-import qualified Data.Set as Set
-import Data.Maybe ( fromMaybe, catMaybes )
-import Data.List ( isPrefixOf, isInfixOf, intercalate )
-import Text.Printf (printf)
-import System.FilePath ( takeExtension, takeFileName )
-import Network.HTTP ( urlEncode )
+import Codec.Archive.Zip (Entry, addEntryToArchive, eRelativePath, emptyArchive,
+                          fromArchive, fromEntry, toEntry)
+import Control.Monad (mplus, when, zipWithM)
+import Control.Monad.Except (catchError, throwError)
+import Control.Monad.State (State, StateT, evalState, evalStateT, get, gets,
+                            lift, modify, put)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
-import qualified Text.Pandoc.UTF8 as UTF8
-import Codec.Archive.Zip ( emptyArchive, addEntryToArchive, eRelativePath, fromEntry                         , Entry, toEntry, fromArchive)
-import Text.Pandoc.Compat.Time
-import Text.Pandoc.Shared ( renderTags', safeRead, uniqueIdent, trim
-                          , normalizeDate, stringify
-                          , hierarchicalize )
-import qualified Text.Pandoc.Shared as S (Element(..))
+import Data.Char (isAlphaNum, isDigit, toLower)
+import Data.List (intercalate, isInfixOf, isPrefixOf)
+import qualified Data.Map as M
+import Data.Maybe (catMaybes, fromMaybe)
+import qualified Data.Set as Set
+import Network.HTTP (urlEncode)
+import System.FilePath (takeExtension, takeFileName)
+import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
 import Text.Pandoc.Builder (fromList, setMeta)
-import Text.Pandoc.Options ( WriterOptions(..)
-                           , WrapOption(..)
-                           , HTMLMathMethod(..)
-                           , EPUBVersion(..)
-                           , ObfuscationMethod(NoObfuscation) )
-import Text.Pandoc.Definition
-import Text.Pandoc.Walk (walk, walkM, query)
-import Text.Pandoc.UUID (getUUID)
-import Control.Monad.State (modify, get, gets, State, StateT, put, evalState, evalStateT, lift)
-import Control.Monad (mplus, when, zipWithM)
-import Text.XML.Light ( unode, Element(..), unqual, Attr(..), add_attrs
-                      , strContent, lookupAttr, Node(..), QName(..), parseXML
-                      , onlyElems, node, ppElement)
-import Text.Pandoc.Writers.HTML ( writeHtmlStringForEPUB )
-import Data.Char ( toLower, isDigit, isAlphaNum )
-import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
-import Text.HTML.TagSoup (Tag(TagOpen), fromAttrib, parseTags)
-import Control.Monad.Except (throwError, catchError)
-import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Compat.Time
+import Text.Pandoc.Definition
+import Text.Pandoc.Error
+import Text.Pandoc.Logging
+import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType)
+import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
+                            ObfuscationMethod (NoObfuscation), WrapOption (..),
+                            WriterOptions (..))
+import Text.Pandoc.Shared (hierarchicalize, normalizeDate, renderTags',
+                           safeRead, stringify, trim, uniqueIdent)
+import qualified Text.Pandoc.Shared as S (Element (..))
+import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.UUID (getUUID)
+import Text.Pandoc.Walk (query, walk, walkM)
+import Text.Pandoc.Writers.HTML (writeHtmlStringForEPUB)
+import Text.Printf (printf)
+import Text.XML.Light (Attr (..), Element (..), Node (..), QName (..),
+                       add_attrs, lookupAttr, node, onlyElems, parseXML,
+                       ppElement, strContent, unode, unqual)
 
 -- A Chapter includes a list of blocks and maybe a section
 -- number offset.  Note, some chapters are unnumbered. The section
@@ -82,46 +84,46 @@ data EPUBState = EPUBState {
 type E m = StateT EPUBState m
 
 data EPUBMetadata = EPUBMetadata{
-    epubIdentifier         :: [Identifier]
-  , epubTitle              :: [Title]
-  , epubDate               :: [Date]
-  , epubLanguage           :: String
-  , epubCreator            :: [Creator]
-  , epubContributor        :: [Creator]
-  , epubSubject            :: [String]
-  , epubDescription        :: Maybe String
-  , epubType               :: Maybe String
-  , epubFormat             :: Maybe String
-  , epubPublisher          :: Maybe String
-  , epubSource             :: Maybe String
-  , epubRelation           :: Maybe String
-  , epubCoverage           :: Maybe String
-  , epubRights             :: Maybe String
-  , epubCoverImage         :: Maybe String
-  , epubStylesheets        :: [FilePath]
-  , epubPageDirection      :: Maybe ProgressionDirection
+    epubIdentifier    :: [Identifier]
+  , epubTitle         :: [Title]
+  , epubDate          :: [Date]
+  , epubLanguage      :: String
+  , epubCreator       :: [Creator]
+  , epubContributor   :: [Creator]
+  , epubSubject       :: [String]
+  , epubDescription   :: Maybe String
+  , epubType          :: Maybe String
+  , epubFormat        :: Maybe String
+  , epubPublisher     :: Maybe String
+  , epubSource        :: Maybe String
+  , epubRelation      :: Maybe String
+  , epubCoverage      :: Maybe String
+  , epubRights        :: Maybe String
+  , epubCoverImage    :: Maybe String
+  , epubStylesheets   :: [FilePath]
+  , epubPageDirection :: Maybe ProgressionDirection
   } deriving Show
 
 data Date = Date{
-    dateText               :: String
-  , dateEvent              :: Maybe String
+    dateText  :: String
+  , dateEvent :: Maybe String
   } deriving Show
 
 data Creator = Creator{
-    creatorText            :: String
-  , creatorRole            :: Maybe String
-  , creatorFileAs          :: Maybe String
+    creatorText   :: String
+  , creatorRole   :: Maybe String
+  , creatorFileAs :: Maybe String
   } deriving Show
 
 data Identifier = Identifier{
-    identifierText         :: String
-  , identifierScheme       :: Maybe String
+    identifierText   :: String
+  , identifierScheme :: Maybe String
   } deriving Show
 
 data Title = Title{
-    titleText              :: String
-  , titleFileAs            :: Maybe String
-  , titleType              :: Maybe String
+    titleText   :: String
+  , titleFileAs :: Maybe String
+  , titleType   :: Maybe String
   } deriving Show
 
 data ProgressionDirection = LTR | RTL deriving Show
@@ -229,16 +231,16 @@ addMetadataFromXML e@(Element (QName name _ (Just "dc")) attrs _ _) md
 addMetadataFromXML _ md = md
 
 metaValueToString :: MetaValue -> String
-metaValueToString (MetaString s) = s
+metaValueToString (MetaString s)    = s
 metaValueToString (MetaInlines ils) = stringify ils
-metaValueToString (MetaBlocks bs) = stringify bs
-metaValueToString (MetaBool True) = "true"
-metaValueToString (MetaBool False) = "false"
-metaValueToString _ = ""
+metaValueToString (MetaBlocks bs)   = stringify bs
+metaValueToString (MetaBool True)   = "true"
+metaValueToString (MetaBool False)  = "false"
+metaValueToString _                 = ""
 
 metaValueToPaths:: MetaValue -> [FilePath]
 metaValueToPaths (MetaList xs) = map metaValueToString xs
-metaValueToPaths x = [metaValueToString x]
+metaValueToPaths x             = [metaValueToString x]
 
 getList :: String -> Meta -> (MetaValue -> a) -> [a]
 getList s meta handleMetaValue =
@@ -286,8 +288,8 @@ simpleList :: String -> Meta -> [String]
 simpleList s meta =
   case lookupMeta s meta of
        Just (MetaList xs) -> map metaValueToString xs
-       Just x -> [metaValueToString x]
-       Nothing -> []
+       Just x             -> [metaValueToString x]
+       Nothing            -> []
 
 metadataFromMeta :: WriterOptions -> Meta -> EPUBMetadata
 metadataFromMeta opts meta = EPUBMetadata{
@@ -538,8 +540,8 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                              ("href", eRelativePath ent),
                              ("media-type", "application/xhtml+xml")]
                             ++ case props ent of
-                                    []   -> []
-                                    xs   -> [("properties", unwords xs)])
+                                    [] -> []
+                                    xs -> [("properties", unwords xs)])
                         $ ()
   let chapterRefNode ent = unode "itemref" !
                              [("idref", toId $ eRelativePath ent)] $ ()
@@ -554,7 +556,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                             ("media-type", fromMaybe "" $ getMimeType $ eRelativePath ent)] $ ()
   let plainTitle = case docTitle' meta of
                         [] -> case epubTitle metadata of
-                                   []   -> "UNTITLED"
+                                   []    -> "UNTITLED"
                                    (x:_) -> titleText x
                         x  -> stringify x
 
@@ -635,7 +637,7 @@ pandocToEPUB version opts doc@(Pandoc meta _) = do
                  Just x  -> return x
                  Nothing -> throwError $ PandocSomeError $ ident ++ " not found in reftable"
         let isSec (S.Sec lev _ _ _ _) = lev <= tocLevel
-            isSec _                 = False
+            isSec _                   = False
         let subsecs = filter isSec children
         subs <- mapM (navPointNode formatter) subsecs
         return $ formatter n tit src subs
@@ -830,22 +832,22 @@ metadataElement version md currentTime =
              (("id",id') :
                 maybe [] (\x -> [("opf:event",x)]) (dateEvent date)) $
                  dateText date]
-        schemeToOnix "ISBN-10" = "02"
-        schemeToOnix "GTIN-13" = "03"
-        schemeToOnix "UPC"     = "04"
-        schemeToOnix "ISMN-10" = "05"
-        schemeToOnix "DOI"     = "06"
-        schemeToOnix "LCCN"    = "13"
-        schemeToOnix "GTIN-14" = "14"
-        schemeToOnix "ISBN-13" = "15"
+        schemeToOnix "ISBN-10"              = "02"
+        schemeToOnix "GTIN-13"              = "03"
+        schemeToOnix "UPC"                  = "04"
+        schemeToOnix "ISMN-10"              = "05"
+        schemeToOnix "DOI"                  = "06"
+        schemeToOnix "LCCN"                 = "13"
+        schemeToOnix "GTIN-14"              = "14"
+        schemeToOnix "ISBN-13"              = "15"
         schemeToOnix "Legal deposit number" = "17"
-        schemeToOnix "URN"     = "22"
-        schemeToOnix "OCLC"    = "23"
-        schemeToOnix "ISMN-13" = "25"
-        schemeToOnix "ISBN-A"  = "26"
-        schemeToOnix "JP"      = "27"
-        schemeToOnix "OLCC"    = "28"
-        schemeToOnix _         = "01"
+        schemeToOnix "URN"                  = "22"
+        schemeToOnix "OCLC"                 = "23"
+        schemeToOnix "ISMN-13"              = "25"
+        schemeToOnix "ISBN-A"               = "26"
+        schemeToOnix "JP"                   = "27"
+        schemeToOnix "OLCC"                 = "28"
+        schemeToOnix _                      = "01"
 
 showDateTimeISO8601 :: UTCTime -> String
 showDateTimeISO8601 = formatTime defaultTimeLocale "%FT%TZ"
@@ -936,8 +938,8 @@ ppTopElement = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++) . unEntity . 
                    let (ds,ys) = break (==';') xs
                        rest = drop 1 ys
                    in  case safeRead ('\'':'\\':ds ++ "'") of
-                          Just x   -> x : unEntity rest
-                          Nothing  -> '&':'#':unEntity xs
+                          Just x  -> x : unEntity rest
+                          Nothing -> '&':'#':unEntity xs
         unEntity (x:xs) = x : unEntity xs
 
 mediaTypeOf :: FilePath -> Maybe MimeType
@@ -945,7 +947,7 @@ mediaTypeOf x =
   let mediaPrefixes = ["image", "video", "audio"] in
   case getMimeType x of
     Just y | any (`isPrefixOf` y) mediaPrefixes -> Just y
-    _                                           -> Nothing
+    _      -> Nothing
 
 -- Returns filename for chapter number.
 showChapter :: Int -> String

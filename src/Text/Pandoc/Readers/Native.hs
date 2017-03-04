@@ -31,12 +31,12 @@ Conversion of a string representation of a pandoc type (@Pandoc@,
 module Text.Pandoc.Readers.Native ( readNative ) where
 
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Shared (safeRead)
 
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Error
 import Text.Pandoc.Class
+import Text.Pandoc.Error
 
 -- | Read native formatted text and return a Pandoc document.
 -- The input may be a full pandoc document, a block list, a block,

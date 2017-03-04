@@ -1,39 +1,37 @@
-{-# LANGUAGE
-   ViewPatterns
- , StandaloneDeriving
- , TupleSections
- , FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TupleSections      #-}
+{-# LANGUAGE ViewPatterns       #-}
 
 module Text.Pandoc.Readers.EPUB
   (readEPUB)
   where
 
-import Text.XML.Light
-import Text.Pandoc.Definition hiding (Attr)
-import Text.Pandoc.Readers.HTML (readHtml)
-import Text.Pandoc.Walk (walk, query)
-import Text.Pandoc.Options ( ReaderOptions(..))
-import Text.Pandoc.Extensions (enableExtension, Extension(Ext_raw_html))
-import Text.Pandoc.Shared (escapeURI, collapseFilePath, addMetaField)
-import Network.URI (unEscapeString)
-import Control.Monad.Except (throwError)
-import Text.Pandoc.MIME (MimeType)
-import qualified Text.Pandoc.Builder as B
-import Codec.Archive.Zip ( Archive (..), toArchiveOrFail, fromEntry
-                         , findEntryByPath, Entry)
-import qualified Data.ByteString.Lazy as BL (ByteString)
-import System.FilePath ( takeFileName, (</>), dropFileName, normalise
-                       , dropFileName
-                       , splitFileName )
-import qualified Text.Pandoc.UTF8 as UTF8 (toStringLazy)
+import Codec.Archive.Zip (Archive (..), Entry, findEntryByPath, fromEntry,
+                          toArchiveOrFail)
+import Control.DeepSeq (NFData, deepseq)
 import Control.Monad (guard, liftM)
-import Data.List (isPrefixOf, isInfixOf)
-import Data.Maybe (mapMaybe, fromMaybe)
-import qualified Data.Map as M (Map, lookup, fromList, elems)
+import Control.Monad.Except (throwError)
+import qualified Data.ByteString.Lazy as BL (ByteString)
+import Data.List (isInfixOf, isPrefixOf)
+import qualified Data.Map as M (Map, elems, fromList, lookup)
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Monoid ((<>))
-import Control.DeepSeq (deepseq, NFData)
-import Text.Pandoc.Error
+import Network.URI (unEscapeString)
+import System.FilePath (dropFileName, dropFileName, normalise, splitFileName,
+                        takeFileName, (</>))
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, insertMedia)
+import Text.Pandoc.Definition hiding (Attr)
+import Text.Pandoc.Error
+import Text.Pandoc.Extensions (Extension (Ext_raw_html), enableExtension)
+import Text.Pandoc.MIME (MimeType)
+import Text.Pandoc.Options (ReaderOptions (..))
+import Text.Pandoc.Readers.HTML (readHtml)
+import Text.Pandoc.Shared (addMetaField, collapseFilePath, escapeURI)
+import qualified Text.Pandoc.UTF8 as UTF8 (toStringLazy)
+import Text.Pandoc.Walk (query, walk)
+import Text.XML.Light
 
 type Items = M.Map String (FilePath, MimeType)
 
@@ -99,7 +97,7 @@ fetchImages mimes root arc (query iq -> links) =
 
 iq :: Inline -> [FilePath]
 iq (Image _ _ (url, _)) = [url]
-iq _ = []
+iq _                    = []
 
 -- Remove relative paths
 renameImages :: FilePath -> Inline -> Inline
@@ -159,7 +157,7 @@ parseMetaItem e@(stripNamespace . elName -> field) meta =
 
 renameMeta :: String -> String
 renameMeta "creator" = "author"
-renameMeta s = s
+renameMeta s         = s
 
 getManifest :: PandocMonad m => Archive -> m (String, Element)
 getManifest archive = do
@@ -216,7 +214,7 @@ fixAttrs :: FilePath -> B.Attr -> B.Attr
 fixAttrs s (ident, cs, kvs) = (addHash s ident, filter (not . null) cs, removeEPUBAttrs kvs)
 
 addHash :: String -> String -> String
-addHash _ "" = ""
+addHash _ ""    = ""
 addHash s ident = takeFileName s ++ "#" ++ ident
 
 removeEPUBAttrs :: [(String, String)] -> [(String, String)]
@@ -244,7 +242,7 @@ stripNamespace (QName v _ _) = v
 
 attrToNSPair :: Attr -> Maybe (String, String)
 attrToNSPair (Attr (QName "xmlns" _ _) val) = Just ("xmlns", val)
-attrToNSPair _ = Nothing
+attrToNSPair _                              = Nothing
 
 attrToPair :: Attr -> (String, String)
 attrToPair (Attr (QName name _ _) val) = (name, val)

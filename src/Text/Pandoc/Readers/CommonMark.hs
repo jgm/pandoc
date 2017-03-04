@@ -33,11 +33,11 @@ module Text.Pandoc.Readers.CommonMark (readCommonMark)
 where
 
 import CMark
-import Data.Text (unpack, pack)
 import Data.List (groupBy)
+import Data.Text (pack, unpack)
+import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Class (PandocMonad)
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readCommonMark :: PandocMonad m => ReaderOptions -> String -> m Pandoc
@@ -86,8 +86,8 @@ addBlock (Node _ (LIST listAttrs) nodes) =
         paraToPlain (Para xs) = Plain (xs)
         paraToPlain x         = x
         delim = case listDelim listAttrs of
-                     PERIOD_DELIM  -> Period
-                     PAREN_DELIM   -> OneParen
+                     PERIOD_DELIM -> Period
+                     PAREN_DELIM  -> OneParen
 addBlock (Node _ ITEM _) = id -- handled in LIST
 addBlock _ = id
 
@@ -105,8 +105,8 @@ addInline (Node _ (TEXT t) _) = (map toinl clumps ++)
         samekind ' ' _   = False
         samekind _   ' ' = False
         samekind _  _    = True
-        toinl (' ':_)    = Space
-        toinl xs         = Str xs
+        toinl (' ':_) = Space
+        toinl xs      = Str xs
 addInline (Node _ LINEBREAK _) = (LineBreak :)
 addInline (Node _ SOFTBREAK _) = (SoftBreak :)
 addInline (Node _ (HTML_INLINE t) _) =

@@ -2,10 +2,10 @@
 module Tests.Writers.ConTeXt (tests) where
 
 import Test.Framework
-import Text.Pandoc.Builder
-import Text.Pandoc
 import Tests.Helpers
-import Text.Pandoc.Arbitrary()
+import Text.Pandoc
+import Text.Pandoc.Arbitrary ()
+import Text.Pandoc.Builder
 
 context :: (ToPandoc a) => a -> String
 context = purely (writeConTeXt def) . toPandoc

@@ -1,6 +1,9 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE FlexibleInstances, OverloadedStrings,
-    ScopedTypeVariables, DeriveDataTypeable, CPP #-}
+{-# LANGUAGE CPP                  #-}
+{-# LANGUAGE DeriveDataTypeable   #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
 #if MIN_VERSION_base(4,8,0)
 #else
 {-# LANGUAGE OverlappingInstances #-}
@@ -35,20 +38,20 @@ Conversion of 'Pandoc' documents to custom markup using
 a lua writer.
 -}
 module Text.Pandoc.Writers.Custom ( writeCustom ) where
+import Control.Exception
+import Control.Monad (when)
+import Data.Char (toLower)
+import Data.List (intersperse)
+import qualified Data.Map as M
+import Data.Typeable
+import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
+import Scripting.Lua (LuaState, StackValue, callfunc)
+import qualified Scripting.Lua as Lua
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Data.List ( intersperse )
-import Data.Char ( toLower )
-import Data.Typeable
-import Scripting.Lua (LuaState, StackValue, callfunc)
-import Text.Pandoc.Writers.Shared
-import qualified Scripting.Lua as Lua
-import qualified Text.Pandoc.UTF8 as UTF8
-import Control.Monad (when)
-import Control.Exception
-import qualified Data.Map as M
 import Text.Pandoc.Templates
-import GHC.IO.Encoding (getForeignEncoding,setForeignEncoding, utf8)
+import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Writers.Shared
 
 attrToMap :: Attr -> M.Map String String
 attrToMap (id',classes,keyvals) = M.fromList
@@ -142,19 +145,19 @@ instance StackValue [Block] where
   valuetype _ = Lua.TSTRING
 
 instance StackValue MetaValue where
-  push l (MetaMap m) = Lua.push l m
-  push l (MetaList xs) = Lua.push l xs
-  push l (MetaBool x) = Lua.push l x
-  push l (MetaString s) = Lua.push l s
+  push l (MetaMap m)       = Lua.push l m
+  push l (MetaList xs)     = Lua.push l xs
+  push l (MetaBool x)      = Lua.push l x
+  push l (MetaString s)    = Lua.push l s
   push l (MetaInlines ils) = Lua.push l ils
-  push l (MetaBlocks bs) = Lua.push l bs
+  push l (MetaBlocks bs)   = Lua.push l bs
   peek _ _ = undefined
-  valuetype (MetaMap _) = Lua.TTABLE
-  valuetype (MetaList _) = Lua.TTABLE
-  valuetype (MetaBool _) = Lua.TBOOLEAN
-  valuetype (MetaString _) = Lua.TSTRING
+  valuetype (MetaMap _)     = Lua.TTABLE
+  valuetype (MetaList _)    = Lua.TTABLE
+  valuetype (MetaBool _)    = Lua.TBOOLEAN
+  valuetype (MetaString _)  = Lua.TSTRING
   valuetype (MetaInlines _) = Lua.TSTRING
-  valuetype (MetaBlocks _) = Lua.TSTRING
+  valuetype (MetaBlocks _)  = Lua.TSTRING
 
 instance StackValue Citation where
   push lua cit = do

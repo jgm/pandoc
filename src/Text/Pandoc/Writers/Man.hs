@@ -29,25 +29,25 @@ Conversion of 'Pandoc' documents to groff man page format.
 
 -}
 module Text.Pandoc.Writers.Man ( writeMan) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Templates
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Options
-import Text.Pandoc.Writers.Math
-import Text.Printf ( printf )
-import Data.List ( stripPrefix, intersperse, intercalate )
-import Data.Maybe (fromMaybe)
-import Text.Pandoc.Pretty
-import Text.Pandoc.Builder (deleteMeta)
-import Control.Monad.State
-import Text.Pandoc.Error
 import Control.Monad.Except (throwError)
+import Control.Monad.State
+import Data.List (intercalate, intersperse, stripPrefix)
+import Data.Maybe (fromMaybe)
+import Text.Pandoc.Builder (deleteMeta)
 import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Error
 import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates
+import Text.Pandoc.Writers.Math
+import Text.Pandoc.Writers.Shared
+import Text.Printf (printf)
 
 type Notes = [[Block]]
-data WriterState = WriterState { stNotes  :: Notes
+data WriterState = WriterState { stNotes     :: Notes
                                , stHasTables :: Bool }
 
 -- | Convert Pandoc to Man.
@@ -131,7 +131,7 @@ escapeCode = concat . intersperse "\n" . map escapeLine . lines  where
   escapeLine codeline =
     case escapeStringUsing (manEscapes ++ backslashEscapes "\t ") codeline of
       a@('.':_) -> "\\&" ++ a
-      b       -> b
+      b         -> b
 
 -- We split inline lists into sentences, and print one sentence per
 -- line.  groff/troff treats the line-ending period differently.
@@ -143,8 +143,8 @@ breakSentence [] = ([],[])
 breakSentence xs =
   let isSentenceEndInline (Str ys@(_:_)) | last ys == '.' = True
       isSentenceEndInline (Str ys@(_:_)) | last ys == '?' = True
-      isSentenceEndInline (LineBreak) = True
-      isSentenceEndInline _         = False
+      isSentenceEndInline (LineBreak)    = True
+      isSentenceEndInline _              = False
       (as, bs) = break isSentenceEndInline xs
   in  case bs of
            []             -> (as, [])

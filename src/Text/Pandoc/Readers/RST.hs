@@ -1,6 +1,6 @@
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -31,27 +31,27 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
+import Control.Monad (guard, liftM, mzero, when)
+import Control.Monad.Except (throwError)
+import Data.Char (isHexDigit, isSpace, toLower, toUpper)
+import Data.List (deleteFirstsBy, findIndex, intercalate, isInfixOf, isSuffixOf,
+                  nub, sort, transpose, union)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe, isJust)
+import Data.Monoid ((<>))
+import Data.Sequence (ViewR (..), viewr)
+import Text.Pandoc.Builder (fromList, setMeta)
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad, readFileFromDirs)
 import Text.Pandoc.Definition
-import Text.Pandoc.Builder (setMeta, fromList)
-import Text.Pandoc.Shared
-import Text.Pandoc.Parsing
-import Text.Pandoc.Options
-import Text.Pandoc.Logging
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize (lengthToDim, scaleDimension)
-import Control.Monad ( when, liftM, guard, mzero )
-import Data.List ( findIndex, intercalate, isInfixOf,
-                   transpose, sort, deleteFirstsBy, isSuffixOf , nub, union)
-import Data.Maybe (fromMaybe, isJust)
-import qualified Data.Map as M
-import Text.Printf ( printf )
-import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
-import qualified Text.Pandoc.Builder as B
-import Data.Sequence (viewr, ViewR(..))
-import Data.Char (toLower, isHexDigit, isSpace, toUpper)
-import Data.Monoid ((<>))
-import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad, readFileFromDirs)
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Parsing
+import Text.Pandoc.Shared
+import Text.Printf (printf)
 
 -- TODO:
 -- [ ] .. parsed-literal
@@ -667,7 +667,7 @@ directive' = do
                                        _ ->
                                          case safeRead v of
                                               Just (s :: Double) -> s
-                                              Nothing -> 1.0
+                                              Nothing            -> 1.0
                        Nothing -> 1.0
           widthAttr = maybe [] (\x -> [("width",
                                         show $ scaleDimension scale x)])
@@ -744,7 +744,7 @@ directive' = do
             --  directive content or the first immediately following element
             children <- case body of
                 "" -> block
-                _ -> parseFromString parseBlocks  body'
+                _  -> parseFromString parseBlocks  body'
             return $ B.divWith attrs children
         other     -> do
             pos <- getPosition
@@ -775,7 +775,7 @@ addNewRole roleString fields = do
     let getBaseRole (r, f, a) roles =
             case M.lookup r roles of
                  Just (r', f', a') -> getBaseRole (r', f', a') roles
-                 Nothing -> (r, f, a)
+                 Nothing           -> (r, f, a)
         (baseRole, baseFmt, baseAttr) =
                getBaseRole (parentRole, Nothing, nullAttr) customRoles
         fmt = if parentRole == "raw" then lookup "format" fields else baseFmt
@@ -1003,7 +1003,7 @@ anonymousKey = try $ do
 stripTicks :: String -> String
 stripTicks = reverse . stripTick . reverse . stripTick
   where stripTick ('`':xs) = xs
-        stripTick xs = xs
+        stripTick xs       = xs
 
 regularKey :: PandocMonad m => RSTParser m ()
 regularKey = try $ do
@@ -1320,7 +1320,7 @@ explicitLink = try $ do
   -- `link <google_>` is a reference link to _google!
   ((src',tit),attr) <- case reverse src of
                           '_':xs -> lookupKey [] (toKey (reverse xs))
-                          _ -> return ((src, ""), nullAttr)
+                          _      -> return ((src, ""), nullAttr)
   return $ B.linkWith attr (escapeURI src') tit label''
 
 citationName :: PandocMonad m => RSTParser m Inlines
@@ -1342,7 +1342,7 @@ referenceLink = try $ do
                 do char '_'
                    let anonKeys = sort $ filter isAnonKey $ M.keys keyTable
                    case anonKeys of
-                        [] -> mzero
+                        []    -> mzero
                         (k:_) -> return k
   ((src,tit), attr) <- lookupKey [] key
   -- if anonymous link, remove key so it won't be used again

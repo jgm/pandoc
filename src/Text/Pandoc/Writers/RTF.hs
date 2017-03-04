@@ -30,24 +30,24 @@ Conversion of 'Pandoc' documents to RTF (rich text format).
 -}
 module Text.Pandoc.Writers.RTF ( writeRTF
                                ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Writers.Math
-import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Walk
-import Text.Pandoc.Logging
-import Data.List ( isSuffixOf, intercalate )
-import Data.Char ( ord, chr, isDigit )
+import Control.Monad.Except (catchError, throwError)
 import qualified Data.ByteString as B
+import Data.Char (chr, isDigit, ord)
+import Data.List (intercalate, isSuffixOf)
 import qualified Data.Map as M
-import Text.Printf ( printf )
-import Text.Pandoc.ImageSize
-import Control.Monad.Except (throwError, catchError)
-import Text.Pandoc.Error
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Definition
+import Text.Pandoc.Error
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Walk
+import Text.Pandoc.Writers.Math
+import Text.Pandoc.Writers.Shared
+import Text.Printf (printf)
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file,
 -- or a MediaBag, or the internet.
@@ -106,7 +106,7 @@ writeRTF options doc = do
   Pandoc meta@(Meta metamap) blocks <- walkM (rtfEmbedImage options) doc
   let spacer = not $ all null $ docTitle meta : docDate meta : docAuthors meta
   let toPlain (MetaBlocks [Para ils]) = MetaInlines ils
-      toPlain x = x
+      toPlain x                       = x
   -- adjust title, author, date so we don't get para inside para
   let meta'  = Meta $ M.adjust toPlain "title"
                     . M.adjust toPlain "author"
@@ -118,7 +118,7 @@ writeRTF options doc = do
               meta'
   body <- blocksToRTF 0 AlignDefault blocks
   let isTOCHeader (Header lev _ _) = lev <= writerTOCDepth options
-      isTOCHeader _ = False
+      isTOCHeader _                = False
   toc <- tableOfContents $ filter isTOCHeader blocks
   let context = defField "body" body
               $ defField "spacer" spacer
@@ -193,9 +193,9 @@ rtfParSpaced :: Int       -- ^ space after (in twips)
              -> String
 rtfParSpaced spaceAfter indent firstLineIndent alignment content =
   let alignString = case alignment of
-                           AlignLeft -> "\\ql "
-                           AlignRight -> "\\qr "
-                           AlignCenter -> "\\qc "
+                           AlignLeft    -> "\\ql "
+                           AlignRight   -> "\\qr "
+                           AlignCenter  -> "\\qc "
                            AlignDefault -> "\\ql "
   in  "{\\pard " ++ alignString ++
       "\\f0 \\sa" ++ (show spaceAfter) ++ " \\li" ++ (show indent) ++

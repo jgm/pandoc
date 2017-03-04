@@ -41,19 +41,20 @@ module Text.Pandoc.Writers.Shared (
                      , unsmartify
                      )
 where
-import Text.Pandoc.Definition
-import Text.Pandoc.Pretty
-import Text.Pandoc.Options
-import Text.Pandoc.XML (escapeStringForXML)
 import Control.Monad (liftM)
+import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
+                   encode, fromJSON)
 import qualified Data.HashMap.Strict as H
+import Data.List (groupBy)
 import qualified Data.Map as M
+import Data.Maybe (isJust)
 import qualified Data.Text as T
-import Data.Aeson (FromJSON(..), fromJSON, ToJSON (..), Value(Object), Result(..), encode)
-import Text.Pandoc.UTF8 (toStringLazy)
 import qualified Data.Traversable as Traversable
-import Data.List ( groupBy )
-import Data.Maybe ( isJust )
+import Text.Pandoc.Definition
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.UTF8 (toStringLazy)
+import Text.Pandoc.XML (escapeStringForXML)
 
 -- | Create JSON value for template from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -94,7 +95,7 @@ addVariablesToJSON opts metadata =
        (writerVariables opts)
     `combineMetadata` metadata
   where combineMetadata (Object o1) (Object o2) = Object $ H.union o1 o2
-        combineMetadata x _           = x
+        combineMetadata x _                     = x
 
 metaValueToJSON :: Monad m
                 => ([Block] -> m String)
@@ -134,8 +135,8 @@ setField field val (Object hashmap) =
   Object $ H.insertWith combine (T.pack field) (toJSON val) hashmap
   where combine newval oldval =
           case fromJSON oldval of
-                Success xs  -> toJSON $ xs ++ [newval]
-                _           -> toJSON [oldval, newval]
+                Success xs -> toJSON $ xs ++ [newval]
+                _          -> toJSON [oldval, newval]
 setField _ _  x = x
 
 resetField :: ToJSON a
@@ -183,9 +184,9 @@ isDisplayMath _                    = False
 
 stripLeadingTrailingSpace :: [Inline] -> [Inline]
 stripLeadingTrailingSpace = go . reverse . go . reverse
-  where go (Space:xs) = xs
+  where go (Space:xs)     = xs
         go (SoftBreak:xs) = xs
-        go xs         = xs
+        go xs             = xs
 
 -- Put display math in its own block (for ODT/DOCX).
 fixDisplayMath :: Block -> Block

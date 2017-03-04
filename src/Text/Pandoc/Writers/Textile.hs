@@ -30,18 +30,18 @@ Conversion of 'Pandoc' documents to Textile markup.
 Textile:  <http://thresholdstate.com/articles/4312/the-textile-reference-manual>
 -}
 module Text.Pandoc.Writers.Textile ( writeTextile ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Options
-import Text.Pandoc.Shared
-import Text.Pandoc.Pretty (render)
-import Text.Pandoc.ImageSize
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.XML ( escapeStringForXML )
-import Data.List ( intercalate )
 import Control.Monad.State
-import Data.Char ( isSpace )
-import Text.Pandoc.Class ( PandocMonad )
+import Data.Char (isSpace)
+import Data.List (intercalate)
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty (render)
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Writers.Shared
+import Text.Pandoc.XML (escapeStringForXML)
 
 data WriterState = WriterState {
     stNotes     :: [String]        -- Footnotes
@@ -302,16 +302,16 @@ isSimpleListItem :: [Block] -> Bool
 isSimpleListItem []  = True
 isSimpleListItem [x] =
   case x of
-       Plain _           -> True
-       Para  _           -> True
-       BulletList _      -> isSimpleList x
-       OrderedList _ _   -> isSimpleList x
-       _                 -> False
+       Plain _         -> True
+       Para  _         -> True
+       BulletList _    -> isSimpleList x
+       OrderedList _ _ -> isSimpleList x
+       _               -> False
 isSimpleListItem [x, y] | isPlainOrPara x =
   case y of
-       BulletList _      -> isSimpleList y
-       OrderedList _ _   -> isSimpleList y
-       _                 -> False
+       BulletList _    -> isSimpleList y
+       OrderedList _ _ -> isSimpleList y
+       _               -> False
 isSimpleListItem _ = False
 
 isPlainOrPara :: Block -> Bool
@@ -334,9 +334,9 @@ tableRowToTextile :: WriterOptions
 tableRowToTextile opts alignStrings rownum cols' = do
   let celltype = if rownum == 0 then "th" else "td"
   let rowclass = case rownum of
-                      0                  -> "header"
+                      0 -> "header"
                       x | x `rem` 2 == 1 -> "odd"
-                      _                  -> "even"
+                      _ -> "even"
   cols'' <- sequence $ zipWith
             (\alignment item -> tableItemToTextile opts celltype alignment item)
             alignStrings cols'

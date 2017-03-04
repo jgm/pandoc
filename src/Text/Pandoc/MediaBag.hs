@@ -1,4 +1,5 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-
 Copyright (C) 2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -36,19 +37,19 @@ module Text.Pandoc.MediaBag (
                      mediaDirectory,
                      extractMediaBag
                      ) where
+import Control.Monad (when)
+import Control.Monad.Trans (MonadIO (..))
+import qualified Data.ByteString.Lazy as BL
+import Data.Data (Data)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
+import Data.Typeable (Typeable)
+import System.Directory (createDirectoryIfMissing)
 import System.FilePath
 import qualified System.FilePath.Posix as Posix
-import System.Directory (createDirectoryIfMissing)
-import qualified Data.Map as M
-import qualified Data.ByteString.Lazy as BL
-import Control.Monad (when)
-import Control.Monad.Trans (MonadIO(..))
+import System.IO (stderr)
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Data.Maybe (fromMaybe)
-import System.IO (stderr)
-import Data.Data (Data)
-import Data.Typeable (Typeable)
 
 -- | A container for a collection of binary resources, with names and
 -- mime types.  Note that a 'MediaBag' is a Monoid, so 'mempty'
@@ -71,8 +72,8 @@ insertMedia fp mbMime contents (MediaBag mediamap) =
   MediaBag (M.insert (splitDirectories fp) (mime, contents) mediamap)
   where mime = fromMaybe fallback mbMime
         fallback = case takeExtension fp of
-                        ".gz"   -> getMimeTypeDef $ dropExtension fp
-                        _       -> getMimeTypeDef fp
+                        ".gz" -> getMimeTypeDef $ dropExtension fp
+                        _     -> getMimeTypeDef fp
 
 -- | Lookup a media item in a 'MediaBag', returning mime type and contents.
 lookupMedia :: FilePath

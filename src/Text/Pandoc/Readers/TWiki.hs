@@ -1,4 +1,7 @@
-{-# LANGUAGE RelaxedPolyRec, FlexibleInstances, TypeSynonymInstances, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE RelaxedPolyRec       #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 -- RelaxedPolyRec needed for inlinesBetween on GHC < 7
 {-
   Copyright (C) 2014 Alexander Sulfrian <alexander.sulfrian@fu-berlin.de>
@@ -32,20 +35,20 @@ Conversion of twiki text to 'Pandoc' document.
 module Text.Pandoc.Readers.TWiki ( readTWiki
                                  ) where
 
-import Text.Pandoc.Definition
-import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Options
-import Text.Pandoc.Logging
-import Text.Pandoc.Parsing hiding (enclosed, macro, nested)
-import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Control.Monad
-import Text.Pandoc.XML (fromEntities)
-import Data.Maybe (fromMaybe)
-import Text.HTML.TagSoup
+import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F
-import Control.Monad.Except (throwError)
+import Data.Maybe (fromMaybe)
+import Text.HTML.TagSoup
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Parsing hiding (enclosed, macro, nested)
+import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
+import Text.Pandoc.XML (fromEntities)
 
 -- | Read twiki from an input string and return a Pandoc document.
 readTWiki :: PandocMonad m
@@ -391,8 +394,8 @@ attributes = char '{' *> spnl *> many (attribute <* spnl) <* char '}' >>=
              return . foldr (either mkContent mkKvs) ([], [])
   where
     spnl                      = skipMany (spaceChar <|> newline)
-    mkContent c  ([], kvs)    = (c, kvs)
-    mkContent c  (rest, kvs)  = (c ++ " " ++ rest, kvs)
+    mkContent c  ([], kvs)   = (c, kvs)
+    mkContent c  (rest, kvs) = (c ++ " " ++ rest, kvs)
     mkKvs     kv (cont, rest) = (cont, (kv : rest))
 
 attribute :: PandocMonad m => TWParser m (Either String (String, String))

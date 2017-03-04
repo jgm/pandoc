@@ -1,4 +1,4 @@
-{-# LANGUAGE RelaxedPolyRec #-} -- needed for inlinesBetween on GHC < 7
+{-# LANGUAGE RelaxedPolyRec      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-
@@ -32,40 +32,40 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
 
-import Data.List ( transpose, sortBy, findIndex, intercalate )
+import Control.Monad
+import Control.Monad.Except (catchError, throwError)
+import Control.Monad.Trans (lift)
+import Data.Char (isAlphaNum, isPunctuation, isSpace, toLower)
+import qualified Data.HashMap.Strict as H
+import Data.List (findIndex, intercalate, sortBy, transpose)
 import qualified Data.Map as M
-import Data.Scientific (coefficient, base10Exponent)
-import Data.Ord ( comparing )
-import Data.Char ( isSpace, isAlphaNum, toLower, isPunctuation )
 import Data.Maybe
+import Data.Monoid ((<>))
+import Data.Ord (comparing)
+import Data.Scientific (base10Exponent, coefficient)
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Vector as V
+import Data.Yaml (ParseException (..), YamlException (..), YamlMark (..))
+import qualified Data.Yaml as Yaml
+import System.FilePath (addExtension, takeExtension)
+import Text.HTML.TagSoup
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojis)
 import Text.Pandoc.Generic (bottomUp)
-import qualified Data.Text as T
-import Data.Text (Text)
-import qualified Data.Yaml as Yaml
-import Data.Yaml (ParseException(..), YamlException(..), YamlMark(..))
-import qualified Data.HashMap.Strict as H
-import qualified Text.Pandoc.Builder as B
-import qualified Text.Pandoc.UTF8 as UTF8
-import qualified Data.Vector as V
-import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
-import Text.Pandoc.Options
 import Text.Pandoc.Logging
-import Text.Pandoc.Shared
-import Text.Pandoc.Pretty (charWidth)
-import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableWith)
-import Text.Pandoc.Readers.LaTeX ( rawLaTeXInline, rawLaTeXBlock )
-import Text.Pandoc.Readers.HTML ( htmlTag, htmlInBalanced, isInlineTag, isBlockTag,
-                                  isTextTag, isCommentTag )
-import Control.Monad
-import System.FilePath (takeExtension, addExtension)
-import Text.HTML.TagSoup
-import Data.Monoid ((<>))
-import Control.Monad.Trans (lift)
-import Control.Monad.Except (throwError, catchError)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Pretty (charWidth)
+import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
+                                 isCommentTag, isInlineTag, isTextTag)
+import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
+import Text.Pandoc.Shared
+import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.XML (fromEntities)
 
 type MarkdownParser m = ParserT [Char] ParserState m
 
@@ -78,7 +78,7 @@ readMarkdown opts s = do
   parsed <- (readWithM parseMarkdown) def{ stateOptions = opts } (s ++ "\n\n")
   case parsed of
     Right result -> return result
-    Left e -> throwError e
+    Left e       -> throwError e
 
 trimInlinesF :: F Inlines -> F Inlines
 trimInlinesF = liftM trimInlines
@@ -235,11 +235,11 @@ pandocTitleBlock = try $ do
                    $ nullMeta
   updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
 
-  
+
 -- Adapted from solution at
 -- http://stackoverflow.com/a/29448764/1901888
 foldrWithKeyM :: Monad m => (k -> b -> a -> m a) -> a -> H.HashMap k b -> m a
-foldrWithKeyM f acc = H.foldrWithKey f' (return acc) 
+foldrWithKeyM f acc = H.foldrWithKey f' (return acc)
     where
         f' k b ma = ma >>= \a -> f k b a
 
@@ -688,9 +688,9 @@ codeBlockFenced = try $ do
 -- correctly handle github language identifiers
 toLanguageId :: String -> String
 toLanguageId = map toLower . go
-  where go "c++" = "cpp"
+  where go "c++"         = "cpp"
         go "objective-c" = "objectivec"
-        go x = x
+        go x             = x
 
 codeBlockIndented :: PandocMonad m => MarkdownParser m (F Blocks)
 codeBlockIndented = do
@@ -1167,13 +1167,13 @@ alignType strLst len =
   let nonempties = filter (not . null) $ map trimr strLst
       (leftSpace, rightSpace) =
            case sortBy (comparing length) nonempties of
-                 (x:_)  -> (head x `elem` " \t", length x < len)
-                 []     -> (False, False)
+                 (x:_) -> (head x `elem` " \t", length x < len)
+                 []    -> (False, False)
   in  case (leftSpace, rightSpace) of
-        (True,  False)   -> AlignRight
-        (False, True)    -> AlignLeft
-        (True,  True)    -> AlignCenter
-        (False, False)   -> AlignDefault
+        (True,  False) -> AlignRight
+        (False, True)  -> AlignLeft
+        (True,  True)  -> AlignCenter
+        (False, False) -> AlignDefault
 
 -- Parse a table footer - dashed lines followed by blank line.
 tableFooter :: PandocMonad m => MarkdownParser m String
@@ -1352,7 +1352,7 @@ removeOneLeadingSpace xs =
   if all startsWithSpace xs
      then map (drop 1) xs
      else xs
-   where startsWithSpace ""     = True
+   where startsWithSpace ""    = True
          startsWithSpace (y:_) = y == ' '
 
 -- | Parse footer for a grid table.
@@ -1475,8 +1475,8 @@ table = try $ do
                 (gridTable False <|> gridTable True)) <?> "table"
   optional blanklines
   caption <- case frontCaption of
-                  Nothing  -> option (return mempty) tableCaption
-                  Just c   -> return c
+                  Nothing -> option (return mempty) tableCaption
+                  Just c  -> return c
   -- renormalize widths if greater than 100%:
   let totalWidth = sum widths
   let widths' = if totalWidth < 1
@@ -1555,8 +1555,8 @@ exampleRef = try $ do
   return $ do
     st <- askF
     return $ case M.lookup lab (stateExamples st) of
-                  Just n    -> B.str (show n)
-                  Nothing   -> B.str ('@':lab)
+                  Just n  -> B.str (show n)
+                  Nothing -> B.str ('@':lab)
 
 symbol :: PandocMonad m => MarkdownParser m (F Inlines)
 symbol = do
@@ -1600,10 +1600,10 @@ enclosure c = do
   (return (B.str cs) <>) <$> whitespace
     <|> do
         case length cs of
-             3  -> three c
-             2  -> two   c mempty
-             1  -> one   c mempty
-             _  -> return (return $ B.str cs)
+             3 -> three c
+             2 -> two   c mempty
+             1 -> one   c mempty
+             _ -> return (return $ B.str cs)
 
 ender :: PandocMonad m => Char -> Int -> MarkdownParser m ()
 ender c n = try $ do
@@ -1839,9 +1839,9 @@ referenceLink constructor (lab, raw) = do
 dropBrackets :: String -> String
 dropBrackets = reverse . dropRB . reverse . dropLB
   where dropRB (']':xs) = xs
-        dropRB xs = xs
+        dropRB xs       = xs
         dropLB ('[':xs) = xs
-        dropLB xs = xs
+        dropLB xs       = xs
 
 bareURL :: PandocMonad m => MarkdownParser m (F Inlines)
 bareURL = try $ do

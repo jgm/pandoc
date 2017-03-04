@@ -1,4 +1,6 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-
 Copyright (C) 2016-17 John MacFarlane <jgm@berkeley.edu>
 
@@ -37,16 +39,16 @@ module Text.Pandoc.Logging (
   , messageVerbosity
   ) where
 
-import Text.Parsec.Pos
+import Data.Aeson
+import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',
+                                 keyOrder)
+import qualified Data.ByteString.Lazy as BL
 import Data.Data (Data)
 import Data.Generics (Typeable)
-import GHC.Generics (Generic)
 import qualified Data.Text as Text
-import Data.Aeson
+import GHC.Generics (Generic)
 import Text.Pandoc.Definition
-import Data.Aeson.Encode.Pretty (encodePretty', keyOrder,
-                                 defConfig, Config(..))
-import qualified Data.ByteString.Lazy as BL
+import Text.Parsec.Pos
 
 -- | Verbosity level.
 data Verbosity = ERROR | WARNING | INFO | DEBUG
@@ -240,23 +242,23 @@ showLogMessage msg =
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
   case msg of
-       SkippedContent{} -> INFO
-       CouldNotParseYamlMetadata{} -> WARNING
-       DuplicateLinkReference{} -> WARNING
-       DuplicateNoteReference{} -> WARNING
-       ReferenceNotFound{} -> WARNING
-       CircularReference{} -> WARNING
-       CouldNotLoadIncludeFile{} -> WARNING
-       ParsingUnescaped{} -> INFO
-       ParsingTrace{} -> DEBUG
-       InlineNotRendered{} -> INFO
-       BlockNotRendered{} -> INFO
-       DocxParserWarning{} -> WARNING
-       CouldNotFetchResource{} -> WARNING
+       SkippedContent{}             -> INFO
+       CouldNotParseYamlMetadata{}  -> WARNING
+       DuplicateLinkReference{}     -> WARNING
+       DuplicateNoteReference{}     -> WARNING
+       ReferenceNotFound{}          -> WARNING
+       CircularReference{}          -> WARNING
+       CouldNotLoadIncludeFile{}    -> WARNING
+       ParsingUnescaped{}           -> INFO
+       ParsingTrace{}               -> DEBUG
+       InlineNotRendered{}          -> INFO
+       BlockNotRendered{}           -> INFO
+       DocxParserWarning{}          -> WARNING
+       CouldNotFetchResource{}      -> WARNING
        CouldNotDetermineImageSize{} -> WARNING
-       CouldNotConvertImage{} -> WARNING
-       CouldNotDetermineMimeType{} -> WARNING
-       CouldNotConvertTeXMath{} -> WARNING
-       CouldNotParseCSS{} -> WARNING
-       Fetching{} -> INFO
-       NoTitleElement{} -> WARNING
+       CouldNotConvertImage{}       -> WARNING
+       CouldNotDetermineMimeType{}  -> WARNING
+       CouldNotConvertTeXMath{}     -> WARNING
+       CouldNotParseCSS{}           -> WARNING
+       Fetching{}                   -> INFO
+       NoTitleElement{}             -> WARNING

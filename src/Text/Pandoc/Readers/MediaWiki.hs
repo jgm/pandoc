@@ -1,4 +1,6 @@
-{-# LANGUAGE RelaxedPolyRec, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE RelaxedPolyRec       #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 -- RelaxedPolyRec needed for inlinesBetween on GHC < 7
 {-
   Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
@@ -36,28 +38,28 @@ _ parse templates?
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
-import Text.Pandoc.Definition
-import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Builder (Inlines, Blocks, trimInlines)
-import Data.Monoid ((<>))
-import Text.Pandoc.Options
-import Text.Pandoc.Logging
-import Text.Pandoc.Readers.HTML ( htmlTag, isBlockTag, isCommentTag )
-import Text.Pandoc.XML ( fromEntities )
-import Text.Pandoc.Parsing hiding ( nested )
-import Text.Pandoc.Walk ( walk )
-import Text.Pandoc.Shared ( stripTrailingNewlines, safeRead, stringify, trim )
 import Control.Monad
-import Data.List (intersperse, intercalate, isPrefixOf )
-import Text.HTML.TagSoup
-import Data.Sequence (viewl, ViewL(..), (<|))
-import qualified Data.Foldable as F
-import qualified Data.Map as M
-import qualified Data.Set as Set
-import Data.Char (isDigit, isSpace)
-import Data.Maybe (fromMaybe)
 import Control.Monad.Except (throwError)
+import Data.Char (isDigit, isSpace)
+import qualified Data.Foldable as F
+import Data.List (intercalate, intersperse, isPrefixOf)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
+import Data.Monoid ((<>))
+import Data.Sequence (ViewL (..), viewl, (<|))
+import qualified Data.Set as Set
+import Text.HTML.TagSoup
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Parsing hiding (nested)
+import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag)
+import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines, trim)
+import Text.Pandoc.Walk (walk)
+import Text.Pandoc.XML (fromEntities)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: PandocMonad m
@@ -75,7 +77,7 @@ readMediaWiki opts s = do
             (s ++ "\n")
   case parsed of
     Right result -> return result
-    Left e -> throwError e
+    Left e       -> throwError e
 
 data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwMaxNestingLevel :: Int
@@ -134,7 +136,7 @@ isBlockTag' tag = isBlockTag tag
 
 isInlineTag' :: Tag String -> Bool
 isInlineTag' (TagComment _) = True
-isInlineTag' t = not (isBlockTag' t)
+isInlineTag' t              = not (isBlockTag' t)
 
 eitherBlockOrInline :: [String]
 eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
@@ -311,7 +313,7 @@ parseWidth :: String -> Maybe Double
 parseWidth s =
   case reverse s of
        ('%':ds) | all isDigit ds -> safeRead ('0':'.':reverse ds)
-       _ -> Nothing
+       _        -> Nothing
 
 template :: PandocMonad m => MWParser m String
 template = try $ do
@@ -468,10 +470,10 @@ listItem c = try $ do
                                        many1 $ listItem' c)
                           (unlines (first : rest))
        case c of
-           '*'  -> return $ B.bulletList contents
-           '#'  -> return $ B.orderedList contents
-           ':'  -> return $ B.definitionList [(mempty, contents)]
-           _    -> mzero
+           '*' -> return $ B.bulletList contents
+           '#' -> return $ B.orderedList contents
+           ':' -> return $ B.definitionList [(mempty, contents)]
+           _   -> mzero
 
 -- The point of this is to handle stuff like
 -- * {{cite book
@@ -619,9 +621,9 @@ imageOption = try $ char '|' *> opt
       <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
 
 collapseUnderscores :: String -> String
-collapseUnderscores [] = []
+collapseUnderscores []           = []
 collapseUnderscores ('_':'_':xs) = collapseUnderscores ('_':xs)
-collapseUnderscores (x:xs) = x : collapseUnderscores xs
+collapseUnderscores (x:xs)       = x : collapseUnderscores xs
 
 addUnderscores :: String -> String
 addUnderscores = collapseUnderscores . intercalate "_" . words

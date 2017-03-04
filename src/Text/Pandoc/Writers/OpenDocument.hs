@@ -1,4 +1,6 @@
-{-# LANGUAGE PatternGuards, OverloadedStrings, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternGuards     #-}
 {-
 Copyright (C) 2008-2015 Andrea Rossato <andrea.rossato@ing.unitn.it>
                         and John MacFarlane.
@@ -30,29 +32,29 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to OpenDocument XML.
 -}
 module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
+import Control.Arrow ((***), (>>>))
+import Control.Monad.State hiding (when)
+import Data.Char (chr)
+import Data.List (sortBy)
+import qualified Data.Map as Map
+import Data.Ord (comparing)
+import qualified Data.Set as Set
+import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
+import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.XML
+import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math
-import Text.Pandoc.Pretty
-import Text.Printf ( printf )
-import Control.Arrow ( (***), (>>>) )
-import Control.Monad.State hiding ( when )
-import Data.Char (chr)
-import qualified Data.Set as Set
-import qualified Data.Map as Map
 import Text.Pandoc.Writers.Shared
-import Data.List (sortBy)
-import Data.Ord (comparing)
-import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Logging
+import Text.Pandoc.XML
+import Text.Printf (printf)
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
 plainToPara (Plain x) = Para x
-plainToPara x = x
+plainToPara x         = x
 
 --
 -- OpenDocument writer
@@ -426,10 +428,10 @@ toChunks o (x : xs)
   where (ys, zs) = span isChunkable xs
 
 isChunkable :: Inline -> Bool
-isChunkable (Str _) = True
-isChunkable Space   = True
+isChunkable (Str _)   = True
+isChunkable Space     = True
 isChunkable SoftBreak = True
-isChunkable _ = False
+isChunkable _         = False
 
 -- | Convert an inline element to OpenDocument.
 inlineToOpenDocument :: PandocMonad m => WriterOptions -> Inline -> OD m Doc
@@ -514,11 +516,11 @@ orderedListLevelStyle (s,n, d) (l,ls) =
                                    ,("style:num-suffix", ")")]
                       _         -> [("style:num-suffix", ".")]
         format    = case n of
-                      UpperAlpha   -> "A"
-                      LowerAlpha   -> "a"
-                      UpperRoman   -> "I"
-                      LowerRoman   -> "i"
-                      _            -> "1"
+                      UpperAlpha -> "A"
+                      LowerAlpha -> "a"
+                      UpperRoman -> "I"
+                      LowerRoman -> "i"
+                      _          -> "1"
         listStyle = inTags True "text:list-level-style-number"
                     ([ ("text:level"      , show $ 1 + length ls  )
                      , ("text:style-name" , "Numbering_20_Symbols")

@@ -1,16 +1,16 @@
 module Tests.Old (tests) where
 
-import Tests.Helpers hiding (test)
-import Test.Framework (testGroup, Test )
-import Test.Framework.Providers.HUnit
-import Test.HUnit ( assertBool )
-import System.IO ( openTempFile, stderr )
-import System.Process ( runProcess, waitForProcess )
-import System.FilePath ( (</>), (<.>), splitDirectories, joinPath )
+import Data.Algorithm.Diff
+import Prelude hiding (readFile)
 import System.Directory
 import System.Exit
-import Data.Algorithm.Diff
-import Prelude hiding ( readFile )
+import System.FilePath (joinPath, splitDirectories, (<.>), (</>))
+import System.IO (openTempFile, stderr)
+import System.Process (runProcess, waitForProcess)
+import Test.Framework (Test, testGroup)
+import Test.Framework.Providers.HUnit
+import Test.HUnit (assertBool)
+import Tests.Helpers hiding (test)
 import qualified Text.Pandoc.UTF8 as UTF8
 
 tests :: [Test]
@@ -187,10 +187,10 @@ fb2WriterTest title opts inputfile normfile =
                     title (["-t", "fb2"]++opts) inputfile normfile
   where
     formatXML xml = splitTags $ zip xml (drop 1 xml)
-    splitTags [] = []
-    splitTags [end] = fst end : snd end : []
+    splitTags []               = []
+    splitTags [end]            = fst end : snd end : []
     splitTags (('>','<'):rest) = ">\n" ++ splitTags rest
-    splitTags ((c,_):rest) = c : splitTags rest
+    splitTags ((c,_):rest)     = c : splitTags rest
     ignoreBinary = unlines . filter (not . startsWith "<binary ") . lines
     startsWith tag str = all (uncurry (==)) $ zip tag str
 
@@ -219,9 +219,9 @@ testWithNormalize normalizer testname opts inp norm = testCase testname $ do
   let normPath = norm
   let options = ["--quiet", "--data-dir", ".." </> "data"] ++ [inpPath] ++ opts
   let cmd = pandocPath ++ " " ++ unwords options
-  let findDynlibDir [] = Nothing
+  let findDynlibDir []           = Nothing
       findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
-      findDynlibDir (_:xs) = findDynlibDir xs
+      findDynlibDir (_:xs)       = findDynlibDir xs
   let mbDynlibDir = findDynlibDir (reverse $ splitDirectories pandocPath)
   let dynlibEnv = case mbDynlibDir of
                        Nothing  -> []

@@ -108,14 +108,14 @@ module Text.Pandoc.Readers.Org.Parsing
   , getPosition
   ) where
 
-import           Text.Pandoc.Readers.Org.ParserState
+import Text.Pandoc.Readers.Org.ParserState
 
+import Text.Pandoc.Parsing hiding (anyLine, blanklines, newline,
+                            parseFromString)
 import qualified Text.Pandoc.Parsing as P
-import           Text.Pandoc.Parsing hiding ( anyLine, blanklines, newline
-                                            , parseFromString )
 
-import           Control.Monad ( guard )
-import           Control.Monad.Reader ( ReaderT )
+import Control.Monad (guard)
+import Control.Monad.Reader (ReaderT)
 
 -- | The parser used to read org files.
 type OrgParser m = ParserT [Char] OrgParserState (ReaderT OrgParserLocal m)

@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TupleSections    #-}
 {-
 Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -33,23 +33,23 @@ module Text.Pandoc.Readers.Org.Meta
   , metaLine
   ) where
 
-import           Text.Pandoc.Readers.Org.BlockStarts
-import           Text.Pandoc.Readers.Org.ExportSettings ( exportSettings )
-import           Text.Pandoc.Readers.Org.Inlines
-import           Text.Pandoc.Readers.Org.ParserState
-import           Text.Pandoc.Readers.Org.Parsing
+import Text.Pandoc.Readers.Org.BlockStarts
+import Text.Pandoc.Readers.Org.ExportSettings (exportSettings)
+import Text.Pandoc.Readers.Org.Inlines
+import Text.Pandoc.Readers.Org.ParserState
+import Text.Pandoc.Readers.Org.Parsing
 
+import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import           Text.Pandoc.Builder ( Blocks, Inlines )
-import           Text.Pandoc.Class ( PandocMonad )
-import           Text.Pandoc.Definition
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
 
-import           Control.Monad ( mzero, void )
-import           Data.Char ( toLower )
-import           Data.List ( intersperse )
+import Control.Monad (mzero, void)
+import Data.Char (toLower)
+import Data.List (intersperse)
 import qualified Data.Map as M
-import           Data.Monoid ( (<>) )
-import           Network.HTTP ( urlEncode )
+import Data.Monoid ((<>))
+import Network.HTTP (urlEncode)
 
 -- | Returns the current meta, respecting export options.
 metaExport :: Monad m => OrgParser m (F Meta)
@@ -151,7 +151,7 @@ optionLine = try $ do
     "todo"     -> todoSequence >>= updateState . registerTodoSequence
     "seq_todo" -> todoSequence >>= updateState . registerTodoSequence
     "typ_todo" -> todoSequence >>= updateState . registerTodoSequence
-    _         -> mzero
+    _          -> mzero
 
 addLinkFormat :: Monad m => String
               -> (String -> String)

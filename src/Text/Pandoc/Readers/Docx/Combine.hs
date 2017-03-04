@@ -1,15 +1,16 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances,
-    PatternGuards #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE PatternGuards        #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Text.Pandoc.Readers.Docx.Combine ( smushInlines
                                         , smushBlocks
                                         )
        where
 
-import Text.Pandoc.Builder
 import Data.List
-import Data.Sequence (ViewR(..), ViewL(..), viewl, viewr, (><), (|>))
+import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr, (><), (|>))
 import qualified Data.Sequence as Seq (null)
+import Text.Pandoc.Builder
 
 data Modifier a = Modifier (a -> a)
                 | AttrModifier (Attr -> a -> a) Attr
@@ -56,15 +57,15 @@ unstackInlines ms = case ilModifier ms of
 ilModifier :: Inlines -> Modifier Inlines
 ilModifier ils = case viewl (unMany ils) of
   (x :< xs) | Seq.null xs -> case x of
-    (Emph _)        -> Modifier emph
-    (Strong _)      -> Modifier strong
-    (SmallCaps _)   -> Modifier smallcaps
-    (Strikeout _)   -> Modifier strikeout
-    (Superscript _) -> Modifier superscript
-    (Subscript _)   -> Modifier subscript
+    (Emph _)          -> Modifier emph
+    (Strong _)        -> Modifier strong
+    (SmallCaps _)     -> Modifier smallcaps
+    (Strikeout _)     -> Modifier strikeout
+    (Superscript _)   -> Modifier superscript
+    (Subscript _)     -> Modifier subscript
     (Link attr _ tgt) -> Modifier $ linkWith attr (fst tgt) (snd tgt)
-    (Span attr _)   -> AttrModifier spanWith attr
-    _               -> NullModifier
+    (Span attr _)     -> AttrModifier spanWith attr
+    _                 -> NullModifier
   _ -> NullModifier
 
 ilInnards :: Inlines -> Inlines
@@ -78,18 +79,18 @@ ilInnards ils = case viewl (unMany ils) of
     (Subscript lst)   -> fromList lst
     (Link _ lst _)    -> fromList lst
     (Span _ lst)      -> fromList lst
-    _        -> ils
+    _                 -> ils
   _          -> ils
 
 inlinesL :: Inlines -> (Inlines, Inlines)
 inlinesL ils = case viewl $ unMany ils of
   (s :< sq) -> (singleton s, Many sq)
-  _          -> (mempty, ils)
+  _         -> (mempty, ils)
 
 inlinesR :: Inlines -> (Inlines, Inlines)
 inlinesR ils = case viewr $ unMany ils of
   (sq :> s) -> (Many sq, singleton s)
-  _          -> (ils, mempty)
+  _         -> (ils, mempty)
 
 combineInlines :: Inlines -> Inlines -> Inlines
 combineInlines x y =

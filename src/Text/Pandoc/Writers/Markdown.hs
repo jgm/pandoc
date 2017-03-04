@@ -1,4 +1,7 @@
-{-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables, MultiWayIf #-}
+{-# LANGUAGE MultiWayIf          #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 {-
 Copyright (C) 2006-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -31,36 +34,36 @@ Conversion of 'Pandoc' documents to markdown-formatted plain text.
 Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Walk
-import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
-import Data.Maybe (fromMaybe)
-import Data.Monoid (Any(..))
-import Data.List ( group, stripPrefix, find, intersperse, transpose, sortBy )
-import Data.Char ( isSpace, isPunctuation, ord, chr )
-import Data.Ord ( comparing )
-import Text.Pandoc.Pretty
+import Control.Monad.Except (throwError)
 import Control.Monad.Reader
 import Control.Monad.State
-import Control.Monad.Except (throwError)
+import Data.Char (chr, isPunctuation, isSpace, ord)
+import Data.Default
+import qualified Data.HashMap.Strict as H
+import Data.List (find, group, intersperse, sortBy, stripPrefix, transpose)
+import Data.Maybe (fromMaybe)
+import Data.Monoid (Any (..))
+import Data.Ord (comparing)
+import qualified Data.Set as Set
+import qualified Data.Text as T
+import qualified Data.Vector as V
+import Data.Yaml (Value (Array, Bool, Number, Object, String))
+import Network.HTTP (urlEncode)
+import Network.URI (isURI)
+import Text.HTML.TagSoup (Tag (..), isTagText, parseTags)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Error
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Math (texMathToInlines)
-import Text.HTML.TagSoup (parseTags, isTagText, Tag(..))
-import Network.URI (isURI)
-import Data.Default
-import Data.Yaml (Value(Object,String,Array,Bool,Number))
-import qualified Data.HashMap.Strict as H
-import qualified Data.Vector as V
-import qualified Data.Text as T
-import qualified Data.Set as Set
-import Network.HTTP ( urlEncode )
-import Text.Pandoc.Error
-import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Logging
+import Text.Pandoc.Writers.Shared
 
 type Notes = [[Block]]
 type Ref   = ([Inline], Target, Attr)
@@ -71,11 +74,11 @@ type MD m = ReaderT WriterEnv (StateT WriterState m)
 evalMD :: PandocMonad m => MD m a -> WriterEnv -> WriterState -> m a
 evalMD md env st = evalStateT (runReaderT md env) st
 
-data WriterEnv = WriterEnv { envInList         :: Bool
-                           , envPlain          :: Bool
+data WriterEnv = WriterEnv { envInList          :: Bool
+                           , envPlain           :: Bool
                            , envRefShortcutable :: Bool
                            , envBlockLevel      :: Int
-                           , envEscapeSpaces   :: Bool
+                           , envEscapeSpaces    :: Bool
                            }
 
 instance Default WriterEnv
@@ -86,9 +89,9 @@ instance Default WriterEnv
                         , envEscapeSpaces    = False
                         }
 
-data WriterState = WriterState { stNotes :: Notes
-                               , stRefs  :: Refs
-                               , stIds   :: Set.Set String
+data WriterState = WriterState { stNotes   :: Notes
+                               , stRefs    :: Refs
+                               , stIds     :: Set.Set String
                                , stNoteNum :: Int
                                }
 
@@ -206,7 +209,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let blocks' = if isEnabled Ext_citations opts
                    then case reverse blocks of
                              (Div (_,["references"],_) _):xs -> reverse xs
-                             _ -> blocks
+                             _                               -> blocks
                    else blocks
   body <- blockListToMarkdown opts blocks'
   notesAndRefs' <- notesAndRefs opts
@@ -260,7 +263,7 @@ noteToMarkdown opts num blocks = do
   let markerSize = 4 + offset num'
   let spacer = case writerTabStop opts - markerSize of
                      n | n > 0  -> text $ replicate n ' '
-                     _          -> text " "
+                     _ -> text " "
   return $ if isEnabled Ext_footnotes opts
               then hang (writerTabStop opts) (marker <> spacer) contents
               else marker <> spacer <> contents
@@ -282,11 +285,11 @@ escapeString opts (c:cs) =
        '-' | isEnabled Ext_smart opts ->
               case cs of
                    '-':_ -> '\\':'-':escapeString opts cs
-                   _ -> '-':escapeString opts cs
+                   _     -> '-':escapeString opts cs
        '.' | isEnabled Ext_smart opts ->
               case cs of
                    '.':'.':rest -> '\\':'.':'.':'.':escapeString opts rest
-                   _ -> '.':escapeString opts cs
+                   _            -> '.':escapeString opts cs
        _ -> c : escapeString opts cs
 
 -- | Construct table of contents from list of header blocks.
@@ -342,8 +345,8 @@ olMarker = do (start, style', delim) <- anyOrderedListMarker
 beginsWithOrderedListMarker :: String -> Bool
 beginsWithOrderedListMarker str =
   case runParser olMarker defaultParserState "para start" (take 10 str) of
-         Left  _  -> False
-         Right _  -> True
+         Left  _ -> False
+         Right _ -> True
 
 notesAndRefs :: PandocMonad m => WriterOptions -> MD m Doc
 notesAndRefs opts = do
@@ -727,7 +730,7 @@ itemEndsWithTightList bs =
   case bs of
         [Plain _, BulletList xs]    -> isTightList xs
         [Plain _, OrderedList _ xs] -> isTightList xs
-        _ -> False
+        _                           -> False
 
 -- | Convert bullet list item (list of blocks) to markdown.
 bulletListItemToMarkdown :: PandocMonad m => WriterOptions -> [Block] -> MD m Doc
@@ -751,7 +754,7 @@ orderedListItemToMarkdown opts marker bs = do
   contents <- blockListToMarkdown opts bs
   let sps = case length marker - writerTabStop opts of
                    n | n > 0 -> text $ replicate n ' '
-                   _         -> text " "
+                   _ -> text " "
   let start = text marker <> sps
   -- remove trailing blank line if item ends with a tight list
   let contents' = if itemEndsWithTightList bs
@@ -774,7 +777,7 @@ definitionListItemToMarkdown opts (label, defs) = do
        let leader  = if isPlain then "   " else ":  "
        let sps = case writerTabStop opts - 3 of
                       n | n > 0   -> text $ replicate n ' '
-                      _           -> text " "
+                      _ -> text " "
        if isEnabled Ext_compact_definition_lists opts
           then do
             let contents = vcat $ map (\d -> hang tabStop (leader <> sps)
@@ -785,7 +788,7 @@ definitionListItemToMarkdown opts (label, defs) = do
                                 $ vcat d <> cr) defs'
             let isTight = case defs of
                                ((Plain _ : _): _) -> True
-                               _ -> False
+                               _                  -> False
             return $ blankline <> nowrap labelText <>
                      (if isTight then cr else blankline) <> contents <> blankline
      else do
@@ -849,20 +852,20 @@ inlineListToMarkdown opts lst = do
         go (i:is) = case i of
             (Link _ _ _) -> case is of
                 -- If a link is followed by another link or '[' we don't shortcut
-                (Link _ _ _):_                -> unshortcutable
-                Space:(Link _ _ _):_          -> unshortcutable
-                Space:(Str('[':_)):_          -> unshortcutable
-                Space:(RawInline _ ('[':_)):_ -> unshortcutable
-                Space:(Cite _ _):_            -> unshortcutable
-                SoftBreak:(Link _ _ _):_      -> unshortcutable
-                SoftBreak:(Str('[':_)):_      -> unshortcutable
+                (Link _ _ _):_                    -> unshortcutable
+                Space:(Link _ _ _):_              -> unshortcutable
+                Space:(Str('[':_)):_              -> unshortcutable
+                Space:(RawInline _ ('[':_)):_     -> unshortcutable
+                Space:(Cite _ _):_                -> unshortcutable
+                SoftBreak:(Link _ _ _):_          -> unshortcutable
+                SoftBreak:(Str('[':_)):_          -> unshortcutable
                 SoftBreak:(RawInline _ ('[':_)):_ -> unshortcutable
-                SoftBreak:(Cite _ _):_        -> unshortcutable
-                (Cite _ _):_                  -> unshortcutable
-                Str ('[':_):_                 -> unshortcutable
-                (RawInline _ ('[':_)):_       -> unshortcutable
-                (RawInline _ (' ':'[':_)):_   -> unshortcutable
-                _                             -> shortcutable
+                SoftBreak:(Cite _ _):_            -> unshortcutable
+                (Cite _ _):_                      -> unshortcutable
+                Str ('[':_):_                     -> unshortcutable
+                (RawInline _ ('[':_)):_           -> unshortcutable
+                (RawInline _ (' ':'[':_)):_       -> unshortcutable
+                _                                 -> shortcutable
             _ -> shortcutable
           where shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go is)
                 unshortcutable = do
@@ -872,9 +875,9 @@ inlineListToMarkdown opts lst = do
                     fmap (iMark <>) (go is)
 
 isSp :: Inline -> Bool
-isSp Space = True
+isSp Space     = True
 isSp SoftBreak = True
-isSp _ = False
+isSp _         = False
 
 avoidBadWrapsInList :: [Inline] -> [Inline]
 avoidBadWrapsInList [] = []
@@ -1109,7 +1112,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
   let useAuto = isURI src &&
                 case txt of
                       [Str s] | escapeURI s == srcSuffix -> True
-                      _                                  -> False
+                      _       -> False
   let useRefLinks = writerReferenceLinks opts && not useAuto
   shortcutable <- asks envRefShortcutable
   let useShortcutRefLinks = shortcutable &&
@@ -1160,5 +1163,5 @@ makeMathPlainer :: [Inline] -> [Inline]
 makeMathPlainer = walk go
   where
   go (Emph xs) = Span nullAttr xs
-  go x = x
+  go x         = x
 

@@ -39,31 +39,28 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 -}
 
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Options ( WriterOptions(
-                                writerTableOfContents
-                              , writerTemplate
-                              , writerWrapText), WrapOption(..) )
-import Text.Pandoc.Shared ( escapeURI, linesToPara, removeFormatting
-                          , camelCaseToHyphenated, trimr, substitute )
-import Text.Pandoc.Writers.Shared ( defField, metaToJSON )
-import Text.Pandoc.ImageSize
-import Text.Pandoc.Templates ( renderTemplate' )
-import Data.List ( intersect, intercalate, isPrefixOf, transpose )
-import Data.Default (Default(..))
-import Network.URI ( isURI )
-import Control.Monad ( zipWithM )
-import Control.Monad.State ( modify, State, gets, evalState )
-import Control.Monad.Reader ( ReaderT, runReaderT, ask, local )
+import Control.Monad (zipWithM)
+import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
+import Control.Monad.State (State, evalState, gets, modify)
+import Data.Default (Default (..))
+import Data.List (intercalate, intersect, isPrefixOf, transpose)
+import Network.URI (isURI)
 import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
+import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, linesToPara,
+                           removeFormatting, substitute, trimr)
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Writers.Shared (defField, metaToJSON)
 
 data WriterState = WriterState {
     stNotes     :: Bool            -- True if there are notes
   }
 
 data WriterEnvironment = WriterEnvironment {
-    stIndent    :: String          -- Indent after the marker at the beginning of list items
-  , stUseTags   :: Bool            -- True if we should use HTML tags because we're in a complex list
+    stIndent      :: String          -- Indent after the marker at the beginning of list items
+  , stUseTags     :: Bool            -- True if we should use HTML tags because we're in a complex list
   , stBackSlashLB :: Bool     -- True if we should produce formatted strings with newlines (as in a table cell)
   }
 
@@ -178,7 +175,7 @@ blockToDokuWiki _ (CodeBlock (_,classes,_) str) = do
                        "visualfoxpro", "winbatch", "xml", "xpp", "z80"]
   return $ "<code" ++
                 (case at of
-                      [] -> ">\n"
+                      []    -> ">\n"
                       (x:_) -> " " ++ x ++ ">\n") ++ str ++ "\n</code>"
 
 blockToDokuWiki opts (BlockQuote blocks) = do
@@ -338,18 +335,18 @@ isSimpleListItem :: [Block] -> Bool
 isSimpleListItem []  = True
 isSimpleListItem [x] =
   case x of
-       Plain _           -> True
-       Para  _           -> True
-       BulletList _      -> isSimpleList x
-       OrderedList _ _   -> isSimpleList x
-       DefinitionList _  -> isSimpleList x
-       _                 -> False
+       Plain _          -> True
+       Para  _          -> True
+       BulletList _     -> isSimpleList x
+       OrderedList _ _  -> isSimpleList x
+       DefinitionList _ -> isSimpleList x
+       _                -> False
 isSimpleListItem [x, y] | isPlainOrPara x =
   case y of
-       BulletList _      -> isSimpleList y
-       OrderedList _ _   -> isSimpleList y
-       DefinitionList _  -> isSimpleList y
-       _                 -> False
+       BulletList _     -> isSimpleList y
+       OrderedList _ _  -> isSimpleList y
+       DefinitionList _ -> isSimpleList y
+       _                -> False
 isSimpleListItem _ = False
 
 isPlainOrPara :: Block -> Bool
@@ -369,7 +366,7 @@ backSlashLineBreaks cs = reverse $ g $ reverse $ concatMap f cs
   where f '\n' = "\\\\ "
         f c    = [c]
         g (' ' : '\\':'\\': xs) = xs
-        g s = s
+        g s                     = s
 
 -- Auxiliary functions for tables:
 
@@ -515,7 +512,7 @@ imageDims opts attr = go (toPx $ dimension Width attr) (toPx $ dimension Height 
   where
     toPx = fmap (showInPixel opts) . checkPct
     checkPct (Just (Percent _)) = Nothing
-    checkPct maybeDim = maybeDim
+    checkPct maybeDim           = maybeDim
     go (Just w) Nothing  = "?" ++ w
     go (Just w) (Just h) = "?" ++ w ++ "x" ++ h
     go Nothing  (Just h) = "?0x" ++ h

@@ -1,5 +1,8 @@
-{-# LANGUAGE ScopedTypeVariables, PatternGuards, ViewPatterns, DeriveFunctor,
-   ScopedTypeVariables, RankNTypes #-}
+{-# LANGUAGE DeriveFunctor       #-}
+{-# LANGUAGE PatternGuards       #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns        #-}
 {-
 Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
 
@@ -30,45 +33,45 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
-import Data.List ( intercalate, isPrefixOf, isSuffixOf )
+import Codec.Archive.Zip
+import Control.Applicative ((<|>))
+import Control.Monad.Except (catchError)
+import Control.Monad.Reader
+import Control.Monad.State
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
+import Data.Char (isSpace, ord, toLower)
+import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
-import qualified Data.Set as Set
-import qualified Text.Pandoc.UTF8 as UTF8
-import Codec.Archive.Zip
-import Data.Time.Clock.POSIX
-import Text.Pandoc.Compat.Time
-import Text.Pandoc.Definition
-import Text.Pandoc.Generic
-import Text.Pandoc.ImageSize
-import Text.Pandoc.Shared hiding (Element)
-import Text.Pandoc.Writers.Shared (fixDisplayMath)
-import Text.Pandoc.Options
-import Text.Pandoc.Writers.Math
-import Text.Pandoc.Highlighting ( highlight )
-import Text.Pandoc.Walk
-import Text.XML.Light as XML
-import Text.TeXMath
-import Text.Pandoc.Readers.Docx.StyleMap
-import Control.Monad.Reader
-import Control.Monad.State
-import Skylighting
-import Control.Monad.Except (catchError)
-import System.Random (randomR)
-import Text.Printf (printf)
+import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList)
 import Data.Monoid ((<>))
+import qualified Data.Set as Set
 import qualified Data.Text as T
-import Text.Pandoc.MIME (MimeType, getMimeType, getMimeTypeDef,
-                         extensionFromMimeType)
-import Control.Applicative ((<|>))
-import Data.Maybe (fromMaybe, mapMaybe, maybeToList, isNothing)
-import Data.Char (ord, isSpace, toLower)
+import Data.Time.Clock.POSIX
+import Skylighting
+import System.Random (randomR)
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
-import Text.Pandoc.Logging
+import Text.Pandoc.Compat.Time
+import Text.Pandoc.Definition
 import Text.Pandoc.Error
+import Text.Pandoc.Generic
+import Text.Pandoc.Highlighting (highlight)
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
+import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType,
+                         getMimeTypeDef)
+import Text.Pandoc.Options
+import Text.Pandoc.Readers.Docx.StyleMap
+import Text.Pandoc.Shared hiding (Element)
+import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Walk
+import Text.Pandoc.Writers.Math
+import Text.Pandoc.Writers.Shared (fixDisplayMath)
+import Text.Printf (printf)
+import Text.TeXMath
+import Text.XML.Light as XML
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -81,28 +84,28 @@ listMarkerToId BulletMarker = "991"
 listMarkerToId (NumberMarker sty delim n) =
   '9' : '9' : styNum : delimNum : show n
   where styNum = case sty of
-                      DefaultStyle   -> '2'
-                      Example        -> '3'
-                      Decimal        -> '4'
-                      LowerRoman     -> '5'
-                      UpperRoman     -> '6'
-                      LowerAlpha     -> '7'
-                      UpperAlpha     -> '8'
+                      DefaultStyle -> '2'
+                      Example      -> '3'
+                      Decimal      -> '4'
+                      LowerRoman   -> '5'
+                      UpperRoman   -> '6'
+                      LowerAlpha   -> '7'
+                      UpperAlpha   -> '8'
         delimNum = case delim of
-                      DefaultDelim   -> '0'
-                      Period         -> '1'
-                      OneParen       -> '2'
-                      TwoParens      -> '3'
+                      DefaultDelim -> '0'
+                      Period       -> '1'
+                      OneParen     -> '2'
+                      TwoParens    -> '3'
 
 data WriterEnv = WriterEnv{ envTextProperties :: [Element]
                           , envParaProperties :: [Element]
-                          , envRTL :: Bool
-                          , envListLevel :: Int
-                          , envListNumId :: Int
-                          , envInDel :: Bool
-                          , envChangesAuthor :: String
-                          , envChangesDate :: String
-                          , envPrintWidth :: Integer
+                          , envRTL            :: Bool
+                          , envListLevel      :: Int
+                          , envListNumId      :: Int
+                          , envInDel          :: Bool
+                          , envChangesAuthor  :: String
+                          , envChangesDate    :: String
+                          , envPrintWidth     :: Integer
                           }
 
 defaultWriterEnv :: WriterEnv
@@ -209,11 +212,11 @@ isValidChar (ord -> c)
   | otherwise                     = False
 
 metaValueToInlines :: MetaValue -> [Inline]
-metaValueToInlines (MetaString s) = [Str s]
+metaValueToInlines (MetaString s)    = [Str s]
 metaValueToInlines (MetaInlines ils) = ils
-metaValueToInlines (MetaBlocks bs) = query return bs
-metaValueToInlines (MetaBool b) = [Str $ show b]
-metaValueToInlines _ = []
+metaValueToInlines (MetaBlocks bs)   = query return bs
+metaValueToInlines (MetaBool b)      = [Str $ show b]
+metaValueToInlines _                 = []
 
 
 
@@ -452,8 +455,8 @@ writeDocx opts doc@(Pandoc meta _) = do
   let newstyles = map newParaPropToOpenXml newDynamicParaProps ++
                   map newTextPropToOpenXml newDynamicTextProps ++
                   (case writerHighlightStyle opts of
-                        Nothing   -> []
-                        Just sty  -> (styleToOpenXml styleMaps sty))
+                        Nothing  -> []
+                        Just sty -> (styleToOpenXml styleMaps sty))
   let styledoc' = styledoc{ elContent = elContent styledoc ++
                                            map Elem newstyles }
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
@@ -675,21 +678,21 @@ mkLvl marker lvl =
           bulletFor 4 = "\x2022"
           bulletFor 5 = "\x2013"
           bulletFor _ = "\x2022"
-          styleFor UpperAlpha _ = "upperLetter"
-          styleFor LowerAlpha _ = "lowerLetter"
-          styleFor UpperRoman _ = "upperRoman"
-          styleFor LowerRoman _ = "lowerRoman"
-          styleFor Decimal _ = "decimal"
+          styleFor UpperAlpha _   = "upperLetter"
+          styleFor LowerAlpha _   = "lowerLetter"
+          styleFor UpperRoman _   = "upperRoman"
+          styleFor LowerRoman _   = "lowerRoman"
+          styleFor Decimal _      = "decimal"
           styleFor DefaultStyle 1 = "decimal"
           styleFor DefaultStyle 2 = "lowerLetter"
           styleFor DefaultStyle 3 = "lowerRoman"
           styleFor DefaultStyle 4 = "decimal"
           styleFor DefaultStyle 5 = "lowerLetter"
           styleFor DefaultStyle 6 = "lowerRoman"
-          styleFor _ _ = "decimal"
-          patternFor OneParen s = s ++ ")"
+          styleFor _ _            = "decimal"
+          patternFor OneParen s  = s ++ ")"
           patternFor TwoParens s = "(" ++ s ++ ")"
-          patternFor _ s = s ++ "."
+          patternFor _ s         = s ++ "."
 
 getNumId :: (PandocMonad m) => WS m Int
 getNumId = (((baseListId - 1) +) . length) `fmap` gets stLists
@@ -733,14 +736,14 @@ writeOpenXML opts (Pandoc meta blocks) = do
   let auths = docAuthors meta
   let dat = docDate meta
   let abstract' = case lookupMeta "abstract" meta of
-                       Just (MetaBlocks bs) -> bs
+                       Just (MetaBlocks bs)   -> bs
                        Just (MetaInlines ils) -> [Plain ils]
-                       _ -> []
+                       _                      -> []
   let subtitle' = case lookupMeta "subtitle" meta of
                        Just (MetaBlocks [Plain xs]) -> xs
                        Just (MetaBlocks [Para  xs]) -> xs
                        Just (MetaInlines xs)        -> xs
-                       _ -> []
+                       _                            -> []
   title <- withParaPropM (pStyleM "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
   subtitle <- withParaPropM (pStyleM "Subtitle") $ blocksToOpenXML opts [Para subtitle' | not (null subtitle')]
   authors <- withParaProp (pCustomStyle "Author") $ blocksToOpenXML opts $
@@ -750,8 +753,8 @@ writeOpenXML opts (Pandoc meta blocks) = do
                  then return []
                  else withParaProp (pCustomStyle "Abstract") $ blocksToOpenXML opts abstract'
   let convertSpace (Str x : Space : Str y : xs) = Str (x ++ " " ++ y) : xs
-      convertSpace (Str x : Str y : xs) = Str (x ++ y) : xs
-      convertSpace xs = xs
+      convertSpace (Str x : Str y : xs)         = Str (x ++ y) : xs
+      convertSpace xs                           = xs
   let blocks' = bottomUp convertSpace blocks
   doc' <- (setFirstPara >> blocksToOpenXML opts blocks')
   notes' <- reverse `fmap` gets stFootnotes
@@ -981,9 +984,9 @@ listItemToOpenXML opts numid (first:rest) = do
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of
-                                 AlignLeft -> "left"
-                                 AlignRight -> "right"
-                                 AlignCenter -> "center"
+                                 AlignLeft    -> "left"
+                                 AlignRight   -> "right"
+                                 AlignCenter  -> "center"
                                  AlignDefault -> "left"
 
 -- | Convert a list of inline elements to OpenXML.
@@ -1063,7 +1066,7 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
   let dirmod = case lookup "dir" kvs of
                  Just "rtl" -> local (\env -> env { envRTL = True })
                  Just "ltr" -> local (\env -> env { envRTL = False })
-                 _ -> id
+                 _          -> id
   let off x = withTextProp (mknode x [("w:val","0")] ())
   let pmod =  (if "csl-no-emph" `elem` classes then off "w:i" else id) .
               (if "csl-no-strong" `elem` classes then off "w:b" else id) .
@@ -1154,8 +1157,8 @@ inlineToOpenXML' opts (Code attrs str) = do
                                , mknode "w:t" [("xml:space","preserve")] (T.unpack tok) ]
   withTextProp (rCustomStyle "VerbatimChar")
     $ case writerHighlightStyle opts >> highlight formatOpenXML attrs str of
-           Just h   -> return h
-           Nothing  -> unhighlighted
+           Just h  -> return h
+           Nothing -> unhighlighted
 inlineToOpenXML' opts (Note bs) = do
   notes <- gets stFootnotes
   notenum <- (lift . lift) getUniqueId

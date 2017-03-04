@@ -33,21 +33,21 @@ Conversion of 'Pandoc' documents to Emacs Org-Mode.
 Org-Mode:  <http://orgmode.org>
 -}
 module Text.Pandoc.Writers.Org ( writeOrg) where
+import Control.Monad.State
+import Data.Char (isAlphaNum, toLower)
+import Data.List (intersect, intersperse, isPrefixOf, partition, transpose)
+import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
-import Data.Char ( isAlphaNum, toLower )
-import Data.List ( isPrefixOf, intersect, intersperse, partition, transpose )
-import Control.Monad.State
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Writers.Shared
 
 data WriterState =
-  WriterState { stNotes     :: [[Block]]
-              , stHasMath   :: Bool
-              , stOptions   :: WriterOptions
+  WriterState { stNotes   :: [[Block]]
+              , stHasMath :: Bool
+              , stOptions :: WriterOptions
               }
 
 -- | Convert Pandoc to Org.
@@ -352,9 +352,9 @@ inlineToOrg Space = return space
 inlineToOrg SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   case wrapText of
-       WrapPreserve   -> return cr
-       WrapAuto       -> return space
-       WrapNone       -> return space
+       WrapPreserve -> return cr
+       WrapAuto     -> return space
+       WrapNone     -> return space
 inlineToOrg (Link _ txt (src, _)) = do
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
@@ -373,11 +373,11 @@ inlineToOrg (Note contents) = do
 orgPath :: String -> String
 orgPath src =
   case src of
-    []                 -> mempty         -- wiki link
-    ('#':_)            -> src            -- internal link
-    _ | isUrl src      -> src
-    _ | isFilePath src -> src
-    _                  -> "file:" <> src
+    []      -> mempty         -- wiki link
+    ('#':_) -> src            -- internal link
+    _       | isUrl src      -> src
+    _       | isFilePath src -> src
+    _       -> "file:" <> src
  where
    isFilePath :: String -> Bool
    isFilePath cs = any (`isPrefixOf` cs) ["/", "./", "../", "file:"]

@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings, TupleSections, ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 {-
 Copyright (C) 2014 John MacFarlane <jgm@berkeley.edu>
 
@@ -31,19 +33,19 @@ Conversion of 'Pandoc' documents to haddock markup.
 Haddock:  <http://www.haskell.org/haddock/doc/html/>
 -}
 module Text.Pandoc.Writers.Haddock (writeHaddock) where
-import Text.Pandoc.Definition
-import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Options
-import Data.List ( intersperse, transpose )
-import Text.Pandoc.Pretty
 import Control.Monad.State
-import Text.Pandoc.Writers.Math (texMathToInlines)
-import Network.URI (isURI)
 import Data.Default
+import Data.List (intersperse, transpose)
+import Network.URI (isURI)
 import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
 import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Pretty
+import Text.Pandoc.Shared
+import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Writers.Math (texMathToInlines)
+import Text.Pandoc.Writers.Shared
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes :: Notes }
@@ -269,7 +271,7 @@ orderedListItemToHaddock opts marker items = do
   contents <- blockListToHaddock opts items
   let sps = case length marker - writerTabStop opts of
                    n | n > 0 -> text $ replicate n ' '
-                   _         -> text " "
+                   _ -> text " "
   let start = text marker <> sps
   return $ hang (writerTabStop opts) start $ contents <> cr
 
@@ -356,7 +358,7 @@ inlineToHaddock _ (Link _ txt (src, _)) = do
   let useAuto = isURI src &&
                 case txt of
                       [Str s] | escapeURI s == src -> True
-                      _                            -> False
+                      _       -> False
   return $ nowrap $ "<" <> text src <>
            (if useAuto then empty else space <> linktext) <> ">"
 inlineToHaddock opts (Image attr alternate (source, tit)) = do

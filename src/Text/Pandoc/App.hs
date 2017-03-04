@@ -1,4 +1,6 @@
-{-# LANGUAGE CPP, TupleSections, ScopedTypeVariables #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 {-
 Copyright (C) 2006-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -35,51 +37,50 @@ module Text.Pandoc.App (
           , parseOptions
           , options
           ) where
-import Text.Pandoc
-import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.PDF (makePDF)
-import Text.Pandoc.Walk (walk)
-import Text.Pandoc.Shared ( tabFilter, readDataFileUTF8,
-                            headerShift, err, openURL, safeRead,
-                            readDataFile )
-import Text.Pandoc.MediaBag ( mediaDirectory, extractMediaBag, MediaBag )
-import Text.Pandoc.XML ( toEntities )
-import Text.Pandoc.Highlighting (highlightingStyles)
-import Text.Pandoc.SelfContained ( makeSelfContained )
-import Text.Pandoc.Process (pipeProcess)
-import Skylighting ( Style, defaultSyntaxMap, Syntax(..) )
-import Text.Printf
-import System.Environment ( getEnvironment, getProgName, getArgs )
 import Control.Applicative ((<|>))
-import System.Exit ( ExitCode (..), exitSuccess )
-import System.FilePath
-import Data.Char ( toLower, toUpper )
-import Data.List ( intercalate, isPrefixOf, isSuffixOf, sort )
-import System.Directory ( getAppUserDataDirectory, findExecutable,
-                          doesFileExist, Permissions(..), getPermissions )
-import System.IO ( stdout, stderr )
-import System.IO.Error ( isDoesNotExistError )
 import qualified Control.Exception as E
-import Control.Exception.Extensible ( throwIO )
-import qualified Text.Pandoc.UTF8 as UTF8
+import Control.Exception.Extensible (throwIO)
 import Control.Monad
 import Control.Monad.Trans
-import Data.Maybe (fromMaybe, isNothing, isJust)
-import Data.Foldable (foldrM)
-import Network.URI (parseURI, isURI, URI(..))
-import qualified Data.ByteString.Lazy as B
-import qualified Data.ByteString as BS
-import qualified Data.Map as M
 import Data.Aeson (eitherDecode', encode)
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as B
+import Data.Char (toLower, toUpper)
+import Data.Foldable (foldrM)
+import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe, isJust, isNothing)
+import qualified Data.Text as T
 import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
-import qualified Data.Text as T
-import System.Console.GetOpt
-import Text.Pandoc.Class (withMediaBag, PandocIO, getLog)
+import Network.URI (URI (..), isURI, parseURI)
 import Paths_pandoc (getDataDir)
+import Skylighting (Style, Syntax (..), defaultSyntaxMap)
+import System.Console.GetOpt
+import System.Directory (Permissions (..), doesFileExist, findExecutable,
+                         getAppUserDataDirectory, getPermissions)
+import System.Environment (getArgs, getEnvironment, getProgName)
+import System.Exit (ExitCode (..), exitSuccess)
+import System.FilePath
+import System.IO (stderr, stdout)
+import System.IO.Error (isDoesNotExistError)
+import Text.Pandoc
+import Text.Pandoc.Builder (setMeta)
+import Text.Pandoc.Class (PandocIO, getLog, withMediaBag)
+import Text.Pandoc.Highlighting (highlightingStyles)
+import Text.Pandoc.MediaBag (MediaBag, extractMediaBag, mediaDirectory)
+import Text.Pandoc.PDF (makePDF)
+import Text.Pandoc.Process (pipeProcess)
+import Text.Pandoc.SelfContained (makeSelfContained)
+import Text.Pandoc.Shared (err, headerShift, openURL, readDataFile,
+                           readDataFileUTF8, safeRead, tabFilter)
+import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Walk (walk)
+import Text.Pandoc.XML (toEntities)
+import Text.Printf
 #ifndef _WINDOWS
-import System.Posix.Terminal (queryTerminal)
 import System.Posix.IO (stdOutput)
+import System.Posix.Terminal (queryTerminal)
 #endif
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
@@ -119,7 +120,7 @@ convertWithOpts opts = do
   let csscdn = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.6.0/katex.min.css"
   let mathMethod =
         case (optKaTeXJS opts, optKaTeXStylesheet opts) of
-            (Nothing, _) -> optHTMLMathMethod opts
+            (Nothing, _)  -> optHTMLMathMethod opts
             (Just js, ss) -> KaTeX js (fromMaybe csscdn ss)
 
 
@@ -151,8 +152,8 @@ convertWithOpts opts = do
                           Just x  -> map toLower x
 
   let writerName = case optWriter opts of
-                          Nothing   -> defaultWriterName outputFile
-                          Just x    -> map toLower x
+                          Nothing -> defaultWriterName outputFile
+                          Just x  -> map toLower x
   let format = takeWhile (`notElem` ['+','-'])
                        $ takeFileName writerName  -- in case path to lua script
 
@@ -196,13 +197,13 @@ convertWithOpts opts = do
                 Nothing -> do
                            deftemp <- getDefaultTemplate datadir format
                            case deftemp of
-                                 Left e   -> throwIO e
-                                 Right t  -> return (Just t)
+                                 Left e  -> throwIO e
+                                 Right t -> return (Just t)
                 Just tp -> do
                            -- strip off extensions
                            let tp' = case takeExtension tp of
-                                          ""   -> tp <.> format
-                                          _    -> tp
+                                          "" -> tp <.> format
+                                          _  -> tp
                            Just <$> E.catch (UTF8.readFile tp')
                              (\e -> if isDoesNotExistError e
                                        then E.catch
@@ -221,7 +222,7 @@ convertWithOpts opts = do
   -- note: this reverses the list constructed in option parsing,
   -- which in turn was reversed from the command-line order,
   -- so we end up with the correct order in the variable list:
-  let withList _ [] vars = return vars
+  let withList _ [] vars     = return vars
       withList f (x:xs) vars = f x vars >>= withList f xs
 
   variables <-
@@ -352,7 +353,7 @@ convertWithOpts opts = do
                              rs <- getLog
                              return (x, rs)
         case optLogFile opts of
-             Nothing -> return ()
+             Nothing      -> return ()
              Just logfile -> B.writeFile logfile (encodeLogMessages reports)
         let isWarning msg = messageVerbosity msg == WARNING
         when (optFailIfWarnings opts && any isWarning reports) $
@@ -394,7 +395,7 @@ convertWithOpts opts = do
                 let pdfprog = case () of
                                 _ | conTeXtOutput -> "context"
                                 _ | html5Output   -> "wkhtmltopdf"
-                                _                 -> optLaTeXEngine opts
+                                _ -> optLaTeXEngine opts
                 -- check for pdf creating program
                 mbPdfProg <- liftIO $ findExecutable pdfprog
                 when (isNothing mbPdfProg) $
@@ -437,7 +438,7 @@ externalFilter f args' d = liftIO $ do
                      else return True
   let (f', args'') = if exists
                         then case map toLower (takeExtension f) of
-                                  _ | isExecutable -> ("." </> f, args')
+                                  _      | isExecutable -> ("." </> f, args')
                                   ".py"  -> ("python", f:args')
                                   ".hs"  -> ("runhaskell", f:args')
                                   ".pl"  -> ("perl", f:args')
@@ -465,66 +466,66 @@ externalFilter f args' d = liftIO $ do
 
 -- | Data structure for command line options.
 data Opt = Opt
-    { optTabStop           :: Int     -- ^ Number of spaces per tab
-    , optPreserveTabs      :: Bool    -- ^ Preserve tabs instead of converting to spaces
-    , optStandalone        :: Bool    -- ^ Include header, footer
-    , optReader            :: Maybe String  -- ^ Reader format
-    , optWriter            :: Maybe String  -- ^ Writer format
-    , optTableOfContents   :: Bool    -- ^ Include table of contents
-    , optBaseHeaderLevel   :: Int     -- ^ Base header level
-    , optTemplate          :: Maybe FilePath  -- ^ Custom template
-    , optVariables         :: [(String,String)] -- ^ Template variables to set
-    , optMetadata          :: [(String, String)] -- ^ Metadata fields to set
-    , optOutputFile        :: FilePath  -- ^ Name of output file
-    , optInputFiles        :: [FilePath] -- ^ Names of input files
-    , optNumberSections    :: Bool    -- ^ Number sections in LaTeX
-    , optNumberOffset      :: [Int]   -- ^ Starting number for sections
-    , optSectionDivs       :: Bool    -- ^ Put sections in div tags in HTML
-    , optIncremental       :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
-    , optSelfContained     :: Bool    -- ^ Make HTML accessible offline
-    , optHtmlQTags         :: Bool    -- ^ Use <q> tags in HTML
-    , optHighlightStyle    :: Maybe String -- ^ Style to use for highlighted code
-    , optTopLevelDivision  :: TopLevelDivision -- ^ Type of the top-level divisions
-    , optHTMLMathMethod    :: HTMLMathMethod -- ^ Method to print HTML math
-    , optReferenceDoc      :: Maybe FilePath -- ^ Path of reference doc
-    , optEpubMetadata      :: Maybe FilePath   -- ^ EPUB metadata
-    , optEpubFonts         :: [FilePath] -- ^ EPUB fonts to embed
-    , optEpubChapterLevel  :: Int     -- ^ Header level at which to split chapters
-    , optEpubCoverImage    :: Maybe FilePath -- ^ Cover image for epub
-    , optTOCDepth          :: Int     -- ^ Number of levels to include in TOC
-    , optDumpArgs          :: Bool    -- ^ Output command-line arguments
-    , optIgnoreArgs        :: Bool    -- ^ Ignore command-line arguments
-    , optVerbosity         :: Verbosity  -- ^ Verbosity of diagnostic output
-    , optLogFile           :: Maybe FilePath -- ^ File to write JSON log output
-    , optFailIfWarnings    :: Bool    -- ^ Fail on warnings
-    , optReferenceLinks    :: Bool    -- ^ Use reference links in writing markdown, rst
-    , optReferenceLocation :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
-    , optDpi               :: Int     -- ^ Dpi
-    , optWrapText          :: WrapOption  -- ^ Options for wrapping text
-    , optColumns           :: Int     -- ^ Line length in characters
-    , optFilters           :: [FilePath] -- ^ Filters to apply
-    , optEmailObfuscation  :: ObfuscationMethod
-    , optIdentifierPrefix  :: String
-    , optIndentedCodeClasses :: [String] -- ^ Default classes for indented code blocks
-    , optDataDir           :: Maybe FilePath
-    , optCiteMethod        :: CiteMethod -- ^ Method to output cites
-    , optListings          :: Bool       -- ^ Use listings package for code blocks
-    , optLaTeXEngine       :: String     -- ^ Program to use for latex -> pdf
-    , optLaTeXEngineArgs   :: [String]   -- ^ Flags to pass to the latex-engine
-    , optSlideLevel        :: Maybe Int  -- ^ Header level that creates slides
-    , optSetextHeaders     :: Bool       -- ^ Use atx headers for markdown level 1-2
-    , optAscii             :: Bool       -- ^ Use ascii characters only in html
+    { optTabStop               :: Int     -- ^ Number of spaces per tab
+    , optPreserveTabs          :: Bool    -- ^ Preserve tabs instead of converting to spaces
+    , optStandalone            :: Bool    -- ^ Include header, footer
+    , optReader                :: Maybe String  -- ^ Reader format
+    , optWriter                :: Maybe String  -- ^ Writer format
+    , optTableOfContents       :: Bool    -- ^ Include table of contents
+    , optBaseHeaderLevel       :: Int     -- ^ Base header level
+    , optTemplate              :: Maybe FilePath  -- ^ Custom template
+    , optVariables             :: [(String,String)] -- ^ Template variables to set
+    , optMetadata              :: [(String, String)] -- ^ Metadata fields to set
+    , optOutputFile            :: FilePath  -- ^ Name of output file
+    , optInputFiles            :: [FilePath] -- ^ Names of input files
+    , optNumberSections        :: Bool    -- ^ Number sections in LaTeX
+    , optNumberOffset          :: [Int]   -- ^ Starting number for sections
+    , optSectionDivs           :: Bool    -- ^ Put sections in div tags in HTML
+    , optIncremental           :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
+    , optSelfContained         :: Bool    -- ^ Make HTML accessible offline
+    , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
+    , optHighlightStyle        :: Maybe String -- ^ Style to use for highlighted code
+    , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
+    , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
+    , optReferenceDoc          :: Maybe FilePath -- ^ Path of reference doc
+    , optEpubMetadata          :: Maybe FilePath   -- ^ EPUB metadata
+    , optEpubFonts             :: [FilePath] -- ^ EPUB fonts to embed
+    , optEpubChapterLevel      :: Int     -- ^ Header level at which to split chapters
+    , optEpubCoverImage        :: Maybe FilePath -- ^ Cover image for epub
+    , optTOCDepth              :: Int     -- ^ Number of levels to include in TOC
+    , optDumpArgs              :: Bool    -- ^ Output command-line arguments
+    , optIgnoreArgs            :: Bool    -- ^ Ignore command-line arguments
+    , optVerbosity             :: Verbosity  -- ^ Verbosity of diagnostic output
+    , optLogFile               :: Maybe FilePath -- ^ File to write JSON log output
+    , optFailIfWarnings        :: Bool    -- ^ Fail on warnings
+    , optReferenceLinks        :: Bool    -- ^ Use reference links in writing markdown, rst
+    , optReferenceLocation     :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
+    , optDpi                   :: Int     -- ^ Dpi
+    , optWrapText              :: WrapOption  -- ^ Options for wrapping text
+    , optColumns               :: Int     -- ^ Line length in characters
+    , optFilters               :: [FilePath] -- ^ Filters to apply
+    , optEmailObfuscation      :: ObfuscationMethod
+    , optIdentifierPrefix      :: String
+    , optIndentedCodeClasses   :: [String] -- ^ Default classes for indented code blocks
+    , optDataDir               :: Maybe FilePath
+    , optCiteMethod            :: CiteMethod -- ^ Method to output cites
+    , optListings              :: Bool       -- ^ Use listings package for code blocks
+    , optLaTeXEngine           :: String     -- ^ Program to use for latex -> pdf
+    , optLaTeXEngineArgs       :: [String]   -- ^ Flags to pass to the latex-engine
+    , optSlideLevel            :: Maybe Int  -- ^ Header level that creates slides
+    , optSetextHeaders         :: Bool       -- ^ Use atx headers for markdown level 1-2
+    , optAscii                 :: Bool       -- ^ Use ascii characters only in html
     , optDefaultImageExtension :: String -- ^ Default image extension
-    , optExtractMedia      :: Maybe FilePath -- ^ Path to extract embedded media
-    , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes.
-    , optFileScope        :: Bool         -- ^ Parse input files before combining
-    , optKaTeXStylesheet   :: Maybe String     -- ^ Path to stylesheet for KaTeX
-    , optKaTeXJS           :: Maybe String     -- ^ Path to js file for KaTeX
-    , optTitlePrefix       :: Maybe String     -- ^ Prefix for title
-    , optCss               :: [FilePath]       -- ^ CSS files to link to
-    , optIncludeBeforeBody :: [FilePath]       -- ^ Files to include before
-    , optIncludeAfterBody  :: [FilePath]       -- ^ Files to include after body
-    , optIncludeInHeader   :: [FilePath]       -- ^ Files to include in header
+    , optExtractMedia          :: Maybe FilePath -- ^ Path to extract embedded media
+    , optTrackChanges          :: TrackChanges -- ^ Accept or reject MS Word track-changes.
+    , optFileScope             :: Bool         -- ^ Parse input files before combining
+    , optKaTeXStylesheet       :: Maybe String     -- ^ Path to stylesheet for KaTeX
+    , optKaTeXJS               :: Maybe String     -- ^ Path to js file for KaTeX
+    , optTitlePrefix           :: Maybe String     -- ^ Prefix for title
+    , optCss                   :: [FilePath]       -- ^ CSS files to link to
+    , optIncludeBeforeBody     :: [FilePath]       -- ^ Files to include before
+    , optIncludeAfterBody      :: [FilePath]       -- ^ Files to include after body
+    , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
     }
 
 -- | Defaults for command-line options.
@@ -675,7 +676,7 @@ defaultWriterName x =
     ".icml"     -> "icml"
     ".tei.xml"  -> "tei"
     ".tei"      -> "tei"
-    ['.',y] | y `elem` ['1'..'9'] -> "man"
+    ['.',y]     | y `elem` ['1'..'9'] -> "man"
     _           -> "html"
 
 -- Transformations of a Pandoc document post-parsing:
@@ -1210,8 +1211,8 @@ options =
                  (OptArg
                   (\arg opt -> do
                       let url' = case arg of
-                                      Just u   -> u ++ "?"
-                                      Nothing  -> "/cgi-bin/mimetex.cgi?"
+                                      Just u  -> u ++ "?"
+                                      Nothing -> "/cgi-bin/mimetex.cgi?"
                       return opt { optHTMLMathMethod = WebTeX url' })
                   "URL")
                  "" -- "Use mimetex for HTML math"
@@ -1423,7 +1424,7 @@ handleUnrecognizedOption x =
 
 uppercaseFirstLetter :: String -> String
 uppercaseFirstLetter (c:cs) = toUpper c : cs
-uppercaseFirstLetter [] = []
+uppercaseFirstLetter []     = []
 
 readers'names :: [String]
 readers'names = sort (map fst (readers :: [(String, Reader PandocIO)]))

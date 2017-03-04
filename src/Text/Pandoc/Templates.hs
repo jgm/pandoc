@@ -1,5 +1,7 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances,
-    OverloadedStrings, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
 {-
 Copyright (C) 2009-2016 John MacFarlane <jgm@berkeley.edu>
 
@@ -39,13 +41,12 @@ module Text.Pandoc.Templates ( renderTemplate
                              , Template
                              , getDefaultTemplate ) where
 
-import Text.DocTemplates (Template, TemplateTarget, compileTemplate,
-                          renderTemplate, applyTemplate,
-                          varListToJSON)
-import Data.Aeson (ToJSON(..))
+import qualified Control.Exception.Extensible as E (IOException, try)
+import Data.Aeson (ToJSON (..))
 import qualified Data.Text as T
-import System.FilePath ((</>), (<.>))
-import qualified Control.Exception.Extensible as E (try, IOException)
+import System.FilePath ((<.>), (</>))
+import Text.DocTemplates (Template, TemplateTarget, applyTemplate,
+                          compileTemplate, renderTemplate, varListToJSON)
 import Text.Pandoc.Shared (readDataFileUTF8)
 
 -- | Get default template for the specified writer.

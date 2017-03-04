@@ -7,11 +7,11 @@ module Text.Pandoc.Readers.Docx.StyleMap (  StyleMaps(..)
                                           , hasStyleName
                                           ) where
 
-import           Text.XML.Light
-import           Text.Pandoc.Readers.Docx.Util
-import           Control.Monad.State
-import           Data.Char  (toLower)
-import qualified Data.Map                      as M
+import Control.Monad.State
+import Data.Char (toLower)
+import qualified Data.Map as M
+import Text.Pandoc.Readers.Docx.Util
+import Text.XML.Light
 
 newtype ParaStyleMap = ParaStyleMap ( M.Map String String )
 newtype CharStyleMap = CharStyleMap ( M.Map String String )
@@ -30,7 +30,7 @@ instance StyleMap CharStyleMap where
 
 insert :: (StyleMap a) => Maybe String -> Maybe String -> a -> a
 insert (Just k) (Just v) m = alterMap (M.insert k v) m
-insert _ _ m = m
+insert _ _ m               = m
 
 getStyleId :: (StyleMap a) => String -> a -> String
 getStyleId s = M.findWithDefault (filter (/=' ') s) (map toLower s) . getMap
