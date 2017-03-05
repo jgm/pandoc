@@ -405,7 +405,11 @@ blockToMarkdown' opts (Plain inlines) = do
                      not isPlain && beginsWithOrderedListMarker rendered
                      then text $ escapeDelimiter rendered
                      else contents
-  return $ contents' <> cr
+  -- escape if para starts with %
+  return $
+     if isEnabled Ext_pandoc_title_block opts && take 1 rendered == "%"
+        then "\\" <> contents' <> cr
+        else contents' <> cr
 -- title beginning with fig: indicates figure
 blockToMarkdown' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
   blockToMarkdown opts (Para [Image attr alt (src,tit)])
