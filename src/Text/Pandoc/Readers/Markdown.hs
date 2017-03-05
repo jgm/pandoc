@@ -254,12 +254,15 @@ yamlMetaBlock = try $ do
                 then return ()
                 else do
                   v' <- yamlToMeta v
-                  updateState $ \st ->
-                      let smeta = stateMeta' st
-                      in  st{ stateMeta' =
-                                     (do v'' <- v'
-                                         m <- smeta
-                                         return $ B.setMeta (T.unpack k) v'' m)}
+                  let k' = T.unpack k
+                  updateState $ \st -> st{ stateMeta' =
+                     (do m <- stateMeta' st
+                         -- if there's already a value, leave it unchanged
+                         case lookupMeta k' m of
+                              Just _ -> return m
+                              Nothing -> do
+                                v'' <- v'
+                                return $ B.setMeta (T.unpack k) v'' m)}
            ) alist
        Right Yaml.Null -> return ()
        Right _ -> do
