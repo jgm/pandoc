@@ -498,6 +498,11 @@ inlineCommands = M.fromList $
   , ("textit", extractSpaces emph <$> tok)
   , ("textsl", extractSpaces emph <$> tok)
   , ("textsc", extractSpaces smallcaps <$> tok)
+  , ("textsf", extractSpaces (spanWith ("",["sans-serif"],[])) <$> tok)
+  , ("textmd", extractSpaces (spanWith ("",["medium"],[])) <$> tok)
+  , ("textrm", extractSpaces (spanWith ("",["roman"],[])) <$> tok)
+  , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
+  , ("texttt", (code . stringify . toList) <$> tok)
   , ("sout", extractSpaces strikeout <$> tok)
   , ("textsuperscript", extractSpaces superscript <$> tok)
   , ("textsubscript", extractSpaces subscript <$> tok)
@@ -582,7 +587,6 @@ inlineCommands = M.fromList $
   , ("verb", doverb)
   , ("lstinline", skipopts *> doverb)
   , ("Verb", doverb)
-  , ("texttt", (code . stringify . toList) <$> tok)
   , ("url", (unescapeURL <$> braced) >>= \url ->
        pure (link url "" (str url)))
   , ("href", (unescapeURL <$> braced <* optional sp) >>= \url ->
