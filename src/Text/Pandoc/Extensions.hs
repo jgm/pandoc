@@ -247,6 +247,7 @@ multimarkdownExtensions = extensionsFromList
   , Ext_definition_lists
   , Ext_all_symbols_escapable
   , Ext_implicit_header_references
+  , Ext_shortcut_reference_links
   , Ext_auto_identifiers
   , Ext_mmd_header_identifiers
   , Ext_implicit_figures

@@ -567,9 +567,14 @@ setextHeaderEnd = try $ do
 
 mmdHeaderIdentifier :: PandocMonad m => MarkdownParser m Attr
 mmdHeaderIdentifier = do
-  ident <- stripFirstAndLast . snd <$> reference
+  (_, raw) <- reference
+  let raw' = trim $ stripFirstAndLast raw
+  let ident = concat $ words $ map toLower raw'
+  let attr = (ident, [], [])
+  guardDisabled Ext_implicit_header_references
+    <|> registerImplicitHeader raw' attr
   skipSpaces
-  return (ident,[],[])
+  return attr
 
 setextHeader :: PandocMonad m => MarkdownParser m (F Blocks)
 setextHeader = try $ do
