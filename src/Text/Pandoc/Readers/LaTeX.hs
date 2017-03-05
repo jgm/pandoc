@@ -426,13 +426,13 @@ resetCaption = updateState $ \st -> st{ stateCaption = Nothing }
 
 authors :: PandocMonad m => LP m ()
 authors = try $ do
-  char '{'
+  bgroup
   let oneAuthor = mconcat <$>
        many1 (notFollowedBy' (controlSeq "and") >>
                (inline <|> mempty <$ blockCommand))
                -- skip e.g. \vspace{10pt}
   auths <- sepBy oneAuthor (controlSeq "and")
-  char '}'
+  egroup
   addMeta "author" (map trimInlines auths)
 
 section :: PandocMonad m => Attr -> Int -> LP m Blocks
@@ -577,8 +577,8 @@ inlineCommands = M.fromList $
   , ("bar", lit "|")
   , ("textless", lit "<")
   , ("textgreater", lit ">")
-  , ("thanks", (note . mconcat) <$> (char '{' *> manyTill block (char '}')))
-  , ("footnote", (note . mconcat) <$> (char '{' *> manyTill block (char '}')))
+  , ("thanks", note <$> grouped block)
+  , ("footnote", note <$> grouped block)
   , ("verb", doverb)
   , ("lstinline", skipopts *> doverb)
   , ("Verb", doverb)
@@ -971,9 +971,6 @@ rawEnv name = do
 
 ----
 
-braced' :: PandocMonad m => LP m String
-braced' = try $ char '{' *> manyTill (satisfy (/='}')) (char '}')
-
 maybeAddExtension :: String -> FilePath -> FilePath
 maybeAddExtension ext fp =
   if null (takeExtension fp)
@@ -989,7 +986,7 @@ include = do
                   <|> string "usepackage"
               -- skip options
               skipMany $ try $ char '[' *> manyTill anyChar (char ']')
-              fs <- (map trim . splitBy (==',')) <$> braced'
+              fs <- (map trim . splitBy (==',')) <$> braced
               return $ if name == "usepackage"
                           then map (maybeAddExtension ".sty") fs
                           else map (maybeAddExtension ".tex") fs
@@ -1339,7 +1336,7 @@ complexNatbibCitation mode = try $ do
 
 parseAligns :: PandocMonad m => LP m [(String, Alignment, String)]
 parseAligns = try $ do
-  char '{'
+  bgroup
   let maybeBar = skipMany $ sp <|> () <$ char '|' <|> () <$ (char '@' >> braced)
   maybeBar
   let cAlign = AlignCenter <$ char 'c'
@@ -1359,7 +1356,7 @@ parseAligns = try $ do
         return (pref, ch, suff)
   aligns' <- sepEndBy alignSpec maybeBar
   spaces
-  char '}'
+  egroup
   spaces
   return $ aligns'
 
