@@ -26,7 +26,7 @@ write plain text, [Markdown], [CommonMark], [PHP Markdown Extra],
 [DocBook], [OpenDocument], [ODT], [Word docx], [GNU Texinfo], [MediaWiki
 markup], [DokuWiki markup], [ZimWiki markup], [Haddock markup],
 [EPUB] \(v2 or v3\), [FictionBook2], [Textile], [groff man] pages,
-[Emacs Org mode], [AsciiDoc], [InDesign ICML], [TEI Simple], and [Slidy],
+[Emacs Org mode], [AsciiDoc], [InDesign ICML], [TEI Simple], [Muse], and [Slidy],
 [Slideous], [DZSlides], [reveal.js] or [S5] HTML slide shows. It can also
 produce [PDF] output on systems where LaTeX, ConTeXt, or `wkhtmltopdf` is
 installed.
@@ -97,6 +97,7 @@ Markdown can be expected to be lossy.
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
 [InDesign ICML]: https://www.adobe.com/content/dam/Adobe/en/devnet/indesign/cs55-docs/IDML/idml-specification.pdf
 [TEI Simple]: https://github.com/TEIC/TEI-Simple
+[Muse]: https://amusewiki.org/library/manual
 
 
 
