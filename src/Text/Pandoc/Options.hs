@@ -47,6 +47,7 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            ) where
 import Data.Data (Data)
 import Data.Default
+import qualified Data.Set as Set
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Text.Pandoc.Extensions
@@ -60,6 +61,7 @@ data ReaderOptions = ReaderOptions{
        , readerApplyMacros           :: Bool -- ^ Apply macros to TeX math
        , readerIndentedCodeClasses   :: [String] -- ^ Default classes for
                                        -- indented code blocks
+       , readerAbbreviations         :: Set.Set String -- ^ Strings to treat as abbreviations
        , readerDefaultImageExtension :: String -- ^ Default extension for images
        , readerTrackChanges          :: TrackChanges
 } deriving (Show, Read, Data, Typeable, Generic)
@@ -72,9 +74,18 @@ instance Default ReaderOptions
                , readerTabStop               = 4
                , readerApplyMacros           = True
                , readerIndentedCodeClasses   = []
+               , readerAbbreviations         = defaultAbbrevs
                , readerDefaultImageExtension = ""
                , readerTrackChanges          = AcceptChanges
                }
+
+defaultAbbrevs :: Set.Set String
+defaultAbbrevs = Set.fromList
+                 [ "Mr.", "Mrs.", "Ms.", "Capt.", "Dr.", "Prof.",
+                   "Gen.", "Gov.", "e.g.", "i.e.", "Sgt.", "St.",
+                   "vol.", "vs.", "Sen.", "Rep.", "Pres.", "Hon.",
+                   "Rev.", "Ph.D.", "M.D.", "M.A.", "p.", "pp.",
+                   "ch.", "sec.", "cf.", "cp."]
 
 --
 -- Writer options

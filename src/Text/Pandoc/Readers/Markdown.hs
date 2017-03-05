@@ -42,6 +42,7 @@ import Data.Maybe
 import Data.Monoid ((<>))
 import Data.Ord (comparing)
 import Data.Scientific (base10Exponent, coefficient)
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Vector as V
@@ -1688,32 +1689,22 @@ nonEndline = satisfy (/='\n')
 
 str :: PandocMonad m => MarkdownParser m (F Inlines)
 str = do
-  result <- many1 alphaNum
+  result <- many1 (alphaNum <|> try (char '.' <* notFollowedBy (char '.')))
   updateLastStrPos
-  let spacesToNbr = map (\c -> if c == ' ' then '\160' else c)
-  isSmart <- extensionEnabled Ext_smart <$> getOption readerExtensions
-  if isSmart
-     then case likelyAbbrev result of
-               []        -> return $ return $ B.str result
-               xs        -> choice (map (\x ->
-                               try (string x >> oneOf " \n" >>
-                                    lookAhead alphaNum >>
-                                    return (return $ B.str
-                                                  $ result ++ spacesToNbr x ++ "\160"))) xs)
-                           <|> (return $ return $ B.str result)
-     else return $ return $ B.str result
-
--- | if the string matches the beginning of an abbreviation (before
--- the first period, return strings that would finish the abbreviation.
-likelyAbbrev :: String -> [String]
-likelyAbbrev x =
-  let abbrevs = [ "Mr.", "Mrs.", "Ms.", "Capt.", "Dr.", "Prof.",
-                  "Gen.", "Gov.", "e.g.", "i.e.", "Sgt.", "St.",
-                  "vol.", "vs.", "Sen.", "Rep.", "Pres.", "Hon.",
-                  "Rev.", "Ph.D.", "M.D.", "M.A.", "p.", "pp.",
-                  "ch.", "sec.", "cf.", "cp."]
-      abbrPairs = map (break (=='.')) abbrevs
-  in  map snd $ filter (\(y,_) -> y == x) abbrPairs
+  (do guardEnabled Ext_smart
+      abbrevs <- getOption readerAbbreviations
+      if not (null result) && last result == '.' && result `Set.member` abbrevs
+         then try (do ils <- whitespace <|> endline
+                      lookAhead alphaNum
+                      return $ do
+                        ils' <- ils
+                        if ils' == B.space
+                           then return (B.str result <> B.str "\160")
+                           else -- linebreak or softbreak
+                                return (ils' <> B.str result <> B.str "\160"))
+                <|> return (return (B.str result))
+         else return (return (B.str result)))
+     <|> return (return (B.str result))
 
 -- an endline character that can be treated as a space, not a structural break
 endline :: PandocMonad m => MarkdownParser m (F Inlines)
