@@ -1,0 +1,44 @@
+$if(author)$
+#author $author$
+$endif$
+$if(title)$
+#title $title$
+$endif$
+$if(lang)$
+#lang $lang$
+$endif$
+$if(LISTtitle)$
+#LISTtitle $LISTtitle$
+$endif$
+$if(subtitle)$
+#subtitle $subtitle$
+$endif$
+$if(SORTauthors)$
+#SORTauthors $SORTauthors$
+$endif$
+$if(SORTtopics)$
+#SORTtopics $SORTtopics$
+$endif$
+$if(date)$
+#date $date$
+$endif$
+$if(notes)$
+#notes $notes$
+$endif$
+$if(source)$
+#source $source$
+$endif$
+
+$for(header-includes)$
+$header-includes$
+
+$endfor$
+$for(include-before)$
+$include-before$
+
+$endfor$
+$body$
+$for(include-after)$
+
+$include-after$
+$endfor$

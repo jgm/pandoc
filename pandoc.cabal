@@ -50,6 +50,7 @@ Data-Files:
                  data/templates/default.texinfo
                  data/templates/default.man
                  data/templates/default.markdown
+                 data/templates/default.muse
                  data/templates/default.commonmark
                  data/templates/default.rst
                  data/templates/default.plain
@@ -389,6 +390,7 @@ Library
                    Text.Pandoc.Writers.EPUB,
                    Text.Pandoc.Writers.FB2,
                    Text.Pandoc.Writers.TEI,
+                   Text.Pandoc.Writers.Muse,
                    Text.Pandoc.Writers.Math,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.PDF,
@@ -540,6 +542,7 @@ Test-Suite test-pandoc
                   Tests.Writers.Docx
                   Tests.Writers.RST
                   Tests.Writers.TEI
+                  Tests.Writers.Muse
   Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   Default-Language: Haskell98
 

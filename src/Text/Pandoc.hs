@@ -136,6 +136,7 @@ module Text.Pandoc
                , writeCommonMark
                , writeCustom
                , writeTEI
+               , writeMuse
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates
                -- * Miscellaneous
@@ -191,6 +192,7 @@ import Text.Pandoc.Writers.LaTeX
 import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.MediaWiki
+import Text.Pandoc.Writers.Muse
 import Text.Pandoc.Writers.Native
 import Text.Pandoc.Writers.ODT
 import Text.Pandoc.Writers.OpenDocument
@@ -307,6 +309,7 @@ writers = [
   ,("haddock"      , StringWriter writeHaddock)
   ,("commonmark"   , StringWriter writeCommonMark)
   ,("tei"          , StringWriter writeTEI)
+  ,("muse"         , StringWriter writeMuse)
   ]
 
 getDefaultExtensions :: String -> Extensions
