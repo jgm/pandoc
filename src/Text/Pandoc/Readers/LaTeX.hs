@@ -1276,9 +1276,7 @@ simpleCiteArgs :: PandocMonad m => LP m [Citation]
 simpleCiteArgs = try $ do
   first  <- optionMaybe $ toList <$> opt
   second <- optionMaybe $ toList <$> opt
-  char '{'
-  optional sp
-  keys <- manyTill citationLabel (char '}')
+  keys <- try $ bgroup *> (manyTill citationLabel egroup)
   let (pre, suf) = case (first  , second ) of
         (Just s , Nothing) -> (mempty, s )
         (Just s , Just t ) -> (s , t )
