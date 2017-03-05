@@ -33,8 +33,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Markdown ( readMarkdown ) where
 
 import Control.Monad
-import Control.Monad.Except (catchError, throwError)
-import Control.Monad.Trans (lift)
+import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace, toLower)
 import qualified Data.HashMap.Strict as H
 import Data.List (findIndex, intercalate, sortBy, transpose)
@@ -236,13 +235,6 @@ pandocTitleBlock = try $ do
   updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
 
 
--- Adapted from solution at
--- http://stackoverflow.com/a/29448764/1901888
-foldrWithKeyM :: Monad m => (k -> b -> a -> m a) -> a -> H.HashMap k b -> m a
-foldrWithKeyM f acc = H.foldrWithKey f' (return acc)
-    where
-        f' k b ma = ma >>= \a -> f k b a
-
 yamlMetaBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 yamlMetaBlock = try $ do
   guardEnabled Ext_yaml_metadata_block
@@ -254,84 +246,93 @@ yamlMetaBlock = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  opts <- stateOptions <$> getState
-  meta' <- case Yaml.decodeEither' $ UTF8.fromString rawYaml of
-                Right (Yaml.Object hashmap) ->
-                  foldrWithKeyM
-                  (\k v m -> do
-                      if ignorable k
-                        then return m
-                        else (do v' <- lift $ yamlToMeta opts v
-                                 return $ B.setMeta (T.unpack k) v' m)
-                             `catchError`
-                             (\_ -> return m)
-                  ) nullMeta hashmap
-                Right Yaml.Null -> return nullMeta
-                Right _ -> do
-                            logMessage $
-                               CouldNotParseYamlMetadata "not an object"
-                               pos
-                            return nullMeta
-                Left err' -> do
-                         case err' of
-                            InvalidYaml (Just YamlParseException{
-                                        yamlProblem = problem
-                                      , yamlContext = _ctxt
-                                      , yamlProblemMark = Yaml.YamlMark {
-                                            yamlLine = yline
-                                          , yamlColumn = ycol
-                                      }}) ->
-                                 logMessage $ CouldNotParseYamlMetadata
-                                    problem (setSourceLine
-                                    (setSourceColumn pos
-                                       (sourceColumn pos + ycol))
-                                    (sourceLine pos + 1 + yline))
-                            _ -> logMessage $ CouldNotParseYamlMetadata
-                                    (show err') pos
-                         return nullMeta
-  updateState $ \st -> st{ stateMeta' = stateMeta' st <> (return meta') }
+  case Yaml.decodeEither' $ UTF8.fromString rawYaml of
+       Right (Yaml.Object hashmap) -> do
+         let alist = H.toList hashmap
+         mapM_ (\(k, v) -> do
+             if ignorable k
+                then return ()
+                else do
+                  v' <- yamlToMeta v
+                  updateState $ \st ->
+                      let smeta = stateMeta' st
+                      in  st{ stateMeta' =
+                                     (do v'' <- v'
+                                         m <- smeta
+                                         return $ B.setMeta (T.unpack k) v'' m)}
+           ) alist
+       Right Yaml.Null -> return ()
+       Right _ -> do
+                   logMessage $
+                      CouldNotParseYamlMetadata "not an object"
+                      pos
+                   return ()
+       Left err' -> do
+                case err' of
+                   InvalidYaml (Just YamlParseException{
+                               yamlProblem = problem
+                             , yamlContext = _ctxt
+                             , yamlProblemMark = Yaml.YamlMark {
+                                   yamlLine = yline
+                                 , yamlColumn = ycol
+                             }}) ->
+                        logMessage $ CouldNotParseYamlMetadata
+                           problem (setSourceLine
+                           (setSourceColumn pos
+                              (sourceColumn pos + ycol))
+                           (sourceLine pos + 1 + yline))
+                   _ -> logMessage $ CouldNotParseYamlMetadata
+                           (show err') pos
+                return ()
   return mempty
 
 -- ignore fields ending with _
 ignorable :: Text -> Bool
 ignorable t = (T.pack "_") `T.isSuffixOf` t
 
-toMetaValue :: PandocMonad m => ReaderOptions -> Text -> m MetaValue
-toMetaValue opts x = toMeta <$> readMarkdown opts' (T.unpack x)
+toMetaValue :: PandocMonad m
+            => Text -> MarkdownParser m (F MetaValue)
+toMetaValue x = toMeta <$> parseFromString parseBlocks (T.unpack x)
   where
-    toMeta p =
-      case p of
-        Pandoc _ [Plain xs]  -> MetaInlines xs
-        Pandoc _ [Para xs]
-         | endsWithNewline x -> MetaBlocks [Para xs]
-         | otherwise         -> MetaInlines xs
-        Pandoc _ bs           -> MetaBlocks bs
+    toMeta p = do
+      p' <- p
+      return $
+        case B.toList p' of
+             [Plain xs]           -> MetaInlines xs
+             [Para xs]
+              | endsWithNewline x -> MetaBlocks [Para xs]
+              | otherwise         -> MetaInlines xs
+             bs                   -> MetaBlocks bs
     endsWithNewline t = T.pack "\n" `T.isSuffixOf` t
-    opts' = opts{readerExtensions =
-                  disableExtension Ext_pandoc_title_block $
-                  disableExtension Ext_mmd_title_block $
-                  disableExtension Ext_yaml_metadata_block $
-                  readerExtensions opts }
 
-yamlToMeta :: PandocMonad m => ReaderOptions -> Yaml.Value -> m MetaValue
-yamlToMeta opts (Yaml.String t) = toMetaValue opts t
-yamlToMeta _    (Yaml.Number n)
+yamlToMeta :: PandocMonad m
+           => Yaml.Value -> MarkdownParser m (F MetaValue)
+yamlToMeta (Yaml.String t) = toMetaValue t
+yamlToMeta (Yaml.Number n)
   -- avoid decimal points for numbers that don't need them:
-  | base10Exponent n >= 0     = return $ MetaString $ show
+  | base10Exponent n >= 0     = return $ return $ MetaString $ show
                                 $ coefficient n * (10 ^ base10Exponent n)
-  | otherwise                 = return $ MetaString $ show n
-yamlToMeta _    (Yaml.Bool b) = return $ MetaBool b
-yamlToMeta opts (Yaml.Array xs) = B.toMetaValue <$> mapM (yamlToMeta opts)
-                                                  (V.toList xs)
-yamlToMeta opts (Yaml.Object o) = MetaMap <$> H.foldrWithKey (\k v m ->
-                                if ignorable k
-                                   then m
-                                   else (do
-                                    v' <- yamlToMeta opts v
-                                    m' <- m
-                                    return (M.insert (T.unpack k) v' m')))
-                                (return M.empty) o
-yamlToMeta _ _ = return $ MetaString ""
+  | otherwise                 = return $ return $ MetaString $ show n
+yamlToMeta (Yaml.Bool b) = return $ return $ MetaBool b
+yamlToMeta (Yaml.Array xs) = do
+  xs' <- mapM yamlToMeta (V.toList xs)
+  return $ do
+    xs'' <- sequence xs'
+    return $ B.toMetaValue xs''
+yamlToMeta (Yaml.Object o) = do
+  let alist = H.toList o
+  foldM (\m (k,v) -> do
+           if ignorable k
+              then return m
+              else do
+                v' <- yamlToMeta v
+                return $ do
+                   MetaMap m' <- m
+                   v'' <- v'
+                   return (MetaMap $ M.insert (T.unpack k) v'' m'))
+        (return $ MetaMap M.empty)
+        alist
+yamlToMeta _ = return $ return $ MetaString ""
 
 stopLine :: PandocMonad m => MarkdownParser m ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
@@ -361,14 +362,12 @@ parseMarkdown = do
   optional titleBlock
   blocks <- parseBlocks
   st <- getState
-  let meta = runF (stateMeta' st) st
-  let Pandoc _ bs = B.doc $ runF blocks st
-  eastAsianLineBreaks <- option False $
-                    True <$ guardEnabled Ext_east_asian_line_breaks
+  let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
+                     meta <- stateMeta' st
+                     return $ Pandoc meta bs) st
   reportLogMessages
-  return $ (if eastAsianLineBreaks
-               then bottomUp softBreakFilter
-               else id) $ Pandoc meta bs
+  (do guardEnabled Ext_east_asian_line_breaks
+      return $ bottomUp softBreakFilter doc) <|> return doc
 
 softBreakFilter :: [Inline] -> [Inline]
 softBreakFilter (x:SoftBreak:y:zs) =
