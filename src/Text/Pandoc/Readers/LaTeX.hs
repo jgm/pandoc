@@ -394,6 +394,8 @@ blockCommands = M.fromList $
   , "markboth", "markright", "markleft"
   , "hspace", "vspace"
   , "newpage"
+  , "clearpage"
+  , "pagebreak"
   ]
 
 graphicsPath :: PandocMonad m => LP m Blocks
@@ -658,6 +660,9 @@ inlineCommands = M.fromList $
   [ "index"
   , "hspace"
   , "vspace"
+  , "newpage"
+  , "clearpage"
+  , "pagebreak"
   ]
 
 mkImage :: PandocMonad m => [(String, String)] -> String -> LP m Inlines
