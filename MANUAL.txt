@@ -1145,7 +1145,8 @@ as the following:
 :   body of document
 
 `meta-json`
-:   JSON representation of all of the document's metadata
+:   JSON representation of all of the document's metadata. Field
+    values are transformed to the selected output format.
 
 [^subtitle]: To make `subtitle` work with other LaTeX
     document classes, you can add the following to `header-includes`:
