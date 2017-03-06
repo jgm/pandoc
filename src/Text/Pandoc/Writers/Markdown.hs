@@ -185,7 +185,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   isPlain <- asks envPlain
   metadata <- metaToJSON'
                (fmap (render colwidth) . blockListToMarkdown opts)
-               (fmap (render colwidth) . inlineListToMarkdown opts)
+               (fmap (render colwidth) . blockToMarkdown opts . Plain)
                meta
   let title' = maybe empty text $ getField "title" metadata
   let authors' = maybe [] (map text) $ getField "author" metadata
