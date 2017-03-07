@@ -1063,7 +1063,9 @@ rawLaTeXBlock = snd <$> try (withRaw (environment <|> blockCommand))
 
 rawLaTeXInline :: PandocMonad m => LP m Inline
 rawLaTeXInline = do
-  raw <- (snd <$> withRaw inlineCommand) <|> (snd <$> withRaw blockCommand)
+  raw <- (snd <$> withRaw inlineCommand)
+     <|> (snd <$> withRaw inlineEnvironment)
+     <|> (snd <$> withRaw blockCommand)
   RawInline "latex" <$> applyMacros' raw
 
 addImageCaption :: PandocMonad m => Blocks -> LP m Blocks
