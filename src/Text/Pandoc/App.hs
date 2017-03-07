@@ -166,7 +166,9 @@ convertWithOpts opts = do
   -- disabling the custom writer for now
   writer <- if ".lua" `isSuffixOf` format
                -- note:  use non-lowercased version writerName
-               then error "custom writers disabled for now"
+               then return (StringWriter
+                       (\o d -> liftIO $ writeCustom writerName o d)
+                               :: Writer PandocIO)
                else case getWriter writerName of
                          Left e  -> err 9 $
                            if format == "pdf"
