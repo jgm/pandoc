@@ -9,4 +9,5 @@ packages:
 - '.'
 extra-deps:
 - skylighting-0.3.1
-resolver: lts-8.2
+- texmath-0.9.1.1
+resolver: lts-8.4
