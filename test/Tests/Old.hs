@@ -142,6 +142,9 @@ tests = [ testGroup "markdown"
           , test "context" ["-f", "native", "-t", "context", "-s"]
             "writers-lang-and-dir.native" "writers-lang-and-dir.context"
           ]
+        , testGroup "muse"
+          [ testGroup "writer" $ writerTests "muse"
+          ]
         ]
 
 -- makes sure file is fully closed after reading

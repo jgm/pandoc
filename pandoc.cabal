@@ -170,6 +170,7 @@ Extra-Source-Files:
                  test/tables.rtf
                  test/tables.txt
                  test/tables.fb2
+                 test/tables.muse
                  test/testsuite.txt
                  test/writer.latex
                  test/writer.context
@@ -195,6 +196,7 @@ Extra-Source-Files:
                  test/writer.opml
                  test/writer.dokuwiki
                  test/writer.zimwiki
+                 test/writer.muse
                  test/writers-lang-and-dir.latex
                  test/writers-lang-and-dir.context
                  test/dokuwiki_inline_formatting.dokuwiki
