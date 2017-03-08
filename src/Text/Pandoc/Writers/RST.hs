@@ -459,7 +459,10 @@ inlineToRST (Quoted DoubleQuote lst) = do
      else return $ "“" <> contents <> "”"
 inlineToRST (Cite _  lst) =
   inlineListToRST lst
-inlineToRST (Code _ str) = return $ "``" <> text str <> "``"
+inlineToRST (Code _ str) =
+  -- we trim the string because the delimiters must adjoin a
+  -- non-space character; see #3496
+  return $ "``" <> text (trim str) <> "``"
 inlineToRST (Str str) = do
   opts <- gets stOptions
   return $ text $
