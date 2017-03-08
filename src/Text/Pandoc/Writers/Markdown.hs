@@ -398,18 +398,26 @@ blockToMarkdown' opts (Plain inlines) = do
                     then Just $ writerColumns opts
                     else Nothing
   let rendered = render colwidth contents
-  let escapeDelimiter (x:xs) | x `elem` (".()" :: String) = '\\':x:xs
-                             | otherwise                  = x : escapeDelimiter xs
-      escapeDelimiter []                                  = []
-  let contents' = if isEnabled Ext_all_symbols_escapable opts &&
-                     not isPlain && beginsWithOrderedListMarker rendered
-                     then text $ escapeDelimiter rendered
-                     else contents
-  -- escape if para starts with %
-  return $
-     if isEnabled Ext_pandoc_title_block opts && take 1 rendered == "%"
-        then "\\" <> contents' <> cr
-        else contents' <> cr
+  let escapeMarker (x:xs) | x `elem` (".()" :: String) = '\\':x:xs
+                          | otherwise                  = x : escapeMarker xs
+      escapeMarker []                                  = []
+  let contents' =
+       case rendered of
+            '%':_ | isEnabled Ext_pandoc_title_block opts &&
+                    isEnabled Ext_all_symbols_escapable opts ->
+                    "\\" <> contents
+            '+':s:_ | not isPlain && isSpace s -> "\\" <> contents
+            '*':s:_ | not isPlain && isSpace s -> "\\" <> contents
+            '-':s:_ | not isPlain && isSpace s -> "\\" <> contents
+            '|':_ | (isEnabled Ext_line_blocks opts ||
+                     isEnabled Ext_pipe_tables opts)
+                    && isEnabled Ext_all_symbols_escapable opts
+                  -> "\\" <> contents
+            _ | not isPlain && beginsWithOrderedListMarker rendered
+                  && isEnabled Ext_all_symbols_escapable opts
+                  -> text $ escapeMarker rendered
+              | otherwise -> contents
+  return $ contents' <> cr
 -- title beginning with fig: indicates figure
 blockToMarkdown' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
   blockToMarkdown opts (Para [Image attr alt (src,tit)])
