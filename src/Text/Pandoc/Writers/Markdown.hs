@@ -214,7 +214,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   body <- blockListToMarkdown opts blocks'
   notesAndRefs' <- notesAndRefs opts
   let render' :: Doc -> String
-      render' = render colwidth
+      render' = render colwidth . chomp
   let main = render' $ body <> notesAndRefs'
   let context  = defField "toc" (render' toc)
                $ defField "body" main
