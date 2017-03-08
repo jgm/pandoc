@@ -721,10 +721,11 @@ data OrgTable = OrgTable
 
 table :: PandocMonad m => OrgParser m (F Blocks)
 table = try $ do
-  -- don't allow a table inside a list item; org requires that
+  -- don't allow a table on the first line of a list item; org requires that
   -- tables start at first non-space character on the line
-  ctx <- orgStateParserContext <$> getState
-  guard (ctx == NullState)
+  let isFirstInListItem st = (orgStateParserContext st == ListItemState) &&
+                             (orgStateLastPreCharPos st == Nothing)
+  guard =<< not . isFirstInListItem <$> getState
   blockAttrs <- blockAttributes
   lookAhead tableStart
   do
