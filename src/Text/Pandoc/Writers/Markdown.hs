@@ -822,29 +822,38 @@ blockListToMarkdown :: PandocMonad m
                     => WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
                     -> MD m Doc
-blockListToMarkdown opts blocks =
+blockListToMarkdown opts blocks = do
+  inlist <- asks envInList
+  -- a) insert comment between list and indented code block, or the
+  -- code block will be treated as a list continuation paragraph
+  -- b) change Plain to Para unless it's followed by a RawBlock
+  -- or has a list as its parent (#3487)
+  let fixBlocks (b : CodeBlock attr x : rest)
+         | (not (isEnabled Ext_fenced_code_blocks opts) || attr == nullAttr)
+             && isListBlock b = b : commentSep : CodeBlock attr x :
+                                fixBlocks rest
+      fixBlocks (b1@(BulletList _) : b2@(BulletList _) : bs) =
+           b1 : commentSep : fixBlocks (b2:bs)
+      fixBlocks (b1@(OrderedList _ _) : b2@(OrderedList _ _) : bs) =
+           b1 : commentSep : fixBlocks (b2:bs)
+      fixBlocks (b1@(DefinitionList _) : b2@(DefinitionList _) : bs) =
+           b1 : commentSep : fixBlocks (b2:bs)
+      fixBlocks (Plain ils : bs@(RawBlock{}:_)) =
+           Plain ils : fixBlocks bs
+      fixBlocks (Plain ils : bs) | inlist =
+           Plain ils : fixBlocks bs
+      fixBlocks (Plain ils : bs) =
+           Para ils : fixBlocks bs
+      fixBlocks (x : xs)             = x : fixBlocks xs
+      fixBlocks []                   = []
+      isListBlock (BulletList _)     = True
+      isListBlock (OrderedList _ _)  = True
+      isListBlock (DefinitionList _) = True
+      isListBlock _                  = False
+      commentSep                     = if isEnabled Ext_raw_html opts
+                                          then RawBlock "html" "<!-- -->\n"
+                                          else RawBlock "markdown" "&nbsp;"
   mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
-    -- insert comment between list and indented code block, or the
-    -- code block will be treated as a list continuation paragraph
-    where fixBlocks (b : CodeBlock attr x : rest)
-            | (not (isEnabled Ext_fenced_code_blocks opts) || attr == nullAttr)
-                && isListBlock b = b : commentSep : CodeBlock attr x :
-                                   fixBlocks rest
-          fixBlocks (b1@(BulletList _) : b2@(BulletList _) : bs) =
-               b1 : commentSep : fixBlocks (b2:bs)
-          fixBlocks (b1@(OrderedList _ _) : b2@(OrderedList _ _) : bs) =
-               b1 : commentSep : fixBlocks (b2:bs)
-          fixBlocks (b1@(DefinitionList _) : b2@(DefinitionList _) : bs) =
-               b1 : commentSep : fixBlocks (b2:bs)
-          fixBlocks (x : xs)             = x : fixBlocks xs
-          fixBlocks []                   = []
-          isListBlock (BulletList _)     = True
-          isListBlock (OrderedList _ _)  = True
-          isListBlock (DefinitionList _) = True
-          isListBlock _                  = False
-          commentSep                     = if isEnabled Ext_raw_html opts
-                                              then RawBlock "html" "<!-- -->\n"
-                                              else RawBlock "markdown" "&nbsp;"
 
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
