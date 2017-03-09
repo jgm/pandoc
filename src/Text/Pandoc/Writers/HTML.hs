@@ -46,7 +46,7 @@ module Text.Pandoc.Writers.HTML (
 import Control.Monad.State
 import Data.Char (ord, toLower)
 import Data.List (intersperse, isPrefixOf)
-import Data.Maybe (catMaybes, fromMaybe, isJust)
+import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
 import Data.Monoid ((<>))
 import Data.String (fromString)
 import Network.HTTP (urlEncode)
@@ -192,6 +192,9 @@ writeHtmlString' st opts d = do
   case writerTemplate opts of
        Nothing -> return $ renderHtml body
        Just tpl -> do
+         -- warn if empty lang
+         when (isNothing (getField "lang" context :: Maybe String)) $
+           report NoLangSpecified
          -- check for empty pagetitle
          context' <-
             case getField "pagetitle" context of
