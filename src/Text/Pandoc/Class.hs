@@ -77,6 +77,7 @@ import Text.Pandoc.Logging
 import Text.Parsec (ParsecT)
 import qualified Text.Pandoc.Compat.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType)
+import Data.Char (toLower)
 import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
                              , posixSecondsToUTCTime
                              , POSIXTime )
@@ -106,7 +107,6 @@ import System.IO.Error
 import System.IO (stderr)
 import qualified Data.Map as M
 import Text.Pandoc.Error
-import Text.Printf (printf)
 
 class (Functor m, Applicative m, Monad m, MonadError PandocError m)
       => PandocMonad m where
@@ -251,17 +251,17 @@ instance PandocMonad PandocIO where
   getCommonState = PandocIO $ lift get
   putCommonState x = PandocIO $ lift $ put x
   logOutput msg = liftIO $ do
-    UTF8.hPutStr stderr $ printf "%-7s " (show (messageVerbosity msg))
-    hangingIndent 2 $ lines $ showLogMessage msg
+    UTF8.hPutStr stderr $ "[" ++
+       (map toLower $ show (messageVerbosity msg)) ++ "] "
+    alertIndent $ lines $ showLogMessage msg
 
-hangingIndent :: Int -> [String] -> IO ()
-hangingIndent _level [] = return ()
-hangingIndent level (l:ls) = do
+alertIndent :: [String] -> IO ()
+alertIndent [] = return ()
+alertIndent (l:ls) = do
   UTF8.hPutStrLn stderr l
   mapM_ go ls
-  where go l' = do UTF8.hPutStr stderr ind
+  where go l' = do UTF8.hPutStr stderr "! "
                    UTF8.hPutStrLn stderr l'
-        ind = replicate level ' '
 
 -- | Specialized version of parseURIReference that disallows
 -- single-letter schemes.  Reason:  these are usually windows absolute
