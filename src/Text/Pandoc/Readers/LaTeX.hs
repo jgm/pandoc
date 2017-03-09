@@ -147,17 +147,22 @@ egroup = () <$ char '}'
      <|> () <$ controlSeq "endgroup"
 
 grouped :: PandocMonad m => Monoid a => LP m a -> LP m a
-grouped parser = try $ bgroup *> (mconcat <$> manyTill parser egroup)
+grouped parser = try $ do
+  bgroup
+  -- first we check for an inner 'grouped', because
+  -- {{a,b}} should be parsed the same as {a,b}
+  try (grouped parser <* egroup)
+    <|> (mconcat <$> manyTill parser egroup)
 
 braced :: PandocMonad m => LP m String
-braced = bgroup *> (concat <$> manyTill
-         (  many1 (satisfy (\c -> c /= '\\' && c /= '}' && c /= '{'))
-        <|> try (string "\\}")
-        <|> try (string "\\{")
-        <|> try (string "\\\\")
-        <|> ((\x -> "{" ++ x ++ "}") <$> braced)
-        <|> count 1 anyChar
-         ) egroup)
+braced = grouped chunk
+  where chunk =
+               many1 (satisfy (\c -> c /= '\\' && c /= '}' && c /= '{'))
+           <|> try (string "\\}")
+           <|> try (string "\\{")
+           <|> try (string "\\\\")
+           <|> ((\x -> "{" ++ x ++ "}") <$> braced)
+           <|> count 1 anyChar
 
 bracketed :: PandocMonad m => Monoid a => LP m a -> LP m a
 bracketed parser = try $ char '[' *> (mconcat <$> manyTill parser (char ']'))
