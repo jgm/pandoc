@@ -43,7 +43,7 @@ import Data.Aeson
 import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',
                                  keyOrder)
 import qualified Data.ByteString.Lazy as BL
-import Data.Data (Data)
+import Data.Data (Data, toConstr)
 import Data.Generics (Typeable)
 import qualified Data.Text as Text
 import GHC.Generics (Generic)
@@ -78,102 +78,86 @@ data LogMessage =
   | CouldNotParseCSS String
   | Fetching String
   | NoTitleElement String
+  | NoLangSpecified
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
-  toJSON x = object $ "verbosity" .= toJSON (messageVerbosity x) :
+  toJSON x = object $
+    "verbosity" .= toJSON (messageVerbosity x) :
+    "type" .= toJSON (show $ toConstr x) :
     case x of
       SkippedContent s pos ->
-           ["type" .= String "SkippedContent",
-            "contents" .= Text.pack s,
+           ["contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= sourceLine pos,
             "column" .= sourceColumn pos]
       CouldNotParseYamlMetadata s pos ->
-           ["type" .= String "YamlSectionNotAnObject",
-            "message" .= Text.pack s,
+           ["message" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       DuplicateLinkReference s pos ->
-           ["type" .= String "DuplicateLinkReference",
-            "contents" .= Text.pack s,
+           ["contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       DuplicateNoteReference s pos ->
-           ["type" .= String "DuplicateNoteReference",
-            "contents" .= Text.pack s,
+           ["contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       ReferenceNotFound s pos ->
-           ["type" .= String "ReferenceNotFound",
-            "contents" .= Text.pack s,
+           ["contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       CircularReference s pos ->
-           ["type" .= String "CircularReference",
-            "contents" .= Text.pack s,
+           ["contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       ParsingUnescaped s pos ->
-           ["type" .= String "ParsingUnescaped",
-            "contents" .= Text.pack s,
+           ["contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       CouldNotLoadIncludeFile fp pos ->
-           ["type" .= String "CouldNotLoadIncludeFile",
-            "path" .= Text.pack fp,
+           ["path" .= Text.pack fp,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       ParsingTrace s pos ->
-           ["type" .= String "ParsingTrace",
-            "contents" .= Text.pack s,
+           ["contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= sourceLine pos,
             "column" .= sourceColumn pos]
       InlineNotRendered il ->
-           ["type" .= String "InlineNotRendered",
-            "contents" .= toJSON il]
+           ["contents" .= toJSON il]
       BlockNotRendered bl ->
-           ["type" .= String "BlockNotRendered",
-            "contents" .= toJSON bl]
+           ["contents" .= toJSON bl]
       DocxParserWarning s ->
-           ["type" .= String "DocxParserWarning",
-            "contents" .= Text.pack s]
+           ["contents" .= Text.pack s]
       CouldNotFetchResource fp s ->
-           ["type" .= String "CouldNotFetchResource",
-            "path" .= Text.pack fp,
+           ["path" .= Text.pack fp,
             "message" .= Text.pack s]
       CouldNotDetermineImageSize fp s ->
-           ["type" .= String "CouldNotDetermineImageSize",
-            "path" .= Text.pack fp,
+           ["path" .= Text.pack fp,
             "message" .= Text.pack s]
       CouldNotConvertImage fp s ->
-           ["type" .= String "CouldNotConvertImage",
-            "path" .= Text.pack fp,
+           ["path" .= Text.pack fp,
             "message" .= Text.pack s]
       CouldNotDetermineMimeType fp ->
-           ["type" .= String "CouldNotDetermineMimeType",
-            "path" .= Text.pack fp]
+           ["path" .= Text.pack fp]
       CouldNotConvertTeXMath s msg ->
-           ["type" .= String "CouldNotConvertTeXMath",
-            "contents" .= Text.pack s,
+           ["contents" .= Text.pack s,
             "message" .= Text.pack msg]
       CouldNotParseCSS msg ->
-           ["type" .= String "CouldNotParseCSS",
-            "message" .= Text.pack msg]
+           ["message" .= Text.pack msg]
       Fetching fp ->
-           ["type" .= String "CouldNotParseCSS",
-            "path" .= Text.pack fp]
+           ["path" .= Text.pack fp]
       NoTitleElement fallback ->
-           ["type" .= String "NoTitleElement",
-            "fallback" .= Text.pack fallback]
+           ["fallback" .= Text.pack fallback]
+      NoLangSpecified -> []
 
 showPos :: SourcePos -> String
 showPos pos = sn ++ "line " ++
@@ -238,6 +222,9 @@ showLogMessage msg =
          "This document format requires a nonempty <title> element.\n" ++
          "Please specify either 'title' or 'pagetitle' in the metadata.\n" ++
          "Falling back to '" ++ fallback ++ "'"
+       NoLangSpecified ->
+         "No value for 'lang' was specified in the metadata.\n" ++
+         "It is recommended that lang be specified for this format."
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -262,3 +249,4 @@ messageVerbosity msg =
        CouldNotParseCSS{}           -> WARNING
        Fetching{}                   -> INFO
        NoTitleElement{}             -> WARNING
+       NoLangSpecified              -> INFO
