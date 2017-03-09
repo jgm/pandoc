@@ -76,7 +76,7 @@ import qualified Text.Blaze.Html5 as H5
 #endif
 import Control.Monad.Except (throwError)
 import Data.Aeson (Value)
-import System.FilePath (takeExtension)
+import System.FilePath (takeExtension, takeBaseName)
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
@@ -197,9 +197,10 @@ writeHtmlString' st opts d = do
             case getField "pagetitle" context of
                  Just (s :: String) | not (null s) -> return context
                  _ -> do
-                   report $ NoTitleElement "Untitled"
-                   return $ resetField "pagetitle" ("Untitled" :: String)
-                               context
+                   let fallback = fromMaybe "Untitled" $ takeBaseName <$>
+                           lookup "sourcefile" (writerVariables opts)
+                   report $ NoTitleElement fallback
+                   return $ resetField "pagetitle" fallback context
          return $ renderTemplate' tpl $
                     defField "body" (renderHtml body) context'
 
