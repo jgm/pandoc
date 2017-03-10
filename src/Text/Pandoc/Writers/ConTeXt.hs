@@ -34,7 +34,8 @@ import Data.Char (ord)
 import Data.List (intercalate, intersperse)
 import Data.Maybe (catMaybes)
 import Network.URI (isURI, unEscapeString)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
@@ -56,14 +57,16 @@ orderedListStyles = cycle "narg"
 
 -- | Convert Pandoc to ConTeXt.
 writeConTeXt :: PandocMonad m => WriterOptions -> Pandoc -> m String
-writeConTeXt options document = return $
+writeConTeXt options document =
   let defaultWriterState = WriterState { stNextRef = 1
                                        , stOrderedListLevel = 0
                                        , stOptions = options
                                        }
-  in evalState (pandocToConTeXt options document) defaultWriterState
+  in evalStateT (pandocToConTeXt options document) defaultWriterState
 
-pandocToConTeXt :: WriterOptions -> Pandoc -> State WriterState String
+type WM = StateT WriterState
+
+pandocToConTeXt :: PandocMonad m => WriterOptions -> Pandoc -> WM m String
 pandocToConTeXt options (Pandoc meta blocks) = do
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
@@ -142,7 +145,7 @@ toLabel z = concatMap go z
          | otherwise = [x]
 
 -- | Convert Elements to ConTeXt
-elementToConTeXt :: WriterOptions -> Element -> State WriterState Doc
+elementToConTeXt :: PandocMonad m => WriterOptions -> Element -> WM m Doc
 elementToConTeXt _ (Blk block) = blockToConTeXt block
 elementToConTeXt opts (Sec level _ attr title' elements) = do
   header' <- sectionHeader attr level title'
@@ -150,8 +153,7 @@ elementToConTeXt opts (Sec level _ attr title' elements) = do
   return $ vcat (header' : innerContents)
 
 -- | Convert Pandoc block element to ConTeXt.
-blockToConTeXt :: Block
-               -> State WriterState Doc
+blockToConTeXt :: PandocMonad m => Block -> WM m Doc
 blockToConTeXt Null = return empty
 blockToConTeXt (Plain lst) = inlineListToConTeXt lst
 -- title beginning with fig: indicates that the image is a figure
@@ -176,7 +178,9 @@ blockToConTeXt (CodeBlock _ str) =
   return $ flush ("\\starttyping" <> cr <> text str <> cr <> "\\stoptyping") $$ blankline
   -- blankline because \stoptyping can't have anything after it, inc. '}'
 blockToConTeXt (RawBlock "context" str) = return $ text str <> blankline
-blockToConTeXt (RawBlock _ _ ) = return empty
+blockToConTeXt b@(RawBlock _ _ ) = do
+  report $ BlockNotRendered b
+  return empty
 blockToConTeXt (Div (ident,_,kvs) bs) = do
   let align dir txt = "\\startalignment[" <> dir <> "]" $$ txt $$ "\\stopalignment"
   let wrapRef txt = if null ident
@@ -262,16 +266,16 @@ blockToConTeXt (Table caption aligns widths heads rows) = do
              "\\HL" $$ headers $$
              vcat rows' $$ "\\HL" $$ "\\stoptable" <> blankline
 
-tableRowToConTeXt :: [[Block]] -> State WriterState Doc
+tableRowToConTeXt :: PandocMonad m => [[Block]] -> WM m Doc
 tableRowToConTeXt cols = do
   cols' <- mapM blockListToConTeXt cols
   return $ (vcat (map ("\\NC " <>) cols')) $$ "\\NC\\AR"
 
-listItemToConTeXt :: [Block] -> State WriterState Doc
+listItemToConTeXt :: PandocMonad m => [Block] -> WM m Doc
 listItemToConTeXt list = blockListToConTeXt list >>=
   return . ("\\item" $$) . (nest 2)
 
-defListItemToConTeXt :: ([Inline], [[Block]]) -> State WriterState Doc
+defListItemToConTeXt :: PandocMonad m => ([Inline], [[Block]]) -> WM m Doc
 defListItemToConTeXt (term, defs) = do
   term' <- inlineListToConTeXt term
   def'  <- liftM vsep $ mapM blockListToConTeXt defs
@@ -279,12 +283,13 @@ defListItemToConTeXt (term, defs) = do
            "\\stopdescription" <> blankline
 
 -- | Convert list of block elements to ConTeXt.
-blockListToConTeXt :: [Block] -> State WriterState Doc
+blockListToConTeXt :: PandocMonad m => [Block] -> WM m Doc
 blockListToConTeXt lst = liftM vcat $ mapM blockToConTeXt lst
 
 -- | Convert list of inline elements to ConTeXt.
-inlineListToConTeXt :: [Inline]  -- ^ Inlines to convert
-                    -> State WriterState Doc
+inlineListToConTeXt :: PandocMonad m
+                    => [Inline]  -- ^ Inlines to convert
+                    -> WM m Doc
 inlineListToConTeXt lst = liftM hcat $ mapM inlineToConTeXt $ addStruts lst
   -- We add a \strut after a line break that precedes a space,
   -- or the space gets swallowed
@@ -298,8 +303,9 @@ inlineListToConTeXt lst = liftM hcat $ mapM inlineToConTeXt $ addStruts lst
         isSpacey _                = False
 
 -- | Convert inline element to ConTeXt
-inlineToConTeXt :: Inline    -- ^ Inline to convert
-                -> State WriterState Doc
+inlineToConTeXt :: PandocMonad m
+                => Inline    -- ^ Inline to convert
+                -> WM m Doc
 inlineToConTeXt (Emph lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\em " <> contents
@@ -339,7 +345,9 @@ inlineToConTeXt (Math DisplayMath str) =
   return $ text "\\startformula "  <> text str <> text " \\stopformula" <> space
 inlineToConTeXt (RawInline "context" str) = return $ text str
 inlineToConTeXt (RawInline "tex" str) = return $ text str
-inlineToConTeXt (RawInline _ _) = return empty
+inlineToConTeXt il@(RawInline _ _) = do
+  report $ InlineNotRendered il
+  return empty
 inlineToConTeXt (LineBreak) = return $ text "\\crlf" <> cr
 inlineToConTeXt SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
@@ -416,10 +424,11 @@ inlineToConTeXt (Span (_,_,kvs) ils) = do
   fmap (wrapLang . wrapDir) $ inlineListToConTeXt ils
 
 -- | Craft the section header, inserting the section reference, if supplied.
-sectionHeader :: Attr
+sectionHeader :: PandocMonad m
+              => Attr
               -> Int
               -> [Inline]
-              -> State WriterState Doc
+              -> WM m Doc
 sectionHeader (ident,classes,_) hdrLevel lst = do
   contents <- inlineListToConTeXt lst
   st <- get
