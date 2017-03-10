@@ -53,7 +53,6 @@ module Text.Pandoc.Shared (
                      normalizeDate,
                      -- * Pandoc block and inline list processing
                      orderedListMarkers,
-                     normalizeSpaces,
                      extractSpaces,
                      removeFormatting,
                      deNote,
@@ -353,25 +352,6 @@ orderedListMarkers (start, numstyle, numdelim) =
                             OneParen     -> str ++ ")"
                             TwoParens    -> "(" ++ str ++ ")"
   in  map inDelim nums
-
--- | Normalize a list of inline elements: remove leading and trailing
--- @Space@, @LineBreak@, and @SoftBreak@ elements, collapse double
--- @Space@s into singles, and remove empty @Str@ elements.
-normalizeSpaces :: [Inline] -> [Inline]
-normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
- where  cleanup []              = []
-        cleanup (Space:rest)    = case dropWhile isSpaceOrEmpty rest of
-                                        []     -> []
-                                        (x:xs) -> Space : x : cleanup xs
-        cleanup ((Str ""):rest) = cleanup rest
-        cleanup (x:rest)        = x : cleanup rest
-
-isSpaceOrEmpty :: Inline -> Bool
-isSpaceOrEmpty Space = True
-isSpaceOrEmpty SoftBreak = True
-isSpaceOrEmpty LineBreak = True
-isSpaceOrEmpty (Str "") = True
-isSpaceOrEmpty _ = False
 
 -- | Extract the leading and trailing spaces from inside an inline element
 -- and place them outside the element.  SoftBreaks count as Spaces for

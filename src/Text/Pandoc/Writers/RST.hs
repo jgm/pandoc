@@ -36,7 +36,7 @@ import Data.Char (isSpace, toLower)
 import Data.List (intersperse, isPrefixOf, stripPrefix, transpose)
 import Data.Maybe (fromMaybe)
 import Network.URI (isURI)
-import Text.Pandoc.Builder (deleteMeta)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
@@ -81,7 +81,7 @@ pandocToRST (Pandoc meta blocks) = do
   metadata <- metaToJSON opts
                 (fmap (render colwidth) . blockListToRST)
                 (fmap (trimr . render colwidth) . inlineListToRST)
-                $ deleteMeta "title" $ deleteMeta "subtitle" meta
+                $ B.deleteMeta "title" $ B.deleteMeta "subtitle" meta
   body <- blockListToRST' True $ case writerTemplate opts of
                                       Just _  -> normalizeHeadings 1 blocks
                                       Nothing -> blocks
@@ -504,7 +504,7 @@ inlineToRST (Link _ [Image attr alt (imgsrc,imgtit)] (src, _tit)) = do
   return $ "|" <> label <> "|"
 inlineToRST (Link _ txt (src, tit)) = do
   useReferenceLinks <- gets $ writerReferenceLinks . stOptions
-  linktext <- inlineListToRST $ normalizeSpaces txt
+  linktext <- inlineListToRST $ B.toList . B.trimInlines . B.fromList $ txt
   if useReferenceLinks
     then do refs <- gets stLinks
             case lookup txt refs of
