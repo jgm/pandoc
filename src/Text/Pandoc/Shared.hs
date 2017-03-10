@@ -355,8 +355,8 @@ orderedListMarkers (start, numstyle, numdelim) =
   in  map inDelim nums
 
 -- | Normalize a list of inline elements: remove leading and trailing
--- @Space@ elements, collapse double @Space@s into singles, and
--- remove empty Str elements.
+-- @Space@, @LineBreak@, and @SoftBreak@ elements, collapse double
+-- @Space@s into singles, and remove empty @Str@ elements.
 normalizeSpaces :: [Inline] -> [Inline]
 normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
  where  cleanup []              = []
@@ -368,6 +368,8 @@ normalizeSpaces = cleanup . dropWhile isSpaceOrEmpty
 
 isSpaceOrEmpty :: Inline -> Bool
 isSpaceOrEmpty Space = True
+isSpaceOrEmpty SoftBreak = True
+isSpaceOrEmpty LineBreak = True
 isSpaceOrEmpty (Str "") = True
 isSpaceOrEmpty _ = False
 
