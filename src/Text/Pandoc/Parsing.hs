@@ -186,8 +186,7 @@ import Data.Char ( toLower, toUpper, ord, chr, isAscii, isAlphaNum,
 import Data.List ( intercalate, transpose, isSuffixOf )
 import Text.Pandoc.Shared
 import qualified Data.Map as M
-import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro,
-                                        parseMacroDefinitions)
+import Text.TeXMath.Readers.TeX.Macros (applyMacros, Macro, pMacroDefinition)
 import Text.HTML.TagSoup.Entity ( lookupEntity )
 import Text.Pandoc.Asciify (toAsciiChar)
 import Data.Monoid ((<>))
@@ -1263,21 +1262,17 @@ token pp pos match = tokenPrim pp (\_ t _ -> pos t) match
 -- Macros
 --
 
--- | Parse a \newcommand or \renewcommand macro definition.
+-- | Parse a \newcommand or \newenviroment macro definition.
 macro :: (Stream [Char] m Char, HasMacros st, HasReaderOptions st)
       => ParserT [Char] st m Blocks
 macro = do
   apply <- getOption readerApplyMacros
-  inp <- getInput
-  case parseMacroDefinitions inp of
-       ([], _)    -> mzero
-       (ms, rest) -> do def' <- count (length inp - length rest) anyChar
-                        if apply
-                           then do
-                             updateState $ \st ->
-                               updateMacros (ms ++) st
-                             return mempty
-                           else return $ rawBlock "latex" def'
+  (m, def') <- withRaw pMacroDefinition
+  if apply
+     then do
+       updateState $ \st -> updateMacros (m:) st
+       return mempty
+     else return $ rawBlock "latex" def'
 
 -- | Apply current macros to string.
 applyMacros' :: (HasReaderOptions st, HasMacros st, Stream [Char] m Char)
