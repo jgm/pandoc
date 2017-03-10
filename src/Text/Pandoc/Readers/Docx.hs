@@ -83,7 +83,7 @@ import Data.Default (Default)
 import Data.List (delete, intersect)
 import qualified Data.Map as M
 import Data.Sequence (ViewL (..), viewl)
-import qualified Data.Sequence as Seq (null)
+import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Text.Pandoc.Builder
 -- import Text.Pandoc.Definition
@@ -476,12 +476,13 @@ rowToBlocksList (Row cells) = do
   blksList <- mapM cellToBlocks cells
   return $ map singleParaToPlain blksList
 
-trimLineBreaks :: [Inline] -> [Inline]
-trimLineBreaks [] = []
-trimLineBreaks (LineBreak : ils) = trimLineBreaks ils
-trimLineBreaks ils
-  | (LineBreak : ils') <- reverse ils = trimLineBreaks (reverse ils')
-trimLineBreaks ils = ils
+-- like trimInlines, but also take out linebreaks
+trimSps :: Inlines -> Inlines
+trimSps (Many ils) = Many $ Seq.dropWhileL isSp $ Seq.dropWhileR isSp $ ils
+  where isSp Space = True
+        isSp SoftBreak = True
+        isSp LineBreak = True
+        isSp _ = False
 
 parStyleToTransform :: ParagraphStyle -> (Blocks -> Blocks)
 parStyleToTransform pPr
@@ -534,8 +535,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
     makeHeaderAnchor $
       headerWith ("", delete style (pStyle pPr), []) n ils
   | otherwise = do
-    ils <- smushInlines <$> mapM parPartToInlines parparts >>=
-           (return . fromList . trimLineBreaks . normalizeSpaces . toList)
+    ils <- (trimSps . smushInlines) <$> mapM parPartToInlines parparts
     dropIls <- gets docxDropCap
     let ils' = dropIls <> ils
     if dropCap pPr
