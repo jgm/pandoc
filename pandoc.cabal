@@ -24,7 +24,7 @@ Description:     Pandoc is a Haskell library for converting from one markup
                  Word docx, RTF, MediaWiki, DokuWiki, ZimWiki, Textile,
                  groff man pages, plain text, Emacs Org-Mode, AsciiDoc,
                  Haddock markup, EPUB (v2 and v3), FictionBook2, InDesign ICML,
-                 and several kinds of HTML/javascript slide shows (S5, Slidy,
+                 Muse, and several kinds of HTML/javascript slide shows (S5, Slidy,
                  Slideous, DZSlides, reveal.js).
                  .
                  In contrast to most existing tools for converting Markdown
@@ -50,6 +50,7 @@ Data-Files:
                  data/templates/default.texinfo
                  data/templates/default.man
                  data/templates/default.markdown
+                 data/templates/default.muse
                  data/templates/default.commonmark
                  data/templates/default.rst
                  data/templates/default.plain
@@ -169,6 +170,7 @@ Extra-Source-Files:
                  test/tables.rtf
                  test/tables.txt
                  test/tables.fb2
+                 test/tables.muse
                  test/testsuite.txt
                  test/writer.latex
                  test/writer.context
@@ -194,6 +196,7 @@ Extra-Source-Files:
                  test/writer.opml
                  test/writer.dokuwiki
                  test/writer.zimwiki
+                 test/writer.muse
                  test/writers-lang-and-dir.latex
                  test/writers-lang-and-dir.context
                  test/dokuwiki_inline_formatting.dokuwiki
@@ -389,6 +392,7 @@ Library
                    Text.Pandoc.Writers.EPUB,
                    Text.Pandoc.Writers.FB2,
                    Text.Pandoc.Writers.TEI,
+                   Text.Pandoc.Writers.Muse,
                    Text.Pandoc.Writers.Math,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.PDF,
@@ -540,6 +544,7 @@ Test-Suite test-pandoc
                   Tests.Writers.Docx
                   Tests.Writers.RST
                   Tests.Writers.TEI
+                  Tests.Writers.Muse
   Ghc-Options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   Default-Language: Haskell98
 

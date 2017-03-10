@@ -29,6 +29,7 @@ import qualified Tests.Writers.Org
 import qualified Tests.Writers.Plain
 import qualified Tests.Writers.RST
 import qualified Tests.Writers.TEI
+import qualified Tests.Writers.Muse
 import Text.Pandoc.Shared (inDirectory)
 
 tests :: [Test]
@@ -48,6 +49,7 @@ tests = [ Tests.Command.tests
           , testGroup "Docx" Tests.Writers.Docx.tests
           , testGroup "RST" Tests.Writers.RST.tests
           , testGroup "TEI" Tests.Writers.TEI.tests
+          , testGroup "Muse" Tests.Writers.Muse.tests
           ]
         , testGroup "Readers"
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests
