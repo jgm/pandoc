@@ -971,17 +971,19 @@ rawEnv name = do
   let parseRaw = extensionEnabled Ext_raw_tex exts
   rawOptions <- mconcat <$> many rawopt
   let beginCommand = "\\begin{" ++ name ++ "}" ++ rawOptions
-  unless parseRaw $ do
-    pos1 <- getPosition
-    report $ SkippedContent beginCommand pos1
+  pos1 <- getPosition
   (bs, raw) <- withRaw $ env name blocks
-  raw' <- applyMacros' raw
-  if parseRaw
-     then return $ rawBlock "latex" $ beginCommand ++ raw'
-     else do
-       pos2 <- getPosition
-       report $ SkippedContent ("\\end{" ++ name ++ "}") pos2
-       return bs
+  raw' <- applyMacros' $ beginCommand ++ raw
+  if raw' /= beginCommand ++ raw
+     then parseFromString blocks raw'
+     else if parseRaw
+          then return $ rawBlock "latex" $ beginCommand ++ raw'
+          else do
+            unless parseRaw $ do
+              report $ SkippedContent beginCommand pos1
+            pos2 <- getPosition
+            report $ SkippedContent ("\\end{" ++ name ++ "}") pos2
+            return bs
 
 ----
 
