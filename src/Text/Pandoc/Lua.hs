@@ -36,7 +36,6 @@ import Control.Monad ( (>=>), when )
 import Control.Monad.Trans ( MonadIO(..) )
 import Data.Aeson ( FromJSON(..), ToJSON(..), Result(..), Value, fromJSON )
 import Data.HashMap.Lazy ( HashMap )
-import Data.Maybe ( fromMaybe )
 import Data.Text ( Text, pack, unpack )
 import Data.Text.Encoding ( decodeUtf8 )
 import Scripting.Lua ( LuaState, StackValue(..) )
@@ -65,7 +64,7 @@ runLuaFilter filterPath args pd = liftIO $ do
       Just luaFilters <- Lua.peek lua (-1)
       Lua.push lua (map pack args)
       Lua.setglobal lua "PandocParameters"
-      doc <- runAll luaFilters >=> documentFilter lua "filter_doc" $ pd
+      doc <- runAll luaFilters >=> luaFilter lua "filter_doc" $ pd
       Lua.close lua
       return doc
 
@@ -81,13 +80,13 @@ luaFilter lua luaFn x = do
     else return x
 
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> IO Pandoc
-walkMWithLuaFilter lf doc = case lf of
-  InlineLuaFilter lua fnMap -> walkM (execInlineLuaFilter lua fnMap) doc
-  BlockLuaFilter  lua fnMap -> walkM (execBlockLuaFilter  lua fnMap) doc
+walkMWithLuaFilter (LuaFilter lua inlineFnMap blockFnMap) =
+  walkM (execInlineLuaFilter lua inlineFnMap) >=>
+  walkM (execBlockLuaFilter  lua blockFnMap)
 
-data LuaFilter
-  = InlineLuaFilter LuaState (HashMap Text (LuaFilterFunction Inline))
-  | BlockLuaFilter  LuaState (HashMap Text (LuaFilterFunction Block))
+type InlineFunctionMap = HashMap Text (LuaFilterFunction Inline)
+type BlockFunctionMap  = HashMap Text (LuaFilterFunction Block)
+data LuaFilter = LuaFilter LuaState InlineFunctionMap BlockFunctionMap
 
 newtype LuaFilterFunction a = LuaFilterFunction { functionIndex :: Int }
 
@@ -122,39 +121,33 @@ execInlineLuaFilter lua fnMap x = do
                             Nothing -> return x
                             Just fn -> runLuaFilterFunction lua fn x
   case x of
-    Str _         -> filterOrId "Str"
-    Emph _        -> filterOrId "Emph"
-    Strong _      -> filterOrId "Strong"
-    Strikeout _   -> filterOrId "Strikeout"
-    Superscript _ -> filterOrId "Superscript"
-    Subscript _   -> filterOrId "Subscript"
-    SmallCaps _   -> filterOrId "SmallCaps"
-    Quoted _ _    -> filterOrId "Quoted"
     Cite _ _      -> filterOrId "Cite"
     Code _ _      -> filterOrId "Code"
-    Space         -> filterOrId "Space"
-    SoftBreak     -> filterOrId "SoftBreak"
-    LineBreak     -> filterOrId "LineBreak"
-    Math _ _      -> filterOrId "Math"
-    RawInline _ _ -> filterOrId "RawInline"
-    Link _ _ _    -> filterOrId "Link"
+    Emph _        -> filterOrId "Emph"
     Image _ _ _   -> filterOrId "Image"
+    LineBreak     -> filterOrId "LineBreak"
+    Link _ _ _    -> filterOrId "Link"
+    Math _ _      -> filterOrId "Math"
     Note _        -> filterOrId "Note"
+    Quoted _ _    -> filterOrId "Quoted"
+    RawInline _ _ -> filterOrId "RawInline"
+    SmallCaps _   -> filterOrId "SmallCaps"
+    SoftBreak     -> filterOrId "SoftBreak"
+    Space         -> filterOrId "Space"
     Span _ _      -> filterOrId "Span"
+    Str _         -> filterOrId "Str"
+    Strikeout _   -> filterOrId "Strikeout"
+    Strong _      -> filterOrId "Strong"
+    Subscript _   -> filterOrId "Subscript"
+    Superscript _ -> filterOrId "Superscript"
 
 instance StackValue LuaFilter where
   valuetype _ = Lua.TTABLE
-  push lua (InlineLuaFilter _ fnMap) = Lua.push lua fnMap
-  push lua (BlockLuaFilter  _ fnMap) = Lua.push lua fnMap
+  push = undefined
   peek lua i = do
-    Lua.getmetatable lua i
-    Lua.rawgeti lua (-1) 1
-    (mtMarker :: Text) <- fromMaybe (error "No filter type set") <$> peek lua (-1)
-    Lua.pop lua 2
-    case  mtMarker of
-      "Inline" -> fmap (InlineLuaFilter lua) <$> Lua.peek lua i
-      "Block"  -> fmap (BlockLuaFilter lua)  <$> Lua.peek lua i
-      _        -> error "Unknown filter type"
+    inlineFnMap <- Lua.peek lua i
+    blockFnMap  <- Lua.peek lua i
+    return $ LuaFilter lua <$> inlineFnMap <*> blockFnMap
 
 runLuaFilterFunction :: (StackValue a)
                      => LuaState -> LuaFilterFunction a -> a -> IO a
@@ -214,4 +207,3 @@ instance StackValue Inline where
   push lua = Lua.push lua . toJSON
   peek lua i = maybeFromJson <$> peek lua i
   valuetype _ = Lua.TTABLE
-
