@@ -133,17 +133,14 @@ indentSpaces = try $ do
 
 nonindentSpaces :: PandocMonad m => MarkdownParser m String
 nonindentSpaces = do
-  tabStop <- getOption readerTabStop
-  sps <- many (char ' ')
-  if length sps < tabStop
-     then return sps
-     else unexpected "indented line"
+  n <- skipNonindentSpaces
+  return $ replicate n ' '
 
 -- returns number of spaces parsed
 skipNonindentSpaces :: PandocMonad m => MarkdownParser m Int
 skipNonindentSpaces = do
   tabStop <- getOption readerTabStop
-  atMostSpaces (tabStop - 1) <* notFollowedBy (char ' ')
+  atMostSpaces (tabStop - 1) <* notFollowedBy spaceChar
 
 atMostSpaces :: PandocMonad m => Int -> MarkdownParser m Int
 atMostSpaces n
