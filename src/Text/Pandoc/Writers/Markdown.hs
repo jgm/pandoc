@@ -673,15 +673,14 @@ pandocTable opts headless aligns widths rawHeaders rawRows = do
   let minNumChars = (+ 2) . maximum . map minOffset
   let columns = transpose (rawHeaders : rawRows)
   -- minimal column width without wrapping a single word
-  let noWordWrapWidth
-        | writerWrapText opts == WrapAuto
-                              = fromIntegral $ maximum (map minNumChars columns)
-        | otherwise           = fromIntegral $ maximum (map    numChars columns)
-  let relWidth w = floor $ max (fromIntegral (writerColumns opts) * w)
-                               (noWordWrapWidth * w / minimum widths)
+  let relWidth w col =
+         max (floor $ fromIntegral (writerColumns opts) * w)
+             (if writerWrapText opts == WrapAuto
+                 then minNumChars col
+                 else numChars col)
   let widthsInChars
         | isSimple  = map numChars columns
-        | otherwise = map relWidth widths
+        | otherwise = zipWith relWidth widths columns
   let makeRow = hcat . intersperse (lblock 1 (text " ")) .
                    (zipWith3 alignHeader aligns widthsInChars)
   let rows' = map makeRow rawRows
@@ -698,9 +697,9 @@ pandocTable opts headless aligns widths rawHeaders rawRows = do
   let head'' = if headless
                   then empty
                   else border <> cr <> head'
-  let body = if maxRowHeight > 1
-                then vsep rows'
-                else vcat rows'
+  let body = if isSimple
+                then vcat rows'
+                else vsep rows'
   let bottom = if headless
                   then underline
                   else border
