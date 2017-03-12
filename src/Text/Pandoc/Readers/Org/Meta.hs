@@ -90,8 +90,11 @@ metaValue key =
   let inclKey = "header-includes"
   in case key of
     "author"          -> (key,) <$> metaInlinesCommaSeparated
+    "keywords"        -> (key,) <$> metaInlinesCommaSeparated
     "title"           -> (key,) <$> metaInlines
+    "subtitle"        -> (key,) <$> metaInlines
     "date"            -> (key,) <$> metaInlines
+    "nocite"          -> (key,) <$> accumulatingList key metaInlines
     "header-includes" -> (key,) <$> accumulatingList key metaInlines
     "latex_header"    -> (inclKey,) <$>
                          accumulatingList inclKey (metaExportSnippet "latex")
@@ -109,11 +112,11 @@ metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
 
 metaInlinesCommaSeparated :: PandocMonad m => OrgParser m (F MetaValue)
 metaInlinesCommaSeparated = do
-  authStrs <- (many1 (noneOf ",\n")) `sepBy1` (char ',')
+  itemStrs <- (many1 (noneOf ",\n")) `sepBy1` (char ',')
   newline
-  authors <- mapM (parseFromString inlinesTillNewline . (++ "\n")) authStrs
+  items <- mapM (parseFromString inlinesTillNewline . (++ "\n")) itemStrs
   let toMetaInlines = MetaInlines . B.toList
-  return $ MetaList . map toMetaInlines <$> sequence authors
+  return $ MetaList . map toMetaInlines <$> sequence items
 
 metaString :: Monad m => OrgParser m (F MetaValue)
 metaString = metaModifiedString id
@@ -183,7 +186,9 @@ parseFormat = try $ do
    tillSpecifier c = manyTill (noneOf "\n\r") (try $ string ('%':c:""))
 
 inlinesTillNewline :: PandocMonad m => OrgParser m (F Inlines)
-inlinesTillNewline = trimInlinesF . mconcat <$> manyTill inline newline
+inlinesTillNewline = do
+  updateLastPreCharPos
+  trimInlinesF . mconcat <$> manyTill inline newline
 
 --
 -- ToDo Sequences and Keywords
