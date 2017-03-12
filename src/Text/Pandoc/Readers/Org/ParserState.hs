@@ -60,7 +60,9 @@ import qualified Data.Set as Set
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import Text.Pandoc.Definition (Meta (..), nullMeta)
 import Text.Pandoc.Options (ReaderOptions (..))
+import Text.Pandoc.Logging
 import Text.Pandoc.Parsing (HasHeaderMap (..), HasIdentifierList (..),
+                            HasLogMessages (..),
                             HasLastStrPosition (..), HasQuoteContext (..),
                             HasReaderOptions (..), ParserContext (..),
                             QuoteContext (..), SourcePos)
@@ -104,6 +106,7 @@ data OrgParserState = OrgParserState
   , orgStateOptions              :: ReaderOptions
   , orgStateParserContext        :: ParserContext
   , orgStateTodoSequences        :: [TodoSequence]
+  , orgLogMessages               :: [LogMessage]
   }
 
 data OrgParserLocal = OrgParserLocal { orgLocalQuoteContext :: QuoteContext }
@@ -130,6 +133,10 @@ instance HasHeaderMap OrgParserState where
   extractHeaderMap = orgStateHeaderMap
   updateHeaderMap  f s = s{ orgStateHeaderMap = f (orgStateHeaderMap s) }
 
+instance HasLogMessages OrgParserState where
+  addLogMessage msg st = st{ orgLogMessages = msg : orgLogMessages st }
+  getLogMessages st = reverse $ orgLogMessages st
+
 instance Default OrgParserState where
   def = defaultOrgParserState
 
@@ -150,6 +157,7 @@ defaultOrgParserState = OrgParserState
   , orgStateOptions = def
   , orgStateParserContext = NullState
   , orgStateTodoSequences = []
+  , orgLogMessages = []
   }
 
 optionsToParserState :: ReaderOptions -> OrgParserState

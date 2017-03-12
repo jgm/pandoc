@@ -35,6 +35,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Options
+import Text.Pandoc.Parsing (reportLogMessages)
 
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (runReaderT)
@@ -59,4 +60,5 @@ parseOrg :: PandocMonad m => OrgParser m Pandoc
 parseOrg = do
   blocks' <- blockList
   meta'   <- meta
+  reportLogMessages
   return $ Pandoc meta' blocks'

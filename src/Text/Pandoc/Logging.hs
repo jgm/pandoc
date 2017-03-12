@@ -62,6 +62,7 @@ data LogMessage =
   | CouldNotParseYamlMetadata String SourcePos
   | DuplicateLinkReference String SourcePos
   | DuplicateNoteReference String SourcePos
+  | DuplicateIdentifier String SourcePos
   | ReferenceNotFound String SourcePos
   | CircularReference String SourcePos
   | ParsingUnescaped String SourcePos
@@ -102,6 +103,11 @@ instance ToJSON LogMessage where
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       DuplicateNoteReference s pos ->
+           ["contents" .= Text.pack s,
+            "source" .= Text.pack (sourceName pos),
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      DuplicateIdentifier s pos ->
            ["contents" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
             "line" .= toJSON (sourceLine pos),
@@ -184,6 +190,8 @@ showLogMessage msg =
          "Duplicate link reference '" ++ s ++ "' at " ++ showPos pos
        DuplicateNoteReference s pos ->
          "Duplicate note reference '" ++ s ++ "' at " ++ showPos pos
+       DuplicateIdentifier s pos ->
+         "Duplicate identifier '" ++ s ++ "' at " ++ showPos pos
        ReferenceNotFound s pos ->
          "Reference not found for '" ++ s ++ "' at " ++ showPos pos
        CircularReference s pos ->
@@ -233,6 +241,7 @@ messageVerbosity msg =
        CouldNotParseYamlMetadata{}  -> WARNING
        DuplicateLinkReference{}     -> WARNING
        DuplicateNoteReference{}     -> WARNING
+       DuplicateIdentifier{}        -> WARNING
        ReferenceNotFound{}          -> WARNING
        CircularReference{}          -> WARNING
        CouldNotLoadIncludeFile{}    -> WARNING

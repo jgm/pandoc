@@ -83,14 +83,15 @@ readHtml opts inp = do
         blocks <- (fixPlains False) . mconcat <$> manyTill block eof
         meta <- stateMeta . parserState <$> getState
         bs' <- replaceNotes (B.toList blocks)
+        reportLogMessages
         return $ Pandoc meta bs'
       getError (errorMessages -> ms) = case ms of
                                          []    -> ""
                                          (m:_) -> messageString m
   result <- flip runReaderT def $
-         runParserT parseDoc
-         (HTMLState def{ stateOptions = opts } [] Nothing Set.empty M.empty)
-         "source" tags
+       runParserT parseDoc
+       (HTMLState def{ stateOptions = opts } [] Nothing Set.empty M.empty [])
+       "source" tags
   case result of
     Right doc -> return doc
     Left  err -> throwError $ PandocParseError $ getError err
@@ -110,7 +111,8 @@ data HTMLState =
      noteTable   :: [(String, Blocks)],
      baseHref    :: Maybe URI,
      identifiers :: Set.Set String,
-     headerMap   :: M.Map Inlines String
+     headerMap   :: M.Map Inlines String,
+     logMessages :: [LogMessage]
   }
 
 data HTMLLocal = HTMLLocal { quoteContext :: QuoteContext
@@ -376,7 +378,7 @@ ignore raw = do
   -- raw can be null for tags like <!DOCTYPE>; see paRawTag
   -- in this case we don't want a warning:
   unless (null raw) $
-    report $ SkippedContent raw pos
+    logMessage $ SkippedContent raw pos
   return mempty
 
 pHtmlBlock :: PandocMonad m => String -> TagParser m String
@@ -1091,6 +1093,10 @@ instance HasIdentifierList HTMLState where
 instance HasHeaderMap HTMLState where
   extractHeaderMap = headerMap
   updateHeaderMap  f s = s{ headerMap = f (headerMap s) }
+
+instance HasLogMessages HTMLState where
+  addLogMessage m s = s{ logMessages = m : logMessages s }
+  getLogMessages = reverse . logMessages
 
 -- This signature should be more general
 -- MonadReader HTMLLocal m => HasQuoteContext st m

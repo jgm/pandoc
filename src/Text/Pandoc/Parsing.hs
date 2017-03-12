@@ -1112,8 +1112,11 @@ type SubstTable = M.Map Key Inlines
 --  with its associated identifier.  If the identifier is null
 --  and the auto_identifers extension is set, generate a new
 --  unique identifier, and update the list of identifiers
---  in state.
-registerHeader :: (Stream s m a, HasReaderOptions st, HasHeaderMap st, HasIdentifierList st)
+--  in state.  Issue a warning if an explicit identifier
+--  is encountered that duplicates an earlier identifier
+--  (explict or automatically generated).
+registerHeader :: (Stream s m a, HasReaderOptions st,
+                    HasHeaderMap st, HasLogMessages st, HasIdentifierList st)
                => Attr -> Inlines -> ParserT s st m Attr
 registerHeader (ident,classes,kvs) header' = do
   ids <- extractIdentifierList <$> getState
@@ -1131,6 +1134,9 @@ registerHeader (ident,classes,kvs) header' = do
        return (id'',classes,kvs)
      else do
         unless (null ident) $ do
+          when (ident `Set.member` ids) $ do
+            pos <- getPosition
+            logMessage $ DuplicateIdentifier ident pos
           updateState $ updateIdentifierList $ Set.insert ident
           updateState $ updateHeaderMap $ insert' header' ident
         return (ident,classes,kvs)

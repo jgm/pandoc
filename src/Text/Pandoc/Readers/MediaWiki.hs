@@ -73,6 +73,7 @@ readMediaWiki opts s = do
                                             , mwCategoryLinks = []
                                             , mwHeaderMap = M.empty
                                             , mwIdentifierList = Set.empty
+                                            , mwLogMessages = []
                                             }
             (s ++ "\n")
   case parsed of
@@ -85,6 +86,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwCategoryLinks   :: [Inlines]
                        , mwHeaderMap       :: M.Map Inlines String
                        , mwIdentifierList  :: Set.Set String
+                       , mwLogMessages     :: [LogMessage]
                        }
 
 type MWParser m = ParserT [Char] MWState m
@@ -99,6 +101,10 @@ instance HasHeaderMap MWState where
 instance HasIdentifierList MWState where
   extractIdentifierList     = mwIdentifierList
   updateIdentifierList f st = st{ mwIdentifierList = f $ mwIdentifierList st }
+
+instance HasLogMessages MWState where
+  addLogMessage m s = s{ mwLogMessages = m : mwLogMessages s }
+  getLogMessages = reverse . mwLogMessages
 
 --
 -- auxiliary functions
@@ -187,6 +193,7 @@ parseMediaWiki = do
   let categories = if null categoryLinks
                       then mempty
                       else B.para $ mconcat $ intersperse B.space categoryLinks
+  reportLogMessages
   return $ B.doc $ bs <> categories
 
 --
