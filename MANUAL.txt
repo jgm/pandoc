@@ -2551,7 +2551,7 @@ Note that YAML escaping rules must be followed. Thus, for example,
 if a title contains a colon, it must be quoted.  The pipe character
 (`|`) can be used to begin an indented block that will be interpreted
 literally, without need for escaping.  This form is necessary
-when the field contains blank lines:
+when the field contains blank lines or block-level formatting:
 
     ---
     title:  'This is the title: it contains a colon'
