@@ -64,7 +64,6 @@ module Text.Pandoc.Shared (
                      Element (..),
                      hierarchicalize,
                      uniqueIdent,
-                     extractIds,
                      inlineListToIdentifier,
                      isHeaderBlock,
                      headerShift,
@@ -529,25 +528,6 @@ headerLtEq :: Int -> Block -> Bool
 headerLtEq level (Header l _ _) = l <= level
 headerLtEq level (Div ("",["references"],[]) (Header l _ _ : _))  = l <= level
 headerLtEq _ _ = False
-
--- | Extract the identifiers from a block element.
-extractBlockIds :: Block -> Set.Set String
-extractBlockIds (Header _ (ident,_,_) _) | not (null ident) =
-  Set.singleton ident
-extractBlockIds (Div (ident,_,_) _) | not (null ident) =
-  Set.singleton ident
-extractBlockIds _ = Set.empty
-
--- | Extract the identifiers from an inline element.
-extractInlineIds :: Inline -> Set.Set String
-extractInlineIds (Span (ident,_,_) _) | not (null ident) =
-  Set.singleton ident
-extractInlineIds _ = Set.empty
-
--- | Extract the identifiers from a pandoc document.
-extractIds :: Pandoc -> Set.Set String
-extractIds doc =
-  query extractBlockIds doc `Set.union` query extractInlineIds doc
 
 -- | Generate a unique identifier from a list of inlines.
 -- Second argument is a list of already used identifiers.
