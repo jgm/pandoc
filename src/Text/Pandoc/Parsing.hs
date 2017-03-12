@@ -1130,7 +1130,8 @@ registerHeader (ident,classes,kvs) header' = do
        updateState $ updateHeaderMap $ insert' header' id'
        return (id'',classes,kvs)
      else do
-        unless (null ident) $
+        unless (null ident) $ do
+          updateState $ updateIdentifierList $ Set.insert ident
           updateState $ updateHeaderMap $ insert' header' ident
         return (ident,classes,kvs)
 
