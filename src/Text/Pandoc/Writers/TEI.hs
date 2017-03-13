@@ -125,7 +125,6 @@ deflistItemsToTEI opts items =
 deflistItemToTEI :: PandocMonad m
                  => WriterOptions -> [Inline] -> [[Block]] -> m Doc
 deflistItemToTEI opts term defs = do
-  let def' = concatMap (map plainToPara) defs
   term' <- inlinesToTEI opts term
   defs' <- blocksToTEI opts $ concatMap (map plainToPara) defs
   return $ inTagsIndented "label" term' $$
