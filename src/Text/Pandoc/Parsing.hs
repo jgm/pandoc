@@ -928,7 +928,6 @@ data ParserState = ParserState
       stateIdentifiers     :: Set.Set String, -- ^ Header identifiers used
       stateNextExample     :: Int,           -- ^ Number of next example
       stateExamples        :: M.Map String Int, -- ^ Map from example labels to numbers
-      stateHasChapters     :: Bool,          -- ^ True if \chapter encountered
       stateMacros          :: [Macro],       -- ^ List of macros defined so far
       stateRstDefaultRole  :: String,        -- ^ Current rST default interpreted text role
       stateRstCustomRoles  :: M.Map String (String, Maybe String, Attr), -- ^ Current rST custom text roles
@@ -1036,7 +1035,6 @@ defaultParserState =
                   stateIdentifiers     = Set.empty,
                   stateNextExample     = 1,
                   stateExamples        = M.empty,
-                  stateHasChapters     = False,
                   stateMacros          = [],
                   stateRstDefaultRole  = "title-reference",
                   stateRstCustomRoles  = M.empty,

@@ -42,6 +42,7 @@ import Data.Char (chr, isAlphaNum, isLetter, ord)
 import Data.List (intercalate)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
+import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad, PandocPure, lookupEnv, readFileFromDirs,
@@ -72,7 +73,17 @@ parseLaTeX = do
   eof
   st <- getState
   let meta = stateMeta st
-  let (Pandoc _ bs') = doc bs
+  let doc' = doc bs
+  let headerLevel (Header n _ _) = [n]
+      headerLevel _ = []
+  let bottomLevel = minimumDef 1 $ query headerLevel doc'
+  let adjustHeaders m (Header n attr ils) = Header (n+m) attr ils
+      adjustHeaders _ x = x
+  let (Pandoc _ bs') =
+       -- handle the case where you have \part or \chapter
+       (if bottomLevel < 1
+           then walk (adjustHeaders (1 - bottomLevel))
+           else id) doc'
   return $ Pandoc meta bs'
 
 type LP m = ParserT String ParserState m
@@ -345,10 +356,10 @@ blockCommands = M.fromList $
   -- Koma-script metadata commands
   , ("dedication", mempty <$ (skipopts *> tok >>= addMeta "dedication"))
   -- sectioning
-  , ("chapter", updateState (\s -> s{ stateHasChapters = True })
-                      *> section nullAttr 0)
-  , ("chapter*", updateState (\s -> s{ stateHasChapters = True })
-                      *> section ("",["unnumbered"],[]) 0)
+  , ("part", section nullAttr (-1))
+  , ("part*", section nullAttr (-1))
+  , ("chapter", section nullAttr 0)
+  , ("chapter*", section ("",["unnumbered"],[]) 0)
   , ("section", section nullAttr 1)
   , ("section*", section ("",["unnumbered"],[]) 1)
   , ("subsection", section nullAttr 2)
@@ -444,13 +455,11 @@ authors = try $ do
 
 section :: PandocMonad m => Attr -> Int -> LP m Blocks
 section (ident, classes, kvs) lvl = do
-  hasChapters <- stateHasChapters `fmap` getState
-  let lvl' = if hasChapters then lvl + 1 else lvl
   skipopts
   contents <- grouped inline
   lab <- option ident $ try (spaces' >> controlSeq "label" >> spaces' >> braced)
   attr' <- registerHeader (lab, classes, kvs) contents
-  return $ headerWith attr' lvl' contents
+  return $ headerWith attr' lvl contents
 
 inlineCommand :: PandocMonad m => LP m Inlines
 inlineCommand = try $ do
