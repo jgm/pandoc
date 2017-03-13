@@ -236,8 +236,8 @@ showLogMessage msg =
        NoLangSpecified ->
          "No value for 'lang' was specified in the metadata.\n" ++
          "It is recommended that lang be specified for this format."
-       CouldNotHighlight msg ->
-         "Could not highlight code block:\n" ++ msg
+       CouldNotHighlight m ->
+         "Could not highlight code block:\n" ++ m
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
