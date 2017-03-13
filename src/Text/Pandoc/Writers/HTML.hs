@@ -644,11 +644,14 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
       hlCode   = if isJust (writerHighlightStyle opts)
                     then highlight formatHtmlBlock
                             (id',classes',keyvals) adjCode
-                    else Nothing
+                    else Left ""
   case hlCode of
-         Nothing -> return $ addAttrs opts (id',classes,keyvals)
+         Left msg -> do
+           unless (null msg) $
+             report $ CouldNotHighlight msg
+           return $ addAttrs opts (id',classes,keyvals)
                            $ H.pre $ H.code $ toHtml adjCode
-         Just  h -> modify (\st -> st{ stHighlighting = True }) >>
+         Right h -> modify (\st -> st{ stHighlighting = True }) >>
                     return (addAttrs opts (id',[],keyvals) h)
 blockToHtml opts (BlockQuote blocks) = do
   -- in S5, treat list in blockquote specially
@@ -872,17 +875,19 @@ inlineToHtml opts inline = do
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
     (Code attr str)  -> case hlCode of
-                             Nothing -> return
-                                        $ addAttrs opts attr
-                                        $ H.code $ strToHtml str
-                             Just  h -> do
+                             Left msg -> do
+                               unless (null msg) $
+                                 report $ CouldNotHighlight msg
+                               return $ addAttrs opts attr
+                                      $ H.code $ strToHtml str
+                             Right h -> do
                                modify $ \st -> st{ stHighlighting = True }
                                return $ addAttrs opts (id',[],keyvals) h
                         where (id',_,keyvals) = attr
                               hlCode = if isJust (writerHighlightStyle opts)
                                           then highlight formatHtmlInline
                                                    attr str
-                                          else Nothing
+                                          else Left ""
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . H.del
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=

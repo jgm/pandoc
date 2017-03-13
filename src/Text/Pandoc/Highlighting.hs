@@ -79,7 +79,7 @@ languagesByExtension ext =
 highlight :: (FormatOptions -> [SourceLine] -> a) -- ^ Formatter
           -> Attr   -- ^ Attributes of the CodeBlock
           -> String -- ^ Raw contents of the CodeBlock
-          -> Maybe a -- ^ Maybe the formatted result
+          -> Either String a
 highlight formatter (_, classes, keyvals) rawCode =
   let firstNum = fromMaybe 1 (safeRead (fromMaybe "1" $ lookup "startFrom" keyvals))
       fmtOpts = defaultFormatOpts{
@@ -92,18 +92,17 @@ highlight formatter (_, classes, keyvals) rawCode =
       rawCode' = T.pack rawCode
   in  case msum (map (\l -> lookupSyntax l defaultSyntaxMap) classes') of
             Nothing
-              | numberLines fmtOpts -> Just
+              | numberLines fmtOpts -> Right
                               $ formatter fmtOpts{ codeClasses = [],
                                                    containerClasses = classes' }
-                              $ map (\ln -> [(NormalTok, ln)]) $ T.lines rawCode'
-              | otherwise  -> Nothing
+                              $ map (\ln -> [(NormalTok, ln)])
+                              $ T.lines rawCode'
+              | otherwise  -> Left ""
             Just syntax  ->
-              case tokenize tokenizeOpts syntax rawCode' of
-                   Right slines -> Just $
-                         formatter fmtOpts{ codeClasses =
-                                               [T.toLower (sShortname syntax)],
-                                            containerClasses = classes' } slines
-                   Left _ -> Nothing
+              (formatter fmtOpts{ codeClasses =
+                                   [T.toLower (sShortname syntax)],
+                                  containerClasses = classes' }) <$>
+                tokenize tokenizeOpts syntax rawCode'
 
 -- Functions for correlating latex listings package's language names
 -- with skylighting language names:

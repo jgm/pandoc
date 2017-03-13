@@ -1156,9 +1156,13 @@ inlineToOpenXML' opts (Code attrs str) = do
                                  [ rCustomStyle (show toktype) ]
                                , mknode "w:t" [("xml:space","preserve")] (T.unpack tok) ]
   withTextProp (rCustomStyle "VerbatimChar")
-    $ case writerHighlightStyle opts >> highlight formatOpenXML attrs str of
-           Just h  -> return h
-           Nothing -> unhighlighted
+    $ if isNothing (writerHighlightStyle opts)
+          then unhighlighted
+          else case highlight formatOpenXML attrs str of
+                    Right h  -> return h
+                    Left msg -> do
+                      unless (null msg) $ report $ CouldNotHighlight msg
+                      unhighlighted
 inlineToOpenXML' opts (Note bs) = do
   notes <- gets stFootnotes
   notenum <- (lift . lift) getUniqueId

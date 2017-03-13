@@ -80,6 +80,7 @@ data LogMessage =
   | Fetching String
   | NoTitleElement String
   | NoLangSpecified
+  | CouldNotHighlight String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -164,6 +165,8 @@ instance ToJSON LogMessage where
       NoTitleElement fallback ->
            ["fallback" .= Text.pack fallback]
       NoLangSpecified -> []
+      CouldNotHighlight msg ->
+           ["message" .= Text.pack msg]
 
 showPos :: SourcePos -> String
 showPos pos = sn ++ "line " ++
@@ -233,6 +236,8 @@ showLogMessage msg =
        NoLangSpecified ->
          "No value for 'lang' was specified in the metadata.\n" ++
          "It is recommended that lang be specified for this format."
+       CouldNotHighlight msg ->
+         "Could not highlight code block:\n" ++ msg
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -259,3 +264,4 @@ messageVerbosity msg =
        Fetching{}                   -> INFO
        NoTitleElement{}             -> WARNING
        NoLangSpecified              -> INFO
+       CouldNotHighlight{}          -> WARNING
