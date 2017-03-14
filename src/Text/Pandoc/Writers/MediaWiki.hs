@@ -33,6 +33,7 @@ module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki ) where
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.List (intercalate)
+import Data.List (intercalate, zip4)
 import qualified Data.Set as Set
 import Data.Text (Text, pack)
 import Text.Pandoc.Class (PandocMonad, report)
@@ -154,7 +155,7 @@ blockToMediaWiki (BlockQuote blocks) = do
   contents <- blockListToMediaWiki blocks
   return $ "<blockquote>" ++ contents ++ "</blockquote>"
 
-blockToMediaWiki (Table capt aligns widths _ _ headers rows') = do
+blockToMediaWiki (Table capt aligns widths hspecs rspecs headers rows') = do
   caption <- if null capt
                 then return ""
                 else do
@@ -162,9 +163,10 @@ blockToMediaWiki (Table capt aligns widths _ _ headers rows') = do
                    return $ "|+ " ++ trimr c ++ "\n"
   let headless = all null headers
   let allrows = if headless then rows' else headers:rows'
+  let allspecs = if headless then rspecs else hspecs:rspecs
   tableBody <- intercalate "|-\n" `fmap`
                 mapM (tableRowToMediaWiki headless aligns widths)
-                     (zip [1..] allrows)
+                     (zip3 [1..] allspecs allrows)
   return $ "{|\n" ++ caption ++ tableBody ++ "|}\n"
 
 blockToMediaWiki x@(BulletList items) = do
@@ -285,26 +287,30 @@ tableRowToMediaWiki :: PandocMonad m
                     => Bool
                     -> [Alignment]
                     -> [Double]
-                    -> (Int, [[Block]])
+                    -> (Int, [CellSpec], [[Block]])
                     -> MediaWikiWriter m String
-tableRowToMediaWiki headless alignments widths (rownum, cells) = do
+tableRowToMediaWiki headless alignments widths (rownum, specs, cells) = do
   cells' <- mapM (tableCellToMediaWiki headless rownum)
-          $ zip3 alignments widths cells
+          $ zip4 alignments widths specs cells
   return $ unlines cells'
 
 tableCellToMediaWiki :: PandocMonad m
                      => Bool
                      -> Int
-                     -> (Alignment, Double, [Block])
+                     -> (Alignment, Double, CellSpec, [Block])
                      -> MediaWikiWriter m String
-tableCellToMediaWiki headless rownum (alignment, width, bs) = do
+tableCellToMediaWiki headless rownum (alignment, width, (cspan, rspan), bs) = do
   contents <- blockListToMediaWiki bs
   let marker = if rownum == 1 && not headless then "!" else "|"
   let percent w = show (truncate (100*w) :: Integer) ++ "%"
   let attrs = ["align=" ++ show (alignmentToString alignment) |
                  alignment /= AlignDefault && alignment /= AlignLeft] ++
               ["width=\"" ++ percent width ++ "\"" |
-                 width /= 0.0 && rownum == 1]
+                 width /= 0.0 && rownum == 1] ++
+              ["colspan=\"" ++ show cspan ++ "\"" |
+                cspan /= 1] ++
+              ["rowspan=\"" ++ show rspan ++ "\"" |
+                rspan /= 1]
   let attr = if null attrs
                 then ""
                 else unwords attrs ++ "|"

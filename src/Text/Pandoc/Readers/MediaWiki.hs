@@ -240,23 +240,24 @@ table = do
   caption <- option mempty tableCaption
   optional rowsep
   hasheader <- option False $ True <$ lookAhead (skipSpaces *> char '!')
-  (cellspecs',hdr) <- unzip <$> tableRow
-  let widths = map ((tableWidth *) . snd) cellspecs'
+  (alignment',hspecs,hdr) <- unzip3 <$> tableRow
+  let widths = map ((tableWidth *) . snd) alignment'
   let restwidth = tableWidth - sum widths
   let zerocols = length $ filter (==0.0) widths
   let defaultwidth = if zerocols == 0 || zerocols == length widths
                         then 0.0
                         else restwidth / fromIntegral zerocols
   let widths' = map (\w -> if w == 0 then defaultwidth else w) widths
-  let cellspecs = zip (map fst cellspecs') widths'
-  rows' <- many $ try $ rowsep *> (map snd <$> tableRow)
+  let alignment = zip (map fst alignment') widths'
+  x <- many $ try $ rowsep *> (unzip3 <$> tableRow)
+  let (_, rspecs, rows') = unzip3 x
   optional blanklines
   tableEnd
   let cols = length hdr
   let (headers,rows) = if hasheader
                           then (hdr, rows')
                           else (replicate cols mempty, hdr:rows')
-  return $ B.table caption cellspecs headers rows
+  return $ B.fullTable caption alignment hspecs rspecs headers rows
 
 parseAttrs :: PandocMonad m => MWParser m [(String,String)]
 parseAttrs = many1 parseAttr
@@ -294,10 +295,10 @@ tableCaption = try $ do
   optional (try $ parseAttr *> skipSpaces *> char '|' *> skipSpaces)
   (trimInlines . mconcat) <$> many (notFollowedBy (cellsep <|> rowsep) *> inline)
 
-tableRow :: PandocMonad m => MWParser m [((Alignment, Double), Blocks)]
+tableRow :: PandocMonad m => MWParser m [((Alignment, Double), CellSpec, Blocks)]
 tableRow = try $ skipMany htmlComment *> many tableCell
 
-tableCell :: PandocMonad m => MWParser m ((Alignment, Double), Blocks)
+tableCell :: PandocMonad m => MWParser m ((Alignment, Double), CellSpec, Blocks)
 tableCell = try $ do
   cellsep
   skipMany spaceChar
@@ -317,7 +318,12 @@ tableCell = try $ do
   let width = case lookup "width" attrs of
                     Just xs -> fromMaybe 0.0 $ parseWidth xs
                     Nothing -> 0.0
-  return ((align, width), bs)
+  let rowspan = fromMaybe 1 $ (lookup "rowspan" attrs) >>= parseSpec
+  let colspan = fromMaybe 1 $ (lookup "colspan" attrs) >>= parseSpec
+  return ((align, width), (colspan, rowspan), bs)
+
+parseSpec :: String -> Maybe Int
+parseSpec s = safeRead s
 
 parseWidth :: String -> Maybe Double
 parseWidth s =
