@@ -4,14 +4,14 @@ sourcefiles=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
 
 quick:
-	stack install --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4'
+	stack install --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes'
 
 full:
 	stack install --flag 'pandoc:embed_data_files' --test --test-arguments='-j4' --pedantic
 	stack haddock
 
 test:
-	stack test --test-arguments='-j4'
+	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes'
 
 bench:
 	stack bench

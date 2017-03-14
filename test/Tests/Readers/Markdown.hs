@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.Markdown (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -25,10 +25,10 @@ markdownGH = purely $ readMarkdown def {
 
 infix 4 =:
 (=:) :: ToString c
-     => String -> (String, c) -> Test
+     => String -> (String, c) -> TestTree
 (=:) = test markdown
 
-testBareLink :: (String, Inlines) -> Test
+testBareLink :: (String, Inlines) -> TestTree
 testBareLink (inp, ils) =
   test (purely $ readMarkdown def{ readerExtensions =
              extensionsFromList [Ext_autolink_bare_uris, Ext_raw_html] })
@@ -142,7 +142,7 @@ p_markdown_round_trip b = matches d' d''
         matches x y = x == y
 -}
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "inline code"
           [ "with attribute" =:
             "`document.write(\"Hello\");`{.javascript}"

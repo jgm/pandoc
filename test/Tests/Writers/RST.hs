@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.RST (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -9,10 +9,10 @@ import Text.Pandoc.Builder
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> Test
+     => String -> (a, String) -> TestTree
 (=:) = test (purely (writeRST def . toPandoc))
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "rubrics"
           [ "in list item" =:
               bulletList [header 2 (text "foo")] =?>

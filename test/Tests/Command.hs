@@ -8,20 +8,20 @@ import System.Directory
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, takeDirectory, (</>))
 import System.Process
-import Test.Framework
-import Test.Framework.Providers.HUnit
-import Test.HUnit (assertBool)
+import Test.Tasty
+import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Shared (trimr)
 import qualified Text.Pandoc.UTF8 as UTF8
+import System.IO.Unsafe (unsafePerformIO) -- TODO temporary
 
 -- | Run a test with normalize function, return True if test passed.
 runTest :: String    -- ^ Title of test
         -> String    -- ^ Shell command
         -> String    -- ^ Input text
         -> String    -- ^ Expected output
-        -> Test
+        -> TestTree
 runTest testname cmd inp norm = testCase testname $ do
   let cmd' = cmd ++ " --quiet --data-dir ../data"
   let findDynlibDir []           = Nothing
@@ -48,8 +48,8 @@ runTest testname cmd inp norm = testCase testname $ do
                 else return $ TestError ec
   assertBool (show result) (result == TestPassed)
 
-tests :: Test
-tests = buildTest $ do
+tests :: TestTree
+tests = unsafePerformIO $ do
   files <- filter (".md" `isSuffixOf`) <$>
                getDirectoryContents "command"
   let cmds = map extractCommandTest files
@@ -67,7 +67,7 @@ dropPercent :: String -> String
 dropPercent ('%':xs) = dropWhile (== ' ') xs
 dropPercent xs       = xs
 
-runCommandTest :: FilePath -> (Int, String) -> IO Test
+runCommandTest :: FilePath -> (Int, String) -> IO TestTree
 runCommandTest pandocpath (num, code) = do
   let codelines = lines code
   let (continuations, r1) = span ("\\" `isSuffixOf`) codelines
@@ -80,8 +80,8 @@ runCommandTest pandocpath (num, code) = do
   let shcmd = trimr $ takeDirectory pandocpath </> cmd
   return $ runTest ("#" ++ show num) shcmd input norm
 
-extractCommandTest :: FilePath -> Test
-extractCommandTest fp = buildTest $ do
+extractCommandTest :: FilePath -> TestTree
+extractCommandTest fp = unsafePerformIO $ do
   pandocpath <- findPandoc
   contents <- UTF8.readFile ("command" </> fp)
   Pandoc _ blocks <- runIOorExplode (readMarkdown

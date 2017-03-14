@@ -7,13 +7,12 @@ import System.Exit
 import System.FilePath (joinPath, splitDirectories, (<.>), (</>))
 import System.IO (openTempFile, stderr)
 import System.Process (runProcess, waitForProcess)
-import Test.Framework (Test, testGroup)
-import Test.Framework.Providers.HUnit
-import Test.HUnit (assertBool)
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit
 import Tests.Helpers hiding (test)
 import qualified Text.Pandoc.UTF8 as UTF8
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "markdown"
           [ testGroup "writer"
             $ writerTests "markdown" ++ lhsWriterTests "markdown"
@@ -152,7 +151,7 @@ readFile' :: FilePath -> IO String
 readFile' f = do s <- UTF8.readFile f
                  return $! (length s `seq` s)
 
-lhsWriterTests :: String -> [Test]
+lhsWriterTests :: String -> [TestTree]
 lhsWriterTests format
   = [ t "lhs to normal" format
     , t "lhs to lhs"    (format ++ "+lhs")
@@ -161,7 +160,7 @@ lhsWriterTests format
     t n f = test n ["--wrap=preserve", "-r", "native", "-s", "-w", f]
              "lhs-test.native" ("lhs-test" <.> f)
 
-lhsReaderTest :: String -> Test
+lhsReaderTest :: String -> TestTree
 lhsReaderTest format =
   test "lhs" ["-r", format, "-w", "native"]
     ("lhs-test" <.> format) norm
@@ -169,7 +168,7 @@ lhsReaderTest format =
                    then "lhs-test-markdown.native"
                    else "lhs-test.native"
 
-writerTests :: String -> [Test]
+writerTests :: String -> [TestTree]
 writerTests format
   = [ test "basic"  (opts ++ ["-s"]) "testsuite.native" ("writer" <.> format)
     , test "tables" opts             "tables.native"    ("tables" <.> format)
@@ -178,13 +177,13 @@ writerTests format
     opts = ["-r", "native", "-w", format, "--columns=78",
             "--variable", "pandoc-version="]
 
-s5WriterTest :: String -> [String] -> String -> Test
+s5WriterTest :: String -> [String] -> String -> TestTree
 s5WriterTest modifier opts format
   = test (format ++ " writer (" ++ modifier ++ ")")
     (["-r", "native", "-w", format] ++ opts)
     "s5.native"  ("s5-" ++ modifier <.> "html")
 
-fb2WriterTest :: String -> [String] -> String -> String -> Test
+fb2WriterTest :: String -> [String] -> String -> String -> TestTree
 fb2WriterTest title opts inputfile normfile =
   testWithNormalize (ignoreBinary . formatXML)
                     title (["-t", "fb2"]++opts) inputfile normfile
@@ -202,7 +201,7 @@ test :: String    -- ^ Title of test
      -> [String]  -- ^ Options to pass to pandoc
      -> String    -- ^ Input filepath
      -> FilePath  -- ^ Norm (for test results) filepath
-     -> Test
+     -> TestTree
 test = testWithNormalize id
 
 -- | Run a test with normalize function, return True if test passed.
@@ -211,7 +210,7 @@ testWithNormalize  :: (String -> String) -- ^ Normalize function for output
                    -> [String]  -- ^ Options to pass to pandoc
                    -> String    -- ^ Input filepath
                    -> FilePath  -- ^ Norm (for test results) filepath
-                   -> Test
+                   -> TestTree
 testWithNormalize normalizer testname opts inp norm = testCase testname $ do
   -- find pandoc executable relative to test-pandoc
   -- First, try in same directory (e.g. if both in ~/.cabal/bin)

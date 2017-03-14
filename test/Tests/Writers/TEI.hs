@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.TEI (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -21,10 +21,10 @@ which is in turn shorthand for
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> Test
+     => String -> (a, String) -> TestTree
 (=:) = test (purely (writeTEI def) . toPandoc)
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "block elements"
           ["para"          =: para "Lorem ipsum cetera."
                            =?> "<p>Lorem ipsum cetera.</p>"

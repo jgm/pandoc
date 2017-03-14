@@ -2,7 +2,7 @@
 module Tests.Readers.Org (tests) where
 
 import Data.List (intersperse)
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Builder
@@ -16,7 +16,7 @@ orgSmart = purely $ readOrg def { readerExtensions =
 
 infix 4 =:
 (=:) :: ToString c
-     => String -> (String, c) -> Test
+     => String -> (String, c) -> TestTree
 (=:) = test org
 
 spcSep :: [Inlines] -> Inlines
@@ -28,7 +28,7 @@ simpleTable' :: Int
              -> Blocks
 simpleTable' n = table "" (take n $ repeat (AlignDefault, 0.0))
 
-tests :: [Test]
+tests :: [TestTree]
 tests =
   [ testGroup "Inlines" $
       [ "Plain String" =:

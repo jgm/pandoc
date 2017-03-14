@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.HTML (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -10,7 +10,7 @@ import Text.Pandoc.Builder
 html :: String -> Pandoc
 html = purely $ readHtml def
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "base tag"
           [ test html "simple" $
             "<head><base href=\"http://www.w3schools.com/images/foo\" ></head><body><img src=\"stickman.gif\" alt=\"Stickman\"></head>" =?>

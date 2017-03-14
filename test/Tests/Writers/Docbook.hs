@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.Docbook (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -27,7 +27,7 @@ which is in turn shorthand for
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> Test
+     => String -> (a, String) -> TestTree
 (=:) = test docbook
 
 lineblock :: Blocks
@@ -40,7 +40,7 @@ lineblock_out = [ "<literallayout>some text"
                 , "and again</literallayout>"
                 ]
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "line blocks"
           [ "none"       =: para "This is a test"
                               =?> unlines

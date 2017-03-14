@@ -1,6 +1,7 @@
 module Tests.Writers.Native (tests) where
 
-import Test.Framework
+import Test.Tasty
+import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -15,8 +16,8 @@ p_write_blocks_rt bs =
   read (purely (writeNative def) (Pandoc nullMeta bs)) ==
   bs
 
-tests :: [Test]
-tests = [ property "p_write_rt" p_write_rt
-        , property "p_write_blocks_rt" $ mapSize
+tests :: [TestTree]
+tests = [ testProperty "p_write_rt" p_write_rt
+        , testProperty "p_write_blocks_rt" $ mapSize
              (\x -> if x > 3 then 3 else x) $ p_write_blocks_rt
         ]

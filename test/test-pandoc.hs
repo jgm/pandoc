@@ -3,8 +3,7 @@
 module Main where
 
 import GHC.IO.Encoding
-import System.Environment (getArgs)
-import Test.Framework
+import Test.Tasty
 import qualified Tests.Command
 import qualified Tests.Old
 import qualified Tests.Readers.Docx
@@ -32,8 +31,8 @@ import qualified Tests.Writers.TEI
 import qualified Tests.Writers.Muse
 import Text.Pandoc.Shared (inDirectory)
 
-tests :: [Test]
-tests = [ Tests.Command.tests
+tests :: TestTree
+tests = testGroup "pandoc tests" [ Tests.Command.tests
         , testGroup "Old" Tests.Old.tests
         , testGroup "Shared" Tests.Shared.tests
         , testGroup "Writers"
@@ -67,5 +66,4 @@ tests = [ Tests.Command.tests
 main :: IO ()
 main = do
   setLocaleEncoding utf8
-  args <- getArgs
-  inDirectory "test" $ defaultMainWithArgs tests args
+  inDirectory "test" $ defaultMain tests

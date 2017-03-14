@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Readers.LaTeX (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -13,14 +13,14 @@ latex = purely $ readLaTeX def{
 
 infix 4 =:
 (=:) :: ToString c
-     => String -> (String, c) -> Test
+     => String -> (String, c) -> TestTree
 (=:) = test latex
 
 simpleTable' :: [Alignment] -> [[Blocks]] -> Blocks
 simpleTable' aligns = table "" (zip aligns (repeat 0.0))
                       (map (const mempty) aligns)
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "basic"
           [ "simple" =:
             "word" =?> para "word"
@@ -128,7 +128,7 @@ baseCitation = Citation{ citationId      = "item1"
 rt :: String -> Inlines
 rt = rawInline "latex"
 
-natbibCitations :: Test
+natbibCitations :: TestTree
 natbibCitations = testGroup "natbib"
   [ "citet" =: "\\citet{item1}"
     =?> para (cite [baseCitation] (rt "\\citet{item1}"))
@@ -175,7 +175,7 @@ natbibCitations = testGroup "natbib"
                                     Strong [Str "32"]] }] (rt "\\citep[\\emph{see}][p. \\textbf{32}]{item1}"))
   ]
 
-biblatexCitations :: Test
+biblatexCitations :: TestTree
 biblatexCitations = testGroup "biblatex"
   [ "textcite" =: "\\textcite{item1}"
     =?> para (cite [baseCitation] (rt "\\textcite{item1}"))

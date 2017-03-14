@@ -1,6 +1,6 @@
 module Tests.Writers.Muse (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary()
@@ -14,10 +14,10 @@ museWithOpts opts = purely (writeMuse opts) . toPandoc
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> Test
+     => String -> (a, String) -> TestTree
 (=:) = test muse
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ testGroup "block elements"
           [ "plain" =: plain (text "Foo bar.") =?> "Foo bar."
           , testGroup "paragraphs"

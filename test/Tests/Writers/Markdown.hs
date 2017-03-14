@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Tests.Writers.Markdown (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -31,10 +31,10 @@ which is in turn shorthand for
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> Test
+     => String -> (a, String) -> TestTree
 (=:) = test markdown
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ "indented code after list"
              =: (orderedList [ para "one" <> para "two" ] <> codeBlock "test")
              =?> "1.  one\n\n    two\n\n<!-- -->\n\n    test"
@@ -85,7 +85,7 @@ noteTestDoc =
 
 
 
-noteTests :: Test
+noteTests :: TestTree
 noteTests = testGroup "note and reference location"
   [ test (markdownWithOpts defopts)
     "footnotes at the end of a document" $
@@ -176,12 +176,12 @@ noteTests = testGroup "note and reference location"
 
   ]
 
-shortcutLinkRefsTests :: Test
+shortcutLinkRefsTests :: TestTree
 shortcutLinkRefsTests =
   let infix 4 =:
       (=:) :: (ToString a, ToPandoc a)
 
-        => String -> (a, String) -> Test
+        => String -> (a, String) -> TestTree
       (=:) = test (purely (writeMarkdown defopts{writerReferenceLinks = True}) . toPandoc)
   in testGroup "Shortcut reference links"
      [ "Simple link (shortcutable)"

@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Tests.Readers.RST (tests) where
 
-import Test.Framework
+import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -13,10 +13,10 @@ rst = purely $ readRST def{ readerStandalone = True }
 
 infix 4 =:
 (=:) :: ToString c
-     => String -> (String, c) -> Test
+     => String -> (String, c) -> TestTree
 (=:) = test rst
 
-tests :: [Test]
+tests :: [TestTree]
 tests = [ "line block with blank line" =:
           "| a\n|\n|  b" =?> lineBlock [ "a", mempty, "\160b" ]
         , testGroup "field list"
