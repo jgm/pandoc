@@ -380,6 +380,7 @@ Library
                    Text.Pandoc.Readers.Docx,
                    Text.Pandoc.Readers.Odt,
                    Text.Pandoc.Readers.EPUB,
+                   Text.Pandoc.Readers.Muse,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
@@ -559,6 +560,7 @@ Test-Suite test-pandoc
                   Tests.Readers.Odt
                   Tests.Readers.Txt2Tags
                   Tests.Readers.EPUB
+                  Tests.Readers.Muse
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
                   Tests.Writers.Docbook
