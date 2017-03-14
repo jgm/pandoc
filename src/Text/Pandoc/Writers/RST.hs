@@ -264,7 +264,7 @@ blockToRST (BlockQuote blocks) = do
   tabstop <- gets $ writerTabStop . stOptions
   contents <- blockListToRST blocks
   return $ (nest tabstop contents) <> blankline
-blockToRST (Table caption _ widths headers rows) =  do
+blockToRST (Table caption _ widths _ _ headers rows) =  do
   caption' <- inlineListToRST caption
   headers' <- mapM blockListToRST headers
   rawRows <- mapM (mapM blockListToRST) rows

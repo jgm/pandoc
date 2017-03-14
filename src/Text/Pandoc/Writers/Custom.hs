@@ -243,8 +243,8 @@ blockToCustom lua (CodeBlock attr str) =
 
 blockToCustom lua (BlockQuote blocks) = callfunc lua "BlockQuote" blocks
 
-blockToCustom lua (Table capt aligns widths headers rows') =
-  callfunc lua "Table" capt (map show aligns) widths headers rows'
+blockToCustom lua (Table capt aligns widths hspecs rspecs headers rows') =
+  callfunc lua "Table" capt (map show aligns) hspecs rspecs widths headers rows'
 
 blockToCustom lua (BulletList items) = callfunc lua "BulletList" items
 

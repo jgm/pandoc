@@ -284,7 +284,7 @@ blockToRTF indent alignment (Header level _ lst) = do
   contents <- inlinesToRTF lst
   return $ rtfPar indent 0 alignment $
              "\\b \\fs" ++ (show (40 - (level * 4))) ++ " " ++ contents
-blockToRTF indent alignment (Table caption aligns sizes headers rows) = do
+blockToRTF indent alignment (Table caption aligns sizes _ _ headers rows) = do
   caption' <- inlinesToRTF caption
   header' <- if all null headers
                 then return ""

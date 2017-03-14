@@ -762,12 +762,12 @@ tableDirective :: PandocMonad m
 tableDirective top _fields body = do
   bs <- parseFromString parseBlocks body
   case B.toList bs of
-       [Table _ aligns' widths' header' rows'] -> do
+       [Table _ aligns' widths' hspec rspec header' rows'] -> do
          title <- parseFromString (trimInlines . mconcat <$> many inline) top
          -- TODO widths
          -- align is not applicable since we can't represent whole table align
          return $ B.singleton $ Table (B.toList title)
-                                  aligns' widths' header' rows'
+                                  aligns' widths' hspec rspec header' rows'
        _ -> return mempty
 
 -- TODO:
@@ -1122,8 +1122,8 @@ simpleTable headless = do
               sep simpleTableFooter
   -- Simple tables get 0s for relative column widths (i.e., use default)
   case B.toList tbl of
-       [Table c a _w h l]  -> return $ B.singleton $
-                                 Table c a (replicate (length a) 0) h l
+       [Table c a _w hspec rspec h l]  -> return $ B.singleton $
+                                 Table c a (replicate (length a) 0) hspec rspec h l
        _ ->
          throwError $ PandocShouldNeverHappenError
             "tableWith returned something unexpected"

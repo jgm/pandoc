@@ -826,7 +826,7 @@ blockToInlines (DefinitionList pairslst) =
       (concatMap blocksToInlines blkslst)
 blockToInlines (Header _ _  ils) = ils
 blockToInlines (HorizontalRule) = []
-blockToInlines (Table _ _ _ headers rows) =
+blockToInlines (Table _ _ _ _ _ headers rows) =
   intercalate [LineBreak] $ map (concatMap blocksToInlines) tbl
   where
     tbl = headers : rows

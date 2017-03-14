@@ -137,7 +137,7 @@ blockToNodes (DefinitionList items) ns = blockToNodes (BulletList items') ns
           Plain (term ++ [LineBreak] ++ xs) : ys ++ concat zs
         dlToBullet (term, xs) =
           Para term : concat xs
-blockToNodes t@(Table _ _ _ _ _) ns = do
+blockToNodes t@(Table _ _ _ _ _ _ _) ns = do
   s <- writeHtml5String def $! Pandoc nullMeta [t]
   return (node (HTML_BLOCK (T.pack $! s)) [] : ns)
 blockToNodes Null ns = return ns

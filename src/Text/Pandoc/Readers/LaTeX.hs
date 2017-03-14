@@ -1086,11 +1086,11 @@ addImageCaption = walkM go
 
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
-  where go (Table c als ws hs rs) = do
+  where go (Table c als ws hspec rspec hs rs) = do
           mbcapt <- stateCaption <$> getState
           return $ case mbcapt of
-               Just ils -> Table (toList ils) als ws hs rs
-               Nothing  -> Table c als ws hs rs
+               Just ils -> Table (toList ils) als ws hspec rspec hs rs
+               Nothing  -> Table c als ws hspec rspec hs rs
         go x = return x
 
 environments :: PandocMonad m => M.Map String (LP m Blocks)
