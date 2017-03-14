@@ -5,7 +5,6 @@ import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
-import Test.QuickCheck (mapSize)
 
 p_write_rt :: Pandoc -> Bool
 p_write_rt d =
