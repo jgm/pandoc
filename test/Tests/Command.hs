@@ -50,9 +50,10 @@ runTest testname cmd inp norm = testCase testname $ do
 
 tests :: TestTree
 tests = unsafePerformIO $ do
+  pandocpath <- findPandoc
   files <- filter (".md" `isSuffixOf`) <$>
                getDirectoryContents "command"
-  let cmds = map extractCommandTest files
+  let cmds = map (extractCommandTest pandocpath) files
   return $ testGroup "Command:" cmds
 
 isCodeBlock :: Block -> Bool
@@ -80,9 +81,8 @@ runCommandTest pandocpath (num, code) =
       shcmd = trimr $ takeDirectory pandocpath </> cmd
   in  runTest ("#" ++ show num) shcmd input norm
 
-extractCommandTest :: FilePath -> TestTree
-extractCommandTest fp = unsafePerformIO $ do
-  pandocpath <- findPandoc
+extractCommandTest :: FilePath -> FilePath -> TestTree
+extractCommandTest pandocpath fp = unsafePerformIO $ do
   contents <- UTF8.readFile ("command" </> fp)
   Pandoc _ blocks <- runIOorExplode (readMarkdown
                         def{ readerExtensions = pandocExtensions } contents)
