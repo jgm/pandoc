@@ -60,7 +60,7 @@ testCompare = testCompareWithOpts defopts
 testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> IO TestTree
 testForWarningsWithOptsIO opts name docxFile expected = do
   df <- B.readFile docxFile
-  logs <-  runIOorExplode (readDocx opts df >> P.getLog)
+  logs <-  runIOorExplode $ setVerbosity ERROR >> readDocx opts df >> P.getLog
   let warns = [m | DocxParserWarning m <- logs]
   return $ test id name (unlines warns, unlines expected)
 
@@ -94,7 +94,7 @@ compareMediaPathIO mediaPath mediaBag docxPath = do
 compareMediaBagIO :: FilePath -> IO Bool
 compareMediaBagIO docxFile = do
     df <- B.readFile docxFile
-    mb <- runIOorExplode (readDocx defopts df >> P.getMediaBag)
+    mb <- runIOorExplode $ readDocx defopts df >> P.getMediaBag
     bools <- mapM
              (\(fp, _, _) -> compareMediaPathIO fp mb docxFile)
              (mediaDirectory mb)
