@@ -143,6 +143,9 @@ tests = [ testGroup "markdown"
         , testGroup "muse"
           [ testGroup "writer" $ writerTests "muse"
           ]
+        , testGroup "ms"
+          [ testGroup "writer" $ writerTests "ms"
+          ]
         ]
 
 -- makes sure file is fully closed after reading

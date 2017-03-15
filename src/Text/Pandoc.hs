@@ -120,6 +120,7 @@ module Text.Pandoc
                , writeOPML
                , writeOpenDocument
                , writeMan
+               , writeMs
                , writeMediaWiki
                , writeDokuWiki
                , writeZimWiki
@@ -190,6 +191,7 @@ import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.ICML
 import Text.Pandoc.Writers.LaTeX
 import Text.Pandoc.Writers.Man
+import Text.Pandoc.Writers.Ms
 import Text.Pandoc.Writers.Markdown
 import Text.Pandoc.Writers.MediaWiki
 import Text.Pandoc.Writers.Muse
@@ -292,6 +294,7 @@ writers = [
   ,("context"      , StringWriter writeConTeXt)
   ,("texinfo"      , StringWriter writeTexinfo)
   ,("man"          , StringWriter writeMan)
+  ,("ms"           , StringWriter writeMs)
   ,("markdown"     , StringWriter writeMarkdown)
   ,("markdown_strict" , StringWriter writeMarkdown)
   ,("markdown_phpextra" , StringWriter writeMarkdown)

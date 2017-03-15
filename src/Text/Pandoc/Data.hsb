@@ -13,3 +13,4 @@ dataFiles = map (\(fp, contents) ->
 
 dataFiles' :: [(FilePath, B.ByteString)]
 dataFiles' = ("MANUAL.txt", %blob "MANUAL.txt") : %blobs "data"
+

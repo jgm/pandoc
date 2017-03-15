@@ -691,6 +691,7 @@ defaultWriterName x =
     ".icml"     -> "icml"
     ".tei.xml"  -> "tei"
     ".tei"      -> "tei"
+    ".ms"       -> "ms"
     ['.',y]     | y `elem` ['1'..'9'] -> "man"
     _           -> "html"
 
