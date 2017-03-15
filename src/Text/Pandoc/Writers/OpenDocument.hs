@@ -503,7 +503,7 @@ bulletListStyle l = do
                     , ("style:num-suffix", "."                )
                     , ("text:bullet-char", [bulletList !! i]  )
                     ] (listLevelStyle (1 + i))
-      bulletList  = map chr $ cycle [8226,8227,8259]
+      bulletList  = map chr $ cycle [8226,9702,9642]
       listElStyle = map doStyles [0..9]
   pn <- paraListStyle l
   return (pn, (l, listElStyle))
