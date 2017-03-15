@@ -7,7 +7,7 @@ main = do
   mainWith $ do
     func "Pandoc document" id doc
     mapM_
-      (\(n,r) -> weighReader doc n (either (error . show) id . runPure . r def{ readerSmart = True }))
+      (\(n,r) -> weighReader doc n (either (error . show) id . runPure . r def{readerExtensions = pandocExtensions}))
       [("markdown", readMarkdown)
       ,("html", readHtml)
       ,("docbook", readDocBook)
@@ -17,8 +17,8 @@ main = do
     mapM_
       (\(n,w) -> weighWriter doc n (either (error . show) id . runPure . w def))
       [("markdown", writeMarkdown)
-      ,("html", writeHtmlString)
-      ,("docbook", writeDocbook)
+      ,("html", writeHtml5String)
+      ,("docbook", writeDocbook5)
       ,("latex", writeLaTeX)
       ,("commonmark", writeCommonMark)
       ]
