@@ -10,8 +10,10 @@ full:
 	stack install --flag 'pandoc:embed_data_files' --test --test-arguments='-j4' --pedantic
 	stack haddock
 
+# Note:  to accept current results of golden tests,
+# make test TESTARGS='--accept'
 test:
-	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes'
+	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 bench:
 	stack bench
