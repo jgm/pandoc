@@ -46,6 +46,7 @@ import Data.Aeson (eitherDecode', encode)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
+import qualified Data.Set as Set
 import Data.Foldable (foldrM)
 import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
 import qualified Data.Map as M
@@ -279,6 +280,11 @@ convertWithOpts opts = do
                                                      uriFragment = "" }
                                 _ -> Nothing
 
+  abbrevs <- case optAbbreviations opts of
+                  Nothing -> return $ readerAbbreviations def
+                  Just f  -> (Set.fromList . filter (not . null) . lines)
+                                <$> UTF8.readFile f
+
   let readerOpts = def{ readerStandalone = standalone
                       , readerColumns = optColumns opts
                       , readerTabStop = optTabStop opts
@@ -287,6 +293,7 @@ convertWithOpts opts = do
                       , readerDefaultImageExtension =
                          optDefaultImageExtension opts
                       , readerTrackChanges = optTrackChanges opts
+                      , readerAbbreviations = abbrevs
                       }
 
   highlightStyle <- lookupHighlightStyle $ optHighlightStyle opts
@@ -489,6 +496,7 @@ data Opt = Opt
     , optHighlightStyle        :: Maybe String -- ^ Style to use for highlighted code
     , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
+    , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
     , optReferenceDoc          :: Maybe FilePath -- ^ Path of reference doc
     , optEpubMetadata          :: Maybe FilePath   -- ^ EPUB metadata
     , optEpubFonts             :: [FilePath] -- ^ EPUB fonts to embed
@@ -554,6 +562,7 @@ defaultOpts = Opt
     , optHighlightStyle        = Just "pygments"
     , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath
+    , optAbbreviations         = Nothing
     , optReferenceDoc          = Nothing
     , optEpubMetadata          = Nothing
     , optEpubFonts             = []
@@ -772,7 +781,7 @@ options =
     , Option "o" ["output"]
                  (ReqArg
                   (\arg opt -> return opt { optOutputFile = arg })
-                  "FILENAME")
+                  "FILE")
                  "" -- "Name of output file"
 
     , Option "" ["data-dir"]
@@ -855,7 +864,7 @@ options =
                   (\arg opt ->
                      return opt{ optTemplate = Just arg,
                                  optStandalone = True })
-                  "FILENAME")
+                  "FILE")
                  "" -- "Use custom template"
 
     , Option "M" ["metadata"]
@@ -954,7 +963,7 @@ options =
                   (\arg opt -> return opt{ optIncludeInHeader =
                                               arg : optIncludeInHeader opt,
                                             optStandalone = True })
-                  "FILENAME")
+                  "FILE")
                  "" -- "File to include at end of header (implies -s)"
 
     , Option "B" ["include-before-body"]
@@ -962,7 +971,7 @@ options =
                   (\arg opt -> return opt{ optIncludeBeforeBody =
                                               arg : optIncludeBeforeBody opt,
                                            optStandalone = True })
-                  "FILENAME")
+                  "FILE")
                  "" -- "File to include before document body"
 
     , Option "A" ["include-after-body"]
@@ -970,7 +979,7 @@ options =
                   (\arg opt -> return opt{ optIncludeAfterBody =
                                               arg : optIncludeAfterBody opt,
                                            optStandalone = True })
-                  "FILENAME")
+                  "FILE")
                  "" -- "File to include after document body"
 
     , Option "" ["self-contained"]
@@ -1110,7 +1119,7 @@ options =
                  (ReqArg
                   (\arg opt ->
                     return opt { optReferenceDoc = Just arg })
-                  "FILENAME")
+                  "FILE")
                  "" -- "Path of custom reference doc"
 
     , Option "" ["epub-cover-image"]
@@ -1118,13 +1127,13 @@ options =
                   (\arg opt ->
                      return opt { optVariables =
                                  ("epub-cover-image", arg) : optVariables opt })
-                  "FILENAME")
+                  "FILE")
                  "" -- "Path of epub cover image"
 
     , Option "" ["epub-metadata"]
                  (ReqArg
                   (\arg opt -> return opt { optEpubMetadata = Just arg })
-                  "FILENAME")
+                  "FILE")
                  "" -- "Path of epub metadata file"
 
     , Option "" ["epub-embed-font"]
@@ -1260,6 +1269,12 @@ options =
                  (NoArg
                   (\opt -> return opt { optHTMLMathMethod = GladTeX }))
                  "" -- "Use gladtex for HTML math"
+
+    , Option "" ["abbreviations"]
+                (ReqArg
+                 (\arg opt -> return opt { optAbbreviations = Just arg })
+                "FILE")
+                "" -- "Specify file for custom abbreviations"
 
     , Option "" ["trace"]
                  (NoArg
