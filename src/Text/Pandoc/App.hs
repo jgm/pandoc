@@ -280,10 +280,10 @@ convertWithOpts opts = do
                                                      uriFragment = "" }
                                 _ -> Nothing
 
-  abbrevs <- case optAbbreviations opts of
-                  Nothing -> return $ readerAbbreviations def
-                  Just f  -> (Set.fromList . filter (not . null) . lines)
-                                <$> UTF8.readFile f
+  abbrevs <- (Set.fromList . filter (not . null) . lines) <$>
+             case optAbbreviations opts of
+                  Nothing -> readDataFileUTF8 datadir "abbreviations"
+                  Just f  -> UTF8.readFile f
 
   let readerOpts = def{ readerStandalone = standalone
                       , readerColumns = optColumns opts
