@@ -499,6 +499,19 @@ Reader options
     references in the document so they point to the extracted files.
     This option only affects the docx and epub readers.
 
+`--abbreviations=`*FILE*
+
+:   Specifies a custom abbreviations file, with abbreviations
+    one to a line.  If this option is not specified, pandoc will
+    read the data file `abbreviations` from the user data
+    directory or fall back on a system default.  To see the
+    system default, use
+    `pandoc --print-default-data-file=abbreviations`.  The only
+    use pandoc makes of this list is in the Markdown reader.
+    Strings ending in a period that are found in this list will
+    be followed by a nonbreaking space, so that the period will
+    not produce sentence-ending space in formats like LaTeX.
+
 [`pandocfilters`]: https://github.com/jgm/pandocfilters
 [PHP]: https://github.com/vinai/pandocfilters-php
 [perl]: https://metacpan.org/pod/Pandoc::Filter
