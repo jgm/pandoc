@@ -126,6 +126,7 @@ Extra-Source-Files:
                  test/bodybg.gif
                  test/*.native
                  test/command/*.md
+                 test/command/abbrevs
                  test/docbook-reader.docbook
                  test/docbook-xref.docbook
                  test/html-reader.html
