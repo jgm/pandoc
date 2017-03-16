@@ -825,7 +825,7 @@ blockToHtml opts (DefinitionList lst) = do
                      return $ mconcat $ nl opts : term' : nl opts :
                                         intersperse (nl opts) defs') lst
   defList opts contents
-blockToHtml opts (Table capt aligns widths _ _ headers rows') = do
+blockToHtml opts (Table capt aligns widths hspecs rspecs headers rows') = do
   captionDoc <- if null capt
                    then return mempty
                    else do
@@ -848,10 +848,10 @@ blockToHtml opts (Table capt aligns widths _ _ headers rows') = do
   head' <- if all null headers
               then return mempty
               else do
-                contents <- tableRowToHtml opts aligns 0 headers
+                contents <- tableRowToHtml opts aligns 0 (zip hspecs headers)
                 return $ H.thead (nl opts >> contents) >> nl opts
   body' <- liftM (\x -> H.tbody (nl opts >> mconcat x)) $
-               zipWithM (tableRowToHtml opts aligns) [1..] rows'
+               zipWithM (tableRowToHtml opts aligns) [1..] (map (\(specs, cols) -> zip specs cols) (zip rspecs rows'))
   let tbl = H.table $
               nl opts >> captionDoc >> coltags >> head' >> body' >> nl opts
   let totalWidth = sum widths
@@ -866,9 +866,9 @@ tableRowToHtml :: PandocMonad m
                => WriterOptions
                -> [Alignment]
                -> Int
-               -> [[Block]]
+               -> [(CellSpec, [Block])]
                -> StateT WriterState m Html
-tableRowToHtml opts aligns rownum cols' = do
+tableRowToHtml opts aligns rownum specs = do
   let mkcell = if rownum == 0 then H.th else H.td
   let rowclass = case rownum of
                       0 -> "header"
@@ -876,7 +876,7 @@ tableRowToHtml opts aligns rownum cols' = do
                       _ -> "even"
   cols'' <- zipWithM
             (\alignment item -> tableItemToHtml opts mkcell alignment item)
-            aligns cols'
+            aligns specs
   return $ (H.tr ! A.class_ rowclass $ nl opts >> mconcat cols'')
           >> nl opts
 
@@ -891,19 +891,19 @@ tableItemToHtml :: PandocMonad m
                 => WriterOptions
                 -> (Html -> Html)
                 -> Alignment
-                -> [Block]
+                -> (CellSpec, [Block])
                 -> StateT WriterState m Html
-tableItemToHtml opts tag' align' item = do
+tableItemToHtml opts tag' align' ((colspan, rowspan), item) = do
   contents <- blockListToHtml opts item
   html5 <- gets stHtml5
   let alignStr = alignmentToString align'
-  let attribs = if html5
+  let align = if html5
                    then A.style (toValue $ "text-align: " ++ alignStr ++ ";")
                    else A.align (toValue alignStr)
-  let tag'' = if null alignStr
-                 then tag'
-                 else tag' ! attribs
-  return $ tag'' contents >> nl opts
+  let tag'' = tag' !? (null alignStr, align)
+                   !? (colspan /= 1, A.colspan $ toValue colspan)
+                   !? (rowspan /= 1, A.rowspan $ toValue rowspan)
+  return $ (tag'' $ contents) >> nl opts
 
 toListItems :: WriterOptions -> [Html] -> [Html]
 toListItems opts items = map (toListItem opts) items ++ [nl opts]
