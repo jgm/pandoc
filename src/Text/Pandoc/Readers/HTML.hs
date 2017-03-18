@@ -54,7 +54,7 @@ import Text.Pandoc.Walk
 import qualified Data.Map as M
 import Data.Maybe ( fromMaybe, isJust)
 import Data.List ( intercalate, isInfixOf, isPrefixOf )
-import Data.Char ( isDigit )
+import Data.Char ( isDigit, isLetter, isAlphaNum )
 import Control.Monad ( guard, mzero, void, unless )
 import Control.Arrow ((***))
 import Control.Applicative ( (<|>) )
@@ -1032,13 +1032,22 @@ htmlTag f = try $ do
   let (next : _) = canonicalizeTags $ parseTagsOptions
                        parseOptions{ optTagWarning = False } inp
   guard $ f next
+
+  -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
+  -- should NOT be parsed as an HTML tag, see #2277,
+  -- so we exclude . even though it's a valid character
+  -- in XML elemnet names
+  let isNameChar c = isAlphaNum c || c == ':' || c == '-' || c == '_'
+  let isName s = case s of
+                      [] -> False
+                      (c:cs) -> isLetter c && all isNameChar cs
+
   let handleTag tagname = do
-       -- <www.boe.es/buscar/act.php?id=BOE-A-1996-8930#a66>
-       -- should NOT be parsed as an HTML tag, see #2277
-       guard $ not ('.' `elem` tagname)
+       -- basic sanity check, since the parser is very forgiving
+       -- and finds tags in stuff like x<y)
+       guard $ isName tagname
        -- <https://example.org> should NOT be a tag either.
        -- tagsoup will parse it as TagOpen "https:" [("example.org","")]
-       guard $ not (null tagname)
        guard $ last tagname /= ':'
        rendered <- manyTill anyChar (char '>')
        return (next, rendered ++ ">")
@@ -1050,7 +1059,9 @@ htmlTag f = try $ do
           char '>'
           return (next, "<!--" ++ s ++ "-->")
          | otherwise -> fail "bogus comment mode, HTML5 parse error"
-       TagOpen tagname _attr -> handleTag tagname
+       TagOpen tagname attr -> do
+         guard $ all (isName . fst) attr
+         handleTag tagname
        TagClose tagname -> handleTag tagname
        _ -> mzero
 
