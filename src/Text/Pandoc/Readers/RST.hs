@@ -755,7 +755,8 @@ directive' = do
         other     -> do
             pos <- getPosition
             logMessage $ SkippedContent (".. " ++ other) pos
-            return mempty
+            bod <- parseFromString parseBlocks $ top ++ "\n\n" ++ body'
+            return $ B.divWith ("",[other],[]) bod
 
 tableDirective :: PandocMonad m
                => String -> [(String, String)] -> String -> RSTParser m Blocks
