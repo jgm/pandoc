@@ -15,7 +15,7 @@ packages:
 - '.'
 - location:
     git: https://github.com/jgm/pandoc-citeproc.git
-    commit: 55cecd5218ced2879c17b6066ebc643ec612fadb
+    commit: 1038f82f8e6fe151ba02a3d72337dcff4320b921
   extra-dep: false
 extra-deps:
 - skylighting-0.3.1
