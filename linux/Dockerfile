@@ -19,13 +19,11 @@ RUN stack install --stack-yaml stack.pkg.yaml --only-dependencies \
     --flag 'pandoc:embed_data_files' \
     --test --ghc-options '-O2 -optc-Os -optl-static -fPIC' \
     pandoc pandoc-citeproc
-COPY make_deb.sh .
-COPY make_tarball.sh .
 CMD git pull && \
     git checkout -b work $TREE && \
     stack install --stack-yaml stack.pkg.yaml \
       --local-bin-path /artifacts --flag 'pandoc:embed_data_files' \
       --test --ghc-options '-O2 -optc-Os -optl-static -fPIC' \
       pandoc pandoc-citeproc && \
-    bash make_deb.sh && \
-    bash make_tarball.sh
+    bash linux/make_deb.sh && \
+    bash linux/make_tarball.sh

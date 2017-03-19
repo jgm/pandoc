@@ -41,7 +41,7 @@ echo "pandoc-citeproc" >> $COPYRIGHT
 
 INSTALLED_SIZE=$(du -k -s $DEST | awk '{print $1}')
 mkdir $DIST/DEBIAN
-perl -pe "s/VERSION/$DEBVER/" deb/control.in | \
+perl -pe "s/VERSION/$DEBVER/" linux/control.in | \
   perl -pe "s/ARCHITECTURE/$ARCHITECTURE/" | \
   perl -pe "s/INSTALLED_SIZE/$INSTALLED_SIZE/" \
   > $DIST/DEBIAN/control
