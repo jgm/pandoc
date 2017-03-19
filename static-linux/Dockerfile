@@ -20,6 +20,7 @@ RUN stack install --stack-yaml stack.pkg.yaml --only-dependencies \
     --test --ghc-options '-O2 -optc-Os -optl-static -fPIC' \
     pandoc pandoc-citeproc
 CMD git pull && \
+    git checkout -b work $TREE && \
     export VERSION=`grep '^Version:' pandoc.cabal | awk '{print $$2;}'` && \
     stack install --stack-yaml stack.pkg.yaml \
       --local-bin-path /artifacts --flag 'pandoc:embed_data_files' \
