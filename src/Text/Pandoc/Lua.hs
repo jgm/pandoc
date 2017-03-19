@@ -41,6 +41,7 @@ import Data.Text.Encoding ( decodeUtf8 )
 import Scripting.Lua ( LuaState, StackValue(..) )
 import Scripting.Lua.Aeson ()
 import Text.Pandoc.Definition ( Block(..), Inline(..), Pandoc(..) )
+import Text.Pandoc.Lua.PandocModule
 import Text.Pandoc.Walk
 
 import qualified Data.HashMap.Lazy as HashMap
@@ -54,6 +55,8 @@ runLuaFilter filterPath args pd = liftIO $ do
   Lua.openlibs lua
   Lua.newtable lua
   Lua.setglobal lua "PANDOC_FILTER_FUNCTIONS"  -- hack, store functions here
+  pushPandocModule lua
+  Lua.setglobal lua "pandoc"
   status <- Lua.loadfile lua filterPath
   if (status /= 0)
     then do

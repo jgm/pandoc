@@ -104,6 +104,8 @@ Data-Files:
                  data/abbreviations
                  -- sample lua custom writer
                  data/sample.lua
+                 -- pandoc lua module
+                 data/pandoc.lua
                  -- bash completion template
                  data/bash_completion.tpl
                  -- documentation
@@ -436,6 +438,7 @@ Library
                    Text.Pandoc.Readers.Org.ParserState,
                    Text.Pandoc.Readers.Org.Parsing,
                    Text.Pandoc.Readers.Org.Shared,
+                   Text.Pandoc.Lua.PandocModule,
                    Text.Pandoc.CSS,
                    Text.Pandoc.UUID,
                    Text.Pandoc.Slides,
