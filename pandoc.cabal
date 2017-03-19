@@ -234,6 +234,7 @@ Extra-Source-Files:
                  test/odt/odt/*.odt
                  test/odt/markdown/*.md
                  test/odt/native/*.native
+                 test/lua/strmacro.lua
 Source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
@@ -527,6 +528,7 @@ Test-Suite test-pandoc
   Other-Modules:  Tests.Old
                   Tests.Command
                   Tests.Helpers
+                  Tests.Lua
                   Tests.Shared
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML
