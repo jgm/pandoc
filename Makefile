@@ -32,7 +32,7 @@ dist: man/pandoc.1
 	stack setup && stack test && cd .. && rm -rf "pandoc-${version}"
 
 debpkg: man/pandoc.1
-	make -C deb
+	make -C static-linux
 
 macospkg: man/pandoc.1
 	./macos/make_macos_package.sh
