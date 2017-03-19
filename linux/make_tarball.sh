@@ -4,6 +4,7 @@ VERSION=$(grep -e '^Version' pandoc.cabal | awk '{print $2}')
 TARGET=pandoc-$VERSION
 
 cd /artifacts
+rm -rf $TARGET
 mkdir $TARGET
 mkdir $TARGET/bin $TARGET/share $TARGET/share/man $TARGET/share/man/man1
 ./pandoc-citeproc --man > $TARGET/share/man/man1/pandoc-citeproc.1
