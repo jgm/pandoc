@@ -5,6 +5,7 @@ module Main where
 import GHC.IO.Encoding
 import Test.Tasty
 import qualified Tests.Command
+import qualified Tests.Lua
 import qualified Tests.Old
 import qualified Tests.Readers.Docx
 import qualified Tests.Readers.EPUB
@@ -61,6 +62,7 @@ tests = testGroup "pandoc tests" [ Tests.Command.tests
           , testGroup "Txt2Tags" Tests.Readers.Txt2Tags.tests
           , testGroup "EPUB" Tests.Readers.EPUB.tests
           ]
+        , testGroup "Lua filters" Tests.Lua.tests
         ]
 
 main :: IO ()

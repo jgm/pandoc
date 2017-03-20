@@ -457,6 +457,31 @@ Reader options
 
      3. `$PATH` (executable only)
 
+`--lua-filter=`*SCRIPT*
+
+:   Transform the document in a similar fashion as JSON filters (see
+    `--filter`), but use pandoc's build-in lua filtering system.  The given
+    lua script is expected to return a list of lua filters which will be
+    applied in order.  Each lua filter must contain element-transforming
+    functions indexed by the name of the AST element on which the filter
+    function should be applied.
+
+    The `pandoc` lua module provides helper functions for element
+    creation.  It is always loaded into the script's lua environment.
+
+    The following is an example lua script for macro-expansion:
+
+        function expand_hello_world(inline)
+          if inline.c == '{{helloworld}}' then
+            return pandoc.Emph{ pandoc.Str "Hello, World" }
+          else
+            return inline
+          end
+        end
+
+        return {{Str = expand_hello_world}}
+
+
 `-M` *KEY*[`=`*VAL*], `--metadata=`*KEY*[`:`*VAL*]
 
 :   Set the metadata field *KEY* to the value *VAL*.  A value specified
