@@ -117,9 +117,11 @@ script:
       stack --no-terminal $ARGS test --flag 'aeson:fast' --haddock --no-haddock-deps --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror"
       ;;
     cabal)
-      cabal configure --enable-tests --enable-benchmarks -v2 -ffast --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror" && \
+      cabal configure && \
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
-      cabal install -j -v2 -ffast --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror" --force-reinstall --test
+      cabal configure --enable-tests --enable-benchmarks -ftrypandoc -v2 -fembed_data_files -ffast --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror" && \
+      cabal build && \
+      cabal test
       ;;
   esac
