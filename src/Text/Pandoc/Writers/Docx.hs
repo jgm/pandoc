@@ -72,6 +72,7 @@ import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Printf (printf)
 import Text.TeXMath
 import Text.XML.Light as XML
+import Text.XML.Light.Cursor as XMLC
 
 data ListMarker = NoMarker
                 | BulletMarker
@@ -256,8 +257,30 @@ writeDocx opts doc@(Pandoc meta _) = do
                        )
 
   -- styles
+  let lang = case lookupMeta "lang" meta of
+               Just (MetaInlines [Str s]) -> Just s
+               Just (MetaString s)        -> Just s
+               _                          -> Nothing
+  let addLang :: Element -> Element
+      addLang e = case lang >>= \l -> (return . XMLC.toTree . go l . XMLC.fromElement) e of
+                    Just (Elem e') -> e'
+                    _              -> e -- return original
+        where go :: String -> Cursor -> Cursor
+              go l cursor = case XMLC.findRec (isLangElt . current) cursor of
+                              Nothing -> cursor
+                              Just t  -> XMLC.modifyContent (setval l) t
+              setval :: String -> Content -> Content
+              setval l (Elem e') = Elem $ e'{ elAttribs = map (setvalattr l) $
+                                               elAttribs e' }
+              setval _ x         = x
+              setvalattr :: String -> XML.Attr -> XML.Attr
+              setvalattr l (XML.Attr qn@(QName "val" _ _) _) = XML.Attr qn l
+              setvalattr _ x = x
+              isLangElt (Elem e') = qName (elName e') == "lang"
+              isLangElt _ = False
+
   let stylepath = "word/styles.xml"
-  styledoc <- parseXml refArchive distArchive stylepath
+  styledoc <- addLang <$> parseXml refArchive distArchive stylepath
 
   -- parse styledoc for heading styles
   let styleMaps = getStyleMaps styledoc
