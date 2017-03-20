@@ -51,6 +51,14 @@ function Element:new(tag, ...)
   return element
 end
 
+local function Doc(blocks, meta)
+  return {
+    ["blocks"] = blocks,
+    ["meta"] = meta,
+    ["pandoc-api-version"] = {1,17,0,5},
+  }
+end
+
 local Inline = Element:make_subtype{}
 local Block = Element:make_subtype{}
 
@@ -124,11 +132,13 @@ end
 function M.global_filter()
   local res = {}
   for k, v in pairs(_G) do
-    if set_of_inline_types[k] or set_of_block_types[k] then
+    if set_of_inline_types[k] or set_of_block_types[k] or k == "Doc" then
       res[k] = v
     end
   end
   return res
 end
+
+M["Doc"] = Doc
 
 return M

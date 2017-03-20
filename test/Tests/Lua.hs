@@ -20,6 +20,12 @@ tests =
       "plain-to-para.lua"
       (doc $ bulletList [plain (str "alfa"), plain (str "bravo")])
       (doc $ bulletList [para (str "alfa"), para (str "bravo")])
+
+  , testCase "make hello world document" $
+    assertFilterConversion "Document contains 'Hello, World!'"
+      "hello-world-doc.lua"
+      (doc . para $ str "Hey!" <> linebreak <> str "What's up?")
+      (doc . para $ str "Hello," <> space <> str "World!")
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion

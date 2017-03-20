@@ -83,15 +83,27 @@ luaFilter lua luaFn x = do
     else return x
 
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> IO Pandoc
-walkMWithLuaFilter (LuaFilter lua inlineFnMap blockFnMap) =
+walkMWithLuaFilter (LuaFilter lua inlineFnMap blockFnMap docFnMap) =
   walkM (execInlineLuaFilter lua inlineFnMap) >=>
-  walkM (execBlockLuaFilter  lua blockFnMap)
+  walkM (execBlockLuaFilter  lua blockFnMap)  >=>
+  walkM (execDocLuaFilter    lua docFnMap)
 
 type InlineFunctionMap = HashMap Text (LuaFilterFunction Inline)
 type BlockFunctionMap  = HashMap Text (LuaFilterFunction Block)
-data LuaFilter = LuaFilter LuaState InlineFunctionMap BlockFunctionMap
+type DocFunctionMap    = HashMap Text (LuaFilterFunction Pandoc)
+data LuaFilter =
+  LuaFilter LuaState InlineFunctionMap BlockFunctionMap DocFunctionMap
 
 newtype LuaFilterFunction a = LuaFilterFunction { functionIndex :: Int }
+
+execDocLuaFilter :: LuaState
+                 -> HashMap Text (LuaFilterFunction Pandoc)
+                 -> Pandoc -> IO Pandoc
+execDocLuaFilter lua fnMap x = do
+  let docFnName = "Doc"
+  case HashMap.lookup docFnName fnMap of
+    Nothing -> return x
+    Just fn -> runLuaFilterFunction lua fn x
 
 execBlockLuaFilter :: LuaState
                    -> HashMap Text (LuaFilterFunction Block)
@@ -148,9 +160,11 @@ instance StackValue LuaFilter where
   valuetype _ = Lua.TTABLE
   push = undefined
   peek lua i = do
+    -- TODO: find a more efficient way of doing this in a typesafe manner.
     inlineFnMap <- Lua.peek lua i
     blockFnMap  <- Lua.peek lua i
-    return $ LuaFilter lua <$> inlineFnMap <*> blockFnMap
+    docFnMap    <- Lua.peek lua i
+    return $ LuaFilter lua <$> inlineFnMap <*> blockFnMap <*> docFnMap
 
 runLuaFilterFunction :: (StackValue a)
                      => LuaState -> LuaFilterFunction a -> a -> IO a
