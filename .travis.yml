@@ -105,7 +105,7 @@ install:
     cabal)
       cabal --version
       travis_retry cabal update
-      cabal install -j --only-dependencies -ffast --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
+      cabal install -j --only-dependencies -ffast --enable-tests --enable-benchmarks --flag pandoc:embed_data_files --flag pandoc:trypandoc --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
       ;;
   esac
 
@@ -114,10 +114,9 @@ script:
   case "$BUILD" in
     stack)
       ulimit -n 4096
-      stack --no-terminal $ARGS test --flag 'aeson:fast' --haddock --no-haddock-deps --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror"
+      stack --no-terminal $ARGS test --flag 'aeson:fast' --flag pandoc:embed_data_files --flag pandoc:trypandoc --haddock --no-haddock-deps --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror"
       ;;
     cabal)
-      cabal configure && \
       cabal sdist --output-directory=sourcedist && \
       cd sourcedist && \
       cabal configure --enable-tests --enable-benchmarks -ftrypandoc -v2 -fembed_data_files -ffast --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror" && \
