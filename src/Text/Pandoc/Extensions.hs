@@ -112,6 +112,7 @@ data Extension =
     | Ext_intraword_underscores  -- ^ Treat underscore inside word as literal
     | Ext_blank_before_blockquote -- ^ Require blank line before a blockquote
     | Ext_blank_before_header     -- ^ Require blank line before a header
+    | Ext_space_in_atx_header -- ^ Require space between # and header text
     | Ext_strikeout           -- ^ Strikeout using ~~this~~ syntax
     | Ext_superscript         -- ^ Superscript using ^this^ syntax
     | Ext_subscript           -- ^ Subscript using ~this~ syntax
@@ -168,6 +169,7 @@ pandocExtensions = extensionsFromList
   , Ext_intraword_underscores
   , Ext_blank_before_blockquote
   , Ext_blank_before_header
+  , Ext_space_in_atx_header
   , Ext_strikeout
   , Ext_superscript
   , Ext_subscript
@@ -223,6 +225,7 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_ascii_identifiers
   , Ext_backtick_code_blocks
   , Ext_autolink_bare_uris
+  , Ext_space_in_atx_header
   , Ext_intraword_underscores
   , Ext_strikeout
   , Ext_hard_line_breaks

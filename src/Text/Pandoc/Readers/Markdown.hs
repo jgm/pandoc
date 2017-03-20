@@ -534,6 +534,7 @@ atxHeader = try $ do
   level <- atxChar >>= many1 . char >>= return . length
   notFollowedBy $ guardEnabled Ext_fancy_lists >>
                   (char '.' <|> char ')') -- this would be a list
+  guardDisabled Ext_space_in_atx_header <|> notFollowedBy nonspaceChar
   skipSpaces
   (text, raw) <- withRaw $
           trimInlinesF . mconcat <$> many (notFollowedBy atxClosing >> inline)
