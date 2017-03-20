@@ -235,6 +235,8 @@ Extra-Source-Files:
                  test/odt/markdown/*.md
                  test/odt/native/*.native
                  test/lua/strmacro.lua
+                 test/lua/plain-to-para.lua
+                 test/lua/hello-world-doc.lua
 Source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
