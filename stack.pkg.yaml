@@ -18,6 +18,7 @@ packages:
     commit: a824c8f3187302cad0fb815471499a18857ecc38
   extra-dep: false
 extra-deps:
+- hslua-aeson-0.1.0.2
 - skylighting-0.3.1
 - texmath-0.9.3
 resolver: lts-8.4

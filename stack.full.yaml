@@ -22,4 +22,6 @@ packages:
 - '../texmath'
 extra-deps:
 - doctemplates-0.1.0.2
-resolver: lts-7.5
+- skylighting-0.3.1
+- hslua-aeson-0.1.0.2
+resolver: lts-8.4
