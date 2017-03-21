@@ -915,8 +915,11 @@ inlineToMarkdown opts (Superscript lst) =
                 then "^" <> contents <> "^"
                 else if isEnabled Ext_raw_html opts
                          then "<sup>" <> contents <> "</sup>"
-                         else text $ map toSuperscript
-                                   $ render Nothing contents
+                         else
+                           let rendered = render Nothing contents
+                           in  case mapM toSuperscript rendered of
+                                    Just r -> text r
+                                    Nothing -> text $ "^(" ++ rendered ++ ")"
 inlineToMarkdown opts (Subscript lst) =
   local (\env -> env {envEscapeSpaces = True}) $ do
     contents <- inlineListToMarkdown opts lst
@@ -924,8 +927,11 @@ inlineToMarkdown opts (Subscript lst) =
                 then "~" <> contents <> "~"
                 else if isEnabled Ext_raw_html opts
                          then "<sub>" <> contents <> "</sub>"
-                         else text $ map toSubscript
-                                   $ render Nothing contents
+                         else
+                           let rendered = render Nothing contents
+                           in  case mapM toSubscript rendered of
+                                    Just r -> text r
+                                    Nothing -> text $ "_(" ++ rendered ++ ")"
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- asks envPlain
   if not plain &&
@@ -1120,28 +1126,29 @@ makeMathPlainer = walk go
   go (Emph xs) = Span nullAttr xs
   go x         = x
 
-toSuperscript :: Char -> Char
-toSuperscript '1' = '\x00B9'
-toSuperscript '2' = '\x00B2'
-toSuperscript '3' = '\x00B3'
-toSuperscript '+' = '\x207A'
-toSuperscript '-' = '\x207B'
-toSuperscript '=' = '\x207C'
-toSuperscript '(' = '\x207D'
-toSuperscript ')' = '\x207E'
+toSuperscript :: Char -> Maybe Char
+toSuperscript '1' = Just '\x00B9'
+toSuperscript '2' = Just '\x00B2'
+toSuperscript '3' = Just '\x00B3'
+toSuperscript '+' = Just '\x207A'
+toSuperscript '-' = Just '\x207B'
+toSuperscript '=' = Just '\x207C'
+toSuperscript '(' = Just '\x207D'
+toSuperscript ')' = Just '\x207E'
 toSuperscript c
   | c >= '0' && c <= '9' =
-                 chr (0x2070 + (ord c - 48))
-  | otherwise = c
+                 Just $ chr (0x2070 + (ord c - 48))
+  | isSpace c = Just c
+  | otherwise = Nothing
 
-toSubscript :: Char -> Char
-toSubscript '+' = '\x208A'
-toSubscript '-' = '\x208B'
-toSubscript '=' = '\x208C'
-toSubscript '(' = '\x208D'
-toSubscript ')' = '\x208E'
+toSubscript :: Char -> Maybe Char
+toSubscript '+' = Just '\x208A'
+toSubscript '-' = Just '\x208B'
+toSubscript '=' = Just '\x208C'
+toSubscript '(' = Just '\x208D'
+toSubscript ')' = Just '\x208E'
 toSubscript c
   | c >= '0' && c <= '9' =
-                 chr (0x2080 + (ord c - 48))
-  | otherwise = c
-
+                 Just $ chr (0x2080 + (ord c - 48))
+  | isSpace c = Just c
+  | otherwise = Nothing
