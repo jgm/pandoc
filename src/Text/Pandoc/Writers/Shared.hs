@@ -46,7 +46,7 @@ import Control.Monad (liftM, zipWithM)
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
 import qualified Data.HashMap.Strict as H
-import Data.List (groupBy, intersperse)
+import Data.List (groupBy, intersperse, transpose)
 import qualified Data.Map as M
 import Data.Maybe (isJust)
 import qualified Data.Text as T
@@ -229,22 +229,34 @@ gridTable :: Monad m
 gridTable opts blocksToDoc headless aligns widths headers rows = do
   let numcols = maximum (length aligns : length widths :
                            map length (headers:rows))
-  let widths' = if all (==0) widths
-                   then replicate numcols
-                         (1.0 / fromIntegral numcols)
-                   else widths
-  let widthsInChars = map ((\x -> x - 3) . floor .
-         (fromIntegral (writerColumns opts) *)) widths'
-  rawHeaders <- zipWithM blocksToDoc
-      (map (\w -> opts{writerColumns =
-                min (w - 2) (writerColumns opts)}) widthsInChars)
-      headers
-  rawRows <- mapM
-       (\cs -> zipWithM blocksToDoc
-         (map (\w -> opts{writerColumns =
-                   min (w - 2) (writerColumns opts)}) widthsInChars)
-         cs)
-       rows
+  let handleGivenWidths widths' = do
+        let widthsInChars' = map ((\x -> x - 3) . floor .
+                      (fromIntegral (writerColumns opts) *)) widths'
+        rawHeaders' <- zipWithM blocksToDoc
+            (map (\w -> opts{writerColumns =
+                      min (w - 2) (writerColumns opts)}) widthsInChars')
+            headers
+        rawRows' <- mapM
+             (\cs -> zipWithM blocksToDoc
+               (map (\w -> opts{writerColumns =
+                         min (w - 2) (writerColumns opts)}) widthsInChars')
+               cs)
+             rows
+        return (widthsInChars', rawHeaders', rawRows')
+  let handleZeroWidths = do
+        rawHeaders' <- mapM (blocksToDoc opts) headers
+        rawRows' <- mapM (mapM (blocksToDoc opts)) rows
+        let numChars = maximum . map offset
+        let widthsInChars' =
+                map ((+2) . numChars) $ transpose (rawHeaders' : rawRows')
+        if sum widthsInChars' > writerColumns opts
+           then -- use even widths
+                handleGivenWidths
+                  (replicate numcols (1.0 / fromIntegral numcols) :: [Double])
+           else return (widthsInChars', rawHeaders', rawRows')
+  (widthsInChars, rawHeaders, rawRows) <- if all (== 0) widths
+                                             then handleZeroWidths
+                                             else handleGivenWidths widths
   let hpipeBlocks blocks = hcat [beg, middle, end]
         where h       = maximum (1 : map height blocks)
               sep'    = lblock 3 $ vcat (map text $ replicate h " | ")

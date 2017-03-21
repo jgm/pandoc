@@ -33,7 +33,7 @@ reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 module Text.Pandoc.Writers.RST ( writeRST ) where
 import Control.Monad.State
 import Data.Char (isSpace, toLower)
-import Data.List (intersperse, isPrefixOf, stripPrefix, transpose)
+import Data.List (isPrefixOf, stripPrefix)
 import Data.Maybe (fromMaybe)
 import Network.URI (isURI)
 import qualified Text.Pandoc.Builder as B
@@ -269,39 +269,18 @@ blockToRST (BlockQuote blocks) = do
   tabstop <- gets $ writerTabStop . stOptions
   contents <- blockListToRST blocks
   return $ (nest tabstop contents) <> blankline
-blockToRST (Table caption _ widths headers rows) =  do
+blockToRST (Table caption aligns widths headers rows) = do
   caption' <- inlineListToRST caption
-  headers' <- mapM blockListToRST headers
-  rawRows <- mapM (mapM blockListToRST) rows
-  -- let isSimpleCell [Plain _] = True
-  --     isSimpleCell [Para _]  = True
-  --     isSimpleCell []        = True
-  --     isSimpleCell _         = False
-  -- let isSimple = all (==0) widths && all (all isSimpleCell) rows
-  let numChars = maximum . map offset
+  let blocksToDoc opts bs = do
+         oldOpts <- gets stOptions
+         modify $ \st -> st{ stOptions = opts }
+         result <- blockListToRST bs
+         modify $ \st -> st{ stOptions = oldOpts }
+         return result
   opts <- gets stOptions
-  let widthsInChars =
-       if all (== 0) widths
-          then map ((+2) . numChars) $ transpose (headers' : rawRows)
-          else map (floor . (fromIntegral (writerColumns opts) *)) widths
-  let hpipeBlocks blocks = hcat [beg, middle, end]
-        where h      = height (hcat blocks)
-              sep'   = lblock 3 $ vcat (map text $ replicate h " | ")
-              beg    = lblock 2 $ vcat (map text $ replicate h "| ")
-              end    = lblock 2 $ vcat (map text $ replicate h " |")
-              middle = hcat $ intersperse sep' blocks
-  let makeRow = hpipeBlocks . zipWith lblock widthsInChars
-  let head' = makeRow headers'
-  let rows' = map makeRow rawRows
-  let border ch = char '+' <> char ch <>
-                  (hcat $ intersperse (char ch <> char '+' <> char ch) $
-                          map (\l -> text $ replicate l ch) widthsInChars) <>
-                  char ch <> char '+'
-  let body = vcat $ intersperse (border '-') rows'
-  let head'' = if all null headers
-                  then empty
-                  else head' $$ border '='
-  let tbl = border '-' $$ head'' $$ body $$ border '-'
+  tbl <- gridTable opts blocksToDoc (all null headers)
+            (map (const AlignDefault) aligns) widths
+            headers rows
   return $ if null caption
               then tbl $$ blankline
               else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl $$
