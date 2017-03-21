@@ -705,47 +705,6 @@ pandocTable opts headless aligns widths rawHeaders rawRows = do
                   else border
   return $ head'' $$ underline $$ body $$ bottom
 
-gridTable :: PandocMonad m => Bool -> [Alignment] -> [Int]
-          -> [Doc] -> [[Doc]] -> MD m Doc
-gridTable headless aligns widthsInChars headers' rawRows =  do
-  let hpipeBlocks blocks = hcat [beg, middle, end]
-        where h       = maximum (1 : map height blocks)
-              sep'    = lblock 3 $ vcat (map text $ replicate h " | ")
-              beg     = lblock 2 $ vcat (map text $ replicate h "| ")
-              end     = lblock 2 $ vcat (map text $ replicate h " |")
-              middle  = chomp $ hcat $ intersperse sep' blocks
-  let makeRow = hpipeBlocks . zipWith lblock widthsInChars
-  let head' = makeRow headers'
-  let rows' = map (makeRow . map chomp) rawRows
-  let borderpart ch align widthInChars =
-        let widthInChars' = if widthInChars < 1 then 1 else widthInChars
-        in (if (align == AlignLeft || align == AlignCenter)
-               then char ':'
-               else char ch) <>
-           text (replicate widthInChars' ch) <>
-           (if (align == AlignRight || align == AlignCenter)
-               then char ':'
-               else char ch)
-  let border ch aligns' widthsInChars' =
-        char '+' <>
-        hcat (intersperse (char '+') (zipWith (borderpart ch)
-                aligns' widthsInChars')) <> char '+'
-  let body = vcat $ intersperse (border '-' (repeat AlignDefault) widthsInChars)
-                    rows'
-  let head'' = if headless
-                  then empty
-                  else head' $$ border '=' aligns widthsInChars
-  if headless
-     then return $
-           border '-' aligns widthsInChars $$
-           body $$
-           border '-' (repeat AlignDefault) widthsInChars
-     else return $
-           border '-' (repeat AlignDefault) widthsInChars $$
-           head'' $$
-           body $$
-           border '-' (repeat AlignDefault) widthsInChars
-
 itemEndsWithTightList :: [Block] -> Bool
 itemEndsWithTightList bs =
   case bs of

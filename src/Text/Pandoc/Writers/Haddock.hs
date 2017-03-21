@@ -45,7 +45,7 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math (texMathToInlines)
-import Text.Pandoc.Writers.Shared
+import Text.Pandoc.Writers.Shared hiding (gridTable)
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes :: Notes }
