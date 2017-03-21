@@ -915,14 +915,8 @@ inlineToMarkdown opts (Superscript lst) =
                 then "^" <> contents <> "^"
                 else if isEnabled Ext_raw_html opts
                          then "<sup>" <> contents <> "</sup>"
-                         else case (render Nothing contents) of
-                                   ds | all (\d -> d >= '0' && d <= '9') ds
-                                     -> text (map toSuperscript ds)
-                                   _ -> contents
-                          where toSuperscript '1' = '\x00B9'
-                                toSuperscript '2' = '\x00B2'
-                                toSuperscript '3' = '\x00B3'
-                                toSuperscript c = chr (0x2070 + (ord c - 48))
+                         else text $ map toSuperscript
+                                   $ render Nothing contents
 inlineToMarkdown opts (Subscript lst) =
   local (\env -> env {envEscapeSpaces = True}) $ do
     contents <- inlineListToMarkdown opts lst
@@ -930,11 +924,8 @@ inlineToMarkdown opts (Subscript lst) =
                 then "~" <> contents <> "~"
                 else if isEnabled Ext_raw_html opts
                          then "<sub>" <> contents <> "</sub>"
-                         else case (render Nothing contents) of
-                                   ds | all (\d -> d >= '0' && d <= '9') ds
-                                     -> text (map toSubscript ds)
-                                   _ -> contents
-                          where toSubscript c = chr (0x2080 + (ord c - 48))
+                         else text $ map toSubscript
+                                   $ render Nothing contents
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- asks envPlain
   if not plain &&
@@ -1128,4 +1119,29 @@ makeMathPlainer = walk go
   where
   go (Emph xs) = Span nullAttr xs
   go x         = x
+
+toSuperscript :: Char -> Char
+toSuperscript '1' = '\x00B9'
+toSuperscript '2' = '\x00B2'
+toSuperscript '3' = '\x00B3'
+toSuperscript '+' = '\x207A'
+toSuperscript '-' = '\x207B'
+toSuperscript '=' = '\x207C'
+toSuperscript '(' = '\x207D'
+toSuperscript ')' = '\x207E'
+toSuperscript c
+  | c >= '0' && c <= '9' =
+                 chr (0x2070 + (ord c - 48))
+  | otherwise = c
+
+toSubscript :: Char -> Char
+toSubscript '+' = '\x208A'
+toSubscript '-' = '\x208B'
+toSubscript '=' = '\x208C'
+toSubscript '(' = '\x208D'
+toSubscript ')' = '\x208E'
+toSubscript c
+  | c >= '0' && c <= '9' =
+                 chr (0x2080 + (ord c - 48))
+  | otherwise = c
 
