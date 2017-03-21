@@ -45,7 +45,7 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math (texMathToInlines)
-import Text.Pandoc.Writers.Shared hiding (gridTable)
+import Text.Pandoc.Writers.Shared
 
 type Notes = [[Block]]
 data WriterState = WriterState { stNotes :: Notes }
@@ -157,8 +157,8 @@ blockToHaddock opts (Table caption aligns widths headers rows) = do
                          pandocTable opts (all null headers) aligns widths
                              rawHeaders rawRows
                   | otherwise -> fmap (id,) $
-                         gridTable opts (all null headers) aligns widths
-                             rawHeaders rawRows
+                         gridTable opts blockListToHaddock
+                          (all null headers) aligns widths headers rows
   return $ (prefixed "> " $ nst $ tbl $$ blankline $$ caption'') $$ blankline
 blockToHaddock opts (BulletList items) = do
   contents <- mapM (bulletListItemToHaddock opts) items
@@ -216,34 +216,6 @@ pandocTable opts headless aligns widths rawHeaders rawRows =  do
                   then underline
                   else border
   return $ head'' $$ underline $$ body $$ bottom
-
-gridTable :: PandocMonad m
-          => WriterOptions -> Bool -> [Alignment] -> [Double]
-          -> [Doc] -> [[Doc]] -> StateT WriterState m Doc
-gridTable opts headless _aligns widths headers' rawRows =  do
-  let numcols = length headers'
-  let widths' = if all (==0) widths
-                   then replicate numcols (1.0 / fromIntegral numcols)
-                   else widths
-  let widthsInChars = map (floor . (fromIntegral (writerColumns opts) *)) widths'
-  let hpipeBlocks blocks = hcat [beg, middle, end]
-        where h       = maximum (map height blocks)
-              sep'    = lblock 3 $ vcat (map text $ replicate h " | ")
-              beg     = lblock 2 $ vcat (map text $ replicate h "| ")
-              end     = lblock 2 $ vcat (map text $ replicate h " |")
-              middle  = chomp $ hcat $ intersperse sep' blocks
-  let makeRow = hpipeBlocks . zipWith lblock widthsInChars
-  let head' = makeRow headers'
-  let rows' = map (makeRow . map chomp) rawRows
-  let border ch = char '+' <> char ch <>
-                  (hcat $ intersperse (char ch <> char '+' <> char ch) $
-                          map (\l -> text $ replicate l ch) widthsInChars) <>
-                  char ch <> char '+'
-  let body = vcat $ intersperse (border '-') rows'
-  let head'' = if headless
-                  then empty
-                  else head' $$ border '='
-  return $ border '-' $$ head'' $$ body $$ border '-'
 
 -- | Convert bullet list item (list of blocks) to haddock
 bulletListItemToHaddock :: PandocMonad m
