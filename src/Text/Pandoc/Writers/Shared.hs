@@ -42,7 +42,7 @@ module Text.Pandoc.Writers.Shared (
                      , gridTable
                      )
 where
-import Control.Monad (liftM)
+import Control.Monad (liftM, zipWithM)
 import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
                    encode, fromJSON)
 import qualified Data.HashMap.Strict as H
@@ -217,9 +217,34 @@ unsmartify opts ('\8212':xs)
 unsmartify opts (x:xs) = x : unsmartify opts xs
 unsmartify _ [] = []
 
-gridTable :: Monad m => Bool -> [Alignment] -> [Int]
-          -> [Doc] -> [[Doc]] -> m Doc
-gridTable headless aligns widthsInChars headers' rawRows =  do
+gridTable :: Monad m
+          => WriterOptions
+          -> (WriterOptions -> [Block] -> m Doc)
+          -> Bool -- ^ headless
+          -> [Alignment]
+          -> [Double]
+          -> [[Block]]
+          -> [[[Block]]]
+          -> m Doc
+gridTable opts blocksToDoc headless aligns widths headers rows = do
+  let numcols = maximum (length aligns : length widths :
+                           map length (headers:rows))
+  let widths' = if all (==0) widths
+                   then replicate numcols
+                         (1.0 / fromIntegral numcols)
+                   else widths
+  let widthsInChars = map ((\x -> x - 3) . floor .
+         (fromIntegral (writerColumns opts) *)) widths'
+  rawHeaders <- zipWithM blocksToDoc
+      (map (\w -> opts{writerColumns =
+                min (w - 2) (writerColumns opts)}) widthsInChars)
+      headers
+  rawRows <- mapM
+       (\cs -> zipWithM blocksToDoc
+         (map (\w -> opts{writerColumns =
+                   min (w - 2) (writerColumns opts)}) widthsInChars)
+         cs)
+       rows
   let hpipeBlocks blocks = hcat [beg, middle, end]
         where h       = maximum (1 : map height blocks)
               sep'    = lblock 3 $ vcat (map text $ replicate h " | ")
@@ -227,7 +252,7 @@ gridTable headless aligns widthsInChars headers' rawRows =  do
               end     = lblock 2 $ vcat (map text $ replicate h " |")
               middle  = chomp $ hcat $ intersperse sep' blocks
   let makeRow = hpipeBlocks . zipWith lblock widthsInChars
-  let head' = makeRow headers'
+  let head' = makeRow rawHeaders
   let rows' = map (makeRow . map chomp) rawRows
   let borderpart ch align widthInChars =
         let widthInChars' = if widthInChars < 1 then 1 else widthInChars

@@ -565,30 +565,9 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
                    pandocTable opts (all null headers) aligns' widths'
                        rawHeaders rawRows
             | isEnabled Ext_grid_tables opts &&
-               writerColumns opts >= 8 * numcols -> do
-                let widths'' = if all (==0) widths'
-                                  then replicate numcols
-                                        (1.0 / fromIntegral numcols)
-                                  else widths'
-                let widthsInChars = map ((\x -> x - 3) . floor .
-                       (fromIntegral (writerColumns opts) *)) widths''
-                rawHeaders' <- zipWithM
-                    blockListToMarkdown
-                    (map (\w -> opts{writerColumns =
-                              min (w - 2) (writerColumns opts)})
-                       widthsInChars)
-                    headers
-                rawRows' <- mapM
-                     (\cs -> zipWithM
-                       blockListToMarkdown
-                       (map (\w -> opts{writerColumns =
-                                 min (w - 2) (writerColumns opts)})
-                        widthsInChars)
-                       cs)
-                     rows
-                fmap (id,) $
-                   gridTable (all null headers) aligns' widthsInChars
-                       rawHeaders' rawRows'
+               writerColumns opts >= 8 * numcols -> (id,) <$>
+                gridTable opts blockListToMarkdown
+                  (all null headers) aligns' widths' headers rows
             | isEnabled Ext_raw_html opts -> fmap (id,) $
                    text <$>
                    (writeHtml5String def $ Pandoc nullMeta [t])
