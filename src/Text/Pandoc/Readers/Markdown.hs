@@ -498,7 +498,7 @@ block = do
                , htmlBlock
                , table
                , codeBlockIndented
-               , guardEnabled Ext_latex_macros *> (macro >>= return . return)
+               , latexMacro
                , rawTeXBlock
                , lineBlock
                , blockQuote
@@ -1070,6 +1070,13 @@ rawVerbatimBlock = htmlInBalanced isVerbTag
         isVerbTag (TagOpen "style" _)  = True
         isVerbTag (TagOpen "script" _) = True
         isVerbTag _                    = False
+
+latexMacro :: PandocMonad m => MarkdownParser m (F Blocks)
+latexMacro = try $ do
+  guardEnabled Ext_latex_macros
+  skipNonindentSpaces
+  res <- macro
+  return $ return res
 
 rawTeXBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 rawTeXBlock = do
