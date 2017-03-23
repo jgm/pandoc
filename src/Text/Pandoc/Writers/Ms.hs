@@ -397,10 +397,10 @@ inlineToMs opts (Strikeout lst) = do
   return $ text "[STRIKEOUT:" <> contents <> char ']'
 inlineToMs opts (Superscript lst) = do
   contents <- inlineListToMs opts lst
-  return $ char '^' <> contents <> char '^'
+  return $ text "\\*{" <> contents <> text "\\*}"
 inlineToMs opts (Subscript lst) = do
   contents <- inlineListToMs opts lst
-  return $ char '~' <> contents <> char '~'
+  return $ text "\\*<" <> contents <> text "\\*>"
 inlineToMs opts (SmallCaps lst) = do
   -- see https://lists.gnu.org/archive/html/groff/2015-01/msg00016.html
   modify $ \st -> st{ stSmallCaps = not (stSmallCaps st) }
