@@ -246,7 +246,8 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   let handleZeroWidths = do
         rawHeaders' <- mapM (blocksToDoc opts) headers
         rawRows' <- mapM (mapM (blocksToDoc opts)) rows
-        let numChars = maximum . map offset
+        let numChars [] = 0
+            numChars xs = maximum . map offset $ xs
         let widthsInChars' =
                 map ((+2) . numChars) $ transpose (rawHeaders' : rawRows')
         if sum widthsInChars' > writerColumns opts
