@@ -357,8 +357,7 @@ definitionListItemToMs opts (label, defs) = do
                                   mapM (\item -> blockToMs opts item) rest
                         first' <- blockToMs opts first
                         return $ first' $$ text ".RS" $$ rest' $$ text ".RE"
-  return $ text ".XP" $$ nowrap (text ".B \"" <> labelText <> text "\"")
-                      $$ text "\\~\\~" <> contents
+  return $ nowrap (text ".IP \"" <> labelText <> text "\"") $$ contents
 
 -- | Convert list of Pandoc block elements to man.
 blockListToMs :: PandocMonad m
