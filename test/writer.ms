@@ -68,9 +68,7 @@ Here's one with a bullet.
 * criminey.
 .LP
 There should be a hard line break
-.PD 0
-.P
-.PD
+.br
 here.
 .PP
    *   *   *   *   *

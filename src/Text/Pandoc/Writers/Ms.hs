@@ -438,8 +438,7 @@ inlineToMs opts (Math DisplayMath str) = do
 inlineToMs _ (RawInline f str)
   | f == Format "man" = return $ text str
   | otherwise         = return empty
-inlineToMs _ (LineBreak) = return $
-  cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
+inlineToMs _ (LineBreak) = return $ cr <> text ".br" <> cr
 inlineToMs opts SoftBreak = handleNotes opts cr
 inlineToMs opts Space = handleNotes opts space
 inlineToMs opts (Link _ txt (src, _)) = do
