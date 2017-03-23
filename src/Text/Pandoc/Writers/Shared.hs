@@ -249,7 +249,7 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
         let numChars [] = 0
             numChars xs = maximum . map offset $ xs
         let widthsInChars' =
-                map ((+2) . numChars) $ transpose (rawHeaders' : rawRows')
+                map numChars $ transpose (rawHeaders' : rawRows')
         if sum widthsInChars' > writerColumns opts
            then -- use even widths
                 handleGivenWidths
