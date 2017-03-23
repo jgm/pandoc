@@ -2,6 +2,16 @@
 .EQ
 delim ||
 .EN
+\" From https://lists.gnu.org/archive/html/groff/2012-07/msg00046.html
+\" Superscripts (ex tmac.e) (current versions without extra line space)
+.\" (reinstate commented versions to restore extra line space)
+.\" .ds { \v'-0.3m'\x'-0.2m'\\s[\\n[.s]*8u/10u]
+.ds { \v'-0.3m'\\s[\\n[.s]*9u/12u]
+.ds } \s0\v'0.3m'
+.\" Subscripts
+.\" .ds < \v'0.3m'\x'0.2m'\s[\\n[.s]*8u/10u]
+.ds < \v'0.3m'\s[\\n[.s]*9u/12u]
+.ds > \s0\v'-0.3m'
 .TL
 Pandoc Test Suite
 .AU
@@ -576,9 +586,9 @@ This is code: \f[C]>\f[], \f[C]$\f[], \f[C]\\\f[], \f[C]\\$\f[],
 .LP
 [STRIKEOUT:This is \f[I]strikeout\f[].]
 .LP
-Superscripts: a^bc^d a^\f[I]hello\f[]^ a^hello\ there^.
+Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[]\*} a\*{hello\ there\*}.
 .LP
-Subscripts: H~2~O, H~23~O, H~many\ of\ them~O.
+Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\ of\ them\*>O.
 .LP
 These should not be superscripts or subscripts,
 because of the unescaped spaces: a^b c^d, a~b c~d.
@@ -838,18 +848,18 @@ Here's an inline link in pointy braces\**.
 .SH 2
 Autolinks
 .LP
-With an ampersand: <http://example.com/?foo=1&bar=2>
+With an ampersand: http://example.com/?foo=1&bar=2
 .IP \[bu] 2
 In a list?
 .IP \[bu] 2
-<http://example.com/>
+http://example.com/
 .IP \[bu] 2
 It should.
 .LP
-An e\-mail address: <nobody\@nowhere.net>
+An e\-mail address: nobody\@nowhere.net
 .RS
 .LP
-Blockquoted: <http://example.com/>
+Blockquoted: http://example.com/
 .RE
 .LP
 Auto\-links should not occur here: \f[C]<http://example.com/>\f[]
