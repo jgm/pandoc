@@ -31,11 +31,8 @@ TODO:
 
 [ ] warning for non-rendered raw content
 [ ] is there a better way to do strikeout?
-[x] strong + em doesn't seem to work
 [ ] super + subscript don't seem to work
 [ ] options for hyperlink rendering (currently footnote)
-[x] avoid note-in-note (which we currently get easily with
-    links in footnotes)
 [ ] can we get prettier output using .B, etc. instead of
     the inline forms?
 [ ] tight/loose list distinction
@@ -57,11 +54,7 @@ TODO:
     A big advantage of gropdf:  it supports the tag
     \X'pdf: pdfpic file alignment width height line-length'
     and also seems to support bookmarks.
-[x] avoid blank line after footnote marker when footnote has a
-    paragraph
-[ ] better smallcaps support, see below...
 [ ] add via groff option to PDF module
-[ ] better handling of autolinks?
 [ ] better handling of images, perhaps converting to eps when
     going to PDF?
 [ ] better template, with configurable page number, table of contents,
@@ -83,12 +76,13 @@ import Text.Pandoc.Pretty
 import Text.Pandoc.Builder (deleteMeta)
 import Text.Pandoc.Class (PandocMonad)
 import Control.Monad.State
-import Data.Char ( isDigit )
+import Data.Char ( isDigit, isLower, isUpper, toUpper )
 import Text.TeXMath (writeEqn)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stNotes         :: [Note]
                                , stInNote        :: Bool
+                               , stSmallCaps     :: Bool
                                , stFontFeatures  :: Map.Map Char Bool
                                }
 
@@ -96,6 +90,7 @@ defaultWriterState :: WriterState
 defaultWriterState = WriterState{ stHasInlineMath = False
                                 , stNotes         = []
                                 , stInNote        = False
+                                , stSmallCaps     = False
                                 , stFontFeatures  = Map.fromList [
                                                        ('I',False)
                                                      , ('B',False)
@@ -152,15 +147,24 @@ pandocToMs opts (Pandoc meta blocks) = do
        Just tpl -> return $ renderTemplate' tpl context
 
 -- | Association list of characters to escape.
-manEscapes :: [(Char, String)]
-manEscapes = [ ('\160', "\\ ")
-             , ('\'', "\\[aq]")
-             , ('’', "'")
-             , ('\x2014', "\\[em]")
-             , ('\x2013', "\\[en]")
-             , ('\x2026', "\\&...")
-             , ('|', "\\[u007C]")  -- because we use | for inline math
-             ] ++ backslashEscapes "-@\\"
+manEscapes :: Map.Map Char String
+manEscapes = Map.fromList $
+              [ ('\160', "\\ ")
+              , ('\'', "\\[aq]")
+              , ('’', "'")
+              , ('\x2014', "\\[em]")
+              , ('\x2013', "\\[en]")
+              , ('\x2026', "\\&...")
+              , ('|', "\\[u007C]")  -- because we use | for inline math
+              , ('-', "\\-")
+              , ('@', "\\@")
+              , ('\\', "\\\\")
+              ]
+
+escapeChar :: Char -> String
+escapeChar c = case Map.lookup c manEscapes of
+                    Just s -> s
+                    Nothing -> [c]
 
 -- | Escape | character, used to mark inline math, inside math.
 escapeBar :: String -> String
@@ -170,15 +174,28 @@ escapeBar = concatMap go
 
 -- | Escape special characters for Ms.
 escapeString :: String -> String
-escapeString = escapeStringUsing manEscapes
+escapeString = concatMap escapeChar
+
+toSmallCaps :: String -> String
+toSmallCaps [] = []
+toSmallCaps (c:cs)
+  | isLower c = let (lowers,rest) = span isLower (c:cs)
+                in  "\\s-2" ++ escapeString (map toUpper lowers) ++
+                    "\\s0" ++ toSmallCaps rest
+  | isUpper c = let (uppers,rest) = span isUpper (c:cs)
+                in  escapeString uppers ++ toSmallCaps rest
+  | otherwise = escapeChar c ++ toSmallCaps cs
 
 -- | Escape a literal (code) section for Ms.
 escapeCode :: String -> String
-escapeCode = concat . intersperse "\n" . map escapeLine . lines  where
-  escapeLine codeline =
-    case escapeStringUsing (manEscapes ++ backslashEscapes "\t ") codeline of
-      a@('.':_) -> "\\&" ++ a
-      b       -> b
+escapeCode = concat . intersperse "\n" . map escapeLine . lines
+  where escapeCodeChar ' ' = "\\ "
+        escapeCodeChar '\t' = "\\\t"
+        escapeCodeChar c = escapeChar c
+        escapeLine codeline =
+          case concatMap escapeCodeChar codeline of
+            a@('.':_) -> "\\&" ++ a
+            b       -> b
 
 -- We split inline lists into sentences, and print one sentence per
 -- line.  groff/troff treats the line-ending period differently.
@@ -384,9 +401,12 @@ inlineToMs opts (Superscript lst) = do
 inlineToMs opts (Subscript lst) = do
   contents <- inlineListToMs opts lst
   return $ char '~' <> contents <> char '~'
-inlineToMs opts (SmallCaps lst) = inlineListToMs opts lst -- not supported
--- but see https://lists.gnu.org/archive/html/groff/2015-01/msg00016.html
--- for a way to fake them
+inlineToMs opts (SmallCaps lst) = do
+  -- see https://lists.gnu.org/archive/html/groff/2015-01/msg00016.html
+  modify $ \st -> st{ stSmallCaps = not (stSmallCaps st) }
+  res <- inlineListToMs opts lst
+  modify $ \st -> st{ stSmallCaps = not (stSmallCaps st) }
+  return res
 inlineToMs opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMs opts lst
   return $ char '`' <> contents <> char '\''
@@ -397,7 +417,11 @@ inlineToMs opts (Cite _ lst) =
   inlineListToMs opts lst
 inlineToMs _ (Code _ str) =
   withFontFeature 'C' (return $ text $ escapeCode str)
-inlineToMs _ (Str str) = return $ text $ escapeString str
+inlineToMs _ (Str str) = do
+  smallcaps <- gets stSmallCaps
+  if smallcaps
+     then return $ text $ toSmallCaps str
+     else return $ text $ escapeString str
 inlineToMs opts (Math InlineMath str) = do
   modify $ \st -> st{ stHasInlineMath = True }
   res <- convertMath writeEqn InlineMath str
@@ -425,7 +449,7 @@ inlineToMs opts (Link _ txt (src, _)) = do
   case txt of
        [Str s]
          | escapeURI s == srcSuffix ->
-             return $ char '<' <> text (escapeString srcSuffix) <> char '>'
+             return $ text (escapeString srcSuffix)
        _ | inNote -> do
          -- avoid a note in a note!
          contents <- inlineListToMs opts txt
