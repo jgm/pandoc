@@ -31,7 +31,7 @@ TODO:
 
 [ ] warning for non-rendered raw content
 [ ] is there a better way to do strikeout?
-[ ] strong + em doesn't seem to work
+[x] strong + em doesn't seem to work
 [ ] super + subscript don't seem to work
 [ ] options for hyperlink rendering (currently footnote)
 [ ] avoid note-in-note (which we currently get easily with
@@ -43,10 +43,23 @@ TODO:
     they exist in the groff manual PDF version)
 [ ] use a custom macro for defn lists so they're configurable
 [ ] better handling of accented characters and other non-ascii
-    characters (e.g. curly quotes) -- we shouldn't rely on a
-    utf8 compatible groff
+    characters (e.g. curly quotes).
+    Note:  recent versions of groff (more recent than standard
+    on many systems) include a -k option which runs preconv.
+    preconv basically converts non-ascii characters
+    to \[uXXXX] entities.  Since we can't assume that the local
+    groff has the -k option, we could have any invocation of
+    groff in Text.Pandoc.PDF filter the input through a Haskell
+    function that does what preconv does.
+    On the other hand:  only recent groffs have -Tpdf.  so
+    if we want compatibility with older groffs, we need to to
+    -Tps and pipe through ps2pdf (can we assume it's available?).
+    A big advantage of gropdf:  it supports the tag
+    \X'pdf: pdfpic file alignment width height line-length'
+    and also seems to support bookmarks.
 [ ] avoid blank line after footnote marker when footnote has a
     paragraph
+[ ] better smallcaps support, see below...
 [ ] add via groff option to PDF module
 [ ] better handling of autolinks?
 [ ] better handling of images, perhaps converting to eps when
@@ -63,7 +76,8 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Writers.Math
 import Text.Printf ( printf )
-import Data.List ( stripPrefix, intersperse, intercalate )
+import qualified Data.Map as Map
+import Data.List ( stripPrefix, intersperse, intercalate, sort )
 import Data.Maybe (fromMaybe)
 import Text.Pandoc.Pretty
 import Text.Pandoc.Builder (deleteMeta)
@@ -73,7 +87,20 @@ import Data.Char ( isDigit )
 import Text.TeXMath (writeEqn)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
-                               , stNotes :: [Note] }
+                               , stNotes         :: [Note]
+                               , stFontFeatures  :: Map.Map Char Bool
+                               }
+
+defaultWriterState :: WriterState
+defaultWriterState = WriterState{ stHasInlineMath = False
+                                , stNotes         = []
+                                , stFontFeatures  = Map.fromList [
+                                                       ('I',False)
+                                                     , ('B',False)
+                                                     , ('C',False)
+                                                     ]
+                                }
+
 type Note = [Block]
 
 type MS = StateT WriterState
@@ -81,7 +108,7 @@ type MS = StateT WriterState
 -- | Convert Pandoc to Ms.
 writeMs :: PandocMonad m => WriterOptions -> Pandoc -> m String
 writeMs opts document =
-  evalStateT (pandocToMs opts document) (WriterState False [])
+  evalStateT (pandocToMs opts document) defaultWriterState
 
 -- | Return groff man representation of document.
 pandocToMs :: PandocMonad m => WriterOptions -> Pandoc -> MS m String
@@ -342,12 +369,10 @@ inlineListToMs' opts lst = do
 -- | Convert Pandoc inline element to man.
 inlineToMs :: PandocMonad m => WriterOptions -> Inline -> MS m Doc
 inlineToMs opts (Span _ ils) = inlineListToMs opts ils
-inlineToMs opts (Emph lst) = do
-  contents <- inlineListToMs opts lst
-  return $ text "\\f[I]" <> contents <> text "\\f[]"
-inlineToMs opts (Strong lst) = do
-  contents <- inlineListToMs opts lst
-  return $ text "\\f[B]" <> contents <> text "\\f[]"
+inlineToMs opts (Emph lst) =
+  withFontFeature 'I' (inlineListToMs opts lst)
+inlineToMs opts (Strong lst) =
+  withFontFeature 'B' (inlineListToMs opts lst)
 inlineToMs opts (Strikeout lst) = do
   contents <- inlineListToMs opts lst
   return $ text "[STRIKEOUT:" <> contents <> char ']'
@@ -358,6 +383,8 @@ inlineToMs opts (Subscript lst) = do
   contents <- inlineListToMs opts lst
   return $ char '~' <> contents <> char '~'
 inlineToMs opts (SmallCaps lst) = inlineListToMs opts lst -- not supported
+-- but see https://lists.gnu.org/archive/html/groff/2015-01/msg00016.html
+-- for a way to fake them
 inlineToMs opts (Quoted SingleQuote lst) = do
   contents <- inlineListToMs opts lst
   return $ char '`' <> contents <> char '\''
@@ -367,7 +394,7 @@ inlineToMs opts (Quoted DoubleQuote lst) = do
 inlineToMs opts (Cite _ lst) =
   inlineListToMs opts lst
 inlineToMs _ (Code _ str) =
-  return $ text $ "\\f[C]" ++ escapeCode str ++ "\\f[]"
+  withFontFeature 'C' (return $ text $ escapeCode str)
 inlineToMs _ (Str str) = return $ text $ escapeString str
 inlineToMs opts (Math InlineMath str) = do
   modify $ \st -> st{ stHasInlineMath = True }
@@ -424,3 +451,17 @@ handleNote opts bs = do
   contents <- blockListToMs opts bs
   return $ cr <> text ".FS" $$ contents $$ text ".FE" <> cr
 
+fontChange :: PandocMonad m => MS m Doc
+fontChange = do
+  features <- gets stFontFeatures
+  let filling = sort [c | (c,True) <- Map.toList features]
+  return $ text $ "\\f[" ++ filling ++ "]"
+
+withFontFeature :: PandocMonad m => Char -> MS m Doc -> MS m Doc
+withFontFeature c action = do
+  modify $ \st -> st{ stFontFeatures = Map.adjust not c $ stFontFeatures st }
+  begin <- fontChange
+  d <- action
+  modify $ \st -> st{ stFontFeatures = Map.adjust not c $ stFontFeatures st }
+  end <- fontChange
+  return $ begin <> d <> end
