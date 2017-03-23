@@ -846,7 +846,7 @@ In a list?
 .IP \[bu] 2
 It should.
 .LP
-An e\-mail address: <nobody@nowhere.net>
+An e\-mail address: <nobody\@nowhere.net>
 .RS
 .LP
 Blockquoted: <http://example.com/>
@@ -912,11 +912,7 @@ contains a space.[^my note] Here is an inline note.\**
 This
 is \f[I]easier\f[] to type.
 Inline notes may contain
-links\**
-.FS
-http://google.com
-.FE
-and \f[C]]\f[] verbatim characters,
+links (http://google.com) and \f[C]]\f[] verbatim characters,
 as well as [bracketed text].
 .FE
 .RS

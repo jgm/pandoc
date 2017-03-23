@@ -34,7 +34,7 @@ TODO:
 [x] strong + em doesn't seem to work
 [ ] super + subscript don't seem to work
 [ ] options for hyperlink rendering (currently footnote)
-[ ] avoid note-in-note (which we currently get easily with
+[x] avoid note-in-note (which we currently get easily with
     links in footnotes)
 [ ] can we get prettier output using .B, etc. instead of
     the inline forms?
@@ -88,12 +88,14 @@ import Text.TeXMath (writeEqn)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stNotes         :: [Note]
+                               , stInNote        :: Bool
                                , stFontFeatures  :: Map.Map Char Bool
                                }
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{ stHasInlineMath = False
                                 , stNotes         = []
+                                , stInNote        = False
                                 , stFontFeatures  = Map.fromList [
                                                        ('I',False)
                                                      , ('B',False)
@@ -419,11 +421,17 @@ inlineToMs opts SoftBreak = handleNotes opts cr
 inlineToMs opts Space = handleNotes opts space
 inlineToMs opts (Link _ txt (src, _)) = do
   let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
+  inNote <- gets stInNote
   case txt of
        [Str s]
          | escapeURI s == srcSuffix ->
-             return $ char '<' <> text srcSuffix <> char '>'
-       _  -> do
+             return $ char '<' <> text (escapeString srcSuffix) <> char '>'
+       _ | inNote -> do
+         -- avoid a note in a note!
+         contents <- inlineListToMs opts txt
+         return $ contents <> space <> char '(' <>
+                       text (escapeString src) <> char ')'
+         | otherwise -> do
          let linknote = [Plain [Str src]]
          inlineListToMs opts (txt ++ [Note linknote])
 inlineToMs opts (Image attr alternate (source, tit)) = do
@@ -443,8 +451,10 @@ handleNotes opts fallback = do
   if null notes
      then return fallback
      else do
-       modify $ \st -> st{ stNotes = [] }
-       vcat <$> mapM (handleNote opts) notes
+       modify $ \st -> st{ stNotes = [], stInNote = True }
+       res <- vcat <$> mapM (handleNote opts) notes
+       modify $ \st -> st{ stInNote = False }
+       return res
 
 handleNote :: PandocMonad m => WriterOptions -> Note -> MS m Doc
 handleNote opts bs = do
