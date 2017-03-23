@@ -31,7 +31,6 @@ TODO:
 
 [ ] warning for non-rendered raw content
 [ ] is there a better way to do strikeout?
-[ ] super + subscript don't seem to work
 [ ] options for hyperlink rendering (currently footnote)
 [ ] can we get prettier output using .B, etc. instead of
     the inline forms?
