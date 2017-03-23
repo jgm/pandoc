@@ -74,7 +74,7 @@ changePathSeparators = intercalate "/" . splitDirectories
 
 makePDF :: MonadIO m
         => String              -- ^ pdf creator (pdflatex, lualatex,
-                               -- xelatex, context, wkhtmltopdf)
+                               -- xelatex, context, wkhtmltopdf, pdfroff)
         -> (WriterOptions -> Pandoc -> PandocIO String)  -- ^ writer
         -> WriterOptions       -- ^ options
         -> Verbosity           -- ^ verbosity level
@@ -106,6 +106,12 @@ makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = liftIO $ do
               setVerbosity verbosity
               writer opts doc
   html2pdf verbosity args source
+makePDF "pdfroff" writer opts verbosity _mediabag doc = liftIO $ do
+  source <- runIOorExplode $ do
+              setVerbosity verbosity
+              writer opts doc
+  let args   = ["-ms", "-e", "-k", "-i"]
+  ms2pdf verbosity args source
 makePDF program writer opts verbosity mediabag doc = do
   let withTemp = if takeBaseName program == "context"
                     then withTempDirectory "."
@@ -294,6 +300,31 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir source = do
                    then (Just . B.fromChunks . (:[])) `fmap` BS.readFile pdfFile
                    else return Nothing
          return (exit, out, pdf)
+
+ms2pdf :: Verbosity
+       -> [String]
+       -> String
+       -> IO (Either ByteString ByteString)
+ms2pdf verbosity args source = do
+  env' <- getEnvironment
+  when (verbosity >= INFO) $ do
+    putStrLn "[makePDF] Command line:"
+    putStrLn $ "pdfroff " ++ " " ++ unwords (map show args)
+    putStr "\n"
+    putStrLn "[makePDF] Environment:"
+    mapM_ print env'
+    putStr "\n"
+    putStrLn $ "[makePDF] Contents:\n"
+    putStr source
+    putStr "\n"
+  (exit, out) <- pipeProcess (Just env') "pdfroff" args
+                     (UTF8.fromStringLazy source)
+  when (verbosity >= INFO) $ do
+    B.hPutStr stdout out
+    putStr "\n"
+  return $ case exit of
+             ExitFailure _ -> Left out
+             ExitSuccess   -> Right out
 
 html2pdf  :: Verbosity    -- ^ Verbosity level
           -> [String]     -- ^ Args to wkhtmltopdf

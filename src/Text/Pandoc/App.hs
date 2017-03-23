@@ -164,6 +164,7 @@ convertWithOpts opts = do
   let laTeXOutput = format `elem` ["latex", "beamer"]
   let conTeXtOutput = format == "context"
   let html5Output = format == "html5" || format == "html"
+  let msOutput = format == "ms"
 
   -- disabling the custom writer for now
   writer <- if ".lua" `isSuffixOf` format
@@ -398,15 +399,18 @@ convertWithOpts opts = do
       ByteStringWriter f -> f writerOptions doc' >>= writeFnBinary outputFile
       StringWriter f
         | pdfOutput -> do
-                -- make sure writer is latex or beamer or context or html5
-                unless (laTeXOutput || conTeXtOutput || html5Output) $
+                -- make sure writer is latex, beamer, context, html5 or ms
+                unless (laTeXOutput || conTeXtOutput || html5Output ||
+                        msOutput) $
                   err 47 $ "cannot produce pdf output with " ++ format ++
                            " writer"
 
                 let pdfprog = case () of
                                 _ | conTeXtOutput -> "context"
-                                _ | html5Output   -> "wkhtmltopdf"
-                                _ -> optLaTeXEngine opts
+                                  | html5Output   -> "wkhtmltopdf"
+                                  | html5Output   -> "wkhtmltopdf"
+                                  | msOutput      -> "pdfroff"
+                                  | otherwise     -> optLaTeXEngine opts
                 -- check for pdf creating program
                 mbPdfProg <- liftIO $ findExecutable pdfprog
                 when (isNothing mbPdfProg) $

@@ -37,28 +37,11 @@ TODO:
 [ ] tight/loose list distinction
 [ ] internal hyperlinks (this seems to be possible since
     they exist in the groff manual PDF version)
-[ ] better handling of accented characters and other non-ascii
-    characters (e.g. curly quotes).
-    Note:  recent versions of groff (more recent than standard
-    on many systems) include a -k option which runs preconv.
-    preconv basically converts non-ascii characters
-    to \[uXXXX] entities.  Since we can't assume that the local
-    groff has the -k option, we could have any invocation of
-    groff in Text.Pandoc.PDF filter the input through a Haskell
-    function that does what preconv does.
-    On the other hand:  only recent groffs have -Tpdf.  so
-    if we want compatibility with older groffs, we need to to
-    -Tps and pipe through ps2pdf (can we assume it's available?).
-    A big advantage of gropdf:  it supports the tag
-    \X'pdf: pdfpic file alignment width height line-length'
-    and also seems to support bookmarks.
-    See also the pdfroff shell script that comes with more
-    recent versions of groff.
-[ ] add via groff option to PDF module
-[ ] better handling of images, perhaps converting to eps when
-    going to PDF?
 [ ] better template, with configurable page number, table of contents,
     columns, etc.
+[ ] support for images? gropdf (and maybe pdfroff) supports the tag
+    \X'pdf: pdfpic file alignment width height line-length'
+    and also seems to support bookmarks.
 -}
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where
