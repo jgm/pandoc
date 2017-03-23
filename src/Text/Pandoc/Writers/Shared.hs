@@ -230,8 +230,11 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   let numcols = maximum (length aligns : length widths :
                            map length (headers:rows))
   let handleGivenWidths widths' = do
-        let widthsInChars' = map ((\x -> x - 3) . floor .
-                      (fromIntegral (writerColumns opts) *)) widths'
+        let widthsInChars' = map (
+                      (\x -> if x < 1 then 1 else x) .
+                      (\x -> x - 3) . floor .
+                      (fromIntegral (writerColumns opts) *)
+                      ) widths'
         rawHeaders' <- zipWithM blocksToDoc
             (map (\w -> opts{writerColumns =
                       min (w - 2) (writerColumns opts)}) widthsInChars')
@@ -268,11 +271,10 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   let head' = makeRow rawHeaders
   let rows' = map (makeRow . map chomp) rawRows
   let borderpart ch align widthInChars =
-        let widthInChars' = if widthInChars < 1 then 1 else widthInChars
-        in (if (align == AlignLeft || align == AlignCenter)
+           (if (align == AlignLeft || align == AlignCenter)
                then char ':'
                else char ch) <>
-           text (replicate widthInChars' ch) <>
+           text (replicate widthInChars ch) <>
            (if (align == AlignRight || align == AlignCenter)
                then char ':'
                else char ch)
