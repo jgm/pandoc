@@ -88,7 +88,7 @@ Code in a block quote:
 .nf
 \f[C]
 sub\ status\ {
-\ \ \ \ print\ "working";
+\ \ \ \ print\ \"working\";
 }
 \f[]
 .fi
@@ -126,7 +126,7 @@ Code:
 \-\-\-\-\ (should\ be\ four\ hyphens)
 
 sub\ status\ {
-\ \ \ \ print\ "working";
+\ \ \ \ print\ \"working\";
 }
 
 this\ code\ block\ is\ indented\ by\ one\ tab
@@ -365,68 +365,57 @@ Williams
 Definition Lists
 .LP
 Tight using spaces:
-.XP
-.B "apple"
-\~\~red fruit
+.IP "apple"
+red fruit
 .RS
 .RE
-.XP
-.B "orange"
-\~\~orange fruit
+.IP "orange"
+orange fruit
 .RS
 .RE
-.XP
-.B "banana"
-\~\~yellow fruit
+.IP "banana"
+yellow fruit
 .RS
 .RE
 .LP
 Tight using tabs:
-.XP
-.B "apple"
-\~\~red fruit
+.IP "apple"
+red fruit
 .RS
 .RE
-.XP
-.B "orange"
-\~\~orange fruit
+.IP "orange"
+orange fruit
 .RS
 .RE
-.XP
-.B "banana"
-\~\~yellow fruit
+.IP "banana"
+yellow fruit
 .RS
 .RE
 .LP
 Loose:
-.XP
-.B "apple"
-\~\~red fruit
+.IP "apple"
+red fruit
 .RS
 .RE
-.XP
-.B "orange"
-\~\~orange fruit
+.IP "orange"
+orange fruit
 .RS
 .RE
-.XP
-.B "banana"
-\~\~yellow fruit
+.IP "banana"
+yellow fruit
 .RS
 .RE
 .LP
 Multiple blocks with italics:
-.XP
-.B "\f[I]apple\f[]"
-\~\~red fruit
+.IP "\f[I]apple\f[]"
+red fruit
 .RS
 .LP
 contains seeds,
 crisp, pleasant to taste
 .RE
-.XP
-.B "\f[I]orange\f[]"
-\~\~orange fruit
+.IP "\f[I]orange\f[]"
+orange fruit
 .RS
 .IP
 .nf
@@ -441,17 +430,15 @@ orange block quote
 .RE
 .LP
 Multiple definitions, tight:
-.XP
-.B "apple"
-\~\~red fruit
+.IP "apple"
+red fruit
 .RS
 .RE
 computer
 .RS
 .RE
-.XP
-.B "orange"
-\~\~orange fruit
+.IP "orange"
+orange fruit
 .RS
 .RE
 bank
@@ -459,17 +446,15 @@ bank
 .RE
 .LP
 Multiple definitions, loose:
-.XP
-.B "apple"
-\~\~red fruit
+.IP "apple"
+red fruit
 .RS
 .RE
 computer
 .RS
 .RE
-.XP
-.B "orange"
-\~\~orange fruit
+.IP "orange"
+orange fruit
 .RS
 .RE
 bank
@@ -477,17 +462,15 @@ bank
 .RE
 .LP
 Blank line after term, indented marker, alternate markers:
-.XP
-.B "apple"
-\~\~red fruit
+.IP "apple"
+red fruit
 .RS
 .RE
 computer
 .RS
 .RE
-.XP
-.B "orange"
-\~\~orange fruit
+.IP "orange"
+orange fruit
 .RS
 .IP "1." 3
 sublist

@@ -37,7 +37,6 @@ TODO:
 [ ] tight/loose list distinction
 [ ] internal hyperlinks (this seems to be possible since
     they exist in the groff manual PDF version)
-[ ] use a custom macro for defn lists so they're configurable
 [ ] better handling of accented characters and other non-ascii
     characters (e.g. curly quotes).
     Note:  recent versions of groff (more recent than standard
@@ -53,6 +52,8 @@ TODO:
     A big advantage of gropdf:  it supports the tag
     \X'pdf: pdfpic file alignment width height line-length'
     and also seems to support bookmarks.
+    See also the pdfroff shell script that comes with more
+    recent versions of groff.
 [ ] add via groff option to PDF module
 [ ] better handling of images, perhaps converting to eps when
     going to PDF?
@@ -151,6 +152,7 @@ manEscapes = Map.fromList $
               [ ('\160', "\\ ")
               , ('\'', "\\[aq]")
               , ('’', "'")
+              , ('"', "\\\"")
               , ('\x2014', "\\[em]")
               , ('\x2013', "\\[en]")
               , ('\x2026', "\\&...")
