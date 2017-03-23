@@ -57,7 +57,7 @@ TODO:
     A big advantage of gropdf:  it supports the tag
     \X'pdf: pdfpic file alignment width height line-length'
     and also seems to support bookmarks.
-[ ] avoid blank line after footnote marker when footnote has a
+[x] avoid blank line after footnote marker when footnote has a
     paragraph
 [ ] better smallcaps support, see below...
 [ ] add via groff option to PDF module
@@ -448,7 +448,12 @@ handleNotes opts fallback = do
 
 handleNote :: PandocMonad m => WriterOptions -> Note -> MS m Doc
 handleNote opts bs = do
-  contents <- blockListToMs opts bs
+  -- don't start with Paragraph or we'll get a spurious blank
+  -- line after the note ref:
+  let bs' = case bs of
+                 (Para ils : rest) -> Plain ils : rest
+                 _ -> bs
+  contents <- blockListToMs opts bs'
   return $ cr <> text ".FS" $$ contents $$ text ".FE" <> cr
 
 fontChange :: PandocMonad m => MS m Doc

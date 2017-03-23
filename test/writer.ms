@@ -883,7 +883,6 @@ Footnotes
 .LP
 Here is a footnote reference,\**
 .FS
-.LP
 Here is the footnote.
 It can go anywhere after the footnote
 reference.
@@ -891,7 +890,6 @@ It need not be placed at the end of the document.
 .FE
 and another.\**
 .FS
-.LP
 Here's the long note.
 This one contains multiple
 blocks.
@@ -911,7 +909,6 @@ lazy and just indent the first line of each block.
 This should \f[I]not\f[] be a footnote reference, because it
 contains a space.[^my note] Here is an inline note.\**
 .FS
-.LP
 This
 is \f[I]easier\f[] to type.
 Inline notes may contain
@@ -926,14 +923,12 @@ as well as [bracketed text].
 .LP
 Notes can go in quotes.\**
 .FS
-.LP
 In quote.
 .FE
 .RE
 .IP "1." 3
 And in list items.\**
 .FS
-.LP
 In list.
 .FE
 .LP
