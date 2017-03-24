@@ -29,6 +29,10 @@ Conversion of 'Pandoc' documents to groff man page format.
 
 TODO:
 
+[ ] for links, emails, consider using macros from www: man groff_www
+    alo has a raw html macro and support for images.
+[ ] consider using a custom macro package for pandoc (perhaps if
+    a variable is set?)
 [ ] is there a better way to do strikeout?
 [ ] options for hyperlink rendering (currently footnote)
 [ ] can we get prettier output using .B, etc. instead of
@@ -41,6 +45,11 @@ TODO:
 [ ] support for images? gropdf (and maybe pdfroff) supports the tag
     \X'pdf: pdfpic file alignment width height line-length'
     and also seems to support bookmarks.
+    note that in the groff_www macros, .PIMG allows a png to
+    be specified and converts it automatically to eps for
+    ps output
+    NB. -U (unsafe mode) is needed for groff invocations if this
+    functionality is used
 -}
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where

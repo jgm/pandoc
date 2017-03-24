@@ -696,6 +696,7 @@ defaultWriterName x =
     ".tei.xml"  -> "tei"
     ".tei"      -> "tei"
     ".ms"       -> "ms"
+    ".roff"     -> "ms"
     ['.',y]     | y `elem` ['1'..'9'] -> "man"
     _           -> "html"
 
