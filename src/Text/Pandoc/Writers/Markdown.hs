@@ -555,14 +555,14 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
      case True of
           _ | isSimple &&
               isEnabled Ext_simple_tables opts -> fmap (nest 2,) $
-                   pandocTable opts (all null headers) aligns' widths'
+                   pandocTable opts False (all null headers) aligns' widths'
                        rawHeaders rawRows
             | isSimple &&
               isEnabled Ext_pipe_tables opts -> fmap (id,) $
                    pipeTable (all null headers) aligns' rawHeaders rawRows
             | not hasBlocks &&
               isEnabled Ext_multiline_tables opts -> fmap (nest 2,) $
-                   pandocTable opts (all null headers) aligns' widths'
+                   pandocTable opts True (all null headers) aligns' widths'
                        rawHeaders rawRows
             | isEnabled Ext_grid_tables opts &&
                writerColumns opts >= 8 * numcols -> (id,) <$>
@@ -633,9 +633,10 @@ pipeTable headless aligns rawHeaders rawRows = do
   let body   = vcat $ map torow rawRows
   return $ header $$ border $$ body
 
-pandocTable :: PandocMonad m => WriterOptions -> Bool -> [Alignment] -> [Double]
+pandocTable :: PandocMonad m
+            => WriterOptions -> Bool -> Bool -> [Alignment] -> [Double]
             -> [Doc] -> [[Doc]] -> MD m Doc
-pandocTable opts headless aligns widths rawHeaders rawRows = do
+pandocTable opts multiline headless aligns widths rawHeaders rawRows = do
   let isSimple = all (==0) widths
   let alignHeader alignment = case alignment of
                                 AlignLeft    -> lblock
@@ -664,10 +665,9 @@ pandocTable opts headless aligns widths rawHeaders rawRows = do
                    (zipWith3 alignHeader aligns widthsInChars)
   let rows' = map makeRow rawRows
   let head' = makeRow rawHeaders
-  let maxRowHeight = maximum $ map height (head':rows')
   let underline = cat $ intersperse (text " ") $
                   map (\width -> text (replicate width '-')) widthsInChars
-  let border = if maxRowHeight > 1
+  let border = if multiline
                   then text (replicate (sum widthsInChars +
                           length widthsInChars - 1) '-')
                   else if headless
@@ -676,9 +676,9 @@ pandocTable opts headless aligns widths rawHeaders rawRows = do
   let head'' = if headless
                   then empty
                   else border <> cr <> head'
-  let body = if isSimple
-                then vcat rows'
-                else vsep rows'
+  let body = if multiline
+                then vsep rows'
+                else vcat rows'
   let bottom = if headless
                   then underline
                   else border
