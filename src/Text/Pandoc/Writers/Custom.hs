@@ -47,6 +47,7 @@ import Data.Typeable
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Scripting.Lua (LuaState, StackValue, callfunc)
 import qualified Scripting.Lua as Lua
+import Text.Pandoc.Lua.Compat ( loadstring )
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
@@ -186,7 +187,7 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
   setForeignEncoding utf8
   lua <- Lua.newstate
   Lua.openlibs lua
-  status <- Lua.loadstring lua luaScript luaFile
+  status <- loadstring lua luaScript luaFile
   -- check for error in lua script (later we'll change the return type
   -- to handle this more gracefully):
   when (status /= 0) $

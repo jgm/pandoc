@@ -15,34 +15,26 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
+{-# LANGUAGE CPP #-}
 {- |
-   Module      : Text.Pandoc.Lua.PandocModule
+   Module      : Text.Pandoc.Lua.Compat
    Copyright   : Copyright © 2017 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    Stability   : alpha
 
-Pandoc module for lua.
+Compatibility helpers for hslua
 -}
-module Text.Pandoc.Lua.PandocModule ( pushPandocModule ) where
+module Text.Pandoc.Lua.Compat ( loadstring ) where
 
-import Data.ByteString.Char8 ( unpack )
-import Scripting.Lua ( LuaState, call)
-import Text.Pandoc.Lua.Compat ( loadstring )
-import Text.Pandoc.Shared ( readDataFile )
+import Scripting.Lua ( LuaState )
+import qualified Scripting.Lua as Lua
 
-
--- | Push the "pandoc" on the lua stack.
-pushPandocModule :: LuaState -> IO ()
-pushPandocModule lua = do
-  script <- pandocModuleScript
-  status <- loadstring lua script "pandoc.lua"
-  if (status /= 0)
-    then return ()
-    else do
-      call lua 0 1
-
--- | Get the string representation of the pandoc module
-pandocModuleScript :: IO String
-pandocModuleScript = unpack <$> readDataFile Nothing "pandoc.lua"
+-- | Interpret string as lua code and load into the lua environment.
+loadstring :: LuaState -> String -> String -> IO Int
+#if MIN_VERSION_hslua(0,5,0)
+loadstring lua script _ = Lua.loadstring lua script
+#else
+loadstring lua script cn = Lua.loadstring lua script cn
+#endif
