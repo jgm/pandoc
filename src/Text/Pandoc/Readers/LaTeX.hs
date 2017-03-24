@@ -948,7 +948,7 @@ skipopts = skipMany rawopt
 rawangle :: PandocMonad m => LP m ()
 rawangle = try $ do
   char '<'
-  skipMany (noneOf ">")
+  skipMany (oneOf "0123456789,- \t")
   char '>'
   return ()
 
