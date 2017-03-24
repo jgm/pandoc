@@ -40,7 +40,7 @@ TODO:
 [ ] tight/loose list distinction
 [ ] internal hyperlinks (this seems to be possible since
     they exist in the groff manual PDF version)
-[ ] better template, with configurable page number, table of contents,
+[ ] better template, with configurable page number,
     columns, etc.
 [ ] support for images? gropdf (and maybe pdfroff) supports the tag
     \X'pdf: pdfpic file alignment width height line-length'
@@ -64,11 +64,10 @@ import qualified Data.Map as Map
 import Data.List ( stripPrefix, intersperse, intercalate, sort )
 import Data.Maybe (fromMaybe)
 import Text.Pandoc.Pretty
-import Text.Pandoc.Builder (deleteMeta)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging
 import Control.Monad.State
-import Data.Char ( isDigit, isLower, isUpper, toUpper )
+import Data.Char ( isLower, isUpper, toUpper )
 import Text.TeXMath (writeEqn)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
@@ -106,33 +105,18 @@ pandocToMs opts (Pandoc meta blocks) = do
                     then Just $ writerColumns opts
                     else Nothing
   let render' = render colwidth
-  titleText <- inlineListToMs' opts $ docTitle meta
-  let title' = render' titleText
-  let setFieldsFromTitle =
-       case break (== ' ') title' of
-           (cmdName, rest) -> case reverse cmdName of
-                                   (')':d:'(':xs) | isDigit d ->
-                                     defField "title" (reverse xs) .
-                                     defField "section" [d] .
-                                     case splitBy (=='|') rest of
-                                          (ft:hds) ->
-                                            defField "footer" (trim ft) .
-                                            defField "header"
-                                               (trim $ concat hds)
-                                          [] -> id
-                                   _  -> defField "title" title'
   metadata <- metaToJSON opts
               (fmap (render colwidth) . blockListToMs opts)
               (fmap (render colwidth) . inlineListToMs' opts)
-              $ deleteMeta "title" meta
+              meta
   body <- blockListToMs opts blocks
   let main = render' body
   hasInlineMath <- gets stHasInlineMath
   let context = defField "body" main
-              $ setFieldsFromTitle
               $ defField "has-inline-math" hasInlineMath
               $ defField "hyphenate" True
               $ defField "pandoc-version" pandocVersion
+              $ defField "toc" (writerTableOfContents opts)
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
@@ -241,10 +225,16 @@ blockToMs _ HorizontalRule =
   return $ text ".HLINE"
 blockToMs opts (Header level _ inlines) = do
   contents <- inlineListToMs' opts inlines
+  let tocEntry = if writerTableOfContents opts &&
+                     level <= writerTOCDepth opts
+                    then text ".XS" $$
+                         (text (replicate level '\t') <> contents) $$
+                         text ".XE"
+                    else empty
   let heading = if writerNumberSections opts
                    then ".NH"
                    else ".SH"
-  return $ text heading <> space <> text (show level) $$ contents
+  return $ text heading <> space <> text (show level) $$ contents $$ tocEntry
 blockToMs _ (CodeBlock _ str) = return $
   text ".IP" $$
   text ".nf" $$

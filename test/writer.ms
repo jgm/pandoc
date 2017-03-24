@@ -22,6 +22,7 @@ Pandoc Test Suite
 John MacFarlane
 .AU
 Anonymous
+.ND "July 17, 2006"
 .LP
 This is a set of tests for pandoc.
 Most of them are adapted from

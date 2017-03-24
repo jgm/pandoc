@@ -33,6 +33,14 @@ $for(author)$
 .AU
 $author$
 $endfor$
+$if(date)$
+.ND "$date$"
+$endif$
+$if(abstract)$
+.AB
+$abstract$
+.AE
+$endif$
 $for(header-includes)$
 $header-includes$
 $endfor$
@@ -40,6 +48,10 @@ $for(include-before)$
 $include-before$
 $endfor$
 $body$
+$if(toc)$
+$toc$
+.TC
+$endif$
 $for(include-after)$
 $include-after$
 $endfor$
