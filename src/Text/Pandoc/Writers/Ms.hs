@@ -233,8 +233,8 @@ blockToMs opts (Para inlines) = do
     splitSentences inlines
   return $ text ".LP" $$ contents
 blockToMs _ b@(RawBlock f str)
-  | f == Format "man" = return $ text str
-  | otherwise         = do
+  | f == Format "ms" = return $ text str
+  | otherwise        = do
       report $ BlockNotRendered b
       return empty
 blockToMs _ HorizontalRule =
@@ -432,8 +432,8 @@ inlineToMs opts (Math DisplayMath str) = do
        Right r -> return $
             cr <> text ".EQ" $$ text (escapeBar r) $$ text ".EN"
 inlineToMs _ il@(RawInline f str)
-  | f == Format "man" = return $ text str
-  | otherwise         = do
+  | f == Format "ms" = return $ text str
+  | otherwise        = do
     report $ InlineNotRendered il
     return empty
 inlineToMs _ (LineBreak) = return $ cr <> text ".br" <> cr
