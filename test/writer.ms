@@ -86,7 +86,7 @@ with no blank line
 Paragraphs
 .LP
 Here's a regular paragraph.
-.LP
+.PP
 In Markdown 1.0.0 and earlier.
 Version
 8.
@@ -94,10 +94,10 @@ This line turns into a list item.
 Because a hard\-wrapped line in the
 middle of a paragraph looked like a
 list item.
-.LP
+.PP
 Here's one with a bullet.
 * criminey.
-.LP
+.PP
 There should be a hard line break
 .br
 here.
@@ -142,7 +142,7 @@ nested
 .LP
 This should not be a block quote: 2
 > 1.
-.LP
+.PP
 And a following paragraph.
 .HLINE
 .SH 1
@@ -263,7 +263,7 @@ Multiple paragraphs:
 .IP "1." 3
 Item 1, graf one.
 .RS 4
-.LP
+.PP
 Item 1.
 graf two.
 The quick brown fox jumped over the lazy dog's
@@ -382,9 +382,9 @@ Nested.
 .RE
 .LP
 Should not be a list item:
-.LP
+.PP
 M.A.\ 2007
-.LP
+.PP
 B.
 Williams
 .HLINE
@@ -437,7 +437,7 @@ Multiple blocks with italics:
 .IP "\f[I]apple\f[]"
 red fruit
 .RS
-.LP
+.PP
 contains seeds,
 crisp, pleasant to taste
 .RE
@@ -518,7 +518,7 @@ bar
 Interpreted markdown in a table:
 This is \f[I]emphasized\f[]
 And this is \f[B]strong\f[]
-.LP
+.PP
 Here's a simple block:
 .LP
 foo
@@ -545,9 +545,9 @@ Now, nested:
 foo
 .LP
 This should just be an HTML comment:
-.LP
+.PP
 Multiline:
-.LP
+.PP
 Code block:
 .IP
 .nf
@@ -557,7 +557,7 @@ Code block:
 .fi
 .LP
 Just plain comment, with trailing spaces on the line:
-.LP
+.PP
 Code:
 .IP
 .nf
@@ -572,31 +572,31 @@ Hr's:
 Inline Markup
 .LP
 This is \f[I]emphasized\f[], and so \f[I]is this\f[].
-.LP
+.PP
 This is \f[B]strong\f[], and so \f[B]is this\f[].
-.LP
+.PP
 An \f[I]emphasized link\**\f[].
 .FS
 /url
 .FE
-.LP
+.PP
 \f[B]\f[BI]This is strong and em.\f[B]\f[]
-.LP
+.PP
 So is \f[B]\f[BI]this\f[B]\f[] word.
-.LP
+.PP
 \f[B]\f[BI]This is strong and em.\f[B]\f[]
-.LP
+.PP
 So is \f[B]\f[BI]this\f[B]\f[] word.
-.LP
+.PP
 This is code: \f[C]>\f[], \f[C]$\f[], \f[C]\\\f[], \f[C]\\$\f[],
 \f[C]<html>\f[].
-.LP
+.PP
 [STRIKEOUT:This is \f[I]strikeout\f[].]
-.LP
+.PP
 Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[]\*} a\*{hello\ there\*}.
-.LP
+.PP
 Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\ of\ them\*>O.
-.LP
+.PP
 These should not be superscripts or subscripts,
 because of the unescaped spaces: a^b c^d, a~b c~d.
 .HLINE
@@ -605,24 +605,24 @@ Smart quotes, ellipses, dashes
 .LP
 \[lq]Hello,\[rq] said the spider.
 \[lq]`Shelob' is my name.\[rq]
-.LP
+.PP
 `A', `B', and `C' are letters.
-.LP
+.PP
 `Oak,' `elm,' and `beech' are names of trees.
 So is `pine.'
-.LP
+.PP
 `He said, \[lq]I want to go.\[rq]' Were you alive in the
 70's?
-.LP
+.PP
 Here is some quoted `\f[C]code\f[]' and a \[lq]quoted link\**\[rq].
 .FS
 http://example.com/?foo=1&bar=2
 .FE
-.LP
+.PP
 Some dashes: one\[em]two \[em] three\[em]four \[em] five.
-.LP
+.PP
 Dashes between numbers: 5\[en]7, 255\[en]66, 1987\[en]1999.
-.LP
+.PP
 Ellipses\&...and\&...and\&....
 .HLINE
 .SH 1
@@ -676,45 +676,45 @@ set membership: ∈
 copyright: ©
 .LP
 AT&T has an ampersand in their name.
-.LP
+.PP
 AT&T is another way to write it.
-.LP
+.PP
 This & that.
-.LP
+.PP
 4 < 5.
-.LP
+.PP
 6 > 5.
-.LP
+.PP
 Backslash: \\
-.LP
+.PP
 Backtick: `
-.LP
+.PP
 Asterisk: *
-.LP
+.PP
 Underscore: _
-.LP
+.PP
 Left brace: {
-.LP
+.PP
 Right brace: }
-.LP
+.PP
 Left bracket: [
-.LP
+.PP
 Right bracket: ]
-.LP
+.PP
 Left paren: (
-.LP
+.PP
 Right paren: )
-.LP
+.PP
 Greater\-than: >
-.LP
+.PP
 Hash: #
-.LP
+.PP
 Period: .
-.LP
+.PP
 Bang: !
-.LP
+.PP
 Plus: +
-.LP
+.PP
 Minus: \-
 .HLINE
 .SH 1
@@ -726,42 +726,42 @@ Just a URL\**.
 .FS
 /url/
 .FE
-.LP
+.PP
 URL and title\**.
 .FS
 /url/
 .FE
-.LP
+.PP
 URL and title\**.
 .FS
 /url/
 .FE
-.LP
+.PP
 URL and title\**.
 .FS
 /url/
 .FE
-.LP
+.PP
 URL and title\**
 .FS
 /url/
 .FE
-.LP
+.PP
 URL and title\**
 .FS
 /url/
 .FE
-.LP
+.PP
 with_underscore\**
 .FS
 /url/with_underscore
 .FE
-.LP
+.PP
 Email link\**
 .FS
 mailto:nobody\@nowhere.net
 .FE
-.LP
+.PP
 Empty\**.
 .FS
 .FE
@@ -772,43 +772,43 @@ Foo bar\**.
 .FS
 /url/
 .FE
-.LP
+.PP
 Foo bar\**.
 .FS
 /url/
 .FE
-.LP
+.PP
 Foo bar\**.
 .FS
 /url/
 .FE
-.LP
+.PP
 With embedded [brackets]\**.
 .FS
 /url/
 .FE
-.LP
+.PP
 b\**
 .FS
 /url/
 .FE
 by itself should be a link.
-.LP
+.PP
 Indented once\**.
 .FS
 /url
 .FE
-.LP
+.PP
 Indented twice\**.
 .FS
 /url
 .FE
-.LP
+.PP
 Indented thrice\**.
 .FS
 /url
 .FE
-.LP
+.PP
 This should [not][] be a link.
 .IP
 .nf
@@ -821,7 +821,7 @@ Foo bar\**.
 .FS
 /url/
 .FE
-.LP
+.PP
 Foo biz\**.
 .FS
 /url/
@@ -833,17 +833,17 @@ Here's a link with an ampersand in the URL\**.
 .FS
 http://example.com/?foo=1&bar=2
 .FE
-.LP
+.PP
 Here's a link with an amersand in the link text: AT&T\**.
 .FS
 http://att.com/
 .FE
-.LP
+.PP
 Here's an inline link\**.
 .FS
 /script?foo=1&bar=2
 .FE
-.LP
+.PP
 Here's an inline link in pointy braces\**.
 .FS
 /script?foo=1&bar=2
@@ -877,12 +877,12 @@ or\ here:\ <http://example.com/>
 Images
 .LP
 From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
-.LP
+.PP
 [IMAGE: lalune\**]
 .FS
 lalune.jpg
 .FE
-.LP
+.PP
 Here is a movie [IMAGE: movie\**]
 .FS
 movie.jpg
@@ -904,7 +904,7 @@ and another.\**
 Here's the long note.
 This one contains multiple
 blocks.
-.LP
+.PP
 Subsequent blocks are indented to show that they belong to the
 footnote (as with list items).
 .IP

@@ -30,7 +30,7 @@
 .\" font family: A, BM, H, HN, N, P, T, ZCM
 .fam T
 .\" paragraph indent
-.nr PI 0
+.nr PI 2m
 .\" interparagraph space
 .nr PD 0.33v
 .\" footnote width

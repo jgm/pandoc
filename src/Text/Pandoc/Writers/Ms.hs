@@ -71,6 +71,7 @@ import Data.Char ( isLower, isUpper, toUpper )
 import Text.TeXMath (writeEqn)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
+                               , stFirstPara     :: Bool
                                , stNotes         :: [Note]
                                , stInNote        :: Bool
                                , stSmallCaps     :: Bool
@@ -79,6 +80,7 @@ data WriterState = WriterState { stHasInlineMath :: Bool
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState{ stHasInlineMath = False
+                                , stFirstPara     = True
                                 , stNotes         = []
                                 , stInNote        = False
                                 , stSmallCaps     = False
@@ -209,21 +211,29 @@ blockToMs :: PandocMonad m
           -> Block         -- ^ Block element
           -> MS m Doc
 blockToMs _ Null = return empty
-blockToMs opts (Div _ bs) = blockListToMs opts bs
+blockToMs opts (Div _ bs) = do
+  setFirstPara
+  res <- blockListToMs opts bs
+  setFirstPara
+  return res
 blockToMs opts (Plain inlines) =
   liftM vcat $ mapM (inlineListToMs' opts) $ splitSentences inlines
 blockToMs opts (Para inlines) = do
+  firstPara <- gets stFirstPara
+  resetFirstPara
   contents <- liftM vcat $ mapM (inlineListToMs' opts) $
     splitSentences inlines
-  return $ text ".LP" $$ contents
+  return $ text (if firstPara then ".LP" else ".PP") $$ contents
 blockToMs _ b@(RawBlock f str)
   | f == Format "ms" = return $ text str
   | otherwise        = do
       report $ BlockNotRendered b
       return empty
-blockToMs _ HorizontalRule =
+blockToMs _ HorizontalRule = do
+  resetFirstPara
   return $ text ".HLINE"
 blockToMs opts (Header level _ inlines) = do
+  setFirstPara
   contents <- inlineListToMs' opts inlines
   let tocEntry = if writerTableOfContents opts &&
                      level <= writerTOCDepth opts
@@ -234,18 +244,24 @@ blockToMs opts (Header level _ inlines) = do
   let heading = if writerNumberSections opts
                    then ".NH"
                    else ".SH"
+  modify $ \st -> st{ stFirstPara = True }
   return $ text heading <> space <> text (show level) $$ contents $$ tocEntry
-blockToMs _ (CodeBlock _ str) = return $
-  text ".IP" $$
-  text ".nf" $$
-  text "\\f[C]" $$
-  text (escapeCode str) $$
-  text "\\f[]" $$
-  text ".fi"
+blockToMs _ (CodeBlock _ str) = do
+  setFirstPara
+  return $
+    text ".IP" $$
+    text ".nf" $$
+    text "\\f[C]" $$
+    text (escapeCode str) $$
+    text "\\f[]" $$
+    text ".fi"
 blockToMs opts (LineBlock ls) = do
+  resetFirstPara
   blockToMs opts $ Para $ intercalate [LineBreak] ls
 blockToMs opts (BlockQuote blocks) = do
+  setFirstPara
   contents <- blockListToMs opts blocks
+  setFirstPara
   return $ text ".RS" $$ contents $$ text ".RE"
 blockToMs opts (Table caption alignments widths headers rows) =
   let aligncode AlignLeft    = "l"
@@ -271,21 +287,25 @@ blockToMs opts (Table caption alignments widths headers rows) =
   body <- mapM (\row -> do
                          cols <- mapM (blockListToMs opts) row
                          return $ makeRow cols) rows
+  setFirstPara
   return $ text ".PP" $$ caption' $$
            text ".TS" $$ text "tab(@);" $$ coldescriptions $$
            colheadings' $$ vcat body $$ text ".TE"
 
 blockToMs opts (BulletList items) = do
   contents <- mapM (bulletListItemToMs opts) items
+  setFirstPara
   return (vcat contents)
 blockToMs opts (OrderedList attribs items) = do
   let markers = take (length items) $ orderedListMarkers attribs
   let indent = 1 + (maximum $ map length markers)
   contents <- mapM (\(num, item) -> orderedListItemToMs opts num indent item) $
               zip markers items
+  setFirstPara
   return (vcat contents)
 blockToMs opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToMs opts) items
+  setFirstPara
   return (vcat contents)
 
 -- | Convert bullet list item (list of blocks) to ms.
@@ -344,7 +364,7 @@ definitionListItemToMs opts (label, defs) = do
                                   mapM (\item -> blockToMs opts item) rest
                         first' <- blockToMs opts first
                         return $ first' $$ text ".RS" $$ rest' $$ text ".RE"
-  return $ nowrap (text ".IP \"" <> labelText <> text "\"") $$ contents
+  return $ nowrap (text ".IP " <> doubleQuotes labelText) $$ contents
 
 -- | Convert list of Pandoc block elements to ms.
 blockListToMs :: PandocMonad m
@@ -490,3 +510,9 @@ withFontFeature c action = do
   modify $ \st -> st{ stFontFeatures = Map.adjust not c $ stFontFeatures st }
   end <- fontChange
   return $ begin <> d <> end
+
+setFirstPara :: PandocMonad m => MS m ()
+setFirstPara = modify $ \st -> st{ stFirstPara = True }
+
+resetFirstPara :: PandocMonad m => MS m ()
+resetFirstPara = modify $ \st -> st{ stFirstPara = False }
