@@ -228,7 +228,8 @@ blockToMs _ b@(RawBlock f str)
   | otherwise         = do
       report $ BlockNotRendered b
       return empty
-blockToMs _ HorizontalRule = return $ text ".PP" $$ text "   *   *   *   *   *"
+blockToMs _ HorizontalRule =
+  return $ text ".HLINE"
 blockToMs opts (Header level _ inlines) = do
   contents <- inlineListToMs' opts inlines
   let heading = if writerNumberSections opts

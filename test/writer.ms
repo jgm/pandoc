@@ -1,17 +1,21 @@
+.\" **** Custom macro definitions ****
+.\" * Super/subscript
+.\" (https://lists.gnu.org/archive/html/groff/2012-07/msg00046.html)
+.ds { \v'-0.3m'\\s[\\n[.s]*9u/12u]
+.ds } \s0\v'0.3m'
+.ds < \v'0.3m'\s[\\n[.s]*9u/12u]
+.ds > \s0\v'-0.3m'
+.\" * Horizontal line
+.de HLINE
+.LP
+.ce
+\l'20'
+..
+.\" **********************************
 .hy
 .EQ
 delim ||
 .EN
-\" From https://lists.gnu.org/archive/html/groff/2012-07/msg00046.html
-\" Superscripts (ex tmac.e) (current versions without extra line space)
-.\" (reinstate commented versions to restore extra line space)
-.\" .ds { \v'-0.3m'\x'-0.2m'\\s[\\n[.s]*8u/10u]
-.ds { \v'-0.3m'\\s[\\n[.s]*9u/12u]
-.ds } \s0\v'0.3m'
-.\" Subscripts
-.\" .ds < \v'0.3m'\x'0.2m'\s[\\n[.s]*8u/10u]
-.ds < \v'0.3m'\s[\\n[.s]*9u/12u]
-.ds > \s0\v'-0.3m'
 .TL
 Pandoc Test Suite
 .AU
@@ -22,8 +26,7 @@ Anonymous
 This is a set of tests for pandoc.
 Most of them are adapted from
 John Gruber's markdown test suite.
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Headers
 .SH 2
@@ -49,8 +52,7 @@ with no blank line
 Level 2
 .LP
 with no blank line
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Paragraphs
 .LP
@@ -70,8 +72,7 @@ Here's one with a bullet.
 There should be a hard line break
 .br
 here.
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Block Quotes
 .LP
@@ -114,8 +115,7 @@ This should not be a block quote: 2
 > 1.
 .LP
 And a following paragraph.
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Code Blocks
 .LP
@@ -142,8 +142,7 @@ And:
 These\ should\ not\ be\ escaped:\ \ \\$\ \\\\\ \\>\ \\[\ \\{
 \f[]
 .fi
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Lists
 .SH 2
@@ -359,8 +358,7 @@ M.A.\ 2007
 .LP
 B.
 Williams
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Definition Lists
 .LP
@@ -540,8 +538,7 @@ Code:
 .fi
 .LP
 Hr's:
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Inline Markup
 .LP
@@ -573,8 +570,7 @@ Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\ of\ them\*>O.
 .LP
 These should not be superscripts or subscripts,
 because of the unescaped spaces: a^b c^d, a~b c~d.
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Smart quotes, ellipses, dashes
 .LP
@@ -599,8 +595,7 @@ Some dashes: one\[em]two \[em] three\[em]four \[em] five.
 Dashes between numbers: 5\[en]7, 255\[en]66, 1987\[en]1999.
 .LP
 Ellipses\&...and\&...and\&....
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 LaTeX
 .IP \[bu] 2
@@ -635,8 +630,7 @@ Shoes ($20) and socks ($5).
 Escaped \f[C]$\f[]: $73 \f[I]this should be emphasized\f[] 23$.
 .LP
 Here's a LaTeX table:
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Special Characters
 .LP
@@ -693,8 +687,7 @@ Bang: !
 Plus: +
 .LP
 Minus: \-
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Links
 .SH 2
@@ -850,8 +843,7 @@ Auto\-links should not occur here: \f[C]<http://example.com/>\f[]
 or\ here:\ <http://example.com/>
 \f[]
 .fi
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Images
 .LP
@@ -867,8 +859,7 @@ Here is a movie [IMAGE: movie\**]
 movie.jpg
 .FE
 icon.
-.PP
-   *   *   *   *   *
+.HLINE
 .SH 1
 Footnotes
 .LP
