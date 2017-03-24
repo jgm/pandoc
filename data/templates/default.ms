@@ -1,3 +1,4 @@
+.mso www.tmac
 .\" **** Custom macro definitions ****
 .\" * Super/subscript
 .\" (https://lists.gnu.org/archive/html/groff/2012-07/msg00046.html)
