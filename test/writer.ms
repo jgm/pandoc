@@ -1,4 +1,5 @@
-.\" **** Custom macro definitions ****
+.\" **** Custom macro definitions *********************************
+.mso www.tmac
 .\" * Super/subscript
 .\" (https://lists.gnu.org/archive/html/groff/2012-07/msg00046.html)
 .ds { \v'-0.3m'\\s[\\n[.s]*9u/12u]
@@ -11,7 +12,32 @@
 .ce
 \l'20'
 ..
-.\" **********************************
+.\" **** Settings *************************************************
+.\" text width
+.nr LL 5.5i
+.\" left margin
+.nr PO 1.25i
+.\" top margin
+.nr HM 1.25in
+.\" bottom margin
+.nr FM 1.25in
+.\" header/footer width
+.nr LT \n[LL]
+.\" point size (pt x 1000)
+.nr PS 10000
+.\" line height (pt x 1000)
+.nr VS 12000
+.\" font family: A, BM, H, HN, N, P, T, ZCM
+.fam T
+.\" paragraph indent
+.nr PI 0
+.\" interparagraph space
+.nr PD 0.33v
+.\" footnote width
+.nr FL \n[LL]
+.\" footnote point size
+.nr FPS (\n[PS] - 2000)
+.\" ***************************************************************
 .hy
 .EQ
 delim ||
@@ -23,6 +49,8 @@ John MacFarlane
 .AU
 Anonymous
 .ND "July 17, 2006"
+.\" 1 column (use .2C for two column)
+.1C
 .LP
 This is a set of tests for pandoc.
 Most of them are adapted from

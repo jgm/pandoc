@@ -4,7 +4,7 @@ sourcefiles=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
 
 quick:
-	stack install --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes'
+	stack install --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 full:
 	stack install --flag 'pandoc:embed_data_files' --test --test-arguments='-j4' --pedantic
