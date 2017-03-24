@@ -29,7 +29,6 @@ Conversion of 'Pandoc' documents to groff man page format.
 
 TODO:
 
-[ ] warning for non-rendered raw content
 [ ] is there a better way to do strikeout?
 [ ] options for hyperlink rendering (currently footnote)
 [ ] can we get prettier output using .B, etc. instead of
@@ -57,7 +56,8 @@ import Data.List ( stripPrefix, intersperse, intercalate, sort )
 import Data.Maybe (fromMaybe)
 import Text.Pandoc.Pretty
 import Text.Pandoc.Builder (deleteMeta)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 import Control.Monad.State
 import Data.Char ( isDigit, isLower, isUpper, toUpper )
 import Text.TeXMath (writeEqn)
@@ -223,9 +223,11 @@ blockToMs opts (Para inlines) = do
   contents <- liftM vcat $ mapM (inlineListToMs' opts) $
     splitSentences inlines
   return $ text ".LP" $$ contents
-blockToMs _ (RawBlock f str)
+blockToMs _ b@(RawBlock f str)
   | f == Format "man" = return $ text str
-  | otherwise         = return empty
+  | otherwise         = do
+      report $ BlockNotRendered b
+      return empty
 blockToMs _ HorizontalRule = return $ text ".PP" $$ text "   *   *   *   *   *"
 blockToMs opts (Header level _ inlines) = do
   contents <- inlineListToMs' opts inlines
@@ -419,9 +421,11 @@ inlineToMs opts (Math DisplayMath str) = do
          return $ cr <> text ".RS" $$ contents $$ text ".RE"
        Right r -> return $
             cr <> text ".EQ" $$ text (escapeBar r) $$ text ".EN"
-inlineToMs _ (RawInline f str)
+inlineToMs _ il@(RawInline f str)
   | f == Format "man" = return $ text str
-  | otherwise         = return empty
+  | otherwise         = do
+    report $ InlineNotRendered il
+    return empty
 inlineToMs _ (LineBreak) = return $ cr <> text ".br" <> cr
 inlineToMs opts SoftBreak = handleNotes opts cr
 inlineToMs opts Space = handleNotes opts space
