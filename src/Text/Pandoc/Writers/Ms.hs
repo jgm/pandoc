@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Stability   : alpha
    Portability : portable
 
-Conversion of 'Pandoc' documents to groff man page format.
+Conversion of 'Pandoc' documents to groff ms format.
 
 TODO:
 
@@ -99,7 +99,7 @@ writeMs :: PandocMonad m => WriterOptions -> Pandoc -> m String
 writeMs opts document =
   evalStateT (pandocToMs opts document) defaultWriterState
 
--- | Return groff man representation of document.
+-- | Return groff ms representation of document.
 pandocToMs :: PandocMonad m => WriterOptions -> Pandoc -> MS m String
 pandocToMs opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
@@ -139,8 +139,8 @@ pandocToMs opts (Pandoc meta blocks) = do
        Just tpl -> return $ renderTemplate' tpl context
 
 -- | Association list of characters to escape.
-manEscapes :: Map.Map Char String
-manEscapes = Map.fromList $
+msEscapes :: Map.Map Char String
+msEscapes = Map.fromList $
               [ ('\160', "\\ ")
               , ('\'', "\\[aq]")
               , ('’', "'")
@@ -155,7 +155,7 @@ manEscapes = Map.fromList $
               ]
 
 escapeChar :: Char -> String
-escapeChar c = case Map.lookup c manEscapes of
+escapeChar c = case Map.lookup c msEscapes of
                     Just s -> s
                     Nothing -> [c]
 
@@ -298,7 +298,7 @@ blockToMs opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToMs opts) items
   return (vcat contents)
 
--- | Convert bullet list item (list of blocks) to man.
+-- | Convert bullet list item (list of blocks) to ms.
 bulletListItemToMs :: PandocMonad m => WriterOptions -> [Block] -> MS m Doc
 bulletListItemToMs _ [] = return empty
 bulletListItemToMs opts ((Para first):rest) =
@@ -316,7 +316,7 @@ bulletListItemToMs opts (first:rest) = do
   rest' <- blockListToMs opts rest
   return $ text "\\[bu] .RS 2" $$ first' $$ rest' $$ text ".RE"
 
--- | Convert ordered list item (a list of blocks) to man.
+-- | Convert ordered list item (a list of blocks) to ms.
 orderedListItemToMs :: PandocMonad m
                     => WriterOptions -- ^ options
                     -> String   -- ^ order marker for list item
@@ -336,7 +336,7 @@ orderedListItemToMs opts num indent (first:rest) = do
                    else text ".RS 4" $$ rest' $$ text ".RE"
   return $ first'' $$ rest''
 
--- | Convert definition list item (label, list of blocks) to man.
+-- | Convert definition list item (label, list of blocks) to ms.
 definitionListItemToMs :: PandocMonad m
                        => WriterOptions
                        -> ([Inline],[[Block]])
@@ -356,7 +356,7 @@ definitionListItemToMs opts (label, defs) = do
                         return $ first' $$ text ".RS" $$ rest' $$ text ".RE"
   return $ nowrap (text ".IP \"" <> labelText <> text "\"") $$ contents
 
--- | Convert list of Pandoc block elements to man.
+-- | Convert list of Pandoc block elements to ms.
 blockListToMs :: PandocMonad m
               => WriterOptions -- ^ Options
               -> [Block]       -- ^ List of block elements
@@ -380,7 +380,7 @@ inlineListToMs' opts lst = do
   y <- handleNotes opts empty
   return $ x <> y
 
--- | Convert Pandoc inline element to man.
+-- | Convert Pandoc inline element to ms.
 inlineToMs :: PandocMonad m => WriterOptions -> Inline -> MS m Doc
 inlineToMs opts (Span _ ils) = inlineListToMs opts ils
 inlineToMs opts (Emph lst) =
