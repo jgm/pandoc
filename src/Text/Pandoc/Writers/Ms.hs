@@ -65,10 +65,12 @@ import Data.List ( stripPrefix, intersperse, intercalate, sort )
 import Data.Maybe (fromMaybe)
 import Text.Pandoc.Pretty
 import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Control.Monad.State
 import Data.Char ( isLower, isUpper, toUpper )
 import Text.TeXMath (writeEqn)
+import System.FilePath (takeExtension)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
@@ -218,6 +220,25 @@ blockToMs opts (Div _ bs) = do
   return res
 blockToMs opts (Plain inlines) =
   liftM vcat $ mapM (inlineListToMs' opts) $ splitSentences inlines
+blockToMs opts (Para [Image attr alt (src,_tit)])
+  | let ext = takeExtension src in (ext == ".ps" || ext == ".eps") = do
+  let (mbW,mbH) = (inPoints opts <$> dimension Width attr,
+                   inPoints opts <$> dimension Height attr)
+  let sizeAttrs = case (mbW, mbH) of
+                       (Just wp, Nothing) -> space <> doubleQuotes
+                              (text (show (floor wp :: Int) ++ "p"))
+                       (Just wp, Just hp) -> space <> doubleQuotes
+                              (text (show (floor wp :: Int) ++ "p")) <>
+                              space <>
+                              doubleQuotes (text (show (floor hp :: Int)))
+                       _ -> empty
+  capt <- inlineListToMs' opts alt
+  return $ nowrap (text ".PSPIC -C " <>
+             doubleQuotes (text (escapeString src)) <>
+             sizeAttrs) $$
+           text ".ce 1000" $$
+           capt $$
+           text ".ce 0"
 blockToMs opts (Para inlines) = do
   firstPara <- gets stFirstPara
   resetFirstPara
@@ -465,11 +486,8 @@ inlineToMs opts (Link _ txt (src, _)) = do
          let linknote = [Plain [Str src]]
          inlineListToMs opts (txt ++ [Note linknote])
 inlineToMs opts (Image attr alternate (source, tit)) = do
-  let txt = if (null alternate) || (alternate == [Str ""]) ||
-               (alternate == [Str source]) -- to prevent autolinks
-               then [Str "image"]
-               else alternate
-  linkPart <- inlineToMs opts (Link attr txt (source, tit))
+  let alt = if null alternate then [Str "image"] else alternate
+  linkPart <- inlineToMs opts (Link attr alt (source, tit))
   return $ char '[' <> text "IMAGE: " <> linkPart <> char ']'
 inlineToMs _ (Note contents) = do
   modify $ \st -> st{ stNotes = contents : stNotes st }
