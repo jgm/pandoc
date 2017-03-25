@@ -117,11 +117,15 @@ pandocToMs opts (Pandoc meta blocks) = do
   body <- blockListToMs opts blocks
   let main = render' body
   hasInlineMath <- gets stHasInlineMath
+  let titleMeta = (escapeString . stringify) $ docTitle meta
+  let authorsMeta = map (escapeString . stringify) $ docAuthors meta
   let context = defField "body" main
               $ defField "has-inline-math" hasInlineMath
               $ defField "hyphenate" True
               $ defField "pandoc-version" pandocVersion
               $ defField "toc" (writerTableOfContents opts)
+              $ defField "title-meta" titleMeta
+              $ defField "author-meta" (intercalate "; " authorsMeta)
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main

@@ -39,7 +39,8 @@
 .\" ***************************************************************
 .\" PDF metadata
 .mso pdfmark.tmac
-.pdfinfo /Title $title$
+.pdfinfo /Title "$title-meta$"
+.pdfinfo /Author "$author-meta$"
 $if(adjusting)$
 .ad $adjusting$
 $endif$

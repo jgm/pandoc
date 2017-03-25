@@ -39,7 +39,8 @@
 .\" ***************************************************************
 .\" PDF metadata
 .mso pdfmark.tmac
-.pdfinfo /Title Pandoc Test Suite
+.pdfinfo /Title "Pandoc Test Suite"
+.pdfinfo /Author "John MacFarlane; Anonymous"
 .hy
 .EQ
 delim ||
