@@ -31,6 +31,9 @@ TODO:
 
 [ ] is there a way to avoid the extra space between internal links
     and following punctuation?
+    internal links followed by a space also cause bad formatting
+    (a line break)
+    but adding \c at the end of the link text doesn't seem to work
 [ ] manually create TOC including internal links and pdf outline
     bookmarks?  See
     http://pipeline.lbl.gov/code/3rd_party/licenses.win/groff/1.19.2/pdf/pdfmark.pdf
