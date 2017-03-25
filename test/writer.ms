@@ -37,6 +37,9 @@
 .\" footnote point size
 .nr FPS (\n[PS] - 2000)
 .\" ***************************************************************
+.\" PDF metadata
+.mso pdfmark.tmac
+.pdfinfo /Title Pandoc Test Suite
 .hy
 .EQ
 delim ||
@@ -866,3 +869,4 @@ In list.
 .FE
 .LP
 This paragraph should not be part of the note, as it is not indented.
+.pdfsync
