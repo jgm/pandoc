@@ -37,10 +37,9 @@
 .\" footnote point size
 .nr FPS (\n[PS] - 2000)
 .\" color used for strikeout
-.defcolor strikecolor rgb 0.2 0.2 0.2
+.defcolor strikecolor rgb 0.7 0.7 0.7
 .\" ***************************************************************
 .\" PDF metadata
-.mso pdfmark.tmac
 .pdfinfo /Title "Pandoc Test Suite"
 .pdfinfo /Author "John MacFarlane; Anonymous"
 .hy
@@ -61,29 +60,39 @@ This is a set of tests for pandoc.
 Most of them are adapted from
 John Gruber's markdown test suite.
 .HLINE
+.pdfhref M "headers"
 .SH 1
 Headers
+.pdfhref M "level-2-with-an-embedded-link"
 .SH 2
 Level 2 with an embedded link
+.pdfhref M "level-3-with-emphasis"
 .SH 3
 Level 3 with \f[I]emphasis\f[]
+.pdfhref M "level-4"
 .SH 4
 Level 4
+.pdfhref M "level-5"
 .SH 5
 Level 5
+.pdfhref M "level-1"
 .SH 1
 Level 1
+.pdfhref M "level-2-with-emphasis"
 .SH 2
 Level 2 with \f[I]emphasis\f[]
+.pdfhref M "level-3"
 .SH 3
 Level 3
 .LP
 with no blank line
+.pdfhref M "level-2"
 .SH 2
 Level 2
 .LP
 with no blank line
 .HLINE
+.pdfhref M "paragraphs"
 .SH 1
 Paragraphs
 .LP
@@ -104,6 +113,7 @@ There should be a hard line break
 .br
 here.
 .HLINE
+.pdfhref M "block-quotes"
 .SH 1
 Block Quotes
 .LP
@@ -147,6 +157,7 @@ This should not be a block quote: 2
 .PP
 And a following paragraph.
 .HLINE
+.pdfhref M "code-blocks"
 .SH 1
 Code Blocks
 .LP
@@ -174,8 +185,10 @@ These\ should\ not\ be\ escaped:\ \ \\$\ \\\\\ \\>\ \\[\ \\{
 \f[]
 .fi
 .HLINE
+.pdfhref M "lists"
 .SH 1
 Lists
+.pdfhref M "unordered"
 .SH 2
 Unordered
 .LP
@@ -226,6 +239,7 @@ Minus 1
 Minus 2
 .IP \[bu] 2
 Minus 3
+.pdfhref M "ordered"
 .SH 2
 Ordered
 .LP
@@ -275,6 +289,7 @@ back.
 Item 2.
 .IP "3." 3
 Item 3.
+.pdfhref M "nested"
 .SH 2
 Nested
 .IP \[bu] 2
@@ -319,6 +334,7 @@ Foe
 .RE
 .IP "3." 3
 Third
+.pdfhref M "tabs-and-spaces"
 .SH 2
 Tabs and spaces
 .IP \[bu] 2
@@ -335,6 +351,7 @@ indented with tabs
 this is an example list item
 indented with spaces
 .RE
+.pdfhref M "fancy-list-markers"
 .SH 2
 Fancy list markers
 .IP "(2)" 4
@@ -390,6 +407,7 @@ M.A.\ 2007
 B.
 Williams
 .HLINE
+.pdfhref M "definition-lists"
 .SH 1
 Definition Lists
 .LP
@@ -506,6 +524,7 @@ sublist
 .IP "2." 3
 sublist
 .RE
+.pdfhref M "html-blocks"
 .SH 1
 HTML Blocks
 .LP
@@ -570,6 +589,7 @@ Code:
 .LP
 Hr's:
 .HLINE
+.pdfhref M "inline-markup"
 .SH 1
 Inline Markup
 .LP
@@ -599,6 +619,7 @@ Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\ of\ them\*>O.
 These should not be superscripts or subscripts,
 because of the unescaped spaces: a^b c^d, a~b c~d.
 .HLINE
+.pdfhref M "smart-quotes-ellipses-dashes"
 .SH 1
 Smart quotes, ellipses, dashes
 .LP
@@ -624,6 +645,7 @@ Dashes between numbers: 5\[en]7, 255\[en]66, 1987\[en]1999.
 .PP
 Ellipses\&...and\&...and\&....
 .HLINE
+.pdfhref M "latex"
 .SH 1
 LaTeX
 .IP \[bu] 2
@@ -659,6 +681,7 @@ Escaped \f[C]$\f[]: $73 \f[I]this should be emphasized\f[] 23$.
 .LP
 Here's a LaTeX table:
 .HLINE
+.pdfhref M "special-characters"
 .SH 1
 Special Characters
 .LP
@@ -716,8 +739,10 @@ Plus: +
 .PP
 Minus: \-
 .HLINE
+.pdfhref M "links"
 .SH 1
 Links
+.pdfhref M "explicit"
 .SH 2
 Explicit
 .LP
@@ -741,6 +766,7 @@ mailto:nobody\@nowhere.net
 .FE
 .PP
 Empty.
+.pdfhref M "reference"
 .SH 2
 Reference
 .LP
@@ -771,6 +797,7 @@ This should [not][] be a link.
 Foo bar.
 .PP
 Foo biz.
+.pdfhref M "with-ampersands"
 .SH 2
 With ampersands
 .LP
@@ -787,6 +814,7 @@ http://att.com/
 Here's an inline link.
 .PP
 Here's an inline link in pointy braces.
+.pdfhref M "autolinks"
 .SH 2
 Autolinks
 .LP
@@ -812,6 +840,7 @@ or\ here:\ <http://example.com/>
 \f[]
 .fi
 .HLINE
+.pdfhref M "images"
 .SH 1
 Images
 .LP
@@ -821,6 +850,7 @@ From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
 .PP
 Here is a movie [IMAGE: movie] icon.
 .HLINE
+.pdfhref M "footnotes"
 .SH 1
 Footnotes
 .LP

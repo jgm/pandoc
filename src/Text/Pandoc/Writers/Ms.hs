@@ -29,11 +29,14 @@ Conversion of 'Pandoc' documents to groff ms format.
 
 TODO:
 
+[ ] is there a way to avoid the extra space between internal links
+    and following punctuation?
+[ ] manually create TOC including internal links and pdf outline
+    bookmarks?  See
+    http://pipeline.lbl.gov/code/3rd_party/licenses.win/groff/1.19.2/pdf/pdfmark.pdf
 [ ] is there a better way to do strikeout?
 [ ] options for hyperlink rendering (currently footnote)
 [ ] tight/loose list distinction
-[ ] internal hyperlinks (this seems to be possible since
-    they exist in the groff manual PDF version)
 -}
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where
@@ -242,20 +245,28 @@ blockToMs _ b@(RawBlock f str)
 blockToMs _ HorizontalRule = do
   resetFirstPara
   return $ text ".HLINE"
-blockToMs opts (Header level _ inlines) = do
+blockToMs opts (Header level (ident,classes,_) inlines) = do
   setFirstPara
   contents <- inlineListToMs' opts inlines
+  let anchor = if null ident
+                  then empty
+                  else nowrap $
+                         text ".pdfhref M " <> doubleQuotes (text ident)
   let tocEntry = if writerTableOfContents opts &&
                      level <= writerTOCDepth opts
                     then text ".XS" $$
                          (text (replicate level '\t') <> contents) $$
                          text ".XE"
                     else empty
-  let heading = if writerNumberSections opts
+  let heading = if writerNumberSections opts &&
+                    "unnumbered" `notElem` classes
                    then ".NH"
                    else ".SH"
   modify $ \st -> st{ stFirstPara = True }
-  return $ text heading <> space <> text (show level) $$ contents $$ tocEntry
+  return $ anchor $$
+           (text heading <> space <> text (show level)) $$
+           contents $$
+           tocEntry
 blockToMs _ (CodeBlock _ str) = do
   setFirstPara
   return $
@@ -388,8 +399,6 @@ blockListToMs opts blocks =
 inlineListToMs :: PandocMonad m => WriterOptions -> [Inline] -> MS m Doc
 -- if list starts with ., insert a zero-width character \& so it
 -- won't be interpreted as markup if it falls at the beginning of a line.
-inlineListToMs opts lst@(Str ('.':_) : _) = mapM (inlineToMs opts) lst >>=
-  (return . (text "\\&" <>)  . hcat)
 inlineListToMs opts lst = hcat <$> mapM (inlineToMs opts) lst
 
 -- This version to be used when there is no further inline content;
@@ -435,10 +444,13 @@ inlineToMs opts (Cite _ lst) =
 inlineToMs _ (Code _ str) =
   withFontFeature 'C' (return $ text $ escapeCode str)
 inlineToMs _ (Str str) = do
+  let shim = case str of
+                  '.':_ -> afterBreak "\\&"
+                  _     -> empty
   smallcaps <- gets stSmallCaps
   if smallcaps
-     then return $ text $ toSmallCaps str
-     else return $ text $ escapeString str
+     then return $ shim <> text (toSmallCaps str)
+     else return $ shim <> text (escapeString str)
 inlineToMs opts (Math InlineMath str) = do
   modify $ \st -> st{ stHasInlineMath = True }
   res <- convertMath writeEqn InlineMath str
@@ -461,6 +473,12 @@ inlineToMs _ il@(RawInline f str)
 inlineToMs _ (LineBreak) = return $ cr <> text ".br" <> cr
 inlineToMs opts SoftBreak = handleNotes opts cr
 inlineToMs opts Space = handleNotes opts space
+inlineToMs opts (Link _ txt ('#':ident, _)) = do
+  -- internal link
+  contents <- inlineListToMs' opts{ writerWrapText = WrapNone } txt
+  return $ text "\\c" <> cr <> nowrap (text ".pdfhref L -D " <>
+       doubleQuotes (text ident) <> space <>
+       doubleQuotes contents) <> cr
 inlineToMs opts (Link _ txt (src, _)) = do
   let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
   inNote <- gets stInNote

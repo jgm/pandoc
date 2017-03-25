@@ -40,7 +40,6 @@
 .defcolor strikecolor rgb 0.7 0.7 0.7
 .\" ***************************************************************
 .\" PDF metadata
-.mso pdfmark.tmac
 .pdfinfo /Title "$title-meta$"
 .pdfinfo /Author "$author-meta$"
 $if(adjusting)$
