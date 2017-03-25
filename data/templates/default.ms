@@ -1,5 +1,4 @@
 .\" **** Custom macro definitions *********************************
-.mso www.tmac
 .\" * Super/subscript
 .\" (https://lists.gnu.org/archive/html/groff/2012-07/msg00046.html)
 .ds { \v'-0.3m'\\s[\\n[.s]*9u/12u]
