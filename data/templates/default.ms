@@ -37,6 +37,9 @@
 .\" footnote point size
 .nr FPS (\n[PS] - 2000)
 .\" ***************************************************************
+.\" PDF metadata
+.mso pdfmark.tmac
+.pdfinfo /Title $title$
 $if(adjusting)$
 .ad $adjusting$
 $endif$
@@ -82,3 +85,4 @@ $endif$
 $for(include-after)$
 $include-after$
 $endfor$
+.pdfsync
