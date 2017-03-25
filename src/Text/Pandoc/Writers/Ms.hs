@@ -71,6 +71,7 @@ import Control.Monad.State
 import Data.Char ( isLower, isUpper, toUpper )
 import Text.TeXMath (writeEqn)
 import System.FilePath (takeExtension)
+import Network.URI (isURI)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
@@ -477,7 +478,8 @@ inlineToMs opts (Link _ txt (src, _)) = do
        [Str s]
          | escapeURI s == srcSuffix ->
              return $ text (escapeString srcSuffix)
-       _ | inNote -> do
+       _ | not (isURI src) -> inlineListToMs opts txt
+         | inNote -> do
          -- avoid a note in a note!
          contents <- inlineListToMs opts txt
          return $ contents <> space <> char '(' <>

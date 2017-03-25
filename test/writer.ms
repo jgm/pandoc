@@ -58,10 +58,7 @@ John Gruber's markdown test suite.
 .SH 1
 Headers
 .SH 2
-Level 2 with an embedded link\**
-.FS
-/url
-.FE
+Level 2 with an embedded link
 .SH 3
 Level 3 with \f[I]emphasis\f[]
 .SH 4
@@ -574,10 +571,7 @@ This is \f[I]emphasized\f[], and so \f[I]is this\f[].
 .PP
 This is \f[B]strong\f[], and so \f[B]is this\f[].
 .PP
-An \f[I]emphasized link\**\f[].
-.FS
-/url
-.FE
+An \f[I]emphasized link\f[].
 .PP
 \f[B]\f[BI]This is strong and em.\f[B]\f[]
 .PP
@@ -721,92 +715,44 @@ Links
 .SH 2
 Explicit
 .LP
-Just a URL\**.
-.FS
-/url/
-.FE
+Just a URL.
 .PP
-URL and title\**.
-.FS
-/url/
-.FE
+URL and title.
 .PP
-URL and title\**.
-.FS
-/url/
-.FE
+URL and title.
 .PP
-URL and title\**.
-.FS
-/url/
-.FE
+URL and title.
 .PP
-URL and title\**
-.FS
-/url/
-.FE
+URL and title
 .PP
-URL and title\**
-.FS
-/url/
-.FE
+URL and title
 .PP
-with_underscore\**
-.FS
-/url/with_underscore
-.FE
+with_underscore
 .PP
 Email link\**
 .FS
 mailto:nobody\@nowhere.net
 .FE
 .PP
-Empty\**.
-.FS
-.FE
+Empty.
 .SH 2
 Reference
 .LP
-Foo bar\**.
-.FS
-/url/
-.FE
+Foo bar.
 .PP
-Foo bar\**.
-.FS
-/url/
-.FE
+Foo bar.
 .PP
-Foo bar\**.
-.FS
-/url/
-.FE
+Foo bar.
 .PP
-With embedded [brackets]\**.
-.FS
-/url/
-.FE
+With embedded [brackets].
 .PP
-b\**
-.FS
-/url/
-.FE
-by itself should be a link.
+b by itself should be a link.
 .PP
-Indented once\**.
-.FS
-/url
-.FE
+Indented once.
 .PP
-Indented twice\**.
-.FS
-/url
-.FE
+Indented twice.
 .PP
-Indented thrice\**.
-.FS
-/url
-.FE
+Indented thrice.
 .PP
 This should [not][] be a link.
 .IP
@@ -816,15 +762,9 @@ This should [not][] be a link.
 \f[]
 .fi
 .LP
-Foo bar\**.
-.FS
-/url/
-.FE
+Foo bar.
 .PP
-Foo biz\**.
-.FS
-/url/
-.FE
+Foo biz.
 .SH 2
 With ampersands
 .LP
@@ -838,15 +778,9 @@ Here's a link with an amersand in the link text: AT&T\**.
 http://att.com/
 .FE
 .PP
-Here's an inline link\**.
-.FS
-/script?foo=1&bar=2
-.FE
+Here's an inline link.
 .PP
-Here's an inline link in pointy braces\**.
-.FS
-/script?foo=1&bar=2
-.FE
+Here's an inline link in pointy braces.
 .SH 2
 Autolinks
 .LP
@@ -877,16 +811,9 @@ Images
 .LP
 From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
 .PP
-[IMAGE: lalune\**]
-.FS
-lalune.jpg
-.FE
+[IMAGE: lalune]
 .PP
-Here is a movie [IMAGE: movie\**]
-.FS
-movie.jpg
-.FE
-icon.
+Here is a movie [IMAGE: movie] icon.
 .HLINE
 .SH 1
 Footnotes
