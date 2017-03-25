@@ -36,6 +36,8 @@
 .nr FL \n[LL]
 .\" footnote point size
 .nr FPS (\n[PS] - 2000)
+.\" color used for strikeout
+.defcolor strikecolor rgb 0.7 0.7 0.7
 .\" ***************************************************************
 .\" PDF metadata
 .mso pdfmark.tmac

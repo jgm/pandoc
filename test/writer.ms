@@ -36,6 +36,8 @@
 .nr FL \n[LL]
 .\" footnote point size
 .nr FPS (\n[PS] - 2000)
+.\" color used for strikeout
+.defcolor strikecolor rgb 0.2 0.2 0.2
 .\" ***************************************************************
 .\" PDF metadata
 .mso pdfmark.tmac
@@ -588,7 +590,7 @@ So is \f[B]\f[BI]this\f[B]\f[] word.
 This is code: \f[C]>\f[], \f[C]$\f[], \f[C]\\\f[], \f[C]\\$\f[],
 \f[C]<html>\f[].
 .PP
-[STRIKEOUT:This is \f[I]strikeout\f[].]
+\m[strikecolor]This is \f[I]strikeout\f[].\m[]
 .PP
 Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[]\*} a\*{hello\ there\*}.
 .PP

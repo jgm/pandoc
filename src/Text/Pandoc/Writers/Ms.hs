@@ -425,7 +425,9 @@ inlineToMs opts (Strong lst) =
   withFontFeature 'B' (inlineListToMs opts lst)
 inlineToMs opts (Strikeout lst) = do
   contents <- inlineListToMs opts lst
-  return $ text "[STRIKEOUT:" <> contents <> char ']'
+  -- we use grey color instead of strikeout, which seems quite
+  -- hard to do in groff for arbitrary bits of text
+  return $ text "\\m[strikecolor]" <> contents <> text "\\m[]"
 inlineToMs opts (Superscript lst) = do
   contents <- inlineListToMs opts lst
   return $ text "\\*{" <> contents <> text "\\*}"
