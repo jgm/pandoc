@@ -56,7 +56,7 @@ $else$
 $endif$
 $if(has-inline-math)$
 .EQ
-delim ||
+delim @@
 .EN
 $endif$
 $if(title)$

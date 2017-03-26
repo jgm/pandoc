@@ -48,7 +48,7 @@
 .pdfinfo /Author "John MacFarlane; Anonymous"
 .hy
 .EQ
-delim ||
+delim @@
 .EN
 .TL
 Pandoc Test Suite
@@ -627,7 +627,7 @@ Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[]\*} a\*{hello\ there\*}.
 Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\ of\ them\*>O.
 .PP
 These should not be superscripts or subscripts,
-because of the unescaped spaces: a^b c^d, a~b c~d.
+because of the unescaped spaces: a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
 .HLINE
 .SH 1
 Smart quotes, ellipses, dashes
@@ -660,26 +660,26 @@ LaTeX
 .pdfhref M "latex"
 .IP \[bu] 2
 .IP \[bu] 2
-|2 + 2 = 4|
+@2 + 2 = 4@
 .IP \[bu] 2
-|x \[u2208] y|
+@x \[u2208] y@
 .IP \[bu] 2
-|alpha \[u2227] omega|
+@alpha \[u2227] omega@
 .IP \[bu] 2
-|223|
+@223@
 .IP \[bu] 2
-|p|\-Tree
+@p@\-Tree
 .IP \[bu] 2
 Here's some display math:
 .EQ
 d over {d x} f ( x ) = lim sub {h -> 0} {f ( x + h ) \[u2212] f ( x )} over h
 .EN
 .IP \[bu] 2
-Here's one that has a line break in it: |alpha + omega times x sup 2|.
+Here's one that has a line break in it: @alpha + omega times x sup 2@.
 .LP
 These shouldn't be math:
 .IP \[bu] 2
-To get the famous equation, write \f[C]$e\ =\ mc^2$\f[].
+To get the famous equation, write \f[C]$e\ =\ mc\[ha]2$\f[].
 .IP \[bu] 2
 $22,000 is a \f[I]lot\f[] of money.
 So is $34,000.
@@ -719,7 +719,7 @@ This & that.
 .PP
 Backslash: \\
 .PP
-Backtick: `
+Backtick: \[aq]
 .PP
 Asterisk: *
 .PP
@@ -968,7 +968,7 @@ If you want, you can indent every line, but you can also be
 lazy and just indent the first line of each block.
 .FE
 This should \f[I]not\f[] be a footnote reference, because it
-contains a space.[^my note] Here is an inline note.\**
+contains a space.[\[ha]my note] Here is an inline note.\**
 .FS
 This
 is \f[I]easier\f[] to type.

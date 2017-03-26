@@ -297,7 +297,7 @@ blockToMs opts (Table caption alignments widths headers rows) =
                         alignments iwidths) ++ "."
   colheadings <- mapM (blockListToMs opts) headers
   let makeRow cols = text "T{" $$
-                     (vcat $ intersperse (text "T}@T{") cols) $$
+                     (vcat $ intersperse (text "T}\tT{") cols) $$
                      text "T}"
   let colheadings' = if all null headers
                         then empty
@@ -307,7 +307,7 @@ blockToMs opts (Table caption alignments widths headers rows) =
                          return $ makeRow cols) rows
   setFirstPara
   return $ text ".PP" $$ caption' $$
-           text ".TS" $$ text "tab(@);" $$ coldescriptions $$
+           text ".TS" $$ text "delim(@@) tab(\t);" $$ coldescriptions $$
            colheadings' $$ vcat body $$ text ".TE"
 
 blockToMs opts (BulletList items) = do
@@ -453,7 +453,7 @@ inlineToMs opts (Math InlineMath str) = do
   res <- convertMath writeEqn InlineMath str
   case res of
        Left il -> inlineToMs opts il
-       Right r -> return $ text "|" <> text (escapeBar r) <> text "|"
+       Right r -> return $ text "@" <> text (escapeBar r) <> text "@"
 inlineToMs opts (Math DisplayMath str) = do
   res <- convertMath writeEqn InlineMath str
   case res of
