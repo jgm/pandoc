@@ -376,7 +376,7 @@ definitionListItemToMs :: PandocMonad m
                        -> ([Inline],[[Block]])
                        -> MS m Doc
 definitionListItemToMs opts (label, defs) = do
-  labelText <- inlineListToMs' opts label
+  labelText <- inlineListToMs' opts $ map breakToSpace label
   contents <- if null defs
                  then return empty
                  else liftM vcat $ forM defs $ \blocks -> do
@@ -478,11 +478,11 @@ inlineToMs opts SoftBreak = handleNotes opts cr
 inlineToMs opts Space = handleNotes opts space
 inlineToMs opts (Link _ txt ('#':ident, _)) = do
   -- internal link
-  contents <- inlineListToMs' opts{ writerWrapText = WrapNone } txt
+  contents <- inlineListToMs' opts $ map breakToSpace txt
   return $ text "\\c" <> cr <> nowrap (text ".pdfhref L -D " <>
        doubleQuotes (text ident) <> text " -A " <>
-       doubleQuotes (text "\\c") <> text " -- " <> contents) <>
-       cr <> text "\\&"
+       doubleQuotes (text "\\c") <> space <> text "\\") <> cr <>
+       text " -- " <> doubleQuotes (nowrap contents) <> cr <> text "\\&"
 inlineToMs opts (Link _ txt (src, _)) = do
   let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
   inNote <- gets stInNote
@@ -548,3 +548,8 @@ setFirstPara = modify $ \st -> st{ stFirstPara = True }
 
 resetFirstPara :: PandocMonad m => MS m ()
 resetFirstPara = modify $ \st -> st{ stFirstPara = False }
+
+breakToSpace :: Inline -> Inline
+breakToSpace SoftBreak = Space
+breakToSpace LineBreak = Space
+breakToSpace x         = x
