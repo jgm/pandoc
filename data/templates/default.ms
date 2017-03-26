@@ -38,6 +38,10 @@
 .nr FPS (\n[PS] - 2000)
 .\" color used for strikeout
 .defcolor strikecolor rgb 0.7 0.7 0.7
+.\" color for links (rgb)
+.ds PDFHREF.COLOUR   0.35 0.00 0.60
+.\" border for links (default none)
+.ds PDFHREF.BORDER   0 0 0
 .\" ***************************************************************
 .\" PDF metadata
 .pdfinfo /Title "$title-meta$"

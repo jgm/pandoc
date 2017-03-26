@@ -29,8 +29,6 @@ Conversion of 'Pandoc' documents to groff ms format.
 
 TODO:
 
-[ ] external links
-    http://pipeline.lbl.gov/code/3rd_party/licenses.win/groff/1.19.2/pdf/pdfmark.pdf
 [ ] manually create TOC including internal links and pdf outline
     bookmarks?  See
     http://pipeline.lbl.gov/code/3rd_party/licenses.win/groff/1.19.2/pdf/pdfmark.pdf
@@ -62,7 +60,6 @@ import Network.URI (isURI)
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
                                , stNotes         :: [Note]
-                               , stInNote        :: Bool
                                , stSmallCaps     :: Bool
                                , stFontFeatures  :: Map.Map Char Bool
                                }
@@ -71,7 +68,6 @@ defaultWriterState :: WriterState
 defaultWriterState = WriterState{ stHasInlineMath = False
                                 , stFirstPara     = True
                                 , stNotes         = []
-                                , stInNote        = False
                                 , stSmallCaps     = False
                                 , stFontFeatures  = Map.fromList [
                                                        ('I',False)
@@ -480,21 +476,12 @@ inlineToMs opts (Link _ txt ('#':ident, _)) = do
        doubleQuotes (text "\\c") <> space <> text "\\") <> cr <>
        text " -- " <> doubleQuotes (nowrap contents) <> cr <> text "\\&"
 inlineToMs opts (Link _ txt (src, _)) = do
-  let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
-  inNote <- gets stInNote
-  case txt of
-       [Str s]
-         | escapeURI s == srcSuffix ->
-             return $ text (escapeString srcSuffix)
-       _ | not (isURI src) -> inlineListToMs opts txt
-         | inNote -> do
-         -- avoid a note in a note!
-         contents <- inlineListToMs opts txt
-         return $ contents <> space <> char '(' <>
-                       text (escapeString src) <> char ')'
-         | otherwise -> do
-         let linknote = [Plain [Str src]]
-         inlineListToMs opts (txt ++ [Note linknote])
+  -- external link
+  contents <- inlineListToMs' opts $ map breakToSpace txt
+  return $ text "\\c" <> cr <> nowrap (text ".pdfhref W -D " <>
+       doubleQuotes (text src) <> text " -A " <>
+       doubleQuotes (text "\\c") <> space <> text "\\") <> cr <>
+       text " -- " <> doubleQuotes (nowrap contents) <> cr <> text "\\&"
 inlineToMs opts (Image attr alternate (source, tit)) = do
   let alt = if null alternate then [Str "image"] else alternate
   linkPart <- inlineToMs opts (Link attr alt (source, tit))
@@ -509,9 +496,8 @@ handleNotes opts fallback = do
   if null notes
      then return fallback
      else do
-       modify $ \st -> st{ stNotes = [], stInNote = True }
+       modify $ \st -> st{ stNotes = [] }
        res <- vcat <$> mapM (handleNote opts) notes
-       modify $ \st -> st{ stInNote = False }
        return res
 
 handleNote :: PandocMonad m => WriterOptions -> Note -> MS m Doc

@@ -38,6 +38,10 @@
 .nr FPS (\n[PS] - 2000)
 .\" color used for strikeout
 .defcolor strikecolor rgb 0.7 0.7 0.7
+.\" color for links (rgb)
+.ds PDFHREF.COLOUR   0.35 0.00 0.60
+.\" border for links (default none)
+.ds PDFHREF.BORDER   0 0 0
 .\" ***************************************************************
 .\" PDF metadata
 .pdfinfo /Title "Pandoc Test Suite"
@@ -64,7 +68,10 @@ John Gruber's markdown test suite.
 Headers
 .pdfhref M "headers"
 .SH 2
-Level 2 with an embedded link
+Level 2 with an \c
+.pdfhref W -D "/url" -A "\c" \
+ -- "embedded link"
+\&
 .pdfhref M "level-2-with-an-embedded-link"
 .SH 3
 Level 3 with \f[I]emphasis\f[]
@@ -597,7 +604,10 @@ This is \f[I]emphasized\f[], and so \f[I]is this\f[].
 .PP
 This is \f[B]strong\f[], and so \f[B]is this\f[].
 .PP
-An \f[I]emphasized link\f[].
+An \f[I]\c
+.pdfhref W -D "/url" -A "\c" \
+ -- "emphasized link"
+\&\f[].
 .PP
 \f[B]\f[BI]This is strong and em.\f[B]\f[]
 .PP
@@ -634,10 +644,10 @@ So is `pine.'
 `He said, \[lq]I want to go.\[rq]' Were you alive in the
 70's?
 .PP
-Here is some quoted `\f[C]code\f[]' and a \[lq]quoted link\**\[rq].
-.FS
-http://example.com/?foo=1&bar=2
-.FE
+Here is some quoted `\f[C]code\f[]' and a \[lq]\c
+.pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
+ -- "quoted link"
+\&\[rq].
 .PP
 Some dashes: one\[em]two \[em] three\[em]four \[em] five.
 .PP
@@ -746,45 +756,93 @@ Links
 Explicit
 .pdfhref M "explicit"
 .LP
-Just a URL.
+Just a \c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "URL"
+\&.
 .PP
-URL and title.
+\c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "URL and title"
+\&.
 .PP
-URL and title.
+\c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "URL and title"
+\&.
 .PP
-URL and title.
+\c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "URL and title"
+\&.
 .PP
-URL and title
+\c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "URL and title"
+\&
 .PP
-URL and title
+\c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "URL and title"
+\&
 .PP
-with_underscore
+\c
+.pdfhref W -D "/url/with_underscore" -A "\c" \
+ -- "with_underscore"
+\&
 .PP
-Email link\**
-.FS
-mailto:nobody\@nowhere.net
-.FE
+\c
+.pdfhref W -D "mailto:nobody@nowhere.net" -A "\c" \
+ -- "Email link"
+\&
 .PP
-Empty.
+\c
+.pdfhref W -D "" -A "\c" \
+ -- "Empty"
+\&.
 .SH 2
 Reference
 .pdfhref M "reference"
 .LP
-Foo bar.
+Foo \c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "bar"
+\&.
 .PP
-Foo bar.
+Foo \c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "bar"
+\&.
 .PP
-Foo bar.
+Foo \c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "bar"
+\&.
 .PP
-With embedded [brackets].
+With \c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "embedded [brackets]"
+\&.
 .PP
-b by itself should be a link.
+\c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "b"
+\& by itself should be a link.
 .PP
-Indented once.
+Indented \c
+.pdfhref W -D "/url" -A "\c" \
+ -- "once"
+\&.
 .PP
-Indented twice.
+Indented \c
+.pdfhref W -D "/url" -A "\c" \
+ -- "twice"
+\&.
 .PP
-Indented thrice.
+Indented \c
+.pdfhref W -D "/url" -A "\c" \
+ -- "thrice"
+\&.
 .PP
 This should [not][] be a link.
 .IP
@@ -794,42 +852,66 @@ This should [not][] be a link.
 \f[]
 .fi
 .LP
-Foo bar.
+Foo \c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "bar"
+\&.
 .PP
-Foo biz.
+Foo \c
+.pdfhref W -D "/url/" -A "\c" \
+ -- "biz"
+\&.
 .SH 2
 With ampersands
 .pdfhref M "with-ampersands"
 .LP
-Here's a link with an ampersand in the URL\**.
-.FS
-http://example.com/?foo=1&bar=2
-.FE
+Here's a \c
+.pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
+ -- "link with an ampersand in the URL"
+\&.
 .PP
-Here's a link with an amersand in the link text: AT&T\**.
-.FS
-http://att.com/
-.FE
+Here's a link with an amersand in the link text: \c
+.pdfhref W -D "http://att.com/" -A "\c" \
+ -- "AT&T"
+\&.
 .PP
-Here's an inline link.
+Here's an \c
+.pdfhref W -D "/script?foo=1&bar=2" -A "\c" \
+ -- "inline link"
+\&.
 .PP
-Here's an inline link in pointy braces.
+Here's an \c
+.pdfhref W -D "/script?foo=1&bar=2" -A "\c" \
+ -- "inline link in pointy braces"
+\&.
 .SH 2
 Autolinks
 .pdfhref M "autolinks"
 .LP
-With an ampersand: http://example.com/?foo=1&bar=2
+With an ampersand: \c
+.pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
+ -- "http://example.com/?foo=1&bar=2"
+\&
 .IP \[bu] 2
 In a list?
 .IP \[bu] 2
-http://example.com/
+\c
+.pdfhref W -D "http://example.com/" -A "\c" \
+ -- "http://example.com/"
+\&
 .IP \[bu] 2
 It should.
 .LP
-An e\-mail address: nobody\@nowhere.net
+An e\-mail address: \c
+.pdfhref W -D "mailto:nobody@nowhere.net" -A "\c" \
+ -- "nobody\@nowhere.net"
+\&
 .RS
 .LP
-Blockquoted: http://example.com/
+Blockquoted: \c
+.pdfhref W -D "http://example.com/" -A "\c" \
+ -- "http://example.com/"
+\&
 .RE
 .LP
 Auto\-links should not occur here: \f[C]<http://example.com/>\f[]
@@ -846,9 +928,15 @@ Images
 .LP
 From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
 .PP
-[IMAGE: lalune]
+[IMAGE: \c
+.pdfhref W -D "lalune.jpg" -A "\c" \
+ -- "lalune"
+\&]
 .PP
-Here is a movie [IMAGE: movie] icon.
+Here is a movie [IMAGE: \c
+.pdfhref W -D "movie.jpg" -A "\c" \
+ -- "movie"
+\&] icon.
 .HLINE
 .SH 1
 Footnotes
@@ -885,7 +973,10 @@ contains a space.[^my note] Here is an inline note.\**
 This
 is \f[I]easier\f[] to type.
 Inline notes may contain
-links (http://google.com) and \f[C]]\f[] verbatim characters,
+\c
+.pdfhref W -D "http://google.com" -A "\c" \
+ -- "links"
+\& and \f[C]]\f[] verbatim characters,
 as well as [bracketed text].
 .FE
 .RS
