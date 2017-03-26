@@ -116,7 +116,7 @@ pandocToMs opts (Pandoc meta blocks) = do
 -- | Association list of characters to escape.
 msEscapes :: Map.Map Char String
 msEscapes = Map.fromList $
-              [ ('\160', "\\ ")
+              [ ('\160', "\\~")
               , ('\'', "\\[aq]")
               , ('`', "\\`")
               , ('\8217', "'")
@@ -245,22 +245,34 @@ blockToMs _ HorizontalRule = do
 blockToMs opts (Header level (ident,classes,_) inlines) = do
   setFirstPara
   contents <- inlineListToMs' opts $ map breakToSpace inlines
+  let (heading, secnum) = if writerNumberSections opts &&
+                              "unnumbered" `notElem` classes
+                             then (".NH", "\\*[SN]")
+                             else (".SH", "")
   let anchor = if null ident
                   then empty
                   else nowrap $
                          text ".pdfhref M " <> doubleQuotes (text ident)
   let bookmark = text ".pdfhref O " <> text (show level ++ " ") <>
-                      doubleQuotes (text (escapeString (stringify inlines)))
+                      doubleQuotes (text $ secnum ++
+                                      (if null secnum
+                                          then ""
+                                          else "  ") ++
+                                      escapeString (stringify inlines))
+  let backlink = nowrap (text ".pdfhref L -D " <>
+       doubleQuotes (text ident) <> space <> text "\\") <> cr <>
+       text " -- "
   let tocEntry = if writerTableOfContents opts &&
                      level <= writerTOCDepth opts
-                    then text ".XS" $$
-                         (text (replicate level '\t') <> contents) $$
-                         text ".XE"
+                    then text ".XS"
+                         $$ backlink <> doubleQuotes (
+                            nowrap ((text (replicate level '\t') <>
+                             (if null secnum
+                                 then empty
+                                 else text secnum <> text "\\~\\~")
+                              <> contents)))
+                         $$ text ".XE"
                     else empty
-  let heading = if writerNumberSections opts &&
-                    "unnumbered" `notElem` classes
-                   then ".NH"
-                   else ".SH"
   modify $ \st -> st{ stFirstPara = True }
   return $ (text heading <> space <> text (show level)) $$
            contents $$

@@ -42,6 +42,17 @@
 .ds PDFHREF.COLOUR   0.35 0.00 0.60
 .\" border for links (default none)
 .ds PDFHREF.BORDER   0 0 0
+.\" point size difference between heading levels
+.nr PSINCR 1p
+.\" heading level above which point size no longer changes
+.nr GROWPS 2
+.\" comment these out if you want a dot after section numbers:
+.als SN SN-NO-DOT
+.als SN-STYLE SN-NO-DOT
+.\" pdf outline fold level
+.nr PDFOUTLINE.FOLDLEVEL 3
+.\" start out in outline view
+.pdfview /PageMode /UseOutlines
 .\" ***************************************************************
 .\" PDF metadata
 .pdfinfo /Title "$title-meta$"
@@ -85,7 +96,6 @@ $endfor$
 .1C
 $body$
 $if(toc)$
-$toc$
 .TC
 $endif$
 $for(include-after)$

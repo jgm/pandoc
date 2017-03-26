@@ -42,6 +42,17 @@
 .ds PDFHREF.COLOUR   0.35 0.00 0.60
 .\" border for links (default none)
 .ds PDFHREF.BORDER   0 0 0
+.\" point size difference between heading levels
+.nr PSINCR 1p
+.\" heading level above which point size no longer changes
+.nr GROWPS 2
+.\" comment these out if you want a dot after section numbers:
+.als SN SN-NO-DOT
+.als SN-STYLE SN-NO-DOT
+.\" pdf outline fold level
+.nr PDFOUTLINE.FOLDLEVEL 3
+.\" start out in outline view
+.pdfview /PageMode /UseOutlines
 .\" ***************************************************************
 .\" PDF metadata
 .pdfinfo /Title "Pandoc Test Suite"
@@ -427,7 +438,7 @@ Nested.
 .LP
 Should not be a list item:
 .PP
-M.A.\ 2007
+M.A.\~2007
 .PP
 B.
 Williams
@@ -643,9 +654,9 @@ This is code: \f[C]>\f[], \f[C]$\f[], \f[C]\\\f[], \f[C]\\$\f[],
 .PP
 \m[strikecolor]This is \f[I]strikeout\f[].\m[]
 .PP
-Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[]\*} a\*{hello\ there\*}.
+Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[]\*} a\*{hello\~there\*}.
 .PP
-Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\ of\ them\*>O.
+Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\~of\~them\*>O.
 .PP
 These should not be superscripts or subscripts,
 because of the unescaped spaces: a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
