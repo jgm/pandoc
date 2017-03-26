@@ -409,10 +409,13 @@ inlineToMediaWiki LineBreak = return "<br />\n"
 
 inlineToMediaWiki SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
+  listlevel <- asks listLevel
   case wrapText of
        WrapAuto     -> return " "
        WrapNone     -> return " "
-       WrapPreserve -> return "\n"
+       WrapPreserve -> if null listlevel
+                          then return "\n"
+                          else return " "
 
 inlineToMediaWiki Space = return " "
 
