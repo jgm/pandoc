@@ -20,16 +20,40 @@ import Distribution.Simple
 import Distribution.Simple.PreProcess
 import Distribution.Simple.Setup (ConfigFlags(..), CopyFlags(..), fromFlag)
 import Distribution.PackageDescription (PackageDescription(..), FlagName(..))
+import Distribution.Simple.Utils ( rawSystemExitCode, findProgramVersion )
 import System.Exit
-import Distribution.Simple.Utils (notice, installOrdinaryFiles)
+import Distribution.Simple.Utils (info, notice, installOrdinaryFiles)
 import Distribution.Simple.Program (simpleProgram, Program(..))
 import Distribution.Simple.LocalBuildInfo
 import Control.Monad (when)
 
 main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
-      postCopy = installManPage
+      -- enable hsb2hs preprocessor for .hsb files
+      hookedPreProcessors = [ppBlobSuffixHandler]
+    , hookedPrograms = [(simpleProgram "hsb2hs"){
+                           programFindVersion = \verbosity fp ->
+                             findProgramVersion "--version" id verbosity fp }]
+    , postCopy = installManPage
     }
+
+ppBlobSuffixHandler :: PPSuffixHandler
+ppBlobSuffixHandler = ("hsb", \_ lbi ->
+  PreProcessor {
+    platformIndependent = True,
+    runPreProcessor = mkSimplePreProcessor $ \infile outfile verbosity ->
+      do let embedData = case lookup (FlagName "embed_data_files")
+                              (configConfigurationsFlags (configFlags lbi)) of
+                              Just True -> True
+                              _         -> False
+         when embedData $
+            do info verbosity $ "Preprocessing " ++ infile ++ " to " ++ outfile
+               ec <- rawSystemExitCode verbosity "hsb2hs"
+                          [infile, infile, outfile]
+               case ec of
+                    ExitSuccess   -> return ()
+                    ExitFailure _ -> error "hsb2hs is needed to build this program"
+  })
 
 installManPage :: Args -> CopyFlags
                -> PackageDescription -> LocalBuildInfo -> IO ()

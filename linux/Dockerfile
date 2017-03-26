@@ -14,6 +14,7 @@ RUN mkdir -p /usr/src/
 WORKDIR /usr/src/
 RUN git clone https://github.com/jgm/pandoc
 WORKDIR /usr/src/pandoc
+RUN stack install --local-bin-path /usr/bin hsb2hs
 RUN stack install --stack-yaml stack.pkg.yaml --only-dependencies \
     --flag 'pandoc:embed_data_files' \
     --test --ghc-options '-O2 -optc-Os -optl-static -fPIC' \

@@ -14,6 +14,8 @@ PACKAGEMAKER=/Applications/PackageMaker.app/Contents/MacOS/PackageMaker
 DEVELOPER_ID_APPLICATION=${DEVELOPER_ID_APPLICATION:-Developer ID Application: John Macfarlane}
 DEVELOPER_ID_INSTALLER=${DEVELOPER_ID_INSTALLER:-Developer ID Installer: John Macfarlane}
 
+# We need this for hsb2hs:
+PATH=$LOCALBIN:$PATH
 export MACMACOS_DEPLOYMENT_TARGET=10.7
 
 # echo Removing old files...
@@ -21,6 +23,7 @@ rm -rf $DIST
 mkdir -p $DIST
 mkdir -p $RESOURCES
 stack setup
+which hsb2hs || stack install hsb2hs
 which cpphs  || stack install cpphs
 
 echo Building pandoc...
