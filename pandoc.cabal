@@ -332,7 +332,7 @@ Library
      cpp-options:   -DHTTP_CLIENT
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
-     Build-Tools:   hsb2hs >= 0.3.1
+     build-depends: file-embed >= 0.0 && < 0.1
      other-modules: Text.Pandoc.Data
      if os(darwin)
         Build-Tools:   cpphs >= 1.19
