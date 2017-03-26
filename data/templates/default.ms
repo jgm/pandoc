@@ -70,6 +70,9 @@ $if(has-inline-math)$
 delim @@
 .EN
 $endif$
+$for(header-includes)$
+$header-includes$
+$endfor$
 $if(title)$
 .TL
 $title$
@@ -86,14 +89,11 @@ $if(abstract)$
 $abstract$
 .AE
 $endif$
-$for(header-includes)$
-$header-includes$
-$endfor$
+.\" 1 column (use .2C for two column)
+.1C
 $for(include-before)$
 $include-before$
 $endfor$
-.\" 1 column (use .2C for two column)
-.1C
 $body$
 $if(toc)$
 .TC
