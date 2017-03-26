@@ -719,7 +719,7 @@ This & that.
 .PP
 Backslash: \\
 .PP
-Backtick: \[aq]
+Backtick: \`
 .PP
 Asterisk: *
 .PP
