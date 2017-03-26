@@ -480,8 +480,9 @@ inlineToMs opts (Link _ txt ('#':ident, _)) = do
   -- internal link
   contents <- inlineListToMs' opts{ writerWrapText = WrapNone } txt
   return $ text "\\c" <> cr <> nowrap (text ".pdfhref L -D " <>
-       doubleQuotes (text ident) <> space <>
-       doubleQuotes contents) <> cr
+       doubleQuotes (text ident) <> text " -A " <>
+       doubleQuotes (text "\\c") <> text " -- " <> contents) <>
+       cr <> text "\\&"
 inlineToMs opts (Link _ txt (src, _)) = do
   let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
   inNote <- gets stInNote
