@@ -110,7 +110,8 @@ makePDF "pdfroff" writer opts verbosity _mediabag doc = liftIO $ do
   source <- runIOorExplode $ do
               setVerbosity verbosity
               writer opts doc
-  let args   = ["-ms", "-mpdfmark", "-e", "-t", "-k", "-KUTF-8", "-i"]
+  let args   = ["-ms", "-mpdfmark", "-e", "-t", "-k", "-KUTF-8", "-i",
+                "--no-toc-relocation"]
   ms2pdf verbosity args source
 makePDF program writer opts verbosity mediabag doc = do
   let withTemp = if takeBaseName program == "context"
