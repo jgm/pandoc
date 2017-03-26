@@ -66,41 +66,51 @@ John Gruber's markdown test suite.
 .HLINE
 .SH 1
 Headers
+.pdfhref O 1 "Headers"
 .pdfhref M "headers"
 .SH 2
 Level 2 with an \c
 .pdfhref W -D "/url" -A "\c" \
  -- "embedded link"
 \&
+.pdfhref O 2 "Level 2 with an embedded link"
 .pdfhref M "level-2-with-an-embedded-link"
 .SH 3
 Level 3 with \f[I]emphasis\f[]
+.pdfhref O 3 "Level 3 with emphasis"
 .pdfhref M "level-3-with-emphasis"
 .SH 4
 Level 4
+.pdfhref O 4 "Level 4"
 .pdfhref M "level-4"
 .SH 5
 Level 5
+.pdfhref O 5 "Level 5"
 .pdfhref M "level-5"
 .SH 1
 Level 1
+.pdfhref O 1 "Level 1"
 .pdfhref M "level-1"
 .SH 2
 Level 2 with \f[I]emphasis\f[]
+.pdfhref O 2 "Level 2 with emphasis"
 .pdfhref M "level-2-with-emphasis"
 .SH 3
 Level 3
+.pdfhref O 3 "Level 3"
 .pdfhref M "level-3"
 .LP
 with no blank line
 .SH 2
 Level 2
+.pdfhref O 2 "Level 2"
 .pdfhref M "level-2"
 .LP
 with no blank line
 .HLINE
 .SH 1
 Paragraphs
+.pdfhref O 1 "Paragraphs"
 .pdfhref M "paragraphs"
 .LP
 Here's a regular paragraph.
@@ -122,6 +132,7 @@ here.
 .HLINE
 .SH 1
 Block Quotes
+.pdfhref O 1 "Block Quotes"
 .pdfhref M "block-quotes"
 .LP
 E\-mail style:
@@ -166,6 +177,7 @@ And a following paragraph.
 .HLINE
 .SH 1
 Code Blocks
+.pdfhref O 1 "Code Blocks"
 .pdfhref M "code-blocks"
 .LP
 Code:
@@ -194,9 +206,11 @@ These\ should\ not\ be\ escaped:\ \ \\$\ \\\\\ \\>\ \\[\ \\{
 .HLINE
 .SH 1
 Lists
+.pdfhref O 1 "Lists"
 .pdfhref M "lists"
 .SH 2
 Unordered
+.pdfhref O 2 "Unordered"
 .pdfhref M "unordered"
 .LP
 Asterisks tight:
@@ -248,6 +262,7 @@ Minus 2
 Minus 3
 .SH 2
 Ordered
+.pdfhref O 2 "Ordered"
 .pdfhref M "ordered"
 .LP
 Tight:
@@ -298,6 +313,7 @@ Item 2.
 Item 3.
 .SH 2
 Nested
+.pdfhref O 2 "Nested"
 .pdfhref M "nested"
 .IP \[bu] 2
 Tab
@@ -343,6 +359,7 @@ Foe
 Third
 .SH 2
 Tabs and spaces
+.pdfhref O 2 "Tabs and spaces"
 .pdfhref M "tabs-and-spaces"
 .IP \[bu] 2
 this is a list item
@@ -360,6 +377,7 @@ indented with spaces
 .RE
 .SH 2
 Fancy list markers
+.pdfhref O 2 "Fancy list markers"
 .pdfhref M "fancy-list-markers"
 .IP "(2)" 4
 begins with 2
@@ -416,6 +434,7 @@ Williams
 .HLINE
 .SH 1
 Definition Lists
+.pdfhref O 1 "Definition Lists"
 .pdfhref M "definition-lists"
 .LP
 Tight using spaces:
@@ -533,6 +552,7 @@ sublist
 .RE
 .SH 1
 HTML Blocks
+.pdfhref O 1 "HTML Blocks"
 .pdfhref M "html-blocks"
 .LP
 Simple block on one line:
@@ -598,6 +618,7 @@ Hr's:
 .HLINE
 .SH 1
 Inline Markup
+.pdfhref O 1 "Inline Markup"
 .pdfhref M "inline-markup"
 .LP
 This is \f[I]emphasized\f[], and so \f[I]is this\f[].
@@ -631,6 +652,7 @@ because of the unescaped spaces: a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
 .HLINE
 .SH 1
 Smart quotes, ellipses, dashes
+.pdfhref O 1 "Smart quotes, ellipses, dashes"
 .pdfhref M "smart-quotes-ellipses-dashes"
 .LP
 \[lq]Hello,\[rq] said the spider.
@@ -657,6 +679,7 @@ Ellipses\&...and\&...and\&....
 .HLINE
 .SH 1
 LaTeX
+.pdfhref O 1 "LaTeX"
 .pdfhref M "latex"
 .IP \[bu] 2
 .IP \[bu] 2
@@ -693,6 +716,7 @@ Here's a LaTeX table:
 .HLINE
 .SH 1
 Special Characters
+.pdfhref O 1 "Special Characters"
 .pdfhref M "special-characters"
 .LP
 Here is some unicode:
@@ -751,9 +775,11 @@ Minus: \-
 .HLINE
 .SH 1
 Links
+.pdfhref O 1 "Links"
 .pdfhref M "links"
 .SH 2
 Explicit
+.pdfhref O 2 "Explicit"
 .pdfhref M "explicit"
 .LP
 Just a \c
@@ -802,6 +828,7 @@ Just a \c
 \&.
 .SH 2
 Reference
+.pdfhref O 2 "Reference"
 .pdfhref M "reference"
 .LP
 Foo \c
@@ -863,6 +890,7 @@ Foo \c
 \&.
 .SH 2
 With ampersands
+.pdfhref O 2 "With ampersands"
 .pdfhref M "with-ampersands"
 .LP
 Here's a \c
@@ -886,6 +914,7 @@ Here's an \c
 \&.
 .SH 2
 Autolinks
+.pdfhref O 2 "Autolinks"
 .pdfhref M "autolinks"
 .LP
 With an ampersand: \c
@@ -924,6 +953,7 @@ or\ here:\ <http://example.com/>
 .HLINE
 .SH 1
 Images
+.pdfhref O 1 "Images"
 .pdfhref M "images"
 .LP
 From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
@@ -940,6 +970,7 @@ Here is a movie [IMAGE: \c
 .HLINE
 .SH 1
 Footnotes
+.pdfhref O 1 "Footnotes"
 .pdfhref M "footnotes"
 .LP
 Here is a footnote reference,\**

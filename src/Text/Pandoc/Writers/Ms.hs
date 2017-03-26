@@ -249,6 +249,8 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                   then empty
                   else nowrap $
                          text ".pdfhref M " <> doubleQuotes (text ident)
+  let bookmark = text ".pdfhref O " <> text (show level ++ " ") <>
+                      doubleQuotes (text (escapeString (stringify inlines)))
   let tocEntry = if writerTableOfContents opts &&
                      level <= writerTOCDepth opts
                     then text ".XS" $$
@@ -262,6 +264,7 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
   modify $ \st -> st{ stFirstPara = True }
   return $ (text heading <> space <> text (show level)) $$
            contents $$
+           bookmark $$
            anchor $$
            tocEntry
 blockToMs _ (CodeBlock _ str) = do
