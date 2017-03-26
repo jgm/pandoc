@@ -32,6 +32,8 @@ TODO:
 [ ] manually create TOC including internal links and pdf outline
     bookmarks?  See
     http://pipeline.lbl.gov/code/3rd_party/licenses.win/groff/1.19.2/pdf/pdfmark.pdf
+[ ] use base URL to construct absolute URLs from relative ones for external
+    links
 [ ] is there a better way to do strikeout?
 [ ] tight/loose list distinction
 -}
@@ -45,8 +47,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Writers.Math
 import Text.Printf ( printf )
 import qualified Data.Map as Map
-import Data.List ( stripPrefix, intersperse, intercalate, sort )
-import Data.Maybe (fromMaybe)
+import Data.List ( intersperse, intercalate, sort )
 import Text.Pandoc.Pretty
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.ImageSize
@@ -55,7 +56,6 @@ import Control.Monad.State
 import Data.Char ( isLower, isUpper, toUpper )
 import Text.TeXMath (writeEqn)
 import System.FilePath (takeExtension)
-import Network.URI (isURI)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
