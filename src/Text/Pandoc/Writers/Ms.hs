@@ -29,9 +29,6 @@ Conversion of 'Pandoc' documents to groff ms format.
 
 TODO:
 
-[ ] manually create TOC including internal links and pdf outline
-    bookmarks?  See
-    http://pipeline.lbl.gov/code/3rd_party/licenses.win/groff/1.19.2/pdf/pdfmark.pdf
 [ ] use base URL to construct absolute URLs from relative ones for external
     links
 [ ] is there a better way to do strikeout?
