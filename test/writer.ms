@@ -60,41 +60,41 @@ This is a set of tests for pandoc.
 Most of them are adapted from
 John Gruber's markdown test suite.
 .HLINE
-.pdfhref M "headers"
 .SH 1
 Headers
-.pdfhref M "level-2-with-an-embedded-link"
+.pdfhref M "headers"
 .SH 2
 Level 2 with an embedded link
-.pdfhref M "level-3-with-emphasis"
+.pdfhref M "level-2-with-an-embedded-link"
 .SH 3
 Level 3 with \f[I]emphasis\f[]
-.pdfhref M "level-4"
+.pdfhref M "level-3-with-emphasis"
 .SH 4
 Level 4
-.pdfhref M "level-5"
+.pdfhref M "level-4"
 .SH 5
 Level 5
-.pdfhref M "level-1"
+.pdfhref M "level-5"
 .SH 1
 Level 1
-.pdfhref M "level-2-with-emphasis"
+.pdfhref M "level-1"
 .SH 2
 Level 2 with \f[I]emphasis\f[]
-.pdfhref M "level-3"
+.pdfhref M "level-2-with-emphasis"
 .SH 3
 Level 3
+.pdfhref M "level-3"
 .LP
 with no blank line
-.pdfhref M "level-2"
 .SH 2
 Level 2
+.pdfhref M "level-2"
 .LP
 with no blank line
 .HLINE
-.pdfhref M "paragraphs"
 .SH 1
 Paragraphs
+.pdfhref M "paragraphs"
 .LP
 Here's a regular paragraph.
 .PP
@@ -113,9 +113,9 @@ There should be a hard line break
 .br
 here.
 .HLINE
-.pdfhref M "block-quotes"
 .SH 1
 Block Quotes
+.pdfhref M "block-quotes"
 .LP
 E\-mail style:
 .RS
@@ -157,9 +157,9 @@ This should not be a block quote: 2
 .PP
 And a following paragraph.
 .HLINE
-.pdfhref M "code-blocks"
 .SH 1
 Code Blocks
+.pdfhref M "code-blocks"
 .LP
 Code:
 .IP
@@ -185,12 +185,12 @@ These\ should\ not\ be\ escaped:\ \ \\$\ \\\\\ \\>\ \\[\ \\{
 \f[]
 .fi
 .HLINE
-.pdfhref M "lists"
 .SH 1
 Lists
-.pdfhref M "unordered"
+.pdfhref M "lists"
 .SH 2
 Unordered
+.pdfhref M "unordered"
 .LP
 Asterisks tight:
 .IP \[bu] 2
@@ -239,9 +239,9 @@ Minus 1
 Minus 2
 .IP \[bu] 2
 Minus 3
-.pdfhref M "ordered"
 .SH 2
 Ordered
+.pdfhref M "ordered"
 .LP
 Tight:
 .IP "1." 3
@@ -289,9 +289,9 @@ back.
 Item 2.
 .IP "3." 3
 Item 3.
-.pdfhref M "nested"
 .SH 2
 Nested
+.pdfhref M "nested"
 .IP \[bu] 2
 Tab
 .RS 2
@@ -334,9 +334,9 @@ Foe
 .RE
 .IP "3." 3
 Third
-.pdfhref M "tabs-and-spaces"
 .SH 2
 Tabs and spaces
+.pdfhref M "tabs-and-spaces"
 .IP \[bu] 2
 this is a list item
 indented with tabs
@@ -351,9 +351,9 @@ indented with tabs
 this is an example list item
 indented with spaces
 .RE
-.pdfhref M "fancy-list-markers"
 .SH 2
 Fancy list markers
+.pdfhref M "fancy-list-markers"
 .IP "(2)" 4
 begins with 2
 .IP "(3)" 4
@@ -407,9 +407,9 @@ M.A.\ 2007
 B.
 Williams
 .HLINE
-.pdfhref M "definition-lists"
 .SH 1
 Definition Lists
+.pdfhref M "definition-lists"
 .LP
 Tight using spaces:
 .IP "apple"
@@ -524,9 +524,9 @@ sublist
 .IP "2." 3
 sublist
 .RE
-.pdfhref M "html-blocks"
 .SH 1
 HTML Blocks
+.pdfhref M "html-blocks"
 .LP
 Simple block on one line:
 foo
@@ -589,9 +589,9 @@ Code:
 .LP
 Hr's:
 .HLINE
-.pdfhref M "inline-markup"
 .SH 1
 Inline Markup
+.pdfhref M "inline-markup"
 .LP
 This is \f[I]emphasized\f[], and so \f[I]is this\f[].
 .PP
@@ -619,9 +619,9 @@ Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\ of\ them\*>O.
 These should not be superscripts or subscripts,
 because of the unescaped spaces: a^b c^d, a~b c~d.
 .HLINE
-.pdfhref M "smart-quotes-ellipses-dashes"
 .SH 1
 Smart quotes, ellipses, dashes
+.pdfhref M "smart-quotes-ellipses-dashes"
 .LP
 \[lq]Hello,\[rq] said the spider.
 \[lq]`Shelob' is my name.\[rq]
@@ -645,9 +645,9 @@ Dashes between numbers: 5\[en]7, 255\[en]66, 1987\[en]1999.
 .PP
 Ellipses\&...and\&...and\&....
 .HLINE
-.pdfhref M "latex"
 .SH 1
 LaTeX
+.pdfhref M "latex"
 .IP \[bu] 2
 .IP \[bu] 2
 |2 + 2 = 4|
@@ -681,9 +681,9 @@ Escaped \f[C]$\f[]: $73 \f[I]this should be emphasized\f[] 23$.
 .LP
 Here's a LaTeX table:
 .HLINE
-.pdfhref M "special-characters"
 .SH 1
 Special Characters
+.pdfhref M "special-characters"
 .LP
 Here is some unicode:
 .IP \[bu] 2
@@ -739,12 +739,12 @@ Plus: +
 .PP
 Minus: \-
 .HLINE
-.pdfhref M "links"
 .SH 1
 Links
-.pdfhref M "explicit"
+.pdfhref M "links"
 .SH 2
 Explicit
+.pdfhref M "explicit"
 .LP
 Just a URL.
 .PP
@@ -766,9 +766,9 @@ mailto:nobody\@nowhere.net
 .FE
 .PP
 Empty.
-.pdfhref M "reference"
 .SH 2
 Reference
+.pdfhref M "reference"
 .LP
 Foo bar.
 .PP
@@ -797,9 +797,9 @@ This should [not][] be a link.
 Foo bar.
 .PP
 Foo biz.
-.pdfhref M "with-ampersands"
 .SH 2
 With ampersands
+.pdfhref M "with-ampersands"
 .LP
 Here's a link with an ampersand in the URL\**.
 .FS
@@ -814,9 +814,9 @@ http://att.com/
 Here's an inline link.
 .PP
 Here's an inline link in pointy braces.
-.pdfhref M "autolinks"
 .SH 2
 Autolinks
+.pdfhref M "autolinks"
 .LP
 With an ampersand: http://example.com/?foo=1&bar=2
 .IP \[bu] 2
@@ -840,9 +840,9 @@ or\ here:\ <http://example.com/>
 \f[]
 .fi
 .HLINE
-.pdfhref M "images"
 .SH 1
 Images
+.pdfhref M "images"
 .LP
 From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
 .PP
@@ -850,9 +850,9 @@ From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
 .PP
 Here is a movie [IMAGE: movie] icon.
 .HLINE
-.pdfhref M "footnotes"
 .SH 1
 Footnotes
+.pdfhref M "footnotes"
 .LP
 Here is a footnote reference,\**
 .FS

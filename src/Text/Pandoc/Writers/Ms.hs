@@ -29,16 +29,12 @@ Conversion of 'Pandoc' documents to groff ms format.
 
 TODO:
 
-[ ] is there a way to avoid the extra space between internal links
-    and following punctuation?
-    internal links followed by a space also cause bad formatting
-    (a line break)
-    but adding \c at the end of the link text doesn't seem to work
+[ ] external links
+    http://pipeline.lbl.gov/code/3rd_party/licenses.win/groff/1.19.2/pdf/pdfmark.pdf
 [ ] manually create TOC including internal links and pdf outline
     bookmarks?  See
     http://pipeline.lbl.gov/code/3rd_party/licenses.win/groff/1.19.2/pdf/pdfmark.pdf
 [ ] is there a better way to do strikeout?
-[ ] options for hyperlink rendering (currently footnote)
 [ ] tight/loose list distinction
 -}
 
@@ -250,7 +246,7 @@ blockToMs _ HorizontalRule = do
   return $ text ".HLINE"
 blockToMs opts (Header level (ident,classes,_) inlines) = do
   setFirstPara
-  contents <- inlineListToMs' opts inlines
+  contents <- inlineListToMs' opts $ map breakToSpace inlines
   let anchor = if null ident
                   then empty
                   else nowrap $
@@ -266,9 +262,9 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                    then ".NH"
                    else ".SH"
   modify $ \st -> st{ stFirstPara = True }
-  return $ anchor $$
-           (text heading <> space <> text (show level)) $$
+  return $ (text heading <> space <> text (show level)) $$
            contents $$
+           anchor $$
            tocEntry
 blockToMs _ (CodeBlock _ str) = do
   setFirstPara
