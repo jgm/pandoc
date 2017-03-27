@@ -286,8 +286,8 @@ General options
     (original unextended Markdown), `markdown_phpextra` (PHP Markdown
     Extra), `markdown_github` (GitHub-Flavored Markdown), `markdown_mmd`
     (MultiMarkdown), `commonmark` (CommonMark Markdown), `rst`
-    (reStructuredText), `html4` (XHTML4), `html` or `html5`
-    (HTML5/XHTML [polyglot markup]), `latex`
+    (reStructuredText), `html4` (XHTML 1.0 Transitional), `html`
+    or `html5` (HTML5/XHTML [polyglot markup]), `latex`
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
     `man` (groff man), `mediawiki` (MediaWiki markup),
     `dokuwiki` (DokuWiki markup), `zimwiki` (ZimWiki markup),
