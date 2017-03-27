@@ -1008,6 +1008,7 @@ include = do
               char '\\'
               name <- try (string "include")
                   <|> try (string "input")
+                  <|> try (string "subfile")
                   <|> string "usepackage"
               -- skip options
               skipMany $ try $ char '[' *> manyTill anyChar (char ']')
