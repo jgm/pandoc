@@ -131,6 +131,8 @@ Extra-Source-Files:
                  test/*.native
                  test/command/*.md
                  test/command/abbrevs
+                 test/command/sub-file-chapter-1.tex
+                 test/command/sub-file-chapter-2.tex
                  test/docbook-reader.docbook
                  test/docbook-xref.docbook
                  test/html-reader.html
