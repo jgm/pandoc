@@ -601,7 +601,7 @@ inlineCommands = M.fromList $
   , ("thanks", note <$> grouped block)
   , ("footnote", note <$> grouped block)
   , ("verb", doverb)
-  , ("lstinline", skipopts *> doverb)
+  , ("lstinline", skipopts *> dolstinline)
   , ("Verb", doverb)
   , ("url", (unescapeURL <$> braced) >>= \url ->
        pure (link url "" (str url)))
@@ -715,6 +715,11 @@ doverb :: PandocMonad m => LP m Inlines
 doverb = do
   marker <- anyChar
   code <$> manyTill (satisfy (/='\n')) (char marker)
+
+dolstinline :: PandocMonad m => LP m Inlines
+dolstinline = do
+  marker <- char '{' <|> anyChar 
+  code <$> manyTill (satisfy (/='\n')) (char '}' <|> char marker)
 
 doLHSverb :: PandocMonad m => LP m Inlines
 doLHSverb = codeWith ("",["haskell"],[]) <$> manyTill (satisfy (/='\n')) (char '|')
