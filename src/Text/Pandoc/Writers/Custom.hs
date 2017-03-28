@@ -60,7 +60,6 @@ attrToMap (id',classes,keyvals) = M.fromList
     : ("class", unwords classes)
     : keyvals
 
-#if MIN_VERSION_hslua(0,4,0)
 #if MIN_VERSION_base(4,8,0)
 instance {-# OVERLAPS #-} StackValue [Char] where
 #else
@@ -71,37 +70,6 @@ instance StackValue [Char] where
                  res <- Lua.peek lua i
                  return $ UTF8.toString `fmap` res
   valuetype _ = Lua.TSTRING
-#else
-#if MIN_VERSION_base(4,8,0)
-instance {-# OVERLAPS #-} StackValue a => StackValue [a] where
-#else
-instance StackValue a => StackValue [a] where
-#endif
-  push lua xs = do
-    Lua.createtable lua (length xs + 1) 0
-    let addValue (i, x) = Lua.push lua x >> Lua.rawseti lua (-2) i
-    mapM_ addValue $ zip [1..] xs
-  peek lua i = do
-    top <- Lua.gettop lua
-    let i' = if i < 0 then top + i + 1 else i
-    Lua.pushnil lua
-    lst <- getList lua i'
-    Lua.pop lua 1
-    return (Just lst)
-  valuetype _ = Lua.TTABLE
-
-getList :: StackValue a => LuaState -> Int -> IO [a]
-getList lua i' = do
-  continue <- Lua.next lua i'
-  if continue
-     then do
-       next <- Lua.peek lua (-1)
-       Lua.pop lua 1
-       x <- maybe (fail "peek returned Nothing") return next
-       rest <- getList lua i'
-       return (x : rest)
-     else return []
-#endif
 
 instance StackValue Format where
   push lua (Format f) = Lua.push lua (map toLower f)
@@ -191,11 +159,7 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
   -- check for error in lua script (later we'll change the return type
   -- to handle this more gracefully):
   when (status /= 0) $
-#if MIN_VERSION_hslua(0,4,0)
     Lua.tostring lua 1 >>= throw . PandocLuaException . UTF8.toString
-#else
-    Lua.tostring lua 1 >>= throw . PandocLuaException
-#endif
   Lua.call lua 0 0
   -- TODO - call hierarchicalize, so we have that info
   rendered <- docToCustom lua opts doc
