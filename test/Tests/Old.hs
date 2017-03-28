@@ -77,6 +77,9 @@ tests = [ testGroup "markdown"
         , testGroup "docbook5"
           [ testGroup "writer" $ writerTests "docbook5"
           ]
+        , testGroup "jats"
+          [ testGroup "writer" $ writerTests "jats"
+          ]
         , testGroup "native"
           [ testGroup "writer" $ writerTests "native"
           , test "reader" ["-r", "native", "-w", "native", "-s"]

@@ -117,6 +117,7 @@ module Text.Pandoc
                , writeICML
                , writeDocbook4
                , writeDocbook5
+               , writeJATS
                , writeOPML
                , writeOpenDocument
                , writeMan
@@ -182,6 +183,7 @@ import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Writers.Docbook
+import Text.Pandoc.Writers.JATS
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.DokuWiki
 import Text.Pandoc.Writers.EPUB
@@ -287,6 +289,7 @@ writers = [
   ,("docbook"      , StringWriter writeDocbook5)
   ,("docbook4"     , StringWriter writeDocbook4)
   ,("docbook5"     , StringWriter writeDocbook5)
+  ,("jats"         , StringWriter writeJATS)
   ,("opml"         , StringWriter writeOPML)
   ,("opendocument" , StringWriter writeOpenDocument)
   ,("latex"        , StringWriter writeLaTeX)
