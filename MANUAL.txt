@@ -291,9 +291,9 @@ General options
     (LaTeX), `beamer` (LaTeX beamer slide show), `context` (ConTeXt),
     `man` (groff man), `mediawiki` (MediaWiki markup),
     `dokuwiki` (DokuWiki markup), `zimwiki` (ZimWiki markup),
-    `textile` (Textile), `org` (Emacs Org mode),
-    `texinfo` (GNU Texinfo), `opml` (OPML), `docbook` or `docbook4`
-    (DocBook 4), `docbook5` (DocBook 5), `opendocument` (OpenDocument),
+    `textile` (Textile), `org` (Emacs Org mode), `texinfo` (GNU Texinfo),
+    `opml` (OPML), `docbook` or `docbook4` (DocBook 4), `docbook5`
+    (DocBook 5), `jats` (JATS XML), `opendocument` (OpenDocument),
     `odt` (OpenOffice text document), `docx` (Word docx), `haddock`
     (Haddock markup), `rtf` (rich text format), `epub2` (EPUB v2 book),
     `epub` or `epub3` (EPUB v3), `fb2` (FictionBook2 e-book),
@@ -616,8 +616,8 @@ General writer options
 :   Include an automatically generated table of contents (or, in
     the case of `latex`, `context`, `docx`, `rst`, or `ms`,
     an instruction to create one) in the output document. This
-    option has no effect on `man`, `docbook4`, `docbook5`, `slidy`,
-    `slideous`, `s5`, or `odt` output.
+    option has no effect on `man`, `docbook4`, `docbook5`, `jats`,
+    `slidy`, `slideous`, `s5`, or `odt` output.
 
 `--toc-depth=`*NUMBER*
 
@@ -1000,7 +1000,7 @@ Math rendering in HTML
 
 `--mathml`
 
-:   Convert TeX math to [MathML] (in `docbook4`, `docbook5`,
+:   Convert TeX math to [MathML] (in `docbook4`, `docbook5`, `jats`,
     `html4` and `html5`).
 
 `--jsmath`[`=`*URL*]

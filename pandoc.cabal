@@ -381,6 +381,7 @@ Library
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
+                   Text.Pandoc.Writers.JATS,
                    Text.Pandoc.Writers.OPML,
                    Text.Pandoc.Writers.HTML,
                    Text.Pandoc.Writers.ICML,
