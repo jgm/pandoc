@@ -112,7 +112,8 @@ docToJATS opts (Pandoc meta blocks) = do
                             hierarchicalize))
                  (fmap (render colwidth) . inlinesToJATS opts')
                  meta'
-  main <- (render' . vcat) <$> (mapM (elementToJATS opts' startLvl) elements)
+  main <- (render' . inTagsIndented "body" . vcat) <$>
+            (mapM (elementToJATS opts' startLvl) elements)
   let context = defField "body" main
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML -> True
