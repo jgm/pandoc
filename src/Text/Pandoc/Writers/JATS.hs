@@ -34,12 +34,12 @@ module Text.Pandoc.Writers.JATS ( writeJATS ) where
 import Control.Monad.Reader
 import Data.Char (toLower)
 import Data.Generics (everywhere, mkT)
-import Data.List (intercalate, isPrefixOf, isSuffixOf, stripPrefix)
+import Data.List (intercalate, isSuffixOf)
+import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
-import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
@@ -169,15 +169,6 @@ listItemToJATS :: PandocMonad m => WriterOptions -> [Block] -> DB m Doc
 listItemToJATS opts item =
   inTagsIndented "list-item" <$> blocksToJATS opts item
 
-imageToJATS :: WriterOptions -> Attr -> String -> Doc
-imageToJATS _ attr src = selfClosingTag "imagedata" $
-  ("fileref", src) : idAndRole attr ++ dims
-  where
-    dims = go Width "width" ++ go Height "depth"
-    go dir dstr = case (dimension dir attr) of
-                    Just a  -> [(dstr, show a)]
-                    Nothing -> []
-
 -- | Convert a Pandoc block element to JATS.
 blockToJATS :: PandocMonad m => WriterOptions -> Block -> DB m Doc
 blockToJATS _ Null = return empty
@@ -207,7 +198,13 @@ blockToJATS opts (Para [Image (ident,_,kvs) txt
   let attr = [("id", ident) | not (null ident)] ++
              [(k,v) | (k,v) <- kvs, k `elem` ["fig-type", "orientation",
                                               "position", "specific-use"]]
-  let (maintype, subtype) = break (=='/') $ maybe "image" id $ getMimeType src
+  let mbMT = getMimeType src
+  let maintype = fromMaybe "image" $
+                  lookup "mimetype" kvs `mplus`
+                  (takeWhile (/='/') <$> mbMT)
+  let subtype = fromMaybe "" $
+                  lookup "mime-subtype" kvs `mplus`
+                  ((drop 1 . dropWhile (/='/')) <$> mbMT)
   let graphicattr = [("mimetype",maintype),
                      ("mime-subtype",drop 1 subtype),
                      ("xlink:href",src),  -- do we need to URL escape this?
@@ -241,7 +238,7 @@ blockToJATS _ (BulletList []) = return empty
 blockToJATS opts (BulletList lst) = do
   inTags True "list" [("list-type", "bullet")] <$> listItemsToJATS opts lst
 blockToJATS _ (OrderedList _ []) = return empty
-blockToJATS opts (OrderedList (start, numstyle, _) items) = do
+blockToJATS opts (OrderedList (_start, numstyle, _) items) = do
   let listType = case numstyle of
                        DefaultStyle -> "order"
                        Decimal      -> "order"
@@ -375,34 +372,42 @@ inlineToJATS _ (Math t str) = do
                                 $ text "<![CDATA[" <>
                                   text str <>
                                   text "]]>"
-inlineToJATS opts (Link attr txt (src, _))
-  | Just email <- stripPrefix "mailto:" src =
-      let emailLink = inTagsSimple "email" $ text $
-                      escapeStringForXML $ email
-      in  case txt of
-           [Str s] | escapeURI s == email -> return emailLink
-           _             -> do contents <- inlinesToJATS opts txt
-                               return $ contents <+>
-                                          char '(' <> emailLink <> char ')'
-  | otherwise = do
-      (if isPrefixOf "#" src
-            then inTags False "link" $ ("linkend", writerIdentifierPrefix opts ++ drop 1 src) : idAndRole attr
-            else inTags False "link" $ ("xlink:href", src) : idAndRole attr)
-        <$> inlinesToJATS opts txt
-inlineToJATS opts (Image attr _ (src, tit)) = return $
-  let titleDoc = if null tit
-                   then empty
-                   else inTagsIndented "objectinfo" $
-                        inTagsIndented "title" (text $ escapeStringForXML tit)
-  in  inTagsIndented "inlinemediaobject" $ inTagsIndented "imageobject" $
-      titleDoc $$ imageToJATS opts attr src
-
-idAndRole :: Attr -> [(String, String)]
-idAndRole (id',cls,_) = ident ++ role
-  where
-    ident = if null id'
-               then []
-               else [("id", id')]
-    role  = if null cls
-               then []
-               else [("role", unwords cls)]
+inlineToJATS _ (Link _attr [Str t] ('m':'a':'i':'l':'t':'o':':':email, _))
+  | escapeURI t == email =
+  return $ inTagsSimple "email" $ text (escapeStringForXML email)
+inlineToJATS opts (Link (ident,_,kvs) txt ('#':src, _)) = do
+  let attr = [("id", ident) | not (null ident)] ++
+             [("alt", stringify txt),
+              ("rid", src)] ++
+             [(k,v) | (k,v) <- kvs, k `elem` ["ref-type", "specific-use"]]
+  contents <- inlinesToJATS opts txt
+  return $ inTags False "xref" attr contents
+inlineToJATS opts (Link (ident,_,kvs) txt (src, tit)) = do
+  let attr = [("id", ident) | not (null ident)] ++
+             [("ext-link-type", "uri"),
+              ("xlink:href", src)] ++
+             [("xlink:title", tit) | not (null tit)] ++
+             [(k,v) | (k,v) <- kvs, k `elem` ["assigning-authority",
+                                              "specific-use", "xlink:actuate",
+                                              "xlink:role", "xlink:show",
+                                              "xlink:type"]]
+  contents <- inlinesToJATS opts txt
+  return $ inTags False "ext-link" attr contents
+inlineToJATS _ (Image (ident,_,kvs) _ (src, tit)) = do
+  let mbMT = getMimeType src
+  let maintype = fromMaybe "image" $
+                  lookup "mimetype" kvs `mplus`
+                  (takeWhile (/='/') <$> mbMT)
+  let subtype = fromMaybe "" $
+                  lookup "mime-subtype" kvs `mplus`
+                  ((drop 1 . dropWhile (/='/')) <$> mbMT)
+  let attr = [("id", ident) | not (null ident)] ++
+             [("mimetype", maintype),
+              ("mime-subtype", subtype),
+              ("xlink:href", src)] ++
+             [("xlink:title", tit) | not (null tit)] ++
+             [(k,v) | (k,v) <- kvs, k `elem` ["baseline-shift",
+                        "content-type", "specific-use", "xlink:actuate",
+                        "xlink:href", "xlink:role", "xlink:show",
+                        "xlink:type"]]
+  return $ selfClosingTag "inline-graphic" attr
