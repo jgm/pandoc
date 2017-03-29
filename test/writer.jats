@@ -91,8 +91,8 @@
         Code in a block quote:
       </p>
       <preformat>sub status {
-          print &quot;working&quot;;
-      }</preformat>
+    print &quot;working&quot;;
+}</preformat>
       <p>
         A list:
       </p>
@@ -136,17 +136,17 @@
     </p>
     <preformat>---- (should be four hyphens)
 
-    sub status {
-        print &quot;working&quot;;
-    }
+sub status {
+    print &quot;working&quot;;
+}
 
-    this code block is indented by one tab</preformat>
+this code block is indented by one tab</preformat>
     <p>
       And:
     </p>
     <preformat>    this code block is indented by two tabs
 
-    These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
+These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   </sec>
   <sec id="lists">
     <title>Lists</title>
@@ -898,8 +898,8 @@
       This should be a code block, though:
     </p>
     <preformat>&lt;div&gt;
-        foo
-    &lt;/div&gt;</preformat>
+    foo
+&lt;/div&gt;</preformat>
     <p>
       As should this:
     </p>

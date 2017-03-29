@@ -219,7 +219,7 @@ blockToJATS opts (LineBlock lns) =
 blockToJATS opts (BlockQuote blocks) =
   inTagsIndented "disp-quote" <$> blocksToJATS opts blocks
 blockToJATS _ (CodeBlock (ident,classes,kvs) str) = return $
-  inTags False tag attr (text (escapeStringForXML str))
+  inTags False tag attr (flush (text (escapeStringForXML str)))
     where attr  = [("id",ident) | not (null ident)] ++
                   [("language",lang) | not (null lang)] ++
                   [(k,v) | (k,v) <- kvs, k `elem` ["code-type",
