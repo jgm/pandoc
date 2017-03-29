@@ -17,11 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{- In writing this module I drew heavily on Martin Fenner's
-   pandoc-jats project (also GPL v2).
-   Tag reference:
-   https://jats.nlm.nih.gov/publishing/tag-library/1.1d3/element/mml-math.html
--}
 {- |
    Module      : Text.Pandoc.Writers.JATS
    Copyright   : Copyright (C) 2017 John MacFarlane
@@ -32,6 +27,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
    Portability : portable
 
 Conversion of 'Pandoc' documents to JATS XML.
+Reference:
+https://jats.nlm.nih.gov/publishing/tag-library/1.1d3/element/mml-math.html
 -}
 module Text.Pandoc.Writers.JATS ( writeJATS ) where
 import Control.Monad.Reader
@@ -192,8 +189,9 @@ blockToJATS opts (Div (ident,_,_) [Para lst]) =
 blockToJATS opts (Div (ident,_,kvs) bs) = do
   contents <- blocksToJATS opts bs
   let attr = [("id", ident) | not (null ident)] ++
+             [("xml:lang",l) | ("lang",l) <- kvs] ++
              [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
-                 "content-type", "orientation", "position", "lang"]]
+                 "content-type", "orientation", "position"]]
   return $ inTags True "boxed-text" attr contents
 blockToJATS _ (Header _ _ _) =
   return empty -- should not occur after hierarchicalize
@@ -262,7 +260,6 @@ blockToJATS _ b@(RawBlock f str)
       report $ BlockNotRendered b
       return empty
 blockToJATS _ HorizontalRule = return empty -- not semantic
--- GOT HERE
 blockToJATS opts (Table [] aligns widths headers rows) = do
   let percent w    = show (truncate (100*w) :: Integer) ++ "*"
   let coltags = vcat $ zipWith (\w al -> selfClosingTag "col"
@@ -344,34 +341,40 @@ inlineToJATS opts SoftBreak
 inlineToJATS opts (Note contents) =
   -- TODO technically only <p> tags are allowed inside
   inTagsIndented "fn" <$> blocksToJATS opts contents
-  -- GOT HERE
 inlineToJATS opts (Cite _ lst) =
+  -- TODO revisit this after examining the jats.csl pipeline
   inlinesToJATS opts lst
-inlineToJATS opts (Span (ident,_,_) ils) =
-  ((if null ident
-       then mempty
-       else selfClosingTag "anchor" [("id", ident)]) <>) <$>
-  inlinesToJATS opts ils
-inlineToJATS opts (Math t str)
-  | isMathML (writerHTMLMathMethod opts) = do
-    res <- convertMath writeMathML t str
-    case res of
-         Right r  -> return $ inTagsSimple tagtype
-                     $ text $ Xml.ppcElement conf
-                     $ fixNS
-                     $ removeAttr r
-         Left il  -> inlineToJATS opts il
-  | otherwise =
-     texMathToInlines t str >>= inlinesToJATS opts
-     where tagtype = case t of
-                       InlineMath  -> "inlineequation"
-                       DisplayMath -> "informalequation"
-           conf = Xml.useShortEmptyTags (const False) Xml.defaultConfigPP
-           removeAttr e = e{ Xml.elAttribs = [] }
-           fixNS' qname = qname{ Xml.qPrefix = Just "mml" }
-           fixNS = everywhere (mkT fixNS')
--- currently ignore, would require the option to add custom
--- styles to the document
+inlineToJATS opts (Span ("",_,[]) ils) = inlinesToJATS opts ils
+inlineToJATS opts (Span (ident,_,kvs) ils) = do
+  contents <- inlinesToJATS opts ils
+  let attr = [("id",ident) | not (null ident)] ++
+             [("xml:lang",l) | ("lang",l) <- kvs] ++
+             [(k,v) | (k,v) <- kvs
+                    ,  k `elem` ["content-type", "rationale",
+                                 "rid", "specific-use"]]
+  return $ selfClosingTag "milestone-start" attr <> contents <>
+           selfClosingTag "milestone-end" []
+inlineToJATS _ (Math t str) = do
+  let addPref (Xml.Attr q v)
+         | Xml.qName q == "xmlns" = Xml.Attr q{ Xml.qName = "xmlns:mml" } v
+         | otherwise = Xml.Attr q v
+  let fixNS' e = e{ Xml.elName =
+                         (Xml.elName e){ Xml.qPrefix = Just "mml" } }
+  let fixNS = everywhere (mkT fixNS') .
+              (\e -> e{ Xml.elAttribs = map addPref (Xml.elAttribs e) })
+  let conf = Xml.useShortEmptyTags (const False) Xml.defaultConfigPP
+  res <- convertMath writeMathML t str
+  let tagtype = case t of
+                     DisplayMath -> "disp-formula"
+                     InlineMath  -> "inline-formula"
+  return $ inTagsSimple tagtype $
+             case res of
+                   Right r  -> text $ Xml.ppcElement conf
+                                    $ fixNS r
+                   Left _   -> inTagsSimple "tex-math"
+                                $ text "<![CDATA[" <>
+                                  text str <>
+                                  text "]]>"
 inlineToJATS opts (Link attr txt (src, _))
   | Just email <- stripPrefix "mailto:" src =
       let emailLink = inTagsSimple "email" $ text $
@@ -393,10 +396,6 @@ inlineToJATS opts (Image attr _ (src, tit)) = return $
                         inTagsIndented "title" (text $ escapeStringForXML tit)
   in  inTagsIndented "inlinemediaobject" $ inTagsIndented "imageobject" $
       titleDoc $$ imageToJATS opts attr src
-
-isMathML :: HTMLMathMethod -> Bool
-isMathML MathML = True
-isMathML _      = False
 
 idAndRole :: Attr -> [(String, String)]
 idAndRole (id',cls,_) = ident ++ role
