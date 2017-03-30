@@ -30,7 +30,7 @@ Functions for converting an HTML file into one that can be viewed
 offline, by incorporating linked images, CSS, and scripts into
 the HTML using data URIs.
 -}
-module Text.Pandoc.SelfContained ( makeSelfContained ) where
+module Text.Pandoc.SelfContained ( makeDataURI, makeSelfContained ) where
 import Codec.Compression.GZip as Gzip
 import Control.Applicative ((<|>))
 import Control.Monad.Except (throwError)
