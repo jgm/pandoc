@@ -181,11 +181,12 @@ listItemToJATS opts mbmarker item = do
 -- | Convert a Pandoc block element to JATS.
 blockToJATS :: PandocMonad m => WriterOptions -> Block -> DB m Doc
 blockToJATS _ Null = return empty
--- Add ids to paragraphs in divs with ids - this is needed for
--- pandoc-citeproc to get link anchors in bibliographies:
-blockToJATS opts (Div (ident,_,_) [Para lst]) =
-  let attribs = [("id", ident) | not (null ident)] in
-      inTags True "p" attribs <$> inlinesToJATS opts lst
+-- Bibliography reference:
+blockToJATS opts (Div ('r':'e':'f':'-':_,_,_) [Para lst]) =
+  inlinesToJATS opts lst
+blockToJATS opts (Div ("refs",_,_) xs) = do
+  contents <- blocksToJATS opts xs
+  return $ inTagsIndented "ref-list" contents
 blockToJATS opts (Div (ident,_,kvs) bs) = do
   contents <- blocksToJATS opts bs
   let attr = [("id", ident) | not (null ident)] ++

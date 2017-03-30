@@ -893,9 +893,11 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
     </p>
     <boxed-text>
       <boxed-text>
-        <p>
-          foo
-        </p>
+        <boxed-text>
+          <p>
+            foo
+          </p>
+        </boxed-text>
       </boxed-text>
       <boxed-text>
         <p>
@@ -915,9 +917,11 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
     <p>
       Here’s a simple block:
     </p>
-    <p>
-      foo
-    </p>
+    <boxed-text>
+      <p>
+        foo
+      </p>
+    </boxed-text>
     <p>
       This should be a code block, though:
     </p>
