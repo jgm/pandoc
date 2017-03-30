@@ -386,11 +386,12 @@ convertWithOpts opts = do
                                  withMediaBag . r readerOpts) sources
                 return (mconcat (map fst pairs), mconcat (map snd pairs))
 
-  jatsCSL <- readDataFile datadir "jats.csl"
-  let jatsEncoded = makeDataURI ("application/xml", jatsCSL)
-  let metadata = if format == "jats"
-                    then ("csl", jatsEncoded) : optMetadata opts
-                    else optMetadata opts
+  metadata <- if format == "jats"
+                 then do
+                   jatsCSL <- readDataFile datadir "jats.csl"
+                   let jatsEncoded = makeDataURI ("application/xml", jatsCSL)
+                   return $ ("csl", jatsEncoded) : optMetadata opts
+                 else return $ optMetadata opts
 
   runIO' $ do
     (doc, media) <- sourceToDoc sources
