@@ -381,14 +381,16 @@ inlineToJATS _ (Math t str) = do
   let tagtype = case t of
                      DisplayMath -> "disp-formula"
                      InlineMath  -> "inline-formula"
-  return $ inTagsSimple tagtype $
-             case res of
-                   Right r  -> text $ Xml.ppcElement conf
-                                    $ fixNS r
-                   Left _   -> inTagsSimple "tex-math"
+  let rawtex = inTagsSimple "tex-math"
                                 $ text "<![CDATA[" <>
                                   text str <>
                                   text "]]>"
+  return $ inTagsSimple tagtype $
+             case res of
+                   Right r  -> inTagsSimple "alternatives" $
+                                  cr <> rawtex $$
+                                  (text $ Xml.ppcElement conf $ fixNS r)
+                   Left _   -> rawtex
 inlineToJATS _ (Link _attr [Str t] ('m':'a':'i':'l':'t':'o':':':email, _))
   | escapeURI t == email =
   return $ inTagsSimple "email" $ text (escapeStringForXML email)
