@@ -1181,7 +1181,8 @@ inlineToOpenXML' opts (Code attrs str) = do
   withTextProp (rCustomStyle "VerbatimChar")
     $ if isNothing (writerHighlightStyle opts)
           then unhighlighted
-          else case highlight formatOpenXML attrs str of
+          else case highlight (writerSyntaxMap opts)
+                      formatOpenXML attrs str of
                     Right h  -> return h
                     Left msg -> do
                       unless (null msg) $ report $ CouldNotHighlight msg

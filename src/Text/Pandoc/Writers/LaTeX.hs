@@ -548,7 +548,8 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
         return $ flush ("\\begin{lstlisting}" <> printParams $$ text str $$
                  "\\end{lstlisting}") $$ cr
   let highlightedCodeBlock =
-        case highlight formatLaTeXBlock ("",classes,keyvalAttr) str of
+        case highlight (writerSyntaxMap opts)
+                 formatLaTeXBlock ("",classes,keyvalAttr) str of
                Left msg -> do
                  unless (null msg) $
                    report $ CouldNotHighlight msg
@@ -953,32 +954,33 @@ inlineToLaTeX (Cite cits lst) = do
 inlineToLaTeX (Code (_,classes,_) str) = do
   opts <- gets stOptions
   inHeading <- gets stInHeading
+  let listingsCode = do
+        let listingsopt = case getListingsLanguage classes of
+                               Just l -> "[language=" ++ mbBraced l ++ "]"
+                               Nothing -> ""
+        inNote <- gets stInNote
+        when inNote $ modify $ \s -> s{ stVerbInNote = True }
+        let chr = case "!\"&'()*,-./:;?@_" \\ str of
+                       (c:_) -> c
+                       []    -> '!'
+        return $ text $ "\\lstinline" ++ listingsopt ++ [chr] ++ str ++ [chr]
+  let rawCode = liftM (text . (\s -> "\\texttt{" ++ escapeSpaces s ++ "}"))
+                 $ stringToLaTeX CodeString str
+                where escapeSpaces =  concatMap
+                         (\c -> if c == ' ' then "\\ " else [c])
+  let highlightCode = do
+        case highlight (writerSyntaxMap opts)
+                 formatLaTeXInline ("",classes,[]) str of
+               Left msg -> do
+                 unless (null msg) $ report $ CouldNotHighlight msg
+                 rawCode
+               Right h -> modify (\st -> st{ stHighlighting = True }) >>
+                          return (text (T.unpack h))
   case () of
      _ | writerListings opts  && not inHeading      -> listingsCode
        | isJust (writerHighlightStyle opts) && not (null classes)
                                                     -> highlightCode
        | otherwise                                  -> rawCode
-   where listingsCode = do
-           let listingsopt = case getListingsLanguage classes of
-                                  Just l -> "[language=" ++ mbBraced l ++ "]"
-                                  Nothing -> ""
-           inNote <- gets stInNote
-           when inNote $ modify $ \s -> s{ stVerbInNote = True }
-           let chr = case "!\"&'()*,-./:;?@_" \\ str of
-                          (c:_) -> c
-                          []    -> '!'
-           return $ text $ "\\lstinline" ++ listingsopt ++ [chr] ++ str ++ [chr]
-         highlightCode = do
-           case highlight formatLaTeXInline ("",classes,[]) str of
-                  Left msg -> do
-                    unless (null msg) $ report $ CouldNotHighlight msg
-                    rawCode
-                  Right h -> modify (\st -> st{ stHighlighting = True }) >>
-                             return (text (T.unpack h))
-         rawCode = liftM (text . (\s -> "\\texttt{" ++ escapeSpaces s ++ "}"))
-                          $ stringToLaTeX CodeString str
-           where
-             escapeSpaces =  concatMap (\c -> if c == ' ' then "\\ " else [c])
 inlineToLaTeX (Quoted qt lst) = do
   contents <- inlineListToLaTeX lst
   csquotes <- liftM stCsquotes get

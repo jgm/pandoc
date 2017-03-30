@@ -57,6 +57,8 @@ import qualified Data.Yaml as Yaml
 import Network.URI (URI (..), isURI, parseURI)
 import Paths_pandoc (getDataDir)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap)
+import Skylighting.Parser (missingIncludes, parseSyntaxDefinition,
+                           addSyntaxDefinition)
 import System.Console.GetOpt
 import System.Directory (Permissions (..), doesFileExist, findExecutable,
                          getAppUserDataDirectory, getPermissions)
@@ -299,6 +301,21 @@ convertWithOpts opts = do
                       }
 
   highlightStyle <- lookupHighlightStyle $ optHighlightStyle opts
+  let addSyntaxMap existingmap f = do
+        res <- parseSyntaxDefinition f
+        case res of
+              Left errstr -> err 67 errstr
+              Right syn   -> return $ addSyntaxDefinition syn existingmap
+
+  syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
+                     (optSyntaxDefinitions opts)
+
+  case missingIncludes (M.elems syntaxMap) of
+       [] -> return ()
+       xs -> err 73 $ "Missing syntax definitions:\n" ++
+                unlines (map
+                  (\(syn,dep) -> (T.unpack syn ++ " requires " ++
+                    T.unpack dep ++ " through IncludeRules.")) xs)
 
   let writerOptions = def { writerTemplate         = templ,
                             writerVariables        = variables,
@@ -330,7 +347,8 @@ convertWithOpts opts = do
                             writerEpubChapterLevel = optEpubChapterLevel opts,
                             writerTOCDepth         = optTOCDepth opts,
                             writerReferenceDoc     = optReferenceDoc opts,
-                            writerLaTeXArgs        = optLaTeXEngineArgs opts
+                            writerLaTeXArgs        = optLaTeXEngineArgs opts,
+                            writerSyntaxMap        = syntaxMap
                           }
 
 
@@ -507,6 +525,7 @@ data Opt = Opt
     , optSelfContained         :: Bool    -- ^ Make HTML accessible offline
     , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
     , optHighlightStyle        :: Maybe String -- ^ Style to use for highlighted code
+    , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
     , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
     , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
@@ -574,6 +593,7 @@ defaultOpts = Opt
     , optSelfContained         = False
     , optHtmlQTags             = False
     , optHighlightStyle        = Just "pygments"
+    , optSyntaxDefinitions     = []
     , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath
     , optAbbreviations         = Nothing
@@ -986,6 +1006,13 @@ options =
                  (\arg opt -> return opt{ optHighlightStyle = Just arg })
                  "STYLE")
                  "" -- "Style for highlighted code"
+
+    , Option "" ["syntax-definition"]
+                (ReqArg
+                 (\arg opt -> return opt{ optSyntaxDefinitions = arg :
+                                             optSyntaxDefinitions opt })
+                 "FILE")
+                "" -- "Syntax definition (xml) file"
 
     , Option "H" ["include-in-header"]
                  (ReqArg

@@ -642,7 +642,7 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     then unlines . map ("> " ++) . lines $ rawCode
                     else rawCode
       hlCode   = if isJust (writerHighlightStyle opts)
-                    then highlight formatHtmlBlock
+                    then highlight (writerSyntaxMap opts) formatHtmlBlock
                             (id',classes',keyvals) adjCode
                     else Left ""
   case hlCode of
@@ -885,8 +885,9 @@ inlineToHtml opts inline = do
                                return $ addAttrs opts (id',[],keyvals) h
                         where (id',_,keyvals) = attr
                               hlCode = if isJust (writerHighlightStyle opts)
-                                          then highlight formatHtmlInline
-                                                   attr str
+                                          then highlight
+                                                 (writerSyntaxMap opts)
+                                                 formatHtmlInline attr str
                                           else Left ""
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . H.del

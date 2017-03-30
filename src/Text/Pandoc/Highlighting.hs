@@ -76,21 +76,22 @@ languagesByExtension :: String -> [String]
 languagesByExtension ext =
   [T.unpack (T.toLower (sName s)) | s <- syntaxesByExtension defaultSyntaxMap ext]
 
-highlight :: (FormatOptions -> [SourceLine] -> a) -- ^ Formatter
+highlight :: SyntaxMap
+          -> (FormatOptions -> [SourceLine] -> a) -- ^ Formatter
           -> Attr   -- ^ Attributes of the CodeBlock
           -> String -- ^ Raw contents of the CodeBlock
           -> Either String a
-highlight formatter (_, classes, keyvals) rawCode =
+highlight syntaxmap formatter (_, classes, keyvals) rawCode =
   let firstNum = fromMaybe 1 (safeRead (fromMaybe "1" $ lookup "startFrom" keyvals))
       fmtOpts = defaultFormatOpts{
                   startNumber = firstNum,
                   numberLines = any (`elem`
                         ["number","numberLines", "number-lines"]) classes }
-      tokenizeOpts = TokenizerConfig{ syntaxMap = defaultSyntaxMap
+      tokenizeOpts = TokenizerConfig{ syntaxMap = syntaxmap
                                     , traceOutput = False }
       classes' = map T.pack classes
       rawCode' = T.pack rawCode
-  in  case msum (map (\l -> lookupSyntax l defaultSyntaxMap) classes') of
+  in  case msum (map (\l -> lookupSyntax l syntaxmap) classes') of
             Nothing
               | numberLines fmtOpts -> Right
                               $ formatter fmtOpts{ codeClasses = [],

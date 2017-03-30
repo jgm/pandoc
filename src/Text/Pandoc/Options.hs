@@ -50,6 +50,7 @@ import Data.Default
 import qualified Data.Set as Set
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
+import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Highlighting (Style, pygments)
 
@@ -185,6 +186,7 @@ data WriterOptions = WriterOptions
   , writerReferenceDoc      :: Maybe FilePath -- ^ Path to reference document if specified
   , writerLaTeXArgs         :: [String]       -- ^ Flags to pass to latex-engine
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
+  , writerSyntaxMap         :: SyntaxMap
   } deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
@@ -220,6 +222,7 @@ instance Default WriterOptions where
                       , writerReferenceDoc     = Nothing
                       , writerLaTeXArgs        = []
                       , writerReferenceLocation = EndOfDocument
+                      , writerSyntaxMap        = defaultSyntaxMap
                       }
 
 -- | Returns True if the given extension is enabled.

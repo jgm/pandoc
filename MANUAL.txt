@@ -639,6 +639,14 @@ General writer options
     [Syntax highlighting], below.  See also
     `--list-highlight-styles`.
 
+`--syntax-definition=`*FILE*
+
+:   Instructs pandoc to load a KDE XML syntax definition file,
+    which will be used for syntax highlighting of appropriately
+    marked code blocks.  This can be used to add support for
+    new languages or to use altered syntax definitions for
+    existing languages.
+
 `-H` *FILE*, `--include-in-header=`*FILE*
 
 :   Include contents of *FILE*, verbatim, at the end of the header.
