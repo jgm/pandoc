@@ -73,7 +73,7 @@ import Text.Pandoc.Lua ( runLuaFilter )
 import Text.Pandoc.MediaBag (MediaBag, extractMediaBag, mediaDirectory)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
-import Text.Pandoc.SelfContained (makeSelfContained)
+import Text.Pandoc.SelfContained (makeSelfContained, makeDataURI)
 import Text.Pandoc.Shared (err, headerShift, openURL, readDataFile,
                            readDataFileUTF8, safeRead, tabFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -386,10 +386,16 @@ convertWithOpts opts = do
                                  withMediaBag . r readerOpts) sources
                 return (mconcat (map fst pairs), mconcat (map snd pairs))
 
+  jatsCSL <- readDataFile datadir "jats.csl"
+  let jatsEncoded = makeDataURI ("application/xml", jatsCSL)
+  let metadata = if format == "jats"
+                    then ("csl", jatsEncoded) : optMetadata opts
+                    else optMetadata opts
+
   runIO' $ do
     (doc, media) <- sourceToDoc sources
     doc' <- (maybe return (extractMedia media) (optExtractMedia opts) >=>
-              return . flip (foldr addMetadata) (optMetadata opts) >=>
+              return . flip (foldr addMetadata) metadata >=>
               applyTransforms transforms >=>
               applyLuaFilters datadir (optLuaFilters opts) [format] >=>
               applyFilters datadir filters' [format]) doc

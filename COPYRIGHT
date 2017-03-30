@@ -110,3 +110,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------
 The template pandoc.jats is Copyright 2013--15 Martin Fenner,
 released under GPL version 2 or later.
+
+The file data/jats.csl is derived from a csl file by Martin Fenner,
+revised by Martin Paul Eve and then John MacFarlane.
+"This work is licensed under a Creative Commons Attribution-ShareAlike 3.0
+License. Originally by Martin Fenner."

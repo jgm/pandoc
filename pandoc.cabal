@@ -111,6 +111,8 @@ Data-Files:
                  data/pandoc.lua
                  -- bash completion template
                  data/bash_completion.tpl
+                 -- jats csl
+                 data/jats.csl
                  -- documentation
                  MANUAL.txt, COPYRIGHT
 Extra-Source-Files:
