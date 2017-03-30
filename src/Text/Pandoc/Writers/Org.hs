@@ -354,7 +354,7 @@ inlineToOrg (Math t str) = do
   return $ if t == InlineMath
               then "$" <> text str <> "$"
               else "$$" <> text str <> "$$"
-inlineToOrg il@(RawInline f@(Format f') str)
+inlineToOrg il@(RawInline f str)
   | isRawFormat f = return $ text str
   | otherwise     = do
       report $ InlineNotRendered il
