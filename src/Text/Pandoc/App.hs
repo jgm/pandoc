@@ -404,7 +404,9 @@ convertWithOpts opts = do
                                  withMediaBag . r readerOpts) sources
                 return (mconcat (map fst pairs), mconcat (map snd pairs))
 
-  metadata <- if format == "jats"
+  metadata <- if format == "jats" &&
+                 lookup "csl" (optMetadata opts) == Nothing &&
+                 lookup "citation-style" (optMetadata opts) == Nothing
                  then do
                    jatsCSL <- readDataFile datadir "jats.csl"
                    let jatsEncoded = makeDataURI ("application/xml", jatsCSL)
