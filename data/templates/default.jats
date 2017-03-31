@@ -192,5 +192,12 @@ $if(notes)$
 <notes>$notes$</notes>
 $endif$
 </front>
+<body>
 $body$
+</body>
+$if(back)$
+<back>
+$back$
+</back>
+$endif$
 </article>

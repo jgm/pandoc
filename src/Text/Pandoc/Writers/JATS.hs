@@ -34,7 +34,7 @@ module Text.Pandoc.Writers.JATS ( writeJATS ) where
 import Control.Monad.Reader
 import Data.Char (toLower)
 import Data.Generics (everywhere, mkT)
-import Data.List (intercalate, isSuffixOf)
+import Data.List (intercalate, isSuffixOf, partition)
 import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
@@ -88,7 +88,11 @@ writeJATS opts d =
 -- | Convert Pandoc document to string in JATS format.
 docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> DB m String
 docToJATS opts (Pandoc meta blocks) = do
-  let elements = hierarchicalize blocks
+  let isBackBlock (Div ("refs",_,_) _) = True
+      isBackBlock _ = False
+  let (backblocks, bodyblocks) = partition isBackBlock blocks
+  let elements = hierarchicalize bodyblocks
+  let backElements = hierarchicalize backblocks
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -112,9 +116,12 @@ docToJATS opts (Pandoc meta blocks) = do
                             hierarchicalize))
                  (fmap (render colwidth) . inlinesToJATS opts')
                  meta'
-  main <- (render' . inTagsIndented "body" . vcat) <$>
+  main <- (render' . vcat) <$>
             (mapM (elementToJATS opts' startLvl) elements)
+  back <- (render' . vcat) <$>
+            (mapM (elementToJATS opts' startLvl) backElements)
   let context = defField "body" main
+              $ defField "back" back
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML -> True
                                         _      -> False)
