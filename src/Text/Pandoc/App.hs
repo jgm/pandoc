@@ -56,7 +56,7 @@ import Data.Yaml (decode)
 import qualified Data.Yaml as Yaml
 import Network.URI (URI (..), isURI, parseURI)
 import Paths_pandoc (getDataDir)
-import Skylighting (Style, Syntax (..), defaultSyntaxMap)
+import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
 import Skylighting.Parser (missingIncludes, parseSyntaxDefinition,
                            addSyntaxDefinition)
 import System.Console.GetOpt
@@ -802,7 +802,13 @@ writerFn f   = liftIO . UTF8.writeFile f
 
 lookupHighlightStyle :: Maybe String -> IO (Maybe Style)
 lookupHighlightStyle Nothing = return Nothing
-lookupHighlightStyle (Just s) =
+lookupHighlightStyle (Just s)
+  | takeExtension s == ".theme" = -- attempt to load KDE theme
+    do contents <- B.readFile s
+       case parseTheme contents of
+            Left _    -> err 69 $ "Could not read highlighting theme " ++ s
+            Right sty -> return (Just sty)
+  | otherwise =
   case lookup (map toLower s) highlightingStyles of
        Just sty -> return (Just sty)
        Nothing  -> err 68 $ "Unknown highlight-style " ++ s

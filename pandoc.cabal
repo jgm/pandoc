@@ -109,6 +109,8 @@ Data-Files:
                  data/sample.lua
                  -- pandoc lua module
                  data/pandoc.lua
+                 -- sample highlighting theme
+                 data/default.theme
                  -- bash completion template
                  data/bash_completion.tpl
                  -- jats csl

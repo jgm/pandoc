@@ -630,7 +630,7 @@ General writer options
 :   Disables syntax highlighting for code blocks and inlines, even when
     a language attribute is given.
 
-`--highlight-style=`*STYLE*
+`--highlight-style=`*STYLE*|*FILE*
 
 :   Specifies the coloring style to be used in highlighted source code.
     Options are `pygments` (the default), `kate`, `monochrome`,
@@ -638,6 +638,12 @@ General writer options
     For more information on syntax highlighting in pandoc, see
     [Syntax highlighting], below.  See also
     `--list-highlight-styles`.
+
+    Instead of a *STYLE* name, a JSON file with extension
+    `.theme` may be supplied.  This will be parsed as a KDE
+    syntax highlighting theme and (if valid) used as the
+    highlighting style.  To see a sample theme that can be
+    modified, `pandoc --print-default-data-file default.theme`.
 
 `--syntax-definition=`*FILE*
 
