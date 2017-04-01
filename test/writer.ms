@@ -159,7 +159,7 @@ Code in a block quote:
 .nf
 \f[C]
 sub\ status\ {
-\ \ \ \ print\ \"working\";
+\ \ \ \ print\ \[dq]working\[dq];
 }
 \f[]
 .fi
@@ -198,7 +198,7 @@ Code:
 \-\-\-\-\ (should\ be\ four\ hyphens)
 
 sub\ status\ {
-\ \ \ \ print\ \"working\";
+\ \ \ \ print\ \[dq]working\[dq];
 }
 
 this\ code\ block\ is\ indented\ by\ one\ tab

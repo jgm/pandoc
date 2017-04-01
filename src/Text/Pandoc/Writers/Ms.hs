@@ -43,7 +43,9 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Options
 import Text.Pandoc.Writers.Math
 import Text.Printf ( printf )
+import qualified Data.Text as T
 import qualified Data.Map as Map
+import Data.Maybe ( catMaybes, fromMaybe )
 import Data.List ( intersperse, intercalate, sort )
 import Text.Pandoc.Pretty
 import Text.Pandoc.Class (PandocMonad, report)
@@ -53,11 +55,14 @@ import Control.Monad.State
 import Data.Char ( isLower, isUpper, toUpper )
 import Text.TeXMath (writeEqn)
 import System.FilePath (takeExtension)
+import Skylighting
+import Text.Pandoc.Highlighting
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
                                , stNotes         :: [Note]
                                , stSmallCaps     :: Bool
+                               , stHighlighting  :: Bool
                                , stFontFeatures  :: Map.Map Char Bool
                                }
 
@@ -66,6 +71,7 @@ defaultWriterState = WriterState{ stHasInlineMath = False
                                 , stFirstPara     = True
                                 , stNotes         = []
                                 , stSmallCaps     = False
+                                , stHighlighting  = False
                                 , stFontFeatures  = Map.fromList [
                                                        ('I',False)
                                                      , ('B',False)
@@ -98,6 +104,13 @@ pandocToMs opts (Pandoc meta blocks) = do
   hasInlineMath <- gets stHasInlineMath
   let titleMeta = (escapeString . stringify) $ docTitle meta
   let authorsMeta = map (escapeString . stringify) $ docAuthors meta
+  hasHighlighting <- gets stHighlighting
+  let highlightingMacros = if hasHighlighting
+                              then case writerHighlightStyle opts of
+                                        Nothing  -> ""
+                                        Just sty -> render' $ styleToMs sty
+                              else ""
+
   let context = defField "body" main
               $ defField "has-inline-math" hasInlineMath
               $ defField "hyphenate" True
@@ -105,6 +118,7 @@ pandocToMs opts (Pandoc meta blocks) = do
               $ defField "toc" (writerTableOfContents opts)
               $ defField "title-meta" titleMeta
               $ defField "author-meta" (intercalate "; " authorsMeta)
+              $ defField "highlighting-macros" highlightingMacros
               $ metadata
   case writerTemplate opts of
        Nothing  -> return main
@@ -117,7 +131,7 @@ msEscapes = Map.fromList $
               , ('\'', "\\[aq]")
               , ('`', "\\`")
               , ('\8217', "'")
-              , ('"', "\\\"")
+              , ('"', "\\[dq]")
               , ('\x2014', "\\[em]")
               , ('\x2013', "\\[en]")
               , ('\x2026', "\\&...")
@@ -276,13 +290,14 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
            bookmark $$
            anchor $$
            tocEntry
-blockToMs _ (CodeBlock _ str) = do
+blockToMs opts (CodeBlock attr str) = do
+  hlCode <- highlightCode opts attr str
   setFirstPara
   return $
     text ".IP" $$
     text ".nf" $$
     text "\\f[C]" $$
-    text (escapeCode str) $$
+    hlCode $$
     text "\\f[]" $$
     text ".fi"
 blockToMs opts (LineBlock ls) = do
@@ -450,8 +465,9 @@ inlineToMs opts (Quoted DoubleQuote lst) = do
   return $ text "\\[lq]" <> contents <> text "\\[rq]"
 inlineToMs opts (Cite _ lst) =
   inlineListToMs opts lst
-inlineToMs _ (Code _ str) =
-  withFontFeature 'C' (return $ text $ escapeCode str)
+inlineToMs opts (Code attr str) = do
+  hlCode <- highlightCode opts attr str
+  withFontFeature 'C' (return hlCode)
 inlineToMs _ (Str str) = do
   let shim = case str of
                   '.':_ -> afterBreak "\\&"
@@ -549,3 +565,66 @@ breakToSpace :: Inline -> Inline
 breakToSpace SoftBreak = Space
 breakToSpace LineBreak = Space
 breakToSpace x         = x
+
+-- Highlighting
+
+styleToMs :: Style -> Doc
+styleToMs sty = vcat $ colordefs ++ map (toMacro sty) alltoktypes
+  where alltoktypes = enumFromTo KeywordTok NormalTok
+        colordefs = map toColorDef allcolors
+        toColorDef c = text (".defcolor " ++
+            hexColor c ++ " rgb #" ++ hexColor c)
+        allcolors = catMaybes $ ordNub $
+          [defaultColor sty, backgroundColor sty,
+           lineNumberColor sty, lineNumberBackgroundColor sty] ++
+           concatMap colorsForToken (map snd (tokenStyles sty))
+        colorsForToken ts = [tokenColor ts, tokenBackground ts]
+
+hexColor :: Color -> String
+hexColor (RGB r g b) = printf "%02x%02x%02x" r g b
+
+toMacro :: Style -> TokenType -> Doc
+toMacro sty toktype =
+  nowrap (text ".ds " <> text (show toktype) <> text " " <>
+            setbg <> setcolor <> setfont <>
+            text "\\\\$1" <>
+            resetfont <> resetcolor <> resetbg)
+  where setcolor = maybe empty fgcol tokCol
+        resetcolor = maybe empty (const $ text "\\\\m[]") tokCol
+        setbg = empty -- maybe empty bgcol tokBg
+        resetbg = empty -- maybe empty (const $ text "\\\\M[]") tokBg
+        fgcol c = text $ "\\\\m[" ++ hexColor c ++ "]"
+        -- bgcol c = text $ "\\\\M[" ++ hexColor c ++ "]"
+        setfont = if tokBold || tokItalic
+                     then text $ "\\\\f[C" ++ ['B' | tokBold] ++
+                          ['I' | tokItalic] ++ "]"
+                     else empty
+        resetfont = if tokBold || tokItalic
+                       then text "\\\\f[C]"
+                       else empty
+        tokSty = lookup toktype (tokenStyles sty)
+        tokCol = (tokSty >>= tokenColor) `mplus` defaultColor sty
+        -- tokBg  = (tokSty >>= tokenBackground) `mplus` backgroundColor sty
+        tokBold = fromMaybe False (tokenBold <$> tokSty)
+        tokItalic = fromMaybe False (tokenItalic <$> tokSty)
+        -- tokUnderline = fromMaybe False (tokSty >>= tokUnderline)
+        -- lnColor = lineNumberColor sty
+        -- lnBkgColor = lineNumberBackgroundColor sty
+
+msFormatter :: FormatOptions -> [SourceLine] -> Doc
+msFormatter _fmtopts =
+  vcat . map fmtLine
+  where fmtLine = hcat . map fmtToken
+        fmtToken (toktype, tok) = text "\\*" <>
+           brackets (text (show toktype) <> text " \""
+             <> text (escapeCode (T.unpack tok)) <> text "\"")
+
+highlightCode :: PandocMonad m => WriterOptions -> Attr -> String -> MS m Doc
+highlightCode opts attr str =
+  case highlight (writerSyntaxMap opts) msFormatter attr str of
+         Left msg -> do
+           unless (null msg) $ report $ CouldNotHighlight msg
+           return $ text (escapeCode str)
+         Right h -> do
+           modify (\st -> st{ stHighlighting = True })
+           return h

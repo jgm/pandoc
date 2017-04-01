@@ -11,6 +11,10 @@
 .ce
 \l'20'
 ..
+$if(highlighting-macros)$
+.\" * Syntax highlighting macros
+$highlighting-macros$
+$endif$
 .\" **** Settings *************************************************
 .\" text width
 .nr LL 5.5i
