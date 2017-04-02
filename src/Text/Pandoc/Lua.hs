@@ -15,11 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua
    Copyright   : Copyright © 2017 Albert Krewinkel
@@ -34,24 +30,23 @@ module Text.Pandoc.Lua ( runLuaFilter ) where
 
 import Control.Monad ( (>=>), when )
 import Control.Monad.Trans ( MonadIO(..) )
-import Data.Aeson ( FromJSON(..), ToJSON(..), Result(..), Value, fromJSON )
 import Data.HashMap.Lazy ( HashMap )
 import Data.Text ( Text, pack, unpack )
 import Data.Text.Encoding ( decodeUtf8 )
 import Scripting.Lua ( LuaState, StackValue(..) )
-import Scripting.Lua.Aeson ()
+import Scripting.Lua.Aeson ( newstate )
 import Text.Pandoc.Definition ( Block(..), Inline(..), Pandoc(..) )
 import Text.Pandoc.Lua.PandocModule
+import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Walk
 
 import qualified Data.HashMap.Lazy as HashMap
 import qualified Scripting.Lua as Lua
-import qualified Scripting.Lua as LuaAeson
 
 runLuaFilter :: (MonadIO m)
              => FilePath -> [String] -> Pandoc -> m Pandoc
 runLuaFilter filterPath args pd = liftIO $ do
-  lua <- LuaAeson.newstate
+  lua <- newstate
   Lua.openlibs lua
   Lua.newtable lua
   Lua.setglobal lua "PANDOC_FILTER_FUNCTIONS"  -- hack, store functions here
@@ -204,23 +199,3 @@ isLuaFunction lua fnName = do
   res <- Lua.isfunction lua (-1)
   Lua.pop lua (-1)
   return res
-
-maybeFromJson :: (FromJSON a) => Maybe Value -> Maybe a
-maybeFromJson mv = fromJSON <$> mv >>= \case
-  Success x -> Just x
-  _         -> Nothing
-
-instance StackValue Pandoc where
-  push lua = Lua.push lua . toJSON
-  peek lua i = maybeFromJson <$> peek lua i
-  valuetype _ = Lua.TTABLE
-
-instance StackValue Block where
-  push lua = Lua.push lua . toJSON
-  peek lua i = maybeFromJson <$> peek lua i
-  valuetype _ = Lua.TTABLE
-
-instance StackValue Inline where
-  push lua = Lua.push lua . toJSON
-  peek lua i = maybeFromJson <$> peek lua i
-  valuetype _ = Lua.TTABLE

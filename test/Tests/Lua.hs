@@ -26,6 +26,12 @@ tests =
       "hello-world-doc.lua"
       (doc . para $ str "Hey!" <> linebreak <> str "What's up?")
       (doc . para $ str "Hello," <> space <> str "World!")
+
+  , testCase "parse raw markdown blocks" $
+    assertFilterConversion "raw markdown block is converted"
+      "markdown-reader.lua"
+      (doc $ rawBlock "markdown" "*charly* **delta**")
+      (doc . para $ emph "charly" <> space <> strong "delta")
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
