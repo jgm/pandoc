@@ -1904,11 +1904,11 @@ this syntax:
 Here `mycode` is an identifier, `haskell` and `numberLines` are classes, and
 `startFrom` is an attribute with value `100`. Some output formats can use this
 information to do syntax highlighting. Currently, the only output formats
-that uses this information are HTML and LaTeX. If highlighting is supported
-for your output format and language, then the code block above will appear
-highlighted, with numbered lines. (To see which languages are supported, type
-`pandoc --list-highlight-languages`.) Otherwise, the code block above will
-appear as follows:
+that uses this information are HTML, LaTeX, Docx, and Ms. If highlighting
+is supported for your output format and language, then the code block above
+will appear highlighted, with numbered lines. (To see which languages are
+supported, type `pandoc --list-highlight-languages`.) Otherwise, the code
+block above will appear as follows:
 
     <pre id="mycode" class="haskell numberLines" startFrom="100">
       <code>
@@ -4045,7 +4045,7 @@ Syntax highlighting
 
 Pandoc will automatically highlight syntax in [fenced code blocks] that
 are marked with a language name.  The Haskell library [highlighting-kate] is
-used for highlighting, which works in HTML, Docx, and LaTeX/PDF output.
+used for highlighting, which works in HTML, Docx, Ms, and LaTeX/PDF output.
 To see a list of language names that pandoc will recognize, type
 `pandoc --list-highlight-languages`.
 
