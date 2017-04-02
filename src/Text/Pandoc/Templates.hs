@@ -41,7 +41,7 @@ module Text.Pandoc.Templates ( renderTemplate
                              , Template
                              , getDefaultTemplate ) where
 
-import qualified Control.Exception.Extensible as E (IOException, try)
+import qualified Control.Exception as E (IOException, try)
 import Data.Aeson (ToJSON (..))
 import qualified Data.Text as T
 import System.FilePath ((<.>), (</>))

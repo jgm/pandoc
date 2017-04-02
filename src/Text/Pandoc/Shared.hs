@@ -82,7 +82,6 @@ module Text.Pandoc.Shared (
                      collapseFilePath,
                      filteredFilesFromArchive,
                      -- * Error handling
-                     err,
                      mapLeft,
                      -- * for squashing blocks
                      blocksToInlines,
@@ -99,7 +98,6 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Builder (Inlines, Blocks, ToMetaValue(..))
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8
-import System.Exit (exitWith, ExitCode(..))
 import Data.Char ( toLower, isLower, isUpper, isAlpha,
                    isLetter, isDigit, isSpace )
 import Data.List ( find, stripPrefix, intercalate )
@@ -112,16 +110,15 @@ import System.Directory
 import System.FilePath (splitDirectories, isPathSeparator)
 import qualified System.FilePath.Posix as Posix
 import Text.Pandoc.MIME (MimeType)
+import Text.Pandoc.Error (PandocError(..))
 import System.FilePath ( (</>) )
 import Data.Generics (Typeable, Data)
 import qualified Control.Monad.State as S
-import Control.Monad.Trans (MonadIO (..))
 import qualified Control.Exception as E
 import Control.Monad (msum, unless, MonadPlus(..))
 import Text.Pandoc.Pretty (charWidth)
 import Text.Pandoc.Compat.Time
 import Data.Time.Clock.POSIX
-import System.IO (stderr)
 import System.IO.Error
 import System.IO.Temp
 import Text.HTML.TagSoup (renderTagsOptions, RenderOptions(..), Tag(..),
@@ -677,7 +674,8 @@ readDefaultDataFile "reference.odt" =
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
   case lookup (makeCanonical fname) dataFiles of
-    Nothing       -> err 97 $ "Could not find data file " ++ fname
+    Nothing       -> E.throwIO $ PandocAppError 97 $
+                        "Could not find data file " ++ fname
     Just contents -> return contents
   where makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
         transformPathParts = reverse . foldl go []
@@ -693,7 +691,7 @@ checkExistence fn = do
   exists <- doesFileExist fn
   if exists
      then return fn
-     else err 97 ("Could not find data file " ++ fn)
+     else E.throwIO $ PandocAppError 97 ("Could not find data file " ++ fn)
 #endif
 
 -- | Read file from specified user data directory or, if not found there, from
@@ -758,12 +756,6 @@ openURL u
 --
 -- Error reporting
 --
-
-err :: MonadIO m => Int -> String -> m a
-err exitCode msg = liftIO $ do
-  UTF8.hPutStrLn stderr msg
-  exitWith $ ExitFailure exitCode
-  return undefined
 
 mapLeft :: (a -> b) -> Either a c -> Either b c
 mapLeft f (Left x) = Left (f x)

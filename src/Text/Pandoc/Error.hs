@@ -37,9 +37,11 @@ module Text.Pandoc.Error (
 import Control.Exception (Exception)
 import Data.Generics (Typeable)
 import GHC.Generics (Generic)
-import Text.Pandoc.Shared (err)
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
+import qualified Text.Pandoc.UTF8 as UTF8
+import System.Exit (exitWith, ExitCode(..))
+import System.IO (stderr)
 
 type Input = String
 
@@ -49,6 +51,7 @@ data PandocError = PandocIOError String IOError
                  | PandocParseError String
                  | PandocParsecError Input ParseError
                  | PandocMakePDFError String
+                 | PandocAppError Int String
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -74,4 +77,10 @@ handleError (Left e) =
                         else ""
         in  err 65 $ "\nError at " ++ show  err' ++ errorInFile
     PandocMakePDFError s -> err 65 s
+    PandocAppError ec s -> err ec s
 
+err :: Int -> String -> IO a
+err exitCode msg = do
+  UTF8.hPutStrLn stderr msg
+  exitWith $ ExitFailure exitCode
+  return undefined
