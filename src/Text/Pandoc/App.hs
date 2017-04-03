@@ -67,7 +67,6 @@ import System.FilePath
 import System.IO (stderr, stdout)
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
-import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, getLog, withMediaBag)
 import Text.Pandoc.Highlighting (highlightingStyles)
