@@ -17,14 +17,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
 import Distribution.Simple
-import Distribution.Simple.PreProcess
-import Distribution.Simple.Setup (ConfigFlags(..), CopyFlags(..), fromFlag)
-import Distribution.PackageDescription (PackageDescription(..), FlagName(..))
-import System.Exit
+import Distribution.Simple.Setup (CopyFlags(..), fromFlag)
+import Distribution.PackageDescription (PackageDescription(..))
 import Distribution.Simple.Utils (notice, installOrdinaryFiles)
-import Distribution.Simple.Program (simpleProgram, Program(..))
 import Distribution.Simple.LocalBuildInfo
-import Control.Monad (when)
 
 main :: IO ()
 main = defaultMainWithHooks $ simpleUserHooks {
