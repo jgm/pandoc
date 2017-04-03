@@ -247,9 +247,10 @@ Extra-Source-Files:
                  test/odt/odt/*.odt
                  test/odt/markdown/*.md
                  test/odt/native/*.native
-                 test/lua/strmacro.lua
-                 test/lua/plain-to-para.lua
                  test/lua/hello-world-doc.lua
+                 test/lua/markdown-reader.lua
+                 test/lua/plain-to-para.lua
+                 test/lua/strmacro.lua
 Source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
@@ -457,6 +458,7 @@ Library
                    Text.Pandoc.Readers.Org.Shared,
                    Text.Pandoc.Lua.Compat,
                    Text.Pandoc.Lua.PandocModule,
+                   Text.Pandoc.Lua.StackInstances,
                    Text.Pandoc.CSS,
                    Text.Pandoc.UUID,
                    Text.Pandoc.Slides,
