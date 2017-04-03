@@ -476,8 +476,7 @@ obfuscateLink opts attr (renderHtml -> txt) s =
                     else ("'" ++ obfuscateString txt ++ "'",
                           txt ++ " (" ++ name' ++ " at " ++ domain' ++ ")")
               (_, classNames, _) = attr
-              classNamesStr = (if not $ null classNames then " " else "")
-                           ++ intercalate " " classNames
+              classNamesStr = concatMap (' ':) classNames
           in  case meth of
                 ReferenceObfuscation ->
                      -- need to use preEscapedString or &'s are escaped to &amp; in URL
