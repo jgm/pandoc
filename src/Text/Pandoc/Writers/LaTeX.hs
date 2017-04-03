@@ -554,8 +554,11 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                  unless (null msg) $
                    report $ CouldNotHighlight msg
                  rawCodeBlock
-               Right h -> modify (\st -> st{ stHighlighting = True }) >>
-                          return (flush $ linkAnchor $$ text (T.unpack h))
+               Right h -> do
+                  st <- get
+                  when (stInNote st) $ modify (\s -> s{ stVerbInNote = True })
+                  modify (\s -> s{ stHighlighting = True })
+                  return (flush $ linkAnchor $$ text (T.unpack h))
   case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
          "literate" `elem` classes           -> lhsCodeBlock
