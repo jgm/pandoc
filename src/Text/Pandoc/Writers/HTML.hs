@@ -45,7 +45,7 @@ module Text.Pandoc.Writers.HTML (
   ) where
 import Control.Monad.State
 import Data.Char (ord, toLower)
-import Data.List (intersperse, intercalate, isPrefixOf)
+import Data.List (intersperse, isPrefixOf)
 import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
 import Data.Monoid ((<>))
 import Data.String (fromString)
