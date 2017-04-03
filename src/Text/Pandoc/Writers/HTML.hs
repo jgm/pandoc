@@ -45,7 +45,7 @@ module Text.Pandoc.Writers.HTML (
   ) where
 import Control.Monad.State
 import Data.Char (ord, toLower)
-import Data.List (intersperse, isPrefixOf)
+import Data.List (intersperse, intercalate, isPrefixOf)
 import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
 import Data.Monoid ((<>))
 import Data.String (fromString)
@@ -475,6 +475,9 @@ obfuscateLink opts attr (renderHtml -> txt) s =
                     then ("e", name' ++ " at " ++ domain')
                     else ("'" ++ obfuscateString txt ++ "'",
                           txt ++ " (" ++ name' ++ " at " ++ domain' ++ ")")
+              (_, classNames, _) = attr
+              classNamesStr = (if not $ null classNames then " " else "")
+                           ++ intercalate " " classNames
           in  case meth of
                 ReferenceObfuscation ->
                      -- need to use preEscapedString or &'s are escaped to &amp; in URL
@@ -487,7 +490,8 @@ obfuscateLink opts attr (renderHtml -> txt) s =
                      preEscapedString ("\n<!--\nh='" ++
                      obfuscateString domain ++ "';a='" ++ at' ++ "';n='" ++
                      obfuscateString name' ++ "';e=n+a+h;\n" ++
-                     "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\" clas'+'s=\"em' + 'ail\">'+" ++
+                     "document.write('<a h'+'ref'+'=\"ma'+'ilto'+':'+e+'\" clas'+'s=\"em' + 'ail" ++
+                     classNamesStr ++ "\">'+" ++
                      linkText  ++ "+'<\\/'+'a'+'>');\n// -->\n")) >>
                      H.noscript (preEscapedString $ obfuscateString altText)
                 _ -> throwError $ PandocSomeError $ "Unknown obfuscation method: " ++ show meth
