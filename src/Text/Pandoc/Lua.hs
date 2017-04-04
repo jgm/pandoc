@@ -48,8 +48,11 @@ runLuaFilter :: (MonadIO m)
 runLuaFilter filterPath args pd = liftIO $ do
   lua <- newstate
   Lua.openlibs lua
+  -- create table in registry to store filter functions
+  Lua.push lua ("PANDOC_FILTER_FUNCTIONS"::String)
   Lua.newtable lua
-  Lua.setglobal lua "PANDOC_FILTER_FUNCTIONS"  -- hack, store functions here
+  Lua.rawset lua Lua.registryindex
+  -- store module in global "pandoc"
   pushPandocModule lua
   Lua.setglobal lua "pandoc"
   status <- Lua.loadfile lua filterPath
@@ -171,12 +174,14 @@ runLuaFilterFunction lua lf inline = do
   Lua.pop lua 1
   return res
 
--- FIXME: use registry
+-- | Push the filter function to the top of the stack.
 pushFilterFunction :: Lua.LuaState -> LuaFilterFunction a -> IO ()
 pushFilterFunction lua lf = do
-  Lua.getglobal lua "PANDOC_FILTER_FUNCTIONS"
+  -- The function is stored in a lua registry table, retrieve it from there.
+  push lua ("PANDOC_FILTER_FUNCTIONS"::String)
+  Lua.rawget lua Lua.registryindex
   Lua.rawgeti lua (-1) (functionIndex lf)
-  Lua.remove lua (-2) -- remove global from stack
+  Lua.remove lua (-2) -- remove registry table from stack
 
 instance StackValue (LuaFilterFunction a) where
   valuetype _ = Lua.TFUNCTION
@@ -185,7 +190,8 @@ instance StackValue (LuaFilterFunction a) where
     isFn <- Lua.isfunction lua i
     when (not isFn) (error $ "Not a function at index " ++ (show i))
     Lua.pushvalue lua i
-    Lua.getglobal lua "PANDOC_FILTER_FUNCTIONS"
+    push lua ("PANDOC_FILTER_FUNCTIONS"::String)
+    Lua.rawget lua Lua.registryindex
     len <- Lua.objlen lua (-1)
     Lua.insert lua (-2)
     Lua.rawseti lua (-2) (len + 1)
