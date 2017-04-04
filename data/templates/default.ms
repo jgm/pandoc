@@ -21,15 +21,15 @@ $endif$
 .\" left margin
 .nr PO 1.25i
 .\" top margin
-.nr HM 1.25in
+.nr HM 1.25i
 .\" bottom margin
-.nr FM 1.25in
+.nr FM 1.25i
 .\" header/footer width
 .nr LT \n[LL]
-.\" point size (pt x 1000)
-.nr PS 10000
-.\" line height (pt x 1000)
-.nr VS 12000
+.\" point size
+.nr PS 10p
+.\" line height
+.nr VS 12p
 .\" font family: A, BM, H, HN, N, P, T, ZCM
 .fam T
 .\" paragraph indent
