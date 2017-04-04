@@ -1508,6 +1508,21 @@ Variables for man pages
 `hyphenate`
 :   if `true` (the default), hyphenation will be used
 
+Variables for ms
+----------------
+
+`pointsize`
+:    point size (e.g. `10p`)
+
+`lineheight`
+:    line height (e.g. `12p`)
+
+`fontfamily`
+:    font family (e.g. `T` or `P`)
+
+`indent`
+:    paragraph indent (e.g. `2m`)
+
 Using variables in templates
 ----------------------------
 

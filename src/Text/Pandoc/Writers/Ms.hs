@@ -516,10 +516,9 @@ inlineToMs opts (Link _ txt (src, _)) = do
        doubleQuotes (text (escapeUri src)) <> text " -A " <>
        doubleQuotes (text "\\c") <> space <> text "\\") <> cr <>
        text " -- " <> doubleQuotes (nowrap contents) <> cr <> text "\\&"
-inlineToMs opts (Image attr alternate (source, tit)) = do
-  let alt = if null alternate then [Str "image"] else alternate
-  linkPart <- inlineToMs opts (Link attr alt (source, tit))
-  return $ char '[' <> text "IMAGE: " <> linkPart <> char ']'
+inlineToMs _ (Image _ alternate (_, _)) =
+  return $ char '[' <> text "IMAGE: " <>
+           text (escapeString (stringify alternate)) <> char ']'
 inlineToMs _ (Note contents) = do
   modify $ \st -> st{ stNotes = contents : stNotes st }
   return $ text "\\**"

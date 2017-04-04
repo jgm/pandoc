@@ -27,13 +27,13 @@ $endif$
 .\" header/footer width
 .nr LT \n[LL]
 .\" point size
-.nr PS 10p
+.nr PS $if(pointsize)$$pointsize$$else$10p$endif$
 .\" line height
-.nr VS 12p
+.nr VS $if(lineheight)$$lineheight$$else$12p$endif$
 .\" font family: A, BM, H, HN, N, P, T, ZCM
-.fam T
+.fam $if(fontfamily)$$fontfamily$$else$T$endif$
 .\" paragraph indent
-.nr PI 2m
+.nr PI $if(indent)$$indent$$else$2m$endif$
 .\" interparagraph space
 .nr PD 0.33v
 .\" footnote width

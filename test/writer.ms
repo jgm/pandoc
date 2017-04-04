@@ -17,15 +17,15 @@
 .\" left margin
 .nr PO 1.25i
 .\" top margin
-.nr HM 1.25in
+.nr HM 1.25i
 .\" bottom margin
-.nr FM 1.25in
+.nr FM 1.25i
 .\" header/footer width
 .nr LT \n[LL]
-.\" point size (pt x 1000)
-.nr PS 10000
-.\" line height (pt x 1000)
-.nr VS 12000
+.\" point size
+.nr PS 10p
+.\" line height
+.nr VS 12p
 .\" font family: A, BM, H, HN, N, P, T, ZCM
 .fam T
 .\" paragraph indent
@@ -969,15 +969,9 @@ Images
 .LP
 From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
 .PP
-[IMAGE: \c
-.pdfhref W -D "lalune.jpg" -A "\c" \
- -- "lalune"
-\&]
+[IMAGE: lalune]
 .PP
-Here is a movie [IMAGE: \c
-.pdfhref W -D "movie.jpg" -A "\c" \
- -- "movie"
-\&] icon.
+Here is a movie [IMAGE: movie] icon.
 .HLINE
 .SH 1
 Footnotes
