@@ -51,6 +51,7 @@ data PandocError = PandocIOError String IOError
                  | PandocParseError String
                  | PandocParsecError Input ParseError
                  | PandocMakePDFError String
+                 | PandocOptionError String
                  | PandocAppError Int String
                  deriving (Show, Typeable, Generic)
 
@@ -77,6 +78,7 @@ handleError (Left e) =
                         else ""
         in  err 65 $ "\nError at " ++ show  err' ++ errorInFile
     PandocMakePDFError s -> err 65 s
+    PandocOptionError s -> err 2 s
     PandocAppError ec s -> err ec s
 
 err :: Int -> String -> IO a

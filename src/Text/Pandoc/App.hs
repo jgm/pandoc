@@ -97,7 +97,7 @@ parseOptions options' defaults = do
   let unknownOptionErrors = foldr handleUnrecognizedOption [] unrecognizedOpts
 
   unless (null errors && null unknownOptionErrors) $
-     E.throwIO $ PandocAppError 2 $
+     E.throwIO $ PandocOptionError $
         concat errors ++ unlines unknownOptionErrors ++
         ("Try " ++ prg ++ " --help for more information.")
 
