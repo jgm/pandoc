@@ -57,6 +57,7 @@ import Text.TeXMath (writeEqn)
 import System.FilePath (takeExtension)
 import Skylighting
 import Text.Pandoc.Highlighting
+import Network.URI (escapeURIString, isAllowedInURI)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
@@ -156,6 +157,9 @@ escapeBar = concatMap go
 -- | Escape special characters for Ms.
 escapeString :: String -> String
 escapeString = concatMap escapeChar
+
+escapeUri :: String -> String
+escapeUri = escapeURIString (\c -> c /= '@' && isAllowedInURI c)
 
 toSmallCaps :: String -> String
 toSmallCaps [] = []
@@ -509,7 +513,7 @@ inlineToMs opts (Link _ txt (src, _)) = do
   -- external link
   contents <- inlineListToMs' opts $ map breakToSpace txt
   return $ text "\\c" <> cr <> nowrap (text ".pdfhref W -D " <>
-       doubleQuotes (text src) <> text " -A " <>
+       doubleQuotes (text (escapeUri src)) <> text " -A " <>
        doubleQuotes (text "\\c") <> space <> text "\\") <> cr <>
        text " -- " <> doubleQuotes (nowrap contents) <> cr <> text "\\&"
 inlineToMs opts (Image attr alternate (source, tit)) = do

@@ -829,7 +829,7 @@ Just a \c
 \&
 .PP
 \c
-.pdfhref W -D "mailto:nobody@nowhere.net" -A "\c" \
+.pdfhref W -D "mailto:nobody%40nowhere.net" -A "\c" \
  -- "Email link"
 \&
 .PP
@@ -943,7 +943,7 @@ In a list?
 It should.
 .LP
 An e\-mail address: \c
-.pdfhref W -D "mailto:nobody@nowhere.net" -A "\c" \
+.pdfhref W -D "mailto:nobody%40nowhere.net" -A "\c" \
  -- "nobody\@nowhere.net"
 \&
 .RS
