@@ -500,7 +500,12 @@ inlineToMs _ il@(RawInline f str)
     report $ InlineNotRendered il
     return empty
 inlineToMs _ (LineBreak) = return $ cr <> text ".br" <> cr
-inlineToMs opts SoftBreak = handleNotes opts cr
+inlineToMs opts SoftBreak =
+  handleNotes opts $
+    case writerWrapText opts of
+         WrapAuto     -> space
+         WrapNone     -> space
+         WrapPreserve -> cr
 inlineToMs opts Space = handleNotes opts space
 inlineToMs opts (Link _ txt ('#':ident, _)) = do
   -- internal link

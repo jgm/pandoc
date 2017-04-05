@@ -72,8 +72,7 @@ Anonymous
 .1C
 .LP
 This is a set of tests for pandoc.
-Most of them are adapted from
-John Gruber's markdown test suite.
+Most of them are adapted from John Gruber's markdown test suite.
 .HLINE
 .SH 1
 Headers
@@ -127,12 +126,10 @@ Paragraphs
 Here's a regular paragraph.
 .PP
 In Markdown 1.0.0 and earlier.
-Version
-8.
+Version 8.
 This line turns into a list item.
-Because a hard\-wrapped line in the
-middle of a paragraph looked like a
-list item.
+Because a hard\-wrapped line in the middle of a paragraph looked like a list
+item.
 .PP
 Here's one with a bullet.
 * criminey.
@@ -181,8 +178,7 @@ nested
 .RE
 .RE
 .LP
-This should not be a block quote: 2
-> 1.
+This should not be a block quote: 2 > 1.
 .PP
 And a following paragraph.
 .HLINE
@@ -315,8 +311,7 @@ Item 1, graf one.
 .PP
 Item 1.
 graf two.
-The quick brown fox jumped over the lazy dog's
-back.
+The quick brown fox jumped over the lazy dog's back.
 .RE
 .IP "2." 3
 Item 2.
@@ -373,18 +368,14 @@ Tabs and spaces
 .pdfhref O 2 "Tabs and spaces"
 .pdfhref M "tabs-and-spaces"
 .IP \[bu] 2
-this is a list item
-indented with tabs
+this is a list item indented with tabs
 .IP \[bu] 2
-this is a list item
-indented with spaces
+this is a list item indented with spaces
 .RS 2
 .IP \[bu] 2
-this is an example list item
-indented with tabs
+this is an example list item indented with tabs
 .IP \[bu] 2
-this is an example list item
-indented with spaces
+this is an example list item indented with spaces
 .RE
 .SH 2
 Fancy list markers
@@ -398,8 +389,7 @@ and now 3
 .LP
 with a continuation
 .IP "iv." 4
-sublist with roman numerals,
-starting with 4
+sublist with roman numerals, starting with 4
 .IP " v." 4
 more items
 .RS 4
@@ -495,8 +485,7 @@ Multiple blocks with italics:
 red fruit
 .RS
 .PP
-contains seeds,
-crisp, pleasant to taste
+contains seeds, crisp, pleasant to taste
 .RE
 .IP "\f[I]orange\f[]"
 orange fruit
@@ -658,8 +647,8 @@ Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[]\*} a\*{hello\~there\*}.
 .PP
 Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\~of\~them\*>O.
 .PP
-These should not be superscripts or subscripts,
-because of the unescaped spaces: a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
+These should not be superscripts or subscripts, because of the unescaped
+spaces: a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
 .HLINE
 .SH 1
 Smart quotes, ellipses, dashes
@@ -674,8 +663,7 @@ Smart quotes, ellipses, dashes
 `Oak,' `elm,' and `beech' are names of trees.
 So is `pine.'
 .PP
-`He said, \[lq]I want to go.\[rq]' Were you alive in the
-70's?
+`He said, \[lq]I want to go.\[rq]' Were you alive in the 70's?
 .PP
 Here is some quoted `\f[C]code\f[]' and a \[lq]\c
 .pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
@@ -981,18 +969,16 @@ Footnotes
 Here is a footnote reference,\**
 .FS
 Here is the footnote.
-It can go anywhere after the footnote
-reference.
+It can go anywhere after the footnote reference.
 It need not be placed at the end of the document.
 .FE
 and another.\**
 .FS
 Here's the long note.
-This one contains multiple
-blocks.
+This one contains multiple blocks.
 .PP
-Subsequent blocks are indented to show that they belong to the
-footnote (as with list items).
+Subsequent blocks are indented to show that they belong to the footnote (as
+with list items).
 .IP
 .nf
 \f[C]
@@ -1000,20 +986,17 @@ footnote (as with list items).
 \f[]
 .fi
 .LP
-If you want, you can indent every line, but you can also be
-lazy and just indent the first line of each block.
+If you want, you can indent every line, but you can also be lazy and just
+indent the first line of each block.
 .FE
-This should \f[I]not\f[] be a footnote reference, because it
-contains a space.[\[ha]my note] Here is an inline note.\**
+This should \f[I]not\f[] be a footnote reference, because it contains a
+space.[\[ha]my note] Here is an inline note.\**
 .FS
-This
-is \f[I]easier\f[] to type.
-Inline notes may contain
-\c
+This is \f[I]easier\f[] to type.
+Inline notes may contain \c
 .pdfhref W -D "http://google.com" -A "\c" \
  -- "links"
-\& and \f[C]]\f[] verbatim characters,
-as well as [bracketed text].
+\& and \f[C]]\f[] verbatim characters, as well as [bracketed text].
 .FE
 .RS
 .LP
