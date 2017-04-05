@@ -668,6 +668,15 @@ inlineCommands = M.fromList $
   , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
                           addMeta "nocite"))
   , ("hypertarget", braced >> tok)
+  -- glossaries package
+  , ("gls", doAcronym)
+  , ("Gls", doAcronym)
+  , ("glsdesc", doAcronym)
+  , ("acrlong", doAcronym)
+  , ("acrfull", doAcronym)
+  , ("acrshort", doAcronym)
+  , ("glspl", doAcronymPlural)
+  , ("Glspl", doAcronymPlural)
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
@@ -710,6 +719,17 @@ enquote = do
   if context == InDoubleQuote
      then singleQuoted <$> withQuoteContext InSingleQuote tok
      else doubleQuoted <$> withQuoteContext InDoubleQuote tok
+
+doAcronym :: PandocMonad m => LP m Inlines
+doAcronym = do 
+  arg <- char '{'
+  str <$> manyTill anyChar (char '}')
+
+doAcronymPlural :: PandocMonad m => LP m Inlines
+doAcronymPlural = do 
+  arg <- char '{'
+  acro <- str <$> manyTill anyChar (char '}') 
+  pure $ acro <> "s"
 
 doverb :: PandocMonad m => LP m Inlines
 doverb = do
