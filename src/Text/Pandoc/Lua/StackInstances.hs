@@ -36,7 +36,7 @@ StackValue instances for pandoc types.
 module Text.Pandoc.Lua.StackInstances () where
 
 import Data.Aeson ( FromJSON(..), ToJSON(..), Result(..), Value, fromJSON )
-import Scripting.Lua ( StackValue(..) )
+import Scripting.Lua ( LuaState, StackValue(..), newtable, pop, rawget, rawset )
 import Scripting.Lua.Aeson ()
 import Text.Pandoc.Definition ( Block(..), Inline(..), Pandoc(..) )
 
@@ -59,8 +59,20 @@ instance StackValue Block where
   valuetype _ = Lua.TTABLE
 
 instance StackValue Inline where
-  push lua = Lua.push lua . toJSON
-  peek lua i = maybeFromJson <$> peek lua i
+  push lua = \case
+    Emph inlns        -> pushTagged lua "Emph" inlns
+    LineBreak         -> pushTagged' lua "LineBreak"
+    Note blcks        -> pushTagged lua "Note" blcks
+    SmallCaps inlns   -> pushTagged lua "SmallCaps" inlns
+    SoftBreak         -> pushTagged' lua "SoftBreak"
+    Space             -> pushTagged' lua "Space"
+    Str s             -> pushTagged lua "Str" s
+    Strikeout inlns   -> pushTagged lua "Strikeout" inlns
+    Strong inlns      -> pushTagged lua "Strong" inlns
+    Subscript inlns   -> pushTagged lua "Subscript" inlns
+    Superscript inlns -> pushTagged lua "Superscript" inlns
+    x                 -> push lua (toJSON x)
+  peek = peekInline
   valuetype _ = Lua.TTABLE
 
 #if MIN_VERSION_base(4,8,0)
@@ -68,8 +80,62 @@ instance {-# OVERLAPS #-} StackValue [Char] where
 #else
 instance StackValue [Char] where
 #endif
-  push lua cs = Lua.push lua (UTF8.fromString cs)
-  peek lua i = do
-                 res <- Lua.peek lua i
-                 return $ UTF8.toString `fmap` res
+  push lua cs = push lua (UTF8.fromString cs)
+  peek lua i = fmap UTF8.toString <$> peek lua i
   valuetype _ = Lua.TSTRING
+
+-- | Push a value to the lua stack, tagged with a given string. This currently
+-- creates a structure equivalent to what the JSONified value would look like
+-- when pushed to lua.
+pushTagged :: StackValue a => LuaState -> String -> a -> IO ()
+pushTagged lua tag value = do
+  newtable lua
+  push lua "t"
+  push lua tag
+  rawset lua (-3)
+  push lua "c"
+  push lua value
+  rawset lua (-3)
+
+pushTagged' :: LuaState -> String -> IO ()
+pushTagged' lua tag = do
+  newtable lua
+  push lua "t"
+  push lua tag
+  rawset lua (-3)
+
+-- | Return the value at the given index as inline if possible.
+peekInline :: LuaState -> Int -> IO (Maybe Inline)
+peekInline lua idx = do
+  push lua "t"
+  rawget lua (idx `adjustIndexBy` 1)
+  tag <- peek lua (-1) <* pop lua 1
+  case tag of
+    Nothing -> return Nothing
+    Just t -> case t of
+      "Emph"       -> fmap Emph <$> elementContent
+      "LineBreak"  -> return (Just LineBreak)
+      "Note"       -> fmap Note <$> elementContent
+      "SmallCaps"  -> fmap SmallCaps <$> elementContent
+      "SoftBreak"  -> return (Just SoftBreak)
+      "Space"      -> return (Just Space)
+      "Str"        -> fmap Str <$> elementContent
+      "Strikeout"  -> fmap Strikeout <$> elementContent
+      "Strong"     -> fmap Strong <$> elementContent
+      "Subscript"  -> fmap Subscript <$> elementContent
+      "Superscript"-> fmap Superscript <$> elementContent
+      _ -> maybeFromJson <$> peek lua idx
+ where
+  elementContent :: StackValue a => IO (Maybe a)
+  elementContent = do
+    push lua "c"
+    rawget lua (idx `adjustIndexBy` 1)
+    peek lua (-1) <* pop lua 1
+
+-- | Adjust the stack index, assuming that @n@ new elements have been pushed on
+-- the stack.
+adjustIndexBy :: Int -> Int -> Int
+adjustIndexBy idx n =
+  if idx < 0
+  then idx - n
+  else idx
