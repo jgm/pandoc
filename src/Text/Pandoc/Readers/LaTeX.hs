@@ -549,6 +549,10 @@ inlineCommands = M.fromList $
   , ("_", lit "_")
   , ("{", lit "{")
   , ("}", lit "}")
+  -- Reference placeholders
+  , ("figurename", pure $ str "Figure" <> space)
+  , ("tablename", pure $ str "Table" <> space)
+  , ("lstlistingname", pure $ str "Listing" <> space)
   -- old TeX commands
   , ("em", extractSpaces emph <$> inlines)
   , ("it", extractSpaces emph <$> inlines)
