@@ -1912,7 +1912,8 @@ inlineNote = try $ do
 rawLaTeXInline' :: PandocMonad m => MarkdownParser m (F Inlines)
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
-  lookAhead $ char '\\' >> notFollowedBy' (string "start") -- context env
+  lookAhead (char '\\')
+  notFollowedBy' rawConTeXtEnvironment
   RawInline _ s <- rawLaTeXInline
   return $ return $ B.rawInline "tex" s
   -- "tex" because it might be context or latex
