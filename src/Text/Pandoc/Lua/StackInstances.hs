@@ -54,8 +54,17 @@ instance StackValue Pandoc where
   valuetype _ = Lua.TTABLE
 
 instance StackValue Block where
-  push lua = Lua.push lua . toJSON
-  peek lua i = maybeFromJson <$> peek lua i
+  push lua = \case
+    BlockQuote blcks  -> pushTagged lua "BlockQuote" blcks
+    BulletList items  -> pushTagged lua "BulletList" items
+    HorizontalRule    -> pushTagged' lua "HorizontalRule"
+    LineBlock blcks   -> pushTagged lua "LineBlock" blcks
+    Null              -> pushTagged' lua "Null"
+    Para blcks        -> pushTagged lua "Para" blcks
+    Plain blcks       -> pushTagged lua "Plain" blcks
+    -- fall back to conversion via aeson's Value
+    x                 -> push lua (toJSON x)
+  peek lua i = peekBlock lua i
   valuetype _ = Lua.TTABLE
 
 instance StackValue Inline where
@@ -124,13 +133,41 @@ peekInline lua idx = do
       "Strong"     -> fmap Strong <$> elementContent
       "Subscript"  -> fmap Subscript <$> elementContent
       "Superscript"-> fmap Superscript <$> elementContent
+      -- fall back to construction via aeson's Value
       _ -> maybeFromJson <$> peek lua idx
  where
-  elementContent :: StackValue a => IO (Maybe a)
-  elementContent = do
-    push lua "c"
-    rawget lua (idx `adjustIndexBy` 1)
-    peek lua (-1) <* pop lua 1
+   -- Get the contents of an AST element.
+   elementContent :: StackValue a => IO (Maybe a)
+   elementContent = do
+     push lua "c"
+     rawget lua (idx `adjustIndexBy` 1)
+     peek lua (-1) <* pop lua 1
+
+-- | Return the value at the given index as block if possible.
+peekBlock :: LuaState -> Int -> IO (Maybe Block)
+peekBlock lua idx = do
+  push lua "t"
+  rawget lua (idx `adjustIndexBy` 1)
+  tag <- peek lua (-1) <* pop lua 1
+  case tag of
+    Nothing -> return Nothing
+    Just t -> case t of
+      "BlockQuote"     -> fmap BlockQuote <$> elementContent
+      "BulletList"     -> fmap BulletList <$> elementContent
+      "HorizontalRule" -> return (Just HorizontalRule)
+      "LineBlock"      -> fmap LineBlock <$> elementContent
+      "Null"           -> return (Just Null)
+      "Para"           -> fmap Para <$> elementContent
+      "Plain"          -> fmap Plain <$> elementContent
+      -- fall back to construction via aeson's Value
+      _ -> maybeFromJson <$> peek lua idx
+ where
+   -- Get the contents of an AST element.
+   elementContent :: StackValue a => IO (Maybe a)
+   elementContent = do
+     push lua "c"
+     rawget lua (idx `adjustIndexBy` 1)
+     peek lua (-1) <* pop lua 1
 
 -- | Adjust the stack index, assuming that @n@ new elements have been pushed on
 -- the stack.
