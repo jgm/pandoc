@@ -347,7 +347,7 @@ blockToMs opts (BulletList items) = do
   return (vcat contents)
 blockToMs opts (OrderedList attribs items) = do
   let markers = take (length items) $ orderedListMarkers attribs
-  let indent = 1 + (maximum $ map length markers)
+  let indent = 2 + (maximum $ map length markers)
   contents <- mapM (\(num, item) -> orderedListItemToMs opts num indent item) $
               zip markers items
   setFirstPara
@@ -365,15 +365,15 @@ bulletListItemToMs opts ((Para first):rest) =
 bulletListItemToMs opts ((Plain first):rest) = do
   first' <- blockToMs opts (Plain first)
   rest' <- blockListToMs opts rest
-  let first'' = text ".IP \\[bu] 2" $$ first'
+  let first'' = text ".IP \\[bu] 3" $$ first'
   let rest''  = if null rest
                    then empty
-                   else text ".RS 2" $$ rest' $$ text ".RE"
+                   else text ".RS 3" $$ rest' $$ text ".RE"
   return (first'' $$ rest'')
 bulletListItemToMs opts (first:rest) = do
   first' <- blockToMs opts first
   rest' <- blockListToMs opts rest
-  return $ text "\\[bu] .RS 2" $$ first' $$ rest' $$ text ".RE"
+  return $ text "\\[bu] .RS 3" $$ first' $$ rest' $$ text ".RE"
 
 -- | Convert ordered list item (a list of blocks) to ms.
 orderedListItemToMs :: PandocMonad m
@@ -392,7 +392,8 @@ orderedListItemToMs opts num indent (first:rest) = do
   let first'' = text (".IP \"" ++ num' ++ "\" " ++ show indent) $$ first'
   let rest''  = if null rest
                    then empty
-                   else text ".RS 4" $$ rest' $$ text ".RE"
+                   else text ".RS " <> text (show indent) $$
+                         rest' $$ text ".RE"
   return $ first'' $$ rest''
 
 -- | Convert definition list item (label, list of blocks) to ms.
