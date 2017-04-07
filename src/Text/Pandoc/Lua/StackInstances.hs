@@ -38,7 +38,7 @@ module Text.Pandoc.Lua.StackInstances () where
 import Data.Aeson ( FromJSON(..), ToJSON(..), Result(..), Value, fromJSON )
 import Scripting.Lua ( LuaState, StackValue(..), newtable, pop, rawget, rawset )
 import Scripting.Lua.Aeson ()
-import Text.Pandoc.Definition ( Block(..), Inline(..), Pandoc(..) )
+import Text.Pandoc.Definition ( Block(..), Inline(..), Meta(..), Pandoc(..) )
 
 import qualified Scripting.Lua as Lua
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -49,19 +49,30 @@ maybeFromJson mv = fromJSON <$> mv >>= \case
   _         -> Nothing
 
 instance StackValue Pandoc where
-  push lua = Lua.push lua . toJSON
-  peek lua i = maybeFromJson <$> peek lua i
+  push lua (Pandoc meta blocks) = do
+    newtable lua
+    setField lua (-1) "blocks" blocks
+    setField lua (-1) "meta"   meta
+  peek lua idx = do
+    blocks <- getField lua idx "blocks"
+    meta   <- getField lua idx "meta"
+    return $ Pandoc <$> meta <*> blocks
+  valuetype _ = Lua.TTABLE
+
+instance StackValue Meta where
+  push lua = push lua . toJSON
+  peek lua = fmap maybeFromJson . peek lua
   valuetype _ = Lua.TTABLE
 
 instance StackValue Block where
   push lua = \case
-    BlockQuote blcks  -> pushTagged lua "BlockQuote" blcks
-    BulletList items  -> pushTagged lua "BulletList" items
+    BlockQuote blcks  -> pushTagged  lua "BlockQuote" blcks
+    BulletList items  -> pushTagged  lua "BulletList" items
     HorizontalRule    -> pushTagged' lua "HorizontalRule"
-    LineBlock blcks   -> pushTagged lua "LineBlock" blcks
+    LineBlock blcks   -> pushTagged  lua "LineBlock" blcks
     Null              -> pushTagged' lua "Null"
-    Para blcks        -> pushTagged lua "Para" blcks
-    Plain blcks       -> pushTagged lua "Plain" blcks
+    Para blcks        -> pushTagged  lua "Para" blcks
+    Plain blcks       -> pushTagged  lua "Plain" blcks
     -- fall back to conversion via aeson's Value
     x                 -> push lua (toJSON x)
   peek lua i = peekBlock lua i
@@ -69,17 +80,17 @@ instance StackValue Block where
 
 instance StackValue Inline where
   push lua = \case
-    Emph inlns        -> pushTagged lua "Emph" inlns
+    Emph inlns        -> pushTagged  lua "Emph" inlns
     LineBreak         -> pushTagged' lua "LineBreak"
-    Note blcks        -> pushTagged lua "Note" blcks
-    SmallCaps inlns   -> pushTagged lua "SmallCaps" inlns
+    Note blcks        -> pushTagged  lua "Note" blcks
+    SmallCaps inlns   -> pushTagged  lua "SmallCaps" inlns
     SoftBreak         -> pushTagged' lua "SoftBreak"
     Space             -> pushTagged' lua "Space"
-    Str s             -> pushTagged lua "Str" s
-    Strikeout inlns   -> pushTagged lua "Strikeout" inlns
-    Strong inlns      -> pushTagged lua "Strong" inlns
-    Subscript inlns   -> pushTagged lua "Subscript" inlns
-    Superscript inlns -> pushTagged lua "Superscript" inlns
+    Str s             -> pushTagged  lua "Str" s
+    Strikeout inlns   -> pushTagged  lua "Strikeout" inlns
+    Strong inlns      -> pushTagged  lua "Strong" inlns
+    Subscript inlns   -> pushTagged  lua "Subscript" inlns
+    Superscript inlns -> pushTagged  lua "Superscript" inlns
     x                 -> push lua (toJSON x)
   peek = peekInline
   valuetype _ = Lua.TTABLE
@@ -99,12 +110,8 @@ instance StackValue [Char] where
 pushTagged :: StackValue a => LuaState -> String -> a -> IO ()
 pushTagged lua tag value = do
   newtable lua
-  push lua "t"
-  push lua tag
-  rawset lua (-3)
-  push lua "c"
-  push lua value
-  rawset lua (-3)
+  setField lua (-1) "t" tag
+  setField lua (-1) "c" value
 
 pushTagged' :: LuaState -> String -> IO ()
 pushTagged' lua tag = do
@@ -116,9 +123,7 @@ pushTagged' lua tag = do
 -- | Return the value at the given index as inline if possible.
 peekInline :: LuaState -> Int -> IO (Maybe Inline)
 peekInline lua idx = do
-  push lua "t"
-  rawget lua (idx `adjustIndexBy` 1)
-  tag <- peek lua (-1) <* pop lua 1
+  tag <- getField lua idx "t"
   case tag of
     Nothing -> return Nothing
     Just t -> case t of
@@ -138,17 +143,12 @@ peekInline lua idx = do
  where
    -- Get the contents of an AST element.
    elementContent :: StackValue a => IO (Maybe a)
-   elementContent = do
-     push lua "c"
-     rawget lua (idx `adjustIndexBy` 1)
-     peek lua (-1) <* pop lua 1
+   elementContent = getField lua idx "c"
 
 -- | Return the value at the given index as block if possible.
 peekBlock :: LuaState -> Int -> IO (Maybe Block)
 peekBlock lua idx = do
-  push lua "t"
-  rawget lua (idx `adjustIndexBy` 1)
-  tag <- peek lua (-1) <* pop lua 1
+  tag <- getField lua idx "t"
   case tag of
     Nothing -> return Nothing
     Just t -> case t of
@@ -164,10 +164,7 @@ peekBlock lua idx = do
  where
    -- Get the contents of an AST element.
    elementContent :: StackValue a => IO (Maybe a)
-   elementContent = do
-     push lua "c"
-     rawget lua (idx `adjustIndexBy` 1)
-     peek lua (-1) <* pop lua 1
+   elementContent = getField lua idx "c"
 
 -- | Adjust the stack index, assuming that @n@ new elements have been pushed on
 -- the stack.
@@ -176,3 +173,17 @@ adjustIndexBy idx n =
   if idx < 0
   then idx - n
   else idx
+
+-- | Get value behind key from table at given index.
+getField :: (StackValue a, StackValue b) => LuaState -> Int -> a -> IO (Maybe b)
+getField lua idx key = do
+  push lua key
+  rawget lua (idx `adjustIndexBy` 1)
+  peek lua (-1) <* pop lua 1
+
+-- | Set value for key for table at the given index
+setField :: (StackValue a, StackValue b) => LuaState -> Int -> a -> b -> IO ()
+setField lua idx key value = do
+  push lua key
+  push lua value
+  rawset lua (idx `adjustIndexBy` 2)

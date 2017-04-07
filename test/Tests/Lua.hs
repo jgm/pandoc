@@ -7,7 +7,9 @@ import Test.Tasty (TestTree)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
 import Test.Tasty.QuickCheck (ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder
+import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
+import Text.Pandoc.Builder ( (<>), bulletList, doc, emph, linebreak, rawBlock
+                           , para, plain, space, str, strong)
 import Text.Pandoc.Lua
 
 import qualified Scripting.Lua as Lua
@@ -43,6 +45,12 @@ tests =
 
   , testProperty "block elements can be round-tripped through the lua stack" $
     \x -> ioProperty (roundtripEqual (x::Block))
+
+  , testProperty "meta blocks can be round-tripped through the lua stack" $
+    \x -> ioProperty (roundtripEqual (x::Meta))
+
+  , testProperty "documents can be round-tripped through the lua stack" $
+    \x -> ioProperty (roundtripEqual (x::Pandoc))
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
