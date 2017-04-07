@@ -866,7 +866,7 @@ Options affecting specific writers
     To produce a custom `reference.odt`, first get a copy of
     the default `reference.odt`: `pandoc
     --print-default-data-file reference.odt >
-    custom-reference.odt`.  Then open `custom-reference.docx` in
+    custom-reference.odt`.  Then open `custom-reference.odt` in
     LibreOffice, modify the styles as you wish, and save the
     file.
 
