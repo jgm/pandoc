@@ -170,9 +170,11 @@ runLuaFilterFunction lua lf inline = do
   pushFilterFunction lua lf
   Lua.push lua inline
   Lua.call lua 1 1
-  Just res <- Lua.peek lua (-1)
-  Lua.pop lua 1
-  return res
+  mbres <- Lua.peek lua (-1)
+  case mbres of
+    Nothing -> error $ "Error while trying to get a filter's return "
+               ++ "value from lua stack."
+    Just res -> res <$ Lua.pop lua 1
 
 -- | Push the filter function to the top of the stack.
 pushFilterFunction :: Lua.LuaState -> LuaFilterFunction a -> IO ()
