@@ -1318,7 +1318,7 @@ Variables for LaTeX
 LaTeX variables are used when [creating a PDF].
 
 `papersize`
-:   paper size, e.g. `letter`, `A4`
+:   paper size, e.g. `letter`, `a4`
 
 `fontsize`
 :   font size for body text (e.g. `10pt`, `12pt`)
