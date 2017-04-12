@@ -1,10 +1,11 @@
 return {
-  { Str = function (inline)
-      if inline.c == "{{helloworld}}" then
+  {
+    Str = function (str)
+      if str == "{{helloworld}}" then
         return pandoc.Emph {pandoc.Str "Hello, World"}
       else
-        return inline
+        return pandoc.Str(str)
       end
-  end,
+    end,
   }
 }

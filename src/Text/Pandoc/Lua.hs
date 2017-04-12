@@ -15,6 +15,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua
@@ -130,29 +133,35 @@ execInlineLuaFilter :: LuaState
                     -> HashMap Text (LuaFilterFunction Inline)
                     -> Inline -> IO Inline
 execInlineLuaFilter lua fnMap x = do
-  let filterOrId constr = case HashMap.lookup constr fnMap of
-                            Nothing -> return x
-                            Just fn -> runLuaFilterFunction lua fn x
+  let runFn :: PushViaFilterFunction Inline a => LuaFilterFunction Inline -> a
+      runFn fn = runLuaFilterFunction lua fn
+  let tryFilter :: Text -> (LuaFilterFunction Inline -> IO Inline) -> IO Inline
+      tryFilter fnName callFilterFn =
+        case HashMap.lookup fnName fnMap of
+          Nothing -> return x
+          Just fn -> callFilterFn fn
   case x of
-    Cite _ _      -> filterOrId "Cite"
-    Code _ _      -> filterOrId "Code"
-    Emph _        -> filterOrId "Emph"
-    Image _ _ _   -> filterOrId "Image"
-    LineBreak     -> filterOrId "LineBreak"
-    Link _ _ _    -> filterOrId "Link"
-    Math _ _      -> filterOrId "Math"
-    Note _        -> filterOrId "Note"
-    Quoted _ _    -> filterOrId "Quoted"
-    RawInline _ _ -> filterOrId "RawInline"
-    SmallCaps _   -> filterOrId "SmallCaps"
-    SoftBreak     -> filterOrId "SoftBreak"
-    Space         -> filterOrId "Space"
-    Span _ _      -> filterOrId "Span"
-    Str _         -> filterOrId "Str"
-    Strikeout _   -> filterOrId "Strikeout"
-    Strong _      -> filterOrId "Strong"
-    Subscript _   -> filterOrId "Subscript"
-    Superscript _ -> filterOrId "Superscript"
+    LineBreak                 -> tryFilter "LineBreak" runFn
+    SoftBreak                 -> tryFilter "SoftBreak" runFn
+    Space                     -> tryFilter "Space"     runFn
+    Cite cs lst               -> tryFilter "Cite"      $ \fn -> runFn fn lst cs
+    Code attr str             -> tryFilter "Code"      $ \fn -> runFn fn str attr
+    Emph lst                  -> tryFilter "Emph"      $ \fn -> runFn fn lst
+    Math mt lst               -> tryFilter "Math"      $ \fn -> runFn fn lst mt
+    Note blks                 -> tryFilter "Note"      $ \fn -> runFn fn blks
+    Quoted qt lst             -> tryFilter "Quoted"    $ \fn -> runFn fn qt lst
+    RawInline f str           -> tryFilter "RawInline" $ \fn -> runFn fn f str
+    SmallCaps lst             -> tryFilter "SmallCaps" $ \fn -> runFn fn lst
+    Span attr lst             -> tryFilter "Span"      $ \fn -> runFn fn lst attr
+    Str str                   -> tryFilter "Str"       $ \fn -> runFn fn str
+    Strikeout lst             -> tryFilter "Strikeout" $ \fn -> runFn fn lst
+    Strong lst                -> tryFilter "Strong"    $ \fn -> runFn fn lst
+    Subscript lst             -> tryFilter "Subscript" $ \fn -> runFn fn lst
+    Superscript lst           -> tryFilter "Superscript" $ \fn -> runFn fn lst
+    Link attr txt (src, tit)  -> tryFilter "Link" $
+                                 \fn -> runFn fn txt src tit attr
+    Image attr alt (src, tit) -> tryFilter "Image" $
+                                 \fn -> runFn fn alt src tit attr
 
 instance StackValue LuaFilter where
   valuetype _ = Lua.TTABLE
@@ -164,17 +173,33 @@ instance StackValue LuaFilter where
     docFnMap    <- Lua.peek lua i
     return $ LuaFilter lua <$> inlineFnMap <*> blockFnMap <*> docFnMap
 
-runLuaFilterFunction :: (StackValue a)
-                     => LuaState -> LuaFilterFunction a -> a -> IO a
-runLuaFilterFunction lua lf inline = do
-  pushFilterFunction lua lf
-  Lua.push lua inline
-  Lua.call lua 1 1
-  mbres <- Lua.peek lua (-1)
-  case mbres of
-    Nothing -> error $ "Error while trying to get a filter's return "
-               ++ "value from lua stack."
-    Just res -> res <$ Lua.pop lua 1
+-- | Helper class for pushing a single value to the stack via a lua function.
+-- See @pushViaCall@.
+class PushViaFilterFunction a b where
+  pushViaFilterFunction' :: LuaState -> LuaFilterFunction a -> IO () -> Int -> b
+
+instance (StackValue a) => PushViaFilterFunction a (IO a) where
+  pushViaFilterFunction' lua lf pushArgs num = do
+    pushFilterFunction lua lf
+    pushArgs
+    Lua.call lua num 1
+    mbres <- Lua.peek lua (-1)
+    case mbres of
+      Nothing -> error $ "Error while trying to get a filter's return "
+                 ++ "value from lua stack."
+      Just res -> res <$ Lua.pop lua 1
+
+instance (PushViaFilterFunction a c, StackValue b) =>
+         PushViaFilterFunction a (b -> c) where
+  pushViaFilterFunction' lua lf pushArgs num x =
+    pushViaFilterFunction' lua lf (pushArgs *> push lua x) (num + 1)
+
+-- | Push an value to the stack via a lua filter function. The function is
+-- called with all arguments that are passed to this function and is expected to
+-- return a single value.
+runLuaFilterFunction :: (StackValue a, PushViaFilterFunction a b)
+                     => LuaState -> LuaFilterFunction a -> b
+runLuaFilterFunction lua lf = pushViaFilterFunction' lua lf (return ()) 0
 
 -- | Push the filter function to the top of the stack.
 pushFilterFunction :: Lua.LuaState -> LuaFilterFunction a -> IO ()
