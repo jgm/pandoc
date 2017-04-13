@@ -1,7 +1,7 @@
 --[[
 pandoc.lua
 
-Copyright (c) 2017 Albert Krewinkel
+Copyright © 2017 Albert Krewinkel
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
@@ -16,21 +16,78 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ]]
 
---- The module
+---
+-- Lua functions for pandoc scripts.
+--
+-- @author Albert Krewinkel
+-- @copyright © 2017 Albert Krewinkel
+-- @license MIT
 local M = {
-  _version = "0.1.0"
+  _VERSION = "0.2.0"
 }
 
+--- Attributes
+-- @type Attributes
+M.Attributes = {}
+setmetatable(M.Attributes, M.Attributes)
+
+M.Attributes.__index = function(t, k)
+  if k == "id" then
+    return t[1]
+  elseif k == "class" then
+    return table.concat(t[2], ' ')
+  else
+    return t.kv[k]
+  end
+end
+
 --- Create a new set of attributes (Attr).
-function M.Attributes(id, classes, key_values)
-  return {id, classes, key_values}
+-- @function Attributes
+M.Attributes.__call = function(t, key_values, id, classes)
+  local kv = {}
+  for i = 1, #key_values do
+    kv[key_values[i][1]] = key_values[i][2]
+  end
+  id = id or ''
+  classes = classes or {}
+  local attr = {id, classes, key_values, kv = kv}
+  setmetatable(attr, t)
+  return attr
+end
+M.Attributes.empty = M.Attributes('', {}, {})
+
+
+--- Creates a single citation.
+-- @function Citation
+-- @tparam      string       id       citation identifier (like a bibtex key)
+-- @tparam      AuthorInText|SuppressAuthor|NormalCitation mode citation mode
+-- @tparam[opt] {Inline,...} prefix   citation prefix
+-- @tparam[opt] {Inline,...} suffix   citation suffix
+-- @tparam[opt] int          note_num note number
+-- @tparam[opt] int          note_num hash number
+M.Citation = function(id, mode, prefix, suffix, note_num, hash)
+  prefix = prefix or {}
+  suffix = suffix or {}
+  note_num = note_num or 0
+  hash = hash or 0
+  return {
+    citationId = id,
+    citationPrefix = prefix,
+    citationSuffix = suffix,
+    citationMode = mode,
+    citationNoteNum = note_num,
+    citationHash = hash,
+  }
 end
 
 ------------------------------------------------------------------------
---- Document AST elements
+-- The base class for pandoc's AST elements.
+-- @type Element
+-- @local
 local Element = {}
 
 --- Create a new element subtype
+-- @local
 function Element:make_subtype(o)
   o = o or {}
   setmetatable(o, self)
@@ -39,6 +96,7 @@ function Element:make_subtype(o)
 end
 
 --- Create a new element given its tag and arguments
+-- @local
 function Element:new(tag, ...)
   local element = { t = tag }
   local content = {...}
@@ -56,6 +114,7 @@ function Element:new(tag, ...)
 end
 
 --- Create a new constructor
+-- @local
 -- @param tag Tag used to identify the constructor
 -- @param fn Function to be called when constructing a new element
 -- @return function that constructs a new element
@@ -75,222 +134,338 @@ function Element:create_constructor(tag, fn)
     end
     return obj
   end
+  self.constructor = self.constructor or {}
+  self.constructor[tag] = constr
   return constr
 end
 
+--- Calls the constructor, creating a new element.
+-- @local
 function Element.__call(t, ...)
   return t:new(...)
 end
 
 ------------------------------------------------------------------------
--- Document
-local function Doc(blocks, meta)
+--- Pandoc Document
+-- @section document
+
+--- A complete pandoc document
+-- @function Doc
+-- @tparam      {Block,...} blocks      document content
+-- @tparam[opt] Meta        meta        document meta data
+function M.Doc(blocks, meta)
+  meta = meta or {}
   return {
     ["blocks"] = blocks,
     ["meta"] = meta,
     ["pandoc-api-version"] = {1,17,0,5},
   }
 end
-local Inline = Element:make_subtype{}
-function Inline.__call(t, ...)
+
+
+--- Inline element class
+-- @type Inline
+M.Inline = Element:make_subtype{}
+M.Inline.__call = function (t, ...)
   return t:new(...)
 end
 
-local Block = Element:make_subtype{}
-
 ------------------------------------------------------------------------
--- Inline element constructors
--- @section
+-- Inline
+-- @section Inline
 
---- Create a Cite inline element
--- @function Inline.Cite
-Inline.Cite = Inline:create_constructor(
+--- Creates a Cite inline element
+-- @function Cite
+-- @tparam {Inline,...}   content       List of inlines
+-- @tparam {Citation,...} citations     List of citations
+-- @treturn Inline citations element
+M.Cite = M.Inline:create_constructor(
   "Cite",
-  function(lst, cs) return {c = {cs, lst}} end
+  function(content, citations) return {c = {citations, content}} end
 )
---- Create a Code inline element
--- @function Inline.Code
-Inline.Code = Inline:create_constructor(
+
+--- Creates a Code inline element
+-- @function Code
+-- @tparam      string      code        brief image description
+-- @tparam[opt] Attributes  attributes  additional attributes
+-- @treturn Inline code element
+M.Code = M.Inline:create_constructor(
   "Code",
-  function(code, attr) return {c = {attr, code}} end
+  function(code, attributes) return {c = {attributes, code}} end
 )
---- Create a Emph inline element
--- @function Inline.Emph
-Inline.Emph = Inline:create_constructor(
+
+--- Creates an inline element representing emphasised text.
+-- @function Emph
+-- @tparam      {Inline,..} content     inline content
+-- @treturn Inline emphasis element
+M.Emph = M.Inline:create_constructor(
   "Emph",
-  function(xs) return {c = xs} end
+  function(content) return {c = content} end
 )
---- Create a Image inline element
--- @function Inline.Image
-Inline.Image = Inline:create_constructor(
+
+--- Creates a Image inline element
+-- @function Image
+-- @tparam      {Inline,..} caption     text used to describe the image
+-- @tparam      string      src         path to the image file
+-- @tparam[opt] string      title       brief image description
+-- @tparam[opt] Attributes  attributes  additional attributes
+-- @treturn Inline image element
+M.Image = M.Inline:create_constructor(
   "Image",
-  function(capt, src, tit, attr) return {c = {attr, capt, {src, tit}}} end
+  function(caption, src, title, attributes)
+    title = title or ""
+    attributes = attributes or Attribute.empty
+    return {c = {attributes, caption, {src, title}}}
+  end
 )
+
 --- Create a LineBreak inline element
--- @function Inline.LineBreak
-Inline.LineBreak = Inline:create_constructor(
+-- @function LineBreak
+-- @treturn Inline linebreak element
+M.LineBreak = M.Inline:create_constructor(
   "LineBreak",
   function() return {} end
 )
---- Create a Link inline element
--- @function Inline.Link
-Inline.Link = Inline:create_constructor(
+
+--- Creates a link inline element, usually a hyperlink.
+-- @function Link
+-- @tparam      {Inline,..} content     text for this link
+-- @tparam      string      target      the link target
+-- @tparam[opt] string      title       brief link description
+-- @tparam[opt] Attributes  attributes  additional attributes
+-- @treturn Inline image element
+M.Link = M.Inline:create_constructor(
   "Link",
-  function(txt, src, tit, attr) return {c = {attr, txt, {src, tit}}} end
+  function(content, target, title, attributes)
+    title = title or ""
+    attributes = attributes or Attribute.empty
+    return {c = {attributes, content, {target, title}}}
+  end
 )
---- Create a Math inline element
--- @function Inline.Math
-Inline.Math = Inline:create_constructor(
+
+--- Creates a Math inline element
+-- @function Math
+-- @tparam      InlineMath|DisplayMath mathtype Display specifier
+-- @tparam      string      text        Math content
+-- @treturn     Inline                  Math element
+M.Math = M.Inline:create_constructor(
   "Math",
-  function(m, str) return {c = {m, str}} end
+  function(mathtype, text)
+    return {c = {mathtype, text}}
+  end
 )
---- Create a Note inline element
--- @function Inline.Note
-Inline.Note = Inline:create_constructor(
+
+--- Creates a Note inline element
+-- @function Note
+-- @tparam      {Block,...} content     footnote block content
+M.Note = M.Inline:create_constructor(
   "Note",
   function(contents) return {c = contents} end
 )
---- Create a Quoted inline element
--- @function Inline.Quoted
-Inline.Quoted = Inline:create_constructor(
+
+--- Creates a Quoted inline element
+-- @function Quoted
+-- @tparam      DoubleQuote|SingleQuote quotetype type of quotes to be used
+-- @tparam      {Inline,..} content     inline content
+-- @treturn     Inline                  quoted element
+M.Quoted = M.Inline:create_constructor(
   "Quoted",
-  function(qt, lst) return {c = {qt, lst}} end
+  function(quotetype, content) return {c = {quotetype, content}} end
 )
---- Create a RawInline inline element
--- @function Inline.RawInline
-Inline.RawInline = Inline:create_constructor(
+--- Creates a RawInline inline element
+-- @function RawInline
+-- @tparam      string      format      format of the contents
+-- @tparam      string      text        string content
+-- @treturn     Inline                  raw inline element
+M.RawInline = M.Inline:create_constructor(
   "RawInline",
-  function(f, xs) return {c = {f, xs}} end
+  function(format, text) return {c = {format, text}} end
 )
---- Create a SmallCaps inline element
--- @function Inline.SmallCaps
-Inline.SmallCaps = Inline:create_constructor(
+
+--- Creates text rendered in small caps
+-- @function SmallCaps
+-- @tparam      {Inline,..} content     inline content
+-- @treturn     Inline                  smallcaps element
+M.SmallCaps = M.Inline:create_constructor(
   "SmallCaps",
-  function(xs) return {c = xs} end
+  function(content) return {c = content} end
 )
---- Create a SoftBreak inline element
--- @function Inline.SoftBreak
-Inline.SoftBreak = Inline:create_constructor(
+
+--- Creates a SoftBreak inline element.
+-- @function SoftBreak
+-- @treturn     Inline                  softbreak element
+M.SoftBreak = M.Inline:create_constructor(
   "SoftBreak",
   function() return {} end
 )
+
 --- Create a Space inline element
--- @function Inline.Space
-Inline.Space = Inline:create_constructor(
+-- @function Space
+-- @treturn Inline space element
+M.Space = M.Inline:create_constructor(
   "Space",
   function() return {} end
 )
---- Create a Span inline element
--- @function Inline.Span
-Inline.Span = Inline:create_constructor(
+
+--- Creates a Span inline element
+-- @function Span
+-- @tparam      {Inline,..} content     inline content
+-- @tparam[opt] Attributes  attributes  additional attributes
+-- @treturn Inline span element
+M.Span = M.Inline:create_constructor(
   "Span",
-  function(ls, attr) return {c = {attr, xs}} end
+  function(content, attributes) return {c = {attributes, content}} end
 )
---- Create a Str inline element
--- @function Inline.Str
-Inline.Str = Inline:create_constructor(
+
+--- Creates a Str inline element
+-- @function Str
+-- @tparam      string      text        content
+-- @treturn     Inline                  string element
+M.Str = M.Inline:create_constructor(
   "Str",
-  function(str) return {c = str} end
+  function(text) return {c = text} end
 )
---- Create a Strikeout inline element
--- @function Inline.Strikeout
-Inline.Strikeout = Inline:create_constructor(
+
+--- Creates text which is striked out.
+-- @function Strikeout
+-- @tparam      {Inline,..} content     inline content
+-- @treturn     Inline                  strikeout element
+M.Strikeout = M.Inline:create_constructor(
   "Strikeout",
-  function(xs) return {c = xs} end
+  function(content) return {c = content} end
 )
---- Create a Strong inline element
--- @function Inline.Strong
-Inline.Strong = Inline:create_constructor(
+
+--- Creates a Strong element, whose text is usually displayed in a bold font.
+-- @function Strong
+-- @tparam      {Inline,..} content     inline content
+-- @treturn     Inline                  strong element
+M.Strong = M.Inline:create_constructor(
   "Strong",
-  function(xs) return {c = xs} end
+  function(content) return {c = content} end
 )
---- Create a Subscript inline element
--- @function Inline.Subscript
-Inline.Subscript = Inline:create_constructor(
+
+--- Creates a Subscript inline element
+-- @function Subscript
+-- @tparam      {Inline,..} content     inline content
+-- @treturn     Inline                  subscript element
+M.Subscript = M.Inline:create_constructor(
   "Subscript",
-  function(xs) return {c = xs} end
+  function(content) return {c = content} end
 )
---- Create a Superscript inline element
--- @function Inline.Superscript
-Inline.Superscript = Inline:create_constructor(
+
+--- Creates a Superscript inline element
+-- @function Superscript
+-- @tparam      {Inline,..} content     inline content
+-- @treturn     Inline                  strong element
+M.Superscript = M.Inline:create_constructor(
   "Superscript",
-  function(xs) return {c = xs} end
+  function(content) return {c = content} end
 )
 
-M.block_types = {
-  "BlockQuote",
-  "BulletList",
-  "CodeBlock",
-  "DefinitionList",
-  "Div",
-  "Header",
-  "HorizontalRule",
-  "HorizontalRule",
-  "LineBlock",
-  "Null",
-  "OrderedList",
-  "Para",
-  "Plain",
-  "RawBlock",
-  "Table",
+
+------------------------------------------------------------------------
+-- Block elements
+-- @type Block
+M.Block = Element:make_subtype{}
+
+--- Block constructors
+M.Block.constructors = {
+  BlockQuote = true,
+  BulletList = true,
+  CodeBlock = true,
+  DefinitionList = true,
+  Div = true,
+  Header = true,
+  HorizontalRule = true,
+  HorizontalRule = true,
+  LineBlock = true,
+  Null = true,
+  OrderedList = true,
+  Para = true,
+  Plain = true,
+  RawBlock = true,
+  Table = true,
 }
 
-M.inline_types = {
-  "Cite",
-  "Code",
-  "Emph",
-  "Image",
-  "LineBreak",
-  "Link",
-  "Math",
-  "Note",
-  "Quoted",
-  "RawInline",
-  "SmallCaps",
-  "SoftBreak",
-  "Space",
-  "Span",
-  "Str",
-  "Strikeout",
-  "Strong",
-  "Subscript",
-  "Superscript"
-}
+local set_of_inline_types = {}
+for k, _ in pairs(M.Inline.constructor) do
+  set_of_inline_types[k] = true
+end
 
-
-for _, block_type in pairs(M.block_types) do
+for block_type, _ in pairs(M.Block.constructors) do
   M[block_type] = function(...)
-    return Block:new(block_type, ...)
+    return M.Block:new(block_type, ...)
   end
 end
 
-for _, inline_type in pairs(M.inline_types) do
-  M[inline_type] = Inline[inline_type]
-end
 
---- Arrays to provide fast lookup of element types
-local set_of_inline_types = {}
-local set_of_block_types = {}
+------------------------------------------------------------------------
+-- Constants
+-- @section constants
 
-for i = 1, #M.inline_types do
-  set_of_inline_types[M.inline_types[i]] = true
-end
-for i = 1, #M.block_types do
-  set_of_block_types[M.block_types[i]] = true
-end
+--- Math content is to be displayed on a separate line.
+-- @see Math
+M.DisplayMath = {}
+M.DisplayMath.t = "DisplayMath"
+--- Math content is to be displayed inline within the paragraph
+-- @see Math
+M.InlineMath = {}
+M.InlineMath.t = "InlineMath"
 
+--- Double quoted content.
+-- @see Quoted
+M.DoubleQuote = {}
+M.DoubleQuote.t = "DoubleQuote"
+
+--- Single quoted content.
+-- @see Quoted
+M.SingleQuote = {}
+M.SingleQuote.t = "SingleQuote"
+
+--- Author name is mentioned in the text.
+-- @see Citation
+-- @see Cite
+M.AuthorInText = {}
+M.AuthorInText.t = "AuthorInText"
+
+--- Author name is suppressed.
+-- @see Citation
+-- @see Cite
+M.SuppressAuthor = {}
+M.SuppressAuthor.t = "SuppressAuthor"
+
+--- Default citation style is used.
+-- @see Citation
+-- @see Cite
+M.NormalCitation = {}
+M.NormalCitation.t = "NormalCitation"
+
+
+------------------------------------------------------------------------
+-- Helper Functions
+-- @section helpers
+
+--- Use functions defined in the global namespace to create a pandoc filter.
+-- All globally defined functions which have names of pandoc elements are
+-- collected into a new table.
+-- @return A list of filter functions
+-- @usage
+-- -- within a file defining a pandoc filter:
+-- function Str(text)
+--   return pandoc.Str(utf8.upper(text))
+-- end
+--
+-- return {pandoc.global_filter()}
+-- -- the above is equivallent to
+-- -- return {{Str = Str}}
 function M.global_filter()
   local res = {}
   for k, v in pairs(_G) do
-    if set_of_inline_types[k] or set_of_block_types[k] or k == "Doc" then
+    if M.Inline.constructor[k] or M.Block.constructors[k] or k == "Doc" then
       res[k] = v
     end
   end
   return res
 end
-
-M["Doc"] = Doc
-M["Inline"] = Inline
-M["Block"] = Block
 
 return M
