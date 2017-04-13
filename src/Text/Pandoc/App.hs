@@ -178,10 +178,10 @@ convertWithOpts opts = do
                          Left e  -> E.throwIO $ PandocAppError 9 $
                            if format == "pdf"
                               then e ++
-                               "\nTo create a pdf with pandoc, use " ++
-                               "the latex or beamer writer and specify\n" ++
-                               "an output file with .pdf extension " ++
-                               "(pandoc -t latex -o filename.pdf)."
+                               "\nTo create a pdf using pandoc, use " ++
+                               "-t latex|beamer|context|ms|html5" ++
+                               "\nand specify an output file with " ++
+                               ".pdf extension (-o filename.pdf)." ++
                               else e
                          Right w -> return (w :: Writer PandocIO)
 
