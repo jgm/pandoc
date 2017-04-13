@@ -181,7 +181,7 @@ convertWithOpts opts = do
                                "\nTo create a pdf using pandoc, use " ++
                                "-t latex|beamer|context|ms|html5" ++
                                "\nand specify an output file with " ++
-                               ".pdf extension (-o filename.pdf)." ++
+                               ".pdf extension (-o filename.pdf)."
                               else e
                          Right w -> return (w :: Writer PandocIO)
 
@@ -304,7 +304,7 @@ convertWithOpts opts = do
   let addSyntaxMap existingmap f = do
         res <- parseSyntaxDefinition f
         case res of
-              Left errstr -> E.throwIO $ PandocAppError 67 errstr
+              Left errstr -> E.throwIO $ PandocSyntaxMapError errstr
               Right syn   -> return $ addSyntaxDefinition syn existingmap
 
   syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
@@ -312,7 +312,7 @@ convertWithOpts opts = do
 
   case missingIncludes (M.elems syntaxMap) of
        [] -> return ()
-       xs -> E.throwIO $ PandocAppError 73 $
+       xs -> E.throwIO $ PandocSyntaxMapError $
                 "Missing syntax definitions:\n" ++
                 unlines (map
                   (\(syn,dep) -> (T.unpack syn ++ " requires " ++
@@ -388,8 +388,7 @@ convertWithOpts opts = do
              Just logfile -> B.writeFile logfile (encodeLogMessages reports)
         let isWarning msg = messageVerbosity msg == WARNING
         when (optFailIfWarnings opts && any isWarning reports) $
-            E.throwIO $
-              PandocAppError 3 "Failing because there were warnings."
+            E.throwIO PandocFailOnWarningError
         return res
 
   let sourceToDoc :: [FilePath] -> PandocIO (Pandoc, MediaBag)
@@ -443,10 +442,8 @@ convertWithOpts opts = do
                                   | otherwise     -> optLaTeXEngine opts
                 -- check for pdf creating program
                 mbPdfProg <- liftIO $ findExecutable pdfprog
-                when (isNothing mbPdfProg) $
-                     liftIO $ E.throwIO $ PandocAppError 41 $
-                       pdfprog ++ " not found. " ++
-                       pdfprog ++ " is needed for pdf output."
+                when (isNothing mbPdfProg) $ liftIO $ E.throwIO $
+                       PandocPDFProgramNotFoundError pdfprog
 
                 res <- makePDF pdfprog f writerOptions verbosity media doc'
                 case res of
