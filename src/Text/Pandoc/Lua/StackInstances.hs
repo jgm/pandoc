@@ -136,37 +136,31 @@ instance StackValue Block where
 
 instance StackValue Inline where
   push lua = \case
-    Cite citations lst -> pushTagged  lua "Cite" (citations, lst)
-    Code attr lst      -> pushTagged  lua "Code" (attr, lst)
-    Emph inlns         -> pushTagged  lua "Emph" inlns
-    Image attr lst tgt -> pushTagged  lua "Image" (attr, lst, tgt)
-    LineBreak          -> pushTagged' lua "LineBreak"
-    Link attr lst tgt  -> pushTagged  lua "Link" (attr, lst, tgt)
-    Note blcks         -> pushTagged  lua "Note" blcks
-    Math mty str       -> pushTagged  lua "Math" (mty, str)
-    Quoted qt inlns    -> pushTagged  lua "Quoted" (qt, inlns)
-    RawInline f cs     -> pushTagged  lua "RawInline" (f, cs)
-    SmallCaps inlns    -> pushTagged  lua "SmallCaps" inlns
-    SoftBreak          -> pushTagged' lua "SoftBreak"
-    Space              -> pushTagged' lua "Space"
-    Span attr inlns    -> pushTagged  lua "Span" (attr, inlns)
-    Str str            -> pushTagged  lua "Str" str
-    Strikeout inlns    -> pushTagged  lua "Strikeout" inlns
-    Strong inlns       -> pushTagged  lua "Strong" inlns
-    Subscript inlns    -> pushTagged  lua "Subscript" inlns
-    Superscript inlns  -> pushTagged  lua "Superscript" inlns
+    Cite citations lst       -> pushViaConstructor lua "Cite" lst citations
+    Code attr lst            -> pushViaConstructor lua "Code" lst attr
+    Emph inlns               -> pushViaConstructor lua "Emph" inlns
+    Image attr alt (src,tit) -> pushViaConstructor lua "Image" alt src tit attr
+    LineBreak                -> pushViaConstructor lua "LineBreak"
+    Link attr lst (src,tit)  -> pushViaConstructor lua "Link" lst src tit attr
+    Note blcks               -> pushViaConstructor lua "Note" blcks
+    Math mty str             -> pushViaConstructor lua "Math" mty str
+    Quoted qt inlns          -> pushViaConstructor lua "Quoted" qt inlns
+    RawInline f cs           -> pushViaConstructor lua "RawInline" f cs
+    SmallCaps inlns          -> pushViaConstructor lua "SmallCaps" inlns
+    SoftBreak                -> pushViaConstructor lua "SoftBreak"
+    Space                    -> pushViaConstructor lua "Space"
+    Span attr inlns          -> pushViaConstructor lua "Span" inlns attr
+    Str str                  -> pushViaConstructor lua "Str" str
+    Strikeout inlns          -> pushViaConstructor lua "Strikeout" inlns
+    Strong inlns             -> pushViaConstructor lua "Strong" inlns
+    Subscript inlns          -> pushViaConstructor lua "Subscript" inlns
+    Superscript inlns        -> pushViaConstructor lua "Superscript" inlns
   peek = peekInline
   valuetype _ = TTABLE
 
 instance StackValue Citation where
-  push lua c = do
-    newtable lua
-    addKeyValue lua "citationId" (citationId c)
-    addKeyValue lua "citationPrefix" (citationPrefix c)
-    addKeyValue lua "citationSuffix" (citationSuffix c)
-    addKeyValue lua "citationMode" (citationMode c)
-    addKeyValue lua "citationNoteNum" (citationNoteNum c)
-    addKeyValue lua "citationHash" (citationHash c)
+  push lua (Citation cid prefix suffix mode noteNum hash) =
+    pushViaConstructor lua "Citation" cid mode prefix suffix noteNum hash
   peek lua idx = do
     id' <- getField lua idx "citationId"
     prefix <- getField lua idx "citationPrefix"
@@ -174,20 +168,14 @@ instance StackValue Citation where
     mode <- getField lua idx "citationMode"
     num <- getField lua idx "citationNoteNum"
     hash <- getField lua idx "citationHash"
-    return $ Citation
-      <$> id'
-      <*> prefix
-      <*> suffix
-      <*> mode
-      <*> num
-      <*> hash
+    return $ Citation <$> id' <*> prefix <*> suffix <*> mode <*> num <*> hash
   valuetype _ = TTABLE
 
 instance StackValue CitationMode where
   push lua = \case
-    AuthorInText   -> pushTagged' lua "AuthorInText"
-    NormalCitation -> pushTagged' lua "NormalCitation"
-    SuppressAuthor -> pushTagged' lua "SuppressAuthor"
+    AuthorInText   -> getglobal2 lua "pandoc.AuthorInText"
+    NormalCitation -> getglobal2 lua "pandoc.NormalCitation"
+    SuppressAuthor -> getglobal2 lua "pandoc.SuppressAuthor"
   peek lua idx = do
     tag <- getField lua idx "t"
     case tag of
@@ -204,8 +192,8 @@ instance StackValue Format where
 
 instance StackValue MathType where
   push lua = \case
-    InlineMath -> pushTagged' lua "InlineMath"
-    DisplayMath -> pushTagged' lua "DisplayMath"
+    InlineMath -> getglobal2 lua "pandoc.InlineMath"
+    DisplayMath -> getglobal2 lua "pandoc.DisplayMath"
   peek lua idx = do
     res <- getField lua idx "t"
     case res of
@@ -216,8 +204,8 @@ instance StackValue MathType where
 
 instance StackValue QuoteType where
   push lua = \case
-    SingleQuote -> pushTagged' lua "SingleQuote"
-    DoubleQuote -> pushTagged' lua "DoubleQuote"
+    SingleQuote -> getglobal2 lua "pandoc.SingleQuote"
+    DoubleQuote -> getglobal2 lua "pandoc.DoubleQuote"
   peek lua idx = do
     res <- getField lua idx "t"
     case res of
