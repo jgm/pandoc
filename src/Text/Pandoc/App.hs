@@ -493,21 +493,17 @@ externalFilter f args' d = liftIO $ do
   unless (exists && isExecutable) $ do
     mbExe <- findExecutable f'
     when (isNothing mbExe) $
-      E.throwIO $ PandocAppError 83 $
-           "Error running filter " ++ f ++  ":\n" ++
-           "Could not find executable '" ++ f' ++ "'."
+      E.throwIO $ PandocFilterError f ("Could not find executable " ++ f')
   env <- getEnvironment
   let env' = Just $ ("PANDOC_VERSION", pandocVersion) : env
   (exitcode, outbs) <- E.handle filterException $
                               pipeProcess env' f' args'' $ encode d
   case exitcode of
        ExitSuccess    -> return $ either error id $ eitherDecode' outbs
-       ExitFailure ec -> E.throwIO $ PandocAppError 83 $
-                           "Error running filter " ++ f ++ "\n" ++
-                           "Filter returned error status " ++ show ec
+       ExitFailure ec -> E.throwIO $ PandocFilterError f
+                           ("Filter returned error status " ++ show ec)
  where filterException :: E.SomeException -> IO a
-       filterException e = E.throwIO $ PandocAppError 83 $
-                            "Error running filter " ++ f ++ "\n" ++ show e
+       filterException e = E.throwIO $ PandocFilterError f (show e)
 
 -- | Data structure for command line options.
 data Opt = Opt
