@@ -64,10 +64,14 @@ roundtripEqual x = (x ==) <$> roundtripped
   roundtripped :: (Lua.StackValue a) => IO a
   roundtripped = do
     lua <- Lua.newstate
+    Lua.openlibs lua
+    pushPandocModule lua
+    Lua.setglobal lua "pandoc"
+    oldSize <- Lua.gettop lua
     Lua.push lua x
     size <- Lua.gettop lua
-    when (size /= 1) $
-      error ("not exactly one element on the stack: " ++ show size)
+    when ((size - oldSize) /= 1) $
+      error ("not exactly one additional element on the stack: " ++ show size)
     res <- Lua.peek lua (-1)
     retval <- case res of
                 Nothing -> error "could not read from stack"

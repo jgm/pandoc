@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Pandoc lua utils.
 -}
-module Text.Pandoc.Lua ( runLuaFilter ) where
+module Text.Pandoc.Lua ( runLuaFilter, pushPandocModule ) where
 
 import Control.Monad ( (>=>), when )
 import Control.Monad.Trans ( MonadIO(..) )
@@ -39,7 +39,7 @@ import Data.Text.Encoding ( decodeUtf8 )
 import Scripting.Lua ( LuaState, StackValue(..) )
 import Scripting.Lua.Aeson ( newstate )
 import Text.Pandoc.Definition ( Block(..), Inline(..), Pandoc(..) )
-import Text.Pandoc.Lua.PandocModule
+import Text.Pandoc.Lua.PandocModule ( pushPandocModule )
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Walk
 

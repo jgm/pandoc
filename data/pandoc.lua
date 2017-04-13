@@ -163,6 +163,48 @@ function M.Doc(blocks, meta)
 end
 
 
+------------------------------------------------------------------------
+-- MetaValue
+-- @section MetaValue
+M.MetaValue = Element:make_subtype{}
+M.MetaValue.__call = function(t, ...)
+  return t:new(...)
+end
+--- Meta blocks
+-- @function MetaBlocks
+-- @tparam {Block,...} blocks blocks
+--- Meta inlines
+-- @function MetaInlines
+-- @tparam {Inline,...} inlines inlines
+--- Meta list
+-- @function MetaList
+-- @tparam {MetaValue,...} meta_values list of meta values
+--- Meta boolean
+-- @function MetaBool
+-- @tparam boolean bool boolean value
+--- Meta map
+-- @function MetaMap
+-- @tparam table a string-index map of meta values
+--- Meta string
+-- @function MetaString
+-- @tparam string str string value
+M.meta_value_types = {
+  "MetaBlocks",
+  "MetaBool",
+  "MetaInlines",
+  "MetaList",
+  "MetaMap",
+  "MetaString"
+}
+for i = 1, #M.meta_value_types do
+  M[M.meta_value_types[i]] = M.MetaValue:create_constructor(
+    M.meta_value_types[i],
+    function(content)
+      return {c = content}
+    end
+  )
+end
+
 --- Inline element class
 -- @type Inline
 M.Inline = Element:make_subtype{}
