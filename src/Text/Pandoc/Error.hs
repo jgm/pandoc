@@ -55,6 +55,7 @@ data PandocError = PandocIOError String IOError
                  | PandocSyntaxMapError String
                  | PandocFailOnWarningError
                  | PandocPDFProgramNotFoundError String
+                 | PandocPDFError String
                  | PandocAppError Int String
                  deriving (Show, Typeable, Generic)
 
@@ -86,6 +87,7 @@ handleError (Left e) =
     PandocFailOnWarningError -> err 3 "Failing because there were warnings."
     PandocPDFProgramNotFoundError pdfprog -> err 47 $
         pdfprog ++ " not found. " ++ pdfprog ++ " is needed for pdf output."
+    PandocPDFError log -> err 43 $ "Error producing PDF.\n" ++ log
     PandocAppError ec s -> err ec s
 
 err :: Int -> String -> IO a

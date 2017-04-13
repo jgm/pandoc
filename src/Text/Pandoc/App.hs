@@ -451,7 +451,7 @@ convertWithOpts opts = do
                      Left err' -> liftIO $ do
                        B.hPutStr stderr err'
                        B.hPut stderr $ B.pack [10]
-                       E.throwIO $ PandocAppError 43 "Error producing PDF"
+                       E.throwIO $ PandocPDFError (UTF8.toStringLazy err')
         | otherwise -> do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy","slideous","dzslides","revealjs"]
