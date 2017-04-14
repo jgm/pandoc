@@ -1,7 +1,6 @@
 return {
   {
-    RawBlock = function (blk)
-      local format, content = unpack(blk.c)
+    RawBlock = function (format, content)
       if format == "markdown" then
         return pandoc.reader.markdown.read_block(content)
       else

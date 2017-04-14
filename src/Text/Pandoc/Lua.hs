@@ -107,24 +107,30 @@ execBlockLuaFilter :: LuaState
                    -> Map String (LuaFilterFunction Block)
                    -> Block -> IO Block
 execBlockLuaFilter lua fnMap x = do
-  let filterOrId constr = case Map.lookup constr fnMap of
-                            Nothing -> return x
-                            Just fn -> runLuaFilterFunction lua fn x
+  let runFn :: PushViaFilterFunction Block a => LuaFilterFunction Block -> a
+      runFn fn = runLuaFilterFunction lua fn
+  let tryFilter :: String -> (LuaFilterFunction Block -> IO Block) -> IO Block
+      tryFilter fnName callFilterFn =
+        case Map.lookup fnName fnMap of
+          Nothing -> return x
+          Just fn -> callFilterFn fn
   case x of
-    Plain _          -> filterOrId "Plain"
-    Para _           -> filterOrId "Para"
-    LineBlock _      -> filterOrId "LineBlock"
-    CodeBlock _ _    -> filterOrId "CodeBlock"
-    RawBlock _ _     -> filterOrId "RawBlock"
-    BlockQuote _     -> filterOrId "BlockQuote"
-    OrderedList _ _  -> filterOrId "OrderedList"
-    BulletList _     -> filterOrId "BulletList"
-    DefinitionList _ -> filterOrId "DefinitionList"
-    Header _ _ _     -> filterOrId "Header"
-    HorizontalRule   -> filterOrId "HorizontalRule"
-    Table _ _ _ _ _  -> filterOrId "Table"
-    Div _ _          -> filterOrId "Div"
-    Null             -> filterOrId "Null"
+    HorizontalRule             -> tryFilter "HorizontalRule" runFn
+    Null                       -> tryFilter "Null" runFn
+    BlockQuote blcks           -> tryFilter "BlockQuote" $ \fn -> runFn fn blcks
+    BulletList items           -> tryFilter "BulletList" $ \fn -> runFn fn items
+    CodeBlock attr code        -> tryFilter "CodeBlock" $ \fn -> runFn fn attr code
+    DefinitionList lst         -> tryFilter "DefinitionList" $ \fn -> runFn fn lst
+    Div attr content           -> tryFilter "Div" $ \fn -> runFn fn content attr
+    Header lvl attr inlns      -> tryFilter "Header" $ \fn -> runFn fn lvl inlns attr
+    LineBlock inlns            -> tryFilter "LineBlock" $ \fn -> runFn fn inlns
+    Para inlns                 -> tryFilter "Para" $ \fn -> runFn fn inlns
+    Plain inlns                -> tryFilter "Plain" $ \fn -> runFn fn inlns
+    RawBlock format str        -> tryFilter "RawBlock" $ \fn -> runFn fn format str
+    OrderedList (num,sty,delim) items ->
+      tryFilter "OrderedList" $ \fn -> runFn fn items (num,sty,delim)
+    Table capt aligns widths headers rows ->
+      tryFilter "Table" $ \fn -> runFn fn capt aligns widths headers rows
 
 execInlineLuaFilter :: LuaState
                     -> Map String (LuaFilterFunction Inline)
