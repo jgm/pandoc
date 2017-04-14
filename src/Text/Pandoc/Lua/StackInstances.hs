@@ -35,28 +35,22 @@ StackValue instances for pandoc types.
 -}
 module Text.Pandoc.Lua.StackInstances () where
 
-import Data.Aeson ( FromJSON(..), ToJSON(..), Result(..), Value, fromJSON )
+import Control.Applicative ( (<|>) )
 import Scripting.Lua
   ( LTYPE(..), LuaState, StackValue(..)
-  , gettable, newtable, pop, rawgeti, rawset, rawseti, settable
+  , call, getglobal2, gettable, ltype, newtable, next, objlen
+  , pop, pushnil, rawgeti, rawseti, settable
   )
-import Scripting.Lua.Aeson ()
 import Text.Pandoc.Definition
-  ( Block(..), Inline(..), Meta(..), Pandoc(..)
-  , Citation(..), CitationMode(..), Format(..), MathType(..), QuoteType(..) )
 
+import qualified Data.Map as M
 import qualified Text.Pandoc.UTF8 as UTF8
-
-maybeFromJson :: (FromJSON a) => Maybe Value -> Maybe a
-maybeFromJson mv = fromJSON <$> mv >>= \case
-  Success x -> Just x
-  _         -> Nothing
 
 instance StackValue Pandoc where
   push lua (Pandoc meta blocks) = do
     newtable lua
-    setField lua (-1) "blocks" blocks
-    setField lua (-1) "meta"   meta
+    addKeyValue lua "blocks" blocks
+    addKeyValue lua "meta"   meta
   peek lua idx = do
     blocks <- getField lua idx "blocks"
     meta   <- getField lua idx "meta"
@@ -64,57 +58,122 @@ instance StackValue Pandoc where
   valuetype _ = TTABLE
 
 instance StackValue Meta where
-  push lua = push lua . toJSON
-  peek lua = fmap maybeFromJson . peek lua
+  push lua (Meta mmap) = push lua mmap
+  peek lua idx = fmap Meta <$> peek lua idx
   valuetype _ = TTABLE
+
+instance StackValue MetaValue where
+  push lua = \case
+    MetaBlocks blcks  -> pushViaConstructor lua "MetaBlocks" blcks
+    MetaBool b        -> pushViaConstructor lua "MetaBool" b
+    MetaInlines inlns -> pushViaConstructor lua "MetaInlines" inlns
+    MetaList metalist -> pushViaConstructor lua "MetaList" metalist
+    MetaMap metamap   -> pushViaConstructor lua "MetaMap" metamap
+    MetaString cs     -> pushViaConstructor lua "MetaString" cs
+  peek lua idx = do
+    luatype <- ltype lua idx
+    case luatype of
+      TBOOLEAN -> fmap MetaBool <$> peek lua idx
+      TSTRING  -> fmap MetaString <$> peek lua idx
+      TTABLE   -> do
+        tag <- push lua "t"
+               *> gettable lua (idx `adjustIndexBy` 1)
+               *> peek lua (-1)
+               <* pop lua 1
+        case tag of
+          Just "MetaBlocks"  -> fmap MetaBlocks  <$> peekContent lua idx
+          Just "MetaBool"    -> fmap MetaBool    <$> peekContent lua idx
+          Just "MetaMap"     -> fmap MetaMap     <$> peekContent lua idx
+          Just "MetaInlines" -> fmap MetaInlines <$> peekContent lua idx
+          Just "MetaList"    -> fmap MetaList    <$> peekContent lua idx
+          Just "MetaString"  -> fmap MetaString  <$> peekContent lua idx
+          Nothing -> do
+            len <- objlen lua idx
+            if len <= 0
+              then fmap MetaMap <$> peek lua idx
+              else  (fmap MetaInlines <$> peek lua idx)
+                    <|> (fmap MetaBlocks <$> peek lua idx)
+                    <|> (fmap MetaList <$> peek lua idx)
+          _        -> return Nothing
+      _        -> return Nothing
+  valuetype = \case
+    MetaBlocks _  -> TTABLE
+    MetaBool _    -> TBOOLEAN
+    MetaInlines _ -> TTABLE
+    MetaList _    -> TTABLE
+    MetaMap _     -> TTABLE
+    MetaString _  -> TSTRING
+
+peekContent :: StackValue a => LuaState -> Int -> IO (Maybe a)
+peekContent lua idx = do
+  push lua "c"
+  gettable lua (idx `adjustIndexBy` 1)
+  peek lua (-1) <* pop lua 1
 
 instance StackValue Block where
   push lua = \case
-    BlockQuote blcks  -> pushTagged  lua "BlockQuote" blcks
-    BulletList items  -> pushTagged  lua "BulletList" items
-    HorizontalRule    -> pushTagged' lua "HorizontalRule"
-    LineBlock blcks   -> pushTagged  lua "LineBlock" blcks
-    Null              -> pushTagged' lua "Null"
-    Para blcks        -> pushTagged  lua "Para" blcks
-    Plain blcks       -> pushTagged  lua "Plain" blcks
+    BlockQuote blcks         -> pushViaConstructor lua "BlockQuote" blcks
+    BulletList items         -> pushViaConstructor lua "BulletList" items
+    CodeBlock attr code      -> pushViaConstructor lua "CodeBlock" code attr
+    DefinitionList items     -> pushViaConstructor lua "DefinitionList" items
+    Div attr blcks           -> pushViaConstructor lua "Div" blcks attr
+    Header lvl attr inlns    -> pushViaConstructor lua "Header" lvl attr inlns
+    HorizontalRule           -> pushViaConstructor lua "HorizontalRule"
+    LineBlock blcks          -> pushViaConstructor lua "LineBlock" blcks
+    OrderedList lstAttr list -> pushViaConstructor lua "OrderedList" list lstAttr
+    Null                     -> pushViaConstructor lua "Null"
+    Para blcks               -> pushViaConstructor lua "Para" blcks
+    Plain blcks              -> pushViaConstructor lua "Plain" blcks
+    RawBlock f cs            -> pushViaConstructor lua "RawBlock" f cs
+    Table capt aligns widths headers rows ->
+      pushViaConstructor lua "Table" capt aligns widths headers rows
     -- fall back to conversion via aeson's Value
-    x                 -> push lua (toJSON x)
   peek lua i = peekBlock lua i
   valuetype _ = TTABLE
 
 instance StackValue Inline where
   push lua = \case
-    Cite citations lst -> pushTagged  lua "Cite" (citations, lst)
-    Code attr lst      -> pushTagged  lua "Code" (attr, lst)
-    Emph inlns         -> pushTagged  lua "Emph" inlns
-    Image attr lst tgt -> pushTagged  lua "Image" (attr, lst, tgt)
-    LineBreak          -> pushTagged' lua "LineBreak"
-    Link attr lst tgt  -> pushTagged  lua "Link" (attr, lst, tgt)
-    Note blcks         -> pushTagged  lua "Note" blcks
-    Math mty str       -> pushTagged  lua "Math" (mty, str)
-    Quoted qt inlns    -> pushTagged  lua "Quoted" (qt, inlns)
-    RawInline f cs     -> pushTagged  lua "RawInline" (f, cs)
-    SmallCaps inlns    -> pushTagged  lua "SmallCaps" inlns
-    SoftBreak          -> pushTagged' lua "SoftBreak"
-    Space              -> pushTagged' lua "Space"
-    Span attr inlns    -> pushTagged  lua "Span" (attr, inlns)
-    Str str            -> pushTagged  lua "Str" str
-    Strikeout inlns    -> pushTagged  lua "Strikeout" inlns
-    Strong inlns       -> pushTagged  lua "Strong" inlns
-    Subscript inlns    -> pushTagged  lua "Subscript" inlns
-    Superscript inlns  -> pushTagged  lua "Superscript" inlns
+    Cite citations lst       -> pushViaConstructor lua "Cite" lst citations
+    Code attr lst            -> pushViaConstructor lua "Code" lst attr
+    Emph inlns               -> pushViaConstructor lua "Emph" inlns
+    Image attr alt (src,tit) -> pushViaConstructor lua "Image" alt src tit attr
+    LineBreak                -> pushViaConstructor lua "LineBreak"
+    Link attr lst (src,tit)  -> pushViaConstructor lua "Link" lst src tit attr
+    Note blcks               -> pushViaConstructor lua "Note" blcks
+    Math mty str             -> pushViaConstructor lua "Math" mty str
+    Quoted qt inlns          -> pushViaConstructor lua "Quoted" qt inlns
+    RawInline f cs           -> pushViaConstructor lua "RawInline" f cs
+    SmallCaps inlns          -> pushViaConstructor lua "SmallCaps" inlns
+    SoftBreak                -> pushViaConstructor lua "SoftBreak"
+    Space                    -> pushViaConstructor lua "Space"
+    Span attr inlns          -> pushViaConstructor lua "Span" inlns attr
+    Str str                  -> pushViaConstructor lua "Str" str
+    Strikeout inlns          -> pushViaConstructor lua "Strikeout" inlns
+    Strong inlns             -> pushViaConstructor lua "Strong" inlns
+    Subscript inlns          -> pushViaConstructor lua "Subscript" inlns
+    Superscript inlns        -> pushViaConstructor lua "Superscript" inlns
   peek = peekInline
   valuetype _ = TTABLE
 
+instance StackValue Alignment where
+  push lua = \case
+    AlignLeft -> getglobal2 lua "pandoc.AlignLeft"
+    AlignRight -> getglobal2 lua "pandoc.AlignRight"
+    AlignCenter -> getglobal2 lua "pandoc.AlignCenter"
+    AlignDefault -> getglobal2 lua "pandoc.AlignDefault"
+  peek lua idx = do
+    tag <- getField lua idx "t"
+    case tag of
+      Just "AlignLeft" -> return $ Just AlignLeft
+      Just "AlignRight" -> return $ Just AlignRight
+      Just "AlignCenter" -> return $ Just AlignCenter
+      Just "AlignDefault" -> return $ Just AlignDefault
+      _ -> return Nothing
+  valuetype _ = TSTRING
+
 instance StackValue Citation where
-  push lua c = do
-    newtable lua
-    setField lua (-1) "citationId" (citationId c)
-    setField lua (-1) "citationPrefix" (citationPrefix c)
-    setField lua (-1) "citationSuffix" (citationSuffix c)
-    setField lua (-1) "citationMode" (citationMode c)
-    setField lua (-1) "citationNoteNum" (citationNoteNum c)
-    setField lua (-1) "citationHash" (citationHash c)
+  push lua (Citation cid prefix suffix mode noteNum hash) =
+    pushViaConstructor lua "Citation" cid mode prefix suffix noteNum hash
   peek lua idx = do
     id' <- getField lua idx "citationId"
     prefix <- getField lua idx "citationPrefix"
@@ -122,20 +181,14 @@ instance StackValue Citation where
     mode <- getField lua idx "citationMode"
     num <- getField lua idx "citationNoteNum"
     hash <- getField lua idx "citationHash"
-    return $ Citation
-      <$> id'
-      <*> prefix
-      <*> suffix
-      <*> mode
-      <*> num
-      <*> hash
+    return $ Citation <$> id' <*> prefix <*> suffix <*> mode <*> num <*> hash
   valuetype _ = TTABLE
 
 instance StackValue CitationMode where
   push lua = \case
-    AuthorInText   -> pushTagged' lua "AuthorInText"
-    NormalCitation -> pushTagged' lua "NormalCitation"
-    SuppressAuthor -> pushTagged' lua "SuppressAuthor"
+    AuthorInText   -> getglobal2 lua "pandoc.AuthorInText"
+    NormalCitation -> getglobal2 lua "pandoc.NormalCitation"
+    SuppressAuthor -> getglobal2 lua "pandoc.SuppressAuthor"
   peek lua idx = do
     tag <- getField lua idx "t"
     case tag of
@@ -143,17 +196,55 @@ instance StackValue CitationMode where
       Just "NormalCitation" -> return $ Just NormalCitation
       Just "SuppressAuthor" -> return $ Just SuppressAuthor
       _ -> return Nothing
-  valuetype _ = TSTRING
+  valuetype _ = TTABLE
 
 instance StackValue Format where
   push lua (Format f) = push lua f
   peek lua idx = fmap Format <$> peek lua idx
   valuetype _ = TSTRING
 
+instance StackValue ListNumberDelim where
+  push lua = \case
+    DefaultDelim -> getglobal2 lua "pandoc.DefaultDelim"
+    Period -> getglobal2 lua "pandoc.Period"
+    OneParen -> getglobal2 lua "pandoc.OneParen"
+    TwoParens -> getglobal2 lua "pandoc.TwoParens"
+  peek lua idx = do
+    tag <- getField lua idx "t"
+    case tag of
+      Just "DefaultDelim" -> return $ Just DefaultDelim
+      Just "Period" -> return $ Just Period
+      Just "OneParen" -> return $ Just OneParen
+      Just "TwoParens" -> return $ Just TwoParens
+      _ -> return Nothing
+  valuetype _ = TTABLE
+
+instance StackValue ListNumberStyle where
+  push lua = \case
+    DefaultStyle -> getglobal2 lua "pandoc.DefaultStyle"
+    LowerRoman -> getglobal2 lua "pandoc.LowerRoman"
+    UpperRoman -> getglobal2 lua "pandoc.UpperRoman"
+    LowerAlpha -> getglobal2 lua "pandoc.LowerAlpha"
+    UpperAlpha -> getglobal2 lua "pandoc.UpperAlpha"
+    Decimal -> getglobal2 lua "pandoc.Decimal"
+    Example -> getglobal2 lua "pandoc.Example"
+  peek lua idx = do
+    tag <- getField lua idx "t"
+    case tag of
+      Just "DefaultStyle" -> return $ Just DefaultStyle
+      Just "LowerRoman" -> return $ Just LowerRoman
+      Just "UpperRoman" -> return $ Just UpperRoman
+      Just "LowerAlpha" -> return $ Just LowerAlpha
+      Just "UpperAlpha" -> return $ Just UpperAlpha
+      Just "Decimal" -> return $ Just Decimal
+      Just "Example" -> return $ Just Example
+      _ -> return Nothing
+  valuetype _ = TTABLE
+
 instance StackValue MathType where
   push lua = \case
-    InlineMath -> pushTagged' lua "InlineMath"
-    DisplayMath -> pushTagged' lua "DisplayMath"
+    InlineMath -> getglobal2 lua "pandoc.InlineMath"
+    DisplayMath -> getglobal2 lua "pandoc.DisplayMath"
   peek lua idx = do
     res <- getField lua idx "t"
     case res of
@@ -164,8 +255,8 @@ instance StackValue MathType where
 
 instance StackValue QuoteType where
   push lua = \case
-    SingleQuote -> pushTagged' lua "SingleQuote"
-    DoubleQuote -> pushTagged' lua "DoubleQuote"
+    SingleQuote -> getglobal2 lua "pandoc.SingleQuote"
+    DoubleQuote -> getglobal2 lua "pandoc.DoubleQuote"
   peek lua idx = do
     res <- getField lua idx "t"
     case res of
@@ -186,11 +277,11 @@ instance StackValue [Char] where
 instance (StackValue a, StackValue b) => StackValue (a, b) where
   push lua (a, b) = do
     newtable lua
-    setIntField lua (-1) 1 a
-    setIntField lua (-1) 2 b
+    addIndexedValue lua 1 a
+    addIndexedValue lua 2 b
   peek lua idx = do
-    a <- getIntField lua idx 1
-    b <- getIntField lua idx 2
+    a <- getIndexedValue lua idx 1
+    b <- getIndexedValue lua idx 2
     return $ (,) <$> a <*> b
   valuetype _ = TTABLE
 
@@ -199,31 +290,93 @@ instance (StackValue a, StackValue b, StackValue c) =>
  where
   push lua (a, b, c) = do
     newtable lua
-    setIntField lua (-1) 1 a
-    setIntField lua (-1) 2 b
-    setIntField lua (-1) 3 c
+    addIndexedValue lua 1 a
+    addIndexedValue lua 2 b
+    addIndexedValue lua 3 c
   peek lua idx = do
-    a <- getIntField lua idx 1
-    b <- getIntField lua idx 2
-    c <- getIntField lua idx 3
+    a <- getIndexedValue lua idx 1
+    b <- getIndexedValue lua idx 2
+    c <- getIndexedValue lua idx 3
     return $ (,,) <$> a <*> b <*> c
   valuetype _ = TTABLE
 
--- | Push a value to the lua stack, tagged with a given string. This currently
--- creates a structure equivalent to what the JSONified value would look like
--- when pushed to lua.
-pushTagged :: StackValue a => LuaState -> String -> a -> IO ()
-pushTagged lua tag value = do
-  newtable lua
-  setField lua (-1) "t" tag
-  setField lua (-1) "c" value
+instance (StackValue a, StackValue b, StackValue c,
+          StackValue d, StackValue e) =>
+         StackValue (a, b, c, d, e)
+ where
+  push lua (a, b, c, d, e) = do
+    newtable lua
+    addIndexedValue lua 1 a
+    addIndexedValue lua 2 b
+    addIndexedValue lua 3 c
+    addIndexedValue lua 4 d
+    addIndexedValue lua 5 e
+  peek lua idx = do
+    a <- getIndexedValue lua idx 1
+    b <- getIndexedValue lua idx 2
+    c <- getIndexedValue lua idx 3
+    d <- getIndexedValue lua idx 4
+    e <- getIndexedValue lua idx 5
+    return $ (,,,,) <$> a <*> b <*> c <*> d <*> e
+  valuetype _ = TTABLE
 
-pushTagged' :: LuaState -> String -> IO ()
-pushTagged' lua tag = do
-  newtable lua
-  push lua "t"
-  push lua tag
-  rawset lua (-3)
+instance (Ord a, StackValue a, StackValue b) =>
+         StackValue (M.Map a b) where
+  push lua m = do
+    newtable lua
+    mapM_ (uncurry $ addKeyValue lua) $ M.toList m
+  peek lua idx = fmap M.fromList <$> keyValuePairs lua idx
+  valuetype _ = TTABLE
+
+-- | Try reading the value under the given index as a list of key-value pairs.
+keyValuePairs :: (StackValue a, StackValue b)
+         => LuaState -> Int -> IO (Maybe [(a, b)])
+keyValuePairs lua idx = do
+  pushnil lua
+  sequence <$> remainingPairs
+ where
+  remainingPairs = do
+    res <- nextPair
+    case res of
+      Nothing -> return []
+      Just a  -> (a:) <$> remainingPairs
+  nextPair :: (StackValue a, StackValue b) => IO (Maybe (Maybe (a,b)))
+  nextPair = do
+    hasNext <- next lua (idx `adjustIndexBy` 1)
+    if hasNext
+      then do
+        val <- peek lua (-1)
+        key <- peek lua (-2)
+        pop lua 1 -- removes the value, keeps the key
+        return $ Just <$> ((,) <$> key <*> val)
+      else do
+        return Nothing
+
+
+-- | Helper class for pushing a single value to the stack via a lua function.
+-- See @pushViaCall@.
+class PushViaCall a where
+  pushViaCall' :: LuaState -> String -> IO () -> Int -> a
+
+instance PushViaCall (IO ()) where
+  pushViaCall' lua fn pushArgs num = do
+    getglobal2 lua fn
+    pushArgs
+    call lua num 1
+
+instance (StackValue a, PushViaCall b) => PushViaCall (a -> b) where
+  pushViaCall' lua fn pushArgs num x =
+    pushViaCall' lua fn (pushArgs *> push lua x) (num + 1)
+
+-- | Push an value to the stack via a lua function. The lua function is called
+-- with all arguments that are passed to this function and is expected to return
+-- a single value.
+pushViaCall :: PushViaCall a => LuaState -> String -> a
+pushViaCall lua fn = pushViaCall' lua fn (return ()) 0
+
+-- | Call a pandoc element constructor within lua, passing all given arguments.
+pushViaConstructor :: PushViaCall a => LuaState -> String -> a
+pushViaConstructor lua pandocFn = pushViaCall lua ("pandoc." ++ pandocFn)
 
 -- | Return the value at the given index as inline if possible.
 peekInline :: LuaState -> Int -> IO (Maybe Inline)
@@ -268,13 +421,22 @@ peekBlock lua idx = do
     Just t -> case t of
       "BlockQuote"     -> fmap BlockQuote <$> elementContent
       "BulletList"     -> fmap BulletList <$> elementContent
+      "CodeBlock"      -> fmap (uncurry CodeBlock) <$> elementContent
+      "DefinitionList" -> fmap DefinitionList <$> elementContent
+      "Div"            -> fmap (uncurry Div) <$> elementContent
+      "Header"         -> fmap (\(lvl, attr, lst) -> Header lvl attr lst)
+                          <$> elementContent
       "HorizontalRule" -> return (Just HorizontalRule)
       "LineBlock"      -> fmap LineBlock <$> elementContent
+      "OrderedList"    -> fmap (uncurry OrderedList) <$> elementContent
       "Null"           -> return (Just Null)
       "Para"           -> fmap Para <$> elementContent
       "Plain"          -> fmap Plain <$> elementContent
-      -- fall back to construction via aeson's Value
-      _ -> maybeFromJson <$> peek lua idx
+      "RawBlock"       -> fmap (uncurry RawBlock) <$> elementContent
+      "Table"          -> fmap (\(capt, aligns, widths, headers, body) ->
+                                  Table capt aligns widths headers body)
+                          <$> elementContent
+      _ -> return Nothing
  where
    -- Get the contents of an AST element.
    elementContent :: StackValue a => IO (Maybe a)
@@ -296,21 +458,29 @@ getField lua idx key = do
   peek lua (-1) <* pop lua 1
 
 -- | Set value for key for table at the given index
-setField :: (StackValue a, StackValue b) => LuaState -> Int -> a -> b -> IO ()
-setField lua idx key value = do
+setKeyValue :: (StackValue a, StackValue b) => LuaState -> Int -> a -> b -> IO ()
+setKeyValue lua idx key value = do
   push lua key
   push lua value
   settable lua (idx `adjustIndexBy` 2)
 
+-- | Add a key-value pair to the table at the top of the stack
+addKeyValue :: (StackValue a, StackValue b) => LuaState -> a -> b -> IO ()
+addKeyValue lua = setKeyValue lua (-1)
+
 -- | Get value behind key from table at given index.
-getIntField :: StackValue a => LuaState -> Int -> Int -> IO (Maybe a)
-getIntField lua idx key =
+getIndexedValue :: StackValue a => LuaState -> Int -> Int -> IO (Maybe a)
+getIndexedValue lua idx key =
   rawgeti lua idx key
   *> peek lua (-1)
   <* pop lua 1
 
 -- | Set numeric key/value in table at the given index
-setIntField :: StackValue a => LuaState -> Int -> Int -> a -> IO ()
-setIntField lua idx key value = do
+setIndexedValue :: StackValue a => LuaState -> Int -> Int -> a -> IO ()
+setIndexedValue lua idx key value = do
   push lua value
   rawseti lua (idx `adjustIndexBy` 1) key
+
+-- | Set numeric key/value in table at the top of the stack.
+addIndexedValue :: StackValue a => LuaState -> Int -> a -> IO ()
+addIndexedValue lua = setIndexedValue lua (-1)

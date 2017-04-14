@@ -15,6 +15,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua
@@ -26,27 +29,24 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Pandoc lua utils.
 -}
-module Text.Pandoc.Lua ( runLuaFilter ) where
+module Text.Pandoc.Lua ( runLuaFilter, pushPandocModule ) where
 
 import Control.Monad ( (>=>), when )
 import Control.Monad.Trans ( MonadIO(..) )
-import Data.HashMap.Lazy ( HashMap )
-import Data.Text ( Text, pack, unpack )
-import Data.Text.Encoding ( decodeUtf8 )
+import Data.Map ( Map )
 import Scripting.Lua ( LuaState, StackValue(..) )
-import Scripting.Lua.Aeson ( newstate )
 import Text.Pandoc.Definition ( Block(..), Inline(..), Pandoc(..) )
-import Text.Pandoc.Lua.PandocModule
+import Text.Pandoc.Lua.PandocModule ( pushPandocModule )
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Walk
 
-import qualified Data.HashMap.Lazy as HashMap
+import qualified Data.Map as Map
 import qualified Scripting.Lua as Lua
 
 runLuaFilter :: (MonadIO m)
              => FilePath -> [String] -> Pandoc -> m Pandoc
 runLuaFilter filterPath args pd = liftIO $ do
-  lua <- newstate
+  lua <- Lua.newstate
   Lua.openlibs lua
   -- create table in registry to store filter functions
   Lua.push lua ("PANDOC_FILTER_FUNCTIONS"::String)
@@ -58,12 +58,12 @@ runLuaFilter filterPath args pd = liftIO $ do
   status <- Lua.loadfile lua filterPath
   if (status /= 0)
     then do
-      luaErrMsg <- unpack . decodeUtf8 <$> Lua.tostring lua 1
+      Just luaErrMsg <- Lua.peek lua 1
       error luaErrMsg
     else do
       Lua.call lua 0 1
       Just luaFilters <- Lua.peek lua (-1)
-      Lua.push lua (map pack args)
+      Lua.push lua args
       Lua.setglobal lua "PandocParameters"
       doc <- runAll luaFilters >=> luaFilter lua "filter_doc" $ pd
       Lua.close lua
@@ -86,73 +86,85 @@ walkMWithLuaFilter (LuaFilter lua inlineFnMap blockFnMap docFnMap) =
   walkM (execBlockLuaFilter  lua blockFnMap)  >=>
   walkM (execDocLuaFilter    lua docFnMap)
 
-type InlineFunctionMap = HashMap Text (LuaFilterFunction Inline)
-type BlockFunctionMap  = HashMap Text (LuaFilterFunction Block)
-type DocFunctionMap    = HashMap Text (LuaFilterFunction Pandoc)
+type InlineFunctionMap = Map String (LuaFilterFunction Inline)
+type BlockFunctionMap  = Map String (LuaFilterFunction Block)
+type DocFunctionMap    = Map String (LuaFilterFunction Pandoc)
 data LuaFilter =
   LuaFilter LuaState InlineFunctionMap BlockFunctionMap DocFunctionMap
 
 newtype LuaFilterFunction a = LuaFilterFunction { functionIndex :: Int }
 
 execDocLuaFilter :: LuaState
-                 -> HashMap Text (LuaFilterFunction Pandoc)
+                 -> Map String (LuaFilterFunction Pandoc)
                  -> Pandoc -> IO Pandoc
 execDocLuaFilter lua fnMap x = do
   let docFnName = "Doc"
-  case HashMap.lookup docFnName fnMap of
+  case Map.lookup docFnName fnMap of
     Nothing -> return x
     Just fn -> runLuaFilterFunction lua fn x
 
 execBlockLuaFilter :: LuaState
-                   -> HashMap Text (LuaFilterFunction Block)
+                   -> Map String (LuaFilterFunction Block)
                    -> Block -> IO Block
 execBlockLuaFilter lua fnMap x = do
-  let filterOrId constr = case HashMap.lookup constr fnMap of
-                            Nothing -> return x
-                            Just fn -> runLuaFilterFunction lua fn x
+  let runFn :: PushViaFilterFunction Block a => LuaFilterFunction Block -> a
+      runFn fn = runLuaFilterFunction lua fn
+  let tryFilter :: String -> (LuaFilterFunction Block -> IO Block) -> IO Block
+      tryFilter fnName callFilterFn =
+        case Map.lookup fnName fnMap of
+          Nothing -> return x
+          Just fn -> callFilterFn fn
   case x of
-    Plain _          -> filterOrId "Plain"
-    Para _           -> filterOrId "Para"
-    LineBlock _      -> filterOrId "LineBlock"
-    CodeBlock _ _    -> filterOrId "CodeBlock"
-    RawBlock _ _     -> filterOrId "RawBlock"
-    BlockQuote _     -> filterOrId "BlockQuote"
-    OrderedList _ _  -> filterOrId "OrderedList"
-    BulletList _     -> filterOrId "BulletList"
-    DefinitionList _ -> filterOrId "DefinitionList"
-    Header _ _ _     -> filterOrId "Header"
-    HorizontalRule   -> filterOrId "HorizontalRule"
-    Table _ _ _ _ _  -> filterOrId "Table"
-    Div _ _          -> filterOrId "Div"
-    Null             -> filterOrId "Null"
+    HorizontalRule             -> tryFilter "HorizontalRule" runFn
+    Null                       -> tryFilter "Null" runFn
+    BlockQuote blcks           -> tryFilter "BlockQuote" $ \fn -> runFn fn blcks
+    BulletList items           -> tryFilter "BulletList" $ \fn -> runFn fn items
+    CodeBlock attr code        -> tryFilter "CodeBlock" $ \fn -> runFn fn attr code
+    DefinitionList lst         -> tryFilter "DefinitionList" $ \fn -> runFn fn lst
+    Div attr content           -> tryFilter "Div" $ \fn -> runFn fn content attr
+    Header lvl attr inlns      -> tryFilter "Header" $ \fn -> runFn fn lvl inlns attr
+    LineBlock inlns            -> tryFilter "LineBlock" $ \fn -> runFn fn inlns
+    Para inlns                 -> tryFilter "Para" $ \fn -> runFn fn inlns
+    Plain inlns                -> tryFilter "Plain" $ \fn -> runFn fn inlns
+    RawBlock format str        -> tryFilter "RawBlock" $ \fn -> runFn fn format str
+    OrderedList (num,sty,delim) items ->
+      tryFilter "OrderedList" $ \fn -> runFn fn items (num,sty,delim)
+    Table capt aligns widths headers rows ->
+      tryFilter "Table" $ \fn -> runFn fn capt aligns widths headers rows
 
 execInlineLuaFilter :: LuaState
-                    -> HashMap Text (LuaFilterFunction Inline)
+                    -> Map String (LuaFilterFunction Inline)
                     -> Inline -> IO Inline
 execInlineLuaFilter lua fnMap x = do
-  let filterOrId constr = case HashMap.lookup constr fnMap of
-                            Nothing -> return x
-                            Just fn -> runLuaFilterFunction lua fn x
+  let runFn :: PushViaFilterFunction Inline a => LuaFilterFunction Inline -> a
+      runFn fn = runLuaFilterFunction lua fn
+  let tryFilter :: String -> (LuaFilterFunction Inline -> IO Inline) -> IO Inline
+      tryFilter fnName callFilterFn =
+        case Map.lookup fnName fnMap of
+          Nothing -> return x
+          Just fn -> callFilterFn fn
   case x of
-    Cite _ _      -> filterOrId "Cite"
-    Code _ _      -> filterOrId "Code"
-    Emph _        -> filterOrId "Emph"
-    Image _ _ _   -> filterOrId "Image"
-    LineBreak     -> filterOrId "LineBreak"
-    Link _ _ _    -> filterOrId "Link"
-    Math _ _      -> filterOrId "Math"
-    Note _        -> filterOrId "Note"
-    Quoted _ _    -> filterOrId "Quoted"
-    RawInline _ _ -> filterOrId "RawInline"
-    SmallCaps _   -> filterOrId "SmallCaps"
-    SoftBreak     -> filterOrId "SoftBreak"
-    Space         -> filterOrId "Space"
-    Span _ _      -> filterOrId "Span"
-    Str _         -> filterOrId "Str"
-    Strikeout _   -> filterOrId "Strikeout"
-    Strong _      -> filterOrId "Strong"
-    Subscript _   -> filterOrId "Subscript"
-    Superscript _ -> filterOrId "Superscript"
+    LineBreak                 -> tryFilter "LineBreak" runFn
+    SoftBreak                 -> tryFilter "SoftBreak" runFn
+    Space                     -> tryFilter "Space"     runFn
+    Cite cs lst               -> tryFilter "Cite"      $ \fn -> runFn fn lst cs
+    Code attr str             -> tryFilter "Code"      $ \fn -> runFn fn str attr
+    Emph lst                  -> tryFilter "Emph"      $ \fn -> runFn fn lst
+    Math mt lst               -> tryFilter "Math"      $ \fn -> runFn fn lst mt
+    Note blks                 -> tryFilter "Note"      $ \fn -> runFn fn blks
+    Quoted qt lst             -> tryFilter "Quoted"    $ \fn -> runFn fn qt lst
+    RawInline f str           -> tryFilter "RawInline" $ \fn -> runFn fn f str
+    SmallCaps lst             -> tryFilter "SmallCaps" $ \fn -> runFn fn lst
+    Span attr lst             -> tryFilter "Span"      $ \fn -> runFn fn lst attr
+    Str str                   -> tryFilter "Str"       $ \fn -> runFn fn str
+    Strikeout lst             -> tryFilter "Strikeout" $ \fn -> runFn fn lst
+    Strong lst                -> tryFilter "Strong"    $ \fn -> runFn fn lst
+    Subscript lst             -> tryFilter "Subscript" $ \fn -> runFn fn lst
+    Superscript lst           -> tryFilter "Superscript" $ \fn -> runFn fn lst
+    Link attr txt (src, tit)  -> tryFilter "Link" $
+                                 \fn -> runFn fn txt src tit attr
+    Image attr alt (src, tit) -> tryFilter "Image" $
+                                 \fn -> runFn fn alt src tit attr
 
 instance StackValue LuaFilter where
   valuetype _ = Lua.TTABLE
@@ -164,17 +176,33 @@ instance StackValue LuaFilter where
     docFnMap    <- Lua.peek lua i
     return $ LuaFilter lua <$> inlineFnMap <*> blockFnMap <*> docFnMap
 
-runLuaFilterFunction :: (StackValue a)
-                     => LuaState -> LuaFilterFunction a -> a -> IO a
-runLuaFilterFunction lua lf inline = do
-  pushFilterFunction lua lf
-  Lua.push lua inline
-  Lua.call lua 1 1
-  mbres <- Lua.peek lua (-1)
-  case mbres of
-    Nothing -> error $ "Error while trying to get a filter's return "
-               ++ "value from lua stack."
-    Just res -> res <$ Lua.pop lua 1
+-- | Helper class for pushing a single value to the stack via a lua function.
+-- See @pushViaCall@.
+class PushViaFilterFunction a b where
+  pushViaFilterFunction' :: LuaState -> LuaFilterFunction a -> IO () -> Int -> b
+
+instance (StackValue a) => PushViaFilterFunction a (IO a) where
+  pushViaFilterFunction' lua lf pushArgs num = do
+    pushFilterFunction lua lf
+    pushArgs
+    Lua.call lua num 1
+    mbres <- Lua.peek lua (-1)
+    case mbres of
+      Nothing -> error $ "Error while trying to get a filter's return "
+                 ++ "value from lua stack."
+      Just res -> res <$ Lua.pop lua 1
+
+instance (PushViaFilterFunction a c, StackValue b) =>
+         PushViaFilterFunction a (b -> c) where
+  pushViaFilterFunction' lua lf pushArgs num x =
+    pushViaFilterFunction' lua lf (pushArgs *> push lua x) (num + 1)
+
+-- | Push an value to the stack via a lua filter function. The function is
+-- called with all arguments that are passed to this function and is expected to
+-- return a single value.
+runLuaFilterFunction :: (StackValue a, PushViaFilterFunction a b)
+                     => LuaState -> LuaFilterFunction a -> b
+runLuaFilterFunction lua lf = pushViaFilterFunction' lua lf (return ()) 0
 
 -- | Push the filter function to the top of the stack.
 pushFilterFunction :: Lua.LuaState -> LuaFilterFunction a -> IO ()
