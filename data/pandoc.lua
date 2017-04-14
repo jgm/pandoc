@@ -26,60 +26,6 @@ local M = {
   _VERSION = "0.2.0"
 }
 
---- Attributes
--- @type Attributes
-M.Attributes = {}
-setmetatable(M.Attributes, M.Attributes)
-
-M.Attributes.__index = function(t, k)
-  if k == "id" then
-    return t[1]
-  elseif k == "class" then
-    return table.concat(t[2], ' ')
-  else
-    return t.kv[k]
-  end
-end
-
---- Create a new set of attributes (Attr).
--- @function Attributes
-M.Attributes.__call = function(t, key_values, id, classes)
-  local kv = {}
-  for i = 1, #key_values do
-    kv[key_values[i][1]] = key_values[i][2]
-  end
-  id = id or ''
-  classes = classes or {}
-  local attr = {id, classes, key_values, kv = kv}
-  setmetatable(attr, t)
-  return attr
-end
-M.Attributes.empty = M.Attributes('', {}, {})
-
-
---- Creates a single citation.
--- @function Citation
--- @tparam      string       id       citation identifier (like a bibtex key)
--- @tparam      AuthorInText|SuppressAuthor|NormalCitation mode citation mode
--- @tparam[opt] {Inline,...} prefix   citation prefix
--- @tparam[opt] {Inline,...} suffix   citation suffix
--- @tparam[opt] int          note_num note number
--- @tparam[opt] int          note_num hash number
-M.Citation = function(id, mode, prefix, suffix, note_num, hash)
-  prefix = prefix or {}
-  suffix = suffix or {}
-  note_num = note_num or 0
-  hash = hash or 0
-  return {
-    citationId = id,
-    citationPrefix = prefix,
-    citationSuffix = suffix,
-    citationMode = mode,
-    citationNoteNum = note_num,
-    citationHash = hash,
-  }
-end
-
 ------------------------------------------------------------------------
 -- The base class for pandoc's AST elements.
 -- @type Element
@@ -211,9 +157,10 @@ for i = 1, #M.meta_value_types do
 end
 
 ------------------------------------------------------------------------
--- Block
+-- Blocks
 -- @section Block
 
+--- Block elements
 M.Block = Element:make_subtype{}
 M.Block.__call = function (t, ...)
   return t:new(...)
@@ -598,23 +545,67 @@ M.Superscript = M.Inline:create_constructor(
 
 
 ------------------------------------------------------------------------
+-- Helpers
+-- @section helpers
+
+-- Attributes
+M.Attributes = {}
+setmetatable(M.Attributes, M.Attributes)
+M.Attributes.__index = function(t, k)
+  if k == "id" then
+    return t[1]
+  elseif k == "class" then
+    return table.concat(t[2], ' ')
+  else
+    return t.kv[k]
+  end
+end
+--- Create a new set of attributes (Attr).
+-- @function Attributes
+-- @tparam      table        key_values table containing string keys and values
+-- @tparam[opt] string       id         element identifier
+-- @tparam[opt] {string,...} classes    element classes
+-- @return element attributes
+M.Attributes.__call = function(t, key_values, id, classes)
+  local kv = {}
+  for i = 1, #key_values do
+    kv[key_values[i][1]] = key_values[i][2]
+  end
+  id = id or ''
+  classes = classes or {}
+  local attr = {id, classes, key_values, kv = kv}
+  setmetatable(attr, t)
+  return attr
+end
+M.Attributes.empty = M.Attributes('', {}, {})
+
+--- Creates a single citation.
+-- @function Citation
+-- @tparam      string       id       citation identifier (like a bibtex key)
+-- @tparam      AuthorInText|SuppressAuthor|NormalCitation mode citation mode
+-- @tparam[opt] {Inline,...} prefix   citation prefix
+-- @tparam[opt] {Inline,...} suffix   citation suffix
+-- @tparam[opt] int          note_num note number
+-- @tparam[opt] int          note_num hash number
+M.Citation = function(id, mode, prefix, suffix, note_num, hash)
+  prefix = prefix or {}
+  suffix = suffix or {}
+  note_num = note_num or 0
+  hash = hash or 0
+  return {
+    citationId = id,
+    citationPrefix = prefix,
+    citationSuffix = suffix,
+    citationMode = mode,
+    citationNoteNum = note_num,
+    citationHash = hash,
+  }
+end
+
+
+------------------------------------------------------------------------
 -- Constants
 -- @section constants
-
---- Math content is to be displayed on a separate line.
--- @see Math
-M.DisplayMath = "DisplayMath"
---- Math content is to be displayed inline within the paragraph
--- @see Math
-M.InlineMath = "InlineMath"
-
---- Double quoted content.
--- @see Quoted
-M.DoubleQuote = "DoubleQuote"
-
---- Single quoted content.
--- @see Quoted
-M.SingleQuote = "SingleQuote"
 
 --- Author name is mentioned in the text.
 -- @see Citation
