@@ -259,7 +259,7 @@ blockList = do
   headlineBlocks <- fmap mconcat . sequence . map headlineToBlocks $ runF headlines st
   return . B.toList $ (runF initialBlocks st) <> headlineBlocks
 
--- | Get the meta information safed in the state.
+-- | Get the meta information saved in the state.
 meta :: Monad m => OrgParser m Meta
 meta = do
   meta' <- metaExport
