@@ -57,39 +57,8 @@ instance StackValue Meta where
   valuetype _ = TTABLE
 
 instance StackValue MetaValue where
-  push lua = \case
-    MetaBlocks blcks  -> pushViaConstructor lua "MetaBlocks" blcks
-    MetaBool bool     -> push lua bool
-    MetaInlines inlns -> pushViaConstructor lua "MetaInlines" inlns
-    MetaList metalist -> pushViaConstructor lua "MetaList" metalist
-    MetaMap metamap   -> pushViaConstructor lua "MetaMap" metamap
-    MetaString str    -> push lua str
-  peek lua idx = do
-    -- Get the contents of an AST element.
-    let elementContent :: StackValue a => IO (Maybe a)
-        elementContent = getTable lua idx "c"
-    luatype <- ltype lua idx
-    case luatype of
-      TBOOLEAN -> fmap MetaBool <$> peek lua idx
-      TSTRING  -> fmap MetaString <$> peek lua idx
-      TTABLE   -> do
-        tag <- getTable lua idx "t"
-        case tag of
-          Just "MetaBlocks"  -> fmap MetaBlocks  <$> elementContent
-          Just "MetaBool"    -> fmap MetaBool    <$> elementContent
-          Just "MetaMap"     -> fmap MetaMap     <$> elementContent
-          Just "MetaInlines" -> fmap MetaInlines <$> elementContent
-          Just "MetaList"    -> fmap MetaList    <$> elementContent
-          Just "MetaString"  -> fmap MetaString  <$> elementContent
-          Nothing -> do
-            len <- objlen lua idx
-            if len <= 0
-              then fmap MetaMap <$> peek lua idx
-              else  (fmap MetaInlines <$> peek lua idx)
-                    <|> (fmap MetaBlocks <$> peek lua idx)
-                    <|> (fmap MetaList <$> peek lua idx)
-          _        -> return Nothing
-      _        -> return Nothing
+  push = pushMetaValue
+  peek = peekMetaValue
   valuetype = \case
     MetaBlocks _  -> TTABLE
     MetaBool _    -> TBOOLEAN
@@ -99,54 +68,14 @@ instance StackValue MetaValue where
     MetaString _  -> TSTRING
 
 instance StackValue Block where
-  push lua = \case
-    BlockQuote blcks         -> pushViaConstructor lua "BlockQuote" blcks
-    BulletList items         -> pushViaConstructor lua "BulletList" items
-    CodeBlock attr code      -> pushViaConstructor lua "CodeBlock" code attr
-    DefinitionList items     -> pushViaConstructor lua "DefinitionList" items
-    Div attr blcks           -> pushViaConstructor lua "Div" blcks attr
-    Header lvl attr inlns    -> pushViaConstructor lua "Header" lvl attr inlns
-    HorizontalRule           -> pushViaConstructor lua "HorizontalRule"
-    LineBlock blcks          -> pushViaConstructor lua "LineBlock" blcks
-    OrderedList lstAttr list -> pushViaConstructor lua "OrderedList" list lstAttr
-    Null                     -> pushViaConstructor lua "Null"
-    Para blcks               -> pushViaConstructor lua "Para" blcks
-    Plain blcks              -> pushViaConstructor lua "Plain" blcks
-    RawBlock f cs            -> pushViaConstructor lua "RawBlock" f cs
-    Table capt aligns widths headers rows ->
-      pushViaConstructor lua "Table" capt aligns widths headers rows
-    -- fall back to conversion via aeson's Value
-  peek lua i = peekBlock lua i
+  push = pushBlock
+  peek = peekBlock
   valuetype _ = TTABLE
 
 instance StackValue Inline where
-  push lua = \case
-    Cite citations lst       -> pushViaConstructor lua "Cite" lst citations
-    Code attr lst            -> pushViaConstructor lua "Code" lst attr
-    Emph inlns               -> pushViaConstructor lua "Emph" inlns
-    Image attr alt (src,tit) -> pushViaConstructor lua "Image" alt src tit attr
-    LineBreak                -> pushViaConstructor lua "LineBreak"
-    Link attr lst (src,tit)  -> pushViaConstructor lua "Link" lst src tit attr
-    Note blcks               -> pushViaConstructor lua "Note" blcks
-    Math mty str             -> pushViaConstructor lua "Math" mty str
-    Quoted qt inlns          -> pushViaConstructor lua "Quoted" qt inlns
-    RawInline f cs           -> pushViaConstructor lua "RawInline" f cs
-    SmallCaps inlns          -> pushViaConstructor lua "SmallCaps" inlns
-    SoftBreak                -> pushViaConstructor lua "SoftBreak"
-    Space                    -> pushViaConstructor lua "Space"
-    Span attr inlns          -> pushViaConstructor lua "Span" inlns attr
-    Str str                  -> pushViaConstructor lua "Str" str
-    Strikeout inlns          -> pushViaConstructor lua "Strikeout" inlns
-    Strong inlns             -> pushViaConstructor lua "Strong" inlns
-    Subscript inlns          -> pushViaConstructor lua "Subscript" inlns
-    Superscript inlns        -> pushViaConstructor lua "Superscript" inlns
+  push = pushInline
   peek = peekInline
   valuetype _ = TTABLE
-
-instance StackValue Alignment where
-  push lua = push lua . show
-  peek lua idx = (>>= safeRead) <$> peek lua idx
-  valuetype _ = TSTRING
 
 instance StackValue Citation where
   push lua (Citation cid prefix suffix mode noteNum hash) =
@@ -160,6 +89,11 @@ instance StackValue Citation where
     hash <- getTable lua idx "citationHash"
     return $ Citation <$> id' <*> prefix <*> suffix <*> mode <*> num <*> hash
   valuetype _ = TTABLE
+
+instance StackValue Alignment where
+  push lua = push lua . show
+  peek lua idx = (>>= safeRead) <$> peek lua idx
+  valuetype _ = TSTRING
 
 instance StackValue CitationMode where
   push lua = push lua . show
@@ -191,6 +125,118 @@ instance StackValue QuoteType where
   peek lua idx = (>>= safeRead) <$> peek lua idx
   valuetype _ = TSTRING
 
+-- | Push an meta value element to the top of the lua stack.
+pushMetaValue :: LuaState -> MetaValue -> IO ()
+pushMetaValue lua = \case
+  MetaBlocks blcks  -> pushViaConstructor lua "MetaBlocks" blcks
+  MetaBool bool     -> push lua bool
+  MetaInlines inlns -> pushViaConstructor lua "MetaInlines" inlns
+  MetaList metalist -> pushViaConstructor lua "MetaList" metalist
+  MetaMap metamap   -> pushViaConstructor lua "MetaMap" metamap
+  MetaString str    -> push lua str
+
+-- | Interpret the value at the given stack index as meta value.
+peekMetaValue :: LuaState -> Int -> IO (Maybe MetaValue)
+peekMetaValue lua idx = do
+  -- Get the contents of an AST element.
+  let elementContent :: StackValue a => IO (Maybe a)
+      elementContent = getTable lua idx "c"
+  luatype <- ltype lua idx
+  case luatype of
+    TBOOLEAN -> fmap MetaBool <$> peek lua idx
+    TSTRING  -> fmap MetaString <$> peek lua idx
+    TTABLE   -> do
+      tag <- getTable lua idx "t"
+      case tag of
+        Just "MetaBlocks"  -> fmap MetaBlocks  <$> elementContent
+        Just "MetaBool"    -> fmap MetaBool    <$> elementContent
+        Just "MetaMap"     -> fmap MetaMap     <$> elementContent
+        Just "MetaInlines" -> fmap MetaInlines <$> elementContent
+        Just "MetaList"    -> fmap MetaList    <$> elementContent
+        Just "MetaString"  -> fmap MetaString  <$> elementContent
+        Nothing -> do
+          -- no meta value tag given, try to guess.
+          len <- objlen lua idx
+          if len <= 0
+            then fmap MetaMap <$> peek lua idx
+            else  (fmap MetaInlines <$> peek lua idx)
+                  <|> (fmap MetaBlocks <$> peek lua idx)
+                  <|> (fmap MetaList <$> peek lua idx)
+        _        -> return Nothing
+    _        -> return Nothing
+
+-- | Push an block element to the top of the lua stack.
+pushBlock :: LuaState -> Block -> IO ()
+pushBlock lua = \case
+  BlockQuote blcks         -> pushViaConstructor lua "BlockQuote" blcks
+  BulletList items         -> pushViaConstructor lua "BulletList" items
+  CodeBlock attr code      -> pushViaConstructor lua "CodeBlock" code attr
+  DefinitionList items     -> pushViaConstructor lua "DefinitionList" items
+  Div attr blcks           -> pushViaConstructor lua "Div" blcks attr
+  Header lvl attr inlns    -> pushViaConstructor lua "Header" lvl attr inlns
+  HorizontalRule           -> pushViaConstructor lua "HorizontalRule"
+  LineBlock blcks          -> pushViaConstructor lua "LineBlock" blcks
+  OrderedList lstAttr list -> pushViaConstructor lua "OrderedList" list lstAttr
+  Null                     -> pushViaConstructor lua "Null"
+  Para blcks               -> pushViaConstructor lua "Para" blcks
+  Plain blcks              -> pushViaConstructor lua "Plain" blcks
+  RawBlock f cs            -> pushViaConstructor lua "RawBlock" f cs
+  Table capt aligns widths headers rows ->
+    pushViaConstructor lua "Table" capt aligns widths headers rows
+
+-- | Return the value at the given index as block if possible.
+peekBlock :: LuaState -> Int -> IO (Maybe Block)
+peekBlock lua idx = do
+  tag <- getTable lua idx "t"
+  case tag of
+    Nothing -> return Nothing
+    Just t -> case t of
+      "BlockQuote"     -> fmap BlockQuote <$> elementContent
+      "BulletList"     -> fmap BulletList <$> elementContent
+      "CodeBlock"      -> fmap (uncurry CodeBlock) <$> elementContent
+      "DefinitionList" -> fmap DefinitionList <$> elementContent
+      "Div"            -> fmap (uncurry Div) <$> elementContent
+      "Header"         -> fmap (\(lvl, attr, lst) -> Header lvl attr lst)
+                          <$> elementContent
+      "HorizontalRule" -> return (Just HorizontalRule)
+      "LineBlock"      -> fmap LineBlock <$> elementContent
+      "OrderedList"    -> fmap (uncurry OrderedList) <$> elementContent
+      "Null"           -> return (Just Null)
+      "Para"           -> fmap Para <$> elementContent
+      "Plain"          -> fmap Plain <$> elementContent
+      "RawBlock"       -> fmap (uncurry RawBlock) <$> elementContent
+      "Table"          -> fmap (\(capt, aligns, widths, headers, body) ->
+                                  Table capt aligns widths headers body)
+                          <$> elementContent
+      _ -> return Nothing
+ where
+   -- Get the contents of an AST element.
+   elementContent :: StackValue a => IO (Maybe a)
+   elementContent = getTable lua idx "c"
+
+-- | Push an inline element to the top of the lua stack.
+pushInline :: LuaState -> Inline -> IO ()
+pushInline lua = \case
+  Cite citations lst       -> pushViaConstructor lua "Cite" lst citations
+  Code attr lst            -> pushViaConstructor lua "Code" lst attr
+  Emph inlns               -> pushViaConstructor lua "Emph" inlns
+  Image attr alt (src,tit) -> pushViaConstructor lua "Image" alt src tit attr
+  LineBreak                -> pushViaConstructor lua "LineBreak"
+  Link attr lst (src,tit)  -> pushViaConstructor lua "Link" lst src tit attr
+  Note blcks               -> pushViaConstructor lua "Note" blcks
+  Math mty str             -> pushViaConstructor lua "Math" mty str
+  Quoted qt inlns          -> pushViaConstructor lua "Quoted" qt inlns
+  RawInline f cs           -> pushViaConstructor lua "RawInline" f cs
+  SmallCaps inlns          -> pushViaConstructor lua "SmallCaps" inlns
+  SoftBreak                -> pushViaConstructor lua "SoftBreak"
+  Space                    -> pushViaConstructor lua "Space"
+  Span attr inlns          -> pushViaConstructor lua "Span" inlns attr
+  Str str                  -> pushViaConstructor lua "Str" str
+  Strikeout inlns          -> pushViaConstructor lua "Strikeout" inlns
+  Strong inlns             -> pushViaConstructor lua "Strong" inlns
+  Subscript inlns          -> pushViaConstructor lua "Subscript" inlns
+  Superscript inlns        -> pushViaConstructor lua "Superscript" inlns
+
 -- | Return the value at the given index as inline if possible.
 peekInline :: LuaState -> Int -> IO (Maybe Inline)
 peekInline lua idx = do
@@ -219,36 +265,6 @@ peekInline lua idx = do
       "Strong"     -> fmap Strong <$> elementContent
       "Subscript"  -> fmap Subscript <$> elementContent
       "Superscript"-> fmap Superscript <$> elementContent
-      _ -> return Nothing
- where
-   -- Get the contents of an AST element.
-   elementContent :: StackValue a => IO (Maybe a)
-   elementContent = getTable lua idx "c"
-
--- | Return the value at the given index as block if possible.
-peekBlock :: LuaState -> Int -> IO (Maybe Block)
-peekBlock lua idx = do
-  tag <- getTable lua idx "t"
-  case tag of
-    Nothing -> return Nothing
-    Just t -> case t of
-      "BlockQuote"     -> fmap BlockQuote <$> elementContent
-      "BulletList"     -> fmap BulletList <$> elementContent
-      "CodeBlock"      -> fmap (uncurry CodeBlock) <$> elementContent
-      "DefinitionList" -> fmap DefinitionList <$> elementContent
-      "Div"            -> fmap (uncurry Div) <$> elementContent
-      "Header"         -> fmap (\(lvl, attr, lst) -> Header lvl attr lst)
-                          <$> elementContent
-      "HorizontalRule" -> return (Just HorizontalRule)
-      "LineBlock"      -> fmap LineBlock <$> elementContent
-      "OrderedList"    -> fmap (uncurry OrderedList) <$> elementContent
-      "Null"           -> return (Just Null)
-      "Para"           -> fmap Para <$> elementContent
-      "Plain"          -> fmap Plain <$> elementContent
-      "RawBlock"       -> fmap (uncurry RawBlock) <$> elementContent
-      "Table"          -> fmap (\(capt, aligns, widths, headers, body) ->
-                                  Table capt aligns widths headers body)
-                          <$> elementContent
       _ -> return Nothing
  where
    -- Get the contents of an AST element.
