@@ -173,18 +173,23 @@ end
 --- Meta blocks
 -- @function MetaBlocks
 -- @tparam {Block,...} blocks blocks
+
 --- Meta inlines
 -- @function MetaInlines
 -- @tparam {Inline,...} inlines inlines
+
 --- Meta list
 -- @function MetaList
 -- @tparam {MetaValue,...} meta_values list of meta values
+
 --- Meta boolean
 -- @function MetaBool
 -- @tparam boolean bool boolean value
+
 --- Meta map
 -- @function MetaMap
 -- @tparam table a string-index map of meta values
+
 --- Meta string
 -- @function MetaString
 -- @tparam string str string value
@@ -205,16 +210,165 @@ for i = 1, #M.meta_value_types do
   )
 end
 
---- Inline element class
--- @type Inline
-M.Inline = Element:make_subtype{}
-M.Inline.__call = function (t, ...)
+------------------------------------------------------------------------
+-- Block
+-- @section Block
+
+M.Block = Element:make_subtype{}
+M.Block.__call = function (t, ...)
   return t:new(...)
 end
+
+--- Creates a block quote element
+-- @function BlockQuote
+-- @tparam      {Block,...} content     block content
+-- @treturn     Block                   block quote element
+M.BlockQuote = M.Block:create_constructor(
+  "BlockQuote",
+  function(content) return {c = content} end
+)
+
+--- Creates a bullet (i.e. unordered) list.
+-- @function BulletList
+-- @tparam      {{Block,...},...} content     list of items
+-- @treturn     Block block quote element
+M.BulletList = M.Block:create_constructor(
+  "BulletList",
+  function(content) return {c = content} end
+)
+
+--- Creates a code block element
+-- @function CodeBlock
+-- @tparam      string      code        code string
+-- @tparam[opt] Attributes  attributes  element attributes
+-- @treturn     Block                   code block element
+M.CodeBlock = M.Block:create_constructor(
+  "CodeBlock",
+  function(code, attributes) return {c = {attributes, code}} end
+)
+
+--- Creates a definition list, containing terms and their explanation.
+-- @function DefinitionList
+-- @tparam      {{{Inline,...},{Block,...}},...} content     list of items
+-- @treturn     Block block quote element
+M.DefinitionList = M.Block:create_constructor(
+  "DefinitionList",
+  function(content) return {c = content} end
+)
+
+--- Creates a div element
+-- @function Div
+-- @tparam      {Block,...} content     block content
+-- @tparam[opt] Attributes  attributes  element attributes
+-- @treturn     Block                   code block element
+M.Div = M.Block:create_constructor(
+  "Div",
+  function(content, attributes) return {c = {attributes, content}} end
+)
+
+--- Creates a block quote element.
+-- @function Header
+-- @tparam      int          level       header level
+-- @tparam      Attributes   attributes  element attributes
+-- @tparam      {Inline,...} content     inline content
+-- @treturn     Block                    header element
+M.Header = M.Block:create_constructor(
+  "Header",
+  function(level, attributes, content)
+    return {c = {level, attributes, content}}
+  end
+)
+
+--- Creates a horizontal rule.
+-- @function HorizontalRule
+-- @treturn     Block                   horizontal rule
+M.HorizontalRule = M.Block:create_constructor(
+  "HorizontalRule",
+  function() return {} end
+)
+
+--- Creates a line block element.
+-- @function LineBlock
+-- @tparam      {{Inline,...},...} content    inline content
+-- @treturn     Block                   block quote element
+M.LineBlock = M.Block:create_constructor(
+  "LineBlock",
+  function(content) return {c = content} end
+)
+
+--- Creates a null element.
+-- @function Null
+-- @treturn     Block                   null element
+M.Null = M.Block:create_constructor(
+  "Null",
+  function() return {} end
+)
+
+--- Creates an ordered list.
+-- @function OrderedList
+-- @tparam      {{Block,...},...} items list items
+-- @param[opt]  listAttributes list parameters
+-- @treturn     Block
+M.OrderedList = M.Block:create_constructor(
+  "OrderedList",
+  function(items, listAttributes)
+    return {c = {listAttributes,items}}
+  end
+)
+
+--- Creates a para element.
+-- @function Para
+-- @tparam      {Inline,...} content    inline content
+-- @treturn     Block                   block quote element
+M.Para = M.Block:create_constructor(
+  "Para",
+  function(content) return {c = content} end
+)
+
+--- Creates a plain element.
+-- @function Plain
+-- @tparam      {Inline,...} content    inline content
+-- @treturn     Block                   block quote element
+M.Plain = M.Block:create_constructor(
+  "Plain",
+  function(content) return {c = content} end
+)
+
+--- Creates a raw content block of the specified format.
+-- @function RawBlock
+-- @tparam      string      format      format of content
+-- @tparam      string      content     string content
+-- @treturn     Block                   block quote element
+M.RawBlock = M.Block:create_constructor(
+  "RawBlock",
+  function(format, content) return {c = {format, content}} end
+)
+
+--- Creates a table element.
+-- @function Table
+-- @tparam      {Inline,...} caption    table caption
+-- @tparam      {AlignDefault|AlignLeft|AlignRight|AlignCenter,...} aligns alignments
+-- @tparam      {int,...}    widths     column widths
+-- @tparam      {Block,...}  headers    header row
+-- @tparam      {{Block,...}} rows      table rows
+-- @treturn     Block                   block quote element
+M.Table = M.Block:create_constructor(
+  "Table",
+  function(caption, aligns, widths, headers, rows)
+    return {c = {caption, aligns, widths, headers, rows}}
+  end
+)
+
 
 ------------------------------------------------------------------------
 -- Inline
 -- @section Inline
+
+--- Inline element class
+M.Inline = Element:make_subtype{}
+M.Inline.__call = function (t, ...)
+  return t:new(...)
+end
 
 --- Creates a Cite inline element
 -- @function Cite
@@ -406,42 +560,6 @@ M.Superscript = M.Inline:create_constructor(
 
 
 ------------------------------------------------------------------------
--- Block elements
--- @type Block
-M.Block = Element:make_subtype{}
-
---- Block constructors
-M.Block.constructors = {
-  BlockQuote = true,
-  BulletList = true,
-  CodeBlock = true,
-  DefinitionList = true,
-  Div = true,
-  Header = true,
-  HorizontalRule = true,
-  HorizontalRule = true,
-  LineBlock = true,
-  Null = true,
-  OrderedList = true,
-  Para = true,
-  Plain = true,
-  RawBlock = true,
-  Table = true,
-}
-
-local set_of_inline_types = {}
-for k, _ in pairs(M.Inline.constructor) do
-  set_of_inline_types[k] = true
-end
-
-for block_type, _ in pairs(M.Block.constructors) do
-  M[block_type] = function(...)
-    return M.Block:new(block_type, ...)
-  end
-end
-
-
-------------------------------------------------------------------------
 -- Constants
 -- @section constants
 
@@ -482,6 +600,81 @@ M.SuppressAuthor.t = "SuppressAuthor"
 M.NormalCitation = {}
 M.NormalCitation.t = "NormalCitation"
 
+--- Table cells aligned left.
+-- @see Table
+M.AlignLeft = {}
+M.AlignLeft.t = "AlignLeft"
+
+--- Table cells right-aligned.
+-- @see Table
+M.AlignRight = {}
+M.AlignRight.t = "AlignRight"
+
+--- Table cell content is centered.
+-- @see Table
+M.AlignCenter = {}
+M.AlignCenter.t = "AlignCenter"
+
+--- Table cells are alignment is unaltered.
+-- @see Table
+M.AlignDefault = {}
+M.AlignDefault.t = "AlignDefault"
+
+--- Default list number delimiters are used.
+-- @see OrderedList
+M.DefaultDelim = {}
+M.DefaultDelim.t = "DefaultDelim"
+
+--- List numbers are delimited by a period.
+-- @see OrderedList
+M.Period = {}
+M.Period.t = "Period"
+
+--- List numbers are delimited by a single parenthesis.
+-- @see OrderedList
+M.OneParen = {}
+M.OneParen.t = "OneParen"
+
+--- List numbers are delimited by a double parentheses.
+-- @see OrderedList
+M.TwoParens = {}
+M.TwoParens.t = "TwoParens"
+
+--- List are numbered in the default style
+-- @see OrderedList
+M.DefaultStyle = {}
+M.DefaultStyle.t = "DefaultStyle"
+
+--- List items are numbered as examples.
+-- @see OrderedList
+M.Example = {}
+M.Example.t = "Example"
+
+--- List are numbered using decimal integers.
+-- @see OrderedList
+M.Decimal = {}
+M.Decimal.t = "Decimal"
+
+--- List are numbered using lower-case roman numerals.
+-- @see OrderedList
+M.LowerRoman = {}
+M.LowerRoman.t = "LowerRoman"
+
+--- List are numbered using upper-case roman numerals
+-- @see OrderedList
+M.UpperRoman = {}
+M.UpperRoman.t = "UpperRoman"
+
+--- List are numbered using lower-case alphabetic characters.
+-- @see OrderedList
+M.LowerAlpha = {}
+M.LowerAlpha.t = "LowerAlpha"
+
+--- List are numbered using upper-case alphabetic characters.
+-- @see OrderedList
+M.UpperAlpha = {}
+M.UpperAlpha.t = "UpperAlpha"
+
 
 ------------------------------------------------------------------------
 -- Helper Functions
@@ -503,7 +696,7 @@ M.NormalCitation.t = "NormalCitation"
 function M.global_filter()
   local res = {}
   for k, v in pairs(_G) do
-    if M.Inline.constructor[k] or M.Block.constructors[k] or k == "Doc" then
+    if M.Inline.constructor[k] or M.Block.constructor[k] or M.Block.constructors[k] or k == "Doc" then
       res[k] = v
     end
   end
