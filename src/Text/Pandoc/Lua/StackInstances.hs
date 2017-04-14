@@ -34,10 +34,11 @@ module Text.Pandoc.Lua.StackInstances () where
 
 import Control.Applicative ( (<|>) )
 import Scripting.Lua
-  ( LTYPE(..), LuaState, StackValue(..), getglobal2, ltype, newtable, objlen )
+  ( LTYPE(..), LuaState, StackValue(..), ltype, newtable, objlen )
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.SharedInstances ()
 import Text.Pandoc.Lua.Util ( addValue, getTable, pushViaConstructor )
+import Text.Pandoc.Shared ( safeRead )
 
 instance StackValue Pandoc where
   push lua (Pandoc meta blocks) = do
@@ -143,19 +144,8 @@ instance StackValue Inline where
   valuetype _ = TTABLE
 
 instance StackValue Alignment where
-  push lua = \case
-    AlignLeft -> getglobal2 lua "pandoc.AlignLeft"
-    AlignRight -> getglobal2 lua "pandoc.AlignRight"
-    AlignCenter -> getglobal2 lua "pandoc.AlignCenter"
-    AlignDefault -> getglobal2 lua "pandoc.AlignDefault"
-  peek lua idx = do
-    tag <- getTable lua idx "t"
-    case tag of
-      Just "AlignLeft" -> return $ Just AlignLeft
-      Just "AlignRight" -> return $ Just AlignRight
-      Just "AlignCenter" -> return $ Just AlignCenter
-      Just "AlignDefault" -> return $ Just AlignDefault
-      _ -> return Nothing
+  push lua = push lua . show
+  peek lua idx = (>>= safeRead) <$> peek lua idx
   valuetype _ = TSTRING
 
 instance StackValue Citation where
@@ -172,18 +162,9 @@ instance StackValue Citation where
   valuetype _ = TTABLE
 
 instance StackValue CitationMode where
-  push lua = \case
-    AuthorInText   -> getglobal2 lua "pandoc.AuthorInText"
-    NormalCitation -> getglobal2 lua "pandoc.NormalCitation"
-    SuppressAuthor -> getglobal2 lua "pandoc.SuppressAuthor"
-  peek lua idx = do
-    tag <- getTable lua idx "t"
-    case tag of
-      Just "AuthorInText"   -> return $ Just AuthorInText
-      Just "NormalCitation" -> return $ Just NormalCitation
-      Just "SuppressAuthor" -> return $ Just SuppressAuthor
-      _ -> return Nothing
-  valuetype _ = TTABLE
+  push lua = push lua . show
+  peek lua idx = (>>= safeRead) <$> peek lua idx
+  valuetype _ = TSTRING
 
 instance StackValue Format where
   push lua (Format f) = push lua f
@@ -191,66 +172,24 @@ instance StackValue Format where
   valuetype _ = TSTRING
 
 instance StackValue ListNumberDelim where
-  push lua = \case
-    DefaultDelim -> getglobal2 lua "pandoc.DefaultDelim"
-    Period -> getglobal2 lua "pandoc.Period"
-    OneParen -> getglobal2 lua "pandoc.OneParen"
-    TwoParens -> getglobal2 lua "pandoc.TwoParens"
-  peek lua idx = do
-    tag <- getTable lua idx "t"
-    case tag of
-      Just "DefaultDelim" -> return $ Just DefaultDelim
-      Just "Period" -> return $ Just Period
-      Just "OneParen" -> return $ Just OneParen
-      Just "TwoParens" -> return $ Just TwoParens
-      _ -> return Nothing
-  valuetype _ = TTABLE
+  push lua = push lua . show
+  peek lua idx = (>>= safeRead) <$> peek lua idx
+  valuetype _ = TSTRING
 
 instance StackValue ListNumberStyle where
-  push lua = \case
-    DefaultStyle -> getglobal2 lua "pandoc.DefaultStyle"
-    LowerRoman -> getglobal2 lua "pandoc.LowerRoman"
-    UpperRoman -> getglobal2 lua "pandoc.UpperRoman"
-    LowerAlpha -> getglobal2 lua "pandoc.LowerAlpha"
-    UpperAlpha -> getglobal2 lua "pandoc.UpperAlpha"
-    Decimal -> getglobal2 lua "pandoc.Decimal"
-    Example -> getglobal2 lua "pandoc.Example"
-  peek lua idx = do
-    tag <- getTable lua idx "t"
-    case tag of
-      Just "DefaultStyle" -> return $ Just DefaultStyle
-      Just "LowerRoman" -> return $ Just LowerRoman
-      Just "UpperRoman" -> return $ Just UpperRoman
-      Just "LowerAlpha" -> return $ Just LowerAlpha
-      Just "UpperAlpha" -> return $ Just UpperAlpha
-      Just "Decimal" -> return $ Just Decimal
-      Just "Example" -> return $ Just Example
-      _ -> return Nothing
-  valuetype _ = TTABLE
+  push lua = push lua . show
+  peek lua idx = (>>= safeRead) <$> peek lua idx
+  valuetype _ = TSTRING
 
 instance StackValue MathType where
-  push lua = \case
-    InlineMath -> getglobal2 lua "pandoc.InlineMath"
-    DisplayMath -> getglobal2 lua "pandoc.DisplayMath"
-  peek lua idx = do
-    res <- getTable lua idx "t"
-    case res of
-      Just "InlineMath" -> return $ Just InlineMath
-      Just "DisplayMath" -> return $ Just DisplayMath
-      _ -> return Nothing
-  valuetype _ = TTABLE
+  push lua = push lua . show
+  peek lua idx = (>>= safeRead) <$> peek lua idx
+  valuetype _ = TSTRING
 
 instance StackValue QuoteType where
-  push lua = \case
-    SingleQuote -> getglobal2 lua "pandoc.SingleQuote"
-    DoubleQuote -> getglobal2 lua "pandoc.DoubleQuote"
-  peek lua idx = do
-    res <- getTable lua idx "t"
-    case res of
-      Just "SingleQuote" -> return $ Just SingleQuote
-      Just "DoubleQuote" -> return $ Just DoubleQuote
-      _ -> return Nothing
-  valuetype _ = TTABLE
+  push lua = push lua . show
+  peek lua idx = (>>= safeRead) <$> peek lua idx
+  valuetype _ = TSTRING
 
 -- | Return the value at the given index as inline if possible.
 peekInline :: LuaState -> Int -> IO (Maybe Inline)

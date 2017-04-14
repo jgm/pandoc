@@ -565,115 +565,93 @@ M.Superscript = M.Inline:create_constructor(
 
 --- Math content is to be displayed on a separate line.
 -- @see Math
-M.DisplayMath = {}
-M.DisplayMath.t = "DisplayMath"
+M.DisplayMath = "DisplayMath"
 --- Math content is to be displayed inline within the paragraph
 -- @see Math
-M.InlineMath = {}
-M.InlineMath.t = "InlineMath"
+M.InlineMath = "InlineMath"
 
 --- Double quoted content.
 -- @see Quoted
-M.DoubleQuote = {}
-M.DoubleQuote.t = "DoubleQuote"
+M.DoubleQuote = "DoubleQuote"
 
 --- Single quoted content.
 -- @see Quoted
-M.SingleQuote = {}
-M.SingleQuote.t = "SingleQuote"
+M.SingleQuote = "SingleQuote"
 
 --- Author name is mentioned in the text.
 -- @see Citation
 -- @see Cite
-M.AuthorInText = {}
-M.AuthorInText.t = "AuthorInText"
+M.AuthorInText = "AuthorInText"
 
 --- Author name is suppressed.
 -- @see Citation
 -- @see Cite
-M.SuppressAuthor = {}
-M.SuppressAuthor.t = "SuppressAuthor"
+M.SuppressAuthor = "SuppressAuthor"
 
 --- Default citation style is used.
 -- @see Citation
 -- @see Cite
-M.NormalCitation = {}
-M.NormalCitation.t = "NormalCitation"
+M.NormalCitation = "NormalCitation"
 
 --- Table cells aligned left.
 -- @see Table
-M.AlignLeft = {}
-M.AlignLeft.t = "AlignLeft"
+M.AlignLeft = "AlignLeft"
 
 --- Table cells right-aligned.
 -- @see Table
-M.AlignRight = {}
-M.AlignRight.t = "AlignRight"
+M.AlignRight = "AlignRight"
 
 --- Table cell content is centered.
 -- @see Table
-M.AlignCenter = {}
-M.AlignCenter.t = "AlignCenter"
+M.AlignCenter = "AlignCenter"
 
 --- Table cells are alignment is unaltered.
 -- @see Table
-M.AlignDefault = {}
-M.AlignDefault.t = "AlignDefault"
+M.AlignDefault = "AlignDefault"
 
 --- Default list number delimiters are used.
 -- @see OrderedList
-M.DefaultDelim = {}
-M.DefaultDelim.t = "DefaultDelim"
+M.DefaultDelim = "DefaultDelim"
 
 --- List numbers are delimited by a period.
 -- @see OrderedList
-M.Period = {}
-M.Period.t = "Period"
+M.Period = "Period"
 
 --- List numbers are delimited by a single parenthesis.
 -- @see OrderedList
-M.OneParen = {}
-M.OneParen.t = "OneParen"
+M.OneParen = "OneParen"
 
 --- List numbers are delimited by a double parentheses.
 -- @see OrderedList
-M.TwoParens = {}
-M.TwoParens.t = "TwoParens"
+M.TwoParens = "TwoParens"
 
 --- List are numbered in the default style
 -- @see OrderedList
-M.DefaultStyle = {}
-M.DefaultStyle.t = "DefaultStyle"
+M.DefaultStyle = "DefaultStyle"
 
 --- List items are numbered as examples.
 -- @see OrderedList
-M.Example = {}
-M.Example.t = "Example"
+M.Example = "Example"
 
 --- List are numbered using decimal integers.
 -- @see OrderedList
-M.Decimal = {}
-M.Decimal.t = "Decimal"
+M.Decimal = "Decimal"
 
 --- List are numbered using lower-case roman numerals.
 -- @see OrderedList
-M.LowerRoman = {}
-M.LowerRoman.t = "LowerRoman"
+M.LowerRoman = "LowerRoman"
 
 --- List are numbered using upper-case roman numerals
 -- @see OrderedList
-M.UpperRoman = {}
-M.UpperRoman.t = "UpperRoman"
+M.UpperRoman = "UpperRoman"
 
 --- List are numbered using lower-case alphabetic characters.
 -- @see OrderedList
-M.LowerAlpha = {}
-M.LowerAlpha.t = "LowerAlpha"
+M.LowerAlpha = "LowerAlpha"
 
 --- List are numbered using upper-case alphabetic characters.
 -- @see OrderedList
-M.UpperAlpha = {}
-M.UpperAlpha.t = "UpperAlpha"
+M.UpperAlpha = "UpperAlpha"
 
 
 ------------------------------------------------------------------------
