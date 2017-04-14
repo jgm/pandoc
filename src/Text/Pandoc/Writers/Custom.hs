@@ -47,6 +47,7 @@ import Scripting.Lua (LuaState, StackValue, callfunc)
 import qualified Scripting.Lua as Lua
 import Text.Pandoc.Lua.Compat ( loadstring )
 import Text.Pandoc.Lua.Util ( addValue )
+import Text.Pandoc.Lua.SharedInstances ()
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
@@ -59,40 +60,10 @@ attrToMap (id',classes,keyvals) = M.fromList
     : ("class", unwords classes)
     : keyvals
 
-#if MIN_VERSION_base(4,8,0)
-instance {-# OVERLAPS #-} StackValue [Char] where
-#else
-instance StackValue [Char] where
-#endif
-  push lua cs = Lua.push lua (UTF8.fromString cs)
-  peek lua i = do
-                 res <- Lua.peek lua i
-                 return $ UTF8.toString `fmap` res
-  valuetype _ = Lua.TSTRING
-
 instance StackValue Format where
   push lua (Format f) = Lua.push lua (map toLower f)
   peek l n = fmap Format `fmap` Lua.peek l n
   valuetype _ = Lua.TSTRING
-
-instance (StackValue a, StackValue b) => StackValue (M.Map a b) where
-  push lua m = do
-    let xs = M.toList m
-    Lua.createtable lua (length xs + 1) 0
-    let addValue (k, v) = Lua.push lua k >> Lua.push lua v >>
-                          Lua.rawset lua (-3)
-    mapM_ addValue xs
-  peek _ _ = undefined -- not needed for our purposes
-  valuetype _ = Lua.TTABLE
-
-instance (StackValue a, StackValue b) => StackValue (a,b) where
-  push lua (k,v) = do
-    Lua.createtable lua 2 0
-    Lua.push lua k
-    Lua.push lua v
-    Lua.rawset lua (-3)
-  peek _ _ = undefined -- not needed for our purposes
-  valuetype _ = Lua.TTABLE
 
 #if MIN_VERSION_base(4,8,0)
 instance {-# OVERLAPS #-} StackValue [Inline] where

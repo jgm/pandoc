@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
+{-# LANGUAGE FlexibleInstances #-}
 {- |
    Module      : Text.Pandoc.Lua.Util
    Copyright   : © 2012–2016 John MacFarlane,
@@ -35,11 +36,15 @@ module Text.Pandoc.Lua.Util
   , getRawInt
   , setRawInt
   , addRawInt
+  , keyValuePairs
+  , PushViaCall
+  , pushViaCall
+  , pushViaConstructor
   ) where
 
 import Scripting.Lua
   ( LuaState, StackValue(..)
-  , gettable, pop, rawgeti, rawseti, settable
+  , call, getglobal2, gettable, next, pop, pushnil, rawgeti, rawseti, settable
   )
 
 -- | Adjust the stack index, assuming that @n@ new elements have been pushed on
@@ -84,3 +89,52 @@ setRawInt lua idx key value = do
 -- | Set numeric key/value in table at the top of the stack.
 addRawInt :: StackValue a => LuaState -> Int -> a -> IO ()
 addRawInt lua = setRawInt lua (-1)
+
+-- | Try reading the table under the given index as a list of key-value pairs.
+keyValuePairs :: (StackValue a, StackValue b)
+              => LuaState -> Int -> IO (Maybe [(a, b)])
+keyValuePairs lua idx = do
+  pushnil lua
+  sequence <$> remainingPairs
+ where
+  remainingPairs = do
+    res <- nextPair
+    case res of
+      Nothing -> return []
+      Just a  -> (a:) <$> remainingPairs
+  nextPair :: (StackValue a, StackValue b) => IO (Maybe (Maybe (a,b)))
+  nextPair = do
+    hasNext <- next lua (idx `adjustIndexBy` 1)
+    if hasNext
+      then do
+        val <- peek lua (-1)
+        key <- peek lua (-2)
+        pop lua 1 -- removes the value, keeps the key
+        return $ Just <$> ((,) <$> key <*> val)
+      else do
+        return Nothing
+
+-- | Helper class for pushing a single value to the stack via a lua function.
+-- See @pushViaCall@.
+class PushViaCall a where
+  pushViaCall' :: LuaState -> String -> IO () -> Int -> a
+
+instance PushViaCall (IO ()) where
+  pushViaCall' lua fn pushArgs num = do
+    getglobal2 lua fn
+    pushArgs
+    call lua num 1
+
+instance (StackValue a, PushViaCall b) => PushViaCall (a -> b) where
+  pushViaCall' lua fn pushArgs num x =
+    pushViaCall' lua fn (pushArgs *> push lua x) (num + 1)
+
+-- | Push an value to the stack via a lua function. The lua function is called
+-- with all arguments that are passed to this function and is expected to return
+-- a single value.
+pushViaCall :: PushViaCall a => LuaState -> String -> a
+pushViaCall lua fn = pushViaCall' lua fn (return ()) 0
+
+-- | Call a pandoc element constructor within lua, passing all given arguments.
+pushViaConstructor :: PushViaCall a => LuaState -> String -> a
+pushViaConstructor lua pandocFn = pushViaCall lua ("pandoc." ++ pandocFn)

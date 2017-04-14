@@ -16,12 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
-#if !MIN_VERSION_base(4,8,0)
-{-# LANGUAGE OverlappingInstances #-}
-#endif
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.StackInstances
@@ -38,15 +34,10 @@ module Text.Pandoc.Lua.StackInstances () where
 
 import Control.Applicative ( (<|>) )
 import Scripting.Lua
-  ( LTYPE(..), LuaState, StackValue(..)
-  , call, getglobal2, ltype, newtable, next, objlen, pop, pushnil
-  )
+  ( LTYPE(..), LuaState, StackValue(..), getglobal2, ltype, newtable, objlen )
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.Util
-  ( adjustIndexBy, addValue, getTable, addRawInt, getRawInt )
-
-import qualified Data.Map as M
-import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Lua.SharedInstances ()
+import Text.Pandoc.Lua.Util ( addValue, getTable, pushViaConstructor )
 
 instance StackValue Pandoc where
   push lua (Pandoc meta blocks) = do
@@ -260,119 +251,6 @@ instance StackValue QuoteType where
       Just "DoubleQuote" -> return $ Just DoubleQuote
       _ -> return Nothing
   valuetype _ = TTABLE
-
-#if MIN_VERSION_base(4,8,0)
-instance {-# OVERLAPS #-} StackValue [Char] where
-#else
-instance StackValue [Char] where
-#endif
-  push lua cs = push lua (UTF8.fromString cs)
-  peek lua i = fmap UTF8.toString <$> peek lua i
-  valuetype _ = TSTRING
-
-instance (StackValue a, StackValue b) => StackValue (a, b) where
-  push lua (a, b) = do
-    newtable lua
-    addRawInt lua 1 a
-    addRawInt lua 2 b
-  peek lua idx = do
-    a <- getRawInt lua idx 1
-    b <- getRawInt lua idx 2
-    return $ (,) <$> a <*> b
-  valuetype _ = TTABLE
-
-instance (StackValue a, StackValue b, StackValue c) =>
-         StackValue (a, b, c)
- where
-  push lua (a, b, c) = do
-    newtable lua
-    addRawInt lua 1 a
-    addRawInt lua 2 b
-    addRawInt lua 3 c
-  peek lua idx = do
-    a <- getRawInt lua idx 1
-    b <- getRawInt lua idx 2
-    c <- getRawInt lua idx 3
-    return $ (,,) <$> a <*> b <*> c
-  valuetype _ = TTABLE
-
-instance (StackValue a, StackValue b, StackValue c,
-          StackValue d, StackValue e) =>
-         StackValue (a, b, c, d, e)
- where
-  push lua (a, b, c, d, e) = do
-    newtable lua
-    addRawInt lua 1 a
-    addRawInt lua 2 b
-    addRawInt lua 3 c
-    addRawInt lua 4 d
-    addRawInt lua 5 e
-  peek lua idx = do
-    a <- getRawInt lua idx 1
-    b <- getRawInt lua idx 2
-    c <- getRawInt lua idx 3
-    d <- getRawInt lua idx 4
-    e <- getRawInt lua idx 5
-    return $ (,,,,) <$> a <*> b <*> c <*> d <*> e
-  valuetype _ = TTABLE
-
-instance (Ord a, StackValue a, StackValue b) =>
-         StackValue (M.Map a b) where
-  push lua m = do
-    newtable lua
-    mapM_ (uncurry $ addValue lua) $ M.toList m
-  peek lua idx = fmap M.fromList <$> keyValuePairs lua idx
-  valuetype _ = TTABLE
-
--- | Try reading the value under the given index as a list of key-value pairs.
-keyValuePairs :: (StackValue a, StackValue b)
-         => LuaState -> Int -> IO (Maybe [(a, b)])
-keyValuePairs lua idx = do
-  pushnil lua
-  sequence <$> remainingPairs
- where
-  remainingPairs = do
-    res <- nextPair
-    case res of
-      Nothing -> return []
-      Just a  -> (a:) <$> remainingPairs
-  nextPair :: (StackValue a, StackValue b) => IO (Maybe (Maybe (a,b)))
-  nextPair = do
-    hasNext <- next lua (idx `adjustIndexBy` 1)
-    if hasNext
-      then do
-        val <- peek lua (-1)
-        key <- peek lua (-2)
-        pop lua 1 -- removes the value, keeps the key
-        return $ Just <$> ((,) <$> key <*> val)
-      else do
-        return Nothing
-
-
--- | Helper class for pushing a single value to the stack via a lua function.
--- See @pushViaCall@.
-class PushViaCall a where
-  pushViaCall' :: LuaState -> String -> IO () -> Int -> a
-
-instance PushViaCall (IO ()) where
-  pushViaCall' lua fn pushArgs num = do
-    getglobal2 lua fn
-    pushArgs
-    call lua num 1
-
-instance (StackValue a, PushViaCall b) => PushViaCall (a -> b) where
-  pushViaCall' lua fn pushArgs num x =
-    pushViaCall' lua fn (pushArgs *> push lua x) (num + 1)
-
--- | Push an value to the stack via a lua function. The lua function is called
--- with all arguments that are passed to this function and is expected to return
--- a single value.
-pushViaCall :: PushViaCall a => LuaState -> String -> a
-pushViaCall lua fn = pushViaCall' lua fn (return ()) 0
-
--- | Call a pandoc element constructor within lua, passing all given arguments.
-pushViaConstructor :: PushViaCall a => LuaState -> String -> a
-pushViaConstructor lua pandocFn = pushViaCall lua ("pandoc." ++ pandocFn)
 
 -- | Return the value at the given index as inline if possible.
 peekInline :: LuaState -> Int -> IO (Maybe Inline)
