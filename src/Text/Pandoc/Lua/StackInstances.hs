@@ -41,7 +41,6 @@ import Scripting.Lua
   , call, getglobal2, gettable, ltype, newtable, next, objlen
   , pop, pushnil, rawgeti, rawseti, settable
   )
-import Scripting.Lua.Aeson ()
 import Text.Pandoc.Definition
 
 import qualified Data.Map as M

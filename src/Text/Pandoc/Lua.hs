@@ -33,23 +33,20 @@ module Text.Pandoc.Lua ( runLuaFilter, pushPandocModule ) where
 
 import Control.Monad ( (>=>), when )
 import Control.Monad.Trans ( MonadIO(..) )
-import Data.HashMap.Lazy ( HashMap )
-import Data.Text ( Text, pack, unpack )
-import Data.Text.Encoding ( decodeUtf8 )
+import Data.Map ( Map )
 import Scripting.Lua ( LuaState, StackValue(..) )
-import Scripting.Lua.Aeson ( newstate )
 import Text.Pandoc.Definition ( Block(..), Inline(..), Pandoc(..) )
 import Text.Pandoc.Lua.PandocModule ( pushPandocModule )
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Walk
 
-import qualified Data.HashMap.Lazy as HashMap
+import qualified Data.Map as Map
 import qualified Scripting.Lua as Lua
 
 runLuaFilter :: (MonadIO m)
              => FilePath -> [String] -> Pandoc -> m Pandoc
 runLuaFilter filterPath args pd = liftIO $ do
-  lua <- newstate
+  lua <- Lua.newstate
   Lua.openlibs lua
   -- create table in registry to store filter functions
   Lua.push lua ("PANDOC_FILTER_FUNCTIONS"::String)
@@ -61,12 +58,12 @@ runLuaFilter filterPath args pd = liftIO $ do
   status <- Lua.loadfile lua filterPath
   if (status /= 0)
     then do
-      luaErrMsg <- unpack . decodeUtf8 <$> Lua.tostring lua 1
+      Just luaErrMsg <- Lua.peek lua 1
       error luaErrMsg
     else do
       Lua.call lua 0 1
       Just luaFilters <- Lua.peek lua (-1)
-      Lua.push lua (map pack args)
+      Lua.push lua args
       Lua.setglobal lua "PandocParameters"
       doc <- runAll luaFilters >=> luaFilter lua "filter_doc" $ pd
       Lua.close lua
@@ -89,28 +86,28 @@ walkMWithLuaFilter (LuaFilter lua inlineFnMap blockFnMap docFnMap) =
   walkM (execBlockLuaFilter  lua blockFnMap)  >=>
   walkM (execDocLuaFilter    lua docFnMap)
 
-type InlineFunctionMap = HashMap Text (LuaFilterFunction Inline)
-type BlockFunctionMap  = HashMap Text (LuaFilterFunction Block)
-type DocFunctionMap    = HashMap Text (LuaFilterFunction Pandoc)
+type InlineFunctionMap = Map String (LuaFilterFunction Inline)
+type BlockFunctionMap  = Map String (LuaFilterFunction Block)
+type DocFunctionMap    = Map String (LuaFilterFunction Pandoc)
 data LuaFilter =
   LuaFilter LuaState InlineFunctionMap BlockFunctionMap DocFunctionMap
 
 newtype LuaFilterFunction a = LuaFilterFunction { functionIndex :: Int }
 
 execDocLuaFilter :: LuaState
-                 -> HashMap Text (LuaFilterFunction Pandoc)
+                 -> Map String (LuaFilterFunction Pandoc)
                  -> Pandoc -> IO Pandoc
 execDocLuaFilter lua fnMap x = do
   let docFnName = "Doc"
-  case HashMap.lookup docFnName fnMap of
+  case Map.lookup docFnName fnMap of
     Nothing -> return x
     Just fn -> runLuaFilterFunction lua fn x
 
 execBlockLuaFilter :: LuaState
-                   -> HashMap Text (LuaFilterFunction Block)
+                   -> Map String (LuaFilterFunction Block)
                    -> Block -> IO Block
 execBlockLuaFilter lua fnMap x = do
-  let filterOrId constr = case HashMap.lookup constr fnMap of
+  let filterOrId constr = case Map.lookup constr fnMap of
                             Nothing -> return x
                             Just fn -> runLuaFilterFunction lua fn x
   case x of
@@ -130,14 +127,14 @@ execBlockLuaFilter lua fnMap x = do
     Null             -> filterOrId "Null"
 
 execInlineLuaFilter :: LuaState
-                    -> HashMap Text (LuaFilterFunction Inline)
+                    -> Map String (LuaFilterFunction Inline)
                     -> Inline -> IO Inline
 execInlineLuaFilter lua fnMap x = do
   let runFn :: PushViaFilterFunction Inline a => LuaFilterFunction Inline -> a
       runFn fn = runLuaFilterFunction lua fn
-  let tryFilter :: Text -> (LuaFilterFunction Inline -> IO Inline) -> IO Inline
+  let tryFilter :: String -> (LuaFilterFunction Inline -> IO Inline) -> IO Inline
       tryFilter fnName callFilterFn =
-        case HashMap.lookup fnName fnMap of
+        case Map.lookup fnName fnMap of
           Nothing -> return x
           Just fn -> callFilterFn fn
   case x of
