@@ -439,9 +439,10 @@ M.Link = M.Inline:create_constructor(
   end
 )
 
---- Creates a Math inline element
+--- Creates a Math element, either inline or displayed. It is usually simpler to
+-- use one of the specialized functions @{InlineMath} or @{DisplayMath} instead.
 -- @function Math
--- @tparam      InlineMath|DisplayMath mathtype Display specifier
+-- @tparam      "InlineMath"|"DisplayMath" mathtype rendering specifier
 -- @tparam      string      text        Math content
 -- @treturn     Inline                  Math element
 M.Math = M.Inline:create_constructor(
@@ -449,6 +450,22 @@ M.Math = M.Inline:create_constructor(
   function(mathtype, text)
     return {c = {mathtype, text}}
   end
+)
+--- Creates a DisplayMath element.
+-- @function DisplayMath
+-- @tparam      string      text        Math content
+-- @treturn     Inline                  Math element
+M.DisplayMath = M.Inline:create_constructor(
+  "DisplayMath",
+  function(text) return M.Math("DisplayMath", text) end
+)
+--- Creates an InlineMath inline element.
+-- @function InlineMath
+-- @tparam      string      text        Math content
+-- @treturn     Inline                  Math element
+M.InlineMath = M.Inline:create_constructor(
+  "InlineMath",
+  function(text) return M.Math("InlineMath", text) end
 )
 
 --- Creates a Note inline element
@@ -459,15 +476,36 @@ M.Note = M.Inline:create_constructor(
   function(contents) return {c = contents} end
 )
 
---- Creates a Quoted inline element
+--- Creates a Quoted inline element given the quote type and quoted content. It
+-- is usually simpler to use one of the specialized functions @{SingleQuoted} or
+-- @{DoubleQuoted} instead.
 -- @function Quoted
--- @tparam      DoubleQuote|SingleQuote quotetype type of quotes to be used
+-- @tparam      "DoubleQuote"|"SingleQuote" quotetype type of quotes to be used
 -- @tparam      {Inline,..} content     inline content
 -- @treturn     Inline                  quoted element
 M.Quoted = M.Inline:create_constructor(
   "Quoted",
   function(quotetype, content) return {c = {quotetype, content}} end
 )
+--- Creates a single-quoted inline element.
+-- @function SingleQuoted
+-- @tparam      {Inline,..} content     inline content
+-- @treturn     Inline                  quoted element
+-- @see Quoted
+M.SingleQuoted = M.Inline:create_constructor(
+  "SingleQuoted",
+  function(content) return M.Quoted(M.SingleQuote, content) end
+)
+--- Creates a single-quoted inline element.
+-- @function DoubleQuoted
+-- @tparam      {Inline,..} content     inline content
+-- @treturn     Inline                  quoted element
+-- @see Quoted
+M.DoubleQuoted = M.Inline:create_constructor(
+  "DoubleQuoted",
+  function(content) return M.Quoted("DoubleQuote", content) end
+)
+
 --- Creates a RawInline inline element
 -- @function RawInline
 -- @tparam      string      format      format of the contents
