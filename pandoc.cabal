@@ -458,6 +458,7 @@ Library
                    Text.Pandoc.Lua.Compat,
                    Text.Pandoc.Lua.PandocModule,
                    Text.Pandoc.Lua.StackInstances,
+                   Text.Pandoc.Lua.Util,
                    Text.Pandoc.CSS,
                    Text.Pandoc.UUID,
                    Text.Pandoc.Slides,

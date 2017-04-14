@@ -18,7 +18,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua
    Copyright   : Copyright © 2017 Albert Krewinkel
@@ -49,7 +48,7 @@ runLuaFilter filterPath args pd = liftIO $ do
   lua <- Lua.newstate
   Lua.openlibs lua
   -- create table in registry to store filter functions
-  Lua.push lua ("PANDOC_FILTER_FUNCTIONS"::String)
+  Lua.push lua "PANDOC_FILTER_FUNCTIONS"
   Lua.newtable lua
   Lua.rawset lua Lua.registryindex
   -- store module in global "pandoc"
@@ -65,20 +64,13 @@ runLuaFilter filterPath args pd = liftIO $ do
       Just luaFilters <- Lua.peek lua (-1)
       Lua.push lua args
       Lua.setglobal lua "PandocParameters"
-      doc <- runAll luaFilters >=> luaFilter lua "filter_doc" $ pd
+      doc <- runAll luaFilters pd
       Lua.close lua
       return doc
 
 runAll :: [LuaFilter] -> Pandoc -> IO Pandoc
 runAll [] = return
 runAll (x:xs) = walkMWithLuaFilter x >=> runAll xs
-
-luaFilter :: Lua.LuaState -> String -> Pandoc -> IO Pandoc
-luaFilter lua luaFn x = do
-  fnExists <- isLuaFunction lua luaFn
-  if fnExists
-    then walkM (Lua.callfunc lua luaFn :: Pandoc -> IO Pandoc) x
-    else return x
 
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> IO Pandoc
 walkMWithLuaFilter (LuaFilter lua inlineFnMap blockFnMap docFnMap) =
@@ -227,11 +219,3 @@ instance StackValue (LuaFilterFunction a) where
     Lua.rawseti lua (-2) (len + 1)
     Lua.pop lua 1
     return . Just $ LuaFilterFunction (len + 1)
-
-
-isLuaFunction :: Lua.LuaState -> String -> IO Bool
-isLuaFunction lua fnName = do
-  Lua.getglobal lua fnName
-  res <- Lua.isfunction lua (-1)
-  Lua.pop lua (-1)
-  return res

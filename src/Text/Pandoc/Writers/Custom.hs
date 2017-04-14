@@ -2,8 +2,6 @@
 {-# LANGUAGE CPP                  #-}
 {-# LANGUAGE DeriveDataTypeable   #-}
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
 #if MIN_VERSION_base(4,8,0)
 #else
 {-# LANGUAGE OverlappingInstances #-}
@@ -48,6 +46,7 @@ import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Scripting.Lua (LuaState, StackValue, callfunc)
 import qualified Scripting.Lua as Lua
 import Text.Pandoc.Lua.Compat ( loadstring )
+import Text.Pandoc.Lua.Util ( addValue )
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Templates
@@ -131,14 +130,12 @@ instance StackValue MetaValue where
 instance StackValue Citation where
   push lua cit = do
     Lua.createtable lua 6 0
-    let addValue (k :: String, v) = Lua.push lua k >> Lua.push lua v >>
-                          Lua.rawset lua (-3)
-    addValue ("citationId", citationId cit)
-    addValue ("citationPrefix", citationPrefix cit)
-    addValue ("citationSuffix", citationSuffix cit)
-    addValue ("citationMode", show (citationMode cit))
-    addValue ("citationNoteNum", citationNoteNum cit)
-    addValue ("citationHash", citationHash cit)
+    addValue lua "citationId" $ citationId cit
+    addValue lua "citationPrefix" $ citationPrefix cit
+    addValue lua "citationSuffix" $ citationSuffix cit
+    addValue lua "citationMode" $ show (citationMode cit)
+    addValue lua "citationNoteNum" $ citationNoteNum cit
+    addValue lua "citationHash" $ citationHash cit
   peek = undefined
   valuetype _ = Lua.TTABLE
 
