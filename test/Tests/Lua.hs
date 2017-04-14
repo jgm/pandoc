@@ -8,15 +8,28 @@ import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
 import Test.Tasty.QuickCheck (ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Definition (Block, Inline, Meta, Pandoc)
-import Text.Pandoc.Builder ( (<>), bulletList, doc, emph, linebreak, rawBlock
-                           , para, plain, space, str, strong)
+import Text.Pandoc.Builder ( (<>), bulletList, doc, doubleQuoted, emph
+                           , linebreak, rawBlock, singleQuoted, para, plain
+                           , space, str, strong)
 import Text.Pandoc.Lua
 
 import qualified Scripting.Lua as Lua
 
 tests :: [TestTree]
 tests =
-  [ testCase "macro expansion via filter" $
+  [ testProperty "inline elements can be round-tripped through the lua stack" $
+    \x -> ioProperty (roundtripEqual (x::Inline))
+
+  , testProperty "block elements can be round-tripped through the lua stack" $
+    \x -> ioProperty (roundtripEqual (x::Block))
+
+  , testProperty "meta blocks can be round-tripped through the lua stack" $
+    \x -> ioProperty (roundtripEqual (x::Meta))
+
+  , testProperty "documents can be round-tripped through the lua stack" $
+    \x -> ioProperty (roundtripEqual (x::Pandoc))
+
+  , testCase "macro expansion via filter" $
     assertFilterConversion "a '{{helloworld}}' string is expanded"
       "strmacro.lua"
       (doc . para $ str "{{helloworld}}")
@@ -40,17 +53,11 @@ tests =
       (doc $ rawBlock "markdown" "*charly* **delta**")
       (doc . para $ emph "charly" <> space <> strong "delta")
 
-  , testProperty "inline elements can be round-tripped through the lua stack" $
-    \x -> ioProperty (roundtripEqual (x::Inline))
-
-  , testProperty "block elements can be round-tripped through the lua stack" $
-    \x -> ioProperty (roundtripEqual (x::Block))
-
-  , testProperty "meta blocks can be round-tripped through the lua stack" $
-    \x -> ioProperty (roundtripEqual (x::Meta))
-
-  , testProperty "documents can be round-tripped through the lua stack" $
-    \x -> ioProperty (roundtripEqual (x::Pandoc))
+  , testCase "allow shorthand functions for quote types" $
+    assertFilterConversion "single quoted becomes double quoted string"
+      "single-to-double-quoted.lua"
+      (doc . para . singleQuoted $ str "simple")
+      (doc . para . doubleQuoted $ str "simple")
   ]
 
 assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion

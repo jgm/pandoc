@@ -34,7 +34,7 @@ import Control.Monad ( (>=>), when )
 import Control.Monad.Trans ( MonadIO(..) )
 import Data.Map ( Map )
 import Scripting.Lua ( LuaState, StackValue(..) )
-import Text.Pandoc.Definition ( Block(..), Inline(..), Pandoc(..) )
+import Text.Pandoc.Definition
 import Text.Pandoc.Lua.PandocModule ( pushPandocModule )
 import Text.Pandoc.Lua.StackInstances ()
 import Text.Pandoc.Walk
@@ -135,6 +135,12 @@ execInlineLuaFilter lua fnMap x = do
         case Map.lookup fnName fnMap of
           Nothing -> return x
           Just fn -> callFilterFn fn
+  let tryFilterAlternatives :: [(String, LuaFilterFunction Inline -> IO Inline)] -> IO Inline
+      tryFilterAlternatives [] = return x
+      tryFilterAlternatives ((fnName, callFilterFn) : alternatives) =
+        case Map.lookup fnName fnMap of
+          Nothing -> tryFilterAlternatives alternatives
+          Just fn -> callFilterFn fn
   case x of
     LineBreak                 -> tryFilter "LineBreak" runFn
     SoftBreak                 -> tryFilter "SoftBreak" runFn
@@ -142,9 +148,7 @@ execInlineLuaFilter lua fnMap x = do
     Cite cs lst               -> tryFilter "Cite"      $ \fn -> runFn fn lst cs
     Code attr str             -> tryFilter "Code"      $ \fn -> runFn fn str attr
     Emph lst                  -> tryFilter "Emph"      $ \fn -> runFn fn lst
-    Math mt lst               -> tryFilter "Math"      $ \fn -> runFn fn lst mt
     Note blks                 -> tryFilter "Note"      $ \fn -> runFn fn blks
-    Quoted qt lst             -> tryFilter "Quoted"    $ \fn -> runFn fn qt lst
     RawInline f str           -> tryFilter "RawInline" $ \fn -> runFn fn f str
     SmallCaps lst             -> tryFilter "SmallCaps" $ \fn -> runFn fn lst
     Span attr lst             -> tryFilter "Span"      $ \fn -> runFn fn lst attr
@@ -153,6 +157,22 @@ execInlineLuaFilter lua fnMap x = do
     Strong lst                -> tryFilter "Strong"    $ \fn -> runFn fn lst
     Subscript lst             -> tryFilter "Subscript" $ \fn -> runFn fn lst
     Superscript lst           -> tryFilter "Superscript" $ \fn -> runFn fn lst
+    Math DisplayMath lst      -> tryFilterAlternatives
+                                 [ ("DisplayMath", \fn -> runFn fn lst)
+                                 , ("Math", \fn -> runFn fn DisplayMath lst)
+                                 ]
+    Math InlineMath lst       -> tryFilterAlternatives
+                                 [ ("InlineMath", \fn -> runFn fn lst)
+                                 , ("Math", \fn -> runFn fn InlineMath lst)
+                                 ]
+    Quoted SingleQuote lst    -> tryFilterAlternatives
+                                 [ ("SingleQuoted", \fn -> runFn fn lst)
+                                 , ("Quoted", \fn -> runFn fn SingleQuote lst)
+                                 ]
+    Quoted DoubleQuote lst    -> tryFilterAlternatives
+                                 [ ("DoubleQuoted", \fn -> runFn fn lst)
+                                 , ("Quoted", \fn -> runFn fn DoubleQuote lst)
+                                 ]
     Link attr txt (src, tit)  -> tryFilter "Link" $
                                  \fn -> runFn fn txt src tit attr
     Image attr alt (src, tit) -> tryFilter "Image" $
