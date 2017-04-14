@@ -65,11 +65,11 @@ instance StackValue Meta where
 instance StackValue MetaValue where
   push lua = \case
     MetaBlocks blcks  -> pushViaConstructor lua "MetaBlocks" blcks
-    MetaBool b        -> pushViaConstructor lua "MetaBool" b
+    MetaBool bool     -> push lua bool
     MetaInlines inlns -> pushViaConstructor lua "MetaInlines" inlns
     MetaList metalist -> pushViaConstructor lua "MetaList" metalist
     MetaMap metamap   -> pushViaConstructor lua "MetaMap" metamap
-    MetaString cs     -> pushViaConstructor lua "MetaString" cs
+    MetaString str    -> push lua str
   peek lua idx = do
     luatype <- ltype lua idx
     case luatype of
