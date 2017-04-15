@@ -64,7 +64,7 @@ import System.Directory (Permissions (..), doesFileExist, findExecutable,
 import System.Environment (getArgs, getEnvironment, getProgName)
 import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath
-import System.IO (stderr, stdout)
+import System.IO (stdout)
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
@@ -448,9 +448,7 @@ convertWithOpts opts = do
                 res <- makePDF pdfprog f writerOptions verbosity media doc'
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
-                     Left err' -> liftIO $ do
-                       B.hPutStr stderr err'
-                       B.hPut stderr $ B.pack [10]
+                     Left err' -> liftIO $
                        E.throwIO $ PandocPDFError (UTF8.toStringLazy err')
         | otherwise -> do
                 let htmlFormat = format `elem`
