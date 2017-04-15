@@ -57,7 +57,7 @@ data PandocError = PandocIOError String IOError
                  | PandocPDFProgramNotFoundError String
                  | PandocPDFError String
                  | PandocFilterError String String
-                 | PandocAppError Int String
+                 | PandocAppError String
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -88,10 +88,10 @@ handleError (Left e) =
     PandocFailOnWarningError -> err 3 "Failing because there were warnings."
     PandocPDFProgramNotFoundError pdfprog -> err 47 $
         pdfprog ++ " not found. " ++ pdfprog ++ " is needed for pdf output."
-    PandocPDFError log -> err 43 $ "Error producing PDF.\n" ++ log
-    PandocFilterError filter msg -> err 83 $ "Error running filter " ++
-        filter ++ ":\n" ++ msg
-    PandocAppError ec s -> err ec s
+    PandocPDFError logmsg -> err 43 $ "Error producing PDF.\n" ++ logmsg
+    PandocFilterError filtername msg -> err 83 $ "Error running filter " ++
+        filtername ++ ":\n" ++ msg
+    PandocAppError s -> err 1 s
 
 err :: Int -> String -> IO a
 err exitCode msg = do
