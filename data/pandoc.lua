@@ -550,16 +550,6 @@ M.Superscript = M.Inline:create_constructor(
 
 -- Attributes
 M.Attributes = {}
-setmetatable(M.Attributes, M.Attributes)
-M.Attributes.__index = function(t, k)
-  if k == "id" then
-    return t[1]
-  elseif k == "class" then
-    return table.concat(t[2], ' ')
-  else
-    return t.kv[k]
-  end
-end
 --- Create a new set of attributes (Attr).
 -- @function Attributes
 -- @tparam      table        key_values table containing string keys and values
@@ -567,17 +557,61 @@ end
 -- @tparam[opt] {string,...} classes    element classes
 -- @return element attributes
 M.Attributes.__call = function(t, key_values, id, classes)
-  local kv = {}
-  for i = 1, #key_values do
-    kv[key_values[i][1]] = key_values[i][2]
-  end
   id = id or ''
   classes = classes or {}
-  local attr = {id, classes, key_values, kv = kv}
+  local attr = {id, classes, key_values}
   setmetatable(attr, t)
   return attr
 end
-M.Attributes.empty = M.Attributes('', {}, {})
+M.Attributes.__index = function(t, k)
+  if rawget(t, k) then
+    return rawget(t, k)
+  elseif k == "id" then
+    if rawget(t, 1) == '' then
+      return nil
+    else
+      return rawget(t, 1)
+    end
+  elseif k == "class" then
+    if #(rawget(t, 2)) == 0 then
+      return nil
+    else
+      return table.concat(t[2], ' ')
+    end
+  else
+    for _, p in ipairs(t[3]) do
+      if k == p[1] then
+        return p[2]
+      end
+    end
+    return nil
+  end
+end
+M.Attributes.__newindex = function(t, k, v)
+  if rawget(t, k) then
+    rawset(t, k, v)
+  elseif k == "id" then
+    rawset(t, 1, v)
+  elseif k == "class" then
+    if type(v) == "string" then
+      rawset(t, 2, {v})
+    else
+      rawset(t, 2, v)
+    end
+  else
+    for _, p in ipairs(rawget(t, 3)) do
+      if k == p[1] then
+        p[2] = v
+        return
+      end
+    end
+    kv = rawget(t, 3)
+    kv[#kv + 1] = {k, v}
+    rawset(t, 3, kv)
+  end
+end
+setmetatable(M.Attributes, M.Attributes)
+
 
 --- Creates a single citation.
 -- @function Citation

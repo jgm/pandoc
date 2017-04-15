@@ -170,10 +170,10 @@ pushBlock :: LuaState -> Block -> IO ()
 pushBlock lua = \case
   BlockQuote blcks         -> pushViaConstructor lua "BlockQuote" blcks
   BulletList items         -> pushViaConstructor lua "BulletList" items
-  CodeBlock attr code      -> pushViaConstructor lua "CodeBlock" code attr
+  CodeBlock attr code      -> pushViaConstructor lua "CodeBlock" code (LuaAttr attr)
   DefinitionList items     -> pushViaConstructor lua "DefinitionList" items
-  Div attr blcks           -> pushViaConstructor lua "Div" blcks attr
-  Header lvl attr inlns    -> pushViaConstructor lua "Header" lvl attr inlns
+  Div attr blcks           -> pushViaConstructor lua "Div" blcks (LuaAttr attr)
+  Header lvl attr inlns    -> pushViaConstructor lua "Header" lvl (LuaAttr attr) inlns
   HorizontalRule           -> pushViaConstructor lua "HorizontalRule"
   LineBlock blcks          -> pushViaConstructor lua "LineBlock" blcks
   OrderedList lstAttr list -> pushViaConstructor lua "OrderedList" list lstAttr
@@ -193,10 +193,10 @@ peekBlock lua idx = do
     Just t -> case t of
       "BlockQuote"     -> fmap BlockQuote <$> elementContent
       "BulletList"     -> fmap BulletList <$> elementContent
-      "CodeBlock"      -> fmap (uncurry CodeBlock) <$> elementContent
+      "CodeBlock"      -> fmap (withAttr CodeBlock) <$> elementContent
       "DefinitionList" -> fmap DefinitionList <$> elementContent
-      "Div"            -> fmap (uncurry Div) <$> elementContent
-      "Header"         -> fmap (\(lvl, attr, lst) -> Header lvl attr lst)
+      "Div"            -> fmap (withAttr Div) <$> elementContent
+      "Header"         -> fmap (\(lvl, LuaAttr attr, lst) -> Header lvl attr lst)
                           <$> elementContent
       "HorizontalRule" -> return (Just HorizontalRule)
       "LineBlock"      -> fmap LineBlock <$> elementContent
@@ -218,11 +218,11 @@ peekBlock lua idx = do
 pushInline :: LuaState -> Inline -> IO ()
 pushInline lua = \case
   Cite citations lst       -> pushViaConstructor lua "Cite" lst citations
-  Code attr lst            -> pushViaConstructor lua "Code" lst attr
+  Code attr lst            -> pushViaConstructor lua "Code" lst (LuaAttr attr)
   Emph inlns               -> pushViaConstructor lua "Emph" inlns
-  Image attr alt (src,tit) -> pushViaConstructor lua "Image" alt src tit attr
+  Image attr alt (src,tit) -> pushViaConstructor lua "Image" alt src tit (LuaAttr attr)
   LineBreak                -> pushViaConstructor lua "LineBreak"
-  Link attr lst (src,tit)  -> pushViaConstructor lua "Link" lst src tit attr
+  Link attr lst (src,tit)  -> pushViaConstructor lua "Link" lst src tit (LuaAttr attr)
   Note blcks               -> pushViaConstructor lua "Note" blcks
   Math mty str             -> pushViaConstructor lua "Math" mty str
   Quoted qt inlns          -> pushViaConstructor lua "Quoted" qt inlns
@@ -230,7 +230,7 @@ pushInline lua = \case
   SmallCaps inlns          -> pushViaConstructor lua "SmallCaps" inlns
   SoftBreak                -> pushViaConstructor lua "SoftBreak"
   Space                    -> pushViaConstructor lua "Space"
-  Span attr inlns          -> pushViaConstructor lua "Span" inlns attr
+  Span attr inlns          -> pushViaConstructor lua "Span" inlns (LuaAttr attr)
   Str str                  -> pushViaConstructor lua "Str" str
   Strikeout inlns          -> pushViaConstructor lua "Strikeout" inlns
   Strong inlns             -> pushViaConstructor lua "Strong" inlns
@@ -245,11 +245,11 @@ peekInline lua idx = do
     Nothing -> return Nothing
     Just t -> case t of
       "Cite"       -> fmap (uncurry Cite) <$> elementContent
-      "Code"       -> fmap (uncurry Code) <$> elementContent
+      "Code"       -> fmap (withAttr Code) <$> elementContent
       "Emph"       -> fmap Emph <$> elementContent
-      "Image"      -> fmap (\(attr, lst, tgt) -> Image attr lst tgt)
+      "Image"      -> fmap (\(LuaAttr attr, lst, tgt) -> Image attr lst tgt)
                       <$> elementContent
-      "Link"       -> fmap (\(attr, lst, tgt) -> Link attr lst tgt)
+      "Link"       -> fmap (\(LuaAttr attr, lst, tgt) -> Link attr lst tgt)
                       <$> elementContent
       "LineBreak"  -> return (Just LineBreak)
       "Note"       -> fmap Note <$> elementContent
@@ -259,7 +259,7 @@ peekInline lua idx = do
       "SmallCaps"  -> fmap SmallCaps <$> elementContent
       "SoftBreak"  -> return (Just SoftBreak)
       "Space"      -> return (Just Space)
-      "Span"       -> fmap (uncurry Span) <$> elementContent
+      "Span"       -> fmap (withAttr Span) <$> elementContent
       "Str"        -> fmap Str <$> elementContent
       "Strikeout"  -> fmap Strikeout <$> elementContent
       "Strong"     -> fmap Strong <$> elementContent
@@ -270,3 +270,15 @@ peekInline lua idx = do
    -- Get the contents of an AST element.
    elementContent :: StackValue a => IO (Maybe a)
    elementContent = getTable lua idx "c"
+
+withAttr :: (Attr -> a -> b) -> (LuaAttr, a) -> b
+withAttr f (attributes, x) = f (fromLuaAttr attributes) x
+
+-- | Wrapper for Attr
+newtype LuaAttr = LuaAttr { fromLuaAttr :: Attr }
+
+instance StackValue LuaAttr where
+  push lua (LuaAttr (id', classes, kv)) =
+    pushViaConstructor lua "Attributes" kv id' classes
+  peek lua idx = fmap LuaAttr <$> peek lua idx
+  valuetype _ = TTABLE
