@@ -1,10 +1,10 @@
 return {
   {
-    RawBlock = function (format, content)
-      if format == "markdown" then
-        return pandoc.reader.markdown.read_block(content)
+    RawBlock = function (elem)
+      if elem.format == "markdown" then
+        return pandoc.reader.markdown.read_block(elem.text)
       else
-        return blk
+        return elem
       end
     end,
   }

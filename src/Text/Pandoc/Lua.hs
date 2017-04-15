@@ -99,84 +99,64 @@ execBlockLuaFilter :: LuaState
                    -> Map String (LuaFilterFunction Block)
                    -> Block -> IO Block
 execBlockLuaFilter lua fnMap x = do
-  let runFn :: PushViaFilterFunction Block a => LuaFilterFunction Block -> a
-      runFn fn = runLuaFilterFunction lua fn
-  let tryFilter :: String -> (LuaFilterFunction Block -> IO Block) -> IO Block
-      tryFilter fnName callFilterFn =
-        case Map.lookup fnName fnMap of
+  let tryFilter :: String -> IO Block
+      tryFilter filterFnName =
+        case Map.lookup filterFnName fnMap of
           Nothing -> return x
-          Just fn -> callFilterFn fn
+          Just fn -> runLuaFilterFunction lua fn x
   case x of
-    HorizontalRule             -> tryFilter "HorizontalRule" runFn
-    Null                       -> tryFilter "Null" runFn
-    BlockQuote blcks           -> tryFilter "BlockQuote" $ \fn -> runFn fn blcks
-    BulletList items           -> tryFilter "BulletList" $ \fn -> runFn fn items
-    CodeBlock attr code        -> tryFilter "CodeBlock" $ \fn -> runFn fn attr code
-    DefinitionList lst         -> tryFilter "DefinitionList" $ \fn -> runFn fn lst
-    Div attr content           -> tryFilter "Div" $ \fn -> runFn fn content attr
-    Header lvl attr inlns      -> tryFilter "Header" $ \fn -> runFn fn lvl inlns attr
-    LineBlock inlns            -> tryFilter "LineBlock" $ \fn -> runFn fn inlns
-    Para inlns                 -> tryFilter "Para" $ \fn -> runFn fn inlns
-    Plain inlns                -> tryFilter "Plain" $ \fn -> runFn fn inlns
-    RawBlock format str        -> tryFilter "RawBlock" $ \fn -> runFn fn format str
-    OrderedList (num,sty,delim) items ->
-      tryFilter "OrderedList" $ \fn -> runFn fn items (num,sty,delim)
-    Table capt aligns widths headers rows ->
-      tryFilter "Table" $ \fn -> runFn fn capt aligns widths headers rows
+    BlockQuote _     -> tryFilter "BlockQuote"
+    BulletList _     -> tryFilter "BulletList"
+    CodeBlock _ _    -> tryFilter "CodeBlock"
+    DefinitionList _ -> tryFilter "DefinitionList"
+    Div _ _          -> tryFilter "Div"
+    Header _ _ _     -> tryFilter "Header"
+    HorizontalRule   -> tryFilter "HorizontalRule"
+    LineBlock _      -> tryFilter "LineBlock"
+    Null             -> tryFilter "Null"
+    Para _           -> tryFilter "Para"
+    Plain _          -> tryFilter "Plain"
+    RawBlock _ _     -> tryFilter "RawBlock"
+    OrderedList _ _  -> tryFilter "OrderedList"
+    Table _ _ _ _ _  -> tryFilter "Table"
 
 execInlineLuaFilter :: LuaState
                     -> Map String (LuaFilterFunction Inline)
                     -> Inline -> IO Inline
 execInlineLuaFilter lua fnMap x = do
-  let runFn :: PushViaFilterFunction Inline a => LuaFilterFunction Inline -> a
-      runFn fn = runLuaFilterFunction lua fn
-  let tryFilter :: String -> (LuaFilterFunction Inline -> IO Inline) -> IO Inline
-      tryFilter fnName callFilterFn =
-        case Map.lookup fnName fnMap of
+  let tryFilter :: String -> IO Inline
+      tryFilter filterFnName =
+        case Map.lookup filterFnName fnMap of
           Nothing -> return x
-          Just fn -> callFilterFn fn
-  let tryFilterAlternatives :: [(String, LuaFilterFunction Inline -> IO Inline)] -> IO Inline
+          Just fn -> runLuaFilterFunction lua fn x
+  let tryFilterAlternatives :: [String] -> IO Inline
       tryFilterAlternatives [] = return x
-      tryFilterAlternatives ((fnName, callFilterFn) : alternatives) =
+      tryFilterAlternatives (fnName : alternatives) =
         case Map.lookup fnName fnMap of
           Nothing -> tryFilterAlternatives alternatives
-          Just fn -> callFilterFn fn
+          Just fn -> runLuaFilterFunction lua fn x
   case x of
-    LineBreak                 -> tryFilter "LineBreak" runFn
-    SoftBreak                 -> tryFilter "SoftBreak" runFn
-    Space                     -> tryFilter "Space"     runFn
-    Cite cs lst               -> tryFilter "Cite"      $ \fn -> runFn fn lst cs
-    Code attr str             -> tryFilter "Code"      $ \fn -> runFn fn str attr
-    Emph lst                  -> tryFilter "Emph"      $ \fn -> runFn fn lst
-    Note blks                 -> tryFilter "Note"      $ \fn -> runFn fn blks
-    RawInline f str           -> tryFilter "RawInline" $ \fn -> runFn fn f str
-    SmallCaps lst             -> tryFilter "SmallCaps" $ \fn -> runFn fn lst
-    Span attr lst             -> tryFilter "Span"      $ \fn -> runFn fn lst attr
-    Str str                   -> tryFilter "Str"       $ \fn -> runFn fn str
-    Strikeout lst             -> tryFilter "Strikeout" $ \fn -> runFn fn lst
-    Strong lst                -> tryFilter "Strong"    $ \fn -> runFn fn lst
-    Subscript lst             -> tryFilter "Subscript" $ \fn -> runFn fn lst
-    Superscript lst           -> tryFilter "Superscript" $ \fn -> runFn fn lst
-    Math DisplayMath lst      -> tryFilterAlternatives
-                                 [ ("DisplayMath", \fn -> runFn fn lst)
-                                 , ("Math", \fn -> runFn fn DisplayMath lst)
-                                 ]
-    Math InlineMath lst       -> tryFilterAlternatives
-                                 [ ("InlineMath", \fn -> runFn fn lst)
-                                 , ("Math", \fn -> runFn fn InlineMath lst)
-                                 ]
-    Quoted SingleQuote lst    -> tryFilterAlternatives
-                                 [ ("SingleQuoted", \fn -> runFn fn lst)
-                                 , ("Quoted", \fn -> runFn fn SingleQuote lst)
-                                 ]
-    Quoted DoubleQuote lst    -> tryFilterAlternatives
-                                 [ ("DoubleQuoted", \fn -> runFn fn lst)
-                                 , ("Quoted", \fn -> runFn fn DoubleQuote lst)
-                                 ]
-    Link attr txt (src, tit)  -> tryFilter "Link" $
-                                 \fn -> runFn fn txt src tit attr
-    Image attr alt (src, tit) -> tryFilter "Image" $
-                                 \fn -> runFn fn alt src tit attr
+    Cite _ _             -> tryFilter "Cite"
+    Code _ _             -> tryFilter "Code"
+    Emph _               -> tryFilter "Emph"
+    Image _ _ _          -> tryFilter "Image"
+    LineBreak            -> tryFilter "LineBreak"
+    Link _ _ _           -> tryFilter "Link"
+    Math DisplayMath _   -> tryFilterAlternatives ["DisplayMath", "Math"]
+    Math InlineMath _    -> tryFilterAlternatives ["InlineMath", "Math"]
+    Note _               -> tryFilter "Note"
+    Quoted DoubleQuote _ -> tryFilterAlternatives ["DoubleQuoted", "Quoted"]
+    Quoted SingleQuote _ -> tryFilterAlternatives ["SingleQuoted", "Quoted"]
+    RawInline _ _        -> tryFilter "RawInline"
+    SmallCaps _          -> tryFilter "SmallCaps"
+    SoftBreak            -> tryFilter "SoftBreak"
+    Space                -> tryFilter "Space"
+    Span _ _             -> tryFilter "Span"
+    Str _                -> tryFilter "Str"
+    Strikeout _          -> tryFilter "Strikeout"
+    Strong _             -> tryFilter "Strong"
+    Subscript _          -> tryFilter "Subscript"
+    Superscript _        -> tryFilter "Superscript"
 
 instance StackValue LuaFilter where
   valuetype _ = Lua.TTABLE

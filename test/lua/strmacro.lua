@@ -1,10 +1,10 @@
 return {
   {
-    Str = function (str)
-      if str == "{{helloworld}}" then
+    Str = function (elem)
+      if elem.text == "{{helloworld}}" then
         return pandoc.Emph {pandoc.Str "Hello, World"}
       else
-        return pandoc.Str(str)
+        return elem
       end
     end,
   }

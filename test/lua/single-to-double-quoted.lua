@@ -1,7 +1,8 @@
 return {
   {
-    SingleQuoted = function (content)
-      return pandoc.Quoted("DoubleQuote", content)
+    SingleQuoted = function (elem)
+      elem.quotetype = "DoubleQuote"
+      return elem
     end,
   }
 }

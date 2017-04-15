@@ -1,6 +1,6 @@
 return {
-  { Plain = function (content)
-      return pandoc.Para(content)
+  { Plain = function (elem)
+      return pandoc.Para(elem.content)
   end,
   }
 }
