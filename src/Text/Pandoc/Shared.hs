@@ -674,8 +674,7 @@ readDefaultDataFile "reference.odt" =
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
   case lookup (makeCanonical fname) dataFiles of
-    Nothing       -> E.throwIO $ PandocAppError 97 $
-                        "Could not find data file " ++ fname
+    Nothing       -> E.throwIO $ PandocCouldNotFindDataFileError fname
     Just contents -> return contents
   where makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
         transformPathParts = reverse . foldl go []
@@ -691,7 +690,7 @@ checkExistence fn = do
   exists <- doesFileExist fn
   if exists
      then return fn
-     else E.throwIO $ PandocAppError 97 ("Could not find data file " ++ fn)
+     else E.throwIO $ PandocCouldNotFindDataFileError fn
 #endif
 
 -- | Read file from specified user data directory or, if not found there, from

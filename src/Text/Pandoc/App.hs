@@ -175,7 +175,7 @@ convertWithOpts opts = do
                        (\o d -> liftIO $ writeCustom writerName o d)
                                :: Writer PandocIO)
                else case getWriter writerName of
-                         Left e  -> E.throwIO $ PandocAppError 9 $
+                         Left e  -> E.throwIO $ PandocAppError $
                            if format == "pdf"
                               then e ++
                                "\nTo create a pdf using pandoc, use " ++
@@ -189,7 +189,7 @@ convertWithOpts opts = do
   -- the sake of the text2tags reader.
   reader <-  case getReader readerName of
                 Right r  -> return (r :: Reader PandocIO)
-                Left e   -> E.throwIO $ PandocAppError 7 e'
+                Left e   -> E.throwIO $ PandocAppError e'
                   where e' = case readerName of
                                   "pdf" -> e ++
                                      "\nPandoc can convert to PDF, but not from PDF."
@@ -359,7 +359,7 @@ convertWithOpts opts = do
   istty <- queryTerminal stdOutput
 #endif
   when (istty && not (isTextFormat format) && outputFile == "-") $
-    E.throwIO $ PandocAppError 5 $
+    E.throwIO $ PandocAppError $
             "Cannot write " ++ format ++ " output to stdout.\n" ++
             "Specify an output file using the -o option."
 
@@ -431,7 +431,7 @@ convertWithOpts opts = do
                 -- make sure writer is latex, beamer, context, html5 or ms
                 unless (laTeXOutput || conTeXtOutput || html5Output ||
                         msOutput) $
-                  liftIO $ E.throwIO $ PandocAppError 47 $
+                  liftIO $ E.throwIO $ PandocAppError $
                      "cannot produce pdf output with " ++ format ++ " writer"
 
                 let pdfprog = case () of

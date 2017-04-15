@@ -57,6 +57,7 @@ data PandocError = PandocIOError String IOError
                  | PandocPDFProgramNotFoundError String
                  | PandocPDFError String
                  | PandocFilterError String String
+                 | PandocCouldNotFindDataFileError String
                  | PandocAppError String
                  deriving (Show, Typeable, Generic)
 
@@ -91,6 +92,8 @@ handleError (Left e) =
     PandocPDFError logmsg -> err 43 $ "Error producing PDF.\n" ++ logmsg
     PandocFilterError filtername msg -> err 83 $ "Error running filter " ++
         filtername ++ ":\n" ++ msg
+    PandocCouldNotFindDataFileError fn -> err 97 $
+        "Could not find data file " ++ fn
     PandocAppError s -> err 1 s
 
 err :: Int -> String -> IO a
