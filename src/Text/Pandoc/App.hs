@@ -805,13 +805,13 @@ lookupHighlightStyle (Just s)
   | takeExtension s == ".theme" = -- attempt to load KDE theme
     do contents <- B.readFile s
        case parseTheme contents of
-            Left _    -> E.throwIO $ PandocAppError 69 $
+            Left _    -> E.throwIO $ PandocOptionError $
                            "Could not read highlighting theme " ++ s
             Right sty -> return (Just sty)
   | otherwise =
   case lookup (map toLower s) highlightingStyles of
        Just sty -> return (Just sty)
-       Nothing  -> E.throwIO $ PandocAppError 68 $
+       Nothing  -> E.throwIO $ PandocOptionError $
                       "Unknown highlight-style " ++ s
 
 -- | A list of functions, each transforming the options data structure
@@ -848,7 +848,7 @@ options =
                       case safeRead arg of
                            Just t | t > 0 && t < 6 ->
                                return opt{ optBaseHeaderLevel = t }
-                           _              -> E.throwIO $ PandocAppError 19
+                           _              -> E.throwIO $ PandocOptionError
                                                "base-header-level must be 1-5")
                   "NUMBER")
                  "" -- "Headers base level"
@@ -882,7 +882,7 @@ options =
                   (\arg opt ->
                       case safeRead arg of
                            Just t | t > 0 -> return opt { optTabStop = t }
-                           _              -> E.throwIO $ PandocAppError 31
+                           _              -> E.throwIO $ PandocOptionError
                                   "tab-stop must be a number greater than 0")
                   "NUMBER")
                  "" -- "Tab stop (default 4)"
@@ -894,7 +894,7 @@ options =
                             "accept" -> return AcceptChanges
                             "reject" -> return RejectChanges
                             "all"    -> return AllChanges
-                            _        -> E.throwIO $ PandocAppError 6
+                            _        -> E.throwIO $ PandocOptionError
                                ("Unknown option for track-changes: " ++ arg)
                      return opt { optTrackChanges = action })
                   "accept|reject|all")
@@ -965,7 +965,7 @@ options =
                   (\arg opt ->
                     case safeRead arg of
                          Just t | t > 0 -> return opt { optDpi = t }
-                         _              -> E.throwIO $ PandocAppError 31
+                         _              -> E.throwIO $ PandocOptionError
                                         "dpi must be a number greater than 0")
                   "NUMBER")
                  "" -- "Dpi (default 96)"
@@ -975,7 +975,7 @@ options =
                   (\arg opt ->
                     case safeRead ("Wrap" ++ uppercaseFirstLetter arg) of
                           Just o   -> return opt { optWrapText = o }
-                          Nothing  -> E.throwIO $ PandocAppError 77
+                          Nothing  -> E.throwIO $ PandocOptionError
                                      "--wrap must be auto, none, or preserve")
                  "auto|none|preserve")
                  "" -- "Option for wrapping text in output"
@@ -985,7 +985,7 @@ options =
                   (\arg opt ->
                       case safeRead arg of
                            Just t | t > 0 -> return opt { optColumns = t }
-                           _              -> E.throwIO $ PandocAppError 33
+                           _              -> E.throwIO $ PandocOptionError
                                    "columns must be a number greater than 0")
                  "NUMBER")
                  "" -- "Length of line in characters"
@@ -1001,7 +1001,7 @@ options =
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optTOCDepth = t }
-                           _      -> E.throwIO $ PandocAppError 57
+                           _      -> E.throwIO $ PandocOptionError
                                     "TOC level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Number of levels to include in TOC"
@@ -1077,7 +1077,7 @@ options =
                             "block"    -> return EndOfBlock
                             "section"  -> return EndOfSection
                             "document" -> return EndOfDocument
-                            _        -> E.throwIO $ PandocAppError 6
+                            _        -> E.throwIO $ PandocOptionError
                                ("Unknown option for reference-location: " ++ arg)
                      return opt { optReferenceLocation = action })
                   "block|section|document")
@@ -1094,7 +1094,7 @@ options =
                       let tldName = "TopLevel" ++ uppercaseFirstLetter arg
                       case safeRead tldName of
                         Just tlDiv -> return opt { optTopLevelDivision = tlDiv }
-                        _       -> E.throwIO $ PandocAppError 76
+                        _       -> E.throwIO $ PandocOptionError
                                      ("Top-level division must be " ++
                                       "section,  chapter, part, or default"))
                    "section|chapter|part")
@@ -1111,7 +1111,7 @@ options =
                       case safeRead ('[':arg ++ "]") of
                            Just ns -> return opt { optNumberOffset = ns,
                                                    optNumberSections = True }
-                           _      -> E.throwIO $ PandocAppError 57
+                           _      -> E.throwIO $ PandocOptionError
                                        "could not parse number-offset")
                  "NUMBERS")
                  "" -- "Starting number for sections, subsections, etc."
@@ -1132,7 +1132,7 @@ options =
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optSlideLevel = Just t }
-                           _      -> E.throwIO $ PandocAppError 39
+                           _      -> E.throwIO $ PandocOptionError
                                     "slide level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Force header level for slides"
@@ -1155,7 +1155,7 @@ options =
                             "references" -> return ReferenceObfuscation
                             "javascript" -> return JavascriptObfuscation
                             "none"       -> return NoObfuscation
-                            _            -> E.throwIO $ PandocAppError 6
+                            _            -> E.throwIO $ PandocOptionError
                                ("Unknown obfuscation method: " ++ arg)
                      return opt { optEmailObfuscation = method })
                   "none|javascript|references")
@@ -1217,7 +1217,7 @@ options =
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optEpubChapterLevel = t }
-                           _      -> E.throwIO $ PandocAppError 59
+                           _      -> E.throwIO $ PandocOptionError
                                     "chapter level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Header level at which to split chapters in EPUB"
@@ -1228,7 +1228,7 @@ options =
                      let b = takeBaseName arg
                      if b `elem` ["pdflatex", "lualatex", "xelatex"]
                         then return opt { optLaTeXEngine = arg }
-                        else E.throwIO $ PandocAppError 45 "latex-engine must be pdflatex, lualatex, or xelatex.")
+                        else E.throwIO $ PandocOptionError "latex-engine must be pdflatex, lualatex, or xelatex.")
                   "PROGRAM")
                  "" -- "Name of latex program to use in generating PDF"
 
