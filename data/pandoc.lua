@@ -64,18 +64,56 @@ end
 -- @param tag Tag used to identify the constructor
 -- @param fn Function to be called when constructing a new element
 -- @return function that constructs a new element
-function Element:create_constructor(tag, fn)
-  local constr = self:make_subtype({tag = tag})
+function Element:create_constructor(tag, fn, accessors)
+  local constr = self:make_subtype({tag = tag, getters = {}, setters = {}})
+
+  -- Add accessors to the metatable
+  if type(accessors) == "string" then
+    constr.getters[accessors] = function(elem)
+      return elem.c
+    end
+    constr.setters[accessors] = function(elem, v)
+      elem.c = v
+    end
+  else
+    for i = 1, #(accessors or {}) do
+      if type(accessors[i]) == "string" then
+        constr.getters[accessors[i]] = function(elem)
+          return elem.c[i]
+        end
+        constr.setters[accessors[i]] = function(elem, v)
+          elem.c[i] = v
+        end
+      else -- only two levels of nesting are supported
+        for k, v in ipairs(accessors[i]) do
+          constr.getters[v] = function(elem)
+            return elem.c[i][k]
+          end
+          constr.setters[v] = function(elem, v)
+            elem.c[i][k] = v
+          end
+        end
+      end
+    end
+  end
+
   function constr:new(...)
     local obj = fn(...)
     setmetatable(obj, self)
     self.__index = function(t, k)
-      if k == "c" then
-        return t["content"]
+      if getmetatable(t).getters[k] then
+        return getmetatable(t).getters[k](t)
       elseif k == "t" then
         return getmetatable(t)["tag"]
       else
         return getmetatable(t)[k]
+      end
+    end
+    self.__newindex = function(t, k, v)
+      if getmetatable(t).setters[k] then
+        getmetatable(t).setters[k](t, v)
+      else
+        rawset(t, k, v)
       end
     end
     return obj
@@ -152,7 +190,8 @@ for i = 1, #M.meta_value_types do
     M.meta_value_types[i],
     function(content)
       return {c = content}
-    end
+    end,
+    "content"
   )
 end
 
@@ -172,7 +211,8 @@ end
 -- @treturn     Block                   block quote element
 M.BlockQuote = M.Block:create_constructor(
   "BlockQuote",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a bullet (i.e. unordered) list.
@@ -181,17 +221,19 @@ M.BlockQuote = M.Block:create_constructor(
 -- @treturn     Block block quote element
 M.BulletList = M.Block:create_constructor(
   "BulletList",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a code block element
 -- @function CodeBlock
--- @tparam      string      code        code string
+-- @tparam      string      text        code string
 -- @tparam[opt] Attributes  attributes  element attributes
 -- @treturn     Block                   code block element
 M.CodeBlock = M.Block:create_constructor(
   "CodeBlock",
-  function(code, attributes) return {c = {attributes, code}} end
+  function(text, attributes) return {c = {attributes, text}} end,
+  {{"identifier", "classes", "attributes"}, "text"}
 )
 
 --- Creates a definition list, containing terms and their explanation.
@@ -200,7 +242,8 @@ M.CodeBlock = M.Block:create_constructor(
 -- @treturn     Block block quote element
 M.DefinitionList = M.Block:create_constructor(
   "DefinitionList",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a div element
@@ -210,7 +253,8 @@ M.DefinitionList = M.Block:create_constructor(
 -- @treturn     Block                   code block element
 M.Div = M.Block:create_constructor(
   "Div",
-  function(content, attributes) return {c = {attributes, content}} end
+  function(content, attributes) return {c = {attributes, content}} end,
+  {{"identifier", "classes", "attributes"}, "content"}
 )
 
 --- Creates a block quote element.
@@ -223,7 +267,8 @@ M.Header = M.Block:create_constructor(
   "Header",
   function(level, attributes, content)
     return {c = {level, attributes, content}}
-  end
+  end,
+  {"level", {"identifier", "classes", "attributes"}, "content"}
 )
 
 --- Creates a horizontal rule.
@@ -240,7 +285,8 @@ M.HorizontalRule = M.Block:create_constructor(
 -- @treturn     Block                   block quote element
 M.LineBlock = M.Block:create_constructor(
   "LineBlock",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a null element.
@@ -260,7 +306,8 @@ M.OrderedList = M.Block:create_constructor(
   "OrderedList",
   function(items, listAttributes)
     return {c = {listAttributes,items}}
-  end
+  end,
+  {{"start", "style", "delimiter"}, "content"}
 )
 
 --- Creates a para element.
@@ -269,7 +316,8 @@ M.OrderedList = M.Block:create_constructor(
 -- @treturn     Block                   block quote element
 M.Para = M.Block:create_constructor(
   "Para",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a plain element.
@@ -278,17 +326,19 @@ M.Para = M.Block:create_constructor(
 -- @treturn     Block                   block quote element
 M.Plain = M.Block:create_constructor(
   "Plain",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a raw content block of the specified format.
 -- @function RawBlock
 -- @tparam      string      format      format of content
--- @tparam      string      content     string content
+-- @tparam      string      text        string content
 -- @treturn     Block                   block quote element
 M.RawBlock = M.Block:create_constructor(
   "RawBlock",
-  function(format, content) return {c = {format, content}} end
+  function(format, text) return {c = {format, text}} end,
+  {"format", "text"}
 )
 
 --- Creates a table element.
@@ -324,17 +374,19 @@ end
 -- @treturn Inline citations element
 M.Cite = M.Inline:create_constructor(
   "Cite",
-  function(content, citations) return {c = {citations, content}} end
+  function(content, citations) return {c = {citations, content}} end,
+  {"citations", "content"}
 )
 
 --- Creates a Code inline element
 -- @function Code
--- @tparam      string      code        brief image description
+-- @tparam      string      text        brief image description
 -- @tparam[opt] Attributes  attributes  additional attributes
 -- @treturn Inline code element
 M.Code = M.Inline:create_constructor(
   "Code",
-  function(code, attributes) return {c = {attributes, code}} end
+  function(text, attributes) return {c = {attributes, text}} end,
+  {{"identifier", "classes", "attributes"}, "text"}
 )
 
 --- Creates an inline element representing emphasised text.
@@ -343,7 +395,8 @@ M.Code = M.Inline:create_constructor(
 -- @treturn Inline emphasis element
 M.Emph = M.Inline:create_constructor(
   "Emph",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a Image inline element
@@ -359,7 +412,8 @@ M.Image = M.Inline:create_constructor(
     title = title or ""
     attributes = attributes or Attribute.empty
     return {c = {attributes, caption, {src, title}}}
-  end
+  end,
+  {"attributes", "caption", {"src", "title"}}
 )
 
 --- Create a LineBreak inline element
@@ -383,7 +437,8 @@ M.Link = M.Inline:create_constructor(
     title = title or ""
     attributes = attributes or Attribute.empty
     return {c = {attributes, content, {target, title}}}
-  end
+  end,
+  {"attributes", "content", {"target", "title"}}
 )
 
 --- Creates a Math element, either inline or displayed. It is usually simpler to
@@ -396,7 +451,8 @@ M.Math = M.Inline:create_constructor(
   "Math",
   function(mathtype, text)
     return {c = {mathtype, text}}
-  end
+  end,
+  {"mathtype", "text"}
 )
 --- Creates a DisplayMath element.
 -- @function DisplayMath
@@ -404,7 +460,8 @@ M.Math = M.Inline:create_constructor(
 -- @treturn     Inline                  Math element
 M.DisplayMath = M.Inline:create_constructor(
   "DisplayMath",
-  function(text) return M.Math("DisplayMath", text) end
+  function(text) return M.Math("DisplayMath", text) end,
+  {"mathtype", "text"}
 )
 --- Creates an InlineMath inline element.
 -- @function InlineMath
@@ -412,7 +469,8 @@ M.DisplayMath = M.Inline:create_constructor(
 -- @treturn     Inline                  Math element
 M.InlineMath = M.Inline:create_constructor(
   "InlineMath",
-  function(text) return M.Math("InlineMath", text) end
+  function(text) return M.Math("InlineMath", text) end,
+  {"mathtype", "text"}
 )
 
 --- Creates a Note inline element
@@ -420,7 +478,8 @@ M.InlineMath = M.Inline:create_constructor(
 -- @tparam      {Block,...} content     footnote block content
 M.Note = M.Inline:create_constructor(
   "Note",
-  function(contents) return {c = contents} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a Quoted inline element given the quote type and quoted content. It
@@ -432,7 +491,8 @@ M.Note = M.Inline:create_constructor(
 -- @treturn     Inline                  quoted element
 M.Quoted = M.Inline:create_constructor(
   "Quoted",
-  function(quotetype, content) return {c = {quotetype, content}} end
+  function(quotetype, content) return {c = {quotetype, content}} end,
+  {"quotetype", "content"}
 )
 --- Creates a single-quoted inline element.
 -- @function SingleQuoted
@@ -441,7 +501,8 @@ M.Quoted = M.Inline:create_constructor(
 -- @see Quoted
 M.SingleQuoted = M.Inline:create_constructor(
   "SingleQuoted",
-  function(content) return M.Quoted(M.SingleQuote, content) end
+  function(content) return M.Quoted(M.SingleQuote, content) end,
+  {"quotetype", "content"}
 )
 --- Creates a single-quoted inline element.
 -- @function DoubleQuoted
@@ -450,7 +511,8 @@ M.SingleQuoted = M.Inline:create_constructor(
 -- @see Quoted
 M.DoubleQuoted = M.Inline:create_constructor(
   "DoubleQuoted",
-  function(content) return M.Quoted("DoubleQuote", content) end
+  function(content) return M.Quoted("DoubleQuote", content) end,
+  {"quotetype", "content"}
 )
 
 --- Creates a RawInline inline element
@@ -460,7 +522,8 @@ M.DoubleQuoted = M.Inline:create_constructor(
 -- @treturn     Inline                  raw inline element
 M.RawInline = M.Inline:create_constructor(
   "RawInline",
-  function(format, text) return {c = {format, text}} end
+  function(format, text) return {c = {format, text}} end,
+  {"format", "text"}
 )
 
 --- Creates text rendered in small caps
@@ -469,7 +532,8 @@ M.RawInline = M.Inline:create_constructor(
 -- @treturn     Inline                  smallcaps element
 M.SmallCaps = M.Inline:create_constructor(
   "SmallCaps",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a SoftBreak inline element.
@@ -495,7 +559,8 @@ M.Space = M.Inline:create_constructor(
 -- @treturn Inline span element
 M.Span = M.Inline:create_constructor(
   "Span",
-  function(content, attributes) return {c = {attributes, content}} end
+  function(content, attributes) return {c = {attributes, content}} end,
+  {{"identifier", "classes", "attributes"}, "content"}
 )
 
 --- Creates a Str inline element
@@ -504,7 +569,8 @@ M.Span = M.Inline:create_constructor(
 -- @treturn     Inline                  string element
 M.Str = M.Inline:create_constructor(
   "Str",
-  function(text) return {c = text} end
+  function(text) return {c = text} end,
+  "text"
 )
 
 --- Creates text which is striked out.
@@ -513,7 +579,8 @@ M.Str = M.Inline:create_constructor(
 -- @treturn     Inline                  strikeout element
 M.Strikeout = M.Inline:create_constructor(
   "Strikeout",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a Strong element, whose text is usually displayed in a bold font.
@@ -522,7 +589,8 @@ M.Strikeout = M.Inline:create_constructor(
 -- @treturn     Inline                  strong element
 M.Strong = M.Inline:create_constructor(
   "Strong",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a Subscript inline element
@@ -531,7 +599,8 @@ M.Strong = M.Inline:create_constructor(
 -- @treturn     Inline                  subscript element
 M.Subscript = M.Inline:create_constructor(
   "Subscript",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 --- Creates a Superscript inline element
@@ -540,7 +609,8 @@ M.Subscript = M.Inline:create_constructor(
 -- @treturn     Inline                  strong element
 M.Superscript = M.Inline:create_constructor(
   "Superscript",
-  function(content) return {c = content} end
+  function(content) return {c = content} end,
+  "content"
 )
 
 
