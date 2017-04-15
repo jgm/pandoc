@@ -71,8 +71,7 @@ implemented, [-] means partially implemented):
 -}
 
 module Text.Pandoc.Readers.Docx
-       ( readDocxWithWarnings
-       , readDocx
+       ( readDocx
        ) where
 
 import Codec.Archive.Zip
@@ -116,13 +115,6 @@ readDocx opts bytes
       return $ Pandoc meta blks
 readDocx _ _ =
   throwError $ PandocSomeError "couldn't parse docx file"
-
--- TODO remove this for 2.0:
-readDocxWithWarnings :: PandocMonad m
-         => ReaderOptions
-         -> B.ByteString
-         -> m Pandoc
-readDocxWithWarnings = readDocx
 
 data DState = DState { docxAnchorMap :: M.Map String String
                      , docxMediaBag  :: MediaBag
