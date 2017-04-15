@@ -463,6 +463,8 @@ uri :: Stream [Char] m Char => ParserT [Char] st m (String, String)
 uri = try $ do
   scheme <- uriScheme
   char ':'
+  -- Avoid parsing e.g. "**Notes:**" as a raw URI:
+  notFollowedBy (oneOf "*_]")
   -- We allow sentence punctuation except at the end, since
   -- we don't want the trailing '.' in 'http://google.com.' We want to allow
   -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
