@@ -166,33 +166,38 @@ end
 -- @function MetaList
 -- @tparam {MetaValue,...} meta_values list of meta values
 
---- Meta boolean
--- @function MetaBool
--- @tparam boolean bool boolean value
-
 --- Meta map
 -- @function MetaMap
 -- @tparam table a string-index map of meta values
-
---- Meta string
--- @function MetaString
--- @tparam string str string value
 M.meta_value_types = {
   "MetaBlocks",
-  "MetaBool",
   "MetaInlines",
   "MetaList",
   "MetaMap",
-  "MetaString"
 }
 for i = 1, #M.meta_value_types do
   M[M.meta_value_types[i]] = M.MetaValue:create_constructor(
     M.meta_value_types[i],
     function(content)
-      return {c = content}
-    end,
-    "content"
+      return content
+    end
   )
+end
+
+--- Creates string to be used in meta data.
+-- Does nothing, lua strings are meta strings.
+-- @function MetaString
+-- @tparam string str string value
+function M.MetaString(str)
+  return str
+end
+
+--- Creates boolean to be used in meta data.
+-- Does nothing, lua booleans are meta booleans.
+-- @function MetaBool
+-- @tparam boolean bool boolean value
+function M.MetaBool(bool)
+  return bool
 end
 
 ------------------------------------------------------------------------

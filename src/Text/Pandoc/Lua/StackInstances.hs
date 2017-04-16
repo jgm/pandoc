@@ -140,7 +140,7 @@ peekMetaValue :: LuaState -> Int -> IO (Maybe MetaValue)
 peekMetaValue lua idx = do
   -- Get the contents of an AST element.
   let elementContent :: StackValue a => IO (Maybe a)
-      elementContent = getTable lua idx "c"
+      elementContent = peek lua idx
   luatype <- ltype lua idx
   case luatype of
     TBOOLEAN -> fmap MetaBool <$> peek lua idx
