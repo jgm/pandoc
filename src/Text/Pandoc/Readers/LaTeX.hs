@@ -962,6 +962,17 @@ rawangle = try $ do
 skipangles :: PandocMonad m => LP m ()
 skipangles = skipMany rawangle
 
+-- opts in angle brackets are used in beamer
+rawbraces :: PandocMonad m => LP m ()
+rawbraces = try $ do
+  char '{'
+  skipMany (noneOf "}")
+  char '}'
+  return ()
+
+skipbraces :: PandocMonad m => LP m ()
+skipbraces = skipMany rawbraces
+
 inlineText :: PandocMonad m => LP m Inlines
 inlineText = str <$> many1 inlineChar
 
@@ -1117,8 +1128,8 @@ environments = M.fromList
   , ("letter", env "letter" letterContents)
   , ("minipage", env "minipage" $
          skipopts *> spaces' *> optional braced *> spaces' *> blocks)
-  , ("figure", env "figure" $
-         resetCaption *> skipopts *> blocks >>= addImageCaption)
+  , ("figure", figureenv "figure")
+  , ("subfigure", figureenv "subfigure")
   , ("center", env "center" blocks)
   , ("longtable",  env "longtable" $
          resetCaption *> simpTable False >>= addTableCaption)
@@ -1218,6 +1229,10 @@ env :: PandocMonad m => String -> LP m a -> LP m a
 env name p = p <*
   (try (controlSeq "end" *> braced >>= guard . (== name))
     <?> ("\\end{" ++ name ++ "}"))
+
+figureenv :: PandocMonad m => String -> LP m Blocks
+figureenv name = env name $
+  resetCaption *> skipopts *> skipbraces *> blocks >>= addImageCaption
 
 listenv :: PandocMonad m => String -> LP m a -> LP m a
 listenv name p = try $ do
