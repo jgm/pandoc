@@ -869,7 +869,7 @@ latexEnd envName = try $
 --
 noteBlock :: PandocMonad m => OrgParser m (F Blocks)
 noteBlock = try $ do
-  ref <- noteMarker <* skipSpaces
+  ref <- noteMarker <* skipSpaces <* updateLastPreCharPos
   content <- mconcat <$> blocksTillHeaderOrNote
   addToNotesTable (ref, content)
   return mempty

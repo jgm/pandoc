@@ -1028,6 +1028,16 @@ tests =
                 , note $ para ("Second" <> space <> "note.")
                 ])
 
+      , "Footnote that starts with emphasized text" =:
+          unlines [ "text[fn:1]"
+                  , ""
+                  , "[fn:1] /emphasized/"
+                  ] =?>
+          para (mconcat
+               [ "text"
+               , note . para $ emph "emphasized"
+               ])
+
       , "Footnote followed by header" =:
           unlines [ "Another note[fn:yay]"
                   , ""
