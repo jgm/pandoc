@@ -108,15 +108,15 @@ imageType img = case B.take 4 img of
                      "%PDF"             -> return Pdf
                      "<svg"             -> return Svg
                      "<?xm"
-                       | "<svg " == (B.take 5 $ last $ B.groupBy openingTag $ B.drop 7 img)
+                       | findSvgTag img
                                         -> return Svg
                      "%!PS"
                        | (B.take 4 $ B.drop 1 $ B.dropWhile (/=' ') img) == "EPSF"
                                         -> return Eps
                      _                  -> mzero
-  where
-    -- B.groupBy openingTag matches first "<svg" or "<html" but not "<!--"
-    openingTag x y = x == '<' && y /= '!'
+
+findSvgTag :: ByteString -> Bool
+findSvgTag img = B.null $ snd (B.breakSubstring img "<svg")
 
 imageSize :: WriterOptions -> ByteString -> Either String ImageSize
 imageSize opts img =
