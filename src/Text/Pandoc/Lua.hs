@@ -75,7 +75,8 @@ runAll (x:xs) = walkMWithLuaFilter x >=> runAll xs
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> IO Pandoc
 walkMWithLuaFilter (LuaFilter lua fnMap) =
   walkM (execInlineLuaFilter lua fnMap) >=>
-  walkM (execBlockLuaFilter  lua fnMap)  >=>
+  walkM (execBlockLuaFilter  lua fnMap) >=>
+  walkM (execMetaLuaFilter   lua fnMap) >=>
   walkM (execDocLuaFilter    lua fnMap)
 
 type FunctionMap = Map String LuaFilterFunction
@@ -91,6 +92,17 @@ execDocLuaFilter lua fnMap x = do
   case Map.lookup docFnName fnMap of
     Nothing -> return x
     Just fn -> runLuaFilterFunction lua fn x
+
+execMetaLuaFilter :: LuaState
+                  -> FunctionMap
+                  -> Pandoc -> IO Pandoc
+execMetaLuaFilter lua fnMap pd@(Pandoc meta blks) = do
+  let metaFnName = "Meta"
+  case Map.lookup metaFnName fnMap of
+    Nothing -> return pd
+    Just fn -> do
+      meta' <- runLuaFilterFunction lua fn meta
+      return $ Pandoc meta' blks
 
 execBlockLuaFilter :: LuaState
                    -> FunctionMap
