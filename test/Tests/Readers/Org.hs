@@ -1028,6 +1028,16 @@ tests =
                 , note $ para ("Second" <> space <> "note.")
                 ])
 
+      , "Emphasized text before footnote" =:
+          unlines [ "/text/[fn:1]"
+                  , ""
+                  , "[fn:1] unicorn"
+                  ] =?>
+          para (mconcat
+               [ emph "text"
+               , note . para $ "unicorn"
+               ])
+
       , "Footnote that starts with emphasized text" =:
           unlines [ "text[fn:1]"
                   , ""

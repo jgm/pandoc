@@ -731,7 +731,7 @@ emphasisPreChars = "\t \"'({"
 
 -- | Chars allowed at after emphasis
 emphasisPostChars :: [Char]
-emphasisPostChars = "\t\n !\"'),-.:;?\\}"
+emphasisPostChars = "\t\n !\"'),-.:;?\\}["
 
 -- | Chars not allowed at the (inner) border of emphasis
 emphasisForbiddenBorderChars :: [Char]
