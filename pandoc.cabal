@@ -364,6 +364,7 @@ Library
                    Text.Pandoc.Shared,
                    Text.Pandoc.MediaBag,
                    Text.Pandoc.Error,
+                   Text.Pandoc.Readers,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,
