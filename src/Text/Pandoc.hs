@@ -70,30 +70,10 @@ module Text.Pandoc
                , setVerbosity
                -- * Error handling
                , module Text.Pandoc.Error
-               -- * Lists of readers and writers
-               , readers
-               -- , writers
+               -- * Lists of writers
                , writers
                -- * Readers: converting /to/ Pandoc format
-               , Reader (..)
-               , readDocx
-               , readOdt
-               , readMarkdown
-               , readCommonMark
-               , readMediaWiki
-               , readRST
-               , readOrg
-               , readLaTeX
-               , readHtml
-               , readTextile
-               , readDocBook
-               , readOPML
-               , readHaddock
-               , readNative
-               , readJSON
-               , readTWiki
-               , readTxt2Tags
-               , readEPUB
+               , module Text.Pandoc.Readers
                -- * Writers: converting /from/ Pandoc format
                , Writer(..)
                , writeNative
@@ -142,12 +122,10 @@ module Text.Pandoc
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates
                -- * Miscellaneous
-               , getReader
                , getWriter
                , pandocVersion
              ) where
 
-import Control.Monad.Except (throwError)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
@@ -157,24 +135,8 @@ import Text.Pandoc.Error
 import Text.Pandoc.Generic
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Readers.CommonMark
-import Text.Pandoc.Readers.DocBook
-import Text.Pandoc.Readers.Docx
-import Text.Pandoc.Readers.EPUB
-import Text.Pandoc.Readers.Haddock
-import Text.Pandoc.Readers.HTML
-import Text.Pandoc.Readers.LaTeX
-import Text.Pandoc.Readers.Markdown
-import Text.Pandoc.Readers.MediaWiki
-import Text.Pandoc.Readers.Native
-import Text.Pandoc.Readers.Odt
-import Text.Pandoc.Readers.OPML
-import Text.Pandoc.Readers.Org
-import Text.Pandoc.Readers.RST
-import Text.Pandoc.Readers.Textile
-import Text.Pandoc.Readers.TWiki
-import Text.Pandoc.Readers.Txt2Tags
-import Text.Pandoc.Shared (mapLeft, pandocVersion)
+import Text.Pandoc.Readers
+import Text.Pandoc.Shared (pandocVersion)
 import Text.Pandoc.Templates
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.AsciiDoc
@@ -208,38 +170,6 @@ import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.ZimWiki
 import Text.Parsec.Error
-
-data Reader m = StringReader (ReaderOptions -> String -> m Pandoc)
-              | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)
-
--- | Association list of formats and readers.
-readers :: PandocMonad m => [(String, Reader m)]
-readers = [ ("native"       , StringReader readNative)
-           ,("json"         , StringReader $ \o s ->
-                                               case readJSON o s of
-                                                 Right doc -> return doc
-                                                 Left _ -> throwError $ PandocParseError "JSON parse error")
-           ,("markdown"     , StringReader readMarkdown)
-           ,("markdown_strict" , StringReader readMarkdown)
-           ,("markdown_phpextra" , StringReader readMarkdown)
-           ,("markdown_github" , StringReader readMarkdown)
-           ,("markdown_mmd",  StringReader readMarkdown)
-           ,("commonmark"   , StringReader readCommonMark)
-           ,("rst"          , StringReader readRST)
-           ,("mediawiki"    , StringReader readMediaWiki)
-           ,("docbook"      , StringReader readDocBook)
-           ,("opml"         , StringReader readOPML)
-           ,("org"          , StringReader readOrg)
-           ,("textile"      , StringReader readTextile) -- TODO : textile+lhs
-           ,("html"         , StringReader readHtml)
-           ,("latex"        , StringReader readLaTeX)
-           ,("haddock"      , StringReader readHaddock)
-           ,("twiki"        , StringReader readTWiki)
-           ,("docx"         , ByteStringReader readDocx)
-           ,("odt"          , ByteStringReader readOdt)
-           ,("t2t"          , StringReader readTxt2Tags)
-           ,("epub"         , ByteStringReader readEPUB)
-           ]
 
 data Writer m = StringWriter (WriterOptions -> Pandoc -> m String)
               | ByteStringWriter (WriterOptions -> Pandoc -> m BL.ByteString)
@@ -296,21 +226,6 @@ writers = [
   ,("muse"         , StringWriter writeMuse)
   ]
 
--- | Retrieve reader based on formatSpec (format+extensions).
-getReader :: PandocMonad m => String -> Either String (Reader m)
-getReader s =
-  case parseFormatSpec s of
-       Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
-       Right (readerName, setExts) ->
-           case lookup readerName readers of
-                   Nothing  -> Left $ "Unknown reader: " ++ readerName
-                   Just  (StringReader r)  -> Right $ StringReader $ \o ->
-                                  r o{ readerExtensions = setExts $
-                                            getDefaultExtensions readerName }
-                   Just (ByteStringReader r) -> Right $ ByteStringReader $ \o ->
-                                  r o{ readerExtensions = setExts $
-                                            getDefaultExtensions readerName }
-
 getWriter :: PandocMonad m => String -> Either String (Writer m)
 getWriter s
   = case parseFormatSpec s of
@@ -324,9 +239,6 @@ getWriter s
                      Just (ByteStringWriter r) -> Right $ ByteStringWriter $
                              \o -> r o{ writerExtensions = setExts $
                                               getDefaultExtensions writerName }
-
-readJSON :: ReaderOptions -> String -> Either PandocError Pandoc
-readJSON _ = mapLeft PandocParseError . eitherDecode' . UTF8.fromStringLazy
 
 writeJSON :: WriterOptions -> Pandoc -> String
 writeJSON _ = UTF8.toStringLazy . encode
