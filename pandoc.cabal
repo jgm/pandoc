@@ -382,6 +382,7 @@ Library
                    Text.Pandoc.Readers.Docx,
                    Text.Pandoc.Readers.Odt,
                    Text.Pandoc.Readers.EPUB,
+                   Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
                    Text.Pandoc.Writers.JATS,
