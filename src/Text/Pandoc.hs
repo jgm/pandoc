@@ -144,7 +144,6 @@ module Text.Pandoc
                -- * Miscellaneous
                , getReader
                , getWriter
-               , getDefaultExtensions
                , pandocVersion
              ) where
 
@@ -175,7 +174,7 @@ import Text.Pandoc.Readers.RST
 import Text.Pandoc.Readers.Textile
 import Text.Pandoc.Readers.TWiki
 import Text.Pandoc.Readers.Txt2Tags
-import Text.Pandoc.Shared (mapLeft, pandocVersion, safeRead)
+import Text.Pandoc.Shared (mapLeft, pandocVersion)
 import Text.Pandoc.Templates
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.AsciiDoc
@@ -208,28 +207,7 @@ import Text.Pandoc.Writers.TEI
 import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.ZimWiki
-import Text.Parsec
 import Text.Parsec.Error
-
-parseFormatSpec :: String
-                -> Either ParseError (String, Extensions -> Extensions)
-parseFormatSpec = parse formatSpec ""
-  where formatSpec = do
-          name <- formatName
-          extMods <- many extMod
-          return (name, \x -> foldl (flip ($)) x extMods)
-        formatName = many1 $ noneOf "-+"
-        extMod = do
-          polarity <- oneOf "-+"
-          name <- many $ noneOf "-+"
-          ext <- case safeRead ("Ext_" ++ name) of
-                       Just n  -> return n
-                       Nothing
-                         | name == "lhs" -> return Ext_literate_haskell
-                         | otherwise -> fail $ "Unknown extension: " ++ name
-          return $ case polarity of
-                        '-' -> disableExtension ext
-                        _   -> enableExtension ext
 
 data Reader m = StringReader (ReaderOptions -> String -> m Pandoc)
               | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)
@@ -317,43 +295,6 @@ writers = [
   ,("tei"          , StringWriter writeTEI)
   ,("muse"         , StringWriter writeMuse)
   ]
-
-getDefaultExtensions :: String -> Extensions
-getDefaultExtensions "markdown_strict" = strictExtensions
-getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
-getDefaultExtensions "markdown_mmd" = multimarkdownExtensions
-getDefaultExtensions "markdown_github" = githubMarkdownExtensions
-getDefaultExtensions "markdown"        = pandocExtensions
-getDefaultExtensions "plain"           = plainExtensions
-getDefaultExtensions "org"             = extensionsFromList
-                                          [Ext_citations,
-                                           Ext_auto_identifiers]
-getDefaultExtensions "html"            = extensionsFromList
-                                          [Ext_auto_identifiers,
-                                           Ext_native_divs,
-                                           Ext_native_spans]
-getDefaultExtensions "html4"           = getDefaultExtensions "html"
-getDefaultExtensions "html5"           = getDefaultExtensions "html"
-getDefaultExtensions "epub"            = extensionsFromList
-                                          [Ext_raw_html,
-                                           Ext_native_divs,
-                                           Ext_native_spans,
-                                           Ext_epub_html_exts]
-getDefaultExtensions "epub2"           = getDefaultExtensions "epub"
-getDefaultExtensions "epub3"           = getDefaultExtensions "epub"
-getDefaultExtensions "latex"           = extensionsFromList
-                                          [Ext_smart,
-                                           Ext_auto_identifiers]
-getDefaultExtensions "context"         = extensionsFromList
-                                          [Ext_smart,
-                                           Ext_auto_identifiers]
-getDefaultExtensions "textile"         = extensionsFromList
-                                          [Ext_old_dashes,
-                                           Ext_smart,
-                                           Ext_raw_html,
-                                           Ext_auto_identifiers]
-getDefaultExtensions _                 = extensionsFromList
-                                          [Ext_auto_identifiers]
 
 -- | Retrieve reader based on formatSpec (format+extensions).
 getReader :: PandocMonad m => String -> Either String (Reader m)
