@@ -796,6 +796,20 @@ M.UpperAlpha = "UpperAlpha"
 -- Helper Functions
 -- @section helpers
 
+--- Parse the given string into a Pandoc document.
+-- @tparam string markup the markup to be parsed
+-- @tparam[opt] string format format specification, defaults to "markdown".
+-- @return Doc pandoc document
+function M.read(markup, format)
+  format = format or "markdown"
+  local pd = pandoc.__read(format, markup)
+  if type(pd) == "string" then
+    error(pd)
+  else
+    return pd
+  end
+end
+
 --- Use functions defined in the global namespace to create a pandoc filter.
 -- All globally defined functions which have names of pandoc elements are
 -- collected into a new table.

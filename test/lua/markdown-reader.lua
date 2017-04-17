@@ -2,7 +2,8 @@ return {
   {
     RawBlock = function (elem)
       if elem.format == "markdown" then
-        return pandoc.reader.markdown.read_block(elem.text)
+        local pd = pandoc.read(elem.text, "markdown")
+        return pd.blocks[1]
       else
         return elem
       end

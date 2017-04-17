@@ -104,3 +104,13 @@ instance (Ord a, StackValue a, StackValue b) =>
     mapM_ (uncurry $ addValue lua) $ M.toList m
   peek lua idx = fmap M.fromList <$> keyValuePairs lua idx
   valuetype _ = TTABLE
+
+instance (StackValue a, StackValue b) => StackValue (Either a b) where
+  push lua = \case
+    Left x -> push lua x
+    Right x -> push lua x
+  peek lua idx = peek lua idx >>= \case
+      Just left -> return . Just $ Left left
+      Nothing   -> fmap Right <$> peek lua idx
+  valuetype (Left x) = valuetype x
+  valuetype (Right x) = valuetype x
