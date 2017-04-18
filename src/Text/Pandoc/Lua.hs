@@ -73,21 +73,18 @@ runAll [] = return
 runAll (x:xs) = walkMWithLuaFilter x >=> runAll xs
 
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> IO Pandoc
-walkMWithLuaFilter (LuaFilter lua inlineFnMap blockFnMap docFnMap) =
-  walkM (execInlineLuaFilter lua inlineFnMap) >=>
-  walkM (execBlockLuaFilter  lua blockFnMap)  >=>
-  walkM (execDocLuaFilter    lua docFnMap)
+walkMWithLuaFilter (LuaFilter lua fnMap) =
+  walkM (execInlineLuaFilter lua fnMap) >=>
+  walkM (execBlockLuaFilter  lua fnMap)  >=>
+  walkM (execDocLuaFilter    lua fnMap)
 
-type InlineFunctionMap = Map String (LuaFilterFunction Inline)
-type BlockFunctionMap  = Map String (LuaFilterFunction Block)
-type DocFunctionMap    = Map String (LuaFilterFunction Pandoc)
-data LuaFilter =
-  LuaFilter LuaState InlineFunctionMap BlockFunctionMap DocFunctionMap
+type FunctionMap = Map String LuaFilterFunction
+data LuaFilter = LuaFilter LuaState FunctionMap
 
-newtype LuaFilterFunction a = LuaFilterFunction { functionIndex :: Int }
+newtype LuaFilterFunction = LuaFilterFunction { functionIndex :: Int }
 
 execDocLuaFilter :: LuaState
-                 -> Map String (LuaFilterFunction Pandoc)
+                 -> FunctionMap
                  -> Pandoc -> IO Pandoc
 execDocLuaFilter lua fnMap x = do
   let docFnName = "Doc"
@@ -96,7 +93,7 @@ execDocLuaFilter lua fnMap x = do
     Just fn -> runLuaFilterFunction lua fn x
 
 execBlockLuaFilter :: LuaState
-                   -> Map String (LuaFilterFunction Block)
+                   -> FunctionMap
                    -> Block -> IO Block
 execBlockLuaFilter lua fnMap x = do
   let tryFilter :: String -> IO Block
@@ -121,7 +118,7 @@ execBlockLuaFilter lua fnMap x = do
     Table _ _ _ _ _  -> tryFilter "Table"
 
 execInlineLuaFilter :: LuaState
-                    -> Map String (LuaFilterFunction Inline)
+                    -> FunctionMap
                     -> Inline -> IO Inline
 execInlineLuaFilter lua fnMap x = do
   let tryFilter :: String -> IO Inline
@@ -161,19 +158,14 @@ execInlineLuaFilter lua fnMap x = do
 instance StackValue LuaFilter where
   valuetype _ = Lua.TTABLE
   push = undefined
-  peek lua i = do
-    -- TODO: find a more efficient way of doing this in a typesafe manner.
-    inlineFnMap <- Lua.peek lua i
-    blockFnMap  <- Lua.peek lua i
-    docFnMap    <- Lua.peek lua i
-    return $ LuaFilter lua <$> inlineFnMap <*> blockFnMap <*> docFnMap
+  peek lua idx = fmap (LuaFilter lua) <$> Lua.peek lua idx
 
 -- | Helper class for pushing a single value to the stack via a lua function.
 -- See @pushViaCall@.
-class PushViaFilterFunction a b where
-  pushViaFilterFunction' :: LuaState -> LuaFilterFunction a -> IO () -> Int -> b
+class PushViaFilterFunction a where
+  pushViaFilterFunction' :: LuaState -> LuaFilterFunction -> IO () -> Int -> a
 
-instance (StackValue a) => PushViaFilterFunction a (IO a) where
+instance StackValue a => PushViaFilterFunction (IO a) where
   pushViaFilterFunction' lua lf pushArgs num = do
     pushFilterFunction lua lf
     pushArgs
@@ -184,20 +176,20 @@ instance (StackValue a) => PushViaFilterFunction a (IO a) where
                  ++ "value from lua stack."
       Just res -> res <$ Lua.pop lua 1
 
-instance (PushViaFilterFunction a c, StackValue b) =>
-         PushViaFilterFunction a (b -> c) where
+instance (StackValue a, PushViaFilterFunction b) =>
+         PushViaFilterFunction (a -> b) where
   pushViaFilterFunction' lua lf pushArgs num x =
     pushViaFilterFunction' lua lf (pushArgs *> push lua x) (num + 1)
 
 -- | Push an value to the stack via a lua filter function. The function is
 -- called with all arguments that are passed to this function and is expected to
 -- return a single value.
-runLuaFilterFunction :: (StackValue a, PushViaFilterFunction a b)
-                     => LuaState -> LuaFilterFunction a -> b
+runLuaFilterFunction :: PushViaFilterFunction a
+                     => LuaState -> LuaFilterFunction -> a
 runLuaFilterFunction lua lf = pushViaFilterFunction' lua lf (return ()) 0
 
 -- | Push the filter function to the top of the stack.
-pushFilterFunction :: Lua.LuaState -> LuaFilterFunction a -> IO ()
+pushFilterFunction :: Lua.LuaState -> LuaFilterFunction -> IO ()
 pushFilterFunction lua lf = do
   -- The function is stored in a lua registry table, retrieve it from there.
   push lua ("PANDOC_FILTER_FUNCTIONS"::String)
@@ -205,7 +197,7 @@ pushFilterFunction lua lf = do
   Lua.rawgeti lua (-1) (functionIndex lf)
   Lua.remove lua (-2) -- remove registry table from stack
 
-instance StackValue (LuaFilterFunction a) where
+instance StackValue LuaFilterFunction where
   valuetype _ = Lua.TFUNCTION
   push lua v = pushFilterFunction lua v
   peek lua i = do
