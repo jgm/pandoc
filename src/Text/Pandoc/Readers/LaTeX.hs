@@ -677,6 +677,13 @@ inlineCommands = M.fromList $
   , ("acrshort", doAcronym)
   , ("glspl", doAcronymPlural)
   , ("Glspl", doAcronymPlural)
+  -- acronyms package
+  , ("ac", doAcronym)
+  , ("acf", doAcronym)
+  , ("acs", doAcronym)
+  , ("acp", doAcronymPlural)
+  , ("acfp", doAcronymPlural)
+  , ("acsp", doAcronymPlural)
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
@@ -721,14 +728,12 @@ enquote = do
      else doubleQuoted <$> withQuoteContext InDoubleQuote tok
 
 doAcronym :: PandocMonad m => LP m Inlines
-doAcronym = do 
-  arg <- char '{'
-  str <$> manyTill anyChar (char '}')
+doAcronym = do
+  str <$> (char '{' >> manyTill anyChar (char '}'))
 
 doAcronymPlural :: PandocMonad m => LP m Inlines
-doAcronymPlural = do 
-  arg <- char '{'
-  acro <- str <$> manyTill anyChar (char '}') 
+doAcronymPlural = do
+  acro <- (char '{' >> str <$> manyTill anyChar (char '}'))
   pure $ acro <> "s"
 
 doverb :: PandocMonad m => LP m Inlines
