@@ -672,6 +672,7 @@ inlineCommands = M.fromList $
   , ("gls", doAcronym)
   , ("Gls", doAcronym)
   , ("glsdesc", doAcronym)
+  , ("Glsdesc", doAcronym)
   , ("acrlong", doAcronym)
   , ("acrfull", doAcronym)
   , ("acrshort", doAcronym)
