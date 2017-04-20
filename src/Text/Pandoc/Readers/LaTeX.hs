@@ -728,16 +728,19 @@ dolstinline = do
 doLHSverb :: PandocMonad m => LP m Inlines
 doLHSverb = codeWith ("",["haskell"],[]) <$> manyTill (satisfy (/='\n')) (char '|')
 
+-- converts e.g. \SI{1}[\$]{} to "$ 1" or \SI{1}{\euro} to "1 €"
 dosiunitx :: PandocMonad m => LP m Inlines
 dosiunitx = do
   skipopts
   value <- char '{' >> (mconcat <$> manyTill inline (char '}'))
-  preunit <- option "" $ char '[' >> (mconcat <$> manyTill inline (char ']'))
+  valueprefix <- option "" $ char '[' >> (mconcat <$> manyTill inline (char ']'))
   unit <- char '{' >> (mconcat <$> manyTill inline (char '}'))
-  return . mconcat $ [preunit, 
-                      (if length preunit == 0 then "" else "\160"),
+  let emptyOr160 "" = ""
+      emptyOr160 _  = "\160"
+  return . mconcat $ [valueprefix, 
+                      emptyOr160 valueprefix,
                       value, 
-                      (if length unit == 0 then "" else "\160"),
+                      emptyOr160 unit,
                       unit]
 
 lit :: String -> LP m Inlines
