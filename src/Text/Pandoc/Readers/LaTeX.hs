@@ -731,10 +731,14 @@ doLHSverb = codeWith ("",["haskell"],[]) <$> manyTill (satisfy (/='\n')) (char '
 dosiunitx :: PandocMonad m => LP m Inlines
 dosiunitx = do
   skipopts
-  value <- char '{' >> manyTill anyChar (char '}')
-  preunit <- (char '[' >> manyTill anyChar (char ']')) <|> (return "")
-  unit <- char '{' >> manyTill anyChar (char '}')
-  pure <$> str $ preunit ++ (if length preunit == 0 then "" else "\160") ++ value ++ (if length unit == 0 then "" else "\160") ++ unit
+  value <- char '{' >> (mconcat <$> manyTill inline (char '}'))
+  preunit <- option "" $ char '[' >> (mconcat <$> manyTill inline (char ']'))
+  unit <- char '{' >> (mconcat <$> manyTill inline (char '}'))
+  return . mconcat $ [preunit, 
+                      (if length preunit == 0 then "" else "\160"),
+                      value, 
+                      (if length unit == 0 then "" else "\160"),
+                      unit]
 
 lit :: String -> LP m Inlines
 lit = pure . str
