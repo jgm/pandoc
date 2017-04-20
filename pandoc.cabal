@@ -136,6 +136,10 @@ Extra-Source-Files:
                  test/*.native
                  test/command/*.md
                  test/command/abbrevs
+                 test/command/SVG_logo-without-xml-declaration.svg
+                 test/command/SVG_logo.svg
+                 test/command/corrupt.svg
+                 test/command/inkscape-cube.svg
                  test/command/sub-file-chapter-1.tex
                  test/command/sub-file-chapter-2.tex
                  test/command/3510-subdoc.org

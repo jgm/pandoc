@@ -116,7 +116,7 @@ imageType img = case B.take 4 img of
                      _                  -> mzero
 
 findSvgTag :: ByteString -> Bool
-findSvgTag img = B.null $ snd (B.breakSubstring img "<svg")
+findSvgTag img = "<svg" `B.isInfixOf` img || "<SVG" `B.isInfixOf` img
 
 imageSize :: WriterOptions -> ByteString -> Either String ImageSize
 imageSize opts img =
