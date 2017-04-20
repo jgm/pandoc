@@ -116,7 +116,11 @@ imageType img = case B.take 4 img of
                      _                  -> mzero
 
 findSvgTag :: ByteString -> Bool
-findSvgTag img = B.null $ snd (B.breakSubstring img "<svg")
+findSvgTag img = prfx `elem` ["<svg ", "<svg\n", "<svg\r"]
+  where
+    prfx = B.take 5 $ last $ B.groupBy openingTag $ B.drop 7 img
+    -- B.groupBy openingTag matches first "<svg" or "<html" but not "<!--"
+    openingTag x y = x == '<' && y /= '!'
 
 imageSize :: WriterOptions -> ByteString -> Either String ImageSize
 imageSize opts img =
