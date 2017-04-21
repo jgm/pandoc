@@ -730,12 +730,14 @@ enquote = do
 
 doAcronym :: PandocMonad m => LP m Inlines
 doAcronym = do
-  str <$> (char '{' >> manyTill anyChar (char '}'))
+  acro <- braced
+  return . mconcat $ [str acro]
 
 doAcronymPlural :: PandocMonad m => LP m Inlines
 doAcronymPlural = do
-  acro <- (char '{' >> str <$> manyTill anyChar (char '}'))
-  pure $ acro <> "s"
+  acro <- braced
+  plural <- lit "s"
+  return . mconcat $ [str acro, plural]
 
 doverb :: PandocMonad m => LP m Inlines
 doverb = do
