@@ -732,9 +732,9 @@ doLHSverb = codeWith ("",["haskell"],[]) <$> manyTill (satisfy (/='\n')) (char '
 dosiunitx :: PandocMonad m => LP m Inlines
 dosiunitx = do
   skipopts
-  value <- char '{' >> (mconcat <$> manyTill inline (char '}'))
-  valueprefix <- option "" $ char '[' >> (mconcat <$> manyTill inline (char ']'))
-  unit <- char '{' >> (mconcat <$> manyTill inline (char '}'))
+  value <- char '{' >> (mconcat <$> manyTill tok (char '}'))
+  valueprefix <- option "" $ char '[' >> (mconcat <$> manyTill tok (char ']'))
+  unit <- char '{' >> (mconcat <$> manyTill tok (char '}'))
   let emptyOr160 "" = ""
       emptyOr160 _  = "\160"
   return . mconcat $ [valueprefix, 
