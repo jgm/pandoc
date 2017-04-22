@@ -668,6 +668,8 @@ inlineCommands = M.fromList $
   , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
                           addMeta "nocite"))
   , ("hypertarget", braced >> tok)
+  -- siuntix
+  , ("SI", dosiunitx)
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
@@ -725,6 +727,21 @@ dolstinline = do
 
 doLHSverb :: PandocMonad m => LP m Inlines
 doLHSverb = codeWith ("",["haskell"],[]) <$> manyTill (satisfy (/='\n')) (char '|')
+
+-- converts e.g. \SI{1}[\$]{} to "$ 1" or \SI{1}{\euro} to "1 €"
+dosiunitx :: PandocMonad m => LP m Inlines
+dosiunitx = do
+  skipopts
+  value <- tok
+  valueprefix <- option "" $ char '[' >> (mconcat <$> manyTill tok (char ']'))
+  unit <- tok
+  let emptyOr160 "" = ""
+      emptyOr160 _  = "\160"
+  return . mconcat $ [valueprefix, 
+                      emptyOr160 valueprefix,
+                      value, 
+                      emptyOr160 unit,
+                      unit]
 
 lit :: String -> LP m Inlines
 lit = pure . str
