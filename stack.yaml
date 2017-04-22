@@ -9,6 +9,5 @@ packages:
 - '.'
 extra-deps:
 - hslua-0.5.0
-- skylighting-0.3.2
-- foundation-0.0.6
-resolver: lts-8.8
+- skylighting-0.3.3
+resolver: lts-8.11
