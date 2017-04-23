@@ -260,8 +260,12 @@ pBulletList = try $ do
 pListItem :: PandocMonad m => TagParser m a -> TagParser m Blocks
 pListItem nonItem = do
   TagOpen _ attr <- lookAhead $ pSatisfy (~== TagOpen "li" [])
-  let liDiv = maybe mempty (\x -> B.divWith (x, [], []) mempty) (lookup "id" attr)
-  (liDiv <>) <$> pInTags "li" block <* skipMany nonItem
+  let addId ident bs = case B.toList bs of
+                           (Plain ils:xs) -> B.fromList (Plain
+                                [Span (ident, [], []) ils] : xs)
+                           _ -> B.divWith (ident, [], []) bs
+  (maybe id addId (lookup "id" attr)) <$>
+    pInTags "li" block <* skipMany nonItem
 
 parseListStyleType :: String -> ListNumberStyle
 parseListStyleType "lower-roman" = LowerRoman
