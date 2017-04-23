@@ -37,8 +37,7 @@ import Text.Pandoc.Readers.Org.BlockStarts (endOfBlock, noteMarker)
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
-                                       rundocBlockClass, toRundocAttrib,
-                                       translateLang)
+                                       originalLang, translateLang)
 
 import Text.Pandoc.Builder (Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -518,8 +517,8 @@ inlineCodeBlock = try $ do
   lang <- many1 orgArgWordChar
   opts <- option [] $ enclosedByPair '[' ']' inlineBlockOption
   inlineCode <- enclosedByPair '{' '}' (noneOf "\n\r")
-  let attrClasses = [translateLang lang, rundocBlockClass]
-  let attrKeyVal  = map toRundocAttrib (("language", lang) : opts)
+  let attrClasses = [translateLang lang]
+  let attrKeyVal  = originalLang lang <> opts
   returnF $ B.codeWith ("", attrClasses, attrKeyVal) inlineCode
  where
    inlineBlockOption :: PandocMonad m => OrgParser m (String, String)

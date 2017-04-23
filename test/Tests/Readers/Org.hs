@@ -275,17 +275,17 @@ tests =
       , "Inline code block" =:
           "src_emacs-lisp{(message \"Hello\")}" =?>
           (para $ codeWith ( ""
-                           , [ "commonlisp", "rundoc-block" ]
-                           , [ ("rundoc-language", "emacs-lisp") ])
+                           , [ "commonlisp" ]
+                           , [ ("data-org-language", "emacs-lisp") ])
                            "(message \"Hello\")")
 
       , "Inline code block with arguments" =:
           "src_sh[:export both :results output]{echo 'Hello, World'}" =?>
           (para $ codeWith ( ""
-                           , [ "bash", "rundoc-block" ]
-                           , [ ("rundoc-language", "sh")
-                             , ("rundoc-export", "both")
-                             , ("rundoc-results", "output")
+                           , [ "bash" ]
+                           , [ ("data-org-language", "sh")
+                             , ("export", "both")
+                             , ("results", "output")
                              ]
                            )
                            "echo 'Hello, World'")
@@ -293,9 +293,9 @@ tests =
       , "Inline code block with toggle" =:
           "src_sh[:toggle]{echo $HOME}" =?>
           (para $ codeWith ( ""
-                           , [ "bash", "rundoc-block" ]
-                           , [ ("rundoc-language", "sh")
-                             , ("rundoc-toggle", "yes")
+                           , [ "bash" ]
+                           , [ ("data-org-language", "sh")
+                             , ("toggle", "yes")
                              ]
                            )
                            "echo $HOME")
@@ -1472,16 +1472,14 @@ tests =
            in mconcat [ para $ spcSep [ "Low", "German", "greeting"  ]
                       , codeBlockWith attr' code'
                       ]
-      , "Source block with rundoc/babel arguments" =:
+      , "Source block with babel arguments" =:
            unlines [ "#+BEGIN_SRC emacs-lisp :exports both"
                    , "(progn (message \"Hello, World!\")"
                    , "       (+ 23 42))"
                    , "#+END_SRC" ] =?>
-           let classes = [ "commonlisp"  -- as kate doesn't know emacs-lisp syntax
-                         , "rundoc-block"
-                         ]
-               params = [ ("rundoc-language", "emacs-lisp")
-                        , ("rundoc-exports", "both")
+           let classes = [ "commonlisp" ] -- as kate doesn't know emacs-lisp syntax
+               params = [ ("data-org-language", "emacs-lisp")
+                        , ("exports", "both")
                         ]
                code' = unlines [ "(progn (message \"Hello, World!\")"
                                , "       (+ 23 42))" ]
@@ -1495,11 +1493,9 @@ tests =
                    , ""
                    , "#+RESULTS:"
                    , ": 65"] =?>
-           let classes = [ "commonlisp"  -- as kate doesn't know emacs-lisp syntax
-                         , "rundoc-block"
-                         ]
-               params = [ ("rundoc-language", "emacs-lisp")
-                        , ("rundoc-exports", "both")
+           let classes = [ "commonlisp" ]
+               params = [ ("data-org-language", "emacs-lisp")
+                        , ("exports", "both")
                         ]
                code' = unlines [ "(progn (message \"Hello, World!\")"
                                , "       (+ 23 42))" ]
@@ -1516,11 +1512,9 @@ tests =
                    , ""
                    , "#+RESULTS:"
                    , ": 65" ] =?>
-           let classes = [ "commonlisp"  -- as kate doesn't know emacs-lisp syntax
-                         , "rundoc-block"
-                         ]
-               params = [ ("rundoc-language", "emacs-lisp")
-                        , ("rundoc-exports", "code")
+           let classes = [ "commonlisp" ]
+               params = [ ("data-org-language", "emacs-lisp")
+                        , ("exports", "code")
                         ]
                code' = unlines [ "(progn (message \"Hello, World!\")"
                                , "       (+ 23 42))" ]
@@ -1552,8 +1546,8 @@ tests =
                 , "echo $HOME"
                 , "#+END_SRC"
                 ] =?>
-        let classes = [ "bash", "rundoc-block" ]
-            params = [ ("rundoc-language", "sh"), ("rundoc-noeval", "yes") ]
+        let classes = [ "bash" ]
+            params = [ ("data-org-language", "sh"), ("noeval", "yes") ]
         in codeBlockWith ("", classes, params) "echo $HOME\n"
 
       , "Source block with line number switch" =:
@@ -1562,7 +1556,7 @@ tests =
                 , "#+END_SRC"
                 ] =?>
         let classes = [ "bash", "numberLines" ]
-            params = [ ("startFrom", "10") ]
+            params = [ ("data-org-language", "sh"), ("startFrom", "10") ]
         in codeBlockWith ("", classes, params) ":() { :|:& };:\n"
 
       , "Example block" =:
@@ -1712,12 +1706,11 @@ tests =
                   , "code body"
                   , "#+END_SRC"
                   ] =?>
-          let classes = [ "c", "rundoc-block" ]
-              params  = [ ("rundoc-language", "C")
-                        , ("rundoc-tangle", "xxxx.c")
-                        , ("rundoc-city", "Zürich")
+          let params  = [ ("data-org-language", "C")
+                        , ("tangle", "xxxx.c")
+                        , ("city", "Zürich")
                         ]
-          in codeBlockWith ( "", classes, params) "code body\n"
+          in codeBlockWith ( "", ["c"], params) "code body\n"
       ]
 
     , testGroup "Smart punctuation"

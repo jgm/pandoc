@@ -39,8 +39,7 @@ import Text.Pandoc.Readers.Org.Meta (metaExport, metaKey, metaLine)
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
-                                       rundocBlockClass, toRundocAttrib,
-                                       translateLang)
+                                       originalLang, translateLang)
 
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -493,16 +492,14 @@ codeBlock blockAttrs blockType = do
   content           <- rawBlockContent blockType
   resultsContent    <- trailingResultsBlock
   let id'            = fromMaybe mempty $ blockAttrName blockAttrs
-  let includeCode    = exportsCode kv
-  let includeResults = exportsResults kv
   let codeBlck       = B.codeBlockWith ( id', classes, kv ) content
   let labelledBlck   = maybe (pure codeBlck)
                              (labelDiv codeBlck)
                              (blockAttrCaption blockAttrs)
   let resultBlck     = fromMaybe mempty resultsContent
   return $
-    (if includeCode    then labelledBlck else mempty) <>
-    (if includeResults then resultBlck   else mempty)
+    (if exportsCode kv    then labelledBlck else mempty) <>
+    (if exportsResults kv then resultBlck   else mempty)
  where
    labelDiv :: Blocks -> F Inlines -> F Blocks
    labelDiv blk value =
@@ -511,13 +508,11 @@ codeBlock blockAttrs blockType = do
    labelledBlock :: F Inlines -> F Blocks
    labelledBlock = fmap (B.plain . B.spanWith ("", ["label"], []))
 
-exportsCode :: [(String, String)] -> Bool
-exportsCode attrs = not (("rundoc-exports", "none") `elem` attrs
-                         || ("rundoc-exports", "results") `elem` attrs)
+   exportsCode :: [(String, String)] -> Bool
+   exportsCode = maybe True (`elem` ["code", "both"]) . lookup "exports"
 
-exportsResults :: [(String, String)] -> Bool
-exportsResults attrs = ("rundoc-exports", "results") `elem` attrs
-                       || ("rundoc-exports", "both") `elem` attrs
+   exportsResults :: [(String, String)] -> Bool
+   exportsResults = maybe False (`elem` ["results", "both"]) . lookup "exports"
 
 trailingResultsBlock :: PandocMonad m => OrgParser m (Maybe (F Blocks))
 trailingResultsBlock = optionMaybe . try $ do
@@ -532,16 +527,9 @@ codeHeaderArgs = try $ do
   language   <- skipSpaces *> orgArgWord
   (switchClasses, switchKv) <- switchesAsAttributes
   parameters <- manyTill blockOption newline
-  let pandocLang = translateLang language
-  let classes = pandocLang : switchClasses
-  return $
-    if hasRundocParameters parameters
-    then ( classes <> [ rundocBlockClass ]
-         , switchKv <> map toRundocAttrib (("language", language) : parameters)
-         )
-    else (classes, switchKv <> parameters)
- where
-   hasRundocParameters = not . null
+  return $ ( translateLang language : switchClasses
+           , originalLang language <> switchKv <> parameters
+           )
 
 switchesAsAttributes :: Monad m => OrgParser m ([String], [(String, String)])
 switchesAsAttributes = try $ do
