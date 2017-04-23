@@ -589,9 +589,12 @@ blockOption = try $ do
 orgParamValue :: Monad m => OrgParser m String
 orgParamValue = try $
   skipSpaces
-    *> notFollowedBy (char ':' )
-    *> many1 nonspaceChar
+    *> notFollowedBy orgArgKey
+    *> noneOf "\n\r" `many1Till` endOfValue
     <* skipSpaces
+ where
+  endOfValue = lookAhead $  (try $ skipSpaces <* oneOf "\n\r")
+                        <|> (try $ skipSpaces1 <* orgArgKey)
 
 
 --

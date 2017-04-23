@@ -1559,6 +1559,15 @@ tests =
             params = [ ("data-org-language", "sh"), ("startFrom", "10") ]
         in codeBlockWith ("", classes, params) ":() { :|:& };:\n"
 
+      , "Source block with multi-word parameter values" =:
+        unlines [ "#+BEGIN_SRC dot :cmdline -Kdot -Tpng "
+                , "digraph { id [label=\"ID\"] }"
+                , "#+END_SRC"
+                ] =?>
+        let classes = [ "dot" ]
+            params = [ ("cmdline", "-Kdot -Tpng") ]
+        in codeBlockWith ("", classes, params) "digraph { id [label=\"ID\"] }\n"
+
       , "Example block" =:
            unlines [ "#+begin_example"
                    , "A chosen representation of"
