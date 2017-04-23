@@ -1556,6 +1556,15 @@ tests =
             params = [ ("rundoc-language", "sh"), ("rundoc-noeval", "yes") ]
         in codeBlockWith ("", classes, params) "echo $HOME\n"
 
+      , "Source block with line number switch" =:
+        unlines [ "#+BEGIN_SRC sh -n 10"
+                , ":() { :|:& };:"
+                , "#+END_SRC"
+                ] =?>
+        let classes = [ "bash", "numberLines" ]
+            params = [ ("startFrom", "10") ]
+        in codeBlockWith ("", classes, params) ":() { :|:& };:\n"
+
       , "Example block" =:
            unlines [ "#+begin_example"
                    , "A chosen representation of"

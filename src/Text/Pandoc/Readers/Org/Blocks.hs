@@ -284,6 +284,11 @@ block = choice [ mempty <$ blanklines
                ] <?> "block"
 
 
+-- | Parse a horizontal rule into a block element
+horizontalRule :: Monad m => OrgParser m (F Blocks)
+horizontalRule = return B.horizontalRule <$ try hline
+
+
 --
 -- Block Attributes
 --
@@ -522,28 +527,70 @@ trailingResultsBlock = optionMaybe . try $ do
   block
 
 -- | Parse code block arguments
--- TODO: We currently don't handle switches.
 codeHeaderArgs :: Monad m => OrgParser m ([String], [(String, String)])
 codeHeaderArgs = try $ do
   language   <- skipSpaces *> orgArgWord
-  _          <- skipSpaces *> (try $ switch `sepBy` (many1 spaceChar))
+  (switchClasses, switchKv) <- switchesAsAttributes
   parameters <- manyTill blockOption newline
   let pandocLang = translateLang language
+  let classes = pandocLang : switchClasses
   return $
     if hasRundocParameters parameters
-    then ( [ pandocLang, rundocBlockClass ]
-         , map toRundocAttrib (("language", language) : parameters)
+    then ( classes <> [ rundocBlockClass ]
+         , switchKv <> map toRundocAttrib (("language", language) : parameters)
          )
-    else ([ pandocLang ], parameters)
+    else (classes, switchKv <> parameters)
  where
    hasRundocParameters = not . null
 
-switch :: Monad m => OrgParser m (Char, Maybe String)
-switch = try $ simpleSwitch <|> lineNumbersSwitch
+switchesAsAttributes :: Monad m => OrgParser m ([String], [(String, String)])
+switchesAsAttributes = try $ do
+  switches <- skipSpaces *> (try $ switch `sepBy` (many1 spaceChar))
+  return $ foldr addToAttr ([], []) switches
  where
-   simpleSwitch = (\c -> (c, Nothing)) <$> (oneOf "-+" *> letter)
-   lineNumbersSwitch = (\ls -> ('l', Just ls)) <$>
-                       (string "-l \"" *> many1Till nonspaceChar (char '"'))
+  addToAttr :: (Char, Maybe String, SwitchPolarity)
+            -> ([String], [(String, String)])
+            -> ([String], [(String, String)])
+  addToAttr ('n', lineNum, pol) (cls, kv) =
+    let kv' = case lineNum of
+                Just num -> (("startFrom", num):kv)
+                Nothing  -> kv
+        cls' = case pol of
+                 SwitchPlus -> "continuedSourceBlock":cls
+                 SwitchMinus -> cls
+    in ("numberLines":cls', kv')
+  addToAttr _ x = x
+
+-- | Whether a switch flag is specified with @+@ or @-@.
+data SwitchPolarity = SwitchPlus | SwitchMinus
+  deriving (Show, Eq)
+
+-- | Parses a switch's polarity.
+switchPolarity :: Monad m => OrgParser m SwitchPolarity
+switchPolarity = (SwitchMinus <$ char '-') <|> (SwitchPlus <$ char '+')
+
+-- | Parses a source block switch option.
+switch :: Monad m => OrgParser m (Char, Maybe String, SwitchPolarity)
+switch = try $ lineNumberSwitch <|> labelSwitch <|> simpleSwitch
+ where
+   simpleSwitch = (\pol c -> (c, Nothing, pol)) <$> switchPolarity <*> letter
+   labelSwitch = genericSwitch 'l' $
+     char '"' *> many1Till nonspaceChar (char '"')
+
+-- | Generic source block switch-option parser.
+genericSwitch :: Monad m
+              => Char
+              -> OrgParser m String
+              -> OrgParser m (Char, Maybe String, SwitchPolarity)
+genericSwitch c p = try $ do
+  polarity <- switchPolarity <* char c <* skipSpaces
+  arg <- optionMaybe p
+  return $ (c, arg, polarity)
+
+-- | Reads a line number switch option. The line number switch can be used with
+-- example and source blocks.
+lineNumberSwitch :: Monad m => OrgParser m (Char, Maybe String, SwitchPolarity)
+lineNumberSwitch = genericSwitch 'n' (many digit)
 
 blockOption :: Monad m => OrgParser m (String, String)
 blockOption = try $ do
@@ -557,9 +604,6 @@ orgParamValue = try $
     *> notFollowedBy (char ':' )
     *> many1 nonspaceChar
     <* skipSpaces
-
-horizontalRule :: Monad m => OrgParser m (F Blocks)
-horizontalRule = return B.horizontalRule <$ try hline
 
 
 --
