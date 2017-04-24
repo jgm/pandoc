@@ -39,7 +39,7 @@ import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (chr, isAlphaNum, isLetter, ord)
-import Data.List (intercalate)
+import Data.List (intercalate, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
 import Safe (minimumDef)
@@ -1111,10 +1111,11 @@ rawLaTeXInline = do
 
 addImageCaption :: PandocMonad m => Blocks -> LP m Blocks
 addImageCaption = walkM go
-  where go (Image attr alt (src,tit)) = do
+  where go (Image attr alt (src,tit))
+            | not ("fig:" `isPrefixOf` tit) = do
           mbcapt <- stateCaption <$> getState
           return $ case mbcapt of
-               Just ils -> Image attr (toList ils) (src, "fig:")
+               Just ils -> Image attr (toList ils) (src, "fig:" ++ tit)
                Nothing  -> Image attr alt (src,tit)
         go x = return x
 
@@ -1134,8 +1135,8 @@ environments = M.fromList
   , ("letter", env "letter" letterContents)
   , ("minipage", env "minipage" $
          skipopts *> spaces' *> optional braced *> spaces' *> blocks)
-  , ("figure", env "figure" $
-         resetCaption *> skipopts *> blocks >>= addImageCaption)
+  , ("figure", env "figure" $ skipopts *> figure)
+  , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
   , ("center", env "center" blocks)
   , ("longtable",  env "longtable" $
          resetCaption *> simpTable False >>= addTableCaption)
@@ -1186,6 +1187,11 @@ environments = M.fromList
   , ("alignat", mathEnv para (Just "aligned") "alignat")
   , ("alignat*", mathEnv para (Just "aligned") "alignat*")
   ]
+
+figure :: PandocMonad m => LP m Blocks
+figure = try $ do
+  resetCaption
+  blocks >>= addImageCaption
 
 letterContents :: PandocMonad m => LP m Blocks
 letterContents = do
