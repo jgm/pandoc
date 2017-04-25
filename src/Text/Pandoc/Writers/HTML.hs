@@ -600,7 +600,7 @@ blockToHtml opts (LineBlock lns) =
   else do
     let lf = preEscapedString "\n"
     htmlLines <- mconcat . intersperse lf <$> mapM (inlineListToHtml opts) lns
-    return $ H.div ! A.style "white-space: pre-line;" $ htmlLines
+    return $ H.div ! A.class_ "line-block" $ htmlLines
 blockToHtml opts (Div attr@(ident, classes, kvs) bs) = do
   html5 <- gets stHtml5
   let speakerNotes = "notes" `elem` classes
