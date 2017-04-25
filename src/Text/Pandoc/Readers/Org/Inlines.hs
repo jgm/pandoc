@@ -158,7 +158,7 @@ endline = try $ do
   decEmphasisNewlinesCount
   guard =<< newlinesCountWithinLimits
   updateLastPreCharPos
-  return . return $ B.softbreak
+  returnF B.softbreak
 
 
 --

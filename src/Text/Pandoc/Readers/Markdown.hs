@@ -311,10 +311,10 @@ yamlToMeta :: PandocMonad m
 yamlToMeta (Yaml.String t) = toMetaValue t
 yamlToMeta (Yaml.Number n)
   -- avoid decimal points for numbers that don't need them:
-  | base10Exponent n >= 0     = return $ return $ MetaString $ show
+  | base10Exponent n >= 0     = returnF $ MetaString $ show
                                 $ coefficient n * (10 ^ base10Exponent n)
-  | otherwise                 = return $ return $ MetaString $ show n
-yamlToMeta (Yaml.Bool b) = return $ return $ MetaBool b
+  | otherwise                 = returnF $ MetaString $ show n
+yamlToMeta (Yaml.Bool b) = returnF $ MetaBool b
 yamlToMeta (Yaml.Array xs) = do
   xs' <- mapM yamlToMeta (V.toList xs)
   return $ do
@@ -333,7 +333,7 @@ yamlToMeta (Yaml.Object o) = do
                    return (MetaMap $ M.insert (T.unpack k) v'' m'))
         (return $ MetaMap M.empty)
         alist
-yamlToMeta _ = return $ return $ MetaString ""
+yamlToMeta _ = returnF $ MetaString ""
 
 stopLine :: PandocMonad m => MarkdownParser m ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
@@ -408,7 +408,7 @@ referenceKey = try $ do
     Just _  -> logMessage $ DuplicateLinkReference raw pos
     Nothing -> return ()
   updateState $ \s -> s { stateKeys = M.insert key (target, attr') oldkeys }
-  return $ return mempty
+  returnF mempty
 
 referenceTitle :: PandocMonad m => MarkdownParser m String
 referenceTitle = try $ do
@@ -437,7 +437,7 @@ abbrevKey = do
     char ':'
     skipMany (satisfy (/= '\n'))
     blanklines
-    return $ return mempty
+    returnF mempty
 
 noteMarker :: PandocMonad m => MarkdownParser m String
 noteMarker = string "[^" >> many1Till (satisfy $ not . isBlank) (char ']')
@@ -610,7 +610,7 @@ hrule = try $ do
   skipMany (spaceChar <|> char start)
   newline
   optional blanklines
-  return $ return B.horizontalRule
+  returnF B.horizontalRule
 
 --
 -- code blocks
@@ -689,7 +689,7 @@ codeBlockFenced = try $ do
   blankline
   contents <- manyTill anyLine (blockDelimiter (== c) (Just size))
   blanklines
-  return $ return $ B.codeBlockWith attr $ intercalate "\n" contents
+  returnF $ B.codeBlockWith attr $ intercalate "\n" contents
 
 -- correctly handle github language identifiers
 toLanguageId :: String -> String
@@ -706,7 +706,7 @@ codeBlockIndented = do
                              return $ b ++ l))
   optional blanklines
   classes <- getOption readerIndentedCodeClasses
-  return $ return $ B.codeBlockWith ("", classes, []) $
+  returnF $ B.codeBlockWith ("", classes, []) $
            stripTrailingNewlines $ concat contents
 
 lhsCodeBlock :: PandocMonad m => MarkdownParser m (F Blocks)
@@ -1059,7 +1059,7 @@ htmlBlock' = try $ do
     first <- htmlElement
     skipMany spaceChar
     optional blanklines
-    return $ return $ B.rawBlock "html" first
+    returnF $ B.rawBlock "html" first
 
 strictHtmlBlock :: PandocMonad m => MarkdownParser m String
 strictHtmlBlock = htmlInBalanced (not . isInlineTag)
@@ -1076,7 +1076,7 @@ latexMacro = try $ do
   guardEnabled Ext_latex_macros
   skipNonindentSpaces
   res <- macro
-  return $ return res
+  returnF res
 
 rawTeXBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 rawTeXBlock = do
@@ -1086,7 +1086,7 @@ rawTeXBlock = do
         <|> (B.rawBlock "context" . concat <$>
                   rawConTeXtEnvironment `sepEndBy1` blankline)
   spaces
-  return $ return result
+  returnF result
 
 rawHtmlBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 rawHtmlBlocks = do
@@ -1548,17 +1548,17 @@ escapedChar :: PandocMonad m => MarkdownParser m (F Inlines)
 escapedChar = do
   result <- escapedChar'
   case result of
-       ' '   -> return $ return $ B.str "\160" -- "\ " is a nonbreaking space
+       ' '   -> returnF $ B.str "\160" -- "\ " is a nonbreaking space
        '\n'  -> guardEnabled Ext_escaped_line_breaks >>
                 return (return B.linebreak)  -- "\[newline]" is a linebreak
-       _     -> return $ return $ B.str [result]
+       _     -> returnF $ B.str [result]
 
 ltSign :: PandocMonad m => MarkdownParser m (F Inlines)
 ltSign = do
   guardDisabled Ext_raw_html
     <|> (notFollowedByHtmlCloser >> notFollowedBy' (htmlTag isBlockTag))
   char '<'
-  return $ return $ B.str "<"
+  returnF $ B.str "<"
 
 exampleRef :: PandocMonad m => MarkdownParser m (F Inlines)
 exampleRef = try $ do
@@ -1577,7 +1577,7 @@ symbol = do
          <|> try (do lookAhead $ char '\\'
                      notFollowedBy' (() <$ rawTeXBlock)
                      char '\\')
-  return $ return $ B.str [result]
+  returnF $ B.str [result]
 
 -- parses inline code, between n `s and n `s
 code :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -1590,7 +1590,7 @@ code = try $ do
                       notFollowedBy (char '`')))
   attr <- option ([],[],[]) (try $ guardEnabled Ext_inline_code_attributes
                                    >> attributes)
-  return $ return $ B.codeWith attr $ trim $ concat result
+  returnF $ B.codeWith attr $ trim $ concat result
 
 math :: PandocMonad m => MarkdownParser m (F Inlines)
 math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros'))
@@ -1860,7 +1860,7 @@ bareURL = try $ do
   getState >>= guard . stateAllowLinks
   (orig, src) <- uri <|> emailAddress
   notFollowedBy $ try $ spaces >> htmlTag (~== TagClose "a")
-  return $ return $ B.link src "" (B.str orig)
+  returnF $ B.link src "" (B.str orig)
 
 autoLink :: PandocMonad m => MarkdownParser m (F Inlines)
 autoLink = try $ do
@@ -1874,7 +1874,7 @@ autoLink = try $ do
   extra <- fromEntities <$> manyTill nonspaceChar (char '>')
   attr  <- option nullAttr $ try $
             guardEnabled Ext_link_attributes >> attributes
-  return $ return $ B.linkWith attr (src ++ escapeURI extra) "" (B.str $ orig ++ extra)
+  returnF $ B.linkWith attr (src ++ escapeURI extra) "" (B.str $ orig ++ extra)
 
 image :: PandocMonad m => MarkdownParser m (F Inlines)
 image = try $ do
@@ -1915,7 +1915,7 @@ rawLaTeXInline' = try $ do
   lookAhead (char '\\')
   notFollowedBy' rawConTeXtEnvironment
   RawInline _ s <- rawLaTeXInline
-  return $ return $ B.rawInline "tex" s
+  returnF $ B.rawInline "tex" s
   -- "tex" because it might be context or latex
 
 rawConTeXtEnvironment :: PandocMonad m => ParserT [Char] st m String
@@ -1983,7 +1983,7 @@ rawHtmlInline = do
                              then (\x -> isInlineTag x &&
                                          not (isCloseBlockTag x))
                              else not . isTextTag
-  return $ return $ B.rawInline "html" result
+  returnF $ B.rawInline "html" result
 
 -- Emoji
 

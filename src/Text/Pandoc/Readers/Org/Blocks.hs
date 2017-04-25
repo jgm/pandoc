@@ -666,7 +666,7 @@ endOfParagraph = try $ skipSpaces *> newline *> endOfBlock
 -- | Example code marked up by a leading colon.
 example :: Monad m => OrgParser m (F Blocks)
 example = try $ do
-  return . return . exampleCode =<< unlines <$> many1 exampleLine
+  returnF . exampleCode =<< unlines <$> many1 exampleLine
  where
    exampleLine :: Monad m => OrgParser m String
    exampleLine = try $ exampleLineStart *> anyLine
@@ -850,7 +850,7 @@ latexFragment :: Monad m => OrgParser m (F Blocks)
 latexFragment = try $ do
   envName <- latexEnvStart
   content <- mconcat <$> manyTill anyLineNewline (latexEnd envName)
-  return . return $ B.rawBlock "latex" (content `inLatexEnv` envName)
+  returnF $ B.rawBlock "latex" (content `inLatexEnv` envName)
  where
    c `inLatexEnv` e = mconcat [ "\\begin{", e, "}\n"
                               , c
