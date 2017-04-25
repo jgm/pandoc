@@ -81,6 +81,7 @@ data WriterState =
               , stInternalLinks :: [String]      -- list of internal link targets
               , stUsesEuro      :: Bool          -- true if euro symbol used
               , stBeamer        :: Bool          -- produce beamer
+              , stEmptyLine     :: Bool          -- true if no content on line
               }
 
 startingState :: WriterOptions -> WriterState
@@ -107,7 +108,8 @@ startingState options = WriterState {
                 , stIncremental = writerIncremental options
                 , stInternalLinks = []
                 , stUsesEuro = False
-                , stBeamer = False }
+                , stBeamer = False
+                , stEmptyLine = True }
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m String
@@ -680,7 +682,8 @@ toColDescriptor align =
          AlignDefault -> "l"
 
 blockListToLaTeX :: PandocMonad m => [Block] -> LW m Doc
-blockListToLaTeX lst = vsep `fmap` mapM blockToLaTeX lst
+blockListToLaTeX lst =
+  vsep `fmap` mapM (\b -> setEmptyLine True >> blockToLaTeX b) lst
 
 tableRowToLaTeX :: PandocMonad m
                 => Bool
@@ -882,7 +885,7 @@ inlineListToLaTeX :: PandocMonad m
                   => [Inline]  -- ^ Inlines to convert
                   -> LW m Doc
 inlineListToLaTeX lst =
-  mapM inlineToLaTeX (fixBreaks $ fixLineInitialSpaces lst)
+  mapM inlineToLaTeX (fixLineInitialSpaces lst)
     >>= return . hcat
     -- nonbreaking spaces (~) in LaTeX don't work after line breaks,
     -- so we turn nbsps after hard breaks to \hspace commands.
@@ -894,14 +897,6 @@ inlineListToLaTeX lst =
        fixNbsps s = let (ys,zs) = span (=='\160') s
                     in  replicate (length ys) hspace ++ [Str zs]
        hspace = RawInline "latex" "\\hspace*{0.333em}"
-       -- linebreaks after blank lines cause problems:
-       fixBreaks [] = []
-       fixBreaks ys@(LineBreak : LineBreak : _) =
-         case span (== LineBreak) ys of
-               (lbs, rest) -> RawInline "latex"
-                               ("\\\\[" ++ show (length lbs) ++
-                                "\\baselineskip]") : fixBreaks rest
-       fixBreaks (y:ys) = y : fixBreaks ys
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
@@ -927,9 +922,9 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
   return $ (if null id'
                then empty
                else "\\protect" <> linkAnchor) <>
-           if null cmds
-              then braces contents
-              else foldr inCmd contents cmds
+           (if null cmds
+               then braces contents
+               else foldr inCmd contents cmds)
 inlineToLaTeX (Emph lst) =
   inlineListToLaTeX lst >>= return . inCmd "emph"
 inlineToLaTeX (Strong lst) =
@@ -1007,18 +1002,27 @@ inlineToLaTeX (Quoted qt lst) = do
                    if isEnabled Ext_smart opts
                       then char '`' <> inner <> char '\''
                       else char '\x2018' <> inner <> char '\x2019'
-inlineToLaTeX (Str str) = liftM text $ stringToLaTeX TextString str
-inlineToLaTeX (Math InlineMath str) =
+inlineToLaTeX (Str str) = do
+  setEmptyLine False
+  liftM text $ stringToLaTeX TextString str
+inlineToLaTeX (Math InlineMath str) = do
+  setEmptyLine False
   return $ "\\(" <> text str <> "\\)"
-inlineToLaTeX (Math DisplayMath str) =
+inlineToLaTeX (Math DisplayMath str) = do
+  setEmptyLine False
   return $ "\\[" <> text str <> "\\]"
 inlineToLaTeX il@(RawInline f str)
   | f == Format "latex" || f == Format "tex"
-                        = return $ text str
+                        = do
+      setEmptyLine False
+      return $ text str
   | otherwise           = do
       report $ InlineNotRendered il
       return empty
-inlineToLaTeX (LineBreak) = return $ "\\\\" <> cr
+inlineToLaTeX (LineBreak) = do
+  emptyLine <- gets stEmptyLine
+  setEmptyLine True
+  return $ (if emptyLine then "~" else "") <> "\\\\" <> cr
 inlineToLaTeX SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   case wrapText of
@@ -1048,6 +1052,7 @@ inlineToLaTeX (Link _ txt (src, _)) =
                 return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
 inlineToLaTeX (Image attr _ (source, _)) = do
+  setEmptyLine False
   modify $ \s -> s{ stGraphics = True }
   opts <- gets stOptions
   let showDim dir = let d = text (show dir) <> "="
@@ -1073,6 +1078,7 @@ inlineToLaTeX (Image attr _ (source, _)) = do
     (if inHeading then "\\protect\\includegraphics" else "\\includegraphics") <>
     dims <> braces (text source'')
 inlineToLaTeX (Note contents) = do
+  setEmptyLine False
   inMinipage <- gets stInMinipage
   modify (\s -> s{stInNote = True})
   contents' <- blockListToLaTeX contents
@@ -1099,6 +1105,9 @@ protectCode (x@(Code ("",[],[]) _) : xs) = x : protectCode xs
 protectCode (x@(Code _ _) : xs) = ltx "\\mbox{" : x : ltx "}" : xs
   where ltx = RawInline (Format "latex")
 protectCode (x : xs) = x : protectCode xs
+
+setEmptyLine :: PandocMonad m => Bool -> LW m ()
+setEmptyLine b = modify $ \st -> st{ stEmptyLine = b }
 
 citationsToNatbib :: PandocMonad m => [Citation] -> LW m Doc
 citationsToNatbib (one:[])
