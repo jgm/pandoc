@@ -671,10 +671,10 @@ inlineCommands = M.fromList $
   -- siuntix
   , ("SI", dosiunitx)
   -- hyphenat
-  , ("bshyp", lit "\\")
-  , ("fshyp", lit "/")
-  , ("dothyp", lit ".")
-  , ("colonhyp", lit ":")
+  , ("bshyp", lit "\\\173")
+  , ("fshyp", lit "/\173")
+  , ("dothyp", lit ".\173")
+  , ("colonhyp", lit ":\173")
   , ("hyp", lit "-")
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,

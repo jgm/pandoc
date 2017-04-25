@@ -9,19 +9,19 @@ electromagnetic\hyp{}endioscopy
 % pandoc -f latex -t native
 C\colonhyp\bshyp{}Windows\bshyp
 ^D
-[Para [Str "C:\\Windows\\"]]
+[Para [Str "C:\173\\\173Windows\\\173"]]
 ```
 
 ```
 % pandoc -f latex -t native
 \fshyp{}usr\fshyp{}share\fshyp
 ^D
-[Para [Str "/usr/share/"]]
+[Para [Str "/\173usr/\173share/\173"]]
 ```
 
 ```
 % pandoc -f latex -t native
 \fshyp{}home\fshyp{}schrieveslaach\fshyp\dothyp{}m2
 ^D
-[Para [Str "/home/schrieveslaach/.m2"]]
+[Para [Str "/\173home/\173schrieveslaach/\173.\173m2"]]
 ```
