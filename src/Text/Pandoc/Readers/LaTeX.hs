@@ -670,6 +670,12 @@ inlineCommands = M.fromList $
   , ("hypertarget", braced >> tok)
   -- siuntix
   , ("SI", dosiunitx)
+  -- hyphenat
+  , ("bshyp", lit "\\")
+  , ("fshyp", lit "/")
+  , ("dothyp", lit ".")
+  , ("colonhyp", lit ":")
+  , ("hyp", lit "-")
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
