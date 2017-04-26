@@ -528,6 +528,7 @@ inlineCommands = M.fromList $
   , ("textbf", extractSpaces strong <$> tok)
   , ("textnormal", extractSpaces (spanWith ("",["nodecor"],[])) <$> tok)
   , ("ldots", lit "…")
+  , ("vdots", lit "\8942")
   , ("dots", lit "…")
   , ("mdots", lit "…")
   , ("sim", lit "~")
