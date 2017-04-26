@@ -518,7 +518,7 @@ inlineCommands = M.fromList $
   , ("textmd", extractSpaces (spanWith ("",["medium"],[])) <$> tok)
   , ("textrm", extractSpaces (spanWith ("",["roman"],[])) <$> tok)
   , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
-  , ("texttt", (code . stringify . toList) <$> tok)
+  , ("texttt", ttfamily)
   , ("sout", extractSpaces strikeout <$> tok)
   , ("textsuperscript", extractSpaces superscript <$> tok)
   , ("textsubscript", extractSpaces subscript <$> tok)
@@ -676,6 +676,9 @@ inlineCommands = M.fromList $
   , ("dothyp", lit ".\173")
   , ("colonhyp", lit ":\173")
   , ("hyp", lit "-")
+  , ("nohyphens", tok)
+  , ("textnhtt", ttfamily)
+  , ("nhttfamily", ttfamily)
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
@@ -686,6 +689,9 @@ inlineCommands = M.fromList $
   , "clearpage"
   , "pagebreak"
   ]
+
+ttfamily :: PandocMonad m => LP m Inlines
+ttfamily = (code . stringify . toList) <$> tok
 
 mkImage :: PandocMonad m => [(String, String)] -> String -> LP m Inlines
 mkImage options src = do

@@ -25,3 +25,25 @@ C\colonhyp\bshyp{}Windows\bshyp
 ^D
 [Para [Str "/\173home/\173schrieveslaach/\173.\173m2"]]
 ```
+
+```
+% pandoc -f latex -t native
+\nohyphens{Pneumonoultramicroscopicsilicovolcanoconiosis}
+^D
+[Para [Str "Pneumonoultramicroscopicsilicovolcanoconiosis"]]
+```
+
+```
+% pandoc -f latex -t native
+\textnhtt{Pneumonoultramicroscopicsilicovolcanoconiosis}
+^D
+[Para [Code ("",[],[]) "Pneumonoultramicroscopicsilicovolcanoconiosis"]]
+```
+
+```
+% pandoc -f latex -t native
+\nhttfamily{Pneumonoultramicroscopicsilicovolcanoconiosis}
+^D
+[Para [Code ("",[],[]) "Pneumonoultramicroscopicsilicovolcanoconiosis"]]
+```
+
