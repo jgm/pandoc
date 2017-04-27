@@ -50,7 +50,7 @@ import Data.Yaml (ParseException (..), YamlException (..), YamlMark (..))
 import qualified Data.Yaml as Yaml
 import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -79,9 +79,6 @@ readMarkdown opts s = do
   case parsed of
     Right result -> return result
     Left e       -> throwError e
-
-trimInlinesF :: F Inlines -> F Inlines
-trimInlinesF = liftM trimInlines
 
 --
 -- Constants and data structure definitions
