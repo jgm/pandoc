@@ -108,10 +108,13 @@ module Text.Pandoc.Parsing ( anyLine,
                              applyMacros',
                              Parser,
                              ParserT,
-                             F(..),
+                             F,
+                             Future(..),
                              runF,
                              askF,
                              asksF,
+                             returnF,
+                             trimInlinesF,
                              token,
                              (<+?>),
                              extractIdClass,
@@ -175,7 +178,7 @@ where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Builder (Blocks, Inlines, rawBlock, HasMeta(..))
+import Text.Pandoc.Builder (Blocks, Inlines, rawBlock, HasMeta(..), trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.XML (fromEntities)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
@@ -205,18 +208,30 @@ type Parser t s = Parsec t s
 
 type ParserT = ParsecT
 
-newtype F a = F { unF :: Reader ParserState a } deriving (Monad, Applicative, Functor)
+-- | Reader monad wrapping the parser state. This is used to possibly delay
+-- evaluation until all relevant information has been parsed and made available
+-- in the parser state.
+newtype Future s a = Future { runDelayed :: Reader s a }
+  deriving (Monad, Applicative, Functor)
 
-runF :: F a -> ParserState -> a
-runF = runReader . unF
+type F = Future ParserState
 
-askF :: F ParserState
-askF = F ask
+runF :: Future s a -> s -> a
+runF = runReader . runDelayed
 
-asksF :: (ParserState -> a) -> F a
-asksF f = F $ asks f
+askF :: Future s s
+askF = Future ask
 
-instance Monoid a => Monoid (F a) where
+asksF :: (s -> a) -> Future s a
+asksF f = Future $ asks f
+
+returnF :: Monad m => a -> m (Future s a)
+returnF = return . return
+
+trimInlinesF :: Future s Inlines -> Future s Inlines
+trimInlinesF = liftM trimInlines
+
+instance Monoid a => Monoid (Future s a) where
   mempty = return mempty
   mappend = liftM2 mappend
   mconcat = liftM mconcat . sequence
