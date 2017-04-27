@@ -97,8 +97,8 @@ pandocToMs opts (Pandoc meta blocks) = do
                     else Nothing
   let render' = render colwidth
   metadata <- metaToJSON opts
-              (fmap (render colwidth) . blockListToMs opts)
-              (fmap (render colwidth) . inlineListToMs' opts)
+              (fmap render' . blockListToMs opts)
+              (fmap render' . inlineListToMs' opts)
               meta
   body <- blockListToMs opts blocks
   let main = render' body
