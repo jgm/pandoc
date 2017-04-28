@@ -66,7 +66,7 @@ import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
 
 type Notes = [[Block]]
-type Ref   = ([Inline], Target, Attr)
+type Ref   = (Doc, Target, Attr)
 type Refs  = [Ref]
 
 type MD m = ReaderT WriterEnv (StateT WriterState m)
@@ -235,8 +235,7 @@ keyToMarkdown :: PandocMonad m
               => WriterOptions
               -> Ref
               -> MD m Doc
-keyToMarkdown opts (label, (src, tit), attr) = do
-  label' <- inlineListToMarkdown opts label
+keyToMarkdown opts (label', (src, tit), attr) = do
   let tit' = if null tit
                 then empty
                 else space <> "\"" <> text tit <> "\""
@@ -792,22 +791,25 @@ blockListToMarkdown opts blocks = do
                                           else RawBlock "markdown" "&nbsp;"
   mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
 
+getKey :: Doc -> Key
+getKey = toKey . render Nothing
+
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
-getReference :: PandocMonad m => Attr -> [Inline] -> Target -> MD m [Inline]
+getReference :: PandocMonad m => Attr -> Doc -> Target -> MD m Doc
 getReference attr label target = do
   st <- get
+  let keys = map (\(l,_,_) -> getKey l) (stRefs st)
   case find (\(_,t,a) -> t == target && a == attr) (stRefs st) of
     Just (ref, _, _) -> return ref
     Nothing       -> do
-      label' <- case find (\(l,_,_) -> l == label) (stRefs st) of
-                  Just _ -> -- label is used; generate numerical label
-                    case find (\n -> notElem [Str (show n)]
-                                     (map (\(l,_,_) -> l) (stRefs st)))
-                         [1..(10000 :: Integer)] of
-                      Just x  -> return [Str (show x)]
+      label' <- case getKey label `elem` keys of
+                  True -> -- label is used; generate numerical label
+                    case find (\n -> Key n `notElem` keys) $
+                         map show [1..(10000 :: Integer)] of
+                      Just x  -> return $ text x
                       Nothing -> throwError $ PandocSomeError "no unique label"
-                  Nothing -> return label
+                  False -> return label
       modify (\s -> s{ stRefs = (label', target, attr) : stRefs st })
       return label'
 
@@ -1078,15 +1080,15 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
   shortcutable <- asks envRefShortcutable
   let useShortcutRefLinks = shortcutable &&
                             isEnabled Ext_shortcut_reference_links opts
-  ref <- if useRefLinks then getReference attr txt (src, tit) else return []
-  reftext <- inlineListToMarkdown opts ref
+  reftext <- if useRefLinks then getReference attr linktext (src, tit)
+                            else return empty
   return $ if useAuto
               then if plain
                       then text srcSuffix
                       else "<" <> text srcSuffix <> ">"
               else if useRefLinks
                       then let first  = "[" <> linktext <> "]"
-                               second = if txt == ref
+                               second = if getKey linktext == getKey reftext
                                            then if useShortcutRefLinks
                                                    then ""
                                                    else "[]"
