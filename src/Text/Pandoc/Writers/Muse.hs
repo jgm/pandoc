@@ -85,8 +85,8 @@ pandocToMuse (Pandoc meta blocks) = do
                     then Just $ writerColumns opts
                     else Nothing
   metadata <- metaToJSON opts
-               (fmap (render colwidth) . blockListToMuse)
-               (fmap (render colwidth) . inlineListToMuse)
+               (fmap (render Nothing) . blockListToMuse)
+               (fmap (render Nothing) . inlineListToMuse)
                meta
   body <- blockListToMuse blocks
   notes <- liftM (reverse . stNotes) get >>= notesToMuse
