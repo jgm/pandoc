@@ -65,6 +65,7 @@ data WriterState =
               , stInQuote       :: Bool          -- true if in a blockquote
               , stInMinipage    :: Bool          -- true if in minipage
               , stInHeading     :: Bool          -- true if in a section heading
+              , stInItem        :: Bool          -- true if in \item[..]
               , stNotes         :: [Doc]         -- notes in a minipage
               , stOLLevel       :: Int           -- level of ordered list nesting
               , stOptions       :: WriterOptions -- writer options, so they don't have to be parameter
@@ -90,6 +91,7 @@ startingState options = WriterState {
                 , stInQuote = False
                 , stInMinipage = False
                 , stInHeading = False
+                , stInItem = False
                 , stNotes = []
                 , stOLLevel = 1
                 , stOptions = options
@@ -777,7 +779,10 @@ listItemToLaTeX lst
 
 defListItemToLaTeX :: PandocMonad m => ([Inline], [[Block]]) -> LW m Doc
 defListItemToLaTeX (term, defs) = do
+    -- needed to turn off 'listings' because it breaks inside \item[...]:
+    modify $ \s -> s{stInItem = True}
     term' <- inlineListToLaTeX term
+    modify $ \s -> s{stInItem = False}
     -- put braces around term if it contains an internal link,
     -- since otherwise we get bad bracket interactions: \item[\hyperref[..]
     let isInternalLink (Link _ _ ('#':_,_)) = True
@@ -952,6 +957,7 @@ inlineToLaTeX (Cite cits lst) = do
 inlineToLaTeX (Code (_,classes,_) str) = do
   opts <- gets stOptions
   inHeading <- gets stInHeading
+  inItem <- gets stInItem
   let listingsCode = do
         let listingsopt = case getListingsLanguage classes of
                                Just l -> "[language=" ++ mbBraced l ++ "]"
@@ -975,7 +981,7 @@ inlineToLaTeX (Code (_,classes,_) str) = do
                Right h -> modify (\st -> st{ stHighlighting = True }) >>
                           return (text (T.unpack h))
   case () of
-     _ | writerListings opts  && not inHeading      -> listingsCode
+     _ | writerListings opts  && not (inHeading || inItem) -> listingsCode
        | isJust (writerHighlightStyle opts) && not (null classes)
                                                     -> highlightCode
        | otherwise                                  -> rawCode
