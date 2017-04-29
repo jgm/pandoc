@@ -967,7 +967,12 @@ inlineToLaTeX (Code (_,classes,_) str) = do
         let chr = case "!\"&'()*,-./:;?@_" \\ str of
                        (c:_) -> c
                        []    -> '!'
-        return $ text $ "\\lstinline" ++ listingsopt ++ [chr] ++ str ++ [chr]
+        let str' = escapeStringUsing (backslashEscapes "\\{}%") str
+        -- we always put lstinline in a dummy 'passthrough' command
+        -- (defined in the default template) so that we don't have
+        -- to change the way we escape characters depending on whether
+        -- the lstinline is inside another command.  See #1629:
+        return $ text $ "\\passthrough{\\lstinline" ++ listingsopt ++ [chr] ++ str' ++ [chr] ++ "}"
   let rawCode = liftM (text . (\s -> "\\texttt{" ++ escapeSpaces s ++ "}"))
                  $ stringToLaTeX CodeString str
                 where escapeSpaces =  concatMap
