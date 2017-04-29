@@ -112,6 +112,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              runF,
                              askF,
                              asksF,
+                             returnF,
                              token,
                              (<+?>),
                              extractIdClass,
@@ -215,6 +216,9 @@ askF = F ask
 
 asksF :: (ParserState -> a) -> F a
 asksF f = F $ asks f
+
+returnF :: Monad m => a -> m (F a)
+returnF = return . return
 
 instance Monoid a => Monoid (F a) where
   mempty = return mempty
