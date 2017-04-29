@@ -48,7 +48,6 @@ import Control.Monad (mzero, void)
 import Data.Char (toLower)
 import Data.List (intersperse)
 import qualified Data.Map as M
-import Data.Monoid ((<>))
 import Network.HTTP (urlEncode)
 
 -- | Returns the current meta, respecting export options.
@@ -76,9 +75,7 @@ declarationLine :: PandocMonad m => OrgParser m ()
 declarationLine = try $ do
   key   <- map toLower <$> metaKey
   (key', value) <- metaValue key
-  updateState $ \st ->
-    let meta' = B.setMeta key' <$> value <*> pure nullMeta
-    in st { orgStateMeta = meta' <> orgStateMeta st }
+  updateState $ \st -> st { orgStateMeta = B.setMeta key' <$> value <*> orgStateMeta st }
 
 metaKey :: Monad m => OrgParser m String
 metaKey = map toLower <$> many1 (noneOf ": \n\r")
