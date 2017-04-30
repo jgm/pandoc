@@ -37,7 +37,6 @@ TODO:
 - Tables
 - Images with attributes (floating and width)
 - Anchors
-- Comments
 - Citations and <biblio>
 - <play> environment
 - <verbatim> tag
@@ -175,15 +174,25 @@ block = do
   return res
 
 blockElements :: PandocMonad m => MuseParser m (F Blocks)
-blockElements = choice [ separator
+blockElements = choice [ comment
+                       , separator
                        , header
                        , exampleTag
                        , literal
                        , centerTag
                        , rightTag
                        , quoteTag
+                       , commentTag
                        , noteBlock
                        ]
+
+comment :: PandocMonad m => MuseParser m (F Blocks)
+comment = try $ do
+  char ';'
+  space
+  many $ noneOf "\n"
+  void newline <|> eof
+  return mempty
 
 separator :: PandocMonad m => MuseParser m (F Blocks)
 separator = try $ do
@@ -227,6 +236,9 @@ rightTag = blockTag id "right"
 
 quoteTag :: PandocMonad m => MuseParser m (F Blocks)
 quoteTag = blockTag B.blockQuote "quote"
+
+commentTag :: PandocMonad m => MuseParser m (F Blocks)
+commentTag = parseHtmlContent "comment" block >> return mempty
 
 para :: PandocMonad m => MuseParser m (F Blocks)
 para = do

@@ -86,6 +86,12 @@ tests =
       [ "Quote" =: "<quote>Hello, world</quote>" =?> blockQuote (para $ text "Hello, world")
       , "Center" =: "<center>Hello, world</center>" =?> para (text "Hello, world")
       , "Right" =: "<right>Hello, world</right>" =?> para (text "Hello, world")
+      , testGroup "Comments"
+        [ "Comment tag" =: "<comment>\nThis is a comment\n</comment>" =?> (mempty::Blocks)
+        , "Line comment" =: "; Comment" =?> (mempty::Blocks)
+        , "Not a comment (does not start with a semicolon)" =: " ; Not a comment" =?> para (text "; Not a comment")
+        , "Not a comment (has no space after semicolon)" =: ";Not a comment" =?> para (text ";Not a comment")
+        ]
       , testGroup "Headers"
         [ "Part" =:
           "* First level\n" =?>
