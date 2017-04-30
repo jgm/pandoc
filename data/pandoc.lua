@@ -797,9 +797,19 @@ M.UpperAlpha = "UpperAlpha"
 -- @section helpers
 
 --- Parse the given string into a Pandoc document.
--- @tparam string markup the markup to be parsed
+-- The method used to interpret input is specified by *format*. Acceptable
+-- values for this parameter are equal to those that can be given to the
+-- `--from` command line option.
+-- @tparam      string markup the markup to be parsed
 -- @tparam[opt] string format format specification, defaults to "markdown".
 -- @return Doc pandoc document
+-- @usage
+-- local org_markup = "/emphasis/"  -- Input to be read
+-- local document = pandoc.read(org_markup, "org")
+-- -- Get the first block of the document
+-- local block = document.blocks[1]
+-- -- The inline element in that block is an `Emph`
+-- assert(block.content[1].t == "Emph")
 function M.read(markup, format)
   format = format or "markdown"
   local pd = pandoc.__read(format, markup)
