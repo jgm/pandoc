@@ -173,7 +173,7 @@ pushBlock lua = \case
   CodeBlock attr code      -> pushViaConstructor lua "CodeBlock" code (LuaAttr attr)
   DefinitionList items     -> pushViaConstructor lua "DefinitionList" items
   Div attr blcks           -> pushViaConstructor lua "Div" blcks (LuaAttr attr)
-  Header lvl attr inlns    -> pushViaConstructor lua "Header" lvl (LuaAttr attr) inlns
+  Header lvl attr inlns    -> pushViaConstructor lua "Header" lvl inlns (LuaAttr attr)
   HorizontalRule           -> pushViaConstructor lua "HorizontalRule"
   LineBlock blcks          -> pushViaConstructor lua "LineBlock" blcks
   OrderedList lstAttr list -> pushViaConstructor lua "OrderedList" list lstAttr

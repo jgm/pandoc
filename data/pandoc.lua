@@ -265,12 +265,12 @@ M.Div = M.Block:create_constructor(
 --- Creates a block quote element.
 -- @function Header
 -- @tparam      int          level       header level
--- @tparam      Attributes   attributes  element attributes
 -- @tparam      {Inline,...} content     inline content
+-- @tparam      Attributes   attributes  element attributes
 -- @treturn     Block                    header element
 M.Header = M.Block:create_constructor(
   "Header",
-  function(level, attributes, content)
+  function(level, content, attributes)
     return {c = {level, attributes, content}}
   end,
   {"level", {"identifier", "classes", "attributes"}, "content"}
