@@ -233,7 +233,7 @@ M.BulletList = M.Block:create_constructor(
 --- Creates a code block element
 -- @function CodeBlock
 -- @tparam      string      text        code string
--- @tparam[opt] Attributes  attributes  element attributes
+-- @tparam[opt] Attr        attributes  element attributes
 -- @treturn     Block                   code block element
 M.CodeBlock = M.Block:create_constructor(
   "CodeBlock",
@@ -254,7 +254,7 @@ M.DefinitionList = M.Block:create_constructor(
 --- Creates a div element
 -- @function Div
 -- @tparam      {Block,...} content     block content
--- @tparam[opt] Attributes  attributes  element attributes
+-- @tparam[opt] Attr        attributes  element attributes
 -- @treturn     Block                   code block element
 M.Div = M.Block:create_constructor(
   "Div",
@@ -266,7 +266,7 @@ M.Div = M.Block:create_constructor(
 -- @function Header
 -- @tparam      int          level       header level
 -- @tparam      {Inline,...} content     inline content
--- @tparam      Attributes   attributes  element attributes
+-- @tparam      Attr         attributes  element attributes
 -- @treturn     Block                    header element
 M.Header = M.Block:create_constructor(
   "Header",
@@ -386,7 +386,7 @@ M.Cite = M.Inline:create_constructor(
 --- Creates a Code inline element
 -- @function Code
 -- @tparam      string      text        brief image description
--- @tparam[opt] Attributes  attributes  additional attributes
+-- @tparam[opt] Attr        attributes  additional attributes
 -- @treturn Inline code element
 M.Code = M.Inline:create_constructor(
   "Code",
@@ -409,7 +409,7 @@ M.Emph = M.Inline:create_constructor(
 -- @tparam      {Inline,..} caption     text used to describe the image
 -- @tparam      string      src         path to the image file
 -- @tparam[opt] string      title       brief image description
--- @tparam[opt] Attributes  attributes  additional attributes
+-- @tparam[opt] Attr        attributes  additional attributes
 -- @treturn Inline image element
 M.Image = M.Inline:create_constructor(
   "Image",
@@ -434,7 +434,7 @@ M.LineBreak = M.Inline:create_constructor(
 -- @tparam      {Inline,..} content     text for this link
 -- @tparam      string      target      the link target
 -- @tparam[opt] string      title       brief link description
--- @tparam[opt] Attributes  attributes  additional attributes
+-- @tparam[opt] Attr        attributes  additional attributes
 -- @treturn Inline image element
 M.Link = M.Inline:create_constructor(
   "Link",
@@ -560,7 +560,7 @@ M.Space = M.Inline:create_constructor(
 --- Creates a Span inline element
 -- @function Span
 -- @tparam      {Inline,..} content     inline content
--- @tparam[opt] Attributes  attributes  additional attributes
+-- @tparam[opt] Attr        attributes  additional attributes
 -- @treturn Inline span element
 M.Span = M.Inline:create_constructor(
   "Span",
@@ -623,69 +623,36 @@ M.Superscript = M.Inline:create_constructor(
 -- Helpers
 -- @section helpers
 
--- Attributes
-M.Attributes = {}
+-- Attr
+M.Attr = {}
+M.Attr._field_names = {identifier = 1, classes = 2, attributes = 3}
 --- Create a new set of attributes (Attr).
--- @function Attributes
--- @tparam      table        key_values table containing string keys and values
--- @tparam[opt] string       id         element identifier
+-- @function Attr
+-- @tparam[opt] string       identifier element identifier
 -- @tparam[opt] {string,...} classes    element classes
+-- @tparam[opt] table        attributes table containing string keys and values
 -- @return element attributes
-M.Attributes.__call = function(t, key_values, id, classes)
-  id = id or ''
+M.Attr.__call = function(t, identifier, classes, attributes)
+  identifier = identifier or ''
   classes = classes or {}
-  local attr = {id, classes, key_values}
+  attributes = attributes or {}
+  local attr = {identifier, classes, attributes}
   setmetatable(attr, t)
   return attr
 end
-M.Attributes.__index = function(t, k)
-  if rawget(t, k) then
-    return rawget(t, k)
-  elseif k == "id" then
-    if rawget(t, 1) == '' then
-      return nil
-    else
-      return rawget(t, 1)
-    end
-  elseif k == "class" then
-    if #(rawget(t, 2)) == 0 then
-      return nil
-    else
-      return table.concat(t[2], ' ')
-    end
-  else
-    for _, p in ipairs(t[3]) do
-      if k == p[1] then
-        return p[2]
-      end
-    end
-    return nil
-  end
+M.Attr.__index = function(t, k)
+  return rawget(t, k) or
+    rawget(t, M.Attr._field_names[k]) or
+    rawget(getmetatable(t), k)
 end
-M.Attributes.__newindex = function(t, k, v)
-  if rawget(t, k) then
+M.Attr.__newindex = function(t, k, v)
+  if M.Attr._field_names[k] then
+    rawset(t, M.Attr._field_names[k], v)
+  else
     rawset(t, k, v)
-  elseif k == "id" then
-    rawset(t, 1, v)
-  elseif k == "class" then
-    if type(v) == "string" then
-      rawset(t, 2, {v})
-    else
-      rawset(t, 2, v)
-    end
-  else
-    for _, p in ipairs(rawget(t, 3)) do
-      if k == p[1] then
-        p[2] = v
-        return
-      end
-    end
-    kv = rawget(t, 3)
-    kv[#kv + 1] = {k, v}
-    rawset(t, 3, kv)
   end
 end
-setmetatable(M.Attributes, M.Attributes)
+setmetatable(M.Attr, M.Attr)
 
 
 --- Creates a single citation.

@@ -279,6 +279,6 @@ newtype LuaAttr = LuaAttr { fromLuaAttr :: Attr }
 
 instance StackValue LuaAttr where
   push lua (LuaAttr (id', classes, kv)) =
-    pushViaConstructor lua "Attributes" kv id' classes
+    pushViaConstructor lua "Attr" id' classes kv
   peek lua idx = fmap LuaAttr <$> peek lua idx
   valuetype _ = TTABLE
