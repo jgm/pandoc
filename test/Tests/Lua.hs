@@ -47,6 +47,12 @@ tests =
       (doc . para $ str "Hey!" <> linebreak <> str "What's up?")
       (doc . para $ str "Hello," <> space <> str "World!")
 
+  , testCase "implicit doc filter" $
+    assertFilterConversion "Document contains 'Hello, World!'"
+      "implicit-doc-filter.lua"
+      (doc . plain $ linebreak)
+      (doc . para $ str "Hello," <> space <> str "World!")
+
   , testCase "parse raw markdown blocks" $
     assertFilterConversion "raw markdown block is converted"
       "markdown-reader.lua"

@@ -54,19 +54,30 @@ runLuaFilter filterPath args pd = liftIO $ do
   -- store module in global "pandoc"
   pushPandocModule lua
   Lua.setglobal lua "pandoc"
+  top <- Lua.gettop lua
   status <- Lua.loadfile lua filterPath
   if (status /= 0)
     then do
       Just luaErrMsg <- Lua.peek lua 1
       error luaErrMsg
     else do
-      Lua.call lua 0 1
+      Lua.call lua 0 Lua.multret
+      newtop <- Lua.gettop lua
+      -- Use the implicitly defined global filter if nothing was returned
+      when (newtop - top < 1) $ pushGlobalFilter lua
       Just luaFilters <- Lua.peek lua (-1)
       Lua.push lua args
       Lua.setglobal lua "PandocParameters"
       doc <- runAll luaFilters pd
       Lua.close lua
       return doc
+
+pushGlobalFilter :: LuaState -> IO ()
+pushGlobalFilter lua =
+  Lua.newtable lua
+  *> Lua.getglobal2 lua "pandoc.global_filter"
+  *> Lua.call lua 0 1
+  *> Lua.rawseti lua (-2) 1
 
 runAll :: [LuaFilter] -> Pandoc -> IO Pandoc
 runAll [] = return

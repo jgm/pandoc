@@ -803,7 +803,7 @@ end
 function M.global_filter()
   local res = {}
   for k, v in pairs(_G) do
-    if M.Inline.constructor[k] or M.Block.constructor[k] or M.Block.constructors[k] or k == "Doc" then
+    if M.Inline.constructor[k] or M.Block.constructor[k] or k == "Doc" then
       res[k] = v
     end
   end
