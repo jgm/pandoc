@@ -117,8 +117,13 @@ description meta' = do
   bt <- booktitle meta'
   let as = authors meta'
   dd <- docdate meta'
-  return $ el "description"
-    [ el "title-info" (bt ++ as ++ dd)
+  let lang = case lookupMeta "lang" meta' of
+               Just (MetaInlines [Str s]) -> [el "lang" $ iso639 s]
+               Just (MetaString s)        -> [el "lang" $ iso639 s]
+               _                          -> []
+             where iso639 = takeWhile (/= '-') -- Convert BCP 47 to ISO 639
+  return $ el "description" $
+    [ el "title-info" (bt ++ as ++ dd ++ lang)
     , el "document-info" [ el "program-used" "pandoc" ] -- FIXME: +version
     ]
 
