@@ -32,6 +32,7 @@ Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
 import Control.Monad (guard, liftM, mzero, when)
+import Control.Monad.Identity (Identity(..))
 import Control.Monad.Except (throwError)
 import Data.Char (isHexDigit, isSpace, toLower, toUpper)
 import Data.List (deleteFirstsBy, findIndex, intercalate, isInfixOf, isSuffixOf,
@@ -1119,8 +1120,12 @@ simpleTable :: PandocMonad m
             => Bool  -- ^ Headerless table
             -> RSTParser m Blocks
 simpleTable headless = do
-  tbl <- tableWith (simpleTableHeader headless) simpleTableRow
-              sep simpleTableFooter
+  let wrapIdFst (a, b, c) = (Identity a, b, c)
+      wrapId = fmap Identity
+  tbl <- runIdentity <$> tableWith
+           (wrapIdFst <$> simpleTableHeader headless)
+           (wrapId <$> simpleTableRow)
+           sep simpleTableFooter
   -- Simple tables get 0s for relative column widths (i.e., use default)
   case B.toList tbl of
        [Table c a _w h l]  -> return $ B.singleton $
@@ -1134,7 +1139,8 @@ simpleTable headless = do
 gridTable :: PandocMonad m
           => Bool -- ^ Headerless table
           -> RSTParser m Blocks
-gridTable headerless = gridTableWith parseBlocks headerless
+gridTable headerless = runIdentity <$>
+  gridTableWith (Identity <$> parseBlocks) headerless
 
 table :: PandocMonad m => RSTParser m Blocks
 table = gridTable False <|> simpleTable False <|>
