@@ -680,6 +680,8 @@ inlineCommands = M.fromList $
   , ("nohyphens", tok)
   , ("textnhtt", ttfamily)
   , ("nhttfamily", ttfamily)
+  -- textcolor
+  , ("textcolor", textcolor)
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
@@ -755,6 +757,12 @@ dosiunitx = do
                       value, 
                       emptyOr160 unit,
                       unit]
+
+textcolor :: PandocMonad m => LP m Inlines
+textcolor = do
+    skipopts 
+    color <- braced
+    spanWith ("",[],[("style","color: " ++ color)]) <$> tok
 
 lit :: String -> LP m Inlines
 lit = pure . str
