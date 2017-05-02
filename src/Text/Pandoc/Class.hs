@@ -330,8 +330,7 @@ downloadOrRead sourceURL s = do
          convertSlash x    = x
 
 withPaths :: PandocMonad m => [FilePath] -> (FilePath -> m a) -> FilePath -> m a
-withPaths [] _ fp = throwError $ PandocIOError fp
-                       (userError "file not found in resource path")
+withPaths [] _ fp = throwError $ PandocResourceNotFound fp
 withPaths (p:ps) action fp =
   catchError (action (p </> fp))
              (\_ -> withPaths ps action fp)
@@ -433,20 +432,17 @@ instance PandocMonad PandocPure where
         modifyPureState $ \st -> st { stUniqStore = us }
         return u
       _ -> M.fail "uniq store ran out of elements"
-  openURL u = throwError $ PandocIOError u $
-                 userError "Cannot open URL in PandocPure"
+  openURL u = throwError $ PandocResourceNotFound u
   readFileLazy fp = do
     fps <- getsPureState stFiles
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return (BL.fromStrict bs)
-      Nothing -> throwError $ PandocIOError fp
-                      (userError "File not found in PureState")
+      Nothing -> throwError $ PandocResourceNotFound fp
   readFileStrict fp = do
     fps <- getsPureState stFiles
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return bs
-      Nothing -> throwError $ PandocIOError fp
-                       (userError "File not found in PureState")
+      Nothing -> throwError $ PandocResourceNotFound fp
   readDataFile Nothing "reference.docx" = do
     (B.concat . BL.toChunks . fromArchive) <$> getsPureState stReferenceDocx
   readDataFile Nothing "reference.odt" = do

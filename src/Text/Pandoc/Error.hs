@@ -58,6 +58,7 @@ data PandocError = PandocIOError String IOError
                  | PandocPDFError String
                  | PandocFilterError String String
                  | PandocCouldNotFindDataFileError String
+                 | PandocResourceNotFound String
                  | PandocAppError String
                  deriving (Show, Typeable, Generic)
 
@@ -94,6 +95,8 @@ handleError (Left e) =
         filtername ++ ":\n" ++ msg
     PandocCouldNotFindDataFileError fn -> err 97 $
         "Could not find data file " ++ fn
+    PandocResourceNotFound fn -> err 99 $
+        "File " ++ fn ++ " not found in resource path"
     PandocAppError s -> err 1 s
 
 err :: Int -> String -> IO a

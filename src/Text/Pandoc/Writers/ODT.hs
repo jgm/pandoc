@@ -39,7 +39,6 @@ import System.FilePath (takeDirectory, takeExtension, (<.>))
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
@@ -178,10 +177,7 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
        modify $ \st -> st{ stEntries = entry : entries }
        return $ Image newattr lab (newsrc, t))
    (\e -> do
-       case e of
-            PandocIOError _ e' ->
-               report $ CouldNotFetchResource src (show e')
-            e' -> report $ CouldNotFetchResource src (show e')
+       report $ CouldNotFetchResource src (show e)
        return $ Emph lab)
 
 transformPicMath _ (Math t math) = do

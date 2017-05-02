@@ -55,7 +55,6 @@ import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Compat.Time
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
 import Text.Pandoc.Generic
 import Text.Pandoc.Highlighting (highlight)
 import Text.Pandoc.ImageSize
@@ -1303,12 +1302,10 @@ inlineToOpenXML' opts (Image attr alt (src, title)) = do
                      M.insert src (ident, imgpath, mbMimeType, imgElt, img)
                              $ stImages st }
                  return [imgElt])
-        (\e -> do case e of
-                      PandocIOError _ e' ->
-                        report $ CouldNotFetchResource src (show e')
-                      e' -> report $ CouldNotFetchResource src (show e')
-                  -- emit alt text
-                  inlinesToOpenXML opts alt)
+        (\e -> do
+           report $ CouldNotFetchResource src (show e)
+           -- emit alt text
+           inlinesToOpenXML opts alt)
 
 br :: Element
 br = breakElement "textWrapping"
