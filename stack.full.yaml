@@ -21,7 +21,6 @@ packages:
 - '../pandoc-types'
 - '../texmath'
 extra-deps:
-- doctemplates-0.1.0.2
-- skylighting-0.3.1
 - hslua-0.5.0
-resolver: lts-8.4
+- skylighting-0.3.3
+resolver: lts-8.12
