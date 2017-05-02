@@ -673,6 +673,7 @@ inlineCommands = M.fromList $
   , ("Gls", doAcronym)
   , ("glsdesc", doAcronym)
   , ("Glsdesc", doAcronym)
+  , ("GLSdesc", doAcronym)
   , ("acrlong", doAcronym)
   , ("Acrlong", doAcronym)
   , ("acrfull", doAcronym)
@@ -681,6 +682,9 @@ inlineCommands = M.fromList $
   , ("Acrshort", doAcronym)
   , ("glspl", doAcronymPlural)
   , ("Glspl", doAcronymPlural)
+  , ("glsdescplural", doAcronymPlural)
+  , ("Glsdescplural", doAcronymPlural)
+  , ("GLSdescplural", doAcronymPlural)
   -- acronyms package
   , ("ac", doAcronym)
   , ("acf", doAcronym)
