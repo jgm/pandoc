@@ -241,7 +241,7 @@ keyToMarkdown opts (label', (src, tit), attr) = do
                 else space <> "\"" <> text tit <> "\""
   return $ nest 2 $ hang 2
             ("[" <> label' <> "]:" <> space) (text src <> tit')
-            <> linkAttributes opts attr
+            <+> linkAttributes opts attr
 
 -- | Return markdown representation of notes.
 notesToMarkdown :: PandocMonad m => WriterOptions -> [[Block]] -> MD m Doc
