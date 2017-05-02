@@ -821,7 +821,8 @@ inlineListToMarkdown opts lst = do
   where go [] = return empty
         go (i:is) = case i of
             (Link _ _ _) -> case is of
-                -- If a link is followed by another link or '[' we don't shortcut
+                -- If a link is followed by another link, or '[', '(' or ':'
+                -- then we don't shortcut
                 (Link _ _ _):_                    -> unshortcutable
                 Space:(Link _ _ _):_              -> unshortcutable
                 Space:(Str('[':_)):_              -> unshortcutable
@@ -831,9 +832,17 @@ inlineListToMarkdown opts lst = do
                 SoftBreak:(Str('[':_)):_          -> unshortcutable
                 SoftBreak:(RawInline _ ('[':_)):_ -> unshortcutable
                 SoftBreak:(Cite _ _):_            -> unshortcutable
+                LineBreak:(Link _ _ _):_          -> unshortcutable
+                LineBreak:(Str('[':_)):_          -> unshortcutable
+                LineBreak:(RawInline _ ('[':_)):_ -> unshortcutable
+                LineBreak:(Cite _ _):_            -> unshortcutable
                 (Cite _ _):_                      -> unshortcutable
                 Str ('[':_):_                     -> unshortcutable
+                Str ('(':_):_                     -> unshortcutable
+                Str (':':_):_                     -> unshortcutable
                 (RawInline _ ('[':_)):_           -> unshortcutable
+                (RawInline _ ('(':_)):_           -> unshortcutable
+                (RawInline _ (':':_)):_           -> unshortcutable
                 (RawInline _ (' ':'[':_)):_       -> unshortcutable
                 _                                 -> shortcutable
             _ -> shortcutable
