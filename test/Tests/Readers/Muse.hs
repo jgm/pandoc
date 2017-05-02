@@ -127,4 +127,96 @@ tests =
                 note (para "Recursion continues here[1]"))
         ]
       ]
+    , testGroup "Tables"
+        [ "Two cell table" =:
+          "One | Two" =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+                       []
+                       [[plain "One", plain "Two"]]
+        , "Table with multiple words" =:
+          "One two | three four" =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+                       []
+                       [[plain "One two", plain "three four"]]
+        , "Not a table" =:
+          "One| Two" =?>
+          para (text "One| Two")
+        , "Not a table again" =:
+          "One |Two" =?>
+          para (text "One |Two")
+        , "Two line table" =:
+          T.unlines
+            [ "One |  Two"
+            , "Three  | Four"
+            ] =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+                       []
+                       [[plain "One", plain "Two"],
+                       [plain "Three", plain "Four"]]
+        , "Table with one header" =:
+          T.unlines
+            [ "First || Second"
+            , "Third | Fourth"
+            ] =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+            [plain "First", plain "Second"]
+            [[plain "Third", plain "Fourth"]]
+        , "Table with two headers" =:
+          T.unlines
+            [ "First || header"
+            , "Second || header"
+            , "Foo | bar"
+            ] =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+            [plain "First", plain "header"]
+            [[plain "Second", plain "header"],
+             [plain "Foo", plain "bar"]]
+        , "Header and footer reordering" =:
+          T.unlines
+            [ "Foo ||| bar"
+            , "Baz || foo"
+            , "Bar | baz"
+            ] =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+            [plain "Baz", plain "foo"]
+            [[plain "Bar", plain "baz"],
+             [plain "Foo", plain "bar"]]
+        , "Table with caption" =:
+          T.unlines
+            [ "Foo || bar || baz"
+            , "First | row | here"
+            , "Second | row | there"
+            , "|+ Table caption +|"
+            ] =?>
+          table (text "Table caption") (replicate 3 (AlignDefault, 0.0))
+            [plain "Foo", plain "bar", plain "baz"]
+            [[plain "First", plain "row", plain "here"],
+             [plain "Second", plain "row", plain "there"]]
+        , "Caption without table" =:
+          "|+ Foo bar baz +|" =?>
+          table (text "Foo bar baz") [] [] []
+        , "Table indented with space" =:
+          T.unlines
+            [ " Foo | bar"
+            , " Baz | foo"
+            , " Bar | baz"
+            ] =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+            []
+            [[plain "Foo", plain "bar"],
+             [plain "Baz", plain "foo"],
+             [plain "Bar", plain "baz"]]
+        , "Empty cells" =:
+          T.unlines
+            [ " | Foo"
+            , " |"
+            , " bar |"
+            , " || baz"
+            ] =?>
+          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+            [plain "", plain "baz"]
+            [[plain "", plain "Foo"],
+             [plain "", plain ""],
+             [plain "bar", plain ""]]
+        ]
   ]

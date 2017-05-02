@@ -34,7 +34,8 @@ TODO:
 - Headings with anchors (make it round trip with Muse writer)
 - <verse> and ">"
 - Lists
-- Tables
+- Org tables
+- table.el tables
 - Images with attributes (floating and width)
 - Anchors
 - Citations and <biblio>
@@ -182,6 +183,7 @@ blockElements = choice [ comment
                        , centerTag
                        , rightTag
                        , quoteTag
+                       , table
                        , commentTag
                        , noteBlock
                        ]
@@ -269,6 +271,99 @@ noteBlock = try $ do
   where
     blocksTillNote =
       many1Till block (eof <|> () <$ lookAhead noteMarker)
+
+--
+-- tables
+--
+
+data MuseTable = MuseTable
+  { museTableCaption :: Inlines
+  , museTableHeaders :: [[Blocks]]
+  , museTableRows :: [[Blocks]]
+  , museTableFooters :: [[Blocks]]
+  }
+
+data MuseTableElement = MuseHeaderRow (F [Blocks])
+                      | MuseBodyRow   (F [Blocks])
+                      | MuseFooterRow (F [Blocks])
+                      | MuseCaption (F Inlines)
+
+museToPandocTable :: MuseTable -> Blocks
+museToPandocTable (MuseTable caption headers body footers) =
+  B.table caption attrs headRow rows
+  where ncol = maximum (0 : map length (headers ++ body ++ footers))
+        attrs = replicate ncol (AlignDefault, 0.0)
+        headRow = if null headers then [] else head headers
+        rows = (if null headers then [] else tail headers) ++ body ++ footers
+
+museAppendElement :: MuseTable
+                  -> MuseTableElement
+                  -> F MuseTable
+museAppendElement tbl element =
+  case element of
+    MuseHeaderRow row -> do
+      row' <- row
+      return tbl{ museTableHeaders = museTableHeaders tbl ++ [row'] }
+    MuseBodyRow row -> do
+      row' <- row
+      return tbl{ museTableRows = museTableRows tbl ++ [row'] }
+    MuseFooterRow row-> do
+      row' <- row
+      return tbl{ museTableFooters = museTableFooters tbl ++ [row'] }
+    MuseCaption inlines -> do
+      inlines' <- inlines
+      return tbl{ museTableCaption = inlines' }
+
+tableCell :: PandocMonad m => MuseParser m (F Blocks)
+tableCell = try $ do
+  content <- trimInlinesF . mconcat <$> manyTill inline (lookAhead cellEnd)
+  return $ B.plain <$> content
+  where cellEnd = try $ void (many1 spaceChar >> char '|') <|> void newline <|> eof
+
+tableElements :: PandocMonad m => MuseParser m [MuseTableElement]
+tableElements = tableParseElement `sepEndBy1` (void newline <|> eof)
+
+elementsToTable :: [MuseTableElement] -> F MuseTable
+elementsToTable = foldM museAppendElement emptyTable
+  where emptyTable = MuseTable mempty mempty mempty mempty
+
+table :: PandocMonad m => MuseParser m (F Blocks)
+table = try $ do
+  rows <- tableElements
+  let tbl = elementsToTable rows
+  let pandocTbl = museToPandocTable <$> tbl :: F Blocks
+  return pandocTbl
+
+tableParseElement :: PandocMonad m => MuseParser m MuseTableElement
+tableParseElement = tableParseHeader
+                <|> tableParseBody
+                <|> tableParseFooter
+                <|> tableParseCaption
+
+tableParseRow :: PandocMonad m => Int -> MuseParser m (F [Blocks])
+tableParseRow n = try $ do
+  fields <- tableCell `sepBy2` fieldSep
+  return $ sequence fields
+    where p `sepBy2` sep = (:) <$> p <*> many1 (sep >> p)
+          fieldSep = many1 spaceChar >> count n (char '|') >> (void (many1 spaceChar) <|> void (lookAhead newline))
+
+tableParseHeader :: PandocMonad m => MuseParser m MuseTableElement
+tableParseHeader = MuseHeaderRow <$> tableParseRow 2
+
+tableParseBody :: PandocMonad m => MuseParser m MuseTableElement
+tableParseBody = MuseBodyRow <$> tableParseRow 1
+
+tableParseFooter :: PandocMonad m => MuseParser m MuseTableElement
+tableParseFooter = MuseFooterRow <$> tableParseRow 3
+
+tableParseCaption :: PandocMonad m => MuseParser m MuseTableElement
+tableParseCaption = try $ do
+  many spaceChar
+  string "|+"
+  contents <- trimInlinesF . mconcat <$> many1Till inline (lookAhead $ string "+|")
+  string "+|"
+  return $ MuseCaption contents
+
 --
 -- inline parsers
 --
