@@ -420,7 +420,7 @@ blockTextcolor :: PandocMonad m => LP m Blocks
 blockTextcolor = do
     skipopts 
     color <- braced
-    return <$> divWith ("",[],[("style","color: " ++ color)]) $ block
+    divWith ("",[],[("style","color: " ++ color)]) <$> grouped block
 
 graphicsPath :: PandocMonad m => LP m Blocks
 graphicsPath = do

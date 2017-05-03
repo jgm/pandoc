@@ -1,24 +1,28 @@
 ```
 % pandoc -f latex -t native
-\textcolor{red}{Hello World}
+Hello \textcolor{red}{World}
 ^D
-[Para [Span ("",[],[("style","color: red")]) [Str "Hello",Space,Str "World"]]]
+[Para [Str "Hello",Space,Span ("",[],[("style","color: red")]) [Str "World"]]]
 ```
 
 ```
 % pandoc -f latex -t native
-\textcolor{blue}{Hello \textbf{World}}
+Hello \textcolor{blue}{\textbf{World}}
 ^D
-[Para [Span ("",[],[("style","color: blue")]) [Str "Hello",Space,Strong [Str "World"]]]]
+[Para [Str "Hello",Space,Span ("",[],[("style","color: blue")]) [Strong [Str "World"]]]]
 ```
 
 ```
 % pandoc -f latex -t native
 \textcolor{orange}{
-    \begin{itemize}	
-        \item Test
-    \end{itemize}
+\begin{itemize}	
+    \item Item 1
+    \item Item 2
+\end{itemize}
 }
 ^D
-
+[Div ("",[],[("style","color: orange")])
+ [BulletList
+  [[Para [Str "Item",Space,Str "1"]]
+  ,[Para [Str "Item",Space,Str "2"]]]]]
 ```
