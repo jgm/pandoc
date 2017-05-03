@@ -1156,6 +1156,7 @@ environments = M.fromList
   , ("table",  env "table" $
          resetCaption *> skipopts *> blocks >>= addTableCaption)
   , ("tabular*", env "tabular" $ simpTable True)
+  , ("tabularx", env "tabularx" $ simpTable True)
   , ("tabular", env "tabular"  $ simpTable False)
   , ("quote", blockQuote <$> env "quote" blocks)
   , ("quotation", blockQuote <$> env "quotation" blocks)
@@ -1414,7 +1415,11 @@ parseAligns = try $ do
   let lAlign = AlignLeft <$ char 'l'
   let rAlign = AlignRight <$ char 'r'
   let parAlign = AlignLeft <$ (char 'p' >> braced)
-  let alignChar = cAlign <|> lAlign <|> rAlign <|> parAlign
+  -- algins from tabularx
+  let xAlign = AlignLeft <$ char 'X'
+  let mAlign = AlignLeft <$ (char 'm' >> braced)
+  let bAlign = AlignLeft <$ (char 'b' >> braced)
+  let alignChar = cAlign <|> lAlign <|> rAlign <|> parAlign <|> xAlign <|> mAlign <|> bAlign
   let alignPrefix = char '>' >> braced
   let alignSuffix = char '<' >> braced
   let alignSpec = do
