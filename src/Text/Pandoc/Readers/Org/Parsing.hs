@@ -70,6 +70,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , dash
   , ellipses
   , citeKey
+  , gridTableWith
   -- * Re-exports from Text.Pandoc.Parsec
   , runParser
   , runParserT

@@ -755,7 +755,11 @@ data OrgTable = OrgTable
   }
 
 table :: PandocMonad m => OrgParser m (F Blocks)
-table = try $ do
+table = gridTableWith blocks True <|> orgTable
+
+-- | A normal org table
+orgTable :: PandocMonad m => OrgParser m (F Blocks)
+orgTable = try $ do
   -- don't allow a table on the first line of a list item; org requires that
   -- tables start at first non-space character on the line
   let isFirstInListItem st = (orgStateParserContext st == ListItemState) &&
@@ -854,28 +858,28 @@ normalizeTable (OrgTable colProps heads rows) =
 rowToContent :: OrgTable
              -> OrgTableRow
              -> F OrgTable
-rowToContent orgTable row =
+rowToContent tbl row =
   case row of
     OrgHlineRow       -> return singleRowPromotedToHeader
     OrgAlignRow props -> return . setProperties $ props
     OrgContentRow cs  -> appendToBody cs
  where
    singleRowPromotedToHeader :: OrgTable
-   singleRowPromotedToHeader = case orgTable of
+   singleRowPromotedToHeader = case tbl of
      OrgTable{ orgTableHeader = [], orgTableRows = b:[] } ->
-            orgTable{ orgTableHeader = b , orgTableRows = [] }
-     _   -> orgTable
+            tbl{ orgTableHeader = b , orgTableRows = [] }
+     _   -> tbl
 
    setProperties :: [ColumnProperty] -> OrgTable
-   setProperties ps = orgTable{ orgTableColumnProperties = ps }
+   setProperties ps = tbl{ orgTableColumnProperties = ps }
 
    appendToBody :: F [Blocks] -> F OrgTable
    appendToBody frow = do
      newRow <- frow
-     let oldRows = orgTableRows orgTable
+     let oldRows = orgTableRows tbl
      -- NOTE: This is an inefficient O(n) operation.  This should be changed
      -- if performance ever becomes a problem.
-     return orgTable{ orgTableRows = oldRows ++ [newRow] }
+     return tbl{ orgTableRows = oldRows ++ [newRow] }
 
 
 --

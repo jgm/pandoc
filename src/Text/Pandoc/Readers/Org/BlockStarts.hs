@@ -61,6 +61,10 @@ headerStart = try $
 tableStart :: Monad m => OrgParser m Char
 tableStart = try $ skipSpaces *> char '|'
 
+gridTableStart :: Monad m => OrgParser m ()
+gridTableStart = try $ skipSpaces <* char '+' <* char '-'
+
+
 latexEnvStart :: Monad m => OrgParser m String
 latexEnvStart = try $ do
   skipSpaces *> string "\\begin{"
@@ -126,6 +130,7 @@ endOfBlock = lookAhead . try $ do
      , hline
      , metaLineStart
      , commentLineStart
+     , gridTableStart
      , void noteMarker
      , void tableStart
      , void drawerStart
