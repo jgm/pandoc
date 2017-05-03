@@ -11,3 +11,14 @@
 ^D
 [Para [Span ("",[],[("style","color: blue")]) [Str "Hello",Space,Strong [Str "World"]]]]
 ```
+
+```
+% pandoc -f latex -t native
+\textcolor{orange}{
+    \begin{itemize}	
+        \item Test
+    \end{itemize}
+}
+^D
+
+```

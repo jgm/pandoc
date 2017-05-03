@@ -393,6 +393,8 @@ blockCommands = M.fromList $
   , ("graphicspath", graphicsPath)
   -- hyperlink
   , ("hypertarget", braced >> grouped block)
+  -- textcolor
+  , ("textcolor", blockTextcolor)
   ] ++ map ignoreBlocks
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks
@@ -413,6 +415,12 @@ blockCommands = M.fromList $
   , "clearpage"
   , "pagebreak"
   ]
+
+blockTextcolor :: PandocMonad m => LP m Blocks
+blockTextcolor = do
+    skipopts 
+    color <- braced
+    return <$> divWith ("",[],[("style","color: " ++ color)]) $ block
 
 graphicsPath :: PandocMonad m => LP m Blocks
 graphicsPath = do
@@ -681,7 +689,7 @@ inlineCommands = M.fromList $
   , ("textnhtt", ttfamily)
   , ("nhttfamily", ttfamily)
   -- textcolor
-  , ("textcolor", textcolor)
+  , ("textcolor", inlineTextcolor)
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
@@ -692,6 +700,12 @@ inlineCommands = M.fromList $
   , "clearpage"
   , "pagebreak"
   ]
+
+inlineTextcolor :: PandocMonad m => LP m Inlines
+inlineTextcolor = do
+    skipopts 
+    color <- braced
+    spanWith ("",[],[("style","color: " ++ color)]) <$> tok
 
 ttfamily :: PandocMonad m => LP m Inlines
 ttfamily = (code . stringify . toList) <$> tok
@@ -757,12 +771,6 @@ dosiunitx = do
                       value, 
                       emptyOr160 unit,
                       unit]
-
-textcolor :: PandocMonad m => LP m Inlines
-textcolor = do
-    skipopts 
-    color <- braced
-    spanWith ("",[],[("style","color: " ++ color)]) <$> tok
 
 lit :: String -> LP m Inlines
 lit = pure . str
