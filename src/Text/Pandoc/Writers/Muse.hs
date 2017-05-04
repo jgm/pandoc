@@ -53,6 +53,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
+import qualified Data.Set as Set
 
 type Notes = [[Block]]
 data WriterState =
@@ -60,6 +61,7 @@ data WriterState =
               , stOptions     :: WriterOptions
               , stTopLevel    :: Bool
               , stInsideBlock :: Bool
+              , stIds         :: Set.Set String
               }
 
 -- | Convert Pandoc to Muse.
@@ -72,6 +74,7 @@ writeMuse opts document =
                        , stOptions = opts
                        , stTopLevel = True
                        , stInsideBlock = False
+                       , stIds = Set.empty
                        }
   in evalStateT (pandocToMuse document) st
 
@@ -184,8 +187,14 @@ blockToMuse (DefinitionList items) = do
           let ind = offset label''
           return $ hang ind label'' contents
 blockToMuse (Header level (ident,_,_) inlines) = do
+  opts <- gets stOptions
   contents <- inlineListToMuse inlines
-  let attr' = if null ident
+
+  ids <- gets stIds
+  let autoId = uniqueIdent inlines ids
+  modify $ \st -> st{ stIds = Set.insert autoId ids }
+
+  let attr' = if null ident || (isEnabled Ext_auto_identifiers opts && ident == autoId)
                  then empty
                  else "#" <> text ident <> cr
   let header' = text $ replicate level '*'

@@ -9,47 +9,30 @@ markdown test suite.
 
 * Headers
 
-#headers
-
 ** Level 2 with an [[/url][embedded link]]
-
-#level-2-with-an-embedded-link
 
 *** Level 3 with <em>emphasis</em>
 
-#level-3-with-emphasis
-
 **** Level 4
-
-#level-4
 
 ***** Level 5
 
-#level-5
-
 * Level 1
-
-#level-1
 
 ** Level 2 with <em>emphasis</em>
 
-#level-2-with-emphasis
-
 *** Level 3
 
-#level-3
 with no blank line
 
 ** Level 2
 
-#level-2
 with no blank line
 
 ----
 
 * Paragraphs
 
-#paragraphs
 Here’s a regular paragraph.
 
 In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
@@ -65,7 +48,6 @@ here.
 
 * Block Quotes
 
-#block-quotes
 E-mail style:
 
 <quote>
@@ -105,7 +87,6 @@ And a following paragraph.
 
 * Code Blocks
 
-#code-blocks
 Code:
 
 <example>
@@ -130,11 +111,8 @@ These should not be escaped:  \$ \\ \> \[ \{
 
 * Lists
 
-#lists
-
 ** Unordered
 
-#unordered
 Asterisks tight:
 
  - asterisk 1
@@ -173,7 +151,6 @@ Minuses loose:
 
 ** Ordered
 
-#ordered
 Tight:
 
  1. First
@@ -208,7 +185,6 @@ Multiple paragraphs:
 
 ** Nested
 
-#nested
  - Tab
    - Tab
      - Tab
@@ -234,7 +210,6 @@ Same thing but with paragraphs:
 
 ** Tabs and spaces
 
-#tabs-and-spaces
  - this is a list item indented with tabs
  - this is a list item indented with spaces
 
@@ -243,7 +218,6 @@ Same thing but with paragraphs:
 
 ** Fancy list markers
 
-#fancy-list-markers
  2. begins with 2
  3. and now 3
 
@@ -277,7 +251,6 @@ B. Williams
 
 * Definition Lists
 
-#definition-lists
 Tight using spaces:
 
  apple :: red fruit
@@ -339,7 +312,6 @@ Blank line after term, indented marker, alternate markers:
 
 * HTML Blocks
 
-#html-blocks
 Simple block on one line:
 
 fooAnd nested without indentation:
@@ -489,7 +461,6 @@ Hr’s:
 
 * Inline Markup
 
-#inline-markup
 This is <em>emphasized</em>, and so <em>is this</em>.
 
 This is <strong>strong</strong>, and so <strong>is this</strong>.
@@ -521,7 +492,6 @@ spaces: a^b c^d, a~b c~d.
 
 * Smart quotes, ellipses, dashes
 
-#smart-quotes-ellipses-dashes
 "Hello," said the spider. "'Shelob' is my name."
 
 'A', 'B', and 'C' are letters.
@@ -543,7 +513,6 @@ Ellipses…and…and….
 
 * LaTeX
 
-#latex
  - <literal style="tex">\cite[22-23]{smith.1899}</literal>
  - 2 + 2 <verbatim>=</verbatim> 4
  - <em>x</em> ∈ <em>y</em>
@@ -578,7 +547,6 @@ Cat    & 1      \\ \hline
 
 * Special Characters
 
-#special-characters
 Here is some unicode:
 
  - I hat: Î
@@ -633,11 +601,8 @@ Minus: -
 
 * Links
 
-#links
-
 ** Explicit
 
-#explicit
 Just a [[/url/][URL]].
 
 [[/url/][URL and title]].
@@ -658,7 +623,6 @@ Just a [[/url/][URL]].
 
 ** Reference
 
-#reference
 Foo [[/url/][bar]].
 
 Foo [[/url/][bar]].
@@ -687,7 +651,6 @@ Foo [[/url/][biz]].
 
 ** With ampersands
 
-#with-ampersands
 Here’s a [[http://example.com/?foo=1&bar=2][link with an ampersand in the
 URL]].
 
@@ -699,7 +662,6 @@ Here’s an [[/script?foo=1&bar=2][inline link in pointy braces]].
 
 ** Autolinks
 
-#autolinks
 With an ampersand: [[http://example.com/?foo=1&bar=2]]
 
  - In a list?
@@ -723,7 +685,6 @@ or here: <http://example.com/>
 
 * Images
 
-#images
 From "Voyage dans la Lune" by Georges Melies (1902):
 
 [[lalune.jpg][Voyage dans la Lune]]
@@ -734,7 +695,6 @@ Here is a movie [[movie.jpg][movie]] icon.
 
 * Footnotes
 
-#footnotes
 Here is a footnote reference,[1] and another.[2] This should <em>not</em> be a
 footnote reference, because it contains a <verbatim>space.[^my</verbatim>
 <verbatim>note]</verbatim> Here is an inline note.[3]
