@@ -271,6 +271,7 @@ multimarkdownExtensions = extensionsFromList
   -- not to include these:
   , Ext_superscript
   , Ext_subscript
+  , Ext_backtick_code_blocks
   ]
 
 -- | Language extensions to be used with strict markdown.
