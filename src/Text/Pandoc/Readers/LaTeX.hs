@@ -538,6 +538,7 @@ inlineCommands = M.fromList $
   , ("sep", lit ",")
   , ("cref", ref)  -- from cleveref.sty
   , ("vref", ref)  -- from varioref.sty
+  , ("eqref", ref) -- from amsmath.sty
   , ("(", mathInline $ manyTill anyChar (try $ string "\\)"))
   , ("[", mathDisplay $ manyTill anyChar (try $ string "\\]"))
   , ("ensuremath", mathInline braced)
