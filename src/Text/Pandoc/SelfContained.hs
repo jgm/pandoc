@@ -31,6 +31,7 @@ offline, by incorporating linked images, CSS, and scripts into
 the HTML using data URIs.
 -}
 module Text.Pandoc.SelfContained ( makeDataURI, makeSelfContained ) where
+import Data.Monoid ((<>))
 import Codec.Compression.GZip as Gzip
 import Control.Applicative ((<|>))
 import Control.Monad.Except (throwError)
@@ -149,7 +150,32 @@ cssURLs sourceURL d orig = do
 parseCSSUrls :: PandocMonad m
              => Maybe String -> FilePath -> ParsecT ByteString () m ByteString
 parseCSSUrls sourceURL d = B.concat <$> P.many
-    (pCSSWhite <|> pCSSComment <|> pCSSUrl sourceURL d <|> pCSSOther)
+    (    pCSSWhite
+     <|> pCSSComment
+     <|> pCSSImport sourceURL d
+     <|> (pCSSUrl >>= processCSSUrl sourceURL d)
+     <|> pCSSOther
+    )
+
+pCSSImport :: PandocMonad m
+           => Maybe String -> FilePath -> ParsecT ByteString () m ByteString
+pCSSImport sourceURL d = P.try $ do
+  P.string "@import"
+  P.spaces
+  url <- pCSSUrl
+  P.spaces
+  media <- P.manyTill P.anyChar (P.char ';')
+  let u = escapeURIString (/='|') (trim url)
+  let url' = if isURI u then u else d </> u
+  res <- lift $ getData sourceURL "" url'
+  case res of
+       Left uri -> return (B.pack $ "url(" ++ uri ++ ")")
+       Right (_, raw) -> do
+         raw' <- cssURLs sourceURL d raw
+         if null media
+            then return raw'
+            else return $ B.pack ("@media " ++ media ++ "{\n") <> raw' <>
+                          B.pack "}"
 
 -- Note: some whitespace in CSS is significant, so we can't collapse it!
 pCSSWhite :: PandocMonad m => ParsecT ByteString () m ByteString
@@ -168,16 +194,21 @@ pCSSOther = do
     (B.singleton <$> P.char '/')
 
 pCSSUrl :: PandocMonad m
-        => Maybe String -> FilePath -> ParsecT ByteString () m ByteString
-pCSSUrl sourceURL d = P.try $ do
+        => ParsecT ByteString () m String
+pCSSUrl = P.try $ do
   P.string "url("
   P.spaces
   quote <- P.option Nothing (Just <$> P.oneOf "\"'")
   url <- P.manyTill P.anyChar (maybe (P.lookAhead (P.char ')')) P.char quote)
   P.spaces
   P.char ')'
-  let fallback = B.pack ("url(" ++ maybe "" (:[]) quote ++ trim url ++
-                            maybe "" (:[]) quote ++ ")")
+  return url
+
+processCSSUrl :: PandocMonad m
+              => Maybe String -> FilePath -> String
+              -> ParsecT ByteString () m ByteString
+processCSSUrl sourceURL d url = do
+  let fallback = B.pack ("url('" ++ trim url ++ "')")
   -- pipes are used in URLs provided by Google Code fonts
   -- but parseURI doesn't like them, so we escape them:
   case escapeURIString (/='|') (trim url) of
