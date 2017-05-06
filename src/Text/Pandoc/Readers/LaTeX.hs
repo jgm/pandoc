@@ -1095,7 +1095,7 @@ parseListingsOptions options =
 keyval :: PandocMonad m => LP m (String, String)
 keyval = try $ do
   key <- many1 alphaNum
-  val <- option "" $ char '=' >> many1 (alphaNum <|> char '.' <|> char '\\')
+  val <- option "" $ char '=' >> braced <|> (many1 (alphaNum <|> oneOf ".:-|\\"))
   skipMany spaceChar
   optional (char ',')
   skipMany spaceChar
