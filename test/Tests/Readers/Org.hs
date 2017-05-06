@@ -469,6 +469,24 @@ tests =
                          , citationNoteNum = 0
                          , citationHash = 0}
           in (para . cite [citation] $ rawInline "latex" "\\cite{Coffee}")
+
+      , "Macro" =:
+          unlines [ "#+MACRO: HELLO /Hello, $1/"
+                  , "{{{HELLO(World)}}}"
+                  ] =?>
+          para (emph "Hello, World")
+
+      , "Macro repeting its argument" =:
+          unlines [ "#+MACRO: HELLO $1$1"
+                  , "{{{HELLO(moin)}}}"
+                  ] =?>
+          para "moinmoin"
+
+      , "Macro called with too few arguments" =:
+          unlines [ "#+MACRO: HELLO Foo $1 $2 Bar"
+                  , "{{{HELLO()}}}"
+                  ] =?>
+          para "Foo Bar"
       ]
 
   , testGroup "Meta Information" $

@@ -120,6 +120,7 @@ inline =
          , superscript
          , inlineLaTeX
          , exportSnippet
+         , macro
          , smart
          , symbol
          ] <* (guard =<< newlinesCountWithinLimits)
@@ -838,6 +839,26 @@ exportSnippet = try $ do
   format <- many1Till (alphaNum <|> char '-') (char ':')
   snippet <- manyTill anyChar (try $ string "@@")
   returnF $ B.rawInline format snippet
+
+macro :: PandocMonad m => OrgParser m (F Inlines)
+macro = try $ do
+  recursionDepth <- orgStateMacroDepth <$> getState
+  guard $ recursionDepth < 15
+  string "{{{"
+  name <- many alphaNum
+  args <- ([] <$ string "}}}")
+          <|> char '(' *> argument `sepBy` char ',' <* eoa
+  expander <- lookupMacro name <$> getState
+  case expander of
+    Nothing -> mzero
+    Just fn -> do
+      updateState $ \s -> s { orgStateMacroDepth = recursionDepth + 1 }
+      res <- parseFromString (mconcat <$> many inline) $ fn args
+      updateState $ \s -> s { orgStateMacroDepth = recursionDepth }
+      return res
+ where
+  argument = many $ notFollowedBy eoa *> noneOf ","
+  eoa = string ")}}}"
 
 smart :: PandocMonad m => OrgParser m (F Inlines)
 smart = do

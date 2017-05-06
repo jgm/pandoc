@@ -39,6 +39,9 @@ module Text.Pandoc.Readers.Org.ParserState
   , TodoState (..)
   , activeTodoMarkers
   , registerTodoSequence
+  , MacroExpander
+  , lookupMacro
+  , registerMacro
   , F
   , askF
   , asksF
@@ -78,6 +81,8 @@ type OrgNoteTable = [OrgNoteRecord]
 -- | Map of functions for link transformations.  The map key is refers to the
 -- link-type, the corresponding function transforms the given link string.
 type OrgLinkFormatters = M.Map String (String -> String)
+-- | Macro expander function
+type MacroExpander = [String] -> String
 
 -- | The states in which a todo item can be
 data TodoState = Todo | Done
@@ -105,6 +110,8 @@ data OrgParserState = OrgParserState
   , orgStateLastPreCharPos       :: Maybe SourcePos
   , orgStateLastStrPos           :: Maybe SourcePos
   , orgStateLinkFormatters       :: OrgLinkFormatters
+  , orgStateMacros               :: M.Map String MacroExpander
+  , orgStateMacroDepth           :: Int
   , orgStateMeta                 :: F Meta
   , orgStateNotes'               :: OrgNoteTable
   , orgStateOptions              :: ReaderOptions
@@ -156,6 +163,8 @@ defaultOrgParserState = OrgParserState
   , orgStateLastPreCharPos = Nothing
   , orgStateLastStrPos = Nothing
   , orgStateLinkFormatters = M.empty
+  , orgStateMacros = M.empty
+  , orgStateMacroDepth = 0
   , orgStateMeta = return nullMeta
   , orgStateNotes' = []
   , orgStateOptions = def
@@ -184,6 +193,15 @@ activeTodoSequences st =
 
 activeTodoMarkers :: OrgParserState -> TodoSequence
 activeTodoMarkers = concat . activeTodoSequences
+
+lookupMacro :: String -> OrgParserState -> Maybe MacroExpander
+lookupMacro macroName = M.lookup macroName . orgStateMacros
+
+registerMacro :: (String, MacroExpander) -> OrgParserState -> OrgParserState
+registerMacro (name, expander) st =
+  let curMacros = orgStateMacros st
+  in st{ orgStateMacros = M.insert name expander curMacros }
+
 
 
 --
