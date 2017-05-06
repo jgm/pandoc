@@ -492,20 +492,20 @@ isBlockCommand s = s `M.member` (blockCommands :: M.Map String (LP PandocPure Bl
 
 inlineEnvironments :: PandocMonad m => M.Map String (LP m Inlines)
 inlineEnvironments = M.fromList
-  [ ("displaymath", mathEnv id Nothing "displaymath")
-  , ("math", math <$> verbEnv "math")
-  , ("equation", mathEnv id Nothing "equation")
-  , ("equation*", mathEnv id Nothing "equation*")
-  , ("gather", mathEnv id (Just "gathered") "gather")
-  , ("gather*", mathEnv id (Just "gathered") "gather*")
-  , ("multline", mathEnv id (Just "gathered") "multline")
-  , ("multline*", mathEnv id (Just "gathered") "multline*")
-  , ("eqnarray", mathEnv id (Just "aligned") "eqnarray")
-  , ("eqnarray*", mathEnv id (Just "aligned") "eqnarray*")
-  , ("align", mathEnv id (Just "aligned") "align")
-  , ("align*", mathEnv id (Just "aligned") "align*")
-  , ("alignat", mathEnv id (Just "aligned") "alignat")
-  , ("alignat*", mathEnv id (Just "aligned") "alignat*")
+  [ ("displaymath", mathEnvWith id Nothing "displaymath")
+  , ("math", math <$> mathEnv "math")
+  , ("equation", mathEnvWith id Nothing "equation")
+  , ("equation*", mathEnvWith id Nothing "equation*")
+  , ("gather", mathEnvWith id (Just "gathered") "gather")
+  , ("gather*", mathEnvWith id (Just "gathered") "gather*")
+  , ("multline", mathEnvWith id (Just "gathered") "multline")
+  , ("multline*", mathEnvWith id (Just "gathered") "multline*")
+  , ("eqnarray", mathEnvWith id (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnvWith id (Just "aligned") "eqnarray*")
+  , ("align", mathEnvWith id (Just "aligned") "align")
+  , ("align*", mathEnvWith id (Just "aligned") "align*")
+  , ("alignat", mathEnvWith id (Just "aligned") "alignat")
+  , ("alignat*", mathEnvWith id (Just "aligned") "alignat*")
   ]
 
 inlineCommands :: PandocMonad m => M.Map String (LP m Inlines)
@@ -1187,19 +1187,19 @@ environments = M.fromList
   , ("obeylines", parseFromString
                   (para . trimInlines . mconcat <$> many inline) =<<
                   intercalate "\\\\\n" . lines <$> verbEnv "obeylines")
-  , ("displaymath", mathEnv para Nothing "displaymath")
-  , ("equation", mathEnv para Nothing "equation")
-  , ("equation*", mathEnv para Nothing "equation*")
-  , ("gather", mathEnv para (Just "gathered") "gather")
-  , ("gather*", mathEnv para (Just "gathered") "gather*")
-  , ("multline", mathEnv para (Just "gathered") "multline")
-  , ("multline*", mathEnv para (Just "gathered") "multline*")
-  , ("eqnarray", mathEnv para (Just "aligned") "eqnarray")
-  , ("eqnarray*", mathEnv para (Just "aligned") "eqnarray*")
-  , ("align", mathEnv para (Just "aligned") "align")
-  , ("align*", mathEnv para (Just "aligned") "align*")
-  , ("alignat", mathEnv para (Just "aligned") "alignat")
-  , ("alignat*", mathEnv para (Just "aligned") "alignat*")
+  , ("displaymath", mathEnvWith para Nothing "displaymath")
+  , ("equation", mathEnvWith para Nothing "equation")
+  , ("equation*", mathEnvWith para Nothing "equation*")
+  , ("gather", mathEnvWith para (Just "gathered") "gather")
+  , ("gather*", mathEnvWith para (Just "gathered") "gather*")
+  , ("multline", mathEnvWith para (Just "gathered") "multline")
+  , ("multline*", mathEnvWith para (Just "gathered") "multline*")
+  , ("eqnarray", mathEnvWith para (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnvWith para (Just "aligned") "eqnarray*")
+  , ("align", mathEnvWith para (Just "aligned") "align")
+  , ("align*", mathEnvWith para (Just "aligned") "align*")
+  , ("alignat", mathEnvWith para (Just "aligned") "alignat")
+  , ("alignat*", mathEnvWith para (Just "aligned") "alignat*")
   ]
 
 figure :: PandocMonad m => LP m Blocks
@@ -1264,19 +1264,32 @@ listenv name p = try $ do
   updateState $ \st -> st{ stateParserContext = oldCtx }
   return res
 
-mathEnv :: PandocMonad m => (Inlines -> a) -> Maybe String -> String -> LP m a
-mathEnv f innerEnv name = f <$> mathDisplay (inner <$> verbEnv name)
+mathEnvWith :: PandocMonad m
+            => (Inlines -> a) -> Maybe String -> String -> LP m a
+mathEnvWith f innerEnv name = f <$> mathDisplay (inner <$> mathEnv name)
    where inner x = case innerEnv of
                       Nothing -> x
                       Just y  -> "\\begin{" ++ y ++ "}\n" ++ x ++
                                     "\\end{" ++ y ++ "}"
+
+mathEnv :: PandocMonad m => String -> LP m String
+mathEnv name = do
+  skipopts
+  optional blankline
+  let endEnv = try $ controlSeq "end" *> braced >>= guard . (== name)
+      charMuncher = skipMany comment *>
+                       (many1 (noneOf "\\%") <|> try (string "\\%")
+                           <|> try (string "\\\\") <|> count 1 anyChar)
+  res <- concat <$> manyTill charMuncher endEnv
+  return $ stripTrailingNewlines res
 
 verbEnv :: PandocMonad m => String -> LP m String
 verbEnv name = do
   skipopts
   optional blankline
   let endEnv = try $ controlSeq "end" *> braced >>= guard . (== name)
-  res <- manyTill anyChar endEnv
+      charMuncher = anyChar
+  res <- manyTill charMuncher endEnv
   return $ stripTrailingNewlines res
 
 fancyverbEnv :: PandocMonad m => String -> LP m Blocks
