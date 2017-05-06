@@ -1088,13 +1088,19 @@ rawTeXBlock = do
 rawHtmlBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 rawHtmlBlocks = do
   (TagOpen tagtype _, raw) <- htmlTag isBlockTag
+  -- we don't want '<td>    text' to be a code block:
+  skipMany spaceChar
+  indentlevel <- (blankline >> length <$> many (char ' ')) <|> return 0
   -- try to find closing tag
   -- we set stateInHtmlBlock so that closing tags that can be either block or
   -- inline will not be parsed as inline tags
   oldInHtmlBlock <- stateInHtmlBlock <$> getState
   updateState $ \st -> st{ stateInHtmlBlock = Just tagtype }
   let closer = htmlTag (\x -> x ~== TagClose tagtype)
-  contents <- mconcat <$> many (notFollowedBy' closer >> block)
+  let block' = do notFollowedBy' closer
+                  atMostSpaces indentlevel
+                  block
+  contents <- mconcat <$> many block'
   result <-
     (closer >>= \(_, rawcloser) -> return (
                 return (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
