@@ -669,29 +669,29 @@ inlineCommands = M.fromList $
                           addMeta "nocite"))
   , ("hypertarget", braced >> tok)
   -- glossaries package
-  , ("gls", doAcronym)
-  , ("Gls", doAcronym)
-  , ("glsdesc", doAcronym)
-  , ("Glsdesc", doAcronym)
-  , ("GLSdesc", doAcronym)
-  , ("acrlong", doAcronym)
-  , ("Acrlong", doAcronym)
-  , ("acrfull", doAcronym)
-  , ("Acrfull", doAcronym)
-  , ("acrshort", doAcronym)
-  , ("Acrshort", doAcronym)
-  , ("glspl", doAcronymPlural)
-  , ("Glspl", doAcronymPlural)
-  , ("glsdescplural", doAcronymPlural)
-  , ("Glsdescplural", doAcronymPlural)
-  , ("GLSdescplural", doAcronymPlural)
+  , ("gls", doAcronym "short")
+  , ("Gls", doAcronym "short")
+  , ("glsdesc", doAcronym "long")
+  , ("Glsdesc", doAcronym "long")
+  , ("GLSdesc", doAcronym "long")
+  , ("acrlong", doAcronym "long")
+  , ("Acrlong", doAcronym "long")
+  , ("acrfull", doAcronym "full")
+  , ("Acrfull", doAcronym "full")
+  , ("acrshort", doAcronym "abbrv")
+  , ("Acrshort", doAcronym "abbrv")
+  , ("glspl", doAcronymPlural "short")
+  , ("Glspl", doAcronymPlural "short")
+  , ("glsdescplural", doAcronymPlural "long")
+  , ("Glsdescplural", doAcronymPlural "long")
+  , ("GLSdescplural", doAcronymPlural "long")
   -- acronyms package
-  , ("ac", doAcronym)
-  , ("acf", doAcronym)
-  , ("acs", doAcronym)
-  , ("acp", doAcronymPlural)
-  , ("acfp", doAcronymPlural)
-  , ("acsp", doAcronymPlural)
+  , ("ac", doAcronym "short")
+  , ("acf", doAcronym "full")
+  , ("acs", doAcronym "abbrv")
+  , ("acp", doAcronymPlural "short")
+  , ("acfp", doAcronymPlural "full")
+  , ("acsp", doAcronymPlural "abbrv")
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
@@ -735,16 +735,16 @@ enquote = do
      then singleQuoted <$> withQuoteContext InSingleQuote tok
      else doubleQuoted <$> withQuoteContext InDoubleQuote tok
 
-doAcronym :: PandocMonad m => LP m Inlines
-doAcronym = do
+doAcronym :: PandocMonad m => String -> LP m Inlines
+doAcronym form = do
   acro <- braced
-  return . mconcat $ [str acro]
+  return . mconcat $ [spanWith ("",[],[("acronym-label", acro), ("acronym-form", "singular+" ++ form)]) $ str acro]
 
-doAcronymPlural :: PandocMonad m => LP m Inlines
-doAcronymPlural = do
+doAcronymPlural :: PandocMonad m => String -> LP m Inlines
+doAcronymPlural form = do
   acro <- braced
   plural <- lit "s"
-  return . mconcat $ [str acro, plural]
+  return . mconcat $ [spanWith ("",[],[("acronym-label", acro), ("acronym-form", "plural+" ++ form)]) $ mconcat $ [str acro, plural]]
 
 doverb :: PandocMonad m => LP m Inlines
 doverb = do
