@@ -46,7 +46,7 @@ import Text.Pandoc.Definition
 
 import Control.Monad (mzero, void)
 import Data.Char (toLower)
-import Data.List (intersperse, sort)
+import Data.List (intersperse)
 import qualified Data.Map as M
 import Network.HTTP (urlEncode)
 
