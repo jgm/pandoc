@@ -788,7 +788,7 @@ blockListToMarkdown opts blocks = do
       isListBlock _                  = False
       commentSep                     = if isEnabled Ext_raw_html opts
                                           then RawBlock "html" "<!-- -->\n"
-                                          else RawBlock "markdown" "&nbsp;"
+                                          else RawBlock "markdown" "&nbsp;\n"
   mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
 
 getKey :: Doc -> Key
