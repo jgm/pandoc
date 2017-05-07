@@ -34,14 +34,13 @@ module Text.Pandoc.PDF ( makePDF ) where
 
 import qualified Codec.Picture as JP
 import qualified Control.Exception as E
-import Control.Monad (unless, when, (<=<))
+import Control.Monad (unless, when)
 import Control.Monad.Trans (MonadIO (..))
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BC
-import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
@@ -53,7 +52,7 @@ import System.IO (stdout)
 import System.IO.Temp (withTempDirectory, withTempFile)
 import Text.Pandoc.Definition
 import Text.Pandoc.MediaBag
-import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
+import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Shared (inDirectory, stringify, withTempDir)
@@ -63,8 +62,8 @@ import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
-import Text.Pandoc.Class (PandocIO, fetchItem, report, runIO, runIOorExplode,
-                          setMediaBag, setVerbosity)
+import Text.Pandoc.Class (PandocIO, report, runIO, runIOorExplode,
+                          setMediaBag, setVerbosity, fillMedia, extractMedia)
 import Text.Pandoc.Logging
 
 #ifdef _WINDOWS
@@ -135,40 +134,13 @@ handleImages :: Verbosity
              -> FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
              -> IO Pandoc
-handleImages verbosity opts mediabag tmpdir =
-  walkM (convertImages verbosity tmpdir) <=<
-          walkM (handleImage' verbosity opts mediabag tmpdir)
-
-handleImage' :: Verbosity
-             -> WriterOptions
-             -> MediaBag
-             -> FilePath
-             -> Inline
-             -> IO Inline
-handleImage' verbosity opts mediabag tmpdir (Image attr ils (src,tit)) = do
-    exists <- doesFileExist src
-    if exists
-       then return $ Image attr ils (src,tit)
-       else do
-         res <- runIO $ do
-                  setVerbosity verbosity
-                  setMediaBag mediabag
-                  fetchItem (writerSourceURL opts) src
-         case res of
-              Right (contents, Just mime) -> do
-                let ext = fromMaybe (takeExtension src) $
-                          extensionFromMimeType mime
-                let basename = showDigest $ sha1 $ BL.fromChunks [contents]
-                let fname = tmpdir </> basename <.> ext
-                BS.writeFile fname contents
-                return $ Image attr ils (fname,tit)
-              _ -> do
-                runIO $ do
-                  setVerbosity verbosity
-                  report $ CouldNotFetchResource src "skipping..."
-                -- return alt text
-                return $ Emph ils
-handleImage' _ _ _ _ x = return x
+handleImages verbosity opts mediabag tmpdir doc = do
+  doc' <- runIOorExplode $ do
+            setVerbosity verbosity
+            setMediaBag mediabag
+            fillMedia (writerSourceURL opts) doc >>=
+              extractMedia tmpdir
+  walkM (convertImages verbosity tmpdir) doc'
 
 convertImages :: Verbosity -> FilePath -> Inline -> IO Inline
 convertImages verbosity tmpdir (Image attr ils (src, tit)) = do
