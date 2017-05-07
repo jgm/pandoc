@@ -140,7 +140,6 @@ import Text.Pandoc.Data (dataFiles)
 #else
 import Paths_pandoc (getDataFileName)
 #endif
-#ifdef HTTP_CLIENT
 import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
                             Request(port,host,requestHeaders))
 import Network.HTTP.Client (parseRequest)
@@ -150,12 +149,6 @@ import Network.HTTP.Client.TLS (tlsManagerSettings)
 import System.Environment (getEnv)
 import Network.HTTP.Types.Header ( hContentType, hUserAgent)
 import Network (withSocketsDo)
-#else
-import Network.URI (parseURI)
-import Network.HTTP (findHeader, rspBody,
-                     RequestMethod(..), HeaderName(..), mkRequest)
-import Network.Browser (browse, setAllowRedirects, setOutHandler, request)
-#endif
 
 -- | Version number of pandoc library.
 pandocVersion :: String
@@ -715,7 +708,6 @@ openURL u
     let mime     = takeWhile (/=',') u''
         contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u''
     in  return (decodeLenient contents, Just mime)
-#ifdef HTTP_CLIENT
   | otherwise = withSocketsDo $ do
      let parseReq = parseRequest
      (proxy :: Either IOError String) <-
@@ -738,19 +730,6 @@ openURL u
      resp <- newManager tlsManagerSettings >>= httpLbs req''
      return (BS.concat $ toChunks $ responseBody resp,
              UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
-#else
-  | otherwise = getBodyAndMimeType `fmap` browse
-              (do liftIO $ UTF8.hPutStrLn stderr $ "Fetching " ++ u ++ "..."
-                  setOutHandler $ const (return ())
-                  setAllowRedirects True
-                  request (getRequest' u'))
-  where getBodyAndMimeType (_, r) = (rspBody r, findHeader HdrContentType r)
-        getRequest' uriString = case parseURI uriString of
-                                   Nothing -> error ("Not a valid URL: " ++
-                                                        uriString)
-                                   Just v  -> mkRequest GET v
-        u' = escapeURIString (/= '|') u  -- pipes are rejected by Network.URI
-#endif
 
 --
 -- Error reporting
