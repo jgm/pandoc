@@ -39,14 +39,13 @@ module Text.Pandoc.App (
           ) where
 import Control.Applicative ((<|>))
 import qualified Control.Exception as E
-import Control.Monad.Except (catchError, throwError)
+import Control.Monad.Except (throwError)
 import Control.Monad
 import Control.Monad.Trans
 import Data.Aeson (eitherDecode', encode)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
-import Data.Digest.Pure.SHA (sha1, showDigest)
 import qualified Data.Set as Set
 import Data.Foldable (foldrM)
 import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
@@ -70,19 +69,16 @@ import System.IO (stdout)
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.Class (PandocIO, getLog, withMediaBag, getMediaBag,
-                          fetchItem, insertMedia, report)
+import Text.Pandoc.Class (PandocIO, getLog, withMediaBag,
+                          extractMedia, fillMedia)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua ( runLuaFilter )
-import Text.Pandoc.MediaBag (extractMediaBag, mediaDirectory)
-import Text.Pandoc.MIME (extensionFromMimeType)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeSelfContained, makeDataURI)
 import Text.Pandoc.Shared (headerShift, openURL, readDataFile,
                            readDataFileUTF8, safeRead, tabFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Walk (walkM, walk)
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
 #ifndef _WINDOWS
@@ -730,48 +726,6 @@ defaultWriterName x =
     _           -> "html"
 
 -- Transformations of a Pandoc document post-parsing:
-
--- | Traverse tree, filling media bag.
-fillMedia :: Maybe String -> Pandoc -> PandocIO Pandoc
-fillMedia sourceURL d = walkM handleImage d
-  where handleImage :: Inline -> PandocIO Inline
-        handleImage (Image attr lab (src, tit)) = catchError
-          (do (bs, mt) <- fetchItem sourceURL src
-              let ext = fromMaybe (takeExtension src)
-                          (mt >>= extensionFromMimeType)
-              let bs' = B.fromChunks [bs]
-              let basename = showDigest $ sha1 bs'
-              let fname = basename <.> ext
-              insertMedia fname mt bs'
-              return $ Image attr lab (fname, tit))
-          (\e -> do
-              case e of
-                PandocResourceNotFound _ -> do
-                  report $ CouldNotFetchResource src
-                            "replacing image with description"
-                  -- emit alt text
-                  return $ Span ("",["image"],[]) lab
-                PandocHttpError u er -> do
-                  report $ CouldNotFetchResource u
-                            (show er ++ "\rReplacing image with description.")
-                  -- emit alt text
-                  return $ Span ("",["image"],[]) lab
-                _ -> throwError e)
-        handleImage x = return x
-
-extractMedia :: FilePath -> Pandoc -> PandocIO Pandoc
-extractMedia dir d = do
-  media <- getMediaBag
-  case [fp | (fp, _, _) <- mediaDirectory media] of
-        []  -> return d
-        fps -> do
-          liftIO $ extractMediaBag True dir media
-          return $ walk (adjustImagePath dir fps) d
-
-adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
-adjustImagePath dir paths (Image attr lab (src, tit))
-   | src `elem` paths = Image attr lab (dir ++ "/" ++ src, tit)
-adjustImagePath _ _ x = x
 
 applyTransforms :: Monad m => [Transform] -> Pandoc -> m Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
