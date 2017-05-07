@@ -135,20 +135,16 @@ T}
 .LP
 Multiline table with caption:
 .PP
-Here's the caption.
-It may span multiple lines.
+Here's the caption. It may span multiple lines.
 .TS
 delim(@@) tab(	);
 cw(10.5n) lw(9.6n) rw(11.4n) lw(23.6n).
 T{
-Centered
-Header
+Centered Header
 T}	T{
-Left
-Aligned
+Left Aligned
 T}	T{
-Right
-Aligned
+Right Aligned
 T}	T{
 Default aligned
 T}
@@ -160,8 +156,7 @@ row
 T}	T{
 12.0
 T}	T{
-Example of a row that spans
-multiple lines.
+Example of a row that spans multiple lines.
 T}
 T{
 Second
@@ -171,8 +166,7 @@ T}	T{
 5.0
 T}	T{
 Here's another one.
-Note
-the blank line between rows.
+Note the blank line between rows.
 T}
 .TE
 .LP
@@ -182,14 +176,11 @@ Multiline table without caption:
 delim(@@) tab(	);
 cw(10.5n) lw(9.6n) rw(11.4n) lw(23.6n).
 T{
-Centered
-Header
+Centered Header
 T}	T{
-Left
-Aligned
+Left Aligned
 T}	T{
-Right
-Aligned
+Right Aligned
 T}	T{
 Default aligned
 T}
@@ -201,8 +192,7 @@ row
 T}	T{
 12.0
 T}	T{
-Example of a row that spans
-multiple lines.
+Example of a row that spans multiple lines.
 T}
 T{
 Second
@@ -212,8 +202,7 @@ T}	T{
 5.0
 T}	T{
 Here's another one.
-Note
-the blank line between rows.
+Note the blank line between rows.
 T}
 .TE
 .LP
@@ -263,8 +252,7 @@ row
 T}	T{
 12.0
 T}	T{
-Example of a row that spans
-multiple lines.
+Example of a row that spans multiple lines.
 T}
 T{
 Second
@@ -274,7 +262,6 @@ T}	T{
 5.0
 T}	T{
 Here's another one.
-Note
-the blank line between rows.
+Note the blank line between rows.
 T}
 .TE

@@ -50,7 +50,7 @@ import Data.Yaml (ParseException (..), YamlException (..), YamlMark (..))
 import qualified Data.Yaml as Yaml
 import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -79,9 +79,6 @@ readMarkdown opts s = do
   case parsed of
     Right result -> return result
     Left e       -> throwError e
-
-trimInlinesF :: F Inlines -> F Inlines
-trimInlinesF = liftM trimInlines
 
 --
 -- Constants and data structure definitions
@@ -1091,13 +1088,19 @@ rawTeXBlock = do
 rawHtmlBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 rawHtmlBlocks = do
   (TagOpen tagtype _, raw) <- htmlTag isBlockTag
+  -- we don't want '<td>    text' to be a code block:
+  skipMany spaceChar
+  indentlevel <- (blankline >> length <$> many (char ' ')) <|> return 0
   -- try to find closing tag
   -- we set stateInHtmlBlock so that closing tags that can be either block or
   -- inline will not be parsed as inline tags
   oldInHtmlBlock <- stateInHtmlBlock <$> getState
   updateState $ \st -> st{ stateInHtmlBlock = Just tagtype }
   let closer = htmlTag (\x -> x ~== TagClose tagtype)
-  contents <- mconcat <$> many (notFollowedBy' closer >> block)
+  let block' = do notFollowedBy' closer
+                  atMostSpaces indentlevel
+                  block
+  contents <- mconcat <$> many block'
   result <-
     (closer >>= \(_, rawcloser) -> return (
                 return (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
@@ -1912,7 +1915,8 @@ inlineNote = try $ do
 rawLaTeXInline' :: PandocMonad m => MarkdownParser m (F Inlines)
 rawLaTeXInline' = try $ do
   guardEnabled Ext_raw_tex
-  lookAhead $ char '\\' >> notFollowedBy' (string "start") -- context env
+  lookAhead (char '\\')
+  notFollowedBy' rawConTeXtEnvironment
   RawInline _ s <- rawLaTeXInline
   return $ return $ B.rawInline "tex" s
   -- "tex" because it might be context or latex

@@ -66,7 +66,7 @@ import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
 
 type Notes = [[Block]]
-type Ref   = ([Inline], Target, Attr)
+type Ref   = (Doc, Target, Attr)
 type Refs  = [Ref]
 
 type MD m = ReaderT WriterEnv (StateT WriterState m)
@@ -235,14 +235,13 @@ keyToMarkdown :: PandocMonad m
               => WriterOptions
               -> Ref
               -> MD m Doc
-keyToMarkdown opts (label, (src, tit), attr) = do
-  label' <- inlineListToMarkdown opts label
+keyToMarkdown opts (label', (src, tit), attr) = do
   let tit' = if null tit
                 then empty
                 else space <> "\"" <> text tit <> "\""
   return $ nest 2 $ hang 2
             ("[" <> label' <> "]:" <> space) (text src <> tit')
-            <> linkAttributes opts attr
+            <+> linkAttributes opts attr
 
 -- | Return markdown representation of notes.
 notesToMarkdown :: PandocMonad m => WriterOptions -> [[Block]] -> MD m Doc
@@ -792,22 +791,25 @@ blockListToMarkdown opts blocks = do
                                           else RawBlock "markdown" "&nbsp;"
   mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . cat
 
+getKey :: Doc -> Key
+getKey = toKey . render Nothing
+
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
-getReference :: PandocMonad m => Attr -> [Inline] -> Target -> MD m [Inline]
+getReference :: PandocMonad m => Attr -> Doc -> Target -> MD m Doc
 getReference attr label target = do
   st <- get
+  let keys = map (\(l,_,_) -> getKey l) (stRefs st)
   case find (\(_,t,a) -> t == target && a == attr) (stRefs st) of
     Just (ref, _, _) -> return ref
     Nothing       -> do
-      label' <- case find (\(l,_,_) -> l == label) (stRefs st) of
-                  Just _ -> -- label is used; generate numerical label
-                    case find (\n -> notElem [Str (show n)]
-                                     (map (\(l,_,_) -> l) (stRefs st)))
-                         [1..(10000 :: Integer)] of
-                      Just x  -> return [Str (show x)]
+      label' <- case getKey label `elem` keys of
+                  True -> -- label is used; generate numerical label
+                    case find (\n -> Key n `notElem` keys) $
+                         map show [1..(10000 :: Integer)] of
+                      Just x  -> return $ text x
                       Nothing -> throwError $ PandocSomeError "no unique label"
-                  Nothing -> return label
+                  False -> return label
       modify (\s -> s{ stRefs = (label', target, attr) : stRefs st })
       return label'
 
@@ -819,7 +821,8 @@ inlineListToMarkdown opts lst = do
   where go [] = return empty
         go (i:is) = case i of
             (Link _ _ _) -> case is of
-                -- If a link is followed by another link or '[' we don't shortcut
+                -- If a link is followed by another link, or '[', '(' or ':'
+                -- then we don't shortcut
                 (Link _ _ _):_                    -> unshortcutable
                 Space:(Link _ _ _):_              -> unshortcutable
                 Space:(Str('[':_)):_              -> unshortcutable
@@ -829,9 +832,17 @@ inlineListToMarkdown opts lst = do
                 SoftBreak:(Str('[':_)):_          -> unshortcutable
                 SoftBreak:(RawInline _ ('[':_)):_ -> unshortcutable
                 SoftBreak:(Cite _ _):_            -> unshortcutable
+                LineBreak:(Link _ _ _):_          -> unshortcutable
+                LineBreak:(Str('[':_)):_          -> unshortcutable
+                LineBreak:(RawInline _ ('[':_)):_ -> unshortcutable
+                LineBreak:(Cite _ _):_            -> unshortcutable
                 (Cite _ _):_                      -> unshortcutable
                 Str ('[':_):_                     -> unshortcutable
+                Str ('(':_):_                     -> unshortcutable
+                Str (':':_):_                     -> unshortcutable
                 (RawInline _ ('[':_)):_           -> unshortcutable
+                (RawInline _ ('(':_)):_           -> unshortcutable
+                (RawInline _ (':':_)):_           -> unshortcutable
                 (RawInline _ (' ':'[':_)):_       -> unshortcutable
                 _                                 -> shortcutable
             _ -> shortcutable
@@ -1078,15 +1089,15 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
   shortcutable <- asks envRefShortcutable
   let useShortcutRefLinks = shortcutable &&
                             isEnabled Ext_shortcut_reference_links opts
-  ref <- if useRefLinks then getReference attr txt (src, tit) else return []
-  reftext <- inlineListToMarkdown opts ref
+  reftext <- if useRefLinks then getReference attr linktext (src, tit)
+                            else return empty
   return $ if useAuto
               then if plain
                       then text srcSuffix
                       else "<" <> text srcSuffix <> ">"
               else if useRefLinks
                       then let first  = "[" <> linktext <> "]"
-                               second = if txt == ref
+                               second = if getKey linktext == getKey reftext
                                            then if useShortcutRefLinks
                                                    then ""
                                                    else "[]"

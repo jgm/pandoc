@@ -39,8 +39,7 @@ import Text.Pandoc.Readers.Org.Meta (metaExport, metaKey, metaLine)
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
-                                       rundocBlockClass, toRundocAttrib,
-                                       translateLang)
+                                       originalLang, translateLang)
 
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -259,7 +258,7 @@ blockList = do
   headlineBlocks <- fmap mconcat . sequence . map headlineToBlocks $ runF headlines st
   return . B.toList $ (runF initialBlocks st) <> headlineBlocks
 
--- | Get the meta information safed in the state.
+-- | Get the meta information saved in the state.
 meta :: Monad m => OrgParser m Meta
 meta = do
   meta' <- metaExport
@@ -282,6 +281,11 @@ block = choice [ mempty <$ blanklines
                , noteBlock
                , paraOrPlain
                ] <?> "block"
+
+
+-- | Parse a horizontal rule into a block element
+horizontalRule :: Monad m => OrgParser m (F Blocks)
+horizontalRule = return B.horizontalRule <$ try hline
 
 
 --
@@ -488,16 +492,14 @@ codeBlock blockAttrs blockType = do
   content           <- rawBlockContent blockType
   resultsContent    <- trailingResultsBlock
   let id'            = fromMaybe mempty $ blockAttrName blockAttrs
-  let includeCode    = exportsCode kv
-  let includeResults = exportsResults kv
   let codeBlck       = B.codeBlockWith ( id', classes, kv ) content
   let labelledBlck   = maybe (pure codeBlck)
                              (labelDiv codeBlck)
                              (blockAttrCaption blockAttrs)
   let resultBlck     = fromMaybe mempty resultsContent
   return $
-    (if includeCode    then labelledBlck else mempty) <>
-    (if includeResults then resultBlck   else mempty)
+    (if exportsCode kv    then labelledBlck else mempty) <>
+    (if exportsResults kv then resultBlck   else mempty)
  where
    labelDiv :: Blocks -> F Inlines -> F Blocks
    labelDiv blk value =
@@ -506,13 +508,11 @@ codeBlock blockAttrs blockType = do
    labelledBlock :: F Inlines -> F Blocks
    labelledBlock = fmap (B.plain . B.spanWith ("", ["label"], []))
 
-exportsCode :: [(String, String)] -> Bool
-exportsCode attrs = not (("rundoc-exports", "none") `elem` attrs
-                         || ("rundoc-exports", "results") `elem` attrs)
+   exportsCode :: [(String, String)] -> Bool
+   exportsCode = maybe True (`elem` ["code", "both"]) . lookup "exports"
 
-exportsResults :: [(String, String)] -> Bool
-exportsResults attrs = ("rundoc-exports", "results") `elem` attrs
-                       || ("rundoc-exports", "both") `elem` attrs
+   exportsResults :: [(String, String)] -> Bool
+   exportsResults = maybe False (`elem` ["results", "both"]) . lookup "exports"
 
 trailingResultsBlock :: PandocMonad m => OrgParser m (Maybe (F Blocks))
 trailingResultsBlock = optionMaybe . try $ do
@@ -522,28 +522,63 @@ trailingResultsBlock = optionMaybe . try $ do
   block
 
 -- | Parse code block arguments
--- TODO: We currently don't handle switches.
 codeHeaderArgs :: Monad m => OrgParser m ([String], [(String, String)])
 codeHeaderArgs = try $ do
   language   <- skipSpaces *> orgArgWord
-  _          <- skipSpaces *> (try $ switch `sepBy` (many1 spaceChar))
+  (switchClasses, switchKv) <- switchesAsAttributes
   parameters <- manyTill blockOption newline
-  let pandocLang = translateLang language
-  return $
-    if hasRundocParameters parameters
-    then ( [ pandocLang, rundocBlockClass ]
-         , map toRundocAttrib (("language", language) : parameters)
-         )
-    else ([ pandocLang ], parameters)
- where
-   hasRundocParameters = not . null
+  return $ ( translateLang language : switchClasses
+           , originalLang language <> switchKv <> parameters
+           )
 
-switch :: Monad m => OrgParser m (Char, Maybe String)
-switch = try $ simpleSwitch <|> lineNumbersSwitch
+switchesAsAttributes :: Monad m => OrgParser m ([String], [(String, String)])
+switchesAsAttributes = try $ do
+  switches <- skipSpaces *> (try $ switch `sepBy` (many1 spaceChar))
+  return $ foldr addToAttr ([], []) switches
  where
-   simpleSwitch = (\c -> (c, Nothing)) <$> (oneOf "-+" *> letter)
-   lineNumbersSwitch = (\ls -> ('l', Just ls)) <$>
-                       (string "-l \"" *> many1Till nonspaceChar (char '"'))
+  addToAttr :: (Char, Maybe String, SwitchPolarity)
+            -> ([String], [(String, String)])
+            -> ([String], [(String, String)])
+  addToAttr ('n', lineNum, pol) (cls, kv) =
+    let kv' = case lineNum of
+                Just num -> (("startFrom", num):kv)
+                Nothing  -> kv
+        cls' = case pol of
+                 SwitchPlus -> "continuedSourceBlock":cls
+                 SwitchMinus -> cls
+    in ("numberLines":cls', kv')
+  addToAttr _ x = x
+
+-- | Whether a switch flag is specified with @+@ or @-@.
+data SwitchPolarity = SwitchPlus | SwitchMinus
+  deriving (Show, Eq)
+
+-- | Parses a switch's polarity.
+switchPolarity :: Monad m => OrgParser m SwitchPolarity
+switchPolarity = (SwitchMinus <$ char '-') <|> (SwitchPlus <$ char '+')
+
+-- | Parses a source block switch option.
+switch :: Monad m => OrgParser m (Char, Maybe String, SwitchPolarity)
+switch = try $ lineNumberSwitch <|> labelSwitch <|> simpleSwitch
+ where
+   simpleSwitch = (\pol c -> (c, Nothing, pol)) <$> switchPolarity <*> letter
+   labelSwitch = genericSwitch 'l' $
+     char '"' *> many1Till nonspaceChar (char '"')
+
+-- | Generic source block switch-option parser.
+genericSwitch :: Monad m
+              => Char
+              -> OrgParser m String
+              -> OrgParser m (Char, Maybe String, SwitchPolarity)
+genericSwitch c p = try $ do
+  polarity <- switchPolarity <* char c <* skipSpaces
+  arg <- optionMaybe p
+  return $ (c, arg, polarity)
+
+-- | Reads a line number switch option. The line number switch can be used with
+-- example and source blocks.
+lineNumberSwitch :: Monad m => OrgParser m (Char, Maybe String, SwitchPolarity)
+lineNumberSwitch = genericSwitch 'n' (many digit)
 
 blockOption :: Monad m => OrgParser m (String, String)
 blockOption = try $ do
@@ -554,12 +589,12 @@ blockOption = try $ do
 orgParamValue :: Monad m => OrgParser m String
 orgParamValue = try $
   skipSpaces
-    *> notFollowedBy (char ':' )
-    *> many1 nonspaceChar
+    *> notFollowedBy orgArgKey
+    *> noneOf "\n\r" `many1Till` endOfValue
     <* skipSpaces
-
-horizontalRule :: Monad m => OrgParser m (F Blocks)
-horizontalRule = return B.horizontalRule <$ try hline
+ where
+  endOfValue = lookAhead $  (try $ skipSpaces <* oneOf "\n\r")
+                        <|> (try $ skipSpaces1 <* orgArgKey)
 
 
 --
@@ -666,7 +701,7 @@ endOfParagraph = try $ skipSpaces *> newline *> endOfBlock
 -- | Example code marked up by a leading colon.
 example :: Monad m => OrgParser m (F Blocks)
 example = try $ do
-  return . return . exampleCode =<< unlines <$> many1 exampleLine
+  returnF . exampleCode =<< unlines <$> many1 exampleLine
  where
    exampleLine :: Monad m => OrgParser m String
    exampleLine = try $ exampleLineStart *> anyLine
@@ -720,7 +755,11 @@ data OrgTable = OrgTable
   }
 
 table :: PandocMonad m => OrgParser m (F Blocks)
-table = try $ do
+table = gridTableWith blocks True <|> orgTable
+
+-- | A normal org table
+orgTable :: PandocMonad m => OrgParser m (F Blocks)
+orgTable = try $ do
   -- don't allow a table on the first line of a list item; org requires that
   -- tables start at first non-space character on the line
   let isFirstInListItem st = (orgStateParserContext st == ListItemState) &&
@@ -819,28 +858,28 @@ normalizeTable (OrgTable colProps heads rows) =
 rowToContent :: OrgTable
              -> OrgTableRow
              -> F OrgTable
-rowToContent orgTable row =
+rowToContent tbl row =
   case row of
     OrgHlineRow       -> return singleRowPromotedToHeader
     OrgAlignRow props -> return . setProperties $ props
     OrgContentRow cs  -> appendToBody cs
  where
    singleRowPromotedToHeader :: OrgTable
-   singleRowPromotedToHeader = case orgTable of
+   singleRowPromotedToHeader = case tbl of
      OrgTable{ orgTableHeader = [], orgTableRows = b:[] } ->
-            orgTable{ orgTableHeader = b , orgTableRows = [] }
-     _   -> orgTable
+            tbl{ orgTableHeader = b , orgTableRows = [] }
+     _   -> tbl
 
    setProperties :: [ColumnProperty] -> OrgTable
-   setProperties ps = orgTable{ orgTableColumnProperties = ps }
+   setProperties ps = tbl{ orgTableColumnProperties = ps }
 
    appendToBody :: F [Blocks] -> F OrgTable
    appendToBody frow = do
      newRow <- frow
-     let oldRows = orgTableRows orgTable
+     let oldRows = orgTableRows tbl
      -- NOTE: This is an inefficient O(n) operation.  This should be changed
      -- if performance ever becomes a problem.
-     return orgTable{ orgTableRows = oldRows ++ [newRow] }
+     return tbl{ orgTableRows = oldRows ++ [newRow] }
 
 
 --
@@ -850,7 +889,7 @@ latexFragment :: Monad m => OrgParser m (F Blocks)
 latexFragment = try $ do
   envName <- latexEnvStart
   content <- mconcat <$> manyTill anyLineNewline (latexEnd envName)
-  return . return $ B.rawBlock "latex" (content `inLatexEnv` envName)
+  returnF $ B.rawBlock "latex" (content `inLatexEnv` envName)
  where
    c `inLatexEnv` e = mconcat [ "\\begin{", e, "}\n"
                               , c
@@ -869,7 +908,7 @@ latexEnd envName = try $
 --
 noteBlock :: PandocMonad m => OrgParser m (F Blocks)
 noteBlock = try $ do
-  ref <- noteMarker <* skipSpaces
+  ref <- noteMarker <* skipSpaces <* updateLastPreCharPos
   content <- mconcat <$> blocksTillHeaderOrNote
   addToNotesTable (ref, content)
   return mempty

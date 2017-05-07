@@ -37,8 +37,7 @@ import Text.Pandoc.Readers.Org.BlockStarts (endOfBlock, noteMarker)
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
-                                       rundocBlockClass, toRundocAttrib,
-                                       translateLang)
+                                       originalLang, translateLang)
 
 import Text.Pandoc.Builder (Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -121,6 +120,7 @@ inline =
          , superscript
          , inlineLaTeX
          , exportSnippet
+         , macro
          , smart
          , symbol
          ] <* (guard =<< newlinesCountWithinLimits)
@@ -158,7 +158,7 @@ endline = try $ do
   decEmphasisNewlinesCount
   guard =<< newlinesCountWithinLimits
   updateLastPreCharPos
-  return . return $ B.softbreak
+  returnF B.softbreak
 
 
 --
@@ -518,8 +518,8 @@ inlineCodeBlock = try $ do
   lang <- many1 orgArgWordChar
   opts <- option [] $ enclosedByPair '[' ']' inlineBlockOption
   inlineCode <- enclosedByPair '{' '}' (noneOf "\n\r")
-  let attrClasses = [translateLang lang, rundocBlockClass]
-  let attrKeyVal  = map toRundocAttrib (("language", lang) : opts)
+  let attrClasses = [translateLang lang]
+  let attrKeyVal  = originalLang lang <> opts
   returnF $ B.codeWith ("", attrClasses, attrKeyVal) inlineCode
  where
    inlineBlockOption :: PandocMonad m => OrgParser m (String, String)
@@ -731,7 +731,7 @@ emphasisPreChars = "\t \"'({"
 
 -- | Chars allowed at after emphasis
 emphasisPostChars :: [Char]
-emphasisPostChars = "\t\n !\"'),-.:;?\\}"
+emphasisPostChars = "\t\n !\"'),-.:;?\\}["
 
 -- | Chars not allowed at the (inner) border of emphasis
 emphasisForbiddenBorderChars :: [Char]
@@ -839,6 +839,26 @@ exportSnippet = try $ do
   format <- many1Till (alphaNum <|> char '-') (char ':')
   snippet <- manyTill anyChar (try $ string "@@")
   returnF $ B.rawInline format snippet
+
+macro :: PandocMonad m => OrgParser m (F Inlines)
+macro = try $ do
+  recursionDepth <- orgStateMacroDepth <$> getState
+  guard $ recursionDepth < 15
+  string "{{{"
+  name <- many alphaNum
+  args <- ([] <$ string "}}}")
+          <|> char '(' *> argument `sepBy` char ',' <* eoa
+  expander <- lookupMacro name <$> getState
+  case expander of
+    Nothing -> mzero
+    Just fn -> do
+      updateState $ \s -> s { orgStateMacroDepth = recursionDepth + 1 }
+      res <- parseFromString (mconcat <$> many inline) $ fn args
+      updateState $ \s -> s { orgStateMacroDepth = recursionDepth }
+      return res
+ where
+  argument = many $ notFollowedBy eoa *> noneOf ","
+  eoa = string ")}}}"
 
 smart :: PandocMonad m => OrgParser m (F Inlines)
 smart = do

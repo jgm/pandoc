@@ -39,7 +39,7 @@ import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (chr, isAlphaNum, isLetter, ord)
-import Data.List (intercalate)
+import Data.List (intercalate, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
 import Safe (minimumDef)
@@ -492,20 +492,20 @@ isBlockCommand s = s `M.member` (blockCommands :: M.Map String (LP PandocPure Bl
 
 inlineEnvironments :: PandocMonad m => M.Map String (LP m Inlines)
 inlineEnvironments = M.fromList
-  [ ("displaymath", mathEnv id Nothing "displaymath")
-  , ("math", math <$> verbEnv "math")
-  , ("equation", mathEnv id Nothing "equation")
-  , ("equation*", mathEnv id Nothing "equation*")
-  , ("gather", mathEnv id (Just "gathered") "gather")
-  , ("gather*", mathEnv id (Just "gathered") "gather*")
-  , ("multline", mathEnv id (Just "gathered") "multline")
-  , ("multline*", mathEnv id (Just "gathered") "multline*")
-  , ("eqnarray", mathEnv id (Just "aligned") "eqnarray")
-  , ("eqnarray*", mathEnv id (Just "aligned") "eqnarray*")
-  , ("align", mathEnv id (Just "aligned") "align")
-  , ("align*", mathEnv id (Just "aligned") "align*")
-  , ("alignat", mathEnv id (Just "aligned") "alignat")
-  , ("alignat*", mathEnv id (Just "aligned") "alignat*")
+  [ ("displaymath", mathEnvWith id Nothing "displaymath")
+  , ("math", math <$> mathEnv "math")
+  , ("equation", mathEnvWith id Nothing "equation")
+  , ("equation*", mathEnvWith id Nothing "equation*")
+  , ("gather", mathEnvWith id (Just "gathered") "gather")
+  , ("gather*", mathEnvWith id (Just "gathered") "gather*")
+  , ("multline", mathEnvWith id (Just "gathered") "multline")
+  , ("multline*", mathEnvWith id (Just "gathered") "multline*")
+  , ("eqnarray", mathEnvWith id (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnvWith id (Just "aligned") "eqnarray*")
+  , ("align", mathEnvWith id (Just "aligned") "align")
+  , ("align*", mathEnvWith id (Just "aligned") "align*")
+  , ("alignat", mathEnvWith id (Just "aligned") "alignat")
+  , ("alignat*", mathEnvWith id (Just "aligned") "alignat*")
   ]
 
 inlineCommands :: PandocMonad m => M.Map String (LP m Inlines)
@@ -518,7 +518,7 @@ inlineCommands = M.fromList $
   , ("textmd", extractSpaces (spanWith ("",["medium"],[])) <$> tok)
   , ("textrm", extractSpaces (spanWith ("",["roman"],[])) <$> tok)
   , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
-  , ("texttt", (code . stringify . toList) <$> tok)
+  , ("texttt", ttfamily)
   , ("sout", extractSpaces strikeout <$> tok)
   , ("textsuperscript", extractSpaces superscript <$> tok)
   , ("textsubscript", extractSpaces subscript <$> tok)
@@ -528,6 +528,7 @@ inlineCommands = M.fromList $
   , ("textbf", extractSpaces strong <$> tok)
   , ("textnormal", extractSpaces (spanWith ("",["nodecor"],[])) <$> tok)
   , ("ldots", lit "…")
+  , ("vdots", lit "\8942")
   , ("dots", lit "…")
   , ("mdots", lit "…")
   , ("sim", lit "~")
@@ -692,6 +693,17 @@ inlineCommands = M.fromList $
   , ("acp", doAcronymPlural "short")
   , ("acfp", doAcronymPlural "full")
   , ("acsp", doAcronymPlural "abbrv")
+  -- siuntix
+  , ("SI", dosiunitx)
+  -- hyphenat
+  , ("bshyp", lit "\\\173")
+  , ("fshyp", lit "/\173")
+  , ("dothyp", lit ".\173")
+  , ("colonhyp", lit ":\173")
+  , ("hyp", lit "-")
+  , ("nohyphens", tok)
+  , ("textnhtt", ttfamily)
+  , ("nhttfamily", ttfamily)
   ] ++ map ignoreInlines
   -- these commands will be ignored unless --parse-raw is specified,
   -- in which case they will appear as raw latex blocks:
@@ -702,6 +714,9 @@ inlineCommands = M.fromList $
   , "clearpage"
   , "pagebreak"
   ]
+
+ttfamily :: PandocMonad m => LP m Inlines
+ttfamily = (code . stringify . toList) <$> tok
 
 mkImage :: PandocMonad m => [(String, String)] -> String -> LP m Inlines
 mkImage options src = do
@@ -760,6 +775,21 @@ dolstinline = do
 
 doLHSverb :: PandocMonad m => LP m Inlines
 doLHSverb = codeWith ("",["haskell"],[]) <$> manyTill (satisfy (/='\n')) (char '|')
+
+-- converts e.g. \SI{1}[\$]{} to "$ 1" or \SI{1}{\euro} to "1 €"
+dosiunitx :: PandocMonad m => LP m Inlines
+dosiunitx = do
+  skipopts
+  value <- tok
+  valueprefix <- option "" $ char '[' >> (mconcat <$> manyTill tok (char ']'))
+  unit <- tok
+  let emptyOr160 "" = ""
+      emptyOr160 _  = "\160"
+  return . mconcat $ [valueprefix, 
+                      emptyOr160 valueprefix,
+                      value, 
+                      emptyOr160 unit,
+                      unit]
 
 lit :: String -> LP m Inlines
 lit = pure . str
@@ -1100,7 +1130,7 @@ parseListingsOptions options =
 keyval :: PandocMonad m => LP m (String, String)
 keyval = try $ do
   key <- many1 alphaNum
-  val <- option "" $ char '=' >> many1 (alphaNum <|> char '.' <|> char '\\')
+  val <- option "" $ char '=' >> braced <|> (many1 (alphaNum <|> oneOf ".:-|\\"))
   skipMany spaceChar
   optional (char ',')
   skipMany spaceChar
@@ -1129,10 +1159,11 @@ rawLaTeXInline = do
 
 addImageCaption :: PandocMonad m => Blocks -> LP m Blocks
 addImageCaption = walkM go
-  where go (Image attr alt (src,tit)) = do
+  where go (Image attr alt (src,tit))
+            | not ("fig:" `isPrefixOf` tit) = do
           mbcapt <- stateCaption <$> getState
           return $ case mbcapt of
-               Just ils -> Image attr (toList ils) (src, "fig:")
+               Just ils -> Image attr (toList ils) (src, "fig:" ++ tit)
                Nothing  -> Image attr alt (src,tit)
         go x = return x
 
@@ -1152,14 +1183,15 @@ environments = M.fromList
   , ("letter", env "letter" letterContents)
   , ("minipage", env "minipage" $
          skipopts *> spaces' *> optional braced *> spaces' *> blocks)
-  , ("figure", env "figure" $
-         resetCaption *> skipopts *> blocks >>= addImageCaption)
+  , ("figure", env "figure" $ skipopts *> figure)
+  , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
   , ("center", env "center" blocks)
   , ("longtable",  env "longtable" $
          resetCaption *> simpTable False >>= addTableCaption)
   , ("table",  env "table" $
          resetCaption *> skipopts *> blocks >>= addTableCaption)
   , ("tabular*", env "tabular" $ simpTable True)
+  , ("tabularx", env "tabularx" $ simpTable True)
   , ("tabular", env "tabular"  $ simpTable False)
   , ("quote", blockQuote <$> env "quote" blocks)
   , ("quotation", blockQuote <$> env "quotation" blocks)
@@ -1190,20 +1222,25 @@ environments = M.fromList
   , ("obeylines", parseFromString
                   (para . trimInlines . mconcat <$> many inline) =<<
                   intercalate "\\\\\n" . lines <$> verbEnv "obeylines")
-  , ("displaymath", mathEnv para Nothing "displaymath")
-  , ("equation", mathEnv para Nothing "equation")
-  , ("equation*", mathEnv para Nothing "equation*")
-  , ("gather", mathEnv para (Just "gathered") "gather")
-  , ("gather*", mathEnv para (Just "gathered") "gather*")
-  , ("multline", mathEnv para (Just "gathered") "multline")
-  , ("multline*", mathEnv para (Just "gathered") "multline*")
-  , ("eqnarray", mathEnv para (Just "aligned") "eqnarray")
-  , ("eqnarray*", mathEnv para (Just "aligned") "eqnarray*")
-  , ("align", mathEnv para (Just "aligned") "align")
-  , ("align*", mathEnv para (Just "aligned") "align*")
-  , ("alignat", mathEnv para (Just "aligned") "alignat")
-  , ("alignat*", mathEnv para (Just "aligned") "alignat*")
+  , ("displaymath", mathEnvWith para Nothing "displaymath")
+  , ("equation", mathEnvWith para Nothing "equation")
+  , ("equation*", mathEnvWith para Nothing "equation*")
+  , ("gather", mathEnvWith para (Just "gathered") "gather")
+  , ("gather*", mathEnvWith para (Just "gathered") "gather*")
+  , ("multline", mathEnvWith para (Just "gathered") "multline")
+  , ("multline*", mathEnvWith para (Just "gathered") "multline*")
+  , ("eqnarray", mathEnvWith para (Just "aligned") "eqnarray")
+  , ("eqnarray*", mathEnvWith para (Just "aligned") "eqnarray*")
+  , ("align", mathEnvWith para (Just "aligned") "align")
+  , ("align*", mathEnvWith para (Just "aligned") "align*")
+  , ("alignat", mathEnvWith para (Just "aligned") "alignat")
+  , ("alignat*", mathEnvWith para (Just "aligned") "alignat*")
   ]
+
+figure :: PandocMonad m => LP m Blocks
+figure = try $ do
+  resetCaption
+  blocks >>= addImageCaption
 
 letterContents :: PandocMonad m => LP m Blocks
 letterContents = do
@@ -1262,19 +1299,32 @@ listenv name p = try $ do
   updateState $ \st -> st{ stateParserContext = oldCtx }
   return res
 
-mathEnv :: PandocMonad m => (Inlines -> a) -> Maybe String -> String -> LP m a
-mathEnv f innerEnv name = f <$> mathDisplay (inner <$> verbEnv name)
+mathEnvWith :: PandocMonad m
+            => (Inlines -> a) -> Maybe String -> String -> LP m a
+mathEnvWith f innerEnv name = f <$> mathDisplay (inner <$> mathEnv name)
    where inner x = case innerEnv of
                       Nothing -> x
                       Just y  -> "\\begin{" ++ y ++ "}\n" ++ x ++
                                     "\\end{" ++ y ++ "}"
+
+mathEnv :: PandocMonad m => String -> LP m String
+mathEnv name = do
+  skipopts
+  optional blankline
+  let endEnv = try $ controlSeq "end" *> braced >>= guard . (== name)
+      charMuncher = skipMany comment *>
+                       (many1 (noneOf "\\%") <|> try (string "\\%")
+                           <|> try (string "\\\\") <|> count 1 anyChar)
+  res <- concat <$> manyTill charMuncher endEnv
+  return $ stripTrailingNewlines res
 
 verbEnv :: PandocMonad m => String -> LP m String
 verbEnv name = do
   skipopts
   optional blankline
   let endEnv = try $ controlSeq "end" *> braced >>= guard . (== name)
-  res <- manyTill anyChar endEnv
+      charMuncher = anyChar
+  res <- manyTill charMuncher endEnv
   return $ stripTrailingNewlines res
 
 fancyverbEnv :: PandocMonad m => String -> LP m Blocks
@@ -1413,7 +1463,11 @@ parseAligns = try $ do
   let lAlign = AlignLeft <$ char 'l'
   let rAlign = AlignRight <$ char 'r'
   let parAlign = AlignLeft <$ (char 'p' >> braced)
-  let alignChar = cAlign <|> lAlign <|> rAlign <|> parAlign
+  -- algins from tabularx
+  let xAlign = AlignLeft <$ char 'X'
+  let mAlign = AlignLeft <$ (char 'm' >> braced)
+  let bAlign = AlignLeft <$ (char 'b' >> braced)
+  let alignChar = cAlign <|> lAlign <|> rAlign <|> parAlign <|> xAlign <|> mAlign <|> bAlign
   let alignPrefix = char '>' >> braced
   let alignSuffix = char '<' >> braced
   let alignSpec = do

@@ -517,13 +517,13 @@ This is \f[B]strong\f[], and so \f[B]is this\f[].
 .PP
 An \f[I]emphasized link (/url)\f[].
 .PP
-\f[B]\f[I]This is strong and em.\f[]\f[]
+\f[B]\f[BI]This is strong and em.\f[B]\f[]
 .PP
-So is \f[B]\f[I]this\f[]\f[] word.
+So is \f[B]\f[BI]this\f[B]\f[] word.
 .PP
-\f[B]\f[I]This is strong and em.\f[]\f[]
+\f[B]\f[BI]This is strong and em.\f[B]\f[]
 .PP
-So is \f[B]\f[I]this\f[]\f[] word.
+So is \f[B]\f[BI]this\f[B]\f[] word.
 .PP
 This is code: \f[C]>\f[], \f[C]$\f[], \f[C]\\\f[], \f[C]\\$\f[],
 \f[C]<html>\f[].

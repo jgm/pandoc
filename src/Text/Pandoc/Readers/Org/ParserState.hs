@@ -39,7 +39,10 @@ module Text.Pandoc.Readers.Org.ParserState
   , TodoState (..)
   , activeTodoMarkers
   , registerTodoSequence
-  , F(..)
+  , MacroExpander
+  , lookupMacro
+  , registerMacro
+  , F
   , askF
   , asksF
   , trimInlinesF
@@ -50,14 +53,13 @@ module Text.Pandoc.Readers.Org.ParserState
   , optionsToParserState
   ) where
 
-import Control.Monad (liftM, liftM2)
-import Control.Monad.Reader (Reader, ReaderT, ask, asks, local, runReader)
+import Control.Monad.Reader (ReaderT, asks, local)
 
 import Data.Default (Default (..))
 import qualified Data.Map as M
 import qualified Data.Set as Set
 
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Definition (Meta (..), nullMeta)
 import Text.Pandoc.Options (ReaderOptions (..))
 import Text.Pandoc.Logging
@@ -65,7 +67,12 @@ import Text.Pandoc.Parsing (HasHeaderMap (..), HasIdentifierList (..),
                             HasLogMessages (..),
                             HasLastStrPosition (..), HasQuoteContext (..),
                             HasReaderOptions (..), ParserContext (..),
-                            QuoteContext (..), SourcePos)
+                            QuoteContext (..), SourcePos, Future,
+                            askF, asksF, returnF, runF, trimInlinesF)
+
+-- | This is used to delay evaluation until all relevant information has been
+-- parsed and made available in the parser state.
+type F = Future OrgParserState
 
 -- | An inline note / footnote containing the note key and its (inline) value.
 type OrgNoteRecord = (String, F Blocks)
@@ -74,6 +81,8 @@ type OrgNoteTable = [OrgNoteRecord]
 -- | Map of functions for link transformations.  The map key is refers to the
 -- link-type, the corresponding function transforms the given link string.
 type OrgLinkFormatters = M.Map String (String -> String)
+-- | Macro expander function
+type MacroExpander = [String] -> String
 
 -- | The states in which a todo item can be
 data TodoState = Todo | Done
@@ -101,6 +110,8 @@ data OrgParserState = OrgParserState
   , orgStateLastPreCharPos       :: Maybe SourcePos
   , orgStateLastStrPos           :: Maybe SourcePos
   , orgStateLinkFormatters       :: OrgLinkFormatters
+  , orgStateMacros               :: M.Map String MacroExpander
+  , orgStateMacroDepth           :: Int
   , orgStateMeta                 :: F Meta
   , orgStateNotes'               :: OrgNoteTable
   , orgStateOptions              :: ReaderOptions
@@ -152,6 +163,8 @@ defaultOrgParserState = OrgParserState
   , orgStateLastPreCharPos = Nothing
   , orgStateLastStrPos = Nothing
   , orgStateLinkFormatters = M.empty
+  , orgStateMacros = M.empty
+  , orgStateMacroDepth = 0
   , orgStateMeta = return nullMeta
   , orgStateNotes' = []
   , orgStateOptions = def
@@ -180,6 +193,15 @@ activeTodoSequences st =
 
 activeTodoMarkers :: OrgParserState -> TodoSequence
 activeTodoMarkers = concat . activeTodoSequences
+
+lookupMacro :: String -> OrgParserState -> Maybe MacroExpander
+lookupMacro macroName = M.lookup macroName . orgStateMacros
+
+registerMacro :: (String, MacroExpander) -> OrgParserState -> OrgParserState
+registerMacro (name, expander) st =
+  let curMacros = orgStateMacros st
+  in st{ orgStateMacros = M.insert name expander curMacros }
+
 
 
 --
@@ -229,35 +251,3 @@ defaultExportSettings = ExportSettings
   , exportWithEmail = True
   , exportWithTodoKeywords = True
   }
-
-
---
--- Parser state reader
---
-
--- | Reader monad wrapping the parser state.  This is used to delay evaluation
--- until all relevant information has been parsed and made available in the
--- parser state.  See also the newtype of the same name in
--- Text.Pandoc.Parsing.
-newtype F a = F { unF :: Reader OrgParserState a
-                } deriving (Functor, Applicative, Monad)
-
-instance Monoid a => Monoid (F a) where
-  mempty = return mempty
-  mappend = liftM2 mappend
-  mconcat = fmap mconcat . sequence
-
-runF :: F a -> OrgParserState -> a
-runF = runReader . unF
-
-askF :: F OrgParserState
-askF = F ask
-
-asksF :: (OrgParserState -> a) -> F a
-asksF f = F $ asks f
-
-trimInlinesF :: F Inlines -> F Inlines
-trimInlinesF = liftM trimInlines
-
-returnF :: Monad m => a -> m (F a)
-returnF = return . return

@@ -70,6 +70,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , dash
   , ellipses
   , citeKey
+  , gridTableWith
   -- * Re-exports from Text.Pandoc.Parsec
   , runParser
   , runParserT
@@ -110,7 +111,7 @@ module Text.Pandoc.Readers.Org.Parsing
 
 import Text.Pandoc.Readers.Org.ParserState
 
-import Text.Pandoc.Parsing hiding (anyLine, blanklines, newline,
+import Text.Pandoc.Parsing hiding (F, anyLine, blanklines, newline,
                             parseFromString)
 import qualified Text.Pandoc.Parsing as P
 

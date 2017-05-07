@@ -92,10 +92,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
              report $ CouldNotDetermineMimeType src
              return x)
   (\e -> do
-     case e of
-          PandocIOError _ e' ->
-           report $ CouldNotFetchResource src (show e')
-          e' -> report $ CouldNotFetchResource src (show e')
+     report $ CouldNotFetchResource src (show e)
      return x)
 rtfEmbedImage _ x = return x
 

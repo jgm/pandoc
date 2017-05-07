@@ -1,6 +1,6 @@
 return {
-  { Plain = function (blk)
-      return pandoc.Para(blk.c)
+  { Plain = function (elem)
+      return pandoc.Para(elem.content)
   end,
   }
 }

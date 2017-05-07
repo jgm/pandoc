@@ -108,10 +108,13 @@ module Text.Pandoc.Parsing ( anyLine,
                              applyMacros',
                              Parser,
                              ParserT,
-                             F(..),
+                             F,
+                             Future(..),
                              runF,
                              askF,
                              asksF,
+                             returnF,
+                             trimInlinesF,
                              token,
                              (<+?>),
                              extractIdClass,
@@ -175,7 +178,7 @@ where
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Builder (Blocks, Inlines, rawBlock, HasMeta(..))
+import Text.Pandoc.Builder (Blocks, Inlines, rawBlock, HasMeta(..), trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.XML (fromEntities)
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
@@ -205,18 +208,30 @@ type Parser t s = Parsec t s
 
 type ParserT = ParsecT
 
-newtype F a = F { unF :: Reader ParserState a } deriving (Monad, Applicative, Functor)
+-- | Reader monad wrapping the parser state. This is used to possibly delay
+-- evaluation until all relevant information has been parsed and made available
+-- in the parser state.
+newtype Future s a = Future { runDelayed :: Reader s a }
+  deriving (Monad, Applicative, Functor)
 
-runF :: F a -> ParserState -> a
-runF = runReader . unF
+type F = Future ParserState
 
-askF :: F ParserState
-askF = F ask
+runF :: Future s a -> s -> a
+runF = runReader . runDelayed
 
-asksF :: (ParserState -> a) -> F a
-asksF f = F $ asks f
+askF :: Future s s
+askF = Future ask
 
-instance Monoid a => Monoid (F a) where
+asksF :: (s -> a) -> Future s a
+asksF f = Future $ asks f
+
+returnF :: Monad m => a -> m (Future s a)
+returnF = return . return
+
+trimInlinesF :: Future s Inlines -> Future s Inlines
+trimInlinesF = liftM trimInlines
+
+instance Monoid a => Monoid (Future s a) where
   mempty = return mempty
   mappend = liftM2 mappend
   mconcat = liftM mconcat . sequence
@@ -463,6 +478,8 @@ uri :: Stream [Char] m Char => ParserT [Char] st m (String, String)
 uri = try $ do
   scheme <- uriScheme
   char ':'
+  -- Avoid parsing e.g. "**Notes:**" as a raw URI:
+  notFollowedBy (oneOf "*_]")
   -- We allow sentence punctuation except at the end, since
   -- we don't want the trailing '.' in 'http://google.com.' We want to allow
   -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
@@ -745,21 +762,22 @@ lineBlockLines = try $ do
 
 -- | Parse a table using 'headerParser', 'rowParser',
 -- 'lineParser', and 'footerParser'.
-tableWith :: Stream s m Char
-          => ParserT s ParserState m ([Blocks], [Alignment], [Int])
-          -> ([Int] -> ParserT s ParserState m [Blocks])
-          -> ParserT s ParserState m sep
-          -> ParserT s ParserState m end
-          -> ParserT s ParserState m Blocks
+tableWith :: (Stream s m Char, HasReaderOptions st,
+              Functor mf, Applicative mf, Monad mf)
+          => ParserT s st m (mf [Blocks], [Alignment], [Int])
+          -> ([Int] -> ParserT s st m (mf [Blocks]))
+          -> ParserT s st m sep
+          -> ParserT s st m end
+          -> ParserT s st m (mf Blocks)
 tableWith headerParser rowParser lineParser footerParser = try $ do
     (heads, aligns, indices) <- headerParser
-    lines' <- rowParser indices `sepEndBy1` lineParser
+    lines' <- sequence <$> rowParser indices `sepEndBy1` lineParser
     footerParser
     numColumns <- getOption readerColumns
     let widths = if (indices == [])
                     then replicate (length aligns) 0.0
                     else widthsFromIndices numColumns indices
-    return $ B.table mempty (zip aligns widths) heads lines'
+    return $ B.table mempty (zip aligns widths) <$> heads <*> lines'
 
 -- Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
@@ -792,10 +810,11 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: Stream [Char] m Char
-              => ParserT [Char] ParserState m Blocks   -- ^ Block list parser
-              -> Bool                                -- ^ Headerless table
-              -> ParserT [Char] ParserState m Blocks
+gridTableWith :: (Stream [Char] m Char, HasReaderOptions st,
+                  Functor mf, Applicative mf, Monad mf)
+              => ParserT [Char] st m (mf Blocks)   -- ^ Block list parser
+              -> Bool                             -- ^ Headerless table
+              -> ParserT [Char] st m (mf Blocks)
 gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
@@ -818,14 +837,14 @@ removeFinalBar =
   reverse . dropWhile (`elem` " \t") . dropWhile (=='|') . reverse
 
 -- | Separator between rows of grid table.
-gridTableSep :: Stream s m Char => Char -> ParserT s ParserState m Char
+gridTableSep :: Stream s m Char => Char -> ParserT s st m Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
-gridTableHeader :: Stream [Char] m Char
+gridTableHeader :: (Stream [Char] m Char, Functor mf, Applicative mf, Monad mf)
                 => Bool -- ^ Headerless table
-                -> ParserT [Char] ParserState m Blocks
-                -> ParserT [Char] ParserState m ([Blocks], [Alignment], [Int])
+                -> ParserT [Char] st m (mf Blocks)
+                -> ParserT [Char] st m (mf [Blocks], [Alignment], [Int])
 gridTableHeader headless blocks = try $ do
   optional blanklines
   dashes <- gridDashedLines '-'
@@ -845,25 +864,26 @@ gridTableHeader headless blocks = try $ do
                     then replicate (length dashes) ""
                     else map (intercalate " ") $ transpose
                        $ map (gridTableSplitLine indices) rawContent
-  heads <- mapM (parseFromString blocks) $ map trim rawHeads
+  heads <- fmap sequence . mapM (parseFromString blocks) $ map trim rawHeads
   return (heads, aligns, indices)
 
-gridTableRawLine :: Stream s m Char => [Int] -> ParserT s ParserState m [String]
+gridTableRawLine :: Stream s m Char => [Int] -> ParserT s st m [String]
 gridTableRawLine indices = do
   char '|'
   line <- many1Till anyChar newline
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: Stream [Char]  m Char
-             => ParserT [Char] ParserState m Blocks
+gridTableRow :: (Stream [Char]  m Char, Functor mf, Applicative mf, Monad mf)
+             => ParserT [Char] st m (mf Blocks)
              -> [Int]
-             -> ParserT [Char] ParserState m [Blocks]
+             -> ParserT [Char] st m (mf [Blocks])
 gridTableRow blocks indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
                transpose colLines
-  mapM (liftM compactifyCell . parseFromString blocks) cols
+  cells <- sequence <$> mapM (parseFromString blocks) cols
+  return $ fmap (map compactifyCell) cells
 
 removeOneLeadingSpace :: [String] -> [String]
 removeOneLeadingSpace xs =
@@ -877,7 +897,7 @@ compactifyCell :: Blocks -> Blocks
 compactifyCell bs = head $ compactify [bs]
 
 -- | Parse footer for a grid table.
-gridTableFooter :: Stream s m Char => ParserT s ParserState m [Char]
+gridTableFooter :: Stream s m Char => ParserT s st m [Char]
 gridTableFooter = blanklines
 
 ---

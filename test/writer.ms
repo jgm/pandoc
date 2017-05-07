@@ -72,8 +72,7 @@ Anonymous
 .1C
 .LP
 This is a set of tests for pandoc.
-Most of them are adapted from
-John Gruber's markdown test suite.
+Most of them are adapted from John Gruber's markdown test suite.
 .HLINE
 .SH 1
 Headers
@@ -127,12 +126,10 @@ Paragraphs
 Here's a regular paragraph.
 .PP
 In Markdown 1.0.0 and earlier.
-Version
-8.
+Version 8.
 This line turns into a list item.
-Because a hard\-wrapped line in the
-middle of a paragraph looked like a
-list item.
+Because a hard\-wrapped line in the middle of a paragraph looked like a list
+item.
 .PP
 Here's one with a bullet.
 * criminey.
@@ -165,9 +162,9 @@ sub\ status\ {
 .fi
 .LP
 A list:
-.IP "1." 3
+.IP " 1." 4
 item one
-.IP "2." 3
+.IP " 2." 4
 item two
 .LP
 Nested block quotes:
@@ -181,8 +178,7 @@ nested
 .RE
 .RE
 .LP
-This should not be a block quote: 2
-> 1.
+This should not be a block quote: 2 > 1.
 .PP
 And a following paragraph.
 .HLINE
@@ -225,51 +221,51 @@ Unordered
 .pdfhref M "unordered"
 .LP
 Asterisks tight:
-.IP \[bu] 2
+.IP \[bu] 3
 asterisk 1
-.IP \[bu] 2
+.IP \[bu] 3
 asterisk 2
-.IP \[bu] 2
+.IP \[bu] 3
 asterisk 3
 .LP
 Asterisks loose:
-.IP \[bu] 2
+.IP \[bu] 3
 asterisk 1
-.IP \[bu] 2
+.IP \[bu] 3
 asterisk 2
-.IP \[bu] 2
+.IP \[bu] 3
 asterisk 3
 .LP
 Pluses tight:
-.IP \[bu] 2
+.IP \[bu] 3
 Plus 1
-.IP \[bu] 2
+.IP \[bu] 3
 Plus 2
-.IP \[bu] 2
+.IP \[bu] 3
 Plus 3
 .LP
 Pluses loose:
-.IP \[bu] 2
+.IP \[bu] 3
 Plus 1
-.IP \[bu] 2
+.IP \[bu] 3
 Plus 2
-.IP \[bu] 2
+.IP \[bu] 3
 Plus 3
 .LP
 Minuses tight:
-.IP \[bu] 2
+.IP \[bu] 3
 Minus 1
-.IP \[bu] 2
+.IP \[bu] 3
 Minus 2
-.IP \[bu] 2
+.IP \[bu] 3
 Minus 3
 .LP
 Minuses loose:
-.IP \[bu] 2
+.IP \[bu] 3
 Minus 1
-.IP \[bu] 2
+.IP \[bu] 3
 Minus 2
-.IP \[bu] 2
+.IP \[bu] 3
 Minus 3
 .SH 2
 Ordered
@@ -277,162 +273,156 @@ Ordered
 .pdfhref M "ordered"
 .LP
 Tight:
-.IP "1." 3
+.IP " 1." 4
 First
-.IP "2." 3
+.IP " 2." 4
 Second
-.IP "3." 3
+.IP " 3." 4
 Third
 .LP
 and:
-.IP "1." 3
+.IP " 1." 4
 One
-.IP "2." 3
+.IP " 2." 4
 Two
-.IP "3." 3
+.IP " 3." 4
 Three
 .LP
 Loose using tabs:
-.IP "1." 3
+.IP " 1." 4
 First
-.IP "2." 3
+.IP " 2." 4
 Second
-.IP "3." 3
+.IP " 3." 4
 Third
 .LP
 and using spaces:
-.IP "1." 3
+.IP " 1." 4
 One
-.IP "2." 3
+.IP " 2." 4
 Two
-.IP "3." 3
+.IP " 3." 4
 Three
 .LP
 Multiple paragraphs:
-.IP "1." 3
+.IP " 1." 4
 Item 1, graf one.
 .RS 4
 .PP
 Item 1.
 graf two.
-The quick brown fox jumped over the lazy dog's
-back.
+The quick brown fox jumped over the lazy dog's back.
 .RE
-.IP "2." 3
+.IP " 2." 4
 Item 2.
-.IP "3." 3
+.IP " 3." 4
 Item 3.
 .SH 2
 Nested
 .pdfhref O 2 "Nested"
 .pdfhref M "nested"
-.IP \[bu] 2
+.IP \[bu] 3
 Tab
-.RS 2
-.IP \[bu] 2
+.RS 3
+.IP \[bu] 3
 Tab
-.RS 2
-.IP \[bu] 2
+.RS 3
+.IP \[bu] 3
 Tab
 .RE
 .RE
 .LP
 Here's another:
-.IP "1." 3
+.IP " 1." 4
 First
-.IP "2." 3
+.IP " 2." 4
 Second:
 .RS 4
-.IP \[bu] 2
+.IP \[bu] 3
 Fee
-.IP \[bu] 2
+.IP \[bu] 3
 Fie
-.IP \[bu] 2
+.IP \[bu] 3
 Foe
 .RE
-.IP "3." 3
+.IP " 3." 4
 Third
 .LP
 Same thing but with paragraphs:
-.IP "1." 3
+.IP " 1." 4
 First
-.IP "2." 3
+.IP " 2." 4
 Second:
 .RS 4
-.IP \[bu] 2
+.IP \[bu] 3
 Fee
-.IP \[bu] 2
+.IP \[bu] 3
 Fie
-.IP \[bu] 2
+.IP \[bu] 3
 Foe
 .RE
-.IP "3." 3
+.IP " 3." 4
 Third
 .SH 2
 Tabs and spaces
 .pdfhref O 2 "Tabs and spaces"
 .pdfhref M "tabs-and-spaces"
-.IP \[bu] 2
-this is a list item
-indented with tabs
-.IP \[bu] 2
-this is a list item
-indented with spaces
-.RS 2
-.IP \[bu] 2
-this is an example list item
-indented with tabs
-.IP \[bu] 2
-this is an example list item
-indented with spaces
+.IP \[bu] 3
+this is a list item indented with tabs
+.IP \[bu] 3
+this is a list item indented with spaces
+.RS 3
+.IP \[bu] 3
+this is an example list item indented with tabs
+.IP \[bu] 3
+this is an example list item indented with spaces
 .RE
 .SH 2
 Fancy list markers
 .pdfhref O 2 "Fancy list markers"
 .pdfhref M "fancy-list-markers"
-.IP "(2)" 4
+.IP " (2)" 5
 begins with 2
-.IP "(3)" 4
+.IP " (3)" 5
 and now 3
-.RS 4
+.RS 5
 .LP
 with a continuation
-.IP "iv." 4
-sublist with roman numerals,
-starting with 4
-.IP " v." 4
+.IP " iv." 5
+sublist with roman numerals, starting with 4
+.IP "  v." 5
 more items
-.RS 4
-.IP "(A)" 4
+.RS 5
+.IP " (A)" 5
 a subsublist
-.IP "(B)" 4
+.IP " (B)" 5
 a subsublist
 .RE
 .RE
 .LP
 Nesting:
-.IP "A." 3
+.IP " A." 4
 Upper Alpha
 .RS 4
-.IP "I." 3
+.IP " I." 4
 Upper Roman.
 .RS 4
-.IP "(6)" 4
+.IP " (6)" 5
 Decimal start with 6
-.RS 4
-.IP "c)" 3
+.RS 5
+.IP " c)" 4
 Lower alpha with paren
 .RE
 .RE
 .RE
 .LP
 Autonumbering:
-.IP "1." 3
+.IP " 1." 4
 Autonumber.
-.IP "2." 3
+.IP " 2." 4
 More.
 .RS 4
-.IP "1." 3
+.IP " 1." 4
 Nested.
 .RE
 .LP
@@ -495,8 +485,7 @@ Multiple blocks with italics:
 red fruit
 .RS
 .PP
-contains seeds,
-crisp, pleasant to taste
+contains seeds, crisp, pleasant to taste
 .RE
 .IP "\f[I]orange\f[]"
 orange fruit
@@ -556,9 +545,9 @@ computer
 .IP "orange"
 orange fruit
 .RS
-.IP "1." 3
+.IP " 1." 4
 sublist
-.IP "2." 3
+.IP " 2." 4
 sublist
 .RE
 .SH 1
@@ -658,8 +647,8 @@ Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[]\*} a\*{hello\~there\*}.
 .PP
 Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\~of\~them\*>O.
 .PP
-These should not be superscripts or subscripts,
-because of the unescaped spaces: a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
+These should not be superscripts or subscripts, because of the unescaped
+spaces: a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
 .HLINE
 .SH 1
 Smart quotes, ellipses, dashes
@@ -674,8 +663,7 @@ Smart quotes, ellipses, dashes
 `Oak,' `elm,' and `beech' are names of trees.
 So is `pine.'
 .PP
-`He said, \[lq]I want to go.\[rq]' Were you alive in the
-70's?
+`He said, \[lq]I want to go.\[rq]' Were you alive in the 70's?
 .PP
 Here is some quoted `\f[C]code\f[]' and a \[lq]\c
 .pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
@@ -692,35 +680,35 @@ Ellipses\&...and\&...and\&....
 LaTeX
 .pdfhref O 1 "LaTeX"
 .pdfhref M "latex"
-.IP \[bu] 2
-.IP \[bu] 2
+.IP \[bu] 3
+.IP \[bu] 3
 @2 + 2 = 4@
-.IP \[bu] 2
+.IP \[bu] 3
 @x \[u2208] y@
-.IP \[bu] 2
+.IP \[bu] 3
 @alpha \[u2227] omega@
-.IP \[bu] 2
+.IP \[bu] 3
 @223@
-.IP \[bu] 2
+.IP \[bu] 3
 @p@\-Tree
-.IP \[bu] 2
+.IP \[bu] 3
 Here's some display math:
 .EQ
 d over {d x} f ( x ) = lim sub {h -> 0} {f ( x + h ) \[u2212] f ( x )} over h
 .EN
-.IP \[bu] 2
+.IP \[bu] 3
 Here's one that has a line break in it: @alpha + omega times x sup 2@.
 .LP
 These shouldn't be math:
-.IP \[bu] 2
+.IP \[bu] 3
 To get the famous equation, write \f[C]$e\ =\ mc\[ha]2$\f[].
-.IP \[bu] 2
+.IP \[bu] 3
 $22,000 is a \f[I]lot\f[] of money.
 So is $34,000.
 (It worked if \[lq]lot\[rq] is emphasized.)
-.IP \[bu] 2
+.IP \[bu] 3
 Shoes ($20) and socks ($5).
-.IP \[bu] 2
+.IP \[bu] 3
 Escaped \f[C]$\f[]: $73 \f[I]this should be emphasized\f[] 23$.
 .LP
 Here's a LaTeX table:
@@ -731,15 +719,15 @@ Special Characters
 .pdfhref M "special-characters"
 .LP
 Here is some unicode:
-.IP \[bu] 2
+.IP \[bu] 3
 I hat: Î
-.IP \[bu] 2
+.IP \[bu] 3
 o umlaut: ö
-.IP \[bu] 2
+.IP \[bu] 3
 section: §
-.IP \[bu] 2
+.IP \[bu] 3
 set membership: ∈
-.IP \[bu] 2
+.IP \[bu] 3
 copyright: ©
 .LP
 AT&T has an ampersand in their name.
@@ -932,14 +920,14 @@ With an ampersand: \c
 .pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
  -- "http://example.com/?foo=1&bar=2"
 \&
-.IP \[bu] 2
+.IP \[bu] 3
 In a list?
-.IP \[bu] 2
+.IP \[bu] 3
 \c
 .pdfhref W -D "http://example.com/" -A "\c" \
  -- "http://example.com/"
 \&
-.IP \[bu] 2
+.IP \[bu] 3
 It should.
 .LP
 An e\-mail address: \c
@@ -981,18 +969,16 @@ Footnotes
 Here is a footnote reference,\**
 .FS
 Here is the footnote.
-It can go anywhere after the footnote
-reference.
+It can go anywhere after the footnote reference.
 It need not be placed at the end of the document.
 .FE
 and another.\**
 .FS
 Here's the long note.
-This one contains multiple
-blocks.
+This one contains multiple blocks.
 .PP
-Subsequent blocks are indented to show that they belong to the
-footnote (as with list items).
+Subsequent blocks are indented to show that they belong to the footnote (as
+with list items).
 .IP
 .nf
 \f[C]
@@ -1000,20 +986,17 @@ footnote (as with list items).
 \f[]
 .fi
 .LP
-If you want, you can indent every line, but you can also be
-lazy and just indent the first line of each block.
+If you want, you can indent every line, but you can also be lazy and just
+indent the first line of each block.
 .FE
-This should \f[I]not\f[] be a footnote reference, because it
-contains a space.[\[ha]my note] Here is an inline note.\**
+This should \f[I]not\f[] be a footnote reference, because it contains a
+space.[\[ha]my note] Here is an inline note.\**
 .FS
-This
-is \f[I]easier\f[] to type.
-Inline notes may contain
-\c
+This is \f[I]easier\f[] to type.
+Inline notes may contain \c
 .pdfhref W -D "http://google.com" -A "\c" \
  -- "links"
-\& and \f[C]]\f[] verbatim characters,
-as well as [bracketed text].
+\& and \f[C]]\f[] verbatim characters, as well as [bracketed text].
 .FE
 .RS
 .LP
@@ -1022,7 +1005,7 @@ Notes can go in quotes.\**
 In quote.
 .FE
 .RE
-.IP "1." 3
+.IP " 1." 4
 And in list items.\**
 .FS
 In list.

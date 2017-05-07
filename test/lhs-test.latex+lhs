@@ -24,6 +24,7 @@
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
 \usepackage{listings}
+\newcommand{\passthrough}[1]{#1}
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 \IfFileExists{parskip.sty}{%
 \usepackage{parskip}

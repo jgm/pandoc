@@ -65,6 +65,7 @@ data WriterState =
               , stInQuote       :: Bool          -- true if in a blockquote
               , stInMinipage    :: Bool          -- true if in minipage
               , stInHeading     :: Bool          -- true if in a section heading
+              , stInItem        :: Bool          -- true if in \item[..]
               , stNotes         :: [Doc]         -- notes in a minipage
               , stOLLevel       :: Int           -- level of ordered list nesting
               , stOptions       :: WriterOptions -- writer options, so they don't have to be parameter
@@ -81,6 +82,7 @@ data WriterState =
               , stInternalLinks :: [String]      -- list of internal link targets
               , stUsesEuro      :: Bool          -- true if euro symbol used
               , stBeamer        :: Bool          -- produce beamer
+              , stEmptyLine     :: Bool          -- true if no content on line
               }
 
 startingState :: WriterOptions -> WriterState
@@ -89,6 +91,7 @@ startingState options = WriterState {
                 , stInQuote = False
                 , stInMinipage = False
                 , stInHeading = False
+                , stInItem = False
                 , stNotes = []
                 , stOLLevel = 1
                 , stOptions = options
@@ -107,7 +110,8 @@ startingState options = WriterState {
                 , stIncremental = writerIncremental options
                 , stInternalLinks = []
                 , stUsesEuro = False
-                , stBeamer = False }
+                , stBeamer = False
+                , stEmptyLine = True }
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m String
@@ -680,7 +684,8 @@ toColDescriptor align =
          AlignDefault -> "l"
 
 blockListToLaTeX :: PandocMonad m => [Block] -> LW m Doc
-blockListToLaTeX lst = vsep `fmap` mapM blockToLaTeX lst
+blockListToLaTeX lst =
+  vsep `fmap` mapM (\b -> setEmptyLine True >> blockToLaTeX b) lst
 
 tableRowToLaTeX :: PandocMonad m
                 => Bool
@@ -774,7 +779,10 @@ listItemToLaTeX lst
 
 defListItemToLaTeX :: PandocMonad m => ([Inline], [[Block]]) -> LW m Doc
 defListItemToLaTeX (term, defs) = do
+    -- needed to turn off 'listings' because it breaks inside \item[...]:
+    modify $ \s -> s{stInItem = True}
     term' <- inlineListToLaTeX term
+    modify $ \s -> s{stInItem = False}
     -- put braces around term if it contains an internal link,
     -- since otherwise we get bad bracket interactions: \item[\hyperref[..]
     let isInternalLink (Link _ _ ('#':_,_)) = True
@@ -882,7 +890,7 @@ inlineListToLaTeX :: PandocMonad m
                   => [Inline]  -- ^ Inlines to convert
                   -> LW m Doc
 inlineListToLaTeX lst =
-  mapM inlineToLaTeX (fixBreaks $ fixLineInitialSpaces lst)
+  mapM inlineToLaTeX (fixLineInitialSpaces lst)
     >>= return . hcat
     -- nonbreaking spaces (~) in LaTeX don't work after line breaks,
     -- so we turn nbsps after hard breaks to \hspace commands.
@@ -894,14 +902,6 @@ inlineListToLaTeX lst =
        fixNbsps s = let (ys,zs) = span (=='\160') s
                     in  replicate (length ys) hspace ++ [Str zs]
        hspace = RawInline "latex" "\\hspace*{0.333em}"
-       -- linebreaks after blank lines cause problems:
-       fixBreaks [] = []
-       fixBreaks ys@(LineBreak : LineBreak : _) =
-         case span (== LineBreak) ys of
-               (lbs, rest) -> RawInline "latex"
-                               ("\\\\[" ++ show (length lbs) ++
-                                "\\baselineskip]") : fixBreaks rest
-       fixBreaks (y:ys) = y : fixBreaks ys
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
@@ -927,9 +927,9 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
   return $ (if null id'
                then empty
                else "\\protect" <> linkAnchor) <>
-           if null cmds
-              then braces contents
-              else foldr inCmd contents cmds
+           (if null cmds
+               then braces contents
+               else foldr inCmd contents cmds)
 inlineToLaTeX (Emph lst) =
   inlineListToLaTeX lst >>= return . inCmd "emph"
 inlineToLaTeX (Strong lst) =
@@ -957,6 +957,7 @@ inlineToLaTeX (Cite cits lst) = do
 inlineToLaTeX (Code (_,classes,_) str) = do
   opts <- gets stOptions
   inHeading <- gets stInHeading
+  inItem <- gets stInItem
   let listingsCode = do
         let listingsopt = case getListingsLanguage classes of
                                Just l -> "[language=" ++ mbBraced l ++ "]"
@@ -966,7 +967,12 @@ inlineToLaTeX (Code (_,classes,_) str) = do
         let chr = case "!\"&'()*,-./:;?@_" \\ str of
                        (c:_) -> c
                        []    -> '!'
-        return $ text $ "\\lstinline" ++ listingsopt ++ [chr] ++ str ++ [chr]
+        let str' = escapeStringUsing (backslashEscapes "\\{}%") str
+        -- we always put lstinline in a dummy 'passthrough' command
+        -- (defined in the default template) so that we don't have
+        -- to change the way we escape characters depending on whether
+        -- the lstinline is inside another command.  See #1629:
+        return $ text $ "\\passthrough{\\lstinline" ++ listingsopt ++ [chr] ++ str' ++ [chr] ++ "}"
   let rawCode = liftM (text . (\s -> "\\texttt{" ++ escapeSpaces s ++ "}"))
                  $ stringToLaTeX CodeString str
                 where escapeSpaces =  concatMap
@@ -980,7 +986,7 @@ inlineToLaTeX (Code (_,classes,_) str) = do
                Right h -> modify (\st -> st{ stHighlighting = True }) >>
                           return (text (T.unpack h))
   case () of
-     _ | writerListings opts  && not inHeading      -> listingsCode
+     _ | writerListings opts  && not (inHeading || inItem) -> listingsCode
        | isJust (writerHighlightStyle opts) && not (null classes)
                                                     -> highlightCode
        | otherwise                                  -> rawCode
@@ -1007,18 +1013,27 @@ inlineToLaTeX (Quoted qt lst) = do
                    if isEnabled Ext_smart opts
                       then char '`' <> inner <> char '\''
                       else char '\x2018' <> inner <> char '\x2019'
-inlineToLaTeX (Str str) = liftM text $ stringToLaTeX TextString str
-inlineToLaTeX (Math InlineMath str) =
+inlineToLaTeX (Str str) = do
+  setEmptyLine False
+  liftM text $ stringToLaTeX TextString str
+inlineToLaTeX (Math InlineMath str) = do
+  setEmptyLine False
   return $ "\\(" <> text str <> "\\)"
-inlineToLaTeX (Math DisplayMath str) =
+inlineToLaTeX (Math DisplayMath str) = do
+  setEmptyLine False
   return $ "\\[" <> text str <> "\\]"
 inlineToLaTeX il@(RawInline f str)
   | f == Format "latex" || f == Format "tex"
-                        = return $ text str
+                        = do
+      setEmptyLine False
+      return $ text str
   | otherwise           = do
       report $ InlineNotRendered il
       return empty
-inlineToLaTeX (LineBreak) = return $ "\\\\" <> cr
+inlineToLaTeX (LineBreak) = do
+  emptyLine <- gets stEmptyLine
+  setEmptyLine True
+  return $ (if emptyLine then "~" else "") <> "\\\\" <> cr
 inlineToLaTeX SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   case wrapText of
@@ -1048,6 +1063,7 @@ inlineToLaTeX (Link _ txt (src, _)) =
                 return $ text ("\\href{" ++ src' ++ "}{") <>
                          contents <> char '}'
 inlineToLaTeX (Image attr _ (source, _)) = do
+  setEmptyLine False
   modify $ \s -> s{ stGraphics = True }
   opts <- gets stOptions
   let showDim dir = let d = text (show dir) <> "="
@@ -1073,6 +1089,7 @@ inlineToLaTeX (Image attr _ (source, _)) = do
     (if inHeading then "\\protect\\includegraphics" else "\\includegraphics") <>
     dims <> braces (text source'')
 inlineToLaTeX (Note contents) = do
+  setEmptyLine False
   inMinipage <- gets stInMinipage
   modify (\s -> s{stInNote = True})
   contents' <- blockListToLaTeX contents
@@ -1099,6 +1116,9 @@ protectCode (x@(Code ("",[],[]) _) : xs) = x : protectCode xs
 protectCode (x@(Code _ _) : xs) = ltx "\\mbox{" : x : ltx "}" : xs
   where ltx = RawInline (Format "latex")
 protectCode (x : xs) = x : protectCode xs
+
+setEmptyLine :: PandocMonad m => Bool -> LW m ()
+setEmptyLine b = modify $ \st -> st{ stEmptyLine = b }
 
 citationsToNatbib :: PandocMonad m => [Citation] -> LW m Doc
 citationsToNatbib (one:[])

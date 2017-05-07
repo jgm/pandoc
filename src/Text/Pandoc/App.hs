@@ -64,7 +64,7 @@ import System.Directory (Permissions (..), doesFileExist, findExecutable,
 import System.Environment (getArgs, getEnvironment, getProgName)
 import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath
-import System.IO (stderr, stdout)
+import System.IO (stdout)
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
@@ -175,13 +175,13 @@ convertWithOpts opts = do
                        (\o d -> liftIO $ writeCustom writerName o d)
                                :: Writer PandocIO)
                else case getWriter writerName of
-                         Left e  -> E.throwIO $ PandocAppError 9 $
+                         Left e  -> E.throwIO $ PandocAppError $
                            if format == "pdf"
                               then e ++
-                               "\nTo create a pdf with pandoc, use " ++
-                               "the latex or beamer writer and specify\n" ++
-                               "an output file with .pdf extension " ++
-                               "(pandoc -t latex -o filename.pdf)."
+                               "\nTo create a pdf using pandoc, use " ++
+                               "-t latex|beamer|context|ms|html5" ++
+                               "\nand specify an output file with " ++
+                               ".pdf extension (-o filename.pdf)."
                               else e
                          Right w -> return (w :: Writer PandocIO)
 
@@ -189,7 +189,7 @@ convertWithOpts opts = do
   -- the sake of the text2tags reader.
   reader <-  case getReader readerName of
                 Right r  -> return (r :: Reader PandocIO)
-                Left e   -> E.throwIO $ PandocAppError 7 e'
+                Left e   -> E.throwIO $ PandocAppError e'
                   where e' = case readerName of
                                   "pdf" -> e ++
                                      "\nPandoc can convert to PDF, but not from PDF."
@@ -304,7 +304,7 @@ convertWithOpts opts = do
   let addSyntaxMap existingmap f = do
         res <- parseSyntaxDefinition f
         case res of
-              Left errstr -> E.throwIO $ PandocAppError 67 errstr
+              Left errstr -> E.throwIO $ PandocSyntaxMapError errstr
               Right syn   -> return $ addSyntaxDefinition syn existingmap
 
   syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
@@ -312,7 +312,7 @@ convertWithOpts opts = do
 
   case missingIncludes (M.elems syntaxMap) of
        [] -> return ()
-       xs -> E.throwIO $ PandocAppError 73 $
+       xs -> E.throwIO $ PandocSyntaxMapError $
                 "Missing syntax definitions:\n" ++
                 unlines (map
                   (\(syn,dep) -> (T.unpack syn ++ " requires " ++
@@ -359,7 +359,7 @@ convertWithOpts opts = do
   istty <- queryTerminal stdOutput
 #endif
   when (istty && not (isTextFormat format) && outputFile == "-") $
-    E.throwIO $ PandocAppError 5 $
+    E.throwIO $ PandocAppError $
             "Cannot write " ++ format ++ " output to stdout.\n" ++
             "Specify an output file using the -o option."
 
@@ -388,8 +388,7 @@ convertWithOpts opts = do
              Just logfile -> B.writeFile logfile (encodeLogMessages reports)
         let isWarning msg = messageVerbosity msg == WARNING
         when (optFailIfWarnings opts && any isWarning reports) $
-            E.throwIO $
-              PandocAppError 3 "Failing because there were warnings."
+            E.throwIO PandocFailOnWarningError
         return res
 
   let sourceToDoc :: [FilePath] -> PandocIO (Pandoc, MediaBag)
@@ -432,7 +431,7 @@ convertWithOpts opts = do
                 -- make sure writer is latex, beamer, context, html5 or ms
                 unless (laTeXOutput || conTeXtOutput || html5Output ||
                         msOutput) $
-                  liftIO $ E.throwIO $ PandocAppError 47 $
+                  liftIO $ E.throwIO $ PandocAppError $
                      "cannot produce pdf output with " ++ format ++ " writer"
 
                 let pdfprog = case () of
@@ -443,18 +442,14 @@ convertWithOpts opts = do
                                   | otherwise     -> optLaTeXEngine opts
                 -- check for pdf creating program
                 mbPdfProg <- liftIO $ findExecutable pdfprog
-                when (isNothing mbPdfProg) $
-                     liftIO $ E.throwIO $ PandocAppError 41 $
-                       pdfprog ++ " not found. " ++
-                       pdfprog ++ " is needed for pdf output."
+                when (isNothing mbPdfProg) $ liftIO $ E.throwIO $
+                       PandocPDFProgramNotFoundError pdfprog
 
                 res <- makePDF pdfprog f writerOptions verbosity media doc'
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
-                     Left err' -> liftIO $ do
-                       B.hPutStr stderr err'
-                       B.hPut stderr $ B.pack [10]
-                       E.throwIO $ PandocAppError 43 "Error producing PDF"
+                     Left err' -> liftIO $
+                       E.throwIO $ PandocPDFError (UTF8.toStringLazy err')
         | otherwise -> do
                 let htmlFormat = format `elem`
                       ["html","html4","html5","s5","slidy","slideous","dzslides","revealjs"]
@@ -496,21 +491,17 @@ externalFilter f args' d = liftIO $ do
   unless (exists && isExecutable) $ do
     mbExe <- findExecutable f'
     when (isNothing mbExe) $
-      E.throwIO $ PandocAppError 83 $
-           "Error running filter " ++ f ++  ":\n" ++
-           "Could not find executable '" ++ f' ++ "'."
+      E.throwIO $ PandocFilterError f ("Could not find executable " ++ f')
   env <- getEnvironment
   let env' = Just $ ("PANDOC_VERSION", pandocVersion) : env
   (exitcode, outbs) <- E.handle filterException $
                               pipeProcess env' f' args'' $ encode d
   case exitcode of
        ExitSuccess    -> return $ either error id $ eitherDecode' outbs
-       ExitFailure ec -> E.throwIO $ PandocAppError 83 $
-                           "Error running filter " ++ f ++ "\n" ++
-                           "Filter returned error status " ++ show ec
+       ExitFailure ec -> E.throwIO $ PandocFilterError f
+                           ("Filter returned error status " ++ show ec)
  where filterException :: E.SomeException -> IO a
-       filterException e = E.throwIO $ PandocAppError 83 $
-                            "Error running filter " ++ f ++ "\n" ++ show e
+       filterException e = E.throwIO $ PandocFilterError f (show e)
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -812,13 +803,13 @@ lookupHighlightStyle (Just s)
   | takeExtension s == ".theme" = -- attempt to load KDE theme
     do contents <- B.readFile s
        case parseTheme contents of
-            Left _    -> E.throwIO $ PandocAppError 69 $
+            Left _    -> E.throwIO $ PandocOptionError $
                            "Could not read highlighting theme " ++ s
             Right sty -> return (Just sty)
   | otherwise =
   case lookup (map toLower s) highlightingStyles of
        Just sty -> return (Just sty)
-       Nothing  -> E.throwIO $ PandocAppError 68 $
+       Nothing  -> E.throwIO $ PandocOptionError $
                       "Unknown highlight-style " ++ s
 
 -- | A list of functions, each transforming the options data structure
@@ -855,7 +846,7 @@ options =
                       case safeRead arg of
                            Just t | t > 0 && t < 6 ->
                                return opt{ optBaseHeaderLevel = t }
-                           _              -> E.throwIO $ PandocAppError 19
+                           _              -> E.throwIO $ PandocOptionError
                                                "base-header-level must be 1-5")
                   "NUMBER")
                  "" -- "Headers base level"
@@ -889,7 +880,7 @@ options =
                   (\arg opt ->
                       case safeRead arg of
                            Just t | t > 0 -> return opt { optTabStop = t }
-                           _              -> E.throwIO $ PandocAppError 31
+                           _              -> E.throwIO $ PandocOptionError
                                   "tab-stop must be a number greater than 0")
                   "NUMBER")
                  "" -- "Tab stop (default 4)"
@@ -901,7 +892,7 @@ options =
                             "accept" -> return AcceptChanges
                             "reject" -> return RejectChanges
                             "all"    -> return AllChanges
-                            _        -> E.throwIO $ PandocAppError 6
+                            _        -> E.throwIO $ PandocOptionError
                                ("Unknown option for track-changes: " ++ arg)
                      return opt { optTrackChanges = action })
                   "accept|reject|all")
@@ -972,7 +963,7 @@ options =
                   (\arg opt ->
                     case safeRead arg of
                          Just t | t > 0 -> return opt { optDpi = t }
-                         _              -> E.throwIO $ PandocAppError 31
+                         _              -> E.throwIO $ PandocOptionError
                                         "dpi must be a number greater than 0")
                   "NUMBER")
                  "" -- "Dpi (default 96)"
@@ -982,7 +973,7 @@ options =
                   (\arg opt ->
                     case safeRead ("Wrap" ++ uppercaseFirstLetter arg) of
                           Just o   -> return opt { optWrapText = o }
-                          Nothing  -> E.throwIO $ PandocAppError 77
+                          Nothing  -> E.throwIO $ PandocOptionError
                                      "--wrap must be auto, none, or preserve")
                  "auto|none|preserve")
                  "" -- "Option for wrapping text in output"
@@ -992,7 +983,7 @@ options =
                   (\arg opt ->
                       case safeRead arg of
                            Just t | t > 0 -> return opt { optColumns = t }
-                           _              -> E.throwIO $ PandocAppError 33
+                           _              -> E.throwIO $ PandocOptionError
                                    "columns must be a number greater than 0")
                  "NUMBER")
                  "" -- "Length of line in characters"
@@ -1008,7 +999,7 @@ options =
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optTOCDepth = t }
-                           _      -> E.throwIO $ PandocAppError 57
+                           _      -> E.throwIO $ PandocOptionError
                                     "TOC level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Number of levels to include in TOC"
@@ -1084,7 +1075,7 @@ options =
                             "block"    -> return EndOfBlock
                             "section"  -> return EndOfSection
                             "document" -> return EndOfDocument
-                            _        -> E.throwIO $ PandocAppError 6
+                            _        -> E.throwIO $ PandocOptionError
                                ("Unknown option for reference-location: " ++ arg)
                      return opt { optReferenceLocation = action })
                   "block|section|document")
@@ -1101,7 +1092,7 @@ options =
                       let tldName = "TopLevel" ++ uppercaseFirstLetter arg
                       case safeRead tldName of
                         Just tlDiv -> return opt { optTopLevelDivision = tlDiv }
-                        _       -> E.throwIO $ PandocAppError 76
+                        _       -> E.throwIO $ PandocOptionError
                                      ("Top-level division must be " ++
                                       "section,  chapter, part, or default"))
                    "section|chapter|part")
@@ -1118,7 +1109,7 @@ options =
                       case safeRead ('[':arg ++ "]") of
                            Just ns -> return opt { optNumberOffset = ns,
                                                    optNumberSections = True }
-                           _      -> E.throwIO $ PandocAppError 57
+                           _      -> E.throwIO $ PandocOptionError
                                        "could not parse number-offset")
                  "NUMBERS")
                  "" -- "Starting number for sections, subsections, etc."
@@ -1139,7 +1130,7 @@ options =
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optSlideLevel = Just t }
-                           _      -> E.throwIO $ PandocAppError 39
+                           _      -> E.throwIO $ PandocOptionError
                                     "slide level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Force header level for slides"
@@ -1162,7 +1153,7 @@ options =
                             "references" -> return ReferenceObfuscation
                             "javascript" -> return JavascriptObfuscation
                             "none"       -> return NoObfuscation
-                            _            -> E.throwIO $ PandocAppError 6
+                            _            -> E.throwIO $ PandocOptionError
                                ("Unknown obfuscation method: " ++ arg)
                      return opt { optEmailObfuscation = method })
                   "none|javascript|references")
@@ -1224,7 +1215,7 @@ options =
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optEpubChapterLevel = t }
-                           _      -> E.throwIO $ PandocAppError 59
+                           _      -> E.throwIO $ PandocOptionError
                                     "chapter level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Header level at which to split chapters in EPUB"
@@ -1235,7 +1226,7 @@ options =
                      let b = takeBaseName arg
                      if b `elem` ["pdflatex", "lualatex", "xelatex"]
                         then return opt { optLaTeXEngine = arg }
-                        else E.throwIO $ PandocAppError 45 "latex-engine must be pdflatex, lualatex, or xelatex.")
+                        else E.throwIO $ PandocOptionError "latex-engine must be pdflatex, lualatex, or xelatex.")
                   "PROGRAM")
                  "" -- "Name of latex program to use in generating PDF"
 

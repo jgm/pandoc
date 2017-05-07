@@ -178,12 +178,21 @@ pCSSUrl sourceURL d = P.try $ do
   P.char ')'
   let fallback = B.pack ("url(" ++ maybe "" (:[]) quote ++ trim url ++
                             maybe "" (:[]) quote ++ ")")
-  case trim url of
+  -- pipes are used in URLs provided by Google Code fonts
+  -- but parseURI doesn't like them, so we escape them:
+  case escapeURIString (/='|') (trim url) of
       '#':_ -> return fallback
       'd':'a':'t':'a':':':_ -> return fallback
       u ->  do let url' = if isURI u then u else d </> u
-               enc <- lift $ getDataURI sourceURL "" url'
-               return (B.pack $ "url(" ++ enc ++ ")")
+               res <- lift $ getData sourceURL "" url'
+               case res of
+                    Left uri -> return (B.pack $ "url(" ++ uri ++ ")")
+                    Right (mt, raw) -> do
+                      -- note that the downloaded content may
+                      -- itself contain url(...).
+                      raw' <- cssURLs sourceURL d raw
+                      let enc = makeDataURI (mt, raw')
+                      return (B.pack $ "url(" ++ enc ++ ")")
 
 getDataURI :: PandocMonad m => Maybe String -> MimeType -> String -> m String
 getDataURI sourceURL mimetype src = do
