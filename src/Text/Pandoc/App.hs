@@ -45,6 +45,7 @@ import Data.Aeson (eitherDecode', encode)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower, toUpper)
+import Data.Digest.Pure.SHA (sha1, showDigest)
 import qualified Data.Set as Set
 import Data.Foldable (foldrM)
 import Data.List (intercalate, isPrefixOf, isSuffixOf, sort)
@@ -68,17 +69,19 @@ import System.IO (stdout)
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.Class (PandocIO, getLog, withMediaBag, getMediaBag)
+import Text.Pandoc.Class (PandocIO, getLog, withMediaBag, getMediaBag,
+                          fetchItem, insertMedia)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua ( runLuaFilter )
 import Text.Pandoc.MediaBag (extractMediaBag, mediaDirectory)
+import Text.Pandoc.MIME (extensionFromMimeType)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeSelfContained, makeDataURI)
 import Text.Pandoc.Shared (headerShift, openURL, readDataFile,
                            readDataFileUTF8, safeRead, tabFilter)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Walk (walk)
+import Text.Pandoc.Walk (walkM, walk)
 import Text.Pandoc.XML (toEntities)
 import Text.Printf
 #ifndef _WINDOWS
@@ -413,11 +416,15 @@ convertWithOpts opts = do
 
   runIO' $ do
     (doc, media) <- withMediaBag $ sourceToDoc sources >>=
-                 (maybe return extractMedia (optExtractMedia opts)
+              (   (if isJust (optExtractMedia opts)
+                      then fillMedia (writerSourceURL writerOptions)
+                      else return)
+              >=> maybe return extractMedia (optExtractMedia opts)
               >=> return . flip (foldr addMetadata) metadata
               >=> applyTransforms transforms
               >=> applyLuaFilters datadir (optLuaFilters opts) [format]
-              >=> applyFilters datadir filters' [format])
+              >=> applyFilters datadir filters' [format]
+              )
 
     case writer of
       ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
@@ -722,6 +729,21 @@ defaultWriterName x =
     _           -> "html"
 
 -- Transformations of a Pandoc document post-parsing:
+
+-- | Traverse tree, filling media bag.
+fillMedia :: Maybe String -> Pandoc -> PandocIO Pandoc
+fillMedia sourceURL d = walkM handleImage d
+  where handleImage :: Inline -> PandocIO Inline
+        handleImage (Image attr lab (src, tit)) = do
+          (bs, mt) <- fetchItem sourceURL src
+          let ext = fromMaybe (takeExtension src)
+                      (mt >>= extensionFromMimeType)
+          let bs' = B.fromChunks [bs]
+          let basename = showDigest $ sha1 bs'
+          let fname = basename <.> ext
+          insertMedia fname mt bs'
+          return $ Image attr lab (fname, tit)
+        handleImage x = return x
 
 extractMedia :: FilePath -> Pandoc -> PandocIO Pandoc
 extractMedia dir d = do
