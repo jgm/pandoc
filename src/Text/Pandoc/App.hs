@@ -39,6 +39,7 @@ module Text.Pandoc.App (
           ) where
 import Control.Applicative ((<|>))
 import qualified Control.Exception as E
+import Control.Monad.Except (catchError, throwError)
 import Control.Monad
 import Control.Monad.Trans
 import Data.Aeson (eitherDecode', encode)
@@ -70,7 +71,7 @@ import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, getLog, withMediaBag, getMediaBag,
-                          fetchItem, insertMedia)
+                          fetchItem, insertMedia, report)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua ( runLuaFilter )
 import Text.Pandoc.MediaBag (extractMediaBag, mediaDirectory)
@@ -734,15 +735,23 @@ defaultWriterName x =
 fillMedia :: Maybe String -> Pandoc -> PandocIO Pandoc
 fillMedia sourceURL d = walkM handleImage d
   where handleImage :: Inline -> PandocIO Inline
-        handleImage (Image attr lab (src, tit)) = do
-          (bs, mt) <- fetchItem sourceURL src
-          let ext = fromMaybe (takeExtension src)
-                      (mt >>= extensionFromMimeType)
-          let bs' = B.fromChunks [bs]
-          let basename = showDigest $ sha1 bs'
-          let fname = basename <.> ext
-          insertMedia fname mt bs'
-          return $ Image attr lab (fname, tit)
+        handleImage (Image attr lab (src, tit)) = catchError
+          (do (bs, mt) <- fetchItem sourceURL src
+              let ext = fromMaybe (takeExtension src)
+                          (mt >>= extensionFromMimeType)
+              let bs' = B.fromChunks [bs]
+              let basename = showDigest $ sha1 bs'
+              let fname = basename <.> ext
+              insertMedia fname mt bs'
+              return $ Image attr lab (fname, tit))
+          (\e -> do
+              case e of
+                PandocResourceNotFound _ -> do
+                  report $ CouldNotFetchResource src
+                            "replacing image with description"
+                  -- emit alt text
+                  return $ Span ("",["image"],[]) lab
+                _ -> throwError e)
         handleImage x = return x
 
 extractMedia :: FilePath -> Pandoc -> PandocIO Pandoc
