@@ -141,7 +141,8 @@ import Text.Pandoc.Data (dataFiles)
 import Paths_pandoc (getDataFileName)
 #endif
 import Network.HTTP.Client (httpLbs, responseBody, responseHeaders,
-                            Request(port,host,requestHeaders))
+                            Request(port,host,requestHeaders),
+                            HttpException)
 import Network.HTTP.Client (parseRequest)
 import Network.HTTP.Client (newManager)
 import Network.HTTP.Client.Internal (addProxy)
@@ -702,13 +703,13 @@ readDataFileUTF8 userDir fname =
   UTF8.toString `fmap` readDataFile userDir fname
 
 -- | Read from a URL and return raw data and maybe mime type.
-openURL :: String -> IO (BS.ByteString, Maybe MimeType)
+openURL :: String -> IO (Either HttpException (BS.ByteString, Maybe MimeType))
 openURL u
   | Just u'' <- stripPrefix "data:" u =
     let mime     = takeWhile (/=',') u''
         contents = B8.pack $ unEscapeString $ drop 1 $ dropWhile (/=',') u''
-    in  return (decodeLenient contents, Just mime)
-  | otherwise = withSocketsDo $ do
+    in  return $ Right (decodeLenient contents, Just mime)
+  | otherwise = E.try $ withSocketsDo $ do
      let parseReq = parseRequest
      (proxy :: Either IOError String) <-
         tryIOError $ getEnv "http_proxy"

@@ -242,7 +242,10 @@ instance PandocMonad PandocIO where
   newUniqueHash = hashUnique <$> (liftIO IO.newUnique)
   openURL u = do
     report $ Fetching u
-    liftIOError IO.openURL u
+    res <- liftIO (IO.openURL u)
+    case res of
+         Right r -> return r
+         Left e  -> throwError $ PandocHttpError u e
   readFileLazy s = liftIOError BL.readFile s
   readFileStrict s = liftIOError B.readFile s
   readDataFile mfp fname = liftIOError (IO.readDataFile mfp) fname

@@ -42,10 +42,12 @@ import Text.Parsec.Pos hiding (Line)
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.Exit (exitWith, ExitCode(..))
 import System.IO (stderr)
+import Network.HTTP.Client (HttpException)
 
 type Input = String
 
 data PandocError = PandocIOError String IOError
+                 | PandocHttpError String HttpException
                  | PandocShouldNeverHappenError String
                  | PandocSomeError String
                  | PandocParseError String
@@ -70,6 +72,8 @@ handleError (Right r) = return r
 handleError (Left e) =
   case e of
     PandocIOError _ err' -> ioError err'
+    PandocHttpError u err' -> err 61 $
+      "Could not fetch " ++ u ++ "\n" ++ show err'
     PandocShouldNeverHappenError s -> err 62 s
     PandocSomeError s -> err 63 s
     PandocParseError s -> err 64 s

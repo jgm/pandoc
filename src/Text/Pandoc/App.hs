@@ -376,7 +376,7 @@ convertWithOpts opts = do
                                  then 0
                                  else optTabStop opts)
 
-      readSources :: (Functor m, MonadIO m) => [FilePath] -> m String
+      readSources :: [FilePath] -> PandocIO String
       readSources srcs = convertTabs . intercalate "\n" <$>
                             mapM readSource srcs
 
@@ -751,6 +751,11 @@ fillMedia sourceURL d = walkM handleImage d
                             "replacing image with description"
                   -- emit alt text
                   return $ Span ("",["image"],[]) lab
+                PandocHttpError u er -> do
+                  report $ CouldNotFetchResource u
+                            (show er ++ "\rReplacing image with description.")
+                  -- emit alt text
+                  return $ Span ("",["image"],[]) lab
                 _ -> throwError e)
         handleImage x = return x
 
@@ -800,7 +805,7 @@ applyFilters mbDatadir filters args d = do
   expandedFilters <- mapM (expandFilterPath mbDatadir) filters
   foldrM ($) d $ map (flip externalFilter args) expandedFilters
 
-readSource :: MonadIO m => FilePath -> m String
+readSource :: FilePath -> PandocIO String
 readSource "-" = liftIO UTF8.getContents
 readSource src = case parseURI src of
                       Just u | uriScheme u `elem` ["http:","https:"] ->
@@ -809,8 +814,12 @@ readSource src = case parseURI src of
                                  liftIO $ UTF8.readFile (uriPath u)
                       _       -> liftIO $ UTF8.readFile src
 
-readURI :: MonadIO m => FilePath -> m String
-readURI src = liftIO $ (UTF8.toString . fst) <$> openURL src
+readURI :: FilePath -> PandocIO String
+readURI src = do
+  res <- liftIO $ openURL src
+  case res of
+       Left e -> throwError $ PandocHttpError src e
+       Right (contents, _) -> return $ UTF8.toString contents
 
 readFile' :: MonadIO m => FilePath -> m B.ByteString
 readFile' "-" = liftIO B.getContents
