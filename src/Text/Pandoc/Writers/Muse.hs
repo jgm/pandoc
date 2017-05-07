@@ -216,7 +216,7 @@ blockToMuse (Table caption _ _ headers rows) =  do
   let hpipeBlocks sep blocks = hcat $ intersperse sep' blocks
         where h      = maximum (1 : map height blocks)
               sep'   = lblock (length sep) $ vcat (map text $ replicate h sep)
-  let makeRow sep = hpipeBlocks sep . zipWith lblock widthsInChars
+  let makeRow sep = (" " <>) . (hpipeBlocks sep . zipWith lblock widthsInChars)
   let head' = makeRow " || " headers'
   let rowSeparator = if noHeaders then " | " else " |  "
   rows'' <- mapM (\row -> do cols <- mapM blockListToMuse row
@@ -224,7 +224,7 @@ blockToMuse (Table caption _ _ headers rows) =  do
   let body = vcat rows''
   return $  (if noHeaders then empty else head')
          $$ body
-         $$ (if null caption then empty else "|+ " <> caption' <> " +|")
+         $$ (if null caption then empty else " |+ " <> caption' <> " +|")
          $$ blankline
 blockToMuse (Div _ bs) = blockListToMuse bs
 blockToMuse Null = return empty
