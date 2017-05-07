@@ -68,10 +68,10 @@ import System.IO (stdout)
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.Class (PandocIO, getLog, withMediaBag)
+import Text.Pandoc.Class (PandocIO, getLog, withMediaBag, getMediaBag)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua ( runLuaFilter )
-import Text.Pandoc.MediaBag (MediaBag, extractMediaBag, mediaDirectory)
+import Text.Pandoc.MediaBag (extractMediaBag, mediaDirectory)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.SelfContained (makeSelfContained, makeDataURI)
@@ -391,20 +391,16 @@ convertWithOpts opts = do
             E.throwIO PandocFailOnWarningError
         return res
 
-  let sourceToDoc :: [FilePath] -> PandocIO (Pandoc, MediaBag)
+  let sourceToDoc :: [FilePath] -> PandocIO Pandoc
       sourceToDoc sources' =
          case reader of
               StringReader r
-                | optFileScope opts || readerName == "json" -> do
-                    pairs <- mapM
-                      (readSource >=> withMediaBag . r readerOpts) sources
-                    return (mconcat (map fst pairs), mconcat (map snd pairs))
+                | optFileScope opts || readerName == "json" ->
+                    mconcat <$> mapM (readSource >=> r readerOpts) sources
                 | otherwise ->
-                     readSources sources' >>= withMediaBag . r readerOpts
-              ByteStringReader r -> do
-                pairs <- mapM (readFile' >=>
-                                 withMediaBag . r readerOpts) sources
-                return (mconcat (map fst pairs), mconcat (map snd pairs))
+                    readSources sources' >>= r readerOpts
+              ByteStringReader r ->
+                mconcat <$> mapM (readFile' >=> r readerOpts) sources
 
   metadata <- if format == "jats" &&
                  lookup "csl" (optMetadata opts) == Nothing &&
@@ -416,16 +412,15 @@ convertWithOpts opts = do
                  else return $ optMetadata opts
 
   runIO' $ do
-    (doc, media) <- sourceToDoc sources
-    doc' <- (maybe return (extractMedia media) (optExtractMedia opts) >=>
-              return . flip (foldr addMetadata) metadata >=>
-              applyTransforms transforms >=>
-              applyLuaFilters datadir (optLuaFilters opts) [format] >=>
-              applyFilters datadir filters' [format]) doc
+    (doc, media) <- withMediaBag $ sourceToDoc sources >>=
+                 (maybe return extractMedia (optExtractMedia opts)
+              >=> return . flip (foldr addMetadata) metadata
+              >=> applyTransforms transforms
+              >=> applyLuaFilters datadir (optLuaFilters opts) [format]
+              >=> applyFilters datadir filters' [format])
 
     case writer of
-      -- StringWriter f -> f writerOptions doc' >>= writerFn outputFile
-      ByteStringWriter f -> f writerOptions doc' >>= writeFnBinary outputFile
+      ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
       StringWriter f
         | pdfOutput -> do
                 -- make sure writer is latex, beamer, context, html5 or ms
@@ -445,7 +440,7 @@ convertWithOpts opts = do
                 when (isNothing mbPdfProg) $ liftIO $ E.throwIO $
                        PandocPDFProgramNotFoundError pdfprog
 
-                res <- makePDF pdfprog f writerOptions verbosity media doc'
+                res <- makePDF pdfprog f writerOptions verbosity media doc
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> liftIO $
@@ -462,7 +457,7 @@ convertWithOpts opts = do
                                          format == "docbook") && optAscii opts
                                      then toEntities
                                      else id
-                output <- f writerOptions doc'
+                output <- f writerOptions doc
                 selfcontain (output ++ ['\n' | not standalone]) >>=
                     writerFn outputFile . handleEntities
 
@@ -728,12 +723,13 @@ defaultWriterName x =
 
 -- Transformations of a Pandoc document post-parsing:
 
-extractMedia :: MonadIO m => MediaBag -> FilePath -> Pandoc -> m Pandoc
-extractMedia media dir d =
+extractMedia :: FilePath -> Pandoc -> PandocIO Pandoc
+extractMedia dir d = do
+  media <- getMediaBag
   case [fp | (fp, _, _) <- mediaDirectory media] of
         []  -> return d
         fps -> do
-          extractMediaBag True dir media
+          liftIO $ extractMediaBag True dir media
           return $ walk (adjustImagePath dir fps) d
 
 adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
