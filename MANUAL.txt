@@ -523,10 +523,15 @@ Reader options
 
 `--extract-media=`*DIR*
 
-:   Extract images and other media contained in a docx or epub container
-    to the path *DIR*, creating it if necessary, and adjust the images
-    references in the document so they point to the extracted files.
-    This option only affects the docx and epub readers.
+:   Extract images and other media contained in or linked from
+    the source document to the path *DIR*, creating it if
+    necessary, and adjust the images references in the document
+    so they point to the extracted files.  If the source format is
+    a binary container (docx, epub, or odt), the media is
+    extracted from the container and the original
+    filenames are used. Otherwise the media is read from the
+    file system or downloaded, and new filenames are constructed
+    based on SHA1 hashes of the contents.
 
 `--abbreviations=`*FILE*
 
