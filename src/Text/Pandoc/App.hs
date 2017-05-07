@@ -70,7 +70,7 @@ import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Class (PandocIO, getLog, withMediaBag,
-                          extractMedia, fillMedia)
+                          extractMedia, fillMediaBag)
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Lua ( runLuaFilter )
 import Text.Pandoc.PDF (makePDF)
@@ -414,7 +414,7 @@ convertWithOpts opts = do
   runIO' $ do
     (doc, media) <- withMediaBag $ sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
-                      then fillMedia (writerSourceURL writerOptions)
+                      then fillMediaBag (writerSourceURL writerOptions)
                       else return)
               >=> maybe return extractMedia (optExtractMedia opts)
               >=> return . flip (foldr addMetadata) metadata

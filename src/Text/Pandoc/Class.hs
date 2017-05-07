@@ -61,7 +61,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , runIOorExplode
                          , runPure
                          , withMediaBag
-                         , fillMedia
+                         , fillMediaBag
                          , extractMedia
                          ) where
 
@@ -346,8 +346,8 @@ withPaths (p:ps) action fp =
              (\_ -> withPaths ps action fp)
 
 -- | Traverse tree, filling media bag.
-fillMedia :: PandocMonad m => Maybe String -> Pandoc -> m Pandoc
-fillMedia sourceURL d = walkM handleImage d
+fillMediaBag :: PandocMonad m => Maybe String -> Pandoc -> m Pandoc
+fillMediaBag sourceURL d = walkM handleImage d
   where handleImage :: PandocMonad m => Inline -> m Inline
         handleImage (Image attr lab (src, tit)) = catchError
           (do (bs, mt) <- fetchItem sourceURL src

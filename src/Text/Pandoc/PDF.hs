@@ -63,7 +63,8 @@ import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 import Data.List (intercalate)
 #endif
 import Text.Pandoc.Class (PandocIO, report, runIO, runIOorExplode,
-                          setMediaBag, setVerbosity, fillMedia, extractMedia)
+                          setMediaBag, setVerbosity,
+                          fillMediaBag, extractMedia)
 import Text.Pandoc.Logging
 
 #ifdef _WINDOWS
@@ -138,7 +139,7 @@ handleImages verbosity opts mediabag tmpdir doc = do
   doc' <- runIOorExplode $ do
             setVerbosity verbosity
             setMediaBag mediabag
-            fillMedia (writerSourceURL opts) doc >>=
+            fillMediaBag (writerSourceURL opts) doc >>=
               extractMedia tmpdir
   walkM (convertImages verbosity tmpdir) doc'
 
