@@ -69,6 +69,15 @@ $endif$
 \usepackage[$for(microtypeoptions)$$microtypeoptions$$sep$,$endfor$]{microtype}
 \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
+$if(indent)$
+$else$
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+$endif$
 \PassOptionsToPackage{hyphens}{url} % url is loaded by hyperref
 $if(verbatim-in-note)$
 \usepackage{fancyvrb}
@@ -161,15 +170,6 @@ $if(strikeout)$
 \usepackage[normalem]{ulem}
 % avoid problems with \sout in headers with hyperref:
 \pdfstringdefDisableCommands{\renewcommand{\sout}{}}
-$endif$
-$if(indent)$
-$else$
-\IfFileExists{parskip.sty}{%
-\usepackage{parskip}
-}{% else
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{6pt plus 2pt minus 1pt}
-}
 $endif$
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
 \providecommand{\tightlist}{%
