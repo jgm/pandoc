@@ -66,6 +66,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              tableWith,
                              widthsFromIndices,
                              gridTableWith,
+                             gridTableWith',
                              readWith,
                              readWithM,
                              testStringWith,
@@ -770,6 +771,20 @@ tableWith :: (Stream s m Char, HasReaderOptions st,
           -> ParserT s st m end
           -> ParserT s st m (mf Blocks)
 tableWith headerParser rowParser lineParser footerParser = try $ do
+  (aligns, widths, heads, rows) <- tableWith' headerParser rowParser
+                                                lineParser footerParser
+  return $ B.table mempty (zip aligns widths) <$> heads <*> rows
+
+type TableComponents mf = ([Alignment], [Double], mf [Blocks], mf [[Blocks]])
+
+tableWith' :: (Stream s m Char, HasReaderOptions st,
+               Functor mf, Applicative mf, Monad mf)
+           => ParserT s st m (mf [Blocks], [Alignment], [Int])
+           -> ([Int] -> ParserT s st m (mf [Blocks]))
+           -> ParserT s st m sep
+           -> ParserT s st m end
+           -> ParserT s st m (TableComponents mf)
+tableWith' headerParser rowParser lineParser footerParser = try $ do
     (heads, aligns, indices) <- headerParser
     lines' <- sequence <$> rowParser indices `sepEndBy1` lineParser
     footerParser
@@ -777,7 +792,7 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
     let widths = if (indices == [])
                     then replicate (length aligns) 0.0
                     else widthsFromIndices numColumns indices
-    return $ B.table mempty (zip aligns widths) <$> heads <*> lines'
+    return $ (aligns, widths, heads, lines')
 
 -- Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
@@ -812,24 +827,42 @@ widthsFromIndices numColumns' indices =
 -- ending with a footer (dashed line followed by blank line).
 gridTableWith :: (Stream [Char] m Char, HasReaderOptions st,
                   Functor mf, Applicative mf, Monad mf)
-              => ParserT [Char] st m (mf Blocks)   -- ^ Block list parser
+              => ParserT [Char] st m (mf Blocks)  -- ^ Block list parser
               -> Bool                             -- ^ Headerless table
               -> ParserT [Char] st m (mf Blocks)
 gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
 
+gridTableWith' :: (Stream [Char] m Char, HasReaderOptions st,
+                   Functor mf, Applicative mf, Monad mf)
+               => ParserT [Char] st m (mf Blocks)  -- ^ Block list parser
+               -> Bool                             -- ^ Headerless table
+               -> ParserT [Char] st m (TableComponents mf)
+gridTableWith' blocks headless =
+  tableWith' (gridTableHeader headless blocks) (gridTableRow blocks)
+             (gridTableSep '-') gridTableFooter
+
 gridTableSplitLine :: [Int] -> String -> [String]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
   splitStringByIndices (init indices) $ trimr line
 
-gridPart :: Stream s m Char => Char -> ParserT s st m (Int, Int)
+gridPart :: Stream s m Char => Char -> ParserT s st m ((Int, Int), Alignment)
 gridPart ch = do
+  leftColon <- option False (True <$ char ':')
   dashes <- many1 (char ch)
+  rightColon <- option False (True <$ char ':')
   char '+'
-  return (length dashes, length dashes + 1)
+  let lengthDashes = length dashes + (if leftColon then 1 else 0) +
+                       (if rightColon then 1 else 0)
+  let alignment = case (leftColon, rightColon) of
+                       (True, True)   -> AlignCenter
+                       (True, False)  -> AlignLeft
+                       (False, True)  -> AlignRight
+                       (False, False) -> AlignDefault
+  return ((lengthDashes, lengthDashes + 1), alignment)
 
-gridDashedLines :: Stream s m Char => Char -> ParserT s st m [(Int,Int)]
+gridDashedLines :: Stream s m Char => Char -> ParserT s st m [((Int, Int), Alignment)]
 gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
 
 removeFinalBar :: String -> String
@@ -853,18 +886,18 @@ gridTableHeader headless blocks = try $ do
                     else many1
                          (notFollowedBy (gridTableSep '=') >> char '|' >>
                            many1Till anyChar newline)
-  if headless
-     then return ()
-     else gridTableSep '=' >> return ()
-  let lines'   = map snd dashes
+  underDashes <- if headless
+                    then return dashes
+                    else gridDashedLines '='
+  guard $ length dashes == length underDashes
+  let lines'   = map (snd . fst) underDashes
   let indices  = scanl (+) 0 lines'
-  let aligns   = replicate (length lines') AlignDefault
-  -- RST does not have a notion of alignments
+  let aligns   = map snd underDashes
   let rawHeads = if headless
-                    then replicate (length dashes) ""
-                    else map (intercalate " ") $ transpose
+                    then replicate (length underDashes) ""
+                    else map (unlines . map trim) $ transpose
                        $ map (gridTableSplitLine indices) rawContent
-  heads <- fmap sequence . mapM (parseFromString blocks) $ map trim rawHeads
+  heads <- fmap sequence $ mapM (parseFromString blocks . trim) rawHeads
   return (heads, aligns, indices)
 
 gridTableRawLine :: Stream s m Char => [Int] -> ParserT s st m [String]
@@ -882,6 +915,9 @@ gridTableRow blocks indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((++ "\n") . unlines . removeOneLeadingSpace) $
                transpose colLines
+      compactifyCell bs = case compactify [bs] of
+                            []  -> mempty
+                            x:_ -> x
   cells <- sequence <$> mapM (parseFromString blocks) cols
   return $ fmap (map compactifyCell) cells
 
@@ -892,9 +928,6 @@ removeOneLeadingSpace xs =
      else xs
    where startsWithSpace ""     = True
          startsWithSpace (y:_) = y == ' '
-
-compactifyCell :: Blocks -> Blocks
-compactifyCell bs = head $ compactify [bs]
 
 -- | Parse footer for a grid table.
 gridTableFooter :: Stream s m Char => ParserT s st m [Char]
