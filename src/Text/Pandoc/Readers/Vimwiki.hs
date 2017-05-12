@@ -634,7 +634,7 @@ imageOption = try $ char '|' *> opt
       <|> try (string "frame")
       <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
 
-collapseUnderscores :: String -> String
+collapseUnderscores :: String -> String -- used in addUnderscores, which is in turn used to add underscores in links
 collapseUnderscores []           = []
 collapseUnderscores ('_':'_':xs) = collapseUnderscores ('_':xs)
 collapseUnderscores (x:xs)       = x : collapseUnderscores xs
@@ -684,15 +684,25 @@ inlinesBetween start end =
     where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)
           innerSpace = try $ whitespace <* notFollowedBy' end
 
-emph :: PandocMonad m => VwParser m Inlines
-emph = B.emph <$> nested (inlinesBetween start end)
-    where start = sym "''" >> lookAhead nonspaceChar
-          end   = try $ notFollowedBy' (() <$ strong) >> sym "''"
+-- In the following sym should all be replaceable by string, because this is how it is done in Markdown.hs and sym is already defined as try $ string
+-- so I have changed the sym to string
 
-strong :: PandocMonad m => VwParser m Inlines
+strikeout :: PandocMonad  m => VwParser m Inlines -- strikeout fails on both "~~" and "&"
+strikeout = B.strikeout <$> nested (inlinesBetween start end) 
+    where start = string "~~" >> lookAhead nonspaceChar
+          end   = try $ string "~~"
+
+emph :: PandocMonad m => VwParser m Inlines -- Italics, ''i'', changing to "_" does not work, but changing to "&" works
+emph = B.emph <$> nested (inlinesBetween start end)
+    where start = string "_" >> lookAhead nonspaceChar
+          end   = try $ string "_"
+    --where start = string "''" >> lookAhead nonspaceChar
+          --end   = try $ notFollowedBy' (() <$ strong) >> string "''"
+
+strong :: PandocMonad m => VwParser m Inlines -- bold, '''b'''
 strong = B.strong <$> nested (inlinesBetween start end)
-    where start = sym "'''" >> lookAhead nonspaceChar
-          end   = try $ sym "'''"
+    where start = string "*" >> lookAhead nonspaceChar
+          end   = try $ string "*"
 
 doubleQuotes :: PandocMonad m => VwParser m Inlines
 doubleQuotes = B.doubleQuoted <$> nested (inlinesBetween openDoubleQuote closeDoubleQuote)
