@@ -442,7 +442,7 @@ rawBlockContent blockType = try $ do
    tabsToSpaces tabLen cs'@(c:cs) =
        case c of
          ' '  -> ' ':tabsToSpaces tabLen cs
-         '\t' -> (take tabLen $ repeat ' ') ++ tabsToSpaces tabLen cs
+         '\t' -> replicate tabLen ' ' ++ tabsToSpaces tabLen cs
          _    -> cs'
 
    commaEscaped :: String -> String
