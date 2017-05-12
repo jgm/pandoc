@@ -491,6 +491,7 @@ block = do
                , bulletList
                , header
                , lhsCodeBlock
+               , divBlock
                , divHtml
                , htmlBlock
                , table
@@ -774,6 +775,54 @@ blockQuote = do
   -- parse the extracted block, which may contain various block elements:
   contents <- parseFromString parseBlocks $ (intercalate "\n" raw) ++ "\n\n"
   return $ B.blockQuote <$> contents
+
+--
+-- div blocks
+--
+
+openingDiv :: PandocMonad m => MarkdownParser m Attr
+openingDiv = do
+  string "; ---"
+  skipMany spaceChar
+  string "div"
+  attr' <- option nullAttr $ do
+    skipMany spaceChar
+    attributes
+  return attr'
+
+closingDiv :: PandocMonad m => MarkdownParser m ()
+closingDiv = do
+  string "; ---"
+  skipMany spaceChar
+  string "\n"
+  return ()
+
+divBlockBirdTrack :: PandocMonad m => MarkdownParser m (F Blocks)
+divBlockBirdTrack = try $ do
+  pos <- getPosition
+  when (sourceColumn pos /= 1) $ fail "Not in first colum"
+  attr' <- openingDiv
+  lns <- many1 $ birdTrackLine ';'
+  -- if (as is normal) there is always a space after ;, drop it
+  let lns' = if all (\ln -> null ln || take 1 ln == " ") lns
+                then map (drop 1) lns
+                else lns
+  blanklines
+  -- recursively parse lns' we collected
+  bs <- parseFromString parseBlocks (intercalate "\n" lns')
+  return $ B.divWith attr' <$> bs
+
+divBlockBeginEnd :: PandocMonad m => MarkdownParser m (F Blocks)
+divBlockBeginEnd = try $ do
+  pos <- getPosition
+  when (sourceColumn pos /= 1) $ fail "Not in first column"
+  attr' <- openingDiv
+  bs <- manyTill block (try closingDiv)
+  closingDiv
+  return $ B.divWith attr' <$> (mconcat bs)
+
+divBlock :: PandocMonad m => MarkdownParser m (F Blocks)
+divBlock = divBlockBirdTrack <|> divBlockBeginEnd <?> "divBlock"
 
 --
 -- list blocks
