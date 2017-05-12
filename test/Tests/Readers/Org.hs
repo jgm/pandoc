@@ -26,7 +26,7 @@ simpleTable' :: Int
              -> [Blocks]
              -> [[Blocks]]
              -> Blocks
-simpleTable' n = table "" (take n $ repeat (AlignDefault, 0.0))
+simpleTable' n = table "" (replicate n (AlignDefault, 0.0))
 
 tests :: [TestTree]
 tests =
