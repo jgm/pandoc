@@ -19,7 +19,17 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 
-{- | Conversion of 'Pandoc' documents to FB2 (FictionBook2) format.
+{- |
+Module      : Text.Pandoc.Writers.FB2
+Copyright   : Copyright (C) 2011-2012 Sergey Astanin
+                            2012-2017 John MacFarlane
+License     : GNU GPL, version 2 or above
+
+Maintainer  : John MacFarlane
+Stability   : alpha
+Portability : portable
+
+Conversion of 'Pandoc' documents to FB2 (FictionBook2) format.
 
 FictionBook is an XML-based e-book format. For more information see:
 <http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1>
