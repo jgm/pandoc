@@ -528,6 +528,7 @@ inline =  whitespace
       <|> doubleQuotes
       <|> strong
       <|> emph
+      <|> strikeout
       <|> image
       <|> internalLink
       <|> externalLink
