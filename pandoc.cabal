@@ -155,6 +155,7 @@ Extra-Source-Files:
                  test/markdown-citations.txt
                  test/textile-reader.textile
                  test/mediawiki-reader.wiki
+                 test/vimwiki-reader.wiki
                  test/rst-reader.rst
                  test/s5-basic.html
                  test/s5-fancy.html

@@ -224,7 +224,7 @@ $ \sum_i a_i^2 = 1 $
 &= 2.
 }}$
 
-= tags =
+== tags ==
 
 :tag-one:tag-two:
 
@@ -244,7 +244,7 @@ $ \sum_i a_i^2 = 1 $
 | h  | >  | > | > |
 >
 
-= paragraphs =
+== paragraphs ==
 
 This is first paragraph
 with two lines.

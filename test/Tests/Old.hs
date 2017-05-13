@@ -99,6 +99,10 @@ tests = [ testGroup "markdown"
           , test "reader" ["-r", "mediawiki", "-w", "native", "-s"]
             "mediawiki-reader.wiki" "mediawiki-reader.native"
           ]
+        , testGroup "vimwiki"
+          [ test "reader" ["-r", "vimwiki", "-w", "html5", "-s"]
+            "vimwiki-reader.wiki" "vimwiki-reader.html"
+          ]
         , testGroup "dokuwiki"
           [ testGroup "writer" $ writerTests "dokuwiki"
           , test "inline_formatting" ["-r", "native", "-w", "dokuwiki", "-s"]
