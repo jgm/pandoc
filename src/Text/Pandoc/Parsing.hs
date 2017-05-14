@@ -1380,5 +1380,5 @@ insertIncludedFile blocks dirs f = do
   bs <- blocks
   setInput oldInput
   setPosition oldPos
-  updateState $ \s -> s{ stateContainers = tail $ stateContainers s }
+  updateState $ \s -> s{ stateContainers = drop 1 $ stateContainers s }
   return bs
