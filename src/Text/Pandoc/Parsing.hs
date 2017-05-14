@@ -121,6 +121,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              (<+?>),
                              extractIdClass,
                              insertIncludedFile,
+                             insertIncludedFileF,
                              -- * Re-exports from Text.Pandoc.Parsec
                              Stream,
                              runParser,
@@ -1369,13 +1370,12 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
                Nothing -> cls
     kvs'  = filter (\(k,_) -> k /= "id" || k /= "class") kvs
 
--- | Parse content of include file as blocks. Circular includes result in an
--- @PandocParseError@.
-insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
-                   => ParserT String st m Blocks
-                   -> [FilePath] -> FilePath
-                   -> ParserT String st m Blocks
-insertIncludedFile blocks dirs f = do
+insertIncludedFile' :: (PandocMonad m, HasIncludeFiles st,
+                        Functor mf, Applicative mf, Monad mf)
+                    => ParserT String st m (mf Blocks)
+                    -> [FilePath] -> FilePath
+                    -> ParserT String st m (mf Blocks)
+insertIncludedFile' blocks dirs f = do
   oldPos <- getPosition
   oldInput <- getInput
   containers <- getIncludeFiles <$> getState
@@ -1395,3 +1395,20 @@ insertIncludedFile blocks dirs f = do
   setPosition oldPos
   updateState dropLatestIncludeFile
   return bs
+
+-- | Parse content of include file as blocks. Circular includes result in an
+-- @PandocParseError@.
+insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
+                   => ParserT String st m Blocks
+                   -> [FilePath] -> FilePath
+                   -> ParserT String st m Blocks
+insertIncludedFile blocks dirs f =
+  runIdentity <$> insertIncludedFile' (Identity <$> blocks) dirs f
+
+-- | Parse content of include file as future blocks. Circular includes result in
+-- an @PandocParseError@.
+insertIncludedFileF :: (PandocMonad m, HasIncludeFiles st)
+                    => ParserT String st m (Future st Blocks)
+                    -> [FilePath] -> FilePath
+                    -> ParserT String st m (Future st Blocks)
+insertIncludedFileF = insertIncludedFile'
