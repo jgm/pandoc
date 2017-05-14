@@ -1,6 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RecordWildCards  #-}
-{-# LANGUAGE ViewPatterns     #-}
 {-
 Copyright (C) 2014-2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -18,7 +15,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
-
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE ViewPatterns     #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Options
    Copyright   : Copyright (C) 2014-2017 Albert Krewinkel
@@ -274,6 +273,7 @@ block = choice [ mempty <$ blanklines
                , figure
                , example
                , genericDrawer
+               , include
                , specialLine
                , horizontalRule
                , list
@@ -716,6 +716,34 @@ exampleCode = B.codeBlockWith ("", ["example"], [])
 
 specialLine :: PandocMonad m => OrgParser m (F Blocks)
 specialLine = fmap return . try $ rawExportLine <|> metaLine <|> commentLine
+
+-- | Include the content of a file.
+include :: PandocMonad m => OrgParser m (F Blocks)
+include = try $ do
+  metaLineStart <* stringAnyCase "include:" <* skipSpaces
+  filename <- includeTarget
+  blockType <- optionMaybe $ skipSpaces *> many1 alphaNum
+  blocksParser <- case blockType of
+                    Just "example" -> do
+                      return $ pure . B.codeBlock <$> parseRaw
+                    Just "export" -> do
+                      format <- skipSpaces *> many (noneOf "\n\r\t ")
+                      return $ pure . B.rawBlock format <$> parseRaw
+                    Just "src" -> do
+                      language <- skipSpaces *> many (noneOf "\n\r\t ")
+                      let attr = (mempty, [language], mempty)
+                      return $ pure . B.codeBlockWith attr <$> parseRaw
+                    _ -> return $ pure . B.fromList <$> blockList
+  anyLine
+  insertIncludedFileF blocksParser ["."] filename
+ where
+  includeTarget :: PandocMonad m => OrgParser m FilePath
+  includeTarget = do
+    char '"'
+    manyTill (noneOf "\n\r\t") (char '"')
+
+  parseRaw :: PandocMonad m => OrgParser m String
+  parseRaw = many anyChar
 
 rawExportLine :: PandocMonad m => OrgParser m Blocks
 rawExportLine = try $ do

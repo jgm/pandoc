@@ -71,6 +71,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , ellipses
   , citeKey
   , gridTableWith
+  , insertIncludedFileF
   -- * Re-exports from Text.Pandoc.Parsec
   , runParser
   , runParserT

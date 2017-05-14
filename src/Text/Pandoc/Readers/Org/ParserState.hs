@@ -66,7 +66,8 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Parsing (HasHeaderMap (..), HasIdentifierList (..),
                             HasLogMessages (..),
                             HasLastStrPosition (..), HasQuoteContext (..),
-                            HasReaderOptions (..), ParserContext (..),
+                            HasReaderOptions (..), HasIncludeFiles (..),
+                            ParserContext (..),
                             QuoteContext (..), SourcePos, Future,
                             askF, asksF, returnF, runF, trimInlinesF)
 
@@ -106,6 +107,7 @@ data OrgParserState = OrgParserState
   , orgStateExportSettings       :: ExportSettings
   , orgStateHeaderMap            :: M.Map Inlines String
   , orgStateIdentifiers          :: Set.Set String
+  , orgStateIncludeFiles         :: [String]
   , orgStateLastForbiddenCharPos :: Maybe SourcePos
   , orgStateLastPreCharPos       :: Maybe SourcePos
   , orgStateLastStrPos           :: Maybe SourcePos
@@ -148,6 +150,12 @@ instance HasLogMessages OrgParserState where
   addLogMessage msg st = st{ orgLogMessages = msg : orgLogMessages st }
   getLogMessages st = reverse $ orgLogMessages st
 
+instance HasIncludeFiles OrgParserState where
+  getIncludeFiles = orgStateIncludeFiles
+  addIncludeFile f st = st { orgStateIncludeFiles = f : orgStateIncludeFiles st }
+  dropLatestIncludeFile st =
+    st { orgStateIncludeFiles = drop 1 $ orgStateIncludeFiles st }
+
 instance Default OrgParserState where
   def = defaultOrgParserState
 
@@ -159,6 +167,7 @@ defaultOrgParserState = OrgParserState
   , orgStateExportSettings = def
   , orgStateHeaderMap = M.empty
   , orgStateIdentifiers = Set.empty
+  , orgStateIncludeFiles = []
   , orgStateLastForbiddenCharPos = Nothing
   , orgStateLastPreCharPos = Nothing
   , orgStateLastStrPos = Nothing

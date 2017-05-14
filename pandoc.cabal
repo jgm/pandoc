@@ -138,6 +138,9 @@ Extra-Source-Files:
                  test/command/abbrevs
                  test/command/sub-file-chapter-1.tex
                  test/command/sub-file-chapter-2.tex
+                 test/command/3510-subdoc.org
+                 test/command/3510-export.latex
+                 test/command/3510-src.hs
                  test/docbook-reader.docbook
                  test/docbook-xref.docbook
                  test/html-reader.html
