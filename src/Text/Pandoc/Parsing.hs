@@ -83,6 +83,7 @@ module Text.Pandoc.Parsing ( anyLine,
                              HasMacros (..),
                              HasLogMessages (..),
                              HasLastStrPosition (..),
+                             HasIncludeFiles (..),
                              defaultParserState,
                              HeaderType (..),
                              ParserContext (..),
@@ -1008,6 +1009,9 @@ class HasReaderOptions st where
   -- default
   getOption  f         = (f . extractReaderOptions) <$> getState
 
+instance HasReaderOptions ParserState where
+  extractReaderOptions = stateOptions
+
 class HasQuoteContext st m where
   getQuoteContext :: (Stream s m t) => ParsecT s st m QuoteContext
   withQuoteContext :: QuoteContext -> ParsecT s st m a -> ParsecT s st m a
@@ -1022,9 +1026,6 @@ instance Monad m => HasQuoteContext ParserState m where
     newState <- getState
     setState newState { stateQuoteContext = oldQuoteContext }
     return result
-
-instance HasReaderOptions ParserState where
-  extractReaderOptions = stateOptions
 
 class HasHeaderMap st where
   extractHeaderMap  :: st -> M.Map Inlines String
@@ -1066,6 +1067,16 @@ class HasLogMessages st where
 instance HasLogMessages ParserState where
   addLogMessage msg st = st{ stateLogMessages = msg : stateLogMessages st }
   getLogMessages st = reverse $ stateLogMessages st
+
+class HasIncludeFiles st where
+  getIncludeFiles :: st -> [String]
+  addIncludeFile :: String -> st -> st
+  dropLatestIncludeFile :: st -> st
+
+instance HasIncludeFiles ParserState where
+  getIncludeFiles = stateContainers
+  addIncludeFile f s = s{ stateContainers = f : stateContainers s }
+  dropLatestIncludeFile s = s { stateContainers = drop 1 $ stateContainers s }
 
 defaultParserState :: ParserState
 defaultParserState =
@@ -1358,17 +1369,19 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
                Nothing -> cls
     kvs'  = filter (\(k,_) -> k /= "id" || k /= "class") kvs
 
-insertIncludedFile :: PandocMonad m
-                   => ParserT String ParserState m Blocks
+-- | Parse content of include file as blocks. Circular includes result in an
+-- @PandocParseError@.
+insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
+                   => ParserT String st m Blocks
                    -> [FilePath] -> FilePath
-                   -> ParserT String ParserState m Blocks
+                   -> ParserT String st m Blocks
 insertIncludedFile blocks dirs f = do
   oldPos <- getPosition
   oldInput <- getInput
-  containers <- stateContainers <$> getState
+  containers <- getIncludeFiles <$> getState
   when (f `elem` containers) $
     throwError $ PandocParseError $ "Include file loop at " ++ show oldPos
-  updateState $ \s -> s{ stateContainers = f : stateContainers s }
+  updateState $ addIncludeFile f
   mbcontents <- readFileFromDirs dirs f
   contents <- case mbcontents of
                    Just s -> return s
@@ -1380,5 +1393,5 @@ insertIncludedFile blocks dirs f = do
   bs <- blocks
   setInput oldInput
   setPosition oldPos
-  updateState $ \s -> s{ stateContainers = drop 1 $ stateContainers s }
+  updateState dropLatestIncludeFile
   return bs
