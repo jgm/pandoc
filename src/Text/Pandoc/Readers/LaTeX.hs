@@ -590,7 +590,7 @@ inlineCommands = M.fromList $
   , ("u", option (str "u") $ try $ tok >>= accent breve)
   , ("i", lit "i")
   , ("\\", linebreak <$ (optional (bracketed inline) *> spaces'))
-  , (",", pure mempty)
+  , (",", lit "\8198")
   , ("@", pure mempty)
   , (" ", lit "\160")
   , ("ps", pure $ str "PS." <> space)
