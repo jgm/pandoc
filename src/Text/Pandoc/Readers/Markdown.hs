@@ -788,14 +788,14 @@ openingDiv = do
   attr' <- option nullAttr $ do
     skipMany spaceChar
     attributes
+  anyLine
   return attr'
 
 closingDiv :: PandocMonad m => MarkdownParser m ()
 closingDiv = do
   string "; ---"
   skipMany spaceChar
-  string "\n"
-  return ()
+  ((char '\n' >> return ()) <|> eof)
 
 divBlockBirdTrack :: PandocMonad m => MarkdownParser m (F Blocks)
 divBlockBirdTrack = try $ do
@@ -807,9 +807,8 @@ divBlockBirdTrack = try $ do
   let lns' = if all (\ln -> null ln || take 1 ln == " ") lns
                 then map (drop 1) lns
                 else lns
-  blanklines
   -- recursively parse lns' we collected
-  bs <- parseFromString parseBlocks (intercalate "\n" lns')
+  bs <- parseFromString parseBlocks (intercalate "\n" lns' ++ "\n")
   return $ B.divWith attr' <$> bs
 
 divBlockBeginEnd :: PandocMonad m => MarkdownParser m (F Blocks)
@@ -817,9 +816,31 @@ divBlockBeginEnd = try $ do
   pos <- getPosition
   when (sourceColumn pos /= 1) $ fail "Not in first column"
   attr' <- openingDiv
-  bs <- manyTill block (try closingDiv)
-  closingDiv
-  return $ B.divWith attr' <$> (mconcat bs)
+  bs <- divCounter 1 --look for closingDiv and count nesting-depth
+  bs' <- parseFromString parseBlocks (intercalate "\n" (init bs) ++ "\n")
+           -- last entry in bs ^^ is the closingDiv, drop it for recursive parsing
+  return $ B.divWith attr' <$> bs'
+
+divCounter :: PandocMonad m => Int -> MarkdownParser m [String]
+divCounter 0 = return []
+divCounter i = do
+  closed <- option False (lookAhead (try closingDiv) >> return True)
+  case closed of
+    True -> do
+      x <- anyLine
+      xs <- divCounter (i-1)
+      return (x:xs)
+    False -> do
+      opening <- option False (lookAhead (try openingDiv) >> return True)
+      case opening of
+        True -> do
+          x <- anyLine
+          xs <- divCounter (i+1)
+          return (x:xs)
+        False -> do
+          x <- anyLine
+          xs <- divCounter i
+          return (x:xs)
 
 divBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 divBlock = divBlockBirdTrack <|> divBlockBeginEnd <?> "divBlock"
