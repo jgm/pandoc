@@ -1,5 +1,5 @@
 {-
-Copyright © 2012-2016 John MacFarlane <jgm@berkeley.edu>
+Copyright © 2012-2017 John MacFarlane <jgm@berkeley.edu>
             2017 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
 This program is free software; you can redistribute it and/or modify
