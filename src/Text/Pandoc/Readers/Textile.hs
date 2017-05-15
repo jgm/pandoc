@@ -586,8 +586,9 @@ link = try $ do
   char ':'
   let stop = if bracketed
                 then char ']'
-                else lookAhead $ space <|>
-                       try (oneOf "!.,;:" *> (space <|> newline))
+                else lookAhead $ space <|> eof' <|>
+                       try (oneOf "!.,;:" *>
+                              (space <|> newline <|> eof'))
   url <- many1Till nonspaceChar stop
   let name' = if B.toList name == [Str "$"] then B.str url else name
   return $ if attr == nullAttr
@@ -728,3 +729,5 @@ groupedInlineMarkup = try $ do
 singleton :: a -> [a]
 singleton x = [x]
 
+eof' :: Monad m => ParserT [Char] s m Char
+eof' = '\n' <$ eof
