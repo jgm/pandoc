@@ -4068,7 +4068,7 @@ Syntax highlighting
 ===================
 
 Pandoc will automatically highlight syntax in [fenced code blocks] that
-are marked with a language name.  The Haskell library [highlighting-kate] is
+are marked with a language name.  The Haskell library [skylighting] is
 used for highlighting, which works in HTML, Docx, Ms, and LaTeX/PDF output.
 To see a list of language names that pandoc will recognize, type
 `pandoc --list-highlight-languages`.
@@ -4081,7 +4081,7 @@ type `pandoc --list-highlight-styles`.
 
 To disable highlighting, use the `--no-highlight` option.
 
-[highlighting-kate]: https://github.com/jgm/highlighting-kate
+[skylighting]: https://github.com/jgm/skylighting
 
 Custom Styles in Docx Output
 ============================
