@@ -36,7 +36,7 @@ after_test:
   - cd windows
   # allow use of > 2GB memory
   # see https://jonathanchang.org/blog/fixing-pandoc-out-of-memory-errors-on-windows/
-  - "%EDITBIN%"\editbin /LARGEADDRESSAWARE "pandoc.exe"
+  - '"%EDITBIN%"\editbin /LARGEADDRESSAWARE "pandoc.exe"'
   - editbin /LARGEADDRESSAWARE "pandoc-citeproc.exe"
   - .\pandoc.exe -s --toc ..\MANUAL.txt -o MANUAL.html
   - .\pandoc.exe -s ..\COPYING.md -o COPYING.rtf
