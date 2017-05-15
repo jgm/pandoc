@@ -22,9 +22,6 @@ install:
 before_test:
   # the stack install already fails without the templates...
   - git submodule update --init
-  # set PATH to where the hsb2hs binary is copied to
-  - cmd: set "PATH=%PATH%;%APPDATA%\\local\\bin"
-  - stack install hsb2hs
 
 test_script:
   # The ugly echo "" hack is to avoid complaints about 0 being an invalid file
