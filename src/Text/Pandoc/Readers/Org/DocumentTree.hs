@@ -164,7 +164,7 @@ headlineToHeaderWithList :: Monad m => Headline -> OrgParser m Blocks
 headlineToHeaderWithList hdln@(Headline {..}) = do
   maxHeadlineLevels <- getExportSetting exportHeadlineLevels
   header        <- headlineToHeader hdln
-  listElements  <- sequence (map headlineToBlocks headlineChildren)
+  listElements  <- mapM headlineToBlocks headlineChildren
   let listBlock  = if null listElements
                    then mempty
                    else B.orderedList listElements
@@ -182,7 +182,7 @@ headlineToHeaderWithList hdln@(Headline {..}) = do
 headlineToHeaderWithContents :: Monad m => Headline -> OrgParser m Blocks
 headlineToHeaderWithContents hdln@(Headline {..}) = do
   header         <- headlineToHeader hdln
-  childrenBlocks <- mconcat <$> sequence (map headlineToBlocks headlineChildren)
+  childrenBlocks <- mconcat <$> mapM headlineToBlocks headlineChildren
   return $ header <> headlineContents <> childrenBlocks
 
 headlineToHeader :: Monad m => Headline -> OrgParser m Blocks

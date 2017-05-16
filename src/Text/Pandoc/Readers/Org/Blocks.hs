@@ -65,7 +65,7 @@ blockList = do
   initialBlocks  <- blocks
   headlines      <- sequence <$> manyTill (headline blocks inline 1) eof
   st             <- getState
-  headlineBlocks <- fmap mconcat . sequence . map headlineToBlocks $ runF headlines st
+  headlineBlocks <- fmap mconcat . mapM headlineToBlocks $ runF headlines st
   return . B.toList $ (runF initialBlocks st) <> headlineBlocks
 
 -- | Get the meta information saved in the state.
