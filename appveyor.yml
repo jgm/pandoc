@@ -4,7 +4,6 @@ environment:
     STACK_ROOT: "c:\\sr"
     STACK_YAML: "c:\\stack\\stack.pkg.yaml"
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
-    EDITBIN: "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin"
 
 cache:
   - "c:\\sr" # stack root, short paths == fewer problems
@@ -34,10 +33,6 @@ test_script:
 after_test:
     # .\ in the stack commandline seems to be .\windows\ (where the stack-appveyor.yaml is)
   - cd windows
-  # allow use of > 2GB memory
-  # see https://jonathanchang.org/blog/fixing-pandoc-out-of-memory-errors-on-windows/
-  - '"%EDITBIN%"\editbin /LARGEADDRESSAWARE "pandoc.exe"'
-  - '"%EDITBIN%"\editbin /LARGEADDRESSAWARE "pandoc-citeproc.exe"'
   - .\pandoc.exe -s --toc ..\MANUAL.txt -o MANUAL.html
   - .\pandoc.exe -s ..\COPYING.md -o COPYING.rtf
   - copy ..\COPYRIGHT COPYRIGHT.txt
