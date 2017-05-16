@@ -281,7 +281,7 @@ anyLineNewline :: T2T String
 anyLineNewline = (++ "\n") <$> anyLine
 
 indentWith :: Int -> T2T String
-indentWith n = count n space
+indentWith n = count n spaceChar
 
 -- Table
 
