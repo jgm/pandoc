@@ -1017,7 +1017,3 @@ listContinuation markerLength = try $
        then count num (char ' ')
        else choice [ try (count num (char ' '))
                    , try (char '\t' >> count (num - tabStop) (char ' ')) ]
-
--- | Parse any line, include the final newline in the output.
-anyLineNewline :: Monad m => OrgParser m String
-anyLineNewline = (++ "\n") <$> anyLine

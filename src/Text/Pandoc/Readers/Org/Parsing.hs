@@ -31,6 +31,7 @@ functions are adapted to Org-mode specific functionality.
 module Text.Pandoc.Readers.Org.Parsing
   ( OrgParser
   , anyLine
+  , anyLineNewline
   , blanklines
   , newline
   , parseFromString

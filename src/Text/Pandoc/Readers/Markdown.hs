@@ -614,7 +614,7 @@ hrule = try $ do
 --
 
 indentedLine :: PandocMonad m => MarkdownParser m String
-indentedLine = indentSpaces >> anyLine >>= return . (++ "\n")
+indentedLine = indentSpaces >> anyLineNewline
 
 blockDelimiter :: PandocMonad m
                => (Char -> Bool)
