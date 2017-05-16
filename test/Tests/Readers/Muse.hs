@@ -219,4 +219,29 @@ tests =
              [plain "", plain ""],
              [plain "bar", plain ""]]
         ]
+    , testGroup "Lists"
+      [ "Bullet list" =:
+         T.unlines
+           [ " - Item1"
+           , ""
+           , " - Item2"
+           ] =?>
+         bulletList [ para "Item1"
+                    , para "Item2"
+                    ]
+      , "Nested list" =:
+         T.unlines
+           [ " - Item1"
+           , "   - Item2"
+           , "   - Item3"
+           , " - Item4"
+           ] =?>
+         bulletList [ mconcat [ para "Item1"
+                              , bulletList [ para "Item2"
+                                           , para "Item3"
+                                           ]
+                              ]
+                    , para "Item4"
+                    ]
+      ]
   ]

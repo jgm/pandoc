@@ -33,7 +33,8 @@ TODO:
 - Page breaks (five "*")
 - Headings with anchors (make it round trip with Muse writer)
 - <verse> and ">"
-- Lists
+- Ordered lists
+- Definition lists
 - Org tables
 - table.el tables
 - Images with attributes (floating and width)
@@ -183,6 +184,7 @@ blockElements = choice [ comment
                        , centerTag
                        , rightTag
                        , quoteTag
+                       , bulletList
                        , table
                        , commentTag
                        , noteBlock
@@ -271,6 +273,58 @@ noteBlock = try $ do
   where
     blocksTillNote =
       many1Till block (eof <|> () <$ lookAhead noteMarker)
+
+--
+-- lists
+--
+
+listLine :: PandocMonad m => Int -> MuseParser m String
+listLine markerLength = try $ do
+  notFollowedBy blankline
+  indentWith markerLength
+  anyLineNewline
+
+withListContext :: PandocMonad m => MuseParser m a -> MuseParser m a
+withListContext p = do
+  state <- getState
+  let oldContext = stateParserContext state
+  setState $ state { stateParserContext = ListItemState }
+  parsed <- p
+  updateState (\st -> st {stateParserContext = oldContext})
+  return parsed
+
+listContinuation :: PandocMonad m => Int -> MuseParser m String
+listContinuation markerLength = try $ do
+  result <- many1 $ listLine markerLength
+  blanks <- many1 blankline
+  return $ concat result ++ blanks
+
+bulletListItems :: PandocMonad m => MuseParser m (F [Blocks])
+bulletListItems = sequence <$> many1 bulletListItem
+
+bulletList :: PandocMonad m => MuseParser m (F Blocks)
+bulletList = do
+  listItems <- bulletListItems
+  return $ B.bulletList <$> listItems
+
+bulletListStart :: PandocMonad m => MuseParser m Int
+bulletListStart = try $ do
+  preWhitespace <- length <$> many spaceChar
+  st <- stateParserContext <$> getState
+  getPosition >>= \pos -> guard (st == ListItemState || sourceColumn pos /= 1)
+  char '-'
+  postWhitespace <- length <$> many1 spaceChar
+  return $ preWhitespace + 1 + postWhitespace
+
+bulletListItem :: PandocMonad m => MuseParser m (F Blocks)
+bulletListItem = try $ do
+  markerLength <- bulletListStart
+  firstLine <- anyLineNewline
+  blank <- option "" ("\n" <$ blankline)
+  restLines <- many $ listLine markerLength
+  let first = firstLine ++ blank ++ concat restLines
+  rest <- many $ listContinuation markerLength
+  parseFromString (withListContext parseBlocks) $ concat (first:rest) ++ "\n"
 
 --
 -- tables
