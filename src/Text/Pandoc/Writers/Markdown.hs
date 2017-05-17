@@ -91,6 +91,7 @@ instance Default WriterEnv
 
 data WriterState = WriterState { stNotes   :: Notes
                                , stRefs    :: Refs
+                               , stKeys    :: Set.Set Key
                                , stIds     :: Set.Set String
                                , stNoteNum :: Int
                                }
@@ -98,6 +99,7 @@ data WriterState = WriterState { stNotes   :: Notes
 instance Default WriterState
   where def = WriterState{ stNotes = []
                          , stRefs = []
+                         , stKeys = Set.empty
                          , stIds = Set.empty
                          , stNoteNum = 1
                          }
@@ -798,19 +800,21 @@ getKey = toKey . render Nothing
 --   Prefer label if possible; otherwise, generate a unique key.
 getReference :: PandocMonad m => Attr -> Doc -> Target -> MD m Doc
 getReference attr label target = do
-  st <- get
-  let keys = map (\(l,_,_) -> getKey l) (stRefs st)
-  case find (\(_,t,a) -> t == target && a == attr) (stRefs st) of
+  refs <- gets stRefs
+  case find (\(_,t,a) -> t == target && a == attr) refs of
     Just (ref, _, _) -> return ref
     Nothing       -> do
-      label' <- case getKey label `elem` keys of
-                  True -> -- label is used; generate numerical label
-                    case find (\n -> Key n `notElem` keys) $
-                         map show [1..(10000 :: Integer)] of
-                      Just x  -> return $ text x
-                      Nothing -> throwError $ PandocSomeError "no unique label"
-                  False -> return label
-      modify (\s -> s{ stRefs = (label', target, attr) : stRefs st })
+      keys <- gets stKeys
+      label' <- if isEmpty label || getKey label `Set.member` keys
+                   then case find (\n -> not (Key n `Set.member` keys)) $
+                           map show [1..(10000 :: Integer)] of
+                         Just x  -> return $ text x
+                         Nothing ->
+                           throwError $ PandocSomeError "no unique label"
+                   else return label
+      modify (\s -> s{ stRefs = (label', target, attr) : stRefs s,
+                       stKeys = Set.insert (getKey label') (stKeys s)
+                     })
       return label'
 
 -- | Convert list of Pandoc inline elements to markdown.
