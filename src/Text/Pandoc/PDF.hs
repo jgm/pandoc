@@ -83,9 +83,9 @@ makePDF :: MonadIO m
         -> m (Either ByteString ByteString)
 makePDF "wkhtmltopdf" writer opts verbosity _ doc@(Pandoc meta _) = liftIO $ do
   let mathArgs = case writerHTMLMathMethod opts of
-                 -- with MathJax, wait til all math is rendered:
-                      MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
-                                    "--window-status", "mathjax_loaded"]
+                 -- with javascript based renderers, wait til all math is rendered:
+                      LaTeXMathML _ , MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
+                                                    "--window-status", "mathjax_loaded"]
                       _ -> []
   meta' <- metaToJSON opts (return . stringify) (return . stringify) meta
   let toArgs (f, mbd) = maybe [] (\d -> ['-':'-':f, d]) mbd
