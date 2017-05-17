@@ -74,7 +74,7 @@ readVimwiki :: PandocMonad m
               -> String        -- ^ String to parse (assuming @'\n'@ line endings)
               -> m Pandoc
 readVimwiki opts s = do
-  parsed <- readWithM parseVimwiki VwState{ vwOptions = opts
+  parsed <- readWithM parseVimwiki VwState{ vwOptions = opts -- readWithM is in Parsing
                                             , vwMaxNestingLevel = 4 
                                             , vwNextLinkNumber  = 1 
                                             , vwCategoryLinks = []
@@ -96,7 +96,7 @@ data VwState = VwState { vwOptions         :: ReaderOptions
                        , vwLogMessages     :: [LogMessage]
                        }
 
-type VwParser m = ParserT [Char] VwState m
+type VwParser m = ParserT [Char] VwState m -- ParserT is alias of ParsecT
 
 instance HasReaderOptions VwState where
   extractReaderOptions = vwOptions
