@@ -277,9 +277,6 @@ listContinuation markerLength = try $
               <*> many blankline)
  where listLine = try $ indentWith markerLength *> anyLineNewline
 
-anyLineNewline :: T2T String
-anyLineNewline = (++ "\n") <$> anyLine
-
 indentWith :: Int -> T2T String
 indentWith n = count n space
 

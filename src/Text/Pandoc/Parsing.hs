@@ -36,6 +36,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 A utility library with parsers used in pandoc readers.
 -}
 module Text.Pandoc.Parsing ( anyLine,
+                             anyLineNewline,
                              many1Till,
                              notFollowedBy',
                              oneOfStrings,
@@ -254,6 +255,10 @@ anyLine = do
          setPosition $ incSourceLine (setSourceColumn pos 1) 1
          return this
        _ -> mzero
+
+-- | Parse any line, include the final newline in the output
+anyLineNewline :: Stream [Char] m Char => ParserT [Char] st m [Char]
+anyLineNewline = (++ "\n") <$> anyLine
 
 -- | Like @manyTill@, but reads at least one item.
 many1Till :: Stream s m t
