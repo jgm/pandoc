@@ -65,7 +65,7 @@ import System.Directory (Permissions (..), doesFileExist, findExecutable,
 import System.Environment (getArgs, getEnvironment, getProgName)
 import System.Exit (ExitCode (..), exitSuccess)
 import System.FilePath
-import System.IO (stdout)
+import System.IO (stdout, nativeNewline, Newline(..))
 import System.IO.Error (isDoesNotExistError)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
@@ -411,6 +411,8 @@ convertWithOpts opts = do
                    return $ ("csl", jatsEncoded) : optMetadata opts
                  else return $ optMetadata opts
 
+  let eol = fromMaybe nativeNewline $ optEol opts
+
   runIO' $ do
     (doc, media) <- withMediaBag $ sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
@@ -463,7 +465,7 @@ convertWithOpts opts = do
                                      else id
                 output <- f writerOptions doc
                 selfcontain (output ++ ['\n' | not standalone]) >>=
-                    writerFn outputFile . handleEntities
+                    writerFn eol outputFile . handleEntities
 
 type Transform = Pandoc -> Pandoc
 
@@ -567,6 +569,7 @@ data Opt = Opt
     , optIncludeBeforeBody     :: [FilePath]       -- ^ Files to include before
     , optIncludeAfterBody      :: [FilePath]       -- ^ Files to include after body
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
+    , optEol                   :: Maybe Newline    -- ^ Enforce line-endings
     }
 
 -- | Defaults for command-line options.
@@ -635,6 +638,7 @@ defaultOpts = Opt
     , optIncludeBeforeBody     = []
     , optIncludeAfterBody      = []
     , optIncludeInHeader       = []
+    , optEol                   = Nothing
     }
 
 addMetadata :: (String, String) -> Pandoc -> Pandoc
@@ -783,9 +787,9 @@ writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
 writeFnBinary "-" = liftIO . B.putStr
 writeFnBinary f   = liftIO . B.writeFile (UTF8.encodePath f)
 
-writerFn :: MonadIO m => FilePath -> String -> m ()
-writerFn "-" = liftIO . UTF8.putStr
-writerFn f   = liftIO . UTF8.writeFile f
+writerFn :: MonadIO m => Newline -> FilePath -> String -> m ()
+writerFn eol "-" = liftIO . UTF8.putStrWith eol
+writerFn eol f   = liftIO . UTF8.writeFileWith eol f
 
 lookupHighlightStyle :: Maybe String -> IO (Maybe Style)
 lookupHighlightStyle Nothing = return Nothing
@@ -957,6 +961,18 @@ options =
                                         "dpi must be a number greater than 0")
                   "NUMBER")
                  "" -- "Dpi (default 96)"
+
+    , Option "" ["eol"]
+                 (ReqArg
+                  (\arg opt ->
+                    case toLower <$> arg of
+                      "crlf" -> return opt { optEol = Just CRLF }
+                      "lf"   -> return opt { optEol = Just LF }
+                      -- mac-syntax (cr) is not supported in ghc-base.
+                      _      -> E.throwIO $ PandocOptionError
+                                "--eol must be one of crlf (Windows), lf (Unix)")
+                  "crlf|lf")
+                 "" -- "EOL (default OS-dependent)"
 
     , Option "" ["wrap"]
                  (ReqArg

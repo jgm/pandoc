@@ -28,11 +28,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 UTF-8 aware string IO functions that will work with GHC 6.10, 6.12, or 7.
 -}
 module Text.Pandoc.UTF8 ( readFile
-                        , writeFile
                         , getContents
+                        , writeFileWith
+                        , writeFile
+                        , putStrWith
                         , putStr
+                        , putStrLnWith
                         , putStrLn
+                        , hPutStrWith
                         , hPutStr
+                        , hPutStrLnWith
                         , hPutStrLn
                         , hGetContents
                         , toString
@@ -61,23 +66,43 @@ readFile f = do
   h <- openFile (encodePath f) ReadMode
   hGetContents h
 
-writeFile :: FilePath -> String -> IO ()
-writeFile f s = withFile (encodePath f) WriteMode $ \h -> hPutStr h s
-
 getContents :: IO String
 getContents = hGetContents stdin
 
+writeFileWith :: Newline -> FilePath -> String -> IO ()
+writeFileWith eol f s =
+  withFile (encodePath f) WriteMode $ \h -> hPutStrWith eol h s
+
+writeFile :: FilePath -> String -> IO ()
+writeFile = writeFileWith nativeNewline
+
+putStrWith :: Newline -> String -> IO ()
+putStrWith eol s = hPutStrWith eol stdout s
+
 putStr :: String -> IO ()
-putStr s = hPutStr stdout s
+putStr = putStrWith nativeNewline
+
+putStrLnWith :: Newline -> String -> IO ()
+putStrLnWith eol s = hPutStrLnWith eol stdout s
 
 putStrLn :: String -> IO ()
-putStrLn s = hPutStrLn stdout s
+putStrLn = putStrLnWith nativeNewline
+
+hPutStrWith :: Newline -> Handle -> String -> IO ()
+hPutStrWith eol h s =
+  hSetNewlineMode h (NewlineMode eol eol) >>
+  hSetEncoding h utf8 >> IO.hPutStr h s
 
 hPutStr :: Handle -> String -> IO ()
-hPutStr h s = hSetEncoding h utf8 >> IO.hPutStr h s
+hPutStr = hPutStrWith nativeNewline
+
+hPutStrLnWith :: Newline -> Handle -> String -> IO ()
+hPutStrLnWith eol h s =
+  hSetNewlineMode h (NewlineMode eol eol) >>
+  hSetEncoding h utf8 >> IO.hPutStrLn h s
 
 hPutStrLn :: Handle -> String -> IO ()
-hPutStrLn h s = hSetEncoding h utf8 >> IO.hPutStrLn h s
+hPutStrLn = hPutStrLnWith nativeNewline
 
 hGetContents :: Handle -> IO String
 hGetContents = fmap toString . B.hGetContents

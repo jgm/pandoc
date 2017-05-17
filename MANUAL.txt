@@ -593,7 +593,14 @@ General writer options
 :   Print a system default data file.  Files in the user data directory
     are ignored.
 
+`--eol=crlf`|`lf`
+
+:   Manually specify line endings: `crlf` (Windows) or `lf`
+    (MacOS/linux/unix).  The default is to use the line endings
+    appropriate for the OS.
+
 `--dpi`=*NUMBER*
+
 :   Specify the dpi (dots per inch) value for conversion from pixels
     to inch/centimeters and vice versa. The default is 96dpi.
     Technically, the correct term would be ppi (pixels per inch).
