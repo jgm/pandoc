@@ -47,7 +47,7 @@ import Data.Typeable (Typeable)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath
 import qualified System.FilePath.Posix as Posix
-import System.IO (stderr)
+import System.IO (stderr, nativeNewline)
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -108,7 +108,7 @@ writeMedia verbose dir (subpath, bs) = do
   -- in zip containers all paths use /
   let fullpath = dir </> normalise subpath
   createDirectoryIfMissing True $ takeDirectory fullpath
-  when verbose $ UTF8.hPutStrLn stderr $ "pandoc: extracting " ++ fullpath
+  when verbose $ UTF8.hPutStrLn stderr nativeNewline $ "pandoc: extracting " ++ fullpath
   BL.writeFile fullpath bs
 
 

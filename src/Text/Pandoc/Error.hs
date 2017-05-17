@@ -41,7 +41,7 @@ import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.Exit (exitWith, ExitCode(..))
-import System.IO (stderr)
+import System.IO (stderr, nativeNewline)
 import Network.HTTP.Client (HttpException)
 
 type Input = String
@@ -105,6 +105,6 @@ handleError (Left e) =
 
 err :: Int -> String -> IO a
 err exitCode msg = do
-  UTF8.hPutStrLn stderr msg
+  UTF8.hPutStrLn stderr nativeNewline msg
   exitWith $ ExitFailure exitCode
   return undefined

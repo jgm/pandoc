@@ -111,7 +111,7 @@ import Control.Monad.RWS (RWST)
 import Data.Word (Word8)
 import Data.Default
 import System.IO.Error
-import System.IO (stderr)
+import System.IO (stderr, nativeNewline)
 import qualified Data.Map as M
 import Text.Pandoc.Error
 
@@ -261,17 +261,17 @@ instance PandocMonad PandocIO where
   getCommonState = PandocIO $ lift get
   putCommonState x = PandocIO $ lift $ put x
   logOutput msg = liftIO $ do
-    UTF8.hPutStr stderr $ "[" ++
+    UTF8.hPutStr stderr nativeNewline $ "[" ++
        (map toLower $ show (messageVerbosity msg)) ++ "] "
     alertIndent $ lines $ showLogMessage msg
 
 alertIndent :: [String] -> IO ()
 alertIndent [] = return ()
 alertIndent (l:ls) = do
-  UTF8.hPutStrLn stderr l
+  UTF8.hPutStrLn stderr nativeNewline l
   mapM_ go ls
-  where go l' = do UTF8.hPutStr stderr "! "
-                   UTF8.hPutStrLn stderr l'
+  where go l' = do UTF8.hPutStr stderr nativeNewline "! "
+                   UTF8.hPutStrLn stderr nativeNewline l'
 
 -- | Specialized version of parseURIReference that disallows
 -- single-letter schemes.  Reason:  these are usually windows absolute
