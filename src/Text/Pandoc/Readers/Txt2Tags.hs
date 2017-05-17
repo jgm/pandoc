@@ -278,7 +278,7 @@ listContinuation markerLength = try $
  where listLine = try $ indentWith markerLength *> anyLineNewline
 
 indentWith :: Int -> T2T String
-indentWith n = count n space
+indentWith n = count n spaceChar
 
 -- Table
 
