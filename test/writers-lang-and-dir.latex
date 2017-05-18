@@ -29,26 +29,6 @@
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
-\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
-  \usepackage[shorthands=off,ngerman,british,nswissgerman,spanish,french,main=english]{babel}
-  \newcommand{\textgerman}[2][]{\foreignlanguage{ngerman}{#2}}
-  \newenvironment{german}[2][]{\begin{otherlanguage}{ngerman}}{\end{otherlanguage}}
-  \newcommand{\textenglish}[2][]{\foreignlanguage{british}{#2}}
-  \newenvironment{english}[2][]{\begin{otherlanguage}{british}}{\end{otherlanguage}}
-  \let\oritextspanish\textspanish
-  \AddBabelHook{spanish}{beforeextras}{\renewcommand{\textspanish}{\oritextspanish}}
-  \AddBabelHook{spanish}{afterextras}{\renewcommand{\textspanish}[2][]{\foreignlanguage{spanish}{##2}}}
-  \newcommand{\textfrench}[2][]{\foreignlanguage{french}{#2}}
-  \newenvironment{french}[2][]{\begin{otherlanguage}{french}}{\end{otherlanguage}}
-\else
-  \usepackage{polyglossia}
-  \setmainlanguage[]{english}
-  \setotherlanguage[]{german}
-  \setotherlanguage[variant=british]{english}
-  \setotherlanguage[variant=swiss]{german}
-  \setotherlanguage[]{spanish}
-  \setotherlanguage[]{french}
-\fi
 \setlength{\emergencystretch}{3em}  % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
@@ -61,6 +41,27 @@
 \ifx\subparagraph\undefined\else
 \let\oldsubparagraph\subparagraph
 \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[shorthands=off,ngerman,british,nswissgerman,spanish,french,main=english]{babel}
+  \newcommand{\textgerman}[2][]{\foreignlanguage{ngerman}{#2}}
+  \newenvironment{german}[2][]{\begin{otherlanguage}{ngerman}}{\end{otherlanguage}}
+  \newcommand{\textenglish}[2][]{\foreignlanguage{british}{#2}}
+  \newenvironment{english}[2][]{\begin{otherlanguage}{british}}{\end{otherlanguage}}
+  \let\oritextspanish\textspanish
+  \AddBabelHook{spanish}{beforeextras}{\renewcommand{\textspanish}{\oritextspanish}}
+  \AddBabelHook{spanish}{afterextras}{\renewcommand{\textspanish}[2][]{\foreignlanguage{spanish}{##2}}}
+  \newcommand{\textfrench}[2][]{\foreignlanguage{french}{#2}}
+  \newenvironment{french}[2][]{\begin{otherlanguage}{french}}{\end{otherlanguage}}
+\else
+  % load polyglossia as late as possible as it *could* call bidi if RTL lang (e.g. Hebrew or Arabic)
+  \usepackage{polyglossia}
+  \setmainlanguage[]{english}
+  \setotherlanguage[]{german}
+  \setotherlanguage[variant=british]{english}
+  \setotherlanguage[variant=swiss]{german}
+  \setotherlanguage[]{spanish}
+  \setotherlanguage[]{french}
 \fi
 \ifxetex
   % load bidi as late as possible as it modifies e.g. graphicx
