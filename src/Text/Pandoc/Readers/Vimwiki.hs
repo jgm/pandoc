@@ -1,711 +1,111 @@
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE RelaxedPolyRec       #-}
-{-# LANGUAGE TypeSynonymInstances #-}
--- RelaxedPolyRec needed for inlinesBetween on GHC < 7
-
-{-
-List of all Vimwiki tags, with [x] indicating implemented,
-[o] meaning intentionally left unimplemented (pass through):
-
- -}
-
-{-
-  Copyright (C) 2012-2015 John MacFarlane <jgm@berkeley.edu>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
--}
-
-{- |
-   Module      : Text.Pandoc.Readers.Vimwiki
-   Copyright   : Copyright (C) 2012-2015 John MacFarlane
-   License     : GNU GPL, version 2 or above
-
-   Maintainer  : John MacFarlane <jgm@berkeley.edu>
-   Stability   : alpha
-   Portability : portable
-
-Conversion of vimwiki text to 'Pandoc' document.
--}
-{-
-TODO:
-_ correctly handle tables within tables
-_ parse templates?
--}
-module Text.Pandoc.Readers.Vimwiki ( readVimwiki ) where
-
-import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isDigit, isSpace)
-import qualified Data.Foldable as F
-import Data.List (intercalate, intersperse, isPrefixOf)
-import qualified Data.Map as M
-import Data.Maybe (fromMaybe)
-import Data.Monoid ((<>))
-import Data.Sequence (ViewL (..), viewl, (<|))
-import qualified Data.Set as Set
-import Text.HTML.TagSoup
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Builder (doc, Blocks, Inlines, toList)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition
-import Text.Pandoc.Logging
-import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (nested)
-import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag)
-import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines, trim)
-import Text.Pandoc.Walk (walk)
-import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.Definition (Pandoc)
+import Text.Pandoc.Logging (LogMessage(ParsingTrace))
+import Text.Pandoc.Options (ReaderOptions, def)
+import Text.Pandoc.Parsing (readWithM, ParserT, stateOptions, ParserState, blanklines)
+import Text.Parsec.Char (spaces)
+import Text.Parsec.Combinator (eof, choice)
+import Text.Parsec.Prim (many, getPosition)
 
--- | Read vimwiki from an input string and return a Pandoc document.
-readVimwiki :: PandocMonad m
-              => ReaderOptions -- ^ Reader options
-              -> String        -- ^ String to parse (assuming @'\n'@ line endings)
-              -> m Pandoc
+readVimwiki :: PandocMonad m => ReaderOptions -> String -> m Pandoc
 readVimwiki opts s = do
-  parsed <- readWithM parseVimwiki VwState{ vwOptions = opts -- readWithM is in Parsing
-                                            , vwMaxNestingLevel = 4 
-                                            , vwNextLinkNumber  = 1 
-                                            , vwCategoryLinks = []
-                                            , vwHeaderMap = M.empty
-                                            , vwIdentifierList = Set.empty
-                                            , vwLogMessages = []
-                                            }
-            (s ++ "\n")
-  case parsed of
-    Right result -> return result
-    Left e       -> throwError e
+  res <- readWithM parseVimwiki def{ stateOptions = opts } (s ++ "\n")
+  case res of
+       Left e -> throwError e
+       Right result -> return result
 
-data VwState = VwState { vwOptions         :: ReaderOptions
-                       , vwMaxNestingLevel :: Int
-                       , vwNextLinkNumber  :: Int
-                       , vwCategoryLinks   :: [Inlines]
-                       , vwHeaderMap       :: M.Map Inlines String
-                       , vwIdentifierList  :: Set.Set String
-                       , vwLogMessages     :: [LogMessage]
-                       }
+type VwParser = ParserT [Char] ParserState
 
-type VwParser m = ParserT [Char] VwState m -- ParserT is alias of ParsecT
-
-instance HasReaderOptions VwState where
-  extractReaderOptions = vwOptions
-
-instance HasHeaderMap VwState where
-  extractHeaderMap     = vwHeaderMap
-  updateHeaderMap f st = st{ vwHeaderMap = f $ vwHeaderMap st }
-
-instance HasIdentifierList VwState where
-  extractIdentifierList     = vwIdentifierList
-  updateIdentifierList f st = st{ vwIdentifierList = f $ vwIdentifierList st }
-
-instance HasLogMessages VwState where
-  addLogMessage m s = s{ vwLogMessages = m : vwLogMessages s }
-  getLogMessages = reverse . vwLogMessages
-
---
--- auxiliary functions
---
-
--- This is used to prevent exponential blowups for things like:
--- ''a'''a''a'''a''a'''a''a'''a
-nested :: PandocMonad m => VwParser m a -> VwParser m a
-nested p = do
-  nestlevel <- vwMaxNestingLevel `fmap` getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ vwMaxNestingLevel = vwMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ vwMaxNestingLevel = nestlevel }
-  return res
-
-specialChars :: [Char]
-specialChars = "'[]<=&*{}|\":\\"
-
-spaceChars :: [Char]
-spaceChars = " \n\t"
-
-sym :: PandocMonad m => String -> VwParser m ()
-sym s = () <$ try (string s)
-
-newBlockTags :: [String]
-newBlockTags = ["haskell","syntaxhighlight","source","gallery","references"]
-
-isBlockTag' :: Tag String -> Bool
-isBlockTag' tag@(TagOpen t _) = (isBlockTag tag || t `elem` newBlockTags) &&
-  t `notElem` eitherBlockOrInline
-isBlockTag' tag@(TagClose t) = (isBlockTag tag || t `elem` newBlockTags) &&
-  t `notElem` eitherBlockOrInline
-isBlockTag' tag = isBlockTag tag
-
-isInlineTag' :: Tag String -> Bool
-isInlineTag' (TagComment _) = True
-isInlineTag' t              = not (isBlockTag' t)
-
-eitherBlockOrInline :: [String]
-eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
-                               "map", "area", "object"]
-
-htmlComment :: PandocMonad m => VwParser m ()
-htmlComment = () <$ htmlTag isCommentTag
-
-inlinesInTags :: PandocMonad m => String -> VwParser m Inlines
-inlinesInTags tag = try $ do
-  (_,raw) <- htmlTag (~== TagOpen tag [])
-  if '/' `elem` raw   -- self-closing tag
-     then return mempty
-     else trimInlines . mconcat <$>
-            manyTill inline (htmlTag (~== TagClose tag))
-
-blocksInTags :: PandocMonad m => String -> VwParser m Blocks
-blocksInTags tag = try $ do
-  (_,raw) <- htmlTag (~== TagOpen tag [])
-  let closer = if tag == "li"
-                  then htmlTag (~== TagClose "li")
-                     <|> lookAhead (
-                              htmlTag (~== TagOpen "li" [])
-                          <|> htmlTag (~== TagClose "ol")
-                          <|> htmlTag (~== TagClose "ul"))
-                  else htmlTag (~== TagClose tag)
-  if '/' `elem` raw   -- self-closing tag
-     then return mempty
-     else mconcat <$> manyTill block closer
-
-charsInTags :: PandocMonad m => String -> VwParser m [Char]
-charsInTags tag = try $ do
-  (_,raw) <- htmlTag (~== TagOpen tag [])
-  if '/' `elem` raw   -- self-closing tag
-     then return ""
-     else manyTill anyChar (htmlTag (~== TagClose tag))
-
---
 -- main parser
---
 
-parseVimwiki :: PandocMonad m => VwParser m Pandoc -- `Pandoc` is defined in Text.Pandoc.Definition as Pandoc Meta [Block], where Meta are Metadata, and Block is block element.
+parseVimwiki :: PandocMonad m => VwParser m Pandoc
 parseVimwiki = do
   bs <- mconcat <$> many block
   spaces
   eof
-  categoryLinks <- reverse . vwCategoryLinks <$> getState
-  let categories = if null categoryLinks
-                      then mempty
-                      else B.para $ mconcat $ intersperse B.space categoryLinks
-  reportLogMessages
-  return $ B.doc $ bs <> categories
+  return $ doc bs
 
---
--- block parsers
---
+-- block parser
 
 block :: PandocMonad m => VwParser m Blocks
 block = do
   pos <- getPosition
-  res <- mempty <$ skipMany1 blankline
-     <|> table
-     <|> header
-     <|> hrule
-     <|> orderedList
-     <|> bulletList
-     <|> definitionList
-     <|> mempty <$ try (spaces *> htmlComment)
-     <|> preformatted
-     <|> blockTag
-     <|> (B.rawBlock "vimwiki" <$> template)
-     <|> para
-  report $ ParsingTrace (take 60 $ show $ B.toList res) pos
+  res <- choice [ mempty <$ blanklines
+                , header
+                , bulletList
+                , orderedList
+                , hrule
+                , table
+                , blockQuote
+                , para
+                , preformatted
+                , blockMath
+                ]
+  report $ ParsingTrace (take 60 $ show $ toList res) pos
   return res
 
-para :: PandocMonad m => VwParser m Blocks
-para = do
-  contents <- trimInlines . mconcat <$> many1 inline
-  if F.all (==Space) contents
-     then return mempty
-     else return $ B.para contents
-
-table :: PandocMonad m => VwParser m Blocks
-table = do
-  tableStart
-  styles <- option [] parseAttrs
-  skipMany spaceChar
-  optional blanklines
-  let tableWidth = case lookup "width" styles of
-                         Just w  -> fromMaybe 1.0 $ parseWidth w
-                         Nothing -> 1.0
-  caption <- option mempty tableCaption
-  optional rowsep
-  hasheader <- option False $ True <$ (lookAhead (skipSpaces *> char '!'))
-  (cellspecs',hdr) <- unzip <$> tableRow
-  let widths = map ((tableWidth *) . snd) cellspecs'
-  let restwidth = tableWidth - sum widths
-  let zerocols = length $ filter (==0.0) widths
-  let defaultwidth = if zerocols == 0 || zerocols == length widths
-                        then 0.0
-                        else restwidth / fromIntegral zerocols
-  let widths' = map (\w -> if w == 0 then defaultwidth else w) widths
-  let cellspecs = zip (map fst cellspecs') widths'
-  rows' <- many $ try $ rowsep *> (map snd <$> tableRow)
-  optional blanklines
-  tableEnd
-  let cols = length hdr
-  let (headers,rows) = if hasheader
-                          then (hdr, rows')
-                          else (replicate cols mempty, hdr:rows')
-  return $ B.table caption cellspecs headers rows
-
-parseAttrs :: PandocMonad m => VwParser m [(String,String)]
-parseAttrs = many1 parseAttr
-
-parseAttr :: PandocMonad m => VwParser m (String, String)
-parseAttr = try $ do
-  skipMany spaceChar
-  k <- many1 letter
-  char '='
-  v <- (char '"' >> many1Till (satisfy (/='\n')) (char '"'))
-       <|> many1 (satisfy $ \c -> not (isSpace c) && c /= '|')
-  return (k,v)
-
-tableStart :: PandocMonad m => VwParser m ()
-tableStart = try $ guardColumnOne *> skipSpaces *> sym "{|"
-
-tableEnd :: PandocMonad m => VwParser m ()
-tableEnd = try $ guardColumnOne *> skipSpaces *> sym "|}"
-
-rowsep :: PandocMonad m => VwParser m ()
-rowsep = try $ guardColumnOne *> skipSpaces *> sym "|-" <*
-               many (char '-') <* optional parseAttr <* blanklines
-
-cellsep :: PandocMonad m => VwParser m ()
-cellsep = try $ do
-  skipSpaces
-  (char '|' *> notFollowedBy (oneOf "-}+") *> optional (char '|'))
-    <|> (char '!' *> optional (char '!'))
-
-tableCaption :: PandocMonad m => VwParser m Inlines
-tableCaption = try $ do
-  guardColumnOne
-  skipSpaces
-  sym "|+"
-  optional (try $ parseAttr *> skipSpaces *> char '|' *> skipSpaces)
-  (trimInlines . mconcat) <$> many (notFollowedBy (cellsep <|> rowsep) *> inline)
-
-tableRow :: PandocMonad m => VwParser m [((Alignment, Double), Blocks)]
-tableRow = try $ skipMany htmlComment *> many tableCell
-
-tableCell :: PandocMonad m => VwParser m ((Alignment, Double), Blocks)
-tableCell = try $ do
-  cellsep
-  skipMany spaceChar
-  attrs <- option [] $ try $ parseAttrs <* skipSpaces <* char '|' <*
-                                 notFollowedBy (char '|')
-  skipMany spaceChar
-  pos' <- getPosition
-  ls <- concat <$> many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *>
-                     ((snd <$> withRaw table) <|> count 1 anyChar))
-  bs <- parseFromString (do setPosition pos'
-                            mconcat <$> many block) ls
-  let align = case lookup "align" attrs of
-                    Just "left"   -> AlignLeft
-                    Just "right"  -> AlignRight
-                    Just "center" -> AlignCenter
-                    _             -> AlignDefault
-  let width = case lookup "width" attrs of
-                    Just xs -> fromMaybe 0.0 $ parseWidth xs
-                    Nothing -> 0.0
-  return ((align, width), bs)
-
-parseWidth :: String -> Maybe Double
-parseWidth s =
-  case reverse s of
-       ('%':ds) | all isDigit ds -> safeRead ('0':'.':reverse ds)
-       _        -> Nothing
-
-template :: PandocMonad m => VwParser m String
-template = try $ do
-  string "{{"
-  notFollowedBy (char '{')
-  lookAhead $ letter <|> digit <|> char ':'
-  let chunk = template <|> variable <|> many1 (noneOf "{}") <|> count 1 anyChar
-  contents <- manyTill chunk (try $ string "}}")
-  return $ "{{" ++ concat contents ++ "}}"
-
-blockTag :: PandocMonad m => VwParser m Blocks
-blockTag = do
-  (tag, _) <- lookAhead $ htmlTag isBlockTag'
-  case tag of
-      TagOpen "blockquote" _ -> B.blockQuote <$> blocksInTags "blockquote"
-      TagOpen "pre" _ -> B.codeBlock . trimCode <$> charsInTags "pre"
-      TagOpen "syntaxhighlight" attrs -> syntaxhighlight "syntaxhighlight" attrs
-      TagOpen "source" attrs -> syntaxhighlight "source" attrs
-      TagOpen "haskell" _ -> B.codeBlockWith ("",["haskell"],[]) . trimCode <$>
-                                charsInTags "haskell"
-      TagOpen "gallery" _ -> blocksInTags "gallery"
-      TagOpen "p" _ -> mempty <$ htmlTag (~== tag)
-      TagClose "p"  -> mempty <$ htmlTag (~== tag)
-      _ -> B.rawBlock "html" . snd <$> htmlTag (~== tag)
-
-trimCode :: String -> String
-trimCode ('\n':xs) = stripTrailingNewlines xs
-trimCode xs        = stripTrailingNewlines xs
-
-syntaxhighlight :: PandocMonad m => String -> [Attribute String] -> VwParser m Blocks
-syntaxhighlight tag attrs = try $ do
-  let mblang = lookup "lang" attrs
-  let mbstart = lookup "start" attrs
-  let mbline = lookup "line" attrs
-  let classes = maybe [] (:[]) mblang ++ maybe [] (const ["numberLines"]) mbline
-  let kvs = maybe [] (\x -> [("startFrom",x)]) mbstart
-  contents <- charsInTags tag
-  return $ B.codeBlockWith ("",classes,kvs) $ trimCode contents
-
-hrule :: PandocMonad m => VwParser m Blocks
-hrule = B.horizontalRule <$ try (string "----" *> many (char '-') *> newline)
-
-guardColumnOne :: PandocMonad m => VwParser m ()
-guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
-
-preformatted :: PandocMonad m => VwParser m Blocks
-preformatted = try $ do
-  guardColumnOne
-  char ' '
-  let endline' = B.linebreak <$ (try $ newline <* char ' ')
-  let whitespace' = B.str <$> many1 ('\160' <$ spaceChar)
-  let spToNbsp ' ' = '\160'
-      spToNbsp x   = x
-  let nowiki' = mconcat . intersperse B.linebreak . map B.str .
-                lines . fromEntities . map spToNbsp <$> try
-                  (htmlTag (~== TagOpen "nowiki" []) *>
-                   manyTill anyChar (htmlTag (~== TagClose "nowiki")))
-  let inline' = whitespace' <|> endline' <|> nowiki'
-                  <|> (try $ notFollowedBy newline *> inline)
-  contents <- mconcat <$> many1 inline'
-  let spacesStr (Str xs) = all isSpace xs
-      spacesStr _        = False
-  if F.all spacesStr contents
-     then return mempty
-     else return $ B.para $ encode contents
-
-encode :: Inlines -> Inlines
-encode = B.fromList . normalizeCode . B.toList . walk strToCode
-  where strToCode (Str s) = Code ("",[],[]) s
-        strToCode Space   = Code ("",[],[]) " "
-        strToCode  x      = x
-        normalizeCode []  = []
-        normalizeCode (Code a1 x : Code a2 y : zs) | a1 == a2 =
-          normalizeCode $ (Code a1 (x ++ y)) : zs
-        normalizeCode (x:xs) = x : normalizeCode xs
-
 header :: PandocMonad m => VwParser m Blocks
-header = try $ do
-  guardColumnOne
-  eqs <- many1 (char '=')
-  let lev = length eqs
-  guard $ lev <= 6
-  contents <- trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
-  attr <- registerHeader nullAttr contents
-  return $ B.headerWith attr lev contents
-
 bulletList :: PandocMonad m => VwParser m Blocks
-bulletList = B.bulletList <$>
-   (   many1 (listItem '*')
-   <|> (htmlTag (~== TagOpen "ul" []) *> spaces *> many (listItem '*' <|> li) <*
-        optional (htmlTag (~== TagClose "ul"))) )
-
 orderedList :: PandocMonad m => VwParser m Blocks
-orderedList =
-       (B.orderedList <$> many1 (listItem '#'))
-   <|> try
-       (do (tag,_) <- htmlTag (~== TagOpen "ol" [])
-           spaces
-           items <- many (listItem '#' <|> li)
-           optional (htmlTag (~== TagClose "ol"))
-           let start = fromMaybe 1 $ safeRead $ fromAttrib "start" tag
-           return $ B.orderedListWith (start, DefaultStyle, DefaultDelim) items)
+hrule :: PandocMonad m => VwParser m Blocks
+table :: PandocMonad m => VwParser m Blocks
+para :: PandocMonad m => VwParser m Blocks
+blockQuote :: PandocMonad m => VwParser m Blocks
+preformatted :: PandocMonad m => VwParser m Blocks
+blockMath :: PandocMonad m => VwParser m Blocks
 
-definitionList :: PandocMonad m => VwParser m Blocks
-definitionList = B.definitionList <$> many1 defListItem
+header = undefined
+bulletList = undefined
+orderedList = undefined
+hrule = undefined
+table = undefined
+blockQuote = undefined
+para = undefined
+preformatted = undefined
+blockMath = undefined
 
-defListItem :: PandocMonad m => VwParser m (Inlines, [Blocks])
-defListItem = try $ do
-  terms <- mconcat . intersperse B.linebreak <$> many defListTerm
-  -- we allow dd with no dt, or dt with no dd
-  defs  <- if B.isNull terms
-              then notFollowedBy
-                    (try $ skipMany1 (char ':') >> string "<math>") *>
-                       many1 (listItem ':')
-              else many (listItem ':')
-  return (terms, defs)
-
-defListTerm  :: PandocMonad m => VwParser m Inlines
-defListTerm = do
-  guardColumnOne
-  char ';'
-  skipMany spaceChar
-  pos' <- getPosition
-  anyLine >>= parseFromString (do setPosition pos'
-                                  trimInlines . mconcat <$> many inline)
-
-listStart :: PandocMonad m => Char -> VwParser m ()
-listStart c = char c *> notFollowedBy listStartChar
-
-listStartChar :: PandocMonad m => VwParser m Char
-listStartChar = oneOf "*#;:"
-
-anyListStart :: PandocMonad m => VwParser m Char
-anyListStart = guardColumnOne >> oneOf "*#:;"
-
-li :: PandocMonad m => VwParser m Blocks
-li = lookAhead (htmlTag (~== TagOpen "li" [])) *>
-     (firstParaToPlain <$> blocksInTags "li") <* spaces
-
-listItem :: PandocMonad m => Char -> VwParser m Blocks
-listItem c = try $ do
-  guardColumnOne
-  extras <- many (try $ char c <* lookAhead listStartChar)
-  if null extras
-     then listItem' c
-     else do
-       skipMany spaceChar
-       pos' <- getPosition
-       first <- concat <$> manyTill listChunk newline
-       rest <- many
-                (try $ string extras *> lookAhead listStartChar *>
-                       (concat <$> manyTill listChunk newline))
-       contents <- parseFromString (do setPosition pos'
-                                       many1 $ listItem' c)
-                          (unlines (first : rest))
-       case c of
-           '*' -> return $ B.bulletList contents
-           '#' -> return $ B.orderedList contents
-           ':' -> return $ B.definitionList [(mempty, contents)]
-           _   -> mzero
-
--- The point of this is to handle stuff like
--- * {{cite book
--- | blah
--- | blah
--- }}
--- * next list item
--- which seems to be valid vimwiki.
-listChunk :: PandocMonad m => VwParser m String
-listChunk = template <|> count 1 anyChar
-
-listItem' :: PandocMonad m => Char -> VwParser m Blocks
-listItem' c = try $ do
-  listStart c
-  skipMany spaceChar
-  pos' <- getPosition
-  first <- concat <$> manyTill listChunk newline
-  rest <- many (try $ char c *> lookAhead listStartChar *>
-                   (concat <$> manyTill listChunk newline))
-  parseFromString (do setPosition pos'
-                      firstParaToPlain . mconcat <$> many1 block)
-      $ unlines $ first : rest
-
-firstParaToPlain :: Blocks -> Blocks
-firstParaToPlain contents =
-  case viewl (B.unMany contents) of
-       (Para xs) :< ys -> B.Many $ (Plain xs) <| ys
-       _               -> contents
-
---
--- inline parsers
---
+-- inline parser
 
 inline :: PandocMonad m => VwParser m Inlines
-inline =  whitespace
-      <|> url
-      <|> str
-      <|> doubleQuotes
-      <|> strong
-      <|> emph
-      <|> strikeout
-      <|> image
-      <|> internalLink
-      <|> externalLink
-      <|> math
-      <|> inlineTag
-      <|> B.singleton <$> charRef
-      <|> inlineHtml
-      <|> (B.rawInline "vimwiki" <$> variable)
-      <|> (B.rawInline "vimwiki" <$> template)
-      <|> special
-
-str :: PandocMonad m => VwParser m Inlines
-str = B.str <$> many1 (noneOf $ specialChars ++ spaceChars)
-
-math :: PandocMonad m => VwParser m Inlines
-math = (B.displayMath . trim <$> try (many1 (char ':') >> charsInTags "math"))
-   <|> (B.math . trim <$> charsInTags "math")
-   <|> (B.displayMath . trim <$> try (dmStart *> manyTill anyChar dmEnd))
-   <|> (B.math . trim <$> try (mStart *> manyTill (satisfy (/='\n')) mEnd))
- where dmStart = string "\\["
-       dmEnd   = try (string "\\]")
-       mStart  = string "\\("
-       mEnd    = try (string "\\)")
-
-variable :: PandocMonad m => VwParser m String
-variable = try $ do
-  string "{{{"
-  contents <- manyTill anyChar (try $ string "}}}")
-  return $ "{{{" ++ contents ++ "}}}"
-
-inlineTag :: PandocMonad m => VwParser m Inlines
-inlineTag = do
-  (tag, _) <- lookAhead $ htmlTag isInlineTag'
-  case tag of
-       TagOpen "ref" _ -> B.note . B.plain <$> inlinesInTags "ref"
-       TagOpen "nowiki" _ -> try $ do
-          (_,raw) <- htmlTag (~== tag)
-          if '/' `elem` raw
-             then return mempty
-             else B.text . fromEntities <$>
-                       manyTill anyChar (htmlTag (~== TagClose "nowiki"))
-       TagOpen "br" _ -> B.linebreak <$ (htmlTag (~== TagOpen "br" []) -- will get /> too
-                            *> optional blankline)
-       TagOpen "strike" _ -> B.strikeout <$> inlinesInTags "strike"
-       TagOpen "del" _ -> B.strikeout <$> inlinesInTags "del"
-       TagOpen "sub" _ -> B.subscript <$> inlinesInTags "sub"
-       TagOpen "sup" _ -> B.superscript <$> inlinesInTags "sup"
-       TagOpen "code" _ -> encode <$> inlinesInTags "code"
-       TagOpen "tt" _ -> encode <$> inlinesInTags "tt"
-       TagOpen "hask" _ -> B.codeWith ("",["haskell"],[]) <$> charsInTags "hask"
-       _ -> B.rawInline "html" . snd <$> htmlTag (~== tag)
-
-special :: PandocMonad m => VwParser m Inlines
-special = B.str <$> count 1 (notFollowedBy' (htmlTag isBlockTag') *>
-                             oneOf specialChars)
-
-inlineHtml :: PandocMonad m => VwParser m Inlines
-inlineHtml = B.rawInline "html" . snd <$> htmlTag isInlineTag'
+inline = choice [ whitespace
+                , bareURL
+                , bold
+                , italic
+                , strikeout
+                , code
+                , intLink -- handles anchors, links with or without descriptions, loca dirs, links with thumbnails
+                , extLink -- handles file, local etc.
+                , image
+                , inlineMath
+                , comment
+                , tag
+                ]
 
 whitespace :: PandocMonad m => VwParser m Inlines
-whitespace = B.space <$ (skipMany1 spaceChar <|> htmlComment)
-         <|> B.softbreak <$ endline
-
-endline :: PandocMonad m => VwParser m ()
-endline = () <$ try (newline <*
-                     notFollowedBy spaceChar <*
-                     notFollowedBy newline <*
-                     notFollowedBy' hrule <*
-                     notFollowedBy tableStart <*
-                     notFollowedBy' header <*
-                     notFollowedBy anyListStart)
-
-imageIdentifiers :: PandocMonad m => [VwParser m ()]
-imageIdentifiers = [sym (identifier ++ ":") | identifier <- identifiers]
-    where identifiers = ["File", "Image", "Archivo", "Datei", "Fichier",
-                         "Bild"]
-
+bareURL :: PandocMonad m => VwParser m Inlines
+bold :: PandocMonad m => VwParser m Inlines
+italic :: PandocMonad m => VwParser m Inlines
+strikeout :: PandocMonad m => VwParser m Inlines
+code :: PandocMonad m => VwParser m Inlines
+intLink :: PandocMonad m => VwParser m Inlines
+extLink :: PandocMonad m => VwParser m Inlines
 image :: PandocMonad m => VwParser m Inlines
-image = try $ do
-  sym "[["
-  choice imageIdentifiers
-  fname <- addUnderscores <$> many1 (noneOf "|]")
-  _ <- many imageOption
-  dims <- try (char '|' *> (sepBy (many digit) (char 'x')) <* string "px")
-          <|> return []
-  _ <- many imageOption
-  let kvs = case dims of
-              w:[]     -> [("width", w)]
-              w:(h:[]) -> [("width", w), ("height", h)]
-              _        -> []
-  let attr = ("", [], kvs)
-  caption <-   (B.str fname <$ sym "]]")
-           <|> try (char '|' *> (mconcat <$> manyTill inline (sym "]]")))
-  return $ B.imageWith attr fname ("fig:" ++ stringify caption) caption
+inlineMath :: PandocMonad m => VwParser m Inlines
+comment :: PandocMonad m => VwParser m Inlines
+tag :: PandocMonad m => VwParser m Inlines
 
-imageOption :: PandocMonad m => VwParser m String
-imageOption = try $ char '|' *> opt
-  where
-    opt = try (oneOfStrings [ "border", "thumbnail", "frameless"
-                            , "thumb", "upright", "left", "right"
-                            , "center", "none", "baseline", "sub"
-                            , "super", "top", "text-top", "middle"
-                            , "bottom", "text-bottom" ])
-      <|> try (string "frame")
-      <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
+whitespace  = undefined
+bareURL  = undefined
+bold  = undefined
+italic  = undefined
+strikeout  = undefined
+code  = undefined
+intLink  = undefined
+extLink  = undefined
+image  = undefined
+inlineMath  = undefined
+comment  = undefined
+tag  = undefined
 
-collapseUnderscores :: String -> String -- used in addUnderscores, which is in turn used to add underscores in links
-collapseUnderscores []           = []
-collapseUnderscores ('_':'_':xs) = collapseUnderscores ('_':xs)
-collapseUnderscores (x:xs)       = x : collapseUnderscores xs
-
-addUnderscores :: String -> String
-addUnderscores = collapseUnderscores . intercalate "_" . words
-
-internalLink :: PandocMonad m => VwParser m Inlines
-internalLink = try $ do
-  sym "[["
-  pagename <- unwords . words <$> many (noneOf "|]")
-  label <- option (B.text pagename) $ char '|' *>
-             (  (mconcat <$> many1 (notFollowedBy (char ']') *> inline))
-             -- the "pipe trick"
-             -- [[Help:Contents|] -> "Contents"
-             <|> (return $ B.text $ drop 1 $ dropWhile (/=':') pagename) )
-  sym "]]"
-  linktrail <- B.text <$> many letter
-  let link = B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
-  if "Category:" `isPrefixOf` pagename
-     then do
-       updateState $ \st -> st{ vwCategoryLinks = link : vwCategoryLinks st }
-       return mempty
-     else return link
-
-externalLink :: PandocMonad m => VwParser m Inlines
-externalLink = try $ do
-  char '['
-  (_, src) <- uri
-  lab <- try (trimInlines . mconcat <$>
-              (skipMany1 spaceChar *> manyTill inline (char ']')))
-       <|> do char ']'
-              num <- vwNextLinkNumber <$> getState
-              updateState $ \st -> st{ vwNextLinkNumber = num + 1 }
-              return $ B.str $ show num
-  return $ B.link src "" lab
-
-url :: PandocMonad m => VwParser m Inlines
-url = do
-  (orig, src) <- uri
-  return $ B.link src "" (B.str orig)
-
--- | Parses a list of inlines between start and end delimiters.
-inlinesBetween :: (PandocMonad m, Show b) => VwParser m a -> VwParser m b -> VwParser m Inlines
-inlinesBetween start end =
-  (trimInlines . mconcat) <$> try (start >> many1Till inner end)
-    where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)
-          innerSpace = try $ whitespace <* notFollowedBy' end
-
--- In the following sym should all be replaceable by string, because this is how it is done in Markdown.hs and sym is already defined as try $ string
--- so I have changed the sym to string
-
-strikeout :: PandocMonad  m => VwParser m Inlines -- strikeout fails on both "~~" and "&"
-strikeout = B.strikeout <$> nested (inlinesBetween start end) 
-    where start = string "~~" >> lookAhead nonspaceChar
-          end   = try $ string "~~"
-
-emph :: PandocMonad m => VwParser m Inlines -- Italics, ''i'', changing to "_" does not work, but changing to "&" works
-emph = B.emph <$> nested (inlinesBetween start end)
-    where start = string "_" >> lookAhead nonspaceChar
-          end   = try $ string "_"
-    --where start = string "''" >> lookAhead nonspaceChar
-          --end   = try $ notFollowedBy' (() <$ strong) >> string "''"
-
-strong :: PandocMonad m => VwParser m Inlines -- bold, '''b'''
-strong = B.strong <$> nested (inlinesBetween start end)
-    where start = string "*" >> lookAhead nonspaceChar
-          end   = try $ string "*"
-
-doubleQuotes :: PandocMonad m => VwParser m Inlines
-doubleQuotes = B.doubleQuoted <$> nested (inlinesBetween openDoubleQuote closeDoubleQuote)
-    where openDoubleQuote = sym "\"" >> lookAhead nonspaceChar
-          closeDoubleQuote = try $ sym "\""
