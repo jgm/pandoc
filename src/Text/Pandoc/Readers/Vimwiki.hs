@@ -191,7 +191,7 @@ charsInTags tag = try $ do
 -- main parser
 --
 
-parseVimwiki :: PandocMonad m => VwParser m Pandoc
+parseVimwiki :: PandocMonad m => VwParser m Pandoc -- `Pandoc` is defined in Text.Pandoc.Definition as Pandoc Meta [Block], where Meta are Metadata, and Block is block element.
 parseVimwiki = do
   bs <- mconcat <$> many block
   spaces
