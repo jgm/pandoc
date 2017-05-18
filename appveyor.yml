@@ -4,6 +4,9 @@ environment:
     STACK_ROOT: "c:\\sr"
     STACK_YAML: "c:\\stack\\stack.pkg.yaml"
     WIXBIN: "c:\\Program Files (x86)\\WiX Toolset v3.10\\bin"
+  matrix:
+    STACK_VERSION: windows-i386
+    STACK_VERSION: windows-x86_64
 
 cache:
   - "c:\\sr" # stack root, short paths == fewer problems
@@ -16,7 +19,7 @@ build: off
 install:
   - '"%WIXBIN%"\candle -? || choco install wixtoolset'
   - |
-      stack --version || curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386 && 7z x stack.zip stack.exe
+      stack --version || curl -ostack.zip -L --insecure http://www.stackage.org/stack/%STACK_VERSION% && 7z x stack.zip stack.exe
   - stack setup > nul
 
 before_test:
